@@ -39,7 +39,7 @@ type
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
-    function TranslateFldType(res : PPGresult; Tuple : integer; var Size : integer) : TFieldType;
+    function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
   protected
     procedure DoInternalConnect; override;
@@ -89,7 +89,7 @@ type
 
 implementation
 
-uses math, strutils;
+uses math, strutils, FmtBCD;
 
 ResourceString
   SErrRollbackFailed = 'Rollback transaction failed';
@@ -382,7 +382,8 @@ begin
 
 end;
 
-function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; var Size : integer) : TFieldType;
+function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
+const VARHDRSZ=sizeof(longint);
 var li : longint;
 begin
   Size := 0;
@@ -397,7 +398,7 @@ begin
                                if li = -1 then
                                  size := dsMaxStringSize
                                else
-                                 size := (li-4) and $FFFF;
+                                 size := (li-VARHDRSZ) and $FFFF;
                                end;
                              if size > dsMaxStringSize then size := dsMaxStringSize;
                              end;
@@ -421,11 +422,11 @@ begin
                                size := 4 // No information about the size available, use the maximum value
                              else
                              // The precision is the high 16 bits, the scale the
-                             // low 16 bits. Both with an offset of 4.
-                             // In this case we need the scale:
+                             // low 16 bits with an offset of sizeof(int32).
                                begin
-                               size := (li-4) and $FFFF;
-                               if size > 4 then size:=4; //ftBCD allows max.scale 4, when ftFmtBCD will be implemented then use it
+                               size := (li-VARHDRSZ) and $FFFF;
+                               if (size > MaxBCDScale) or ((li shr 16)-size > MaxBCDPrecision-MaxBCDScale) then
+                                 Result := ftFmtBCD;
                                end;
                              end;
     Oid_Money              : Result := ftCurrency;
@@ -613,7 +614,9 @@ begin
                 cash:=NtoBE(round(AParams[i].AsCurrency*100));
                 setlength(s, sizeof(cash));
                 Move(cash, s[1], sizeof(cash));
-              end
+              end;
+            ftFmtBCD:
+              s := BCDToStr(AParams[i].AsFMTBCD, FSQLFormatSettings);
             else
               s := AParams[i].AsString;
           end; {case}
@@ -712,6 +715,8 @@ end;
 
 function TPQConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
+const NBASE=10000;
+
 type TNumericRecord = record
        Digits : SmallInt;
        Weight : SmallInt;
@@ -720,15 +725,15 @@ type TNumericRecord = record
      end;
 
 var
-  x,i           : integer;
+  x,i,j         : integer;
   s             : string;
   li            : Longint;
   CurrBuff      : pchar;
-  tel           : byte;
   dbl           : pdouble;
   cur           : currency;
   NumericRecord : ^TNumericRecord;
   guid          : TGUID;
+  bcd           : TBCD;
 
 begin
   Createblob := False;
@@ -760,8 +765,8 @@ begin
             sizeof(integer) : pinteger(buffer)^ := BEtoN(pinteger(CurrBuff)^);
             sizeof(smallint) : psmallint(buffer)^ := BEtoN(psmallint(CurrBuff)^);
           else
-            for tel := 1 to i do
-              pchar(Buffer)[tel-1] := CurrBuff[i-tel];
+            for j := 1 to i do
+              pchar(Buffer)[j-1] := CurrBuff[i-j];
           end; {case}
           end;
         ftString, ftFixedChar :
@@ -791,25 +796,37 @@ begin
           if (dbl^ <= 0) and (frac(dbl^)<0) then
             dbl^ := trunc(dbl^)-2-frac(dbl^);
           end;
-        ftBCD:
+        ftBCD, ftFmtBCD:
           begin
           NumericRecord := pointer(CurrBuff);
           NumericRecord^.Digits := BEtoN(NumericRecord^.Digits);
-          NumericRecord^.Scale := BEtoN(NumericRecord^.Scale);
           NumericRecord^.Weight := BEtoN(NumericRecord^.Weight);
+          NumericRecord^.Sign := BEtoN(NumericRecord^.Sign);
+          NumericRecord^.Scale := BEtoN(NumericRecord^.Scale);
           inc(pointer(currbuff),sizeof(TNumericRecord));
-          cur := 0;
           if (NumericRecord^.Digits = 0) and (NumericRecord^.Scale = 0) then // = NaN, which is not supported by Currency-type, so we return NULL
             result := false
-          else
+          else if FieldDef.DataType = ftBCD then
             begin
-            for tel := 1 to NumericRecord^.Digits  do
+            cur := 0;
+            for i := 0 to NumericRecord^.Digits-1 do
               begin
-              cur := cur + beton(pword(currbuff)^) * intpower(10000,-(tel-1)+NumericRecord^.weight);
-              inc(pointer(currbuff),2);
+              cur := cur + beton(pword(CurrBuff)^) * intpower(NBASE, NumericRecord^.weight-i);
+              inc(pointer(CurrBuff),2);
               end;
-            if BEtoN(NumericRecord^.Sign) <> 0 then cur := -cur;
+            if NumericRecord^.Sign <> 0 then cur := -cur;
             Move(Cur, Buffer^, sizeof(currency));
+            end
+          else //ftFmtBCD
+            begin
+            bcd := 0;
+            for i := 0 to NumericRecord^.Digits-1 do
+              begin
+              BCDAdd(bcd, beton(pword(CurrBuff)^) * intpower(NBASE, NumericRecord^.weight-i), bcd);
+              inc(pointer(CurrBuff),2);
+              end;
+            if NumericRecord^.Sign <> 0 then BCDNegate(bcd);
+            Move(bcd, Buffer^, sizeof(bcd));
             end;
           end;
         ftCurrency  :
