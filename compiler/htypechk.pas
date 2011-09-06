@@ -2047,7 +2047,7 @@ implementation
             ((FProcSymtable.symtabletype=withsymtable) and
              (FProcSymtable.defowner.typ in [objectdef,recorddef]))
            ) and
-           (FProcSymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+           (FProcSymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) and
            FProcSymtable.defowner.owner.iscurrentunit then
           contextstructdef:=tabstractrecorddef(FProcSymtable.defowner)
         else

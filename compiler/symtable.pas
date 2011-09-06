@@ -1994,7 +1994,7 @@ implementation
                     if (srsymtable.symtabletype=withsymtable) and
                        assigned(srsymtable.defowner) and
                        (srsymtable.defowner.typ in [recorddef,objectdef]) and
-                       (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                       (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) and
                        (srsymtable.defowner.owner.iscurrentunit) then
                       contextstructdef:=tabstractrecorddef(srsymtable.defowner)
                     else
