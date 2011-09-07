@@ -176,6 +176,8 @@ interface
           procedure startreplaytokens(buf:tdynamicarray; achange_endian : boolean);
           procedure writesizeint(val : sizeint);
           function  readsizeint : sizeint;
+          function  readdword : dword;
+          function  readword : word;
           procedure readchar;
           procedure readstring;
           procedure readnumber;
@@ -2102,6 +2104,26 @@ In case not, the value returned can be arbitrary.
         result:=val;
       end;
 
+    function tscannerfile.readdword : dword;
+      var
+        val : dword;
+      begin
+        replaytokenbuf.read(val,sizeof(dword));
+        if tokenbuf_change_endian then
+          val:=swapendian(val);
+        result:=val;
+      end;
+
+    function tscannerfile.readword : word;
+      var
+        val : word;
+      begin
+        replaytokenbuf.read(val,sizeof(word));
+        if tokenbuf_change_endian then
+          val:=swapendian(val);
+        result:=val;
+      end;
+
     procedure tscannerfile.recordtoken;
       var
         t : ttoken;
@@ -2376,7 +2398,7 @@ In case not, the value returned can be arbitrary.
                       end;
                     ST_LINE:
                       begin
-                        replaytokenbuf.read(current_tokenpos.line,sizeof(current_tokenpos.line));
+                        current_tokenpos.line:=readdword;
 
                         { don't generate invalid line info if no sources are available for the current module }
                         if not(get_module(current_filepos.moduleindex).sources_avail) then
@@ -2386,8 +2408,7 @@ In case not, the value returned can be arbitrary.
                       end;
                     ST_COLUMN:
                       begin
-                        replaytokenbuf.read(current_tokenpos.column,sizeof(current_tokenpos.column));
-
+                        current_tokenpos.column:=readword;
                         { don't generate invalid line info if no sources are available for the current module }
                         if not(get_module(current_filepos.moduleindex).sources_avail) then
                           current_tokenpos.column:=0;
@@ -2396,8 +2417,7 @@ In case not, the value returned can be arbitrary.
                       end;
                     ST_FILEINDEX:
                       begin
-                        replaytokenbuf.read(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
-
+                        current_tokenpos.fileindex:=readword;
                         { don't generate invalid line info if no sources are available for the current module }
                         if not(get_module(current_filepos.moduleindex).sources_avail) then
                           begin

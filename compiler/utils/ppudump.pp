@@ -1108,6 +1108,29 @@ var
         result:=ttoken(b);
     end;
 
+  function gettokenbufdword : dword;
+  var
+    var32 : dword;
+  begin
+    var32:=pdword(@tokenbuf[i])^;
+    inc(i,sizeof(dword));
+    if ppufile.change_endian then
+      var32:=swapendian(var32);
+    result:=var32;
+  end;
+
+  function gettokenbufword : word;
+  var
+    var16 : word;
+  begin
+    var16:=pword(@tokenbuf[i])^;
+    inc(i,sizeof(word));
+    if ppufile.change_endian then
+      var16:=swapendian(var16);
+    result:=var16;
+  end;
+
+
   function gettokenbufsizeint : int64;
   var
     var64 : int64;
@@ -1255,6 +1278,7 @@ begin
                         new_settings.pmessage:=nil;
                         { TSettings size depends in target...
                           We first read the size of the copied part }
+                        { Still not cross endian ready :( }
                         copy_size:=gettokenbufsizeint;
                         if copy_size < sizeof(tsettings)-sizeof(pointer) then
                           min_size:=copy_size
@@ -1279,19 +1303,19 @@ begin
                     ST_LINE:
                       begin
                         inc(i);
-                        write('Line: ',pdword(@tokenbuf[i])^);
+                        write('Line: ',gettokenbufdword);
                         inc(i,4);
                       end;
                     ST_COLUMN:
                       begin
                         inc(i);
-                        write('Col: ',pword(@tokenbuf[i])^);
+                        write('Col: ',gettokenbufword);
                         inc(i,2);
                       end;
                     ST_FILEINDEX:
                       begin
                         inc(i);
-                        write('File: ',pword(@tokenbuf[i])^);
+                        write('File: ',gettokenbufword);
                         inc(i,2);
                       end;
                   end;
