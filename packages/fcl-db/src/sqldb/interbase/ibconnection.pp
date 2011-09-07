@@ -437,14 +437,12 @@ end;
 procedure TIBConnection.TranslateFldType(SQLType, SQLSubType, SQLLen, SQLScale : integer;
            var TrType : TFieldType; var TrLen : word);
 begin
-  trlen := 0;
+  TrLen := 0;
   if SQLScale < 0 then
     begin
-    if (SQLScale >= -4) and (SQLScale <= -1) then //in [-4..-1] then
-      begin
-      TrLen := abs(SQLScale);
+    TrLen := abs(SQLScale);
+    if (TrLen <= MaxBCDScale) then //Note: NUMERIC(18,3) or (17,2) must be mapped to ftFmtBCD, but we do not know Precision
       TrType := ftBCD
-      end
     else
       TrType := ftFMTBcd;
     end

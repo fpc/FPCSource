@@ -266,27 +266,62 @@ procedure TTestFieldTypes.TestNumeric;
 const
   testValuesCount = 13;
   testValues : Array[0..testValuesCount-1] of currency = (-123456.789,-10200,-10000,-1875.25,-10,-0.5,0,0.5,10,1875.25,10000,10200,123456.789);
+  Sizes: array [0..4] of integer = (4,0,3,5,0); //scale
 
 var
   i          : byte;
+  s          : string;
 
 begin
-  CreateTableWithFieldType(ftBCD,'NUMERIC(10,4)');
-  TestFieldDeclaration(ftBCD,sizeof(Currency));
+  with TSQLDBConnector(DBConnector) do begin
+    if SQLDbType = INTERBASE then
+      s := '' //Interbase supports precision up to 18 only
+    else
+      s := ', N4 NUMERIC(19,0)';
+    Connection.ExecuteDirect('create table FPDEV2 (FT NUMERIC(18,4), N1 NUMERIC(18,0), N2 NUMERIC(18,3), N3 NUMERIC(18,5)' + s + ')');
+    Transaction.CommitRetaining;
 
-  for i := 0 to testValuesCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + CurrToStrF(testValues[i],ffFixed,3,DBConnector.FormatSettings) + ')');
-
-  with TSQLDBConnector(DBConnector).Query do
+    with Query do
     begin
-    Open;
-    for i := 0 to testValuesCount-1 do
+      SQL.Text := 'select * from FPDEV2';
+      Open;
+
+      AssertEquals(sizeof(Currency), Fields[0].DataSize);
+      AssertTrue(Fields[0].DataType=ftBCD);
+      AssertEquals(Sizes[0], Fields[0].Size);
+
+      AssertTrue(Fields[1].DataType in [ftFmtBCD, ftLargeInt]);
+      AssertEquals(Sizes[1], Fields[1].Size);
+
+      for i := 2 to FieldCount-1 do
       begin
-      AssertEquals(testValues[i],fields[0].AsCurrency);
-      Next;
+        AssertEquals(sizeof(TBCD), Fields[i].DataSize);
+        AssertTrue(Fields[i].DataType=ftFmtBCD);
+        AssertEquals(Sizes[i], Fields[i].Size);
       end;
-    close;
+
+      Close;
     end;
+
+    for i := 0 to testValuesCount-1 do
+    begin
+      s :=CurrToStrF(testValues[i],ffFixed,3,DBConnector.FormatSettings);
+      Connection.ExecuteDirect(format('insert into FPDEV2 (FT,N2,N3) values (%s,%s,%s)', [s,s,s]));
+    end;
+
+    with Query do
+    begin
+      Open;
+      for i := 0 to testValuesCount-1 do
+      begin
+        AssertEquals(testValues[i], Fields[0].AsCurrency);
+        AssertEquals(testValues[i], Fields[2].AsCurrency);
+        AssertEquals(testValues[i], Fields[3].AsCurrency);
+        Next;
+      end;
+      Close;
+    end;
+  end;
 end;
 
 
