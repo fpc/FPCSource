@@ -865,7 +865,6 @@ begin
       else
         result:=e;
       inc(entryidx,sizeof(e));
-      result:=e;
       exit;
     end;
   if sizeofreal=sizeof(d) then
