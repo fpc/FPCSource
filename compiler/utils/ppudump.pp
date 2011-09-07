@@ -884,6 +884,107 @@ begin
 end;
 
 
+procedure readprocinfooptions(space : string);
+(*
+       tprocinfoflag=(
+         { procedure has at least one assembler block }
+         pi_has_assembler_block,
+         { procedure does a call }
+         pi_do_call,
+         { procedure has a try statement = no register optimization }
+         pi_uses_exceptions,
+         { procedure is declared as @var(assembler), don't optimize}
+         pi_is_assembler,
+         { procedure contains data which needs to be finalized }
+         pi_needs_implicit_finally,
+         { procedure has the implicit try..finally generated }
+         pi_has_implicit_finally,
+         { procedure uses fpu}
+         pi_uses_fpu,
+         { procedure uses GOT for PIC code }
+         pi_needs_got,
+         { references var/proc/type/const in static symtable,
+           i.e. not allowed for inlining from other units }
+         pi_uses_static_symtable,
+         { set if the procedure has to push parameters onto the stack }
+         pi_has_stackparameter,
+         { set if the procedure has at least one label }
+         pi_has_label,
+         { calls itself recursive }
+         pi_is_recursive,
+         { stack frame optimization not possible (only on x86 probably) }
+         pi_needs_stackframe,
+         { set if the procedure has at least one register saved on the stack }
+         pi_has_saved_regs,
+         { dfa was generated for this proc }
+         pi_dfaavailable,
+         { subroutine contains interprocedural used labels }
+         pi_has_interproclabel
+       ); *)
+
+type
+  tprocinfoopt=record
+    mask : tprocinfoflag;
+    str  : string[80];
+  end;
+const
+  procinfoopts=ord(high(tprocinfoflag)) - ord(low(tprocinfoflag));
+  procinfoopt : array[0..procinfoopts] of tprocinfoopt=(
+         (mask:pi_has_assembler_block;
+         str:' has at least one assembler block'),
+         (mask:pi_do_call;
+         str:' does a call'),
+         (mask:pi_uses_exceptions;
+         str:' has a try statement = no register optimization '),
+         (mask:pi_is_assembler;
+         str:' is declared as @var(assembler), don''t optimize'),
+         (mask:pi_needs_implicit_finally;
+         str:' contains data which needs to be finalized '),
+         (mask:pi_has_implicit_finally;
+         str:' has the implicit try..finally generated '),
+         (mask:pi_uses_fpu;
+         str:' uses fpu'),
+         (mask:pi_needs_got;
+         str:' uses GOT for PIC code '),
+         (mask:pi_uses_static_symtable;
+         str:' references var/proc/type/const in static symtable'),
+         (mask:pi_has_stackparameter;
+         str:' set if the procedure has to push parameters onto the stack '),
+         (mask:pi_has_label;
+         str:' set if the procedure has at least one label '),
+         (mask:pi_is_recursive;
+         str:' calls itself recursive '),
+         (mask:pi_needs_stackframe;
+         str:' stack frame optimization not possible (only on x86 probably) '),
+         (mask:pi_has_saved_regs;
+         str:' set if the procedure has at least one register saved on the stack '),
+         (mask:pi_dfaavailable;
+         str:' dfa was generated for this proc '),
+         (mask:pi_has_interproclabel;
+         str:' subroutine contains interprocedural used labels ')
+  );
+var
+  procinfooptions : tprocinfoflags;
+  i      : longint;
+  first  : boolean;
+begin
+  ppufile.getsmallset(procinfooptions);
+  if procinfooptions<>[] then
+   begin
+     first:=true;
+     for i:=0 to procinfoopts do
+      if (procinfoopt[i].mask in procinfooptions) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(procinfoopt[i].str);
+       end;
+   end;
+  writeln;
+end;
+
 procedure readsymoptions(space : string);
 type
   tsymopt=record
@@ -1136,11 +1237,6 @@ begin
               begin
                 write(' ',pshortstring(@tokenbuf[i])^);
                 inc(i,tokenbuf[i]+1);
-              {
-                replaytokenbuf.read(orgpattern[0],1);
-                replaytokenbuf.read(orgpattern[1],length(orgpattern));
-                pattern:=upper(orgpattern);
-              }
               end;
             _GENERICSPECIALTOKEN:
               begin
@@ -1199,18 +1295,6 @@ begin
                         inc(i,2);
                       end;
                   end;
-              {
-                replaytokenbuf.read(specialtoken,1);
-                case specialtoken of
-                  ST_LOADSETTINGS:
-                    begin
-                      replaytokenbuf.read(current_settings,sizeof(current_settings));
-                    end
-                  else
-                    internalerror(2006103010);
-                end;
-                continue;
-              }
               end;
           end;
 
@@ -1980,7 +2064,6 @@ var
   l,j : longint;
   calloption : tproccalloption;
   procoptions : tprocoptions;
-  procinfooptions : tprocinfoflag;
   defoptions: tdefoptions;
 begin
   with ppufile do
@@ -2088,8 +2171,7 @@ begin
               begin
                 write  (space,'       FuncretSym : ');
                 readderef('');
-                ppufile.getsmallset(procinfooptions);
-                writeln(space,'  ProcInfoOptions : ',dword(procinfooptions));
+                readprocinfooptions(space);
               end;
              b:=ppufile.getbyte;
              if b<>0 then
