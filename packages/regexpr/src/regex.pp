@@ -73,6 +73,7 @@ type
      mtAnyChar,        {..any character}
      mtChar,           {..a particular character}
      mtClass,          {..a character class}
+     mtDupClass,       {..a character class beying referenced}
      mtNegClass,       {..a negated character class}
      mtTerminal,       {..the final state--no matching}
      mtUnused);        {..an unused state--no matching}
@@ -446,7 +447,7 @@ begin
     sdMatchType := aMatchType;
     if (aMatchType = mtChar) then
       sdChar := aChar
-    else if (aMatchType = mtClass) or (aMatchType = mtNegClass) then
+    else if aMatchType in [mtClass, mtDupClass, mtNegClass] then
       sdClass := aCharClass;
     end;
   Result := FStateCount;
@@ -590,7 +591,7 @@ begin
             if not (Ch in newline) then
               DequeEnqueue(sdNextState1);
           end;
-        mtClass :
+        mtClass, mtDupClass :
           begin
             {for a match within a class, enqueue the next state}
             if (Ch in sdClass^) then
@@ -1067,6 +1068,8 @@ begin
                     FStateTable[FStateCount].sdNextState1 := i+FStateTable[FStateCount].sdNextState1+ (EndStateAtom-StartStateAtom) *i;
                   if FStateTable[FStateCount].sdNextState2 in [StartStateAtom..EndStateAtom+1] then
                     FStateTable[FStateCount].sdNextState2 := i+FStateTable[FStateCount].sdNextState2 + (EndStateAtom-StartStateAtom) *i;
+                  if FStateTable[FStateCount].sdMatchType = mtClass then
+                    FStateTable[FStateCount].sdMatchType := mtDupClass;
                   inc(FStateCount);
 
                   if FStateCount=length(FStateTable) then
@@ -1086,6 +1089,8 @@ begin
                   FStateTable[FStateCount].sdNextState1 := i+FStateTable[FStateCount].sdNextState1+ (EndStateAtom-StartStateAtom) * i+(i-n+1);
                 if FStateTable[FStateCount].sdNextState2 in [StartStateAtom..EndStateAtom+1] then
                   FStateTable[FStateCount].sdNextState2 := i+FStateTable[FStateCount].sdNextState2 + (EndStateAtom-StartStateAtom) * i+(i-n+1);
+                if FStateTable[FStateCount].sdMatchType = mtClass then
+                  FStateTable[FStateCount].sdMatchType := mtDupClass;
                 inc(FStateCount);
 
                 if FStateCount=length(FStateTable) then
