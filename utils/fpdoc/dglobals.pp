@@ -23,7 +23,7 @@ unit dGlobals;
 
 interface
 
-uses Classes, DOM, PasTree, PParser, StrUtils;
+uses Classes, DOM, PasTree, PParser, StrUtils,uriparser;
 
 Var
   LEOL : Integer;
@@ -149,6 +149,7 @@ resourcestring
   SUsageOption170  = '--warn-no-node    Warn if no documentation node was found.';
   SUsageOption180  = '--mo-dir=dir      Set directory where language files reside to dir';
   SUsageOption190  = '--parse-impl      (Experimental) try to parse implementation too';
+  SUsageOption200 =  '--dont-trim	Don''t trim XML contents';
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
   SUsageFormatSpecific = 'Output format "%s" supports the following options:';
@@ -300,7 +301,7 @@ type
     function FindLinkedNode(ANode: TDocNode): TDocNode;
 
     // Documentation file support
-    procedure AddDocFile(const AFilename: String);
+    procedure AddDocFile(const AFilename: String;DontTrim:boolean=false);
 
     // Documentation retrieval
     function FindDocNode(AElement: TPasElement): TDocNode;
@@ -1255,7 +1256,34 @@ begin
       end;
 end;
 
-procedure TFPDocEngine.AddDocFile(const AFilename: String);
+procedure ReadXMLFileALT(OUT ADoc:TXMLDocument;const AFileName:ansistring);
+var
+  Parser: TDOMParser;
+  Src: TXMLInputSource;
+  FileStream: TStream;
+begin
+  ADoc := nil;
+  FileStream := TFileStream.Create(AFilename, fmOpenRead+fmShareDenyWrite);
+  try
+    Parser := TDOMParser.Create; // create a parser object
+    try
+      Src := TXMLInputSource.Create(FileStream); // and the input source
+      src.SystemId:=FileNameToUri(AFileName);
+      try
+        Parser.Options.PreserveWhitespace := True;
+        Parser.Parse(Src, ADoc);
+      finally
+        Src.Free; // cleanup
+      end;
+    finally 
+     Parser.Free;
+     end;
+  finally
+    FileStream.Free;
+  end;
+end;
+
+procedure TFPDocEngine.AddDocFile(const AFilename: String;DontTrim:boolean=false);
 
   function ReadNode(OwnerDocNode: TDocNode; Element: TDOMElement): TDocNode;
   var
@@ -1318,7 +1346,10 @@ var
   PackageDocNode, TopicNode,ModuleDocNode: TDocNode;
 
 begin
-  ReadXMLFile(Doc, AFilename);
+  if DontTrim then
+    ReadXMLFileALT(Doc, AFilename)
+  else
+    ReadXMLFile(Doc, AFilename);
   DescrDocs.Add(Doc);
   DescrDocNames.Add(AFilename);
 

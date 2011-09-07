@@ -156,12 +156,12 @@ procedure TXMLFPDocOptions.LoadEngineOptions(Options: TEngineOptions;
   end;
 
 Const
-  NCount = 10;
+  NCount = 11;
   ONames : Array[0..NCount] of string
          = ('hide-protected','warn-no-node','show-private',
             'stop-on-parser-error', 'ostarget','cputarget',
             'mo-dir','parse-impl','format', 'language',
-            'package');
+            'package','dont-trim');
 
 Var
   O : TDOMnode;
@@ -187,6 +187,7 @@ begin
         8 : Options.Backend:=V;
         9 : Options.Language:=v;
         10 : Options.DefaultPackageName:=V;
+        11 : Options.DontTrim:=TrueValue(V);
       else
         Options.BackendOptions.add('--'+n);
         Options.BackendOptions.add(v);

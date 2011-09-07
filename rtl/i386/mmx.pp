@@ -199,10 +199,8 @@ unit mmx;
       end;
 
     function sse2_support : boolean;
-
       var
          _edx : longint;
-
       begin
          if cpuid_support then
            begin
@@ -220,14 +218,14 @@ unit mmx;
            sse2_support:=false;
       end;
 
-    procedure emms;assembler;
 
+    procedure emms;assembler;
       asm
          emms
       end;
 
-    procedure femms;assembler;
 
+    procedure femms;assembler;
       asm
         { femms instruction not supported with older as versions }
         .byte 0x0f, 0x0e

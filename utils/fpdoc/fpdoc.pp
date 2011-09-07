@@ -87,6 +87,7 @@ begin
   Writeln(SUsageOption170);
   Writeln(SUsageOption180);
   Writeln(SUsageOption190);
+  Writeln(SUsageOption200);
   L:=TStringList.Create;
   Try
     Backend:=FProject.OPtions.Backend;
@@ -230,6 +231,8 @@ begin
     FProject.Options.ShowPrivate := False
   else if s = '--stop-on-parser-error' then
     FProject.Options.StopOnParseError := True
+  else if s = '--dont-trim' then
+    FProject.Options.donttrim := True
   else
     begin
     i := Pos('=', s);
@@ -316,7 +319,7 @@ begin
       Engine.ReadContentFile(Copy(Arg,1,i-1),Copy(Arg,i+1,Length(Arg)));
       end;
     for i := 0 to APackage.Descriptions.Count - 1 do
-      Engine.AddDocFile(APackage.Descriptions[i]);
+      Engine.AddDocFile(APackage.Descriptions[i],Options.donttrim);
     Engine.SetPackageName(APackage.Name);
     Engine.Output:=APackage.Output;
     Engine.HideProtected:=Options.HideProtected;

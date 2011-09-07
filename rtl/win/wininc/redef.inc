@@ -368,6 +368,7 @@ function CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwSt
   external 'kernel32' name 'CreateRemoteThread';
 function CreateThread(lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; external 'kernel32' name 'CreateThread';
 function DdeSetQualityOfService(hWndClient: HWnd; const pqosNew: TSecurityQualityOfService; pqosPrev: PSecurityQualityOfService): BOOL;external 'user32' name 'DdeSetQualityOfService';
+function DdeConnect(_para1:DWORD; _para2:HSZ; _para3:HSZ; var _para4:CONVCONTEXT):HCONV; external 'user32' name 'DdeConnect';
 //function DeleteAce(var pAcl: TACL; dwAceIndex: DWORD): BOOL; external 'advapi32' name 'DeleteAce';
 function DescribePixelFormat(DC: HDC; iPixelFormat: Integer; nBytes: UINT; var pfd: TPixelFormatDescriptor): BOOL; external 'gdi32' name 'DescribePixelFormat';
 //function DestroyPrivateObjectSecurity(var ObjectDescriptor: PSecurityDescriptor): BOOL; external 'advapi32' name 'DestroyPrivateObjectSecurity';
