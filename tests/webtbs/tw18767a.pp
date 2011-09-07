@@ -1,5 +1,5 @@
 { %norun}
-program tw18767a.pp;
+program tw18767a;
 
 {$mode delphi}{$H+}
 

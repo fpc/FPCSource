@@ -1856,8 +1856,8 @@ implementation
                        (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
                        (symownerdef.owner.iscurrentunit)
                       ) or
-                      ( // the case of specialize inside the generic declaration
-                       (symownerdef.owner.symtabletype = objectsymtable) and
+                      ( // the case of specialize inside the generic declaration and nested types
+                       (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
                        (
                          assigned(current_structdef) and
                          (
@@ -1905,8 +1905,8 @@ implementation
                         (contextobjdef.owner.iscurrentunit) and
                         contextobjdef.is_related(symownerdef)
                        ) or
-                       ( // the case of specialize inside the generic declaration
-                        (symownerdef.owner.symtabletype = objectsymtable) and
+                       ( // the case of specialize inside the generic declaration and nested types
+                        (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
                         (
                           assigned(current_structdef) and
                           (
