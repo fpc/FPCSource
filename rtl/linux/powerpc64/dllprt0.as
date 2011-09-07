@@ -342,7 +342,7 @@ FUNCTION_PROLOG FPC_SHARED_LIB_START
     /* update library flag in RTL */
     LOAD_64BIT_VAL 8, operatingsystem_islibrary
     li      6, 1
-    stw     6, 0(8)
+    stb     6, 0(8)
 
     LOAD_64BIT_VAL 8, __stkptr
     std     1,0(8)
