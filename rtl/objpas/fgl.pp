@@ -57,6 +57,10 @@ type
     procedure SetCount(NewCount: Integer);
     procedure RaiseIndexError(Index : Integer);
     property InternalItems[Index: Integer]: Pointer read InternalGet write InternalPut;
+    function GetLast: Pointer;
+    procedure SetLast(const Value: Pointer);
+    function GetFirst: Pointer;
+    procedure SetFirst(const Value: Pointer);
   public
     constructor Create(AItemSize: Integer = sizeof(Pointer));
     destructor Destroy; override;
@@ -66,12 +70,10 @@ type
     class procedure Error(const Msg: string; Data: PtrInt);
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPSList;
-    function Extract(Item: Pointer): Pointer;
-    function First: Pointer;
+    procedure Extract(Item: Pointer; ResultPtr: Pointer);
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
     function Insert(Index: Integer): Pointer;
-    function Last: Pointer;
     procedure Move(CurIndex, NewIndex: Integer);
     procedure Assign(Obj: TFPSList);
     function Remove(Item: Pointer): Integer;
@@ -82,6 +84,8 @@ type
     property Items[Index: Integer]: Pointer read Get write Put; default;
     property ItemSize: Integer read FItemSize;
     property List: PByte read FList;
+    property First: Pointer read GetFirst write SetFirst;
+    property Last: Pointer read GetLast write SetLast;
   end;
 
 const
@@ -100,7 +104,7 @@ type
   end;
 
   generic TFPGList<T> = class(TFPSList)
-  public
+  private
     type
       TCompareFunc = function(const Item1, Item2: T): Integer;
       TTypeList = array[0..MaxGListSize] of T;
@@ -115,15 +119,19 @@ type
     function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetLast: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetLast(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetFirst: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetFirst(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
     constructor Create;
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property First: T read GetFirst write SetFirst;
     function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property Last: T read GetLast write SetLast;
 {$ifndef VER2_4}
     procedure Assign(Source: TFPGList);
 {$endif VER2_4}
@@ -134,7 +142,7 @@ type
   end;
 
   generic TFPGObjectList<T> = class(TFPSList)
-  public
+  private
     type
       TCompareFunc = function(const Item1, Item2: T): Integer;
       TTypeList = array[0..MaxGListSize] of T;
@@ -150,15 +158,19 @@ type
     function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetLast: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetLast(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetFirst: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetFirst(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
     constructor Create(FreeObjects: Boolean = True);
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property First: T read GetFirst write SetFirst;
     function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property Last: T read GetLast write SetLast;
 {$ifndef VER2_4}
     procedure Assign(Source: TFPGObjectList);
 {$endif VER2_4}
@@ -170,7 +182,7 @@ type
   end;
 
   generic TFPGInterfacedObjectList<T> = class(TFPSList)
-  public
+  private
     type
       TCompareFunc = function(const Item1, Item2: T): Integer;
       TTypeList = array[0..MaxGListSize] of T;
@@ -185,15 +197,19 @@ type
     function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetLast: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetLast(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetFirst: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetFirst(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
     constructor Create;
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property First: T read GetFirst write SetFirst;
     function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property Last: T read GetLast write SetLast;
 {$ifndef VER2_4}
     procedure Assign(Source: TFPGInterfacedObjectList);
 {$endif VER2_4}
@@ -254,20 +270,20 @@ type
   end;
 
   generic TFPGMap<TKey, TData> = class(TFPSMap)
-  public
+  private
     type
       TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
       TDataCompareFunc = function(const Data1, Data2: TData): Integer;
       PKey = ^TKey;
-      PData = ^TData;
+// unsed      PData = ^TData;
   {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnKeyCompare: TKeyCompareFunc;
       FOnDataCompare: TDataCompareFunc;
-      procedure CopyItem(Src, Dest: Pointer); override;
-      procedure CopyKey(Src, Dest: Pointer); override;
-      procedure CopyData(Src, Dest: Pointer); override;
-      procedure Deref(Item: Pointer); override;
-      procedure InitOnPtrCompare; override;
+    procedure CopyItem(Src, Dest: Pointer); override;
+    procedure CopyKey(Src, Dest: Pointer); override;
+    procedure CopyData(Src, Dest: Pointer); override;
+    procedure Deref(Item: Pointer); override;
+    procedure InitOnPtrCompare; override;
     function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -299,20 +315,20 @@ type
   end;
 
   generic TFPGMapInterfacedObjectData<TKey, TData> = class(TFPSMap)
-  public
+  private
     type
       TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
       TDataCompareFunc = function(const Data1, Data2: TData): Integer;
       PKey = ^TKey;
-      PData = ^TData;
+// unsed      PData = ^TData;
   {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnKeyCompare: TKeyCompareFunc;
       FOnDataCompare: TDataCompareFunc;
-      procedure CopyItem(Src, Dest: Pointer); override;
-      procedure CopyKey(Src, Dest: Pointer); override;
-      procedure CopyData(Src, Dest: Pointer); override;
-      procedure Deref(Item: Pointer); override;
-      procedure InitOnPtrCompare; override;
+    procedure CopyItem(Src, Dest: Pointer); override;
+    procedure CopyKey(Src, Dest: Pointer); override;
+    procedure CopyData(Src, Dest: Pointer); override;
+    procedure Deref(Item: Pointer); override;
+    procedure InitOnPtrCompare; override;
     function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -484,20 +500,28 @@ begin
     FCapacity := FCapacity shr 1;
     ReallocMem(FList, (FCapacity+1) * FItemSize);
   end;
+  { Keep the ending of the list filled with zeros, don't leave garbage data
+    there. Otherwise, we could accidentally have there a copy of some item
+    on the list, and accidentally Deref it too soon.
+    See http://bugs.freepascal.org/view.php?id=20005. }
+  FillChar(InternalItems[FCount]^, (FCapacity+1-FCount) * FItemSize, #0);
 end;
 
-function TFPSList.Extract(Item: Pointer): Pointer;
+procedure TFPSList.Extract(Item: Pointer; ResultPtr: Pointer);
 var
   i : Integer;
+  ListItemPtr : Pointer;
 begin
-  Result := nil;
   i := IndexOf(Item);
   if i >= 0 then
   begin
-    Result := InternalItems[i];
-    System.Move(Result^, InternalItems[FCapacity]^, FItemSize);
+    ListItemPtr := InternalItems[i];
+    System.Move(ListItemPtr^, ResultPtr^, FItemSize);
+    { fill with zeros, to avoid freeing/decreasing reference on following Delete }
+    System.FillByte(ListItemPtr^, FItemSize, 0);
     Delete(i);
-  end;
+  end else
+    System.FillByte(ResultPtr^, FItemSize, 0);
 end;
 
 class procedure TFPSList.Error(const Msg: string; Data: PtrInt);
@@ -534,12 +558,17 @@ begin
   Result := Self;
 end;
 
-function TFPSList.First: Pointer;
+function TFPSList.GetFirst: Pointer;
 begin
   If FCount = 0 then
     Result := Nil
   else
     Result := InternalItems[0];
+end;
+
+procedure TFPSList.SetFirst(const Value: Pointer);
+begin
+  Put(0, Value);
 end;
 
 function TFPSList.IndexOf(Item: Pointer): Integer;
@@ -576,12 +605,17 @@ begin
   CopyItem(Item, Insert(Index));
 end;
 
-function TFPSList.Last: Pointer;
+function TFPSList.GetLast: Pointer;
 begin
   if FCount = 0 then
     Result := nil
   else
     Result := InternalItems[FCount - 1];
+end;
+
+procedure TFPSList.SetLast(const Value: Pointer);
+begin
+  Put(FCount - 1, Value);
 end;
 
 procedure TFPSList.Move(CurIndex, NewIndex: Integer);
@@ -761,19 +795,18 @@ begin
 end;
 
 function TFPGList.Extract(const Item: T): T;
-var
-  ResPtr: Pointer;
 begin
-  ResPtr := inherited Extract(@Item);
-  if ResPtr <> nil then
-    Result := T(ResPtr^)
-  else
-    FillByte(Result, sizeof(T), 0);
+  inherited Extract(@Item, @Result);
 end;
 
-function TFPGList.First: T;
+function TFPGList.GetFirst: T;
 begin
-  Result := T(inherited First^);
+  Result := T(inherited GetFirst^);
+end;
+
+procedure TFPGList.SetFirst(const Value: T);
+begin
+  inherited SetFirst(@Value);
 end;
 
 function TFPGList.GetEnumerator: TFPGListEnumeratorSpec;
@@ -796,9 +829,14 @@ begin
   T(inherited Insert(Index)^) := Item;
 end;
 
-function TFPGList.Last: T;
+function TFPGList.GetLast: T;
 begin
-  Result := T(inherited Last^);
+  Result := T(inherited GetLast^);
+end;
+
+procedure TFPGList.SetLast(const Value: T);
+begin
+  inherited SetLast(@Value);
 end;
 
 {$ifndef VER2_4}
@@ -873,19 +911,18 @@ begin
 end;
 
 function TFPGObjectList.Extract(const Item: T): T;
-var
-  ResPtr: Pointer;
 begin
-  ResPtr := inherited Extract(@Item);
-  if ResPtr <> nil then
-    Result := T(ResPtr^)
-  else
-    FillByte(Result, sizeof(T), 0);
+  inherited Extract(@Item, @Result);
 end;
 
-function TFPGObjectList.First: T;
+function TFPGObjectList.GetFirst: T;
 begin
-  Result := T(inherited First^);
+  Result := T(inherited GetFirst^);
+end;
+
+procedure TFPGObjectList.SetFirst(const Value: T);
+begin
+  inherited SetFirst(@Value);
 end;
 
 function TFPGObjectList.GetEnumerator: TFPGListEnumeratorSpec;
@@ -908,9 +945,14 @@ begin
   T(inherited Insert(Index)^) := Item;
 end;
 
-function TFPGObjectList.Last: T;
+function TFPGObjectList.GetLast: T;
 begin
-  Result := T(inherited Last^);
+  Result := T(inherited GetLast^);
+end;
+
+procedure TFPGObjectList.SetLast(const Value: T);
+begin
+  inherited SetLast(@Value);
 end;
 
 {$ifndef VER2_4}
@@ -988,19 +1030,18 @@ begin
 end;
 
 function TFPGInterfacedObjectList.Extract(const Item: T): T;
-var
-  ResPtr: Pointer;
 begin
-  ResPtr := inherited Extract(@Item);
-  if ResPtr <> nil then
-    Result := T(ResPtr^)
-  else
-    FillByte(Result, sizeof(T), 0);
+  inherited Extract(@Item, @Result);
 end;
 
-function TFPGInterfacedObjectList.First: T;
+function TFPGInterfacedObjectList.GetFirst: T;
 begin
-  Result := T(inherited First^);
+  Result := T(inherited GetFirst^);
+end;
+
+procedure TFPGInterfacedObjectList.SetFirst(const Value: T);
+begin
+  inherited SetFirst(@Value);
 end;
 
 function TFPGInterfacedObjectList.GetEnumerator: TFPGListEnumeratorSpec;
@@ -1023,9 +1064,14 @@ begin
   T(inherited Insert(Index)^) := Item;
 end;
 
-function TFPGInterfacedObjectList.Last: T;
+function TFPGInterfacedObjectList.GetLast: T;
 begin
-  Result := T(inherited Last^);
+  Result := T(inherited GetLast^);
+end;
+
+procedure TFPGInterfacedObjectList.SetLast(const Value: T);
+begin
+  inherited SetLast(@Value);
 end;
 
 {$ifndef VER2_4}
