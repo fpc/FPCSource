@@ -71,7 +71,9 @@ interface
          settings : tsettings;
          tokenbuf : tdynamicarray;
          next     : treplaystack;
-         constructor Create(atoken: ttoken;asettings:tsettings;atokenbuf:tdynamicarray;anext:treplaystack);
+         change_endian : boolean;
+         constructor Create(atoken: ttoken;asettings:tsettings;
+           atokenbuf:tdynamicarray;anext:treplaystack; achange_endian : boolean);
        end;
 
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
@@ -117,6 +119,7 @@ interface
 
           replaytokenbuf,
           recordtokenbuf : tdynamicarray;
+          tokenbuf_change_endian : boolean;
 
           { last settings we stored }
           last_settings : tsettings;
@@ -170,7 +173,7 @@ interface
           procedure startrecordtokens(buf:tdynamicarray);
           procedure stoprecordtokens;
           procedure replaytoken;
-          procedure startreplaytokens(buf:tdynamicarray);
+          procedure startreplaytokens(buf:tdynamicarray; achange_endian : boolean);
           procedure writesizeint(val : sizeint);
           function  readsizeint : sizeint;
           procedure readchar;
@@ -1863,11 +1866,13 @@ In case not, the value returned can be arbitrary.
 {*****************************************************************************
                               TReplayStack
 *****************************************************************************}
-    constructor treplaystack.Create(atoken:ttoken;asettings:tsettings;atokenbuf:tdynamicarray;anext:treplaystack);
+    constructor treplaystack.Create(atoken:ttoken;asettings:tsettings;
+      atokenbuf:tdynamicarray;anext:treplaystack;achange_endian : boolean);
       begin
         token:=atoken;
         settings:=asettings;
         tokenbuf:=atokenbuf;
+        change_endian:=achange_endian;
         next:=anext;
       end;
 
@@ -1907,6 +1912,7 @@ In case not, the value returned can be arbitrary.
       { reset scanner }
         preprocstack:=nil;
         replaystack:=nil;
+        tokenbuf_change_endian:=false;
         comment_level:=0;
         yylexcount:=0;
         block_type:=bt_general;
@@ -2083,8 +2089,6 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.writesizeint(val : sizeint);
       begin
-        if target_info.endian <> source_info.endian then
-          val:=swapendian(val);
         recordtokenbuf.write(val,sizeof(sizeint));
       end;
 
@@ -2093,7 +2097,7 @@ In case not, the value returned can be arbitrary.
         val : sizeint;
       begin
         replaytokenbuf.read(val,sizeof(sizeint));
-        if target_info.endian <> source_info.endian then
+        if tokenbuf_change_endian then
           val:=swapendian(val);
         result:=val;
       end;
@@ -2225,18 +2229,20 @@ In case not, the value returned can be arbitrary.
       end;
 
 
-    procedure tscannerfile.startreplaytokens(buf:tdynamicarray);
+    procedure tscannerfile.startreplaytokens(buf:tdynamicarray; achange_endian : boolean);
       begin
         if not assigned(buf) then
           internalerror(200511175);
         { save current token }
         if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
           internalerror(200511178);
-        replaystack:=treplaystack.create(token,current_settings,replaytokenbuf,replaystack);
+        replaystack:=treplaystack.create(token,current_settings,
+          replaytokenbuf,replaystack,tokenbuf_change_endian);
         if assigned(inputpointer) then
           dec(inputpointer);
         { install buffer }
         replaytokenbuf:=buf;
+        tokenbuf_change_endian:=achange_endian;
 
         { reload next token }
         replaytokenbuf.seek(0);
@@ -2779,6 +2785,10 @@ In case not, the value returned can be arbitrary.
            hp:=replaystack.next;
            replaystack.free;
            replaystack:=hp;
+           if assigned (replaystack) then
+             tokenbuf_change_endian:=replaystack.change_endian
+           else
+             tokenbuf_change_endian:=false;
          end;
       end;
 

@@ -340,7 +340,8 @@ implementation
 
                 if not assigned(genericdef.generictokenbuf) then
                   internalerror(200511171);
-                current_scanner.startreplaytokens(genericdef.generictokenbuf);
+                current_scanner.startreplaytokens(genericdef.generictokenbuf,
+                  genericdef.change_endian);
                 read_named_type(tt,specializename,genericdef,generictypelist,false);
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;
