@@ -1263,6 +1263,8 @@ begin
               end;
             _GENERICSPECIALTOKEN:
               begin
+                { Short version of column change,
+                  byte or $80 used }
                 if (tokenbuf[i] and $80)<>0 then
                   begin
                     write('Col: ',tokenbuf[i] and $7f);
@@ -1304,19 +1306,16 @@ begin
                       begin
                         inc(i);
                         write('Line: ',gettokenbufdword);
-                        inc(i,4);
                       end;
                     ST_COLUMN:
                       begin
                         inc(i);
                         write('Col: ',gettokenbufword);
-                        inc(i,2);
                       end;
                     ST_FILEINDEX:
                       begin
                         inc(i);
                         write('File: ',gettokenbufword);
-                        inc(i,2);
                       end;
                   end;
               end;
