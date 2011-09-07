@@ -883,7 +883,64 @@ begin
   until false;
 end;
 
+(*
+       talignmentinfo = packed record
+         procalign,
+         loopalign,
+         jumpalign,
+         constalignmin,
+         constalignmax,
+         varalignmin,
+         varalignmax,
+         localalignmin,
+         localalignmax,
+         recordalignmin,
+         recordalignmax,
+         maxCrecordalign : longint;
+       end;
 
+
+       tsettings = packed record
+         alignment       : talignmentinfo;
+         globalswitches  : tglobalswitches;
+         moduleswitches  : tmoduleswitches;
+         localswitches   : tlocalswitches;
+         modeswitches    : tmodeswitches;
+         optimizerswitches : toptimizerswitches;
+         { generate information necessary to perform these wpo's during a subsequent compilation }
+         genwpoptimizerswitches: twpoptimizerswitches;
+         { perform these wpo's using information generated during a previous compilation }
+         dowpoptimizerswitches: twpoptimizerswitches;
+         debugswitches   : tdebugswitches;
+         { 0: old behaviour for sets <=256 elements
+           >0: round to this size }
+         setalloc,
+         packenum        : shortint;
+
+         packrecords     : shortint;
+         maxfpuregisters : shortint;
+
+         cputype,
+         optimizecputype : tcputype;
+         fputype         : tfputype;
+         asmmode         : tasmmode;
+         interfacetype   : tinterfacetypes;
+         defproccall     : tproccalloption;
+         sourcecodepage  : tcodepagestring;
+
+         minfpconstprec  : tfloattype;
+
+         disabledircache : boolean;
+
+        { CPU targets with microcontroller support can add a controller specific unit }
+{$if defined(ARM) or defined(AVR)}
+        controllertype   : tcontrollertype;
+{$endif defined(ARM) or defined(AVR)}
+         { WARNING: this pointer cannot be written as such in record token }
+         pmessage : pmessagestaterecord;
+       end;
+
+*)
 procedure readprocinfooptions(space : string);
 (*
        tprocinfoflag=(
@@ -1629,6 +1686,59 @@ begin
   writeln;
 end;
 
+(* options for properties
+  tpropertyoption=(ppo_none,
+    ppo_indexed,
+    ppo_defaultproperty,
+    ppo_stored,
+    ppo_hasparameters,
+    ppo_implements,
+    ppo_enumerator_current,
+    ppo_dispid_read,              { no longer used }
+    ppo_dispid_write              { no longer used }
+  );
+  tpropertyoptions=set of tpropertyoption;
+*)
+procedure readpropertyoptions;
+{ type tarraydefoption is in unit symconst }
+type
+  tpropopt=record
+    mask : tpropertyoption;
+    str  : string[30];
+  end;
+const
+  symopt : array[1..ord(high(tpropertyoption))] of tpropopt=(
+    (mask:ppo_indexed;str:'indexed'),
+    (mask:ppo_defaultproperty;str:'default'),
+    (mask:ppo_stored;str:'stored'),
+    (mask:ppo_hasparameters;str:'has parameters'),
+    (mask:ppo_implements;str:'implements'),
+    (mask:ppo_enumerator_current;str:'enumerator current'),
+    (mask:ppo_dispid_read;str:'dispid read'),   { no longer used }
+    (mask:ppo_dispid_write;str:'dispid write')  { no longer used }
+  );
+var
+  propoptions : tpropertyoptions;
+  i      : longint;
+  first  : boolean;
+begin
+  ppufile.getsmallset(propoptions);
+  if propoptions<>[] then
+   begin
+     first:=true;
+     for i:=1 to high(symopt) do
+      if (symopt[i].mask in propoptions) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(symopt[i].str);
+       end;
+   end;
+  writeln;
+end;
+
 
 procedure readnodetree;
 var
@@ -2024,8 +2134,7 @@ begin
          ibpropertysym :
            begin
              readcommonsym('Property ');
-             i:=getlongint;
-             writeln(space,'  PropOptions : ',i);
+             readpropertyoptions;
              write  (space,' OverrideProp : ');
              readderef('');
              write  (space,'    Prop Type : ');
