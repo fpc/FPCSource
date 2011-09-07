@@ -12,7 +12,7 @@ object formVectorialConverter: TformVectorialConverter
     Left = 8
     Height = 18
     Top = 112
-    Width = 158
+    Width = 172
     Caption = 'Location of the Input file:'
     ParentColor = False
   end
@@ -45,7 +45,7 @@ object formVectorialConverter: TformVectorialConverter
     Left = 8
     Height = 18
     Top = 152
-    Width = 169
+    Width = 184
     Caption = 'Full path of the Output file:'
     ParentColor = False
   end

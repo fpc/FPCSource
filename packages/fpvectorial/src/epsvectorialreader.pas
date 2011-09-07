@@ -115,22 +115,22 @@ type
     //
     procedure DebugStack();
     //
-    procedure RunPostScript(ATokens: TPsTokens; AData: TvVectorialDocument);
+    procedure RunPostScript(ATokens: TPsTokens; AData: TvVectorialPage; ADoc: TvVectorialDocument);
     //
-    procedure ExecuteProcedureToken(AToken: TProcedureToken; AData: TvVectorialDocument);
-    procedure ExecuteOperatorToken(AToken: TExpressionToken; AData: TvVectorialDocument);
-    function  ExecuteArithmeticAndMathOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecutePathConstructionOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteGraphicStateOperatorsDI(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteGraphicStateOperatorsDD(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteDictionaryOperators(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteMiscellaneousOperators(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteStackManipulationOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteControlOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecutePaintingOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteDeviceSetupAndOutputOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteArrayOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteStringOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+    procedure ExecuteProcedureToken(AToken: TProcedureToken; AData: TvVectorialPage; ADoc: TvVectorialDocument);
+    procedure ExecuteOperatorToken(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument);
+    function  ExecuteArithmeticAndMathOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecutePathConstructionOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteGraphicStateOperatorsDI(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteGraphicStateOperatorsDD(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteDictionaryOperators(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteMiscellaneousOperators(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteStackManipulationOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteControlOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecutePaintingOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteDeviceSetupAndOutputOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteArrayOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteStringOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
     //
     procedure PostScriptCoordsToFPVectorialCoords(AParam1, AParam2: TPSToken; var APosX, APosY: Double);
     function DictionarySubstituteOperator(ADictionary: TStringList; var ACurToken: TPSToken): Boolean;
@@ -461,7 +461,7 @@ begin
 end;
 
 procedure TvEPSVectorialReader.RunPostScript(ATokens: TPsTokens;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   i: Integer;
   lSubstituted: Boolean;
@@ -530,8 +530,8 @@ begin
         Continue;
       end;
 
-      if CurToken is TProcedureToken then ExecuteProcedureToken(TProcedureToken(CurToken), AData)
-      else ExecuteOperatorToken(TExpressionToken(CurToken), AData);
+      if CurToken is TProcedureToken then ExecuteProcedureToken(TProcedureToken(CurToken), AData, ADoc)
+      else ExecuteOperatorToken(TExpressionToken(CurToken), AData, ADoc);
 
       if ExitCalled then Break;
     end;
@@ -542,7 +542,7 @@ begin
 end;
 
 procedure TvEPSVectorialReader.ExecuteProcedureToken(AToken: TProcedureToken;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   ProcTokenizer: TPSTokenizer;
   lStream: TMemoryStream;
@@ -588,42 +588,42 @@ begin
   end;
 
   // Now run the procedure
-  RunPostScript(AToken.Childs, AData);
+  RunPostScript(AToken.Childs, AData, ADoc);
   {$ifdef FPVECTORIALDEBUG_CODEFLOW}
   WriteLn('[TvEPSVectorialReader.ExecuteProcedureToken] END');
   {$endif}
 end;
 
 procedure TvEPSVectorialReader.ExecuteOperatorToken(AToken: TExpressionToken;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   Param1, Param2: TPSToken;
 begin
   if AToken.StrValue = '' then raise Exception.Create('[TvEPSVectorialReader.ProcessExpressionToken] Empty operator');
 
-  if ExecuteDictionaryOperators(AToken, AData) then Exit;
+  if ExecuteDictionaryOperators(AToken, AData, ADoc) then Exit;
 
-  if ExecuteArithmeticAndMathOperator(AToken, AData) then Exit;
+  if ExecuteArithmeticAndMathOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecutePathConstructionOperator(AToken, AData) then Exit;
+  if ExecutePathConstructionOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteGraphicStateOperatorsDI(AToken, AData) then Exit;
+  if ExecuteGraphicStateOperatorsDI(AToken, AData, ADoc) then Exit;
 
-  if ExecuteGraphicStateOperatorsDD(AToken, AData) then Exit;
+  if ExecuteGraphicStateOperatorsDD(AToken, AData, ADoc) then Exit;
 
-  if ExecuteControlOperator(AToken, AData) then Exit;
+  if ExecuteControlOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteStackManipulationOperator(AToken, AData) then Exit;
+  if ExecuteStackManipulationOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteMiscellaneousOperators(AToken, AData) then Exit;
+  if ExecuteMiscellaneousOperators(AToken, AData, ADoc) then Exit;
 
-  if ExecutePaintingOperator(AToken, AData) then Exit;
+  if ExecutePaintingOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteDeviceSetupAndOutputOperator(AToken, AData) then Exit;
+  if ExecuteDeviceSetupAndOutputOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteArrayOperator(AToken, AData) then Exit;
+  if ExecuteArrayOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteStringOperator(AToken, AData) then Exit;
+  if ExecuteStringOperator(AToken, AData, ADoc) then Exit;
 
   // If we got here, there the command not yet implemented
   raise Exception.Create(Format('[TvEPSVectorialReader.ProcessExpressionToken] Unknown PostScript Command "%s" in Line %d',
@@ -762,7 +762,7 @@ end;
                                Count elements down to mark
 }
 function TvEPSVectorialReader.ExecuteStackManipulationOperator(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2, NewToken: TPSToken;
   lIndexN, lIndexJ: Integer;
@@ -956,7 +956,7 @@ end;
   any string cvs substring Convert to string
 }
 function TvEPSVectorialReader.ExecuteControlOperator(AToken: TExpressionToken;
-  AData: TvVectorialDocument): Boolean;
+  AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2, Param3, Param4, CounterToken: TPSToken;
   NewToken: TExpressionToken;
@@ -973,7 +973,7 @@ begin
     if not (Param1 is TProcedureToken) then
       raise Exception.Create(Format('[TvEPSVectorialReader.ExecuteControlOperator] The operator if requires a procedure. Error at line %d', [AToken.Line]));
 
-    if Param2.BoolValue then ExecuteProcedureToken(TProcedureToken(Param1), AData);
+    if Param2.BoolValue then ExecuteProcedureToken(TProcedureToken(Param1), AData, ADoc);
 
     Exit(True);
   end;
@@ -989,8 +989,8 @@ begin
     if not (Param2 is TProcedureToken) then
       raise Exception.Create(Format('[TvEPSVectorialReader.ExecuteControlOperator] The operator ifelse requires a procedure. Error at line %d', [AToken.Line]));
 
-    if Param3.BoolValue then ExecuteProcedureToken(TProcedureToken(Param2), AData)
-    else ExecuteProcedureToken(TProcedureToken(Param1), AData);
+    if Param3.BoolValue then ExecuteProcedureToken(TProcedureToken(Param2), AData, ADoc)
+    else ExecuteProcedureToken(TProcedureToken(Param1), AData, ADoc);
 
     Exit(True);
   end;
@@ -1033,7 +1033,7 @@ begin
     if not (Param1 is TProcedureToken) then
       raise Exception.Create(Format('[TvEPSVectorialReader.ExecuteControlOperator] The operator stopped requires a procedure. Error at line %d', [AToken.Line]));
 
-    ExecuteProcedureToken(TProcedureToken(Param1), AData);
+    ExecuteProcedureToken(TProcedureToken(Param1), AData, ADoc);
 
     NewToken := TExpressionToken.Create;
     NewToken.ETType := ettOperand;
@@ -1053,7 +1053,7 @@ begin
 
     while True do
     begin
-      ExecuteProcedureToken(TProcedureToken(Param1), AData);
+      ExecuteProcedureToken(TProcedureToken(Param1), AData, ADoc);
 
       if ExitCalled then
       begin
@@ -1126,7 +1126,7 @@ begin
       CounterToken.FloatValue := FloatCounter;
       Stack.Push(CounterToken);
 
-      ExecuteProcedureToken(TProcedureToken(Param1), AData);
+      ExecuteProcedureToken(TProcedureToken(Param1), AData, ADoc);
 
       FloatCounter := FloatCounter + Param3.FloatValue;
 
@@ -1220,7 +1220,7 @@ end;
   form execform – Paint form
 }
 function TvEPSVectorialReader.ExecutePaintingOperator(AToken: TExpressionToken;
-  AData: TvVectorialDocument): Boolean;
+  AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
 begin
@@ -1333,7 +1333,7 @@ end;
   parameters
 }
 function TvEPSVectorialReader.ExecuteDeviceSetupAndOutputOperator(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
 begin
@@ -1379,7 +1379,7 @@ end;
   packedarray proc forall – Execute proc for each element of packedarray
 }
 function TvEPSVectorialReader.ExecuteArrayOperator(AToken: TExpressionToken;
-  AData: TvVectorialDocument): Boolean;
+  AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 begin
   Result := False;
 
@@ -1420,7 +1420,7 @@ end;
   int1 shift bitshift int2 Perform bitwise shift of int1 (positive is left)
 }
 function TvEPSVectorialReader.ExecuteStringOperator(AToken: TExpressionToken;
-  AData: TvVectorialDocument): Boolean;
+  AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
   NewToken: TExpressionToken;
@@ -1492,7 +1492,7 @@ end;
   – rrand int              Return random number seed
 }
 function TvEPSVectorialReader.ExecuteArithmeticAndMathOperator(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
   NewToken: TExpressionToken;
@@ -1579,7 +1579,7 @@ end;
   – ucache – Declare that user path is to be cached
 }
 function TvEPSVectorialReader.ExecutePathConstructionOperator(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2, Param3, Param4, Param5, Param6: TPSToken;
   PosX, PosY, PosX2, PosY2, PosX3, PosY3, BaseX, BaseY: Double;
@@ -1767,7 +1767,7 @@ begin
     {$endif}
     AData.SetBrushStyle(bsClear);
     AData.EndPath();
-    CurrentGraphicState.ClipPath := AData.GetPath(AData.GetPathCount()-1);
+    CurrentGraphicState.ClipPath := AData.GetEntity(AData.GetEntitiesCount()-1) as TPath;
     CurrentGraphicState.ClipMode := vcmEvenOddRule;
     Exit(True);
   end
@@ -1823,7 +1823,7 @@ end;
   yellow, black
 }
 function TvEPSVectorialReader.ExecuteGraphicStateOperatorsDI(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2, Param3: TPSToken;
   lRed, lGreen, lBlue: Double;
@@ -1977,7 +1977,7 @@ end;
   matrix1 matrix2 invertmatrix matrix2 Fill matrix2 with inverse of matrix1
 }
 function TvEPSVectorialReader.ExecuteGraphicStateOperatorsDD(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
 begin
@@ -2097,7 +2097,7 @@ end;
   dictionary stack
 }
 function TvEPSVectorialReader.ExecuteDictionaryOperators(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
   NewToken: TExpressionToken;
@@ -2190,7 +2190,7 @@ end;
   – prompt – Executed when ready for interactive input
 }
 function TvEPSVectorialReader.ExecuteMiscellaneousOperators(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 begin
   Result := False;
 
@@ -2273,17 +2273,20 @@ end;
 
 procedure TvEPSVectorialReader.ReadFromStream(AStream: TStream;
   AData: TvVectorialDocument);
+var
+  lPage: TvVectorialPage;
 begin
   Tokenizer.ReadFromStream(AStream);
 //  Tokenizer.DebugOut();
 
   // Make sure we have at least one path
-  AData.StartPath();
+  lPage := AData.AddPage();
+  lPage.StartPath();
 
-  RunPostScript(Tokenizer.Tokens, AData);
+  RunPostScript(Tokenizer.Tokens, lPage, AData);
 
   // Make sure we have at least one path
-  AData.EndPath();
+  lPage.EndPath();
 
   // PostScript has no document size information, so lets calculate it ourselves
   AData.GuessDocumentSize();

@@ -22,16 +22,16 @@ uses
   fpimage,
   fpvectorial, fpvutils;
 
-procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument;
+procedure DrawFPVectorialToCanvas(ASource: TvVectorialPage;
   ADest: TFPCustomCanvas;
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
-procedure DrawFPVPathToCanvas(ASource: TvVectorialDocument; CurPath: TPath;
+procedure DrawFPVPathToCanvas(ASource: TvVectorialPage; CurPath: TPath;
   ADest: TFPCustomCanvas;
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
-procedure DrawFPVEntityToCanvas(ASource: TvVectorialDocument; CurEntity: TvEntity;
+procedure DrawFPVEntityToCanvas(ASource: TvVectorialPage; CurEntity: TvEntity;
   ADest: TFPCustomCanvas;
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
-procedure DrawFPVTextToCanvas(ASource: TvVectorialDocument; CurText: TvText;
+procedure DrawFPVTextToCanvas(ASource: TvVectorialPage; CurText: TvText;
   ADest: TFPCustomCanvas;
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
 
@@ -101,7 +101,7 @@ end;
 
   DrawFPVectorialToCanvas(ASource, ADest, 0, ASource.Height, 1.0, -1.0);
 }
-procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument;
+procedure DrawFPVectorialToCanvas(ASource: TvVectorialPage;
   ADest: TFPCustomCanvas;
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
 var
@@ -130,7 +130,7 @@ begin
   {$endif}
 end;
 
-procedure DrawFPVPathToCanvas(ASource: TvVectorialDocument; CurPath: TPath;
+procedure DrawFPVPathToCanvas(ASource: TvVectorialPage; CurPath: TPath;
   ADest: TFPCustomCanvas;
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
 
@@ -337,7 +337,7 @@ begin
   {$endif}
 end;
 
-procedure DrawFPVEntityToCanvas(ASource: TvVectorialDocument; CurEntity: TvEntity;
+procedure DrawFPVEntityToCanvas(ASource: TvVectorialPage; CurEntity: TvEntity;
   ADest: TFPCustomCanvas;
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
 
@@ -543,7 +543,7 @@ begin
   end;
 end;
 
-procedure DrawFPVTextToCanvas(ASource: TvVectorialDocument; CurText: TvText;
+procedure DrawFPVTextToCanvas(ASource: TvVectorialPage; CurText: TvText;
   ADest: TFPCustomCanvas;
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
 

@@ -45,14 +45,14 @@ type
   private
     FPointSeparator, FCommaSeparator: TFormatSettings;
     FSVGPathTokenizer: TSVGPathTokenizer;
-    procedure ReadPathFromNode(APath: TDOMNode; AData: TvVectorialDocument);
-    procedure ReadPathFromString(AStr: string; AData: TvVectorialDocument);
+    procedure ReadPathFromNode(APath: TDOMNode; AData: TvVectorialPage; ADoc: TvVectorialDocument);
+    procedure ReadPathFromString(AStr: string; AData: TvVectorialPage; ADoc: TvVectorialDocument);
     function  StringWithUnitToFloat(AStr: string): Single;
     procedure ConvertSVGCoordinatesToFPVCoordinates(
-      const AData: TvVectorialDocument;
+      const AData: TvVectorialPage;
       const ASrcX, ASrcY: Float; var ADestX, ADestY: Float);
     procedure ConvertSVGDeltaToFPVDelta(
-      const AData: TvVectorialDocument;
+      const AData: TvVectorialPage;
       const ASrcX, ASrcY: Float; var ADestX, ADestY: Float);
   public
     { General reading methods }
@@ -194,7 +194,7 @@ end;
 { TvSVGVectorialReader }
 
 procedure TvSVGVectorialReader.ReadPathFromNode(APath: TDOMNode;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   lNodeName, lStyleStr, lDStr: WideString;
   i: Integer;
@@ -209,12 +209,12 @@ begin
   end;
 
   AData.StartPath();
-  ReadPathFromString(UTF8Encode(lDStr), AData);
+  ReadPathFromString(UTF8Encode(lDStr), AData, ADoc);
   AData.EndPath();
 end;
 
 procedure TvSVGVectorialReader.ReadPathFromString(AStr: string;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   i: Integer;
   X, Y, X2, Y2, X3, Y3: Float;
@@ -296,7 +296,7 @@ begin
 end;
 
 procedure TvSVGVectorialReader.ConvertSVGCoordinatesToFPVCoordinates(
-  const AData: TvVectorialDocument; const ASrcX, ASrcY: Float;
+  const AData: TvVectorialPage; const ASrcX, ASrcY: Float;
   var ADestX,ADestY: Float);
 begin
   ADestX := ASrcX * FLOAT_MILIMETERS_PER_PIXEL;
@@ -304,7 +304,7 @@ begin
 end;
 
 procedure TvSVGVectorialReader.ConvertSVGDeltaToFPVDelta(
-  const AData: TvVectorialDocument; const ASrcX, ASrcY: Float; var ADestX,
+  const AData: TvVectorialPage; const ASrcX, ASrcY: Float; var ADestX,
   ADestY: Float);
 begin
   ADestX := ASrcX * FLOAT_MILIMETERS_PER_PIXEL;
@@ -334,6 +334,7 @@ procedure TvSVGVectorialReader.ReadFromStream(AStream: TStream;
 var
   Doc: TXMLDocument;
   lFirstLayer, lCurNode: TDOMNode;
+  lPage: TvVectorialPage;
 begin
   try
     // Read in xml file from the stream
@@ -346,9 +347,12 @@ begin
     // Now process the elements inside the first layer
     lFirstLayer := Doc.DocumentElement.FirstChild;
     lCurNode := lFirstLayer.FirstChild;
+    lPage := AData.AddPage();
+    lPage.Width := AData.Width;
+    lPage.Height := AData.Height;
     while Assigned(lCurNode) do
     begin
-      ReadPathFromNode(lCurNode, AData);
+      ReadPathFromNode(lCurNode, lPage, AData);
       lCurNode := lCurNode.NextSibling;
     end;
   finally

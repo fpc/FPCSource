@@ -28,7 +28,7 @@ type
   private
     LastX, LastY, LastZ: Double;
     function  SeparateString(AString: string; ASeparator: Char): T10Strings;
-    procedure ReadString(AStr: string; AData: TvVectorialDocument);
+    procedure ReadString(AStr: string; AData: TvVectorialPage);
     function  GetCoordinate(AStr: shortstring): Integer;
     function  GetCoordinateValue(AStr: shortstring): Double;
   public
@@ -91,7 +91,7 @@ begin
 end;
 
 procedure TvAvisoCNCGCodeReader.ReadString(AStr: string;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage);
 var
   AParams: T10Strings;
   DestX, DestY, DestZ: Double;
@@ -210,20 +210,22 @@ procedure TvAvisoCNCGCodeReader.ReadFromStrings(AStrings: TStrings;
   AData: TvVectorialDocument);
 var
   i: Integer;
+  FirstPage: TvVectorialPage;
 begin
   {$ifdef FPVECTORIALDEBUG}
   WriteLn('TvAvisoCNCGCodeReader.ReadFromStrings AStrings = ', PtrInt(AStrings), ' AData = ', PtrInt(AData));
   {$endif}
-  
-  AData.StartPath(0, 0);
+
+  FirstPage := AData.AddPage();
+  FirstPage.StartPath(0, 0);
 
   for i := 0 to AStrings.Count - 1 do
-    ReadString(AStrings.Strings[i], AData);
+    ReadString(AStrings.Strings[i], FirstPage);
 
   {$ifdef FPVECTORIALDEBUG}
   WriteLn('AData.EndPath');
   {$endif}
-  AData.EndPath();
+  FirstPage.EndPath();
 end;
 
 initialization
