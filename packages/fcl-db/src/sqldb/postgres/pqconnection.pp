@@ -24,10 +24,10 @@ type
   TPQCursor = Class(TSQLCursor)
     protected
     Statement    : string;
+    StmtName     : string;
     tr           : TPQTrans;
     res          : PPGresult;
     CurTuple     : integer;
-    Nr           : string;
     FieldBinding : array of integer;
   end;
 
@@ -516,16 +516,16 @@ begin
   with (cursor as TPQCursor) do
     begin
     FPrepared := False;
-    nr := inttostr(FCursorcount);
-    inc(FCursorCount);
     // Prior to v8 there is no support for cursors and parameters.
     // So that's not supported.
     if FStatementType in [stInsert,stUpdate,stDelete, stSelect] then
       begin
+      StmtName := 'prepst'+inttostr(FCursorCount);
+      inc(FCursorCount);
       tr := TPQTrans(aTransaction.Handle);
       // Only available for pq 8.0, so don't use it...
       // Res := pqprepare(tr,'prepst'+name+nr,pchar(buf),params.Count,pchar(''));
-      s := 'prepare prepst'+nr+' ';
+      s := 'prepare '+StmtName+' ';
       if Assigned(AParams) and (AParams.count > 0) then
         begin
         s := s + '(';
@@ -548,6 +548,15 @@ begin
         pqclear(res);
         DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self)
         end;
+      // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
+      // override the statement type derrived by parsing the query.
+      if (FStatementType in [stInsert,stUpdate,stDelete]) and (pos('RETURNING', upcase(s)) > 0) then
+        begin
+        PQclear(res);
+        res := PQdescribePrepared(tr.PGConn,pchar(StmtName));
+        if (PQresultStatus(res) = PGRES_COMMAND_OK) and (PQnfields(res) > 0) then
+          FStatementType := stSelect;
+        end;
       FPrepared := True;
       end
     else
@@ -563,7 +572,7 @@ begin
     if not tr.ErrorOccured then
       begin
       PQclear(res);
-      res := pqexec(tr.PGConn,pchar('deallocate prepst'+nr));
+      res := pqexec(tr.PGConn,pchar('deallocate '+StmtName));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
           pqclear(res);
@@ -630,12 +639,12 @@ begin
           end
         else
           FreeAndNil(ar[i]);
-        res := PQexecPrepared(tr.PGConn,pchar('prepst'+nr),Aparams.count,@Ar[0],@Lengths[0],@Formats[0],1);
+        res := PQexecPrepared(tr.PGConn,pchar(StmtName),Aparams.count,@Ar[0],@Lengths[0],@Formats[0],1);
         for i := 0 to AParams.count -1 do
           FreeMem(ar[i]);
         end
       else
-        res := PQexecPrepared(tr.PGConn,pchar('prepst'+nr),0,nil,nil,nil,1);
+        res := PQexecPrepared(tr.PGConn,pchar(StmtName),0,nil,nil,nil,1);
       end
     else
       begin

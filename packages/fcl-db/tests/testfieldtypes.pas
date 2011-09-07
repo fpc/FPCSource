@@ -1171,15 +1171,15 @@ end;
 
 procedure TTestFieldTypes.TestInsertReturningQuery;
 begin
-  if (SQLDbType <> interbase) then Ignore('This test does only apply to Firebird.');
+  if not(SQLDbType in [postgresql,interbase,oracle]) then Ignore('This test does not apply to this db-engine');
   with TSQLDBConnector(DBConnector) do
     begin
     // This only works with databases that supports 'insert into .. returning'
-    // for example, Firebird version 2.0 and up
+    // for example: PostgreSQL, Oracle, Firebird version 2.0 and up
     CreateTableWithFieldType(ftInteger,'int');
     Query.SQL.Text:='insert into FPDEV2 values(154) returning FT';
     Query.Open;
-    AssertEquals('FT',Query.fields[0].FieldName);
+    AssertTrue(CompareText('FT',Query.Fields[0].FieldName)=0);
     AssertEquals(154,Query.fields[0].AsInteger);
     Query.Close;
     end;
