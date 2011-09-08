@@ -1786,7 +1786,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_GENERIC_PARMS  = MCI_GENERIC_PARMS;
 
  _MCI_OPEN_PARMSA = packed Record
-                            dwCallback: DWORD;
+                            dwCallback: DWORD_ptr;
                             wDeviceID: MCIDEVICEID;
                             lpstrDeviceType: LPCSTR;
                             lpstrElementName: LPCSTR;
