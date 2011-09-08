@@ -30,6 +30,11 @@ type
   Arr2JLRField = array of Arr1JLRField;
   Arr3JLRField = array of Arr2JLRField;
 
+  JLRInvocationTargetException = class;
+  Arr1JLRInvocationTargetException = array of JLRInvocationTargetException;
+  Arr2JLRInvocationTargetException = array of Arr1JLRInvocationTargetException;
+  Arr3JLRInvocationTargetException = array of Arr2JLRInvocationTargetException;
+
   JNBuffer = class;
   Arr1JNBuffer = array of JNBuffer;
   Arr2JNBuffer = array of Arr1JNBuffer;

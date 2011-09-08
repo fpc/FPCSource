@@ -2139,6 +2139,16 @@
     constructor create(para1: JLThrowable); overload;
   end;
 
+  JLRInvocationTargetException = class external 'java.lang.reflect' name 'InvocationTargetException' (JLException)
+  strict protected
+    constructor create(); overload;
+  public
+    constructor create(para1: JLThrowable); overload;
+    constructor create(para1: JLThrowable; para2: JLString); overload;
+    function getTargetException(): JLThrowable; overload; virtual;
+    function getCause(): JLThrowable; overload; virtual;
+  end;
+
   JLStringBuffer = class sealed external 'java.lang' name 'StringBuffer' (JLAbstractStringBuilder, JISerializable, JLCharSequence)
   public
     constructor create(); overload;

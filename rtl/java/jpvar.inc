@@ -100,91 +100,141 @@
         in a synchronised way. Doing it at construction time and in fpcDeepCopy/
         clone is not enough, because the method field can be manipulated
         directly }
-      if length(method.code.getParameterTypes)=length(args) then
-        method.code.invoke(method.data,args)
-      else
-        method.code.invoke(method.data,getClassProcArgs(args));
+      try
+        if length(method.code.getParameterTypes)=length(args) then
+          method.code.invoke(method.data,args)
+        else
+          method.code.invoke(method.data,getClassProcArgs(args));
+      except
+        on e: JLRInvocationTargetException do
+          raise e.getCause
+      end;
     end;
 
 
   function FpcBaseProcVarType.invokeBooleanFunc(const args: array of jlobject): jboolean;
     begin
-      if length(method.code.getParameterTypes)=length(args) then
-        result:=JLBoolean(method.code.invoke(method.data,args)).booleanValue
-      else
-        result:=JLBoolean(method.code.invoke(method.data,getClassProcArgs(args))).booleanValue
+      try
+        if length(method.code.getParameterTypes)=length(args) then
+          result:=JLBoolean(method.code.invoke(method.data,args)).booleanValue
+        else
+          result:=JLBoolean(method.code.invoke(method.data,getClassProcArgs(args))).booleanValue
+      except
+        on e: JLRInvocationTargetException do
+          raise e.getCause
+      end;
     end;
 
 
   function FpcBaseProcVarType.invokeCharFunc(const args: array of jlobject): jchar;
     begin
-      if length(method.code.getParameterTypes)=length(args) then
-        result:=JLCharacter(method.code.invoke(method.data,args)).charValue
-      else
-        result:=JLCharacter(method.code.invoke(method.data,getClassProcArgs(args))).charValue;
+      try
+        if length(method.code.getParameterTypes)=length(args) then
+          result:=JLCharacter(method.code.invoke(method.data,args)).charValue
+        else
+          result:=JLCharacter(method.code.invoke(method.data,getClassProcArgs(args))).charValue;
+      except
+        on e: JLRInvocationTargetException do
+          raise e.getCause
+      end;
     end;
 
 
   function FpcBaseProcVarType.invokeByteFunc(const args: array of jlobject): jbyte;
     begin
-      if length(method.code.getParameterTypes)=length(args) then
-        result:=JLByte(method.code.invoke(method.data,args)).byteValue
-      else
-        result:=JLByte(method.code.invoke(method.data,getClassProcArgs(args))).byteValue
+      try
+        if length(method.code.getParameterTypes)=length(args) then
+          result:=JLByte(method.code.invoke(method.data,args)).byteValue
+        else
+          result:=JLByte(method.code.invoke(method.data,getClassProcArgs(args))).byteValue
+      except
+        on e: JLRInvocationTargetException do
+          raise e.getCause
+      end;
     end;
 
 
   function FpcBaseProcVarType.invokeShortFunc(const args: array of jlobject): jshort;
     begin
-      if length(method.code.getParameterTypes)=length(args) then
-        result:=JLShort(method.code.invoke(method.data,args)).shortValue
-      else
-        result:=JLShort(method.code.invoke(method.data,getClassProcArgs(args))).shortValue
+      try
+        if length(method.code.getParameterTypes)=length(args) then
+          result:=JLShort(method.code.invoke(method.data,args)).shortValue
+        else
+          result:=JLShort(method.code.invoke(method.data,getClassProcArgs(args))).shortValue
+      except
+        on e: JLRInvocationTargetException do
+          raise e.getCause
+      end;
     end;
 
 
   function FpcBaseProcVarType.invokeIntFunc(const args: array of jlobject): jint;
     begin
-      if length(method.code.getParameterTypes)=length(args) then
-        result:=JLInteger(method.code.invoke(method.data,args)).intValue
-      else
-        result:=JLInteger(method.code.invoke(method.data,getClassProcArgs(args))).intValue
+      try
+        if length(method.code.getParameterTypes)=length(args) then
+          result:=JLInteger(method.code.invoke(method.data,args)).intValue
+        else
+          result:=JLInteger(method.code.invoke(method.data,getClassProcArgs(args))).intValue
+      except
+        on e: JLRInvocationTargetException do
+          raise e.getCause
+      end;
     end;
 
 
   function FpcBaseProcVarType.invokeLongFunc(const args: array of jlobject): jlong;
     begin
-      if length(method.code.getParameterTypes)=length(args) then
-        result:=JLLong(method.code.invoke(method.data,args)).longValue
-      else
-        result:=JLLong(method.code.invoke(method.data,getClassProcArgs(args))).longValue;
+      try
+        if length(method.code.getParameterTypes)=length(args) then
+          result:=JLLong(method.code.invoke(method.data,args)).longValue
+        else
+          result:=JLLong(method.code.invoke(method.data,getClassProcArgs(args))).longValue;
+      except
+        on e: JLRInvocationTargetException do
+          raise e.getCause
+      end;
     end;
 
 
   function FpcBaseProcVarType.invokeSingleFunc(const args: array of jlobject): jfloat;
     begin
-      if length(method.code.getParameterTypes)=length(args) then
-        result:=JLFloat(method.code.invoke(method.data,args)).floatValue
-      else
-        result:=JLFloat(method.code.invoke(method.data,getClassProcArgs(args))).floatValue
+      try
+        if length(method.code.getParameterTypes)=length(args) then
+          result:=JLFloat(method.code.invoke(method.data,args)).floatValue
+        else
+          result:=JLFloat(method.code.invoke(method.data,getClassProcArgs(args))).floatValue
+      except
+        on e: JLRInvocationTargetException do
+          raise e.getCause
+      end;
     end;
 
 
   function FpcBaseProcVarType.invokeDoubleFunc(const args: array of jlobject): jdouble;
     begin
-      if length(method.code.getParameterTypes)=length(args) then
-        result:=JLDouble(method.code.invoke(method.data,args)).doubleValue
-      else
-        result:=JLDouble(method.code.invoke(method.data,getClassProcArgs(args))).doubleValue
+      try
+        if length(method.code.getParameterTypes)=length(args) then
+          result:=JLDouble(method.code.invoke(method.data,args)).doubleValue
+        else
+          result:=JLDouble(method.code.invoke(method.data,getClassProcArgs(args))).doubleValue
+      except
+        on e: JLRInvocationTargetException do
+          raise e.getCause
+      end;
     end;
 
 
   function FpcBaseProcVarType.invokeObjectFunc(const args: array of jlobject): jlobject;
     begin
-      if length(method.code.getParameterTypes)=length(args) then
-        result:=method.code.invoke(method.data,args)
-      else
-        result:=method.code.invoke(method.data,getClassProcArgs(args))
+      try
+        if length(method.code.getParameterTypes)=length(args) then
+          result:=method.code.invoke(method.data,args)
+        else
+          result:=method.code.invoke(method.data,getClassProcArgs(args))
+      except
+        on e: JLRInvocationTargetException do
+          raise e.getCause
+      end;
     end;
 
 

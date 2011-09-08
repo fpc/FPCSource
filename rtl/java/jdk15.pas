@@ -14440,11 +14440,6 @@ type
   Arr2JSRSSQLInputImpl = array of Arr1JSRSSQLInputImpl;
   Arr3JSRSSQLInputImpl = array of Arr2JSRSSQLInputImpl;
 
-  JLRInvocationTargetException = class;
-  Arr1JLRInvocationTargetException = array of JLRInvocationTargetException;
-  Arr2JLRInvocationTargetException = array of Arr1JLRInvocationTargetException;
-  Arr3JLRInvocationTargetException = array of Arr2JLRInvocationTargetException;
-
   OXSSAXParseException = class;
   Arr1OXSSAXParseException = array of OXSSAXParseException;
   Arr2OXSSAXParseException = array of Arr1OXSSAXParseException;
