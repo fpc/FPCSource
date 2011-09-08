@@ -69,8 +69,6 @@ type
   end;
   PMaxLogPalette = ^TMaxLogPalette;
 
-  POSVersionInfoA = POSVERSIONINFO;
-
   TBitmapFileHeader = BITMAPFILEHEADER;
   PBitmapFileHeader = ^TBitmapFileHeader;
 
