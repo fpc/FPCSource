@@ -303,7 +303,7 @@ Type
     FFileName   :  String;         { Name of resulting Zip file                 }
     FFiles      : TStrings;
     FInMemSize  : Integer;
-    FOutFile    : TFileStream;
+    FOutStream  : TStream;
     FInFile     : TStream;     { I/O file variables                         }
     LocalHdr    : Local_File_Header_Type;
     CentralHdr  : Central_File_Header_Type;
@@ -315,8 +315,6 @@ Type
     function CheckEntries: Integer;
     procedure SetEntries(const AValue: TZipFileEntries);
   Protected
-    Procedure OpenOutput;
-    Procedure CloseOutput;
     Procedure CloseInput(Item : TZipFileEntry);
     Procedure StartZipFile(Item : TZipFileEntry);
     Function  UpdateZipHeader(Item : TZipFileEntry; FZip : TStream; ACRC : LongWord;AMethod : Word) : Boolean;
@@ -332,6 +330,8 @@ Type
     Constructor Create;
     Destructor Destroy;override;
     Procedure ZipAllFiles; virtual;
+    Procedure SaveToFile(AFileName: string);
+    Procedure SaveToStream(AStream: TStream);
     Procedure ZipFiles(AFileName : String; FileList : TStrings);
     Procedure ZipFiles(FileList : TStrings);
     Procedure ZipFiles(AFileName : String; Entries : TZipFileEntries);
@@ -1202,13 +1202,6 @@ begin
   FEntries.Assign(AValue);
 end;
 
-Procedure TZipper.OpenOutput;
-
-Begin
-  FOutFile:=TFileStream.Create(FFileName,fmCreate);
-End;
-
-
 Function TZipper.OpenInput(Item : TZipFileEntry) : Boolean;
 
 Begin
@@ -1223,13 +1216,6 @@ Begin
   If Assigned(FOnStartFile) then
     FOnStartFile(Self,Item.ArchiveFileName);
 End;
-
-
-Procedure TZipper.CloseOutput;
-
-Begin
-  FreeAndNil(FOutFile);
-end;
 
 
 Procedure TZipper.CloseInput(Item : TZipFileEntry);
@@ -1280,8 +1266,8 @@ Begin
       Compressed_Size := Uncompressed_Size;  { ...update compressed size   }
       end;
     end;
-  FOutFile.WriteBuffer({$IFDEF ENDIAN_BIG}SwapLFH{$ENDIF}(LocalHdr),SizeOf(LocalHdr));
-  FOutFile.WriteBuffer(ZFileName[1],Length(ZFileName));
+  FOutStream.WriteBuffer({$IFDEF ENDIAN_BIG}SwapLFH{$ENDIF}(LocalHdr),SizeOf(LocalHdr));
+  FOutStream.WriteBuffer(ZFileName[1],Length(ZFileName));
 End;
 
 
@@ -1296,17 +1282,17 @@ Var
 
 Begin
    ACount := 0;
-   CenDirPos := FOutFile.Position;
-   FOutFile.Seek(0,soFrombeginning);             { Rewind output file }
-   HdrPos := FOutFile.Position;
-   FOutFile.ReadBuffer(LocalHdr, SizeOf(LocalHdr));
+   CenDirPos := FOutStream.Position;
+   FOutStream.Seek(0,soFrombeginning);             { Rewind output file }
+   HdrPos := FOutStream.Position;
+   FOutStream.ReadBuffer(LocalHdr, SizeOf(LocalHdr));
 {$IFDEF FPC_BIG_ENDIAN}
    LocalHdr := SwapLFH(LocalHdr);
 {$ENDIF}
    Repeat
      SetLength(ZFileName,LocalHdr.FileName_Length);
-     FOutFile.ReadBuffer(ZFileName[1], LocalHdr.FileName_Length);
-     SavePos := FOutFile.Position;
+     FOutStream.ReadBuffer(ZFileName[1], LocalHdr.FileName_Length);
+     SavePos := FOutStream.Position;
      FillChar(CentralHdr,SizeOf(CentralHdr),0);
      With CentralHdr do
        begin
@@ -1328,18 +1314,18 @@ Begin
      {$ENDIF}
        Local_Header_Offset := HdrPos;
        end;
-     FOutFile.Seek(0,soFromEnd);
-     FOutFile.WriteBuffer({$IFDEF FPC_BIG_ENDIAN}SwapCFH{$ENDIF}(CentralHdr),SizeOf(CentralHdr));
-     FOutFile.WriteBuffer(ZFileName[1],Length(ZFileName));
+     FOutStream.Seek(0,soFromEnd);
+     FOutStream.WriteBuffer({$IFDEF FPC_BIG_ENDIAN}SwapCFH{$ENDIF}(CentralHdr),SizeOf(CentralHdr));
+     FOutStream.WriteBuffer(ZFileName[1],Length(ZFileName));
      Inc(ACount);
-     FOutFile.Seek(SavePos + LocalHdr.Compressed_Size,soFromBeginning);
-     HdrPos:=FOutFile.Position;
-     FOutFile.ReadBuffer(LocalHdr, SizeOf(LocalHdr));
+     FOutStream.Seek(SavePos + LocalHdr.Compressed_Size,soFromBeginning);
+     HdrPos:=FOutStream.Position;
+     FOutStream.ReadBuffer(LocalHdr, SizeOf(LocalHdr));
 {$IFDEF FPC_BIG_ENDIAN}
      LocalHdr := SwapLFH(LocalHdr);
 {$ENDIF}
    Until LocalHdr.Signature = CENTRAL_FILE_HEADER_SIGNATURE;
-   FOutFile.Seek(0,soFromEnd);
+   FOutStream.Seek(0,soFromEnd);
    FillChar(EndHdr,SizeOf(EndHdr),0);
    With EndHdr do
      begin
@@ -1348,10 +1334,10 @@ Begin
      Central_Dir_Start_Disk := 0;
      Entries_This_Disk := ACount;
      Total_Entries := ACount;
-     Central_Dir_Size := FOutFile.Size-CenDirPos;
+     Central_Dir_Size := FOutStream.Size-CenDirPos;
      Start_Disk_Offset := CenDirPos;
      ZipFile_Comment_Length := 0;
-     FOutFile.WriteBuffer({$IFDEF FPC_BIG_ENDIAN}SwapECD{$ENDIF}(EndHdr), SizeOf(EndHdr));
+     FOutStream.WriteBuffer({$IFDEF FPC_BIG_ENDIAN}SwapECD{$ENDIF}(EndHdr), SizeOf(EndHdr));
      end;
 end;
 
@@ -1393,12 +1379,12 @@ Begin
         end;
       If UpdateZipHeader(Item,ZipStream,CRC,ZMethod) then
         // Compressed file smaller than original file.
-        FOutFile.CopyFrom(ZipStream,0)
+        FOutStream.CopyFrom(ZipStream,0)
       else
         begin
         // Original file smaller than compressed file.
         FInfile.Seek(0,soFromBeginning);
-        FOutFile.CopyFrom(FInFile,0);
+        FOutStream.CopyFrom(FInFile,0);
         end;
     finally
       ZipStream.Free;
@@ -1410,30 +1396,46 @@ Begin
   end;
 end;
 
+// Just like SaveToFile, but uses the FileName property
 Procedure TZipper.ZipAllFiles;
 
+Begin
+  SaveToFile(FileName);
+end;
+
+procedure TZipper.SaveToFile(AFileName: string);
+var
+  lStream: TFileStream;
+begin
+  lStream:=TFileStream.Create(FFileName,fmCreate);
+  try
+    SaveToStream(lStream);
+  finally
+    FreeAndNil(lStream);
+  end;
+end;
+
+procedure TZipper.SaveToStream(AStream: TStream);
 Var
    I : Integer;
    filecnt : integer;
-Begin
+begin
+  FOutStream := AStream;
+
   If CheckEntries=0 then
     Exit;
   FZipping:=True;
   Try
     GetFileInfo;
-    OpenOutput;
-    Try
-      filecnt:=0;
-      For I:=0 to FEntries.Count-1 do
-        begin
-        ZipOneFile(FEntries[i]);
-        inc(filecnt);
-        end;
-      if filecnt>0 then
-        BuildZipDirectory;
-    finally
-      CloseOutput;
+
+    filecnt:=0;
+    for I:=0 to FEntries.Count-1 do
+    begin
+      ZipOneFile(FEntries[i]);
+      inc(filecnt);
     end;
+    if filecnt>0 then
+      BuildZipDirectory;
   finally
     FZipping:=False;
     // Remove entries that have been added by CheckEntries from Files.
