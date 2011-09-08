@@ -16,8 +16,10 @@
 #
 
 /* This is the canonical entry point, usually the first thing in the text
-   segment.  The SVR4/i386 ABI (pages 3-31, 3-32) says that when the entry
-   point runs, most registers' values are unspecified, except for:
+   segment.  The document "System V Application Binary Interface AMD64
+   Architecture Processor Supplement Version 0.99.5" pg. 30 defines that
+   the entry point runs, most registers' values are unspecified, except
+   for:
 
    %rdx		Contains a function pointer to be registered with `atexit'.
 		This is how the dynamic linker arranges to have DT_FINI
@@ -35,11 +37,17 @@
 */
 
         .text
+	.globl _dynamic_start
+	.type _dynamic_start,@function
+_dynamic_start:
+        movq    __dl_fini@GOTPCREL(%rip),%rax
+        movq    %rdx,(%rax)
+        jmp _start
+
+        .text
 	.globl _start
 	.type _start,@function
 _start:
-#       movq    %rdx,%r9                 /* Address of the shared library termination
-#               	                 function.  */
 	popq    %rsi		      /* Pop the argument count.  */
         movq 	operatingsystem_parameter_argc@GOTPCREL(%rip),%rax
         movq    %rsi,(%rax)
@@ -62,6 +70,13 @@ _start:
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
+        movq    __dl_fini@GOTPCREL(%rip),%rax
+        movq    (%rax),%rax
+        testq   %rax,%rax
+        jz .LNoDlFiniCall
+        call    *%rax
+.LNoDlFiniCall:
+
         movq 	operatingsystem_result@GOTPCREL(%rip),%rax
         movzwl  (%rax),%edi
         movl    $231,%eax                 /* exit_group call */
@@ -78,6 +93,7 @@ __data_start:
 
 .bss
         .comm __stkptr,8
+        .comm __dl_fini,8
 
         .comm operatingsystem_parameter_envp,8
         .comm operatingsystem_parameter_argc,8

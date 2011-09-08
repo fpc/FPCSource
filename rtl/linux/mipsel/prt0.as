@@ -14,6 +14,17 @@
         .set noat
 
 	.section ".text"
+
+	.align 4
+	.global _dynamic_start
+	.type _dynamic_start,@function
+_dynamic_start:
+        /* TODO: check whether this code is correct */
+        lui     $a2,%hi(__dl_fini)
+        sw      $v0,%lo(__dl_fini)($a2)
+        b _start
+
+
 	.align 4
 	.global _start
 	.type _start,@function
@@ -29,6 +40,7 @@
     sp ($29)	The stack contains the arguments and environment:
  		0(%esp)			argc
  		4(%esp)			argv[0]
+
  		...
  		(4*argc)(%esp)		NULL
  		(4*(argc+1))(%esp)	envp[0]
@@ -75,6 +87,8 @@ _start:
 .globl  _haltproc
 .type   _haltproc,@function
 _haltproc:
+        /* TODO: need to check whether __dl_fini is non-zero and call the function pointer in case */
+
         li      $v0,4001
         lui     $a0,0x0
         lw      $a0,0($a0)
@@ -85,6 +99,7 @@ _haltproc:
 	.size _start, .-_start
 
         .comm __stkptr,4
+        .comm __dl_fini,4
 
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4

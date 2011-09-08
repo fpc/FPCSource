@@ -44,8 +44,6 @@ FPC_SHARED_LIB_START:
 	.globl _start
 	.type _start,@function
 _startlib:
-#       movq %rdx,%r9                 /* Address of the shared library termination
-#               	                 function.  */
 	pushq	 %rbx
         movq     operatingsystem_parameter_argc@GOTPCREL(%rip),%rbx
         movq     %rdi,(%rbx)

@@ -37,6 +37,9 @@ procedure PASCALMAIN; external name 'PASCALMAIN';
                           Process start/halt
  ******************************************************************************}
 
+var
+  dlexitproc: pointer;
+
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
   asm
     popq     %rsi                                  { Pop the argument count.  }
@@ -54,9 +57,20 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
     call    PASCALMAIN
   end;
 
+procedure _FPC_dynamic_proc_start; assembler; nostackframe; public name '_dynamic_start';
+  asm
+    movq %rdx,dlexitproc
+    jmp _FPC_proc_start
+  end;
 
 procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
   asm
+    movq    dlexitproc,%rdx
+    testq   %rdx,%rdx
+    jz      .Lhaltproc
+
+    call *%rdx
+
   .Lhaltproc:
     movl    $231,%eax                             { exit_group call }
     movzwl    operatingsystem_result,%edi

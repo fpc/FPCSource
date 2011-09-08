@@ -14,6 +14,13 @@
 
 	.section ".text"
 	.align 4
+	.global _dynamic_start
+	.type _dynamic_start,#function
+_dynamic_start:
+        /* TODO: need to set __dl_fini here */
+       b _start
+
+	.align 4
 	.global _start
 	.type _start,#function
 _start:
@@ -77,6 +84,8 @@ _start:
 .globl  _haltproc
 .type   _haltproc,@function
 _haltproc:
+        /* TODO: need to check whether __dl_fini is non-zero and call the function pointer in case */
+
         li      v0,4001
         lui     a0,0x0
         lw      a0,0(a0)
@@ -87,6 +96,7 @@ _haltproc:
 	.size _start, .-_start
 
         .comm __stkptr,4
+        .comm __dl_fini,4
 
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4

@@ -20,42 +20,32 @@
     .section ".text"
     .globl FPC_SHARED_LIB_START
     .type  FPC_SHARED_LIB_START,@function
-
-    .globl  _start
-_start:
 FPC_SHARED_LIB_START:
-    mr      26,1
-    /* Set up an initial stack frame, and clear the LR.  */
-    clrrwi   1,1,4
-    li       0,0
-    stwu     1,-16(1)
-    mtlr     0
-    stw      0,0(1)
-    lwz      3,0(26)       /* get argc */
+    mflr     0
+    stw      0,4(1)
+    stwu     1,-32(1)
+
+    /* store argument count (in r3)*/
     lis     11,operatingsystem_parameter_argc@ha
     stw      3,operatingsystem_parameter_argc@l(11);
-
-    addi     4,26,4        /* get argv */
+    /* store argument vector (in r4) */
     lis     11,operatingsystem_parameter_argv@ha
     stw      4,operatingsystem_parameter_argv@l(11);
-
-    addi    27,3,1        /* calculate argc + 1 into r27 */
-    slwi    27,27,2       /* calculate (argc + 1) * sizeof(char *) into r27 */
-    add      5,4,27       /* get address of env[0] */
+    /* store environment pointer (in r5) */
     lis     11,operatingsystem_parameter_envp@ha
     stw      5,operatingsystem_parameter_envp@l(11);
 
     lis     11,__stkptr@ha
     stw      1,__stkptr@l(11);
-    /* update library flag in RTL */
-    lis	   11,operatingsystem_islibrary@ha
-    li      6, 1
-    stb     6, operatingsystem_islibrary@l(11)
 
-
+    /* call library initialization */
     bl         PASCALMAIN
 
-    b          _haltproc
+    /* return to the caller */
+    addi     1,1,32
+    lwz      0,4(1)
+    mtlr     0
+    blr
 
     .globl  _haltproc
     .globl  FPC_SHARED_LIB_EXIT
@@ -63,9 +53,17 @@ FPC_SHARED_LIB_START:
      .type   _haltproc,@function
 FPC_SHARED_LIB_EXIT:
 _haltproc:
+    lis     11,operatingsystem_result@ha
+    lwz      3,operatingsystem_result@l(3)
+    li       0,234        /* exit group call */
+    sc
+
+    lis     11,operatingsystem_result@ha
+    lwz      3,operatingsystem_result@l(3)
     li       0,1          /* exit call */
     sc
-    b          _haltproc
+    /* we should not reach here. Crash horribly */
+    trap
 
 /* Define a symbol for the first piece of initialized data.  */
     .section ".data"
