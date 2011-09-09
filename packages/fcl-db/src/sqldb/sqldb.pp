@@ -1200,11 +1200,11 @@ begin
 
   try
     FieldDefs.Clear;
-
+    if not Assigned(Database) then DatabaseError(SErrDatabasenAssigned);
     TSQLConnection(Database).AddFieldDefs(fcursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
-    FCursor.FInitFieldDef := false;
+    if Assigned(FCursor) then FCursor.FInitFieldDef := false;
   end;
 end;
 
