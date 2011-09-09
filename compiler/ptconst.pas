@@ -695,11 +695,16 @@ implementation
               hsym:=tconstsym(tloadnode(n).symtableentry);
               strval:=pchar(hsym.value.valueptr);
               strlength:=hsym.value.len;
-              { Link the string constant to its initializing resourcestring,
-                enabling it to be (re)translated at runtime.
+              { Delphi-compatible (mis)feature:
+                Link AnsiString constants to their initializing resourcestring,
+                enabling them to be (re)translated at runtime.
+                Wide/UnicodeString are currently rejected above (with incorrect error message).
+                ShortStrings cannot be handled unless another table is built for them;
+                considering this acceptable, because Delphi rejects them altogether.
               }
-              if (hr.origsym.owner.symtablelevel<=main_program_level) or
-                 (hr.origblock=bt_const) then
+              if (not is_shortstring(def)) and
+                 ((hr.origsym.owner.symtablelevel<=main_program_level) or
+                  (hr.origblock=bt_const)) then
                 begin
                   current_asmdata.ResStrInits.Concat(
                     TTCInitItem.Create(hr.origsym,hr.offset,
