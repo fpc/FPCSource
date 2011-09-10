@@ -4425,8 +4425,6 @@ begin
     args.Add('-viq');
   {$endif}
 
-  // Add Filename to compile
-  Args.Add(ATarget.TargetSourceFileName);
   // Convert to string
   Result:='';
   for i:=0 to Args.Count-1 do
