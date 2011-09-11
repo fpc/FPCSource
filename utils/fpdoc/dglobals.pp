@@ -813,11 +813,11 @@ begin
         result:=ResolveAliasType(clname);
         if assigned(result) then
           begin
-            writeln('found alias ',clname,' (',s,') ',result.classname);  
+//            writeln('found alias ',clname,' (',s,') ',result.classname);  
           end
         else
           begin
-            writeln('new alias ',clname,' (',s,') ');
+//            writeln('new alias ',clname,' (',s,') ');
             cl2.addref;
             Result := TPasAliasType(CreateElement(TPasAliasType,s,module.interfacesection,vispublic,'',0));
             module.interfacesection.Declarations.Add(Result);
