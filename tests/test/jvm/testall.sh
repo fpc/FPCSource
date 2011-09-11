@@ -116,3 +116,5 @@ $PPC -O2 -g -B tstring9
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tstring9
 $PPC -O2 -g -B tstr
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tstr
+$PPC -O2 -g -B tw20212 
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tw20212

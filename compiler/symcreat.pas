@@ -699,8 +699,10 @@ implementation
       if jvmimplicitpointertype(procvar.returndef) then
          str:=str+'type __FPC_returnptrtype = ^'+procvar.returndef.typename+';';
       str:=str+'begin ';
-      { result handling }
-      if not is_void(procvar.returndef) then
+      { result handling (skip for generic definitions, we'll generate a new
+        version for the specialized definition) ) }
+      if not is_void(procvar.returndef) and
+         (procvar.returndef.typ<>undefineddef) then
         begin
           str:=str+'invoke:=';
           if procvar.returndef.typ in [orddef,floatdef] then
@@ -915,6 +917,9 @@ implementation
       stname: string;
       i: longint;
     begin
+      { add generic flag if required }
+      if df_generic in newstruct.defoptions then
+        include(pd.defoptions,df_generic);
       { associate the procdef with a procsym in the owner }
       if not(pd.proctypeoption in [potype_class_constructor,potype_class_destructor]) then
         stname:=upper(realname)

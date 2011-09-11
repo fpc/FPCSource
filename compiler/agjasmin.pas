@@ -624,10 +624,11 @@ implementation
             { in case of nested class: relation to parent class }
             if obj.owner.symtabletype in [objectsymtable,recordsymtable] then
               AsmWriteln(InnerStructDef(obj));
-            { all all nested classes }
+            { add all nested classes }
             for i:=0 to obj.symtable.deflist.count-1 do
-              if is_java_class_or_interface(tdef(obj.symtable.deflist[i])) or
-                 (tdef(obj.symtable.deflist[i]).typ=recorddef) then
+              if (is_java_class_or_interface(tdef(obj.symtable.deflist[i])) or
+                  (tdef(obj.symtable.deflist[i]).typ=recorddef)) and
+                 not(df_generic in tdef(obj.symtable.deflist[i]).defoptions) then
                 AsmWriteln(InnerStructDef(tabstractrecorddef(obj.symtable.deflist[i])));
           end;
         AsmLn;
@@ -966,7 +967,8 @@ implementation
              procsym:
                begin
                  for j:=0 to tprocsym(sym).procdeflist.count-1 do
-                   WriteSymtableVarSyms(tprocdef(tprocsym(sym).procdeflist[j]).localst);
+                   if not(df_generic in tprocdef(tprocsym(sym).procdeflist[j]).defoptions) then
+                     WriteSymtableVarSyms(tprocdef(tprocsym(sym).procdeflist[j]).localst);
                end;
            end;
          end;
@@ -989,8 +991,9 @@ implementation
                   { methods are also in the static/globalsymtable of the unit
                     -> make sure they are only written for the objectdefs that
                     own them }
-                  if not(st.symtabletype in [staticsymtable,globalsymtable]) or
-                     (def.owner=st) then
+                  if (not(st.symtabletype in [staticsymtable,globalsymtable]) or
+                      (def.owner=st)) and
+                     not(df_generic in def.defoptions) then
                     begin
                       WriteProcDef(tprocdef(def));
                       if assigned(tprocdef(def).localst) then
@@ -1014,6 +1017,8 @@ implementation
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
+            if df_generic in def.defoptions then
+              continue;
             case def.typ of
               objectdef:
                 if not(oo_is_external in tobjectdef(def).objectoptions) then

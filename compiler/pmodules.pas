@@ -936,14 +936,15 @@ implementation
              init_procinfo.parse_body;
              { save file pos for debuginfo }
              current_module.mainfilepos:=init_procinfo.entrypos;
-             { add implementations for synthetic method declarations added by
-               the compiler }
-             add_synthetic_method_implementations(current_module.globalsymtable);
-             add_synthetic_method_implementations(current_module.localsymtable);
            end;
 
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
+
+         { add implementations for synthetic method declarations added by
+           the compiler }
+         add_synthetic_method_implementations(current_module.globalsymtable);
+         add_synthetic_method_implementations(current_module.localsymtable);
 
          { if the unit contains ansi/widestrings, initialization and
            finalization code must be forced }
@@ -1874,10 +1875,12 @@ implementation
          { save file pos for debuginfo }
          current_module.mainfilepos:=main_procinfo.entrypos;
 
-         add_synthetic_method_implementations(current_module.localsymtable);
-
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
+
+         { add implementations for synthetic method declarations added by
+           the compiler }
+         add_synthetic_method_implementations(current_module.localsymtable);
 
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;

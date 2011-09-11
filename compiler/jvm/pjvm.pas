@@ -139,6 +139,8 @@ implementation
               topowner:=topowner.owner.defowner;
             { create procdef }
             pd:=tprocdef.create(topowner.owner.symtablelevel+1);
+            if df_generic in obj.defoptions then
+              include(pd.defoptions,df_generic);
             { method of this objectdef }
             pd.struct:=obj;
             { associated procsym }
@@ -474,6 +476,8 @@ implementation
         pvclass:=tobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternProcvar$'+tostr(def.defid),java_procvarbase);
         tprocvardef(def).classdef:=pvclass;
         include(pvclass.objectoptions,oo_is_sealed);
+        if df_generic in def.defoptions then
+          include(pvclass.defoptions,df_generic);
         { associate typesym }
         pvclass.symtable.insert(ttypesym.create('__FPC_TProcVarClassAlias',pvclass));
         { set external name to match procvar type name }
@@ -825,6 +829,8 @@ implementation
 
         { create procdef }
         pd:=tprocdef.create(normal_function_level);
+        if df_generic in obj.defoptions then
+          include(pd.defoptions,df_generic);
 
         { construct procsym name (unique for this access; reusing the same
           helper for multiple accesses to the same field is hard because the

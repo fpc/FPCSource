@@ -2066,7 +2066,7 @@ implementation
         { Setup symtablestack a definition time }
         specobj:=tabstractrecorddef(ttypesym(p).typedef);
 
-        if not (is_class_or_object(specobj) or is_record(specobj)) then
+        if not (is_class_or_object(specobj) or is_record(specobj) or is_javaclass(specobj)) then
           exit;
 
         oldsymtablestack:=symtablestack;
@@ -2110,7 +2110,8 @@ implementation
                    read_proc_body(nil,tprocdef(hp));
                    current_filepos:=oldcurrent_filepos;
                  end
-               else
+               { synthetic routines will be implemented afterwards }
+               else if tprocdef(hp).synthetickind=tsk_none then
                  MessagePos1(tprocdef(hp).fileinfo,sym_e_forward_not_resolved,tprocdef(hp).fullprocname(false));
              end;
          end;

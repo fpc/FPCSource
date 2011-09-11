@@ -208,4 +208,12 @@ ppcjvm -O2 -g -B tstring9
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tstring9
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B tstr
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tstr
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B tw20212
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tw20212
+if %errorlevel% neq 0 exit /b %errorlevel%
 

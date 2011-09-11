@@ -3211,6 +3211,11 @@ implementation
         else
           internalerror(2011032601);
 
+        { in case of specializations, add some extras to prevent name conflicts
+          with nested classes }
+        if df_specialization in defoptions then
+          result:='$'+result+'$specialization$';
+
         st:=owner;
         while assigned(st) and
               (st.symtabletype in [objectsymtable,recordsymtable,localsymtable]) do
@@ -3758,6 +3763,10 @@ implementation
                 begin
                   // ignore, reuse original constym. Should also be duplicated
                   // be safe though
+                end;
+              symconst.typesym:
+                begin
+                  // reuse original, part of generic declaration
                 end
               else
                 internalerror(201160604);
