@@ -7,6 +7,8 @@ License: The same modified LGPL as the Free Pascal RTL
 AUTHORS: Felipe Monteiro de Carvalho
 
 Documentation: http://www.tailrecursive.org/postscript/postscript.html
+
+Good reference: http://atrey.karlin.mff.cuni.cz/~milanek/PostScript/Reference/PSL2e.html
 }
 unit epsvectorialreader;
 
@@ -16,6 +18,11 @@ unit epsvectorialreader;
 {.$define FPVECTORIALDEBUG_COLORS}
 {.$define FPVECTORIALDEBUG_ROLL}
 {.$define FPVECTORIALDEBUG_CODEFLOW}
+{.$define FPVECTORIALDEBUG_INDEX}
+{.$define FPVECTORIALDEBUG_DICTIONARY}
+{.$define FPVECTORIALDEBUG_CONTROL}
+{.$define FPVECTORIALDEBUG_ARITHMETIC}
+{.$define FPVECTORIALDEBUG_CLIP_REGION}
 
 interface
 
@@ -51,7 +58,7 @@ type
     destructor Destroy; override;
   end;
 
-  TETType = (ettNamedElement, ettOperand, ettOperator);
+  TETType = (ettNamedElement, ettOperand, ettOperator, ettDictionary);
 
   { TExpressionToken }
 
@@ -71,8 +78,13 @@ type
   public
     Color: TFPColor;
     TranslateX, TranslateY: Double;
+    ScaleX, ScaleY: Double; // not used currently
     ClipPath: TPath;
     ClipMode: TvClipMode;
+    OverPrint: Boolean; // not used currently
+    //
+    PenWidth: Integer;
+    //
     function Duplicate: TGraphicState;
   end;
 
@@ -81,7 +93,8 @@ type
   TPSTokenizer = class
   public
     Tokens: TPSTokens;
-    constructor Create;
+    FCurLine: Integer;
+    constructor Create(ACurLine: Integer = -1);
     destructor Destroy; override;
     procedure ReadFromStream(AStream: TStream);
     procedure DebugOut();
@@ -102,22 +115,22 @@ type
     //
     procedure DebugStack();
     //
-    procedure RunPostScript(ATokens: TPsTokens; AData: TvVectorialDocument);
+    procedure RunPostScript(ATokens: TPsTokens; AData: TvVectorialPage; ADoc: TvVectorialDocument);
     //
-    procedure ExecuteProcedureToken(AToken: TProcedureToken; AData: TvVectorialDocument);
-    procedure ExecuteOperatorToken(AToken: TExpressionToken; AData: TvVectorialDocument);
-    function  ExecuteArithmeticAndMathOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecutePathConstructionOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteGraphicStateOperatorsDI(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteGraphicStateOperatorsDD(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteDictionaryOperators(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteMiscellaneousOperators(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteStackManipulationOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteControlOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecutePaintingOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteDeviceSetupAndOutputOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteArrayOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
-    function  ExecuteStringOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+    procedure ExecuteProcedureToken(AToken: TProcedureToken; AData: TvVectorialPage; ADoc: TvVectorialDocument);
+    procedure ExecuteOperatorToken(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument);
+    function  ExecuteArithmeticAndMathOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecutePathConstructionOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteGraphicStateOperatorsDI(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteGraphicStateOperatorsDD(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteDictionaryOperators(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteMiscellaneousOperators(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteStackManipulationOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteControlOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecutePaintingOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteDeviceSetupAndOutputOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteArrayOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
+    function  ExecuteStringOperator(AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
     //
     procedure PostScriptCoordsToFPVectorialCoords(AParam1, AParam2: TPSToken; var APosX, APosY: Double);
     function DictionarySubstituteOperator(ADictionary: TStringList; var ACurToken: TPSToken): Boolean;
@@ -146,7 +159,12 @@ begin
   Result.Color := Color;
   Result.TranslateX := TranslateX;
   Result.TranslateY := TranslateY;
+  Result.ScaleX := ScaleX;
+  Result.ScaleY := ScaleY;
   Result.ClipPath := ClipPath;
+  Result.ClipMode := ClipMode;
+  Result.OverPrint := OverPrint;
+  Result.PenWidth := PenWidth;
 end;
 
 { TPSToken }
@@ -202,10 +220,13 @@ end;
 
 { TPSTokenizer }
 
-constructor TPSTokenizer.Create;
+// ACurLine < 0 indicates that we should use the line of this list of strings
+// else we use ACurLine
+constructor TPSTokenizer.Create(ACurLine: Integer);
 begin
   inherited Create;
   Tokens := TPSTokens.Create;
+  FCurLine := ACurLine;
 end;
 
 destructor TPSTokenizer.Destroy;
@@ -243,6 +264,7 @@ begin
 
     lIsEndOfLine := IsEndOfLine(Byte(CurChar), AStream);
     if lIsEndOfLine then Inc(CurLine);
+    if FCurLine >= 0 then CurLine := FCurLine;
 
     case State of
       { Searching for a token }
@@ -439,7 +461,7 @@ begin
 end;
 
 procedure TvEPSVectorialReader.RunPostScript(ATokens: TPsTokens;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   i: Integer;
   lSubstituted: Boolean;
@@ -508,8 +530,8 @@ begin
         Continue;
       end;
 
-      if CurToken is TProcedureToken then ExecuteProcedureToken(TProcedureToken(CurToken), AData)
-      else ExecuteOperatorToken(TExpressionToken(CurToken), AData);
+      if CurToken is TProcedureToken then ExecuteProcedureToken(TProcedureToken(CurToken), AData, ADoc)
+      else ExecuteOperatorToken(TExpressionToken(CurToken), AData, ADoc);
 
       if ExitCalled then Break;
     end;
@@ -520,7 +542,7 @@ begin
 end;
 
 procedure TvEPSVectorialReader.ExecuteProcedureToken(AToken: TProcedureToken;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   ProcTokenizer: TPSTokenizer;
   lStream: TMemoryStream;
@@ -540,7 +562,7 @@ begin
 
   if not AToken.Parsed then
   begin
-    ProcTokenizer := TPSTokenizer.Create;
+    ProcTokenizer := TPSTokenizer.Create(AToken.Line);
     lStream := TMemoryStream.Create;
     try
       // Copy the string to a Stream
@@ -566,42 +588,42 @@ begin
   end;
 
   // Now run the procedure
-  RunPostScript(AToken.Childs, AData);
+  RunPostScript(AToken.Childs, AData, ADoc);
   {$ifdef FPVECTORIALDEBUG_CODEFLOW}
   WriteLn('[TvEPSVectorialReader.ExecuteProcedureToken] END');
   {$endif}
 end;
 
 procedure TvEPSVectorialReader.ExecuteOperatorToken(AToken: TExpressionToken;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   Param1, Param2: TPSToken;
 begin
   if AToken.StrValue = '' then raise Exception.Create('[TvEPSVectorialReader.ProcessExpressionToken] Empty operator');
 
-  if ExecuteDictionaryOperators(AToken, AData) then Exit;
+  if ExecuteDictionaryOperators(AToken, AData, ADoc) then Exit;
 
-  if ExecuteArithmeticAndMathOperator(AToken, AData) then Exit;
+  if ExecuteArithmeticAndMathOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecutePathConstructionOperator(AToken, AData) then Exit;
+  if ExecutePathConstructionOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteGraphicStateOperatorsDI(AToken, AData) then Exit;
+  if ExecuteGraphicStateOperatorsDI(AToken, AData, ADoc) then Exit;
 
-  if ExecuteGraphicStateOperatorsDD(AToken, AData) then Exit;
+  if ExecuteGraphicStateOperatorsDD(AToken, AData, ADoc) then Exit;
 
-  if ExecuteControlOperator(AToken, AData) then Exit;
+  if ExecuteControlOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteStackManipulationOperator(AToken, AData) then Exit;
+  if ExecuteStackManipulationOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteMiscellaneousOperators(AToken, AData) then Exit;
+  if ExecuteMiscellaneousOperators(AToken, AData, ADoc) then Exit;
 
-  if ExecutePaintingOperator(AToken, AData) then Exit;
+  if ExecutePaintingOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteDeviceSetupAndOutputOperator(AToken, AData) then Exit;
+  if ExecuteDeviceSetupAndOutputOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteArrayOperator(AToken, AData) then Exit;
+  if ExecuteArrayOperator(AToken, AData, ADoc) then Exit;
 
-  if ExecuteStringOperator(AToken, AData) then Exit;
+  if ExecuteStringOperator(AToken, AData, ADoc) then Exit;
 
   // If we got here, there the command not yet implemented
   raise Exception.Create(Format('[TvEPSVectorialReader.ProcessExpressionToken] Unknown PostScript Command "%s" in Line %d',
@@ -740,7 +762,7 @@ end;
                                Count elements down to mark
 }
 function TvEPSVectorialReader.ExecuteStackManipulationOperator(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2, NewToken: TPSToken;
   lIndexN, lIndexJ: Integer;
@@ -773,12 +795,20 @@ begin
     Stack.Push(NewToken);
     Exit(True);
   end;
+  // anyn … any0 n index anyn … any0 anyn
   // Duplicate arbitrary element
   if AToken.StrValue = 'index' then
   begin
+    {$ifdef FPVECTORIALDEBUG_INDEX}
+    WriteLn('[TvEPSVectorialReader.ExecuteStackManipulationOperator] index');
+//    DebugStack();
+    {$endif}
+
     Param1 := TPSToken(Stack.Pop);
     lIndexN := Round(Param1.FloatValue);
     SetLength(lTokens, lIndexN+1);
+
+    if lIndexN < 0 then raise Exception.Create('[TvEPSVectorialReader.ExecuteStackManipulationOperator] index operator: n must be positive or zero');
 
     // Unroll all elements necessary
 
@@ -788,8 +818,7 @@ begin
       Param2 := lTokens[i];
       if Param2 = nil then
       begin
-        // raise Exception.Create('[TvEPSVectorialReader.ExecuteStackManipulationOperator] nil element poped in operator index');
-        Exit(True);
+        raise Exception.Create(Format('[TvEPSVectorialReader.ExecuteStackManipulationOperator] Stack underflow in operation "index". Error at line %d', [AToken.Line]));
       end;
     end;
 
@@ -839,7 +868,7 @@ begin
     WriteLn(Format('[TvEPSVectorialReader] roll: N=%d J=%d', [lIndexN, lIndexJ]));
     {$endif}
 
-    if lIndexN < 0 then raise Exception.Create('[TvEPSVectorialReader.ExecuteStackManipulationOperator] rool operator: n must be positive');
+    if lIndexN < 0 then raise Exception.Create('[TvEPSVectorialReader.ExecuteStackManipulationOperator] rool operator: n must be positive or zero');
 
     if lIndexJ = 0 then Exit;
 
@@ -853,8 +882,8 @@ begin
       Param2 := lTokens[i];
       if Param2 = nil then
       begin
-        // raise Exception.Create('[TvEPSVectorialReader.ExecuteStackManipulationOperator] nil element poped in operator index');
-        Exit(True);
+        raise Exception.Create('[TvEPSVectorialReader.ExecuteStackManipulationOperator] nil element poped in operator index');
+        //Exit(True);
       end;
     end;
 
@@ -927,9 +956,9 @@ end;
   any string cvs substring Convert to string
 }
 function TvEPSVectorialReader.ExecuteControlOperator(AToken: TExpressionToken;
-  AData: TvVectorialDocument): Boolean;
+  AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
-  Param1, Param2, Param3, Param4: TPSToken;
+  Param1, Param2, Param3, Param4, CounterToken: TPSToken;
   NewToken: TExpressionToken;
   FloatCounter: Double;
 begin
@@ -944,7 +973,7 @@ begin
     if not (Param1 is TProcedureToken) then
       raise Exception.Create(Format('[TvEPSVectorialReader.ExecuteControlOperator] The operator if requires a procedure. Error at line %d', [AToken.Line]));
 
-    if Param2.BoolValue then ExecuteProcedureToken(TProcedureToken(Param1), AData);
+    if Param2.BoolValue then ExecuteProcedureToken(TProcedureToken(Param1), AData, ADoc);
 
     Exit(True);
   end;
@@ -960,8 +989,8 @@ begin
     if not (Param2 is TProcedureToken) then
       raise Exception.Create(Format('[TvEPSVectorialReader.ExecuteControlOperator] The operator ifelse requires a procedure. Error at line %d', [AToken.Line]));
 
-    if Param3.BoolValue then ExecuteProcedureToken(TProcedureToken(Param2), AData)
-    else ExecuteProcedureToken(TProcedureToken(Param1), AData);
+    if Param3.BoolValue then ExecuteProcedureToken(TProcedureToken(Param2), AData, ADoc)
+    else ExecuteProcedureToken(TProcedureToken(Param1), AData, ADoc);
 
     Exit(True);
   end;
@@ -972,15 +1001,39 @@ begin
 
     Exit(True);
   end;
-  // Establish context for catching stop
+  {
+    Establish context for catching stop
+
+     executes any, which is typically, but not necessarily, a procedure, executable file,
+     or executable string object. If any runs to completion normally, stopped returns false on the operand stack.
+
+     If any terminates prematurely as a result of executing stop, stopped returns
+     true on the operand stack. Regardless of the outcome, the interpreter resumes execution at the next object in normal sequence after stopped.
+     This mechanism provides an effective way for a PostScript language program
+     to "catch" errors or other premature terminations, retain control, and perhaps perform its own error recovery.
+
+     EXAMPLE:
+     { ... } stopped {handleerror} if
+
+     If execution of the procedure {...} causes an error,
+     the default error-reporting procedure is invoked (by handleerror).
+     In any event, normal execution continues at the token following the if.
+
+     ERRORS: stackunderflow
+  }
   if AToken.StrValue = 'stopped' then
   begin
+    {$ifdef FPVECTORIALDEBUG_CONTROL}
+    WriteLn('[TvEPSVectorialReader.ExecuteControlOperator] stopped');
+//    DebugStack();
+    {$endif}
+
     Param1 := TPSToken(Stack.Pop);
 
     if not (Param1 is TProcedureToken) then
       raise Exception.Create(Format('[TvEPSVectorialReader.ExecuteControlOperator] The operator stopped requires a procedure. Error at line %d', [AToken.Line]));
 
-    ExecuteProcedureToken(TProcedureToken(Param1), AData);
+    ExecuteProcedureToken(TProcedureToken(Param1), AData, ADoc);
 
     NewToken := TExpressionToken.Create;
     NewToken.ETType := ettOperand;
@@ -1000,7 +1053,7 @@ begin
 
     while True do
     begin
-      ExecuteProcedureToken(TProcedureToken(Param1), AData);
+      ExecuteProcedureToken(TProcedureToken(Param1), AData, ADoc);
 
       if ExitCalled then
       begin
@@ -1011,7 +1064,51 @@ begin
 
     Exit(True);
   end;
-  // initial increment limit proc for
+  { initial increment limit proc for -
+
+   executes proc repeatedly, passing it a sequence of values from initial
+   by steps of increment to limit. The for operator expects initial, increment,
+   and limit to be numbers. It maintains a temporary internal variable, known as
+   the control variable, which it first sets to initial. Then, before each
+   repetition, it compares the control variable with the termination value limit.
+   If limit has not been exceeded, it pushes the control variable on the operand
+   stack, executes proc, and adds increment to the control variable.
+
+   The termination condition depends on whether increment is positive or negative.
+   If increment is positive, for terminates when the control variable becomes
+   greater than limit. If increment is negative, for terminates when the control
+   variable becomes less than limit. If initial meets the termination condition,
+   for does not execute proc at all. If proc executes the exit operator,
+   for terminates prematurely.
+
+   Usually, proc will use the value on the operand stack for some purpose.
+   However, if proc does not remove the value, it will remain there.
+   Successive executions of proc will cause successive values of the control
+   variable to accumulate on the operand stack.
+
+   EXAMPLE:
+   0 1 1 4 {add} for -> 10
+   1 2 6 { } for -> 1 3 5
+   3 -.5 1 {-> } for -> 3.0 2.5 2.0 1.5 1.0
+
+   In the first example, the value of the control variable is added to whatever
+   is on the stack, so 1, 2, 3, and 4 are added in turn to a running sum whose
+   initial value is 0. The second example has an empty procedure, so the
+   successive values of the control variable are left on the stack. The
+   last example counts backward from 3 to 1 by halves, leaving the successive
+   values on the stack.
+
+   Beware of using reals instead of integers for any of the first three operands.
+   Most real numbers are not represented exactly. This can cause an error to
+   accumulate in the value of the control variable, with possibly surprising results.
+   In particular, if the difference between initial and limit is a multiple of
+   increment, as in the third line of the example, the control variable may not
+   achieve the limit value.
+
+   ERRORS: stackoverflow stackunderflow, typecheck
+
+   SEE ALSO: repeat, loop, forall, exit
+  }
   if AToken.StrValue = 'for' then
   begin
     Param1 := TPSToken(Stack.Pop);
@@ -1025,9 +1122,19 @@ begin
     FloatCounter := Param4.FloatValue;
     while FloatCounter < Param2.FloatValue do
     begin
-      ExecuteProcedureToken(TProcedureToken(Param1), AData);
+      CounterToken := Param4.Duplicate();
+      CounterToken.FloatValue := FloatCounter;
+      Stack.Push(CounterToken);
+
+      ExecuteProcedureToken(TProcedureToken(Param1), AData, ADoc);
 
       FloatCounter := FloatCounter + Param3.FloatValue;
+
+      if ExitCalled then
+      begin
+        ExitCalled := False;
+        Break;
+      end;
     end;
 
     Exit(True);
@@ -1036,6 +1143,11 @@ begin
   // if it is executable or false if it is literal
   if AToken.StrValue = 'xcheck' then
   begin
+//    {$ifdef FPVECTORIALDEBUG_CONTROL}
+//    WriteLn('[TvEPSVectorialReader.ExecuteControlOperator] xcheck');
+//    DebugStack();
+//    {$endif}
+
     Param1 := TPSToken(Stack.Pop);
 
     NewToken := TExpressionToken.Create;
@@ -1108,7 +1220,7 @@ end;
   form execform – Paint form
 }
 function TvEPSVectorialReader.ExecutePaintingOperator(AToken: TExpressionToken;
-  AData: TvVectorialDocument): Boolean;
+  AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
 begin
@@ -1119,6 +1231,12 @@ begin
     {$ifdef FPVECTORIALDEBUG_PATHS}
     WriteLn('[TvEPSVectorialReader.ExecutePaintingOperator] stroke');
     {$endif}
+    AData.SetPenStyle(psSolid);
+    AData.SetBrushStyle(bsClear);
+    AData.SetPenColor(CurrentGraphicState.Color);
+    AData.SetClipPath(CurrentGraphicState.ClipPath, CurrentGraphicState.ClipMode);
+    AData.SetPenWidth(CurrentGraphicState.PenWidth);
+    AData.EndPath();
     Exit(True);
   end;
 
@@ -1128,6 +1246,10 @@ begin
     WriteLn('[TvEPSVectorialReader.ExecutePaintingOperator] eofill');
     {$endif}
     AData.SetBrushStyle(bsSolid);
+    AData.SetPenStyle(psSolid);
+    AData.SetClipPath(CurrentGraphicState.ClipPath, CurrentGraphicState.ClipMode);
+    AData.SetPenWidth(CurrentGraphicState.PenWidth);
+    AData.EndPath();
 
     Exit(True);
   end;
@@ -1211,7 +1333,7 @@ end;
   parameters
 }
 function TvEPSVectorialReader.ExecuteDeviceSetupAndOutputOperator(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
 begin
@@ -1257,7 +1379,7 @@ end;
   packedarray proc forall – Execute proc for each element of packedarray
 }
 function TvEPSVectorialReader.ExecuteArrayOperator(AToken: TExpressionToken;
-  AData: TvVectorialDocument): Boolean;
+  AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 begin
   Result := False;
 
@@ -1298,7 +1420,7 @@ end;
   int1 shift bitshift int2 Perform bitwise shift of int1 (positive is left)
 }
 function TvEPSVectorialReader.ExecuteStringOperator(AToken: TExpressionToken;
-  AData: TvVectorialDocument): Boolean;
+  AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
   NewToken: TExpressionToken;
@@ -1370,7 +1492,7 @@ end;
   – rrand int              Return random number seed
 }
 function TvEPSVectorialReader.ExecuteArithmeticAndMathOperator(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
   NewToken: TExpressionToken;
@@ -1378,7 +1500,7 @@ begin
   Result := False;
 
   // Division
-  // Param2 Param1 div ==> Param2 div Param1
+  // Param2 Param1 div ==> (Param2 div Param1)
   if AToken.StrValue = 'div' then
   begin
     Param1 := TPSToken(Stack.Pop);
@@ -1386,12 +1508,15 @@ begin
     NewToken := TExpressionToken.Create;
     NewToken.ETType := ettOperand;
     NewToken.FloatValue := Param2.FloatValue / Param1.FloatValue;
-    NewToken.StrValue := FloatToStr(Param1.FloatValue);
+    NewToken.StrValue := FloatToStr(NewToken.FloatValue);
     Stack.Push(NewToken);
+    {$ifdef FPVECTORIALDEBUG_ARITHMETIC}
+    WriteLn(Format('[TvEPSVectorialReader.ExecuteArithmeticAndMathOperator] %f %f div %f', [Param2.FloatValue, Param1.FloatValue, NewToken.FloatValue]));
+    {$endif}
     Exit(True);
   end;
 
-  // Param2 Param1 mul ==> Param2 mul Param1
+  // Param2 Param1 mul ==> (Param2 mul Param1)
   if AToken.StrValue = 'mul' then
   begin
     Param1 := TPSToken(Stack.Pop);
@@ -1399,7 +1524,7 @@ begin
     NewToken := TExpressionToken.Create;
     NewToken.ETType := ettOperand;
     NewToken.FloatValue := Param2.FloatValue * Param1.FloatValue;
-    NewToken.StrValue := FloatToStr(Param1.FloatValue);
+    NewToken.StrValue := FloatToStr(NewToken.FloatValue);
     Stack.Push(NewToken);
     Exit(True);
   end;
@@ -1411,7 +1536,7 @@ begin
     Param1 := TPSToken(Stack.Pop); // num2
     Param2 := TPSToken(Stack.Pop); // num1
     NewToken.FloatValue := Param2.FloatValue - Param1.FloatValue;
-    NewToken.StrValue := FloatToStr(Param1.FloatValue);
+    NewToken.StrValue := FloatToStr(NewToken.FloatValue);
     Stack.Push(NewToken);
     Exit(True);
   end;
@@ -1454,7 +1579,7 @@ end;
   – ucache – Declare that user path is to be cached
 }
 function TvEPSVectorialReader.ExecutePathConstructionOperator(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2, Param3, Param4, Param5, Param6: TPSToken;
   PosX, PosY, PosX2, PosY2, PosX3, PosY3, BaseX, BaseY: Double;
@@ -1464,62 +1589,71 @@ var
 begin
   Result := False;
 
-  //
+  // – newpath –              Initialize current path to be empty
   if AToken.StrValue = 'newpath' then
   begin
     {$ifdef FPVECTORIALDEBUG_PATHS}
     WriteLn('[TvEPSVectorialReader.ExecutePathConstructionOperator] newpath');
     {$endif}
-    AData.SetClipPath(CurrentGraphicState.ClipPath, CurrentGraphicState.ClipMode);
+//    AData.SetClipPath(CurrentGraphicState.ClipPath, CurrentGraphicState.ClipMode);
+//    AData.SetPenWidth(CurrentGraphicState.PenWidth);
+//    AData.SetClipPath(CurrentGraphicState.ClipPath, CurrentGraphicState.ClipMode);
+    AData.SetBrushStyle(bsClear);
+    AData.SetPenStyle(psClear);
     AData.EndPath();
     AData.StartPath();
 
     AData.SetPenColor(CurrentGraphicState.Color);
     AData.SetBrushColor(CurrentGraphicState.Color);
+    AData.SetPenStyle(psClear);
 
     Exit(True);
   end;
-  // Param2 Param1 moveto ===> moveto(X=Param2, Y=Param1);
+  // Param2 Param1 moveto - ===> moveto(X=Param2, Y=Param1);
   if AToken.StrValue = 'moveto' then
   begin
     Param1 := TPSToken(Stack.Pop);
     Param2 := TPSToken(Stack.Pop);
     PostScriptCoordsToFPVectorialCoords(Param1, Param2, PosX, PosY);
-    PosX := PosX + CurrentGraphicState.TranslateX;
-    PosY := PosY + CurrentGraphicState.TranslateY;
+    PosX2 := PosX + CurrentGraphicState.TranslateX;
+    PosY2 := PosY + CurrentGraphicState.TranslateY;
     {$ifdef FPVECTORIALDEBUG_PATHS}
-    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] moveto %f, %f', [PosX, PosY]));
+    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] moveto %f, %f CurrentGraphicState.Translate %f, %f Resulting Value %f, %f',
+      [PosX, PosY, CurrentGraphicState.TranslateX, CurrentGraphicState.TranslateY, PosX2, PosY2]));
     {$endif}
-    AData.AddMoveToPath(PosX, PosY);
+    AData.AddMoveToPath(PosX2, PosY2);
     Exit(True);
   end;
   // Absolute LineTo
+  // x y lineto –             Append straight line to (x, y)
   if AToken.StrValue = 'lineto' then
   begin
     Param1 := TPSToken(Stack.Pop);
     Param2 := TPSToken(Stack.Pop);
     PostScriptCoordsToFPVectorialCoords(Param1, Param2, PosX, PosY);
-    PosX := PosX + CurrentGraphicState.TranslateX;
-    PosY := PosY + CurrentGraphicState.TranslateY;
+    PosX2 := PosX + CurrentGraphicState.TranslateX;
+    PosY2 := PosY + CurrentGraphicState.TranslateY;
     {$ifdef FPVECTORIALDEBUG_PATHS}
-    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] lineto %f, %f', [PosX, PosY]));
+    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] lineto %f, %f Resulting value %f, %f', [PosX, PosY, PosX2, PosY2]));
     {$endif}
-    AData.AddLineToPath(PosX, PosY);
+    AData.AddLineToPath(PosX2, PosY2);
     Exit(True);
   end;
   // Relative LineTo
+  // dx dy rlineto –          Perform relative lineto
   if AToken.StrValue = 'rlineto' then
   begin
     Param1 := TPSToken(Stack.Pop);
     Param2 := TPSToken(Stack.Pop);
     PostScriptCoordsToFPVectorialCoords(Param1, Param2, PosX, PosY);
     AData.GetCurrentPathPenPos(BaseX, BaseY);
-    PosX := PosX + CurrentGraphicState.TranslateX;
-    PosY := PosY + CurrentGraphicState.TranslateY;
+    PosX2 := PosX + BaseX;
+    PosY2 := PosY + BaseY;
     {$ifdef FPVECTORIALDEBUG_PATHS}
-    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] rlineto %f, %f', [BaseX + PosX, BaseY + PosY]));
+    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] rlineto %f, %f Base %f, %f Resulting %f, %f',
+      [PosX, PosY, BaseX, BaseY, PosX2, PosY2]));
     {$endif}
-    AData.AddLineToPath(BaseX + PosX, BaseY + PosY);
+    AData.AddLineToPath(PosX2, PosY2);
     Exit(True);
   end;
   // dx1 dy1 dx2 dy2 dx3 dy3 rcurveto –
@@ -1543,10 +1677,10 @@ begin
     PostScriptCoordsToFPVectorialCoords(Param1, Param2, PosX3, PosY3);
     AData.GetCurrentPathPenPos(BaseX, BaseY);
     // First move to the start of the arc
-    BaseX := BaseX + CurrentGraphicState.TranslateX;
-    BaseY := BaseY + CurrentGraphicState.TranslateY;
+//    BaseX := BaseX + CurrentGraphicState.TranslateX;
+//    BaseY := BaseY + CurrentGraphicState.TranslateY;
     {$ifdef FPVECTORIALDEBUG_PATHS}
-    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] translate %f, %f',
+    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] rcurveto translate %f, %f',
       [CurrentGraphicState.TranslateX, CurrentGraphicState.TranslateY]));
     WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] rcurveto from %f, %f via %f, %f %f, %f to %f, %f',
       [BaseX, BaseY, BaseX + PosX, BaseY + PosY, BaseX + PosX2, BaseY + PosY2, BaseX + PosX3, BaseY + PosY3]));
@@ -1554,6 +1688,7 @@ begin
     AData.AddBezierToPath(BaseX + PosX, BaseY + PosY, BaseX + PosX2, BaseY + PosY2, BaseX + PosX3, BaseY + PosY3);
     Exit(True);
   end;
+  // – closepath –
   //
   // Don't do anything, because a stroke or fill might come after closepath
   // and newpath will be called after stroke and fill anyway
@@ -1604,20 +1739,35 @@ begin
       AData.AddMoveToPath(P1.X, P1.Y);
       AData.AddBezierToPath(P2.X, P2.Y, P3.X, P3.Y, P4.X, P4.Y);
     end;
-//    {$ifdef FPVECTORIALDEBUG}
-//    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] rcurveto %f, %f', [BaseX + PosX, BaseY + PosY]));
-//    {$endif}
     {$ifdef FPVECTORIALDEBUG_PATHS}
-    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] arc %f, %f', [PosX, PosY]));
+    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] arc X,Y=%f, %f Resulting X,Y=%f, %f R=%f Angles Start,End=%f,%f',
+      [Param5.FloatValue, Param4.FloatValue, PosX, PosY, Param3.FloatValue, Param2.FloatValue, Param1.FloatValue]));
     {$endif}
     Exit(True);
   end;
   // – eoclip – Clip using even-odd rule
+  //
+  // intersects the inside of the current clipping path with the inside
+  // of the current path to produce a new, smaller current clipping path.
+  // The inside of the current path is determined by the even-odd rule,
+  // while the inside of the current clipping path is determined by whatever
+  // rule was used at the time that path was created.
+  //
+  // Except for the choice of insideness rule, the behavior of eoclip is identical to that of clip.
+  //
+  // ERRORS: limitcheck
+  //
   if AToken.StrValue = 'eoclip' then
   begin
+    {$ifdef FPVECTORIALDEBUG_PATHS}
+    WriteLn('[TvEPSVectorialReader.ExecutePathConstructionOperator] eoclip');
+    {$endif}
+    {$ifndef FPVECTORIALDEBUG_CLIP_REGION}
     AData.SetPenStyle(psClear);
+    {$endif}
+    AData.SetBrushStyle(bsClear);
     AData.EndPath();
-    CurrentGraphicState.ClipPath := AData.GetPath(AData.GetPathCount()-1);
+    CurrentGraphicState.ClipPath := AData.GetEntity(AData.GetEntitiesCount()-1) as TPath;
     CurrentGraphicState.ClipMode := vcmEvenOddRule;
     Exit(True);
   end
@@ -1673,7 +1823,7 @@ end;
   yellow, black
 }
 function TvEPSVectorialReader.ExecuteGraphicStateOperatorsDI(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2, Param3: TPSToken;
   lRed, lGreen, lBlue: Double;
@@ -1681,7 +1831,7 @@ var
 begin
   Result := False;
 
-  //
+  // – gsave – Push graphics state
   if AToken.StrValue = 'gsave' then
   begin
     GraphicStateStack.Push(CurrentGraphicState.Duplicate());
@@ -1690,7 +1840,7 @@ begin
     {$endif}
     Exit(True);
   end;
-  //
+  // – grestore -                 Pop graphics state
   if AToken.StrValue = 'grestore' then
   begin
     lGraphicState := TGraphicState(GraphicStateStack.Pop());
@@ -1702,19 +1852,22 @@ begin
     {$endif}
     Exit(True);
   end;
-  //
+  // num setlinewidth –           Set line width
   if AToken.StrValue = 'setlinewidth' then
   begin
     Param1 := TPSToken(Stack.Pop);
+    CurrentGraphicState.PenWidth := Round(Param1.FloatValue);
     Exit(True);
   end;
-  //
+  // int setlinecap –             Set shape of line ends for stroke (0 = butt,
+  //                             1 = round, 2 = square)
   if AToken.StrValue = 'setlinecap' then
   begin
     Param1 := TPSToken(Stack.Pop);
     Exit(True);
   end;
-  //
+  // int setlinejoin –            Set shape of corners for stroke (0 = miter,
+  //                             1 = round, 2 = bevel)
   if AToken.StrValue = 'setlinejoin' then
   begin
     Param1 := TPSToken(Stack.Pop);
@@ -1824,40 +1977,86 @@ end;
   matrix1 matrix2 invertmatrix matrix2 Fill matrix2 with inverse of matrix1
 }
 function TvEPSVectorialReader.ExecuteGraphicStateOperatorsDD(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
 begin
   Result := False;
 
-  //
+  // bool setoverprint – Set overprint parameter
+  if AToken.StrValue = 'setoverprint' then
+  begin
+    Param1 := TPSToken(Stack.Pop);
+
+    CurrentGraphicState.OverPrint := Param1.BoolValue;
+
+    Exit(True);
+  end;
+  // sx sy scale – Scale user space by sx and sy
   if AToken.StrValue = 'scale' then
   begin
     Param1 := TPSToken(Stack.Pop);
     Param2 := TPSToken(Stack.Pop);
+
+    if Param2 = nil then
+    begin
+      Exit(True);
+    end;
+
+    CurrentGraphicState.ScaleX := Param2.FloatValue;
+    CurrentGraphicState.ScaleY := Param1.FloatValue;
+    {$ifdef FPVECTORIALDEBUG_PATHS}
+    WriteLn(Format('[TvEPSVectorialReader.ExecuteGraphicStateOperatorsDI] scale %f %f',
+     [CurrentGraphicState.ScaleX, CurrentGraphicState.ScaleY]));
+    {$endif}
+
     Exit(True);
   end;
-  // tx ty translate –        Translate user space by (tx , ty)
+  {
+    translate tx ty translate
+    - tx ty matrix translate matrix
+
+    With no matrix operand, translate builds a temporary matrix and concatenates
+    this matrix with the current transformation matrix (CTM). Precisely, translate
+    replaces the CTM by T x CTM. The effect of this is to move the origin of the
+    user coordinate system by tx units in the x direction and ty units in the y
+    direction relative to the former user coordinate system. The sizes of the x
+    and y units and the orientation of the axes are unchanged.
+
+    If the matrix operand is supplied, translate replaces the value of matrix by
+    T and pushes the modified matrix back on the operand stack.
+    In this case, translate does not affect the CTM.
+  }
   if AToken.StrValue = 'translate' then
   begin
     Param1 := TPSToken(Stack.Pop); // ty
     Param2 := TPSToken(Stack.Pop); // tx
 
-    if Param2 = nil then Exit(True);
+    if Param2 = nil then
+    begin
+      raise Exception.Create('[TvEPSVectorialReader.ExecuteGraphicStateOperatorsDI] Stack underflow in operator "translate"');
+    end;
 
     {$ifdef FPVECTORIALDEBUG_PATHS}
-    WriteLn(Format('[TvEPSVectorialReader.ExecuteGraphicStateOperatorsDI] translate %f, %f', [Param2.FloatValue, Param1.FloatValue]));
+    WriteLn(Format('[TvEPSVectorialReader.ExecuteGraphicStateOperatorsDI] translate %f, %f CurrentGraphicState.Translate %f %f',
+      [Param2.FloatValue, Param1.FloatValue, CurrentGraphicState.TranslateX, CurrentGraphicState.TranslateY]));
     {$endif}
 
-    CurrentGraphicState.TranslateX := Param2.FloatValue;
-    CurrentGraphicState.TranslateY := Param1.FloatValue;
+    CurrentGraphicState.TranslateX := CurrentGraphicState.TranslateX + Param2.FloatValue;
+    CurrentGraphicState.TranslateY := CurrentGraphicState.TranslateY + Param1.FloatValue;
 
     Exit(True);
   end;
-  //
+  // angle rotate – Rotate user space by angle degrees
   if AToken.StrValue = 'rotate' then
   begin
     Param1 := TPSToken(Stack.Pop);
+
+    {$ifdef FPVECTORIALDEBUG_PATHS}
+    WriteLn(Format('[TvEPSVectorialReader.ExecuteGraphicStateOperatorsDI] rotate angle=%f', [Param1.FloatValue]));
+    DebugStack();
+    {$endif}
+
     Exit(True);
   end;
 end;
@@ -1898,7 +2097,7 @@ end;
   dictionary stack
 }
 function TvEPSVectorialReader.ExecuteDictionaryOperators(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
   NewToken: TExpressionToken;
@@ -1906,6 +2105,7 @@ begin
   Result := False;
 
   // Adds a dictionary definition
+  // key value def –       Associate key and value in current dictionary
   if AToken.StrValue = 'def' then
   begin
     Param1 := TPSToken(Stack.Pop);
@@ -1914,20 +2114,61 @@ begin
     Exit(True);
   end;
 
-  // Can be ignored
+  // Can be ignored, because in the files found it only loads
+  // standard routines, like /moveto ...
+  //
+  // key load value        Search dictionary stack for key and return
+  //                      associated value
   if AToken.StrValue = 'load' then
   begin
+//    {$ifdef FPVECTORIALDEBUG_DICTIONARY}
+//    WriteLn('[TvEPSVectorialReader.ExecuteDictionaryOperators] load');
+//    DebugStack();
+//    {$endif}
+
     Exit(True);
   end;
 
   // Find dictionary in which key is defined
+  //key where dict true   Find dictionary in which key is defined
+  //           or false
   if AToken.StrValue = 'where' then
   begin
+    {$ifdef FPVECTORIALDEBUG_DICTIONARY}
+    WriteLn('[TvEPSVectorialReader.ExecuteDictionaryOperators] where');
+    DebugStack();
+    {$endif}
+
     Param1 := TPSToken(Stack.Pop);
-    NewToken := TExpressionToken.Create;
-    NewToken.ETType := ettOperand;
-    NewToken.BoolValue := False;
-    Stack.Push(NewToken);
+
+    if Dictionary.IndexOf(Param1.StrValue) >= 0 then
+    begin
+      // We use only 1 dictionary, so this is just a representation of our single dictionary
+      NewToken := TExpressionToken.Create;
+      NewToken.ETType := ettDictionary;
+      Stack.Push(NewToken);
+
+      NewToken := TExpressionToken.Create;
+      NewToken.ETType := ettOperand;
+      NewToken.BoolValue := True;
+      Stack.Push(NewToken);
+
+      {$ifdef FPVECTORIALDEBUG_DICTIONARY}
+      WriteLn('[TvEPSVectorialReader.ExecuteDictionaryOperators] where True');
+      {$endif}
+    end
+    else
+    begin
+      NewToken := TExpressionToken.Create;
+      NewToken.ETType := ettOperand;
+      NewToken.BoolValue := False;
+      Stack.Push(NewToken);
+
+      {$ifdef FPVECTORIALDEBUG_DICTIONARY}
+      WriteLn('[TvEPSVectorialReader.ExecuteDictionaryOperators] where False');
+      {$endif}
+    end;
+
     Exit(True);
   end;
 end;
@@ -1949,13 +2190,21 @@ end;
   – prompt – Executed when ready for interactive input
 }
 function TvEPSVectorialReader.ExecuteMiscellaneousOperators(
-  AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
+  AToken: TExpressionToken; AData: TvVectorialPage; ADoc: TvVectorialDocument): Boolean;
 begin
   Result := False;
 
   // Just a hint for more efficient parsing, we can ignore
+  //
+  // proc bind proc Replace operator names in proc with
+  // operators; perform idiom recognition
   if AToken.StrValue = 'bind' then
   begin
+    {$ifdef FPVECTORIALDEBUG_CONTROL}
+    WriteLn('[TvEPSVectorialReader.ExecuteControlOperator] bind');
+    DebugStack();
+    {$endif}
+
     Exit(True);
   end;
 end;
@@ -2003,7 +2252,7 @@ begin
   FPointSeparator.DecimalSeparator := '.';
   FPointSeparator.ThousandSeparator := ',';
 
-  Tokenizer := TPSTokenizer.Create;
+  Tokenizer := TPSTokenizer.Create(-1);
   Stack := TObjectStack.Create;
   GraphicStateStack := TObjectStack.Create;
   Dictionary := TStringList.Create;
@@ -2024,17 +2273,20 @@ end;
 
 procedure TvEPSVectorialReader.ReadFromStream(AStream: TStream;
   AData: TvVectorialDocument);
+var
+  lPage: TvVectorialPage;
 begin
   Tokenizer.ReadFromStream(AStream);
 //  Tokenizer.DebugOut();
 
   // Make sure we have at least one path
-  AData.StartPath();
+  lPage := AData.AddPage();
+  lPage.StartPath();
 
-  RunPostScript(Tokenizer.Tokens, AData);
+  RunPostScript(Tokenizer.Tokens, lPage, AData);
 
   // Make sure we have at least one path
-  AData.EndPath();
+  lPage.EndPath();
 
   // PostScript has no document size information, so lets calculate it ourselves
   AData.GuessDocumentSize();

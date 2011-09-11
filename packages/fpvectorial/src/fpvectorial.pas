@@ -152,7 +152,7 @@ type
 
   TvEntity = class
   public
-    X, Y: Double;
+    X, Y, Z: Double;
     {@@ The global Pen for the entire entity. In the case of paths, individual
         elements might be able to override this setting. }
     Pen: TvPen;
@@ -265,19 +265,16 @@ type
 
   TvCustomVectorialWriter = class;
   TvCustomVectorialReader = class;
+  TvVectorialPage = class;
 
   { TvVectorialDocument }
 
   TvVectorialDocument = class
   private
-    FEntities: TFPList;
-    FTmpPath: TPath;
-    FTmpText: TvText;
-    procedure RemoveCallback(data, arg: pointer);
+    FPages: TFPList;
+    FCurrentPageIndex: Integer;
     function CreateVectorialWriter(AFormat: TvVectorialFormat): TvCustomVectorialWriter;
     function CreateVectorialReader(AFormat: TvVectorialFormat): TvCustomVectorialReader;
-    procedure ClearTmpPath();
-    procedure AppendSegmentToTmpPath(ASegment: TPathSegment);
   public
     Width, Height: Double; // in millimeters
     Name: string;
@@ -302,9 +299,34 @@ type
     function  GetDetailedFileFormat(): string;
     procedure GuessDocumentSize();
     procedure GuessGoodZoomLevel(AScreenSize: Integer = 500);
+    { Page methods }
+    function GetPage(AIndex: Integer): TvVectorialPage;
+    function GetPageCount: Integer;
+    function GetCurrentPage: TvVectorialPage;
+    procedure SetCurrentPage(AIndex: Integer);
+    function AddPage(): TvVectorialPage;
+    { Data removing methods }
+    procedure Clear; virtual;
+  end;
+
+  { TvVectorialPage }
+
+  TvVectorialPage = class
+  private
+    FEntities: TFPList;
+    FTmpPath: TPath;
+    FTmpText: TvText;
+    //procedure RemoveCallback(data, arg: pointer);
+    procedure ClearTmpPath();
+    procedure AppendSegmentToTmpPath(ASegment: TPathSegment);
+  public
+    Width, Height: Double; // in millimeters
+    Owner: TvVectorialDocument;
+    { Base methods }
+    constructor Create(AOwner: TvVectorialDocument); virtual;
+    destructor Destroy; override;
+    procedure Assign(ASource: TvVectorialPage);
     { Data reading methods }
-    function  GetPath(ANum: Cardinal): TPath;
-    function  GetPathCount: Integer;
     function  GetEntity(ANum: Cardinal): TvEntity;
     function  GetEntitiesCount: Integer;
     function  FindAndSelectEntity(Pos: TPoint): TvFindEntityResult;
@@ -329,16 +351,14 @@ type
     procedure SetPenWidth(AWidth: Integer);
     procedure SetClipPath(AClipPath: TPath; AClipMode: TvClipMode);
     procedure EndPath();
-    procedure AddText(AX, AY: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
+    procedure AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
     procedure AddText(AX, AY: Double; AStr: utf8string); overload;
+    procedure AddText(AX, AY, AZ: Double; AStr: utf8string); overload;
     procedure AddCircle(ACenterX, ACenterY, ARadius: Double);
     procedure AddCircularArc(ACenterX, ACenterY, ARadius, AStartAngle, AEndAngle: Double; AColor: TFPColor);
     procedure AddEllipse(CenterX, CenterY, MajorHalfAxis, MinorHalfAxis, Angle: Double);
     // Dimensions
     procedure AddAlignedDimension(BaseLeft, BaseRight, DimLeft, DimRight: T3DPoint);
-    { properties }
-    property PathCount: Integer read GetPathCount;
-    property Paths[Index: Cardinal]: TPath read GetPath;
   end;
 
   {@@ TvVectorialReader class reference type }
@@ -490,6 +510,382 @@ begin
   Result.Z := 0;
 end;
 
+{ TvVectorialPage }
+
+procedure TvVectorialPage.ClearTmpPath;
+var
+  segment, oldsegment: TPathSegment;
+begin
+  FTmpPath.Points := nil;
+  FTmpPath.PointsEnd := nil;
+  FTmpPath.Len := 0;
+  FTmpPath.Brush.Color := colBlue;
+  FTmpPath.Brush.Style := bsClear;
+  FTmpPath.Pen.Color := colBlack;
+  FTmpPath.Pen.Style := psSolid;
+  FTmpPath.Pen.Width := 1;
+end;
+
+procedure TvVectorialPage.AppendSegmentToTmpPath(ASegment: TPathSegment);
+begin
+  FTmpPath.AppendSegment(ASegment);
+end;
+
+constructor TvVectorialPage.Create(AOwner: TvVectorialDocument);
+begin
+  inherited Create;
+
+  FEntities := TFPList.Create;
+  FTmpPath := TPath.Create;
+  Owner := AOwner;
+end;
+
+destructor TvVectorialPage.Destroy;
+begin
+  Clear;
+
+  FEntities.Free;
+
+  inherited Destroy;
+end;
+
+procedure TvVectorialPage.Assign(ASource: TvVectorialPage);
+var
+  i: Integer;
+begin
+  Clear;
+
+  for i := 0 to ASource.GetEntitiesCount - 1 do
+    Self.AddEntity(ASource.GetEntity(i));
+end;
+
+function TvVectorialPage.GetEntity(ANum: Cardinal): TvEntity;
+begin
+  if ANum >= FEntities.Count then raise Exception.Create('TvVectorialDocument.GetEntity: Entity number out of bounds');
+
+  if FEntities.Items[ANum] = nil then raise Exception.Create('TvVectorialDocument.GetEntity: Invalid Entity number');
+
+  Result := TvEntity(FEntities.Items[ANum]);
+end;
+
+function TvVectorialPage.GetEntitiesCount: Integer;
+begin
+  Result := FEntities.Count;
+end;
+
+function TvVectorialPage.FindAndSelectEntity(Pos: TPoint): TvFindEntityResult;
+var
+  lEntity: TvEntity;
+  i: Integer;
+begin
+  Result := vfrNotFound;
+
+  for i := 0 to GetEntitiesCount() - 1 do
+  begin
+    lEntity := GetEntity(i);
+
+    Result := lEntity.TryToSelect(Pos);
+
+    if Result <> vfrNotFound then
+    begin
+      Owner.SelectedvElement := lEntity;
+      Exit;
+    end;
+  end;
+end;
+
+procedure TvVectorialPage.Clear;
+begin
+  FEntities.Clear();
+end;
+
+{@@
+  Adds an entity to the document and returns it's current index
+}
+function TvVectorialPage.AddEntity(AEntity: TvEntity): Integer;
+begin
+  Result := FEntities.Count;
+  FEntities.Add(Pointer(AEntity));
+end;
+
+procedure TvVectorialPage.AddPathCopyMem(APath: TPath);
+var
+  lPath: TPath;
+  Len: Integer;
+begin
+  lPath := TPath.Create;
+  lPath.Assign(APath);
+  AddEntity(lPath);
+  //WriteLn(':>TvVectorialDocument.AddPath 1 Len = ', Len);
+end;
+
+{@@
+  Starts writing a Path in multiple steps.
+  Should be followed by zero or more calls to AddPointToPath
+  and by a call to EndPath to effectively add the data.
+
+  @see    EndPath, AddPointToPath
+}
+procedure TvVectorialPage.StartPath(AX, AY: Double);
+var
+  segment: T2DSegment;
+begin
+  ClearTmpPath();
+
+  FTmpPath.Len := 1;
+  segment := T2DSegment.Create;
+  segment.SegmentType := stMoveTo;
+  segment.X := AX;
+  segment.Y := AY;
+
+  FTmpPath.Points := segment;
+  FTmpPath.PointsEnd := segment;
+end;
+
+procedure TvVectorialPage.StartPath;
+begin
+  ClearTmpPath();
+end;
+
+procedure TvVectorialPage.AddMoveToPath(AX, AY: Double);
+var
+  segment: T2DSegment;
+begin
+  segment := T2DSegment.Create;
+  segment.SegmentType := stMoveTo;
+  segment.X := AX;
+  segment.Y := AY;
+
+  AppendSegmentToTmpPath(segment);
+end;
+
+{@@
+  Adds one more point to the end of a Path being
+  writing in multiple steps.
+
+  Does nothing if not called between StartPath and EndPath.
+
+  Can be called multiple times to add multiple points.
+
+  @see    StartPath, EndPath
+}
+procedure TvVectorialPage.AddLineToPath(AX, AY: Double);
+var
+  segment: T2DSegment;
+begin
+  segment := T2DSegment.Create;
+  segment.SegmentType := st2DLine;
+  segment.X := AX;
+  segment.Y := AY;
+
+  AppendSegmentToTmpPath(segment);
+end;
+
+procedure TvVectorialPage.AddLineToPath(AX, AY: Double; AColor: TFPColor);
+var
+  segment: T2DSegmentWithPen;
+begin
+  segment := T2DSegmentWithPen.Create;
+  segment.SegmentType := st2DLineWithPen;
+  segment.X := AX;
+  segment.Y := AY;
+  segment.Pen.Color := AColor;
+
+  AppendSegmentToTmpPath(segment);
+end;
+
+procedure TvVectorialPage.AddLineToPath(AX, AY, AZ: Double);
+var
+  segment: T3DSegment;
+begin
+  segment := T3DSegment.Create;
+  segment.SegmentType := st3DLine;
+  segment.X := AX;
+  segment.Y := AY;
+  segment.Z := AZ;
+
+  AppendSegmentToTmpPath(segment);
+end;
+
+{@@
+  Gets the current Pen Pos in the temporary path
+}
+procedure TvVectorialPage.GetCurrentPathPenPos(var AX, AY: Double);
+begin
+  // Check if we are the first segment in the tmp path
+  if FTmpPath.PointsEnd = nil then raise Exception.Create('[TvVectorialDocument.GetCurrentPathPenPos] One cannot obtain the Pen Pos if there are no segments in the temporary path');
+
+  AX := T2DSegment(FTmpPath.PointsEnd).X;
+  AY := T2DSegment(FTmpPath.PointsEnd).Y;
+end;
+
+{@@
+  Adds a bezier element to the path. It starts where the previous element ended
+  and it goes throw the control points [AX1, AY1] and [AX2, AY2] and ends
+  in [AX3, AY3].
+}
+procedure TvVectorialPage.AddBezierToPath(AX1, AY1, AX2, AY2, AX3, AY3: Double);
+var
+  segment: T2DBezierSegment;
+begin
+  segment := T2DBezierSegment.Create;
+  segment.SegmentType := st2DBezier;
+  segment.X := AX3;
+  segment.Y := AY3;
+  segment.X2 := AX1;
+  segment.Y2 := AY1;
+  segment.X3 := AX2;
+  segment.Y3 := AY2;
+
+  AppendSegmentToTmpPath(segment);
+end;
+
+procedure TvVectorialPage.AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2, AX3, AY3, AZ3: Double);
+var
+  segment: T3DBezierSegment;
+begin
+  segment := T3DBezierSegment.Create;
+  segment.SegmentType := st3DBezier;
+  segment.X := AX3;
+  segment.Y := AY3;
+  segment.Z := AZ3;
+  segment.X2 := AX1;
+  segment.Y2 := AY1;
+  segment.Z2 := AZ1;
+  segment.X3 := AX2;
+  segment.Y3 := AY2;
+  segment.Z3 := AZ2;
+
+  AppendSegmentToTmpPath(segment);
+end;
+
+procedure TvVectorialPage.SetBrushColor(AColor: TFPColor);
+begin
+  FTmPPath.Brush.Color := AColor;
+end;
+
+procedure TvVectorialPage.SetBrushStyle(AStyle: TFPBrushStyle);
+begin
+  FTmPPath.Brush.Style := AStyle;
+end;
+
+procedure TvVectorialPage.SetPenColor(AColor: TFPColor);
+begin
+  FTmPPath.Pen.Color := AColor;
+end;
+
+procedure TvVectorialPage.SetPenStyle(AStyle: TFPPenStyle);
+begin
+  FTmPPath.Pen.Style := AStyle;
+end;
+
+procedure TvVectorialPage.SetPenWidth(AWidth: Integer);
+begin
+  FTmPPath.Pen.Width := AWidth;
+end;
+
+procedure TvVectorialPage.SetClipPath(AClipPath: TPath; AClipMode: TvClipMode);
+begin
+  FTmPPath.ClipPath := AClipPath;
+  FTmPPath.ClipMode := AClipMode;
+end;
+
+{@@
+  Finishes writing a Path, which was created in multiple
+  steps using StartPath and AddPointToPath,
+  to the document.
+
+  Does nothing if there wasn't a previous correspondent call to
+  StartPath.
+
+  @see    StartPath, AddPointToPath
+}
+procedure TvVectorialPage.EndPath;
+begin
+  if FTmPPath.Len = 0 then Exit;
+  AddPathCopyMem(FTmPPath);
+  ClearTmpPath();
+end;
+
+procedure TvVectorialPage.AddText(AX, AY, AZ: Double; FontName: string;
+  FontSize: integer; AText: utf8string);
+var
+  lText: TvText;
+begin
+  lText := TvText.Create;
+  lText.Value.Text := AText;
+  lText.X := AX;
+  lText.Y := AY;
+  lText.Z := AZ;
+  lText.Font.Name := FontName;
+  lText.Font.Size := FontSize;
+  AddEntity(lText);
+end;
+
+procedure TvVectorialPage.AddText(AX, AY: Double; AStr: utf8string);
+begin
+  AddText(AX, AY, 0, '', 10, AStr);
+end;
+
+procedure TvVectorialPage.AddText(AX, AY, AZ: Double; AStr: utf8string);
+begin
+  AddText(AX, AY, AZ, '', 10, AStr);
+end;
+
+procedure TvVectorialPage.AddCircle(ACenterX, ACenterY, ARadius: Double);
+var
+  lCircle: TvCircle;
+begin
+  lCircle := TvCircle.Create;
+  lCircle.X := ACenterX;
+  lCircle.Y := ACenterY;
+  lCircle.Radius := ARadius;
+  AddEntity(lCircle);
+end;
+
+procedure TvVectorialPage.AddCircularArc(ACenterX, ACenterY, ARadius,
+  AStartAngle, AEndAngle: Double; AColor: TFPColor);
+var
+  lCircularArc: TvCircularArc;
+begin
+  lCircularArc := TvCircularArc.Create;
+  lCircularArc.X := ACenterX;
+  lCircularArc.Y := ACenterY;
+  lCircularArc.Radius := ARadius;
+  lCircularArc.StartAngle := AStartAngle;
+  lCircularArc.EndAngle := AEndAngle;
+  lCircularArc.Pen.Color := AColor;
+  AddEntity(lCircularArc);
+end;
+
+procedure TvVectorialPage.AddEllipse(CenterX, CenterY, MajorHalfAxis,
+  MinorHalfAxis, Angle: Double);
+var
+  lEllipse: TvEllipse;
+begin
+  lEllipse := TvEllipse.Create;
+  lEllipse.X := CenterX;
+  lEllipse.Y := CenterY;
+  lEllipse.MajorHalfAxis := MajorHalfAxis;
+  lEllipse.MinorHalfAxis := MinorHalfAxis;
+  lEllipse.Angle := Angle;
+  AddEntity(lEllipse);
+end;
+
+
+procedure TvVectorialPage.AddAlignedDimension(BaseLeft, BaseRight, DimLeft,
+  DimRight: T3DPoint);
+var
+  lDim: TvAlignedDimension;
+begin
+  lDim := TvAlignedDimension.Create;
+  lDim.BaseLeft := BaseLeft;
+  lDim.BaseRight := BaseRight;
+  lDim.DimensionLeft := DimLeft;
+  lDim.DimensionRight := DimRight;
+  AddEntity(lDim);
+end;
+
 { TvText }
 
 constructor TvText.Create;
@@ -590,26 +986,13 @@ end;
 { TsWorksheet }
 
 {@@
-  Helper method for clearing the records in a spreadsheet.
-}
-procedure TvVectorialDocument.RemoveCallback(data, arg: pointer);
-begin
-{  if data <> nil then
-  begin
-    ldata := PObject(data);
-    ldata^.Free;
-  end;}
-end;
-
-{@@
   Constructor.
 }
 constructor TvVectorialDocument.Create;
 begin
   inherited Create;
 
-  FEntities := TFPList.Create;
-  FTmpPath := TPath.Create;
+  FPages := TFPList.Create;
 end;
 
 {@@
@@ -619,306 +1002,24 @@ destructor TvVectorialDocument.Destroy;
 begin
   Clear;
 
-  FEntities.Free;
+  FPages.Free;
 
   inherited Destroy;
 end;
 
 procedure TvVectorialDocument.Assign(ASource: TvVectorialDocument);
-var
-  i: Integer;
+//var
+//  i: Integer;
 begin
-  Clear;
-
-  for i := 0 to ASource.GetEntitiesCount - 1 do
-    Self.AddEntity(ASource.GetEntity(i));
+//  Clear;
+//
+//  for i := 0 to ASource.GetEntitiesCount - 1 do
+//    Self.AddEntity(ASource.GetEntity(i));
 end;
 
 procedure TvVectorialDocument.AssignTo(ADest: TvVectorialDocument);
 begin
   ADest.Assign(Self);
-end;
-
-procedure TvVectorialDocument.AddPathCopyMem(APath: TPath);
-var
-  lPath: TPath;
-  Len: Integer;
-begin
-  lPath := TPath.Create;
-  lPath.Assign(APath);
-  AddEntity(lPath);
-  //WriteLn(':>TvVectorialDocument.AddPath 1 Len = ', Len);
-end;
-
-{@@
-  Starts writing a Path in multiple steps.
-  Should be followed by zero or more calls to AddPointToPath
-  and by a call to EndPath to effectively add the data.
-
-  @see    EndPath, AddPointToPath
-}
-procedure TvVectorialDocument.StartPath(AX, AY: Double);
-var
-  segment: T2DSegment;
-begin
-  ClearTmpPath();
-
-  FTmpPath.Len := 1;
-  segment := T2DSegment.Create;
-  segment.SegmentType := stMoveTo;
-  segment.X := AX;
-  segment.Y := AY;
-
-  FTmpPath.Points := segment;
-  FTmpPath.PointsEnd := segment;
-end;
-
-procedure TvVectorialDocument.StartPath();
-begin
-  ClearTmpPath();
-end;
-
-procedure TvVectorialDocument.AddMoveToPath(AX, AY: Double);
-var
-  segment: T2DSegment;
-begin
-  segment := T2DSegment.Create;
-  segment.SegmentType := stMoveTo;
-  segment.X := AX;
-  segment.Y := AY;
-
-  AppendSegmentToTmpPath(segment);
-end;
-
-{@@
-  Adds one more point to the end of a Path being
-  writing in multiple steps.
-
-  Does nothing if not called between StartPath and EndPath.
-
-  Can be called multiple times to add multiple points.
-
-  @see    StartPath, EndPath
-}
-procedure TvVectorialDocument.AddLineToPath(AX, AY: Double);
-var
-  segment: T2DSegment;
-begin
-  segment := T2DSegment.Create;
-  segment.SegmentType := st2DLine;
-  segment.X := AX;
-  segment.Y := AY;
-
-  AppendSegmentToTmpPath(segment);
-end;
-
-procedure TvVectorialDocument.AddLineToPath(AX, AY: Double; AColor: TFPColor);
-var
-  segment: T2DSegmentWithPen;
-begin
-  segment := T2DSegmentWithPen.Create;
-  segment.SegmentType := st2DLineWithPen;
-  segment.X := AX;
-  segment.Y := AY;
-  segment.Pen.Color := AColor;
-
-  AppendSegmentToTmpPath(segment);
-end;
-
-procedure TvVectorialDocument.AddLineToPath(AX, AY, AZ: Double);
-var
-  segment: T3DSegment;
-begin
-  segment := T3DSegment.Create;
-  segment.SegmentType := st3DLine;
-  segment.X := AX;
-  segment.Y := AY;
-  segment.Z := AZ;
-
-  AppendSegmentToTmpPath(segment);
-end;
-
-{@@
-  Gets the current Pen Pos in the temporary path
-}
-procedure TvVectorialDocument.GetCurrentPathPenPos(var AX, AY: Double);
-begin
-  // Check if we are the first segment in the tmp path
-  if FTmpPath.PointsEnd = nil then raise Exception.Create('[TvVectorialDocument.GetCurrentPathPenPos] One cannot obtain the Pen Pos if there are no segments in the temporary path');
-
-  AX := T2DSegment(FTmpPath.PointsEnd).X;
-  AY := T2DSegment(FTmpPath.PointsEnd).Y;
-end;
-
-{@@
-  Adds a bezier element to the path. It starts where the previous element ended
-  and it goes throw the control points [AX1, AY1] and [AX2, AY2] and ends
-  in [AX3, AY3].
-}
-procedure TvVectorialDocument.AddBezierToPath(AX1, AY1, AX2, AY2, AX3,
-  AY3: Double);
-var
-  segment: T2DBezierSegment;
-begin
-  segment := T2DBezierSegment.Create;
-  segment.SegmentType := st2DBezier;
-  segment.X := AX3;
-  segment.Y := AY3;
-  segment.X2 := AX1;
-  segment.Y2 := AY1;
-  segment.X3 := AX2;
-  segment.Y3 := AY2;
-
-  AppendSegmentToTmpPath(segment);
-end;
-
-procedure TvVectorialDocument.AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2,
-  AX3, AY3, AZ3: Double);
-var
-  segment: T3DBezierSegment;
-begin
-  segment := T3DBezierSegment.Create;
-  segment.SegmentType := st3DBezier;
-  segment.X := AX3;
-  segment.Y := AY3;
-  segment.Z := AZ3;
-  segment.X2 := AX1;
-  segment.Y2 := AY1;
-  segment.Z2 := AZ1;
-  segment.X3 := AX2;
-  segment.Y3 := AY2;
-  segment.Z3 := AZ2;
-
-  AppendSegmentToTmpPath(segment);
-end;
-
-procedure TvVectorialDocument.SetBrushColor(AColor: TFPColor);
-begin
-  FTmPPath.Brush.Color := AColor;
-end;
-
-procedure TvVectorialDocument.SetBrushStyle(AStyle: TFPBrushStyle);
-begin
-  FTmPPath.Brush.Style := AStyle;
-end;
-
-procedure TvVectorialDocument.SetPenColor(AColor: TFPColor);
-begin
-  FTmPPath.Pen.Color := AColor;
-end;
-
-procedure TvVectorialDocument.SetPenStyle(AStyle: TFPPenStyle);
-begin
-  FTmPPath.Pen.Style := AStyle;
-end;
-
-procedure TvVectorialDocument.SetPenWidth(AWidth: Integer);
-begin
-  FTmPPath.Pen.Width := AWidth;
-end;
-
-procedure TvVectorialDocument.SetClipPath(AClipPath: TPath;
-  AClipMode: TvClipMode);
-begin
-  FTmPPath.ClipPath := AClipPath;
-  FTmPPath.ClipMode := AClipMode;
-end;
-
-{@@
-  Finishes writing a Path, which was created in multiple
-  steps using StartPath and AddPointToPath,
-  to the document.
-
-  Does nothing if there wasn't a previous correspondent call to
-  StartPath.
-
-  @see    StartPath, AddPointToPath
-}
-procedure TvVectorialDocument.EndPath();
-begin
-  if FTmPPath.Len = 0 then Exit;
-  AddPathCopyMem(FTmPPath);
-  ClearTmpPath();
-end;
-
-procedure TvVectorialDocument.AddText(AX, AY: Double; FontName: string; FontSize: integer; AText: utf8string);
-var
-  lText: TvText;
-begin
-  lText := TvText.Create;
-  lText.Value.Text := AText;
-  lText.X := AX;
-  lText.Y := AY;
-  lText.Font.Name := FontName;
-  lText.Font.Size := FontSize;
-  AddEntity(lText);
-end;
-
-procedure TvVectorialDocument.AddText(AX, AY: Double; AStr: utf8string);
-begin
-  AddText(AX, AY, '', 10, AStr);
-end;
-
-procedure TvVectorialDocument.AddCircle(ACenterX, ACenterY, ARadius: Double);
-var
-  lCircle: TvCircle;
-begin
-  lCircle := TvCircle.Create;
-  lCircle.X := ACenterX;
-  lCircle.Y := ACenterY;
-  lCircle.Radius := ARadius;
-  AddEntity(lCircle);
-end;
-
-procedure TvVectorialDocument.AddCircularArc(ACenterX, ACenterY,
-  ARadius, AStartAngle, AEndAngle: Double; AColor: TFPColor);
-var
-  lCircularArc: TvCircularArc;
-begin
-  lCircularArc := TvCircularArc.Create;
-  lCircularArc.X := ACenterX;
-  lCircularArc.Y := ACenterY;
-  lCircularArc.Radius := ARadius;
-  lCircularArc.StartAngle := AStartAngle;
-  lCircularArc.EndAngle := AEndAngle;
-  lCircularArc.Pen.Color := AColor;
-  AddEntity(lCircularArc);
-end;
-
-procedure TvVectorialDocument.AddEllipse(CenterX, CenterY,
-  MajorHalfAxis, MinorHalfAxis, Angle: Double);
-var
-  lEllipse: TvEllipse;
-begin
-  lEllipse := TvEllipse.Create;
-  lEllipse.X := CenterX;
-  lEllipse.Y := CenterY;
-  lEllipse.MajorHalfAxis := MajorHalfAxis;
-  lEllipse.MinorHalfAxis := MinorHalfAxis;
-  lEllipse.Angle := Angle;
-  AddEntity(lEllipse);
-end;
-
-{@@
-  Adds an entity to the document and returns it's current index
-}
-function TvVectorialDocument.AddEntity(AEntity: TvEntity): Integer;
-begin
-  Result := FEntities.Count;
-  FEntities.Add(Pointer(AEntity));
-end;
-
-procedure TvVectorialDocument.AddAlignedDimension(BaseLeft, BaseRight,
-  DimLeft, DimRight: T3DPoint);
-var
-  lDim: TvAlignedDimension;
-begin
-  lDim := TvAlignedDimension.Create;
-  lDim.BaseLeft := BaseLeft;
-  lDim.BaseRight := BaseRight;
-  lDim.DimensionLeft := DimLeft;
-  lDim.DimensionRight := DimRight;
-  AddEntity(lDim);
 end;
 
 {@@
@@ -963,25 +1064,6 @@ begin
     end;
 
   if Result = nil then raise Exception.Create('Unsupported vector graphics format.');
-end;
-
-procedure TvVectorialDocument.ClearTmpPath();
-var
-  segment, oldsegment: TPathSegment;
-begin
-  FTmpPath.Points := nil;
-  FTmpPath.PointsEnd := nil;
-  FTmpPath.Len := 0;
-  FTmpPath.Brush.Color := colBlue;
-  FTmpPath.Brush.Style := bsClear;
-  FTmpPath.Pen.Color := colBlack;
-  FTmpPath.Pen.Style := psSolid;
-  FTmpPath.Pen.Width := 1;
-end;
-
-procedure TvVectorialDocument.AppendSegmentToTmpPath(ASegment: TPathSegment);
-begin
-  FTmpPath.AppendSegment(ASegment);
 end;
 
 {@@
@@ -1130,19 +1212,24 @@ end;
 
 procedure TvVectorialDocument.GuessDocumentSize();
 var
-  i: Integer;
+  i, j: Integer;
   lEntity: TvEntity;
   lLeft, lTop, lRight, lBottom: Double;
+  CurPage: TvVectorialPage;
 begin
   lLeft := 0;
   lTop := 0;
   lRight := 0;
   lBottom := 0;
 
-  for i := 0 to GetEntitiesCount() - 1 do
+  for j := 0 to GetPageCount()-1 do
   begin
-    lEntity := GetEntity(I);
-    lEntity.ExpandBoundingBox(lLeft, lTop, lRight, lBottom);
+    CurPage := GetPage(j);
+    for i := 0 to CurPage.GetEntitiesCount() - 1 do
+    begin
+      lEntity := CurPage.GetEntity(I);
+      lEntity.ExpandBoundingBox(lLeft, lTop, lRight, lBottom);
+    end;
   end;
 
   Width := lRight - lLeft;
@@ -1154,68 +1241,34 @@ begin
   ZoomLevel := AScreenSize / Height;
 end;
 
-function TvVectorialDocument.GetPath(ANum: Cardinal): TPath;
-var
-  i: Integer;
-  Index: Integer = - 1;
+function TvVectorialDocument.GetPage(AIndex: Integer): TvVectorialPage;
 begin
-  Result := nil;
-
-  if ANum >= FEntities.Count then raise Exception.Create('TvVectorialDocument.GetPath: Path number out of bounds');
-
-  for i := 0 to FEntities.Count - 1 do
-  begin
-    if TvEntity(FEntities.Items[i]) is TPath then
-    begin
-      Inc(Index);
-      if Index = ANum then Result := TPath(FEntities.Items[i]);
-    end;
-  end;
+  Result := TvVectorialPage(FPages.Items[AIndex]);
 end;
 
-function TvVectorialDocument.GetPathCount: Integer;
-var
-  i: Integer;
+function TvVectorialDocument.GetPageCount: Integer;
 begin
-  Result := 0;
-
-  for i := 0 to FEntities.Count - 1 do
-    if TvEntity(FEntities.Items[i]) is TPath then Inc(Result);
+  Result := FPages.Count;
 end;
 
-function TvVectorialDocument.GetEntity(ANum: Cardinal): TvEntity;
+function TvVectorialDocument.GetCurrentPage: TvVectorialPage;
 begin
-  if ANum >= FEntities.Count then raise Exception.Create('TvVectorialDocument.GetEntity: Entity number out of bounds');
-
-  if FEntities.Items[ANum] = nil then raise Exception.Create('TvVectorialDocument.GetEntity: Invalid Entity number');
-
-  Result := TvEntity(FEntities.Items[ANum]);
+  if FCurrentPageIndex >= 0 then
+    Result := GetPage(FCurrentPageIndex)
+  else
+    Result := nil;
 end;
 
-function TvVectorialDocument.GetEntitiesCount: Integer;
+procedure TvVectorialDocument.SetCurrentPage(AIndex: Integer);
 begin
-  Result := FEntities.Count;
+  FCurrentPageIndex := AIndex;
 end;
 
-function TvVectorialDocument.FindAndSelectEntity(Pos: TPoint): TvFindEntityResult;
-var
-  lEntity: TvEntity;
-  i: Integer;
+function TvVectorialDocument.AddPage: TvVectorialPage;
 begin
-  Result := vfrNotFound;
-
-  for i := 0 to GetEntitiesCount() - 1 do
-  begin
-    lEntity := GetEntity(i);
-
-    Result := lEntity.TryToSelect(Pos);
-
-    if Result <> vfrNotFound then
-    begin
-      SelectedvElement := lEntity;
-      Exit;
-    end;
-  end;
+  Result := TvVectorialPage.Create(Self);
+  FPages.Add(Result);
+  if FCurrentPageIndex < 0 then FCurrentPageIndex := FPages.Count-1;
 end;
 
 {@@
@@ -1223,7 +1276,6 @@ end;
 }
 procedure TvVectorialDocument.Clear;
 begin
-  FEntities.Clear();
 end;
 
 { TvCustomVectorialReader }

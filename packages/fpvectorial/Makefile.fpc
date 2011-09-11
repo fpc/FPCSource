@@ -14,8 +14,8 @@ packages=fcl-image fcl-base
 units=fpvectbuildunit
 exampledirs=
 implicitunits= avisocncgcodereader avisocncgcodewriter avisozlib fpvectorial \
-	       fpvtocanvas  pdfvectorialreader pdfvrlexico pdfvrsemantico \
-	       pdfvrsintatico cdrvectorialreader svgvectorialwriter epsvectorialreader fpvutils
+	       fpvtocanvas  \
+	       cdrvectorialreader svgvectorialwriter epsvectorialreader fpvutils
 
 [compiler]
 includedir=src

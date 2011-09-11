@@ -14,22 +14,27 @@ const
   cFormat = vfSVG;
   cExtension = '.svg';
 var
-  Vec: TvVectorialDocument;
+  VecDoc: TvVectorialDocument;
+  Vec: TvVectorialPage;
   Path: TPath;
   i: Integer;
   Segment: TPathSegment;
   _2DSegment: T2DSegment;
   BezSegment: T2DBezierSegment;
+  lEntity: TvEntity;
 begin
-  Vec := TvVectorialDocument.Create;
+  VecDoc := TvVectorialDocument.Create;
   try
     // Read the file
-    Vec.ReadFromFile('bezier_1.svg');
+    VecDoc.ReadFromFile('bezier_1.svg');
+    Vec := VecDoc.GetPage(0);
 
     // Now add 10 to the Y coordinate of all elements
-    for i := 0 to Vec.GetPathCount() - 1 do
+    for i := 0 to Vec.GetEntitiesCount() - 1 do
     begin
-      Path := Vec.GetPath(i);
+      lEntity := Vec.GetEntity(i);
+      if not (lEntity is TPath) then Continue;
+      Path := lEntity as TPath;
       Path.PrepareForSequentialReading();
       Path.Next();
       while Path.CurPoint <> nil do
@@ -54,9 +59,9 @@ begin
     end;
 
     // Write the changed file to disk
-    Vec.WriteToFile('bezier_1_mod' + cExtension, cFormat);
+    VecDoc.WriteToFile('bezier_1_mod' + cExtension, cFormat);
   finally
-    Vec.Free;
+    VecDoc.Free;
   end;
 end.
 

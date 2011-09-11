@@ -161,7 +161,7 @@ begin
     Vec.StartPath(0, 20);
     Vec.AddLineToPath(30, 30);
     Vec.SetPenWidth(10);
-    Vec.SetPenColor(RGBToFPColor(255, 0, 0));
+    Vec.SetPenColor(RGBToVColor(255, 0, 0));
     Vec.EndPath();
     Vec.StartPath(0, 0);
     Vec.AddLineToPath(100, 0);
@@ -169,14 +169,14 @@ begin
     Vec.AddLineToPath(0, 100);
     Vec.AddLineToPath(0, 0);
     Vec.SetPenWidth(10);
-    Vec.SetPenColor(RGBToFPColor(0, 255, 0));
+    Vec.SetPenColor(RGBToVColor(0, 255, 0));
     Vec.EndPath();
     Vec.StartPath(0, 0);
     Vec.AddLineToPath(10, 10);
     Vec.AddBezierToPath(10, 20, 20, 20, 20, 10);
     Vec.AddLineToPath(30, 0);
     Vec.SetPenWidth(10);
-    Vec.SetPenColor(RGBToFPColor(0, 0, 255));
+    Vec.SetPenColor(RGBToVColor(0, 0, 255));
     Vec.EndPath();
     Vec.WriteToFile('pen_test_2' + cExtension, cFormat);
   finally

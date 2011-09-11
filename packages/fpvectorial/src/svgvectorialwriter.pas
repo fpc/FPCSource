@@ -23,11 +23,11 @@ type
     FPointSeparator, FCommaSeparator: TFormatSettings;
     procedure WriteDocumentSize(AStrings: TStrings; AData: TvVectorialDocument);
     procedure WriteDocumentName(AStrings: TStrings; AData: TvVectorialDocument);
-    procedure WritePath(AIndex: Integer; APath: TPath; AStrings: TStrings; AData: TvVectorialDocument);
-    procedure WriteText(AStrings: TStrings; lText: TvText; AData: TvVectorialDocument);
-    procedure WriteEntities(AStrings: TStrings; AData: TvVectorialDocument);
+    procedure WritePath(AIndex: Integer; APath: TPath; AStrings: TStrings; AData: TvVectorialPage; ADoc: TvVectorialDocument);
+    procedure WriteText(AStrings: TStrings; lText: TvText; AData: TvVectorialPage; ADoc: TvVectorialDocument);
+    procedure WriteEntities(AStrings: TStrings; AData: TvVectorialPage; ADoc: TvVectorialDocument);
     procedure ConvertFPVCoordinatesToSVGCoordinates(
-      const AData: TvVectorialDocument;
+      const AData: TvVectorialPage;
       const ASrcX, ASrcY: Double; var ADestX, ADestY: double);
   public
     { General reading methods }
@@ -76,7 +76,7 @@ end;
   "." as decimal separators and uses no thousand separators
 }
 procedure TvSVGVectorialWriter.WritePath(AIndex: Integer; APath: TPath; AStrings: TStrings;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   j: Integer;
   PathStr: string;
@@ -178,7 +178,7 @@ begin
 end;
 
 procedure TvSVGVectorialWriter.ConvertFPVCoordinatesToSVGCoordinates(
-  const AData: TvVectorialDocument; const ASrcX, ASrcY: Double; var ADestX,
+  const AData: TvVectorialPage; const ASrcX, ASrcY: Double; var ADestX,
   ADestY: double);
 begin
   ADestX := ASrcX / FLOAT_MILIMETERS_PER_PIXEL;
@@ -187,6 +187,8 @@ end;
 
 procedure TvSVGVectorialWriter.WriteToStrings(AStrings: TStrings;
   AData: TvVectorialDocument);
+var
+  lPage: TvVectorialPage;
 begin
   // Format seetings to convert a string to a float
   FPointSeparator := DefaultFormatSettings;
@@ -214,14 +216,16 @@ begin
 
   // Now data
   AStrings.Add('  <g id="layer1">');
-  WriteEntities(AStrings, AData);
+  lPage := AData.GetPage(0);
+  WriteEntities(AStrings, lPage, AData);
   AStrings.Add('  </g>');
 
   // finalization
   AStrings.Add('</svg>');
 end;
 
-procedure TvSVGVectorialWriter.WriteText(AStrings: TStrings; lText: TvText; AData: TvVectorialDocument);
+procedure TvSVGVectorialWriter.WriteText(AStrings: TStrings; lText: TvText;
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   i, j, FontSize: Integer;
   TextStr, FontName, SVGFontFamily: string;
@@ -249,17 +253,17 @@ begin
 end;
 
 procedure TvSVGVectorialWriter.WriteEntities(AStrings: TStrings;
-  AData: TvVectorialDocument);
+  AData: TvVectorialPage; ADoc: TvVectorialDocument);
 var
   lEntity: TvEntity;
-  i: Integer;
+  i, j: Integer;
 begin
   for i := 0 to AData.GetEntitiesCount() - 1 do
   begin
     lEntity := AData.GetEntity(i);
 
-    if lEntity is TPath then WritePath(i, TPath(lEntity), AStrings, AData)
-    else if lEntity is TvText then WriteText(AStrings, TvText(lEntity), AData);
+    if lEntity is TPath then WritePath(i, TPath(lEntity), AStrings, AData, ADoc)
+    else if lEntity is TvText then WriteText(AStrings, TvText(lEntity), AData, ADoc);
   end;
 end;
 

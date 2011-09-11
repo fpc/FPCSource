@@ -21,6 +21,8 @@ type
   { TvAvisoCNCGCodeWriter }
 
   TvAvisoCNCGCodeWriter = class(TvCustomVectorialWriter)
+  private
+    procedure WritePageToStrings(AStrings: TStrings; AData: TvVectorialPage);
   public
     { General reading methods }
     procedure WriteToStrings(AStrings: TStrings; AData: TvVectorialDocument); override;
@@ -30,8 +32,8 @@ implementation
 
 { TvGCodeVectorialWriter }
 
-procedure TvAvisoCNCGCodeWriter.WriteToStrings(AStrings: TStrings;
-  AData: TvVectorialDocument);
+procedure TvAvisoCNCGCodeWriter.WritePageToStrings(AStrings: TStrings;
+  AData: TvVectorialPage);
 var
   i, j: Integer;
   Str: string;
@@ -40,6 +42,7 @@ var
   Cur3DSegment: T3DSegment;
   Cur2DBezierSegment: T2DBezierSegment;
   Cur3DBezierSegment: T3DBezierSegment;
+  lEntity: TvEntity;
 begin
   AStrings.Clear;
 
@@ -48,9 +51,11 @@ begin
   AStrings.Add('G00');
 
   // itera por todos os itens
-  for i := 0 to AData.GetPathCount - 1 do
+  for i := 0 to AData.GetEntitiesCount - 1 do
   begin
-    APath := AData.GetPath(i);
+    lEntity := AData.GetEntity(i);
+    if not (lEntity is TPath) then Continue;
+    APath := lEntity as TPath;
 
     // levanta a broca
     AStrings.Add('P01 // Sobe a cabeça de gravação');
@@ -95,6 +100,15 @@ begin
   AStrings.Add('P01 // Sobe a cabeça de gravação');
   AStrings.Add('M30 // Parar o programa e retornar para posição inicial');
   AStrings.Add('M215 // Desligar monitor de carga');
+end;
+
+procedure TvAvisoCNCGCodeWriter.WriteToStrings(AStrings: TStrings;
+  AData: TvVectorialDocument);
+var
+  lPage: TvVectorialPage;
+begin
+  lPage := AData.GetPage(0);
+  WritePageToStrings(AStrings, lPage);
 end;
 
 initialization
