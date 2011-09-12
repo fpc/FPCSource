@@ -1,3 +1,5 @@
+{ %fail }
+
 program tarrconstr4;
 
 {$mode delphi}
