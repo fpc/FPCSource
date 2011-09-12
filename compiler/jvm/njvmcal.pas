@@ -51,6 +51,7 @@ interface
          function dispatch_procvar: tnode;
          procedure remove_hidden_paras;
         public
+         function pass_typecheck: tnode; override;
          function pass_1: tnode; override;
        end;
 
@@ -58,7 +59,7 @@ interface
 implementation
 
     uses
-      verbose,globtype,constexp,cutils,
+      verbose,globals,globtype,constexp,cutils,
       symconst,symtable,symsym,defutil,
       cgutils,tgobj,procinfo,htypechk,
       cpubase,aasmdata,aasmcpu,
@@ -451,6 +452,37 @@ implementation
             prevpara:=para;
           para:=nextpara;
         end;
+    end;
+
+
+  function tjvmcallnode.pass_typecheck: tnode;
+    begin
+      result:=inherited pass_typecheck;
+      if assigned(result) or
+         codegenerror then
+        exit;
+      { unfortunately, we cannot handle a call to a virtual constructor for
+        the current instance from inside another constructor. The reason is
+        that these must be called via reflection, but before an instance has
+        been fully initialized (which can only be done by calling either an
+        inherited constructor or another constructor of this class) you can't
+        perform reflection.
+
+        Replacing virtual constructors with plain virtual methods that are
+        called after the instance has been initialized causes problems if they
+        in turn call plain constructors from inside the JDK (you cannot call
+        constructors anymore once the instance has been constructed). It also
+        causes problems regarding which other constructor to call then instead
+        before to initialize the instance (we could add dummy constructors for
+        that purpose to Pascal classes, but that scheme breaks when a class
+        inherits from a JDK class other than JLObject).
+      }
+      if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+         not(cnf_inherited in callnodeflags) and
+         (procdefinition.proctypeoption=potype_constructor) and
+         (po_virtualmethod in procdefinition.procoptions) and
+         (cnf_member_call in callnodeflags) then
+        CGMessage(parser_e_jvm_invalid_virtual_constructor_call);
     end;
 
 

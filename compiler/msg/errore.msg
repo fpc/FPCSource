@@ -379,7 +379,7 @@ scanner_w_directive_ignored_on_target=02089_W_Directive "$1" is ignored for the 
 #
 # Parser
 #
-# 03319 is the last used one
+# 03320 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1426,6 +1426,11 @@ parser_d_internal_parser_string=03318_D_Parsing internally generated code: $1
 % with debugging errors in them.
 parser_e_feature_unsupported_for_vm=03319_E_This language feature is not supported on managed VM targets
 % Certain language features are not supported on targets that are managed virtual machines.
+parser_e_jvm_invalid_virtual_constructor_call=03320_E_Calling a virtual constructor for the current instance inside another constructor is not possible on the JVM target
+% The JVM does not natively support virtual constructor. Unforunately, we are not aware of a way to
+% emulate them in a way that makes it possible to support calling virtual constructors
+% for the current instance inside another constructor.
+%
 % \end{description}
 # Type Checking
 #
