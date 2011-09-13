@@ -454,14 +454,17 @@ Implementation
                   { allow %segmentregister:number }
                   if oper.opr.ref.segment<>NR_NO then
                     begin
-                      oper.InitRef;
+                      // already done before calling oper.InitRef;
                       if oper.opr.Ref.Offset <> 0 Then
                         Message(asmr_e_invalid_reference_syntax)
                       else
                         begin
-                          oper.opr.Ref.Offset:=BuildConstExpression(false,true);
+                          oper.opr.Ref.Offset:=BuildConstExpression(true,false);
                           if actasmtoken=AS_LPAREN then
-                            BuildReference(oper);
+                            BuildReference(oper)
+                          else if (oper.opr.ref.segment <> NR_FS) and
+                            (oper.opr.ref.segment <> NR_GS) then
+                           Message(asmr_w_general_segment_with_constant);
                         end;
                     end
                   else

@@ -2428,6 +2428,9 @@ asmr_e_empty_regset=07109_E_A register set cannot be empty
 asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially dangereous for local symbols
 % The use of @GOTPCREL supposes an extra indirection that is
 % not present if the symbol is local, which might lead to wrong asembler code
+asmr_w_general_segment_with_constant=07111_W_Constant with general purpose segment register
+% General purpose register should not have constant offsets
+% as OS memory allocation might not be compatible with that.
 #
 # Assembler/binary writers
 #
