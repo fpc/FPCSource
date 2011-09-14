@@ -2819,7 +2819,7 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 #
 #  Options
 #
-# 11048 is the last used one
+# 11049 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2945,6 +2945,9 @@ option_ignored_target=11047_W_Option "$1" is ignored for the current target plat
 option_debug_external_unsupported=11048_W_Disabling external debug information because it is unsupported for the selected target/debug format combination.
 % Not all debug formats can be stored in an external file on all platforms. In particular, on
 % Mac OS X only DWARF debug information can be stored externally.
+option_dwarf_smartlink_creation=11049_N_DWARF debug information cannot be used with smart linking with external assembler, disabling static library creation.  
+% Smart linking is currently incompatble with DWARF debug information on most
+% platforms, so smart linking is disabled in such cases.
 %\end{description}
 # EndOfTeX
 

@@ -2307,9 +2307,17 @@ begin
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
      not(target_info.system in systems_darwin) then
     begin
-      { smart linking does not yet work with DWARF debug info on most targets }
+      { smartlink creation does not yet work with DWARF 
+        debug info on most targets, but it works in internal assembler }
       if (cs_create_smart in init_settings.moduleswitches) and
          not (af_outputbinary in target_asm.flags) then
+        begin
+          Message(option_dwarf_smartlink_creation);
+          exclude(init_settings.moduleswitches,cs_create_smart);
+        end;
+
+      { smart linking does not yet work with DWARF debug info on most targets }
+      if (cs_link_smart in init_settings.globalswitches) then
         begin
           Message(option_dwarf_smart_linking);
           ForceStaticLinking;
