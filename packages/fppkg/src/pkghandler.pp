@@ -269,7 +269,6 @@ end;
 {$endif HAS_UNIT_PROCESS}
 
 Function TPackageHandler.ExecuteProcess(Const Prog,Args:String):Integer;
-var T:TProcess;
 begin
   Log(vlCommands,SLogExecute,[Prog,Args]);
   Flush(StdOut);
