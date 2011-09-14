@@ -716,6 +716,7 @@ function TSQLConnection.GetAsSQLText(Param: TParam) : string;
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
   else case param.DataType of
+    ftGuid,
     ftMemo,
     ftFixedChar,
     ftString   : Result := QuotedStr(Param.AsString);
