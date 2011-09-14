@@ -2308,7 +2308,8 @@ begin
      not(target_info.system in systems_darwin) then
     begin
       { smart linking does not yet work with DWARF debug info on most targets }
-      if (cs_link_smart in init_settings.globalswitches) then
+      if (cs_create_smart in init_settings.moduleswitches) and
+         not (af_outputbinary in target_asm.flags) then
         begin
           Message(option_dwarf_smart_linking);
           ForceStaticLinking;
@@ -2774,6 +2775,8 @@ begin
           exclude(init_settings.moduleswitches,cs_debuginfo);
         end;
     end;
+  {TOptionheck a second time as we might have changed assembler just above }
+  option.checkoptionscompatibility;
 
   { maybe override debug info format }
   if (paratargetdbg<>dbg_none) then
