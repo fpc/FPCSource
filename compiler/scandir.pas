@@ -1055,6 +1055,15 @@ unit scandir;
     procedure dir_smartlink;
       begin
         do_moduleswitch(cs_create_smart);
+        if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
+            not(target_info.system in systems_darwin) and
+            { smart linking does not yet work with DWARF debug info on most targets }
+            (cs_create_smart in current_settings.moduleswitches) and
+            not (af_outputbinary in target_asm.flags) then
+        begin
+          Message(option_dwarf_smart_linking);
+          Exclude(current_settings.moduleswitches,cs_create_smart);
+        end;
       end;
 
     procedure dir_stackframes;
