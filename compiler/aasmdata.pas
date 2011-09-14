@@ -455,7 +455,7 @@ implementation
     procedure TAsmData.getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
       begin
         if (target_info.system in systems_linux) and
-           (cs_link_smart in current_settings.globalswitches) and
+           (cs_create_smart in current_settings.moduleswitches) and
            (alt = alt_dbgline) then
           l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt],alt)
         else
