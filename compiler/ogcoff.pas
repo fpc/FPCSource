@@ -1315,6 +1315,8 @@ const pemagic : array[0..3] of byte = (
                 rel.reloctype:=IMAGE_REL_I386_SECREL32;
 {$endif i386}
 {$ifdef x86_64}
+              RELOC_NONE :
+                rel.reloctype:=IMAGE_REL_AMD64_ABSOLUTE;
               RELOC_RELATIVE :
                 rel.reloctype:=IMAGE_REL_AMD64_REL32;
               RELOC_ABSOLUTE32 :
@@ -1639,6 +1641,8 @@ const pemagic : array[0..3] of byte = (
                rel_type:=RELOC_SECREL32;
 {$endif i386}
 {$ifdef x86_64}
+             IMAGE_REL_AMD64_ABSOLUTE:
+               rel_type:=RELOC_NONE;
              IMAGE_REL_AMD64_REL32:
                rel_type:=RELOC_RELATIVE;
              IMAGE_REL_AMD64_ADDR32,
@@ -1933,7 +1937,9 @@ const pemagic : array[0..3] of byte = (
                  begin
                    if (Copy(secname,1,6)='.edata') or
                       (Copy(secname,1,5)='.rsrc') or
+{$ifndef x86_64}
                       (Copy(secname,1,6)='.pdata') or
+{$endif}
                       (Copy(secname,1,4)='.fpc') then
                      include(secoptions,oso_keep);
                    if (Copy(secname,1,6)='.idata') then

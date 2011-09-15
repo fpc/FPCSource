@@ -1024,9 +1024,10 @@ implementation
             Concat('  SYMBOL __RUNTIME_PSEUDO_RELOC_LIST_END__');
             Concat('  OBJSECTION .rdata*');
             Concat('  OBJSECTION .rodata*');
+            Concat('  OBJSECTION .xdata*');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .pdata');
-            Concat('  OBJSECTION .pdata');
+            Concat('  OBJSECTION .pdata*');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .bss');
             Concat('  SYMBOL __bss_start__');
@@ -1066,7 +1067,9 @@ implementation
             Concat('  OBJSECTION .idata$3*');
             Concat('  ZEROS 20');
             Concat('  OBJSECTION .idata$4*');
+            Concat('  SYMBOL __IAT_start__');
             Concat('  OBJSECTION .idata$5*');
+            Concat('  SYMBOL __IAT_end__');
             Concat('  OBJSECTION .idata$6*');
             Concat('  OBJSECTION .idata$7*');
             Concat('ENDEXESECTION');
