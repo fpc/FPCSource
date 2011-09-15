@@ -542,10 +542,12 @@ var
   Ch     : AnsiChar;
   State  : integer;
   StrInx : integer;
+  LenStr : integer;
 begin
   {assume we fail to match}
   Result := false;
   Len := StartPosn;
+  LenStr := Length(s);
   {clear the deque}
   FHead := FCapacity div 2;
   FTail := FHead;
@@ -628,14 +630,14 @@ begin
           end;
       end;
     end;
-  until (FHead = FTail) or (ch = #0); // deque empty or end of string
+  until (FHead = FTail) or (StrInx > LenStr); // deque empty or end of string
   {if we reach this point we've either exhausted the deque or we've
    run out of string; if the former, the substring did not match
    since there are no more states. If the latter, we need to check
    the states left on the deque to see if one is the terminating
    state; if so the string matched the regular expression defined by
    the transition table}
-  while (FHead <> FTail) do begin
+  while (FHead <> FTail) and (StrInx<=LenStr) do begin
     State := DequePop;
     with FStateTable[State] do begin
       case sdMatchType of
