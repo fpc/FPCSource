@@ -1236,6 +1236,24 @@ implementation
                AsmLn;
              end;
 
+           ait_seh_directive :
+             begin
+               AsmWrite('.'+sehdirectivestr[tai_seh_directive(hp).kind]);
+               case tai_seh_directive(hp).datatype of
+                 sd_none:;
+                 sd_string:
+                   AsmWrite(' '+tai_seh_directive(hp).data.name^);
+                 sd_reg:
+                   AsmWrite(' '+gas_regname(tai_seh_directive(hp).data.reg));
+                 sd_offset:
+                   AsmWrite(' '+tostr(tai_seh_directive(hp).data.offset));
+                 sd_regoffset:
+                   AsmWrite(' '+gas_regname(tai_seh_directive(hp).data.reg)+', '+
+                     tostr(tai_seh_directive(hp).data.offset));
+               end;
+               AsmLn;
+             end;
+
            else
              internalerror(2006012201);
          end;

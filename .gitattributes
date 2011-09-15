@@ -664,6 +664,7 @@ compiler/x86_64/r8664std.inc svneol=native#text/plain
 compiler/x86_64/rax64att.pas svneol=native#text/plain
 compiler/x86_64/rax64int.pas svneol=native#text/plain
 compiler/x86_64/rgcpu.pas svneol=native#text/plain
+compiler/x86_64/win64unw.pas svneol=native#text/plain
 compiler/x86_64/x8664ats.inc svneol=native#text/plain
 compiler/x86_64/x8664att.inc svneol=native#text/plain
 compiler/x86_64/x8664int.inc svneol=native#text/plain
