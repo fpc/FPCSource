@@ -51,6 +51,7 @@ Type
     FMachine,
     FComment,
     FCPU,
+    FCategory,
     FOS  : String;
     FViewVCURL : String;
     FDate : TDateTime;
@@ -89,6 +90,7 @@ Type
     Function GetOSName(ID : String) : String;
     Function GetCPUName(ID : String) : String;
     Function GetVersionName(ID : String) : String;
+    Function GetCategoryName(ID : String) : String;
     Function GetTestFileName(ID : String) : String;
     Function GetFailCount(RunID : longint) : string;
     Function InitCGIVars : Integer;
@@ -311,6 +313,9 @@ begin
   FCPU:=RequestVariables['cpu'];
   if Length(FCPU) = 0 then
     FCPU:=RequestVariables['TESTCPU'];
+  FCategory:=RequestVariables['category'];
+  if Length(FCategory) = 0 then
+    FCategory:=RequestVariables['TESTCATEGORY'];
   FCond:=RequestVariables['cond'];
   if Length(FCond) = 0 then
     FCond:=RequestVariables['TESTCOND'];
@@ -549,6 +554,12 @@ begin
       end;
     RowNext;
       CellStart;
+        Write('Category');
+      CellNext;
+        ComboBoxFromQuery('Category','SELECT TCAT_ID,TCAT_NAME FROM TESTCATEGORY ORDER BY TCAT_NAME',FCategory);
+      CellEnd;
+    RowNext;
+      CellStart;
         Write('Only failed tests');
       CellNext;
         EmitCheckBox('failedonly','1',FonlyFailed);
@@ -675,6 +686,12 @@ begin
         CellEnd;
     RowNext;
       CellStart;
+        Write('Category');
+      CellNext;
+        ComboBoxFromQuery('Category','SELECT TCAT_ID,TCAT_NAME FROM TESTCATEGORY ORDER BY TCAT_NAME',FCategory);
+      CellEnd;
+    RowNext;
+      CellStart;
         Write('Only failed tests');
       CellNext;
         EmitCheckBox('failedonly','1',FonlyFailed);
@@ -781,12 +798,13 @@ Const
                '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
                 'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Total,'+
-               'TU_SUBMITTER as Submitter, TU_MACHINE as Machine, TU_COMMENT as Comment '+
-              'FROM TESTRESULTS,TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
+               'TU_SUBMITTER as Submitter, TU_MACHINE as Machine, TU_COMMENT as Comment %s '+
+              'FROM TESTRESULTS,TESTRUN,TESTCPU,TESTOS,TESTVERSION,TESTCATEGORY '+
               'WHERE '+
                '(TC_ID=TU_CPU_FK) AND '+
                '(TO_ID=TU_OS_FK) AND '+
                '(TV_ID=TU_VERSION_FK) AND '+
+               '(TCAT_ID=TU_CATEGORY_FK) AND '+
                '(TR_TESTRUN_FK=TU_ID) '+
                '%s '+
               'GROUP BY TU_ID '+
@@ -794,13 +812,15 @@ Const
 
 
 Var
-  S,A,Qry : String;
+  SC,S,A,Qry : String;
   Q : TSQLQuery;
 
 begin
    S:='';
    If (FCPU<>'') and (GetCPUName(FCPU)<>'All') then
      S:=S+' AND (TU_CPU_FK='+FCPU+')';
+   If (FCategory<>'') and (GetCategoryName(FCategory)<>'All') then
+     S:=S+' AND (TU_CATEGORY_FK='+FCategory+')';
    If (FVersion<>'') and (GetVersionName(FVersion)<>'All')  then
      S:=S+' AND (TU_VERSION_FK='+FVERSION+')';
    if (FOS<>'') and (GetOSName(FOS)<>'All') then
@@ -817,12 +837,20 @@ begin
      S:=S+' AND ('+FCond+')';
    If FOnlyFailed then
      S:=S+' AND (TR_OK="-")';
+   If GetCategoryName(FCategory)<>'DB' then
+     SC:=', CONCAT(TU_SVNCOMPILERREVISION,"/",TU_SVNRTLREVISION,"/", '+
+          'TU_SVNPACKAGESREVISION,"/",TU_SVNTESTSREVISION) as svnrev'
+   else
+     SC:='';
+   If GetCategoryName(FCategory)='All' then
+     SC:=SC+', TCAT_NAME as Cat';
+
    A:=SDetailsURL;
    If FOnlyFailed then
      A:=A+'&failedonly=1';
    If FNoSkipped then
      A:=A+'&noskipped=1';
-  Qry:=Format(SOverview,[S,FLimit]);
+  Qry:=Format(SOverview,[SC,S,FLimit]);
   If FDebug then
     Writeln('Query : '+Qry);
   Q:=CreateDataset(Qry);
@@ -885,17 +913,26 @@ begin
     Result:=GetSingleton('SELECT TV_VERSION FROM TESTVERSION WHERE TV_ID='+ID);
 end;
 
+Function TTestSuite.GetCategoryName(ID : String) : String;
+
+begin
+  if (ID<>'') then
+    Result:=GetSingleton('SELECT TCAT_NAME FROM TESTCATEGORY WHERE TCAT_ID='+ID);
+end;
+
 Function TTestSuite.ShowRunData : Boolean;
 
 Const
   SGetRunData = 'SELECT TU_ID,TU_DATE,TC_NAME,TO_NAME,' +
                 'TU_SUBMITTER,TU_MACHINE,TU_COMMENT,TV_VERSION,'+
+                'TU_CATEGORY_FK,TU_SVNCOMPILERREVISION,TU_SVNRTLREVISION,'+
+                'TU_SVNPACKAGESREVISION,TU_SVNTESTSREVISION,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
                '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
                 'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Total'+
 
-                ' FROM TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
+                ' %s FROM TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
                 'WHERE '+
                 ' (TC_ID=TU_CPU_FK) AND '+
                 ' (TO_ID=TU_OS_FK) AND '+
@@ -906,14 +943,23 @@ Const
 Var
   Q1,Q2 : TSQLQuery;
   F : TField;
+  SC : string;
   Date1, Date2: TDateTime;
 begin
   Result:=(FRunID<>'');
   If Result then
     begin
-    Q1:=CreateDataset(Format(SGetRunData,[FRunID]));
+    If GetCategoryName(FCategory)<>'DB' then
+      SC:=', CONCAT(TU_SVNCOMPILERREVISION,"/",TU_SVNRTLREVISION,"/", '+
+          'TU_SVNPACKAGESREVISION,"/",TU_SVNTESTSREVISION) as svnrev'
+    else
+      SC:='';
+    If GetCategoryName(FCategory)='All' then
+      SC:=SC+', TCAT_NAME as Cat';
+
+    Q1:=CreateDataset(Format(SGetRunData,[SC,FRunID]));
     if Length(FCompareRunID) > 0 then
-      Q2:=CreateDataset(Format(SGetRunData,[FCompareRunID]))
+      Q2:=CreateDataset(Format(SGetRunData,[SC,FCompareRunID]))
     else
       Q2:=nil;
     Try
@@ -996,7 +1042,31 @@ begin
               if Q2 <> nil then
                 Write(Q2.FieldByName('TU_MACHINE').AsString);
             CellEnd;
-          RowNext;
+          if GetCategoryName(FCategory)<>'All' then
+            begin
+              RowNext;
+                CellStart;
+                Write('Category:');
+                CellNext;
+                Write(GetCategoryName(Q1.FieldByName('TU_CATEGORY_FK').AsString));
+                CellNext;
+                if Q2 <> nil then
+                  Write(GetCategoryName(Q2.FieldByName('TU_CATEGORY_FK').AsString));
+                CellEnd;
+            end;
+          If GetCategoryName(FCategory)<>'DB' then
+            begin
+              RowNext;
+                CellStart;
+                Write('SVN Revisions:');
+                CellNext;
+                Write(Q1.FieldByName('svnrev').AsString);
+                CellNext;
+                if Q2 <> nil then
+                  Write(Q2.FieldByName('svnrev').AsString);
+                CellEnd;
+            end;
+           RowNext;
             CellStart;
               Write('Submitter:');
             CellNext;
@@ -1175,7 +1245,7 @@ Var
   Q : TSQLQuery;
   i : longint;
   FieldName,FieldValue,
-  Log,Source : String;
+  LLog,Source : String;
   Res : Boolean;
   ver : known_versions;
 begin
@@ -1328,22 +1398,22 @@ begin
               begin
                 Category:=getsingleton('select TU_CATEGORY_FK from TESTRUN where TU_ID='+FRunId);
                 FVersionBranch:=GetVersionName(getsingleton('select TU_VERSION_FK from TESTRUN where TU_ID='+fRunId));
-                log:=''; 
+                LLog:=''; 
                 Try
-                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+frunid+')');
-                if Log<>'' then
+                if LLog<>'' then
                   begin
                     HeaderStart(2);
                     Write('Log of '+FRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
-                    system.Write(Log);
+                    system.Write(LLog);
                     system.flush(output);
                     PreformatEnd;
                   end;
                 Finally
-                  if Log='' then
+                  if LLog='' then
                     begin
                       HeaderStart(2);
                       Write('No log of '+FRunId+'.');
@@ -1353,22 +1423,22 @@ begin
               end;  
             if FCompareRunId<>'' then
               begin
-                log:=''; 
+                LLog:=''; 
                 Try
-                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+fcomparerunid+')');
-                if Log<>'' then
+                if LLog<>'' then
                   begin
                     HeaderStart(2);
                     Write('Log of '+FCompareRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
-                    system.Write(Log);
+                    system.Write(LLog);
                     system.flush(output);
                     PreformatEnd;
                   end;
                 Finally
-                  if Log='' then
+                  if LLog='' then
                     begin
                       HeaderStart(2);
                       Write('No log of '+FCompareRunId+'.');
@@ -1478,7 +1548,7 @@ Var
   cpu_first_date_id, cpu_last_date_id,
   version_first_date_id, version_last_date_id : PStatusLA;
   FieldName,FieldValue,
-  Log,Source : String;
+  LLog,Source : String;
   Res : Boolean;
   ver : known_versions;
 begin
@@ -2015,22 +2085,22 @@ begin
               begin
                 Category:=getsingleton('select TU_CATEGORY_FK from TESTRUN where TU_ID='+FRunId);
                 FVersionBranch:=GetVersionName(getsingleton('select TU_VERSION_FK from TESTRUN where TU_ID='+fRunId));
-                log:=''; 
+                LLog:=''; 
                 Try
-                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+frunid+')');
-                if Log<>'' then
+                if LLog<>'' then
                   begin
                     HeaderStart(2);
-                    Write('Log of '+FRunId+':');
+                    Write('LLog of '+FRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
-                    system.Write(Log);
+                    system.Write(LLog);
                     system.flush(output);
                     PreformatEnd;
                   end;
                 Finally
-                  if Log='' then
+                  if LLog='' then
                     begin
                       HeaderStart(2);
                       Write('No log of '+FRunId+'.');
@@ -2040,22 +2110,22 @@ begin
               end;  
             if FCompareRunId<>'' then
               begin
-                log:=''; 
+                LLog:=''; 
                 Try
-                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+fcomparerunid+')');
-                if Log<>'' then
+                if LLog<>'' then
                   begin
                     HeaderStart(2);
                     Write('Log of '+FCompareRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
-                    system.Write(Log);
+                    system.Write(LLog);
                     system.flush(output);
                     PreformatEnd;
                   end;
                 Finally
-                  if Log='' then
+                  if LLog='' then
                     begin
                       HeaderStart(2);
                       Write('No log of '+FCompareRunId+'.');
@@ -2064,7 +2134,7 @@ begin
                 end;  
               end;  
             if FDebug then
-              Write('After Log.');
+              Write('After log.');
             Source:='';
             Try  
             Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
