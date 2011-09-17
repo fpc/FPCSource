@@ -1643,7 +1643,7 @@ asm
 .Lj3620:
         movl    (%esp),%eax
         movl    (%eax),%eax
-        subl    $8,%eax
+        subl    $12,%eax
         call    FPC_FREEMEM_X
         movl    (%esp),%eax
         movl    $0,(%eax)
