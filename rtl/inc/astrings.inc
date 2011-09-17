@@ -1180,3 +1180,8 @@ procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert
         PAnsiRec(pointer(s)-AnsiFirstOff)^.CodePage:=CodePage;
       end;
   end;
+
+procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
+  begin
+    DefaultSystemCodePage:=CodePage;
+  end;

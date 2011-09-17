@@ -881,9 +881,10 @@ Function  StringOfChar(c : char;l : SizeInt) : AnsiString;
 function  upcase(const s : ansistring) : ansistring;
 function  lowercase(const s : ansistring) : ansistring;
 
-function StringCodePage(const S : RawByteString): Word; overload;
+function StringCodePage(const S : RawByteString): TSystemCodePage; overload;
 function StringElementSize(const S : RawByteString): Word; overload;
 function StringRefCount(const S : RawByteString): SizeInt; overload;
+procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
