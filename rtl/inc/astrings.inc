@@ -336,6 +336,22 @@ end;
 {$endif EXTRAANSISHORT}
 
 
+Function fpc_AnsiStr_To_AnsiStr (const S : AnsiString;cp : TSystemCodePage): AnsiString; compilerproc;
+{
+  Converts an AnsiString to an AnsiString taking code pages into care
+}
+Var
+  Size : SizeInt;
+  temp : UnicodeString;
+begin
+  temp:=S;
+  result:='';
+  Size:=Length(temp);
+  if Size>0 then
+    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(temp)),result,cp,Size);
+end;
+
+
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
 
 { the following declaration has exactly the same effect as                   }
