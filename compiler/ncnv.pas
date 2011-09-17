@@ -1036,23 +1036,28 @@ implementation
            end
          else
            { shortstrings are handled 'inline' (except for widechars) }
-           if (tstringdef(resultdef).stringtype <> st_shortstring) or
-              (torddef(left.resultdef).ordtype = uwidechar) then
+           if (tstringdef(resultdef).stringtype<>st_shortstring) or
+              (torddef(left.resultdef).ordtype=uwidechar) then
              begin
-               if (tstringdef(resultdef).stringtype <> st_shortstring) then
+               if (tstringdef(resultdef).stringtype<>st_shortstring) then
                  begin
+                   { parameter }
+                   para:=ccallparanode.create(left,nil);
+
                    { create the procname }
                    if torddef(left.resultdef).ordtype<>uwidechar then
-                     procname := 'fpc_char_to_'
+                     procname:='fpc_char_to_'
                    else
-                     procname := 'fpc_uchar_to_';
+                     begin
+                       { encoding required? }
+                       if tstringdef(resultdef).stringtype=st_ansistring then
+                         para:=ccallparanode.create(cordconstnode.create(tstringdef(resultdef).encoding,u16inttype,true),para);
+                       procname:='fpc_uchar_to_';
+                     end;
                    procname:=procname+tstringdef(resultdef).stringtypname;
 
-                   { and the parameter }
-                   para := ccallparanode.create(left,nil);
-
                    { and finally the call }
-                   result := ccallnode.createinternres(procname,para,resultdef);
+                   result:=ccallnode.createinternres(procname,para,resultdef);
                  end
                else
                  begin
@@ -2871,8 +2876,15 @@ implementation
             addstatement(newstat,ctemprefnode.create(restemp));
             result:=newblock;
           end
+        { encoding parameter required? }
+        else if (tstringdef(resultdef).stringtype=st_ansistring) and
+            (tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring]) then
+            result:=ccallnode.createinternres(procname,
+              ccallparanode.create(cordconstnode.create(tstringdef(resultdef).encoding,u16inttype,true),
+              ccallparanode.create(left,nil)),resultdef)
         else
-          result := ccallnode.createinternres(procname,ccallparanode.create(left,nil),resultdef);
+          result:=ccallnode.createinternres(procname,ccallparanode.create(left,nil),resultdef);
+
         left:=nil;
       end;
 

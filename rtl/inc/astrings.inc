@@ -566,7 +566,7 @@ begin
 end;
 {$endif VER2_4}
 
-Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt);[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  compilerproc;
+Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt);[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  compilerproc;
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
@@ -1104,7 +1104,7 @@ end;
 
 function StringCodePage(const S: RawByteString): TSystemCodePage; overload;
   begin
-    if assigned(S) then
+    if assigned(Pointer(S)) then
       Result:=PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage
     else
       Result:=SizeOf(AnsiChar);
@@ -1113,7 +1113,7 @@ function StringCodePage(const S: RawByteString): TSystemCodePage; overload;
 
 function StringElementSize(const S: RawByteString): Word; overload;
   begin
-    if assigned(S) then
+    if assigned(Pointer(S)) then
       Result:=PAnsiRec(pointer(S)-AnsiFirstOff)^.ElementSize
     else
       Result:=SizeOf(AnsiChar);
@@ -1122,7 +1122,7 @@ function StringElementSize(const S: RawByteString): Word; overload;
 
 function StringRefCount(const S: RawByteString): SizeInt; overload;
   begin
-    if assigned(S) then
+    if assigned(Pointer(S)) then
       Result:=PAnsiRec(pointer(S)-AnsiFirstOff)^.Ref
     else
       Result:=SizeOf(AnsiChar);

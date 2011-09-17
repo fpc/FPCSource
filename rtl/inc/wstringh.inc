@@ -31,8 +31,8 @@ Procedure Delete (Var S : WideString; Index,Size: SizeInt);
 Procedure SetString (Out S : WideString; Buf : PWideChar; Len : SizeInt);
 Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
 
-procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
-procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;cp : TSystemCodePage;len:SizeInt);
+procedure DefaultAnsi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
 
 type
   TWideStringManager = TUnicodeStringManager;

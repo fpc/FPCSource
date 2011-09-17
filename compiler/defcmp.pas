@@ -357,7 +357,10 @@ implementation
                           (tstringdef(def_from).len=tstringdef(def_to).len)) and
                          { for ansi- and unicodestrings also the encoding must match }
                          (not(tstringdef(def_from).stringtype in [st_ansistring,st_unicodestring]) or
-                          (tstringdef(def_from).encoding=tstringdef(def_to).encoding))then
+                          (tstringdef(def_from).encoding=tstringdef(def_to).encoding) or
+                          { RawByteString is compatible with everything }
+                          (tstringdef(def_from).encoding=65535) or
+                          (tstringdef(def_to).encoding=65535)) then
                         eq:=te_equal
                      else
                        begin

@@ -302,13 +302,19 @@ threadvar
    end;
 
 
-  function OleStrToString(source: PWideChar) : ansistring;inline;
+  function OleStrToString(source: PWideChar) : UnicodeString;inline;
     begin
       OleStrToStrVar(source,result);
     end;
 
 
-  procedure OleStrToStrVar(source : PWideChar;var dest : ansistring);inline;
+  procedure OleStrToStrVar(source : PWideChar;var dest : UnicodeString);inline;
+    begin
+      WideCharLenToStrVar(source,length(WideString(pointer(source))),dest);
+    end;
+
+
+  procedure OleStrToStrVar(source : PWideChar;var dest : AnsiString);inline;
     begin
       WideCharLenToStrVar(source,length(WideString(pointer(source))),dest);
     end;
@@ -317,5 +323,20 @@ threadvar
   function StringToOleStr(const source : ansistring) : PWideChar;inline;
     begin
       result:=nil;
-      widestringmanager.Ansi2WideMoveProc(pchar(pointer(source)),widestring(pointer(result)),length(source));
+      widestringmanager.Ansi2WideMoveProc(pchar(pointer(source)),StringCodePage(source),widestring(pointer(result)),length(source));
+    end;
+
+
+  Function NewWideString(Len : SizeInt) : Pointer;forward;
+
+
+  function StringToOleStr(const source : UnicodeString) : PWideChar;inline;
+    begin
+      if source<>'' then
+        begin
+          result:=NewWideString(Length(source));
+          move(source[1],result^,Length(source));
+        end
+      else
+        result:=nil;
     end;

@@ -69,7 +69,7 @@ begin
 end;
 
 
-procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+procedure DefaultAnsi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
 var
   i : SizeInt;
 begin
@@ -254,7 +254,7 @@ begin
   Size:=Length(S2);
   if Size>0 then
     begin
-      widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),result,Size);
+      widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),DefaultSystemCodePage,result,Size);
       { Terminating Zero }
       PWideChar(Pointer(fpc_ShortStr_To_WideStr)+Size*sizeof(WideChar))^:=#0;
     end;
@@ -285,7 +285,7 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Ansi2WideMoveProc(PChar(S2),result,Size);
+    widestringmanager.Ansi2WideMoveProc(PChar(S2),StringCodePage(S2),result,Size);
 end;
 
 
@@ -527,7 +527,7 @@ begin
     exit;
   end;
   l:=IndexChar(p^,-1,#0);
-  widestringmanager.Ansi2WideMoveProc(P,fpc_PChar_To_WideStr,l);
+  widestringmanager.Ansi2WideMoveProc(P,DefaultSystemCodePage,fpc_PChar_To_WideStr,l);
 end;
 
 
@@ -549,7 +549,7 @@ begin
   else
     i := high(arr)+1;
   SetLength(fpc_CharArray_To_WideStr,i);
-  widestringmanager.Ansi2WideMoveProc (pchar(@arr),fpc_CharArray_To_WideStr,i);
+  widestringmanager.Ansi2WideMoveProc(pchar(@arr),DefaultSystemCodePage,fpc_CharArray_To_WideStr,i);
 end;
 
 
@@ -1013,7 +1013,13 @@ Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
 begin
   SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
-    widestringmanager.Ansi2WideMoveProc(Buf,S,Len);
+    begin
+      BufLen := IndexByte(Buf^, Len+1, 0);
+      If (BufLen>0) and (BufLen < Len) then
+        Len := BufLen;
+      widestringmanager.Ansi2WideMoveProc(Buf,DefaultSystemCodePage,S,Len);
+      //PWideChar(Pointer(S)+Len*sizeof(WideChar))^:=#0;
+    end;
 end;
 
 
@@ -1697,8 +1703,8 @@ procedure initwidestringmanager;
   begin
     fillchar(widestringmanager,sizeof(widestringmanager),0);
 {$ifndef HAS_WIDESTRINGMANAGER}
-    widestringmanager.Wide2AnsiMoveProc:=@defaultWide2AnsiMove;
-    widestringmanager.Ansi2WideMoveProc:=@defaultAnsi2WideMove;
+    widestringmanager.Wide2AnsiMoveProc:=@DefaultWide2AnsiMove;
+    widestringmanager.Ansi2WideMoveProc:=@DefaultAnsi2WideMove;
     widestringmanager.UpperWideStringProc:=@GenericWideCase;
     widestringmanager.LowerWideStringProc:=@GenericWideCase;
 {$endif HAS_WIDESTRINGMANAGER}
