@@ -1431,6 +1431,21 @@ implementation
             addstatement(newstat,ctemprefnode.create(restemp));
             result:=newblock;
           end
+        else if tstringdef(resultdef).stringtype=st_ansistring then
+          begin
+            result:=ccallnode.createinternres(
+                        'fpc_pwidechar_to_'+tstringdef(resultdef).stringtypname,
+                         ccallparanode.create(
+                           cordconstnode.create(
+                             tstringdef(resultdef).encoding,
+                             u16inttype,
+                             true
+                           ),
+                           ccallparanode.create(left,nil)
+                         ),
+                         resultdef
+                      );
+          end
         else
           result := ccallnode.createinternres(
             'fpc_pwidechar_to_'+tstringdef(resultdef).stringtypname,
