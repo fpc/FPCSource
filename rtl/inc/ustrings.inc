@@ -2573,7 +2573,7 @@ function StringCodePage(const S: UnicodeString): TSystemCodePage; overload;
     if assigned(Pointer(S)) then
       Result:=PUnicodeRec(pointer(S)-UnicodeFirstOff)^.CodePage
     else
-      Result:=SizeOf(UnicodeChar);
+      Result:=DefaultUnicodeCodePage;
   end;
 
 
