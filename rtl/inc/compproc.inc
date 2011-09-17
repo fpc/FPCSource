@@ -264,15 +264,15 @@ Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString)
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_AnsiStr_To_ShortStr (high_of_res: SizeInt;const S2 : Ansistring): shortstring; compilerproc;
 {$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_AnsiStr_To_ShortStr (out res : shortstring;const S2 : Ansistring); compilerproc;
+procedure fpc_AnsiStr_To_ShortStr (out res : shortstring;const S2 : RawByteString); compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
 {$ifdef FPC_HAS_CPSTRING}
 Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; compilerproc;
 {$endif FPC_HAS_CPSTRING}
 Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
-Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
+Function fpc_Char_To_AnsiStr(const c : Char{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
 
-Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
+Function fpc_PChar_To_AnsiStr(const p : pchar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
 Function fpc_CharArray_To_AnsiStr(const arr: array of char; zerobased: boolean = true): ansistring; compilerproc;
 {$ifndef FPC_STRTOCHARARRAYPROC}
 function fpc_ansistr_to_chararray(arraysize: SizeInt; const src: ansistring): fpc_big_chararray; compilerproc;

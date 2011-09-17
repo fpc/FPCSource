@@ -467,7 +467,7 @@ end;
 
 {$else FPC_STRTOSHORTSTRINGPROC}
 
-procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : Ansistring);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
+procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : RawByteString);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
 {
   Converts a AnsiString to a ShortString;
 }
@@ -514,21 +514,35 @@ begin
     end
 end;
 
-Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
+Function fpc_Char_To_AnsiStr(const c : Char{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
 {
   Converts a Char to a AnsiString;
 }
+{$ifndef FPC_HAS_CPSTRING}
+var
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
+{$ifdef FPC_HAS_CPSTRING}
+  if (cp=0) then
+    cp:=DefaultSystemCodePage;
+{$else FPC_HAS_CPSTRING}
+  cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
   Setlength (fpc_Char_To_AnsiStr,1);
   PByte(Pointer(fpc_Char_To_AnsiStr))^:=byte(c);
   { Terminating Zero }
   PByte(Pointer(fpc_Char_To_AnsiStr)+1)^:=0;
+  SetCodePage(fpc_Char_To_AnsiStr,cp,False);
 end;
 
 
-Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
+Function fpc_PChar_To_AnsiStr(const p : pchar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
 Var
   L : SizeInt;
+{$ifndef FPC_HAS_CPSTRING}
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
   if (not assigned(p)) or (p[0]=#0) Then
     L := 0
@@ -536,7 +550,16 @@ begin
     l:=IndexChar(p^,-1,#0);
   SetLength(fpc_PChar_To_AnsiStr,L);
   if L > 0 then
-    Move (P[0],Pointer(fpc_PChar_To_AnsiStr)^,L)
+    begin
+{$ifdef FPC_HAS_CPSTRING}
+      if (cp=0) then
+        cp:=DefaultSystemCodePage;
+{$else FPC_HAS_CPSTRING}
+      cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
+      Move (P[0],Pointer(fpc_PChar_To_AnsiStr)^,L);
+      SetCodePage(fpc_PChar_To_AnsiStr,cp,False);
+    end;
 end;
 
 

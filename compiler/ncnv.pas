@@ -1086,17 +1086,15 @@ implementation
                  begin
                    { parameter }
                    para:=ccallparanode.create(left,nil);
+                   { encoding required? }
+                   if tstringdef(resultdef).stringtype=st_ansistring then
+                     para:=ccallparanode.create(cordconstnode.create(tstringdef(resultdef).encoding,u16inttype,true),para);
 
                    { create the procname }
                    if torddef(left.resultdef).ordtype<>uwidechar then
                      procname:='fpc_char_to_'
                    else
-                     begin
-                       { encoding required? }
-                       if tstringdef(resultdef).stringtype=st_ansistring then
-                         para:=ccallparanode.create(cordconstnode.create(tstringdef(resultdef).encoding,u16inttype,true),para);
-                       procname:='fpc_uchar_to_';
-                     end;
+                     procname:='fpc_uchar_to_';
                    procname:=procname+tstringdef(resultdef).stringtypname;
 
                    { and finally the call }
@@ -1453,6 +1451,15 @@ implementation
             addstatement(newstat,ctemprefnode.create(restemp));
             result:=newblock;
           end
+        else if tstringdef(resultdef).stringtype=st_ansistring then
+          result := ccallnode.createinternres(
+                      'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
+                      ccallparanode.create(
+                        cordconstnode.create(tstringdef(resultdef).encoding,u16inttype,true),
+                        ccallparanode.create(left,nil)
+                      ),
+                      resultdef
+                    )
         else
           result := ccallnode.createinternres(
             'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
