@@ -375,7 +375,7 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 #
 # Parser
 #
-# 03310 is the last used one
+# 03314 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1400,6 +1400,9 @@ parser_e_mapping_no_implements=03312_E_Interface "$1" can't be delegated by "$2"
 % has to implement the interface directly. Delegation is not possible.
 parser_e_implements_no_mapping=03313_E_Interface "$1" can't have method resolutions, "$2" already delegates it
 % Method resoulution is only possible for interfaces that are implemented directly, not by delegation.
+parser_e_invalid_codepage=03314_E_Invalid codepage
+% When declaring a string with a given codepage, the range of valid codepages values is limited
+% to 0 to 65535.
 % \end{description}
 # Type Checking
 #

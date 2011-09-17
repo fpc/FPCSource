@@ -1457,6 +1457,7 @@ implementation
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_ansistring;
          len:=ppufile.getaint;
+         encoding:=ppufile.getword;
          savesize:=sizeof(pint);
       end;
 
@@ -1483,6 +1484,7 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_unicodestring;
+         encoding:=CP_UTF16;
          len:=-1;
          savesize:=sizeof(pint);
       end;
@@ -1493,6 +1495,7 @@ implementation
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_unicodestring;
          len:=ppufile.getaint;
+         encoding:=ppufile.getword;
          savesize:=sizeof(pint);
       end;
 
@@ -1502,6 +1505,7 @@ implementation
         result:=tstringdef.create(typ);
         result.typ:=stringdef;
         tstringdef(result).stringtype:=stringtype;
+        tstringdef(result).encoding:=encoding;
         tstringdef(result).len:=len;
         tstringdef(result).savesize:=savesize;
       end;
@@ -1529,6 +1533,8 @@ implementation
            end
          else
            ppufile.putaint(len);
+         if stringtype in [st_ansistring,st_unicodestring] then
+           ppufile.putword(encoding);
          case stringtype of
             st_shortstring : ppufile.writeentry(ibshortstringdef);
             st_longstring : ppufile.writeentry(iblongstringdef);

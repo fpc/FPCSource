@@ -36,21 +36,25 @@
 Type
   PAnsiRec = ^TAnsiRec;
   TAnsiRec = Packed Record
-    Ref,
-    Len   : SizeInt;
-    First : Char;
+    CodePage    : TSystemCodePage;
+    ElementSize : Word;
+{$ifdef CPU64}	
+    { align fields  }
+	Dummy       : DWord;
+{$endif CPU64}
+    Ref         : SizeInt;
+    Len         : SizeInt;
+    First       : Char;
   end;
 
 Const
   AnsiRecLen = SizeOf(TAnsiRec);
-  FirstOff   = SizeOf(TAnsiRec)-1;
+  AnsiFirstOff = SizeOf(TAnsiRec)-1;
 
 
 {****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}
-
-
 
 Function NewAnsiString(Len : SizeInt) : Pointer;
 {
@@ -66,8 +70,10 @@ begin
    begin
      PAnsiRec(P)^.Ref:=1;         { Set reference count }
      PAnsiRec(P)^.Len:=0;         { Initial length }
+     PAnsiRec(P)^.CodePage:=DefaultSystemCodePage;
+     PAnsiRec(P)^.ElementSize:=SizeOf(AnsiChar);
      PAnsiRec(P)^.First:=#0;      { Terminating #0 }
-     inc(p,firstoff);             { Points to string now }
+     inc(p,AnsiFirstOff);             { Points to string now }
    end;
   NewAnsiString:=P;
 end;
@@ -80,7 +86,7 @@ Procedure DisposeAnsiString(Var S : Pointer); {$IFNDEF VER2_0} Inline; {$ENDIF}
 begin
   If S=Nil then
     exit;
-  Dec (S,FirstOff);
+  Dec (S,AnsiFirstOff);
   FreeMem (S);
   S:=Nil;
 end;
@@ -99,7 +105,7 @@ Begin
   { Zero string }
   If S=Nil then exit;
   { check for constant strings ...}
-  l:=@PAnsiRec(S-FirstOff)^.Ref;
+  l:=@PAnsiRec(S-AnsiFirstOff)^.Ref;
   If l^<0 then exit;
   { declocked does a MT safe dec and returns true, if the counter is 0 }
   If declocked(l^) then
@@ -117,8 +123,8 @@ Begin
   If S=Nil then
     exit;
   { Let's be paranoid : Constant string ??}
-  If PAnsiRec(S-FirstOff)^.Ref<0 then exit;
-  inclocked(PAnsiRec(S-FirstOff)^.Ref);
+  If PAnsiRec(S-AnsiFirstOff)^.Ref<0 then exit;
+  inclocked(PAnsiRec(S-AnsiFirstOff)^.Ref);
 end;
 
 
@@ -133,8 +139,8 @@ begin
   if DestS=S2 then
     exit;
   If S2<>nil then
-    If PAnsiRec(S2-FirstOff)^.Ref>0 then
-      inclocked(PAnsiRec(S2-FirstOff)^.ref);
+    If PAnsiRec(S2-AnsiFirstOff)^.Ref>0 then
+      inclocked(PAnsiRec(S2-AnsiFirstOff)^.Ref);
   { Decrease the reference count on the old S1 }
   fpc_ansistr_decr_ref (DestS);
   { And finally, have DestS pointing to S2 (or its copy) }
@@ -576,17 +582,17 @@ begin
        begin
          GetMem(Pointer(S),AnsiRecLen+L);
          PAnsiRec(S)^.Ref:=1;
-         inc(Pointer(S),firstoff);
+         inc(Pointer(S),AnsiFirstOff);
        end
-      else if PAnsiRec(Pointer(S)-FirstOff)^.Ref=1 then
+      else if PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref=1 then
         begin
-          Dec(Pointer(S),FirstOff);
+          Dec(Pointer(S),AnsiFirstOff);
           lens:=MemSize(Pointer(s));
           lena:=AnsiRecLen+L;
           { allow shrinking string if that saves at least half of current size }
           if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
             reallocmem(pointer(S),AnsiRecLen+L);
-          Inc(Pointer(S),FirstOff);
+          Inc(Pointer(S),AnsiFirstOff);
         end
       else
         begin
@@ -601,14 +607,14 @@ begin
             movelen := lens;
           Move(Pointer(S)^,Temp^,movelen);
           { ref count dropped to zero in the mean time? }
-          If (PAnsiRec(Pointer(S)-FirstOff)^.Ref > 0) and
-             declocked(PAnsiRec(Pointer(S)-FirstOff)^.Ref) then
-            freemem(PAnsiRec(Pointer(s)-FirstOff));
+          If (PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref > 0) and
+             declocked(PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref) then
+            freemem(PAnsiRec(Pointer(s)-AnsiFirstOff));
           Pointer(S):=Temp;
        end;
       { Force nil termination in case it gets shorter }
       PByte(Pointer(S)+l)^:=0;
-      PAnsiRec(Pointer(S)-FirstOff)^.Len:=l;
+      PAnsiRec(Pointer(S)-AnsiFirstOff)^.Len:=l;
     end
   else
     begin
@@ -655,10 +661,10 @@ Var
   SNew : Pointer;
   L    : SizeInt;
 begin
-  L:=PAnsiRec(Pointer(S)-FirstOff)^.len;
+  L:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.len;
   SNew:=NewAnsiString (L);
   Move (Pointer(S)^,SNew^,L+1);
-  PAnsiRec(SNew-FirstOff)^.len:=L;
+  PAnsiRec(SNew-AnsiFirstOff)^.len:=L;
   fpc_ansistr_decr_ref (Pointer(S));  { Thread safe }
   pointer(S):=SNew;
   pointer(result):=SNew;
@@ -677,7 +683,7 @@ begin
   pointer(result) := pointer(s);
   If Pointer(S)=Nil then
     exit;
-  if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
+  if PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref<>1 then
     result:=fpc_truely_ansistr_unique(s);
 end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
@@ -745,7 +751,7 @@ begin
      if ResultAddress<>Nil then
       begin
         Move (Pointer(Pointer(S)+index)^,ResultAddress^,Size);
-        PAnsiRec(ResultAddress-FirstOff)^.Len:=Size;
+        PAnsiRec(ResultAddress-AnsiFirstOff)^.Len:=Size;
         PByte(ResultAddress+Size)^:=0;
       end;
    end;
@@ -1094,3 +1100,31 @@ begin
   for i := 1 to length (s) do
     result[i] := lowercase(s[i]);
 end;
+
+
+function StringCodePage(const S: RawByteString): TSystemCodePage; overload;
+  begin
+    if assigned(S) then
+      Result:=PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage
+    else
+      Result:=SizeOf(AnsiChar);
+  end;
+
+
+function StringElementSize(const S: RawByteString): Word; overload;
+  begin
+    if assigned(S) then
+      Result:=PAnsiRec(pointer(S)-AnsiFirstOff)^.ElementSize
+    else
+      Result:=SizeOf(AnsiChar);
+  end;
+
+
+function StringRefCount(const S: RawByteString): SizeInt; overload;
+  begin
+    if assigned(S) then
+      Result:=PAnsiRec(pointer(S)-AnsiFirstOff)^.Ref
+    else
+      Result:=SizeOf(AnsiChar);
+  end;
+

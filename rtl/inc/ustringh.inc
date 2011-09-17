@@ -125,4 +125,6 @@ Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
 Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager);
 Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
 
-
+function StringElementSize(const S : UnicodeString): Word; overload;
+function StringRefCount(const S : UnicodeString): SizeInt; overload;
+function StringCodePage(const S : UnicodeString): Word; overload;

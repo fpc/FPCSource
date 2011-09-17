@@ -37,9 +37,15 @@
 Type
   PUnicodeRec = ^TUnicodeRec;
   TUnicodeRec = Packed Record
-    Ref : SizeInt;
-    Len : SizeInt;
-    First : UnicodeChar;
+    CodePage    : TSystemCodePage;
+	ElementSize : Word;
+{$ifdef CPU64}	
+    { align fields  }
+	Dummy       : DWord;
+{$endif CPU64}
+    Ref         : SizeInt;
+    Len         : SizeInt;
+    First       : UnicodeChar;
   end;
 
 Const
@@ -139,10 +145,11 @@ Procedure SetWideStringManager (Const New : TUnicodeStringManager);
 begin
   widestringmanager:=New;
 end;
-         {****************************************************************************
+
+
+{****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}
-
 
 procedure UnicodeStringError;
   begin
@@ -178,10 +185,12 @@ begin
   GetMem(P,Len*sizeof(UnicodeChar)+UnicodeRecLen);
   If P<>Nil then
     begin
-     PUnicodeRec(P)^.Len:=Len*2;     { Initial length }
-     PUnicodeRec(P)^.Ref:=1;         { Initial Refcount }
-     PUnicodeRec(P)^.First:=#0;      { Terminating #0 }
-     inc(p,UnicodeFirstOff);         { Points to string now }
+      PUnicodeRec(P)^.Len:=Len*2;     { Initial length }
+      PUnicodeRec(P)^.Ref:=1;         { Initial Refcount }
+      PUnicodeRec(P)^.CodePage:=DefaultUnicodeCodePage;
+      PUnicodeRec(P)^.ElementSize:=SizeOf(UnicodeChar);      
+      PUnicodeRec(P)^.First:=#0;      { Terminating #0 }
+      inc(p,UnicodeFirstOff);         { Points to string now }
     end
   else
     UnicodeStringError;
@@ -1338,20 +1347,17 @@ begin
    if (l>0) then
     begin
       if Pointer(S)=nil then
-       begin
-         { Need a complete new string...}
-         Pointer(s):=NewUnicodeString(l);
-       end
-      { windows doesn't support reallocing unicodestrings, this code
-        is anyways subject to be removed because unicodestrings shouldn't be
-        ref. counted anymore (FK) }
+        begin
+          { Need a complete new string...}
+          Pointer(s):=NewUnicodeString(l);
+        end
       else
         if (PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Ref = 1) then
-        begin
-          Dec(Pointer(S),UnicodeFirstOff);
-          if SizeUInt(L*sizeof(UnicodeChar)+UnicodeRecLen)>MemSize(Pointer(S)) then
+          begin
+            Dec(Pointer(S),UnicodeFirstOff);
+            if SizeUInt(L*sizeof(UnicodeChar)+UnicodeRecLen)>MemSize(Pointer(S)) then
               reallocmem(pointer(S), L*sizeof(UnicodeChar)+UnicodeRecLen);
-          Inc(Pointer(S), UnicodeFirstOff);
+            Inc(Pointer(S), UnicodeFirstOff);
         end
       else
         begin
@@ -1610,7 +1616,6 @@ begin
    end;
   pos:=0;
 end;
-
 
 
 Procedure Delete (Var S : UnicodeString; Index,Size: SizeInt);
@@ -2522,6 +2527,34 @@ procedure unimplementedunicodestring;
     HandleErrorFrame(233,get_frame);
   end;
 
+  
+function StringElementSize(const S: UnicodeString): Word; overload;
+  begin
+    if assigned(S) then
+      Result:=PUnicodeRec(pointer(S)-UnicodeFirstOff)^.ElementSize
+    else
+      Result:=SizeOf(UnicodeChar);
+  end;
+  
+  
+function StringRefCount(const S: UnicodeString): SizeInt; overload;
+  begin
+    if assigned(S) then
+      Result:=PUnicodeRec(pointer(S)-UnicodeFirstOff)^.Ref
+    else
+      Result:=SizeOf(UnicodeChar);
+  end;
+
+  
+function StringCodePage(const S: UnicodeString): TSystemCodePage; overload;
+  begin
+    if assigned(S) then
+      Result:=PUnicodeRec(pointer(S)-UnicodeFirstOff)^.CodePage
+    else
+      Result:=SizeOf(UnicodeChar);
+  end;
+
+  
 {$warnings off}
 function GenericUnicodeCase(const s : UnicodeString) : UnicodeString;
   begin

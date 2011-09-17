@@ -96,51 +96,76 @@ implementation
       begin
          def:=cshortstringtype;
          consume(_STRING);
-         if (token=_LECKKLAMMER) then
+         if token=_LECKKLAMMER then
            begin
-              if not(allowtypedef) then
-                Message(parser_e_no_local_para_def);
-              consume(_LECKKLAMMER);
-              p:=comp_expr(true,false);
-              if not is_constintnode(p) then
-                begin
-                  Message(parser_e_illegal_expression);
-                  { error recovery }
-                  consume(_RECKKLAMMER);
-                end
-              else
-                begin
-                 if (tordconstnode(p).value<=0) then
-                   begin
-                      Message(parser_e_invalid_string_size);
-                      tordconstnode(p).value:=255;
-                   end;
+             if not(allowtypedef) then
+               Message(parser_e_no_local_para_def);
+             consume(_LECKKLAMMER);
+             p:=comp_expr(true,false);
+             if not is_constintnode(p) then
+               begin
+                 Message(parser_e_illegal_expression);
+                 { error recovery }
                  consume(_RECKKLAMMER);
-                 if tordconstnode(p).value>255 then
+               end
+             else
+               begin
+                if (tordconstnode(p).value<=0) then
                   begin
-                    { longstring is currently unsupported (CEC)! }
-{                   t:=tstringdef.createlong(tordconstnode(p).value))}
                      Message(parser_e_invalid_string_size);
                      tordconstnode(p).value:=255;
-                     def:=tstringdef.createshort(int64(tordconstnode(p).value));
+                  end;
+                if tordconstnode(p).value>255 then
+                  begin
+                    { longstring is currently unsupported (CEC)! }
+{                    t:=tstringdef.createlong(tordconstnode(p).value))}
+                    Message(parser_e_invalid_string_size);
+                    tordconstnode(p).value:=255;
+                    def:=tstringdef.createshort(int64(tordconstnode(p).value));
                   end
-                 else
-                   if tordconstnode(p).value<>255 then
-                     def:=tstringdef.createshort(int64(tordconstnode(p).value));
-               end;
-              p.free;
+                else
+                  if tordconstnode(p).value<>255 then
+                    def:=tstringdef.createshort(int64(tordconstnode(p).value));
+                consume(_RECKKLAMMER);
+              end;
+             p.free;
            end
-        else if try_to_consume(_GT) then
-          begin
-            consume(_LT);
-          end
-          else
-            begin
-              if cs_ansistrings in current_settings.localswitches then
-                def:=cansistringtype
-              else
-                def:=cshortstringtype;
-            end;
+         else if token=_LSHARPBRACKET then
+           begin
+             if not(allowtypedef) then
+               Message(parser_e_no_local_para_def);
+             consume(_LSHARPBRACKET);
+             p:=comp_expr(true,false);
+             if not is_constintnode(p) then
+               begin
+                 Message(parser_e_illegal_expression);
+                 { error recovery }
+               end
+             else
+               begin
+                 if (tordconstnode(p).value<0) or (tordconstnode(p).value>65535) then
+                   begin
+                     Message(parser_e_invalid_codepage);
+                     tordconstnode(p).value:=0;
+                   end;
+                 if tordconstnode(p).value=CP_UTF16 then
+                   def:=tstringdef.createunicode
+                 else
+                   begin
+                     def:=tstringdef.createansi;
+                     tstringdef(def).encoding:=int64(tordconstnode(p).value);
+                   end;
+                 consume(_RSHARPBRACKET);
+               end;
+             p.free;
+           end
+         else
+           begin
+             if cs_ansistrings in current_settings.localswitches then
+               def:=cansistringtype
+             else
+               def:=cshortstringtype;
+           end;
        end;
 
 
