@@ -374,7 +374,7 @@ procedure fpc_UnicodeStr_To_ShortStr (out res: ShortString;const S2 : UnicodeStr
 {$endif FPC_STRTOSHORTSTRINGPROC}
 Function fpc_ShortStr_To_UnicodeStr (Const S2 : ShortString): UnicodeString; compilerproc;
 Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString;cp : TSystemCodePage): AnsiString; compilerproc;
-Function fpc_AnsiStr_To_UnicodeStr (Const S2 : AnsiString): UnicodeString; compilerproc;
+Function fpc_AnsiStr_To_UnicodeStr (Const S2 : RawByteString): UnicodeString; compilerproc;
 Function fpc_UnicodeStr_To_WideStr (const S2 : UnicodeString): WideString; compilerproc;
 Function fpc_WideStr_To_UnicodeStr (Const S2 : WideString): UnicodeString; compilerproc;
 Procedure fpc_UnicodeStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;

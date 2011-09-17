@@ -324,7 +324,7 @@ begin
 end;
 
 
-Function fpc_AnsiStr_To_UnicodeStr (Const S2 : AnsiString): UnicodeString; compilerproc;
+Function fpc_AnsiStr_To_UnicodeStr (Const S2 : RawByteString): UnicodeString; compilerproc;
 {
   Converts an AnsiString to a UnicodeString;
 }
