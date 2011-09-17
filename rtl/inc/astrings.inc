@@ -426,7 +426,7 @@ begin
         begin
           SetLength(result,Size);
           Move(S[1],result[1],Size);
-          PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=cp;
+          PAnsiRec(Pointer(result)-AnsiFirstOff)^.CodePage:=cp;
         end
       else
         begin
@@ -489,17 +489,29 @@ end;
 {$endif FPC_STRTOSHORTSTRINGPROC}
 
 
-Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
+Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
 {
   Converts a ShortString to a AnsiString;
 }
 Var
   Size : SizeInt;
+{$ifndef FPC_HAS_CPSTRING}
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
+{$ifdef FPC_HAS_CPSTRING}
+  if (cp=0) then
+    cp:=DefaultSystemCodePage;
+{$else FPC_HAS_CPSTRING}
+  cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
   Size:=Length(S2);
   Setlength (fpc_ShortStr_To_AnsiStr,Size);
   if Size>0 then
-    Move(S2[1],Pointer(fpc_ShortStr_To_AnsiStr)^,Size);
+    begin
+      Move(S2[1],Pointer(fpc_ShortStr_To_AnsiStr)^,Size);
+      SetCodePage(fpc_ShortStr_To_AnsiStr,cp,False);
+    end
 end;
 
 Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;

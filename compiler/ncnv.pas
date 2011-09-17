@@ -2979,7 +2979,7 @@ implementation
           end
         { encoding parameter required? }
         else if (tstringdef(resultdef).stringtype=st_ansistring) and
-            ((tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring]) or
+            ((tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring,st_shortstring]) or
              { ansistring to ansistring and no RawByteString envolved? }
              (//(tstringdef(resultdef).encoding<>65535) and
               (tstringdef(left.resultdef).stringtype=st_ansistring) 

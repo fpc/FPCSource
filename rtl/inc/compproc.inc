@@ -269,7 +269,7 @@ procedure fpc_AnsiStr_To_ShortStr (out res : shortstring;const S2 : Ansistring);
 {$ifdef FPC_HAS_CPSTRING}
 Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; compilerproc;
 {$endif FPC_HAS_CPSTRING}
-Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
+Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
 Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
 
 Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
