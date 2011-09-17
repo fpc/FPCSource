@@ -908,7 +908,13 @@ implementation
                    len:=tstringconstnode(n).len;
                     case char_size of
                       1:
-                        ca:=pointer(tstringconstnode(n).value_str);
+                        begin
+                          if (tstringconstnode(n).cst_type in [cst_unicodestring,cst_widestring]) then
+                            inserttypeconv(n,cansistringtype);
+                          if n.nodetype<>stringconstn then
+                            internalerror(2010033003);
+                          ca:=pointer(tstringconstnode(n).value_str);
+                        end;
                       2:
                         begin
                           inserttypeconv(n,cwidestringtype);
@@ -936,6 +942,24 @@ implementation
                             internalerror(2010033001);
                           widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
                         end;
+                      else
+                        internalerror(2010033002);
+                    end;
+                    ca:=@ch;
+                    len:=1;
+                  end
+               else if is_constwidecharnode(n) and (current_settings.sourcecodepage<>'utf8') then
+                  begin
+                    case char_size of
+                      1:
+                        begin
+                          inserttypeconv(n,cchartype);
+                          if not is_constcharnode(n) then
+                            internalerror(2010033001);
+                          ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
+                        end;
+                      2:
+                        widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
                       else
                         internalerror(2010033002);
                     end;

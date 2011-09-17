@@ -349,6 +349,22 @@ implementation
                              eq:=te_convert_l1;
                          end;
                       end
+                     else if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and
+                             (tstringdef(def_from).stringtype=st_ansistring) then 
+                      begin
+                        if (tstringdef(def_from).encoding=tstringdef(def_to).encoding) or
+                           (tstringdef(def_from).encoding=globals.CP_NONE) or
+                           (tstringdef(def_to).encoding=globals.CP_NONE) then
+                          eq:=te_equal
+                        else 
+                         begin        
+                           doconv := tc_string_2_string;
+                           if (tstringdef(def_to).encoding=globals.CP_UTF8) then 
+                             eq:=te_convert_l1
+                           else
+                             eq:=te_convert_l2;
+                         end 
+                      end          
                      else
                      { same string type ? }
                       if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and
@@ -357,10 +373,10 @@ implementation
                           (tstringdef(def_from).len=tstringdef(def_to).len)) and
                          { for ansi- and unicodestrings also the encoding must match }
                          (not(tstringdef(def_from).stringtype in [st_ansistring,st_unicodestring]) or
-                          (tstringdef(def_from).encoding=tstringdef(def_to).encoding) or
+                          (tstringdef(def_from).encoding=tstringdef(def_to).encoding) //or
                           { RawByteString is compatible with everything }
-                          (tstringdef(def_from).encoding=65535) or
-                          (tstringdef(def_to).encoding=65535)) then
+                          {(tstringdef(def_from).encoding=65535) or
+                          (tstringdef(def_to).encoding=65535)}) then
                         eq:=te_equal
                      else
                        begin

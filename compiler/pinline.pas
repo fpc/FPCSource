@@ -576,6 +576,16 @@ implementation
             { we don't need original the callparanodes tree }
             paras.free;
          end
+        else if is_ansistring(destppn.resultdef) then
+         begin
+            newblock:=ccallnode.createintern(
+              'fpc_'+tstringdef(destppn.resultdef).stringtypname+'_setlength',
+              ccallparanode.create(
+                cordconstnode.create(tstringdef(destppn.resultdef).encoding,u16inttype,true),
+                paras
+              )
+            );           
+         end
         else
          begin
             { we can reuse the supplied parameters }
