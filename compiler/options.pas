@@ -2493,6 +2493,7 @@ begin
 {$endif}
   def_system_macro('FPC_HAS_UNICODESTRING');
   def_system_macro('FPC_RTTI_PACKSET1');
+  def_system_macro('FPC_HAS_CPSTRING');
 {$ifdef x86_64}
   def_system_macro('FPC_HAS_RIP_RELATIVE');
 {$endif x86_64}

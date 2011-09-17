@@ -290,10 +290,18 @@ Type
   PUCS4CharArray      = ^TUCS4CharArray;
   UCS4String          = array of UCS4Char;
 
+{$ifdef FPC_HAS_CPSTRING}
   UTF8String          = String<65001>;
+{$else FPC_HAS_CPSTRING}
+  UTF8String          = type ansistring;
+{$endif FPC_HAS_CPSTRING}
   PUTF8String         = ^UTF8String;
 
+{$ifdef FPC_HAS_CPSTRING}
   RawByteString       = String<$ffff>;
+{$else FPC_HAS_CPSTRING}
+  RawByteString       = ansistring;
+{$endif FPC_HAS_CPSTRING}
 
   HRESULT             = type Longint;
 {$ifndef FPUNONE}

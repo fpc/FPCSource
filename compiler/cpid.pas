@@ -26,7 +26,7 @@ unit cpid;
   interface
 
     type
-      TEncdingEntry = record
+      TEncodingEntry = record
         id : TStringEncoding;
         name : Ansistring;
       end;

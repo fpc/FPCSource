@@ -51,7 +51,6 @@ Const
   AnsiRecLen = SizeOf(TAnsiRec);
   AnsiFirstOff = SizeOf(TAnsiRec)-1;
 
-
 {****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}
@@ -353,6 +352,7 @@ begin
 end;
 {$endif EXTRAANSISHORT}
 
+{$ifdef FPC_HAS_CPSTRING}
 Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; [Public, alias: 'FPC_ANSISTR_TO_ANSISTR']; compilerproc;
 {
   Converts an AnsiString to an AnsiString taking code pages into care
@@ -368,7 +368,8 @@ begin
     widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(temp)),result,cp,Size);
 end;
 
-Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; [external name 'FPC_ANSISTR_TO_ANSISTR'];
+Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; [external name 'FPC_ANSISTR_TO_ANSISTR'];
+{$endif FPC_HAS_CPSTRING}
 
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
 
@@ -1141,9 +1142,11 @@ end;
 
 function StringCodePage(const S: RawByteString): TSystemCodePage; overload;
   begin
+{$ifdef FPC_HAS_CPSTRING}
     if assigned(Pointer(S)) then
       Result:=PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage
     else
+{$endif FPC_HAS_CPSTRING}
       Result:=DefaultSystemCodePage;
   end;
 
@@ -1172,7 +1175,12 @@ procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert
       exit
     else if Convert then
       begin
+{$ifdef FPC_HAS_CPSTRING}
         s:=fpc_AnsiStr_To_AnsiStr(s,CodePage);
+{$else FPC_HAS_CPSTRING}
+        UniqueString(s);
+        PAnsiRec(pointer(s)-AnsiFirstOff)^.CodePage:=CodePage;
+{$endif FPC_HAS_CPSTRING}
       end
     else
       begin
