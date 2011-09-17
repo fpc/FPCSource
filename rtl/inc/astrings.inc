@@ -207,7 +207,7 @@ end;
 
 {$else STR_CONCAT_PROCS}
 
-procedure fpc_AnsiStr_Concat (var DestS:RawByteString;const S1,S2 : RawByteString); compilerproc;
+procedure fpc_AnsiStr_Concat (var DestS:RawByteString;const S1,S2 : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Var
   Size,Location : SizeInt;
   same : boolean;
@@ -216,13 +216,20 @@ Var
 begin
   { if codepages are differ then concat using unicodestring }
   S1CP:=StringCodePage(S1);
-  if S1CP=$ffff then
+  if (S1CP=$ffff) or (S1CP=0) then
     S1CP:=DefaultSystemCodePage;
   S2CP:=StringCodePage(S2);
-  if S2CP=$ffff then
+  if (S2CP=$ffff) or (S2CP=0) then
     S2CP:=DefaultSystemCodePage;
+{$ifdef FPC_HAS_CPSTRING}
+  if (Pointer(DestS)=nil) then
+    DestCP:=cp
+  else
+    DestCP:=StringCodePage(DestS);
+{$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
-  if DestCP=$ffff then
+{$endif FPC_HAS_CPSTRING}
+  if (DestCP=$ffff) or (DestCP=0) then
     DestCP:=DefaultSystemCodePage;
   if (S1CP<>DestCP) or (S2CP<>DestCP) then
     begin
@@ -264,6 +271,7 @@ begin
     begin
       DestS:='';
       SetLength(DestS,Size+Location);
+      SetCodePage(DestS,DestCP,false);
       Move(Pointer(S1)^,Pointer(DestS)^,Location);
       Move(Pointer(S2)^,(Pointer(DestS)+Location)^,Size+1);
     end;
@@ -281,6 +289,7 @@ Var
   U           : UnicodeString;
   sameCP      : Boolean;
   tmpStr      : RawByteString;
+  tmpCP       : TSystemCodePage;
 begin
   if high(sarr)=0 then
     begin
@@ -295,7 +304,7 @@ begin
 {$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
 {$endif FPC_HAS_CPSTRING}
-  if (DestCP=$ffff) then
+  if (DestCP=$ffff) or (DestCP=0) then
     DestCP:=DefaultSystemCodePage;
   sameCP:=true;
   lowstart:=low(sarr);
@@ -311,7 +320,8 @@ begin
     begin
       U:='';
       for i:=lowstart to high(sarr) do begin
-        if (StringCodePage(sarr[i]) = $ffff) then
+        tmpCP:=StringCodePage(sarr[i]);
+        if (tmpCP=$ffff) or (tmpCP=0) then
           begin
             tmpStr:=sarr[i];
             SetCodePage(tmpStr,DefaultSystemCodePage,False);
@@ -619,10 +629,10 @@ begin
   else
     begin
       r1:=S1;
-      if (cp1=$ffff) then
+      if (cp1=$ffff) or (cp1=0) then
         SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2=$ffff) then
+      if (cp2=$ffff) or (cp2=0) then
         SetCodePage(r2,DefaultSystemCodePage,false);
       //convert them to utf8 then compare
       SetCodePage(r1,65001);
@@ -662,10 +672,10 @@ begin
   else
     begin
       r1:=S1;
-      if (cp1=$ffff) then
+      if (cp1=$ffff) or (cp1=0) then
         SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2=$ffff) then
+      if (cp2=$ffff) or (cp2=0) then
         SetCodePage(r2,DefaultSystemCodePage,false);
       Result:=widestringmanager.CompareTextUnicodeStringProc(UnicodeString(r1),UnicodeString(r2));
     end;
@@ -710,6 +720,8 @@ begin
          GetMem(Pointer(S),AnsiRecLen+L);
          PAnsiRec(S)^.Ref:=1;
 {$ifdef FPC_HAS_CPSTRING}
+         if (cp=0) then
+           cp:=DefaultSystemCodePage;
          PAnsiRec(S)^.CodePage:=cp;
 {$else}
          PAnsiRec(S)^.CodePage:=DefaultSystemCodePage;
@@ -1156,7 +1168,7 @@ end;
 
 {$endif CPU64}
 
-Procedure Delete (Var S : AnsiString; Index,Size: SizeInt);
+Procedure Delete (Var S : RawByteString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
 begin
@@ -1175,9 +1187,9 @@ begin
 end;
 
 
-Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : SizeInt);
+Procedure Insert (Const Source : RawByteString; Var S : RawByteString; Index : SizeInt);
 var
-  Temp : AnsiString;
+  Temp : RawByteString;
   LS : SizeInt;
 begin
   If Length(Source)=0 then

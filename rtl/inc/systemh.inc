@@ -880,11 +880,11 @@ function  pos(const substr : shortstring;c:char): SizeInt;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure UniqueString(var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
+Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}external name 'FPC_ANSISTR_UNIQUE';
 Function  Pos (const Substr : RawByteString; const Source : RawByteString) : SizeInt;
 Function  Pos (c : Char; const s : RawByteString) : SizeInt;
-Procedure Insert (const Source : AnsiString; var S : AnsiString; Index : SizeInt);
-Procedure Delete (var S : AnsiString; Index,Size: SizeInt);
+Procedure Insert (const Source : RawByteString; var S : RawByteString; Index : SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
+Procedure Delete (var S : RawByteString; Index,Size: SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
 Function  StringOfChar(c : char;l : SizeInt) : AnsiString;
 function  upcase(const s : ansistring) : ansistring;
 function  lowercase(const s : ansistring) : ansistring;

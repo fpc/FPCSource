@@ -272,13 +272,13 @@ Var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifndef FPC_HAS_CPSTRING}
-  cp:=$ffff;
+  cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
   result:='';
   Size:=Length(S2);
   if Size>0 then
   begin
-    if cp=$ffff then
+    if (cp=$ffff) or (cp=0) then
       cp:=DefaultSystemCodePage;
     widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,cp,Size);
   end;
@@ -298,7 +298,7 @@ begin
   if Size>0 then
   begin
     cp:=StringCodePage(S2);
-    if cp=$ffff then
+    if (cp=$ffff) or (cp=0) then
       cp:=DefaultSystemCodePage;
     widestringmanager.Ansi2WideMoveProc(PChar(S2),cp,result,Size);
   end;

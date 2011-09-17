@@ -1983,6 +1983,7 @@ implementation
         newstatement : tstatementnode;
         tempnode (*,tempnode2*) : ttempcreatenode;
         cmpfuncname: string;
+        para: tcallparanode;
       begin
         { when we get here, we are sure that both the left and the right }
         { node are both strings of the same stringtype (JM)              }
@@ -2011,11 +2012,26 @@ implementation
                   (aktassignmentnode.left.resultdef=resultdef) and
                   valid_for_var(aktassignmentnode.left,false) then
                 begin
-                  result:=ccallnode.createintern('fpc_'+
-                    tstringdef(resultdef).stringtypname+'_concat',
-                    ccallparanode.create(right,
-                    ccallparanode.create(left,
-                    ccallparanode.create(aktassignmentnode.left.getcopy,nil))));
+                  para:=ccallparanode.create(
+                          right,
+                          ccallparanode.create(
+                            left,
+                            ccallparanode.create(aktassignmentnode.left.getcopy,nil)
+                          )
+                        );
+                  if is_ansistring(resultdef) then
+                    para:=ccallparanode.create(
+                            cordconstnode.create(
+                              tstringdef(resultdef).encoding,
+                              u16inttype,
+                              true
+                            ),
+                            para
+                          );
+                  result:=ccallnode.createintern(
+                            'fpc_'+tstringdef(resultdef).stringtypname+'_concat',
+                            para
+                          );
                   include(aktassignmentnode.flags,nf_assign_done_in_right);
                   firstpass(result);
                 end
@@ -2024,11 +2040,29 @@ implementation
                   result:=internalstatements(newstatement);
                   tempnode:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
                   addstatement(newstatement,tempnode);
-                  addstatement(newstatement,ccallnode.createintern('fpc_'+
-                    tstringdef(resultdef).stringtypname+'_concat',
-                    ccallparanode.create(right,
-                    ccallparanode.create(left,
-                    ccallparanode.create(ctemprefnode.create(tempnode),nil)))));
+                  para:=ccallparanode.create(
+                          right,
+                          ccallparanode.create(
+                            left,
+                            ccallparanode.create(ctemprefnode.create(tempnode),nil)
+                          )
+                        );
+                  if is_ansistring(resultdef) then
+                    para:=ccallparanode.create(
+                            cordconstnode.create(
+                              tstringdef(resultdef).encoding,
+                              u16inttype,
+                              true
+                            ),
+                            para
+                          );
+                  addstatement(
+                    newstatement,
+                    ccallnode.createintern(
+                      'fpc_'+tstringdef(resultdef).stringtypname+'_concat',
+                      para
+                    )
+                  );
                   addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
                   addstatement(newstatement,ctemprefnode.create(tempnode));
                 end;

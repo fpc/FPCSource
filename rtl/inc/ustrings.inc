@@ -320,13 +320,13 @@ Var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifndef FPC_HAS_CPSTRING}
-  cp:=$ffff;
+  cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
   result:='';
   Size:=Length(S2);
   if Size>0 then
   begin
-    if cp=$ffff then
+    if (cp=$ffff) or (cp=0) then
       cp:=DefaultSystemCodePage;
     widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),result,cp,Size);
   end;
@@ -346,7 +346,7 @@ begin
   if Size>0 then
   begin
     cp:=StringCodePage(S2);
-    if cp=$ffff then
+    if (cp=$ffff) or (cp=0) then
       cp:=DefaultSystemCodePage;
     widestringmanager.Ansi2UnicodeMoveProc(PChar(S2),cp,result,Size);
   end;
@@ -375,7 +375,7 @@ var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifndef FPC_HAS_CPSTRING}
-  cp:=$ffff;
+  cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
   result:='';
   if p=nil then
@@ -465,7 +465,7 @@ var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifndef FPC_HAS_CPSTRING}
-  cp:=$ffff;
+  cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
   result:='';
   if p=nil then
@@ -808,9 +808,9 @@ var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifndef FPC_HAS_CPSTRING}
-  cp:=$ffff;
+  cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}     
-  if cp=$ffff then
+  if (cp=$ffff) or (cp=0) then
     cp:=DefaultSystemCodePage;
   widestringmanager.Unicode2AnsiMoveProc(@c, fpc_UChar_To_AnsiStr, cp, 1);
 end;
@@ -939,7 +939,7 @@ var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifndef FPC_HAS_CPSTRING}
-  cp:=$ffff;
+  cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
   if (zerobased) then
     begin
@@ -1052,7 +1052,7 @@ var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifndef FPC_HAS_CPSTRING}
-  cp:=$ffff;
+  cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
   if (zerobased) then
     begin
@@ -1389,6 +1389,7 @@ Procedure fpc_UnicodeStr_SetLength(Var S : UnicodeString; l : SizeInt);[Public,A
 Var
   Temp : Pointer;
   movelen: SizeInt;
+  lens, lena : SizeUInt;
 begin
    if (l>0) then
     begin
@@ -1401,8 +1402,10 @@ begin
         if (PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Ref = 1) then
           begin
             Dec(Pointer(S),UnicodeFirstOff);
-            if SizeUInt(L*sizeof(UnicodeChar)+UnicodeRecLen)>MemSize(Pointer(S)) then
-              reallocmem(pointer(S), L*sizeof(UnicodeChar)+UnicodeRecLen);
+            lens:=MemSize(Pointer(s));
+            lena:=SizeUInt(L*sizeof(UnicodeChar)+UnicodeRecLen);
+            if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
+              reallocmem(pointer(S), lena);
             Inc(Pointer(S), UnicodeFirstOff);
         end
       else

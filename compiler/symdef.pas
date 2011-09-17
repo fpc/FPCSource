@@ -1447,7 +1447,7 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_ansistring;
-         encoding:=65535;
+         encoding:=0;
          len:=-1;
          savesize:=sizeof(pint);
       end;

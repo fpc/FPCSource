@@ -43,7 +43,9 @@ interface
           cpo_ignoreuniv,
           cpo_warn_incompatible_univ,
           cpo_ignorevarspez,          // ignore parameter access type
-          cpo_ignoreframepointer      // ignore frame pointer parameter (for assignment-compatibility of global procedures to nested procvars)
+          cpo_ignoreframepointer,     // ignore frame pointer parameter (for assignment-compatibility of global procedures to nested procvars)
+          cpo_compilerproc,
+          cpo_rtlproc
        );
 
        tcompare_paras_options = set of tcompare_paras_option;
@@ -355,8 +357,11 @@ implementation
                         if (tstringdef(def_from).encoding=tstringdef(def_to).encoding) or
                            (tstringdef(def_from).encoding=globals.CP_NONE) or
                            (tstringdef(def_to).encoding=globals.CP_NONE) then
-                          eq:=te_equal
-                        else 
+                         begin
+                           //doconv := tc_string_2_string;
+                           eq:=te_equal;
+                         end
+                        else
                          begin        
                            doconv := tc_string_2_string;
                            if (tstringdef(def_to).encoding=globals.CP_UTF8) then 
@@ -1804,6 +1809,17 @@ implementation
                  if not equal_constsym(tconstsym(currpara1.defaultconstsym),tconstsym(currpara2.defaultconstsym)) then
                    exit;
                end;
+              if not(cpo_compilerproc in cpoptions) and
+                 not(cpo_rtlproc in cpoptions) and
+                 is_ansistring(currpara1.vardef) and
+                 is_ansistring(currpara2.vardef) and
+                 (tstringdef(currpara1.vardef).encoding<>tstringdef(currpara2.vardef).encoding) and
+                 ((tstringdef(currpara1.vardef).encoding=globals.CP_NONE) or
+                  (tstringdef(currpara2.vardef).encoding=globals.CP_NONE)
+                 ) then
+                eq:=te_convert_l1;
+              if eq<lowesteq then
+                lowesteq:=eq;
               inc(i1);
               inc(i2);
               if cpo_ignorehidden in cpoptions then

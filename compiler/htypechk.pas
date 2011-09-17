@@ -1997,6 +1997,7 @@ implementation
         st    : TSymtable;
         contextstructdef : tabstractrecorddef;
         ProcdefOverloadList : TFPObjectList;
+        cpoptions : tcompare_paras_options;
       begin
         FCandidateProcs:=nil;
 
@@ -2086,11 +2087,16 @@ implementation
                ) then
               begin
                 { don't add duplicates, only compare visible parameters for the user }
+                cpoptions:=[cpo_ignorehidden];
+                if (po_compilerproc in pd.procoptions) then
+                  cpoptions:=cpoptions+[cpo_compilerproc];
+                if (po_rtlproc in pd.procoptions) then
+                  cpoptions:=cpoptions+[cpo_rtlproc];
                 found:=false;
                 hp:=FCandidateProcs;
                 while assigned(hp) do
                   begin
-                    if (compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,[cpo_ignorehidden])>=te_equal) and
+                    if (compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,cpoptions)>=te_equal) and
                        (not(po_objc in pd.procoptions) or
                         (pd.messageinf.str^=hp^.data.messageinf.str^)) then
                       begin
@@ -2412,7 +2418,17 @@ implementation
               else
               { generic type comparision }
                begin
-                 eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
+                 if not(po_compilerproc in hp^.data.procoptions) and
+                    not(po_rtlproc in hp^.data.procoptions) and
+                    is_ansistring(currpara.vardef) and
+                    is_ansistring(currpt.left.resultdef) and
+                    (tstringdef(currpara.vardef).encoding<>tstringdef(currpt.left.resultdef).encoding) and
+                    ((tstringdef(currpara.vardef).encoding=globals.CP_NONE) or
+                     (tstringdef(currpt.left.resultdef).encoding=globals.CP_NONE)
+                    ) then
+                   eq:=te_convert_l1
+                 else
+                   eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
 
                  { when the types are not equal we need to check
                    some special case for parameter passing }
