@@ -929,7 +929,7 @@ implementation
                       ccallparanode.create(
                         cordconstnode.create(
                           ord(tarraydef(left.resultdef).lowrange=0),
-                          booltype,
+                          pasbool8type,
                           false
                         ),
                         ccallparanode.create(
@@ -1154,7 +1154,7 @@ implementation
           begin
             result:=ccallnode.createinternres(
                       'fpc_ansistr_to_ansistr',
-                      ccallparanode.create( 
+                      ccallparanode.create(
                         cordconstnode.create(
                           tstringdef(resultdef).encoding,
                           u16inttype,
@@ -1166,7 +1166,7 @@ implementation
                     );
             left:=nil;
           end;
-      end; 
+      end;
 
     function ttypeconvnode.typecheck_char_to_chararray : tnode;
       begin
@@ -2989,7 +2989,7 @@ implementation
             ((tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring,st_shortstring]) or
              { ansistring to ansistring and no RawByteString envolved? }
              (//(tstringdef(resultdef).encoding<>65535) and
-              (tstringdef(left.resultdef).stringtype=st_ansistring) 
+              (tstringdef(left.resultdef).stringtype=st_ansistring)
               //(tstringdef(left.resultdef).encoding<>65535)
              )
             ) then
