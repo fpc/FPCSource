@@ -289,9 +289,10 @@ function GetProcessID: SizeUInt;
  ******************************************************************************}
 const
   { MultiByteToWideChar  }
-     MB_PRECOMPOSED = 1;
-     CP_ACP = 0;
-     WC_NO_BEST_FIT_CHARS = $400;
+  MB_PRECOMPOSED = 1;
+  CP_ACP = 0;
+  CP_UTF16 = 1200;
+  WC_NO_BEST_FIT_CHARS = $400;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
     stdcall; external 'kernel32' name 'MultiByteToWideChar';
@@ -308,10 +309,14 @@ procedure Win32Unicode2AnsiMove(source:punicodechar;var dest:ansistring;cp : TSy
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    destlen:=WideCharToMultiByte(cp, WC_NO_BEST_FIT_CHARS, source, len, nil, 0, nil, nil);
+    destlen:=WideCharToMultiByte(cp, 0, source, len, nil, 0, nil, nil);
     // this will null-terminate
     setlength(dest, destlen);
-    WideCharToMultiByte(cp, WC_NO_BEST_FIT_CHARS, source, len, @dest[1], destlen, nil, nil);
+    if destlen>0 then
+      begin
+        WideCharToMultiByte(cp, 0, source, len, @dest[1], destlen, nil, nil);
+        PAnsiRec(pointer(dest)-AnsiFirstOff)^.CodePage:=cp;
+      end;
   end;
 
 procedure Win32Ansi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:UnicodeString;len:SizeInt);
@@ -323,7 +328,11 @@ procedure Win32Ansi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:Unico
     destlen:=MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, nil, 0);
     // this will null-terminate
     setlength(dest, destlen);
-    MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, @dest[1], destlen);
+    if destlen>0 then
+      begin
+        MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, @dest[1], destlen);
+        PUnicodeRec(pointer(dest)-UnicodeFirstOff)^.CodePage:=CP_UTF16;
+      end;
   end;
 
 
@@ -354,10 +363,14 @@ procedure Win32Wide2AnsiMove(source:pwidechar;var dest:ansistring;cp : TSystemCo
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    destlen:=WideCharToMultiByte(cp, WC_NO_BEST_FIT_CHARS, source, len, nil, 0, nil, nil);
+    destlen:=WideCharToMultiByte(cp, 0, source, len, nil, 0, nil, nil);
     // this will null-terminate
     setlength(dest, destlen);
-    WideCharToMultiByte(cp, WC_NO_BEST_FIT_CHARS, source, len, @dest[1], destlen, nil, nil);
+    if destlen>0 then
+      begin
+        WideCharToMultiByte(cp, 0, source, len, @dest[1], destlen, nil, nil);
+        PAnsiRec(pointer(dest)-AnsiFirstOff)^.CodePage:=cp;
+      end;
   end;
 
 
@@ -370,7 +383,8 @@ procedure Win32Ansi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestri
     destlen:=MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, nil, 0);
     // this will null-terminate
     setlength(dest, destlen);
-    MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, @dest[1], destlen);
+    if destlen>0 then
+      MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, @dest[1], destlen);
   end;
 
 
@@ -407,6 +421,8 @@ var
   WStrInitTablesTable: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
 {$endif}
 
+function GetACP:UINT; external 'kernel32' name 'GetACP';
+
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
 procedure InitWin32Widestrings;
@@ -442,5 +458,7 @@ procedure InitWin32Widestrings;
     widestringmanager.UpperUnicodeStringProc:=@Win32UnicodeUpper;
     widestringmanager.LowerUnicodeStringProc:=@Win32UnicodeLower;
 {$endif VER2_2}
+    DefaultSystemCodePage:=GetACP;
+    DefaultUnicodeCodePage:=CP_UTF16;
   end;
 

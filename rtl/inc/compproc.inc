@@ -266,7 +266,7 @@ function fpc_AnsiStr_To_ShortStr (high_of_res: SizeInt;const S2 : Ansistring): s
 {$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_AnsiStr_To_ShortStr (out res : shortstring;const S2 : Ansistring); compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
-Function fpc_AnsiStr_To_AnsiStr (const S : AnsiString;cp : TSystemCodePage): AnsiString; compilerproc;
+Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; compilerproc;
 Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
 Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
 

@@ -73,7 +73,7 @@ begin
      PAnsiRec(P)^.CodePage:=DefaultSystemCodePage;
      PAnsiRec(P)^.ElementSize:=SizeOf(AnsiChar);
      PAnsiRec(P)^.First:=#0;      { Terminating #0 }
-     inc(p,AnsiFirstOff);             { Points to string now }
+     inc(p,AnsiFirstOff);         { Points to string now }
    end;
   NewAnsiString:=P;
 end;
@@ -103,10 +103,12 @@ Var
   l : pSizeInt;
 Begin
   { Zero string }
-  If S=Nil then exit;
+  If S=Nil then 
+    exit;
   { check for constant strings ...}
   l:=@PAnsiRec(S-AnsiFirstOff)^.Ref;
-  If l^<0 then exit;
+  If l^<0 then 
+    exit;
   { declocked does a MT safe dec and returns true, if the counter is 0 }
   If declocked(l^) then
     { Ref count dropped to zero }
@@ -308,10 +310,7 @@ begin
     end;
   fpc_AnsiStr_Decr_Ref(destcopy);
 end;
-
-
 {$endif STR_CONCAT_PROCS}
-
 
 
 {$ifdef EXTRAANSISHORT}
@@ -335,8 +334,7 @@ begin
 end;
 {$endif EXTRAANSISHORT}
 
-
-Function fpc_AnsiStr_To_AnsiStr (const S : AnsiString;cp : TSystemCodePage): AnsiString; compilerproc;
+Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; [Public, alias: 'FPC_ANSISTR_TO_ANSISTR']; compilerproc;
 {
   Converts an AnsiString to an AnsiString taking code pages into care
 }
@@ -351,6 +349,7 @@ begin
     widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(temp)),result,cp,Size);
 end;
 
+Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; [external name 'FPC_ANSISTR_TO_ANSISTR'];
 
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
 
@@ -358,7 +357,7 @@ end;
 { procedure fpc_AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);     }
 { which is what the old helper was, so we don't need an extra implementation }
 { of the old helper (JM)                                                     }
-function fpc_AnsiStr_To_ShortStr (high_of_res: SizeInt;const S2 : Ansistring): shortstring;[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
+function fpc_AnsiStr_To_ShortStr (high_of_res: SizeInt;const S2 : Ansistring): shortstring; [Public, alias: 'FPC_ANSISTR_TO_SHORTSTR']; compilerproc;
 {
   Converts a AnsiString to a ShortString;
 }
@@ -438,7 +437,6 @@ begin
   if L > 0 then
     Move (P[0],Pointer(fpc_PChar_To_AnsiStr)^,L)
 end;
-
 
 
 Function fpc_CharArray_To_AnsiStr(const arr: array of char; zerobased: boolean = true): ansistring; compilerproc;
@@ -598,6 +596,8 @@ begin
        begin
          GetMem(Pointer(S),AnsiRecLen+L);
          PAnsiRec(S)^.Ref:=1;
+         PAnsiRec(S)^.CodePage:=DefaultSystemCodePage;
+         PAnsiRec(S)^.ElementSize:=1;
          inc(Pointer(S),AnsiFirstOff);
        end
       else if PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref=1 then
@@ -617,14 +617,14 @@ begin
 
           { also move terminating null }
           lens:=succ(length(s));
-          if l < lens then
-            movelen := l
+          if l<lens then
+            movelen:=l
           else
-            movelen := lens;
+            movelen:=lens;
           Move(Pointer(S)^,Temp^,movelen);
           { ref count dropped to zero in the mean time? }
-          If (PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref > 0) and
-             declocked(PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref) then
+          If (PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref>0) and
+            declocked(PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref) then
             freemem(PAnsiRec(Pointer(s)-AnsiFirstOff));
           Pointer(S):=Temp;
        end;
@@ -636,7 +636,7 @@ begin
     begin
       { Length=0 }
       if Pointer(S)<>nil then
-       fpc_ansistr_decr_ref (Pointer(S));
+        fpc_ansistr_decr_ref (Pointer(S));
       Pointer(S):=Nil;
     end;
 end;
@@ -1144,3 +1144,18 @@ function StringRefCount(const S: RawByteString): SizeInt; overload;
       Result:=SizeOf(AnsiChar);
   end;
 
+
+procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
+  begin
+    if (S='') or (StringCodePage(S)=CodePage) then
+      exit
+    else if Convert then
+      begin
+        s:=fpc_AnsiStr_To_AnsiStr(s,CodePage);
+      end
+    else
+      begin
+        UniqueString(s);
+        PAnsiRec(pointer(s)-AnsiFirstOff)^.CodePage:=CodePage;
+      end;
+  end;
