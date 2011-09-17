@@ -892,6 +892,7 @@ function  lowercase(const s : ansistring) : ansistring;
 function StringCodePage(const S : RawByteString): TSystemCodePage; overload;
 function StringElementSize(const S : RawByteString): Word; overload;
 function StringRefCount(const S : RawByteString): SizeInt; overload;
+procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
 procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 

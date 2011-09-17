@@ -270,19 +270,62 @@ begin
 end;
 
 
-procedure fpc_AnsiStr_Concat_multi (var DestS:ansistring;const sarr:array of Ansistring); compilerproc;
+procedure fpc_AnsiStr_Concat_multi (var DestS:RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Var
   lowstart,i  : Longint;
   p,pc        : pointer;
   Size,NewLen,
   OldDestLen  : SizeInt;
-  destcopy    : pointer;
+  destcopy    : pointer;  
+  DestCP      : TSystemCodePage;
+  U           : UnicodeString;
+  sameCP      : Boolean;
+  tmpStr      : RawByteString;
 begin
   if high(sarr)=0 then
     begin
       DestS:='';
       exit;
     end;
+{$ifdef FPC_HAS_CPSTRING}
+  if (Pointer(DestS)=nil) then
+    DestCP:=cp
+  else
+    DestCP:=StringCodePage(DestS);
+{$else FPC_HAS_CPSTRING}
+  DestCP:=StringCodePage(DestS);
+{$endif FPC_HAS_CPSTRING}
+  if (DestCP=$ffff) then
+    DestCP:=DefaultSystemCodePage;
+  sameCP:=true;
+  lowstart:=low(sarr);
+  for i:=lowstart to high(sarr) do
+    begin
+      if (DestCP<>StringCodePage(sarr[i])) then
+        begin
+          sameCP:=false;
+          break;
+        end;
+    end;
+  if not sameCP then
+    begin
+      U:='';
+      for i:=lowstart to high(sarr) do begin
+        if (StringCodePage(sarr[i]) = $ffff) then
+          begin
+            tmpStr:=sarr[i];
+            SetCodePage(tmpStr,DefaultSystemCodePage,False);
+            U:=U+UnicodeString(tmpStr);
+          end
+        else
+          U:=U+UnicodeString(sarr[i]);
+      end;
+
+      DestS:='';
+      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(U)),DestS,DestCP,Length(U));
+      exit;            
+    end;
+
   destcopy:=nil;
   lowstart:=low(sarr);
   if Pointer(DestS)=Pointer(sarr[lowstart]) then
@@ -313,6 +356,8 @@ begin
   for i:=low(sarr) to high(sarr) do
     inc(NewLen,length(sarr[i]));
   SetLength(DestS,NewLen);
+  if (StringCodePage(DestS) <> DestCP) then
+    SetCodePage(DestS,DestCP,False);
   { Concat all strings, except the string we already
     copied in DestS }
   pc:=Pointer(DestS)+OldDestLen;
@@ -525,7 +570,7 @@ end;
 
 {$endif ndef FPC_STRTOCHARARRAYPROC}
 
-Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  compilerproc;
+Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  compilerproc;
 {
   Compares 2 AnsiStrings;
   The result is
@@ -535,27 +580,58 @@ Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt;[Public,Alias : 
 }
 Var
   MaxI,Temp : SizeInt;
+  cp1,cp2 : TSystemCodePage;
+  r1,r2 : RawByteString;
+  u1,u2 : UTF8String;
 begin
   if pointer(S1)=pointer(S2) then
     begin
       result:=0;
       exit;
     end;
-  Maxi:=Length(S1);
-  temp:=Length(S2);
-  If MaxI>Temp then
-    MaxI:=Temp;
-  if MaxI>0 then
+  if (pointer(S1)=nil) then
     begin
-      result:=CompareByte(S1[1],S2[1],MaxI);
-      if result=0 then
+      result:=-Length(S2);
+      exit;
+    end;
+  if (pointer(S2)=nil) then
+    begin
+      result:=Length(S1);
+      exit;
+    end;
+  cp1:=StringCodePage(S1);
+  cp2:=StringCodePage(S2);
+  if (cp1=cp2) then
+    begin
+      Maxi:=Length(S1);
+      temp:=Length(S2);
+      If MaxI>Temp then
+        MaxI:=Temp;
+      if MaxI>0 then
+        begin
+          result:=CompareByte(S1[1],S2[1],MaxI);
+          if result=0 then
+            result:=Length(S1)-Length(S2);
+        end
+      else
         result:=Length(S1)-Length(S2);
     end
   else
-    result:=Length(S1)-Length(S2);
+    begin
+      r1:=S1;
+      if (cp1=$ffff) then
+        SetCodePage(r1,DefaultSystemCodePage,false);
+      r2:=S2;
+      if (cp2=$ffff) then
+        SetCodePage(r2,DefaultSystemCodePage,false);
+      //convert them to utf8 then compare
+      SetCodePage(r1,65001);
+      SetCodePage(r2,65001);
+      Result := fpc_AnsiStr_Compare(r1,r2);
+    end;
 end;
 
-Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE_EQUAL'];  compilerproc;
+Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE_EQUAL'];  compilerproc;
 {
   Compares 2 AnsiStrings for equality/inequality only;
   The result is
@@ -564,18 +640,35 @@ Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt;[Public,Al
 }
 Var
   MaxI,Temp : SizeInt;
+  cp1,cp2 : TSystemCodePage;
+  r1,r2 : RawByteString;
 begin
   if pointer(S1)=pointer(S2) then
     begin
       result:=0;
       exit;
     end;
-  Maxi:=Length(S1);
-  temp:=Length(S2);
-  Result := Maxi - temp;
-  if Result = 0 then
-    if MaxI>0 then
-      result:=CompareByte(S1[1],S2[1],MaxI);
+  cp1:=StringCodePage(S1);
+  cp2:=StringCodePage(S2);
+  if (cp1=cp2) then
+    begin
+      Maxi:=Length(S1);
+      temp:=Length(S2);
+      Result := Maxi - temp;
+      if Result = 0 then
+        if MaxI>0 then
+          result:=CompareByte(S1[1],S2[1],MaxI);
+    end
+  else
+    begin
+      r1:=S1;
+      if (cp1=$ffff) then
+        SetCodePage(r1,DefaultSystemCodePage,false);
+      r2:=S2;
+      if (cp2=$ffff) then
+        SetCodePage(r2,DefaultSystemCodePage,false);
+      Result:=widestringmanager.CompareTextUnicodeStringProc(UnicodeString(r1),UnicodeString(r2));
+    end;
 end;
 
 {$ifdef VER2_4}
@@ -600,7 +693,7 @@ begin
 end;
 {$endif VER2_4}
 
-Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt);[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  compilerproc;
+Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  compilerproc;
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
@@ -616,7 +709,11 @@ begin
        begin
          GetMem(Pointer(S),AnsiRecLen+L);
          PAnsiRec(S)^.Ref:=1;
+{$ifdef FPC_HAS_CPSTRING}
+         PAnsiRec(S)^.CodePage:=cp;
+{$else}
          PAnsiRec(S)^.CodePage:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
          PAnsiRec(S)^.ElementSize:=1;
          inc(Pointer(S),AnsiFirstOff);
        end
@@ -634,6 +731,9 @@ begin
         begin
           { Reallocation is needed... }
           Temp:=Pointer(NewAnsiString(L));
+{$ifdef FPC_HAS_CPSTRING}
+          PAnsiRec(Pointer(Temp)-AnsiFirstOff)^.CodePage:=cp;
+{$endif FPC_HAS_CPSTRING}
 
           { also move terminating null }
           lens:=succ(length(s));

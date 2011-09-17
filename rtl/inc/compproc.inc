@@ -250,7 +250,7 @@ Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Assign (Var DestS : Pointer;S2 : Pointer); compilerproc;
 {$ifdef STR_CONCAT_PROCS}
 Procedure fpc_AnsiStr_Concat (Var DestS : RawByteString;const S1,S2 : RawByteString); compilerproc;
-Procedure fpc_AnsiStr_Concat_multi (Var DestS : Ansistring;const sarr:array of Ansistring); compilerproc;
+Procedure fpc_AnsiStr_Concat_multi (Var DestS : RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 {$else STR_CONCAT_PROCS}
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
 function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
@@ -279,8 +279,8 @@ function fpc_ansistr_to_chararray(arraysize: SizeInt; const src: ansistring): fp
 {$else ndef FPC_STRTOCHARARRAYPROC}
 procedure fpc_ansistr_to_chararray(out res: array of char; const src: ansistring)compilerproc;
 {$endif ndef FPC_STRTOCHARARRAYPROC}
-Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt; compilerproc;
-Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt; compilerproc;
+Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt; compilerproc;
+Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt; compilerproc;
 {$ifdef VER2_4}
 // obsolete but needed for bootstrapping with 2.4
 Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
@@ -289,7 +289,7 @@ Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt); compilerproc;
 Procedure fpc_AnsiStr_CheckRange(p : Pointer; index : SizeInt); compilerproc;
 {$endif VER2_4}
 
-Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt); compilerproc;
+Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Function  fpc_ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt) : AnsiString;compilerproc;
 {$ifdef EXTRAANSISHORT}
 Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): SizeInt; compilerproc;
