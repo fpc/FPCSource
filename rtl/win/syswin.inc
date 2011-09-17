@@ -302,28 +302,28 @@ function GetProcessID: SizeUInt;
  function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
      stdcall; external 'user32' name 'CharLowerBuffW';
 
-procedure Win32Unicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
+procedure Win32Unicode2AnsiMove(source:punicodechar;var dest:ansistring;cp : TSystemCodePage;len:SizeInt);
   var
     destlen: SizeInt;
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    destlen:=WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, source, len, nil, 0, nil, nil);
+    destlen:=WideCharToMultiByte(cp, WC_NO_BEST_FIT_CHARS, source, len, nil, 0, nil, nil);
     // this will null-terminate
     setlength(dest, destlen);
-    WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, source, len, @dest[1], destlen, nil, nil);
+    WideCharToMultiByte(cp, WC_NO_BEST_FIT_CHARS, source, len, @dest[1], destlen, nil, nil);
   end;
 
-procedure Win32Ansi2UnicodeMove(source:pchar;var dest:UnicodeString;len:SizeInt);
+procedure Win32Ansi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:UnicodeString;len:SizeInt);
   var
     destlen: SizeInt;
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    destlen:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, nil, 0);
+    destlen:=MultiByteToWideChar(MB_PRECOMPOSED, source, len, nil, 0);
     // this will null-terminate
     setlength(dest, destlen);
-    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, @dest[1], destlen);
+    MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, @dest[1], destlen);
   end;
 
 
@@ -348,16 +348,29 @@ function Win32UnicodeLower(const s : UnicodeString) : UnicodeString;
                               Widestring
  ******************************************************************************}
 
-procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+procedure Win32Wide2AnsiMove(source:pwidechar;var dest:ansistring;cp : TSystemCodePage;len:SizeInt);
   var
     destlen: SizeInt;
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    destlen:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, nil, 0);
+    destlen:=WideCharToMultiByte(cp, WC_NO_BEST_FIT_CHARS, source, len, nil, 0, nil, nil);
     // this will null-terminate
     setlength(dest, destlen);
-    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, @dest[1], destlen);
+    WideCharToMultiByte(cp, WC_NO_BEST_FIT_CHARS, source, len, @dest[1], destlen, nil, nil);
+  end;
+
+
+procedure Win32Ansi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
+  var
+    destlen: SizeInt;
+  begin
+    // retrieve length including trailing #0
+    // not anymore, because this must also be usable for single characters
+    destlen:=MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, nil, 0);
+    // this will null-terminate
+    setlength(dest, destlen);
+    MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, @dest[1], destlen);
   end;
 
 

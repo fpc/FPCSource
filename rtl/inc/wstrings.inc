@@ -50,7 +50,7 @@ Const
   These routines can be overwritten for the Current Locale
 }
 
-procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
+procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;cp : TSystemCodePage;len:SizeInt);
 var
   i : SizeInt;
   destp: PChar;
@@ -236,7 +236,7 @@ begin
     begin
       If Size>high(res) then
         Size:=high(res);
-      widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,Size);
+      widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,DefaultSystemCodePage,Size);
       res:=temp;
     end;
 end;
@@ -261,7 +261,7 @@ begin
 end;
 
 
-Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; compilerproc;
+Function fpc_WideStr_To_AnsiStr (const S2 : WideString;cp : TSystemCodePage): AnsiString; compilerproc;
 {
   Converts a WideString to an AnsiString
 }
@@ -271,7 +271,7 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,Size);
+    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,cp,Size);
 end;
 
 
@@ -498,12 +498,12 @@ begin
 end;
 
 
-Function fpc_WChar_To_AnsiStr(const c : WideChar): AnsiString; compilerproc;
+Function fpc_WChar_To_AnsiStr(const c : WideChar;cp : TSystemCodePage): AnsiString; compilerproc;
 {
   Converts a WideChar to a AnsiString;
 }
 begin
-  widestringmanager.Wide2AnsiMoveProc(@c, fpc_WChar_To_AnsiStr, 1);
+  widestringmanager.Wide2AnsiMoveProc(@c, fpc_WChar_To_AnsiStr, cp, 1);
 end;
 
 
@@ -651,7 +651,7 @@ begin
   len := length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
-    widestringmanager.wide2ansimoveproc(pwidechar(@src[1]),temp,len);
+    widestringmanager.wide2ansimoveproc(pwidechar(@src[1]),temp,DefaultSystemCodePage,len);
   len := length(temp);
   if len > length(res) then
     len := length(res);

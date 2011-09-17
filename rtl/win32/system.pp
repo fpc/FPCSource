@@ -829,7 +829,6 @@ end;
 
 {$endif Set_i386_Exception_handler}
 
-
 {******************************************************************************}
 { include code common with win64 }
 
