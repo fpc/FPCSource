@@ -53,15 +53,21 @@ unit widestr;
     function asciichar2unicode(c : char) : tcompilerwidechar;
     function unicode2asciichar(c : tcompilerwidechar) : char;
     procedure ascii2unicode(p : pchar;l : SizeInt;r : pcompilerwidestring);
-    procedure unicode2ascii(r : pcompilerwidestring;p : pchar);
+    procedure unicode2ascii(r : pcompilerwidestring;p : pchar;cp : tstringencoding);
     function hasnonasciichars(const p: pcompilerwidestring): boolean;
     function getcharwidestring(r : pcompilerwidestring;l : SizeInt) : tcompilerwidechar;
     function cpavailable(const s : string) : boolean;
+    function cpavailable(cp : word) : boolean;
+    procedure changecodepage(
+      s : pchar; l : SizeInt; scp : tstringencoding; 
+      d : pchar; dcp : tstringencoding
+    );
+    function codepagebyname(const s : string) : tstringencoding;
 
   implementation
 
     uses
-      cp8859_1,cp850,cp437,
+      cp8859_1,cp850,cp437,cp1252,
       { cyrillic code pages }
       cp1251,cp866,cp8859_5,
       globals,cutils;
@@ -173,11 +179,14 @@ unit widestr;
       end;
 
     function unicode2asciichar(c : tcompilerwidechar) : char;
-      begin
+      {begin
         if word(c)<128 then
           unicode2asciichar:=char(word(c))
          else
           unicode2asciichar:='?';
+      end;}
+      begin
+         Result := getascii(c,getmap(current_settings.sourcecodepage))[1];
       end;
 
     procedure ascii2unicode(p : pchar;l : SizeInt;r : pcompilerwidestring);
@@ -211,22 +220,28 @@ unit widestr;
            end;
       end;
 
-    procedure unicode2ascii(r : pcompilerwidestring;p:pchar);
-(*
+    procedure unicode2ascii(r : pcompilerwidestring;p:pchar;cp : tstringencoding);
       var
-         m : punicodemap;
-         i : longint;
-
+        m : punicodemap;
+        source : tcompilerwidecharptr;
+        dest   : pchar;
+        i      : longint;
       begin
-         m:=getmap(current_settings.sourcecodepage);
-         { should be a very good estimation :) }
-         setlengthwidestring(r,length(s));
+        if (cp = 0) or (cp=CP_NONE) then
+          m:=getmap(current_settings.sourcecodepage)
+        else
+          m:=getmap(cp);
          // !!!! MBCS
-         for i:=1 to length(s) do
-           begin
-           end;
+        source:=tcompilerwidecharptr(r^.data);
+        dest:=p;
+        for i:=1 to r^.len do
+         begin
+           dest^ := getascii(source^,m)[1];
+           inc(dest);
+           inc(source);
+         end;
       end;
-*)
+(*
       var
         source : tcompilerwidecharptr;
         dest   : pchar;
@@ -247,7 +262,7 @@ unit widestr;
            inc(source);
          end;
       end;
-
+*)
 
     function hasnonasciichars(const p: pcompilerwidestring): boolean;
       var
@@ -269,6 +284,43 @@ unit widestr;
     function cpavailable(const s : string) : boolean;
       begin
           cpavailable:=mappingavailable(lower(s));
+      end;  
+    
+    function cpavailable(cp : word) : boolean;
+      begin
+          cpavailable:=mappingavailable(cp);
+      end;     
+
+    procedure changecodepage(
+      s : pchar; l : SizeInt; scp : tstringencoding; 
+      d : pchar; dcp : tstringencoding
+    );
+      var
+        ms, md : punicodemap;
+        source : pchar;
+        dest   : pchar;
+        i      : longint;
+      begin
+        ms:=getmap(scp);
+        md:=getmap(dcp);
+        source:=s;
+        dest:=d;
+        for i:=1 to l do
+         begin
+           dest^ := getascii(getunicode(source^,ms),md)[1];
+           inc(dest);
+           inc(source);
+         end;
+      end;  
+
+    function codepagebyname(const s : string) : tstringencoding;
+      var
+        p : punicodemap;
+      begin
+        Result:=0;
+        p:=getmap(s);
+        if (p<>nil) then
+          Result:=p^.cp; 
       end;
 
 end.

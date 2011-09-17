@@ -269,7 +269,8 @@ unit cp1251;
      );
 
      unicodemap : tunicodemap = (
-       cpname : 'cp1251';
+       cpname : 'cp1251'; 
+       cp : 1251;     
        map : @map;
        lastchar : 255;
        next : nil;

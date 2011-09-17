@@ -982,6 +982,9 @@ implementation
       var
         pw : pcompilerwidestring;
         pc : pchar;
+        cp1 : tstringencoding;
+        cp2 : tstringencoding;
+        l,l2 : longint;
       begin
         if def.typ<>stringdef then
           internalerror(200510011);
@@ -999,11 +1002,40 @@ implementation
           if (cst_type in [cst_widestring,cst_unicodestring]) and
             not(tstringdef(def).stringtype in [st_widestring,st_unicodestring]) then
             begin
-              pw:=pcompilerwidestring(value_str);
-              getmem(pc,getlengthwidestring(pw)+1);
-              unicode2ascii(pw,pc);
-              donewidestring(pw);
-              value_str:=pc;
+              if (tstringdef(def).encoding=CP_UTF8) then 
+                begin
+                  pw:=pcompilerwidestring(value_str);
+                  l:=(getlengthwidestring(pw)*4)+1;
+                  getmem(pc,l);   
+                  l2:=UnicodeToUtf8(pc,l,PUnicodeChar(pw^.data),getlengthwidestring(pw));
+                  if (l<>l2) then
+                    begin
+                      ReAllocMem(pc,l2);
+                      len:=l2;
+                    end;   
+                  donewidestring(pw);
+                  value_str:=pc;
+                end
+              else
+                begin
+                  pw:=pcompilerwidestring(value_str);
+                  getmem(pc,getlengthwidestring(pw)+1);
+                  unicode2ascii(pw,pc,tstringdef(def).encoding);
+                  donewidestring(pw);
+                  value_str:=pc;
+                end;
+            end
+        else 
+          if (tstringdef(def).stringtype = st_ansistring) and
+             not(cst_type in [cst_widestring,cst_unicodestring]) then
+            begin
+              cp1:=tstringdef(def).encoding;
+              if (cst_type = cst_ansistring) then
+                cp2:=tstringdef(resultdef).encoding
+              else if (cst_type in [cst_shortstring,cst_conststring,cst_longstring]) then
+                cp2:=codepagebyname(current_settings.sourcecodepage);
+              if cpavailable(cp1) and cpavailable(cp2) then
+                changecodepage(value_str,len,cp1,value_str,cp2);
             end;
         cst_type:=st2cst[tstringdef(def).stringtype];
         resultdef:=def;

@@ -176,6 +176,24 @@ implementation
                        p:=ctypeconvnode.create(p,cwidechartype);
                        do_typecheckpass(p);
                     end;
+               end
+             else
+               begin
+                 if is_char(casedef) and is_widechar(p.resultdef) then
+                   begin
+                      if (p.nodetype=ordconstn) then
+                        begin
+                           p:=ctypeconvnode.create(p,cchartype);
+                           do_typecheckpass(p);
+                        end
+                      else if (p.nodetype=rangen) then
+                        begin
+                           trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cchartype);
+                           trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cchartype);
+                           do_typecheckpass(trangenode(p).left);
+                           do_typecheckpass(trangenode(p).right);
+                        end;
+                   end;
                end;
              hl1:=0;
              hl2:=0;

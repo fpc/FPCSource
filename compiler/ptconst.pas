@@ -231,6 +231,8 @@ implementation
                 end;
               uchar :
                 begin
+                   if is_constwidecharnode(n) then 
+                     inserttypeconv(n,cchartype); 
                    if is_constcharnode(n) or
                      ((m_delphi in current_settings.modeswitches) and
                       is_constwidecharnode(n) and

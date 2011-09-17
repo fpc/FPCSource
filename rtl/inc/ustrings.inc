@@ -23,9 +23,8 @@
   a punicodechar that points to :
 
   @-8  : SizeInt for reference count;
-  @-4  : SizeInt for size; size=number of bytes, not the number of chars. Divide or multiply
-         with sizeof(UnicodeChar) to convert. This is needed to be compatible with Delphi and
-         Windows COM BSTR.
+  @-4  : SizeInt for size; size=number of chars. Multiply with
+         sizeof(UnicodeChar) to get the number of bytes. This is compatible with Delphi.
   @    : String + Terminating #0;
   Punicodechar(Unicodestring) is a valid typecast.
   So WS[i] is converted to the address @WS+i-1.
@@ -810,7 +809,9 @@ var
 begin
 {$ifndef FPC_HAS_CPSTRING}
   cp:=$ffff;
-{$endif FPC_HAS_CPSTRING}
+{$endif FPC_HAS_CPSTRING}     
+  if cp=$ffff then
+    cp:=DefaultSystemCodePage;
   widestringmanager.Unicode2AnsiMoveProc(@c, fpc_UChar_To_AnsiStr, cp, 1);
 end;
 
@@ -1552,10 +1553,10 @@ begin
     exit;
   if PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Ref<>1 then
    begin
-     L:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.len div sizeof(UnicodeChar);
+     L:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.len;
      SNew:=NewUnicodeString (L);
      Move (PUnicodeChar(S)^,SNew^,(L+1)*sizeof(UnicodeChar));
-     PUnicodeRec(SNew-UnicodeFirstOff)^.len:=L * sizeof(UnicodeChar);
+     PUnicodeRec(SNew-UnicodeFirstOff)^.len:=L;
      fpc_unicodestr_decr_ref (Pointer(S));  { Thread safe }
      pointer(S):=SNew;
      pointer(result):=SNew;

@@ -104,6 +104,7 @@ interface
 {$endif}
        CP_UTF8 = 65001;
        CP_UTF16 = 1200;
+       CP_NONE  = 65535;
 
 
     type

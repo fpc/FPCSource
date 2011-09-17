@@ -903,9 +903,15 @@ begin
                    end;
                  'm' :
                    begin
-                     unicodemapping:=loadunicodemapping(More,More+'.txt');
-                     if assigned(unicodemapping) then
-                       registermapping(unicodemapping)
+                     s:=ExtractFileDir(more);
+                     if TryStrToInt(ExtractFileName(more),j) then 
+                       begin
+                         unicodemapping:=loadunicodemapping(More,More+'.txt',j);
+                         if assigned(unicodemapping) then
+                           registermapping(unicodemapping)
+                         else
+                           IllegalPara(opt);
+                       end
                      else
                        IllegalPara(opt);
                    end;

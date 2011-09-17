@@ -41,7 +41,8 @@ unit ccharset;
 
        punicodemap = ^tunicodemap;
        tunicodemap = record
-          cpname : string[20];
+          cpname : string[20];   
+          cp : word;           
           map : punicodecharmapping;
           lastchar : longint;
           next : punicodemap;
@@ -51,9 +52,10 @@ unit ccharset;
        tcp2unicode = class(tcsconvert)
        end;
 
-    function loadunicodemapping(const cpname,f : string) : punicodemap;
+    function loadunicodemapping(const cpname,f : string; cp :word) : punicodemap;
     procedure registermapping(p : punicodemap);
-    function getmap(const s : string) : punicodemap;
+    function getmap(const s : string) : punicodemap; 
+    function getmap(cp : word) : punicodemap;     
     function mappingavailable(const s : string) : boolean;
     function getunicode(c : char;p : punicodemap) : tunicodechar;
     function getascii(c : tunicodechar;p : punicodemap) : string;
@@ -63,7 +65,7 @@ unit ccharset;
     var
        mappings : punicodemap;
 
-    function loadunicodemapping(const cpname,f : string) : punicodemap;
+    function loadunicodemapping(const cpname,f : string; cp :word) : punicodemap;
 
       var
          data : punicodecharmapping;
@@ -158,6 +160,7 @@ unit ccharset;
          new(p);
          p^.lastchar:=lastchar;
          p^.cpname:=cpname;
+         p^.cp:=cp;
          p^.internalmap:=false;
          p^.next:=nil;
          p^.map:=data;
@@ -199,7 +202,37 @@ unit ccharset;
               hp:=hp^.next;
            end;
          getmap:=nil;
-      end;
+      end;    
+
+    function getmap(cp : word) : punicodemap;
+
+      var
+         hp : punicodemap;
+
+      const
+         mapcache : word = 0;
+         mapcachep : punicodemap = nil;
+
+      begin
+         if (mapcache=cp) and assigned(mapcachep) and (mapcachep^.cp=cp) then
+           begin
+              getmap:=mapcachep;
+              exit;
+           end;
+         hp:=mappings;
+         while assigned(hp) do
+           begin
+              if hp^.cp=cp then
+                begin
+                   getmap:=hp;
+                   mapcache:=cp;
+                   mapcachep:=hp;
+                   exit;
+                end;
+              hp:=hp^.next;
+           end;
+         getmap:=nil;
+      end;   
 
     function mappingavailable(const s : string) : boolean;
 

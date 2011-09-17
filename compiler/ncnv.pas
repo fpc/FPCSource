@@ -62,6 +62,7 @@ interface
           function typecheck_cord_to_pointer : tnode;
           function typecheck_chararray_to_string : tnode;
           function typecheck_string_to_chararray : tnode;
+          function typecheck_string_to_string : tnode;
           function typecheck_char_to_string : tnode;
           function typecheck_char_to_chararray : tnode;
           function typecheck_int_to_real : tnode;
@@ -1030,11 +1031,11 @@ implementation
          { we can't do widechar to ansichar conversions at compile time, since }
          { this maps all non-ascii chars to '?' -> loses information           }
 
-         if (left.nodetype=ordconstn) and
+         if (left.nodetype=ordconstn) {and
             ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
              (torddef(left.resultdef).ordtype=uchar) or
              { widechar >=128 is destroyed }
-             (tordconstnode(left).value.uvalue<128)) then
+             (tordconstnode(left).value.uvalue<128))} then
            begin
               if (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
                begin
@@ -1112,6 +1113,36 @@ implementation
              end;
       end;
 
+    function ttypeconvnode.typecheck_string_to_string : tnode;
+      begin
+        result:=nil;
+        if (left.nodetype=stringconstn) and
+           (tstringdef(resultdef).stringtype in [st_ansistring,st_shortstring]) and
+           (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) then
+          begin
+            tstringconstnode(left).changestringtype(resultdef);
+            Result:=left;
+            left:=nil;
+          end
+        else if (tstringdef(resultdef).stringtype=st_ansistring) and
+                (tstringdef(left.resultdef).stringtype=st_ansistring) and
+                (tstringdef(resultdef).encoding<>tstringdef(left.resultdef).encoding) then
+          begin
+            result:=ccallnode.createinternres(
+                      'fpc_ansistr_to_ansistr',
+                      ccallparanode.create( 
+                        cordconstnode.create(
+                          tstringdef(resultdef).encoding,
+                          u16inttype,
+                          true
+                        ),
+                        ccallparanode.create(left,nil)
+                      ),
+                      resultdef
+                    );
+            left:=nil;
+          end;
+      end; 
 
     function ttypeconvnode.typecheck_char_to_chararray : tnode;
       begin
@@ -1133,11 +1164,12 @@ implementation
         hp : tordconstnode;
       begin
          result:=nil;
-         if (left.nodetype=ordconstn) and
+         if (left.nodetype=ordconstn) 
+         {and
             ((torddef(resultdef).ordtype<>uchar) or
              (torddef(left.resultdef).ordtype<>uwidechar) or
              { >= 128 is replaced by '?' currently -> loses information }
-             (tordconstnode(left).value.uvalue<128)) then
+             (tordconstnode(left).value.uvalue<128))} then
            begin
              if (torddef(resultdef).ordtype=uchar) and
                 (torddef(left.resultdef).ordtype=uwidechar) then
@@ -1677,7 +1709,7 @@ implementation
           {none} nil,
           {equal} nil,
           {not_possible} nil,
-          { string_2_string } nil,
+          { string_2_string } @ttypeconvnode.typecheck_string_to_string,
           { char_2_string } @ttypeconvnode.typecheck_char_to_string,
           { char_2_chararray } @ttypeconvnode.typecheck_char_to_chararray,
           { pchar_2_string } @ttypeconvnode.typecheck_pchar_to_string,
@@ -2205,9 +2237,9 @@ implementation
               (
                 ((not is_widechararray(left.resultdef) and
                   not is_wide_or_unicode_string(left.resultdef)) or
-                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
+                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) {or
                  { non-ascii chars would be replaced with '?' -> loses info }
-                 not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str)))
+                 not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str))})
               ) then
               begin
                 tstringconstnode(left).changestringtype(resultdef);

@@ -4171,6 +4171,19 @@ In case not, the value returned can be arbitrary.
                       break;
                    end;
                  until false;
+                 //------------------
+                 { convert existing string to an utf-8 string }
+                 if (not iswidestring) and 
+                    (current_settings.sourcecodepage<>default_settings.sourcecodepage) then
+                   begin
+                     if len>0 then
+                       ascii2unicode(@cstringpattern[1],len,patternw)
+                     else
+                       ascii2unicode(nil,len,patternw);
+                     iswidestring:=true;
+                     len:=0;
+                   end;                  
+                 //-------------------
                  { strings with length 1 become const chars }
                  if iswidestring then
                    begin

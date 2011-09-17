@@ -270,6 +270,7 @@ unit cp437;
 
      unicodemap : tunicodemap = (
        cpname : 'cp437';
+       cp : 437;     
        map : @map[0];
        lastchar : 255;
        next : nil;
