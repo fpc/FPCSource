@@ -9944,6 +9944,7 @@ tests/test/tcpstr4.pp svneol=native#text/plain
 tests/test/tcpstr5.pp svneol=native#text/plain
 tests/test/tcpstr6.pp svneol=native#text/plain
 tests/test/tcpstr7.pp svneol=native#text/plain
+tests/test/tcpstr8.pp svneol=native#text/pascal
 tests/test/tcstring1.pp svneol=native#text/pascal
 tests/test/tcstring2.pp svneol=native#text/pascal
 tests/test/tdel1.pp svneol=native#text/plain
