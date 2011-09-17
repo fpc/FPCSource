@@ -320,7 +320,11 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
+  begin
+    if cp=$ffff then
+      cp:=DefaultSystemCodePage;
     widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),result,cp,Size);
+  end;
 end;
 
 
