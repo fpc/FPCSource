@@ -94,7 +94,7 @@ uses
         else
           begin
             list.concat(Tai_const.Create_pint(-1));
-            list.concat(Tai_const.Create_pint(strlength*cwidechartype.size));
+            list.concat(Tai_const.Create_pint(strlength));
           end;
         { make sure the string doesn't get dead stripped if the header is referenced }
         if (target_info.system in systems_darwin) then
