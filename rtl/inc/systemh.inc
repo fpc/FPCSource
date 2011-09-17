@@ -840,7 +840,7 @@ Procedure Insert(source:Char;var s:shortstring;index:SizeInt);
 Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
 Function  Pos(C:Char;const s:shortstring):SizeInt;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function  Pos (const Substr : ShortString; const Source : AnsiString) : SizeInt;
+Function  Pos (const Substr : ShortString; const Source : RawByteString) : SizeInt;
 Procedure SetString (out S : AnsiString; Buf : PChar; Len : SizeInt);
 Procedure SetString (out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
@@ -873,8 +873,8 @@ function  pos(const substr : shortstring;c:char): SizeInt;
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure UniqueString(var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
-Function  Pos (const Substr : AnsiString; const Source : AnsiString) : SizeInt;
-Function  Pos (c : Char; const s : AnsiString) : SizeInt;
+Function  Pos (const Substr : RawByteString; const Source : RawByteString) : SizeInt;
+Function  Pos (c : Char; const s : RawByteString) : SizeInt;
 Procedure Insert (const Source : AnsiString; var S : AnsiString; Index : SizeInt);
 Procedure Delete (var S : AnsiString; Index,Size: SizeInt);
 Function  StringOfChar(c : char;l : SizeInt) : AnsiString;

@@ -796,7 +796,7 @@ begin
   Pointer(fpc_ansistr_Copy):=ResultAddress;
 end;
 
-Function Pos (Const Substr : ShortString; Const Source : AnsiString) : SizeInt;
+Function Pos (Const Substr : ShortString; Const Source : RawByteString) : SizeInt;
 
 var
   i,MaxLen : SizeInt;
@@ -823,7 +823,7 @@ begin
 end;
 
 
-Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : SizeInt;
+Function Pos (Const Substr : RawByteString; Const Source : RawByteString) : SizeInt;
 var
   i,MaxLen : SizeInt;
   pc : pchar;
@@ -853,7 +853,7 @@ end;
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : Char; Const s : AnsiString) : SizeInt;
+Function Pos (c : Char; Const s : RawByteString) : SizeInt;
 var
   i: SizeInt;
   pc : pchar;
