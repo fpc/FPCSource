@@ -1026,6 +1026,8 @@ end;
 
 
 Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
+var
+  BufLen : SizeInt;
 begin
   SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
