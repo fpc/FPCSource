@@ -350,10 +350,14 @@ implementation
                          end;
                       end
                      else
-                     { Same string type, for shortstrings also the length must match }
+                     { same string type ? }
                       if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and
+                        { for shortstrings also the length must match }
                          ((tstringdef(def_from).stringtype<>st_shortstring) or
-                          (tstringdef(def_from).len=tstringdef(def_to).len)) then
+                          (tstringdef(def_from).len=tstringdef(def_to).len)) and
+                         { for ansi- and unicodestrings also the encoding must match }
+                         (not(tstringdef(def_from).stringtype in [st_ansistring,st_unicodestring]) or
+                          (tstringdef(def_from).stringencoding=tstringdef(def_to).stringencoding))then
                         eq:=te_equal
                      else
                        begin

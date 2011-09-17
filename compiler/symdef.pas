@@ -588,6 +588,7 @@ interface
        end;
 
        tstringdef = class(tstoreddef)
+          encoding   : tstringencoding;
           stringtype : tstringtype;
           len        : asizeint;
           constructor createshort(l : byte);

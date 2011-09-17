@@ -128,6 +128,7 @@ compiler/cp850.pas svneol=native#text/plain
 compiler/cp866.pas svneol=native#text/plain
 compiler/cp8859_1.pas svneol=native#text/plain
 compiler/cp8859_5.pas svneol=native#text/plain
+compiler/cpid.pas svneol=native#text/plain
 compiler/crefs.pas svneol=native#text/plain
 compiler/cresstr.pas svneol=native#text/plain
 compiler/cstreams.pas svneol=native#text/plain

@@ -130,6 +130,10 @@ implementation
                end;
               p.free;
            end
+        else if try_to_consume(_GT) then
+          begin
+            consume(_LT);
+          end
           else
             begin
               if cs_ansistrings in current_settings.localswitches then

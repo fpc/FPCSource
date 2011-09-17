@@ -481,26 +481,26 @@ interface
       TRADirection = (rad_forward, rad_backwards, rad_backwards_reinit);
 
     type
-       TIDString = string[maxidlen];
+      TIDString = string[maxidlen];
 
-       tnormalset = set of byte; { 256 elements set }
-       pnormalset = ^tnormalset;
+      tnormalset = set of byte; { 256 elements set }
+      pnormalset = ^tnormalset;
 
-       pboolean   = ^boolean;
-       pdouble    = ^double;
-       pbyte      = ^byte;
-       pword      = ^word;
-       plongint   = ^longint;
-       plongintarray = plongint;
+      pboolean   = ^boolean;
+      pdouble    = ^double;
+      pbyte      = ^byte;
+      pword      = ^word;
+      plongint   = ^longint;
+      plongintarray = plongint;
 
-       pfileposinfo = ^tfileposinfo;
-       tfileposinfo = record
-         { if types of column or fileindex are changed, modify tcompilerppufile.putposinfo }
-         line      : longint;
-         column    : word;
-         fileindex : word;
-         moduleindex : word;
-       end;
+      pfileposinfo = ^tfileposinfo;
+      tfileposinfo = record
+        { if types of column or fileindex are changed, modify tcompilerppufile.putposinfo }
+        line      : longint;
+        column    : word;
+        fileindex : word;
+        moduleindex : word;
+      end;
 
   {$ifndef xFPC}
     type
@@ -512,6 +512,8 @@ interface
         D4: array[0..7] of Byte;
       end;
   {$endif}
+
+      tstringencoding = dword;
 
     const
        { link options }
