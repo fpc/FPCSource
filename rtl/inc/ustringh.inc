@@ -110,11 +110,11 @@ function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): Si
 function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar; SourceChars: SizeUInt): SizeUInt;
 function Utf8ToUnicode(Dest: PUnicodeChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
-function UTF8Encode(const s : RawByteString) : UTF8String; inline;
-function UTF8Encode(const s : UnicodeString) : UTF8String;
-function UTF8Decode(const s : UTF8String): UnicodeString;
-function AnsiToUtf8(const s : RawByteString): UTF8String;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Utf8ToAnsi(const s : UTF8String) : RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
+function UTF8Encode(const s : RawByteString) : RawByteString; inline;
+function UTF8Encode(const s : UnicodeString) : RawByteString;
+function UTF8Decode(const s : RawByteString): UnicodeString;
+function AnsiToUtf8(const s : RawByteString): RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Utf8ToAnsi(const s : RawByteString) : RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
 function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;
 function UCS4StringToUnicodeString(const s : UCS4String) : UnicodeString;
 function WideStringToUCS4String(const s : WideString) : UCS4String;

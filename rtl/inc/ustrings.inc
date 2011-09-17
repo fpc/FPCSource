@@ -2386,13 +2386,13 @@ function UTF8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar
   end;
 
 
-function UTF8Encode(const s : RawByteString) : UTF8String; inline;
+function UTF8Encode(const s : RawByteString) : RawByteString; inline;
   begin
     Result:=UTF8Encode(UnicodeString(s));
   end;
 
 
-function UTF8Encode(const s : UnicodeString) : UTF8String;
+function UTF8Encode(const s : UnicodeString) : RawByteString;
   var
     i : SizeInt;
     hs : UTF8String;
@@ -2410,7 +2410,7 @@ function UTF8Encode(const s : UnicodeString) : UTF8String;
   end;
 
 
-function UTF8Decode(const s : UTF8String): UnicodeString;
+function UTF8Decode(const s : RawByteString): UnicodeString;
   var
     i : SizeInt;
     hs : UnicodeString;
@@ -2428,13 +2428,13 @@ function UTF8Decode(const s : UTF8String): UnicodeString;
   end;
 
 
-function AnsiToUtf8(const s : RawByteString): UTF8String;{$ifdef SYSTEMINLINE}inline;{$endif}
+function AnsiToUtf8(const s : RawByteString): RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Utf8Encode(s);
   end;
 
 
-function Utf8ToAnsi(const s : UTF8String) : RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Utf8ToAnsi(const s : RawByteString) : RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Utf8Decode(s);
   end;

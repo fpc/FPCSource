@@ -1656,7 +1656,7 @@ function UTF8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; S
   end;
 
 
-function UTF8Encode(const s : WideString) : UTF8String;
+function UTF8Encode(const s : WideString) : RawByteString;
   var
     i : SizeInt;
     hs : UTF8String;
