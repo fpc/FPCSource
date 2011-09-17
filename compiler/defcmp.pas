@@ -346,7 +346,7 @@ implementation
                            else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
                              eq:=te_convert_l2
                            else
-                             eq:=te_equal;
+                             eq:=te_convert_l1;
                          end;
                       end
                      else
