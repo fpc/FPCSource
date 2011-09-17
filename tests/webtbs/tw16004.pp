@@ -11,7 +11,7 @@ begin
 end;
 
 	procedure foo;
-	var a: array[0..5] of ansichar = 'willow';
+	var a: array[0..5] of char = 'willow';
 	const b: array[0..2] of WideChar = 'ива';
 	begin
 		assert( verify(a, sizeof(a), [ord('w'), ord('i'), ord('l'), ord('l'), ord('o'), ord('w')]) );
@@ -22,12 +22,12 @@ end;
 {$endif}
 	end;
 
-const c: array[0..9] of ansichar = 'rosenberg';
+const c: array[0..10] of char = 'rosenberg';
 var d: array[0..10] of WideChar = 'розенберг';
-	z: array[0..0] of WideChar = 'ы';
-	x: array[0..0] of ansichar = 'x';
+	z: array[0..1] of WideChar = 'ы';
+	x: array[0..0] of char = 'x';
 begin
-	assert( verify(c, sizeof(c), [114, 111, 115, 101, 110, 98, 101, 114, 103, 0]) );
+	assert( verify(c, sizeof(c), [114, 111, 115, 101, 110, 98, 101, 114, 103, 0, 0]) );
 {$ifdef endian_big}
 	assert( verify(d, sizeof(d), [$04,$40,$04,$3E,$04,$37,$04,$35,$04,$3D,$04,$31,$04,$35,$04,$40,$04,$33,0,0,0,0]) );
 {$else}
@@ -35,9 +35,9 @@ begin
 {$endif}
 	foo;
 {$ifdef endian_big}
-	assert( verify(z, sizeof(z), [$04,$4B]) );
+	assert( verify(z, sizeof(z), [$04,$4B,0,0]) );
 {$else}
-	assert( verify(z, sizeof(z), [$4B,$04]) );
+	assert( verify(z, sizeof(z), [$4B,$04,0,0]) );
 {$endif}
 	assert( verify(x, sizeof(x), [120]) )
 end.

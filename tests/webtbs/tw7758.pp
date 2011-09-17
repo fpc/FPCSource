@@ -11,7 +11,7 @@ const
   c2=widechar('é');
   c3=widestring('é');
 var
-  c: ansichar;
+  c: char;
   wc,wc2: widechar;
   s,s2,a: ansistring;
   w: widestring;
