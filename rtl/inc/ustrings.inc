@@ -2564,7 +2564,7 @@ function StringRefCount(const S: UnicodeString): SizeInt; overload;
     if assigned(Pointer(S)) then
       Result:=PUnicodeRec(pointer(S)-UnicodeFirstOff)^.Ref
     else
-      Result:=SizeOf(UnicodeChar);
+      Result:=0;
   end;
 
 

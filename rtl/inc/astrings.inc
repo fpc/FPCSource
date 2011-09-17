@@ -1141,7 +1141,7 @@ function StringRefCount(const S: RawByteString): SizeInt; overload;
     if assigned(Pointer(S)) then
       Result:=PAnsiRec(pointer(S)-AnsiFirstOff)^.Ref
     else
-      Result:=SizeOf(AnsiChar);
+      Result:=0;
   end;
 
 
