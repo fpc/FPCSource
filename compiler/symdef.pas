@@ -1411,6 +1411,7 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_shortstring;
+         encoding:=0;
          len:=l;
          savesize:=len+1;
       end;
@@ -1420,6 +1421,7 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_shortstring;
+         encoding:=0;
          len:=ppufile.getbyte;
          savesize:=len+1;
       end;
@@ -1429,6 +1431,7 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_longstring;
+         encoding:=0;
          len:=l;
          savesize:=sizeof(pint);
       end;
@@ -1438,6 +1441,7 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_longstring;
+         encoding:=0;
          len:=ppufile.getasizeint;
          savesize:=sizeof(pint);
       end;
@@ -1477,6 +1481,7 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_widestring;
+         encoding:=CP_UTF16;
          len:=ppufile.getaint;
          savesize:=sizeof(pint);
       end;

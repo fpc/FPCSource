@@ -304,7 +304,7 @@ implementation
                            if len=0 then
                              InternalError(2008032301)   { empty string should be handled above }
                            else
-                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len);
+                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
                         end;
                       cst_unicodestring,
                       cst_widestring:
@@ -314,6 +314,7 @@ implementation
                            else
                              lastlabel := emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
                                              value_str,
+                                             tstringdef(resultdef).encoding,
                                              (cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags));
                         end;
                       cst_shortstring:

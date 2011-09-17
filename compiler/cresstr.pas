@@ -146,7 +146,7 @@ uses
           make_mangledname('RESSTR',current_module.localsymtable,'START'),AT_DATA,0));
 
         { Write unitname entry }
-        namelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),False);
+        namelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),DefaultSystemCodePage,False);
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(namelab));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
@@ -162,12 +162,12 @@ uses
             new_section(current_asmdata.asmlists[al_const],sec_rodata,make_mangledname('RESSTR',current_module.localsymtable,'d_'+r.name),sizeof(pint));
             { Write default value }
             if assigned(R.value) and (R.len<>0) then
-              valuelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],R.Value,R.Len,False)
+              valuelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],R.Value,R.Len,DefaultSystemCodePage,False)
             else
               valuelab:=nil;
             { Append the name as a ansistring. }
             current_asmdata.asmlists[al_const].concat(cai_align.Create(const_align(sizeof(pint))));
-            namelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],@R.Name[1],length(R.name),False);
+            namelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],@R.Name[1],length(R.name),DefaultSystemCodePage,False);
 
             {
               Resourcestring index:

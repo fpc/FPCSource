@@ -754,7 +754,7 @@ implementation
                      if (strlength=0) then
                        ll := nil
                      else
-                       ll := emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength);
+                       ll := emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength,def.encoding);
                      hr.list.concat(Tai_const.Create_sym(ll));
                   end;
                 st_unicodestring,
@@ -768,6 +768,7 @@ implementation
                        winlike := (def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
                        ll := emit_unicodestring_const(current_asmdata.asmlists[al_const],
                               strval,
+                              def.encoding,
                               winlike);
 
                        { Collect Windows widestrings that need initialization at startup.
