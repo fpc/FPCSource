@@ -275,17 +275,23 @@ begin
 end;
 
 
-Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; compilerproc;
+Function fpc_AnsiStr_To_WideStr (Const S2 : RawByteString): WideString; compilerproc;
 {
   Converts an AnsiString to a WideString;
 }
 Var
   Size : SizeInt;
+  cp: TSystemCodePage;
 begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Ansi2WideMoveProc(PChar(S2),StringCodePage(S2),result,Size);
+  begin
+    cp:=StringCodePage(S2);
+    if cp=$ffff then
+      cp:=DefaultSystemCodePage;
+    widestringmanager.Ansi2WideMoveProc(PChar(S2),cp,result,Size);
+  end;
 end;
 
 
@@ -901,13 +907,13 @@ begin
 end;
 
 
-Function Pos (c : WideChar; Const s : AnsiString) : SizeInt;
+Function Pos (c : WideChar; Const s : RawByteString) : SizeInt;
   begin
     result:=Pos(c,WideString(s));
   end;
 
 
-Function Pos (c : AnsiString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (c : RawByteString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     result:=Pos(WideString(c),s);
   end;
@@ -919,7 +925,7 @@ Function Pos (c : ShortString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINL
   end;
 
 
-Function Pos (c : WideString; Const s : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (c : WideString; Const s : RawByteString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     result:=Pos(c,WideString(s));
   end;

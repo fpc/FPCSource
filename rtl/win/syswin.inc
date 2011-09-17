@@ -303,7 +303,7 @@ function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
 function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
     stdcall; external 'user32' name 'CharLowerBuffW';
 
-procedure Win32Unicode2AnsiMove(source:punicodechar;var dest:ansistring;cp : TSystemCodePage;len:SizeInt);
+procedure Win32Unicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
   var
     destlen: SizeInt;
   begin
@@ -357,7 +357,7 @@ function Win32UnicodeLower(const s : UnicodeString) : UnicodeString;
                               Widestring
  ******************************************************************************}
 
-procedure Win32Wide2AnsiMove(source:pwidechar;var dest:ansistring;cp : TSystemCodePage;len:SizeInt);
+procedure Win32Wide2AnsiMove(source:pwidechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
   var
     destlen: SizeInt;
   begin

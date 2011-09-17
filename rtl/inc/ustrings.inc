@@ -59,7 +59,7 @@ Const
   These routines can be overwritten for the Current Locale
 }
 
-procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:ansistring;cp : TSystemCodePage;len:SizeInt);
+procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
 var
   i : SizeInt;
   p : PAnsiChar;
@@ -1400,7 +1400,7 @@ function UnicodeCharToString(S : PUnicodeChar) : UnicodeString;
   end;
 
 
-function StringToUnicodeChar(const Src : AnsiString;Dest : PUnicodeChar;DestSize : SizeInt) : PUnicodeChar;
+function StringToUnicodeChar(const Src : RawByteString;Dest : PUnicodeChar;DestSize : SizeInt) : PUnicodeChar;
   var
     temp:unicodestring;
   begin
@@ -1423,7 +1423,7 @@ function WideCharToString(S : PWideChar) : UnicodeString;
   end;
 
 
-function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
+function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
   var
     temp:widestring;
   begin
@@ -1596,7 +1596,7 @@ begin
 end;
 
 
-Function Pos (c : AnsiString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (c : RawByteString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     result:=Pos(UnicodeString(c),s);
   end;
@@ -1608,7 +1608,7 @@ Function Pos (c : ShortString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEM
   end;
 
 
-Function Pos (c : UnicodeString; Const s : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (c : UnicodeString; Const s : RawByteString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     result:=Pos(c,UnicodeString(s));
   end;
@@ -2339,7 +2339,7 @@ function UTF8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar
   end;
 
 
-function UTF8Encode(const s : Ansistring) : UTF8String; inline;
+function UTF8Encode(const s : RawByteString) : UTF8String; inline;
   begin
     Result:=UTF8Encode(UnicodeString(s));
   end;

@@ -313,7 +313,7 @@ procedure fpc_WideStr_To_ShortStr (out res: ShortString;const S2 : WideString); 
 {$endif FPC_STRTOSHORTSTRINGPROC}
 Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString; compilerproc;
 Function fpc_WideStr_To_AnsiStr (const S2 : WideString;cp : TSystemCodePage): AnsiString; compilerproc;
-Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; compilerproc;
+Function fpc_AnsiStr_To_WideStr (Const S2 : RawByteString): WideString; compilerproc;
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
 {$ifndef STR_CONCAT_PROCS}
 Function fpc_WideStr_Concat (const S1,S2 : WideString) : WideString; compilerproc;
