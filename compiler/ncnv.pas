@@ -920,6 +920,29 @@ implementation
             addstatement(newstat,ctemprefnode.create(restemp));
             result:=newblock;
           end
+        else if is_widechar(tarraydef(left.resultdef).elementdef) and
+                (tstringdef(resultdef).stringtype=st_ansistring) then
+          begin
+            result:=ccallnode.createinternres(
+                      'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
+                      ccallparanode.create(
+                        cordconstnode.create(
+                          ord(tarraydef(left.resultdef).lowrange=0),
+                          booltype,
+                          false
+                        ),
+                        ccallparanode.create(
+                          cordconstnode.create(
+                            tstringdef(resultdef).encoding,
+                            u16inttype,
+                            true
+                          ),
+                          ccallparanode.create(left,nil)
+                        )
+                      ),
+                      resultdef
+                    );
+          end
         else
           result:=ccallnode.createinternres(
             'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
