@@ -1585,7 +1585,7 @@ begin
      if ResultAddress<>Nil then
       begin
         Move (PUnicodeChar(S)[Index],ResultAddress^,Size*sizeof(UnicodeChar));
-        PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Len:=Size*sizeof(UnicodeChar);
+        PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Len:=Size;
         PUnicodeChar(ResultAddress+Size*sizeof(UnicodeChar))^:=#0;
       end;
    end;

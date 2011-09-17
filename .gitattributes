@@ -10528,6 +10528,7 @@ tests/test/tunistr4.pp svneol=native#text/plain
 tests/test/tunistr5.pp svneol=native#text/plain
 tests/test/tunistr6.pp svneol=native#text/plain
 tests/test/tunistr7.pp svneol=native#text/plain
+tests/test/tunistrcopy.pp svneol=native#text/plain
 tests/test/tunit1.pp svneol=native#text/plain
 tests/test/tunit2.pp svneol=native#text/plain
 tests/test/tunit3.pp svneol=native#text/plain
