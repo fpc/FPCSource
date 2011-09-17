@@ -1,3 +1,4 @@
+{$CODEPAGE cp437}
 type
   tcpstr437 = string<437>;
   tcpstr850 = string<850>;
