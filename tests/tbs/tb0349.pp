@@ -1,9 +1,4 @@
 { %VERSION=1.1}
-uses
-{$ifdef unix}
-  cwstring,
-{$endif unix}
-  SysUtils;
 var
    p : pwidechar;
    c1,c2 : widechar;
