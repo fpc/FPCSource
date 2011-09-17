@@ -261,7 +261,7 @@ begin
 end;
 
 
-Function fpc_WideStr_To_AnsiStr (const S2 : WideString;cp : TSystemCodePage): AnsiString; compilerproc;
+Function fpc_WideStr_To_AnsiStr (const S2 : WideString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
 {
   Converts a WideString to an AnsiString
 }
@@ -271,7 +271,7 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,cp,Size);
+    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,{$ifdef FPC_HAS_CPSTRING}cp{$else}TSystemCodePage(0){$endif FPC_HAS_CPSTRING},Size);
 end;
 
 
@@ -504,12 +504,12 @@ begin
 end;
 
 
-Function fpc_WChar_To_AnsiStr(const c : WideChar;cp : TSystemCodePage): AnsiString; compilerproc;
+Function fpc_WChar_To_AnsiStr(const c : WideChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
 {
   Converts a WideChar to a AnsiString;
 }
 begin
-  widestringmanager.Wide2AnsiMoveProc(@c, fpc_WChar_To_AnsiStr, cp, 1);
+  widestringmanager.Wide2AnsiMoveProc(@c, fpc_WChar_To_AnsiStr,{$ifdef FPC_HAS_CPSTRING}cp{$else}TSystemCodePage(0){$endif FPC_HAS_CPSTRING}, 1);
 end;
 
 
