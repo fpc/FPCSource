@@ -2715,7 +2715,7 @@ end;
 
 
 { import from system unit }
-Procedure fpc_Write_Text_AnsiStr (Len : LongInt; Var f : Text; S : AnsiString); external name 'FPC_WRITE_TEXT_ANSISTR';
+Procedure fpc_Write_Text_AnsiStr (Len : LongInt; Var f : Text; S : RawByteString); external name 'FPC_WRITE_TEXT_ANSISTR';
 
 
 function syswritevariant(var t : text; const v : Variant;width : LongInt) : Pointer;
