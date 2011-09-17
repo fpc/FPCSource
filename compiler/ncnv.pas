@@ -2918,9 +2918,9 @@ implementation
         else if (tstringdef(resultdef).stringtype=st_ansistring) and
             ((tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring]) or
              { ansistring to ansistring and no RawByteString envolved? }
-             ((tstringdef(resultdef).encoding<>65535) and
-              (tstringdef(left.resultdef).stringtype=st_ansistring) and
-              (tstringdef(left.resultdef).encoding<>65535)
+             (//(tstringdef(resultdef).encoding<>65535) and
+              (tstringdef(left.resultdef).stringtype=st_ansistring) 
+              //(tstringdef(left.resultdef).encoding<>65535)
              )
             ) then
             result:=ccallnode.createinternres(procname,

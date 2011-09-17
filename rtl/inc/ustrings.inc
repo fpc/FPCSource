@@ -340,11 +340,17 @@ Function fpc_AnsiStr_To_UnicodeStr (Const S2 : RawByteString): UnicodeString; co
 }
 Var
   Size : SizeInt;
+  cp: TSystemCodePage;
 begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Ansi2UnicodeMoveProc(PChar(S2),StringCodePage(S2),result,Size);
+  begin
+    cp:=StringCodePage(S2);
+    if cp=$ffff then
+      cp:=DefaultSystemCodePage;
+    widestringmanager.Ansi2UnicodeMoveProc(PChar(S2),cp,result,Size);
+  end;
 end;
 
 

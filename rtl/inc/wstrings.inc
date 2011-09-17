@@ -267,11 +267,21 @@ Function fpc_WideStr_To_AnsiStr (const S2 : WideString{$ifdef FPC_HAS_CPSTRING};
 }
 Var
   Size : SizeInt;
+{$ifndef FPC_HAS_CPSTRING}
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
+{$ifndef FPC_HAS_CPSTRING}
+  cp:=$ffff;
+{$endif FPC_HAS_CPSTRING}
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,{$ifdef FPC_HAS_CPSTRING}cp{$else}TSystemCodePage(0){$endif FPC_HAS_CPSTRING},Size);
+  begin
+    if cp=$ffff then
+      cp:=DefaultSystemCodePage;
+    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,cp,Size);
+  end;
 end;
 
 
