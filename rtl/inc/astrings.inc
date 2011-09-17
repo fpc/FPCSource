@@ -416,11 +416,25 @@ Var
   Size : SizeInt;
   temp : UnicodeString;
 begin
-  temp:=S;
   result:='';
-  Size:=Length(temp);
+  Size:=Length(S);
   if Size>0 then
-    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(temp)),result,cp,Size);
+    begin
+      if (cp=0) then
+        cp:=DefaultSystemCodePage;
+      if (StringCodePage(S)=cp) then
+        begin
+          SetLength(result,Size);
+          Move(S[1],result[1],Size);
+          PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=cp;
+        end
+      else
+        begin
+          temp:=S;
+          Size:=Length(temp);
+          widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(temp)),result,cp,Size);
+        end;
+    end;
 end;
 
 Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; [external name 'FPC_ANSISTR_TO_ANSISTR'];
