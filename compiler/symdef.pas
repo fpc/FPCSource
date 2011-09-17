@@ -1447,6 +1447,7 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_ansistring;
+         encoding:=65535;
          len:=-1;
          savesize:=sizeof(pint);
       end;
@@ -1466,6 +1467,7 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_widestring;
+         encoding:=CP_UTF16;
          len:=-1;
          savesize:=sizeof(pint);
       end;

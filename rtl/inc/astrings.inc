@@ -208,11 +208,30 @@ end;
 
 {$else STR_CONCAT_PROCS}
 
-procedure fpc_AnsiStr_Concat (var DestS:ansistring;const S1,S2 : AnsiString); compilerproc;
+procedure fpc_AnsiStr_Concat (var DestS:RawByteString;const S1,S2 : RawByteString); compilerproc;
 Var
   Size,Location : SizeInt;
   same : boolean;
+  S1CP, S2CP, DestCP: TSystemCodePage;
+  U: UnicodeString;
 begin
+  { if codepages are differ then concat using unicodestring }
+  S1CP:=StringCodePage(S1);
+  if S1CP=$ffff then
+    S1CP:=DefaultSystemCodePage;
+  S2CP:=StringCodePage(S2);
+  if S2CP=$ffff then
+    S2CP:=DefaultSystemCodePage;
+  DestCP:=StringCodePage(DestS);
+  if DestCP=$ffff then
+    DestCP:=DefaultSystemCodePage;
+  if (S1CP<>DestCP) or (S2CP<>DestCP) then
+    begin
+      U:=UnicodeString(S1)+UnicodeString(S2);
+      DestS:='';
+      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(U)),DestS,DestCP,Length(U));
+      exit;
+    end;
   { only assign if s1 or s2 is empty }
   if (S1='') then
     begin
@@ -681,6 +700,7 @@ begin
   SNew:=NewAnsiString (L);
   Move (Pointer(S)^,SNew^,L+1);
   PAnsiRec(SNew-AnsiFirstOff)^.len:=L;
+  PAnsiRec(SNew-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
   fpc_ansistr_decr_ref (Pointer(S));  { Thread safe }
   pointer(S):=SNew;
   pointer(result):=SNew;
@@ -746,7 +766,7 @@ begin
      move(S[1],(pointer(S)+ofs)^,strlength+1)
 end;
 
-Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
+Function Fpc_Ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt) : AnsiString;compilerproc;
 var
   ResultAddress : Pointer;
 begin
@@ -767,8 +787,9 @@ begin
      if ResultAddress<>Nil then
       begin
         Move (Pointer(Pointer(S)+index)^,ResultAddress^,Size);
-        PAnsiRec(ResultAddress-AnsiFirstOff)^.Len:=Size;
         PByte(ResultAddress+Size)^:=0;
+        PAnsiRec(ResultAddress-AnsiFirstOff)^.Len:=Size;
+        PAnsiRec(ResultAddress-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
       end;
    end;
    fpc_ansistr_decr_ref(Pointer(fpc_ansistr_copy));

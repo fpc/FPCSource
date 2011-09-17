@@ -1,3 +1,4 @@
+{$CODEPAGE cp1251}
 // file encoding is cp1251
 type
   Cp866String = string<866>;
