@@ -1113,9 +1113,9 @@ function DoCompareStringA(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): Ptr
     a1, a2: AnsiString;
   begin
     if L1>0 then
-      widestringmanager.Wide2AnsiMoveProc(P1,a1,L1);
+      widestringmanager.Wide2AnsiMoveProc(P1,a1,DefaultSystemCodePage,L1);
     if L2>0 then
-      widestringmanager.Wide2AnsiMoveProc(P2,a2,L2);
+      widestringmanager.Wide2AnsiMoveProc(P2,a2,DefaultSystemCodePage,L2);
     SetLastError(0);
     Result:=CompareStringA(LOCALE_USER_DEFAULT,Flags,pchar(a1),
       length(a1),pchar(a2),length(a2))-2;

@@ -595,7 +595,7 @@ end;
 {$else VER2_4}
 Procedure fpc_AnsiStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];  compilerproc;
 begin
-  if (p=nil) or (index>PAnsiRec(p-FirstOff)^.Len) or (Index<1) then
+  if (p=nil) or (index>PAnsiRec(p-AnsiFirstOff)^.Len) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
 {$endif VER2_4}
@@ -1115,7 +1115,7 @@ end;
 Procedure SetString (Out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 begin
   if (Buf<>nil) and (Len>0) then
-    widestringmanager.Wide2AnsiMoveProc(Buf,S,Len)
+    widestringmanager.Wide2AnsiMoveProc(Buf,S,DefaultSystemCodePage,Len)
   else
     SetLength(S, Len);
 end;

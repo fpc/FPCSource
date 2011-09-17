@@ -108,6 +108,15 @@ implementation
                  { error recovery }
                  consume(_RECKKLAMMER);
                end
+             {else
+               begin
+                if (tordconstnode(p).value<=0) then
+                  begin
+                     Message(parser_e_invalid_string_size);
+                     tordconstnode(p).value:=255;
+                  end;
+                 consume(_RECKKLAMMER);
+               end}
              else
                begin
                 if (tordconstnode(p).value<=0) then

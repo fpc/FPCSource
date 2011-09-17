@@ -1371,7 +1371,7 @@ Begin
         else
           begin
             { valid code point -> convert to widestring}
-            widestringmanager.Ansi2WideMoveProc(@str[0],ws,i+1);
+            widestringmanager.Ansi2WideMoveProc(@str[0],DefaultSystemCodePage,ws,i+1);
             { has to be exactly one widechar }
             if length(ws)=1 then
               begin
