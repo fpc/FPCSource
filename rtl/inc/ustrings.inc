@@ -1252,7 +1252,7 @@ begin
 {$endif}
 end;
 
-procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
+procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: RawByteString); compilerproc;
 var
   len: SizeInt;
   temp: widestring;

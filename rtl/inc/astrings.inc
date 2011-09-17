@@ -609,7 +609,7 @@ end;
 
 {$else ndef FPC_STRTOCHARARRAYPROC}
 
-procedure  fpc_ansistr_to_chararray(out res: array of char; const src: ansistring); compilerproc;
+procedure  fpc_ansistr_to_chararray(out res: array of char; const src: RawByteString); compilerproc;
 var
   len: SizeInt;
 begin

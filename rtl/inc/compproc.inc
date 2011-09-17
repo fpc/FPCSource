@@ -277,7 +277,7 @@ Function fpc_CharArray_To_AnsiStr(const arr: array of char; zerobased: boolean =
 {$ifndef FPC_STRTOCHARARRAYPROC}
 function fpc_ansistr_to_chararray(arraysize: SizeInt; const src: ansistring): fpc_big_chararray; compilerproc;
 {$else ndef FPC_STRTOCHARARRAYPROC}
-procedure fpc_ansistr_to_chararray(out res: array of char; const src: ansistring)compilerproc;
+procedure fpc_ansistr_to_chararray(out res: array of char; const src: RawByteString)compilerproc;
 {$endif ndef FPC_STRTOCHARARRAYPROC}
 Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt; compilerproc;
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt; compilerproc;
@@ -422,7 +422,7 @@ Function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortStrin
 Function fpc_ansistr_to_widechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_widechararray; compilerproc;
 {$else ndef FPC_STRTOCHARARRAYPROC}
 procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
-procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
+procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: RawByteString); compilerproc;
 procedure fpc_unicodestr_to_widechararray(out res: array of widechar; const src: UnicodeString); compilerproc;
 {$endif ndef FPC_STRTOCHARARRAYPROC}
 {$endif VER2_2}
