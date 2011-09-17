@@ -292,6 +292,7 @@ const
   MB_PRECOMPOSED = 1;
   CP_ACP = 0;
   CP_UTF16 = 1200;
+  CP_UTF8 = 65001;
   WC_NO_BEST_FIT_CHARS = $400;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
@@ -322,15 +323,20 @@ procedure Win32Unicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : 
 procedure Win32Ansi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:UnicodeString;len:SizeInt);
   var
     destlen: SizeInt;
+    dwflags: DWORD;
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    destlen:=MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, nil, 0);
+    if cp=CP_UTF8 then
+      dwFlags:=0
+    else
+      dwFlags:=MB_PRECOMPOSED;
+    destlen:=MultiByteToWideChar(cp, dwFlags, source, len, nil, 0);
     // this will null-terminate
     setlength(dest, destlen);
     if destlen>0 then
       begin
-        MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, @dest[1], destlen);
+        MultiByteToWideChar(cp, dwFlags, source, len, @dest[1], destlen);
         PUnicodeRec(pointer(dest)-UnicodeFirstOff)^.CodePage:=CP_UTF16;
       end;
   end;
@@ -377,14 +383,19 @@ procedure Win32Wide2AnsiMove(source:pwidechar;var dest:RawByteString;cp : TSyste
 procedure Win32Ansi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
   var
     destlen: SizeInt;
+    dwFlags: DWORD;
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    destlen:=MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, nil, 0);
+    if cp=CP_UTF8 then
+      dwFlags:=0
+    else
+      dwFlags:=MB_PRECOMPOSED;
+    destlen:=MultiByteToWideChar(cp, dwFlags, source, len, nil, 0);
     // this will null-terminate
     setlength(dest, destlen);
     if destlen>0 then
-      MultiByteToWideChar(cp, MB_PRECOMPOSED, source, len, @dest[1], destlen);
+      MultiByteToWideChar(cp, dwFlags, source, len, @dest[1], destlen);
   end;
 
 
