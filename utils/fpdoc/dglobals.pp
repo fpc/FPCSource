@@ -793,7 +793,7 @@ var
        end
      else
        if cls<>result then
-         writeln(cls.name,'''s dependency '  ,clname,' could not be resolved');
+         writeln('Warning : ancestor class ',clname,' of class ',cls.name,' could not be resolved');
 end;
 
 function CreateAliasType (alname,clname : string;parentclass:TPasClassType; out cl2 :TPasClassType):TPasAliasType;
@@ -813,11 +813,11 @@ begin
         result:=ResolveAliasType(clname);
         if assigned(result) then
           begin
-            writeln('found alias ',clname,' (',s,') ',result.classname);  
+//            writeln('found alias ',clname,' (',s,') ',result.classname);  
           end
         else
           begin
-            writeln('new alias ',clname,' (',s,') ');
+//            writeln('new alias ',clname,' (',s,') ');
             cl2.addref;
             Result := TPasAliasType(CreateElement(TPasAliasType,s,module.interfacesection,vispublic,'',0));
             module.interfacesection.Declarations.Add(Result);
@@ -853,7 +853,7 @@ end;
                  begin
                    // writeln('Found alias pair ',clname,' = ',alname);   
                    if not assigned(CreateAliasType(alname,clname,cls,cls2)) then
-                      writeln('creating alias failed!');
+                      writeln('Warning: creating alias ',alname,' for ',clname,' failed!');
                  end 
                else
                  cls2:=ResolveAndLinkClass(clname,j=0,cls);
@@ -1192,7 +1192,7 @@ var
   end;
 
 begin
-//system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
+  system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
   if Length(ALinkDest) = 0 then
   begin
     SetLength(Result, 0);

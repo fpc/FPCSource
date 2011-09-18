@@ -48,6 +48,20 @@ type
     function NewNode: TAVLTreeNode; virtual; abstract;
   end;
 
+  TAVLTree = class;
+
+  { TAVLTreeNodeEnumerator }
+
+  TAVLTreeNodeEnumerator = class
+  private
+    FTree: TAVLTree;
+    FCurrent: TAVLTreeNode;
+  public
+    constructor Create(Tree: TAVLTree);
+    function MoveNext: Boolean;
+    property Current: TAVLTreeNode read FCurrent;
+  end;
+
   TAVLTree = class
   private
     FOnCompare: TListSortCompare;
@@ -98,6 +112,7 @@ type
     constructor Create(OnCompareMethod: TListSortCompare);
     constructor Create;
     destructor Destroy; override;
+    function GetEnumerator: TAVLTreeNodeEnumerator;
   end;
 
   TAVLTreeNodeMemManager = class(TBaseAVLTreeNodeManager)
@@ -134,6 +149,22 @@ begin
   if Data1>Data2 then Result:=-1
   else if Data1<Data2 then Result:=1
   else Result:=0;
+end;
+
+{ TAVLTreeNodeEnumerator }
+
+constructor TAVLTreeNodeEnumerator.Create(Tree: TAVLTree);
+begin
+  FTree:=Tree;
+end;
+
+function TAVLTreeNodeEnumerator.MoveNext: Boolean;
+begin
+  if FCurrent=nil then
+    FCurrent:=FTree.FindLowest
+  else
+    FCurrent:=FTree.FindSuccessor(FCurrent);
+  Result:=FCurrent<>nil;
 end;
 
 { TAVLTree }
@@ -647,6 +678,11 @@ begin
   if fNodeMgrAutoFree then
     FreeAndNil(fNodeMgr);
   inherited Destroy;
+end;
+
+function TAVLTree.GetEnumerator: TAVLTreeNodeEnumerator;
+begin
+  Result:=TAVLTreeNodeEnumerator.Create(Self);
 end;
 
 function TAVLTree.Find(Data: Pointer): TAVLTreeNode;
