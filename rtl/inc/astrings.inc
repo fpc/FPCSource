@@ -726,7 +726,15 @@ begin
       r2:=S2;
       if (cp2=$ffff) or (cp2=0) then
         SetCodePage(r2,DefaultSystemCodePage,false);
-      Result:=widestringmanager.CompareTextUnicodeStringProc(UnicodeString(r1),UnicodeString(r2));
+      //convert them to utf8 then compare
+      SetCodePage(r1,65001);
+      SetCodePage(r2,65001);
+      Maxi:=Length(r1);
+      temp:=Length(r2);
+      Result := Maxi - temp;
+      if Result = 0 then
+        if MaxI>0 then
+          result:=CompareByte(r1[1],r2[1],MaxI);
     end;
 end;
 
