@@ -6,7 +6,11 @@ program tstrutils1;
 {$h+}
 
 uses
-  {SysUtils, }cwstring,StrUtils;
+  {SysUtils, }
+{$ifdef unix}
+  cwstring,
+{$endif unix}
+  StrUtils;
 
 var
   ResultCounter: Integer = 0;
