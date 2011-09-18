@@ -234,7 +234,7 @@ var
   p: String;
   i : integer;
 begin
-  Result:='';
+  Result:=GetEnvironmentVariable('INSTANTFPCOPTIONS');
   I:=1;
   While (I<=ParamCount) and (Copy(ParamStr(i),1,1)='-') do
     begin

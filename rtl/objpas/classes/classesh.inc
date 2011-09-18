@@ -934,7 +934,7 @@ type
   TResourceStream = class(TCustomMemoryStream)
   private
     Res: TFPResourceHandle;
-    Handle: THandle;
+    Handle: TFPResourceHGLOBAL;
     procedure Initialize(Instance: THandle; Name, ResType: PWideChar; NameIsID: Boolean);
   public
     constructor Create(Instance: THandle; const ResName: WideString; ResType: PWideChar);
@@ -945,7 +945,7 @@ type
   TResourceStream = class(TCustomMemoryStream)
   private
     Res: TFPResourceHandle;
-    Handle: THandle;
+    Handle: TFPResourceHGLOBAL;
     procedure Initialize(Instance: THandle; Name, ResType: PChar; NameIsID: Boolean);
   public
     constructor Create(Instance: THandle; const ResName: string; ResType: PChar);

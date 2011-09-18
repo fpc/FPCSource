@@ -446,7 +446,7 @@ end;
 
 Function FileGetAttr (Const FileName : String) : Longint;
 begin
-  Result:=GetFileAttributes(PChar(FileName));
+  Result:=Longint(GetFileAttributes(PChar(FileName)));
 end;
 
 

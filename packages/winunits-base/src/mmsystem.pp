@@ -1778,7 +1778,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
   TYIELDPROC = YIELDPROC;
 
  _MCI_GENERIC_PARMS = packed Record
-                              dwCallback: DWORD;
+                              dwCallback: DWORD_PTR;
 			     End;
  MCI_GENERIC_PARMS   = _MCI_GENERIC_PARMS;
  PMCI_GENERIC_PARMS  = ^_MCI_GENERIC_PARMS;
@@ -1786,7 +1786,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_GENERIC_PARMS  = MCI_GENERIC_PARMS;
 
  _MCI_OPEN_PARMSA = packed Record
-                            dwCallback: DWORD;
+                            dwCallback: DWORD_PTR;
                             wDeviceID: MCIDEVICEID;
                             lpstrDeviceType: LPCSTR;
                             lpstrElementName: LPCSTR;
@@ -1798,7 +1798,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_OPEN_PARMSA  = MCI_OPEN_PARMSA;
 
  _MCI_OPEN_PARMSW = packed Record
-                            dwCallback: DWORD;
+                            dwCallback: DWORD_PTR;
                             wDeviceID: MCIDEVICEID;
                             lpstrDeviceType: LPCWSTR;
                             lpstrElementName: LPCWSTR;
@@ -1820,7 +1820,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
   TMCI_OPEN_PARMS = MCI_OPEN_PARMS;
 
  _MCI_PLAY_PARMS = packed Record
-                           dwCallback: DWORD;
+                           dwCallback: DWORD_PTR;
                            dwFrom: DWORD;
                            dwTo: DWORD;
 			 End;
@@ -1830,7 +1830,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_PLAY_PARMS  = _MCI_PLAY_PARMS;
 
  _MCI_SEEK_PARMS = packed Record
-                           dwCallback: DWORD;
+                           dwCallback: DWORD_PTR;
                            dwTo: DWORD;
 			  End;
  MCI_SEEK_PARMS   = _MCI_SEEK_PARMS;
@@ -1839,8 +1839,8 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_SEEK_PARMS  = _MCI_SEEK_PARMS;
 
  _MCI_STATUS_PARMS = packed Record
-                             dwCallback: DWORD;
-                             dwReturn: DWORD;
+                             dwCallback: DWORD_PTR;
+                             dwReturn: DWORD_PTR;
                              dwItem: DWORD;
                              dwTrack: DWORD;
 			    End;
@@ -1850,7 +1850,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_STATUS_PARMS  = _MCI_STATUS_PARMS;
 
  _MCI_INFO_PARMSA = packed Record
-                            dwCallback: DWORD;
+                            dwCallback: DWORD_PTR;
                             lpstrReturn: PChar;
                             dwRetSize: DWORD;
 			  End;
@@ -1859,7 +1859,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_INFO_PARMSA  = _MCI_INFO_PARMSA;
 
  _MCI_INFO_PARMSW  = packed Record
-                            dwCallback: DWORD;
+                            dwCallback: DWORD_PTR;
                             lpstrReturn: LPWSTR;
                             dwRetSize: DWORD;
 			End;
@@ -1877,7 +1877,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
   TMCI_INFO_PARMS = MCI_INFO_PARMS;
 
  _MCI_GETDEVCAPS_PARMS = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  dwReturn: DWORD;
                                  dwItem: DWORD;
 				End;
@@ -1889,7 +1889,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
 
 
  _MCI_SYSINFO_PARMSA = packed Record
-                               dwCallback: DWORD;
+                               dwCallback: DWORD_PTR;
                                lpstrReturn: PChar;
                                dwRetSize: DWORD;
                                dwNumber: DWORD;
@@ -1901,7 +1901,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_SYSINFO_PARMSA  = _MCI_SYSINFO_PARMSA;
 
  _MCI_SYSINFO_PARMSW = packed Record
-                               dwCallback: DWORD;
+                               dwCallback: DWORD_PTR;
                                lpstrReturn: LPWSTR;
                                dwRetSize: DWORD;
                                dwNumber: DWORD;
@@ -1923,7 +1923,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_SYSINFO_PARMS = MCI_SYSINFO_PARMS;
 
  _MCI_SET_PARMS = packed Record
-                          dwCallback: DWORD;
+                          dwCallback: DWORD_PTR;
                           dwTimeFormat: DWORD;
                           dwAudio: DWORD;
 			 End;
@@ -1933,7 +1933,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_SET_PARMS  = _MCI_SET_PARMS;
 
  _MCI_BREAK_PARMS = packed Record
-                            dwCallback: DWORD;
+                            dwCallback: DWORD_PTR;
                             nVirtKey: longint;
                             hwndBreak: HWND;
 			  End;
@@ -1943,7 +1943,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_BREAK_PARMS  = _MCI_BREAK_PARMS;
 
  _MCI_SAVE_PARMSA = packed Record
-                            dwCallback: DWORD;
+                            dwCallback: DWORD_PTR;
                             lpfilename: LPCSTR;
 			   End;
  MCI_SAVE_PARMSA   = _MCI_SAVE_PARMSA;
@@ -1953,7 +1953,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_SaveParmsA   = TMCI_SAVE_PARMSA;
 
  _MCI_SAVE_PARMSW = packed Record
-                            dwCallback: DWORD;
+                            dwCallback: DWORD_PTR;
                             lpfilename: LPCWSTR;
 			   End;
  MCI_SAVE_PARMSW   = _MCI_SAVE_PARMSW;
@@ -1975,7 +1975,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
   TMCI_SaveParms   = TMCI_SAVE_PARMS;
 
  _MCI_LOAD_PARMSA = packed Record
-                            dwCallback: DWORD;
+                            dwCallback: DWORD_PTR;
                             lpfilename: LPCSTR;
 			 End;
  MCI_LOAD_PARMSA   = _MCI_LOAD_PARMSA;
@@ -1984,7 +1984,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_LOAD_PARMSA  = _MCI_LOAD_PARMSA;
 
  _MCI_LOAD_PARMSW  = packed Record
-                            dwCallback: DWORD;
+                            dwCallback: DWORD_PTR;
                             lpfilename: LPCWSTR;
 			   End;
 
@@ -2005,7 +2005,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_LOAD_PARMS = MCI_LOAD_PARMS;
 
  _MCI_RECORD_PARMS = packed Record
-                             dwCallback: DWORD;
+                             dwCallback: DWORD_PTR;
                              dwFrom: DWORD;
                              dwTo: DWORD;
 			    End;
@@ -2014,7 +2014,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_RECORD_PARMS  = _MCI_RECORD_PARMS;
 
  _MCI_VD_PLAY_PARMS = packed Record
-                              dwCallback: DWORD;
+                              dwCallback: DWORD_PTR;
                               dwFrom: DWORD;
                               dwTo: DWORD;
                               dwSpeed: DWORD;
@@ -2025,7 +2025,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_VD_PLAY_PARMS  = _MCI_VD_PLAY_PARMS;
 
  _MCI_VD_STEP_PARMS  = packed Record
-                              dwCallback: DWORD;
+                              dwCallback: DWORD_PTR;
                               dwFrames: DWORD;
 			    End;
  MCI_VD_STEP_PARMS     = _MCI_VD_STEP_PARMS;
@@ -2033,7 +2033,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  LPMCI_VD_STEP_PARMS   = ^_MCI_VD_STEP_PARMS;
 
  _MCI_VD_ESCAPE_PARMSA = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  lpstrCommand: LPCSTR;
 				End;
  MCI_VD_ESCAPE_PARMSA   = _MCI_VD_ESCAPE_PARMSA;
@@ -2042,7 +2042,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMCI_VD_ESCAPE_PARMSA  = _MCI_VD_ESCAPE_PARMSA;
 
 _MCI_VD_ESCAPE_PARMSW   = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  lpstrCommand: LPCWSTR;
 				 End;
  MCI_VD_ESCAPE_PARMSW   = _MCI_VD_ESCAPE_PARMSW;
@@ -2061,7 +2061,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  TMCI_VD_ESCAPE_PARMS   = MCI_VD_ESCAPE_PARMS;
 
  _MCI_WAVE_OPEN_PARMSA  = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  wDeviceID: MCIDEVICEID;
                                  lpstrDeviceType: LPCSTR;
                                  lpstrElementName: LPCSTR;
@@ -2074,7 +2074,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  TMCI_WAVE_OPEN_PARMSA  = _MCI_WAVE_OPEN_PARMSA;
 
  _MCI_WAVE_OPEN_PARMSW  = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  wDeviceID: MCIDEVICEID;
                                  lpstrDeviceType: LPCWSTR;
                                  lpstrElementName: LPCWSTR;
@@ -2097,7 +2097,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  TMCI_WAVE_OPEN_PARMS   = MCI_WAVE_OPEN_PARMS;
 
  _MCI_WAVE_DELETE_PARMS = packed Record
-                                  dwCallback: DWORD;
+                                  dwCallback: DWORD_PTR;
                                   dwFrom: DWORD;
                                   dwTo: DWORD;
 				End;
@@ -2107,7 +2107,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  TMCI_WAVE_DELETE_PARMS = _MCI_WAVE_DELETE_PARMS;
 
  _MCI_WAVE_SET_PARMS = packed Record
-                               dwCallback: DWORD;
+                               dwCallback: DWORD_PTR;
                                dwTimeFormat: DWORD;
                                dwAudio: DWORD;
                                wInput: UINT;
@@ -2129,7 +2129,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  TMCI_WAVE_SET_PARMS  = _MCI_WAVE_SET_PARMS;
 
  _MCI_SEQ_SET_PARMS  = packed Record
-                              dwCallback: DWORD;
+                              dwCallback: DWORD_PTR;
                               dwTimeFormat: DWORD;
                               dwAudio: DWORD;
                               dwTempo: DWORD;
@@ -2144,7 +2144,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  TMCI_SEQ_SET_PARMS  = _MCI_SEQ_SET_PARMS;
 
  _MCI_ANIM_OPEN_PARMSA = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  wDeviceID: MCIDEVICEID;
                                  lpstrDeviceType: LPCSTR;
                                  lpstrElementName: LPCSTR;
@@ -2158,7 +2158,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  TMCI_ANIM_OPEN_PARMSA  = _MCI_ANIM_OPEN_PARMSA;
 
  _MCI_ANIM_OPEN_PARMSW = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  wDeviceID: MCIDEVICEID;
                                  lpstrDeviceType: LPCWSTR;
                                  lpstrElementName: LPCWSTR;
@@ -2181,7 +2181,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  TMCI_ANIM_OPEN_PARMS = MCI_ANIM_OPEN_PARMS;
 
  _MCI_ANIM_WINDOW_PARMSW = packed Record
-                                   dwCallback: DWORD;
+                                   dwCallback: DWORD_PTR;
                                    Wnd: HWND;
                                    nCmdShow: UINT;
                                    lpstrText: LPCWSTR;
@@ -2192,7 +2192,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  TMCI_ANIM_WINDOW_PARMSW  = _MCI_ANIM_WINDOW_PARMSW;
 
  _MCI_ANIM_STEP_PARMS = packed Record
-                                dwCallback: DWORD;
+                                dwCallback: DWORD_PTR;
                                 dwFrames: DWORD;
 				End;
  MCI_ANIM_STEP_PARMS   = _MCI_ANIM_STEP_PARMS;
@@ -2201,7 +2201,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  TMCI_ANIM_STEP_PARMS  = _MCI_ANIM_STEP_PARMS;
 
  _MCI_ANIM_WINDOW_PARMSA = packed Record
-                                   dwCallback: DWORD;
+                                   dwCallback: DWORD_PTR;
                                    Wnd: HWND;
                                    nCmdShow: UINT;
                                    lpstrText: LPCSTR;
@@ -2211,7 +2211,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  LPMCI_ANIM_WINDOW_PARMSA = ^_MCI_ANIM_WINDOW_PARMSA;
  TMCI_ANIM_WINDOW_PARMSA  = _MCI_ANIM_WINDOW_PARMSA;
 _MCI_ANIM_PLAY_PARMS = packed Record
-                                dwCallback: DWORD;
+                                dwCallback: DWORD_PTR;
                                 dwFrom: DWORD;
                                 dwTo: DWORD;
                                 dwSpeed: DWORD;
@@ -2230,7 +2230,7 @@ _MCI_ANIM_PLAY_PARMS = packed Record
  {$endif}
   TMCI_ANIM_WINDOW_PARMS  = MCI_Anim_Window_Parms;
  _MCI_ANIM_RECT_PARMS  = packed Record
-                                dwCallback: DWORD;
+                                dwCallback: DWORD_PTR;
                                 rc: TRECT;
 			       End;
  MCI_ANIM_RECT_PARMS   = _MCI_ANIM_RECT_PARMS;
@@ -2239,7 +2239,7 @@ _MCI_ANIM_PLAY_PARMS = packed Record
  TMCI_ANIM_RECT_PARMS  = _MCI_ANIM_RECT_PARMS;
 
  _MCI_ANIM_UPDATE_PARMS = packed Record
-                                  dwCallback: DWORD;
+                                  dwCallback: DWORD_PTR;
                                   rc: TRECT;
                                   hDC: HDC;
 				End;
@@ -2249,7 +2249,7 @@ _MCI_ANIM_PLAY_PARMS = packed Record
  TMCI_ANIM_UPDATE_PARMS  = _MCI_ANIM_UPDATE_PARMS;
 
  _MCI_OVLY_OPEN_PARMSA = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  wDeviceID: MCIDEVICEID;
                                  lpstrDeviceType: LPCSTR;
                                  lpstrElementName: LPCSTR;
@@ -2263,7 +2263,7 @@ _MCI_ANIM_PLAY_PARMS = packed Record
  TMCI_OVLY_OPEN_PARMSA  = _MCI_OVLY_OPEN_PARMSA;
 
  _MCI_OVLY_OPEN_PARMSW = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  wDeviceID: MCIDEVICEID;
                                  lpstrDeviceType: LPCWSTR;
                                  lpstrElementName: LPCWSTR;
@@ -2288,7 +2288,7 @@ _MCI_ANIM_PLAY_PARMS = packed Record
  TMCI_OVLY_OPEN_PARMS   = MCI_OVLY_OPEN_PARMS;
 
 _MCI_OVLY_WINDOW_PARMSA = packed Record
-                                   dwCallback: DWORD;
+                                   dwCallback: DWORD_PTR;
                                    hWnd: HWND;
                                    nCmdShow: UINT;
                                    lpstrText: LPCSTR;
@@ -2299,7 +2299,7 @@ _MCI_OVLY_WINDOW_PARMSA = packed Record
  TMCI_OVLY_WINDOW_PARMSA   = _MCI_OVLY_WINDOW_PARMSA;
 
  _MCI_OVLY_WINDOW_PARMSW = packed Record
-                                   dwCallback: DWORD;
+                                   dwCallback: DWORD_PTR;
                                    hWnd: HWND;
                                    nCmdShow: UINT;
                                    lpstrText: LPCWSTR;
@@ -2321,7 +2321,7 @@ _MCI_OVLY_WINDOW_PARMSA = packed Record
  TMCI_OVLY_WINDOW_PARMS   = MCI_OVLY_WINDOW_PARMSW;
 
  _MCI_OVLY_RECT_PARMS = packed Record
-                                dwCallback: DWORD;
+                                dwCallback: DWORD_PTR;
                                 rc: TRECT;
 				End;
  MCI_OVLY_RECT_PARMS   = _MCI_OVLY_RECT_PARMS;
@@ -2330,7 +2330,7 @@ _MCI_OVLY_WINDOW_PARMSA = packed Record
  TMCI_OVLY_RECT_PARMS  = _MCI_OVLY_RECT_PARMS;
 
  _MCI_OVLY_SAVE_PARMSA = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  lpfilename: LPCSTR;
                                  rc: TRECT;
 				End;
@@ -2340,7 +2340,7 @@ _MCI_OVLY_WINDOW_PARMSA = packed Record
  TMCI_OVLY_SAVE_PARMSA  = _MCI_OVLY_SAVE_PARMSA;
 
  _MCI_OVLY_SAVE_PARMSW = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  lpfilename: LPCWSTR;
                                  rc: TRECT;
 				End;
@@ -2361,7 +2361,7 @@ _MCI_OVLY_WINDOW_PARMSA = packed Record
  TMCI_OVLY_SAVE_PARMS = MCI_OVLY_SAVE_PARMS;
 
  _MCI_OVLY_LOAD_PARMSA = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  lpfilename: LPCSTR;
                                  rc: TRECT;
 				End;
@@ -2370,7 +2370,7 @@ _MCI_OVLY_WINDOW_PARMSA = packed Record
  LPMCI_OVLY_LOAD_PARMSA = ^_MCI_OVLY_LOAD_PARMSA;
  TMCI_OVLY_LOAD_PARMSA  = _MCI_OVLY_LOAD_PARMSA;
  _MCI_OVLY_LOAD_PARMSW = packed Record
-                                 dwCallback: DWORD;
+                                 dwCallback: DWORD_PTR;
                                  lpfilename: LPCWSTR;
                                  rc: TRECT;
 				End;
