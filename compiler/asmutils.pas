@@ -98,16 +98,16 @@ uses
             list.concat(tai_label.create(referencelab));
           end;
         strlength := getlengthwidestring(pcompilerwidestring(data));
-        list.concat(tai_const.create_16bit(encoding));
-        list.concat(tai_const.create_16bit(2));
-{$ifdef cpu64bitaddr}
-        { dummy for alignment }
-        list.concat(Tai_const.Create_32bit(0));
-{$endif cpu64bitaddr}
         if Winlike then
           list.concat(Tai_const.Create_32bit(strlength*cwidechartype.size))
         else
           begin
+            list.concat(tai_const.create_16bit(encoding));
+            list.concat(tai_const.create_16bit(2));
+    {$ifdef cpu64bitaddr}
+            { dummy for alignment }
+            list.concat(Tai_const.Create_32bit(0));
+    {$endif cpu64bitaddr}
             list.concat(Tai_const.Create_pint(-1));
             list.concat(Tai_const.Create_pint(strlength));
           end;
