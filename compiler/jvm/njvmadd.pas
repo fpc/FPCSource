@@ -61,7 +61,7 @@ interface
       aasmtai,aasmdata,aasmcpu,defutil,
       hlcgobj,hlcgcpu,cgutils,
       cpupara,
-      nbas,ncon,nset,nadd,ncal,ncnv,nld,nmat,nmem,
+      nbas,ncon,nset,nadd,ncal,ncnv,ninl,nld,nmat,nmem,
       njvmcon,
       cgobj;
 
@@ -90,6 +90,23 @@ interface
         if left.resultdef.typ=setdef then
           begin
             result:=jvm_first_addset;
+            exit;
+          end;
+        { special handling for comparing a dynamic array to nil: dynamic arrays
+          can be empty on the jvm target and not be different from nil at the
+          same time (array of 0 elements) -> change into length check }
+        if is_dynamic_array(left.resultdef) and
+           (right.nodetype=niln) then
+          begin
+           result:=caddnode.create(nodetype,cinlinenode.create(in_length_x,false,left),genintconstnode(0));
+           left:=nil;
+           exit;
+          end;
+        if is_dynamic_array(right.resultdef) and
+           (left.nodetype=niln) then
+          begin
+            result:=caddnode.create(nodetype,cinlinenode.create(in_length_x,false,right),genintconstnode(0));
+            right:=nil;
             exit;
           end;
         result:=inherited pass_1;

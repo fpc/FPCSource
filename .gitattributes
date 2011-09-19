@@ -9781,6 +9781,7 @@ tests/test/jvm/tcnvstr3.pp svneol=native#text/plain
 tests/test/jvm/tconst.pp svneol=native#text/plain
 tests/test/jvm/tdefpara.pp svneol=native#text/plain
 tests/test/jvm/tdynarrec.pp svneol=native#text/plain
+tests/test/jvm/tdynarrnil.pp svneol=native#text/plain
 tests/test/jvm/tenum.pp svneol=native#text/plain
 tests/test/jvm/test.pp -text svneol=native#text/plain
 tests/test/jvm/testall.bat -text svneol=native#application/x-bat

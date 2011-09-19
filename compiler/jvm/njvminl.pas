@@ -37,6 +37,7 @@ interface
           function typecheck_new(var handled: boolean): tnode;
 
           function first_copy: tnode; override;
+          function first_assigned: tnode; override;
 
           function first_box: tnode; override;
           function first_unbox: tnode; override;
@@ -74,7 +75,7 @@ implementation
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symtype,symconst,symdef,symsym,symtable,jvmdef,
       defutil,
-      nbas,ncon,ncnv,nmem,ncal,nld,nflw,nutils,
+      nadd,nbas,ncon,ncnv,nmem,ncal,nld,nflw,nutils,
       cgbase,pass_1,pass_2,
       cpuinfo,ncgutil,
       cgutils,hlcgobj,hlcgcpu;
@@ -221,6 +222,22 @@ implementation
           end
         else
           result:=inherited first_copy;
+      end;
+
+
+    function tjvminlinenode.first_assigned: tnode;
+      begin
+        { on the JVM target, empty arrays can also be <> nil but have length 0
+          instead. Since assigned(dynarray) is only used to determine whether
+          the length is <> 0 on other targets, replace this expression here }
+        if is_dynamic_array(tcallparanode(left).left.resultdef) then
+          begin
+            result:=caddnode.create(unequaln,cinlinenode.create(
+              in_length_x,false,tcallparanode(left).left),genintconstnode(0));
+            tcallparanode(left).left:=nil;
+          end
+        else
+          result:=inherited;
       end;
 
 

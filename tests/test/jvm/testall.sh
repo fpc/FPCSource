@@ -118,3 +118,5 @@ $PPC -O2 -g -B tstr
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tstr
 $PPC -O2 -g -B tw20212 
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tw20212
+$PPC -O2 -g -B tdynarrnil
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tdynarrnil

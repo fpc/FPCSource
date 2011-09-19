@@ -75,6 +75,7 @@ interface
           function first_length: tnode; virtual;
           function first_box: tnode; virtual; abstract;
           function first_unbox: tnode; virtual; abstract;
+          function first_assigned: tnode; virtual;
 
         private
           function handle_str: tnode;
@@ -3000,7 +3001,7 @@ implementation
 
           in_assigned_x:
             begin
-              expectloc := LOC_JUMP;
+              result:=first_assigned;
             end;
 
           in_pred_x,
@@ -3610,6 +3611,12 @@ implementation
             { ansi/wide string }
             expectloc:=LOC_REGISTER;
           end;
+       end;
+
+     function tinlinenode.first_assigned: tnode;
+       begin
+         result:=nil;
+         expectloc := LOC_JUMP;
        end;
 
      function tinlinenode.handle_box: tnode;
