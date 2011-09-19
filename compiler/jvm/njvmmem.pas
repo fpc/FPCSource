@@ -377,6 +377,13 @@ implementation
          end;
         secondpass(right);
 
+        { simplify index location if necessary, since array references support
+          an index in memory, but not an another array index }
+        if isjump or
+           ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
+            (right.location.reference.arrayreftype<>art_none)) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+
         if isjump then
          begin
            current_procinfo.CurrTrueLabel:=otl;
@@ -384,12 +391,6 @@ implementation
          end
         else if (right.location.loc = LOC_JUMP) then
           internalerror(2011090501);
-        { simplify index location if necessary, since array references support
-          an index in memory, but not an another array index }
-        if (right.location.loc=LOC_JUMP) or
-           ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
-            (right.location.reference.arrayreftype<>art_none)) then
-          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
         { replace enum class instance with the corresponding integer value }
         if (right.resultdef.typ=enumdef) then
           begin
