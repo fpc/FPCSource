@@ -330,7 +330,7 @@ begin
           inc(ResStr);
           while ResStr<Tables[I].TableEnd do
             begin
-              s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,ResStr^.HashValue,arg);
+              s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,Longint(ResStr^.HashValue),arg);
               if s<>'' then
                 ResStr^.CurrentValue:=s;
               inc(ResStr);
@@ -359,7 +359,7 @@ begin
           inc(ResStr);
           while ResStr<Tables[I].TableEnd do
             begin
-              s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,ResStr^.HashValue,arg);
+              s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,Longint(ResStr^.HashValue),arg);
               if s<>'' then
                 ResStr^.CurrentValue:=s;
               inc(ResStr);
@@ -456,7 +456,7 @@ begin
       With Tables[I]^ do
          For J:=0 to Count-1 do
            With ResRec[J] do
-             CurrentValue:=SetFunction(Name,DefaultValue,HashValue,arg);
+             CurrentValue:=SetFunction(Name,DefaultValue,Longint(HashValue),arg);
 end;
 
 
