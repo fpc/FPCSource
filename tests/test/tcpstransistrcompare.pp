@@ -5,8 +5,8 @@ uses
   SysUtils;
   
 type
-  ts850 = type string<850>;
-  ts1251 = type string<1251>;  
+  ts850 = type AnsiString(850);
+  ts1251 = type AnsiString(1251);
 var
   a850:ts850;
   a1251 : ts1251;  

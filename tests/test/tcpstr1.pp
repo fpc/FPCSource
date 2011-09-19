@@ -1,7 +1,7 @@
 {$CODEPAGE cp437}
 type
-  tcpstr437 = string<437>;
-  tcpstr850 = string<850>;
+  tcpstr437 = type AnsiString(437);
+  tcpstr850 = type AnsiString(850);
 var
   a1 : tcpstr437;
   a2 : utf8string;

@@ -291,14 +291,14 @@ Type
   UCS4String          = array of UCS4Char;
 
 {$ifdef FPC_HAS_CPSTRING}
-  UTF8String          = String<65001>;
+  UTF8String          = type AnsiString(65001);
 {$else FPC_HAS_CPSTRING}
   UTF8String          = type ansistring;
 {$endif FPC_HAS_CPSTRING}
   PUTF8String         = ^UTF8String;
 
 {$ifdef FPC_HAS_CPSTRING}
-  RawByteString       = String<$ffff>;
+  RawByteString       = type AnsiString($ffff);
 {$else FPC_HAS_CPSTRING}
   RawByteString       = ansistring;
 {$endif FPC_HAS_CPSTRING}

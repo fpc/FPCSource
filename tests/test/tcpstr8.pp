@@ -2,8 +2,8 @@ program test;
 {$CODEPAGE UTF8}
 // file encoding is UTF8
 type
-  CP866String = string<866>;
-  CP1251String = string<1251>;
+  CP866String = type AnsiString(866);
+  CP1251String = type AnsiString(1251);
 
 procedure WriteString(const s: RawByteString);
 begin

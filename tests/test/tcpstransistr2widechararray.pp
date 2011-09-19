@@ -5,7 +5,7 @@
   sysutils;
   
 type  
-  ts850 = type string<850>;
+  ts850 = type AnsiString(850);
 
   procedure doerror(ANumber : Integer);
   begin

@@ -7,9 +7,9 @@ uses
   SysUtils;
 
 type
-  ts866 = type string<866>;
-  ts850 = type string<850>;
-  ts1251 = type string<1251>;
+  ts866 = type AnsiString(866);
+  ts850 = type AnsiString(850);
+  ts1251 = type AnsiString(1251);
 var
   a : ts1251;
   b : ts850; 

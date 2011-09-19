@@ -408,6 +408,7 @@ implementation
          generictypelist : TFPObjectList;
          generictokenbuf : tdynamicarray;
          vmtbuilder : TVMTBuilder;
+         p:tnode;
       begin
          old_block_type:=block_type;
          { save unit container of forward declarations -
@@ -535,6 +536,28 @@ implementation
                         Message(parser_e_no_objc_unique);
 
                       hdef:=tstoreddef(hdef).getcopy;
+
+                      { check if it is an ansistirng(codepage) declaration }
+                      if is_ansistring(hdef) and try_to_consume(_LKLAMMER) then
+                        begin
+                          p:=comp_expr(true,false);
+                          consume(_RKLAMMER);
+                          if not is_constintnode(p) then
+                            begin
+                              Message(parser_e_illegal_expression);
+                              { error recovery }
+                            end
+                          else
+                            begin
+                              if (tordconstnode(p).value<0) or (tordconstnode(p).value>65535) then
+                                begin
+                                  Message(parser_e_invalid_codepage);
+                                  tordconstnode(p).value:=0;
+                                end;
+                                tstringdef(hdef).encoding:=int64(tordconstnode(p).value);
+                            end;
+                          p.free;
+                        end;
 
                       { fix name, it is used e.g. for tables }
                       if is_class_or_interface_or_dispinterface(hdef) then

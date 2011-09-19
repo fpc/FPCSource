@@ -1,7 +1,7 @@
 ﻿{$CODEPAGE cp866}
 program tcpstrassignansistr;
 type
-  ts866 = type string<866>;
+  ts866 = type AnsiString(866);
 
   procedure doerror(ANumber : Integer);
   begin

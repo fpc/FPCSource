@@ -7,7 +7,7 @@ uses
   SysUtils;
 
 type
-  ts866 = type string<866>;
+  ts866 = type AnsiString(866);
 var
   a, b, c, d : ts866;
 begin

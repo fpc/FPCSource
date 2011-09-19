@@ -2,8 +2,8 @@
 program tcptypedconst;
 
 type
-  Str_cp = string<1251>;
-  Str_cp850 = string<850>;
+  Str_cp = type AnsiString(1251);
+  Str_cp850 = type AnsiString(850);
   
 procedure printcontent(p : Pointer; l: integer);
 var

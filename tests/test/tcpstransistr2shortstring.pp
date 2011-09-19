@@ -6,7 +6,7 @@ uses
   sysutils;
   
 type  
-  ts866 = type string<866>;
+  ts866 = type AnsiString(866);
 
   procedure doerror(ANumber : Integer);
   begin

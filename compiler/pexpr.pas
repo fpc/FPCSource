@@ -130,35 +130,6 @@ implementation
               end;
              p.free;
            end
-         else if token=_LSHARPBRACKET then
-           begin
-             if not(allowtypedef) then
-               Message(parser_e_no_local_para_def);
-             consume(_LSHARPBRACKET);
-             p:=comp_expr(true,false);
-             if not is_constintnode(p) then
-               begin
-                 Message(parser_e_illegal_expression);
-                 { error recovery }
-               end
-             else
-               begin
-                 if (tordconstnode(p).value<0) or (tordconstnode(p).value>65535) then
-                   begin
-                     Message(parser_e_invalid_codepage);
-                     tordconstnode(p).value:=0;
-                   end;
-                 if tordconstnode(p).value=CP_UTF16 then
-                   def:=tstringdef.createunicode
-                 else
-                   begin
-                     def:=tstringdef.createansi;
-                     tstringdef(def).encoding:=int64(tordconstnode(p).value);
-                   end;
-                 consume(_RSHARPBRACKET);
-               end;
-             p.free;
-           end
          else
            begin
              if cs_ansistrings in current_settings.localswitches then
@@ -1522,7 +1493,7 @@ implementation
                           (token=_LT) and
                           (m_delphi in current_settings.modeswitches) then
                           generate_specialization(hdef,false,'');
-                       if try_to_consume(_LKLAMMER) then
+                       if not typeonly and try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true,false);
                           consume(_RKLAMMER);
