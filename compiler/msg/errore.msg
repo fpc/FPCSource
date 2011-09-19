@@ -1434,7 +1434,7 @@ parser_e_jvm_invalid_virtual_constructor_call=03320_E_Calling a virtual construc
 % \end{description}
 # Type Checking
 #
-# 04106 is the last used one
+# 04108 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1811,6 +1811,13 @@ type_e_no_managed_assign_generic_typecast=04106_E_The assignment side of an expr
 % to statically determine that no type-unsafe assignments or operations occur. By assigning a parent class type to a
 % variable of a child type by typecasting the assignment side to the parent class type, the type safety would no
 % longer be guaranteed and the generated code would fail verification at run time time.
+type_w_interface_lower_visibility=04107_W_The interface method "$1" raises the visibility of "$2" to public when accessed via an interface instance
+type_e_interface_lower_visibility=04108_E_The interface method "$1" has a higher visibility (public) than "$2"
+% All methods in an interface have always public visibility. That means that if
+% an interface method is implemented using a (strict) protected or private method,
+% this method is actually publicly accessible via the interface. On the JVM
+% target this situation results in an error because the JVM rejects such
+% attempts to circumvent the visibility rules.
 %
 %
 % \end{description}

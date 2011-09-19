@@ -571,6 +571,14 @@ implementation
                        ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) and
                        check_msg_str(proc,implprocdef) then
                       begin
+                        { does the interface increase the visibility of the
+                          implementing method? }
+                        if implprocdef.visibility<proc.visibility then
+{$ifdef jvm}
+                          MessagePos2(implprocdef.fileinfo,type_e_interface_lower_visibility,proc.fullprocname(false),implprocdef.fullprocname(false));
+{$else}
+                          MessagePos2(implprocdef.fileinfo,type_w_interface_lower_visibility,proc.fullprocname(false),implprocdef.fullprocname(false));
+{$endif}
                         result:=implprocdef;
                         exit;
                       end;
