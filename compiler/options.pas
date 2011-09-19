@@ -370,6 +370,9 @@ begin
 {$ifdef avr}
       'V',
 {$endif}
+{$ifdef jvm}
+      'J',
+{$endif}
       '*' : show:=true;
      end;
      if show then
