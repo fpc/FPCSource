@@ -390,7 +390,7 @@ implementation
           end;
 
         if (atype=sec_threadvar) and
-          (target_info.system=system_i386_win32) then
+          (target_info.system in (systems_windows+systems_wince)) then
           secname:='.tls';
 
         { go32v2 stub only loads .text and .data sections, and allocates space for .bss.
