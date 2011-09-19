@@ -243,9 +243,9 @@ interface
        systems_allow_section = systems_embedded;
 
        systems_allow_section_no_semicolon = systems_allow_section
-{$ifdef TEST_TLS_DIRECTORY}
+{$ifndef DISABLE_TLS_DIRECTORY}
        + systems_windows
-{$endif TEST_TLS_DIRECTORY}
+{$endif not DISABLE_TLS_DIRECTORY}
        ;
 
        { all symbian systems }

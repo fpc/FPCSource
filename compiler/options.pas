@@ -2875,11 +2875,11 @@ if (target_info.system=system_arm_darwin) then
         def_system_macro('FPC_HAS_TYPE_EXTENDED');
 {$endif}
     end;
-    { Not ready yet }
-{$ifdef TEST_TLS_DIRECTORY}
+    { Enable now for testing }
+{$ifndef DISABLE_TLS_DIRECTORY}
     if target_info.system in systems_windows then
       def_system_macro('FPC_USE_TLS_DIRECTORY');
-{$endif TEST_TLS_DIRECTORY}
+{$endif not DISABLE_TLS_DIRECTORY}
 
 
 {$ifdef ARM}
