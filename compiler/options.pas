@@ -761,6 +761,14 @@ begin
                          exclude(init_settings.moduleswitches,cs_create_smart)
                        Else
                          include(init_settings.moduleswitches,cs_create_smart);
+                    'v' :
+                       If target_info.system=system_jvm_java32 then
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.localswitches,cs_check_var_copyout)
+                         Else
+                           include(init_settings.localswitches,cs_check_var_copyout)
+                       else
+                         IllegalPara(opt)
                     else
                        IllegalPara(opt);
                   end;

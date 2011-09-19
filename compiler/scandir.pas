@@ -1142,6 +1142,16 @@ unit scandir;
             end;
       end;
 
+    procedure dir_varparacopyoutcheck;
+      begin
+        if target_info.system<>system_jvm_java32 then
+          begin
+            Message1(scan_w_illegal_switch,pattern);
+            exit;
+          end;
+        do_localswitch(cs_check_var_copyout);
+      end;
+
     procedure dir_varpropsetter;
       begin
         do_localswitch(cs_varpropsetter);
@@ -1525,6 +1535,7 @@ unit scandir;
         AddDirective('TYPEDADDRESS',directive_all, @dir_typedaddress);
         AddDirective('TYPEINFO',directive_all, @dir_typeinfo);
         AddDirective('UNITPATH',directive_all, @dir_unitpath);
+        AddDirective('VARPARACOPYOUTCHECK',directive_all, @dir_varparacopyoutcheck);
         AddDirective('VARPROPSETTER',directive_all, @dir_varpropsetter);
         AddDirective('VARSTRINGCHECKS',directive_all, @dir_varstringchecks);
         AddDirective('VERSION',directive_all, @dir_version);

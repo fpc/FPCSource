@@ -64,7 +64,7 @@ implementation
       cgutils,tgobj,procinfo,htypechk,
       cpubase,aasmdata,aasmcpu,
       hlcgobj,hlcgcpu,
-      pass_1,nutils,nbas,ncnv,ncon,ninl,nld,nmem,
+      pass_1,nutils,nadd,nbas,ncnv,ncon,nflw,ninl,nld,nmem,
       jvmdef;
 
 {*****************************************************************************
@@ -163,11 +163,12 @@ implementation
         copybackstat,
         finistat: tstatementnode;
         finiblock: tblocknode;
-        realpara, tempn: tnode;
+        realpara, tempn, unwrappedele0, unwrappedele1: tnode;
         realparaparent: tunarynode;
         realparatemp, arraytemp: ttempcreatenode;
         leftcopy: tnode;
-        implicitptrpara: boolean;
+        implicitptrpara,
+        verifyout: boolean;
       begin
         { implicit pointer types are already pointers -> no need to stuff them
           in an array to pass them by reference (except in case of a formal
@@ -226,16 +227,26 @@ implementation
           arreledef:=getpointerdef(orgparadef)
         else
           arreledef:=parasym.vardef;
-        arrdef:=getsingletonarraydef(arreledef);
+        arrdef:=getarraydef(arreledef,1+ord(cs_check_var_copyout in current_settings.localswitches));
         { the -1 means "use the array's element count to determine the number
           of elements" in the JVM temp generator }
         arraytemp:=ctempcreatenode.create(arrdef,-1,tt_persistent,true);
         addstatement(initstat,arraytemp);
         addstatement(finistat,ctempdeletenode.create(arraytemp));
+
+        { we can also check out-parameters if we are certain that they'll be
+          valid according to the JVM. That's basically everything except for
+          local variables (fields, arrays etc are all initialized on creation) }
+        verifyout:=
+          (cs_check_var_copyout in current_settings.localswitches) and
+          ((left.actualtargetnode.nodetype<>loadn) or
+           (tloadnode(left.actualtargetnode).symtableentry.typ<>localvarsym));
+
         { in case of a non-out parameter, pass in the original value (also
           always in case of implicitpointer type, since that pointer points to
           the data that will be changed by the callee) }
         if (parasym.varspez<>vs_out) or
+           verifyout or
            ((parasym.vardef.typ<>formaldef) and
             implicitptrpara) then
           begin
@@ -261,6 +272,11 @@ implementation
             addstatement(initstat,cassignmentnode.create(
               cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0)),
               left));
+            { and the copy for checking }
+            if (cs_check_var_copyout in current_settings.localswitches) then
+              addstatement(initstat,cassignmentnode.create(
+                cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(1)),
+                cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0))));
           end
         else
           left.free;
@@ -295,7 +311,37 @@ implementation
                   tempn:=ctypeconvnode.create_explicit(tempn,getpointerdef(orgparadef))
               end;
             if implicitptrpara then
-              tempn:=cderefnode.create(tempn);
+              tempn:=cderefnode.create(tempn)
+            else
+              begin
+                { add check to determine whether the location passed as
+                  var-parameter hasn't been modified directly to a different
+                  value than the returned var-parameter in the mean time }
+                if ((parasym.varspez=vs_var) or
+                    verifyout) and
+                   (cs_check_var_copyout in current_settings.localswitches) then
+                  begin
+                    unwrappedele0:=cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0));
+                    unwrappedele1:=cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(1));
+                    if (parasym.vardef.typ=formaldef) and
+                       (orgparadef.typ in [orddef,floatdef]) then
+                      begin
+                        unwrappedele0:=cinlinenode.create(in_unbox_x_y,false,ccallparanode.create(
+                          ctypenode.create(orgparadef),ccallparanode.create(unwrappedele0,nil)));
+                        unwrappedele1:=cinlinenode.create(in_unbox_x_y,false,ccallparanode.create(
+                          ctypenode.create(orgparadef),ccallparanode.create(unwrappedele1,nil)))
+                      end;
+                    addstatement(copybackstat,cifnode.create(
+                      caddnode.create(andn,
+                        caddnode.create(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele0,orgparadef)),
+                        caddnode.create(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele1,orgparadef))),
+                      ccallnode.createintern('fpc_var_copyout_mismatch',
+                        ccallparanode.create(genintconstnode(fileinfo.column),
+                          ccallparanode.create(genintconstnode(fileinfo.line),nil))
+                      ),nil
+                    ));
+                  end;
+              end;
             addstatement(copybackstat,cassignmentnode.create(leftcopy,
               ctypeconvnode.create_explicit(tempn,orgparadef)));
           end

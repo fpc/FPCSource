@@ -135,6 +135,20 @@ procedure randomize;
     randseed:=JUCalendar.getInstance.getTimeInMillis;
   end;
 
+
+type
+  CopyOutVarModifiedException = class(JLException)
+  end;
+
+procedure fpc_var_copyout_mismatch(line,column: longint); compilerproc;
+  var
+    linestr,columnstr: unicodestring;
+  begin
+    str(line,linestr);
+    str(column,columnstr);
+    raise CopyOutVarModifiedException.create('Var parameter ending at line '+linestr+' column '+columnstr+' in the previous stack frame has been modified to a different value than the returned copyback value');
+  end;
+
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}

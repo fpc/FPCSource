@@ -3143,6 +3143,7 @@ or
 #    P = PowerPC targets
 #    S = Sparc targets
 #    V = Virtual machine targets
+#    J = JVM
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
 #    * = everyone
@@ -3212,6 +3213,7 @@ S*2Aas_Assemble using GNU AS
 **2CR_Verify object method call validity
 **2Cs<n>_Set stack checking size to <n>
 **2Ct_Stack checking (for testing only, see manual)
+J*2Cv_Var/out parameter copy-out checking
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file

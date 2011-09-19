@@ -674,6 +674,9 @@ function fpc_long_to_bitset(const val: jint; setbase, setsize: jint): FpcBitSet;
 function fpc_enumset_to_bitset(const val: JUEnumSet; fromsetbase, tosetbase: jint): FpcBitSet; compilerproc;
 function fpc_bitset_to_bitset(const s: FpcBitSet; fromsetbase, tosetbase: jint): FpcBitSet; compilerproc;
 
+
+procedure fpc_var_copyout_mismatch(line,column: longint); compilerproc;
+
 (*
 {$ifdef FPC_SETBASE_USED}
 procedure fpc_varset_load(const l;sourcesize : longint;var dest;size,srcminusdstbase : ptrint); compilerproc;

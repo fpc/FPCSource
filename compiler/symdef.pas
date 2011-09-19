@@ -966,6 +966,7 @@ interface
     { returns an arraydef for an array containing a single array of def, resuing
       an existing one in case it exists in the current module }
     function getsingletonarraydef(def: tdef): tarraydef;
+    function getarraydef(def: tdef; elecount: asizeint): tarraydef;
 
 implementation
 
@@ -6653,18 +6654,30 @@ implementation
 
 
     function getsingletonarraydef(def: tdef): tarraydef;
+      begin
+        result:=getarraydef(def,1);
+      end;
+
+
+    function getarraydef(def: tdef; elecount: asizeint): tarraydef;
       var
         res: PHashSetItem;
+        arrdesc: packed record
+          def: tdef;
+          elecount: asizeint;
+        end;
       begin
         if not assigned(current_module) then
           internalerror(2011081301);
-        res:=current_module.arraydefs.FindOrAdd(@def,sizeof(def));
+        arrdesc.def:=def;
+        arrdesc.elecount:=elecount;
+        res:=current_module.arraydefs.FindOrAdd(@arrdesc,sizeof(arrdesc));
         if not assigned(res^.Data) then
           begin
             { since these arraydef can be reused anywhere in the current
               unit, add them to the global/staticsymtable }
             symtablestack.push(current_module.localsymtable);
-            res^.Data:=tarraydef.create(0,0,s32inttype);
+            res^.Data:=tarraydef.create(0,elecount-1,ptrsinttype);
             tarraydef(res^.Data).elementdef:=def;
             symtablestack.pop(current_module.localsymtable);
           end;

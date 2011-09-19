@@ -133,7 +133,9 @@ interface
          cs_typed_addresses,cs_strict_var_strings,cs_refcountedstrings,
          cs_bitpacking,cs_varpropsetter,cs_scopedenums,cs_pointermath,
          { macpas specific}
-         cs_external_var, cs_externally_visible
+         cs_external_var, cs_externally_visible,
+         { jvm specific }
+         cs_check_var_copyout
        );
        tlocalswitches = set of tlocalswitch;
 
