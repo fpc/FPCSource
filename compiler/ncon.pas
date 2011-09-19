@@ -1003,7 +1003,7 @@ implementation
             not(tstringdef(def).stringtype in [st_widestring,st_unicodestring]) then
             begin
               if (tstringdef(def).encoding=CP_UTF8) or
-                 (current_settings.sourcecodepage='utf8') then
+                 (current_settings.sourcecodepage=CP_UTF8) then
                 begin
                   pw:=pcompilerwidestring(value_str);
                   l:=(getlengthwidestring(pw)*4)+1;
@@ -1034,7 +1034,7 @@ implementation
               if (cst_type = cst_ansistring) then
                 cp2:=tstringdef(resultdef).encoding
               else if (cst_type in [cst_shortstring,cst_conststring,cst_longstring]) then
-                cp2:=codepagebyname(current_settings.sourcecodepage);
+                cp2:=current_settings.sourcecodepage;
               if cpavailable(cp1) and cpavailable(cp2) then
                 changecodepage(value_str,len,cp1,value_str,cp2);
             end;

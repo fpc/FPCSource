@@ -1038,7 +1038,7 @@ implementation
             ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
              (torddef(left.resultdef).ordtype=uchar) or
              ((torddef(left.resultdef).ordtype=uwidechar) and
-              (current_settings.sourcecodepage<>'utf8')
+              (current_settings.sourcecodepage<>CP_UTF8)
              )
             )
              { widechar >=128 is destroyed }
@@ -1059,7 +1059,7 @@ implementation
                 begin
                   if (torddef(left.resultdef).ordtype=uwidechar) then
                    begin
-                    if (current_settings.sourcecodepage<>'utf8') then
+                    if (current_settings.sourcecodepage<>CP_UTF8) then
                       hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)))
                     else
                      begin
@@ -1141,7 +1141,7 @@ implementation
             )
            ) and
            ((tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and
-            (current_settings.sourcecodepage<>'utf8')
+            (current_settings.sourcecodepage<>CP_UTF8)
            ) then
           begin
             tstringconstnode(left).changestringtype(resultdef);
@@ -1193,13 +1193,13 @@ implementation
          if (left.nodetype=ordconstn) and
             ((torddef(resultdef).ordtype<>uchar) or
              (torddef(left.resultdef).ordtype<>uwidechar) or
-             (current_settings.sourcecodepage<>'utf8'))
+             (current_settings.sourcecodepage<>CP_UTF8))
              { >= 128 is replaced by '?' currently -> loses information }
              {(tordconstnode(left).value.uvalue<128))} then
            begin
              if (torddef(resultdef).ordtype=uchar) and
                 (torddef(left.resultdef).ordtype=uwidechar) and
-                (current_settings.sourcecodepage<>'utf8') then
+                (current_settings.sourcecodepage<>CP_UTF8) then
               begin
                 hp:=cordconstnode.create(
                       ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue))),
@@ -2274,7 +2274,7 @@ implementation
                 ((not is_widechararray(left.resultdef) and
                   not is_wide_or_unicode_string(left.resultdef)) or
                  (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
-                 (current_settings.sourcecodepage<>'utf8')
+                 (current_settings.sourcecodepage<>CP_UTF8)
                 )
                  { non-ascii chars would be replaced with '?' -> loses info }
                  {not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str)))}

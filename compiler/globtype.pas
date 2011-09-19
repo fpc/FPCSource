@@ -513,7 +513,8 @@ interface
       end;
   {$endif}
 
-      tstringencoding = word;
+       tstringencoding = Word;
+       tcodepagestring = string[20];
 
     const
        { link options }

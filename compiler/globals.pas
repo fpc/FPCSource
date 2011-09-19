@@ -108,8 +108,6 @@ interface
 
 
     type
-       tcodepagestring = string[20];
-
        { this is written to ppus during token recording for generics so it must be packed }
        tsettings = packed record
          alignment       : talignmentinfo;
@@ -137,7 +135,7 @@ interface
          asmmode         : tasmmode;
          interfacetype   : tinterfacetypes;
          defproccall     : tproccalloption;
-         sourcecodepage  : tcodepagestring;
+         sourcecodepage  : tstringencoding;
 
          minfpconstprec  : tfloattype;
 
@@ -430,7 +428,7 @@ interface
         asmmode : asmmode_standard;
         interfacetype : it_interfacecom;
         defproccall : pocall_default;
-        sourcecodepage : '8859-1';
+        sourcecodepage : 28591;
         minfpconstprec : s32real;
 
         disabledircache : false;

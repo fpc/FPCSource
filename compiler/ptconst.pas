@@ -949,7 +949,7 @@ implementation
                     ca:=@ch;
                     len:=1;
                   end
-               else if is_constwidecharnode(n) and (current_settings.sourcecodepage<>'utf8') then
+               else if is_constwidecharnode(n) and (current_settings.sourcecodepage<>CP_UTF8) then
                   begin
                     case char_size of
                       1:

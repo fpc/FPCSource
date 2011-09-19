@@ -2488,7 +2488,7 @@ In case not, the value returned can be arbitrary.
                      begin
                        inc(inputpointer,3);
                        message(scan_c_switching_to_utf8);
-                       current_settings.sourcecodepage:='utf8';
+                       current_settings.sourcecodepage:=CP_UTF8;
                      end;
 
                    line_no:=1;
@@ -4085,7 +4085,7 @@ In case not, the value returned can be arbitrary.
                                end;
                            end;
                            { interpret as utf-8 string? }
-                           if (ord(c)>=$80) and (current_settings.sourcecodepage='utf8') then
+                           if (ord(c)>=$80) and (current_settings.sourcecodepage=CP_UTF8) then
                              begin
                                { convert existing string to an utf-8 string }
                                if not iswidestring then
@@ -4132,7 +4132,7 @@ In case not, the value returned can be arbitrary.
                              end
                            else if iswidestring then
                              begin
-                               if current_settings.sourcecodepage='utf8' then
+                               if current_settings.sourcecodepage=CP_UTF8 then
                                  concatwidestringchar(patternw,ord(c))
                                else
                                  concatwidestringchar(patternw,asciichar2unicode(c))
