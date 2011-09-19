@@ -1532,6 +1532,8 @@ implementation
         init_settings:=default_settings;
         if init_settings.optimizecputype=cpu_none then
           init_settings.optimizecputype:=init_settings.cputype;
+        { Compiler codepage should be default system codepage }
+        init_settings.sourcecodepage:=DefaultSystemCodePage;
 
         LinkLibraryAliases :=TLinkStrMap.Create;
         LinkLibraryOrder   :=TLinkStrMap.Create;
