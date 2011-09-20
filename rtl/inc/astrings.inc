@@ -78,40 +78,27 @@ begin
 end;
 
 
-Procedure DisposeAnsiString(Var S : Pointer); {$IFNDEF VER2_0} Inline; {$ENDIF}
-{
-  Deallocates a AnsiString From the heap.
-}
-begin
-  If S=Nil then
-    exit;
-  Dec (S,AnsiFirstOff);
-  FreeMem (S);
-  S:=Nil;
-end;
-
 {$ifndef FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];  compilerproc;
 {
   Decreases the ReferenceCount of a non constant ansistring;
   If the reference count is zero, deallocate the string;
 }
-Type
-  pSizeInt = ^SizeInt;
 Var
-  l : pSizeInt;
+  p: PAnsiRec;
 Begin
   { Zero string }
   If S=Nil then 
     exit;
   { check for constant strings ...}
-  l:=@PAnsiRec(S-AnsiFirstOff)^.Ref;
-  If l^<0 then 
-    exit;
+  p:=PAnsiRec(S-AnsiFirstOff);
+  If p^.ref<0 then exit;
   { declocked does a MT safe dec and returns true, if the counter is 0 }
-  If declocked(l^) then
-    { Ref count dropped to zero }
-    DisposeAnsiString (S);        { Remove...}
+  If declocked(p^.ref) then
+    begin
+      FreeMem(p);
+      s:=nil;
+    end;
 end;
 
 {$endif FPC_SYSTEM_HAS_ANSISTR_DECR_REF}

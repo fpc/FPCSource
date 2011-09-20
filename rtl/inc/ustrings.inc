@@ -197,41 +197,28 @@ begin
 end;
 
 
-Procedure DisposeUnicodeString(Var S : Pointer);
-{
-  Deallocates a UnicodeString From the heap.
-}
-begin
-  If S=Nil then
-    exit;
-  Dec (S,UnicodeFirstOff);
-  Freemem(S);
-  S:=Nil;
-end;
-
-
 Procedure fpc_UnicodeStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_UNICODESTR_DECR_REF']; compilerproc;
 {
   Decreases the ReferenceCount of a non constant unicodestring;
   If the reference count is zero, deallocate the string;
 }
-Type
-  pSizeInt = ^SizeInt;
 Var
-  l : pSizeInt;
+  p: PUnicodeRec;
 Begin
   { Zero string }
   if S=Nil then
     exit;
   { check for constant strings ...}
-  l:=@PUnicodeRec(S-UnicodeFirstOff)^.Ref;
-  if l^<0 then
+  p:=PUnicodeRec(S-UnicodeFirstOff);
+  if p^.Ref<0 then
     exit;
 
   { declocked does a MT safe dec and returns true, if the counter is 0 }
-  if declocked(l^) then
-    { Ref count dropped to zero remove }
-    DisposeUnicodeString(S);
+  if declocked(p^.Ref) then
+    begin
+      FreeMem(p);
+      S:=nil;
+    end;
 end;
 
 { alias for internal use }

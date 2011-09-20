@@ -154,35 +154,24 @@ begin
 end;
 
 
-Procedure DisposeWideString(Var S : Pointer);
-{
-  Deallocates a WideString From the heap.
-}
-begin
-  If S=Nil then
-    exit;
-{$ifndef MSWINDOWS}
-  Dec (S,WideFirstOff);
-  Freemem(S);
-{$else MSWINDOWS}
-  if winwidestringalloc then
-    SysFreeString(S)
-  else
-    begin
-      Dec (S,WideFirstOff);
-      Freemem(S);
-    end;
-{$endif MSWINDOWS}
-  S:=Nil;
-end;
-
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR_REF']; compilerproc;
 {
   Decreases the ReferenceCount of a non constant widestring;
   If the reference count is zero, deallocate the string;
 }
 Begin
-  DisposeWideString(S);  { does test for nil }
+  If S=Nil then
+    exit;
+{$ifdef MSWINDOWS}
+  if winwidestringalloc then
+    SysFreeString(S)
+  else
+{$endif MSWINDOWS}
+    begin
+      Dec (S,WideFirstOff);
+      Freemem(S);
+    end;
+  S:=Nil;
 end;
 
 { alias for internal use }
