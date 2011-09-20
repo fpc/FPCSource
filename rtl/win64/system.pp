@@ -505,95 +505,16 @@ function is_prefetch(p : pointer) : boolean;
       end;
   end;
 
+{******************************************************************************}
+{ include code common with win64 }
+
+{$I syswin.inc}
+{******************************************************************************}
 
 //
 // Hardware exception handling
 //
 
-{
-  Error code definitions for the Win32 API functions
-
-
-  Values are 32 bit values layed out as follows:
-   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-  +---+-+-+-----------------------+-------------------------------+
-  |Sev|C|R|     Facility          |               Code            |
-  +---+-+-+-----------------------+-------------------------------+
-
-  where
-      Sev - is the severity code
-          00 - Success
-          01 - Informational
-          10 - Warning
-          11 - Error
-
-      C - is the Customer code flag
-      R - is a reserved bit
-      Facility - is the facility code
-      Code - is the facility's status code
-}
-
-const
-  SEVERITY_SUCCESS                        = $00000000;
-  SEVERITY_INFORMATIONAL                  = $40000000;
-  SEVERITY_WARNING                        = $80000000;
-  SEVERITY_ERROR                          = $C0000000;
-
-const
-  STATUS_SEGMENT_NOTIFICATION             = $40000005;
-  DBG_TERMINATE_THREAD                    = $40010003;
-  DBG_TERMINATE_PROCESS                   = $40010004;
-  DBG_CONTROL_C                           = $40010005;
-  DBG_CONTROL_BREAK                       = $40010008;
-
-  STATUS_GUARD_PAGE_VIOLATION             = $80000001;
-  STATUS_DATATYPE_MISALIGNMENT            = $80000002;
-  STATUS_BREAKPOINT                       = $80000003;
-  STATUS_SINGLE_STEP                      = $80000004;
-  DBG_EXCEPTION_NOT_HANDLED               = $80010001;
-
-  STATUS_ACCESS_VIOLATION                 = $C0000005;
-  STATUS_IN_PAGE_ERROR                    = $C0000006;
-  STATUS_INVALID_HANDLE                   = $C0000008;
-  STATUS_NO_MEMORY                        = $C0000017;
-  STATUS_ILLEGAL_INSTRUCTION              = $C000001D;
-  STATUS_NONCONTINUABLE_EXCEPTION         = $C0000025;
-  STATUS_INVALID_DISPOSITION              = $C0000026;
-  STATUS_ARRAY_BOUNDS_EXCEEDED            = $C000008C;
-  STATUS_FLOAT_DENORMAL_OPERAND           = $C000008D;
-  STATUS_FLOAT_DIVIDE_BY_ZERO             = $C000008E;
-  STATUS_FLOAT_INEXACT_RESULT             = $C000008F;
-  STATUS_FLOAT_INVALID_OPERATION          = $C0000090;
-  STATUS_FLOAT_OVERFLOW                   = $C0000091;
-  STATUS_FLOAT_STACK_CHECK                = $C0000092;
-  STATUS_FLOAT_UNDERFLOW                  = $C0000093;
-  STATUS_INTEGER_DIVIDE_BY_ZERO           = $C0000094;
-  STATUS_INTEGER_OVERFLOW                 = $C0000095;
-  STATUS_PRIVILEGED_INSTRUCTION           = $C0000096;
-  STATUS_STACK_OVERFLOW                   = $C00000FD;
-  STATUS_CONTROL_C_EXIT                   = $C000013A;
-  STATUS_FLOAT_MULTIPLE_FAULTS            = $C00002B4;
-  STATUS_FLOAT_MULTIPLE_TRAPS             = $C00002B5;
-  STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
-
-  EXCEPTION_EXECUTE_HANDLER               = 1;
-  EXCEPTION_CONTINUE_EXECUTION            = -1;
-  EXCEPTION_CONTINUE_SEARCH               = 0;
-
-  EXCEPTION_MAXIMUM_PARAMETERS            = 15;
-
-  CONTEXT_X86                             = $00010000;
-  CONTEXT_CONTROL                         = CONTEXT_X86 or $00000001;
-  CONTEXT_INTEGER                         = CONTEXT_X86 or $00000002;
-  CONTEXT_SEGMENTS                        = CONTEXT_X86 or $00000004;
-  CONTEXT_FLOATING_POINT                  = CONTEXT_X86 or $00000008;
-  CONTEXT_DEBUG_REGISTERS                 = CONTEXT_X86 or $00000010;
-  CONTEXT_EXTENDED_REGISTERS              = CONTEXT_X86 or $00000020;
-
-  CONTEXT_FULL                            = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
-
-  MAXIMUM_SUPPORTED_EXTENSION             = 512;
 
 type
   M128A = record
@@ -871,12 +792,6 @@ procedure fpc_cpucodeinit;
   begin
   end;
 
-
-{******************************************************************************}
-{ include code common with win64 }
-
-{$I syswin.inc}
-{******************************************************************************}
 
 procedure LinkIn(p1,p2,p3: Pointer); inline;
 begin
