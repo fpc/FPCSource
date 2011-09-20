@@ -1,13 +1,17 @@
 program tstrutils2;
 
-// tests MBCS compatibility of strutils ansistartstext and -endstext. 
+// tests MBCS compatibility of strutils ansistartstext and -endstext.
 // (case-insensitive)
 
 {$mode objfpc}
 {$h+}
 
 uses
-  StrUtils,cwstring;
+  StrUtils,
+{$ifdef unix}
+  cwstring
+{$endif unix}
+  ;
 
 var
   ResultCounter: Integer = 0;
