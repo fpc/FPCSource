@@ -87,24 +87,33 @@ implementation
       var
         fsym        : tfieldvarsym;
         hsym        : tparavarsym;
-        currpi,
-        nextpi      : tprocinfo;
+        currpi      : tprocinfo;
+        useparentfppara :  boolean;
       begin
         result:=nil;
-        if not assigned(current_procinfo.procdef.parentfpstruct) then
+        { if the current routine does not call a nested routine, or if that
+          nested routine does nothing for which it needs the nestedfp pointer
+          of the current routine (and hence it has not been moved into the
+          nestedfp struct), get the original nestedfp parameter }
+        useparentfppara:=not assigned(current_procinfo.procdef.parentfpstruct);
+        hsym:=tparavarsym(current_procinfo.procdef.parast.Find('parentfp'));
+        if current_procinfo.procdef.parast.symtablelevel>parentpd.parast.symtablelevel then
+          useparentfppara:=
+            useparentfppara or
+            (find_sym_in_parentfpstruct(current_procinfo.procdef,hsym)=nil);
+        if useparentfppara then
           begin
-            hsym:=tparavarsym(current_procinfo.procdef.parast.Find('parentfp'));
             result:=cloadnode.create(hsym,hsym.owner);
+            currpi:=current_procinfo.parent;
           end
         else
           begin
             result:=caddrnode.create_internal(cloadnode.create(current_procinfo.procdef.parentfpstruct,current_procinfo.procdef.parentfpstruct.owner));
             include(result.flags,nf_typedaddr);
+            currpi:=current_procinfo;
           end;
-        { mark all parent parentfp parameters for inclusion in the struct that
-          holds all locals accessed from nested routines }
-        currpi:=current_procinfo.parent;
-        nextpi:=currpi.parent;
+        { follow the chain of parentfpstructs until we arrive at the one we
+          need }
         while (currpi.procdef.parast.symtablelevel>parentpd.parast.symtablelevel) do
           begin
             hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
@@ -112,8 +121,7 @@ implementation
             if not assigned(fsym) then
               internalerror(2011060405);
             result:=csubscriptnode.create(fsym,cderefnode.create(result));
-            currpi:=nextpi;
-            nextpi:=nextpi.parent;
+            currpi:=currpi.parent;
           end;
       end;
 

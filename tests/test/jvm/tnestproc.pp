@@ -9,9 +9,16 @@ procedure outer(var para: byte);
   const xxx: longint = 5;
   var
     a: longint;
+    called: boolean;
 
   procedure inner;
     begin
+      if not called then
+        begin
+          called:=true;
+          inner;
+          exit;
+        end;
       if a<>1 then
         raise JLException.Create('a1');
       if para<>2 then
@@ -20,8 +27,26 @@ procedure outer(var para: byte);
       para:=3;
     end;
 
+
+  procedure inner2;
+    var
+      b: longint;
+  
+    procedure doubleinner;
+      begin
+        b:=3;
+      end;
+      
+    begin
+      doubleinner;
+      if b<>3 then
+        raise JLException.Create('b');
+      inner;
+    end;
+
   begin
     a:=1;
+    called:=false;
     inner;
     if a<>2 then
       raise JLException.Create('a2');
