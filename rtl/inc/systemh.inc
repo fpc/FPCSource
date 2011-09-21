@@ -1125,8 +1125,10 @@ Procedure halt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure SysInitExceptions;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+{$ifndef EMBEDDED}
 procedure SysInitStdIO;
 procedure SysFlushStdIO;
+{$endif EMBEDDED}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 {$ifndef FPUNONE}
 Procedure SysResetFPU;

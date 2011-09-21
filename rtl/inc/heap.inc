@@ -14,9 +14,46 @@
  **********************************************************************}
 
 {****************************************************************************}
-
 { Do not use standard memory manager }
-{ define HAS_MEMORYMANAGER}
+{ $define HAS_MEMORYMANAGER}
+
+{ Memory manager }
+{$ifndef EMBEDDED}
+const
+  MemoryManager: TMemoryManager = (
+    NeedLock: false;  // Obsolete
+    GetMem: @SysGetMem;
+    FreeMem: @SysFreeMem;
+    FreeMemSize: @SysFreeMemSize;
+    AllocMem: @SysAllocMem;
+    ReAllocMem: @SysReAllocMem;
+    MemSize: @SysMemSize;
+    InitThread: nil;
+    DoneThread: nil;
+    RelocateHeap: nil;
+    GetHeapStatus: @SysGetHeapStatus;
+    GetFPCHeapStatus: @SysGetFPCHeapStatus;
+  );
+{$else}
+{$ifndef FPC_IN_HEAPMGR}
+const
+  MemoryManager: TMemoryManager = (
+    NeedLock: false;  // Obsolete
+    GetMem: nil;
+    FreeMem: nil;
+    FreeMemSize: nil;
+    AllocMem: nil;
+    ReAllocMem: nil;
+    MemSize: nil;
+    InitThread: nil;
+    DoneThread: nil;
+    RelocateHeap: nil;
+    GetHeapStatus: nil;
+    GetFPCHeapStatus: nil;
+  );public name 'FPC_SYSTEM_MEMORYMANAGER';
+{$endif FPC_IN_HEAPMGR}
+{$endif EMBEDDED}
+
 
 { Try to find the best matching block in general freelist }
 { define BESTMATCH}
@@ -33,6 +70,7 @@
   {$define SHOW_MEM_USAGE}
 {$endif}
 
+{$ifndef HAS_MEMORYMANAGER}
 const
 {$ifdef CPU64}
   blocksize    = 32;  { at least size of freerecord }
@@ -72,26 +110,7 @@ const
   {$define DUMPBLOCKS}
 {$endif}
 
-{ Memory manager }
-const
-  MemoryManager: TMemoryManager = (
-    NeedLock: false;  // Obsolete
-    GetMem: @SysGetMem;
-    FreeMem: @SysFreeMem;
-    FreeMemSize: @SysFreeMemSize;
-    AllocMem: @SysAllocMem;
-    ReAllocMem: @SysReAllocMem;
-    MemSize: @SysMemSize;
-    InitThread: nil;
-    DoneThread: nil;
-    RelocateHeap: nil;
-    GetHeapStatus: @SysGetHeapStatus;
-    GetFPCHeapStatus: @SysGetFPCHeapStatus;
-  );
-
-{$ifndef HAS_MEMORYMANAGER}
-
-{ 
+{
   We use 'fixed' size chunks for small allocations,
   and os chunks with variable sized blocks for big
   allocations.
@@ -229,6 +248,7 @@ threadvar
                              Memory Manager
 *****************************************************************************}
 
+{$ifndef FPC_IN_HEAPMGR}
 procedure GetMemoryManager(var MemMgr:TMemoryManager);
 begin
   MemMgr := MemoryManager;
@@ -242,8 +262,12 @@ end;
 
 function IsMemoryManagerSet:Boolean;
 begin
+{$ifdef HAS_MEMORYMANAGER}
+  Result:=false;
+{$else HAS_MEMORYMANAGER}
   IsMemoryManagerSet := (MemoryManager.GetMem<>@SysGetMem) 
     or (MemoryManager.FreeMem<>@SysFreeMem);
+{$endif HAS_MEMORYMANAGER}
 end;
 
 procedure GetMem(Out p:pointer;Size:ptruint);
@@ -333,6 +357,7 @@ procedure fpc_freemem(p:pointer);compilerproc;[public,alias:'FPC_FREEMEM'];
 begin
   MemoryManager.FreeMem(p);
 end;
+{$endif FPC_IN_HEAPMGR}
 
 {$ifndef HAS_MEMORYMANAGER}
 {*****************************************************************************

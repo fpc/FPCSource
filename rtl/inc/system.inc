@@ -93,7 +93,7 @@ const
   OldRandSeed : Cardinal = 0;
 
 { For Error Handling.}
-  ErrorBase : Pointer = nil;
+  ErrorBase : Pointer = nil;public name 'FPC_ERRORBASE';
 
 { Used by the ansi/widestrings and maybe also other things in the future }
 var
@@ -888,6 +888,10 @@ Begin
   FinalizeUnits;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  { the embedded system unit itself contains no routines for console i/o
+    console i/o is done by the Consoleio unit which can do things like
+    redirection to seriell i/o }
+{$ifndef EMBEDDED}
   { Show runtime error and exit }
   pstdout:=@stdout;
   If erroraddr<>nil Then
@@ -899,6 +903,7 @@ Begin
      Writeln(pstdout^,'');
    End;
   SysFlushStdIO;
+{$endif EMBEDDED}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 {$if defined(MSWINDOWS) or defined(OS2)}
