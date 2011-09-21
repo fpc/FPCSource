@@ -324,6 +324,14 @@ implementation
            if changeinit then
             exclude(init_settings.localswitches,cs_do_inline);
          end;
+
+        { turn system codepage by default }
+        if m_systemcodepage in current_settings.modeswitches then
+          begin
+            current_settings.sourcecodepage:=DefaultSystemCodePage;
+            if changeinit then
+              init_settings.sourcecodepage:=DefaultSystemCodePage;
+          end;
       end;
 
 
@@ -340,6 +348,9 @@ implementation
         else
          if s='DELPHI' then
           current_settings.modeswitches:=delphimodeswitches
+        else
+         if s='DELPHIUNICODE' then
+          current_settings.modeswitches:=delphiunicodemodeswitches
         else
          if s='TP' then
           current_settings.modeswitches:=tpmodeswitches

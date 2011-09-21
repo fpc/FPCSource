@@ -295,7 +295,8 @@ interface
          m_nested_procvars,     { support nested procedural variables }
          m_non_local_goto,      { support non local gotos (like iso pascal) }
          m_advanced_records,    { advanced record syntax with visibility sections, methods and properties }
-         m_isolike_unary_minus  { unary minus like in iso pascal: same precedence level as binary minus/plus }
+         m_isolike_unary_minus, { unary minus like in iso pascal: same precedence level as binary minus/plus }
+         m_systemcodepage       { use system codepage as compiler codepage by default, emit ansistrings with system codepage }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -427,7 +428,8 @@ interface
          'NESTEDPROCVARS',
          'NONLOCALGOTO',
          'ADVANCEDRECORDS',
-         'ISOUNARYMINUS');
+         'ISOUNARYMINUS',
+         'SYSTEMCODEPAGE');
 
 
      type

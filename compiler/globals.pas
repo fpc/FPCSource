@@ -53,6 +53,7 @@ interface
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
           m_property,m_default_inline,m_except,m_advanced_records];
+       delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage];
        fpcmodeswitches =
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_hintdirective,
@@ -1532,8 +1533,6 @@ implementation
         init_settings:=default_settings;
         if init_settings.optimizecputype=cpu_none then
           init_settings.optimizecputype:=init_settings.cputype;
-        { Compiler codepage should be default system codepage }
-        init_settings.sourcecodepage:=DefaultSystemCodePage;
 
         LinkLibraryAliases :=TLinkStrMap.Create;
         LinkLibraryOrder   :=TLinkStrMap.Create;

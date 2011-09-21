@@ -59,7 +59,7 @@ uses
             current_asmdata.getdatalabel(referencelab);
             list.concat(tai_label.create(referencelab));
           end;
-        if encoding=CP_NONE then
+        if (encoding=CP_NONE) and (m_systemcodepage in current_settings.modeswitches) then
           encoding:=current_settings.sourcecodepage;
         list.concat(tai_const.create_16bit(encoding));
         list.concat(tai_const.create_16bit(1));
