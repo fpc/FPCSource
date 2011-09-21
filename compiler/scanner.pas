@@ -174,10 +174,23 @@ interface
           procedure stoprecordtokens;
           procedure replaytoken;
           procedure startreplaytokens(buf:tdynamicarray; achange_endian : boolean);
-          procedure writesizeint(val : sizeint);
-          function  readsizeint : sizeint;
-          function  readdword : dword;
-          function  readword : word;
+          { bit length sizeint is target depend }
+          procedure tokenwritesizeint(val : sizeint);
+          function  tokenreadsizeint : sizeint;
+          { longword/longint are 32 bits on all targets }
+          { word/smallint are 16-bits on all targest }
+          function  tokenreadlongword : longword;
+          function  tokenreadword : word;
+          function  tokenreadlongint : longint;
+          function  tokenreadsmallint : smallint;
+          { short int is one a signed byte }
+          function  tokenreadshortint : shortint;
+          function  tokenreadbyte : byte;
+          { This one takes the set size as an parameter }
+          procedure tokenreadset(var b;size : longint);
+          function  tokenreadenum(size : longint) : longword;
+
+          procedure tokenreadsettings(var asettings : tsettings; expected_size : longint);
           procedure readchar;
           procedure readstring;
           procedure readnumber;
@@ -253,6 +266,8 @@ implementation
       systems,
       switches,
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
+      { This is needed for tcputype }
+      cpuinfo,
       fmodule;
 
     var
@@ -2100,12 +2115,12 @@ In case not, the value returned can be arbitrary.
         recordtokenbuf.write(b,1);
       end;
 
-    procedure tscannerfile.writesizeint(val : sizeint);
+    procedure tscannerfile.tokenwritesizeint(val : sizeint);
       begin
         recordtokenbuf.write(val,sizeof(sizeint));
       end;
 
-    function tscannerfile.readsizeint : sizeint;
+    function tscannerfile.tokenreadsizeint : sizeint;
       var
         val : sizeint;
       begin
@@ -2115,17 +2130,53 @@ In case not, the value returned can be arbitrary.
         result:=val;
       end;
 
-    function tscannerfile.readdword : dword;
+    function tscannerfile.tokenreadlongword : longword;
       var
-        val : dword;
+        val : longword;
       begin
-        replaytokenbuf.read(val,sizeof(dword));
+        replaytokenbuf.read(val,sizeof(longword));
         if tokenbuf_change_endian then
           val:=swapendian(val);
         result:=val;
       end;
 
-    function tscannerfile.readword : word;
+    function tscannerfile.tokenreadlongint : longint;
+      var
+        val : longint;
+      begin
+        replaytokenbuf.read(val,sizeof(longint));
+        if tokenbuf_change_endian then
+          val:=swapendian(val);
+        result:=val;
+      end;
+
+    function tscannerfile.tokenreadshortint : shortint;
+      var
+        val : shortint;
+      begin
+        replaytokenbuf.read(val,sizeof(shortint));
+        result:=val;
+      end;
+
+    function tscannerfile.tokenreadbyte : byte;
+      var
+        val : byte;
+      begin
+        replaytokenbuf.read(val,sizeof(byte));
+        result:=val;
+      end;
+
+    function tscannerfile.tokenreadsmallint : smallint;
+      var
+        val : smallint;
+      begin
+        replaytokenbuf.read(val,sizeof(smallint));
+        if tokenbuf_change_endian then
+          val:=swapendian(val);
+        result:=val;
+      end;
+
+    function tscannerfile.tokenreadword : word;
       var
         val : word;
       begin
@@ -2134,6 +2185,95 @@ In case not, the value returned can be arbitrary.
           val:=swapendian(val);
         result:=val;
       end;
+
+   function tscannerfile.tokenreadenum(size : longint) : longword;
+   begin
+     if size=1 then
+       result:=tokenreadbyte
+     else if size=2 then
+       result:=tokenreadword
+     else if size=4 then
+       result:=tokenreadlongword;
+   end;
+
+   procedure tscannerfile.tokenreadset(var b;size : longint);
+   var
+     i : longint;
+   begin
+     replaytokenbuf.read(b,size);
+     if tokenbuf_change_endian then
+       for i:=0 to size-1 do
+         Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
+   end;
+
+
+    procedure tscannerfile.tokenreadsettings(var asettings : tsettings; expected_size : longint);
+
+    {    This procedure
+       needs to be changed whenever
+       globals.tsettings type is changed,
+       the problem is that no error will appear
+       before tests with generics are tested. PM }
+
+       var
+         startpos, endpos : longword;
+      begin
+        { WARNING all those fields need to be in the correct
+        order otherwise cross_endian PPU reading will fail }
+        startpos:=replaytokenbuf.pos;
+        with asettings do
+          begin
+            alignment.procalign:=tokenreadlongint;
+            alignment.loopalign:=tokenreadlongint;
+            alignment.jumpalign:=tokenreadlongint;
+            alignment.constalignmin:=tokenreadlongint;
+            alignment.constalignmax:=tokenreadlongint;
+            alignment.varalignmin:=tokenreadlongint;
+            alignment.varalignmax:=tokenreadlongint;
+            alignment.localalignmin:=tokenreadlongint;
+            alignment.localalignmax:=tokenreadlongint;
+            alignment.recordalignmin:=tokenreadlongint;
+            alignment.recordalignmax:=tokenreadlongint;
+            alignment.maxCrecordalign:=tokenreadlongint;
+            tokenreadset(globalswitches,sizeof(globalswitches));
+            tokenreadset(moduleswitches,sizeof(moduleswitches));
+            tokenreadset(localswitches,sizeof(localswitches));
+            tokenreadset(modeswitches,sizeof(modeswitches));
+            tokenreadset(optimizerswitches,sizeof(optimizerswitches));
+            tokenreadset(genwpoptimizerswitches,sizeof(genwpoptimizerswitches));
+            tokenreadset(dowpoptimizerswitches,sizeof(dowpoptimizerswitches));
+            tokenreadset(debugswitches,sizeof(debugswitches));
+            { 0: old behaviour for sets <=256 elements
+              >0: round to this size }
+            setalloc:=tokenreadshortint;
+            packenum:=tokenreadshortint;
+
+            packrecords:=tokenreadshortint;
+            maxfpuregisters:=tokenreadshortint;
+
+
+            cputype:=tcputype(tokenreadenum(sizeof(tcputype)));
+            optimizecputype:=tcputype(tokenreadenum(sizeof(tcputype)));
+            fputype:=tfputype(tokenreadenum(sizeof(tfputype)));
+            asmmode:=tasmmode(tokenreadenum(sizeof(tasmmode)));
+            interfacetype:=tinterfacetypes(tokenreadenum(sizeof(tinterfacetypes)));
+            defproccall:=tproccalloption(tokenreadenum(sizeof(tproccalloption)));
+            { tstringencoding is word type,
+              thus this should be OK here }
+            sourcecodepage:=tstringEncoding(tokenreadword);
+
+            minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
+
+            disabledircache:=boolean(tokenreadbyte);
+{$if defined(ARM) or defined(AVR)}
+            controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)));
+{$endif defined(ARM) or defined(AVR)}
+           endpos:=replaytokenbuf.pos;
+           if endpos-startpos<>expected_size then
+             Comment(V_Error,'Wrong size of Settings read-in');
+         end;
+     end;
+
 
     procedure tscannerfile.recordtoken;
       var
@@ -2147,14 +2287,17 @@ In case not, the value returned can be arbitrary.
           internalerror(200511176);
         t:=_GENERICSPECIALTOKEN;
         { settings changed? }
-        if CompareByte(current_settings,last_settings,sizeof(current_settings))<>0 then
+        { last field pmessage is handled separately below in
+          ST_LOADMESSAGES }
+        if CompareByte(current_settings,last_settings,
+             sizeof(current_settings)-sizeof(pointer))<>0 then
           begin
             { use a special token to record it }
             s:=ST_LOADSETTINGS;
             writetoken(t);
             recordtokenbuf.write(s,1);
             copy_size:=sizeof(current_settings)-sizeof(pointer);
-            writesizeint(copy_size);
+            tokenwritesizeint(copy_size);
             recordtokenbuf.write(current_settings,copy_size);
             last_settings:=current_settings;
           end;
@@ -2175,15 +2318,15 @@ In case not, the value returned can be arbitrary.
                 inc(msgnb);
                 pmsg:=pmsg^.next;
               end;
-            writesizeint(msgnb);
+            tokenwritesizeint(msgnb);
             pmsg:=current_settings.pmessage;
             while assigned(pmsg) do
               begin
                 { What about endianess here? }
                 val:=pmsg^.value;
-                writesizeint(val);
+                tokenwritesizeint(val);
                 val:=ord(pmsg^.state);
-                writesizeint(val);
+                tokenwritesizeint(val);
                 pmsg:=pmsg^.next;
               end;
             last_message:=current_settings.pmessage;
@@ -2231,13 +2374,13 @@ In case not, the value returned can be arbitrary.
           _CWCHAR,
           _CWSTRING :
             begin
-              writesizeint(patternw^.len);
+              tokenwritesizeint(patternw^.len);
               recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
             end;
           _CSTRING:
             begin
               len:=length(cstringpattern);
-              writesizeint(len);
+              tokenwritesizeint(len);
               recordtokenbuf.write(cstringpattern[1],length(cstringpattern));
             end;
           _CCHAR,
@@ -2333,7 +2476,7 @@ In case not, the value returned can be arbitrary.
             _CWCHAR,
             _CWSTRING :
               begin
-                wlen:=readsizeint;
+                wlen:=tokenreadsizeint;
                 setlengthwidestring(patternw,wlen);
                 replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
                 orgpattern:='';
@@ -2342,7 +2485,7 @@ In case not, the value returned can be arbitrary.
               end;
             _CSTRING:
               begin
-                wlen:=readsizeint;
+                wlen:=tokenreadsizeint;
                 setlength(cstringpattern,wlen);
                 replaytokenbuf.read(cstringpattern[1],wlen);
                 orgpattern:='';
@@ -2380,15 +2523,18 @@ In case not, the value returned can be arbitrary.
                   case specialtoken of
                     ST_LOADSETTINGS:
                       begin
-                        copy_size:=readsizeint;
+                        copy_size:=tokenreadsizeint;
                         if copy_size <> sizeof(current_settings)-sizeof(pointer) then
                           internalerror(2011090501);
+                        {
                         replaytokenbuf.read(current_settings,copy_size);
+                        }
+                        tokenreadsettings(current_settings,copy_size);
                       end;
                     ST_LOADMESSAGES:
                       begin
                         current_settings.pmessage:=nil;
-                        mesgnb:=readsizeint;
+                        mesgnb:=tokenreadsizeint;
                         if mesgnb>0 then
                           Comment(V_Error,'Message recordind not yet supported');
                         for i:=1 to mesgnb do
@@ -2409,7 +2555,7 @@ In case not, the value returned can be arbitrary.
                       end;
                     ST_LINE:
                       begin
-                        current_tokenpos.line:=readdword;
+                        current_tokenpos.line:=tokenreadlongint;
 
                         { don't generate invalid line info if no sources are available for the current module }
                         if not(get_module(current_filepos.moduleindex).sources_avail) then
@@ -2419,7 +2565,7 @@ In case not, the value returned can be arbitrary.
                       end;
                     ST_COLUMN:
                       begin
-                        current_tokenpos.column:=readword;
+                        current_tokenpos.column:=tokenreadword;
                         { don't generate invalid line info if no sources are available for the current module }
                         if not(get_module(current_filepos.moduleindex).sources_avail) then
                           current_tokenpos.column:=0;
@@ -2428,7 +2574,7 @@ In case not, the value returned can be arbitrary.
                       end;
                     ST_FILEINDEX:
                       begin
-                        current_tokenpos.fileindex:=readword;
+                        current_tokenpos.fileindex:=tokenreadword;
                         { don't generate invalid line info if no sources are available for the current module }
                         if not(get_module(current_filepos.moduleindex).sources_avail) then
                           begin
