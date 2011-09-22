@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=minigzip example minizip miniunz
+programs=minigzip example minizip miniunz example2
 
 [require]
 packages=paszlib

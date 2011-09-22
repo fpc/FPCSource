@@ -5565,6 +5565,7 @@ packages/paszlib/Makefile.fpc svneol=native#text/plain
 packages/paszlib/examples/Makefile svneol=native#text/plain
 packages/paszlib/examples/Makefile.fpc svneol=native#text/plain
 packages/paszlib/examples/example.pas svneol=native#text/plain
+packages/paszlib/examples/example2.pas svneol=native#text/plain
 packages/paszlib/examples/extractodt.pas svneol=native#text/plain
 packages/paszlib/examples/minigzip.pas svneol=native#text/plain
 packages/paszlib/examples/miniunz.pas svneol=native#text/plain
