@@ -169,11 +169,14 @@ type
       OnFoundTag: TOnFoundTag;
       OnFoundText: TOnFoundText;
       Raw: Pchar;
+      FCurrent : PChar;
       constructor Create(sRaw: string);overload;
       constructor Create(pRaw: PChar);overload;
       procedure Exec;
       procedure NilOnFoundTag(NoCaseTag, ActualTag: string);
       procedure NilOnFoundText(Text: string);
+    Public
+      Function CurrentPos : Integer;
       property Done: Boolean read FDone write FDone;
   end;
 
@@ -187,12 +190,9 @@ begin
 end;
 
 function CopyBuffer(StartIndex: PChar; Length: Integer): string;
-var
-  S: string;
 begin
-  SetLength(S, Length);
-  StrLCopy(@S[1], StartIndex, Length);
-  Result:= S;
+  SetLength(Result, Length);
+  StrLCopy(@Result[1], StartIndex, Length);
 end;
 
 
@@ -219,6 +219,14 @@ end;
 
 procedure THTMLParser.NilOnFoundText(Text: string);
 begin 
+end;
+
+function THTMLParser.CurrentPos: Integer;
+begin
+  if Assigned(Raw) and Assigned(FCurrent) then
+    Result:=FCurrent-Raw
+  else
+    Result:=0;
 end;
 
 procedure THTMLParser.Exec;
@@ -264,6 +272,7 @@ begin
       begin
         L:= P - TextStart;
         { Yes, copy to buffer }
+        FCurrent:=P;
         OnFoundText( CopyBuffer(TextStart, L) );
       end else
       begin
@@ -299,6 +308,7 @@ begin
       { Copy this tag to buffer }
       L:= P - TagStart + 1;
 
+      FCurrent:=P;
       OnFoundTag( uppercase(CopyBuffer(TagStart, L )), CopyBuffer(TagStart, L ) ); //L505: added uppercase
       Inc(P); Inc(I);
       if I >= TL then Break;
