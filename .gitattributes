@@ -10611,7 +10611,6 @@ tests/test/ulib2a.pp svneol=native#text/plain
 tests/test/umaclocalprocparam3f.pp svneol=native#text/plain
 tests/test/umacpas1.pp svneol=native#text/plain
 tests/test/umainnam.pp svneol=native#text/plain
-tests/test/units/character/tfpwidestring.pp svneol=native#text/pascal
 tests/test/units/character/tgetnumericvalue.pp svneol=native#text/pascal
 tests/test/units/character/tgetnumericvalue2.pp svneol=native#text/pascal
 tests/test/units/character/tiscontrol.pp svneol=native#text/pascal
