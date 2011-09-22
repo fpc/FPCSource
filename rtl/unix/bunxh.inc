@@ -52,6 +52,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpGetgroups (gidsetsize : cInt; var grouplist : tgrparr): cInt;
     Function  FpGetpgrp : TPid;
     Function  FpSetsid  : TPid;
+    Function  FpGetsid (pid:TPid)  : TPid;
     Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt;
     Function  FpFcntl      (fildes : cInt; cmd : cInt; arg : cInt): cInt;
     Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt;
