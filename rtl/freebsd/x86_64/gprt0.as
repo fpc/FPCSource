@@ -39,21 +39,20 @@ _start:
 	movq	-8(%rbp), %rax
 	movl	(%rax), %eax
 	movl	%eax, -20(%rbp)
-	movl	%eax, operatingsystem_parameter_argc
+	movl	%eax, operatingsystem_parameter_argc(%rip)
 	movq	-8(%rbp), %rax
 	addq	$8, %rax
 	movq	%rax, -32(%rbp)
-	movq    %rax, operatingsystem_parameter_argv
+	movq    %rax, operatingsystem_parameter_argv(%rip)
 	movl	-20(%rbp), %eax
 	cltq
 	salq	$3, %rax
 	addq	-8(%rbp), %rax
 	addq	$16, %rax
 	movq	%rax, -40(%rbp)
-	movq    %rax, operatingsystem_parameter_envp
+	movq    %rax, operatingsystem_parameter_envp(%rip)
 	movq	-40(%rbp), %rax
 	movq	%rax, environ(%rip)
-	movq    %rax,environ
 	cmpl	$0, -20(%rbp)
 	jle	.L5
 	movq	-32(%rbp), %rax
