@@ -1156,14 +1156,11 @@ implementation
                else
                  begin
                    { 1. if it returns a pointer and we've found a deref,
-                     2. if it returns a class or record and a subscription or with is found
+                     2. if it returns a class and a subscription or with is found
                      3. if the address is needed of a field (subscriptn, vecn) }
                    if (gotpointer and gotderef) or
                       (gotstring and gotvec) or
-                      (
-                       (gotclass or gotrecord) and
-                       (gotsubscript)
-                      ) or
+                      (gotclass and gotsubscript) or
                       (
                         (gotvec and gotdynarray)
                       ) or
