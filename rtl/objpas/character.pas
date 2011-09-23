@@ -114,6 +114,49 @@ type
     class function ToUpper(const AString : UnicodeString) : UnicodeString; overload; static;
   end;
 
+  // flat functions
+  function ConvertFromUtf32(AChar : UCS4Char) : UnicodeString;
+  function ConvertToUtf32(const AString : UnicodeString; AIndex : Integer) : UCS4Char; overload;
+  function ConvertToUtf32(const AString : UnicodeString; AIndex : Integer; out ACharLength : Integer) : UCS4Char; overload;
+  function ConvertToUtf32(const AHighSurrogate, ALowSurrogate : UnicodeChar) : UCS4Char; overload;
+  function GetNumericValue(AChar : UnicodeChar) : Double; overload;
+  function GetNumericValue(const AString : UnicodeString; AIndex : Integer) : Double; overload;
+  function GetUnicodeCategory(AChar : UnicodeChar) : TUnicodeCategory; overload;
+  function GetUnicodeCategory(const AString : UnicodeString; AIndex : Integer) : TUnicodeCategory; overload;
+  function IsControl(AChar : UnicodeChar) : Boolean; overload;
+  function IsControl(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsDigit(AChar : UnicodeChar) : Boolean; overload;
+  function IsDigit(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsSurrogate(AChar : UnicodeChar) : Boolean; overload;
+  function IsSurrogate(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsHighSurrogate(AChar : UnicodeChar) : Boolean; overload;
+  function IsHighSurrogate(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsLowSurrogate(AChar : UnicodeChar) : Boolean; overload;
+  function IsLowSurrogate(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsSurrogatePair(const AHighSurrogate, ALowSurrogate : UnicodeChar) : Boolean; overload;
+  function IsSurrogatePair(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsLetter(AChar : UnicodeChar) : Boolean; overload;
+  function IsLetter(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsLetterOrDigit(AChar : UnicodeChar) : Boolean; overload;
+  function IsLetterOrDigit(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsLower(AChar : UnicodeChar) : Boolean; overload;
+  function IsLower(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsNumber(AChar : UnicodeChar) : Boolean; overload;
+  function IsNumber(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsPunctuation(AChar : UnicodeChar) : Boolean; overload;
+  function IsPunctuation(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsSeparator(AChar : UnicodeChar) : Boolean; overload;
+  function IsSeparator(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsSymbol(AChar : UnicodeChar) : Boolean; overload;
+  function IsSymbol(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsUpper(AChar : UnicodeChar) : Boolean; overload;
+  function IsUpper(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function IsWhiteSpace(AChar : UnicodeChar) : Boolean; overload;
+  function IsWhiteSpace(const AString : UnicodeString; AIndex : Integer) : Boolean; overload;
+  function ToLower(AChar : UnicodeChar) : UnicodeChar; overload;
+  function ToLower(const AString : UnicodeString) : UnicodeString; overload;
+  function ToUpper(AChar : UnicodeChar) : UnicodeChar; overload;
+  function ToUpper(const AString : UnicodeString) : UnicodeString; overload;
 {$endif VER2_4}
 
 implementation
@@ -182,6 +225,216 @@ begin
          WordRec(ACodePoint).Lo
        ]
      ];
+end;
+
+function ConvertFromUtf32(AChar: UCS4Char): UnicodeString;
+begin
+  Result := TCharacter.ConvertFromUtf32(AChar);
+end;
+
+function ConvertToUtf32(const AString: UnicodeString; AIndex: Integer): UCS4Char;
+begin
+  Result := TCharacter.ConvertToUtf32(AString, AIndex);
+end;
+
+function ConvertToUtf32(const AString: UnicodeString; AIndex: Integer; out ACharLength: Integer): UCS4Char;
+begin
+  Result := TCharacter.ConvertToUtf32(AString, AIndex, ACharLength);
+end;
+
+function ConvertToUtf32(const AHighSurrogate, ALowSurrogate: UnicodeChar): UCS4Char;
+begin
+  Result := TCharacter.ConvertToUtf32(AHighSurrogate, ALowSurrogate);
+end;
+
+function GetNumericValue(AChar: UnicodeChar): Double;
+begin
+  Result := TCharacter.GetNumericValue(AChar);
+end;
+
+function GetNumericValue(const AString: UnicodeString; AIndex: Integer): Double;
+begin
+  Result := TCharacter.GetNumericValue(AString, AIndex);
+end;
+
+function GetUnicodeCategory(AChar: UnicodeChar): TUnicodeCategory;
+begin
+  Result := TCharacter.GetUnicodeCategory(AChar);
+end;
+
+function GetUnicodeCategory(const AString: UnicodeString; AIndex: Integer): TUnicodeCategory;
+begin
+  Result := TCharacter.GetUnicodeCategory(AString, AIndex);
+end;
+
+function IsControl(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsControl(AChar);
+end;
+
+function IsControl(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsControl(AString, AIndex);
+end;
+
+function IsDigit(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsDigit(AChar);
+end;
+
+function IsDigit(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsDigit(AString, AIndex);
+end;
+
+function IsSurrogate(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsSurrogate(AChar);
+end;
+
+function IsSurrogate(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsSurrogate(AString, AIndex);
+end;
+
+function IsHighSurrogate(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsHighSurrogate(AChar);
+end;
+
+function IsHighSurrogate(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsHighSurrogate(AString, AIndex);
+end;
+
+function IsLowSurrogate(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsLowSurrogate(AChar);
+end;
+
+function IsLowSurrogate(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsLowSurrogate(AString, AIndex);
+end;
+
+function IsSurrogatePair(const AHighSurrogate, ALowSurrogate: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsSurrogatePair(AHighSurrogate, ALowSurrogate);
+end;
+
+function IsSurrogatePair(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsSurrogatePair(AString, AIndex);
+end;
+
+function IsLetter(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsLetter(AChar);
+end;
+
+function IsLetter(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsLetter(AString, AIndex);
+end;
+
+function IsLetterOrDigit(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsLetterOrDigit(AChar);
+end;
+
+function IsLetterOrDigit(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsLetterOrDigit(AString, AIndex);
+end;
+
+function IsLower(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsLower(AChar);
+end;
+
+function IsLower(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsLower(AString, AIndex);
+end;
+
+function IsNumber(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsNumber(AChar);
+end;
+
+function IsNumber(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsNumber(AString, AIndex);
+end;
+
+function IsPunctuation(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsPunctuation(AChar);
+end;
+
+function IsPunctuation(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsPunctuation(AString, AIndex);
+end;
+
+function IsSeparator(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsSeparator(AChar);
+end;
+
+function IsSeparator(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsSeparator(AString, AIndex);
+end;
+
+function IsSymbol(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsSymbol(AChar);
+end;
+
+function IsSymbol(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsSymbol(AString, AIndex);
+end;
+
+function IsUpper(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsUpper(AChar);
+end;
+
+function IsUpper(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsUpper(AString, AIndex);
+end;
+
+function IsWhiteSpace(AChar: UnicodeChar): Boolean;
+begin
+  Result := TCharacter.IsWhiteSpace(AChar);
+end;
+
+function IsWhiteSpace(const AString: UnicodeString; AIndex: Integer): Boolean;
+begin
+  Result := TCharacter.IsWhiteSpace(AString, AIndex);
+end;
+
+function ToLower(AChar: UnicodeChar): UnicodeChar;
+begin
+  Result := TCharacter.ToLower(AChar);
+end;
+
+function ToLower(const AString: UnicodeString): UnicodeString;
+begin
+  Result := TCharacter.ToLower(AString);
+end;
+
+function ToUpper(AChar: UnicodeChar): UnicodeChar;
+begin
+  Result := TCharacter.ToUpper(AChar);
+end;
+
+function ToUpper(const AString: UnicodeString): UnicodeString;
+begin
+  Result := TCharacter.ToUpper(AString);
 end;
 
 { TCharacter }
