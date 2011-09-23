@@ -364,12 +364,12 @@
         ccp:=win2iconv_arr[i].cp;
         if cp=ccp then
           break;
-        if cp>ccp then
-          l:=i+1
+        if cp>=ccp then
+          l:=i
         else
           h:=i-1;
-      until l>h;
-      if l<=h then
+      until l>=h;
+      if cp=win2iconv_arr[i].cp then
         begin
           { the array has been ordered so that in case multiple alias names
             exist, the first entry for the cp is the most commonly supported
