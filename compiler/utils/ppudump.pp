@@ -1018,7 +1018,9 @@ const
          (mask:pi_dfaavailable;
          str:' dfa was generated for this proc '),
          (mask:pi_has_interproclabel;
-         str:' subroutine contains interprocedural used labels ')
+         str:' subroutine contains interprocedural used labels '),
+         (mask:pi_has_unwind_info;
+         str:' unwinding info was generated for this proc ')
   );
 var
   procinfooptions : tprocinfoflags;

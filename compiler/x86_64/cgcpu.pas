@@ -37,6 +37,7 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
+        procedure g_proc_entry(list : TAsmList; parasize:longint; nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
@@ -49,7 +50,7 @@ unit cgcpu;
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,
+       globtype,globals,verbose,systems,cutils,cclasses,
        symsym,defutil,paramgr,fmodule,
        rgobj,tgobj,rgcpu;
 
@@ -110,10 +111,71 @@ unit cgcpu;
         setlength(saved_mm_registers,0);
       end;
 
+    procedure tcgx86_64.g_proc_entry(list : TAsmList;parasize:longint;nostackframe:boolean);
+      var
+        hitem: tlinkedlistitem;
+        r: integer;
+        href: treference;
+        templist: TAsmList;
+        frame_offset: longint;
+      begin
+        hitem:=list.last;
+        inherited g_proc_entry(list,parasize,nostackframe);
+
+        if not (pi_has_unwind_info in current_procinfo.flags) then
+          exit;
+        { Generate unwind data for x86_64-win64 }
+        list.insertafter(cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname),hitem);
+        templist:=TAsmList.Create;
+
+        { We need to record postive offsets from RSP; if registers are saved
+          at negative offsets from RBP we need to account for it. }
+        if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+          frame_offset:=current_procinfo.final_localsize
+        else
+          frame_offset:=0;
+
+        { There's no need to describe position of register saves precisely;
+          since registers are not modified before they are saved, and saves do not
+          change RSP, 'logically' all saves can happen at the end of prologue. }
+        href:=current_procinfo.save_regs_ref;
+        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            begin
+              templist.concat(cai_seh_directive.create_reg_offset(ash_savereg,
+                newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE),
+                href.offset+frame_offset));
+              inc(href.offset,sizeof(aint));
+            end;
+        if uses_registers(R_MMREGISTER) then
+          begin
+            if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
+              inc(href.offset,tcgsize2size[OS_VECTOR]-(href.offset mod tcgsize2size[OS_VECTOR]));
+
+            for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+              begin
+                if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                  begin
+                    templist.concat(cai_seh_directive.create_reg_offset(ash_savexmm,
+                      newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),
+                      href.offset+frame_offset));
+                    inc(href.offset,tcgsize2size[OS_VECTOR]);
+                  end;
+              end;
+          end;
+        templist.concat(cai_seh_directive.create(ash_endprologue));
+        if assigned(current_procinfo.endprologue_ai) then
+          current_procinfo.aktproccode.insertlistbefore(current_procinfo.endprologue_ai,templist)
+        else
+          list.concatlist(templist);
+        templist.free;
+      end;
+
 
     procedure tcgx86_64.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
       var
         stacksize : longint;
+        href : treference;
       begin
         { Release PIC register }
         if cs_create_pic in current_settings.moduleswitches then
@@ -135,12 +197,24 @@ unit cgcpu;
                 if (stacksize<>0) then
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
               end
+            else if (target_info.system=system_x86_64_win64) then
+              begin
+                { Comply with Win64 unwinding mechanism, which only recognizes
+                  'add $constant,%rsp' and 'lea offset(FPREG),%rsp' as belonging to
+                  the function epilog.
+                  Neither 'leave' nor even 'mov %FPREG,%rsp' are allowed. }
+                reference_reset_base(href,current_procinfo.framepointer,0,sizeof(pint));
+                list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],href,NR_STACK_POINTER_REG));
+                list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],current_procinfo.framepointer));
+              end
             else
               list.concat(Taicpu.op_none(A_LEAVE,S_NO));
             list.concat(tai_regalloc.dealloc(NR_FRAME_POINTER_REG,nil));
           end;
 
         list.concat(Taicpu.Op_none(A_RET,S_NO));
+        if (pi_has_unwind_info in current_procinfo.flags) then
+          list.concat(cai_seh_directive.create(ash_endproc));
       end;
 
 

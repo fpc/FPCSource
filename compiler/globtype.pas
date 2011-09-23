@@ -466,7 +466,9 @@ interface
          { dfa was generated for this proc }
          pi_dfaavailable,
          { subroutine contains interprocedural used labels }
-         pi_has_interproclabel
+         pi_has_interproclabel,
+         { subroutine has unwind info (win64) }
+         pi_has_unwind_info
        );
        tprocinfoflags=set of tprocinfoflag;
 

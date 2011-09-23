@@ -1174,6 +1174,9 @@ implementation
             { Add save and restore of used registers }
             current_filepos:=entrypos;
             gen_save_used_regs(templist);
+            { Remember the last instruction of register saving block
+              (may be =nil for e.g. assembler procedures) }
+            current_procinfo.endprologue_ai:=templist.last;
             aktproccode.insertlistafter(headertai,templist);
             current_filepos:=exitpos;
             gen_restore_used_regs(aktproccode);

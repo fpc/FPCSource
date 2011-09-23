@@ -1393,8 +1393,10 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
+{$ifdef TEST_WIN64_UNWIND}
              ait_seh_directive :
                tai_seh_directive(hp).generate_code(objdata);
+{$endif TEST_WIN64_UNWIND}
            end;
            hp:=Tai(hp.next);
          end;
