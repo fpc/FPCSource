@@ -18,6 +18,9 @@
     *********************************************************************
 }
 
+type
+  TUnicodeCharArray = array of UnicodeChar;
+
 function Trim(const S: unicodestring): unicodestring;
 function TrimLeft(const S: unicodestring): unicodestring;
 function TrimRight(const S: unicodestring): unicodestring;
