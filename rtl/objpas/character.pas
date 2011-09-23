@@ -237,7 +237,7 @@ begin
   if not IsHighSurrogate(AHighSurrogate) then
     raise EArgumentOutOfRangeException.CreateFmt(SHighSurrogateOutOfRange, [Word(AHighSurrogate)]);
   if not IsLowSurrogate(ALowSurrogate) then
-    raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(AHighSurrogate)]);
+    raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(ALowSurrogate)]);
   Result := (UCS4Char(AHighSurrogate) - HIGH_SURROGATE_BEGIN) shl 10 + (UCS4Char(ALowSurrogate) - LOW_SURROGATE_BEGIN) + UCS4_HALF_BASE;
 end;
 
