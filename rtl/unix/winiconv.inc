@@ -360,7 +360,7 @@
       l:=low(win2iconv_arr);
       h:=high(win2iconv_arr);
       repeat
-        i:=(l+h) shr 1;
+        i:=(l+h+1) shr 1;
         ccp:=win2iconv_arr[i].cp;
         if cp=ccp then
           break;
