@@ -8125,6 +8125,7 @@ rtl/unix/unxovl.inc svneol=native#text/plain
 rtl/unix/unxovlh.inc svneol=native#text/plain
 rtl/unix/varutils.pp svneol=native#text/plain
 rtl/unix/video.pp svneol=native#text/plain
+rtl/unix/winiconv.inc svneol=native#text/plain
 rtl/unix/x86.pp svneol=native#text/plain
 rtl/watcom/Makefile svneol=native#text/plain
 rtl/watcom/Makefile.fpc svneol=native#text/plain

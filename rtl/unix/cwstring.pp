@@ -158,6 +158,48 @@ procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 threadvar
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
+  { since we cache the iconv_t converters, we have to do the same
+    for the DefaultSystemCodePage variable since if it changes, we
+    have to re-initialize the converters too. We can't do that via
+    a callback in the widestring manager because DefaultSystemCodePage
+    is not a threadvar and we can't automatically change this in all
+    threads }
+  current_DefaultSystemCodePage: TSystemCodePage;
+
+
+  function win2iconv(cp: word): ansistring; forward;
+
+
+procedure InitThread;
+{$if not(defined(darwin) and defined(arm))}
+var
+  iconvname: ansistring;
+{$endif}
+begin
+  current_DefaultSystemCodePage:=DefaultSystemCodePage;
+{$if not(defined(darwin) and defined(arm))}
+  iconvname:=win2iconv(DefaultSystemCodePage);
+  iconv_wide2ansi:=iconv_open(pchar(iconvname),unicode_encoding2);
+  iconv_ansi2wide:=iconv_open(unicode_encoding2,pchar(iconvname));
+{$else}
+  { Unix locale settings are ignored on iPhoneOS }
+  iconv_wide2ansi:=iconv_open('UTF-8',unicode_encoding2);
+  iconv_ansi2wide:=iconv_open(unicode_encoding2,'UTF-8');
+{$endif}
+end;
+
+
+procedure FiniThread;
+begin
+  if (iconv_wide2ansi <> iconv_t(-1)) then
+    iconv_close(iconv_wide2ansi);
+  if (iconv_ansi2wide <> iconv_t(-1)) then
+    iconv_close(iconv_ansi2wide);
+end;
+
+
+{$i winiconv}
+
 
 {$if defined(beos) and not defined(haiku)}
 function nl_langinfo(__item:nl_item):pchar;
@@ -181,29 +223,54 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
     outoffset,
     srclen,
     outleft : size_t;
+    use_iconv: iconv_t;
     srcpos : pwidechar;
     destpos: pchar;
     mynil : pchar;
     my0 : size_t;
     err: cint;
+    free_iconv: boolean;
   begin
-{$ifndef VER2_2}
-    if PtrInt(iconv_wide2ansi)=-1 then
+    if (cp=DefaultSystemCodePage) then
+      begin
+        { update iconv converter in case the DefaultSystemCodePage has been
+          changed }
+        if current_DefaultSystemCodePage<>DefaultSystemCodePage then
+          begin
+            FiniThread;
+            InitThread;
+          end;
+        use_iconv:=iconv_wide2ansi;
+        free_iconv:=false;
+      end
+    else
+      begin
+        { TODO: add caching (then we also don't need separate code for
+          the default system page and other ones)
+          
+          -- typecasting an ansistring function result to pchar is
+            unsafe normally, but these are constant strings -> no
+            problem }
+        use_iconv:=iconv_open(pchar(win2iconv(cp)),unicode_encoding2);
+        free_iconv:=true;
+      end;
+    { unsupported encoding -> default move }
+    if use_iconv=iconv_t(-1) then
       begin
         DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
         exit;
       end;
-{$endif VER2_2}
     mynil:=nil;
     my0:=0;
     { rought estimation }
     setlength(dest,len*3);
+    SetCodePage(dest,cp,false);
     outlength:=len*3;
     srclen:=len*2;
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength;
-    while iconv(iconv_wide2ansi,ppchar(@srcpos),@srclen,@destpos,@outleft)=size_t(-1) do
+    while iconv(use_iconv,ppchar(@srcpos),@srclen,@destpos,@outleft)=size_t(-1) do
       begin
         err:=fpgetCerrno;
         case err of
@@ -219,7 +286,7 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
               inc(destpos);
               dec(outleft);
               { reset }
-              iconv(iconv_wide2ansi,@mynil,@my0,@mynil,@my0);
+              iconv(use_iconv,@mynil,@my0,@mynil,@my0);
               if err=ESysEINVAL then
                 break;
             end;
@@ -239,6 +306,8 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
       end;
     // truncate string
     setlength(dest,length(dest)-outleft);
+    if free_iconv then
+      iconv_close(use_iconv);
   end;
 
 
@@ -247,19 +316,43 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
     outlength,
     outoffset,
     outleft : size_t;
+    use_iconv: iconv_t;
     srcpos,
     destpos: pchar;
     mynil : pchar;
     my0 : size_t;
     err: cint;
+    free_iconv: boolean;
   begin
-{$ifndef VER2_2}
-    if PtrInt(iconv_ansi2wide)=-1 then
+    if (cp=DefaultSystemCodePage) then
+      begin
+        { update iconv converter in case the DefaultSystemCodePage has been
+          changed }
+        if current_DefaultSystemCodePage<>DefaultSystemCodePage then
+          begin
+            FiniThread;
+            InitThread;
+          end;
+        use_iconv:=iconv_ansi2wide;
+        free_iconv:=false;
+      end
+    else
+      begin
+        { TODO: add caching (then we also don't need separate code for
+          the default system page and other ones)
+          
+          -- typecasting an ansistring function result to pchar is
+            unsafe normally, but these are constant strings -> no
+            problem }
+        use_iconv:=iconv_open(unicode_encoding2,pchar(win2iconv(cp)));
+        free_iconv:=true;
+      end;
+    { unsupported encoding -> default move }
+    if use_iconv=iconv_t(-1) then
       begin
         DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
         exit;
       end;
-{$endif VER2_2}
     mynil:=nil;
     my0:=0;
     // extra space
@@ -268,7 +361,7 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength*2;
-    while iconv(iconv_ansi2wide,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
+    while iconv(use_iconv,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
       begin
         err:=fpgetCerrno;
         case err of
@@ -282,7 +375,7 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
               inc(destpos,2);
               dec(outleft,2);
               { reset }
-              iconv(iconv_ansi2wide,@mynil,@my0,@mynil,@my0);
+              iconv(use_iconv,@mynil,@my0,@mynil,@my0);
               if err=ESysEINVAL then
                 break;
             end;
@@ -302,6 +395,8 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
       end;
     // truncate string
     setlength(dest,length(dest)-outleft div 2);
+    if free_iconv then
+      iconv_close(use_iconv);
   end;
 
 
@@ -742,28 +837,6 @@ begin
 end;
 
 
-procedure InitThread;
-begin
-{$if not(defined(darwin) and defined(arm))}
-  iconv_wide2ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding2);
-  iconv_ansi2wide:=iconv_open(unicode_encoding2,nl_langinfo(CODESET));
-{$else}
-  { Unix locale settings are ignored on iPhoneOS }
-  iconv_wide2ansi:=iconv_open('UTF-8',unicode_encoding2);
-  iconv_ansi2wide:=iconv_open(unicode_encoding2,'UTF-8');
-{$endif}
-end;
-
-
-procedure FiniThread;
-begin
-  if (iconv_wide2ansi <> iconv_t(-1)) then
-    iconv_close(iconv_wide2ansi);
-  if (iconv_ansi2wide <> iconv_t(-1)) then
-    iconv_close(iconv_ansi2wide);
-end;
-
-
 Procedure SetCWideStringManager;
 Var
   CWideStringManager : TUnicodeStringManager;
@@ -815,6 +888,9 @@ initialization
   { (some OSes do this automatically, but e.g. Darwin and Solaris don't)    }
   setlocale(LC_ALL,'');
 
+  { set the DefaultSystemCodePage }
+  DefaultSystemCodePage:=iconv2win(ansistring(nl_langinfo(CODESET)));
+  
   { init conversion tables for main program }
   InitThread;
 finalization
