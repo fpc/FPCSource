@@ -860,9 +860,10 @@ implementation
             { using sqr(x) for reals instead of x*x might reduces register pressure and/or
               memory accesses while sqr(<real>) has no drawback }
             if
-{$ifdef ARM}
-               (current_settings.fputype<>fpu_soft) and
-{$endif ARM}
+{$ifdef cpufpemu}
+               (current_settings.fputype<>fpu_soft) and 
+               not(cs_fp_emulation in current_settings.moduleswitches) and
+{$endif cpufpemu}
                (nodetype=muln) and
                is_real(left.resultdef) and is_real(right.resultdef) and
                left.isequal(right) and
