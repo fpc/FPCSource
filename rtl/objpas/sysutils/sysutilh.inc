@@ -202,6 +202,8 @@ type
    EArgumentException = class(Exception);
    EArgumentOutOfRangeException = class(EArgumentException);
 
+   ENoConstructException = class(Exception);
+
    { Exception handling routines }
    function ExceptObject: TObject;
    function ExceptAddr: Pointer;

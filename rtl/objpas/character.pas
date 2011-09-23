@@ -52,6 +52,8 @@ type
 
   TCharacter = class sealed
   public
+    constructor Create;
+
     class function ConvertFromUtf32(AChar : UCS4Char) : UnicodeString; static;
     class function ConvertToUtf32(const AString : UnicodeString; AIndex : Integer) : UCS4Char; overload; static;
     class function ConvertToUtf32(const AString : UnicodeString; AIndex : Integer; out ACharLength : Integer) : UCS4Char; overload; static;
@@ -183,6 +185,11 @@ begin
 end;
 
 { TCharacter }
+
+constructor TCharacter.Create;
+begin
+  raise ENoConstructException.CreateFmt(SClassCantBeConstructed, [ClassName]);
+end;
 
 class function TCharacter.ConvertFromUtf32(AChar : UCS4Char) : UnicodeString; static;
 begin

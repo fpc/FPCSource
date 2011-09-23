@@ -294,6 +294,7 @@ ResourceString
   SLowSurrogateOutOfRange       = 'Low surrogate $%x out of range [$DC00 - $DFFF]';
   SInvalidUTF32Char             = 'Invalid UTF32 character $%x. Valid UTF32 character must be in range [$0 - $10FFFF] except surrogate range [$D800-$DFFF]';
   SInvalidHighSurrogate         = 'Invalid high surrogate at index %d. High surrogate must be followed by a low surrogate pair';
+  SClassCantBeConstructed       = 'Class %s can not be constructed';
 
 { ---------------------------------------------------------------------
     Keysim Names
