@@ -1356,14 +1356,14 @@ end;
 
 Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
 begin
-  if (index>len div 2) or (Index<1) then
+  if (index>len) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
 
 {$else VER2_4}
 Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
 begin
-  if (p=nil) or (index>PUnicodeRec(p-UnicodeFirstOff)^.len div 2) or (Index<1) then
+  if (p=nil) or (index>PUnicodeRec(p-UnicodeFirstOff)^.len) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
 {$endif VER2_4}
