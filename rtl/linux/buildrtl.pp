@@ -9,7 +9,7 @@ unit buildrtl;
       termio, unix, linux, initc, cmem, mmx,
       crt, printer, linuxvcs,
       sysutils, typinfo, math, matrix, varutils,
-      charset, ucomplex, getopts,
+      charset, character, ucomplex, getopts,
       errors, sockets, gpm, ipc, serial, terminfo, dl, dynlibs,
       video, mouse, keyboard, variants, types, dateutils, sysconst, fmtbcd,
       cthreads, classes, fgl, convutils, stdconvs, strutils, rtlconsts, dos, objects, cwstring, fpcylix, clocale,
