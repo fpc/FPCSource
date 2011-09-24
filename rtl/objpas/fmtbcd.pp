@@ -1079,15 +1079,16 @@ IMPLEMENTATION
       WITH BCD,
            bh do
         begin
-          lnzf := FDig < 0;
-          while lnzf do
+          lnzf := FDig <= 0;
+          while lnzf do // skip leading 0
             if Singles[FDig] = 0
               then begin
                 Inc ( FDig );
-                if FDig = 0
+                if FDig > 0
                   then lnzf := False;
                end
               else lnzf := False;
+          if FDig > 1 then FDig := 1;
           pre := LDig - FDig + 1;
           fra := Plac;
           doround := False;
@@ -1144,7 +1145,7 @@ IMPLEMENTATION
 
           lnzf := False;
           i := LDig;
-          while ( i >= FDig ) AND ( NOT lnzf ) do
+          while ( i >= FDig ) AND ( NOT lnzf ) do // skip trailing 0
             begin
               if Singles[i] <> 0
                 then begin
@@ -1412,7 +1413,7 @@ IMPLEMENTATION
           WITH lvars,
                bh do
             begin
-              while ( pfnb < lav ) AND ( NOT nbf ) do
+              while ( pfnb < lav ) AND ( NOT nbf ) do // skip leading spaces
                 begin
                   Inc ( pfnb );
                   nbf := aValue[pfnb] <> ' ';
@@ -1421,7 +1422,7 @@ IMPLEMENTATION
                 then begin
                   if aValue[pfnb] IN [ '+', '-' ]
                     then begin
-                      ps := pfnb;
+                      ps := pfnb; // position of sign
                       Inc ( pfnb );
                      end;
                   inife := low ( inife );
@@ -1461,7 +1462,7 @@ IMPLEMENTATION
                                else inife := inexp;
                         '+',
                         '-': if ( inife = inexp ) AND ( fp[inexp] = 0 )
-                               then pse := i
+                               then pse := i // position of exponent sign
                                else result := False;
                         else begin
                           result := False;
@@ -1472,7 +1473,7 @@ IMPLEMENTATION
                   if not result
                     then begin
                       result := True;
-                      for i := errp TO lav do
+                      for i := errp TO lav do // skip trailing spaces
                         if aValue[i] <> ' '
                           then result := False;
                      end;
@@ -2205,9 +2206,7 @@ writeln;
               bh1[True] := null_.bh;
               FlipFlop := False;
               fdset := p > 0;
-              if fdset
-                then bh.FDig := 0;
-              add := 0;
+              Add := 0;
               nz := True;
               while nz do
                 WITH bh1[FlipFlop] do
@@ -2284,9 +2283,6 @@ if p > 3 then halt;
                                 nLDig := 0;
                                 ue := 0;
                                 dd := Singles[lFDig] DIV ( bh2.Singles[lFDig - p] + 1 );
-{
-                                dd := 1;
-}
                                 if dd < 1
                                   then dd := 1;
 {
@@ -2316,21 +2312,10 @@ writeln ( 'p=', p, ' dd=', dd, ' lFdig=', lfdig, ' lldig=', lldig );
                                        end;
 }
                                    end;
-                                            sf := False;
-                                nfdig := lfdig;
-                                nldig := lldig;
+                                sf := False;
+                                nFDig := lFDig;
+                                nLDig := lLDig;
                                 Inc ( Add, dd );
-                                if NOT fdset
-                                  then begin
-                                    bh.FDig := p;
-                                    fdset := True;
-                                   end;
-                                if bh.LDig < p
-                                  then begin
-                                    bh.LDig := p;
-                                    if ( bh.LDig - bh.FDig ) > Succ ( MaxFmtBCDFractionSize )
-                                      then nz := False;
-                                   end;
                                 if sf
                                   then nz := False
                                   else begin
@@ -2344,8 +2329,22 @@ writeln ( 'p=', p, ' dd=', dd, ' lFdig=', lfdig, ' lldig=', lldig );
                                    end;
                                end;
                            end;
+
                         if Add <> 0
                           then begin
+
+                            if NOT fdset
+                              then begin
+                                bh.FDig := p;
+                                fdset := True;
+                               end;
+                            if bh.LDig < p
+                              then begin
+                                bh.LDig := p;
+                                if ( bh.LDig - bh.FDig ) > Succ ( MaxFmtBCDFractionSize )
+                                  then nz := False;
+                               end;
+
                             i4 := p;
                             while ( Add <> 0 ) AND ( i4 >= bh.FDig ) do
                               begin
