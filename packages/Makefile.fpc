@@ -168,7 +168,7 @@ fcl-image_shared: fcl-base_shared paszlib_shared pasjpeg_shared
 
 fpvectorial_all: fcl-image_all fcl-base_all
 fpvectorial_debug: fcl-image_debug fcl-base_debug
-fpvectorial_smart: fcl-image_smart fcl-base_all
+fpvectorial_smart: fcl-image_smart fcl-base_smart
 fpvectorial_release: fcl-image_release fcl-base_release 
 fpvectorial_shared: fcl-image_shared fcl-base_shared
 
