@@ -1288,22 +1288,25 @@ End;
 
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); [public, alias: 'FPC_READ_TEXT_ANSISTR']; iocheck; compilerproc;
+Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); [public, alias: 'FPC_READ_TEXT_ANSISTR']; iocheck; compilerproc;
 var
   slen,len : SizeInt;
 Begin
   slen:=0;
   Repeat
     // SetLength will reallocate the length.
-    SetLength(S,slen+255);
-    len:=ReadPCharLen(f,pchar(Pointer(S)+slen),255);
+    SetLength(s,slen+255);
+    len:=ReadPCharLen(f,pchar(Pointer(s)+slen),255);
     inc(slen,len);
   Until len<255;
   // Set actual length
-  SetLength(S,Slen);
+  SetLength(s,Slen);
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
 End;
 
-Procedure fpc_Read_Text_AnsiStr_Intern(var f : Text;out s : AnsiString); [external name 'FPC_READ_TEXT_ANSISTR'];
+Procedure fpc_Read_Text_AnsiStr_Intern(var f : Text;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); [external name 'FPC_READ_TEXT_ANSISTR'];
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
@@ -1313,7 +1316,7 @@ var
   s: AnsiString;
 Begin
   // all standard input is assumed to be ansi-encoded
-  fpc_Read_Text_AnsiStr_Intern(f,s);
+  fpc_Read_Text_AnsiStr_Intern(f,RawByteString(s){$ifdef FPC_HAS_CPSTRING},DefaultSystemCodePage{$endif FPC_HAS_CPSTRING});
   // Convert to unicodestring
   us:=s;
 End;
@@ -1325,7 +1328,7 @@ var
   s: AnsiString;
 Begin
   // all standard input is assumed to be ansi-encoded
-  fpc_Read_Text_AnsiStr_Intern(f,s);
+  fpc_Read_Text_AnsiStr_Intern(f,RawByteString(s){$ifdef FPC_HAS_CPSTRING},DefaultSystemCodePage{$endif FPC_HAS_CPSTRING});
   // Convert to widestring
   ws:=s;
 End;

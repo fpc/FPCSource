@@ -746,11 +746,15 @@ implementation
                         end;
 {                      indexpara.right:=lenpara;}
                     end;
-                  { in case of writing a chararray, add whether it's }
-                  { zero-based                                       }
+                  { in case of writing a chararray, add whether it's zero-based }
                   if para.left.resultdef.typ=arraydef then
                     para := ccallparanode.create(cordconstnode.create(
-                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool8type,false),para);
+                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool8type,false),para)
+                  else
+                  { in case of reading an ansistring pass a codepage argument }
+                  if do_read and is_ansistring(para.left.resultdef) then
+                    para:=ccallparanode.create(cordconstnode.create(
+                      tstringdef(para.left.resultdef).encoding,u16inttype,true),para);
                   { create the call statement }
                   addstatement(Tstatementnode(newstatement),
                     ccallnode.createintern(name,para));
