@@ -1933,7 +1933,7 @@ implementation
               break;
             if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
               begin
-                srsym:=tprocsym(srsymtable.FindWithHash(hashedid));
+                srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
