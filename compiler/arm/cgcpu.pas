@@ -283,6 +283,7 @@ unit cgcpu;
                current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
                hr.symbol:=l;
+               hr.base:=NR_PC;
                list.concat(taicpu.op_reg_ref(A_LDR,reg,hr));
             end;
        end;
@@ -640,8 +641,7 @@ unit cgcpu;
 
         if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
           case op of
-            OP_NEG,OP_NOT,
-            OP_DIV,OP_IDIV:
+            OP_NEG,OP_NOT:
               internalerror(200308281);
             OP_SHL:
               begin
@@ -742,11 +742,11 @@ unit cgcpu;
         else
           begin
             { there could be added some more sophisticated optimizations }
-            if (op in [OP_MUL,OP_IMUL]) and (a=1) then
+            if (op in [OP_MUL,OP_IMUL,OP_DIV,OP_IDIV]) and (a=1) then
               a_load_reg_reg(list,size,size,src,dst)
             else if (op in [OP_MUL,OP_IMUL]) and (a=0) then
               a_load_const_reg(list,size,0,dst)
-            else if (op in [OP_IMUL]) and (a=-1) then
+            else if (op in [OP_IMUL,OP_IDIV]) and (a=-1) then
               a_op_reg_reg(list,OP_NEG,size,src,dst)
             { we do this here instead in the peephole optimizer because
               it saves us a register }
@@ -3192,8 +3192,7 @@ unit cgcpu;
       begin
         ovloc.loc:=LOC_VOID;
         case op of
-           OP_NEG,OP_NOT,
-           OP_DIV,OP_IDIV:
+           OP_NEG,OP_NOT:
               internalerror(200308281);
            OP_ROL:
               begin
