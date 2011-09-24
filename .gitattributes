@@ -1993,6 +1993,7 @@ packages/fcl-db/tests/sqldbtoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/tcgensql.pas svneol=native#text/plain
 packages/fcl-db/tests/tcparser.pas svneol=native#text/plain
 packages/fcl-db/tests/tcsqlscanner.pas svneol=native#text/plain
+packages/fcl-db/tests/test100params.pp svneol=native#text/plain
 packages/fcl-db/tests/testbasics.pas svneol=native#text/plain
 packages/fcl-db/tests/testbufdatasetstreams.pas svneol=native#text/plain
 packages/fcl-db/tests/testdatasources.pas svneol=native#text/plain
