@@ -3182,6 +3182,11 @@ implementation
 
      function tinlinenode.first_sqr_real : tnode;
       begin
+{$ifndef cpufpemu}
+        { this procedure might be only used for cpus definining cpufpemu else
+          the optimizer might go into an endless loop when doing x*x -> changes }
+        internalerror(2011092401);
+{$endif cpufpemu}
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_sqr_real := ctypeconvnode.create(ccallnode.createintern('fpc_sqr_real',
