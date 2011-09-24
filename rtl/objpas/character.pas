@@ -175,7 +175,8 @@ type
     WhiteSpace      : Boolean;
   end; 
   
-  {$INCLUDE unicodedata.inc}
+  {$INCLUDE unicodedata.inc} // For BMP code points
+  {$INCLUDE unicodedata2.inc} // For other planes
   
 const              
   LOW_SURROGATE_BEGIN  = Word($DC00); 
@@ -183,7 +184,7 @@ const
   
   HIGH_SURROGATE_BEGIN = Word($D800); 
   HIGH_SURROGATE_END   = Word($DBFF);
-
+  HIGH_SURROGATE_COUNT = HIGH_SURROGATE_END - HIGH_SURROGATE_BEGIN + 1;
   UCS4_HALF_BASE       = LongWord($10000);
   UCS4_HALF_MASK       = Word($3FF);
   MAX_LEGAL_UTF32      = $10FFFF;
@@ -216,7 +217,7 @@ const
       TUnicodeCategory.ucModifierSymbol, TUnicodeCategory.ucOtherSymbol
     ];
 
-class function GetProps(const ACodePoint : Word) : PUC_Prop; inline;
+function GetProps(const ACodePoint : Word) : PUC_Prop; inline;
 begin
   Result:=
     @UC_PROP_ARRAY[
@@ -225,6 +226,23 @@ begin
          WordRec(ACodePoint).Lo
        ]
      ];
+end;
+
+function GetProps(const AHighS, ALowS : UnicodeChar): PUC_Prop; inline;
+begin
+  Result:=
+    @UC_PROP_ARRAY[
+       UCO_TABLE_2[
+         (UCO_TABLE_1[Word(AHighS)-HIGH_SURROGATE_BEGIN] * HIGH_SURROGATE_COUNT) +
+         Word(ALowS) - LOW_SURROGATE_BEGIN
+       ]
+     ];
+end;
+
+procedure FromUCS4(const AValue : UCS4Char; var AHighS, ALowS : UnicodeChar);
+begin
+  AHighS := UnicodeChar((AValue - $10000) shr 10 + $d800);
+  ALowS := UnicodeChar((AValue - $10000) and $3ff + $dc00);
 end;
 
 function ConvertFromUtf32(AChar: UCS4Char): UnicodeString;
@@ -444,7 +462,7 @@ begin
   raise ENoConstructException.CreateFmt(SClassCantBeConstructed, [ClassName]);
 end;
 
-class function TCharacter.ConvertFromUtf32(AChar : UCS4Char) : UnicodeString; static;
+class function TCharacter.ConvertFromUtf32(AChar : UCS4Char) : UnicodeString;
 begin
   if AChar < UCS4_HALF_BASE then
   begin
@@ -463,7 +481,7 @@ begin
   end;
 end;
 
-class function TCharacter.ConvertToUtf32(const AString : UnicodeString; AIndex : Integer) : UCS4Char; overload; static;
+class function TCharacter.ConvertToUtf32(const AString : UnicodeString; AIndex : Integer) : UCS4Char; overload;
 begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
@@ -476,7 +494,7 @@ begin
   end;
 end;
 
-class function TCharacter.ConvertToUtf32(const AString : UnicodeString; AIndex : Integer; out ACharLength : Integer) : UCS4Char; overload; static;
+class function TCharacter.ConvertToUtf32(const AString : UnicodeString; AIndex : Integer; out ACharLength : Integer) : UCS4Char; overload;
 begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
@@ -492,7 +510,7 @@ begin
     ACharLength := 1;
 end;
 
-class function TCharacter.ConvertToUtf32(const AHighSurrogate, ALowSurrogate : UnicodeChar) : UCS4Char; overload; static;
+class function TCharacter.ConvertToUtf32(const AHighSurrogate, ALowSurrogate : UnicodeChar) : UCS4Char; overload;
 begin
   if not IsHighSurrogate(AHighSurrogate) then
     raise EArgumentOutOfRangeException.CreateFmt(SHighSurrogateOutOfRange, [Word(AHighSurrogate)]);
@@ -501,7 +519,7 @@ begin
   Result := (UCS4Char(AHighSurrogate) - HIGH_SURROGATE_BEGIN) shl 10 + (UCS4Char(ALowSurrogate) - LOW_SURROGATE_BEGIN) + UCS4_HALF_BASE;
 end;
 
-class function TCharacter.GetNumericValue(AChar : UnicodeChar) : Double; static;
+class function TCharacter.GetNumericValue(AChar : UnicodeChar) : Double;
 begin
   Result := GetProps(Word(AChar))^.NumericValue;
 end;
@@ -509,14 +527,14 @@ end;
 class function TCharacter.GetNumericValue(
   const AString : UnicodeString;  
         AIndex  : Integer
-) : Double; static;
+) : Double;
 begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   Result := GetNumericValue(AString[AIndex]);
 end;  
 
-class function TCharacter.GetUnicodeCategory(AChar : UnicodeChar) : TUnicodeCategory; static;
+class function TCharacter.GetUnicodeCategory(AChar : UnicodeChar) : TUnicodeCategory;
 begin   
   Result := GetProps(Word(AChar))^.Category;  
 end;
@@ -524,14 +542,14 @@ end;
 class function TCharacter.GetUnicodeCategory(
   const AString : UnicodeString;  
         AIndex  : Integer
-) : TUnicodeCategory; static;
+) : TUnicodeCategory;
 begin   
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   Result := GetUnicodeCategory(AString[AIndex]);
 end;
 
-class function TCharacter.IsControl(AChar : UnicodeChar) : Boolean; static;
+class function TCharacter.IsControl(AChar : UnicodeChar) : Boolean;
 begin  
   Result := (GetProps(Word(AChar))^.Category = TUnicodeCategory.ucControl);
 end;
@@ -539,14 +557,14 @@ end;
 class function TCharacter.IsControl(
   const AString : UnicodeString;  
         AIndex  : Integer
-) : Boolean; static;
+) : Boolean;
 begin        
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   Result := IsControl(AString[AIndex]);
 end;
 
-class function TCharacter.IsDigit(AChar : UnicodeChar) : Boolean; static;
+class function TCharacter.IsDigit(AChar : UnicodeChar) : Boolean;
 begin 
   Result := (GetProps(Word(AChar))^.Category = TUnicodeCategory.ucDecimalNumber);
 end;
@@ -554,14 +572,14 @@ end;
 class function TCharacter.IsDigit(
   const AString : UnicodeString;  
         AIndex  : Integer
-) : Boolean; static;
+) : Boolean;
 begin        
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   Result := IsDigit(AString[AIndex]);
 end;
 
-class function TCharacter.IsSurrogate(AChar : UnicodeChar) : Boolean; static;
+class function TCharacter.IsSurrogate(AChar : UnicodeChar) : Boolean;
 begin   
   Result := (GetProps(Word(AChar))^.Category = TUnicodeCategory.ucSurrogate);
 end;
@@ -569,14 +587,14 @@ end;
 class function TCharacter.IsSurrogate(
   const AString : UnicodeString;  
         AIndex  : Integer
-) : Boolean; static;
+) : Boolean;
 begin        
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   Result := IsSurrogate(AString[AIndex]);
 end;
 
-class function TCharacter.IsHighSurrogate(AChar : UnicodeChar) : Boolean; static;
+class function TCharacter.IsHighSurrogate(AChar : UnicodeChar) : Boolean;
 begin 
   Result := (GetProps(Word(AChar))^.Category = TUnicodeCategory.ucSurrogate) and
             (Word(AChar) >= HIGH_SURROGATE_BEGIN) and 
@@ -586,14 +604,14 @@ end;
 class function TCharacter.IsHighSurrogate(
   const AString : UnicodeString;  
         AIndex  : Integer
-) : Boolean; static;
+) : Boolean;
 begin        
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   Result := IsHighSurrogate(AString[AIndex]);
 end;
 
-class function TCharacter.IsLowSurrogate(AChar : UnicodeChar) : Boolean; static;
+class function TCharacter.IsLowSurrogate(AChar : UnicodeChar) : Boolean;
 begin   
   Result := (GetProps(Word(AChar))^.Category = TUnicodeCategory.ucSurrogate) and
             (Word(AChar) >= LOW_SURROGATE_BEGIN) and 
@@ -603,7 +621,7 @@ end;
 class function TCharacter.IsLowSurrogate(
   const AString : UnicodeString;  
         AIndex  : Integer
-) : Boolean; static;
+) : Boolean;
 begin        
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
@@ -613,7 +631,7 @@ end;
 class function TCharacter.IsSurrogatePair(
   const AHighSurrogate,
         ALowSurrogate   : UnicodeChar
-) : Boolean;static;
+) : Boolean;
 begin
   Result :=
     ( (Word(AHighSurrogate) >= HIGH_SURROGATE_BEGIN) and
@@ -627,14 +645,14 @@ end;
 class function TCharacter.IsSurrogatePair(
   const AString : UnicodeString;
         AIndex  : Integer
-) : Boolean;static;
+) : Boolean;
 begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
   Result := IsSurrogatePair(AString[AIndex],AString[AIndex+1]);
 end;
 
-class function TCharacter.IsLetter(AChar : UnicodeChar) : Boolean; static;
+class function TCharacter.IsLetter(AChar : UnicodeChar) : Boolean;
 begin 
   Result := (GetProps(Word(AChar))^.Category in LETTER_CATEGORIES);
 end;
@@ -642,14 +660,27 @@ end;
 class function TCharacter.IsLetter(
   const AString : UnicodeString;  
         AIndex  : Integer
-) : Boolean; static;
-begin        
+) : Boolean;
+var
+  c : UnicodeChar;
+begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
-  Result := IsLetter(AString[AIndex]);
+  c := AString[AIndex];
+  if IsHighSurrogate(c) then
+  begin
+    if Length(AString) < Succ(AIndex) then
+      raise EArgumentException.CreateFmt(SInvalidHighSurrogate, [AIndex]);
+    if IsLowSurrogate(AString,Succ(AIndex)) then
+      Result := (GetProps(c, AString[Succ(AIndex)])^.Category in LETTER_CATEGORIES)
+    else
+      raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(AString[Succ(AIndex)])]);
+  end
+  else
+    Result := IsLetter(c);
 end;
 
-class function TCharacter.IsLetterOrDigit(AChar : UnicodeChar) : Boolean; static;
+class function TCharacter.IsLetterOrDigit(AChar : UnicodeChar) : Boolean;
 begin 
   Result := (GetProps(Word(AChar))^.Category in LETTER_OR_DIGIT_CATEGORIES);
 end;
@@ -657,14 +688,27 @@ end;
 class function TCharacter.IsLetterOrDigit(
   const AString : UnicodeString;  
         AIndex  : Integer
-) : Boolean; static;
-begin        
+) : Boolean;     
+var
+  c : UnicodeChar;
+begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
-  Result := IsLetterOrDigit(AString[AIndex]);
+  c := AString[AIndex];
+  if IsHighSurrogate(c) then
+  begin
+    if Length(AString) < Succ(AIndex) then
+      raise EArgumentException.CreateFmt(SInvalidHighSurrogate, [AIndex]);
+    if IsLowSurrogate(AString, Succ(AIndex)) then
+      Result := (GetProps(c, AString[Succ(AIndex)])^.Category in LETTER_OR_DIGIT_CATEGORIES)
+    else
+      raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(AString[Succ(AIndex)])]);
+  end
+  else
+    Result := IsLetterOrDigit(c);           
 end;
 
-class function TCharacter.IsLower(AChar : UnicodeChar) : Boolean; static;
+class function TCharacter.IsLower(AChar : UnicodeChar) : Boolean;
 begin        
   Result := (GetProps(Word(AChar))^.Category = TUnicodeCategory.ucLowercaseLetter);
 end;
@@ -672,14 +716,27 @@ end;
 class function TCharacter.IsLower(
   const AString : UnicodeString;  
         AIndex  : Integer
-) : Boolean; static;
-begin        
+) : Boolean;
+var
+  c : UnicodeChar;
+begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
-  Result := IsLower(AString[AIndex]);
+  c := AString[AIndex];
+  if IsHighSurrogate(c) then
+  begin
+    if Length(AString) < Succ(AIndex) then
+      raise EArgumentException.CreateFmt(SInvalidHighSurrogate, [AIndex]);
+    if IsLowSurrogate(AString, Succ(AIndex)) then
+      Result := (GetProps(c, AString[Succ(AIndex)])^.Category = TUnicodeCategory.ucLowercaseLetter)
+    else
+      raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(AString[Succ(AIndex)])]);
+  end
+  else
+    Result := IsLower(c);
 end;
 
-class function TCharacter.IsNumber(AChar : UnicodeChar) : Boolean; static;
+class function TCharacter.IsNumber(AChar : UnicodeChar) : Boolean;
 begin
   Result := (GetProps(Word(AChar))^.Category in NUMBER_CATEGORIES);
 end;
@@ -687,14 +744,27 @@ end;
 class function TCharacter.IsNumber(
   const AString : UnicodeString;
         AIndex  : Integer
-) : Boolean;static;
+) : Boolean;
+var
+  c : UnicodeChar;
 begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
-  Result := IsNumber(AString[AIndex]);
+  c := AString[AIndex];
+  if IsHighSurrogate(c) then
+  begin
+    if Length(AString) < Succ(AIndex) then
+      raise EArgumentException.CreateFmt(SInvalidHighSurrogate, [AIndex]);
+    if IsLowSurrogate(AString, Succ(AIndex)) then
+      Result := (GetProps(c, AString[Succ(AIndex)])^.Category in NUMBER_CATEGORIES)
+    else
+      raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(AString[Succ(AIndex)])]);
+  end
+  else
+    Result := IsNumber(c);
 end;
 
-class function TCharacter.IsPunctuation(AChar : UnicodeChar) : Boolean;static;
+class function TCharacter.IsPunctuation(AChar : UnicodeChar) : Boolean;
 begin
   Result := (GetProps(Word(AChar))^.Category in PUNCTUATION_CATEGORIES);
 end;
@@ -702,14 +772,27 @@ end;
 class function TCharacter.IsPunctuation(
   const AString : UnicodeString;
         AIndex  : Integer
-) : Boolean;static;
+) : Boolean;   
+var
+  c : UnicodeChar;
 begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
-  Result := IsPunctuation(AString[AIndex]);
+  c := AString[AIndex];
+  if IsHighSurrogate(c) then
+  begin
+    if Length(AString) < Succ(AIndex) then
+      raise EArgumentException.CreateFmt(SInvalidHighSurrogate, [AIndex]);
+    if IsLowSurrogate(AString, Succ(AIndex)) then
+      Result := (GetProps(c, AString[Succ(AIndex)])^.Category in PUNCTUATION_CATEGORIES)
+    else
+      raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(AString[Succ(AIndex)])]);
+  end
+  else
+    Result := IsPunctuation(c);   
 end;
 
-class function TCharacter.IsSeparator(AChar: UnicodeChar): Boolean;static;
+class function TCharacter.IsSeparator(AChar: UnicodeChar): Boolean;
 begin
   Result := (GetProps(Word(AChar))^.Category in SEPARATOR_CATEGORIES);
 end;
@@ -717,14 +800,27 @@ end;
 class function TCharacter.IsSeparator(
   const AString : UnicodeString;
         AIndex  : Integer
-) : Boolean;static;
+) : Boolean;          
+var
+  c : UnicodeChar;
 begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
-  Result := IsSeparator(AString[AIndex]);
+  c := AString[AIndex];
+  if IsHighSurrogate(c) then
+  begin
+    if Length(AString) < Succ(AIndex) then
+      raise EArgumentException.CreateFmt(SInvalidHighSurrogate, [AIndex]);
+    if IsLowSurrogate(AString, Succ(AIndex)) then
+      Result := (GetProps(c, AString[Succ(AIndex)])^.Category in SEPARATOR_CATEGORIES)
+    else
+      raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(AString[Succ(AIndex)])]);
+  end
+  else
+    Result := IsSeparator(c);  
 end;
 
-class function TCharacter.IsSymbol(AChar: UnicodeChar): Boolean;static;
+class function TCharacter.IsSymbol(AChar: UnicodeChar): Boolean;
 begin
   Result := (GetProps(Word(AChar))^.Category in SYMBOL_CATEGORIES);
 end;
@@ -732,14 +828,27 @@ end;
 class function TCharacter.IsSymbol(
   const AString : UnicodeString;
         AIndex  : Integer
-) : Boolean;static;
+) : Boolean;                   
+var
+  c : UnicodeChar;
 begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
-  Result := IsSymbol(AString[AIndex]);
+  c := AString[AIndex];
+  if IsHighSurrogate(c) then
+  begin
+    if Length(AString) < Succ(AIndex) then
+      raise EArgumentException.CreateFmt(SInvalidHighSurrogate, [AIndex]);
+    if IsLowSurrogate(AString, Succ(AIndex)) then
+      Result := (GetProps(c, AString[Succ(AIndex)])^.Category in SYMBOL_CATEGORIES)
+    else
+      raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(AString[Succ(AIndex)])]);
+  end
+  else
+    Result := IsSymbol(c);      
 end;
 
-class function TCharacter.IsUpper(AChar : UnicodeChar) : Boolean;static;
+class function TCharacter.IsUpper(AChar : UnicodeChar) : Boolean;
 begin
   Result := (GetProps(Word(AChar))^.Category = TUnicodeCategory.ucUppercaseLetter);
 end;
@@ -747,14 +856,27 @@ end;
 class function TCharacter.IsUpper(
   const AString : UnicodeString;
         AIndex  : Integer
-) : Boolean;static;
+) : Boolean;                        
+var
+  c : UnicodeChar;
 begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
-  Result := IsUpper(AString[AIndex]);
+  c := AString[AIndex];
+  if IsHighSurrogate(c) then
+  begin
+    if Length(AString) < Succ(AIndex) then
+      raise EArgumentException.CreateFmt(SInvalidHighSurrogate, [AIndex]);
+    if IsLowSurrogate(AString,Succ(AIndex)) then
+      Result := (GetProps(c,AString[Succ(AIndex)])^.Category = TUnicodeCategory.ucUppercaseLetter)
+    else
+      raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(AString[Succ(AIndex)])]);
+  end
+  else
+    Result := IsUpper(c);  
 end;
 
-class function TCharacter.IsWhiteSpace(AChar : UnicodeChar) : Boolean;static;
+class function TCharacter.IsWhiteSpace(AChar : UnicodeChar) : Boolean;
 begin
   Result := GetProps(Word(AChar))^.WhiteSpace;
 end;
@@ -762,46 +884,87 @@ end;
 class function TCharacter.IsWhiteSpace(
   const AString : UnicodeString;
         AIndex  : Integer
-) : Boolean;static;
+) : Boolean;                           
+var
+  c : UnicodeChar;
 begin
   if (AIndex < 1) or (AIndex > Length(AString)) then
     raise EArgumentOutOfRangeException.CreateFmt(SStringIndexOutOfRange, [AIndex, Length(AString)]);
-  Result := IsWhiteSpace(AString[AIndex]);
+  c := AString[AIndex];
+  if IsHighSurrogate(c) then
+  begin
+    if Length(AString) < Succ(AIndex) then
+      raise EArgumentException.CreateFmt(SInvalidHighSurrogate, [AIndex]);
+    if IsLowSurrogate(AString, Succ(AIndex)) then
+      Result := GetProps(c,AString[AIndex+1])^.WhiteSpace
+    else
+      raise EArgumentOutOfRangeException.CreateFmt(SLowSurrogateOutOfRange, [Word(AString[Succ(AIndex)])]);
+  end
+  else
+    Result := IsWhiteSpace(c);   
 end;
 
-class function TCharacter.ToLower(AChar : UnicodeChar) : UnicodeChar;static;
+class function TCharacter.ToLower(AChar : UnicodeChar) : UnicodeChar;
 begin
   Result := UnicodeChar(GetProps(Word(AChar))^.SimpleLowerCase);
   if (Result = UnicodeChar(0)) then
     Result := AChar;
 end;
 
-class function TCharacter.ToLower(const AString : UnicodeString) : UnicodeString;static;
+class function TCharacter.ToLower(const AString : UnicodeString) : UnicodeString;
 var
   i, c : SizeInt;
   pp, pr : PUnicodeChar;
+  pu : PUC_Prop;
+  locIsSurrogate : Boolean;
 begin
   c := Length(AString);
-  SetLength(Result,c);
+  SetLength(Result,2*c);
   if (c > 0) then begin
     pp := @AString[1];
     pr := @Result[1];
-    for i := 1 to c do begin
-      pr^ := ToLower(pp^);
+    i := 1;
+    while (i <= c) do begin
+      pu := GetProps(Word(pp^));
+      locIsSurrogate := (pu^.Category = TUnicodeCategory.ucSurrogate);
+      if locIsSurrogate then begin
+        if not IsSurrogatePair(AString,i) then
+          raise EArgumentException.Create(SInvalidUnicodeCodePointSequence);
+        pu := GetProps(pp^,AString[i+1]);
+      end;
+      if (pu^.SimpleLowerCase = 0) then begin
+        pr^ := pp^;
+        if locIsSurrogate then begin
+          Inc(pp);
+          Inc(pr);
+          pr^ := pp^;
+        end;
+      end else begin
+        if (pu^.SimpleLowerCase <= $FFFF) then begin
+          pr^ := UnicodeChar(Word(pu^.SimpleLowerCase));
+        end else begin
+          FromUCS4(UCS4Char(pu^.SimpleLowerCase),pr^,(pr+1)^);
+          Inc(pr);
+        end;
+      end;
       Inc(pp);
       Inc(pr);
+      Inc(i);
     end;
+    Dec(pp);
+    i := ((pr - (@Result[1])) div SizeOf(UnicodeChar));
+    SetLength(Result,i)
   end;
 end;
 
-class function TCharacter.ToUpper(AChar : UnicodeChar) : UnicodeChar;static;
+class function TCharacter.ToUpper(AChar : UnicodeChar) : UnicodeChar;
 begin
   Result := UnicodeChar(GetProps(Word(AChar))^.SimpleUpperCase);
   if (Result = UnicodeChar(0)) then
     Result := AChar;
 end;
 
-class function TCharacter.ToUpper(const AString : UnicodeString) : UnicodeString;static;
+class function TCharacter.ToUpper(const AString : UnicodeString) : UnicodeString;
 var
   i, c : SizeInt;
   pp, pr : PUnicodeChar;

@@ -38,40 +38,38 @@ end;
 
 var
   e, i, j : Integer;
-  uc, s : UnicodeString;
+  uc, s, s2 : UnicodeString;
 begin  
   e := 1;
-  for i := Ord('a') to Ord('z') do begin
-    uc := UnicodeChar(i);
-    if (TCharacter.ToLower(uc) <> uc) then
-      DoError(e,i);
-  end;
+  s := 'azerty';
+  if (TCharacter.ToLower(s) <> s) then begin
+    WriteLn(s);
+    s2 := TCharacter.ToLower(s);
+    WriteLn('"',s2,'"');
+    DoError(e,s2);
+  end;  
 
   Inc(e);
-  for i := Ord('0') to Ord('9') do begin
-    uc := UnicodeChar(i);
-    if (TCharacter.ToLower(uc) <> uc) then
-      DoError(e,i);
-  end;
+  s := '0123456789';
+  if (TCharacter.ToLower(s) <> s) then
+    DoError(e,s);
 
   Inc(e);  
-  if (TCharacter.ToLower('azerty') <> 'azerty') then
-    DoError(e,'azerty');
-  if (TCharacter.ToLower('AZERTY') <> 'azerty') then
-    DoError(e,'AZERTY');
-  if (TCharacter.ToLower('AzERty') <> 'azerty') then
-    DoError(e,'AzERty');
+  s := 'AZERTY'; s2:= 'azerty';
+  if (TCharacter.ToLower(s) <> s2) then begin
+    WriteLn(s);
+    s2 := TCharacter.ToLower(s);
+    WriteLn('"',s2,'"');
+    DoError(e,s2);
+  end;  
+  s := 'AzERty';
+  if (TCharacter.ToLower(s) <> s2) then begin
+    WriteLn(s);
+    s2 := TCharacter.ToLower(s);
+    WriteLn('"',s2,'"');
+    DoError(e,s2);
+  end;  
   
-  Inc(e);
-  j := Ord('a');
-  for i := Ord('A') to Ord('Z') do begin
-    uc := UnicodeChar(i);
-    s := UnicodeChar(j);
-    if (TCharacter.ToLower(uc) <> s) then
-      DoError(e,i);
-    Inc(j);
-  end; 
-
   WriteLn('ok');
 end.
 

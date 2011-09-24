@@ -2598,12 +2598,12 @@ const
     (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.11111111111111; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.1; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.33333333333333; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
-    (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.66666666666667; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
+    (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.66666666666666; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.2; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.4; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.6; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.8; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
-    (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.16666666666667; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
+    (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.16666666666666; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.83333333333333; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.375; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucOtherNumber; NumericValue : 0.625; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
@@ -3338,10 +3338,10 @@ const
     (Category : TUnicodeCategory.ucLowercaseLetter; NumericValue : 0; SimpleUpperCase : 66598; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucLowercaseLetter; NumericValue : 0; SimpleUpperCase : 66599; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucLetterNumber; NumericValue : 0.33333333333333; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
-    (Category : TUnicodeCategory.ucLetterNumber; NumericValue : 0.66666666666667; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
+    (Category : TUnicodeCategory.ucLetterNumber; NumericValue : 0.66666666666666; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucLetterNumber; NumericValue : 0.83333333333333; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucLetterNumber; NumericValue : 0.125; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
-    (Category : TUnicodeCategory.ucLetterNumber; NumericValue : 0.16666666666667; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
+    (Category : TUnicodeCategory.ucLetterNumber; NumericValue : 0.16666666666666; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False),
     (Category : TUnicodeCategory.ucOtherLetter; NumericValue : 9; SimpleUpperCase : 0; SimpleLowerCase : 0; WhiteSpace : False)
   );
 
