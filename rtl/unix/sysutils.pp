@@ -1344,6 +1344,8 @@ begin
     Result:=GetEnvironmentVariable('TEMP');
     If (Result='') Then
       Result:=GetEnvironmentVariable('TMP');
+    If (Result='') Then
+      Result:=GetEnvironmentVariable('TMPDIR');
     if (Result='') then
       Result:='/tmp/' // fallback.
     end;
