@@ -452,14 +452,16 @@ implementation
       end;
 
 
-    procedure jvm_create_procvar_class(const name: TIDString; def: tdef);
+    procedure jvm_create_procvar_class_intern(const name: TIDString; def: tdef; force_no_callback_intf: boolean);
       var
         vmtbuilder: tvmtbuilder;
         oldsymtablestack: tsymtablestack;
-        pvclass: tobjectdef;
+        pvclass,
+        pvintf: tobjectdef;
         temptypesym: ttypesym;
         sstate: tscannerstate;
         methoddef: tprocdef;
+        old_current_structdef: tabstractrecorddef;
         islocal: boolean;
       begin
         { inlined definition of procvar -> generate name, derive from
@@ -507,6 +509,47 @@ implementation
         temptypesym.typedef:=def;
         pvclass.symtable.insert(temptypesym);
 
+        { in case of a procedure of object, add a nested interface type that
+          has one method that conforms to the procvartype (with name
+          procvartypename+'Callback') and an extra constructor that takes
+          an instance conforming to this interface and which sets up the
+          procvar by taking the address of its Callback method (convenient to
+          use from Java code) }
+        if (po_methodpointer in tprocvardef(def).procoptions) and
+           not islocal and
+           not force_no_callback_intf then
+          begin
+            pvintf:=tobjectdef.create(odt_interfacejava,'Callback',nil);
+            pvintf.objextname:=stringdup('Callback');
+            if df_generic in def.defoptions then
+              include(pvintf.defoptions,df_generic);
+            { associate typesym }
+            pvclass.symtable.insert(ttypesym.create('Callback',pvintf));
+
+            { add a method prototype matching the procvar (like the invoke
+              in the procvarclass itself) }
+            symtablestack.push(pvintf.symtable);
+            methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
+            finish_copied_procdef(methoddef,name+'Callback',pvintf.symtable,pvintf);
+            insert_self_and_vmt_para(methoddef);
+            { can't be final/static/private/protected, and must be virtual
+              since it's an interface method }
+            methoddef.procoptions:=methoddef.procoptions-[po_staticmethod,po_finalmethod];
+            include(methoddef.procoptions,po_virtualmethod);
+            methoddef.visibility:=vis_public;
+            symtablestack.pop(pvintf.symtable);
+
+            { add an extra constructor to the procvarclass that takes an
+              instance of this interface as parameter }
+            old_current_structdef:=current_structdef;
+            current_structdef:=pvclass;
+            if not str_parse_method_dec('constructor Create(__intf:'+pvintf.objextname^+');overload;',potype_constructor,false,pvclass,methoddef) then
+              internalerror(2011092401);
+            methoddef.synthetickind:=tsk_jvm_procvar_intconstr;
+            methoddef.skpara:=def;
+            current_structdef:=old_current_structdef;
+          end;
+
         symtablestack.pop(pvclass.symtable);
 
         vmtbuilder:=TVMTBuilder.Create(pvclass);
@@ -514,6 +557,12 @@ implementation
         vmtbuilder.free;
 
         restore_after_new_class(sstate,islocal,oldsymtablestack);
+      end;
+
+
+    procedure jvm_create_procvar_class(const name: TIDString; def: tdef);
+      begin
+        jvm_create_procvar_class_intern(name,def,false);
       end;
 
 
@@ -580,7 +629,9 @@ implementation
         { also create procvar type that we can use in the implementation }
         wrapperpv:=tprocvardef(pd.getcopyas(procvardef,pc_normal));
         wrapperpv.calcparas;
-        jvm_create_procvar_class('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv);
+        { no use in creating a callback wrapper here, this procvar type isn't
+          for public consumption }
+        jvm_create_procvar_class_intern('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv,true);
         { create alias for the procvar type so we can use it in generated
           Pascal code }
         typ:=ttypesym.create('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv);

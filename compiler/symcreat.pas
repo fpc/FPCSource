@@ -771,6 +771,24 @@ implementation
     end;
 
 
+  procedure implement_jvm_procvar_intconstr(pd: tprocdef);
+    var
+      pvdef: tprocvardef;
+    begin
+      { ideal, and most performant, would be to keep the interface instance
+        passed to the constructor around and always call its method directly
+        rather than working via reflection. Unfortunately, the procvar semantics
+        that allow directly modifying the procvar via typecasting it to a
+        tmethod make this very hard.
+
+        So for now we simply take the address of the interface instance's
+        method and assign it to the tmethod of this procvar }
+
+      pvdef:=tprocvardef(pd.skpara);
+      str_parse_method_impl('begin method:=System.TMethod(@__intf.'+pvdef.typesym.RealName+'Callback) end;',pd,false);
+    end;
+
+
   procedure implement_jvm_virtual_clmethod(pd: tprocdef);
     var
       str: ansistring;
@@ -864,6 +882,8 @@ implementation
               implement_jvm_enum_set2set(pd);
             tsk_jvm_procvar_invoke:
               implement_jvm_procvar_invoke(pd);
+            tsk_jvm_procvar_intconstr:
+              implement_jvm_procvar_intconstr(pd);
             tsk_jvm_virtual_clmethod:
               implement_jvm_virtual_clmethod(pd);
 {$endif jvm}
