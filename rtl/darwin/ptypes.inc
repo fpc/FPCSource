@@ -35,7 +35,7 @@ type
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
-{$ifndef cpuarm}
+{$if not defined(cpuarm) and not defined(iphonesim)}
     ino_t    = cuint32;         { used for file serial numbers }
 {$else}
     ino_t    = cuint64;
@@ -144,7 +144,7 @@ type
           val: array[0..1] of cint32;
      end;
 
-{$ifdef cpuarm}
+{$if defined(cpuarm) or defined(iphonesim)}
      { structure used on iPhoneOS and available on Mac OS X 10.6 and later }
      tstatfs = record
           bsize : cuint32;

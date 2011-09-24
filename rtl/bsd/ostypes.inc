@@ -30,7 +30,7 @@
   {$endif}
 {$endif}
 
-{$if defined(darwin) and defined(cpuarm)}
+{$if (defined(darwin) and defined(cpuarm)) or defined(iphonesim)}
   {$define darwinarm}
 {$endif}
 
