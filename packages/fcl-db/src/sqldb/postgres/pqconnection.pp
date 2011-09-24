@@ -117,9 +117,11 @@ const Oid_Bool     = 16;
       Oid_Unknown  = 705;
       Oid_bpchar   = 1042;
       Oid_varchar  = 1043;
-      Oid_timestamp = 1114;
       oid_date      = 1082;
       oid_time      = 1083;
+      Oid_timeTZ    = 1266;
+      Oid_timestamp = 1114;
+      Oid_timestampTZ = 1184;
       oid_numeric   = 1700;
       Oid_uuid      = 2950;
 
@@ -411,9 +413,11 @@ begin
     Oid_int2               : Result := ftSmallInt;
     Oid_Float4             : Result := ftFloat;
     Oid_Float8             : Result := ftFloat;
-    Oid_TimeStamp          : Result := ftDateTime;
+    Oid_TimeStamp,
+    Oid_TimeStampTZ        : Result := ftDateTime;
     Oid_Date               : Result := ftDate;
-    Oid_Time               : Result := ftTime;
+    Oid_Time,
+    Oid_TimeTZ             : Result := ftTime;
     Oid_Bool               : Result := ftBoolean;
     Oid_Numeric            : begin
                              Result := ftBCD;
