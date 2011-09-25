@@ -214,6 +214,14 @@ interface
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
                        system_x86_6432_linux,system_mips_linux,system_mipsel_linux];
+       systems_freebsd = [system_i386_freebsd,
+                          system_x86_64_freebsd];
+       systems_netbsd  = [system_i386_netbsd,
+                          system_m68k_netbsd,
+                          system_powerpc_netbsd];
+       systems_openbsd = [system_i386_openbsd];
+
+       systems_bsd = systems_freebsd + systems_netbsd + systems_openbsd;
 
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
        systems_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
