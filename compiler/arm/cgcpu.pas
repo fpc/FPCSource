@@ -515,7 +515,8 @@ unit cgcpu;
         branchopcode: tasmop;
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if (current_settings.cputype<cpu_armv5) then
+        if (current_settings.cputype<cpu_armv5) or
+           (current_settings.cputype in cpu_thumb2) then
           branchopcode:=A_BL
         else
           branchopcode:=A_BLX;
