@@ -93,10 +93,11 @@ var
 { Win32 Info }
   startupinfo : tstartupinfo;
   StartupConsoleMode : dword;
-  hprevinst,
   MainInstance : qword;
   cmdshow     : longint;
   DLLreason,DLLparam:longint;
+const
+  hprevinst: qword=0;
 type
   TDLL_Entry_Hook = procedure (dllparam : longint);
 
@@ -614,16 +615,12 @@ end;
 
 
 begin
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
-  hprevinst:=0;
   if not IsLibrary then
     SysInstance:=getmodulehandle(nil);
   MainInstance:=SysInstance;

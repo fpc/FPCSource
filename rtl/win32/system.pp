@@ -97,12 +97,13 @@ var
   argv : ppchar; public name 'operatingsystem_parameter_argv';
 { Win32 Info }
   startupinfo : tstartupinfo;
-  hprevinst,
   MainInstance,
   cmdshow     : longint;
   DLLreason : longint; public name 'operatingsystem_dllreason';
   DLLparam : longint; public name 'operatingsystem_dllparam';
   StartupConsoleMode : DWORD;
+const
+  hprevinst: longint=0;
 
 type
   TDLL_Entry_Hook = procedure (dllparam : longint);
@@ -678,13 +679,7 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 begin
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
-
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
-
   { some misc Win32 stuff }
-  hprevinst:=0;
   if not IsLibrary then
     SysInstance:=getmodulehandle(nil);
 
