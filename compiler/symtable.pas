@@ -216,7 +216,7 @@ interface
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
-    function  is_owned_by(childdef,ownerdef:tabstractrecorddef):boolean;
+    function  is_owned_by(childdef,ownerdef:tdef):boolean;
     function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
@@ -1796,11 +1796,11 @@ implementation
        end;
 
 
-    function is_owned_by(childdef,ownerdef:tabstractrecorddef):boolean;
+    function is_owned_by(childdef,ownerdef:tdef):boolean;
       begin
         result:=childdef=ownerdef;
-        if not result and (childdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-          result:=is_owned_by(tabstractrecorddef(childdef.owner.defowner),ownerdef);
+        if not result and assigned(childdef.owner.defowner) then
+          result:=is_owned_by(tdef(childdef.owner.defowner),ownerdef);
       end;
 
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
@@ -1823,8 +1823,8 @@ implementation
                        (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
                        (symownerdef.owner.iscurrentunit)
                       ) or
-                      ( // the case of specialize inside the generic declaration
-                       (symownerdef.owner.symtabletype = objectsymtable) and
+                      ( // the case of specialize inside the generic declaration and nested types
+                       (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
                        (
                          assigned(current_structdef) and
                          (
@@ -1872,8 +1872,8 @@ implementation
                         (contextobjdef.owner.iscurrentunit) and
                         contextobjdef.is_related(symownerdef)
                        ) or
-                       ( // the case of specialize inside the generic declaration
-                        (symownerdef.owner.symtabletype = objectsymtable) and
+                       ( // the case of specialize inside the generic declaration and nested types
+                        (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
                         (
                           assigned(current_structdef) and
                           (

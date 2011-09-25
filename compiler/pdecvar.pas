@@ -1499,7 +1499,8 @@ implementation
          uniondef : trecorddef;
          hintsymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
-         semicoloneaten: boolean;
+         semicoloneaten,
+         removeclassoption: boolean;
 {$if defined(powerpc) or defined(powerpc64)}
          tempdef: tdef;
          is_first_type: boolean;
@@ -1518,7 +1519,8 @@ implementation
            consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
-         recstlist:=TFPObjectList.create(false);;
+         recstlist:=TFPObjectList.create(false);
+         removeclassoption:=false;
          while (token=_ID) and
             not(((vd_object in options) or
                  ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
@@ -1653,7 +1655,8 @@ implementation
                  if not (vd_class in options) and try_to_consume(_STATIC) then
                    begin
                      consume(_SEMICOLON);
-                     include(options, vd_class);
+                     include(options,vd_class);
+                     removeclassoption:=true;
                    end;
                end;
              if vd_class in options then
@@ -1673,6 +1676,11 @@ implementation
                      sl:=tpropaccesslist.create;
                      sl.addsym(sl_load,hstaticvs);
                      recst.insert(tabsolutevarsym.create_ref('$'+static_name,hdef,sl));
+                   end;
+                 if removeclassoption then
+                   begin
+                     exclude(options,vd_class);
+                     removeclassoption:=false;
                    end;
                end;
              if (visibility=vis_published) and
