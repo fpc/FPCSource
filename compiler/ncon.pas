@@ -1036,7 +1036,7 @@ implementation
               else if (cst_type in [cst_shortstring,cst_conststring,cst_longstring]) then
                 cp2:=current_settings.sourcecodepage;
               if cpavailable(cp1) and cpavailable(cp2) then
-                changecodepage(value_str,len,cp1,value_str,cp2);
+                changecodepage(value_str,len,cp2,value_str,cp1);
             end;
         cst_type:=st2cst[tstringdef(def).stringtype];
         resultdef:=def;
