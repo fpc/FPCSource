@@ -230,14 +230,11 @@ begin
   FieldDef.DataType := ftAutoInc;
   }
 
-  {
-  //Not supported by DBF:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftBCD';
   FieldDef.DataType := ftBCD;
   FieldDef.Size := NumberOfDecimals;
   //Size is the number of digits after the decimal place
-  }
 
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   //Note dbf 3 has a 10 character field length limit
@@ -249,20 +246,14 @@ begin
   FieldDef.Name := 'ftBoolean';
   FieldDef.DataType := ftBoolean;
 
-  {
-  //Not supported by DBF:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftBytes';
   FieldDef.DataType := ftBytes;
   FieldDef.Size := NumberOfBytes;
-  }
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftCurrency';
   FieldDef.DataType := ftCurrency;
-  }
 
   {
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
@@ -294,49 +285,35 @@ begin
   FieldDef.DataType := ftFixedChar;
   FieldDef.Size := NumberOfDecimals;
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftFixedWideChar_2';
   FieldDef.DataType := ftFixedWideChar;
   FieldDef.Size := NumberOfBytes;
-  }
 
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftFloat';
   FieldDef.DataType := ftFloat;
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftFMTBcd';
   FieldDef.DataType := ftFMTBcd;
   FieldDef.Size := NumberOfDecimals; //the number of digits after the decimal place.
-  }
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftFmtMemo';
   FieldDef.DataType := ftFmtMemo;
   FieldDef.Size := 4096;//large but hopefully not too large for memory.
-  }
-  {
-  //Not supported by dbf:
+
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftGraphic';
   FieldDef.DataType := ftGraphic;
   FieldDef.Size := 4096;//large but hopefully not too large for memory.
-  }
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftGuid';
   FieldDef.DataType := ftGuid;
   FieldDef.Size := 38;
   //Apparently right answer is not 42; had to look up 38 in source code.
-  }
 
   {
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
@@ -363,27 +340,18 @@ begin
   FieldDef.DataType := ftMemo;
   FieldDef.Size := 4096;//large but hopefully not too large for memory.
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftOraBlob';
   FieldDef.DataType := ftOraBlob;
-  }
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftOraClob';
   FieldDef.DataType := ftOraClob;
-  }
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftParadoxOle';
   FieldDef.DataType := ftParadoxOle;
   FieldDef.Size := 4096;//large but hopefully not too large for memory.
-  }
 
   {
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
@@ -405,12 +373,9 @@ begin
   FieldDef.DataType := ftString;
   FieldDef.Size := 256;
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftTime';
   FieldDef.DataType := ftTime;
-  }
 
   {
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
@@ -419,34 +384,26 @@ begin
   }
 
   {
-  //Not supported by dbf:
+  //Bufdataset probably doesn't support this
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
-  FieldDef.Name := 'ftTypedBinary';
+  // DBF 10 character limit comes into play here:
+  FieldDef.Name := 'ftTypedBin';
   FieldDef.DataType := ftTypedBinary;
   FieldDef.Size := 4096;//large but hopefully not too large for memory.
   }
 
-  {
-  //Not supported by dbf:  FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftVariant';
   FieldDef.DataType := ftVariant;
   FieldDef.Size := NumberOfBytes;
-  }
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftVarBytes';
   FieldDef.DataType := ftVarBytes;
   FieldDef.Size := NumberOfBytes;
-  }
 
-  {
-  //Not supported by dbf:
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftWideMemo';
   FieldDef.DataType := ftWideMemo;
-  }
 
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftWideString256';
@@ -481,7 +438,6 @@ procedure TTestDBFExport1.FillRecord(const RowNumber: integer;
 var
   FieldCounter: integer;
 begin
-  writeln('*** Starting to fill row ' + IntToStr(RowNumber));
   {As our bufdataset doesn't support these datatypes, don't use them:
 ftAutoInc -> exists but doesn't seem to return any data.
 ftCursor
@@ -489,104 +445,43 @@ ftDataSet
 ftInterface
 ftReference
 ftTimeStamp}
-{
-  //Not supported by dbf:
+
   FTestDataset.FieldByName('ftBCD').AsFloat := Testextended;
-  }
   FTestDataset.FieldByName('ftBlob_4096').AsString := Teststring;
   FTestDataset.FieldByName('ftBoolean').AsBoolean := Testboolean;
-  {
-    //Not supported by dbf:
   FTestDataset.FieldByName('ftBytes').AsString := Teststring;
-  }
-  {
-    //Not supported by dbf:
   FTestDataset.FieldByName('ftCurrency').Ascurrency := Testextended;
-  }
   FTestDataset.FieldByName('ftDate').AsDateTime := Testdatetime;
   FTestDataset.FieldByName('ftDateTime').AsDateTime := Testdatetime;
   FTestDataset.FieldByName('ftDBaseOle').AsString := Teststring;
   FTestDataset.FieldByName('ftFixedChar_2').AsString := Teststring;
-  {
-  //Not supported by dbf:
   FTestDataset.FieldByName('ftFixedWideChar_2').AsString := Teststring;
-  }
   FTestDataset.FieldByName('ftFloat').AsFloat := Testextended;
-  {
-  //Not supported by dbf:
   FTestDataset.FieldByName('ftFMTBcd').AsFloat := Testextended;
-  }
-  {
-  //Not supported by dbf:
   FTestDataset.FieldByName('ftFmtMemo').AsString := Teststring;
-  }
-  {
-  //Not supported by dbf:
   FTestDataset.FieldByName('ftGraphic').AsString := Teststring;
-  }
-  {
-  //Not supported by dbf:
   FTestDataset.FieldByName('ftGuid').AsString := TestGUID;
-  }
   FTestDataset.FieldByName('ftInteger').AsInteger := Testinteger;
   FTestDataset.FieldByName('ftLargeint').AsInteger := Testinteger;
   FTestDataset.FieldByName('ftMemo').AsString := Teststring;
-  {
-  //Not supported by dbf:
   FTestDataset.FieldByName('ftOraBlob').AsString := Teststring;
-  }
   {
   FTestDataset.FieldByName('ftOraClob').AsString := Teststring;
   }
-  {
-  //Not supported by dbf:
   FTestDataset.FieldByName('ftParadoxOle').AsString := Teststring;
-  }
   FTestDataset.FieldByName('ftSmallInt').AsInteger := Testinteger;
   FTestDataset.FieldByName('ftString_1').AsString := Teststring;
   FTestDataset.FieldByName('ftString_256').AsString := Teststring;
-  {
-  //Not supported by dbf:
   FTestDataset.FieldByName('ftTime').AsDateTime := Testdatetime;
-  }
   {
-  //Not supported by dbf:
-  FTestDataset.FieldByName('ftTypedBinary').AsString := Teststring;
+  FTestDataset.FieldByName('ftTypedBin').AsString := Teststring;
   }
-  {
-  //Not supported by dbf:
   FTestDataSet.FieldByName('ftVarBytes').AsString := TestString;
-  }
-  {
-  //Not supported by dbf:
   FTestDataSet.FieldByName('ftVariant').AsString := TestString;
-  }
-  {
-  //Not supported by dbf:
   FTestDataset.FieldByName('ftWideMemo').AsString := Teststring;
-  }
   FTestDataset.FieldByName('ftWideString256').AsString := Teststring;
   FTestDataset.FieldByName('ftWord').AsInteger := Abs(Testinteger);
   FTestDataset.FieldByName('AVeryLongFieldDataTypeDoesNotMatter').AsString := Teststring;
-  {
-  for Fieldcounter := 0 to FTestDataset.Fields.Count - 1 do
-  begin
-    try
-      writeln('Field: ' + FTestDataset.Fields[FieldCounter].FieldName +
-        ' has value ' + FTestDataset.Fields[FieldCounter].AsString);
-      {writeln('Field: ' + FTestDataset.Fields[FieldCounter].FieldName +
-        ' has displaytext ' + FTestDataset.Fields[FieldCounter].DisplayText);}
-    except
-      on E: Exception do
-      begin
-        writeln('Field: ' + FTestDataset.Fields[FieldCounter].FieldName +
-          ': error retrieving value: ');
-        writeln(E.ClassName, '; detailed error message: ', E.message);
-      end;
-    end;
-  end;
-  }
-  writeln('*** Finished filling row ' + IntToStr(RowNumber));
 end;
 
 procedure TTestDBFExport1.Teardown;
