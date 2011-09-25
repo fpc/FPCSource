@@ -5,6 +5,9 @@
 
     Compatibility unit for the old regexpr unit.
 
+    Renaming to OldRegExpr after insertion of the newer
+    RegExpr unit by Andrey V. Sorokin in 2011-08.
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -14,7 +17,7 @@
 
  **********************************************************************}
 
-unit RegExpr;
+unit OldRegExpr;
 
 {$mode objfpc}{$H+}
 
@@ -61,7 +64,7 @@ end;
 
 function GenerateRegExprEngine(regexpr: pchar; flags: tregexprflags
   ): TREGExprEngine;
-  
+
 var r: TRegExprEngine;
 
 begin
