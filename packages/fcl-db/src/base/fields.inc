@@ -558,8 +558,8 @@ begin
     DatabaseErrorFmt(SNoDataset,[FieldName]);
   If FVAlidating then
     begin
-    result:=Not(FValueBuffer=Nil);
-    If Result then
+    result:=assigned(FValueBuffer);
+    If Result and assigned(Buffer) then
       Move (FValueBuffer^,Buffer^ ,DataSize);
     end
   else
@@ -820,12 +820,6 @@ procedure TField.SetData(Buffer: Pointer; NativeFormat : Boolean);
 begin
   If Not Assigned(FDataset) then
     DatabaseErrorFmt(SNoDataset,[FieldName]);
-  if (FieldNo>0) and not (FDataSet.State in [dsSetKey, dsFilter]) then
-    begin
-    if ReadOnly then 
-      DatabaseErrorFmt(SReadOnlyField, [DisplayName], Self); 
-    Validate(Buffer);
-    end;
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 
@@ -1369,6 +1363,11 @@ begin
   Result:=GetAsLongint;
 end;
 
+function TLongintField.GetAsLargeint: Largeint;
+begin
+  Result:=GetAsLongint;
+end;
+
 function TLongintField.GetAsLongint: Longint;
 
 begin
@@ -1436,6 +1435,14 @@ begin
       ftword               : Avalue:=Pword(P)^;
       ftsmallint           : AValue:=PSmallint(P)^;
     end;
+end;
+
+procedure TLongintField.SetAsLargeint(AValue: Largeint);
+begin
+  if (AValue>=FMinRange) and (AValue<=FMaxRange) then
+    SetAsLongint(AValue)
+  else
+    RangeError(AValue,FMinRange,FMaxRange);
 end;
 
 procedure TLongintField.SetAsFloat(AValue: Double);

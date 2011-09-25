@@ -615,12 +615,13 @@ procedure TIBConnection.UnPrepareStatement(cursor : TSQLCursor);
 
 begin
   with cursor as TIBcursor do
-    begin
-    if isc_dsql_free_statement(@Status[0], @Statement, DSQL_Drop) <> 0 then
-      CheckError('FreeStatement', Status);
-    Statement := nil;
-    FPrepared := False;
-    end;
+    if assigned(Statement) Then
+      begin
+        if isc_dsql_free_statement(@Status[0], @Statement, DSQL_Drop) <> 0 then
+          CheckError('FreeStatement', Status);
+        Statement := nil;
+        FPrepared := False;
+      end;
 end;
 
 procedure TIBConnection.FreeSQLDABuffer(var aSQLDA : PXSQLDA);

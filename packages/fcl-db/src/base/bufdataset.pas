@@ -1864,14 +1864,15 @@ var CurrBuff : pointer;
     NullMask : pbyte;
 
 begin
-  if not (state in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
-    begin
-    DatabaseErrorFmt(SNotEditing,[Name],self);
-    exit;
-    end;
+  if not (State in dsWriteModes) then
+    DatabaseError(SNotEditing, Self);
   CurrBuff := GetCurrentBuffer;
   If Field.Fieldno > 0 then // If = 0, then calculated field or something
     begin
+    if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
+      DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);	
+    if State in [dsEdit, dsInsert, dsNewValue] then
+      Field.Validate(Buffer);	
     NullMask := CurrBuff;
 
     inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);

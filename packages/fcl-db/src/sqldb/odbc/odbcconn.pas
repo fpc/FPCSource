@@ -353,7 +353,7 @@ begin
           SqlType:=SQL_BIGINT;
           ColumnSize:=19;
         end;
-      ftString, ftFixedChar, ftBlob, ftMemo:
+      ftString, ftFixedChar, ftBlob, ftMemo, ftGuid:
         begin
           StrVal:=AParams[ParamIndex].AsString;
           StrLenOrInd:=Length(StrVal);
@@ -1097,7 +1097,7 @@ begin
 {      SQL_INTERVAL_HOUR_TO_SECOND:  FieldType:=ftUnknown;}
 {      SQL_INTERVAL_MINUTE_TO_SECOND:FieldType:=ftUnknown;}
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
-      SQL_GUID:          begin FieldType:=ftGuid;       FieldSize:=ColumnSize; end;
+      SQL_GUID:          begin FieldType:=ftGuid;       FieldSize:=38; end; //SQL_GUID defines 36, but TGuidField requires 38
 {$ENDIF}
     else
       begin FieldType:=ftUnknown; FieldSize:=ColumnSize; end

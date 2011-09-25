@@ -546,6 +546,8 @@ type
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
+    function GetAsLargeint: Largeint; override;
+    procedure SetAsLargeint(AValue: Largeint); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : longint) : Boolean;
