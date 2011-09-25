@@ -424,7 +424,7 @@ begin
     end;
 end;
 
-Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; [external name 'FPC_ANSISTR_TO_ANSISTR'];
+Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; [external name 'FPC_ANSISTR_TO_ANSISTR'];
 {$endif FPC_HAS_CPSTRING}
 
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
