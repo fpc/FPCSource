@@ -1467,7 +1467,10 @@ implementation
                                break;
                              end;
                          if not found then
-                           Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName);
+                           if assigned(pd.struct) then
+                             Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName)
+                           else
+                             MessagePos(pd.fileinfo,type_e_type_id_expected);
                        end;
                      if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE,_OP_IN]) and
                         ((pd.returndef.typ<>orddef) or
