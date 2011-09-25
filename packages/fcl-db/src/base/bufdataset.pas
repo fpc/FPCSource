@@ -1681,6 +1681,7 @@ function TCustomBufDataset.GetFieldSize(FieldDef : TFieldDef) : longint;
 
 begin
   case FieldDef.DataType of
+    ftUnknown    : result := 0;
     ftString,
       ftGuid,
       ftFixedChar: result := FieldDef.Size + 1;
@@ -1699,6 +1700,9 @@ begin
     ftTime,
       ftDate,
       ftDateTime : result := sizeof(TDateTime);
+    ftBytes      : result := FieldDef.Size;
+    ftVarBytes   : result := FieldDef.Size + 2;
+    ftVariant    : result := sizeof(variant);
     ftBlob,
       ftMemo,
       ftGraphic,
@@ -1709,7 +1713,8 @@ begin
       ftOraBlob,
       ftOraClob,
       ftWideMemo : result := sizeof(TBufBlobField)
-  else Result := 10
+  else
+    DatabaseErrorFmt(SUnsupportedFieldType,[Fieldtypenames[FieldDef.DataType]]);
   end;
 {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
   result:=Align(result,4);
