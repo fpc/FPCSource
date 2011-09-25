@@ -32,9 +32,6 @@ interface
   {$R-}
 {$endif}
 
-{$ifopt q+}
-  {$define ena_q}
-{$endif}
 
 type  Tconstexprint=record
         overflow:boolean;
@@ -165,9 +162,9 @@ begin
 
   {Try if the result fits in an int64.}
   if (a.signed) and (a.svalue<0) then
-    {$Q-}
+    {$push}{$Q-}
     sspace:=qword(high(int64))+qword(-a.svalue)
-    {$ifdef ena_q}{$Q+}{$endif}
+    {$pop}
   else if not a.signed and (a.uvalue>qword(high(int64))) then
     goto try_qword
   else

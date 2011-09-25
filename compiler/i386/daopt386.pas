@@ -2791,10 +2791,8 @@ begin
     pass_generate_code := false;
 end;
 
-{$ifopt r+}
-{$define rangewason}
+{$push}
 {$r-}
-{$endif}
 function tdfaobj.getlabelwithsym(sym: tasmlabel): tai;
 begin
   if (sym.labelnr >= lolab) and
@@ -2803,10 +2801,7 @@ begin
   else
     getlabelwithsym := nil;
 end;
-{$ifdef rangewason}
-{$r+}
-{$undef rangewason}
-{$endif}
+{$pop}
 
 
 procedure tdfaobj.clear;

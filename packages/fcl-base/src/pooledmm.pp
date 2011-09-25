@@ -133,9 +133,9 @@ begin
     end else begin
       // free list full -> free the ANode
       //FreeItem(AnItem);
-      {$R-}
+      {$push}{$R-}
       inc(FFreedCount);
-      {$IfDef RangeChecksOn}{$R+}{$Endif}
+      {$pop}
     end;
     dec(FCount);
   end;
@@ -152,9 +152,9 @@ begin
   end else begin
     // free list empty -> create new node
     New(Result);
-    {$R-}
+    {$push}{$R-}
     inc(FAllocatedCount);
-    {$IfDef RangeChecksOn}{$R+}{$Endif}
+    {$pop}
   end;
   inc(FCount);
 end;

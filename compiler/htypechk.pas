@@ -2241,13 +2241,12 @@ implementation
         cdoptions : tcompare_defs_options;
         n : tnode;
 
-    {$ifopt r+}{$define ena_r}{$r-}{$endif}
-    {$ifopt q+}{$define ena_q}{$q-}{$endif}
+    {$push}
+    {$r-}
+    {$q-}
       const
         inf=1.0/0.0;
-    {$ifdef ena_r}{$r+}{$endif}
-    {$ifdef ena_q}{$q+}{$endif}
-
+    {$pop}
       begin
         cdoptions:=[cdo_check_operator];
         if FAllowVariant then

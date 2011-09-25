@@ -551,6 +551,7 @@ begin
         CheckError('PrepareStatement', Status);
       if in_SQLDA^.SQLD > in_SQLDA^.SQLN then
         DatabaseError(SParameterCountIncorrect,self);
+      {$push}
       {$R-}
       for x := 0 to in_SQLDA^.SQLD - 1 do with in_SQLDA^.SQLVar[x] do
         begin
@@ -565,7 +566,7 @@ begin
         sqltype := sqltype or 1;
         new(sqlind);
         end;
-      {$R+}
+      {$pop}
       end
     else
       AllocSQLDA(in_SQLDA,0);
@@ -594,6 +595,7 @@ begin
         if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
           CheckError('PrepareSelect', Status);
         end;
+      {$push}
       {$R-}
       for x := 0 to SQLDA^.SQLD - 1 do with SQLDA^.SQLVar[x] do
         begin
@@ -603,7 +605,7 @@ begin
           SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen);
         if (SQLType and 1) = 1 then New(SQLInd);
         end;
-      {$R+}
+      {$pop}
       end;
     FPrepared := True;
     end;
@@ -627,6 +629,7 @@ procedure TIBConnection.FreeSQLDABuffer(var aSQLDA : PXSQLDA);
 var x : Smallint;
 
 begin
+{$push}
 {$R-}
   if assigned(aSQLDA) then
     for x := 0 to aSQLDA^.SQLN - 1 do
@@ -639,7 +642,7 @@ begin
         end
         
       end;
-{$R+}
+{$pop}
 end;
 
 function TIBConnection.IsDialectStored: boolean;
@@ -683,6 +686,7 @@ var
   FD        : TFieldDef;
 
 begin
+  {$push}
   {$R-}
   with cursor as TIBCursor do
     begin
@@ -705,7 +709,7 @@ begin
       FieldBinding[FD.FieldNo-1] := x;
       end;
     end;
-  {$R+}
+  {$pop}
 end;
 
 function TIBConnection.GetHandle: pointer;
@@ -745,7 +749,8 @@ var ParNr,SQLVarNr : integer;
   procedure SetBlobParam;
   
   begin
-{$R-}
+    {$push}
+    {$R-}
     with cursor as TIBCursor do
       begin
       TransactionHandle := aTransation.Handle;
@@ -772,7 +777,7 @@ var ParNr,SQLVarNr : integer;
         CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
       Move(blobId, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
       end;
-{$R+}
+      {$pop}
   end;
 
 var
@@ -782,7 +787,8 @@ var
   d : double;
   
 begin
-{$R-}
+  {$push}
+  {$R-}
   with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
     begin
     ParNr := ParamBinding[SQLVarNr];
@@ -858,7 +864,7 @@ begin
       end {case}
       end;
     end;
-{$R+}
+{$pop}
 end;
 
 function TIBConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
@@ -877,7 +883,8 @@ begin
   CreateBlob := False;
   with cursor as TIBCursor do
     begin
-{$R-}
+    {$push}
+    {$R-}
     x := FieldBinding[FieldDef.FieldNo-1];
 
     // Joost, 5 jan 2006: I disabled the following, since it's useful for
@@ -984,7 +991,7 @@ begin
           end
       end;  { case }
       end; { if/else }
-{$R+}
+      {$pop}
     end; { with cursor }
 end;
 

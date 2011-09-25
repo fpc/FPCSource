@@ -1228,15 +1228,9 @@ implementation
                        some generic implementations
 ****************************************************************************}
 
-{$ifopt r+}
-{$define rangeon}
+{$push}
 {$r-}
-{$endif}
-
-{$ifopt q+}
-{$define overflowon}
 {$q-}
-{$endif}
 
    procedure tcg.a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister);
      var
@@ -2113,15 +2107,7 @@ implementation
       end;
 
 
-{$ifdef rangeon}
-{$r+}
-{$undef rangeon}
-{$endif}
-
-{$ifdef overflowon}
-{$q+}
-{$undef overflowon}
-{$endif}
+{$pop}
 
     { generic bit address calculation routines }
 
@@ -3790,14 +3776,9 @@ implementation
               { only optimize away if all bit patterns which fit in fromsize }
               { are valid for the todef                                      }
               begin
-{$ifopt Q+}
-{$define overflowon}
+{$push}
 {$Q-}
-{$endif}
-{$ifopt R+}
-{$define rangeon}
 {$R-}
-{$endif}
                 if to_signed then
                   begin
                     { calculation of the low/high ranges must not overflow 64 bit
@@ -3816,14 +3797,7 @@ implementation
                        (qword(hto) = (qword(-1) >> (64-(tosize * 8))) ) then
                       exit
                   end;
-{$ifdef overflowon}
-{$Q+}
-{$undef overflowon}
-{$endif}
-{$ifdef rangeon}
-{$R+}
-{$undef rangeon}
-{$endif}
+{$pop}
               end
           end;
 

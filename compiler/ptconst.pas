@@ -72,15 +72,9 @@ implementation
       end;
 
 
-{$ifopt r+}
-{$define rangeon}
+{$push}
 {$r-}
-{$endif}
-
-{$ifopt q+}
-{$define overflowon}
 {$q-}
-{$endif}
     { (values between quotes below refer to fields of bp; fields not         }
     {  mentioned are unused by this routine)                                 }
     { bitpacks "value" as bitpacked value of bitsize "packedbitsize" into    }
@@ -113,16 +107,7 @@ implementation
         inc(bp.curbitoffset,bp.packedbitsize);
       end;
 
-{$ifdef rangeon}
-{$r+}
-{$undef rangeon}
-{$endif}
-
-{$ifdef overflowon}
-{$q+}
-{$undef overflowon}
-{$endif}
-
+{$pop}
 
     procedure flush_packed_value(list: tasmlist; var bp: tbitpackedval);
       var
