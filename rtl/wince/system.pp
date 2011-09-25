@@ -506,8 +506,12 @@ function CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialSta
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
-  AnsiToWideBuf(lpName, -1, buf, SizeOf(buf));
-  CreateEvent := CreateEventW(lpEventAttributes, bManualReset, bInitialState, buf);
+  if lpName=nil then
+    CreateEvent := CreateEventW(lpEventAttributes, bManualReset, bInitialState, nil)
+  else begin
+    AnsiToWideBuf(lpName, -1, buf, SizeOf(buf));
+    CreateEvent := CreateEventW(lpEventAttributes, bManualReset, bInitialState, buf);
+  end;
 end;
 
 function EventModify(h: THandle; func: DWORD): LONGBOOL;

@@ -10545,6 +10545,7 @@ tests/test/units/dos/tidos.pp svneol=native#text/plain
 tests/test/units/dos/tidos2.pp svneol=native#text/plain
 tests/test/units/dos/tverify.pp svneol=native#text/plain
 tests/test/units/dos/tversion.pp svneol=native#text/plain
+tests/test/units/fmtbcd/tfmtbcd.pp svneol=native#text/plain
 tests/test/units/fpcunit/fplists.pp svneol=native#text/plain
 tests/test/units/fpcunit/gencomptest.dpr svneol=native#text/plain
 tests/test/units/fpcunit/lists.pp svneol=native#text/plain

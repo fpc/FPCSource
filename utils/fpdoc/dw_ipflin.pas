@@ -747,6 +747,7 @@ begin
   begin
     FInHeadingText := ':h3%s. ' + SectionName;
 //    Writeln(':h3.' + SectionName);
+    InPackageOverview := False;
   end;
 //  Writeln('');
 end;
