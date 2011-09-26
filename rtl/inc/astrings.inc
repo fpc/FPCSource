@@ -550,9 +550,12 @@ begin
 end;
 
 
-Function fpc_CharArray_To_AnsiStr(const arr: array of char; zerobased: boolean = true): ansistring; compilerproc;
+Function fpc_CharArray_To_AnsiStr(const arr: array of ansichar; {$ifdef FPC_HAS_CPSTRING}cp : TSystemCodePage;{$endif FPC_HAS_CPSTRING}zerobased: boolean = true): RawByteString; compilerproc;
 var
   i  : SizeInt;
+{$ifndef FPC_HAS_CPSTRING}
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
   if (zerobased) then
     begin
@@ -569,7 +572,16 @@ begin
     i := high(arr)+1;
   SetLength(fpc_CharArray_To_AnsiStr,i);
   if i > 0 then
-    Move (arr[0],Pointer(fpc_CharArray_To_AnsiStr)^,i);
+    begin
+{$ifdef FPC_HAS_CPSTRING}
+      if (cp=0) then
+        cp:=DefaultSystemCodePage;
+{$else FPC_HAS_CPSTRING}
+      cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
+      Move (arr[0],Pointer(fpc_CharArray_To_AnsiStr)^,i);
+      SetCodePage(fpc_CharArray_To_AnsiStr,cp,False);
+    end;
 end;
 
 {$ifndef FPC_STRTOCHARARRAYPROC}

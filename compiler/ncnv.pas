@@ -921,8 +921,7 @@ implementation
             addstatement(newstat,ctemprefnode.create(restemp));
             result:=newblock;
           end
-        else if is_widechar(tarraydef(left.resultdef).elementdef) and
-                (tstringdef(resultdef).stringtype=st_ansistring) then
+        else if (tstringdef(resultdef).stringtype=st_ansistring) then
           begin
             result:=ccallnode.createinternres(
                       'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
@@ -1134,7 +1133,6 @@ implementation
       begin
         result:=nil;
         if (left.nodetype=stringconstn) and
-           //(tstringdef(resultdef).stringtype in [st_ansistring,st_shortstring]) and
            ((tstringdef(resultdef).stringtype=st_shortstring) or
             ((tstringdef(resultdef).stringtype=st_ansistring) and
              (tstringdef(resultdef).encoding<>CP_NONE)
