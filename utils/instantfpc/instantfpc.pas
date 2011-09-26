@@ -68,11 +68,13 @@ begin
   writeln;
   writeln('  --compiler=<path to compiler>');
   writeln('      Normally fpc is searched in PATH and used as compiler.');
+  writeln;
+  writeln('  --skip-run');
+  writeln('      Do not execute the program. Useful to test if script compiles.');
   Halt(0);
 end;
 
 Procedure DisplayCache;
-
 begin
   write(GetCacheDir);
   Halt(0);
@@ -88,11 +90,11 @@ var
   OutputFilename: String;
   ExeExt: String;
   E : String;
+  RunIt: boolean = true;
   
 // Return true if filename found.
   
 Function InterpretParam(p : String) : boolean;
-  
 begin
   Result:=False;
   if (P='') then exit;
@@ -115,7 +117,11 @@ begin
     delete(P,1,12);
     SetCacheDir(p);
     end 
-  else if (P<>'') and (p[1]<>'-') then 
+  else if p='--skip-run' then
+    begin
+    RunIt:=false;
+    end
+  else if (P<>'') and (p[1]<>'-') then
     begin
     Filename:=p;
     Result:=True;
@@ -182,7 +188,8 @@ begin
       Compile(CacheFilename,OutputFilename);
     end;
     // run
-    Run(OutputFilename);
+    if RunIt then
+      Run(OutputFilename);
   finally
     // memory is freed by OS, but for debugging puposes you can do it manually
     {$IFDEF IFFreeMem}
