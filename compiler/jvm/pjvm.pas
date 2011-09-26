@@ -719,7 +719,6 @@ implementation
         case csym.constdef.typ of
           enumdef:
             begin
-              replace_scanner('jvm_enum_const',sstate);
               { make sure we don't emit a definition for this field (we'll do
                 that for the constsym already) -> mark as external }
               ssym:=tstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,csym.constdef,[vo_is_external]);
@@ -740,6 +739,7 @@ implementation
                   MessagePos(csym.fileinfo,parser_e_range_check_error);
                   exit;
                 end;
+              replace_scanner('jvm_enum_const',sstate);
               str_parse_typedconst(current_asmdata.asmlists[al_typedconsts],esym.name+';',ssym);
               restore_scanner(sstate);
               result:=ssym;
@@ -839,6 +839,7 @@ implementation
         ps: tprocsym;
         pvs: tparavarsym;
         pd: tprocdef;
+        tmpaccesslist: tpropaccesslist;
         callthroughpropname,
         name: string;
         callthroughprop: tpropertysym;
@@ -870,9 +871,11 @@ implementation
         callthroughprop.default:=longint($80000000);
         if sp_static in p.symoptions then
           include(callthroughprop.symoptions, sp_static);
-        { copy original property target to callthrough property }
+        { copy original property target to callthrough property (and replace
+          original one with the new empty list; will be filled in later) }
+        tmpaccesslist:=callthroughprop.propaccesslist[accesstyp];
         callthroughprop.propaccesslist[accesstyp]:=p.propaccesslist[accesstyp];
-        p.propaccesslist[accesstyp]:=tpropaccesslist.create;
+        p.propaccesslist[accesstyp]:=tmpaccesslist;
         p.owner.insert(callthroughprop);
 
         { we can't use str_parse_method_dec here because the type of the field

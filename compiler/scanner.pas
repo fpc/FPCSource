@@ -131,7 +131,7 @@ interface
           preproc_pattern : string;
           preproc_token   : ttoken;
 
-          constructor Create(const fn:string);
+          constructor Create(const fn:string; is_macro: boolean = false);
           destructor Destroy;override;
         { File buffer things }
           function  openinputfile:boolean;
@@ -1893,9 +1893,11 @@ In case not, the value returned can be arbitrary.
                                 TSCANNERFILE
  ****************************************************************************}
 
-    constructor tscannerfile.create(const fn:string);
+    constructor tscannerfile.create(const fn:string; is_macro: boolean = false);
       begin
         inputfile:=do_openinputfile(fn);
+        if is_macro then
+          inputfile.is_macro:=true;
         if assigned(current_module) then
           current_module.sourcefiles.register_file(inputfile);
       { reset localinput }
@@ -1945,6 +1947,8 @@ In case not, the value returned can be arbitrary.
           popreplaystack;
         if not inputfile.closed then
           closeinputfile;
+        if inputfile.is_macro then
+          inputfile.free;
         ignoredirectives.free;
       end;
 

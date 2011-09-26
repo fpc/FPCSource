@@ -286,9 +286,9 @@ implementation
         hassinglerun: boolean;
       begin
         hassinglerun:=find_single_elements_run(0, start, len);
-        mp:=cloadvmtaddrnode.create(ctypenode.create(java_juenumset));
         if hassinglerun then
           begin
+            mp:=cloadvmtaddrnode.create(ctypenode.create(java_juenumset));
             if len=0 then
               begin
                 enumele:=cloadvmtaddrnode.create(ctypenode.create(tenumdef(eledef).getbasedef.classdef));

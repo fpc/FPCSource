@@ -3022,11 +3022,6 @@ implementation
         objname:=stringdup(upper(n));
         objrealname:=stringdup(n);
         objectoptions:=[];
-        if assigned(current_module.namespace) then
-          begin
-            import_lib:=stringdup(current_module.namespace^);
-            replace(import_lib^,'.','/');
-          end;
       end;
 
     constructor tabstractrecorddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
@@ -3742,7 +3737,6 @@ implementation
           end;
         tabstractprocdef(result).returndef:=returndef;
         tabstractprocdef(result).returndefderef:=returndefderef;
-        tabstractprocdef(result).parast:=tparasymtable.create(tabstractprocdef(result),parast.symtablelevel);
         pvs:=nil;
         npvs:=nil;
         for j:=0 to parast.symlist.count-1 do

@@ -146,7 +146,7 @@ implementation
       { creating a new scanner resets the block type, while we want to continue
         in the current one }
       old_block_type:=block_type;
-      current_scanner:=tscannerfile.Create('_Macro_.'+tempname);
+      current_scanner:=tscannerfile.Create('_Macro_.'+tempname,true);
       block_type:=old_block_type;
       { required for e.g. FpcDeepCopy record method (uses "out" parameter; field
         names are escaped via &, so should not cause conflicts }
@@ -178,6 +178,11 @@ implementation
       oldparse_only:=parse_only;
       parse_only:=true;
       result:=false;
+      { in case multiple strings are injected, make sure to always close the
+        previous macro inputfile to prevent memory leaks }
+      if assigned(current_scanner.inputfile) and
+         not(current_scanner.inputfile.closed) then
+        current_scanner.closeinputfile;
       { inject the string in the scanner }
       str:=str+'end;';
       current_scanner.substitutemacro('meth_head_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
@@ -198,6 +203,10 @@ implementation
       if assigned(pd) then
         result:=true;
       parse_only:=oldparse_only;
+      { remove the temporary macro input file again }
+      current_scanner.closeinputfile;
+      current_scanner.nextfile;
+      current_scanner.tempopeninputfile;
     end;
 
 
@@ -229,6 +238,10 @@ implementation
       { and parse it... }
       read_proc(is_classdef,usefwpd);
       parse_only:=oldparse_only;
+      { remove the temporary macro input file again }
+      current_scanner.closeinputfile;
+      current_scanner.nextfile;
+      current_scanner.tempopeninputfile;
       result:=true;
      end;
 
@@ -251,6 +264,10 @@ implementation
       read_typed_const(list,ssym,ssym.owner.symtabletype in [recordsymtable,objectsymtable]);
       parse_only:=old_parse_only;
       block_type:=old_block_type;
+      { remove the temporary macro input file again }
+      current_scanner.closeinputfile;
+      current_scanner.nextfile;
+      current_scanner.tempopeninputfile;
     end;
 
 

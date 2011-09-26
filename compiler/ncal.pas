@@ -577,6 +577,8 @@ implementation
     destructor tcallparanode.destroy;
 
       begin
+         fparainit.free;
+         fparacopyback.free;
          inherited destroy;
       end;
 

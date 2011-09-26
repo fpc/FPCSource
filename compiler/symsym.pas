@@ -1406,6 +1406,7 @@ implementation
 {$ifndef symansistr}
         stringdispose(cachedmangledname);
 {$endif symansistr}
+        stringdispose(externalname);
         inherited destroy;
       end;
 

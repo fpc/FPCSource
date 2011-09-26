@@ -682,6 +682,7 @@ interface
           constructor Create(_stackslot: longint; const _desc: shortstring; _startlab, _stoplab: TAsmSymbol);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          destructor destroy;override;
         end;
         tai_jvar_class = class of tai_jvar;
 
@@ -691,6 +692,7 @@ interface
           startlab,stoplab,handlerlab: tasmsymbol;
 
           constructor Create(const _name: shortstring; _startlab, _stoplab, _handlerlab: TAsmSymbol);
+          destructor destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
         end;
@@ -2520,6 +2522,13 @@ implementation
       end;
 
 
+    destructor tai_jvar.destroy;
+      begin
+        stringdispose(desc);
+        inherited destroy;
+      end;
+
+
     {****************************************************************************
                                   tai_jvar
      ****************************************************************************}
@@ -2535,6 +2544,13 @@ implementation
         stoplab.increfs;
         handlerlab:=_handlerlab;
         handlerlab.increfs;
+      end;
+
+
+    destructor tai_jcatch.destroy;
+      begin
+        stringdispose(name);
+        inherited destroy;
       end;
 
 

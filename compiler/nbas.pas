@@ -1192,10 +1192,8 @@ implementation
 
     destructor ttempdeletenode.destroy;
       begin
-        if assigned(tempinfo^.withnode) then
-          begin
-            tempinfo^.withnode.free;
-          end;
+        tempinfo^.withnode.free;
+        tempinfo^.tempinitcode.free;
         dispose(tempinfo);
       end;
 
