@@ -71,6 +71,10 @@ begin
   writeln;
   writeln('  --skip-run');
   writeln('      Do not execute the program. Useful to test if script compiles.');
+  writeln('      You probably want to combine it with -B.');
+  writeln;
+  writeln('  -B');
+  writeln('      Always recompile.');
   Halt(0);
 end;
 
