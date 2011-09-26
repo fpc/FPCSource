@@ -2209,7 +2209,8 @@ unit cgx86;
                 current_procinfo.final_localsize:=localsize;
                 if (target_info.system=system_x86_64_win64) then
                   begin
-                    list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
+                    if localsize<>0 then
+                      list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
                     include(current_procinfo.flags,pi_has_unwind_info);
                   end;
               end;

@@ -165,7 +165,7 @@ unit cgcpu;
           end;
         templist.concat(cai_seh_directive.create(ash_endprologue));
         if assigned(current_procinfo.endprologue_ai) then
-          current_procinfo.aktproccode.insertlistbefore(current_procinfo.endprologue_ai,templist)
+          current_procinfo.aktproccode.insertlistafter(current_procinfo.endprologue_ai,templist)
         else
           list.concatlist(templist);
         templist.free;
