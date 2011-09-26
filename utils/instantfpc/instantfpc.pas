@@ -33,8 +33,13 @@ Procedure Usage;
 begin
   writeln('instantfpc '+Version);
   writeln;
+  writeln('Run pascal source files as scripts.');
+  writeln('Normal usage is to add to a program source file a first line');
+  writeln('("shebang") "#!/usr/bin/instantfpc".');
+  writeln('Then you can execute the source directly in the terminal/console.');
+  writeln;
   writeln('instantfpc -h');
-  writeln('      This help message.');
+  writeln('      Print this help message and exit.');
   writeln;
   writeln('instantfpc -v');
   writeln('      Print version and exit.');
@@ -53,17 +58,16 @@ begin
   writeln('      passed to the compiler as first parameters.');
   writeln;
   writeln('instantfpc --get-cache');
-  writeln('      Prints cache directory to stdout.');
+  writeln('      Prints current cache directory and exit.');
   writeln;
-  writeln('instantfpc --set-cache=<path to cache>');
+  writeln('Options:');
+  writeln;
+  writeln('  --set-cache=<path to cache>');
   writeln('      Set the cache to be used. Otherwise using environment variable');
   writeln('      INSTANTFPCCACHE.');
   writeln;
-  writeln('instantfpc --compiler=<path to compiler>');
+  writeln('  --compiler=<path to compiler>');
   writeln('      Normally fpc is searched in PATH and used as compiler.');
-  writeln;
-  writeln('Normal usage is to add as first line ("shebang") "#!/usr/bin/instantfpc"');
-  writeln('to a program source file. Then you can execute the source like a script.');
   Halt(0);
 end;
 
