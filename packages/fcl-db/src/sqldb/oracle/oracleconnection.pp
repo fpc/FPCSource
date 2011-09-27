@@ -1,4 +1,4 @@
-unit OracleConnection;
+unit oracleconnection;
 
 {$mode objfpc}{$H+}
 
@@ -276,7 +276,6 @@ var tel      : integer;
 begin
   with cursor as TOracleCursor do
     begin
-    OciHandleAlloc(FOciEnvironment,FOciStmt,OCI_HTYPE_STMT,0,FUserMem);
     if OCIStmtPrepare2(TOracleTrans(ATransaction.Handle).FOciSvcCtx,FOciStmt,FOciError,@buf[1],length(buf),nil,0,OCI_NTV_SYNTAX,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
     if assigned(AParams) then
@@ -354,7 +353,8 @@ end;
 
 procedure TOracleConnection.UnPrepareStatement(cursor: TSQLCursor);
 begin
-  OCIHandleFree(TOracleCursor(cursor).FOciStmt,OCI_HTYPE_STMT);
+  if OCIStmtRelease(TOracleCursor(cursor).FOciStmt,FOciError,nil,0,OCI_DEFAULT)<> OCI_SUCCESS then
+    HandleError();
   cursor.FPrepared:=False;
 end;
 
