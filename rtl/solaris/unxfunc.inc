@@ -134,9 +134,7 @@ var
 begin
   GetTimezoneFile:='';
   assign(ft,SolarisTimeZoneFile);
-{$ifopt I+}
-  {$define OPT_I}
-{$endif}
+{$push}
 {$I-}  
   reset(ft);
   if IOResult=0 then
@@ -147,18 +145,16 @@ begin
           p:=pos('#',s);
           if p>0 then
             s[0]:=chr(p-1);
-	  p:=pos('TZ=',s);
+          p:=pos('TZ=',s);
           if p>0 then
             begin
-	      GetTimeZoneFile:=SolarisTimeZoneDir+copy(s,p+3,length(s));
+              GetTimeZoneFile:=SolarisTimeZoneDir+copy(s,p+3,length(s));
               close(ft);
               exit;
-	    end;
-	end;
-      close(ft);	
+            end;
+         end;
+      close(ft);
     end;
-{$ifdef OPT_I}    
-  {$I+}
-{$endif}  
+{$pop}
 end;
 

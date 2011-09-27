@@ -799,7 +799,7 @@ function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):
     postprocessexecutable:=false;
     { open file }
     assign(f,fn);
-    {$I-}
+    {$push}{$I-}
     reset(f,1);
     if ioresult<>0 then
       Message1(execinfo_f_cant_open_executable,fn);
@@ -835,7 +835,7 @@ function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):
 
       end;
     close(f);
-    {$I+}
+    {$pop}
     if ioresult<>0 then
       ;
     postprocessexecutable:=true;

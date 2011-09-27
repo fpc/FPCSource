@@ -785,14 +785,10 @@ end;
          if (font>DefaultFont) and not assigned(fonts[font].instr) then
            begin
               assign(f,bgipath+fonts[font].name+'.CHR');
-{$ifopt I+}
-{$define IOCHECK_WAS_ON}
+{$push}
 {$i-}
-{$endif}
               reset(f,1);
-{$ifdef IOCHECK_WAS_ON}
-{$i+}
-{$endif}
+{$pop}
               if ioresult<>0 then
                 begin
                    _graphresult:=grFontNotFound;

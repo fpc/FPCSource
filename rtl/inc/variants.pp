@@ -361,9 +361,6 @@ uses
   Math,
   VarUtils;
 
-{$IFOPT R-} {$DEFINE RANGECHECKINGOFF} {$ENDIF}
-{$IFOPT Q-} {$DEFINE OVERFLOWCHECKINGOFF} {$ENDIF}
-
 var
   customvarianttypes    : array of TCustomVariantType;
   customvarianttypelock : trtlcriticalsection;
@@ -437,7 +434,7 @@ type
     function AtEnd: Boolean;
   end;
 
-
+{$push}
 {$r-}
 
 constructor TVariantArrayIterator.Init(aDims: SizeInt; aBounds : PVarArrayBoundArray);
@@ -494,9 +491,7 @@ begin
       end;
 end;
 
-{$ifndef RANGECHECKINGOFF}
-{$r+}
-{$endif}
+{$pop}// {$r-} for TVariantArrayIterator
 
 destructor TVariantArrayIterator.done;
   begin
@@ -1433,7 +1428,8 @@ begin
   r := VariantToInt64(vr);
   Overflow := False;
   case OpCode of
-    {$R+}{$Q+}
+{$push}
+{$R+}{$Q+}
     opAdd..opMultiply,opPower: try
       case OpCode of
         opAdd      :  l := l  + r;
@@ -1449,7 +1445,7 @@ begin
       on E: SysUtils.EIntOverflow do
         Overflow := True;
     end;
-    {$IFDEF RANGECHECKINGOFF} {$R-} {$ENDIF} {$IFDEF OVERFLOWCHECKINGOFF} {$Q+} {$ENDIF}
+{$pop}
     opIntDivide  : l := l div r;
     opModulus    : l := l mod r;
     opShiftLeft  : l := l shl r;
@@ -2115,17 +2111,12 @@ begin
     try
       { Calculation total number of elements in the array }
       cnt:=1;
-{$ifopt r+}
+{$push}
 { arr^.bounds[] is an array[0..0] }
-{$define rangeon}
 {$r-}
-{$endif}
       for i:=0 to arr^.dimcount - 1 do
         cnt:=cnt*cardinal(arr^.Bounds[i].ElementCount);
-{$ifdef rangeon}
-{$undef rangeon}
-{$r+}
-{$endif}
+{$pop}
 
       { Clearing each element }
       for i:=1 to cnt do begin
@@ -2579,18 +2570,13 @@ begin
       else
         p:=src.vArray;
 
-{$ifopt r+}
-{$define rangeon}
+{$push}
 {$r-}
-{$endif}
       if highbound<p^.Bounds[p^.dimcount-1].LowBound-1 then
         VarInvalidArgError;
 
       newbounds.LowBound:=p^.Bounds[p^.dimcount-1].LowBound;
-{$ifdef rangon}
-{$undef rangeon}
-{$r+}
-{$endif}
+{$pop}
       newbounds.ElementCount:=highbound-newbounds.LowBound+1;
 
       VarResultCheck(SafeArrayRedim(p,newbounds));
@@ -3161,18 +3147,20 @@ end;
 
 
 { Variant copy support }
+{$push}
 {$warnings off}
 procedure VarCopyNoInd(var Dest: Variant; const Source: Variant);
 
 begin
   NotSupported('VarCopyNoInd');
 end;
-{$warnings on}
+{$pop}
 
 {****************************************************************************
               Variant array support procedures and functions
  ****************************************************************************}
 
+{$push}
 {$r-}
 
 function VarArrayCreate(const Bounds: array of SizeInt; aVarType: TVarType): Variant;
@@ -3205,9 +3193,7 @@ function VarArrayCreate(const Bounds: array of SizeInt; aVarType: TVarType): Var
     end;
   end;
 
-{$ifndef RANGECHECKINGOFF}
-{$r+}
-{$endif}
+{$pop}
 
 function VarArrayCreate(const Bounds: PVarArrayBoundArray; Dims : SizeInt; aVarType: TVarType): Variant;
   var
@@ -3380,7 +3366,7 @@ function DynArrayGetVariantInfo(p : Pointer; var Dims : sizeint) : sizeint;
     inc(Dims);
   end;
 
-
+{$push}
 {$r-}
 
 procedure DynArrayToVariant(var V: Variant; const DynArray: Pointer; TypeInfo: Pointer);
@@ -3580,9 +3566,7 @@ procedure DynArrayFromVariant(var DynArray: Pointer; const V: Variant; TypeInfo:
       FreeMem(vararraybounds);
     end;
   end;
-{$ifndef RANGECHECKINGOFF}
-{$r+}
-{$endif}
+{$pop}//{$r-} for DynArray[From|To]Variant
 
 
 function FindCustomVariantType(const aVarType: TVarType; out CustomVariantType: TCustomVariantType): Boolean; overload;

@@ -277,15 +277,10 @@ var
 
   begin
     System.Assign(F, Utmp_file);
-{$IFOPT I+}
-{$DEFINE I_was_on}
-{$ENDIF}
+{$push}
 {$I-}
     System.Reset(F,1);
-{$IFDEF I_was_on}
-{$UNDEF I_was_on}
-{$I+}
-{$ENDIF}
+{$pop}
     UL := User_list;
       while UL <> nil do begin
         User_list := UL;

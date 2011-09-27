@@ -94,9 +94,9 @@ Var
 begin
   Result:=0;
   Assign(FSTab,'/etc/fstab');
-  {$i-}
+  {$push}{$i-}
   Reset(fstab);
-  {$i+}
+  {$pop}
   If IOResult=0 then
     begin
     While Not EOF(fstab) do

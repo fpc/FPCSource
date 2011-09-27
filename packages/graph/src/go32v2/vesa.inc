@@ -1094,15 +1094,10 @@ end;
        begin
          if TmpFillPattern and j <> 0 then
            fill.pat[7-i] := currentColor;
-{$ifopt q+}
+{$push}
 {$q-}
-{$define overflowOn}
-{$endif}
          j := j shl 1;
-{$ifdef overflowOn}
-{$q+}
-{$undef overflowOn}
-{$endif}
+{$pop}
        end;
      Repeat
        SetWriteBank(smallint(offs shr 16));

@@ -1837,9 +1837,9 @@ In case not, the value returned can be arbitrary.
       begin
       { open outputfile }
         assign(f,fn);
-        {$I-}
+        {$push}{$I-}
          rewrite(f);
-        {$I+}
+        {$pop}
         if ioresult<>0 then
          Comment(V_Fatal,'can''t create file '+fn);
         getmem(buf,preprocbufsize);

@@ -574,12 +574,11 @@ begin
   len := length(temp);
   if len > arraysize then
     len := arraysize;
+{$push}
 {$r-}
   move(temp[1],fpc_widestr_to_chararray[0],len);
   fillchar(fpc_widestr_to_chararray[len],arraysize-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 
@@ -592,14 +591,13 @@ begin
   len := length(src);
   if len > arraysize then
     len := arraysize;
+{$push}
 {$r-}
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
     move(src[1],fpc_widestr_to_widechararray[0],len*SizeOf(WideChar));
   fillchar(fpc_widestr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 
@@ -618,12 +616,11 @@ begin
   if len > arraysize then
     len := arraysize;
 
+{$push}
 {$r-}
   move(temp[1],fpc_ansistr_to_widechararray[0],len*sizeof(widechar));
   fillchar(fpc_ansistr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray;[public,alias: 'FPC_SHORTSTR_TO_WIDECHARARRAY']; compilerproc;
@@ -638,12 +635,11 @@ begin
   len := length(temp);
   if len > arraysize then
     len := arraysize;
+{$push}
 {$r-}
   move(temp[1],fpc_shortstr_to_widechararray[0],len*sizeof(widechar));
   fillchar(fpc_shortstr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 {$else ndef FPC_STRTOCHARARRAYPROC}
@@ -660,12 +656,11 @@ begin
   len := length(temp);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   move(temp[1],res[0],len);
   fillchar(res[len],length(res)-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 
@@ -676,14 +671,13 @@ begin
   len := length(src);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
     move(src[1],res[0],len*SizeOf(WideChar));
   fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 

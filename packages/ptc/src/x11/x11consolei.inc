@@ -68,16 +68,16 @@ var
   S: string;
 begin
   AssignFile(F, AFileName);
-  {$I-}
+  {$push}{$I-}
   Reset(F);
-  {$I+}
+  {$pop}
   if IOResult <> 0 then
     exit;
   while not EoF(F) do
   begin
-    {$I-}
+    {$push}{$I-}
     Readln(F, S);
-    {$I+}
+    {$pop}
     if IOResult <> 0 then
       Break;
     Option(S);

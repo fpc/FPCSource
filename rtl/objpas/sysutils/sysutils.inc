@@ -266,10 +266,8 @@
     end;
 
 
-{$ifopt S+}
-{$define STACKCHECK_WAS_ON}
+{$push}
 {$S-}
-{$endif OPT S }
 Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer; FrameCount: Longint; Frames: PPointer);[public,alias:'FPC_BREAK_UNHANDLED_EXCEPTION'];
 Var
   Message : String;
@@ -403,9 +401,7 @@ begin
   Raise EAssertionFailed.Createfmt(SAssertError,[S,Fn,LineNo]) at get_caller_addr(theAddr), get_caller_frame(theAddr);
 end;
 
-{$ifdef STACKCHECK_WAS_ON}
-{$S+}
-{$endif}
+{$pop} //{$S-} for Error handling functions
 
 Procedure InitExceptions;
 {

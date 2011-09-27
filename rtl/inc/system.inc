@@ -629,20 +629,10 @@ End;
 
 
 
-{$ifopt R+}
-{$define RangeCheckWasOn}
+{$push}
 {$R-}
-{$endif opt R+}
-
-{$ifopt I+}
-{$define IOCheckWasOn}
 {$I-}
-{$endif opt I+}
-
-{$ifopt Q+}
-{$define OverflowCheckWasOn}
 {$Q-}
-{$endif opt Q+}
 
 {*****************************************************************************
                              Miscellaneous
@@ -728,9 +718,7 @@ end;
 
 {$IFNDEF NO_GENERIC_STACK_CHECK}
 
-{$IFOPT S+}
-{$DEFINE STACKCHECK}
-{$ENDIF}
+{$PUSH}
 {$S-}
 procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK'];
 var
@@ -749,10 +737,7 @@ begin
      HandleError(202);
    end;
 end;
-{$IFDEF STACKCHECK}
-{$S+}
-{$ENDIF}
-{$UNDEF STACKCHECK}
+{$POP}
 
 {$ENDIF NO_GENERIC_STACK_CHECK}
 
@@ -1300,17 +1285,7 @@ end;
 {$i setjump.inc}
 
 
-{$ifdef IOCheckWasOn}
-{$I+}
-{$endif}
-
-{$ifdef RangeCheckWasOn}
-{$R+}
-{$endif}
-
-{$ifdef OverflowCheckWasOn}
-{$Q+}
-{$endif}
+{$pop} //{$I-,R-,Q-} before 'procedure fpc_rangeerror'
 
 
 {*****************************************************************************

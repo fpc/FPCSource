@@ -188,7 +188,7 @@ begin
 
   GetMem(fp, SizeOf(file));
   Assign(fp^, filename);
-  {$i-}
+  {$push}{$i-}
   Case mode of
   fopenread:
     begin
@@ -208,6 +208,7 @@ begin
     end;
   end;
   FileMode := OldFileMode;
+  {$pop}
   if IOresult<>0 then
   begin
     FreeMem(fp, SizeOf(file));
@@ -221,8 +222,9 @@ procedure fclose(fp : FILEptr);
 begin
   if Assigned(fp) then
   begin
-    {$i-}
+    {$push}{$i-}
     system.close(fp^);
+    {$pop}
     if IOresult=0 then;
     FreeMem(fp, SizeOf(file));
   end;
@@ -238,12 +240,13 @@ begin
   if Assigned(buf) then
   begin
     totalSize := recCount * LongInt(recSize);
-    {$i-}
+    {$push}{$i-}
     system.BlockRead(fp^, buf^, totalSize, readcount);
     if (readcount <> totalSize) then
       fread := readcount div recSize
     else
       fread := recCount;
+    {$pop}
   end
   else
     fread := 0;
@@ -259,12 +262,13 @@ begin
   if Assigned(buf) then
   begin
     totalSize := recCount * LongInt(recSize);
-    {$i-}
+    {$push}{$i-}
     system.BlockWrite(fp^, buf^, totalSize, written);
     if (written <> totalSize) then
       fwrite := written div recSize
     else
       fwrite := recCount;
+    {$pop}
   end
   else
     fwrite := 0;
@@ -274,12 +278,13 @@ function fseek(fp : FILEptr;
                recPos : LongInt;
                mode : seek_mode) : longint;
 begin
-  {$i-}
+  {$push}{$i-}
   case mode of
     SEEK_SET : system.Seek(fp^, recPos);
     SEEK_CUR : system.Seek(fp^, FilePos(fp^)+recPos);
     SEEK_END : system.Seek(fp^, FileSize(fp^)-1-recPos); { ?? check }
   end;
+  {$pop}
   fseek := IOresult; { = 0 for success }
 end;
 

@@ -186,7 +186,7 @@ begin
   else
     le:= source_info.newline;
 
-  {$I-}
+  {$push}{$I-}
   Rewrite(t,1);
   if ioresult<>0 then
     exit;
@@ -197,7 +197,7 @@ begin
       Blockwrite(t,le[1],length(le),i);
     end;
   Close(t);
-  {$I+}
+  {$pop}
   i:=ioresult;
 {$ifdef hasUnix}
   if executable then

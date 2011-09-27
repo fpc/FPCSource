@@ -192,9 +192,9 @@ Begin
    End;
    If ret = nkEnter Then Begin
       Assign(tst,s);
-      {$I-}
+      {$push}{$I-}
       Reset(tst);
-      {$I+}
+      {$pop}
       If IoResult = 0 Then Begin
          Close(tst);
          Assign(f,s);
@@ -220,7 +220,7 @@ Begin
    ClearLines(hdr);
    lines := 0;
    win := nShowMessage('Reading "'+fnam+'"...',47,' Open File ',46,false);
-   {$I-}
+   {$push}{$I-}
    Repeat
       If Not Eof(f) Then Begin
          Readln(f,s);
@@ -229,7 +229,7 @@ Begin
       End;
    Until Eof(f) or err;
    Close(f);
-   {$I+}
+   {$pop}
    win^.Hide;
    win^.Done;
    line1 := hdr^.next;
@@ -256,7 +256,7 @@ Begin
    Assign(tmp,tnam);
    Assign(f,fnam);
    win := nShowMessage('Saving "'+fnam+'"...',47,' Save File ',46,false);
-   {$I-}
+   {$push}{$I-}
    Reset(tmp);
    If IoResult = 0 Then Begin
       Close(tmp);
@@ -271,7 +271,7 @@ Begin
       cur := cur^.next;
    Until cur = hdr;
    Close(f);
-   {$I+}
+   {$pop}
    win^.Hide;
    win^.Done;
 End;

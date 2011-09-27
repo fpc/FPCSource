@@ -1674,7 +1674,7 @@ implementation
          end;
         { open file }
         assign(f,fn);
-        {$I-}
+        {$push}{$I-}
          reset(f,1);
         if ioresult<>0 then
           Message1(execinfo_f_cant_open_executable,fn);
@@ -1782,9 +1782,9 @@ implementation
          end;
         freemem(zerobuf,maxfillsize);
         close(f);
-        {$I+}
+        {$pop}
         if ioresult<>0 then;
-        postprocessexecutable:=true;
+          postprocessexecutable:=true;
       end;
 
 

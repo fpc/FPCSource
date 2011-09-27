@@ -310,10 +310,7 @@ begin
         drive:=ord(dir[1])-ord('A')+1
       else
         drive:=ord(dir[1])-ord('a')+1;
-{$undef OPT_I}
-{$ifopt I+}
-  {$define OPT_I}
-{$endif}
+{$push}
 {$I-}
       StoredIORes:=InOutRes;
       InOutRes:=0;
@@ -325,9 +322,7 @@ begin
           exit;
         end;
     end;
-{$ifdef OPT_I}
-  {$I+}
-{$endif}
+{$pop}
   if (Length (Dir) > 1) and
     (Dir [Length (Dir)] in AllowDirectorySeparators) and
 (* Do not remove '\' after ':' (root directory of a drive)

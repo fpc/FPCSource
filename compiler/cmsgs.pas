@@ -188,9 +188,9 @@ begin
   getmem(buf,bufsize);
   { Read the message file }
   assign(f,fn);
-  {$I-}
+  {$push}{$I-}
    reset(f);
-  {$I+}
+  {$pop}
   if ioresult<>0 then
    begin
      WriteLn('*** PPC, can not open message file ',fn);

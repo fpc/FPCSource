@@ -261,9 +261,9 @@ implementation
     procedure printnode_reset;
       begin
         assign(printnodefile,treelogfilename);
-        {$I-}
+        {$push}{$I-}
          rewrite(printnodefile);
-        {$I+}
+        {$pop}
         if ioresult<>0 then
          begin
            Comment(V_Error,'Error creating '+treelogfilename);
@@ -572,11 +572,11 @@ implementation
     procedure tcgprocinfo.printproc(pass:string);
       begin
         assign(printnodefile,treelogfilename);
-        {$I-}
+        {$push}{$I-}
          append(printnodefile);
          if ioresult<>0 then
           rewrite(printnodefile);
-        {$I+}
+        {$pop}
         if ioresult<>0 then
          begin
            Comment(V_Error,'Error creating '+treelogfilename);

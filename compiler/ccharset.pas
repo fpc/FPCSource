@@ -84,9 +84,9 @@ unit ccharset;
          datasize:=256;
          getmem(data,sizeof(tunicodecharmapping)*datasize);
          assign(t,f);
-         {$I-}
+         {$push}{$I-}
          reset(t);
-         {$I+}
+         {$pop}
          if ioresult<>0 then
            begin
               freemem(data,sizeof(tunicodecharmapping)*datasize);

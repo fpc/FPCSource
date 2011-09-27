@@ -1377,10 +1377,8 @@ implementation
            trashintval := trashintvalues[localvartrashing];
            case tabstractnormalvarsym(p).initialloc.loc of
              LOC_CREGISTER :
-{$ifopt q+}
-{$define overflowon}
+{$push}
 {$q-}
-{$endif}
                begin
                  { avoid problems with broken x86 shifts }
                  case tcgsize2size[tabstractnormalvarsym(p).initialloc.size] of
@@ -1399,10 +1397,7 @@ implementation
                      internalerror(2010060801);
                  end;
                end;
-{$ifdef overflowon}
-{$undef overflowon}
-{$q+}
-{$endif}
+{$pop}
              LOC_REFERENCE :
                begin
                    if ((tsym(p).typ=localvarsym) and

@@ -229,9 +229,9 @@ uses
         ResFileName:=ChangeFileExt(current_module.ppufilename^,'.rst');
         message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
         Assign(F,ResFileName);
-        {$i-}
+        {$push}{$i-}
         Rewrite(f);
-        {$i+}
+        {$pop}
         If IOresult<>0 then
           begin
             message1(general_e_errorwritingresourcefile,ResFileName);

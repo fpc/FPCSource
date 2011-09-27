@@ -1998,15 +1998,9 @@ end;
     Julian and Modified Julian Date conversion support
   ---------------------------------------------------------------------}
 
-{$ifopt R+}
-{$define RangeCheckWasOn}
+{$push}
 {$R-}
-{$endif opt R+}
-
-{$ifopt Q+}
-{$define OverflowCheckWasOn}
 {$Q-}
-{$endif opt Q+}
 
 Function DateTimeToJulianDate(const AValue: TDateTime): Double;
 var
@@ -2063,15 +2057,7 @@ begin
   Result:=TryJulianDateToDateTime(AValue + 2400000.5, ADateTime);
 end;
 
-{$ifdef RangeCheckWasOn}
-{$R+}
-{$undef RangeCheckWasOn}
-{$endif}
-
-{$ifdef OverflowCheckWasOn}
-{$Q+}
-{$undef OverflowCheckWasOn}
-{$endif}
+{$pop}//{$R-}{$Q-} for Julian conversion functions
 
 { ---------------------------------------------------------------------
     Unix timestamp support.

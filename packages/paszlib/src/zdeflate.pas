@@ -1260,9 +1260,9 @@ distances are limited to MAX_DIST instead of WSIZE. }
   scan_end   := Pwordarray(scan)^[best_len-1];   { fix }
 {$else}
   strend := Pbyte(@(s.window^[s.strstart + MAX_MATCH]));
-  {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
+  {$push} {$R-}
   scan_end1  := Pbytearray(scan)^[best_len-1];
-  {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
+  {$pop}
   scan_end   := Pbytearray(scan)^[best_len];
 {$endif}
 
@@ -1402,14 +1402,14 @@ distances are limited to MAX_DIST instead of WSIZE. }
             best_len := len;
             if (len >= nice_match) then
               break;
-  {$PUSH} {$R-}
+{$push} {$R-}
 {$ifdef UNALIGNED_OK}
             scan_end   := Pbytearray(scan)^[best_len-1];
 {$else}
             scan_end1  := Pbytearray(scan)^[best_len-1];
             scan_end   := Pbytearray(scan)^[best_len];
 {$endif}
-  {$POP}
+{$pop}
         end;
     nextstep:
       cur_match := prev^[cur_match and wmask];

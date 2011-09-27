@@ -595,15 +595,13 @@ begin
   len := length(src);
   if len > arraysize then
     len := arraysize;
-{$r-}
+{$push}{$r-}
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
     move(src[1],fpc_ansistr_to_chararray[0],len);
   { fpc_big_chararray is defined as array[0..0], see compproc.inc why }
   fillchar(fpc_ansistr_to_chararray[len],arraysize-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 {$else ndef FPC_STRTOCHARARRAYPROC}
@@ -615,15 +613,13 @@ begin
   len := length(src);
   if len > length(res) then
     len := length(res);
-{$r-}
+{$push}{$r-}
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
     move(src[1],res[0],len);
   { fpc_big_chararray is defined as array[0..0], see compproc.inc why }
   fillchar(res[len],length(res)-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 {$endif ndef FPC_STRTOCHARARRAYPROC}

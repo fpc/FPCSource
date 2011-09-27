@@ -37,8 +37,6 @@ function read_JPEG_file (filename : string) : boolean;
 
 implementation
 
-{$IFOPT I+} {$DEFINE IoCheck} {$ENDIF}
-
 { <setjmp.h> is used for the optional error recovery mechanism shown in
   the second part of the example. }
 
@@ -121,9 +119,9 @@ begin
     requires it in order to write binary files. }
 
   Assign(outfile, filename);
-  {$I-}
+  {$push}{$I-}
   ReWrite(outfile, 1);
-  {$IFDEF IoCheck} {$I+} {$ENDIF}
+  {$pop}
   if (IOresult <> 0) then
   begin
     WriteLn(output, 'can''t open ', filename);
@@ -334,9 +332,9 @@ begin
     requires it in order to read binary files. }
 
   Assign(infile, filename);
-  {$I-}
+  {$push}{$I-}
   Reset(infile, 1);
-  {$IFDEF IoCheck} {$I+} {$ENDIF}
+  {$pop}
   if (IOresult <> 0) then
   begin
     WriteLn(output, 'can''t open ', filename);

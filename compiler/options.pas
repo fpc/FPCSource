@@ -1889,9 +1889,9 @@ begin
 { open file }
   Message1(option_using_file,filename);
   assign(f,ExpandFileName(filename));
-  {$I-}
+  {$push}{$I-}
    reset(f);
-  {$I+}
+  {$pop}
   if ioresult<>0 then
    begin
      Message1(option_unable_open_file,filename);

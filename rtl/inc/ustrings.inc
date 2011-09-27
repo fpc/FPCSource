@@ -1085,12 +1085,11 @@ begin
   len := length(temp);
   if len > arraysize then
     len := arraysize;
+{$push}
 {$r-}
   move(temp[1],fpc_unicodestr_to_chararray[0],len);
   fillchar(fpc_unicodestr_to_chararray[len],arraysize-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 
@@ -1103,14 +1102,13 @@ begin
   len := length(src);
   if len > arraysize then
     len := arraysize;
+{$push}
 {$r-}
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
     move(src[1],fpc_unicodestr_to_unicodechararray[0],len*SizeOf(UnicodeChar));
   fillchar(fpc_unicodestr_to_unicodechararray[len],(arraysize-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 
@@ -1128,13 +1126,11 @@ begin
   len := length(temp);
   if len > arraysize then
     len := arraysize;
-
+{$push}
 {$r-}
   move(temp[1],fpc_ansistr_to_unicodechararray[0],len*sizeof(unicodechar));
   fillchar(fpc_ansistr_to_unicodechararray[len],(arraysize-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 function fpc_shortstr_to_unicodechararray(arraysize: SizeInt; const src: ShortString): fpc_big_unicodechararray;[public,alias: 'FPC_SHORTSTR_TO_UNICODECHARARRAY']; compilerproc;
@@ -1149,12 +1145,11 @@ begin
   len := length(temp);
   if len > arraysize then
     len := arraysize;
+{$push}
 {$r-}
   move(temp[1],fpc_shortstr_to_unicodechararray[0],len*sizeof(unicodechar));
   fillchar(fpc_shortstr_to_unicodechararray[len],(arraysize-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 {$else ndef FPC_STRTOCHARARRAYPROC}
@@ -1171,12 +1166,11 @@ begin
   len := length(temp);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   move(temp[1],res[0],len);
   fillchar(res[len],length(res)-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 
@@ -1187,14 +1181,13 @@ begin
   len := length(src);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
     move(src[1],res[0],len*SizeOf(UnicodeChar));
   fillchar(res[len],(length(res)-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 
@@ -1210,13 +1203,11 @@ begin
   len := length(temp);
   if len > length(res) then
     len := length(res);
-
+{$push}
 {$r-}
   move(temp[1],res[0],len*sizeof(unicodechar));
   fillchar(res[len],(length(res)-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 procedure fpc_shortstr_to_unicodechararray(out res: array of unicodechar; const src: ShortString); compilerproc;
@@ -1231,12 +1222,11 @@ begin
   len := length(temp);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   move(temp[1],res[0],len*sizeof(unicodechar));
   fillchar(res[len],(length(res)-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: RawByteString); compilerproc;
@@ -1251,13 +1241,11 @@ begin
   len := length(temp);
   if len > length(res) then
     len := length(res);
-
+{$push}
 {$r-}
   move(temp[1],res[0],len*sizeof(widechar));
   fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
@@ -1272,12 +1260,11 @@ begin
   len := length(temp);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   move(temp[1],res[0],len*sizeof(widechar));
   fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 
@@ -1288,14 +1275,13 @@ begin
   len := length(src);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   { make sure we don't try to access element 1 of the widestring if it's nil }
   if len > 0 then
     move(src[1],res[0],len*SizeOf(WideChar));
   fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 

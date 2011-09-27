@@ -91,8 +91,6 @@ type
 
 implementation
 
-{$IFOpt R+}{$Define RangeChecksOn}{$Endif}
-
 { TPooledMemManager }
 
 procedure TPooledMemManager.Clear;

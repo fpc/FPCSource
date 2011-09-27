@@ -906,9 +906,9 @@ var
   i : integer;
 begin
   system.assign(header, 'trees.inc');
-  {$I-}
+  {$push}{$I-}
   ReWrite(header);
-  {$I+}
+  {$pop}
   Assert (IOresult <> 0, 'Can''t open trees.h');
   WriteLn(header,
     '{ header created automatically with -DGEN_TREES_H }'^M);

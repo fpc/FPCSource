@@ -2132,14 +2132,14 @@ begin
     P := FExpand(DirInput^.Data^);
     if (Length(P) > 3) and (P[Length(P)] = DirSeparator) then
       Dec(P[0]);
-    {$I-}
+    {$push}{$I-}
     ChDir(P);
     if (IOResult <> 0) then
     begin
       MessageBox(sInvalidDirectory, nil, mfError + mfOkButton);
       Valid := False;
     end;
-    {$I+}
+    {$pop}
   end;
 end;
 
@@ -2342,7 +2342,7 @@ var
   D: Char;
 begin
   D := GetCurDrive;
-  {$I-}
+  {$push}{$I-}
   ChDir(Drive+':');
   if (IOResult = 0) then
   begin
@@ -2350,7 +2350,7 @@ begin
     ChDir(D+':')
   end
   else DriveValid := False;
-  {$I+}
+  {$pop}
 end;
 {$else HAS_DOS_DRIVES}
 begin
@@ -2676,9 +2676,9 @@ var
   Dlg : PEditChDirDialog;
   Rec : DirStr;
 begin
-  {$I-}
+  {$push}{$I-}
   GetDir(0,Dir);
-  {$I+}
+  {$pop}
   Rec := FExpand(ADir);
   Dlg := New(PEditChDirDialog,Init(cdHelpButton,HistoryID));
   if (Application^.ExecuteDialog(Dlg,@Rec) = cmOk) then
@@ -2687,9 +2687,9 @@ begin
     ADir := Rec;
   end
   else SelectDir := False;
-  {$I-}
+  {$push}{$I-}
   ChDir(Dir);
-  {$I+}
+  {$pop}
 end;
 
 {****************************************************************************}

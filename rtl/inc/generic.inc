@@ -1212,14 +1212,12 @@ begin
   len := length(src);
   if len > arraysize then
     len := arraysize;
-{$r-}
+{$push}{$r-}
   { make sure we don't access char 1 if length is 0 (JM) }
   if len > 0 then
     move(src[1],fpc_shortstr_to_chararray[0],len);
   fillchar(fpc_shortstr_to_chararray[len],arraysize-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 {$else ndef FPC_STRTOCHARARRAYPROC}
@@ -1231,14 +1229,12 @@ begin
   len := length(src);
   if len > length(res) then
     len := length(res);
-{$r-}
+{$push}{$r-}
   { make sure we don't access char 1 if length is 0 (JM) }
   if len > 0 then
     move(src[1],res[0],len);
   fillchar(res[len],length(res)-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 {$endif ndef FPC_STRTOCHARARRAYPROC}

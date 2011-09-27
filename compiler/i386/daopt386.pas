@@ -689,10 +689,8 @@ begin
 end;
 
 
-{$ifdef q+}
+{$push}
 {$q-}
-{$define overflowon}
-{$endif q+}
 
 // checks whether a write to r2 of size "size" contains address r1
 function refsoverlapping(const r1, r2: treference; size1, size2: tcgsize): boolean;
@@ -710,10 +708,7 @@ begin
     (r1.relsymbol = r2.relsymbol);
 end;
 
-{$ifdef overflowon}
-{$q+}
-{$undef overflowon}
-{$endif overflowon}
+{$pop}
 
 
 function isgp32reg(supreg: tsuperregister): boolean;
@@ -1723,10 +1718,8 @@ begin
   RefInSequence := TmpResult
 end;
 
-{$ifdef q+}
+{$push}
 {$q-}
-{$define overflowon}
-{$endif q+}
 // checks whether a write to r2 of size "size" contains address r1
 function arrayrefsoverlapping(const r1, r2: treference; size1, size2: tcgsize): Boolean;
 var
@@ -1741,10 +1734,7 @@ begin
     (r1.symbol=r2.symbol) and
     (r1.base = r2.base)
 end;
-{$ifdef overflowon}
-{$q+}
-{$undef overflowon}
-{$endif overflowon}
+{$pop}
 
 function isSimpleRef(const ref: treference): boolean;
 { returns true if ref is reference to a local or global variable, to a  }
