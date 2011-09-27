@@ -496,12 +496,21 @@ begin
                                   HandleError;
                                 if OCIAttrGet(Param,OCI_DTYPE_PARAM,@Oscale,nil,OCI_ATTR_SCALE,FOciError) = OCI_ERROR then
                                   HandleError;
-
                                 if Oscale = 0 then
                                   begin
-                                  FieldType := ftInteger;
-                                  OFieldType := SQLT_INT;
-                                  OFieldSize:= sizeof(integer);
+                                  if Oprecision=0 then //Number(0,0) = number(32,4)
+                                    begin              //Warning ftBCD is limited to precision 12
+                                    FieldType := ftBCD;
+                                    FieldSize := 4;
+                                    OFieldType := SQLT_VNU;
+                                    OFieldSize:= 22;
+                                    end
+                                  else
+                                    begin
+                                    FieldType := ftInteger;
+                                    OFieldType := SQLT_INT;
+                                    OFieldSize:= sizeof(integer);
+                                    end;
                                   end
                                 else if (oscale = -127) {and (OPrecision=0)} then
                                   begin
