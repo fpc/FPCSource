@@ -701,14 +701,7 @@ end;
 
 function DBCompareBCD(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 begin
-  // A simple subtraction doesn't work, since it could be that the result
-  // doesn't fit into a LargeInt
-  if PBCD(subValue)^ < PBCD(aValue)^ then
-    result := -1
-  else if PBCD(subValue)^  > PBCD(aValue)^ then
-    result := 1
-  else
-    result := 0;
+  result:=BCDCompare(PBCD(subValue)^, PBCD(aValue)^);
 end;
 
 procedure unSetFieldIsNull(NullMask : pbyte;x : longint); //inline;

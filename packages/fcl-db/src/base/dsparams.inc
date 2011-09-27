@@ -356,10 +356,11 @@ begin
               end;
             if ParameterStyle in [psPostgreSQL,psSimulated] then
               begin
-              if ParameterIndex > 8 then
-                inc(NewQueryLength,2)
-              else
-                inc(NewQueryLength,1)
+              i:=ParameterIndex+1;
+              repeat
+                inc(NewQueryLength);
+                i:=i div 10;
+              until i=0;
               end;
 
             // store ParameterIndex in FParamIndex, ParamPart data
@@ -396,7 +397,10 @@ begin
       Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
       Inc(NewQueryIndex,CopyLen);
       case ParameterStyle of
-        psInterbase : NewQuery[NewQueryIndex]:='?';
+        psInterbase : begin
+                        NewQuery[NewQueryIndex]:='?';
+                        Inc(NewQueryIndex);
+                      end;
         psPostgreSQL,
         psSimulated : begin
                         ParamName := IntToStr(ParamBinding[i]+1);
@@ -405,15 +409,13 @@ begin
                           NewQuery[NewQueryIndex]:='$';
                           Inc(NewQueryIndex);
                           end;
-                        NewQuery[NewQueryIndex]:= paramname[1];
-                        if length(paramname)>1 then
+                        for b := 1 to length(ParamName) do
                           begin
+                          NewQuery[NewQueryIndex]:=ParamName[b];
                           Inc(NewQueryIndex);
-                          NewQuery[NewQueryIndex]:= paramname[2]
                           end;
                       end;
       end;
-      Inc(NewQueryIndex);
       BufIndex:=ParamPart[i].Stop;
     end;
     CopyLen:=Length(SQL)+1-BufIndex;

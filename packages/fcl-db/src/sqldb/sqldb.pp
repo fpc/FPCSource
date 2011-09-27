@@ -716,6 +716,7 @@ function TSQLConnection.GetAsSQLText(Param: TParam) : string;
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
   else case param.DataType of
+    ftGuid,
     ftMemo,
     ftFixedChar,
     ftString   : Result := QuotedStr(Param.AsString);
@@ -1200,11 +1201,11 @@ begin
 
   try
     FieldDefs.Clear;
-
+    if not Assigned(Database) then DatabaseError(SErrDatabasenAssigned);
     TSQLConnection(Database).AddFieldDefs(fcursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
-    FCursor.FInitFieldDef := false;
+    if Assigned(FCursor) then FCursor.FInitFieldDef := false;
   end;
 end;
 
