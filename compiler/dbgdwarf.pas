@@ -2044,7 +2044,7 @@ implementation
         procentry      : string;
         cc             : Tdwarf_calling_convention;
         st             : tsymtable;
-        vmtindexnr     : pint;
+        vmtoffset      : pint;
         in_currentunit : boolean;
       begin
         { only write debug info for procedures defined in the current module,
@@ -2128,10 +2128,12 @@ implementation
             { Element number in the vmt (needs to skip stuff coming before the
               actual method addresses in the vmt, so we use vmtmethodoffset()
               and then divide by sizeof(pint)).  }
-            vmtindexnr:=tobjectdef(def.owner.defowner).vmtmethodoffset(def.extnumber) div sizeof(pint);
-            append_attribute(DW_AT_vtable_elem_location,DW_FORM_block1,[1+LengthUleb128(vmtindexnr)]);
+            vmtoffset:=tobjectdef(def.owner.defowner).vmtmethodoffset(def.extnumber);
+            append_attribute(DW_AT_vtable_elem_location,DW_FORM_block1,[3+LengthUleb128(vmtoffset)]);
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_constu)));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_uleb128bit(vmtindexnr));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_uleb128bit(vmtoffset));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus)));
           end;
 
         { accessibility: public/private/protected }
