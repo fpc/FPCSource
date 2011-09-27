@@ -34,7 +34,11 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
+{$ifndef FPC_STATICRIPFIXED}
   movq  Errno@GOTPCREL(%rip),%r11
+{$else}
+  leaq  Errno(%rip),%r11
+{$endif}
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%r11
@@ -65,7 +69,11 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
+{$ifndef FPC_STATICRIPFIXED}
   movq  Errno@GOTPCREL(%rip),%r11
+{$else}
+  leaq  Errno(%rip),%r11
+{$endif}
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%r11
@@ -97,7 +105,11 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
+{$ifndef FPC_STATICRIPFIXED}
   movq  Errno@GOTPCREL(%rip),%r11
+{$else}
+  leaq  Errno(%rip),%r11
+{$endif}
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%r11
@@ -130,7 +142,11 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
+{$ifndef FPC_STATICRIPFIXED}
   movq  Errno@GOTPCREL(%rip),%r11
+{$else}
+  leaq  Errno(%rip),%r11
+{$endif}
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%r11
@@ -164,7 +180,11 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
+{$ifndef FPC_STATICRIPFIXED}
   movq  Errno@GOTPCREL(%rip),%r11
+{$else}
+  leaq  Errno(%rip),%r11
+{$endif}
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%r11
@@ -199,7 +219,11 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
+{$ifndef FPC_STATICRIPFIXED}
   movq  Errno@GOTPCREL(%rip),%r11
+{$else}
+  leaq  Errno(%rip),%r11
+{$endif}
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%r11
@@ -235,7 +259,11 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
+{$ifndef FPC_STATICRIPFIXED}
   movq  Errno@GOTPCREL(%rip),%r11
+{$else}
+  leaq  Errno(%rip),%r11
+{$endif}
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%r11
@@ -275,7 +303,11 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
+{$ifndef FPC_STATICRIPFIXED}
   movq  Errno@GOTPCREL(%rip),%r11
+{$else}
+  leaq  Errno(%rip),%r11
+{$endif}
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%r11
