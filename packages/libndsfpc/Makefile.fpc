@@ -7,7 +7,7 @@ name=libndsfpc
 version=2.7.1
 
 [target]
-units=nds9 nds7 dswifi9 dswifi7 fat gbfs filesystem maxmod9  maxmod7
+units=nds9 nds7 dswifi9 dswifi7 fat filesystem maxmod9  maxmod7
 exampledirs=examples
 
 [compiler]

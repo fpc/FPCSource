@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=access_dir access_file
+dirs=libfatdir
 
 [require]
 packages=libndsfpc
