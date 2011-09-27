@@ -1520,35 +1520,35 @@ ifdef TEST_CCOMPILER
 	$(TEST_CCOMPILER) -c $< -o $(@D)/$(C_SUBDIR)/$(@F)
 endif
 .PHONY: alltbs alltbf allwebtbs allwebtbf alltest alltests
-alltbs : testprep $(patsubst %.pp,%.log,$(wildcard tbs/t*.pp))
-alltbf : testprep $(patsubst %.pp,%.log,$(wildcard tbf/t*.pp))
-allwebtbs : testprep $(patsubst %.pp,%.log,$(wildcard webtbs/t*.pp))
-allwebtbf : testprep $(patsubst %.pp,%.log,$(wildcard webtbf/t*.pp))
-alltest : testprep $(patsubst %.pp,%.log,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+alltbs : testprep $(patsubst %.pp,%.log,$(sort $(wildcard tbs/t*.pp)))
+alltbf : testprep $(patsubst %.pp,%.log,$(sort $(wildcard tbf/t*.pp)))
+allwebtbs : testprep $(patsubst %.pp,%.log,$(sort $(wildcard webtbs/t*.pp)))
+allwebtbf : testprep $(patsubst %.pp,%.log,$(sort $(wildcard webtbf/t*.pp)))
+alltest : testprep $(patsubst %.pp,%.log,$(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))))
 ifndef SINGLEDOTESTRUNS
 	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))
 endif
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
 .PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectests
-allexectbs : testprep $(patsubst %.pp,%.elg,$(wildcard tbs/t*.pp))
+allexectbs : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard tbs/t*.pp)))
 ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard tbs/t*.pp)
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard tbs/t*.pp))
 endif
-allexectbf : testprep $(patsubst %.pp,%.elg,$(wildcard tbf/t*.pp))
+allexectbf : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard tbf/t*.pp)))
 ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard tbf/t*.pp)
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard tbf/t*.pp))
 endif
-allexecwebtbs : testprep $(patsubst %.pp,%.elg,$(wildcard webtbs/t*.pp))
+allexecwebtbs : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard webtbs/t*.pp)))
 ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard webtbs/t*.pp)
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard webtbs/t*.pp))
 endif
-allexecwebtbf : testprep $(patsubst %.pp,%.elg,$(wildcard webtbf/t*.pp))
+allexecwebtbf : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard webtbf/t*.pp)))
 ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard webtbf/t*.pp)
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard webtbf/t*.pp))
 endif
-allexectest : testprep $(patsubst %.pp,%.elg,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+allexectest : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))))
 ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
 endif
 allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
 .PHONY: clean distclean clean_test clean_sources
