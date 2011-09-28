@@ -268,7 +268,11 @@ implementation
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
       { This is needed for tcputype }
       cpuinfo,
-      fmodule;
+      fmodule
+{$ifdef FPC_FULLVERSION<20700}
+      ,ccharset
+{$endif}
+      ;
 
     var
       { dictionaries with the supported directives }

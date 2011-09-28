@@ -6,7 +6,7 @@ unit CP1252;
   implementation
 
   uses
-     charset;
+     {$ifdef VER2_4}ccharset{$else VER2_4}charset{$endif VER2_4};
 
   const
      map : array[0..255] of tunicodecharmapping = (

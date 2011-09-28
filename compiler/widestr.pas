@@ -28,7 +28,7 @@ unit widestr;
   interface
 
     uses
-       {$ifdef VER2_2}ccharset{$else VER2_2}charset{$endif VER2_2},globtype;
+       {$ifdef VER2_4}ccharset{$else VER2_4}charset{$endif VER2_4},globtype;
 
 
     type
@@ -59,7 +59,7 @@ unit widestr;
     function cpavailable(const s : string) : boolean;
     function cpavailable(cp : word) : boolean;
     procedure changecodepage(
-      s : pchar; l : SizeInt; scp : tstringencoding; 
+      s : pchar; l : SizeInt; scp : tstringencoding;
       d : pchar; dcp : tstringencoding
     );
     function codepagebyname(const s : string) : tstringencoding;
@@ -284,15 +284,15 @@ unit widestr;
     function cpavailable(const s : string) : boolean;
       begin
           cpavailable:=mappingavailable(lower(s));
-      end;  
-    
+      end;
+
     function cpavailable(cp : word) : boolean;
       begin
           cpavailable:=mappingavailable(cp);
-      end;     
+      end;
 
     procedure changecodepage(
-      s : pchar; l : SizeInt; scp : tstringencoding; 
+      s : pchar; l : SizeInt; scp : tstringencoding;
       d : pchar; dcp : tstringencoding
     );
       var
@@ -311,7 +311,7 @@ unit widestr;
            inc(dest);
            inc(source);
          end;
-      end;  
+      end;
 
     function codepagebyname(const s : string) : tstringencoding;
       var
@@ -320,7 +320,7 @@ unit widestr;
         Result:=0;
         p:=getmap(s);
         if (p<>nil) then
-          Result:=p^.cp; 
+          Result:=p^.cp;
       end;
 
 end.

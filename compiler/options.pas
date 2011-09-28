@@ -78,7 +78,7 @@ implementation
 
 uses
   widestr,
-  {$ifdef VER2_2}ccharset{$else VER2_2}charset{$endif VER2_2},
+  {$ifdef VER2_4}ccharset{$else VER2_4}charset{$endif VER2_4},
   SysUtils,
   version,
   cutils,cmsgs,
@@ -904,7 +904,7 @@ begin
                  'm' :
                    begin
                      s:=ExtractFileDir(more);
-                     if TryStrToInt(ExtractFileName(more),j) then 
+                     if TryStrToInt(ExtractFileName(more),j) then
                        begin
                          unicodemapping:=loadunicodemapping(More,More+'.txt',j);
                          if assigned(unicodemapping) then
@@ -2313,7 +2313,7 @@ begin
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
      not(target_info.system in systems_darwin) then
     begin
-      { smartlink creation does not yet work with DWARF 
+      { smartlink creation does not yet work with DWARF
         debug info on most targets, but it works in internal assembler }
       if (cs_create_smart in init_settings.moduleswitches) and
          not (af_outputbinary in target_asm.flags) then

@@ -6,7 +6,7 @@ unit cp8859_5;
   implementation
 
   uses
-     {$ifdef VER2_2}ccharset{$else VER2_2}charset{$endif VER2_2};
+     {$ifdef VER2_4}ccharset{$else VER2_4}charset{$endif VER2_4};
 
   const
      map : array[0..255] of tunicodecharmapping = (
@@ -269,8 +269,8 @@ unit cp8859_5;
      );
 
      unicodemap : tunicodemap = (
-       cpname : '8859-5'; 
-       cp : 28595;     
+       cpname : '8859-5';
+       cp : 28595;
        map : @map;
        lastchar : 255;
        next : nil;
