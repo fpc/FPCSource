@@ -17,6 +17,10 @@ unit InstantFPTools;
 {$DEFINE UseExeSearch}
 {$ENDIF}
 
+{$if defined(Windows) or defined(darwin)}
+{$define CaseInsensitiveFilenames}
+{$endif}
+
 interface
 
 uses
@@ -31,7 +35,8 @@ function GetCacheDir: string;
 procedure SetCacheDir(AValue : string);
 function IsCacheValid(Src: TStringList;
                       const CachedSrcFile, CachedExeFile: string): boolean;
-procedure Compile(const CacheFilename, OutputFilename: string);
+procedure Compile(const SrcFilename, CacheFilename, OutputFilename: string);
+procedure WriteCompilerOutput(SrcFilename, CacheFilename, CompilerOutput: string);
 function GetCompiler: string;
 procedure SetCompiler(AValue : string); 
 function GetCompilerParameters(const SrcFilename, OutputFilename: string): string;
@@ -141,6 +146,41 @@ begin
   CmdCompiler:=AValue;
 end;
 
+procedure WriteCompilerOutput(SrcFilename, CacheFilename, CompilerOutput: string);
+var
+  Lines: TStringList;
+  i: Integer;
+  Line: String;
+  p: SizeInt;
+begin
+  // replace in compiler output CacheFilename with SrcFilename
+  Lines:=TStringList.Create;
+  Lines.Text:=CompilerOutput;
+  {$IFDEF CaseInsensitiveFilenames}
+  CacheFilename:=LowerCase(CacheFilename);
+  {$ENDIF}
+  for i:=0 to Lines.Count-1 do begin
+    repeat
+      Line:=Lines[i];
+      {$IFDEF CaseInsensitiveFilenames}
+      Line:=LowerCase(Line);
+      {$ENDIF}
+      p:=Pos(CacheFilename,Line);
+      if p<1 then break;
+      {$IFDEF CaseInsensitiveFilenames}
+      Line:=Lines[i];
+      {$ENDIF}
+      Lines[i]:=copy(Line,1,p-1)+SrcFilename+copy(Line,p+length(CacheFilename),length(Line));
+    until false;
+  end;
+
+  // write to stdout
+  writeln(Lines.Text);
+  {$IFDEF IFFreeMem}
+  Lines.Free;
+  {$ENDIF}
+end;
+
 function GetCompiler: string;
 var
   CompFile: String;
@@ -194,7 +234,7 @@ begin
     end;
 end;
 
-procedure Compile(const CacheFilename, OutputFilename: string);
+procedure Compile(const SrcFilename, CacheFilename, OutputFilename: string);
 var
   Compiler: String;
   CompParams: String;
@@ -222,7 +262,7 @@ begin
       ss.write(buf,count);
   until Count=0;
   if (not Proc.WaitOnExit) or (Proc.ExitStatus<>0) then begin
-    write(ss.DataString);
+    WriteCompilerOutput(SrcFilename,CacheFilename,ss.DataString);
     Halt(1);
   end;
   ss.Free;

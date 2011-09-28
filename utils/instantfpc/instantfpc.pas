@@ -25,7 +25,7 @@ uses
   Classes, SysUtils, InstantFPTools;
 
 const
-  Version = '1.1';
+  Version = '1.2';
 
 
 Procedure Usage;
@@ -189,7 +189,7 @@ begin
     if not IsCacheValid(Src,CacheFilename,OutputFilename) then begin
       // save source in cache to find out next time if something changed
       Src.SaveToFile(CacheFilename);
-      Compile(CacheFilename,OutputFilename);
+      Compile(Filename,CacheFilename,OutputFilename);
     end;
     // run
     if RunIt then
