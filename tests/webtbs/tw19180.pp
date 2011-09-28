@@ -28,7 +28,7 @@ type
    public
     constructor Create(const AController: TObject);
 
-    function QueryInterface(constref IID: TGUID; out Intf): HResult; virtual; {$ifdef window}stdcall{$else}cdecl{$endif};
+    function QueryInterface(constref IID: TGUID; out Intf): HResult; virtual; {$ifdef windows}stdcall{$else}cdecl{$endif};
     function _AddRef: LongInt; virtual; {$ifdef windows}stdcall{$else}cdecl{$endif};
     function _Release: LongInt; virtual; {$ifdef windows}stdcall{$else}cdecl{$endif};
 
