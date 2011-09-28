@@ -198,9 +198,9 @@ end;
 
 function TFPList.IndexOf(Item: Pointer): Integer;
 begin
-  Result := 0;
-  while(Result < FCount) and (Flist^[Result] <> Item) do Result := Result + 1;
-  If Result = FCount  then Result := -1;
+  Result:=Count-1;
+  while (Result >=0) and (Flist^[Result]<>Item) do
+    Result:=Result - 1;
 end;
 
 procedure TFPList.Insert(Index: Integer; Item: Pointer);
