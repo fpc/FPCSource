@@ -479,13 +479,16 @@ type
        THashSet = class(TObject)
        private
          FCount: LongWord;
-         FBucketCount: LongWord;
-         FBucket: PPHashSetItem;
          FOwnsObjects: Boolean;
          FOwnsKeys: Boolean;
          function Lookup(Key: Pointer; KeyLen: Integer; var Found: Boolean;
            CanCreate: Boolean): PHashSetItem;
          procedure Resize(NewCapacity: LongWord);
+       protected
+         FBucket: PPHashSetItem;
+         FBucketCount: LongWord;
+         class procedure FreeItem(item:PHashSetItem); virtual;
+         class function SizeOfItem: Integer; virtual;
        public
          constructor Create(InitSize: Integer; OwnKeys, OwnObjects: Boolean);
          destructor Destroy; override;
@@ -502,7 +505,40 @@ type
          { removes an entry, returns False if entry wasn't there }
          function Remove(Entry: PHashSetItem): Boolean;
          property Count: LongWord read FCount;
-      end;
+       end;
+
+{******************************************************************
+                             TTagHasSet
+*******************************************************************}
+       PPTagHashSetItem = ^PTagHashSetItem;
+       PTagHashSetItem = ^TTagHashSetItem;
+       TTagHashSetItem = record
+         Next: PTagHashSetItem;
+         Key: Pointer;
+         KeyLength: Integer;
+         HashValue: LongWord;
+         Data: TObject;
+         Tag: LongWord;
+       end;
+
+       TTagHashSet = class(THashSet)
+       private
+         function Lookup(Key: Pointer; KeyLen: Integer; Tag: LongWord; var Found: Boolean;
+           CanCreate: Boolean): PTagHashSetItem;
+       protected
+         class procedure FreeItem(item:PHashSetItem); override;
+         class function SizeOfItem: Integer; override;
+       public
+         { finds an entry by key }
+         function Find(Key: Pointer; KeyLen: Integer; Tag: LongWord): PTagHashSetItem; reintroduce;
+         { finds an entry, creates one if not exists }
+         function FindOrAdd(Key: Pointer; KeyLen: Integer; Tag: LongWord;
+           var Found: Boolean): PTagHashSetItem; reintroduce;
+         { finds an entry, creates one if not exists }
+         function FindOrAdd(Key: Pointer; KeyLen: Integer; Tag: LongWord): PTagHashSetItem; reintroduce;
+         { returns Data by given Key }
+         function Get(Key: Pointer; KeyLen: Integer; Tag: LongWord): TObject; reintroduce;
+       end;
 
 
 {******************************************************************
@@ -536,6 +572,7 @@ type
 
     function FPHash(const s:shortstring):LongWord;
     function FPHash(P: PChar; Len: Integer): LongWord;
+    function FPHash(P: PChar; Len: Integer; Tag: LongWord): LongWord;
 
 
 implementation
@@ -1118,6 +1155,21 @@ end;
 {$pop}
       end;
 
+    function FPHash(P: PChar; Len: Integer; Tag: LongWord): LongWord;
+      Var
+        pmax : pchar;
+      begin
+{$push}
+{$q-,r-}
+        result:=Tag;
+        pmax:=p+len;
+        while (p<pmax) do
+          begin
+            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
+            inc(p);
+          end;
+{$pop}
+      end;
 
 procedure TFPHashList.RaiseIndexError(Index : Integer);
 begin
@@ -2641,7 +2693,7 @@ end;
               item^.Data.Free;
             if FOwnsKeys then
               FreeMem(item^.Key);
-            Dispose(item);
+            FreeItem(item);
             item := next;
           end;
         end;
@@ -2735,7 +2787,7 @@ end;
         i: Integer;
         e, n: PHashSetItem;
       begin
-        p := AllocMem(NewCapacity * sizeof(PHashSetItem));
+        p := AllocMem(NewCapacity * SizeOfItem);
         for i := 0 to FBucketCount-1 do
           begin
             e := FBucket[i];
@@ -2753,6 +2805,15 @@ end;
         FBucket := p;
       end;
 
+    class procedure THashSet.FreeItem(item: PHashSetItem);
+      begin
+        Dispose(item);
+      end;
+
+    class function THashSet.SizeOfItem: Integer;
+      begin
+        Result := SizeOf(THashSetItem);
+      end;
 
     function THashSet.Remove(Entry: PHashSetItem): Boolean;
       var
@@ -2768,7 +2829,7 @@ end;
                   Entry^.Data.Free;
                 if FOwnsKeys then
                   FreeMem(Entry^.Key);
-                Dispose(Entry);
+                FreeItem(Entry);
                 Dec(FCount);
                 Result := True;
                 Exit;
@@ -2778,6 +2839,96 @@ end;
         Result := False;
       end;
 
+
+{****************************************************************************
+                                ttaghashset
+****************************************************************************}
+
+    function TTagHashSet.Lookup(Key: Pointer; KeyLen: Integer;
+      Tag: LongWord; var Found: Boolean; CanCreate: Boolean): PTagHashSetItem;
+      var
+        Entry: PPTagHashSetItem;
+        h: LongWord;
+      begin
+        h := FPHash(Key, KeyLen, Tag);
+        Entry := @PPTagHashSetItem(FBucket)[h mod FBucketCount];
+        while Assigned(Entry^) and
+          not ((Entry^^.HashValue = h) and (Entry^^.KeyLength = KeyLen) and
+            (Entry^^.Tag = Tag) and (CompareByte(Entry^^.Key^, Key^, KeyLen) = 0)) do
+              Entry := @Entry^^.Next;
+        Found := Assigned(Entry^);
+        if Found or (not CanCreate) then
+          begin
+            Result := Entry^;
+            Exit;
+          end;
+        if FCount > FBucketCount then  { arbitrary limit, probably too high }
+          begin
+            { rehash and repeat search }
+            Resize(FBucketCount * 2);
+            Result := Lookup(Key, KeyLen, Tag, Found, CanCreate);
+          end
+        else
+          begin
+            New(Result);
+            if FOwnsKeys then
+            begin
+              GetMem(Result^.Key, KeyLen);
+              Move(Key^, Result^.Key^, KeyLen);
+            end
+            else
+              Result^.Key := Key;
+            Result^.KeyLength := KeyLen;
+            Result^.HashValue := h;
+            Result^.Tag := Tag;
+            Result^.Data := nil;
+            Result^.Next := nil;
+            Inc(FCount);
+            Entry^ := Result;
+          end;
+      end;
+
+    class procedure TTagHashSet.FreeItem(item: PHashSetItem);
+      begin
+        Dispose(PTagHashSetItem(item));
+      end;
+
+    class function TTagHashSet.SizeOfItem: Integer;
+      begin
+        Result := SizeOf(TTagHashSetItem);
+      end;
+
+    function TTagHashSet.Find(Key: Pointer; KeyLen: Integer; Tag: LongWord): PTagHashSetItem;
+      var
+        Dummy: Boolean;
+      begin
+        Result := Lookup(Key, KeyLen, Tag, Dummy, False);
+      end;
+
+    function TTagHashSet.FindOrAdd(Key: Pointer; KeyLen: Integer; Tag: LongWord;
+      var Found: Boolean): PTagHashSetItem;
+      begin
+        Result := Lookup(Key, KeyLen, Tag, Found, True);
+      end;
+
+    function TTagHashSet.FindOrAdd(Key: Pointer; KeyLen: Integer; Tag: LongWord): PTagHashSetItem;
+      var
+        Dummy: Boolean;
+      begin
+        Result := Lookup(Key, KeyLen, Tag, Dummy, True);
+      end;
+
+    function TTagHashSet.Get(Key: Pointer; KeyLen: Integer; Tag: LongWord): TObject;
+      var
+        e: PTagHashSetItem;
+        Dummy: Boolean;
+      begin
+        e := Lookup(Key, KeyLen, Tag, Dummy, False);
+        if Assigned(e) then
+          Result := e^.Data
+        else
+          Result := nil;
+      end;
 
 {****************************************************************************
                                 tbitset

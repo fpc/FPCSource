@@ -139,9 +139,6 @@ implementation
         { const already used ? }
         if not assigned(lab_real) then
           begin
-            if current_asmdata.ConstPools[sp_floats] = nil then
-              current_asmdata.ConstPools[sp_floats] := THashSet.Create(64, True, False);
-
             { there may be gap between record fields, zero it out }
             fillchar(key,sizeof(key),0);
             key.value:=value_real;
@@ -255,11 +252,10 @@ implementation
 
     procedure tcgstringconstnode.pass_generate_code;
       var
-         lastlabel   : tasmlabel;
-         pc       : pchar;
+         lastlabel: tasmlabel;
+         pc: pchar;
          l: longint;
          href: treference;
-         pooltype: TConstPoolType;
          pool: THashSet;
          entry: PHashSetItem;
 
@@ -283,13 +279,13 @@ implementation
          { const already used ? }
          if not assigned(lab_str) then
            begin
-              pooltype := PoolMap[cst_type];
-              if current_asmdata.ConstPools[pooltype] = nil then
-                current_asmdata.ConstPools[pooltype] := THashSet.Create(64, True, False);
-              pool := current_asmdata.ConstPools[pooltype];
+              pool := current_asmdata.ConstPools[PoolMap[cst_type]];
 
               if cst_type in [cst_widestring, cst_unicodestring] then
                 entry := pool.FindOrAdd(pcompilerwidestring(value_str)^.data, len*cwidechartype.size)
+              else
+              if cst_type = cst_ansistring then
+                entry := PHashSetItem(TTagHashSet(pool).FindOrAdd(value_str, len, tstringdef(resultdef).encoding))
               else
                 entry := pool.FindOrAdd(value_str, len);
 
@@ -415,8 +411,6 @@ implementation
           { const already used ? }
           if not assigned(lab_set) then
             begin
-              if current_asmdata.ConstPools[sp_varsets] = nil then
-                current_asmdata.ConstPools[sp_varsets] := THashSet.Create(64, True, False);
               entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, 32);
 
               lab_set := TAsmLabel(entry^.Data);  // is it needed anymore?

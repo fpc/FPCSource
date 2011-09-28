@@ -138,6 +138,8 @@ interface
       end;
       TAsmCFIClass=class of TAsmCFI;
 
+      { TAsmData }
+
       TAsmData = class
       private
         { Symbols }
@@ -147,6 +149,8 @@ interface
         FNextLabelNr   : array[TAsmLabeltype] of longint;
         { Call Frame Information for stack unwinding}
         FAsmCFI        : TAsmCFI;
+        FConstPools    : array[TConstPoolType] of THashSet;
+        function GetConstPools(APoolType: TConstPoolType): THashSet;
       public
         name,
         realname      : string[80];
@@ -156,8 +160,6 @@ interface
         CurrAsmList   : TAsmList;
         WideInits     : TLinkedList;
         ResStrInits   : TLinkedList;
-        { hash tables for reusing constant storage }
-        ConstPools    : array[TConstPoolType] of THashSet;
         constructor create(const n:string);
         destructor  destroy;override;
         { asmsymbol }
@@ -176,6 +178,8 @@ interface
         procedure ResetAltSymbols;
         property AsmSymbolDict:TFPHashObjectList read FAsmSymbolDict;
         property AsmCFI:TAsmCFI read FAsmCFI;
+        { hash tables for reusing constant storage }
+        property ConstPools[APoolType:TConstPoolType]: THashSet read GetConstPools;
       end;
 
       TTCInitItem = class(TLinkedListItem)
@@ -315,6 +319,17 @@ implementation
                                 TAsmData
 ****************************************************************************}
 
+    function TAsmData.GetConstPools(APoolType: TConstPoolType): THashSet;
+      begin
+        if FConstPools[APoolType] = nil then
+          case APoolType of
+            sp_ansistr: FConstPools[APoolType] := TTagHashSet.Create(64, True, False);
+          else
+            FConstPools[APoolType] := THashSet.Create(64, True, False);
+          end;
+        Result := FConstPools[APoolType];
+      end;
+
     constructor TAsmData.create(const n:string);
       var
         alt : TAsmLabelType;
@@ -376,7 +391,7 @@ implementation
          memasmlists.stop;
 {$endif}
          for hp := low(TConstPoolType) to high(TConstPoolType) do
-           ConstPools[hp].Free;
+           FConstPools[hp].Free;
       end;
 
 
