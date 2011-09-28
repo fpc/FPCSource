@@ -936,6 +936,7 @@ unit cgcpu;
            ((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and
             ((ref.offset<-1020) or
              (ref.offset>1020) or
+             ((abs(ref.offset) mod 4)<>0) or
              { the usual pc relative symbol handling assumes possible offsets of +/- 4095 }
              assigned(ref.symbol)
             )
