@@ -1,4 +1,8 @@
 unit oracleconnection;
+//
+// For usage of "returning" like clauses see mantis #18133
+//
+
 
 {$mode objfpc}{$H+}
 
@@ -36,6 +40,7 @@ type
   TOraFieldBuf = record
     Buffer : pointer;
     Ind    : sb2;
+    Len    : ub4;
   end;
 
   TOracleCursor = Class(TSQLCursor)
@@ -55,6 +60,7 @@ type
     FOciUserSession : POCISession;
     FUserMem        : pointer;
     procedure HandleError;
+    procedure GetParameters(cursor : TSQLCursor;AParams : TParams);
     procedure SetParameters(cursor : TSQLCursor;AParams : TParams);
   protected
     // - Connect/disconnect
@@ -105,6 +111,33 @@ ResourceString
   SErrHandleAllocFailed = 'The allocation of the error handle failed.';
   SErrOracle = 'Oracle returned error %s:';
 
+//callback functions
+
+function cbf_no_data(ictxp:Pdvoid; bindp:POCIBind; iter:ub4; index:ub4; bufpp:PPdvoid;
+             alenp:Pub4; piecep:Pub1; indp:PPdvoid):sb4;cdecl;
+
+begin
+  bufpp^ := nil;
+  alenp^ := 0;
+  indp^ := nil;
+  piecep^ := OCI_ONE_PIECE;
+  result:=OCI_CONTINUE;
+end;
+
+
+function cbf_get_data(octxp:Pdvoid; bindp:POCIBind; iter:ub4; index:ub4; bufpp:PPdvoid;
+             alenp:PPub4; piecep:Pub1; indp:PPdvoid; rcodep:PPub2):sb4;cdecl;
+
+begin
+//only 1 row can be stored. No support for multiple rows. When multiple rows, only last is kept.
+  bufpp^:=TOraFieldBuf(octxp^).Buffer;
+  indp^ := @TOraFieldBuf(octxp^).Ind;
+  alenp^ := @TOraFieldBuf(octxp^).Len;
+  rcodep^:=nil;
+  piecep^ := OCI_ONE_PIECE;
+  result:=OCI_CONTINUE;
+end;
+
 procedure TOracleConnection.HandleError;
 
 var errcode : sb4;
@@ -121,6 +154,51 @@ begin
 
   E.ORAErrorCode := errcode;
   Raise E;
+end;
+
+procedure TOracleConnection.GetParameters(cursor: TSQLCursor; AParams: TParams
+  );
+var SQLVarNr       : integer;
+    i              : integer;
+    f              : double;
+    year,month,day : word;
+    db             : array[0..4] of byte;
+    pb             : pbyte;
+    s              : string;
+
+begin
+  with cursor as TOracleCursor do for SQLVarNr := 0 to High(ParamBuffers) do
+    with AParams[SQLVarNr] do
+      if ParamType=ptOutput then
+      begin
+      if parambuffers[SQLVarNr].ind = -1 then
+        Value:=null;
+
+      case DataType of
+        ftInteger         : begin
+                            move(parambuffers[SQLVarNr].buffer^,i,sizeof(integer));
+                            asInteger := i;
+                            end;
+        ftFloat           : begin
+                            move(parambuffers[SQLVarNr].buffer^,f,sizeof(double));
+                            asFloat := f;
+                            end;
+        ftString          : begin
+                            SetLength(s,parambuffers[SQLVarNr].Len);
+                            move(parambuffers[SQLVarNr].buffer^,s[1],length(s)+1);
+                            asString:=s;
+                            end;
+        ftDate, ftDateTime: begin
+                            pb := parambuffers[SQLVarNr].buffer;
+                            year:=(pb[0]-100)*100+pb[1]-100;
+                            month:=pb[2];
+                            day:=pb[3];
+                            asDateTime:=EncodeDate(year,month,day);
+                            end;
+      end;
+
+      end;
+
 end;
 
 procedure TOracleConnection.DoInternalConnect;
@@ -292,13 +370,23 @@ begin
 
         end;
         parambuffers[tel].buffer := getmem(OFieldSize);
+        parambuffers[tel].len := OFieldSize;
 
 
         FOciBind := nil;
 
-        if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[tel].Name),length(AParams[tel].Name),ParamBuffers[tel].buffer,OFieldSize,OFieldType,@ParamBuffers[tel].ind,nil,nil,0,nil,OCI_DEFAULT )= OCI_ERROR then
-          HandleError;
-
+        if AParams[tel].ParamType=ptInput then
+          begin
+          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[tel].Name),length(AParams[tel].Name),ParamBuffers[tel].buffer,OFieldSize,OFieldType,@ParamBuffers[tel].ind,nil,nil,0,nil,OCI_DEFAULT )= OCI_ERROR then
+            HandleError;
+          end
+        else if AParams[tel].ParamType=ptOutput then
+          begin
+          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[tel].Name),length(AParams[tel].Name),nil,OFieldSize,OFieldType,nil,nil,nil,0,nil,OCI_DATA_AT_EXEC )= OCI_ERROR then
+            HandleError;
+          if OCIBindDynamic(FOcibind, FOciError, nil, @cbf_no_data, @parambuffers[tel], @cbf_get_data) <> OCI_SUCCESS then
+            HandleError;
+          end;
         end;
       end;
     FPrepared := True;
@@ -317,37 +405,38 @@ var SQLVarNr       : integer;
 
 begin
   with cursor as TOracleCursor do for SQLVarNr := 0 to High(ParamBuffers) do with AParams[SQLVarNr] do
-    begin
-    if IsNull then parambuffers[SQLVarNr].ind := -1 else
-      parambuffers[SQLVarNr].ind := 0;
+    if ParamType=ptInput then
+      begin
+      if IsNull then parambuffers[SQLVarNr].ind := -1 else
+        parambuffers[SQLVarNr].ind := 0;
 
-    case DataType of
-      ftInteger         : begin
-                          i := asInteger;
-                          move(i,parambuffers[SQLVarNr].buffer^,sizeof(integer));
-                          end;
-      ftFloat           : begin
-                          f := asFloat;
-                          move(f,parambuffers[SQLVarNr].buffer^,sizeof(double));
-                          end;
-      ftString          : begin
-                          s := asString+#0;
-                          move(s[1],parambuffers[SQLVarNr].buffer^,length(s)+1);
-                          end;
-      ftDate, ftDateTime: begin
-                          DecodeDate(asDateTime,year,month,day);
-                          pb := parambuffers[SQLVarNr].buffer;
-                          pb[0] := (year div 100)+100;
-                          pb[1] := (year mod 100)+100;
-                          pb[2] := month;
-                          pb[3] := day;
-                          pb[4] := 1;
-                          pb[5] := 1;
-                          pb[6] := 1;
-                          end;
-    end;
+      case DataType of
+        ftInteger         : begin
+                            i := asInteger;
+                            move(i,parambuffers[SQLVarNr].buffer^,sizeof(integer));
+                            end;
+        ftFloat           : begin
+                            f := asFloat;
+                            move(f,parambuffers[SQLVarNr].buffer^,sizeof(double));
+                            end;
+        ftString          : begin
+                            s := asString+#0;
+                            move(s[1],parambuffers[SQLVarNr].buffer^,length(s)+1);
+                            end;
+        ftDate, ftDateTime: begin
+                            DecodeDate(asDateTime,year,month,day);
+                            pb := parambuffers[SQLVarNr].buffer;
+                            pb[0] := (year div 100)+100;
+                            pb[1] := (year mod 100)+100;
+                            pb[2] := month;
+                            pb[3] := day;
+                            pb[4] := 1;
+                            pb[5] := 1;
+                            pb[6] := 1;
+                            end;
+      end;
 
-    end;
+      end;
 
 end;
 
@@ -437,6 +526,7 @@ begin
     begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,1,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
+    if Assigned(APArams) and (AParams.count > 0) then GetParameters(cursor, AParams);
     end;
 end;
 
