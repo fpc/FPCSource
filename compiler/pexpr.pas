@@ -388,14 +388,17 @@ implementation
               in_args:=true;
               p1:=comp_expr(true,false);
               consume(_RKLAMMER);
-              if (p1.nodetype<>typen) and
+              if ((p1.nodetype<>typen) and
+
                  (
                   (is_object(p1.resultdef) and
                    (oo_has_constructor in tobjectdef(p1.resultdef).objectoptions)) or
                   is_open_array(p1.resultdef) or
                   is_array_of_const(p1.resultdef) or
                   is_open_string(p1.resultdef)
-                 ) then
+                 )) or
+                 { keep the function call if it is a type parameter to avoid arithmetic errors due to constant folding }
+                 (p1.resultdef.typ=undefineddef) then
                 begin
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1);
                   { no packed bit support for these things }
