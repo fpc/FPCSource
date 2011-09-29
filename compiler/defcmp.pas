@@ -355,7 +355,6 @@ implementation
                              (tstringdef(def_from).stringtype=st_ansistring) then 
                       begin
                         if (tstringdef(def_from).encoding=tstringdef(def_to).encoding) or
-                           (tstringdef(def_from).encoding=globals.CP_NONE) or
                            (tstringdef(def_to).encoding=globals.CP_NONE) then
                          begin
                            //doconv := tc_string_2_string;

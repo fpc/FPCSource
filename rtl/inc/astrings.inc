@@ -931,7 +931,7 @@ begin
      move(S[1],(pointer(S)+ofs)^,strlength+1)
 end;
 
-Function Fpc_Ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt) : AnsiString;compilerproc;
+Function Fpc_Ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt) : RawByteString;compilerproc;
 var
   ResultAddress : Pointer;
 begin
