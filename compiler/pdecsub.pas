@@ -245,7 +245,7 @@ implementation
         storepos : tfileposinfo;
         vs       : tparavarsym;
         hdef     : tdef;
-        selfdef  : tabstractrecorddef;
+        selfdef  : tdef;
         vsp      : tvarspez;
         aliasvs  : tabsolutevarsym;
         sl       : tpropaccesslist;

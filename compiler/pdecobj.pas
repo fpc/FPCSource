@@ -634,10 +634,15 @@ implementation
                         Message1(type_e_record_helper_must_extend_same_record,current_objectdef.childof.extendeddef.typename);
                     end;
                 end;
+              else
+                hdef:=nil;
             end;
-
-            current_objectdef.extendeddef:=tabstractrecorddef(hdef);
           end;
+
+        if assigned(hdef) then
+          current_objectdef.extendeddef:=hdef
+        else
+          current_objectdef.extendeddef:=generrordef;
       end;
 
     procedure parse_guid;
@@ -1233,7 +1238,8 @@ implementation
         { if this helper is defined in the implementation section of the unit
           or inside the main project file, the extendeddefs list of the current
           module must be updated (it will be removed when poping the symtable) }
-        if is_objectpascal_helper(current_structdef) then
+        if is_objectpascal_helper(current_structdef) and
+            (current_objectdef.extendeddef.typ in [recorddef,objectdef]) then
           begin
             { the topmost symtable must be a static symtable }
             st:=current_structdef.owner;
@@ -1241,7 +1247,7 @@ implementation
               st:=st.defowner.owner;
             if st.symtabletype=staticsymtable then
               begin
-                s:=make_mangledname('',current_objectdef.extendeddef.symtable,'');
+                s:=make_mangledname('',tabstractrecorddef(current_objectdef.extendeddef).symtable,'');
                 list:=TFPObjectList(current_module.extendeddefs.Find(s));
                 if not assigned(list) then
                   begin

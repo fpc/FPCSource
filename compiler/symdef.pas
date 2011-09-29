@@ -261,7 +261,7 @@ interface
           childofderef   : tderef;
 
           { for Object Pascal helpers }
-          extendeddef   : tabstractrecorddef;
+          extendeddef   : tdef;
           extendeddefderef: tderef;
           { for C++ classes: name of the library this class is imported from }
           import_lib,
@@ -1022,9 +1022,10 @@ implementation
             if not (st.symlist[i] is ttypesym) then
               continue;
             def:=ttypesym(st.SymList[i]).typedef;
-            if is_objectpascal_helper(def) then
+            if is_objectpascal_helper(def) and
+                (tobjectdef(def).extendeddef.typ in [recorddef,objectdef]) then
               begin
-                s:=make_mangledname('',tobjectdef(def).extendeddef.symtable,'');
+                s:=make_mangledname('',tabstractrecorddef(tobjectdef(def).extendeddef).symtable,'');
                 list:=TFPObjectList(current_module.extendeddefs.Find(s));
                 if not assigned(list) then
                   begin
@@ -4660,7 +4661,7 @@ implementation
          else
            tstoredsymtable(symtable).deref;
          if objecttype=odt_helper then
-           extendeddef:=tobjectdef(extendeddefderef.resolve);
+           extendeddef:=tdef(extendeddefderef.resolve);
          for i:=0 to vmtentries.count-1 do
            begin
              vmtentry:=pvmtentry(vmtentries[i]);
