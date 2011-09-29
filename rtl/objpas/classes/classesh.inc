@@ -179,6 +179,11 @@ type
     function MoveNext: Boolean;
     property Current: Pointer read GetCurrent;
   end;
+  
+{$ifdef VER2_4}  
+type
+  TDirection = (FromBeginning, FromEnd);
+{$endif}          
 
   TFPList = class(TObject)
   private
@@ -200,6 +205,10 @@ type
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index: Integer);
   public
+{$IFNDEF VER2_4}  
+    Type
+      TDirection = (FromBeginning, FromEnd);
+{$ENDIF}
     destructor Destroy; override;
     Procedure AddList(AList : TFPList);
     function Add(Item: Pointer): Integer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
@@ -212,6 +221,7 @@ type
     function First: Pointer;
     function GetEnumerator: TFPListEnumerator;
     function IndexOf(Item: Pointer): Integer;
+    function IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
     procedure Insert(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function Last: Pointer;
     procedure Move(CurIndex, NewIndex: Integer);
