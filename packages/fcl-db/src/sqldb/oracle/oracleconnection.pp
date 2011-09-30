@@ -1,8 +1,4 @@
 unit oracleconnection;
-//
-// For usage of "returning" like clauses see mantis #18133
-//
-
 
 {$mode objfpc}{$H+}
 
@@ -105,7 +101,7 @@ type
 implementation
 
 uses
-  math, StrUtils;
+  math, StrUtils, FmtBCD;
 
 ResourceString
   SErrEnvCreateFailed = 'The creation of an Oracle environment failed.';
@@ -139,6 +135,167 @@ begin
   piecep^ := OCI_ONE_PIECE;
   result:=OCI_CONTINUE;
 end;
+
+//conversions
+
+Procedure FmtBCD2Nvu(bcd:tBCD;b:pByte);
+var
+  i,j,cnt   : integer;
+  nibbles   : array [0..maxfmtbcdfractionsize-1] of byte;
+  exp       : shortint;
+  bb        : byte;
+begin
+  fillchar(b[0],22,#0);
+  if BCDPrecision(bcd)=0 then // zero, special case
+    begin
+    b[0]:=1;
+    b[1]:=$80;
+    end
+  else
+    begin
+    if (BCDPrecision(bcd)-BCDScale(bcd)) mod 2 <>0 then // odd number before decimal point
+      begin
+      nibbles[0]:=0;
+      j:=1;
+      end
+    else
+      j:=0;
+    for i:=0 to bcd.Precision -1 do
+      if i mod 2 =0 then
+        nibbles[i+j]:=bcd.Fraction[i div 2] shr 4
+      else
+        nibbles[i+j]:=bcd.Fraction[i div 2] and $0f;
+    nibbles[bcd.Precision+j]:=0; // make sure last nibble is also 0 in case we have odd scale
+    exp:=(BCDPrecision(bcd)-BCDScale(bcd)+1) div 2;
+    cnt:=exp+(BCDScale(bcd)+1) div 2;
+    // to avoid "ora 01438: value larger than specified precision allowed for this column"
+    // remove trailing zeros (scale < 0)
+    while (nibbles[cnt*2-2]*10+nibbles[cnt*2-1])=0 do
+      cnt:=cnt-1;
+    // and remove leading zeros (scale > precision)
+    j:=0;
+    while (nibbles[j*2]*10+nibbles[j*2+1])=0 do
+      begin
+      j:=j+1;
+      exp:=exp-1;
+      end;
+    if IsBCDNegative(bcd) then
+      begin
+      b[0]:=cnt-j+1;
+      b[1]:=not(exp+64) and $7f ;
+      for i:=j to cnt-1 do
+        begin
+        bb:=nibbles[i*2]*10+nibbles[i*2+1];
+        b[2+i-j]:=101-bb;
+        end;
+      if 2+cnt-j<22 then  // add a 102 at the end of the number if place left.
+        begin
+        b[0]:=b[0]+1;
+        b[2+cnt-j]:=102;
+        end;
+      end
+    else
+      begin
+      b[0]:=cnt-j+1;
+      b[1]:=(exp+64) or $80 ;
+      for i:=j to cnt-1 do
+        begin
+        bb:=nibbles[i*2]*10+nibbles[i*2+1];
+        b[2+i-j]:=1+bb;
+        end;
+      end;
+    end;
+end;
+
+function Nvu2FmtBCE(b:pbyte):tBCD;
+var
+  i,j       : integer;
+  bb,size   : byte;
+  exp       : shortint;
+  nibbles   : array [0..maxfmtbcdfractionsize-1] of byte;
+  scale     : integer;
+begin
+  size := b[0];
+  if (size=1) and (b[1]=$80) then // special representation for 0
+    result:=IntegerToBCD(0)
+  else
+    begin
+    result.SignSpecialPlaces:=0; //sign positive, non blank, scale 0
+    result.Precision:=1;         //BCDNegate works only if Precision <>0
+    if (b[1] and $80)=$80 then // then the number is positive
+      begin
+      exp := (b[1] and $7f)-65;
+      for i := 0 to size-2 do
+        begin
+        bb := b[i+2]-1;
+        nibbles[i*2]:=bb div 10;
+        nibbles[i*2+1]:=(bb mod 10);
+        end;
+      end
+    else
+      begin
+      BCDNegate(result);
+      exp := (not(b[1]) and $7f)-65;
+      if b[size]=102 then  // last byte doesn't count if = 102
+        size:=size-1;
+      for i := 0 to size-2 do
+        begin
+        bb := 101-b[i+2];
+        nibbles[i*2]:=bb div 10;
+        nibbles[i*2+1]:=(bb mod 10);
+        end;
+      end;
+    nibbles[(size-1)*2]:=0;
+    result.Precision:=(size-1)*2;
+    scale:=result.Precision-(exp*2+2);
+    if scale>=0 then
+      begin
+      if (scale>result.Precision) then  // need to add leading 0's
+        begin
+        for i:=0 to (scale-result.Precision+1) div 2 do
+          result.Fraction[i]:=0;
+        i:=scale-result.Precision;
+        result.Precision:=scale;
+        end
+      else
+        i:=0;
+      j:=i;
+      if (i=0) and (nibbles[0]=0) then // get rid of leading zero received from oci
+        begin
+        result.Precision:=result.Precision-1;
+        j:=-1;
+        end;
+      while i<=result.Precision do // copy nibbles
+        begin
+        if i mod 2 =0 then
+          result.Fraction[i div 2]:=nibbles[i-j] shl 4
+        else
+          result.Fraction[i div 2]:=result.Fraction[i div 2] or nibbles[i-j];
+        i:=i+1;
+        end;
+      result.SignSpecialPlaces:=result.SignSpecialPlaces or scale;
+      end
+    else
+      begin // add trailing zero's, increase precision to take them into account
+      i:=0;
+      while i<=result.Precision do // copy nibbles
+        begin
+        if i mod 2 =0 then
+          result.Fraction[i div 2]:=nibbles[i] shl 4
+        else
+          result.Fraction[i div 2]:=result.Fraction[i div 2] or nibbles[i];
+        i:=i+1;
+        end;
+      result.Precision:=result.Precision-scale;
+      for i := size -1 to High(result.Fraction) do
+        result.Fraction[i] := 0;
+      end;
+    end;
+end;
+
+
+
+// TOracleConnection
 
 procedure TOracleConnection.HandleError;
 
@@ -197,7 +354,10 @@ begin
                             day:=pb[3];
                             asDateTime:=EncodeDate(year,month,day);
                             end;
-      end;
+        ftFMTBcd          : begin
+                            AsFMTBCD:=Nvu2FmtBCE(parambuffers[SQLVarNr].buffer);
+                            end;
+        end;
 
       end;
 
@@ -369,6 +529,7 @@ begin
           ftFloat : begin OFieldType := SQLT_FLT; OFieldSize := sizeof(double); end;
           ftDate, ftDateTime : begin OFieldType := SQLT_DAT; OFieldSize := 7; end;
           ftString  : begin OFieldType := SQLT_STR; OFieldSize := 4000; end;
+          ftFMTBcd : begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
 
         end;
         parambuffers[tel].buffer := getmem(OFieldSize);
@@ -436,6 +597,9 @@ begin
                             pb[4] := 1;
                             pb[5] := 1;
                             pb[6] := 1;
+                            end;
+        ftFmtBCD          : begin
+                            FmtBCD2Nvu(asFmtBCD,parambuffers[SQLVarNr].buffer);
                             end;
       end;
 
@@ -549,7 +713,7 @@ var Param      : POCIParam;
 
     FieldType  : TFieldType;
     FieldName  : string;
-    FieldSize  : word;
+    FieldSize  : integer;
 
     OFieldType   : ub2;
     OFieldName   : Pchar;
@@ -589,11 +753,11 @@ begin
                                   HandleError;
                                 if OCIAttrGet(Param,OCI_DTYPE_PARAM,@Oscale,nil,OCI_ATTR_SCALE,FOciError) = OCI_ERROR then
                                   HandleError;
-                                if Oscale = 0 then
+                                if (Oscale = 0) and (Oprecision<9) then
                                   begin
                                   if Oprecision=0 then //Number(0,0) = number(32,4)
-                                    begin              //Warning ftBCD is limited to precision 12
-                                    FieldType := ftBCD;
+                                    begin
+                                    FieldType := ftFMTBCD;
                                     FieldSize := 4;
                                     OFieldType := SQLT_VNU;
                                     OFieldSize:= 22;
@@ -605,20 +769,32 @@ begin
                                     OFieldSize:= sizeof(integer);
                                     end;
                                   end
-                                else if (oscale = -127) {and (OPrecision=0)} then
+                                else if (Oscale = -127) {and (OPrecision=0)} then
                                   begin
                                   FieldType := ftFloat;
                                   OFieldType := SQLT_FLT;
                                   OFieldSize:=sizeof(double);
                                   end
-                                else if (oscale <=4) and (OPrecision<=12) then
+                                else if (Oscale >=0) and (Oscale <=4) and (OPrecision<=12) then
                                   begin
                                   FieldType := ftBCD;
                                   FieldSize := oscale;
                                   OFieldType := SQLT_VNU;
                                   OFieldSize:= 22;
                                   end
-                                else FieldType := ftUnknown;
+                                else if (OPrecision-Oscale<64) and (Oscale < 64) then // limited to 63 digits before or after decimal point
+                                  begin
+                                  FieldType := ftFMTBCD;
+                                  FieldSize := oscale;
+                                  OFieldType := SQLT_VNU;
+                                  OFieldSize:= 22;
+                                  end
+                                else //approximation with double, best can do
+                                  begin
+                                  FieldType := ftFloat;
+                                  OFieldType := SQLT_FLT;
+                                  OFieldSize:=sizeof(double);
+                                  end;
                                 end;
         OCI_TYPECODE_CHAR,
         OCI_TYPECODE_VARCHAR,
@@ -703,6 +879,9 @@ begin
                              cur := -cur;
                              end;
                            move(cur,buffer^,SizeOf(Currency));
+                           end;
+      ftFMTBCD             :  begin
+                           pBCD(buffer)^:= Nvu2FmtBCE(fieldbuffers[FieldDef.FieldNo-1].buffer);
                            end;
       ftFloat           : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(double));
       ftInteger         : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(integer));
