@@ -41,6 +41,7 @@ type
     Buffer : pointer;
     Ind    : sb2;
     Len    : ub4;
+    Size   : ub4;
   end;
 
   TOracleCursor = Class(TSQLCursor)
@@ -132,6 +133,7 @@ begin
 //only 1 row can be stored. No support for multiple rows. When multiple rows, only last is kept.
   bufpp^:=TOraFieldBuf(octxp^).Buffer;
   indp^ := @TOraFieldBuf(octxp^).Ind;
+  TOraFieldBuf(octxp^).Len:=TOraFieldBuf(octxp^).Size;   //reset size to full buffer
   alenp^ := @TOraFieldBuf(octxp^).Len;
   rcodep^:=nil;
   piecep^ := OCI_ONE_PIECE;
@@ -370,7 +372,8 @@ begin
 
         end;
         parambuffers[tel].buffer := getmem(OFieldSize);
-        parambuffers[tel].len := OFieldSize;
+        parambuffers[tel].Len := OFieldSize;
+        parambuffers[tel].Size := OFieldSize;
 
 
         FOciBind := nil;
