@@ -255,9 +255,6 @@ Procedure fpc_AnsiStr_Concat_multi (Var DestS : RawByteString;const sarr:array o
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
 function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
 {$endif STR_CONCAT_PROCS}
-Procedure fpc_ansistr_append_char(Var S : AnsiString;c : AnsiChar); compilerproc;
-Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); compilerproc;
-Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); compilerproc;
 {$ifdef EXTRAANSISHORT}
 Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString); compilerproc;
 {$endif EXTRAANSISHORT}

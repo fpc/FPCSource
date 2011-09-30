@@ -889,49 +889,7 @@ begin
 end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 
-
-Procedure fpc_ansistr_append_char(Var S : AnsiString;c : AnsiChar); [Public,Alias : 'FPC_ANSISTR_APPEND_CHAR']; compilerproc;
-begin
-  SetLength(S,length(S)+1);
-  // avoid unique call
-  PAnsiChar(Pointer(S)+length(S)-1)^:=c;
-  PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
-end;
-
-Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); [Public,Alias : 'FPC_ANSISTR_APPEND_SHORTSTRING']; compilerproc;
-var
-   ofs : SizeInt;
-begin
-   if Str='' then
-     exit;
-   ofs:=Length(S);
-   SetLength(S,ofs+length(Str));
-   { the pbyte cast avoids an unique call which isn't necessary because SetLength was just called }
-   move(Str[1],(pointer(S)+ofs)^,length(Str));
-   PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
-end;
-
-Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); [Public,Alias : 'FPC_ANSISTR_APPEND_ANSISTRING']; compilerproc;
-var
-   ofs, strlength: SizeInt;
-   samestring: boolean;
-begin
-   if Str='' then
-     exit;
-   samestring := pointer(s) = pointer(str);
-   { needed in case s and str are the same string }
-   strlength := length(str);
-   ofs:=Length(S);
-   SetLength(S,ofs+strlength);
-   { the pbyte cast avoids an unique call which isn't necessary because SetLength was just called }
-   if not(samestring) then
-     move(Str[1],(pointer(S)+ofs)^,strlength+1)
-   else
-     { the setlength may have relocated the string, so str may no longer be valid }
-     move(S[1],(pointer(S)+ofs)^,strlength+1)
-end;
-
-Function Fpc_Ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt) : RawByteString;compilerproc;
+Function Fpc_Ansistr_Copy(Const S : RawByteString; Index,Size : SizeInt) : RawByteString;compilerproc;
 var
   ResultAddress : Pointer;
 begin
