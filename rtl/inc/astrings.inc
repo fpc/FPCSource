@@ -407,7 +407,7 @@ begin
   Size:=Length(S);
   if Size>0 then
     begin
-      if (cp=0) then
+      if (cp=0) or (cp=$ffff) then
         cp:=DefaultSystemCodePage;
       if (StringCodePage(S)=cp) then
         begin
@@ -487,13 +487,13 @@ Var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  if (cp=0) then
+  if (cp=0) or (cp=$ffff) then
     cp:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
   Size:=Length(S2);
-  Setlength (fpc_ShortStr_To_AnsiStr,Size);
+  Setlength(fpc_ShortStr_To_AnsiStr,Size);
   if Size>0 then
     begin
       Move(S2[1],Pointer(fpc_ShortStr_To_AnsiStr)^,Size);
@@ -511,7 +511,7 @@ var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  if (cp=0) then
+  if (cp=0) or (cp=$ffff) then
     cp:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
@@ -539,7 +539,7 @@ begin
   if L > 0 then
     begin
 {$ifdef FPC_HAS_CPSTRING}
-      if (cp=0) then
+      if (cp=0) or (cp=$ffff) then
         cp:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
       cp:=DefaultSystemCodePage;
@@ -574,7 +574,7 @@ begin
   if i > 0 then
     begin
 {$ifdef FPC_HAS_CPSTRING}
-      if (cp=0) then
+      if (cp=0) or (cp=$ffff) then
         cp:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
       cp:=DefaultSystemCodePage;
@@ -772,7 +772,7 @@ begin
          GetMem(Pointer(S),AnsiRecLen+L);
          PAnsiRec(S)^.Ref:=1;
 {$ifdef FPC_HAS_CPSTRING}
-         if (cp=0) then
+         if (cp=0) or (cp=$ffff) then
            cp:=DefaultSystemCodePage;
          PAnsiRec(S)^.CodePage:=cp;
 {$else}
@@ -1244,14 +1244,14 @@ end;
 
 {$endif CPU64}
 
-Procedure Delete (Var S : RawByteString; Index,Size: SizeInt);
+Procedure Delete(Var S : RawByteString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
 begin
   ls:=Length(S);
   If (Index>LS) or (Index<=0) or (Size<=0) then
     exit;
-  UniqueString (S);
+  UniqueString(S);
   If (Size>LS-Index) then   // Size+Index gives overflow ??
      Size:=LS-Index+1;
   If (Size<=LS-Index) then
@@ -1263,10 +1263,11 @@ begin
 end;
 
 
-Procedure Insert (Const Source : RawByteString; Var S : RawByteString; Index : SizeInt);
+Procedure Insert(Const Source : RawByteString; Var S : RawByteString; Index : SizeInt);
 var
   Temp : RawByteString;
   LS : SizeInt;
+  cp : TSystemCodePage;
 begin
   If Length(Source)=0 then
    exit;
@@ -1276,11 +1277,14 @@ begin
   if index > LS then
    index := LS+1;
   Dec(Index);
-  Pointer(Temp) := NewAnsiString(Length(Source)+LS);
   SetLength(Temp,Length(Source)+LS);
+  cp:=StringCodePage(S);
+  if (cp=0) or (cp=$ffff) then
+    cp:=DefaultSystemCodePage;
+  SetCodePage(Temp,cp,false);
   If Index>0 then
-    move (Pointer(S)^,Pointer(Temp)^,Index);
-  Move (Pointer(Source)^,PByte(Temp)[Index],Length(Source));
+    Move(Pointer(S)^,Pointer(Temp)^,Index);
+  Move(Pointer(Source)^,PByte(Temp)[Index],Length(Source));
   If (LS-Index)>0 then
     Move(PByte(Pointer(S))[Index],PByte(temp)[Length(Source)+index],LS-Index);
   S:=Temp;
