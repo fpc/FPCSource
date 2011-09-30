@@ -753,13 +753,17 @@ implementation
         if CurrObjSec.sectype in [sec_rodata,sec_bss,sec_threadvar] then
           internalerror(200408252);
 {$endif userodata}
+        { Using RELOC_RVA to map 32-bit RELOC_ABSOLUTE to R_X86_64_32
+          (RELOC_ABSOLUTE maps to R_X86_64_32S) }
+        if (reltype=RELOC_ABSOLUTE) and (len<>sizeof(pint)) then
+          reltype:=RELOC_RVA;
         if assigned(p) then
          begin
            { real address of the symbol }
            symaddr:=p.address;
            { Local ObjSymbols can be resolved already or need a section reloc }
            if (p.bind=AB_LOCAL) and
-              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32{$endif x86_64}]) then
+              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32,RELOC_RVA{$endif x86_64}]) then
              begin
                { For a reltype relocation in the same section the
                  value can be calculated }
@@ -810,8 +814,10 @@ implementation
         relsym,
         reltyp   : longint;
         relocsect : TObjSection;
+{$ifdef x86_64}	
         tmp: aint;
         asize: longint;
+{$endif x86_64}	
       begin
         with elf32data do
          begin
@@ -869,6 +875,8 @@ implementation
                    reltyp:=R_X86_64_64;
                  RELOC_ABSOLUTE32 :
                    reltyp:=R_X86_64_32S;
+                 RELOC_RVA :
+                   reltyp:=R_X86_64_32;
                  RELOC_GOTPCREL :
                    begin
                      reltyp:=R_X86_64_GOTPCREL;
