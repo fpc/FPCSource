@@ -228,7 +228,7 @@ var
 begin
   //Get AutoInc Field initial value
   if FAutoIncFieldNo <> -1 then
-    sqlite_exec(FSqliteHandle, PChar('Select Max(' + Fields[FAutoIncFieldNo].FieldName + ') from ' + FTableName),
+    sqlite_exec(FSqliteHandle, PChar('Select Max(' + FieldDefs[FAutoIncFieldNo].Name + ') from ' + FTableName),
       @GetAutoIncValue, @FNextAutoInc, nil);
 
   FReturnCode := sqlite_compile(FSqliteHandle, PChar(FEffectiveSQL), nil, @vm, nil);
