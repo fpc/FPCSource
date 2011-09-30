@@ -1038,7 +1038,7 @@ end;
 
 
 {$ifndef FPUNONE}
-Function fpc_Val_Real_AnsiStr(Const S : AnsiString; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR']; compilerproc;
+Function fpc_Val_Real_AnsiStr(Const S : RawByteString; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR']; compilerproc;
 Var
   SS : String;
 begin
@@ -1054,7 +1054,7 @@ end;
 {$endif}
 
 
-Function fpc_Val_Currency_AnsiStr(Const S : AnsiString; out Code : ValSInt): Currency; [public, alias:'FPC_VAL_CURRENCY_ANSISTR']; compilerproc;
+Function fpc_Val_Currency_AnsiStr(Const S : RawByteString; out Code : ValSInt): Currency; [public, alias:'FPC_VAL_CURRENCY_ANSISTR']; compilerproc;
 Var
   SS : String;
 begin
@@ -1071,7 +1071,7 @@ begin
 end;
 
 
-Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR']; compilerproc;
+Function fpc_Val_UInt_AnsiStr (Const S : RawByteString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1086,7 +1086,7 @@ begin
 end;
 
 
-Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : AnsiString; out Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR']; compilerproc;
+Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : RawByteString; out Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1103,7 +1103,7 @@ end;
 
 {$ifndef CPU64}
 
-Function fpc_Val_qword_AnsiStr (Const S : AnsiString; out Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR']; compilerproc;
+Function fpc_Val_qword_AnsiStr (Const S : RawByteString; out Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1118,7 +1118,7 @@ begin
 end;
 
 
-Function fpc_Val_int64_AnsiStr (Const S : AnsiString; out Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR']; compilerproc;
+Function fpc_Val_int64_AnsiStr (Const S : RawByteString; out Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1173,7 +1173,7 @@ begin
 end;
 
 
-function fpc_val_enum_ansistr(str2ordindex:pointer;const s:ansistring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_ANSISTR']; compilerproc;
+function fpc_val_enum_ansistr(str2ordindex:pointer;const s:RawByteString;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_ANSISTR']; compilerproc;
 
 begin
   fpc_val_enum_ansistr:=fpc_val_enum_shortstr(str2ordindex,s,code);
