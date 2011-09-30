@@ -1876,7 +1876,7 @@ implementation
             newstatement,assstatement:tstatementnode;
             arrnode:ttempcreatenode;
             temp2:ttempcreatenode;
-            assnode,paranode:tnode;
+            assnode:tnode;
             paracount:integer;
           begin
             result:=internalstatements(newstatement);

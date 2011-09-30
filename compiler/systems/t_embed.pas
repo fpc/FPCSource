@@ -80,7 +80,9 @@ Var
   linklibc : boolean;
   found1,
   found2   : boolean;
+{$ifdef ARM}
   LinkStr  : string;
+{$endif}
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
@@ -790,9 +792,7 @@ function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):
   var
     elfheader : TElf32header;
     secheader : TElf32sechdr;
-    firstsecpos,
-    maxfillsize,
-    i,secheaderpos : longint;
+    i : longint;
     stringoffset : longint;
     secname : string;
   begin

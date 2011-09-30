@@ -1025,9 +1025,9 @@ implementation
         newblock : tblocknode;
         newstat  : tstatementnode;
         restemp  : ttempcreatenode;
-        sa : ansistring;
-        cw : WideChar;
-        l : SizeUInt;
+        //sa : ansistring;
+        //cw : WideChar;
+        //l : SizeUInt;
       begin
          result:=nil;
          { we can't do widechar to ansichar conversions at compile time, since }
@@ -1184,8 +1184,6 @@ implementation
     function ttypeconvnode.typecheck_char_to_char : tnode;
       var
         hp : tordconstnode;
-        cha : array[0..3] of ansichar;
-        cw : WideChar;
       begin
          result:=nil;
          if (left.nodetype=ordconstn) and
