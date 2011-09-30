@@ -44,7 +44,7 @@ Type
 {$endif CPU64}
     Ref         : SizeInt;
     Len         : SizeInt;
-    First       : Char;
+    First       : AnsiChar;
   end;
 
 Const
@@ -143,7 +143,7 @@ Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): ansistring; compilerproc;
 Var
   Size,Location : SizeInt;
-  pc : pchar;
+  pc : PAnsiChar;
 begin
   { only assign if s1 or s2 is empty }
   if (S1='') then
@@ -159,7 +159,7 @@ begin
   Location:=Length(S1);
   Size:=length(S2);
   SetLength(result,Size+Location);
-  pc:=pchar(result);
+  pc:=PAnsiChar(result);
   Move(S1[1],pc^,Location);
   inc(pc,location);
   Move(S2[1],pc^,Size+1);
@@ -170,7 +170,7 @@ function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; 
 Var
   i  : Longint;
   p  : pointer;
-  pc : pchar;
+  pc : PAnsiChar;
   Size,NewLen : SizeInt;
 begin
   { First calculate size of the result so we can do
@@ -179,14 +179,14 @@ begin
   for i:=low(sarr) to high(sarr) do
     inc(NewLen,length(sarr[i]));
   SetLength(result,NewLen);
-  pc:=pchar(result);
+  pc:=PAnsiChar(result);
   for i:=low(sarr) to high(sarr) do
     begin
       p:=pointer(sarr[i]);
       if assigned(p) then
         begin
           Size:=length(ansistring(p));
-          Move(pchar(p)^,pc^,Size+1);
+          Move(PAnsiChar(p)^,pc^,Size+1);
           inc(pc,size);
         end;
     end;
@@ -501,7 +501,7 @@ begin
     end
 end;
 
-Function fpc_Char_To_AnsiStr(const c : Char{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
+Function fpc_Char_To_AnsiStr(const c : AnsiChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
 {
   Converts a Char to a AnsiString;
 }
@@ -524,7 +524,7 @@ begin
 end;
 
 
-Function fpc_PChar_To_AnsiStr(const p : pchar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
+Function fpc_PChar_To_AnsiStr(const p : PAnsiChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
 Var
   L : SizeInt;
 {$ifndef FPC_HAS_CPSTRING}
@@ -606,7 +606,7 @@ end;
 
 {$else ndef FPC_STRTOCHARARRAYPROC}
 
-procedure  fpc_ansistr_to_chararray(out res: array of char; const src: RawByteString); compilerproc;
+procedure  fpc_ansistr_to_chararray(out res: array of AnsiChar; const src: RawByteString); compilerproc;
 var
   len: SizeInt;
 begin
@@ -890,11 +890,11 @@ end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 
 
-Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); [Public,Alias : 'FPC_ANSISTR_APPEND_CHAR']; compilerproc;
+Procedure fpc_ansistr_append_char(Var S : AnsiString;c : AnsiChar); [Public,Alias : 'FPC_ANSISTR_APPEND_CHAR']; compilerproc;
 begin
   SetLength(S,length(S)+1);
   // avoid unique call
-  PChar(Pointer(S)+length(S)-1)^:=c;
+  PAnsiChar(Pointer(S)+length(S)-1)^:=c;
   PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
 end;
 
@@ -961,11 +961,11 @@ begin
   Pointer(fpc_ansistr_Copy):=ResultAddress;
 end;
 
-Function Pos (Const Substr : ShortString; Const Source : RawByteString) : SizeInt;
+Function Pos(Const Substr : ShortString; Const Source : RawByteString) : SizeInt;
 
 var
   i,MaxLen : SizeInt;
-  pc : pchar;
+  pc : PAnsiChar;
 begin
   Pos:=0;
   if Length(SubStr)>0 then
@@ -988,10 +988,10 @@ begin
 end;
 
 
-Function Pos (Const Substr : RawByteString; Const Source : RawByteString) : SizeInt;
+Function Pos(Const Substr : RawByteString; Const Source : RawByteString) : SizeInt;
 var
   i,MaxLen : SizeInt;
-  pc : pchar;
+  pc : PAnsiChar;
 begin
   Pos:=0;
   if Length(SubStr)>0 then
@@ -1018,10 +1018,10 @@ end;
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : Char; Const s : RawByteString) : SizeInt;
+Function Pos(c : AnsiChar; Const s : RawByteString) : SizeInt;
 var
   i: SizeInt;
-  pc : pchar;
+  pc : PAnsiChar;
 begin
   pc:=@s[1];
   for i:=1 to length(s) do
@@ -1291,20 +1291,20 @@ begin
 end;
 
 
-Function StringOfChar(c : char;l : SizeInt) : AnsiString;
+Function StringOfChar(c : Ansichar;l : SizeInt) : AnsiString;
 begin
   SetLength(StringOfChar,l);
   FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
 end;
 
-Procedure SetString (Out S : AnsiString; Buf : PChar; Len : SizeInt); {$IFNDEF VER2_0} Inline; {$ENDIF}
+Procedure SetString(Out S : AnsiString; Buf : PAnsiChar; Len : SizeInt); {$IFNDEF VER2_0} Inline; {$ENDIF}
 begin
   SetLength(S,Len);
   If (Buf<>Nil) then
-    Move (Buf^,Pointer(S)^,Len);
+    Move(Buf^,Pointer(S)^,Len);
 end;
 
-Procedure SetString (Out S : AnsiString; Buf : PWideChar; Len : SizeInt);
+Procedure SetString(Out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 begin
   if (Buf<>nil) and (Len>0) then
     widestringmanager.Wide2AnsiMoveProc(Buf,S,DefaultSystemCodePage,Len)

@@ -848,9 +848,9 @@ Procedure Insert(source:Char;var s:shortstring;index:SizeInt);
 Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
 Function  Pos(C:Char;const s:shortstring):SizeInt;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function  Pos (const Substr : ShortString; const Source : RawByteString) : SizeInt;
-Procedure SetString (out S : AnsiString; Buf : PChar; Len : SizeInt);
-Procedure SetString (out S : AnsiString; Buf : PWideChar; Len : SizeInt);
+Function  Pos(const Substr : ShortString; const Source : RawByteString) : SizeInt;
+Procedure SetString(out S : AnsiString; Buf : PAnsiChar; Len : SizeInt);
+Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure SetString (out S : Shortstring; Buf : PChar; Len : SizeInt);
 function  ShortCompareText(const S1, S2: shortstring): SizeInt;
@@ -882,10 +882,10 @@ function  pos(const substr : shortstring;c:char): SizeInt;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}external name 'FPC_ANSISTR_UNIQUE';
 Function  Pos (const Substr : RawByteString; const Source : RawByteString) : SizeInt;
-Function  Pos (c : Char; const s : RawByteString) : SizeInt;
+Function  Pos (c : AnsiChar; const s : RawByteString) : SizeInt;
 Procedure Insert (const Source : RawByteString; var S : RawByteString; Index : SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
 Procedure Delete (var S : RawByteString; Index,Size: SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
-Function  StringOfChar(c : char;l : SizeInt) : AnsiString;
+Function  StringOfChar(c : Ansichar;l : SizeInt) : AnsiString;
 function  upcase(const s : ansistring) : ansistring;
 function  lowercase(const s : ansistring) : ansistring;
 
