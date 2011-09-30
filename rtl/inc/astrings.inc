@@ -1136,31 +1136,40 @@ end;
 
 
 {$ifndef FPUNONE}
-procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 var
   ss: ShortString;
 begin
   str_real(len,fr,d,treal_type(rt),ss);
   s:=ss;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
 end;
 {$endif}
 
-procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:ansistring);[public,alias:'FPC_ANSISTR_ENUM'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_ENUM'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 
 var ss:shortstring;
 
 begin
   fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
   s:=ss;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
 end;
 
 
-procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:ansistring);[public,alias:'FPC_ANSISTR_BOOL'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_BOOL'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 var
   ss:shortstring;
 begin
   fpc_shortstr_bool(b,len,ss);
   s:=ss;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
 end;
 
 
@@ -1172,50 +1181,65 @@ end;
 
 
 {$ifdef FPC_HAS_STR_CURRENCY}
-procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring);[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 var
   ss: ShortString;
 begin
   str(c:len:fr,ss);
   s:=ss;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
 end;
 {$endif FPC_HAS_STR_CURRENCY}
 
-Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
   str(v:Len,SS);
   S:=SS;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
 end;
 
 
 
-Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALSINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_VALSINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
   str (v:Len,SS);
   S:=SS;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
 end;
 
 
 {$ifndef CPU64}
 
-Procedure fpc_AnsiStr_QWord(v : QWord;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_QWORD']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Procedure fpc_AnsiStr_QWord(v : QWord;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_QWORD']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
   str(v:Len,SS);
   S:=SS;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
 end;
 
-Procedure fpc_AnsiStr_Int64(v : Int64; Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_INT64']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Procedure fpc_AnsiStr_Int64(v : Int64; Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_INT64']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
   str (v:Len,SS);
   S:=SS;
+  {$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(s,cp,false);
+  {$endif FPC_HAS_CPSTRING}
 end;
 
 {$endif CPU64}

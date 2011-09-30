@@ -322,6 +322,11 @@ implementation
               procname := procname + 'sint';
           end;
 
+        { for ansistrings insert the encoding argument }
+        if is_ansistring(dest.resultdef) then
+          newparas:=ccallparanode.create(cordconstnode.create(
+            tstringdef(dest.resultdef).encoding,u16inttype,true),newparas);
+
         { free the errornode we generated in the beginning }
         result.free;
         { create the call node, }
