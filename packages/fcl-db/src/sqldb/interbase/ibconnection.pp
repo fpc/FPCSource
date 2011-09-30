@@ -669,12 +669,19 @@ end;
 
 procedure TIBConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams);
 var tr : pointer;
+    out_SQLDA : PXSQLDA;
 begin
   tr := aTransaction.Handle;
   if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, atransaction, AParams);
   with cursor as TIBCursor do
-    if isc_dsql_execute2(@Status[0], @tr, @Statement, 1, in_SQLDA, nil) <> 0 then
+  begin
+    if FStatementType = stExecProcedure then
+      out_SQLDA := SQLDA
+    else
+      out_SQLDA := nil;
+    if isc_dsql_execute2(@Status[0], @tr, @Statement, 1, in_SQLDA, out_SQLDA) <> 0 then
       CheckError('Execute', Status);
+  end;
 end;
 
 
@@ -722,12 +729,23 @@ var
   retcode : integer;
 begin
   with cursor as TIBCursor do
-    begin
-    retcode := isc_dsql_fetch(@Status[0], @Statement, 1, SQLDA);
+  begin
+    if FStatementType = stExecProcedure then
+      //it is not recommended fetch from non-select statement, i.e. statement which have no cursor
+      //starting from Firebird 2.5 it leads to error 'Invalid cursor reference'
+      if SQLDA^.SQLD = 0 then
+        retcode := 100 //no more rows to retrieve
+      else
+      begin
+        retcode := 0;
+        SQLDA^.SQLD := 0; //hack: mark after first fetch
+      end
+    else
+      retcode := isc_dsql_fetch(@Status[0], @Statement, 1, SQLDA);
     if (retcode <> 0) and (retcode <> 100) then
       CheckError('Fetch', Status);
-    end;
-  Result := (retcode <> 100);
+  end;
+  Result := (retcode = 0);
 end;
 
 procedure TIBConnection.SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);

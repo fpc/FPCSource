@@ -1142,8 +1142,6 @@ begin
 
   if not FIsEof then FIsEOF := not TSQLConnection(Database).Fetch(Fcursor);
   Result := not FIsEOF;
-  // A stored procedure is always at EOF after its first fetch
-  if FCursor.FStatementType = stExecProcedure then FIsEOF := True;
 end;
 
 procedure TCustomSQLQuery.Execute;
