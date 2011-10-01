@@ -167,13 +167,13 @@ threadvar
   current_DefaultSystemCodePage: TSystemCodePage;
 
 
-  function win2iconv(cp: word): ansistring; forward;
+  function win2iconv(cp: word): rawbytestring; forward;
 
 
 procedure InitThread;
 {$if not(defined(darwin) and defined(arm))}
 var
-  iconvname: ansistring;
+  iconvname: rawbytestring;
 {$endif}
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;

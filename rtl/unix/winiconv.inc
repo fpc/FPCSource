@@ -5,7 +5,7 @@
  type
    twin2iconv = record
      cp: word;
-     name: ansistring; { for null-termination }
+     name: rawbytestring; { for null-termination }
    end;
  (*
   * Code Page Identifiers
@@ -353,7 +353,7 @@
        (cp:65001; name:'UTF8'));
 
 
-  function win2iconv(cp: word): ansistring;
+  function win2iconv(cp: word): rawbytestring;
     var
       l, h, i, ccp: longint;
     begin
@@ -386,10 +386,14 @@
     end;
     
     
-  function iconv2win(const cpname: ansistring): word;
+  function iconv2win(cpname: rawbytestring): word;
     var
       i: longint;
     begin
+      { clear encoding to prevent nonsense code page conversion of the input
+        ansistring (encoding names are always ascii) }
+      SetCodePage(cpname,$ffff,false);  
+    
       { simple linear scan, not a common operation and hence not worth
         building a separate array for }
       for i:=low(win2iconv_arr) to high(win2iconv_arr) do
