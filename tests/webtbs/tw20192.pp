@@ -40,7 +40,7 @@ var
 begin
   V := V.Create(589);
   WriteLn('V.Bug = ', V.Bug);
-  if V.Bug<>100000 div sizeof(pointer) then
+  if V.Bug<>100000 div sizeof(Integer) then
     halt(1);
   V.Free;
   writeln('ok');
