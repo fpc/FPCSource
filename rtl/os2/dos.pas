@@ -79,6 +79,7 @@ implementation
 
 threadvar
   LastDosErrorModuleName: string;
+  ExecCounter: cardinal;
 
 
 const   FindResvdMask = $00003737; {Allowed bits in attribute
@@ -143,24 +144,38 @@ end;
 
 procedure Exec (const Path: PathStr; const ComLine: ComStr);
 {Execute a program.}
-var Args0, Args: PByteArray;
-    ArgSize: word;
-    Res: TResultCodes;
-    ObjName: string;
-    RC: longint;
-    HQ: THandle;
-    SPID, STID, QName: string;
-    SD: TStartData;
-    SID, PID: cardinal;
-    RD: TRequestData;
-    PCI: PChildInfo;
-    CISize: cardinal;
-    Prio: byte;
+var
+  Args0, Args: PByteArray;
+  ArgSize: word;
+  Res: TResultCodes;
+  ObjName: string;
+  RC: cardinal;
+  ExecAppType: cardinal;
+  HQ: THandle;
+  SPID, STID, SCtr, QName: string;
+  SID, PID: cardinal;
+  SD: TStartData;
+  RD: TRequestData;
+  PCI: PChildInfo;
+  CISize: cardinal;
+  Prio: byte;
+  DSS: boolean;
+  SR: SearchRec;
+
 const
-    MaxArgsSize = 3072; (* Amount of memory reserved for arguments in bytes. *)
+  MaxArgsSize = 3072; (* Amount of memory reserved for arguments in bytes. *)
+
 begin
 {  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
-  QName := FExpand (Path);
+  ObjName := '';
+(* FExpand should be used only for the DosStartSession part
+   and only if the executable is in the current directory.  *)
+  FindFirst (Path, AnyFile, SR);
+  if DosError = 0 then
+   QName := FExpand (Path)
+  else
+   QName := Path;
+  FindClose (SR);
   if ComLine = '' then
    begin
     Args0 := nil;
@@ -186,57 +201,77 @@ begin
     Inc (ArgSize);
     Args^ [ArgSize] := 0;
    end;
-  RC := DosExecPgm (ObjName, cardinal (ExecFlags), Args, nil, Res, Path);
-  if RC = 0 then
+
+  if (DosQueryAppType (PChar (Args), ExecAppType) = 0) and
+                               (ApplicationType and 3 = ExecAppType and 3) then
+(* DosExecPgm should work... *)
    begin
-    LastDosExitCode := Res.ExitCode;
-    LastDosErrorModuleName := '';
+    DSS := false;
+    Res.ExitCode := $FFFFFFFF;
+    RC := DosExecPgm (ObjName, cardinal (ExecFlags), Args, nil, Res, Path);
+    if RC = 0 then
+     begin
+      LastDosExitCode := Res.ExitCode;
+      LastDosErrorModuleName := '';
+     end
+    else
+     if (RC = 190) or (RC = 191) then
+      DSS := true;
    end
   else
-   if (RC = 190) or (RC = 191) then
-    begin
-     FillChar (SD, SizeOf (SD), 0);
-     SD.Length := 24;
-     SD.Related := ssf_Related_Child;
-     if Args = nil then
+   DSS := true;
+  if DSS then
+   begin
+    FillChar (SD, SizeOf (SD), 0);
+    SD.Length := SizeOf (SD);
+    SD.Related := ssf_Related_Child;
+    if Args = nil then
 (* No parameters passed, Args not allocated for DosExecPgm, so allocate now. *)
-      begin
-       GetMem (Args, MaxArgsSize);
-       Move (QName [1], Args^ [0], Length (QName));
-       Args^ [Length (QName)] := 0;
-      end
-     else
-      SD.PgmInputs := PChar (@Args^ [Length (QName) + 1]);
-     SD.PgmName := PChar (Args);
-     SD.InheritOpt := ssf_InhertOpt_Parent;
-     Str (GetProcessID, SPID);
-     Str (ThreadID, STID);
-     QName := '\QUEUES\FPC_Dos_Exec_p' + SPID + 't' + STID + '.QUE'#0;
-     SD.TermQ := @QName [1];
-     RC := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
-     if RC = 0 then
-      begin
-       RC := DosStartSession (SD, SID, PID);
-       if (RC = 0) or (RC = 457) then
-        begin
-         RC := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
-         if RC = 0 then
-          begin
-           LastDosExitCode := PCI^.Return;
-           DosCloseQueue (HQ);
-           DosFreeMem (PCI);
-          end
-         else
+     begin
+      GetMem (Args0, MaxArgsSize);
+      Args := Args0;
+      Move (QName [1], Args^ [0], Length (QName));
+      Args^ [Length (QName)] := 0;
+     end
+    else
+     SD.PgmInputs := PChar (@Args^ [Length (QName) + 1]);
+    SD.PgmName := PChar (Args);
+    SD.InheritOpt := ssf_InhertOpt_Parent;
+    Str (GetProcessID, SPID);
+    Str (ThreadID, STID);
+    Str (ExecCounter, SCtr);
+    Inc (ExecCounter);
+    QName := '\QUEUES\FPC_Dos_Exec_p' + SPID + 't' + STID + '.QUE'#0;
+    SD.TermQ := @QName [1];
+    SD.ObjectBuffer := @ObjName [1];
+    SD.ObjectBuffLen := SizeOf (ObjName) - 1;
+    RC := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
+    if RC <> 0 then
+     ObjName := Copy (QName, 1, Pred (Length (QName)))
+    else
+     begin
+      RC := DosStartSession (SD, SID, PID);
+      if (RC = 0) or (RC = 457) then
+       begin
+        RC := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
+        if RC = 0 then
+         begin
+          LastDosExitCode := PCI^.Return;
           DosCloseQueue (HQ);
-        end
-       else
-        DosCloseQueue (HQ);
-      end;
-    end
-   else
-    LastDosErrorModuleName := ObjName;
+          DosFreeMem (PCI);
+         end
+        else
+         DosCloseQueue (HQ);
+       end
+      else
+       DosCloseQueue (HQ);
+     end;
+   end;
   if RC <> 0 then
-   LastDosExitCode := 0; (* Needed for TP/BP compatibility *)
+   begin
+    LastDosErrorModuleName := ObjName;
+    LastDosExitCode := 0; (* Needed for TP/BP compatibility *)
+   end;
   DosError := RC;
   if Args0 <> nil then
    FreeMem (Args0, MaxArgsSize);
@@ -529,4 +564,5 @@ begin
  LastDosExitCode := 0;
  LastDosErrorModuleName := '';
  ExecFlags := 0;
+ ExecCounter := 0;
 end.
