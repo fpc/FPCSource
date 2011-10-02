@@ -169,22 +169,7 @@ Var
 
 implementation
 
-{$ifdef WINDOWS}
-Uses
-  Windows;
-{$endif WINDOWS}
-{$ifdef UNIX}
-uses
-   ctypes,
-   UnixType,
-   Unix,
-   Baseunix;
-{$endif UNIX}
-
-Resourcestring
-  SNoCommandLine        = 'Cannot execute empty command-line';
-  SErrNoSuchProgram     = 'Executable not found: "%s"';
-  SErrNoTerminalProgram = 'Could not detect X-Terminal program';
+{$i process.inc}
 
 Procedure CommandToList(S : String; List : TStrings);
 
@@ -243,8 +228,6 @@ begin
       List.Add(W);
     end;
 end;
-
-{$i process.inc}
 
 Constructor TProcess.Create (AOwner : TComponent);
 begin

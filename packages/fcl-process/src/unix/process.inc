@@ -10,6 +10,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+uses
+   ctypes,
+   UnixType,
+   Unix,
+   Baseunix;
+
+Resourcestring
+  SNoCommandLine        = 'Cannot execute empty command-line';
+  SErrNoSuchProgram     = 'Executable not found: "%s"';
+  SErrNoTerminalProgram = 'Could not detect X-Terminal program';
+  SErrCannotFork        = 'Failed to Fork process';
+  SErrCannotCreatePipes = 'Failed to create pipes';
+
 Const
   PriorityConstants : Array [TProcessPriority] of Integer =
                       (20,20,0,-20);
@@ -242,7 +255,7 @@ Procedure CreatePipes(Var HI,HO,HE : TPipePair; CE : Boolean);
 
    begin
     If not CreatePipeHandles(P[peRead],P[peWrite]) then
-      Raise EProcess.Create('Failed to create pipes');
+      Raise EProcess.Create(SErrCannotCreatePipes);
    end;
 
   Procedure ClosePair(Var P : TPipePair);
@@ -335,7 +348,7 @@ begin
         Pid:=fpfork;
 {$endif}
         if Pid<0 then
-          Raise EProcess.Create('Failed to Fork process');
+          Raise EProcess.Create(SErrCannotFork);
         if (PID>0) then
           begin
             // Parent process. Copy process information.
