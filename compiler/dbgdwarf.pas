@@ -364,6 +364,7 @@ interface
         procedure appendsym_absolute(list:TAsmList;sym:tabsolutevarsym);override;
         procedure appendsym_property(list:TAsmList;sym:tpropertysym);override;
 
+        function symdebugname(sym:tsym): String; virtual;
         function symname(sym:tsym): String; virtual;
         procedure append_visibility(vis: tvisibility);
 
@@ -415,7 +416,7 @@ interface
         procedure appenddef_undefined(list:TAsmList;def:tundefineddef); override;
         procedure appenddef_variant(list:TAsmList;def:tvariantdef); override;
 
-        function symname(sym:tsym): String; override;
+        function symdebugname(sym:tsym): String; override;
       public
         function  dwarf_version: Word; override;
       end;
@@ -2763,6 +2764,12 @@ implementation
       end;
 
 
+    function TDebugInfoDwarf.symdebugname(sym: tsym): String;
+    begin
+      result := sym.name;
+    end;
+
+
     procedure TDebugInfoDwarf.appendsym_type(list:TAsmList;sym: ttypesym);
       begin
         { just queue the def if needed, beforeappenddef will
@@ -3211,9 +3218,9 @@ implementation
         else if (ds_dwarf_method_class_prefix in current_settings.debugswitches) and
                 (sym.typ=procsym) and
                 (tprocsym(sym).owner.symtabletype in [objectsymtable,recordsymtable]) then
-          result:=tprocsym(sym).owner.name^+'__'+sym.name
+          result:=tprocsym(sym).owner.name^+'__'+symdebugname(sym)
         else
-          result:=sym.name;
+          result:=symdebugname(sym);
       end;
 
 
@@ -4088,7 +4095,7 @@ implementation
         Result:=3;
       end;
 
-    function TDebugInfoDwarf3.symname(sym: tsym): String;
+    function TDebugInfoDwarf3.symdebugname(sym: tsym): String;
       begin
         Result:=sym.realname;
       end;
