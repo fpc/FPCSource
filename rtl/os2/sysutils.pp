@@ -669,7 +669,13 @@ begin
  FillChar (SD, SizeOf (SD), 0);
  SD.Length := SizeOf (SD);
  SD.Related := ssf_Related_Child;
- SD.PgmName := PChar (Path);
+ if FileExists (Path) then
+(* Full path necessary for starting different executable files from current *)
+(* directory. *)
+  CommandLine := ExpandFileName (Path)
+ else
+  CommandLine := Path;
+ SD.PgmName := PChar (CommandLine);
  if ComLine <> '' then
   SD.PgmInputs := PChar (ComLine);
  SD.InheritOpt := ssf_InhertOpt_Parent;
@@ -694,7 +700,9 @@ begin
        DosCloseQueue (HQ);
        DosFreeMem (PCI);
        FreeMem (ObjNameBuf, ObjBufSize);
-      end;
+      end
+     else
+      DosCloseQueue (HQ);
     end
    else
     DosCloseQueue (HQ);
