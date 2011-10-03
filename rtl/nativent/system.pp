@@ -376,12 +376,11 @@ begin
 end;
 {$endif}
 
-{$ifndef kmode}
-
-// other user mode only stuff
-
 procedure SysInitStdIO;
 begin
+  { This function is currently only called if the RTL is compiled for Usermode;
+    one could think about adding a text driver that outputs using DbgPrint }
+{$ifndef KMODE}
   with PSimplePEB(CurrentPEB)^.ProcessParameters^ do begin
     StdInputHandle := StandardInput;
     StdOutputHandle := StandardOutput;
@@ -405,13 +404,8 @@ begin
     Assign(ErrOutput, '');
     Assign(StdErr, '');
   end;
-end;
-
-{$else}
-
-// other kernel mode only stuff
-
 {$endif}
+end;
 
 function GetProcessID: SizeUInt;
 begin
