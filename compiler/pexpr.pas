@@ -1496,7 +1496,10 @@ implementation
                           (token=_LT) and
                           (m_delphi in current_settings.modeswitches) then
                           generate_specialization(hdef,false,'');
-                       if not typeonly and try_to_consume(_LKLAMMER) then
+                       { allow Ordinal(Value) for type declarations since it
+                         can be an enummeration declaration or a set lke:
+                         (OrdinalType(const1)..OrdinalType(const2) }
+                       if (not typeonly or is_ordinal(hdef))and try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true,false);
                           consume(_RKLAMMER);
