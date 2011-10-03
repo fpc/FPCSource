@@ -780,7 +780,8 @@ implementation
                             len:=left.resultdef.size;
 
                             { data smaller than an aint has less alignment requirements }
-                            alignmentrequirement:=min(len,sizeof(aint));
+                            { max(1,...) avoids div by zero in case of an empty record  }
+                            alignmentrequirement:=min(max(1,len),sizeof(aint));
 
                             if (right.location.reference.offset mod alignmentrequirement<>0) or
                               (left.location.reference.offset mod alignmentrequirement<>0) or
