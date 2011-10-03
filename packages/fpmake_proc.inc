@@ -184,12 +184,6 @@ begin
 {$include fpmkunit/fpmake.pp}
 end;
 
-procedure add_fpvectorial;
-begin
-  with Installer do
-{$include fpvectorial/fpmake.pp}
-end;
-
 procedure add_fv;
 begin
   with Installer do
