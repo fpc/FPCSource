@@ -3,7 +3,7 @@
     }
     
  type
-   twin2codepage = record
+   twin2iconv = record
      cp: word;
      name: rawbytestring; { for null-termination }
    end;
@@ -12,7 +12,7 @@
   * http://msdn2.microsoft.com/en-us/library/ms776446.aspx
   *)
   const 
-    win2codepage_arr: array[0..319] of twin2codepage = 
+    win2iconv_arr: array[0..319] of twin2iconv = 
       ((cp:37; name:'IBM037'), (* IBM EBCDIC US-Canada *)
        (cp:154; name:'CP154'),
        (cp:154; name:'CYRILLIC-ASIAN'),
@@ -353,15 +353,15 @@
        (cp:65001; name:'UTF8'));
 
 
-  function CodePageToCodePageName(cp: TSystemCodePage): rawbytestring;
+  function win2iconv(cp: word): rawbytestring;
     var
       l, h, i, ccp: longint;
     begin
-      l:=low(win2codepage_arr);
-      h:=high(win2codepage_arr);
+      l:=low(win2iconv_arr);
+      h:=high(win2iconv_arr);
       repeat
         i:=(l+h+1) shr 1;
-        ccp:=win2codepage_arr[i].cp;
+        ccp:=win2iconv_arr[i].cp;
         if cp=ccp then
           break;
         if cp>=ccp then
@@ -369,16 +369,16 @@
         else
           h:=i-1;
       until l>=h;
-      if cp=win2codepage_arr[i].cp then
+      if cp=win2iconv_arr[i].cp then
         begin
           { the array has been ordered so that in case multiple alias names
             exist, the first entry for the cp is the most commonly supported
             one
           }
-          while (i>low(win2codepage_arr)) and
-                (win2codepage_arr[i-1].cp=cp) do
+          while (i>low(win2iconv_arr)) and
+                (win2iconv_arr[i-1].cp=cp) do
             dec(i);
-          result:=win2codepage_arr[i].name;
+          result:=win2iconv_arr[i].name;
         end
       else
         { or better raise an error? }
@@ -386,7 +386,7 @@
     end;
     
     
-  function CodePageNameToCodePage(cpname: rawbytestring): TSystemCodePage;
+  function iconv2win(cpname: rawbytestring): word;
     var
       i: longint;
     begin
@@ -396,10 +396,10 @@
     
       { simple linear scan, not a common operation and hence not worth
         building a separate array for }
-      for i:=low(win2codepage_arr) to high(win2codepage_arr) do
-        if win2codepage_arr[i].name=cpname then
+      for i:=low(win2iconv_arr) to high(win2iconv_arr) do
+        if win2iconv_arr[i].name=cpname then
           begin
-            result:=win2codepage_arr[i].cp;
+            result:=win2iconv_arr[i].cp;
             exit;
           end;
       { rawbytestring (or better raise an error?) }

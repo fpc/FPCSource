@@ -167,6 +167,9 @@ threadvar
   current_DefaultSystemCodePage: TSystemCodePage;
 
 
+  function win2iconv(cp: word): rawbytestring; forward;
+
+
 procedure InitThread;
 {$if not(defined(darwin) and defined(arm))}
 var
@@ -175,7 +178,7 @@ var
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
 {$if not(defined(darwin) and defined(arm))}
-  iconvname:=CodePageToCodePageName(DefaultSystemCodePage);
+  iconvname:=win2iconv(DefaultSystemCodePage);
   iconv_wide2ansi:=iconv_open(pchar(iconvname),unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,pchar(iconvname));
 {$else}
@@ -248,7 +251,7 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
           -- typecasting an ansistring function result to pchar is
             unsafe normally, but these are constant strings -> no
             problem }
-        use_iconv:=iconv_open(pchar(CodePageToCodePageName(cp)),unicode_encoding2);
+        use_iconv:=iconv_open(pchar(win2iconv(cp)),unicode_encoding2);
         free_iconv:=true;
       end;
     { unsupported encoding -> default move }
@@ -341,7 +344,7 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
           -- typecasting an ansistring function result to pchar is
             unsafe normally, but these are constant strings -> no
             problem }
-        use_iconv:=iconv_open(unicode_encoding2,pchar(CodePageToCodePageName(cp)));
+        use_iconv:=iconv_open(unicode_encoding2,pchar(win2iconv(cp)));
         free_iconv:=true;
       end;
     { unsupported encoding -> default move }
@@ -886,7 +889,7 @@ initialization
   setlocale(LC_ALL,'');
 
   { set the DefaultSystemCodePage }
-  DefaultSystemCodePage:=CodePageNameToCodePage(ansistring(nl_langinfo(CODESET)));
+  DefaultSystemCodePage:=iconv2win(ansistring(nl_langinfo(CODESET)));
   
   { init conversion tables for main program }
   InitThread;

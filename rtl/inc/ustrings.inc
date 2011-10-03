@@ -15,7 +15,6 @@
  **********************************************************************}
 
 {$i wustrings.inc}
-{$i wincodepages.inc}
 
 {
   This file contains the implementation of the UnicodeString type,
