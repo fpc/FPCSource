@@ -160,6 +160,8 @@ Type
 
   EProcess = Class(Exception);
 
+Procedure CommandToList(S : String; List : TStrings);
+
 {$ifdef unix}
 Var
   TryTerminals : Array of string;
