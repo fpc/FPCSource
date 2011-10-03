@@ -367,6 +367,15 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
      end;
   end;
 
+
+{ Mingw tlssup.c source code has
+  _CRTALLOC(".CRT$XLA") PIMAGE_TLS_CALLBACK __xl_a = 0;
+  _CRTALLOC(".CRT$XLZ") PIMAGE_TLS_CALLBACK __xl_z = 0;
+  and the callback pointer is set to:
+  (&__xl_a+1), (+1 meaning =+sizeof(pointer))
+  I am not sure this can be compatible with
+}
+
 const
   FreePascal_TLS_callback : pointer = @Exec_Tls_callback;
     public name '__FPC_tls_callbacks' section '.CRT$XLFPC';
