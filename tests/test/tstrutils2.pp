@@ -7,9 +7,9 @@ program tstrutils2;
 {$h+}
 
 uses
-  StrUtils,
+  StrUtils
 {$ifdef unix}
-  cwstring
+  ,cwstring
 {$endif unix}
   ;
 
