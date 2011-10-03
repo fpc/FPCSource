@@ -35,3 +35,9 @@ Function WideFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardi
 Function WideFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
 Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Array of const);
 Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Array of const; Const FormatSettings: TFormatSettings);
+
+function StrLen(p: pwidechar): sizeint; external name 'FPC_PWIDECHAR_LENGTH'; overload;
+
+function StrCopy(Dest, Source: PWideChar): PWideChar; overload;
+function StrLCopy(Dest,Source: PWideChar; MaxLen: SizeInt): PWideChar; overload;
+

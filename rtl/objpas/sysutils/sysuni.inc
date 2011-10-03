@@ -151,3 +151,19 @@ begin
 end;
 
 
+function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeInt): PWideChar; overload;
+var Len: SizeInt;
+begin
+  Len := length(Source);
+  if Len > MaxLen then
+    Len := MaxLen;
+  Move(Source[1], Dest^, Len*sizeof(WideChar));
+  Dest[Len] := #0;
+  StrPLCopy := Dest;
+end;
+
+
+function StrPCopy(Dest: PWideChar; const Source: UnicodeString): PWideChar; overload;
+begin
+  StrPCopy := StrPLCopy(Dest, Source, length(Source));
+end;

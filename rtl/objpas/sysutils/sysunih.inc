@@ -38,3 +38,7 @@ Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Ca
 Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
 Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const args: Array of const);
 Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const args: Array of const; Const FormatSettings: TFormatSettings);
+
+function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeInt): PWideChar; overload;
+function StrPCopy(Dest: PWideChar; const Source: UnicodeString): PWideChar; overload;
+
