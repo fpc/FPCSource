@@ -47,7 +47,7 @@ Type
 Const
   { IPC flags for get calls }
 
-{$if defined(FreeBSD) or defined(NetBSD)}  // BSD_VISIBLE
+{$if defined(FreeBSD) or defined(NetBSD) or defined(OpenBSD)}  // BSD_VISIBLE
   IPC_R      =  4 shl 6;
   IPC_W      =  2 shl 6;
   IPC_M      =  2 shl 12;
@@ -63,7 +63,7 @@ Const
   IPC_EXCL   =  2 shl 9;  { fail if key exists }
   IPC_NOWAIT =  4 shl 9;  { return error on wait }
 
-{$if defined(FreeBSD) or defined(Darwin) or defined(Linux)}
+{$if defined(FreeBSD) or defined(Darwin) or defined(Linux) or defined(OpenBSD)}
   IPC_PRIVATE : TKey = 0;
 {$endif}
 
@@ -81,7 +81,7 @@ type
 {$ifdef darwin}
 {$packrecords 4}
 {$endif}
-{$if defined(FreeBSD) or defined(Darwin)}
+{$if defined(FreeBSD) or defined(Darwin) or defined(OpenBSD)}
   TIPC_Perm = record
         cuid  : cushort;  { creator user id }
         cgid  : cushort;  { creator group id }
@@ -146,7 +146,7 @@ Function ftok (Path : pchar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; ex
 Type
   PShmid_DS = ^TShmid_ds;
 
-{$ifdef FreeBSD}
+{$if defined(FreeBSD) or defined(OpenBSD)}
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
     shm_segsz : cint;
@@ -190,7 +190,7 @@ Type
     __unused4 : culong;
     __unused5 : culong;
   end;
-{$else cpux86_64}  
+{$else cpux86_64}
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
     shm_segsz : cint;
@@ -204,7 +204,7 @@ Type
     shm_pages  : pointer;
     attaches   : pointer;
   end;
-{$endif cpux86_64}  
+{$endif cpux86_64}
 {$endif}
 
   const
@@ -243,7 +243,7 @@ type            // the shm*info kind is "kernel" only.
     shmall : cint;
   end;
 
-{$if defined(FreeBSD) or defined(Linux)}
+{$if defined(FreeBSD) or defined(OpenBSD) or defined(Linux)}
   PSHM_info = ^TSHM_info;
   TSHM_info = record
     used_ids : cint;
@@ -279,7 +279,7 @@ type
   msglen_t = culong;
   msgqnum_t= culong;
 
-{$ifdef Darwin}                      
+{$ifdef Darwin}
   user_msglen_t = culonglong;
   user_msgqnum_t= culonglong;
 {$endif}
@@ -287,7 +287,7 @@ type
   PMSG = ^TMSG;
   TMSG = record
 {$ifndef FreeBSD}                       // opague in FreeBSD
-   {$ifdef Darwin}                    
+   {$ifdef Darwin}
     msg_next  : PMSG;
     msg_type  : clong;
     msg_ts    : cushort;

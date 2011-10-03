@@ -50,6 +50,7 @@ begin
   FPsigsuspend:= do_syscall(syscall_nr_sigsuspend,TSysParam(@sigmask));
 end;
 
+{$ifndef FPC_SYS_SIGTIMEDWAIT_UNAVAILABLE}
 function fpsigtimedwait(const sigset:TSigSet;info:Psiginfo;timeout:Ptimespec):cint;
 
 begin
@@ -58,6 +59,7 @@ begin
                              Tsysparam(info),
                              Tsysparam(timeout));
 end;
+{$endif ndef FPC_SYS_SIGTIMEDWAIT_UNAVAILABLE}
 
 
 Type // implementation side for now. Should move to BSD unit.
@@ -567,7 +569,7 @@ end;
 function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
 
 begin
-  
+
  	{$ifdef CPU64}
 	    Fppread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,TSysParam(OffSet));
 	{$else}
