@@ -8,6 +8,7 @@ type
     button : cuint8;
     rx : cint;
     ry : cint;
+    rz : cint;
   end;
   Pmouse_event = ^mouse_event;
 

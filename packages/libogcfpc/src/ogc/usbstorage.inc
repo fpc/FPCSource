@@ -41,6 +41,20 @@ type
   end;
   pusbstorage_handle = ^usbstorage_handle;
 
+const
+  B_RAW_DEVICE_DATA_IN = $01;
+  B_RAW_DEVICE_COMMAND = 0;
+
+type 
+  raw_device_command = record
+    command: array [0..15] of cuint8;
+    command_length: cuint8;
+    flags: cuint8;
+    scsi_status: cuint8;
+    data: pointer;
+    data_length: cint;
+  end;
+  praw_device_command = ^raw_device_command;
 
 function USBStorage_Initialize(): cint32; cdecl; external;
 
@@ -51,7 +65,8 @@ function USBStorage_Reset(dev: pusbstorage_handle): cint32; cdecl; external;
 function USBStorage_GetMaxLUN(dev: pusbstorage_handle): cint32; cdecl; external;
 function USBStorage_MountLUN(dev: pusbstorage_handle; lun: cuint8): cint32; cdecl; external;
 function USBStorage_Suspend(dev: pusbstorage_handle): cint32; cdecl; external;
-
+function USBStorage_IsDVD(): cint32; cdecl; external;
+function USBStorage_ioctl(request: cint; args: array of const): cint; cdecl; external;
 function USBStorage_ReadCapacity(dev: pusbstorage_handle; lun: cuint8; sector_size, n_sectors: pcuint32): cint32; cdecl; external;
 function USBStorage_Read(dev: pusbstorage_handle; lun: cuint8; sector: cuint32; n_sectors: cuint16; buffer: pcuint8): cint32; cdecl; external;
 function USBStorage_Write(dev: pusbstorage_handle; lun: cuint8; sector: cuint32; n_sectors: cuint16; const buffer: pcuint8): cint32; cdecl; external;

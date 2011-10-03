@@ -32,6 +32,11 @@ procedure ICSync; cdecl; external;
 
 procedure ICFlashInvalidate; cdecl; external;
 
+
+{$ifdef HW_RVL}
+procedure L2Enhance(); cdecl; external;
+{$endif}
+
 procedure ICEnable; cdecl; external;
 
 procedure ICDisable; cdecl; external;
