@@ -2428,14 +2428,17 @@ implementation
               end;
           end;
         { now search in the extended type itself }
-        srsymtable:=classh.extendeddef.symtable;
-        srsym:=tsym(srsymtable.FindWithHash(hashedid));
-        if assigned(srsym) and
-           is_visible_for_object(srsym,contextclassh) then
+        if classh.extendeddef.typ in [recorddef,objectdef] then
           begin
-            addsymref(srsym);
-            result:=true;
-            exit;
+            srsymtable:=tabstractrecorddef(classh.extendeddef).symtable;
+            srsym:=tsym(srsymtable.FindWithHash(hashedid));
+            if assigned(srsym) and
+               is_visible_for_object(srsym,contextclassh) then
+              begin
+                addsymref(srsym);
+                result:=true;
+                exit;
+              end;
           end;
         { now search in the parent helpers }
         parentclassh:=classh.childof;

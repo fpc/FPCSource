@@ -11000,6 +11000,7 @@ tests/webtbf/tw1949.pp svneol=native#text/plain
 tests/webtbf/tw19591.pp svneol=native#text/plain
 tests/webtbf/tw1969.pp svneol=native#text/plain
 tests/webtbf/tw1995.pp svneol=native#text/plain
+tests/webtbf/tw19975.pp svneol=native#text/pascal
 tests/webtbf/tw20095.pp svneol=native#text/plain
 tests/webtbf/tw2018.pp svneol=native#text/plain
 tests/webtbf/tw2037.pp svneol=native#text/plain

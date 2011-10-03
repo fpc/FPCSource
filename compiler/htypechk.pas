@@ -1887,12 +1887,11 @@ implementation
                   not hasoverload then
                  break;
              end;
-           if is_objectpascal_helper(structdef) then
+           if is_objectpascal_helper(structdef) and
+              (tobjectdef(structdef).typ in [recorddef,objectdef]) then
              begin
-               if not assigned(tobjectdef(structdef).extendeddef) then
-                 Internalerror(2011062601);
                { search methods in the extended type as well }
-               srsym:=tprocsym(tobjectdef(structdef).extendeddef.symtable.FindWithHash(hashedid));
+               srsym:=tprocsym(tabstractrecorddef(tobjectdef(structdef).extendeddef).symtable.FindWithHash(hashedid));
                if assigned(srsym) and
                   { Delphi allows hiding a property by a procedure with the same name }
                   (srsym.typ=procsym) then
