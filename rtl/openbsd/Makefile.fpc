@@ -11,16 +11,16 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas iso7185 strings syscall baseunix \
-      $(LINUXUNIT) unix unixtype ctypes initc \
-      dos crt objects printer matrix \
+      $(LINUXUNIT) unixtype unixutil unix ctypes initc \
+      dos crt objects printer matrix rtlconsts \
       sysutils fgl classes fmtbcd typinfo math varutils \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
-      errors sockets ipc terminfo \
+      errors sockets ipc terminfo dateutils strutils \
       video mouse keyboard  serial variants types sysctl sysconst \
-      fpintres
+      fpintres convutils stdconvs dynlibs cwstring
 
 units_netbsd_i386=mmx cpu
-rsts=math varutils typinfo variants classes sysconst
+rsts=math varutils typinfo variants classes sysconst dateutils
 implicitunits=exeinfo
 
 [require]
@@ -128,6 +128,9 @@ $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc sy
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
+dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
+
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
@@ -183,6 +186,9 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
+	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
+
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
@@ -196,6 +202,10 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
                     $(OBJPASDIR)/varutilh.inc varutils.pp
         $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
 
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/strutils.pp
+
 variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
 
@@ -206,6 +216,18 @@ types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/convutils.pp
+
+stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
+
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
+
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
 
 
 #
