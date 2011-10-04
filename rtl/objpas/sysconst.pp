@@ -121,6 +121,8 @@ resourcestring
 
   SNoToolserver                 = 'Toolserver is not installed, cannot execute Tool';
 
+  SNotValidCodePageName         = '%s is not a valid code page name';
+
   SNoArrayMatch                 = 'Can''t match any allowed value at pattern position %d, string position %d.';
   SNoCharMatch                  = 'Mismatch char "%s" <> "%s" at pattern position %d, string position %d.';
   SHHMMError                    = 'mm in a sequence hh:mm is interpreted as minutes. No longer versions allowed! (Position : %d).' ;

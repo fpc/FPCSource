@@ -129,6 +129,7 @@
 
   { MCBS functions }
   {$i sysansi.inc}
+  {$i syscodepages.inc}
 
   { wide string functions }
   {$i syswide.inc}
@@ -136,6 +137,7 @@
 {$ifdef FPC_HAS_UNICODESTRING}
   { unicode string functions }
   {$i sysuni.inc}
+  {$i sysencoding.inc}
 {$endif FPC_HAS_UNICODESTRING}
   
   { threading stuff }

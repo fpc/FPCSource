@@ -268,6 +268,7 @@ Type
 
   { MCBS functions }
   {$i sysansih.inc}
+  {$i syscodepagesh.inc}
 
   { wide string functions }
   {$i syswideh.inc}
@@ -275,6 +276,7 @@ Type
 {$ifdef FPC_HAS_UNICODESTRING}
   { unicode string functions }
   {$i sysunih.inc}
+  {$i sysencodingh.inc}
 {$endif FPC_HAS_UNICODESTRING}
 
   { Read filename handling functions declaration }
