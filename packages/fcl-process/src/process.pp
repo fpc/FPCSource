@@ -178,7 +178,7 @@ Procedure CommandToList(S : String; List : TStrings);
   Function GetNextWord : String;
 
   Const
-    WhiteSpace = [' ',#8,#10];
+    WhiteSpace = [' ',#9,#10,#13];
     Literals = ['"',''''];
 
   Var
