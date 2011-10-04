@@ -298,12 +298,12 @@ interface
         'extern','nasm_import', 'tc', 'reference',
         'no_dead_strip','weak_reference','lazy_reference','weak_definition'
       );
-      sehdirectivestr : array[TAsmSehDirective] of string[15]=(
-        'seh_proc','seh_endproc',
-        'seh_endprologue','seh_handler','seh_handlerdata',
-        'seh_eh','seh_32','seh_no32',
-        'seh_setframe','seh_stackalloc','seh_pushreg',
-        'seh_savereg','seh_savexmm','seh_pushframe'
+      sehdirectivestr : array[TAsmSehDirective] of string[16]=(
+        '.seh_proc','.seh_endproc',
+        '.seh_endprologue','.seh_handler','.seh_handlerdata',
+        '.seh_eh','.seh_32','seh_no32',
+        '.seh_setframe','.seh_stackalloc','.seh_pushreg',
+        '.seh_savereg','.seh_savexmm','.seh_pushframe'
       );
 
     type
@@ -686,7 +686,7 @@ interface
         TSehDirectiveData=record
         case typ: TSehDirectiveDatatype of
           sd_none: ();
-          sd_string: (name:pshortstring);
+          sd_string: (name:pshortstring;flags:byte);
           sd_reg,sd_offset,sd_regoffset: (reg:TRegister;offset:dword);
         end;
 
@@ -2542,7 +2542,7 @@ implementation
         sd_string,     { proc }
         sd_none,       { endproc }
         sd_none,       { endprologue }
-        sd_none,       { TODO: handler }
+        sd_string,     { handler }
         sd_none,       { handlerdata }
         sd_none,sd_none,sd_none,  { eh, 32, no32 }
         sd_regoffset,  { setframe }
@@ -2595,7 +2595,10 @@ implementation
         case data.typ of
           sd_none: ;
           sd_string:
-            data.name:=stringdup(ppufile.getstring);
+            begin
+              data.name:=stringdup(ppufile.getstring);
+              data.flags:=ppufile.getbyte;
+            end;
 
           sd_reg,sd_offset,sd_regoffset:
             begin
@@ -2621,7 +2624,11 @@ implementation
         case data.typ of
           sd_none: ;
           sd_string:
-            ppufile.putstring(data.name^);
+            begin
+              ppufile.putstring(data.name^);
+              ppufile.putbyte(data.flags);
+            end;
+
           sd_reg,sd_offset,sd_regoffset:
             begin
               ppufile.putdata(data.reg,sizeof(TRegister));

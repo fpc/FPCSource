@@ -33,6 +33,7 @@ type
   private
     FFrameOffs, FFrameReg: Integer;
     FFlags: Integer;
+    FHandler: TObjSymbol;
     FCount: Integer;
     FElements:TLinkedList;
     FFrameStartSym:TObjSymbol;
@@ -179,8 +180,6 @@ var
   xdatasym,pdatasym: TObjSymbol;
   zero: word;
 begin
-{  if FCount=0 then
-     InternalError(2011072308); }
   if FCount>255 then
     InternalError(2011072301);
 
@@ -230,7 +229,8 @@ begin
   zero:=0;
   if odd(FCount) then
     objdata.writebytes(zero,2);
-  { TODO: handler rva and data should follow if flags specify a handler }
+  if Assigned(FHandler) then
+    objdata.writereloc(0,sizeof(longint),FHandler,RELOC_RVA);
 
   FElements.Clear;
 
@@ -255,6 +255,7 @@ begin
   FFrameReg:=0;
   FFrameOffs:=0;
   FPrologueEndPos:=0;
+  FHandler:=nil;
 end;
 
 procedure TWin64CFI.end_frame(objdata:TObjData);
@@ -263,6 +264,7 @@ begin
     internalerror(2011072307);
   generate_code(objdata);
   FFrameStartSym:=nil;
+  FHandler:=nil;
   stringdispose(FName);
 end;
 
@@ -336,9 +338,13 @@ begin
       current_unw.end_frame(objdata);
     ash_endprologue:
       current_unw.end_prologue(objdata);
-    ash_handler:     {TBD};
+    ash_handler:
+      begin
+        current_unw.FHandler:=objdata.symbolref(data.name^);
+        current_unw.FFlags:=data.flags;
+      end;
     ash_handlerdata: {TBD};
-    ash_eh,ash_32,ash_no32: ; { there are not for x86_64 }
+    ash_eh,ash_32,ash_no32: ; { these are not for x86_64 }
     ash_setframe:
       current_unw.set_frame(objdata,data.reg,data.offset);
     ash_stackalloc:

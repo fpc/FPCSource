@@ -1239,11 +1239,17 @@ implementation
            ait_seh_directive :
              begin
 {$ifdef TEST_WIN64_UNWIND}
-               AsmWrite('.'+sehdirectivestr[tai_seh_directive(hp).kind]);
+               AsmWrite(sehdirectivestr[tai_seh_directive(hp).kind]);
                case tai_seh_directive(hp).datatype of
                  sd_none:;
                  sd_string:
-                   AsmWrite(' '+tai_seh_directive(hp).data.name^);
+                   begin
+                     AsmWrite(' '+tai_seh_directive(hp).data.name^);
+                     if (tai_seh_directive(hp).data.flags and 1)<>0 then
+                       AsmWrite(',@except');
+                     if (tai_seh_directive(hp).data.flags and 2)<>0 then
+                       AsmWrite(',@unwind');
+                   end;
                  sd_reg:
                    AsmWrite(' '+gas_regname(tai_seh_directive(hp).data.reg));
                  sd_offset:
