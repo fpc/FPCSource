@@ -2418,8 +2418,8 @@ implementation
                     is_ansistring(currpara.vardef) and
                     is_ansistring(currpt.left.resultdef) and
                     (tstringdef(currpara.vardef).encoding<>tstringdef(currpt.left.resultdef).encoding) and
-                    ((tstringdef(currpara.vardef).encoding=System.CP_NONE) or
-                     (tstringdef(currpt.left.resultdef).encoding=System.CP_NONE)
+                    ((tstringdef(currpara.vardef).encoding=globals.CP_NONE) or
+                     (tstringdef(currpt.left.resultdef).encoding=globals.CP_NONE)
                     ) then
                    eq:=te_convert_l1
                  else

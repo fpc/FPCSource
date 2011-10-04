@@ -355,7 +355,7 @@ implementation
                              (tstringdef(def_from).stringtype=st_ansistring) then 
                       begin
                         if (tstringdef(def_from).encoding=tstringdef(def_to).encoding) or
-                           (tstringdef(def_to).encoding=System.CP_NONE) then
+                           (tstringdef(def_to).encoding=globals.CP_NONE) then
                          begin
                            //doconv := tc_string_2_string;
                            eq:=te_equal;
@@ -363,7 +363,7 @@ implementation
                         else
                          begin        
                            doconv := tc_string_2_string;
-                           if (tstringdef(def_to).encoding=System.CP_UTF8) then 
+                           if (tstringdef(def_to).encoding=globals.CP_UTF8) then 
                              eq:=te_convert_l1
                            else
                              eq:=te_convert_l2;
@@ -1810,8 +1810,8 @@ implementation
                  is_ansistring(currpara1.vardef) and
                  is_ansistring(currpara2.vardef) and
                  (tstringdef(currpara1.vardef).encoding<>tstringdef(currpara2.vardef).encoding) and
-                 ((tstringdef(currpara1.vardef).encoding=System.CP_NONE) or
-                  (tstringdef(currpara2.vardef).encoding=System.CP_NONE)
+                 ((tstringdef(currpara1.vardef).encoding=globals.CP_NONE) or
+                  (tstringdef(currpara2.vardef).encoding=globals.CP_NONE)
                  ) then
                 eq:=te_convert_l1;
               if eq<lowesteq then
