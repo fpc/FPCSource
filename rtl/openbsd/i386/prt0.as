@@ -108,7 +108,7 @@ ___start:
 #	pushl 8(%ebp)
 	finit
 	fwait
-	fldcw __fpucw
+	fldcw ___fpucw
 	xorl  %ebp,%ebp
 	call main
 #	pushl %eax
@@ -120,7 +120,7 @@ ___start:
 .type _haltproc,@function
 
 _haltproc:
-           mov $1,%eax 
+           mov $1,%eax
            movzwl operatingsystem_result,%ebx
            pushl %ebx
            call .Lactualsyscall
@@ -169,3 +169,7 @@ _strrchr:
 	.size	_strrchr , . - _strrchr
 	.comm	environ,4,4
 	.comm	__progname_storage,256,32
+        .comm   operatingsystem_parameter_envp,4,4
+        .comm   operatingsystem_parameter_argc,4,4
+        .comm   operatingsystem_parameter_argv,4,4
+
