@@ -532,9 +532,6 @@ function GetProcessID: SizeUInt;
 const
   { MultiByteToWideChar  }
   MB_PRECOMPOSED = 1;
-  CP_ACP = 0;
-  CP_UTF16 = 1200;
-  CP_UTF8 = 65001;
   WC_NO_BEST_FIT_CHARS = $400;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;

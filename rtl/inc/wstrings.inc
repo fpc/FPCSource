@@ -267,7 +267,7 @@ begin
   Size:=Length(S2);
   if Size>0 then
   begin
-    if (cp=$ffff) or (cp=0) then
+    if (cp=CP_NONE) or (cp=0) then
       cp:=DefaultSystemCodePage;
     widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,cp,Size);
   end;
@@ -287,7 +287,7 @@ begin
   if Size>0 then
   begin
     cp:=StringCodePage(S2);
-    if (cp=$ffff) or (cp=0) then
+    if (cp=CP_NONE) or (cp=0) then
       cp:=DefaultSystemCodePage;
     widestringmanager.Ansi2WideMoveProc(PChar(S2),cp,result,Size);
   end;

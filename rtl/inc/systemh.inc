@@ -273,6 +273,17 @@ Type
   PPChar              = ^PChar;
   PPPChar             = ^PPChar;
 
+{ some values which are used in RTL for TSystemCodePage type }
+const
+  CP_ACP     = 0;     // default to ANSI code page
+  CP_UTF16   = 1200;  // utf-16
+  CP_UTF16BE = 1201;  // unicodeFFFE
+  CP_UTF7    = 65000; // utf-7
+  CP_UTF8    = 65001; // utf-8
+  CP_ASCII   = 20127; // us-ascii
+  CP_NONE    = $FFFF; // rawbytestring encoding
+
+type
   { AnsiChar is equivalent of Char, so we need
     to use type renamings }
   TAnsiChar           = Char;
@@ -291,14 +302,14 @@ Type
   UCS4String          = array of UCS4Char;
 
 {$ifdef FPC_HAS_CPSTRING}
-  UTF8String          = type AnsiString(65001);
+  UTF8String          = type AnsiString(CP_UTF8);
 {$else FPC_HAS_CPSTRING}
   UTF8String          = type ansistring;
 {$endif FPC_HAS_CPSTRING}
   PUTF8String         = ^UTF8String;
 
 {$ifdef FPC_HAS_CPSTRING}
-  RawByteString       = type AnsiString($ffff);
+  RawByteString       = type AnsiString(CP_NONE);
 {$else FPC_HAS_CPSTRING}
   RawByteString       = ansistring;
 {$endif FPC_HAS_CPSTRING}
