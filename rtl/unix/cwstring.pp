@@ -105,8 +105,13 @@ const
   {$endif}
   ESysEILSEQ = EILSEQ;
 {$else}
+{$ifdef OpenBSD}
+  CODESET = 51;
+  LC_ALL = 0;
+{$else not OpenBSD}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
 // and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
+{$endif OpenBSD}
 {$endif beos}
 {$endif solaris}
 {$endif FreeBSD}
@@ -247,7 +252,7 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
       begin
         { TODO: add caching (then we also don't need separate code for
           the default system page and other ones)
-          
+
           -- typecasting an ansistring function result to pchar is
             unsafe normally, but these are constant strings -> no
             problem }
@@ -340,7 +345,7 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
       begin
         { TODO: add caching (then we also don't need separate code for
           the default system page and other ones)
-          
+
           -- typecasting an ansistring function result to pchar is
             unsafe normally, but these are constant strings -> no
             problem }
@@ -890,7 +895,7 @@ initialization
 
   { set the DefaultSystemCodePage }
   DefaultSystemCodePage:=iconv2win(ansistring(nl_langinfo(CODESET)));
-  
+
   { init conversion tables for main program }
   InitThread;
 finalization
