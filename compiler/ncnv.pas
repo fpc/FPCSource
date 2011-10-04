@@ -1135,7 +1135,7 @@ implementation
         if (left.nodetype=stringconstn) and
            ((tstringdef(resultdef).stringtype=st_shortstring) or
             ((tstringdef(resultdef).stringtype=st_ansistring) and
-             (tstringdef(resultdef).encoding<>CP_NONE)
+             (tstringdef(resultdef).encoding<>System.CP_NONE)
             )
            ) and
            ((tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and

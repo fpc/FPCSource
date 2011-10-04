@@ -103,10 +103,6 @@ interface
        MathPiExtended : textendedrec = (bytes : (64,0,201,15,218,162,33,104,194,53));
 {$endif FPC_LITTLE_ENDIAN}
 {$endif}
-       CP_UTF8 = 65001;
-       CP_UTF16 = 1200;
-       CP_NONE  = 65535;
-
 
     type
        { this is written to ppus during token recording for generics so it must be packed }
