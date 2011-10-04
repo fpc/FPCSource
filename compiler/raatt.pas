@@ -55,7 +55,10 @@ unit raatt;
         AS_DATA,AS_TEXT,AS_INIT,AS_FINI,AS_END,
         {------------------ Assembler Operators  --------------------}
         AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
-        AS_LO,AS_HI);
+        AS_LO,AS_HI,
+        {------------------ Target-specific directive ---------------}
+        AS_TARGET_DIRECTIVE
+        );
 
         tasmkeyword = string[10];
 
@@ -75,7 +78,8 @@ unit raatt;
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat','.tcfloat',
         '.data','.text','.init','.fini','END',
-        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi');
+        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi',
+        'directive');
 
     type
        tattreader = class(tasmreader)
@@ -95,10 +99,12 @@ unit raatt;
          Function is_asmdirective(const s: string):boolean;
          function is_register(const s:string):boolean;virtual;
          function is_locallabel(const s: string):boolean;
+         function is_targetdirective(const s: string): boolean;virtual;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure handlepercent;virtual;
+         procedure HandleTargetDirective;virtual;
        end;
        tcattreader = class of tattreader;
 
@@ -173,6 +179,14 @@ unit raatt;
         actasmtoken:=AS_MOD;
       end;
 
+    function tattreader.is_targetdirective(const s: string): boolean;
+      begin
+        result:=false;
+      end;
+
+    procedure tattreader.handletargetdirective;
+      begin
+      end;
 
     procedure tattreader.GetToken;
       var
@@ -225,6 +239,11 @@ unit raatt;
                  { directives are case sensitive!! }
                  if is_asmdirective(actasmpattern) then
                   exit;
+                 if is_targetdirective(actasmpattern) then
+                   begin
+                     actasmtoken:=AS_TARGET_DIRECTIVE;
+                     exit;
+                   end;
                  Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
                end;
             end;
@@ -315,6 +334,11 @@ unit raatt;
                   end;
                  if is_asmdirective(actasmpattern) then
                   exit;
+                 if is_targetdirective(actasmpattern) then
+                   begin
+                     actasmtoken:=AS_TARGET_DIRECTIVE;
+                     exit;
+                   end;
                  { local label references and directives }
                  { are case sensitive                    }
                  actasmtoken:=AS_ID;
@@ -1158,6 +1182,9 @@ unit raatt;
              Begin
                Consume(AS_SEPARATOR);
              end;
+
+           AS_TARGET_DIRECTIVE:
+             HandleTargetDirective;
 
            AS_END:
              begin
