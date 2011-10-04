@@ -1987,6 +1987,8 @@ Var
 begin
   inherited DoInternalConnect;
   CreateProxy;
+  FProxy.CharSet:=Self.CharSet;
+  FProxy.Role:=self.Role;
   FProxy.DatabaseName:=Self.DatabaseName;
   FProxy.HostName:=Self.HostName;
   FProxy.UserName:=Self.UserName;
