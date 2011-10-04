@@ -709,6 +709,9 @@ const
   asmr_e_empty_regset=07109;
   asmr_w_useless_got_for_local=07110;
   asmr_w_general_segment_with_constant=07111;
+  asmr_e_bad_seh_directive_offset=07112;
+  asmr_e_bad_seh_directive_register=07113;
+  asmr_e_seh_in_pure_asm_only=07114;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -904,9 +907,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 61299;
+  MsgTxtSize = 61436;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,89,315,104,85,54,112,23,202,63,
+    26,89,315,104,85,54,115,23,202,63,
     50,20,1,1,1,1,1,1,1,1
   );

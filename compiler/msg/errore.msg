@@ -2434,6 +2434,16 @@ asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially danger
 asmr_w_general_segment_with_constant=07111_W_Constant with general purpose segment register
 % General purpose register should not have constant offsets
 % as OS memory allocation might not be compatible with that.
+asmr_e_bad_seh_directive_offset=07112_E_Invalid offset value for $1
+% Win64 SEH directives have certain restrictions on possible offset values, e.g. they should
+% be positive and have 3 or 4 low bits clear.
+asmr_e_bad_seh_directive_register=07113_E_Invalid register for $1
+% Win64 SEH directives accept only 64-bit integer registers or XMM registers.
+asmr_e_seh_in_pure_asm_only=07114_E_SEH directives are allowed only in pure assembler procedures
+% Win64 SEH directives are allowed only in pure assembler procedures, not in assembler
+% blocks of regular procedures.
+
+
 #
 # Assembler/binary writers
 #
