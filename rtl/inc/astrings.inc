@@ -636,7 +636,6 @@ Var
   MaxI,Temp : SizeInt;
   cp1,cp2 : TSystemCodePage;
   r1,r2 : RawByteString;
-  u1,u2 : UTF8String;
 begin
   if pointer(S1)=pointer(S2) then
     begin
