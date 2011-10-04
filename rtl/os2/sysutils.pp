@@ -678,7 +678,8 @@ begin
  SD.PgmName := PChar (CommandLine);
  if ComLine <> '' then
   SD.PgmInputs := PChar (ComLine);
- SD.InheritOpt := ssf_InhertOpt_Parent;
+ if ExecInheritsHandles in Flags then
+   SD.InheritOpt := ssf_InhertOpt_Parent;
  Str (GetProcessID, SPID);
  Str (ThreadID, STID);
  QName := '\QUEUES\FPC_ExecuteProcess_p' + SPID + 't' + STID + '.QUE'#0;
