@@ -1,3 +1,4 @@
+{ %cpu=i386 }
 program tw20075;
 
 {$mode delphi}
