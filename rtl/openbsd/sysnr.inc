@@ -24,7 +24,7 @@
 
 Const
         syscall_nr_syscall      = 0  ;
-        syscall_nr_exit35       = 1  ;
+        syscall_nr_exit         = 1  ;
         syscall_nr_fork         = 2  ;
         syscall_nr_read         = 3  ;
         syscall_nr_write        = 4  ;
@@ -235,7 +235,7 @@ Const
         syscall_nr_getthrid     = 299;
         syscall_nr_thrsleep     = 300;
         syscall_nr_thrwakeup    = 301;
-        syscall_nr_exit         = 302;
+        syscall_nr_threxit      = 302;
         syscall_nr_thrsigdivert = 303;
         syscall_nr___getcwd     = 304;
         syscall_nr_adjfreq      = 305;
