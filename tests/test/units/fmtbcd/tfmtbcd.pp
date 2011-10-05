@@ -17,7 +17,7 @@ begin
      (bcdtostr(bcd3) <> bcdtostr(bcdmul)) then
   begin
     writeln(bcdtostr(bcd1), ' * ', bcdtostr(bcd2), ' = ', bcdtostr(bcdmul), ' but expected ', bcdtostr(bcd3));
-    writeln('Expected: ', bcd3.Precision,',',bcd3.SignSpecialPlaces, ' but calculated: ', bcdmul.Precision,',',bcdmul.SignSpecialPlaces);
+    writeln('Expected: (', bcd3.Precision,',',bcd3.SignSpecialPlaces, ') but calculated: (', bcdmul.Precision,',',bcdmul.SignSpecialPlaces,')');
     inc(ErrorCount);
   end;
 end;
@@ -94,8 +94,8 @@ begin
   // test BCDMultiply:
   FS.DecimalSeparator:='.';
   FS.ThousandSeparator:=#0;
-  testBCDMultiply(1000, 1000, 1000000);
-  testBCDMultiply(1000, 0.001, 1);
+  testBCDMultiply(1000, -1000, -1000000);
+  testBCDMultiply(-1000, -0.001, 1);
   testBCDMultiply(1000, 0.0001, 0.1);
   testBCDMultiply(strtobcd('12345678901234567890',FS), strtobcd('0.0000000001',FS), strtobcd('1234567890.123456789',FS));
 
@@ -111,6 +111,9 @@ begin
   testBCDDivide(1007, 5, 201.4);
 
 
-  if ErrorCount<>0 then writeln('FmtBCD test program found ', ErrorCount, ' errors!');
-  Halt(ErrorCount);
+  if ErrorCount<>0 then
+  begin
+    writeln('FmtBCD test program found ', ErrorCount, ' errors!');
+    Halt(ErrorCount);
+  end;
 end.
