@@ -229,7 +229,9 @@ interface
     procedure Tx86InstrWriter.WriteInstruction(hp: tai);
       var
        op       : tasmop;
+{$ifdef x86_64}
        val      : aint;
+{$endif}
        calljmp  : boolean;
        need_second_mov : boolean;
        i        : integer;
@@ -244,12 +246,12 @@ interface
           the fix consists of simply setting only the 4-byte register
           as the upper 4-bytes will be zeroed at the same time. }
         need_second_mov:=false;
+{$ifdef x86_64}
         if (op=A_MOV) and (taicpu(hp).opsize=S_Q) and
            (taicpu(hp).oper[0]^.typ = top_const) then
            begin
              val := taicpu(hp).oper[0]^.val;
-{$ifdef x86_64}
-	     if (val > int64($7fffffff)) and (val < int64($100000000)) then
+             if (val > int64($7fffffff)) and (val < int64($100000000)) then
                begin
                  owner.AsmWrite(target_asm.comment);
                  owner.AsmWritePChar('Fix for Win64-GAS bug');
@@ -262,8 +264,8 @@ interface
                  else
                    internalerror(20100902);
                end;
-{$endif x86_64}
            end;
+{$endif x86_64}
         owner.AsmWrite(#9);
         { movsd should not be translated to movsl when there
           are (xmm) arguments }

@@ -390,7 +390,7 @@ interface
       { this node is the anchestor for all nodes with at least   }
       { one child, you have to use it if you want to use         }
       { true- and current_procinfo.CurrFalseLabel                                     }
-      punarynode = ^tunarynode;
+      //punarynode = ^tunarynode;
       tunarynode = class(tnode)
          left : tnode;
          constructor create(t:tnodetype;l : tnode);
@@ -407,7 +407,7 @@ interface
          procedure printnodedata(var t:text);override;
       end;
 
-      pbinarynode = ^tbinarynode;
+      //pbinarynode = ^tbinarynode;
       tbinarynode = class(tunarynode)
          right : tnode;
          constructor create(t:tnodetype;l,r : tnode);
@@ -426,7 +426,7 @@ interface
          procedure printnodelist(var t:text);
       end;
 
-      ptertiarynode = ^ttertiarynode;
+      //ptertiarynode = ^ttertiarynode;
       ttertiarynode = class(tbinarynode)
          third : tnode;
          constructor create(_t:tnodetype;l,r,t : tnode);

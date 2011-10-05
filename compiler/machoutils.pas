@@ -1182,7 +1182,7 @@ const
     begin
       if not Assigned(fCnv) then
         IntReadStruct;
-      Result:=(index>=0) and (index<fHdr.ncmds);
+      Result:={(index>=0) and }(index<fHdr.ncmds);
       if not Result then
         Exit;
       Result:=true;
@@ -1198,7 +1198,7 @@ const
       if not Assigned(fCnv) then
         IntReadStruct;
 
-      Result:=(cmdindex>=0) and
+      Result:={(cmdindex>=0) and }
               (cmdindex<fHdr.ncmds) and
               (cmds[cmdindex].cmd in [LC_SEGMENT, LC_SEGMENT_64]);
 
@@ -1226,7 +1226,7 @@ const
       if not Assigned(fCnv) then
         IntReadStruct;
 
-      if (index<0) or
+      if {(index<0) or}
          (index>=longword(length(cmdofs))) then
         Result:=0
       else
@@ -1245,7 +1245,7 @@ const
     begin
       if not Assigned(fCnv) then
         IntReadStruct;
-      Result:=(secindex>=0) and (segindex>=0) and (segindex<fHdr.ncmds) and (cmds[segindex].cmd in [LC_SEGMENT, LC_SEGMENT_64]);
+      Result:={(secindex>=0) and (segindex>=0) and }(segindex<fHdr.ncmds) and (cmds[segindex].cmd in [LC_SEGMENT, LC_SEGMENT_64]);
       if not Result then
         Exit;
 

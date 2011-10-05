@@ -3018,7 +3018,7 @@ const pemagic : array[0..3] of byte = (
             DLLReader.Seek(sechdr.datapos+expdir.AddrNames-sechdr.rvaofs+i*4);
             DLLReader.Read(NameOfs,4);
             Dec(NameOfs,sechdr.rvaofs);
-            if (NameOfs<0) or
+            if {(NameOfs<0) or}
                (NameOfs>sechdr.vsize) then
               begin
                 Comment(V_Error,'DLL does contains invalid exports');

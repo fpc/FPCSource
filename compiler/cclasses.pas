@@ -1274,8 +1274,10 @@ end;
 
 procedure TFPHashList.SetStrCapacity(NewCapacity: Integer);
 begin
+{$push}{$warnings off}
   If (NewCapacity < FStrCount) or (NewCapacity > MaxHashStrSize) then
      Error (SListCapacityError, NewCapacity);
+{$pop}
   if NewCapacity = FStrCapacity then
     exit;
   ReallocMem(FStrs, NewCapacity);

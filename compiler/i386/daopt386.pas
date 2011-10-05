@@ -715,8 +715,10 @@ function isgp32reg(supreg: tsuperregister): boolean;
 {Checks if the register is a 32 bit general purpose register}
 begin
   isgp32reg := false;
+{$push}{$warnings off}
   if (supreg >= RS_EAX) and (supreg <= RS_EBX) then
     isgp32reg := true
+{$pop}
 end;
 
 
@@ -1375,10 +1377,12 @@ procedure DestroyReg(p1: ptaiprop; supreg: tsuperregister; doincState:Boolean);
  action (e.g. this register holds the contents of a variable and the value
  of the variable in memory is changed) }
 begin
+{$push}{$warnings off}
   { the following happens for fpu registers }
   if (supreg < low(NrOfInstrSinceLastMod)) or
      (supreg > high(NrOfInstrSinceLastMod)) then
     exit;
+{$pop}
   NrOfInstrSinceLastMod[supreg] := 0;
   with p1^.regs[supreg] do
     begin
