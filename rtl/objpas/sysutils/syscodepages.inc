@@ -4,13 +4,17 @@
     2. http://msdn.microsoft.com/en-us/library/windows/desktop/dd317756(v=vs.85).aspx
 }
 type
-  TCodePageEntry = record
+  TCodePageHashEntry = record
     hash: LongWord;
     cp: TSystemCodePage;
     name: PAnsiChar;
   end;
 const
-  CodePages: array[0..415] of TCodePageEntry = (
+  { this array contains many labels for the same codepage. 
+    all labels are stored in lowercase and each record has a 
+    hash value for the fast search. hash value was get using 
+    SysUtils.HashName() function }
+  CodePageHashes: array[0..415] of TCodePageHashEntry = (
     (hash: $00000310; cp: 28591; name: 'l1'),
     (hash: $00000320; cp: 28592; name: 'l2'),
     (hash: $00000330; cp: 28593; name: 'l3'),
@@ -429,13 +433,189 @@ const
     (hash: $0FB63C60; cp: 10005; name: 'x-mac-hebrew')
   );
 
+type
+  TCodePageEntry = record
+    cp: TSystemCodePage;
+    name: PAnsiChar;
+  end;
+const
+  { this array contains only one name for one codepage. 
+    it is stored in codepage order and is used to search
+    a codepage name by codepage number }
+  CodePageNames: array[0..149] of TCodePageEntry = (
+    (cp: 37; name: 'ibm037'),
+    (cp: 437; name: 'ibm437'),
+    (cp: 500; name: 'IBM500'),
+    (cp: 708; name: 'asmo-708'),
+    (cp: 720; name: 'DOS-720'),
+    (cp: 737; name: 'ibm737'),
+    (cp: 775; name: 'ibm775'),
+    (cp: 850; name: 'ibm850'),
+    (cp: 852; name: 'ibm852'),
+    (cp: 855; name: 'IBM855'),
+    (cp: 857; name: 'ibm857'),
+    (cp: 858; name: 'ibm00858'),
+    (cp: 860; name: 'IBM860'),
+    (cp: 861; name: 'ibm861'),
+    (cp: 862; name: 'DOS-862'),
+    (cp: 863; name: 'IBM863'),
+    (cp: 864; name: 'IBM864'),
+    (cp: 865; name: 'IBM865'),
+    (cp: 866; name: 'cp866'),
+    (cp: 869; name: 'ibm869'),
+    (cp: 870; name: 'IBM870'),
+    (cp: 874; name: 'windows-874'),
+    (cp: 875; name: 'cp875'),
+    (cp: 932; name: 'shift_jis'),
+    (cp: 936; name: 'gb2312'),
+    (cp: 949; name: 'ks_c_5601-1987'),
+    (cp: 950; name: 'big5'),
+    (cp: 1026; name: 'ibm1026'),
+    (cp: 1047; name: 'ibm01047'),
+    (cp: 1140; name: 'ibm01140'),
+    (cp: 1141; name: 'IBM01141'),
+    (cp: 1142; name: 'IBM01142'),
+    (cp: 1143; name: 'IBM01143'),
+    (cp: 1144; name: 'IBM01144'),
+    (cp: 1145; name: 'ibm01145'),
+    (cp: 1146; name: 'ibm01146'),
+    (cp: 1147; name: 'ibm01147'),
+    (cp: 1148; name: 'IBM01148'),
+    (cp: 1149; name: 'IBM01149'),
+    (cp: 1200; name: 'utf-16'),
+    (cp: 1201; name: 'unicodefffe'),
+    (cp: 1250; name: 'windows-1250'),
+    (cp: 1251; name: 'windows-1251'),
+    (cp: 1252; name: 'windows-1252'),
+    (cp: 1253; name: 'windows-1253'),
+    (cp: 1254; name: 'windows-1254'),
+    (cp: 1255; name: 'windows-1255'),
+    (cp: 1256; name: 'windows-1256'),
+    (cp: 1257; name: 'windows-1257'),
+    (cp: 1258; name: 'windows-1258'),
+    (cp: 1361; name: 'Johab'),
+    (cp: 10000; name: 'macintosh'),
+    (cp: 10001; name: 'x-mac-japanese'),
+    (cp: 10002; name: 'x-mac-chinesetrad'),
+    (cp: 10003; name: 'x-mac-korean'),
+    (cp: 10004; name: 'x-mac-arabic'),
+    (cp: 10005; name: 'x-mac-hebrew'),
+    (cp: 10006; name: 'x-mac-greek'),
+    (cp: 10007; name: 'x-mac-cyrillic'),
+    (cp: 10008; name: 'x-mac-chinesesimp'),
+    (cp: 10010; name: 'x-mac-romanian'),
+    (cp: 10017; name: 'x-mac-ukrainian'),
+    (cp: 10021; name: 'x-mac-thai'),
+    (cp: 10029; name: 'x-mac-ce'),
+    (cp: 10079; name: 'x-mac-icelandic'),
+    (cp: 10081; name: 'x-mac-turkish'),
+    (cp: 10082; name: 'x-mac-croatian'),
+    (cp: 12000; name: 'utf-32'),
+    (cp: 12001; name: 'utf-32BE'),
+    (cp: 20000; name: 'x-Chinese_CNS'),
+    (cp: 20000; name: 'x-chinese-cns'),
+    (cp: 20001; name: 'x-cp20001'),
+    (cp: 20002; name: 'x_Chinese-Eten'),
+    (cp: 20002; name: 'x-chinese-eten'),
+    (cp: 20003; name: 'x-cp20003'),
+    (cp: 20004; name: 'x-cp20004'),
+    (cp: 20005; name: 'x-cp20005'),
+    (cp: 20105; name: 'x-IA5'),
+    (cp: 20106; name: 'x-ia5-german'),
+    (cp: 20107; name: 'x-IA5-Swedish'),
+    (cp: 20108; name: 'x-IA5-Norwegian'),
+    (cp: 20127; name: 'us-ascii'),
+    (cp: 20261; name: 'x-cp20261'),
+    (cp: 20269; name: 'x-cp20269'),
+    (cp: 20273; name: 'ibm273'),
+    (cp: 20277; name: 'ibm277'),
+    (cp: 20278; name: 'ibm278'),
+    (cp: 20280; name: 'ibm280'),
+    (cp: 20284; name: 'ibm284'),
+    (cp: 20285; name: 'IBM285'),
+    (cp: 20290; name: 'IBM290'),
+    (cp: 20297; name: 'IBM297'),
+    (cp: 20420; name: 'ibm420'),
+    (cp: 20423; name: 'ibm423'),
+    (cp: 20424; name: 'IBM424'),
+    (cp: 20833; name: 'x-EBCDIC-KoreanExtended'),
+    (cp: 20838; name: 'ibm-thai'),
+    (cp: 20866; name: 'koi8-r'),
+    (cp: 20871; name: 'ibm871'),
+    (cp: 20880; name: 'ibm880'),
+    (cp: 20905; name: 'ibm905'),
+    (cp: 20924; name: 'IBM00924'),
+    (cp: 20932; name: 'EUC-JP'),
+    (cp: 20936; name: 'x-cp20936'),
+    (cp: 20949; name: 'x-cp20949'),
+    (cp: 21025; name: 'cp1025'),
+    (cp: 21027; name: 'x-cp21027'),
+    (cp: 21866; name: 'koi8-u'),
+    (cp: 28591; name: 'iso-8859-1'),
+    (cp: 28592; name: 'iso-8859-2'),
+    (cp: 28593; name: 'iso-8859-3'),
+    (cp: 28594; name: 'iso-8859-4'),
+    (cp: 28595; name: 'iso-8859-5'),
+    (cp: 28596; name: 'iso-8859-6'),
+    (cp: 28597; name: 'iso-8859-7'),
+    (cp: 28598; name: 'iso-8859-8'),
+    (cp: 28599; name: 'iso-8859-9'),
+    (cp: 28603; name: 'iso-8859-13'),
+    (cp: 28605; name: 'iso-8859-15'),
+    (cp: 29001; name: 'x-Europa'),
+    (cp: 38598; name: 'iso-8859-8-i'),
+    (cp: 50220; name: 'iso-2022-jp'),
+    (cp: 50221; name: 'csISO2022JP'),
+    (cp: 50222; name: 'iso-2022-jp'),
+    (cp: 50225; name: 'iso-2022-kr'),
+    (cp: 50227; name: 'x-cp50227'),
+    (cp: 50229; name: 'x-cp50229'),
+    (cp: 50930; name: 'cp930'),
+    (cp: 50931; name: 'x-ebcdic-japaneseanduscanada'),
+    (cp: 50933; name: 'cp933'),
+    (cp: 50935; name: 'cp935'),
+    (cp: 50937; name: 'cp937'),
+    (cp: 50939; name: 'cp939'),
+    (cp: 51932; name: 'euc-jp'),
+    (cp: 51936; name: 'euc-cn'),
+    (cp: 51949; name: 'euc-kr'),
+    (cp: 52936; name: 'hz-gb-2312'),
+    (cp: 54936; name: 'gb18030'),
+    (cp: 57002; name: 'x-iscii-de'),
+    (cp: 57003; name: 'x-iscii-be'),
+    (cp: 57004; name: 'x-iscii-ta'),
+    (cp: 57005; name: 'x-iscii-te'),
+    (cp: 57006; name: 'x-iscii-as'),
+    (cp: 57007; name: 'x-iscii-or'),
+    (cp: 57008; name: 'x-iscii-ka'),
+    (cp: 57009; name: 'x-iscii-ma'),
+    (cp: 57010; name: 'x-iscii-gu'),
+    (cp: 57011; name: 'x-iscii-pa'),
+    (cp: 65000; name: 'utf-7'),
+    (cp: 65001; name: 'utf-8')
+  );
+
 function CodePageToCodePageName(cp: TSystemCodePage): AnsiString;
 var
-  I: Integer;
+  FoundCp: TSystemCodePage;
+  L, H, I: Integer;
 begin
-  for I := Low(CodePages) to High(CodePages) do
-    if CodePages[I].cp = cp then
-      Exit(CodePages[I].name);
+  L := Low(CodePageNames);
+  H := High(CodePageNames);
+  while L <= H do
+  begin
+    I := (L + H) shr 1;
+    FoundCp := CodePageNames[I].cp;
+    if FoundCp = cp then
+    begin
+      Exit(CodePageNames[I].name);
+      Break;
+    end;
+    if cp > FoundCp then
+      L := I + 1
+    else
+      H := I - 1;
+  end;
   Result := '';
 end;
 
@@ -447,21 +627,21 @@ var
 begin
   SearchName := LowerCase(cpname);
   SearchHash := HashName(PAnsiChar(SearchName));
-  L := Low(CodePages);
-  H := High(CodePages);
+  L := Low(CodePageHashes);
+  H := High(CodePageHashes);
   while L <= H do
   begin
     I := (L + H) shr 1;
-    FoundHash := CodePages[I].hash;
+    FoundHash := CodePageHashes[I].hash;
     if FoundHash = SearchHash then
     begin
       // search down since hashes can repeat in table
-      while (I > Low(CodePages)) and (CodePages[Pred(I)].hash = FoundHash) do
+      while (I > Low(CodePageHashes)) and (CodePageHashes[Pred(I)].hash = FoundHash) do
         Dec(I);
-      while (I < High(CodePages)) and (CodePages[I].hash = FoundHash) do
+      while (I <= High(CodePageHashes)) and (CodePageHashes[I].hash = FoundHash) do
       begin
-        if SearchName = CodePages[I].name then
-          Exit(CodePages[I].cp);
+        if SearchName = CodePageHashes[I].name then
+          Exit(CodePageHashes[I].cp);
         Inc(I);
       end;
       Break;
