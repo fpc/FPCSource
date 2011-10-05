@@ -79,7 +79,7 @@
     {$else unix}
       O:=[sfoImplicitCurrentDir,sfoStripQuotes];
     {$endif unix}
-      Result := FileSearch(Name, D, False);
+      Result := FileSearch(Name, D, O);
     end;
 
   {$ifndef OS_FILEISREADONLY}
