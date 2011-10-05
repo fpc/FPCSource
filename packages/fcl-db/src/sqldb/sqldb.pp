@@ -930,6 +930,7 @@ end;
 procedure TCustomSQLQuery.OnChangeSQL(Sender : TObject);
 
 var ConnOptions : TConnOptions;
+    NewParams: TParams;
 
 begin
   UnPrepare;
@@ -940,7 +941,15 @@ begin
       ConnOptions := TSQLConnection(DataBase).ConnOptions
     else
       ConnOptions := [sqEscapeRepeat,sqEscapeSlash];
-    Fparams.ParseSQL(FSQL.Text,True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase);
+    //preserve existing param. values
+    NewParams := TParams.Create(Self);
+    try
+      NewParams.ParseSQL(FSQL.Text, True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions, psInterbase);
+      NewParams.AssignValues(FParams);
+      FParams.Assign(NewParams);
+    finally
+      NewParams.Free;
+    end;
     If Assigned(FMasterLink) then
       FMasterLink.RefreshParamNames;
     end;
