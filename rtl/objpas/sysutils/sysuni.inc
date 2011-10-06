@@ -167,3 +167,15 @@ function StrPCopy(Dest: PWideChar; const Source: UnicodeString): PWideChar; over
 begin
   StrPCopy := StrPLCopy(Dest, Source, length(Source));
 end;
+
+{$IFNDEF VER2_4}
+function BytesOf(const Val: UnicodeString): TBytes;
+begin
+  Result:=TEncoding.Default.GetBytes(Val);
+end;
+
+function BytesOf(const Val: WideChar): TBytes; overload;
+begin
+  Result:=TEncoding.Default.GetBytes(Val);
+end;
+{$ENDIF VER2_4}

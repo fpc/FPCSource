@@ -10801,6 +10801,7 @@ tests/test/units/system/tvalc.pp svneol=native#text/plain
 tests/test/units/sysutils/strtotimetest.pp svneol=native#text/plain
 tests/test/units/sysutils/tastrcmp.pp svneol=native#text/plain
 tests/test/units/sysutils/tastrcmp1.pp svneol=native#text/plain
+tests/test/units/sysutils/tbytesof.pp svneol=native#text/pascal
 tests/test/units/sysutils/tdirex.pp svneol=native#text/plain
 tests/test/units/sysutils/tencodingerrors.pp svneol=native#text/pascal
 tests/test/units/sysutils/tencodingtest.pp svneol=native#text/pascal

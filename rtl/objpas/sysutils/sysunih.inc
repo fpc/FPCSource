@@ -41,4 +41,7 @@ Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const
 
 function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeInt): PWideChar; overload;
 function StrPCopy(Dest: PWideChar; const Source: UnicodeString): PWideChar; overload;
-
+{$IFNDEF VER2_4}
+function BytesOf(const Val: UnicodeString): TBytes; overload;
+function BytesOf(const Val: WideChar): TBytes; overload;
+{$ENDIF VER2_4}

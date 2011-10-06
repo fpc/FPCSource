@@ -26,3 +26,6 @@ function AnsiStrPos(str,substr : PChar) : PChar;
 function AnsiStrRScan(Str : PChar;Chr : Char) : PChar;
 function AnsiStrScan(Str : PChar;Chr: Char) : PChar;
 function HashName(Name: PAnsiChar): LongWord;
+
+function BytesOf(const Val: RawByteString): TBytes;
+function BytesOf(const Val: AnsiChar): TBytes;

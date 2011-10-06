@@ -90,3 +90,19 @@ begin
   else
     HashName:=TheHash;
 end;
+
+function BytesOf(const Val: RawByteString): TBytes;
+var
+  Len:Integer;
+begin
+  Len:=Length(Val);
+  SetLength(Result,Len);
+  if Len>0 then
+    Move(Val[1],Result[0],Len);
+end;
+
+function BytesOf(const Val: AnsiChar): TBytes;
+begin
+  SetLength(Result,1);
+  Result[0]:=Byte(Val);
+end;
