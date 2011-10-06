@@ -179,3 +179,12 @@ begin
   Result:=TEncoding.Default.GetBytes(Val);
 end;
 {$ENDIF VER2_4}
+function WideBytesOf(const Value: UnicodeString): TBytes;
+var
+  Len:Integer;
+begin
+  Len:=Length(Value)*SizeOf(UnicodeChar);
+  SetLength(Result,Len);
+  if Len>0 then
+    Move(Value[1],Result[0],Len);
+end;

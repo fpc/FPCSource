@@ -45,3 +45,4 @@ function StrPCopy(Dest: PWideChar; const Source: UnicodeString): PWideChar; over
 function BytesOf(const Val: UnicodeString): TBytes; overload;
 function BytesOf(const Val: WideChar): TBytes; overload;
 {$ENDIF VER2_4}
+function WideBytesOf(const Value: UnicodeString): TBytes;
