@@ -146,6 +146,10 @@ end;
 function TEncoding.GetByteCount(const Chars: TUnicodeCharArray; CharIndex,
   CharCount: Integer): Integer;
 begin
+  if (CharCount < 0) or (Length(Chars) <= CharCount + CharIndex) then
+    raise EEncodingError.CreateFmt(SInvalidCount, [CharCount]);
+  if (CharIndex < 0) then
+    raise EEncodingError.CreateFmt(SCharacterIndexOutOfBounds, [CharIndex]);
   Result := GetByteCount(@Chars[CharIndex], CharCount);
 end;
 
@@ -156,6 +160,10 @@ end;
 
 function TEncoding.GetByteCount(const S: UnicodeString; CharIndex, CharCount: Integer): Integer;
 begin
+  if (CharCount < 0) or (Length(S) < CharCount + CharIndex) then
+    raise EEncodingError.CreateFmt(SInvalidCount, [CharCount]);
+  if (CharIndex < 1) then
+    raise EEncodingError.CreateFmt(SCharacterIndexOutOfBounds, [CharIndex]);
   Result := GetByteCount(@S[CharIndex], CharCount);
 end;
 
@@ -168,14 +176,29 @@ end;
 function TEncoding.GetBytes(const Chars: TUnicodeCharArray; CharIndex,
   CharCount: Integer): TBytes;
 begin
+  if (CharCount < 0) or (Length(Chars) <= CharCount + CharIndex) then
+    raise EEncodingError.CreateFmt(SInvalidCount, [CharCount]);
+  if (CharIndex < 0) then
+    raise EEncodingError.CreateFmt(SCharacterIndexOutOfBounds, [CharIndex]);
   SetLength(Result, GetByteCount(Chars, CharIndex, CharCount));
   GetBytes(@Chars[CharIndex], CharCount, @Result[0], Length(Result));
 end;
 
 function TEncoding.GetBytes(const Chars: TUnicodeCharArray; CharIndex,
   CharCount: Integer; const Bytes: TBytes; ByteIndex: Integer): Integer;
+var
+  ByteLen: Integer;
 begin
-  Result := GetBytes(@Chars[CharIndex], CharCount, @Bytes[ByteIndex], Length(Bytes) - ByteIndex);
+  ByteLen := Length(Bytes);
+  if (ByteLen = 0) and (CharCount > 0) then
+    raise EEncodingError.Create(SInvalidDestinationArray);
+  if (ByteIndex < 0) or (ByteLen < ByteIndex) then
+    raise EEncodingError.CreateFmt(SInvalidDestinationIndex, [ByteIndex]);
+  if (CharCount < 0) or (Length(Chars) <= CharCount + CharIndex) then
+    raise EEncodingError.CreateFmt(SInvalidCount, [CharCount]);
+  if (CharIndex < 0) then
+    raise EEncodingError.CreateFmt(SCharacterIndexOutOfBounds, [CharIndex]);
+  Result := GetBytes(@Chars[CharIndex], CharCount, @Bytes[ByteIndex], ByteLen - ByteIndex);
 end;
 
 function TEncoding.GetBytes(const S: UnicodeString): TBytes;
@@ -186,8 +209,19 @@ end;
 
 function TEncoding.GetBytes(const S: UnicodeString; CharIndex, CharCount: Integer;
   const Bytes: TBytes; ByteIndex: Integer): Integer;
+var
+  ByteLen: Integer;
 begin
-  Result := GetBytes(@S[CharIndex], CharCount, @Bytes[ByteIndex], Length(Bytes) - ByteIndex);
+  ByteLen := Length(Bytes);
+  if (ByteLen = 0) and (CharCount > 0) then
+    raise EEncodingError.Create(SInvalidDestinationArray);
+  if (ByteIndex < 0) or (ByteLen < ByteIndex) then
+    raise EEncodingError.CreateFmt(SInvalidDestinationIndex, [ByteIndex]);
+  if (CharCount < 0) or (Length(S) < CharCount + CharIndex) then
+    raise EEncodingError.CreateFmt(SInvalidCount, [CharCount]);
+  if (CharIndex < 1) then
+    raise EEncodingError.CreateFmt(SCharacterIndexOutOfBounds, [CharIndex]);
+  Result := GetBytes(@S[CharIndex], CharCount, @Bytes[ByteIndex], ByteLen - ByteIndex);
 end;
 
 function TEncoding.GetCharCount(const Bytes: TBytes): Integer;
@@ -198,6 +232,8 @@ end;
 function TEncoding.GetCharCount(const Bytes: TBytes; ByteIndex,
   ByteCount: Integer): Integer;
 begin
+  if (ByteIndex < 0) or (Length(Bytes) < ByteIndex) then
+    raise EEncodingError.CreateFmt(SInvalidDestinationIndex, [ByteIndex]);
   Result := GetCharCount(@Bytes[ByteIndex], ByteCount);
 end;
 
@@ -209,14 +245,23 @@ end;
 
 function TEncoding.GetChars(const Bytes: TBytes; ByteIndex, ByteCount: Integer): TUnicodeCharArray;
 begin
+  if (ByteIndex < 0) or (Length(Bytes) < ByteIndex) then
+    raise EEncodingError.CreateFmt(SInvalidDestinationIndex, [ByteIndex]);
   SetLength(Result, GetCharCount(Bytes, ByteIndex, ByteCount));
   GetChars(@Bytes[ByteIndex], ByteCount, @Result[0], Length(Result));
 end;
 
 function TEncoding.GetChars(const Bytes: TBytes; ByteIndex, ByteCount: Integer;
   const Chars: TUnicodeCharArray; CharIndex: Integer): Integer;
+var
+  CharLen: Integer;
 begin
-  Result := GetChars(@Bytes[ByteIndex], ByteCount, @Chars[CharIndex], Length(Chars) - CharIndex);
+  if (ByteIndex < 0) or (Length(Bytes) <= ByteIndex) then
+    raise EEncodingError.CreateFmt(SInvalidDestinationIndex, [ByteIndex]);
+  CharLen := Length(Chars);
+  if (CharIndex < 0) or (CharLen <= CharIndex) then
+    raise EEncodingError.CreateFmt(SCharacterIndexOutOfBounds, [CharIndex]);
+  Result := GetChars(@Bytes[ByteIndex], ByteCount, @Chars[CharIndex], CharLen - CharIndex);
 end;
 
 class function TEncoding.GetEncoding(CodePage: Integer): TEncoding;

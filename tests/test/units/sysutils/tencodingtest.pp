@@ -4,7 +4,7 @@ program tencodingtest;
 {$codepage cp1251}
 
 uses
-  SysUtils, Classes, unit1;
+  SysUtils, Classes;
 
 function CheckCodePage(AFileName: String; AEncoding: TEncoding): Boolean;
 var
