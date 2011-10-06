@@ -2089,24 +2089,25 @@ begin
    begin
      inc(paramindex);
      opts:=objpas.paramstr(paramindex);
-     case opts[1] of
-       '@' :
-         if not firstpass then
-         begin
-           Delete(opts,1,1);
-           Message1(option_reading_further_from,opts);
-           interpret_file(opts);
-         end;
-       '!' :
-         if not firstpass then
-         begin
-           Delete(opts,1,1);
-           Message1(option_reading_further_from,'(env) '+opts);
-           interpret_envvar(opts);
-         end;
-       else
-         interpret_option(opts,true);
-     end;
+     if length(opts)>0 then
+       case opts[1] of
+         '@' :
+           if not firstpass then
+           begin
+             Delete(opts,1,1);
+             Message1(option_reading_further_from,opts);
+             interpret_file(opts);
+           end;
+         '!' :
+           if not firstpass then
+           begin
+             Delete(opts,1,1);
+             Message1(option_reading_further_from,'(env) '+opts);
+             interpret_envvar(opts);
+           end;
+         else
+           interpret_option(opts,true);
+       end;
    end;
 end;
 
