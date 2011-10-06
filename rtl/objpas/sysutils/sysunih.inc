@@ -44,5 +44,8 @@ function StrPCopy(Dest: PWideChar; const Source: UnicodeString): PWideChar; over
 {$IFNDEF VER2_4}
 function BytesOf(const Val: UnicodeString): TBytes; overload;
 function BytesOf(const Val: WideChar): TBytes; overload;
+function StringOf(const Bytes: TBytes): UnicodeString;
 {$ENDIF VER2_4}
 function WideBytesOf(const Value: UnicodeString): TBytes;
+function WideStringOf(const Value: TBytes): UnicodeString;
+function ByteLength(const S: UnicodeString): Integer;

@@ -1,6 +1,7 @@
 program tbytesof;
 
 {$mode objfpc}{$H+}
+{$apptype console}
 
 uses
   SysUtils, Classes;
@@ -35,20 +36,24 @@ var
   B: TBytes;
 begin
   S := 'Test';
+  U := S;
   B := BytesOf(S);
   if not CheckBytes(B) then
     halt(1);
+  if StringOf(B) <> U then
+    halt(2);
   B := BytesOf(S[1]);
   if not CheckBytes(B) then
-    halt(2);
-  U := S;
+    halt(3);
   B := BytesOf(U);
   if not CheckBytes(B) then
-    halt(3);
+    halt(4);
   B := BytesOf(U[1]);
   if not CheckBytes(B) then
-    halt(4);
+    halt(5);
   B := WideBytesOf(U);
   if not CheckWideBytes(B) then
-    halt(5);
+    halt(6);
+  if WideStringOf(B) <> U then
+    halt(7);
 end.

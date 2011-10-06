@@ -178,6 +178,11 @@ function BytesOf(const Val: WideChar): TBytes; overload;
 begin
   Result:=TEncoding.Default.GetBytes(Val);
 end;
+
+function StringOf(const Bytes: TBytes): UnicodeString;
+begin
+  Result:=TEncoding.Default.GetString(Bytes);
+end;
 {$ENDIF VER2_4}
 function WideBytesOf(const Value: UnicodeString): TBytes;
 var
@@ -187,4 +192,19 @@ begin
   SetLength(Result,Len);
   if Len>0 then
     Move(Value[1],Result[0],Len);
+end;
+
+function WideStringOf(const Value: TBytes): UnicodeString;
+var
+  Len:Integer;
+begin
+  Len:=Length(Value) div SizeOf(UnicodeChar);
+  SetLength(Result,Len);
+  if Len>0 then
+    Move(Value[0],Result[1],Len*SizeOf(UnicodeChar));
+end;
+
+function ByteLength(const S: UnicodeString): Integer;
+begin
+  Result:=Length(S)*SizeOf(UnicodeChar);
 end;
