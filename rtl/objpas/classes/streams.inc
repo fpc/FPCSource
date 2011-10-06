@@ -755,6 +755,39 @@ begin
   Result:=Count;
 end;
 
+{****************************************************************************}
+{*                              TBytesStream                                *}
+{****************************************************************************}
+
+constructor TBytesStream.Create(const ABytes: TBytes);
+begin
+  inherited Create;
+  FBytes:=ABytes;
+  SetPointer(Pointer(FBytes),Length(FBytes));
+  FCapacity:=Length(FBytes);
+end;
+
+function TBytesStream.Realloc(var NewCapacity: Longint): Pointer;
+begin
+  // adapt TMemoryStream code to use with dynamic array
+  if NewCapacity<0 Then
+    NewCapacity:=0
+  else
+    begin
+      if (NewCapacity>Capacity) and (NewCapacity < (5*Capacity) div 4) then
+        NewCapacity := (5*Capacity) div 4;
+      NewCapacity := (NewCapacity + (TMSGrow-1)) and not (TMSGROW-1);
+    end;
+  if NewCapacity=Capacity then
+    Result:=Pointer(FBytes)
+  else
+    begin
+      SetLength(FBytes,Newcapacity);
+      Result:=Pointer(FBytes);
+      if (Result=nil) and (Newcapacity>0) then
+        raise EStreamError.Create(SMemoryStreamError);
+    end;
+end;
 
 {****************************************************************************}
 {*                             TStringStream                                *}

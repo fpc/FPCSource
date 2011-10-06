@@ -918,6 +918,18 @@ type
     function Write(const Buffer; Count: LongInt): LongInt; override;
   end;
 
+{ TBytesStream }
+
+  TBytesStream = class(TMemoryStream)
+  private
+    FBytes: TBytes;
+  protected
+    function Realloc(var NewCapacity: Longint): Pointer; override;
+  public
+    constructor Create(const ABytes: TBytes); overload;
+    property Bytes: TBytes read FBytes;
+  end;
+
 { TStringStream }
 
   TStringStream = class(TStream)
