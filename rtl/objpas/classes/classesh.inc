@@ -179,11 +179,11 @@ type
     function MoveNext: Boolean;
     property Current: Pointer read GetCurrent;
   end;
-  
-{$ifdef VER2_4}  
+
+{$ifdef VER2_4}
 type
   TDirection = (FromBeginning, FromEnd);
-{$endif}          
+{$endif}
 
   TFPList = class(TObject)
   private
@@ -205,7 +205,7 @@ type
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index: Integer);
   public
-{$IFNDEF VER2_4}  
+{$IFNDEF VER2_4}
     Type
       TDirection = (FromBeginning, FromEnd);
 {$ENDIF}
@@ -572,7 +572,7 @@ type
     function GetName(Index: Integer): string;
     function GetValue(const Name: string): string;
     Function GetLBS : TTextLineBreakStyle;
-    Procedure SetLBS (AValue : TTextLineBreakStyle); 
+    Procedure SetLBS (AValue : TTextLineBreakStyle);
     procedure ReadData(Reader: TReader);
     procedure SetCommaText(const Value: string);
     procedure SetStringsAdapter(const Value: IStringsAdapter);
@@ -773,7 +773,7 @@ type
   end;
 
 {$endif}
-  
+
 
 { TStream abstract class }
 
@@ -924,7 +924,7 @@ type
   private
     FBytes: TBytes;
   protected
-    function Realloc(var NewCapacity: Longint): Pointer; override;
+    function Realloc(var NewCapacity: PtrInt): Pointer; override;
   public
     constructor Create(const ABytes: TBytes); overload;
     property Bytes: TBytes read FBytes;
@@ -1227,7 +1227,7 @@ type
     function ReadIdent: string;
     function ReadInteger: Longint;
     function ReadInt64: Int64;
-    function ReadSet(EnumType: Pointer): Integer; 
+    function ReadSet(EnumType: Pointer): Integer;
     procedure ReadListBegin;
     procedure ReadListEnd;
     function ReadRootComponent(ARoot: TComponent): TComponent;
@@ -1406,7 +1406,7 @@ type
     procedure WriteIdent(const Ident: string);
     procedure WriteInteger(Value: Longint); overload;
     procedure WriteInteger(Value: Int64); overload;
-    procedure WriteSet(Value: LongInt; SetType: Pointer); 
+    procedure WriteSet(Value: LongInt; SetType: Pointer);
     procedure WriteListBegin;
     procedure WriteListEnd;
     procedure WriteRootComponent(ARoot: TComponent);
@@ -1583,7 +1583,7 @@ type
     procedure FreeOnRelease;
   end;
 
-  IInterfaceComponentReference = interface 
+  IInterfaceComponentReference = interface
     ['{3FEEC8E1-E400-4A24-BCAC-1F01476439B1}']
     function GetComponent:TComponent;
    end;
@@ -1677,7 +1677,7 @@ type
     // fpdoc doesn't handle this yet :(
 {$ifndef fpdocsystem}
     function IInterfaceComponentReference.GetComponent=iicrgetcomponent;
-{$endif}    
+{$endif}
     procedure WriteState(Writer: TWriter); virtual;
     constructor Create(AOwner: TComponent); virtual;
     destructor Destroy; override;
