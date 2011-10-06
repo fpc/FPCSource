@@ -118,8 +118,13 @@ unit cgcpu;
         href: treference;
         templist: TAsmList;
         frame_offset: longint;
+        suppress_endprologue: boolean;
       begin
         hitem:=list.last;
+        { pi_has_unwind_info may already be set at this point if there are
+          SEH directives in assembler body. In this case, .seh_endprologue
+          is expected to be one of those directives, and not generated here. }
+        suppress_endprologue:=(pi_has_unwind_info in current_procinfo.flags);
         inherited g_proc_entry(list,parasize,nostackframe);
 
         if not (pi_has_unwind_info in current_procinfo.flags) then
@@ -163,7 +168,8 @@ unit cgcpu;
                   end;
               end;
           end;
-        templist.concat(cai_seh_directive.create(ash_endprologue));
+        if not suppress_endprologue then
+          templist.concat(cai_seh_directive.create(ash_endprologue));
         if assigned(current_procinfo.endprologue_ai) then
           current_procinfo.aktproccode.insertlistafter(current_procinfo.endprologue_ai,templist)
         else

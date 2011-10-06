@@ -38,6 +38,7 @@ type
     FElements:TLinkedList;
     FFrameStartSym:TObjSymbol;
     FPrologueEndPos:aword;
+    FPrologueEndSeen:Boolean;
     FName: pshortstring;
     procedure AddElement(objdata:TObjData;aCode,aInfo:Integer;aOffs:dword);
   public
@@ -180,14 +181,11 @@ var
   xdatasym,pdatasym: TObjSymbol;
   zero: word;
 begin
-  if FCount>255 then
-    InternalError(2011072301);
-
   cursec:=objdata.CurrObjSec;
   objdata.createsection('.xdata.n_'+lower(FName^),4,[oso_data,oso_load]);
   xdatasym:=objdata.symboldefine('$unwind$'+FName^,AB_GLOBAL,AT_DATA);
   uwdata[0]:=(FFlags shl 3) or 1;
-  uwdata[1]:=FPrologueEndPos-FFrameStartSym.offset;
+  uwdata[1]:=FPrologueEndPos-FFrameStartSym.address;
   uwdata[2]:=FCount;
   { Offset is multiple of 16, so it is already shifted into correct position }
   uwdata[3]:=FFrameOffs or FFrameReg;
@@ -255,6 +253,7 @@ begin
   FFrameReg:=0;
   FFrameOffs:=0;
   FPrologueEndPos:=0;
+  FPrologueEndSeen:=false;
   FHandler:=nil;
 end;
 
@@ -262,7 +261,17 @@ procedure TWin64CFI.end_frame(objdata:TObjData);
 begin
   if not assigned(FName) then
     internalerror(2011072307);
-  generate_code(objdata);
+  if FCount>255 then
+    InternalError(2011072301);
+  if FPrologueEndSeen then
+    begin
+      if (FPrologueEndPos-FFrameStartSym.address) > 255 then
+        Message(asmw_w_prologue_too_large)
+      else
+        generate_code(objdata)
+    end
+  else
+    Message(asmw_w_missing_endprologue);
   FFrameStartSym:=nil;
   FHandler:=nil;
   stringdispose(FName);
@@ -273,6 +282,7 @@ begin
   if not assigned(FName) then
     internalerror(2011072312);
   FPrologueEndPos:=objdata.CurrObjSec.Size;
+  FPrologueEndSeen:=true;
 end;
 
 procedure TWin64CFI.push_reg(objdata:TObjData;reg:tregister);
