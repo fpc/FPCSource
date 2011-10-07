@@ -31,7 +31,7 @@ Const
         syscall_nr_open         = 5  ;
         syscall_nr_close        = 6  ;
         syscall_nr_wait4        = 7  ;
-        syscall_nr_waitpid      = 8  ;  // added: ease of notation purposes
+        { 8 is marked as compta 43 ocreat  }
         syscall_nr_link         = 9  ;
         syscall_nr_unlink       = 10 ;
         syscall_nr_chdir        = 12 ;
@@ -228,9 +228,9 @@ Const
         syscall_nr_fstat        = 292;
         syscall_nr_lstat        = 293;
         syscall_nr_fhstat       = 294;
-        syscall_nr___semctl     = 294;
-        syscall_nr_shmctl       = 295;
-        syscall_nr_msgctl       = 296;
+        syscall_nr___semctl     = 295;
+        syscall_nr_shmctl       = 296;
+        syscall_nr_msgctl       = 297;
         syscall_nr_sched_yield  = 298;
         syscall_nr_getthrid     = 299;
         syscall_nr_thrsleep     = 300;
@@ -249,5 +249,6 @@ Const
         syscall_nr_MAXSYSCALL   = 313;
 
 { Aliases }
+        syscall_nr_waitpid      = syscall_nr_waitpid;  // 7, added: ease of notation purposes
         syscall_nr_getdents = syscall_nr_getdirentries;
 
