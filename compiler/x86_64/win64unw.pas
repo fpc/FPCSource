@@ -255,6 +255,7 @@ begin
   FPrologueEndPos:=0;
   FPrologueEndSeen:=false;
   FHandler:=nil;
+  FFlags:=0;
 end;
 
 procedure TWin64CFI.end_frame(objdata:TObjData);
@@ -274,6 +275,7 @@ begin
     Message(asmw_w_missing_endprologue);
   FFrameStartSym:=nil;
   FHandler:=nil;
+  FFlags:=0;
   stringdispose(FName);
 end;
 
