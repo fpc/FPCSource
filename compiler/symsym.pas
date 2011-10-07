@@ -256,6 +256,7 @@ interface
           default       : longint;
           dispid        : longint;
           propaccesslist: array[tpropaccesslisttypes] of tpropaccesslist;
+          parast : tsymtable;
           constructor create(const n : string);
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -944,6 +945,7 @@ implementation
          default:=0;
          propdef:=nil;
          indexdef:=nil;
+         parast:=tparasymtable.create(nil,0);
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=tpropaccesslist.create;
       end;
@@ -962,6 +964,8 @@ implementation
          ppufile.getderef(indexdefderef);
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=ppufile.getpropaccesslist;
+         parast:=tparasymtable.create(nil,0);
+         tparasymtable(parast).ppuload(ppufile);
       end;
 
 
@@ -971,6 +975,7 @@ implementation
       begin
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap].free;
+         parast.free;
          inherited destroy;
       end;
 
@@ -984,6 +989,7 @@ implementation
         indexdefderef.build(indexdef);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           propaccesslist[pap].buildderef;
+        tparasymtable(parast).buildderef;
       end;
 
 
@@ -996,6 +1002,7 @@ implementation
         propdef:=tdef(propdefderef.resolve);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           propaccesslist[pap].resolve;
+        tparasymtable(parast).deref;
       end;
 
 
@@ -1019,6 +1026,7 @@ implementation
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           ppufile.putpropaccesslist(propaccesslist[pap]);
         ppufile.writeentry(ibpropertysym);
+        tparasymtable(parast).ppuwrite(ppufile);
       end;
 
 

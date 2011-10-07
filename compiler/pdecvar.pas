@@ -318,6 +318,21 @@ implementation
                 end;
             end;
 
+          procedure add_parameters(p: tpropertysym; readprocdef, writeprocdef: tprocdef);
+            var
+              i: integer;
+              orig, hparavs: tparavarsym;
+            begin
+              for i := 0 to p.parast.SymList.Count - 1 do
+                begin
+                  orig:=tparavarsym(p.parast.SymList[i]);
+                  hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
+                  readprocdef.parast.insert(hparavs);
+                  hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
+                  writeprocdef.parast.insert(hparavs);
+                end;
+            end;
+
           procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef: tprocdef);
             var
               hparavs: tparavarsym;
@@ -386,7 +401,7 @@ implementation
                 not (m_delphi in current_settings.modeswitches) then
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
-              symtablestack.push(readprocdef.parast);
+              symtablestack.push(p.parast);
               sc:=TFPObjectList.create(false);
               repeat
                 if try_to_consume(_VAR) then
@@ -403,7 +418,7 @@ implementation
                 repeat
                   inc(paranr);
                   hreadparavs:=tparavarsym.create(orgpattern,10*paranr,varspez,generrordef,[]);
-                  readprocdef.parast.insert(hreadparavs);
+                  p.parast.insert(hreadparavs);
                   sc.add(hreadparavs);
                   consume(_ID);
                 until not try_to_consume(_COMMA);
@@ -424,22 +439,19 @@ implementation
                 else
                   hdef:=cformaltype;
                 for i:=0 to sc.count-1 do
-                  begin
-                    hreadparavs:=tparavarsym(sc[i]);
-                    hreadparavs.vardef:=hdef;
-                    { also update the writeprocdef }
-                    hparavs:=tparavarsym.create(hreadparavs.realname,hreadparavs.paranr,vs_value,hdef,[]);
-                    writeprocdef.parast.insert(hparavs);
-                  end;
+                  tparavarsym(sc[i]).vardef:=hdef;
               until not try_to_consume(_SEMICOLON);
               sc.free;
-              symtablestack.pop(readprocdef.parast);
+              symtablestack.pop(p.parast);
               consume(_RECKKLAMMER);
 
               { the parser need to know if a property has parameters, the
                 index parameter doesn't count (PFV) }
               if paranr>0 then
-                include(p.propoptions,ppo_hasparameters);
+                begin
+                  add_parameters(p,readprocdef,writeprocdef);
+                  include(p.propoptions,ppo_hasparameters);
+                end;
            end;
          { overridden property ?                                 }
          { force property interface
@@ -501,6 +513,13 @@ implementation
                   p.index:=tpropertysym(overridden).index;
                   p.default:=tpropertysym(overridden).default;
                   p.propoptions:=tpropertysym(overridden).propoptions;
+                  p.parast.free;
+                  p.parast:=tpropertysym(overridden).parast.getcopy;
+                  if ppo_hasparameters in p.propoptions then
+                    begin
+                      add_parameters(p,readprocdef,writeprocdef);
+                      paranr:=p.parast.SymList.Count;
+                    end;
                   if ppo_indexed in p.propoptions then
                     add_index_parameter(paranr,p,readprocdef,writeprocdef);
                 end

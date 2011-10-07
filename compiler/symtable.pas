@@ -1432,7 +1432,7 @@ implementation
         if result then
           exit;
         if not(m_duplicate_names in current_settings.modeswitches) and
-           (defowner.typ=procdef) and
+           assigned(defowner) and (defowner.typ=procdef) and
            assigned(tprocdef(defowner).struct) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
