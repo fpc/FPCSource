@@ -76,13 +76,16 @@ TYPE
         st_uid        : uid_t;             // user ID of the file's owner
         st_gid        : gid_t;             // group ID of the file's group
         st_rdev       : dev_t;             // device type
+{$ifdef openbsd}
+        st_padd0      : cint;
+{$endif}
         st_atime      : time_t;            // time of last access
         st_atimensec  : clong;             // nsec of last access
         st_mtime      : time_t;            // time of last data modification
         st_mtimensec  : clong;             // nsec of last data modification
         st_ctime      : time_t;            // time of last file status change
         st_ctimensec  : clong;             // nsec of last file status change
-{$ifdef darwinarm}
+{$if defined(darwinarm) or defined(openbsd)}
         st_birthtime  : time_t;            // File creation time
         st_birthtimensec : clong;          // nsec of file creation time
 {$endif}
@@ -237,7 +240,7 @@ CONST
 {$ifdef darwin}
   F_CHKCLEAN       = 41;          { Used for regression test }
   F_PREALLOCATE    = 42;          { Preallocate storage }
-  F_SETSIZE        = 43;          { Truncate a file without zeroing space }     
+  F_SETSIZE        = 43;          { Truncate a file without zeroing space }
   F_RDADVISE       = 44;          { Issue an advisory read async with no copy to user }
   F_RDAHEAD        = 45;          { turn read ahead off/on }
   F_READBOOTSTRAP  = 46;          { Read bootstrap from disk }
@@ -311,7 +314,7 @@ Const
 {$IFDEF FreeBSD}
   RLIMIT_SBSIZE   = 9;              { maximum size of all socket buffers }
   RLIMIT_VMEM     =10;              { virtual process size (inclusive of mmap) }
-  RLIMIT_AS       = RLIMIT_VMEM;    
+  RLIMIT_AS       = RLIMIT_VMEM;
 {$ELSE}
   RLIMIT_AS       = 5;    	    { address space= resident set size}
 {$ENDIF}
@@ -324,20 +327,20 @@ Const
   RLIM_NLIMITS    =9;              { number of resource limits }
   {$endif}
 
-Type 
+Type
         TRLimit  = record
                      rlim_cur,               { current (soft) limit }
           	     rlim_max : TRLim;     { maximum value for rlim_cur }
 		    end;	
         PRLimit  = ^TRLimit;
-      
+
   iovec = record
             iov_base : pointer;
 	    iov_len  : size_t;
 	   end;
   tiovec=iovec;
   piovec=^tiovec;		
- 
+
 CONST
  { Constansts for MMAP }
 {$ifdef FPC_IS_SYSTEM}
