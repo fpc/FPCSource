@@ -20,7 +20,13 @@ end;
 
 function CheckWideBytes(const B: TBytes): Boolean;
 const
-  Etalon: array[0..7] of Byte = (84, 00, 101, 00, 115, 00, 116, 00);
+  Etalon: array[0..7] of Byte = (
+{$ifdef FPC_BIG_ENDIAN}
+   00, 84, 00, 101, 00, 115, 00, 116
+{$else}
+   84, 00, 101, 00, 115, 00, 116, 00
+{$endif}
+  );
 var
   I: Integer;
 begin
