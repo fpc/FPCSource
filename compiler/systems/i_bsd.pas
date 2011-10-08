@@ -818,7 +818,7 @@ initialization
      set_source_info(system_i386_NetBSD_info);
   {$endif}
   {$ifdef OpenBSD}
-     set_source_info(system_i386_NetBSD_info);
+     set_source_info(system_i386_OpenBSD_info);
   {$endif}
   {$ifdef Darwin}
      set_source_info(system_i386_Darwin_info);
