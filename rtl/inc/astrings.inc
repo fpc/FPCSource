@@ -402,6 +402,7 @@ Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): 
 Var
   Size : SizeInt;
   temp : UnicodeString;
+  orgcp: TSystemCodePage;
 begin
   result:='';
   Size:=Length(S);
@@ -409,7 +410,8 @@ begin
     begin
       if (cp=0) or (cp=CP_NONE) then
         cp:=DefaultSystemCodePage;
-      if (StringCodePage(S)=cp) then
+      orgcp:=StringCodePage(S);
+      if (orgcp=cp) or (orgcp=CP_NONE) then
         begin
           SetLength(result,Size);
           Move(S[1],result[1],Size);
