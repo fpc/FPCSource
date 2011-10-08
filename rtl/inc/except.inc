@@ -259,6 +259,8 @@ begin
     end;
 end;
 
+function Internal_PopObjectStack: TObject; external name 'FPC_POPOBJECTSTACK';
+
 { this is for popping exception objects when a second exception is risen }
 { in an except/on                                                        }
 function fpc_PopSecondObjectStack : TObject;[Public, Alias : 'FPC_POPSECONDOBJECTSTACK']; compilerproc;
@@ -343,6 +345,7 @@ begin
   o.Free;
 end;
 
+{ TODO: no longer used, clean up }
 function fpc_GetExceptionAddr : Pointer;[Public, Alias : 'FPC_GETEXCEPTIONADDR']; compilerproc;
 var
   _ExceptObjectStack : PExceptObject;
@@ -362,3 +365,23 @@ begin
   ExceptObjectstack:=Nil;
   ExceptAddrStack:=Nil;
 end;
+
+function fpc_safecallhandler(obj: TObject): HResult; [public,alias:'FPC_SAFECALLHANDLER']; compilerproc;
+var
+  raiselist: PExceptObject;
+  adr: Pointer;
+  exc: TObject;
+begin
+  raiselist:=ExceptObjectStack;
+  if Assigned(raiseList) then
+    adr:=raiseList^.Addr
+  else
+    adr:=nil;
+  exc:=Internal_PopObjectStack;
+  if Assigned(obj) then
+    result:=obj.SafeCallException(exc,adr)
+  else
+    result:=E_UNEXPECTED;
+  exc.Free;
+end;
+

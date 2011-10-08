@@ -479,8 +479,8 @@ implementation
       var
         newstatement : tstatementnode;
         { safecall handling }
-        exceptobjnode,exceptaddrnode: ttempcreatenode;
-        sym,exceptsym: tsym;
+        sym: tsym;
+        argnode: tnode;
       begin
         generate_except_block:=internalstatements(newstatement);
 
@@ -511,46 +511,13 @@ implementation
                 { SafecallException virtual method                       }
                 { In other case we return E_UNEXPECTED error value       }
                 if is_class(current_procinfo.procdef.struct) then
-                  begin
-                    { temp variable to store exception address }
-                    exceptaddrnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,
-                      tt_persistent,true);
-                    addstatement(newstatement,exceptaddrnode);
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        ctemprefnode.create(exceptaddrnode),
-                        ccallnode.createintern('fpc_getexceptionaddr',nil)));
-                    { temp variable to store popped up exception }
-                    exceptobjnode:=ctempcreatenode.create(class_tobject,class_tobject.size,
-                      tt_persistent,true);
-                    addstatement(newstatement,exceptobjnode);
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        ctemprefnode.create(exceptobjnode),
-                        ccallnode.createintern('fpc_popobjectstack', nil)));
-                    exceptsym:=search_struct_member(tobjectdef(current_procinfo.procdef.struct),'SAFECALLEXCEPTION');
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        cloadnode.create(sym,sym.Owner),
-                        ccallnode.create(
-                          ccallparanode.create(ctemprefnode.create(exceptaddrnode),
-                          ccallparanode.create(ctemprefnode.create(exceptobjnode),nil)),
-                          tprocsym(exceptsym), tprocsym(exceptsym).owner,load_self_node,[])));
-                    addstatement(newstatement,ccallnode.createintern('fpc_destroyexception',
-                      ccallparanode.create(ctemprefnode.create(exceptobjnode),nil)));
-                    addstatement(newstatement,ctempdeletenode.create(exceptobjnode));
-                    addstatement(newstatement,ctempdeletenode.create(exceptaddrnode));
-                  end
+                  argnode:=load_self_node
                 else
-                  begin
-                    { pop up and destroy an exception }
-                    addstatement(newstatement,ccallnode.createintern('fpc_destroyexception',
-                      ccallparanode.create(ccallnode.createintern('fpc_popobjectstack', nil),nil)));
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        cloadnode.create(sym,sym.Owner),
-                        genintconstnode(HResult($8000FFFF))));
-                  end;
+                  argnode:=cnilnode.create;
+                addstatement(newstatement,cassignmentnode.create(
+                  cloadnode.create(sym,sym.Owner),
+                  ccallnode.createinternres('fpc_safecallhandler',
+                    ccallparanode.create(argnode,nil),hresultdef)));
               end;
 {$endif}
           end;
