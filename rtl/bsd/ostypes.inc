@@ -85,7 +85,7 @@ TYPE
         st_mtimensec  : clong;             // nsec of last data modification
         st_ctime      : time_t;            // time of last file status change
         st_ctimensec  : clong;             // nsec of last file status change
-{$if defined(darwinarm) or defined(openbsd)}
+{$ifdef darwinarm}
         st_birthtime  : time_t;            // File creation time
         st_birthtimensec : clong;          // nsec of file creation time
 {$endif}
@@ -102,6 +102,10 @@ TYPE
 {$endif}
 {$ifndef NetBSD}
         st_lspare     : cint32;
+{$endif}
+{$ifdef openbsd}
+        st_birthtime  : time_t;            // File creation time
+        st_birthtimensec : clong;          // nsec of file creation time
 {$endif}
         st_qspare     : array[0..1] Of cint64;
    end;
