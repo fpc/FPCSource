@@ -201,7 +201,7 @@ interface
             owner.AsmWrite('*'+gas_regname(o.reg));
           top_ref :
             begin
-              if o.ref^.refaddr=addr_no then
+              if o.ref^.refaddr in [addr_no,addr_pic_no_got] then
                 begin
                   owner.AsmWrite('*');
                   WriteReference(o.ref^);

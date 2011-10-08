@@ -407,6 +407,8 @@ implementation
           A_LOOPNE,
           A_LOOPNZ,
           A_LOOPZ,
+          A_LCALL,
+          A_LJMP,
           A_Jcc :
             is_calljmp:=true;
           else
