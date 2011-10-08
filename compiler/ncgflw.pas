@@ -98,7 +98,7 @@ implementation
       nld,ncon,
       tgobj,paramgr,
       regvars,
-      cgutils,cgobj
+      cgutils,cgobj,nutils
       ;
 
 {*****************************************************************************
@@ -1158,63 +1158,67 @@ implementation
          { default handling except handling }
          if assigned(t1) then
            begin
-              { FPC_CATCHES must be called with
-                'default handler' flag (=-1)
+              { FPC_CATCHES with 'default handler' flag (=-1) need no longer be called,
+                it doesn't change any state and its return value is ignored (Sergei)
               }
-              paraloc1.init;
-              paramanager.getintparaloc(pocall_default,1,paraloc1);
-              cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,-1,paraloc1);
-              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CATCHES',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-              paraloc1.done;
 
               { the destruction of the exception object must be also }
-              { guarded by an exception frame                        }
-              current_asmdata.getjumplabel(doobjectdestroy);
-              current_asmdata.getjumplabel(doobjectdestroyandreraise);
+              { guarded by an exception frame, but it can be omitted }
+              { if there's no user code in 'except' block            }
 
-              get_exception_temps(current_asmdata.CurrAsmList,destroytemps);
-              new_exception(current_asmdata.CurrAsmList,destroytemps,doobjectdestroyandreraise);
+              if not (has_no_code(t1)) then
+               begin
+                 current_asmdata.getjumplabel(doobjectdestroy);
+                 current_asmdata.getjumplabel(doobjectdestroyandreraise);
 
-              { except block needs line info }
-              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
+                 get_exception_temps(current_asmdata.CurrAsmList,destroytemps);
+                 new_exception(current_asmdata.CurrAsmList,destroytemps,doobjectdestroyandreraise);
 
-              { here we don't have to reset flowcontrol           }
-              { the default and on flowcontrols are handled equal }
-              secondpass(t1);
-              exceptflowcontrol:=flowcontrol;
+                 { except block needs line info }
+                 current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
-              { don't generate line info for internal cleanup }
-              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+                 { here we don't have to reset flowcontrol           }
+                 { the default and on flowcontrols are handled equal }
+                 secondpass(t1);
+                 exceptflowcontrol:=flowcontrol;
 
-              cg.a_label(current_asmdata.CurrAsmList,doobjectdestroyandreraise);
+                 { don't generate line info for internal cleanup }
+                 current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
-              free_exception(current_asmdata.CurrAsmList,destroytemps,0,doobjectdestroy,false);
+                 cg.a_label(current_asmdata.CurrAsmList,doobjectdestroyandreraise);
 
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPSECONDOBJECTSTACK',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+                 free_exception(current_asmdata.CurrAsmList,destroytemps,0,doobjectdestroy,false);
 
-              paraloc1.init;
-              paramanager.getintparaloc(pocall_default,1,paraloc1);
-              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-              cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
-              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DESTROYEXCEPTION',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-              paraloc1.done;
-              { we don't need to restore esi here because reraise never }
-              { returns                                                 }
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
+                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPSECONDOBJECTSTACK',false);
+                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
 
-              cg.a_label(current_asmdata.CurrAsmList,doobjectdestroy);
-              cleanupobjectstack;
-              unget_exception_temps(current_asmdata.CurrAsmList,destroytemps);
-              cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+                 paraloc1.init;
+                 paramanager.getintparaloc(pocall_default,1,paraloc1);
+                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+                 cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
+                 paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DESTROYEXCEPTION',false);
+                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+                 paraloc1.done;
+                 { we don't need to restore esi here because reraise never }
+                 { returns                                                 }
+                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
+
+                 cg.a_label(current_asmdata.CurrAsmList,doobjectdestroy);
+
+                 cleanupobjectstack;
+                 unget_exception_temps(current_asmdata.CurrAsmList,destroytemps);
+                 cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+               end
+               else
+                 begin
+                   exceptflowcontrol:=flowcontrol;
+                   cleanupobjectstack;
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
+                 end;
            end
          else
            begin
