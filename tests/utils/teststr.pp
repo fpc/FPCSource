@@ -26,6 +26,7 @@ const
   successfully_compiled = 'Successfully compiled ';
   failed_to_run = 'Failed to run ';
   successfully_run = 'Successfully run ';
+  skipping_test = 'Unconditionally skipping test ';
   skipping_graph_test = 'Skipping test because it uses graph ';
   skipping_interactive_test = 'Skipping test because it is interactive ';
   skipping_known_bug = 'Skipping test because it is a known bug ';

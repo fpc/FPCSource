@@ -1492,6 +1492,18 @@ begin
 
   if Res then
    begin
+     if Config.Skip and not DoAll then
+      begin
+        AddLog(ResLogFile,skipping_test+PPFileInfo[current]);
+        { avoid a second attempt by writing to elg file }
+        AddLog(EXELogFile,skipping_test+PPFileInfo[current]);
+        Verbose(V_Warning,skipping_test);
+        Res:=false;
+      end;
+   end;
+
+  if Res then
+   begin
      if Config.UsesGraph and (not DoGraph) then
       begin
         AddLog(ResLogFile,skipping_graph_test+PPFileInfo[current]);
