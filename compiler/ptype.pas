@@ -141,7 +141,7 @@ implementation
       end;
 
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean); forward;
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean;out srsym:tsym;out srsymtable:tsymtable); forward;
 
     { def is the outermost type in which other types have to be searched
 
@@ -157,6 +157,8 @@ implementation
       var
         t2: tdef;
         structstackindex: longint;
+        srsym: tsym;
+        srsymtable: tsymtable;
       begin
         if assigned(currentstructstack) then
           structstackindex:=currentstructstack.count-1
@@ -185,7 +187,7 @@ implementation
                      structstackindex:=-1;
                      symtablestack.push(tabstractrecorddef(def).symtable);
                      t2:=generrordef;
-                     id_type(t2,isforwarddef,false,false);
+                     id_type(t2,isforwarddef,false,false,srsym,srsymtable);
                      symtablestack.pop(tabstractrecorddef(def).symtable);
                      def:=t2;
                    end;
@@ -230,18 +232,18 @@ implementation
          result:=false;
       end;
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean);
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean;out srsym:tsym;out srsymtable:tsymtable);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
       var
         is_unit_specific : boolean;
         pos : tfileposinfo;
-        srsym : tsym;
-        srsymtable : TSymtable;
         s,sorg : TIDString;
         t : ttoken;
       begin
+         srsym:=nil;
+         srsymtable:=nil;
          s:=pattern;
          sorg:=orgpattern;
          pos:=current_tokenpos;
@@ -308,6 +310,8 @@ implementation
          t2 : tdef;
          dospecialize,
          again : boolean;
+         srsym : tsym;
+         srsymtable : tsymtable;
        begin
          dospecialize:=false;
          repeat
@@ -354,7 +358,7 @@ implementation
                      end
                    else
                      begin
-                       id_type(def,stoIsForwardDef in options,true,true);
+                       id_type(def,stoIsForwardDef in options,true,true,srsym,srsymtable);
                        parse_nested_types(def,stoIsForwardDef in options,nil);
                      end;
                  end;
@@ -381,7 +385,14 @@ implementation
               begin
                 def:=current_genericdef
               end
-            else if (df_generic in def.defoptions) then
+            else if (df_generic in def.defoptions) and
+                not
+                  (
+                    parse_generic and
+                    (current_genericdef.typ in [recorddef,objectdef]) and
+                    sym_is_owned_by(srsym,tabstractrecorddef(current_genericdef).symtable)
+                  )
+                then
               begin
                 Message(parser_e_no_generics_as_types);
                 def:=generrordef;
@@ -853,7 +864,14 @@ implementation
                          begin
                            def:=current_genericdef
                          end
-                       else if (df_generic in def.defoptions) then
+                       else if (df_generic in def.defoptions) and
+                           not
+                             (
+                               parse_generic and
+                               (current_genericdef.typ in [recorddef,objectdef]) and
+                               is_owned_by(def,tabstractrecorddef(current_genericdef))
+                             )
+                           then
                          begin
                            Message(parser_e_no_generics_as_types);
                            def:=generrordef;

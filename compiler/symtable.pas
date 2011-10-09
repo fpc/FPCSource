@@ -213,7 +213,8 @@ interface
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
-    function  is_owned_by(childdef,ownerdef:tabstractrecorddef):boolean;
+    function  is_owned_by(childdef:tdef;ownerdef:tabstractrecorddef):boolean;
+    function  sym_is_owned_by(childsym:tsym;symtable:tsymtable):boolean;
     function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
@@ -1805,11 +1806,18 @@ implementation
        end;
 
 
-    function is_owned_by(childdef,ownerdef:tabstractrecorddef):boolean;
+    function is_owned_by(childdef:tdef;ownerdef:tabstractrecorddef):boolean;
       begin
         result:=childdef=ownerdef;
         if not result and (childdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
           result:=is_owned_by(tabstractrecorddef(childdef.owner.defowner),ownerdef);
+      end;
+
+    function sym_is_owned_by(childsym:tsym;symtable:tsymtable):boolean;
+      begin
+        result:=childsym.owner=symtable;
+        if not result and (childsym.owner.symtabletype in [objectsymtable,recordsymtable]) then
+          result:=sym_is_owned_by(tabstractrecorddef(childsym.owner.defowner).typesym,symtable);
       end;
 
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;

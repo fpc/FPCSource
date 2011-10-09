@@ -94,12 +94,12 @@ uses
         { only need to record the tokens, then we don't know the type yet  ... }
         if parse_generic then
           begin
-            { ... but we have to insert a def into the symtable else the deflist
+            { ... but we have to insert a def into the symtable if the generic
+              is not a parent or an implemented interface else the deflist
               of generic and specialization might not be equally sized which
               is later assumed }
-            tt:=tundefineddef.create;
-            if parse_class_parent then
-              tt:=genericdef;
+            if not parse_class_parent then
+              tt:=tundefineddef.create;
             onlyparsepara:=true;
           end;
 
@@ -115,7 +115,9 @@ uses
               inc(gencount);
             until not try_to_consume(_COMMA);
             consume(_RSHARPBRACKET);
-            if parse_generic and parse_class_parent then
+            { we need to return a def that can later pass some checks like
+              whether it's an interface or not }
+            if parse_generic and (not assigned(tt) or (tt.typ=undefineddef)) then
               begin
                 if (symname='') and (df_generic in genericdef.defoptions) then
                   { this happens in non-Delphi modes }
@@ -129,7 +131,7 @@ uses
                       genname:=ttypesym(genericdef.typesym).realname
                     else
                       genname:=symname;
-                    genname:=symname+'$'+countstr;
+                    genname:=genname+'$'+countstr;
                     ugenname:=upper(genname);
                     if not searchsym(ugenname,srsym,st) or
                         (srsym.typ<>typesym) then
@@ -137,6 +139,8 @@ uses
                         identifier_not_found(genname);
                         exit;
                       end;
+                    if not (ttypesym(srsym).typedef is tstoreddef) then
+                      Internalerror(2011091601);
                     tt:=ttypesym(srsym).typedef;
                   end;
               end;
@@ -315,12 +319,19 @@ uses
             if assigned(hmodule.globalsymtable) then
               symtablestack.push(hmodule.globalsymtable);
 
-            { hacky, but necessary to insert the newly generated class properly }
-            item:=oldsymtablestack.stack;
-            while assigned(item) and (item^.symtable.symtablelevel>main_program_level) do
-              item:=item^.next;
-            if assigned(item) and (item^.symtable<>symtablestack.top) then
-              symtablestack.push(item^.symtable);
+            { in case of a parent or an implemented interface the class needs
+              to be inserted in the current unit and not in the class it's
+              used in }
+            { TODO: check whether we are using the correct symtable }
+            if not parse_class_parent then
+              begin
+                { hacky, but necessary to insert the newly generated class properly }
+                item:=oldsymtablestack.stack;
+                while assigned(item) and (item^.symtable.symtablelevel>main_program_level) do
+                  item:=item^.next;
+                if assigned(item) and (item^.symtable<>symtablestack.top) then
+                  symtablestack.push(item^.symtable);
+              end;
 
             { Reparse the original type definition }
             if not err then
