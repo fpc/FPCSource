@@ -246,10 +246,11 @@ Const
         syscall_nr_fhstatfs     = 309;
         syscall_nr_setrtable    = 310;
         syscall_nr_getrtable    = 311;
-        syscall_nr_getdirentries        = 312;
+        syscall_nr_getdirentriesi49        = 312;
         syscall_nr_MAXSYSCALL   = 313;
 
 { Aliases }
+        syscall_nr_getdirentries = syscall_nr_getdirentries35;
         syscall_nr_waitpid      = syscall_nr_wait4;  // 7, added: ease of notation purposes
 {        syscall_nr_getdents = syscall_nr_getdirentries; }
 {$define USE_GETDIRENTRIES_SYSCALL}
