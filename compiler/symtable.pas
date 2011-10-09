@@ -209,6 +209,7 @@ interface
     procedure incompatibletypes(def1,def2:tdef);
     procedure hidesym(sym:TSymEntry);
     procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
+    function handle_generic_dummysym(sym:TSymEntry;var symoptions:tsymoptions):boolean;
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
@@ -217,6 +218,10 @@ interface
     function  is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchoption:boolean;option:tsymoption):boolean;
+    { searches for a symbol with the given name that has the given option in
+      symoptions set }
+    function  searchsym_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;option:tsymoption):boolean;
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
@@ -1479,6 +1484,8 @@ implementation
         hsym:=tsym(FindWithHash(hashedid));
         if assigned(hsym) then
           begin
+            if (sym is tstoredsym) and handle_generic_dummysym(hsym,tstoredsym(sym).symoptions) then
+              exit;
             { Delphi (contrary to TP) you can have a symbol with the same name as the
               unit, the unit can then not be accessed anymore using
               <unit>.<id>, so we can hide the symbol }
@@ -1755,6 +1762,29 @@ implementation
           include(tsym(dupsym).symoptions,sp_implicitrename);
       end;
 
+    function handle_generic_dummysym(sym:TSymEntry;var symoptions:tsymoptions):boolean;
+      begin
+        result:=false;
+        if not assigned(sym) or not (sym is tstoredsym) then
+          Internalerror(2011081101);
+        { For generics a dummy symbol without the parameter count is created
+          if such a symbol not yet exists so that different parts of the
+          parser can find that symbol. If that symbol is still a
+          undefineddef we replace the generic dummy symbol's
+          name with a "dup" name and use the new symbol as the generic dummy
+          symbol }
+        if (sp_generic_dummy in tstoredsym(sym).symoptions) and
+            (sym.typ=typesym) and (ttypesym(sym).typedef.typ=undefineddef) and
+            (m_delphi in current_settings.modeswitches) then
+          begin
+            inc(dupnr);
+            sym.Owner.SymList.Rename(upper(sym.realname),'dup_'+tostr(dupnr)+sym.realname);
+            include(tsym(sym).symoptions,sp_implicitrename);
+            { we need to find the new symbol now if checking for a dummy }
+            include(symoptions,sp_generic_dummy);
+            result:=true;
+          end;
+      end;
 
 {*****************************************************************************
                                   Search
@@ -1911,6 +1941,11 @@ implementation
 
 
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+      begin
+        result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,false,sp_none);
+      end;
+
+    function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchoption:boolean;option:tsymoption):boolean;
       var
         hashedid   : THashedIDString;
         contextstructdef : tabstractrecorddef;
@@ -1924,6 +1959,12 @@ implementation
             srsymtable:=stackitem^.symtable;
             if (srsymtable.symtabletype=objectsymtable) then
               begin
+                { TODO : implement the search for an option in classes as well }
+                if searchoption then
+                  begin
+                    result:=false;
+                    exit;
+                  end;
                 if searchsym_in_class(tobjectdef(srsymtable.defowner),tobjectdef(srsymtable.defowner),s,srsym,srsymtable,true) then
                   begin
                     result:=true;
@@ -1946,7 +1987,8 @@ implementation
                     else
                       contextstructdef:=current_structdef;
                     if not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
-                       is_visible_for_object(srsym,contextstructdef) then
+                       is_visible_for_object(srsym,contextstructdef) and
+                       (not searchoption or (option in srsym.symoptions)) then
                       begin
                         { we need to know if a procedure references symbols
                           in the static symtable, because then it can't be
@@ -1966,6 +2008,11 @@ implementation
         srsymtable:=nil;
       end;
 
+    function searchsym_with_symoption(const s: TIDString;out srsym:tsym;out
+      srsymtable:TSymtable;option:tsymoption):boolean;
+      begin
+        result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,true,option);
+      end;
 
     function searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var

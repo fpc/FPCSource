@@ -439,7 +439,7 @@ implementation
                    that was declared earlier }
                  not (
                    (ttypesym(sym).typedef.typ=undefineddef) and
-                   not (sp_generic_para in sym.symoptions)
+                   (sp_generic_dummy in sym.symoptions)
                  ) then
                begin
                  if ((token=_CLASS) or
@@ -499,6 +499,7 @@ implementation
                   if not assigned(sym) then
                     begin
                       sym:=ttypesym.create(orgtypename,tundefineddef.create);
+                      Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;
                       symtablestack.top.insert(sym);
@@ -507,13 +508,17 @@ implementation
                   else
                     { this is not allowed in non-Delphi modes }
                     if not (m_delphi in current_settings.modeswitches) then
-                      Message1(sym_e_duplicate_id,genorgtypename);
+                      Message1(sym_e_duplicate_id,genorgtypename)
+                    else
+                      { we need to find this symbol even if it's a variable or
+                        something else when doing an inline specialization }
+                      Include(sym.symoptions,sp_generic_dummy);
                 end
               else
                 begin
                   if assigned(sym) and (sym.typ=typesym) and
                       (ttypesym(sym).typedef.typ=undefineddef) and
-                      not (sp_generic_para in sym.symoptions) then
+                      (sp_generic_dummy in sym.symoptions) then
                     begin
                       { this is a symbol that was added by an earlier generic
                         declaration, reuse it }

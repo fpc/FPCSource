@@ -32,7 +32,7 @@ uses
   { symtable }
   symtype,symdef;
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;parsedtype:tdef);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;parsedtype:tdef;symname:string);
     function parse_generic_parameters:TFPObjectList;
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
 
@@ -55,7 +55,7 @@ uses
   pbase,pexpr,pdecsub,ptype;
 
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;parsedtype:tdef);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;parsedtype:tdef;symname:string);
       var
         st  : TSymtable;
         srsym : tsym;
@@ -65,7 +65,6 @@ uses
         i,
         gencount : longint;
         genericdef : tstoreddef;
-        genericsym,
         generictype : ttypesym;
         genericdeflist : TFPObjectList;
         generictypelist : TFPObjectList;
@@ -85,11 +84,12 @@ uses
         tt:=nil;
         onlyparsepara:=false;
 
-        if not assigned(genericdef.typesym) or
-            (genericdef.typesym.typ<>typesym) then
+        { either symname must be given or genericdef needs to be valid }
+        if (symname='') and
+            (not assigned(genericdef) or
+            not assigned(genericdef.typesym) or
+            (genericdef.typesym.typ<>typesym)) then
            internalerror(2011042701);
-
-        genericsym:=ttypesym(genericdef.typesym);
 
         { only need to record the tokens, then we don't know the type yet  ... }
         if parse_generic then
@@ -117,7 +117,7 @@ uses
             consume(_RSHARPBRACKET);
             if parse_generic and parse_class_parent then
               begin
-                if df_generic in genericdef.defoptions then
+                if (symname='') and (df_generic in genericdef.defoptions) then
                   { this happens in non-Delphi modes }
                   tt:=genericdef
                 else
@@ -125,7 +125,11 @@ uses
                     { find the corresponding generic symbol so that any checks
                       done on the returned def will be handled correctly }
                     str(gencount,countstr);
-                    genname:=ttypesym(genericdef.typesym).realname+'$'+countstr;
+                    if symname='' then
+                      genname:=ttypesym(genericdef.typesym).realname
+                    else
+                      genname:=symname;
+                    genname:=symname+'$'+countstr;
                     ugenname:=upper(genname);
                     if not searchsym(ugenname,srsym,st) or
                         (srsym.typ<>typesym) then
@@ -146,8 +150,6 @@ uses
         genericdeflist:=TFPObjectList.Create(false);
 
         { Parse type parameters }
-        if not assigned(genericdef.typesym) then
-          internalerror(200710173);
         err:=false;
         { if parsedtype is set, then the first type identifer was already parsed
           (happens in inline specializations) and thus we only need to parse
@@ -196,10 +198,13 @@ uses
         str(genericdeflist.Count,countstr);
         { use the name of the symbol as procvars return a user friendly version
           of the name }
-        genname:=ttypesym(genericdef.typesym).realname;
+        if symname='' then
+          genname:=ttypesym(genericdef.typesym).realname
+        else
+          genname:=symname;
         { in case of non-Delphi mode the type name could already be a generic
           def (but maybe the wrong one) }
-        if df_generic in genericdef.defoptions then
+        if assigned(genericdef) and (df_generic in genericdef.defoptions) then
           begin
             { remove the type count suffix from the generic's name }
             for i:=Length(genname) downto 1 do

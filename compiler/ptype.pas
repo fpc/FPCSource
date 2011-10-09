@@ -370,7 +370,7 @@ implementation
            (m_delphi in current_settings.modeswitches) then
           dospecialize:=token=_LSHARPBRACKET;
         if dospecialize then
-          generate_specialization(def,stoParseClassParent in options,nil)
+          generate_specialization(def,stoParseClassParent in options,nil,'')
         else
           begin
             if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -839,7 +839,7 @@ implementation
                      dospecialize:=token=_LSHARPBRACKET;
                    if dospecialize then
                      begin
-                       generate_specialization(def,false,nil);
+                       generate_specialization(def,false,nil,'');
                        { handle nested types }
                        post_comp_expr_gendef(def);
                      end

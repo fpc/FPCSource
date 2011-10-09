@@ -2896,12 +2896,31 @@ implementation
             result:=ttypenode(tloadvmtaddrnode(n).left).typedef;
         end;
 
+      function getgenericsym(n:tnode;out srsym:tsym):boolean;
+        var
+          srsymtable : tsymtable;
+        begin
+          srsym:=nil;
+          case n.nodetype of
+            typen:
+              srsym:=ttypenode(n).typedef.typesym;
+            loadvmtaddrn:
+              srsym:=ttypenode(tloadvmtaddrnode(n).left).typedef.typesym;
+            loadn:
+              if not searchsym_with_symoption(tloadnode(n).symtableentry.Name,srsym,srsymtable,sp_generic_dummy) then
+                srsym:=nil;
+            { TODO : handle const nodes }
+          end;
+          result:=assigned(srsym);
+        end;
+
       var
         p1,p2   : tnode;
         oldt    : Ttoken;
         filepos : tfileposinfo;
         again   : boolean;
         gendef,parseddef : tdef;
+        gensym : tsym;
       begin
         if pred_level=highest_precedence then
           p1:=factor(false,typeonly)
@@ -2941,18 +2960,20 @@ implementation
                             same name is defined in the same unit where the
                             generic is defined (though "same unit" is not
                             necessarily needed) }
-                   if istypenode(p1) and istypenode(p2) and
+                   if getgenericsym(p1,gensym) and
+                      { Attention: when nested specializations are supported
+                                   p2 could be a loadn if a "<" follows }
+                      istypenode(p2) and
                        (m_delphi in current_settings.modeswitches) and
+                       { TODO : add _LT, _LSHARPBRACKET for nested specializations }
                        (token in [_GT,_RSHARPBRACKET,_COMMA]) then
                      begin
                        { this is an inline specialization }
 
                        { retrieve the defs of two nodes }
-                       gendef:=gettypedef(p1);
+                       gendef:=nil;
                        parseddef:=gettypedef(p2);
 
-                       if gendef.typesym.typ<>typesym then
-                         Internalerror(2011050301);
                        if parseddef.typesym.typ<>typesym then
                          Internalerror(2011051001);
 
@@ -2960,7 +2981,7 @@ implementation
                        check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg);
 
                        { generate the specialization }
-                       generate_specialization(gendef,false,parseddef);
+                       generate_specialization(gendef,false,parseddef,gensym.RealName);
 
                        { we don't need the old left and right nodes anymore }
                        p1.Free;
@@ -3041,7 +3062,7 @@ implementation
                          Internalerror(2011071401);
 
                        { generate the specialization }
-                       generate_specialization(gendef,false,nil);
+                       generate_specialization(gendef,false,nil,'');
 
                        { we don't need the old p2 anymore }
                        p2.Free;
