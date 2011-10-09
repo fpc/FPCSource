@@ -538,7 +538,7 @@ implementation
                       gendef:=tstoreddef(ttypesym(sym).typedef);
                     end;
                 end;
-              { insert a newtype if we don't reuse an existing symbol }
+              { insert a new type if we don't reuse an existing symbol }
               if not assigned(newtype) then
                 begin
                   newtype:=ttypesym.create(genorgtypename,hdef);
@@ -592,7 +592,8 @@ implementation
               if isgeneric and assigned(sym) and
                   not (m_delphi in current_settings.modeswitches) and
                   (ttypesym(sym).typedef.typ=undefineddef) then
-                  { TODO : check whether the undefined def needs to be freed }
+                { don't free the undefineddef as the defids rely on the count
+                  of the defs in the def list of the module}
                 ttypesym(sym).typedef:=hdef;
               newtype.typedef:=hdef;
               { KAZ: handle TGUID declaration in system unit }
