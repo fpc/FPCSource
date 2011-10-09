@@ -2018,15 +2018,8 @@ implementation
                     exit;
                   end;
 
-<<<<<<< HEAD
                { check hints, but only if it isn't a potential generic symbol;
                  that is checked in sub_expr if it isn't a generic }
-=======
-               { check hints if it is the final symbol that is used (e.g. in
-                 case of generics only the dummy symbol or the non-generic one
-                 is found here }
-               { TODO : correct this check }
->>>>>>> Added two reminders for me
                if assigned(srsym) and
                    not (
                      (srsym.typ=typesym) and
