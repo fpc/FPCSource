@@ -362,6 +362,7 @@ implementation
          vmtbuilder : TVMTBuilder;
          s : shortstring;
          gendef : tstoreddef;
+         s : shortstring;
       begin
          old_block_type:=block_type;
          { save unit container of forward declarations -
@@ -536,6 +537,13 @@ implementation
                         genericdef for the specialized type }
                       gendef:=tstoreddef(ttypesym(sym).typedef);
                     end;
+                end;
+              { insert a newtype if we don't reuse an existing symbol }
+              if not assigned(newtype) then
+                begin
+                  newtype:=ttypesym.create(genorgtypename,hdef);
+                  newtype.visibility:=symtablestack.top.currentvisibility;
+                  symtablestack.top.insert(newtype);
                 end;
               { insert a newtype if we don't reuse an existing symbol }
               if not assigned(newtype) then
