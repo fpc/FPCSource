@@ -21,7 +21,7 @@ var
     Compiler helper routines.
   ---------------------------------------------------------------------}
 
-procedure variant_init(var v : tvardata);[Public,Alias:'FPC_VARIANT_INIT'];
+procedure fpc_variant_init(var v : tvardata);[Public,Alias:'FPC_VARIANT_INIT'];compilerproc;
   begin
      { calling the variant manager here is a problem because the static/global variants
        are initialized while the variant manager isn't assigned }
@@ -29,12 +29,15 @@ procedure variant_init(var v : tvardata);[Public,Alias:'FPC_VARIANT_INIT'];
   end;
 
 
-procedure variant_clear(var v : tvardata);[Public,Alias:'FPC_VARIANT_CLEAR'];
+procedure fpc_variant_clear(var v : tvardata);[Public,Alias:'FPC_VARIANT_CLEAR'];compilerproc;
   begin
     if assigned(VarClearProc) then
       VarClearProc(v);
   end;
 
+{ declare aliases for local use }
+procedure variant_init(var v: tvardata); external name 'FPC_VARIANT_INIT';
+procedure variant_clear(var v: tvardata); external name 'FPC_VARIANT_CLEAR';
 
 procedure variant_addref(var v : tvardata);[Public,Alias:'FPC_VARIANT_ADDREF'];
   begin

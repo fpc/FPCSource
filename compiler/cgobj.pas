@@ -3627,18 +3627,27 @@ implementation
       begin
         cgpara1.init;
         cgpara2.init;
-        paramanager.getintparaloc(pocall_default,1,cgpara1);
-        paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_ansistring(t) or
             is_widestring(t) or
             is_unicodestring(t) or
             is_interfacecom_or_dispinterface(t) or
             is_dynamic_array(t) then
            a_load_const_ref(list,OS_ADDR,0,ref)
+         else if t.typ=variantdef then
+           begin
+             paramanager.getintparaloc(pocall_default,1,cgpara1);
+             a_loadaddr_ref_cgpara(list,ref,cgpara1);
+             paramanager.freecgpara(list,cgpara1);
+             allocallcpuregisters(list);
+             a_call_name(list,'FPC_VARIANT_INIT',false);
+             deallocallcpuregisters(list);
+           end
          else
            begin
               if is_open_array(t) then
                 InternalError(201103052);
+              paramanager.getintparaloc(pocall_default,1,cgpara1);
+              paramanager.getintparaloc(pocall_default,2,cgpara2);
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               a_loadaddr_ref_cgpara(list,href,cgpara2);
               a_loadaddr_ref_cgpara(list,ref,cgpara1);
@@ -3660,8 +3669,6 @@ implementation
       begin
         cgpara1.init;
         cgpara2.init;
-        paramanager.getintparaloc(pocall_default,1,cgpara1);
-        paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_ansistring(t) or
             is_widestring(t) or
             is_unicodestring(t) or
@@ -3670,10 +3677,21 @@ implementation
               g_decrrefcount(list,t,ref);
               a_load_const_ref(list,OS_ADDR,0,ref);
             end
+         else if t.typ=variantdef then
+           begin
+             paramanager.getintparaloc(pocall_default,1,cgpara1);
+             a_loadaddr_ref_cgpara(list,ref,cgpara1);
+             paramanager.freecgpara(list,cgpara1);
+             allocallcpuregisters(list);
+             a_call_name(list,'FPC_VARIANT_CLEAR',false);
+             deallocallcpuregisters(list);
+           end
          else
            begin
               if is_open_array(t) then
                 InternalError(201103051);
+              paramanager.getintparaloc(pocall_default,1,cgpara1);
+              paramanager.getintparaloc(pocall_default,2,cgpara2);
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               a_loadaddr_ref_cgpara(list,href,cgpara2);
               a_loadaddr_ref_cgpara(list,ref,cgpara1);

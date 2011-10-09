@@ -602,6 +602,13 @@ implementation
                cnilnode.create
                );
           end
+        else if (p.resultdef.typ=variantdef) then
+          begin
+            result:=ccallnode.createintern('fpc_variant_init',
+              ccallparanode.create(
+                ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
+              nil));
+          end
         else
           begin
             result:=ccallnode.createintern('fpc_initialize',
@@ -669,6 +676,13 @@ implementation
                ctypeconvnode.create_internal(p.getcopy,voidpointertype),
                cnilnode.create
                ));
+          end
+        else if p.resultdef.typ=variantdef then
+          begin
+            result:=ccallnode.createintern('fpc_variant_clear',
+              ccallparanode.create(
+                ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
+              nil));
           end
         else
           result:=ccallnode.createintern('fpc_finalize',

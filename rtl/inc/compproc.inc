@@ -546,6 +546,8 @@ function fpc_SetupReadStr_Widestr(const s: widestring): PText; compilerproc;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
+procedure fpc_variant_init(var v: tvardata);compilerproc;
+procedure fpc_variant_clear(var v: tvardata);compilerproc;
 procedure fpc_variant_copy(d,s : pointer);compilerproc;
 procedure fpc_variant_copy_overwrite(source, dest : pointer);compilerproc;
 procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); compilerproc;
