@@ -372,6 +372,11 @@ end;
 function __pipe_call(sysnr:TSysParam):TSysResult; {$ifdef cpui386}oldfpccall{$endif} external name 'FPC_DOSYS0';
 
 Function FPpipe(var fildes : tfildes):cint;
+{$ifndef freebsd}
+begin
+  fppipe:=do_syscall(syscall_nr_pipe,TSysParam(@fildes));
+end;
+{$else}
 var
   a, b: cInt;
 begin
@@ -393,6 +398,7 @@ begin
   fildes[0] := a;
   fildes[1] := b;
 end;
+{$endif}
 
 function FPfcntl(fildes:cint;Cmd:cint;Arg:cint):cint;
 
