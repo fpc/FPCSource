@@ -78,6 +78,8 @@ uses
         onlyparsepara : boolean;
         specializest : tsymtable;
         item: psymtablestackitem;
+        old_current_structdef : tabstractrecorddef;
+        old_current_genericdef,old_current_specializedef : tstoreddef;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -334,6 +336,20 @@ uses
             { Reparse the original type definition }
             if not err then
               begin
+                if parse_class_parent then
+                  begin
+                    old_current_structdef:=current_structdef;
+                    old_current_genericdef:=current_genericdef;
+                    old_current_specializedef:=current_specializedef;
+
+                    if genericdef.owner.symtabletype in [recordsymtable,objectsymtable] then
+                      current_structdef:=tabstractrecorddef(genericdef.owner.defowner)
+                    else
+                      current_structdef:=nil;
+                    current_genericdef:=nil;
+                    current_specializedef:=nil;
+                  end;
+
                 { First a new typesym so we can reuse this specialization and
                   references to this specialization can be handled }
                 srsym:=ttypesym.create(specializename,generrordef);
@@ -388,6 +404,13 @@ uses
                 end;
                 { Consume the semicolon if it is also recorded }
                 try_to_consume(_SEMICOLON);
+
+                if parse_class_parent then
+                  begin
+                    current_structdef:=old_current_structdef;
+                    current_genericdef:=old_current_genericdef;
+                    current_specializedef:=old_current_specializedef;
+                  end;
               end;
 
             { Restore symtablestack }
