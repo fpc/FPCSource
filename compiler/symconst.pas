@@ -184,7 +184,15 @@ type
     { type is a specialization of a generic type }
     df_specialization,
     { def has been copied from another def so symtable is not owned }
-    df_copied_def
+    df_copied_def,
+    { this flag is set when the methods for a spezialization where already
+      generated; this is for example needed in case of the enumerator in the
+      generic lists of fgl.pp: the enumerator is specialized as part of the
+      surrounding class and if the class and the enumerator are used in the
+      same unit the methods of the enumerator are generated twice, once as part
+      of the class and once as part of the temporary variable that holds the
+      enumerator }
+    df_methods_specialized
   );
   tdefoptions=set of tdefoption;
 

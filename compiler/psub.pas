@@ -1998,6 +1998,8 @@ implementation
           i  : longint;
           hp : tdef;
         begin
+          if df_methods_specialized in def.defoptions then
+            Exit;
           for i:=0 to def.symtable.DefList.Count-1 do
             begin
               hp:=tdef(def.symtable.DefList[i]);
@@ -2024,6 +2026,9 @@ implementation
                  { generate code for subtypes as well }
                  process_abstractrecorddef(tabstractrecorddef(hp));
            end;
+          { we need to flag the def, so that we know the next time that we
+            already specialized the methods }
+          Include(def.defoptions, df_methods_specialized);
         end;
 
       begin
