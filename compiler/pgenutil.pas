@@ -139,8 +139,6 @@ uses
                         identifier_not_found(genname);
                         exit;
                       end;
-                    if not (ttypesym(srsym).typedef is tstoreddef) then
-                      Internalerror(2011091601);
                     tt:=ttypesym(srsym).typedef;
                   end;
               end;
