@@ -1596,13 +1596,11 @@ procedure InitWinCEWidestrings;
     widestringmanager.Ansi2WideMoveProc:=@WinCEAnsi2WideMove;
     widestringmanager.UpperWideStringProc:=@WinCEWideUpper;
     widestringmanager.LowerWideStringProc:=@WinCEWideLower;
-{$ifndef VER2_2}
     { Unicode }
     widestringmanager.Unicode2AnsiMoveProc:=@WinCEUnicode2AnsiMove;
     widestringmanager.Ansi2UnicodeMoveProc:=@WinCEAnsi2UnicodeMove;
     widestringmanager.UpperUnicodeStringProc:=@WinCEUnicodeUpper;
     widestringmanager.LowerUnicodeStringProc:=@WinCEUnicodeLower;
-{$endif VER2_2}
   end;
 
 
