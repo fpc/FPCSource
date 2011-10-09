@@ -308,6 +308,7 @@ implementation
           begin
              { use single_type instead of id_type for specialize support }
              single_type(hdef,[stoAllowSpecialization,stoParseClassParent]);
+             { TODO : handle a generic interface }
              if (hdef.typ<>objectdef) then
                begin
                   if intf then
