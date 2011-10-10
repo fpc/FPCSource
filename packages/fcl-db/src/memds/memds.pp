@@ -311,7 +311,9 @@ begin
   ftString:   result:=FieldDefs.Items[FieldNo-1].Size+1;
   ftFixedChar:result:=FieldDefs.Items[FieldNo-1].Size+1;
   ftBoolean:  result:=SizeOf(Wordbool);
+  ftCurrency,
   ftFloat:    result:=SizeOf(Double);
+  ftBCD:      result:=SizeOf(currency);
   ftLargeInt: result:=SizeOf(int64);
   ftSmallInt: result:=SizeOf(SmallInt);
   ftInteger:  result:=SizeOf(longint);
@@ -981,6 +983,7 @@ begin
                 ftDate     : F1.AsDateTime:=F2.AsDateTime;
                 ftTime     : F1.AsDateTime:=F2.AsDateTime;
                 ftDateTime : F1.AsDateTime:=F2.AsDateTime;
+                else         F1.AsString:=F2.AsString;
               end;
               end;
             Try
