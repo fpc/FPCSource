@@ -16,6 +16,10 @@ rcsid:
 	.size	__progname , 4
 __progname:
 	.long .LC0
+.global __progname_storage
+	.type __progname_storage, @ object
+	.size  __progname_storage, 256
+
         .align  4
 ___fpucw:
         .long   0x1332
