@@ -703,6 +703,17 @@ begin
       result:=0;
       exit;
     end;
+  { don't compare strings if one of them is empty }
+  if (pointer(S1)=nil) then
+    begin
+      result:=-Length(S2);
+      exit;
+    end;
+  if (pointer(S2)=nil) then
+    begin
+      result:=Length(S1);
+      exit;
+    end;
   cp1:=StringCodePage(S1);
   cp2:=StringCodePage(S2);
   if (cp1=cp2) then
