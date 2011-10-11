@@ -1644,10 +1644,30 @@ implementation
                     end;
                   st_ansistring :
                     begin
-                      if not(is_ansistring(rd)) then
-                        inserttypeconv(right,cansistringtype);
-                      if not(is_ansistring(ld)) then
-                        inserttypeconv(left,cansistringtype);
+                      { use same code page if possible (don't force same code
+                        page in case both are ansistrings with code page <>
+                        CP_NONE, since then data loss can occur (the ansistring
+                        helpers will convert them at run time to an encoding
+                        that can represent both encodings) }
+                      if is_ansistring(ld) and
+                         (tstringdef(ld).encoding<>0) and
+                         (tstringdef(ld).encoding<>globals.CP_NONE) and
+                         (not is_ansistring(rd) or
+                          (tstringdef(rd).encoding=0) or
+                          (tstringdef(rd).encoding=globals.CP_NONE)) then
+                        inserttypeconv(right,ld)
+                      else if is_ansistring(rd) and
+                         (tstringdef(rd).encoding<>0) and
+                         (tstringdef(rd).encoding<>globals.CP_NONE) and
+                         (not is_ansistring(ld) or
+                          (tstringdef(ld).encoding=0) or
+                          (tstringdef(ld).encoding=globals.CP_NONE)) then
+                        inserttypeconv(left,rd)
+                      else
+                        begin
+                          inserttypeconv(left,cansistringtype);
+                          inserttypeconv(right,cansistringtype);
+                        end;
                     end;
                   st_longstring :
                     begin

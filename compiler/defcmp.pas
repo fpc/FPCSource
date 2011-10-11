@@ -335,20 +335,32 @@ implementation
                      { Constant string }
                      if (fromtreetype=stringconstn) then
                       begin
-                        if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) then
+                        if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and
+                           ((tstringdef(def_from).stringtype<>st_ansistring) or
+                            (tstringdef(def_from).encoding=tstringdef(def_to).encoding)
+                           ) then
                           eq:=te_equal
                         else
                          begin
                            doconv:=tc_string_2_string;
-                           { Don't prefer conversions from widestring to a
-                             normal string as we can lose information }
-                           if (tstringdef(def_from).stringtype in [st_widestring,st_unicodestring]) and
-                             not (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
-                             eq:=te_convert_l3
-                           else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
-                             eq:=te_convert_l2
+                           if (tstringdef(def_from).stringtype = st_ansistring) and
+                              (tstringdef(def_to).stringtype = st_ansistring) then
+                             if (tstringdef(def_to).encoding=globals.CP_UTF8) then
+                               eq:=te_convert_l1
+                             else
+                               eq:=te_convert_l2
                            else
-                             eq:=te_convert_l1;
+                            begin
+                              { Don't prefer conversions from widestring to a
+                                normal string as we can lose information }
+                              if (tstringdef(def_from).stringtype in [st_widestring,st_unicodestring]) and
+                                not (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
+                                eq:=te_convert_l3
+                              else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
+                                eq:=te_convert_l2
+                              else
+                                eq:=te_convert_l1;
+                            end;
                          end;
                       end
                      else if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and

@@ -4208,9 +4208,9 @@ In case not, the value returned can be arbitrary.
                                   if not iswidestring then
                                    begin
                                      if len>0 then
-                                       ascii2unicode(@cstringpattern[1],len,patternw)
+                                       ascii2unicode(@cstringpattern[1],len,current_settings.sourcecodepage,patternw)
                                      else
-                                       ascii2unicode(nil,len,patternw);
+                                       ascii2unicode(nil,len,current_settings.sourcecodepage,patternw);
                                      iswidestring:=true;
                                      len:=0;
                                    end;
@@ -4252,9 +4252,9 @@ In case not, the value returned can be arbitrary.
                                if not iswidestring then
                                  begin
                                    if len>0 then
-                                     ascii2unicode(@cstringpattern[1],len,patternw)
+                                     ascii2unicode(@cstringpattern[1],len,current_settings.sourcecodepage,patternw)
                                    else
-                                     ascii2unicode(nil,len,patternw);
+                                     ascii2unicode(nil,len,current_settings.sourcecodepage,patternw);
                                    iswidestring:=true;
                                    len:=0;
                                  end;

@@ -1025,23 +1025,18 @@ implementation
         newblock : tblocknode;
         newstat  : tstatementnode;
         restemp  : ttempcreatenode;
-        //sa : ansistring;
-        //cw : WideChar;
-        //l : SizeUInt;
+        sa : ansistring;
+        cw : WideChar;
+        l : SizeUInt;
       begin
          result:=nil;
-         { we can't do widechar to ansichar conversions at compile time, since }
-         { this maps all non-ascii chars to '?' -> loses information           }
-
          if (left.nodetype=ordconstn) and
-            ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
+            ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring]) or
              (torddef(left.resultdef).ordtype=uchar) or
              ((torddef(left.resultdef).ordtype=uwidechar) and
-              (current_settings.sourcecodepage<>CP_UTF8)
+              (tstringdef(resultdef).stringtype<>st_shortstring)
              )
-            )
-             { widechar >=128 is destroyed }
-             {(tordconstnode(left).value.uvalue<128))} then
+            ) then
            begin
               if (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
                begin
@@ -1062,12 +1057,11 @@ implementation
                       hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)))
                     else
                      begin
-                       exit;
-                       {Word(cw):=tcompilerwidechar(tordconstnode(left).value.uvalue);
+                       Word(cw):=tcompilerwidechar(tordconstnode(left).value.uvalue);
                        SetLength(sa,5);
                        l:=UnicodeToUtf8(@(sa[1]),Length(sa),@cw,1);
                        SetLength(sa,l-1);
-                       hp:=cstringconstnode.createstr(sa);}
+                       hp:=cstringconstnode.createstr(sa);
                      end
                    end
                   else
@@ -1077,6 +1071,18 @@ implementation
               result:=hp;
            end
          else
+           if (tstringdef(resultdef).stringtype=st_shortstring) and
+              (torddef(left.resultdef).ordtype=uwidechar) and
+              (tcompilerwidechar(tordconstnode(left).value.uvalue) <= 127)
+           then
+             begin
+               SetLength(sa,1);
+               Byte(sa[1]):= tordconstnode(left).value.uvalue;
+               hp:=cstringconstnode.createstr(sa);
+               tstringconstnode(hp).changestringtype(resultdef);
+               result:=hp;
+             end
+           else
            { shortstrings are handled 'inline' (except for widechars) }
            if (tstringdef(resultdef).stringtype<>st_shortstring) or
               (torddef(left.resultdef).ordtype=uwidechar) then
@@ -1133,14 +1139,11 @@ implementation
       begin
         result:=nil;
         if (left.nodetype=stringconstn) and
-           ((tstringdef(resultdef).stringtype=st_shortstring) or
-            ((tstringdef(resultdef).stringtype=st_ansistring) and
+           (((tstringdef(resultdef).stringtype=st_ansistring) and
              (tstringdef(resultdef).encoding<>CP_NONE)
             )
            ) and
-           ((tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and
-            (current_settings.sourcecodepage<>CP_UTF8)
-           ) then
+           (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) then
           begin
             tstringconstnode(left).changestringtype(resultdef);
             Result:=left;
@@ -1163,7 +1166,18 @@ implementation
                       resultdef
                     );
             left:=nil;
-          end;
+          end
+        else if (left.nodetype=stringconstn) and
+                (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and
+                (tstringdef(resultdef).stringtype=st_shortstring) then
+          begin
+            if not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str)) then
+              begin
+                tstringconstnode(left).changestringtype(resultdef);
+                Result:=left;
+                left:=nil;
+              end;
+          end
       end;
 
     function ttypeconvnode.typecheck_char_to_chararray : tnode;
@@ -1190,8 +1204,7 @@ implementation
             ((torddef(resultdef).ordtype<>uchar) or
              (torddef(left.resultdef).ordtype<>uwidechar) or
              (current_settings.sourcecodepage<>CP_UTF8))
-             { >= 128 is replaced by '?' currently -> loses information }
-             {(tordconstnode(left).value.uvalue<128))} then
+         then
            begin
              if (torddef(resultdef).ordtype=uchar) and
                 (torddef(left.resultdef).ordtype=uwidechar) and
@@ -2269,11 +2282,8 @@ implementation
               (
                 ((not is_widechararray(left.resultdef) and
                   not is_wide_or_unicode_string(left.resultdef)) or
-                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
-                 (current_settings.sourcecodepage<>CP_UTF8)
+                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring])
                 )
-                 { non-ascii chars would be replaced with '?' -> loses info }
-                 {not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str)))}
               ) then
               begin
                 tstringconstnode(left).changestringtype(resultdef);
