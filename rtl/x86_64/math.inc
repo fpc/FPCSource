@@ -17,7 +17,7 @@ label
   FPC_ABSMASK_DOUBLE,
   FPC_ABSMASK_SINGLE;
 
-procedure dummyproc;assembler;
+procedure dummyproc;assembler;nostackframe;
   asm
   .data
     .balign 16
@@ -36,30 +36,25 @@ FPC_ABSMASK_DOUBLE:
                             FPU Control word
  ****************************************************************************}
 
-    procedure Set8087CW(cw:word);assembler;
-      asm        
-        movw cw,%ax
-{$ifdef FPC_PIC}
-        movq default8087cw@GOTPCREL(%rip),%rdx
-        movw %ax,(%rdx)
-        fnclex
-        fldcw (%rdx)
-{$else FPC_PIC}
-        movw %ax,default8087cw{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
-        fnclex
-        fldcw default8087cw{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
-{$endif FPC_PIC}
+    procedure Set8087CW(cw:word);
+      begin
+         default8087cw:=cw;
+         asm
+           fnclex
+           fldcw cw
+         end;
       end;
 
 
     function Get8087CW:word;assembler;
+      var
+        tmp: word;
       asm
-        pushq $0
-        fnstcw (%rsp)
-        popq %rax
+        fnstcw tmp
+        movq   tmp,%rax
       end;
-    
-    
+
+
     procedure SetSSECSR(w : dword);
       begin
         mxcsr:=w;
@@ -67,16 +62,14 @@ FPC_ABSMASK_DOUBLE:
           ldmxcsr w
         end;
       end;
-    
-    
-    function GetSSECSR : dword;
+
+
+    function GetSSECSR : dword;assembler;
       var
         _w : dword;
-      begin
-        asm
-          stmxcsr _w
-        end;
-        result:=_w;
+      asm
+        stmxcsr _w
+        movl    _w,%eax
       end;
 
 {****************************************************************************
