@@ -51,7 +51,8 @@ FPC_ABSMASK_DOUBLE:
         tmp: word;
       asm
         fnstcw tmp
-        movq   tmp,%rax
+        movw   tmp,%ax
+        andl   $0xffff,%eax  { clears bits 32-63 }
       end;
 
 
