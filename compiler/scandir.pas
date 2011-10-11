@@ -1370,14 +1370,15 @@ unit scandir;
           Message(scan_w_switch_is_global)
         else
           begin
-             current_scanner.skipspace;
-             s:=current_scanner.readcomment;
-             if (upper(s)='UTF8') or (upper(s)='UTF-8') then
-               current_settings.sourcecodepage:=CP_UTF8
-             else if not(cpavailable(s)) then
-               Message1(option_code_page_not_available,s)
-             else
-               current_settings.sourcecodepage:=codepagebyname(s);
+            current_scanner.skipspace;
+            s:=current_scanner.readcomment;
+            if (upper(s)='UTF8') or (upper(s)='UTF-8') then
+              current_settings.sourcecodepage:=CP_UTF8
+            else if not(cpavailable(s)) then
+              Message1(option_code_page_not_available,s)
+            else
+              current_settings.sourcecodepage:=codepagebyname(s);
+            include(current_settings.moduleswitches,cs_explicit_codepage);
           end;
       end;
 

@@ -348,8 +348,12 @@ implementation
         if m_systemcodepage in current_settings.modeswitches then
           begin
             current_settings.sourcecodepage:=DefaultSystemCodePage;
+            include(current_settings.moduleswitches,cs_explicit_codepage);
             if changeinit then
+            begin
               init_settings.sourcecodepage:=DefaultSystemCodePage;
+              include(init_settings.moduleswitches,cs_explicit_codepage);
+            end;
           end;
       end;
 
@@ -2650,6 +2654,7 @@ In case not, the value returned can be arbitrary.
                        inc(inputpointer,3);
                        message(scan_c_switching_to_utf8);
                        current_settings.sourcecodepage:=CP_UTF8;
+                       include(current_settings.moduleswitches,cs_explicit_codepage);
                      end;
 
                    line_no:=1;

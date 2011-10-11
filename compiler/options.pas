@@ -867,11 +867,12 @@ begin
                  'c' :
                    begin
                      if (upper(more)='UTF8') or (upper(more)='UTF-8') then
-                        init_settings.sourcecodepage:=CP_UTF8
+                       init_settings.sourcecodepage:=CP_UTF8
                      else if not(cpavailable(more)) then
                        Message1(option_code_page_not_available,more)
                      else
                        init_settings.sourcecodepage:=codepagebyname(more);
+                     include(init_settings.moduleswitches,cs_explicit_codepage);
                    end;
                  'C' :
                    RCCompiler := More;

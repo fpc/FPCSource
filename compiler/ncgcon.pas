@@ -292,7 +292,7 @@ implementation
                   if cp=CP_NONE then
                     cp:=0;
                   { for delphiuncode mode output CP_ACP constants in the compiler codepage }
-                  if (cp=0) and (m_systemcodepage in current_settings.modeswitches) then
+                  if (cp=0) and (cs_explicit_codepage in current_settings.moduleswitches) then
                     cp:=current_settings.sourcecodepage;
                   entry := PHashSetItem(TTagHashSet(pool).FindOrAdd(value_str,len,cp))
                 end
