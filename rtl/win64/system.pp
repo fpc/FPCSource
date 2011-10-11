@@ -181,6 +181,7 @@ var
 procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
   var
     ST : pointer;
+    save_rbp: pointer;
   begin
      IsLibrary:=false;
      { install the handlers for exe only ?
@@ -188,22 +189,7 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      install_exception_handlers;
      ExitCode:=0;
      asm
-        { allocate space for an exception frame }
-        pushq $0
-        pushq %gs:(0)
-        { movl  %rsp,%gs:(0)
-          but don't insert it as it doesn't
-          point to anything yet
-          this will be used in signals unit }
-        movq %rsp,%rax
-{$ifdef FPC_HAS_RIP_RELATIVE}
-        movq %rax,System_exception_frame(%rip)
-{$else}
-        movq %rax,System_exception_frame
-{$endif}
-        { keep stack aligned }
-        pushq $0
-        pushq %rbp
+        movq  %rbp,save_rbp
         movq %rsp,%rax
         movq %rax,st
      end;
@@ -211,15 +197,10 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      asm
         xorq %rax,%rax
         movw %ss,%ax
-{$ifdef FPC_HAS_RIP_RELATIVE}
         movl %eax,_SS(%rip)
-{$else}
-        movl %eax,_SS
-{$endif}
         xorq %rbp,%rbp
         call PASCALMAIN
-        popq %rbp
-        popq %rax
+        movq save_rbp,%rbp
      end;
      { if we pass here there was no error ! }
      system_exit;
@@ -642,9 +623,7 @@ begin
   errno:=0;
   initvariantmanager;
   initwidestringmanager;
-{$ifndef VER2_2}
   initunicodestringmanager;
-{$endif VER2_2}
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.
