@@ -258,6 +258,7 @@ implementation
          href: treference;
          pool: THashSet;
          entry: PHashSetItem;
+         cp: tstringencoding;
 
       const
         PoolMap: array[tconststringtype] of TConstPoolType = (
@@ -282,12 +283,21 @@ implementation
               pool := current_asmdata.ConstPools[PoolMap[cst_type]];
 
               if cst_type in [cst_widestring, cst_unicodestring] then
-                entry := pool.FindOrAdd(pcompilerwidestring(value_str)^.data, len*cwidechartype.size)
+                entry := pool.FindOrAdd(pcompilerwidestring(value_str)^.data,len*cwidechartype.size)
               else
               if cst_type = cst_ansistring then
-                entry := PHashSetItem(TTagHashSet(pool).FindOrAdd(value_str, len, tstringdef(resultdef).encoding))
+                begin
+                  cp:=tstringdef(resultdef).encoding;
+                  { force output of RawByteString constants in CP_ACP codepage }
+                  if cp=CP_NONE then
+                    cp:=0;
+                  { for delphiuncode mode output CP_ACP constants in the compiler codepage }
+                  if (cp=0) and (m_systemcodepage in current_settings.modeswitches) then
+                    cp:=current_settings.sourcecodepage;
+                  entry := PHashSetItem(TTagHashSet(pool).FindOrAdd(value_str,len,cp))
+                end
               else
-                entry := pool.FindOrAdd(value_str, len);
+                entry := pool.FindOrAdd(value_str,len);
 
               lab_str := TAsmLabel(entry^.Data);  // is it needed anymore?
 
@@ -300,7 +310,7 @@ implementation
                            if len=0 then
                              InternalError(2008032301)   { empty string should be handled above }
                            else
-                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
+                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,cp);
                         end;
                       cst_unicodestring,
                       cst_widestring:
