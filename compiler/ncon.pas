@@ -1002,26 +1002,24 @@ implementation
           if (cst_type in [cst_widestring,cst_unicodestring]) and
             not(tstringdef(def).stringtype in [st_widestring,st_unicodestring]) then
             begin
-              if (tstringdef(def).encoding=CP_UTF8) or
-                 (current_settings.sourcecodepage=CP_UTF8) then
+              cp1:=tstringdef(def).encoding;
+              if (cp1=CP_NONE) or (cp1=0) then
+                cp1:=current_settings.sourcecodepage;
+              if (cp1=CP_UTF8) then
                 begin
                   pw:=pcompilerwidestring(value_str);
-                  l:=(getlengthwidestring(pw)*4)+1;
+                  l:=UnicodeToUtf8(nil,PUnicodeChar(pw^.data),0);
                   getmem(pc,l);   
-                  l2:=UnicodeToUtf8(pc,l,PUnicodeChar(pw^.data),getlengthwidestring(pw));
-                  if (l<>l2) then
-                    ReAllocMem(pc,l2);
-                  len:=l2-1;
+                  UnicodeToUtf8(pc,l,PUnicodeChar(pw^.data),getlengthwidestring(pw));
+                  len:=l-1;
                   donewidestring(pw);
                   value_str:=pc;
-                  if (tstringdef(def).encoding<>CP_UTF8) then
-                    tstringdef(def).encoding:=CP_UTF8;
                 end
               else
                 begin
                   pw:=pcompilerwidestring(value_str);
                   getmem(pc,getlengthwidestring(pw)+1);
-                  unicode2ascii(pw,pc,tstringdef(def).encoding);
+                  unicode2ascii(pw,pc,cp1);
                   donewidestring(pw);
                   value_str:=pc;
                 end;
