@@ -2992,13 +2992,7 @@ implementation
           end
         { encoding parameter required? }
         else if (tstringdef(resultdef).stringtype=st_ansistring) and
-            ((tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring,st_shortstring]) or
-             { ansistring to ansistring and no RawByteString envolved? }
-             (//(tstringdef(resultdef).encoding<>65535) and
-              (tstringdef(left.resultdef).stringtype=st_ansistring)
-              //(tstringdef(left.resultdef).encoding<>65535)
-             )
-            ) then
+                (tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring,st_shortstring,st_ansistring]) then
             result:=ccallnode.createinternres(procname,
               ccallparanode.create(cordconstnode.create(tstringdef(resultdef).encoding,u16inttype,true),
               ccallparanode.create(left,nil)),resultdef)
