@@ -1629,6 +1629,8 @@ const pemagic : array[0..3] of byte = (
                rel_type:=RELOC_RVA;
              IMAGE_REL_ARM_BRANCH24:
                rel_type:=RELOC_RELATIVE_24;
+             IMAGE_REL_ARM_SECREL:
+               rel_type:=RELOC_SECREL32;
 {$endif arm}
 {$ifdef i386}
              IMAGE_REL_I386_PCRLONG :
