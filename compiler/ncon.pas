@@ -1008,9 +1008,10 @@ implementation
               if (cp1=CP_UTF8) then
                 begin
                   pw:=pcompilerwidestring(value_str);
-                  l:=UnicodeToUtf8(nil,PUnicodeChar(pw^.data),0);
+                  l2:=len;
+                  l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),l2);
                   getmem(pc,l);   
-                  UnicodeToUtf8(pc,l,PUnicodeChar(pw^.data),getlengthwidestring(pw));
+                  UnicodeToUtf8(pc,l,PUnicodeChar(pw^.data),l2);
                   len:=l-1;
                   donewidestring(pw);
                   value_str:=pc;
@@ -1071,7 +1072,7 @@ implementation
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
                           ascii2unicode(value_str,len,cp2,pw);
-                          l:=UnicodeToUtf8(nil,PUnicodeChar(pw^.data),0);
+                          l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),len);
                           if l<>len then
                             ReAllocMem(value_str,l);
                           len:=l-1;
