@@ -730,7 +730,9 @@ begin
       if Config.NeedLibrary then
         begin
           if CompilerTarget<>'darwin' then
-            args:=args+' -Fl'+TestOutputDir+' ''-k-rpath .'''
+          { do not use single quote for -k as they are mishandled on
+            Windows Shells }
+            args:=args+' -Fl'+TestOutputDir+' -k-rpath -k.'
           else
             args:=args+' -Fl'+TestOutputDir;
         end;
@@ -1115,11 +1117,13 @@ begin
 
       if UseTimeout then
       begin
-        execcmd:=execcmd+'timeout -9 ';
         if Config.Timeout=0 then
           Config.Timeout:=DefaultTimeout;
         str(Config.Timeout,s);
-        execcmd:=execcmd+s;
+        if (RemoteShellBase='bash') then
+          execcmd:=execcmd+'ulimit -t '+s+'; '
+        else
+          execcmd:=execcmd+'timeout -9 '+s;
       end;
       { as we moved to RemotePath, if path is not absolute
         we need to use ./execfilename only }
