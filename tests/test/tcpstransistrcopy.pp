@@ -1,4 +1,4 @@
-﻿uses
+uses
 {$ifdef unix}
   cwstring,
 {$endif unix}
@@ -18,7 +18,7 @@ var
   x, y, z : ts850;
   i : Integer;
   c : Integer;
-  sa : ansistring;
+  sa : ts850;
 begin
   sa := 'abc'#$00A9#$00AE'123';
   x := Copy(sa,1,2);
