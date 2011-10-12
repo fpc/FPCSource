@@ -17,6 +17,7 @@ var
   w: widestring;
   ss: shortstring;
 begin
+  SetMultiByteConversionCodePage(CP_UTF8);
   c:=#0;
   w:=c;
   if (length(w)<>1) or
