@@ -1029,8 +1029,14 @@ implementation
              not(cst_type in [cst_widestring,cst_unicodestring]) then
             begin
               cp1:=tstringdef(def).encoding;
+              if cp1=0 then
+                cp1:=current_settings.sourcecodepage;
               if (cst_type = cst_ansistring) then
-                cp2:=tstringdef(resultdef).encoding
+                begin
+                  cp2:=tstringdef(resultdef).encoding;
+                  if cp2=0 then
+                    cp2:=current_settings.sourcecodepage;
+                end
               else if (cst_type in [cst_shortstring,cst_conststring,cst_longstring]) then
                 cp2:=current_settings.sourcecodepage;
               { don't change string if codepages are equal or string length is 0 }  
@@ -1038,7 +1044,7 @@ implementation
                 begin
                   if cpavailable(cp1) and cpavailable(cp2) then
                     changecodepage(value_str,len,cp2,value_str,cp1)
-                  else if (cp1 <> CP_NONE) and (cp2 <> CP_NONE) and (cp1 <> 0) and (cp2 <> 0) then
+                  else if (cp1 <> CP_NONE) and (cp2 <> CP_NONE) then
                     begin
                       { if source encoding is UTF8 convert using UTF8->UTF16->destination encoding }
                       if (cp2=CP_UTF8) then
