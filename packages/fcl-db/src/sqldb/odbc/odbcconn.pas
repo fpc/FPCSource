@@ -334,6 +334,8 @@ begin
 
   SetLength(ODBCCursor.FParamBuf, Length(ODBCCursor.FParamIndex));
   for i:=0 to High(ODBCCursor.FParamIndex) do
+    ODBCCursor.FParamBuf[i]:=nil;
+  for i:=0 to High(ODBCCursor.FParamIndex) do
   begin
     ParamIndex:=ODBCCursor.FParamIndex[i];
     if (ParamIndex<0) or (ParamIndex>=AParams.Count) then
@@ -496,7 +498,8 @@ var
   i:integer;
 begin
   for i:=0 to High(ODBCCursor.FParamBuf) do
-    FreeMem(ODBCCursor.FParamBuf[i]);
+    if assigned(ODBCCursor.FParamBuf[i]) then
+      FreeMem(ODBCCursor.FParamBuf[i]);
   SetLength(ODBCCursor.FParamBuf,0);
 end;
 
@@ -694,23 +697,25 @@ var
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
-  // set parameters
+  try
+    // set parameters
     if Assigned(APArams) and (AParams.count > 0) then SetParameters(ODBCCursor, AParams);
+    // execute the statement
+    case ODBCCursor.FSchemaType of
+      stNoSchema  : Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
+      stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_USER, length(TABLE_TYPE_USER) );
+      stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
+      stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
+      stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
+      else          Res:=SQL_NO_DATA;
+    end; {case}
 
-  // execute the statement
-  case ODBCCursor.FSchemaType of
-    stNoSchema  : Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
-    stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_USER, length(TABLE_TYPE_USER) );
-    stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
-    stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
-    stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
-    else          Res:=SQL_NO_DATA;
-  end; {case}
+    if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
 
-  if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
-
-  // free parameter buffers
-  FreeParamBuffers(ODBCCursor);
+  finally
+    // free parameter buffers
+    FreeParamBuffers(ODBCCursor);
+  end;
 end;
 
 function TODBCConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
