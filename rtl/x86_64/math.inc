@@ -154,20 +154,21 @@ FPC_ABSMASK_DOUBLE:
     {$ifndef FPC_SYSTEM_HAS_EXP}
     {$define FPC_SYSTEM_HAS_EXP}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
+       var
+         oldcw,newcw: word;
        asm
-            subq        $16,%rsp
             // comes from DJ GPP
             fldt        d
             fldl2e
             fmulp       %st,%st(1)
-            fstcw       -2(%rbp)
-            fstcw       -4(%rbp)
-            andw        $0xf3ff,-4(%rbp)
-            orw         $0x0400,-4(%rbp)
-            fldcw       -4(%rbp)
+            fstcw       oldcw
+            fstcw       newcw
+            andw        $0xf3ff,newcw
+            orw         $0x0400,newcw
+            fldcw       newcw
             fld         %st(0)
             frndint
-            fldcw       -2(%rbp)
+            fldcw       oldcw
             fxch        %st(1)
             fsub        %st(1),%st
             f2xm1
@@ -182,14 +183,15 @@ FPC_ABSMASK_DOUBLE:
     {$ifndef FPC_SYSTEM_HAS_FRAC}
     {$define FPC_SYSTEM_HAS_FRAC}
     function fpc_frac_real(d : ValReal) : ValReal;assembler;compilerproc;
+      var
+        oldcw,newcw: word;
       asm
-            subq $16,%rsp
-            fnstcw -4(%rbp)
+            fnstcw oldcw
             fwait
-            movw -4(%rbp),%cx
+            movw oldcw,%cx
             orw $0x0c3f,%cx
-            movw %cx,-8(%rbp)
-            fldcw -8(%rbp)
+            movw %cx,newcw
+            fldcw newcw
             fwait
             fldt d
             frndint
@@ -197,7 +199,7 @@ FPC_ABSMASK_DOUBLE:
             fsub %st(1),%st
             fstp %st(1)
             fnclex
-            fldcw -4(%rbp)
+            fldcw oldcw
       end;
     {$endif FPC_SYSTEM_HAS_FRAC}
 
@@ -205,19 +207,20 @@ FPC_ABSMASK_DOUBLE:
     {$ifndef FPC_SYSTEM_HAS_INT}
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
+      var
+        oldcw,newcw: word;
       asm
-            subq $16,%rsp
-            fnstcw -4(%rbp)
+            fnstcw oldcw
             fwait
-            movw -4(%rbp),%cx
+            movw oldcw,%cx
             orw $0x0c3f,%cx
-            movw %cx,-8(%rbp)
-            fldcw -8(%rbp)
+            movw %cx,newcw
+            fldcw newcw
             fwait
             fldt d
             frndint
             fwait
-            fldcw -4(%rbp)
+            fldcw oldcw
       end;
     {$endif FPC_SYSTEM_HAS_INT}
 
