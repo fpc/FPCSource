@@ -82,18 +82,6 @@ begin
 end;
 
 
-(*
-Procedure UniqueWideString(Var S : WideString); [Public,Alias : 'FPC_WIDESTR_UNIQUE'];
-{
-  Make sure reference count of S is 1,
-  using copy-on-write semantics.
-}
-
-begin
-end;
-*)
-
-
 {****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}
@@ -242,11 +230,7 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    begin
-      widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),DefaultSystemCodePage,result,Size);
-      { Terminating Zero }
-      PWideChar(Pointer(fpc_ShortStr_To_WideStr)+Size*sizeof(WideChar))^:=#0;
-    end;
+    widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),DefaultSystemCodePage,result,Size);
 end;
 
 
@@ -302,13 +286,9 @@ begin
   if p=nil then
     exit;
   Size := IndexWord(p^, -1, 0);
-  Setlength(result,Size);
+  Setlength(result,Size);  // zero-terminates
   if Size>0 then
-   begin
-      Move(p^,PWideChar(Pointer(result))^,Size*sizeof(WideChar));
-      { Terminating Zero }
-      PWideChar(Pointer(result)+Size*sizeof(WideChar))^:=#0;
-   end;
+    Move(p^,PWideChar(Pointer(result))^,Size*sizeof(WideChar));
 end;
 
 
@@ -488,8 +468,6 @@ Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
 begin
   Setlength(fpc_Char_To_WideStr,1);
   fpc_Char_To_WideStr[1]:=c;
-  { Terminating Zero }
-  PWideChar(Pointer(fpc_Char_To_WideStr)+sizeof(WideChar))^:=#0;
 end;
 
 
@@ -553,7 +531,6 @@ begin
     end
   else
     i := high(arr)+1;
-  SetLength(fpc_CharArray_To_WideStr,i);
   widestringmanager.Ansi2WideMoveProc(pchar(@arr),DefaultSystemCodePage,fpc_CharArray_To_WideStr,i);
 end;
 

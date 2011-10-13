@@ -383,11 +383,7 @@ begin
   Size := IndexWord(p^, -1, 0);
   Setlength(result,Size);
   if Size>0 then
-   begin
-      Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
-      { Terminating Zero }
-      PUnicodeChar(Pointer(result)+Size*sizeof(UnicodeChar))^:=#0;
-   end;
+    Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
 end;
 
 
@@ -401,11 +397,7 @@ begin
   Size := IndexWord(p^, -1, 0);
   Setlength(result,Size);
   if Size>0 then
-   begin
-      Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
-      { Terminating Zero }
-      PUnicodeChar(Pointer(result)+Size*sizeof(UnicodeChar))^:=#0;
-   end;
+    Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
 end;
 
 
