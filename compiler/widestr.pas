@@ -28,7 +28,7 @@ unit widestr;
   interface
 
     uses
-       {$ifdef VER2_4}ccharset{$else VER2_4}charset{$endif VER2_4},globtype;
+       {$if FPC_FULLVERSION<20700}ccharset{$else}charset{$endif},globtype;
 
 
     type

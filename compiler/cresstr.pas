@@ -40,7 +40,7 @@ uses
    aasmcpu,
 {$if FPC_FULLVERSION<20700}
    ccharset,
-{$endif }
+{$endif}
    asmutils;
 
     Type

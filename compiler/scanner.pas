@@ -269,7 +269,7 @@ implementation
       { This is needed for tcputype }
       cpuinfo,
       fmodule
-{$ifdef VER2_4}
+{$if FPC_FULLVERSION<20700}
       ,ccharset
 {$endif}
       ;
