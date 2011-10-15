@@ -839,7 +839,7 @@ begin
         ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
         ftBCD    : Params.ParamByName('field1').AsCurrency:= testBCDValues[i];
         ftFixedChar,
-        ftString : Params.ParamByName('field1').AsString  := testStringValues[i];
+        ftString : Params.ParamByName('field1').AsString  := testValues[ADataType,i];
         ftTime   : Params.ParamByName('field1').AsTime  := TimeStringToDateTime(testTimeValues[i]);
         ftDate   : if cross then
                      Params.ParamByName('field1').AsString:= testDateValues[i]

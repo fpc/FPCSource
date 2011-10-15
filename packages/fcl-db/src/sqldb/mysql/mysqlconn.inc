@@ -330,7 +330,7 @@ var esc_str : pchar;
 
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
-  else if param.DataType in [ftString,ftFixedChar,ftBlob,ftMemo] then
+  else if param.DataType in [ftString,ftFixedChar,ftBlob,ftMemo,ftBytes,ftVarBytes] then
     Result := '''' + EscapeString(Param.AsString) + ''''
   else Result := inherited GetAsSqlText(Param);
 end;
@@ -615,7 +615,17 @@ begin
         end
       else
         begin
-        NewType := ftString;
+        if AField^.ftype = FIELD_TYPE_STRING then
+          NewType := ftFixedChar
+        else
+          NewType := ftString;
+{$IFDEF MYSQL50_UP}
+        if AField^.charsetnr = 63 then //BINARY vs. CHAR, VARBINARY vs. VARCHAR
+          if NewType = ftFixedChar then
+            NewType := ftBytes
+          else
+            NewType := ftVarBytes;
+{$ENDIF}
         NewSize := ASize;
         end;
       end;

@@ -368,7 +368,7 @@ Const
    (n:'TIME'; t: ftTime),
    (n:'CURRENCY'; t: ftCurrency),
    (n:'VARCHAR'; t: ftString),
-   (n:'CHAR'; t: ftString),
+   (n:'CHAR'; t: ftFixedChar),
    (n:'NUMERIC'; t: ftBCD),
    (n:'DECIMAL'; t: ftBCD),
    (n:'TEXT'; t: ftmemo),
