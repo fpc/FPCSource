@@ -38,7 +38,7 @@ function IsCacheValid(Src: TStringList;
 procedure Compile(const SrcFilename, CacheFilename, OutputFilename: string);
 procedure WriteCompilerOutput(SrcFilename, CacheFilename, CompilerOutput: string);
 function GetCompiler: string;
-procedure SetCompiler(AValue : string); 
+procedure SetCompiler(AValue : string);
 function GetCompilerParameters(const SrcFilename, OutputFilename: string): string;
 procedure Run(const Filename: string);
 
@@ -47,7 +47,7 @@ implementation
 Var
   CmdCacheDir : String;
   CmdCompiler : String;
-  
+
 procedure AddParam(p: string; var Line: string);
 begin
   if p='' then exit;
@@ -96,18 +96,22 @@ end;
 function GetCacheDir: string;
 begin
   Result:=CmdCacheDir;
-  if (Result='') then 
+  if (Result='') then
     begin
     Result:=GetEnvironmentVariable('INSTANTFPCCACHE');
-    if Result='' then 
+    if Result='' then
       begin
       Result:=GetEnvironmentVariable('HOME');
+{$ifdef WINDOWS}
+      if Result='' then
+        Result:=GetEnvironmentVariable('LOCALAPPDATA');
+{$endif WINDOWS}
       if Result<>'' then
         Result:=IncludeTrailingPathDelimiter(Result)+'.cache'+PathDelim+'instantfpc';
       end;
-    end;  
+    end;
   if Result='' then begin
-    writeln('missing environment variable: HOME or INSTANTFPCCACHE');
+    writeln('missing environment variable: HOME or INSTANTFPCCACHE or LOCALAPPDATA');
     Halt(1);
   end;
   Result:=IncludeTrailingPathDelimiter(ExpandFileName(Result));
@@ -140,7 +144,7 @@ begin
   {$ENDIF}
 end;
 
-procedure SetCompiler(AValue : string); 
+procedure SetCompiler(AValue : string);
 
 begin
   CmdCompiler:=AValue;
@@ -195,7 +199,7 @@ begin
   if (Result<>'') then
     begin
     Result:=ExpandFileName(Result);
-    if not FileExists(Result) then 
+    if not FileExists(Result) then
       begin
       writeln('Error: '+Result+' not found, check the --compiler parameter.');
       Halt(1);
@@ -285,7 +289,7 @@ begin
     p:=ParamStr(i);
     if (Copy(p,1,1)='-') and (copy(p,1,2)<>'--') then
       AddParam(P,Result);
-    inc(I);  
+    inc(I);
     end;
   AddParam('-o'+OutputFilename {$IFDEF HASEXEEXT} + '.exe' {$ENDIF},Result);
   AddParam(SrcFilename,Result);
