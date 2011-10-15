@@ -18,7 +18,7 @@
 
 {$ifndef FPC_UNIT_HAS_STRCOPY}
 {$define FPC_UNIT_HAS_STRCOPY}
-function strcopy(dest,source : pchar) : pchar;assembler;overload;
+function strcopy(dest,source : pchar) : pchar;assembler;
 var
   saveeax,saveesi,saveedi : longint;
 asm
@@ -119,7 +119,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLCOPY}
 {$define FPC_UNIT_HAS_STRLCOPY}
-function strlcopy(dest,source : pchar;maxlen : sizeint) : pchar;assembler;overload;
+function strlcopy(dest,source : pchar;maxlen : sizeint) : pchar;assembler;
 var
   savedest,
   saveesi,saveedi : longint;
