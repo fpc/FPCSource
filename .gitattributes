@@ -1982,6 +1982,7 @@ packages/fcl-db/tests/Makefile.fpc -text
 packages/fcl-db/tests/README.txt svneol=native#text/plain
 packages/fcl-db/tests/XMLXSDExportTest.lpi svneol=native#text/plain
 packages/fcl-db/tests/XMLXSDExportTest.lpr svneol=native#text/plain
+packages/fcl-db/tests/bufdatasettoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/database.ini.txt svneol=native#text/plain
 packages/fcl-db/tests/dbfexporttest.lpi svneol=native#text/plain
 packages/fcl-db/tests/dbfexporttest.lpr svneol=native#text/plain

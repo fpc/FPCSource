@@ -330,7 +330,7 @@ begin
   DBConnectorClass := GetClass('T'+dbconnectorname+'DBConnector');
   if assigned(DBConnectorClass) then
     DBConnector := TDBConnectorClass(DBConnectorClass).create
-  else Raise Exception.Create('Unknown db-connector specified');
+  else Raise Exception.Create('Unknown db-connector specified: ' + 'T'+dbconnectorname+'DBConnector');
   inc(DBConnectorRefCount);
 end;
 
