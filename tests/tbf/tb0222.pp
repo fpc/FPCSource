@@ -9,7 +9,7 @@ procedure test;
 
 implementation
 
-procedure test; deprecated 'xxx';
+procedure test; overload;
 begin
 end;
 
