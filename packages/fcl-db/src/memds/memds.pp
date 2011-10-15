@@ -974,6 +974,7 @@ begin
               F1:=TField(L1[i]);
               F2:=TField(L2[I]);
               Case F1.DataType of
+                ftFixedChar,
                 ftString   : F1.AsString:=F2.AsString;
                 ftBoolean  : F1.AsBoolean:=F2.AsBoolean;
                 ftFloat    : F1.AsFloat:=F2.AsFloat;
