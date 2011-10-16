@@ -40,36 +40,20 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
-asm
-{$ifdef win64}
-        orq     %rcx,%rcx
-        jz      .Lg_a_null
-        movq    8(%rcx),%rax
-{$else win64}
-        { %rdi = framebp }
-        orq     %rdi,%rdi
-        jz      .Lg_a_null
-        movq    8(%rdi),%rax
-{$endif win64}
-.Lg_a_null:
+function get_caller_addr(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  get_caller_addr:=framebp;
+  if assigned(framebp) then
+    get_caller_addr:=PPointer(framebp)[1];
 end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
-asm
-{$ifdef win64}
-        orq     %rcx,%rcx
-        jz      .Lg_a_null
-        movq    (%rcx),%rax
-{$else win64}
-        { %rdi = framebp }
-        orq     %rdi,%rdi
-        jz      .Lg_a_null
-        movq    (%rdi),%rax
-{$endif win64}
-.Lg_a_null:
+function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  get_caller_frame:=framebp;
+  if assigned(framebp) then
+    get_caller_frame:=PPointer(framebp)^;
 end;
 
 // The following assembler procedures are disabled for FreeBSD due to
