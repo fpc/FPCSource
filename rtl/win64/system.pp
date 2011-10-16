@@ -181,7 +181,6 @@ var
 procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
   var
     ST : pointer;
-    save_rbp: pointer;
   begin
      IsLibrary:=false;
      { install the handlers for exe only ?
@@ -189,7 +188,6 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      install_exception_handlers;
      ExitCode:=0;
      asm
-        movq  %rbp,save_rbp
         movq %rsp,%rax
         movq %rax,st
      end;
@@ -198,10 +196,11 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
         xorq %rax,%rax
         movw %ss,%ax
         movl %eax,_SS(%rip)
+        movq %rbp,%rsi
         xorq %rbp,%rbp
         call PASCALMAIN
-        movq save_rbp,%rbp
-     end;
+        movq %rsi,%rbp
+     end ['RSI','RBP'];     { <-- specifying RSI allows compiler to save/restore it properly }
      { if we pass here there was no error ! }
      system_exit;
   end;
