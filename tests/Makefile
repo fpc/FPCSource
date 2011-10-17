@@ -1599,6 +1599,11 @@ ifneq ($(SVNVERSION),)
 	$(ECHOREDIR) svnrtlrevision=$(SVN_RTL_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 	$(ECHOREDIR) svnpackagesrevision=$(SVN_PACKAGES_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 endif
+ifeq ($(OS_SOURCE),openbsd)
+TARFROM=-I tar.lst
+else
+TARFROM=--files-from=tar.lst
+endif
 ifndef inWinDOS
 $(TEST_OUTPUTDIR)/tar.lst:
 	cd $(TEST_OUTPUTDIR) && find . -name '*.log' -o -name '*.elg' > tar.lst
@@ -1608,7 +1613,7 @@ $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/tar.lst $(TEST_OUTPUTDIR)/dbdig
 ifdef inCygWin
 	dos2unix $(TEST_OUTPUTDIR)/tar.lst
 endif
-	cd $(TEST_OUTPUTDIR) && $(TARPROG) czf $(DB_TARGZ) --files-from=tar.lst
+	cd $(TEST_OUTPUTDIR) && $(TARPROG) czf $(DB_TARGZ) $(TARFROM)
 else
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/dbdigest.cfg
 ifdef inDOS
