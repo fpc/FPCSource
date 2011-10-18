@@ -1031,22 +1031,26 @@ implementation
     { does the necessary things to clean up the object stack }
     { in the except block                                    }
     procedure cleanupobjectstack;
-      var
-        paraloc1 : tcgpara;
       begin
-         cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPOBJECTSTACK',false);
-         cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-         paraloc1.init;
-         paramanager.getintparaloc(pocall_default,1,paraloc1);
-         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-         cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
-         paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-         cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DESTROYEXCEPTION',false);
-         cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-         paraloc1.done;
+         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
+      end;
+
+    { generates code to be executed when another exeception is raised while
+      control is inside except block }
+    procedure handle_nested_exception(list:TAsmList;const t:texceptiontemps;entrylabel:TAsmLabel);
+      var
+         exitlabel: tasmlabel;
+      begin
+         { don't generate line info for internal cleanup }
+         list.concat(tai_marker.create(mark_NoLineInfoStart));
+         current_asmdata.getjumplabel(exitlabel);
+         cg.a_label(list,entrylabel);
+         free_exception(list,t,0,exitlabel,false);
+         { we don't need to save/restore registers here because reraise never }
+         { returns                                                            }
+         cg.a_call_name(list,'FPC_RAISE_NESTED',false);
+         cg.a_label(list,exitlabel);
+         cleanupobjectstack;
       end;
 
 
@@ -1061,7 +1065,6 @@ implementation
          exittrylabel,
          continuetrylabel,
          breaktrylabel,
-         doobjectdestroy,
          doobjectdestroyandreraise,
          oldCurrExitLabel,
          oldContinueLabel,
@@ -1070,7 +1073,6 @@ implementation
          exceptflowcontrol : tflowcontrol;
          destroytemps,
          excepttemps : texceptiontemps;
-         paraloc1 : tcgpara;
       label
          errorexit;
       begin
@@ -1168,7 +1170,6 @@ implementation
 
               if not (has_no_code(t1)) then
                begin
-                 current_asmdata.getjumplabel(doobjectdestroy);
                  current_asmdata.getjumplabel(doobjectdestroyandreraise);
 
                  get_exception_temps(current_asmdata.CurrAsmList,destroytemps);
@@ -1182,34 +1183,8 @@ implementation
                  secondpass(t1);
                  exceptflowcontrol:=flowcontrol;
 
-                 { don't generate line info for internal cleanup }
-                 current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+                 handle_nested_exception(current_asmdata.CurrAsmList,destroytemps,doobjectdestroyandreraise);
 
-                 cg.a_label(current_asmdata.CurrAsmList,doobjectdestroyandreraise);
-
-                 free_exception(current_asmdata.CurrAsmList,destroytemps,0,doobjectdestroy,false);
-
-                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPSECONDOBJECTSTACK',false);
-                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-
-                 paraloc1.init;
-                 paramanager.getintparaloc(pocall_default,1,paraloc1);
-                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-                 cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
-                 paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DESTROYEXCEPTION',false);
-                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-                 paraloc1.done;
-                 { we don't need to restore esi here because reraise never }
-                 { returns                                                 }
-                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
-
-                 cg.a_label(current_asmdata.CurrAsmList,doobjectdestroy);
-
-                 cleanupobjectstack;
                  unget_exception_temps(current_asmdata.CurrAsmList,destroytemps);
                  cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
                end
@@ -1232,9 +1207,7 @@ implementation
               cg.a_label(current_asmdata.CurrAsmList,exitexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+              cg.g_call(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK');
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
@@ -1247,9 +1220,7 @@ implementation
               cg.a_label(current_asmdata.CurrAsmList,breakexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+              cg.g_call(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK');
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
@@ -1262,9 +1233,7 @@ implementation
               cg.a_label(current_asmdata.CurrAsmList,continueexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+              cg.g_call(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK');
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
@@ -1276,9 +1245,7 @@ implementation
            begin
               { do some magic for exit in the try block }
               cg.a_label(current_asmdata.CurrAsmList,exittrylabel);
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+              cg.g_call(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK');
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
               { from g_exception_reason_load  }
@@ -1288,9 +1255,7 @@ implementation
          if fc_break in tryflowcontrol then
            begin
               cg.a_label(current_asmdata.CurrAsmList,breaktrylabel);
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+              cg.g_call(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK');
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
               { from g_exception_reason_load  }
@@ -1300,9 +1265,7 @@ implementation
          if fc_continue in tryflowcontrol then
            begin
               cg.a_label(current_asmdata.CurrAsmList,continuetrylabel);
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+              cg.g_call(current_asmdata.CurrAsmList,'FPC_POPADDRSTACK');
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
               { from g_exception_reason_load  }
@@ -1341,7 +1304,6 @@ implementation
          oldCurrExitLabel,
          oldContinueLabel,
          doobjectdestroyandreraise,
-         doobjectdestroy,
          oldBreakLabel : tasmlabel;
          oldflowcontrol : tflowcontrol;
          excepttemps : texceptiontemps;
@@ -1362,9 +1324,7 @@ implementation
          paramanager.getintparaloc(pocall_default,1,paraloc1);
          cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-         cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CATCHES',false);
-         cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+         cg.g_call(current_asmdata.CurrAsmList,'FPC_CATCHES');
 
          cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
          { is it this catch? No. go to next onlabel }
@@ -1418,31 +1378,8 @@ implementation
               secondpass(right);
            end;
 
-         { don't generate lineinfo for internal cleanup }
-         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+         handle_nested_exception(current_asmdata.CurrAsmList,excepttemps,doobjectdestroyandreraise);
 
-         current_asmdata.getjumplabel(doobjectdestroy);
-         cg.a_label(current_asmdata.CurrAsmList,doobjectdestroyandreraise);
-
-         free_exception(current_asmdata.CurrAsmList,excepttemps,0,doobjectdestroy,false);
-
-         cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPSECONDOBJECTSTACK',false);
-         cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-         paramanager.getintparaloc(pocall_default,1,paraloc1);
-         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-         cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
-         paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-         cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DESTROYEXCEPTION',false);
-         cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-         { we don't need to store/restore registers here because reraise never
-           returns                                                             }
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
-
-         cg.a_label(current_asmdata.CurrAsmList,doobjectdestroy);
-         cleanupobjectstack;
          { clear some stuff }
          if assigned(exceptvarsym) then
            begin

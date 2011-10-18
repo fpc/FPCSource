@@ -259,7 +259,6 @@ begin
     end;
 end;
 
-function Internal_PopObjectStack: TObject; external name 'FPC_POPOBJECTSTACK';
 
 { this is for popping exception objects when a second exception is risen }
 { in an except/on                                                        }
@@ -308,6 +307,9 @@ begin
   longjmp(_ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
+function Internal_PopSecondObjectStack : TObject; external name 'FPC_POPSECONDOBJECTSTACK';
+function Internal_PopObjectStack: TObject; external name 'FPC_POPOBJECTSTACK';
+procedure Internal_Reraise; external name 'FPC_RERAISE';
 
 Function fpc_Catches(Objtype : TClass) : TObject;[Public, Alias : 'FPC_CATCHES']; compilerproc;
 var
@@ -364,6 +366,18 @@ Procedure SysInitExceptions;
 begin
   ExceptObjectstack:=Nil;
   ExceptAddrStack:=Nil;
+end;
+
+
+procedure fpc_doneexception;[public,alias:'FPC_DONEEXCEPTION'] compilerproc;
+begin
+  Internal_PopObjectStack.Free;
+end;
+
+procedure fpc_raise_nested;[public,alias:'FPC_RAISE_NESTED']compilerproc;
+begin
+  Internal_PopSecondObjectStack.Free;
+  Internal_Reraise;
 end;
 
 function fpc_safecallhandler(obj: TObject): HResult; [public,alias:'FPC_SAFECALLHANDLER']; compilerproc;

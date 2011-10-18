@@ -523,6 +523,8 @@ unit cgobj;
 
           { initialize the pic/got register }
           procedure g_maybe_got_init(list: TAsmList); virtual;
+          { allocallcpuregisters, a_call_name, deallocallcpuregisters sequence }
+          procedure g_call(list: TAsmList; const s: string);
         protected
           procedure get_subsetref_load_info(const sref: tsubsetreference; out loadsize: tcgsize; out extra_load: boolean);
           procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
@@ -4269,6 +4271,12 @@ implementation
       begin
       end;
 
+    procedure tcg.g_call(list: TAsmList;const s: string);
+      begin
+        allocallcpuregisters(list);
+        a_call_name(list,s,false);
+        deallocallcpuregisters(list);
+      end;
 
     procedure tcg.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister; shuffle: pmmshuffle);
       begin

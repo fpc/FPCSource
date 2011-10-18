@@ -663,6 +663,8 @@ Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 Procedure fpc_DestroyException(o : TObject); compilerproc;
 function fpc_GetExceptionAddr : Pointer; compilerproc;
 function fpc_safecallhandler(obj: TObject): HResult; compilerproc;
+procedure fpc_doneexception; compilerproc;
+procedure fpc_raise_nested; compilerproc;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 
