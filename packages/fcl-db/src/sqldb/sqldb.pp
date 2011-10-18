@@ -2030,6 +2030,7 @@ begin
   If (D=Nil) then
     DatabaseErrorFmt(SErrUnknownConnectorType,[ConnectorType],Self);
   FProxy:=D.ConnectionClass.Create(Self);
+  FFieldNameQuoteChars := FProxy.FieldNameQuoteChars;
 end;
 
 procedure TSQLConnector.FreeProxy;
