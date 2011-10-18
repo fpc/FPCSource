@@ -1306,17 +1306,11 @@ IMPLEMENTATION
               if pr1 < pr2
                 then pr := pr1
                 else pr := pr2;
+
               res := 0;
               i := __low_Fraction;
               while ( res = 0 ) AND ( i < ( __low_Fraction + ( pr DIV 2 ) ) ) do
                 begin
-{
-                  if BCD1.Fraction[i] < BCD2.Fraction[i]
-                    then res := -1
-                    else
-                      if BCD1.Fraction[i] > BCD2.Fraction[i]
-                        then res := +1;
-}
                   _SELECT
                     _WHEN BCD1.Fraction[i] < BCD2.Fraction[i]
                       _THEN res := -1
@@ -1326,19 +1320,13 @@ IMPLEMENTATION
                    _endSELECT;
                   Inc ( i );
                  end;
+
               if res = 0
                 then begin
                   if Odd ( pr )
                     then begin
                       f1 := BCD1.Fraction[i] AND $f0;
                       f2 := BCD2.Fraction[i] AND $f0;
-{
-                      if f1 < f2
-                        then res := -1
-                        else
-                          if f1 > f2
-                            then res := +1;
-}
                       _SELECT
                         _WHEN f1 < f2
                           _THEN res := -1
@@ -1346,7 +1334,14 @@ IMPLEMENTATION
                           _THEN res := +1;
                       _endSELECT;
                      end;
+
+                  if res = 0 then
+                    if pr1 > pr2 then
+                      res := +1
+                    else if pr1 < pr2 then
+                      res := -1;
                  end;
+
               if neg1
                 then result := 0 - res
                 else result := res;
@@ -3846,6 +3841,8 @@ begin
         varInt64    : Result := vInt64;
         varQword    : Result := vQWord;
         varString   : Result := AnsiString(vString);
+        varOleStr   : Result := WideString(vOleStr);
+        varUString  : Result := UnicodeString(vString);
         else
           if vType=VarFmtBCD then
             Result := TFMTBcdVarData(vPointer).BCD
@@ -3919,8 +3916,10 @@ procedure TFMTBcdFactory.BinaryOp(var Left: TVarData; const Right: TVarData; con
       RaiseInvalidOp;
     end;
 
-    if Left.vType=VarType then
+    if Left.vType = VarType then
       TFMTBcdVarData(Left.VPointer).BCD := l
+    else if Left.vType = varDouble then
+      Left.vDouble := l
     else
       RaiseInvalidOp;
   end;
