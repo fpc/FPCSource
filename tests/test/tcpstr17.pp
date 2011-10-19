@@ -5,6 +5,12 @@ program tcpstr17;
   {$codepage utf8}
 {$endif}
 {$apptype console}
+
+{$ifdef unix}
+uses
+  cwstring;
+{$endif}
+
 type
   TOEMStr = type AnsiString(866);
 {$ifndef FPC}
