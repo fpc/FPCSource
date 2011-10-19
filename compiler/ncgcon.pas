@@ -258,7 +258,6 @@ implementation
          href: treference;
          pool: THashSet;
          entry: PHashSetItem;
-         cp: tstringencoding;
 
       const
         PoolMap: array[tconststringtype] of TConstPoolType = (
@@ -286,16 +285,7 @@ implementation
                 entry := pool.FindOrAdd(pcompilerwidestring(value_str)^.data,len*cwidechartype.size)
               else
               if cst_type = cst_ansistring then
-                begin
-                  cp:=tstringdef(resultdef).encoding;
-                  { force output of RawByteString constants in CP_ACP codepage }
-                  if cp=CP_NONE then
-                    cp:=0;
-                  { for delphiuncode mode output CP_ACP constants in the compiler codepage }
-                  if (cp=0) and (cs_explicit_codepage in current_settings.moduleswitches) then
-                    cp:=current_settings.sourcecodepage;
-                  entry := PHashSetItem(TTagHashSet(pool).FindOrAdd(value_str,len,cp))
-                end
+                entry := PHashSetItem(TTagHashSet(pool).FindOrAdd(value_str,len,tstringdef(resultdef).encoding))
               else
                 entry := pool.FindOrAdd(value_str,len);
 
@@ -310,7 +300,7 @@ implementation
                            if len=0 then
                              InternalError(2008032301)   { empty string should be handled above }
                            else
-                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,cp);
+                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
                         end;
                       cst_unicodestring,
                       cst_widestring:

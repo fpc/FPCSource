@@ -269,7 +269,12 @@ implementation
           remain too so that not too many/few bits are laoded }
         if equal_defs(p.resultdef,def) and
            not is_bitpacked_access(p) then
-          p.resultdef:=def
+          begin
+            { don't replace encoded string constants to rawbytestring encoding.
+              preserve the codepage }
+            if not (is_rawbytestring(def) and (p.nodetype=stringconstn)) then
+              p.resultdef:=def
+          end
         else
          begin
            case convtype of
@@ -598,7 +603,7 @@ implementation
            (p.nodetype=stringconstn) and
            { don't cast to AnsiString if already casted to Wide/UnicodeString, issue #18266 }
            (tstringconstnode(p).cst_type in [cst_conststring,cst_shortstring,cst_longstring]) then
-          p:=ctypeconvnode.create_internal(p,cansistringtype)
+          p:=ctypeconvnode.create_internal(p,getansistringdef)
         else
           case p.resultdef.typ of
             enumdef :
@@ -994,7 +999,7 @@ implementation
              else
                begin
                  if tstringconstnode(left).len>255 then
-                   inserttypeconv(left,cansistringtype)
+                   inserttypeconv(left,getansistringdef)
                  else
                    inserttypeconv(left,cshortstringtype);
                end;
@@ -1381,7 +1386,7 @@ implementation
               (is_widestring(left.resultdef) or
                is_unicodestring(left.resultdef)) then
              begin
-               inserttypeconv(left,cansistringtype);
+               inserttypeconv(left,getansistringdef);
                { the second pass of second_cstring_to_pchar expects a  }
                { strinconstn, but this may become a call to the        }
                { widestring manager in case left contains "high ascii" }
@@ -2286,8 +2291,13 @@ implementation
                 )
               ) then
               begin
-                tstringconstnode(left).changestringtype(resultdef);
+                { convert ansistring and rawbytestring constants to explicit source encoding if set }
+                if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0)or(tstringdef(resultdef).encoding=globals.CP_NONE)) then
+                  tstringconstnode(left).changestringtype(getansistringdef)
+                else
+                  tstringconstnode(left).changestringtype(resultdef);
                 result:=left;
+                resultdef:=left.resultdef;
                 left:=nil;
                 exit;
               end;

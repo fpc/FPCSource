@@ -354,6 +354,12 @@ implementation
               init_settings.sourcecodepage:=DefaultSystemCodePage;
               include(init_settings.moduleswitches,cs_explicit_codepage);
             end;
+          end
+        else
+          begin
+            exclude(current_settings.moduleswitches,cs_explicit_codepage);
+            if changeinit then
+              exclude(init_settings.moduleswitches,cs_explicit_codepage);
           end;
       end;
 

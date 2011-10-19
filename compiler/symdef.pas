@@ -595,7 +595,7 @@ interface
           constructor loadshort(ppufile:tcompilerppufile);
           constructor createlong(l : asizeint);
           constructor loadlong(ppufile:tcompilerppufile);
-          constructor createansi;
+          constructor createansi(aencoding:tstringencoding);
           constructor loadansi(ppufile:tcompilerppufile);
           constructor createwide;
           constructor loadwide(ppufile:tcompilerppufile);
@@ -826,6 +826,9 @@ interface
 
     function use_vectorfpu(def : tdef) : boolean;
 
+    function getansistringcodepage:tstringencoding; inline;
+    function getansistringdef:tstringdef; inline;
+
 implementation
 
     uses
@@ -847,6 +850,37 @@ implementation
 {****************************************************************************
                                   Helpers
 ****************************************************************************}
+
+    function getansistringcodepage:tstringencoding; inline;
+      begin
+        if cs_explicit_codepage in current_settings.moduleswitches then
+          result:=current_settings.sourcecodepage
+        else
+          result:=0;
+      end;
+
+    function getansistringdef:tstringdef; inline;
+      begin
+        { if codepage is explicitly defined in this mudule we need to return
+          a replacement for ansistring def }
+        if cs_explicit_codepage in current_settings.moduleswitches then
+          begin
+            if not assigned(current_module) then
+              internalerror(2011101301);
+            { codepage can be redeclared only once per unit so we don't need a list of
+              redefined ansistring but only one pointer }
+            if not assigned(current_module.ansistrdef) then
+              begin
+                { if we did not create it yet we need to do this now }
+                symtablestack.push(current_module.localsymtable);
+                current_module.ansistrdef:=tstringdef.createansi(current_settings.sourcecodepage);
+                symtablestack.pop(current_module.localsymtable);
+              end;
+            result:=tstringdef(current_module.ansistrdef);
+          end
+        else
+          result:=tstringdef(cansistringtype);
+      end;
 
     function make_mangledname(const typeprefix:string;st:TSymtable;const suffix:string):string;
       var
@@ -1448,11 +1482,11 @@ implementation
       end;
 
 
-    constructor tstringdef.createansi;
+    constructor tstringdef.createansi(aencoding:tstringencoding);
       begin
          inherited create(stringdef);
          stringtype:=st_ansistring;
-         encoding:=0;
+         encoding:=aencoding;
          len:=-1;
          savesize:=sizeof(pint);
       end;

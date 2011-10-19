@@ -133,7 +133,7 @@ implementation
          else
            begin
              if cs_ansistrings in current_settings.localswitches then
-               def:=cansistringtype
+               def:=getansistringdef
              else
                def:=cshortstringtype;
            end;
@@ -1608,7 +1608,7 @@ implementation
                       begin
                         p1:=cloadnode.create(srsym,srsymtable);
                         do_typecheckpass(p1);
-                        p1.resultdef:=cansistringtype;
+                        p1.resultdef:=getansistringdef;
                       end
                     else
                       p1:=genconstsymtree(tconstsym(srsym));

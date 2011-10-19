@@ -926,7 +926,7 @@ implementation
           cst_shortstring :
             resultdef:=cshortstringtype;
           cst_ansistring :
-            resultdef:=cansistringtype;
+            resultdef:=getansistringdef;
           cst_unicodestring :
             resultdef:=cunicodestringtype;
           cst_widestring :

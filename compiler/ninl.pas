@@ -378,7 +378,7 @@ implementation
             if (tstringconstnode(n).len<=255) then
               inserttypeconv(n,cshortstringtype)
             else
-              inserttypeconv(n,cansistringtype)
+              inserttypeconv(n,getansistringdef)
           else if is_widechararray(n.resultdef) then
             inserttypeconv(n,cwidestringtype);
       end;
@@ -967,7 +967,7 @@ implementation
                 { (if you want to optimize to use shortstring, keep in mind that    }
                 {  readstr internally always uses ansistring, and to account for    }
                 {  chararrays with > 255 characters)                                }
-                inserttypeconv(filepara.left,cansistringtype);
+                inserttypeconv(filepara.left,getansistringdef);
                 filepara.resultdef:=filepara.left.resultdef;
                 if codegenerror then
                   exit;
@@ -2270,7 +2270,7 @@ implementation
                   case left.resultdef.typ of
                     variantdef:
                       begin
-                        inserttypeconv(left,cansistringtype);
+                        inserttypeconv(left,getansistringdef);
                       end;
 
                     stringdef :

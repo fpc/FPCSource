@@ -1665,8 +1665,8 @@ implementation
                         inserttypeconv(left,rd)
                       else
                         begin
-                          inserttypeconv(left,cansistringtype);
-                          inserttypeconv(right,cansistringtype);
+                          inserttypeconv(left,getansistringdef);
+                          inserttypeconv(right,getansistringdef);
                         end;
                     end;
                   st_longstring :

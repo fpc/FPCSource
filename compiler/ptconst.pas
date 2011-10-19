@@ -896,7 +896,7 @@ implementation
                       1:
                         begin
                           if (tstringconstnode(n).cst_type in [cst_unicodestring,cst_widestring]) then
-                            inserttypeconv(n,cansistringtype);
+                            inserttypeconv(n,getansistringdef);
                           if n.nodetype<>stringconstn then
                             internalerror(2010033003);
                           ca:=pointer(tstringconstnode(n).value_str);

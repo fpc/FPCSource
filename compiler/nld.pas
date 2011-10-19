@@ -259,7 +259,7 @@ implementation
            constsym:
              begin
                if tconstsym(symtableentry).consttyp=constresourcestring then
-                 resultdef:=cansistringtype
+                 resultdef:=getansistringdef
                else
                  internalerror(22799);
              end;
