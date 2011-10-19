@@ -126,12 +126,16 @@ begin
     // mysql's timestamps are only valid in the range 1970-2038.
     // Downside is that fields defined as 'TIMESTAMP' aren't tested
     FieldtypeDefinitions[ftDateTime] := 'DATETIME';
+    FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
+    FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
     FieldtypeDefinitions[ftMemo] := 'TEXT';
     end;
   if SQLDbType = sqlite3 then
     begin
     Fconnection := TSQLite3Connection.Create(nil);
     FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
+    FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
+    FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
     FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
     end;
   if SQLDbType = POSTGRESQL then

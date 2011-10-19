@@ -201,7 +201,9 @@ begin
                 str1:= p.asstring;
                 checkerror(sqlite3_bind_text(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
                 end;
-        ftblob: begin
+        ftBytes,
+        ftVarBytes,
+        ftBlob: begin
                 str1:= P.asstring;
                 checkerror(sqlite3_bind_blob(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
                 end; 
@@ -351,7 +353,7 @@ Type
   end;
   
 Const
-  FieldMapCount = 24;
+  FieldMapCount = 26;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
    (n:'INT'; t: ftInteger),
    (n:'LARGEINT'; t:ftlargeInt),
@@ -376,7 +378,9 @@ Const
    (n:'BLOB'; t: ftBlob),
    (n:'NCHAR'; t: ftFixedWideChar),
    (n:'NVARCHAR'; t: ftWideString),
-   (n:'NCLOB'; t: ftWideMemo)
+   (n:'NCLOB'; t: ftWideMemo),
+   (n:'VARBINARY'; t: ftVarBytes),
+   (n:'BINARY'; t: ftBytes)
 { Template:
   (n:''; t: ft)
 }
@@ -446,7 +450,9 @@ begin
       ftString,
       ftFixedChar,
       ftFixedWideChar,
-      ftWideString:
+      ftWideString,
+      ftBytes,
+      ftVarBytes:
                begin
                  size1 := 255; //sql: if length is omitted then length is 1
                  size2 := 0;
@@ -629,6 +635,14 @@ begin
         int1:=(FieldDef.Size+1)*2;
       if int1 > 0 then
         move(sqlite3_column_text16(st,fnum)^, buffer^, int1); //Strings returned by sqlite3_column_text() and sqlite3_column_text16(), even empty strings, are always zero terminated.
+      end;
+    ftBytes:
+      begin
+      int1 := sqlite3_column_bytes(st,fnum);
+      if int1 > FieldDef.Size then
+        int1 := FieldDef.Size;
+      if int1 > 0 then
+         move(sqlite3_column_blob(st,fnum)^, buffer^, int1);
       end;
     ftWideMemo,
     ftMemo,

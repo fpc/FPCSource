@@ -93,6 +93,7 @@ type
     procedure TestFmtBCDParamQuery;
     procedure TestFloatParamQuery;
     procedure TestBCDParamQuery;
+    procedure TestBytesParamQuery;
     procedure TestAggregates;
 
     procedure TestStringLargerThen8192;
@@ -148,6 +149,8 @@ const
     '1900-01-01'
   );
 
+  testBytesValuesCount = 5;
+  testBytesValues : Array[0..testBytesValuesCount-1] of shortstring = (#1#0#1#0#1, #0#0#1#0#1, #0''''#13#0#1, '\'#0'"\'#13, #13#13#0#10#10);
 
 procedure TTestFieldTypes.TestpfInUpdateFlag;
 var ds   : TCustomBufDataset;
@@ -793,6 +796,11 @@ begin
   TestXXParamQuery(ftBCD,'NUMERIC(10,4)',testBCDValuesCount);
 end;
 
+procedure TTestFieldTypes.TestBytesParamQuery;
+begin
+  TestXXParamQuery(ftBytes, FieldtypeDefinitions[ftBytes], testBytesValuesCount);
+end;
+
 procedure TTestFieldTypes.TestStringParamQuery;
 
 begin
@@ -816,6 +824,9 @@ procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl 
 var i : integer;
 
 begin
+  if ASQLTypeDecl = '' then
+    Ignore('Fields of the type ' + FieldTypeNames[ADatatype] + ' are not supported by this sqldb-connection type');
+
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, FIELD1 '+ASQLTypeDecl+')');
 
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
@@ -846,7 +857,8 @@ begin
                    else
                      Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
         ftDateTime:Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
-        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD:= StrToBCD(testFmtBCDValues[i],DBConnector.FormatSettings)
+        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i],DBConnector.FormatSettings);
+        ftBytes  : Params.ParamByName('field1').AsBlob := testBytesValues[i];
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -870,7 +882,8 @@ begin
         ftTime   : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
         ftDate   : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
-        ftFMTBcd : AssertEquals(testFmtBCDValues[i],BCDToStr(FieldByName('FIELD1').AsBCD,DBConnector.FormatSettings))
+        ftFMTBcd : AssertEquals(testFmtBCDValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
+        ftBytes  : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
       else
         AssertTrue('no test for paramtype available',False);
       end;

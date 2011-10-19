@@ -55,6 +55,7 @@ Type
     FNeedData : Boolean;
     FStatement : String;
     Row : MYSQL_ROW;
+    Lengths : PLongWord;                { Lengths of the columns of the current row }
     RowsAffected : QWord;
     LastInsertID : QWord;
     ParamBinding : TParamBinding;
@@ -79,7 +80,7 @@ Type
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
     function MySQLDataType(AField: PMYSQL_FIELD; var NewType: TFieldType; var NewSize: Integer): Boolean;
-    function MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; Source, Dest: PChar; out CreateBlob : boolean): Boolean;
+    function MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;
     // SQLConnection methods
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -695,6 +696,10 @@ begin
   C:=Cursor as TCursorName;
   C.Row:=MySQL_Fetch_row(C.FRes);
   Result:=(C.Row<>Nil);
+  if Result then
+    C.Lengths := mysql_fetch_lengths(C.FRes)
+  else
+    C.Lengths := nil;
 end;
 
 function TConnectionName.LoadField(cursor : TSQLCursor;
@@ -702,46 +707,41 @@ function TConnectionName.LoadField(cursor : TSQLCursor;
 
 var
   field: PMYSQL_FIELD;
-  row : MYSQL_ROW;
   C : TCursorName;
+  i : integer;
 
 begin
 //  Writeln('LoadFieldsFromBuffer');
   C:=Cursor as TCursorName;
-  if C.Row=nil then
+  if (C.Row=nil) or (C.Lengths=nil) then
      begin
   //   Writeln('LoadFieldsFromBuffer: row=nil');
      MySQLError(FMySQL,SErrFetchingData,Self);
      end;
-  Row:=C.Row;
-  
-  inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
-  field := mysql_fetch_field_direct(C.FRES, c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
 
-  Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, Row^, Buffer, CreateBlob);
+  i := c.MapDSRowToMSQLRow[FieldDef.FieldNo-1];
+  field := mysql_fetch_field_direct(C.FRES, i);
+
+  Result := MySQLWriteData(field, FieldDef, C.Row[i], Buffer, C.Lengths[i], CreateBlob);
 end;
 
 procedure TConnectionName.LoadBlobIntoBuffer(FieldDef: TFieldDef;
   ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
 var
-  row : MYSQL_ROW;
   C : TCursorName;
-  li : longint;
-  Lengths : pculong;
+  i : integer;
+  len : longint;
 begin
   C:=Cursor as TCursorName;
-  if C.Row=nil then
+  if (C.Row=nil) or (C.Lengths=nil) then
     MySQLError(FMySQL,SErrFetchingData,Self);
-  Row:=C.Row;
 
-  inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
+  i := c.MapDSRowToMSQLRow[FieldDef.FieldNo-1];
+  len := C.Lengths[i];
 
-  Lengths := mysql_fetch_lengths(c.FRes);
-  li := Lengths[c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]];
-
-  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer,li);
-  Move(pchar(row^)^, ABlobBuf^.BlobBuffer^.Buffer^, li);
-  ABlobBuf^.BlobBuffer^.Size := li;
+  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, len);
+  Move(C.Row[i]^, ABlobBuf^.BlobBuffer^.Buffer^, len);
+  ABlobBuf^.BlobBuffer^.Size := len;
 end;
 
 function InternalStrToFloat(S: string): Extended;
@@ -856,7 +856,7 @@ begin
   Result := Result + EncodeTime(EH, EN, ES, 0);;
 end;
 
-function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; Source, Dest: PChar; out CreateBlob : boolean): Boolean;
+function TConnectionName.MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;
 
 var
   VI: Integer;
@@ -873,8 +873,8 @@ begin
   CreateBlob := False;
   if Source = Nil then
     exit;
-  Src:=StrPas(Source);
-  case AType of
+  SetString(Src, Source, Len);
+  case AField^.ftype of
     FIELD_TYPE_TINY, FIELD_TYPE_SHORT:
       begin
       if (Src<>'') then
@@ -903,24 +903,26 @@ begin
     FIELD_TYPE_NEWDECIMAL,
 {$endif}      
     FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
-      if AFieldType = ftBCD then
-        begin
-        VC := InternalStrToCurrency(Src);
-        Move(VC, Dest^, SizeOf(Currency));
-        end
-      else if AFieldType = ftFmtBCD then
-        begin
-        VB:=StrToBCD(Src, FSQLFormatSettings);
-        Move(VB, Dest^, SizeOf(TBCD));
-        end
-      else
-        begin
-        if Src <> '' then
-          VF := InternalStrToFloat(Src)
+      case FieldDef.DataType of
+        ftBCD:
+          begin
+          VC := InternalStrToCurrency(Src);
+          Move(VC, Dest^, SizeOf(Currency));
+          end;
+        ftFmtBCD:
+          begin
+          VB := StrToBCD(Src, FSQLFormatSettings);
+          Move(VB, Dest^, SizeOf(TBCD));
+          end
         else
-          VF := 0;
-        Move(VF, Dest^, SizeOf(Double));
-        end;
+          begin
+          if Src <> '' then
+            VF := InternalStrToFloat(Src)
+          else
+            VF := 0;
+          Move(VF, Dest^, SizeOf(Double));
+          end;
+      end;
     FIELD_TYPE_TIMESTAMP:
       begin
       if Src <> '' then
@@ -967,10 +969,10 @@ begin
 }
       // String-fields which can contain more then dsMaxStringSize characters
       // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
-      if AFieldType in [ftBlob,ftMemo] then
+      if FieldDef.DataType in [ftBlob,ftMemo] then
         CreateBlob := True
       else if Src<> '' then
-        Move(Source^, Dest^, ASize)
+        Move(Source^, Dest^, FieldDef.Size)
       else
         Dest^ := #0;
       end;
