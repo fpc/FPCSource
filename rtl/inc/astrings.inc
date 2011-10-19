@@ -258,10 +258,10 @@ begin
     begin
       DestS:='';
       SetLength(DestS,Size+Location);
-      SetCodePage(DestS,DestCP,false);
       Move(Pointer(S1)^,Pointer(DestS)^,Location);
       Move(Pointer(S2)^,(Pointer(DestS)+Location)^,Size+1);
     end;
+  SetCodePage(DestS,DestCP,false);
 end;
 
 
