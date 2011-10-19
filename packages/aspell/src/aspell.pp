@@ -17,9 +17,12 @@ uses
 
 {$IFDEF UNIX}
   const libaspell = 'aspell';
-{$ELSE} // windows
-  // TODO: figure this out
-  const libaspell = 'aspell-%s.dll';
+{$ELSE} 
+ {$IFDEF WINDOWS}
+  const libaspell = 'aspell-15.dll';
+ {$ELSE} 
+  {$MESSAGE ERROR Target not supported'}
+ {$ENDIF}
 {$ENDIF}
 
   {$i aspelltypes.inc}
