@@ -1307,7 +1307,6 @@ implementation
          oldBreakLabel : tasmlabel;
          oldflowcontrol : tflowcontrol;
          excepttemps : texceptiontemps;
-         exceptref,
          href2: treference;
          paraloc1 : tcgpara;
          exceptvarsym : tlocalvarsym;
@@ -1342,11 +1341,6 @@ implementation
              exceptvarsym.localloc.size:=OS_ADDR;
              tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),voidpointertype,exceptvarsym.localloc.reference);
              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptvarsym.localloc.reference);
-           end
-         else
-           begin
-             tg.GetTemp(current_asmdata.CurrAsmList,sizeof(pint),sizeof(pint),tt_normal,exceptref);
-             cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptref);
            end;
          cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
 
@@ -1385,9 +1379,7 @@ implementation
            begin
              tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
              exceptvarsym.localloc.loc:=LOC_INVALID;
-           end
-         else
-           tg.Ungettemp(current_asmdata.CurrAsmList,exceptref);
+           end;
          cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
 
          if assigned(right) then
@@ -1557,28 +1549,31 @@ implementation
          else
            begin
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
-             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,1,NR_FUNCTION_RESULT_REG);
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,reraiselabel);
-             if fc_exit in tryflowcontrol then
+             if (tryflowcontrol*[fc_exit,fc_break,fc_continue]<>[]) then
                begin
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,1,NR_FUNCTION_RESULT_REG);
-                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldCurrExitLabel);
-                  decconst:=1;
-               end
-             else
-               decconst:=2;
-             if fc_break in tryflowcontrol then
-               begin
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
-                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldBreakLabel);
-                  decconst:=1;
-               end
-             else
-               inc(decconst);
-             if fc_continue in tryflowcontrol then
-               begin
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
-                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldContinueLabel);
+                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,1,NR_FUNCTION_RESULT_REG);
+                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,reraiselabel);
+                 if fc_exit in tryflowcontrol then
+                   begin
+                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,1,NR_FUNCTION_RESULT_REG);
+                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldCurrExitLabel);
+                     decconst:=1;
+                   end
+                 else
+                   decconst:=2;
+                 if fc_break in tryflowcontrol then
+                   begin
+                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
+                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldBreakLabel);
+                     decconst:=1;
+                   end
+                 else
+                   inc(decconst);
+                 if fc_continue in tryflowcontrol then
+                   begin
+                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
+                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldContinueLabel);
+                   end;
                end;
              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
              cg.a_label(current_asmdata.CurrAsmList,reraiselabel);
