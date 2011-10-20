@@ -828,6 +828,7 @@ interface
 
     function getansistringcodepage:tstringencoding; inline;
     function getansistringdef:tstringdef; inline;
+    function getparaencoding(def:tdef):tstringencoding; inline;
 
 implementation
 
@@ -880,6 +881,15 @@ implementation
           end
         else
           result:=tstringdef(cansistringtype);
+      end;
+
+    function getparaencoding(def:tdef):tstringencoding; inline;
+      begin
+        { don't pass CP_NONE encoding to internal functions
+          they expect 0 encoding instead }
+        result:=tstringdef(def).encoding;
+        if result=CP_NONE then
+          result:=0
       end;
 
     function make_mangledname(const typeprefix:string;st:TSymtable;const suffix:string):string;

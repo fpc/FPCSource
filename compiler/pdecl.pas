@@ -554,7 +554,7 @@ implementation
                                   Message(parser_e_invalid_codepage);
                                   tordconstnode(p).value:=0;
                                 end;
-                                tstringdef(hdef).encoding:=int64(tordconstnode(p).value);
+                              tstringdef(hdef).encoding:=int64(tordconstnode(p).value);
                             end;
                           p.free;
                         end;

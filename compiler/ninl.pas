@@ -325,7 +325,7 @@ implementation
         { for ansistrings insert the encoding argument }
         if is_ansistring(dest.resultdef) then
           newparas:=ccallparanode.create(cordconstnode.create(
-            tstringdef(dest.resultdef).encoding,u16inttype,true),newparas);
+            getparaencoding(dest.resultdef),u16inttype,true),newparas);
 
         { free the errornode we generated in the beginning }
         result.free;
@@ -759,7 +759,7 @@ implementation
                   { in case of reading an ansistring pass a codepage argument }
                   if do_read and is_ansistring(para.left.resultdef) then
                     para:=ccallparanode.create(cordconstnode.create(
-                      tstringdef(para.left.resultdef).encoding,u16inttype,true),para);
+                      getparaencoding(para.left.resultdef),u16inttype,true),para);
                   { create the call statement }
                   addstatement(Tstatementnode(newstatement),
                     ccallnode.createintern(name,para));

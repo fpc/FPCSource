@@ -1665,8 +1665,10 @@ implementation
                         inserttypeconv(left,rd)
                       else
                         begin
-                          inserttypeconv(left,getansistringdef);
-                          inserttypeconv(right,getansistringdef);
+                          if not is_ansistring(ld) then
+                            inserttypeconv(left,getansistringdef);
+                          if not is_ansistring(rd) then
+                            inserttypeconv(right,getansistringdef);
                         end;
                     end;
                   st_longstring :
@@ -1961,6 +1963,14 @@ implementation
                     if is_shortstring(left.resultdef) then
                       resultdef:=cshortstringtype
                     else
+                    { for ansistrings set resultdef to assignment left node 
+                      if it is an assignment and left node expects ansistring }
+                    if is_ansistring(left.resultdef) and
+                       assigned(aktassignmentnode) and
+                       (aktassignmentnode.right=self) and
+                       is_ansistring(aktassignmentnode.left.resultdef) then
+                      resultdef:=aktassignmentnode.left.resultdef
+                    else
                       resultdef:=left.resultdef;
                   end;
                 else
@@ -2047,7 +2057,7 @@ implementation
                   if is_ansistring(resultdef) then
                     para:=ccallparanode.create(
                             cordconstnode.create(
-                              tstringdef(resultdef).encoding,
+                              getparaencoding(resultdef),
                               u16inttype,
                               true
                             ),
@@ -2075,7 +2085,7 @@ implementation
                   if is_ansistring(resultdef) then
                     para:=ccallparanode.create(
                             cordconstnode.create(
-                              tstringdef(resultdef).encoding,
+                              getparaencoding(resultdef),
                               u16inttype,
                               true
                             ),

@@ -251,14 +251,14 @@ begin
   Size:=Length(S2);
   if Size>0 then
   begin
-    if (cp=CP_NONE) or (cp=0) then
+    if (cp=CP_ACP) then
       cp:=DefaultSystemCodePage;
     widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,cp,Size);
   end;
 end;
 
 
-Function fpc_AnsiStr_To_WideStr (Const S2 : RawByteString): WideString; compilerproc;
+Function fpc_AnsiStr_To_WideStr(Const S2 : RawByteString): WideString; compilerproc;
 {
   Converts an AnsiString to a WideString;
 }
@@ -271,7 +271,7 @@ begin
   if Size>0 then
   begin
     cp:=StringCodePage(S2);
-    if (cp=CP_NONE) or (cp=0) then
+    if (cp=CP_ACP) then
       cp:=DefaultSystemCodePage;
     widestringmanager.Ansi2WideMoveProc(PChar(S2),cp,result,Size);
   end;

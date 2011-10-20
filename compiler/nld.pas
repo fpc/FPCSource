@@ -516,6 +516,7 @@ implementation
       var
         hp : tnode;
         useshelper : boolean;
+        oldassignmentnode : tassignmentnode;
       begin
         result:=nil;
         resultdef:=voidtype;
@@ -524,7 +525,14 @@ implementation
         set_unique(left);
 
         typecheckpass(left);
+
+        { PI. This is needed to return correct resultdef of add nodes for ansistrings
+          rawbytestring return needs to be replaced by left.resultdef }
+        oldassignmentnode:=aktassignmentnode;
+        aktassignmentnode:=self;
         typecheckpass(right);
+        aktassignmentnode:=oldassignmentnode;
+
         set_varstate(right,vs_read,[vsf_must_be_valid]);
         set_varstate(left,vs_written,[]);
         if codegenerror then

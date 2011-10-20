@@ -938,7 +938,7 @@ implementation
                         ),
                         ccallparanode.create(
                           cordconstnode.create(
-                            tstringdef(resultdef).encoding,
+                            getparaencoding(resultdef),
                             u16inttype,
                             true
                           ),
@@ -1071,7 +1071,11 @@ implementation
                    end
                   else
                     hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue));
-                  tstringconstnode(hp).changestringtype(resultdef);
+                  { output string consts in local ansistring encoding }
+                  if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0) or (tstringdef(resultdef).encoding=globals.CP_NONE)) then
+                    tstringconstnode(hp).changestringtype(getansistringdef)
+                  else
+                    tstringconstnode(hp).changestringtype(resultdef);
                 end;
               result:=hp;
            end
@@ -1098,7 +1102,7 @@ implementation
                    para:=ccallparanode.create(left,nil);
                    { encoding required? }
                    if tstringdef(resultdef).stringtype=st_ansistring then
-                     para:=ccallparanode.create(cordconstnode.create(tstringdef(resultdef).encoding,u16inttype,true),para);
+                     para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
 
                    { create the procname }
                    if torddef(left.resultdef).ordtype<>uwidechar then
@@ -1469,7 +1473,7 @@ implementation
           result := ccallnode.createinternres(
                       'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
                       ccallparanode.create(
-                        cordconstnode.create(tstringdef(resultdef).encoding,u16inttype,true),
+                        cordconstnode.create(getparaencoding(resultdef),u16inttype,true),
                         ccallparanode.create(left,nil)
                       ),
                       resultdef
@@ -1542,7 +1546,7 @@ implementation
                         'fpc_pwidechar_to_'+tstringdef(resultdef).stringtypname,
                          ccallparanode.create(
                            cordconstnode.create(
-                             tstringdef(resultdef).encoding,
+                             getparaencoding(resultdef),
                              u16inttype,
                              true
                            ),
@@ -2291,7 +2295,7 @@ implementation
                 )
               ) then
               begin
-                { convert ansistring and rawbytestring constants to explicit source encoding if set }
+                { output string consts in local ansistring encoding }
                 if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0)or(tstringdef(resultdef).encoding=globals.CP_NONE)) then
                   tstringconstnode(left).changestringtype(getansistringdef)
                 else
@@ -3004,7 +3008,7 @@ implementation
         else if (tstringdef(resultdef).stringtype=st_ansistring) and
                 (tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring,st_shortstring,st_ansistring]) then
             result:=ccallnode.createinternres(procname,
-              ccallparanode.create(cordconstnode.create(tstringdef(resultdef).encoding,u16inttype,true),
+              ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),
               ccallparanode.create(left,nil)),resultdef)
         else
           result:=ccallnode.createinternres(procname,ccallparanode.create(left,nil),resultdef);

@@ -581,7 +581,7 @@ implementation
             newblock:=ccallnode.createintern(
               'fpc_'+tstringdef(destppn.resultdef).stringtypname+'_setlength',
               ccallparanode.create(
-                cordconstnode.create(tstringdef(destppn.resultdef).encoding,u16inttype,true),
+                cordconstnode.create(getparaencoding(destppn.resultdef),u16inttype,true),
                 paras
               )
             );           
