@@ -25,7 +25,7 @@ unit InstantFPTools;
 {$DEFINE UseExeSearch}
 {$ENDIF}
 
-{$if defined(Windows) or defined(darwin)}
+{$if defined(Windows) or defined(darwin) or defined(os2) or defined(go32v2) or defined(watcom)}
 {$define CaseInsensitiveFilenames}
 {$endif}
 
