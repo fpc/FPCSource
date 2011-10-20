@@ -12,6 +12,14 @@ unit InstantFPTools;
   {$undef UseFpExecV}
   {$define HASEXEEXT}
 {$endif go32v2}
+{$ifdef watcom}
+  {$undef UseFpExecV}
+  {$define HASEXEEXT}
+{$endif watcom}
+{$ifdef os2}
+  {$undef UseFpExecV}
+  {$define HASEXEEXT}
+{$endif go32v2}
 
 {$IFNDEF VER2_4}
 {$DEFINE UseExeSearch}
@@ -207,7 +215,7 @@ begin
     exit;
     end;
 
-  {$IFDEF Windows}
+  {$IFDEF HASEXEEXT}
   CompFile:='fpc.exe';
   {$ELSE}
   CompFile:='fpc';
@@ -256,6 +264,7 @@ begin
   end;
   Proc:=TProcess.Create(nil);
   Proc.CommandLine:=Compiler+' '+CompParams;
+{$WARNING Unconditional use of pipes breaks for targets not supporting them}
   Proc.Options:= [poUsePipes, poStdErrToOutput];
   Proc.ShowWindow := swoHide;
   Proc.Execute;
