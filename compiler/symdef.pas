@@ -861,6 +861,8 @@ implementation
       end;
 
     function getansistringdef:tstringdef; inline;
+      var
+        symtable:tsymtable;
       begin
         { if codepage is explicitly defined in this mudule we need to return
           a replacement for ansistring def }
@@ -873,9 +875,13 @@ implementation
             if not assigned(current_module.ansistrdef) then
               begin
                 { if we did not create it yet we need to do this now }
-                symtablestack.push(current_module.localsymtable);
+                if current_module.is_unit then
+                  symtable:=current_module.globalsymtable
+                else
+                  symtable:=current_module.localsymtable;
+                symtablestack.push(symtable);
                 current_module.ansistrdef:=tstringdef.createansi(current_settings.sourcecodepage);
-                symtablestack.pop(current_module.localsymtable);
+                symtablestack.pop(symtable);
               end;
             result:=tstringdef(current_module.ansistrdef);
           end
