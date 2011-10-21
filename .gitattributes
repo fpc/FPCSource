@@ -11918,6 +11918,7 @@ tests/webtbs/tw2041.pp svneol=native#text/plain
 tests/webtbs/tw20421.pp svneol=native#text/pascal
 tests/webtbs/tw2045.pp svneol=native#text/plain
 tests/webtbs/tw2046a.pp svneol=native#text/plain
+tests/webtbs/tw20527.pp svneol=native#text/plain
 tests/webtbs/tw2059.pp svneol=native#text/plain
 tests/webtbs/tw2065.pp svneol=native#text/plain
 tests/webtbs/tw2069.pp svneol=native#text/plain
