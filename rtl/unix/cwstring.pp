@@ -134,6 +134,15 @@ const
 { breaks backwards compatibility every now and then           }
   MB_CUR_MAX = 10;
 
+{ Requests for iconvctl }
+  ICONV_TRIVIALP          = 0; // int *argument
+  ICONV_GET_TRANSLITERATE = 1; // int *argument
+  ICONV_SET_TRANSLITERATE = 2; // const int *argument
+  ICONV_GET_DISCARD_ILSEQ = 3; // int *argument
+  ICONV_SET_DISCARD_ILSEQ = 4; // const int *argument
+  ICONV_SET_HOOKS         = 5; // const struct iconv_hooks *argument
+  ICONV_SET_FALLBACKS     = 6; // const struct iconv_fallbacks *argument
+
 type
   piconv_t = ^iconv_t;
   iconv_t = pointer;
@@ -151,10 +160,12 @@ type
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
+function iconvctl(__cd:iconv_t; __request:cint; __argument:pointer):cint;cdecl;external libiconvname name 'iconvctl';
 {$else}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'libiconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'libiconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'libiconv_close';
+function iconvctl(__cd:iconv_t; __request:cint; __argument:pointer):cint;cdecl;external libiconvname name 'libiconvctl';
 {$endif}
 
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
@@ -179,6 +190,7 @@ procedure InitThread;
 {$if not(defined(darwin) and defined(arm))}
 var
   iconvname: rawbytestring;
+  transliterate: cint;
 {$endif}
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
@@ -191,6 +203,8 @@ begin
   iconv_wide2ansi:=iconv_open('UTF-8',unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,'UTF-8');
 {$endif}
+  transliterate:=1;
+  iconvctl(iconv_wide2ansi,ICONV_SET_TRANSLITERATE,@transliterate);
 end;
 
 
@@ -233,7 +247,8 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
     destpos: pchar;
     mynil : pchar;
     my0 : size_t;
-    err: cint;
+    err,
+    transliterate: cint;
     free_iconv: boolean;
   begin
     if (cp=DefaultSystemCodePage) then
@@ -257,6 +272,8 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
             unsafe normally, but these are constant strings -> no
             problem }
         use_iconv:=iconv_open(pchar(win2iconv(cp)),unicode_encoding2);
+        transliterate:=1;
+        iconvctl(use_iconv,ICONV_SET_TRANSLITERATE,@transliterate);
         free_iconv:=true;
       end;
     { unsupported encoding -> default move }
