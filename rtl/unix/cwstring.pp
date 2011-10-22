@@ -217,7 +217,7 @@ begin
 end;
 
 
-{$i winiconv}
+{$i winiconv.inc}
 
 
 {$if defined(beos) and not defined(haiku)}
