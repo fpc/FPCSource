@@ -187,14 +187,14 @@ threadvar
 
 
 procedure InitThread;
-{$if not(defined(darwin) and defined(arm))}
 var
-  iconvname: rawbytestring;
   transliterate: cint;
+{$if not(defined(darwin) and defined(cpuarm))}
+  iconvname: rawbytestring;
 {$endif}
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
-{$if not(defined(darwin) and defined(arm))}
+{$if not(defined(darwin) and defined(cpuarm))}
   iconvname:=win2iconv(DefaultSystemCodePage);
   iconv_wide2ansi:=iconv_open(pchar(iconvname),unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,pchar(iconvname));
