@@ -4,7 +4,7 @@
 interface
 
 uses
-  Classes, SysUtils,bufdataset,sqldb,db,dynlibs,
+  Classes, SysUtils,bufdataset,sqldb,db,dynlibs,ctypes,
 {$IFDEF Mysql51}
   mysql51dyn;
 {$ELSE}  
@@ -55,7 +55,7 @@ Type
     FNeedData : Boolean;
     FStatement : String;
     Row : MYSQL_ROW;
-    Lengths : PLongWord;                { Lengths of the columns of the current row }
+    Lengths : pculong;                { Lengths of the columns of the current row }
     RowsAffected : QWord;
     LastInsertID : QWord;
     ParamBinding : TParamBinding;
@@ -178,7 +178,6 @@ implementation
 
 uses
   dbconst,
-  ctypes,
   strutils,
   dateutils,
   FmtBCD;
