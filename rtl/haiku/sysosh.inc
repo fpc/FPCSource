@@ -24,9 +24,12 @@ type
   { pthread_mutex_t }
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = record
-      flags : Cardinal;
-      lock : integer;
-      unused : integer;
-      owner : integer;
-      owner_count : integer;
+    __m_reserved: longint;
+    __m_count: longint;
+    __m_owner: pointer;
+    __m_kind:  longint;
+    __m_lock:  record
+       __status: sizeint;
+      __spinlock: longint;
+    end;
   end;
