@@ -1835,7 +1835,7 @@ Type
       function GetDefaultSearchGUID(out guid:TGUID):HResult;StdCall;
       function EnumSearches(out ppenum:IEnumExtraSearch):HResult;StdCall;    
       function GetDefaultColumn(dwres:DWORD;psort :pulong; pdisplay:pulong):HResult;StdCall;   
-      function GetDefaultColumnStart(icolumn:UINT;pscflag:PSHCOLSTATEF):HResult;StdCall;   
+      function GetDefaultColumnState(icolumn:UINT;pscflag:PSHCOLSTATEF):HResult;StdCall;   
       function GetDetailsEx(pidl:LPCITEMIDLIST;pscid:PSHCOLUMNID; pv : pOLEvariant):HResult;StdCall;   
       function GetDetailsOf(pidl:LPCITEMIDLIST;iColumn:UINT;psd:PSHELLDETAILS):HResult;StdCall;   
       function MapColumnToSCID(iColumn:UINT;pscid:PSHCOLUMNID):HResult;StdCall;   
