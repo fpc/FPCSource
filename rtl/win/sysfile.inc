@@ -20,11 +20,7 @@
 
 function do_isdevice(handle:thandle):boolean;
 begin
-{$ifndef WINCE}
-  do_isdevice:=(getfiletype(handle)=2);
-{$else WINCE}
   do_isdevice:=(handle = StdInputHandle) or (handle = StdOutputHandle) or (handle = StdErrorHandle);
-{$endif WINCE}
 end;
 
 
