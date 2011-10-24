@@ -267,6 +267,7 @@ Const
 
   TimeZoneFile = '/etc/localtime';                      // POSIX
   AltTimeZoneFile = '/usr/lib/zoneinfo/localtime';      // Other
+  iOSTimeZoneFile = '/var/db/timezone/localtime';      // iOS
 {$ifdef BSD}
   BSDTimeZonefile = '/usr/share/zoneinfo';      // BSD usually is POSIX
                                                 // compliant though
@@ -304,6 +305,10 @@ begin
 //       If fpstat(BSDTimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then
 // GetTimeZoneFile:=BSDTimeZoneFile
 {$ENDIF}
+{$if (defined(darwin) and defined(arm)) or defined(iphonesim)}
+  else If fpstat(iOSTimeZoneFile,info)>=0 then
+      GetTimeZoneFile:=iOSTimeZoneFile
+{$endif}
 end;
 
 {$endif ndef FPC_HAS_GETTIMEZONEFILE}
