@@ -23,7 +23,7 @@ uses SysUtils,Classes;
 
 Type
   TEventLog = Class;
-  TLogType = (ltSystem,ltFile);
+  TLogType = (ltSystem,ltFile,ltNone);
   TLogCodeEvent = Procedure (Sender : TObject; Var Code : DWord) of Object;
   TLogCategoryEvent = Procedure (Sender : TObject; Var Code : Word) of Object;
 
@@ -181,6 +181,7 @@ begin
   Case FlogType of
     ltFile   : WriteFileLog(EventType,Msg);
     ltSystem : WriteSystemLog(EventType,Msg);
+    ltNone   : ;
   end;
 end;
 
