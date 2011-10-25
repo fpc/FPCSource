@@ -42,5 +42,8 @@ type
     name      : array[0..textrecnamelength-1] of char;
     LineEnd   : TLineEndStr;
     buffer    : textbuf;
+{$ifndef ver2_4}
+    CodePage  : TSystemCodePage;
+{$endif ver2_4}
   End;
 

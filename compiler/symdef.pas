@@ -2190,9 +2190,9 @@ implementation
         case filetyp of
           ft_text :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=632{+8}
+              savesize:=634{+8}
             else
-              savesize:=628{+8};
+              savesize:=630{+8};
           ft_typed,
           ft_untyped :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
@@ -2204,7 +2204,7 @@ implementation
 {$ifdef cpu32bitaddr}
         case filetyp of
           ft_text :
-            savesize:=592{+4};
+            savesize:=594{+4};
           ft_typed,
           ft_untyped :
             savesize:=332;
