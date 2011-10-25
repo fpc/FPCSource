@@ -146,6 +146,11 @@ Begin
   TextRec(t).mode:=mode;
   TextRec(t).bufpos:=0;
   TextRec(t).bufend:=0;
+  {$ifndef ver2_4}
+  { if no codepage is yet assigned then assign default ansi codepage }
+  if TextRec(t).CodePage=CP_ACP then
+    TextRec(t).CodePage:=DefaultSystemCodePage;
+  {$endif ver2_4}
   FileFunc(TextRec(t).OpenFunc)(TextRec(t));
   { reset the mode to closed when an error has occured }
   if InOutRes<>0 then
@@ -1911,10 +1916,18 @@ begin
   TextRec(f).Closefunc:=@FileCloseFunc;
   case mode of
     fmInput :
-      TextRec(f).InOutFunc:=@FileReadFunc;
+      begin
+        TextRec(f).InOutFunc:=@FileReadFunc;
+      {$ifndef ver2_4}
+        TextRec(f).CodePage:=WideStringManager.GetStandardCodePageProc(scpConsoleInput);
+      {$endif ver2_4}
+      end;
     fmOutput :
       begin
         TextRec(f).InOutFunc:=@FileWriteFunc;
+      {$ifndef ver2_4}
+        TextRec(f).CodePage:=WideStringManager.GetStandardCodePageProc(scpConsoleOutput);
+      {$endif ver2_4}
         if Do_Isdevice(hdl) then
           TextRec(f).FlushFunc:=@FileWriteFunc;
       end;

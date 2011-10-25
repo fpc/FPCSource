@@ -878,6 +878,26 @@ begin
   Result := iconv2win(ansistring(nl_langinfo(CODESET)))
 end;
 
+{$ifndef ver2_4}
+{$i textrec.inc}
+procedure SetStdIOCodePage(var T: Text); inline;
+begin
+  case TextRec(T).Mode of
+    fmInput:TextRec(T).CodePage:=GetStandardCodePage(scpConsoleInput);
+    fmOutput:TextRec(T).CodePage:=GetStandardCodePage(scpConsoleOutput);
+  end;
+end;
+
+procedure SetStdIOCodePages; inline;
+begin
+  SetStdIOCodePage(Input);
+  SetStdIOCodePage(Output);
+  SetStdIOCodePage(ErrOutput);
+  SetStdIOCodePage(StdOut);
+  SetStdIOCodePage(StdErr);
+end;
+{$endif ver2_4}
+
 Procedure SetCWideStringManager;
 Var
   CWideStringManager : TUnicodeStringManager;
@@ -940,6 +960,10 @@ initialization
 
   { set the DefaultSystemCodePage }
   DefaultSystemCodePage:=GetStandardCodePage(scpAnsi);
+
+  {$ifndef ver2_4}
+  SetStdIOCodePages;
+  {$endif ver2_4}
 
   { init conversion tables for main program }
   InitThread;
