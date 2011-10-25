@@ -441,6 +441,22 @@ Begin
   TextRec(F).LineEnd:=Ending;
 End;
 
+function GetTextCodePage(var T: Text): TSystemCodePage;
+begin
+{$ifndef ver2_4}
+  GetTextCodePage:=TextRec(T).CodePage;
+{$else}
+  GetTextCodePage:=0;
+{$endif ver2_4}
+end;
+
+procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
+begin
+{$ifndef ver2_4}
+  TextRec(T).CodePage:=CodePage;
+{$endif ver2_4}
+end;
+
 
 Function fpc_get_input:PText;compilerproc;
 begin

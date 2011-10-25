@@ -997,6 +997,8 @@ Function  SeekEOF:Boolean;
 Procedure SetTextBuf(var f:Text; var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
 Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
 Procedure SetTextLineEnding(var f:Text; Ending:string);
+function GetTextCodePage(var T: Text): TSystemCodePage;
+procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {****************************************************************************
