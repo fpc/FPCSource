@@ -108,6 +108,12 @@ function DefaultCodePointLength(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
   end;
 
 
+function DefaultGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
+  begin
+    { don't raise an exception here. We need this for text file handling }
+    Result:=DefaultSystemCodePage;
+  end;
+
 Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
 begin
   manager:=widestringmanager;
@@ -2631,5 +2637,6 @@ procedure initunicodestringmanager;
     widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
     widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;
   end;
 

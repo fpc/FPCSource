@@ -873,6 +873,10 @@ begin
   ansi2pchar(temp,str,result);
 end;
 
+function GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
+begin
+  Result := iconv2win(ansistring(nl_langinfo(CODESET)))
+end;
 
 Procedure SetCWideStringManager;
 Var
@@ -912,6 +916,8 @@ begin
       LowerUnicodeStringProc:=@LowerWideString;
       CompareUnicodeStringProc:=@CompareWideString;
       CompareTextUnicodeStringProc:=@CompareTextWideString;
+      { CodePage }
+      GetStandardCodePageProc:=@GetStandardCodePage;
     end;
   SetUnicodeStringManager(CWideStringManager);
 end;
@@ -933,7 +939,7 @@ initialization
     pointer(iconvctl):=GetProcAddress(iconvlib,iconvctlname);
 
   { set the DefaultSystemCodePage }
-  DefaultSystemCodePage:=iconv2win(ansistring(nl_langinfo(CODESET)));
+  DefaultSystemCodePage:=GetStandardCodePage(scpAnsi);
 
   { init conversion tables for main program }
   InitThread;

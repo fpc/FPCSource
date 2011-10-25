@@ -671,7 +671,17 @@ var
   WStrInitTablesTable: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
 {$endif}
 
-function GetACP:UINT; external 'kernel32' name 'GetACP';
+function GetACP:UINT; stdcall; external 'kernel32' name 'GetACP';
+function GetConsoleCP:UINT; stdcall; external 'kernel32' name 'GetConsoleCP'; 
+
+function Win32GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
+  begin
+    case stdcp of
+      scpAnsi: Result := GetACP;
+      scpConsoleInput: Result := GetConsoleCP;
+      scpConsoleOutput: Result := GetConsoleOutputCP;
+    end;
+  end;
 
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
@@ -706,6 +716,9 @@ procedure InitWin32Widestrings;
     widestringmanager.Ansi2UnicodeMoveProc:=@Win32Ansi2UnicodeMove;
     widestringmanager.UpperUnicodeStringProc:=@Win32UnicodeUpper;
     widestringmanager.LowerUnicodeStringProc:=@Win32UnicodeLower;
+    { Codepage }
+    widestringmanager.GetStandardCodePageProc:=@Win32GetStandardCodePage;
+
     DefaultSystemCodePage:=GetACP;
     DefaultUnicodeCodePage:=CP_UTF16;
   end;
