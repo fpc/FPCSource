@@ -41,7 +41,8 @@ Uses
   ctypes,
   unix,
   unixtype,
-  initc;
+  initc,
+  dynlibs;
 
 Const
 {$ifndef useiconv}
@@ -50,7 +51,11 @@ Const
   {$ifdef haiku}
     libiconvname='textencoding';  // is in libtextencoding under Haiku
   {$else}
-    libiconvname='iconv';
+    {$ifdef darwin}
+      libiconvname='libiconv';
+    {$else}
+      libiconvname='iconv';
+    {$endif}
   {$endif}
 {$endif}
 
@@ -160,13 +165,17 @@ type
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
-function iconvctl(__cd:iconv_t; __request:cint; __argument:pointer):cint;cdecl;external libiconvname name 'iconvctl';
+const
+  iconvctlname='iconvctl';
 {$else}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'libiconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'libiconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'libiconv_close';
-function iconvctl(__cd:iconv_t; __request:cint; __argument:pointer):cint;cdecl;external libiconvname name 'libiconvctl';
+const
+  iconvctlname='libiconvctl';
 {$endif}
+var 
+  iconvctl:function(__cd:iconv_t; __request:cint; __argument:pointer):cint;cdecl;
 
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 
@@ -203,8 +212,11 @@ begin
   iconv_wide2ansi:=iconv_open('UTF-8',unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,'UTF-8');
 {$endif}
-  transliterate:=1;
-  iconvctl(iconv_wide2ansi,ICONV_SET_TRANSLITERATE,@transliterate);
+  if assigned(iconvctl) then
+  begin
+    transliterate:=1;
+    iconvctl(iconv_wide2ansi,ICONV_SET_TRANSLITERATE,@transliterate);
+  end;
 end;
 
 
@@ -272,8 +284,11 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
             unsafe normally, but these are constant strings -> no
             problem }
         use_iconv:=iconv_open(pchar(win2iconv(cp)),unicode_encoding2);
-        transliterate:=1;
-        iconvctl(use_iconv,ICONV_SET_TRANSLITERATE,@transliterate);
+        if assigned(iconvctl) then
+        begin
+          transliterate:=1;
+          iconvctl(use_iconv,ICONV_SET_TRANSLITERATE,@transliterate);
+        end;
         free_iconv:=true;
       end;
     { unsupported encoding -> default move }
@@ -901,6 +916,8 @@ begin
   SetUnicodeStringManager(CWideStringManager);
 end;
 
+var
+  iconvlib:TLibHandle;
 
 initialization
   SetCWideStringManager;
@@ -910,6 +927,11 @@ initialization
   { (some OSes do this automatically, but e.g. Darwin and Solaris don't)    }
   setlocale(LC_ALL,'');
 
+  { load iconvctl function }
+  iconvlib:=LoadLibrary(libiconvname+'.'+SharedSuffix);
+  if iconvlib<>0 then
+    pointer(iconvctl):=GetProcAddress(iconvlib,iconvctlname);
+
   { set the DefaultSystemCodePage }
   DefaultSystemCodePage:=iconv2win(ansistring(nl_langinfo(CODESET)));
 
@@ -918,4 +940,7 @@ initialization
 finalization
   { fini conversion tables for main program }
   FiniThread;
+  { unload iconv library }
+  if iconvlib<>0 then
+    FreeLibrary(iconvlib);
 end.
