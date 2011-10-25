@@ -42,8 +42,8 @@ type
     name      : array[0..textrecnamelength-1] of char;
     LineEnd   : TLineEndStr;
     buffer    : textbuf;
-{$ifndef ver2_4}
+{$ifdef FPC_HAS_CPSTRING}
     CodePage  : TSystemCodePage;
-{$endif ver2_4}
+{$endif}
   End;
 

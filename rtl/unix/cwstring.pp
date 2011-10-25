@@ -878,7 +878,7 @@ begin
   Result := iconv2win(ansistring(nl_langinfo(CODESET)))
 end;
 
-{$ifndef ver2_4}
+{$ifdef FPC_HAS_CPSTRING}
 {$i textrec.inc}
 procedure SetStdIOCodePage(var T: Text); inline;
 begin
@@ -896,7 +896,7 @@ begin
   SetStdIOCodePage(StdOut);
   SetStdIOCodePage(StdErr);
 end;
-{$endif ver2_4}
+{$endif FPC_HAS_CPSTRING}
 
 Procedure SetCWideStringManager;
 Var
@@ -961,9 +961,9 @@ initialization
   { set the DefaultSystemCodePage }
   DefaultSystemCodePage:=GetStandardCodePage(scpAnsi);
 
-  {$ifndef ver2_4}
+  {$ifdef FPC_HAS_CPSTRING}
   SetStdIOCodePages;
-  {$endif ver2_4}
+  {$endif FPC_HAS_CPSTRING}
 
   { init conversion tables for main program }
   InitThread;

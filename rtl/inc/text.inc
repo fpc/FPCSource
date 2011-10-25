@@ -146,11 +146,11 @@ Begin
   TextRec(t).mode:=mode;
   TextRec(t).bufpos:=0;
   TextRec(t).bufend:=0;
-  {$ifndef ver2_4}
+  {$ifdef FPC_HAS_CPSTRING}
   { if no codepage is yet assigned then assign default ansi codepage }
   if TextRec(t).CodePage=CP_ACP then
     TextRec(t).CodePage:=DefaultSystemCodePage;
-  {$endif ver2_4}
+  {$endif}
   FileFunc(TextRec(t).OpenFunc)(TextRec(t));
   { reset the mode to closed when an error has occured }
   if InOutRes<>0 then
@@ -448,18 +448,18 @@ End;
 
 function GetTextCodePage(var T: Text): TSystemCodePage;
 begin
-{$ifndef ver2_4}
+{$ifdef FPC_HAS_CPSTRING}
   GetTextCodePage:=TextRec(T).CodePage;
 {$else}
   GetTextCodePage:=0;
-{$endif ver2_4}
+{$endif}
 end;
 
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 begin
-{$ifndef ver2_4}
+{$ifdef FPC_HAS_CPSTRING}
   TextRec(T).CodePage:=CodePage;
-{$endif ver2_4}
+{$endif}
 end;
 
 
@@ -691,7 +691,8 @@ Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; const S : RawByte
  Writes a AnsiString to the Text file T
 }
 var
-  SLen : longint;
+  SLen: longint;
+  a: RawByteString;
 begin
   If (InOutRes<>0) then
    exit;
@@ -702,7 +703,14 @@ begin
         If Len>SLen Then
           fpc_WriteBlanks(f,Len-SLen);
         if slen > 0 then
-          fpc_WriteBuffer(f,PChar(S)^,SLen);
+          begin
+            {$ifdef FPC_HAS_CPSTRING}
+            a:=fpc_AnsiStr_To_AnsiStr(S,TextRec(f).CodePage);
+            fpc_WriteBuffer(f,PAnsiChar(a)^,Length(a));
+            {$else}
+            fpc_WriteBuffer(f,PAnsiChar(s)^,SLen);
+            {$endif}
+          end;
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
@@ -716,8 +724,8 @@ Procedure fpc_Write_Text_UnicodeStr (Len : Longint; Var f : Text; const S : Unic
  Writes a UnicodeString to the Text file T
 }
 var
-  SLen : longint;
-  a: ansistring;
+  SLen: longint;
+  a: RawByteString;
 begin
   If (pointer(S)=nil) or (InOutRes<>0) then
    exit;
@@ -727,9 +735,13 @@ begin
         SLen:=Length(s);
         If Len>SLen Then
           fpc_WriteBlanks(f,Len-SLen);
+        {$ifdef FPC_HAS_CPSTRING}
+        WideStringManager.Unicode2AnsiMoveProc(PUnicodeChar(S),a,TextRec(f).CodePage,SLen);
+        {$else}
         a:=s;
+        {$endif FPC_HAS_CPSTRING}
         { length(a) can be > slen, e.g. after utf-16 -> utf-8 }
-        fpc_WriteBuffer(f,pchar(a)^,length(a));
+        fpc_WriteBuffer(f,PAnsiChar(a)^,Length(a));
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
@@ -744,8 +756,8 @@ Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; const S : WideStr
  Writes a WideString to the Text file T
 }
 var
-  SLen : longint;
-  a: ansistring;
+  SLen: longint;
+  a: RawByteString;
 begin
   If (pointer(S)=nil) or (InOutRes<>0) then
    exit;
@@ -755,9 +767,13 @@ begin
         SLen:=Length(s);
         If Len>SLen Then
           fpc_WriteBlanks(f,Len-SLen);
+        {$ifdef FPC_HAS_CPSTRING}
+        widestringmanager.Wide2AnsiMoveProc(PWideChar(s), a, TextRec(f).CodePage, SLen);
+        {$else}
         a:=s;
+        {$endif}
         { length(a) can be > slen, e.g. after utf-16 -> utf-8 }
-        fpc_WriteBuffer(f,pchar(a)^,length(a));
+        fpc_WriteBuffer(f,PAnsiChar(a)^,Length(a));
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
@@ -1006,7 +1022,7 @@ End;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); iocheck; compilerproc;
 var
-  a : ansistring;
+  a: RawByteString;
 Begin
   If (InOutRes<>0) then
     exit;
@@ -1023,8 +1039,12 @@ Begin
   If TextRec(t).BufPos>=TextRec(t).BufSize Then
     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
   { a widechar can be translated into more than a single ansichar }
+  {$ifdef FPC_HAS_CPSTRING}
+  widestringmanager.Wide2AnsiMoveProc(@c,a,TextRec(t).CodePage,1);
+  {$else}
   a:=c;
-  fpc_WriteBuffer(t,pchar(a)^,length(a));
+  {$endif}
+  fpc_WriteBuffer(t,PAnsiChar(a)^,Length(a));
 End;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
@@ -1323,7 +1343,8 @@ Begin
   // Set actual length
   SetLength(s,Slen);
   {$ifdef FPC_HAS_CPSTRING}
-  SetCodePage(s,cp,false);
+  SetCodePage(s,TextRec(f).CodePage,false);
+  s:=fpc_AnsiStr_To_AnsiStr(s,cp);
   {$endif FPC_HAS_CPSTRING}
 End;
 
@@ -1334,24 +1355,32 @@ Procedure fpc_Read_Text_AnsiStr_Intern(var f : Text;out s : RawByteString{$ifdef
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure fpc_Read_Text_UnicodeStr(var f : Text;out us : UnicodeString); iocheck; compilerproc;
 var
-  s: AnsiString;
+  s: RawByteString;
 Begin
   // all standard input is assumed to be ansi-encoded
-  fpc_Read_Text_AnsiStr_Intern(f,RawByteString(s){$ifdef FPC_HAS_CPSTRING},DefaultSystemCodePage{$endif FPC_HAS_CPSTRING});
+  fpc_Read_Text_AnsiStr_Intern(f,s{$ifdef FPC_HAS_CPSTRING},DefaultSystemCodePage{$endif FPC_HAS_CPSTRING});
   // Convert to unicodestring
+  {$ifdef FPC_HAS_CPSTRING}
+  widestringmanager.Ansi2UnicodeMoveProc(PAnsiChar(s),StringCodePage(s),us,Length(s));
+  {$else}
   us:=s;
+  {$endif}
 End;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 Procedure fpc_Read_Text_WideStr(var f : Text;out ws : WideString); iocheck; compilerproc;
 var
-  s: AnsiString;
+  s: RawByteString;
 Begin
   // all standard input is assumed to be ansi-encoded
-  fpc_Read_Text_AnsiStr_Intern(f,RawByteString(s){$ifdef FPC_HAS_CPSTRING},DefaultSystemCodePage{$endif FPC_HAS_CPSTRING});
+  fpc_Read_Text_AnsiStr_Intern(f,s{$ifdef FPC_HAS_CPSTRING},DefaultSystemCodePage{$endif FPC_HAS_CPSTRING});
   // Convert to widestring
+  {$ifdef FPC_HAS_CPSTRING}
+  widestringmanager.Ansi2WideMoveProc(PAnsiChar(s),StringCodePage(s),ws,Length(s));
+  {$else}
   ws:=s;
+  {$endif}
 End;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
@@ -1395,7 +1424,11 @@ Begin
         else
           begin
             { valid code point -> convert to widestring}
+            {$ifdef FPC_HAS_CPSTRING}
+            widestringmanager.Ansi2WideMoveProc(@str[0],TextRec(f).CodePage,ws,i+1);
+            {$else}
             widestringmanager.Ansi2WideMoveProc(@str[0],DefaultSystemCodePage,ws,i+1);
+            {$endif}
             { has to be exactly one widechar }
             if length(ws)=1 then
               begin
