@@ -411,6 +411,8 @@ begin
       if (cp=CP_ACP) then
         cp:=DefaultSystemCodePage;
       orgcp:=StringCodePage(S);
+      if (orgcp=CP_ACP) then
+        orgcp:=DefaultSystemCodePage;
       if (orgcp=cp) or (orgcp=CP_NONE) then
         begin
           SetLength(result,Size);
