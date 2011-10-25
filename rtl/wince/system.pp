@@ -1848,6 +1848,8 @@ initialization
   InitHeap;
 {$ENDIF HAS_MEMORYMANAGER}
   SysInitExceptions;
+  initunicodestringmanager;
+  InitWinCEWidestrings;
   if not IsLibrary then
     begin
       SysInitStdIO;
@@ -1860,8 +1862,6 @@ initialization
   { Reset internal error variable }
   errno:=0;
   initvariantmanager;
-  initunicodestringmanager;
-  InitWinCEWidestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
 
 finalization

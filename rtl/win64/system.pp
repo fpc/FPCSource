@@ -610,6 +610,9 @@ begin
   SysInitExceptions;
   { setup fastmove stuff }
   fpc_cpucodeinit;
+  initwidestringmanager;
+  initunicodestringmanager;
+  InitWin32Widestrings;
   SysInitStdIO;
   { Arguments }
   setup_arguments;
@@ -621,8 +624,5 @@ begin
   { Reset internal error variable }
   errno:=0;
   initvariantmanager;
-  initwidestringmanager;
-  initunicodestringmanager;
-  InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

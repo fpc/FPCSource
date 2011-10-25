@@ -425,6 +425,9 @@ begin
 {$endif ndef KMODE and ndef HAS_MEMORYMANAGER}
   SysInitExceptions;
   initvariantmanager;
+  { we do not use winlike widestrings and also the RTL can't be compiled with
+    2.2, so we can savely use the UnicodeString manager only. }
+  initunicodestringmanager;
 {$ifndef KMODE}
   SysInitStdIO;
   { Arguments }
@@ -433,8 +436,5 @@ begin
   InOutRes := 0;
   InitSystemThreads;
   errno := 0;
-  { we do not use winlike widestrings and also the RTL can't be compiled with
-    2.2, so we can savely use the UnicodeString manager only. }
-  initunicodestringmanager;
 end.
 
