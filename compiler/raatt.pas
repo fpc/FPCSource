@@ -52,7 +52,7 @@ unit raatt;
         AS_DB,AS_DW,AS_DD,AS_DQ,AS_GLOBAL,
         AS_ALIGN,AS_BALIGN,AS_P2ALIGN,AS_ASCII,
         AS_ASCIIZ,AS_LCOMM,AS_COMM,AS_SINGLE,AS_DOUBLE,AS_EXTENDED,AS_CEXTENDED,
-        AS_DATA,AS_TEXT,AS_INIT,AS_FINI,AS_END,
+        AS_DATA,AS_TEXT,AS_INIT,AS_FINI,AS_RVA,AS_END,
         {------------------ Assembler Operators  --------------------}
         AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
         AS_LO,AS_HI,
@@ -77,7 +77,7 @@ unit raatt;
         '.byte','.word','.long','.quad','.globl',
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat','.tcfloat',
-        '.data','.text','.init','.fini','END',
+        '.data','.text','.init','.fini','.rva','END',
         'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi',
         'directive');
 
@@ -90,6 +90,7 @@ unit raatt;
          procedure BuildConstantOperand(oper : toperand);
          procedure BuildRealConstant(typ : tfloattype);
          procedure BuildStringConstant(asciiz: boolean);
+         procedure BuildRva;
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
          procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression(allowref,betweenbracket:boolean): aint;
@@ -1183,6 +1184,16 @@ unit raatt;
                Consume(AS_SEPARATOR);
              end;
 
+           AS_RVA:
+             begin
+               { .rva generally applies to systems with COFF output format,
+                 not just Windows. }
+               if not (target_info.system in systems_all_windows) then
+                 Message1(asmr_e_unsupported_directive,token2str[AS_RVA]);
+               Consume(AS_RVA);
+               BuildRva;
+             end;
+
            AS_TARGET_DIRECTIVE:
              HandleTargetDirective;
 
@@ -1590,6 +1601,45 @@ unit raatt;
            oper.opr.typ:=OPR_CONSTANT;
            oper.opr.val:=l;
          end;
+      end;
+
+    procedure tattreader.BuildRva;
+      var
+       asmsymtyp : TAsmSymType;
+       asmsym: string;
+       value : aint;
+       ai:tai_const;
+      begin
+        repeat
+          case actasmtoken of
+            AS_INTNUM,
+            AS_PLUS,
+            AS_MINUS,
+            AS_LPAREN,
+            AS_ID :
+              Begin
+                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
+                if asmsym<>'' then
+                 begin
+                   ai:=tai_const.create_type_sym(aitconst_rva_symbol,current_asmdata.RefAsmSymbol(asmsym));
+                   ai.value:=value;
+                   curlist.concat(ai);
+                 end
+                else
+                 Message(asmr_e_invalid_symbol_ref);
+              end;
+            AS_COMMA:
+              Consume(AS_COMMA);
+            AS_END,
+            AS_SEPARATOR:
+              break;
+            else
+              begin
+                Message(asmr_e_syn_constant);
+                RecoverConsume(false);
+              end
+          end; { end case }
+        until false;
       end;
 
 end.

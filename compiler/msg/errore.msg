@@ -2442,6 +2442,7 @@ asmr_e_bad_seh_directive_register=07113_E_Invalid register for $1
 asmr_e_seh_in_pure_asm_only=07114_E_SEH directives are allowed only in pure assembler procedures
 % Win64 SEH directives are allowed only in pure assembler procedures, not in assembler
 % blocks of regular procedures.
+asmr_e_unsupported_directive=07115_E_Directive "$1" is not supported for the current target
 
 
 #
@@ -2479,12 +2480,15 @@ asmw_e_bad_reg_with_rex=08022_E_Asm: AH,BH,CH or DH cannot be used in an instruc
 % 8086 high byte registers (AH,BH,CH or DH) together with REX prefix in a single instruction.
 % The REX prefix is required whenever the instruction operand size is 64 bits, or
 % when it uses one of extended x86_64 registers (R8-R15 or XMM8-XMM15).
-asmw_w_missing_endprologue=08023_W_Missing .seh_endprologue directive
+asmw_e_missing_endprologue=08023_E_Missing .seh_endprologue directive
 % x86_64-win64 only: Normally, SEH directives are handled internally by compiler.
 % However, in pure assembler procedures .seh_endprologue directive is required
 % if other SEH directives are present.
-asmw_w_prologue_too_large=08024_W_Function prologue exceeds 255 bytes
+asmw_e_prologue_too_large=08024_E_Function prologue exceeds 255 bytes
 % x86_64-win64: .seh_prologue directive must be placed within 255 bytes from function start.
+asmw_e_handlerdata_no_handler=08025_E_.seh_handlerdata directive without preceding .seh_handler
+% x86_64-win64: If .seh_handlerdata directive is used, then a .seh_handler directive must be
+% present earlier in the same function.
 
 #
 # Executing linker/assembler
