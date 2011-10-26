@@ -1951,16 +1951,16 @@ begin
     fmInput :
       begin
         TextRec(f).InOutFunc:=@FileReadFunc;
-      {$ifndef ver2_4}
+      {$if FPC_FULLVERSION>=20700}
         TextRec(f).CodePage:=WideStringManager.GetStandardCodePageProc(scpConsoleInput);
-      {$endif ver2_4}
+      {$endif}
       end;
     fmOutput :
       begin
         TextRec(f).InOutFunc:=@FileWriteFunc;
-      {$ifndef ver2_4}
+      {$if FPC_FULLVERSION>=20700}
         TextRec(f).CodePage:=WideStringManager.GetStandardCodePageProc(scpConsoleOutput);
-      {$endif ver2_4}
+      {$endif}
         if Do_Isdevice(hdl) then
           TextRec(f).FlushFunc:=@FileWriteFunc;
       end;
