@@ -1951,14 +1951,14 @@ begin
     fmInput :
       begin
         TextRec(f).InOutFunc:=@FileReadFunc;
-      {$if FPC_FULLVERSION>=20700}
+      {$ifdef FPC_HAS_CPSTRING}
         TextRec(f).CodePage:=WideStringManager.GetStandardCodePageProc(scpConsoleInput);
       {$endif}
       end;
     fmOutput :
       begin
         TextRec(f).InOutFunc:=@FileWriteFunc;
-      {$if FPC_FULLVERSION>=20700}
+      {$ifdef FPC_HAS_CPSTRING}
         TextRec(f).CodePage:=WideStringManager.GetStandardCodePageProc(scpConsoleOutput);
       {$endif}
         if Do_Isdevice(hdl) then
