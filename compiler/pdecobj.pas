@@ -417,22 +417,13 @@ implementation
                   hs:=ChangeFileExt(hs,target_info.sharedlibext);
                 if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
                   hs:=target_info.sharedlibprefix+hs;
-              end
-            else if assigned(current_module.namespace) then
-              begin
-                { import_lib is used to specify the package name for the JVM
-                  target (= namespace) }
-                if (target_info.system=system_jvm_java32) and
-                   assigned(current_module.namespace) then
-                  hs:=current_module.namespace^;
-                { not sure how to deal with cppclass here, since namespaces
-                  mean something different there }
               end;
             if hs<>'' then
               begin
                 { the JVM expects java/lang/Object rather than java.lang.Object }
                 if target_info.system=system_jvm_java32 then
                   Replace(hs,'.','/');
+                stringdispose(od.import_lib);
                 od.import_lib:=stringdup(hs);
               end;
             include(od.objectoptions, oo_is_external);
@@ -446,15 +437,6 @@ implementation
         else
           begin
             od.objextname:=stringdup(od.objrealname^);
-            { ToDo for cpp: read/set the namespace of the class (influences the mangled name)
-                (notice that for the JVM target, there is no difference between
-                 the namespace and import_lib) }
-            if (target_info.system=system_jvm_java32) and
-               assigned(current_module.namespace) then
-              begin
-                od.import_lib:=stringdup(current_module.namespace^);
-                Replace(od.import_lib^,'.','/');
-              end;
           end;
       end;
 

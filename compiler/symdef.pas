@@ -3022,6 +3022,11 @@ implementation
         objname:=stringdup(upper(n));
         objrealname:=stringdup(n);
         objectoptions:=[];
+        if assigned(current_module.namespace) then
+          begin
+            import_lib:=stringdup(current_module.namespace^);
+            replace(import_lib^,'.','/');
+          end;
       end;
 
     constructor tabstractrecorddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
