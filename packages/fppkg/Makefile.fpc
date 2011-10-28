@@ -35,20 +35,20 @@ fpcpackage=y
 fpcdir=../..
 
 [require]
-packages=fcl-base fcl-xml fcl-process fcl-net paszlib
+packages=fcl-base fcl-xml fcl-process paszlib
 tools=data2inc
-packages_darwin=univint fcl-web
-packages_iphonesim=univint fcl-web
-packages_linux=fcl-web
-packages_beos=fcl-web
-packages_haiku=fcl-web
-packages_freebsd=fcl-web
-packages_netbsd=fcl-web
-packages_openbsd=fcl-web
-packages_solaris=fcl-web
-packages_win32=fcl-web
-packages_win64=fcl-web
-packages_wince=fcl-web
+packages_darwin=univint fcl-net fcl-web
+packages_iphonesim=univint fcl-net fcl-web
+packages_linux=fcl-net fcl-web
+packages_beos=fcl-net fcl-web
+packages_haiku=fcl-net fcl-web
+packages_freebsd=fcl-net fcl-web
+packages_netbsd=fcl-net fcl-web
+packages_openbsd=fcl-net fcl-web
+packages_solaris=fcl-net fcl-web
+packages_win32=fcl-net fcl-web
+packages_win64=fcl-net fcl-web
+packages_wince=fcl-net fcl-web
 
 [rules]
 .NOTPARALLEL:
