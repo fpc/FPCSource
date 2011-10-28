@@ -314,8 +314,11 @@ implementation
         enumclass.symtable.insert(temptypesym);
         { but the name of the class as far as the JVM is concerned will match
           the enum's original name (the enum type itself won't be output in
-          any class file, so no conflict there) }
-        if not islocal then
+          any class file, so no conflict there)
+
+          name can be empty in case of declaration such as "set of (ea,eb)"  }
+        if not islocal and
+           (name <> '')  then
           enumclass.objextname:=stringdup(name)
         else
           { for local types, use a unique name to prevent conflicts (since such
