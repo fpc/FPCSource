@@ -401,6 +401,7 @@ implementation
                 not (m_delphi in current_settings.modeswitches) then
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
+              p.parast:=tparasymtable.create(nil,0);
               symtablestack.push(p.parast);
               sc:=TFPObjectList.create(false);
               repeat
@@ -513,10 +514,9 @@ implementation
                   p.index:=tpropertysym(overridden).index;
                   p.default:=tpropertysym(overridden).default;
                   p.propoptions:=tpropertysym(overridden).propoptions;
-                  p.parast.free;
-                  p.parast:=tpropertysym(overridden).parast.getcopy;
                   if ppo_hasparameters in p.propoptions then
                     begin
+                      p.parast:=tpropertysym(overridden).parast.getcopy;
                       add_parameters(p,readprocdef,writeprocdef);
                       paranr:=p.parast.SymList.Count;
                     end;

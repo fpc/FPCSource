@@ -957,7 +957,7 @@ implementation
          default:=0;
          propdef:=nil;
          indexdef:=nil;
-         parast:=tparasymtable.create(nil,0);
+         parast:=nil;
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=tpropaccesslist.create;
       end;
@@ -976,8 +976,11 @@ implementation
          ppufile.getderef(indexdefderef);
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=ppufile.getpropaccesslist;
-         parast:=tparasymtable.create(nil,0);
-         tparasymtable(parast).ppuload(ppufile);
+         if ppo_hasparameters in propoptions then
+           begin
+             parast:=tparasymtable.create(nil,0);
+             tparasymtable(parast).ppuload(ppufile);
+           end;
       end;
 
 
@@ -1001,7 +1004,8 @@ implementation
         indexdefderef.build(indexdef);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           propaccesslist[pap].buildderef;
-        tparasymtable(parast).buildderef;
+        if assigned(parast) then
+          tparasymtable(parast).buildderef;
       end;
 
 
@@ -1014,7 +1018,8 @@ implementation
         propdef:=tdef(propdefderef.resolve);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           propaccesslist[pap].resolve;
-        tparasymtable(parast).deref;
+        if assigned(parast) then
+          tparasymtable(parast).deref;
       end;
 
 
@@ -1038,7 +1043,8 @@ implementation
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           ppufile.putpropaccesslist(propaccesslist[pap]);
         ppufile.writeentry(ibpropertysym);
-        tparasymtable(parast).ppuwrite(ppufile);
+        if ppo_hasparameters in propoptions then
+          tparasymtable(parast).ppuwrite(ppufile);
       end;
 
 
