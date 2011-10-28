@@ -859,10 +859,13 @@ implementation
       begin
         if not(obj.owner.defowner.typ in [objectdef,recorddef]) then
           internalerror(2011021701);
+        { Nested classes in the Pascal sense are equivalent to "static"
+          inner classes in Java -- will be changed when support for
+          Java-style non-static classes is added }
         case obj.typ of
           recorddef:
             begin
-              kindname:='class ';
+              kindname:='class static ';
               extname:=obj.symtable.realname;
             end;
           objectdef:
@@ -870,7 +873,7 @@ implementation
               extname:=tobjectdef(obj).objextname;
               case tobjectdef(obj).objecttype of
                 odt_javaclass:
-                  kindname:='class ';
+                  kindname:='class static ';
                 odt_interfacejava:
                   kindname:='interface ';
                 else
@@ -884,10 +887,6 @@ implementation
           '.inner '+
           kindname+
           VisibilityToStr(obj.typesym.visibility)+
-          { Nested classes in the Pascal sense are equivalent to "static"
-            inner classes in Java -- will be changed when support for
-            Java-style non-static classes is added }
-         ' static '+
          extname^+
          ' inner '+
          obj.jvm_full_typename(true)+
