@@ -201,6 +201,7 @@ implementation
         ppufile.getderef(symtableentryderef);
         symtable:=nil;
         ppufile.getderef(fprocdefderef);
+        ppufile.getsmallset(loadnodeflags);
       end;
 
 
@@ -209,6 +210,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putderef(symtableentryderef);
         ppufile.putderef(fprocdefderef);
+        ppufile.putsmallset(loadnodeflags);
       end;
 
 
