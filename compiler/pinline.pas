@@ -57,7 +57,7 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       cgbase
+       cgbase,procinfo
        ;
 
 
@@ -508,12 +508,22 @@ implementation
         isarray:=is_dynamic_array(destppn.resultdef);
         if not((destppn.resultdef.typ=stringdef) or
                isarray) then
-         begin
-           CGMessage(type_e_mismatch);
-           paras.free;
-           exit;
-         end;
-
+          begin
+            { possibly generic involved? }
+            if df_generic in current_procinfo.procdef.defoptions then
+              begin
+                result.free;
+                result:=internalstatements(newstatement);
+                paras.free;
+                exit;
+              end
+            else
+              begin
+                CGMessage(type_e_mismatch);
+                paras.free;
+                exit;
+              end;
+          end;
         { only dynamic arrays accept more dimensions }
         if (dims>1) then
          begin
@@ -584,7 +594,7 @@ implementation
                 cordconstnode.create(getparaencoding(destppn.resultdef),u16inttype,true),
                 paras
               )
-            );           
+            );
          end
         else
          begin
