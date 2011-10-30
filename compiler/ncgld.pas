@@ -496,7 +496,7 @@ implementation
 
                      { virtual method ? }
                      if (po_virtualmethod in procdef.procoptions) and
-                        not(nf_inherited in flags) and
+                        not(loadnf_inherited in loadnodeflags) and
                         not is_objectpascal_helper(procdef.struct) then
                        begin
                          if (not assigned(current_procinfo) or

@@ -1507,7 +1507,7 @@ implementation
         current_asmdata.CurrAsmList:=asmlist;
         hp:=cloadnode.create(sym,sym.owner);
         if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
-          include(hp.flags,nf_isinternal_ignoreconst);
+          include(tloadnode(hp).loadnodeflags,loadnf_isinternal_ignoreconst);
         hp:=finalize_data_node(hp);
         firstpass(hp);
         secondpass(hp);

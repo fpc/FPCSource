@@ -2093,7 +2093,8 @@ implementation
                   begin
                     if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                        (procdefinition.proctypeoption=potype_constructor) and
-                       (nf_is_self in methodpointer.flags) then
+                       (methodpointer.nodetype=loadn) and
+                       (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
                       vmttree:=cpointerconstnode.create(0,voidpointertype)
                     else
                       vmttree:=cpointerconstnode.create(1,voidpointertype);
@@ -2423,7 +2424,8 @@ implementation
           called, indirect constructor calls cannot be checked.
         }
         if assigned(methodpointer) and
-           not (nf_is_self in methodpointer.flags) then
+           not((methodpointer.nodetype=loadn) and
+               (loadnf_is_self in tloadnode(methodpointer).loadnodeflags)) then
           begin
             if (methodpointer.resultdef.typ = objectdef) then
               objectdf:=tobjectdef(methodpointer.resultdef)
@@ -2940,7 +2942,8 @@ implementation
               if (procdefinition.proctypeoption=potype_constructor) and
                  is_class(tprocdef(procdefinition).struct) and
                  assigned(methodpointer) and
-                 (nf_is_self in methodpointer.flags) then
+                 (methodpointer.nodetype=loadn) and
+                 (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
                 resultdef:=voidtype
               else
                 resultdef:=procdefinition.returndef;

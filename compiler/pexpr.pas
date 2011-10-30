@@ -923,7 +923,7 @@ implementation
                   the function directly and not through the vmt (PFV) }
                 if (cnf_inherited in callflags) then
                   begin
-                    include(p2.flags,nf_inherited);
+                    include(tloadnode(p2).loadnodeflags,loadnf_inherited);
                     p1.free;
                     p1:=load_self_node;
                   end;
@@ -3009,7 +3009,11 @@ implementation
                _OP_NOT :
                  p1:=cnotnode.create(p1);
                _OP_MOD :
-                 p1:=cmoddivnode.create(modn,p1,p2);
+                 begin
+                   p1:=cmoddivnode.create(modn,p1,p2);
+                   if m_iso in current_settings.modeswitches then
+                     include(p1.flags,nf_isomod);
+                 end;
                _OP_SHL :
                  p1:=cshlshrnode.create(shln,p1,p2);
                _OP_SHR :

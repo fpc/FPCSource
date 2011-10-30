@@ -102,7 +102,7 @@ implementation
       defutil,
       htypechk,pass_1,
       cgbase,
-      ncon,ncnv,ncal,nadd,
+      ncon,ncnv,ncal,nadd,nld,nbas,nflw,
       nutils;
 
 {****************************************************************************
@@ -133,6 +133,13 @@ implementation
                 { recover }
                 tordconstnode(right).value := 1;
               end;
+            if (nf_isomod in flags) and
+              (rv<=0) then
+               begin
+                 Message(cg_e_mod_only_defined_for_pos_quotient);
+                 { recover }
+                 tordconstnode(right).value := 1;
+               end;
           end;
 
         if is_constintnode(right) and is_constintnode(left) then
@@ -142,7 +149,18 @@ implementation
 
             case nodetype of
               modn:
-                result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
+                if nf_isomod in flags then
+                  begin
+                    if lv>=0 then
+                      result:=create_simplified_ord_const(lv mod rv,resultdef,forinline)
+                    else
+                      if ((-lv) mod rv)=0 then
+                        result:=create_simplified_ord_const((-lv) mod rv,resultdef,forinline)
+                      else
+                        result:=create_simplified_ord_const(rv-((-lv) mod rv),resultdef,forinline);
+                  end
+                else
+                  result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
               divn:
                 result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
             end;
@@ -152,8 +170,12 @@ implementation
 
     function tmoddivnode.pass_typecheck:tnode;
       var
+        else_block,
         hp,t : tnode;
         rd,ld : torddef;
+        else_statements,
+        statements : tstatementnode;
+        result_data : ttempcreatenode;
       begin
          result:=nil;
          typecheckpass(left);
@@ -287,6 +309,42 @@ implementation
             include(hp.flags,nf_is_currency);
             result:=hp;
           end;
+
+         if (nodetype=modn) and (nf_isomod in flags) then
+           begin
+             result:=internalstatements(statements);
+             else_block:=internalstatements(else_statements);
+             result_data:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+
+             { right <=0? }
+             addstatement(statements,cifnode.create(caddnode.create(lten,right.getcopy,cordconstnode.create(0,resultdef,false)),
+               { then: result:=left mod right }
+               ccallnode.createintern('fpc_divbyzero',nil),
+               nil
+               ));
+
+             { prepare else block }
+             { result:=(-left) mod right }
+             addstatement(else_statements,cassignmentnode.create(ctemprefnode.create(result_data),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy),right.getcopy)));
+             { result<>0? }
+             addstatement(else_statements,cifnode.create(caddnode.create(unequaln,ctemprefnode.create(result_data),cordconstnode.create(0,resultdef,false)),
+               { then: result:=right-result }
+               cassignmentnode.create(ctemprefnode.create(result_data),caddnode.create(subn,right.getcopy,ctemprefnode.create(result_data))),
+               nil
+               ));
+
+             addstatement(statements,result_data);
+             { if left>=0 }
+             addstatement(statements,cifnode.create(caddnode.create(gten,left.getcopy,cordconstnode.create(0,resultdef,false)),
+               { then: result:=left mod right }
+               cassignmentnode.create(ctemprefnode.create(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy)),
+               { else block }
+               else_block
+               ));
+
+             addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
+             addstatement(statements,ctemprefnode.create(result_data));
+           end;
       end;
 
 

@@ -454,7 +454,7 @@ implementation
         if assigned(srsym) then
           begin
             result:=cloadnode.create(srsym,srsym.owner);
-            include(result.flags,nf_is_self);
+            include(tloadnode(result).loadnodeflags,loadnf_is_self);
           end
         else
           begin
@@ -491,7 +491,7 @@ implementation
         if assigned(srsym) then
           begin
             result:=cloadnode.create(srsym,srsym.owner);
-            include(result.flags,nf_load_self_pointer);
+            include(tloadnode(result).loadnodeflags,loadnf_load_self_pointer);
           end
         else
           begin

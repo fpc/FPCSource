@@ -33,13 +33,24 @@ interface
        symconst,symbase,symtype,symsym,symdef;
 
     type
-       Trttidatatype=(rdt_normal,rdt_ord2str,rdt_str2ord);
+       Trttidatatype = (rdt_normal,rdt_ord2str,rdt_str2ord);
+
+       tloadnodeflags = (
+         loadnf_is_self,
+         loadnf_load_self_pointer,
+         loadnf_inherited,
+         { the loadnode is generated internally and a varspez=vs_const should be ignore,
+           this requires that the parameter is actually passed by value
+           Be really carefull when using this flag! }
+         loadnf_isinternal_ignoreconst
+        );
 
        tloadnode = class(tunarynode)
        protected
           fprocdef : tprocdef;
           fprocdefderef : tderef;
        public
+          loadnodeflags : set of tloadnodeflags;
           symtableentry : tsym;
           symtableentryderef : tderef;
           symtable : TSymtable;
@@ -245,7 +256,7 @@ implementation
         result:=(symtable.symtabletype=parasymtable) and
                 (symtableentry.typ=paravarsym) and
                 not(vo_has_local_copy in tparavarsym(symtableentry).varoptions) and
-                not(nf_load_self_pointer in flags) and
+                not(loadnf_load_self_pointer in loadnodeflags) and
                 paramanager.push_addr_param(tparavarsym(symtableentry).varspez,tparavarsym(symtableentry).vardef,tprocdef(symtable.defowner).proccalloption);
       end;
 
@@ -309,7 +320,7 @@ implementation
                       (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
                      resultdef:=tclassrefdef.create(resultdef)
                    else if (is_object(resultdef) or is_record(resultdef)) and
-                           (nf_load_self_pointer in flags) then
+                           (loadnf_load_self_pointer in loadnodeflags) then
                      resultdef:=tpointerdef.create(resultdef);
                  end
                else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
