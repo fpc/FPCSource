@@ -110,6 +110,10 @@
   {$define cpufpemu}
   {$define cpuneedsdiv32helper}
   {$define cputargethasfixedstack}
+  { default to armel }
+  {$if not(defined(CPUARM)) and not(defined(CPUARMEB)) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEB))}
+    {$define FPC_ARMEL}
+  {$endif}
   { inherit FPC_ARMEL? }
   {$if defined(CPUARMEL) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEB))}
     {$define FPC_ARMEL}
