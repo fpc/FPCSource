@@ -35,7 +35,7 @@ implementation
     uses
        SysUtils,
        globtype,systems,tokens,verbose,constexp,
-       cutils,globals,widestr,scanner,
+       cclasses,cutils,globals,widestr,scanner,
        symconst,symbase,symdef,symtable,
        aasmbase,aasmtai,aasmcpu,defutil,defcmp,
        { pass 1 }
@@ -1094,9 +1094,21 @@ implementation
               Message(parser_e_improper_guid_syntax);
           end;
 
+        function get_next_varsym(const SymList:TFPHashObjectList; var symidx:longint):tsym;inline;
+          begin
+            while symidx<SymList.Count do
+              begin
+                result:=tsym(def.symtable.SymList[symidx]);
+                inc(symidx);
+                if result.typ=fieldvarsym then
+                  exit;
+              end;
+            result:=nil;
+          end;
+
         var
           i : longint;
-
+          SymList:TFPHashObjectList;
         begin
           { GUID }
           if (def=rec_tguid) and (token=_ID) then
@@ -1146,9 +1158,10 @@ implementation
           { normal record }
           consume(_LKLAMMER);
           curroffset:=0;
-          symidx:=0;
           sorg:='';
-          srsym:=tsym(def.symtable.SymList[symidx]);
+          symidx:=0;
+          symlist:=def.symtable.SymList;
+          srsym:=get_next_varsym(symlist,symidx);
           recsym := nil;
           startoffset:=hr.offset;
           while token<>_RKLAMMER do
@@ -1183,8 +1196,9 @@ implementation
                      {   const r: tr = (w1:1;w2:1;l2:5);                  }
                      (tfieldvarsym(recsym).fieldoffset = curroffset) then
                     begin
-                      srsym := recsym;
-                      symidx := def.symtable.SymList.indexof(srsym)
+                      srsym:=recsym;
+                      { symidx should contain the next symbol id to search }
+                      symidx:=SymList.indexof(srsym)+1;
                     end
                   { going backwards isn't allowed in any mode }
                   else if (tfieldvarsym(recsym).fieldoffset<curroffset) then
@@ -1256,12 +1270,7 @@ implementation
                   { record was initialized (JM)                    }
                   recsym := srsym;
                   { goto next field }
-                  inc(symidx);
-                  if symidx<def.symtable.SymList.Count then
-                    srsym:=tsym(def.symtable.SymList[symidx])
-                  else
-                    srsym:=nil;
-
+                  srsym:=get_next_varsym(SymList,symidx);
                   if token=_SEMICOLON then
                     consume(_SEMICOLON)
                   else if (token=_COMMA) and (m_mac in current_settings.modeswitches) then
