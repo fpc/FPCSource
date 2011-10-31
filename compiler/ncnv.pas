@@ -1082,6 +1082,7 @@ implementation
          else
            if (tstringdef(resultdef).stringtype=st_shortstring) and
               (torddef(left.resultdef).ordtype=uwidechar) and
+              (left.nodetype=ordconstn) and
               (tcompilerwidechar(tordconstnode(left).value.uvalue) <= 127)
            then
              begin
