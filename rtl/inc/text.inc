@@ -1768,6 +1768,9 @@ begin
   t.mode:=fmOutput;
   t.OpenFunc:=nil;
   t.CloseFunc:=nil;
+  {$ifdef FPC_HAS_CPSTRING}
+  t.CodePage:=DefaultSystemCodePage;
+  {$endif}
 end;
 
 
@@ -1865,6 +1868,9 @@ begin
   t.mode:=fmInput;
   t.OpenFunc:=nil;
   t.CloseFunc:=nil;
+  {$ifdef FPC_HAS_CPSTRING}
+  t.CodePage:=DefaultSystemCodePage;
+  {$endif}
   PSizeInt(@t.userdata[BytesReadIndex])^:=0;
 end;
 
