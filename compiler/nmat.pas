@@ -117,7 +117,8 @@ implementation
 
         if is_constintnode(right) then
           begin
-            if tordconstnode(right).value = 1 then
+            rv:=tordconstnode(right).value;
+            if rv = 1 then
               begin
                 case nodetype of
                   modn:
@@ -127,7 +128,7 @@ implementation
                 end;
                 exit;
               end;
-            if tordconstnode(right).value = 0 then
+            if rv = 0 then
               begin
                 Message(parser_e_division_by_zero);
                 { recover }
