@@ -227,13 +227,6 @@ implementation
         result:=true;
       end;
 
-    { This function is only used for command line argument -vmXXX }
-    { thus the message needs to be cleared globally }
-    function ClearMessageVerbosity(s: string; var i: integer): boolean;
-      begin
-        ClearMessageVerbosity:=ChangeMessageVerbosity(s,i,ms_off_global);
-      end;
-
     function SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
       begin
         result:=msg^.setverbosity(v,state);
@@ -246,6 +239,8 @@ implementation
 
 
     function SetVerbosity(const s:string):boolean;
+      const
+        message_verbosity:array[boolean] of tmsgstate=(ms_off_global,ms_on_global);
       var
         m : Longint;
         i : Integer;
@@ -283,8 +278,7 @@ implementation
                           else
                             status.print_source_path:=true;
                        end;
-                 'M' : if inverse or
-                         not ClearMessageVerbosity(s, i) then
+                 'M' : if not ChangeMessageVerbosity(s,i,message_verbosity[inverse]) then
                          begin
                            result:=false;
                            exit
