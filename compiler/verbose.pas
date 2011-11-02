@@ -123,7 +123,7 @@ interface
 implementation
 
     uses
-      comphook,fmodule,constexp,globals,cfileutl;
+      comphook,fmodule,constexp,globals,cfileutl,switches;
 
 {****************************************************************************
                        Extra Handlers for default compiler
@@ -203,11 +203,10 @@ implementation
           end;
       end;
 
-    function ChangeMessageVerbosity(s: string; var i: integer;state:tmsgstate): boolean;
+    function ChangeMessageVerbosity(s: string; var i : integer;state:tmsgstate): boolean;
       var
         tok  : string;
-        code : longint;
-        msgnr: longint;
+        msgnr, code : longint;
       begin
         { delete everything up to and including 'm' }
         delete(s,1,i);
@@ -222,7 +221,9 @@ implementation
           if (code<>0) then
             exit;
           if not msg^.setverbosity(msgnr,state) then
-            exit;
+            exit
+          else
+            recordpendingmessagestate(msgnr, state);
         until false;
         result:=true;
       end;
