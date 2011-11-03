@@ -290,14 +290,14 @@ type
   {read}
     function  openfile:boolean;
     procedure reloadbuf;
-    procedure readdata(var b;len:integer);
+    procedure readdata(out b;len:integer);
     procedure skipdata(len:integer);
     function  readentry:byte;
     function  EndOfEntry:boolean;
     function  entrysize:longint;
     function  entryleft:longint;
-    procedure getdatabuf(var b;len:integer;var res:integer);
-    procedure getdata(var b;len:integer);
+    procedure getdatabuf(out b;len:integer;out res:integer);
+    procedure getdata(out b;len:integer);
     function  getbyte:byte;
     function  getword:word;
     function  getdword:dword;
@@ -311,8 +311,8 @@ type
     function  getrealsize(sizeofreal : longint):ppureal;
     function  getstring:string;
     function  getansistring:ansistring;
-    procedure getnormalset(var b);
-    procedure getsmallset(var b);
+    procedure getnormalset(out b);
+    procedure getsmallset(out b);
     function  skipuntilentry(untilb:byte):boolean;
   {write}
     function  createfile:boolean;
@@ -528,7 +528,7 @@ begin
 end;
 
 
-procedure tppufile.readdata(var b;len:integer);
+procedure tppufile.readdata(out b;len:integer);
 var
   p,pbuf : pchar;
   left : integer;
@@ -623,7 +623,7 @@ begin
 end;
 
 
-procedure tppufile.getdatabuf(var b;len:integer;var res:integer);
+procedure tppufile.getdatabuf(out b;len:integer;out res:integer);
 begin
   if entryidx+len>entry.size then
    res:=entry.size-entryidx
@@ -634,7 +634,7 @@ begin
 end;
 
 
-procedure tppufile.getdata(var b;len:integer);
+procedure tppufile.getdata(out b;len:integer);
 begin
   if entryidx+len>entry.size then
    begin
@@ -957,7 +957,7 @@ begin
 end;
 
 
-procedure tppufile.getsmallset(var b);
+procedure tppufile.getsmallset(out b);
 var
   i : longint;
 begin
@@ -968,7 +968,7 @@ begin
 end;
 
 
-procedure tppufile.getnormalset(var b);
+procedure tppufile.getnormalset(out b);
 var
   i : longint;
 begin
