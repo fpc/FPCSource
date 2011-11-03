@@ -90,6 +90,9 @@ interface
         procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : tcgint);override;
         procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+        { Transform unsupported methods into Internal errors }
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+        procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
        private
         g1_used : boolean;
       end;
@@ -1406,6 +1409,16 @@ implementation
         list.Concat(TAiCpu.Op_none(A_NOP));
 
         List.concat(Tai_symbol_end.Createname(labelname));
+      end;
+
+    procedure tcgsparc.g_stackpointer_alloc(list : TAsmList;localsize : longint);
+      begin
+        Comment(V_Error,'tcgsparc.g_stackpointer_alloc method not implemented');
+      end;
+
+    procedure tcgsparc.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+      begin
+        Comment(V_Error,'tcgsparc.a_bit_scan_reg_reg method not implemented');
       end;
 
 {****************************************************************************
