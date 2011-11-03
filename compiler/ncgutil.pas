@@ -190,6 +190,9 @@ implementation
 {*****************************************************************************
                                   Misc Helpers
 *****************************************************************************}
+{$if first_mm_imreg = 0}
+  {$WARN 4044 OFF} { Comparison might be always false ... }
+{$endif}
 
     procedure location_free(list: TAsmList; const location : TLocation);
       begin
