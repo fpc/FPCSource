@@ -2658,6 +2658,8 @@ function MaskAllFPUExceptions(control : TFPUState) : TFPUState;
 begin
 {$ifdef cpui386}
   MaskAllFPUExceptions := control or MaskAllExceptions;
+{$else}
+  MaskAllFPUExceptions:=0;
 {$endif}
 end;
 
