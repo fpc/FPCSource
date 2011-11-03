@@ -1031,17 +1031,13 @@ implementation
         newstat  : tstatementnode;
         restemp  : ttempcreatenode;
         sa : ansistring;
-        cw : WideChar;
+        cw : tcompilerwidechar;
         l : SizeUInt;
       begin
          result:=nil;
          if (left.nodetype=ordconstn) and
             ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring]) or
-             (torddef(left.resultdef).ordtype=uchar) or
-             ((torddef(left.resultdef).ordtype=uwidechar) and
-              (tstringdef(resultdef).stringtype<>st_shortstring)
-             )
-            ) then
+             (torddef(left.resultdef).ordtype in [uchar,uwidechar])) then
            begin
               if (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
                begin
@@ -1057,18 +1053,22 @@ implementation
               else
                 begin
                   if (torddef(left.resultdef).ordtype=uwidechar) then
-                   begin
-                    if (current_settings.sourcecodepage<>CP_UTF8) then
-                      hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)))
-                    else
-                     begin
-                       Word(cw):=tcompilerwidechar(tordconstnode(left).value.uvalue);
-                       SetLength(sa,5);
-                       l:=UnicodeToUtf8(@(sa[1]),Length(sa),@cw,1);
-                       SetLength(sa,l-1);
-                       hp:=cstringconstnode.createstr(sa);
-                     end
-                   end
+                    begin
+                      if (current_settings.sourcecodepage<>CP_UTF8) then
+                        begin
+                          if tordconstnode(left).value.uvalue>127 then
+                            Message(type_w_unicode_data_loss);
+                          hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                        end
+                      else
+                        begin
+                          cw:=tcompilerwidechar(tordconstnode(left).value.uvalue);
+                          SetLength(sa,5);
+                          l:=UnicodeToUtf8(@(sa[1]),Length(sa),@cw,1);
+                          SetLength(sa,l-1);
+                          hp:=cstringconstnode.createstr(sa);
+                        end
+                    end
                   else
                     hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue));
                   { output string consts in local ansistring encoding }
@@ -1080,19 +1080,6 @@ implementation
               result:=hp;
            end
          else
-           if (tstringdef(resultdef).stringtype=st_shortstring) and
-              (torddef(left.resultdef).ordtype=uwidechar) and
-              (left.nodetype=ordconstn) and
-              (tcompilerwidechar(tordconstnode(left).value.uvalue) <= 127)
-           then
-             begin
-               SetLength(sa,1);
-               Byte(sa[1]):= tordconstnode(left).value.uvalue;
-               hp:=cstringconstnode.createstr(sa);
-               tstringconstnode(hp).changestringtype(resultdef);
-               result:=hp;
-             end
-           else
            { shortstrings are handled 'inline' (except for widechars) }
            if (tstringdef(resultdef).stringtype<>st_shortstring) or
               (torddef(left.resultdef).ordtype=uwidechar) then
@@ -1107,9 +1094,23 @@ implementation
 
                    { create the procname }
                    if torddef(left.resultdef).ordtype<>uwidechar then
-                     procname:='fpc_char_to_'
+                     begin
+                       procname:='fpc_char_to_';
+                       if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
+                         if nf_explicit in flags then
+                           Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
+                         else
+                           Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
+                     end
                    else
-                     procname:='fpc_uchar_to_';
+                     begin
+                       procname:='fpc_uchar_to_';
+                       if not (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
+                         if nf_explicit in flags then
+                           Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+                         else
+                           Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
+                     end;
                    procname:=procname+tstringdef(resultdef).stringtypname;
 
                    { and finally the call }
@@ -1117,6 +1118,10 @@ implementation
                  end
                else
                  begin
+                   if nf_explicit in flags then
+                     Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+                   else
+                     Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
                    newblock:=internalstatements(newstat);
                    restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
                    addstatement(newstat,restemp);
@@ -1188,6 +1193,22 @@ implementation
                 left:=nil;
               end;
           end
+        else if (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and
+                not (tstringdef(resultdef).stringtype in [st_unicodestring,st_widestring]) then
+          begin
+            if nf_explicit in flags then
+              Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+            else
+              Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
+          end
+        else if not (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and
+                (tstringdef(resultdef).stringtype in [st_unicodestring,st_widestring]) then
+          begin
+            if nf_explicit in flags then
+              Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
+            else
+              Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
+          end
       end;
 
     function ttypeconvnode.typecheck_char_to_chararray : tnode;
@@ -1220,6 +1241,8 @@ implementation
                 (torddef(left.resultdef).ordtype=uwidechar) and
                 (current_settings.sourcecodepage<>CP_UTF8) then
               begin
+                if tordconstnode(left).value.uvalue>127 then
+                  Message(type_w_unicode_data_loss);
                 hp:=cordconstnode.create(
                       ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue))),
                       cchartype,true);

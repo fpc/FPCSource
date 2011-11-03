@@ -608,7 +608,9 @@ implementation
                   if (right.nodetype=stringconstn) and
                      (tstringconstnode(right).len=0) then
                     useshelper:=false;
-                end;
+                end
+              else if (tstringdef(right.resultdef).stringtype in [st_unicodestring,st_widestring]) then
+                Message2(type_w_implicit_string_cast_loss,right.resultdef.typename,left.resultdef.typename);
              { rest is done in pass 1 (JM) }
              if useshelper then
                exit;

@@ -500,6 +500,11 @@ const
   type_e_class_helper_must_extend_subclass=04101;
   type_e_record_helper_must_extend_same_record=04102;
   type_e_procedures_return_no_value=04103;
+  type_w_implicit_string_cast=04104;
+  type_w_implicit_string_cast_loss=04105;
+  type_w_explicit_string_cast=04106;
+  type_w_explicit_string_cast_loss=04107;
+  type_w_unicode_data_loss=04108;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -912,9 +917,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 61726;
+  MsgTxtSize = 62020;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,89,315,104,85,55,116,26,202,63,
+    26,89,315,109,85,55,116,26,202,63,
     50,20,1,1,1,1,1,1,1,1
   );

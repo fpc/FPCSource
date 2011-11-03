@@ -1299,6 +1299,21 @@ unit scandir;
         if ident='ZERO_NIL_COMPAT' then
           recordpendingmessagestate(type_w_zero_to_nil, msgstate)
         else
+        if ident='IMPLICIT_STRING_CAST' then
+          recordpendingmessagestate(type_w_implicit_string_cast, msgstate)
+        else
+        if ident='IMPLICIT_STRING_CAST_LOSS' then
+          recordpendingmessagestate(type_w_implicit_string_cast_loss, msgstate)
+        else
+        if ident='EXPLICIT_STRING_CAST' then
+          recordpendingmessagestate(type_w_explicit_string_cast, msgstate)
+        else
+        if ident='EXPLICIT_STRING_CAST_LOSS' then
+          recordpendingmessagestate(type_w_explicit_string_cast_loss, msgstate)
+        else
+        if ident='CVT_NARROWING_STRING_LOST' then
+          recordpendingmessagestate(type_w_unicode_data_loss, msgstate)
+        else
           begin
             i:=0;
             if not ChangeMessageVerbosity(ident,i,msgstate) then

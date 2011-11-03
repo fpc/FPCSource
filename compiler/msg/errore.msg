@@ -41,6 +41,9 @@
 #   x_   executable informations
 #   o_   normal (e.g., "press enter to continue")
 #
+# <type> can contain a minus sign at the beginning to mark that
+# the message is off by default. Look at type_w_explicit_string_cast
+# for example.
 
 #
 # General
@@ -1406,7 +1409,7 @@ parser_e_invalid_codepage=03314_E_Invalid codepage
 % \end{description}
 # Type Checking
 #
-# 04100 is the last used one
+# 04108 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1770,6 +1773,24 @@ type_e_procedures_return_no_value=04103_E_Invalid assignment, procedures return 
 % This error occurs when one tries to assign the result of a procedure or destructor call.
 % A procedure or destructor returns no value so this is not
 % possible.
+type_w_implicit_string_cast=04104_W_Implicit string type conversion from "$1" to "$2"
+% An implicit type conversion from an ansi string type to an unicode string type is
+% encountered. To avoid this warning perform an explicit type conversion.
+type_w_implicit_string_cast_loss=04105_W_Implicit string type conversion with potential data loss from "$1" to "$2"
+% An implicit type conversion from an unicode string type to an ansi string type is
+% encountered. This conversion can lose data since not all unicode characters may be represented in the codepage of
+% destination string type.
+type_w_explicit_string_cast=04106_-W_Explicit string typecast from "$1" to "$2"
+% An explicit typecast from an ansi string type to an unicode string type is
+% encountered. This warning is off by default. You can turn it on to see all suspicious string conversions.
+type_w_explicit_string_cast_loss=04107_-W_Explicit string typecast with potential data loss from "$1" to "$2"
+% An explicit typecast from an unicode string type to an ansi string type is
+% encountered. This conversion can lose data since not all unicode characters may be represented in the codepage of
+% destination string type. This warning is off by default. You can turn it on to see all the places with lossy string
+% conversions.
+type_w_unicode_data_loss=04108_W_Unicode constant cast with potential data loss
+% Conversion from a WideChar to AnsiChar can lose data since now all unicode characters may be represented in the current
+% system codepage
 % \end{description}
 #
 # Symtable
@@ -2940,10 +2961,10 @@ option_read_config_file=11034_D_Reading config file "$1"
 option_found_file=11035_D_found source file name "$1"
 % Additional information about options.
 % Displayed when you have the debug option turned on.
-option_code_page_not_available=11039_E_Unknown code page
-% An unknown code page for the source files was requested.
-% The compiler is compiled with support for several code pages built-in.
-% The requested code page is not in that list. You will need to recompile
+option_code_page_not_available=11039_E_Unknown codepage
+% An unknown codepage for the source files was requested.
+% The compiler is compiled with support for several codepages built-in.
+% The requested codepage is not in that list. You will need to recompile
 % the compiler with support for the codepage you need.
 option_config_is_dir=11040_F_Config file $1 is a directory
 % Directories cannot be used as configuration files.
