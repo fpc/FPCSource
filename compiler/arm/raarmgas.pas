@@ -212,6 +212,8 @@ Unit raarmgas;
 
 
       procedure read_index_shift(require_rbracket : boolean);
+        var
+          shift : aint;
         begin
           case actasmtoken of
             AS_COMMA :
@@ -227,9 +229,10 @@ Unit raarmgas;
                         if not(actasmtoken=AS_HASH) then
                           do_error;
                         Consume(AS_HASH);
-                        oper.opr.ref.shiftimm := BuildConstExpression(false,true);
-                        if (oper.opr.ref.shiftimm<0) or (oper.opr.ref.shiftimm>32) then
+                        shift := BuildConstExpression(false,true);
+                        if (shift<0) or (shift>32) then
                           do_error;
+                        oper.opr.ref.shiftimm := shift;
                         test_end(require_rbracket);
                       end;
                    end
