@@ -269,9 +269,11 @@ endif
 endif
 
 # Use -Sew option by default
-# Allow disabling by setting ALLOW_WARINGS=1
+# Allow disabling by setting ALLOW_WARNINGS=1
+ifeq ($(findstring 2.4.,$(FPC_VERSION)),)
 ifndef ALLOW_WARNINGS
 override LOCALOPT+=-Sew
+endif
 endif
 
 # Add Local options
