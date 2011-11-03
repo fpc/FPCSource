@@ -3290,6 +3290,9 @@ ifdef CMP
 override DIFF:=$(CMP) -i218
 endif
 endif
+ifndef ALLOW_WARNINGS
+override LOCALOPT+=-Sew
+endif
 override COMPILER+=$(LOCALOPT)
 PASDOC:=$(strip $(wildcard $(addsuffix /pasdoc.exe,$(SEARCHPATH))))
 ifeq ($(PASDOC),)

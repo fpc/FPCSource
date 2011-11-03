@@ -268,6 +268,12 @@ override DIFF:=$(CMP) -i218
 endif
 endif
 
+# Use -Sew option by default
+# Allow disabling by setting ALLOW_WARINGS=1
+ifndef ALLOW_WARNINGS
+override LOCALOPT+=-Sew
+endif
+
 # Add Local options
 override COMPILER+=$(LOCALOPT)
 
