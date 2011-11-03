@@ -2528,7 +2528,7 @@ begin
   gdb_command('set print object on');
   gdb_command('set print null-stop');
   {$ifdef USE_MINGW_GDB}  // maybe this also should be done for newer cygwin gdbs.
-  gdb_command('set confirm off');
+  //gdb_command('set confirm off');
   {$endif}
 end;
 
@@ -2609,9 +2609,9 @@ end;
 var
    top_level_val : longint;
 
-function catch_errors(func : pointer; command : pchar; from_tty,mask : longint) : longint;cdecl;external;
+function catch_command_errors(func : pointer; command : pchar; from_tty,mask : longint) : longint;cdecl;external;
 
-function gdbint_execute_command(command : pchar; from_tty,mask : longint) : longint;cdecl;
+function gdbint_execute_command(command : pchar; from_tty : longint) : longint;cdecl;
 begin
   gdbint_execute_command:=1;
   execute_command(command,from_tty);
@@ -2716,7 +2716,8 @@ begin
    begin
      quit_return:=error_return;
      mask:=longint($ffffffff);
-     catch_errors(@gdbint_execute_command,@command,0,mask);
+     catch_command_errors(@gdbint_execute_command,@command,
+       1,mask);
 {$ifdef go32v2}
      reload_fs;
 {$endif go32v2}
