@@ -192,7 +192,7 @@ begin
   two_N_minus_1 := aWord(1) shl (N-1);
 
   magic_add := false;
-  nc := - 1 - (-d) mod d;
+  nc := aWord(-1) - (-d) mod d;
   p := N-1; { initialize p }
   q1 := two_N_minus_1 div nc; { initialize q1 = 2p/nc }
   r1 := two_N_minus_1 - q1*nc; { initialize r1 = rem(2p,nc) }
