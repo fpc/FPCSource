@@ -939,7 +939,14 @@ end;
 
 Procedure Halt(ErrNum: Longint);
 Begin
-  ExitCode:=Errnum;
+{$ifdef FPC_HAS_FEATURE_EXITCODE}
+{$ifdef FPC_LIMITED_EXITCODE}
+  if ErrNum > maxExitCode then
+    ExitCode:=255
+  else
+{$endif FPC_LIMITED_EXITCODE}
+    ExitCode:=ErrNum;
+{$endif FPC_HAS_FEATURE_EXITCODE}
   Do_Exit;
 end;
 
@@ -961,17 +968,7 @@ begin
   if ExceptAddrStack <> nil then
     raise TObject(nil) at addr,frame;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
-{$ifdef FPC_LIMITED_EXITCODE}
-  if errorcode > maxExitCode then
-    halt(255)
-  else
-{$endif FPC_LIMITED_EXITCODE}
-    halt(errorcode);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
+  Halt(errorcode);
 end;
 
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer);
@@ -1000,16 +997,7 @@ begin
   errorcode:=w;
   erroraddr:=get_caller_addr(get_frame);
   errorbase:=get_caller_frame(get_frame);
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
-{$ifdef FPC_LIMITED_EXITCODE}
-  if errorcode > maxExitCode then
-    halt(255)
-  else
-{$endif FPC_LIMITED_EXITCODE}
-    halt(errorcode);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
+  Halt(errorcode);
 end;
 
 
@@ -1269,11 +1257,7 @@ begin
     write(stderr,msg);
   Writeln(stderr,' (',FName,', line ',LineNo,').');
   Writeln(stderr,'');
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
   Halt(227);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 end;
 
