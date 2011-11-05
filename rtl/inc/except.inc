@@ -33,10 +33,8 @@ Type
     frametype : Longint;
   end;
 
-  TExceptObjectClass = Class of TObject;
-
 Const
-  CatchAllExceptions : PtrInt = -1;
+  CatchAllExceptions = PtrInt(-1);
 
 ThreadVar
   ExceptAddrStack   : PExceptAddr;
@@ -95,8 +93,7 @@ begin
 end;
 
 
-Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer);
-  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT']; compilerproc;
+Procedure PushExceptObject(Obj : TObject; AnAddr,AFrame : Pointer);
 var
   Newobj : PExceptObject;
   _ExceptObjectStack : ^PExceptObject;
@@ -112,23 +109,14 @@ begin
   writeln ('In PushExceptObject');
 {$endif}
   _ExceptObjectStack:=@ExceptObjectStack;
-  If _ExceptObjectStack^=Nil then
-    begin
-      New(_ExceptObjectStack^);
-      _ExceptObjectStack^^.Next:=Nil;
-    end
-  else
-    begin
-      New(NewObj);
-      NewObj^.Next:=_ExceptObjectStack^;
-      _ExceptObjectStack^:=NewObj;
-    end;
-  with _ExceptObjectStack^^ do
-    begin
-      FObject:=Obj;
-      Addr:=AnAddr;
-      refcount:=0;
-    end;
+  New(NewObj);
+  NewObj^.Next:=_ExceptObjectStack^;
+  _ExceptObjectStack^:=NewObj;
+
+  NewObj^.FObject:=Obj;
+  NewObj^.Addr:=AnAddr;
+  NewObj^.refcount:=0;
+
   { Backtrace }
   curr_frame:=AFrame;
   prev_frame:=get_frame;
@@ -153,13 +141,9 @@ begin
      prev_frame:=curr_frame;
      curr_frame:=caller_frame;
    End;
-  _ExceptObjectStack^^.framecount:=framecount;
-  _ExceptObjectStack^^.frames:=frames;
+  NewObj^.framecount:=framecount;
+  NewObj^.frames:=frames;
 end;
-
-{ make it avalable for local use }
-Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); [external name 'FPC_PUSHEXCEPTOBJECT'];
-
 
 Procedure DoUnHandledException;
 var
@@ -193,7 +177,7 @@ begin
   writeln ('In RaiseException');
 {$endif}
   fpc_Raiseexception:=nil;
-  fpc_PushExceptObj(Obj,AnAddr,AFrame);
+  PushExceptObject(Obj,AnAddr,AFrame);
   _ExceptAddrstack:=ExceptAddrStack;
   If _ExceptAddrStack=Nil then
     DoUnhandledException;
@@ -313,7 +297,6 @@ procedure Internal_Reraise; external name 'FPC_RERAISE';
 
 Function fpc_Catches(Objtype : TClass) : TObject;[Public, Alias : 'FPC_CATCHES']; compilerproc;
 var
-  _Objtype : TExceptObjectClass;
   _ExceptObjectStack : PExceptObject;
 begin
   _ExceptObjectStack:=ExceptObjectStack;
@@ -324,9 +307,8 @@ begin
 {$endif}
      halt (255);
    end;
-  _Objtype := TExceptObjectClass(Objtype);
-  if Not ((_Objtype = TExceptObjectClass(CatchAllExceptions)) or
-         (_ExceptObjectStack^.FObject is _ObjType)) then
+  if Not ((Objtype = TClass(CatchAllExceptions)) or
+         (_ExceptObjectStack^.FObject is ObjType)) then
     fpc_Catches:=Nil
   else
     begin
