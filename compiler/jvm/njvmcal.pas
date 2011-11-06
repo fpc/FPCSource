@@ -415,26 +415,25 @@ implementation
         if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) and
            (current_procinfo.procdef.proctypeoption=potype_constructor) then
           exit;
+        if is_void(resultdef) then
+          exit;
         if (location.loc=LOC_REFERENCE) then
           tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
         if assigned(funcretnode) then
           exit;
-        case resultdef.size of
-          0:
-            ;
-          1..4:
-            begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop));
-              thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-            end;
-          8:
-            begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop2));
-              thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,2);
-            end
-          else
-            internalerror(2011010305);
-        end;
+        if jvmimplicitpointertype(resultdef) or
+           (resultdef.size in [1..4]) then
+          begin
+            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop));
+            thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+          end
+        else if resultdef.size=8 then
+          begin
+            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop2));
+            thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,2);
+          end
+        else
+          internalerror(2011010305);
       end;
 
 
