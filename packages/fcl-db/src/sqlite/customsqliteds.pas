@@ -1099,7 +1099,6 @@ var
   AFieldList: TList;
   i, AFieldCount: Integer;
   MatchRecord: Boolean;
-  AValue: String;
   TempItem: PDataRecord;
   
 begin
@@ -1169,10 +1168,9 @@ begin
           LocateFields[i].CompFunction := @CompDouble;
           //get float types in appropriate format
           if VarIsArray(KeyValues) then
-            Str(VarToDateTime(keyvalues[i]), AValue)
+            Str(VarToDateTime(keyvalues[i]), LocateFields[i].Key)
           else
-            Str(VarToDateTime(keyvalues), AValue);
-          LocateFields[i].Key := Trim(AValue);
+            Str(VarToDateTime(keyvalues), LocateFields[i].Key);
         end;
         LocateFields[i].Index := FieldNo - 1;
       end;
@@ -1324,8 +1322,7 @@ procedure TCustomSqliteDataset.SetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean);
 var
   TempStr: String;
-  FloatStr: PChar;
-  FloatLen, FieldOffset: Integer;
+  FieldOffset: Integer;
   EditItem: PDataRecord;
 begin
   if not (State in [dsEdit, dsInsert, dsCalcFields]) then
@@ -1371,21 +1368,8 @@ begin
     ftFloat, ftDateTime, ftDate, ftTime, ftCurrency:
       begin
         Str(Double(Buffer^), TempStr);
-        //Str returns an space as the first character for positive values
-        //and the - sign for negative values. It's necessary to remove the extra
-        //space while keeping the - sign
-        if TempStr[1] = ' ' then
-        begin
-          FloatStr := PChar(TempStr) + 1;
-          FloatLen := Length(TempStr);
-        end
-        else
-        begin
-          FloatStr := PChar(TempStr);
-          FloatLen := Length(TempStr) + 1;
-        end;
-        EditItem^.Row[FieldOffset] := StrAlloc(FloatLen);
-        Move(FloatStr^, (EditItem^.Row[FieldOffset])^, FloatLen);
+        EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
+        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;
     ftLargeInt:
       begin
