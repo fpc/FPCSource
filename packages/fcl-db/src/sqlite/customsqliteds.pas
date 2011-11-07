@@ -1067,6 +1067,19 @@ begin
     Result := False;
 end;
 
+function CompDouble(UTF8Value: PChar; const UTF8Key: String): Boolean;
+var e1,e2:double;
+begin
+  if UTF8Value <> nil then
+    begin
+      val(UTF8Value,e1);
+      val(UTF8Key,e2);
+      result:=e1=e2;
+    end
+  else
+    Result := False;
+end;
+
 function CompInsensitiveWild(UTF8Value: PChar; const AnsiKey: String): Boolean;
 begin
   //IsWild does not work with UTF8 encoded strings for case insensitive searches,
@@ -1153,7 +1166,7 @@ begin
         end
         else
         begin
-          LocateFields[i].CompFunction := @CompSensitive;
+          LocateFields[i].CompFunction := @CompDouble;
           //get float types in appropriate format
           if VarIsArray(KeyValues) then
             Str(VarToDateTime(keyvalues[i]), AValue)
