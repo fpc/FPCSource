@@ -47,7 +47,12 @@ function FPsigsuspend(const sigmask:sigset_t):cint;
 }
 
 begin
+{$ifdef OPENBSD}
+  { OpenBSD sigsuspend syscall wants a simple int as arg }
+  FPsigsuspend:= do_syscall(syscall_nr_sigsuspend,TSysParam(sigmask[0]));
+{$else}
   FPsigsuspend:= do_syscall(syscall_nr_sigsuspend,TSysParam(@sigmask));
+{$endif}
 end;
 
 {$ifndef FPC_SYS_SIGTIMEDWAIT_UNAVAILABLE}
