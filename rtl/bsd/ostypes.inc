@@ -137,7 +137,7 @@ TYPE
    TDirent = dirent;
    pDirent = ^dirent;
 
-   dir     = packed record
+   dir     = record
         dd_fd     : cint;         // file descriptor associated with directory
         dd_loc    : clong;        // offset in current buffer
         dd_size   : clong;        // amount of data returned by getdirentries
@@ -176,7 +176,7 @@ TYPE
    TFlock   = flock;
    pFlock   = ^flock;
 
- tms = packed record
+ tms = record
          tms_utime  : clock_t;  { User CPU time }
          tms_stime  : clock_t;  { System CPU time }
          tms_cutime : clock_t;  { User CPU time of terminated child procs }
@@ -310,14 +310,14 @@ CONST
 
 
 type
-  timezone = packed record
+  timezone = record
     tz_minuteswest,
     tz_dsttime  : cint;
   end;
   ptimezone =^timezone;
   TTimeZone = timezone;
 
-  rusage = packed record
+  rusage = record
         ru_utime    : timeval;          { user time used }
         ru_stime    : timeval;          { system time used }
         ru_maxrss   : clong;            { max resident set size }
