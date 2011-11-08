@@ -1535,7 +1535,10 @@ Var
   Line : String;
   I,P,PC : Integer;
 begin
-  F:=TFileStream.Create(AFileName,fmOpenRead);
+  // On some file systems and when using a large number of parallel make
+  // processes, the lock from the creation of the ini file may not yet
+  // have been released even though the file has been closed already
+  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyNone);
   Try
     L.LoadFromStream(F);
     // Fix lines.
