@@ -819,7 +819,7 @@ implementation
                       begin
                         if member_blocktype=bt_general then
                           begin
-                            if (not fields_allowed) then
+                            if (not fields_allowed)and(idtoken<>_CASE) then
                               Message(parser_e_field_not_allowed_here);
                             vdoptions:=[vd_record];
                             if classfields then
