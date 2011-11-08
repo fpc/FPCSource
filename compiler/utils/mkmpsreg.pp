@@ -33,8 +33,7 @@ var s : string;
     stabs : array[0..max_regcount-1] of string[63];
     regnumber_index,
     std_regname_index,
-    gas_regname_index,
-    mot_regname_index : array[0..max_regcount-1] of byte;
+    gas_regname_index : array[0..max_regcount-1] of byte;
 
 function tostr(l : longint) : string;
 
@@ -244,7 +243,7 @@ procedure write_inc_files;
 var
     norfile,stdfile,supfile,
     numfile,stabfile,confile,gasfile,dwarffile,
-    rnifile,srifile,mrifile,grifile : text;
+    rnifile,srifile,grifile : text;
     first:boolean;
 
 begin
@@ -260,7 +259,6 @@ begin
   openinc(rnifile,'rmipsrni.inc');
   openinc(srifile,'rmipssri.inc');
   openinc(grifile,'rmipsgri.inc');
-  openinc(mrifile,'rmipsmri.inc');
   first:=true;
   for i:=0 to regcount-1 do
     begin
@@ -274,7 +272,6 @@ begin
           writeln(rnifile,',');
           writeln(srifile,',');
           writeln(grifile,',');
-          writeln(mrifile,',');
         end
       else
         first:=false;
@@ -288,7 +285,6 @@ begin
       write(rnifile,regnumber_index[i]);
       write(srifile,std_regname_index[i]);
       write(grifile,gas_regname_index[i]);
-      write(mrifile,mot_regname_index[i]);
     end;
   write(norfile,regcount);
   close(confile);
@@ -302,7 +298,6 @@ begin
   closeinc(rnifile);
   closeinc(srifile);
   closeinc(grifile);
-  closeinc(mrifile);
   writeln('Done!');
   writeln(regcount,' registers procesed');
 end;
