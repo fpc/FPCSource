@@ -466,7 +466,7 @@ end;
 
 
 type
-  tmmapargs = packed record
+  tmmapargs = record
     address : TSysParam;
     size    : TSysParam;
     prot    : TSysParam;

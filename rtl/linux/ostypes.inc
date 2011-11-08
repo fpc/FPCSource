@@ -90,7 +90,7 @@ type
 
   { directory services }
 
-  Dirent   = packed record
+  Dirent   = record
                 d_fileno      : ino64_t;                        // file number of entry
                 d_off         : off_t;
                 d_reclen      : cushort;                        // length of string in d_name
@@ -174,7 +174,7 @@ type
                End;
 {$endif}
 
-   tms       = packed Record
+   tms       = Record
                 tms_utime  : clock_t;   { User CPU time }
                 tms_stime  : clock_t;   { System CPU time }
                 tms_cutime : clock_t;   { User CPU time of terminated child procs }
@@ -186,7 +186,7 @@ type
  TFDSet    = ARRAY[0..(FD_MAXFDSET div BITSINWORD)-1] of cuLong;
  pFDSet    = ^TFDSet;
 
-  timezone = packed record
+  timezone = record
     tz_minuteswest,tz_dsttime:cint;
   end;
   ptimezone =^timezone;

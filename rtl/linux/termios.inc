@@ -1223,7 +1223,7 @@ Const
 {$endif cpuarm}
 
 Type
-  winsize = packed record
+  winsize = record
     ws_row,
     ws_col,
     ws_xpixel,
