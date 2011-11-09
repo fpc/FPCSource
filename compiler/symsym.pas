@@ -969,18 +969,21 @@ implementation
       begin
          inherited ppuload(propertysym,ppufile);
          ppufile.getsmallset(propoptions);
-         ppufile.getderef(overriddenpropsymderef);
+         if ppo_overrides in propoptions then
+           ppufile.getderef(overriddenpropsymderef);
          ppufile.getderef(propdefderef);
          index:=ppufile.getlongint;
          default:=ppufile.getlongint;
          ppufile.getderef(indexdefderef);
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=ppufile.getpropaccesslist;
-         if ppo_hasparameters in propoptions then
+         if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
            begin
              parast:=tparasymtable.create(nil,0);
              tparasymtable(parast).ppuload(ppufile);
-           end;
+           end
+         else
+           parast:=nil;
       end;
 
 
@@ -999,12 +1002,14 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
-        overriddenpropsymderef.build(overriddenpropsym);
         propdefderef.build(propdef);
         indexdefderef.build(indexdef);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           propaccesslist[pap].buildderef;
-        if assigned(parast) then
+        if ppo_overrides in propoptions then
+          overriddenpropsymderef.build(overriddenpropsym)
+        else
+        if ppo_hasparameters in propoptions then
           tparasymtable(parast).buildderef;
       end;
 
@@ -1013,13 +1018,20 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
-        overriddenpropsym:=tpropertysym(overriddenpropsymderef.resolve);
         indexdef:=tdef(indexdefderef.resolve);
         propdef:=tdef(propdefderef.resolve);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           propaccesslist[pap].resolve;
-        if assigned(parast) then
-          tparasymtable(parast).deref;
+
+        if ppo_overrides in propoptions then
+          begin
+            overriddenpropsym:=tpropertysym(overriddenpropsymderef.resolve);
+            if ppo_hasparameters in propoptions then
+              parast:=overriddenpropsym.parast.getcopy;
+          end
+        else
+        if ppo_hasparameters in propoptions then
+          tparasymtable(parast).deref
       end;
 
 
@@ -1035,7 +1047,8 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(propoptions);
-        ppufile.putderef(overriddenpropsymderef);
+        if ppo_overrides in propoptions then
+          ppufile.putderef(overriddenpropsymderef);
         ppufile.putderef(propdefderef);
         ppufile.putlongint(index);
         ppufile.putlongint(default);
@@ -1043,7 +1056,7 @@ implementation
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           ppufile.putpropaccesslist(propaccesslist[pap]);
         ppufile.writeentry(ibpropertysym);
-        if ppo_hasparameters in propoptions then
+        if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
           tparasymtable(parast).ppuwrite(ppufile);
       end;
 

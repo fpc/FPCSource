@@ -513,7 +513,7 @@ implementation
                   p.propdef:=tpropertysym(overridden).propdef;
                   p.index:=tpropertysym(overridden).index;
                   p.default:=tpropertysym(overridden).default;
-                  p.propoptions:=tpropertysym(overridden).propoptions;
+                  p.propoptions:=tpropertysym(overridden).propoptions + [ppo_overrides];
                   if ppo_hasparameters in p.propoptions then
                     begin
                       p.parast:=tpropertysym(overridden).parast.getcopy;
