@@ -935,7 +935,7 @@ unit cgx86;
                     else if (cs_create_pic in current_settings.moduleswitches)
 {$ifdef x86_64}
                              and not((ref.symbol.bind=AB_LOCAL) and
-                                     (ref.symbol.typ=AT_DATA))
+                                     (ref.symbol.typ in [AT_DATA,AT_LABEL,AT_ADDR]))
 {$endif x86_64}
                             then
                       begin
