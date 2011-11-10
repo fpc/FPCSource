@@ -674,7 +674,7 @@ begin
      (Index+Size>Length(S)) then
    Size:=Length(S)-Index;
   If Size>0 then
-    result:=JLString(s).subString(Index,Size)
+    result:=JLString(s).subString(Index,Index+Size)
   else
     result:='';
 end;
