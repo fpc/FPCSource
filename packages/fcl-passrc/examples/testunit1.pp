@@ -147,7 +147,15 @@ interface
  Procedure externalnameProc; external name 'aname';
  Procedure externallibnameProc; external 'alibrary' name 'aname';
 
-  
+Type
+ generic TFPGListEnumerator<T> = class(TObject)
+ protected
+    FList: TFPSList;
+    FPosition: Integer;
+    function GetCurrent: T;
+ end;                 
+ TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>; 
+ 
 Implementation
 
 

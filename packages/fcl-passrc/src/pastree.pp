@@ -45,6 +45,8 @@ resourcestring
   SPasTreeObjectType = 'object';
   SPasTreeClassType = 'class';
   SPasTreeInterfaceType = 'interface';
+  SPasTreeGenericType = 'generic class';
+  SPasTreeSpecializedType = 'specialized class type';
   SPasTreeArgument = 'argument';
   SPasTreeProcedureType = 'procedure type';
   SPasTreeResultElement = 'function result';
@@ -453,8 +455,8 @@ type
     Variants: TList;	// array of TPasVariant elements, may be nil!
   end;
 
-
-  TPasObjKind = (okObject, okClass, okInterface);
+  TPasGenericTemplateType = Class(TPasElement);
+  TPasObjKind = (okObject, okClass, okInterface, okGeneric, okSpecialize);
 
   { TPasClassType }
 
@@ -475,7 +477,10 @@ type
     ClassVars: TList;   // class vars
     Modifiers: TStringList;
     Interfaces : TList;
+    GenericTemplateTypes : TList;
   end;
+
+
 
   TArgumentAccess = (argDefault, argConst, argVar, argOut);
 
@@ -1012,7 +1017,7 @@ const
     'default', 'private', 'protected', 'public', 'published', 'automated','strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
-    'object', 'class', 'interface');
+    'object', 'class', 'interface','class','class');
   
   OpcodeStrings : Array[TExprOpCode] of string = 
        ('','+','-','*','/','div','mod','**',
@@ -1081,6 +1086,8 @@ begin
     okObject: Result := SPasTreeObjectType;
     okClass: Result := SPasTreeClassType;
     okInterface: Result := SPasTreeInterfaceType;
+    okGeneric : Result := SPasTreeGenericType;
+    okSpecialize : Result := SPasTreeSpecializedType;
   end;
 end;
 
@@ -1366,6 +1373,8 @@ begin
   Modifiers := TStringList.Create;
   ClassVars := TList.Create;
   Interfaces:= TList.Create;
+  GenericTemplateTypes:=TList.Create;
+
 end;
 
 destructor TPasClassType.Destroy;
@@ -1380,6 +1389,9 @@ begin
   Modifiers.Free;
   ClassVars.Free;
   Interfaces.Free;
+  for i := 0 to GenericTemplateTypes.Count - 1 do
+    TPasElement(GenericTemplateTypes[i]).Release;
+  GenericTemplateTypes.Free;
   inherited Destroy;
 end;
 

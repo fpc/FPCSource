@@ -1439,16 +1439,47 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
    if assigned(pc) then
     begin
      s:=GetIndent(indent);
-     write(s,pc.Name,'=');
+     if (pc.ObjKind=okGeneric) then
+       begin
+       write(s,'generic ',pc.Name);
+       for l:=0 to pc.GenericTemplateTypes.Count-1 do
+          begin
+          if l=0 then
+           Write('<')
+          else
+           Write(',');
+          Write(TPasGenericTemplateType(pc.GenericTemplateTypes[l]).Name);
+          end;
+       Write('> = ');
+       end
+     else
+       write(s,pc.Name,' = ');
      if pc.IsPacked then write('packed ');
      case pc.ObjKind of
       okObject:write('Object');
       okClass:write('Class');
       okInterface:write('Interface');
+      okGeneric:write('class');
+      okspecialize : write('specialize');
      end;
      if assigned(pc.AncestorType) and (pc.AncestorType.ElementTypeName <> '') then
-        write('(',pc.AncestorType.Name,')');
-
+        begin
+        if pc.ObjKind<>okspecialize then
+          write('(',pc.AncestorType.Name,')')
+        else
+          begin
+          write(' ',pc.AncestorType.Name);
+          for l:=0 to pc.GenericTemplateTypes.Count-1 do
+           begin
+           if l=0 then
+            Write('<')
+           else
+            Write(',');
+           Write(TPasGenericTemplateType(pc.GenericTemplateTypes[l]).Name);
+           end;
+          Write('>');
+          end;
+        end;
      if pc.IsForward or pc.IsShortDefinition then //pparser.pp: 3417 :class(anchestor); is allowed !
       begin
        writeln(';');
@@ -1562,6 +1593,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
          vars.free;
        end
         else  writeln;//(';'); //x=class(y);
+
      writeln(s,'end;');
     end;
   end;

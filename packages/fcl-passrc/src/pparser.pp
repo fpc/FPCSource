@@ -30,6 +30,7 @@ resourcestring
   SParserErrorAtToken = '%s at token "%s" in file %s at line %d column %d';
   SParserUngetTokenError = 'Internal error: Cannot unget more tokens, history buffer is full';
   SParserExpectTokenError = 'Expected "%s"';
+  SParserExpectToken2Error = 'Expected "%s" or "%s"';
   SParserExpectedCommaRBracket = 'Expected "," or ")"';
   SParserExpectedCommaSemicolon = 'Expected "," or ";"';
   SParserExpectedCommaColon = 'Expected "," or ":"';
@@ -118,7 +119,9 @@ type
     FTokenStringBuffer: array[0..1] of String;
     FTokenBufferIndex: Integer; // current index in FTokenBuffer
     FTokenBufferSize: Integer; // maximum valid index in FTokenBuffer
+    procedure DoParseClassType(AType: TPasClassType; SourceFileName: String; SourceLineNumber: Integer);
     procedure ParseExc(const Msg: String);
+    procedure ReadGenericArguments(List : TList;Parent : TPasElement; IsSpecialize : Boolean);
   protected
     function OpLevel(t: TToken): Integer;
     Function TokenToExprOp (AToken : TToken) : TExprOpCode;
@@ -181,8 +184,7 @@ type
     function ParseProcedureOrFunctionDecl(Parent: TPasElement;
       ProcType: TProcType): TPasProcedure;
     procedure ParseRecordDecl(Parent: TPasRecordType; IsNested: Boolean);   // !!!: Optimize this. We have 3x the same wrapper code around it.
-    function ParseClassDecl(Parent: TPasElement; const AClassName: String;
-      AObjKind: TPasObjKind): TPasType;
+    function ParseClassDecl(Parent: TPasElement; const AClassName: String;   AObjKind: TPasObjKind): TPasType;
     procedure ParseProperty(Element:TPasElement);
     procedure ParseProcBeginBlock(Parent: TProcedureBody);
     procedure ParseStatement(Parent: TPasImplBlock;
@@ -1408,6 +1410,7 @@ var
   i,j: Integer;
   VarEl: TPasVariable;
   PropEl : TPasProperty;
+  TypeName: String;
 begin
   CurBlock := declNone;
   while True do
@@ -1592,6 +1595,26 @@ begin
             ParseExc(SParserSyntaxError);
           end;
         end;
+      tkGeneric:
+        begin
+          if CurBlock <> declType then
+            ParseExc(SParserSyntaxError);
+          TypeName := ExpectIdentifier;
+          ClassEl := TPasClassType(Engine.CreateElement(TPasClassType,TypeName,Declarations, Scanner.CurFilename, Scanner.CurRow));
+          ClassEl.ObjKind:=okGeneric;
+          try
+            ReadGenericArguments(ClassEl.GenericTemplateTypes,ClassEl,False);
+          Except
+            List.Free;
+            Raise;
+          end;
+          ExpectToken(tkEqual);
+          ExpectToken(tkClass);
+          NextToken;
+          DoParseClassType(ClassEl, Scanner.CurFilename, Scanner.CurRow);
+          Declarations.Declarations.Add(ClassEl);
+          Declarations.Classes.Add(ClassEl)
+        end;
       tkbegin:
         begin
         if Declarations is TProcedureBody then
@@ -1703,6 +1726,23 @@ begin
     Result.Free;
     raise;
   end;
+end;
+
+procedure TPasParser.ReadGenericArguments(List : TList;Parent : TPasElement; IsSpecialize : Boolean);
+
+Var
+  N : String;
+
+begin
+  ExpectToken(tkLessThan);
+  repeat
+    N:=ExpectIdentifier;
+    List.Add(CreateElement(TPasGenericTemplateType,N,Parent));
+    NextToken;
+    if not (CurToken in [tkComma, tkGreaterThan]) then
+      ParseExc(Format(SParserExpectToken2Error,
+        [TokenInfos[tkComma], TokenInfos[tkGreaterThan]]));
+  until CurToken = tkGreaterThan;
 end;
 
 // Starts after the type name
@@ -1934,6 +1974,16 @@ begin
           Result.Free;
           raise;
         end;
+      end;
+    tkSpecialize:
+      begin
+        Result := TPasClassType(Engine.CreateElement(TPasClassType, TypeName,
+          Parent, Scanner.CurFilename, Scanner.CurRow));
+        TPasClassType(Result).ObjKind := okSpecialize;
+        TPasClassType(Result).AncestorType := ParseType(nil);
+        TPasClassType(Result).IsShortDefinition:=True;
+        ReadGenericArguments(TPasClassType(Result).GenericTemplateTypes,Result,True);
+        ExpectToken(tkSemicolon);
       end;
     else
     begin
@@ -3187,8 +3237,8 @@ begin
 end;
 
 // Starts after the "class" token
-function TPasParser.ParseClassDecl(Parent: TPasElement;
-  const AClassName: String; AObjKind: TPasObjKind): TPasType;
+Procedure TPasParser.DoParseClassType(AType : TPasClassType; SourceFileName : String; SourceLineNumber : Integer);
+
 var
   CurVisibility: TPasMemberVisibility;
 
@@ -3204,7 +3254,7 @@ var
     HasReturnValue:=false;
     ExpectIdentifier;
     Name := CurTokenString;
-    Owner := CheckIfOverloaded(TPasClassType(Result), Name);
+    Owner := CheckIfOverloaded(AType, Name);
     case ProcType of
      ptFunction:
     begin
@@ -3251,7 +3301,7 @@ var
     if Owner.ClassType = TPasOverloadedProc then
       TPasOverloadedProc(Owner).Overloads.Add(Proc)
     else
-      TPasClassType(Result).Members.Add(Proc);
+      AType.Members.Add(Proc);
 
     if HasReturnValue then
       pt := ptFunction
@@ -3321,56 +3371,31 @@ var
   end;
 
 var
-  s, SourceFilename: String;
-  i, SourceLinenumber: Integer;
+  s: String;
+  i: Integer;
   VarList: TList;
   Element: TPasElement;
   isStrict: Boolean;
 begin
   isStrict:=False;
-
-  // Save current parsing position to get it correct in all cases
-  SourceFilename := Scanner.CurFilename;
-  SourceLinenumber := Scanner.CurRow;
-
-  NextToken;
-
-  if (AObjKind = okClass) and (CurToken = tkOf) then
-  begin
-    Result := TPasClassOfType(Engine.CreateElement(TPasClassOfType, AClassName,
-      Parent, SourceFilename, SourceLinenumber));
-    ExpectIdentifier;
-    UngetToken;                // Only names are allowed as following type
-    TPasClassOfType(Result).DestType := ParseType(Result);
-    ExpectToken(tkSemicolon);
-    exit;
-  end;
-
-
-  Result := TPasClassType(Engine.CreateElement(TPasClassType, AClassName,
-    Parent, SourceFilename, SourceLinenumber));
-
-  try
-    TPasClassType(Result).ObjKind := AObjKind;
-
-    // nettism/new delphi features
-    if (CurToken = tkIdentifier) and (AObjKind = okClass) then begin
-      s := LowerCase(CurTokenString);
-      if (s = 'sealed') or (s = 'abstract') then begin
-        TPasClassType(Result).Modifiers.Add(s);
-        NextToken;
-      end;
+  // nettism/new delphi features
+  if (CurToken = tkIdentifier) and (Atype.ObjKind  in [okClass,okGeneric]) then begin
+    s := LowerCase(CurTokenString);
+    if (s = 'sealed') or (s = 'abstract') then begin
+      AType.Modifiers.Add(s);
+      NextToken;
     end;
+  end;
 
     // Parse ancestor list
     if CurToken = tkBraceOpen then
     begin
-      TPasClassType(Result).AncestorType := ParseType(nil);
+      AType.AncestorType := ParseType(nil);
       {$ifdef Inheritancewarnings}
-        s:=TPasClassType(Result).AncestorType.pathname;
+        s:=AType.AncestorType.pathname;
         if pos('#',s)=0 then
           begin
-            writeln('Note: ', TPasClassType(Result).pathname,'''s ancestor ',s, ' at ',sourcefilename,':',sourcelinenumber,' cannot be resolved fully');
+            writeln('Note: ', AType.pathname,'''s ancestor ',s, ' at ',sourcefilename,':',sourcelinenumber,' cannot be resolved fully');
           end;
       {$endif}
       while True do
@@ -3383,22 +3408,22 @@ begin
         //ExpectIdentifier;
         Element:=ParseType(Nil); // search interface.
         if assigned(element) then
-          TPasClassType(Result).Interfaces.add(element);
+          AType.Interfaces.add(element);
         // !!!: Store interface name
       end;
       NextToken;
     end
     else
-      TPasClassType(Result).isForward:=CurToken=tkSemicolon;
+      Atype.isForward:=CurToken=tkSemicolon;
     if CurToken = tkSemicolon then
-       TPasClassType(Result).IsShortDefinition:=true;
+       AType.IsShortDefinition:=true;
 
     if CurToken <> tkSemicolon then
     begin
-      if ( AObjKind = okInterface ) and ( CurToken = tkSquaredBraceOpen ) then
+      if ( AType.ObjKind = okInterface ) and ( CurToken = tkSquaredBraceOpen ) then
       begin
         ExpectToken(tkString);
-        TPasClassType(Result).InterfaceGUID := CurTokenString;
+        AType.InterfaceGUID := CurTokenString;
         ExpectToken(tkSquaredBraceClose);
       end;
       CurVisibility := visDefault;
@@ -3431,12 +3456,12 @@ begin
               begin
                 VarList := TList.Create;
                 try
-                  ParseInlineVarDecl(Result, VarList, CurVisibility, False);
+                  ParseInlineVarDecl(AType, VarList, CurVisibility, False);
                   for i := 0 to VarList.Count - 1 do
                   begin
                     Element := TPasElement(VarList[i]);
                     Element.Visibility := CurVisibility;
-                    TPasClassType(Result).Members.Add(Element);
+                    AType.Members.Add(Element);
                   end;
                 finally
                   VarList.Free;
@@ -3466,24 +3491,57 @@ begin
              NextToken;
              if CurToken = tkprocedure then ProcessMethod(ptClassProcedure)
               else ProcessMethod(ptClassFunction);
-            end;               
+            end;
           tkProperty:
             begin
               ExpectIdentifier;
-              Element := CreateElement(TPasProperty, CurTokenString, Result, CurVisibility);
-              TPasClassType(Result).Members.Add(Element);
+              Element := CreateElement(TPasProperty, CurTokenString, AType, CurVisibility);
+              AType.Members.Add(Element);
               ParseProperty(Element);
             end;
           tkVar: // vars (nettism/new delphi features)
-            if AObjKind<>okClass then ExpectToken(tkSemicolon);
+            if (not (AType.ObjKind in [okClass,okGeneric])) then
+              ExpectToken(tkSemicolon);
           //todo: class vars
         end; // end case
         NextToken;
       end;
       // Eat semicolon after class...end
-      CheckHint(result,true);
+      CheckHint(AType,true);
 //      ExpectToken(tkSemicolon);
     end;
+end;
+
+function TPasParser.ParseClassDecl(Parent: TPasElement; const AClassName: String; AObjKind: TPasObjKind): TPasType;
+
+Var
+  SourcefileName : string;
+  SourceLineNumber : Integer;
+
+begin
+  // Save current parsing position to get it correct in all cases
+  SourceFilename := Scanner.CurFilename;
+  SourceLinenumber := Scanner.CurRow;
+
+  NextToken;
+
+  if (AObjKind = okClass) and (CurToken = tkOf) then
+  begin
+    Result := TPasClassOfType(Engine.CreateElement(TPasClassOfType, AClassName,
+      Parent, SourceFilename, SourceLinenumber));
+    ExpectIdentifier;
+    UngetToken;                // Only names are allowed as following type
+    TPasClassOfType(Result).DestType := ParseType(Result);
+    ExpectToken(tkSemicolon);
+    exit;
+  end;
+
+  Result := TPasClassType(Engine.CreateElement(TPasClassType, AClassName,
+    Parent, SourceFilename, SourceLinenumber));
+
+  try
+    TPasClassType(Result).ObjKind := AObjKind;
+    DoParseClassType(TPasClassType(Result),SourceFileName,SourceLineNumber);
   except
     Result.Free;
     raise;
