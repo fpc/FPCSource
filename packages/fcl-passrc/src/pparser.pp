@@ -534,13 +534,13 @@ begin
     tkSet:
       begin
         Result := TPasSetType(CreateElement(TPasSetType, '', Parent));
-    try
+        try
           ExpectToken(tkOf);
           TPasSetType(Result).EnumType := ParseType(Result);
-    except
-      Result.Free;
-      raise;
-    end;
+        except
+          Result.Free;
+          raise;
+        end;
       end;
     tkRecord:
       begin
