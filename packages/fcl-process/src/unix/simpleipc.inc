@@ -145,11 +145,17 @@ end;
 
 
 procedure TPipeServerComm.StartServer;
+
+const
+  PrivateRights = S_IRUSR or S_IWUSR;
+  GlobalRights  = PrivateRights or S_IRGRP or S_IWGRP or S_IROTH or S_IWOTH;
+  Rights : Array [Boolean] of Integer = (PrivateRights,GlobalRights);  
+    
 begin
   If not FileExists(FFileName) then
     If (fpmkFifo(FFileName,438)<>0) then
       DoError(SErrFailedToCreatePipe,[FFileName]);
-  FStream:=TFileStream.Create(FFileName,fmOpenReadWrite+fmShareDenyNone);
+  FStream:=TFileStream.Create(FFileName,fmOpenReadWrite+fmShareDenyNone,Rights[Owner.Global]);
 end;
 
 procedure TPipeServerComm.StopServer;
