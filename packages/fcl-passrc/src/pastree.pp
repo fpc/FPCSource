@@ -1900,7 +1900,7 @@ Var
   i : Integer;
 
 begin
-  If EnumType is TPasEnumType then
+  If (EnumType is TPasEnumType) and (EnumType.Name='') then
     begin
     S:=TStringList.Create;
     Try
