@@ -877,10 +877,12 @@ begin
       WriteLabel(TypeDecl);
       WriteIndex(TypeDecl);
       If TypeDecl is TPasEnumType then
-        begin
-        WriteENumElements(TypeDecl as TPasEnumType);
-        end;
-      WriteDescr(TypeDecl);
+        WriteENumElements(TypeDecl as TPasEnumType)
+      else If (TypeDecl is TPasSetType)
+              and (TPasSetType(TypeDecl).EnumType is TPasEnumType)
+              and (TPasSetType(TypeDecl).EnumType.Name='') then
+        WriteENumElements(TPasSetType(TypeDecl).EnumType as TPasEnumType);
+      WriteDescr(TypeDecl,DocNode);
       If Assigned(DocNode) and Assigned(DocNode.Version) then
         begin
         Writeln(Format('%s : ',[SDocVersion]));
