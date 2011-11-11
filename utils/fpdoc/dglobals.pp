@@ -1192,7 +1192,7 @@ var
   end;
 
 begin
-  system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
+  // system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
   if Length(ALinkDest) = 0 then
   begin
     SetLength(Result, 0);
