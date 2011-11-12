@@ -49,11 +49,7 @@ destructor TDirectXPrimary.Destroy;
 begin
   { close }
   Close;
-  FArea.Free;
-  FClip.Free;
-  FFormat.Free;
   FClear.Free;
-  FPalette.Free;
   inherited Destroy;
 end;
 
@@ -71,7 +67,6 @@ var
   descriptor: TDDSURFACEDESC;
   ddpf: TDDPIXELFORMAT;
   capabilities: TDDSCAPS;
-  tmp: TPTCPalette;
   I: Integer;
   rectangle: TRECT;
 begin
@@ -132,7 +127,6 @@ begin
     FPages := APages;
     FWidth := descriptor.dwWidth;
     FHeight := descriptor.dwHeight;
-    FreeAndNil(FFormat);
     FFormat := DirectXTranslate(ddpf);
     LOG('primary width', FWidth);
     LOG('primary height', FHeight);
@@ -141,12 +135,7 @@ begin
     if APalette then
     begin
       LOG('clearing primary palette');
-      tmp := TPTCPalette.Create;
-      try
-        palette(tmp);
-      finally
-        tmp.Free;
-      end;
+      palette(TPTCPalette.Create);
     end;
     if attach_primary_pages then
     begin
@@ -189,9 +178,7 @@ begin
       FWidth := rectangle.right;
       FHeight := rectangle.bottom;
     end;
-    FreeAndNil(FArea);
     FArea := TPTCArea.Create(0, 0, FWidth, FHeight);
-    FreeAndNil(FClip);
     FClip := TPTCArea.Create(FArea);
     if APages > 1 then
     begin
@@ -275,9 +262,7 @@ begin
   end;
   FWidth := AWidth;
   FHeight := AHeight;
-  FreeAndNil(FArea);
   FArea := TPTCArea.Create(0, 0, FWidth, FHeight);
-  FreeAndNil(FClip);
   FClip := TPTCArea.Create(FArea);
   FSecondaryWidth := FWidth;
   FSecondaryHeight := FHeight;
@@ -334,7 +319,6 @@ procedure TDirectXPrimary.Close;
 var
   i: Integer;
   lost: Boolean;
-  tmp: TPTCPalette;
 begin
   try
     LOG('closing primary surface');
@@ -345,13 +329,7 @@ begin
       lost := True;
     if (FBack <> nil) and (FDDSPrimary <> nil) and FFullscreen and (not lost) then
     begin
-      tmp := TPTCPalette.Create;
-      try
-        LOG('clearing primary palette');
-        palette(tmp);
-      finally
-        tmp.Free;
-      end;
+      palette(TPTCPalette.Create);
       LOG('clearing primary pages');
       for i := 0 to FPages - 1 do
       begin
@@ -443,7 +421,6 @@ end;
 procedure TDirectXPrimary.Clear;
 var
   fx: TDDBLTFX;
-  tmp: TPTCColor;
 begin
   Block;
   if FFullscreen or (FBack = FDDSSecondary) then
@@ -456,29 +433,15 @@ begin
   begin
     { todo: replace with hardware clear! }
     if Format.Direct then
-    begin
-      tmp := TPTCColor.Create(0, 0, 0, 0);
-      try
-        Clear(tmp, FArea);
-      finally
-        tmp.Free;
-      end;
-    end
+      Clear(TPTCColor.Create(0, 0, 0, 0), FArea)
     else
-    begin
-      tmp := TPTCColor.Create(0);
-      try
-        Clear(tmp, FArea);
-      finally
-        tmp.Free;
-      end;
-    end;
+      Clear(TPTCColor.Create(0), FArea);
   end;
 end;
 
-procedure TDirectXPrimary.Clear(const AColor: TPTCColor; const AArea: TPTCArea);
+procedure TDirectXPrimary.Clear(AColor: IPTCColor; const AArea: IPTCArea);
 var
-  clipped, clipped_area: TPTCArea;
+  clipped, clipped_area: IPTCArea;
   clear_color: DWord;
   rct: RECT;
   fx: TDDBLTFX;
@@ -488,47 +451,38 @@ begin
   if FFullscreen or (FBack = FDDSSecondary) then
   begin
     clipped := TPTCClipper.clip(AArea, FClip);
-    try
-      clear_color := Pack(AColor, FFormat);
-      with rct do
-      begin
-        left := clipped.left;
-        top := clipped.top;
-        right := clipped.right;
-        bottom := clipped.bottom;
-      end;
-      fx.dwSize := SizeOf(fx);
-      fx.dwFillColor := clear_color;
-      DirectXCheck(FBack.Blt(@rct, nil, nil, DDBLT_COLORFILL or DDBLT_WAIT, @fx), 'FBack.Blt(rect) failed in TDirectXPrimary.Clear');
-    finally
-      clipped.Free;
+    clear_color := Pack(AColor, FFormat);
+    with rct do
+    begin
+      left := clipped.left;
+      top := clipped.top;
+      right := clipped.right;
+      bottom := clipped.bottom;
     end;
+    fx.dwSize := SizeOf(fx);
+    fx.dwFillColor := clear_color;
+    DirectXCheck(FBack.Blt(@rct, nil, nil, DDBLT_COLORFILL or DDBLT_WAIT, @fx), 'FBack.Blt(rect) failed in TDirectXPrimary.Clear');
   end
   else
   begin
     { todo: replace with accelerated clearing code! }
     pixels := Lock;
-    clipped_area := nil;
     try
-      try
-        clipped_area := TPTCClipper.clip(AArea, Clip);
-        FClear.Request(Format);
-        FClear.Clear(pixels, clipped_area.left, clipped_area.right, clipped_area.width, clipped_area.height, Pitch, AColor);
+      clipped_area := TPTCClipper.clip(AArea, Clip);
+      FClear.Request(Format);
+      FClear.Clear(pixels, clipped_area.left, clipped_area.right, clipped_area.width, clipped_area.height, Pitch, AColor);
+      Unlock;
+    except
+      on error: TPTCError do
+      begin
         Unlock;
-      except
-        on error: TPTCError do
-        begin
-          Unlock;
-          raise TPTCError.Create('failed to clear console area', error);
-        end;
+        raise TPTCError.Create('failed to clear console area', error);
       end;
-    finally
-      clipped_area.Free;
     end;
   end;
 end;
 
-procedure TDirectXPrimary.Palette(const APalette: TPTCPalette);
+procedure TDirectXPrimary.Palette(APalette: IPTCPalette);
 var
   data: PUint32;
   temp: array [0..255] of PALETTEENTRY;
@@ -562,16 +516,9 @@ begin
   end;
 end;
 
-procedure TDirectXPrimary.Clip(const AArea: TPTCArea);
-var
-  tmp: TPTCArea;
+procedure TDirectXPrimary.Clip(const AArea: IPTCArea);
 begin
-  tmp := TPTCClipper.clip(AArea, FArea);
-  try
-    FClip.Assign(tmp);
-  finally
-    tmp.Free;
-  end;
+  FClip := TPTCClipper.clip(AArea, FArea);
 end;
 
 function TDirectXPrimary.GetPitch: Integer;
@@ -799,7 +746,7 @@ begin
   FBlocking := ABlocking;
 end;
 
-function TDirectXPrimary.Pack(const AColor: TPTCColor; const AFormat: TPTCFormat): Uint32;
+function TDirectXPrimary.Pack(const AColor: IPTCColor; const AFormat: IPTCFormat): Uint32;
 var
   r_base, g_base, b_base, a_base: Integer;
   r_size, g_size, b_size, a_size: Integer;
@@ -845,12 +792,12 @@ begin
   end;
 end;
 
-function TDirectXPrimary.Palette: TPTCPalette;
+function TDirectXPrimary.Palette: IPTCPalette;
 begin
   Result := FPalette;
 end;
 
-function TDirectXPrimary.Clip: TPTCArea;
+function TDirectXPrimary.Clip: IPTCArea;
 begin
   Result := FClip;
 end;

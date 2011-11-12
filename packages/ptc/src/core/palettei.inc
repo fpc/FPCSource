@@ -30,6 +30,43 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+type
+  TPTCPalette = class(TInterfacedObject, IPTCPalette)
+  private
+    FLocked: Boolean;
+    FHandle: THermesPaletteHandle;
+  public
+    constructor Create;
+    constructor Create(const AData: array of Uint32);
+    constructor Create(APalette: IPTCPalette);
+    destructor Destroy; override;
+//    procedure Assign(const APalette: TPTCPalette);
+//    function Equals(const APalette: TPTCPalette): Boolean;
+    function Lock: PUint32;
+    procedure Unlock;
+    procedure Load(const AData: array of Uint32);
+    procedure Load(AData: Pointer);
+    procedure Save(var AData: array of Uint32);
+    procedure Save(AData: Pointer);
+    function Data: PUint32;
+    function GetHermesPaletteHandle: THermesPaletteHandle;
+  end;
+
+class function TPTCPaletteFactory.CreateNew: IPTCPalette;
+begin
+  Result := TPTCPalette.Create;
+end;
+
+class function TPTCPaletteFactory.CreateNew(const AData: array of Uint32): IPTCPalette;
+begin
+  Result := TPTCPalette.Create(AData);
+end;
+
+class function TPTCPaletteFactory.CreateNew(APalette: IPTCPalette): IPTCPalette;
+begin
+  Result := TPTCPalette.Create(APalette);
+end;
+
 constructor TPTCPalette.Create;
 var
   zero: array [0..255] of Uint32;
@@ -55,7 +92,7 @@ begin
   Load(AData);
 end;
 
-constructor TPTCPalette.Create(const APalette: TPTCPalette);
+constructor TPTCPalette.Create(APalette: IPTCPalette);
 begin
   FLocked := False;
   if not Hermes_Init then
@@ -63,7 +100,7 @@ begin
   FHandle := Hermes_PaletteInstance;
   if FHandle = nil then
     raise TPTCError.Create('could not create hermes palette instance');
-  Assign(APalette);
+  Hermes_PaletteSet(FHandle, Hermes_PaletteGet(APalette.GetHermesPaletteHandle));
 end;
 
 destructor TPTCPalette.Destroy;
@@ -75,7 +112,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TPTCPalette.Assign(const APalette: TPTCPalette);
+{procedure TPTCPalette.Assign(const APalette: TPTCPalette);
 begin
   if Self = APalette then
     exit;
@@ -87,7 +124,7 @@ function TPTCPalette.Equals(const APalette: TPTCPalette): Boolean;
 begin
   Equals := CompareDWord(Hermes_PaletteGet(FHandle)^, Hermes_PaletteGet(APalette.FHandle)^, 1024 div 4) = 0;
 end;
-
+}
 function TPTCPalette.Lock: PUint32;
 begin
   if FLocked then
@@ -126,4 +163,9 @@ end;
 function TPTCPalette.Data: PUint32;
 begin
   Result := Hermes_PaletteGet(FHandle);
+end;
+
+function TPTCPalette.GetHermesPaletteHandle: THermesPaletteHandle;
+begin
+  Result := FHandle;
 end;

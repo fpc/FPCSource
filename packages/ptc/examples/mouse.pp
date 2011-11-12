@@ -8,13 +8,13 @@ program MouseExample;
 {$MODE objfpc}
 
 uses
-  ptc;
+  ptc, SysUtils;
 
 var
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  format: TPTCFormat = nil;
-  event: TPTCEvent = nil;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  format: IPTCFormat;
+  event: IPTCEvent;
   pixels: PUint32;
   color: Uint32;
   width, height: Integer;
@@ -26,10 +26,10 @@ begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create format }
-      format := TPTCFormat.Create(32, $FF0000, $FF00, $FF);
+      format := TPTCFormatFactory.CreateNew(32, $FF0000, $FF00, $FF);
 
       { open the console }
       console.open('Mouse example', format);
@@ -38,7 +38,7 @@ begin
       console.option('hide cursor');
 
       { create surface matching console dimensions }
-      surface := TPTCSurface.Create(console.width, console.height, format);
+      surface := TPTCSurfaceFactory.CreateNew(console.width, console.height, format);
 
       { initialization }
       X := 0;
@@ -49,20 +49,20 @@ begin
         console.NextEvent(event, True, PTCAnyEvent);
 
         { handle mouse events }
-        if event is TPTCMouseEvent then
+        if Supports(event, IPTCMouseEvent) then
         begin
           { if there's more than one mouse event, process them all... }
           repeat
-            X := (event as TPTCMouseEvent).X;
-            Y := (event as TPTCMouseEvent).Y;
-            button := PTCMouseButton1 in (event as TPTCMouseEvent).ButtonState;
+            X := (event as IPTCMouseEvent).X;
+            Y := (event as IPTCMouseEvent).Y;
+            button := PTCMouseButton1 in (event as IPTCMouseEvent).ButtonState;
           until not console.NextEvent(event, False, [PTCMouseEvent]);
         end;
 
         { handle keyboard events }
-        if (event is TPTCKeyEvent) and (event as TPTCKeyEvent).Press then
+        if Supports(event, IPTCKeyEvent) and (event as IPTCKeyEvent).Press then
         begin
-          case (event as TPTCKeyEvent).Code of
+          case (event as IPTCKeyEvent).Code of
             PTCKEY_G: console.Option('grab mouse');
             PTCKEY_U: console.Option('ungrab mouse');
             PTCKEY_ESCAPE: Done := True;
@@ -114,11 +114,8 @@ begin
 
       until Done;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
-      format.Free;
-      event.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

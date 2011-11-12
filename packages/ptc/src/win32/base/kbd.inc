@@ -88,12 +88,9 @@ begin
     exit;
 
   { process key message }
-  if (message = WM_KEYDOWN) or (message = WM_KEYUP) {Or ((message = WM_SYSKEYDOWN) and ((lParam and (1 shl 29)) <> 0))} then
+  if (message = WM_KEYDOWN) or (message = WM_KEYUP) or (message = WM_SYSKEYDOWN) or (message = WM_SYSKEYUP) then
   begin
-    if message = WM_KEYUP then
-      press := False
-    else
-      press := True;
+    press := (message = WM_KEYDOWN) or (message = WM_SYSKEYDOWN);
 
     { update modifiers }
     if wParam = VK_MENU then

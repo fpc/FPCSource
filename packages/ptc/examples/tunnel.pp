@@ -117,9 +117,9 @@ begin
 end;
 
 var
-  format: TPTCFormat = nil;
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
+  format: IPTCFormat;
+  console: IPTCConsole;
+  surface: IPTCSurface;
   TheTunnel: TTunnel = nil;
   time, delta: Single;
   buffer: PUint32;
@@ -127,16 +127,16 @@ begin
   try
     try
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { open console }
       console.open('Tunnel demo', 320, 200, format);
 
       { create surface }
-      surface := TPTCSurface.Create(320, 200, format);
+      surface := TPTCSurfaceFactory.CreateNew(320, 200, format);
 
       { create tunnel }
       TheTunnel := TTunnel.Create;
@@ -169,10 +169,8 @@ begin
       end;
     finally
       TheTunnel.Free;
-      surface.Free;
-      console.close;
-      console.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

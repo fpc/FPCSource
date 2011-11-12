@@ -61,7 +61,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TX11DGA2Display.open(ATitle: string; AWidth, AHeight: Integer; const AFormat: TPTCFormat);
+procedure TX11DGA2Display.open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat);
 
   function ModeFlagsToString(AFlags: cint): string;
   begin
@@ -151,7 +151,6 @@ procedure TX11DGA2Display.open(ATitle: string; AWidth, AHeight: Integer; const A
 var
   i: Integer;
   e: TXEvent;
-  tmpArea: TPTCArea;
   r, g, b: Single;
   found_mode: Integer;
 begin
@@ -305,12 +304,7 @@ begin
   end;
 
   { Set clipping area }
-  tmpArea := TPTCArea.Create(0, 0, FWidth, FHeight);
-  try
-    FClip.Assign(tmpArea);
-  finally
-    tmpArea.Free;
-  end;
+  FClip := TPTCArea.Create(0, 0, FWidth, FHeight);
 
   XDGASync(FDisplay, FScreen);
 
@@ -319,13 +313,13 @@ begin
 end;
 
 { not in DGA mode }
-procedure TX11DGA2Display.open(w: TWindow; const _format: TPTCFormat);
+procedure TX11DGA2Display.open(w: TWindow; _format: IPTCFormat);
 begin
   if w = 0 then; { Prevent warnings }
   if _format = nil then;
 end;
 
-procedure TX11DGA2Display.open(_window: TWindow; const _format: TPTCFormat; x, y, w, h: Integer);
+procedure TX11DGA2Display.open(_window: TWindow; _format: IPTCFormat; x, y, w, h: Integer);
 begin
   if (_window = 0) or (_format = nil) or (x = 0) or
      (y = 0) or (w = 0) or (h = 0) then;
@@ -377,18 +371,17 @@ begin
   end;
 end;
 
-procedure TX11DGA2Display.GetModes(var AModes: TPTCModeDynArray);
+procedure TX11DGA2Display.GetModes(var AModes: TPTCModeList);
 begin
-  SetLength(AModes, 1);
-  AModes[0] := TPTCMode.Create;
+  SetLength(AModes, 0);
   {todo...}
 end;
 
-procedure TX11DGA2Display.update;
+procedure TX11DGA2Display.Update;
 begin
 end;
 
-procedure TX11DGA2Display.update(const _area: TPTCArea);
+procedure TX11DGA2Display.Update(AArea: IPTCArea);
 begin
 end;
 
@@ -486,11 +479,10 @@ begin
 //  HandleChangeFocus(NewFocus);
 end;
 
-function TX11DGA2Display.NextEvent(var event: TPTCEvent; wait: Boolean; const EventMask: TPTCEventMask): Boolean;
+function TX11DGA2Display.NextEvent(out event: IPTCEvent; wait: Boolean; const EventMask: TPTCEventMask): Boolean;
 var
   tmpEvent: TXEvent;
 begin
-  FreeAndNil(event);
   repeat
     { process all events from the X queue and put them on our FEventQueue }
     HandleEvents;
@@ -507,7 +499,7 @@ begin
   Result := event <> nil;
 end;
 
-function TX11DGA2Display.PeekEvent(wait: Boolean; const EventMask: TPTCEventMask): TPTCEvent;
+function TX11DGA2Display.PeekEvent(wait: Boolean; const EventMask: TPTCEventMask): IPTCEvent;
 var
   tmpEvent: TXEvent;
 begin
@@ -537,7 +529,7 @@ procedure TX11DGA2Display.unlock;
 begin
 end;
 
-procedure TX11DGA2Display.palette(const _palette: TPTCPalette);
+procedure TX11DGA2Display.Palette(_palette: IPTCPalette);
 var
   pal: PUint32;
   i: Integer;

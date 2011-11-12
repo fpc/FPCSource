@@ -32,7 +32,6 @@
 
 constructor TPTCClear.Create;
 begin
-  FFormat := nil;
   { initialize hermes }
   if not Hermes_Init then
     raise TPTCError.Create('could not initialize hermes');
@@ -50,7 +49,6 @@ destructor TPTCClear.Destroy;
 begin
   { return the clearer instance }
   Hermes_ClearerReturn(FHandle);
-  FFormat.Free;
 
   { free hermes }
   Hermes_Done;
@@ -58,20 +56,20 @@ begin
   inherited Destroy;
 end;
 
-procedure TPTCClear.Request(const AFormat: TPTCFormat);
+procedure TPTCClear.Request(AFormat: IPTCFormat);
 var
   hermes_format: PHermesFormat;
 begin
-  hermes_format := @AFormat.FFormat;
+  hermes_format := AFormat.GetHermesFormat;
   { request surface clear for this format }
   if not Hermes_ClearerRequest(FHandle, hermes_format) then
     raise TPTCError.Create('unsupported clear format');
 
   { update current format }
-  FFormat.Assign(AFormat);
+  FFormat := AFormat;
 end;
 
-procedure TPTCClear.Clear(APixels: Pointer; AX, AY, AWidth, AHeight, APitch: Integer; const AColor: TPTCColor);
+procedure TPTCClear.Clear(APixels: Pointer; AX, AY, AWidth, AHeight, APitch: Integer; AColor: IPTCColor);
 var
   r, g, b, a: LongInt;
   index: LongInt;
