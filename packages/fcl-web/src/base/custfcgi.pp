@@ -832,6 +832,7 @@ begin
     assert(not assigned(FRequestsArray[ARequestID].Request));
     assert(not assigned(FRequestsArray[ARequestID].Response));
     ATempRequest:=TFCGIRequest.Create;
+    InitRequest(ATempRequest);
     ATempRequest.RequestID:=ARequestID;
     ATempRequest.Handle:=FHandle;
     ATempRequest.ProtocolOptions:=Self.Protocoloptions;
@@ -848,6 +849,7 @@ begin
     begin
     ARequest:=FRequestsArray[ARequestID].Request;
     FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
+    InitResponse(FRequestsArray[ARequestID].Response);
     FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
     FRequestsArray[ARequestID].Response.FOnWrite:=@DoFastCGIWrite;
     AResponse:=FRequestsArray[ARequestID].Response;
