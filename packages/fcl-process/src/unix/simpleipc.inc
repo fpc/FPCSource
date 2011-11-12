@@ -24,7 +24,57 @@ uses sysutils, classes, simpleipc, baseunix;
 {$else}
 
 uses baseunix;
+{$DEFINE OSNEEDIPCINITDONE}
 
+Var
+  SocketFiles : TStringList;
+
+Procedure IPCInit;
+
+begin
+end;
+
+Procedure IPCDone;
+
+Var
+  I : integer;
+  
+begin
+  if Assigned(SocketFiles) then
+    try
+      For I:=0 to SocketFiles.Count-1 do
+        DeleteFile(SocketFiles[i]);
+    finally  
+      FreeAndNil(SocketFiles);  
+    end;  
+end;
+
+
+Procedure RegisterSocketFile(Const AFileName : String);
+
+begin
+  If Not Assigned(SocketFiles) then
+    begin
+    SocketFiles:=TStringList.Create;
+    SocketFiles.Sorted:=True;
+    end;
+  SocketFiles.Add(AFileName);  
+end;
+
+Procedure UnRegisterSocketFile(Const AFileName : String);
+
+Var
+  I : Integer;
+begin
+  If Assigned(SocketFiles) then
+    begin
+    I:=SocketFiles.IndexOf(AFileName);  
+    If (I<>-1) then
+      SocketFiles.Delete(I);
+    If (SocketFiles.Count=0) then
+      FreeAndNil(SocketFiles);
+    end;
+end;
 {$endif}
 
 
@@ -156,10 +206,12 @@ begin
     If (fpmkFifo(FFileName,438)<>0) then
       DoError(SErrFailedToCreatePipe,[FFileName]);
   FStream:=TFileStream.Create(FFileName,fmOpenReadWrite+fmShareDenyNone,Rights[Owner.Global]);
+  RegisterSocketFile(FFileName);
 end;
 
 procedure TPipeServerComm.StopServer;
 begin
+  UnregisterSocketFile(FFileName);
   FreeAndNil(FStream);
   if Not DeleteFile(FFileName) then
     DoError(SErrFailedtoRemovePipe,[FFileName]);
