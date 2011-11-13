@@ -861,7 +861,7 @@ implementation
               memory accesses while sqr(<real>) has no drawback }
             if
 {$ifdef cpufpemu}
-               (current_settings.fputype<>fpu_soft) and 
+               (current_settings.fputype<>fpu_soft) and
                not(cs_fp_emulation in current_settings.moduleswitches) and
 {$endif cpufpemu}
                (nodetype=muln) and
@@ -873,6 +873,75 @@ implementation
                 left:=nil;
                 exit;
               end;
+{$ifdef cpurox}
+            { optimize (i shl x) or (i shr (bitsizeof(i)-x)) into rol(x,i) (and different flavours with shl/shr swapped etc.) }
+            if (nodetype=orn)
+{$ifndef cpu64bitalu}
+               and (left.resultdef.typ=orddef) and
+               not(torddef(left.resultdef).ordtype in [s64bit,u64bit,scurrency])
+{$endif cpu64bitalu}
+              then
+              begin
+                if (left.nodetype=shrn) and (right.nodetype=shln) and
+                   is_constintnode(tshlshrnode(left).right) and
+                   is_constintnode(tshlshrnode(right).right) and
+                   (tordconstnode(tshlshrnode(right).right).value>0) and
+                   (tordconstnode(tshlshrnode(left).right).value>0) and
+                   tshlshrnode(left).left.isequal(tshlshrnode(right).left) and
+                   not(might_have_sideeffects(tshlshrnode(left).left)) then
+                   begin
+                     if tordconstnode(tshlshrnode(left).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value then
+                       begin
+                         result:=cinlinenode.create(in_ror_x_y,false,
+                           ccallparanode.create(tshlshrnode(left).right,
+                           ccallparanode.create(tshlshrnode(left).left,nil)));
+                         tshlshrnode(left).left:=nil;
+                         tshlshrnode(left).right:=nil;
+                         exit;
+                       end
+                     else if tordconstnode(tshlshrnode(right).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value then
+                       begin
+                         result:=cinlinenode.create(in_rol_x_y,false,
+                           ccallparanode.create(tshlshrnode(right).right,
+                           ccallparanode.create(tshlshrnode(left).left,nil)));
+                         tshlshrnode(left).left:=nil;
+                         tshlshrnode(right).right:=nil;
+                         exit;
+                       end;
+                   end;
+                if (left.nodetype=shln) and (right.nodetype=shrn) and
+                   is_constintnode(tshlshrnode(left).right) and
+                   is_constintnode(tshlshrnode(right).right) and
+                   (tordconstnode(tshlshrnode(right).right).value>0) and
+                   (tordconstnode(tshlshrnode(left).right).value>0) and
+                   tshlshrnode(left).left.isequal(tshlshrnode(right).left) and
+                   not(might_have_sideeffects(tshlshrnode(left).left)) then
+                   begin
+                     if tordconstnode(tshlshrnode(left).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value then
+                       begin
+                         result:=cinlinenode.create(in_rol_x_y,false,
+                           ccallparanode.create(tshlshrnode(left).right,
+                           ccallparanode.create(tshlshrnode(left).left,nil)));
+                         tshlshrnode(left).left:=nil;
+                         tshlshrnode(left).right:=nil;
+                         exit;
+                       end
+                     else if tordconstnode(tshlshrnode(right).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value then
+                       begin
+                         result:=cinlinenode.create(in_ror_x_y,false,
+                           ccallparanode.create(tshlshrnode(right).right,
+                           ccallparanode.create(tshlshrnode(left).left,nil)));
+                         tshlshrnode(left).left:=nil;
+                         tshlshrnode(right).right:=nil;
+                         exit;
+                       end;
+                   end;
+              end;
+{$endif cpurox}
           end;
       end;
 
@@ -1963,7 +2032,7 @@ implementation
                     if is_shortstring(left.resultdef) then
                       resultdef:=cshortstringtype
                     else
-                    { for ansistrings set resultdef to assignment left node 
+                    { for ansistrings set resultdef to assignment left node
                       if it is an assignment and left node expects ansistring }
                     if is_ansistring(left.resultdef) and
                        assigned(aktassignmentnode) and

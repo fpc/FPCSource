@@ -59,6 +59,7 @@
   {$define SUPPORT_MMX}
   {$define cpumm}
   {$define fewintregisters}
+  {$define cpurox}
 {$endif i386}
 
 {$ifdef x86_64}
@@ -70,6 +71,7 @@
   {$define cpufloat128}
   {$define cputargethasfixedstack}
   {$define cpumm}
+  {$define cpurox}
 {$endif x86_64}
 
 {$ifdef alpha}
@@ -92,6 +94,7 @@
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpumm}
+  {$define cpurox}
 {$endif powerpc}
 
 {$ifdef powerpc64}
@@ -100,6 +103,7 @@
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpumm}
+  {$define cpurox}
 {$endif powerpc64}
 
 {$ifdef arm}
@@ -109,6 +113,7 @@
   {$define cpuflags}
   {$define cpufpemu}
   {$define cpuneedsdiv32helper}
+  {$define cpurox}
   {$define cputargethasfixedstack}
   { default to armel }
   {$if not(defined(CPUARM)) and not(defined(CPUARMEB)) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEB))}
