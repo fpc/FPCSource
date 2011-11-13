@@ -24,7 +24,39 @@ uses sysutils, classes, simpleipc, baseunix;
 {$else}
 
 uses baseunix;
+{$endif}
+
 {$DEFINE OSNEEDIPCINITDONE}
+
+
+
+
+ResourceString
+  SErrFailedToCreatePipe = 'Failed to create named pipe: %s';
+  SErrFailedToRemovePipe = 'Failed to remove named pipe: %s';
+
+{ ---------------------------------------------------------------------
+    TPipeClientComm
+  ---------------------------------------------------------------------}
+
+Type
+  TPipeClientComm = Class(TIPCClientComm)
+  Private
+    FFileName: String;
+    FStream: TFileStream;
+  Public
+    Constructor Create(AOWner : TSimpleIPCClient); override;
+    Procedure Connect; override;
+    Procedure Disconnect; override;
+    Procedure SendMessage(MsgType : TMessageType; AStream : TStream); override;
+    Function  ServerRunning : Boolean; override;
+    Property FileName : String Read FFileName;
+    Property Stream : TFileStream Read FStream;
+  end;
+
+{$ifdef ipcunit}
+implementation
+{$endif}
 
 Var
   SocketFiles : TStringList;
@@ -75,37 +107,6 @@ begin
       FreeAndNil(SocketFiles);
     end;
 end;
-{$endif}
-
-
-
-ResourceString
-  SErrFailedToCreatePipe = 'Failed to create named pipe: %s';
-  SErrFailedToRemovePipe = 'Failed to remove named pipe: %s';
-
-{ ---------------------------------------------------------------------
-    TPipeClientComm
-  ---------------------------------------------------------------------}
-
-Type
-  TPipeClientComm = Class(TIPCClientComm)
-  Private
-    FFileName: String;
-    FStream: TFileStream;
-  Public
-    Constructor Create(AOWner : TSimpleIPCClient); override;
-    Procedure Connect; override;
-    Procedure Disconnect; override;
-    Procedure SendMessage(MsgType : TMessageType; AStream : TStream); override;
-    Function  ServerRunning : Boolean; override;
-    Property FileName : String Read FFileName;
-    Property Stream : TFileStream Read FStream;
-  end;
-
-{$ifdef ipcunit}
-implementation
-{$endif}
-
 
 
 constructor TPipeClientComm.Create(AOWner: TSimpleIPCClient);
@@ -275,5 +276,10 @@ begin
 end;
 
 {$else ipcunit}
+initialization
+  IPCInit;
+  
+Finalization
+  IPCDone;  
 end.
 {$endif}
