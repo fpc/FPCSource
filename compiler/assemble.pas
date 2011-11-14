@@ -480,14 +480,27 @@ Implementation
 
 
     Procedure TExternalAssembler.AsmWrite(const s:ansistring);
+      var
+        StartIndex, ToWrite: longint;
       begin
         if s='' then
           exit;
         if OutCnt+length(s)>=AsmOutSize then
          AsmFlush;
-        Move(s[1],OutBuf[OutCnt],length(s));
-        inc(OutCnt,length(s));
-        inc(AsmSize,length(s));
+        StartIndex:=1;
+        ToWrite:=length(s);
+        while ToWrite>AsmOutSize do
+          begin
+            Move(s[StartIndex],OutBuf[OutCnt],AsmOutSize);
+            inc(OutCnt,AsmOutSize);
+            inc(AsmSize,AsmOutSize);
+            AsmFlush;
+            inc(StartIndex,AsmOutSize);
+            dec(ToWrite,AsmOutSize);
+          end;
+        Move(s[StartIndex],OutBuf[OutCnt],ToWrite);
+        inc(OutCnt,ToWrite);
+        inc(AsmSize,ToWrite);
       end;
 
 
