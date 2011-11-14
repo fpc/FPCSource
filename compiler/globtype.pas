@@ -204,6 +204,15 @@ interface
        );
        tdebugswitches = set of tdebugswitch;
 
+       { global target-specific switches }
+       ttargetswitch = (ts_none,
+         { for the JVM target: generate integer array initializations via string
+           constants in order to reduce the generated code size (Java routines
+           are limited to 64kb of bytecode) }
+         ts_compact_int_array_init
+       );
+       ttargetswitches = set of ttargetswitch;
+
 
        { adding a new entry here requires also adding the appropriate define in
          systemh.inc (FK)
@@ -246,6 +255,9 @@ interface
 
        DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
          'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
+
+       TargetSwitchStr : array[ttargetswitch] of string[19] = ('',
+         'COMPACTINTARRAYINIT');
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];

@@ -761,6 +761,12 @@ begin
                          exclude(init_settings.moduleswitches,cs_create_smart)
                        Else
                          include(init_settings.moduleswitches,cs_create_smart);
+                    'T' :
+                      begin
+                        if not UpdateTargetSwitchStr(copy(more,j+1,length(more)),init_settings.targetswitches) then
+                          IllegalPara(opt);
+                        break;
+                      end;
                     'v' :
                        If target_info.system=system_jvm_java32 then
                          If UnsetBool(More, j) then

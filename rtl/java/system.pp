@@ -96,6 +96,7 @@ const
 {$i justringh.inc}
 
 {$i jsystemh.inc}
+{$i jtconh.inc}
 
 
 {*****************************************************************************}
@@ -110,6 +111,7 @@ function min(a,b : longint) : longint;
        min:=b;
   end;
 
+{$i jtcon.inc}
 {$i jtvar.inc}
 {$i jsstrings.inc}
 {$i jastrings.inc}
