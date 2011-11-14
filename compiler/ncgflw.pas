@@ -839,8 +839,10 @@ implementation
          include(flowcontrol,fc_exit);
          if assigned(left) then
            secondpass(left);
-
-         cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel);
+         if (fc_unwind in flowcontrol) then
+           cg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel)
+         else
+           cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel);
        end;
 
 
@@ -858,7 +860,10 @@ implementation
 {$ifdef OLDREGVARS}
              load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-             cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
+             if (fc_unwind in flowcontrol) then
+               cg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
+             else
+               cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
            end
          else
            CGMessage(cg_e_break_not_allowed);
@@ -879,7 +884,10 @@ implementation
 {$ifdef OLDREGVARS}
              load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-             cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
+             if (fc_unwind in flowcontrol) then
+               cg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
+             else
+               cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
            end
          else
            CGMessage(cg_e_continue_not_allowed);

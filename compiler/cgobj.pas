@@ -525,6 +525,9 @@ unit cgobj;
           procedure g_maybe_got_init(list: TAsmList); virtual;
           { allocallcpuregisters, a_call_name, deallocallcpuregisters sequence }
           procedure g_call(list: TAsmList; const s: string);
+          { Generate code to exit an unwind-protected region. The default implementation
+            produces a simple jump to destination label. }
+          procedure g_local_unwind(list: TAsmList; l: TAsmLabel);virtual;
         protected
           procedure get_subsetref_load_info(const sref: tsubsetreference; out loadsize: tcgsize; out extra_load: boolean);
           procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
@@ -4276,6 +4279,11 @@ implementation
         allocallcpuregisters(list);
         a_call_name(list,s,false);
         deallocallcpuregisters(list);
+      end;
+
+    procedure tcg.g_local_unwind(list: TAsmList; l: TAsmLabel);
+      begin
+        a_jmp_always(list,l);
       end;
 
     procedure tcg.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister; shuffle: pmmshuffle);
