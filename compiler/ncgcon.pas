@@ -458,7 +458,7 @@ implementation
 
 
 {*****************************************************************************
-                          TCGPOINTERCONSTNODE
+                          TCGGUIDCONSTNODE
 *****************************************************************************}
 
     procedure tcgguidconstnode.pass_generate_code;
@@ -469,7 +469,8 @@ implementation
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(16));
         { label for GUID }
         current_asmdata.getdatalabel(tmplabel);
-        current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(16)));
+        maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,tmplabel.name,const_align(16));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(tmplabel));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint(value.D1)));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(value.D2));
