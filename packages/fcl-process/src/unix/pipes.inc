@@ -40,3 +40,7 @@ begin
   Raise EPipeSeek.Create (ENoSeekMsg);
 end;
 
+procedure PipeClose (const FHandle: THandle); inline;
+begin
+  FileClose(FHandle);
+end;

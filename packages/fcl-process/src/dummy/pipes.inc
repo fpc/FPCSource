@@ -18,6 +18,8 @@
 Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
 
 begin
+  InHandle := THandle (UnusedHandle);
+  OutHandle := THandle (UnusedHandle);
   Result := False;
 end;
 
@@ -36,4 +38,10 @@ end;
 procedure TInputPipeStream.InvalidSeek;
 begin
   Raise EPipeSeek.Create (ENoSeekMsg);
+end;
+
+procedure PipeClose (const FHandle: THandle); inline;
+begin
+  if FHandle <> UnusedHandle then
+   FileClose (FHandle);
 end;
