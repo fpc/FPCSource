@@ -2971,6 +2971,14 @@ implementation
                   CGMessage(cg_e_cant_call_abstract_method);
               end;
 
+            { directly calling an interface/protocol/category/class helper
+              method via its type is not possible (always must be called via
+              the actual instance) }
+            if (methodpointer.nodetype=typen) and
+               (is_interface(methodpointer.resultdef) or
+                is_objc_protocol_or_category(methodpointer.resultdef)) then
+              CGMessage1(type_e_class_type_expected,methodpointer.resultdef.typename);
+
             { if an inherited con- or destructor should be  }
             { called in a con- or destructor then a warning }
             { will be made                                  }
