@@ -2516,7 +2516,7 @@ asmw_e_handlerdata_no_handler=08025_E_.seh_handlerdata directive without precedi
 #
 # Executing linker/assembler
 #
-# 09032 is the last used one
+# 09033 is the last used one
 #
 # BeginOfTeX
 %
@@ -2606,6 +2606,8 @@ exec_e_cant_open_resource_file=09031_E_Can't open resource file "$1"
 % An error occurred resource file cannot be opened.
 exec_e_cant_write_resource_file=09032_E_Can't write resource file "$1"
 % An error occurred resource file cannot be written.
+exec_n_backquote_cat_file_not_found=09033_N_File "$1" not found for backquoted cat command
+% The compiler did not find the file that should be expanded into linker parameters
 %\end{description}
 # EndOfTeX
 
