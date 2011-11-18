@@ -39,7 +39,7 @@ unit i_win;
                             tf_winlikewidestring,tf_no_pic_supported,
                             tf_no_generic_stackcheck,tf_has_winlike_resources,
                             tf_dwarf_only_local_labels,
-                            tf_safecall_exceptions];
+                            tf_safecall_exceptions,tf_no_backquote_support];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';
@@ -105,7 +105,7 @@ unit i_win;
                             tf_winlikewidestring,tf_no_pic_supported,
                             tf_dwarf_only_local_labels,
                             tf_no_generic_stackcheck,tf_has_winlike_resources,
-                            tf_safecall_exceptions];
+                            tf_safecall_exceptions,tf_no_backquote_support];
             cpu          : cpu_x86_64;
             unit_env     : 'WIN64UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';
@@ -169,7 +169,7 @@ unit i_win;
             flags        : [tf_files_case_aware{,tf_winlikewidestring},
                             tf_smartlink_sections,tf_requires_proper_alignment,tf_no_pic_supported,
                             tf_has_winlike_resources,
-                            tf_safecall_exceptions];
+                            tf_safecall_exceptions,tf_no_backquote_support];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : 'UNDER_CE;WINDOWS;UNICODE';
@@ -233,7 +233,7 @@ unit i_win;
             flags        : [tf_files_case_aware
                             {,tf_winlikewidestring},tf_smartlink_sections,tf_no_pic_supported,
                             tf_has_winlike_resources,
-                            tf_safecall_exceptions];
+                            tf_safecall_exceptions,tf_no_backquote_support];
             cpu          : cpu_i386;
             unit_env     : '';
             extradefines : 'UNDER_CE;WINDOWS;UNICODE';

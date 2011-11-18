@@ -145,8 +145,8 @@ begin
        begin
          if not(target_info.system in systems_darwin) then
            begin
-             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE `cat $RES`';
-             DllCmd[1]:='ld $OPT -shared -L. -o $EXE `cat $RES`'
+             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $CATRES';
+             DllCmd[1]:='ld $OPT -shared -L. -o $EXE $CATRES'
            end
          else
            begin
@@ -155,7 +155,7 @@ begin
                is loaded below that address. This avoids problems with the
                strange Windows-compatible resource handling that assumes
                that addresses below 64kb do not exist.
-               
+
                On 64bit systems, page zero is 4GB by default, so no problems
                there.
              }
@@ -165,16 +165,16 @@ begin
                programs with problems that require Valgrind will have more
                than 60KB of data (first 4KB of address space is always invalid)
              }
-               ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+               ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
              if not(cs_gdb_valgrind in current_settings.globalswitches) then
                ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES'
              else
-               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES'
            end
        end
      else
@@ -248,7 +248,7 @@ begin
         end;
     end;
   result:=maybequoted(result);
-end;    
+end;
 
 
 Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
@@ -502,7 +502,7 @@ begin
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
    end;
-   
+
   { frameworks for Darwin }
   if IsDarwin then
     while not FrameworkFiles.empty do
@@ -510,7 +510,7 @@ begin
         LinkRes.Add('-framework');
         LinkRes.Add(FrameworkFiles.GetFirst);
       end;
-     
+
   { objects which must be at the end }
   if linklibc and
      not IsDarwin Then
@@ -597,6 +597,7 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
@@ -646,7 +647,7 @@ begin
        begin
          DeleteFile(linkscript.fn);
          linkscript.free
-       end; 
+       end;
    end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -770,7 +771,7 @@ begin
         end;
       if (target_info.system in systems_darwin) then
         DeleteFile(outputexedir+'linksyms.fpc');
-    end;     
+    end;
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
