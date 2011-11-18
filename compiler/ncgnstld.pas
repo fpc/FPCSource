@@ -40,6 +40,7 @@ interface
          nestsym: tsym;
          nestsymderef: tderef;
          procedure generate_nested_access(vs: tsym);override;
+         function  keep_param_address_in_nested_struct: boolean; virtual;
         public
          function  pass_typecheck: tnode; override;
          function  pass_1:tnode;override;
@@ -80,6 +81,12 @@ implementation
       end;
 
 
+    function tcgnestloadnode.keep_param_address_in_nested_struct: boolean;
+      begin
+        result:=is_addr_param_load;
+      end;
+
+
     function tcgnestloadnode.pass_typecheck: tnode;
       var
         nestedvars: tsym;
@@ -115,7 +122,7 @@ implementation
                       nestedvars:=tprocdef(symtable.defowner).parentfpstruct;
                     end;
                   {  store result for use in pass_1 }
-                  nestsym:=maybe_add_sym_to_parentfpstruct(tprocdef(symtableentry.owner.defowner),symtableentry,resultdef,is_addr_param_load);
+                  nestsym:=maybe_add_sym_to_parentfpstruct(tprocdef(symtableentry.owner.defowner),symtableentry,resultdef,keep_param_address_in_nested_struct);
                   { left normally holds the parentfp node. If it's not assigned,
                     this is an access to a local variable/para from the routine
                     in which it was actually declared -> redirect to its

@@ -36,6 +36,7 @@ type
    protected
     function is_copyout_addr_param_load: boolean;
     function handle_threadvar_access: tnode; override;
+    function keep_param_address_in_nested_struct: boolean; override;
    public
     function is_addr_param_load: boolean; override;
     procedure pass_generate_code; override;
@@ -186,6 +187,21 @@ function tjvmloadnode.handle_threadvar_access: tnode;
     result:=ccallnode.createinternmethod(result,'GETREADWRITEREFERENCE',nil);
     result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
     result:=cderefnode.create(result);
+  end;
+
+
+function tjvmloadnode.keep_param_address_in_nested_struct: boolean;
+  begin
+    { we don't need an extra load when implicit pointer types  are passed as
+      var/out/constref parameter (since they are already pointers). However,
+      when transfering them into a nestedfp struct, we do want to transfer the
+      pointer and not make a deep copy in case they are var/out/constref (since
+      changes made to the var/out parameter should propagate up) }
+    result:=
+     is_addr_param_load or
+     ((symtableentry.typ=paravarsym) and
+      jvmimplicitpointertype(tparavarsym(symtableentry).vardef) and
+      (tparavarsym(symtableentry).varspez in [vs_var,vs_constref,vs_out]));
   end;
 
 
