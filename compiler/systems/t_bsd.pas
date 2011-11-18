@@ -546,7 +546,8 @@ var
   GCSectionsStr,
   StaticStr,
   StripStr   : string[63];
-  success : boolean;
+  success,
+  useshell : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
@@ -633,7 +634,8 @@ begin
       CmdStr:='';
     end;
 
-  success:=DoExec(BinStr,CmdStr,true,LdSupportsNoResponseFile);
+  useshell:=not (tf_no_backquote_support in source_info.flags);
+  success:=DoExec(BinStr,CmdStr,true,LdSupportsNoResponseFile or useshell);
   if (success and
       (extdbgbinstr<>'') and
       (cs_link_nolink in current_settings.globalswitches)) then

@@ -363,7 +363,8 @@ function TLinkerHaiku.MakeExecutable:boolean;
 var
   binstr,
   cmdstr : TCmdStr;
-  success : boolean;
+  success,
+  useshell : boolean;
   DynLinkStr : string[60];
   GCSectionsStr,
   StaticStr,
@@ -409,7 +410,8 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
-  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,true);
+  useshell:=not (tf_no_backquote_support in source_info.flags);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,useshell);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
