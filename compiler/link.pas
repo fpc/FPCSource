@@ -79,6 +79,7 @@ interface
          Constructor Create;override;
          Destructor Destroy;override;
          Function  FindUtil(const s:TCmdStr):TCmdStr;
+         Function  CatFileContent(para:TCmdStr):TCmdStr;
          Function  DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
          procedure SetDefaultInfo;virtual;
          Function  MakeStaticLibrary:boolean;override;
@@ -670,6 +671,39 @@ Implementation
         FindUtil:=FoundBin;
       end;
 
+
+    Function TExternalLinker.CatFileContent(para : TCmdStr) : TCmdStr;
+      var
+        filecontent : TCmdStr;
+        f : text;
+        st : string;
+      begin
+        if not (tf_no_backquote_support in source_info.flags) then
+           begin
+             CatFileContent:='`cat '+MaybeQuoted(para)+'`';
+             Exit;
+           end;
+        assign(f,para);
+        filecontent:='';
+        {$push}{$I-}
+        reset(f);
+        {$pop}
+        if IOResult<>0 then
+          begin
+            Message1(exec_n_backquote_cat_file_not_found,para);
+          end
+        else
+          begin
+            while not eof(f) do
+              begin
+                readln(f,st);
+                if st<>'' then
+                  filecontent:=filecontent+' '+st;
+              end;
+            close(f);
+          end;
+        CatFileContent:=filecontent;
+      end;
 
     Function TExternalLinker.DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
       var

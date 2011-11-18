@@ -148,8 +148,9 @@ interface
             tf_no_generic_stackcheck,
             tf_has_winlike_resources,
             tf_safecall_clearstack,             // With this flag set, after safecall calls the caller cleans up the stack
-            tf_safecall_exceptions              // Exceptions in safecall calls are not raised, but passed to the caller as an ordinal (hresult) in the function result.
+            tf_safecall_exceptions,             // Exceptions in safecall calls are not raised, but passed to the caller as an ordinal (hresult) in the function result.
                                                 // The original result (if it exists) is passed as an extra parameter
+            tf_no_backquote_support
        );
 
        psysteminfo = ^tsysteminfo;
