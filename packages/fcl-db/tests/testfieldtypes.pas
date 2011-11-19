@@ -798,7 +798,7 @@ end;
 
 procedure TTestFieldTypes.TestBytesParamQuery;
 begin
-  TestXXParamQuery(ftBytes, FieldtypeDefinitions[ftBytes], testBytesValuesCount);
+  TestXXParamQuery(ftBytes, FieldtypeDefinitions[ftBytes], testBytesValuesCount, true);
 end;
 
 procedure TTestFieldTypes.TestStringParamQuery;
@@ -858,7 +858,10 @@ begin
                      Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
         ftDateTime:Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
         ftFMTBcd : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i],DBConnector.FormatSettings);
-        ftBytes  : Params.ParamByName('field1').AsBlob := testBytesValues[i];
+        ftBytes  : if cross then
+                     Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
+                   else
+                     Params.ParamByName('field1').AsBlob := testBytesValues[i];
       else
         AssertTrue('no test for paramtype available',False);
       end;

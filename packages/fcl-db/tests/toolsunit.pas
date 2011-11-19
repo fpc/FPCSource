@@ -7,7 +7,7 @@ unit ToolsUnit;
 interface
 
 uses
-  Classes, SysUtils, DB, testdecorator, FmtBCD;
+  Classes, SysUtils, DB, testdecorator;
   
 Const MaxDataSet = 35;
   
@@ -206,11 +206,12 @@ procedure FreeDBConnector;
 
 function DateTimeToTimeString(d: tdatetime) : string;
 function TimeStringToDateTime(d: String): TDateTime;
+function StringToByteArray(s: ansistring): Variant;
 
 implementation
 
 uses
-  inifiles;
+  inifiles, FmtBCD, Variants;
 
 var DBConnectorRefCount: integer;
 
@@ -372,6 +373,20 @@ begin
   hour := hour mod 24;
 
   result := ComposeDateTime(days,EncodeTime(hour,minute,second,millisecond));
+end;
+
+function StringToByteArray(s: ansistring): Variant;
+var P: Pointer;
+    Len: integer;
+begin
+  Len := Length(s) * SizeOf(AnsiChar);
+  Result := VarArrayCreate([0, Len-1], varByte);
+  P := VarArrayLock(Result);
+  try
+    Move(s[1], P^, Len);
+  finally
+    VarArrayUnlock(Result);
+  end;
 end;
 
 

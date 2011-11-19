@@ -544,9 +544,20 @@ begin
 end;
 
 Function TParam.GetAsString: string;
+var P: Pointer;
 begin
   If IsNull then
     Result:=''
+  else if (FDataType in [ftBytes, ftVarBytes]) and VarIsArray(FValue) then
+  begin
+    SetLength(Result, (VarArrayHighBound(FValue, 1) + 1) div SizeOf(Char));
+    P := VarArrayLock(FValue);
+    try
+      Move(P^, Result[1], Length(Result) * SizeOf(Char));
+    finally
+      VarArrayUnlock(FValue);
+    end;
+  end
   else
     Result:=FValue;
 end;
@@ -706,6 +717,8 @@ begin
     else
       if VarIsFmtBCD(Value) then
         FDataType:=ftFmtBCD
+      else if VarIsArray(AValue) and (VarType(AValue) and varTypeMask = varByte) then
+        FDataType:=ftBytes
       else
         FDataType:=ftUnknown;
     end;
@@ -818,7 +831,7 @@ begin
       ftDate,
       ftDateTime : Field.AsDateTime:=AsDateTime;
       ftBytes,
-      ftVarBytes : ; // Todo.
+      ftVarBytes : Field.AsVariant:=Value;
       ftFmtBCD   : Field.AsBCD:=AsFMTBCD;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
@@ -856,7 +869,7 @@ begin
       ftDate,
       ftDateTime : AsDateTime:=Field.AsDateTime;
       ftBytes,
-      ftVarBytes : ; // Todo.
+      ftVarBytes : Value:=Field.AsVariant;
       ftFmtBCD   : AsFMTBCD:=Field.AsBCD;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then

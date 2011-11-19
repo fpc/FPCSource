@@ -290,6 +290,7 @@ Const
   SLargeInt = 'LargeInt';
   SVariant = 'Variant';
   SString = 'String';
+  SBytes = 'Bytes';
 
 constructor TField.Create(AOwner: TComponent);
 
@@ -415,10 +416,21 @@ begin
   // TDataset manages the buffers.
 end;
 
-function TField.GetAsBoolean: Boolean;
+function TField.GetAsBCD: TBCD;
+begin
+  raise AccessError(SBCD);
+end;
 
+function TField.GetAsBoolean: Boolean;
 begin
   raise AccessError(SBoolean);
+end;
+
+function TField.GetAsBytes: TBytes;
+begin
+  SetLength(Result, DataSize);
+  if not GetData(@Result[0], False) then
+    Result := nil;
 end;
 
 function TField.GetAsDateTime: TDateTime;
@@ -617,11 +629,6 @@ begin
     Result:=-1;
 end;
 
-function TField.GetAsBCD: TBCD;
-begin
-  raise AccessError(SBCD);
-end;
-
 function TField.GetLookup: Boolean;
 begin
   Result := FieldKind = fkLookup;
@@ -644,11 +651,6 @@ begin
     FAlignment := Avalue;
     PropertyChanged(false);
     end;
-end;
-
-procedure TField.SetAsBCD(const AValue: TBCD);
-begin
-  Raise AccessError(SBCD);
 end;
 
 procedure TField.SetIndex(const AValue: Integer);
@@ -746,6 +748,16 @@ begin
   inherited ReadState(Reader);
   if Reader.Parent is TDataSet then
     DataSet := TDataSet(Reader.Parent);
+end;
+
+procedure TField.SetAsBCD(const AValue: TBCD);
+begin
+  Raise AccessError(SBCD);
+end;
+
+procedure TField.SetAsBytes(const AValue: TBytes);
+begin
+  raise AccessError(SBytes);
 end;
 
 procedure TField.SetAsBoolean(AValue: Boolean);
@@ -2172,12 +2184,40 @@ begin
     DatabaseErrorfmt(SInvalidFieldSize,[Avalue]);
 end;
 
+function TBinaryField.GetAsBytes: TBytes;
+begin
+  SetLength(Result, DataSize);
+  if not GetData(Pointer(Result), True) then
+    SetLength(Result, 0);
+end;
+
 
 function TBinaryField.GetAsString: string;
-
+var B: TBytes;
 begin
-  Setlength(Result,DataSize);
-  GetData(Pointer(Result));
+  B := GetAsBytes;
+  if length(B) = 0 then
+    Result := ''
+  else
+  begin
+    SetLength(Result, length(B) div SizeOf(Char));
+    Move(B[0], Result[1], length(Result) * SizeOf(Char));
+  end;
+end;
+
+
+function TBinaryField.GetAsVariant: Variant;
+var B: TBytes;
+    P: Pointer;
+begin
+  B := GetAsBytes;
+  Result := VarArrayCreate([0, length(B)-1], varByte);
+  P := VarArrayLock(Result);
+  try
+    Move(B[0], P^, length(B));
+  finally
+    VarArrayUnlock(Result);
+  end;
 end;
 
 
@@ -2188,24 +2228,47 @@ begin
 end;
 
 
-procedure TBinaryField.SetAsString(const AValue: string);
-
-Var Buf : PChar;
-    Allocated : Boolean;
-
+procedure TBinaryField.SetAsBytes(const AValue: TBytes);
+var Buf: array[0..dsMaxStringSize] of byte;
+    DynBuf: TBytes;
+    Len: Word;
+    P: PByte;
 begin
-  Allocated:=False;
-  If Length(AVAlue)=DataSize then
-    Buf:=PChar(Avalue)
-  else
-    begin
-    GetMem(Buf,DataSize);
-    Move(Pchar(Avalue)[0],Buf^,DataSize);
-    Allocated:=True;
+  Len := Length(AValue);
+  if Len >= DataSize then
+    P := @AValue[0]
+  else begin
+    if DataSize <= dsMaxStringSize then
+      P := @Buf[0]
+    else begin
+      SetLength(DynBuf, DataSize);
+      P := @DynBuf[0];
     end;
-  SetData(Buf);
-  If Allocated then
-    FreeMem(Buf,DataSize);
+
+    if DataType = ftVarBytes then begin
+      Move(AValue[0], P[2], Len);
+      PWord(P)^ := Len;
+    end
+    else begin // ftBytes
+      Move(AValue[0], P^, Len);
+      FillChar(P[Len], DataSize-Len, 0); // right pad with #0
+    end;
+  end;
+  SetData(P, True)
+end;
+
+
+procedure TBinaryField.SetAsString(const AValue: string);
+var B : TBytes;
+begin
+  If Length(AValue) = DataSize then
+    SetData(PChar(AValue))
+  else
+  begin
+    SetLength(B, Length(AValue) * SizeOf(Char));
+    Move(AValue[1], B[0], Length(B));
+    SetAsBytes(B);
+  end;
 end;
 
 
@@ -2216,8 +2279,24 @@ begin
 end;
 
 procedure TBinaryField.SetVarValue(const AValue: Variant);
+var P: Pointer;
+    B: TBytes;
+    Len: integer;
 begin
-  SetAsString(Avalue);
+  if VarIsArray(AValue) then
+  begin
+    P := VarArrayLock(AValue);
+    try
+      Len := VarArrayHighBound(AValue, 1) + 1;
+      SetLength(B, Len);
+      Move(P^, B[0], Len);
+    finally
+      VarArrayUnlock(AValue);
+    end;
+    SetAsBytes(B);
+  end
+  else
+    SetAsString(AValue);
 end;
 
 
