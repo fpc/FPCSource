@@ -1985,7 +1985,7 @@ procedure TSQLConnector.SetTransaction(Value: TSQLTransaction);
 begin
   inherited SetTransaction(Value);
   If Assigned(FProxy) and (FProxy.Transaction<>Value) then
-    FProxy.Transaction:=Value;
+    FProxy.FTransaction:=Value;
 end;
 
 procedure TSQLConnector.DoInternalConnect;
@@ -2002,7 +2002,7 @@ begin
   FProxy.HostName:=Self.HostName;
   FProxy.UserName:=Self.UserName;
   FProxy.Password:=Self.Password;
-  FProxy.Transaction:=Self.Transaction;
+  FProxy.FTransaction:=Self.Transaction;
   D:=GetConnectionDef(ConnectorType);
   D.ApplyParams(Params,FProxy);
   FProxy.Connected:=True;
