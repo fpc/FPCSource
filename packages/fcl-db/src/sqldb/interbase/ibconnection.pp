@@ -16,6 +16,7 @@ uses
 
 const
   DEFDIALECT = 3;
+  MAXBLOBSEGMENTSIZE = 65535; //Maximum number of bytes that fit in a blob segment.
 
 type
 
@@ -51,7 +52,7 @@ type
     FStatus              : array [0..19] of ISC_STATUS;
     FDialect             : integer;
     FDBDialect           : integer;
-    FBLobSegmentSize     : word;
+    FBLobSegmentSize     : word; //required for backward compatibilty; not used
 
     procedure ConnectFB;
     function GetDialect: integer;
@@ -99,7 +100,8 @@ type
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
     procedure DropDB; override;
-    property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
+    //Segment size is not used in the code; property kept for backward compatibility
+    property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize; deprecated;
     function GetDBDialect: integer;
   published
     property DatabaseName;
@@ -165,7 +167,7 @@ begin
   inherited;
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
   FieldNameQuoteChars:=DoubleQuotes;
-  FBLobSegmentSize := 80;
+  FBLobSegmentSize := 65535; //Shows we're using the maximum segment size
   FDialect := -1;
   FDBDialect := -1;
 end;
@@ -765,7 +767,7 @@ var ParNr,SQLVarNr : integer;
     BlobBytesWritten  : longint;
     
   procedure SetBlobParam;
-  
+
   begin
     {$push}
     {$R-}
@@ -782,14 +784,16 @@ var ParNr,SQLVarNr : integer;
       BlobBytesWritten := 0;
       i := 0;
 
-      while BlobBytesWritten < (BlobSize-BlobSegmentSize) do
+      // Write in segments of MAXBLOBSEGMENTSIZE, as that is the fastest.
+      // We ignore BlobSegmentSize property.
+      while BlobBytesWritten < (BlobSize-MAXBLOBSEGMENTSIZE) do
         begin
-        isc_put_segment(@FStatus[0], @blobHandle, BlobSegmentSize, @s[(i*BlobSegmentSize)+1]);
-        inc(BlobBytesWritten,BlobSegmentSize);
+        isc_put_segment(@FStatus[0], @blobHandle, MAXBLOBSEGMENTSIZE, @s[(i*MAXBLOBSEGMENTSIZE)+1]);
+        inc(BlobBytesWritten,MAXBLOBSEGMENTSIZE);
         inc(i);
         end;
       if BlobBytesWritten <> BlobSize then
-        isc_put_segment(@FStatus[0], @blobHandle, BlobSize-BlobBytesWritten, @s[(i*BlobSegmentSize)+1]);
+        isc_put_segment(@FStatus[0], @blobHandle, BlobSize-BlobBytesWritten, @s[(i*MAXBLOBSEGMENTSIZE)+1]);
 
       if isc_close_blob(@FStatus[0], @blobHandle) <> 0 then
         CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
