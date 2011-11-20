@@ -1238,37 +1238,61 @@ function DoVarCmpComplex(const Left, Right: TVarData; const OpCode: TVarOp): Sho
 var Handler: TCustomVariantType;
     CmpRes: boolean;
 begin
-  if FindCustomVariantType(Left.vType, Handler) then
-    CmpRes := Handler.CompareOp(Left, Right, OpCode)
-  else if FindCustomVariantType(Right.vType, Handler) then
-    CmpRes := Handler.CompareOp(Left, Right, OpCode)
+  if (Left.vType=varnull) or (Right.vType=varnull) then
+    // don't bother custom variant handlers with conversion to NULL
+    begin
+    if OpCode in [opCmpEq,opCmpNe] then
+      begin
+      if (Left.vType=Right.vType) xor (OpCode=opCmpNe) then
+        result:=0
+      else
+        result:=-1;
+      end
+    else
+      if Left.vType=varnull then
+        begin
+        if Right.vType=varnull then
+          Result := 0
+        else
+          Result := -1;
+        end
+      else
+        Result := 1;
+    end
   else
-  VarInvalidOp(Left.vType, Right.vType, OpCode);
+    begin
+    if FindCustomVariantType(Left.vType, Handler) then
+      CmpRes := Handler.CompareOp(Left, Right, OpCode)
+    else if FindCustomVariantType(Right.vType, Handler) then
+      CmpRes := Handler.CompareOp(Left, Right, OpCode)
+    else
+    VarInvalidOp(Left.vType, Right.vType, OpCode);
 
-  case OpCode of
-    opCmpEq:
-      if CmpRes then
-        Result:=0
-      else
-        Result:=1;
-    opCmpNe:
-      if CmpRes then
-        Result:=1
-      else
-        Result:=0;
-    opCmpLt,
-    opCmpLe:
-      if CmpRes then
-        Result:=-1
-      else
-        Result:=1;
-    opCmpGt,
-    opCmpGe:
-      if CmpRes then
-        Result:=1
-      else
-        Result:=-1;
-  end;
+    case OpCode of
+      opCmpEq:
+        if CmpRes then
+          Result:=0
+        else
+          Result:=1;
+      opCmpNe:
+        if CmpRes then
+          Result:=1
+        else
+          Result:=0;
+      opCmpLt,
+      opCmpLe:
+        if CmpRes then
+          Result:=-1
+        else
+          Result:=1;
+      opCmpGt,
+      opCmpGe:
+        if CmpRes then
+          Result:=1
+        else
+          Result:=-1;
+    end;
+    end;
 end;
 
 
