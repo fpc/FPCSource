@@ -144,6 +144,7 @@ type
     tkLineEnding,
     tkTab
     );
+  TTokens = set of TToken;
 
   TLineReader = class
   public
@@ -186,10 +187,10 @@ type
   EScannerError       = class(Exception);
   EFileNotFoundError  = class(Exception);
 
-  TPascalScannerPPSkipMode = (ppSkipNone, ppSkipIfBranch, ppSkipElseBranch,
-    ppSkipAll);
+  TPascalScannerPPSkipMode = (ppSkipNone, ppSkipIfBranch, ppSkipElseBranch, ppSkipAll);
 
-  TPOptions = (po_delphi);
+  TPOption = (po_delphi);
+  TPOptions = set of TPOption;
 
   { TPascalScanner }
 
@@ -220,7 +221,7 @@ type
     function DoFetchTextToken: TToken;
     function DoFetchToken: TToken;
   public
-    Options : set of TPOptions;
+    Options : TPOptions;
     constructor Create(AFileResolver: TFileResolver);
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
@@ -391,7 +392,6 @@ function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
 begin
   Result:=(TheFilename<>'') and (TheFilename[1]='/');
 end;
-
 constructor TFileLineReader.Create(const AFilename: string);
 begin
   inherited Create;
