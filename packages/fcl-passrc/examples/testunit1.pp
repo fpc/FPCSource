@@ -12,7 +12,7 @@ interface
  uses 
   SysUtils,Classes;
 
-(*
+
 resourcestring
  SParserErrorAtToken = 'parser error at token';
  
@@ -26,7 +26,6 @@ resourcestring
   ARecordConst: TMethod=(Code:nil;Data:nil);
   ASetConst=[true,false];
   ADeprecatedConst=1 deprecated;
-*)
    
  Type
   TLineEndStr = string [3];
@@ -236,7 +235,7 @@ var
  Procedure externalnameProc; external name 'aname';
  Procedure externallibnameProc; external 'alibrary' name 'aname';
  Function  hi(q : QWord) : DWord;   [INTERNPROC: fpc_in_hi_qword];
-(*
+
  
 Type
  generic TFPGListEnumerator<T> = class(TObject)
@@ -246,7 +245,7 @@ Type
     function GetCurrent: T;
  end;                 
  TFPGListEnumeratorSpec = specialize TFPGListEnumerator<TPasFunctionType>; 
-*)
+
  
 Implementation
 
