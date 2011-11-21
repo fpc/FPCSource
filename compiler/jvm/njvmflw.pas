@@ -167,6 +167,7 @@ implementation
          defaultcatchlabel: tasmlabel;
          oldflowcontrol,tryflowcontrol,
          exceptflowcontrol : tflowcontrol;
+         prev_except_loc: tlocation;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -216,6 +217,7 @@ implementation
              { get the exception object from the stack and store it for use by
                the exception code (in case of an anonymous "raise") }
              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+             prev_except_loc:=current_except_loc;
              location_reset_ref(current_except_loc,LOC_REFERENCE,OS_ADDR,4);
              tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),java_jlthrowable,current_except_loc.reference);
              thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
@@ -227,7 +229,7 @@ implementation
 
              { free the temp containing the exception and invalidate }
              tg.UngetLocal(current_asmdata.CurrAsmList,current_except_loc.reference);
-             current_except_loc.loc:=LOC_INVALID;
+             current_except_loc:=prev_except_loc;
 
              exceptflowcontrol:=flowcontrol;
            end
@@ -255,6 +257,7 @@ implementation
          thisonlabel : tasmlabel;
          oldflowcontrol : tflowcontrol;
          exceptvarsym : tlocalvarsym;
+         prev_except_loc : tlocation;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -281,6 +284,7 @@ implementation
          { 1) prepare the location where we'll store it }
          location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,OS_ADDR,sizeof(pint));
          tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),exceptvarsym.vardef,exceptvarsym.localloc.reference);
+         prev_except_loc:=current_except_loc;
          current_except_loc:=exceptvarsym.localloc;
          { 2) the exception variable is at the top of the evaluation stack
            (placed there by the JVM) -> adjust stack count, then store it }
@@ -293,7 +297,7 @@ implementation
          { clear some stuff }
          tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
          exceptvarsym.localloc.loc:=LOC_INVALID;
-         current_except_loc.loc:=LOC_INVALID;
+         current_except_loc:=prev_except_loc;
          hlcg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
 
          flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
