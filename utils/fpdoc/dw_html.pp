@@ -2828,7 +2828,7 @@ var
     AppendText(ParaEl, '] ');
   end;
 
-  procedure AppendGenericTypes(CodeEl : TDomElement; AList : TList; isSpecialize : Boolean);
+  procedure AppendGenericTypes(CodeEl : TDomElement; AList : TFPList; isSpecialize : Boolean);
 
   Var
     I : integer;
