@@ -351,7 +351,6 @@ begin
    end;
 
 { Write and Close response }
-  linkres.Add(' ');
   linkres.writetodisk;
   linkres.free;
 
