@@ -821,8 +821,6 @@ implementation
          unit_found:boolean;
          oldcurrent_exceptblock: integer;
       begin
-         include(current_procinfo.flags,pi_uses_exceptions);
-
          p_default:=nil;
          p_specific:=nil;
 
