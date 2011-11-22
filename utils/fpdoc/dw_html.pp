@@ -503,7 +503,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
   end;
 
   procedure AddPages(AElement: TPasElement; ASubpageIndex: Integer;
-    AList: TList);
+    AList: TFPList);
   var
     i: Integer;
   begin
@@ -1507,7 +1507,7 @@ function THTMLWriter.AppendHyperlink(Parent: TDOMNode;
   Element: TPasElement): TDOMElement;
 var
   s: String;
-  UnitList: TList;
+  UnitList: TFPList;
   i: Integer;
   ThisPackage: TLinkNode;
 begin
@@ -2346,7 +2346,7 @@ end;
 
 procedure THTMLWriter.AddModuleIdentifiers(AModule : TPasModule; L : TStrings);
 
-  Procedure AddElementsFromList(L : TStrings; List : TList);
+  Procedure AddElementsFromList(L : TStrings; List : TFPList);
   
   Var
     I : Integer;
@@ -2539,12 +2539,12 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
       end;
   end;
 
-  procedure CreateSimpleSubpage(const ATitle: DOMString; AList: TList);
+  procedure CreateSimpleSubpage(const ATitle: DOMString; AList: TFPList);
   var
     TableEl, TREl, TDEl, CodeEl: TDOMElement;
     i, j: Integer;
     Decl: TPasElement;
-    SortedList: TList;
+    SortedList: TFPList;
     DocNode: TDocNode;
     S : String;
 
@@ -2552,7 +2552,7 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
     AppendMenuBar(ASubpageIndex);
     S:=ATitle;
     AppendTitle(Format(SDocUnitTitle + ': %s', [AModule.Name, S]));
-    SortedList := TList.Create;
+    SortedList := TFPList.Create;
     try
       for i := 0 to AList.Count - 1 do
       begin
@@ -3125,13 +3125,13 @@ var
 
   procedure CreateSortedSubpage(AFilter: TMemberFilter);
   var
-    List: TList;
+    List: TFPList;
     ThisClass: TPasClassType;
     i, j: Integer;
     Member: TPasElement;
     TableEl, TREl, TDEl, ParaEl, LinkEl: TDOMElement;
   begin
-    List := TList.Create;
+    List := TFPList.Create;
     try
       ThisClass := AClass;
       while True do

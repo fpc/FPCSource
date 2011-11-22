@@ -173,7 +173,7 @@ type
 
   // Assumes a list of TObject instances and frees them on destruction
 
-  TObjectList = class(TList)
+  TObjectList = class(TFPList)
   public
     destructor Destroy; override;
   end;
@@ -271,7 +271,7 @@ type
     DescrDocNames: TStringList;         // Names of the XML documents
     FRootLinkNode: TLinkNode;
     FRootDocNode: TDocNode;
-    FPackages: TList;                   // List of TFPPackage objects
+    FPackages: TFPList;                   // List of TFPPackage objects
     CurModule: TPasModule;
     CurPackageDocNode: TDocNode;
   public
@@ -554,7 +554,7 @@ begin
   FRootDocNode := TDocNode.Create('', nil);
   HidePrivate := True;
   InterfaceOnly:=True;
-  FPackages := TList.Create;
+  FPackages := TFPList.Create;
 end;
 
 destructor TFPDocEngine.Destroy;
@@ -696,7 +696,7 @@ var
      result:=Copy(AName, DotPos2 + 1, length(AName)-dotpos2);
   end;
 
-  function SearchInList(clslist:TList;s:string):TPasElement;
+  function SearchInList(clslist:TFPList;s:string):TPasElement;
   var i : integer;
       ClassEl: TPasElement;
   begin
@@ -1084,7 +1084,7 @@ function TFPDocEngine.FindElement(const AName: String): TPasElement;
   function FindInModule(AModule: TPasModule; const LocalName: String): TPasElement;
   
   var
-    l: TList;
+    l: TFPList;
     i: Integer;
     
   begin
@@ -1181,7 +1181,7 @@ function TFPDocEngine.ResolveLink(AModule: TPasModule;
 var
   i: Integer;
   ThisPackage: TLinkNode;
-  UnitList: TList;
+  UnitList: TFPList;
 
   function CanWeExit(AResult: string): boolean;
   var
@@ -1422,7 +1422,7 @@ function TFPDocEngine.FindDocNode(ARefModule: TPasModule;
   const AName: String): TDocNode;
 var
   CurPackage: TDocNode;
-  UnitList: TList;
+  UnitList: TFPList;
   i: Integer;
 begin
   if Length(AName) = 0 then

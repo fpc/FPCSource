@@ -34,7 +34,7 @@ Type
     // Auxiliary routines
     procedure DescrBeginURL(const AURL: DOMString); override; // Provides a default implementation
     procedure DescrEndURL; override;
-    procedure SortElementList(List : TList);
+    procedure SortElementList(List : TFPList);
     procedure StartListing(Frames: Boolean);
     Function  ShowMember(M : TPasElement) : boolean;
     procedure StartChapter(ChapterName : String; ChapterLabel : String); virtual;
@@ -1154,7 +1154,7 @@ begin
   Result:=CompareText(TPasElement(P1).Name,TPasElement(P2).Name);
 end;
 
-procedure TLinearWriter.SortElementList(List : TList);
+procedure TLinearWriter.SortElementList(List : TFPList);
 
 begin
   List.Sort(@CompareElements);
@@ -1229,7 +1229,7 @@ constructor TLinearWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     Engine.AddLink(AElement.PathName, GetLabel(AElement));
   end;
 
-  procedure AddList(AElement: TPasElement; AList: TList);
+  procedure AddList(AElement: TPasElement; AList: TFPList);
   var
     i: Integer;
   begin
