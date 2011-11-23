@@ -161,6 +161,11 @@ interface
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
+       tspecializesymtable = class(tglobalsymtable)
+       public
+          function iscurrentunit:boolean;override;
+       end;
+
        twithsymtable = class(TSymtable)
           withrefnode : tobject; { tnode }
           constructor create(aowner:tdef;ASymList:TFPHashObjectList;refnode:tobject{tnode});
@@ -342,7 +347,6 @@ implementation
 
     var
       dupnr : longint; { unique number for duplicate symbols }
-
 
 {*****************************************************************************
                              TStoredSymtable
@@ -1552,6 +1556,16 @@ implementation
             result:=true;
             exit;
           end;
+      end;
+
+
+{*****************************************************************************
+                             tspecializesymtable
+*****************************************************************************}
+
+    function tspecializesymtable.iscurrentunit: boolean;
+      begin
+        Result := true;
       end;
 
 

@@ -42,14 +42,14 @@ uses
   { common }
   cutils,
   { global }
-  globals,tokens,verbose,
+  globals,globtype,tokens,verbose,
   { symtable }
   symconst,symbase,symsym,symtable,
   { modules }
   fmodule,
   { pass 1 }
   htypechk,
-  node,nobj,
+  node,nobj,nmem,
   { parser }
   scanner,
   pbase,pexpr,pdecsub,ptype;
@@ -59,7 +59,7 @@ uses
       var
         st  : TSymtable;
         srsym : tsym;
-        pt2 : tnode;
+        pt2,pttmp : tnode;
         first,
         err : boolean;
         i,
@@ -77,9 +77,11 @@ uses
         vmtbuilder : TVMTBuilder;
         onlyparsepara : boolean;
         specializest : tsymtable;
-        item: psymtablestackitem;
+        item : tobject;
         old_current_structdef : tabstractrecorddef;
         old_current_genericdef,old_current_specializedef : tstoreddef;
+        tempst : tglobalsymtable;
+        old_block_type: tblock_type;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -93,21 +95,9 @@ uses
             (genericdef.typesym.typ<>typesym)) then
            internalerror(2011042701);
 
-        { only need to record the tokens, then we don't know the type yet  ... }
-        if parse_generic then
-          begin
-            { ... but we have to insert a def into the symtable if the generic
-              is not a parent or an implemented interface else the deflist
-              of generic and specialization might not be equally sized which
-              is later assumed }
-            if not parse_class_parent then
-              tt:=tundefineddef.create;
-            onlyparsepara:=true;
-          end;
-
         { Only parse the parameters for recovery or
           for recording in genericbuf }
-        if onlyparsepara then
+        if parse_generic then
           begin
             consume(_LSHARPBRACKET);
             gencount:=0;
@@ -155,6 +145,10 @@ uses
 
         { Parse type parameters }
         err:=false;
+        { set the block type to type, so that the parsed type are returned as
+          ttypenode (e.g. classes are in non type-compatible blocks returned as
+          tloadvmtaddrnode) }
+        old_block_type:=block_type;
         { if parsedtype is set, then the first type identifer was already parsed
           (happens in inline specializations) and thus we only need to parse
           the remaining types and do as if the first one was already given }
@@ -172,6 +166,7 @@ uses
               consume(_COMMA)
             else
               first:=false;
+            block_type:=bt_type;
             pt2:=factor(false,true);
             if pt2.nodetype=typen then
               begin
@@ -190,6 +185,7 @@ uses
               end;
             pt2.free;
           end;
+        block_type:=old_block_type;
 
         if err then
           begin
@@ -273,10 +269,8 @@ uses
            (current_structdef.objname^=uspecializename) then
           tt:=current_structdef;
 
-        { for units specializations can already be needed in the interface, therefor we
-          will use the global symtable. Programs don't have a globalsymtable and there we
-          use the localsymtable }
-        if current_module.is_unit then
+        { decide in which symtable to put the specialization }
+        if current_module.is_unit and current_module.in_interface then
           specializest:=current_module.globalsymtable
         else
           specializest:=current_module.localsymtable;
@@ -319,6 +313,7 @@ uses
             if assigned(hmodule.globalsymtable) then
               symtablestack.push(hmodule.globalsymtable);
 
+<<<<<<< HEAD
             { in case of a parent or an implemented interface the class needs
               to be inserted in the current unit and not in the class it's
               used in }
@@ -332,6 +327,18 @@ uses
                 if assigned(item) and (item^.symtable<>symtablestack.top) then
                   symtablestack.push(item^.symtable);
               end;
+=======
+            { push the localsymtable if needed }
+            if (hmodule<>current_module) or not current_module.in_interface then
+              symtablestack.push(current_module.localsymtable);
+
+            { push a temporary global symtable so that the specialization is
+              added to the correct symtable; this symtable does not contain
+              any other symbols, so that the type resolution can not be
+              influenced by symbols in the current unit }
+            tempst:=tspecializesymtable.create(current_module.modulename^,current_module.moduleid);
+            symtablestack.push(tempst);
+>>>>>>> unique-syms
 
             { Reparse the original type definition }
             if not err then
@@ -354,6 +361,14 @@ uses
                   references to this specialization can be handled }
                 srsym:=ttypesym.create(specializename,generrordef);
                 specializest.insert(srsym);
+
+                { specializations are declarations as such it is the wised to
+                  declare set the blocktype to "type"; otherwise we'll
+                  experience unexpected side effects like the addition of
+                  classrefdefs if we have a generic that's derived from another
+                  generic }
+                old_block_type:=block_type;
+                block_type:=bt_type;
 
                 if not assigned(genericdef.generictokenbuf) then
                   internalerror(200511171);
@@ -405,6 +420,10 @@ uses
                 { Consume the semicolon if it is also recorded }
                 try_to_consume(_SEMICOLON);
 
+<<<<<<< HEAD
+=======
+                block_type:=old_block_type;
+>>>>>>> unique-syms
                 if parse_class_parent then
                   begin
                     current_structdef:=old_current_structdef;
@@ -413,28 +432,29 @@ uses
                   end;
               end;
 
+            { extract all created symbols and defs from the temporary symtable
+              and add them to the specializest }
+            for i:=0 to tempst.SymList.Count-1 do begin
+              item:=tempst.SymList.Items[i];
+              specializest.SymList.Add(tempst.SymList.NameOfIndex(i),item);
+              tsym(item).Owner:=specializest;
+              tempst.SymList.Extract(item);
+            end;
+
+            for i:=0 to tempst.DefList.Count-1 do begin
+              item:=tempst.DefList.Items[i];
+              specializest.DefList.Add(item);
+              tdef(item).owner:=specializest;
+              tempst.DefList.Extract(item);
+            end;
+
+            tempst.free;
+
             { Restore symtablestack }
             current_module.extendeddefs.free;
             current_module.extendeddefs:=oldextendeddefs;
             symtablestack.free;
             symtablestack:=oldsymtablestack;
-          end
-        else
-          begin
-            { There is comment few lines before ie 200512115
-              saying "We are parsing the same objectdef, the def index numbers
-              are the same". This is wrong (index numbers are not same)
-              in case there is specialization (S2 in this case) inside
-              specialized generic (G2 in this case) which is equal to
-              some previous specialization (S1 in this case). In that case,
-              new symbol is not added to currently specialized type
-              (S in this case) for that specializations (S2 in this case),
-              and this results in that specialization and generic definition
-              don't have same number of elements in their object symbol tables.
-              This patch adds undefined def to ensure that those
-              two symbol tables will have same number of elements.
-            }
-            tundefineddef.create;
           end;
 
         if not (token in [_GT, _RSHARPBRACKET]) then
@@ -501,6 +521,5 @@ uses
             st.insert(generictype);
           end;
        end;
-
 
 end.

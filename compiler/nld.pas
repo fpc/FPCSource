@@ -104,6 +104,8 @@ interface
           helperallowed : boolean;
           typedef : tdef;
           typedefderef : tderef;
+          typesym : tsym;
+          typesymderef : tderef;
           constructor create(def:tdef);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1034,6 +1036,7 @@ implementation
       begin
          inherited create(typen);
          typedef:=def;
+         typesym:=def.typesym;
          allowed:=false;
          helperallowed:=false;
       end;
@@ -1043,6 +1046,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getderef(typedefderef);
+        ppufile.getderef(typesymderef);
         allowed:=boolean(ppufile.getbyte);
         helperallowed:=boolean(ppufile.getbyte);
       end;
@@ -1052,6 +1056,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(typedefderef);
+        ppufile.putderef(typesymderef);
         ppufile.putbyte(byte(allowed));
         ppufile.putbyte(byte(helperallowed));
       end;
@@ -1061,6 +1066,7 @@ implementation
       begin
         inherited buildderefimpl;
         typedefderef.build(typedef);
+        typesymderef.build(typesym);
       end;
 
 
@@ -1068,6 +1074,7 @@ implementation
       begin
         inherited derefimpl;
         typedef:=tdef(typedefderef.resolve);
+        typesym:=tsym(typesymderef.resolve);
       end;
 
 

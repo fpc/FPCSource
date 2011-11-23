@@ -1389,17 +1389,22 @@ implementation
          old_current_structdef: tabstractrecorddef;
          old_current_genericdef,
          old_current_specializedef: tstoreddef;
+         old_parse_generic: boolean;
       begin
          old_current_procinfo:=current_procinfo;
          old_block_type:=block_type;
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
+         old_parse_generic:=parse_generic;
 
          current_procinfo:=self;
          current_structdef:=procdef.struct;
          if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-           current_genericdef:=current_structdef;
+           begin
+             current_genericdef:=current_structdef;
+             parse_generic:=true;
+           end;
          if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
            current_specializedef:=current_structdef;
 
@@ -1511,6 +1516,7 @@ implementation
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
          current_procinfo:=old_current_procinfo;
+         parse_generic:=old_parse_generic;
 
          { Restore old state }
          block_type:=old_block_type;
@@ -2005,6 +2011,9 @@ implementation
               hp:=tdef(def.symtable.DefList[i]);
               if hp.typ=procdef then
                begin
+                 { only generate the code if we need a body }
+                 if assigned(tprocdef(hp).struct) and not tprocdef(hp).forwarddef then
+                   continue;
                  if assigned(tprocdef(hp).genericdef) and
                    (tprocdef(hp).genericdef.typ=procdef) and
                    assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then

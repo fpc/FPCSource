@@ -550,13 +550,6 @@ implementation
                   newtype.visibility:=symtablestack.top.currentvisibility;
                   symtablestack.top.insert(newtype);
                 end;
-              { insert a newtype if we don't reuse an existing symbol }
-              if not assigned(newtype) then
-                begin
-                  newtype:=ttypesym.create(genorgtypename,hdef);
-                  newtype.visibility:=symtablestack.top.currentvisibility;
-                  symtablestack.top.insert(newtype);
-                end;
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
               { read the type definition }

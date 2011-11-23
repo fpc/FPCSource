@@ -871,7 +871,8 @@ implementation
                                parse_generic and
                                (current_genericdef.typ in [recorddef,objectdef]) and
                                (def.typ in [recorddef,objectdef]) and
-                               is_owned_by(def,tabstractrecorddef(current_genericdef))
+                               (ttypenode(pt1).typesym<>nil) and
+                               sym_is_owned_by(ttypenode(pt1).typesym,tabstractrecorddef(current_genericdef).symtable)
                              )
                            then
                          begin

@@ -83,7 +83,7 @@ implementation
     const
       highest_precedence = oppower;
 
-    function sub_expr(pred_level:Toperator_precedence;accept_equal,typeonly:boolean):tnode;forward;
+    function sub_expr(pred_level:Toperator_precedence;accept_equal,typeonly:boolean;factornode:tnode):tnode;forward;
 
     const
        { true, if the inherited call is anonymous }
@@ -1289,11 +1289,13 @@ implementation
            end;
       end;
 
-    function handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean):tnode;
+    function handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym):tnode;
       var
         srsym : tsym;
         srsymtable : tsymtable;
       begin
+         if sym=nil then
+           sym:=hdef.typesym;
          if try_to_consume(_LKLAMMER) then
           begin
             result:=comp_expr(true,false);
@@ -1317,6 +1319,7 @@ implementation
                 current_structdef.is_related(hdef) then
                begin
                  result:=ctypenode.create(hdef);
+                 ttypenode(result).typesym:=sym;
                  { search also in inherited methods }
                  searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable,true);
                  if assigned(srsym) then
@@ -1330,6 +1333,7 @@ implementation
                     * @TObject.Load
                     * static methods and variables }
                 result:=ctypenode.create(hdef);
+                ttypenode(result).typesym:=sym;
                 { TP allows also @TMenu.Load if Load is only }
                 { defined in an anchestor class              }
                 srsym:=search_struct_member(tabstractrecorddef(hdef),pattern);
@@ -1361,6 +1365,7 @@ implementation
                   { allows @Object.Method }
                   { also allows static methods and variables }
                   result:=ctypenode.create(hdef);
+                  ttypenode(result).typesym:=sym;
                   { TP allows also @TMenu.Load if Load is only }
                   { defined in an anchestor class              }
                   srsym:=search_struct_member(tobjectdef(hdef),pattern);
@@ -1379,6 +1384,7 @@ implementation
                else
                 begin
                   result:=ctypenode.create(hdef);
+                  ttypenode(result).typesym:=sym;
                   { For a type block we simply return only
                     the type. For all other blocks we return
                     a loadvmt node }
@@ -1387,7 +1393,10 @@ implementation
                 end;
              end
             else
-             result:=ctypenode.create(hdef);
+              begin
+                result:=ctypenode.create(hdef);
+                ttypenode(result).typesym:=sym;
+              end;
           end;
       end;
 
@@ -2140,7 +2149,7 @@ implementation
                        if (hdef=cvarianttype) and
                           not(cs_compilesystem in current_settings.moduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
-                       p1:=handle_factor_typenode(hdef,getaddr,again);
+                       p1:=handle_factor_typenode(hdef,getaddr,again,srsym);
                      end;
                   end;
 
@@ -2724,7 +2733,7 @@ implementation
                       { ugly hack, but necessary to be able to parse }
                       { -9223372036854775808 as int64 (JM)           }
                       pattern := '-'+pattern;
-                      p1:=sub_expr(oppower,false,false);
+                      p1:=sub_expr(oppower,false,false,nil);
                       {  -1 ** 4 should be - (1 ** 4) and not
                          (-1) ** 4
                          This was the reason of tw0869.pp test failure PM }
@@ -2748,9 +2757,9 @@ implementation
                  else
                    begin
                      if m_isolike_unary_minus in current_settings.modeswitches then
-                       p1:=sub_expr(opmultiply,false,false)
+                       p1:=sub_expr(opmultiply,false,false,nil)
                      else
-                       p1:=sub_expr(oppower,false,false);
+                       p1:=sub_expr(oppower,false,false,nil);
 
                      p1:=cunaryminusnode.create(p1);
                    end;
@@ -2845,7 +2854,7 @@ implementation
           internalerror(2011053001);
         again:=false;
         { handle potential typecasts, etc }
-        p1:=handle_factor_typenode(def,false,again);
+        p1:=handle_factor_typenode(def,false,again,nil);
         { parse postfix operators }
         if postfixoperators(p1,again,false) then
           if assigned(p1) and (p1.nodetype=typen) then
@@ -2866,7 +2875,7 @@ implementation
            _OP_AS,_OP_IS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
           [_STARSTAR] );
 
-    function sub_expr(pred_level:Toperator_precedence;accept_equal,typeonly:boolean):tnode;
+    function sub_expr(pred_level:Toperator_precedence;accept_equal,typeonly:boolean;factornode:tnode):tnode;
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simpl_expr and
      simpl2_expr.}
@@ -2914,6 +2923,8 @@ implementation
           result:=assigned(srsym);
         end;
 
+      label
+        SubExprStart;
       var
         p1,p2   : tnode;
         oldt    : Ttoken;
@@ -2922,10 +2933,16 @@ implementation
         gendef,parseddef : tdef;
         gensym : tsym;
       begin
+        SubExprStart:
         if pred_level=highest_precedence then
-          p1:=factor(false,typeonly)
+          begin
+            if factornode=nil then
+              p1:=factor(false,typeonly)
+            else
+              p1:=factornode;
+          end
         else
-          p1:=sub_expr(succ(pred_level),true,typeonly);
+          p1:=sub_expr(succ(pred_level),true,typeonly,factornode);
         repeat
           if (token in [NOTOKEN..last_operator]) and
              (token in operator_levels[pred_level]) and
@@ -2937,7 +2954,7 @@ implementation
              if pred_level=highest_precedence then
                p2:=factor(false,false)
              else
-               p2:=sub_expr(succ(pred_level),true,typeonly);
+               p2:=sub_expr(succ(pred_level),true,typeonly,nil);
              case oldt of
                _PLUS :
                  p1:=caddnode.create(addn,p1,p2);
@@ -2990,13 +3007,19 @@ implementation
                          is always a classrefdef }
                        again:=false;
                        { handle potential typecasts, etc }
-                       p1:=handle_factor_typenode(gendef,false,again);
+                       p1:=handle_factor_typenode(gendef,false,again,nil);
                        { parse postfix operators }
                        if postfixoperators(p1,again,false) then
                          if assigned(p1) then
                            p1.fileinfo:=filepos
                          else
                            p1:=cerrornode.create;
+
+                       { with p1 now set we are in reality directly behind the
+                         call to "factor" thus we need to call down to that
+                         again }
+                       factornode:=p1;
+                       goto SubExprStart;
                      end
                    else
                      begin
@@ -3069,13 +3092,16 @@ implementation
 
                        again:=false;
                        { handle potential typecasts, etc }
-                       p2:=handle_factor_typenode(gendef,false,again);
+                       p2:=handle_factor_typenode(gendef,false,again,nil);
                        { parse postfix operators }
                        if postfixoperators(p2,again,false) then
                          if assigned(p2) then
                            p2.fileinfo:=filepos
                          else
                            p2:=cerrornode.create;
+
+                       { here we don't need to call back down to "factor", thus
+                         no "goto" }
                      end;
 
                    { now generate the "is" or "as" node }
@@ -3135,7 +3161,7 @@ implementation
       begin
          oldafterassignment:=afterassignment;
          afterassignment:=true;
-         p1:=sub_expr(opcompare,accept_equal,typeonly);
+         p1:=sub_expr(opcompare,accept_equal,typeonly,nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) then
           do_typecheckpass(p1);
@@ -3154,7 +3180,7 @@ implementation
 
       begin
          oldafterassignment:=afterassignment;
-         p1:=sub_expr(opcompare,true,false);
+         p1:=sub_expr(opcompare,true,false,nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) and
             dotypecheck then
@@ -3167,7 +3193,7 @@ implementation
            _POINTPOINT :
              begin
                 consume(_POINTPOINT);
-                p2:=sub_expr(opcompare,true,false);
+                p2:=sub_expr(opcompare,true,false,nil);
                 p1:=crangenode.create(p1,p2);
              end;
            _ASSIGNMENT :
@@ -3175,7 +3201,7 @@ implementation
                 consume(_ASSIGNMENT);
                 if (p1.resultdef.typ=procvardef) then
                   getprocvardef:=tprocvardef(p1.resultdef);
-                p2:=sub_expr(opcompare,true,false);
+                p2:=sub_expr(opcompare,true,false,nil);
                 if assigned(getprocvardef) then
                   handle_procvar(getprocvardef,p2);
                 getprocvardef:=nil;
@@ -3184,25 +3210,25 @@ implementation
            _PLUSASN :
              begin
                consume(_PLUSASN);
-               p2:=sub_expr(opcompare,true,false);
+               p2:=sub_expr(opcompare,true,false,nil);
                p1:=gen_c_style_operator(addn,p1,p2);
             end;
           _MINUSASN :
             begin
                consume(_MINUSASN);
-               p2:=sub_expr(opcompare,true,false);
+               p2:=sub_expr(opcompare,true,false,nil);
                p1:=gen_c_style_operator(subn,p1,p2);
             end;
           _STARASN :
             begin
                consume(_STARASN  );
-               p2:=sub_expr(opcompare,true,false);
+               p2:=sub_expr(opcompare,true,false,nil);
                p1:=gen_c_style_operator(muln,p1,p2);
             end;
           _SLASHASN :
             begin
                consume(_SLASHASN  );
-               p2:=sub_expr(opcompare,true,false);
+               p2:=sub_expr(opcompare,true,false,nil);
                p1:=gen_c_style_operator(slashn,p1,p2);
             end;
           else
