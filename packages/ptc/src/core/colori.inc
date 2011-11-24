@@ -30,10 +30,51 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+type
+  TPTCColor = class(TInterfacedObject, IPTCColor)
+  private
+    FIndex: Integer;
+    FRed, FGreen, FBlue, FAlpha: Single;
+    FIndexed: Boolean;
+
+    function GetIndex: Integer;
+    function GetR: Single;
+    function GetG: Single;
+    function GetB: Single;
+    function GetA: Single;
+    function GetDirect: Boolean;
+    function GetIndexed: Boolean;
+    function Equals(AColor: IPTCColor): Boolean;
+  public
+    constructor Create;
+    constructor Create(AIndex: Integer);
+    constructor Create(ARed, AGreen, ABlue: Single; AAlpha: Single = 1);
+    constructor Create(AColor: IPTCColor);
+  end;
+
+class function TPTCColorFactory.CreateNew: IPTCColor;
+begin
+  Result := TPTCColor.Create;
+end;
+
+class function TPTCColorFactory.CreateNew(AIndex: Integer): IPTCColor;
+begin
+  Result := TPTCColor.Create(AIndex);
+end;
+
+class function TPTCColorFactory.CreateNew(ARed, AGreen, ABlue: Single; AAlpha: Single = 1): IPTCColor;
+begin
+  Result := TPTCColor.Create(ARed, AGreen, ABlue, AAlpha);
+end;
+
+class function TPTCColorFactory.CreateNew(AColor: IPTCColor): IPTCColor;
+begin
+  Result := TPTCColor.Create(AColor);
+end;
+
 constructor TPTCColor.Create;
 begin
   FIndexed := False;
-  FDirect  := False;
   FIndex   := 0;
   FRed     := 0;
   FGreen   := 0;
@@ -44,7 +85,6 @@ end;
 constructor TPTCColor.Create(AIndex: Integer);
 begin
   FIndexed := True;
-  FDirect  := False;
   FIndex   := AIndex;
   FRed     := 0;
   FGreen   := 0;
@@ -55,7 +95,6 @@ end;
 constructor TPTCColor.Create(ARed, AGreen, ABlue: Single; AAlpha: Single = 1);
 begin
   FIndexed := False;
-  FDirect  := True;
   FIndex   := 0;
   FRed     := ARed;
   FGreen   := AGreen;
@@ -63,35 +102,57 @@ begin
   FAlpha   := AAlpha;
 end;
 
-constructor TPTCColor.Create(const AColor: TPTCColor);
+constructor TPTCColor.Create(AColor: IPTCColor);
 begin
-  FIndex   := AColor.FIndex;
-  FRed     := AColor.FRed;
-  FGreen   := AColor.FGreen;
-  FBlue    := AColor.FBlue;
-  FAlpha   := AColor.FAlpha;
-  FDirect  := AColor.FDirect;
-  FIndexed := AColor.FIndexed;
+  FIndex   := AColor.Index;
+  FRed     := AColor.R;
+  FGreen   := AColor.G;
+  FBlue    := AColor.B;
+  FAlpha   := AColor.A;
+  FIndexed := AColor.Indexed;
 end;
 
-procedure TPTCColor.Assign(const AColor: TPTCColor);
+function TPTCColor.Equals(AColor: IPTCColor): Boolean;
 begin
-  FIndex   := AColor.FIndex;
-  FRed     := AColor.FRed;
-  FGreen   := AColor.FGreen;
-  FBlue    := AColor.FBlue;
-  FAlpha   := AColor.FAlpha;
-  FDirect  := AColor.FDirect;
-  FIndexed := AColor.FIndexed;
+  Result := (FIndexed = AColor.Indexed) and
+            (FIndex   = AColor.Index) and
+            (FRed     = AColor.R) and
+            (FGreen   = AColor.G) and
+            (FBlue    = AColor.B) and
+            (FAlpha   = AColor.A);
 end;
 
-function TPTCColor.Equals(const AColor: TPTCColor): Boolean;
+function TPTCColor.GetIndex: Integer;
 begin
-  Result := (FIndexed = AColor.FIndexed) and
-            (FDirect  = AColor.FDirect) and
-            (FIndex   = AColor.FIndex) and
-            (FRed     = AColor.FRed) and
-            (FGreen   = AColor.FGreen) and
-            (FBlue    = AColor.FBlue) and
-            (FAlpha   = AColor.FAlpha);
+  Result := FIndex;
+end;
+
+function TPTCColor.GetR: Single;
+begin
+  Result := FRed;
+end;
+
+function TPTCColor.GetG: Single;
+begin
+  Result := FGreen;
+end;
+
+function TPTCColor.GetB: Single;
+begin
+  Result := FBlue;
+end;
+
+function TPTCColor.GetA: Single;
+begin
+  Result := FAlpha;
+end;
+
+function TPTCColor.GetDirect: Boolean;
+begin
+  Result := not FIndexed;
+end;
+
+function TPTCColor.GetIndexed: Boolean;
+begin
+  Result := FIndexed;
 end;

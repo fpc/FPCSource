@@ -114,8 +114,6 @@ implementation
                end
              else
                begin
-                 if current_asmdata.ConstPools[sp_objcclassnamerefs]=nil then
-                   current_asmdata.ConstPools[sp_objcclassnamerefs]:=THashSet.Create(64, True, False);
                  pool:=current_asmdata.ConstPools[sp_objcclassnamerefs];
                  entry:=pool.FindOrAdd(@tobjectdef(left.resultdef).objextname^[1],length(tobjectdef(left.resultdef).objextname^));
                  if (target_info.system in systems_objc_nfabi) then

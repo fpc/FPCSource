@@ -489,9 +489,9 @@ begin
         end;
       { temporarily disable range checking because of the access to the array[0..0]
         member of Tenum_ord_to_string_lookup }
-{$PUSH}{$R-}
+{$push}{$R-}
         res:=enum_o2s^.lookup_data[ordinal];
-{$POP}
+{$pop}
         if (not assigned(res)) then
           exit;
         s:=res^;
@@ -504,7 +504,7 @@ begin
       l:=0;
       { temporarily disable range checking because of the access to the array[0..0]
         member of Tenum_ord_to_string_search }
-{$PUSH}{$R-}
+{$push}{$R-}
       h:=enum_o2s^.num_entries-1;
       repeat
         m:=(l+h) div 2;
@@ -517,7 +517,7 @@ begin
         if l>h then
           exit; { Ordinal value not found? Exit }
       until false;
-{$POP}
+{$pop}
       s:=sorted_data[m].name^;
     end;
 

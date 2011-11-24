@@ -60,7 +60,7 @@ type
     c_oflag,
     c_cflag,
     c_lflag  : longint;
-    c_line   : char;
+//    c_line   : char;
     c_cc     : array[0..NCCS-1] of byte;
    {$IFDEF BSD}
     c_ispeed,
@@ -309,11 +309,20 @@ struct winsize {
         TIOCSDRAINWAIT   =IOCTLWRITE+$47400+ 87;        { set ttywait timeout }
         TIOCGDRAINWAIT   =IOCTLREAD+$47400+ 86; { get ttywait timeout }
 
-        TTYDISC          =0;            { termios tty line discipline }
-        SLIPDISC         =4;            { serial IP discipline }
-        PPPDISC          =5;            { PPP discipline }
-        NETGRAPHDISC     =6;            { Netgraph tty node discipline }
+        TTYDISC          = 0;            { termios tty line discipline }
+        SLIPDISC         = 4;            { serial IP discipline }
+        PPPDISC          = 5;            { PPP discipline }
+        NETGRAPHDISC     = 6;            { Netgraph tty node discipline }
 
+	FIOCLEX          = IOCTLVOID +$6600+ 1;        { set close on exec on fd }
+ 	FIONCLEX         = IOCTLVOID +$6600+ 2;        { remove close on exec }
+ 	FIONREAD         = IOCTLREAD +$46600+127;     { get # bytes to read }
+ 	FIONBIO          = IOCTLWRITE+$46600+126;     { set/clear non-blocking i/o }
+ 	FIOASYNC         = IOCTLWRITE+$46600+125;     { set/clear async i/o }
+ 	FIOSETOWN        = IOCTLWRITE+$46600+124;     { set owner }
+ 	FIOGETOWN        = IOCTLREAD +$46600+123;     { get owner }  
+ 	FIODTYPE         = IOCTLREAD +$46600+122;     { get d_flags type part }         
+ 	FIOGETLBA        = IOCTLREAD +$46600+121;     { get start blk # }                 
 
 {
  * Defaults on "first" open.

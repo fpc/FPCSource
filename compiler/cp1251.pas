@@ -6,7 +6,7 @@ unit cp1251;
   implementation
 
   uses
-     {$ifdef VER2_2}ccharset{$else VER2_2}charset{$endif VER2_2};
+     {$if FPC_FULLVERSION<20700}ccharset{$else}charset{$endif};
 
   const
      map : array[0..255] of tunicodecharmapping = (
@@ -270,6 +270,7 @@ unit cp1251;
 
      unicodemap : tunicodemap = (
        cpname : 'cp1251';
+       cp : 1251;
        map : @map;
        lastchar : 255;
        next : nil;

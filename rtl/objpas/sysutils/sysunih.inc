@@ -18,6 +18,9 @@
     *********************************************************************
 }
 
+type
+  TUnicodeCharArray = array of UnicodeChar;
+
 function Trim(const S: unicodestring): unicodestring;
 function TrimLeft(const S: unicodestring): unicodestring;
 function TrimRight(const S: unicodestring): unicodestring;
@@ -35,3 +38,14 @@ Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Ca
 Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
 Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const args: Array of const);
 Procedure UnicodeFmtStr(Var Res: UnicodeString; Const Fmt : UnicodeString; Const args: Array of const; Const FormatSettings: TFormatSettings);
+
+function StrPLCopy(Dest: PWideChar; const Source: UnicodeString; MaxLen: SizeInt): PWideChar; overload;
+function StrPCopy(Dest: PWideChar; const Source: UnicodeString): PWideChar; overload;
+{$IFNDEF VER2_4}
+function BytesOf(const Val: UnicodeString): TBytes; overload;
+function BytesOf(const Val: WideChar): TBytes; overload;
+function StringOf(const Bytes: TBytes): UnicodeString;
+{$ENDIF VER2_4}
+function WideBytesOf(const Value: UnicodeString): TBytes;
+function WideStringOf(const Value: TBytes): UnicodeString;
+function ByteLength(const S: UnicodeString): Integer;

@@ -107,6 +107,8 @@ const
     Function  FpGetgroups  (gidsetsize : cInt; var grouplist : tgrparr):cint; cdecl;external clib name 'getgroups';
     Function  FpGetpgrp : TPid;  cdecl;external clib name 'getpgrp';
     Function  FpSetsid  : TPid; cdecl;external clib name 'setsid';
+    Function  FpGetsid (pid:TPid)  : TPid; cdecl; external clib name 'getsid';
+
     Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external clib name 'pipe';
     { The libc version has "..." as third parameter -> wrap for }
     { interface compatibility with syscalls                     }

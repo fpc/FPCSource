@@ -171,10 +171,7 @@ var
 begin
   bit := 28; //((sizeof(dWord)*8)div 7)*7; // = 28
   buf := @Value;
-  {$undef rangeon}
-  {$ifopt R+}
-     {$define rangeon}
-  {$endif}
+  {$push}
   {$R-}
   while True do begin
     mask := $7f shl bit;
@@ -190,9 +187,7 @@ begin
     Inc(TheEnd);
   end;
 
-  {$ifdef rangeon}
-    {$R+}
-  {$endif}
+  {$pop}
   
   buf := @Value;
   Result := TheEnd+1;

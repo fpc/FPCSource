@@ -322,6 +322,11 @@ implementation
               procname := procname + 'sint';
           end;
 
+        { for ansistrings insert the encoding argument }
+        if is_ansistring(dest.resultdef) then
+          newparas:=ccallparanode.create(cordconstnode.create(
+            getparaencoding(dest.resultdef),u16inttype,true),newparas);
+
         { free the errornode we generated in the beginning }
         result.free;
         { create the call node, }
@@ -373,7 +378,7 @@ implementation
             if (tstringconstnode(n).len<=255) then
               inserttypeconv(n,cshortstringtype)
             else
-              inserttypeconv(n,cansistringtype)
+              inserttypeconv(n,getansistringdef)
           else if is_widechararray(n.resultdef) then
             inserttypeconv(n,cwidestringtype);
       end;
@@ -746,11 +751,15 @@ implementation
                         end;
 {                      indexpara.right:=lenpara;}
                     end;
-                  { in case of writing a chararray, add whether it's }
-                  { zero-based                                       }
+                  { in case of writing a chararray, add whether it's zero-based }
                   if para.left.resultdef.typ=arraydef then
                     para := ccallparanode.create(cordconstnode.create(
-                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool8type,false),para);
+                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool8type,false),para)
+                  else
+                  { in case of reading an ansistring pass a codepage argument }
+                  if do_read and is_ansistring(para.left.resultdef) then
+                    para:=ccallparanode.create(cordconstnode.create(
+                      getparaencoding(para.left.resultdef),u16inttype,true),para);
                   { create the call statement }
                   addstatement(Tstatementnode(newstatement),
                     ccallnode.createintern(name,para));
@@ -958,7 +967,7 @@ implementation
                 { (if you want to optimize to use shortstring, keep in mind that    }
                 {  readstr internally always uses ansistring, and to account for    }
                 {  chararrays with > 255 characters)                                }
-                inserttypeconv(filepara.left,cansistringtype);
+                inserttypeconv(filepara.left,getansistringdef);
                 filepara.resultdef:=filepara.left.resultdef;
                 if codegenerror then
                   exit;
@@ -2261,7 +2270,7 @@ implementation
                   case left.resultdef.typ of
                     variantdef:
                       begin
-                        inserttypeconv(left,cansistringtype);
+                        inserttypeconv(left,getansistringdef);
                       end;
 
                     stringdef :
@@ -3178,6 +3187,11 @@ implementation
 
      function tinlinenode.first_sqr_real : tnode;
       begin
+{$ifndef cpufpemu}
+        { this procedure might be only used for cpus definining cpufpemu else
+          the optimizer might go into an endless loop when doing x*x -> changes }
+        internalerror(2011092401);
+{$endif cpufpemu}
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_sqr_real := ctypeconvnode.create(ccallnode.createintern('fpc_sqr_real',

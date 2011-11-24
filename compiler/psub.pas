@@ -261,9 +261,9 @@ implementation
     procedure printnode_reset;
       begin
         assign(printnodefile,treelogfilename);
-        {$I-}
+        {$push}{$I-}
          rewrite(printnodefile);
-        {$I+}
+        {$pop}
         if ioresult<>0 then
          begin
            Comment(V_Error,'Error creating '+treelogfilename);
@@ -303,7 +303,6 @@ implementation
               begin
                 if is_class(current_structdef) then
                   begin
-                    include(current_procinfo.flags,pi_needs_implicit_finally);
                     srsym:=search_struct_member(current_structdef,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
@@ -479,8 +478,8 @@ implementation
       var
         newstatement : tstatementnode;
         { safecall handling }
-        exceptobjnode,exceptaddrnode: ttempcreatenode;
-        sym,exceptsym: tsym;
+        sym: tsym;
+        argnode: tnode;
       begin
         generate_except_block:=internalstatements(newstatement);
 
@@ -511,46 +510,13 @@ implementation
                 { SafecallException virtual method                       }
                 { In other case we return E_UNEXPECTED error value       }
                 if is_class(current_procinfo.procdef.struct) then
-                  begin
-                    { temp variable to store exception address }
-                    exceptaddrnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,
-                      tt_persistent,true);
-                    addstatement(newstatement,exceptaddrnode);
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        ctemprefnode.create(exceptaddrnode),
-                        ccallnode.createintern('fpc_getexceptionaddr',nil)));
-                    { temp variable to store popped up exception }
-                    exceptobjnode:=ctempcreatenode.create(class_tobject,class_tobject.size,
-                      tt_persistent,true);
-                    addstatement(newstatement,exceptobjnode);
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        ctemprefnode.create(exceptobjnode),
-                        ccallnode.createintern('fpc_popobjectstack', nil)));
-                    exceptsym:=search_struct_member(tobjectdef(current_procinfo.procdef.struct),'SAFECALLEXCEPTION');
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        cloadnode.create(sym,sym.Owner),
-                        ccallnode.create(
-                          ccallparanode.create(ctemprefnode.create(exceptaddrnode),
-                          ccallparanode.create(ctemprefnode.create(exceptobjnode),nil)),
-                          tprocsym(exceptsym), tprocsym(exceptsym).owner,load_self_node,[])));
-                    addstatement(newstatement,ccallnode.createintern('fpc_destroyexception',
-                      ccallparanode.create(ctemprefnode.create(exceptobjnode),nil)));
-                    addstatement(newstatement,ctempdeletenode.create(exceptobjnode));
-                    addstatement(newstatement,ctempdeletenode.create(exceptaddrnode));
-                  end
+                  argnode:=load_self_node
                 else
-                  begin
-                    { pop up and destroy an exception }
-                    addstatement(newstatement,ccallnode.createintern('fpc_destroyexception',
-                      ccallparanode.create(ccallnode.createintern('fpc_popobjectstack', nil),nil)));
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        cloadnode.create(sym,sym.Owner),
-                        genintconstnode(HResult($8000FFFF))));
-                  end;
+                  argnode:=cnilnode.create;
+                addstatement(newstatement,cassignmentnode.create(
+                  cloadnode.create(sym,sym.Owner),
+                  ccallnode.createinternres('fpc_safecallhandler',
+                    ccallparanode.create(argnode,nil),hresultdef)));
               end;
 {$endif}
           end;
@@ -572,11 +538,11 @@ implementation
     procedure tcgprocinfo.printproc(pass:string);
       begin
         assign(printnodefile,treelogfilename);
-        {$I-}
+        {$push}{$I-}
          append(printnodefile);
          if ioresult<>0 then
           rewrite(printnodefile);
-        {$I+}
+        {$pop}
         if ioresult<>0 then
          begin
            Comment(V_Error,'Error creating '+treelogfilename);
@@ -716,7 +682,8 @@ implementation
         if (cs_implicit_exceptions in current_settings.moduleswitches) and
            (pi_needs_implicit_finally in flags) and
            { but it's useless in init/final code of units }
-           not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+           not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
+           not(po_assembler in procdef.procoptions) then
           begin
             { Generate special exception block only needed when
               implicit finaly is used }
@@ -750,7 +717,13 @@ implementation
           end
         else
           begin
-            maybe_add_constructor_wrapper(code,false);
+            { Constructors need the destroy-on-exception code even if they don't
+              use managed variables/temps. }
+            if (cs_implicit_exceptions in current_settings.moduleswitches) and
+               (is_class(procdef.struct) and (procdef.proctypeoption=potype_constructor)) then
+              maybe_add_constructor_wrapper(code,true)
+            else
+              maybe_add_constructor_wrapper(code,false);
             addstatement(newstatement,loadpara_asmnode);
             addstatement(newstatement,stackcheck_asmnode);
             addstatement(newstatement,entry_asmnode);
@@ -1174,6 +1147,9 @@ implementation
             { Add save and restore of used registers }
             current_filepos:=entrypos;
             gen_save_used_regs(templist);
+            { Remember the last instruction of register saving block
+              (may be =nil for e.g. assembler procedures) }
+            current_procinfo.endprologue_ai:=templist.last;
             aktproccode.insertlistafter(headertai,templist);
             current_filepos:=exitpos;
             gen_restore_used_regs(aktproccode);
@@ -1209,6 +1185,7 @@ implementation
             if (cs_implicit_exceptions in current_settings.moduleswitches) and
                not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
                (pi_needs_implicit_finally in flags) and
+               not(po_assembler in procdef.procoptions) and
                not(pi_has_implicit_finally in flags) then
              internalerror(200405231);
 

@@ -33,16 +33,21 @@ type
   private
     FFrameOffs, FFrameReg: Integer;
     FFlags: Integer;
+    FHandler: TObjSymbol;
     FCount: Integer;
     FElements:TLinkedList;
     FFrameStartSym:TObjSymbol;
+    FFrameStartSec:TObjSection;
+    FXdataSym:TObjSymbol;
+    FXdataSec:TObjSection;
     FPrologueEndPos:aword;
+    FPrologueEndSeen:Boolean;
     FName: pshortstring;
     procedure AddElement(objdata:TObjData;aCode,aInfo:Integer;aOffs:dword);
   public
     constructor create;
     destructor destroy;override;
-    procedure generate_code(objdata:TObjData);
+    procedure generate_prologue_data(objdata:TObjData);
     procedure start_frame(objdata:TObjData; const name: string);
     procedure end_frame(objdata:TObjData);
     procedure end_prologue(objdata:TObjData);
@@ -51,13 +56,14 @@ type
     procedure save_xmm(objdata:TObjData;reg:tregister;ofs:dword);
     procedure set_frame(objdata:TObjData; reg:tregister;ofs:dword);
     procedure stack_alloc(objdata:TObjData;ofs:dword);
+    procedure switch_to_handlerdata(objdata:TObjData);
   end;
 
 
 implementation
 
 uses
-  cutils,verbose,cpubase;
+  cutils,globals,verbose,cpubase;
 
 const
   UWOP_PUSH_NONVOL     = 0;  { info = register number }
@@ -93,7 +99,6 @@ type
 var
   current_unw: TWin64Cfi;
 
-{ This generally duplicates private aasmcpu.regval() }
 function EncodeReg(r: TRegister): integer;
 begin
   case r of
@@ -123,7 +128,7 @@ begin
   if getregtype(r)=R_MMREGISTER then
     result:=getsupreg(r)
   else
-    InternalError(2011072305);
+    InternalError(2011072308);
 end;
 
 
@@ -170,25 +175,28 @@ begin
   end;
 end;
 
-procedure TWin64CFI.generate_code(objdata:TObjData);
+{ Changes objdata.CurrObjSec to .xdata, so generation of
+  handler data may continue }
+procedure TWin64CFI.generate_prologue_data(objdata:TObjData);
 var
   hp: TPrologueElement;
   uwcode: array [0..1] of byte;
   uwdata: array [0..3] of byte;
-  cursec: TObjSection;
-  xdatasym,pdatasym: TObjSymbol;
   zero: word;
 begin
-{  if FCount=0 then
-     InternalError(2011072308); }
   if FCount>255 then
     InternalError(2011072301);
+  if not FPrologueEndSeen then
+    CGMessage(asmw_e_missing_endprologue);
+  if (FPrologueEndPos-FFrameStartSym.address) > 255 then
+    CGMessage(asmw_e_prologue_too_large);
+  if codegenerror then
+    exit;
 
-  cursec:=objdata.CurrObjSec;
-  objdata.createsection('.xdata.n_'+lower(FName^),4,[oso_data,oso_load]);
-  xdatasym:=objdata.symboldefine('$unwind$'+FName^,AB_GLOBAL,AT_DATA);
+  FXdataSec:=objdata.createsection('.xdata.n_'+lower(FName^),4,[oso_data,oso_load]);
+  FXdataSym:=objdata.symboldefine('$unwind$'+FName^,AB_GLOBAL,AT_DATA);
   uwdata[0]:=(FFlags shl 3) or 1;
-  uwdata[1]:=FPrologueEndPos-FFrameStartSym.offset;
+  uwdata[1]:=FPrologueEndPos-FFrameStartSym.address;
   uwdata[2]:=FCount;
   { Offset is multiple of 16, so it is already shifted into correct position }
   uwdata[3]:=FFrameOffs or FFrameReg;
@@ -230,19 +238,8 @@ begin
   zero:=0;
   if odd(FCount) then
     objdata.writebytes(zero,2);
-  { TODO: handler rva and data should follow if flags specify a handler }
-
-  FElements.Clear;
-
-  objdata.createsection(sec_pdata,FName^);
-  pdatasym:=objdata.symboldefine('$pdata$'+FName^,AB_LOCAL,AT_DATA);
-  objdata.writereloc(0,4,FFrameStartSym,RELOC_RVA);
-  objdata.writereloc(FFrameStartSym.Size,4,FFrameStartSym,RELOC_RVA);
-  objdata.writereloc(0,4,xdatasym,RELOC_RVA);
-  { restore previous state }
-  objdata.SetSection(cursec);
-  { create a dummy relocation, so pdata is not smartlinked away }
-  objdata.writereloc(0,0,pdatasym,RELOC_NONE);
+  if Assigned(FHandler) then
+    objdata.writereloc(0,sizeof(longint),FHandler,RELOC_RVA);
 end;
 
 procedure TWin64CFI.start_frame(objdata:TObjData;const name:string);
@@ -251,24 +248,69 @@ begin
     internalerror(2011072306);
   FName:=stringdup(name);
   FFrameStartSym:=objdata.symbolref(name);
+  FFrameStartSec:=objdata.CurrObjSec;
   FCount:=0;
   FFrameReg:=0;
   FFrameOffs:=0;
   FPrologueEndPos:=0;
+  FPrologueEndSeen:=false;
+  FHandler:=nil;
+  FXdataSec:=nil;
+  FXdataSym:=nil;
+  FFlags:=0;
+end;
+
+procedure TWin64CFI.switch_to_handlerdata(objdata:TObjData);
+begin
+  if not assigned(FName) then
+    internalerror(2011072310);
+
+  if FHandler=nil then
+    CGMessage(asmw_e_handlerdata_no_handler);
+
+  if FXdataSec=nil then
+    generate_prologue_data(objdata)
+  else
+    objdata.SetSection(FXdataSec);
 end;
 
 procedure TWin64CFI.end_frame(objdata:TObjData);
+var
+  pdatasym:TObjSymbol;
 begin
   if not assigned(FName) then
     internalerror(2011072307);
-  generate_code(objdata);
+
+  if FXdataSec=nil then
+    generate_prologue_data(objdata);
+
+  if not codegenerror then
+    begin
+      objdata.createsection(sec_pdata,lower(FName^));
+      pdatasym:=objdata.symboldefine('$pdata$'+FName^,AB_LOCAL,AT_DATA);
+      objdata.writereloc(0,4,FFrameStartSym,RELOC_RVA);
+      objdata.writereloc(FFrameStartSec.Size,4,FFrameStartSym,RELOC_RVA);
+      objdata.writereloc(0,4,FXdataSym,RELOC_RVA);
+      { restore previous state }
+      objdata.SetSection(FFrameStartSec);
+      { create a dummy relocation, so pdata is not smartlinked away }
+      objdata.writereloc(0,0,pdatasym,RELOC_NONE);
+    end;
+  FElements.Clear;
   FFrameStartSym:=nil;
+  FHandler:=nil;
+  FXdataSec:=nil;
+  FXdataSym:=nil;
+  FFlags:=0;
   stringdispose(FName);
 end;
 
 procedure TWin64CFI.end_prologue(objdata:TObjData);
 begin
+  if not assigned(FName) then
+    internalerror(2011072312);
   FPrologueEndPos:=objdata.CurrObjSec.Size;
+  FPrologueEndSeen:=true;
 end;
 
 procedure TWin64CFI.push_reg(objdata:TObjData;reg:tregister);
@@ -334,9 +376,14 @@ begin
       current_unw.end_frame(objdata);
     ash_endprologue:
       current_unw.end_prologue(objdata);
-    ash_handler:     {TBD};
-    ash_handlerdata: {TBD};
-    ash_eh,ash_32,ash_no32: ; { there are not for x86_64 }
+    ash_handler:
+      begin
+        current_unw.FHandler:=objdata.symbolref(data.name^);
+        current_unw.FFlags:=data.flags;
+      end;
+    ash_handlerdata:
+      current_unw.switch_to_handlerdata(objdata);
+    ash_eh,ash_32,ash_no32: ; { these are not for x86_64 }
     ash_setframe:
       current_unw.set_frame(objdata,data.reg,data.offset);
     ash_stackalloc:

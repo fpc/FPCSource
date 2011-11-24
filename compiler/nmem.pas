@@ -782,7 +782,7 @@ implementation
             (tstringconstnode(left).cst_type=cst_conststring) then
            begin
              if tstringconstnode(left).len>255 then
-               inserttypeconv(left,cansistringtype)
+               inserttypeconv(left,getansistringdef)
              else
                inserttypeconv(left,cshortstringtype);
            end;

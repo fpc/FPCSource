@@ -43,8 +43,8 @@ function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word):  TURI;
 function ResolveRelativeURI(const BaseUri, RelUri: WideString;
   out ResultUri: WideString): Boolean; overload;
 
-function ResolveRelativeURI(const BaseUri, RelUri: UTF8String;
-  out ResultUri: UTF8String): Boolean; overload;
+function ResolveRelativeURI(const BaseUri, RelUri: AnsiString;
+  out ResultUri: AnsiString): Boolean; overload;
 
 function URIToFilename(const URI: string; out Filename: string): Boolean;
 function FilenameToURI(const Filename: string): string;
@@ -312,8 +312,8 @@ begin
 end;
 
 // TODO: this probably must NOT percent-encode the result...
-function ResolveRelativeURI(const BaseUri, RelUri: UTF8String;
-  out ResultUri: UTF8String): Boolean;
+function ResolveRelativeURI(const BaseUri, RelUri: AnsiString;
+  out ResultUri: AnsiString): Boolean;
 var
   Base, Rel: TUri;
 begin
@@ -362,7 +362,7 @@ end;
 function ResolveRelativeURI(const BaseUri, RelUri: WideString;
   out ResultUri: WideString): Boolean;
 var
-  rslt: UTF8String;
+  rslt: AnsiString;
 begin
   Result := ResolveRelativeURI(UTF8Encode(BaseUri), UTF8Encode(RelUri), rslt);
   if Result then

@@ -31,29 +31,17 @@
 }
 
 type
-  TPTCTimer = class
-  private
-    FOld: Double;
-    FTime: Double;
-    FStart: Double;
-    FCurrent: Double;
-    FRunning: Boolean;
-    {$IF defined(WIN32) OR defined(WIN64)}
-    FFrequency: QWord;
-    {$ENDIF defined(WIN32) OR defined(WIN64)}
-    function Clock: Double;
-    procedure internal_init_timer;
-  public
-    constructor Create;
-    constructor Create(ATime: Double);
-    constructor Create(const ATimer: TPTCTimer);
-    destructor Destroy; override;
-    procedure Assign(const ATimer: TPTCTimer);
-    function Equals(const ATimer: TPTCTimer): Boolean;
+  IPTCTimer = interface
     procedure SetTime(ATime: Double); {was 'set' in the C++ version}
     procedure Start;
     procedure Stop;
     function Time: Double;
     function Delta: Double;
     function Resolution: Double;
+  end;
+
+  TPTCTimerFactory = class
+  public
+    class function CreateNew: IPTCTimer;
+    class function CreateNew(ATime: Double): IPTCTimer;
   end;

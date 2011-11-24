@@ -36,6 +36,7 @@ Type
       function GetPosition: Int64; override;
       procedure InvalidSeek; override;
     public
+      destructor Destroy; override;
       Function Write (Const Buffer; Count : Longint) :Longint; Override;
       function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
       Function Read (Var Buffer; Count : Longint) : longint; Override;
@@ -44,6 +45,7 @@ Type
 
   TOutputPipeStream = Class(THandleStream)
     Public
+      destructor Destroy; override;
       function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
       Function Read (Var Buffer; Count : Longint) : longint; Override;
     end;
@@ -75,6 +77,11 @@ begin
     Raise EPipeCreation.Create (EPipeMsg)
 end;
 
+destructor TInputPipeStream.Destroy;
+begin
+  PipeClose (Handle);
+end;
+
 Function TInputPipeStream.Write (Const Buffer; Count : Longint) : longint;
 
 begin
@@ -98,6 +105,11 @@ function TInputPipeStream.Seek(const Offset: int64; Origin: TSeekOrigin): int64;
 begin
   FakeSeekForward(Offset,Origin,FPos);
   Result:=FPos;
+end;
+
+destructor TOutputPipeStream.Destroy;
+begin
+  PipeClose (Handle);
 end;
 
 Function TOutputPipeStream.Read(Var Buffer; Count : Longint) : longint;

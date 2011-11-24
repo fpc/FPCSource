@@ -356,10 +356,11 @@ begin
               end;
             if ParameterStyle in [psPostgreSQL,psSimulated] then
               begin
-              if ParameterIndex > 8 then
-                inc(NewQueryLength,2)
-              else
-                inc(NewQueryLength,1)
+              i:=ParameterIndex+1;
+              repeat
+                inc(NewQueryLength);
+                i:=i div 10;
+              until i=0;
               end;
 
             // store ParameterIndex in FParamIndex, ParamPart data
@@ -396,7 +397,10 @@ begin
       Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
       Inc(NewQueryIndex,CopyLen);
       case ParameterStyle of
-        psInterbase : NewQuery[NewQueryIndex]:='?';
+        psInterbase : begin
+                        NewQuery[NewQueryIndex]:='?';
+                        Inc(NewQueryIndex);
+                      end;
         psPostgreSQL,
         psSimulated : begin
                         ParamName := IntToStr(ParamBinding[i]+1);
@@ -405,15 +409,13 @@ begin
                           NewQuery[NewQueryIndex]:='$';
                           Inc(NewQueryIndex);
                           end;
-                        NewQuery[NewQueryIndex]:= paramname[1];
-                        if length(paramname)>1 then
+                        for b := 1 to length(ParamName) do
                           begin
+                          NewQuery[NewQueryIndex]:=ParamName[b];
                           Inc(NewQueryIndex);
-                          NewQuery[NewQueryIndex]:= paramname[2]
                           end;
                       end;
       end;
-      Inc(NewQueryIndex);
       BufIndex:=ParamPart[i].Stop;
     end;
     CopyLen:=Length(SQL)+1-BufIndex;
@@ -542,9 +544,20 @@ begin
 end;
 
 Function TParam.GetAsString: string;
+var P: Pointer;
 begin
   If IsNull then
     Result:=''
+  else if (FDataType in [ftBytes, ftVarBytes]) and VarIsArray(FValue) then
+  begin
+    SetLength(Result, (VarArrayHighBound(FValue, 1) + 1) div SizeOf(Char));
+    P := VarArrayLock(FValue);
+    try
+      Move(P^, Result[1], Length(Result) * SizeOf(Char));
+    finally
+      VarArrayUnlock(FValue);
+    end;
+  end
   else
     Result:=FValue;
 end;
@@ -704,6 +717,8 @@ begin
     else
       if VarIsFmtBCD(Value) then
         FDataType:=ftFmtBCD
+      else if VarIsArray(AValue) and (VarType(AValue) and varTypeMask = varByte) then
+        FDataType:=ftBytes
       else
         FDataType:=ftUnknown;
     end;
@@ -816,7 +831,7 @@ begin
       ftDate,
       ftDateTime : Field.AsDateTime:=AsDateTime;
       ftBytes,
-      ftVarBytes : ; // Todo.
+      ftVarBytes : Field.AsVariant:=Value;
       ftFmtBCD   : Field.AsBCD:=AsFMTBCD;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
@@ -854,7 +869,7 @@ begin
       ftDate,
       ftDateTime : AsDateTime:=Field.AsDateTime;
       ftBytes,
-      ftVarBytes : ; // Todo.
+      ftVarBytes : Value:=Field.AsVariant;
       ftFmtBCD   : AsFMTBCD:=Field.AsBCD;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then

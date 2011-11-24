@@ -60,7 +60,7 @@ uses
 {$ENDIF FPDOC}
 
 const
-  PTCPAS_VERSION = 'PTCPas 0.99.11';
+  PTCPAS_VERSION = 'PTCPas 0.99.12';
 
 type
   PUint8  = ^Uint8;

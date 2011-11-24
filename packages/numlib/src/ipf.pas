@@ -47,7 +47,7 @@ s calculated from x,y, with e.g. ipfisn}
 function  ipfspn(n: ArbInt; var x, y, d2s: ArbFloat; t: ArbFloat;
                  var term: ArbInt): ArbFloat;
 
-{Calculate n-degree polynomal b for dataset (x,y) with n elements
+{Calculate n-degree polynomal b for dataset (x,y) with m elements
  using the least squares method.}
 procedure ipfpol(m, n: ArbInt; var x, y, b: ArbFloat; var term: ArbInt);
 

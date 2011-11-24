@@ -390,7 +390,7 @@ implementation
           end;
 
         if (atype=sec_threadvar) and
-          (target_info.system=system_i386_win32) then
+          (target_info.system in (systems_windows+systems_wince)) then
           secname:='.tls';
 
         { go32v2 stub only loads .text and .data sections, and allocates space for .bss.
@@ -1238,11 +1238,18 @@ implementation
 
            ait_seh_directive :
              begin
-               AsmWrite('.'+sehdirectivestr[tai_seh_directive(hp).kind]);
+{$ifdef TEST_WIN64_UNWIND}
+               AsmWrite(sehdirectivestr[tai_seh_directive(hp).kind]);
                case tai_seh_directive(hp).datatype of
                  sd_none:;
                  sd_string:
-                   AsmWrite(' '+tai_seh_directive(hp).data.name^);
+                   begin
+                     AsmWrite(' '+tai_seh_directive(hp).data.name^);
+                     if (tai_seh_directive(hp).data.flags and 1)<>0 then
+                       AsmWrite(',@except');
+                     if (tai_seh_directive(hp).data.flags and 2)<>0 then
+                       AsmWrite(',@unwind');
+                   end;
                  sd_reg:
                    AsmWrite(' '+gas_regname(tai_seh_directive(hp).data.reg));
                  sd_offset:
@@ -1252,6 +1259,7 @@ implementation
                      tostr(tai_seh_directive(hp).data.offset));
                end;
                AsmLn;
+{$endif TEST_WIN64_UNWIND}
              end;
 
            else

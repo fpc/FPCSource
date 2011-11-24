@@ -273,6 +273,10 @@ implementation
                              TCGCALLNODE
 *****************************************************************************}
 
+{$if first_mm_imreg = 0}
+  {$WARN 4044 OFF} { Comparison might be always false ... }
+{$endif}
+
     procedure tcgcallnode.extra_interrupt_code;
       begin
       end;

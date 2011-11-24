@@ -973,7 +973,8 @@ interface
                  end;
                AsmLn;
              end;
-
+           ait_seh_directive :
+             { Ignore for now };
            else
              internalerror(10000);
          end;

@@ -15,11 +15,12 @@
 
 CONST FPU_ALL=$7F;
 
-function getfpustate(const Sigcontext:sigcontextRec):longint; {inline;}
+function getfpustate(sininfo:psiginfo):longint; {inline;}
 begin
-  getfpustate:=0;
+  getfpustate:=sininfo^.si_code;
 end;
-procedure SignalToRunerror(Sig: longint;code:longint; var SigContext: SigContextRec); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
+
+procedure SignalToRunerror(Sig: longint;sininfo:psiginfo; SigContext: PSigContextRec); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 
 var
   res,fpustate : word;
@@ -39,7 +40,7 @@ begin
     { this is not allways necessary but I don't know yet
       how to tell if it is or not PM }
           res:=200;
-          fpustate:=GetFPUState(SigContext);
+          fpustate:=GetFPUState(sininfo);
 
           if (FpuState and FPU_All) <> 0 then
             begin
@@ -75,7 +76,7 @@ begin
   if res<>0 then
    begin
 {$ifdef cpui386}
-      HandleErrorAddrFrame(res,pointer(SigContext.sc_eip),pointer(SigContext.sc_ebp));
+      HandleErrorAddrFrame(res,pointer(SigContext^.sc_eip),pointer(SigContext^.sc_ebp));
 {$endif}
    end;
 end;

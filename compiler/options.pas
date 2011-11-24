@@ -78,7 +78,7 @@ implementation
 
 uses
   widestr,
-  {$ifdef VER2_2}ccharset{$else VER2_2}charset{$endif VER2_2},
+  {$if FPC_FULLVERSION<20700}ccharset{$else}charset{$endif},
   SysUtils,
   version,
   cutils,cmsgs,
@@ -867,11 +867,12 @@ begin
                  'c' :
                    begin
                      if (upper(more)='UTF8') or (upper(more)='UTF-8') then
-                        init_settings.sourcecodepage:='utf8'
+                       init_settings.sourcecodepage:=CP_UTF8
                      else if not(cpavailable(more)) then
                        Message1(option_code_page_not_available,more)
                      else
-                       init_settings.sourcecodepage:=more;
+                       init_settings.sourcecodepage:=codepagebyname(more);
+                     include(init_settings.moduleswitches,cs_explicit_codepage);
                    end;
                  'C' :
                    RCCompiler := More;
@@ -903,9 +904,15 @@ begin
                    end;
                  'm' :
                    begin
-                     unicodemapping:=loadunicodemapping(More,More+'.txt');
-                     if assigned(unicodemapping) then
-                       registermapping(unicodemapping)
+                     s:=ExtractFileDir(more);
+                     if TryStrToInt(ExtractFileName(more),j) then
+                       begin
+                         unicodemapping:=loadunicodemapping(More,More+'.txt',j);
+                         if assigned(unicodemapping) then
+                           registermapping(unicodemapping)
+                         else
+                           IllegalPara(opt);
+                       end
                      else
                        IllegalPara(opt);
                    end;
@@ -1883,9 +1890,9 @@ begin
 { open file }
   Message1(option_using_file,filename);
   assign(f,ExpandFileName(filename));
-  {$I-}
+  {$push}{$I-}
    reset(f);
-  {$I+}
+  {$pop}
   if ioresult<>0 then
    begin
      Message1(option_unable_open_file,filename);
@@ -2083,24 +2090,25 @@ begin
    begin
      inc(paramindex);
      opts:=objpas.paramstr(paramindex);
-     case opts[1] of
-       '@' :
-         if not firstpass then
-         begin
-           Delete(opts,1,1);
-           Message1(option_reading_further_from,opts);
-           interpret_file(opts);
-         end;
-       '!' :
-         if not firstpass then
-         begin
-           Delete(opts,1,1);
-           Message1(option_reading_further_from,'(env) '+opts);
-           interpret_envvar(opts);
-         end;
-       else
-         interpret_option(opts,true);
-     end;
+     if length(opts)>0 then
+       case opts[1] of
+         '@' :
+           if not firstpass then
+           begin
+             Delete(opts,1,1);
+             Message1(option_reading_further_from,opts);
+             interpret_file(opts);
+           end;
+         '!' :
+           if not firstpass then
+           begin
+             Delete(opts,1,1);
+             Message1(option_reading_further_from,'(env) '+opts);
+             interpret_envvar(opts);
+           end;
+         else
+           interpret_option(opts,true);
+       end;
    end;
 end;
 
@@ -2307,7 +2315,7 @@ begin
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
      not(target_info.system in systems_darwin) then
     begin
-      { smartlink creation does not yet work with DWARF 
+      { smartlink creation does not yet work with DWARF
         debug info on most targets, but it works in internal assembler }
       if (cs_create_smart in init_settings.moduleswitches) and
          not (af_outputbinary in target_asm.flags) then
@@ -2493,6 +2501,7 @@ begin
 {$endif}
   def_system_macro('FPC_HAS_UNICODESTRING');
   def_system_macro('FPC_RTTI_PACKSET1');
+  def_system_macro('FPC_HAS_CPSTRING');
 {$ifdef x86_64}
   def_system_macro('FPC_HAS_RIP_RELATIVE');
 {$endif x86_64}
@@ -2500,7 +2509,7 @@ begin
   def_system_macro('FPC_HAS_RESSTRINITS');
 
 { these cpus have an inline rol/ror implementaion }
-{$if defined(x86) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{$ifdef cpurox}
   def_system_macro('FPC_HAS_INTERNAL_ROX');
 {$endif}
 
@@ -2868,11 +2877,11 @@ if (target_info.system=system_arm_darwin) then
         def_system_macro('FPC_HAS_TYPE_EXTENDED');
 {$endif}
     end;
-    { Not ready yet }
-{$ifdef TEST_TLS_DIRECTORY}
+    { Enable now for testing }
+{$ifndef DISABLE_TLS_DIRECTORY}
     if target_info.system in systems_windows then
       def_system_macro('FPC_USE_TLS_DIRECTORY');
-{$endif TEST_TLS_DIRECTORY}
+{$endif not DISABLE_TLS_DIRECTORY}
 
 
 {$ifdef ARM}

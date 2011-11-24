@@ -1305,10 +1305,7 @@ implementation
                 end;
            end
          else
-           begin
-             if not(m_duplicate_names in current_settings.modeswitches) then
-               result:=inherited checkduplicate(hashedid,sym);
-           end;
+           result:=inherited checkduplicate(hashedid,sym);
       end;
 
 
@@ -1442,7 +1439,7 @@ implementation
         if result then
           exit;
         if not(m_duplicate_names in current_settings.modeswitches) and
-           (defowner.typ=procdef) and
+           assigned(defowner) and (defowner.typ=procdef) and
            assigned(tprocdef(defowner).struct) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
@@ -2497,14 +2494,17 @@ implementation
               end;
           end;
         { now search in the extended type itself }
-        srsymtable:=classh.extendeddef.symtable;
-        srsym:=tsym(srsymtable.FindWithHash(hashedid));
-        if assigned(srsym) and
-           is_visible_for_object(srsym,contextclassh) then
+        if classh.extendeddef.typ in [recorddef,objectdef] then
           begin
-            addsymref(srsym);
-            result:=true;
-            exit;
+            srsymtable:=tabstractrecorddef(classh.extendeddef).symtable;
+            srsym:=tsym(srsymtable.FindWithHash(hashedid));
+            if assigned(srsym) and
+               is_visible_for_object(srsym,contextclassh) then
+              begin
+                addsymref(srsym);
+                result:=true;
+                exit;
+              end;
           end;
         { now search in the parent helpers }
         parentclassh:=classh.childof;

@@ -10,7 +10,7 @@ unit buildrtl;
       dos, crt, objects, messages,
       rtlconsts, sysconst, sysutils, math, types,
       strutils, dateutils, varutils, variants, typinfo, fgl, classes,
-      convutils, stdconvs, cpu, mmx, charset, ucomplex, getopts,
+      convutils, stdconvs, cpu, mmx, charset, character, ucomplex, getopts,
       winevent, sockets, printer,
       video, mouse, keyboard, fmtbcd,
       winsysut, sharemem, fpintres, windirs;

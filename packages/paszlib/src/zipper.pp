@@ -261,6 +261,7 @@ Type
     FOS: Byte;
     FSize: Integer;
     FStream: TStream;
+    FCompressionLevel: TCompressionlevel;
     function GetArchiveFileName: String;
   Protected
     Property HdrPos : Longint Read FHeaderPos Write FheaderPos;
@@ -277,6 +278,7 @@ Type
     Property DateTime : TDateTime Read FDateTime Write FDateTime;
     property OS: Byte read FOS write FOS;
     property Attributes: LongInt read FAttributes write FAttributes;
+    Property CompressionLevel: TCompressionlevel read FCompressionLevel write FCompressionLevel;
   end;
 
   { TZipFileEntries }
@@ -1345,6 +1347,7 @@ Function TZipper.CreateCompressor(Item : TZipFileEntry; AInFile,AZipStream : TSt
 
 begin
   Result:=TDeflater.Create(AinFile,AZipStream,FBufSize);
+  (Result as TDeflater).CompressionLevel:=Item.CompressionLevel;
 end;
 
 Procedure TZipper.ZipOneFile(Item : TZipFileEntry);
@@ -1983,6 +1986,7 @@ begin
 {$ELSE}
   FOS := OS_FAT;
 {$ENDIF}
+  FCompressionLevel:=cldefault;
   inherited create(ACollection);
 end;
 

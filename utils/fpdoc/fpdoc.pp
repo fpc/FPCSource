@@ -339,6 +339,7 @@ begin
       end;
     WriterClass:=GetWriterClass(Options.Backend);
     Writer:=WriterClass.Create(Engine.Package,Engine);
+    Writeln('Writing doc');
     With Writer do
       Try
         If Options.BackendOptions.Count>0 then

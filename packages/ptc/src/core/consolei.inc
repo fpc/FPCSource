@@ -30,6 +30,89 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+type
+  TPTCConsole = class(TPTCBaseConsole)
+  private
+    FConsole: IPTCConsole;
+    FModes: array of IPTCMode;
+    FOptionsQueue: array of string;
+    FHackyOptionConsoleFlag: Boolean;
+
+    function ConsoleCreate(AIndex: Integer): IPTCConsole;
+    function ConsoleCreate(const AName: string): IPTCConsole;
+    procedure Check;
+
+    procedure AddOptionToOptionsQueue(const AOption: string);
+    procedure ExecuteOptionsFromOptionsQueue;
+    procedure ClearOptionsQueue;
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+    procedure Configure(const AFile: string); override;
+    function Option(const AOption: string): Boolean; override;
+    function Modes: TPTCModeList; override;
+    procedure Open(const ATitle: string; APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: string; AFormat: IPTCFormat;
+                   APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: string; AWidth, AHeight: Integer;
+                   AFormat: IPTCFormat; APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: string; AMode: IPTCMode;
+                   APages: Integer = 0); overload; override;
+
+    procedure Close; override;
+    procedure Flush; override;
+    procedure Finish; override;
+    procedure Update; override;
+    procedure Update(AArea: IPTCArea); override;
+    procedure Copy(ASurface: IPTCSurface); override;
+    procedure Copy(ASurface: IPTCSurface;
+                   ASource, ADestination: IPTCArea); override;
+    function Lock: Pointer; override;
+    procedure Unlock; override;
+    procedure Load(const APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette); override;
+    procedure Load(const APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea); override;
+    procedure Save(APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette); override;
+    procedure Save(APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea); override;
+    procedure Clear; override;
+    procedure Clear(AColor: IPTCColor); override;
+    procedure Clear(AColor: IPTCColor;
+                    AArea: IPTCArea); override;
+    procedure Palette(APalette: IPTCPalette); override;
+    function Palette: IPTCPalette; override;
+    procedure Clip(AArea: IPTCArea); override;
+    function GetWidth: Integer; override;
+    function GetHeight: Integer; override;
+    function GetPitch: Integer; override;
+    function GetPages: Integer; override;
+    function GetArea: IPTCArea; override;
+    function Clip: IPTCArea; override;
+    function GetFormat: IPTCFormat; override;
+    function GetName: string; override;
+    function GetTitle: string; override;
+    function GetInformation: string; override;
+    function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
+    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; override;
+  end;
+
+class function TPTCConsoleFactory.CreateNew: IPTCConsole;
+begin
+  Result := TPTCConsole.Create;
+end;
+
 const
  {$IFDEF GO32V2}
   ConsoleTypesNumber = 4;
@@ -81,9 +164,6 @@ begin
   inherited Create;
   FConsole := nil;
   FHackyOptionConsoleFlag := False;
-  FillChar(FModes, SizeOf(FModes), 0);
-  for I := Low(FModes) to High(FModes) do
-    FModes[I] := TPTCMode.Create;
 
   {$IFDEF UNIX}
     Configure('/usr/share/ptcpas/ptcpas.conf');
@@ -114,9 +194,7 @@ var
   I: Integer;
 begin
   close;
-  FConsole.Free;
-  for I := Low(FModes) to High(FModes) do
-    FModes[I].Free;
+  FConsole := nil;
   inherited Destroy;
 end;
 
@@ -126,16 +204,16 @@ var
   S: string;
 begin
   AssignFile(F, AFile);
-  {$I-}
+  {$push}{$I-}
   Reset(F);
-  {$I+}
+  {$pop}
   if IOResult <> 0 then
     exit;
   while not EoF(F) do
   begin
-    {$I-}
+    {$push}{$I-}
     Readln(F, S);
-    {$I+}
+    {$pop}
     if IOResult <> 0 then
       Break;
     Option(S);
@@ -203,54 +281,42 @@ begin
   end;
 end;
 
-function TPTCConsole.Modes: PPTCMode;
+function TPTCConsole.Modes: TPTCModeList;
 var
-  _console: TPTCBaseConsole;
+  _console: IPTCConsole;
   index, mode: Integer;
   local: Integer;
-  _modes: PPTCMode;
-  tmp: TPTCMode;
+  _modes: TPTCModeList;
 begin
   if Assigned(FConsole) then
     Result := FConsole.Modes
   else
   begin
     _console := nil;
+    SetLength(FModes, 0);
     index := -1;
     mode := 0;
-    try
-      repeat
-        Inc(index);
-        try
-          _console := ConsoleCreate(index);
-        except
-          on TPTCError do begin
-            FreeAndNil(_console);
-            Continue;
-          end;
+    repeat
+      Inc(index);
+      try
+        _console := ConsoleCreate(index);
+      except
+        on TPTCError do begin
+          _console := nil;
+          continue;
         end;
-        if _console = nil then
-          Break;
-        _modes := _console.modes;
-        local := 0;
-        while _modes[local].valid do
-        begin
-          FModes[mode].Assign(_modes[local]);
-          Inc(local);
-          Inc(mode);
-        end;
-        FreeAndNil(_console);
-      until False;
-    finally
-      _console.Free;
-    end;
+      end;
+      if _console = nil then
+        break;
+      _modes := _console.modes;
+      SetLength(FModes, Length(FModes) + Length(_modes));
+      for local := Low(_modes) to High(_modes) do
+      begin
+        FModes[mode] := _modes[local];
+        Inc(mode);
+      end;
+    until False;
     { todo: strip duplicate modes from list? }
-    tmp := TPTCMode.Create;
-    try
-      FModes[mode].Assign(tmp);
-    finally
-      tmp.Free;
-    end;
     Result := FModes;
   end;
 end;
@@ -314,7 +380,7 @@ begin
   end;
 end;
 
-procedure TPTCConsole.Open(const ATitle: string; const AFormat: TPTCFormat;
+procedure TPTCConsole.Open(const ATitle: string; AFormat: IPTCFormat;
                            APages: Integer);
 var
   composite, tmp: TPTCError;
@@ -375,7 +441,7 @@ begin
 end;
 
 procedure TPTCConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
-                           const AFormat: TPTCFormat; APages: Integer);
+                           AFormat: IPTCFormat; APages: Integer);
 var
   composite, tmp: TPTCError;
   index: Integer;
@@ -434,7 +500,7 @@ begin
   end;
 end;
 
-procedure TPTCConsole.Open(const ATitle: string; const AMode: TPTCMode;
+procedure TPTCConsole.Open(const ATitle: string; AMode: IPTCMode;
                            APages: Integer);
 var
   composite, tmp: TPTCError;
@@ -519,20 +585,20 @@ begin
   FConsole.Update;
 end;
 
-procedure TPTCConsole.Update(const AArea: TPTCArea);
+procedure TPTCConsole.Update(AArea: IPTCArea);
 begin
   Check;
   FConsole.Update(AArea);
 end;
 
-procedure TPTCConsole.Copy(ASurface: TPTCBaseSurface);
+procedure TPTCConsole.Copy(ASurface: IPTCSurface);
 begin
   Check;
   FConsole.Copy(ASurface);
 end;
 
-procedure TPTCConsole.Copy(ASurface: TPTCBaseSurface;
-                           const ASource, ADestination: TPTCArea);
+procedure TPTCConsole.Copy(ASurface: IPTCSurface;
+                           ASource, ADestination: IPTCArea);
 begin
   Check;
   FConsole.Copy(ASurface, ASource, ADestination);
@@ -552,8 +618,8 @@ end;
 
 procedure TPTCConsole.Load(const APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette);
 begin
   Check;
   FConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette);
@@ -561,9 +627,9 @@ end;
 
 procedure TPTCConsole.Load(const APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 begin
   Check;
   FConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette,
@@ -572,8 +638,8 @@ end;
 
 procedure TPTCConsole.Save(Apixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette);
 begin
   Check;
   FConsole.Save(APixels, AWidth, AHeight, APitch, AFormat, APalette);
@@ -581,9 +647,9 @@ end;
 
 procedure TPTCConsole.Save(APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 begin
   Check;
   FConsole.Save(APixels, AWidth, AHeight, APitch, AFormat, APalette,
@@ -593,35 +659,35 @@ end;
 procedure TPTCConsole.Clear;
 begin
   Check;
-  FConsole.clear;
+  FConsole.Clear;
 end;
 
-procedure TPTCConsole.Clear(const AColor: TPTCColor);
+procedure TPTCConsole.Clear(AColor: IPTCColor);
 begin
   Check;
-  FConsole.clear(AColor);
+  FConsole.Clear(AColor);
 end;
 
-procedure TPTCConsole.Clear(const AColor: TPTCColor;
-                           const AArea: TPTCArea);
+procedure TPTCConsole.Clear(AColor: IPTCColor;
+                            AArea: IPTCArea);
 begin
   Check;
-  FConsole.clear(AColor, AArea);
+  FConsole.Clear(AColor, AArea);
 end;
 
-procedure TPTCConsole.Palette(const APalette: TPTCPalette);
+procedure TPTCConsole.Palette(APalette: IPTCPalette);
 begin
   Check;
   FConsole.Palette(APalette);
 end;
 
-function TPTCConsole.Palette: TPTCPalette;
+function TPTCConsole.Palette: IPTCPalette;
 begin
   Check;
   Result := FConsole.Palette;
 end;
 
-procedure TPTCConsole.Clip(const AArea: TPTCArea);
+procedure TPTCConsole.Clip(AArea: IPTCArea);
 begin
   Check;
   FConsole.Clip(AArea);
@@ -651,19 +717,19 @@ begin
   Result := FConsole.GetPages;
 end;
 
-function TPTCConsole.GetArea: TPTCArea;
+function TPTCConsole.GetArea: IPTCArea;
 begin
   Check;
   Result := FConsole.GetArea;
 end;
 
-function TPTCConsole.Clip: TPTCArea;
+function TPTCConsole.Clip: IPTCArea;
 begin
   Check;
   Result := FConsole.Clip;
 end;
 
-function TPTCConsole.GetFormat: TPTCFormat;
+function TPTCConsole.GetFormat: IPTCFormat;
 begin
   Check;
   Result := FConsole.GetFormat;
@@ -701,19 +767,19 @@ begin
   Result := FConsole.GetInformation;
 end;
 
-function TPTCConsole.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+function TPTCConsole.NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
 begin
   Check;
   Result := FConsole.NextEvent(AEvent, AWait, AEventMask);
 end;
 
-function TPTCConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+function TPTCConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 begin
   Check;
   Result := FConsole.PeekEvent(AWait, AEventMask);
 end;
 
-function TPTCConsole.ConsoleCreate(AIndex: Integer): TPTCBaseConsole;
+function TPTCConsole.ConsoleCreate(AIndex: Integer): IPTCConsole;
 begin
   Result := nil;
   if (AIndex >= Low(ConsoleTypes)) and (AIndex <= High(ConsoleTypes)) then
@@ -723,7 +789,7 @@ begin
     Result.KeyReleaseEnabled := KeyReleaseEnabled;
 end;
 
-function TPTCConsole.ConsoleCreate(const AName: string): TPTCBaseConsole;
+function TPTCConsole.ConsoleCreate(const AName: string): IPTCConsole;
 var
   I, J: Integer;
 begin

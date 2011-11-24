@@ -318,7 +318,8 @@ type
       (when calling a regular procedure using the above convention, it will
        simply not see the frame pointer parameter, and since the caller cleans
        up the stack will also remain balanced) }
-    po_delphi_nested_cc
+    po_delphi_nested_cc,
+    po_rtlproc
   );
   tprocoptions=set of tprocoption;
 
@@ -397,13 +398,13 @@ type
 
   { options for properties }
   tpropertyoption=(ppo_none,
-    ppo_indexed,
+    ppo_indexed,                  { delcared wwith "index" keyword }
     ppo_defaultproperty,
     ppo_stored,
-    ppo_hasparameters,
+    ppo_hasparameters,            { has parameters: prop[param1, param2: type] }
     ppo_implements,
-    ppo_enumerator_current,
-    ppo_dispid_read,              { no longer used }
+    ppo_enumerator_current,       { implements current property for enumerator }
+    ppo_overrides,                { overrides ancestor property }
     ppo_dispid_write              { no longer used }
   );
   tpropertyoptions=set of tpropertyoption;

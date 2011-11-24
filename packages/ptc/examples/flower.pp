@@ -21,7 +21,7 @@ begin
   pack := (r shl 16) or (g shl 8) or b;
 end;
 
-procedure generate_flower(flower: TPTCSurface);
+procedure generate_flower(flower: IPTCSurface);
 var
   data: PUint8;
   x, y, fx, fy, fx2, fy2: Integer;
@@ -56,13 +56,13 @@ begin
   end;
 end;
 
-procedure generate(palette: TPTCPalette);
+procedure generate(palette: IPTCPalette);
 var
   data: PUint32;
   i, c: Integer;
 begin
   { lock palette data }
-  data := palette.lock;
+  data := palette.Lock;
 
   try
     { black to yellow }
@@ -103,17 +103,17 @@ begin
     end;
   finally
     { unlock palette }
-    palette.unlock;
+    palette.Unlock;
   end;
 end;
 
 var
-  console: TPTCConsole = nil;
-  format: TPTCFormat = nil;
-  flower_surface: TPTCSurface = nil;
-  surface: TPTCSurface = nil;
-  palette: TPTCPalette = nil;
-  area: TPTCArea = nil;
+  console: IPTCConsole;
+  format: IPTCFormat;
+  flower_surface: IPTCSurface;
+  surface: IPTCSurface;
+  palette: IPTCPalette;
+  area: IPTCArea;
   time, delta: Single;
   scr, map: PUint8;
   width, height, mapWidth: Integer;
@@ -124,13 +124,13 @@ begin
   try
     try
       { create format }
-      format := TPTCFormat.Create(8);
+      format := TPTCFormatFactory.CreateNew(8);
 
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create flower surface }
-      flower_surface := TPTCSurface.Create(640, 400, format);
+      flower_surface := TPTCSurfaceFactory.CreateNew(640, 400, format);
 
       { generate flower }
       generate_flower(flower_surface);
@@ -139,10 +139,10 @@ begin
       console.open('Flower demo', 320, 200, format);
 
       { create surface }
-      surface := TPTCSurface.Create(320, 200, format);
+      surface := TPTCSurfaceFactory.CreateNew(320, 200, format);
 
       { create palette }
-      palette := TPTCPalette.Create;
+      palette := TPTCPaletteFactory.CreateNew;
 
       { generate palette }
       generate(palette);
@@ -154,7 +154,7 @@ begin
       surface.palette(palette);
 
       { setup copy area }
-      area := TPTCArea.Create(0, 0, 320, 200);
+      area := TPTCAreaFactory.CreateNew(0, 0, 320, 200);
 
       { time data }
       time := 0;
@@ -213,12 +213,6 @@ begin
     finally
       if Assigned(console) then
         console.close;
-      area.Free;
-      format.Free;
-      palette.Free;
-      surface.Free;
-      flower_surface.Free;
-      console.Free;
     end;
   except
     on error: TPTCError do

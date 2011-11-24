@@ -32,6 +32,8 @@ type
     procedure SeveralEditsChange(ADataset: TCustomBufDataset);
     procedure DeleteAllChange(ADataset: TCustomBufDataset);
     procedure DeleteAllInsertChange(ADataset: TCustomBufDataset);
+    procedure NullInsertChange(ADataset: TCustomBufDataset);
+    procedure NullEditChange(ADataset: TCustomBufDataset);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -53,6 +55,7 @@ type
     procedure SeveralEditsApplUpd;
     procedure DeleteAllApplUpd;
     procedure DeleteAllInsertApplUpd;
+    procedure NullInsertUpdateApplUpd;
 
     procedure TestBasicsXML;
     procedure TestSimpleEditXML;
@@ -99,6 +102,7 @@ begin
   if Inserts then
     begin
     ChangedDs := TSQLDBConnector(DBConnector).Query;
+    ChangedDs.Close;
     TSQLQuery(ChangedDS).SQL.Text:='SELECT * FROM FPDEV WHERE (ID < 16) or (ID>100) ORDER BY ID';
 
     OrgDs.IndexFieldNames:='ID';
@@ -274,14 +278,43 @@ begin
     end;
 end;
 
-procedure TTestBufDatasetStreams.SetUp;
+procedure TTestBufDatasetStreams.NullInsertChange(ADataset: TCustomBufDataset);
 begin
-  DBConnector.StartTest;
+  with ADataset do
+  begin
+    AssertTrue(Locate('ID',11,[]));
+    Delete; //11
+    Delete; //12
+    Delete; //13
+    Delete; //14
+    Append;
+    FieldByName('ID').AsInteger:=11;
+    //FieldByName('NAME').Clear;
+    Post;
+    AppendRecord([12,'AfterNull']);
+    AppendRecord([13,null]);
+    AppendRecord([14,'AfterNull']);
+    //Append; Post;
+  end;
 end;
 
-procedure TTestBufDatasetStreams.TearDown;
+procedure TTestBufDatasetStreams.NullEditChange(ADataset: TCustomBufDataset);
+var i: integer;
 begin
-  DBConnector.StopTest;
+  //depends on procedure TTestBufDatasetStreams.NullInsertChange
+  if ADataSet is TSQLQuery then
+    with ADataset as TSQLQuery do
+    begin
+      AssertTrue(Locate('ID',11,[]));
+      for i:=11 to 14 do
+      begin
+        Edit;
+        FieldByName('NAME').AsString:='TestName'+inttostr(i);
+        Post;
+        Next;
+      end;
+      UpdateMode:=upWhereAll; //test when also null fields will be in where
+    end;
 end;
 
 procedure TTestBufDatasetStreams.TestSimpleEditCancelUpd;
@@ -458,6 +491,24 @@ procedure TTestBufDatasetStreams.DeleteAllInsertApplUpd;
 begin
   TestChangesApplyUpdates(@DeleteAllInsertChange, False);
 end;
+
+procedure TTestBufDatasetStreams.NullInsertUpdateApplUpd;
+begin
+  TestChangesApplyUpdates(@NullInsertChange, True);
+  TestChangesApplyUpdates(@NullEditChange, True);
+end;
+
+
+procedure TTestBufDatasetStreams.SetUp;
+begin
+  DBConnector.StartTest;
+end;
+
+procedure TTestBufDatasetStreams.TearDown;
+begin
+  DBConnector.StopTest;
+end;
+
 
 initialization
   if uppercase(dbconnectorname)='SQL' then

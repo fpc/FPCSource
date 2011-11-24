@@ -33,13 +33,24 @@ interface
        symconst,symbase,symtype,symsym,symdef;
 
     type
-       Trttidatatype=(rdt_normal,rdt_ord2str,rdt_str2ord);
+       Trttidatatype = (rdt_normal,rdt_ord2str,rdt_str2ord);
+
+       tloadnodeflags = (
+         loadnf_is_self,
+         loadnf_load_self_pointer,
+         loadnf_inherited,
+         { the loadnode is generated internally and a varspez=vs_const should be ignore,
+           this requires that the parameter is actually passed by value
+           Be really carefull when using this flag! }
+         loadnf_isinternal_ignoreconst
+        );
 
        tloadnode = class(tunarynode)
        protected
           fprocdef : tprocdef;
           fprocdefderef : tderef;
        public
+          loadnodeflags : set of tloadnodeflags;
           symtableentry : tsym;
           symtableentryderef : tderef;
           symtable : TSymtable;
@@ -192,6 +203,7 @@ implementation
         ppufile.getderef(symtableentryderef);
         symtable:=nil;
         ppufile.getderef(fprocdefderef);
+        ppufile.getsmallset(loadnodeflags);
       end;
 
 
@@ -200,6 +212,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putderef(symtableentryderef);
         ppufile.putderef(fprocdefderef);
+        ppufile.putsmallset(loadnodeflags);
       end;
 
 
@@ -247,7 +260,7 @@ implementation
         result:=(symtable.symtabletype=parasymtable) and
                 (symtableentry.typ=paravarsym) and
                 not(vo_has_local_copy in tparavarsym(symtableentry).varoptions) and
-                not(nf_load_self_pointer in flags) and
+                not(loadnf_load_self_pointer in loadnodeflags) and
                 paramanager.push_addr_param(tparavarsym(symtableentry).varspez,tparavarsym(symtableentry).vardef,tprocdef(symtable.defowner).proccalloption);
       end;
 
@@ -261,7 +274,7 @@ implementation
            constsym:
              begin
                if tconstsym(symtableentry).consttyp=constresourcestring then
-                 resultdef:=cansistringtype
+                 resultdef:=getansistringdef
                else
                  internalerror(22799);
              end;
@@ -311,7 +324,7 @@ implementation
                       (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
                      resultdef:=tclassrefdef.create(resultdef)
                    else if (is_object(resultdef) or is_record(resultdef)) and
-                           (nf_load_self_pointer in flags) then
+                           (loadnf_load_self_pointer in loadnodeflags) then
                      resultdef:=tpointerdef.create(resultdef);
                  end
                else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
@@ -518,6 +531,7 @@ implementation
       var
         hp : tnode;
         useshelper : boolean;
+        oldassignmentnode : tassignmentnode;
       begin
         result:=nil;
         resultdef:=voidtype;
@@ -526,7 +540,14 @@ implementation
         set_unique(left);
 
         typecheckpass(left);
+
+        { PI. This is needed to return correct resultdef of add nodes for ansistrings
+          rawbytestring return needs to be replaced by left.resultdef }
+        oldassignmentnode:=aktassignmentnode;
+        aktassignmentnode:=self;
         typecheckpass(right);
+        aktassignmentnode:=oldassignmentnode;
+
         set_varstate(right,vs_read,[vsf_must_be_valid]);
         set_varstate(left,vs_written,[]);
         if codegenerror then
@@ -589,7 +610,9 @@ implementation
                   if (right.nodetype=stringconstn) and
                      (tstringconstnode(right).len=0) then
                     useshelper:=false;
-                end;
+                end
+              else if (tstringdef(right.resultdef).stringtype in [st_unicodestring,st_widestring]) then
+                Message2(type_w_implicit_string_cast_loss,right.resultdef.typename,left.resultdef.typename);
              { rest is done in pass 1 (JM) }
              if useshelper then
                exit;

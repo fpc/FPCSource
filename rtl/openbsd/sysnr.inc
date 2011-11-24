@@ -15,9 +15,13 @@
 {
  * System call numbers.
  *
- * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp 
+ * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp
  *  (OpenBSD/i386 4.9 release)
 }
+
+{ Append 35 suffix to system call numbers
+  for compatibility to 3.5 versions }
+
 Const
         syscall_nr_syscall      = 0  ;
         syscall_nr_exit         = 1  ;
@@ -27,7 +31,7 @@ Const
         syscall_nr_open         = 5  ;
         syscall_nr_close        = 6  ;
         syscall_nr_wait4        = 7  ;
-        syscall_nr_waitpid      = 8  ;  // added: ease of notation purposes
+        { 8 is marked as compta 43 ocreat  }
         syscall_nr_link         = 9  ;
         syscall_nr_unlink       = 10 ;
         syscall_nr_chdir        = 12 ;
@@ -79,7 +83,7 @@ Const
         syscall_nr_vfork        = 66 ;
         syscall_nr_sbrk         = 69 ;
         syscall_nr_sstk         = 70 ;
-        syscall_nr_vadvise      = 72 ;
+        // syscall nr_vadvise      = 72 ; Seems netbsd specific
         syscall_nr_munmap       = 73 ;
         syscall_nr_mprotect     = 74 ;
         syscall_nr_madvise      = 75 ;
@@ -128,6 +132,16 @@ Const
         syscall_nr_nfssvc       = 155;
         syscall_nr_getfh        = 161;
         syscall_nr_sysarch      = 165;
+        { if defined(SYSVSEM) && !defined(__LP64__)
+          "compat_10_osemsys", }
+        syscall_nr_semsys       = 169;
+        { if defined(SYSVMSG) && !defined(__LP64__)
+          "compat_10_omsgsys", }
+        syscall_nr_msgsys       = 170;
+        { if defined(SYSVSHM) && !defined(__LP64__)
+          "compat_10_oshmsys", }
+        syscall_nr_shmsys       = 170;
+
         syscall_nr_pread        = 173;
         syscall_nr_pwrite       = 174;
         syscall_nr_setgid       = 181;
@@ -137,15 +151,15 @@ Const
         syscall_nr_lfs_markv    = 185;
         syscall_nr_lfs_segclean = 186;
         syscall_nr_lfs_segwait  = 187;
-        syscall_nr_stat         = 188;
-        syscall_nr_fstat        = 189;
-        syscall_nr_lstat        = 190;
+        syscall_nr_stat35       = 188;
+        syscall_nr_fstat35      = 189;
+        syscall_nr_lstat35      = 190;
         syscall_nr_pathconf     = 191;
         syscall_nr_fpathconf    = 192;
         syscall_nr_swapctl      = 193;
         syscall_nr_getrlimit    = 194;
         syscall_nr_setrlimit    = 195;
-        syscall_nr_getdirentries= 196;
+        syscall_nr_getdirentries35 = 196;
         syscall_nr_mmap         = 197;
         syscall_nr___syscall    = 198;
         syscall_nr_lseek        = 199;
@@ -154,18 +168,18 @@ Const
         syscall_nr___sysctl     = 202;
         syscall_nr_mlock        = 203;
         syscall_nr_munlock      = 204;
-        syscall_nr_undelete     = 205;
+        // syscall nr_undelete     = 205; Seems netbsd specific
         syscall_nr_futimes      = 206;
         syscall_nr_getpgid      = 207;
         syscall_nr_xfspioctl    = 208;
         syscall_nr_semget       = 221;
-        syscall_nr_semop        = 222;
+        syscall_nr_semop35      = 222;
         syscall_nr_msgget       = 225;
         syscall_nr_msgsnd       = 226;
         syscall_nr_msgrcv       = 227;
         syscall_nr_shmat        = 228;
         syscall_nr_shmdt        = 230;
-        syscall_nr_shmget       = 231;
+        syscall_nr_shmget35     = 231;
         syscall_nr_clock_gettime= 232;
         syscall_nr_clock_settime= 233;
         syscall_nr_clock_getres = 234;
@@ -177,16 +191,16 @@ Const
         syscall_nr_lchown       = 254;
         syscall_nr_getsid       = 255;
         syscall_nr_msync        = 256;
-        syscall_nr___semctl     = 257;
-        syscall_nr_shmctl       = 258;
-        syscall_nr_msgctl       = 259;
-        syscall_nr_getfsstat    = 260;
-        syscall_nr_statfs       = 261;
-        syscall_nr_fstatfs      = 262;
+        syscall_nr___semctl35   = 257;
+        syscall_nr_shmctl35     = 258;
+        syscall_nr_msgctl35     = 259;
+        // syscall nr_getfsstat35  = 260;
+        // syscall nr_statfs35     = 261;
+        // syscall nr_fstatfs35    = 262;
         syscall_nr_pipe         = 263;
         syscall_nr_fhopen       = 264;
-        syscall_nr_fhstat       = 265;
-        syscall_nr_fhstatfs     = 266;
+        // syscall nr_fhstat35     = 265;
+        // syscall nr_fhstatfs35   = 266;
         syscall_nr_preadv       = 267;
         syscall_nr_pwritev      = 268;
         syscall_nr_kqueue       = 269;
@@ -194,13 +208,14 @@ Const
         syscall_nr_mlockall     = 271;
         syscall_nr_munlockall   = 272;
         syscall_nr_getpeereid   = 273;
-        syscall_nr_extattrctl   = 274;
-        syscall_nr_extattr_set_file     = 275;
-        syscall_nr_extattr_get_file     = 276;
-        syscall_nr_extattr_delete_file  = 277;
-        syscall_nr_extattr_set_fd       = 278;
-        syscall_nr_extattr_get_fd       = 279;
-        syscall_nr_extattr_delete_fd    = 280;
+        // syscall nr_extattrctl   = 274;
+        (* This whole group seems NetBSD specific
+        syscall nr_extattr_set_file     = 275;
+        syscall nr_extattr_get_file     = 276;
+        syscall nr_extattr_delete_file  = 277;
+        syscall nr_extattr_set_fd       = 278;
+        syscall nr_extattr_get_fd       = 279;
+        syscall nr_extattr_delete_fd    = 280; *)
         syscall_nr_getresuid    = 281;
         syscall_nr_setresuid    = 282;
         syscall_nr_getresgid    = 283;
@@ -214,14 +229,14 @@ Const
         syscall_nr_fstat        = 292;
         syscall_nr_lstat        = 293;
         syscall_nr_fhstat       = 294;
-        syscall_nr___semctl     = 294;
-        syscall_nr_shmctl       = 295;
-        syscall_nr_msgctl       = 296;
+        syscall_nr___semctl     = 295;
+        syscall_nr_shmctl       = 296;
+        syscall_nr_msgctl       = 297;
         syscall_nr_sched_yield  = 298;
         syscall_nr_getthrid     = 299;
         syscall_nr_thrsleep     = 300;
         syscall_nr_thrwakeup    = 301;
-        syscall_nr_exit         = 302;
+        syscall_nr_threxit      = 302;
         syscall_nr_thrsigdivert = 303;
         syscall_nr___getcwd     = 304;
         syscall_nr_adjfreq      = 305;
@@ -231,5 +246,12 @@ Const
         syscall_nr_fhstatfs     = 309;
         syscall_nr_setrtable    = 310;
         syscall_nr_getrtable    = 311;
-        syscall_nr_getdirentries        = 312;
+        syscall_nr_getdirentriesi49        = 312;
         syscall_nr_MAXSYSCALL   = 313;
+
+{ Aliases }
+        syscall_nr_getdirentries = syscall_nr_getdirentries35;
+        syscall_nr_waitpid      = syscall_nr_wait4;  // 7, added: ease of notation purposes
+{        syscall_nr_getdents = syscall_nr_getdirentries; }
+{$define USE_GETDIRENTRIES_SYSCALL}
+

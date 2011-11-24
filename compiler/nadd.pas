@@ -859,7 +859,12 @@ implementation
 
             { using sqr(x) for reals instead of x*x might reduces register pressure and/or
               memory accesses while sqr(<real>) has no drawback }
-            if (nodetype=muln) and
+            if
+{$ifdef cpufpemu}
+               (current_settings.fputype<>fpu_soft) and
+               not(cs_fp_emulation in current_settings.moduleswitches) and
+{$endif cpufpemu}
+               (nodetype=muln) and
                is_real(left.resultdef) and is_real(right.resultdef) and
                left.isequal(right) and
                not(might_have_sideeffects(left)) then
@@ -868,6 +873,75 @@ implementation
                 left:=nil;
                 exit;
               end;
+{$ifdef cpurox}
+            { optimize (i shl x) or (i shr (bitsizeof(i)-x)) into rol(x,i) (and different flavours with shl/shr swapped etc.) }
+            if (nodetype=orn)
+{$ifndef cpu64bitalu}
+               and (left.resultdef.typ=orddef) and
+               not(torddef(left.resultdef).ordtype in [s64bit,u64bit,scurrency])
+{$endif cpu64bitalu}
+              then
+              begin
+                if (left.nodetype=shrn) and (right.nodetype=shln) and
+                   is_constintnode(tshlshrnode(left).right) and
+                   is_constintnode(tshlshrnode(right).right) and
+                   (tordconstnode(tshlshrnode(right).right).value>0) and
+                   (tordconstnode(tshlshrnode(left).right).value>0) and
+                   tshlshrnode(left).left.isequal(tshlshrnode(right).left) and
+                   not(might_have_sideeffects(tshlshrnode(left).left)) then
+                   begin
+                     if tordconstnode(tshlshrnode(left).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value then
+                       begin
+                         result:=cinlinenode.create(in_ror_x_y,false,
+                           ccallparanode.create(tshlshrnode(left).right,
+                           ccallparanode.create(tshlshrnode(left).left,nil)));
+                         tshlshrnode(left).left:=nil;
+                         tshlshrnode(left).right:=nil;
+                         exit;
+                       end
+                     else if tordconstnode(tshlshrnode(right).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value then
+                       begin
+                         result:=cinlinenode.create(in_rol_x_y,false,
+                           ccallparanode.create(tshlshrnode(right).right,
+                           ccallparanode.create(tshlshrnode(left).left,nil)));
+                         tshlshrnode(left).left:=nil;
+                         tshlshrnode(right).right:=nil;
+                         exit;
+                       end;
+                   end;
+                if (left.nodetype=shln) and (right.nodetype=shrn) and
+                   is_constintnode(tshlshrnode(left).right) and
+                   is_constintnode(tshlshrnode(right).right) and
+                   (tordconstnode(tshlshrnode(right).right).value>0) and
+                   (tordconstnode(tshlshrnode(left).right).value>0) and
+                   tshlshrnode(left).left.isequal(tshlshrnode(right).left) and
+                   not(might_have_sideeffects(tshlshrnode(left).left)) then
+                   begin
+                     if tordconstnode(tshlshrnode(left).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value then
+                       begin
+                         result:=cinlinenode.create(in_rol_x_y,false,
+                           ccallparanode.create(tshlshrnode(left).right,
+                           ccallparanode.create(tshlshrnode(left).left,nil)));
+                         tshlshrnode(left).left:=nil;
+                         tshlshrnode(left).right:=nil;
+                         exit;
+                       end
+                     else if tordconstnode(tshlshrnode(right).right).value=
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value then
+                       begin
+                         result:=cinlinenode.create(in_ror_x_y,false,
+                           ccallparanode.create(tshlshrnode(right).right,
+                           ccallparanode.create(tshlshrnode(left).left,nil)));
+                         tshlshrnode(left).left:=nil;
+                         tshlshrnode(right).right:=nil;
+                         exit;
+                       end;
+                   end;
+              end;
+{$endif cpurox}
           end;
       end;
 
@@ -1639,10 +1713,32 @@ implementation
                     end;
                   st_ansistring :
                     begin
-                      if not(is_ansistring(rd)) then
-                        inserttypeconv(right,cansistringtype);
-                      if not(is_ansistring(ld)) then
-                        inserttypeconv(left,cansistringtype);
+                      { use same code page if possible (don't force same code
+                        page in case both are ansistrings with code page <>
+                        CP_NONE, since then data loss can occur (the ansistring
+                        helpers will convert them at run time to an encoding
+                        that can represent both encodings) }
+                      if is_ansistring(ld) and
+                         (tstringdef(ld).encoding<>0) and
+                         (tstringdef(ld).encoding<>globals.CP_NONE) and
+                         (not is_ansistring(rd) or
+                          (tstringdef(rd).encoding=0) or
+                          (tstringdef(rd).encoding=globals.CP_NONE)) then
+                        inserttypeconv(right,ld)
+                      else if is_ansistring(rd) and
+                         (tstringdef(rd).encoding<>0) and
+                         (tstringdef(rd).encoding<>globals.CP_NONE) and
+                         (not is_ansistring(ld) or
+                          (tstringdef(ld).encoding=0) or
+                          (tstringdef(ld).encoding=globals.CP_NONE)) then
+                        inserttypeconv(left,rd)
+                      else
+                        begin
+                          if not is_ansistring(ld) then
+                            inserttypeconv(left,getansistringdef);
+                          if not is_ansistring(rd) then
+                            inserttypeconv(right,getansistringdef);
+                        end;
                     end;
                   st_longstring :
                     begin
@@ -1936,6 +2032,14 @@ implementation
                     if is_shortstring(left.resultdef) then
                       resultdef:=cshortstringtype
                     else
+                    { for ansistrings set resultdef to assignment left node
+                      if it is an assignment and left node expects ansistring }
+                    if is_ansistring(left.resultdef) and
+                       assigned(aktassignmentnode) and
+                       (aktassignmentnode.right=self) and
+                       is_ansistring(aktassignmentnode.left.resultdef) then
+                      resultdef:=aktassignmentnode.left.resultdef
+                    else
                       resultdef:=left.resultdef;
                   end;
                 else
@@ -1983,6 +2087,7 @@ implementation
         newstatement : tstatementnode;
         tempnode (*,tempnode2*) : ttempcreatenode;
         cmpfuncname: string;
+        para: tcallparanode;
       begin
         { when we get here, we are sure that both the left and the right }
         { node are both strings of the same stringtype (JM)              }
@@ -2011,11 +2116,26 @@ implementation
                   (aktassignmentnode.left.resultdef=resultdef) and
                   valid_for_var(aktassignmentnode.left,false) then
                 begin
-                  result:=ccallnode.createintern('fpc_'+
-                    tstringdef(resultdef).stringtypname+'_concat',
-                    ccallparanode.create(right,
-                    ccallparanode.create(left,
-                    ccallparanode.create(aktassignmentnode.left.getcopy,nil))));
+                  para:=ccallparanode.create(
+                          right,
+                          ccallparanode.create(
+                            left,
+                            ccallparanode.create(aktassignmentnode.left.getcopy,nil)
+                          )
+                        );
+                  if is_ansistring(resultdef) then
+                    para:=ccallparanode.create(
+                            cordconstnode.create(
+                              getparaencoding(resultdef),
+                              u16inttype,
+                              true
+                            ),
+                            para
+                          );
+                  result:=ccallnode.createintern(
+                            'fpc_'+tstringdef(resultdef).stringtypname+'_concat',
+                            para
+                          );
                   include(aktassignmentnode.flags,nf_assign_done_in_right);
                   firstpass(result);
                 end
@@ -2024,11 +2144,29 @@ implementation
                   result:=internalstatements(newstatement);
                   tempnode:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
                   addstatement(newstatement,tempnode);
-                  addstatement(newstatement,ccallnode.createintern('fpc_'+
-                    tstringdef(resultdef).stringtypname+'_concat',
-                    ccallparanode.create(right,
-                    ccallparanode.create(left,
-                    ccallparanode.create(ctemprefnode.create(tempnode),nil)))));
+                  para:=ccallparanode.create(
+                          right,
+                          ccallparanode.create(
+                            left,
+                            ccallparanode.create(ctemprefnode.create(tempnode),nil)
+                          )
+                        );
+                  if is_ansistring(resultdef) then
+                    para:=ccallparanode.create(
+                            cordconstnode.create(
+                              getparaencoding(resultdef),
+                              u16inttype,
+                              true
+                            ),
+                            para
+                          );
+                  addstatement(
+                    newstatement,
+                    ccallnode.createintern(
+                      'fpc_'+tstringdef(resultdef).stringtypname+'_concat',
+                      para
+                    )
+                  );
                   addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
                   addstatement(newstatement,ctemprefnode.create(tempnode));
                 end;

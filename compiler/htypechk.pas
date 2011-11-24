@@ -1156,14 +1156,11 @@ implementation
                else
                  begin
                    { 1. if it returns a pointer and we've found a deref,
-                     2. if it returns a class or record and a subscription or with is found
+                     2. if it returns a class and a subscription or with is found
                      3. if the address is needed of a field (subscriptn, vecn) }
                    if (gotpointer and gotderef) or
                       (gotstring and gotvec) or
-                      (
-                       (gotclass or gotrecord) and
-                       (gotsubscript)
-                      ) or
+                      (gotclass and gotsubscript) or
                       (
                         (gotvec and gotdynarray)
                       ) or
@@ -1484,7 +1481,7 @@ implementation
                         begin
                           { allow p^:= constructions with p is const parameter }
                           if gotderef or gotdynarray or (Valid_Const in opts) or
-                            (nf_isinternal_ignoreconst in tloadnode(hp).flags) then
+                            (loadnf_isinternal_ignoreconst in tloadnode(hp).loadnodeflags) then
                             result:=true
                           else
                             if report_errors then
@@ -1890,12 +1887,11 @@ implementation
                   not hasoverload then
                  break;
              end;
-           if is_objectpascal_helper(structdef) then
+           if is_objectpascal_helper(structdef) and
+              (tobjectdef(structdef).typ in [recorddef,objectdef]) then
              begin
-               if not assigned(tobjectdef(structdef).extendeddef) then
-                 Internalerror(2011062601);
                { search methods in the extended type as well }
-               srsym:=tprocsym(tobjectdef(structdef).extendeddef.symtable.FindWithHash(hashedid));
+               srsym:=tprocsym(tabstractrecorddef(tobjectdef(structdef).extendeddef).symtable.FindWithHash(hashedid));
                if assigned(srsym) and
                   { Delphi allows hiding a property by a procedure with the same name }
                   (srsym.typ=procsym) then
@@ -1997,6 +1993,7 @@ implementation
         st    : TSymtable;
         contextstructdef : tabstractrecorddef;
         ProcdefOverloadList : TFPObjectList;
+        cpoptions : tcompare_paras_options;
       begin
         FCandidateProcs:=nil;
 
@@ -2086,11 +2083,16 @@ implementation
                ) then
               begin
                 { don't add duplicates, only compare visible parameters for the user }
+                cpoptions:=[cpo_ignorehidden];
+                if (po_compilerproc in pd.procoptions) then
+                  cpoptions:=cpoptions+[cpo_compilerproc];
+                if (po_rtlproc in pd.procoptions) then
+                  cpoptions:=cpoptions+[cpo_rtlproc];
                 found:=false;
                 hp:=FCandidateProcs;
                 while assigned(hp) do
                   begin
-                    if (compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,[cpo_ignorehidden])>=te_equal) and
+                    if (compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,cpoptions)>=te_equal) and
                        (not(po_objc in pd.procoptions) or
                         (pd.messageinf.str^=hp^.data.messageinf.str^)) then
                       begin
@@ -2238,13 +2240,12 @@ implementation
         cdoptions : tcompare_defs_options;
         n : tnode;
 
-    {$ifopt r+}{$define ena_r}{$r-}{$endif}
-    {$ifopt q+}{$define ena_q}{$q-}{$endif}
+    {$push}
+    {$r-}
+    {$q-}
       const
         inf=1.0/0.0;
-    {$ifdef ena_r}{$r+}{$endif}
-    {$ifdef ena_q}{$q+}{$endif}
-
+    {$pop}
       begin
         cdoptions:=[cdo_check_operator];
         if FAllowVariant then
@@ -2412,7 +2413,17 @@ implementation
               else
               { generic type comparision }
                begin
-                 eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
+                 if not(po_compilerproc in hp^.data.procoptions) and
+                    not(po_rtlproc in hp^.data.procoptions) and
+                    is_ansistring(currpara.vardef) and
+                    is_ansistring(currpt.left.resultdef) and
+                    (tstringdef(currpara.vardef).encoding<>tstringdef(currpt.left.resultdef).encoding) and
+                    ((tstringdef(currpara.vardef).encoding=globals.CP_NONE) or
+                     (tstringdef(currpt.left.resultdef).encoding=globals.CP_NONE)
+                    ) then
+                   eq:=te_convert_l1
+                 else
+                   eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
 
                  { when the types are not equal we need to check
                    some special case for parameter passing }

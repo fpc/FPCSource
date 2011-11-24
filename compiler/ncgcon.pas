@@ -139,9 +139,6 @@ implementation
         { const already used ? }
         if not assigned(lab_real) then
           begin
-            if current_asmdata.ConstPools[sp_floats] = nil then
-              current_asmdata.ConstPools[sp_floats] := THashSet.Create(64, True, False);
-
             { there may be gap between record fields, zero it out }
             fillchar(key,sizeof(key),0);
             key.value:=value_real;
@@ -255,11 +252,10 @@ implementation
 
     procedure tcgstringconstnode.pass_generate_code;
       var
-         lastlabel   : tasmlabel;
-         pc       : pchar;
+         lastlabel: tasmlabel;
+         pc: pchar;
          l: longint;
          href: treference;
-         pooltype: TConstPoolType;
          pool: THashSet;
          entry: PHashSetItem;
 
@@ -283,15 +279,15 @@ implementation
          { const already used ? }
          if not assigned(lab_str) then
            begin
-              pooltype := PoolMap[cst_type];
-              if current_asmdata.ConstPools[pooltype] = nil then
-                current_asmdata.ConstPools[pooltype] := THashSet.Create(64, True, False);
-              pool := current_asmdata.ConstPools[pooltype];
+              pool := current_asmdata.ConstPools[PoolMap[cst_type]];
 
               if cst_type in [cst_widestring, cst_unicodestring] then
-                entry := pool.FindOrAdd(pcompilerwidestring(value_str)^.data, len*cwidechartype.size)
+                entry := pool.FindOrAdd(pcompilerwidestring(value_str)^.data,len*cwidechartype.size)
               else
-                entry := pool.FindOrAdd(value_str, len);
+              if cst_type = cst_ansistring then
+                entry := PHashSetItem(TTagHashSet(pool).FindOrAdd(value_str,len,tstringdef(resultdef).encoding))
+              else
+                entry := pool.FindOrAdd(value_str,len);
 
               lab_str := TAsmLabel(entry^.Data);  // is it needed anymore?
 
@@ -304,7 +300,7 @@ implementation
                            if len=0 then
                              InternalError(2008032301)   { empty string should be handled above }
                            else
-                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len);
+                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
                         end;
                       cst_unicodestring,
                       cst_widestring:
@@ -314,6 +310,7 @@ implementation
                            else
                              lastlabel := emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
                                              value_str,
+                                             tstringdef(resultdef).encoding,
                                              (cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags));
                         end;
                       cst_shortstring:
@@ -414,8 +411,6 @@ implementation
           { const already used ? }
           if not assigned(lab_set) then
             begin
-              if current_asmdata.ConstPools[sp_varsets] = nil then
-                current_asmdata.ConstPools[sp_varsets] := THashSet.Create(64, True, False);
               entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, 32);
 
               lab_set := TAsmLabel(entry^.Data);  // is it needed anymore?
@@ -463,7 +458,7 @@ implementation
 
 
 {*****************************************************************************
-                          TCGPOINTERCONSTNODE
+                          TCGGUIDCONSTNODE
 *****************************************************************************}
 
     procedure tcgguidconstnode.pass_generate_code;
@@ -474,7 +469,8 @@ implementation
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(16));
         { label for GUID }
         current_asmdata.getdatalabel(tmplabel);
-        current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(16)));
+        maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,tmplabel.name,const_align(16));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(tmplabel));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint(value.D1)));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(value.D2));

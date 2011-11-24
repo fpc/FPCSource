@@ -39,11 +39,11 @@ _start:
 	movq	-40(%rbp), %rax
 	movq	(%rax), %rax
 	movl	%eax, -28(%rbp)
-	movl	%eax, operatingsystem_parameter_argc
+	movl	%eax, operatingsystem_parameter_argc(%rip)
 	movq	-40(%rbp), %rax
 	addq	$8, %rax
 	movq	%rax, -24(%rbp)
-	movq	%rax, operatingsystem_parameter_argv
+	movq	%rax, operatingsystem_parameter_argv(%rip)
 	movq	-40(%rbp), %rdx
 	addq	$16, %rdx
 	movl	-28(%rbp), %eax
@@ -52,7 +52,7 @@ _start:
 	leaq	(%rdx,%rax), %rax
 	movq	%rax, -16(%rbp)
 	movq	-16(%rbp), %rax
-	movq	%rax, operatingsystem_parameter_envp
+	movq	%rax, operatingsystem_parameter_envp(%rip)
 	movq	%rax, environ(%rip)
 	cmpl	$0, -28(%rbp)
 	jle	.L2

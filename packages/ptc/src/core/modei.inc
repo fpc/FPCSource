@@ -31,7 +31,42 @@
 }
 
 type
-  TPTCModeDynArray = array of TPTCMode;
+  TPTCMode = class(TInterfacedObject, IPTCMode)
+  private
+    FValid: Boolean;
+    FWidth: Integer;
+    FHeight: Integer;
+    FFormat: IPTCFormat;
+    function GetValid: Boolean;
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function GetFormat: IPTCFormat;
+  public
+    constructor Create;
+    constructor Create(AWidth, AHeight: Integer; AFormat: IPTCFormat);
+    constructor Create(AMode: IPTCMode);
+{    procedure Assign(const mode: TPTCMode);}
+    function Equals(AMode: IPTCMode): Boolean;
+{    property Valid: Boolean read GetValid;
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property Format: IPTCFormat read GetFormat;}
+  end;
+
+class function TPTCModeFactory.CreateNew: IPTCMode;
+begin
+  Result := TPTCMode.Create;
+end;
+
+class function TPTCModeFactory.CreateNew(AWidth, AHeight: Integer; AFormat: IPTCFormat): IPTCMode;
+begin
+  Result := TPTCMode.Create(AWidth, AHeight, AFormat);
+end;
+
+class function TPTCModeFactory.CreateNew(AMode: IPTCMode): IPTCMode;
+begin
+  Result := TPTCMode.Create(AMode);
+end;
 
 constructor TPTCMode.Create;
 begin
@@ -41,40 +76,54 @@ begin
   FValid := False;
 end;
 
-constructor TPTCMode.Create(AWidth, AHeight: Integer; const AFormat: TPTCFormat);
+constructor TPTCMode.Create(AWidth, AHeight: Integer; AFormat: IPTCFormat);
 begin
-  FFormat := TPTCFormat.Create(AFormat);
+  FFormat := AFormat;
   FWidth := AWidth;
   FHeight := AHeight;
   FValid := True;
 end;
 
-constructor TPTCMode.Create(const mode: TPTCMode);
+constructor TPTCMode.Create(AMode: IPTCMode);
 begin
-  FFormat := TPTCFormat.Create(mode.FFormat);
+  FFormat := AMode.Format;
+  FWidth := AMode.Width;
+  FHeight := AMode.Height;
+  FValid := AMode.Valid;
+end;
+
+{procedure TPTCMode.Assign(const mode: TPTCMode);
+begin
+  FFormat := mode.FFormat;
   FWidth := mode.FWidth;
   FHeight := mode.FHeight;
   FValid := mode.FValid;
 end;
-
-destructor TPTCMode.Destroy;
+}
+function TPTCMode.Equals(AMode: IPTCMode): Boolean;
 begin
-  FFormat.Free;
-  inherited Destroy;
+  Result := (FValid = AMode.Valid) and
+            (FWidth = AMode.Width) and
+            (FHeight = AMode.Height) and
+             FFormat.Equals(AMode.Format);
 end;
 
-procedure TPTCMode.Assign(const mode: TPTCMode);
+function TPTCMode.GetValid: Boolean;
 begin
-  FFormat.Assign(mode.FFormat);
-  FWidth := mode.FWidth;
-  FHeight := mode.FHeight;
-  FValid := mode.FValid;
+  Result := FValid;
 end;
 
-function TPTCMode.Equals(const mode: TPTCMode): Boolean;
+function TPTCMode.GetWidth: Integer;
 begin
-  Result := (FValid = mode.FValid) and
-            (FWidth = mode.FWidth) and
-            (FHeight = mode.FHeight) and
-             FFormat.Equals(mode.FFormat);
+  Result := FWidth;
+end;
+
+function TPTCMode.GetHeight: Integer;
+begin
+  Result := FHeight;
+end;
+
+function TPTCMode.GetFormat: IPTCFormat;
+begin
+  Result := FFormat;
 end;

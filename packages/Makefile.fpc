@@ -4,7 +4,7 @@
 #
 
 [target]
-dirs=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res fcl-stl libgd symbolic bzip2 hermes fppkg fpvectorial
+dirs=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res fcl-stl libgd symbolic bzip2 hermes fppkg
 dirs_linux_i386=libc unixutil graph pxlib bzip2
 dirs_i386_linux=graph
 dirs_x86_64_linux=graph
@@ -52,7 +52,7 @@ dirs_linux=fv fcl-web fastcgi fcl-async ibase mysql ncurses unzip zlib oracle db
 dirs_win32=fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                gdbint libpng mad tcl opengl gtk1 gtk2 librsvg a52 cdrom fpgtk openal fftw lua fcl-extra zorba \
                oggvorbis sdl openssl graph pcap  httpd22 pxlib numlib winceunits cairo libxml \
-               gmp opencl libsee nvapi ptc
+               gmp opencl libsee nvapi ptc aspell
 dirs_win64=fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint \
                 tcl opengl gtk1 fpgtk fftw sdl openssl cdrom  httpd22 numlib fcl-extra opencl nvapi ptc graph
 dirs_wince=winceunits httpd22 fcl-web fastcgi tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib
@@ -135,11 +135,11 @@ fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszli
 fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release fcl-web_release
 fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared fcl-web_shared
 else
-fppkg_all: fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all
-fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug
-fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart
-fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release
-fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared
+fppkg_all: fcl-base_all fcl-xml_all fcl-process_all paszlib_all
+fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug paszlib_debug
+fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart paszlib_smart
+fppkg_release: fcl-base_release fcl-xml_release fcl-process_release paszlib_release
+fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared paszlib_shared
 endif
 
 fcl-xml_all: fcl-base_all
@@ -165,12 +165,6 @@ fcl-image_debug: fcl-base_debug paszlib_debug pasjpeg_debug
 fcl-image_smart: fcl-base_smart paszlib_smart pasjpeg_smart
 fcl-image_release: fcl-base_release paszlib_release pasjpeg_release
 fcl-image_shared: fcl-base_shared paszlib_shared pasjpeg_shared
-
-fpvectorial_all: fcl-image_all fcl-base_all
-fpvectorial_debug: fcl-image_debug fcl-base_debug
-fpvectorial_smart: fcl-image_smart fcl-base_all
-fpvectorial_release: fcl-image_release fcl-base_release
-fpvectorial_shared: fcl-image_shared fcl-base_shared
 
 fcl-fpcunit_all: fcl-xml_all paszlib_all
 fcl-fpcunit_debug: fcl-xml_debug paszlib_debug
@@ -438,11 +432,3 @@ opencl_debug:  opengl_debug
 opencl_smart:  opengl_smart
 opencl_release:  opengl_release
 opencl_shared:  opengl_shared
-
-ifeq ($(findstring $(OS_TARGET),go32v2),)
-fppkg_all:  fcl-web_all
-fppkg_debug:  fcl-web_debug
-fppkg_smart:  fcl-web_smart
-fppkg_release:  fcl-web_release
-fppkg_shared:  fcl-web_shared
-endif

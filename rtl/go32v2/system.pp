@@ -658,6 +658,7 @@ Begin
 { Setup heap }
   InitHeap;
   SysInitExceptions;
+  initunicodestringmanager;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Setup environment and arguments }
@@ -682,9 +683,4 @@ Begin
   InstallDefaultHandlers;
 {$endif  EXCEPTIONS_IN_SYSTEM}
   initvariantmanager;
-{$ifdef VER2_2}
-  initwidestringmanager;
-{$else VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
 End.

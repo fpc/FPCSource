@@ -383,11 +383,15 @@ const   deSync          = 0;    {Wait until program terminates.}
         EXEC_ASYNCRESULTDB =deAsyncResultDb;
 
 type    TResultCodes=record
-            TerminateReason,        {0 = Normal termionation.
+         case byte of
+          0: (
+            TerminateReason,        {0 = Normal termination.
                                      1 = Critical error.
                                      2 = Trapped. (GPE, etc.)
                                      3 = Killed by DosKillProcess.}
-            ExitCode:cardinal;      {Exit code of child.}
+            ExitCode:cardinal);     {Exit code of child.}
+          1: (CodeTerminate: cardinal); {For compatibility only}
+          2: (PID: cardinal);  {Process ID returned for asynchronous execution}
         end;
 
 {Execute a program.
@@ -411,10 +415,15 @@ function DosExecPgm(var ObjName:string;ExecFlag:cardinal;
                     Args,Env:PByteArray;var Res:TResultCodes;
                     const FileName:string):cardinal;
 
+const
+  DCWA_PROCESS     = 0;
+  DCWA_PROCESSTREE = 1;
+
 {Wait until a child process terminated. Sometimes called DosCWait.
 
-Action              = 0 = Wait until child terminates.
-                      1 = Wait until child and all its childs terminate.
+Action              = 0 = Wait until child terminates (DCWA_PROCESS).
+                      1 = Wait until child and all its childs terminate
+                      (DCWA_PROCESSTREE).
 Option              = Flags. Either dtWait or dtNoWait.
 Res                 = See TResultCodes.
 TermPID             = Process ID that has been terminated. Usefull when
@@ -863,17 +872,17 @@ function DosProtectRead (Handle: THandle; var Buffer; Count: cardinal;
     Buffer      = The data to be written.
     Count       = Number of bytes to write.
     ActCount    = Number of bytes actually written.}
-function DosWrite (Handle: longint; var Buffer; Count: longint;
+function DosWrite (Handle: longint; const Buffer; Count: longint;
                   var ActCount:longint):cardinal; cdecl;
 
-function DosWrite (Handle: THandle; var Buffer; Count: cardinal;
+function DosWrite (Handle: THandle; const Buffer; Count: cardinal;
                   var ActCount:cardinal):cardinal; cdecl;
 
-function DosProtectWrite (Handle: longint; var Buffer; Count: longint;
+function DosProtectWrite (Handle: longint; const Buffer; Count: longint;
                           var ActCount: longint;
                           FileHandleLockID: cardinal): cardinal; cdecl;
 
-function DosProtectWrite (Handle: THandle; var Buffer; Count: cardinal;
+function DosProtectWrite (Handle: THandle; const Buffer; Count: cardinal;
                           var ActCount: cardinal;
                           FileHandleLockID: cardinal): cardinal; cdecl;
 
@@ -3651,20 +3660,20 @@ function DosProtectRead (Handle: THandle; var Buffer; Count: cardinal;
           var ActCount: cardinal; FileHandleLockID: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 641;
 
-function DosWrite(Handle:longint;var Buffer;Count:longint;
+function DosWrite(Handle:longint;const Buffer;Count:longint;
                   var ActCount:longint):cardinal; cdecl;
 external 'DOSCALLS' index 282;
 
-function DosWrite (Handle: THandle; var Buffer; Count: cardinal;
+function DosWrite (Handle: THandle; const Buffer; Count: cardinal;
                    var ActCount: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 282;
 
-function DosProtectWrite (Handle: longint; var Buffer; Count: longint;
+function DosProtectWrite (Handle: longint; const Buffer; Count: longint;
                           var ActCount: longint;
                           FileHandleLockID: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 642;
 
-function DosProtectWrite (Handle: THandle; var Buffer; Count: cardinal;
+function DosProtectWrite (Handle: THandle; const Buffer; Count: cardinal;
                           var ActCount: cardinal;
                           FileHandleLockID: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 642;

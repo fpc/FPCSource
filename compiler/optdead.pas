@@ -285,9 +285,9 @@ const
         if not result then
           exit;
         cgmessage1(wpo_error_reading_symbol_file,symbolprogfullpath);
-{$i-}
+{$push}{$i-}
         close(fsymfile);
-{$i+}
+{$pop}
         if fileexists(fsymfilename) then
           deletefile(fsymfilename);
       end;
@@ -389,9 +389,9 @@ const
         end;
 
       assign(fsymfile,fsymfilename);
-{$i-}
+{$push}{$i-}
       reset(fsymfile);
-{$i+}
+{$pop}
       if failiferror((ioresult<>0) or eof(fsymfile)) then
         exit;
       readln(fsymfile, line);

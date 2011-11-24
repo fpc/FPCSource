@@ -245,7 +245,7 @@ implementation
         storepos : tfileposinfo;
         vs       : tparavarsym;
         hdef     : tdef;
-        selfdef  : tabstractrecorddef;
+        selfdef  : tdef;
         vsp      : tvarspez;
         aliasvs  : tabsolutevarsym;
         sl       : tpropaccesslist;
@@ -1209,7 +1209,7 @@ implementation
             { Add ObjectSymtable to be able to find nested type definitions }
             popclass:=0;
             if assigned(pd.struct) and
-               (pd.parast.symtablelevel=normal_function_level) and
+               (pd.parast.symtablelevel>=normal_function_level) and
                not(symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
@@ -1263,7 +1263,7 @@ implementation
             { Add ObjectSymtable to be able to find generic type definitions }
             popclass:=0;
             if assigned(pd.struct) and
-               (pd.parast.symtablelevel=normal_function_level) and
+               (pd.parast.symtablelevel>=normal_function_level) and
                not (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
@@ -1454,7 +1454,10 @@ implementation
                                break;
                              end;
                          if not found then
-                           Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName);
+                           if assigned(pd.struct) then
+                             Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName)
+                           else
+                             MessagePos(pd.fileinfo,type_e_type_id_expected);
                        end;
                      if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE,_OP_IN]) and
                         ((pd.returndef.typ<>orddef) or
@@ -2127,7 +2130,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=42;
+  num_proc_directives=43;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2520,6 +2523,15 @@ const
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
       mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
+    ),(
+      idtok:_RTLPROC;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
+      handler  : nil;
+      pocall   : pocall_none;
+      pooption : [po_rtlproc];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_interrupt]
     )
    );
 
@@ -3193,7 +3205,12 @@ const
                      po_comp:=[po_classmethod,po_methodpointer];
 
                    if ((po_comp * fwpd.procoptions)<>(po_comp * currpd.procoptions)) or
-                      (fwpd.proctypeoption <> currpd.proctypeoption) then
+                      (fwpd.proctypeoption <> currpd.proctypeoption) or
+                      { if the implementation version has an "overload" modifier,
+                        the interface version must also have it (otherwise we can
+                        get annoying crashes due to interface crc changes) }
+                      (not(po_overload in fwpd.procoptions) and
+                       (po_overload in currpd.procoptions)) then
                      begin
                        MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
                                    fwpd.fullprocname(false));
@@ -3333,7 +3350,7 @@ const
                   begin
                     MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
                     break;
-                  end;
+                  end
                end
               else
                begin

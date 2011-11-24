@@ -176,9 +176,9 @@ begin
     fname := prefix + 'JPG' + suffix + '.TMP';
     { Probe to see if file name is already in use }
     system.assign(tfile, fname);
-    {$ifdef IoCheck} {$I-} {$endif}
+{$push} {$I-}
     system.reset(tfile, 1);
-    {$ifdef IoCheck} {$I+} {$endif}
+{$pop}
     if (IOresult <> 0) then
     begin
       fname := fname + #0;

@@ -36,6 +36,7 @@ resourcestring
   SDivByZero             = 'Division by zero';
   SEndOfFile             = 'Read past end of file';
   SErrInvalidDateMonthWeek = 'Year %d, month %d, Week %d and day %d is not a valid date.';
+  SerrInvalidHourMinuteSecMsec = '%d:%d:%d.%d is not a valid time specification';
   SErrInvalidDateWeek    = '%d %d %d is not a valid dateweek';
   SErrInvalidDayOfWeek   = '%d is not a valid day of the week';
   SErrInvalidDayOfWeekInMonth = 'Year %d Month %d NDow %d DOW %d is not a valid date';
@@ -119,6 +120,12 @@ resourcestring
   SFallbackError                = 'An error, whose error code is larger than can be returned to the OS, has occured';
 
   SNoToolserver                 = 'Toolserver is not installed, cannot execute Tool';
+
+  SNotValidCodePageName         = '%s is not a valid code page name';
+  SInvalidCount                 = 'invalid count [%d]';
+  SCharacterIndexOutOfBounds    = 'character index out of bounds [%d]';
+  SInvalidDestinationArray      = 'invalid destination array';
+  SInvalidDestinationIndex      = 'invalid destination index [%d]';
 
   SNoArrayMatch                 = 'Can''t match any allowed value at pattern position %d, string position %d.';
   SNoCharMatch                  = 'Mismatch char "%s" <> "%s" at pattern position %d, string position %d.';

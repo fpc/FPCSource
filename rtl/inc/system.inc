@@ -93,7 +93,7 @@ const
   OldRandSeed : Cardinal = 0;
 
 { For Error Handling.}
-  ErrorBase : Pointer = nil;
+  ErrorBase : Pointer = nil;public name 'FPC_ERRORBASE';
 
 { Used by the ansi/widestrings and maybe also other things in the future }
 var
@@ -629,20 +629,10 @@ End;
 
 
 
-{$ifopt R+}
-{$define RangeCheckWasOn}
+{$push}
 {$R-}
-{$endif opt R+}
-
-{$ifopt I+}
-{$define IOCheckWasOn}
 {$I-}
-{$endif opt I+}
-
-{$ifopt Q+}
-{$define OverflowCheckWasOn}
 {$Q-}
-{$endif opt Q+}
 
 {*****************************************************************************
                              Miscellaneous
@@ -728,9 +718,7 @@ end;
 
 {$IFNDEF NO_GENERIC_STACK_CHECK}
 
-{$IFOPT S+}
-{$DEFINE STACKCHECK}
-{$ENDIF}
+{$PUSH}
 {$S-}
 procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK'];
 var
@@ -749,10 +737,7 @@ begin
      HandleError(202);
    end;
 end;
-{$IFDEF STACKCHECK}
-{$S+}
-{$ENDIF}
-{$UNDEF STACKCHECK}
+{$POP}
 
 {$ENDIF NO_GENERIC_STACK_CHECK}
 
@@ -888,6 +873,10 @@ Begin
   FinalizeUnits;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  { the embedded system unit itself contains no routines for console i/o
+    console i/o is done by the Consoleio unit which can do things like
+    redirection to seriell i/o }
+{$ifndef EMBEDDED}
   { Show runtime error and exit }
   pstdout:=@stdout;
   If erroraddr<>nil Then
@@ -899,6 +888,7 @@ Begin
      Writeln(pstdout^,'');
    End;
   SysFlushStdIO;
+{$endif EMBEDDED}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 {$if defined(MSWINDOWS) or defined(OS2)}
@@ -949,7 +939,14 @@ end;
 
 Procedure Halt(ErrNum: Longint);
 Begin
-  ExitCode:=Errnum;
+{$ifdef FPC_HAS_FEATURE_EXITCODE}
+{$ifdef FPC_LIMITED_EXITCODE}
+  if ErrNum > maxExitCode then
+    ExitCode:=255
+  else
+{$endif FPC_LIMITED_EXITCODE}
+    ExitCode:=ErrNum;
+{$endif FPC_HAS_FEATURE_EXITCODE}
   Do_Exit;
 end;
 
@@ -971,17 +968,7 @@ begin
   if ExceptAddrStack <> nil then
     raise TObject(nil) at addr,frame;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
-{$ifdef FPC_LIMITED_EXITCODE}
-  if errorcode > maxExitCode then
-    halt(255)
-  else
-{$endif FPC_LIMITED_EXITCODE}
-    halt(errorcode);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
+  Halt(errorcode);
 end;
 
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer);
@@ -1010,16 +997,7 @@ begin
   errorcode:=w;
   erroraddr:=get_caller_addr(get_frame);
   errorbase:=get_caller_frame(get_frame);
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
-{$ifdef FPC_LIMITED_EXITCODE}
-  if errorcode > maxExitCode then
-    halt(255)
-  else
-{$endif FPC_LIMITED_EXITCODE}
-    halt(errorcode);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
+  Halt(errorcode);
 end;
 
 
@@ -1279,11 +1257,7 @@ begin
     write(stderr,msg);
   Writeln(stderr,' (',FName,', line ',LineNo,').');
   Writeln(stderr,'');
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
   Halt(227);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 end;
 
@@ -1295,17 +1269,7 @@ end;
 {$i setjump.inc}
 
 
-{$ifdef IOCheckWasOn}
-{$I+}
-{$endif}
-
-{$ifdef RangeCheckWasOn}
-{$R+}
-{$endif}
-
-{$ifdef OverflowCheckWasOn}
-{$Q+}
-{$endif}
+{$pop} //{$I-,R-,Q-} before 'procedure fpc_rangeerror'
 
 
 {*****************************************************************************

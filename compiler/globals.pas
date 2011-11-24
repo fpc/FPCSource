@@ -53,6 +53,7 @@ interface
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
           m_property,m_default_inline,m_except,m_advanced_records];
+       delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage];
        fpcmodeswitches =
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_hintdirective,
@@ -102,10 +103,12 @@ interface
        MathPiExtended : textendedrec = (bytes : (64,0,201,15,218,162,33,104,194,53));
 {$endif FPC_LITTLE_ENDIAN}
 {$endif}
+       CP_UTF8 = 65001;
+       CP_UTF16 = 1200;
+       CP_NONE  = 65535;
+
 
     type
-       tcodepagestring = string[20];
-
        { this is written to ppus during token recording for generics so it must be packed }
        tsettings = packed record
          alignment       : talignmentinfo;
@@ -133,7 +136,7 @@ interface
          asmmode         : tasmmode;
          interfacetype   : tinterfacetypes;
          defproccall     : tproccalloption;
-         sourcecodepage  : tcodepagestring;
+         sourcecodepage  : tstringencoding;
 
          minfpconstprec  : tfloattype;
 
@@ -426,7 +429,7 @@ interface
         asmmode : asmmode_standard;
         interfacetype : it_interfacecom;
         defproccall : pocall_default;
-        sourcecodepage : '8859-1';
+        sourcecodepage : 28591;
         minfpconstprec : s32real;
 
         disabledircache : false;

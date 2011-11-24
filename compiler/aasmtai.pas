@@ -298,12 +298,12 @@ interface
         'extern','nasm_import', 'tc', 'reference',
         'no_dead_strip','weak_reference','lazy_reference','weak_definition'
       );
-      sehdirectivestr : array[TAsmSehDirective] of string[15]=(
-        'seh_proc','seh_endproc',
-        'seh_endprologue','seh_handler','seh_handlerdata',
-        'seh_eh','seh_32','seh_no32',
-        'seh_setframe','seh_stackalloc','seh_pushreg',
-        'seh_savereg','seh_savexmm','seh_pushframe'
+      sehdirectivestr : array[TAsmSehDirective] of string[16]=(
+        '.seh_proc','.seh_endproc',
+        '.seh_endprologue','.seh_handler','.seh_handlerdata',
+        '.seh_eh','.seh_32','seh_no32',
+        '.seh_setframe','.seh_stackalloc','.seh_pushreg',
+        '.seh_savereg','.seh_savexmm','.seh_pushframe'
       );
 
     type
@@ -416,10 +416,12 @@ interface
           destructor Destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+{$push}{$warnings off}
          private
           { this constructor is made private on purpose }
           { because sections should be created via new_section() }
           constructor Create(Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
+{$pop}
        end;
 
 
@@ -686,7 +688,7 @@ interface
         TSehDirectiveData=record
         case typ: TSehDirectiveDatatype of
           sd_none: ();
-          sd_string: (name:pshortstring);
+          sd_string: (name:pshortstring;flags:byte);
           sd_reg,sd_offset,sd_regoffset: (reg:TRegister;offset:dword);
         end;
 
@@ -2542,7 +2544,7 @@ implementation
         sd_string,     { proc }
         sd_none,       { endproc }
         sd_none,       { endprologue }
-        sd_none,       { TODO: handler }
+        sd_string,     { handler }
         sd_none,       { handlerdata }
         sd_none,sd_none,sd_none,  { eh, 32, no32 }
         sd_regoffset,  { setframe }
@@ -2595,7 +2597,10 @@ implementation
         case data.typ of
           sd_none: ;
           sd_string:
-            data.name:=stringdup(ppufile.getstring);
+            begin
+              data.name:=stringdup(ppufile.getstring);
+              data.flags:=ppufile.getbyte;
+            end;
 
           sd_reg,sd_offset,sd_regoffset:
             begin
@@ -2621,7 +2626,11 @@ implementation
         case data.typ of
           sd_none: ;
           sd_string:
-            ppufile.putstring(data.name^);
+            begin
+              ppufile.putstring(data.name^);
+              ppufile.putbyte(data.flags);
+            end;
+
           sd_reg,sd_offset,sd_regoffset:
             begin
               ppufile.putdata(data.reg,sizeof(TRegister));
@@ -2637,7 +2646,9 @@ implementation
       end;
 
 begin
+{$push}{$warnings off}
   { taitype should fit into a 4 byte set for speed reasons }
   if ord(high(taitype))>31 then
     internalerror(201108181);
+{$pop}
 end.

@@ -28,49 +28,33 @@
 Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movq    %rsp,%rax
-end ['RAX'];
+end;
 
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movq    %rbp,%rax
-end ['RAX'];
+end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
-asm
-{$ifdef win64}
-        orq     %rcx,%rcx
-        jz      .Lg_a_null
-        movq    8(%rcx),%rax
-{$else win64}
-        { %rdi = framebp }
-        orq     %rdi,%rdi
-        jz      .Lg_a_null
-        movq    8(%rdi),%rax
-{$endif win64}
-.Lg_a_null:
-end ['RAX'];
+function get_caller_addr(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  get_caller_addr:=framebp;
+  if assigned(framebp) then
+    get_caller_addr:=PPointer(framebp)[1];
+end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
-asm
-{$ifdef win64}
-        orq     %rcx,%rcx
-        jz      .Lg_a_null
-        movq    (%rcx),%rax
-{$else win64}
-        { %rdi = framebp }
-        orq     %rdi,%rdi
-        jz      .Lg_a_null
-        movq    (%rdi),%rax
-{$endif win64}
-.Lg_a_null:
-end ['RAX'];
+function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  get_caller_frame:=framebp;
+  if assigned(framebp) then
+    get_caller_frame:=PPointer(framebp)^;
+end;
 
 // The following assembler procedures are disabled for FreeBSD due to
 // multiple issues with its old GNU assembler (Mantis #19188).
@@ -635,175 +619,108 @@ end;
 
 {$endif freebsd}
 
-{$asmmode att}
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 { does a thread save inc/dec }
-function declocked(var l : longint) : boolean;assembler;
+function declocked(var l : longint) : boolean;assembler; nostackframe;
   asm
-{$ifdef win64}
-     {
-       l: %rcx
-     }
-     { this check should be done because a lock takes a lot }
-     { of time!                                             }
-     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
-     jz         .Ldeclockednolock
-     lock
-     decl       (%rcx)
-     jmp        .Ldeclockedend
-.Ldeclockednolock:
-     decl       (%rcx)
-.Ldeclockedend:
-     setzb      %al
-{$else win64}
-     {
-       l: %rdi
-     }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
+     cmpb       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
+{$ifndef win64}
+     mov        %rdi, %rcx
+{$endif win64}
      jz         .Ldeclockednolock
      lock
-     decl       (%rdi)
+     decl       (%rcx)
      jmp        .Ldeclockedend
 .Ldeclockednolock:
-     decl       (%rdi)
+     decl       (%rcx)
 .Ldeclockedend:
      setzb      %al
-{$endif win64}
   end;
 
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_INT64}
-function declocked(var l : int64) : boolean;assembler;
+function declocked(var l : int64) : boolean;assembler; nostackframe;
   asm
-{$ifdef win64}
-     {
-       l: %rcx
-     }
-     { this check should be done because a lock takes a lot }
-     { of time!                                             }
-     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
-     jz         .Ldeclockednolock
-     lock
-     decq       (%rcx)
-     jmp        .Ldeclockedend
-.Ldeclockednolock:
-     decq       (%rcx)
-.Ldeclockedend:
-     setzb      %al
-{$else win64}
-     {
-       l: %rdi
-     }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
+     cmpb       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
+{$ifndef win64}
+     mov        %rdi, %rcx
+{$endif win64}
      jz         .Ldeclockednolock
      lock
-     decq       (%rdi)
+     decq       (%rcx)
      jmp        .Ldeclockedend
 .Ldeclockednolock:
-     decq       (%rdi)
+     decq       (%rcx)
 .Ldeclockedend:
      setzb      %al
-{$endif win64}
   end;
 
 
 {$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
-procedure inclocked(var l : longint);assembler;
+procedure inclocked(var l : longint);assembler; nostackframe;
 
   asm
-{$ifdef win64}
-     {
-       l: %rcx
-     }
-     { this check should be done because a lock takes a lot }
-     { of time!                                             }
-     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
-     jz         .Linclockednolock
-     lock
-     incl       (%rcx)
-     jmp        .Linclockedend
-.Linclockednolock:
-     incl       (%rcx)
-.Linclockedend:
-{$else win64}
-     {
-       l: %rdi
-     }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
+     cmpb       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
+{$ifndef win64}
+     mov        %rdi, %rcx
+{$endif win64}
      jz         .Linclockednolock
      lock
-     incl       (%rdi)
+     incl       (%rcx)
      jmp        .Linclockedend
 .Linclockednolock:
-     incl       (%rdi)
+     incl       (%rcx)
 .Linclockedend:
-{$endif win64}
   end;
 
 
 {$define FPC_SYSTEM_HAS_INCLOCKED_INT64}
-procedure inclocked(var l : int64);assembler;
+procedure inclocked(var l : int64);assembler; nostackframe;
 
   asm
-{$ifdef win64}
-     {
-       l: %rcx
-     }
-     { this check should be done because a lock takes a lot }
-     { of time!                                             }
-     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
-     jz         .Linclockednolock
-     lock
-     incq       (%rcx)
-     jmp        .Linclockedend
-.Linclockednolock:
-     incq       (%rcx)
-.Linclockedend:
-{$else win64}
-     {
-       l: %rdi
-     }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
+     cmpb       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
+{$ifndef win64}
+     mov        %rdi, %rcx
+{$endif win64}
      jz         .Linclockednolock
      lock
-     incq       (%rdi)
+     incq       (%rcx)
      jmp        .Linclockedend
 .Linclockednolock:
-     incq       (%rdi)
+     incq       (%rcx)
 .Linclockedend:
-{$endif win64}
   end;
 
 
-function InterLockedDecrement (var Target: longint) : longint; assembler;
+function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
 {$ifdef win64}
         movq    %rcx,%rax
@@ -818,7 +735,7 @@ asm
 end;
 
 
-function InterLockedIncrement (var Target: longint) : longint; assembler;
+function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
 {$ifdef win64}
         movq    %rcx,%rax
@@ -833,7 +750,7 @@ asm
 end;
 
 
-function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
 {$ifdef win64}
         xchgl   (%rcx),%edx
@@ -845,7 +762,7 @@ asm
 end;
 
 
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
 {$ifdef win64}
         xchgq   %rcx,%rdx
@@ -861,7 +778,7 @@ asm
 end;
 
 
-function InterLockedCompareExchange(var Target: longint; NewValue, Comperand : longint): longint; assembler;
+function InterLockedCompareExchange(var Target: longint; NewValue, Comperand : longint): longint; assembler; nostackframe;
 asm
 {$ifdef win64}
         movl            %r8d,%eax
@@ -875,7 +792,7 @@ asm
 end;
 
 
-function InterLockedDecrement64 (var Target: int64) : int64; assembler;
+function InterLockedDecrement64 (var Target: int64) : int64; assembler; nostackframe;
 asm
 {$ifdef win64}
         movq    %rcx,%rax
@@ -890,7 +807,7 @@ asm
 end;
 
 
-function InterLockedIncrement64 (var Target: int64) : int64; assembler;
+function InterLockedIncrement64 (var Target: int64) : int64; assembler; nostackframe;
 asm
 {$ifdef win64}
         movq    %rcx,%rax
@@ -905,7 +822,7 @@ asm
 end;
 
 
-function InterLockedExchange64 (var Target: int64;Source : int64) : int64; assembler;
+function InterLockedExchange64 (var Target: int64;Source : int64) : int64; assembler; nostackframe;
 asm
 {$ifdef win64}
         xchgq   (%rcx),%rdx
@@ -917,7 +834,7 @@ asm
 end;
 
 
-function InterLockedExchangeAdd64 (var Target: int64;Source : int64) : int64; assembler;
+function InterLockedExchangeAdd64 (var Target: int64;Source : int64) : int64; assembler; nostackframe;
 asm
 {$ifdef win64}
         xchgq   %rcx,%rdx
@@ -933,7 +850,7 @@ asm
 end;
 
 
-function InterLockedCompareExchange64(var Target: int64; NewValue, Comperand : int64): int64; assembler;
+function InterLockedCompareExchange64(var Target: int64; NewValue, Comperand : int64): int64; assembler; nostackframe;
 asm
 {$ifdef win64}
         movq            %r8,%rax
@@ -1074,7 +991,7 @@ function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endi
   end;
 
 
-function SwapEndian(const AValue: LongInt): LongInt; assembler;
+function SwapEndian(const AValue: LongInt): LongInt; assembler; nostackframe;
 asm
 {$ifdef win64}
   movl %ecx, %eax
@@ -1085,7 +1002,7 @@ asm
 end;
 
 
-function SwapEndian(const AValue: DWord): DWord; assembler;
+function SwapEndian(const AValue: DWord): DWord; assembler; nostackframe;
 asm
 {$ifdef win64}
   movl %ecx, %eax
@@ -1096,7 +1013,7 @@ asm
 end;
 
 
-function SwapEndian(const AValue: Int64): Int64; assembler;
+function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
 asm
 {$ifdef win64}
   movq %rcx, %rax
@@ -1107,7 +1024,7 @@ asm
 end;
 
 
-function SwapEndian(const AValue: QWord): QWord; assembler;
+function SwapEndian(const AValue: QWord): QWord; assembler; nostackframe;
 asm
 {$ifdef win64}
   movq %rcx, %rax

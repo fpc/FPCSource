@@ -92,6 +92,7 @@ Const
                 
 
 type
+  TRequest = Class;
 
   { TCookie }
 
@@ -261,7 +262,7 @@ type
     property QueryFields : TStrings read FQueryFields;
   end;
 
-
+  TOnUnknownEncodingEvent = Procedure (Sender : TRequest; Const ContentType : String;Stream : TStream) of object;
   { TRequest }
 
   TRequest = class(THttpHeader)
@@ -269,6 +270,7 @@ type
     FCommand: String;
     FCommandLine: String;
     FHandleGetOnPost: Boolean;
+    FOnUnknownEncoding: TOnUnknownEncodingEvent;
     FPathInfo,
     FURI: String;
     FFiles : TUploadedFiles;
@@ -280,6 +282,7 @@ type
   Protected
     FContentRead : Boolean;
     FContent : String;
+    procedure HandleUnknownEncoding(Const AContentType : String;Stream : TStream); virtual;
     procedure ParseFirstHeaderLine(const line: String);override;
     procedure ReadContent; virtual;
     Function GetFieldValue(AIndex : Integer) : String; override;
@@ -304,6 +307,7 @@ type
     Property  HeaderLine : String read GetFirstHeaderLine;
     Property  Files : TUploadedFiles Read FFiles;
     Property  HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
+    Property  OnUnknownEncoding : TOnUnknownEncodingEvent Read FOnUnknownEncoding Write FOnUnknownEncoding;
   end;
 
 
@@ -1065,6 +1069,12 @@ begin
     Result := Result + ' HTTP/' + HttpVersion;
 end;
 
+procedure TRequest.HandleUnknownEncoding(Const AContentType : String;Stream : TStream);
+begin
+  If Assigned(FOnUnknownEncoding) then
+    FOnUnknownEncoding(Self,AContentType,Stream);
+end;
+
 procedure TRequest.ReadContent;
 begin
   // Implement in descendents
@@ -1253,6 +1263,8 @@ begin
         ProcessMultiPart(M,CT, ContentFields)
       else if Pos('APPLICATION/X-WWW-FORM-URLENCODED',Uppercase(CT))<>0 then
         ProcessUrlEncoded(M, ContentFields)
+      else
+        HandleUnknownEncoding(CT,M)
     finally
      M.Free;
     end;
@@ -1260,7 +1272,7 @@ begin
 {$ifdef CGIDEBUG}
   SendMethodExit('InitPostVars');
 {$endif}
-        end;
+end;
 
 procedure TRequest.InitGetVars;
 Var

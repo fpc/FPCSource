@@ -523,6 +523,11 @@ unit cgobj;
 
           { initialize the pic/got register }
           procedure g_maybe_got_init(list: TAsmList); virtual;
+          { allocallcpuregisters, a_call_name, deallocallcpuregisters sequence }
+          procedure g_call(list: TAsmList; const s: string);
+          { Generate code to exit an unwind-protected region. The default implementation
+            produces a simple jump to destination label. }
+          procedure g_local_unwind(list: TAsmList; l: TAsmLabel);virtual;
         protected
           procedure get_subsetref_load_info(const sref: tsubsetreference; out loadsize: tcgsize; out extra_load: boolean);
           procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
@@ -1228,15 +1233,9 @@ implementation
                        some generic implementations
 ****************************************************************************}
 
-{$ifopt r+}
-{$define rangeon}
+{$push}
 {$r-}
-{$endif}
-
-{$ifopt q+}
-{$define overflowon}
 {$q-}
-{$endif}
 
    procedure tcg.a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister);
      var
@@ -2113,15 +2112,7 @@ implementation
       end;
 
 
-{$ifdef rangeon}
-{$r+}
-{$undef rangeon}
-{$endif}
-
-{$ifdef overflowon}
-{$q+}
-{$undef overflowon}
-{$endif}
+{$pop}
 
     { generic bit address calculation routines }
 
@@ -3641,18 +3632,27 @@ implementation
       begin
         cgpara1.init;
         cgpara2.init;
-        paramanager.getintparaloc(pocall_default,1,cgpara1);
-        paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_ansistring(t) or
             is_widestring(t) or
             is_unicodestring(t) or
             is_interfacecom_or_dispinterface(t) or
             is_dynamic_array(t) then
            a_load_const_ref(list,OS_ADDR,0,ref)
+         else if t.typ=variantdef then
+           begin
+             paramanager.getintparaloc(pocall_default,1,cgpara1);
+             a_loadaddr_ref_cgpara(list,ref,cgpara1);
+             paramanager.freecgpara(list,cgpara1);
+             allocallcpuregisters(list);
+             a_call_name(list,'FPC_VARIANT_INIT',false);
+             deallocallcpuregisters(list);
+           end
          else
            begin
               if is_open_array(t) then
                 InternalError(201103052);
+              paramanager.getintparaloc(pocall_default,1,cgpara1);
+              paramanager.getintparaloc(pocall_default,2,cgpara2);
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               a_loadaddr_ref_cgpara(list,href,cgpara2);
               a_loadaddr_ref_cgpara(list,ref,cgpara1);
@@ -3674,8 +3674,6 @@ implementation
       begin
         cgpara1.init;
         cgpara2.init;
-        paramanager.getintparaloc(pocall_default,1,cgpara1);
-        paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_ansistring(t) or
             is_widestring(t) or
             is_unicodestring(t) or
@@ -3684,10 +3682,21 @@ implementation
               g_decrrefcount(list,t,ref);
               a_load_const_ref(list,OS_ADDR,0,ref);
             end
+         else if t.typ=variantdef then
+           begin
+             paramanager.getintparaloc(pocall_default,1,cgpara1);
+             a_loadaddr_ref_cgpara(list,ref,cgpara1);
+             paramanager.freecgpara(list,cgpara1);
+             allocallcpuregisters(list);
+             a_call_name(list,'FPC_VARIANT_CLEAR',false);
+             deallocallcpuregisters(list);
+           end
          else
            begin
               if is_open_array(t) then
                 InternalError(201103051);
+              paramanager.getintparaloc(pocall_default,1,cgpara1);
+              paramanager.getintparaloc(pocall_default,2,cgpara2);
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               a_loadaddr_ref_cgpara(list,href,cgpara2);
               a_loadaddr_ref_cgpara(list,ref,cgpara1);
@@ -3790,14 +3799,9 @@ implementation
               { only optimize away if all bit patterns which fit in fromsize }
               { are valid for the todef                                      }
               begin
-{$ifopt Q+}
-{$define overflowon}
+{$push}
 {$Q-}
-{$endif}
-{$ifopt R+}
-{$define rangeon}
 {$R-}
-{$endif}
                 if to_signed then
                   begin
                     { calculation of the low/high ranges must not overflow 64 bit
@@ -3816,14 +3820,7 @@ implementation
                        (qword(hto) = (qword(-1) >> (64-(tosize * 8))) ) then
                       exit
                   end;
-{$ifdef overflowon}
-{$Q+}
-{$undef overflowon}
-{$endif}
-{$ifdef rangeon}
-{$R+}
-{$undef rangeon}
-{$endif}
+{$pop}
               end
           end;
 
@@ -4277,6 +4274,17 @@ implementation
       begin
       end;
 
+    procedure tcg.g_call(list: TAsmList;const s: string);
+      begin
+        allocallcpuregisters(list);
+        a_call_name(list,s,false);
+        deallocallcpuregisters(list);
+      end;
+
+    procedure tcg.g_local_unwind(list: TAsmList; l: TAsmLabel);
+      begin
+        a_jmp_always(list,l);
+      end;
 
     procedure tcg.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister; shuffle: pmmshuffle);
       begin

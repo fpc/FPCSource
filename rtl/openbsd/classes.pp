@@ -36,8 +36,7 @@ uses
 implementation
 
 uses
-  baseunix,unix,Systhrds
-  ;
+  baseunix,unix;
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}

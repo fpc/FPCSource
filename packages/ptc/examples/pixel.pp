@@ -15,7 +15,7 @@ program PixelExample;
 uses
   ptc;
 
-procedure putpixel(surface: TPTCSurface; x, y: Integer; r, g, b: Uint8);
+procedure putpixel(surface: IPTCSurface; x, y: Integer; r, g, b: Uint8);
 var
   pixels: PUint32;
   color: Uint32;
@@ -35,23 +35,23 @@ begin
 end;
 
 var
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  format: TPTCFormat = nil;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  format: IPTCFormat;
 begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       { open the console }
       console.open('Pixel example', format);
 
       { create surface matching console dimensions }
-      surface := TPTCSurface.Create(console.width, console.height, format);
+      surface := TPTCSurfaceFactory.CreateNew(console.width, console.height, format);
 
       { plot a white pixel in the middle of the surface }
       putpixel(surface, surface.width div 2, surface.height div 2, 255, 255, 255);
@@ -65,10 +65,8 @@ begin
       { read key }
       console.ReadKey;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

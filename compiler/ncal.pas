@@ -1638,7 +1638,7 @@ implementation
     function tcallnode.gen_self_tree:tnode;
       var
         selftree : tnode;
-        selfdef  : tabstractrecorddef;
+        selfdef  : tdef;
       begin
         selftree:=nil;
 
@@ -1692,7 +1692,8 @@ implementation
                 selfdef:=tobjectdef(tprocdef(procdefinition).struct).extendeddef
               else
                 selfdef:=tprocdef(procdefinition).struct;
-              if (oo_has_vmt in selfdef.objectoptions) then
+              if (selfdef.typ in [recorddef,objectdef]) and
+                  (oo_has_vmt in tabstractrecorddef(selfdef).objectoptions) then
                 begin
                   { we only need the vmt, loading self is not required and there is no
                     need to check for typen, because that will always get the
@@ -1835,7 +1836,8 @@ implementation
           realresdef:=tstoreddef(typedef);
         if realresdef.is_intregable then
           result:=LOC_REGISTER
-        else if realresdef.is_fpuregable then
+        else if (realresdef.typ=floatdef) and
+          not(cs_fp_emulation in current_settings.moduleswitches) then
           if use_vectorfpu(realresdef) then
             result:=LOC_MMREGISTER
           else
@@ -2091,7 +2093,8 @@ implementation
                   begin
                     if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                        (procdefinition.proctypeoption=potype_constructor) and
-                       (nf_is_self in methodpointer.flags) then
+                       (methodpointer.nodetype=loadn) and
+                       (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
                       vmttree:=cpointerconstnode.create(0,voidpointertype)
                     else
                       vmttree:=cpointerconstnode.create(1,voidpointertype);
@@ -2421,7 +2424,8 @@ implementation
           called, indirect constructor calls cannot be checked.
         }
         if assigned(methodpointer) and
-           not (nf_is_self in methodpointer.flags) then
+           not((methodpointer.nodetype=loadn) and
+               (loadnf_is_self in tloadnode(methodpointer).loadnodeflags)) then
           begin
             if (methodpointer.resultdef.typ = objectdef) then
               objectdf:=tobjectdef(methodpointer.resultdef)
@@ -2938,7 +2942,8 @@ implementation
               if (procdefinition.proctypeoption=potype_constructor) and
                  is_class(tprocdef(procdefinition).struct) and
                  assigned(methodpointer) and
-                 (nf_is_self in methodpointer.flags) then
+                 (methodpointer.nodetype=loadn) and
+                 (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
                 resultdef:=voidtype
               else
                 resultdef:=procdefinition.returndef;
@@ -2965,6 +2970,14 @@ implementation
                 else
                   CGMessage(cg_e_cant_call_abstract_method);
               end;
+
+            { directly calling an interface/protocol/category/class helper
+              method via its type is not possible (always must be called via
+              the actual instance) }
+            if (methodpointer.nodetype=typen) and
+               (is_interface(methodpointer.resultdef) or
+                is_objc_protocol_or_category(methodpointer.resultdef)) then
+              CGMessage1(type_e_class_type_expected,methodpointer.resultdef.typename);
 
             { if an inherited con- or destructor should be  }
             { called in a con- or destructor then a warning }

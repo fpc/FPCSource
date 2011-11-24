@@ -4,6 +4,8 @@ unit uprintf3;
 
 interface
 
+{ This calling convention is almost equivalent to cdecl,
+  so that cdecl modifer should not be needed below }
 {$calling mwpascal}
 
 {$ifdef WINDOWS}

@@ -30,7 +30,75 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-constructor TPTCSurface.Create(AWidth, AHeight: Integer; const AFormat: TPTCFormat);
+type
+  TPTCSurface = class(TInterfacedObject, IPTCSurface)
+  private
+    {data}
+    FWidth: Integer;
+    FHeight: Integer;
+    FPitch: Integer;
+    FArea: IPTCArea;
+    FClip: IPTCArea;
+    FFormat: IPTCFormat;
+    FLocked: Boolean;
+    FPixels: Pointer;
+    {objects}
+    FCopy: TPTCCopy;
+    FClear: TPTCClear;
+    FPalette: IPTCPalette;
+  public
+    constructor Create(AWidth, AHeight: Integer; AFormat: IPTCFormat);
+    destructor Destroy; override;
+    procedure Copy(ASurface: IPTCSurface);
+    procedure Copy(ASurface: IPTCSurface;
+                   ASource, ADestination: IPTCArea);
+    function Lock: Pointer;
+    procedure Unlock;
+    procedure Load(const APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette);
+    procedure Load(const APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea);
+    procedure Save(APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette);
+    procedure Save(APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea);
+    procedure Clear;
+    procedure Clear(AColor: IPTCColor);
+    procedure Clear(AColor: IPTCColor; AArea: IPTCArea);
+    procedure Palette(APalette: IPTCPalette);
+    function Palette: IPTCPalette;
+    procedure Clip(AArea: IPTCArea);
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function GetPitch: Integer;
+    function GetArea: IPTCArea;
+    function Clip: IPTCArea;
+    function GetFormat: IPTCFormat;
+    function Option(const AOption: string): Boolean;
+
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property Pitch: Integer read GetPitch;
+    property Area: IPTCArea read GetArea;
+    property Format: IPTCFormat read GetFormat;
+  end;
+
+class function TPTCSurfaceFactory.CreateNew(AWidth, AHeight: Integer; AFormat: IPTCFormat): IPTCSurface;
+begin
+  Result := TPTCSurface.Create(AWidth, AHeight, AFormat);
+end;
+
+constructor TPTCSurface.Create(AWidth, AHeight: Integer; AFormat: IPTCFormat);
 var
   size: Integer;
 begin
@@ -41,7 +109,7 @@ begin
   LOG('format', AFormat);
   FWidth := AWidth;
   FHeight := AHeight;
-  FFormat := TPTCFormat.Create(AFormat);
+  FFormat := AFormat;
   FArea := TPTCArea.Create(0, 0, AWidth, AHeight);
   FClip := TPTCArea.Create(FArea);
   FPitch := AWidth * AFormat.Bytes;
@@ -63,21 +131,17 @@ begin
   end;
   FCopy.Free;
   FClear.Free;
-  FPalette.Free;
-  FClip.Free;
-  FArea.Free;
-  FFormat.Free;
   FreeMem(FPixels);
   inherited Destroy;
 end;
 
-procedure TPTCSurface.Copy(ASurface: TPTCBaseSurface);
+procedure TPTCSurface.Copy(ASurface: IPTCSurface);
 begin
   ASurface.Load(FPixels, FWidth, FHeight, FPitch, FFormat, FPalette);
 end;
 
-procedure TPTCSurface.Copy(ASurface: TPTCBaseSurface;
-                           const ASource, ADestination: TPTCArea);
+procedure TPTCSurface.Copy(ASurface: IPTCSurface;
+                           ASource, ADestination: IPTCArea);
 begin
   ASurface.Load(FPixels, FWidth, FHeight, FPitch, FFormat, FPalette,
                 ASource, ADestination);
@@ -100,10 +164,8 @@ end;
 
 procedure TPTCSurface.Load(const APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette);
-var
-  Area_: TPTCArea;
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette);
 begin
   if FClip.Equals(FArea) then
   begin
@@ -113,51 +175,35 @@ begin
                FWidth, FHeight, FPitch);
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, AWidth, AHeight);
-    try
-      Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area_, FArea);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Load(APixels, AWidth, AHeight, APitch, AFormat, APalette,
+         TPTCArea.Create(0, 0, AWidth, AHeight), FArea);
 end;
 
 procedure TPTCSurface.Load(const APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 var
-  clipped_source: TPTCArea = nil;
-  clipped_destination: TPTCArea = nil;
-  area_: TPTCArea = nil;
+  clipped_source: IPTCArea;
+  clipped_destination: IPTCArea;
 begin
-  try
-    clipped_source := TPTCArea.Create;
-    clipped_destination := TPTCArea.Create;
-    area_ := TPTCArea.Create(0, 0, AWidth, AHeight);
-    TPTCClipper.Clip(ASource, area_, clipped_source, ADestination, FClip,
-                     clipped_destination);
-    FCopy.Request(AFormat, FFormat);
-    FCopy.Palette(APalette, FPalette);
-    FCopy.Copy(APixels, clipped_source.left, clipped_source.top,
-               clipped_source.width, clipped_source.height, APitch,
-               FPixels, clipped_destination.left, clipped_destination.top,
-               clipped_destination.width, clipped_destination.height, FPitch);
-  finally
-    clipped_source.Free;
-    clipped_destination.Free;
-    area_.Free;
-  end;
+  TPTCClipper.Clip(ASource, TPTCArea.Create(0, 0, AWidth, AHeight),
+                   clipped_source,
+                   ADestination, FClip,
+                   clipped_destination);
+  FCopy.Request(AFormat, FFormat);
+  FCopy.Palette(APalette, FPalette);
+  FCopy.Copy(APixels, clipped_source.left, clipped_source.top,
+             clipped_source.width, clipped_source.height, APitch,
+             FPixels, clipped_destination.left, clipped_destination.top,
+             clipped_destination.width, clipped_destination.height, FPitch);
 end;
 
 procedure TPTCSurface.Save(APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette);
-var
-  area_: TPTCArea;
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette);
 begin
   if FClip.Equals(FArea) then
   begin
@@ -167,99 +213,71 @@ begin
                AWidth, AHeight, APitch);
   end
   else
-  begin
-    area_ := TPTCArea.Create(0, 0, width, height);
-    try
-      Save(APixels, AWidth, AHeight, APitch, AFormat, APalette, FArea, area_);
-    finally
-      area_.Free;
-    end;
-  end;
+    Save(APixels, AWidth, AHeight, APitch, AFormat, APalette,
+         FArea, TPTCArea.Create(0, 0, width, height));
 end;
 
 procedure TPTCSurface.Save(APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 var
-  clipped_source: TPTCArea = nil;
-  clipped_destination: TPTCArea = nil;
-  area_: TPTCArea = nil;
+  clipped_source: IPTCArea;
+  clipped_destination: IPTCArea;
 begin
-  try
-    clipped_source := TPTCArea.Create;
-    clipped_destination := TPTCArea.Create;
-    area_ := TPTCArea.Create(0, 0, AWidth, AHeight);
-    TPTCClipper.Clip(ASource, FClip, clipped_source, ADestination, area_,
-                     clipped_destination);
-    FCopy.Request(FFormat, AFormat);
-    FCopy.Palette(FPalette, APalette);
-    FCopy.Copy(FPixels, clipped_source.left, clipped_source.top,
-               clipped_source.width, clipped_source.height, FPitch,
-               APixels, clipped_destination.left, clipped_destination.top,
-               clipped_destination.width, clipped_destination.height, APitch);
-  finally
-    clipped_source.Free;
-    clipped_destination.Free;
-    area_.Free;
-  end;
+  TPTCClipper.Clip(ASource, FClip,
+                   clipped_source,
+                   ADestination, TPTCArea.Create(0, 0, AWidth, AHeight),
+                   clipped_destination);
+  FCopy.Request(FFormat, AFormat);
+  FCopy.Palette(FPalette, APalette);
+  FCopy.Copy(FPixels, clipped_source.left, clipped_source.top,
+             clipped_source.width, clipped_source.height, FPitch,
+             APixels, clipped_destination.left, clipped_destination.top,
+             clipped_destination.width, clipped_destination.height, APitch);
 end;
 
 procedure TPTCSurface.Clear;
 var
-  Color: TPTCColor;
+  Color: IPTCColor;
 begin
   if Format.Direct then
     Color := TPTCColor.Create(0, 0, 0, 0)
   else
     Color := TPTCColor.Create(0);
-  try
-    Clear(Color);
-  finally
-    Color.Free;
-  end;
+
+  Clear(Color);
 end;
 
-procedure TPTCSurface.Clear(const AColor: TPTCColor);
+procedure TPTCSurface.Clear(AColor: IPTCColor);
 begin
   Clear(AColor, FArea);
 end;
 
-procedure TPTCSurface.Clear(const AColor: TPTCColor; const AArea: TPTCArea);
+procedure TPTCSurface.Clear(AColor: IPTCColor; AArea: IPTCArea);
 var
-  clipped_area: TPTCArea;
+  clipped_area: IPTCArea;
 begin
-  clipped_area := TPTCClipper.clip(AArea, FClip);
-  try
-    FClear.Request(FFormat);
-    FClear.Clear(FPixels, clipped_area.left, clipped_area.top,
-                 clipped_area.width, clipped_area.height, FPitch, AColor);
-  finally
-    clipped_area.Free;
-  end;
+  clipped_area := TPTCClipper.Clip(AArea, FClip);
+  FClear.Request(FFormat);
+  FClear.Clear(FPixels, clipped_area.left, clipped_area.top,
+               clipped_area.width, clipped_area.height, FPitch, AColor);
 end;
 
-procedure TPTCSurface.Palette(const APalette: TPTCPalette);
+procedure TPTCSurface.Palette(APalette: IPTCPalette);
 begin
-  FPalette.Load(APalette.data^);
+  FPalette.Load(APalette.Data^);
 end;
 
-function TPTCSurface.Palette: TPTCPalette;
+function TPTCSurface.Palette: IPTCPalette;
 begin
   Result := FPalette;
 end;
 
-procedure TPTCSurface.Clip(const AArea: TPTCArea);
-var
-  tmp: TPTCArea;
+procedure TPTCSurface.Clip(AArea: IPTCArea);
 begin
-  tmp := TPTCClipper.Clip(AArea, FArea);
-  try
-    FClip.Assign(tmp);
-  finally
-    tmp.Free;
-  end;
+  FClip := TPTCClipper.Clip(AArea, FArea);
 end;
 
 function TPTCSurface.GetWidth: Integer;
@@ -277,17 +295,17 @@ begin
   Result := FPitch;
 end;
 
-function TPTCSurface.GetArea: TPTCArea;
+function TPTCSurface.GetArea: IPTCArea;
 begin
   Result := FArea;
 end;
 
-function TPTCSurface.Clip: TPTCArea;
+function TPTCSurface.Clip: IPTCArea;
 begin
   Result := FClip;
 end;
 
-function TPTCSurface.GetFormat: TPTCFormat;
+function TPTCSurface.GetFormat: IPTCFormat;
 begin
   Result := FFormat;
 end;

@@ -22,7 +22,6 @@
 unit cgppc;
 
 {$i fpcdefs.inc}
-
   interface
 
     uses
@@ -62,6 +61,9 @@ unit cgppc;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
         procedure g_maybe_got_init(list: TAsmList); override;
+        { Transform unsupported methods into Internal errors }
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+        procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
        protected
         function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
@@ -108,6 +110,11 @@ unit cgppc;
        globals,verbose,systems,cutils,
        symconst,symsym,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
+
+{ We know that macos_direct_globals is a const boolean
+  but we don't care about this warning }
+{$NOTE Is macos_direct_globals still useful?}
+{$WARN 6018 OFF}
 
 {$ifdef extdebug}
      function ref2string(const ref : treference) : string;
@@ -523,6 +530,16 @@ unit cgppc;
          a_load_store(list,op,reg,ref2);
        end;
 
+
+  procedure tcgppcgen.g_stackpointer_alloc(list : TAsmList;localsize : longint);
+    begin
+      Comment(V_Error,'tcgppcgen.g_stackpointer_alloc method not implemented');
+    end;
+
+  procedure tcgppcgen.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+    begin
+      Comment(V_Error,'tcgppcgen.a_bit_scan_reg_reg method not implemented');
+    end;
 
   procedure tcgppcgen.a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister);
     var

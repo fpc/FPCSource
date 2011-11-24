@@ -15,12 +15,12 @@ interface
 
 {$undef USE_FPCGI}
 
-uses 
+uses
 {$ifdef USE_FPCGI}
      fpcgi,
 {$else not USE_FPCGI}
      cgiapp,
-{$endif not USE_FPCGI}     
+{$endif not USE_FPCGI}
      sysutils,mysql50conn,sqldb,whtml,dbwhtml,db,
      tresults,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
@@ -147,7 +147,7 @@ Const
 Var
   SDetailsURL : string;
 
-type 
+type
   known_versions = (
     ver_unknown,
     ver_1_0_10,
@@ -208,7 +208,7 @@ const
    '2.7.1'
   );
 
-  ver_branch : array [known_versions] of string = 
+  ver_branch : array [known_versions] of string =
   (
    '',
    '',
@@ -252,7 +252,7 @@ begin
         2 : CreateRunPie;
         3 : ShowOneTest;
         4 : ShowHistory;
-{$ifdef TEST}        
+{$ifdef TEST}
         98 :
           begin
             ///EmitOverviewForm;
@@ -262,7 +262,7 @@ begin
             system.Writeln(stdout,'</PRE>');
             system.Flush(stdout);
           end;
-        99 : 
+        99 :
           begin
             EmitOverviewForm;
             system.Writeln(stdout,'<PRE>');
@@ -273,7 +273,7 @@ begin
 {$endif TEST}
         end;
     finally
-      EmitEnd; 
+      EmitEnd;
       DisConnectFromDB;
     end;
   Finally
@@ -306,7 +306,7 @@ begin
   FVersion:=RequestVariables['version'];
   if Length(FVersion) = 0 then
     FVersion:=RequestVariables['TESTVERSION'];
-  
+
   FOS:=RequestVariables['os'];
   if Length(FOS) = 0 then
     FOS:=RequestVariables['TESTOS'];
@@ -614,7 +614,7 @@ begin
         EmitInput('testfileid',FTestfileid);
       CellEnd;
     RowNext; *)
- 
+
       CellStart;
         Write('Operating system:');
       CellNext;
@@ -720,7 +720,7 @@ end;
 
 
 procedure TTestSuite.EmitEnd;
-begin  
+begin
   if not FNeedEnd then
     exit;
   AddResponseLn('</BODY>');
@@ -794,6 +794,9 @@ Procedure TTestSuite.ShowRunOverview;
 Const
   SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU,TO_NAME as OS,'+
                'TV_VERSION as Version,COUNT(TR_ID) as Count,'+
+               'TU_CATEGORY_FK,TU_SVNCOMPILERREVISION as SvnCompRev,'+
+               'TU_SVNRTLREVISION as SvnRTLRev,'+
+               'TU_SVNPACKAGESREVISION as SvnPackRev,TU_SVNTESTSREVISION as SvnTestsRev,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
                '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
@@ -1023,7 +1026,7 @@ begin
                   Write('/'+Q2.FieldByName('Total').AsString);
                end;
             CellEnd;
- 
+
           RowNext;
             CellStart;
               Write('Comment:');
@@ -1171,7 +1174,7 @@ begin
         +',TR_OK as OK,TR_RESULT as Result'
         +' FROM '+TESTRESULTSTableName(FRunID)+',TESTS'
         +' WHERE (TR_TEST_FK=T_ID) AND (TR_TESTRUN_FK='+FRunID+') ';
-        
+
       If FOnlyFailed then
         S:=S+' AND (TR_OK="-")';
       If FNoSkipped then
@@ -1271,10 +1274,10 @@ begin
         Res:=ShowRunData;
         Res:=true;
       end
-    else 
+    else
       begin
         // This is useless as it is now
-        // It should be integrated into a form probably PM 
+        // It should be integrated into a form probably PM
         Write('Only failed tests');
         EmitCheckBox('failedonly','1',FonlyFailed);
         Write('Hide skipped tests');
@@ -1300,8 +1303,8 @@ begin
               begin
                 FieldValue:=Fields[i].AsString;
                 FieldName:=Fields[i].DisplayName;
-                
-                if (FieldValue<>'') and (FieldValue<>'-') and 
+
+                if (FieldValue<>'') and (FieldValue<>'-') and
                    (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
                   begin
                     if (FieldValue='+') then
@@ -1315,14 +1318,14 @@ begin
                     DumpLn('<BR>');
                   end;
               end;
-           
+
           Finally
             Close;
           end;
         Finally
           Free;
         end;
-      ParaGraphEnd;  
+      ParaGraphEnd;
       HeaderStart(2);
       Write('Detailed test run results:');
 
@@ -1398,7 +1401,7 @@ begin
               begin
                 Category:=getsingleton('select TU_CATEGORY_FK from TESTRUN where TU_ID='+FRunId);
                 FVersionBranch:=GetVersionName(getsingleton('select TU_VERSION_FK from TESTRUN where TU_ID='+fRunId));
-                LLog:=''; 
+                LLog:='';
                 Try
                 LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+frunid+')');
@@ -1418,12 +1421,12 @@ begin
                       HeaderStart(2);
                       Write('No log of '+FRunId+'.');
                       HeaderEnd(2);
-                    end;  
-                end;  
-              end;  
+                    end;
+                end;
+              end;
             if FCompareRunId<>'' then
               begin
-                LLog:=''; 
+                LLog:='';
                 Try
                 LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+fcomparerunid+')');
@@ -1443,13 +1446,13 @@ begin
                       HeaderStart(2);
                       Write('No log of '+FCompareRunId+'.');
                       HeaderEnd(2);
-                    end;  
-                end;  
-              end;  
+                    end;
+                end;
+              end;
             if FDebug then
               Write('After Log.');
             Source:='';
-            Try  
+            Try
             Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
             if Source<>'' then
               begin
@@ -1461,7 +1464,7 @@ begin
                 system.flush(output);
                 PreformatEnd;
               end;
-            Finally 
+            Finally
             Base:='trunk';
             if  FVersionBranch<>'' then
               begin
@@ -1500,14 +1503,14 @@ begin
                   '<A HREF="'+FViewVCURL+FTestFileName+'?view=markup'+
                   '" TARGET="fpc_source"> '+FTestFileName+'</A> source. ');
                 HeaderEnd(3);
-              end;  
-            end;  
+              end;
+            end;
              if FDebug then
               Write('After Source.');
     end
     else
       Write(Format('No data for test file with ID: %s',[FTestFileID]));
-      
+
     end;
 end;
 
@@ -1515,7 +1518,7 @@ end;
 Procedure TTestSuite.ShowHistory;
 Const
   MaxCombo = 50;
-Type 
+Type
   StatusLongintArray = Array [TTestStatus] of longint;
   StatusDateTimeArray = Array [TTestStatus] of TDateTime;
   AStatusLA = Array[1..MaxCombo] of StatusLongintArray;
@@ -1583,10 +1586,10 @@ begin
         Res:=ShowRunData;
         Res:=true;
       end
-    else 
+    else
       begin
         // This is useless as it is now
-        // It should be integrated into a form probably PM 
+        // It should be integrated into a form probably PM
         //Write('Only failed tests');
         //EmitCheckBox('failedonly','1',FonlyFailed);
         //Write('Hide skipped tests');
@@ -1612,7 +1615,7 @@ begin
                   begin
                     FieldValue:=Fields[i].AsString;
                     FieldName:=Fields[i].DisplayName;
-                    if (FieldValue<>'') and (FieldValue<>'-') and 
+                    if (FieldValue<>'') and (FieldValue<>'-') and
                        (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
                       begin
                         if (FieldValue='+') then
@@ -1626,14 +1629,14 @@ begin
                         DumpLn('<BR>');
                       end;
                   end;
-               
+
               Finally
                 Close;
               end;
             Finally
               Free;
             end;
-          ParaGraphEnd;  
+          ParaGraphEnd;
           HeaderStart(2);
           Write('Detailed test run results:');
         end;
@@ -1753,7 +1756,7 @@ begin
       With Q do
         try
           Open;
-          
+
           while not EOF do
             Next;
 
@@ -1810,7 +1813,7 @@ begin
               run_id:=Fields[run_ind].ASLongint;
               if (error=0) and (Resi>=longint(FirstStatus)) and
                  (Resi<=longint(LastStatus)) then
-                begin   
+                begin
                   TS:=TTestStatus(Resi);
                   if Result_count[TS]=0 then
                     begin
@@ -1819,7 +1822,7 @@ begin
                       first_date_id[TS]:=run_id;
                       last_date_id[TS]:=run_id;
                     end
-                  else 
+                  else
                     begin
                       if (date>last_date[TS]) then
                         begin
@@ -1832,7 +1835,7 @@ begin
                           first_date_id[TS]:=run_id;
                         end;
                     end;
-                    
+
                   inc(Result_count[TS]);
                   if assigned(cpu_count) and (cpu_id<=cpu_last) then
                     begin
@@ -1843,7 +1846,7 @@ begin
                           cpu_first_date_id^[cpu_id,TS]:=run_id;
                           cpu_last_date_id^[cpu_id,TS]:=run_id;
                         end
-                      else 
+                      else
                         begin
                           if (date>cpu_last_date^[cpu_id,TS]) then
                             begin
@@ -1867,7 +1870,7 @@ begin
                           os_first_date_id^[os_id,TS]:=run_id;
                           os_last_date_id^[os_id,TS]:=run_id;
                         end
-                      else 
+                      else
                         begin
                           if (date>os_last_date^[os_id,TS]) then
                             begin
@@ -1891,7 +1894,7 @@ begin
                           version_first_date_id^[version_id,TS]:=run_id;
                           version_last_date_id^[version_id,TS]:=run_id;
                         end
-                      else 
+                      else
                         begin
                           if (date>version_last_date^[version_id,TS]) then
                             begin
@@ -2085,7 +2088,7 @@ begin
               begin
                 Category:=getsingleton('select TU_CATEGORY_FK from TESTRUN where TU_ID='+FRunId);
                 FVersionBranch:=GetVersionName(getsingleton('select TU_VERSION_FK from TESTRUN where TU_ID='+fRunId));
-                LLog:=''; 
+                LLog:='';
                 Try
                 LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+frunid+')');
@@ -2105,12 +2108,12 @@ begin
                       HeaderStart(2);
                       Write('No log of '+FRunId+'.');
                       HeaderEnd(2);
-                    end;  
-                end;  
-              end;  
+                    end;
+                end;
+              end;
             if FCompareRunId<>'' then
               begin
-                LLog:=''; 
+                LLog:='';
                 Try
                 LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+fcomparerunid+')');
@@ -2130,13 +2133,13 @@ begin
                       HeaderStart(2);
                       Write('No log of '+FCompareRunId+'.');
                       HeaderEnd(2);
-                    end;  
-                end;  
-              end;  
+                    end;
+                end;
+              end;
             if FDebug then
               Write('After log.');
             Source:='';
-            Try  
+            Try
             Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
             if Source<>'' then
               begin
@@ -2148,7 +2151,7 @@ begin
                 system.flush(output);
                 PreformatEnd;
               end;
-            Finally 
+            Finally
             Base:='trunk';
             if  FVersionBranch<>'' then
               begin
@@ -2187,14 +2190,14 @@ begin
                   '<A HREF="'+FViewVCURL+FTestFileName+'?view=markup'+
                   '" TARGET="fpc_source"> '+FTestFileName+'</A> source. ');
                 HeaderEnd(3);
-              end;  
-            end;  
+              end;
+            end;
              if FDebug then
               Write('After Source.');
     end
     else
       Write(Format('No data for test file with ID: %s',[FTestFileID]));
-      
+
     end;
   if assigned(os_count) then
     begin
@@ -2388,7 +2391,7 @@ begin
         BGColor:='#68DFB8'
       else if Run1Field.ASString<>'+' then
         BGColor:='#98FB98';    // pale Green
-      end  
+      end
     else if Run2Field.AsString='-' then
       begin
       Inc(FRunFailedCount);
@@ -2453,7 +2456,7 @@ begin
   if FVersion<>'' then
     S:=Format(TestSuiteCGIURL + '?action=4&version=%s&testfileid=%s',
        [FVersion,P.DataSet.FieldByName('Id').AsString])
-  else 
+  else
     S:=Format(TestSuiteCGIURL + '?action=4&testfileid=%s',
        [P.DataSet.FieldByName('Id').AsString]);
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
@@ -2471,7 +2474,7 @@ begin
   if FCompareRunID<>'' then
     S:=Format(TestSuiteCGIURL + '?action=3&run1id=%s&run2id=%s&testfileid=%s',
        [FRunID,FCompareRunID,P.DataSet.FieldByName('Id').AsString])
-  else 
+  else
     S:=Format(TestSuiteCGIURL + '?action=3&run1id=%s&testfileid=%s',
        [FRunID,P.DataSet.FieldByName('Id').AsString]);
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
@@ -2487,7 +2490,7 @@ begin
   Val(CellData,Res,Error);
   if (Error=0) and (Res>=longint(FirstStatus)) and
      (Res<=longint(LastStatus)) then
-    begin   
+    begin
       TS:=TTestStatus(Res);
       CellData:=StatusText[TS];
     end;

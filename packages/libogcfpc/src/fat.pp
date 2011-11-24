@@ -13,8 +13,6 @@ uses
 function fatInit(cacheSize: cuint32; setAsDefaultDevice: cbool): cbool; cdecl; external;
 function fatInitDefault: cbool; cdecl; external;
 
-type
-  PDISC_INTERFACE = ^DISC_INTERFACE;
 function fatMountSimple(name_: pcchar; interface_: PDISC_INTERFACE): cbool; cdecl; external;
 
 function fatMount(name_: pcchar; interface_: PDISC_INTERFACE; startSector: sec_t; cacheSize, SectorsPerPage: cuint32): cbool; cdecl; external;

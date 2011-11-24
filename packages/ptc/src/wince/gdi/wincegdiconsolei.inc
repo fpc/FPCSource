@@ -30,7 +30,6 @@
 }
 
 constructor TWinCEGDIConsole.Create;
-
 begin
   inherited Create;
 
@@ -43,15 +42,11 @@ begin
   FArea := TPTCArea.Create;
   FClip := TPTCArea.Create;
 
+  SetLength(FModes, 1);
   FModes[0] := TPTCMode.Create(FDisplayWidth, FDisplayHeight, FDefaultFormat);
-  FModes[1] := TPTCMode.Create;
 end;
 
 destructor TWinCEGDIConsole.Destroy;
-
-var
-  I: Integer;
-
 begin
   Close;
 
@@ -60,43 +55,31 @@ begin
   FEventQueue.Free;
   FCopy.Free;
   FClear.Free;
-  FArea.Free;
-  FClip.Free;
-  FDefaultFormat.Free;
-
-  for I := Low(FModes) to High(FModes) do
-    FModes[I].Free;
 
   inherited Destroy;
 end;
 
 procedure TWinCEGDIConsole.Open(const ATitle: string; APages: Integer = 0);
-
 begin
   Open(ATitle, FDefaultFormat, APages);
 end;
 
-procedure TWinCEGDIConsole.Open(const ATitle: string; const AFormat: TPTCFormat;
+procedure TWinCEGDIConsole.Open(const ATitle: string; AFormat: IPTCFormat;
                                 APages: Integer = 0);
-
 begin
   Open(ATitle, FDisplayWidth, FDisplayHeight, AFormat, APages);
 end;
 
-procedure TWinCEGDIConsole.Open(const ATitle: string; const AMode: TPTCMode;
+procedure TWinCEGDIConsole.Open(const ATitle: string; AMode: IPTCMode;
                                 APages: Integer = 0);
-
 begin
   Open(ATitle, AMode.Width, AMode.Height, AMode.Format, APages);
 end;
 
 procedure TWinCEGDIConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
-                                const AFormat: TPTCFormat; APages: Integer = 0);
-
+                                AFormat: IPTCFormat; APages: Integer = 0);
 var
   DeviceContext: HDC;
-  tmp: TPTCArea;
-
 begin
   LOG('TWinCEGDIConsole.Open');
 
@@ -137,13 +120,8 @@ begin
   if FBitmap = 0 then
     raise TPTCError.Create('could not create dib section');
 
-  tmp := TPTCArea.Create(0, 0, FDisplayWidth, FDisplayHeight);
-  try
-    FArea.Assign(tmp);
-    FClip.Assign(tmp);
-  finally
-    tmp.Free;
-  end;
+  FArea := TPTCArea.Create(0, 0, FDisplayWidth, FDisplayHeight);
+  FClip := FArea;
 
   FEventQueue := TEventQueue.Create;
   FKeyboard := TWinCEKeyboard.Create(FEventQueue);
@@ -157,7 +135,6 @@ begin
 end;
 
 procedure TWinCEGDIConsole.Close;
-
 begin
   LOG('TWinCEGDIConsole.Close');
 
@@ -179,27 +156,23 @@ begin
   FOpen := False;
 end;
 
-procedure TWinCEGDIConsole.Copy(ASurface: TPTCBaseSurface);
-
+procedure TWinCEGDIConsole.Copy(ASurface: IPTCSurface);
 begin
   {todo...}
 end;
 
-procedure TWinCEGDIConsole.Copy(ASurface: TPTCBaseSurface;
-                                const ASource, ADestination: TPTCArea);
-
+procedure TWinCEGDIConsole.Copy(ASurface: IPTCSurface;
+                                ASource, ADestination: IPTCArea);
 begin
   {todo...}
 end;
 
 procedure TWinCEGDIConsole.Load(const APixels: Pointer;
                                 AWidth, AHeight, APitch: Integer;
-                                const AFormat: TPTCFormat;
-                                const APalette: TPTCPalette);
+                                AFormat: IPTCFormat;
+                                APalette: IPTCPalette);
 var
-  Area_: TPTCArea;
   console_pixels: Pointer;
-
 begin
   CheckOpen(    'TWinCEGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette)');
   CheckUnlocked('TWinCEGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette)');
@@ -221,50 +194,30 @@ begin
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, width, height);
-    try
-      Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area_, Area);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, TPTCArea.Create(0, 0, width, height), Area);
 end;
 
 procedure TWinCEGDIConsole.Load(const APixels: Pointer;
                                 AWidth, AHeight, APitch: Integer;
-                                const AFormat: TPTCFormat;
-                                const APalette: TPTCPalette;
-                                const ASource, ADestination: TPTCArea);
+                                AFormat: IPTCFormat;
+                                APalette: IPTCPalette;
+                                ASource, ADestination: IPTCArea);
 var
   console_pixels: Pointer;
-  clipped_source, clipped_destination: TPTCArea;
-  tmp: TPTCArea;
-
+  clipped_source, clipped_destination: IPTCArea;
 begin
   CheckOpen(    'TWinCEGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination)');
   CheckUnlocked('TWinCEGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination)');
-  clipped_source := nil;
-  clipped_destination := nil;
   try
     console_pixels := Lock;
     try
-      clipped_source := TPTCArea.Create;
-      clipped_destination := TPTCArea.Create;
-      tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
-      try
-        TPTCClipper.Clip(ASource, tmp, clipped_source, ADestination, Clip, clipped_destination);
-      finally
-        tmp.Free;
-      end;
+      TPTCClipper.Clip(ASource, TPTCArea.Create(0, 0, AWidth, AHeight), clipped_source, ADestination, Clip, clipped_destination);
       FCopy.request(AFormat, Format);
       FCopy.palette(APalette, Palette);
       FCopy.copy(APixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, APitch,
                  console_pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, Pitch);
     finally
       Unlock;
-      clipped_source.Free;
-      clipped_destination.Free;
     end;
   except
     on error: TPTCError do
@@ -274,73 +227,64 @@ end;
 
 procedure TWinCEGDIConsole.Save(APixels: Pointer;
                                 AWidth, AHeight, APitch: Integer;
-                                const AFormat: TPTCFormat;
-                                const APalette: TPTCPalette);
-
+                                AFormat: IPTCFormat;
+                                APalette: IPTCPalette);
 begin
   {todo...}
 end;
 
 procedure TWinCEGDIConsole.Save(APixels: Pointer;
                                 AWidth, AHeight, APitch: Integer;
-                                const AFormat: TPTCFormat;
-                                const APalette: TPTCPalette;
-                                const ASource, ADestination: TPTCArea);
-
+                                AFormat: IPTCFormat;
+                                APalette: IPTCPalette;
+                                ASource, ADestination: IPTCArea);
 begin
   {todo...}
 end;
 
 function TWinCEGDIConsole.Lock: Pointer;
-
 begin
   Result := FBitmapPixels; // todo...
   FLocked := True;
 end;
 
 procedure TWinCEGDIConsole.Unlock;
-
 begin
   FLocked := False;
 end;
 
 procedure TWinCEGDIConsole.Clear;
-
 begin
   {todo...}
 end;
 
-procedure TWinCEGDIConsole.Clear(const AColor: TPTCColor);
-
+procedure TWinCEGDIConsole.Clear(AColor: IPTCColor);
 begin
   {todo...}
 end;
 
-procedure TWinCEGDIConsole.Clear(const AColor: TPTCColor;
-                                 const AArea: TPTCArea);
-
+procedure TWinCEGDIConsole.Clear(AColor: IPTCColor;
+                                 AArea: IPTCArea);
 begin
   {todo...}
 end;
 
-procedure TWinCEGDIConsole.Configure(const AFileName: String);
-
+procedure TWinCEGDIConsole.Configure(const AFileName: string);
 var
   F: Text;
   S: string;
-
 begin
   AssignFile(F, AFileName);
-  {$I-}
+  {$push}{$I-}
   Reset(F);
-  {$I+}
+  {$pop}
   if IOResult <> 0 then
     exit;
   while not EoF(F) do
   begin
-    {$I-}
+    {$push}{$I-}
     Readln(F, S);
-    {$I+}
+    {$pop}
     if IOResult <> 0 then
       Break;
     Option(S);
@@ -348,8 +292,7 @@ begin
   CloseFile(F);
 end;
 
-function TWinCEGDIConsole.Option(const AOption: String): Boolean;
-
+function TWinCEGDIConsole.Option(const AOption: string): Boolean;
 begin
   LOG('console option', AOption);
 
@@ -358,61 +301,45 @@ begin
   Result := FCopy.Option(AOption);
 end;
 
-procedure TWinCEGDIConsole.Palette(const APalette: TPTCPalette);
-
+procedure TWinCEGDIConsole.Palette(APalette: IPTCPalette);
 begin
   {todo...}
 end;
 
-procedure TWinCEGDIConsole.Clip(const AArea: TPTCArea);
-
-var
-  tmp: TPTCArea;
-
+procedure TWinCEGDIConsole.Clip(AArea: IPTCArea);
 begin
   CheckOpen('TWinCEGDIConsole.Clip(AArea)');
 
-  tmp := TPTCClipper.Clip(AArea, FArea);
-  try
-    FClip.Assign(tmp);
-  finally
-    tmp.Free;
-  end;
+  FClip := TPTCClipper.Clip(AArea, FArea);
 end;
 
-function TWinCEGDIConsole.Clip: TPTCArea;
-
+function TWinCEGDIConsole.Clip: IPTCArea;
 begin
   CheckOpen('TWinCEGDIConsole.Clip');
   Result := FClip;
 end;
 
-function TWinCEGDIConsole.Palette: TPTCPalette;
-
+function TWinCEGDIConsole.Palette: IPTCPalette;
 begin
   {todo...}
 end;
 
-function TWinCEGDIConsole.Modes: PPTCMode;
-
+function TWinCEGDIConsole.Modes: TPTCModeList;
 begin
-  Result := @FModes[0];
+  Result := FModes;
 end;
 
 procedure TWinCEGDIConsole.Flush;
-
 begin
   {todo...}
 end;
 
 procedure TWinCEGDIConsole.Finish;
-
 begin
   {todo...}
 end;
 
 function TWinCEGDIConsole.WndProc(Ahwnd: HWND; AuMsg: UINT; AwParam: WPARAM; AlParam: LPARAM): LRESULT;
-
 begin
   case AuMsg of
   WM_CLOSE: begin
@@ -442,11 +369,9 @@ begin
 end;
 
 procedure TWinCEGDIConsole.Update;
-
 var
   ClientRect: RECT;
   DeviceContext, DeviceContext2: HDC;
-
 begin
   CheckOpen(    'TWinCEGDIConsole.Update');
   CheckUnlocked('TWinCEGDIConsole.Update');
@@ -464,11 +389,11 @@ begin
       begin
         SelectObject(DeviceContext2, FBitmap);
 
-	StretchBlt(DeviceContext,
-	           0, 0, ClientRect.right, ClientRect.bottom,
-		   DeviceContext2,
-		   0, 0, FBitmapInfo.Width, FBitmapInfo.Height,
-		   SRCCOPY);
+        StretchBlt(DeviceContext,
+                   0, 0, ClientRect.right, ClientRect.bottom,
+                   DeviceContext2,
+                   0, 0, FBitmapInfo.Width, FBitmapInfo.Height,
+                   SRCCOPY);
 
         DeleteDC(DeviceContext2);
       end;
@@ -478,20 +403,17 @@ begin
   end;
 end;
 
-procedure TWinCEGDIConsole.Update(const AArea: TPTCArea);
-
+procedure TWinCEGDIConsole.Update(AArea: IPTCArea);
 begin
   {todo...}
   Update;
 end;
 
-function TWinCEGDIConsole.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
-
+function TWinCEGDIConsole.NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
 begin
   CheckOpen('TWinCEGDIConsole.NextEvent');
 //  CheckUnlocked('TWinCEGDIConsole.NextEvent');
 
-  FreeAndNil(AEvent);
   repeat
     { update window }
     FWindow.Update;
@@ -502,8 +424,7 @@ begin
   Result := AEvent <> nil;
 end;
 
-function TWinCEGDIConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
-
+function TWinCEGDIConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 begin
   CheckOpen('TWinCEGDIConsole.PeekEvent');
 //  CheckUnlocked('TWinCEGDIConsole.PeekEvent');
@@ -518,69 +439,59 @@ begin
 end;
 
 function TWinCEGDIConsole.GetWidth: Integer;
-
 begin
   CheckOpen('TWinCEGDIConsole.GetWidth');
   Result := FBitmapInfo.Width;
 end;
 
 function TWinCEGDIConsole.GetHeight: Integer;
-
 begin
   CheckOpen('TWinCEGDIConsole.GetHeight');
   Result := FBitmapInfo.Height;
 end;
 
 function TWinCEGDIConsole.GetPitch: Integer;
-
 begin
   CheckOpen('TWinCEGDIConsole.GetPitch');
   Result := FBitmapInfo.Pitch;
 end;
 
-function TWinCEGDIConsole.GetFormat: TPTCFormat;
-
+function TWinCEGDIConsole.GetFormat: IPTCFormat;
 begin
   CheckOpen('TWinCEGDIConsole.GetFormat');
   Result := FBitmapInfo.Format;
 end;
 
-function TWinCEGDIConsole.GetArea: TPTCArea;
-
+function TWinCEGDIConsole.GetArea: IPTCArea;
 begin
   CheckOpen('TWinCEGDIConsole.GetArea');
   Result := FArea;
 end;
 
 function TWinCEGDIConsole.GetPages: Integer;
-
 begin
   CheckOpen('TWinCEGDIConsole.GetPages');
   Result := 2;
 end;
 
 function TWinCEGDIConsole.GetName: string;
-
 begin
   Result := 'WinCE';
 end;
 
 function TWinCEGDIConsole.GetTitle: string;
-
 begin
   CheckOpen('TWinCEGDIConsole.GetTitle');
   Result := FTitle;
 end;
 
 function TWinCEGDIConsole.GetInformation: string;
-
 begin
   CheckOpen('TWinCEGDIConsole.GetInformation');
   Result := ''; // todo...
 end;
 
-procedure TWinCEGDIConsole.CheckOpen(AMessage: String);
-
+procedure TWinCEGDIConsole.CheckOpen(AMessage: string);
 begin
   if not FOpen then
   try
@@ -591,8 +502,7 @@ begin
   end;
 end;
 
-procedure TWinCEGDIConsole.CheckUnlocked(AMessage: String);
-
+procedure TWinCEGDIConsole.CheckUnlocked(AMessage: string);
 begin
   if FLocked then
   try

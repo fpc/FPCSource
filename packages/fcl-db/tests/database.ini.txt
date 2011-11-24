@@ -10,7 +10,6 @@ type=interbase
 
 ; PostgreSQL database:
 [postgresql]
-
 ; The connector specifies the DB-component that has to be used. The 'sql'
 ; connector tests the SQLDB components
 connector=sql
@@ -105,3 +104,7 @@ name=/tmp
 ; MemDS in memory dataset:
 [memds]
 connector=memds
+
+; BufDataset in memory dataset:
+[bufdataset]
+connector=bufdataset

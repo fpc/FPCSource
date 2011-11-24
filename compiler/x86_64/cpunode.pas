@@ -49,6 +49,7 @@ unit cpunode;
          get the correct class pointer }
        nx86set,
        nx86con,
+       nx86mem,
        nx64add,
        nx64cal,
        nx64cnv,

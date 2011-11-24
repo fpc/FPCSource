@@ -405,6 +405,7 @@ const
   parser_e_duplicate_implements_clause=03311;
   parser_e_mapping_no_implements=03312;
   parser_e_implements_no_mapping=03313;
+  parser_e_invalid_codepage=03314;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -499,6 +500,11 @@ const
   type_e_class_helper_must_extend_subclass=04101;
   type_e_record_helper_must_extend_same_record=04102;
   type_e_procedures_return_no_value=04103;
+  type_w_implicit_string_cast=04104;
+  type_w_implicit_string_cast_loss=04105;
+  type_w_explicit_string_cast=04106;
+  type_w_explicit_string_cast_loss=04107;
+  type_w_unicode_data_loss=04108;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -601,6 +607,7 @@ const
   cg_e_interprocedural_goto_only_to_outer_scope_allowed=06051;
   cg_e_labels_cannot_defined_outside_declaration_scope=06052;
   cg_e_goto_across_procedures_with_exceptions_not_allowed=06053;
+  cg_e_mod_only_defined_for_pos_quotient=06054;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -708,6 +715,10 @@ const
   asmr_e_empty_regset=07109;
   asmr_w_useless_got_for_local=07110;
   asmr_w_general_segment_with_constant=07111;
+  asmr_e_bad_seh_directive_offset=07112;
+  asmr_e_bad_seh_directive_register=07113;
+  asmr_e_seh_in_pure_asm_only=07114;
+  asmr_e_unsupported_directive=07115;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -731,6 +742,9 @@ const
   asmw_e_16bit_32bit_not_supported=08020;
   asmw_e_64bit_not_supported=08021;
   asmw_e_bad_reg_with_rex=08022;
+  asmw_e_missing_endprologue=08023;
+  asmw_e_prologue_too_large=08024;
+  asmw_e_handlerdata_no_handler=08025;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -764,6 +778,7 @@ const
   exec_e_cant_call_resource_compiler=09030;
   exec_e_cant_open_resource_file=09031;
   exec_e_cant_write_resource_file=09032;
+  exec_n_backquote_cat_file_not_found=09033;
   execinfo_f_cant_process_executable=09128;
   execinfo_f_cant_open_executable=09129;
   execinfo_x_codesize=09130;
@@ -903,9 +918,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 61274;
+  MsgTxtSize = 62105;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,89,314,104,85,54,112,23,202,63,
+    26,89,315,109,85,55,116,26,202,63,
     50,20,1,1,1,1,1,1,1,1
   );

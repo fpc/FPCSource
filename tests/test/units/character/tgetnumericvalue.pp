@@ -1,0 +1,70 @@
+program tgetnumericvalue;
+
+{$ifdef FPC}
+  {$mode objfpc}
+  {$H+}
+  {$PACKENUM 1}
+{$endif fpc} 
+
+{$ifndef FPC}
+  {$APPTYPE CONSOLE}    
+{$endif}
+  
+uses     
+  SysUtils,
+  character;
+    
+{$ifndef FPC}
+  type UnicodeChar = WideChar;   
+{$endif} 
+
+procedure DoError(ACode : Integer); overload;
+begin
+  WriteLn('Error #',ACode);
+  Halt(Acode);
+end;         
+    
+procedure DoError(ACode : Integer; ACodePoint : Integer); overload;
+begin
+  WriteLn('Error #',ACode,' ; CodePoint = ',IntToHex(ACodePoint,4));
+  Halt(Acode);
+end;          
+    
+procedure DoError(ACode : Integer; ACodePoint : UnicodeChar); overload;
+begin
+  WriteLn('Error #',ACode,' ; CodePoint = ',IntToHex(Ord(ACodePoint),4));
+  Halt(Acode);
+end;         
+
+var
+  e, i , k: Integer;
+  uc : UnicodeChar;
+  d : Double;
+begin  
+  e := 1;
+  k := 0;
+  for i := Low(Word) to High(Word) do begin
+    uc := UnicodeChar(i);
+    if (TCharacter.GetUnicodeCategory(uc) in
+          [ TUnicodeCategory.ucDecimalNumber,
+            TUnicodeCategory.ucLetterNumber,
+            TUnicodeCategory.ucOtherNumber
+          ] //TCharacter.IsNumber(uc)
+       )
+    then begin
+      WriteLn('CodePoint = ',IntToHex(Ord(uc),4), ' ; Value = ',TCharacter.GetNumericValue(uc));
+      Inc(k);
+    end;
+  end;
+  WriteLn(k, ' numbers',sLineBreak);
+
+  Inc(e);
+  for i := 0 to 9 do begin
+    uc := IntToStr(i)[1];
+    d := i;
+    if (TCharacter.GetNumericValue(uc) <> d) then
+      DoError(e,uc);
+  end;
+
+  WriteLn('ok');
+end.

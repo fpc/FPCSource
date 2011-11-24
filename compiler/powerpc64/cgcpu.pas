@@ -175,15 +175,9 @@ begin
   end;
 end;
 
-{$ifopt r+}
+{$push}
 {$r-}
-{$define rangeon}
-{$endif}
-
-{$ifopt q+}
 {$q-}
-{$define overflowon}
-{$endif}
 { helper function which calculate "magic" values for replacement of unsigned
  division by constant operation by multiplication. See the PowerPC compiler
  developer manual for more information }
@@ -198,7 +192,7 @@ begin
   two_N_minus_1 := aWord(1) shl (N-1);
 
   magic_add := false;
-  nc := - 1 - (-d) mod d;
+  nc := aWord(-1) - (-d) mod d;
   p := N-1; { initialize p }
   q1 := two_N_minus_1 div nc; { initialize q1 = 2p/nc }
   r1 := two_N_minus_1 - q1*nc; { initialize r1 = rem(2p,nc) }
@@ -275,15 +269,7 @@ begin
   end;
   magic_s := p - N; { resulting shift }
 end;
-{$ifdef rangeon}
-{$r+}
-{$undef rangeon}
-{$endif}
-
-{$ifdef overflowon}
-{$q+}
-{$undef overflowon}
-{$endif}
+{$pop}
 
 { finds positive and negative powers of two of the given value, returning the
  power and whether it's a negative power or not in addition to the actual result

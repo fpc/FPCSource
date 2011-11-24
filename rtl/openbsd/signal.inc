@@ -79,6 +79,7 @@ const
 type sigset_t = array[0..3] of cardinal;
 
     PSigContextRec = ^SigContextRec;
+    psigcontext = ^sigcontextrec;
     SigContextRec = record
        sc_mask      : sigset_t;          { signal mask to restore }
        sc_onstack   : longint;              { sigstack state to restore }
@@ -120,10 +121,46 @@ type sigset_t = array[0..3] of cardinal;
        fpr_pad      : array[0..63] of char;
        end;
 
+
+  Sigval = Record
+            Case Boolean OF
+        { Members as suggested by Annex C of POSIX 1003.1b. }
+                false : (sigval_int : Longint);
+                True  : (sigval_ptr : Pointer);
+            End;
+
+
+  PSigInfo   = ^SigInfo_t;
+  PSigInfo_t = ^SigInfo_t;
+  SigInfo_t = record
+                si_signo,                       { signal number }
+                si_errno,                       { errno association }
+        {
+         * Cause of signal, one of the SI_ macros or signal-specific
+         * values, i.e. one of the FPE_... values for SIGFPE. This
+         * value is equivalent to the second argument to an old-style
+         * FreeBSD signal handler.
+         }
+                si_code,                        { signal code }
+                si_pid          : Longint;      { sending process }
+                si_uid          : Cardinal;     { sender's ruid }
+                si_status       : Longint;      { exit value }
+                si_addr         : Pointer;      { faulting instruction }
+                si_value        : SigVal;       { signal value }
+                si_band         : Cardinal;     { band event for SIGPOLL }
+                __spare         : array[0..6] of Longint; { gimme some slack }
+                end;
+  TSigInfo = SigInfo_t;
+  TSigInfo_t = TSigInfo;
+
+
   SignalHandler   = Procedure(Sig : Longint);cdecl;
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
+  sigActionHandler = procedure(Sig: Longint; sininfo:psiginfo; SigContext: PSigContext);cdecl;
+
+
 
 {$ifdef powerpc}
   TSigaction=  procedure(Sig: Longint); cdecl;
@@ -140,9 +177,11 @@ type sigset_t = array[0..3] of cardinal;
   TSigset=sigset_t;
   PSigSet = ^SigSet;
 
+  PSigActionRec = ^SigActionRec;
   SigActionRec = packed record
 //    Handler  : record
-    sa_handler : TSigAction;
+    sa_handler  : sigActionHandler;
+//    sa_handler : TSigAction;
 //      case byte of
 //        0: (Sh: SignalHandler);
 //        1: (Sa: TSigAction);
@@ -150,8 +189,6 @@ type sigset_t = array[0..3] of cardinal;
     Sa_Flags    : Longint;
     Sa_Mask     : SigSet;
   end;
-
-  PSigActionRec = ^SigActionRec;
 
 {
   Change action of process upon receipt of a signal.

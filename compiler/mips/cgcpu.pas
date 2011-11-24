@@ -86,6 +86,9 @@ type
     procedure g_concatcopy_unaligned(list: tasmlist; const Source, dest: treference; len: tcgint); override;
     procedure g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
     procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
+    { Transform unsupported methods into Internal errors }
+    procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+    procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
   end;
 
   TCg64MPSel = class(tcg64f32)
@@ -1692,6 +1695,16 @@ begin
 
   List.concat(Tai_symbol_end.Createname(labelname));
 end;
+
+procedure TCgMPSel.g_stackpointer_alloc(list : TAsmList;localsize : longint);
+  begin
+    Comment(V_Error,'TCgMPSel.g_stackpointer_alloc method not implemented');
+  end;
+
+procedure TCgMPSel.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+  begin
+    Comment(V_Error,'TCgMPSel.a_bit_scan_reg_reg method not implemented');
+  end;
 
 {****************************************************************************
                                TCG64_MIPSel

@@ -190,6 +190,9 @@ implementation
 {*****************************************************************************
                                   Misc Helpers
 *****************************************************************************}
+{$if first_mm_imreg = 0}
+  {$WARN 4044 OFF} { Comparison might be always false ... }
+{$endif}
 
     procedure location_free(list: TAsmList; const location : TLocation);
       begin
@@ -1377,10 +1380,8 @@ implementation
            trashintval := trashintvalues[localvartrashing];
            case tabstractnormalvarsym(p).initialloc.loc of
              LOC_CREGISTER :
-{$ifopt q+}
-{$define overflowon}
+{$push}
 {$q-}
-{$endif}
                begin
                  { avoid problems with broken x86 shifts }
                  case tcgsize2size[tabstractnormalvarsym(p).initialloc.size] of
@@ -1399,10 +1400,7 @@ implementation
                      internalerror(2010060801);
                  end;
                end;
-{$ifdef overflowon}
-{$undef overflowon}
-{$q+}
-{$endif}
+{$pop}
              LOC_REFERENCE :
                begin
                    if ((tsym(p).typ=localvarsym) and
@@ -1512,7 +1510,7 @@ implementation
         current_asmdata.CurrAsmList:=asmlist;
         hp:=cloadnode.create(sym,sym.owner);
         if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
-          include(hp.flags,nf_isinternal_ignoreconst);
+          include(tloadnode(hp).loadnodeflags,loadnf_isinternal_ignoreconst);
         hp:=finalize_data_node(hp);
         firstpass(hp);
         secondpass(hp);

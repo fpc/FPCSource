@@ -60,6 +60,7 @@ type
     procedure TestInt;
     procedure TestScript;
     procedure TestInsertReturningQuery;
+    procedure TestOpenStoredProc;
 
     procedure TestTemporaryTable;
     procedure TestRefresh;
@@ -92,6 +93,7 @@ type
     procedure TestFmtBCDParamQuery;
     procedure TestFloatParamQuery;
     procedure TestBCDParamQuery;
+    procedure TestBytesParamQuery;
     procedure TestAggregates;
 
     procedure TestStringLargerThen8192;
@@ -147,6 +149,8 @@ const
     '1900-01-01'
   );
 
+  testBytesValuesCount = 5;
+  testBytesValues : Array[0..testBytesValuesCount-1] of shortstring = (#1#0#1#0#1, #0#0#1#0#1, #0''''#13#0#1, '\'#0'"\'#13, #13#13#0#10#10);
 
 procedure TTestFieldTypes.TestpfInUpdateFlag;
 var ds   : TCustomBufDataset;
@@ -792,6 +796,11 @@ begin
   TestXXParamQuery(ftBCD,'NUMERIC(10,4)',testBCDValuesCount);
 end;
 
+procedure TTestFieldTypes.TestBytesParamQuery;
+begin
+  TestXXParamQuery(ftBytes, FieldtypeDefinitions[ftBytes], testBytesValuesCount, true);
+end;
+
 procedure TTestFieldTypes.TestStringParamQuery;
 
 begin
@@ -815,6 +824,9 @@ procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl 
 var i : integer;
 
 begin
+  if ASQLTypeDecl = '' then
+    Ignore('Fields of the type ' + FieldTypeNames[ADatatype] + ' are not supported by this sqldb-connection type');
+
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, FIELD1 '+ASQLTypeDecl+')');
 
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
@@ -838,14 +850,18 @@ begin
         ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
         ftBCD    : Params.ParamByName('field1').AsCurrency:= testBCDValues[i];
         ftFixedChar,
-        ftString : Params.ParamByName('field1').AsString  := testStringValues[i];
+        ftString : Params.ParamByName('field1').AsString  := testValues[ADataType,i];
         ftTime   : Params.ParamByName('field1').AsTime  := TimeStringToDateTime(testTimeValues[i]);
         ftDate   : if cross then
                      Params.ParamByName('field1').AsString:= testDateValues[i]
                    else
                      Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
         ftDateTime:Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
-        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD:= StrToBCD(testFmtBCDValues[i],DBConnector.FormatSettings)
+        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i],DBConnector.FormatSettings);
+        ftBytes  : if cross then
+                     Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
+                   else
+                     Params.ParamByName('field1').AsBlob := testBytesValues[i];
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -869,7 +885,8 @@ begin
         ftTime   : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
         ftDate   : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
-        ftFMTBcd : AssertEquals(testFmtBCDValues[i],BCDToStr(FieldByName('FIELD1').AsBCD,DBConnector.FormatSettings))
+        ftFMTBcd : AssertEquals(testFmtBCDValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
+        ftBytes  : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -1185,6 +1202,46 @@ begin
     end;
 end;
 
+procedure TTestFieldTypes.TestOpenStoredProc;
+begin
+  with TSQLDBConnector(DBConnector) do
+  begin
+    if SQLDbType in MySQLdbTypes then
+    begin
+      Connection.ExecuteDirect('create procedure FPDEV_PROC() select 1 union select 2;');
+      Query.SQL.Text:='call FPDEV_PROC';
+    end
+    else if SQLDbType = interbase then
+    begin
+      Connection.ExecuteDirect('create procedure FPDEV_PROC returns (r integer) as begin r=1; end');
+      Query.SQL.Text:='execute procedure FPDEV_PROC';
+    end
+    else
+    begin
+      Ignore('This test does not apply to this sqldb-connection type, since it does not support selectable stored procedures.');
+      Exit;
+    end;
+    Transaction.CommitRetaining;
+
+    try
+      Query.Open;
+      AssertEquals(1, Query.Fields[0].AsInteger);
+      Query.Next;
+      if not(SQLDbType in [interbase]) then
+      begin
+        AssertFalse('Eof after 1st row', Query.Eof);
+        AssertEquals(2, Query.Fields[0].AsInteger);
+        Query.Next;
+      end;
+      AssertTrue('No Eof after last row', Query.Eof);
+      Query.Close;
+    finally
+      Connection.ExecuteDirect('drop procedure FPDEV_PROC');
+      Transaction.CommitRetaining;
+    end;
+  end;
+end;
+
 procedure TTestFieldTypes.TestClearUpdateableStatus;
 // Test if CanModify is correctly disabled in case of a select query without
 // a from-statement.
@@ -1364,13 +1421,13 @@ begin
                               ')                            ');
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
-    Query.SQL.Text := 'insert into FPDEV2(ID,NAME) values (1,''test1'')';
-    Query.ExecSQL;
     query.sql.Text:='select * from FPDEV2';
     Query.Open;
+    Query.InsertRecord([1,'test1']);
+    Query.ApplyUpdates;
+    Query.Close;
+    Query.Open;
     AssertEquals(query.FieldByName('NAME').AsString,'test1');
-    Query.insert;
-    query.fields[1].AsString:='11';
     query.Close;
     end;
 end;

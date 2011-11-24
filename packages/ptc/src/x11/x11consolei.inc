@@ -57,8 +57,6 @@ var
 begin
   Close;
   FreeAndNil(FX11Display);
-  for I := Low(FModes) to High(FModes) do
-    FreeAndNil(FModes[I]);
   inherited Destroy;
 end;
 
@@ -68,16 +66,16 @@ var
   S: string;
 begin
   AssignFile(F, AFileName);
-  {$I-}
+  {$push}{$I-}
   Reset(F);
-  {$I+}
+  {$pop}
   if IOResult <> 0 then
     exit;
   while not EoF(F) do
   begin
-    {$I-}
+    {$push}{$I-}
     Readln(F, S);
-    {$I+}
+    {$pop}
     if IOResult <> 0 then
       Break;
     Option(S);
@@ -223,41 +221,31 @@ begin
     Result := False;
 end;
 
-function TX11Console.Modes: PPTCMode;
+function TX11Console.Modes: TPTCModeList;
 var
   I: Integer;
 begin
-  for I := Low(FModes) to High(FModes) do
-    FreeAndNil(FModes[I]);
-
   if FX11Display = nil then
     FX11Display := CreateDisplay;
 
   FX11Display.GetModes(FModes);
 
-  Result := @FModes[0];
+  Result := FModes;
 end;
 
 {TODO: Find current pixel depth}
 procedure TX11Console.Open(const ATitle: string; APages: Integer = 0);
-var
-  tmp: TPTCFormat;
 begin
-  tmp := TPTCFormat.Create(32, $FF0000, $FF00, $FF);
-  try
-    Open(ATitle, tmp, APages);
-  finally
-    tmp.Free;
-  end;
+  Open(ATitle, TPTCFormat.Create(32, $FF0000, $FF00, $FF), APages);
 end;
 
-procedure TX11Console.Open(const ATitle: string; const AFormat: TPTCFormat;
+procedure TX11Console.Open(const ATitle: string; AFormat: IPTCFormat;
                            APages: Integer = 0);
 begin
   Open(ATitle, 640, 480, AFormat, APages);
 end;
 
-procedure TX11Console.Open(const ATitle: string; const AMode: TPTCMode;
+procedure TX11Console.Open(const ATitle: string; AMode: IPTCMode;
                            APages: Integer = 0);
 begin
   Open(ATitle, AMode.Width, AMode.Height, AMode.Format, APages);
@@ -305,7 +293,7 @@ begin
 end;
 
 procedure TX11Console.Open(const ATitle: string; AWidth, AHeight: Integer;
-                           const AFormat: TPTCFormat; APages: Integer = 0);
+                           AFormat: IPTCFormat; APages: Integer = 0);
 begin
   Close;
   FTitle := ATitle;
@@ -337,28 +325,28 @@ begin
   FX11Display.Update;
 end;
 
-procedure TX11Console.Update(const AArea: TPTCArea);
+procedure TX11Console.Update(AArea: IPTCArea);
 begin
   FX11Display.Update(AArea);
 end;
 
-function TX11Console.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+function TX11Console.NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
 begin
   Result := FX11Display.NextEvent(AEvent, AWait, AEventMask);
 end;
 
-function TX11Console.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+function TX11Console.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 begin
   Result := FX11Display.PeekEvent(AWait, AEventMask);
 end;
 
-procedure TX11Console.Copy(ASurface: TPTCBaseSurface);
+procedure TX11Console.Copy(ASurface: IPTCSurface);
 begin
   {todo!...}
 end;
 
-procedure TX11Console.Copy(ASurface: TPTCBaseSurface;
-                           const ASource, ADestination: TPTCArea);
+procedure TX11Console.Copy(ASurface: IPTCSurface;
+                           ASource, ADestination: IPTCArea);
 begin
   {todo!...}
 end;
@@ -375,75 +363,72 @@ end;
 
 procedure TX11Console.Load(const APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette);
 begin
   FX11Display.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette);
 end;
 
 procedure TX11Console.Load(const APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 begin
   FX11Display.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination);
 end;
 
 procedure TX11Console.Save(APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette);
 begin
   {todo!...}
 end;
 
 procedure TX11Console.Save(APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 begin
   {todo!...}
 end;
 
 procedure TX11Console.Clear;
 var
-  tmp: TPTCColor;
+  tmp: IPTCColor;
 begin
   if Format.Direct then
     tmp := TPTCColor.Create(0, 0, 0, 0)
   else
     tmp := TPTCColor.Create(0);
-  try
-    Clear(tmp);
-  finally
-    tmp.Free;
-  end;
+
+  Clear(tmp);
 end;
 
-procedure TX11Console.Clear(const AColor: TPTCColor);
+procedure TX11Console.Clear(AColor: IPTCColor);
 begin
   FX11Display.Clear(AColor);
 end;
 
-procedure TX11Console.Clear(const AColor: TPTCColor;
-                            const AArea: TPTCArea);
+procedure TX11Console.Clear(AColor: IPTCColor;
+                            AArea: IPTCArea);
 begin
   FX11Display.Clear(AColor, AArea);
 end;
 
-procedure TX11Console.Palette(const APalette: TPTCPalette);
+procedure TX11Console.Palette(APalette: IPTCPalette);
 begin
   FX11Display.Palette(APalette);
 end;
 
-function TX11Console.Palette: TPTCPalette;
+function TX11Console.Palette: IPTCPalette;
 begin
   Result := FX11Display.Palette;
 end;
 
-procedure TX11Console.Clip(const AArea: TPTCArea);
+procedure TX11Console.Clip(AArea: IPTCArea);
 begin
   FX11Display.Clip(AArea);
 end;
@@ -468,17 +453,17 @@ begin
   Result := 2;
 end;
 
-function TX11Console.GetArea: TPTCArea;
+function TX11Console.GetArea: IPTCArea;
 begin
   Result := FX11Display.Area;
 end;
 
-function TX11Console.Clip: TPTCArea;
+function TX11Console.Clip: IPTCArea;
 begin
   Result := FX11Display.Clip;
 end;
 
-function TX11Console.GetFormat: TPTCFormat;
+function TX11Console.GetFormat: IPTCFormat;
 begin
   Result := FX11Display.Format;
 end;

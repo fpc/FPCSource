@@ -258,6 +258,7 @@ interface
           default       : longint;
           dispid        : longint;
           propaccesslist: array[tpropaccesslisttypes] of tpropaccesslist;
+          parast : tsymtable;
           constructor create(const n : string);
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -395,14 +396,26 @@ implementation
 
 
     procedure tstoredsym.ppuwrite(ppufile:tcompilerppufile);
+      var
+        oldintfcrc : boolean;
       begin
          ppufile.putlongint(SymId);
          ppufile.putstring(realname);
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
+         { symoptions can differ between interface and implementation, except
+           for overload (this is checked in pdecsub.proc_add_definition() )
+
+           These differences can lead to compiler crashes, so ignore them.
+           This does mean that changing e.g. the "deprecated" state of a symbol
+           by itself will not trigger a recompilation of dependent units.
+         }
+         oldintfcrc:=ppufile.do_interface_crc;
+         ppufile.do_interface_crc:=false;
          ppufile.putsmallset(symoptions);
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
+         ppufile.do_interface_crc:=oldintfcrc;
       end;
 
 
@@ -946,6 +959,7 @@ implementation
          default:=0;
          propdef:=nil;
          indexdef:=nil;
+         parast:=nil;
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=tpropaccesslist.create;
       end;
@@ -957,13 +971,21 @@ implementation
       begin
          inherited ppuload(propertysym,ppufile);
          ppufile.getsmallset(propoptions);
-         ppufile.getderef(overriddenpropsymderef);
+         if ppo_overrides in propoptions then
+           ppufile.getderef(overriddenpropsymderef);
          ppufile.getderef(propdefderef);
          index:=ppufile.getlongint;
          default:=ppufile.getlongint;
          ppufile.getderef(indexdefderef);
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=ppufile.getpropaccesslist;
+         if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
+           begin
+             parast:=tparasymtable.create(nil,0);
+             tparasymtable(parast).ppuload(ppufile);
+           end
+         else
+           parast:=nil;
       end;
 
 
@@ -973,6 +995,7 @@ implementation
       begin
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap].free;
+         parast.free;
          inherited destroy;
       end;
 
@@ -981,11 +1004,15 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
-        overriddenpropsymderef.build(overriddenpropsym);
         propdefderef.build(propdef);
         indexdefderef.build(indexdef);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           propaccesslist[pap].buildderef;
+        if ppo_overrides in propoptions then
+          overriddenpropsymderef.build(overriddenpropsym)
+        else
+        if ppo_hasparameters in propoptions then
+          tparasymtable(parast).buildderef;
       end;
 
 
@@ -993,11 +1020,20 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
-        overriddenpropsym:=tpropertysym(overriddenpropsymderef.resolve);
         indexdef:=tdef(indexdefderef.resolve);
         propdef:=tdef(propdefderef.resolve);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           propaccesslist[pap].resolve;
+
+        if ppo_overrides in propoptions then
+          begin
+            overriddenpropsym:=tpropertysym(overriddenpropsymderef.resolve);
+            if ppo_hasparameters in propoptions then
+              parast:=overriddenpropsym.parast.getcopy;
+          end
+        else
+        if ppo_hasparameters in propoptions then
+          tparasymtable(parast).deref
       end;
 
 
@@ -1013,7 +1049,8 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(propoptions);
-        ppufile.putderef(overriddenpropsymderef);
+        if ppo_overrides in propoptions then
+          ppufile.putderef(overriddenpropsymderef);
         ppufile.putderef(propdefderef);
         ppufile.putlongint(index);
         ppufile.putlongint(default);
@@ -1021,6 +1058,8 @@ implementation
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           ppufile.putpropaccesslist(propaccesslist[pap]);
         ppufile.writeentry(ibpropertysym);
+        if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
+          tparasymtable(parast).ppuwrite(ppufile);
       end;
 
 

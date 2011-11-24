@@ -34,6 +34,9 @@ build=n
 # due to overwriting each other's link.res file
 .NOTPARALLEL:
 
+REG_SOURCES=$(wildcard *reg.pp)
+REG_EXES=$(subst .pp,$(EXEEXT),$(REG_SOURCES))
+
 ifndef NOCPUDEF
 ppu$(PPUEXT): ../ppu.pas
 	$(MAKE) ppu$(PPUEXT) NOCPUDEF=1
@@ -78,6 +81,9 @@ fpcfg.inc : fpinc.cfg
 fpini.inc : fpinc.ini
         $(DATA2INC) -b -s fpinc.ini fpini.inc fpini
 endif
+
+reg_exes: $(COMPILER_UNITTARGETDIR)
+	$(MAKE) $(REG_EXES)
 
 #
 # Don't export some tools, which are found in the current dir if it's in

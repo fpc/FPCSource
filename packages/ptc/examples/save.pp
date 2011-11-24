@@ -15,15 +15,14 @@ program SaveExample;
 uses
   ptc, Math;
 
-procedure save(surface: TPTCSurface; filename: string);
+procedure save(surface: IPTCSurface; filename: string);
 var
   F: File;
   width, height: Integer;
   size: Integer;
   y: Integer;
   pixels: PUint8 = nil;
-  format: TPTCFormat = nil;
-  palette: TPTCPalette = nil;
+  format: IPTCFormat;
   { generate the header for a true color targa image }
   header: array [0..17] of Uint8 =
     (0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -58,14 +57,13 @@ begin
     pixels := GetMem(size);
 
     {$IFDEF FPC_LITTLE_ENDIAN}
-    format := TPTCFormat.Create(24, $00FF0000, $0000FF00, $000000FF);
+    format := TPTCFormatFactory.CreateNew(24, $00FF0000, $0000FF00, $000000FF);
     {$ELSE FPC_LITTLE_ENDIAN}
-    format := TPTCFormat.Create(24, $000000FF, $0000FF00, $00FF0000);
+    format := TPTCFormatFactory.CreateNew(24, $000000FF, $0000FF00, $00FF0000);
     {$ENDIF FPC_LITTLE_ENDIAN}
-    palette := TPTCPalette.Create;
 
     { save surface to image pixels }
-    surface.save(pixels, width, height, width * 3, format, palette);
+    surface.save(pixels, width, height, width * 3, format, TPTCPaletteFactory.CreateNew);
 
     { write image pixels one line at a time }
     for y := height - 1 DownTo 0 do
@@ -74,9 +72,6 @@ begin
   finally
     { free image pixels }
     FreeMem(pixels);
-
-    palette.Free;
-    format.Free;
 
     CloseFile(F);
   end;
@@ -128,7 +123,7 @@ begin
   calculate := 0;
 end;
 
-procedure mandelbrot(console: TPTCConsole; surface: TPTCSurface;
+procedure mandelbrot(console: IPTCConsole; surface: IPTCSurface;
                      x1, y1, x2, y2: Single);
 const
   { constant values }
@@ -149,7 +144,7 @@ var
   count: Integer;
   index: Integer;
   color: Uint32;
-  area: TPTCArea;
+  area: IPTCArea;
 begin
   { generate fractal color table }
   for i := 0 to entries - 1 do
@@ -219,13 +214,10 @@ begin
       imaginary := imaginary + dy;
 
       { setup line area }
-      area := TPTCArea.Create(0, y, width, y + 1);
-      try
-        { copy surface area to console }
-        surface.copy(console, area, area);
-      finally
-        area.Free;
-      end;
+      area := TPTCAreaFactory.CreateNew(0, y, width, y + 1);
+
+      { copy surface area to console }
+      surface.copy(console, area, area);
 
       { update console area }
       console.update;
@@ -237,24 +229,24 @@ begin
 end;
 
 var
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  format: TPTCFormat = nil;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  format: IPTCFormat;
   x1, y1, x2, y2: Single;
 begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       { open the console with a single page }
       console.open('Save example', format, 1);
 
       { create surface matching console dimensions }
-      surface := TPTCSurface.Create(console.width, console.height, format);
+      surface := TPTCSurfaceFactory.CreateNew(console.width, console.height, format);
 
       { setup viewing area }
       x1 := -2.00;
@@ -271,10 +263,8 @@ begin
       { read key }
       console.ReadKey;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

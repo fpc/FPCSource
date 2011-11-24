@@ -136,7 +136,8 @@ type
     procedure GetServiceStatus(SHandle : THandle; Var Status : TServiceStatus); overload;
     procedure GetServiceStatus(ServiceName : String; Var Status : TServiceStatus); overload;
     Property  Handle : THandle Read FHandle;
-    Property  Acces : DWord read FAccess Write FAccess;
+    Property  Access : DWord read FAccess Write FAccess;    
+    Property  Acces : DWord read FAccess Write FAccess; deprecated; //Kept for compatibility
     Property  Services : TServiceEntries Read FServices;
   published
     { Published declarations }

@@ -324,6 +324,7 @@ type
     procedure FreeBuffers; virtual;
     function GetAsBCD: TBCD; virtual;
     function GetAsBoolean: Boolean; virtual;
+    function GetAsBytes: TBytes; virtual;
     function GetAsCurrency: Currency; virtual;
     function GetAsLargeInt: LargeInt; virtual;
     function GetAsDateTime: TDateTime; virtual;
@@ -350,6 +351,7 @@ type
     procedure ReadState(Reader: TReader); override;
     procedure SetAsBCD(const AValue: TBCD); virtual;
     procedure SetAsBoolean(AValue: Boolean); virtual;
+    procedure SetAsBytes(const AValue: TBytes); virtual;
     procedure SetAsCurrency(AValue: Currency); virtual;
     procedure SetAsDateTime(AValue: TDateTime); virtual;
     procedure SetAsFloat(AValue: Double); virtual;
@@ -384,6 +386,7 @@ type
     procedure Validate(Buffer: Pointer);
     property AsBCD: TBCD read GetAsBCD write SetAsBCD;
     property AsBoolean: Boolean read GetAsBoolean write SetAsBoolean;
+    property AsBytes: TBytes read GetAsBytes write SetAsBytes;
     property AsCurrency: Currency read GetAsCurrency write SetAsCurrency;
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
     property AsFloat: Double read GetAsFloat write SetAsFloat;
@@ -732,8 +735,11 @@ type
   TBinaryField = class(TField)
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
+    function GetAsBytes: TBytes; override;
     function GetAsString: string; override;
+    function GetAsVariant: Variant; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
+    procedure SetAsBytes(const AValue: TBytes); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
@@ -1097,7 +1103,7 @@ type
 
   { TParam }
 
-  TBlobData = string;
+  TBlobData = AnsiString;  // Delphi defines it as alias to TBytes
 
   TParamBinding = array of integer;
 

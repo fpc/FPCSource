@@ -35,6 +35,8 @@ uses
          fc_continue,
          fc_inflowcontrol,
          fc_gotolabel,
+         { in try block of try..finally }
+         fc_unwind,
          { the left side of an expression is already handled, so we are
            not allowed to do ssl }
          fc_lefthandled);
@@ -199,7 +201,7 @@ implementation
             if (not codegenerror) then
              begin
                if (p.location.loc<>p.expectloc) then
-                 Comment(V_Warning,'Location not equal to expectloc: '+nodetype2str[p.nodetype]);
+                 Comment(V_Warning,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype]);
                if (p.location.loc=LOC_INVALID) then
                  Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
              end;

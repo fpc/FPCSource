@@ -508,11 +508,11 @@ implementation
     function tblocknode.pass_1 : tnode;
       var
          hp : tstatementnode;
-         count : longint;
+         //count : longint;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-         count:=0;
+         //count:=0;
          hp:=tstatementnode(left);
          while assigned(hp) do
            begin
@@ -523,7 +523,7 @@ implementation
                    hp.expectloc:=hp.left.expectloc;
                 end;
               expectloc:=hp.expectloc;
-              inc(count);
+              //inc(count);
               hp:=tstatementnode(hp.right);
            end;
       end;

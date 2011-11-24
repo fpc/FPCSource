@@ -112,6 +112,8 @@ unit cgcpu;
         procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister; shuffle : pmmshuffle); override;
 
         procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); override;
+        { Transform unsupported methods into Internal errors }
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
       private
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
@@ -283,6 +285,7 @@ unit cgcpu;
                current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
                hr.symbol:=l;
+               hr.base:=NR_PC;
                list.concat(taicpu.op_reg_ref(A_LDR,reg,hr));
             end;
        end;
@@ -514,7 +517,8 @@ unit cgcpu;
         branchopcode: tasmop;
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if (current_settings.cputype<cpu_armv5) then
+        if (current_settings.cputype<cpu_armv5) or
+           (current_settings.cputype in cpu_thumb2) then
           branchopcode:=A_BL
         else
           branchopcode:=A_BLX;
@@ -640,8 +644,7 @@ unit cgcpu;
 
         if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
           case op of
-            OP_NEG,OP_NOT,
-            OP_DIV,OP_IDIV:
+            OP_NEG,OP_NOT:
               internalerror(200308281);
             OP_SHL:
               begin
@@ -742,11 +745,11 @@ unit cgcpu;
         else
           begin
             { there could be added some more sophisticated optimizations }
-            if (op in [OP_MUL,OP_IMUL]) and (a=1) then
+            if (op in [OP_MUL,OP_IMUL,OP_DIV,OP_IDIV]) and (a=1) then
               a_load_reg_reg(list,size,size,src,dst)
             else if (op in [OP_MUL,OP_IMUL]) and (a=0) then
               a_load_const_reg(list,size,0,dst)
-            else if (op in [OP_IMUL]) and (a=-1) then
+            else if (op in [OP_IMUL,OP_IDIV]) and (a=-1) then
               a_op_reg_reg(list,OP_NEG,size,src,dst)
             { we do this here instead in the peephole optimizer because
               it saves us a register }
@@ -935,6 +938,7 @@ unit cgcpu;
            ((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and
             ((ref.offset<-1020) or
              (ref.offset>1020) or
+             ((abs(ref.offset) mod 4)<>0) or
              { the usual pc relative symbol handling assumes possible offsets of +/- 4095 }
              assigned(ref.symbol)
             )
@@ -1349,6 +1353,11 @@ unit cgcpu;
         a_jmp_cond(list,cmp_op,l);
       end;
 
+
+    procedure tcgarm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+      begin
+        Comment(V_Error,'tcgarm.a_bit_scan_reg_reg method not implemented');
+      end;
 
     procedure tcgarm.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
@@ -3192,8 +3201,7 @@ unit cgcpu;
       begin
         ovloc.loc:=LOC_VOID;
         case op of
-           OP_NEG,OP_NOT,
-           OP_DIV,OP_IDIV:
+           OP_NEG,OP_NOT:
               internalerror(200308281);
            OP_ROL:
               begin

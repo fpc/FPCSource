@@ -281,7 +281,6 @@ implementation
           old_current_module : tmodule;
           oldcurrent_procinfo : tprocinfo;
           old_settings : tsettings;
-          oldsourcecodepage : tcodepagestring;
           old_switchesstatestack : tswitchesstatestack;
           old_switchesstatestackpos : Integer;
         end;

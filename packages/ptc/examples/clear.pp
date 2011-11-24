@@ -16,27 +16,27 @@ uses
   SysUtils, ptc;
 
 var
-  console: TPTCConsole = nil;
-  format: TPTCFormat = nil;
-  surface: TPTCSurface = nil;
+  console: IPTCConsole;
+  format: IPTCFormat;
+  surface: IPTCSurface;
   width, height: Integer;
   x, y: Integer;
   size: Integer;
-  area: TPTCArea = nil;
-  color: TPTCColor = nil;
+  area: IPTCArea;
+  color: IPTCColor;
 begin
   try
     { create console }
-    console := TPTCConsole.Create;
+    console := TPTCConsoleFactory.CreateNew;
 
     { create format }
-    format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+    format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
     { open the console }
     console.open('Clear example', format);
 
     { create surface matching console dimensions }
-    surface := TPTCSurface.Create(console.width, console.height, format);
+    surface := TPTCSurfaceFactory.CreateNew(console.width, console.height, format);
 
     { loop until a key is pressed }
     while not console.KeyPressed do
@@ -52,30 +52,23 @@ begin
       { get random area size }
       size := Random(width div 8);
 
-      try
-        { setup clear area }
-        area := TPTCArea.Create(x-size, y-size, x+size, y+size);
+      { setup clear area }
+      area := TPTCAreaFactory.CreateNew(x-size, y-size, x+size, y+size);
 
-        { create random color }
-        color := TPTCColor.Create(Random, Random, Random);
+      { create random color }
+      color := TPTCColorFactory.CreateNew(Random, Random, Random);
 
-        { clear surface area with color }
-        surface.clear(color, area);
+      { clear surface area with color }
+      surface.clear(color, area);
 
-        { copy to console }
-        surface.copy(console);
+      { copy to console }
+      surface.copy(console);
 
-        { update console }
-        console.update;
-      finally
-        FreeAndNil(area);
-        FreeAndNil(color);
-      end;
+      { update console }
+      console.update;
     end;
-    console.close;
-    console.Free;
-    surface.Free;
-    format.Free;
+    if Assigned(console) then
+      console.close;
   except
     on error: TPTCError do
       { report error }

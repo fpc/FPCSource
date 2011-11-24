@@ -98,6 +98,8 @@ type
    PWordarray = ^TWordArray;
    TWordArray = array[0..16383] of Word;
 
+   TBytes = array of Byte;   
+
    { exceptions }
    Exception = class(TObject)
     private
@@ -199,6 +201,11 @@ type
    ENoWideStringSupport = Class(Exception);
    ENotImplemented = class(Exception);
 
+   EArgumentException = class(Exception);
+   EArgumentOutOfRangeException = class(EArgumentException);
+
+   ENoConstructException = class(Exception);
+
    { Exception handling routines }
    function ExceptObject: TObject;
    function ExceptAddr: Pointer;
@@ -261,6 +268,7 @@ Type
 
   { MCBS functions }
   {$i sysansih.inc}
+  {$i syscodepagesh.inc}
 
   { wide string functions }
   {$i syswideh.inc}
@@ -268,6 +276,7 @@ Type
 {$ifdef FPC_HAS_UNICODESTRING}
   { unicode string functions }
   {$i sysunih.inc}
+  {$i sysencodingh.inc}
 {$endif FPC_HAS_UNICODESTRING}
 
   { Read filename handling functions declaration }

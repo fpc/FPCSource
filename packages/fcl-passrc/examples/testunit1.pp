@@ -12,6 +12,10 @@ interface
  uses 
   SysUtils,Classes;
 
+
+resourcestring
+ SParserErrorAtToken = 'parser error at token';
+ 
  const
   AnIntegerConst=1;
   AStringConst='Hello, World!';
@@ -24,11 +28,31 @@ interface
   ADeprecatedConst=1 deprecated;
    
  Type
+  TLineEndStr = string [3];
+
+  TDeprecatedType = Integer deprecated;
+  TDeprecatedRecord = Record
+    x,Y : Integer; 
+  end deprecated;
+  TDeprecatedFieldsRecord = Record
+    x,Y : Integer deprecated; 
+  end;
+  TDeprecatedFieldsRecord2 = Record
+    x,Y : Integer deprecated
+  end;
   TAnEnumType=(one,two,three);
   TASetType=set of TAnEnumType;
+  TIntegerSet = Set of 0..SizeOf(Integer)*8-1;
   TAnArrayType=Array[1..10] of Integer;
   TASubRangeType=one..two;
   TABooleanArrayType=Array[Boolean] of Integer;  
+  TDay = (monday,tuesday,wednesday,thursday,friday,saturday,sunday);
+  TShortDay = (mon,tue,wed,thu,fri,sat,sun);
+  TShortDays = set of TShortDay;
+  TDays = set of TDay;
+  TMyInteger = Integer;
+  ADouble = type double;
+  arangetypealias = type 0..$FF;
   TARecordType=record
                    X,Y: Integer;
                    Z: String;
@@ -54,9 +78,36 @@ interface
                  3 : (Z : Longint);  
                  );  
           end;                           
+
+TYPE
+   PPoint = ^TPoint;
+   TPoint = OBJECT
+      X, Y: Sw_Integer;
+   END;
+
+   PRect = ^TRect;
+   TRect = OBJECT
+      A, B: TPoint;                                { Corner points }
+      FUNCTION Empty: Boolean;
+      FUNCTION Equals (R: TRect): Boolean;
+      FUNCTION Contains (P: TPoint): Boolean;
+      PROCEDURE Copy (R: TRect);
+      PROCEDURE Union (R: TRect);
+      PROCEDURE Intersect (R: TRect);
+      PROCEDURE Move (ADX, ADY: Sw_Integer);
+      PROCEDURE Grow (ADX, ADY: Sw_Integer);
+      PROCEDURE Assign (XA, YA, XB, YB: Sw_Integer);
+   END;
+               
+
+  TNotifyEvent = Procedure (Sender : TObject) of object;
+  TNotifyEvent2 = Function (Sender : TObject) : Integer of object;
+ 
                           
 //  TADeprecatedType = Integer deprecated;
-
+  TMyChildClass = Class;
+  MyInterface = Interface;
+  
   { TMyParentClass }
 
   TMyParentClass=Class(TComponent)
@@ -99,18 +150,47 @@ interface
   Published
     Property AProtectedProp;
   end;
-  
- TPasFunctionType=Class(TPasProcedureType)
+  TC = TMyChildClass;
+
+  TPasFunctionType=Class(TObject)
   public
     destructor Destroy; override;
-    Class Function TypeName: string; override;
-    Function ElementTypeName: string; override;
-    Function GetDeclaration(Full: boolean): string; override;
+    Class Function TypeName: string;
+    Function ElementTypeName: string; 
+    Function GetDeclaration(Full: boolean): string; 
+    Procedure Something;  strict
+  Private  
+    Procedure SomethingElse;
   public
-    ResultEl: TPasResultElement;
+    ResultEl: TObject;
   end; 
-                        
- var
+
+  TPropModifiers = Class(TObject)
+  Private
+    FB : Integer;
+    Function IsStored : Boolean;
+    Function GetI(AI : Integer) : Integer;
+    Procedure SetI(AI : Integer; AVal : Integer);
+  Published
+    Property A : Integer Read FB Write FB Stored False;
+    Property B : Integer Read FB Write FB Stored True;
+    Property C : Integer Read FB Write FB Stored IsStored;
+    Property D : Integer Read FB Write FB Default 1;
+    Property E : Integer Read FB Write FB Stored True Default 1;
+  Public
+    Property Ints[AI : Integer] : Integer Read GetI Write SetI; default;
+  end;
+  
+  TPropModifiers2 = class(TPropModifiers)
+  Public
+    Property Ints[AI : Integer] : Integer Read GetI Write SetI; default; deprecated;
+  end;                          
+  
+  TEdit = Class(TObject)
+    Text : String;
+  end;
+  
+var
   ASimpleVar: Integer;  
   ATypedVar: TMethod;
   ARecordVar: Record
@@ -122,8 +202,16 @@ interface
   
   ADeprecatedVar: Integer deprecated;
   ACVarVar: Integer ; cvar;
-  AnExternalVar: Integer ;external name 'avar';
-  AnExternalLibVar: Integer ;external 'library' name 'avar';
+  AnExternalVar1: Integer; external;
+  AnExternalVar2: Integer; external name 'avar';
+  AnExternalLibVar: Integer; external 'library' name 'avar';
+  APublicVar : String; public;
+  APublicVar2 : String; public name 'ANAME';
+  APublicVar3 : String; export;
+  APublicVar4 : String; export name 'nono';
+  APublicVar5 : String; cvar; external;
+  APublicVar6 : String; external name 'me';
+  APublicVar7 : String deprecated; external name 'me';
       
  Procedure SimpleProc;
  Procedure OverloadedProc(A: Integer);
@@ -146,17 +234,31 @@ interface
  Procedure externalproc; external;
  Procedure externalnameProc; external name 'aname';
  Procedure externallibnameProc; external 'alibrary' name 'aname';
+ Function  hi(q : QWord) : DWord;   [INTERNPROC: fpc_in_hi_qword];
 
-  
+ 
+Type
+ generic TFPGListEnumerator<T> = class(TObject)
+ protected
+    FList: TFPList;
+    FPosition: Integer;
+    function GetCurrent: T;
+ end;                 
+ TFPGListEnumeratorSpec = specialize TFPGListEnumerator<TPasFunctionType>; 
+
+ 
 Implementation
 
 
  Procedure SimpleProc;
 
- procedure  SubProc;
+  procedure  SubProc;
+  Var S : String;
   begin
    s:= s+'a';
   end;
+ Var
+   a,B,c,i : integer;
 
  begin
   a:= 1;
@@ -166,6 +268,8 @@ Implementation
  end;
 
  Procedure OverloadedProc(A: Integer);
+ Var
+   i : integer;
  begin
   if i=1 then ;
  end;
@@ -229,7 +333,11 @@ Implementation
  end;
 
  procedure TMyChildClass.AnAbstractProc;
+ 
  procedure  SubCProc;
+ 
+   Var sc : string;
+   
   begin
    sc:= sc+'ac';
   end;
@@ -300,12 +408,142 @@ Implementation
  procedure TMyParentClass.SomePublishedMethod;
  begin
  end;
- 
+
+
  Class Function TPasFunctionType.TypeName: String;
  begin
   Result:= 'Function';
  end;
 
+Type
+  TI = Class(TComponent)
+  Public
+    FP : Integer;
+    Procedure SetP1(A : Integer); virtual;
+    Procedure M1;virtual;
+    Function F1  : Integer; virtual;
+    procedure test; virtual;
+    property P : Integer Read FP Write SetP1;
+  end;
+  
+  Procedure TI.M1;
+  begin
+  end;
+  Procedure TI.Test;
+  begin
+  end;
+  Function TI.F1 : Integer; 
+  begin
+  Result:=0;
+  end;
+  Procedure TI.SetP1(A : Integer);
+  begin
+    FP:=A;
+  end;
+  
+TYpe
+  TI2 = Class(TI)
+  procedure write(s : string);
+  Procedure SetP1(A : Integer); override;
+  Procedure M1;override;
+  Procedure Test;override;
+  Function F1 : integer; override;
+  procedure donothing;
+  property P : Integer Read F1 Write SetP1;
+  end;
+  Procedure TI2.M1;
+  begin
+    Inherited;
+  end;
+  Procedure TI2.Write(s : string);
+  begin
+    writeln(s);
+  end;
+  Function TI2.F1 :Integer; 
+  begin
+     Result:=0;
+  end;
+  Procedure TI2.Test;
+  begin
+  if true then
+    Inherited Test
+  else
+    DoNothing;
+    Inherited test;
+   if true then
+     Inherited
+   else
+     DoNothing;
+  end;
+  Procedure TI2.DoNothing;
+    function escapetext(s : string) : string;
+    begin
+    end;
+  var
+  Atext : string;
+  begin
+    Self.Write(EscapeText(AText)); 
+    TComponent.Create(Self);
+  end;
+  Procedure TI2.SetP1(A : Integer);
+  begin
+    FP:=A;
+    Inherited P:= 3;
+    Inherited SetP1(3);
+    Inherited P:= Ord(A);
+  end;
+
+
+ procedure usage;
+ begin
+ end;
+ Procedure DoSomething;
+ begin
+ end;
+ Procedure DoSomethingElse;
+ begin
+ end;
+ procedure stat1;
+ begin
+ end;
+ procedure stat2;
+ begin
+ end;
+ procedure stat3;
+ begin
+ end;
+ procedure stat4;
+ begin
+ end;
+ procedure stat5;
+ begin
+ end;
+ procedure stat6;
+ begin
+ end;
+ procedure stat7;
+ begin
+ end;
+  procedure stat8;
+ begin
+ end;
+ procedure stat9;
+ begin
+ end;
+ procedure doit;
+ begin
+ end;
+ procedure statement;
+ begin
+ end;
+ procedure work;
+ begin
+ end;
+ procedure kissdwarf(i : integer);
+ 
+ begin
+   writeln('kiss dwarf',i);
+ end;
  procedure Statements;
  const
   cint=1;
@@ -340,14 +578,32 @@ Implementation
   AR=record
       X,Y: LongInt;
      end;
+  TScanner = record
+   currow,curcolumn : integer;
+   curfilename : string;
+  end;  
+
   //PAR = Record;
  var
+  msg,curtokenname : string;
   TheCustomer: Passenger;
   L: ^LongInt;
   P: PPChar;
   S,T: Ar;
-      
+  M, X,Y : Double;
+  Done : Boolean;
+  Weather,Good: Boolean;  
+  c : char;
+  j,dwarfs,i,Number,Block : integer;
+  exp1,exp2,exp3,exp4,exp5,exp6,exp7,exp8,exp9 : boolean;
+  o : Tobject;
+  day,today : tday;
+  A,B,D : Passenger;
+  E : Exception;
+  scanner : tscanner;
+    
  begin
+  O:=Nil;
   X:= X+Y;
   //EparserError on C++ style
   //X+=Y;      { Same as X := X+Y, needs -Sc command line switch}
@@ -368,7 +624,7 @@ Implementation
   //Goto jumpto;
 
   Case i of
-    3: DoSomething;
+    6: DoSomething;
     1..5: DoSomethingElse;
   end;
 
@@ -426,19 +682,19 @@ Implementation
   else
     stat2;
 
- if i is integer then
+ if o is TObject then
   begin
-    write('integer');
+    write('object');
   end
   else 
-    if i is real then 
+    if o is TMyParentClass then 
   begin
     write('real');
   end
   else 
     write('0'); 
 
-  if Today in[Monday..Friday] then
+  if Today in [Monday..Friday] then
     WriteLn('Must work harder')
   else
     WriteLn('Take a day off.');
@@ -472,21 +728,21 @@ Implementation
      I:= I+2;
     end;
     X:= X/2;
-    while x>=10e-3 do 
-      dec(x);
+    while i>=10e-3 do 
+      dec(i);
 
-    while x>0 do 
-    while y>0 do 
+    while i>0 do 
+    while j>0 do 
       begin
-	dec(x);
-	dec(y);
+	dec(i);
+	dec(j);
       end;
 
-    while x>0 do
-    if x>2 then 
-     dec(x)
+    while i>0 do
+    if i>2 then 
+     dec(i)
     else 
-     dec(x,2);
+     dec(i,2);
 
       X:= 2+3;
 
@@ -499,12 +755,11 @@ Implementation
        Flight:= 'PS901';
       end;
 
-  With A,B,C,D do
+  With A,B,D do
    Statement;
 
     With A do
      With B do
-      With C do
        With D do 
         Statement;
 
@@ -521,60 +776,77 @@ Implementation
 
     try
 	try
-	  M:= ParseSource(E,cmdl,'linux','i386');
+	  M:= Y;
 	except
 	  on excep: EParserError do
 	    begin
-	      writeln(excep.message,' line:',excep.row,' column:',excep.column,' file:',excep.filename);
+	      writeln(excep.message,' : ',excep.classname);
 	      raise ;
 	  end;
 	end;
-	Decls:= M.InterfaceSection.Declarations;
-	for I:= 0 to Decls.Count-1 do
-	  Writeln('Interface item ',I,': ');
-
 	FreeAndNil(M);
     finally
 	FreeAndNil(E)
    end;
    
-   raise EParserError.Create(Format(SParserErrorAtToken, [Msg, CurTokenName]) {$ifdef addlocation}+' ('+inttostr(scanner.currow)+' '+inttostr(scanner.curcolumn)+')'{$endif},Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn);
+   raise EParserError.Create(Format(SParserErrorAtToken, [Msg, CurTokenName]) {$ifdef addlocation}+' ('+inttostr(scanner.currow)+' '+inttostr(scanner.curcolumn)+')'{$endif});
     
     // try else
  end;
 
- procedure Expression;
+ function addone : integer;
  begin
-  A:= a+b *c /(-e+f)*3 div 2 + 4 mod 5 - 2 shl 3 + 3 shr 1 ;
+ end;
+  procedure myproc;
+  begin
+  end;
+ procedure Expression;
+
+  Var
+    A,b,c,d,e,f,i,j : Integer;
+    x : double;
+    u : Boolean;
+    fu : function : integer;
+    ad : boolean;
+    z : tdays;
+    today,tomorrow : tday;
+    bs : set of byte;
+    cs : set of char;
+    cc : char;  
+    W : TShortDays;
+    buffer : array[1..10] of byte;
+    P : Pointer;
+    SErrMultipleSourceFiles,FileName,Dirname,S : string;
+    o,co : tobject;
+    
+ begin
+  x:= a+b *c /(-e+f)*(3 div 2) + 4 mod 5 - 2 shl 3 + 3 shr 1 ;
   b:= (a and not b) or c xor d;
-  u:= i<=2 or a<>b or j>=3;
-  u:= i=1 or a>b or b<a or i<>2;
+  u:= (i<=2) or (a<>b) or (j>=3);
+  u:= (i=1) or (a>b) or (b<a) or (i<>2);
   u:= i in [1..2];
 
- If F=@AddOne Then  
+ If Fu=@AddOne Then  
   WriteLn('Functions are equal');
 
- If F()=Addone then  
+ If Fu()=Addone then  
   WriteLn('Functions return same values ');
 
  z:= [today,tomorrow];
  z:= [Monday..Friday,Sunday];
- z:= [2,3*2,6*2,9*2];
- z:= ['A'..'Z','a'..'z','0'..'9'];
+ bs:= [2,3*2,6*2,9*2];
+ cs:= ['A'..'Z','a'..'z','0'..'9'];
 
- x:= Byte('A');
- x:= Char(48);
- x:= boolean(1);
- x:= longint(@Buffer);
- x:= Integer('A');
- x:= Char(4875);
- x:= Word(@Buffer);
+ i:= Byte('A');
+ cc:= Char(48);
+ ad:= boolean(1);
+ i:= longint(@Buffer);
+ i:= Integer('A');
+ cc:= Char(225);
+ i:= Word(@Buffer);
 
  B:= Byte(C);
- Char(B):= C;
 
- TWordRec(W).L:= $FF;
- TWordRec(W).H:= 0;
  S:= TObject(P).ClassName;
 
  P:= @MyProc; //warum @ ? fix pparser 769 ?
@@ -585,31 +857,12 @@ Implementation
  W:= [mon,tue,wed]-[wed];     // equals [mon,tue]
  W:= [mon,tue,wed]*[wed,thu,fri]; // equals [wed] warum * ?
 
- (C as TEdit).Text:= 'Some text';
- C:= O as TComponent;
+ (Co as TEdit).Text:= 'Some text';
+ Co:= O as TComponent;
 
- if A is TComponent then ;
- If A is B then ;
+ if co is TComponent then ;
+ If co is TC then ;
 
- Inherited ;
- Inherited Test;
-
-  if true then
-    Inherited
-  else
-    DoNothing;
-
-  if true then
-    Inherited Test
-  else
-    DoNothing;
-
-   Inherited P:= 3;  
-   Inherited SetP1(3); 
-   Result:= Char(P and $FF);  
-   Result:= Char((Inherited P) and $FF);  
-   Inherited P:= Ord(AValue);
-   Result:= Inherited InterPretOption(Cmd,Arg);
 
   raise Exception.Create(SErrMultipleSourceFiles);
 
@@ -621,8 +874,6 @@ Implementation
 	else
 	  Filename:= s;
 
-  Self.Write(EscapeText(AText)); 
-  TObject.Create(Self);
  end;
 
  constructor TPasPackage.Create(const AName: String; AParent: TPasElement);

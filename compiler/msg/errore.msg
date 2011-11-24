@@ -41,6 +41,9 @@
 #   x_   executable informations
 #   o_   normal (e.g., "press enter to continue")
 #
+# <type> can contain a minus sign at the beginning to mark that
+# the message is off by default. Look at type_w_explicit_string_cast
+# for example.
 
 #
 # General
@@ -375,7 +378,7 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 #
 # Parser
 #
-# 03310 is the last used one
+# 03314 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1400,10 +1403,13 @@ parser_e_mapping_no_implements=03312_E_Interface "$1" can't be delegated by "$2"
 % has to implement the interface directly. Delegation is not possible.
 parser_e_implements_no_mapping=03313_E_Interface "$1" can't have method resolutions, "$2" already delegates it
 % Method resoulution is only possible for interfaces that are implemented directly, not by delegation.
+parser_e_invalid_codepage=03314_E_Invalid codepage
+% When declaring a string with a given codepage, the range of valid codepages values is limited
+% to 0 to 65535.
 % \end{description}
 # Type Checking
 #
-# 04100 is the last used one
+# 04108 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1767,6 +1773,24 @@ type_e_procedures_return_no_value=04103_E_Invalid assignment, procedures return 
 % This error occurs when one tries to assign the result of a procedure or destructor call.
 % A procedure or destructor returns no value so this is not
 % possible.
+type_w_implicit_string_cast=04104_W_Implicit string type conversion from "$1" to "$2"
+% An implicit type conversion from an ansi string type to an unicode string type is
+% encountered. To avoid this warning perform an explicit type conversion.
+type_w_implicit_string_cast_loss=04105_W_Implicit string type conversion with potential data loss from "$1" to "$2"
+% An implicit type conversion from an unicode string type to an ansi string type is
+% encountered. This conversion can lose data since not all unicode characters may be represented in the codepage of
+% destination string type.
+type_w_explicit_string_cast=04106_-W_Explicit string typecast from "$1" to "$2"
+% An explicit typecast from an ansi string type to an unicode string type is
+% encountered. This warning is off by default. You can turn it on to see all suspicious string conversions.
+type_w_explicit_string_cast_loss=04107_-W_Explicit string typecast with potential data loss from "$1" to "$2"
+% An explicit typecast from an unicode string type to an ansi string type is
+% encountered. This conversion can lose data since not all unicode characters may be represented in the codepage of
+% destination string type. This warning is off by default. You can turn it on to see all the places with lossy string
+% conversions.
+type_w_unicode_data_loss=04108_W_Unicode constant cast with potential data loss
+% Conversion from a WideChar to AnsiChar can lose data since now all unicode characters may be represented in the current
+% system codepage
 % \end{description}
 #
 # Symtable
@@ -2167,6 +2191,8 @@ cg_e_goto_across_procedures_with_exceptions_not_allowed=06053_E_Leaving procedur
 % Non-local gotos might not be used to leave procedures using exceptions either implicitly or explicitly. Procedures
 % which use automated types like ansistrings or class constructurs are affected by this too.
 % \end{description}
+cg_e_mod_only_defined_for_pos_quotient=06054_E_In ISO mode, the mod operator is defined only for positive quotient
+% In ISO pascal, only positive values are allowed for the quotient: \var{n mod m} is only valid if \var{m>0}.
 # EndOfTeX
 
 #
@@ -2431,6 +2457,17 @@ asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially danger
 asmr_w_general_segment_with_constant=07111_W_Constant with general purpose segment register
 % General purpose register should not have constant offsets
 % as OS memory allocation might not be compatible with that.
+asmr_e_bad_seh_directive_offset=07112_E_Invalid offset value for $1
+% Win64 SEH directives have certain restrictions on possible offset values, e.g. they should
+% be positive and have 3 or 4 low bits clear.
+asmr_e_bad_seh_directive_register=07113_E_Invalid register for $1
+% Win64 SEH directives accept only 64-bit integer registers or XMM registers.
+asmr_e_seh_in_pure_asm_only=07114_E_SEH directives are allowed only in pure assembler procedures
+% Win64 SEH directives are allowed only in pure assembler procedures, not in assembler
+% blocks of regular procedures.
+asmr_e_unsupported_directive=07115_E_Directive "$1" is not supported for the current target
+
+
 #
 # Assembler/binary writers
 #
@@ -2466,11 +2503,20 @@ asmw_e_bad_reg_with_rex=08022_E_Asm: AH,BH,CH or DH cannot be used in an instruc
 % 8086 high byte registers (AH,BH,CH or DH) together with REX prefix in a single instruction.
 % The REX prefix is required whenever the instruction operand size is 64 bits, or
 % when it uses one of extended x86_64 registers (R8-R15 or XMM8-XMM15).
+asmw_e_missing_endprologue=08023_E_Missing .seh_endprologue directive
+% x86_64-win64 only: Normally, SEH directives are handled internally by compiler.
+% However, in pure assembler procedures .seh_endprologue directive is required
+% if other SEH directives are present.
+asmw_e_prologue_too_large=08024_E_Function prologue exceeds 255 bytes
+% x86_64-win64: .seh_prologue directive must be placed within 255 bytes from function start.
+asmw_e_handlerdata_no_handler=08025_E_.seh_handlerdata directive without preceding .seh_handler
+% x86_64-win64: If .seh_handlerdata directive is used, then a .seh_handler directive must be
+% present earlier in the same function.
 
 #
 # Executing linker/assembler
 #
-# 09032 is the last used one
+# 09033 is the last used one
 #
 # BeginOfTeX
 %
@@ -2560,6 +2606,8 @@ exec_e_cant_open_resource_file=09031_E_Can't open resource file "$1"
 % An error occurred resource file cannot be opened.
 exec_e_cant_write_resource_file=09032_E_Can't write resource file "$1"
 % An error occurred resource file cannot be written.
+exec_n_backquote_cat_file_not_found=09033_N_File "$1" not found for backquoted cat command
+% The compiler did not find the file that should be expanded into linker parameters
 %\end{description}
 # EndOfTeX
 
@@ -2915,10 +2963,10 @@ option_read_config_file=11034_D_Reading config file "$1"
 option_found_file=11035_D_found source file name "$1"
 % Additional information about options.
 % Displayed when you have the debug option turned on.
-option_code_page_not_available=11039_E_Unknown code page
-% An unknown code page for the source files was requested.
-% The compiler is compiled with support for several code pages built-in.
-% The requested code page is not in that list. You will need to recompile
+option_code_page_not_available=11039_E_Unknown codepage
+% An unknown codepage for the source files was requested.
+% The compiler is compiled with support for several codepages built-in.
+% The requested codepage is not in that list. You will need to recompile
 % the compiler with support for the codepage you need.
 option_config_is_dir=11040_F_Config file $1 is a directory
 % Directories cannot be used as configuration files.
@@ -2945,7 +2993,7 @@ option_ignored_target=11047_W_Option "$1" is ignored for the current target plat
 option_debug_external_unsupported=11048_W_Disabling external debug information because it is unsupported for the selected target/debug format combination.
 % Not all debug formats can be stored in an external file on all platforms. In particular, on
 % Mac OS X only DWARF debug information can be stored externally.
-option_dwarf_smartlink_creation=11049_N_DWARF debug information cannot be used with smart linking with external assembler, disabling static library creation.  
+option_dwarf_smartlink_creation=11049_N_DWARF debug information cannot be used with smart linking with external assembler, disabling static library creation.
 % Smart linking is currently incompatble with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
 %\end{description}

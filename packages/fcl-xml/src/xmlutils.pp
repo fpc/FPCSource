@@ -16,7 +16,6 @@ unit xmlutils;
 
 {$ifdef fpc}{$mode objfpc}{$endif}
 {$H+}
-{$ifopt Q+}{$define overflow_check}{$endif}
 
 interface
 
@@ -477,9 +476,9 @@ begin
   Result := InitValue;
   while KeyLen <> 0 do
   begin
-{$ifdef overflow_check}{$q-}{$endif}
+{$push}{$q-}
     Result := Result * $F4243 xor ord(Key^);
-{$ifdef overflow_check}{$q+}{$endif}
+{$pop}
     Inc(Key);
     Dec(KeyLen);
   end;

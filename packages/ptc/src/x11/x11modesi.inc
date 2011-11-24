@@ -44,13 +44,12 @@ begin
   FHeight := DisplayHeight(FDisplay, FScreen);
 end;
 
-procedure TX11ModesNoModeSwitching.GetModes(var AModes: TPTCModeDynArray; ACurrentDesktopFormat: TPTCFormat);
+procedure TX11ModesNoModeSwitching.GetModes(var AModes: TPTCModeList; ACurrentDesktopFormat: IPTCFormat);
 begin
-  SetLength(AModes, 2);
+  SetLength(AModes, 1);
   AModes[0] := TPTCMode.Create(FWidth,
                                FHeight,
                                ACurrentDesktopFormat);
-  AModes[1] := TPTCMode.Create;
 end;
 
 procedure TX11ModesNoModeSwitching.SetBestMode(AWidth, AHeight: Integer);
@@ -125,7 +124,7 @@ begin
   end;
 end;
 
-procedure TX11ModesXrandr.GetModes(var AModes: TPTCModeDynArray; ACurrentDesktopFormat: TPTCFormat);
+procedure TX11ModesXrandr.GetModes(var AModes: TPTCModeList; ACurrentDesktopFormat: IPTCFormat);
 var
   ScreenSizes: PXRRScreenSize;
   ScreenSizesNum: cint;
@@ -133,8 +132,7 @@ var
 begin
   ScreenSizes := XRRConfigSizes(FXRRConfig, @ScreenSizesNum);
 
-  SetLength(AModes, ScreenSizesNum + 1);
-  AModes[ScreenSizesNum] := TPTCMode.Create;
+  SetLength(AModes, ScreenSizesNum);
   for I := 0 to ScreenSizesNum - 1 do
     AModes[I] := TPTCMode.Create(ScreenSizes[I].width,
                                  ScreenSizes[I].height,
@@ -347,14 +345,13 @@ begin
   XF86VidModeGetAllModeLines(FDisplay, FScreen, @FModeListCount, @FModeList);
 end;
 
-procedure TX11ModesXF86VidMode.GetModes(var AModes: TPTCModeDynArray; ACurrentDesktopFormat: TPTCFormat);
+procedure TX11ModesXF86VidMode.GetModes(var AModes: TPTCModeList; ACurrentDesktopFormat: IPTCFormat);
 var
   I: Integer;
 begin
   RetrieveModeList;
 
-  SetLength(AModes, FModeListCount + 1);
-  AModes[FModeListCount] := TPTCMode.Create;
+  SetLength(AModes, FModeListCount);
   for I := 0 to FModeListCount - 1 do
     AModes[I] := TPTCMode.Create(FModeList[I]^.hdisplay, FModeList[I]^.vdisplay, ACurrentDesktopFormat);
 end;

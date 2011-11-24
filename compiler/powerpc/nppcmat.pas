@@ -61,15 +61,9 @@ implementation
       cpubase,
       ncgutil,cgcpu;
 
-{$ifopt r+}
+{$push}
 {$r-}
-{$define rangeon}
-{$endif}
-
-{$ifopt q+}
 {$q-}
-{$define overflowon}
-{$endif}
 { helper functions }
 procedure getmagic_unsigned32(d : dword; out magic_m : dword; out magic_add : boolean; out magic_shift : dword);
 var
@@ -153,15 +147,7 @@ begin
     magic_s := p - 32; { resulting shift }
 end;
 
-{$ifdef rangeon}
-{$r+}
-{$undef rangeon}
-{$endif}
-
-{$ifdef overflowon}
-{$q+}
-{$undef overflowon}
-{$endif}
+{$pop}
 
 {*****************************************************************************
                              TPPCMODDIVNODE

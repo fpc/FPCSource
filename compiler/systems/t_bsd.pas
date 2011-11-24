@@ -145,8 +145,8 @@ begin
        begin
          if not(target_info.system in systems_darwin) then
            begin
-             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE `cat $RES`';
-             DllCmd[1]:='ld $OPT -shared -L. -o $EXE `cat $RES`'
+             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $CATRES';
+             DllCmd[1]:='ld $OPT -shared -L. -o $EXE $CATRES'
            end
          else
            begin
@@ -155,7 +155,7 @@ begin
                is loaded below that address. This avoids problems with the
                strange Windows-compatible resource handling that assumes
                that addresses below 64kb do not exist.
-               
+
                On 64bit systems, page zero is 4GB by default, so no problems
                there.
              }
@@ -165,16 +165,16 @@ begin
                programs with problems that require Valgrind will have more
                than 60KB of data (first 4KB of address space is always invalid)
              }
-               ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+               ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
              if not(cs_gdb_valgrind in current_settings.globalswitches) then
                ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES'
              else
-               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES'
            end
        end
      else
@@ -186,6 +186,10 @@ begin
        DllCmd[2]:='strip --strip-unneeded $EXE'
      else
        DllCmd[2]:='strip -x $EXE';
+     { OpenBSD seems to use a wrong dynamic linker by default }
+     if target_info.system = system_i386_openbsd then
+      DynamicLinker:='/usr/libexec/ld.so'
+     else
       DynamicLinker:='';
    end;
 end;
@@ -244,7 +248,7 @@ begin
         end;
     end;
   result:=maybequoted(result);
-end;    
+end;
 
 
 Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
@@ -269,9 +273,18 @@ begin
 { set special options for some targets }
   if not IsDarwin Then
     begin
-      prtobj:='prt0';
-      cprtobj:='cprt0';
-      gprtobj:='gprt0';
+      if isdll and (target_info.system in systems_freebsd) then
+        begin
+          prtobj:='dllprt0';
+          cprtobj:='dllprt0';
+          gprtobj:='dllprt0';
+        end
+      else
+        begin
+          prtobj:='prt0';
+          cprtobj:='cprt0';
+          gprtobj:='gprt0';
+        end;
       linkdynamic:=not(SharedLibFiles.empty);
       linklibc:=(SharedLibFiles.Find('c')<>nil);
       // this one is a bit complex.
@@ -382,6 +395,28 @@ begin
          HPath:=TCmdStrListItem(HPath.Next);
        end;
     end;
+      { force local symbol resolution (i.e., inside the shared }
+      { library itself) for all non-exorted symbols, otherwise }
+      { several RTL symbols of FPC-compiled shared libraries   }
+      { will be bound to those of a single shared library or   }
+      { to the main program                                    }
+      if (isdll) and (target_info.system in systems_freebsd) then
+        begin
+          LinkRes.add('VERSION');
+          LinkRes.add('{');
+          LinkRes.add('  {');
+          if not texportlibunix(exportlib).exportedsymnames.empty then
+            begin
+              LinkRes.add('    global:');
+              repeat
+                LinkRes.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
+              until texportlibunix(exportlib).exportedsymnames.empty;
+            end;
+          LinkRes.add('    local:');
+          LinkRes.add('      *;');
+          LinkRes.add('  };');
+          LinkRes.add('}');
+        end;
 
   if not LdSupportsNoResponseFile then
     LinkRes.Add('INPUT(');
@@ -467,7 +502,7 @@ begin
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
    end;
-   
+
   { frameworks for Darwin }
   if IsDarwin then
     while not FrameworkFiles.empty do
@@ -475,7 +510,7 @@ begin
         LinkRes.Add('-framework');
         LinkRes.Add(FrameworkFiles.GetFirst);
       end;
-     
+
   { objects which must be at the end }
   if linklibc and
      not IsDarwin Then
@@ -511,7 +546,8 @@ var
   GCSectionsStr,
   StaticStr,
   StripStr   : string[63];
-  success : boolean;
+  success,
+  useshell : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
@@ -562,6 +598,7 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
@@ -597,7 +634,8 @@ begin
       CmdStr:='';
     end;
 
-  success:=DoExec(BinStr,CmdStr,true,LdSupportsNoResponseFile);
+  useshell:=not (tf_no_backquote_support in source_info.flags);
+  success:=DoExec(BinStr,CmdStr,true,LdSupportsNoResponseFile or useshell);
   if (success and
       (extdbgbinstr<>'') and
       (cs_link_nolink in current_settings.globalswitches)) then
@@ -611,7 +649,7 @@ begin
        begin
          DeleteFile(linkscript.fn);
          linkscript.free
-       end; 
+       end;
    end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -660,6 +698,7 @@ begin
   Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename^)));
 {$endif darwin}
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
@@ -735,7 +774,7 @@ begin
         end;
       if (target_info.system in systems_darwin) then
         DeleteFile(outputexedir+'linksyms.fpc');
-    end;     
+    end;
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;

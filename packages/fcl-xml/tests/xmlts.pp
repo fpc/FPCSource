@@ -306,10 +306,10 @@ var
   I: Integer;
 begin
   FRootURI := FilenameToURI(Tests);
+  writeln('Loading test suite from ', Tests);
   ReadXMLFile(FDoc, Tests);
   FSuiteTitle := FDoc.DocumentElement['PROFILE'];
   Cases := FDoc.DocumentElement.GetElementsByTagName('TEST');
-  writeln('Using test suite: ', Tests);
   writeln;
   writeln('Testing, validation = ', FValidating);
   try
@@ -342,25 +342,27 @@ end;
 
 procedure TTestSuite.RunTest(Element: TDOMElement);
 var
-  s: UTF8string;
+  s: string;
   TestType: DOMString;
   TempDoc, RefDoc: TXMLDocument;
   table: TDOMNode;
   Positive: Boolean;
-  outURI: UTF8string;
+  outURI: string;
   FailMsg: string;
   ExceptionClass: TClass;
   docNode, refNode: TDOMNode;
   docMap, refMap: TDOMNamedNodeMap;
   docN, refN: TDOMNotation;
   I: Integer;
-  root: UTF8String;
+  root: string;
+  xmlEdition: DOMString;
 begin
   FErrLine := -1;
   FErrCol := -1;
   FTestID := Element['ID'];
   TestType := Element['TYPE'];
-  if Pos(WideChar('5'), Element['EDITION']) > 0 then
+  xmlEdition := Element['EDITION'];
+  if (xmlEdition <> '') and (Pos(WideChar('5'), Element['EDITION']) > 0) then
   begin
     Inc(FSkipped);
     Exit;

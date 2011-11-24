@@ -139,7 +139,7 @@ interface
          cs_support_c_operators,
          { generation }
          cs_profile,cs_debuginfo,cs_compilesystem,
-         cs_lineinfo,cs_implicit_exceptions,
+         cs_lineinfo,cs_implicit_exceptions,cs_explicit_codepage,
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic,
          { browser switches are back }
@@ -295,7 +295,8 @@ interface
          m_nested_procvars,     { support nested procedural variables }
          m_non_local_goto,      { support non local gotos (like iso pascal) }
          m_advanced_records,    { advanced record syntax with visibility sections, methods and properties }
-         m_isolike_unary_minus  { unary minus like in iso pascal: same precedence level as binary minus/plus }
+         m_isolike_unary_minus, { unary minus like in iso pascal: same precedence level as binary minus/plus }
+         m_systemcodepage       { use system codepage as compiler codepage by default, emit ansistrings with system codepage }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -427,7 +428,8 @@ interface
          'NESTEDPROCVARS',
          'NONLOCALGOTO',
          'ADVANCEDRECORDS',
-         'ISOUNARYMINUS');
+         'ISOUNARYMINUS',
+         'SYSTEMCODEPAGE');
 
 
      type
@@ -464,7 +466,9 @@ interface
          { dfa was generated for this proc }
          pi_dfaavailable,
          { subroutine contains interprocedural used labels }
-         pi_has_interproclabel
+         pi_has_interproclabel,
+         { subroutine has unwind info (win64) }
+         pi_has_unwind_info
        );
        tprocinfoflags=set of tprocinfoflag;
 
@@ -481,26 +485,26 @@ interface
       TRADirection = (rad_forward, rad_backwards, rad_backwards_reinit);
 
     type
-       TIDString = string[maxidlen];
+      TIDString = string[maxidlen];
 
-       tnormalset = set of byte; { 256 elements set }
-       pnormalset = ^tnormalset;
+      tnormalset = set of byte; { 256 elements set }
+      pnormalset = ^tnormalset;
 
-       pboolean   = ^boolean;
-       pdouble    = ^double;
-       pbyte      = ^byte;
-       pword      = ^word;
-       plongint   = ^longint;
-       plongintarray = plongint;
+      pboolean   = ^boolean;
+      pdouble    = ^double;
+      pbyte      = ^byte;
+      pword      = ^word;
+      plongint   = ^longint;
+      plongintarray = plongint;
 
-       pfileposinfo = ^tfileposinfo;
-       tfileposinfo = record
-         { if types of column or fileindex are changed, modify tcompilerppufile.putposinfo }
-         line      : longint;
-         column    : word;
-         fileindex : word;
-         moduleindex : word;
-       end;
+      pfileposinfo = ^tfileposinfo;
+      tfileposinfo = record
+        { if types of column or fileindex are changed, modify tcompilerppufile.putposinfo }
+        line      : longint;
+        column    : word;
+        fileindex : word;
+        moduleindex : word;
+      end;
 
   {$ifndef xFPC}
     type
@@ -512,6 +516,9 @@ interface
         D4: array[0..7] of Byte;
       end;
   {$endif}
+
+       tstringencoding = Word;
+       tcodepagestring = string[20];
 
     const
        { link options }

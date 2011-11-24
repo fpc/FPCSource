@@ -33,10 +33,8 @@ Type
     frametype : Longint;
   end;
 
-  TExceptObjectClass = Class of TObject;
-
 Const
-  CatchAllExceptions : PtrInt = -1;
+  CatchAllExceptions = PtrInt(-1);
 
 ThreadVar
   ExceptAddrStack   : PExceptAddr;
@@ -95,8 +93,7 @@ begin
 end;
 
 
-Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer);
-  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT']; compilerproc;
+Procedure PushExceptObject(Obj : TObject; AnAddr,AFrame : Pointer);
 var
   Newobj : PExceptObject;
   _ExceptObjectStack : ^PExceptObject;
@@ -112,23 +109,14 @@ begin
   writeln ('In PushExceptObject');
 {$endif}
   _ExceptObjectStack:=@ExceptObjectStack;
-  If _ExceptObjectStack^=Nil then
-    begin
-      New(_ExceptObjectStack^);
-      _ExceptObjectStack^^.Next:=Nil;
-    end
-  else
-    begin
-      New(NewObj);
-      NewObj^.Next:=_ExceptObjectStack^;
-      _ExceptObjectStack^:=NewObj;
-    end;
-  with _ExceptObjectStack^^ do
-    begin
-      FObject:=Obj;
-      Addr:=AnAddr;
-      refcount:=0;
-    end;
+  New(NewObj);
+  NewObj^.Next:=_ExceptObjectStack^;
+  _ExceptObjectStack^:=NewObj;
+
+  NewObj^.FObject:=Obj;
+  NewObj^.Addr:=AnAddr;
+  NewObj^.refcount:=0;
+
   { Backtrace }
   curr_frame:=AFrame;
   prev_frame:=get_frame;
@@ -153,13 +141,9 @@ begin
      prev_frame:=curr_frame;
      curr_frame:=caller_frame;
    End;
-  _ExceptObjectStack^^.framecount:=framecount;
-  _ExceptObjectStack^^.frames:=frames;
+  NewObj^.framecount:=framecount;
+  NewObj^.frames:=frames;
 end;
-
-{ make it avalable for local use }
-Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); [external name 'FPC_PUSHEXCEPTOBJECT'];
-
 
 Procedure DoUnHandledException;
 var
@@ -175,12 +159,7 @@ begin
   if erroraddr = nil then
     RunError(217)
   else
-{$ifdef FPC_LIMITED_EXITCODE}
-    if errorcode > maxExitCode then
-      halt(255)
-    else
-{$endif FPC_LIMITED_EXITCODE}
-      halt(errorcode);
+    Halt(errorcode);
 end;
 
 
@@ -193,7 +172,7 @@ begin
   writeln ('In RaiseException');
 {$endif}
   fpc_Raiseexception:=nil;
-  fpc_PushExceptObj(Obj,AnAddr,AFrame);
+  PushExceptObject(Obj,AnAddr,AFrame);
   _ExceptAddrstack:=ExceptAddrStack;
   If _ExceptAddrStack=Nil then
     DoUnhandledException;
@@ -259,6 +238,7 @@ begin
     end;
 end;
 
+
 { this is for popping exception objects when a second exception is risen }
 { in an except/on                                                        }
 function fpc_PopSecondObjectStack : TObject;[Public, Alias : 'FPC_POPSECONDOBJECTSTACK']; compilerproc;
@@ -306,10 +286,12 @@ begin
   longjmp(_ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
+function Internal_PopSecondObjectStack : TObject; external name 'FPC_POPSECONDOBJECTSTACK';
+function Internal_PopObjectStack: TObject; external name 'FPC_POPOBJECTSTACK';
+procedure Internal_Reraise; external name 'FPC_RERAISE';
 
 Function fpc_Catches(Objtype : TClass) : TObject;[Public, Alias : 'FPC_CATCHES']; compilerproc;
 var
-  _Objtype : TExceptObjectClass;
   _ExceptObjectStack : PExceptObject;
 begin
   _ExceptObjectStack:=ExceptObjectStack;
@@ -320,9 +302,8 @@ begin
 {$endif}
      halt (255);
    end;
-  _Objtype := TExceptObjectClass(Objtype);
-  if Not ((_Objtype = TExceptObjectClass(CatchAllExceptions)) or
-         (_ExceptObjectStack^.FObject is _ObjType)) then
+  if Not ((Objtype = TClass(CatchAllExceptions)) or
+         (_ExceptObjectStack^.FObject is ObjType)) then
     fpc_Catches:=Nil
   else
     begin
@@ -343,6 +324,7 @@ begin
   o.Free;
 end;
 
+{ TODO: no longer used, clean up }
 function fpc_GetExceptionAddr : Pointer;[Public, Alias : 'FPC_GETEXCEPTIONADDR']; compilerproc;
 var
   _ExceptObjectStack : PExceptObject;
@@ -362,3 +344,35 @@ begin
   ExceptObjectstack:=Nil;
   ExceptAddrStack:=Nil;
 end;
+
+
+procedure fpc_doneexception;[public,alias:'FPC_DONEEXCEPTION'] compilerproc;
+begin
+  Internal_PopObjectStack.Free;
+end;
+
+procedure fpc_raise_nested;[public,alias:'FPC_RAISE_NESTED']compilerproc;
+begin
+  Internal_PopSecondObjectStack.Free;
+  Internal_Reraise;
+end;
+
+function fpc_safecallhandler(obj: TObject): HResult; [public,alias:'FPC_SAFECALLHANDLER']; compilerproc;
+var
+  raiselist: PExceptObject;
+  adr: Pointer;
+  exc: TObject;
+begin
+  raiselist:=ExceptObjectStack;
+  if Assigned(raiseList) then
+    adr:=raiseList^.Addr
+  else
+    adr:=nil;
+  exc:=Internal_PopObjectStack;
+  if Assigned(obj) then
+    result:=obj.SafeCallException(exc,adr)
+  else
+    result:=E_UNEXPECTED;
+  exc.Free;
+end;
+

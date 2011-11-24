@@ -25,6 +25,9 @@
 unit agppcmpw;
 
 {$i fpcdefs.inc}
+ { We know that use_PR is a const boolean
+   but we don't care about this warning }
+ {$WARN 6018 OFF}
 
 interface
 

@@ -496,7 +496,7 @@ implementation
 
                      { virtual method ? }
                      if (po_virtualmethod in procdef.procoptions) and
-                        not(nf_inherited in flags) and
+                        not(loadnf_inherited in loadnodeflags) and
                         not is_objectpascal_helper(procdef.struct) then
                        begin
                          if (not assigned(current_procinfo) or
@@ -780,7 +780,8 @@ implementation
                             len:=left.resultdef.size;
 
                             { data smaller than an aint has less alignment requirements }
-                            alignmentrequirement:=min(len,sizeof(aint));
+                            { max(1,...) avoids div by zero in case of an empty record  }
+                            alignmentrequirement:=min(max(1,len),sizeof(aint));
 
                             if (right.location.reference.offset mod alignmentrequirement<>0) or
                               (left.location.reference.offset mod alignmentrequirement<>0) or

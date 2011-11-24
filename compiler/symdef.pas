@@ -264,7 +264,7 @@ interface
           childofderef   : tderef;
 
           { for Object Pascal helpers }
-          extendeddef   : tabstractrecorddef;
+          extendeddef   : tdef;
           extendeddefderef: tderef;
           { for C++ classes: name of the library this class is imported from }
           import_lib,
@@ -588,13 +588,14 @@ interface
        end;
 
        tstringdef = class(tstoreddef)
+          encoding   : tstringencoding;
           stringtype : tstringtype;
           len        : asizeint;
           constructor createshort(l : byte);
           constructor loadshort(ppufile:tcompilerppufile);
           constructor createlong(l : asizeint);
           constructor loadlong(ppufile:tcompilerppufile);
-          constructor createansi;
+          constructor createansi(aencoding:tstringencoding);
           constructor loadansi(ppufile:tcompilerppufile);
           constructor createwide;
           constructor loadwide(ppufile:tcompilerppufile);
@@ -825,6 +826,10 @@ interface
 
     function use_vectorfpu(def : tdef) : boolean;
 
+    function getansistringcodepage:tstringencoding; inline;
+    function getansistringdef:tstringdef; inline;
+    function getparaencoding(def:tdef):tstringencoding; inline;
+
 implementation
 
     uses
@@ -846,6 +851,52 @@ implementation
 {****************************************************************************
                                   Helpers
 ****************************************************************************}
+
+    function getansistringcodepage:tstringencoding; inline;
+      begin
+        if cs_explicit_codepage in current_settings.moduleswitches then
+          result:=current_settings.sourcecodepage
+        else
+          result:=0;
+      end;
+
+    function getansistringdef:tstringdef; inline;
+      var
+        symtable:tsymtable;
+      begin
+        { if codepage is explicitly defined in this mudule we need to return
+          a replacement for ansistring def }
+        if cs_explicit_codepage in current_settings.moduleswitches then
+          begin
+            if not assigned(current_module) then
+              internalerror(2011101301);
+            { codepage can be redeclared only once per unit so we don't need a list of
+              redefined ansistring but only one pointer }
+            if not assigned(current_module.ansistrdef) then
+              begin
+                { if we did not create it yet we need to do this now }
+                if current_module.is_unit then
+                  symtable:=current_module.globalsymtable
+                else
+                  symtable:=current_module.localsymtable;
+                symtablestack.push(symtable);
+                current_module.ansistrdef:=tstringdef.createansi(current_settings.sourcecodepage);
+                symtablestack.pop(symtable);
+              end;
+            result:=tstringdef(current_module.ansistrdef);
+          end
+        else
+          result:=tstringdef(cansistringtype);
+      end;
+
+    function getparaencoding(def:tdef):tstringencoding; inline;
+      begin
+        { don't pass CP_NONE encoding to internal functions
+          they expect 0 encoding instead }
+        result:=tstringdef(def).encoding;
+        if result=CP_NONE then
+          result:=0
+      end;
 
     function make_mangledname(const typeprefix:string;st:TSymtable;const suffix:string):string;
       var
@@ -1036,9 +1087,10 @@ implementation
             if not (st.symlist[i] is ttypesym) then
               continue;
             def:=ttypesym(st.SymList[i]).typedef;
-            if is_objectpascal_helper(def) then
+            if is_objectpascal_helper(def) and
+                (tobjectdef(def).extendeddef.typ in [recorddef,objectdef]) then
               begin
-                s:=make_mangledname('',tobjectdef(def).extendeddef.symtable,'');
+                s:=make_mangledname('',tabstractrecorddef(tobjectdef(def).extendeddef).symtable,'');
                 list:=TFPObjectList(current_module.extendeddefs.Find(s));
                 if not assigned(list) then
                   begin
@@ -1410,6 +1462,7 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_shortstring;
+         encoding:=0;
          len:=l;
          savesize:=len+1;
       end;
@@ -1419,6 +1472,7 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_shortstring;
+         encoding:=0;
          len:=ppufile.getbyte;
          savesize:=len+1;
       end;
@@ -1428,6 +1482,7 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_longstring;
+         encoding:=0;
          len:=l;
          savesize:=sizeof(pint);
       end;
@@ -1437,15 +1492,17 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_longstring;
+         encoding:=0;
          len:=ppufile.getasizeint;
          savesize:=sizeof(pint);
       end;
 
 
-    constructor tstringdef.createansi;
+    constructor tstringdef.createansi(aencoding:tstringencoding);
       begin
          inherited create(stringdef);
          stringtype:=st_ansistring;
+         encoding:=aencoding;
          len:=-1;
          savesize:=sizeof(pint);
       end;
@@ -1456,6 +1513,7 @@ implementation
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_ansistring;
          len:=ppufile.getaint;
+         encoding:=ppufile.getword;
          savesize:=sizeof(pint);
       end;
 
@@ -1464,6 +1522,7 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_widestring;
+         encoding:=CP_UTF16;
          len:=-1;
          savesize:=sizeof(pint);
       end;
@@ -1473,6 +1532,7 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_widestring;
+         encoding:=CP_UTF16;
          len:=ppufile.getaint;
          savesize:=sizeof(pint);
       end;
@@ -1482,6 +1542,7 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_unicodestring;
+         encoding:=CP_UTF16;
          len:=-1;
          savesize:=sizeof(pint);
       end;
@@ -1492,6 +1553,7 @@ implementation
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_unicodestring;
          len:=ppufile.getaint;
+         encoding:=ppufile.getword;
          savesize:=sizeof(pint);
       end;
 
@@ -1501,6 +1563,7 @@ implementation
         result:=tstringdef.create(typ);
         result.typ:=stringdef;
         tstringdef(result).stringtype:=stringtype;
+        tstringdef(result).encoding:=encoding;
         tstringdef(result).len:=len;
         tstringdef(result).savesize:=savesize;
       end;
@@ -1528,6 +1591,8 @@ implementation
            end
          else
            ppufile.putaint(len);
+         if stringtype in [st_ansistring,st_unicodestring] then
+           ppufile.putword(encoding);
          case stringtype of
             st_shortstring : ppufile.writeentry(ibshortstringdef);
             st_longstring : ppufile.writeentry(iblongstringdef);
@@ -1675,8 +1740,10 @@ implementation
 
     procedure tenumdef.calcsavesize;
       begin
+{$IFDEF CPU32} {$push}{$warnings off} {$ENDIF} //comparison always false warning
         if (current_settings.packenum=8) or (min<low(longint)) or (int64(max)>high(cardinal)) then
          savesize:=8
+{$IFDEF CPU32} {$pop} {$ENDIF}
         else
          if (current_settings.packenum=4) or (min<low(smallint)) or (max>high(word)) then
           savesize:=4
@@ -2123,9 +2190,9 @@ implementation
         case filetyp of
           ft_text :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=632{+8}
+              savesize:=634{+8}
             else
-              savesize:=628{+8};
+              savesize:=630{+8};
           ft_typed,
           ft_untyped :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
@@ -2137,7 +2204,7 @@ implementation
 {$ifdef cpu32bitaddr}
         case filetyp of
           ft_text :
-            savesize:=592{+4};
+            savesize:=594{+4};
           ft_typed,
           ft_untyped :
             savesize:=332;
@@ -4677,7 +4744,7 @@ implementation
          else
            tstoredsymtable(symtable).deref;
          if objecttype=odt_helper then
-           extendeddef:=tobjectdef(extendeddefderef.resolve);
+           extendeddef:=tdef(extendeddefderef.resolve);
          for i:=0 to vmtentries.count-1 do
            begin
              vmtentry:=pvmtentry(vmtentries[i]);

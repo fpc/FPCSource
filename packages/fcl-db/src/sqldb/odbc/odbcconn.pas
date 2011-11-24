@@ -79,6 +79,7 @@ type
     procedure DeAllocateCursorHandle(var cursor:TSQLCursor); override;
     function AllocateTransactionHandle:TSQLHandle; override;
     // - Statement handling
+    function StrToStatementType(s : string) : TStatementType; override;
     procedure PrepareStatement(cursor:TSQLCursor; ATransaction:TSQLTransaction; buf:string; AParams:TParams); override;
     procedure UnPrepareStatement(cursor:TSQLCursor); override;
     // - Transaction handling
@@ -299,6 +300,14 @@ begin
 {$ENDIF}
 end;
 
+function TODBCConnection.StrToStatementType(s : string) : TStatementType;
+begin
+  S:=Lowercase(s);
+  if s = 'transform' then Result:=stSelect //MS Access
+  else if s = 'exec' then Result:=stExecProcedure
+  else Result := inherited StrToStatementType(s);
+end;
+
 procedure TODBCConnection.SetParameters(ODBCCursor: TODBCCursor; AParams: TParams);
 var
   ParamIndex: integer;
@@ -324,6 +333,8 @@ begin
       raise EODBCException.CreateFmt('The query has parameter markers in it, but no actual parameters were passed',[]);
 
   SetLength(ODBCCursor.FParamBuf, Length(ODBCCursor.FParamIndex));
+  for i:=0 to High(ODBCCursor.FParamIndex) do
+    ODBCCursor.FParamBuf[i]:=nil;
   for i:=0 to High(ODBCCursor.FParamIndex) do
   begin
     ParamIndex:=ODBCCursor.FParamIndex[i];
@@ -487,7 +498,8 @@ var
   i:integer;
 begin
   for i:=0 to High(ODBCCursor.FParamBuf) do
-    FreeMem(ODBCCursor.FParamBuf[i]);
+    if assigned(ODBCCursor.FParamBuf[i]) then
+      FreeMem(ODBCCursor.FParamBuf[i]);
   SetLength(ODBCCursor.FParamBuf,0);
 end;
 
@@ -685,23 +697,25 @@ var
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
-  // set parameters
+  try
+    // set parameters
     if Assigned(APArams) and (AParams.count > 0) then SetParameters(ODBCCursor, AParams);
+    // execute the statement
+    case ODBCCursor.FSchemaType of
+      stNoSchema  : Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
+      stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_USER, length(TABLE_TYPE_USER) );
+      stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
+      stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
+      stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
+      else          Res:=SQL_NO_DATA;
+    end; {case}
 
-  // execute the statement
-  case ODBCCursor.FSchemaType of
-    stNoSchema  : Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
-    stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_USER, length(TABLE_TYPE_USER) );
-    stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
-    stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
-    stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
-    else          Res:=SQL_NO_DATA;
-  end; {case}
+    if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
 
-  if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
-
-  // free parameter buffers
-  FreeParamBuffers(ODBCCursor);
+  finally
+    // free parameter buffers
+    FreeParamBuffers(ODBCCursor);
+  end;
 end;
 
 function TODBCConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
@@ -1164,7 +1178,7 @@ begin
     end;
 
     // add FieldDef
-    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, False, i);
+    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (FieldType<>ftAutoInc), i);
   end;
 end;
 

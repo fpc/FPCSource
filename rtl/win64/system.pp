@@ -93,10 +93,11 @@ var
 { Win32 Info }
   startupinfo : tstartupinfo;
   StartupConsoleMode : dword;
-  hprevinst,
   MainInstance : qword;
   cmdshow     : longint;
   DLLreason,DLLparam:longint;
+const
+  hprevinst: qword=0;
 type
   TDLL_Entry_Hook = procedure (dllparam : longint);
 
@@ -132,218 +133,6 @@ function SysReAllocStringLen(var bstr:pointer;psz: pointer;
 
 { include system independent routines }
 {$I system.inc}
-
-{*****************************************************************************
-                              Parameter Handling
-*****************************************************************************}
-
-procedure setup_arguments;
-var
-  arglen,
-  count   : longint;
-  argstart,
-  pc,arg  : pchar;
-  quote   : char;
-  argvlen : longint;
-  buf: array[0..259] of char;  // need MAX_PATH bytes, not 256!
-
-  procedure allocarg(idx,len:longint);
-    var
-      oldargvlen : longint;
-    begin
-      if idx>=argvlen then
-       begin
-         oldargvlen:=argvlen;
-         argvlen:=(idx+8) and (not 7);
-         sysreallocmem(argv,argvlen*sizeof(pointer));
-         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
-       end;
-      { use realloc to reuse already existing memory }
-      { always allocate, even if length is zero, since }
-      { the arg. is still present!                     }
-      sysreallocmem(argv[idx],len+1);
-    end;
-
-begin
-  { create commandline, it starts with the executed filename which is argv[0] }
-  { Win32 passes the command NOT via the args, but via getmodulefilename}
-  count:=0;
-  argv:=nil;
-  argvlen:=0;
-  ArgLen := GetModuleFileName(0, @buf[0], sizeof(buf));
-  buf[ArgLen] := #0; // be safe
-  allocarg(0,arglen);
-  move(buf,argv[0]^,arglen+1);
-  { Setup cmdline variable }
-  cmdline:=GetCommandLine;
-  { process arguments }
-  pc:=cmdline;
-{$IfDef SYSTEM_DEBUG_STARTUP}
-  Writeln(stderr,'Win32 GetCommandLine is #',pc,'#');
-{$EndIf }
-  while pc^<>#0 do
-   begin
-     { skip leading spaces }
-     while pc^ in [#1..#32] do
-      inc(pc);
-     if pc^=#0 then
-      break;
-     { calc argument length }
-     quote:=' ';
-     argstart:=pc;
-     arglen:=0;
-     while (pc^<>#0) do
-      begin
-        case pc^ of
-          #1..#32 :
-            begin
-              if quote<>' ' then
-               inc(arglen)
-              else
-               break;
-            end;
-          '"' :
-            begin
-              if quote<>'''' then
-               begin
-                 if pchar(pc+1)^<>'"' then
-                  begin
-                    if quote='"' then
-                     quote:=' '
-                    else
-                     quote:='"';
-                  end
-                 else
-                  inc(pc);
-               end
-              else
-               inc(arglen);
-            end;
-          '''' :
-            begin
-              if quote<>'"' then
-               begin
-                 if pchar(pc+1)^<>'''' then
-                  begin
-                    if quote=''''  then
-                     quote:=' '
-                    else
-                     quote:='''';
-                  end
-                 else
-                  inc(pc);
-               end
-              else
-               inc(arglen);
-            end;
-          else
-            inc(arglen);
-        end;
-        inc(pc);
-      end;
-     { copy argument }
-     { Don't copy the first one, it is already there.}
-     If Count<>0 then
-      begin
-        allocarg(count,arglen);
-        quote:=' ';
-        pc:=argstart;
-        arg:=argv[count];
-        while (pc^<>#0) do
-         begin
-           case pc^ of
-             #1..#32 :
-               begin
-                 if quote<>' ' then
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end
-                 else
-                  break;
-               end;
-             '"' :
-                begin
-                 if quote<>'''' then
-                  begin
-                    if pchar(pc+1)^<>'"' then
-                     begin
-                       if quote='"' then
-                        quote:=' '
-                       else
-                        quote:='"';
-                     end
-                    else
-                     inc(pc);
-                  end
-                 else
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end;
-               end;
-             '''' :
-               begin
-                 if quote<>'"' then
-                  begin
-                    if pchar(pc+1)^<>'''' then
-                     begin
-                       if quote=''''  then
-                        quote:=' '
-                       else
-                        quote:='''';
-                     end
-                    else
-                     inc(pc);
-                  end
-                 else
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end;
-               end;
-             else
-               begin
-                 arg^:=pc^;
-                 inc(arg);
-               end;
-           end;
-           inc(pc);
-         end;
-        arg^:=#0;
-      end;
- {$IfDef SYSTEM_DEBUG_STARTUP}
-     Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
- {$EndIf SYSTEM_DEBUG_STARTUP}
-     inc(count);
-   end;
-  { get argc }
-  argc:=count;
-  { free unused memory, leaving a nil entry at the end }
-  sysreallocmem(argv,(count+1)*sizeof(pointer));
-  argv[count] := nil;
-end;
-
-
-function paramcount : longint;
-begin
-  paramcount := argc - 1;
-end;
-
-function paramstr(l : longint) : string;
-begin
-  if (l>=0) and (l<argc) then
-    paramstr:=strpas(argv[l])
-  else
-    paramstr:='';
-end;
-
-
-procedure randomize;
-begin
-  randseed:=GetTickCount;
-end;
-
 
 {*****************************************************************************
                          System Dependent Exit code
@@ -399,22 +188,6 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      install_exception_handlers;
      ExitCode:=0;
      asm
-        { allocate space for an exception frame }
-        pushq $0
-        pushq %gs:(0)
-        { movl  %rsp,%gs:(0)
-          but don't insert it as it doesn't
-          point to anything yet
-          this will be used in signals unit }
-        movq %rsp,%rax
-{$ifdef FPC_HAS_RIP_RELATIVE}
-        movq %rax,System_exception_frame(%rip)
-{$else}
-        movq %rax,System_exception_frame
-{$endif}
-        { keep stack aligned }
-        pushq $0
-        pushq %rbp
         movq %rsp,%rax
         movq %rax,st
      end;
@@ -422,16 +195,12 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      asm
         xorq %rax,%rax
         movw %ss,%ax
-{$ifdef FPC_HAS_RIP_RELATIVE}
         movl %eax,_SS(%rip)
-{$else}
-        movl %eax,_SS
-{$endif}
+        movq %rbp,%rsi
         xorq %rbp,%rbp
         call PASCALMAIN
-        popq %rbp
-        popq %rax
-     end;
+        movq %rsi,%rbp
+     end ['RSI','RBP'];     { <-- specifying RSI allows compiler to save/restore it properly }
      { if we pass here there was no error ! }
      system_exit;
   end;
@@ -505,95 +274,16 @@ function is_prefetch(p : pointer) : boolean;
       end;
   end;
 
+{******************************************************************************}
+{ include code common with win64 }
+
+{$I syswin.inc}
+{******************************************************************************}
 
 //
 // Hardware exception handling
 //
 
-{
-  Error code definitions for the Win32 API functions
-
-
-  Values are 32 bit values layed out as follows:
-   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-  +---+-+-+-----------------------+-------------------------------+
-  |Sev|C|R|     Facility          |               Code            |
-  +---+-+-+-----------------------+-------------------------------+
-
-  where
-      Sev - is the severity code
-          00 - Success
-          01 - Informational
-          10 - Warning
-          11 - Error
-
-      C - is the Customer code flag
-      R - is a reserved bit
-      Facility - is the facility code
-      Code - is the facility's status code
-}
-
-const
-  SEVERITY_SUCCESS                        = $00000000;
-  SEVERITY_INFORMATIONAL                  = $40000000;
-  SEVERITY_WARNING                        = $80000000;
-  SEVERITY_ERROR                          = $C0000000;
-
-const
-  STATUS_SEGMENT_NOTIFICATION             = $40000005;
-  DBG_TERMINATE_THREAD                    = $40010003;
-  DBG_TERMINATE_PROCESS                   = $40010004;
-  DBG_CONTROL_C                           = $40010005;
-  DBG_CONTROL_BREAK                       = $40010008;
-
-  STATUS_GUARD_PAGE_VIOLATION             = $80000001;
-  STATUS_DATATYPE_MISALIGNMENT            = $80000002;
-  STATUS_BREAKPOINT                       = $80000003;
-  STATUS_SINGLE_STEP                      = $80000004;
-  DBG_EXCEPTION_NOT_HANDLED               = $80010001;
-
-  STATUS_ACCESS_VIOLATION                 = $C0000005;
-  STATUS_IN_PAGE_ERROR                    = $C0000006;
-  STATUS_INVALID_HANDLE                   = $C0000008;
-  STATUS_NO_MEMORY                        = $C0000017;
-  STATUS_ILLEGAL_INSTRUCTION              = $C000001D;
-  STATUS_NONCONTINUABLE_EXCEPTION         = $C0000025;
-  STATUS_INVALID_DISPOSITION              = $C0000026;
-  STATUS_ARRAY_BOUNDS_EXCEEDED            = $C000008C;
-  STATUS_FLOAT_DENORMAL_OPERAND           = $C000008D;
-  STATUS_FLOAT_DIVIDE_BY_ZERO             = $C000008E;
-  STATUS_FLOAT_INEXACT_RESULT             = $C000008F;
-  STATUS_FLOAT_INVALID_OPERATION          = $C0000090;
-  STATUS_FLOAT_OVERFLOW                   = $C0000091;
-  STATUS_FLOAT_STACK_CHECK                = $C0000092;
-  STATUS_FLOAT_UNDERFLOW                  = $C0000093;
-  STATUS_INTEGER_DIVIDE_BY_ZERO           = $C0000094;
-  STATUS_INTEGER_OVERFLOW                 = $C0000095;
-  STATUS_PRIVILEGED_INSTRUCTION           = $C0000096;
-  STATUS_STACK_OVERFLOW                   = $C00000FD;
-  STATUS_CONTROL_C_EXIT                   = $C000013A;
-  STATUS_FLOAT_MULTIPLE_FAULTS            = $C00002B4;
-  STATUS_FLOAT_MULTIPLE_TRAPS             = $C00002B5;
-  STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
-
-  EXCEPTION_EXECUTE_HANDLER               = 1;
-  EXCEPTION_CONTINUE_EXECUTION            = -1;
-  EXCEPTION_CONTINUE_SEARCH               = 0;
-
-  EXCEPTION_MAXIMUM_PARAMETERS            = 15;
-
-  CONTEXT_X86                             = $00010000;
-  CONTEXT_CONTROL                         = CONTEXT_X86 or $00000001;
-  CONTEXT_INTEGER                         = CONTEXT_X86 or $00000002;
-  CONTEXT_SEGMENTS                        = CONTEXT_X86 or $00000004;
-  CONTEXT_FLOATING_POINT                  = CONTEXT_X86 or $00000008;
-  CONTEXT_DEBUG_REGISTERS                 = CONTEXT_X86 or $00000010;
-  CONTEXT_EXTENDED_REGISTERS              = CONTEXT_X86 or $00000020;
-
-  CONTEXT_FULL                            = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
-
-  MAXIMUM_SUPPORTED_EXTENSION             = 512;
 
 type
   M128A = record
@@ -872,12 +562,6 @@ procedure fpc_cpucodeinit;
   end;
 
 
-{******************************************************************************}
-{ include code common with win64 }
-
-{$I syswin.inc}
-{******************************************************************************}
-
 procedure LinkIn(p1,p2,p3: Pointer); inline;
 begin
 end;
@@ -911,16 +595,12 @@ end;
 
 
 begin
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
-  hprevinst:=0;
   if not IsLibrary then
     SysInstance:=getmodulehandle(nil);
   MainInstance:=SysInstance;
@@ -930,6 +610,9 @@ begin
   SysInitExceptions;
   { setup fastmove stuff }
   fpc_cpucodeinit;
+  initwidestringmanager;
+  initunicodestringmanager;
+  InitWin32Widestrings;
   SysInitStdIO;
   { Arguments }
   setup_arguments;
@@ -941,10 +624,5 @@ begin
   { Reset internal error variable }
   errno:=0;
   initvariantmanager;
-  initwidestringmanager;
-{$ifndef VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
-  InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

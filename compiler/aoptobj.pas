@@ -884,10 +884,8 @@ Unit AoptObj;
       end;
 
 
-{$ifopt r+}
-{$define rangewason}
+{$push}
 {$r-}
-{$endif}
     function tAOptObj.getlabelwithsym(sym: tasmlabel): tai;
       begin
         if (int64(sym.labelnr) >= int64(labelinfo^.lowlabel)) and
@@ -896,10 +894,7 @@ Unit AoptObj;
         else
           getlabelwithsym := nil;
       end;
-{$ifdef rangewason}
-{$r+}
-{$undef rangewason}
-{$endif}
+{$pop}
 
     function TAOptObj.GetFinalDestination(hp: taicpu; level: longint): boolean;
       {traces sucessive jumps to their final destination and sets it, e.g.

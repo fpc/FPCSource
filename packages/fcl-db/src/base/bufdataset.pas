@@ -701,14 +701,7 @@ end;
 
 function DBCompareBCD(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 begin
-  // A simple subtraction doesn't work, since it could be that the result
-  // doesn't fit into a LargeInt
-  if PBCD(subValue)^ < PBCD(aValue)^ then
-    result := -1
-  else if PBCD(subValue)^  > PBCD(aValue)^ then
-    result := 1
-  else
-    result := 0;
+  result:=BCDCompare(PBCD(subValue)^, PBCD(aValue)^);
 end;
 
 procedure unSetFieldIsNull(NullMask : pbyte;x : longint); //inline;
@@ -923,7 +916,7 @@ begin
         AField := TField(IndexFields[FieldNr]);
         ProcessFieldCompareStruct(AField,DBCompareStruct[FieldNr]);
 
-        DBCompareStruct[FieldNr].Desc := (DescIndexFields.IndexOf(AField)>-1);
+        DBCompareStruct[FieldNr].Desc := (DescIndexFields.IndexOf(AField)>-1) or (ixDescending in Options);
         if (CInsIndexFields.IndexOf(AField)>-1) then
           DBCompareStruct[FieldNr].Options := [loCaseInsensitive]
         else
@@ -1681,6 +1674,7 @@ function TCustomBufDataset.GetFieldSize(FieldDef : TFieldDef) : longint;
 
 begin
   case FieldDef.DataType of
+    ftUnknown    : result := 0;
     ftString,
       ftGuid,
       ftFixedChar: result := FieldDef.Size + 1;
@@ -1699,6 +1693,9 @@ begin
     ftTime,
       ftDate,
       ftDateTime : result := sizeof(TDateTime);
+    ftBytes      : result := FieldDef.Size;
+    ftVarBytes   : result := FieldDef.Size + 2;
+    ftVariant    : result := sizeof(variant);
     ftBlob,
       ftMemo,
       ftGraphic,
@@ -1709,7 +1706,8 @@ begin
       ftOraBlob,
       ftOraClob,
       ftWideMemo : result := sizeof(TBufBlobField)
-  else Result := 10
+  else
+    DatabaseErrorFmt(SUnsupportedFieldType,[Fieldtypenames[FieldDef.DataType]]);
   end;
 {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
   result:=Align(result,4);

@@ -156,7 +156,7 @@ unit i_bsd;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_gas;
+            assem        : as_x86_64_elf64;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
@@ -252,7 +252,7 @@ unit i_bsd;
             system       : system_i386_OpenBSD;
             name         : 'OpenBSD for i386';
             shortname    : 'OpenBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
+            flags        : [tf_pic_uses_got,tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -276,7 +276,7 @@ unit i_bsd;
             sharedClibprefix : 'lib';
             importlibprefix : 'libimp';
             importlibext : '.a';
-            Cprefix      : '_';
+            Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
             assem        : as_gas;
@@ -818,7 +818,7 @@ initialization
      set_source_info(system_i386_NetBSD_info);
   {$endif}
   {$ifdef OpenBSD}
-     set_source_info(system_i386_NetBSD_info);
+     set_source_info(system_i386_OpenBSD_info);
   {$endif}
   {$ifdef Darwin}
      set_source_info(system_i386_Darwin_info);

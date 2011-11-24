@@ -1769,12 +1769,12 @@ implementation
       { rename }
         if PPUFn=PPLFn then
          begin
-           {$I-}
+           {$push}{$I-}
             assign(f,PPUFn);
             erase(f);
             assign(f,'ppumove.$$$');
             rename(f,PPUFn);
-           {$I+}
+           {$pop}
            if ioresult<>0 then;
          end;
         Result:=True;

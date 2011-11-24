@@ -376,12 +376,11 @@ begin
 end;
 {$endif}
 
-{$ifndef kmode}
-
-// other user mode only stuff
-
 procedure SysInitStdIO;
 begin
+  { This function is currently only called if the RTL is compiled for Usermode;
+    one could think about adding a text driver that outputs using DbgPrint }
+{$ifndef KMODE}
   with PSimplePEB(CurrentPEB)^.ProcessParameters^ do begin
     StdInputHandle := StandardInput;
     StdOutputHandle := StandardOutput;
@@ -405,13 +404,8 @@ begin
     Assign(ErrOutput, '');
     Assign(StdErr, '');
   end;
-end;
-
-{$else}
-
-// other kernel mode only stuff
-
 {$endif}
+end;
 
 function GetProcessID: SizeUInt;
 begin
@@ -431,6 +425,9 @@ begin
 {$endif ndef KMODE and ndef HAS_MEMORYMANAGER}
   SysInitExceptions;
   initvariantmanager;
+  { we do not use winlike widestrings and also the RTL can't be compiled with
+    2.2, so we can savely use the UnicodeString manager only. }
+  initunicodestringmanager;
 {$ifndef KMODE}
   SysInitStdIO;
   { Arguments }
@@ -439,8 +436,5 @@ begin
   InOutRes := 0;
   InitSystemThreads;
   errno := 0;
-  { we do not use winlike widestrings and also the RTL can't be compiled with
-    2.2, so we can savely use the UnicodeString manager only. }
-  initunicodestringmanager;
 end.
 

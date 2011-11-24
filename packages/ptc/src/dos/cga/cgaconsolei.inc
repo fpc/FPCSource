@@ -36,24 +36,16 @@
 {$DEFINE DEFAULT_FORMAT:=TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF)}
 
 constructor TCGAConsole.Create;
-
-var
-  I: Integer;
-
 begin
   inherited Create;
 
   m_open := False;
   m_locked := False;
-  FillChar(m_modes, SizeOf(m_modes), 0);
   m_title := '';
   m_information := '';
   m_default_width := DEFAULT_WIDTH;
   m_default_height := DEFAULT_HEIGHT;
   m_default_format := DEFAULT_FORMAT;
-
-  for I := 0 to 255 do
-    m_modes[I] := TPTCMode.Create;
 
   m_copy := TPTCCopy.Create;
   m_clear := TPTCClear.Create;
@@ -61,41 +53,32 @@ begin
 end;
 
 destructor TCGAConsole.Destroy;
-
-var
-  I: Integer;
-
 begin
   close;
-  for I := 0 to 255 do
-    m_modes[I].Free;
   m_keyboard.Free;
   FMouse.Free;
   FEventQueue.Free;
   m_copy.Free;
   m_clear.Free;
-  m_default_format.Free;
   inherited Destroy;
 end;
 
-procedure TCGAConsole.Configure(const AFileName: String);
-
+procedure TCGAConsole.Configure(const AFileName: string);
 var
-  F: Text;
+  F: TextFile;
   S: string;
-
 begin
   AssignFile(F, AFileName);
-  {$I-}
+  {$push}{$I-}
   Reset(F);
-  {$I+}
+  {$pop}
   if IOResult <> 0 then
     exit;
   while not EoF(F) do
   begin
-    {$I-}
+    {$push}{$I-}
     Readln(F, S);
-    {$I+}
+    {$pop}
     if IOResult <> 0 then
       Break;
     Option(S);
@@ -103,8 +86,7 @@ begin
   CloseFile(F);
 end;
 
-function TCGAConsole.option(const _option: String): Boolean;
-
+function TCGAConsole.option(const _option: string): Boolean;
 begin
   {...}
   if _option = 'enable logging' then
@@ -123,47 +105,33 @@ begin
   Result := m_copy.option(_option);
 end;
 
-function TCGAConsole.modes: PPTCMode;
-
+function TCGAConsole.modes: TPTCModeList;
 begin
-  Result := @m_modes;
+  Result := m_modes;
 end;
 
-procedure TCGAConsole.open(const _title: string; _pages: Integer); overload;
-
+procedure TCGAConsole.Open(const _title: string; _pages: Integer); overload;
 begin
   open(_title, m_default_format, _pages);
 end;
 
-procedure TCGAConsole.open(const _title: string; const _format: TPTCFormat;
+procedure TCGAConsole.open(const _title: string; _format: IPTCFormat;
                            _pages: Integer); overload;
-
 begin
   open(_title, m_default_width, m_default_height, _format, _pages);
 end;
 
 procedure TCGAConsole.open(const _title: string; _width, _height: Integer;
-                           const _format: TPTCFormat; _pages: Integer); overload;
-
-var
-  m: TPTCMode;
-
+                           _format: IPTCFormat; _pages: Integer); overload;
 begin
-  m := TPTCMode.Create(_width, _height, _format);
-  try
-    open(_title, m, _pages);
-  finally
-    m.Free;
-  end;
+  open(_title, TPTCMode.Create(_width, _height, _format), _pages);
 end;
 
-procedure TCGAConsole.open(const _title: string; const _mode: TPTCMode;
+procedure TCGAConsole.open(const _title: string; _mode: IPTCMode;
                            _pages: Integer); overload;
-
 var
   _width, _height: Integer;
-  _format: TPTCFormat;
-
+  _format: IPTCFormat;
 begin
   if not _mode.valid then
     raise TPTCError.Create('invalid mode');
@@ -180,7 +148,6 @@ begin
 end;
 
 procedure TCGAConsole.close;
-
 begin
   if m_open then
   begin
@@ -194,24 +161,20 @@ begin
 end;
 
 procedure TCGAConsole.flush;
-
 begin
   check_open;
   check_unlocked;
 end;
 
 procedure TCGAConsole.finish;
-
 begin
   check_open;
   check_unlocked;
 end;
 
 procedure TCGAConsole.update;
-
 var
   framebuffer: PByte;
-
 begin
   check_open;
   check_unlocked;
@@ -224,17 +187,14 @@ begin
   end;
 end;
 
-procedure TCGAConsole.update(const _area: TPTCArea);
-
+procedure TCGAConsole.update(_area: IPTCArea);
 begin
   update;
 end;
 
-procedure TCGAConsole.copy(surface: TPTCBaseSurface);
-
+procedure TCGAConsole.Copy(surface: IPTCSurface);
 var
   pixels: Pointer;
-
 begin
   check_open;
   check_unlocked;
@@ -248,16 +208,13 @@ begin
   except
     on error: TPTCError do
       raise TPTCError.Create('failed to copy console to surface', error);
-
   end;
 end;
 
-procedure TCGAConsole.copy(surface: TPTCBaseSurface;
-                           const source, destination: TPTCArea);
-
+procedure TCGAConsole.Copy(surface: IPTCSurface;
+                           source, destination: IPTCArea);
 var
   pixels: Pointer;
-
 begin
   check_open;
   check_unlocked;
@@ -276,10 +233,8 @@ begin
 end;
 
 function TCGAConsole.lock: Pointer;
-
 var
   pixels: Pointer;
-
 begin
   check_open;
   if m_locked then
@@ -291,7 +246,6 @@ begin
 end;
 
 procedure TCGAConsole.unlock;
-
 begin
   check_open;
   if not m_locked then
@@ -303,12 +257,10 @@ end;
 
 procedure TCGAConsole.load(const pixels: Pointer;
                            _width, _height, _pitch: Integer;
-                           const _format: TPTCFormat;
-                           const _palette: TPTCPalette);
+                           _format: IPTCFormat;
+                           _palette: IPTCPalette);
 var
-  Area_: TPTCArea;
   console_pixels: Pointer;
-
 begin
   check_open;
   check_unlocked;
@@ -327,70 +279,46 @@ begin
     except
       on error: TPTCError do
         raise TPTCError.Create('failed to load pixels to console', error);
-
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, width, height);
-    try
-      load(pixels, _width, _height, _pitch, _format, _palette, Area_, area);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Load(pixels, _width, _height, _pitch, _format, _palette, TPTCArea.Create(0, 0, width, height), area);
 end;
 
 procedure TCGAConsole.load(const pixels: Pointer;
                            _width, _height, _pitch: Integer;
-                           const _format: TPTCFormat;
-                           const _palette: TPTCPalette;
-                           const source, destination: TPTCArea);
+                           _format: IPTCFormat;
+                           _palette: IPTCPalette;
+                           source, destination: IPTCArea);
 var
   console_pixels: Pointer;
-  clipped_source, clipped_destination: TPTCArea;
-  tmp: TPTCArea;
-
+  clipped_source, clipped_destination: IPTCArea;
 begin
   check_open;
   check_unlocked;
-  clipped_source := nil;
-  clipped_destination := nil;
   try
     console_pixels := lock;
     try
-      clipped_source := TPTCArea.Create;
-      clipped_destination := TPTCArea.Create;
-      tmp := TPTCArea.Create(0, 0, _width, _height);
-      try
-        TPTCClipper.clip(source, tmp, clipped_source, destination, clip, clipped_destination);
-      finally
-        tmp.Free;
-      end;
+      TPTCClipper.clip(source, TPTCArea.Create(0, 0, _width, _height), clipped_source, destination, clip, clipped_destination);
       m_copy.request(_format, format);
       m_copy.palette(_palette, palette);
       m_copy.copy(pixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, _pitch,
                   console_pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, pitch);
     finally
       unlock;
-      clipped_source.Free;
-      clipped_destination.Free;
     end;
   except
     on error:TPTCError do
       raise TPTCError.Create('failed to load pixels to console area', error);
-
   end;
 end;
 
 procedure TCGAConsole.save(pixels: Pointer;
                            _width, _height, _pitch: Integer;
-                           const _format: TPTCFormat;
-                           const _palette: TPTCPalette);
+                           _format: IPTCFormat;
+                           _palette: IPTCPalette);
 var
-  Area_: TPTCArea;
   console_pixels: Pointer;
-
 begin
   check_open;
   check_unlocked;
@@ -413,105 +341,66 @@ begin
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, width, height);
-    try
-      save(pixels, _width, _height, _pitch, _format, _palette, area, Area_);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Save(pixels, _width, _height, _pitch, _format, _palette, area, TPTCArea.Create(0, 0, width, height));
 end;
 
 procedure TCGAConsole.save(pixels: Pointer;
                            _width, _height, _pitch: Integer;
-                           const _format: TPTCFormat;
-                           const _palette: TPTCPalette;
-                           const source, destination: TPTCArea);
+                           _format: IPTCFormat;
+                           _palette: IPTCPalette;
+                           source, destination: IPTCArea);
 var
   console_pixels: Pointer;
-  clipped_source, clipped_destination: TPTCArea;
-  tmp: TPTCArea;
-
+  clipped_source, clipped_destination: IPTCArea;
 begin
   check_open;
   check_unlocked;
-  clipped_source := nil;
-  clipped_destination := nil;
   try
     console_pixels := lock;
     try
-      clipped_source := TPTCArea.Create;
-      clipped_destination := TPTCArea.Create;
-      tmp := TPTCArea.Create(0, 0, _width, _height);
-      try
-        TPTCClipper.clip(source, clip, clipped_source, destination, tmp, clipped_destination);
-      finally
-        tmp.Free;
-      end;
+      TPTCClipper.clip(source, clip, clipped_source, destination, TPTCArea.Create(0, 0, _width, _height), clipped_destination);
       m_copy.request(format, _format);
       m_copy.palette(palette, _palette);
       m_copy.copy(console_pixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, pitch,
                   pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, _pitch);
     finally
       unlock;
-      clipped_source.Free;
-      clipped_destination.Free;
     end;
   except
     on error:TPTCError do
       raise TPTCError.Create('failed to save console area pixels', error);
-
   end;
 end;
 
-procedure TCGAConsole.clear;
-
+procedure TCGAConsole.Clear;
 var
-  tmp: TPTCColor;
-
+  Color: IPTCColor;
 begin
   check_open;
   check_unlocked;
   if format.direct then
-    tmp := TPTCColor.Create(0, 0, 0, 0)
+    Color := TPTCColor.Create(0, 0, 0, 0)
   else
-    tmp := TPTCColor.Create(0);
-  try
-    clear(tmp);
-  finally
-    tmp.Free;
-  end;
+    Color := TPTCColor.Create(0);
+  Clear(Color);
 end;
 
-procedure TCGAConsole.clear(const color: TPTCColor);
-
-var
-  tmp: TPTCArea;
-
+procedure TCGAConsole.Clear(color: IPTCColor);
 begin
   check_open;
   check_unlocked;
-  tmp := TPTCArea.Create;
-  try
-    clear(color, tmp);
-  finally
-    tmp.Free;
-  end;
+  Clear(color, TPTCArea.Create);
 end;
 
-procedure TCGAConsole.clear(const color: TPTCColor;
-                            const _area: TPTCArea);
-
+procedure TCGAConsole.clear(color: IPTCColor;
+                            _area: IPTCArea);
 var
   pixels: Pointer;
-  clipped_area: TPTCArea;
-
+  clipped_area: IPTCArea;
 begin
   check_open;
   check_unlocked;
   try
-    clipped_area := nil;
     pixels := lock;
     try
       clipped_area := TPTCClipper.clip(_area, clip);
@@ -519,139 +408,111 @@ begin
       m_clear.clear(pixels, clipped_area.left, clipped_area.right, clipped_area.width, clipped_area.height, pitch, color);
     finally
       unlock;
-      clipped_area.Free;
     end;
   except
     on error: TPTCError do
       raise TPTCError.Create('failed to clear console area', error);
-
   end;
 end;
 
-procedure TCGAConsole.Palette(const _palette: TPTCPalette);
-
+procedure TCGAConsole.Palette(_palette: IPTCPalette);
 begin
   check_open;
   m_primary.palette(_palette);
 end;
 
-function TCGAConsole.Palette: TPTCPalette;
-
+function TCGAConsole.Palette: IPTCPalette;
 begin
   check_open;
   Result := m_primary.palette;
 end;
 
-procedure TCGAConsole.Clip(const _area: TPTCArea);
-
+procedure TCGAConsole.Clip(_area: IPTCArea);
 begin
   check_open;
   m_primary.clip(_area);
 end;
 
 function TCGAConsole.GetWidth: Integer;
-
 begin
   check_open;
   Result := m_primary.width;
 end;
 
 function TCGAConsole.GetHeight: Integer;
-
 begin
   check_open;
   Result := m_primary.height;
 end;
 
 function TCGAConsole.GetPitch: Integer;
-
 begin
   check_open;
   Result := m_primary.pitch;
 end;
 
 function TCGAConsole.GetPages: Integer;
-
 begin
   check_open;
   Result := 2;
 end;
 
-function TCGAConsole.GetArea: TPTCArea;
-
+function TCGAConsole.GetArea: IPTCArea;
 begin
   check_open;
   Result := m_primary.area;
 end;
 
-function TCGAConsole.Clip: TPTCArea;
-
+function TCGAConsole.Clip: IPTCArea;
 begin
   check_open;
   Result := m_primary.clip;
 end;
 
-function TCGAConsole.GetFormat: TPTCFormat;
-
+function TCGAConsole.GetFormat: IPTCFormat;
 begin
   check_open;
   Result := m_primary.format;
 end;
 
 function TCGAConsole.GetName: string;
-
 begin
   Result := 'CGA';
 end;
 
 function TCGAConsole.GetTitle: string;
-
 begin
   Result := m_title;
 end;
 
 function TCGAConsole.GetInformation: string;
-
 begin
   Result := m_information;
 end;
 
-procedure TCGAConsole.internal_pre_open_setup(const _title: String);
-
+procedure TCGAConsole.internal_pre_open_setup(const _title: string);
 begin
   m_title := _title;
 end;
 
 procedure TCGAConsole.internal_open_fullscreen_start;
-
-var
-  f: TPTCFormat;
-
 begin
   CGAPrecalc;
 
-  f := TPTCFormat.Create(32, $FF0000, $00FF00, $0000FF);
-  try
-    m_primary := TPTCSurface.Create(320, 200, f);
-  finally
-    f.Free;
-  end;
+  m_primary := TPTCSurface.Create(320, 200, TPTCFormat.Create(32, $FF0000, $00FF00, $0000FF));
 
   CGA320;
 end;
 
-procedure TCGAConsole.internal_open_fullscreen(_width, _height: Integer; const _format: TPTCFormat);
-
+procedure TCGAConsole.internal_open_fullscreen(_width, _height: Integer; const _format: IPTCFormat);
 begin
 end;
 
 procedure TCGAConsole.internal_open_fullscreen_finish(_pages: Integer);
-
 begin
 end;
 
 procedure TCGAConsole.internal_post_open_setup;
-
 begin
   FreeAndNil(m_keyboard);
   FreeAndNil(FMouse);
@@ -668,7 +529,6 @@ begin
 end;
 
 procedure TCGAConsole.internal_reset;
-
 begin
   FreeAndNil(m_primary);
   FreeAndNil(m_keyboard);
@@ -677,7 +537,6 @@ begin
 end;
 
 procedure TCGAConsole.internal_close;
-
 begin
   FreeAndNil(m_primary);
   FreeAndNil(m_keyboard);
@@ -688,18 +547,15 @@ begin
 end;
 
 procedure TCGAConsole.HandleEvents;
-
 begin
   m_keyboard.GetPendingEvents(FEventQueue);
   FMouse.GetPendingEvents(FEventQueue);
 end;
 
-function TCGAConsole.NextEvent(var event: TPTCEvent; wait: Boolean; const EventMask: TPTCEventMask): Boolean;
-
+function TCGAConsole.NextEvent(out event: IPTCEvent; wait: Boolean; const EventMask: TPTCEventMask): Boolean;
 begin
   check_open;
 
-  FreeAndNil(event);
   repeat
     { get events }
     HandleEvents;
@@ -710,8 +566,7 @@ begin
   Result := event <> nil;
 end;
 
-function TCGAConsole.PeekEvent(wait: Boolean; const EventMask: TPTCEventMask): TPTCEvent;
-
+function TCGAConsole.PeekEvent(wait: Boolean; const EventMask: TPTCEventMask): IPTCEvent;
 begin
   check_open;
 
@@ -725,14 +580,12 @@ begin
 end;
 
 procedure TCGAConsole.check_open;
-
 begin
   if not m_open then
     raise TPTCError.Create('console is not open');
 end;
 
 procedure TCGAConsole.check_unlocked;
-
 begin
   if m_locked then
     raise TPTCError.Create('console is not unlocked');

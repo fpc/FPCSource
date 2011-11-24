@@ -16,6 +16,7 @@ uses
 
 const
   DEFDIALECT = 3;
+  MAXBLOBSEGMENTSIZE = 65535; //Maximum number of bytes that fit in a blob segment.
 
 type
 
@@ -51,7 +52,7 @@ type
     FStatus              : array [0..19] of ISC_STATUS;
     FDialect             : integer;
     FDBDialect           : integer;
-    FBLobSegmentSize     : word;
+    FBLobSegmentSize     : word; //required for backward compatibilty; not used
 
     procedure ConnectFB;
     function GetDialect: integer;
@@ -99,7 +100,8 @@ type
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
     procedure DropDB; override;
-    property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
+    //Segment size is not used in the code; property kept for backward compatibility
+    property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize; deprecated;
     function GetDBDialect: integer;
   published
     property DatabaseName;
@@ -165,7 +167,7 @@ begin
   inherited;
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
   FieldNameQuoteChars:=DoubleQuotes;
-  FBLobSegmentSize := 80;
+  FBLobSegmentSize := 65535; //Shows we're using the maximum segment size
   FDialect := -1;
   FDBDialect := -1;
 end;
@@ -551,6 +553,7 @@ begin
         CheckError('PrepareStatement', Status);
       if in_SQLDA^.SQLD > in_SQLDA^.SQLN then
         DatabaseError(SParameterCountIncorrect,self);
+      {$push}
       {$R-}
       for x := 0 to in_SQLDA^.SQLD - 1 do with in_SQLDA^.SQLVar[x] do
         begin
@@ -565,7 +568,7 @@ begin
         sqltype := sqltype or 1;
         new(sqlind);
         end;
-      {$R+}
+      {$pop}
       end
     else
       AllocSQLDA(in_SQLDA,0);
@@ -594,6 +597,7 @@ begin
         if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
           CheckError('PrepareSelect', Status);
         end;
+      {$push}
       {$R-}
       for x := 0 to SQLDA^.SQLD - 1 do with SQLDA^.SQLVar[x] do
         begin
@@ -603,7 +607,7 @@ begin
           SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen);
         if (SQLType and 1) = 1 then New(SQLInd);
         end;
-      {$R+}
+      {$pop}
       end;
     FPrepared := True;
     end;
@@ -627,6 +631,7 @@ procedure TIBConnection.FreeSQLDABuffer(var aSQLDA : PXSQLDA);
 var x : Smallint;
 
 begin
+{$push}
 {$R-}
   if assigned(aSQLDA) then
     for x := 0 to aSQLDA^.SQLN - 1 do
@@ -639,7 +644,7 @@ begin
         end
         
       end;
-{$R+}
+{$pop}
 end;
 
 function TIBConnection.IsDialectStored: boolean;
@@ -666,12 +671,19 @@ end;
 
 procedure TIBConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams);
 var tr : pointer;
+    out_SQLDA : PXSQLDA;
 begin
   tr := aTransaction.Handle;
   if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, atransaction, AParams);
   with cursor as TIBCursor do
-    if isc_dsql_execute2(@Status[0], @tr, @Statement, 1, in_SQLDA, nil) <> 0 then
+  begin
+    if FStatementType = stExecProcedure then
+      out_SQLDA := SQLDA
+    else
+      out_SQLDA := nil;
+    if isc_dsql_execute2(@Status[0], @tr, @Statement, 1, in_SQLDA, out_SQLDA) <> 0 then
       CheckError('Execute', Status);
+  end;
 end;
 
 
@@ -683,6 +695,7 @@ var
   FD        : TFieldDef;
 
 begin
+  {$push}
   {$R-}
   with cursor as TIBCursor do
     begin
@@ -705,7 +718,7 @@ begin
       FieldBinding[FD.FieldNo-1] := x;
       end;
     end;
-  {$R+}
+  {$pop}
 end;
 
 function TIBConnection.GetHandle: pointer;
@@ -718,12 +731,23 @@ var
   retcode : integer;
 begin
   with cursor as TIBCursor do
-    begin
-    retcode := isc_dsql_fetch(@Status[0], @Statement, 1, SQLDA);
+  begin
+    if FStatementType = stExecProcedure then
+      //it is not recommended fetch from non-select statement, i.e. statement which have no cursor
+      //starting from Firebird 2.5 it leads to error 'Invalid cursor reference'
+      if SQLDA^.SQLD = 0 then
+        retcode := 100 //no more rows to retrieve
+      else
+      begin
+        retcode := 0;
+        SQLDA^.SQLD := 0; //hack: mark after first fetch
+      end
+    else
+      retcode := isc_dsql_fetch(@Status[0], @Statement, 1, SQLDA);
     if (retcode <> 0) and (retcode <> 100) then
       CheckError('Fetch', Status);
-    end;
-  Result := (retcode <> 100);
+  end;
+  Result := (retcode = 0);
 end;
 
 procedure TIBConnection.SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
@@ -743,9 +767,10 @@ var ParNr,SQLVarNr : integer;
     BlobBytesWritten  : longint;
     
   procedure SetBlobParam;
-  
+
   begin
-{$R-}
+    {$push}
+    {$R-}
     with cursor as TIBCursor do
       begin
       TransactionHandle := aTransation.Handle;
@@ -759,20 +784,22 @@ var ParNr,SQLVarNr : integer;
       BlobBytesWritten := 0;
       i := 0;
 
-      while BlobBytesWritten < (BlobSize-BlobSegmentSize) do
+      // Write in segments of MAXBLOBSEGMENTSIZE, as that is the fastest.
+      // We ignore BlobSegmentSize property.
+      while BlobBytesWritten < (BlobSize-MAXBLOBSEGMENTSIZE) do
         begin
-        isc_put_segment(@FStatus[0], @blobHandle, BlobSegmentSize, @s[(i*BlobSegmentSize)+1]);
-        inc(BlobBytesWritten,BlobSegmentSize);
+        isc_put_segment(@FStatus[0], @blobHandle, MAXBLOBSEGMENTSIZE, @s[(i*MAXBLOBSEGMENTSIZE)+1]);
+        inc(BlobBytesWritten,MAXBLOBSEGMENTSIZE);
         inc(i);
         end;
       if BlobBytesWritten <> BlobSize then
-        isc_put_segment(@FStatus[0], @blobHandle, BlobSize-BlobBytesWritten, @s[(i*BlobSegmentSize)+1]);
+        isc_put_segment(@FStatus[0], @blobHandle, BlobSize-BlobBytesWritten, @s[(i*MAXBLOBSEGMENTSIZE)+1]);
 
       if isc_close_blob(@FStatus[0], @blobHandle) <> 0 then
         CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
       Move(blobId, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
       end;
-{$R+}
+      {$pop}
   end;
 
 var
@@ -782,7 +809,8 @@ var
   d : double;
   
 begin
-{$R-}
+  {$push}
+  {$R-}
   with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
     begin
     ParNr := ParamBinding[SQLVarNr];
@@ -858,7 +886,7 @@ begin
       end {case}
       end;
     end;
-{$R+}
+{$pop}
 end;
 
 function TIBConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
@@ -877,7 +905,8 @@ begin
   CreateBlob := False;
   with cursor as TIBCursor do
     begin
-{$R-}
+    {$push}
+    {$R-}
     x := FieldBinding[FieldDef.FieldNo-1];
 
     // Joost, 5 jan 2006: I disabled the following, since it's useful for
@@ -984,7 +1013,7 @@ begin
           end
       end;  { case }
       end; { if/else }
-{$R+}
+      {$pop}
     end; { with cursor }
 end;
 

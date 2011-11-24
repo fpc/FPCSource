@@ -2005,7 +2005,7 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftFixedChar,10,ds,Fld);
+  TestfieldDefinition(ftFixedChar,11,ds,Fld);
   for i := 0 to testValuesCount-1 do
     begin
     if Fld.IsNull then // If the field is null, .AsString always returns an empty, non-padded string

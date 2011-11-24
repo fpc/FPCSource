@@ -36,6 +36,8 @@ procedure TTestBasics.TestParseSQL;
 var Params  : TParams;
     ReplStr : string;
     pb      : TParamBinding;
+    i       : integer;
+    SQLStr  : string;
 begin
   Params := TParams.Create;
 
@@ -104,6 +106,13 @@ begin
 
   AssertEquals(     'select * from table where "field-name" = ?',
     params.ParseSQL('select * from table where "field-name" = :"field-name',true,True,True,psInterbase));
+
+// Test more than 99 params - bug 19645
+  SQLStr := 'update test set';
+  for i := 1 to 101 do
+    SQLStr := format('%s field%d=:par%d', [SQLStr,i,i]);
+  AssertEquals( StringReplace(SQLStr, ':par', '$', [rfReplaceAll]),
+    Params.ParseSQL(SQLStr, True, True, True, psPostgreSQL) );
 
   Params.Free;
 end;

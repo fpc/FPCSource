@@ -270,11 +270,11 @@ begin
 end;
 
 var
-  format: TPTCFormat = nil;
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  timer: TPTCTimer = nil;
-  key: TPTCKeyEvent = nil;
+  format: IPTCFormat;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  timer: IPTCTimer;
+  key: IPTCKeyEvent;
   pixels: PUint32;
   Done: Boolean;
 
@@ -286,11 +286,10 @@ begin
   Done := False;
   try
     try
-      key := TPTCKeyEvent.Create;
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
-      console := TPTCConsole.Create;
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
+      console := TPTCConsoleFactory.CreateNew;
       console.open('Land demo', SCREENWIDTH, SCREENHEIGHT, format);
-      surface := TPTCSurface.Create(SCREENWIDTH, SCREENHEIGHT, format);
+      surface := TPTCSurfaceFactory.CreateNew(SCREENWIDTH, SCREENHEIGHT, format);
 
       { Compute the height map }
       ComputeMap;
@@ -309,7 +308,7 @@ begin
       scale := 20;
 
       { create timer }
-      timer := TPTCTimer.Create;
+      timer := TPTCTimerFactory.CreateNew;
 
       { start timer }
       timer.start;
@@ -372,12 +371,8 @@ begin
         Inc(y0, Trunc(CurrentSpeed * SinT[index]) div 256);
       until Done;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
-      timer.Free;
-      format.Free;
-      key.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

@@ -306,6 +306,12 @@ begin
  fpsetsid:=do_syscall(syscall_nr_setsid);
 end;
 
+function fpgetsid (pid:TPid): pid_t;
+
+begin
+ fpgetsid:=do_syscall(syscall_nr_getsid,pid);
+end;
+
 Function fpumask(cmask:mode_t):mode_t;
 {
   Sets file creation mask to (Mask and 0777 (octal) ), and returns the

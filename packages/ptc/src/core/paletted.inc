@@ -31,17 +31,7 @@
 }
 
 type
-  TPTCPalette = class
-  private
-    FLocked: Boolean;
-    FHandle: THermesPaletteHandle;
-  public
-    constructor Create;
-    constructor Create(const AData: array of Uint32);
-    constructor Create(const APalette: TPTCPalette);
-    destructor Destroy; override;
-    procedure Assign(const APalette: TPTCPalette);
-    function Equals(const APalette: TPTCPalette): Boolean;
+  IPTCPalette = interface
     function Lock: PUint32;
     procedure Unlock;
     procedure Load(const AData: array of Uint32);
@@ -49,4 +39,12 @@ type
     procedure Save(var AData: array of Uint32);
     procedure Save(AData: Pointer);
     function Data: PUint32;
+    function GetHermesPaletteHandle: THermesPaletteHandle;
+  end;
+
+  TPTCPaletteFactory = class
+  public
+    class function CreateNew: IPTCPalette;
+    class function CreateNew(const AData: array of Uint32): IPTCPalette;
+    class function CreateNew(APalette: IPTCPalette): IPTCPalette;
   end;
