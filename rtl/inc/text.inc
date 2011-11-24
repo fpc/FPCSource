@@ -1674,8 +1674,11 @@ End;
 *****************************************************************************}
 
 const
+  { pointer to target string }
   StrPtrIndex = 1;
-  { leave space for 128 bit string pointers :) (used for writestr) }
+  { temporary destination for writerstr, because the original value of the
+    destination may be used in the writestr expression }
+  TempWriteStrDestIndex = 9;
   ShortStrLenIndex = 17;
   { how many bytes of the string have been processed already (used for readstr) }
   BytesReadIndex = 17;
@@ -1691,7 +1694,7 @@ var
 begin
   if (t.bufpos=0) then
     exit;
-  str:=pshortstring(ppointer(@t.userdata[StrPtrIndex])^);
+  str:=pshortstring(ppointer(@t.userdata[TempWriteStrDestIndex])^);
   newbytes:=t.BufPos;
   oldlen:=length(str^);
   if (oldlen+t.bufpos > t.userdata[ShortStrLenIndex]) then
@@ -1712,6 +1715,23 @@ begin
 end;
 
 
+procedure WriteStrShortFlush(var t: textrec);
+begin
+  { move written data from internal buffer to temporary string (don't move
+    directly from buffer to final string, because the temporary string may
+    already contain data in case the textbuf was smaller than the string
+    length) }
+  WriteStrShort(t);
+  { move written data to original string }
+  move(PPointer(@t.userdata[TempWriteStrDestIndex])^^,
+       PPointer(@t.userdata[StrPtrIndex])^^,
+       t.userdata[ShortStrLenIndex]+1);
+  { free temporary buffer }
+  freemem(PPointer(@t.userdata[TempWriteStrDestIndex])^);
+end;
+
+
+
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure WriteStrAnsi(var t: textrec);
 var
@@ -1720,11 +1740,22 @@ var
 begin
   if (t.bufpos=0) then
     exit;
-  str:=pansistring(ppointer(@t.userdata[StrPtrIndex])^);
+  str:=pansistring(@t.userdata[TempWriteStrDestIndex]);
   oldlen:=length(str^);
   setlength(str^,oldlen+t.bufpos);
   move(t.bufptr^,str^[oldlen+1],t.bufpos);
   t.bufpos:=0;
+end;
+
+
+procedure WriteStrAnsiFlush(var t: textrec);
+begin
+  { see comment in WriteStrShortFlush }
+  WriteStrAnsi(t);
+  pansistring(ppointer(@t.userdata[StrPtrIndex])^)^:=
+    pansistring(@t.userdata[TempWriteStrDestIndex])^;
+  { free memory/finalize temp }
+  pansistring(@t.userdata[TempWriteStrDestIndex])^:='';
 end;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
@@ -1737,11 +1768,22 @@ var
 begin
   if (t.bufpos=0) then
     exit;
-  str:=punicodestring(ppointer(@t.userdata[StrPtrIndex])^);
+  str:=punicodestring(@t.userdata[TempWriteStrDestIndex]);
   setlength(temp,t.bufpos);
   move(t.bufptr^,temp[1],t.bufpos);
   str^:=str^+temp;
   t.bufpos:=0;
+end;
+
+
+procedure WriteStrUnicodeFlush(var t: textrec);
+begin
+  { see comment in WriteStrShortFlush }
+  WriteStrUnicode(t);
+  punicodestring(ppointer(@t.userdata[StrPtrIndex])^)^:=
+    punicodestring(@t.userdata[TempWriteStrDestIndex])^;
+  { free memory/finalize temp }
+  punicodestring(@t.userdata[TempWriteStrDestIndex])^:='';
 end;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
@@ -1753,11 +1795,22 @@ var
 begin
   if (t.bufpos=0) then
     exit;
-  str:=pwidestring(ppointer(@t.userdata[StrPtrIndex])^);
+  str:=pwidestring(@t.userdata[TempWriteStrDestIndex]);
   setlength(temp,t.bufpos);
   move(t.bufptr^,temp[1],t.bufpos);
   str^:=str^+temp;
   t.bufpos:=0;
+end;
+
+
+procedure WriteStrWideFlush(var t: textrec);
+begin
+  { see comment in WriteStrShortFlush }
+  WriteStrWide(t);
+  pwidestring(ppointer(@t.userdata[StrPtrIndex])^)^:=
+    pwidestring(@t.userdata[TempWriteStrDestIndex])^;
+  { free memory/finalize temp }
+  finalize(pwidestring(@t.userdata[TempWriteStrDestIndex])^);
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
@@ -1774,55 +1827,65 @@ begin
 end;
 
 
-function fpc_SetupWriteStr_Shortstr(out s: shortstring): PText; compilerproc;
+function fpc_SetupWriteStr_Shortstr(var s: shortstring): PText; compilerproc;
 begin
   setupwritestrcommon(ReadWriteStrText);
   PPointer(@ReadWriteStrText.userdata[StrPtrIndex])^:=@s;
+
+  { temporary destination (see comments for TempWriteStrDestIndex) }
+  getmem(PPointer(@ReadWriteStrText.userdata[TempWriteStrDestIndex])^,high(s)+1);
+  setlength(pshortstring(ppointer(@ReadWriteStrText.userdata[TempWriteStrDestIndex])^)^,0);
+
   ReadWriteStrText.userdata[ShortStrLenIndex]:=high(s);
-  setlength(s,0);
   ReadWriteStrText.InOutFunc:=@WriteStrShort;
-  ReadWriteStrText.FlushFunc:=@WriteStrShort;
+  ReadWriteStrText.FlushFunc:=@WriteStrShortFlush;
   result:=@ReadWriteStrText;
 end;
 
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-function fpc_SetupWriteStr_Ansistr(out s: ansistring): PText; compilerproc;
+function fpc_SetupWriteStr_Ansistr(var s: ansistring): PText; compilerproc;
 begin
   setupwritestrcommon(ReadWriteStrText);
   PPointer(@ReadWriteStrText.userdata[StrPtrIndex])^:=@s;
-// automatically done by out-semantics
-//  setlength(s,0);
+
+  { temp destination ansistring, nil = empty string }
+  PPointer(@ReadWriteStrText.userdata[TempWriteStrDestIndex])^:=nil;
+
   ReadWriteStrText.InOutFunc:=@WriteStrAnsi;
-  ReadWriteStrText.FlushFunc:=@WriteStrAnsi;
+  ReadWriteStrText.FlushFunc:=@WriteStrAnsiFlush;
   result:=@ReadWriteStrText;
 end;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-function fpc_SetupWriteStr_Unicodestr(out s: unicodestring): PText; compilerproc;
+function fpc_SetupWriteStr_Unicodestr(var s: unicodestring): PText; compilerproc;
 begin
   setupwritestrcommon(ReadWriteStrText);
   PPointer(@ReadWriteStrText.userdata[StrPtrIndex])^:=@s;
-// automatically done by out-semantics
-//  setlength(s,0);
+
+  { temp destination unicodestring, nil = empty string }
+  PPointer(@ReadWriteStrText.userdata[TempWriteStrDestIndex])^:=nil;
+
   ReadWriteStrText.InOutFunc:=@WriteStrUnicode;
-  ReadWriteStrText.FlushFunc:=@WriteStrUnicode;
+  ReadWriteStrText.FlushFunc:=@WriteStrUnicodeFlush;
   result:=@ReadWriteStrText;
 end;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-function fpc_SetupWriteStr_Widestr(out s: widestring): PText; compilerproc;
+function fpc_SetupWriteStr_Widestr(var s: widestring): PText; compilerproc;
 begin
   setupwritestrcommon(ReadWriteStrText);
   PPointer(@ReadWriteStrText.userdata[StrPtrIndex])^:=@s;
-// automatically done by out-semantics
-//  setlength(s,0);
+
+  { temp destination widestring }
+  PWideString(@ReadWriteStrText.userdata[TempWriteStrDestIndex])^:='';
+
   ReadWriteStrText.InOutFunc:=@WriteStrWide;
-  ReadWriteStrText.FlushFunc:=@WriteStrWide;
+  ReadWriteStrText.FlushFunc:=@WriteStrWideFlush;
   result:=@ReadWriteStrText;
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}

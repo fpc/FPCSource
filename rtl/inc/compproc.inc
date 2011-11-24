@@ -507,15 +507,17 @@ Procedure fpc_Write_Text_Char_Iso(Len : Longint;var t : Text;c : Char); compiler
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
-function fpc_SetupWriteStr_Shortstr(out s: shortstring): PText; compilerproc;
+{ all var rather than out, because they must not be trashed/finalized as they
+  can appear inside the other arguments of writerstr }
+function fpc_SetupWriteStr_Shortstr(var s: shortstring): PText; compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-function fpc_SetupWriteStr_Ansistr(out s: ansistring): PText; compilerproc;
+function fpc_SetupWriteStr_Ansistr(var s: ansistring): PText; compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-function fpc_SetupWriteStr_Unicodestr(out s: unicodestring): PText; compilerproc;
+function fpc_SetupWriteStr_Unicodestr(var s: unicodestring): PText; compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-function fpc_SetupWriteStr_Widestr(out s: widestring): PText; compilerproc;
+function fpc_SetupWriteStr_Widestr(var s: widestring): PText; compilerproc;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 function fpc_SetupReadStr_Shortstr(const s: shortstring): PText; compilerproc;
