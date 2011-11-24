@@ -360,7 +360,6 @@ implementation
          generictypelist : TFPObjectList;
          generictokenbuf : tdynamicarray;
          vmtbuilder : TVMTBuilder;
-         s : shortstring;
          gendef : tstoreddef;
          s : shortstring;
       begin

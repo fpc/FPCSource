@@ -326,21 +326,6 @@ uses
             if assigned(hmodule.globalsymtable) then
               symtablestack.push(hmodule.globalsymtable);
 
-<<<<<<< HEAD
-            { in case of a parent or an implemented interface the class needs
-              to be inserted in the current unit and not in the class it's
-              used in }
-            { TODO: check whether we are using the correct symtable }
-            if not parse_class_parent then
-              begin
-                { hacky, but necessary to insert the newly generated class properly }
-                item:=oldsymtablestack.stack;
-                while assigned(item) and (item^.symtable.symtablelevel>main_program_level) do
-                  item:=item^.next;
-                if assigned(item) and (item^.symtable<>symtablestack.top) then
-                  symtablestack.push(item^.symtable);
-              end;
-=======
             { push the localsymtable if needed }
             if (hmodule<>current_module) or not current_module.in_interface then
               symtablestack.push(current_module.localsymtable);
@@ -351,7 +336,6 @@ uses
               influenced by symbols in the current unit }
             tempst:=tspecializesymtable.create(current_module.modulename^,current_module.moduleid);
             symtablestack.push(tempst);
->>>>>>> unique-syms
 
             { Reparse the original type definition }
             if not err then
@@ -439,10 +423,7 @@ uses
                 { Consume the semicolon if it is also recorded }
                 try_to_consume(_SEMICOLON);
 
-<<<<<<< HEAD
-=======
                 block_type:=old_block_type;
->>>>>>> unique-syms
                 if parse_class_parent then
                   begin
                     current_structdef:=old_current_structdef;

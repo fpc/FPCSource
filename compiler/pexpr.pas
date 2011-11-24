@@ -3101,7 +3101,7 @@ implementation
                        check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg);
 
                        { generate the specialization }
-                       generate_specialization(gendef,false,parseddef,gensym.RealName);
+                       generate_specialization(gendef,false,'',parseddef,gensym.RealName);
 
                        { we don't need the old left and right nodes anymore }
                        p1.Free;
@@ -3121,8 +3121,12 @@ implementation
                        { with p1 now set we are in reality directly behind the
                          call to "factor" thus we need to call down to that
                          again }
-                       factornode:=p1;
-                       goto SubExprStart;
+                       { This is disabled until specializations on the right
+                         hand side work as well, because
+                         "not working expressions" is better than "half working
+                         expressions" }
+                       {factornode:=p1;
+                       goto SubExprStart;}
                      end
                    else
                      begin
@@ -3188,7 +3192,7 @@ implementation
                          Internalerror(2011071401);
 
                        { generate the specialization }
-                       generate_specialization(gendef,false,nil,'');
+                       generate_specialization(gendef,false,'',nil,'');
 
                        { we don't need the old p2 anymore }
                        p2.Free;
