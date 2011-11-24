@@ -28,10 +28,10 @@ uses
 
 Function AnsiResemblesText(const AText, AOther: string): Boolean;
 Function AnsiContainsText(const AText, ASubText: string): Boolean;
-Function AnsiStartsText(const ASubText, AText: string): Boolean;inline;
-Function AnsiEndsText(const ASubText, AText: string): Boolean;inline;
+Function AnsiStartsText(const ASubText, AText: string): Boolean;
+Function AnsiEndsText(const ASubText, AText: string): Boolean;
 Function AnsiReplaceText(const AText, AFromText, AToText: string): string;inline;
-Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;
+Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;inline;
 Function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
 
 { ---------------------------------------------------------------------
@@ -39,10 +39,10 @@ Function AnsiIndexText(const AText: string; const AValues: array of string): Int
   ---------------------------------------------------------------------}
 
 Function AnsiContainsStr(const AText, ASubText: string): Boolean;inline;
-Function AnsiStartsStr(const ASubText, AText: string): Boolean;inline;
-Function AnsiEndsStr(const ASubText, AText: string): Boolean;inline;
+Function AnsiStartsStr(const ASubText, AText: string): Boolean;
+Function AnsiEndsStr(const ASubText, AText: string): Boolean;
 Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;inline;
-Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;
+Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;inline;
 Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
 
 { ---------------------------------------------------------------------
@@ -241,15 +241,22 @@ begin
 end;
 
 
-Function AnsiStartsText(const ASubText, AText: string): Boolean;inline;
+Function AnsiStartsText(const ASubText, AText: string): Boolean;
 begin
-  Result:=AnsiCompareText(Copy(AText,1,Length(AsubText)),ASubText)=0;
+  if (Length(AText) >= Length(ASubText)) and (ASubText <> '') then
+    Result := AnsiStrLIComp(PChar(ASubText), PChar(AText), Length(ASubText)) = 0
+  else
+    Result := False;
 end;
 
 
-Function AnsiEndsText(const ASubText, AText: string): Boolean;inline;
+Function AnsiEndsText(const ASubText, AText: string): Boolean;
 begin
- result:=AnsiCompareText(Copy(AText,Length(AText)-Length(ASubText)+1,Length(ASubText)),asubtext)=0;
+  if Length(AText) >= Length(ASubText) then
+    Result := AnsiStrLIComp(PChar(ASubText),
+      PChar(AText) + Length(AText) - Length(ASubText), Length(ASubText)) = 0
+  else
+    Result := False;
 end;
 
 
@@ -289,15 +296,22 @@ begin
 end;
 
 
-Function AnsiStartsStr(const ASubText, AText: string): Boolean;inline;
+Function AnsiStartsStr(const ASubText, AText: string): Boolean;
 begin
-  Result := AnsiPos(ASubText,AText)=1;
+  if (Length(AText) >= Length(ASubText)) and (ASubText <> '') then
+    Result := AnsiStrLComp(PChar(ASubText), PChar(AText), Length(ASubText)) = 0
+  else
+    Result := False;
 end;
 
 
-Function AnsiEndsStr(const ASubText, AText: string): Boolean;inline;
+Function AnsiEndsStr(const ASubText, AText: string): Boolean;
 begin
- Result := AnsiCompareStr(Copy(AText,length(AText)-length(ASubText)+1,length(ASubText)),ASubText)=0;
+  if Length(AText) >= Length(ASubText) then
+    Result := AnsiStrLComp(PChar(ASubText),
+      PChar(AText) + Length(AText) - Length(ASubText), Length(ASubText)) = 0
+  else
+    Result := False;
 end;
 
 

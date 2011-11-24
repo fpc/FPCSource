@@ -46,7 +46,7 @@
     _shadowOffset: NSSize;
     _shadowBlurRadius: CGFloat;
     _shadowColor: NSColor;
-        _reservedFloat: array[0..2] of CGFloat;
+    _reservedFloat: array[0..(3)-1] of CGFloat;
     _reserved: Pointer;
     
   public

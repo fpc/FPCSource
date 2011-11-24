@@ -70,12 +70,13 @@ type
   CAConstraint = objcclass external (NSObject, NSCodingProtocol)
   private
     _srcId: NSString;
-    _anoninternstruct_CAConstraintLayoutManager0: bitpacked record
+    _anoninternstruct_CAConstraintLayoutManager0: record
       case byte of
        0: (_anonbitfield_CAConstraintLayoutManager0: CAConstraintAttribute);
-       1: (
+       1: (data: bitpacked record
         _srcAttr: 0..((1 shl 16)-1);
         _attr: 0..((1 shl 16)-1);
+       end;
       );
       end;
     _scale, _offset: CGFloat;

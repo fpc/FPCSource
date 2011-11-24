@@ -65,10 +65,10 @@ type
     _fetchLimit: culong;
     _affectedStores: NSArray;
     _relationshipKeyPathsForPrefetching: NSArray;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSFetchRequest0: cuint);
-       1: (
+       1: (data: bitpacked record
         distinctValuesOnly: 0..1;
         _includesSubentities: 0..1;
         _includesPropertyValues: 0..1;
@@ -77,6 +77,7 @@ type
         excludePendingChanges: 0..1;
         isInUse: 0..1;
         __RESERVED: 0..((1 shl 23)-1);
+       end;
       );
       end;
     

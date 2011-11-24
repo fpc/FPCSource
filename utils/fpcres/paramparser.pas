@@ -30,6 +30,7 @@ type
   EArgumentMissingException = class(EParametersException);
   EUnknownObjFormatException = class(EParametersException);
   EUnknownMachineException = class(EParametersException);
+  EUnknownSubMachineException = class(EParametersException);
   ECannotReadConfFile = class(EParametersException);
 
 type
@@ -49,6 +50,7 @@ type
     procedure ParseOutputFile(aList : TStringList; var index : integer; const parname : string);
     procedure ParseOutputFormat(aList : TStringList; var index : integer; const parname : string);
     procedure ParseArchitecture(aList : TStringList; var index : integer; const parname : string);
+    procedure ParseSubArchitecture(aList : TStringList; var index : integer; const parname : string);
     procedure ParseConfigFile(aList : TStringList; var index : integer; const parname : string);
     function DoOptionalArgument(aList : TStringList; const i : integer) : string;
     function DoMandatoryArgument(aList : TStringList; const i : integer) : string;
@@ -242,11 +244,43 @@ begin
     if Machines[aMachine].name=tmp then
     begin
       fTarget.machine:=aMachine;
+      fTarget.submachine:=GetDefaultSubMachineForMachine(fTarget.machine);
       exit;
     end;
   end;
 
   raise EUnknownMachineException.Create(tmp);
+
+end;
+
+procedure TParameters.ParseSubArchitecture(aList: TStringList; var index: integer; const parname: string);
+var tmp : string;
+    aSubMachineArm : TSubMachineTypeArm;
+    aSubMachineGeneric : TSubMachineTypeGeneric;
+begin
+  inc(index);
+  tmp:=DoMandatoryArgument(aList,index);
+  if tmp='' then
+    raise EArgumentMissingException.Create(parname);
+
+  case fTarget.machine of
+    mtarm,mtarmeb:
+      for aSubMachineArm:=low(TSubMachineTypeArm) to high(TSubMachineTypeArm) do
+        if SubMachinesArm[aSubMachineArm]=tmp then
+          begin
+            ftarget.submachine.subarm:=aSubMachineArm;
+            exit;
+          end;
+    else
+      for aSubMachineGeneric:=low(TSubMachineTypeGeneric) to high(TSubMachineTypeGeneric) do
+        if SubMachinesGen[aSubMachineGeneric]=tmp then
+          begin
+            ftarget.submachine.subgen:=aSubMachineGeneric;
+            exit;
+          end;
+  end;
+
+  raise EUnknownSubMachineException.Create(tmp);
 
 end;
 
@@ -333,6 +367,8 @@ begin
           ParseOutputFormat(fList,i,tmp)
         else if ((tmp='-a') or (tmp='--arch')) then
           ParseArchitecture(fList,i,tmp)
+        else if ((tmp='-s') or (tmp='--subarch')) then
+          ParseSubArchitecture(fList,i,tmp)
         else
           raise EUnknownParameterException.Create(tmp);
       end
@@ -356,6 +392,7 @@ begin
   fInputFiles:=TStringList.Create;
   fOutputFile:='';
   fTarget.machine:=mtnone;
+  GetDefaultSubMachineForMachine(fTarget.machine);
   fTarget.objformat:=ofnone;
 end;
 

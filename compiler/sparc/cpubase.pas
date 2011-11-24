@@ -161,50 +161,9 @@ uses
     const
       max_operands = 3;
 
-      {# Constant defining possibly all registers which might require saving }
-      ALL_OTHERREGISTERS = [];
-
-      general_superregisters = [RS_O0..RS_I7];
-
-      {# Table of registers which can be allocated by the code generator
-         internally, when generating the code.
-      }
-      { legend:                                                                }
-      { xxxregs = set of all possibly used registers of that type in the code  }
-      {           generator                                                    }
-      { usableregsxxx = set of all 32bit components of registers that can be   }
-      {           possible allocated to a regvar or using getregisterxxx (this }
-      {           excludes registers which can be only used for parameter      }
-      {           passing on ABI's that define this)                           }
-      { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
-
       maxintregs = 8;
-      { to determine how many registers to use for regvars }
-      maxintscratchregs = 3;
-      usableregsint = [RS_L0..RS_L7];
-      c_countusableregsint = 8;
-
       maxfpuregs = 8;
-      usableregsfpu=[RS_F0..RS_F31];
-      c_countusableregsfpu=32;
-
-      mmregs     = [];
-      usableregsmm  = [];
-      c_countusableregsmm  = 0;
-
-      { no distinction on this platform }
       maxaddrregs = 0;
-      addrregs    = [];
-      usableregsaddr = [];
-      c_countusableregsaddr = 0;
-
-{ TODO: firstsaveintreg shall be RS_NO}
-      firstsaveintreg = RS_L0; { Temporary, having RS_NO is broken }
-      lastsaveintreg = RS_L0; { L0..L7 are already saved, I0..O7 are parameter }
-      firstsavefpureg = RS_F2; { F0..F1 is used for return value }
-      lastsavefpureg = RS_F31;
-      firstsavemmreg = RS_INVALID;
-      lastsavemmreg = RS_INVALID;
 
       maxvarregs = 8;
       varregs : Array [1..maxvarregs] of Tsuperregister =
@@ -214,19 +173,6 @@ uses
       fpuvarregs : Array [1..maxfpuvarregs] of TsuperRegister =
                 (RS_F2);
 
-      {
-      max_param_regs_int = 6;
-      param_regs_int: Array[1..max_param_regs_int] of TCpuRegister =
-        (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);
-
-      max_param_regs_fpu = 13;
-      param_regs_fpu: Array[1..max_param_regs_fpu] of TCpuRegister =
-        (R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13);
-
-      max_param_regs_mm = 13;
-      param_regs_mm: Array[1..max_param_regs_mm] of TCpuRegister =
-        (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);
-      }
 
 
 {*****************************************************************************
@@ -306,7 +252,7 @@ uses
 
       { this is only for the generic code which is not used for this architecture }
       saved_mm_registers : array[0..0] of tsuperregister = (RS_NO);
-      
+
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.

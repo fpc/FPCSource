@@ -16,11 +16,28 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='pasjpeg';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
+    T:=P.Targets.AddUnit('jctrans.pas');
+    with T.Dependencies do
+      begin
+      AddUnit('jmorecfg');
+      AddUnit('jinclude');
+      AddUnit('jdeferr');
+      AddUnit('jerror');
+      AddUnit('jutils');
+      AddUnit('jpeglib');
+      AddUnit('jcapimin');
+      AddUnit('jcparam');
+      AddUnit('jcomapi');
+      AddUnit('jcmaster');
+      AddUnit('jchuff');
+      AddUnit('jcphuff');
+      AddUnit('jcmarker');
+      end;
     T:=P.Targets.AddUnit('buildpasjpeg.pp');
       T.Install:=False;
       with T.Dependencies do

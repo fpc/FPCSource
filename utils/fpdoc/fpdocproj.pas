@@ -59,6 +59,7 @@ Type
     FOSTarget: String;
     FSOPE: Boolean;
     FWarnNoNode: Boolean;
+    FDontTrim : Boolean;
     procedure SetBackendOptions(const AValue: TStrings);
   Public
     Constructor Create;
@@ -77,6 +78,7 @@ Type
     Property InterfaceOnly : Boolean Read FIO Write FIO;
     Property MoDir : String Read FMoDir Write FMODir;
     Property DefaultPackageName : String Read FDefaultPackageName Write FDefaultPackageName;
+    Property DontTrim : Boolean Read FDontTrim Write FDontTrim;
   end;
 
   { TFPDocProject }

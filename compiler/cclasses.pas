@@ -46,7 +46,7 @@ interface
        tmemdebug = class
        private
           totalmem,
-          startmem : integer;
+          startmem : int64;
           infostr  : string[40];
        public
           constructor Create(const s:string);

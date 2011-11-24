@@ -1,4 +1,5 @@
 { %norun }
+{ %needlibrary }
 { %target=linux }
 {$mode objfpc}
 library tw3964a;

@@ -32,7 +32,7 @@ uses
   { symtable }
   symtype,symdef;
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;parsedtype:tdef;symname:string);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string);
     function parse_generic_parameters:TFPObjectList;
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
 
@@ -55,7 +55,7 @@ uses
   pbase,pexpr,pdecsub,ptype;
 
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;parsedtype:tdef;symname:string);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string);
       var
         st  : TSymtable;
         srsym : tsym;
@@ -64,6 +64,7 @@ uses
         err : boolean;
         i,
         gencount : longint;
+        sym : tsym;
         genericdef : tstoreddef;
         generictype : ttypesym;
         genericdeflist : TFPObjectList;
@@ -72,6 +73,7 @@ uses
         oldextendeddefs    : TFPHashObjectList;
         hmodule : tmodule;
         pu : tused_unit;
+        prettyname : ansistring;
         uspecializename,
         countstr,genname,ugenname,specializename : string;
         vmtbuilder : TVMTBuilder;
@@ -157,15 +159,18 @@ uses
           begin
             genericdeflist.Add(parsedtype);
             specializename:='$'+parsedtype.typesym.realname;
+            prettyname:=parsedtype.typesym.prettyname;
           end
         else
-          specializename:='';
+          begin
+            specializename:='';
+            prettyname:='';
+          end;
         while not (token in [_GT,_RSHARPBRACKET]) do
           begin
+            { "first" is set to false at the end of the loop! }
             if not first then
-              consume(_COMMA)
-            else
-              first:=false;
+              consume(_COMMA);
             block_type:=bt_type;
             pt2:=factor(false,true);
             if pt2.nodetype=typen then
@@ -176,7 +181,13 @@ uses
                 if not assigned(pt2.resultdef.typesym) then
                   message(type_e_generics_cannot_reference_itself)
                 else
-                  specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
+                  begin
+                    specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
+                    if first then
+                      prettyname:=prettyname+pt2.resultdef.typesym.prettyname
+                    else
+                      prettyname:=prettyname+','+pt2.resultdef.typesym.prettyname;
+                  end;
               end
             else
               begin
@@ -184,6 +195,7 @@ uses
                 err:=true;
               end;
             pt2.free;
+            first:=false;
           end;
         block_type:=old_block_type;
 
@@ -232,6 +244,7 @@ uses
         { build the new type's name }
         specializename:=genname+specializename;
         uspecializename:=upper(specializename);
+        prettyname:=genericdef.typesym.prettyname+'<'+prettyname+'>';
 
         { select the symtable containing the params }
         case genericdef.typ of
@@ -372,10 +385,16 @@ uses
 
                 if not assigned(genericdef.generictokenbuf) then
                   internalerror(200511171);
-                current_scanner.startreplaytokens(genericdef.generictokenbuf);
+                current_scanner.startreplaytokens(genericdef.generictokenbuf,
+                  genericdef.change_endian);
                 read_named_type(tt,specializename,genericdef,generictypelist,false);
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;
+
+                if _prettyname<>'' then
+                  ttypesym(tt.typesym).fprettyname:=_prettyname
+                else
+                  ttypesym(tt.typesym).fprettyname:=prettyname;
 
                 { Note regarding hint directives:
                   There is no need to remove the flags for them from the

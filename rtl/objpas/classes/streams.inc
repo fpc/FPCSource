@@ -113,7 +113,66 @@ end;
        raise EStreamError.CreateFmt(SSeekNotImplemented,[ClassName]);
     end;
 
-  function TStream.Seek(const Offset: Int64; Origin: TSeekorigin): Int64;
+  procedure TStream.Discard(const Count: Int64);
+
+  const
+    CSmallSize      =255;
+    CLargeMaxBuffer =32*1024; // 32 KiB
+  var
+    Buffer: array[1..CSmallSize] of Byte;
+
+  begin
+    if Count=0 then
+      Exit;
+    if Count<=SizeOf(Buffer) then
+      ReadBuffer(Buffer,Count)
+    else
+      DiscardLarge(Count,CLargeMaxBuffer);
+  end;
+
+  procedure TStream.DiscardLarge(Count: int64; const MaxBufferSize: Longint);
+
+  var
+    Buffer: array of Byte;
+
+  begin
+    if Count=0 then
+       Exit;
+    if Count>MaxBufferSize then
+      SetLength(Buffer,MaxBufferSize)
+    else
+      SetLength(Buffer,Count);
+    while (Count>=Length(Buffer)) do
+      begin
+      ReadBuffer(Buffer[0],Length(Buffer));
+      Dec(Count,Length(Buffer));
+      end;
+    if Count>0 then
+      ReadBuffer(Buffer[0],Count);
+  end;
+
+  procedure TStream.InvalidSeek;
+
+  begin
+    raise EStreamError.CreateFmt(SStreamInvalidSeek, [ClassName]) at get_caller_addr(get_frame);
+  end;
+
+  procedure TStream.FakeSeekForward(Offset: Int64;  const Origin: TSeekOrigin; const Pos: Int64);
+
+  var
+    Buffer: Pointer;
+    BufferSize, i: LongInt;
+
+  begin
+    if Origin=soBeginning then
+       Dec(Offset,Pos);
+    if (Offset<0) or (Origin=soEnd) then
+      InvalidSeek;
+    if Offset>0 then
+      Discard(Offset);
+   end;
+
+ function TStream.Seek(const Offset: Int64; Origin: TSeekorigin): Int64;
 
     begin
       // Backwards compatibility that calls the longint Seek
@@ -428,6 +487,7 @@ end;
 Constructor THandleStream.Create(AHandle: THandle);
 
 begin
+  Inherited Create;
   FHandle:=AHandle;
 end;
 
@@ -528,6 +588,11 @@ function TCustomMemoryStream.GetSize: Int64;
 
 begin
   Result:=FSize;
+end;
+
+function TCustomMemoryStream.GetPosition: Int64;
+begin
+  Result:=FPosition;
 end;
 
 
@@ -695,6 +760,16 @@ end;
 {*                             TStringStream                                *}
 {****************************************************************************}
 
+function TStringStream.GetSize: Int64;
+begin
+  Result:=Length(FDataString);
+end;
+
+function TStringStream.GetPosition: Int64;
+begin
+  Result:=FPosition;
+end;
+
 procedure TStringStream.SetSize(NewSize: Longint);
 
 begin
@@ -740,10 +815,12 @@ begin
   Case Origin of
     soFromBeginning : FPosition:=Offset;
     soFromEnd       : FPosition:=Length(FDataString)+Offset;
-    soFromCurrent   : FpoSition:=FPosition+Offset;
+    soFromCurrent   : FPosition:=FPosition+Offset;
   end;
-  If FPosition>Length(FDataString) then FPosition:=Length(FDataString);
-  If FPosition<0 then FPosition:=0;
+  If FPosition>Length(FDataString) then
+    FPosition:=Length(FDataString)
+  else If FPosition<0 then
+    FPosition:=0;
   Result:=FPosition;
 end;
 

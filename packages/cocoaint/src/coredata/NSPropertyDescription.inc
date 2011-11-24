@@ -49,10 +49,10 @@
     _name: NSString;
     _validationPredicates: NSArray;
     _validationWarnings: NSArray;
-    __propertyDescriptionFlags: bitpacked record
+    __propertyDescriptionFlags: record
       case byte of
        0: (_anonbitfield_NSPropertyDescription0: cuint);
-       1: (
+       1: (data: bitpacked record
         _isReadOnly: 0..1;
         _isTransient: 0..1;
         _isOptional: 0..1;
@@ -61,6 +61,7 @@
         _isIndexedBySpotlight: 0..1;
         _isStoredInExternalRecord: 0..1;
         _reservedPropertyDescription: 0..((1 shl 25)-1);
+       end;
       );
       end;
     _extraIvars: Pointer; {garbage collector: __strong }

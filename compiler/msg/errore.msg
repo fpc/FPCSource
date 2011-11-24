@@ -79,7 +79,7 @@ general_t_objectpath=01007_T_Using object path: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
 % You can set this path with the \var{-Fo} option.
-general_i_abslines_compiled=01008_I_$1 lines compiled, $2 sec $3
+general_i_abslines_compiled=01008_I_$1 lines compiled, $2 sec$3
 % When the \var{-vi} switch is used, the compiler reports the number
 % of lines compiled, and the time it took to compile them (real time,
 % not program time).
@@ -124,6 +124,10 @@ general_i_number_of_hints=01022_I_$1 hint(s) issued
 % Total number of hints issued during compilation.
 general_i_number_of_notes=01023_I_$1 note(s) issued
 % Total number of notes issued during compilation.
+general_f_ioerror=01024_F_I/O error: $1
+% During compilation an I/O error happened which allows no further compilation.
+general_f_oserror=01025_F_Operating system error: $1
+% During compilation an operanting system error happened which allows no further compilation.
 % \end{description}
 #
 # Scanner
@@ -1388,6 +1392,14 @@ parser_e_inherited_not_in_record=03309_E_The use of "inherited" is not allowed i
 parser_e_no_types_in_local_anonymous_records=03310_E_Type declarations are not allowed in local or anonymous records
 % Records with types must be defined globally. Types cannot be defined inside records which are defined in a
 % procedure or function or in anonymous records.
+parser_e_duplicate_implements_clause=03311_E_Duplicate implements clause for interface "$1"
+% A class may delegate an interface using the "implements" clause only to a single property. Delegating it multiple times
+% is a error.
+parser_e_mapping_no_implements=03312_E_Interface "$1" can't be delegated by "$2", it already has method resolutions
+% Method resolution clause maps a method of an interface to a method of the current class. Therefore the current class
+% has to implement the interface directly. Delegation is not possible.
+parser_e_implements_no_mapping=03313_E_Interface "$1" can't have method resolutions, "$2" already delegates it
+% Method resoulution is only possible for interfaces that are implemented directly, not by delegation.
 % \end{description}
 # Type Checking
 #
@@ -1578,14 +1590,16 @@ type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completely defined
 type_w_string_too_long=04043_W_String literal has more characters than short string length
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring (255 characters).
-type_w_signed_unsigned_always_false=04044_W_Comparison is always false due to range of values
-% There is a comparison between an unsigned value and a signed constant which is
-% less than zero. Because of type promotion, the statement will always evaluate to
-% false. Explicitly typecast the constant to the correct range to avoid this problem.
-type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to range of values
-% There is a comparison between an unsigned value and a signed constant which is
-% less than zero. Because of type promotion, the statement will always evaluate to
-% true. Explicitly typecast the constant to the correct range to avoid this problem.
+type_w_comparison_always_false=04044_W_Comparison might be always false due to range of constant and expression
+% There is a comparison between a constant and an expression where the constant is out of the
+% valid range of values of the expression. Because of type promotion, the statement will always evaluate to
+% false. Explicitly typecast the constant or the expression to the correct range to avoid this warning
+% if you think the code is correct.
+type_w_comparison_always_true=04045_W_Comparison might be always true due to range of constant and expression
+% There is a comparison between a constant and an expression where the constant is out of the
+% valid range of values of the expression. Because of type promotion, the statement will always evaluate to
+% true. Explicitly typecast the constant or the expression to the correct range to avoid this warning
+% if you think the code is correct.
 type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract method "$2"
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
@@ -1749,7 +1763,10 @@ type_e_class_helper_must_extend_subclass=04101_E_Derived class helper must exten
 type_e_record_helper_must_extend_same_record=04102_E_Derived record helper must extend "$1"
 % If a record helper inherits from another record helper it must extend the same
 % record that the parent record helper extended.
-%
+type_e_procedures_return_no_value=04103_E_Invalid assignment, procedures return no value
+% This error occurs when one tries to assign the result of a procedure or destructor call.
+% A procedure or destructor returns no value so this is not
+% possible.
 % \end{description}
 #
 # Symtable
@@ -2411,6 +2428,9 @@ asmr_e_empty_regset=07109_E_A register set cannot be empty
 asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially dangereous for local symbols
 % The use of @GOTPCREL supposes an extra indirection that is
 % not present if the symbol is local, which might lead to wrong asembler code
+asmr_w_general_segment_with_constant=07111_W_Constant with general purpose segment register
+% General purpose register should not have constant offsets
+% as OS memory allocation might not be compatible with that.
 #
 # Assembler/binary writers
 #
@@ -2799,7 +2819,7 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 #
 #  Options
 #
-# 11048 is the last used one
+# 11049 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2925,6 +2945,9 @@ option_ignored_target=11047_W_Option "$1" is ignored for the current target plat
 option_debug_external_unsupported=11048_W_Disabling external debug information because it is unsupported for the selected target/debug format combination.
 % Not all debug formats can be stored in an external file on all platforms. In particular, on
 % Mac OS X only DWARF debug information can be stored externally.
+option_dwarf_smartlink_creation=11049_N_DWARF debug information cannot be used with smart linking with external assembler, disabling static library creation.  
+% Smart linking is currently incompatble with DWARF debug information on most
+% platforms, so smart linking is disabled in such cases.
 %\end{description}
 # EndOfTeX
 
@@ -3342,6 +3365,8 @@ A*2WI_Turn on/off the usage of import sections (Windows)
 3*2WN_Do not generate relocation code, needed for debugging (Windows)
 4*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
+A*2Wpxxxx_Specify the controller type, see fpc -i for possible values
+V*2Wpxxxx_Specify the controller type, see fpc -i for possible values
 3*2WR_Generate relocation code (Windows)
 4*2WR_Generate relocation code (Windows)
 A*2WR_Generate relocation code (Windows)

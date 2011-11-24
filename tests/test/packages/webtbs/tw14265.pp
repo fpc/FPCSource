@@ -29,12 +29,12 @@ var
   attr: TThreadAttr;
 begin
   Writeln('Testing simple thread creation');
-  pthread_attr_init(attr);
+  pthread_attr_init(@attr);
   for i := 1 to N do
   begin
     Writeln('Creating thread #',i);
     arg[i] := i;
-    if pthread_create(threads[i], attr, @Hello, @arg[i]) <> 0 then
+    if pthread_create(@threads[i], @attr, @Hello, @arg[i]) <> 0 then
       Writeln('Failed to create thread');
   end;
   for i := 1 to N do

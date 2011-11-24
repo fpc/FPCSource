@@ -56,6 +56,11 @@ const
   CPU_SUBTYPE_X86_64_ALL  = CPU_SUBTYPE_I386_ALL;
   CPU_SUBTYPE_POWERPC_ALL = 0;
   CPU_SUBTYPE_ARM_ALL     = 0;
+  CPU_SUBTYPE_ARM_V4T     = 5;
+  CPU_SUBTYPE_ARM_V6      = 6;
+  CPU_SUBTYPE_ARM_V5TEJ   = 7;
+  CPU_SUBTYPE_ARM_XSCALE  = 8;
+  CPU_SUBTYPE_ARM_V7      = 9;
 
   //Mach-O object types
   MH_OBJECT      = $1;            // relocatable object file

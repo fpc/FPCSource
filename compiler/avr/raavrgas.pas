@@ -324,6 +324,8 @@ Unit raavrgas;
         hl : tasmlabel;
         ofs : longint;
         registerset : tcpuregisterset;
+        tempstr : string;
+        tempsymtyp : tasmsymtype;
       Begin
         expr:='';
         case actasmtoken of
@@ -355,16 +357,43 @@ Unit raavrgas;
 
           AS_ID: { A constant expression, or a Variable ref.  }
             Begin
+              if (actasmpattern='LO8') or (actasmpattern='HI8') then
+                begin
+                  { Low or High part of a constant (or constant
+                    memory location) }
+                  oper.InitRef;
+                  if actasmpattern='LO8' then
+                    oper.opr.ref.refaddr:=addr_lo8
+                  else
+                    oper.opr.ref.refaddr:=addr_hi8;
+                  Consume(actasmtoken);
+                  Consume(AS_LPAREN);
+                  BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);
+                  if not assigned(oper.opr.ref.symbol) then
+                    oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr)
+                  else
+                    Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                  case oper.opr.typ of
+                    OPR_CONSTANT :
+                      inc(oper.opr.val,l);
+                    OPR_LOCAL :
+                      inc(oper.opr.localsymofs,l);
+                    OPR_REFERENCE :
+                      inc(oper.opr.ref.offset,l);
+                    else
+                      internalerror(200309202);
+                  end;
+                  Consume(AS_RPAREN);
+                end
               { Local Label ? }
-              if is_locallabel(actasmpattern) then
+              else if is_locallabel(actasmpattern) then
                begin
                  CreateLocalLabel(actasmpattern,hl,false);
                  Consume(AS_ID);
                  AddLabelOperand(hl);
                end
-              else
-               { Check for label }
-               if SearchLabel(actasmpattern,hl,false) then
+              { Check for label }
+              else if SearchLabel(actasmpattern,hl,false) then
                 begin
                   Consume(AS_ID);
                   AddLabelOperand(hl);

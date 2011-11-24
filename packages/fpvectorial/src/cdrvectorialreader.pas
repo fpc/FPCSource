@@ -23,7 +23,7 @@ interface
 
 uses
   Classes, SysUtils,
-  pdfvrlexico, pdfvrsintatico, pdfvrsemantico, avisozlib,
+  //avisozlib,
   fpvectorial;
 
 type

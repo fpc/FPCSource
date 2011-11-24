@@ -728,6 +728,8 @@ begin
  I:= Field.FieldNo - 1;
  if (I >= 0) and  MDSGetActiveBuffer(DestBuffer) then 
    begin
+   if State in [dsEdit, dsInsert, dsNewValue] then
+      Field.Validate(Buffer);
    if buffer = nil then 
      setfieldisnull(pointer(destbuffer),I)
    else 

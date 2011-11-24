@@ -55,10 +55,10 @@ type
   private
     _backgroundColor: NSColor;
     _textColor: NSColor;
-    __tfFlags: bitpacked record
+    __tfFlags: record
       case byte of
        0: (_anonbitfield_NSTextFieldCell0: cuint);
-       1: (
+       1: (data: bitpacked record
         _drawsBackground: 0..1;
         _bezelStyle: 0..((1 shl 3)-1);
         thcSortDirection: 0..((1 shl 2)-1);
@@ -70,6 +70,7 @@ type
         invalidTextColor: 0..1;
         notificationForMarkedText: 0..1;
         reservedTextFieldCell: 0..((1 shl 16)-1);
+       end;
       );
       end;
     

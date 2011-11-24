@@ -26,7 +26,7 @@ unit ppu;
 interface
 
   uses
-    globtype,constexp,cstreams;
+    systems,globtype,constexp,cstreams;
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 132;
+  CurrentPPUVersion = 138;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -97,7 +97,7 @@ const
   ibunitsym        = 29;
   iblabelsym       = 30;
   ibsyssym         = 31;
-//  ibrttisym        = 32;
+  ibnamespacesym   = 32;
   iblocalvarsym    = 33;
   ibparavarsym     = 34;
   ibmacrosym       = 35;
@@ -132,6 +132,7 @@ const
 
   ibmainname       = 90;
   ibsymtableoptions = 91;
+  ibrecsymtableoptions = 91;
   { target-specific things }
   iblinkotherframeworks = 100;
 
@@ -159,6 +160,47 @@ const
   uf_has_dwarf_debuginfo = $200000; { this unit has dwarf debuginfo generated }
   uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
   uf_classinits          = $800000; { this unit has class constructors/destructors }
+  uf_resstrinits        = $1000000; { this unit has string consts referencing resourcestrings }
+
+{$ifdef generic_cpu}
+{ We need to use the correct size of aint and pint for
+  the target CPU }
+const
+  CpuAddrBitSize : array[tsystemcpu] of longint =
+    (
+    {  0 } 32 {'none'},
+    {  1 } 32 {'i386'},
+    {  2 } 32 {'m68k'},
+    {  3 } 32 {'alpha'},
+    {  4 } 32 {'powerpc'},
+    {  5 } 32 {'sparc'},
+    {  6 } 32 {'vis'},
+    {  7 } 64 {'ia64'},
+    {  8 } 64 {'x86_64'},
+    {  9 } 32 {'mips'},
+    { 10 } 32 {'arm'},
+    { 11 } 64 {'powerpc64'},
+    { 12 } 16 {'avr'},
+    { 13 } 32 {'mipsel'}
+    );
+  CpuAluBitSize : array[tsystemcpu] of longint =
+    (
+    {  0 } 32 {'none'},
+    {  1 } 32 {'i386'},
+    {  2 } 32 {'m68k'},
+    {  3 } 32 {'alpha'},
+    {  4 } 32 {'powerpc'},
+    {  5 } 32 {'sparc'},
+    {  6 } 32 {'vis'},
+    {  7 } 64 {'ia64'},
+    {  8 } 64 {'x86_64'},
+    {  9 } 32 {'mips'},
+    { 10 } 32 {'arm'},
+    { 11 } 64 {'powerpc64'},
+    { 12 }  8 {'avr'},
+    { 13 } 32 {'mipsel'}
+    );
+{$endif generic_cpu}
 
 type
   { bestreal is defined based on the target architecture }
@@ -205,7 +247,6 @@ type
     crc_test2  : pcrc_array;
   private
 {$endif def Test_Double_checksum}
-    change_endian : boolean;
     buf      : pchar;
     bufstart,
     bufsize,
@@ -221,6 +262,7 @@ type
     entrytyp : byte;
     header           : tppuheader;
     size             : integer;
+    change_endian    : boolean; { Used in ppudump util }
     { crc for the entire unit }
     crc,
     { crc for the interface definitions in this unit }
@@ -286,6 +328,7 @@ type
     procedure putint64(i:int64);
     procedure putqword(q:qword);
     procedure putaint(i:aint);
+    procedure putasizeint(i:asizeint);
     procedure putaword(i:aword);
     procedure putreal(d:ppureal);
     procedure putstring(const s:string);
@@ -299,52 +342,11 @@ type
 implementation
 
   uses
-    systems,
 {$ifdef Test_Double_checksum}
     comphook,
 {$endif def Test_Double_checksum}
     fpccrc,
     cutils;
-
-{$ifdef generic_cpu}
-{ We need to use the correct size of aint and pint for
-  the target CPU }
-const
-  CpuAddrBitSize : array[tsystemcpu] of longint =
-    (
-    {  0 } 32 {'none'},
-    {  1 } 32 {'i386'},
-    {  2 } 32 {'m68k'},
-    {  3 } 32 {'alpha'},
-    {  4 } 32 {'powerpc'},
-    {  5 } 32 {'sparc'},
-    {  6 } 32 {'vis'},
-    {  7 } 64 {'ia64'},
-    {  8 } 64 {'x86_64'},
-    {  9 } 32 {'mips'},
-    { 10 } 32 {'arm'},
-    { 11 } 64 {'powerpc64'},
-    { 12 } 16 {'avr'},
-    { 13 } 32 {'mipsel'}
-    );
-  CpuAluBitSize : array[tsystemcpu] of longint =
-    (
-    {  0 } 32 {'none'},
-    {  1 } 32 {'i386'},
-    {  2 } 32 {'m68k'},
-    {  3 } 32 {'alpha'},
-    {  4 } 32 {'powerpc'},
-    {  5 } 32 {'sparc'},
-    {  6 } 32 {'vis'},
-    {  7 } 64 {'ia64'},
-    {  8 } 64 {'x86_64'},
-    {  9 } 32 {'mips'},
-    { 10 } 32 {'arm'},
-    { 11 } 64 {'powerpc64'},
-    { 12 }  8 {'avr'},
-    { 13 } 32 {'mipsel'}
-    );
-{$endif generic_cpu}
 
 
 
@@ -863,7 +865,6 @@ begin
       else
         result:=e;
       inc(entryidx,sizeof(e));
-      result:=e;
       exit;
     end;
   if sizeofreal=sizeof(d) then
@@ -945,8 +946,13 @@ begin
      error:=true;
      exit;
    end;
-  SetLength(Result,l);
-  ReadData(result[1],l);
+  if l>0 then
+    begin
+      SetLength(Result,l);
+      ReadData(result[1],l);
+    end
+  else
+    Result:='';
   inc(entryidx,l);
 end;
 
@@ -1271,6 +1277,12 @@ begin
 end;
 
 
+procedure tppufile.putasizeint(i: asizeint);
+begin
+  putdata(i,sizeof(asizeint));
+end;
+
+
 procedure tppufile.putaword(i:aword);
 begin
   putdata(i,sizeof(aword));
@@ -1303,7 +1315,8 @@ procedure tppufile.putansistring(const s: ansistring);
   begin
     l:=length(s);
     putdata(l,4);
-    putdata(s[1],l);
+    if l>0 then
+      putdata(s[1],l);
   end;
 
 

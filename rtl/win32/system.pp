@@ -93,14 +93,15 @@ type
 
 var
 { C compatible arguments }
-  argc : longint;
-  argv : ppchar;
+  argc : longint; public name 'operatingsystem_parameter_argc';
+  argv : ppchar; public name 'operatingsystem_parameter_argv';
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
   MainInstance,
   cmdshow     : longint;
-  DLLreason,DLLparam:longint;
+  DLLreason : longint; public name 'operatingsystem_dllreason';
+  DLLparam : longint; public name 'operatingsystem_dllparam';
   StartupConsoleMode : DWORD;
 
 type
@@ -947,14 +948,5 @@ begin
 {$endif VER2_2}
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
-{$ifdef FPC_USE_TLS_DIRECTORY}
-  { This code is only here to force
-    incorporation of needed labels for
-    _tls_used record in executable
-    when smartlinking is on }
-  _tls_used.Index_pointer:=@FreePascal_TLS_callback;
-  _tls_used.Index_pointer:=@FreePascal_end_of_TLS_callback;
-  _tls_used.Index_pointer:=@_tls_index;
-{$endif FPC_USE_TLS_DIRECTORY}
 end.
 

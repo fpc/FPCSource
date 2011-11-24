@@ -38,6 +38,8 @@ Type
     FCapacity: Integer;
     procedure SetCapacity(const AValue: Integer);
   Protected
+    function GetPosition: Int64; override;
+    function GetSize: Int64; override;
     procedure BufferError(const Msg : String);
     Procedure FillBuffer; Virtual;
     Procedure FlushBuffer; Virtual;
@@ -55,7 +57,7 @@ Type
 
   TReadBufStream = Class(TBufStream)
   Public
-    Function Seek(Offset: Longint; Origin: Word): Longint; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     Function Read(var ABuffer; ACount : LongInt) : Integer; override;
   end;
 
@@ -64,7 +66,7 @@ Type
   TWriteBufStream = Class(TBufStream)
   Public
     Destructor Destroy; override;
-    Function Seek(Offset: Longint; Origin: Word): Longint; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     Function Write(Const ABuffer; ACount : LongInt) : Integer; override;
   end;
 
@@ -86,6 +88,16 @@ begin
     ReallocMem(FBuffer,AValue);
     FCapacity:=AValue;
     end;
+end;
+
+function TBufStream.GetPosition: Int64;
+begin
+  Result:=FTotalPos;
+end;
+
+function TBufStream.GetSize: Int64;
+begin
+  Result:=Source.Size;
 end;
 
 procedure TBufStream.BufferError(const Msg: String);
@@ -162,29 +174,11 @@ end;
 
 { TReadBufStream }
 
-function TReadBufStream.Seek(Offset: Longint; Origin: Word): Longint;
-
-var
-  I: Integer;
-  Buf: array [0..4095] of Char;
+function TReadBufStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 
 begin
-  // Emulate forward seek if possible.
-  if ((Offset>=0) and (Origin = soFromCurrent)) or
-     (((Offset-FTotalPos)>=0) and (Origin = soFromBeginning)) then
-    begin
-    if (Origin=soFromBeginning) then
-      Dec(Offset,FTotalPos);
-    if (Offset>0) then
-      begin
-      for I:=1 to (Offset div sizeof(Buf)) do
-        ReadBuffer(Buf,sizeof(Buf));
-      ReadBuffer(Buf, Offset mod sizeof(Buf));
-      end;
-    Result:=FTotalPos;
-    end
-  else
-    BufferError(SErrInvalidSeek);
+  FakeSeekForward(Offset,Origin,FTotalPos);
+  Result:=FTotalPos; // Pos updated by fake read
 end;
 
 function TReadBufStream.Read(var ABuffer; ACount: LongInt): Integer;
@@ -226,9 +220,10 @@ begin
   inherited Destroy;
 end;
 
-function TWriteBufStream.Seek(Offset: Longint; Origin: Word): Longint;
+function TWriteBufStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
+
 begin
-  if (Offset=0) and (Origin=soFromCurrent) then
+  if (Offset=0) and (Origin=soCurrent) then
     Result := FTotalPos
   else
     BufferError(SErrInvalidSeek);

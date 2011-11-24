@@ -69,10 +69,10 @@ var
     _toolTip: NSString;
     _menuItemRep: NSMenuItem;
     _tag: NSInteger;
-    __tbiFlags: bitpacked record
+    __tbiFlags: record
       case byte of
        0: (_anonbitfield_NSToolbarItem0: cuint);
-       1: (
+       1: (data: bitpacked record
         viewRespondsToIsEnabled: 0..1;
         viewRespondsToSetEnabled: 0..1;
         viewRespondsToTag: 0..1;
@@ -98,6 +98,7 @@ var
         sizeHasBeenSet: 0..1;
         stateWasDisabledBeforeSheet: 0..1;
         RESERVED: 0..((1 shl 8)-1);
+       end;
       );
       end;
     _tbiReserved: id;

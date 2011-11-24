@@ -37,7 +37,6 @@ type
     fPosition : int64;
     procedure EnsureHandleOpen;
   protected
-    procedure SetSize(NewSize: Longint); override;
     procedure SetSize(const NewSize: Int64); override;
     function RetryOpen : boolean;
   public
@@ -45,7 +44,6 @@ type
     destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     procedure CloseHandle;
 end;
@@ -225,11 +223,6 @@ begin
   fListener.NotifyFileOpened(self);
 end;
 
-procedure TClosableFileStream.SetSize(NewSize: Longint);
-begin
-  SetSize(int64(NewSize));
-end;
-
 procedure TClosableFileStream.SetSize(const NewSize: Int64);
 begin
   EnsureHandleOpen;
@@ -277,12 +270,6 @@ function TClosableFileStream.Write(const Buffer; Count: Longint): Longint;
 begin
   EnsureHandleOpen;
   Result:=fStream.Write(Buffer,Count);
-end;
-
-function TClosableFileStream.Seek(Offset: Longint; Origin: Word): Longint;
-begin
-  EnsureHandleOpen;
-  Result:=fStream.Seek(Offset,Origin);
 end;
 
 function TClosableFileStream.Seek(const Offset: Int64; Origin: TSeekOrigin

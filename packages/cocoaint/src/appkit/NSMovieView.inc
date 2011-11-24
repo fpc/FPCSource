@@ -25,16 +25,17 @@ type
 
 { Records }
 type
-  __MVFlags = bitpacked record
+  __MVFlags = record
     case byte of
     0: (_anonbitfield_NSMovieView0: cuint);
-    1: (
+    1: (data: bitpacked record
           editable: 0..1;
           loopMode: 0..((1 shl 3)-1);
           playsEveryFrame: 0..1;
           playsSelectionOnly: 0..1;
           controllerVisible: 0..1;
           reserved: 0..((1 shl 25)-1);
+         end;
        );
   end;
 _MVFlags = __MVFlags;

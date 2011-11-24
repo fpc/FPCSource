@@ -764,6 +764,8 @@ var
 begin
   if (Field.FieldNo >= 0) then
   begin
+    if State in [dsEdit, dsInsert, dsNewValue] then
+      Field.Validate(Buffer);
     Dst := @PDbfRecord(ActiveBuffer)^.DeletedFlag;
     FDbfFile.SetFieldData(Field.FieldNo - 1, Field.DataType, Buffer, Dst, NativeFormat);
   end else begin    { ***** fkCalculated, fkLookup ***** }
@@ -1040,7 +1042,10 @@ begin
       FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);
 
     if TempFieldDef.FieldType = ftFloat then
-      FieldDefs[I].Precision := TempFieldDef.Precision;
+      begin
+      FieldDefs[I].Size := 0;                      // Size is not defined for float-fields
+      FieldDefs[I].Precision := TempFieldDef.Size;
+      end;
 
 {$ifdef SUPPORT_FIELDDEF_ATTRIBUTES}
     // AutoInc fields are readonly

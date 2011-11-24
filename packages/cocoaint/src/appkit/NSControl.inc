@@ -51,10 +51,10 @@ var
   private
     _tag: NSInteger;
     _cell: id;
-    __conFlags: bitpacked record
+    __conFlags: record
       case byte of
        0: (_anonbitfield_NSControl0: cuint);
-       1: (
+       1: (data: bitpacked record
         enabled: 0..1;
         ignoreMultiClick: 0..1;
         _calcSize: 0..1;
@@ -62,6 +62,7 @@ var
         ibReserved: 0..1;
         updateCellFocus: 0..1;
         reserved: 0..((1 shl 26)-1);
+       end;
       );
       end;
     

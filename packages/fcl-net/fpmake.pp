@@ -16,10 +16,11 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-net';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
+    P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd]);
 
     P.Author := 'Sebastian Guenther and Free Pascal development team';
     P.License := 'LGPL with modification, ';
@@ -51,7 +52,7 @@ begin
     T.ResourceStrings := True;
 
     // HTTP Client
-    T:=P.Targets.AddUnit('fpsock.pp',AllUnixOSes);
+    T:=P.Targets.AddUnit('fpsock.pp',[linux,freebsd,netbsd,openbsd]);
       with T.Dependencies do
         begin
           AddUnit('resolve');

@@ -281,7 +281,6 @@ begin
      end;
      DoneVerbose;
   except
-
     on EControlCAbort do
       begin
         try
@@ -310,6 +309,36 @@ begin
       end;
     on ECompilerAbortSilent do
       begin
+        DoneVerbose;
+      end;
+    on EOutOfMemory do
+      begin
+        try
+          Message(general_f_no_memory_left);
+        except
+          on ECompilerAbort do
+            ;
+        end;
+        DoneVerbose;
+      end;
+    on e : EInOutError do
+      begin
+        try
+          Message1(general_f_ioerror,e.message);
+        except
+          on ECompilerAbort do
+            ;
+        end;
+        DoneVerbose;
+      end;
+    on e : EOSError do
+      begin
+        try
+          Message1(general_f_oserror,e.message);
+        except
+          on ECompilerAbort do
+            ;
+        end;
         DoneVerbose;
       end;
     on Exception do

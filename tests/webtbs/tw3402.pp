@@ -1,4 +1,5 @@
 { %norun }
+{ %needlibrary }
 { %skiptarget=go32v2 }
 { %opt=-Cg }
 

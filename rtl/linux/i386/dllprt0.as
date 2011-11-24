@@ -33,7 +33,7 @@ FPC_SHARED_LIB_START:
         movl    %eax,operatingsystem_parameter_argc    /* Move the argument counter    */
         movl    %ecx,operatingsystem_parameter_argv    /* Move the argument pointer    */
 
-        movb    $1,TC_SYSTEM_ISLIBRARY
+        movb    $1,operatingsystem_islibrary
 
         /* Save initial stackpointer */
         movl    %esp,__stkptr

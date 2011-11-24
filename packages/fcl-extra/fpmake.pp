@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-extra';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
     P.OSes:=AllWindowsOSes+AllUnixOSes;
     P.Dependencies.Add('winunits-jedi',[Win32,Win64]);
@@ -30,6 +30,7 @@ begin
     P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
+    P.SourcePath.Add('src/win',AllWindowsOSes);
     P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/win',AllWindowsOSes);

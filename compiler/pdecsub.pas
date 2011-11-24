@@ -994,6 +994,9 @@ implementation
              ImplIntf:=tobjectdef(astruct).find_implemented_interface(tobjectdef(ttypesym(srsym).typedef));
            if ImplIntf=nil then
              Message(parser_e_interface_id_expected);
+           { must be a directly implemented interface }
+           if Assigned(ImplIntf.ImplementsGetter) then
+             Message2(parser_e_implements_no_mapping,ImplIntf.IntfDef.typename,astruct.objrealname^);
            consume(_ID);
            { Create unique name <interface>.<method> }
            hs:=sp+'.'+pattern;
@@ -1607,7 +1610,9 @@ end;
 
 procedure pd_interrupt(pd:tabstractprocdef);
 
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 var v: Tconstexprint;
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
 begin
   if pd.parast.symtablelevel>normal_function_level then

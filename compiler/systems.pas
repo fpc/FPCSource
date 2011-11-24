@@ -237,7 +237,7 @@ interface
                            system_sparc_embedded,system_vm_embedded,
                            system_iA64_embedded,system_x86_64_embedded,
                            system_mips_embedded,system_arm_embedded,
-                           system_powerpc64_embedded];
+                           system_powerpc64_embedded,system_avr_embedded];
 
        { all systems that allow section directive }
        systems_allow_section = systems_embedded;

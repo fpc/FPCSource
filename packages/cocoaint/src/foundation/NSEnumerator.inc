@@ -17,7 +17,7 @@ type
     state: culong;
     itemsPtr: idPtr;
     mutationsPtr: pculong;
-        extra: array[0..4] of culong;
+    extra: array[0..(5)-1] of culong;
   end;
 NSFastEnumerationStatePtr = ^NSFastEnumerationState;
 

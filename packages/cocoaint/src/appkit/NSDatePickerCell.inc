@@ -74,10 +74,10 @@ type
     _timeInterval: NSTimeInterval;
     _minDate: NSDate;
     _maxDate: NSDate;
-    __dcFlags: bitpacked record
+    __dcFlags: record
       case byte of
        0: (_anonbitfield_NSDatePickerCell0: cuint);
-       1: (
+       1: (data: bitpacked record
         elements: 0..((1 shl 16)-1);
         controlStyle: 0..((1 shl 3)-1);
         controlMode: 0..((1 shl 2)-1);
@@ -87,6 +87,7 @@ type
         digitsEntered: 0..((1 shl 2)-1);
         forcesLeadingZeroes: 0..1;
         wrapsDateComponentArithmetic: 0..1;
+       end;
       );
       end;
     _delegate: id;

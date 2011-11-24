@@ -38,7 +38,6 @@ unit cgppc;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
 
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
-        procedure a_call_ref(list : TAsmList;ref: treference); override;
 
         { stores the contents of register reg to the memory location described by
         ref }
@@ -407,16 +406,6 @@ unit cgppc;
         list.concat(taicpu.op_reg(A_MTCTR,reg));
         list.concat(taicpu.op_none(A_BCTRL));
         include(current_procinfo.flags,pi_do_call);
-      end;
-
-
-    procedure tcgppcgen.a_call_ref(list : TAsmList;ref: treference);
-      var
-        tempreg : TRegister;
-      begin
-        tempreg := getintregister(list, OS_ADDR);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tempreg);
-        a_call_reg(list,tempreg);
       end;
 
 

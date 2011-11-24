@@ -54,7 +54,7 @@ interface
           crc_array2 : pointer;
           crc_size2  : longint;
 {$endif def Test_Double_checksum}
-          constructor create(LoadedFrom:TModule;const s:string;const fn:string;_is_unit:boolean);
+          constructor create(LoadedFrom:TModule;const amodulename,afilename:string;_is_unit:boolean);
           destructor destroy;override;
           procedure reset;override;
           function  openppu:boolean;
@@ -125,11 +125,11 @@ var
                                 TPPUMODULE
  ****************************************************************************}
 
-    constructor tppumodule.create(LoadedFrom:TModule;const s:string;const fn:string;_is_unit:boolean);
+    constructor tppumodule.create(LoadedFrom:TModule;const amodulename,afilename:string;_is_unit:boolean);
       begin
-        inherited create(LoadedFrom,s,_is_unit);
+        inherited create(LoadedFrom,amodulename,afilename,_is_unit);
         ppufile:=nil;
-        sourcefn:=stringdup(fn);
+        sourcefn:=stringdup(afilename);
       end;
 
 

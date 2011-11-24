@@ -3,7 +3,7 @@
  * Copyright (c) 2005 by Thomas Schatzl,
  * member of the Free Pascal development team.
  *
- * Startup code for normal programs, PowerPC64 version.
+ * Startup code for shared libraries, PowerPC64 version.
  *
  * See the file COPYING.FPC, included in this distribution,
  * for details about the copyright.
@@ -56,7 +56,7 @@
     std     2, 40(1)
     mtctr   0
     ld      2, 8(11)
-    ld      11, 8(11)
+    ld      11, 16(11)
     bctr
 .long 0
 .byte 0, 12, 128, 0, 0, 0, 0, 0
@@ -322,39 +322,39 @@ _restvr_31: addi r12,r0,-16
 
 /*
  * Main program entry point label (function), called by the loader
+ *
+ * The document "64-bit PowerPC ELF Application Binary Interface Supplement 1.9"
+ * pg. 24f specifies the register contents.
  */
 FUNCTION_PROLOG FPC_SHARED_LIB_START
-
     mflr    0
     std     0, 16(1)        /* save LR */
     stdu    1, -144(1)      /* save back chain, make frame */
 
-    /* store argument count (in r3?)*/
+    /* store argument count (in r3)*/
     LOAD_64BIT_VAL 10, operatingsystem_parameter_argc
     stw     3, 0(10)
-    /* store argument vector (in r4?) */
+    /* store argument vector (in r4) */
     LOAD_64BIT_VAL 10, operatingsystem_parameter_argv
     std     4, 0(10)
-    /* store environment pointer (in r5?) */
+    /* store environment pointer (in r5) */
     LOAD_64BIT_VAL 10, operatingsystem_parameter_envp
     std     5, 0(10)
-
-    /* update library flag in RTL */
-    LOAD_64BIT_VAL 8, TC_SYSTEM_ISLIBRARY
-    li      6, 1
-    stw     6, 0(8)
 
     LOAD_64BIT_VAL 8, __stkptr
     std     1,0(8)
 
+    /* call library initialization */
     bl      PASCALMAIN
     nop
 
     /* return to the caller */
-    addi    1,1,144   /* restore stack */ 
+    addi    1,1,144   /* restore stack */
     ld      0,16(1)   /* prepare for method return */
     mtlr    0
     blr
+.long 0
+.byte 0, 12, 64, 0, 0, 0, 0, 0
 
 /* this routine is only called when the halt() routine of the RTL embedded in
    the shared library is called */
@@ -370,7 +370,10 @@ FUNCTION_PROLOG FPC_SHARED_LIB_EXIT
     lwz     3, 0(3)
     li      0, 1
     sc
-    b       .FPC_SHARED_LIB_EXIT
+    /* we should not reach here. Crash horribly */
+    trap
+.long 0
+.byte 0, 12, 64, 0, 0, 0, 0, 0
 
     /* Define a symbol for the first piece of initialized data.  */
     .section ".data"

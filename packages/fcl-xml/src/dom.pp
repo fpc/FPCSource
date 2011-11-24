@@ -449,6 +449,7 @@ type
     FNodeLists: THashTable;
     FMaxPoolSize: Integer;
     FPools: PNodePoolArray;
+    FXmlStandalone: Boolean;
     function GetDocumentElement: TDOMElement;
     function GetDocType: TDOMDocumentType;
     function GetNodeType: Integer; override;
@@ -462,6 +463,7 @@ type
     procedure NodeListDestroyed(aList: TDOMNodeList);
     function Alloc(AClass: TDOMNodeClass): TDOMNode;
     procedure SetXMLVersion(const aValue: DOMString); virtual;
+    procedure SetXMLStandalone(aValue: Boolean); virtual;
   public
     function IndexOfNS(const nsURI: DOMString; AddIfAbsent: Boolean = False): Integer;
     function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; override;
@@ -497,6 +499,7 @@ type
     // DOM level 3:
     property documentURI: DOMString read FURI write FURI;
     property XMLVersion: DOMString read GetXMLVersion write SetXMLVersion;
+    property XMLStandalone: Boolean read FXmlStandalone write SetXmlStandalone;
     // Extensions to DOM interface:
     constructor Create; virtual;
     destructor Destroy; override;
@@ -509,6 +512,7 @@ type
   TXMLDocument = class(TDOMDocument)
   protected
     procedure SetXMLVersion(const aValue: DOMString); override;
+    procedure SetXMLStandalone(aValue: Boolean); override;
   public
     // These fields are extensions to the DOM interface:
     StylesheetType, StylesheetHRef: DOMString;
@@ -2176,6 +2180,7 @@ begin
   Clone.FInputEncoding := FInputEncoding;
   Clone.FXMLEncoding := FXMLEncoding;
   Clone.FXMLVersion := FXMLVersion;
+  Clone.FXMLStandalone := FXMLStandalone;
   Clone.FURI := FURI;
   if deep then
   begin
@@ -2563,6 +2568,11 @@ begin
   raise EDOMNotSupported.Create('DOMDocument.SetXMLVersion');
 end;
 
+procedure TDOMDocument.SetXMLStandalone(aValue: Boolean);
+begin
+  raise EDOMNotSupported.Create('DOMDocument.SetXMLStandalone');
+end;
+
 constructor TXMLDocument.Create;
 begin
   inherited Create;
@@ -2617,6 +2627,11 @@ begin
     FXMLVersion := xmlVersion11
   else
     raise EDOMNotSupported.Create('XMLDocument.SetXMLVersion');
+end;
+
+procedure TXMLDocument.SetXMLStandalone(aValue: Boolean);
+begin
+  FXmlStandalone := aValue;
 end;
 
 { TDOMNode_NS }
@@ -2883,7 +2898,7 @@ begin
     begin
       case curr^.FNodeType of
         ntText: result.InternalAppend(doc.CreateTextNode(curr^.FValueStr));
-        ntEntityReference: result.InternalAppend(doc.CreateEntityReference(curr^.FValueStr));
+        ntEntityReference: result.InternalAppend(doc.CreateEntityReference(curr^.FQName^.Key));
       end;
       curr := curr^.FNext;
     end;

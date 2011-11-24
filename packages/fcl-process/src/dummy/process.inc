@@ -4,8 +4,14 @@
 
 {
   prevent compilation error for the versions mentioned below
-} 
+}
+{$if defined (go32v2) and defined(VER2_7_1)}
+  {$define WARN_ONLY}
+{$endif}
 {$if defined(VER2_4) or defined(VER2_5_1)}
+  {$define WARN_ONLY}
+{$endif}
+{$ifdef WARN_ONLY}
 {$warning Temporary workaround - unit does nothing}
 {$else}
 {$fatal Proper implementation of TProcess for version of this target needed}

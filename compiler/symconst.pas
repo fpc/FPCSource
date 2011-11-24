@@ -445,7 +445,10 @@ type
     { first field of variant part of a record }
     vo_is_first_field,
     vo_volatile,
-    vo_has_section
+    vo_has_section,
+    { variable contains a winlike WideString which should be finalized
+      even in $J- state }
+    vo_force_finalize
   );
   tvaroptions=set of tvaroption;
 
@@ -496,7 +499,7 @@ type
     staticvarsym,localvarsym,paravarsym,fieldvarsym,
     typesym,procsym,unitsym,constsym,enumsym,
     errorsym,syssym,labelsym,absolutevarsym,propertysym,
-    macrosym
+    macrosym,namespacesym
   );
 
   { State of the variable:
@@ -602,7 +605,7 @@ const
        'abstractsym','globalvar','localvar','paravar','fieldvar',
        'type','proc','unit','const','enum',
        'errorsym','system sym','label','absolutevar','property',
-       'macrosym'
+       'macrosym','namespace'
      );
 
      typName : array[tdeftyp] of string[12] = (

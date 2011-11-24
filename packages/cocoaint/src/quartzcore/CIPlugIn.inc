@@ -42,7 +42,7 @@
 { CIPlugIn }
   CIPlugIn = objcclass external (NSObject)
   private
-        _priv: array[0..7] of Pointer;
+    _priv: array[0..(8)-1] of Pointer;
     
   public
     class procedure loadAllPlugIns; message 'loadAllPlugIns';

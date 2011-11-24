@@ -313,6 +313,17 @@ Type
     function Add(AnArray : TJSONArray): Integer;
     function Add(AnObject: TJSONObject): Integer;
     Procedure Delete(Index : Integer);
+    procedure Exchange(Index1, Index2: Integer);
+    procedure Insert(Index: Integer);
+    procedure Insert(Index: Integer; Item : TJSONData);
+    procedure Insert(Index: Integer; I : Integer);
+    procedure Insert(Index: Integer; I : Int64);
+    procedure Insert(Index: Integer; const S : String);
+    procedure Insert(Index: Integer; F : TJSONFloat);
+    procedure Insert(Index: Integer; B : Boolean);
+    procedure Insert(Index: Integer; AnArray : TJSONArray);
+    procedure Insert(Index: Integer; AnObject: TJSONObject);
+    procedure Move(CurIndex, NewIndex: Integer);
     Procedure Remove(Item : TJSONData);
     // Easy Access Properties.
     property Items;default;
@@ -1526,6 +1537,65 @@ begin
   FList.Delete(Index);
 end;
 
+procedure TJSONArray.Exchange(Index1, Index2: Integer);
+begin
+  FList.Exchange(Index1, Index2);
+end;
+
+procedure TJSONArray.Insert(Index: Integer);
+begin
+  Insert(Index,TJSONNull.Create);
+end;
+
+procedure TJSONArray.Insert(Index: Integer; Item: TJSONData);
+begin
+  FList.Insert(Index, Item);
+end;
+
+procedure TJSONArray.Insert(Index: Integer; I: Integer);
+begin
+  FList.Insert(Index, TJSONIntegerNumber.Create(I));
+end;
+
+procedure TJSONArray.Insert(Index: Integer; I: Int64);
+begin
+  FList.Insert(Index, TJSONInt64Number.Create(I));
+end;
+
+procedure TJSONArray.Insert(Index: Integer; const S: String);
+begin
+  FList.Insert(Index, TJSONString.Create(S));
+end;
+
+procedure TJSONArray.Insert(Index: Integer; F: TJSONFloat);
+begin
+  FList.Insert(Index, TJSONFloatNumber.Create(F));
+end;
+
+procedure TJSONArray.Insert(Index: Integer; B: Boolean);
+begin
+  FList.Insert(Index, TJSONBoolean.Create(B));
+end;
+
+procedure TJSONArray.Insert(Index: Integer; AnArray: TJSONArray);
+begin
+  if (IndexOf(AnArray)<>-1) then
+    raise EJSON.Create(SErrCannotAddArrayTwice);
+  FList.Insert(Index, AnArray);
+end;
+
+procedure TJSONArray.Insert(Index: Integer; AnObject: TJSONObject);
+begin
+  if (IndexOf(AnObject)<>-1) then
+    raise EJSON.Create(SErrCannotAddObjectTwice);
+  FList.Insert(Index, AnObject);
+end;
+
+procedure TJSONArray.Move(CurIndex, NewIndex: Integer);
+begin
+  FList.Move(CurIndex, NewIndex);
+end;
+
 procedure TJSONArray.Remove(Item: TJSONData);
 begin
   FList.Remove(Item);
@@ -1807,7 +1877,6 @@ function TJSONObject.Clone: TJSONData;
 Var
   O : TJSONObject;
   I: Integer;
-  N : TJSONStringType;
 
 begin
   O:=TJSONObject.Create;

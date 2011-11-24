@@ -22,6 +22,21 @@
       ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
       valgrind_used : boolean;external name '__fpc_valgrind';
 
+{$if defined(FPC_USE_TLS_DIRECTORY) or defined(FPC_SECTION_THREADVARS)}
+   var
+      tlsdir: record end; external name '__tls_used';
+
+    procedure LinkIn(p1,p2,p3: Pointer); inline;
+      begin
+      end;
+{$endif}
+
+{$ifdef FPC_USE_TLS_DIRECTORY}
+   var
+      tls_callback_end: pointer; external name '__FPC_end_of_tls_callbacks';
+      tls_callback: pointer; external name '__FPC_tls_callbacks';
+{$endif FPC_USE_TLS_DIRECTORY}
+
     procedure EXE_Entry(const info : TEntryInformation); external name '_FPC_EXE_Entry';
     function DLL_Entry(const info : TEntryInformation) : longbool; external name '_FPC_DLL_Entry';
     procedure PascalMain;stdcall;external name 'PASCALMAIN';

@@ -147,6 +147,11 @@ interface
            TAsmList with loadsym/loadref/const_symbol (PFV) }
          refs       : longint;
        public
+         { on avr the compiler needs to replace cond. jumps with too large offsets
+           so we have to store an offset somewhere to calculate jump distances }
+{$ifdef AVR}
+         offset     : longint;
+{$endif AVR}
          bind       : TAsmsymbind;
          typ        : TAsmsymtype;
          { Alternate symbol which can be used for 'renaming' needed for

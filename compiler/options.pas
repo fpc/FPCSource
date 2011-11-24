@@ -286,7 +286,7 @@ begin
 }
               begin
                 hs:=s;
-                hs1:=ControllerTypeStr[controllertype];
+                hs1:=embedded_controllers[controllertype].ControllerTypeStr;
                 if hs1<>'' then
                   begin
                     Replace(hs,'$CONTROLLERTYPES',hs1);
@@ -365,6 +365,9 @@ begin
       'S',
 {$endif}
 {$ifdef vis}
+      'I',
+{$endif}
+{$ifdef avr}
       'V',
 {$endif}
       '*' : show:=true;
@@ -2304,6 +2307,15 @@ begin
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
      not(target_info.system in systems_darwin) then
     begin
+      { smartlink creation does not yet work with DWARF 
+        debug info on most targets, but it works in internal assembler }
+      if (cs_create_smart in init_settings.moduleswitches) and
+         not (af_outputbinary in target_asm.flags) then
+        begin
+          Message(option_dwarf_smartlink_creation);
+          exclude(init_settings.moduleswitches,cs_create_smart);
+        end;
+
       { smart linking does not yet work with DWARF debug info on most targets }
       if (cs_link_smart in init_settings.globalswitches) then
         begin
@@ -2485,6 +2497,7 @@ begin
   def_system_macro('FPC_HAS_RIP_RELATIVE');
 {$endif x86_64}
   def_system_macro('FPC_HAS_CEXTENDED');
+  def_system_macro('FPC_HAS_RESSTRINITS');
 
 { these cpus have an inline rol/ror implementaion }
 {$if defined(x86) or defined(arm) or defined(powerpc) or defined(powerpc64)}
@@ -2770,6 +2783,8 @@ begin
           exclude(init_settings.moduleswitches,cs_debuginfo);
         end;
     end;
+  {TOptionheck a second time as we might have changed assembler just above }
+  option.checkoptionscompatibility;
 
   { maybe override debug info format }
   if (paratargetdbg<>dbg_none) then

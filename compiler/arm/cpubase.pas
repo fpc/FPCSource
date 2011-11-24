@@ -213,42 +213,9 @@ unit cpubase;
     const
       max_operands = 4;
 
-      {# Constant defining possibly all registers which might require saving }
-      ALL_OTHERREGISTERS = [];
-
-      general_superregisters = [RS_R0..RS_PC];
-
-      {# Table of registers which can be allocated by the code generator
-         internally, when generating the code.
-      }
-      { legend:                                                                }
-      { xxxregs = set of all possibly used registers of that type in the code  }
-      {           generator                                                    }
-      { usableregsxxx = set of all 32bit components of registers that can be   }
-      {           possible allocated to a regvar or using getregisterxxx (this }
-      {           excludes registers which can be only used for parameter      }
-      {           passing on ABI's that define this)                           }
-      { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
-
       maxintregs = 15;
-      { to determine how many registers to use for regvars }
-      maxintscratchregs = 3;
-      usableregsint = [RS_R4..RS_R10];
-      c_countusableregsint = 7;
-
       maxfpuregs = 8;
-      fpuregs = [RS_F0..RS_F7];
-      usableregsfpu = [RS_F4..RS_F7];
-      c_countusableregsfpu = 4;
-
-      mmregs = [RS_D0..RS_D15];
-      usableregsmm = [RS_D8..RS_D15];
-      c_countusableregsmm  = 8;
-
       maxaddrregs = 0;
-      addrregs    = [];
-      usableregsaddr = [];
-      c_countusableregsaddr = 0;
 
 {*****************************************************************************
                                 Operand Sizes

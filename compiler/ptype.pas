@@ -143,6 +143,7 @@ implementation
 
     procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean;out srsym:tsym;out srsymtable:tsymtable); forward;
 
+
     { def is the outermost type in which other types have to be searched
 
       isforward indicates whether the current definition can be a forward definition
@@ -255,7 +256,7 @@ implementation
          { Use the special searchsym_type that search only types }
          searchsym_type(s,srsym,srsymtable);
          { handle unit specification like System.Writeln }
-         is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t);
+         is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t,true);
          consume(t);
          { Types are first defined with an error def before assigning
            the real type so check if it's an errordef. if so then
@@ -374,7 +375,7 @@ implementation
            (m_delphi in current_settings.modeswitches) then
           dospecialize:=token=_LSHARPBRACKET;
         if dospecialize then
-          generate_specialization(def,stoParseClassParent in options,nil,'')
+          generate_specialization(def,stoParseClassParent in options,'',nil,'')
         else
           begin
             if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -850,7 +851,7 @@ implementation
                      dospecialize:=token=_LSHARPBRACKET;
                    if dospecialize then
                      begin
-                       generate_specialization(def,false,nil,'');
+                       generate_specialization(def,false,name,nil,'');
                        { handle nested types }
                        post_comp_expr_gendef(def);
                      end

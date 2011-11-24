@@ -46,14 +46,15 @@
     _minValue: double;
     _maxValue: double;
     _increment: double;
-    __stFlags: bitpacked record
+    __stFlags: record
       case byte of
        0: (_anonbitfield_NSStepperCell0: cuint);
-       1: (
+       1: (data: bitpacked record
         _valueWraps: 0..1;
         _autorepeat: 0..1;
         drawing: 0..1;
         reserved: 0..((1 shl 29)-1);
+       end;
       );
       end;
     _reserved1: cuint;

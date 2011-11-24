@@ -53,10 +53,10 @@ var
 { NSDecimalNumber }
   NSDecimalNumber = objcclass external (NSNumber)
   private
-    _anoninternstruct_NSDecimalNumber0: bitpacked record
+    _anoninternstruct_NSDecimalNumber0: record
       case byte of
        0: (_anonbitfield_NSDecimalNumber0: cint);
-       1: (
+       1: (data: bitpacked record
         _exponent: 0..((1 shl 8)-1);
         _length: 0..((1 shl 4)-1);
         _isNegative: 0..1;
@@ -64,9 +64,10 @@ var
         _reserved: 0..1;
         _hasExternalRefCount: 0..1;
         _refs: 0..((1 shl 16)-1);
+       end;
       );
       end;
-    _mantissa: cushort;
+    _mantissa: record end; { array of 0 elements in C, does not allocate space }
     
   public
     function initWithMantissa_exponent_isNegative(mantissa: culonglong; exponent: cshort; flag: Boolean): id; message 'initWithMantissa:exponent:isNegative:';
@@ -107,10 +108,10 @@ var
 { NSDecimalNumberHandler }
   NSDecimalNumberHandler = objcclass external (NSObject, NSDecimalNumberBehaviorsProtocol, NSCodingProtocol)
   private
-    _anoninternstruct_NSDecimalNumber1: bitpacked record
+    _anoninternstruct_NSDecimalNumber1: record
       case byte of
        0: (_anonbitfield_NSDecimalNumber1: cint);
-       1: (
+       1: (data: bitpacked record
         _scale: 0..((1 shl 16)-1);
         _roundingMode: 0..((1 shl 3)-1);
         _raiseOnExactness: 0..1;
@@ -118,6 +119,7 @@ var
         _raiseOnUnderflow: 0..1;
         _raiseOnDivideByZero: 0..1;
         _unused: 0..((1 shl 9)-1);
+       end;
       );
       end;
     _reserved2: Pointer;

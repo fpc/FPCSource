@@ -23,7 +23,7 @@ unit dGlobals;
 
 interface
 
-uses Classes, DOM, PasTree, PParser, StrUtils;
+uses Classes, DOM, PasTree, PParser, StrUtils,uriparser;
 
 Var
   LEOL : Integer;
@@ -149,6 +149,7 @@ resourcestring
   SUsageOption170  = '--warn-no-node    Warn if no documentation node was found.';
   SUsageOption180  = '--mo-dir=dir      Set directory where language files reside to dir';
   SUsageOption190  = '--parse-impl      (Experimental) try to parse implementation too';
+  SUsageOption200 =  '--dont-trim	Don''t trim XML contents';
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
   SUsageFormatSpecific = 'Output format "%s" supports the following options:';
@@ -300,7 +301,7 @@ type
     function FindLinkedNode(ANode: TDocNode): TDocNode;
 
     // Documentation file support
-    procedure AddDocFile(const AFilename: String);
+    procedure AddDocFile(const AFilename: String;DontTrim:boolean=false);
 
     // Documentation retrieval
     function FindDocNode(AElement: TPasElement): TDocNode;
@@ -792,7 +793,7 @@ var
        end
      else
        if cls<>result then
-         writeln(cls.name,'''s dependency '  ,clname,' could not be resolved');
+         writeln('Warning : ancestor class ',clname,' of class ',cls.name,' could not be resolved');
 end;
 
 function CreateAliasType (alname,clname : string;parentclass:TPasClassType; out cl2 :TPasClassType):TPasAliasType;
@@ -812,11 +813,11 @@ begin
         result:=ResolveAliasType(clname);
         if assigned(result) then
           begin
-            writeln('found alias ',clname,' (',s,') ',result.classname);  
+//            writeln('found alias ',clname,' (',s,') ',result.classname);  
           end
         else
           begin
-            writeln('new alias ',clname,' (',s,') ');
+//            writeln('new alias ',clname,' (',s,') ');
             cl2.addref;
             Result := TPasAliasType(CreateElement(TPasAliasType,s,module.interfacesection,vispublic,'',0));
             module.interfacesection.Declarations.Add(Result);
@@ -852,7 +853,7 @@ end;
                  begin
                    // writeln('Found alias pair ',clname,' = ',alname);   
                    if not assigned(CreateAliasType(alname,clname,cls,cls2)) then
-                      writeln('creating alias failed!');
+                      writeln('Warning: creating alias ',alname,' for ',clname,' failed!');
                  end 
                else
                  cls2:=ResolveAndLinkClass(clname,j=0,cls);
@@ -1191,7 +1192,7 @@ var
   end;
 
 begin
-//system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
+  system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
   if Length(ALinkDest) = 0 then
   begin
     SetLength(Result, 0);
@@ -1255,7 +1256,34 @@ begin
       end;
 end;
 
-procedure TFPDocEngine.AddDocFile(const AFilename: String);
+procedure ReadXMLFileALT(OUT ADoc:TXMLDocument;const AFileName:ansistring);
+var
+  Parser: TDOMParser;
+  Src: TXMLInputSource;
+  FileStream: TStream;
+begin
+  ADoc := nil;
+  FileStream := TFileStream.Create(AFilename, fmOpenRead+fmShareDenyWrite);
+  try
+    Parser := TDOMParser.Create; // create a parser object
+    try
+      Src := TXMLInputSource.Create(FileStream); // and the input source
+      src.SystemId:=FileNameToUri(AFileName);
+      try
+        Parser.Options.PreserveWhitespace := True;
+        Parser.Parse(Src, ADoc);
+      finally
+        Src.Free; // cleanup
+      end;
+    finally 
+     Parser.Free;
+     end;
+  finally
+    FileStream.Free;
+  end;
+end;
+
+procedure TFPDocEngine.AddDocFile(const AFilename: String;DontTrim:boolean=false);
 
   function ReadNode(OwnerDocNode: TDocNode; Element: TDOMElement): TDocNode;
   var
@@ -1318,7 +1346,10 @@ var
   PackageDocNode, TopicNode,ModuleDocNode: TDocNode;
 
 begin
-  ReadXMLFile(Doc, AFilename);
+  if DontTrim then
+    ReadXMLFileALT(Doc, AFilename)
+  else
+    ReadXMLFile(Doc, AFilename);
   DescrDocs.Add(Doc);
   DescrDocNames.Add(AFilename);
 

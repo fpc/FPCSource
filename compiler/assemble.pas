@@ -1393,6 +1393,8 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
+             ait_seh_directive :
+               tai_seh_directive(hp).generate_code(objdata);
            end;
            hp:=Tai(hp.next);
          end;

@@ -223,14 +223,10 @@ unit cgobj;
 
           {# Emits instruction to call the method specified by symbol name.
              This routine must be overridden for each new target cpu.
-
-             There is no a_call_ref because loading the reference will use
-             a temp register on most cpu's resulting in conflicts with the
-             registers used for the parameters (PFV)
           }
           procedure a_call_name(list : TAsmList;const s : string; weak: boolean);virtual; abstract;
           procedure a_call_reg(list : TAsmList;reg : tregister);virtual; abstract;
-          procedure a_call_ref(list : TAsmList;ref : treference);virtual; abstract;
+          procedure a_call_ref(list : TAsmList;ref : treference);virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           procedure a_call_name_static(list : TAsmList;const s : string);virtual;
@@ -4220,9 +4216,20 @@ implementation
         a_jmp_name(list,externalname);
       end;
 
+
     procedure tcg.a_call_name_static(list : TAsmList;const s : string);
       begin
         a_call_name(list,s,false);
+      end;
+
+
+    procedure tcg.a_call_ref(list : TAsmList;ref: treference);
+      var
+        tempreg : TRegister;
+      begin
+        tempreg := getintregister(list, OS_ADDR);
+        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tempreg);
+        a_call_reg(list,tempreg);
       end;
 
 

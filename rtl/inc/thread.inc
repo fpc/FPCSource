@@ -124,18 +124,13 @@ procedure FlushThread;
 
 begin
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
-  { Make sure that all output is written to the redirected file }
-  Flush(Output);
-  Flush(ErrOutput);
-  Flush(StdOut);
-  Flush(StdErr);
+  SysFlushStdio;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 end;
 
 procedure EndThread(ExitCode : DWord);
 
 begin
-  FlushThread;
   CurrentTM.EndThread(ExitCode);
 end;
 

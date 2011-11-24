@@ -230,66 +230,89 @@ implementation
          ltvTable.Free;
       end;
 
-    procedure InsertWideInits;
+    procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal);
       var
         s: string;
         item: TTCInitItem;
       begin
-        item:=TTCInitItem(current_asmdata.WideInits.First);
+        item:=TTCInitItem(list.First);
         if item=nil then
           exit;
-        s:=make_mangledname('WIDEINITS',current_module.localsymtable,'');
+        s:=make_mangledname(prefix,current_module.localsymtable,'');
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
         new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(pint));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
         repeat
-          { address to initialize }
-          current_asmdata.asmlists[al_globals].concat(Tai_const.createname(item.sym.mangledname, item.offset));
-          { value with which to initialize }
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(item.datalabel));
+          { optimize away unused local/static symbols }
+          if (item.sym.refs>0) or (item.sym.owner.symtabletype=globalsymtable) then
+            begin
+              { address to initialize }
+              current_asmdata.asmlists[al_globals].concat(Tai_const.createname(item.sym.mangledname, item.offset));
+              { value with which to initialize }
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(item.datalabel));
+            end;
           item:=TTCInitItem(item.Next);
         until item=nil;
         { end-of-list marker }
         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(s));
-        current_module.flags:=current_module.flags or uf_wideinits;
+        current_module.flags:=current_module.flags or unitflag;
       end;
 
-    procedure InsertWideInitsTablesTable;
+    procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal);
       var
         hp: tused_unit;
-        lwiTables: TAsmList;
+        hlist: TAsmList;
         count: longint;
       begin
-        lwiTables:=TAsmList.Create;
+        hlist:=TAsmList.Create;
         count:=0;
         hp:=tused_unit(usedunits.first);
         while assigned(hp) do
          begin
-           if (hp.u.flags and uf_wideinits)=uf_wideinits then
+           if (hp.u.flags and unitflag)=unitflag then
             begin
-              lwiTables.concat(Tai_const.Createname(make_mangledname('WIDEINITS',hp.u.globalsymtable,''),0));
+              hlist.concat(Tai_const.Createname(make_mangledname(prefix,hp.u.globalsymtable,''),0));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
          end;
-        { Add program widestring consts, if any }
-        if (current_module.flags and uf_wideinits)=uf_wideinits then
+        { Add items from program, if any }
+        if (current_module.flags and unitflag)=unitflag then
          begin
-           lwiTables.concat(Tai_const.Createname(make_mangledname('WIDEINITS',current_module.localsymtable,''),0));
+           hlist.concat(Tai_const.Createname(make_mangledname(prefix,current_module.localsymtable,''),0));
            inc(count);
          end;
         { Insert TableCount at start }
-        lwiTables.insert(Tai_const.Create_32bit(count));
+        hlist.insert(Tai_const.Create_32bit(count));
         { insert in data segment }
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_WIDEINITTABLES',sizeof(pint));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_WIDEINITTABLES',AT_DATA,0));
-        current_asmdata.asmlists[al_globals].concatlist(lwiTables);
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('FPC_WIDEINITTABLES'));
-        lwiTables.free;
+        new_section(current_asmdata.asmlists[al_globals],sec_data,tablename,sizeof(pint));
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(tablename,AT_DATA,0));
+        current_asmdata.asmlists[al_globals].concatlist(hlist);
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(tablename));
+        hlist.free;
       end;
 
+    procedure InsertWideInits;
+      begin
+        InsertRuntimeInits('WIDEINITS',current_asmdata.WideInits,uf_wideinits);
+      end;
+
+    procedure InsertResStrInits;
+      begin
+        InsertRuntimeInits('RESSTRINITS',current_asmdata.ResStrInits,uf_resstrinits);
+      end;
+
+    procedure InsertWideInitsTablesTable;
+      begin
+        InsertRuntimeInitsTablesTable('WIDEINITS','FPC_WIDEINITTABLES',uf_wideinits);
+      end;
+
+    procedure InsertResStrTablesTable;
+      begin
+        InsertRuntimeInitsTablesTable('RESSTRINITS','FPC_RESSTRINITTABLES',uf_resstrinits);
+      end;
 
     Function CheckResourcesUsed : boolean;
     var
@@ -529,7 +552,7 @@ implementation
         { insert unitsym }
         unitsym:=tunitsym.create(s,hp);
         inc(unitsym.refs);
-        current_module.localsymtable.insert(unitsym);
+        tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         { add to used units }
         current_module.addusedunit(hp,false,unitsym);
       end;
@@ -710,8 +733,9 @@ implementation
 
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM) or defined(AVR)}
-        if (target_info.system in systems_embedded) and (current_settings.controllertype<>ct_none) then
-          AddUnit(controllerunitstr[current_settings.controllertype]);
+        if (target_info.system in systems_embedded) and (current_settings.controllertype<>ct_none) and
+          (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') then
+          AddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
 {$endif ARM}
       end;
 
@@ -732,7 +756,7 @@ implementation
 
     procedure loadunits;
       var
-         s,sorg  : TIDString;
+         s,sorg  : ansistring;
          fn      : string;
          pu      : tused_unit;
          hp2     : tmodule;
@@ -743,6 +767,13 @@ implementation
            s:=pattern;
            sorg:=orgpattern;
            consume(_ID);
+           while token=_POINT do
+             begin
+               consume(_POINT);
+               s:=s+'.'+pattern;
+               sorg:=sorg+'.'+orgpattern;
+               consume(_ID);
+             end;
            { support "<unit> in '<file>'" construct, but not for tp7 }
            fn:='';
            if not(m_tp7 in current_settings.modeswitches) and
@@ -781,7 +812,7 @@ implementation
                 can not use the modulename because that can be different
                 when -Un is used }
               unitsym:=tunitsym.create(sorg,nil);
-              current_module.localsymtable.insert(unitsym);
+              tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
               { the current module uses the unit hp2 }
               current_module.addusedunit(hp2,true,unitsym);
             end
@@ -1066,6 +1097,7 @@ implementation
          force_init_final : boolean;
          init_procinfo,
          finalize_procinfo : tcgprocinfo;
+         unitname : ansistring;
          unitname8 : string[8];
          ag: boolean;
 {$ifdef debug_devirt}
@@ -1082,48 +1114,52 @@ implementation
          if compile_level=1 then
           Status.IsExe:=false;
 
-         if token=_ID then
-          begin
-             { create filenames and unit name }
-             main_file := current_scanner.inputfile;
-             while assigned(main_file.next) do
-               main_file := main_file.next;
+         unitname:=orgpattern;
+         consume(_ID);
+         while token=_POINT do
+           begin
+             consume(_POINT);
+             unitname:=unitname+'.'+orgpattern;
+             consume(_ID);
+           end;
 
-             new(s1);
-             s1^:=current_module.modulename^;
-             current_module.SetFileName(main_file.path^+main_file.name^,true);
-             current_module.SetModuleName(orgpattern);
+         { create filenames and unit name }
+         main_file := current_scanner.inputfile;
+         while assigned(main_file.next) do
+           main_file := main_file.next;
 
-             { check for system unit }
-             new(s2);
-             s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name^),''));
-             unitname8:=copy(current_module.modulename^,1,8);
-             if (cs_check_unit_name in current_settings.globalswitches) and
-                (
-                 not(
-                     (current_module.modulename^=s2^) or
-                     (
-                      (length(current_module.modulename^)>8) and
-                      (unitname8=s2^)
-                     )
-                    )
-                 or
+         new(s1);
+         s1^:=current_module.modulename^;
+         current_module.SetFileName(main_file.path^+main_file.name^,true);
+         current_module.SetModuleName(unitname);
+
+         { check for system unit }
+         new(s2);
+         s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name^),''));
+         unitname8:=copy(current_module.modulename^,1,8);
+         if (cs_check_unit_name in current_settings.globalswitches) and
+            (
+             not(
+                 (current_module.modulename^=s2^) or
                  (
-                  (length(s1^)>8) and
-                  (s1^<>current_module.modulename^)
+                  (length(current_module.modulename^)>8) and
+                  (unitname8=s2^)
                  )
-                ) then
-              Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
-             if (current_module.modulename^='SYSTEM') then
-              include(current_settings.moduleswitches,cs_compilesystem);
-             dispose(s2);
-             dispose(s1);
-          end;
+                )
+             or
+             (
+              (length(s1^)>8) and
+              (s1^<>current_module.modulename^)
+             )
+            ) then
+          Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
+         if (current_module.modulename^='SYSTEM') then
+          include(current_settings.moduleswitches,cs_compilesystem);
+         dispose(s2);
+         dispose(s1);
 
          if (target_info.system in systems_unit_program_exports) then
            exportlib.preparelib(current_module.realmodulename^);
-
-         consume(_ID);
 
          { parse hint directives }
          try_consume_hintdirective(current_module.moduleoptions, current_module.deprecatedmsg);
@@ -1157,7 +1193,7 @@ implementation
 
          { insert unitsym of this unit to prevent other units having
            the same name }
-         current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
+         tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
          { load default units, like the system unit }
          loaddefaultunits;
@@ -1369,6 +1405,9 @@ implementation
 
          { Widestring typed constants }
          InsertWideInits;
+
+         { Resourcestring references }
+         InsertResStrInits;
 
          { generate debuginfo }
          if (cs_debuginfo in current_settings.moduleswitches) then
@@ -1764,6 +1803,7 @@ implementation
         main_procinfo : tcgprocinfo;}
         force_init_final : boolean;
         uu : tused_unit;
+        module_name: ansistring;
       begin
          Status.IsPackage:=true;
          Status.IsExe:=true;
@@ -1801,15 +1841,25 @@ implementation
 
          current_module.SetFileName(main_file.path^+main_file.name^,true);
 
+         { consume _PACKAGE word }
          consume(_ID);
-         current_module.setmodulename(orgpattern);
+
+         module_name:=orgpattern;
+         consume(_ID);
+         while token=_POINT do
+           begin
+             consume(_POINT);
+             module_name:=module_name+'.'+orgpattern;
+             consume(_ID);
+           end;
+
+         current_module.setmodulename(module_name);
          current_module.ispackage:=true;
-         exportlib.preparelib(orgpattern);
+         exportlib.preparelib(module_name);
 
          if tf_library_needs_pic in target_info.flags then
            include(current_settings.moduleswitches,cs_create_pic);
 
-         consume(_ID);
          consume(_SEMICOLON);
 
          { global switches are read, so further changes aren't allowed }
@@ -1834,12 +1884,24 @@ implementation
          {Load the units used by the program we compile.}
          if (token=_ID) and (idtoken=_CONTAINS) then
            begin
+             { consume _CONTAINS word }
              consume(_ID);
              while true do
                begin
                  if token=_ID then
-                   AddUnit(pattern);
-                 consume(_ID);
+                   begin
+                     module_name:=pattern;
+                     consume(_ID);
+                     while token=_POINT do
+                       begin
+                         consume(_POINT);
+                         module_name:=module_name+'.'+orgpattern;
+                         consume(_ID);
+                       end;
+                     AddUnit(module_name);
+                   end
+                 else
+                   consume(_ID);
                  if token=_COMMA then
                    consume(_COMMA)
                  else break;
@@ -1852,7 +1914,7 @@ implementation
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource^);
 
@@ -2045,6 +2107,7 @@ implementation
          main_procinfo : tcgprocinfo;
          force_init_final : boolean;
          resources_used : boolean;
+         program_name : ansistring;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
@@ -2092,14 +2155,21 @@ implementation
          if islibrary then
            begin
               consume(_LIBRARY);
-              current_module.setmodulename(orgpattern);
+              program_name:=orgpattern;
+              consume(_ID);
+              while token=_POINT do
+                begin
+                  consume(_POINT);
+                  program_name:=program_name+'.'+orgpattern;
+                  consume(_ID);
+                end;
+              current_module.setmodulename(program_name);
               current_module.islibrary:=true;
-              exportlib.preparelib(orgpattern);
+              exportlib.preparelib(program_name);
 
               if tf_library_needs_pic in target_info.flags then
                 include(current_settings.moduleswitches,cs_create_pic);
 
-              consume(_ID);
               consume(_SEMICOLON);
            end
          else
@@ -2107,10 +2177,17 @@ implementation
            if token=_PROGRAM then
             begin
               consume(_PROGRAM);
-              current_module.setmodulename(orgpattern);
-              if (target_info.system in systems_unit_program_exports) then
-                exportlib.preparelib(orgpattern);
+              program_name:=orgpattern;
               consume(_ID);
+              while token=_POINT do
+                begin
+                  consume(_POINT);
+                  program_name:=program_name+'.'+orgpattern;
+                  consume(_ID);
+                end;
+              current_module.setmodulename(program_name);
+              if (target_info.system in systems_unit_program_exports) then
+                exportlib.preparelib(program_name);
               if token=_LKLAMMER then
                 begin
                    consume(_LKLAMMER);
@@ -2153,7 +2230,7 @@ implementation
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource^);
 
@@ -2340,11 +2417,15 @@ implementation
          { Windows widestring needing initialization }
          InsertWideInits;
 
+         { Resourcestring references (const foo:string=someresourcestring) }
+         InsertResStrInits;
+
          { insert Tables and StackLength }
          InsertInitFinalTable;
          InsertThreadvarTablesTable;
          InsertResourceTablesTable;
          InsertWideInitsTablesTable;
+         InsertResStrTablesTable;
          InsertMemorySizes;
 
 {$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}

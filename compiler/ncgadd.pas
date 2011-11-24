@@ -303,6 +303,13 @@ interface
                   if (right.location.size<>left.location.size) or
                      (location.size<>left.location.size) then
                     internalerror(2010123001);
+                  { make sure that location.register is different from
+                    left.location.register, since right will overwrite it
+                    and we'll use left afterwards }
+                  if (right.location.loc=LOC_REGISTER) then
+                    location.register:=right.location.register
+                  else
+                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                   { make sure we don't modify left/right.location, because we told
                     force_reg_left_right above that they can be constant }
                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,right.location.register,location.register);
@@ -342,14 +349,14 @@ interface
       begin
         if nodetype<>addn then
           internalerror(20080302);
-        { setelementn is a special case, it must be on right }
-        if (nf_swapped in flags) and
-           (left.nodetype=setelementn) then
-          swapleftright;
         { no range support for smallsets }
         if assigned(tsetelementnode(right).right) then
           internalerror(20080303);
         pass_left_right;
+        { setelementn is a special case, it must be on right }
+        if (nf_swapped in flags) and
+           (left.nodetype=setelementn) then
+          swapleftright;
         force_reg_left_right(false,false);
         set_result_location_reg;
         setbase:=tsetdef(left.resultdef).setbase;

@@ -15,7 +15,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='symbolic';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Author := 'Marco van de Voort';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -40,6 +40,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('evaltest.pas');
     P.Targets.AddExampleProgram('rpnthing.pas');
+    P.Targets.AddExampleProgram('easyevalexample.pas');
     P.Sources.AddDoc('doc/optimization.txt');
     P.Sources.AddDoc('doc/symbolic.txt');
 

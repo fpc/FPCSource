@@ -519,10 +519,11 @@ implementation
                          err:=true;
                        end;
                    else
-                     begin
-                       Message(parser_e_illegal_parameter_list);
-                       err:=true;
-                     end;
+                     if p1.resultdef.typ<>undefineddef then
+                       begin
+                         Message(parser_e_illegal_parameter_list);
+                         err:=true;
+                       end;
                  end;
                end
               else
@@ -1518,6 +1519,74 @@ implementation
          p1:=newblock;
        end;
 
+      function parse_array_constructor(arrdef:tarraydef): tnode;
+        var
+          newstatement,assstatement:tstatementnode;
+          arrnode:ttempcreatenode;
+          temp2:ttempcreatenode;
+          assnode,paranode:tnode;
+          paracount:integer;
+        begin
+          result:=internalstatements(newstatement);
+          { create temp for result }
+          arrnode:=ctempcreatenode.create(arrdef,arrdef.size,tt_persistent,true);
+          addstatement(newstatement,arrnode);
+
+          paracount:=0;
+          { check arguments and create an assignment calls }
+          if try_to_consume(_LKLAMMER) then
+            begin
+              assnode:=internalstatements(assstatement);
+              repeat
+                { arr[i] := param_i }
+                addstatement(assstatement,
+                  cassignmentnode.create(
+                    cvecnode.create(
+                      ctemprefnode.create(arrnode),
+                      cordconstnode.create(paracount,arrdef.rangedef,false)),
+                    comp_expr(true,false)));
+                inc(paracount);
+              until not try_to_consume(_COMMA);
+              consume(_RKLAMMER);
+            end
+          else
+            assnode:=nil;
+
+          { get temp for array of lengths }
+          temp2:=ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false);
+          addstatement(newstatement,temp2);
+
+          { one dimensional }
+          addstatement(newstatement,cassignmentnode.create(
+              ctemprefnode.create_offset(temp2,0),
+              cordconstnode.create
+                 (paracount,s32inttype,true)));
+          { create call to fpc_dynarr_setlength }
+          addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',
+              ccallparanode.create(caddrnode.create_internal
+                    (ctemprefnode.create(temp2)),
+                 ccallparanode.create(cordconstnode.create
+                    (1,s32inttype,true),
+                 ccallparanode.create(caddrnode.create_internal
+                    (crttinode.create(tstoreddef(arrdef),initrtti,rdt_normal)),
+                 ccallparanode.create(
+                   ctypeconvnode.create_internal(
+                     ctemprefnode.create(arrnode),voidpointertype),
+                   nil))))
+
+            ));
+          { add assignment statememnts }
+          addstatement(newstatement,ctempdeletenode.create(temp2));
+          if assigned(assnode) then
+            addstatement(newstatement,assnode);
+          { the last statement should return the value as
+            location and type, this is done be referencing the
+            temp and converting it first from a persistent temp to
+            normal temp }
+          addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode));
+          addstatement(newstatement,ctemprefnode.create(arrnode));
+        end;
+
     var
      protsym  : tpropertysym;
      p2,p3  : tnode;
@@ -1747,6 +1816,36 @@ implementation
                            end;
                        end;
                      consume(_ID);
+                   end;
+                 arraydef:
+                   begin
+                     if is_dynamic_array(p1.resultdef) then
+                       begin
+                         if token=_ID then
+                           begin
+                             if pattern='CREATE' then
+                               begin
+                                 consume(_ID);
+                                 p2:=parse_array_constructor(tarraydef(p1.resultdef));
+                                 p1.destroy;
+                                 p1:=p2;
+                               end
+                             else
+                               begin
+                                 Message2(scan_f_syn_expected,'CREATE',pattern);
+                                 p1.destroy;
+                                 p1:=cerrornode.create;
+                                 consume(_ID);
+                               end;
+                           end;
+                       end
+                     else
+                       begin
+                         Message(parser_e_invalid_qualifier);
+                         p1.destroy;
+                         p1:=cerrornode.create;
+                         consume(_ID);
+                       end;
                    end;
                   variantdef:
                     begin
@@ -2009,7 +2108,7 @@ implementation
                  searchsym(pattern,srsym,srsymtable);
 
                { handle unit specification like System.Writeln }
-               unit_found:=try_consume_unitsym(srsym,srsymtable,t);
+               unit_found:=try_consume_unitsym(srsym,srsymtable,t,true);
                storedpattern:=pattern;
                orgstoredpattern:=orgpattern;
                consume(t);
@@ -2336,6 +2435,7 @@ implementation
          hs,hsorg   : string;
          hdef       : tdef;
          filepos    : tfileposinfo;
+         callflags  : tcallnodeflags;
          again,
          updatefpos,
          nodechanged  : boolean;
@@ -2482,7 +2582,10 @@ implementation
                              p1:=cerrornode.create;
                            end;
                        end;
-                       do_member_read(hclassdef,getaddr,srsym,p1,again,[cnf_inherited,cnf_anon_inherited]);
+                       callflags:=[cnf_inherited];
+                       if anon_inherited then
+                         include(callflags,cnf_anon_inherited);
+                       do_member_read(hclassdef,getaddr,srsym,p1,again,callflags);
                      end
                     else
                      begin

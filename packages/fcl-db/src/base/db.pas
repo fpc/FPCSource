@@ -514,7 +514,8 @@ type
     procedure RangeError(AValue, Min, Max: Double);
     procedure SetDisplayFormat(const AValue: string);
     procedure SetEditFormat(const AValue: string);
-    function GetAsBoolean: Boolean; override;
+    function  GetAsBoolean: Boolean; override;
+    Procedure SetAsBoolean(AValue: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -545,6 +546,8 @@ type
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
+    function GetAsLargeint: Largeint; override;
+    procedure SetAsLargeint(AValue: Largeint); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : longint) : Boolean;
@@ -1342,6 +1345,7 @@ type
     FBeforeRefresh: TDataSetNotifyEvent;
     FBeforeScroll: TDataSetNotifyEvent;
     FBlobFieldCount: Longint;
+    FBlockReadSize: Integer;
     FBookmarkSize: Longint;
     FBuffers : TBufferArray;
     FBufferCount: Longint;
@@ -1386,6 +1390,7 @@ type
     Function GetActive : boolean;
     Procedure UnRegisterDataSource(ADatasource : TDatasource);
     Procedure UpdateFieldDefs;
+    procedure SetBlockReadSize(AValue: Integer);
     Procedure SetFieldDefs(AFieldDefs: TFieldDefs);
     procedure DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
   protected
@@ -1590,6 +1595,7 @@ type
     procedure UpdateCursorPos;
     procedure UpdateRecord;
     function UpdateStatus: TUpdateStatus; virtual;
+    property BlockReadSize: Integer read FBlockReadSize write SetBlockReadSize;
     property BOF: Boolean read FBOF;
     property Bookmark: TBookmarkStr read GetBookmarkStr write SetBookmarkStr;
     property CanModify: Boolean read GetCanModify;

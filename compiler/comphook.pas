@@ -84,7 +84,7 @@ type
     countNotes,
     countHints    : longint;  { number of found errors/warnings/notes/hints }
     codesize,
-    datasize      : aword;
+    datasize      : qword;
   { program info }
     isexe,
     ispackage,
@@ -107,19 +107,20 @@ type
   { Special file for bug report }
     reportbugfile : text;
   end;
+
+type
+  EControlCAbort=class(Exception)
+    constructor Create;
+  end;
+  ECompilerAbort=class(Exception)
+    constructor Create;
+  end;
+  ECompilerAbortSilent=class(Exception)
+    constructor Create;
+  end;
+
 var
   status : tcompilerstatus;
-
-    type
-      EControlCAbort=class(Exception)
-        constructor Create;
-      end;
-      ECompilerAbort=class(Exception)
-        constructor Create;
-      end;
-      ECompilerAbortSilent=class(Exception)
-        constructor Create;
-      end;
 
 { Default Functions }
 Function  def_status:boolean;

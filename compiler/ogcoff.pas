@@ -282,14 +282,17 @@ interface
 {$ifdef i386}
        COFF_MAGIC       = $14c;
        COFF_OPT_MAGIC   = $10b;
+       TLSDIR_SIZE      = $18;
 {$endif i386}
 {$ifdef arm}
        COFF_MAGIC       = $1c0;
        COFF_OPT_MAGIC   = $10b;
+       TLSDIR_SIZE      = $18;
 {$endif arm}
 {$ifdef x86_64}
        COFF_MAGIC       = $8664;
        COFF_OPT_MAGIC   = $20b;
+       TLSDIR_SIZE      = $28;
 {$endif x86_64}
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
 
@@ -1312,6 +1315,8 @@ const pemagic : array[0..3] of byte = (
                 rel.reloctype:=IMAGE_REL_I386_SECREL32;
 {$endif i386}
 {$ifdef x86_64}
+              RELOC_NONE :
+                rel.reloctype:=IMAGE_REL_AMD64_ABSOLUTE;
               RELOC_RELATIVE :
                 rel.reloctype:=IMAGE_REL_AMD64_REL32;
               RELOC_ABSOLUTE32 :
@@ -1636,6 +1641,8 @@ const pemagic : array[0..3] of byte = (
                rel_type:=RELOC_SECREL32;
 {$endif i386}
 {$ifdef x86_64}
+             IMAGE_REL_AMD64_ABSOLUTE:
+               rel_type:=RELOC_NONE;
              IMAGE_REL_AMD64_REL32:
                rel_type:=RELOC_RELATIVE;
              IMAGE_REL_AMD64_ADDR32,
@@ -1930,7 +1937,9 @@ const pemagic : array[0..3] of byte = (
                  begin
                    if (Copy(secname,1,6)='.edata') or
                       (Copy(secname,1,5)='.rsrc') or
+{$ifndef x86_64}
                       (Copy(secname,1,6)='.pdata') or
+{$endif}
                       (Copy(secname,1,4)='.fpc') then
                      include(secoptions,oso_keep);
                    if (Copy(secname,1,6)='.idata') then
@@ -2108,12 +2117,14 @@ const pemagic : array[0..3] of byte = (
               sechdr.vsize:=mempos;
 
             { sechdr.dataSize is size of initilized data. Must be zero for sections that
-              do not contain one.
-              TODO: In Windows it must be rounded up to FileAlignment
+              do not contain one. In Windows it must be rounded up to FileAlignment
               (so it can be greater than VirtualSize) }
             if (oso_data in SecOptions) then
               begin
-                sechdr.dataSize:=Size;
+                if win32 then
+                  sechdr.dataSize:=Align(Size,SectionDataAlign)
+                else
+                  sechdr.dataSize:=Size;
                 if (Size>0) then
                   sechdr.datapos:=datapos;
               end;
@@ -2226,7 +2237,7 @@ const pemagic : array[0..3] of byte = (
         inherited DataPos_Symbols;
         { Calculating symbols position and size }
         nsyms:=ExeSymbolList.Count;
-        sympos:=CurrDataPos;
+        sympos:=Align(CurrDataPos,SectionDataAlign);
         inc(CurrDataPos,sizeof(coffsymbol)*nsyms);
       end;
 
@@ -2324,7 +2335,8 @@ const pemagic : array[0..3] of byte = (
             begin
               tlssymbol:=tlsexesymbol.ObjSymbol;
               peoptheader.DataDirectory[PE_DATADIR_TLS].vaddr:=tlssymbol.address;
-              peoptheader.DataDirectory[PE_DATADIR_TLS].size:=Sizeof(tlsdirectory);
+              { sizeof(TlsDirectory) is different on host and target when cross-compiling }
+              peoptheader.DataDirectory[PE_DATADIR_TLS].size:=TLSDIR_SIZE;
               if IsSharedLibrary then
                 begin
                   { Here we should reset __FPC_tls_callbacks value to nil }
@@ -2491,6 +2503,9 @@ const pemagic : array[0..3] of byte = (
         ExeSectionList.ForEachCall(@ExeSectionList_write_header,nil);
         { Section data }
         ExeSectionList.ForEachCall(@ExeSectionList_write_data,nil);
+        { Align after the last section }
+        FWriter.Writezeros(Align(FWriter.Size,SectionDataAlign)-FWriter.Size);
+
         { Optional Symbols }
         if SymPos<>FWriter.Size then
           internalerror(200602252);

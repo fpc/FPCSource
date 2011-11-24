@@ -73,6 +73,7 @@ type
      mtAnyChar,        {..any character}
      mtChar,           {..a particular character}
      mtClass,          {..a character class}
+     mtDupClass,       {..a character class beying referenced}
      mtNegClass,       {..a negated character class}
      mtTerminal,       {..the final state--no matching}
      mtUnused);        {..an unused state--no matching}
@@ -446,7 +447,7 @@ begin
     sdMatchType := aMatchType;
     if (aMatchType = mtChar) then
       sdChar := aChar
-    else if (aMatchType = mtClass) or (aMatchType = mtNegClass) then
+    else if aMatchType in [mtClass, mtDupClass, mtNegClass] then
       sdClass := aCharClass;
     end;
   Result := FStateCount;
@@ -541,10 +542,12 @@ var
   Ch     : AnsiChar;
   State  : integer;
   StrInx : integer;
+  LenStr : integer;
 begin
   {assume we fail to match}
   Result := false;
   Len := StartPosn;
+  LenStr := Length(s);
   {clear the deque}
   FHead := FCapacity div 2;
   FTail := FHead;
@@ -590,7 +593,7 @@ begin
             if not (Ch in newline) then
               DequeEnqueue(sdNextState1);
           end;
-        mtClass :
+        mtClass, mtDupClass :
           begin
             {for a match within a class, enqueue the next state}
             if (Ch in sdClass^) then
@@ -627,14 +630,14 @@ begin
           end;
       end;
     end;
-  until (FHead = FTail) or (ch = #0); // deque empty or end of string
+  until (FHead = FTail) or (StrInx > LenStr); // deque empty or end of string
   {if we reach this point we've either exhausted the deque or we've
    run out of string; if the former, the substring did not match
    since there are no more states. If the latter, we need to check
    the states left on the deque to see if one is the terminating
    state; if so the string matched the regular expression defined by
    the transition table}
-  while (FHead <> FTail) do begin
+  while (FHead <> FTail) and (StrInx<=LenStr) do begin
     State := DequePop;
     with FStateTable[State] do begin
       case sdMatchType of
@@ -1067,6 +1070,8 @@ begin
                     FStateTable[FStateCount].sdNextState1 := i+FStateTable[FStateCount].sdNextState1+ (EndStateAtom-StartStateAtom) *i;
                   if FStateTable[FStateCount].sdNextState2 in [StartStateAtom..EndStateAtom+1] then
                     FStateTable[FStateCount].sdNextState2 := i+FStateTable[FStateCount].sdNextState2 + (EndStateAtom-StartStateAtom) *i;
+                  if FStateTable[FStateCount].sdMatchType = mtClass then
+                    FStateTable[FStateCount].sdMatchType := mtDupClass;
                   inc(FStateCount);
 
                   if FStateCount=length(FStateTable) then
@@ -1086,6 +1091,8 @@ begin
                   FStateTable[FStateCount].sdNextState1 := i+FStateTable[FStateCount].sdNextState1+ (EndStateAtom-StartStateAtom) * i+(i-n+1);
                 if FStateTable[FStateCount].sdNextState2 in [StartStateAtom..EndStateAtom+1] then
                   FStateTable[FStateCount].sdNextState2 := i+FStateTable[FStateCount].sdNextState2 + (EndStateAtom-StartStateAtom) * i+(i-n+1);
+                if FStateTable[FStateCount].sdMatchType = mtClass then
+                  FStateTable[FStateCount].sdMatchType := mtDupClass;
                 inc(FStateCount);
 
                 if FStateCount=length(FStateTable) then

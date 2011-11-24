@@ -47,7 +47,7 @@
     _namespaces: NSMutableArray;
     _children: NSArray;
     _childrenHaveMutated: Boolean;
-        _padding3: array[0..2] of cuint8;
+    _padding3: array[0..(3)-1] of cuint8;
     _URI: NSString;
     _prefixIndex: NSInteger;
     

@@ -13,6 +13,10 @@ unit InstantFPTools;
   {$define HASEXEEXT}
 {$endif go32v2}
 
+{$IFNDEF VER2_4}
+{$DEFINE UseExeSearch}
+{$ENDIF}
+
 interface
 
 uses
@@ -138,16 +142,14 @@ begin
 end;
 
 function GetCompiler: string;
-
 var
+  CompFile: String;
+{$IFNDEF UseExeSearch}
   Path: String;
   p: Integer;
   StartPos: LongInt;
   Dir: String;
-  CompFile: String;
-  i: Integer;
-  Param: String;
-  
+{$ENDIF}
 begin
   Result:=CmdCompiler;
   if (Result<>'') then
@@ -166,9 +168,11 @@ begin
   {$ELSE}
   CompFile:='fpc';
   {$ENDIF}
+  {$IFDEF UseExeSearch}
   Result:=ExeSearch(CompFile);
+  {$ELSE}
   Path:=GetEnvironmentVariable('PATH');
-{  if PATH<>'' then begin
+  if Path<>'' then begin
     p:=1;
     while p<=length(Path) do begin
       StartPos:=p;
@@ -181,7 +185,8 @@ begin
       inc(p);
     end;
   end;
-}
+  {$ENDIF}
+
   if (Result='') then
     begin
     writeln('Error: '+CompFile+' not found in PATH');
@@ -212,7 +217,7 @@ begin
   Proc.Execute;
   ss:=TStringStream.Create('');
   repeat
-    Count:=Proc.Output.Read(Buf,4096);
+    Count:=Proc.Output.Read(Buf{%H-},4096);
     if Count>0 then
       ss.write(buf,count);
   until Count=0;
@@ -233,7 +238,7 @@ var
   p: String;
   i : integer;
 begin
-  Result:='';
+  Result:=GetEnvironmentVariable('INSTANTFPCOPTIONS');
   I:=1;
   While (I<=ParamCount) and (Copy(ParamStr(i),1,1)='-') do
     begin

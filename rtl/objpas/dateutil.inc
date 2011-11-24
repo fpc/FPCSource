@@ -111,6 +111,7 @@ Function Yesterday: TDateTime;
 Function Tomorrow: TDateTime;
 Function IsToday(const AValue: TDateTime): Boolean;
 Function IsSameDay(const AValue, ABasis: TDateTime): Boolean;
+function IsSameMonth(const Avalue, ABasis: TDateTime): Boolean;
 Function PreviousDayOfWeek (DayOfWeek : Word) : Word;
 
 { ---------------------------------------------------------------------
@@ -616,6 +617,12 @@ Var
 begin
   D:=AValue-Trunc(ABasis);
   Result:=(D>=0) and (D<1);
+end;
+
+function IsSameMonth(const Avalue, ABasis: TDateTime): Boolean;
+begin
+     result:=( YearOf(Avalue) = YearOf(Abasis) );
+     result:=result and ( MonthOf(AValue) = MonthOf(ABasis) );
 end;
 
 const

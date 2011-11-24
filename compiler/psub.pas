@@ -104,7 +104,7 @@ implementation
        opttail,
        optcse,optloop,
        optutils
-{$if defined(arm) or defined(powerpc) or defined(powerpc64)}
+{$if defined(arm) or defined(powerpc) or defined(powerpc64) or defined(avr)}
        ,aasmcpu
 {$endif arm}
        {$ifndef NOOPT}
@@ -1228,6 +1228,12 @@ implementation
             finalizearmcode(aktproccode,aktlocaldata);
 {$endif ARM}
 
+{$ifdef AVR}
+            { because of the limited branch distance of cond. branches, they must be replaced
+              somtimes by normal jmps and an inverse branch }
+            finalizeavrcode(aktproccode);
+{$endif AVR}
+
             { Add end symbol and debug info }
             { this must be done after the pcrelativedata is appended else the distance calculation of
               insertpcrelativedata will be wrong, further the pc indirect data is part of the procedure
@@ -2023,7 +2029,8 @@ implementation
                      { use the index the module got from the current compilation process }
                      current_filepos.moduleindex:=hmodule.unit_index;
                      current_tokenpos:=current_filepos;
-                     current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
+                     current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf,
+                       tprocdef(tprocdef(hp).genericdef).change_endian);
                      read_proc_body(nil,tprocdef(hp));
                      current_filepos:=oldcurrent_filepos;
                    end

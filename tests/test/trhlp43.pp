@@ -19,7 +19,9 @@ class procedure TTestHelper.Test;
 begin
 end;
 
+var
+  T: TTest;
 begin
-  with TTest do
+  with T do
     Test;
 end.

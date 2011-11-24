@@ -194,12 +194,12 @@ implementation
     procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
     var pstate : pmessagestaterecord;
       begin
-        pstate:=fstate;
+        pstate:=unaligned(fstate);
         while assigned(pstate) do
           begin
-            fstate:=pstate^.next;
+            unaligned(fstate):=pstate^.next;
             freemem(pstate);
-            pstate:=fstate;
+            pstate:=unaligned(fstate);
           end;
       end;
 

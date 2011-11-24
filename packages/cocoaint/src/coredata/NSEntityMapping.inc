@@ -71,12 +71,13 @@ type
     _entityMigrationPolicyClassName: NSString;
     _attributeMappings: NSMutableArray;
     _relationshipMappings: NSMutableArray;
-    __entityMappingFlags: bitpacked record
+    __entityMappingFlags: record
       case byte of
        0: (_anonbitfield_NSEntityMapping0: cuint);
-       1: (
+       1: (data: bitpacked record
         _isInUse: 0..1;
         _reservedEntityMapping: 0..((1 shl 31)-1);
+       end;
       );
       end;
     

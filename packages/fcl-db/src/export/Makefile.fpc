@@ -6,11 +6,11 @@
 main=fcl-db
 
 [target]
-units=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fprtfexport fpstdexports 
-rsts=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fprtfexport fpstdexports
+units=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fprtfexport fpxmlxsdexport fpstdexports 
+rsts=fpdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport fptexexport fprtfexport fpxmlxsdexport fpstdexports
 
 [require]
-packages=fcl-base
+packages=fcl-base fcl-xml
 
 [compiler]
 options=-S2h
@@ -37,4 +37,6 @@ fpcdir=../../../..
 
 #fpdbfexport$(PPUEXT): fpdbexport$(PPEXT)
 
-#fpstdexports$(PPUEXT): $(addsufficx t$(PPEXT), pdbexport fpcsvexport fpfixedexport fpsqlexport fpsimplexmlexport fpsimplejsonexport fpdbfexport)
+#fpxmlxsdexport$(PPUEXT): fpdbexport$(PPEXT)
+
+#fpstdexports$(PPUEXT): $(addsufficx t$(PPEXT), pdbexport fpcsvexport fpfixedexport fpsqlexport fpxmlxsdexport fpsimplexmlexport fpsimplejsonexport fpdbfexport)

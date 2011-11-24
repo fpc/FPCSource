@@ -49,13 +49,14 @@
     _configurations: NSMutableDictionary;
     _fetchRequestTemplates: NSMutableDictionary;
     _versionIdentifiers: NSSet;
-    __managedObjectModelFlags: bitpacked record
+    __managedObjectModelFlags: record
       case byte of
        0: (_anonbitfield_NSManagedObjectModel0: cuint);
-       1: (
+       1: (data: bitpacked record
         _isInUse: 0..1;
         _isImmutable: 0..1;
         _reservedEntityDescription: 0..((1 shl 30)-1);
+       end;
       );
       end;
     

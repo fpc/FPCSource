@@ -4,12 +4,12 @@
      .text
      .globl _mainCRTStartup
 _mainCRTStartup:
-     movb   $1,U_SYSTEM_ISCONSOLE
+     movb   $1,operatingsystem_isconsole
      movl   %esp,__stkptr
      call   _FPC_EXE_Entry
      .globl _WinMainCRTStartup
 _WinMainCRTStartup:
-     movb   $0,U_SYSTEM_ISCONSOLE
+     movb   $0,operatingsystem_isconsole
      movl   %esp,__stkptr
      call   _FPC_EXE_Entry
 

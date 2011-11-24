@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='opencl';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Author := ' Dmitry "skalogryz" Boyarintsev; Kronos group';
     P.License := 'Library: modified BSD, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -25,6 +25,8 @@ begin
     P.NeedLibC:= true;
     P.OSes:=[linux,win64,win32,darwin];
     P.CPUs:=[i386,x86_64];
+
+    P.Dependencies.Add('opengl');
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

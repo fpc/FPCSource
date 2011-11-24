@@ -1446,6 +1446,7 @@ CONST
 {$ENDIF}
 
 {$ELSE}
+CONST
          TOOLBARCLASSNAME               = 'ToolbarWindow';
 {$ENDIF}
 

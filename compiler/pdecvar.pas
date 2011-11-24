@@ -772,7 +772,7 @@ implementation
 *)
          { Parse possible "implements" keyword }
          if not is_record(astruct) and try_to_consume(_IMPLEMENTS) then
-           begin
+           repeat
              single_type(def,[]);
 
              if not(is_interface(def)) then
@@ -780,7 +780,8 @@ implementation
 
              if is_interface(p.propdef) then
                begin
-                 if compare_defs(def,p.propdef,nothingn)<te_equal then
+                 { an interface type may delegate itself or one of its ancestors }
+                 if not p.propdef.is_related(def) then
                    begin
                      message2(parser_e_implements_must_have_correct_type,def.typename,p.propdef.typename);
                      exit;
@@ -841,6 +842,13 @@ implementation
                end;
              if found then
                begin
+                 { An interface may not be delegated by more than one property,
+                   it also may not have method mappings. }
+                 if Assigned(ImplIntf.ImplementsGetter) then
+                   message1(parser_e_duplicate_implements_clause,ImplIntf.IntfDef.typename);
+                 if Assigned(ImplIntf.NameMappings) then
+                   message2(parser_e_mapping_no_implements,ImplIntf.IntfDef.typename,astruct.objrealname^);
+
                  ImplIntf.ImplementsGetter:=p;
                  ImplIntf.VtblImplIntf:=ImplIntf;
                  case p.propaccesslist[palt_read].firstsym^.sym.typ of
@@ -872,7 +880,7 @@ implementation
                end
              else
                message1(parser_e_implements_uses_non_implemented_interface,def.typename);
-         end;
+           until not try_to_consume(_COMMA);
 
          { remove unneeded procdefs }
          if readprocdef.proctypeoption<>potype_propgetter then
@@ -1492,7 +1500,8 @@ implementation
          uniondef : trecorddef;
          hintsymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
-         semicoloneaten: boolean;
+         semicoloneaten,
+         removeclassoption: boolean;
 {$if defined(powerpc) or defined(powerpc64)}
          tempdef: tdef;
          is_first_type: boolean;
@@ -1511,7 +1520,8 @@ implementation
            consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
-         recstlist:=TFPObjectList.create(false);;
+         recstlist:=TFPObjectList.create(false);
+         removeclassoption:=false;
          while (token=_ID) and
             not(((vd_object in options) or
                  ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
@@ -1646,7 +1656,8 @@ implementation
                  if not (vd_class in options) and try_to_consume(_STATIC) then
                    begin
                      consume(_SEMICOLON);
-                     include(options, vd_class);
+                     include(options,vd_class);
+                     removeclassoption:=true;
                    end;
                end;
              if vd_class in options then
@@ -1666,6 +1677,11 @@ implementation
                      sl:=tpropaccesslist.create;
                      sl.addsym(sl_load,hstaticvs);
                      recst.insert(tabsolutevarsym.create_ref('$'+static_name,hdef,sl));
+                   end;
+                 if removeclassoption then
+                   begin
+                     exclude(options,vd_class);
+                     removeclassoption:=false;
                    end;
                end;
              if (visibility=vis_published) and

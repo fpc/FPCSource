@@ -47,14 +47,15 @@ const
   NSCursor = objcclass external (NSObject, NSCodingProtocol)
   private
     _hotSpot: NSPoint;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSCursor1: cuint);
-       1: (
+       1: (data: bitpacked record
         onMouseExited: 0..1;
         onMouseEntered: 0..1;
         cursorType: 0..((1 shl 8)-1);
         _anonbitfield_NSCursor0: 0..((1 shl 22)-1);
+       end;
       );
       end;
     _image: id;

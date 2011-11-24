@@ -31,6 +31,7 @@ uses
   constexp,
   symconst,
   ppu,
+  systems,
   globals,
   globtype,
   widestr,
@@ -51,7 +52,7 @@ const
 //  v_browser        = $20;
   v_all            = $ff;
 
-{$i systems.inc }
+{ not needed anymore $i systems.inc }
 
 { List of all supported cpus }
 const
@@ -156,9 +157,16 @@ const
   thus widecharsize seems to always be 2 bytes }
 
   widecharsize : longint = 2;
-type
+  cpu : tsystemcpu = cpu_no;
 
-  tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
+{ This type is defined in scanner.pas unit }
+type
+  tspecialgenerictoken = (
+    ST_LOADSETTINGS,
+    ST_LINE,
+    ST_COLUMN,
+    ST_FILEINDEX,
+    ST_LOADMESSAGES);
 
 
 var
@@ -169,9 +177,91 @@ var
   derefdata   : pbyte;
   derefdatalen : longint;
 
+
 {****************************************************************************
                           Helper Routines
 ****************************************************************************}
+
+{****************************************************************************
+                          Routine to read 80-bit reals
+****************************************************************************
+}
+type
+  TSplit80bitReal = packed record
+    case byte of
+      0: (bytes: Array[0..9] of byte);
+      1: (words: Array[0..4] of word);
+      2: (cards: Array[0..1] of cardinal; w: word);
+  end;
+const
+  maxDigits = 17;
+  function Real80bitToStr(var e : TSplit80bitReal) : string;
+  var
+    Temp : string;
+    new : TSplit80bitReal;
+    fraczero, expmaximal, sign, outside_double : boolean;
+    exp : smallint;
+    ext : extended;
+    d : double;
+    i : longint;
+    mantval : qword;
+  begin
+    if ppufile.change_endian then
+      begin
+        for i:=0 to 9 do
+          new.bytes[i]:=e.bytes[9-i];
+        e:=new;
+      end;
+    if sizeof(ext)=10 then
+      begin
+        ext:=pextended(@e)^;
+        str(ext,result);
+        exit;
+      end;
+    { extended, format (MSB): 1 Sign bit, 15 bit exponent, 64 bit mantissa }
+    sign := (e.w and $8000) <> 0;
+    expMaximal := (e.w and $7fff) = 32767;
+    exp:=(e.w and $7fff) - 16383 - 63;
+    fraczero := (e.cards[0] = 0) and
+                    ((e.cards[1] and $7fffffff) = 0);
+    mantval := qword(e.cards[0]) or (qword(e.cards[1]) shl 32);
+    if expMaximal then
+      if fraczero then
+        if sign then
+          temp := '-Inf'
+        else temp := '+Inf'
+      else temp := 'Nan'
+    else
+      begin
+        d:=double(mantval);
+        if sign then
+          d:=-d;
+        outside_double:=false;
+        Try
+          if exp > 0 then
+            begin
+              for i:=1 to exp do
+                d:=d *2.0;
+            end
+          else if exp < 0 then
+            begin
+              for i:=1 to -exp do
+                d:=d /2.0;
+            end;
+        Except
+          outside_double:=true;
+        end;
+      if (mantval<>0) and (d=0.0) then
+        outside_double:=true;
+      if outside_double then
+        Temp:='Extended value outside double bound'
+      else
+        system.str(d,temp);
+
+      end;
+
+    result:=temp;
+  end;
 
 const has_errors : boolean = false;
       has_more_infos : boolean = false;
@@ -211,7 +301,10 @@ end;
 Function Cpu2Str(w:longint):string;
 begin
   if w<=ord(high(tsystemcpu)) then
-    Cpu2Str:=CpuTxt[tsystemcpu(w)]
+    begin
+      cpu:=tsystemcpu(w);
+      Cpu2Str:=CpuTxt[cpu];
+    end
   else
     Cpu2Str:=Unknown('cpu',w);
 end;
@@ -264,7 +357,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=23;
+  flagopts=24;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
@@ -290,7 +383,8 @@ const
     (mask: $80000  ;str:'has_resourcefiles'),
     (mask: $100000  ;str:'has_exports'),
     (mask: $400000  ;str:'has_wideinits'),
-    (mask: $800000  ;str:'has_classinits')
+    (mask: $800000  ;str:'has_classinits'),
+    (mask: $1000000 ;str:'has_resstrinits')
   );
 var
   i,ntflags : longint;
@@ -365,6 +459,22 @@ end;
 {****************************************************************************
                              Read Routines
 ****************************************************************************}
+
+procedure readrecsymtableoptions;
+var
+  usefieldalignment : shortint;
+begin
+  if ppufile.readentry<>ibrecsymtableoptions then
+    begin
+      has_errors:=true;
+      exit;
+    end;
+  writeln(space,' recordalignment: ',shortint(ppufile.getbyte));
+  usefieldalignment:=shortint(ppufile.getbyte);
+  writeln(space,' usefieldalignment: ',usefieldalignment);
+  if (usefieldalignment=C_alignment) then
+    writeln(space,' fieldalignment: ',shortint(ppufile.getbyte));
+end;
 
 procedure readsymtableoptions(const s: string);
 type
@@ -773,6 +883,164 @@ begin
   until false;
 end;
 
+(*
+       talignmentinfo = packed record
+         procalign,
+         loopalign,
+         jumpalign,
+         constalignmin,
+         constalignmax,
+         varalignmin,
+         varalignmax,
+         localalignmin,
+         localalignmax,
+         recordalignmin,
+         recordalignmax,
+         maxCrecordalign : longint;
+       end;
+
+
+       tsettings = packed record
+         alignment       : talignmentinfo;
+         globalswitches  : tglobalswitches;
+         moduleswitches  : tmoduleswitches;
+         localswitches   : tlocalswitches;
+         modeswitches    : tmodeswitches;
+         optimizerswitches : toptimizerswitches;
+         { generate information necessary to perform these wpo's during a subsequent compilation }
+         genwpoptimizerswitches: twpoptimizerswitches;
+         { perform these wpo's using information generated during a previous compilation }
+         dowpoptimizerswitches: twpoptimizerswitches;
+         debugswitches   : tdebugswitches;
+         { 0: old behaviour for sets <=256 elements
+           >0: round to this size }
+         setalloc,
+         packenum        : shortint;
+
+         packrecords     : shortint;
+         maxfpuregisters : shortint;
+
+         cputype,
+         optimizecputype : tcputype;
+         fputype         : tfputype;
+         asmmode         : tasmmode;
+         interfacetype   : tinterfacetypes;
+         defproccall     : tproccalloption;
+         sourcecodepage  : tcodepagestring;
+
+         minfpconstprec  : tfloattype;
+
+         disabledircache : boolean;
+
+        { CPU targets with microcontroller support can add a controller specific unit }
+{$if defined(ARM) or defined(AVR)}
+        controllertype   : tcontrollertype;
+{$endif defined(ARM) or defined(AVR)}
+         { WARNING: this pointer cannot be written as such in record token }
+         pmessage : pmessagestaterecord;
+       end;
+
+*)
+procedure readprocinfooptions(space : string);
+(*
+       tprocinfoflag=(
+         { procedure has at least one assembler block }
+         pi_has_assembler_block,
+         { procedure does a call }
+         pi_do_call,
+         { procedure has a try statement = no register optimization }
+         pi_uses_exceptions,
+         { procedure is declared as @var(assembler), don't optimize}
+         pi_is_assembler,
+         { procedure contains data which needs to be finalized }
+         pi_needs_implicit_finally,
+         { procedure has the implicit try..finally generated }
+         pi_has_implicit_finally,
+         { procedure uses fpu}
+         pi_uses_fpu,
+         { procedure uses GOT for PIC code }
+         pi_needs_got,
+         { references var/proc/type/const in static symtable,
+           i.e. not allowed for inlining from other units }
+         pi_uses_static_symtable,
+         { set if the procedure has to push parameters onto the stack }
+         pi_has_stackparameter,
+         { set if the procedure has at least one label }
+         pi_has_label,
+         { calls itself recursive }
+         pi_is_recursive,
+         { stack frame optimization not possible (only on x86 probably) }
+         pi_needs_stackframe,
+         { set if the procedure has at least one register saved on the stack }
+         pi_has_saved_regs,
+         { dfa was generated for this proc }
+         pi_dfaavailable,
+         { subroutine contains interprocedural used labels }
+         pi_has_interproclabel
+       ); *)
+
+type
+  tprocinfoopt=record
+    mask : tprocinfoflag;
+    str  : string[80];
+  end;
+const
+  procinfoopts=ord(high(tprocinfoflag)) - ord(low(tprocinfoflag));
+  procinfoopt : array[0..procinfoopts] of tprocinfoopt=(
+         (mask:pi_has_assembler_block;
+         str:' has at least one assembler block'),
+         (mask:pi_do_call;
+         str:' does a call'),
+         (mask:pi_uses_exceptions;
+         str:' has a try statement = no register optimization '),
+         (mask:pi_is_assembler;
+         str:' is declared as @var(assembler), don''t optimize'),
+         (mask:pi_needs_implicit_finally;
+         str:' contains data which needs to be finalized '),
+         (mask:pi_has_implicit_finally;
+         str:' has the implicit try..finally generated '),
+         (mask:pi_uses_fpu;
+         str:' uses fpu'),
+         (mask:pi_needs_got;
+         str:' uses GOT for PIC code '),
+         (mask:pi_uses_static_symtable;
+         str:' references var/proc/type/const in static symtable'),
+         (mask:pi_has_stackparameter;
+         str:' set if the procedure has to push parameters onto the stack '),
+         (mask:pi_has_label;
+         str:' set if the procedure has at least one label '),
+         (mask:pi_is_recursive;
+         str:' calls itself recursive '),
+         (mask:pi_needs_stackframe;
+         str:' stack frame optimization not possible (only on x86 probably) '),
+         (mask:pi_has_saved_regs;
+         str:' set if the procedure has at least one register saved on the stack '),
+         (mask:pi_dfaavailable;
+         str:' dfa was generated for this proc '),
+         (mask:pi_has_interproclabel;
+         str:' subroutine contains interprocedural used labels ')
+  );
+var
+  procinfooptions : tprocinfoflags;
+  i      : longint;
+  first  : boolean;
+begin
+  ppufile.getsmallset(procinfooptions);
+  if procinfooptions<>[] then
+   begin
+     first:=true;
+     for i:=0 to procinfoopts do
+      if (procinfoopt[i].mask in procinfooptions) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(procinfoopt[i].str);
+       end;
+   end;
+  writeln;
+end;
 
 procedure readsymoptions(space : string);
 type
@@ -851,6 +1119,7 @@ type
     str  : string[30];
   end;
   ptoken=^ttoken;
+  pmsgstate =^tmsgstate;
 const
   defopt : array[1..ord(high(tdefoption))] of tdefopt=(
      (mask:df_unique;         str:'Unique Type'),
@@ -869,12 +1138,14 @@ const
   );
 var
   defstates  : tdefstates;
-  i      : longint;
+  i, nb, msgvalue, mesgnb : longint;
   first  : boolean;
-  tokenbufsize : longint;
+  copy_size, min_size, tokenbufsize : longint;
   tokenbuf : pbyte;
   idtoken,
   token : ttoken;
+  state : tmsgstate;
+  new_settings : Tsettings;
   len : sizeint;
   wstring : widestring;
   astring : ansistring;
@@ -894,6 +1165,67 @@ var
       else
         result:=ttoken(b);
     end;
+
+  function gettokenbufdword : dword;
+  var
+    var32 : dword;
+  begin
+    var32:=pdword(@tokenbuf[i])^;
+    inc(i,sizeof(dword));
+    if ppufile.change_endian then
+      var32:=swapendian(var32);
+    result:=var32;
+  end;
+
+  function gettokenbufword : word;
+  var
+    var16 : word;
+  begin
+    var16:=pword(@tokenbuf[i])^;
+    inc(i,sizeof(word));
+    if ppufile.change_endian then
+      var16:=swapendian(var16);
+    result:=var16;
+  end;
+
+
+  function gettokenbufsizeint : int64;
+  var
+    var64 : int64;
+    var32 : longint;
+    var16 : smallint;
+
+  begin
+    if CpuAddrBitSize[cpu]=64 then
+      begin
+        var64:=pint64(@tokenbuf[i])^;
+        inc(i,sizeof(int64));
+        if ppufile.change_endian then
+          var64:=swapendian(var64);
+        result:=var64;
+      end
+    else if CpuAddrBitSize[cpu]=32 then
+      begin
+        var32:=plongint(@tokenbuf[i])^;
+        inc(i,sizeof(longint));
+        if ppufile.change_endian then
+          var32:=swapendian(var32);
+        result:=var32;
+      end
+    else if CpuAddrBitSize[cpu]=16 then
+      begin
+        var16:=psmallint(@tokenbuf[i])^;
+        inc(i,sizeof(smallint));
+        if ppufile.change_endian then
+          var16:=swapendian(var16);
+        result:=var16;
+      end
+    else
+      begin
+        WriteError('Wrong CpuAddrBitSize');
+        result:=0;
+      end;
+  end;
 
 begin
   writeln(space,'** Definition Id ',ppufile.getlongint,' **');
@@ -947,15 +1279,21 @@ begin
           token:=readtoken;
           if token<>_GENERICSPECIALTOKEN then
             begin
-              write(arraytokeninfo[token].str);
+              if token <= high(ttoken) then
+                write(arraytokeninfo[token].str)
+              else
+                begin
+                  HasMoreInfos;
+                  write('Error in Token List');
+                  break;
+                end;
               idtoken:=readtoken;
             end;
           case token of
             _CWCHAR,
             _CWSTRING :
               begin
-                len:=psizeint(@tokenbuf[i])^;
-                inc(i,sizeof(sizeint));
+                len:=gettokenbufsizeint;
                 setlength(wstring,len);
                 move(tokenbuf[i],wstring[1],len*2);
                 write(' ',wstring);
@@ -963,8 +1301,7 @@ begin
               end;
             _CSTRING:
               begin
-                len:=psizeint(@tokenbuf[i])^;
-                inc(i,sizeof(sizeint));
+                len:=gettokenbufsizeint;
                 setlength(astring,len);
                 move(tokenbuf[i],astring[1],len);
                 write(' ',astring);
@@ -981,14 +1318,11 @@ begin
               begin
                 write(' ',pshortstring(@tokenbuf[i])^);
                 inc(i,tokenbuf[i]+1);
-              {
-                replaytokenbuf.read(orgpattern[0],1);
-                replaytokenbuf.read(orgpattern[1],length(orgpattern));
-                pattern:=upper(orgpattern);
-              }
               end;
             _GENERICSPECIALTOKEN:
               begin
+                { Short version of column change,
+                  byte or $80 used }
                 if (tokenbuf[i] and $80)<>0 then
                   begin
                     write('Col: ',tokenbuf[i] and $7f);
@@ -1000,39 +1334,48 @@ begin
                       begin
                         inc(i);
                         write('Settings');
-                        inc(i,sizeof(tsettings));
+                        { This does not load pmessage pointer }
+                        new_settings.pmessage:=nil;
+                        { TSettings size depends in target...
+                          We first read the size of the copied part }
+                        { Still not cross endian ready :( }
+                        copy_size:=gettokenbufsizeint;
+                        if copy_size < sizeof(tsettings)-sizeof(pointer) then
+                          min_size:=copy_size
+                        else
+                          min_size:= sizeof(tsettings)-sizeof(pointer);
+                        move(tokenbuf[i],new_settings, min_size);
+                        inc(i,copy_size);
+                      end;
+                    ST_LOADMESSAGES:
+                      begin
+                        inc(i);
+                        write('Messages:');
+                        mesgnb:=tokenbuf[i];
+                        inc(i);
+                        for nb:=1 to mesgnb do
+                          begin
+                            msgvalue:=gettokenbufsizeint;
+                            inc(i,sizeof(sizeint));
+                            state:=tmsgstate(gettokenbufsizeint);
+                          end;
                       end;
                     ST_LINE:
                       begin
                         inc(i);
-                        write('Line: ',pdword(@tokenbuf[i])^);
-                        inc(i,4);
+                        write('Line: ',gettokenbufdword);
                       end;
                     ST_COLUMN:
                       begin
                         inc(i);
-                        write('Col: ',pword(@tokenbuf[i])^);
-                        inc(i,2);
+                        write('Col: ',gettokenbufword);
                       end;
                     ST_FILEINDEX:
                       begin
                         inc(i);
-                        write('File: ',pword(@tokenbuf[i])^);
-                        inc(i,2);
+                        write('File: ',gettokenbufword);
                       end;
                   end;
-              {
-                replaytokenbuf.read(specialtoken,1);
-                case specialtoken of
-                  ST_LOADSETTINGS:
-                    begin
-                      replaytokenbuf.read(current_settings,sizeof(current_settings));
-                    end
-                  else
-                    internalerror(2006103010);
-                end;
-                continue;
-              }
               end;
           end;
 
@@ -1217,7 +1560,8 @@ const
      (mask:vo_is_weak_external;str:'WeakExternal'),
      (mask:vo_is_first_field;str:'IsFirstField'),
      (mask:vo_volatile;str:'Volatile'),
-     (mask:vo_has_section;str:'HasSection')
+     (mask:vo_has_section;str:'HasSection'),
+     (mask:vo_force_finalize;str:'ForceFinalize')
   );
 var
   i : longint;
@@ -1343,6 +1687,59 @@ begin
   writeln;
 end;
 
+(* options for properties
+  tpropertyoption=(ppo_none,
+    ppo_indexed,
+    ppo_defaultproperty,
+    ppo_stored,
+    ppo_hasparameters,
+    ppo_implements,
+    ppo_enumerator_current,
+    ppo_dispid_read,              { no longer used }
+    ppo_dispid_write              { no longer used }
+  );
+  tpropertyoptions=set of tpropertyoption;
+*)
+procedure readpropertyoptions;
+{ type tarraydefoption is in unit symconst }
+type
+  tpropopt=record
+    mask : tpropertyoption;
+    str  : string[30];
+  end;
+const
+  symopt : array[1..ord(high(tpropertyoption))] of tpropopt=(
+    (mask:ppo_indexed;str:'indexed'),
+    (mask:ppo_defaultproperty;str:'default'),
+    (mask:ppo_stored;str:'stored'),
+    (mask:ppo_hasparameters;str:'has parameters'),
+    (mask:ppo_implements;str:'implements'),
+    (mask:ppo_enumerator_current;str:'enumerator current'),
+    (mask:ppo_dispid_read;str:'dispid read'),   { no longer used }
+    (mask:ppo_dispid_write;str:'dispid write')  { no longer used }
+  );
+var
+  propoptions : tpropertyoptions;
+  i      : longint;
+  first  : boolean;
+begin
+  ppufile.getsmallset(propoptions);
+  if propoptions<>[] then
+   begin
+     first:=true;
+     for i:=1 to high(symopt) do
+      if (symopt[i].mask in propoptions) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(symopt[i].str);
+       end;
+   end;
+  writeln;
+end;
+
 
 procedure readnodetree;
 var
@@ -1449,8 +1846,12 @@ var
   ch : dword;
   startnewline : boolean;
   i,j,len : longint;
+  prettyname : ansistring;
   guid : tguid;
-  realvalue : extended;
+  realvalue : ppureal;
+  doublevalue : double;
+  singlevalue : single;
+  extended : TSplit80bitReal;
   tempbuf : array[0..127] of char;
   pw : pcompilerwidestring;
   varoptions : tvaroptions;
@@ -1473,6 +1874,13 @@ begin
          ibunitsym :
            readcommonsym('Unit symbol ');
 
+         ibnamespacesym :
+           begin
+             readcommonsym('NameSpace symbol ');
+             write(space,'  Hidden Unit : ');
+             readderef('');
+           end;
+
          iblabelsym :
            readcommonsym('Label symbol ');
 
@@ -1481,6 +1889,12 @@ begin
              readcommonsym('Type symbol ');
              write(space,'  Result Type : ');
              readderef('');
+             prettyname:=getansistring;
+             if prettyname<>'' then
+               begin
+                 write(space,' Pretty Name : ');
+                 Writeln(prettyname);
+               end;
            end;
 
          ibprocsym :
@@ -1524,16 +1938,33 @@ begin
                  end;
                constreal :
                  begin
-                   if entryleft=sizeof(extended) then
-                     realvalue:=getrealsize(sizeof(extended))
+                   write(space,'        Value : ');
+                   if entryleft=sizeof(ppureal) then
+                     begin
+                       realvalue:=getrealsize(sizeof(ppureal));
+                       writeln(realvalue);
+                     end
                    else if entryleft=sizeof(double) then
-                     realvalue:=getrealsize(sizeof(double))
+                     begin
+                       doublevalue:=getrealsize(sizeof(double));
+                       writeln(doublevalue);
+                     end
+                   else if entryleft=sizeof(single) then
+                     begin
+                       singlevalue:=getrealsize(sizeof(single));
+                       writeln(singlevalue);
+                     end
+                   else if entryleft=10 then
+                     begin
+                       getdata(extended,entryleft);
+                       writeln(Real80bitToStr(extended));
+                     end
                    else
                      begin
                        realvalue:=0.0;
+                       writeln(realvalue,' Error reading real value');
                        has_errors:=true;
                      end;
-                   writeln(space,'        Value : ',realvalue);
                  end;
                constset :
                  begin
@@ -1704,8 +2135,7 @@ begin
          ibpropertysym :
            begin
              readcommonsym('Property ');
-             i:=getlongint;
-             writeln(space,'  PropOptions : ',i);
+             readpropertyoptions;
              write  (space,' OverrideProp : ');
              readderef('');
              write  (space,'    Prop Type : ');
@@ -1767,7 +2197,6 @@ var
   l,j : longint;
   calloption : tproccalloption;
   procoptions : tprocoptions;
-  procinfooptions : tprocinfoflag;
   defoptions: tdefoptions;
 begin
   with ppufile do
@@ -1875,8 +2304,7 @@ begin
               begin
                 write  (space,'       FuncretSym : ');
                 readderef('');
-                ppufile.getsmallset(procinfooptions);
-                writeln(space,'  ProcInfoOptions : ',dword(procinfooptions));
+                readprocinfooptions(space);
               end;
              b:=ppufile.getbyte;
              if b<>0 then
@@ -1960,19 +2388,30 @@ begin
              writeln(space,'   Name of Record : ',getstring);
              write  (space,'          Options : ');
              readobjectdefoptions;
-             writeln(space,'       FieldAlign : ',getbyte);
-             writeln(space,'      RecordAlign : ',getbyte);
-             writeln(space,'         PadAlign : ',getbyte);
-             writeln(space,'UseFieldAlignment : ',getbyte);
-             writeln(space,'         DataSize : ',getaint);
+             writeln(space,'       FieldAlign : ',shortint(getbyte));
+             writeln(space,'      RecordAlign : ',shortint(getbyte));
+             writeln(space,'         PadAlign : ',shortint(getbyte));
+             writeln(space,'UseFieldAlignment : ',shortint(getbyte));
+             writeln(space,'         DataSize : ',getasizeint);
+             writeln(space,'      PaddingSize : ',getword);
+             if df_copied_def in current_defoptions then
+               begin
+                 writeln('  Copy of def: ');
+                 readderef('');
+               end;
+
              if not EndOfEntry then
                HasMoreInfos;
              {read the record definitions and symbols}
-             space:='    '+space;
-             readsymtableoptions('fields');
-             readdefinitions('fields');
-             readsymbols('fields');
-             Delete(space,1,4);
+             if not(df_copied_def in current_defoptions) then
+               begin
+                 space:='    '+space;
+                 readrecsymtableoptions;
+                 readsymtableoptions('fields');
+                 readdefinitions('fields');
+                 readsymbols('fields');
+                 Delete(space,1,4);
+               end;
            end;
 
          ibobjectdef :
@@ -1997,9 +2436,10 @@ begin
              end;
              writeln(space,'    External name : ',getstring);
              writeln(space,'       Import lib : ',getstring);
-             writeln(space,'         DataSize : ',getaint);
-             writeln(space,'       FieldAlign : ',getbyte);
-             writeln(space,'      RecordAlign : ',getbyte);
+             writeln(space,'         DataSize : ',getasizeint);
+             writeln(space,'      PaddingSize : ',getword);
+             writeln(space,'       FieldAlign : ',shortint(getbyte));
+             writeln(space,'      RecordAlign : ',shortint(getbyte));
              writeln(space,'       Vmt offset : ',getlongint);
              write  (space,  '   Ancestor Class : ');
              readderef('');
@@ -2052,6 +2492,7 @@ begin
                begin
                  {read the record definitions and symbols}
                  space:='    '+space;
+                 readrecsymtableoptions;
                  readsymtableoptions('fields');
                  readdefinitions('fields');
                  readsymbols('fields');

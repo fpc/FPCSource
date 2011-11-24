@@ -4,10 +4,10 @@
 
 [package]
 name=regexpr
-version=2.5.1
+version=2.7.1
 
 [target]
-units=regex regexpr
+units=regex regexpr oldregexpr
 exampledirs=examples
 
 [compiler]

@@ -61,6 +61,9 @@ interface
           genericdef      : tstoreddef;
           genericdefderef : tderef;
           generictokenbuf : tdynamicarray;
+          { Set if PPU was generated with another
+            endianess as current compiler or ppudump utils }
+          change_endian   : boolean;
           constructor create(dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -272,9 +275,10 @@ interface
           vmtentries     : TFPList;
           vmcallstaticinfo : pmvcallstaticinfo;
           vmt_offset     : longint;
-          objecttype     : tobjecttyp;
           iidguid        : pguid;
           iidstr         : pshortstring;
+          { store implemented interfaces defs and name mappings }
+          ImplementedInterfaces : TFPObjectList;
           writing_class_record_dbginfo,
           { a class of this type has been created in this module }
           created_in_current_module,
@@ -288,8 +292,7 @@ interface
             this module
           }
           classref_created_in_current_module : boolean;
-          { store implemented interfaces defs and name mappings }
-          ImplementedInterfaces : TFPObjectList;
+          objecttype     : tobjecttyp;
           constructor create(ot:tobjecttyp;const n:string;c:tobjectdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -423,14 +426,14 @@ interface
           procoptions     : tprocoptions;
           callerargareasize,
           calleeargareasize: pint;
-          { number of user visibile parameters }
-          maxparacount,
-          minparacount    : byte;
 {$ifdef m68k}
           exp_funcretloc : tregister;   { explicit funcretloc for AmigaOS }
 {$endif}
           funcretloc : array[tcallercallee] of TCGPara;
           has_paraloc_info : tcallercallee; { paraloc info is available }
+          { number of user visible parameters }
+          maxparacount,
+          minparacount    : byte;
           constructor create(dt:tdeftyp;level:byte);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -536,6 +539,8 @@ interface
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
+          { interrupt vector }
+          interruptvector : longint;
           { First/last assembler symbol/instruction in aasmoutput list.
             Note: initialised after compiling the code for the procdef, but
               not saved to/restored from ppu. Used when inserting debug info }
@@ -554,8 +559,6 @@ interface
           interfacedef : boolean;
           { true if the procedure has a forward declaration }
           hasforward  : boolean;
-          { interrupt vector }
-          interruptvector : longint;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -613,10 +616,10 @@ interface
        tenumdef = class(tstoreddef)
           minval,
           maxval    : asizeint;
-          has_jumps : boolean;
           basedef   : tenumdef;
           basedefderef : tderef;
           symtable  : TSymtable;
+          has_jumps : boolean;
           constructor create;
           constructor create_subrange(_basedef:tenumdef;_min,_max:asizeint);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -917,9 +920,20 @@ implementation
         { symtable must now be static or global }
         if not(st.symtabletype in [staticsymtable,globalsymtable]) then
           internalerror(200204175);
+
+        { The mangled name is made out of at most 4 parts:
+         1) Optional typeprefix given as first parameter
+            with '_$' appended if not empty
+         2) Unit name or 'P$'+program name (never empty)
+         3) optional prefix variable that contains a unique
+            name for the local symbol table (prepended with '$_$'
+            if not empty)
+         4) suffix as given as third parameter,
+            also optional (i.e. can be empty)
+            prepended by '_$$_' if not empty }
         result:='';
         if typeprefix<>'' then
-          result:=result+typeprefix+'_';
+          result:=result+typeprefix+'_$';
         { Add P$ for program, which can have the same name as
           a unit }
         if (TSymtable(main_module.localsymtable)=st) and
@@ -928,9 +942,9 @@ implementation
         else
           result:=result+st.name^;
         if prefix<>'' then
-          result:=result+'_'+prefix;
+          result:=result+'$_$'+prefix;
         if suffix<>'' then
-          result:=result+'_'+suffix;
+          result:=result+'_$$_'+suffix;
         { the Darwin assembler assumes that all symbols starting with 'L' are local }
         { Further, the Mac OS X 10.5 linker does not consider symbols which do not  }
         { start with '_' as regular symbols (it does not generate N_GSYM entries    }
@@ -1108,6 +1122,8 @@ implementation
 {$endif}
          generictokenbuf:=nil;
          genericdef:=nil;
+         change_endian:=false;
+
          { Don't register forwarddefs, they are disposed at the
            end of an type block }
          if (dt=forwarddef) then
@@ -1164,6 +1180,7 @@ implementation
          if df_generic in defoptions then
            begin
              sizeleft:=ppufile.getlongint;
+             change_endian:=ppufile.change_endian;
              initgeneric;
              while sizeleft>0 do
                begin
@@ -3001,7 +3018,8 @@ implementation
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
-             trecordsymtable(symtable).datasize:=ppufile.getaint;
+             trecordsymtable(symtable).datasize:=ppufile.getasizeint;
+             trecordsymtable(symtable).paddingsize:=ppufile.getword;
              trecordsymtable(symtable).ppuload(ppufile);
              { requires usefieldalignment to be set }
              symtable.defowner:=self;
@@ -3086,7 +3104,8 @@ implementation
              ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
-             ppufile.putaint(trecordsymtable(symtable).datasize);
+             ppufile.putasizeint(trecordsymtable(symtable).datasize);
+             ppufile.putword(trecordsymtable(symtable).paddingsize);
            end;
 
          ppufile.writeentry(ibrecorddef);
@@ -4384,9 +4403,10 @@ implementation
          if (import_lib^='') then
            stringdispose(import_lib);
          symtable:=tObjectSymtable.create(self,objrealname^,0);
-         tObjectSymtable(symtable).datasize:=ppufile.getaint;
-         tObjectSymtable(symtable).fieldalignment:=ppufile.getbyte;
-         tObjectSymtable(symtable).recordalignment:=ppufile.getbyte;
+         tObjectSymtable(symtable).datasize:=ppufile.getasizeint;
+         tObjectSymtable(symtable).paddingsize:=ppufile.getword;
+         tObjectSymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
+         tObjectSymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
          vmt_offset:=ppufile.getlongint;
          ppufile.getderef(childofderef);
 
@@ -4554,9 +4574,10 @@ implementation
            ppufile.putstring(import_lib^)
          else
            ppufile.putstring('');
-         ppufile.putaint(tObjectSymtable(symtable).datasize);
-         ppufile.putbyte(tObjectSymtable(symtable).fieldalignment);
-         ppufile.putbyte(tObjectSymtable(symtable).recordalignment);
+         ppufile.putasizeint(tObjectSymtable(symtable).datasize);
+         ppufile.putword(tObjectSymtable(symtable).paddingsize);
+         ppufile.putbyte(byte(tObjectSymtable(symtable).fieldalignment));
+         ppufile.putbyte(byte(tObjectSymtable(symtable).recordalignment));
          ppufile.putlongint(vmt_offset);
          ppufile.putderef(childofderef);
          if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
@@ -4608,7 +4629,7 @@ implementation
         if not assigned(typesym) then
           result:='<Currently Parsed Class>'
         else
-          result:=typename;
+          result:=typesymbolprettyname;
       end;
 
 
@@ -4799,6 +4820,15 @@ implementation
             tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize+tObjectSymtable(c.symtable).datasize;
             { inherit recordalignment }
             tObjectSymtable(symtable).recordalignment:=tObjectSymtable(c.symtable).recordalignment;
+            { if both the parent and this record use C-alignment, also inherit
+              the current field alignment }
+            if (tObjectSymtable(c.symtable).usefieldalignment=C_alignment) and
+               (tObjectSymtable(symtable).usefieldalignment=C_alignment) then
+              tObjectSymtable(symtable).fieldalignment:=tObjectSymtable(c.symtable).fieldalignment;
+            { the padding is not inherited for Objective-C classes (maybe not
+              for cppclass either?) }
+            if objecttype=odt_objcclass then
+              tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize-tObjectSymtable(c.symtable).paddingsize;
             if (oo_has_vmt in objectoptions) and
                (oo_has_vmt in c.objectoptions) then
               tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize-sizeof(pint);

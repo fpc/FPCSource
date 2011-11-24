@@ -84,14 +84,15 @@ const
     _actionOrigin: id;
     _target: id;
     _selFont: NSFont;
-    __fmFlags: bitpacked record
+    __fmFlags: record
       case byte of
        0: (_anonbitfield_NSFontManager0: cuint);
-       1: (
+       1: (data: bitpacked record
         multipleFont: 0..1;
         disabled: 0..1;
         senderTagMode: 0..((1 shl 2)-1);
         _RESERVED: 0..((1 shl 12)-1);
+       end;
       );
       end;
     _fmReserved3: cushort;

@@ -558,8 +558,8 @@ begin
     DatabaseErrorFmt(SNoDataset,[FieldName]);
   If FVAlidating then
     begin
-    result:=Not(FValueBuffer=Nil);
-    If Result then
+    result:=assigned(FValueBuffer);
+    If Result and assigned(Buffer) then
       Move (FValueBuffer^,Buffer^ ,DataSize);
     end
   else
@@ -709,7 +709,7 @@ begin
 
     FLookupDataSet.DisableControls;
     try
-      FLookupDataSet.Open;
+      FLookupDataSet.First;
       repeat
         FLookupList.Add(FLookupDataSet.FieldValues[FLookupKeyfields], FLookupDataSet.FieldValues[FLookupResultField]);
         FLookupDataSet.Next;
@@ -820,12 +820,6 @@ procedure TField.SetData(Buffer: Pointer; NativeFormat : Boolean);
 begin
   If Not Assigned(FDataset) then
     DatabaseErrorFmt(SNoDataset,[FieldName]);
-  if (FieldNo>0) and not (FDataSet.State in [dsSetKey, dsFilter]) then
-    begin
-    if ReadOnly then 
-      DatabaseErrorFmt(SReadOnlyField, [DisplayName], Self); 
-    Validate(Buffer);
-    end;
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 
@@ -1102,6 +1096,7 @@ begin
   if DataSize <= dsMaxStringSize then
     begin
     Result:=GetData(@Buf);
+    buf[Size]:=#0;  //limit string to Size
     If Result then
       begin
       if transliterate then
@@ -1117,6 +1112,7 @@ begin
     begin
     SetLength(DynBuf,DataSize);
     Result:=GetData(@DynBuf[0]);
+    Dynbuf[Size]:=#0;  //limit string to Size
     If Result then
       begin
       if transliterate then
@@ -1223,11 +1219,13 @@ var
 begin
   if DataSize <= dsMaxStringSize then begin
     Result := GetData(@FixBuffer, False);
+    FixBuffer[Size]:=#0;     //limit string to Size
     aValue := FixBuffer;
   end else begin
     SetLength(DynBuffer, Succ(Size));
     Buffer := PWideChar(DynBuffer);
     Result := GetData(Buffer, False);
+    Buffer[Size]:=#0;     //limit string to Size
     if Result then
       aValue := Buffer;
   end;
@@ -1336,6 +1334,14 @@ begin
   Result:=GetAsInteger<>0;
 end;
 
+procedure TNumericField.SetAsBoolean(AValue: Boolean);
+begin
+  if AValue then
+    SetAsLongint(1)
+  else
+    SetAsLongint(0);
+end; 
+
 { ---------------------------------------------------------------------
     TLongintField
   ---------------------------------------------------------------------}
@@ -1353,6 +1359,11 @@ end;
 
 function TLongintField.GetAsFloat: Double;
 
+begin
+  Result:=GetAsLongint;
+end;
+
+function TLongintField.GetAsLargeint: Largeint;
 begin
   Result:=GetAsLongint;
 end;
@@ -1424,6 +1435,14 @@ begin
       ftword               : Avalue:=Pword(P)^;
       ftsmallint           : AValue:=PSmallint(P)^;
     end;
+end;
+
+procedure TLongintField.SetAsLargeint(AValue: Largeint);
+begin
+  if (AValue>=FMinRange) and (AValue<=FMaxRange) then
+    SetAsLongint(AValue)
+  else
+    RangeError(AValue,FMinRange,FMaxRange);
 end;
 
 procedure TLongintField.SetAsFloat(AValue: Double);

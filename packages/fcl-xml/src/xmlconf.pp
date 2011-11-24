@@ -431,7 +431,7 @@ procedure TXMLConfig.ResetKey;
 var
   I: Integer;
 begin
-  for I := Length(FPathStack) downto 0 do
+  for I := Length(FPathStack)-1 downto 0 do
     FPathStack[I] := '';
   FElement := nil;    
   FPathDirty := False;

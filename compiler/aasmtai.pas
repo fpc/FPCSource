@@ -84,7 +84,11 @@ interface
           ait_regalloc,
           ait_tempalloc,
           { used to mark assembler blocks and inlined functions }
-          ait_marker
+          ait_marker,
+          { used to describe a new location of a variable }
+          ait_varloc,
+          { SEH directives used in ARM,MIPS and x86_64 COFF targets }
+          ait_seh_directive
           );
 
         taiconst_type = (
@@ -113,7 +117,9 @@ interface
             relsyms (nor do they support dwarf, for that matter)
           }
           aitconst_darwin_dwarf_delta64,
-          aitconst_darwin_dwarf_delta32
+          aitconst_darwin_dwarf_delta32,
+          { ARM Thumb-2 only }
+          aitconst_half16bit { used for table jumps. The actual value is the 16bit value shifted left once }
         );
 
     const
@@ -168,7 +174,9 @@ interface
           'cut',
           'regalloc',
           'tempalloc',
-          'marker'
+          'marker',
+          'varloc',
+          'seh_directive'
           );
 
     type
@@ -231,20 +239,22 @@ interface
         a new ait type!                                                              }
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
-                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive];
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive
+                   ,ait_varloc,ait_seh_directive];
 
       { ait_* types which do not have line information (and hence which are of type
         tai, otherwise, they are of type tailineinfo }
       SkipLineInfo =[ait_label,
                      ait_regalloc,ait_tempalloc,
                      ait_stab,ait_function_name,
-                     ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
+                     ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
                      ait_const,
 {$ifdef arm}
                      ait_thumb_func,
 {$endif arm}
                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
-                     ait_symbol
+                     ait_symbol,
+                     ait_seh_directive
                     ];
 
 
@@ -270,6 +280,15 @@ interface
         asd_weak_definition
       );
 
+      TAsmSehDirective=(
+          ash_proc,ash_endproc,
+          ash_endprologue,ash_handler,ash_handlerdata,
+          ash_eh,ash_32,ash_no32,
+          ash_setframe,ash_stackalloc,ash_pushreg,
+          ash_savereg,ash_savexmm,ash_pushframe
+        );
+
+
     const
       regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized');
       tempallocstr : array[boolean] of string[10]=('released','allocated');
@@ -278,6 +297,13 @@ interface
         'indirect_symbol',
         'extern','nasm_import', 'tc', 'reference',
         'no_dead_strip','weak_reference','lazy_reference','weak_definition'
+      );
+      sehdirectivestr : array[TAsmSehDirective] of string[15]=(
+        'seh_proc','seh_endproc',
+        'seh_endprologue','seh_handler','seh_handlerdata',
+        'seh_eh','seh_32','seh_no32',
+        'seh_setframe','seh_stackalloc','seh_pushreg',
+        'seh_savereg','seh_savexmm','seh_pushframe'
       );
 
     type
@@ -393,7 +419,7 @@ interface
          private
           { this constructor is made private on purpose }
           { because sections should be created via new_section() }
-          constructor Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
+          constructor Create(Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
        end;
 
 
@@ -498,11 +524,14 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+       { tai_stab }
+
        tai_stab = class(tai)
           str : pchar;
           stabtype : TStabType;
           constructor Create(_stabtype:TStabType;_str : pchar);
           constructor Create_str(_stabtype:TStabType;const s:string);
+          constructor create_ansistr(_stabtype: TStabType; const s: ansistring);
           destructor Destroy;override;
        end;
 
@@ -640,6 +669,43 @@ interface
         end;
         tai_align_class = class of tai_align_abstract;
 
+        tai_varloc = class(tai)
+           newlocation,
+           newlocationhi : tregister;
+           varsym : tsym;
+           constructor create(sym : tsym;loc : tregister);
+           constructor create64(sym : tsym;loc,lochi : tregister);
+           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+           procedure ppuwrite(ppufile:tcompilerppufile);override;
+           procedure buildderefimpl;override;
+           procedure derefimpl;override;
+        end;
+
+        TSehDirectiveDatatype=(sd_none,sd_string,sd_reg,sd_offset,sd_regoffset);
+
+        TSehDirectiveData=record
+        case typ: TSehDirectiveDatatype of
+          sd_none: ();
+          sd_string: (name:pshortstring);
+          sd_reg,sd_offset,sd_regoffset: (reg:TRegister;offset:dword);
+        end;
+
+        tai_seh_directive = class(tai)
+          kind: TAsmSehDirective;
+          data: TSehDirectiveData;
+          constructor create(_kind:TAsmSehDirective);
+          constructor create_name(_kind:TAsmSehDirective;const _name: string);
+          constructor create_reg(_kind:TAsmSehDirective;r:TRegister);
+          constructor create_offset(_kind:TAsmSehDirective;ofs:dword);
+          constructor create_reg_offset(_kind:TAsmSehDirective;r:TRegister;ofs:dword);
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          destructor destroy;override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure generate_code(objdata:TObjData);virtual;
+          property datatype: TSehDirectiveDatatype read data.typ;
+        end;
+        tai_seh_directive_class=class of tai_seh_directive;
+
     var
       { array with all class types for tais }
       aiclass : taiclassarray;
@@ -647,12 +713,13 @@ interface
       { target specific tais, possibly overwritten in target specific aasmcpu }
       cai_align : tai_align_class = tai_align_abstract;
       cai_cpu   : tai_cpu_class = tai_cpu_abstract;
+      cai_seh_directive: tai_seh_directive_class = tai_seh_directive;
 
       { hook to notify uses of registers }
       add_reg_instruction_hook : tadd_reg_instruction_proc;
 
     procedure maybe_new_object_file(list:TAsmList);
-    procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
+    procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
     procedure section_symbol_start(list:TAsmList;const Aname:string;Asymtyp:Tasmsymtype;
                                    Aglobal:boolean;Asectype:TAsmSectiontype;Aalign:byte);
     procedure section_symbol_end(list:TAsmList;const Aname:string);
@@ -684,7 +751,7 @@ implementation
       end;
 
 
-    procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
+    procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
       begin
         list.concat(tai_section.create(Asectype,Aname,Aalign,Asecorder));
         list.concat(cai_align.create(Aalign));
@@ -749,6 +816,50 @@ implementation
          end
         else
          ppufile.putbyte(byte(ait_none));
+      end;
+
+
+    constructor tai_varloc.create(sym: tsym; loc: tregister);
+      begin
+        inherited Create;
+        typ:=ait_varloc;
+        newlocation:=loc;
+        newlocationhi:=NR_NO;
+        varsym:=sym;
+      end;
+
+
+    constructor tai_varloc.create64(sym: tsym; loc: tregister;lochi : tregister);
+      begin
+        inherited Create;
+        typ:=ait_varloc;
+        newlocation:=loc;
+        newlocationhi:=lochi;
+        varsym:=sym;
+      end;
+
+
+    constructor tai_varloc.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+      end;
+
+
+    procedure tai_varloc.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+      end;
+
+
+    procedure tai_varloc.buildderefimpl;
+      begin
+        inherited buildderefimpl;
+      end;
+
+
+    procedure tai_varloc.derefimpl;
+      begin
+        inherited derefimpl;
       end;
 
 
@@ -828,7 +939,7 @@ implementation
                              TAI_SECTION
  ****************************************************************************}
 
-    constructor tai_section.Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
+    constructor tai_section.Create(Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
       begin
         inherited Create;
         typ:=ait_section;
@@ -1323,6 +1434,8 @@ implementation
             result:=LengthUleb128(qword(value));
           aitconst_sleb128bit :
             result:=LengthSleb128(value);
+          aitconst_half16bit:
+            result:=2;
           else
             internalerror(200603253);
         end;
@@ -1646,6 +1759,15 @@ implementation
     constructor tai_stab.create_str(_stabtype:TStabType;const s:string);
       begin
          self.create(_stabtype,strpnew(s));
+      end;
+
+    constructor tai_stab.create_ansistr(_stabtype:TStabType;const s:ansistring);
+      begin
+         inherited create;
+         typ:=ait_stab;
+         stabtype:=_stabtype;
+         getmem(str,length(s)+1);
+         move(s[1],str^,length(s)+1);
       end;
 
     destructor tai_stab.destroy;
@@ -2003,7 +2125,11 @@ implementation
             if (cs_create_pic in current_settings.moduleswitches) and
               assigned(r.symbol) and
               not assigned(r.relsymbol) and
-              (r.refaddr=addr_no) then
+              (r.refaddr=addr_no)
+{$ifdef ARM}
+              and not(r.base=NR_R15)
+{$endif ARM}
+              then
               internalerror(200502052);
             typ:=top_ref;
             if assigned(add_reg_instruction_hook) then
@@ -2407,4 +2533,111 @@ implementation
         ppufile.putbyte(byte(use_op));
       end;
 
+{****************************************************************************
+                              tai_seh_directive
+ ****************************************************************************}
+
+    const
+      datatypemap: array[TAsmSehDirective] of TSehDirectiveDatatype=(
+        sd_string,     { proc }
+        sd_none,       { endproc }
+        sd_none,       { endprologue }
+        sd_none,       { TODO: handler }
+        sd_none,       { handlerdata }
+        sd_none,sd_none,sd_none,  { eh, 32, no32 }
+        sd_regoffset,  { setframe }
+        sd_offset,     { stackalloc }
+        sd_reg,        { pushreg }
+        sd_regoffset,  { savereg }
+        sd_regoffset,  { savexmm }
+        sd_none        { pushframe }
+      );
+
+    constructor tai_seh_directive.create(_kind:TAsmSehDirective);
+      begin
+        inherited Create;
+        typ:=ait_seh_directive;
+        kind:=_kind;
+        data.typ:=datatypemap[_kind];
+      end;
+
+    constructor tai_seh_directive.create_name(_kind:TAsmSehDirective;const _name:string);
+      begin
+        create(_kind);
+        data.name:=stringdup(_name);
+      end;
+
+    constructor tai_seh_directive.create_reg(_kind:TAsmSehDirective;r:TRegister);
+      begin
+        create(_kind);
+        data.reg:=r;
+      end;
+
+    constructor tai_seh_directive.create_offset(_kind:TAsmSehDirective;ofs:dword);
+      begin
+        create(_kind);
+        data.offset:=ofs;
+      end;
+
+    constructor tai_seh_directive.create_reg_offset(_kind:TAsmSehDirective;
+      r:TRegister;ofs:dword);
+      begin
+        create(_kind);
+        data.offset:=ofs;
+        data.reg:=r;
+      end;
+
+    constructor tai_seh_directive.ppuload(t:taitype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+        kind:=TAsmSehDirective(ppufile.getbyte);
+        data.typ:=datatypemap[kind];
+        case data.typ of
+          sd_none: ;
+          sd_string:
+            data.name:=stringdup(ppufile.getstring);
+
+          sd_reg,sd_offset,sd_regoffset:
+            begin
+              ppufile.getdata(data.reg,sizeof(TRegister));
+              data.offset:=ppufile.getdword;
+            end;
+        else
+          InternalError(2011091201);
+        end;
+      end;
+
+    destructor tai_seh_directive.destroy;
+      begin
+        if data.typ=sd_string then
+          stringdispose(data.name);
+        inherited destroy;
+      end;
+
+    procedure tai_seh_directive.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putbyte(ord(kind));
+        case data.typ of
+          sd_none: ;
+          sd_string:
+            ppufile.putstring(data.name^);
+          sd_reg,sd_offset,sd_regoffset:
+            begin
+              ppufile.putdata(data.reg,sizeof(TRegister));
+              ppufile.putdword(data.offset);
+            end;
+        else
+          InternalError(2011091202);
+        end;
+      end;
+
+    procedure tai_seh_directive.generate_code(objdata:TObjData);
+      begin
+      end;
+
+begin
+  { taitype should fit into a 4 byte set for speed reasons }
+  if ord(high(taitype))>31 then
+    internalerror(201108181);
 end.

@@ -116,7 +116,7 @@ type
     _containerClassDescription: NSScriptClassDescription;
     _containerIsObjectBeingTested: Boolean;
     _containerIsRangeContainerObject: Boolean;
-        _padding: array[0..1] of char;
+    _padding: array[0..(2)-1] of char;
     _descriptor: NSAppleEventDescriptor;
     _error: NSInteger;
     

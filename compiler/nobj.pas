@@ -529,14 +529,19 @@ implementation
               begin
                 { Find implementing procdef
                    1. Check for mapped name
-                   2. Use symbol name }
+                   2. Use symbol name, but only if there's no mapping,
+                      or we're processing ancestor of interface.
+                  When modifying this code, ensure that webtbs/tw11862, webtbs/tw4950
+                  and webtbf/tw19591 stay correct. }
                 implprocdef:=nil;
                 hs:=prefix+tprocdef(def).procsym.name;
                 mappedname:=ImplIntf.GetMapping(hs);
                 if mappedname<>'' then
                   implprocdef:=intf_search_procdef_by_name(tprocdef(def),mappedname);
                 if not assigned(implprocdef) then
-                  implprocdef:=intf_search_procdef_by_name(tprocdef(def),tprocdef(def).procsym.name);
+                  if (mappedname='') or (ImplIntf.IntfDef<>IntfDef) then
+                    implprocdef:=intf_search_procdef_by_name(tprocdef(def),tprocdef(def).procsym.name);
+
                 { Add procdef to the implemented interface }
                 if assigned(implprocdef) then
                   begin

@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fpgtk';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Author := 'Luk Vandelaer & Sebastian Guenther (?)';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -33,11 +33,13 @@ begin
         begin
           AddUnit('fpgtk');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('fpgtk.pp');
       with T.Dependencies do
         begin
           AddUnit('fpglib');
         end;
+    T.ResourceStrings := True;
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('examples/lister.pp');

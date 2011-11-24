@@ -2647,9 +2647,10 @@ begin
     end
   else
     begin
-    If (TryInitialiseIBase60(fbclib)=0) and
+    If (TryInitialiseIBase60(fbembedlib)=0) and 
+       (TryInitialiseIBase60(fbclib)=0) and
        (TryInitialiseIBase60(gdslib)=0) then
-        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[gdslib,fbclib]);
+        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbembedlib,gdslib,fbclib]);
     end;    
   Result := RefCount;
 end;

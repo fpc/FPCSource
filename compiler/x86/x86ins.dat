@@ -862,6 +862,10 @@ void                  \325\1\xCF                      386
 (Ch_All, Ch_None, Ch_None)
 void                  \324\1\xCF                      8086
 
+[IRETQ]
+(Ch_All, Ch_None, Ch_None)
+void                  \326\1\xCF                      X86_64
+
 [JCXZ]
 (Ch_RECX, Ch_None, Ch_None)
 imm                   \310\1\xE3\50                   8086,NOX86_64
@@ -2187,7 +2191,7 @@ xmmreg,xmmrm,imm      \331\2\x0F\xC2\110\22           KATMAI,SSE,SB,AR2
 xmmreg,xmmrm,imm      \333\2\x0F\xC2\110\22           KATMAI,SSE,SB,AR2
 
 [COMISS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Rop2, Ch_WFlags)
 xmmreg,xmmrm          \2\x0F\x2F\110                  KATMAI,SSE
 
 [CVTPI2PS]
@@ -2302,31 +2306,31 @@ xmmreg,xmmrm          \333\2\x0F\x59\110              KATMAI,SSE
 xmmreg,xmmrm          \2\x0F\x56\110                  KATMAI,SSE
 
 [RCPPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \331\2\x0F\x53\110              KATMAI,SSE
 
 [RCPSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \333\2\x0F\x53\110              KATMAI,SSE
 
 [RSQRTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \331\2\x0F\x52\110              KATMAI,SSE
 
 [RSQRTSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \333\2\x0F\x52\110              KATMAI,SSE
 
 [SHUFPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop3, Ch_Rop2, Ch_None)
 xmmreg,xmmrm,imm      \2\x0F\xC6\110\22               KATMAI,SSE,SB,AR2
 
 [SQRTPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \331\2\x0F\x51\110              KATMAI,SSE
 
 [SQRTSS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \333\2\x0F\x51\110              KATMAI,SSE
 
 [STMXCSR]
@@ -2342,15 +2346,15 @@ xmmreg,xmmrm          \331\2\x0F\x5C\110              KATMAI,SSE
 xmmreg,xmmrm          \333\2\x0F\x5C\110              KATMAI,SSE
 
 [UCOMISS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Rop2, Ch_WFlags)
 xmmreg,xmmrm          \2\x0F\x2E\110                  KATMAI,SSE
 
 [UNPCKHPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \2\x0F\x15\110                  KATMAI,SSE
 
 [UNPCKLPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \2\x0F\x14\110                  KATMAI,SSE
 
 [XORPS]
@@ -2688,7 +2692,7 @@ xmmreg,xmmrm            \334\2\x0F\xC2\110\1\x03        WILLAMETTE,SSE2
 xmmreg,xmmrm,imm        \361\2\x0F\xC2\110\26           WILLAMETTE,SSE2,SM2,SB,AR2
 
 [COMISD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Rop2, Ch_WFlags)
 xmmreg,xmmrm            \361\2\x0F\x2F\110              WILLAMETTE,SSE2
 
 [CVTDQ2PD]
@@ -2820,15 +2824,15 @@ xmmreg,xmmrm            \334\2\x0F\x59\110        WILLAMETTE,SSE2
 xmmreg,xmmrm            \361\2\x0F\x56\110        WILLAMETTE,SSE2,SM
 
 [SHUFPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop3, Ch_Rop2, Ch_None)
 xmmreg,xmmrm,imm        \361\2\x0F\xC6\110\26     WILLAMETTE,SSE2,SM2,SB,AR2
 
 [SQRTPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \361\2\x0F\x51\110        WILLAMETTE,SSE2,SM
 
 [SQRTSD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \334\2\x0F\x51\110        WILLAMETTE,SSE2
 
 
@@ -2841,7 +2845,7 @@ xmmreg,xmmrm            \361\2\x0F\x5C\110        WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \334\2\x0F\x5C\110        WILLAMETTE,SSE2
 
 [UCOMISD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Rop2, Ch_WFlags)
 xmmreg,xmmrm            \361\2\x0F\x2E\110        WILLAMETTE,SSE2
 
 [UNPCKHPD]
@@ -2868,19 +2872,19 @@ xmmreg,xmmrm            \361\2\x0F\xD0\110        PRESCOTT,SSE3,SM
 xmmreg,xmmrm            \334\2\x0F\xD0\110        PRESCOTT,SSE3,SM
 
 [HADDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \361\2\x0F\x7C\110        PRESCOTT,SSE3,SM
 
 [HADDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \334\2\x0F\x7C\110        PRESCOTT,SSE3,SM
 
 [HSUBPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \361\2\x0F\x7D\110        PRESCOTT,SSE3,SM
 
 [HSUBPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \334\2\x0F\x7D\110        PRESCOTT,SSE3,SM
 
 [LDDQU]
@@ -3045,8 +3049,7 @@ mem,xmmreg              \334\325\2\x0F\x2B\101                SSE4 ;,SQ
 [INSERTQ]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg           \334\2\x0F\x79\110                        SSE4
-; four operands are not possible yet
-; xmmreg,xmmreg,imm,imm   \334\2\x0F\x78\110\26\27          SSE4,SB
+xmmreg,xmmreg,imm,imm   \334\2\x0F\x78\110\26\27          SSE4,SB
 
 [EXTRQ]
 (Ch_All, Ch_None, Ch_None)
@@ -3320,6 +3323,10 @@ xmmreg,xmmrm          \361\3\x0F\x38\x35\110               SSE41,SM
 [PMULDQ]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmrm          \361\3\x0F\x38\x28\110               SSE41,SM
+
+[PMULLD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmrm          \361\3\x0F\x38\x40\110               SSE41,SM
 
 [PTEST]
 (Ch_All, Ch_None, Ch_None)

@@ -31,6 +31,9 @@ unit sysinitpas;
       IsConsole:=true;
       { do it like it is necessary for the startup code linking against cygwin }
       GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
+{$ifdef FPC_USE_TLS_DIRECTORY}
+      LinkIn(@tlsdir,@tls_callback_end,@tls_callback);
+{$endif}
       SetupEntryInformation;
       Exe_entry(EntryInformation);
     end;
@@ -39,6 +42,9 @@ unit sysinitpas;
     procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
     begin
       IsConsole:=false;
+{$ifdef FPC_USE_TLS_DIRECTORY}
+      LinkIn(@tlsdir,@tls_callback_end,@tls_callback);
+{$endif}
       SetupEntryInformation;
       Exe_entry(EntryInformation);
     end;

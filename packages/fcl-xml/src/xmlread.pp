@@ -160,13 +160,13 @@ type
 
   TDOMEntityEx = class(TDOMEntity);
 
-  TXMLReader = class;
+  TXMLTextReader = class;
 
   TXMLCharSource = class(TObject)
   private
     FBuf: PWideChar;
     FBufEnd: PWideChar;
-    FReader: TXMLReader;
+    FReader: TXMLTextReader;
     FParent: TXMLCharSource;
     FEntity: TEntityDecl;
     FLineNo: Integer;
@@ -264,11 +264,11 @@ type
 
   TXMLToken = (xtNone, xtEOF, xtText, xtWhitespace, xtElement, xtEndElement,
     xtCDSect, xtComment, xtPI, xtDoctype, xtEntity, xtEntityEnd, xtPopElement,
-    xtPopEmptyElement, xtPushElement, xtPushEntity, xtPopEntity);
+    xtPopEmptyElement, xtPushElement, xtPushEntity, xtPopEntity, xtFakeLF);
 
   TLiteralType = (ltPlain, ltPubid, ltEntity);
 
-  TXMLReader = class
+  TXMLTextReader = class
   private
     FSource: TXMLCharSource;
     FNameTable: THashTable;
@@ -314,6 +314,7 @@ type
     FCanonical: Boolean;
     FMaxChars: Cardinal;
 
+    procedure SetEOFState;
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
     procedure Initialize(ASource: TXMLCharSource);
     procedure NSPrepare;
@@ -339,6 +340,7 @@ type
     procedure CleanupAttribute(aNode: PNodeData);
     procedure CleanupAttributes;
     procedure SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
+    function SetupFakeLF(nextstate: TXMLToken): Boolean;
     function AddId(aNodeData: PNodeData): Boolean;
   protected
     FNesting: Integer;
@@ -382,6 +384,7 @@ type
     procedure ExpectEq;
     procedure ParseDoctypeDecl;                                         // [28]
     procedure ParseMarkupDecl;                                          // [29]
+    procedure ParseIgnoreSection;
     procedure ParseStartTag;                                            // [39]
     procedure ParseEndTag;                                              // [42]
     function DoStartElement: TDOMElement;
@@ -391,6 +394,7 @@ type
     procedure DoStartEntity;
     procedure ParseAttribute(ElDef: TElementDecl);
     procedure ParseContent(parent: TDOMNode_WithChildren);              // [43]
+    function  ReadTopLevel: Boolean;
     function  Read: Boolean;
     function  ResolvePredefined: Boolean;
     function  EntityCheck(NoExternals: Boolean = False): TEntityDecl;
@@ -413,7 +417,7 @@ type
     function AddBinding(attrData: PNodeData): Boolean;
 
     procedure PushVC(aElDef: TElementDecl);
-    procedure PopVC;
+    procedure PopElement;
     procedure ValidateDTD;
     procedure ValidateCurrentNode;
     procedure ValidationError(const Msg: string; const args: array of const; LineOffs: Integer = -1);
@@ -534,7 +538,7 @@ procedure TDOMParser.Parse(Src: TXMLInputSource; out ADoc: TXMLDocument);
 var
   InputSrc: TXMLCharSource;
 begin
-  with TXMLReader.Create(Self) do
+  with TXMLTextReader.Create(Self) do
   try
     ConvertSource(Src, InputSrc);  // handles 'no-input-specified' case
     ProcessXML(InputSrc)
@@ -549,7 +553,7 @@ var
   Src: TXMLCharSource;
 begin
   ADoc := nil;
-  with TXMLReader.Create(Self) do
+  with TXMLTextReader.Create(Self) do
   try
     if ResolveResource(URI, '', '', Src) then
       ProcessXML(Src)
@@ -579,7 +583,7 @@ begin
   if not (node.NodeType in [ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE]) then
     raise EDOMHierarchyRequest.Create('DOMParser.ParseWithContext');
 
-  with TXMLReader.Create(Self) do
+  with TXMLTextReader.Create(Self) do
   try
     ConvertSource(Src, InputSrc);    // handles 'no-input-specified' case
     Frag := Context.OwnerDocument.CreateDocumentFragment;
@@ -955,9 +959,9 @@ begin
   inherited Destroy;
 end;
 
-{ TXMLReader }
+{ TXMLTextReader }
 
-procedure TXMLReader.ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
+procedure TXMLTextReader.ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
 begin
   SrcOut := nil;
   if Assigned(SrcIn) then
@@ -973,13 +977,13 @@ begin
     DoErrorPos(esFatal, 'No input source specified', NullLocation);
 end;
 
-procedure TXMLReader.StoreLocation(out Loc: TLocation);
+procedure TXMLTextReader.StoreLocation(out Loc: TLocation);
 begin
   Loc.Line := FSource.FLineNo;
   Loc.LinePos := FSource.FBuf-FSource.LFPos;
 end;
 
-function TXMLReader.ResolveResource(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
+function TXMLTextReader.ResolveResource(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
 var
   AbsSysID: WideString;
   Filename: string;
@@ -1010,7 +1014,7 @@ begin
   Result := Assigned(Source);
 end;
 
-procedure TXMLReader.Initialize(ASource: TXMLCharSource);
+procedure TXMLTextReader.Initialize(ASource: TXMLCharSource);
 begin
   ASource.FParent := FSource;
   FSource := ASource;
@@ -1019,29 +1023,29 @@ begin
   FSource.Initialize;
 end;
 
-procedure TXMLReader.FatalError(Expected: WideChar);
+procedure TXMLTextReader.FatalError(Expected: WideChar);
 begin
 // FIX: don't output what is found - anything may be found, including exploits...
   FatalError('Expected "%1s"', [string(Expected)]);
 end;
 
-procedure TXMLReader.FatalError(const descr: String; LineOffs: Integer);
+procedure TXMLTextReader.FatalError(const descr: String; LineOffs: Integer);
 begin
   DoError(esFatal, descr, LineOffs);
 end;
 
-procedure TXMLReader.FatalError(const descr: string; const args: array of const; LineOffs: Integer);
+procedure TXMLTextReader.FatalError(const descr: string; const args: array of const; LineOffs: Integer);
 begin
   DoError(esFatal, Format(descr, args), LineOffs);
 end;
 
-procedure TXMLReader.ValidationError(const Msg: string; const Args: array of const; LineOffs: Integer);
+procedure TXMLTextReader.ValidationError(const Msg: string; const Args: array of const; LineOffs: Integer);
 begin
   if FValidate then
     DoError(esError, Format(Msg, Args), LineOffs);
 end;
 
-procedure TXMLReader.ValidationErrorWithName(const Msg: string; LineOffs: Integer);
+procedure TXMLTextReader.ValidationErrorWithName(const Msg: string; LineOffs: Integer);
 var
   ws: WideString;
 begin
@@ -1049,7 +1053,7 @@ begin
   ValidationError(Msg, [ws], LineOffs);
 end;
 
-procedure TXMLReader.DoError(Severity: TErrorSeverity; const descr: string; LineOffs: Integer);
+procedure TXMLTextReader.DoError(Severity: TErrorSeverity; const descr: string; LineOffs: Integer);
 var
   Loc: TLocation;
 begin
@@ -1063,13 +1067,13 @@ begin
     DoErrorPos(Severity, descr, FTokenStart);
 end;
 
-procedure TXMLReader.DoErrorPos(Severity: TErrorSeverity; const descr: string;
+procedure TXMLTextReader.DoErrorPos(Severity: TErrorSeverity; const descr: string;
   const args: array of const; const ErrPos: TLocation);
 begin
   DoErrorPos(Severity, Format(descr, args), ErrPos);
 end;
 
-procedure TXMLReader.DoErrorPos(Severity: TErrorSeverity; const descr: string; const ErrPos: TLocation);
+procedure TXMLTextReader.DoErrorPos(Severity: TErrorSeverity; const descr: string; const ErrPos: TLocation);
 var
   E: EXMLReadError;
   sysid: WideString;
@@ -1093,7 +1097,7 @@ begin
   E.Free;
 end;
 
-procedure TXMLReader.CheckMaxChars(ToAdd: Cardinal);
+procedure TXMLTextReader.CheckMaxChars(ToAdd: Cardinal);
 var
   src: TXMLCharSource;
   total: Cardinal;
@@ -1111,7 +1115,7 @@ begin
   until src = nil;
 end;
 
-procedure TXMLReader.CallErrorHandler(E: EXMLReadError);
+procedure TXMLTextReader.CallErrorHandler(E: EXMLReadError);
 begin
   try
     if Assigned(FCtrl) and Assigned(FCtrl.FOnError) then
@@ -1125,7 +1129,7 @@ begin
   end;
 end;
 
-function TXMLReader.SkipWhitespace(PercentAloneIsOk: Boolean): Boolean;
+function TXMLTextReader.SkipWhitespace(PercentAloneIsOk: Boolean): Boolean;
 begin
   Result := False;
   repeat
@@ -1160,13 +1164,13 @@ begin
   until False;
 end;
 
-procedure TXMLReader.ExpectWhitespace;
+procedure TXMLTextReader.ExpectWhitespace;
 begin
   if not SkipWhitespace then
     FatalError('Expected whitespace');
 end;
 
-function TXMLReader.SkipS(Required: Boolean): Boolean;
+function TXMLTextReader.SkipS(Required: Boolean): Boolean;
 var
   p: PWideChar;
 begin
@@ -1191,7 +1195,7 @@ begin
     FatalError('Expected whitespace');
 end;
 
-procedure TXMLReader.ExpectString(const s: String);
+procedure TXMLTextReader.ExpectString(const s: String);
 var
   I: Integer;
 begin
@@ -1203,7 +1207,7 @@ begin
   end;
 end;
 
-function TXMLReader.CheckForChar(c: WideChar): Boolean;
+function TXMLTextReader.CheckForChar(c: WideChar): Boolean;
 begin
   Result := (FSource.FBuf^ = c);
   if Result then
@@ -1214,7 +1218,7 @@ begin
   end;  
 end;
 
-procedure TXMLReader.SkipQuote(out Delim: WideChar; required: Boolean);
+procedure TXMLTextReader.SkipQuote(out Delim: WideChar; required: Boolean);
 begin
   Delim := #0;
   if (FSource.FBuf^ = '''') or (FSource.FBuf^ = '"') then
@@ -1230,7 +1234,7 @@ end;
 const
   PrefixDefault: array[0..4] of WideChar = ('x','m','l','n','s');
 
-constructor TXMLReader.Create;
+constructor TXMLTextReader.Create;
 begin
   inherited Create;
   BufAllocate(FName, 128);
@@ -1244,7 +1248,7 @@ begin
   SetLength(FValidators, 16);
 end;
 
-constructor TXMLReader.Create(AParser: TDOMParser);
+constructor TXMLTextReader.Create(AParser: TDOMParser);
 begin
   Create;
   FCtrl := AParser;
@@ -1262,7 +1266,7 @@ begin
   FMaxChars := FCtrl.Options.MaxChars;
 end;
 
-destructor TXMLReader.Destroy;
+destructor TXMLTextReader.Destroy;
 var
   i: Integer;
 begin
@@ -1283,10 +1287,12 @@ begin
   FIDMap.Free;
   FForwardRefs.Free;
   FAttrChunks.Free;
+  if doc = nil then
+    FNameTable.Free;
   inherited Destroy;
 end;
 
-procedure TXMLReader.XML11_BuildTables;
+procedure TXMLTextReader.XML11_BuildTables;
 begin
   FNamePages := Xml11NamePages;
   FXML11 := True;
@@ -1295,7 +1301,7 @@ end;
 
 { Must be executed after doc has been set.
   After introducing own NameTable, merge this into constructor }
-procedure TXMLReader.NSPrepare;
+procedure TXMLTextReader.NSPrepare;
 begin
   if FNamespaces then
   begin
@@ -1304,12 +1310,12 @@ begin
     FStdPrefix_xml := FNSHelper.GetPrefix(@PrefixDefault, 3);
     FStdPrefix_xmlns := FNSHelper.GetPrefix(@PrefixDefault, 5);
 
-    FStdUri_xmlns := FNameTable.FindOrAdd(PWideChar(stduri_xmlns), Length(stduri_xmlns));
-    FStdUri_xml := FNameTable.FindOrAdd(PWideChar(stduri_xml), Length(stduri_xml));
+    FStdUri_xmlns := FNameTable.FindOrAdd(stduri_xmlns);
+    FStdUri_xml := FNameTable.FindOrAdd(stduri_xml);
   end;
 end;
 
-procedure TXMLReader.ProcessXML(ASource: TXMLCharSource);
+procedure TXMLTextReader.ProcessXML(ASource: TXMLCharSource);
 begin
   doc := TXMLDocument.Create;
   doc.documentURI := ASource.SystemID;  // TODO: to be changed to URI or BaseURI
@@ -1324,11 +1330,9 @@ begin
   if FSource.FXMLVersion <> xmlVersionUnknown then
     TDOMTopNodeEx(TDOMNode(doc)).FXMLVersion := FSource.FXMLVersion;
   TDOMTopNodeEx(TDOMNode(doc)).FXMLEncoding := FSource.FXMLEncoding;
+  doc.XMLStandalone := FStandalone;
   FNext := xtText;
   ParseContent(doc);
-
-  if FState < rsRoot then
-    FatalError('Root element is missing');
 
   if FValidate then
     ValidateIdRefs;
@@ -1337,7 +1341,7 @@ begin
   FIDMap := nil;
 end;
 
-procedure TXMLReader.ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
+procedure TXMLTextReader.ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
 var
   DoctypeNode: TDOMDocumentTypeEx;
 begin
@@ -1368,7 +1372,7 @@ begin
   ParseContent(aOwner as TDOMNode_WithChildren);
 end;
 
-function TXMLReader.CheckName(aFlags: TCheckNameFlags): Boolean;
+function TXMLTextReader.CheckName(aFlags: TCheckNameFlags): Boolean;
 var
   p: PWideChar;
   NameStartFlag: Boolean;
@@ -1441,13 +1445,13 @@ begin
     RaiseNameNotFound;
 end;
 
-procedure TXMLReader.CheckNCName;
+procedure TXMLTextReader.CheckNCName;
 begin
   if FNamespaces and (FColonPos <> -1) then
     FatalError('Names of entities, notations and processing instructions may not contain colons', FName.Length);
 end;
 
-procedure TXMLReader.RaiseNameNotFound;
+procedure TXMLTextReader.RaiseNameNotFound;
 begin
   if FColonPos <> -1 then
     FatalError('Bad QName syntax, local part is missing')
@@ -1460,13 +1464,13 @@ begin
     FatalError('Name starts with invalid character');
 end;
 
-function TXMLReader.ExpectName: WideString;
+function TXMLTextReader.ExpectName: WideString;
 begin
   CheckName;
   SetString(Result, FName.Buffer, FName.Length);
 end;
 
-function TXMLReader.ResolvePredefined: Boolean;
+function TXMLTextReader.ResolvePredefined: Boolean;
 var
   wc: WideChar;
 begin
@@ -1500,7 +1504,7 @@ begin
   Result := True;
 end;
 
-function TXMLReader.ParseRef(var ToFill: TWideCharBuf): Boolean;  // [67]
+function TXMLTextReader.ParseRef(var ToFill: TWideCharBuf): Boolean;  // [67]
 var
   Code: Integer;
 begin
@@ -1560,7 +1564,7 @@ const
   a node chain starting from AttrData.FNext. Node chain is built only for the
   first level. If NonCDATA=True, additionally normalizes whitespace in string value. }
 
-procedure TXMLReader.ExpectAttValue(AttrData: PNodeData; NonCDATA: Boolean);
+procedure TXMLTextReader.ExpectAttValue(AttrData: PNodeData; NonCDATA: Boolean);
 var
   wc: WideChar;
   Delim: WideChar;
@@ -1568,6 +1572,7 @@ var
   start: TObject;
   curr: PNodeData;
   StartPos: Integer;
+  entName: PHashItem;
 begin
   SkipQuote(Delim);
   curr := AttrData;
@@ -1583,6 +1588,7 @@ begin
       if ParseRef(FValue) or ResolvePredefined then
         Continue;
 
+      entName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
       ent := EntityCheck(True);
       if ((ent = nil) or (not FExpandEntities)) and (FSource.FEntity = start) then
       begin
@@ -1595,11 +1601,7 @@ begin
         end;
         curr := AllocAttributeValueChunk(curr);
         curr^.FNodeType := ntEntityReference;
-        // TODO: this probably should be placed to 'name'
-        if ent = nil then
-          SetString(curr^.FValueStr, FName.Buffer, FName.Length)
-        else
-          curr^.FValueStr := ent.FName;
+        curr^.FQName := entName;
       end;
       StartPos := FValue.Length;
       if Assigned(ent) then
@@ -1641,7 +1643,7 @@ end;
 const
   PrefixChar: array[Boolean] of string = ('', '%');
 
-procedure TXMLReader.EntityToSource(AEntity: TEntityDecl; out Src: TXMLCharSource);
+procedure TXMLTextReader.EntityToSource(AEntity: TEntityDecl; out Src: TXMLCharSource);
 begin
   if AEntity.FOnStack then
     FatalError('Entity ''%s%s'' recursively references itself', [PrefixChar[AEntity.FIsPE], AEntity.FName]);
@@ -1670,7 +1672,7 @@ begin
   Src.FEntity := AEntity;
 end;
 
-function TXMLReader.ContextPush(AEntity: TEntityDecl): Boolean;
+function TXMLTextReader.ContextPush(AEntity: TEntityDecl): Boolean;
 var
   Src: TXMLCharSource;
 begin
@@ -1680,7 +1682,7 @@ begin
     Initialize(Src);
 end;
 
-function TXMLReader.ContextPop(Forced: Boolean): Boolean;
+function TXMLTextReader.ContextPop(Forced: Boolean): Boolean;
 var
   Src: TXMLCharSource;
   Error: Boolean;
@@ -1705,7 +1707,7 @@ begin
   end;
 end;
 
-function TXMLReader.EntityCheck(NoExternals: Boolean): TEntityDecl;
+function TXMLTextReader.EntityCheck(NoExternals: Boolean): TEntityDecl;
 var
   RefName: WideString;
   cnt: Integer;
@@ -1742,7 +1744,7 @@ begin
     CheckMaxChars(Result.FCharCount - cnt);
 end;
 
-procedure TXMLReader.StartPE;
+procedure TXMLTextReader.StartPE;
 var
   PEnt: TEntityDecl;
 begin
@@ -1770,7 +1772,7 @@ begin
   FHavePERefs := True;
 end;
 
-function TXMLReader.PrefetchEntity(AEntity: TEntityDecl): Boolean;
+function TXMLTextReader.PrefetchEntity(AEntity: TEntityDecl): Boolean;
 begin
   Result := ContextPush(AEntity);
   if Result then
@@ -1796,7 +1798,7 @@ const
     [#0, '%', '&', '''', '"']                 // ltEntity
   );
 
-function TXMLReader.ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
+function TXMLTextReader.ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
   Required: Boolean): Boolean;
 var
   start: TObject;
@@ -1845,7 +1847,7 @@ begin
     BufNormalize(ToFill, dummy);
 end;
 
-function TXMLReader.SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
+function TXMLTextReader.SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
 var
   wc: WideChar;
 begin
@@ -1871,7 +1873,7 @@ begin
   until wc = #0;
 end;
 
-procedure TXMLReader.ParseComment(discard: Boolean);    // [15]
+procedure TXMLTextReader.ParseComment(discard: Boolean);    // [15]
 var
   SaveLength: Integer;
 begin
@@ -1883,7 +1885,7 @@ begin
 
   if not discard then
   begin
-    FCurrNode := @FNodeStack[FNesting+1];
+    FCurrNode := @FNodeStack[FNesting];
     FCurrNode^.FNodeType := ntComment;
     FCurrNode^.FQName := nil;
     FCurrNode^.FValueStart := @FValue.Buffer[SaveLength];
@@ -1892,7 +1894,7 @@ begin
   FValue.Length := SaveLength;
 end;
 
-procedure TXMLReader.ParsePI;                    // [16]
+procedure TXMLTextReader.ParsePI;                    // [16]
 begin
   FSource.NextChar;      // skip '?'
   CheckName;
@@ -1919,7 +1921,7 @@ begin
     FNameTable.FindOrAdd(FName.Buffer, FName.Length));
 end;
 
-function TXMLReader.CreatePINode: TDOMNode;
+function TXMLTextReader.CreatePINode: TDOMNode;
 var
   NameStr, ValueStr: WideString;
 begin
@@ -1931,7 +1933,7 @@ end;
 const
   vers: array[Boolean] of TXMLVersion = (xmlVersion10, xmlVersion11);
 
-procedure TXMLReader.ParseXmlOrTextDecl(TextDecl: Boolean);
+procedure TXMLTextReader.ParseXmlOrTextDecl(TextDecl: Boolean);
 var
   Delim: WideChar;
   buf: array[0..31] of WideChar;
@@ -2012,7 +2014,7 @@ begin
     FXML11 := True;
 end;
 
-procedure TXMLReader.DTDReloadHook;
+procedure TXMLTextReader.DTDReloadHook;
 var
   p: PWideChar;
 begin
@@ -2031,7 +2033,7 @@ begin
   FDTDStartPos := TXMLDecodingSource(FSource).FBufStart;
 end;
 
-procedure TXMLReader.ParseDoctypeDecl;    // [28]
+procedure TXMLTextReader.ParseDoctypeDecl;    // [28]
 var
   Src: TXMLCharSource;
 begin
@@ -2092,7 +2094,7 @@ begin
   FCurrNode^.FNodeType := ntDocumentType;
 end;
 
-procedure TXMLReader.ExpectEq;   // [25]
+procedure TXMLTextReader.ExpectEq;   // [25]
 begin
   if FSource.FBuf^ <> '=' then
     SkipS;
@@ -2105,18 +2107,18 @@ end;
 
 { DTD stuff }
 
-procedure TXMLReader.BadPENesting(S: TErrorSeverity);
+procedure TXMLTextReader.BadPENesting(S: TErrorSeverity);
 begin
   if (S = esFatal) or FValidate then
     DoError(S, 'Parameter entities must be properly nested');
 end;
 
-procedure TXMLReader.StandaloneError(LineOffs: Integer);
+procedure TXMLTextReader.StandaloneError(LineOffs: Integer);
 begin
   ValidationError('Standalone constriant violation', [], LineOffs);
 end;
 
-function TXMLReader.ParseQuantity: TCPQuant;
+function TXMLTextReader.ParseQuantity: TCPQuant;
 begin
   case FSource.FBuf^ of
     '?': Result := cqZeroOrOnce;
@@ -2129,7 +2131,7 @@ begin
   FSource.NextChar;
 end;
 
-function TXMLReader.FindOrCreateElDef: TElementDecl;
+function TXMLTextReader.FindOrCreateElDef: TElementDecl;
 var
   p: PHashItem;
 begin
@@ -2143,7 +2145,7 @@ begin
   end;
 end;
 
-procedure TXMLReader.ExpectChoiceOrSeq(CP: TContentParticle; MustEndIn: TObject);     // [49], [50]
+procedure TXMLTextReader.ExpectChoiceOrSeq(CP: TContentParticle; MustEndIn: TObject);     // [49], [50]
 var
   Delim: WideChar;
   CurrentCP: TContentParticle;
@@ -2183,7 +2185,7 @@ begin
     CP.CPType := ctSeq;    // '(foo)' is a sequence!
 end;
 
-procedure TXMLReader.ParseElementDecl;            // [45]
+procedure TXMLTextReader.ParseElementDecl;            // [45]
 var
   ElDef: TElementDecl;
   CurrentEntity: TObject;
@@ -2263,7 +2265,7 @@ begin
 end;
 
 
-procedure TXMLReader.ParseNotationDecl;        // [82]
+procedure TXMLTextReader.ParseNotationDecl;        // [82]
 var
   NameStr, SysID, PubID: WideString;
 begin
@@ -2290,7 +2292,7 @@ const
     'NOTATION'
   );
 
-procedure TXMLReader.ParseAttlistDecl;         // [52]
+procedure TXMLTextReader.ParseAttlistDecl;         // [52]
 var
   ElDef: TElementDecl;
   AttDef: TAttributeDef;
@@ -2423,7 +2425,7 @@ begin
   end;
 end;
 
-procedure TXMLReader.ParseEntityDecl;        // [70]
+procedure TXMLTextReader.ParseEntityDecl;        // [70]
 var
   IsPE, Exists: Boolean;
   Entity: TEntityDecl;
@@ -2499,19 +2501,36 @@ begin
     Entity.Free;
 end;
 
+procedure TXMLTextReader.ParseIgnoreSection;
+var
+  IgnoreLoc: TLocation;
+  IgnoreLevel: Integer;
+  wc: WideChar;
+begin
+  StoreLocation(IgnoreLoc);
+  IgnoreLevel := 1;
+  repeat
+    FValue.Length := 0;
+    wc := FSource.SkipUntil(FValue, [#0, '<', ']']);
+    if FSource.Matches('<![') then
+      Inc(IgnoreLevel)
+    else if FSource.Matches(']]>') then
+      Dec(IgnoreLevel)
+    else if wc <> #0 then
+      FSource.NextChar
+    else // PE's aren't recognized in ignore section, cannot ContextPop()
+      DoErrorPos(esFatal, 'IGNORE section is not closed', IgnoreLoc);
+  until IgnoreLevel=0;
+end;
 
-procedure TXMLReader.ParseMarkupDecl;        // [29]
+procedure TXMLTextReader.ParseMarkupDecl;        // [29]
 var
   IncludeLevel: Integer;
-  IgnoreLevel: Integer;
   CurrentEntity: TObject;
   IncludeLoc: TLocation;
-  IgnoreLoc: TLocation;
-  wc: WideChar;
   CondType: (ctUnknown, ctInclude, ctIgnore);
 begin
   IncludeLevel := 0;
-  IgnoreLevel := 0;
   repeat
     SkipWhitespace;
 
@@ -2530,7 +2549,8 @@ begin
     if FSource.FBuf^ = '?' then
     begin
       ParsePI;
-      doc.AppendChild(CreatePINode);
+      if Assigned(doc) then
+        doc.AppendChild(CreatePINode);
     end
     else
     begin
@@ -2563,22 +2583,7 @@ begin
           Inc(IncludeLevel);
         end
         else if CondType = ctIgnore then
-        begin
-          StoreLocation(IgnoreLoc);
-          IgnoreLevel := 1;
-          repeat
-            FValue.Length := 0;
-            wc := FSource.SkipUntil(FValue, [#0, '<', ']']);
-            if FSource.Matches('<![') then
-              Inc(IgnoreLevel)
-            else if FSource.Matches(']]>') then
-              Dec(IgnoreLevel)
-            else if wc <> #0 then
-              FSource.NextChar
-            else // PE's aren't recognized in ignore section, cannot ContextPop()
-              DoErrorPos(esFatal, 'IGNORE section is not closed', IgnoreLoc);
-          until IgnoreLevel=0;
-        end;
+          ParseIgnoreSection;
       end
       else
       begin
@@ -2611,7 +2616,7 @@ begin
     FatalError('Illegal character in DTD');
 end;
 
-procedure TXMLReader.ProcessDTD(ASource: TXMLCharSource);
+procedure TXMLTextReader.ProcessDTD(ASource: TXMLCharSource);
 begin
   doc := TXMLDocument.Create;
   FNameTable := doc.Names;
@@ -2624,20 +2629,23 @@ begin
 end;
 
 
-procedure TXMLReader.LoadEntity(AEntity: TEntityDecl);
+procedure TXMLTextReader.LoadEntity(AEntity: TEntityDecl);
 var
-  InnerReader: TXMLReader;
+  InnerReader: TXMLTextReader;
   Src: TXMLCharSource;
   Ent: TDOMEntityEx;
   DoctypeNode: TDOMDocumentType;
 begin
-  DoctypeNode := doc.DocType;
+  if Assigned(doc) then
+    DoctypeNode := doc.DocType
+  else
+    Exit;
   if DoctypeNode = nil then
     Exit;
   Ent := TDOMEntityEx(DocTypeNode.Entities.GetNamedItem(AEntity.FName));
   if Ent = nil then
     Exit;
-  InnerReader := TXMLReader.Create(FCtrl);
+  InnerReader := TXMLTextReader.Create(FCtrl);
   try
     InnerReader.FAttrTag := FAttrTag;
     InnerReader.FDocType := FDocType.Reference;
@@ -2654,7 +2662,15 @@ begin
   end;
 end;
 
-procedure TXMLReader.ValidateCurrentNode;
+
+procedure TXMLTextReader.SetEOFState;
+begin
+  FCurrNode := @FNodeStack[0];
+  Finalize(FCurrNode^);
+  FillChar(FCurrNode^, sizeof(TNodeData), 0);
+end;
+
+procedure TXMLTextReader.ValidateCurrentNode;
 var
   ElDef: TElementDecl;
   AttDef: TAttributeDef;
@@ -2664,7 +2680,7 @@ begin
   case FCurrNode^.FNodeType of
     ntElement:
       begin
-        if (FNesting = 1) and (not FFragmentMode) then
+        if (FNesting = 0) and (not FFragmentMode) then
         begin
           if Assigned(FDocType) then
           begin
@@ -2750,27 +2766,26 @@ begin
   end;
 end;
 
-procedure TXMLReader.HandleEntityStart;
+procedure TXMLTextReader.HandleEntityStart;
 begin
-  { FNesting+1 is available due to overallocation in AllocNodeData() }
-  FCurrNode := @FNodeStack[FNesting+1];
+  FCurrNode := @FNodeStack[FNesting];
   FCurrNode^.FNodeType := ntEntityReference;
   FCurrNode^.FQName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
   FCurrNode^.FValueStart := nil;
   FCurrNode^.FValueLength := 0;
 end;
 
-procedure TXMLReader.HandleEntityEnd;
+procedure TXMLTextReader.HandleEntityEnd;
 begin
   ContextPop(True);
   if FNesting > 0 then Dec(FNesting);
-  FCurrNode := @FNodeStack[FNesting+1];
+  FCurrNode := @FNodeStack[FNesting];
   FCurrNode^.FNodeType := ntEndEntity;
   // TODO: other properties of FCurrNode
   FNext := xtText;
 end;
 
-procedure TXMLReader.ResolveEntity;
+procedure TXMLTextReader.ResolveEntity;
 begin
   if FCurrNode^.FNodeType <> ntEntityReference then
     raise EInvalidOperation.Create('Wrong node type');
@@ -2780,7 +2795,7 @@ begin
   FNext := xtPushEntity;
 end;
 
-procedure TXMLReader.DoStartEntity;
+procedure TXMLTextReader.DoStartEntity;
 var
   src: TXMLCharSource;
 begin
@@ -2798,7 +2813,7 @@ begin
   FNext := xtText;
 end;
 
-function TXMLReader.DoStartElement: TDOMElement;
+function TXMLTextReader.DoStartElement: TDOMElement;
 var
   Attr: TDOMAttr;
   i: Integer;
@@ -2871,7 +2886,7 @@ const
     ntText
   );
 
-procedure TXMLReader.ParseContent(parent: TDOMNode_WithChildren);
+procedure TXMLTextReader.ParseContent(parent: TDOMNode_WithChildren);
 var
   cursor: TDOMNode_WithChildren;
   element: TDOMElement;
@@ -2920,7 +2935,108 @@ begin
   end;
 end;
 
-function TXMLReader.Read: Boolean;
+function TXMLTextReader.ReadTopLevel: Boolean;
+var
+  nonWs: Boolean;
+  wc: WideChar;
+  tok: TXMLToken;
+begin
+  if FNext = xtFakeLF then
+  begin
+    Result := SetupFakeLF(xtText);
+    Exit;
+  end;
+
+  StoreLocation(FTokenStart);
+  nonWs := False;
+  FValue.Length := 0;
+
+  if FNext = xtText then
+  repeat
+    wc := FSource.SkipUntil(FValue, [#0, '<'], @nonWs);
+    if wc = '<' then
+    begin
+      Inc(FSource.FBuf);
+      if FSource.FBufEnd < FSource.FBuf + 2 then
+        FSource.Reload;
+      if CheckName([cnOptional]) then
+        tok := xtElement
+      else if FSource.FBuf^ = '!' then
+      begin
+        Inc(FSource.FBuf);
+        if FSource.FBuf^ = '-' then
+        begin
+          if FIgnoreComments then
+          begin
+            ParseComment(True);
+            Continue;
+          end;
+          tok := xtComment;
+        end
+        else
+          tok := xtDoctype;
+      end
+      else if FSource.FBuf^ = '?' then
+        tok := xtPI
+      else
+        RaiseNameNotFound;
+    end
+    else  // #0
+    begin
+      if FState < rsRoot then
+        FatalError('Root element is missing');
+      tok := xtEOF;
+    end;
+    if nonWs then
+      FatalError('Illegal at document level', -1);
+
+    if FCanonical and (FState > rsRoot) and (tok <> xtEOF) then
+    begin
+      Result := SetupFakeLF(tok);
+      Exit;
+    end;
+
+    Break;
+  until False
+  else   // FNext <> xtText
+    tok := FNext;
+
+  if FCanonical and (FState < rsRoot) and (tok <> xtDoctype) then
+    FNext := xtFakeLF
+  else
+    FNext := xtText;
+
+  case tok of
+    xtElement:
+      begin
+        if FState > rsRoot then
+          FatalError('Only one top-level element allowed', FName.Length)
+        else if FState < rsRoot then
+        begin
+          // dispose notation refs from DTD, if any
+          ClearForwardRefs;
+          FState := rsRoot;
+        end;
+        ParseStartTag;
+      end;
+    xtPI:         ParsePI;
+    xtComment:    ParseComment(False);
+    xtDoctype:
+      begin
+        ParseDoctypeDecl;
+        if FCanonical then
+        begin
+          // recurse, effectively ignoring the DTD
+          result := ReadTopLevel;
+          Exit;
+        end;
+      end;
+    xtEOF:  SetEofState;
+  end;
+  Result := tok <> xtEOF;
+end;
+
+function TXMLTextReader.Read: Boolean;
 var
   nonWs: Boolean;
   wc: WideChar;
@@ -2942,16 +3058,19 @@ begin
     if FAttrCleanupFlag then
       CleanupAttributes;
     FAttrCount := 0;
+    Inc(FNesting);
     FNext := xtText;
   end
   else if FNext = xtPopElement then
-  begin
-    if FNamespaces then
-      FNSHelper.EndElement;
-    PopVC;
-  end
+    PopElement
   else if FNext = xtPushEntity then
     DoStartEntity;
+
+  if FState <> rsRoot then
+  begin
+    Result := ReadTopLevel;
+    Exit;
+  end;
 
   InCDATA := (FNext = xtCDSect);
   StoreLocation(FTokenStart);
@@ -2976,8 +3095,6 @@ begin
         if FSource.FBuf^ = '[' then
         begin
           ExpectString('[CDATA[');
-          if FState <> rsRoot then
-            FatalError('Illegal at document level');
           StoreLocation(FTokenStart);
           InCDATA := True;
           if FCDSectionsAsText or (FValue.Length = 0) then
@@ -3011,7 +3128,7 @@ begin
       if InCDATA then
         FatalError('Unterminated CDATA section', -1);
       if FNesting > FSource.FStartNesting then
-        FatalError('End-tag is missing for ''%s''', [FNodeStack[FNesting].FQName^.Key]);
+        FatalError('End-tag is missing for ''%s''', [FNodeStack[FNesting-1].FQName^.Key]);
 
       if Assigned(FSource.FParent) then
       begin
@@ -3047,9 +3164,6 @@ begin
     end
     else if wc = '&' then
     begin
-      if FState <> rsRoot then
-        FatalError('Illegal at document level');
-
       if FValidators[FValidatorNesting].FContentType = ctEmpty then
         ValidationError('References are illegal in EMPTY elements', []);
 
@@ -3071,12 +3185,6 @@ begin
     end;
     if FValue.Length <> 0 then
     begin
-      if FState <> rsRoot then
-        if nonWs then
-          FatalError('Illegal at document level', -1)
-        else
-          Break;
-
       SetNodeInfoWithValue(textNodeTypes[nonWs]);
       FNext := tok;
       Result := True;
@@ -3097,6 +3205,7 @@ begin
     xtPI:         ParsePI;
     xtDoctype:    ParseDoctypeDecl;
     xtComment:    ParseComment(False);
+    xtEOF:        SetEofState;
   end;
   Result := tok <> xtEOF;
 end;
@@ -3108,7 +3217,7 @@ begin
     Reload;
 end;
 
-procedure TXMLReader.ExpectChar(wc: WideChar);
+procedure TXMLTextReader.ExpectChar(wc: WideChar);
 begin
   if FSource.FBuf^ = wc then
     FSource.NextChar
@@ -3117,22 +3226,13 @@ begin
 end;
 
 // Element name already in FNameBuffer
-procedure TXMLReader.ParseStartTag;    // [39] [40] [44]
+procedure TXMLTextReader.ParseStartTag;    // [39] [40] [44]
 var
   ElDef: TElementDecl;
   IsEmpty: Boolean;
   ElName: PHashItem;
   b: TBinding;
 begin
-  if FState > rsRoot then
-    FatalError('Only one top-level element allowed', FName.Length)
-  else if FState < rsRoot then
-  begin
-    // dispose notation refs from DTD, if any
-    ClearForwardRefs;
-    FState := rsRoot;
-  end;
-
   // we're about to process a new set of attributes
   Inc(FAttrTag);
 
@@ -3146,7 +3246,6 @@ begin
   FPrefixedAttrs := 0;
   FSpecifiedAttrs := 0;
 
-  Inc(FNesting);
   FCurrNode := AllocNodeData(FNesting);
   FCurrNode^.FQName := ElName;
   FCurrNode^.FNodeType := ntElement;
@@ -3193,13 +3292,13 @@ begin
       b := TBinding(FCurrNode^.FPrefix^.Data);
       if not (Assigned(b) and (b.uri <> '')) then
         DoErrorPos(esFatal, 'Unbound element name prefix "%s"', [FCurrNode^.FPrefix^.Key],FCurrNode^.FLoc);
-      FCurrNode^.FNsUri := FNameTable.FindOrAdd(PWideChar(b.uri), Length(b.uri));
+      FCurrNode^.FNsUri := FNameTable.FindOrAdd(b.uri);
     end
     else
     begin
       b := FNSHelper.DefaultNSBinding;
       if Assigned(b) then
-        FCurrNode^.FNsUri := FNameTable.FindOrAdd(PWideChar(b.uri), Length(b.uri));
+        FCurrNode^.FNsUri := FNameTable.FindOrAdd(b.uri);
     end;
   end;
 
@@ -3213,12 +3312,13 @@ begin
     FNext := xtPopEmptyElement;
 end;
 
-procedure TXMLReader.ParseEndTag;     // [42]
+procedure TXMLTextReader.ParseEndTag;     // [42]
 var
   ElName: PHashItem;
 begin
   if FNesting <= FSource.FStartNesting then
     FatalError('End-tag is not allowed here');
+  if FNesting > 0 then Dec(FNesting);
   Inc(FSource.FBuf);
 
   FCurrNode := @FNodeStack[FNesting];  // move off the possible child
@@ -3239,7 +3339,7 @@ begin
   FNext := xtPopElement;
 end;
 
-procedure TXMLReader.ParseAttribute(ElDef: TElementDecl);
+procedure TXMLTextReader.ParseAttribute(ElDef: TElementDecl);
 var
   attrName: PHashItem;
   attrData: PNodeData;
@@ -3303,7 +3403,7 @@ begin
   end;
 end;
 
-procedure TXMLReader.AddForwardRef(Buf: PWideChar; Length: Integer);
+procedure TXMLTextReader.AddForwardRef(Buf: PWideChar; Length: Integer);
 var
   w: PForwardRef;
 begin
@@ -3313,7 +3413,7 @@ begin
   FForwardRefs.Add(w);
 end;
 
-procedure TXMLReader.ClearForwardRefs;
+procedure TXMLTextReader.ClearForwardRefs;
 var
   I: Integer;
 begin
@@ -3322,7 +3422,7 @@ begin
   FForwardRefs.Clear;
 end;
 
-procedure TXMLReader.ValidateIdRefs;
+procedure TXMLTextReader.ValidateIdRefs;
 var
   I: Integer;
 begin
@@ -3333,7 +3433,7 @@ begin
   ClearForwardRefs;
 end;
 
-procedure TXMLReader.ProcessDefaultAttributes(ElDef: TElementDecl);
+procedure TXMLTextReader.ProcessDefaultAttributes(ElDef: TElementDecl);
 var
   I: Integer;
   AttDef: TAttributeDef;
@@ -3378,11 +3478,11 @@ begin
 end;
 
 
-function TXMLReader.AddBinding(attrData: PNodeData): Boolean;
+function TXMLTextReader.AddBinding(attrData: PNodeData): Boolean;
 var
   nsUri, Pfx: PHashItem;
 begin
-  nsUri := FNameTable.FindOrAdd(PWideChar(attrData^.FValueStr), Length(attrData^.FValueStr));
+  nsUri := FNameTable.FindOrAdd(attrData^.FValueStr);
   if attrData^.FColonPos > 0 then
     Pfx := FNSHelper.GetPrefix(@attrData^.FQName^.key[7], Length(attrData^.FQName^.key)-6)
   else
@@ -3406,7 +3506,7 @@ begin
     FNSHelper.BindPrefix(attrData^.FValueStr, Pfx);
 end;
 
-procedure TXMLReader.ProcessNamespaceAtts;
+procedure TXMLTextReader.ProcessNamespaceAtts;
 var
   I, J: Integer;
   Pfx, AttrName: PHashItem;
@@ -3432,11 +3532,11 @@ begin
     if FNsAttHash.Locate(@b.uri, @AttrName^.Key[J], Length(AttrName^.Key) - J+1) then
       DoErrorPos(esFatal, 'Duplicate prefixed attribute', attrData^.FLoc);
 
-    attrData^.FNsUri := FNameTable.FindOrAdd(PWideChar(b.uri), Length(b.uri));
+    attrData^.FNsUri := FNameTable.FindOrAdd(b.uri);
   end;
 end;
 
-function TXMLReader.ParseExternalID(out SysID, PubID: WideString;     // [75]
+function TXMLTextReader.ParseExternalID(out SysID, PubID: WideString;     // [75]
   SysIdOptional: Boolean): Boolean;
 var
   I: Integer;
@@ -3469,7 +3569,7 @@ begin
   Result := True;
 end;
 
-function TXMLReader.ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: WideString): Boolean;
+function TXMLTextReader.ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: WideString): Boolean;
 begin
   case AttrDef.DataType of
     dtId, dtIdRef, dtEntity: Result := IsXmlName(aValue, FXML11) and
@@ -3485,7 +3585,7 @@ begin
   end;
 end;
 
-procedure TXMLReader.ValidateAttrValue(AttrDef: TAttributeDef; attrData: PNodeData);
+procedure TXMLTextReader.ValidateAttrValue(AttrDef: TAttributeDef; attrData: PNodeData);
 var
   L, StartPos, EndPos: Integer;
   Entity: TEntityDecl;
@@ -3526,7 +3626,7 @@ begin
   end;
 end;
 
-procedure TXMLReader.ValidateDTD;
+procedure TXMLTextReader.ValidateDTD;
 var
   I: Integer;
 begin
@@ -3537,7 +3637,7 @@ begin
 end;
 
 
-function TXMLReader.DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
+function TXMLTextReader.DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
 var
   s: WideString;
 begin
@@ -3547,12 +3647,12 @@ begin
   result := doc.CreateCDATASection(s);
 end;
 
-procedure TXMLReader.DoNotationDecl(const aName, aPubID, aSysID: WideString);
+procedure TXMLTextReader.DoNotationDecl(const aName, aPubID, aSysID: WideString);
 var
   Notation: TNotationDecl;
   Entry: PHashItem;
 begin
-  Entry := FDocType.Notations.FindOrAdd(PWideChar(aName), Length(aName));
+  Entry := FDocType.Notations.FindOrAdd(aName);
   if Entry^.Data = nil then
   begin
     Notation := TNotationDecl.Create;
@@ -3565,7 +3665,7 @@ begin
     ValidationError('Duplicate notation declaration: ''%s''', [aName]);
 end;
 
-function TXMLReader.AddId(aNodeData: PNodeData): Boolean;
+function TXMLTextReader.AddId(aNodeData: PNodeData): Boolean;
 var
   e: PHashItem;
 begin
@@ -3577,7 +3677,7 @@ begin
     aNodeData^.FIDEntry := e;
 end;
 
-function TXMLReader.AllocAttributeData: PNodeData;
+function TXMLTextReader.AllocAttributeData: PNodeData;
 begin
   Result := AllocNodeData(FNesting + FAttrCount + 1);
   Result^.FNodeType := ntAttribute;
@@ -3585,19 +3685,22 @@ begin
   Inc(FAttrCount);
 end;
 
-function TXMLReader.AllocNodeData(AIndex: Integer): PNodeData;
+function TXMLTextReader.AllocNodeData(AIndex: Integer): PNodeData;
 begin
   {make sure we have an extra slot to place child text/comment/etc}
   if AIndex >= Length(FNodeStack)-1 then
     SetLength(FNodeStack, AIndex * 2 + 2);
 
   Result := @FNodeStack[AIndex];
+  Result^.FNext := nil;
   Result^.FPrefix := nil;
   Result^.FNsUri := nil;
   Result^.FIDEntry := nil;
+  Result^.FValueStart := nil;
+  Result^.FValueLength := 0;
 end;
 
-function TXMLReader.AllocAttributeValueChunk(APrev: PNodeData): PNodeData;
+function TXMLTextReader.AllocAttributeValueChunk(APrev: PNodeData): PNodeData;
 begin
   { when parsing DTD, don't take ownership of allocated data }
   if FState = rsDTD then
@@ -3623,7 +3726,7 @@ begin
   APrev^.FNext := result;
 end;
 
-procedure TXMLReader.CleanupAttributes;
+procedure TXMLTextReader.CleanupAttributes;
 var
   i: Integer;
 begin
@@ -3633,7 +3736,7 @@ begin
   FAttrCleanupFlag := False;
 end;
 
-procedure TXMLReader.CleanupAttribute(aNode: PNodeData);
+procedure TXMLTextReader.CleanupAttribute(aNode: PNodeData);
 var
   chunk, tmp: PNodeData;
 begin
@@ -3648,17 +3751,25 @@ begin
   aNode^.FNext := nil;
 end;
 
-procedure TXMLReader.SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
+procedure TXMLTextReader.SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
 begin
-  {FNesting+1 is available due to overallocation in AllocNodeData() }
-  FCurrNode := @FNodeStack[FNesting+1];
+  FCurrNode := @FNodeStack[FNesting];
   FCurrNode^.FNodeType := typ;
   FCurrNode^.FQName := AName;
   FCurrNode^.FValueStart := FValue.Buffer;
   FCurrNode^.FValueLength := FValue.Length;
 end;
 
-procedure TXMLReader.PushVC(aElDef: TElementDecl);
+function TXMLTextReader.SetupFakeLF(nextstate: TXMLToken): Boolean;
+begin
+  FValue.Buffer[0] := #10;
+  FValue.Length := 1;
+  SetNodeInfoWithValue(ntWhitespace,nil);
+  FNext := nextstate;
+  Result := True;
+end;
+
+procedure TXMLTextReader.PushVC(aElDef: TElementDecl);
 begin
   Inc(FValidatorNesting);
   if FValidatorNesting >= Length(FValidators) then
@@ -3679,11 +3790,13 @@ begin
   end;
 end;
 
-procedure TXMLReader.PopVC;
+procedure TXMLTextReader.PopElement;
 begin
-  if (FNesting = 1) and (not FFragmentMode) then
+  if FNamespaces then
+    FNSHelper.EndElement;
+
+  if (FNesting = 0) and (not FFragmentMode) then
     FState := rsEpilog;
-  if FNesting > 0 then Dec(FNesting);
   FCurrNode := @FNodeStack[FNesting];
   FNext := xtText;
 end;
@@ -3737,12 +3850,12 @@ end;
 
 procedure ReadXMLFile(out ADoc: TXMLDocument; var f: Text);
 var
-  Reader: TXMLReader;
+  Reader: TXMLTextReader;
   Src: TXMLCharSource;
 begin
   ADoc := nil;
   Src := TXMLFileInputSource.Create(f);
-  Reader := TXMLReader.Create;
+  Reader := TXMLTextReader.Create;
   try
     Reader.ProcessXML(Src);
   finally
@@ -3753,11 +3866,11 @@ end;
 
 procedure ReadXMLFile(out ADoc: TXMLDocument; f: TStream; const ABaseURI: String);
 var
-  Reader: TXMLReader;
+  Reader: TXMLTextReader;
   Src: TXMLCharSource;
 begin
   ADoc := nil;
-  Reader := TXMLReader.Create;
+  Reader := TXMLTextReader.Create;
   try
     Src := TXMLStreamInputSource.Create(f, False);
     Src.SystemID := ABaseURI;
@@ -3788,10 +3901,10 @@ end;
 
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: Text);
 var
-  Reader: TXMLReader;
+  Reader: TXMLTextReader;
   Src: TXMLCharSource;
 begin
-  Reader := TXMLReader.Create;
+  Reader := TXMLTextReader.Create;
   try
     Src := TXMLFileInputSource.Create(f);
     Reader.ProcessFragment(Src, AParentNode);
@@ -3802,10 +3915,10 @@ end;
 
 procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream; const ABaseURI: String);
 var
-  Reader: TXMLReader;
+  Reader: TXMLTextReader;
   Src: TXMLCharSource;
 begin
-  Reader := TXMLReader.Create;
+  Reader := TXMLTextReader.Create;
   try
     Src := TXMLStreamInputSource.Create(f, False);
     Src.SystemID := ABaseURI;
@@ -3835,11 +3948,11 @@ end;
 
 procedure ReadDTDFile(out ADoc: TXMLDocument; var f: Text);
 var
-  Reader: TXMLReader;
+  Reader: TXMLTextReader;
   Src: TXMLCharSource;
 begin
   ADoc := nil;
-  Reader := TXMLReader.Create;
+  Reader := TXMLTextReader.Create;
   try
     Src := TXMLFileInputSource.Create(f);
     Reader.ProcessDTD(Src);
@@ -3851,11 +3964,11 @@ end;
 
 procedure ReadDTDFile(out ADoc: TXMLDocument; f: TStream; const ABaseURI: String);
 var
-  Reader: TXMLReader;
+  Reader: TXMLTextReader;
   Src: TXMLCharSource;
 begin
   ADoc := nil;
-  Reader := TXMLReader.Create;
+  Reader := TXMLTextReader.Create;
   try
     Src := TXMLStreamInputSource.Create(f, False);
     Src.SystemID := ABaseURI;

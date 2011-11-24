@@ -471,8 +471,15 @@ var
   ExitCode    : Longint; public name 'operatingsystem_result';
   RandSeed    : Cardinal;
   { Delphi compatibility }
-  IsLibrary : boolean = false;
-  IsConsole : boolean;
+
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+  IsLibrary : boolean = false; public name 'operatingsystem_islibrary';
+{$else FPC_HAS_FEATURE_DYNLIBS}
+const
+  IsLibrary = false;
+var
+{$endif FPC_HAS_FEATURE_DYNLIBS}
+  IsConsole : boolean = false; public name 'operatingsystem_isconsole';
   { Threading support }
   fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
 
@@ -481,8 +488,11 @@ var
 var cmdline:Pchar=nil;
 {$endif}
 
-
+{$ifdef FPC_HAS_FEATURE_THREADING}
 ThreadVar
+{$else FPC_HAS_FEATURE_THREADING}
+Var
+{$endif FPC_HAS_FEATURE_THREADING}
   ThreadID    : TThreadID;
   { Standard In- and Output }
   ErrOutput,

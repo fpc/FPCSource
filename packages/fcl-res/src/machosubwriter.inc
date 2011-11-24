@@ -37,7 +37,8 @@ type
     procedure FixResHeader(aStream : TStream); override;
   public
     constructor Create(aParent : TMachOResourceWriter; const aMachineType
-      : TMachOMachineType; const aOppositeEndianess : boolean); override;
+      : TMachOMachineType; const aSubMachineType: TMachoSubMachineType;
+      const aOppositeEndianess : boolean); override;
   end;
 
 { _TMachOSymbolTable_ }
@@ -336,9 +337,9 @@ begin
 end;
 
 constructor _TMachOSubWriter_.Create(aParent : TMachOResourceWriter;
-  const aMachineType : TMachOMachineType; const aOppositeEndianess : boolean);
+  const aMachineType : TMachOMachineType; const aSubMachineType: TMachoSubMachineType; const aOppositeEndianess : boolean);
 begin
-  inherited Create(aParent, aMachineType,aOppositeEndianess);
+  inherited Create(aParent,aMachineType,aSubMachineType,aOppositeEndianess);
   fSymbolTable:=_TMachOSymbolTable_.Create(fMachOStringTable);
   fSymbolTable.OppositeEndianess:=fOppositeEndianess;
   {$IF _TMachOSubWriter_=TMachO32SubWriter}

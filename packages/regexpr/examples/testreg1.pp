@@ -4,7 +4,7 @@
 
 program testreg1;
 uses
-   regexpr;
+   oldregexpr;
 
 var
    r         : tregexprengine;

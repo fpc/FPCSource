@@ -48,12 +48,13 @@
     _reserved2: id;
     _childNodes: NSMutableArray;
     _parentNode: NSTreeNode;
-    __NSTreeNodeFlags: bitpacked record
+    __NSTreeNodeFlags: record
       case byte of
        0: (_anonbitfield_NSTreeNode0: cuint);
-       1: (
+       1: (data: bitpacked record
         ignoreObserving: 0..1;
         reserved: 0..((1 shl 31)-1);
+       end;
       );
       end;
     

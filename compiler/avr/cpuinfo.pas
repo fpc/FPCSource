@@ -45,13 +45,13 @@ Type
       );
 
    tcpuflags =
-      (AVR_HAVE_JMP_CALL,
-       AVR_HAVE_MOVW,
-       AVR_HAVE_LPMX,
-       AVR_HAVE_MUL,
-       AVR_HAVE_RAMPZ,
-       AVR_HAVE_ELPM,
-       AVR_HAVE_ELPMX,
+      (AVR_HAS_JMP_CALL,
+       AVR_HAS_MOVW,
+       AVR_HAS_LPMX,
+       AVR_HAS_MUL,
+       AVR_HAS_RAMPZ,
+       AVR_HAS_ELPM,
+       AVR_HAS_ELPMX,
        AVR_2_BYTE_PC,
        AVR_3_BYTE_PC
       );
@@ -112,23 +112,75 @@ Const
      'LIBGCC'
    );
 
-   controllertypestr : array[tcontrollertype] of string[20] =
-     ('',
-      'ATMEGA16',
-      'ATMEGA32',
-      'ATMEGA48',
-      'ATMEGA64',
-      'ATMEGA128'
-     );
+   embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
+   ((
+   	controllertypestr:'';
+        controllerunitstr:'';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:0;
+        srambase:0;
+        sramsize:0;
+        eeprombase:0;
+        eepromsize:0
+   	),
+        (
+   	controllertypestr:'ATMEGA16';
+        controllerunitstr:'ATMEGA16';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:$4000;
+        srambase:0;
+        sramsize:1024;
+        eeprombase:0;
+        eepromsize:512
+        ),
+        (
+   	controllertypestr:'ATMEGA32';
+        controllerunitstr:'ATMEGA32';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:$8000;
+        srambase:0;
+        sramsize:1024;
+        eeprombase:0;
+        eepromsize:512
+        ),
+   	(
+        controllertypestr:'ATMEGA48';
+        controllerunitstr:'ATMEGA48';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:$1000;
+        srambase:0;
+        sramsize:512;
+        eeprombase:0;
+        eepromsize:256;
+        ),
+   	(
+        controllertypestr:'ATMEGA64';
+        controllerunitstr:'ATMEGA64';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:$10000;
+        srambase:0;
+        sramsize:4096;
+        eeprombase:0;
+        eepromsize:2048;
+        ),
+   	(
+        controllertypestr:'ATMEGA128';
+        controllerunitstr:'ATMEGA128';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:$20000;
+        srambase:0;
+        sramsize:4096;
+        eeprombase:0;
+        eepromsize:4096;
+        )
+   );
 
-   controllerunitstr : array[tcontrollertype] of string[20] =
-     ('',
-      'ATMEGA16',
-      'ATMEGA32',
-      'ATMEGA48',
-      'ATMEGA64',
-      'ATMEGA128'
-     );
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
                                  genericlevel2optimizerswitches+
@@ -137,9 +189,21 @@ Const
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
                                  [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,
 								  cs_opt_stackframe,cs_opt_nodecse];
+   cpuflagsstr : array[tcpuflags] of string[20] =
+      ('AVR_HAS_JMP_CALL',
+       'AVR_HAS_MOVW',
+       'AVR_HAS_LPMX',
+       'AVR_HAS_MUL',
+       'AVR_HAS_RAMPZ',
+       'AVR_HAS_ELPM',
+       'AVR_HAS_ELPMX',
+       'AVR_2_BYTE_PC',
+       'AVR_3_BYTE_PC'
+      );
+
 
    level1optimizerswitches = genericlevel1optimizerswitches;
-   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
+   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
 

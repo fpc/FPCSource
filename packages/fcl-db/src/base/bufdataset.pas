@@ -625,6 +625,18 @@ begin
     Result := AnsiCompareStr(pchar(subValue),pchar(aValue));
 end;
 
+function DBCompareWideText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+begin
+  if [loCaseInsensitive,loPartialKey]=options then
+    Result := WideCompareText(pwidechar(subValue),LeftStr(pwidechar(aValue), Length(pwidechar(subValue))))
+  else if [loPartialKey] = options then
+      Result := WideCompareStr(pwidechar(subValue),LeftStr(pwidechar(aValue), Length(pwidechar(subValue))))
+    else if [loCaseInsensitive] = options then
+         Result := WideCompareText(pwidechar(subValue),pwidechar(aValue))
+       else
+         Result := WideCompareStr(pwidechar(subValue),pwidechar(aValue));
+end;
+
 function DBCompareByte(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
@@ -1534,6 +1546,7 @@ procedure TCustomBufDataset.ProcessFieldCompareStruct(AField: TField; var ACompa
 begin
   case AField.DataType of
     ftString, ftFixedChar : ACompareRec.Comparefunc := @DBCompareText;
+    ftWideString, ftFixedWideChar: ACompareRec.Comparefunc := @DBCompareWideText;
     ftSmallint : ACompareRec.Comparefunc := @DBCompareSmallInt;
     ftInteger, ftBCD, ftAutoInc : ACompareRec.Comparefunc :=
       @DBCompareInt;
@@ -1846,14 +1859,15 @@ var CurrBuff : pointer;
     NullMask : pbyte;
 
 begin
-  if not (state in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
-    begin
-    DatabaseErrorFmt(SNotEditing,[Name],self);
-    exit;
-    end;
+  if not (State in dsWriteModes) then
+    DatabaseError(SNotEditing, Self);
   CurrBuff := GetCurrentBuffer;
   If Field.Fieldno > 0 then // If = 0, then calculated field or something
     begin
+    if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
+      DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);	
+    if State in [dsEdit, dsInsert, dsNewValue] then
+      Field.Validate(Buffer);	
     NullMask := CurrBuff;
 
     inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);

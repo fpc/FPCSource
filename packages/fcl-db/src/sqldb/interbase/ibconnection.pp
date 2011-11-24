@@ -437,14 +437,12 @@ end;
 procedure TIBConnection.TranslateFldType(SQLType, SQLSubType, SQLLen, SQLScale : integer;
            var TrType : TFieldType; var TrLen : word);
 begin
-  trlen := 0;
+  TrLen := 0;
   if SQLScale < 0 then
     begin
-    if (SQLScale >= -4) and (SQLScale <= -1) then //in [-4..-1] then
-      begin
-      TrLen := abs(SQLScale);
+    TrLen := abs(SQLScale);
+    if (TrLen <= MaxBCDScale) then //Note: NUMERIC(18,3) or (17,2) must be mapped to ftFmtBCD, but we do not know Precision
       TrType := ftBCD
-      end
     else
       TrType := ftFMTBcd;
     end
@@ -615,12 +613,13 @@ procedure TIBConnection.UnPrepareStatement(cursor : TSQLCursor);
 
 begin
   with cursor as TIBcursor do
-    begin
-    if isc_dsql_free_statement(@Status[0], @Statement, DSQL_Drop) <> 0 then
-      CheckError('FreeStatement', Status);
-    Statement := nil;
-    FPrepared := False;
-    end;
+    if assigned(Statement) Then
+      begin
+        if isc_dsql_free_statement(@Status[0], @Statement, DSQL_Drop) <> 0 then
+          CheckError('FreeStatement', Status);
+        Statement := nil;
+        FPrepared := False;
+      end;
 end;
 
 procedure TIBConnection.FreeSQLDABuffer(var aSQLDA : PXSQLDA);

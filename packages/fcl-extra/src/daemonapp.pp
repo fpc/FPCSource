@@ -920,7 +920,6 @@ begin
     FEventLog:=TEventlog.Create(Self);
     FEventLog.RaiseExceptionOnError:=False;
     FEventLog.RegisterMessageFile('');
-    FEventLog.Active:=True;
     end;
   result := FEventLog;
 end;

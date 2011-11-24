@@ -56,10 +56,10 @@
     _properties: NSMutableDictionary;
     _propertyMapping: id;
     _propertyRanges: NSRangePtr; {garbage collector: __strong }
-    __entityDescriptionFlags: bitpacked record
+    __entityDescriptionFlags: record
       case byte of
        0: (_anonbitfield_NSEntityDescription0: cuint);
-       1: (
+       1: (data: bitpacked record
         _isAbstract: 0..1;
         _shouldValidateOnSave: 0..1;
         _isImmutable: 0..1;
@@ -68,6 +68,7 @@
         _hasPropertiesIndexedBySpotlight: 0..1;
         _hasPropertiesStoredInTruthFile: 0..1;
         _reservedEntityDescription: 0..((1 shl 25)-1);
+       end;
       );
       end;
     _extraIvars: Pointer; {garbage collector: __strong }

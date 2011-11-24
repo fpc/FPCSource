@@ -71,12 +71,19 @@ interface
          settings : tsettings;
          tokenbuf : tdynamicarray;
          next     : treplaystack;
-         constructor Create(atoken: ttoken;asettings:tsettings;atokenbuf:tdynamicarray;anext:treplaystack);
+         change_endian : boolean;
+         constructor Create(atoken: ttoken;asettings:tsettings;
+           atokenbuf:tdynamicarray;anext:treplaystack; achange_endian : boolean);
        end;
 
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
 
-       tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
+       tspecialgenerictoken =
+         (ST_LOADSETTINGS,
+          ST_LINE,
+          ST_COLUMN,
+          ST_FILEINDEX,
+          ST_LOADMESSAGES);
 
        { tscannerfile }
 
@@ -112,10 +119,11 @@ interface
 
           replaytokenbuf,
           recordtokenbuf : tdynamicarray;
+          tokenbuf_change_endian : boolean;
 
           { last settings we stored }
           last_settings : tsettings;
-
+          last_message : pmessagestaterecord;
           { last filepos we stored }
           last_filepos,
           { if nexttoken<>NOTOKEN, then nexttokenpos holds its filepos }
@@ -165,7 +173,11 @@ interface
           procedure startrecordtokens(buf:tdynamicarray);
           procedure stoprecordtokens;
           procedure replaytoken;
-          procedure startreplaytokens(buf:tdynamicarray);
+          procedure startreplaytokens(buf:tdynamicarray; achange_endian : boolean);
+          procedure writesizeint(val : sizeint);
+          function  readsizeint : sizeint;
+          function  readdword : dword;
+          function  readword : word;
           procedure readchar;
           procedure readstring;
           procedure readnumber;
@@ -258,7 +270,6 @@ implementation
       preprocstring : array [preproctyp] of string[7]
         = ('$IFDEF','$IFNDEF','$IF','$IFOPT','$ELSE','$ELSEIF');
 
-
     function is_keyword(const s:string):boolean;
       var
         low,high,mid : longint;
@@ -309,9 +320,9 @@ implementation
          end
         else
          begin
-           exclude(current_settings.localswitches,cs_ansistrings);
+           exclude(current_settings.localswitches,cs_do_inline);
            if changeinit then
-            exclude(init_settings.localswitches,cs_ansistrings);
+            exclude(init_settings.localswitches,cs_do_inline);
          end;
       end;
 
@@ -1857,11 +1868,13 @@ In case not, the value returned can be arbitrary.
 {*****************************************************************************
                               TReplayStack
 *****************************************************************************}
-    constructor treplaystack.Create(atoken:ttoken;asettings:tsettings;atokenbuf:tdynamicarray;anext:treplaystack);
+    constructor treplaystack.Create(atoken:ttoken;asettings:tsettings;
+      atokenbuf:tdynamicarray;anext:treplaystack;achange_endian : boolean);
       begin
         token:=atoken;
         settings:=asettings;
         tokenbuf:=atokenbuf;
+        change_endian:=achange_endian;
         next:=anext;
       end;
 
@@ -1901,6 +1914,7 @@ In case not, the value returned can be arbitrary.
       { reset scanner }
         preprocstack:=nil;
         replaystack:=nil;
+        tokenbuf_change_endian:=false;
         comment_level:=0;
         yylexcount:=0;
         block_type:=bt_general;
@@ -2049,6 +2063,7 @@ In case not, the value returned can be arbitrary.
           internalerror(200511173);
         recordtokenbuf:=buf;
         fillchar(last_settings,sizeof(last_settings),0);
+        last_message:=nil;
         fillchar(last_filepos,sizeof(last_filepos),0);
       end;
 
@@ -2074,13 +2089,48 @@ In case not, the value returned can be arbitrary.
         recordtokenbuf.write(b,1);
       end;
 
+    procedure tscannerfile.writesizeint(val : sizeint);
+      begin
+        recordtokenbuf.write(val,sizeof(sizeint));
+      end;
+
+    function tscannerfile.readsizeint : sizeint;
+      var
+        val : sizeint;
+      begin
+        replaytokenbuf.read(val,sizeof(sizeint));
+        if tokenbuf_change_endian then
+          val:=swapendian(val);
+        result:=val;
+      end;
+
+    function tscannerfile.readdword : dword;
+      var
+        val : dword;
+      begin
+        replaytokenbuf.read(val,sizeof(dword));
+        if tokenbuf_change_endian then
+          val:=swapendian(val);
+        result:=val;
+      end;
+
+    function tscannerfile.readword : word;
+      var
+        val : word;
+      begin
+        replaytokenbuf.read(val,sizeof(word));
+        if tokenbuf_change_endian then
+          val:=swapendian(val);
+        result:=val;
+      end;
 
     procedure tscannerfile.recordtoken;
       var
         t : ttoken;
         s : tspecialgenerictoken;
-        len : sizeint;
+        len,val,msgnb,copy_size : sizeint;
         b : byte;
+        pmsg : pmessagestaterecord;
       begin
         if not assigned(recordtokenbuf) then
           internalerror(200511176);
@@ -2092,8 +2142,40 @@ In case not, the value returned can be arbitrary.
             s:=ST_LOADSETTINGS;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            recordtokenbuf.write(current_settings,sizeof(current_settings));
+            copy_size:=sizeof(current_settings)-sizeof(pointer);
+            writesizeint(copy_size);
+            recordtokenbuf.write(current_settings,copy_size);
             last_settings:=current_settings;
+          end;
+
+        if current_settings.pmessage<>last_message then
+          begin
+            { use a special token to record it }
+            s:=ST_LOADMESSAGES;
+            writetoken(t);
+            recordtokenbuf.write(s,1);
+            msgnb:=0;
+            pmsg:=current_settings.pmessage;
+            while assigned(pmsg) do
+              begin
+                if msgnb=high(sizeint) then
+                  { Too many messages }
+                  internalerror(2011090401);
+                inc(msgnb);
+                pmsg:=pmsg^.next;
+              end;
+            writesizeint(msgnb);
+            pmsg:=current_settings.pmessage;
+            while assigned(pmsg) do
+              begin
+                { What about endianess here? }
+                val:=pmsg^.value;
+                writesizeint(val);
+                val:=ord(pmsg^.state);
+                writesizeint(val);
+                pmsg:=pmsg^.next;
+              end;
+            last_message:=current_settings.pmessage;
           end;
 
         { file pos changes? }
@@ -2138,13 +2220,13 @@ In case not, the value returned can be arbitrary.
           _CWCHAR,
           _CWSTRING :
             begin
-              recordtokenbuf.write(patternw^.len,sizeof(sizeint));
+              writesizeint(patternw^.len);
               recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
             end;
           _CSTRING:
             begin
               len:=length(cstringpattern);
-              recordtokenbuf.write(len,sizeof(sizeint));
+              writesizeint(len);
               recordtokenbuf.write(cstringpattern[1],length(cstringpattern));
             end;
           _CCHAR,
@@ -2169,18 +2251,20 @@ In case not, the value returned can be arbitrary.
       end;
 
 
-    procedure tscannerfile.startreplaytokens(buf:tdynamicarray);
+    procedure tscannerfile.startreplaytokens(buf:tdynamicarray; achange_endian : boolean);
       begin
         if not assigned(buf) then
           internalerror(200511175);
         { save current token }
         if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
           internalerror(200511178);
-        replaystack:=treplaystack.create(token,current_settings,replaytokenbuf,replaystack);
+        replaystack:=treplaystack.create(token,current_settings,
+          replaytokenbuf,replaystack,tokenbuf_change_endian);
         if assigned(inputpointer) then
           dec(inputpointer);
         { install buffer }
         replaytokenbuf:=buf;
+        tokenbuf_change_endian:=achange_endian;
 
         { reload next token }
         replaytokenbuf.seek(0);
@@ -2205,8 +2289,10 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.replaytoken;
       var
-        wlen : sizeint;
+        wlen,mesgnb,copy_size : sizeint;
         specialtoken : tspecialgenerictoken;
+        i : byte;
+        pmsg,prevmsg : pmessagestaterecord;
       begin
         if not assigned(replaytokenbuf) then
           internalerror(200511177);
@@ -2236,7 +2322,7 @@ In case not, the value returned can be arbitrary.
             _CWCHAR,
             _CWSTRING :
               begin
-                replaytokenbuf.read(wlen,sizeof(SizeInt));
+                wlen:=readsizeint;
                 setlengthwidestring(patternw,wlen);
                 replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
                 orgpattern:='';
@@ -2245,7 +2331,7 @@ In case not, the value returned can be arbitrary.
               end;
             _CSTRING:
               begin
-                replaytokenbuf.read(wlen,sizeof(sizeint));
+                wlen:=readsizeint;
                 setlength(cstringpattern,wlen);
                 replaytokenbuf.read(cstringpattern[1],wlen);
                 orgpattern:='';
@@ -2282,10 +2368,37 @@ In case not, the value returned can be arbitrary.
                 else
                   case specialtoken of
                     ST_LOADSETTINGS:
-                      replaytokenbuf.read(current_settings,sizeof(current_settings));
+                      begin
+                        copy_size:=readsizeint;
+                        if copy_size <> sizeof(current_settings)-sizeof(pointer) then
+                          internalerror(2011090501);
+                        replaytokenbuf.read(current_settings,copy_size);
+                      end;
+                    ST_LOADMESSAGES:
+                      begin
+                        current_settings.pmessage:=nil;
+                        mesgnb:=readsizeint;
+                        if mesgnb>0 then
+                          Comment(V_Error,'Message recordind not yet supported');
+                        for i:=1 to mesgnb do
+                          begin
+                            new(pmsg);
+                            if i=1 then
+                              begin
+                                current_settings.pmessage:=pmsg;
+                                prevmsg:=nil;
+                              end
+                            else
+                              prevmsg^.next:=pmsg;
+                            replaytokenbuf.read(pmsg^.value,sizeof(longint));
+                            replaytokenbuf.read(pmsg^.state,sizeof(tmsgstate));
+                            pmsg^.next:=nil;
+                            prevmsg:=pmsg;
+                          end;
+                      end;
                     ST_LINE:
                       begin
-                        replaytokenbuf.read(current_tokenpos.line,sizeof(current_tokenpos.line));
+                        current_tokenpos.line:=readdword;
 
                         { don't generate invalid line info if no sources are available for the current module }
                         if not(get_module(current_filepos.moduleindex).sources_avail) then
@@ -2295,8 +2408,7 @@ In case not, the value returned can be arbitrary.
                       end;
                     ST_COLUMN:
                       begin
-                        replaytokenbuf.read(current_tokenpos.column,sizeof(current_tokenpos.column));
-
+                        current_tokenpos.column:=readword;
                         { don't generate invalid line info if no sources are available for the current module }
                         if not(get_module(current_filepos.moduleindex).sources_avail) then
                           current_tokenpos.column:=0;
@@ -2305,8 +2417,7 @@ In case not, the value returned can be arbitrary.
                       end;
                     ST_FILEINDEX:
                       begin
-                        replaytokenbuf.read(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
-
+                        current_tokenpos.fileindex:=readword;
                         { don't generate invalid line info if no sources are available for the current module }
                         if not(get_module(current_filepos.moduleindex).sources_avail) then
                           begin
@@ -2694,6 +2805,10 @@ In case not, the value returned can be arbitrary.
            hp:=replaystack.next;
            replaystack.free;
            replaystack:=hp;
+           if assigned (replaystack) then
+             tokenbuf_change_endian:=replaystack.change_endian
+           else
+             tokenbuf_change_endian:=false;
          end;
       end;
 
@@ -4443,6 +4558,5 @@ exit_label:
         mac_scannerdirectives.Free;
         DoneWideString(patternw);
       end;
-
 
 end.

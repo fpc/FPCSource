@@ -168,7 +168,7 @@ begin
     end else if (ColumnStr = 'TIME') then
     begin
       AType := ftTime;
-    end else if (ColumnStr = 'LARGEINT') then
+    end else if (ColumnStr = 'LARGEINT') or (ColumnStr = 'BIGINT') then
     begin
       AType := ftLargeInt;
     end else if (ColumnStr = 'TEXT') then

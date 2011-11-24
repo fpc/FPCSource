@@ -48,15 +48,31 @@ type
     function NewNode: TAVLTreeNode; virtual; abstract;
   end;
 
+  TAVLTree = class;
+
+  { TAVLTreeNodeEnumerator }
+
+  TAVLTreeNodeEnumerator = class
+  private
+    FTree: TAVLTree;
+    FCurrent: TAVLTreeNode;
+  public
+    constructor Create(Tree: TAVLTree);
+    function MoveNext: Boolean;
+    property Current: TAVLTreeNode read FCurrent;
+  end;
+
   TAVLTree = class
   private
     FOnCompare: TListSortCompare;
     FCount: integer;
-    nodemgr :  TBaseAVLTreeNodeManager;
     procedure BalanceAfterInsert(ANode: TAVLTreeNode);
     procedure BalanceAfterDelete(ANode: TAVLTreeNode);
     function FindInsertPos(Data: Pointer): TAVLTreeNode;
     procedure SetOnCompare(const AValue: TListSortCompare);
+  protected
+    fNodeMgrAutoFree: boolean;
+    fNodeMgr: TBaseAVLTreeNodeManager;
   public
     Root: TAVLTreeNode;
     function Find(Data: Pointer): TAVLTreeNode;
@@ -91,10 +107,12 @@ type
     function ConsistencyCheck: integer;
     procedure WriteReportToStream(s: TStream; var StreamSize: int64);
     function ReportAsString: string;
-    procedure SetNodeManager(newmgr:TBaseAVLTreeNodeManager);
+    procedure SetNodeManager(NewMgr: TBaseAVLTreeNodeManager;
+                             AutoFree: boolean = false);
     constructor Create(OnCompareMethod: TListSortCompare);
     constructor Create;
     destructor Destroy; override;
+    function GetEnumerator: TAVLTreeNodeEnumerator;
   end;
 
   TAVLTreeNodeMemManager = class(TBaseAVLTreeNodeManager)
@@ -133,11 +151,27 @@ begin
   else Result:=0;
 end;
 
+{ TAVLTreeNodeEnumerator }
+
+constructor TAVLTreeNodeEnumerator.Create(Tree: TAVLTree);
+begin
+  FTree:=Tree;
+end;
+
+function TAVLTreeNodeEnumerator.MoveNext: Boolean;
+begin
+  if FCurrent=nil then
+    FCurrent:=FTree.FindLowest
+  else
+    FCurrent:=FTree.FindSuccessor(FCurrent);
+  Result:=FCurrent<>nil;
+end;
+
 { TAVLTree }
 
 function TAVLTree.Add(Data: Pointer): TAVLTreeNode;
 begin
-  Result:=NodeMgr.NewNode;
+  Result:=fNodeMgr.NewNode;
   Result.Data:=Data;
   Add(Result);
 end;
@@ -476,7 +510,7 @@ procedure TAVLTree.Clear;
       if ANode.Left<>nil then DeleteNode(ANode.Left);
       if ANode.Right<>nil then DeleteNode(ANode.Right);
     end;
-    NodeMgr.DisposeNode(ANode);
+    fNodeMgr.DisposeNode(ANode);
   end;
 
 // Clear
@@ -489,7 +523,7 @@ end;
 constructor TAVLTree.Create(OnCompareMethod: TListSortCompare);
 begin
   inherited Create;
-  nodemgr:=NodeMemManager;
+  fNodeMgr:=NodeMemManager;
   FOnCompare:=OnCompareMethod;
   FCount:=0;
 end;
@@ -527,7 +561,7 @@ begin
       Root:=nil;
     end;
     dec(FCount);
-    NodeMgr.DisposeNode(ANode);
+    fNodeMgr.DisposeNode(ANode);
     exit;
   end;
   if (ANode.Right=nil) then begin
@@ -550,7 +584,7 @@ begin
       Root:=OldLeft;
     end;
     dec(FCount);
-    NodeMgr.DisposeNode(ANode);
+    fNodeMgr.DisposeNode(ANode);
     exit;
   end;
   if (ANode.Left=nil) then begin
@@ -573,7 +607,7 @@ begin
       Root:=OldRight;
     end;
     dec(FCount);
-    NodeMgr.DisposeNode(ANode);
+    fNodeMgr.DisposeNode(ANode);
     exit;
   end;
   // DelNode has both: Left and Right
@@ -641,7 +675,14 @@ end;
 destructor TAVLTree.Destroy;
 begin
   Clear;
+  if fNodeMgrAutoFree then
+    FreeAndNil(fNodeMgr);
   inherited Destroy;
+end;
+
+function TAVLTree.GetEnumerator: TAVLTreeNodeEnumerator;
+begin
+  Result:=TAVLTreeNodeEnumerator.Create(Self);
 end;
 
 function TAVLTree.Find(Data: Pointer): TAVLTreeNode;
@@ -1038,10 +1079,14 @@ begin
     FOnCompare:=AValue;
 end;
 
-procedure TAVLTree.SetNodeManager(newmgr:TBaseAVLTreeNodeManager);
+procedure TAVLTree.SetNodeManager(NewMgr: TBaseAVLTreeNodeManager;
+  AutoFree: boolean);
 // only allowed just after create.
 begin
- nodemgr:=newmgr;
+  if fNodeMgrAutoFree then
+    FreeAndNil(fNodeMgr);
+  fNodeMgr:=NewMgr;
+  fNodeMgrAutoFree:=AutoFree;
 end;
 
 { TAVLTreeNode }

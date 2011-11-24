@@ -78,8 +78,10 @@ Type
     FKey    : TIDEAKey;
     FData   : TIDEACryptData;
     FBufpos : Byte;
-    FPos    : Longint;
+    FPos    : Int64;
   Protected
+    function GetPosition: Int64; override;
+    procedure InvalidSeek; override;
     Procedure CreateCryptKey(Const S : String; Var Key : TIDEACryptKey);
   Public
     Constructor Create(AKey : TIDEAKey; Dest: TStream); overload;
@@ -103,7 +105,7 @@ Type
   public
     Constructor Create(Const AKey : String; Dest: TStream); overload;
     function Read(var Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
   end;
 
 Implementation
@@ -266,6 +268,16 @@ begin
   Fpos:=0;
 end;
 
+function TIDEAStream.GetPosition: Int64;
+begin
+  Result:=FPos;
+end;
+
+procedure TIDEAStream.InvalidSeek;
+begin
+  Raise EIDEAError.Create(SNoSeekAllowed);
+end;
+
 procedure TIDEAStream.CreateCryptKey(const S: String; var Key: TIDEACryptKey);
 
 Var
@@ -359,7 +371,7 @@ begin
   if (Offset = 0) and (Origin = soFromCurrent) then
     Result := FPos
   else
-    Raise EIDEAError.Create(SNoSeekAllowed);
+    InvalidSeek;
 end;
 
 
@@ -422,23 +434,11 @@ begin
   Inc(FPos,Result);
 end;
 
-function TIDEADeCryptStream.Seek(Offset: Longint; Origin: Word): Longint;
-
-Var Buffer : Array[0..1023] of byte;
-    i : longint;
+function TIDEADeCryptStream.Seek(const Offset: int64; Origin: TSeekOrigin): int64;
 
 begin
-  // Fake seek if possible by reading and discarding bytes.
-  If ((Offset>=0) and (Origin = soFromCurrent)) or
-    ((Offset>FPos) and (Origin = soFromBeginning)) then
-      begin
-      For I:=1 to (Offset div SizeOf(Buffer)) do
-        ReadBuffer(Buffer,SizeOf(Buffer));
-      ReadBuffer(Buffer,Offset mod SizeOf(Buffer));
-      Result:=FPos;
-      end
-  else
-    Raise EIDEAError.Create(SNoSeekAllowed);
+  FakeSeekForward(Offset,Origin,fpos);
+  Result:=FPos; // FPos updated by read
 end;
 
 END.

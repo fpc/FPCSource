@@ -18,6 +18,7 @@ unit objcbase;
 {$ifdef FPC_HAS_FEATURE_OBJECTIVEC1}
 
 {$modeswitch objectivec1}
+{$packrecords c}
 
 interface
 

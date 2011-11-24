@@ -25,6 +25,8 @@ unit cpu;
     { returns the contents of the cr0 register }
     function cr0 : longint;
 
+    var
+      is_sse3_cpu : boolean = false;
 
   implementation
 
@@ -72,4 +74,28 @@ unit cpu;
          floating_point_emulation:=(cr0 and $4)<>0;
       end;
 
+
+{$ASMMODE ATT}
+    function sse3_support : boolean;
+      var
+         _ecx : longint;
+      begin
+         if cpuid_support then
+           begin
+              asm
+                 pushl %ebx
+                 movl $1,%eax
+                 cpuid
+                 movl %ecx,_ecx
+                 popl %ebx
+              end;
+              sse3_support:=(_ecx and $1)<>0;
+           end
+         else
+           { a cpu with without cpuid instruction supports never sse3 }
+           sse3_support:=false;
+      end;
+
+begin
+  is_sse3_cpu:=sse3_support;
 end.

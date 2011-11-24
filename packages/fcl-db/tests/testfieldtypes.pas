@@ -88,6 +88,7 @@ type
     procedure TestDateParamQuery;
     procedure TestIntParamQuery;
     procedure TestTimeParamQuery;
+    procedure TestDateTimeParamQuery;
     procedure TestFmtBCDParamQuery;
     procedure TestFloatParamQuery;
     procedure TestBCDParamQuery;
@@ -265,27 +266,62 @@ procedure TTestFieldTypes.TestNumeric;
 const
   testValuesCount = 13;
   testValues : Array[0..testValuesCount-1] of currency = (-123456.789,-10200,-10000,-1875.25,-10,-0.5,0,0.5,10,1875.25,10000,10200,123456.789);
+  Sizes: array [0..4] of integer = (4,0,3,5,0); //scale
 
 var
   i          : byte;
+  s          : string;
 
 begin
-  CreateTableWithFieldType(ftBCD,'NUMERIC(10,4)');
-  TestFieldDeclaration(ftBCD,sizeof(Currency));
+  with TSQLDBConnector(DBConnector) do begin
+    if SQLDbType = INTERBASE then
+      s := '' //Interbase supports precision up to 18 only
+    else
+      s := ', N4 NUMERIC(19,0)';
+    Connection.ExecuteDirect('create table FPDEV2 (FT NUMERIC(18,4), N1 NUMERIC(18,0), N2 NUMERIC(18,3), N3 NUMERIC(18,5)' + s + ')');
+    Transaction.CommitRetaining;
 
-  for i := 0 to testValuesCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + CurrToStrF(testValues[i],ffFixed,3) + ')');
-
-  with TSQLDBConnector(DBConnector).Query do
+    with Query do
     begin
-    Open;
-    for i := 0 to testValuesCount-1 do
+      SQL.Text := 'select * from FPDEV2';
+      Open;
+
+      AssertEquals(sizeof(Currency), Fields[0].DataSize);
+      AssertTrue(Fields[0].DataType=ftBCD);
+      AssertEquals(Sizes[0], Fields[0].Size);
+
+      AssertTrue(Fields[1].DataType in [ftFmtBCD, ftLargeInt]);
+      AssertEquals(Sizes[1], Fields[1].Size);
+
+      for i := 2 to FieldCount-1 do
       begin
-      AssertEquals(testValues[i],fields[0].AsCurrency);
-      Next;
+        AssertEquals(sizeof(TBCD), Fields[i].DataSize);
+        AssertTrue(Fields[i].DataType=ftFmtBCD);
+        AssertEquals(Sizes[i], Fields[i].Size);
       end;
-    close;
+
+      Close;
     end;
+
+    for i := 0 to testValuesCount-1 do
+    begin
+      s :=CurrToStrF(testValues[i],ffFixed,3,DBConnector.FormatSettings);
+      Connection.ExecuteDirect(format('insert into FPDEV2 (FT,N2,N3) values (%s,%s,%s)', [s,s,s]));
+    end;
+
+    with Query do
+    begin
+      Open;
+      for i := 0 to testValuesCount-1 do
+      begin
+        AssertEquals(testValues[i], Fields[0].AsCurrency);
+        AssertEquals(testValues[i], Fields[2].AsCurrency);
+        AssertEquals(testValues[i], Fields[3].AsCurrency);
+        Next;
+      end;
+      Close;
+    end;
+  end;
 end;
 
 
@@ -614,7 +650,7 @@ begin
   TestFieldDeclaration(ftFloat,sizeof(double));
 
   for i := 0 to testValuesCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + floattostr(testValues[i]) + ')');
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + floattostr(testValues[i],DBConnector.FormatSettings) + ')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -740,6 +776,11 @@ begin
   TestXXParamQuery(ftTime,FieldtypeDefinitionsConst[ftTime],testValuesCount);
 end;
 
+procedure TTestFieldTypes.TestDateTimeParamQuery;
+begin
+  TestXXParamQuery(ftDateTime,FieldtypeDefinitions[ftDateTime],testValuesCount);
+end;
+
 procedure TTestFieldTypes.TestFloatParamQuery;
 
 begin
@@ -802,8 +843,9 @@ begin
         ftDate   : if cross then
                      Params.ParamByName('field1').AsString:= testDateValues[i]
                    else
-                     Params.ParamByName('field1').AsDateTime:= StrToDate(testDateValues[i],'yyyy/mm/dd','-');
-        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD:= StrToBCD(testFmtBCDValues[i]{,DBConnector.FormatSettings})
+                     Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
+        ftDateTime:Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
+        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD:= StrToBCD(testFmtBCDValues[i],DBConnector.FormatSettings)
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -825,8 +867,9 @@ begin
         ftFixedChar : AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
         ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
         ftTime   : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
-        ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
-        ftFMTBcd : AssertEquals(testFmtBCDValues[i],BCDToStr(FieldByName('FIELD1').AsBCD{,DBConnector.FormatSettings}))
+        ftDate   : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
+        ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
+        ftFMTBcd : AssertEquals(testFmtBCDValues[i],BCDToStr(FieldByName('FIELD1').AsBCD,DBConnector.FormatSettings))
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -1128,15 +1171,15 @@ end;
 
 procedure TTestFieldTypes.TestInsertReturningQuery;
 begin
-  if (SQLDbType <> interbase) then Ignore('This test does only apply to Firebird.');
+  if not(SQLDbType in [postgresql,interbase,oracle]) then Ignore('This test does not apply to this db-engine');
   with TSQLDBConnector(DBConnector) do
     begin
     // This only works with databases that supports 'insert into .. returning'
-    // for example, Firebird version 2.0 and up
+    // for example: PostgreSQL, Oracle, Firebird version 2.0 and up
     CreateTableWithFieldType(ftInteger,'int');
     Query.SQL.Text:='insert into FPDEV2 values(154) returning FT';
     Query.Open;
-    AssertEquals('FT',Query.fields[0].FieldName);
+    AssertTrue(CompareText('FT',Query.Fields[0].FieldName)=0);
     AssertEquals(154,Query.fields[0].AsInteger);
     Query.Close;
     end;
@@ -1638,10 +1681,13 @@ procedure TTestFieldTypes.TestSQLClob;
   begin
     AssertEquals(testStringValues[a],AField.AsString);
   end;
+var datatype: string;
 begin
-  if SQLDbType=interbase then
-      Ignore('This test does not apply to Interbase/Firebird, since it does not support CLOB fields');
-  TestSQLFieldType(ftMemo, 'CLOB', 0, @TestSQLClob_GetSQLText, @CheckFieldValue);
+  if sqlDBType=sqlite3 then
+    datatype:='CLOB'
+  else
+    datatype:=FieldtypeDefinitions[ftMemo];
+  TestSQLFieldType(ftMemo, datatype, 0, @TestSQLClob_GetSQLText, @CheckFieldValue);
 end;
 
 // Placed here, as long as bug 18702 is not solved
@@ -1655,13 +1701,14 @@ procedure TTestFieldTypes.TestSQLLargeint;
   begin
     AssertEquals(testLargeIntValues[a],AField.AsLargeInt);
   end;
+var datatype: string;
 begin
-  if sqlDBType=interbase then
-    TestSQLFieldType(ftLargeint, 'BIGINT', 8, @TestSQLLargeint_GetSQLText, @CheckFieldValue)
+  if sqlDBType=sqlite3 then
+    datatype:='LARGEINT'
   else
-    TestSQLFieldType(ftLargeint, 'LARGEINT', 8, @TestSQLLargeint_GetSQLText, @CheckFieldValue);
+    datatype:='BIGINT';
+  TestSQLFieldType(ftLargeint, datatype, 8, @TestSQLLargeint_GetSQLText, @CheckFieldValue);
 end;
-
 
 procedure TTestFieldTypes.TestUpdateIndexDefs;
 var ds : TSQLQuery;
@@ -1770,7 +1817,8 @@ procedure TTestFieldTypes.TestParametersAndDates;
 // See bug 7205
 var ADateStr : String;
 begin
-  if SQLDbType in [interbase,mysql40,mysql41,mysql50,sqlite3] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
+  if not(SQLDbType in [postgresql,odbc,oracle]) then
+    Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
 
   with TSQLDBConnector(DBConnector).Query do
     begin

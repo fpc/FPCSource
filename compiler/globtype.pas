@@ -224,6 +224,13 @@ interface
        );
        twpoptimizerswitches = set of twpoptimizerswitch;
 
+    type
+       { Used by ARM / AVR to differentiate between specific microcontrollers }
+       tcontrollerdatatype = record
+          controllertypestr, controllerunitstr: string[20];
+          interruptvectors:integer;
+          flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize: dword;
+       end;
 
     const
        OptimizerSwitchStr : array[toptimizerswitch] of string[10] = ('',
