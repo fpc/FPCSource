@@ -802,7 +802,7 @@ begin
          if CopyFile(CompilerLogFile,LongLogFile,true)=0 then
            AddLog(LongLogFile,'Internal error in compiler');
          { avoid to try again }
-         AddLog(ExeLogFile,'Failed to compile '+PPFileInfo[current]);
+         AddLog(ExeLogFile,failed_to_compile+PPFileInfo[current]);
          Verbose(V_Warning,'Internal error in compiler');
          exit;
        end;
@@ -840,7 +840,7 @@ begin
          ((Config.KnownCompileError<>0) and (ExecuteResult=Config.KnownCompileError))) then
       begin
         AddLog(FailLogFile,TestName+known_problem+Config.KnownCompileNote);
-        AddLog(ResLogFile,failed_to_run+PPFileInfo[current]+known_problem+Config.KnownCompileNote);
+        AddLog(ResLogFile,failed_to_compile+PPFileInfo[current]+known_problem+Config.KnownCompileNote);
         AddLog(LongLogFile,line_separation);
         AddLog(LongLogFile,known_problem+Config.KnownCompileNote);
         AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
