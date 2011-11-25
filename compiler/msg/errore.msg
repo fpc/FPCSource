@@ -540,7 +540,7 @@ parser_e_only_class_members_via_class_ref=03053_E_Only class methods, class prop
 % \end{verbatim}
 % \var{Free} is not a class method and hence cannot be called with a class
 % reference.
-parser_e_only_class_members=03054_E_Only class class methods, class properties and class variables can be accessed in class methods
+parser_e_only_class_members=03054_E_Only class methods, class properties and class variables can be accessed in class methods
 % This is related to the previous error. You cannot call a method of an object
 % from inside a class method. The following code would produce this error:
 % \begin{verbatim}
