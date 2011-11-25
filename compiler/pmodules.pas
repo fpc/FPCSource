@@ -351,7 +351,7 @@ implementation
           ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',0))
         else
           { Nil pointer to resource information }
-          {$IFDEF CPU32}
+          {$IFDEF CPU32BIT}
           ResourceInfo.Concat(Tai_const.Create_32bit(0));
           {$ELSE}
           ResourceInfo.Concat(Tai_const.Create_64bit(0));
