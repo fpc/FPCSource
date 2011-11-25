@@ -153,6 +153,7 @@
 {$endif mipsel}
 
 {$ifdef mips}
+  {$define cpu32bit}
   {$define cpu32bitalu}
   {$define cpu32bitaddr}
   { $define cpuflags}
