@@ -65,7 +65,6 @@ type
     procedure GetFloat(CurrBuff, Buffer : pointer; Size : Byte);
     procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
     procedure CheckError(ProcName : string; Status : PISC_STATUS);
-    function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
     procedure SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
     procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
     function  IsDialectStored: boolean;
@@ -1249,22 +1248,6 @@ begin
 end;
 
 
-function TIBConnection.getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
-var
-  iscInfoBlobMaxSegment : byte = isc_info_blob_max_segment;
-  blobInfo : array[0..50] of byte;
-
-begin
-  if isc_blob_info(@Fstatus[0], @blobHandle, sizeof(iscInfoBlobMaxSegment), pchar(@iscInfoBlobMaxSegment), sizeof(blobInfo) - 2, pchar(@blobInfo[0])) <> 0 then
-    CheckError('isc_blob_info', FStatus);
-  if blobInfo[0]  = isc_info_blob_max_segment then
-    begin
-      result :=  isc_vax_integer(pchar(@blobInfo[3]), isc_vax_integer(pchar(@blobInfo[1]), 2));
-    end
-  else
-     CheckError('isc_blob_info', FStatus);
-end;
-
 procedure TIBConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction);
 const
   isc_segstr_eof = 335544367; // It's not defined in ibase60 but in ibase40. Would it be better to define in ibase60?
@@ -1273,7 +1256,6 @@ var
   blobHandle : Isc_blob_Handle;
   blobSegment : pointer;
   blobSegLen : word;
-  maxBlobSize : longInt;
   TransactionHandle : pointer;
   blobId : PISC_QUAD;
   ptr : Pointer;
@@ -1286,14 +1268,13 @@ begin
   if isc_open_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, blobId) <> 0 then
     CheckError('TIBConnection.CreateBlobStream', FStatus);
 
-  maxBlobSize := getMaxBlobSize(blobHandle);
-
-  blobSegment := AllocMem(maxBlobSize);
+  //For performance, read as much as we can, regardless of any segment size set in database.
+  blobSegment := AllocMem(MAXBLOBSEGMENTSIZE);
 
   with ABlobBuf^.BlobBuffer^ do
     begin
     Size := 0;
-    while (isc_get_segment(@FStatus[0], @blobHandle, @blobSegLen, maxBlobSize, blobSegment) = 0) do
+    while (isc_get_segment(@FStatus[0], @blobHandle, @blobSegLen, MAXBLOBSEGMENTSIZE, blobSegment) = 0) do
       begin
       ReAllocMem(Buffer,Size+blobSegLen);
       ptr := Buffer+Size;
