@@ -1740,10 +1740,10 @@ implementation
 
     procedure tenumdef.calcsavesize;
       begin
-{$IFDEF CPU32} {$push}{$warnings off} {$ENDIF} //comparison always false warning
+{$IFNDEF cpu64bitaddr} {$push}{$warnings off} {$ENDIF} //comparison always false warning
         if (current_settings.packenum=8) or (min<low(longint)) or (int64(max)>high(cardinal)) then
          savesize:=8
-{$IFDEF CPU32} {$pop} {$ENDIF}
+{$IFDEF not cpu64bitaddr} {$pop} {$ENDIF}
         else
          if (current_settings.packenum=4) or (min<low(smallint)) or (max>high(word)) then
           savesize:=4
