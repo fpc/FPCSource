@@ -40,7 +40,7 @@ implementation
        wpoinfo,
        aasmtai,aasmdata,aasmcpu,aasmbase,
        cgbase,cgobj,
-       nbas,ncgutil,
+       nbas,nutils,ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        pexports,
@@ -987,8 +987,6 @@ implementation
 
     function gen_implicit_initfinal(flag:word;st:TSymtable):tcgprocinfo;
       begin
-        { update module flags }
-        current_module.flags:=current_module.flags or flag;
         { create procdef }
         case flag of
           uf_init :
@@ -1311,7 +1309,8 @@ implementation
 
          { should we force unit initialization? }
          { this is a hack, but how can it be done better ? }
-         if force_init_final and ((current_module.flags and uf_init)=0) then
+         { Now the sole purpose of this is to change 'init' to 'init_implicit', is it needed at all? (Sergei) }
+         if force_init_final and assigned(init_procinfo) and has_no_code(init_procinfo.code) then
            begin
              { first release the not used init procinfo }
              if assigned(init_procinfo) then
@@ -1321,9 +1320,6 @@ implementation
          { finalize? }
          if not current_module.interface_only and (token=_FINALIZATION) then
            begin
-              { the uf_finalize flag is only set after we checked that it
-                wasn't empty }
-
               { Compile the finalize }
               finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
@@ -1338,13 +1334,21 @@ implementation
            a register that is also used in the finalize body (PFV) }
          if assigned(init_procinfo) then
            begin
-             init_procinfo.generate_code;
+             if force_init_final or not(has_no_code(init_procinfo.code)) then
+               begin
+                 init_procinfo.generate_code;
+                 current_module.flags:=current_module.flags or uf_init;
+               end;
              init_procinfo.resetprocdef;
              release_main_proc(init_procinfo);
            end;
          if assigned(finalize_procinfo) then
            begin
-             finalize_procinfo.generate_code;
+             if force_init_final or not(has_no_code(finalize_procinfo.code)) then
+               begin
+                 finalize_procinfo.generate_code;
+                 current_module.flags:=current_module.flags or uf_finalize;
+               end;
              finalize_procinfo.resetprocdef;
              release_main_proc(finalize_procinfo);
            end;
@@ -2284,9 +2288,6 @@ implementation
          { finalize? }
          if token=_FINALIZATION then
            begin
-              { the uf_finalize flag is only set after we checked that it
-                wasn't empty }
-
               { Parse the finalize }
               finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
@@ -2312,13 +2313,19 @@ implementation
          release_main_proc(main_procinfo);
          if assigned(init_procinfo) then
            begin
+             { initialization can be implicit only }
+             current_module.flags:=current_module.flags or uf_init;
              init_procinfo.generate_code;
              init_procinfo.resetprocdef;
              release_main_proc(init_procinfo);
            end;
          if assigned(finalize_procinfo) then
            begin
-             finalize_procinfo.generate_code;
+             if force_init_final or not (has_no_code(finalize_procinfo.code)) then
+               begin
+                 finalize_procinfo.generate_code;
+                 current_module.flags:=current_module.flags or uf_finalize;
+               end;
              finalize_procinfo.resetprocdef;
              release_main_proc(finalize_procinfo);
            end;

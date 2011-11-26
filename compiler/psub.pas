@@ -204,12 +204,6 @@ implementation
                         { The library init code is already called and does not
                           need to be in the initfinal table (PFV) }
                         block:=statement_block(_INITIALIZATION);
-                        { optimize empty initialization block away }
-                        if (block.nodetype=blockn) and (tblocknode(block).left=nil) then
-                          FreeAndNil(block)
-                        else
-                          if not islibrary then
-                            current_module.flags:=current_module.flags or uf_init;
                      end
                    else if token=_FINALIZATION then
                      begin
@@ -217,25 +211,12 @@ implementation
                          point when we try to read the nonh existing initalization section
                          so we've to check if we are really try to parse the finalization }
                        if current_procinfo.procdef.proctypeoption=potype_unitfinalize then
-                         begin
-                           block:=statement_block(_FINALIZATION);
-                           { optimize empty finalization block away }
-                           if (block.nodetype=blockn) and (tblocknode(block).left=nil) then
-                             FreeAndNil(block)
-                           else
-                             current_module.flags:=current_module.flags or uf_finalize;
-                         end
-                         else
-                           block:=nil;
+                         block:=statement_block(_FINALIZATION)
+                       else
+                         block:=nil;
                      end
                    else
-                     begin
-                        { The library init code is already called and does not
-                          need to be in the initfinal table (PFV) }
-                        if not islibrary then
-                          current_module.flags:=current_module.flags or uf_init;
-                        block:=statement_block(_BEGIN);
-                     end;
+                     block:=statement_block(_BEGIN);
                 end;
             end
          else
