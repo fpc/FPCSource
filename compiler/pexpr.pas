@@ -3094,7 +3094,7 @@ implementation
            _ASSIGNMENT :
              begin
                 consume(_ASSIGNMENT);
-                if (p1.resultdef.typ=procvardef) then
+                if assigned(p1.resultdef) and (p1.resultdef.typ=procvardef) then
                   getprocvardef:=tprocvardef(p1.resultdef);
                 p2:=sub_expr(opcompare,true,false);
                 if assigned(getprocvardef) then
