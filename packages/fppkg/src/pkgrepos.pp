@@ -239,7 +239,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
           if ((SR.Attr and faDirectory)=faDirectory) and (SR.Name<>'.') and (SR.Name<>'..') then
             begin
               UD:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(AUnitDir)+SR.Name);
-              // Try new fpunits.conf
+              // Try new fpunits.cfg
               UF:=UD+UnitConfigFileName;
               if FileExistsLog(UF) then
                 begin

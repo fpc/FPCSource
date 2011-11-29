@@ -91,6 +91,8 @@ package=ubzip2dos.zip[ubz2dos.zip],Units for bzip2 decompression
 package=ufcl-jsdos.zip[ufcjsdos.zip],Free Component Library (FCL)-Javascript support
 # Dos 32
 package=uhermesdos.zip[uhermdos.zip],Port of Hermes graphics library
+# Dos 33
+package=ufppkgdos.zip[ufppkdos.zip],Units for FPPkg packaging support
 
 #
 # Win32 packages
@@ -150,6 +152,8 @@ package=units-openal.i386-win32.zip,OpenAL interface units
 package=units-openssl.i386-win32.zip,OpenSSL interface units
 # Win32 23
 package=units-hermes.i386-win32.zip,Port of Hermes graphics library
+# Win32 24
+package=units-fppkg.i386-win32.zip,Units for FPPkg packaging support
 
 #
 # Win32 packages 2nd part
@@ -272,6 +276,8 @@ package=ufcl-xmlos2.zip[ufclxos2.zip],Free Component Library (FCL)-XML
 #package=ufcl-webos2.zip[ufclwos2.zip],Free Component Library (FCL)-Web
 # OS/2 21
 package=uhermesos2.zip[uhermos2.zip],Port of Hermes graphics library
+# OS/2 22
+package=ufppkgos2.zip[ufppkos2.zip],Units for FPPkg packaging support
 
 #
 # OS/2 packages 2nd part
@@ -386,6 +392,8 @@ package=ufcl-xmlemx.zip[ufclxemx.zip],Free Component Library (FCL)-XML
 #package=ufcl-webemx.zip[ufclwemx.zip],Free Component Library (FCL)-Web
 # EMX 21
 package=uhermesemx.zip[uhermemx.zip],Port of Hermes graphics library
+# EMX 22
+package=ufppkgemx.zip[ufppkemx.zip],Units for FPPkg packaging support
 
 #
 # EMX packages 2nd part
@@ -480,25 +488,27 @@ package=installer.source.zip[instsrc.zip],~I~nstaller sources
 # Source 7
 package=doc.source.zip[docsrc.zip],~D~ocumentation sources (LaTeX)
 # Source 8
-package=units-cdrom.source.zip[ucdrsrc.zip],CD-ROM interface units
+package=units-cdrom.source.zip[ucdrsrc.zip],CD-ROM interface sources
 # Source 9
-package=units-unzip.source.zip[uzipsrc.zip],Unzip units
+package=units-unzip.source.zip[uzipsrc.zip],Unzip units sources
 # Source 10
-package=units-regexpr.source.zip[uregsrc.zip],Regular expression units
+package=units-regexpr.source.zip[uregsrc.zip],Regular expression units sources
 # Source 11
-package=units-paszlib.source.zip[upzlsrc.zip],PasZLib units
+package=units-paszlib.source.zip[upzlsrc.zip],PasZLib units sources
 # Source 12
-package=units-rexx.source.zip[urexxsrc.zip],REXX SAA interface units
+package=units-rexx.source.zip[urexxsrc.zip],REXX SAA interface units sources
 # Source 13
-package=units-zlib.source.zip[uzlibsrc.zip],ZLib interface units
+package=units-zlib.source.zip[uzlibsrc.zip],ZLib interface units sources
 # Source 14
-package=units-gdbint.source.zip[ugdbsrc.zip],GDB interface units
+package=units-gdbint.source.zip[ugdbsrc.zip],GDB interface units sources
 # Source 15
-package=units-postgres.source.zip[upgrsrc.zip],PostGreSQL interface units
+package=units-postgres.source.zip[upgrsrc.zip],PostGreSQL interface sources
 # Source 16
-package=units-graph.source.zip[ugrphsrc.zip],Unit Graph
+package=units-graph.source.zip[ugrphsrc.zip],Unit Graph sources
 # Source 17
 package=units-hermes.source.zip[uhermsrc.zip],Port of Hermes graphics library
+# Source 18
+package=units-fppkg.source.zip[ufppkdos.zip],Units for FPPkg packaging support
 
 #
 # Source packages 2nd part
@@ -506,38 +516,38 @@ package=units-hermes.source.zip[uhermsrc.zip],Port of Hermes graphics library
 pack=So~u~rces 2
 filecheck=*.source.zip[*src.zip]
 # Source-2 1
-package=units-opengl.source.zip[uoglsrc.zip],OpenGL interface units
+package=units-opengl.source.zip[uoglsrc.zip],OpenGL interface units sources
 # Source-2 2
-package=units-gtk1.source.zip[ugtksrc.zip],GTK1 interface units
+package=units-gtk1.source.zip[ugtksrc.zip],GTK1 interface units sources
 # Source-2 3
-package=units-odbc.source.zip[uodbcsrc.zip],ODBC interface units
+package=units-odbc.source.zip[uodbcsrc.zip],ODBC interface units sources
 # Source-2 4
-package=units-ibase.source.zip[uibassrc.zip],Interbase interface units
+package=units-ibase.source.zip[uibassrc.zip],Interbase interface units sources
 # Source-2 5
-package=units-mysql.source.zip[umysqsrc.zip],MySQL interface units
+package=units-mysql.source.zip[umysqsrc.zip],MySQL interface units sources
 # Source-2 6
 #package=units-ftpapi.source.zip[uftpsrc.zip],OS/2 FTP API interface units
 # Source-2 7
 #package=units-hwvideo.source.zip[uhwvsrc.zip],OS/2 HWVideo interface units
 # Source-2 8
-#package=units-mmtk.source.zip[ummtksrc.zip],MMOS/2 interface units
+#package=units-mmtk.source.zip[ummtksrc.zip],MMOS/2 interface units sources
 # Source-2 9
 package=units-os2units.source.zip[uos2src.zip],Units interfacing libraries delivered with OS/2/eCS
 #package=units-clkdll.source.zip[uclksrc.zip],CLKDLL interface unit (eCS 1.1+)
 # Source-2 10
-#package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit
+#package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit sources
 # Source-2 11
-package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units
+package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units sources
 # Source-2 12
-package=units-fv.source.zip[ufvsrc.zip],Free ~V~ision (FV)
+package=units-fv.source.zip[ufvsrc.zip],Free ~V~ision (FV) sources
 # Source-2 13
-package=units-libpng.source.zip[ulpngsrc.zip],LibPNG interface units
+package=units-libpng.source.zip[ulpngsrc.zip],LibPNG interface units sources
 # Source-2 14
-package=units-imlib.source.zip[uimlbsrc.zip],ImLib interface units
+package=units-imlib.source.zip[uimlbsrc.zip],ImLib interface units sources
 # Source-2 15
-package=units-fpgtk.source.zip[ufpgtsrc.zip],fpGTK units
+package=units-fpgtk.source.zip[ufpgtsrc.zip],fpGTK units sources
 # Source-2 16
-package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units
+package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units sources
 # Source-2 17
 package=units-fpmkunit.source.zip[ufpmksrc.zip],Units required for building fpmake.exe
 # Source-2 18
@@ -568,13 +578,13 @@ filecheck=*.source.zip[*src.zip]
 # Source-3 1
 package=units-winunits.source.zip[uwinsrc.zip],Extended Windows API interface units
 # Source-3 2
-package=units-tcl.source.zip[utclsrc.zip],TCL interface units
+package=units-tcl.source.zip[utclsrc.zip],TCL interface units sources
 # Source-3 3
-package=units-oracle.source.zip[uorasrc.zip],Oracle interface units
+package=units-oracle.source.zip[uorasrc.zip],Oracle interface units sources
 # Source-3 4
-package=units-hash.source.zip[uhashsrc.zip],Hash calculation units
+package=units-hash.source.zip[uhashsrc.zip],Hash calculation units sources
 # Source-3 5
-package=units-fftw.source.zip[ufftwsrc.zip],FFTW interface unit
+package=units-fftw.source.zip[ufftwsrc.zip],FFTW interface unit sources
 # Source-3 6
 package=fcl-base.source.zip[ufclbsrc.zip],Free component library (FCL)-base part
 # Source-3 7
@@ -594,17 +604,17 @@ package=fcl-xml.source.zip[ufclxsrc.zip],Free component library (FCL)-XML files
 # Source-3 14
 package=fcl-web.source.zip[ufclwsrc.zip],Free component library (FCL)-Web
 # Source-3 15
-package=httpd-1.3.source.zip[uhd13src.zip],HTTPD 1.3 interface units
+package=httpd-1.3.source.zip[uhd13src.zip],HTTPD 1.3 interface units sources
 # Source-3 16
-package=httpd-2.0.source.zip[uhd20src.zip],HTTPD 2.0 interface units
+package=httpd-2.0.source.zip[uhd20src.zip],HTTPD 2.0 interface units sources
 # Source-3 17
-package=httpd-2.2.source.zip[uhd22src.zip],HTTPD 2.2 interface units
+package=httpd-2.2.source.zip[uhd22src.zip],HTTPD 2.2 interface units sources
 # Source-3 18
-package=oggvorbis.source.zip[uoggvsrc.zip],OGG Vorbis interface units
+package=oggvorbis.source.zip[uoggvsrc.zip],OGG Vorbis interface units sources
 # Source-3 19
-package=openal.source.zip[uoalsrc.zip],OpenAL interface units
+package=openal.source.zip[uoalsrc.zip],OpenAL interface units sources
 # Source-3 20
-package=openssl.source.zip[uosslsrc.zip],OpenSSL interface units
+package=openssl.source.zip[uosslsrc.zip],OpenSSL interface units sources
 
 defaultcfg=
 #

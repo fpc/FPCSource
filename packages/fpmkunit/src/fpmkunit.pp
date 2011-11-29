@@ -172,7 +172,7 @@ Const
 
   FPMakePPFile = 'fpmake.pp';
   ManifestFile = 'manifest.xml';
-  UnitConfigFile = 'fpunits.conf';
+  UnitConfigFile = 'fpunits.cfg';
 
   DirNotFound = '<dirnotfound>';
 
