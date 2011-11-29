@@ -40,7 +40,7 @@ Type
                             2 : (phi,Omega : Real);
                           end; 
                           
-//  TADeprecatedType = Integer deprecated;
+  TADeprecatedType = Integer deprecated;
                         
 Var
   ASimpleVar : Integer;  

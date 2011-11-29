@@ -1295,10 +1295,7 @@ implementation
                 end;
            end
          else
-           begin
-             if not(m_duplicate_names in current_settings.modeswitches) then
-               result:=inherited checkduplicate(hashedid,sym);
-           end;
+           result:=inherited checkduplicate(hashedid,sym);
       end;
 
 

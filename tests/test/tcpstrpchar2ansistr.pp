@@ -1,4 +1,4 @@
-﻿uses
+uses
 {$ifdef unix}
   cwstring,
 {$endif unix}

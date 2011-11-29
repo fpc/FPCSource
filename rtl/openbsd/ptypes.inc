@@ -178,15 +178,15 @@ type
     bsize,			  { filesystem block size}
     iosize		: cint;   { optimal transfr block size }
     blocks,			  { total data block in file system }
-    bfree		: clong;  { blocks free in fs }
+    bfree		: cuint64;  { blocks free in fs }
     bavail		: cint64; { block available for non-superuser }
     files,			  { total file nodes in file system }
-    ffree		: clong;  { free files nodes in fs }
+    ffree		: cuint64;  { free files nodes in fs }
     favail		: cint64; { free file nodes avail to non-root }
     fsyncwrites,		  { count of sync writes since mount }
     fasyncwrites,		  { count of async writes since mount }
     fsyncreads,			  { count of sync reads since mount }
-    fasyncreads		: clong;  { count of async reads since mount }
+    fasyncreads		: cuint64;  { count of async reads since mount }
     fsid		: fsid_t; { file system id }
     namemax		: cint;   { maximum fileystem length }
     fowner		: tuid;   { user that mounted the fileystem }

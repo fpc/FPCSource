@@ -15,7 +15,7 @@ program ModesExample;
 uses
   ptc;
 
-procedure print(const format: TPTCFormat);
+procedure print(format: IPTCFormat);
 begin
   { check format type }
   if format.direct then
@@ -31,7 +31,7 @@ begin
     Write('Format(', format.bits:2, ')');
 end;
 
-procedure print(const mode: TPTCMode);
+procedure print(mode: IPTCMode);
 begin
   { print mode width and height }
   Write(' ', mode.width:4, ' x ', mode.height);
@@ -51,42 +51,32 @@ begin
 end;
 
 var
-  console: TPTCConsole = nil;
-  modes: PPTCMode;
+  console: IPTCConsole;
+  modes: TPTCModeList;
   index: Integer;
 begin
   try
-    try
-      { create console }
-      console := TPTCConsole.Create;
+    { create console }
+    console := TPTCConsoleFactory.CreateNew;
 
-      { get list of console modes }
-      modes := console.modes;
+    { get list of console modes }
+    modes := console.modes;
 
-      { check for empty list }
-      if not modes[0].valid then
-        { the console mode list was empty }
-        Writeln('[console mode list is not available]')
-      else
+    { check for empty list }
+    if Length(modes) = 0 then
+      { the console mode list was empty }
+      Writeln('[console mode list is not available]')
+    else
+    begin
+      { print mode list header }
+      Writeln('[console modes]');
+
+      { iterate through all modes }
+      for index := Low(modes) to High(modes) do
       begin
-        { print mode list header }
-        Writeln('[console modes]');
-
-        { mode index }
-        index := 0;
-
-        { iterate through all modes }
-        while modes[index].valid do
-        begin
-          { print mode }
-          print(modes[index]);
-
-          { next mode }
-          Inc(index);
-        end;
+        { print mode }
+        print(modes[index]);
       end;
-    finally
-      console.Free;
     end;
   except
     on error: TPTCError do

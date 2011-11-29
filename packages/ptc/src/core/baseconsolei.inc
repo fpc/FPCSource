@@ -30,6 +30,98 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+type
+  TPTCBaseConsole = class(TInterfacedObject, IPTCConsole, IPTCSurface)
+  private
+    FReleaseEnabled: Boolean;
+
+    procedure SetKeyReleaseEnabled(AValue: Boolean);
+    function GetKeyReleaseEnabled: Boolean;
+
+    function GetWidth: Integer; virtual; abstract;
+    function GetHeight: Integer; virtual; abstract;
+    function GetPitch: Integer; virtual; abstract;
+    function GetArea: IPTCArea; virtual; abstract;
+    function GetFormat: IPTCFormat; virtual; abstract;
+
+    function GetPages: Integer; virtual; abstract;
+    function GetName: string; virtual; abstract;
+    function GetTitle: string; virtual; abstract;
+    function GetInformation: string; virtual; abstract;
+  public
+    constructor Create; virtual;
+
+    procedure Copy(ASurface: IPTCSurface); virtual; abstract;
+    procedure Copy(ASurface: IPTCSurface;
+                   ASource, ADestination: IPTCArea); virtual; abstract;
+    function Lock: Pointer; virtual; abstract;
+    procedure Unlock; virtual; abstract;
+    procedure Load(const APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette); virtual; abstract;
+    procedure Load(const APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea); virtual; abstract;
+    procedure Save(APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette); virtual; abstract;
+    procedure Save(APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea); virtual; abstract;
+    procedure Clear; virtual; abstract;
+    procedure Clear(AColor: IPTCColor); virtual; abstract;
+    procedure Clear(AColor: IPTCColor;
+                    AArea: IPTCArea); virtual; abstract;
+    procedure Palette(APalette: IPTCPalette); virtual; abstract;
+    procedure Clip(AArea: IPTCArea); virtual; abstract;
+    function Option(const AOption: String): Boolean; virtual; abstract;
+    function Clip: IPTCArea; virtual; abstract;
+    function Palette: IPTCPalette; virtual; abstract;
+
+    procedure Configure(const AFileName: String); virtual; abstract;
+    function Modes: TPTCModeList; virtual; abstract;
+    procedure Open(const ATitle: string; APages: Integer = 0); overload; virtual; abstract;
+    procedure Open(const ATitle: string; AFormat: IPTCFormat;
+                   APages: Integer = 0); overload; virtual; abstract;
+    procedure Open(const ATitle: string; AWidth, AHeight: Integer;
+                   AFormat: IPTCFormat; APages: Integer = 0); overload; virtual; abstract;
+    procedure Open(const ATitle: string; AMode: IPTCMode;
+                   APages: Integer = 0); overload; virtual; abstract;
+    procedure Close; virtual; abstract;
+    procedure Flush; virtual; abstract;
+    procedure Finish; virtual; abstract;
+    procedure Update; virtual; abstract;
+    procedure Update(AArea: IPTCArea); virtual; abstract;
+
+    { event handling }
+    function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; virtual; abstract;
+    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; virtual; abstract;
+
+    { key handling }
+    function KeyPressed: Boolean;
+    function PeekKey(out AKey: IPTCKeyEvent): Boolean;
+    procedure ReadKey(out AKey: IPTCKeyEvent);
+    procedure ReadKey;
+    property KeyReleaseEnabled: Boolean read GetKeyReleaseEnabled write SetKeyReleaseEnabled;
+
+    property Pages: Integer read GetPages;
+    property Name: string read GetName;
+    property Title: string read GetTitle;
+    property Information: string read GetInformation;
+
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property Pitch: Integer read GetPitch;
+    property Area: IPTCArea read GetArea;
+    property Format: IPTCFormat read GetFormat;
+  end;
+
 constructor TPTCBaseConsole.Create;
 begin
   FReleaseEnabled := False;
@@ -37,38 +129,29 @@ end;
 
 function TPTCBaseConsole.KeyPressed: Boolean;
 var
-  k, kpeek: TPTCEvent;
+  k, kpeek: IPTCEvent;
 begin
-  k := nil;
-  try
-    repeat
-      kpeek := PeekEvent(False, [PTCKeyEvent]);
-      if kpeek = nil then
-        exit(False);
-      if FReleaseEnabled or (kpeek As TPTCKeyEvent).Press then
-        exit(True);
-      NextEvent(k, False, [PTCKeyEvent]);
-    until False;
-  finally
-    k.Free;
-  end;
+  repeat
+    kpeek := PeekEvent(False, [PTCKeyEvent]);
+    if kpeek = nil then
+      exit(False);
+    if FReleaseEnabled or (kpeek as IPTCKeyEvent).Press then
+      exit(True);
+    NextEvent(k, False, [PTCKeyEvent]);
+  until False;
 end;
 
-procedure TPTCBaseConsole.ReadKey(var AKey: TPTCKeyEvent);
+procedure TPTCBaseConsole.ReadKey(out AKey: IPTCKeyEvent);
 var
-  ev: TPTCEvent;
+  ev: IPTCEvent;
 begin
-  ev := AKey;
-  try
-    repeat
-      NextEvent(ev, True, [PTCKeyEvent]);
-    until FReleaseEnabled or (ev As TPTCKeyEvent).Press;
-  finally
-    AKey := ev As TPTCKeyEvent;
-  end;
+  repeat
+    NextEvent(ev, True, [PTCKeyEvent]);
+  until FReleaseEnabled or (ev as IPTCKeyEvent).Press;
+  AKey := ev as IPTCKeyEvent;
 end;
 
-function TPTCBaseConsole.PeekKey(var AKey: TPTCKeyEvent): Boolean;
+function TPTCBaseConsole.PeekKey(out AKey: IPTCKeyEvent): Boolean;
 begin
   if KeyPressed then
   begin
@@ -81,12 +164,17 @@ end;
 
 procedure TPTCBaseConsole.ReadKey;
 var
-  k: TPTCKeyEvent;
+  k: IPTCKeyEvent;
 begin
-  k := TPTCKeyEvent.Create;
-  try
-    ReadKey(k);
-  finally
-    k.Free;
-  end;
+  ReadKey(k);
+end;
+
+procedure TPTCBaseConsole.SetKeyReleaseEnabled(AValue: Boolean);
+begin
+  FReleaseEnabled := AValue;
+end;
+
+function TPTCBaseConsole.GetKeyReleaseEnabled: Boolean;
+begin
+  Result := FReleaseEnabled;
 end;

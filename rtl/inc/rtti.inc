@@ -141,13 +141,11 @@ begin
       end;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-  {$ifndef VER2_2}
     tkUstring :
       begin
         fpc_UnicodeStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
-  {$endif VER2_2}
   {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring :
       begin
@@ -195,10 +193,8 @@ begin
     tkWstring :
       fpc_WideStr_Incr_Ref(PPointer(Data)^);
   {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-  {$ifndef VER2_2}
     tkUstring :
       fpc_UnicodeStr_Incr_Ref(PPointer(Data)^);
-  {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray :
       arrayrtti(data,typeinfo,@int_addref);
@@ -238,10 +234,8 @@ begin
     tkWstring:
       fpc_WideStr_Decr_Ref(PPointer(Data)^);
   {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-  {$ifndef VER2_2}
     tkUString:
       fpc_UnicodeStr_Decr_Ref(PPointer(Data)^);
-  {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray:
       arrayrtti(data,typeinfo,@fpc_systemDecRef);
@@ -292,10 +286,8 @@ begin
     tkWstring:
       fpc_WideStr_Assign(PPointer(Dest)^,PPointer(Src)^);
   {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-  {$ifndef VER2_2}
     tkUstring:
       fpc_UnicodeStr_Assign(PPointer(Dest)^,PPointer(Src)^);
-  {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray:
       begin

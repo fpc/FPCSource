@@ -203,10 +203,10 @@ Var
 begin
   { if codepages are differ then concat using unicodestring }
   S1CP:=StringCodePage(S1);
-  if (S1CP=CP_NONE) or (S1CP=0) then
+  if (S1CP=CP_ACP) then
     S1CP:=DefaultSystemCodePage;
   S2CP:=StringCodePage(S2);
-  if (S2CP=CP_NONE) or (S2CP=0) then
+  if (S2CP=CP_ACP) then
     S2CP:=DefaultSystemCodePage;
 {$ifdef FPC_HAS_CPSTRING}
   if (Pointer(DestS)=nil) then
@@ -216,7 +216,7 @@ begin
 {$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
 {$endif FPC_HAS_CPSTRING}
-  if (DestCP=CP_NONE) or (DestCP=0) then
+  if (DestCP=CP_ACP) then
     DestCP:=DefaultSystemCodePage;
   if (S1CP<>DestCP) or (S2CP<>DestCP) then
     begin
@@ -258,10 +258,10 @@ begin
     begin
       DestS:='';
       SetLength(DestS,Size+Location);
-      SetCodePage(DestS,DestCP,false);
       Move(Pointer(S1)^,Pointer(DestS)^,Location);
       Move(Pointer(S2)^,(Pointer(DestS)+Location)^,Size+1);
     end;
+  SetCodePage(DestS,DestCP,false);
 end;
 
 
@@ -291,7 +291,7 @@ begin
 {$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
 {$endif FPC_HAS_CPSTRING}
-  if (DestCP=CP_NONE) or (DestCP=0) then
+  if (DestCP=CP_ACP) then
     DestCP:=DefaultSystemCodePage;
   sameCP:=true;
   lowstart:=low(sarr);
@@ -308,7 +308,7 @@ begin
       U:='';
       for i:=lowstart to high(sarr) do begin
         tmpCP:=StringCodePage(sarr[i]);
-        if (tmpCP=CP_NONE) or (tmpCP=0) then
+        if (tmpCP=CP_ACP) then
           begin
             tmpStr:=sarr[i];
             SetCodePage(tmpStr,DefaultSystemCodePage,False);
@@ -402,14 +402,18 @@ Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): 
 Var
   Size : SizeInt;
   temp : UnicodeString;
+  orgcp: TSystemCodePage;
 begin
   result:='';
   Size:=Length(S);
   if Size>0 then
     begin
-      if (cp=0) or (cp=CP_NONE) then
+      if (cp=CP_ACP) then
         cp:=DefaultSystemCodePage;
-      if (StringCodePage(S)=cp) then
+      orgcp:=StringCodePage(S);
+      if (orgcp=CP_ACP) then
+        orgcp:=DefaultSystemCodePage;
+      if (orgcp=cp) or (orgcp=CP_NONE) then
         begin
           SetLength(result,Size);
           Move(S[1],result[1],Size);
@@ -487,7 +491,7 @@ Var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  if (cp=0) or (cp=CP_NONE) then
+  if (cp=CP_ACP) then
     cp:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
@@ -511,7 +515,7 @@ var
 {$endif FPC_HAS_CPSTRING}
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  if (cp=0) or (cp=CP_NONE) then
+  if (cp=CP_ACP) then
     cp:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
@@ -539,7 +543,7 @@ begin
   if L > 0 then
     begin
 {$ifdef FPC_HAS_CPSTRING}
-      if (cp=0) or (cp=CP_NONE) then
+      if (cp=CP_ACP) then
         cp:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
       cp:=DefaultSystemCodePage;
@@ -574,7 +578,7 @@ begin
   if i > 0 then
     begin
 {$ifdef FPC_HAS_CPSTRING}
-      if (cp=0) or (cp=CP_NONE) then
+      if (cp=CP_ACP) then
         cp:=DefaultSystemCodePage;
 {$else FPC_HAS_CPSTRING}
       cp:=DefaultSystemCodePage;
@@ -672,10 +676,10 @@ begin
   else
     begin
       r1:=S1;
-      if (cp1=CP_NONE) or (cp1=0) then
+      if (cp1=CP_ACP) then
         SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2=CP_NONE) or (cp2=0) then
+      if (cp2=CP_ACP) then
         SetCodePage(r2,DefaultSystemCodePage,false);
       //convert them to utf8 then compare
       SetCodePage(r1,65001);
@@ -701,6 +705,17 @@ begin
       result:=0;
       exit;
     end;
+  { don't compare strings if one of them is empty }
+  if (pointer(S1)=nil) then
+    begin
+      result:=-Length(S2);
+      exit;
+    end;
+  if (pointer(S2)=nil) then
+    begin
+      result:=Length(S1);
+      exit;
+    end;
   cp1:=StringCodePage(S1);
   cp2:=StringCodePage(S2);
   if (cp1=cp2) then
@@ -715,10 +730,10 @@ begin
   else
     begin
       r1:=S1;
-      if (cp1=CP_NONE) or (cp1=0) then
+      if (cp1=CP_ACP) then
         SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2=CP_NONE) or (cp2=0) then
+      if (cp2=CP_ACP) then
         SetCodePage(r2,DefaultSystemCodePage,false);
       //convert them to utf8 then compare
       SetCodePage(r1,65001);
@@ -771,7 +786,7 @@ begin
          GetMem(Pointer(S),AnsiRecLen+L);
          PAnsiRec(S)^.Ref:=1;
 {$ifdef FPC_HAS_CPSTRING}
-         if (cp=0) or (cp=CP_NONE) then
+         if (cp=CP_ACP) then
            cp:=DefaultSystemCodePage;
          PAnsiRec(S)^.CodePage:=cp;
 {$else}
@@ -1236,7 +1251,7 @@ begin
   Dec(Index);
   SetLength(Temp,Length(Source)+LS);
   cp:=StringCodePage(S);
-  if (cp=0) or (cp=CP_NONE) then
+  if (cp=CP_ACP) then
     cp:=DefaultSystemCodePage;
   SetCodePage(Temp,cp,false);
   If Index>0 then

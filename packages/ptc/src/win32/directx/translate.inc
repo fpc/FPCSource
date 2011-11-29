@@ -30,7 +30,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-function DirectXTranslate(const ddpf: TDDPIXELFORMAT): TPTCFormat;
+function DirectXTranslate(const ddpf: TDDPIXELFORMAT): IPTCFormat;
 begin
   if (ddpf.dwFlags and DDPF_PALETTEINDEXED8) <> 0 then
     exit(TPTCFormat.Create(8))

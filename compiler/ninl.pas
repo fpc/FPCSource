@@ -325,7 +325,7 @@ implementation
         { for ansistrings insert the encoding argument }
         if is_ansistring(dest.resultdef) then
           newparas:=ccallparanode.create(cordconstnode.create(
-            tstringdef(dest.resultdef).encoding,u16inttype,true),newparas);
+            getparaencoding(dest.resultdef),u16inttype,true),newparas);
 
         { free the errornode we generated in the beginning }
         result.free;
@@ -378,7 +378,7 @@ implementation
             if (tstringconstnode(n).len<=255) then
               inserttypeconv(n,cshortstringtype)
             else
-              inserttypeconv(n,cansistringtype)
+              inserttypeconv(n,getansistringdef)
           else if is_widechararray(n.resultdef) then
             inserttypeconv(n,cwidestringtype);
       end;
@@ -759,7 +759,7 @@ implementation
                   { in case of reading an ansistring pass a codepage argument }
                   if do_read and is_ansistring(para.left.resultdef) then
                     para:=ccallparanode.create(cordconstnode.create(
-                      tstringdef(para.left.resultdef).encoding,u16inttype,true),para);
+                      getparaencoding(para.left.resultdef),u16inttype,true),para);
                   { create the call statement }
                   addstatement(Tstatementnode(newstatement),
                     ccallnode.createintern(name,para));
@@ -967,7 +967,7 @@ implementation
                 { (if you want to optimize to use shortstring, keep in mind that    }
                 {  readstr internally always uses ansistring, and to account for    }
                 {  chararrays with > 255 characters)                                }
-                inserttypeconv(filepara.left,cansistringtype);
+                inserttypeconv(filepara.left,getansistringdef);
                 filepara.resultdef:=filepara.left.resultdef;
                 if codegenerror then
                   exit;
@@ -2270,7 +2270,7 @@ implementation
                   case left.resultdef.typ of
                     variantdef:
                       begin
-                        inserttypeconv(left,cansistringtype);
+                        inserttypeconv(left,getansistringdef);
                       end;
 
                     stringdef :

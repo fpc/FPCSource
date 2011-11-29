@@ -6,23 +6,23 @@ uses
 {$I endian.inc}
 
 var
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  format: TPTCFormat = nil;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  format: IPTCFormat;
   pixels: PUint8;
   I: Integer;
   F: File;
 begin
   try
     try
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       {$IFDEF FPC_LITTLE_ENDIAN}
-      format := TPTCFormat.Create(24, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(24, $00FF0000, $0000FF00, $000000FF);
       {$ELSE FPC_LITTLE_ENDIAN}
-      format := TPTCFormat.Create(24, $000000FF, $0000FF00, $00FF0000);
+      format := TPTCFormatFactory.CreateNew(24, $000000FF, $0000FF00, $00FF0000);
       {$ENDIF FPC_LITTLE_ENDIAN}
-      surface := TPTCSurface.Create(320, 200, format);
+      surface := TPTCSurfaceFactory.CreateNew(320, 200, format);
 
       console.open('test', surface.width, surface.height, format);
 
@@ -46,10 +46,8 @@ begin
         console.ReadKey;
       end;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

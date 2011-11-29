@@ -1026,12 +1026,11 @@ begin
   GetEpochTime:=fptime;
 end;
 
-procedure GetTime(var hour,min,sec,msec,usec:word);
-{
-  Gets the current time, adjusted to local time
-}
+// Now, adjusted to local time.
+
+Procedure DoGetLocalDateTime(var year, month, day, hour, min,  sec, msec, usec : word);
+
 var
-  year,day,month:Word;
   tz:timeval;
 begin
   fpgettimeofday(@tz,nil);
@@ -1040,14 +1039,23 @@ begin
   usec:=tz.tv_usec mod 1000;
 end;
 
+procedure GetTime(var hour,min,sec,msec,usec:word);
+
+Var
+  year,day,month:Word;
+
+begin
+  DoGetLocalDateTime(year,month,day,hour,min,sec,msec,usec);
+end;
+
 procedure GetTime(var hour,min,sec,sec100:word);
 {
   Gets the current time, adjusted to local time
 }
 var
-  usec : word;
+  year,day,month,usec : word;
 begin
-  gettime(hour,min,sec,sec100,usec);
+  DoGetLocalDateTime(year,month,day,hour,min,sec,sec100,usec);
   sec100:=sec100 div 10;
 end;
 
@@ -1056,9 +1064,9 @@ Procedure GetTime(Var Hour,Min,Sec:Word);
   Gets the current time, adjusted to local time
 }
 var
-  msec,usec : Word;
+  year,day,month,msec,usec : Word;
 Begin
-  gettime(hour,min,sec,msec,usec);
+  DoGetLocalDateTime(year,month,day,hour,min,sec,msec,usec);
 End;
 
 Procedure GetDate(Var Year,Month,Day:Word);
@@ -1066,17 +1074,20 @@ Procedure GetDate(Var Year,Month,Day:Word);
   Gets the current date, adjusted to local time
 }
 var
-  hour,minute,second : word;
+  hour,minute,second,msec,usec : word;
 Begin
-  EpochToLocal(fptime,year,month,day,hour,minute,second);
+  DoGetLocalDateTime(year,month,day,hour,minute,second,msec,usec);
 End;
 
 Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
 {
   Gets the current date, adjusted to local time
 }
+Var
+  usec,msec : word;
+  
 Begin
-  EpochToLocal(fptime,year,month,day,hour,minute,second);
+  DoGetLocalDateTime(year,month,day,hour,minute,second,msec,usec);
 End;
 
 
@@ -1088,9 +1099,7 @@ Procedure GetLocalTime(var SystemTime: TSystemTime);
 var
   usecs : Word;
 begin
-  GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond, usecs);
-  GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
-//  SystemTime.MilliSecond := 0;
+  DoGetLocalDateTime(SystemTime.Year, SystemTime.Month, SystemTime.Day,SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond, usecs);
 end ;
 {$endif}
 

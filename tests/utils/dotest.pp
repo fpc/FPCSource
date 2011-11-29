@@ -730,7 +730,9 @@ begin
       if Config.NeedLibrary then
         begin
           if CompilerTarget<>'darwin' then
-            args:=args+' -Fl'+TestOutputDir+' ''-k-rpath .'''
+          { do not use single quote for -k as they are mishandled on
+            Windows Shells }
+            args:=args+' -Fl'+TestOutputDir+' -k-rpath -k.'
           else
             args:=args+' -Fl'+TestOutputDir;
         end;
@@ -800,7 +802,7 @@ begin
          if CopyFile(CompilerLogFile,LongLogFile,true)=0 then
            AddLog(LongLogFile,'Internal error in compiler');
          { avoid to try again }
-         AddLog(ExeLogFile,'Failed to compile '+PPFileInfo[current]);
+         AddLog(ExeLogFile,failed_to_compile+PPFileInfo[current]);
          Verbose(V_Warning,'Internal error in compiler');
          exit;
        end;
@@ -838,7 +840,7 @@ begin
          ((Config.KnownCompileError<>0) and (ExecuteResult=Config.KnownCompileError))) then
       begin
         AddLog(FailLogFile,TestName+known_problem+Config.KnownCompileNote);
-        AddLog(ResLogFile,failed_to_run+PPFileInfo[current]+known_problem+Config.KnownCompileNote);
+        AddLog(ResLogFile,failed_to_compile+PPFileInfo[current]+known_problem+Config.KnownCompileNote);
         AddLog(LongLogFile,line_separation);
         AddLog(LongLogFile,known_problem+Config.KnownCompileNote);
         AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
@@ -1115,11 +1117,13 @@ begin
 
       if UseTimeout then
       begin
-        execcmd:=execcmd+'timeout -9 ';
         if Config.Timeout=0 then
           Config.Timeout:=DefaultTimeout;
         str(Config.Timeout,s);
-        execcmd:=execcmd+s;
+        if (RemoteShellBase='bash') then
+          execcmd:=execcmd+'ulimit -t '+s+'; '
+        else
+          execcmd:=execcmd+'timeout -9 '+s;
       end;
       { as we moved to RemotePath, if path is not absolute
         we need to use ./execfilename only }

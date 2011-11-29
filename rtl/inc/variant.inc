@@ -21,7 +21,7 @@ var
     Compiler helper routines.
   ---------------------------------------------------------------------}
 
-procedure variant_init(var v : tvardata);[Public,Alias:'FPC_VARIANT_INIT'];
+procedure fpc_variant_init(var v : tvardata);[Public,Alias:'FPC_VARIANT_INIT'];compilerproc;
   begin
      { calling the variant manager here is a problem because the static/global variants
        are initialized while the variant manager isn't assigned }
@@ -29,12 +29,15 @@ procedure variant_init(var v : tvardata);[Public,Alias:'FPC_VARIANT_INIT'];
   end;
 
 
-procedure variant_clear(var v : tvardata);[Public,Alias:'FPC_VARIANT_CLEAR'];
+procedure fpc_variant_clear(var v : tvardata);[Public,Alias:'FPC_VARIANT_CLEAR'];compilerproc;
   begin
     if assigned(VarClearProc) then
       VarClearProc(v);
   end;
 
+{ declare aliases for local use }
+procedure variant_init(var v: tvardata); external name 'FPC_VARIANT_INIT';
+procedure variant_clear(var v: tvardata); external name 'FPC_VARIANT_CLEAR';
 
 procedure variant_addref(var v : tvardata);[Public,Alias:'FPC_VARIANT_ADDREF'];
   begin
@@ -291,14 +294,12 @@ end;
 {$endif SUPPORT_COMP}
 
 
-{$ifndef VER2_0}
 {$ifndef FPUNONE}
 Operator :=(const source : real) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   VariantManager.VarFromReal(Dest,Source);
 end;
 {$endif}
-{$endif VER2_0}
 
 
 { Misc. }
@@ -499,14 +500,12 @@ end;
 {$endif SUPPORT_COMP}
 
 
-{$ifndef VER2_0}
 {$ifndef FPUNONE}
 operator :=(const source : variant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   dest:=variantmanager.vartoreal(source);
 end;
 {$endif}
-{$endif VER2_0}
 
 { Misc. }
 operator :=(const source : variant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -847,12 +846,10 @@ operator :=(const source : olevariant) dest : comp;{$ifdef SYSTEMINLINE}inline;{
 
 
 {$ifndef FPUNONE}
-{$ifndef VER2_0}
 operator :=(const source : olevariant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     dest:=variantmanager.vartoreal(variant(tvardata(source)));
   end;
-{$endif VER2_0}
 {$endif}
 
 { Misc. }
@@ -1018,14 +1015,12 @@ operator :=(const source : comp) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{
 {$endif SUPPORT_COMP}
 
 
-{$ifndef VER2_0}
 {$ifndef FPUNONE}
 operator :=(const source : real) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     variantmanager.varfromreal(variant(tvardata(dest)),source);
   end;
 {$endif}
-{$endif VER2_0}
 
 
 { Misc. }

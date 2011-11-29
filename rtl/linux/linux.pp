@@ -225,8 +225,8 @@ const
   UD_LM                   = $80;
 
 type
-  user_desc = packed record
-    entry_number  : cint;
+  user_desc = record
+    entry_number  : cuint;
     base_addr     : cuint;
     limit         : cuint;
     flags         : cuint;
@@ -269,13 +269,14 @@ function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint; {$ifdef FPC_U
 function epoll_wait(epfd: cint; events: pepoll_event; maxevents, timeout: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_wait'; {$endif}
 
 type Puser_cap_header=^user_cap_header;
-     user_cap_header=packed record
-       version,pid:cardinal;
+     user_cap_header=record
+       version: cuint32;
+       pid:cint;
      end;
      
      Puser_cap_data=^user_cap_data;
-     user_cap_data=packed record
-        effective,permitted,inheritable:cardinal;
+     user_cap_data=record
+        effective,permitted,inheritable:cuint32;
      end;
 
 {Get a capability.}

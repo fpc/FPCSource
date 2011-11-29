@@ -78,7 +78,7 @@ implementation
 
 uses
   widestr,
-  {$ifdef VER2_4}ccharset{$else VER2_4}charset{$endif VER2_4},
+  {$if FPC_FULLVERSION<20700}ccharset{$else}charset{$endif},
   SysUtils,
   version,
   cutils,cmsgs,
@@ -867,11 +867,12 @@ begin
                  'c' :
                    begin
                      if (upper(more)='UTF8') or (upper(more)='UTF-8') then
-                        init_settings.sourcecodepage:=CP_UTF8
+                       init_settings.sourcecodepage:=CP_UTF8
                      else if not(cpavailable(more)) then
                        Message1(option_code_page_not_available,more)
                      else
                        init_settings.sourcecodepage:=codepagebyname(more);
+                     include(init_settings.moduleswitches,cs_explicit_codepage);
                    end;
                  'C' :
                    RCCompiler := More;
@@ -2508,7 +2509,7 @@ begin
   def_system_macro('FPC_HAS_RESSTRINITS');
 
 { these cpus have an inline rol/ror implementaion }
-{$if defined(x86) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{$ifdef cpurox}
   def_system_macro('FPC_HAS_INTERNAL_ROX');
 {$endif}
 

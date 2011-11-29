@@ -3478,12 +3478,12 @@ implementation
               current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
           end;
         if assigned(objectname) then
-          append_entry(DW_TAG_structure_type,true,[
+          append_entry(DW_TAG_class_type,true,[
             DW_AT_name,DW_FORM_string,objectname^+#0,
             DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
             ])
         else
-          append_entry(DW_TAG_structure_type,true,[
+          append_entry(DW_TAG_class_type,true,[
             DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
             ]);
         { Apple-specific tag that identifies it as an Objective-C class }

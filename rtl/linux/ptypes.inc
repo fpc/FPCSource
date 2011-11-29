@@ -127,14 +127,14 @@ Type
     TSockLen = socklen_t;
     pSockLen = ^socklen_t;
 
-  timeval     = packed record
+  timeval     = record
                  tv_sec:time_t;
                  tv_usec:clong;
                 end;
   ptimeval    = ^timeval;
   TTimeVal    = timeval;
 
-  timespec    = packed record
+  timespec    = record
                  tv_sec   : time_t;
                  tv_nsec  : clong;
                 end;
@@ -142,7 +142,7 @@ Type
   TTimeSpec   = timespec;
 
   {$ifdef cpu64}
-  TStatfs = packed record
+  TStatfs = record
     fstype,            { File system type }
     bsize   : clong;    { Optimal block trensfer size }
     blocks,            { Data blocks in system }
@@ -156,7 +156,7 @@ Type
     spare   : array [0..4] of clong; { For later use }
   end;
   {$else}
-  TStatfs = packed record
+  TStatfs = record
     fstype,            { File system type }
     bsize   : cint;    { Optimal block trensfer size }
     blocks,            { Data blocks in system }

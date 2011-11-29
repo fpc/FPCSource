@@ -1299,6 +1299,21 @@ unit scandir;
         if ident='ZERO_NIL_COMPAT' then
           recordpendingmessagestate(type_w_zero_to_nil, msgstate)
         else
+        if ident='IMPLICIT_STRING_CAST' then
+          recordpendingmessagestate(type_w_implicit_string_cast, msgstate)
+        else
+        if ident='IMPLICIT_STRING_CAST_LOSS' then
+          recordpendingmessagestate(type_w_implicit_string_cast_loss, msgstate)
+        else
+        if ident='EXPLICIT_STRING_CAST' then
+          recordpendingmessagestate(type_w_explicit_string_cast, msgstate)
+        else
+        if ident='EXPLICIT_STRING_CAST_LOSS' then
+          recordpendingmessagestate(type_w_explicit_string_cast_loss, msgstate)
+        else
+        if ident='CVT_NARROWING_STRING_LOST' then
+          recordpendingmessagestate(type_w_unicode_data_loss, msgstate)
+        else
           begin
             i:=0;
             if not ChangeMessageVerbosity(ident,i,msgstate) then
@@ -1370,14 +1385,15 @@ unit scandir;
           Message(scan_w_switch_is_global)
         else
           begin
-             current_scanner.skipspace;
-             s:=current_scanner.readcomment;
-             if (upper(s)='UTF8') or (upper(s)='UTF-8') then
-               current_settings.sourcecodepage:=CP_UTF8
-             else if not(cpavailable(s)) then
-               Message1(option_code_page_not_available,s)
-             else
-               current_settings.sourcecodepage:=codepagebyname(s);
+            current_scanner.skipspace;
+            s:=current_scanner.readcomment;
+            if (upper(s)='UTF8') or (upper(s)='UTF-8') then
+              current_settings.sourcecodepage:=CP_UTF8
+            else if not(cpavailable(s)) then
+              Message1(option_code_page_not_available,s)
+            else
+              current_settings.sourcecodepage:=codepagebyname(s);
+            include(current_settings.moduleswitches,cs_explicit_codepage);
           end;
       end;
 

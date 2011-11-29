@@ -26,7 +26,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRCOPY}
- Function StrCopy(Dest, Source:PChar): PChar;overload;
+ Function StrCopy(Dest, Source:PChar): PChar;
  var
    counter : SizeInt;
  Begin
@@ -217,7 +217,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRLCOPY}
- Function StrLCopy(Dest,Source: PChar; MaxLen: SizeInt): PChar;overload;
+ Function StrLCopy(Dest,Source: PChar; MaxLen: SizeInt): PChar;
   var
    counter: SizeInt;
  Begin

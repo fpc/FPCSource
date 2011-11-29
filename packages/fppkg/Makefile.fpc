@@ -13,7 +13,7 @@ units_beos=pkgwget pkgfphttp
 units_haiku=pkgwget pkgfphttp
 units_freebsd=pkgwget pkgfphttp
 units_netbsd=pkgwget pkgfphttp
-nits_openbsd=pkgwget pkgfphttp
+units_openbsd=pkgwget pkgfphttp
 units_darwin=pkgwget pkgfphttp
 units_iphonesim=pkgwget pkgfphttp
 units_solaris=pkgwget pkgfphttp
@@ -35,10 +35,20 @@ fpcpackage=y
 fpcdir=../..
 
 [require]
-packages=fcl-base fcl-xml fcl-process fcl-net paszlib fcl-web
+packages=fcl-base fcl-xml fcl-process paszlib
 tools=data2inc
-packages_darwin=univint
-packages_iphonesim=univint
+packages_darwin=univint fcl-net fcl-web
+packages_iphonesim=univint fcl-net fcl-web
+packages_linux=fcl-net fcl-web
+packages_beos=fcl-net fcl-web
+packages_haiku=fcl-net fcl-web
+packages_freebsd=fcl-net fcl-web
+packages_netbsd=fcl-net fcl-web
+packages_openbsd=fcl-net fcl-web
+packages_solaris=fcl-net fcl-web
+packages_win32=fcl-net fcl-web
+packages_win64=fcl-net fcl-web
+packages_wince=fcl-net fcl-web
 
 [rules]
 .NOTPARALLEL:

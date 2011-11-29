@@ -37,7 +37,7 @@ type
     FDisplay: PDisplay;
     FImage: PXImage;
   public
-    constructor Create(ADisplay: PDisplay; AScreen, AWidth, AHeight: Integer; AFormat: TPTCFormat); virtual;
+    constructor Create(ADisplay: PDisplay; AScreen, AWidth, AHeight: Integer; AFormat: IPTCFormat); virtual;
     procedure Put(AWindow: TWindow; AGC: TGC; AX, AY: Integer); virtual; abstract;
     procedure Put(AWindow: TWindow; AGC: TGC; ASX, ASY, ADX, ADY,
                   AWidth, AHeight: Integer); virtual; abstract;
@@ -50,7 +50,7 @@ type
   private
     FPixels: PUint8;
   public
-    constructor Create(ADisplay: PDisplay; AScreen, AWidth, AHeight: Integer; AFormat: TPTCFormat); override;
+    constructor Create(ADisplay: PDisplay; AScreen, AWidth, AHeight: Integer; AFormat: IPTCFormat); override;
     destructor Destroy; override;
     procedure Put(AWindow: TWindow; AGC: TGC; AX, AY: Integer); override;
     procedure Put(AWindow: TWindow; AGC: TGC; ASX, ASY, ADX, ADY,
@@ -66,7 +66,7 @@ type
     FShmInfo: TXShmSegmentInfo;
     FShmAttached: Boolean;
   public
-    constructor Create(ADisplay: PDisplay; AScreen, AWidth, AHeight: Integer; AFormat: TPTCFormat); override;
+    constructor Create(ADisplay: PDisplay; AScreen, AWidth, AHeight: Integer; AFormat: IPTCFormat); override;
     destructor Destroy; override;
     procedure Put(AWindow: TWindow; AGC: TGC; AX, AY: Integer); override;
     procedure Put(AWindow: TWindow; AGC: TGC; ASX, ASY, ADX, ADY,

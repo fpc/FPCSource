@@ -16,6 +16,7 @@ uses
 
 const
   DEFDIALECT = 3;
+  MAXBLOBSEGMENTSIZE = 65535; //Maximum number of bytes that fit in a blob segment.
 
 type
 
@@ -51,7 +52,7 @@ type
     FStatus              : array [0..19] of ISC_STATUS;
     FDialect             : integer;
     FDBDialect           : integer;
-    FBLobSegmentSize     : word;
+    FBLobSegmentSize     : word; //required for backward compatibilty; not used
 
     procedure ConnectFB;
     function GetDialect: integer;
@@ -64,7 +65,6 @@ type
     procedure GetFloat(CurrBuff, Buffer : pointer; Size : Byte);
     procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
     procedure CheckError(ProcName : string; Status : PISC_STATUS);
-    function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
     procedure SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
     procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
     function  IsDialectStored: boolean;
@@ -99,7 +99,8 @@ type
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
     procedure DropDB; override;
-    property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
+    //Segment size is not used in the code; property kept for backward compatibility
+    property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize; deprecated;
     function GetDBDialect: integer;
   published
     property DatabaseName;
@@ -165,7 +166,7 @@ begin
   inherited;
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
   FieldNameQuoteChars:=DoubleQuotes;
-  FBLobSegmentSize := 80;
+  FBLobSegmentSize := 65535; //Shows we're using the maximum segment size
   FDialect := -1;
   FDBDialect := -1;
 end;
@@ -765,7 +766,7 @@ var ParNr,SQLVarNr : integer;
     BlobBytesWritten  : longint;
     
   procedure SetBlobParam;
-  
+
   begin
     {$push}
     {$R-}
@@ -782,14 +783,16 @@ var ParNr,SQLVarNr : integer;
       BlobBytesWritten := 0;
       i := 0;
 
-      while BlobBytesWritten < (BlobSize-BlobSegmentSize) do
+      // Write in segments of MAXBLOBSEGMENTSIZE, as that is the fastest.
+      // We ignore BlobSegmentSize property.
+      while BlobBytesWritten < (BlobSize-MAXBLOBSEGMENTSIZE) do
         begin
-        isc_put_segment(@FStatus[0], @blobHandle, BlobSegmentSize, @s[(i*BlobSegmentSize)+1]);
-        inc(BlobBytesWritten,BlobSegmentSize);
+        isc_put_segment(@FStatus[0], @blobHandle, MAXBLOBSEGMENTSIZE, @s[(i*MAXBLOBSEGMENTSIZE)+1]);
+        inc(BlobBytesWritten,MAXBLOBSEGMENTSIZE);
         inc(i);
         end;
       if BlobBytesWritten <> BlobSize then
-        isc_put_segment(@FStatus[0], @blobHandle, BlobSize-BlobBytesWritten, @s[(i*BlobSegmentSize)+1]);
+        isc_put_segment(@FStatus[0], @blobHandle, BlobSize-BlobBytesWritten, @s[(i*MAXBLOBSEGMENTSIZE)+1]);
 
       if isc_close_blob(@FStatus[0], @blobHandle) <> 0 then
         CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
@@ -1245,22 +1248,6 @@ begin
 end;
 
 
-function TIBConnection.getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
-var
-  iscInfoBlobMaxSegment : byte = isc_info_blob_max_segment;
-  blobInfo : array[0..50] of byte;
-
-begin
-  if isc_blob_info(@Fstatus[0], @blobHandle, sizeof(iscInfoBlobMaxSegment), pchar(@iscInfoBlobMaxSegment), sizeof(blobInfo) - 2, pchar(@blobInfo[0])) <> 0 then
-    CheckError('isc_blob_info', FStatus);
-  if blobInfo[0]  = isc_info_blob_max_segment then
-    begin
-      result :=  isc_vax_integer(pchar(@blobInfo[3]), isc_vax_integer(pchar(@blobInfo[1]), 2));
-    end
-  else
-     CheckError('isc_blob_info', FStatus);
-end;
-
 procedure TIBConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction);
 const
   isc_segstr_eof = 335544367; // It's not defined in ibase60 but in ibase40. Would it be better to define in ibase60?
@@ -1269,7 +1256,6 @@ var
   blobHandle : Isc_blob_Handle;
   blobSegment : pointer;
   blobSegLen : word;
-  maxBlobSize : longInt;
   TransactionHandle : pointer;
   blobId : PISC_QUAD;
   ptr : Pointer;
@@ -1282,14 +1268,13 @@ begin
   if isc_open_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, blobId) <> 0 then
     CheckError('TIBConnection.CreateBlobStream', FStatus);
 
-  maxBlobSize := getMaxBlobSize(blobHandle);
-
-  blobSegment := AllocMem(maxBlobSize);
+  //For performance, read as much as we can, regardless of any segment size set in database.
+  blobSegment := AllocMem(MAXBLOBSEGMENTSIZE);
 
   with ABlobBuf^.BlobBuffer^ do
     begin
     Size := 0;
-    while (isc_get_segment(@FStatus[0], @blobHandle, @blobSegLen, maxBlobSize, blobSegment) = 0) do
+    while (isc_get_segment(@FStatus[0], @blobHandle, @blobSegLen, MAXBLOBSEGMENTSIZE, blobSegment) = 0) do
       begin
       ReAllocMem(Buffer,Size+blobSegLen);
       ptr := Buffer+Size;

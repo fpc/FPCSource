@@ -138,7 +138,7 @@ type
   {$ENDIF}
   FT_F2Dot14 = smallint;
   FT_F26Dot6 = longint;
-  FT_Fixed = longint;
+  FT_Fixed = FT_Long;
   FT_Error = longint;
   FT_Pointer = pointer;
   //FT_Offset = size_t;

@@ -94,6 +94,8 @@ var SQLDbType : TSQLDBTypes;
     
 implementation
 
+uses StrUtils;
+
 { TSQLDBConnector }
 
 procedure TSQLDBConnector.CreateFConnection;
@@ -124,14 +126,17 @@ begin
     // mysql's timestamps are only valid in the range 1970-2038.
     // Downside is that fields defined as 'TIMESTAMP' aren't tested
     FieldtypeDefinitions[ftDateTime] := 'DATETIME';
+    FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
+    FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
     FieldtypeDefinitions[ftMemo] := 'TEXT';
     end;
   if SQLDbType = sqlite3 then
     begin
     Fconnection := TSQLite3Connection.Create(nil);
     FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
+    FieldtypeDefinitions[ftBytes] := 'BINARY(5)';
+    FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
     FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
-    FieldtypeDefinitions[ftFixedChar] := '';
     end;
   if SQLDbType = POSTGRESQL then
     begin
@@ -174,8 +179,16 @@ begin
       testValues[ftTime,2]:='23:00:00.000';
       end;
     end;
+
   if SQLDbType in [sqlite3] then
     testValues[ftCurrency]:=testValues[ftBCD]; //decimal separator for currencies must be decimal point
+
+  // SQLite does not support fixed length CHAR datatype
+  // MySQL by default trimms trailing spaces on retrieval; so set sql-mode="PAD_CHAR_TO_FULL_LENGTH" - supported from MySQL 5.1.20
+  if SQLDbType in [sqlite3] then
+    for t := 0 to testValuesCount-1 do
+      testValues[ftFixedChar,t] := PadRight(testValues[ftFixedChar,t], 10);
+
 
   if not assigned(Fconnection) then writeln('Invalid database-type, check if a valid database-type was provided in the file ''database.ini''');
 
@@ -190,7 +203,7 @@ begin
       FieldNameQuoteChars[0] := dbQuoteChars[1];
       FieldNameQuoteChars[1] := dbQuoteChars[2];
       end;
-    open;
+    Open;
     end;
 end;
 

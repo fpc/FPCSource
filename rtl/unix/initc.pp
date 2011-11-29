@@ -31,7 +31,7 @@ implementation
 // this idea works out.
 
 {$ifdef OpenBSD}
-{$define UseOldErrnoDirectLink}
+{define UseOldErrnoDirectLink OpenBSD also uses __errno function }
 {$endif}
 
 {$ifdef UseOldErrnoDirectLink}
@@ -57,6 +57,10 @@ function geterrnolocation: pcint; cdecl;external clib name '__errno_location';
 
 {$ifdef FreeBSD} // tested on x86
 function geterrnolocation: pcint; cdecl;external clib name '__error';
+{$endif}
+
+{$ifdef OpenBSD} // tested on x86
+function geterrnolocation: pcint; cdecl;external clib name '__errno';
 {$endif}
 
 {$ifdef NetBSD} // from a sparc dump.

@@ -224,20 +224,16 @@ interface
          nf_memseg,
          nf_callunique,
 
-         { tloadnode }
+         { tloadnode/ttypeconvnode }
          nf_absolute,
-         nf_is_self,
-         nf_load_self_pointer,
-         nf_inherited,
-         { the loadnode is generated internally and a varspez=vs_const should be ignore,
-           this requires that the parameter is actually passed by value
-           Be really carefull when using this flag! }
-         nf_isinternal_ignoreconst,
 
          { taddnode }
          nf_is_currency,
          nf_has_pointerdiv,
          nf_short_bool,
+
+         { tmoddivnode }
+         nf_isomod,
 
          { tassignmentnode }
          nf_assign_done_in_right,
@@ -1295,4 +1291,11 @@ implementation
             right.isequal(tbinopnode(p).left));
       end;
 
+begin
+{$push}{$warnings off}
+  { taitype should fit into a 4 byte set for speed reasons }
+  if ord(high(tnodeflags))>31 then
+    internalerror(201110301);
+{$pop}
 end.
+

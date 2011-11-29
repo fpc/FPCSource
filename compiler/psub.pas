@@ -204,12 +204,6 @@ implementation
                         { The library init code is already called and does not
                           need to be in the initfinal table (PFV) }
                         block:=statement_block(_INITIALIZATION);
-                        { optimize empty initialization block away }
-                        if (block.nodetype=blockn) and (tblocknode(block).left=nil) then
-                          FreeAndNil(block)
-                        else
-                          if not islibrary then
-                            current_module.flags:=current_module.flags or uf_init;
                      end
                    else if token=_FINALIZATION then
                      begin
@@ -217,25 +211,12 @@ implementation
                          point when we try to read the nonh existing initalization section
                          so we've to check if we are really try to parse the finalization }
                        if current_procinfo.procdef.proctypeoption=potype_unitfinalize then
-                         begin
-                           block:=statement_block(_FINALIZATION);
-                           { optimize empty finalization block away }
-                           if (block.nodetype=blockn) and (tblocknode(block).left=nil) then
-                             FreeAndNil(block)
-                           else
-                             current_module.flags:=current_module.flags or uf_finalize;
-                         end
-                         else
-                           block:=nil;
+                         block:=statement_block(_FINALIZATION)
+                       else
+                         block:=nil;
                      end
                    else
-                     begin
-                        { The library init code is already called and does not
-                          need to be in the initfinal table (PFV) }
-                        if not islibrary then
-                          current_module.flags:=current_module.flags or uf_init;
-                        block:=statement_block(_BEGIN);
-                     end;
+                     block:=statement_block(_BEGIN);
                 end;
             end
          else
@@ -303,7 +284,6 @@ implementation
               begin
                 if is_class(current_structdef) then
                   begin
-                    include(current_procinfo.flags,pi_needs_implicit_finally);
                     srsym:=search_struct_member(current_structdef,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
@@ -479,8 +459,8 @@ implementation
       var
         newstatement : tstatementnode;
         { safecall handling }
-        exceptobjnode,exceptaddrnode: ttempcreatenode;
-        sym,exceptsym: tsym;
+        sym: tsym;
+        argnode: tnode;
       begin
         generate_except_block:=internalstatements(newstatement);
 
@@ -511,46 +491,13 @@ implementation
                 { SafecallException virtual method                       }
                 { In other case we return E_UNEXPECTED error value       }
                 if is_class(current_procinfo.procdef.struct) then
-                  begin
-                    { temp variable to store exception address }
-                    exceptaddrnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,
-                      tt_persistent,true);
-                    addstatement(newstatement,exceptaddrnode);
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        ctemprefnode.create(exceptaddrnode),
-                        ccallnode.createintern('fpc_getexceptionaddr',nil)));
-                    { temp variable to store popped up exception }
-                    exceptobjnode:=ctempcreatenode.create(class_tobject,class_tobject.size,
-                      tt_persistent,true);
-                    addstatement(newstatement,exceptobjnode);
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        ctemprefnode.create(exceptobjnode),
-                        ccallnode.createintern('fpc_popobjectstack', nil)));
-                    exceptsym:=search_struct_member(tobjectdef(current_procinfo.procdef.struct),'SAFECALLEXCEPTION');
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        cloadnode.create(sym,sym.Owner),
-                        ccallnode.create(
-                          ccallparanode.create(ctemprefnode.create(exceptaddrnode),
-                          ccallparanode.create(ctemprefnode.create(exceptobjnode),nil)),
-                          tprocsym(exceptsym), tprocsym(exceptsym).owner,load_self_node,[])));
-                    addstatement(newstatement,ccallnode.createintern('fpc_destroyexception',
-                      ccallparanode.create(ctemprefnode.create(exceptobjnode),nil)));
-                    addstatement(newstatement,ctempdeletenode.create(exceptobjnode));
-                    addstatement(newstatement,ctempdeletenode.create(exceptaddrnode));
-                  end
+                  argnode:=load_self_node
                 else
-                  begin
-                    { pop up and destroy an exception }
-                    addstatement(newstatement,ccallnode.createintern('fpc_destroyexception',
-                      ccallparanode.create(ccallnode.createintern('fpc_popobjectstack', nil),nil)));
-                    addstatement(newstatement,
-                      cassignmentnode.create(
-                        cloadnode.create(sym,sym.Owner),
-                        genintconstnode(HResult($8000FFFF))));
-                  end;
+                  argnode:=cnilnode.create;
+                addstatement(newstatement,cassignmentnode.create(
+                  cloadnode.create(sym,sym.Owner),
+                  ccallnode.createinternres('fpc_safecallhandler',
+                    ccallparanode.create(argnode,nil),hresultdef)));
               end;
 {$endif}
           end;
@@ -751,7 +698,13 @@ implementation
           end
         else
           begin
-            maybe_add_constructor_wrapper(code,false);
+            { Constructors need the destroy-on-exception code even if they don't
+              use managed variables/temps. }
+            if (cs_implicit_exceptions in current_settings.moduleswitches) and
+               (is_class(procdef.struct) and (procdef.proctypeoption=potype_constructor)) then
+              maybe_add_constructor_wrapper(code,true)
+            else
+              maybe_add_constructor_wrapper(code,false);
             addstatement(newstatement,loadpara_asmnode);
             addstatement(newstatement,stackcheck_asmnode);
             addstatement(newstatement,entry_asmnode);

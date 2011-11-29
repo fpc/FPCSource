@@ -144,6 +144,11 @@ program pp;
   {$endif i386}
 {$endif support_mmx}
 
+
+{ Don't care about minstacksize or maxstacksize not beeing supported by current OS }
+{$WARN 2077 OFF}
+{$WARN 2078 OFF}
+
 {$ifdef win32}
   { 256 MB stack }
   { under windows the stack can't grow }

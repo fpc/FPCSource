@@ -34,9 +34,10 @@ type
   TPTCClipper = class
   public
     { clip a single area against clip area }
-    class function Clip(const AArea, AClip: TPTCArea): TPTCArea;
+    class function Clip(AArea, AClip: IPTCArea): IPTCArea;
     { clip source and destination areas against source and destination clip areas }
-    class procedure Clip(const ASource, AClipSource, AClippedSource,
-                         ADestination, AClipDestination,
-                         AClippedDestination: TPTCArea);
+    class procedure Clip(ASource, AClipSource: IPTCArea;
+                         out AClippedSource: IPTCArea;
+                         ADestination, AClipDestination: IPTCArea;
+                         out AClippedDestination: IPTCArea);
   end;

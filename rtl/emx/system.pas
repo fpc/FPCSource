@@ -538,7 +538,11 @@ begin
 {$WARNING To be checked/corrected!}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
-                ProcessID := 1;
+                asm
+                    mov ax, 7F05h
+                    call syscall
+                    mov ProcessID, eax
+                end ['eax'];
                 ThreadID := 1;
             end;
         osOS2:
@@ -560,7 +564,6 @@ begin
 {$WARNING To be checked/corrected!}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
-                ProcessID := 1;
                 ThreadID := 1;
             end;
     end;
@@ -573,6 +576,10 @@ begin
     { ... and exceptions }
     SysInitExceptions;
 
+{$ifdef HASWIDESTRING}
+    InitUnicodeStringManager;
+{$endif HASWIDESTRING}
+
     { ... and I/O }
     SysInitStdIO;
 
@@ -582,14 +589,6 @@ begin
     InitSystemThreads;
 
     InitVariantManager;
-
-{$ifdef HASWIDESTRING}
- {$ifdef VER2_2}
-    InitWideStringManager;
- {$else VER2_2}
-    InitUnicodeStringManager;
- {$endif VER2_2}
-{$endif HASWIDESTRING}
 
     if os_Mode in [osDOS,osDPMI] then
         DosEnvInit;

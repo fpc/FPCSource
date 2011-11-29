@@ -39,30 +39,37 @@ type
                      PTCMouseButton3, { middle mouse button }
                      PTCMouseButton4,
                      PTCMouseButton5);
-  TPTCMouseButtonState = Set of TPTCMouseButton;
-  TPTCMouseEvent = Class(TPTCEvent)
-  private
-    FX, FY: Integer;
-    FDeltaX, FDeltaY: Integer;
-    FButtonState: TPTCMouseButtonState;
-  protected
-    function GetType: TPTCEventType; override;
-  public
-    constructor Create(AX, AY, ADeltaX, ADeltaY: Integer; AButtonState: TPTCMouseButtonState);
-    property X: Integer read FX;
-    property Y: Integer read FY;
-    property DeltaX: Integer read FDeltaX;
-    property DeltaY: Integer read FDeltaY;
-    property ButtonState: TPTCMouseButtonState read FButtonState;
+  TPTCMouseButtonState = set of TPTCMouseButton;
+  IPTCMouseEvent = interface(IPTCEvent)
+    ['{4D093608-6F27-4578-B41E-3492A4C7FEED}']
+    function GetX: Integer;
+    function GetY: Integer;
+    function GetDeltaX: Integer;
+    function GetDeltaY: Integer;
+    function GetButtonState: TPTCMouseButtonState;
+
+    property X: Integer read GetX;
+    property Y: Integer read GetY;
+    property DeltaX: Integer read GetDeltaX;
+    property DeltaY: Integer read GetDeltaY;
+    property ButtonState: TPTCMouseButtonState read GetButtonState;
   end;
-  TPTCMouseButtonEvent = Class(TPTCMouseEvent)
-  private
-    FPress: Boolean;
-    FButton: TPTCMouseButton;
+  IPTCMouseButtonEvent = interface(IPTCMouseEvent)
+    ['{363B9ACC-4DEB-4031-8BD9-0B6788C6CFA7}']
+    function GetPress: Boolean;
     function GetRelease: Boolean;
-  public
-    constructor Create(AX, AY, ADeltaX, ADeltaY: Integer; AButtonState: TPTCMouseButtonState; APress: Boolean; AButton: TPTCMouseButton);
-    property Press: Boolean read FPress;
+    function GetButton: TPTCMouseButton;
+
+    property Press: Boolean read GetPress;
     property Release: Boolean read GetRelease;
-    property Button: TPTCMouseButton read FButton;
+    property Button: TPTCMouseButton read GetButton;
+  end;
+
+  TPTCMouseEventFactory = class
+  public
+    class function CreateNew(AX, AY, ADeltaX, ADeltaY: Integer; AButtonState: TPTCMouseButtonState): IPTCMouseEvent;
+  end;
+  TPTCMouseButtonEventFactory = class
+  public
+    class function CreateNew(AX, AY, ADeltaX, ADeltaY: Integer; AButtonState: TPTCMouseButtonState; APress: Boolean; AButton: TPTCMouseButton): IPTCMouseButtonEvent;
   end;

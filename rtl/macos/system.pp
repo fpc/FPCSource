@@ -548,6 +548,7 @@ begin
 
   InitHeap;
   SysInitExceptions;
+  initunicodestringmanager;
   SysInitStdIO;
 
   { Setup environment and arguments }
@@ -558,11 +559,6 @@ begin
   errno:=0;
   InitSystemThreads;
   initvariantmanager;
-{$ifdef VER2_2}
-  initwidestringmanager;
-{$else VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
 
   if StandAlone = 0 then
     begin

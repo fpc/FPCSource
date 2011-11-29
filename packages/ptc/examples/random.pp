@@ -16,9 +16,9 @@ uses
   ptc;
 
 var
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  format: TPTCFormat = nil;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  format: IPTCFormat;
   pixels: PUint32;
   width, height: Integer;
   i: Integer;
@@ -27,16 +27,16 @@ begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       { open the console }
       console.open('Random example', format);
 
       { create surface matching console dimensions }
-      surface := TPTCSurface.Create(console.width, console.height, format);
+      surface := TPTCSurfaceFactory.CreateNew(console.width, console.height, format);
 
       { loop until a key is pressed }
       while not console.KeyPressed do
@@ -75,10 +75,8 @@ begin
         console.update;
       end;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

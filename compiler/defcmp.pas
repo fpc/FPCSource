@@ -335,29 +335,46 @@ implementation
                      { Constant string }
                      if (fromtreetype=stringconstn) then
                       begin
-                        if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) then
+                        if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and
+                           ((tstringdef(def_from).stringtype<>st_ansistring) or
+                            (tstringdef(def_from).encoding=tstringdef(def_to).encoding)
+                           ) then
                           eq:=te_equal
                         else
                          begin
                            doconv:=tc_string_2_string;
-                           { Don't prefer conversions from widestring to a
-                             normal string as we can lose information }
-                           if (tstringdef(def_from).stringtype in [st_widestring,st_unicodestring]) and
-                             not (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
-                             eq:=te_convert_l3
-                           else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
-                             eq:=te_convert_l2
+                           if (tstringdef(def_from).stringtype = st_ansistring) and
+                              (tstringdef(def_to).stringtype = st_ansistring) then
+                             if (tstringdef(def_to).encoding=globals.CP_UTF8) then
+                               eq:=te_convert_l1
+                             else
+                               eq:=te_convert_l2
                            else
-                             eq:=te_convert_l1;
+                            begin
+                              { Don't prefer conversions from widestring to a
+                                normal string as we can lose information }
+                              if (tstringdef(def_from).stringtype in [st_widestring,st_unicodestring]) and
+                                not (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
+                                eq:=te_convert_l3
+                              else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
+                                eq:=te_convert_l2
+                              else
+                                eq:=te_convert_l1;
+                            end;
                          end;
                       end
                      else if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and
                              (tstringdef(def_from).stringtype=st_ansistring) then 
                       begin
+                        { don't convert ansistrings if any conditions is true:
+                          1) same encoding
+                          2) from explicit codepage ansistring to ansistring and vice versa
+                          3) from any ansistring to rawbytestring }
                         if (tstringdef(def_from).encoding=tstringdef(def_to).encoding) or
+                           ((tstringdef(def_to).encoding=0) and (tstringdef(def_from).encoding=getansistringcodepage)) or
+                           ((tstringdef(def_to).encoding=getansistringcodepage) and (tstringdef(def_from).encoding=0)) or
                            (tstringdef(def_to).encoding=globals.CP_NONE) then
                          begin
-                           //doconv := tc_string_2_string;
                            eq:=te_equal;
                          end
                         else

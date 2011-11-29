@@ -238,6 +238,9 @@ implementation
         result:=[];
       end;
 
+{$if first_mm_imreg = 0}
+  {$WARN 4044 OFF} { Comparison might be always false ... }
+{$endif}
 
     procedure tparamanager.allocparaloc(list: TAsmList; const paraloc: pcgparalocation);
       begin
@@ -435,7 +438,7 @@ implementation
         p.init_paraloc_info(callbothsides);
         result:=p.calleeargareasize;
       end;
-      
+
 
     function tparamanager.parseparaloc(parasym: tparavarsym; const s: string): boolean;
       begin

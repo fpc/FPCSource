@@ -363,6 +363,7 @@ begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
+  initunicodestringmanager;
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
   { Arguments }
@@ -372,11 +373,6 @@ begin
   { threading }
   InitSystemThreads;
   initvariantmanager;
-{$ifdef VER2_2}
-  initwidestringmanager;
-{$else VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
   { restore original signal handlers in case this is a library }
   if IsLibrary then
     RestoreOldSignalHandlers;

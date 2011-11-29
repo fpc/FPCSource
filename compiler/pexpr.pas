@@ -133,7 +133,7 @@ implementation
          else
            begin
              if cs_ansistrings in current_settings.localswitches then
-               def:=cansistringtype
+               def:=getansistringdef
              else
                def:=cshortstringtype;
            end;
@@ -923,7 +923,7 @@ implementation
                   the function directly and not through the vmt (PFV) }
                 if (cnf_inherited in callflags) then
                   begin
-                    include(p2.flags,nf_inherited);
+                    include(tloadnode(p2).loadnodeflags,loadnf_inherited);
                     p1.free;
                     p1:=load_self_node;
                   end;
@@ -1184,7 +1184,7 @@ implementation
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags);
       var
-         isclassref  : boolean;
+        isclassref:boolean;
       begin
          if sym=nil then
            begin
@@ -1205,7 +1205,7 @@ implementation
                  isclassref:=(p1.resultdef.typ=classrefdef);
                end
               else
-               isclassref:=false;
+                isclassref:=false;
 
               { we assume, that only procsyms and varsyms are in an object }
               { symbol table, for classes, properties are allowed          }
@@ -1449,11 +1449,16 @@ implementation
                     p1:=nil;
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
-                        { if the field was originally found in an    }
-                        { objectsymtable, it means it's part of self
-                          if only method from which it was called is
-                          not class static                          }
+                        { if the field was originally found in an     }
+                        { objectsymtable, it means it's part of self  }
+                        { if only method from which it was called is  }
+                        { not class static                            }
                         if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) then
+                          { if we are accessing a owner procsym from the nested }
+                          { class we need to call it as a class member          }
+                          if assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
+                            p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
+                          else
                           if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
                             p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef.struct))
                           else
@@ -1608,7 +1613,7 @@ implementation
                       begin
                         p1:=cloadnode.create(srsym,srsymtable);
                         do_typecheckpass(p1);
-                        p1.resultdef:=cansistringtype;
+                        p1.resultdef:=getansistringdef;
                       end
                     else
                       p1:=genconstsymtree(tconstsym(srsym));
@@ -1620,6 +1625,11 @@ implementation
                     { check if it's a method/class method }
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
+                        { if we are accessing a owner procsym from the nested }
+                        { class we need to call it as a class member          }
+                        if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) and
+                          assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
+                          p1:=cloadvmtaddrnode.create(ctypenode.create(hdef));
                         { not srsymtable.symtabletype since that can be }
                         { withsymtable as well                          }
                         if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
@@ -1648,7 +1658,12 @@ implementation
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
                         if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) then
-                           if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
+                          { if we are accessing a owner procsym from the nested }
+                          { class we need to call it as a class member          }
+                          if assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
+                            p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
+                          else
+                          if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
                           { no self node in static class methods }
                             p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
                           else
@@ -3009,7 +3024,11 @@ implementation
                _OP_NOT :
                  p1:=cnotnode.create(p1);
                _OP_MOD :
-                 p1:=cmoddivnode.create(modn,p1,p2);
+                 begin
+                   p1:=cmoddivnode.create(modn,p1,p2);
+                   if m_iso in current_settings.modeswitches then
+                     include(p1.flags,nf_isomod);
+                 end;
                _OP_SHL :
                  p1:=cshlshrnode.create(shln,p1,p2);
                _OP_SHR :
@@ -3075,7 +3094,7 @@ implementation
            _ASSIGNMENT :
              begin
                 consume(_ASSIGNMENT);
-                if (p1.resultdef.typ=procvardef) then
+                if assigned(p1.resultdef) and (p1.resultdef.typ=procvardef) then
                   getprocvardef:=tprocvardef(p1.resultdef);
                 p2:=sub_expr(opcompare,true,false);
                 if assigned(getprocvardef) then

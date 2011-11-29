@@ -68,7 +68,7 @@ procedure skipspace;
        inc(i);
   end;
 
-procedure openinc(var f:text;const fn:string);
+procedure openinc(out f:text;const fn:string);
 begin
   writeln('creating ',fn);
   assign(f,fn);

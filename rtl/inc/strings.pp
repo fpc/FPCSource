@@ -26,11 +26,11 @@ interface
     function strpcopy(d : pchar;const s : string) : pchar;
 
     { Copies source to dest, returns a pointer to dest }
-    function strcopy(dest,source : pchar) : pchar;
+    function strcopy(dest,source : pchar) : pchar; overload;
 
     { Copies at most maxlen bytes from source to dest. }
     { Returns a pointer to dest }
-    function strlcopy(dest,source : pchar;maxlen : SizeInt) : pchar;
+    function strlcopy(dest,source : pchar;maxlen : SizeInt) : pchar; overload;
 
     { Copies source to dest and returns a pointer to the terminating }
     { null character.    }

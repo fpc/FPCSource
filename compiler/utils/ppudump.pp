@@ -519,6 +519,16 @@ begin
   writeln;
 end;
 
+procedure readdefinitions(const s:string); forward;
+procedure readsymbols(const s:string); forward;
+
+procedure readsymtable(const s: string);
+begin
+  readsymtableoptions(s);
+  readdefinitions(s);
+  readsymbols(s);
+end;
+
 Procedure ReadLinkContainer(const prefix:string);
 {
   Read a serie of strings and write to the screen starting every line
@@ -1697,12 +1707,12 @@ end;
     ppo_hasparameters,
     ppo_implements,
     ppo_enumerator_current,
-    ppo_dispid_read,              { no longer used }
+    ppo_overrides,              
     ppo_dispid_write              { no longer used }
   );
   tpropertyoptions=set of tpropertyoption;
 *)
-procedure readpropertyoptions;
+function readpropertyoptions:tpropertyoptions;
 { type tarraydefoption is in unit symconst }
 type
   tpropopt=record
@@ -1717,20 +1727,19 @@ const
     (mask:ppo_hasparameters;str:'has parameters'),
     (mask:ppo_implements;str:'implements'),
     (mask:ppo_enumerator_current;str:'enumerator current'),
-    (mask:ppo_dispid_read;str:'dispid read'),   { no longer used }
+    (mask:ppo_overrides;str:'overrides'),  
     (mask:ppo_dispid_write;str:'dispid write')  { no longer used }
   );
 var
-  propoptions : tpropertyoptions;
   i      : longint;
   first  : boolean;
 begin
-  ppufile.getsmallset(propoptions);
-  if propoptions<>[] then
+  ppufile.getsmallset(result);
+  if result<>[] then
    begin
      first:=true;
      for i:=1 to high(symopt) do
-      if (symopt[i].mask in propoptions) then
+      if (symopt[i].mask in result) then
        begin
          if first then
            first:=false
@@ -1857,6 +1866,7 @@ var
   tempbuf : array[0..127] of char;
   pw : pcompilerwidestring;
   varoptions : tvaroptions;
+  propoptions : tpropertyoptions;
 begin
   with ppufile do
    begin
@@ -2137,9 +2147,12 @@ begin
          ibpropertysym :
            begin
              readcommonsym('Property ');
-             readpropertyoptions;
-             write  (space,' OverrideProp : ');
-             readderef('');
+             propoptions:=readpropertyoptions;
+             if ppo_overrides in propoptions then
+               begin
+                 write  (space,' OverrideProp : ');
+                 readderef('');
+               end;
              write  (space,'    Prop Type : ');
              readderef('');
              writeln(space,'        Index : ',getlongint);
@@ -2154,6 +2167,12 @@ begin
              readpropaccesslist(space+'         Sym: ');
              write  (space,' Storedaccess : ');
              readpropaccesslist(space+'         Sym: ');
+             if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
+               begin
+                 space:='    '+space;
+                 readsymtable('parast');
+                 delete(space,1,4);
+               end;
            end;
 
          iberror :
@@ -2263,9 +2282,7 @@ begin
              writeln(space,'            Range : ',getaint,' to ',getaint);
              write  (space,'          Options : ');
              readarraydefoptions;
-             readsymtableoptions('symbols');
-             readdefinitions('symbols');
-             readsymbols('symbols');
+             readsymtable('symbols');
            end;
 
          ibprocdef :
@@ -2324,16 +2341,10 @@ begin
                HasMoreInfos;
              space:='    '+space;
              { parast }
-             readsymtableoptions('parast');
-             readdefinitions('parast');
-             readsymbols('parast');
+             readsymtable('parast');
              { localst }
              if (po_has_inlininginfo in procoptions) then
-              begin
-                readsymtableoptions('localst');
-                readdefinitions('localst');
-                readsymbols('localst');
-              end;
+                readsymtable('localst');
              if (po_has_inlininginfo in procoptions) then
                readnodetree;
              delete(space,1,4);
@@ -2348,9 +2359,7 @@ begin
                HasMoreInfos;
              space:='    '+space;
              { parast }
-             readsymtableoptions('parast');
-             readdefinitions('parast');
-             readsymbols('parast');
+             readsymtable('parast');
              delete(space,1,4);
            end;
 
@@ -2409,9 +2418,7 @@ begin
                begin
                  space:='    '+space;
                  readrecsymtableoptions;
-                 readsymtableoptions('fields');
-                 readdefinitions('fields');
-                 readsymbols('fields');
+                 readsymtable('fields');
                  Delete(space,1,4);
                end;
            end;
@@ -2495,9 +2502,7 @@ begin
                  {read the record definitions and symbols}
                  space:='    '+space;
                  readrecsymtableoptions;
-                 readsymtableoptions('fields');
-                 readdefinitions('fields');
-                 readsymbols('fields');
+                 readsymtable('fields');
                  Delete(space,1,4);
               end;
            end;
@@ -2540,9 +2545,7 @@ begin
              else
                begin
                  space:='    '+space;
-                 readsymtableoptions('elements');
-                 readdefinitions('elements');
-                 readsymbols('elements');
+                 readsymtable('elements');
                  delete(space,1,4);
                end;
            end;

@@ -394,13 +394,13 @@ type
 
   { options for properties }
   tpropertyoption=(ppo_none,
-    ppo_indexed,
+    ppo_indexed,                  { delcared wwith "index" keyword }
     ppo_defaultproperty,
     ppo_stored,
-    ppo_hasparameters,
+    ppo_hasparameters,            { has parameters: prop[param1, param2: type] }
     ppo_implements,
-    ppo_enumerator_current,
-    ppo_dispid_read,              { no longer used }
+    ppo_enumerator_current,       { implements current property for enumerator }
+    ppo_overrides,                { overrides ancestor property }
     ppo_dispid_write              { no longer used }
   );
   tpropertyoptions=set of tpropertyoption;

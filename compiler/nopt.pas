@@ -346,7 +346,7 @@ begin
       if is_ansistring(p.resultdef) then
         para:=ccallparanode.create(
                 cordconstnode.create(
-                  tstringdef(p.resultdef).encoding,
+                  getparaencoding(p.resultdef),
                   u16inttype,
                   true
                 ),
@@ -370,7 +370,7 @@ begin
       if is_ansistring(p.resultdef) then
         para:=ccallparanode.create(
                 cordconstnode.create(
-                  tstringdef(p.resultdef).encoding,
+                  getparaencoding(p.resultdef),
                   u16inttype,
                   true
                 ),

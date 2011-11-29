@@ -33,7 +33,6 @@
 {TODO: create DIBs with the same color depth as the desktop}
 
 constructor TWinCEBitmapInfo.Create(AWidth, AHeight: Integer);
-
 begin
   FBitmapInfo := GetMem(SizeOf(BITMAPINFOHEADER) + 12);
 
@@ -67,10 +66,8 @@ begin
 end;
 
 destructor TWinCEBitmapInfo.Destroy;
-
 begin
 //  FreeMem(FPixels);
   FreeMem(FBitmapInfo);
-  FFormat.Free;
   inherited Destroy;
 end;

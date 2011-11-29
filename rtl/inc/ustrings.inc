@@ -37,7 +37,7 @@ Type
   PUnicodeRec = ^TUnicodeRec;
   TUnicodeRec = Packed Record
     CodePage    : TSystemCodePage;
-	ElementSize : Word;
+    ElementSize : Word;
 {$ifdef CPU64}	
     { align fields  }
 	Dummy       : DWord;
@@ -107,6 +107,12 @@ function DefaultCodePointLength(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
       DefaultCodePointLength:=0;
   end;
 
+
+function DefaultGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
+  begin
+    { don't raise an exception here. We need this for text file handling }
+    Result:=DefaultSystemCodePage;
+  end;
 
 Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
 begin
@@ -313,7 +319,7 @@ begin
   Size:=Length(S2);
   if Size>0 then
   begin
-    if (cp=CP_NONE) or (cp=0) then
+    if (cp=CP_ACP) then
       cp:=DefaultSystemCodePage;
     widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),result,cp,Size);
   end;
@@ -333,7 +339,7 @@ begin
   if Size>0 then
   begin
     cp:=StringCodePage(S2);
-    if (cp=CP_NONE) or (cp=0) then
+    if (cp=CP_ACP) then
       cp:=DefaultSystemCodePage;
     widestringmanager.Ansi2UnicodeMoveProc(PChar(S2),cp,result,Size);
   end;
@@ -383,11 +389,7 @@ begin
   Size := IndexWord(p^, -1, 0);
   Setlength(result,Size);
   if Size>0 then
-   begin
-      Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
-      { Terminating Zero }
-      PUnicodeChar(Pointer(result)+Size*sizeof(UnicodeChar))^:=#0;
-   end;
+    Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
 end;
 
 
@@ -401,11 +403,7 @@ begin
   Size := IndexWord(p^, -1, 0);
   Setlength(result,Size);
   if Size>0 then
-   begin
-      Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
-      { Terminating Zero }
-      PUnicodeChar(Pointer(result)+Size*sizeof(UnicodeChar))^:=#0;
-   end;
+    Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
 end;
 
 
@@ -797,7 +795,7 @@ begin
 {$ifndef FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}     
-  if (cp=CP_NONE) or (cp=0) then
+  if (cp=CP_ACP) then
     cp:=DefaultSystemCodePage;
   widestringmanager.Unicode2AnsiMoveProc(@c, fpc_UChar_To_AnsiStr, cp, 1);
 end;
@@ -2639,5 +2637,6 @@ procedure initunicodestringmanager;
     widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
     widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;
   end;
 

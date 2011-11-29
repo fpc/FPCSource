@@ -47,25 +47,25 @@ begin
   inherited Destroy;
 end;
 
-procedure TPTCCopy.Request(const ASource, ADestination: TPTCFormat);
+procedure TPTCCopy.Request(ASource, ADestination: IPTCFormat);
 var
   hermes_source_format, hermes_destination_format: PHermesFormat;
 begin
-  hermes_source_format := @ASource.FFormat;
-  hermes_destination_format := @ADestination.FFormat;
+  hermes_source_format := ASource.GetHermesFormat;
+  hermes_destination_format := ADestination.GetHermesFormat;
   if not Hermes_ConverterRequest(FHandle, hermes_source_format,
      hermes_destination_format) then
     raise TPTCError.Create('unsupported hermes pixel format conversion');
 end;
 
-procedure TPTCCopy.Palette(const ASource, ADestination: TPTCPalette);
+procedure TPTCCopy.Palette(ASource, ADestination: IPTCPalette);
 begin
-  if not Hermes_ConverterPalette(FHandle, ASource.FHandle,
-         ADestination.FHandle) then
+  if not Hermes_ConverterPalette(FHandle, ASource.GetHermesPaletteHandle,
+         ADestination.GetHermesPaletteHandle) then
     raise TPTCError.Create('could not set hermes conversion palettes');
 end;
 
-procedure TPTCCopy.copy(const ASourcePixels: Pointer; ASourceX, ASourceY,
+procedure TPTCCopy.Copy(const ASourcePixels: Pointer; ASourceX, ASourceY,
                    ASourceWidth, ASourceHeight, ASourcePitch: Integer;
                    ADestinationPixels: Pointer; ADestinationX, ADestinationY,
                    ADestinationWidth, ADestinationHeight, ADestinationPitch: Integer);

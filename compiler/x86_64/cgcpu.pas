@@ -35,7 +35,6 @@ unit cgcpu;
     type
       tcgx86_64 = class(tcgx86)
         procedure init_register_allocators;override;
-        procedure done_register_allocators;override;
 
         procedure g_proc_entry(list : TAsmList; parasize:longint; nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
@@ -59,6 +58,7 @@ unit cgcpu;
       const
         win64_saved_std_regs : array[0..6] of tsuperregister = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15);
         others_saved_std_regs : array[0..4] of tsuperregister = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
+        saved_regs_length : array[boolean] of longint = (5,7);
 
         win64_saved_xmm_regs : array[0..9] of tsuperregister = (RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
@@ -67,24 +67,28 @@ unit cgcpu;
         framepointer : tsuperregister;
       begin
         inherited init_register_allocators;
-        if target_info.system=system_x86_64_win64 then
+
+        if (length(saved_standard_registers)<>saved_regs_length[target_info.system=system_x86_64_win64]) then
           begin
-            SetLength(saved_standard_registers,Length(win64_saved_std_regs));
-            SetLength(saved_mm_registers,Length(win64_saved_xmm_regs));
+            if target_info.system=system_x86_64_win64 then
+              begin
+                SetLength(saved_standard_registers,Length(win64_saved_std_regs));
+                SetLength(saved_mm_registers,Length(win64_saved_xmm_regs));
 
-            for i:=low(win64_saved_std_regs) to high(win64_saved_std_regs) do
-              saved_standard_registers[i]:=win64_saved_std_regs[i];
+                for i:=low(win64_saved_std_regs) to high(win64_saved_std_regs) do
+                  saved_standard_registers[i]:=win64_saved_std_regs[i];
 
-            for i:=low(win64_saved_xmm_regs) to high(win64_saved_xmm_regs) do
-              saved_mm_registers[i]:=win64_saved_xmm_regs[i];
-          end
-        else
-          begin
-            SetLength(saved_standard_registers,Length(others_saved_std_regs));
-            SetLength(saved_mm_registers,0);
+                for i:=low(win64_saved_xmm_regs) to high(win64_saved_xmm_regs) do
+                  saved_mm_registers[i]:=win64_saved_xmm_regs[i];
+              end
+            else
+              begin
+                SetLength(saved_standard_registers,Length(others_saved_std_regs));
+                SetLength(saved_mm_registers,0);
 
-            for i:=low(others_saved_std_regs) to high(others_saved_std_regs) do
-              saved_standard_registers[i]:=others_saved_std_regs[i];
+                for i:=low(others_saved_std_regs) to high(others_saved_std_regs) do
+                  saved_standard_registers[i]:=others_saved_std_regs[i];
+              end;
           end;
         if assigned(current_procinfo) then
           framepointer:=getsupreg(current_procinfo.framepointer)
@@ -103,13 +107,6 @@ unit cgcpu;
         rgfpu:=Trgx86fpu.create;
       end;
 
-
-    procedure Tcgx86_64.done_register_allocators;
-      begin
-        inherited done_register_allocators;
-        setlength(saved_standard_registers,0);
-        setlength(saved_mm_registers,0);
-      end;
 
     procedure tcgx86_64.g_proc_entry(list : TAsmList;parasize:longint;nostackframe:boolean);
       var

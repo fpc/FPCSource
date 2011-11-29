@@ -17,27 +17,16 @@ type
 var
   s : ts866;
   i : Integer;
-  sa : ansistring;
   ss : ShortString;
 begin
-  sa := '123'#196#200#250;
-  ss := sa;
-  if (Length(sa) <> Length(ss)) then
-    doerror(1);
-  for i := 1 to Length(sa) do
-    begin
-      if (Byte(ss[i]) <> Byte(sa[i])) then
-        doerror(2)
-    end;
-
   s := '123'#196#200#250;
   ss := s;
   if (Length(s) <> Length(ss)) then
-    doerror(3);
+    doerror(1);
   for i := 1 to Length(s) do
     begin
       if (Byte(ss[i]) <> Byte(s[i])) then
-        doerror(4)
+        doerror(2)
     end;
 
   WriteLn('Ok');

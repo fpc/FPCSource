@@ -1067,6 +1067,19 @@ begin
     Result := False;
 end;
 
+function CompDouble(UTF8Value: PChar; const UTF8Key: String): Boolean;
+var e1,e2:double;
+begin
+  if UTF8Value <> nil then
+    begin
+      val(UTF8Value,e1);
+      val(UTF8Key,e2);
+      result:=e1=e2;
+    end
+  else
+    Result := False;
+end;
+
 function CompInsensitiveWild(UTF8Value: PChar; const AnsiKey: String): Boolean;
 begin
   //IsWild does not work with UTF8 encoded strings for case insensitive searches,
@@ -1086,7 +1099,6 @@ var
   AFieldList: TList;
   i, AFieldCount: Integer;
   MatchRecord: Boolean;
-  AValue: String;
   TempItem: PDataRecord;
   
 begin
@@ -1153,13 +1165,12 @@ begin
         end
         else
         begin
-          LocateFields[i].CompFunction := @CompSensitive;
+          LocateFields[i].CompFunction := @CompDouble;
           //get float types in appropriate format
           if VarIsArray(KeyValues) then
-            Str(VarToDateTime(keyvalues[i]), AValue)
+            Str(VarToDateTime(keyvalues[i]), LocateFields[i].Key)
           else
-            Str(VarToDateTime(keyvalues), AValue);
-          LocateFields[i].Key := Trim(AValue);
+            Str(VarToDateTime(keyvalues), LocateFields[i].Key);
         end;
         LocateFields[i].Index := FieldNo - 1;
       end;
@@ -1311,8 +1322,7 @@ procedure TCustomSqliteDataset.SetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean);
 var
   TempStr: String;
-  FloatStr: PChar;
-  FloatLen, FieldOffset: Integer;
+  FieldOffset: Integer;
   EditItem: PDataRecord;
 begin
   if not (State in [dsEdit, dsInsert, dsCalcFields]) then
@@ -1358,21 +1368,8 @@ begin
     ftFloat, ftDateTime, ftDate, ftTime, ftCurrency:
       begin
         Str(Double(Buffer^), TempStr);
-        //Str returns an space as the first character for positive values
-        //and the - sign for negative values. It's necessary to remove the extra
-        //space while keeping the - sign
-        if TempStr[1] = ' ' then
-        begin
-          FloatStr := PChar(TempStr) + 1;
-          FloatLen := Length(TempStr);
-        end
-        else
-        begin
-          FloatStr := PChar(TempStr);
-          FloatLen := Length(TempStr) + 1;
-        end;
-        EditItem^.Row[FieldOffset] := StrAlloc(FloatLen);
-        Move(FloatStr^, (EditItem^.Row[FieldOffset])^, FloatLen);
+        EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
+        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;
     ftLargeInt:
       begin
@@ -1439,7 +1436,7 @@ var
   AFilter: String;
   i: Integer;
 begin
-  if (FMasterLink.Dataset.RecordCount = 0) or not FMasterLink.Active then //Retrieve all data
+  if not FMasterLink.Active or (FMasterLink.Dataset.RecordCount = 0) then //Retrieve all data
     FEffectiveSQL := FSqlFilterTemplate
   else
   begin

@@ -916,7 +916,7 @@ begin
         AField := TField(IndexFields[FieldNr]);
         ProcessFieldCompareStruct(AField,DBCompareStruct[FieldNr]);
 
-        DBCompareStruct[FieldNr].Desc := (DescIndexFields.IndexOf(AField)>-1);
+        DBCompareStruct[FieldNr].Desc := (DescIndexFields.IndexOf(AField)>-1) or (ixDescending in Options);
         if (CInsIndexFields.IndexOf(AField)>-1) then
           DBCompareStruct[FieldNr].Options := [loCaseInsensitive]
         else

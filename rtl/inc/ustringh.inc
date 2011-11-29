@@ -50,6 +50,12 @@ procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp 
 procedure DefaultAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 
 Type
+  TStandardCodePageEnum = (
+    scpAnsi,          // system Ansi code page (GetACP on windows)
+    scpConsoleInput,  // system console input code page (GetConsoleCP on windows)
+    scpConsoleOutput  // system console output code page (GetConsoleOutputCP on windows)
+  );
+
   { hooks for internationalization
     please add new procedures at the end, it makes it easier to detect new procedures }
   TUnicodeStringManager = record
@@ -101,6 +107,9 @@ Type
     LowerUnicodeStringProc : function(const S: UnicodeString): UnicodeString;
     CompareUnicodeStringProc : function(const s1, s2 : UnicodeString) : PtrInt;
     CompareTextUnicodeStringProc : function(const s1, s2 : UnicodeString): PtrInt;
+
+    { codepage retrieve function }
+    GetStandardCodePageProc: function(const stdcp: TStandardCodePageEnum): TSystemCodePage;
   end;
 
 var

@@ -177,7 +177,11 @@ implementation
   as well as the communication class itself.
   
   This comes first, to allow the uses clause to be set.
+  If the include file defines OSNEEDIPCINITDONE then the unit will
+  call IPCInit and IPCDone in the initialization/finalization code.
+  
   --------------------------------------------------------------------- }
+{$UNDEF OSNEEDIPCINITDONE}
 
 {$i simpleipc.inc}
 
@@ -482,5 +486,11 @@ begin
   SendStringMessage(MsgType, Format(Msg,Args));
 end;
 
+{$IFDEF OSNEEDIPCINITDONE}
+initialization
+  IPCInit;
+finalization
+  IPCDone;
+{$ENDIF}  
 end.
 

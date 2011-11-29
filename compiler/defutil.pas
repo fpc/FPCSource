@@ -169,6 +169,9 @@ interface
     {# Returns true if p is an ansi string type }
     function is_ansistring(p : tdef) : boolean;
 
+    {# Returns true if p is an ansi string type with codepage 0 }
+    function is_rawbytestring(p : tdef) : boolean;
+
     {# Returns true if p is a long string type }
     function is_longstring(p : tdef) : boolean;
 
@@ -615,6 +618,14 @@ implementation
       begin
          is_ansistring:=(p.typ=stringdef) and
                         (tstringdef(p).stringtype=st_ansistring);
+      end;
+
+    { true if p is an ansi string def with codepage CP_NONE }
+    function is_rawbytestring(p : tdef) : boolean;
+      begin
+        is_rawbytestring:=(p.typ=stringdef) and
+                       (tstringdef(p).stringtype=st_ansistring) and
+                       (tstringdef(p).encoding=globals.CP_NONE);
       end;
 
     { true if p is an long string def }

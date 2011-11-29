@@ -11,15 +11,15 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas iso7185 strings syscall baseunix \
-      $(LINUXUNIT) unixtype unixutil unix ctypes initc \
-      dos crt objects printer matrix rtlconsts \
+      $(LINUXUNIT) unixtype unixutil unix ctypes bsd initc \
+      $(CPU_UNITS) dos crt objects printer matrix rtlconsts \
       sysutils fgl classes fmtbcd typinfo math varutils \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets ipc terminfo dateutils strutils \
       video mouse keyboard  serial variants types sysctl sysconst \
-      fpintres convutils stdconvs dynlibs cwstring cmem
+      fpintres convutils stdconvs dynlibs cwstring cmem dl termio \
+      cthreads
 
-units_netbsd_i386=mmx cpu
 rsts=math varutils typinfo variants classes sysconst dateutils
 implicitunits=exeinfo
 
@@ -74,6 +74,10 @@ endif
 # which will not be recompiled
 ifdef RELEASE
 override FPCOPT+=-Ur
+endif
+
+ifeq ($(ARCH),i386)
+CPU_UNITS=x86 ports cpu mmx
 endif
 
 # Paths
@@ -227,7 +231,7 @@ stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
 
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 
 
 #

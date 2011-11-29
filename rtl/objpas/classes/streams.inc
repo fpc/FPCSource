@@ -535,17 +535,7 @@ end;
 constructor TFileStream.Create(const AFileName: string; Mode: Word);
 
 begin
-  FFileName:=AFileName;
-  If (Mode and fmCreate) > 0 then
-    FHandle:=FileCreate(AFileName,Mode,438)
-  else
-    FHAndle:=FileOpen(AFileName,Mode);
-
-  If (THandle(FHandle)=feInvalidHandle) then
-    If Mode=fmcreate then
-      raise EFCreateError.createfmt(SFCreateError,[AFileName])
-    else
-      raise EFOpenError.Createfmt(SFOpenError,[AFilename]);
+  Create(AFileName,Mode,438);
 end;
 
 

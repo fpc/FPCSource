@@ -64,19 +64,14 @@ begin
 
   FCopy.Free;
   FClear.Free;
-  FPalette.Free;
-  FClip.Free;
-  FArea.Free;
-  FFormat.Free;
   FEventQueue.Free;
 
   inherited Destroy;
 end;
 
 procedure TX11Display.Load(const APixels: Pointer; AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat; const APalette: TPTCPalette);
+                           AFormat: IPTCFormat; APalette: IPTCPalette);
 var
-  Area_: TPTCArea;
   console_pixels: Pointer;
 begin
   if Clip.Equals(Area) then
@@ -97,45 +92,30 @@ begin
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, width, height);
-    try
-      Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area_, Area);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Load(APixels, AWidth, AHeight, APitch, AFormat, APalette,
+         TPTCArea.Create(0, 0, width, height), Area);
 end;
 
 procedure TX11Display.Load(const APixels: Pointer; AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat; const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat; APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 var
   console_pixels: Pointer;
-  clipped_source, clipped_destination: TPTCArea;
-  tmp: TPTCArea;
+  clipped_source, clipped_destination: IPTCArea;
 begin
-  clipped_source := nil;
-  clipped_destination := nil;
   try
     console_pixels := Lock;
     try
-      clipped_source := TPTCArea.Create;
-      clipped_destination := TPTCArea.Create;
-      tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
-      try
-        TPTCClipper.Clip(ASource, tmp, clipped_source, ADestination, Clip, clipped_destination);
-      finally
-        tmp.Free;
-      end;
+      TPTCClipper.Clip(ASource, TPTCArea.Create(0, 0, AWidth, AHeight),
+                       clipped_source,
+                       ADestination, Clip,
+                       clipped_destination);
       FCopy.request(AFormat, Format);
       FCopy.palette(APalette, Palette);
       FCopy.copy(APixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, APitch,
                  console_pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, Pitch);
     finally
       Unlock;
-      clipped_source.Free;
-      clipped_destination.Free;
     end;
   except
     on error: TPTCError do
@@ -144,32 +124,32 @@ begin
 end;
 
 procedure TX11Display.Save(APixels: Pointer; AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat; const APalette: TPTCPalette);
+                           AFormat: IPTCFormat; APalette: IPTCPalette);
 begin
 end;
 
 procedure TX11Display.Save(APixels: Pointer; AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat; const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat; APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 begin
 end;
 
-procedure TX11Display.Clear(const AColor: TPTCColor);
+procedure TX11Display.Clear(AColor: IPTCColor);
 begin
 end;
 
-procedure TX11Display.Clear(const AColor: TPTCColor; const AArea: TPTCArea);
+procedure TX11Display.Clear(AColor: IPTCColor; AArea: IPTCArea);
 begin
 end;
 
-function TX11Display.Palette: TPTCPalette;
+function TX11Display.Palette: IPTCPalette;
 begin
   Result := FPalette;
 end;
 
-procedure TX11Display.Clip(const AArea: TPTCArea);
+procedure TX11Display.Clip(AArea: IPTCArea);
 begin
-  FClip.Assign(AArea);
+  FClip := AArea;
 end;
 
 function TX11Display.GetWidth: Integer;
@@ -182,25 +162,18 @@ begin
   Result := FHeight;
 end;
 
-function TX11Display.Clip: TPTCArea;
+function TX11Display.Clip: IPTCArea;
 begin
   Result := FClip;
 end;
 
-function TX11Display.GetArea: TPTCArea;
-var
-  tmp: TPTCArea;
+function TX11Display.GetArea: IPTCArea;
 begin
-  tmp := TPTCArea.Create(0, 0, FWidth, FHeight);
-  try
-    FArea.Assign(tmp);
-  finally
-    tmp.Free;
-  end;
+  FArea := TPTCArea.Create(0, 0, FWidth, FHeight);
   Result := FArea;
 end;
 
-function TX11Display.GetFormat: TPTCFormat;
+function TX11Display.GetFormat: IPTCFormat;
 begin
   Result := FFormat;
 end;
@@ -222,7 +195,7 @@ end;
 
 function TX11Display.GetX11DirectFormat(ABitsPerPixel: Integer;
                                         AR, AG, AB: DWord;
-                                        AByteOrder: cint): TPTCFormat;
+                                        AByteOrder: cint): IPTCFormat;
 
   procedure Swap16(var S: DWord);
   begin
@@ -283,7 +256,7 @@ begin
   Result := TPTCFormat.Create(ABitsPerPixel, AR, AG, AB);
 end;
 
-function TX11Display.GetX11Format(const AFormat: TPTCFormat): TPTCFormat;
+function TX11Display.GetX11Format(AFormat: IPTCFormat): IPTCFormat;
 var
   TmpDepth: Integer;
   NumFound: Integer;

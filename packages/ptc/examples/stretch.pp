@@ -15,14 +15,13 @@ program StretchExample;
 uses
   ptc;
 
-procedure load(surface: TPTCSurface; filename: String);
+procedure load(surface: IPTCSurface; filename: string);
 var
   F: File;
   width, height: Integer;
   pixels: PByte = nil;
   y: Integer;
-  tmp: TPTCFormat;
-  tmp2: TPTCPalette;
+  format: IPTCFormat;
 begin
   { open image file }
   AssignFile(F, filename);
@@ -45,20 +44,11 @@ begin
 
     { load pixels to surface }
     {$IFDEF FPC_LITTLE_ENDIAN}
-    tmp := TPTCFormat.Create(24, $00FF0000, $0000FF00, $000000FF);
+    format := TPTCFormatFactory.CreateNew(24, $00FF0000, $0000FF00, $000000FF);
     {$ELSE FPC_LITTLE_ENDIAN}
-    tmp := TPTCFormat.Create(24, $000000FF, $0000FF00, $00FF0000);
+    format := TPTCFormatFactory.CreateNew(24, $000000FF, $0000FF00, $00FF0000);
     {$ENDIF FPC_LITTLE_ENDIAN}
-    try
-      tmp2 := TPTCPalette.Create;
-      try
-        surface.load(pixels, width, height, width * 3, tmp, tmp2);
-      finally
-        tmp2.Free;
-      end;
-    finally
-      tmp.Free;
-    end;
+    surface.Load(pixels, width, height, width * 3, format, TPTCPaletteFactory.CreateNew);
   finally
     { free image pixels }
     FreeMem(pixels);
@@ -69,13 +59,12 @@ begin
 end;
 
 var
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  image: TPTCSurface = nil;
-  format: TPTCFormat = nil;
-  timer: TPTCTimer = nil;
-  area: TPTCArea = nil;
-  color: TPTCColor = nil;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  image: IPTCSurface;
+  format: IPTCFormat;
+  timer: IPTCTimer;
+  area: IPTCArea;
   time: Double;
   zoom: Single;
   x, y, x1, y1, x2, y2, dx, dy: Integer;
@@ -83,19 +72,19 @@ begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       { open the console }
       console.open('Stretch example', format);
 
       { create surface matching console dimensions }
-      surface := TPTCSurface.Create(console.width, console.height, format);
+      surface := TPTCSurfaceFactory.CreateNew(console.width, console.height, format);
 
       { create image surface }
-      image := TPTCSurface.Create(320, 140, format);
+      image := TPTCSurfaceFactory.CreateNew(320, 140, format);
 
       { load image to surface }
       load(image, 'stretch.tga');
@@ -107,11 +96,10 @@ begin
       dy := surface.height div 3;
 
       { create timer }
-      timer := TPTCTimer.Create;
+      timer := TPTCTimerFactory.CreateNew;
 
       { start timer }
       timer.start;
-      color := TPTCColor.Create(1, 1, 1);
 
       { loop until a key is pressed }
       while not console.KeyPressed do
@@ -120,7 +108,7 @@ begin
         time := timer.time;
 
         { clear surface to white background }
-        surface.clear(color);
+        surface.clear(TPTCColorFactory.CreateNew(1, 1, 1));
 
         { calculate zoom factor at current time }
         zoom := 2.5 * (1 - cos(time));
@@ -132,28 +120,20 @@ begin
         y2 := Trunc(y + zoom * dy);
 
         { setup image copy area }
-        area := TPTCArea.Create(x1, y1, x2, y2);
-        try
-          { copy and stretch image to surface }
-          image.copy(surface, image.area, area);
+        area := TPTCAreaFactory.CreateNew(x1, y1, x2, y2);
 
-          { copy surface to console }
-          surface.copy(console);
+        { copy and stretch image to surface }
+        image.copy(surface, image.area, area);
 
-          { update console }
-          console.update;
-        finally
-          area.Free;
-        end;
+        { copy surface to console }
+        surface.copy(console);
+
+        { update console }
+        console.update;
       end;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
-      format.Free;
-      image.Free;
-      color.Free;
-      timer.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

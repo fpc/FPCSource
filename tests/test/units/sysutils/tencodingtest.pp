@@ -6,24 +6,20 @@ program tencodingtest;
 uses
   SysUtils, Classes;
 
-function CheckCodePage(AFileName: String; AEncoding: TEncoding): Boolean;
+function CheckCodePage(const B: TBytes; AEncoding: TEncoding): Boolean;
 var
-  S: TStream;
-  B: TBytes;
   DetectedEncoding: TEncoding;
 begin
-  S := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone);
-  try
-    SetLength(B, S.Size);
-    S.Read(B[0], S.Size);
-    DetectedEncoding := nil;
-    Result :=
-      (TEncoding.GetBufferEncoding(B, DetectedEncoding) <> 0) and
-      (DetectedEncoding = AEncoding);
-  finally
-    S.Free;
-  end;
+  DetectedEncoding := nil;
+  Result :=
+    (TEncoding.GetBufferEncoding(B, DetectedEncoding) <> 0) and
+    (DetectedEncoding = AEncoding);
 end;
+
+const
+  UTF8Bytes: array[0..18] of byte = ($EF,$BB,$BF,$D0,$9F,$D1,$80,$D0,$BE,$D0,$B2,$D0,$B5,$D1,$80,$D0,$BA,$D0,$B0);
+  UTF16Bytes: array[0..17] of byte = ($FF,$FE,$1F,$04,$40,$04,$3E,$04,$32,$04,$35,$04,$40,$04,$3A,$04,$30,$04);
+  UTF16BEBytes: array[0..17] of byte = ($FE,$FF,$04,$1F,$04,$40,$04,$3E,$04,$32,$04,$35,$04,$40,$04,$3A,$04,$30);
 
 type
   TCp1251String = type AnsiString(1251);
@@ -70,14 +66,19 @@ begin
   if TEncoding.Default.CodePage <> DefaultSystemCodePage then
     halt(7);
   // 3. check codepage detection
-  if not CheckCodePage('utf8.txt', TEncoding.UTF8) then
+  SetLength(Bytes, Length(UTF8Bytes));
+  Move(UTF8Bytes[0], Bytes[0], Length(UTF8Bytes));
+  if not CheckCodePage(Bytes, TEncoding.UTF8) then
     halt(8);
-  if not CheckCodePage('utf16.txt', TEncoding.Unicode) then
+  SetLength(Bytes, Length(UTF16Bytes));
+  Move(UTF16Bytes[0], Bytes[0], Length(UTF16Bytes));
+  if not CheckCodePage(Bytes, TEncoding.Unicode) then
     halt(9);
-  if not CheckCodePage('utf16be.txt', TEncoding.BigEndianUnicode) then
+  SetLength(Bytes, Length(UTF16BEBytes));
+  Move(UTF16BEBytes[0], Bytes[0], Length(UTF16BEBytes));
+  if not CheckCodePage(Bytes, TEncoding.BigEndianUnicode) then
     halt(10);
   Cp866Encoding.Free;
   Cp1251Encoding.Free;
   WriteLn('ok');
 end.
-

@@ -195,6 +195,18 @@ asm
 //    movsd     %xmm8,(%rax)
 end;
 
+procedure tcalljump; assembler; nostackframe;
+asm
+    call   *0x12345678(%rip)
+    call   *(%rax)
+    jmp    *0x12345678(%rip)
+    jmp    *(%rax)
+    lcall  *0x12345678(%rip)
+    lcall  *(%rax)
+    ljmp   *0x12345678(%rip)
+    ljmp   *(%rax)
+end;
+
 const
   test_expected : array[0..745] of byte = (
     $66,$44,$0F,$D0,$05,$78,$56,$34,
@@ -273,6 +285,16 @@ const
     $0F,$7E,$C0
   );
 
+  tcalljump_expected: array[0..31] of byte = (
+    $ff,$15,$78,$56,$34,$12,
+    $ff,$10,
+    $ff,$25,$78,$56,$34,$12,
+    $ff,$20,
+    $ff,$1d,$78,$56,$34,$12,
+    $ff,$18,
+    $ff,$2d,$78,$56,$34,$12,
+    $ff,$28
+  );
 
 procedure check(const id: string; const expected: array of byte; p: pointer);
 var
@@ -290,5 +312,6 @@ begin
   check('generic', test_expected, @test);
   check('movq', tmovq_expected, @tmovq);
   check('movd', tmovd_expected, @tmovd);
+  check('calljmp', tcalljump_expected, @tcalljump);
   writeln('ok');
 end.

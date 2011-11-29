@@ -340,7 +340,13 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
      case reason of
        { For executables, DLL_PROCESS_ATTACH is called *before* the entry point,
          and DLL_PROCESS_DETACH is called *after* RTL shuts down and calls ExitProcess.
-         It isn't a good idea to handle resources of the main thread at these points. }
+         It isn't a good idea to handle resources of the main thread at these points.
+         SysInitMultithreading is necessary however, because if some statically loaded
+         DLL creates a thread, it will invoke DLL_THREAD_ATTACH before anything else is
+         initialized. }
+       DLL_PROCESS_ATTACH:
+         SysInitMultithreading;
+
        DLL_THREAD_ATTACH :
          begin
          {  !!! SysInitMultithreading must NOT be called here. Windows guarantees that
@@ -671,7 +677,17 @@ var
   WStrInitTablesTable: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
 {$endif}
 
-function GetACP:UINT; external 'kernel32' name 'GetACP';
+function GetACP:UINT; stdcall; external 'kernel32' name 'GetACP';
+function GetConsoleCP:UINT; stdcall; external 'kernel32' name 'GetConsoleCP'; 
+
+function Win32GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
+  begin
+    case stdcp of
+      scpAnsi: Result := GetACP;
+      scpConsoleInput: Result := GetConsoleCP;
+      scpConsoleOutput: Result := GetConsoleOutputCP;
+    end;
+  end;
 
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
@@ -701,13 +717,14 @@ procedure InitWin32Widestrings;
     widestringmanager.Ansi2WideMoveProc:=@Win32Ansi2WideMove;
     widestringmanager.UpperWideStringProc:=@Win32WideUpper;
     widestringmanager.LowerWideStringProc:=@Win32WideLower;
-{$ifndef VER2_2}
     { Unicode }
     widestringmanager.Unicode2AnsiMoveProc:=@Win32Unicode2AnsiMove;
     widestringmanager.Ansi2UnicodeMoveProc:=@Win32Ansi2UnicodeMove;
     widestringmanager.UpperUnicodeStringProc:=@Win32UnicodeUpper;
     widestringmanager.LowerUnicodeStringProc:=@Win32UnicodeLower;
-{$endif VER2_2}
+    { Codepage }
+    widestringmanager.GetStandardCodePageProc:=@Win32GetStandardCodePage;
+
     DefaultSystemCodePage:=GetACP;
     DefaultUnicodeCodePage:=CP_UTF16;
   end;

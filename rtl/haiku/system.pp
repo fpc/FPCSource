@@ -463,6 +463,7 @@ begin
   SysInitExceptions;
 //  WriteLn('after SysInitException');
 
+  initunicodestringmanager;
 { Setup IO }
   SysInitStdIO;
 { Reset IO Error }
@@ -471,11 +472,6 @@ begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
-{$ifdef VER2_2}
-  initwidestringmanager;
-{$else VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
   setupexecname;
   { restore original signal handlers in case this is a library }
   if IsLibrary then

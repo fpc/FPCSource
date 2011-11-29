@@ -139,7 +139,7 @@ interface
          cs_support_c_operators,
          { generation }
          cs_profile,cs_debuginfo,cs_compilesystem,
-         cs_lineinfo,cs_implicit_exceptions,
+         cs_lineinfo,cs_implicit_exceptions,cs_explicit_codepage,
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic,
          { browser switches are back }

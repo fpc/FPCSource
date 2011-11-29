@@ -6,7 +6,7 @@ unit cp437;
   implementation
 
   uses
-     {$ifdef VER2_4}ccharset{$else VER2_4}charset{$endif VER2_4};
+     {$if FPC_FULLVERSION<20700}ccharset{$else}charset{$endif};
 
   const
      map : array[0..255] of tunicodecharmapping = (
