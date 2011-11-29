@@ -42,14 +42,13 @@ Type
   stSkippingOtherCpu,
   stSkippingOtherTarget,
   stskippingRunUnit,
-  stskippingRunTest,
-  stskippungUnconditionally
+  stskippingRunTest
   );
 
 
 Const
   FirstStatus = stFailedToCompile;
-  LastStatus = stskippingUnconditionally;
+  LastStatus = stskippingRunTest;
 
   TestOK : Array[TTestStatus] of Boolean = (
     False, // stFailedToCompile,
@@ -67,8 +66,7 @@ Const
     False, // stSkippingOtherCpu,
     False, // stSkippingOtherTarget,
     False, // stskippingRunUnit,
-    False, // stskippingRunTest,
-    False  // stskippingUnconditionally
+    False  // stskippingRunTest
   );
 
   TestSkipped : Array[TTestStatus] of Boolean = (
@@ -87,8 +85,7 @@ Const
     True,   // stSkippingOtherCpu,
     True,   // stSkippingOtherTarget,
     True,   // stskippingRunUnit,
-    True,   // stskippingRunTest,
-    True    // stskippingUnconditionally
+    True    // stskippingRunTest
   );
 
   ExpectRun : Array[TTestStatus] of Boolean = (
@@ -107,8 +104,7 @@ Const
     False,  // stSkippingOtherCpu,
     False,  // stSkippingOtherTarget,
     False,  // stskippingRunUnit,
-    False,  // stskippingRunTest,
-    False,  // stskippingUnconditionally
+    False   // stskippingRunTest
    );
 
   StatusText : Array[TTestStatus] of String = (
@@ -127,8 +123,7 @@ Const
     skipping_other_cpu ,
     skipping_other_target ,
     skipping_run_unit ,
-    skipping_run_test ,
-    skipping_test
+    skipping_run_test
   );
 
   SQLField : Array[TTestStatus] of String = (
@@ -147,8 +142,7 @@ Const
     'TU_OTHERCPU',
     'TU_OTHERTARGET',
     'TU_UNIT',
-    'TU_SKIPPINGRUNTEST',
-    'TU_SKIPPEDUNCONDITIONALLY'
+    'TU_SKIPPINGRUNTEST'
   );
 
 

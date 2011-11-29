@@ -36,7 +36,6 @@ const
   skipping_other_target_count : longint = 0;
   skipping_run_unit_count : longint = 0;
   skipping_run_test_count : longint = 0;
-  skipping_unconditionally_count : longint = 0;
   unknown_lines : longint = 0;
   unexpected_run : longint = 0;
   next_should_be_run : boolean = false;
@@ -117,10 +116,6 @@ begin
     begin
       inc(skipping_other_cpu_count);
     end
-  else if pos(skipping_test,st)=1 then
-    begin
-      inc(skipping_unconditionally_count);
-    end
   else if pos(skipping_other_target,st)=1 then
     begin
       inc(skipping_other_target_count);
@@ -195,13 +190,11 @@ begin
     +skipping_known_bug_count
     +skipping_other_version_count
     +skipping_other_cpu_count
-    +skipping_other_target_count
-    +skipping_unconditionally_count;
+    +skipping_other_target_count;
   { don't count these ones ...
     skipping_run_unit_count
     skipping_run_test_count }
   Writeln('Number of skipped tests = ',number_skipped);
-  Writeln('Number of unconditionally skipped tests = ',skipping_unconditionally_count);
   Writeln('Number of skipped graph tests = ',skipping_graph_test_count);
   Writeln('Number of skipped interactive tests = ',skipping_interactive_test_count);
   Writeln('Number of skipped known bug tests = ',skipping_known_bug_count);

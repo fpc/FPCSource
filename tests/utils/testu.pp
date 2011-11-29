@@ -41,7 +41,6 @@ type
     Files         : string;
     WpoParas      : string;
     WpoPasses     : longint;
-    Skip          : boolean;
   end;
 
 Const
@@ -277,9 +276,6 @@ begin
                 if GetEntry('WPOPASSES') then
                  val(res,r.wpopasses,code)
               else
-                if GetEntry('SKIP') then
-                 r.Skip:=true
-              else 
                Verbose(V_Error,'Unknown entry: '+s);
             end;
          end
