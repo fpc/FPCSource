@@ -135,11 +135,11 @@ fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszli
 fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release fcl-web_release
 fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared fcl-web_shared
 else
-fppkg_all: fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all
-fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug
-fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart
-fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release
-fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared
+fppkg_all: fcl-base_all fcl-xml_all fcl-process_all paszlib_all
+fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug paszlib_debug
+fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart paszlib_smart
+fppkg_release: fcl-base_release fcl-xml_release fcl-process_release paszlib_release
+fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared paszlib_shared
 endif
 
 fcl-xml_all: fcl-base_all
