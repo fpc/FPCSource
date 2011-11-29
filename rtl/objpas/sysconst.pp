@@ -87,6 +87,7 @@ resourcestring
   SOverflow              = 'Floating point overflow';
   SPrivilege             = 'Privileged instruction';
   SRangeError            = 'Range check error';
+  SStackOverflow         = 'Stack overflow';
   SSafecallException     = 'Exception in safecall method';
   SiconvError            = 'iconv error';
 
@@ -116,6 +117,7 @@ resourcestring
   SVarTypeRangeCheck2           = 'Range check error while converting variant of type (%s) into type (%s)';
   SVarTypeTooManyCustom         = 'Too many custom variant types have been registered';
   SVarUnexpected                = 'Unexpected variant error';
+  SZeroDivide                   = 'Floating point division by zero';
 
   SFallbackError                = 'An error, whose error code is larger than can be returned to the OS, has occured';
 
