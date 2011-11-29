@@ -598,7 +598,7 @@ Type
     Function  GetBinOutputDir(ACPU:TCPU; AOS : TOS) : String;
     Procedure GetCleanFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;ACPU:TCPU; AOS : TOS); virtual;
-    procedure GetInstallSourceFiles(List: TStrings;Types : TSourceTypes); virtual;
+    procedure GetInstallSourceFiles(List: TStrings; SourceTypes : TSourceTypes; TargetTypes : TTargetTypes); virtual;
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetArchiveSourceFiles(List : TStrings); virtual;
     Procedure GetManifest(Manifest : TStrings);
@@ -680,6 +680,7 @@ Type
     FCopy: String;
     FFPDocOutputDir: String;
     FIgnoreInvalidOptions: Boolean;
+    FInstallExamples: Boolean;
     FMkDir: String;
     FMove: String;
     FOptions: TStrings;
@@ -762,6 +763,8 @@ Type
     Property Archive : String Read FArchive Write FArchive;    // zip $(ARCHIVE) $(FILESORDIRS)
     // Misc
     Property IgnoreInvalidOptions: Boolean read FIgnoreInvalidOptions write FIgnoreInvalidOptions;
+    // Installation optioms
+    Property InstallExamples: Boolean read FInstallExamples write FInstallExamples;
   end;
 
   { TBasicDefaults }
@@ -818,20 +821,17 @@ Type
     Procedure SysArchiveFiles(List : TStrings; Const AFileName : String); virtual;
     procedure LogIndent;
     procedure LogUnIndent;
-    Procedure Log(Level : TVerboseLevel; Const Msg : String);
-    Procedure Log(Level : TVerboseLevel; Const Fmt : String; const Args : Array Of Const);
     Procedure EnterDir(ADir : String);
     Function GetCompiler : String;
     Function InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Dest : String):Boolean;
     Procedure InstallUnitConfigFile(APAckage : TPackage; Const Dest : String);
-    Function InstallPackageSourceFiles(APAckage : TPackage; tt : TSourceType; Const Dest : String):Boolean;
+    Function InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String):Boolean;
     Function FileNewer(const Src,Dest : String) : Boolean;
     Procedure LogSearchPath(const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
     Function FindFileInPath(Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
 
     procedure GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
     //package commands
-    Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true);
     function  GetUnitDir(APackage:TPackage):String;
     procedure AddDependencyIncludePaths(L:TStrings;ATarget: TTarget);
     procedure AddDependencyUnitPaths(L:TStrings;APackage: TPackage);
@@ -840,6 +840,7 @@ Type
     destructor Destroy;override;
 
     property Verbose : boolean read FVerbose write FVerbose;
+    Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true);
 
     // Public Copy/delete/Move/Archive/Mkdir Commands.
     Procedure ExecuteCommand(const Cmd,Args : String; IgnoreError : Boolean = False); virtual;
@@ -891,6 +892,10 @@ Type
     Procedure Archive(Packages : TPackages);
     procedure Manifest(Packages: TPackages);
     Procedure Clean(Packages : TPackages; AllTargets: boolean);
+
+    Procedure Log(Level : TVerboseLevel; Const Msg : String);
+    Procedure Log(Level : TVerboseLevel; Const Fmt : String; const Args : Array Of Const);
+
     Property ListMode : Boolean Read FListMode Write FListMode;
     Property ForceCompile : Boolean Read FForceCompile Write FForceCompile;
     Property ExternalPackages: TPackages Read FExternalPackages;
@@ -1167,6 +1172,7 @@ ResourceString
   SHelpConfig         = 'Use indicated config file when compiling.';
   SHelpOptions        = 'Pass extra options to the compiler.';
   SHelpVerbose        = 'Be verbose when working.';
+  SHelpInstExamples   = 'Install the example-sources.';
   SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
   sHelpFpdocOutputDir = 'Use indicated directory as fpdoc output folder.';
 
@@ -1195,6 +1201,7 @@ Const
   KeyBinInstallDir      = 'BinInstallDir';
   KeyDocInstallDir      = 'DocInstallDir';
   KeyExamplesInstallDir = 'ExamplesInstallDir';
+  KeyInstallExamples    = 'InstallExamples';
   // Keys for unit config
   KeyName     = 'Name';
   KeyVersion  = 'Version';
@@ -1290,11 +1297,7 @@ begin
   BytesRead := 0;
   P := TProcess.Create(nil);
   try
-    if Verbose then
-      P.CommandLine := Path + ' ' + ComLine
-    else
-      P.CommandLine := Path + ' -viq ' + ComLine;
-
+    P.CommandLine := Path + ' ' + ComLine;
     P.Options := [poUsePipes];
 
     P.Execute;
@@ -2385,16 +2388,23 @@ begin
 end;
 
 
-procedure TPackage.GetInstallSourceFiles(List: TStrings; Types: TSourceTypes);
+procedure TPackage.GetInstallSourceFiles(List: TStrings; SourceTypes : TSourceTypes; TargetTypes : TTargetTypes);
 Var
   I : Integer;
   S : TSource;
+  T : TTarget;
 begin
   For I:=0 to FSources.Count-1 do
     begin
       S:=FSources.SourceItems[I];
-      if (S.SourceType in Types) then
+      if (S.SourceType in SourceTypes) then
         S.GetInstallFiles(List);
+    end;
+  For I:=0 to FTargets.Count-1 do
+    begin
+      T:=FTargets.TargetItems[I];
+      if (T.TargetType in TargetTypes) then
+        T.GetArchiveFiles(List,Defaults.CPU,Defaults.OS);
     end;
 end;
 
@@ -3053,6 +3063,8 @@ begin
       Values[KeyTarget]:=FTarget;
       if FNoFPCCfg then
         Values[KeyNoFPCCfg]:='Y';
+      if FInstallExamples then
+          Values[KeyInstallExamples]:='Y';
       end;
     L.SaveToStream(S);
   Finally
@@ -3110,6 +3122,7 @@ begin
       FBinInstallDir:=Values[KeyBinInstallDir];
       FDocInstallDir:=Values[KeyDocInstallDir];
       FExamplesInstallDir:=Values[KeyExamplesInstallDir];
+      FInstallExamples:=(Upcase(Values[KeyInstallExamples])='Y');
       FNoFPCCfg:=(Upcase(Values[KeyNoFPCCfg])='Y');
       end;
   Finally
@@ -3374,6 +3387,8 @@ begin
       Defaults.Compiler:=OptionArg(I)
     else if CheckOption(I,'f','config') then
       DefaultsFileName:=OptionArg(I)
+    else if CheckOption(I,'ie','installexamples') then
+      Defaults.InstallExamples:=true
     else if CheckOption(I,'io','ignoreinvalidoption') then
       Defaults.IgnoreInvalidOptions:=true
     else if CheckOption(I,'d','doc-folder') then
@@ -3432,6 +3447,7 @@ begin
   LogOption('l','list-commands',SHelpList);
   LogOption('n','nofpccfg',SHelpNoFPCCfg);
   LogOption('v','verbose',SHelpVerbose);
+  LogOption('ie','installexamples',SHelpInstExamples);
   LogArgOption('C','cpu',SHelpCPU);
   LogArgOption('O','os',SHelpOS);
   LogArgOption('t','target',SHelpTarget);
@@ -4352,6 +4368,13 @@ begin
     Args.AddStrings(APackage.Options);
   If (ATarget.HaveOptions) then
     Args.AddStrings(ATarget.Options);
+
+  {$ifdef HAS_UNIT_PROCESS}
+  // Force the compiler-output to be easy parseable
+  if not Verbose then
+    args.Add('-viq');
+  {$endif}
+
   // Add Filename to compile
   Args.Add(ATarget.TargetSourceFileName);
   // Convert to string
@@ -4910,14 +4933,14 @@ begin
   end;
 end;
 
-function TBuildEngine.InstallPackageSourceFiles(APAckage: TPackage; tt: TSourceType; const Dest: String): Boolean;
+function TBuildEngine.InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String): Boolean;
 Var
   List : TStringList;
 begin
   Result:=False;
   List:=TStringList.Create;
   Try
-    APackage.GetInstallSourceFiles(List,[tt]);
+    APackage.GetInstallSourceFiles(List,stt,ttt);
     if (List.Count>0) then
       begin
         Result:=True;
@@ -4981,10 +5004,13 @@ begin
     //InstallPackageFiles(APAckage,ttExampleProgram,D);
     // Documentation
     D:=IncludeTrailingPathDelimiter(Defaults.DocInstallDir)+'fpc-'+APackage.FileName+PathDelim;
-    InstallPackageSourceFiles(APackage,stDoc,D);
+    InstallPackageSourceFiles(APackage,[stDoc],[],D);
     // Examples
-    D:=IncludeTrailingPathDelimiter(Defaults.ExamplesInstallDir)+'fpc-'+APackage.FileName+PathDelim;
-    InstallPackageSourceFiles(APackage,stExample,D);
+    if Defaults.InstallExamples then
+      begin
+        D:=IncludeTrailingPathDelimiter(Defaults.ExamplesInstallDir)+'fpc-'+APackage.FileName+PathDelim+'examples'+PathDelim;
+        InstallPackageSourceFiles(APackage,[stExample],[ttExampleProgram,ttExampleUnit],D);
+      end;
     // Done.
     APackage.FTargetState:=tsInstalled;
     DoAfterInstall(APackage);
