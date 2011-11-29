@@ -26,6 +26,9 @@ interface
 
 uses
   Classes, SysUtils;
+
+const 
+  CHMPackageVersion = '2.6.0'; // to be put in readme
   
 type
   {$PACKRECORDS C}
