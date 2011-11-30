@@ -299,7 +299,11 @@ type
   TExceptMapEntry=record
     code: byte;
     cls:  ExceptClass;
+{$IFDEF FPC_HAS_FEATURE_RESOURCES}  // This is necessary for 2.4.4, which does not have reasources as a separate feature
     msg:  PResStringRec;
+{$else FPC_HAS_FEATURE_RESOURCES}
+    msg:  PString;
+{$endif FPC_HAS_FEATURE_RESOURCES}
   end;
 
 const
