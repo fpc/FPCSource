@@ -341,11 +341,14 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
        { For executables, DLL_PROCESS_ATTACH is called *before* the entry point,
          and DLL_PROCESS_DETACH is called *after* RTL shuts down and calls ExitProcess.
          It isn't a good idea to handle resources of the main thread at these points.
-         SysInitMultithreading is necessary however, because if some statically loaded
+         InitSystemThreads is necessary however, because if some statically loaded
          DLL creates a thread, it will invoke DLL_THREAD_ATTACH before anything else is
-         initialized. }
-       DLL_PROCESS_ATTACH:
-         SysInitMultithreading;
+         initialized.
+         TODO: The problem is that InitSystemThreads depends (in case of Win32) on EntryInformation
+         which is not available at this point. Solving it properly needs to move this routine
+         to sysinit unit or something like that. }
+//       DLL_PROCESS_ATTACH:
+//         InitSystemThreads;
 
        DLL_THREAD_ATTACH :
          begin
