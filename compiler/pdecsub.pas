@@ -1222,7 +1222,7 @@ implementation
             { Add ObjectSymtable to be able to find nested type definitions }
             popclass:=0;
             if assigned(pd.struct) and
-               (pd.parast.symtablelevel=normal_function_level) and
+               (pd.parast.symtablelevel>=normal_function_level) and
                not(symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
@@ -1276,7 +1276,7 @@ implementation
             { Add ObjectSymtable to be able to find generic type definitions }
             popclass:=0;
             if assigned(pd.struct) and
-               (pd.parast.symtablelevel=normal_function_level) and
+               (pd.parast.symtablelevel>=normal_function_level) and
                not (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
