@@ -59,12 +59,11 @@ uses
       var
         st  : TSymtable;
         srsym : tsym;
-        pt2,pttmp : tnode;
+        pt2 : tnode;
         first,
         err : boolean;
         i,
         gencount : longint;
-        sym : tsym;
         genericdef : tstoreddef;
         generictype : ttypesym;
         genericdeflist : TFPObjectList;
@@ -77,7 +76,6 @@ uses
         uspecializename,
         countstr,genname,ugenname,specializename : string;
         vmtbuilder : TVMTBuilder;
-        onlyparsepara : boolean;
         specializest : tsymtable;
         item : tobject;
         old_current_structdef : tabstractrecorddef;
@@ -88,7 +86,6 @@ uses
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
         tt:=nil;
-        onlyparsepara:=false;
 
         { either symname must be given or genericdef needs to be valid }
         if (symname='') and
@@ -359,7 +356,7 @@ uses
                 srsym:=ttypesym.create(specializename,generrordef);
                 specializest.insert(srsym);
 
-                { specializations are declarations as such it is the wised to
+                { specializations are declarations as such it is the wisest to
                   declare set the blocktype to "type"; otherwise we'll
                   experience unexpected side effects like the addition of
                   classrefdefs if we have a generic that's derived from another
