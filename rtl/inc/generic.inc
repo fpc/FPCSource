@@ -752,7 +752,7 @@ begin
     end;
   if _self<>nil then
     begin
-      fillchar(_self^,pvmt(vmtcopy)^.size,#0);
+      fillchar(_self^,pvmt(vmtcopy)^.size,0);
       ppointer(_self+_vmt_pos)^:=vmtcopy;
     end;
   fpc_help_constructor:=_self;
@@ -1025,7 +1025,7 @@ end;
 procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);compilerproc;
     [public,alias:'FPC_SHORTSTR_APPEND_SHORTSTR'];
 var
-  s1l, s2l : integer;
+  s1l, s2l : sizeint;
 begin
   s1l:=length(s1);
   s2l:=length(s2);
@@ -1292,6 +1292,7 @@ end;
 {****************************************************************************
                           Software multiplication
 ****************************************************************************}
+{$ifdef FPC_INCLUDE_SOFTWARE_MUL}
 
 {$ifndef FPC_SYSTEM_HAS_MUL_INTEGER}
     function fpc_mul_integer(f1,f2 : integer;checkoverflow : boolean) : integer;[public,alias: 'FPC_MUL_INTEGER']; compilerproc;
@@ -1446,6 +1447,8 @@ end;
           end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_DWORD}
+
+{$endif FPC_INCLUDE_SOFTWARE_MUL}
 
 {****************************************************************************
                           Software longint/dword division
