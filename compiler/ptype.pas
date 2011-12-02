@@ -846,8 +846,8 @@ implementation
                      dospecialize:=token=_LSHARPBRACKET
                    else
                      { in non-Delphi modes we might get a inline specialization
-                       without "specialize" or "<T>", so we need to handle that
-                       special }
+                       without "specialize" or "<T>" of the same type we're
+                       currently parsing, so we need to handle that special }
                      if not dospecialize and
                          assigned(ttypenode(pt1).typesym) and
                          (ttypenode(pt1).typesym.typ=typesym) and
@@ -858,6 +858,7 @@ implementation
                              not (m_delphi in current_settings.modeswitches) and
                              (ttypesym(ttypenode(pt1).typesym).typedef.typ=undefineddef) and
                              (df_generic in current_structdef.defoptions) and
+                             (ttypesym(ttypenode(pt1).typesym).typedef.owner=current_structdef.owner) and
                              (upper(ttypenode(pt1).typesym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
                            ) or (
                              (df_specialization in current_structdef.defoptions) and
