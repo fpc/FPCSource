@@ -8,9 +8,6 @@ uses
   Classes, SysUtils, fpdocproj, dom;
 
 Type
-
-  { TXMLFPocOptions }
-
   { TXMLFPDocOptions }
 
   TXMLFPDocOptions = Class(TComponent)
@@ -20,21 +17,30 @@ Type
     Procedure LoadPackage(APackage : TFPDocPackage; E : TDOMElement); virtual;
     Procedure LoadPackages(Packages : TFPDocPackages; E : TDOMElement);
     Procedure LoadEngineOptions(Options : TEngineOptions; E : TDOMElement); virtual;
+    Procedure SaveEngineOptions(Options : TEngineOptions; XML : TXMLDocument; AParent : TDOMElement); virtual;
+    procedure SaveDescription(const ADescription: String; XML: TXMLDocument;  AParent: TDOMElement); virtual;
+    procedure SaveInputFile(const AInputFile: String; XML: TXMLDocument; AParent: TDOMElement);virtual;
+    Procedure SavePackage(APackage : TFPDocPackage; XML : TXMLDocument; AParent : TDOMElement); virtual;
   Public
     Procedure LoadOptionsFromFile(AProject : TFPDocProject; Const AFileName : String);
     Procedure LoadFromXML(AProject : TFPDocProject; XML : TXMLDocument); virtual;
+    Procedure SaveOptionsToFile(AProject : TFPDocProject; Const AFileName : String);
+    procedure SaveToXML(AProject : TFPDocProject; ADoc: TXMLDocument); virtual;
   end;
   EXMLFPdoc = Class(Exception);
 
 implementation
 
-Uses XMLRead;
+Uses XMLRead, XMLWrite;
 
 Resourcestring
   SErrInvalidRootNode = 'Invalid options root node: Got "%s", expected "docproject"';
   SErrNoPackagesNode = 'No "packages" node found in docproject';
   SErrNoInputFile = 'unit tag without file attribute found';
   SErrNoDescrFile = 'description tag without file attribute';
+
+const
+  ProjectTemplate = 'template-project.xml';
 
 { TXMLFPDocOptions }
 
@@ -97,7 +103,7 @@ Var
 begin
   APackage.Name:=E['name'];
   APackage.output:=E['output'];
-  APackage.ContentFile:=E['contentfile'];
+  APackage.ContentFile:=E['content'];
   N:=E.FirstChild;
   While (N<>Nil) do
     begin
@@ -197,8 +203,155 @@ begin
     end;
 end;
 
-procedure TXMLFPDocOptions.LoadOptionsFromFile(AProject: TFPDocProject;
-  const AFileName: String);
+procedure TXMLFPDocOptions.SaveToXML(AProject: TFPDocProject; ADoc: TXMLDocument);
+
+var
+  i: integer;
+  E,PE: TDOMElement;
+
+begin
+  E:=ADoc.CreateElement('docproject');
+  ADoc.AppendChild(E);
+  E:=ADoc.CreateElement('options');
+  ADoc.DocumentElement.AppendChild(E);
+  SaveEngineOptions(AProject.Options,ADoc,E);
+  E:=ADoc.CreateElement('packages');
+  ADoc.DocumentElement.AppendChild(E);
+  for i := 0 to AProject.Packages.Count - 1 do
+    begin
+    PE:=ADoc.CreateElement('package');
+    E.AppendChild(PE);
+    SavePackage(AProject.Packages[i],ADoc,PE);
+    end;
+end;
+
+Procedure TXMLFPDocOptions.SaveEngineOptions(Options : TEngineOptions; XML : TXMLDocument; AParent : TDOMElement);
+
+  procedure AddStr(const n, v: string);
+  var
+    E : TDOMElement;
+  begin
+    if (v='') then
+      Exit;
+    E:=XML.CreateElement('option');
+    AParent.AppendChild(E);
+    E['name'] := n;
+    E['value'] := v;
+  end;
+
+  procedure AddBool(const AName: string; B: Boolean);
+
+  begin
+    if B then
+      AddStr(Aname,'true')
+    else
+      AddStr(Aname,'false');
+  end;
+
+var
+  i: integer;
+  n: string;
+
+begin
+  AddStr('ostarget', Options.OSTarget);
+  AddStr('cputarget', Options.CPUTarget);
+  AddStr('mo-dir', Options.MoDir);
+  AddStr('format', Options.Backend);
+  AddStr('language', Options.Language);
+  AddStr('package', Options.DefaultPackageName);
+  AddBool('hide-protected', Options.HideProtected);
+  AddBool('warn-no-node', Options.WarnNoNode);
+  AddBool('show-private', Options.ShowPrivate);
+  AddBool('stop-on-parser-error', Options.StopOnParseError);
+  AddBool('parse-impl', Options.InterfaceOnly);
+  AddBool('dont-trim', Options.DontTrim);
+end;
+
+Procedure TXMLFPDocOptions.SaveInputFile(Const AInputFile : String; XML : TXMLDocument; AParent: TDOMElement);
+
+  Function GetNextWord(Var s : string) : String;
+
+  Const
+    WhiteSpace = [' ',#9,#10,#13];
+
+  var
+    i,j: integer;
+
+  begin
+    I:=1;
+    While (I<=Length(S)) and (S[i] in WhiteSpace) do
+      Inc(I);
+    J:=I;
+    While (J<=Length(S)) and (not (S[J] in WhiteSpace)) do
+      Inc(J);
+    if (I<=Length(S)) then
+      Result:=Copy(S,I,J-I);
+    Delete(S,1,J);
+  end;
+
+
+Var
+  S,W,F,O : String;
+
+begin
+  S:=AInputFile;
+  While (S<>'') do
+    begin
+    W:=GetNextWord(S);
+    If (W<>'') then
+      begin
+      if W[1]='-' then
+        begin
+        if (O<>'') then
+          O:=O+' ';
+        o:=O+W;
+        end
+      else
+        F:=W;
+      end;
+    end;
+  AParent['file']:=F;
+  AParent['options']:=O;
+end;
+
+Procedure TXMLFPDocOptions.SaveDescription(Const ADescription : String; XML : TXMLDocument; AParent: TDOMElement);
+
+begin
+  AParent['file']:=ADescription;
+end;
+
+Procedure TXMLFPDocOptions.SavePackage(APackage: TFPDocPackage; XML : TXMLDocument; AParent: TDOMElement);
+
+
+var
+  i: integer;
+  E,PE : TDomElement;
+
+begin
+  AParent['name']:=APackage.Name;
+  AParent['output']:=APackage.Output;
+  AParent['content']:=APackage.ContentFile;
+  // Units
+  PE:=XML.CreateElement('units');
+  AParent.AppendChild(PE);
+  for i:=0 to APackage.Inputs.Count-1 do
+    begin
+    E:=XML.CreateElement('unit');
+    PE.AppendChild(E);
+    SaveInputFile(APackage.Inputs[i],XML,E);
+    end;
+  // Descriptions
+  PE:=XML.CreateElement('descriptions');
+  AParent.AppendChild(PE);
+  for i:=0 to APackage.Descriptions.Count-1 do
+    begin
+    E:=XML.CreateElement('description');
+    PE.AppendChild(E);
+    SaveDescription(APackage.Descriptions[i],XML,E);
+    end;
+end;
+
+procedure TXMLFPDocOptions.LoadOptionsFromFile(AProject: TFPDocProject; const AFileName: String);
 
 Var
   XML : TXMLDocument;
@@ -230,6 +383,21 @@ begin
   N:=E.FindNode('options');
   If (N<>Nil) and (N.NodeType=ELEMENT_NODE) then
     LoadEngineOptions(AProject.Options,N as TDOMElement);
+end;
+
+Procedure TXMLFPDocOptions.SaveOptionsToFile(AProject: TFPDocProject; const AFileName: String);
+
+Var
+  XML : TXMLDocument;
+
+begin
+  XML:=TXMLDocument.Create;
+  try
+    SaveToXML(AProject,XML);
+    WriteXMLFile(XML, AFileName);
+  finally
+    XML.Free;
+  end;
 end;
 
 end.

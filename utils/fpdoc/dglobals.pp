@@ -150,6 +150,8 @@ resourcestring
   SUsageOption180  = '--mo-dir=dir      Set directory where language files reside to dir';
   SUsageOption190  = '--parse-impl      (Experimental) try to parse implementation too';
   SUsageOption200 =  '--dont-trim	Don''t trim XML contents';
+  SUsageOption210 =  '--write-project=file Do not write documentation, create project file instead';
+
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
   SUsageFormatSpecific = 'Output format "%s" supports the following options:';

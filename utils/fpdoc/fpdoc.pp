@@ -44,10 +44,12 @@ Type
     FProject : TFPDocProject;
     FProjectFile : Boolean;
     FPackage : TFPDocPackage;
+    FWriteProjectFile : String;
   Protected
     procedure ParseCommandLine;
     procedure Parseoption(const S: String);
     Procedure Usage(AnExitCode : Byte);
+    Procedure CreateProjectFile(Const AFileName : String);
     procedure CreateDocumentation(APackage : TFPDocPackage; Options : TEngineOptions);
     Procedure DoRun; override;
   Public
@@ -88,6 +90,7 @@ begin
   Writeln(SUsageOption180);
   Writeln(SUsageOption190);
   Writeln(SUsageOption200);
+  Writeln(SUsageOption210);
   L:=TStringList.Create;
   Try
     Backend:=FProject.OPtions.Backend;
@@ -121,6 +124,16 @@ begin
     L.Free;
   end;
   Halt(AnExitCode);
+end;
+
+procedure TFPDocAplication.CreateProjectFile(const AFileName: String);
+begin
+  With TXMLFPDocOptions.Create(Self) do
+    try
+      SaveOptionsToFile(FProject,AFileName);
+    finally
+      Free;
+    end;
 end;
 
 destructor TFPDocAplication.Destroy;
@@ -188,11 +201,7 @@ begin
     If Not (ProjectOpt(s) or PackageOpt(S)) then
       ParseOption(s);
     end;
-  if (FPackage=Nil) or (FPackage.Name='') then
-    begin
-    Writeln(SNeedPackageName);
-    Usage(1);
-    end;
+  SelectedPackage; // Will print error if none available.
 end;
 
 procedure TFPDocAplication.Parseoption(Const S : String);
@@ -291,6 +300,8 @@ begin
       FProject.Options.modir := Arg
     else if Cmd = '--parse-impl' then
       FProject.Options.InterfaceOnly:=false
+    else if Cmd = '--write-project' then
+      FWriteProjectFile:=Arg
     else
       begin
       FProject.Options.BackendOptions.Add(Cmd);
@@ -375,7 +386,10 @@ begin
   WriteLn(SCopyright);
   WriteLn;
   ParseCommandLine;
-  CreateDocumentation(FPackage,FProject.Options);
+  if (FWriteProjectFile<>'') then
+    CreateProjectFile(FWriteProjectFile)
+  else
+    CreateDocumentation(FPackage,FProject.Options);
   WriteLn(SDone);
   Terminate;
 end;
