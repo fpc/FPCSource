@@ -22,12 +22,18 @@ uses
 
 const
   failed_to_compile_count : longint = 0;
+  failed_to_compile_unimplemented_count : longint = 0;
   success_compilation_failed_count : longint = 0;
+  success_compilation_failed_unimplemented_count : longint = 0;
   failed_compilation_successful_count : longint = 0;
+  failed_compilation_successful_unimplemented_count : longint = 0;
   successfully_compiled_count : longint = 0;
+  successfully_compiled_unimplemented_count : longint = 0;
   failed_to_run_count : longint = 0;
+  failed_to_run_unimplemented_count : longint = 0;
   known_run_problem : longint = 0;
   successfully_run_count : longint = 0;
+  successfully_run_unimplemented_count : longint = 0;
   skipping_graph_test_count : longint = 0;
   skipping_interactive_test_count : longint = 0;
   skipping_known_bug_count : longint = 0;
@@ -53,7 +59,9 @@ begin
   should_be_run:=next_should_be_run;
   if next_should_be_run and
      (pos(failed_to_run,st)<>1) and
+     (pos(failed_to_run_unimplemented,st)<>1) and
      (pos(successfully_run,st)<>1) and
+     (pos(successfully_run_unimplemented,st)<>1) and
      (pos(skipping_known_bug,st)<>1) and
      (pos(skipping_run_test,st)<>1) and
      (pos(skipping_run_unit,st)<>1) then
@@ -65,17 +73,34 @@ begin
     begin
       inc(failed_to_compile_count);
     end
+  else if pos(failed_to_compile_unimplemented,st)=1 then
+    begin
+      inc(failed_to_compile_unimplemented_count);
+    end
   else if pos(success_compilation_failed,st)=1 then
     begin
       inc(success_compilation_failed_count);
+    end
+  else if pos(success_compilation_failed_unimplemented,st)=1 then
+    begin
+      inc(success_compilation_failed_unimplemented_count);
     end
   else if pos(failed_compilation_successful,st)=1 then
     begin
       inc(failed_compilation_successful_count);
     end
+  else if pos(failed_compilation_successful_unimplemented,st)=1 then
+    begin
+      inc(failed_compilation_successful_unimplemented_count);
+    end
   else if pos(successfully_compiled,st)=1 then
     begin
       inc(successfully_compiled_count);
+      next_should_be_run:=true;
+    end
+  else if pos(successfully_compiled_unimplemented,st)=1 then
+    begin
+      inc(successfully_compiled_unimplemented_count);
       next_should_be_run:=true;
     end
   else if (pos(failed_to_run,st)=1) then
@@ -86,11 +111,27 @@ begin
       if pos(known_problem,st)>0 then
         inc(known_run_problem);
     end
+  else if (pos(failed_to_run_unimplemented,st)=1) then
+    begin
+      inc(failed_to_run_unimplemented_count);
+      { Increase these as well? }
+      {if not should_be_run then
+        inc(unexpected_run);
+      if pos(known_problem,st)>0 then
+        inc(known_run_problem);}
+    end
   else if pos(successfully_run,st)=1 then
     begin
       inc(successfully_run_count);
       if not should_be_run then
         inc(unexpected_run);
+    end
+  else if pos(successfully_run_unimplemented,st)=1 then
+    begin
+      inc(successfully_run_unimplemented_count);
+      { Increase this, too? }
+      {if not should_be_run then
+        inc(unexpected_run);}
     end
   else if pos(skipping_graph_test,st)=1 then
     begin
@@ -138,10 +179,13 @@ end;
 procedure display_results;
 var
   number_compilations : longint;
+  number_compilations_unimplemented : longint;
   number_skipped : longint;
   number_runs : longint;
+  number_runs_unimplemented : longint;
   all_errors : longint;
   all_success : longint;
+  all_unimplemented : longint;
 
 begin
   all_errors:=failed_to_compile_count
@@ -150,36 +194,62 @@ begin
   all_success:=success_compilation_failed_count
     +successfully_compiled_count
     +successfully_run_count;
+  all_unimplemented:=failed_to_compile_unimplemented_count
+    +failed_compilation_successful_unimplemented_count
+    +failed_to_run_unimplemented_count
+    +success_compilation_failed_unimplemented_count
+    +successfully_compiled_unimplemented_count
+    +successfully_run_unimplemented_count;
   { about compilations }
+  number_compilations_unimplemented:=failed_to_compile_unimplemented_count
+    +success_compilation_failed_unimplemented_count
+    +failed_compilation_successful_unimplemented_count
+    +successfully_compiled_unimplemented_count;
   number_compilations:=failed_to_compile_count
     +success_compilation_failed_count
     +failed_compilation_successful_count
-    +successfully_compiled_count;
+    +successfully_compiled_count
+    +number_compilations_unimplemented;
   { about runs }
-  number_runs:=failed_to_run_count+successfully_run_count;
+  number_runs_unimplemented:=failed_to_run_unimplemented_count
+    +successfully_run_unimplemented_count;
+  number_runs:=failed_to_run_count
+    +successfully_run_count
+    +number_runs_unimplemented;
 
   Writeln('Total = ',number_compilations+number_runs,' (',
     all_errors,':',
-    all_success,')');
+    all_success,':',
+    all_unimplemented,')');
 
   Writeln('Total number of compilations = ', number_compilations,' (',
     failed_to_compile_count+failed_compilation_successful_count,':',
-    successfully_compiled_count+success_compilation_failed_count,')');
-  Writeln('Successfully compiled = ', successfully_compiled_count);
-  Writeln('Successfully failed = ', success_compilation_failed_count);
-  Writeln('Compilation failures = ', failed_to_compile_count);
-  Writeln('Compilation that did not fail while they should = ', failed_compilation_successful_count);
+    successfully_compiled_count+success_compilation_failed_count,':',
+    number_compilations_unimplemented,')');
+  Writeln('Successfully compiled = ', successfully_compiled_count, ' (', successfully_compiled_unimplemented_count, ')');
+  Writeln('Successfully failed = ', success_compilation_failed_count, ' (', success_compilation_failed_unimplemented_count, ')');
+  Writeln('Compilation failures = ', failed_to_compile_count, ' (', failed_to_compile_unimplemented_count, ')');
+  Writeln('Compilation that did not fail while they should = ', failed_compilation_successful_count, ' (', failed_compilation_successful_unimplemented_count, ')');
 
   Writeln('Total number of runs = ', number_runs,' (',
     failed_to_run_count,':',
-    successfully_run_count,')');
-  Writeln('Successful runs = ', successfully_run_count);
-  Writeln('Failed runs = ', failed_to_run_count);
+    successfully_run_count,':',
+    number_runs_unimplemented,')');
+  Writeln('Successful runs = ', successfully_run_count, ' (', successfully_run_unimplemented_count, ')');
+  Writeln('Failed runs = ', failed_to_run_count, ' (', failed_to_run_unimplemented_count, ')');
   if known_run_problem>0 then
     Writeln('From these ',known_run_problem,' known problems');
 
+  Writeln('Number of unimplemented tests = ', all_unimplemented,' (',
+    failed_to_compile_unimplemented_count
+    +failed_compilation_successful_unimplemented_count
+    +failed_to_run_unimplemented_count,':',
+    success_compilation_failed_unimplemented_count
+    +successfully_compiled_unimplemented_count
+    +successfully_run_unimplemented_count,')');
+
   if successfully_compiled_count <>
-     number_runs+skipping_run_unit_count+skipping_run_test_count then
+     number_runs+skipping_run_unit_count+skipping_run_test_count-number_runs_unimplemented then
     begin
       Writeln('Number units compiled = ',skipping_run_unit_count);
       Writeln('Number program that should not be run = ',skipping_run_test_count);

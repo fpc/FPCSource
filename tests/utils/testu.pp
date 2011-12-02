@@ -41,6 +41,7 @@ type
     Files         : string;
     WpoParas      : string;
     WpoPasses     : longint;
+    NotImplemented: boolean;
   end;
 
 Const
@@ -275,6 +276,9 @@ begin
               else
                 if GetEntry('WPOPASSES') then
                  val(res,r.wpopasses,code)
+              else
+                if GetEntry('UNIMPLEMENTED') then
+                 r.NotImplemented:=true
               else
                Verbose(V_Error,'Unknown entry: '+s);
             end;

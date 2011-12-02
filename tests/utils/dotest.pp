@@ -681,6 +681,15 @@ begin
 end;
 
 
+function MaybePrependUnimplemented(const LogStr:string):string;
+begin
+  if Config.NotImplemented then
+    MaybePrependUnimplemented:=strunimplemented+LogStr
+  else
+    MaybePrependUnimplemented:=LogStr;
+end;
+
+
 function ExitWithInternalError(const OutName:string):boolean;
 var
   t : text;
@@ -777,13 +786,13 @@ begin
       if (not execres) and (ExecuteResult=0) then
         begin
           AddLog(FailLogFile,TestName);
-          AddLog(ResLogFile,failed_to_compile+PPFileInfo[current]);
+          AddLog(ResLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]);
           AddLog(LongLogFile,line_separation);
-          AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]);
+          AddLog(LongLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]);
           if CopyFile(CompilerLogFile,LongLogFile,true)=0 then
             AddLog(LongLogFile,'IOStatus'+ToStr(IOStatus));
           { avoid to try again }
-          AddLog(ExeLogFile,failed_to_compile+PPFileInfo[current]);
+          AddLog(ExeLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]);
           Verbose(V_Warning,'IOStatus: '+ToStr(IOStatus));
           exit;
         end;
@@ -794,15 +803,15 @@ begin
          AddLog(FailLogFile,TestName);
          if Config.Note<>'' then
           AddLog(FailLogFile,Config.Note);
-         AddLog(ResLogFile,failed_to_compile+PPFileInfo[current]+' internalerror generated');
+         AddLog(ResLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]+' internalerror generated');
          AddLog(LongLogFile,line_separation);
-         AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]);
+         AddLog(LongLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]);
          if Config.Note<>'' then
           AddLog(LongLogFile,Config.Note);
          if CopyFile(CompilerLogFile,LongLogFile,true)=0 then
            AddLog(LongLogFile,'Internal error in compiler');
          { avoid to try again }
-         AddLog(ExeLogFile,failed_to_compile+PPFileInfo[current]);
+         AddLog(ExeLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]);
          Verbose(V_Warning,'Internal error in compiler');
          exit;
        end;
@@ -813,9 +822,9 @@ begin
    begin
      if ExecuteResult<>0 then
       begin
-        AddLog(ResLogFile,success_compilation_failed+PPFileInfo[current]);
+        AddLog(ResLogFile,MaybePrependUnimplemented(success_compilation_failed)+PPFileInfo[current]);
         { avoid to try again }
-        AddLog(ExeLogFile,success_compilation_failed+PPFileInfo[current]);
+        AddLog(ExeLogFile,MaybePrependUnimplemented(success_compilation_failed)+PPFileInfo[current]);
         RunCompiler:=true;
       end
      else
@@ -823,11 +832,11 @@ begin
         AddLog(FailLogFile,TestName);
         if Config.Note<>'' then
           AddLog(FailLogFile,Config.Note);
-        AddLog(ResLogFile,failed_compilation_successful+PPFileInfo[current]);
+        AddLog(ResLogFile,MaybePrependUnimplemented(failed_compilation_successful)+PPFileInfo[current]);
         AddLog(LongLogFile,line_separation);
-        AddLog(LongLogFile,failed_compilation_successful+PPFileInfo[current]);
+        AddLog(LongLogFile,MaybePrependUnimplemented(failed_compilation_successful)+PPFileInfo[current]);
         { avoid to try again }
-        AddLog(ExeLogFile,failed_compilation_successful+PPFileInfo[current]);
+        AddLog(ExeLogFile,MaybePrependUnimplemented(failed_compilation_successful)+PPFileInfo[current]);
         if Config.Note<>'' then
           AddLog(LongLogFile,Config.Note);
         CopyFile(CompilerLogFile,LongLogFile,true);
@@ -840,10 +849,10 @@ begin
          ((Config.KnownCompileError<>0) and (ExecuteResult=Config.KnownCompileError))) then
       begin
         AddLog(FailLogFile,TestName+known_problem+Config.KnownCompileNote);
-        AddLog(ResLogFile,failed_to_compile+PPFileInfo[current]+known_problem+Config.KnownCompileNote);
+        AddLog(ResLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]+known_problem+Config.KnownCompileNote);
         AddLog(LongLogFile,line_separation);
         AddLog(LongLogFile,known_problem+Config.KnownCompileNote);
-        AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
+        AddLog(LongLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
         if Copyfile(CompilerLogFile,LongLogFile,true)=0 then
           AddLog(LongLogFile,known_problem+'exitcode: '+ToStr(ExecuteResult));
         Verbose(V_Warning,known_problem+'exitcode: '+ToStr(ExecuteResult));
@@ -853,20 +862,20 @@ begin
         AddLog(FailLogFile,TestName);
         if Config.Note<>'' then
           AddLog(FailLogFile,Config.Note);
-        AddLog(ResLogFile,failed_to_compile+PPFileInfo[current]);
+        AddLog(ResLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]);
         AddLog(LongLogFile,line_separation);
-        AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]);
+        AddLog(LongLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]);
         if Config.Note<>'' then
           AddLog(LongLogFile,Config.Note);
         if CopyFile(CompilerLogFile,LongLogFile,true)=0 then
           AddLog(LongLogFile,'Exitcode: '+ToStr(ExecuteResult)+' (expected 0)');
         { avoid to try again }
-        AddLog(ExeLogFile,failed_to_compile+PPFileInfo[current]);
+        AddLog(ExeLogFile,MaybePrependUnimplemented(failed_to_compile)+PPFileInfo[current]);
         Verbose(V_Warning,'Exitcode: '+ToStr(ExecuteResult)+' (expected 0)');
       end
      else
       begin
-        AddLog(ResLogFile,successfully_compiled+PPFileInfo[current]);
+        AddLog(ResLogFile,MaybePrependUnimplemented(successfully_compiled)+PPFileInfo[current]);
         RunCompiler:=true;
       end;
    end;
@@ -1174,13 +1183,13 @@ begin
   if (not execres) and (ExecuteResult=0) then
     begin
       AddLog(FailLogFile,TestName);
-      AddLog(ResLogFile,failed_to_run+PPFileInfo[current]);
+      AddLog(ResLogFile,MaybePrependUnimplemented(failed_to_run)+PPFileInfo[current]);
       AddLog(LongLogFile,line_separation);
-      AddLog(LongLogFile,failed_to_run+PPFileInfo[current]);
+      AddLog(LongLogFile,MaybePrependUnimplemented(failed_to_run)+PPFileInfo[current]);
       if CopyFile(EXELogFile,LongLogFile,true)=0 then
         AddLog(LongLogFile,'IOStatus: '+ToStr(IOStatus));
       { avoid to try again }
-      AddLog(ExeLogFile,failed_to_run+PPFileInfo[current]);
+      AddLog(ExeLogFile,MaybePrependUnimplemented(failed_to_run)+PPFileInfo[current]);
       Verbose(V_Warning,'IOStatus: '+ToStr(IOStatus));
       exit;
     end;
@@ -1191,10 +1200,10 @@ begin
         (ExecuteResult=Config.KnownRunError) then
        begin
          AddLog(FailLogFile,TestName+known_problem+Config.KnownRunNote);
-         AddLog(ResLogFile,failed_to_run+PPFileInfo[current]+known_problem+Config.KnownRunNote);
+         AddLog(ResLogFile,MaybePrependUnimplemented(failed_to_run)+PPFileInfo[current]+known_problem+Config.KnownRunNote);
          AddLog(LongLogFile,line_separation);
          AddLog(LongLogFile,known_problem+Config.KnownRunNote);
-         AddLog(LongLogFile,failed_to_run+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
+         AddLog(LongLogFile,MaybePrependUnimplemented(failed_to_run)+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
          if Copyfile(EXELogFile,LongLogFile,true)=0 then
            begin
              AddLog(LongLogFile,known_problem+'exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
@@ -1205,9 +1214,9 @@ begin
      else
        begin
          AddLog(FailLogFile,TestName);
-         AddLog(ResLogFile,failed_to_run+PPFileInfo[current]);
+         AddLog(ResLogFile,MaybePrependUnimplemented(failed_to_run)+PPFileInfo[current]);
          AddLog(LongLogFile,line_separation);
-         AddLog(LongLogFile,failed_to_run+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
+         AddLog(LongLogFile,MaybePrependUnimplemented(failed_to_run)+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
          if Copyfile(EXELogFile,LongLogFile,true)=0 then
            begin
              AddLog(LongLogFile,'Exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
@@ -1218,7 +1227,7 @@ begin
    end
   else
    begin
-     AddLog(ResLogFile,successfully_run+PPFileInfo[current]);
+     AddLog(ResLogFile,MaybePrependUnimplemented(successfully_run)+PPFileInfo[current]);
      RunExecutable:=true;
    end;
 
