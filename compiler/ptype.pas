@@ -289,8 +289,7 @@ implementation
             def:=generrordef;
             exit;
           end;
-         { Give an error when referring to an errordef that does not have
-           generic overloads }
+         { Give an error when referring to an errordef }
          if (ttypesym(srsym).typedef.typ=errordef) then
           begin
             Message(sym_e_error_in_type_def);
