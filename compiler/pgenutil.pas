@@ -60,6 +60,7 @@ uses
         st  : TSymtable;
         srsym : tsym;
         pt2 : tnode;
+        found,
         first,
         err : boolean;
         i,
@@ -98,14 +99,16 @@ uses
           for recording in genericbuf }
         if parse_generic then
           begin
-            consume(_LSHARPBRACKET);
+            if not try_to_consume(_LT) then
+              consume(_LSHARPBRACKET);
             gencount:=0;
             repeat
               pt2:=factor(false,true);
               pt2.free;
               inc(gencount);
             until not try_to_consume(_COMMA);
-            consume(_RSHARPBRACKET);
+            if not try_to_consume(_GT) then
+              consume(_RSHARPBRACKET);
             { we need to return a def that can later pass some checks like
               whether it's an interface or not }
             if parse_generic and (not assigned(tt) or (tt.typ=undefineddef)) then
@@ -131,6 +134,12 @@ uses
                         exit;
                       end;
                     tt:=ttypesym(srsym).typedef;
+                    { this happens in non-Delphi modes if we encounter a
+                      specialization of the generic class or record we're
+                      currently parsing }
+                    if (tt.typ=errordef) and assigned(current_structdef) and
+                        (current_structdef.objname^=ugenname) then
+                      tt:=current_structdef;
                   end;
               end;
             exit;
@@ -226,8 +235,17 @@ uses
         genname:=genname+'$'+countstr;
         ugenname:=upper(genname);
 
-        if not searchsym(ugenname,srsym,st)
-            or (srsym.typ<>typesym) then
+        if assigned(genericdef) and (genericdef.owner.symtabletype in [objectsymtable,recordsymtable]) then
+          begin
+            if genericdef.owner.symtabletype = objectsymtable then
+              found:=searchsym_in_class(tobjectdef(genericdef.owner.defowner),tobjectdef(genericdef.owner.defowner),ugenname,srsym,st,false)
+            else
+              found:=searchsym_in_record(tabstractrecorddef(genericdef.owner.defowner),ugenname,srsym,st);
+          end
+        else
+          found:=searchsym(ugenname,srsym,st);
+
+        if not found or (srsym.typ<>typesym) then
           begin
             identifier_not_found(genname);
             genericdeflist.Free;

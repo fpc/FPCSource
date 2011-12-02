@@ -168,12 +168,7 @@ implementation
         { handle types inside classes, e.g. TNode.TLongint }
         while (token=_POINT) do
           begin
-            if parse_generic then
-              begin
-                 consume(_POINT);
-                 consume(_ID);
-              end
-             else if is_class_or_object(def) or is_record(def) then
+             if is_class_or_object(def) or is_record(def) then
                begin
                  consume(_POINT);
                  if (structstackindex>=0) and
@@ -373,7 +368,7 @@ implementation
         until not again;
         if ([stoAllowSpecialization,stoAllowTypeDef] * options <> []) and
            (m_delphi in current_settings.modeswitches) then
-          dospecialize:=token=_LSHARPBRACKET;
+          dospecialize:=token in [_LSHARPBRACKET,_LT];
         if dospecialize then
           generate_specialization(def,stoParseClassParent in options,'',nil,'')
         else
@@ -848,7 +843,33 @@ implementation
                    def:=ttypenode(pt1).resultdef;
                    { Delphi mode specialization? }
                    if (m_delphi in current_settings.modeswitches) then
-                     dospecialize:=token=_LSHARPBRACKET;
+                     dospecialize:=token=_LSHARPBRACKET
+                   else
+                     { in non-Delphi modes we might get a inline specialization
+                       without "specialize" or "<T>", so we need to handle that
+                       special }
+                     if not dospecialize and
+                         assigned(ttypenode(pt1).typesym) and
+                         (ttypenode(pt1).typesym.typ=typesym) and
+                         (sp_generic_dummy in ttypenode(pt1).typesym.symoptions) and
+                         assigned(current_structdef) and
+                         (
+                           (
+                             not (m_delphi in current_settings.modeswitches) and
+                             (ttypesym(ttypenode(pt1).typesym).typedef.typ=undefineddef) and
+                             (df_generic in current_structdef.defoptions) and
+                             (upper(ttypenode(pt1).typesym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
+                           ) or (
+                             (df_specialization in current_structdef.defoptions) and
+                             (ttypesym(ttypenode(pt1).typesym).typedef=current_structdef.genericdef)
+                           )
+                         )
+                         then
+                       begin
+                         def:=current_structdef;
+                         { handle nested types }
+                         post_comp_expr_gendef(def);
+                       end;
                    if dospecialize then
                      begin
                        generate_specialization(def,false,name,nil,'');

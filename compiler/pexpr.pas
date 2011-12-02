@@ -2150,7 +2150,17 @@ implementation
                    assigned(ttypesym(srsym).typedef) and
                    (ttypesym(srsym).typedef.typ=undefineddef) and
                    not (sp_generic_para in srsym.symoptions) and
-                   not (token in [_LT, _LSHARPBRACKET])) then
+                   not (token in [_LT, _LSHARPBRACKET]) and
+                   not (
+                     { in non-Delphi modes the generic class' name without a
+                       "specialization" or "<T>" may be used to identify the
+                       current class }
+                     (sp_generic_dummy in srsym.symoptions) and
+                     assigned(current_structdef) and
+                     (df_generic in current_structdef.defoptions) and
+                     not (m_delphi in current_settings.modeswitches) and
+                     (upper(srsym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
+                   )) then
                  begin
                    identifier_not_found(orgstoredpattern);
                    srsym:=generrorsym;
