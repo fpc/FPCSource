@@ -211,6 +211,13 @@ threadvar
 
   function Win32GetCurrentThreadId:DWORD;
     stdcall; external KernelDLL name 'GetCurrentThreadId';
+
+  function GetCurrentProcess : THandle;
+    stdcall;external 'kernel32' name 'GetCurrentProcess';
+
+  function ReadProcessMemory(process : THandle;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
+    stdcall;external 'kernel32' name 'ReadProcessMemory';
+
 {$endif WINCE}
 
    { module functions }
@@ -267,6 +274,12 @@ threadvar
    function GetConsoleOutputCP : UINT;
      stdcall; external KernelDLL name 'GetConsoleOutputCP';
 
+   function SysAllocStringLen(psz:pointer;len:dword):pointer;
+     stdcall; external 'oleaut32.dll' name 'SysAllocStringLen';
+   procedure SysFreeString(bstr:pointer);
+     stdcall; external 'oleaut32.dll' name 'SysFreeString';
+   function SysReAllocStringLen(var bstr:pointer;psz: pointer;
+     len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
 {$endif WINCE}
 
    Procedure Errno2InOutRes;

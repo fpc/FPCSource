@@ -118,19 +118,6 @@ implementation
 var
   SysInstance : qword;public;
 
-{ used by wstrings.inc because wstrings.inc is included before sysos.inc
-  this is put here (FK) }
-
-function SysAllocStringLen(psz:pointer;len:dword):pointer;stdcall;
- external 'oleaut32.dll' name 'SysAllocStringLen';
-
-procedure SysFreeString(bstr:pointer);stdcall;
- external 'oleaut32.dll' name 'SysFreeString';
-
-function SysReAllocStringLen(var bstr:pointer;psz: pointer;
-  len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
-
-
 { include system independent routines }
 {$I system.inc}
 
@@ -205,8 +192,6 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      system_exit;
   end;
 
-function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; stdcall; external 'kernel32' name 'GetConsoleMode';
-
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool;forward;
 
 
@@ -229,12 +214,6 @@ begin
   dllparam:=_dllparam;
   DLL_Entry;
 end;
-
-function GetCurrentProcess : dword;
- stdcall;external 'kernel32' name 'GetCurrentProcess';
-
-function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
- stdcall;external 'kernel32' name 'ReadProcessMemory';
 
 function is_prefetch(p : pointer) : boolean;
   var
@@ -569,7 +548,7 @@ end;
 procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
 begin
   IsConsole:=true;
-  GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
+  GetConsoleMode(GetStdHandle((Std_Input_Handle)),@StartupConsoleMode);
 {$ifdef FPC_USE_TLS_DIRECTORY}
   LinkIn(@_tls_used,@FreePascal_TLS_callback,@FreePascal_end_of_TLS_callback);
 {$endif FPC_USE_TLS_DIRECTORY}

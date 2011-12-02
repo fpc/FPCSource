@@ -126,19 +126,6 @@ var
   EntryInformation : TEntryInformation;
   SysInstance : Longint;public name '_FPC_SysInstance';
 
-{ used by wstrings.inc because wstrings.inc is included before sysos.inc
-  this is put here (FK) }
-
-function SysAllocStringLen(psz:pointer;len:dword):pointer;stdcall;
- external 'oleaut32.dll' name 'SysAllocStringLen';
-
-procedure SysFreeString(bstr:pointer);stdcall;
- external 'oleaut32.dll' name 'SysFreeString';
-
-function SysReAllocStringLen(var bstr:pointer;psz: pointer;
-  len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
-
-
 { include system independent routines }
 {$I system.inc}
 
@@ -238,12 +225,6 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
      { if we pass here there was no error ! }
      system_exit;
   end;
-
-function GetCurrentProcess : dword;
- stdcall;external 'kernel32' name 'GetCurrentProcess';
-
-function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
- stdcall;external 'kernel32' name 'ReadProcessMemory';
 
 function is_prefetch(p : pointer) : boolean;
   var
