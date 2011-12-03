@@ -1161,8 +1161,8 @@ const
 
 Function FloatToStrFIntl(const Value; format: TFloatFormat; Precision, Digits: Integer; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): String;
 Var
-  P: Integer;
-  Negative, TooSmall, TooLarge: Boolean;
+  P, PE, Q, Exponent: Integer;
+  Negative: Boolean;
   DS: Char;
 
   function RemoveLeadingNegativeSign(var AValue: String): Boolean;
@@ -1197,82 +1197,102 @@ Begin
       Begin
         case ValueType of
           fvCurrency:
-            begin
               If (Precision = -1) Or (Precision > 19) Then Precision := 19;
-              TooSmall:=False;
-            end;
           else
-            begin
               If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
-              TooSmall := (Abs(Extended(Value)) < 0.00001) and (Extended(Value)<>0.0);
-            end;
         end;
-        If Not TooSmall Then
-        Begin
-          case ValueType of
-            fvDouble:
-              Str(Double(Extended(Value)):0:precision, Result);
-            fvSingle:
-              Str(Single(Extended(Value)):0:precision, Result);
-            fvCurrency:
+        { First convert to scientific format, with correct precision }
+        case ValueType of
+          fvDouble:
+            Str(Double(Extended(Value)):precision+7, Result);
+          fvSingle:
+            Str(Single(Extended(Value)):precision+6, Result);
+          fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
-              Str(Currency(Value):0:precision, Result);
+            Str(Currency(Value):precision+6, Result);
 {$else}
-              Str(Extended(Currency(Value)):0:precision, Result);
+            Str(Extended(Currency(Value)):precision+8, Result);
 {$endif FPC_HAS_STR_CURRENCY}
-            else
-              Str(Extended(Value):0:precision, Result);
+          else
+            Str(Extended(Value):precision+8, Result);
+        end;
+        { Delete leading spaces }
+        while Result[1] = ' ' do
+          System.Delete(Result, 1, 1);
+        P := Pos('.', Result);
+        if P<>0 then
+          Result[P] := DS
+        else
+          Exit; { NAN or other special case }
+        { Consider removing exponent }
+        PE:=Pos('E',Result);
+        if PE > 0 then begin
+          { Read exponent }
+          Q := PE+2;
+          Exponent := 0;
+          while (Q <= Length(Result)) do begin
+            Exponent := Exponent*10 + Ord(Result[Q])-Ord('0');
+            Inc(Q);
           end;
-          Negative := Result[1] = '-';
-          P := Pos('.', Result);
-          if P<>0 then
-            Result[P] := DS;
-          TooLarge :=(P > Precision + ord(Negative) + 1) or (Pos('E', Result)<>0);
-        End;
-
-        If TooSmall Or TooLarge Then
-          begin
-            Result := FloatToStrFIntl(Value, ffExponent, Precision, Digits, ValueType,FormatSettings);
-            // Strip unneeded zeroes.
-            P:=Pos('E',result)-1;
-            If P<>-1 then
-              begin
-                { delete superfluous +? }
-                if result[p+2]='+' then
-                  system.Delete(Result,P+2,1);
-                While (P>1) and (Result[P]='0') do
-                  begin
-                    system.Delete(Result,P,1);
-                    Dec(P);
-                  end;
-                If (P>0) and (Result[P]=DS) Then
-                  begin
-                    system.Delete(Result,P,1);
-                    Dec(P);
-                  end;
+          if Result[PE+1] = '-' then
+            Exponent := -Exponent;
+          if (P+Exponent < PE) and (Exponent > -6) then begin
+            { OK to remove exponent }
+            SetLength(Result,PE-1); { Trim exponent }
+            if Exponent >= 0 then begin
+              { Shift point to right }
+              for Q := 0 to Exponent-1 do begin
+                Result[P] := Result[P+1];
+                Inc(P);
               end;
-            end
-        else if (P<>0) then // we have a decimalseparator
-          begin
-            { it seems that in this unit "precision" must mean "number of }
-            { significant digits" rather than "number of digits after the }
-            { decimal point" (as it does in the system unit) -> adjust    }
-            { (precision+1 to count the decimal point character)          }
-            { don't just cut off the string, as rounding must be taken    }
-            { into account based on the final digit                       }
-            
-            if (Length(Result) > Precision + ord(Negative) + 1) and
-               (Precision + ord(Negative) + 1 >= P) then
-              Result := FloatToStrFIntl(Value, ffFixed,
-                0, Precision - (P - Ord(Negative) - 1),
-                ValueType, FormatSettings);
-            P := Length(Result);
-            While (P>0) and (Result[P] = '0') Do
-              Dec(P);
-            If (P>0) and (Result[P]=DS) Then
-              Dec(P);
-            SetLength(Result, P);
+              Result[P] := DS;
+              P := 1;
+              if Result[P] = '-' then
+                Inc(P);
+              while (Result[P] = '0') and (P < Length(Result)) and (Result[P+1] <> DS) do
+                { Trim leading zeros; conversion above should not give any, but occasionally does
+                  because of rounding }
+                System.Delete(Result,P,1);
+            end else begin
+              { Add zeros at start }
+              Insert(Copy('00000',1,-Exponent),Result,P-1);
+              Result[P-Exponent] := Result[P-Exponent-1]; { Copy leading digit }
+              Result[P] := DS;
+              if Exponent <> -1 then
+                Result[P-Exponent-1] := '0';
+            end;
+            { Remove trailing zeros }
+            Q := Length(Result);
+            while (Q > 0) and (Result[Q] = '0') do
+              Dec(Q);
+            if Result[Q] = DS then
+              Dec(Q); { Remove trailing decimal point }
+            if (Q = 0) or ((Q=1) and (Result[1] = '-')) then
+              Result := '0'
+            else
+              SetLength(Result,Q);
+          end else begin
+            { Need exponent, but remove superfluous characters }
+            { Delete trailing zeros }
+            while Result[PE-1] = '0' do begin
+              System.Delete(Result,PE-1,1);
+              Dec(PE);
+            end;
+            { If number ends in decimal point, remove it }
+            if Result[PE-1] = DS then begin
+              System.Delete(Result,PE-1,1);
+              Dec(PE);
+            end;
+            { delete superfluous + in exponent }
+            if Result[PE+1]='+' then
+              System.Delete(Result,PE+1,1)
+            else
+              Inc(PE);
+            while Result[PE+1] = '0' do
+              { Delete leading zeros in exponent }
+              System.Delete(Result,PE+1,1)
           end;
+        end;
       End;
 
     ffExponent:

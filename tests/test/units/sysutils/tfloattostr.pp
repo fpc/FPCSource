@@ -9,6 +9,49 @@ const
 var
   ErrCount: longint;
 
+procedure CheckVal(f: Extended);
+var
+  s: string;
+  f1: Extended;
+begin
+  s := FloatToStr(f);
+  f1 := StrToFloat(s);
+  if (f<>f1) and (Abs(f-f1)/Abs(f) > 6e-15) then begin
+    WriteLn('Error (Double):',Abs(f-f1)/Abs(f), ' Input:', f, ' Output:', s);
+    Inc(ErrCount);
+  end;
+  f := Single(f);
+  s := FloatToStr(Single(f));
+  f1 := StrToFloat(s);
+  if (f<>f1) and (Abs(f-f1)/Abs(f) > 6e-10) then begin
+    WriteLn('Error (Single):',Abs(f-f1)/Abs(f), ' Input:', f, ' Output:', s);
+    Inc(ErrCount);
+  end;
+end;
+
+procedure Cycle(f: Extended);
+var
+  i: Integer;
+begin
+  for i := 1 to 50 do begin
+    CheckVal(f);
+    CheckVal(-f);
+    f := f/10;
+  end;
+end;
+
+procedure CycleInc(f, increment: Extended);
+var
+  i: Integer;
+begin
+  Cycle(f);
+  for i := 0 to 30 do begin
+    Cycle(f+increment);
+    Cycle(f-increment);
+    increment := increment/10;
+  end;
+end;
+
 procedure CheckResult(const s, ref: string);
 begin
   if s <> ref then
@@ -24,6 +67,8 @@ var
   d: double;
   s: single;
   c: currency;
+  i: Integer;
+  tests: array [0..4] of Double = (123456789123456789., 1e20, 1.6e20, 5e20, 9e20);
 begin
   e:=1234567890123.4;
   d:=12345.12345;
@@ -46,6 +91,14 @@ begin
   NegCurrFormat:=8;
   CheckResult(FloatToStrF(-12345.1234,ffCurrency,19,4), '-12' + ThousandSeparator + '345'+DecimalSeparator+'1234 ' + CurrencyString);
   CheckResult(FloatToStrF(MinCurrency,ffCurrency,19,4), '-922' + ThousandSeparator + '337' + ThousandSeparator + '203' + ThousandSeparator + '685' + ThousandSeparator + '477'+DecimalSeparator+'5807 ' + CurrencyString);
+  for i := 0 to High(tests) do begin
+    e := tests[i];
+    CycleInc(e,1e20);
+    CycleInc(e,9e20);
+    CycleInc(e,e);
+    CycleInc(e,e/2);
+    CycleInc(e,e/3);
+  end;
   if ErrCount > 0 then
     begin
       writeln('Test failed. Errors: ', ErrCount);
