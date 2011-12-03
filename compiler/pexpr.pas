@@ -2975,11 +2975,11 @@ implementation
         { handle potential typecasts, etc }
         p1:=handle_factor_typenode(def,false,again,nil,false);
         { parse postfix operators }
-        if postfixoperators(p1,again,false) then
-          if assigned(p1) and (p1.nodetype=typen) then
-            def:=ttypenode(p1).typedef
-          else
-            def:=generrordef;
+        postfixoperators(p1,again,false);
+        if assigned(p1) and (p1.nodetype=typen) then
+          def:=ttypenode(p1).typedef
+        else
+          def:=generrordef;
       end;
 
 {****************************************************************************
