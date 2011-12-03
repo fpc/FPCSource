@@ -5,12 +5,16 @@ unit fpdocxmlopts;
 interface
 
 uses
-  Classes, SysUtils, fpdocproj, dom;
+  Classes, SysUtils, fpdocproj, dom, fptemplate;
 
 Type
   { TXMLFPDocOptions }
 
   TXMLFPDocOptions = Class(TComponent)
+  private
+    FExpandMacros: Boolean;
+    FMacros: TStrings;
+    procedure SetMacros(AValue: TStrings);
   Protected
     Procedure Error(Const Msg : String);
     Procedure Error(Const Fmt : String; Args : Array of Const);
@@ -21,13 +25,29 @@ Type
     procedure SaveDescription(const ADescription: String; XML: TXMLDocument;  AParent: TDOMElement); virtual;
     procedure SaveInputFile(const AInputFile: String; XML: TXMLDocument; AParent: TDOMElement);virtual;
     Procedure SavePackage(APackage : TFPDocPackage; XML : TXMLDocument; AParent : TDOMElement); virtual;
+    procedure DoMacro(Sender: TObject; const TagString: String; TagParams: TStringList; out ReplaceText: String); virtual;
+    function ExpandMacrosInFile(AFileName: String): TStream; virtual;
   Public
+    Constructor Create (AOwner : TComponent); override;
+    Destructor Destroy; override;
     Procedure LoadOptionsFromFile(AProject : TFPDocProject; Const AFileName : String);
     Procedure LoadFromXML(AProject : TFPDocProject; XML : TXMLDocument); virtual;
     Procedure SaveOptionsToFile(AProject : TFPDocProject; Const AFileName : String);
     procedure SaveToXML(AProject : TFPDocProject; ADoc: TXMLDocument); virtual;
+    Property Macros : TStrings Read FMacros Write SetMacros;
+    Property ExpandMacros : Boolean Read FExpandMacros Write FExpandMacros;
   end;
   EXMLFPdoc = Class(Exception);
+
+Function IndexOfString(S : String; List : Array of string) : Integer;
+
+Const
+  OptionCount = 11;
+  OptionNames : Array[0..OptionCount] of string
+         = ('hide-protected','warn-no-node','show-private',
+            'stop-on-parser-error', 'ostarget','cputarget',
+            'mo-dir','parse-impl','format', 'language',
+            'package','dont-trim');
 
 implementation
 
@@ -39,9 +59,6 @@ Resourcestring
   SErrNoInputFile = 'unit tag without file attribute found';
   SErrNoDescrFile = 'description tag without file attribute';
 
-const
-  ProjectTemplate = 'template-project.xml';
-
 { TXMLFPDocOptions }
 
 Function IndexOfString(S : String; List : Array of string) : Integer;
@@ -51,6 +68,12 @@ begin
   Result:=High(List);
   While (Result>=0) and (S<>UpperCase(List[Result])) do
     Dec(Result);
+end;
+
+procedure TXMLFPDocOptions.SetMacros(AValue: TStrings);
+begin
+  if FMacros=AValue then Exit;
+  FMacros.Assign(AValue);
 end;
 
 procedure TXMLFPDocOptions.Error(Const Msg: String);
@@ -83,19 +106,12 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
 
   Function LoadDescription(I : TDOMElement) : String;
 
-  Var
-    S : String;
-
   begin
     Result:=I['file'];
     If (Result='') then
       Error(SErrNoDescrFile);
   end;
 
-Const
-  OpCount = 0;
-  OpNames : Array[0..OpCount] of string
-          = ('');
 Var
   N,S : TDOMNode;
   O : TDomElement;
@@ -161,13 +177,6 @@ procedure TXMLFPDocOptions.LoadEngineOptions(Options: TEngineOptions;
     Result:=(v='true') or (v='1') or (v='yes');
   end;
 
-Const
-  NCount = 11;
-  ONames : Array[0..NCount] of string
-         = ('hide-protected','warn-no-node','show-private',
-            'stop-on-parser-error', 'ostarget','cputarget',
-            'mo-dir','parse-impl','format', 'language',
-            'package','dont-trim');
 
 Var
   O : TDOMnode;
@@ -181,7 +190,7 @@ begin
       begin
       N:=LowerCase(TDOMElement(o)['name']);
       V:=TDOMElement(o)['value'];
-      Case IndexOfString(N,ONames) of
+      Case IndexOfString(N,OptionNames) of
         0 : Options.HideProtected:=TrueValue(v);
         1 : Options.WarnNoNode:=TrueValue(v);
         2 : Options.ShowPrivate:=TrueValue(v);
@@ -248,10 +257,6 @@ Procedure TXMLFPDocOptions.SaveEngineOptions(Options : TEngineOptions; XML : TXM
       AddStr(Aname,'false');
   end;
 
-var
-  i: integer;
-  n: string;
-
 begin
   AddStr('ostarget', Options.OSTarget);
   AddStr('cputarget', Options.CPUTarget);
@@ -295,6 +300,8 @@ Var
 
 begin
   S:=AInputFile;
+  O:='';
+  F:='';
   While (S<>'') do
     begin
     W:=GetNextWord(S);
@@ -351,18 +358,75 @@ begin
     end;
 end;
 
+constructor TXMLFPDocOptions.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FMacros:=TStringList.Create;
+end;
+
+destructor TXMLFPDocOptions.Destroy;
+begin
+  FreeAndNil(FMacros);
+  inherited Destroy;
+end;
+
+procedure TXMLFPDocOptions.DoMacro(Sender: TObject; const TagString: String;
+  TagParams: TStringList; out ReplaceText: String);
+begin
+  ReplaceText:=FMacros.Values[TagString];
+end;
+
+Function TXMLFPDocOptions.ExpandMacrosInFile(AFileName : String) : TStream;
+
+Var
+  F : TFileStream;
+  T : TTemplateParser;
+
+begin
+  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  try
+    Result:=TMemoryStream.Create;
+    try
+      T:=TTemplateParser.Create;
+      try
+        T.StartDelimiter:='$(';
+        T.EndDelimiter:=')';
+        T.AllowTagParams:=true;
+        T.OnReplaceTag:=@DoMacro;
+        T.ParseStream(F,Result);
+      finally
+        T.Free;
+      end;
+    except
+      FreeAndNil(Result);
+      Raise;
+    end;
+  finally
+    F.Free;
+  end;
+end;
+
 procedure TXMLFPDocOptions.LoadOptionsFromFile(AProject: TFPDocProject; const AFileName: String);
 
 Var
   XML : TXMLDocument;
+  S : TStream;
 
 begin
-   XMLRead.ReadXMLFile(XML,AFileName);
-   try
-     LoadFromXML(AProject,XML);
-   finally
-     FreeAndNil(XML);
-   end;
+  If ExpandMacros then
+    S:=ExpandMacrosInFile(AFileName)
+  else
+    S:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  try
+    ReadXMLFile(XML,S,AFileName);
+    try
+      LoadFromXML(AProject,XML);
+    finally
+      FreeAndNil(XML);
+    end;
+  finally
+    S.Free;
+  end;
 end;
 
 procedure TXMLFPDocOptions.LoadFromXML(AProject: TFPDocProject;

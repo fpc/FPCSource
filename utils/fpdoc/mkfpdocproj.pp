@@ -3,7 +3,7 @@ program mkfpdocproj;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, SysUtils, fpdocproj, fpdocxmlopts, CustApp;
+  Classes, SysUtils, CustApp, mgrfpdocproj;
 
 type
 
@@ -11,24 +11,34 @@ type
 
   TManageFPDocProjectApplication = class(TCustomApplication)
   private
-    procedure ParseOptions;
-  protected
-    FRecurse : boolean;
-    FDirectory,
-    FMask,
+    FMGR : TFPDocProjectManager;
     FPackageName,
     FInputFileName,
-    FOutputFileName : String;
-    FProject : TFPDocProject;
-    FPackage : TFPDocPackage;
-    procedure ReadOptionFile(const AFileName: String);
+    FOutputFileName,
+    FCmd : String;
+    FCmdArgs,
+    FCmdOptions: TStrings;
+    procedure AddDescrFiles;
+    procedure AddDescriptionDirs;
+    procedure AddInputDirs;
+    procedure AddInputFiles;
+    procedure RemoveInputFiles;
+    procedure RemoveDescrFiles;
+    function CheckCmdOption(C: Char; S: String): Boolean;
+    function GetCmdOption(C: Char; S: String): String;
+    procedure SetOptions(Enable: Boolean);
+  protected
+    procedure ParseOptions;
+    Procedure Error(Const Msg : String);
     procedure Usage(AExitCode: Integer);
-    procedure WriteOptionFile(const AFileName: String);
-    procedure AddFilesFromDirectory(ADirectory, AMask: String; ARecurse: Boolean);
     procedure DoRun; override;
   public
     constructor Create(TheOwner: TComponent); override;
+    Destructor Destroy; override;
   end;
+
+Resourcestring
+  SErrNeedArgument = 'Option at position %d needs an argument: %s';
 
 { TManageFPDocProjectApplication }
 
@@ -39,87 +49,265 @@ begin
   Halt(AExitCode);
 end;
 
+Function CheckOptionStr(O : String;Short : Char;Long : String): Boolean;
+begin
+  Result:=(O='-'+short) or (O='--'+long) or (copy(O,1,Length(Long)+3)=('--'+long+'='));
+end;
+
 procedure TManageFPDocProjectApplication.ParseOptions;
 
+  Function CheckOption(Index : Integer;Short : char;Long : String): Boolean;
+  begin
+    Result:=CheckOptionStr(ParamStr(Index),Short,Long);
+  end;
+
+  Function OptionArg(Var Index : Integer) : String;
+  Var
+    P : Integer;
+  begin
+    if (Length(ParamStr(Index))>1) and (Paramstr(Index)[2]<>'-') then
+      begin
+        If Index<ParamCount then
+          begin
+            Inc(Index);
+            Result:=Paramstr(Index);
+          end
+        else
+          Error(Format(SErrNeedArgument,[Index,ParamStr(Index)]));
+      end
+    else If length(ParamStr(Index))>2 then
+      begin
+        P:=Pos('=',Paramstr(Index));
+        If (P=0) then
+          Error(Format(SErrNeedArgument,[Index,ParamStr(Index)]))
+        else
+          begin
+            Result:=Paramstr(Index);
+            Delete(Result,1,P);
+          end;
+      end;
+  end;
+
 Var
-  PN : String;
+  I : Integer;
+  S : String;
 
 begin
-  FInputFileName:=GetOptionValue('i','input');
-  FOutputFileName:=GetOptionValue('o','output');
-  FPackageName:=GetOptionValue('p','package');
+  I:=0;
+  // We can't use the TCustomApplication option handling,
+  // because they cannot handle [general opts] [command] [cmd-opts] [args]
+  While (I<ParamCount) do
+    begin
+    Inc(I);
+    if Checkoption(I,'i','input') then
+      FInputFileName:=OptionArg(i)
+    else if Checkoption(I,'o','output') then
+      FOutputFileName:=OptionArg(i)
+    else if CheckOption(I,'p','package') then
+      FPackageName:=OptionArg(i)
+    else if CheckOption(I,'h','help') then
+      begin
+      Usage(0);
+      end
+    else
+      begin
+      S:=ParamStr(I);
+      If (S<>'') then
+        begin
+        if (S[1]<>'-') then
+          begin
+          if (FCmd='') then
+            FCmd:=lowercase(S)
+          else
+            FCmdArgs.Add(S)
+          end
+        end
+      else
+        FCmdOptions.Add(S);
+      end;
+    Inc(I);
+    end;
   if (FOutputFileName='') then
     FOutputFileName:=FInputFileName;
-  FDirectory:=GetOptionValue('d','directory');
-  FMask:=GetOptionValue('m','mask');
-  FRecurse:=HasOption('r','recurse');
-  if HasOption('h','help') then
-    Usage(0);
+  If (FOutputFileName='') then
+    Error('Need an output filename');
+  if (FPackageName='') then
+    Error('Need a package name');
+  if (FCmd='') then
+    Error('Need a command');
 end;
 
-Procedure TManageFPDocProjectApplication.AddFilesFromDirectory(ADirectory,AMask : String; ARecurse : Boolean);
+procedure TManageFPDocProjectApplication.Error(Const Msg: String);
+begin
+  Writeln('Error : ',Msg);
+  Usage(1);
+end;
+
+
+Function TManageFPDocProjectApplication.CheckCmdOption(C : Char; S : String) : Boolean;
 
 Var
-  Info : TSearchRec;
-  D : String;
+  I : integer;
 
 begin
-  if (AMask='') then
-    AMask:='*.xml';
-  D:=ADirectory;
-  if (D<>'') then
-    D:=includeTrailingPathDelimiter(D);
-  If FindFirst(D+AMask,0,info)=0 then
-    try
-      Repeat
-      if ((Info.Attr and faDirectory)=0) then
-        FPackage.Descriptions.add(D+Info.Name);
-      Until (FindNext(Info)<>0);
-    finally
-      FindClose(Info);
-    end;
-  If ARecurse and (FindFirst(ADirectory+AMask,0,info)=0) then
-    try
-      Repeat
-      if ((Info.Attr and faDirectory)<>0) then
-        AddFilesFromDirectory(IncludeTrailingPathDelimiter(D+Info.Name),AMask,ARecurse);
-      Until (FindNext(Info)<>0);
-    finally
-      FindClose(Info);
+  I:=0;
+  Result:=False;
+  While (Not Result) and (I<FCmdOptions.Count) do
+    begin
+    Result:=CheckOptionStr(FCmdOptions[i],C,S);
+    Inc(I);
     end;
 end;
 
-procedure TManageFPDocProjectApplication.ReadOptionFile(Const AFileName : String);
+Function TManageFPDocProjectApplication.GetCmdOption(C : Char; S : String) : String;
+
+Var
+  I,P : integer;
+  B : Boolean;
 
 begin
-  With TXMLFPDocOptions.Create(Self) do
-    try
-      LoadOptionsFromFile(FProject,AFileName);
-    finally
-      Free;
+  I:=0;
+  B:=False;
+  While (Not B) and (I<FCmdOptions.Count) do
+    begin
+    B:=CheckOptionStr(FCmdOptions[i],C,S);
+    if B then
+      begin
+      Result:=FCmdArgs[I];
+      if (Length(S)>1) and (S[2]<>'-') then
+        begin
+        If I<FCmdArgs.Count-1 then
+          begin
+          Inc(I);
+          Result:=FCmdArgs[I];
+          end
+        else
+          Error(Format(SErrNeedArgument,[I,Result]));
+        end
+      else If length(Result)>2 then
+        begin
+        P:=Pos('=',Result);
+        If (P=0) then
+          Error(Format(SErrNeedArgument,[I,Result]))
+        else
+          Delete(Result,1,P);
+        end;
+      end;
+    Inc(I);
     end;
 end;
 
-procedure TManageFPDocProjectApplication.WriteOptionFile(Const AFileName : String);
+procedure TManageFPDocProjectApplication.AddDescriptionDirs;
+
+Var
+  Recursive: Boolean;
+  Mask : String;
+  I : Integer;
+begin
+  Recursive:=CheckCmdOption('r','recursive');
+  Mask:=GetCmdOption('m','mask');
+  For I:=0 to FCmdArgs.Count-1 do
+    FMGr.AddDescrFilesFromDirectory(FCmdArgs[i],Mask,Recursive);
+end;
+
+procedure TManageFPDocProjectApplication.AddInputDirs;
+
+Var
+  Recursive: Boolean;
+  Options,Mask : String;
+  I : Integer;
+begin
+  Recursive:=CheckCmdOption('r','recursive');
+  Mask:=GetCmdOption('m','mask');
+  Options:=GetCmdOption('o','options');
+  For I:=0 to FCmdArgs.Count-1 do
+    FMGr.AddInputFilesFromDirectory(FCmdArgs[i],Mask,Options,Recursive);
+end;
+
+procedure TManageFPDocProjectApplication.AddInputFiles;
+
+Var
+  Options : String;
+  I : Integer;
 
 begin
-  With TXMLFPDocOptions.Create(Self) do
-    try
-      SaveOptionsToFile(FProject,AFileName);
-    finally
-      Free;
-    end;
+  Options:=GetCmdOption('o','options');
+  For I:=0 to FCmdArgs.Count-1 do
+    FMGr.AddInputFile(FCmdArgs[i],Options);
+end;
+
+procedure TManageFPDocProjectApplication.RemoveInputFiles;
+
+Var
+  I : Integer;
+
+begin
+  For I:=0 to FCmdArgs.Count-1 do
+    FMGr.RemoveInputFile(FCmdArgs[i]);
+end;
+
+procedure TManageFPDocProjectApplication.RemoveDescrFiles;
+Var
+  I : Integer;
+
+begin
+  For I:=0 to FCmdArgs.Count-1 do
+    FMGr.RemoveDescrFile(FCmdArgs[i]);
+end;
+
+procedure TManageFPDocProjectApplication.AddDescrFiles;
+
+Var
+  I : Integer;
+
+begin
+  For I:=0 to FCmdArgs.Count-1 do
+    FMGr.AddDescrFile(FCmdArgs[i]);
+end;
+
+procedure TManageFPDocProjectApplication.SetOptions(Enable : Boolean);
+
+Var
+  I : Integer;
+
+begin
+  For I:=0 to FCmdArgs.Count-1 do
+    FMgr.SetOption(FCmdArgs[i],Enable);
 end;
 
 procedure TManageFPDocProjectApplication.DoRun;
 
 begin
   ParseOptions;
-  ReadOptionFile(FInputFileName);
-  FPackage:=FProject.Packages.FindPackage(FPackageName);
-  If (FDirectory<>'') or (FMask<>'') then
-    AddFilesFromDirectory(FDirectory,FMask, FRecurse);
-  WriteOptionFile(FOutputFileName);
+  if (FInputFileName='') then
+    FMGR.AddPackage(FPackageName)
+  else
+    begin
+    if (FCmd='expand-macros') then
+      FMGR.ReadOptionFile(FInputFileName)
+    else
+      FMGR.ReadOptionFile(FInputFileName,FCMdArgs);
+    FMGR.SelectPackage(FPackageName);
+    end;
+  if (FCmd='add-description-dirs') then
+    AddDescriptionDirs
+  else if (FCmd='add-input-dirs') then
+    AddInputDirs
+  else if (FCmd='add-input-files') then
+    AddInputFiles
+  else if (FCmd='add-descr-files') then
+    AddDescrFiles
+  else if (FCmd='remove-input-files') then
+    RemoveInputFiles
+  else if (FCmd='remove-descr-files') then
+    RemoveDescrFiles
+  else if (FCmd='set-options') then
+    SetOptions(True)
+  else if (FCmd='unset-options') then
+    SetOptions(False)
+  else if (FCMd<>'expand-macros') then
+    Error(Format('Unknown command : "%s"',[FCmd]));
+  FMgr.WriteOptionFile(FOutputFileName);
   Terminate;
 end;
 
@@ -127,7 +315,17 @@ constructor TManageFPDocProjectApplication.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   StopOnException:=True;
-  FProject:=TFPDocProject.Create(Self);
+  FCmdArgs:=TStringList.Create;
+  FCmdOptions:=TStringList.Create;
+  FMGR:=TFPDocProjectManager.Create(Self);
+ end;
+
+destructor TManageFPDocProjectApplication.Destroy;
+begin
+  FreeAndNil(FMGR);
+  FreeAndNil(FCmdArgs);
+  FreeAndNil(FCmdOptions);
+  inherited Destroy;
 end;
 
 var

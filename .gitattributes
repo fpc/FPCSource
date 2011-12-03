@@ -12910,6 +12910,7 @@ utils/fpdoc/intl/fpdocstr.de.po svneol=native#text/plain
 utils/fpdoc/intl/makeskel.de.po svneol=native#text/plain
 utils/fpdoc/makeskel.lpi svneol=native#text/plain
 utils/fpdoc/makeskel.pp svneol=native#text/plain
+utils/fpdoc/mgrfpdocproj.pp svneol=native#text/plain
 utils/fpdoc/mkfpdocproj.lpi svneol=native#text/plain
 utils/fpdoc/mkfpdocproj.pp svneol=native#text/plain
 utils/fpdoc/sample-project.xml svneol=native#text/plain

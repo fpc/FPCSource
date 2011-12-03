@@ -31,12 +31,17 @@
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="1">
+    <Units Count="2">
       <Unit0>
         <Filename Value="mkfpdocproj.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mkfpdocproj"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="mgrfpdocproj.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mgrfpdocproj"/>
+      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -44,11 +49,6 @@
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
     </SearchPaths>
-    <Parsing>
-      <SyntaxOptions>
-        <UseAnsiStrings Value="False"/>
-      </SyntaxOptions>
-    </Parsing>
     <Other>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
