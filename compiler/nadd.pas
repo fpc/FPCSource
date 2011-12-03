@@ -1207,8 +1207,7 @@ implementation
                 end;
 
              { 2 booleans? Make them equal to the largest boolean }
-             if (is_boolean(ld) and is_boolean(rd)) or
-                (nf_short_bool in flags) then
+             if (is_boolean(ld) and is_boolean(rd)) then
               begin
                 if (torddef(left.resultdef).size>torddef(right.resultdef).size) or
                    (is_cbool(left.resultdef) and not is_cbool(right.resultdef)) then
@@ -1226,13 +1225,20 @@ implementation
                  end;
                 case nodetype of
                   xorn,
-                  ltn,
-                  lten,
-                  gtn,
-                  gten,
                   andn,
                   orn:
                     begin
+                    end;
+                  ltn,
+                  lten,
+                  gtn,
+                  gten:
+                    begin
+                      { convert both to pasbool to perform the comparison (so
+                        that longbool(4) = longbool(2), since both represent
+                        "true" }
+                      inserttypeconv(left,pasbool8type);
+                      inserttypeconv(right,pasbool8type);
                     end;
                   unequaln,
                   equaln:
@@ -1274,6 +1280,10 @@ implementation
                             exit;
                           end;
                        end;
+                      { Delphi-compatibility: convert both to pasbool to
+                        perform the equality comparison }
+                      inserttypeconv(left,pasbool8type);
+                      inserttypeconv(right,pasbool8type);
                     end;
                   else
                     begin
