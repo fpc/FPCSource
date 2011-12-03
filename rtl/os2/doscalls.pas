@@ -126,7 +126,7 @@ type    PThreadInfoBlock=^TThreadInfoBlock;
         PPProcessInfoBlock=^PProcessInfoBlock;
 
         TThreadInfoBlock=record
-            Exh_Chain,              {Head of exeption handler chain.}
+            Exh_Chain,              {Head of exception handler chain.}
             Stack,                  {Pointer to the thread's stack.}
             StackLimit:pointer;     {Pointer to the thread's stack-end.}
             TIB2:PSysThreadIB;      {Pointer to system specific thread info.}
@@ -2000,6 +2000,8 @@ function DosQueryMutExSem (Handle: THandle; var PID, TID, Count: cardinal):
  Attr       = One or more of the smXXXX constants.}
 function DosCreateMuxWaitSem (Name: PChar; var Handle: THandle;
   CSemRec: cardinal; var SemArray: TSemArray; Attr: cardinal): cardinal; cdecl;
+function DosCreateMuxWaitSem (Name: PChar; var Handle: THandle;
+      CSemRec: cardinal; SemArray: PSemArray; Attr: cardinal): cardinal; cdecl;
 function DosCreateMuxWaitSem (const Name: string; var Handle: THandle;
                              CSemRec: cardinal; var SemArray: TSemArray;
                              Attr: cardinal): cardinal;
@@ -3404,7 +3406,487 @@ function LogAddEntries (Handle: cardinal; Service: cardinal;
                                      LogEntries: PLogEntryRec): cardinal; cdecl;
 
 function LogAddEntries (Handle: cardinal; Service: cardinal;
-                                 var LogEntries: TLogEntryRec): cardinal; cdecl;
+                                var LogEntries: TLogEntryRec): cardinal; cdecl;
+
+
+function DosReplaceModule (OldModule, NewModule, BackupModule: PChar):
+                                                               cardinal; cdecl;
+
+
+const
+{ Flags allowed for DosQuerySysState parameter EntityList
+  (multiple flags may be combined together) and also values
+  used as markers of records returned in the provided buffer:
+}
+  qs_End = 0;           { Marker for the last TFileSys record }
+  qs_Process = 1;       { Requests process information }
+  qs_Semaphore = 2;     { Requests semaphore information }
+  qs_MTE = 4;           { Requests module information }
+  qs_FileSys = 8;       { Requests file system information }
+  qs_ShMemory = 16;     { Requests shared memory information }
+  qs_Disk = 32;         { Not supported apparently? }
+  qs_HwConfig = 64;     { Not supported apparently? }
+  qs_NamedPipe = 128;   { Not supported apparently? }
+  qs_Thread = 256;      { Not supported apparently? }
+  qs_ModVer = 512;      { Requests module version information }
+
+  qs_Supported = qs_Process or qs_Semaphore or qs_MTE or QS_FileSys or
+                                                      qs_ShMemory or qs_ModVer;
+
+type
+{ Global record
+  Holds all global system information. Placed first in user buffer
+}
+  PQSGRec = ^TQSGRec;
+  TQSGRec = record
+    cThrds,
+    c32SSem,
+    cMFTNodes: cardinal;
+  end;
+
+{ Thread record
+  Holds all per thread information.
+}
+  PQSTRec = ^TQSTRec;
+  TQSTRec = record
+    RecType: cardinal;          { Record type }
+    TID: word;                  { Thread ID }
+    Slot: word;                 { "Unique" thread slot number }
+    SleepID: cardinal;          { Sleep ID thread is sleeping on }
+    Priority: cardinal;         { Thread priority }
+    SysTime: cardinal;          { Thread system time }
+    UserTime: cardinal;         { Thread user time }
+    State: byte;                { Thread state }
+    Pad: array [1..3] of byte;  { Padding for 32-bit alignment }
+  end;
+
+{ Process record
+  Holds all per process information.
+      ________________________________
+      |       RecType                 |
+      |-------------------------------|
+      |       pThrdRec                |----|
+      |-------------------------------|    |
+      |       pid                     |    |
+      |-------------------------------|    |
+      |       ppid                    |    |
+      |-------------------------------|    |
+      |       type                    |    |
+      |-------------------------------|    |
+      |       stat                    |    |
+      |-------------------------------|    |
+      |       sgid                    |    |
+      |-------------------------------|    |
+      |       hMte                    |    |
+      |-------------------------------|    |
+      |       cTCB                    |    |
+      |-------------------------------|    |
+      |       c32PSem                 |    |
+      |-------------------------------|    |
+      |       p32SemRec               |----|---|
+      |-------------------------------|    |   |
+      |       c16Sem                  |    |   |
+      |-------------------------------|    |   |
+      |       cLib                    |    |   |
+      |-------------------------------|    |   |
+      |       cShrMem                 |    |   |
+      |-------------------------------|    |   |
+      |       cFS                     |    |   |
+      |-------------------------------|    |   |
+      |       p16SemRec               |----|---|----|
+      |-------------------------------|    |   |    |
+      |       pLibRec                 |----|---|----|------|
+      |-------------------------------|    |   |    |      |
+      |       pShrMemRec              |----|---|----|------|----|
+      |-------------------------------|    |   |    |      |    |
+      |       pFSRec                  |----|---|----|------|----|-----|
+      |-------------------------------|    |   |    |      |    |     |
+      |       32SemPPRUN[0]           |<---|---|    |      |    |     |
+      |          .                    |    |        |      |    |     |
+      |          .                    |    |        |      |    |     |
+      |          .                    |    |        |      |    |     |
+      |       32SemPPRUN[c32PSem-1]   |    |        |      |    |     |
+      |-------------------------------|    |        |      |    |     |
+      |       16SemIndx[0]            |<---|--------|      |    |     |
+      |          .                    |    |               |    |     |
+      |          .                    |    |               |    |     |
+      |          .                    |    |               |    |     |
+      |       16SemIndx[c16Sem-1]     |    |               |    |     |
+      |-------------------------------|    |               |    |     |
+      |       hmte[0] (or "name str") |<---|---------------|    |     |
+      |          .                    |    |                    |     |
+      |          .                    |    |                    |     |
+      |          .                    |    |                    |     |
+      |       hmte[cLib-1]            |    |                    |     |
+      |-------------------------------|    |                    |     |
+      |       hshmem[0]               |<---|--------------------|     |
+      |          .                    |    |                          |
+      |          .                    |    |                          |
+      |          .                    |    |                          |
+      |       hshmem[cShrMem-1]       |    |                          |
+      |-------------------------------|    |                          |
+      |       fsinfo[0]               |<---|--------------------------|
+      |          .                    |    |
+      |          .                    |    |
+      |          .                    |    |
+      |       fsinfo[cFS-1]           |    |
+      |-------------------------------|    |
+                                      <-----
+      NOTE that the process name string will be stored in place of hmtes
+              if MTE information is NOT being requested.
+      NOTE that following this structure in the user buffer is
+              an array c32Sems long of PRUN structures for 32 bit sems
+              an array c16Sems long of indices for 16 bit sems
+              the process name string
+}
+  PQSPRec = ^TQSPRec;
+  TQSPrec = record
+    RecType: cardinal;     { Type of record being processed }
+    PThrdRec: PQSTRec;     { (Far?) pointer to thread records for this process }
+    PID: word;             { Process ID }
+    PPID: word;            { Parent process ID }
+    ProcType: cardinal;    { Process type }
+    Stat: cardinal;        { Process status }
+    SGID: cardinal;        { Process screen group }
+    hMte: word;            { Program module handle for process }
+    cTCB: word;            { Number of TCBs (Thread Control Blocks) in use }
+    c32PSem: cardinal;     { Number of private 32-bit semaphores in use }
+    p32SemRec: pointer;    { (Far?) pointer to head of 32-bit semaphores info }
+    c16Sem: word;          { Number of 16 bit system semaphores in use }
+    cLib: word;            { Number of runtime linked libraries }
+    cShrMem: word;         { Number of shared memory handles }
+    cFH: word;             { Number of open files }
+                           { NOTE: cFH is size of active part of   }
+                           { the handle table if QS_FILE specified }
+    p16SemRec: word;       { Far pointer? to head of 16-bit semaphores info }
+    pLibRec: word;         { Far pointer? to list of runtime libraries }
+    pShrMemRec: word;      { Far pointer? to list of shared memory handles }
+    pFSRec: word;          { Far pointer to list of file handles; }
+                           { 0xFFFF means it's closed, otherwise }
+                           { it's an SFN if non-zero }
+  end;
+
+{     16-bit system semaphore record
+      ________________________________
+      |       pNextRec                |----|
+      |-------------------------------|    |
+      |SysSemData     :               |    |
+      |       SysSemOwner             |    |
+      |       SysSemFlag              |    |
+      |       SysSemRecCnt            |    |
+      |       SysSemProcCnt           |    |
+      |-------------------------------|    |
+      |-------------------------------|    |
+      |-------------------------------|    |
+      |       SysSemPtr               |    |
+      |-------------------------------|    |
+      |SysSemName:                    |    |
+      |       "pathname"              |    |
+      |-------------------------------|    |
+                                      <-----
+}
+
+const
+{ Values for SysSemFlag: }
+  qs_SysSem_Waiting = 1;            { A thread is waiting on the semaphore }
+  qs_SysSem_MuxWaiting = 2;         { A thread is muxwaiting on the semaphore }
+  qs_SysSem_Owner_Died = 4;         { The process/thread owning the sem died }
+  qs_SysSem_Exclusive = 8;          { Indicates an exclusive system semaphore }
+  qs_SysSem_Name_Cleanup = 16;      { Name table entry needs to be removed }
+  qs_SysSem_Thread_Owner_Died = 32; { The thread owning the semaphore died }
+  qs_SysSem_ExitList_Owner = 64;    { The exitlist thread owns the semaphore }
+
+type
+  PQSS16Rec = ^TQSS16Rec;
+  TQSS16Rec = record
+    NextRec: cardinal;              { Offset to next record in buffer }
+                                    { System Semaphore Table Structure }
+    SysSemOwner: word;              { Thread owning this semaphore }
+    SysSemFlag: byte;               { System semaphore flag bit field }
+    SysSemRefCnt: byte;             { Number of references to this system semaphore }
+    SysSemProcCnt: byte;            { Number of requests for this owner }
+    SysSemPad: byte;                { Pad byte to round structure up to word }
+    Pad_sh: word;                   { Padding for 32-bit alignment }
+    SemPtr: word;                   { RMP SysSemPtr field }
+    SemName: array [0..0] of char;  { Start of semaphore name string }
+  end;
+
+  PQSS16HeadRec = ^TQSS16HeadRec;
+  TQSS16HeadRec = record
+    SRecType: cardinal; { Offset of SysSemDataTable }
+    SpNextRec:cardinal; { Overlays NextRec of 1st PQSS16Rec }
+    S32SemRec: cardinal;
+    S16TblOff: cardinal;
+    pSem16Rec: cardinal;
+  end;
+
+{     System-wide shared memory information
+      ________________________________
+      |       NextRec                 |
+      |-------------------------------|
+      |       hMem                    |
+      |-------------------------------|
+      |       Sel                     |
+      |-------------------------------|
+      |       RefCnt                  |
+      |-------------------------------|
+      |       Name                    |
+      |_______________________________|
+}
+  PQSMRec = ^TQSMRec;
+  TQSMRec = record
+    MemNextRec: cardinal;           { Offset to next record in buffer }
+    hMem: word;                     { Handle for shared memory }
+    Sel: word;                      { Selector }
+    RefCnt: word;                   { Reference count }
+    MemName: array [0..0] of char;  { Start of shared memory name string }
+  end;
+
+{     32-bit system semaphore record
+      ________________________________
+      |       pNextRec                |----|
+      |-------------------------------|    |
+      |       QSHUN[0]                |    |
+      |-------------------------------|    |
+      |         MuxQ                  |    |
+      |-------------------------------|    |
+      |         OpenQ                 |    |
+      |-------------------------------|    |
+      |         SemName               |    |
+      |-------------------------------|<---|
+      |          .                    |
+      |          .                    |
+      |-------------------------------|<---|
+      |       pNextRec                |----|
+      |-------------------------------|    |
+      |       QSHUN[c32SSem-1]        |    |
+      |-------------------------------|    |
+      |         MuxQ                  |    |
+      |-------------------------------|    |
+      |         OpenQ                 |    |
+      |-------------------------------|    |
+      |         SemName               |    |
+      |-------------------------------|<---|
+}
+const
+{ 32-bit semaphore flags }
+  qs_dc_Sem_Shared = 1;     { Shared Mutex, Event or MUX semaphore }
+  qs_dcmw_Wait_Any = 2;     { Wait on any event/mutex to occur }
+  qs_dcmw_Wait_All = 4;     { Wait on all events/mutexs to occur }
+  qs_dcm_Mutex_Sem = 8;     { Mutex semaphore }
+  qs_dce_Event_Sem = 16;    { Event semaphore }
+  qs_dcmw_Mux_Sem  = 32;    { Muxwait semaphore }
+  qs_dc_Sem_PM     = 64;    { PM Shared Event Semphore }
+  qs_de_Posted     = 64;    { Event semaphore is in the posted state }
+  qs_dm_Owner_Died = 128;   { The owning process died }
+  qs_dmw_Mtx_Mux   = 256;   { MUX contains mutex semaphores }
+  qs_dho_Sem_Open  = 512;   { Device drivers have opened this semaphore }
+  qs_de_16Bit_MW   = 1024;  { Part of a 16-bit MuxWait }
+  qs_dce_PostOne   = 2048;  { Post one flag event semaphore }
+  qs_dce_AutoReset = 4096;  { Auto-reset event semaphore }
+
+type
+  PQSOpenQ = ^TQSOpenQ;
+  TQSOpenQ = record
+    PidOpener: word;        { Process ID of the opening process }
+    OpenCt: word;           { Number of opens for this process }
+  end;
+
+  PQSEvent = ^TQSEvent;
+  TQSEvent = record
+    pOpenQ: PQSOpenQ;       { Pointer to open Queue entries }
+    pName: PChar;           { Pointer to semaphore name }
+    pMuxQ: PCardinal;       { Pointer to the mux queue }
+    Flags: word;
+    PostCt: word;           { Number of posts }
+  end;
+
+  PQSMutex = ^TQSMutex;
+  TQSMutex = record
+    pOpenQ: PQSOpenQ;       { Pointer to open queue entries }
+    pName: PChar;           { Pointer to semaphore name }
+    pMuxQ: PCardinal;       { Pointer to the mux queue }
+    Flags: word;
+    ReqCt: word;            { Number of requests }
+    SlotNum: word;          { Slot number of the owning thread }
+    Padding: word;
+  end;
+
+  PQSMux = ^TQSMux;
+  TQSMux = record
+    pOpenQ: PQSOpenQ;       { Pointer to open queue entries }
+    pName: PChar;           { Pointer to semaphore name }
+    pSemRec: PSemArray;     { Array of semaphore record entries }
+    Flags: word;
+    cSemRec: word;          { Count of semaphore records }
+    WaitCt: word;           { Number of threads waiting on the mux }
+    Padding: word;
+  end;
+
+  PQSSHUN = ^TQSSHUN;
+  TQSSHUN = record
+    qsSEvt: PQSEvent;       { Shared event semaphore }
+    qsSMtx: PQSMutex;       { Shared mutex semaphore }
+    qsSMux: PQSMux;         { Shared mux semaphore }
+  end;
+
+  PQSS32Rec = ^TQSS32Rec;
+  TQSS32Rec = record
+    pNextRec: PQSS32Rec;    { Pointer to the next record in buffer }
+    qsh: PQSSHUN;           { QState version of SHUN record }
+  end;
+
+{     System wide MTE information
+      ________________________________
+      |       pNextRec                |----|
+      |-------------------------------|    |
+      |       hmte                    |    |
+      |-------------------------------|    |
+      |       ctImpMod                |    |
+      |-------------------------------|    |
+      |       ctObj                   |    |
+      |-------------------------------|    |
+      |       pObjInfo                |----|----------|
+      |-------------------------------|    |          |
+      |       pName                   |----|----|     |
+      |-------------------------------|    |    |     |
+      |       imported module handles |    |    |     |
+      |          .                    |    |    |     |
+      |          .                    |    |    |     |
+      |          .                    |    |    |     |
+      |-------------------------------| <--|----|     |
+      |       "pathname"              |    |          |
+      |-------------------------------| <--|----------|
+      |       Object records          |    |
+      |       (if requested)          |    |
+      |_______________________________|    |
+                                      <-----
+  NOTE that if the level bit is set to qs_MTE, the base Lib record
+  will be followed by a series of object records (TQSLObjRec); one for each
+  object of the module.
+}
+  PQSLObjRec = ^TQSLObjRec;
+  TQSLObjRec = record
+    OAddr: cardinal;        { Object address }
+    OSize: cardinal;        { Object size }
+    OFlags: cardinal;       { Object flags }
+  end;
+
+  PQSLRec = ^TQSLRec;
+  TQSLRec = record
+    pNextRec: PQSLRec;      { (Far?) pointer to the next record in buffer }
+    hMTE: word;             { Handle for this MTE }
+    fFlat: word;            { True if 32 bit module }
+    ctImpMod: cardinal;     { Number of imported modules in table }
+    ctObj: cardinal;        { Number of objects in module (MTE_ObjCnt) }
+    pObjInfo: PQSLObjRec;   { (Far?) pointer to per object information if any }
+    pName: PChar;           { (Far?) pointer to name string following record }
+  end;
+
+  PQSExLRec = ^TQSExLRec;
+  TQSExLRec = record        { Used for 9th bit (Extended Module Data Summary) }
+    Next: PQSExLRec;        { Pointer to next Extended Module Data }
+    hndMod: word;           { Module Handle }
+    PID: word;              { Process ID }
+    ModType: word;          { Type of Module }
+    RefCnt: cardinal;       { Size of reference array }
+    SegCnt: cardinal;       { Number of segments in module }
+    _reserved_: pointer;
+    Name: PChar;            { (Far?) pointer to Module Name }
+    ModuleVersion: cardinal;{ Module version value }
+    ShortModName: PChar;    { (Far?) new pointer to module short name }
+    ModRef: cardinal;       { Start of array of handles of module }
+  end;
+
+{     System wide FILE information
+      ________________________________
+      |       RecType                 |
+      |-------------------------------|
+      |       pNextRec                |-------|
+      |-------------------------------|       |
+      |       ctSft                   |       |
+      |-------------------------------|       |
+      |       pSft                    |---|   |
+      |-------------------------------|   |   |
+      |       name                    |   |   |
+      |-------------------------------|<--|   |
+      |       qsSft[0]                |       |
+      |-------------------------------|       |
+      |       ...                     |       |
+      |-------------------------------|       |
+      |       qsSft[ctSft -1]         |       |
+      |_______________________________|       |
+      |       name                    |       |
+      |_______________________________|       |
+                                      <-------|
+}
+  PQSSft = ^TQSSft;
+  TQSSft = record
+    SFN: word;              { SFN sf_fsi.sfi_selfSFN }
+    RefCnt: word;           { sf_ref_count }
+    Flags: word;            { sf_flags }
+    Flags2: word;           { sf_flags2 }
+    Mode: word;             { sf_fsi.sfi_mode - mode of access }
+    Mode2: word;            { sf_fsi.sfi_mode2 - mode of access }
+    Size: cardinal;         { sf_fsi.sfi_size }
+    hVPB: word;             { sf_fsi.sfi_hVPB handle of volume }
+    Attr: word;             { sf_attr }
+    Padding: word;
+  end;
+
+  PQSFRec = ^TQSFRec;
+  TQSFRec = record
+    RecType: cardinal;      { Record Type }
+    pNextRec: PQSFRec;      { Pointer to the next record in buffer }
+    ctSft: cardinal;        { Number of SFT entries for this MFT entry }
+    pSft: PQSSft;           { Pointer to start of SFT entries in buffer }
+  end;
+
+{ Pointer record
+  This structure is the first in the user buffer.
+  It contains pointers to heads of record types that are loaded
+  into the buffer.
+}
+  PQSPtrRec = ^TQSPtrRec;
+  TQSPtrRec = record
+    PGlobalRec: PQSGRec;
+    PProcRec: PQSPRec;          { Pointer to head of process records }
+    P16SemRec: PQSS16HeadRec;   { Pointer to head of 16-bit semaphore records }
+    P32SemRec: PQSS32Rec;       { Pointer to head of 32-bit semaphore records }
+    PMemRec: PQSMRec;           { ???Pointer to head of shared memory records? }
+    PLibRec: PQSLRec;           { Pointer to head of MTE records }
+    PShrMemRec: PQSMRec;        { ???Pointer to head of shared memory records? }
+    PFSRec: PQSFRec;            { Pointer to head of file system records }
+  end;
+
+{DosQuerySysState returns information about various resources in use
+ by the system. The EntityList parameter determines which information
+ is returned according to the bits set in this parameter.
+ Note that this API is fairly low-level and it hasn't been part
+ of the official IBM documentation until WSeB (and even then the documentation
+ was highly incomplete, so}
+{Parameters:
+ EntityList    Determines what information is returned. May be a combination
+               one or more qs_* flags.
+ EntityLevel   Determines the extent of information returned for a given
+               entity. This applies to qs_MTE entities only. If EntityLevel is
+               also set to qs_MTE, then module object information is returned.
+ PID           Restricts information to a particular process ID. If 0 is
+               specified, then entities for all processes are returned.
+ TID           Restricts information to a particular thread ID. A value of zero
+               only is supported, requesting all threads of a process.
+ Buffer        Buffer allocated by the user into which entity structures are
+               returned. If the buffer is of insufficient size, then an
+               Error_Buffer_Overflow is returned.
+ BufLen        Size of the buffer pointed to by Buffer in bytes.
+}
+function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
+                                var Buffer; BufLen: cardinal): cardinal; cdecl;
+
+function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
+                          PDataBuf: pointer; cbBuf: cardinal): cardinal; cdecl;
+
+
 
 {***************************************************************************}
 implementation
@@ -4449,6 +4931,11 @@ function DosCreateMuxWaitSem (Name: PChar; var Handle: THandle;
                               Attr: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 337;
 
+function DosCreateMuxWaitSem (Name: PChar; var Handle: THandle;
+                              CSemRec: cardinal; SemArray: PSemArray;
+                              Attr: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 337;
+
 function DosCreateMuxWaitSem (const Name: string; var Handle: THandle;
                               CSemRec: cardinal; var SemArray: TSemArray;
                               Attr: cardinal): cardinal;
@@ -5268,10 +5755,13 @@ external 'DOSCALLS' index 374;
 
 function DosProfile ...; cdecl;
 external 'DOSCALLS' index 377;
+*)
 
-function DosReplaceModule ...; cdecl;
+function DosReplaceModule (OldModule, NewModule, BackupModule: PChar):
+                                                               cardinal; cdecl;
 external 'DOSCALLS' index 417;
 
+(*
 function DosTIB ...; cdecl;
 external 'DOSCALLS' index 419;
 
@@ -5403,10 +5893,16 @@ ___ functionDos16QueryModFromCS (...): ...
 external 'DOSCALLS' index 359;
 
 DosQueryModFromEIP
-
-functionDosQuerySysState (): cardinal; cdecl;
+*)
+function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
+                                var Buffer; BufLen: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 368;
 
+function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
+                          PDataBuf: pointer; cbBuf: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 368;
+
+(*
 DosQueryThreadAffinity
 DosSetFileLocksL
 DosSetFilePtrL = DOSCALLS.988
