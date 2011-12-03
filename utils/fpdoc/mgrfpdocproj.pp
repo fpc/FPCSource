@@ -14,9 +14,14 @@ Type
   Private
     FProject : TFPDocProject;
     FPackage : TFPDocPackage;
+    FExpandMacros: Boolean;
+    FMacros: TStrings;
+    procedure SetMacros(AValue: TStrings);
   protected
     Procedure CheckPackage;
     procedure GetItemsFromDirectory(AList: TStrings; ADirectory, AMask: String; ARecurse: Boolean);
+    procedure DoMacro(Sender: TObject; const TagString: String; TagParams: TStringList; out ReplaceText: String); virtual;
+    function ExpandMacrosInFile(AFileName: String): TStream; virtual;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -27,15 +32,34 @@ Type
     procedure RemoveInputFile(Const AFile : String);
     procedure RemoveDescrFile(Const AFile : String);
     procedure WriteOptionFile(const AFileName: String);
-    procedure ReadOptionFile(const AFileName: String; AMacros : TStrings = Nil);
+    procedure ReadOptionFile(const AFileName: String);
     Procedure Selectpackage(Const APackageName : String);
     Procedure AddPackage (Const APackageName : String);
     procedure SetOption(Const AOption : String; Enable : Boolean = True);
     Property Project : TFPDocProject Read FProject;
     Property SelectedPackage : TFPDocPackage Read FPackage;
+    Property Macros : TStrings Read FMacros Write SetMacros;
+    Property ExpandMacros : Boolean Read FExpandMacros Write FExpandMacros;
   end;
+  EMgrFPDoc = Class(Exception);
 
 implementation
+
+uses dom,xmlread,fptemplate;
+
+procedure TFPDocProjectManager.SetMacros(AValue: TStrings);
+begin
+  if FMacros=AValue then Exit;
+  FMacros.Assign(AValue);
+end;
+
+procedure TFPDocProjectManager.DoMacro(Sender: TObject; const TagString: String;
+  TagParams: TStringList; out ReplaceText: String);
+begin
+  ReplaceText:=FMacros.Values[TagString];
+end;
+
+
 Procedure TFPDocProjectManager.GetItemsFromDirectory(AList : TStrings; ADirectory,AMask : String; ARecurse : Boolean);
 
 Var
@@ -44,6 +68,8 @@ Var
 
 begin
   D:=ADirectory;
+  if (D='.') then
+    D:='';
   if (D<>'') then
     D:=includeTrailingPathDelimiter(D);
   If FindFirst(D+AMask,0,info)=0 then
@@ -70,12 +96,45 @@ constructor TFPDocProjectManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FProject:=TFPDocProject.Create(Self);
+  FMacros:=TStringList.Create;
 end;
 
 destructor TFPDocProjectManager.Destroy;
 begin
+  FreeAndNil(FMacros);
   FreeAndNil(FProject);
   inherited Destroy;
+end;
+
+Function TFPDocProjectManager.ExpandMacrosInFile(AFileName : String) : TStream;
+
+Var
+  F : TFileStream;
+  T : TTemplateParser;
+
+begin
+  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  try
+    Result:=TMemoryStream.Create;
+    try
+      T:=TTemplateParser.Create;
+      try
+        T.StartDelimiter:='$(';
+        T.EndDelimiter:=')';
+        T.AllowTagParams:=true;
+        T.OnReplaceTag:=@DoMacro;
+        T.ParseStream(F,Result);
+      finally
+        T.Free;
+      end;
+      Result.Position:=0;
+    except
+      FreeAndNil(Result);
+      Raise;
+    end;
+  finally
+    F.Free;
+  end;
 end;
 
 Procedure TFPDocProjectManager.AddDescrFilesFromDirectory(const ADirectory,AMask : String; ARecurse : Boolean);
@@ -112,7 +171,7 @@ begin
     M:='*.pp';
   L:=TStringList.Create;
   try
-    GetItemsFromDirectory(L,ADirectory,AMask,ARecurse);
+    GetItemsFromDirectory(L,ADirectory,M,ARecurse);
     For I:=0 to L.Count-1 do
       AddInputFile(L[i],AOPtions);
   finally
@@ -138,7 +197,7 @@ procedure TFPDocProjectManager.AddDescrFile(const AFile: String);
 begin
   CheckPackage;
   if FPackage.Descriptions.IndexOf(AFile)<>-1 then
-    Raise Exception.Createfmt('Duplicate description file : "%s"',[AFile]);
+    Raise EMgrFPDoc.Createfmt('Duplicate description file : "%s"',[AFile]);
   FPackage.Descriptions.Add(AFile);
 end;
 
@@ -164,17 +223,31 @@ begin
     FPackage.Descriptions.Delete(I);
 end;
 
-procedure TFPDocProjectManager.ReadOptionFile(Const AFileName : String; AMacros : TStrings = Nil);
+procedure TFPDocProjectManager.ReadOptionFile(Const AFileName : String);
+
+Var
+  XML : TXMLDocument;
+  S : TStream;
 
 begin
   With TXMLFPDocOptions.Create(Self) do
     try
-      if (AMacros<>Nil) then
+      if not (ExpandMacros) then
+        LoadOptionsFromFile(FProject,AFileName)
+      else
         begin
-        Macros.Assign(AMacros);
-        ExpandMacros:=true;
+        S:=ExpandMacrosInFile(AFileName);
+        try
+          ReadXMLFile(XML,S,AFileName);
+          try
+            LoadFromXml(FProject,XML)
+          finally
+            XML.Free;
+          end;
+        finally
+          S.Free;
         end;
-      LoadOptionsFromFile(FProject,AFileName);
+        end;
     finally
       Free;
     end;
@@ -184,13 +257,13 @@ procedure TFPDocProjectManager.Selectpackage(const APackageName: String);
 begin
   FPackage:=FProject.Packages.FindPackage(APackageName);
   If (FPackage=Nil) then
-    Raise Exception.CreateFmt('Unknown package : "%s"',[APackageName]);
+    Raise EMgrFPDoc.CreateFmt('Unknown package : "%s"',[APackageName]);
 end;
 
 procedure TFPDocProjectManager.AddPackage(const APackageName: String);
 begin
   if FProject.Packages.FindPackage(APackageName)<>Nil then
-    Raise Exception.CreateFmt('Duplicate package : "%s"',[APackageName]);
+    Raise EMgrFPDoc.CreateFmt('Duplicate package : "%s"',[APackageName]);
   FPackage:=FProject.Packages.Add as TFPDocPackage;
   FPackage.Name:=APackageName;
 end;
@@ -245,7 +318,7 @@ procedure TFPDocProjectManager.CheckPackage;
 
 begin
   if (FPackage=Nil) then
-    Raise Exception.Create('Error: No package selected');
+    Raise EMgrFPDoc.Create('Error: No package selected');
 end;
 
 

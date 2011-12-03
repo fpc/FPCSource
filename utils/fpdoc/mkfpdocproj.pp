@@ -22,8 +22,10 @@ type
     procedure AddDescriptionDirs;
     procedure AddInputDirs;
     procedure AddInputFiles;
+    function CmdNeedsPackage: Boolean;
     procedure RemoveInputFiles;
     procedure RemoveDescrFiles;
+    procedure AddPackages;
     function CheckCmdOption(C: Char; S: String): Boolean;
     function GetCmdOption(C: Char; S: String): String;
     procedure SetOptions(Enable: Boolean);
@@ -52,6 +54,12 @@ end;
 Function CheckOptionStr(O : String;Short : Char;Long : String): Boolean;
 begin
   Result:=(O='-'+short) or (O='--'+long) or (copy(O,1,Length(Long)+3)=('--'+long+'='));
+end;
+
+function TManageFPDocProjectApplication.CmdNeedsPackage : Boolean;
+
+begin
+ Result:=(FCMd<>'expand-macros') and (FCMD<>'set-options') and (FCmd<>'unset-options');
 end;
 
 procedure TManageFPDocProjectApplication.ParseOptions;
@@ -99,39 +107,40 @@ begin
   While (I<ParamCount) do
     begin
     Inc(I);
-    if Checkoption(I,'i','input') then
-      FInputFileName:=OptionArg(i)
-    else if Checkoption(I,'o','output') then
-      FOutputFileName:=OptionArg(i)
-    else if CheckOption(I,'p','package') then
-      FPackageName:=OptionArg(i)
-    else if CheckOption(I,'h','help') then
+    if (FCmd='') then
       begin
-      Usage(0);
+      if Checkoption(I,'i','input') then
+        FInputFileName:=OptionArg(i)
+      else if Checkoption(I,'o','output') then
+        FOutputFileName:=OptionArg(i)
+      else if CheckOption(I,'p','package') then
+        FPackageName:=OptionArg(i)
+      else if CheckOption(I,'h','help') then
+        Usage(0)
+      else if (ParamStr(i)<>'') then
+        begin
+        S:=ParamStr(i);
+        if (S[1]='-') then
+          Error('Unknown option : '+S)
+        else
+          FCmd:=lowercase(S)
+        end
       end
     else
       begin
       S:=ParamStr(I);
-      If (S<>'') then
-        begin
-        if (S[1]<>'-') then
-          begin
-          if (FCmd='') then
-            FCmd:=lowercase(S)
-          else
-            FCmdArgs.Add(S)
-          end
-        end
-      else
-        FCmdOptions.Add(S);
+      if (S<>'') then
+         if (S[1]<>'-') then
+           FCmdArgs.Add(S)
+         else
+           FCmdOptions.Add(S);
       end;
-    Inc(I);
     end;
   if (FOutputFileName='') then
     FOutputFileName:=FInputFileName;
   If (FOutputFileName='') then
     Error('Need an output filename');
-  if (FPackageName='') then
+  if (FPackageName='') and CmdNeedsPackage then
     Error('Need a package name');
   if (FCmd='') then
     Error('Need a command');
@@ -173,13 +182,13 @@ begin
     B:=CheckOptionStr(FCmdOptions[i],C,S);
     if B then
       begin
-      Result:=FCmdArgs[I];
-      if (Length(S)>1) and (S[2]<>'-') then
+      Result:=FCmdOptions[I];
+      if (Length(Result)>1) and (Result[2]<>'-') then
         begin
-        If I<FCmdArgs.Count-1 then
+        If I<FCmdOptions.Count-1 then
           begin
           Inc(I);
-          Result:=FCmdArgs[I];
+          Result:=FCmdOptions[I];
           end
         else
           Error(Format(SErrNeedArgument,[I,Result]));
@@ -206,8 +215,11 @@ Var
 begin
   Recursive:=CheckCmdOption('r','recursive');
   Mask:=GetCmdOption('m','mask');
-  For I:=0 to FCmdArgs.Count-1 do
-    FMGr.AddDescrFilesFromDirectory(FCmdArgs[i],Mask,Recursive);
+  if FCmdArgs.Count=0 then
+    FMGr.AddDescrFilesFromDirectory('',Mask,Recursive)
+  else
+    For I:=0 to FCmdArgs.Count-1 do
+      FMGr.AddDescrFilesFromDirectory(FCmdArgs[i],Mask,Recursive);
 end;
 
 procedure TManageFPDocProjectApplication.AddInputDirs;
@@ -220,8 +232,11 @@ begin
   Recursive:=CheckCmdOption('r','recursive');
   Mask:=GetCmdOption('m','mask');
   Options:=GetCmdOption('o','options');
-  For I:=0 to FCmdArgs.Count-1 do
-    FMGr.AddInputFilesFromDirectory(FCmdArgs[i],Mask,Options,Recursive);
+  if FCmdArgs.Count=0 then
+    FMGr.AddInputFilesFromDirectory('',Mask,Options,Recursive)
+  else
+    For I:=0 to FCmdArgs.Count-1 do
+      FMGr.AddInputFilesFromDirectory(FCmdArgs[i],Mask,Options,Recursive);
 end;
 
 procedure TManageFPDocProjectApplication.AddInputFiles;
@@ -255,6 +270,16 @@ begin
     FMGr.RemoveDescrFile(FCmdArgs[i]);
 end;
 
+procedure TManageFPDocProjectApplication.AddPackages;
+
+var
+  I : Integer;
+
+begin
+  For I:=0 to FCmdArgs.Count-1 do
+    FMgr.AddPackage(FCmdArgs[i]);
+end;
+
 procedure TManageFPDocProjectApplication.AddDescrFiles;
 
 Var
@@ -284,18 +309,27 @@ begin
   else
     begin
     if (FCmd='expand-macros') then
+      begin
+      FMGR.Macros:=FCmdArgs;
+      FMGR.ExpandMacros:=true;
       FMGR.ReadOptionFile(FInputFileName)
+      end
     else
-      FMGR.ReadOptionFile(FInputFileName,FCMdArgs);
-    FMGR.SelectPackage(FPackageName);
+      begin
+      FMGR.ReadOptionFile(FInputFileName);
+      if CmdNeedsPackage then
+        FMGR.SelectPackage(FPackageName);
+      end
     end;
-  if (FCmd='add-description-dirs') then
+  if (FCmd='add-packages') then
+    AddPackages
+  else if (FCmd='add-description-dirs') then
     AddDescriptionDirs
   else if (FCmd='add-input-dirs') then
     AddInputDirs
   else if (FCmd='add-input-files') then
     AddInputFiles
-  else if (FCmd='add-descr-files') then
+  else if (FCmd='add-description-files') then
     AddDescrFiles
   else if (FCmd='remove-input-files') then
     RemoveInputFiles

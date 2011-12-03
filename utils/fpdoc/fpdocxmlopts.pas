@@ -12,9 +12,6 @@ Type
 
   TXMLFPDocOptions = Class(TComponent)
   private
-    FExpandMacros: Boolean;
-    FMacros: TStrings;
-    procedure SetMacros(AValue: TStrings);
   Protected
     Procedure Error(Const Msg : String);
     Procedure Error(Const Fmt : String; Args : Array of Const);
@@ -25,17 +22,11 @@ Type
     procedure SaveDescription(const ADescription: String; XML: TXMLDocument;  AParent: TDOMElement); virtual;
     procedure SaveInputFile(const AInputFile: String; XML: TXMLDocument; AParent: TDOMElement);virtual;
     Procedure SavePackage(APackage : TFPDocPackage; XML : TXMLDocument; AParent : TDOMElement); virtual;
-    procedure DoMacro(Sender: TObject; const TagString: String; TagParams: TStringList; out ReplaceText: String); virtual;
-    function ExpandMacrosInFile(AFileName: String): TStream; virtual;
   Public
-    Constructor Create (AOwner : TComponent); override;
-    Destructor Destroy; override;
     Procedure LoadOptionsFromFile(AProject : TFPDocProject; Const AFileName : String);
     Procedure LoadFromXML(AProject : TFPDocProject; XML : TXMLDocument); virtual;
     Procedure SaveOptionsToFile(AProject : TFPDocProject; Const AFileName : String);
     procedure SaveToXML(AProject : TFPDocProject; ADoc: TXMLDocument); virtual;
-    Property Macros : TStrings Read FMacros Write SetMacros;
-    Property ExpandMacros : Boolean Read FExpandMacros Write FExpandMacros;
   end;
   EXMLFPdoc = Class(Exception);
 
@@ -70,11 +61,6 @@ begin
     Dec(Result);
 end;
 
-procedure TXMLFPDocOptions.SetMacros(AValue: TStrings);
-begin
-  if FMacros=AValue then Exit;
-  FMacros.Assign(AValue);
-end;
 
 procedure TXMLFPDocOptions.Error(Const Msg: String);
 begin
@@ -358,74 +344,19 @@ begin
     end;
 end;
 
-constructor TXMLFPDocOptions.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FMacros:=TStringList.Create;
-end;
 
-destructor TXMLFPDocOptions.Destroy;
-begin
-  FreeAndNil(FMacros);
-  inherited Destroy;
-end;
-
-procedure TXMLFPDocOptions.DoMacro(Sender: TObject; const TagString: String;
-  TagParams: TStringList; out ReplaceText: String);
-begin
-  ReplaceText:=FMacros.Values[TagString];
-end;
-
-Function TXMLFPDocOptions.ExpandMacrosInFile(AFileName : String) : TStream;
-
-Var
-  F : TFileStream;
-  T : TTemplateParser;
-
-begin
-  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
-  try
-    Result:=TMemoryStream.Create;
-    try
-      T:=TTemplateParser.Create;
-      try
-        T.StartDelimiter:='$(';
-        T.EndDelimiter:=')';
-        T.AllowTagParams:=true;
-        T.OnReplaceTag:=@DoMacro;
-        T.ParseStream(F,Result);
-      finally
-        T.Free;
-      end;
-    except
-      FreeAndNil(Result);
-      Raise;
-    end;
-  finally
-    F.Free;
-  end;
-end;
 
 procedure TXMLFPDocOptions.LoadOptionsFromFile(AProject: TFPDocProject; const AFileName: String);
 
 Var
   XML : TXMLDocument;
-  S : TStream;
 
 begin
-  If ExpandMacros then
-    S:=ExpandMacrosInFile(AFileName)
-  else
-    S:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  ReadXMLFile(XML,AFileName);
   try
-    ReadXMLFile(XML,S,AFileName);
-    try
-      LoadFromXML(AProject,XML);
-    finally
-      FreeAndNil(XML);
-    end;
+    LoadFromXML(AProject,XML);
   finally
-    S.Free;
+    FreeAndNil(XML);
   end;
 end;
 
