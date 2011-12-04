@@ -1542,9 +1542,12 @@ implementation
                           { class reference ? }
                           if is_class(hdef) or
                              is_objcclass(hdef) or
-                             is_javaclass(hdef) then
+                             { Java interfaces also can have loadvmtaddrnodes,
+                               e.g. for expressions such as JLClass(intftype) }
+                             is_java_class_or_interface(hdef) then
                            begin
-                             if getaddr and (token=_POINT) then
+                             if getaddr and (token=_POINT) and
+                                not is_javainterface(hdef) then
                               begin
                                 consume(_POINT);
                                 { allows @Object.Method }

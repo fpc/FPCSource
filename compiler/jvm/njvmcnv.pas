@@ -1392,7 +1392,23 @@ implementation
   function asis_target_specific_typecheck(node: tasisnode): boolean;
     var
       realtodef: tdef;
+      temp: tnode;
     begin
+      { the JVM supports loadvmtaddrnodes for interface types, but the generic
+        as/is code doesn't -> convert such loadvmtaddrnodes back to plain
+        type nodes here (they only make sense in the context of treating them
+        as entities loaded to store into e.g. a JLClass) }
+      if (node.right.resultdef.typ=classrefdef) and
+         is_javainterface(tclassrefdef(node.right.resultdef).pointeddef) and
+         (node.right.nodetype=loadvmtaddrn) and
+         (tloadvmtaddrnode(node.right).left.nodetype=typen) then
+        begin
+          temp:=tloadvmtaddrnode(node.right).left;
+          tloadvmtaddrnode(node.right).left:=nil;
+          node.right.free;
+          node.right:=temp;
+        end;
+
       if not(nf_internal in node.flags) then
         begin
           { handle using normal code }
