@@ -33,7 +33,7 @@ const
  dcWW_NoWait = 1;
  dpThread = 2;
  dpSameClass = 0;
-
+ dce_AutoReset = $1000;
 
 { import the necessary stuff from the OS }
 function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
@@ -83,6 +83,26 @@ Already declared in the main part of system.pas...
 function DosSetPriority (Scope, TrClass: cardinal; Delta: longint;
                                            PortID: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 236;
+
+function DosCreateEventSem (Name: PChar; var Handle: THandle;
+                             Attr: cardinal; State: boolean): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 324;
+
+function DosCloseEventSem (Handle: THandle): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 326;
+
+function DosResetEventSem (Handle: THandle; var PostCount: cardinal): cardinal;
+                                          cdecl; external 'DOSCALLS' index 327;
+
+function DosPostEventSem (Handle: THandle): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 328;
+
+function DosWaitEventSem (Handle: THandle; Timeout: cardinal): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 329;
+
+function DosQueryEventSem (Handle: THandle; var Posted: cardinal): cardinal;
+                                          cdecl; external 'DOSCALLS' index 330;
+
 
 
 {*****************************************************************************
@@ -445,118 +465,114 @@ type
   PLocalEventRec = ^TBasicEventState;
 
 
-function IntBasicEventCreate (EventAttributes: Pointer;
-     AManualReset, InitialState: Boolean; const Name: ansistring): PEventState;
+const
+  wrSignaled  = 0;
+  wrTimeout   = 1;
+  wrAbandoned = 2;  (* This cannot happen for an event semaphore with OS/2? *)
+  wrError     = 3;
+  Error_Timeout = 640;
+  OS2SemNamePrefix = '\SEM32\';
+
+function SysBasicEventCreate (EventAttributes: Pointer;
+     AManualReset, InitialState: boolean; const Name: ansistring): PEventState;
+var
+  RC: cardinal;
+  Name2: ansistring;
+  Attr: cardinal;
 begin
   New (PLocalEventRec (Result));
-{$WARNING TODO!}
-{
-  PLocalEventrec (Result)^.FHandle :=
-         CreateEvent (EventAttributes, AManualReset, InitialState,PChar(Name));
-}
+  if (Name <> '') and (UpCase (Copy (Name, 1, 7)) <> OS2SemNamePrefix) then
+   Name2 := OS2SemNamePrefix + Name
+  else
+   Name2 := Name;
+  if AManualReset then
+   Attr := 0
+  else
+   Attr := DCE_AutoReset;
+  RC := DosCreateEventSem (PChar (Name2), PLocalEventRec (Result)^.FHandle,
+                                                           Attr, InitialState);
+  if RC <> 0 then
+   begin
+    FreeMem (Result);
+    FPC_ThreadError;
+   end;
 end;
 
 
-procedure IntBasicEventDestroy (State: PEventState);
+procedure SysBasicEventDestroy (State: PEventState);
 begin
-{$WARNING TODO!}
-{
-  closehandle(plocaleventrec(state)^.fhandle);
-}
+  DosCloseEventSem (PLocalEventRec (State)^.FHandle);
   Dispose (PLocalEventRec (State));
 end;
 
 
-procedure IntBasicEventResetEvent (State: PEventState);
+procedure SysBasicEventResetEvent (State: PEventState);
+var
+  PostCount: cardinal;
 begin
-{$WARNING TODO!}
-{
-  ResetEvent(plocaleventrec(state)^.FHandle)
-}
+  DosResetEventSem (PLocalEventRec (State)^.FHandle, PostCount);
 end;
 
 
-procedure IntBasicEventSetEvent (State: PEventState);
+procedure SysBasicEventSetEvent (State: PEventState);
 begin
-{$WARNING TODO!}
-{
-  SetEvent(plocaleventrec(state)^.FHandle);
-}
+  DosPostEventSem (PLocalEventRec (State)^.FHandle);
 end;
 
 
-function IntBasicEventWaitFor (Timeout: Cardinal; State: PEventState): longint;
+function SysBasicEventWaitFor (Timeout: Cardinal; State: PEventState): longint;
+var
+  RC: cardinal;
 begin
-{$WARNING TODO!}
-{
-  case WaitForSingleObject(plocaleventrec(state)^.fHandle, Timeout) of
-    WAIT_ABANDONED: Result := wrAbandoned;
-    WAIT_OBJECT_0: Result := wrSignaled;
-    WAIT_TIMEOUT: Result := wrTimeout;
-    WAIT_FAILED:
-        begin
-        Result := wrError;
-        plocaleventrec(state)^.FLastError := GetLastError;
-       end;
+  RC := DosWaitEventSem (PLocalEventRec (State)^.FHandle, Timeout);
+  case RC of
+   0: Result := wrSignaled;
+   Error_Timeout: Result := wrTimeout;
   else
+   begin
     Result := wrError;
+    PLocalEventRec (State)^.FLastError := RC;
+   end;
   end;
-}
 end;
 
 
-function IntRTLEventCreate: PRTLEvent;
+function SysRTLEventCreate: PRTLEvent;
 begin
-{$WARNING TODO!}
-{
-  Result := PRTLEVENT(CreateEvent(nil, false, false, nil));
-}
+  Result := PRTLEvent (-1);
+  DosCreateEventSem (nil, THandle (Result), dce_AutoReset, false);
 end;
 
 
-procedure IntRTLEventDestroy (AEvent: PRTLEvent);
+procedure SysRTLEventDestroy (AEvent: PRTLEvent);
 begin
-{$WARNING TODO!}
-{
-  CloseHandle(THANDLE(AEvent));
-}
+  DosCloseEventSem (THandle (AEvent));
 end;
 
 
-procedure IntRTLEventSetEvent (AEvent: PRTLEvent);
+procedure SysRTLEventSetEvent (AEvent: PRTLEvent);
 begin
-{$WARNING TODO!}
-{
-  SetEvent(THANDLE(AEvent));
-}
+  DosPostEventSem (THandle (AEvent));
 end;
 
 
-procedure IntRTLEventWaitFor (AEvent: PRTLEvent);
-CONST INFINITE=-1;
+procedure SysRTLEventWaitFor (AEvent: PRTLEvent);
 begin
-{$WARNING TODO!}
-{
-  WaitForSingleObject(THANDLE(AEvent), INFINITE);
-}
+  DosWaitEventSem (THandle (AEvent), cardinal (-1));
 end;
 
 
-procedure IntRTLEventWaitForTimeout (AEvent: PRTLEvent; Timeout: longint);
+procedure SysRTLEventWaitForTimeout (AEvent: PRTLEvent; Timeout: longint);
 begin
-{$WARNING TODO!}
-{
-  WaitForSingleObject(THANDLE(AEvent), Timeout);
-}
+  DosWaitEventSem (THandle (AEvent), Timeout);
 end;
 
 
-procedure intRTLEventResetEvent (AEvent: PRTLEvent);
+procedure SysRTLEventResetEvent (AEvent: PRTLEvent);
+var
+  PostCount: cardinal;
 begin
-{$WARNING TODO!}
-{
-  ResetEvent(THANDLE(AEvent));
-}
+  DosResetEventSem (THandle (AEvent), PostCount);
 end;
 
 
@@ -591,17 +607,17 @@ begin
     RelocateThreadVar      :=@SysRelocateThreadVar;
     AllocateThreadVars     :=@SysAllocateThreadVars;
     ReleaseThreadVars      :=@SysReleaseThreadVars;
-    BasicEventCreate       :=@IntBasicEventCreate;
-    BasicEventDestroy      :=@IntBasicEventDestroy;
-    BasicEventSetEvent     :=@IntBasicEventSetEvent;
-    BasicEventResetEvent   :=@IntBasicEventResetEvent;
-    BasiceventWaitFor      :=@IntBasiceventWaitFor;
-    RTLEventCreate         :=@IntRTLEventCreate;
-    RTLEventDestroy        :=@IntRTLEventDestroy;
-    RTLEventSetEvent       :=@IntRTLEventSetEvent;
-    RTLEventResetEvent     :=@intRTLEventResetEvent;
-    RTLEventWaitFor        :=@IntRTLEventWaitFor;
-    RTLEventWaitForTimeout :=@intRTLEventWaitForTimeout;
+    BasicEventCreate       :=@SysBasicEventCreate;
+    BasicEventDestroy      :=@SysBasicEventDestroy;
+    BasicEventSetEvent     :=@SysBasicEventSetEvent;
+    BasicEventResetEvent   :=@SysBasicEventResetEvent;
+    BasiceventWaitFor      :=@SysBasiceventWaitFor;
+    RTLEventCreate         :=@SysRTLEventCreate;
+    RTLEventDestroy        :=@SysRTLEventDestroy;
+    RTLEventSetEvent       :=@SysRTLEventSetEvent;
+    RTLEventResetEvent     :=@SysRTLEventResetEvent;
+    RTLEventWaitFor        :=@SysRTLEventWaitFor;
+    RTLEventWaitForTimeout :=@SysRTLEventWaitForTimeout;
     end;
   SetThreadManager (OS2ThreadManager);
 end;
