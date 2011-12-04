@@ -85,8 +85,8 @@ type
     procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags;
       reg: TRegister); override;
 
-    { need to override this for ppc64 to avoid calling CG methods which allocate 
-      registers during creation of the interface wrappers to subtract ioffset from 
+    { need to override this for ppc64 to avoid calling CG methods which allocate
+      registers during creation of the interface wrappers to subtract ioffset from
       the self pointer. But register allocation does not take place for them (which
       would probably be the generic fix) so we need to have a specialized method
       that uses the R11 scratch register in these cases.
@@ -149,7 +149,7 @@ type
     procedure profilecode_savepara(para : tparavarsym; list : TAsmList);
     procedure profilecode_restorepara(para : tparavarsym; list : TAsmList);
   end;
-  
+
   procedure create_codegen;
 
 const
@@ -192,7 +192,10 @@ begin
   two_N_minus_1 := aWord(1) shl (N-1);
 
   magic_add := false;
+{$push}
+{$warnings off }
   nc := aWord(-1) - (-d) mod d;
+{$pop}
   p := N-1; { initialize p }
   q1 := two_N_minus_1 div nc; { initialize q1 = 2p/nc }
   r1 := two_N_minus_1 - q1*nc; { initialize r1 = rem(2p,nc) }
