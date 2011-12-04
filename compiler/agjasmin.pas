@@ -70,6 +70,7 @@ interface
         function MakeCmdLine: TCmdStr;override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
+        procedure RemoveAsm; override;
         destructor destroy; override;
        protected
         InstrWriter: TJasminInstrWriter;
@@ -646,6 +647,7 @@ implementation
        jasminjarname = 'jasmin.jar';
      var
        filenames: tcmdstr;
+       asmfile: tcmdstrlistitem;
        jasminjarfound: boolean;
      begin
        if jasminjar='' then
@@ -664,15 +666,30 @@ implementation
              Message1(exec_t_using_assembler,jasminjar);
          end;
        result:=target_asm.asmcmd;
-       filenames:=maybequoted(ScriptFixFileName(AsmFileName));
-       while not asmfiles.empty do
-         filenames:=filenames+' '+asmfiles.GetFirst;
+       filenames:=ScriptFixFileName(AsmFileName);
+       if cs_asm_extern in current_settings.globalswitches then
+         filenames:=maybequoted(filenames);
+       asmfile:=tcmdstrlistitem(asmfiles.First);
+       while assigned(asmfile) do
+         begin
+           if cs_asm_extern in current_settings.globalswitches then
+             filenames:=filenames+' '+maybequoted(ScriptFixFileName(asmfile.str))
+           else
+            filenames:=filenames+' '+ScriptFixFileName(asmfile.str);
+           asmfile:=tcmdstrlistitem(asmfile.next);
+        end;
        Replace(result,'$ASM',filenames);
        if (path<>'') then
-         Replace(result,'$OBJDIR',maybequoted(ScriptFixFileName(path)))
+         if cs_asm_extern in current_settings.globalswitches then
+           Replace(result,'$OBJDIR',maybequoted(ScriptFixFileName(path)))
+         else
+           Replace(result,'$OBJDIR',ScriptFixFileName(path))
        else
          Replace(result,'$OBJDIR','.');
-       Replace(result,'$JASMINJAR',maybequoted(ScriptFixFileName(jasminjar)));
+       if cs_asm_extern in current_settings.globalswitches then
+         Replace(result,'$JASMINJAR',maybequoted(ScriptFixFileName(jasminjar)))
+       else
+         Replace(result,'$JASMINJAR',ScriptFixFileName(jasminjar))
      end;
 
 
@@ -681,7 +698,7 @@ implementation
         if AsmSize<>AsmStartSize then
           begin
             AsmClose;
-            asmfiles.Concat(maybequoted(ScriptFixFileName(AsmFileName)));
+            asmfiles.Concat(AsmFileName);
           end
         else
           AsmClear;
@@ -1081,6 +1098,29 @@ implementation
        Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource^);
 {$endif EXTDEBUG}
     end;
+
+
+    procedure TJasminAssembler.RemoveAsm;
+      var
+        g : file;
+      begin
+        inherited;
+        if cs_asm_leave in current_settings.globalswitches then
+         exit;
+        while not asmfiles.empty do
+          begin
+            if cs_asm_extern in current_settings.globalswitches then
+             AsmRes.AddDeleteCommand(asmfiles.GetFirst)
+            else
+             begin
+               assign(g,asmfiles.GetFirst);
+               {$I-}
+                erase(g);
+               {$I+}
+               if ioresult<>0 then;
+             end;
+          end;
+      end;
 
 {****************************************************************************}
 {                         Jasmin Instruction Writer                          }
