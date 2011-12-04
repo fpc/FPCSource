@@ -915,9 +915,15 @@ implementation
         {$IFDEF MSWINDOWS}
           FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
                              '{', '}', '''', '`', '~'];
+          QUOTE_CHAR = '"';
         {$ELSE}
           FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
                              '{', '}', '''', ':', '\', '`', '~'];
+          {$ifdef unix}
+          QUOTE_CHAR = '''';
+          {$else}
+          QUOTE_CHAR = '"';
+          {$endif}
         {$ENDIF}
       var
         s1 : ansistring;
@@ -925,14 +931,14 @@ implementation
         quoted : boolean;
       begin
         quoted:=false;
-        s1:='"';
+        s1:=QUOTE_CHAR;
         for i:=1 to length(s) do
          begin
            case s[i] of
-             '"' :
+             QUOTE_CHAR :
                begin
                  quoted:=true;
-                 s1:=s1+'\"';
+                 s1:=s1+('\'+QUOTE_CHAR);
                end;
              ' ',
              #128..#255 :
@@ -948,7 +954,7 @@ implementation
            end;
          end;
         if quoted then
-          maybequoted:=s1+'"'
+          maybequoted:=s1+QUOTE_CHAR
         else
           maybequoted:=s;
       end;
@@ -959,9 +965,15 @@ implementation
         {$IFDEF MSWINDOWS}
           FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
                              '{', '}', '''', '`', '~'];
+          QUOTE_CHAR = '"';
         {$ELSE}
           FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                             '{', '}', '''', ':', '\', '`', '~'];
+                             '{', '}', '"', ':', '\', '`', '~'];
+          {$ifdef unix}
+          QUOTE_CHAR = '''';
+          {$else}
+          QUOTE_CHAR = '"';
+          {$endif}
         {$ENDIF}
       var
         s1 : string;
@@ -969,14 +981,14 @@ implementation
         quoted : boolean;
       begin
         quoted:=false;
-        s1:='"';
+        s1:=QUOTE_CHAR;
         for i:=1 to length(s) do
          begin
            case s[i] of
-             '"' :
+             QUOTE_CHAR :
                begin
                  quoted:=true;
-                 s1:=s1+'\"';
+                 s1:=s1+('\'+QUOTE_CHAR);
                end;
              ' ',
              #128..#255 :
@@ -992,7 +1004,7 @@ implementation
            end;
          end;
         if quoted then
-          maybequoted:=s1+'"'
+          maybequoted:=s1+QUOTE_CHAR
         else
           maybequoted:=s;
       end;
