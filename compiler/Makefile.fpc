@@ -259,6 +259,14 @@ endif
 endif
 endif
 
+# Don't compile a native compiler & utilities for JVM and embedded
+# targets
+ifeq ($(CPU_TARGET),jvm)
+NoNativeBinaries=1
+endif
+ifneq ($(OS_TARGET),embedded)
+NoNativeBinaries=1
+endif
 
 [rules]
 #####################################################################
@@ -306,7 +314,11 @@ EXENAME=ppc$(CPUSUF)$(EXEEXT)
 endif
 PPEXENAME=pp$(EXEEXT)
 TEMPNAME=ppc$(SRCEXEEXT)
+ifneq ($(CPUSUF),jvm)
 PPCROSSNAME=ppcross$(CPUSUF)$(SRCEXEEXT)
+else
+PPCROSSNAME=ppc$(CPUSUF)$(SRCEXEEXT)
+endif
 TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
@@ -612,8 +624,8 @@ cycle:
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' rtlclean rtl
-# building a native compiler for embedded targets is not possible
-ifneq ($(OS_TARGET),embedded)
+# building a native compiler for JVM and embedded targets is not possible
+ifndef NoNativeBinaries
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' cycleclean compiler
 endif
 endif
@@ -668,8 +680,16 @@ else
 PPCCPULOCATION=$(INSTALL_BINDIR)
 endif
 
+ifndef NoNativeBinaries
+quickinstall: quickinstall_withutils
+else
+quickinstall: quickinstall_base
+endif
+
 # This will only install the ppcXXX executable, not the message files etc.
-quickinstall: $(addsuffix _install,$(TARGET_DIRS))
+quickinstall_withutils: $(addsuffix _install,$(TARGET_DIRS)) quickinstall_base
+
+quickinstall_base:
 # Install ppcXXX executable, for a cross installation we install
 # the ppcrossXXX as ppcXXX. The target native build ppcXXX is not used
 # for this installation type
