@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002-2010 by Tomas Hajny,
+    Copyright (c) 2002-2011 by Tomas Hajny,
     member of the Free Pascal development team.
 
     OS/2 threading support implementation
@@ -47,19 +47,16 @@ function DosCreateThread (var TID: cardinal; Address: pointer;
      aParam: pointer; Flags: cardinal; StackSize: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 311;
 
-function DosCreateMutExSem (Name: PChar; var Handle: longint; Attr: cardinal;
+function DosCreateMutExSem (Name: PChar; var Handle: THandle; Attr: cardinal;
                State: boolean): cardinal; cdecl; external 'DOSCALLS' index 331;
 
-function DosCloseMutExSem (Handle: longint): cardinal; cdecl;
+function DosCloseMutExSem (Handle: THandle): cardinal; cdecl;
                                                  external 'DOSCALLS' index 333;
 
-function DosQueryMutExSem (Handle: longint; var PID, TID, Count: cardinal):
-                                cardinal; cdecl; external 'DOSCALLS' index 336;
+function DosRequestMutExSem (Handle: THandle; Timeout: cardinal): cardinal;
+                                          cdecl; external 'DOSCALLS' index 334;
 
-function DosRequestMutExSem (Handle:longint; Timeout: cardinal): cardinal; cdecl;
-                                                 external 'DOSCALLS' index 334;
-
-function DosReleaseMutExSem (Handle: longint): cardinal; cdecl;
+function DosReleaseMutExSem (Handle: THandle): cardinal; cdecl;
                                                  external 'DOSCALLS' index 335;
 
 function DosSuspendThread (TID:cardinal): cardinal; cdecl;
@@ -73,10 +70,6 @@ function DosKillThread (TID: cardinal): cardinal; cdecl;
 
 function DosWaitThread (var TID: cardinal; Option: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 349;
-
-function DosEnterCritSec:cardinal; cdecl; external 'DOSCALLS' index 232;
-
-function DosExitCritSec:cardinal; cdecl; external 'DOSCALLS' index 233;
 
 procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
 
@@ -352,6 +345,15 @@ begin
 end;
 
 
+function GetOS2ThreadPriority (ThreadHandle: dword): longint;
+begin
+{$WARNING TODO!}
+{
+  DosQuerySysState
+}
+end;
+
+
 function SysThreadSetPriority (ThreadHandle: dword; Prio: longint): boolean;
 {-15..+15, 0=normal}
 var
@@ -361,8 +363,9 @@ begin
 {
       SysThreadSetPriority:=WinThreadSetPriority(threadHandle,Prio);
 
-Find out current priority first using DosGetInfoBlocks, then calculate delta
-(recalculate the scale from -15..+15 on input to -31..+31 used by OS/2).
+Find out current priority first using GetOS2ThreadPriority defined above, then
+calculate delta (translate the input scale -15..+15 based on MSDN docs to
+-31..+31 used by OS/2).
 
   SysThreadSetPriority := DosSetPriority (dpThread, dpSameClass, Delta,
                                                                  ThreadHandle);
@@ -376,7 +379,8 @@ begin
 {
       SysThreadGetPriority:=WinThreadGetPriority(threadHandle);
 
-  DosGetInfoBlocks - recalculate the scale afterwards to -15..+15
+  Use GetOS2ThreadPriority defined above and translate the OS/2 value 0..31
+  to -15..+15 based on MSDN docs.
 }
 end;
 
@@ -395,28 +399,40 @@ end;
                           Delphi/Win32 compatibility
 *****************************************************************************}
 
-{ DosEnter/ExitCritSec have quite a few limitations, so let's try to avoid
-  them. I'm not sure whether mutex semaphores are SMP-safe, though... :-(  }
-
-procedure SysInitCriticalSection(var CS);
+procedure SysInitCriticalSection (var CS);
 begin
-{$WARNING TODO!}
+  if DosCreateMutExSem (nil, THandle (CS), 0, false) <> 0 then
+   FPC_ThreadError;
 end;
-
 
 procedure SysDoneCriticalSection (var CS);
 begin
-{$WARNING TODO!}
+(* Trying to release first since this might apparently be the expected  *)
+(* behaviour in Delphi according to comment in the Unix implementation. *)
+  repeat
+  until DosReleaseMutExSem (THandle (CS)) <> 0;
+  if DosCloseMutExSem (THandle (CS)) <> 0 then
+   FPC_ThreadError;
 end;
 
 procedure SysEnterCriticalSection (var CS);
 begin
-{$WARNING TODO!}
+  if DosRequestMutExSem (THandle (CS), cardinal (-1)) <> 0 then
+   FPC_ThreadError;
+end;
+
+function SysTryEnterCriticalSection (var CS): longint;
+begin
+  if DosRequestMutExSem (THandle (CS), 0) = 0 then
+   Result := 1
+  else
+   Result := 0;
 end;
 
 procedure SysLeaveCriticalSection (var CS);
 begin
-{$WARNING TODO!}
+  if DosReleaseMutExSem (THandle (CS)) <> 0 then
+   FPC_ThreadError;
 end;
 
 
@@ -526,12 +542,6 @@ begin
 end;
 
 
-function SysTryEnterCriticalSection (var CS): longint;
-begin
-{$WARNING TODO!}
-end;
-
-
 procedure IntRTLEventWaitForTimeout (AEvent: PRTLEvent; Timeout: longint);
 begin
 {$WARNING TODO!}
@@ -566,8 +576,8 @@ begin
     SuspendThread          :=@SysSuspendThread;
     ResumeThread           :=@SysResumeThread;
     KillThread             :=@SysKillThread;
-    ThreadSwitch           :=@SysThreadSwitch;
     CloseThread		   :=@SysCloseThread;
+    ThreadSwitch           :=@SysThreadSwitch;
     WaitForThreadTerminate :=@SysWaitForThreadTerminate;
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
@@ -583,8 +593,8 @@ begin
     ReleaseThreadVars      :=@SysReleaseThreadVars;
     BasicEventCreate       :=@IntBasicEventCreate;
     BasicEventDestroy      :=@IntBasicEventDestroy;
-    BasicEventResetEvent   :=@IntBasicEventResetEvent;
     BasicEventSetEvent     :=@IntBasicEventSetEvent;
+    BasicEventResetEvent   :=@IntBasicEventResetEvent;
     BasiceventWaitFor      :=@IntBasiceventWaitFor;
     RTLEventCreate         :=@IntRTLEventCreate;
     RTLEventDestroy        :=@IntRTLEventDestroy;
