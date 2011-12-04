@@ -739,7 +739,7 @@ begin
           WriteHTMLFile(PageDoc, Filename);
         except
 	  on E: Exception do
-            WriteLn(Format(SErrCouldNotCreateFile, [FileName, e.Message]));
+            DoLog(SErrCouldNotCreateFile, [FileName, e.Message]);
         end;
       finally
         PageDoc.Free;
@@ -750,7 +750,7 @@ begin
   begin
     if not FileExists(FCSSFile) Then
       begin
-        Writeln(stderr,'Can''t find CSS file "',FCSSFILE,'"');
+        DoLog('Can''t find CSS file "%s"',[FCSSFILE]);
         halt(1);
       end;
     TempStream := TMemoryStream.Create;
@@ -1097,7 +1097,7 @@ begin
   if Length(s) = 0 then
   begin
 
-    WriteLn(Format(SErrUnknownLinkID, [a]));
+    DoLog(SErrUnknownLinkID, [a]);
     PushOutputNode(CreateEl(CurOutputNode, 'b'));
   end else
     PushOutputNode(CreateLink(CurOutputNode, s));
@@ -2046,7 +2046,7 @@ begin
        s:= ResolveLinkID(l);
        if Length(s)=0 then
          begin
-         WriteLn(Format(SErrUnknownLinkID, [l]));
+         DoLog(SErrUnknownLinkID, [l]);
          NewEl := CreateEl(ParaEl,'b')
          end
        else
@@ -3425,7 +3425,7 @@ end;
 
 procedure THTMLWriter.WriteDoc;
 begin
-   WriteLn(Format(SWritingPages, [PageCount]));
+   DoLog(SWritingPages, [PageCount]);
    WriteHTMLPages;
 end;
 
