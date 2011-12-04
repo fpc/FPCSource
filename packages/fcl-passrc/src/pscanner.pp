@@ -30,6 +30,14 @@ resourcestring
   SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
   SErrInvalidPPElse = '$ELSE without matching $IFxxx';
   SErrInvalidPPEndif = '$ENDIF without matching $IFxxx';
+  SLogOpeningFile = 'Opening source file "%s".';
+  SLogLineNumber = 'Reading line %d.';
+  SLogIFDefAccepted = 'IFDEF %s found, accepting.';
+  SLogIFDefRejected = 'IFDEF %s found, rejecting.';
+  SLogIFNDefAccepted = 'IFNDEF %s found, accepting.';
+  SLogIFNDefRejected = 'IFNDEF %s found, rejecting.';
+  SLogIFOPTIgnored = 'IFOPT %s found, ignoring (rejected).';
+  SLogIFIgnored = 'IF %s found, ignoring (rejected).';
 
 type
 
@@ -194,6 +202,10 @@ type
 
   { TPascalScanner }
 
+  TPScannerLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
+  TPScannerLogEvent = (sleFile,sleLineNumber,sleConditionals);
+  TPScannerLogEvents = Set of TPScannerLogEvent;
+
   TPascalScanner = class
   private
     FFileResolver: TFileResolver;
@@ -204,6 +216,8 @@ type
     FCurTokenString: string;
     FCurLine: string;
     FDefines: TStrings;
+    FLogEvents: TPScannerLogEvents;
+    FOnLog: TPScannerLogHandler;
     TokenStr: PChar;
     FIncludeStack: TList;
 
@@ -216,10 +230,13 @@ type
 
     function GetCurColumn: Integer;
   protected
+    Procedure DoLog(Const Msg : String; SkipSourceInfo : Boolean = False);overload;
+    Procedure DoLog(Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Args: array of Const);overload;
     function DoFetchTextToken: TToken;
     function DoFetchToken: TToken;
+    function LogEvent(E : TPScannerLogEvent) : Boolean; inline;
   public
     Options : TPOptions;
     constructor Create(AFileResolver: TFileResolver);
@@ -239,6 +256,8 @@ type
     property CurTokenString: string read FCurTokenString;
 
     property Defines: TStrings read FDefines;
+    Property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
+    Property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
   end;
 
 const
@@ -542,6 +561,8 @@ end;
 procedure TPascalScanner.OpenFile(const AFilename: string);
 begin
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
+  if LogEvent(sleFile) then
+    DoLog(SLogOpeningFile,[AFileName],True);
   FCurFilename := AFilename;
   FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(AFilename));
 end;
@@ -664,6 +685,8 @@ function TPascalScanner.DoFetchToken: TToken;
       TokenStr := PChar(CurLine);
       Result := true;
       Inc(FCurRow);
+      if LogEvent(sleLineNumber) and ((FCurRow Mod 100) = 0) then
+        DoLog(SLogLineNumber,[FCurRow],True);
     end;
   end;
 
@@ -1040,6 +1063,8 @@ begin
                 FCurFilename := Param;
                 if FCurSourceFile is TFileLineReader then
                   FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
+                If LogEvent(sleFile) then
+                  DoLog(SLogOpeningFile,[FCurFileName],True);
                 FCurRow := 0;
               end
              else
@@ -1088,6 +1113,11 @@ begin
                   PPIsSkipping := true;
                 end else
                   PPSkipMode := ppSkipElseBranch;
+                If LogEvent(sleConditionals) then
+                  if PPSkipMode=ppSkipElseBranch then
+                    DoLog(SLogIFDefAccepted,[Param])
+                  else
+                    DoLog(SLogIFDefRejected,[Param])
               end;
             end else if Directive = 'IFNDEF' then
             begin
@@ -1110,6 +1140,11 @@ begin
                   PPIsSkipping := true;
                 end else
                   PPSkipMode := ppSkipElseBranch;
+                If LogEvent(sleConditionals) then
+                  if PPSkipMode=ppSkipElseBranch then
+                    DoLog(SLogIFNDefAccepted,[Param])
+                  else
+                    DoLog(SLogIFNDefRejected,[Param])
               end;
             end else if Directive = 'IFOPT' then
             begin
@@ -1129,6 +1164,8 @@ begin
                 PPSkipMode := ppSkipIfBranch;
                 PPIsSkipping := true;
               end;
+              If LogEvent(sleConditionals) then
+                DoLog(SLogIFOPTIgnored,[Uppercase(Param)])
             end else if Directive = 'IF' then
             begin
               if PPSkipStackIndex = High(PPSkipModeStack) then
@@ -1146,6 +1183,8 @@ begin
                   just assumed as evaluating to false. }
                 PPSkipMode := ppSkipIfBranch;
                 PPIsSkipping := true;
+              If LogEvent(sleConditionals) then
+                 DoLog(SLogIFIgnored,[Uppercase(Param)])
               end;
             end else if Directive = 'ELSE' then
             begin
@@ -1200,9 +1239,28 @@ begin
   FCurToken := Result;
 end;
 
+function TPascalScanner.LogEvent(E: TPScannerLogEvent): Boolean;
+begin
+  Result:=E in FLogEvents;
+end;
+
 function TPascalScanner.GetCurColumn: Integer;
 begin
   Result := TokenStr - PChar(CurLine);
+end;
+
+procedure TPascalScanner.DoLog(const Msg: String;SkipSourceInfo : Boolean = False);
+begin
+  If Assigned(FOnLog) then
+    if SkipSourceInfo then
+      FOnLog(Self,Msg)
+    else
+      FOnLog(Self,Format('%s(%d) : %s',[FCurFileName,FCurRow,Msg]));
+end;
+
+procedure TPascalScanner.DoLog(const Fmt: String; Args: array of const;SkipSourceInfo : Boolean = False);
+begin
+  DoLog(Format(Fmt,Args),SkipSourceInfo);
 end;
 
 end.

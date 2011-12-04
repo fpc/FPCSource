@@ -51,8 +51,21 @@ resourcestring
   SParserExpectedIdentifier = 'Identifier expected';
   SParserNotAProcToken = 'Not a procedure or function token';
 
+  SLogStartImplementation = 'Start parsing implementation section.';
+  SLogStartInterface = 'Start parsing interface section';
+
 type
+  TPasParserLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
+  TPParserLogEvent = (pleInterface,pleImplementation);
+  TPParserLogEvents = set of TPParserLogEvent;
+
+  { TPasTreeContainer }
+
   TPasTreeContainer = class
+  private
+    FOnLog: TPasParserLogHandler;
+    FPParserLogEvents: TPParserLogEvents;
+    FScannerLogEvents: TPScannerLogEvents;
   protected
     FPackage: TPasPackage;
     FInterfaceOnly : Boolean;
@@ -71,6 +84,9 @@ type
     function FindModule(const AName: String): TPasModule; virtual;
     property Package: TPasPackage read FPackage;
     property InterfaceOnly : Boolean Read FInterfaceOnly Write FInterFaceOnly;
+    Property ScannerLogEvents : TPScannerLogEvents Read FScannerLogEvents Write FScannerLogEvents;
+    Property ParserLogEvents : TPParserLogEvents Read FPParserLogEvents Write FPParserLogEvents;
+    Property OnLog : TPasParserLogHandler Read FOnLog Write FOnLog;
   end;
 
   EParserError = class(Exception)
@@ -97,6 +113,8 @@ type
   private
     FCurModule: TPasModule;
     FFileResolver: TFileResolver;
+    FLogEvents: TPParserLogEvents;
+    FOnLog: TPasParserLogHandler;
     FOptions: TPOptions;
     FScanner: TPascalScanner;
     FEngine: TPasTreeContainer;
@@ -113,6 +131,9 @@ type
     function GetVariableValueAndLocation(Parent : TPasElement; out Value, Location: String): Boolean;
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
   protected
+    function LogEvent(E : TPParserLogEvent) : Boolean; inline;
+    Procedure DoLog(Const Msg : String; SkipSourceInfo : Boolean = False);overload;
+    Procedure DoLog(Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
     function GetProcTypeFromToken(tk: TToken; IsClass: Boolean=False ): TProcType;
     procedure ParseRecordFieldList(ARec: TPasRecordType; AEndToken: TToken);
     procedure ParseRecordVariantParts(ARec: TPasRecordType; AEndToken: TToken);
@@ -205,6 +226,8 @@ type
     property CurTokenString: String read FCurTokenString;
     Property Options : TPOptions Read FOptions Write FOptions;
     Property CurModule : TPasModule Read FCurModule;
+    Property LogEvents : TPParserLogEvents Read FLogEvents Write FLogEvents;
+    Property OnLog : TPasParserLogHandler Read FOnLog Write FOnLog;
   end;
 
 function ParseSource(AEngine: TPasTreeContainer;
@@ -352,6 +375,8 @@ begin
     Scanner := TPascalScanner.Create(FileResolver);
     Scanner.Defines.Append('FPK');
     Scanner.Defines.Append('FPC');
+    SCanner.LogEvents:=AEngine.ScannerLogEvents;
+    SCanner.OnLog:=AEngine.Onlog;
 
     // TargetOS
     s := UpperCase(OSTarget);
@@ -387,6 +412,8 @@ begin
 
     Parser := TPasParser.Create(Scanner, FileResolver, AEngine);
     Filename := '';
+    Parser.LogEvents:=AEngine.ParserLogEvents;
+    Parser.OnLog:=AEngine.Onlog;
 
     if FPCCommandLine<>'' then
       begin
@@ -1570,6 +1597,8 @@ begin
     CheckHint(Module,True);
 //    ExpectToken(tkSemicolon);
     ExpectToken(tkInterface);
+    If LogEvent(pleInterface) then
+      DoLog(SLogStartInterface );
     ParseInterface;
   finally
     FCurModule:=nil;
@@ -1725,7 +1754,11 @@ begin
         if (CurToken = tkImplementation) and (Declarations is TInterfaceSection) then
           begin
           If Not Engine.InterfaceOnly then
+            begin
+            If LogEvent(pleImplementation) then
+              DoLog(SLogStartImplementation);
             ParseImplementation;
+            end;
           break;
           end;
       tkinitialization:
@@ -2184,6 +2217,26 @@ begin
   finally
     VarNames.Free;
   end;
+end;
+
+function TPasParser.LogEvent(E: TPParserLogEvent): Boolean;
+begin
+  Result:=E in FLogEvents;
+end;
+
+procedure TPasParser.DoLog(const Msg: String; SkipSourceInfo: Boolean);
+begin
+  If Assigned(FOnLog) then
+    if SkipSourceInfo or not assigned(scanner) then
+      FOnLog(Self,Msg)
+    else
+      FOnLog(Self,Format('%s(%d) : %s',[Scanner.CurFilename,SCanner.CurRow,Msg]));
+end;
+
+procedure TPasParser.DoLog(const Fmt: String; Args: array of const;
+  SkipSourceInfo: Boolean);
+begin
+  DoLog(Format(Fmt,Args),SkipSourceInfo);
 end;
 
 procedure TPasParser.ParseInlineVarDecl(Parent: TPasElement; List: TFPList;
