@@ -1304,7 +1304,7 @@ function TRegExpr.GetMatch (Idx : integer) : RegExprString;
    then begin
      //SetString (Result, startp [idx], endp [idx] - startp [idx])
      SetLength(Result,endp [idx] - startp [idx]);
-     System.Move(startp [idx]^,Result[1],length(Result));
+     System.Move(startp [idx]^,Result[1],length(Result)*sizeof(REChar));
    end
    else Result := '';
  end; { of function TRegExpr.GetMatch
