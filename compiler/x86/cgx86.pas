@@ -1826,7 +1826,8 @@ unit cgx86;
       if (len>helpsize) then
         cm:=copy_string;
       if (cs_opt_size in current_settings.optimizerswitches) and
-         not((len<=16) and (cm=copy_mmx)) then
+         not((len<=16) and (cm=copy_mmx)) and
+         not(len in [1,2,4{$ifdef x86_64},8{$endif x86_64}]) then
         cm:=copy_string;
       if (source.segment<>NR_NO) or
          (dest.segment<>NR_NO) then
