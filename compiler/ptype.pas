@@ -467,6 +467,7 @@ implementation
         structdef : tdef;
         structdefstack : tfpobjectlist;
       begin
+         def:=nil;
          { use of current parsed object:
            classes, objects, records can be used also in themself }
          structdef:=basedef;
