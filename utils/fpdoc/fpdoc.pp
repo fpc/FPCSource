@@ -88,6 +88,8 @@ begin
   Writeln(SUsageOption210);
   Writeln(SUsageOption220);
   Writeln(SUsageOption230);
+  Writeln(SUsageOption240);
+  Writeln(SUsageOption250);
   L:=TStringList.Create;
   Try
     Backend:=FCreator.OPtions.Backend;
@@ -197,6 +199,33 @@ end;
 
 procedure TFPDocAplication.Parseoption(Const S : String);
 
+  procedure AddDirToFileList(List: TStrings; const ADirName, AMask: String);
+
+  Var
+    Info : TSearchRec;
+    D : String;
+
+  begin
+    if (ADirName<>'') and not DirectoryExists(ADirName) then
+       OutputLog(Self,'Directory '+ADirName+' does not exist')
+    else
+      begin
+      if (ADirName='.') or (ADirName='') then
+        D:=''
+      else
+        D:=IncludeTrailingPathDelimiter(ADirName);
+      If (FindFirst(D+AMask,0,Info)=0) then
+        try
+          Repeat
+            If (Info.Attr and faDirectory)=0 then
+              List.Add(D+Info.name);
+          Until FindNext(Info)<>0;
+        finally
+          FindClose(Info);
+        end;
+      end;
+  end;
+
   procedure AddToFileList(List: TStrings; const FileName: String);
   var
     f: Text;
@@ -253,6 +282,8 @@ begin
       end
     else if (Cmd = '--descr') then
       AddToFileList(SelectedPackage.Descriptions, Arg)
+    else if (Cmd = '--descr-dir') then
+      AddDirToFileList(SelectedPackage.Descriptions, Arg, '*.xml')
     else if (Cmd = '-f') or (Cmd = '--format') then
       begin
       Arg:=UpperCase(Arg);
@@ -265,6 +296,11 @@ begin
       FCreator.Options.Language := Arg
     else if (Cmd = '-i') or (Cmd = '--input') then
       AddToFileList(SelectedPackage.Inputs, Arg)
+    else if (Cmd = '--input-dir') then
+      begin
+      AddDirToFileList(SelectedPackage.Inputs, Arg,'*.pp');
+      AddDirToFileList(SelectedPackage.Inputs, Arg,'*.pas');
+      end
     else if (Cmd = '-o') or (Cmd = '--output') then
       SelectedPackage.Output := Arg
     else if (Cmd = '-v') or (Cmd = '--verbose') then

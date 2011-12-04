@@ -153,6 +153,8 @@ resourcestring
   SUsageOption210 =  '--write-project=file Do not write documentation, create project file instead';
   SUsageOption220 =  '--verbose         Write more information on the screen';
   SUsageOption230 =  '--dry-run         Only parse sources and XML, do not create output';
+  SUsageOption240 =  '--descr-dir=Dir   Add All XML files in Dir to list of description files';
+  SUsageOption250 =  '--input-dir=Dir   Add All *.pp and *.pas files in Dir to list of input files';
 
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
