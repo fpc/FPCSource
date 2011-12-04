@@ -27,6 +27,7 @@ interface
 
 uses
   globtype,
+  aasmdata,
   symtype,
   cgutils,
   node, ncgld, ncgnstld;
@@ -45,6 +46,7 @@ type
   tjvmassignmentnode  = class(tcgassignmentnode)
    protected
     function direct_shortstring_assignment: boolean; override;
+    function maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;override;
    public
     function pass_1: tnode; override;
   end;
@@ -59,13 +61,12 @@ type
 implementation
 
 uses
-  verbose,
-  aasmdata,
+  verbose,globals,
   nbas,nld,ncal,ncon,ninl,nmem,ncnv,
   symconst,symsym,symdef,symtable,defutil,jvmdef,
   paramgr,
   pass_1,
-  cgbase,hlcgobj;
+  cgbase,hlcgobj,cpuinfo;
 
 { tjvmassignmentnode }
 
@@ -74,6 +75,17 @@ function tjvmassignmentnode.direct_shortstring_assignment: boolean;
     if maybe_find_real_class_definition(right.resultdef,false)=java_jlstring then
       inserttypeconv_explicit(right,cunicodestringtype);
     result:=right.resultdef.typ=stringdef;
+  end;
+
+
+function tjvmassignmentnode.maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;
+  begin
+    { don't do this when compiling for Dalvik, because it can invalidate the
+      debug information (which Dalvik uses as extra type information) }
+    if current_settings.cputype<>cpu_dalvik then
+      result:=inherited
+    else
+      result:=false;
   end;
 
 

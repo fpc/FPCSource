@@ -151,7 +151,7 @@ uses
       procedure maybe_adjust_op_result(list: TAsmList; op: TOpCg; size: tdef);
 
       { performs sign/zero extension as required }
-      procedure resize_stack_int_val(list: TAsmList;fromsize,tosize: tcgsize; forarraystore: boolean);
+      procedure resize_stack_int_val(list: TAsmList;fromsize,tosize: tdef; formemstore: boolean);
 
       { 8/16 bit unsigned parameters and return values must be sign-extended on
         the producer side, because the JVM does not support unsigned variants;
@@ -165,6 +165,8 @@ uses
 
       procedure gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
      protected
+      procedure a_load_const_stack_intern(list : TAsmList;size : tdef;a : aint; typ: TRegisterType; legalize_const: boolean);
+
       function get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
 
       procedure allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
@@ -299,6 +301,26 @@ implementation
       a_call_name_intern(list,pd,s,true);
     end;
 
+
+  procedure thlcgjvm.a_load_const_stack_intern(list : TAsmList;size : tdef;a : aint; typ: TRegisterType; legalize_const: boolean);
+    begin
+      if legalize_const and
+         (typ=R_INTREGISTER) and
+         (size.typ=orddef) then
+        begin
+          { uses specific byte/short array store instructions, and the Dalvik
+            VM does not like it if we store values outside the range }
+          case torddef(size).ordtype of
+            u8bit:
+              a:=shortint(a);
+            u16bit:
+              a:=smallint(a);
+          end;
+        end;
+      a_load_const_stack(list,size,a,typ);
+    end;
+
+
   procedure thlcgjvm.a_load_const_stack(list : TAsmList;size : tdef;a : aint; typ: TRegisterType);
     const
       int2opc: array[-1..5] of tasmop = (a_iconst_m1,a_iconst_0,a_iconst_1,
@@ -324,6 +346,10 @@ implementation
                     list.concat(taicpu.op_const(a_sipush,a))
                   else
                     list.concat(taicpu.op_const(a_ldc,a));
+                  { for android verifier }
+                  if (size.typ=orddef) and
+                     (torddef(size).ordtype=uwidechar) then
+                    list.concat(taicpu.op_none(a_i2c));
                 end;
               OS_64,OS_S64:
                 begin
@@ -419,7 +445,7 @@ implementation
         cgsize:=def_cgsize(size)
       else
         begin
-          resize_stack_int_val(list,OS_32,OS_S64,false);
+          resize_stack_int_val(list,u32inttype,s64inttype,false);
           cgsize:=OS_S64;
         end;
       case cgsize of
@@ -482,25 +508,17 @@ implementation
     var
       trunc32: boolean;
     begin
-      { use "integer to (wide)char" narrowing opcode for "and 65535" }
-      if (op=OP_AND) and
-         (def_cgsize(size) in [OS_16,OS_S16,OS_32,OS_S32]) and
-         (a=65535) then
-        list.concat(taicpu.op_none(a_i2c))
-      else
-        begin
-          maybepreparedivu32(list,op,size,trunc32);
-          case op of
-            OP_NEG,OP_NOT:
-              internalerror(2011010801);
-            OP_SHL,OP_SHR,OP_SAR:
-              { the second argument here is an int rather than a long }
-              a_load_const_stack(list,s32inttype,a,R_INTREGISTER);
-            else
-              a_load_const_stack(list,size,a,R_INTREGISTER);
-          end;
-          a_op_stack(list,op,size,trunc32);
-        end;
+      maybepreparedivu32(list,op,size,trunc32);
+      case op of
+        OP_NEG,OP_NOT:
+          internalerror(2011010801);
+        OP_SHL,OP_SHR,OP_SAR:
+          { the second argument here is an int rather than a long }
+          a_load_const_stack(list,s32inttype,a,R_INTREGISTER);
+        else
+          a_load_const_stack(list,size,a,R_INTREGISTER);
+      end;
+      a_op_stack(list,op,size,trunc32);
     end;
 
   procedure thlcgjvm.a_op_reg_stack(list: TAsmList; op: topcg; size: tdef; reg: tregister);
@@ -720,7 +738,7 @@ implementation
                   st_shortstring:
                     begin
                       inc(parasize);
-                      a_load_const_stack(list,s8inttype,shortint(tstringdef(elemdef).len),R_INTREGISTER);
+                      a_load_const_stack_intern(list,u8inttype,tstringdef(elemdef).len,R_INTREGISTER,true);
                       g_call_system_proc(list,'fpc_initialize_array_shortstring');
                     end;
                   st_ansistring:
@@ -863,7 +881,7 @@ implementation
       begin
         if (op in overflowops) and
            (def_cgsize(size) in [OS_8,OS_S8,OS_16,OS_S16]) then
-          resize_stack_int_val(list,OS_S32,def_cgsize(size),false);
+          resize_stack_int_val(list,s32inttype,size,false);
       end;
 
   procedure thlcgjvm.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
@@ -900,6 +918,7 @@ implementation
   procedure thlcgjvm.g_copyvalueparas(p: TObject; arg: pointer);
     var
       list: tasmlist;
+      tmpref: treference;
     begin
       { zero-extend < 32 bit primitive types (FPC can zero-extend when calling,
         but that doesn't help when we're called from Java code or indirectly
@@ -915,7 +934,13 @@ implementation
          (torddef(tparavarsym(p).vardef).high>=(1 shl (tparavarsym(p).vardef.size*8-1))) then
         begin
           list:=TAsmList(arg);
-          a_op_const_loc(list,OP_AND,tparavarsym(p).vardef,(1 shl (tparavarsym(p).vardef.size*8))-1,tparavarsym(p).initialloc);
+          { store value in new location to keep Android verifier happy }
+          tg.gethltemp(list,tparavarsym(p).vardef,tparavarsym(p).vardef.size,tt_persistent,tmpref);
+          a_load_loc_stack(list,tparavarsym(p).vardef,tparavarsym(p).initialloc);
+          a_op_const_stack(list,OP_AND,tparavarsym(p).vardef,(1 shl (tparavarsym(p).vardef.size*8))-1);
+          a_load_stack_ref(list,tparavarsym(p).vardef,tmpref,prepare_stack_for_ref(list,tmpref,false));
+          location_reset_ref(tparavarsym(p).localloc,LOC_REFERENCE,def_cgsize(tparavarsym(p).vardef),4);
+          tparavarsym(p).localloc.reference:=tmpref;
         end;
 
       inherited g_copyvalueparas(p, arg);
@@ -1032,7 +1057,7 @@ implementation
       extra_slots: longint;
     begin
       extra_slots:=prepare_stack_for_ref(list,ref,false);
-      a_load_const_stack(list,tosize,a,def2regtyp(tosize));
+      a_load_const_stack_intern(list,tosize,a,def2regtyp(tosize),(ref.arrayreftype<>art_none) or assigned(ref.symbol));
       a_load_stack_ref(list,tosize,ref,extra_slots);
     end;
 
@@ -1043,7 +1068,7 @@ implementation
       extra_slots:=prepare_stack_for_ref(list,ref,false);
       a_load_reg_stack(list,fromsize,register);
       if def2regtyp(fromsize)=R_INTREGISTER then
-        resize_stack_int_val(list,def_cgsize(fromsize),def_cgsize(tosize),ref.arrayreftype<>art_none);
+        resize_stack_int_val(list,fromsize,tosize,(ref.arrayreftype<>art_none) or assigned(ref.symbol));
       a_load_stack_ref(list,tosize,ref,extra_slots);
     end;
 
@@ -1051,7 +1076,7 @@ implementation
     begin
       a_load_reg_stack(list,fromsize,reg1);
       if def2regtyp(fromsize)=R_INTREGISTER then
-        resize_stack_int_val(list,def_cgsize(fromsize),def_cgsize(tosize),false);
+        resize_stack_int_val(list,fromsize,tosize,false);
       a_load_stack_reg(list,tosize,reg2);
     end;
 
@@ -1063,7 +1088,7 @@ implementation
       a_load_ref_stack(list,fromsize,ref,extra_slots);
 
       if def2regtyp(fromsize)=R_INTREGISTER then
-        resize_stack_int_val(list,def_cgsize(fromsize),def_cgsize(tosize),false);
+        resize_stack_int_val(list,fromsize,tosize,false);
       a_load_stack_reg(list,tosize,register);
     end;
 
@@ -1078,7 +1103,7 @@ implementation
       extra_sslots:=prepare_stack_for_ref(list,sref,false);
       a_load_ref_stack(list,fromsize,sref,extra_sslots);
       if def2regtyp(fromsize)=R_INTREGISTER then
-        resize_stack_int_val(list,def_cgsize(fromsize),def_cgsize(tosize),dref.arrayreftype<>art_none);
+        resize_stack_int_val(list,fromsize,tosize,(dref.arrayreftype<>art_none) or assigned(dref.symbol));
       a_load_stack_ref(list,tosize,dref,extra_dslots);
     end;
 
@@ -1946,46 +1971,68 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.resize_stack_int_val(list: TAsmList; fromsize, tosize: tcgsize; forarraystore: boolean);
+  procedure thlcgjvm.resize_stack_int_val(list: TAsmList; fromsize, tosize: tdef; formemstore: boolean);
+    var
+      fromcgsize, tocgsize: tcgsize;
     begin
-      if fromsize in [OS_S64,OS_64] then
+      { When storing to an array, field or global variable, make sure the
+        static type verification can determine that the stored value fits
+        within the boundaries of the declared type (to appease the Dalvik VM).
+        Local variables either get their type upgraded in the debug info,
+        or have no type information at all }
+      if formemstore and
+         (tosize.typ=orddef) then
+        if (torddef(tosize).ordtype in [u8bit,uchar]) then
+          tosize:=s8inttype
+        else if torddef(tosize).ordtype=u16bit then
+          tosize:=s16inttype;
+
+      fromcgsize:=def_cgsize(fromsize);
+      tocgsize:=def_cgsize(tosize);
+      if fromcgsize in [OS_S64,OS_64] then
         begin
-          if not(tosize in [OS_S64,OS_64]) then
+          if not(tocgsize in [OS_S64,OS_64]) then
             begin
               { truncate }
               list.concat(taicpu.op_none(a_l2i));
               decstack(list,1);
             end;
         end
-      else if tosize in [OS_S64,OS_64] then
+      else if tocgsize in [OS_S64,OS_64] then
         begin
           { extend }
           list.concat(taicpu.op_none(a_i2l));
           incstack(list,1);
           { if it was an unsigned 32 bit value, remove sign extension }
-          if fromsize=OS_32 then
+          if fromcgsize=OS_32 then
             a_op_const_stack(list,OP_AND,s64inttype,cardinal($ffffffff));
         end;
-      { if the value is immediately stored to an array afterwards, the store
-        instruction will properly truncate the value; otherwise we may need
-        additional truncation, except for 64/32 bit conversions, which are
-        already handled above }
-      if not forarraystore and
-         (not(fromsize in [OS_S64,OS_64,OS_32,OS_S32]) or
-          not(tosize in [OS_S64,OS_64,OS_32,OS_S32])) and
-         (tcgsize2size[fromsize]>tcgsize2size[tosize]) or
-         ((tcgsize2size[fromsize]=tcgsize2size[tosize]) and
-          (fromsize<>tosize)) or
-         { needs to mask out the sign in the top 16 bits }
-         ((fromsize=OS_S8) and
-          (tosize=OS_16)) then
-        case tosize of
+      { Conversions between 32 and 64 bit types have been completely handled
+        above. We still may have to truncare or sign extend in case the
+        destination type is smaller that the source type, or has a different
+        sign. In case the destination is a widechar and the source is not, we
+        also have to insert a conversion to widechar }
+      if (not(fromcgsize in [OS_S64,OS_64,OS_32,OS_S32]) or
+          not(tocgsize in [OS_S64,OS_64,OS_32,OS_S32])) and
+         ((tcgsize2size[fromcgsize]>tcgsize2size[tocgsize]) or
+          ((tcgsize2size[fromcgsize]=tcgsize2size[tocgsize]) and
+           (fromcgsize<>tocgsize)) or
+          { needs to mask out the sign in the top 16 bits }
+          (((fromcgsize=OS_S8) and
+            (tocgsize=OS_16)) or
+           ((tosize=cwidechartype) and
+            (fromsize<>cwidechartype)))) then
+        case tocgsize of
           OS_8:
             a_op_const_stack(list,OP_AND,s32inttype,255);
           OS_S8:
             list.concat(taicpu.op_none(a_i2b));
           OS_16:
-            list.concat(taicpu.op_none(a_i2c));
+            if (tosize.typ=orddef) and
+               (torddef(tosize).ordtype=uwidechar) then
+              list.concat(taicpu.op_none(a_i2c))
+            else
+              a_op_const_stack(list,OP_AND,s32inttype,65535);
           OS_S16:
             list.concat(taicpu.op_none(a_i2s));
         end;
@@ -1993,25 +2040,25 @@ implementation
 
     procedure thlcgjvm.maybe_resize_stack_para_val(list: TAsmList; retdef: tdef; callside: boolean);
       var
-        cgsize: tcgsize;
+        convsize: tdef;
       begin
         if (retdef.typ=orddef) then
           begin
             if (torddef(retdef).ordtype in [u8bit,u16bit,uchar]) and
                (torddef(retdef).high>=(1 shl (retdef.size*8-1))) then
               begin
-                cgsize:=OS_NO;
+                convsize:=nil;
                 if callside then
                   if torddef(retdef).ordtype in [u8bit,uchar] then
-                    cgsize:=OS_S8
+                    convsize:=s8inttype
                   else
-                    cgsize:=OS_S16
+                    convsize:=s16inttype
                 else if torddef(retdef).ordtype in [u8bit,uchar] then
-                    cgsize:=OS_8
+                    convsize:=u8inttype
                   else
-                    cgsize:=OS_16;
-                if cgsize<>OS_NO then
-                  resize_stack_int_val(list,OS_S32,cgsize,false);
+                    convsize:=u16inttype;
+                if assigned(convsize) then
+                  resize_stack_int_val(list,s32inttype,convsize,false);
               end;
           end;
       end;
@@ -2201,7 +2248,7 @@ implementation
         begin
           { needs zero-extension to 64 bit, because the JVM only supports
             signed divisions }
-          resize_stack_int_val(list,OS_32,OS_S64,false);
+          resize_stack_int_val(list,u32inttype,s64inttype,false);
           op:=OP_IDIV;
           isdivu32:=true;
         end

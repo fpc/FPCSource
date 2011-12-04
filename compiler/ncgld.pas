@@ -29,6 +29,7 @@ interface
     uses
       globtype,
       symtype,
+      aasmdata,
       node,nld,cgutils;
 
     type
@@ -42,6 +43,9 @@ interface
        end;
 
        tcgassignmentnode = class(tassignmentnode)
+        protected
+          function maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;virtual;
+        public
           procedure pass_generate_code;override;
        end;
 
@@ -67,7 +71,7 @@ implementation
       nutils,
       symtable,symconst,symdef,symsym,defutil,paramgr,
       ncnv,ncon,nmem,nbas,ncgrtti,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmtai,aasmcpu,
       cgbase,pass_2,
       procinfo,
       cpubase,parabase,
@@ -158,7 +162,7 @@ implementation
       end;
 
 
-    function maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;
+    function tcgassignmentnode.maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;
       var
         rr: treplacerefrec;
       begin

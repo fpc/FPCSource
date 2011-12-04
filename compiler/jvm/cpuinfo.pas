@@ -31,7 +31,12 @@ Type
 
    { possible supported processors for this target }
    tcputype =
-      (cpu_none
+      (cpu_none,
+       { jvm, same as cpu_none }
+       cpu_jvm,
+       { jvm byte code to be translated into Dalvik bytecode: more type-
+         sensitive }
+       cpu_dalvik
       );
 
    tfputype =
@@ -46,7 +51,9 @@ Const
      pocall_internproc
    ];
 
-   cputypestr : array[tcputype] of string[1] = (''
+   cputypestr : array[tcputype] of string[9] = ('',
+     'JVM',
+     'JVMDALVIK'
    );
 
    fputypestr : array[tfputype] of string[8] = (

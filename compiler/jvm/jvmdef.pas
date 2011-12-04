@@ -861,6 +861,7 @@ implementation
         container: tsymtable;
         vsym: tabstractvarsym;
         csym: tconstsym;
+        usedef: tdef;
       begin
         case sym.typ of
           staticvarsym,
@@ -869,12 +870,31 @@ implementation
           fieldvarsym:
             begin
               vsym:=tabstractvarsym(sym);
-              result:=jvmencodetype(vsym.vardef,false);
+              { for local and paravarsyms that are unsigned 8/16 bit, change the
+                outputted type to signed 16/32 bit:
+                  a) the stack slots are all 32 bit anyway, so the storage allocation
+                     is still correct
+                  b) since at the JVM level all types are signed, this makes sure
+                     that the values in the stack slots are valid for the specified
+                     types
+              }
+              usedef:=vsym.vardef;
+              if vsym.typ in [localvarsym,paravarsym] then
+                begin
+                  if (usedef.typ=orddef) then
+                    case torddef(usedef).ordtype of
+                      u8bit,uchar:
+                        usedef:=s16inttype;
+                      u16bit:
+                        usedef:=s32inttype;
+                    end;
+                end;
+              result:=jvmencodetype(usedef,false);
               if withsignature and
-                 jvmtypeneedssignature(vsym.vardef) then
+                 jvmtypeneedssignature(usedef) then
                 begin
                   result:=result+' signature "';
-                  result:=result+jvmencodetype(vsym.vardef,true)+'"';
+                  result:=result+jvmencodetype(usedef,true)+'"';
                 end;
               if (vsym.typ=paravarsym) and
                  (vo_is_self in tparavarsym(vsym).varoptions) then
@@ -886,9 +906,9 @@ implementation
                 begin
                   { add array indirection if required }
                   if (vsym.typ=paravarsym) and
-                     (vsym.vardef.typ=formaldef) or
-                     ((vsym.varspez in [vs_var,vs_out,vs_constref]) and
-                      not jvmimplicitpointertype(vsym.vardef)) then
+                     ((usedef.typ=formaldef) or
+                      ((vsym.varspez in [vs_var,vs_out,vs_constref]) and
+                       not jvmimplicitpointertype(usedef))) then
                     result:='['+result;
                   { single quotes for definitions to prevent clashes with Java
                     opcodes }

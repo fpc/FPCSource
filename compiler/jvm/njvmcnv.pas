@@ -99,7 +99,7 @@ implementation
       cgbase,cgutils,pass_1,pass_2,
       nbas,ncon,ncal,ninl,nld,nmem,procinfo,
       nutils,paramgr,
-      cpubase,aasmcpu,
+      cpubase,cpuinfo,aasmcpu,
       tgobj,hlcgobj,hlcgcpu;
 
 
@@ -717,8 +717,10 @@ implementation
 
         { Explicit typecasts from any ordinal type to a boolean type }
         { must not change the ordinal value                          }
+        { Exception: Android verifier... }
         if (nf_explicit in flags) and
-           not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) then
+           not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) and
+           not(current_settings.cputype=cpu_dalvik) then
           begin
              location_copy(location,left.location);
              newsize:=def_cgsize(resultdef);

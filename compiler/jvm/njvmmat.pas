@@ -115,14 +115,14 @@ implementation
                 else
                   begin
                     thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-                    thlcgjvm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,OS_32,OS_S64,false);
+                    thlcgjvm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,u32inttype,s64inttype,false);
                   end;
                 if right.location.loc=LOC_CONSTANT then
                   thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s64inttype,right.location.value,R_INTREGISTER)
                 else
                   begin
                     thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-                    thlcgjvm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,OS_32,OS_S64,false);
+                    thlcgjvm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,u32inttype,s64inttype,false);
                   end;
               end;
             if isu32int or
@@ -137,7 +137,7 @@ implementation
                 thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
               end;
             if isu32int then
-              thlcgjvm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,OS_S64,OS_32,false);
+              thlcgjvm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,s64inttype,u32inttype,false);
           end;
          thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
