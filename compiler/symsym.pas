@@ -125,7 +125,6 @@ interface
           typedefderef : tderef;
           fprettyname : ansistring;
           constructor create(const n : string;def:tdef);
-          destructor destroy; override;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
@@ -1932,11 +1931,6 @@ implementation
            (typedef.typ<>errordef) and
            not(assigned(typedef.typesym)) then
          typedef.typesym:=self;
-      end;
-
-    destructor ttypesym.destroy;
-      begin
-        inherited destroy;
       end;
 
 
