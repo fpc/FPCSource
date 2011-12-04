@@ -98,7 +98,7 @@ interface
         Function  CallAssembler(const command:string; const para:TCmdStr):Boolean;
 
         Function  DoAssemble:boolean;virtual;
-        Procedure RemoveAsm;
+        Procedure RemoveAsm;virtual;
         Procedure AsmFlush;
         Procedure AsmClear;
 
