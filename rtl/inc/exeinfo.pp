@@ -815,7 +815,8 @@ const
    B_LIBRARY_IMAGE = 2;
    B_ADD_ON_IMAGE  = 3;
    B_SYSTEM_IMAGE  = 4;
-
+   B_OK = 0;
+   
 type
     image_info = packed record
      id      : image_id;
@@ -848,13 +849,20 @@ var
 begin
   // The only BeOS specific part is setting the processaddress
   cookie := 0;
+  OpenElf32Beos:=false;
   fillchar(info, sizeof(image_info), 0);
-  get_next_image_info(0,cookie,info,sizeof(info));
-  if (info._type = B_APP_IMAGE) then
-     e.processaddress := cardinal(info.text)
-  else
-     e.processaddress := 0;
-  OpenElf32Beos := OpenElf(e);
+  while get_next_image_info(0,cookie,info,sizeof(info))=B_OK do
+    begin
+        if e.filename=String(pchar(@info.name)) then
+          begin
+              if (info._type = B_APP_IMAGE) then
+                e.processaddress := cardinal(info.text)
+             else
+                e.processaddress := 0;
+             OpenElf32Beos := OpenElf(e);
+             exit;
+         end;
+    end;
 end;
 {$endif beos}
 
