@@ -28,6 +28,7 @@ Type
     procedure AddDescrFilesFromDirectory(Const ADirectory, AMask : String; ARecurse: Boolean);
     procedure AddInputFilesFromDirectory(Const ADirectory, AMask, AOptions: String; ARecurse: Boolean);
     procedure AddInputFile(Const AFile : String; AOptions : String = '');
+    procedure AddImportFile(Const AFile,APrefix : String);
     procedure AddDescrFile(Const AFile : String);
     procedure RemoveInputFile(Const AFile : String);
     procedure RemoveDescrFile(Const AFile : String);
@@ -190,6 +191,13 @@ begin
   If (AOptions<>'') then
     S:=AOptions+' '+S;
   FPackage.Inputs.Add(S);
+end;
+
+procedure TFPDocProjectManager.AddImportFile(const AFile, APrefix: String);
+
+begin
+  CheckPackage;
+  FPackage.Imports.Add(AFile+','+APrefix);
 end;
 
 procedure TFPDocProjectManager.AddDescrFile(const AFile: String);

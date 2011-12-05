@@ -22,6 +22,7 @@ type
     procedure AddDescriptionDirs;
     procedure AddInputDirs;
     procedure AddInputFiles;
+    procedure AddImportFiles;
     function CmdNeedsPackage: Boolean;
     procedure RemoveInputFiles;
     procedure RemoveDescrFiles;
@@ -251,6 +252,23 @@ begin
     FMGr.AddInputFile(FCmdArgs[i],Options);
 end;
 
+procedure TManageFPDocProjectApplication.AddImportFiles;
+
+Var
+  I,J : Integer;
+  F,P : String;
+
+begin
+  For I:=0 to FCmdArgs.Count-1 do
+    begin
+    P:=FCmdArgs[i];
+    J:=Pos(',',P);
+    F:=Copy(P,1,J-1);
+    Delete(P,1,J);
+    FMGr.AddImportFile(F,P);
+    end;
+end;
+
 procedure TManageFPDocProjectApplication.RemoveInputFiles;
 
 Var
@@ -329,6 +347,8 @@ begin
     AddInputDirs
   else if (FCmd='add-input-files') then
     AddInputFiles
+  else if (FCmd='add-import-files') then
+    AddImportFiles
   else if (FCmd='add-description-files') then
     AddDescrFiles
   else if (FCmd='remove-input-files') then

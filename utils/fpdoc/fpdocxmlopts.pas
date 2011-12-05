@@ -20,6 +20,7 @@ Type
     Procedure LoadEngineOptions(Options : TEngineOptions; E : TDOMElement); virtual;
     Procedure SaveEngineOptions(Options : TEngineOptions; XML : TXMLDocument; AParent : TDOMElement); virtual;
     procedure SaveDescription(const ADescription: String; XML: TXMLDocument;  AParent: TDOMElement); virtual;
+    procedure SaveImportFile(const AImportFile: String; XML: TXMLDocument; AParent: TDOMElement);virtual;
     procedure SaveInputFile(const AInputFile: String; XML: TXMLDocument; AParent: TDOMElement);virtual;
     Procedure SavePackage(APackage : TFPDocPackage; XML : TXMLDocument; AParent : TDOMElement); virtual;
   Public
@@ -49,6 +50,8 @@ Resourcestring
   SErrNoPackagesNode = 'No "packages" node found in docproject';
   SErrNoInputFile = 'unit tag without file attribute found';
   SErrNoDescrFile = 'description tag without file attribute';
+  SErrNoImportFile = 'Import tag without file attribute';
+  SErrNoImportPrefix = 'Import tag without prefix attribute';
 
 { TXMLFPDocOptions }
 
@@ -98,6 +101,20 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
       Error(SErrNoDescrFile);
   end;
 
+  Function LoadImport(I : TDOMElement) : String;
+
+  Var
+    S : String;
+  begin
+    Result:=I['file'];
+    If (Result='') then
+      Error(SErrNoImportFile);
+    S:=I['prefix'];
+    If (S='') then
+      Error(SErrNoImportPrefix);
+    Result:=Result+','+S;
+  end;
+
 Var
   N,S : TDOMNode;
   O : TDomElement;
@@ -129,6 +146,16 @@ begin
           begin
           If (S.NodeType=Element_Node) and (S.NodeName='description') then
             APackage.Descriptions.add(LoadDescription(S as TDomElement));
+          S:=S.NextSibling;
+          end;
+        end
+      else If (O.NodeName='imports') then
+        begin
+        S:=O.FirstChild;
+        While (S<>Nil) do
+          begin
+          If (S.NodeType=Element_Node) and (S.NodeName='import') then
+            APackage.Imports.add(LoadImport(S as TDomElement));
           S:=S.NextSibling;
           end;
         end
@@ -313,6 +340,18 @@ begin
   AParent['file']:=ADescription;
 end;
 
+procedure TXMLFPDocOptions.SaveImportFile(const AImportFile: String;
+  XML: TXMLDocument; AParent: TDOMElement);
+
+Var
+  I : integer;
+
+begin
+  I:=Pos(',',AImportFile);
+  AParent['file']:=Copy(AImportFile,1,I-1);
+  AParent['prefix']:=Copy(AImportFile,i+1,Length(AImportFile));
+end;
+
 Procedure TXMLFPDocOptions.SavePackage(APackage: TFPDocPackage; XML : TXMLDocument; AParent: TDOMElement);
 
 
@@ -341,6 +380,15 @@ begin
     E:=XML.CreateElement('description');
     PE.AppendChild(E);
     SaveDescription(APackage.Descriptions[i],XML,E);
+    end;
+  // Imports
+  PE:=XML.CreateElement('imports');
+  AParent.AppendChild(PE);
+  for i:=0 to APackage.Imports.Count-1 do
+    begin
+    E:=XML.CreateElement('import');
+    PE.AppendChild(E);
+    SaveImportFile(APackage.Imports[i],XML,E);
     end;
 end;
 
