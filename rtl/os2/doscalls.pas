@@ -3449,15 +3449,21 @@ type
 }
   PQSTRec = ^TQSTRec;
   TQSTRec = record
-    RecType: cardinal;          { Record type }
-    TID: word;                  { Thread ID }
-    Slot: word;                 { "Unique" thread slot number }
-    SleepID: cardinal;          { Sleep ID thread is sleeping on }
-    Priority: cardinal;         { Thread priority }
-    SysTime: cardinal;          { Thread system time }
-    UserTime: cardinal;         { Thread user time }
-    State: byte;                { Thread state }
-    Pad: array [1..3] of byte;  { Padding for 32-bit alignment }
+    RecType: cardinal;              { Record type }
+    TID: word;                      { Thread ID }
+    Slot: word;                     { "Unique" thread slot number }
+    SleepID: cardinal;              { Sleep ID thread is sleeping on }
+    case boolean of
+     false: (
+      Priority: cardinal;           { Thread priority (class + level) }
+      SysTime: cardinal;            { Thread system time }
+      UserTime: cardinal;           { Thread user time }
+      State: byte;                  { Thread state }
+      Pad: array [1..3] of byte);   { Padding for 32-bit alignment }
+     true: (
+      PrioLevel: byte;              { Thread priority level only }
+      PrioClass: byte;              { Thread priority class only }
+      Pad2: array [1..14] of byte);
   end;
 
 { Process record
