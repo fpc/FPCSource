@@ -488,7 +488,7 @@ implementation
          exit;
         with tparavarsym(p) do
          begin
-           if not is_managed_type(vardef) and
+           if (not needs_finalization) and
               paramanager.push_addr_param(varspez,vardef,tprocdef(arg).proccalloption) then
              varregable:=vr_intreg;
          end;

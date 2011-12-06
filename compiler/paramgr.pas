@@ -134,6 +134,8 @@ unit paramgr;
 
           { allocate room for parameters on the stack in the entry code? }
           function use_fixed_stack: boolean;
+          { whether stack pointer can be changed in the middle of procedure }
+          function use_stackalloc: boolean;
        end;
 
 
@@ -467,6 +469,13 @@ implementation
 {$endif i386}
       end;
 
+    { This is a separate function because at least win64 allows stack allocations
+      despite of fixed stack semantics (actually supporting it requires generating
+      a compliant stack frame, not yet possible) }
+    function tparamanager.use_stackalloc: boolean;
+      begin
+        result:=not use_fixed_stack;
+      end;
 
 initialization
   ;

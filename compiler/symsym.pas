@@ -206,6 +206,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function needs_finalization: boolean;
       end;
 
       tstaticvarsym = class(tabstractnormalvarsym)
@@ -1592,6 +1593,17 @@ implementation
          ppufile.writeentry(ibparavarsym);
       end;
 
+    function tparavarsym.needs_finalization:boolean;
+      begin
+        result:=(varspez=vs_value) and
+          (is_managed_type(vardef) or
+            (
+              (not (tabstractprocdef(owner.defowner).proccalloption in cdecl_pocalls)) and
+              (not paramanager.use_stackalloc) and
+              (is_open_array(vardef) or is_array_of_const(vardef))
+            )
+          );
+      end;
 
 {****************************************************************************
                                TABSOLUTEVARSYM

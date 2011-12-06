@@ -144,8 +144,7 @@ implementation
     procedure check_finalize_paras(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ=paravarsym) and
-           (tparavarsym(p).varspez=vs_value) and
-           is_managed_type(tparavarsym(p).vardef) then
+           tparavarsym(p).needs_finalization then
           include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
 
