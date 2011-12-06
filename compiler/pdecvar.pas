@@ -461,7 +461,7 @@ implementation
          if (token=_COLON) or (paranr>0) or (astruct=nil) then
            begin
               consume(_COLON);
-              single_type(p.propdef,[]);
+              single_type(p.propdef,[stoAllowSpecialization]);
 
               if is_dispinterface(astruct) and not is_automatable(p.propdef) then
                 Message1(type_e_not_automatable,p.propdef.typename);

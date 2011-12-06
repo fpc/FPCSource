@@ -1352,17 +1352,22 @@ implementation
          old_current_structdef: tabstractrecorddef;
          old_current_genericdef,
          old_current_specializedef: tstoreddef;
+         old_parse_generic: boolean;
       begin
          old_current_procinfo:=current_procinfo;
          old_block_type:=block_type;
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
+         old_parse_generic:=parse_generic;
 
          current_procinfo:=self;
          current_structdef:=procdef.struct;
          if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-           current_genericdef:=current_structdef;
+           begin
+             current_genericdef:=current_structdef;
+             parse_generic:=true;
+           end;
          if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
            current_specializedef:=current_structdef;
 
@@ -1474,6 +1479,7 @@ implementation
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
          current_procinfo:=old_current_procinfo;
+         parse_generic:=old_parse_generic;
 
          { Restore old state }
          block_type:=old_block_type;
@@ -1949,14 +1955,50 @@ implementation
 
     procedure specialize_objectdefs(p:TObject;arg:pointer);
       var
-        i  : longint;
-        hp : tdef;
         oldcurrent_filepos : tfileposinfo;
         oldsymtablestack   : tsymtablestack;
         oldextendeddefs    : TFPHashObjectList;
         pu : tused_unit;
         hmodule : tmodule;
         specobj : tabstractrecorddef;
+
+      procedure process_abstractrecorddef(def:tabstractrecorddef);
+        var
+          i  : longint;
+          hp : tdef;
+        begin
+          for i:=0 to def.symtable.DefList.Count-1 do
+            begin
+              hp:=tdef(def.symtable.DefList[i]);
+              if hp.typ=procdef then
+               begin
+                 { only generate the code if we need a body }
+                 if assigned(tprocdef(hp).struct) and not tprocdef(hp).forwarddef then
+                   continue;
+                 if assigned(tprocdef(hp).genericdef) and
+                   (tprocdef(hp).genericdef.typ=procdef) and
+                   assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
+                   begin
+                     oldcurrent_filepos:=current_filepos;
+                     current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
+                     { use the index the module got from the current compilation process }
+                     current_filepos.moduleindex:=hmodule.unit_index;
+                     current_tokenpos:=current_filepos;
+                     current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf,
+                       tprocdef(tprocdef(hp).genericdef).change_endian);
+                     read_proc_body(nil,tprocdef(hp));
+                     current_filepos:=oldcurrent_filepos;
+                   end
+                 else
+                   MessagePos1(tprocdef(hp).fileinfo,sym_e_forward_not_resolved,tprocdef(hp).fullprocname(false));
+               end
+             else
+               if hp.typ in [objectdef,recorddef] then
+                 { generate code for subtypes as well }
+                 process_abstractrecorddef(tabstractrecorddef(hp));
+           end;
+        end;
+
       begin
         if not((tsym(p).typ=typesym) and
                (ttypesym(p).typedef.typesym=tsym(p)) and
@@ -1994,29 +2036,7 @@ implementation
           symtablestack.push(hmodule.localsymtable);
 
         { procedure definitions for classes or objects }
-        for i:=0 to specobj.symtable.DefList.Count-1 do
-          begin
-            hp:=tdef(specobj.symtable.DefList[i]);
-            if hp.typ=procdef then
-             begin
-               if assigned(tprocdef(hp).genericdef) and
-                 (tprocdef(hp).genericdef.typ=procdef) and
-                 assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
-                 begin
-                   oldcurrent_filepos:=current_filepos;
-                   current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
-                   { use the index the module got from the current compilation process }
-                   current_filepos.moduleindex:=hmodule.unit_index;
-                   current_tokenpos:=current_filepos;
-                   current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf,
-                     tprocdef(tprocdef(hp).genericdef).change_endian);
-                   read_proc_body(nil,tprocdef(hp));
-                   current_filepos:=oldcurrent_filepos;
-                 end
-               else
-                 MessagePos1(tprocdef(hp).fileinfo,sym_e_forward_not_resolved,tprocdef(hp).fullprocname(false));
-             end;
-         end;
+        process_abstractrecorddef(specobj);
 
         { Restore symtablestack }
         current_module.extendeddefs.free;

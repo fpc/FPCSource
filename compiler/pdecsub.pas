@@ -910,75 +910,61 @@ implementation
 
         function consume_generic_type_parameter:boolean;
           var
-            i:integer;
-            ok:boolean;
-            sym:tsym;
+            idx : integer;
+            genparalistdecl : TFPHashList;
+            genname : tidstring;
+            s : shortstring;
           begin
             result:=not assigned(astruct)and(m_delphi in current_settings.modeswitches);
             if result then
               begin
-                { a generic type parameter? }
-                srsym:=search_object_name(sp,false);
-                if (srsym.typ=typesym) and
-                   (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
-                begin
-                  astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
-                  if (df_generic in astruct.defoptions) and try_to_consume(_LT) then
-                    begin
-                      ok:=true;
-                      i:=0;
-                      repeat
-                        if ok and (token=_ID)  then
-                          begin
-                            ok:=false;
-                            while i<astruct.symtable.SymList.Count-1 do
-                              begin
-                                sym:=tsym(astruct.symtable.SymList[i]);
-                                if sp_generic_para in sym.symoptions then
-                                  begin
-                                    ok:=sym.Name=pattern;
-                                    inc(i);
-                                    break;
-                                  end;
-                                inc(i);
-                              end;
-                            if not ok then
-                              Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                          end;
-                        consume(_ID);
-                      until not try_to_consume(_COMMA);
-                      if ok then
-                        while i<astruct.symtable.SymList.Count-1 do
-                          begin
-                            sym:=tsym(astruct.symtable.SymList[i]);
-                            if sp_generic_para in sym.symoptions then
-                              begin
-                                Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                                break;
-                              end;
-                            inc(i);
-                          end;
-                      consume(_GT);
-                    end
-                  else
-                  if (df_generic in astruct.defoptions) and (token=_POINT) then
-                    begin
-                      Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                    end
-                  else
-                    begin
-                      { not a method. routine name just accidentally match some structure name }
-                      astruct:=nil;
-                      if try_to_consume(_LT) then
+                { parse all parameters first so we can check whether we have
+                  the correct generic def available }
+                genparalistdecl:=TFPHashList.Create;
+                if try_to_consume(_LT) then
+                  begin
+                    { start with 1, so Find can return Nil (= 0) }
+                    idx:=1;
+                    repeat
+                      if token=_ID then
                         begin
-                          Message(type_e_type_parameters_are_not_allowed_here);
-                          repeat
-                            consume(_ID);
-                          until not try_to_consume(_COMMA);
-                          consume(_GT);
+                          genparalistdecl.Add(pattern, Pointer(PtrInt(idx)));
+                          consume(_ID);
+                          inc(idx);
+                        end
+                      else
+                        begin
+                          message2(scan_f_syn_expected,arraytokeninfo[_ID].str,arraytokeninfo[token].str);
+                          if token<>_COMMA then
+                            consume(token);
                         end;
-                    end;
-                end;
+                    until not try_to_consume(_COMMA);
+                    if not try_to_consume(_GT) then
+                      consume(_RSHARPBRACKET);
+                  end
+                else
+                  begin
+                    { no generic }
+                    srsym:=nil;
+                    exit;
+                  end;
+
+                s:='';
+                str(genparalistdecl.count,s);
+                genname:=sp+'$'+s;
+
+                genparalistdecl.free;
+
+                srsym:=search_object_name(genname,false);
+
+                if not assigned(srsym) then
+                  begin
+                    { TODO : print a nicer typename that contains the parsed
+                             generic types }
+                    Message1(type_e_generic_declaration_does_not_match,genname);
+                    srsym:=nil;
+                    exit;
+                  end;
               end;
           end;
 
@@ -1024,13 +1010,14 @@ implementation
          end;
 
         { method  ? }
+        srsym:=nil;
         if (consume_generic_type_parameter or not assigned(astruct)) and
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
            repeat
              searchagain:=false;
-             if not assigned(astruct) then
+             if not assigned(astruct) and not assigned(srsym) then
                srsym:=search_object_name(sp,true);
              { consume proc name }
              procstartfilepos:=current_tokenpos;

@@ -52,8 +52,6 @@ interface
     { generate persistent type information like VMT, RTTI and inittables }
     procedure write_persistent_type_info(st:tsymtable);
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname : string);
-
 implementation
 
     uses
@@ -74,7 +72,7 @@ implementation
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl;
+       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil;
 
 
     procedure resolve_forward_types;
@@ -143,271 +141,8 @@ implementation
       end;
 
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname : string);
-      var
-        st  : TSymtable;
-        srsym : tsym;
-        pt2 : tnode;
-        first,
-        err : boolean;
-        i   : longint;
-        sym : tsym;
-        genericdef : tstoreddef;
-        generictype : ttypesym;
-        generictypelist : TFPObjectList;
-        oldsymtablestack   : tsymtablestack;
-        oldextendeddefs    : TFPHashObjectList;
-        hmodule : tmodule;
-        pu : tused_unit;
-        prettyname : ansistring;
-        uspecializename,
-        specializename : string;
-        vmtbuilder : TVMTBuilder;
-        onlyparsepara : boolean;
-        specializest : tsymtable;
-        item: psymtablestackitem;
-      begin
-        { retrieve generic def that we are going to replace }
-        genericdef:=tstoreddef(tt);
-        tt:=nil;
-        onlyparsepara:=false;
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean;out srsym:tsym;out srsymtable:tsymtable); forward;
 
-        if not(df_generic in genericdef.defoptions) then
-          begin
-            Message(parser_e_special_onlygenerics);
-            tt:=generrordef;
-            onlyparsepara:=true;
-          end;
-
-        { only need to record the tokens, then we don't know the type yet  ... }
-        if parse_generic then
-          begin
-            { ... but we have to insert a def into the symtable else the deflist
-              of generic and specialization might not be equally sized which
-              is later assumed }
-            tt:=tundefineddef.create;
-            if parse_class_parent then
-              tt:=genericdef;
-            onlyparsepara:=true;
-          end;
-
-        { Only parse the parameters for recovery or
-          for recording in genericbuf }
-        if onlyparsepara then
-          begin
-            consume(_LSHARPBRACKET);
-            repeat
-              pt2:=factor(false,true);
-              pt2.free;
-            until not try_to_consume(_COMMA);
-            consume(_RSHARPBRACKET);
-            exit;
-          end;
-
-        if not try_to_consume(_LT) then
-          consume(_LSHARPBRACKET);
-        { Parse generic parameters, for each undefineddef in the symtable of
-          the genericdef we need to have a new def }
-        err:=false;
-        first:=true;
-        generictypelist:=TFPObjectList.create(false);
-        case genericdef.typ of
-          procdef:
-            st:=genericdef.GetSymtable(gs_para);
-          objectdef,
-          recorddef:
-            st:=genericdef.GetSymtable(gs_record);
-          arraydef:
-            st:=tarraydef(genericdef).symtable;
-          procvardef:
-            st:=genericdef.GetSymtable(gs_para);
-          else
-            internalerror(200511182);
-        end;
-
-        { Parse type parameters }
-        if not assigned(genericdef.typesym) then
-          internalerror(200710173);
-        specializename:=genericdef.typesym.realname;
-        prettyname:=genericdef.typesym.prettyname+'<';
-        for i:=0 to st.SymList.Count-1 do
-          begin
-            sym:=tsym(st.SymList[i]);
-            if (sp_generic_para in sym.symoptions) then
-              begin
-                if not first then
-                  consume(_COMMA)
-                else
-                  first:=false;
-                pt2:=factor(false,true);
-                if pt2.nodetype=typen then
-                  begin
-                    if df_generic in pt2.resultdef.defoptions then
-                      Message(parser_e_no_generics_as_params);
-                    generictype:=ttypesym.create(sym.realname,pt2.resultdef);
-                    generictypelist.add(generictype);
-                    if not assigned(pt2.resultdef.typesym) then
-                      message(type_e_generics_cannot_reference_itself)
-                    else
-                      begin
-                        specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
-                        if i=0 then
-                          prettyname:=prettyname+pt2.resultdef.typesym.prettyname
-                        else
-                          prettyname:=prettyname+','+pt2.resultdef.typesym.prettyname;
-                      end;
-                  end
-                else
-                  begin
-                    Message(type_e_type_id_expected);
-                    err:=true;
-                  end;
-                pt2.free;
-              end;
-          end;
-        prettyname:=prettyname+'>';
-
-        uspecializename:=upper(specializename);
-        { force correct error location if too much type parameters are passed }
-        if not (token in [_RSHARPBRACKET,_GT]) then
-          consume(_RSHARPBRACKET);
-
-        { Special case if we are referencing the current defined object }
-        if assigned(current_structdef) and
-           (current_structdef.objname^=uspecializename) then
-          tt:=current_structdef;
-
-        { for units specializations can already be needed in the interface, therefor we
-          will use the global symtable. Programs don't have a globalsymtable and there we
-          use the localsymtable }
-        if current_module.is_unit then
-          specializest:=current_module.globalsymtable
-        else
-          specializest:=current_module.localsymtable;
-
-        { Can we reuse an already specialized type? }
-        if not assigned(tt) then
-          begin
-            srsym:=tsym(specializest.find(uspecializename));
-            if assigned(srsym) then
-              begin
-                if srsym.typ<>typesym then
-                  internalerror(200710171);
-                tt:=ttypesym(srsym).typedef;
-              end;
-          end;
-
-        if not assigned(tt) then
-          begin
-            { Setup symtablestack at definition time
-              to get types right, however this is not perfect, we should probably record
-              the resolved symbols }
-            oldsymtablestack:=symtablestack;
-            oldextendeddefs:=current_module.extendeddefs;
-            current_module.extendeddefs:=TFPHashObjectList.create(true);
-            symtablestack:=tdefawaresymtablestack.create;
-            if not assigned(genericdef) then
-              internalerror(200705151);
-            hmodule:=find_module_from_symtable(genericdef.owner);
-            if hmodule=nil then
-              internalerror(200705152);
-            pu:=tused_unit(hmodule.used_units.first);
-            while assigned(pu) do
-              begin
-                if not assigned(pu.u.globalsymtable) then
-                  internalerror(200705153);
-                symtablestack.push(pu.u.globalsymtable);
-                pu:=tused_unit(pu.next);
-              end;
-
-            if assigned(hmodule.globalsymtable) then
-              symtablestack.push(hmodule.globalsymtable);
-
-            { hacky, but necessary to insert the newly generated class properly }
-            item:=oldsymtablestack.stack;
-            while assigned(item) and (item^.symtable.symtablelevel>main_program_level) do
-              item:=item^.next;
-            if assigned(item) and (item^.symtable<>symtablestack.top) then
-              symtablestack.push(item^.symtable);
-
-            { Reparse the original type definition }
-            if not err then
-              begin
-                { First a new typesym so we can reuse this specialization and
-                  references to this specialization can be handled }
-                srsym:=ttypesym.create(specializename,generrordef);
-                specializest.insert(srsym);
-
-                if not assigned(genericdef.generictokenbuf) then
-                  internalerror(200511171);
-                current_scanner.startreplaytokens(genericdef.generictokenbuf,
-                  genericdef.change_endian);
-                read_named_type(tt,specializename,genericdef,generictypelist,false);
-                ttypesym(srsym).typedef:=tt;
-                tt.typesym:=srsym;
-
-                if _prettyname<>'' then
-                  ttypesym(tt.typesym).fprettyname:=_prettyname
-                else
-                  ttypesym(tt.typesym).fprettyname:=prettyname;
-
-                case tt.typ of
-                  { Build VMT indexes for classes }
-                  objectdef:
-                    begin
-                      vmtbuilder:=TVMTBuilder.Create(tobjectdef(tt));
-                      vmtbuilder.generate_vmt;
-                      vmtbuilder.free;
-                    end;
-                  { handle params, calling convention, etc }
-                  procvardef:
-                    begin
-                      if not check_proc_directive(true) then
-                        begin
-                          try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
-                          consume(_SEMICOLON);
-                        end;
-                      parse_var_proc_directives(ttypesym(srsym));
-                      handle_calling_convention(tprocvardef(tt));
-                      if try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg) then
-                        consume(_SEMICOLON);
-                    end;
-                end;
-                { Consume the semicolon if it is also recorded }
-                try_to_consume(_SEMICOLON);
-              end;
-
-            { Restore symtablestack }
-            current_module.extendeddefs.free;
-            current_module.extendeddefs:=oldextendeddefs;
-            symtablestack.free;
-            symtablestack:=oldsymtablestack;
-          end
-        else
-          begin
-            { There is comment few lines before ie 200512115
-              saying "We are parsing the same objectdef, the def index numbers
-              are the same". This is wrong (index numbers are not same)
-              in case there is specialization (S2 in this case) inside
-              specialized generic (G2 in this case) which is equal to
-              some previous specialization (S1 in this case). In that case,
-              new symbol is not added to currently specialized type
-              (S in this case) for that specializations (S2 in this case),
-              and this results in that specialization and generic definition
-              don't have same number of elements in their object symbol tables.
-              This patch adds undefined def to ensure that those
-              two symbol tables will have same number of elements.
-            }
-            tundefineddef.create;
-          end;
-
-        generictypelist.free;
-        if not try_to_consume(_GT) then
-          consume(_RSHARPBRACKET);
-      end;
-
-
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef:boolean); forward;
 
     { def is the outermost type in which other types have to be searched
 
@@ -423,6 +158,8 @@ implementation
       var
         t2: tdef;
         structstackindex: longint;
+        srsym: tsym;
+        srsymtable: tsymtable;
       begin
         if assigned(currentstructstack) then
           structstackindex:=currentstructstack.count-1
@@ -431,12 +168,7 @@ implementation
         { handle types inside classes, e.g. TNode.TLongint }
         while (token=_POINT) do
           begin
-            if parse_generic then
-              begin
-                 consume(_POINT);
-                 consume(_ID);
-              end
-             else if is_class_or_object(def) or is_record(def) then
+             if is_class_or_object(def) or is_record(def) then
                begin
                  consume(_POINT);
                  if (structstackindex>=0) and
@@ -451,7 +183,7 @@ implementation
                      structstackindex:=-1;
                      symtablestack.push(tabstractrecorddef(def).symtable);
                      t2:=generrordef;
-                     id_type(t2,isforwarddef,false);
+                     id_type(t2,isforwarddef,false,false,srsym,srsymtable);
                      symtablestack.pop(tabstractrecorddef(def).symtable);
                      def:=t2;
                    end;
@@ -497,18 +229,18 @@ implementation
          result:=false;
       end;
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef:boolean);
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean;out srsym:tsym;out srsymtable:tsymtable);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
       var
         is_unit_specific : boolean;
         pos : tfileposinfo;
-        srsym : tsym;
-        srsymtable : TSymtable;
         s,sorg : TIDString;
         t : ttoken;
       begin
+         srsym:=nil;
+         srsymtable:=nil;
          s:=pattern;
          sorg:=orgpattern;
          pos:=current_tokenpos;
@@ -528,7 +260,10 @@ implementation
            table as forwarddef are not resolved directly }
          if assigned(srsym) and
             (srsym.typ=typesym) and
-            (ttypesym(srsym).typedef.typ=errordef) then
+            ((ttypesym(srsym).typedef.typ=errordef) or
+            (not allowgenericsyms and
+            (ttypesym(srsym).typedef.typ=undefineddef) and
+            not (sp_generic_para in srsym.symoptions))) then
           begin
             Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
             def:=generrordef;
@@ -571,6 +306,8 @@ implementation
          t2 : tdef;
          dospecialize,
          again : boolean;
+         srsym : tsym;
+         srsymtable : tsymtable;
        begin
          dospecialize:=false;
          repeat
@@ -617,7 +354,7 @@ implementation
                      end
                    else
                      begin
-                       id_type(def,stoIsForwardDef in options,true);
+                       id_type(def,stoIsForwardDef in options,true,true,srsym,srsymtable);
                        parse_nested_types(def,stoIsForwardDef in options,nil);
                      end;
                  end;
@@ -631,9 +368,9 @@ implementation
         until not again;
         if ([stoAllowSpecialization,stoAllowTypeDef] * options <> []) and
            (m_delphi in current_settings.modeswitches) then
-          dospecialize:=token=_LSHARPBRACKET;
+          dospecialize:=token in [_LSHARPBRACKET,_LT];
         if dospecialize then
-          generate_specialization(def,stoParseClassParent in options,'')
+          generate_specialization(def,stoParseClassParent in options,'',nil,'')
         else
           begin
             if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -644,7 +381,14 @@ implementation
               begin
                 def:=current_genericdef
               end
-            else if (df_generic in def.defoptions) then
+            else if (df_generic in def.defoptions) and
+                not
+                  (
+                    parse_generic and
+                    (current_genericdef.typ in [recorddef,objectdef]) and
+                    sym_is_owned_by(srsym,tabstractrecorddef(current_genericdef).symtable)
+                  )
+                then
               begin
                 Message(parser_e_no_generics_as_types);
                 def:=generrordef;
@@ -983,7 +727,16 @@ implementation
          else if assigned(genericlist) then
            current_genericdef:=current_structdef;
 
+         { nested types of specializations are specializations as well }
+         if assigned(old_current_structdef) and
+             (df_specialization in old_current_structdef.defoptions) then
+           include(current_structdef.defoptions,df_specialization);
+
          insert_generic_parameter_types(current_structdef,genericdef,genericlist);
+         { when we are parsing a generic already then this is a generic as
+           well }
+         if old_parse_generic then
+           include(current_structdef.defoptions, df_generic);
          parse_generic:=(df_generic in current_structdef.defoptions);
          if m_advanced_records in current_settings.modeswitches then
            parse_record_members
@@ -1090,9 +843,40 @@ implementation
                    def:=ttypenode(pt1).resultdef;
                    { Delphi mode specialization? }
                    if (m_delphi in current_settings.modeswitches) then
-                     dospecialize:=token=_LSHARPBRACKET;
+                     dospecialize:=token=_LSHARPBRACKET
+                   else
+                     { in non-Delphi modes we might get a inline specialization
+                       without "specialize" or "<T>" of the same type we're
+                       currently parsing, so we need to handle that special }
+                     if not dospecialize and
+                         assigned(ttypenode(pt1).typesym) and
+                         (ttypenode(pt1).typesym.typ=typesym) and
+                         (sp_generic_dummy in ttypenode(pt1).typesym.symoptions) and
+                         assigned(current_structdef) and
+                         (
+                           (
+                             not (m_delphi in current_settings.modeswitches) and
+                             (ttypesym(ttypenode(pt1).typesym).typedef.typ=undefineddef) and
+                             (df_generic in current_structdef.defoptions) and
+                             (ttypesym(ttypenode(pt1).typesym).typedef.owner=current_structdef.owner) and
+                             (upper(ttypenode(pt1).typesym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
+                           ) or (
+                             (df_specialization in current_structdef.defoptions) and
+                             (ttypesym(ttypenode(pt1).typesym).typedef=current_structdef.genericdef)
+                           )
+                         )
+                         then
+                       begin
+                         def:=current_structdef;
+                         { handle nested types }
+                         post_comp_expr_gendef(def);
+                       end;
                    if dospecialize then
-                     generate_specialization(def,false,name)
+                     begin
+                       generate_specialization(def,false,name,nil,'');
+                       { handle nested types }
+                       post_comp_expr_gendef(def);
+                     end
                    else
                      begin
                        if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -1103,7 +887,17 @@ implementation
                          begin
                            def:=current_genericdef
                          end
-                       else if (df_generic in def.defoptions) then
+                       else if (df_generic in def.defoptions) and
+                           { TODO : check once nested generics are allowed }
+                           not
+                             (
+                               parse_generic and
+                               (current_genericdef.typ in [recorddef,objectdef]) and
+                               (def.typ in [recorddef,objectdef]) and
+                               (ttypenode(pt1).typesym<>nil) and
+                               sym_is_owned_by(ttypenode(pt1).typesym,tabstractrecorddef(current_genericdef).symtable)
+                             )
+                           then
                          begin
                            Message(parser_e_no_generics_as_types);
                            def:=generrordef;

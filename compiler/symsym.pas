@@ -120,6 +120,7 @@ interface
        end;
 
        ttypesym = class(Tstoredsym)
+       public
           typedef      : tdef;
           typedefderef : tderef;
           fprettyname : ansistring;
@@ -1981,13 +1982,13 @@ implementation
 
     procedure ttypesym.buildderef;
       begin
-         typedefderef.build(typedef);
+        typedefderef.build(typedef);
       end;
 
 
     procedure ttypesym.deref;
       begin
-         typedef:=tdef(typedefderef.resolve);
+        typedef:=tdef(typedefderef.resolve);
       end;
 
 

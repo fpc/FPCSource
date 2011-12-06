@@ -5,10 +5,10 @@ program tw18567;
 type
   TSomeRecord <TData> = record
     data: TData;
-    class operator Explicit(a: TData) : TSomeRecord;
+    class operator Explicit(a: TData) : TSomeRecord <TData>;
   end;
 
-  class operator TSomeRecord <TData>.Explicit (a: TData): TSomeRecord;
+  class operator TSomeRecord <TData>.Explicit (a: TData): TSomeRecord <TData>;
   begin
 
   end;

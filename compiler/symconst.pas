@@ -167,7 +167,11 @@ type
     sp_implicitrename,
     sp_hint_experimental,
     sp_generic_para,
-    sp_has_deprecated_msg
+    sp_has_deprecated_msg,
+    sp_generic_dummy        { this is used for symbols that are generated when a
+                              generic is encountered to ease inline
+                              specializations, etc; those symbols can be
+                              "overridden" with a completely different symbol }
   );
   tsymoptions=set of tsymoption;
 
@@ -471,7 +475,7 @@ type
 
   { options for symtables }
   tsymtableoption = (
-    sto_has_helper         { contains at least one helper symbol }
+    sto_has_helper        { contains at least one helper symbol }
   );
   tsymtableoptions = set of tsymtableoption;
 
