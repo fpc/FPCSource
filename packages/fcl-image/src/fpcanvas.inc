@@ -331,6 +331,11 @@ begin
   Result := TextWidth(Text);
 end;
 
+function TFPCustomCanvas.TextExtent(const Text: string): TSize;
+begin
+  GetTextSize(Text, Result.cx, Result.cy);
+end;
+
 function TFPCustomCanvas.TextHeight(const Text: string): Integer;
 begin
   if Font is TFPCustomDrawFont then

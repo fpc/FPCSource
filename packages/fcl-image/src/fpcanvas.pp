@@ -17,7 +17,7 @@ unit FPCanvas;
 
 interface
 
-uses Math, sysutils, classes, FPImage;
+uses Math, sysutils, classes, FPImage, Types;
 
 const
   PatternBitCount = sizeof(longword) * 8;
@@ -296,6 +296,7 @@ type
     procedure GetTextSize (text:string; var w,h:integer);
     function GetTextHeight (text:string) : integer;
     function GetTextWidth (text:string) : integer;
+    function TextExtent(const Text: string): TSize; virtual;
     function TextHeight(const Text: string): Integer; virtual;
     function TextWidth(const Text: string): Integer; virtual;
     // using pen and brush
