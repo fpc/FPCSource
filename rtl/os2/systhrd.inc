@@ -34,6 +34,69 @@ const
  dpThread = 2;
  dpSameClass = 0;
  dce_AutoReset = $1000;
+ qs_End = 0;
+ qs_Process = 1;
+ qs_Thread = 256;
+
+type
+  PQSTRec = ^TQSTRec;
+  TQSTRec = record
+    RecType: cardinal;              { Record type }
+    TID: word;                      { Thread ID }
+    Slot: word;                     { "Unique" thread slot number }
+    SleepID: cardinal;              { Sleep ID thread is sleeping on }
+    case boolean of
+     false: (
+      Priority: cardinal;           { Thread priority (class + level) }
+      SysTime: cardinal;            { Thread system time }
+      UserTime: cardinal;           { Thread user time }
+      State: byte;                  { Thread state }
+      Pad: array [1..3] of byte);   { Padding for 32-bit alignment }
+     true: (
+      PrioLevel: byte;              { Thread priority level only }
+      PrioClass: byte;              { Thread priority class only }
+      Pad2: array [1..14] of byte);
+  end;
+
+  PQSPRec = ^TQSPRec;
+  TQSPrec = record
+    RecType: cardinal;     { Type of record being processed }
+    PThrdRec: PQSTRec;     { (Far?) pointer to thread records for this process }
+    PID: word;             { Process ID }
+    PPID: word;            { Parent process ID }
+    ProcType: cardinal;    { Process type }
+    Stat: cardinal;        { Process status }
+    SGID: cardinal;        { Process screen group }
+    hMte: word;            { Program module handle for process }
+    cTCB: word;            { Number of TCBs (Thread Control Blocks) in use }
+    c32PSem: cardinal;     { Number of private 32-bit semaphores in use }
+    p32SemRec: pointer;    { (Far?) pointer to head of 32-bit semaphores info }
+    c16Sem: word;          { Number of 16 bit system semaphores in use }
+    cLib: word;            { Number of runtime linked libraries }
+    cShrMem: word;         { Number of shared memory handles }
+    cFH: word;             { Number of open files }
+                           { NOTE: cFH is size of active part of   }
+                           { the handle table if QS_FILE specified }
+    p16SemRec: word;       { Far pointer? to head of 16-bit semaphores info }
+    pLibRec: word;         { Far pointer? to list of runtime libraries }
+    pShrMemRec: word;      { Far pointer? to list of shared memory handles }
+    pFSRec: word;          { Far pointer to list of file handles; }
+                           { 0xFFFF means it's closed, otherwise }
+                           { it's an SFN if non-zero }
+  end;
+
+(* Simplified version here to avoid need for all record types copied here. *)
+  PQSPtrRec = ^TQSPtrRec;
+  TQSPtrRec = record
+    PGlobalRec: pointer;
+    PProcRec: PQSPRec;          { Pointer to head of process records }
+    P16SemRec: pointer;
+    P32SemRec: pointer;
+    PMemRec: pointer;
+    PLibRec: pointer;
+    PShrMemRec: pointer;
+    PFSRec: pointer;
+  end;
 
 { import the necessary stuff from the OS }
 function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
@@ -102,6 +165,10 @@ function DosWaitEventSem (Handle: THandle; Timeout: cardinal): cardinal; cdecl;
 
 function DosQueryEventSem (Handle: THandle; var Posted: cardinal): cardinal;
                                           cdecl; external 'DOSCALLS' index 330;
+
+function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
+                                var Buffer; BufLen: cardinal): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 368;
 
 
 
@@ -365,43 +432,85 @@ begin
 end;
 
 
-function GetOS2ThreadPriority (ThreadHandle: dword): longint;
+function GetOS2ThreadPriority (ThreadHandle: dword): cardinal;
+const
+  BufSize = 32768; (* Sufficient space for > 1000 threads (for one process!) *)
+var
+  PPtrRec: PQSPtrRec;
+  PTRec: PQSTRec;
+  BufEnd: PtrUInt;
+  RC: cardinal;
 begin
-{$WARNING TODO!}
-{
-  DosQuerySysState
-}
+  GetOS2ThreadPriority := cardinal (-1);
+  GetMem (PPtrRec, BufSize);
+  if PPtrRec = nil then
+   begin
+    FreeMem (PPtrRec, BufSize);
+    FPC_ThreadError;
+   end
+  else
+   begin
+    RC := DosQuerySysState (qs_Process, 0, ProcessID, 0, PPtrRec^, BufSize);
+    if (RC = 0) and (PPtrRec^.PProcRec <> nil)
+                                  and (PPtrRec^.PProcRec^.PThrdRec <> nil) then
+     begin
+      BufEnd := PtrUInt (PPtrRec) + BufSize;
+      PTRec := PPtrRec^.PProcRec^.PThrdRec;
+      while (PTRec^.RecType = qs_Thread) and (PTRec^.TID <> ThreadHandle) and
+                                (PtrUInt (PTRec) + SizeOf (PTRec^) < BufEnd) do
+       Inc (PTRec);
+      if (PTRec^.RecType = qs_Thread) and (PTRec^.TID = ThreadHandle) then
+       GetOS2ThreadPriority := PTRec^.Priority;
+     end;
+    FreeMem (PPtrRec, BufSize);
+   end;
 end;
+
+
+type
+  TPrio = packed record
+    PrioLevel: byte;
+    PrioClass: byte;
+    Padding: word;
+  end;
 
 
 function SysThreadSetPriority (ThreadHandle: dword; Prio: longint): boolean;
 {-15..+15, 0=normal}
 var
   Delta: longint;
+  Priority: cardinal;
 begin
-{$WARNING TODO!}
-{
-      SysThreadSetPriority:=WinThreadSetPriority(threadHandle,Prio);
-
-Find out current priority first using GetOS2ThreadPriority defined above, then
-calculate delta (translate the input scale -15..+15 based on MSDN docs to
--31..+31 used by OS/2).
-
-  SysThreadSetPriority := DosSetPriority (dpThread, dpSameClass, Delta,
-                                                                 ThreadHandle);
-}
+  Priority := GetOS2ThreadPriority (ThreadHandle);
+  if Priority > High (word) then
+   SysThreadSetPriority := false
+  else
+   begin
+    Delta := Prio * 2;
+    if Delta + TPrio (PrioLevel) < 0 then
+     Delta := - TPrio (PrioLevel)
+    else if Delta + TPrio (PrioLevel) > 31 then
+     Delta := 31 - TPrio (PrioLevel);
+    SysThreadSetPriority :=
+               DosSetPriority (dpThread, dpSameClass, Delta, ThreadHandle) = 0;
+   end;
 end;
 
 
 function SysThreadGetPriority (ThreadHandle: dword): longint;
+var
+  Priority: cardinal;
 begin
-{$WARNING TODO!}
-{
-      SysThreadGetPriority:=WinThreadGetPriority(threadHandle);
-
-  Use GetOS2ThreadPriority defined above and translate the OS/2 value 0..31
-  to -15..+15 based on MSDN docs.
-}
+  Priority := GetOS2ThreadPriority (ThreadHandle);
+(*
+  Windows priority levels follow a fairly strange logic; let's mimic at least
+  the part related to the idle priority returning negative numbers.
+  Result range (based on Windows behaviour) is -15..+15.
+*)
+  if TPrio (Priority).PrioClass = 1 then
+   SysThreadGetPriority := TPrio (Priority).PrioLevel div 2 - 15
+  else
+   SysThreadGetPriority := TPrio (Priority).PrioLevel div 2;
 end;
 
 
