@@ -193,6 +193,21 @@ type
     function MaxSupport : double; override;
   end;
 
+  TFPCustomRegion = class
+  public
+    function GetBoundingRect: TRect; virtual; abstract;
+    function IsPointInRegion(AX, AY: Integer): Boolean; virtual; abstract;
+  end;
+
+  { TFPRectRegion }
+
+  TFPRectRegion = class(TFPCustomRegion)
+  public
+    Rect: TRect;
+    function GetBoundingRect: TRect; override;
+    function IsPointInRegion(AX, AY: Integer): Boolean; override;
+  end;
+
   { TFPCustomCanvas }
 
   TFPCustomCanvas = class(TPersistent)
@@ -218,7 +233,7 @@ type
     FDefaultBrush, FBrush : TFPCustomBrush;
     FDefaultPen, FPen : TFPCustomPen;
     FPenPos : TPoint;
-    FClipRect : TRect;
+    FClipRegion : TFPCustomRegion;
     function DoCreateDefaultFont : TFPCustomFont; virtual; abstract;
     function DoCreateDefaultPen : TFPCustomPen; virtual; abstract;
     function DoCreateDefaultBrush : TFPCustomBrush; virtual; abstract;
@@ -277,11 +292,15 @@ type
     function CreatePen : TFPCustomPen;
     function CreateBrush : TFPCustomBrush;
     // using font
-    procedure TextOut (x,y:integer;text:string);
+    procedure TextOut (x,y:integer;text:string); virtual;
     procedure GetTextSize (text:string; var w,h:integer);
     function GetTextHeight (text:string) : integer;
     function GetTextWidth (text:string) : integer;
+    function TextHeight(const Text: string): Integer; virtual;
+    function TextWidth(const Text: string): Integer; virtual;
     // using pen and brush
+    procedure Arc(ALeft, ATop, ARight, ABottom, Angle16Deg, Angle16DegLength: Integer); virtual;
+    procedure Arc(ALeft, ATop, ARight, ABottom, SX, SY, EX, EY: Integer); virtual;
     procedure Ellipse (Const Bounds:TRect);
     procedure Ellipse (left,top,right,bottom:integer);
     procedure EllipseC (x,y:integer; rx,ry:longword);
@@ -322,6 +341,7 @@ type
     property Interpolation : TFPCustomInterpolation read FInterpolation write FInterpolation;
     property Colors [x,y:integer] : TFPColor read GetColor write SetColor;
     property ClipRect : TRect read GetClipRect write SetClipRect;
+    property ClipRegion : TFPCustomRegion read FClipRegion write FClipRegion;
     property Clipping : boolean read GetClipping write SetClipping;
     property PenPos : TPoint read FPenPos write SetPenPos;
     property Height : integer read GetHeight write SetHeight;
@@ -425,6 +445,19 @@ begin
     top := top - delta;
     bottom := bottom + delta;
     end;
+end;
+
+{ TFPRectRegion }
+
+function TFPRectRegion.GetBoundingRect: TRect;
+begin
+  Result := Rect;
+end;
+
+function TFPRectRegion.IsPointInRegion(AX, AY: Integer): Boolean;
+begin
+  Result := (AX >= Rect.Left) and (AX <= Rect.Right) and
+    (AY >= Rect.Top) and (AY <= Rect.Bottom);
 end;
 
 {$i FPHelper.inc}
