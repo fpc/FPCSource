@@ -343,7 +343,7 @@ uses
 
             { push the localsymtable if needed }
             if (hmodule<>current_module) or not current_module.in_interface then
-              symtablestack.push(current_module.localsymtable);
+              symtablestack.push(hmodule.localsymtable);
 
             { push a temporary global symtable so that the specialization is
               added to the correct symtable; this symtable does not contain
