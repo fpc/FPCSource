@@ -67,7 +67,6 @@ var
   argc: LongInt = 0;
   argv: PPChar;
   envp: PPChar;
-//  errno: integer;
   fake_heap_end: ^byte; cvar; external;
 
 
@@ -185,9 +184,6 @@ begin
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := StackTop - StackLength;
 { OS specific startup }
-
-{ Set up signals handlers }
-//  fpc_cpucodeinit;
 
 { Setup heap }
   InitHeap;
