@@ -449,19 +449,21 @@ uses
 
             { extract all created symbols and defs from the temporary symtable
               and add them to the specializest }
-            for i:=0 to tempst.SymList.Count-1 do begin
-              item:=tempst.SymList.Items[i];
-              specializest.SymList.Add(tempst.SymList.NameOfIndex(i),item);
-              tsym(item).Owner:=specializest;
-              tempst.SymList.Extract(item);
-            end;
+            for i:=0 to tempst.SymList.Count-1 do
+              begin
+                item:=tempst.SymList.Items[i];
+                specializest.SymList.Add(tempst.SymList.NameOfIndex(i),item);
+                tsym(item).Owner:=specializest;
+                tempst.SymList.Extract(item);
+              end;
 
-            for i:=0 to tempst.DefList.Count-1 do begin
-              item:=tempst.DefList.Items[i];
-              specializest.DefList.Add(item);
-              tdef(item).owner:=specializest;
-              tempst.DefList.Extract(item);
-            end;
+            for i:=0 to tempst.DefList.Count-1 do
+              begin
+                item:=tempst.DefList.Items[i];
+                specializest.DefList.Add(item);
+                tdef(item).owner:=specializest;
+                tempst.DefList.Extract(item);
+              end;
 
             tempst.free;
 
