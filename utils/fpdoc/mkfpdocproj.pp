@@ -47,8 +47,43 @@ Resourcestring
 
 procedure TManageFPDocProjectApplication.Usage(AExitCode : Integer);
 
+Var
+  FN : String;
+  I : Integer;
+
 begin
-  // to be filled
+  FN:=ChangeFileExt(ExtractFileName(ParamStr(0)),'');
+  Writeln('Usage ',FN,' [options] command [command-options] command-args');
+  Writeln('Where options is one of ');
+  Writeln('  -i --input=file   Initialize project from named file.');
+  Writeln('  -o --output=file  Write project to named file. Default is input file.');
+  Writeln('  -p --package=name Package to perform operation on.');
+  Writeln('command is one of:');
+  Writeln('  add-packages');
+  Writeln('    Add arguments as package definitions to the file.');
+  Writeln('  add-description-dirs');
+  Writeln('    Scan directories for XML files to add as descriptions of selected package.');
+  Writeln('  add-input-dirs');
+  Writeln('    Scan directories for .pp or .pas files to add as inputs of selected package.');
+  Writeln('  add-input-files');
+  Writeln('    Add files as inputs of selected package.');
+  Writeln('  add-import-files');
+  Writeln('    Add files (format: "filename,prefix") to imports of selected package.');
+  Writeln('  add-descr-files');
+  Writeln('    Add files as description files of selected package.');
+  Writeln('  expand-macros');
+  Writeln('    read file and expand macros. Arguments specify macro values as Name=Value pairs');
+  Writeln('  remove-descr-files');
+  Writeln('    Remove files from description files of selected package.');
+  Writeln('  remove-input-files');
+  Writeln('    Remove files from input files of selected package.');
+  Writeln('  set-options');
+  Writeln('    Set named options (true) for project file.');
+  Writeln('    Valid option names : ');
+  Writeln('      hide-protected , warn-no-node, show-private, stop-on-parser-error,');
+  Writeln('      parse-impl, dont-trim');
+  Writeln('  unset-options');
+  Writeln('    UnSet named options (false) for project file.');
   Halt(AExitCode);
 end;
 
