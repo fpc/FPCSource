@@ -3711,7 +3711,7 @@ In case not, the value returned can be arbitrary.
         w : word;
         m       : longint;
         mac     : tmacro;
-        asciinr : string[6];
+        asciinr : string[33];
         iswidestring : boolean;
       label
          exit_label;
