@@ -516,23 +516,6 @@ function Win32UnicodeLower(const s : UnicodeString) : UnicodeString;
                               Widestring
  ******************************************************************************}
 
-procedure Win32Wide2AnsiMove(source:pwidechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
-  var
-    destlen: SizeInt;
-  begin
-    // retrieve length including trailing #0
-    // not anymore, because this must also be usable for single characters
-    destlen:=WideCharToMultiByte(cp, 0, source, len, nil, 0, nil, nil);
-    // this will null-terminate
-    setlength(dest, destlen);
-    if destlen>0 then
-      begin
-        WideCharToMultiByte(cp, 0, source, len, @dest[1], destlen, nil, nil);
-        PAnsiRec(pointer(dest)-AnsiFirstOff)^.CodePage:=cp;
-      end;
-  end;
-
-
 procedure Win32Ansi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
   var
     destlen: SizeInt;
