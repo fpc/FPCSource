@@ -75,7 +75,7 @@ unit sysinitgprof;
 {$ifdef FPC_USE_TLS_DIRECTORY}
         LinkIn(@tlsdir,@tls_callback_end,@tls_callback);
 {$endif}
-        EXE_Entry(EntryInformation);
+        EXE_Entry(SysInitEntryInformation);
       end;
 
 
@@ -88,7 +88,7 @@ unit sysinitgprof;
         DLLgmon_start;
         __main;
         SetupEntryInformation;
-        DLL_Entry(EntryInformation);
+        DLL_Entry(SysInitEntryInformation);
       end;
 
 

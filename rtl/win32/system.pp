@@ -123,8 +123,19 @@ Const
 implementation
 
 var
-  EntryInformation : TEntryInformation;
   SysInstance : Longint;public name '_FPC_SysInstance';
+  InitFinalTable : record end; external name 'INITFINAL';
+  ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
+  procedure PascalMain;stdcall;external name 'PASCALMAIN';
+  procedure asm_exit;stdcall;external name 'asm_exit';
+const
+  EntryInformation : TEntryInformation = (
+    InitFinalTable : @InitFinalTable;
+    ThreadvarTablesTable : @ThreadvarTablesTable;
+    asm_exit : @asm_exit;
+    PascalMain : @PascalMain;
+    valgrind_used : false;
+    );
 
 { include system independent routines }
 {$I system.inc}
@@ -142,7 +153,6 @@ procedure PascalMain;stdcall;external name 'PASCALMAIN';
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
 Procedure ExitDLL(Exitcode : longint); forward;
-procedure asm_exit;stdcall;external name 'asm_exit';
 
 Procedure system_exit;
 begin
@@ -653,7 +663,12 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 	     DataDirectory : array[1..$80] of byte;
 	  end;
 	begin
-	  result:=tpeheader((pointer(SysInstance)+(tdosheader(pointer(SysInstance)^).e_lfanew))^).SizeOfStackReserve;
+          if (SysInstance=0) and not IsLibrary then
+            SysInstance:=getmodulehandle(nil);
+          if (SysInstance=0) then
+            result:=stklen
+          else
+            result:=tpeheader((pointer(SysInstance)+(tdosheader(pointer(SysInstance)^).e_lfanew))^).SizeOfStackReserve;
 	end;
 
 

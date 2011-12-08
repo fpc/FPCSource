@@ -35,7 +35,7 @@ unit sysinitpas;
       LinkIn(@tlsdir,@tls_callback_end,@tls_callback);
 {$endif}
       SetupEntryInformation;
-      Exe_entry(EntryInformation);
+      Exe_entry(SysInitEntryInformation);
     end;
 
 
@@ -46,7 +46,7 @@ unit sysinitpas;
       LinkIn(@tlsdir,@tls_callback_end,@tls_callback);
 {$endif}
       SetupEntryInformation;
-      Exe_entry(EntryInformation);
+      Exe_entry(SysInitEntryInformation);
     end;
 
 
@@ -57,7 +57,7 @@ unit sysinitpas;
       dllreason:=_dllreason;
       dllparam:=_dllparam;
       SetupEntryInformation;
-      DLL_Entry(EntryInformation);
+      DLL_Entry(SysInitEntryInformation);
     end;
 
 
@@ -68,7 +68,7 @@ unit sysinitpas;
       dllreason:=_dllreason;
       dllparam:=_dllparam;
       SetupEntryInformation;
-      DLL_Entry(EntryInformation);
+      DLL_Entry(SysInitEntryInformation);
     end;
 
 end.

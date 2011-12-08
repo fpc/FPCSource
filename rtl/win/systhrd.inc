@@ -95,7 +95,8 @@ var
       threadvarblocksize : dword = 0;
 
     const
-      TLSKey : DWord = $ffffffff;
+      TLSKey : DWord = $ffffffff; public name '_FPC_TlsKey';
+
     var
       MainThreadIdWin32 : DWORD;
 
@@ -110,7 +111,7 @@ var
       end;
 
 
-    procedure SysAllocateThreadVars;
+    procedure SysAllocateThreadVars; public name '_FPC_SysAllocateThreadVars';
       var
         dataindex : pointer;
         errorsave : dword;
@@ -482,7 +483,7 @@ end;
 Var
   WinThreadManager : TThreadManager;
 
-Procedure InitSystemThreads;
+Procedure InitSystemThreads;public name '_FPC_InitSystemThreads';
 {$IFDEF SUPPORT_WIN95}
 var
   KernelHandle : THandle;

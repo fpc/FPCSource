@@ -603,7 +603,7 @@ begin
   SetThreadManager(NoThreadManager);
 end;
 
-Procedure InitSystemThreads;
+Procedure InitSystemThreads; public name '_FPC_InitSystemThreads';
 begin
   { This should be changed to a real value during
     thread driver initialization if appropriate. }
