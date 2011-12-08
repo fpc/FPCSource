@@ -363,6 +363,8 @@ implementation
          p:tnode;
          gendef : tstoreddef;
          s : shortstring;
+         pd: tprocdef;
+         hashedid : thashedidstring;
       begin
          old_block_type:=block_type;
          { save unit container of forward declarations -
@@ -535,9 +537,31 @@ implementation
                       if not assigned(current_structdef.genericdef) or
                           not (current_structdef.genericdef.typ in [recorddef,objectdef]) then
                         internalerror(2011052301);
-                      sym:=tsym(tabstractrecorddef(current_structdef.genericdef).symtable.Find(gentypename));
+                      hashedid.id:=gentypename;
+                      { we could be inside a method of the specialization
+                        instead of its declaration, so check that first (as
+                        local nested types aren't allowed we don't need to
+                        walk the symtablestack to find the localsymtable) }
+                      if symtablestack.top.symtabletype=localsymtable then
+                        begin
+                          { we are in a method }
+                          if not assigned(symtablestack.top.defowner) or
+                              (symtablestack.top.defowner.typ<>procdef) then
+                            internalerror(2011120701);
+                          pd:=tprocdef(symtablestack.top.defowner);
+                          if not assigned(pd.genericdef) or (pd.genericdef.typ<>procdef) then
+                            internalerror(2011120702);
+                          sym:=tsym(tprocdef(pd.genericdef).localst.findwithhash(hashedid));
+                        end
+                      else
+                        sym:=nil;
                       if not assigned(sym) or not (sym.typ=typesym) then
-                        internalerror(2011052302);
+                        begin
+                          { now search in the declaration of the generic }
+                          sym:=tsym(tabstractrecorddef(current_structdef.genericdef).symtable.findwithhash(hashedid));
+                          if not assigned(sym) or not (sym.typ=typesym) then
+                            internalerror(2011052302);
+                        end;
                       { use the corresponding type in the generic's symtable as
                         genericdef for the specialized type }
                       gendef:=tstoreddef(ttypesym(sym).typedef);
