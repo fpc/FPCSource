@@ -420,6 +420,31 @@ function inotify_add_watch(fd:cint; name:Pchar; mask:cuint32):cint;
 { Remove the watch specified by WD from the inotify instance FD.   }
 function inotify_rm_watch(fd:cint; wd: cint):cint;
 
+{ clock_gettime, clock_settime, clock_getres }
+
+Const
+  // Taken from linux/time.h
+  // Posix timers
+  CLOCK_REALTIME                  = 0;
+  CLOCK_MONOTONIC                 = 1;
+  CLOCK_PROCESS_CPUTIME_ID        = 2;
+  CLOCK_THREAD_CPUTIME_ID         = 3;
+  CLOCK_MONOTONIC_RAW             = 4;
+  CLOCK_REALTIME_COARSE           = 5;
+  CLOCK_MONOTONIC_COARSE          = 6;
+  // Linux specific
+  CLOCK_SGI_CYCLE                 = 10;
+  MAX_CLOCKS                      = 16;
+  CLOCKS_MASK                     = CLOCK_REALTIME or CLOCK_MONOTONIC;
+  CLOCKS_MONO                     = CLOCK_MONOTONIC;
+
+Type
+  clockid_t = cint;
+
+function clock_getres(clk_id : clockid_t; res : ptimespec) : cint;
+function clock_gettime(clk_id : clockid_t; tp: ptimespec) : cint;
+function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint;
+  
 implementation
 
 
@@ -667,6 +692,24 @@ function inotify_rm_watch(fd:cint; wd:cint):cint;
 
 begin
   inotify_rm_watch:=do_SysCall(syscall_nr_inotify_rm_watch,tsysparam(fd),tsysparam(wd));
+end;
+
+function clock_getres(clk_id : clockid_t; res : ptimespec) : cint;
+
+begin
+  clock_getres:=do_SysCall(syscall_nr_clock_getres,tsysparam(clk_id),tsysparam(res));
+end;
+
+function clock_gettime(clk_id : clockid_t; tp: ptimespec) : cint;
+
+begin
+  clock_gettime:=do_SysCall(syscall_nr_clock_gettime,tsysparam(clk_id),tsysparam(tp));
+end;
+
+function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint;
+
+begin
+  clock_settime:=do_SysCall(syscall_nr_clock_settime,tsysparam(clk_id),tsysparam(tp));
 end;
 
 end.
