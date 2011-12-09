@@ -487,10 +487,10 @@ begin
   else
    begin
     Delta := Prio * 2;
-    if Delta + TPrio (PrioLevel) < 0 then
-     Delta := - TPrio (PrioLevel)
-    else if Delta + TPrio (PrioLevel) > 31 then
-     Delta := 31 - TPrio (PrioLevel);
+    if Delta + TPrio (Priority).PrioLevel < 0 then
+     Delta := - TPrio (Priority).PrioLevel
+    else if Delta + TPrio (Priority).PrioLevel > 31 then
+     Delta := 31 - TPrio (Priority).PrioLevel;
     SysThreadSetPriority :=
                DosSetPriority (dpThread, dpSameClass, Delta, ThreadHandle) = 0;
    end;
