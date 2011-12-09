@@ -2461,12 +2461,17 @@ begin
         if CurToken in [tkString,tkIdentifier] then
           begin
           NextToken;
-          Tok:=UpperCase(CurTokenString);
-          if Tok='NAME' then
+          if CurToken=tkSemicolon then
+            UnGetToken
+          else
             begin
-            NextToken;
-            if not (CurToken in [tkString,tkIdentifier]) then
-              ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkString]]));
+            Tok:=UpperCase(CurTokenString);
+            if Tok='NAME' then
+              begin
+              NextToken;
+              if not (CurToken in [tkString,tkIdentifier]) then
+                ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkString]]));
+              end;
             end;
           end
         else
