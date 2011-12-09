@@ -147,8 +147,12 @@ TYPE
     high : qword;
   end;
 {$else}
-  float64 = packed record
-    high,low : bits32;
+  float64 = record
+      case byte of
+        1: (high,low : bits32);
+        // force the record to be aligned like a double
+        // else *_to_double will fail for cpus like sparc
+        2: (dummy : double);
   end;
 
   int64rec = packed record
