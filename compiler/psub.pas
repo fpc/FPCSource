@@ -49,6 +49,7 @@ interface
         destructor  destroy;override;
         procedure printproc(pass:string);
         procedure generate_code;
+        procedure generate_code_tree;
         procedure resetprocdef;
         procedure add_to_symtablestack;
         procedure remove_from_symtablestack;
@@ -548,8 +549,8 @@ implementation
         newstatement: tstatementnode;
         pd: tprocdef;
       begin
-        if assigned(current_structdef) and
-           (current_procinfo.procdef.proctypeoption=potype_constructor) then
+        if assigned(procdef.struct) and
+           (procdef.proctypeoption=potype_constructor) then
           begin
             { Don't test self and the vmt here. See generate_bodyexit_block }
             { why (JM)                                                      }
@@ -557,9 +558,9 @@ implementation
             current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
 
             { call AfterConstruction for classes }
-            if is_class(current_structdef) then
+            if is_class(procdef.struct) then
               begin
-                srsym:=search_struct_member(current_structdef,'AFTERCONSTRUCTION');
+                srsym:=search_struct_member(procdef.struct,'AFTERCONSTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -587,11 +588,11 @@ implementation
                   internalerror(200305106);
               end;
 
-            if withexceptblock and (current_structdef.typ=objectdef) then
+            if withexceptblock and (procdef.struct.typ=objectdef) then
               begin
                 { Generate the implicit "fail" code for a constructor (destroy
                   in case an exception happened) }
-                pd:=tobjectdef(current_structdef).find_destructor;
+                pd:=tobjectdef(procdef.struct).find_destructor;
                 { this will always be the case for classes, since tobject has
                   a destructor }
                 if assigned(pd) then
@@ -760,6 +761,21 @@ implementation
           end;
       end;
 
+    procedure tcgprocinfo.generate_code_tree;
+      var
+        hpi : tcgprocinfo;
+      begin
+        { generate code for this procedure }
+        generate_code;
+        { process nested procedures }
+        hpi:=tcgprocinfo(get_first_nestedproc);
+        while assigned(hpi) do
+          begin
+            hpi.generate_code_tree;
+            hpi:=tcgprocinfo(hpi.next);
+          end;
+        resetprocdef;
+      end;
 
     procedure tcgprocinfo.generate_code;
       var
@@ -884,7 +900,7 @@ implementation
         if (cs_opt_loopstrength in current_settings.optimizerswitches)
           { our induction variable strength reduction doesn't like
             for loops with more than one entry }
-          and not(pi_has_label in current_procinfo.flags) then
+          and not(pi_has_label in flags) then
           begin
             {RedoDFA:=}OptimizeInductionVariables(code);
           end;
@@ -962,7 +978,7 @@ implementation
             generate_parameter_info;
 
             { allocate got register if needed }
-            current_procinfo.allocate_got_register(aktproccode);
+            allocate_got_register(aktproccode);
 
             { Allocate space in temp/registers for parast and localst }
             current_filepos:=entrypos;
@@ -1059,9 +1075,9 @@ implementation
             { make sure the got/pic register doesn't get freed in the }
             { middle of a loop                                        }
             if (cs_create_pic in current_settings.moduleswitches) and
-               (pi_needs_got in current_procinfo.flags) and
-               (current_procinfo.got<>NR_NO) then
-              cg.a_reg_sync(aktproccode,current_procinfo.got);
+               (pi_needs_got in flags) and
+               (got<>NR_NO) then
+              cg.a_reg_sync(aktproccode,got);
 
             gen_free_symtable(aktproccode,procdef.localst);
             gen_free_symtable(aktproccode,procdef.parast);
@@ -1116,20 +1132,20 @@ implementation
               this is necessary for debuginfo and verbose assembler output
               when SSA will be implented, this will be more complicated because we've to
               maintain location lists }
-            current_procinfo.procdef.parast.SymList.ForEachCall(@translate_registers,templist);
-            current_procinfo.procdef.localst.SymList.ForEachCall(@translate_registers,templist);
+            procdef.parast.SymList.ForEachCall(@translate_registers,templist);
+            procdef.localst.SymList.ForEachCall(@translate_registers,templist);
             if (cs_create_pic in current_settings.moduleswitches) and
-               (pi_needs_got in current_procinfo.flags) and
+               (pi_needs_got in flags) and
                not(cs_no_regalloc in current_settings.globalswitches) and
-               (current_procinfo.got<>NR_NO) then
-              cg.translate_register(current_procinfo.got);
+               (got<>NR_NO) then
+              cg.translate_register(got);
 
             { Add save and restore of used registers }
             current_filepos:=entrypos;
             gen_save_used_regs(templist);
             { Remember the last instruction of register saving block
               (may be =nil for e.g. assembler procedures) }
-            current_procinfo.endprologue_ai:=templist.last;
+            endprologue_ai:=templist.last;
             aktproccode.insertlistafter(headertai,templist);
             current_filepos:=exitpos;
             gen_restore_used_regs(aktproccode);
@@ -1457,7 +1473,7 @@ implementation
                  new(procdef.inlininginfo);
                  include(procdef.procoptions,po_has_inlininginfo);
                  procdef.inlininginfo^.code:=code.getcopy;
-                 procdef.inlininginfo^.flags:=current_procinfo.flags;
+                 procdef.inlininginfo^.flags:=flags;
                  { The blocknode needs to set an exit label }
                  if procdef.inlininginfo^.code.nodetype=blockn then
                    include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
@@ -1508,22 +1524,6 @@ implementation
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
       }
-
-      procedure do_generate_code(pi:tcgprocinfo);
-        var
-          hpi : tcgprocinfo;
-        begin
-          { generate code for this procedure }
-          pi.generate_code;
-          { process nested procs }
-          hpi:=tcgprocinfo(pi.get_first_nestedproc);
-          while assigned(hpi) do
-           begin
-             do_generate_code(hpi);
-             hpi:=tcgprocinfo(hpi.next);
-           end;
-          pi.resetprocdef;
-        end;
 
       var
         oldfailtokenmode : tmodeswitch;
@@ -1588,7 +1588,7 @@ implementation
         if not isnestedproc then
           begin
             if not(df_generic in current_procinfo.procdef.defoptions) then
-              do_generate_code(tcgprocinfo(current_procinfo));
+              tcgprocinfo(current_procinfo).generate_code_tree;
           end;
 
         { reset _FAIL as _SELF normal }
