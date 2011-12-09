@@ -45,7 +45,7 @@ resourcestring
   SInvalidJulianDate            = '%f Julian cannot be represented as a DateTime';
   SErrIllegalDateFormatString   = '"%s" is not a valid date format string';
   SErrInvalidTimeFormat  = '"%s" is not a valid time';
-  SExceptionErrorMessage = 'exception at %p';
+  SExceptionErrorMessage = 'Exception at %p: %s';
   SExceptionStack        = 'Exception stack error';
   SExecuteProcessFailed  = 'Failed to execute "%s", error code: %d';
   SExternalException     = 'External exception %x';

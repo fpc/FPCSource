@@ -52,10 +52,6 @@ unit objpas;
 Var
    ExceptionClass: TClass; { Exception base class (must actually be Exception, defined in sysutils ) }
 {$endif FPC_HAS_FEATURE_CLASSES}
-{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
-Var
-   ExceptObjProc: Pointer; { Used to convert OS exceptions to exceptions in Delphi. Unused in FPC}
-{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 {****************************************************************************
                              Compatibility routines.

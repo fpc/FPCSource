@@ -1184,6 +1184,10 @@ const
   AbstractErrorProc : TAbstractErrorProc = nil;
   AssertErrorProc   : TAssertErrorProc = @SysAssert;
   SafeCallErrorProc : TSafeCallErrorProc = nil;
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  ExceptObjProc     : Pointer = nil; { Used to convert OS exceptions to FPC exceptions. }
+  ExceptClsProc     : Pointer = nil;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 {*****************************************************************************
                           SetJmp/LongJmp
