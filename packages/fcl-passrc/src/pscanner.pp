@@ -154,42 +154,109 @@ type
     );
   TTokens = set of TToken;
 
+  { TLineReader }
+
   TLineReader = class
+  Private
+    FFilename: string;
   public
+    constructor Create(const AFilename: string); virtual;
     function IsEOF: Boolean; virtual; abstract;
     function ReadLine: string; virtual; abstract;
+    property Filename: string read FFilename;
   end;
 
   { TFileLineReader }
 
   TFileLineReader = class(TLineReader)
   private
-    FFilename: string;
     FTextFile: Text;
     FileOpened: Boolean;
   public
-    constructor Create(const AFilename: string);
+    constructor Create(const AFilename: string); override;
     destructor Destroy; override;
     function IsEOF: Boolean; override;
     function ReadLine: string; override;
-    property Filename: string read FFilename;
   end;
 
-  { TFileResolver }
+  { TStreamLineReader }
 
-  TFileResolver = class
+  TStreamLineReader = class(TLineReader)
+  private
+    FContent: AnsiString;
+    FPos : Integer;
+  public
+    Procedure InitFromStream(AStream : TStream);
+    function IsEOF: Boolean; override;
+    function ReadLine: string; override;
+  end;
+
+  { TFileStreamLineReader }
+
+  TFileStreamLineReader = class(TStreamLineReader)
+  Public
+    constructor Create(const AFilename: string); override;
+  end;
+
+  { TStringStreamLineReader }
+
+  TStringStreamLineReader = class(TStreamLineReader)
+  Public
+    constructor Create(const AFilename: string; Const ASource: String);
+  end;
+
+  { TBaseFileResolver }
+
+  TBaseFileResolver = class
   private
     FBaseDirectory: string;
     FIncludePaths: TStringList;
     FStrictFileCase : Boolean;
+  Protected
+    procedure SetBaseDirectory(AValue: string); virtual;
+    procedure SetStrictFileCase(AValue: Boolean); virtual;
+    Function FindIncludeFileName(const AName: string): String;
+    Property IncludePaths: TStringList Read FIncludePaths;
   public
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
-    procedure AddIncludePath(const APath: string);
-    function FindSourceFile(const AName: string): TLineReader;
-    function FindIncludeFile(const AName: string): TLineReader;
-    Property StrictFileCase : Boolean Read FStrictFileCase Write FStrictFileCase;
-    property BaseDirectory: string read FBaseDirectory write FBaseDirectory;
+    procedure AddIncludePath(const APath: string); virtual;
+    function FindSourceFile(const AName: string): TLineReader; virtual; abstract;
+    function FindIncludeFile(const AName: string): TLineReader; virtual; abstract;
+    Property StrictFileCase : Boolean Read FStrictFileCase Write SetStrictFileCase;
+    property BaseDirectory: string read FBaseDirectory write SetBaseDirectory;
+  end;
+
+  { TFileResolver }
+
+  TFileResolver = class(TBaseFileResolver)
+  private
+    FUseStreams: Boolean;
+  Protected
+    Function CreateFileReader(Const AFileName : String) : TLineReader; virtual;
+  Public
+    function FindSourceFile(const AName: string): TLineReader; override;
+    function FindIncludeFile(const AName: string): TLineReader; override;
+    Property UseStreams : Boolean Read FUseStreams Write FUseStreams;
+  end;
+
+  { TStreamResolver }
+
+  TStreamResolver = class(TBaseFileResolver)
+  Private
+    FOwnsStreams: Boolean;
+    FStreams : TStringList;
+    function FindStream(const AName: string; ScanIncludes: Boolean): TStream;
+    function FindStreamReader(const AName: string; ScanIncludes: Boolean): TLineReader;
+    procedure SetOwnsStreams(AValue: Boolean);
+  Public
+    constructor Create; override;
+    destructor Destroy; override;
+    Procedure Clear;
+    Procedure AddStream(Const AName : String; AStream : TStream);
+    function FindSourceFile(const AName: string): TLineReader; override;
+    function FindIncludeFile(const AName: string): TLineReader; override;
+    Property OwnsStreams : Boolean Read FOwnsStreams write SetOwnsStreams;
   end;
 
   EScannerError       = class(Exception);
@@ -208,7 +275,7 @@ type
 
   TPascalScanner = class
   private
-    FFileResolver: TFileResolver;
+    FFileResolver: TBaseFileResolver;
     FCurSourceFile: TLineReader;
     FCurFilename: string;
     FCurRow: Integer;
@@ -216,10 +283,13 @@ type
     FCurTokenString: string;
     FCurLine: string;
     FDefines: TStrings;
+    FOptions: TPOptions;
     FLogEvents: TPScannerLogEvents;
     FOnLog: TPScannerLogHandler;
+    FSkipComments: Boolean;
+    FSkipWhiteSpace: Boolean;
     TokenStr: PChar;
-    FIncludeStack: TList;
+    FIncludeStack: TFPList;
 
     // Preprocessor $IFxxx skipping data
     PPSkipMode: TPascalScannerPPSkipMode;
@@ -229,6 +299,7 @@ type
     PPIsSkippingStack: array[0..255] of Boolean;
 
     function GetCurColumn: Integer;
+    procedure SetOptions(AValue: TPOptions);
   protected
     Procedure DoLog(Const Msg : String; SkipSourceInfo : Boolean = False);overload;
     Procedure DoLog(Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
@@ -236,18 +307,19 @@ type
     procedure Error(const Msg: string; Args: array of Const);overload;
     function DoFetchTextToken: TToken;
     function DoFetchToken: TToken;
+    procedure ClearFiles;
     function LogEvent(E : TPScannerLogEvent) : Boolean; inline;
   public
-    Options : TPOptions;
-    constructor Create(AFileResolver: TFileResolver);
+    constructor Create(AFileResolver: TBaseFileResolver);
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
     function FetchToken: TToken;
 
-    property FileResolver: TFileResolver read FFileResolver;
+    property FileResolver: TBaseFileResolver read FFileResolver;
     property CurSourceFile: TLineReader read FCurSourceFile;
     property CurFilename: string read FCurFilename;
-
+    Property SkipWhiteSpace : Boolean Read FSkipWhiteSpace Write FSkipWhiteSpace;
+    Property SkipComments : Boolean Read FSkipComments Write FSkipComments;
     property CurLine: string read FCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
@@ -256,6 +328,7 @@ type
     property CurTokenString: string read FCurTokenString;
 
     property Defines: TStrings read FDefines;
+    Property Options : TPOptions Read FOptions Write SetOptions;
     Property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
     Property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
   end;
@@ -374,8 +447,87 @@ const
 function FilenameIsAbsolute(const TheFilename: string):boolean;
 function FilenameIsWinAbsolute(const TheFilename: string): boolean;
 function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
+function IsNamedToken(Const AToken : String; Var T : TToken) : Boolean;
 
 implementation
+
+Var
+  SortedTokens : array of TToken;
+  LowerCaseTokens  : Array[ttoken] of String;
+
+Procedure SortTokenInfo;
+
+Var
+  tk: tToken;
+  I,J,K, l: integer;
+
+begin
+  for tk:=Low(TToken) to High(ttoken) do
+    LowerCaseTokens[tk]:=LowerCase(TokenInfos[tk]);
+  SetLength(SortedTokens,Ord(tkXor)-Ord(tkAbsolute)+1);
+  I:=0;
+  for tk := tkAbsolute to tkXOR do
+    begin
+    SortedTokens[i]:=tk;
+    Inc(i);
+    end;
+  l:=Length(SortedTokens)-1;
+  k:=l shr 1;
+  while (k>0) do
+    begin
+    for i:=0 to l-k do
+      begin
+      j:=i;
+      while (J>=0) and (LowerCaseTokens[SortedTokens[J]]>LowerCaseTokens[SortedTokens[J+K]]) do
+        begin
+        tk:=SortedTokens[J];
+        SortedTokens[J]:=SortedTokens[J+K];
+        SortedTokens[J+K]:=tk;
+        if (J>K) then
+          Dec(J,K)
+        else
+          J := 0
+        end;
+      end;
+      K:=K shr 1;
+    end;
+end;
+
+function IndexOfToken(Const AToken : string) : Integer;
+
+var
+  B,T,M : Integer;
+  N : String;
+begin
+  B:=0;
+  T:=Length(SortedTokens)-1;
+  while (B<=T) do
+    begin
+    M:=(B+T) div 2;
+    N:=LowerCaseTokens[SortedTokens[M]];
+    if (AToken<N) then
+      T:=M-1
+    else if (AToken=N) then
+      Exit(M)
+    else
+      B:=M+1;
+    end;
+  Result:=-1;
+end;
+
+function IsNamedToken(Const AToken : String; Var T : TToken) : Boolean;
+
+Var
+  I : Integer;
+
+begin
+  if (Length(SortedTokens)=0) then
+    SortTokenInfo;
+  I:=IndexOfToken(LowerCase(AToken));
+  Result:=I<>-1;
+  If Result then
+    T:=SortedTokens[I];
+end;
 
 type
   TIncludeStackItem = class
@@ -411,10 +563,188 @@ function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
 begin
   Result:=(TheFilename<>'') and (TheFilename[1]='/');
 end;
+
+{ TStreamResolver }
+
+procedure TStreamResolver.SetOwnsStreams(AValue: Boolean);
+begin
+  if FOwnsStreams=AValue then Exit;
+  FOwnsStreams:=AValue;
+end;
+
+constructor TStreamResolver.Create;
+begin
+  Inherited;
+  FStreams:=TStringList.Create;
+  FStreams.Sorted:=True;
+  FStreams.Duplicates:=dupError;
+end;
+
+destructor TStreamResolver.Destroy;
+begin
+  Clear;
+  FreeAndNil(FStreams);
+  inherited Destroy;
+end;
+
+procedure TStreamResolver.Clear;
+
+Var
+  I : integer;
+begin
+  if OwnsStreams then
+    begin
+    For I:=0 to FStreams.Count-1 do
+      Fstreams.Objects[i].Free;
+    end;
+  FStreams.Clear;
+end;
+
+procedure TStreamResolver.AddStream(const AName: String; AStream: TStream);
+begin
+  FStreams.AddObject(AName,AStream);
+end;
+
+function TStreamResolver.FindStream(const AName: string; ScanIncludes : Boolean) : TStream;
+
+Var
+  I,J : Integer;
+  FN : String;
+begin
+  Result:=Nil;
+  I:=FStreams.IndexOf(AName);
+  If (I=-1) and ScanIncludes then
+    begin
+    J:=0;
+    While (I=-1) and (J<IncludePaths.Count-1) do
+      begin
+      FN:=IncludeTrailingPathDelimiter(IncludePaths[i])+AName;
+      I:=FStreams.INdexOf(FN);
+      Inc(J);
+      end;
+    end;
+  If (I<>-1) then
+    Result:=FStreams.Objects[i] as TStream;
+end;
+
+function TStreamResolver.FindStreamReader(const AName: string; ScanIncludes : Boolean) : TLineReader;
+
+Var
+  S : TStream;
+  SL : TStreamLineReader;
+
+begin
+  Result:=Nil;
+  S:=FindStream(AName,ScanIncludes);
+  If (S<>Nil) then
+    begin
+    SL:=TStreamLineReader.Create(AName);
+    try
+      SL.InitFromStream(S);
+      Result:=SL;
+    except
+      FreeAndNil(SL);
+      Raise;
+    end;
+    end;
+end;
+
+function TStreamResolver.FindSourceFile(const AName: string): TLineReader;
+
+begin
+  Result:=FindStreamReader(AName,False);
+end;
+
+function TStreamResolver.FindIncludeFile(const AName: string): TLineReader;
+begin
+  Result:=FindStreamReader(AName,True);
+end;
+
+{ TStringStreamLineReader }
+
+constructor TStringStreamLineReader.Create(const AFilename: string;  const ASource: String);
+
+Var
+  S : TStringStream;
+
+begin
+  inherited Create(AFilename);
+  S:=TStringStream.Create(ASource);
+  try
+     InitFromStream(S);
+  finally
+    S.Free;
+  end;
+end;
+
+{ TFileStreamLineReader }
+
+constructor TFileStreamLineReader.Create(const AFilename: string);
+
+Var
+  S : TFileStream;
+
+begin
+  inherited Create(AFilename);
+  S:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  try
+     InitFromStream(S);
+  finally
+    S.Free;
+  end;
+end;
+
+{ TStreamLineReader }
+
+Procedure TStreamLineReader.InitFromStream(AStream : TStream);
+
+begin
+  SetLength(FContent,AStream.Size);
+  AStream.Read(FContent[1],AStream.Size);
+  FPos:=0;
+end;
+
+function TStreamLineReader.IsEOF: Boolean;
+begin
+  Result:=FPos>=Length(FContent);
+end;
+
+function TStreamLineReader.ReadLine: string;
+
+Var
+  LPos : Integer;
+  EOL : Boolean;
+
+begin
+  If isEOF then
+    exit;
+  LPos:=FPos+1;
+  Repeat
+    Inc(FPos);
+    EOL:=(FContent[FPos] in [#10,#13]);
+  until isEOF or EOL;
+  If EOL then
+   Result:=Copy(FContent,LPos,FPos-LPos)
+  else
+   Result:=Copy(FContent,LPos,FPos-LPos+1);
+  If (not isEOF) and (FContent[FPos]=#13) and (FContent[FPos+1]=#10) then
+    inc(FPos);
+end;
+
+{ TLineReader }
+
+constructor TLineReader.Create(const AFilename: string);
+begin
+  FFileName:=AFileName;
+end;
+
+{ ---------------------------------------------------------------------
+  TFileLineReader
+  ---------------------------------------------------------------------}
+
 constructor TFileLineReader.Create(const AFilename: string);
 begin
-  inherited Create;
-  FFilename:=AFilename;
+  inherited Create(AFileName);
   Assign(FTextFile, AFilename);
   Reset(FTextFile);
   FileOpened := true;
@@ -437,41 +767,29 @@ begin
   ReadLn(FTextFile, Result);
 end;
 
+{ ---------------------------------------------------------------------
+  TBaseFileResolver
+  ---------------------------------------------------------------------}
 
-constructor TFileResolver.Create;
+procedure TBaseFileResolver.SetBaseDirectory(AValue: string);
 begin
-  inherited Create;
-  FIncludePaths := TStringList.Create;
+  if FBaseDirectory=AValue then Exit;
+  FBaseDirectory:=AValue;
 end;
 
-destructor TFileResolver.Destroy;
+procedure TBaseFileResolver.SetStrictFileCase(AValue: Boolean);
 begin
-  FIncludePaths.Free;
-  inherited Destroy;
+  if FStrictFileCase=AValue then Exit;
+  FStrictFileCase:=AValue;
 end;
 
-procedure TFileResolver.AddIncludePath(const APath: string);
-begin
-  FIncludePaths.Add(IncludeTrailingPathDelimiter(ExpandFileName(APath)));
-end;
-
-function TFileResolver.FindSourceFile(const AName: string): TLineReader;
-begin
-  if not FileExists(AName) then
-    Raise EFileNotFoundError.create(Aname)
-  else
-    try
-      Result := TFileLineReader.Create(AName);
-    except
-      Result := nil;
-    end;
-end;
-
-function TFileResolver.FindIncludeFile(const AName: string): TLineReader;
+function TBaseFileResolver.FindIncludeFileName(const AName: string): String;
 
   function SearchLowUpCase(FN: string): string;
+
   var
     Dir: String;
+
   begin
     If FileExists(FN) then
       Result:=FN
@@ -494,72 +812,123 @@ var
   FN : string;
 
 begin
-  Result := nil;
+  Result := '';
   // convert pathdelims to system
   FN:=SetDirSeparators(AName);
-
   If FilenameIsAbsolute(FN) then
     begin
-      if FileExists(FN) then
-        Result := TFileLineReader.Create(FN);
+    // Maybe this should also do a SearchLowUpCase ?
+    if FileExists(FN) then
+      Result := FN;
     end
   else
     begin
     // file name is relative
-
     // search in include path
     I:=0;
-    While (Result=Nil) and (I<FIncludePaths.Count) do
+    While (Result='') and (I<FIncludePaths.Count) do
       begin
-      Try
-        FN:=SearchLowUpCase(FIncludePaths[i]+AName);
-        If (FN<>'') then
-          Result := TFileLineReader.Create(FN);
-      except
-        Result:=Nil;
-      end;
+      Result:=SearchLowUpCase(FIncludePaths[i]+AName);
       Inc(I);
       end;
     // search in BaseDirectory
-    if (Result=Nil) and (BaseDirectory<>'') then
-      begin
-      FN:=SearchLowUpCase(BaseDirectory+AName);
-	  try
-      If (FN<>'') then   
-        Result := TFileLineReader.Create(FN);
-      except 
-        Result:=nil;
-        end;		
-      end;
+    if (Result='') and (BaseDirectory<>'') then
+      Result:=SearchLowUpCase(BaseDirectory+AName);
     end;
 end;
 
+constructor TBaseFileResolver.Create;
+begin
+  inherited Create;
+  FIncludePaths := TStringList.Create;
+end;
 
-constructor TPascalScanner.Create(AFileResolver: TFileResolver);
+destructor TBaseFileResolver.Destroy;
+begin
+  FIncludePaths.Free;
+  inherited Destroy;
+end;
+
+procedure TBaseFileResolver.AddIncludePath(const APath: string);
+begin
+  FIncludePaths.Add(IncludeTrailingPathDelimiter(ExpandFileName(APath)));
+end;
+
+{ ---------------------------------------------------------------------
+  TFileResolver
+  ---------------------------------------------------------------------}
+
+function TFileResolver.CreateFileReader(const AFileName: String): TLineReader;
+begin
+  If UseStreams then
+    Result:=TFileStreamLineReader.Create(AFileName)
+  else
+    Result:=TFileLineReader.Create(AFileName);
+end;
+
+function TFileResolver.FindSourceFile(const AName: string): TLineReader;
+begin
+  if not FileExists(AName) then
+    Raise EFileNotFoundError.create(Aname)
+  else
+    try
+      Result := CreateFileReader(AName)
+    except
+      Result := nil;
+    end;
+end;
+
+function TFileResolver.FindIncludeFile(const AName: string): TLineReader;
+
+Var
+  FN : String;
+
+begin
+  FN:=FindIncludeFileName(ANAme);
+  If (FN<>'') then
+    try
+      Result := TFileLineReader.Create(FN);
+    except
+      Result:=Nil;
+    end;
+end;
+
+{ ---------------------------------------------------------------------
+  TPascalScanner
+  ---------------------------------------------------------------------}
+
+constructor TPascalScanner.Create(AFileResolver: TBaseFileResolver);
 begin
   inherited Create;
   FFileResolver := AFileResolver;
-  FIncludeStack := TList.Create;
+  FIncludeStack := TFPList.Create;
   FDefines := TStringList.Create;
 end;
 
 destructor TPascalScanner.Destroy;
 begin
   FDefines.Free;
+  ClearFiles;
+  FIncludeStack.Free;
+  inherited Destroy;
+end;
+
+procedure TPascalScanner.ClearFiles;
+
+begin
   // Dont' free the first element, because it is CurSourceFile
   while FIncludeStack.Count > 1 do
-  begin
+    begin
     TFileResolver(FIncludeStack[1]).Free;
     FIncludeStack.Delete(1);
-  end;
-  FIncludeStack.Free;
-
-  CurSourceFile.Free;
-  inherited Destroy;
+    end;
+  FIncludeStack.Clear;
+  FreeAndNil(FCurSourceFile);
 end;
 
 procedure TPascalScanner.OpenFile(const AFilename: string);
 begin
+  Clearfiles;
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
   if LogEvent(sleFile) then
     DoLog(SLogOpeningFile,[AFileName],True);
@@ -574,9 +943,11 @@ begin
   while true do
   begin
     Result := DoFetchToken;
-    if FCurToken = tkEOF then
-      if FIncludeStack.Count > 0 then
+    Case FCurToken of
+    tkEOF:
       begin
+      if FIncludeStack.Count > 0 then
+        begin
         CurSourceFile.Free;
         IncludeStackItem :=
           TIncludeStackItem(FIncludeStack[FIncludeStack.Count - 1]);
@@ -590,11 +961,21 @@ begin
         TokenStr := IncludeStackItem.TokenStr;
         IncludeStackItem.Free;
         Result := FCurToken;
-      end else
+        end
+      else
         break
+      end;
+    tkWhiteSpace,
+    tkLineEnding:
+      if not (FSkipWhiteSpace or PPIsSkipping) then
+        Break;
+    tkComment:
+      if not (FSkipComments or PPIsSkipping) then
+        Break;
     else
       if not PPIsSkipping then
         break;
+    end; // Case
   end;
 end;
 
@@ -1219,7 +1600,14 @@ begin
 
         // Check if this is a keyword or identifier
         // !!!: Optimize this!
-        for i := tkAbsolute to tkXOR do
+        {if IsNamedToken(CurTokenString,Result) then
+          FCurToken:=Result
+         else
+           begin
+           Result:=tkIdentifier;
+           FCurtoken:=tkIdentifier;
+           end;
+        }for i := tkAbsolute to tkXOR do
           if CompareText(CurTokenString, TokenInfos[i]) = 0 then
           begin
             Result := i;
@@ -1261,6 +1649,12 @@ end;
 procedure TPascalScanner.DoLog(const Fmt: String; Args: array of const;SkipSourceInfo : Boolean = False);
 begin
   DoLog(Format(Fmt,Args),SkipSourceInfo);
+end;
+
+procedure TPascalScanner.SetOptions(AValue: TPOptions);
+begin
+  if FOptions=AValue then Exit;
+  FOptions:=AValue;
 end;
 
 end.
