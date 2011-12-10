@@ -1522,6 +1522,9 @@ var
 
 { used for gdb_stdout and gdb_stderr }
 function  xmalloc(size : longint) : pointer;cdecl;external;
+{ used for QueryHook }
+function xstrvprintf(msg : pchar) : pchar; varargs; cdecl; external;
+procedure xfree(p : pointer); cdecl; external;
 function  find_pc_line(i:CORE_ADDR;l:longint):symtab_and_line;cdecl;external;
 function  find_pc_function(i:CORE_ADDR):psymbol;cdecl;external;
 function  lookup_minimal_symbol_by_pc(i : CORE_ADDR):pminimal_symbol;cdecl;external;
@@ -2395,7 +2398,9 @@ begin
 end;
 
 
-function QueryHook(question : pchar; arg : pchar) : longint; cdecl;
+function QueryHook(question : pchar; arg : ppchar) : longint; cdecl;
+var local : pchar;
+
 begin
   if not assigned(curr_gdb) then
     QueryHook:=0
@@ -2403,8 +2408,12 @@ begin
     begin
       if curr_gdb^.reset_command and (pos('Kill',question)>0) then
         QueryHook:=1
-      else if pos('%s',question)>0 then
-        QueryHook:=curr_gdb^.Query(question, arg)
+      else if pos('%',question)>0 then
+        begin
+          local:=xstrvprintf(question,arg);
+          QueryHook:=curr_gdb^.Query(local, nil);
+          xfree(local);
+        end
       else
         QueryHook:=curr_gdb^.Query(question, nil);
     end;
