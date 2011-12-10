@@ -4,7 +4,7 @@
 
 [package]
 name=opencl
-version=2.2.2
+version=2.6.0
 
 [target]
 units=cl cl_gl
