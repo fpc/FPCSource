@@ -153,12 +153,6 @@ ifdef OS_TARGET_DEFAULT
 OS_TARGET=$(OS_TARGET_DEFAULT)
 endif
 endif
-ifneq ($(words $(FPC_COMPILERINFO)),5)
-FPC_COMPILERINFO+=$(shell $(FPC) -iSP)
-FPC_COMPILERINFO+=$(shell $(FPC) -iTP)
-FPC_COMPILERINFO+=$(shell $(FPC) -iSO)
-FPC_COMPILERINFO+=$(shell $(FPC) -iTO)
-endif
 ifndef CPU_SOURCE
 CPU_SOURCE:=$(word 2,$(FPC_COMPILERINFO))
 endif
@@ -1263,7 +1257,7 @@ SHAREDLIBPREFIX=libfp
 STATICLIBPREFIX=libp
 IMPORTLIBPREFIX=libimp
 RSTEXT=.rst
-ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
+EXEDBGEXT=.dbg
 ifeq ($(OS_TARGET),go32v1)
 STATICLIBPREFIX=
 SHORTSUFFIX=v1
@@ -1385,6 +1379,7 @@ BATCHEXT=.sh
 EXEEXT=
 HASSHAREDLIB=1
 SHORTSUFFIX=dwn
+EXEDBGEXT=.dSYM
 endif
 ifeq ($(OS_TARGET),gba)
 EXEEXT=.gba
@@ -1403,161 +1398,6 @@ ifeq ($(OS_TARGET),wii)
 EXEEXT=.dol
 SHAREDLIBEXT=.so
 SHORTSUFFIX=wii
-endif
-else
-ifeq ($(OS_TARGET),go32v1)
-PPUEXT=.pp1
-OEXT=.o1
-ASMEXT=.s1
-SMARTEXT=.sl1
-STATICLIBEXT=.a1
-SHAREDLIBEXT=.so1
-STATICLIBPREFIX=
-SHORTSUFFIX=v1
-IMPORTLIBPREFIX=
-endif
-ifeq ($(OS_TARGET),go32v2)
-STATICLIBPREFIX=
-SHORTSUFFIX=dos
-IMPORTLIBPREFIX=
-endif
-ifeq ($(OS_TARGET),watcom)
-STATICLIBPREFIX=
-SHORTSUFFIX=wat
-IMPORTLIBPREFIX=
-endif
-ifeq ($(OS_TARGET),linux)
-BATCHEXT=.sh
-EXEEXT=
-HASSHAREDLIB=1
-SHORTSUFFIX=lnx
-endif
-ifeq ($(OS_TARGET),freebsd)
-BATCHEXT=.sh
-EXEEXT=
-HASSHAREDLIB=1
-SHORTSUFFIX=fbs
-endif
-ifeq ($(OS_TARGET),netbsd)
-BATCHEXT=.sh
-EXEEXT=
-HASSHAREDLIB=1
-SHORTSUFFIX=nbs
-endif
-ifeq ($(OS_TARGET),openbsd)
-BATCHEXT=.sh
-EXEEXT=
-HASSHAREDLIB=1
-SHORTSUFFIX=obs
-endif
-ifeq ($(OS_TARGET),win32)
-PPUEXT=.ppw
-OEXT=.ow
-ASMEXT=.sw
-SMARTEXT=.slw
-STATICLIBEXT=.aw
-SHAREDLIBEXT=.dll
-SHORTSUFFIX=w32
-endif
-ifeq ($(OS_TARGET),os2)
-BATCHEXT=.cmd
-PPUEXT=.ppo
-ASMEXT=.so2
-OEXT=.oo2
-AOUTEXT=.out
-SMARTEXT=.sl2
-STATICLIBPREFIX=
-STATICLIBEXT=.ao2
-SHAREDLIBEXT=.dll
-SHORTSUFFIX=os2
-ECHO=echo
-IMPORTLIBPREFIX=
-endif
-ifeq ($(OS_TARGET),amiga)
-EXEEXT=
-PPUEXT=.ppu
-ASMEXT=.s
-OEXT=.o
-SMARTEXT=.sl
-STATICLIBEXT=.a
-SHAREDLIBEXT=.library
-SHORTSUFFIX=amg
-endif
-ifeq ($(OS_TARGET),atari)
-PPUEXT=.ppu
-ASMEXT=.s
-OEXT=.o
-SMARTEXT=.sl
-STATICLIBEXT=.a
-EXEEXT=.ttp
-SHORTSUFFIX=ata
-endif
-ifeq ($(OS_TARGET),beos)
-BATCHEXT=.sh
-PPUEXT=.ppu
-ASMEXT=.s
-OEXT=.o
-SMARTEXT=.sl
-STATICLIBEXT=.a
-EXEEXT=
-SHORTSUFFIX=be
-endif
-ifeq ($(OS_TARGET),solaris)
-BATCHEXT=.sh
-PPUEXT=.ppu
-ASMEXT=.s
-OEXT=.o
-SMARTEXT=.sl
-STATICLIBEXT=.a
-EXEEXT=
-SHORTSUFFIX=sun
-endif
-ifeq ($(OS_TARGET),qnx)
-BATCHEXT=.sh
-PPUEXT=.ppu
-ASMEXT=.s
-OEXT=.o
-SMARTEXT=.sl
-STATICLIBEXT=.a
-EXEEXT=
-SHORTSUFFIX=qnx
-endif
-ifeq ($(OS_TARGET),netware)
-STATICLIBPREFIX=
-PPUEXT=.ppu
-OEXT=.o
-ASMEXT=.s
-SMARTEXT=.sl
-STATICLIBEXT=.a
-SHAREDLIBEXT=.nlm
-EXEEXT=.nlm
-SHORTSUFFIX=nw
-IMPORTLIBPREFIX=imp
-endif
-ifeq ($(OS_TARGET),netwlibc)
-STATICLIBPREFIX=
-PPUEXT=.ppu
-OEXT=.o
-ASMEXT=.s
-SMARTEXT=.sl
-STATICLIBEXT=.a
-SHAREDLIBEXT=.nlm
-EXEEXT=.nlm
-SHORTSUFFIX=nwl
-IMPORTLIBPREFIX=imp
-endif
-ifeq ($(OS_TARGET),macos)
-BATCHEXT=
-PPUEXT=.ppu
-ASMEXT=.s
-OEXT=.o
-SMARTEXT=.sl
-STATICLIBEXT=.a
-EXEEXT=
-DEBUGSYMEXT=.xcoff
-SHORTSUFFIX=mac
-IMPORTLIBPREFIX=imp
-endif
 endif
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 FPCMADE=fpcmade.$(SHORTSUFFIX)
@@ -1748,15 +1588,6 @@ ASNAME=$(BINUTILSPREFIX)as
 LDNAME=$(BINUTILSPREFIX)ld
 ARNAME=$(BINUTILSPREFIX)ar
 RCNAME=$(BINUTILSPREFIX)rc
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-ifeq ($(OS_TARGET),win32)
-ifeq ($(CROSSBINDIR),)
-ASNAME=asw
-LDNAME=ldw
-ARNAME=arw
-endif
-endif
-endif
 ifndef ASPROG
 ifdef CROSSBINDIR
 ASPROG=$(CROSSBINDIR)/$(ASNAME)$(SRCEXEEXT)
@@ -1805,7 +1636,7 @@ ifeq ($(OS_TARGET),go32v2)
 UPXPROG:=1
 endif
 ifeq ($(OS_TARGET),win32)
-UPXPROG:=1
+UPXPROG:=
 endif
 ifdef UPXPROG
 UPXPROG:=$(strip $(wildcard $(addsuffix /upx$(SRCEXEEXT),$(SEARCHPATH))))
@@ -2167,7 +1998,7 @@ override FPCOPT+=-Aas
 endif
 endif
 ifeq ($(findstring 2.0.,$(FPC_VERSION)),)
-ifneq ($(findstring $(OS_TARGET),linux solaris),)
+ifneq ($(findstring $(OS_TARGET),freebsd openbsd netbsd linux solaris),)
 ifeq ($(CPU_TARGET),x86_64)
 override FPCOPT+=-Cg
 endif
@@ -2223,9 +2054,11 @@ ifndef CROSSINSTALL
 ifneq ($(TARGET_PROGRAMS),)
 override EXEFILES=$(addsuffix $(EXEEXT),$(TARGET_PROGRAMS))
 override EXEOFILES:=$(addsuffix $(OEXT),$(TARGET_PROGRAMS)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS))) $(addprefix $(IMPORTLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS)))
+override EXEDBGFILES:=$(addsuffix $(EXEDBGEXT),$(TARGET_PROGRAMS))
 override ALLTARGET+=fpc_exes
 override INSTALLEXEFILES+=$(EXEFILES)
 override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
+override CLEANEXEDBGFILES+=$(EXEDBGFILES)
 ifeq ($(OS_TARGET),os2)
 override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
 endif
@@ -2472,9 +2305,11 @@ fpc_zipdistinstall:
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
+override CLEANEXEDBGFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEDBGFILES))
 endif
 ifdef CLEAN_PROGRAMS
 override CLEANEXEFILES+=$(addprefix $(TARGETDIRPREFIX),$(addsuffix $(EXEEXT), $(CLEAN_PROGRAMS)))
+override CLEANEXEDBGFILES+=$(addprefix $(TARGETDIRPREFIX),$(addsuffix $(EXEDBGEXT), $(CLEAN_PROGRAMS)))
 endif
 ifdef CLEAN_UNITS
 override CLEANPPUFILES+=$(addsuffix $(PPUEXT),$(CLEAN_UNITS))
@@ -2490,6 +2325,9 @@ endif
 fpc_clean: $(CLEANTARGET)
 ifdef CLEANEXEFILES
 	-$(DEL) $(CLEANEXEFILES)
+endif
+ifdef CLEANEXEDBGFILES
+	-$(DELTREE) $(CLEANEXEDBGFILES)
 endif
 ifdef CLEANPPUFILES
 	-$(DEL) $(CLEANPPUFILES)
