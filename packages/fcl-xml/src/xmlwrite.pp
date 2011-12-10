@@ -130,9 +130,9 @@ end;
   ---------------------------------------------------------------------}
 
 const
-  AttrSpecialChars = ['<', '>', '"', '&', #9, #10, #13];
-  TextSpecialChars = ['<', '>', '&', #10, #13];
-  CDSectSpecialChars = [']'];
+  AttrSpecialChars = ['<', '>', '"', '&', #0..#$1F];
+  TextSpecialChars = ['<', '>', '&', #0..#8, #10..#$1F];
+  CDSectSpecialChars = [#0..#8, #11, #12, #14..#$1F, ']'];
   LineEndingChars = [#13, #10];
   QuotStr = '&quot;';
   AmpStr = '&amp;';
@@ -323,7 +323,7 @@ begin
     #10: Sender.wrtStr('&#xA;');
     #13: Sender.wrtStr('&#xD;');
   else
-    Sender.wrtChr(s[idx]);
+    raise EConvertError.Create('Illegal character');
   end;
 end;
 
@@ -344,7 +344,7 @@ begin
       end;
     #10: Sender.wrtStr(Sender.FLineBreak);
   else
-    Sender.wrtChr(s[idx]);
+    raise EConvertError.Create('Illegal character');
   end;
 end;
 
@@ -355,9 +355,10 @@ begin
     '<': Sender.wrtStr(ltStr);
     '>': Sender.wrtStr(gtStr);
     '&': Sender.wrtStr(AmpStr);
-    #13: Sender.wrtStr('&#xD;')
+    #13: Sender.wrtStr('&#xD;');
+    #10: Sender.wrtChr(#10);
   else
-    Sender.wrtChr(s[idx]);
+    raise EConvertError.Create('Illegal character');
   end;
 end;
 
@@ -371,7 +372,7 @@ begin
     // TODO: emit warning 'cdata-section-splitted'
   end
   else
-    Sender.wrtChr(s[idx]);
+    raise EConvertError.Create('Illegal character');
 end;
 
 const
