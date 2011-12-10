@@ -352,7 +352,7 @@ var
         'S': // -S mode
           if  (length(s)>2) and (s[3]='d') then
             begin // -Sd mode delphi
-              include(Scanner.Options,po_delphi);
+              Scanner.Options:=Scanner.Options+[po_delphi];
               Parser.Options:=Parser.Options+[po_delphi];
             end;
       end;
