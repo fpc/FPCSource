@@ -521,7 +521,7 @@ begin
       Inc(I);
       end;
     // search in BaseDirectory
-    if BaseDirectory<>'' then
+    if (Result=Nil) and (BaseDirectory<>'') then
       begin
       FN:=SearchLowUpCase(BaseDirectory+AName);
 	  try
