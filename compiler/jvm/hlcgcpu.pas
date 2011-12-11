@@ -2280,7 +2280,8 @@ implementation
             case tobjectdef(pd.owner.defowner).objecttype of
               odt_javaclass:
                 begin
-                  if (po_classmethod in pd.procoptions) then
+                  if (po_classmethod in pd.procoptions) or
+                     (pd.proctypeoption=potype_operator) then
                     opc:=a_invokestatic
                   else if (pd.visibility=vis_strictprivate) or
                      (pd.proctypeoption=potype_constructor) or
@@ -2298,7 +2299,8 @@ implementation
           end;
         recordsymtable:
           begin
-            if (po_staticmethod in pd.procoptions) then
+            if (po_staticmethod in pd.procoptions) or
+               (pd.proctypeoption=potype_operator) then
               opc:=a_invokestatic
             else if (pd.visibility=vis_strictprivate) or
                (pd.proctypeoption=potype_constructor) or

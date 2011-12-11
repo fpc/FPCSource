@@ -122,3 +122,5 @@ $PPC -O2 -g -B tdynarrnil
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tdynarrnil
 $PPC -O2 -g -B tnestdynarr
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tnestdynarr
+$PPC -O2 -g -B topovl
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. topovl
