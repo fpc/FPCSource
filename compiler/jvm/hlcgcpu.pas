@@ -1848,10 +1848,13 @@ implementation
           { erase sign extension for byte/smallint loads }
           if (def2regtyp(def)=R_INTREGISTER) and
              not is_signed(def) and
+             (def.typ=orddef) and
              not is_widechar(def) then
             case def.size of
-              1: finishandval:=255;
-              2: finishandval:=65535;
+              1: if (torddef(def).high>127) then
+                   finishandval:=255;
+              2: if (torddef(def).high>32767) then
+                   finishandval:=65535;
             end;
         end
       else
@@ -1891,7 +1894,9 @@ implementation
                   1:
                     begin
                       result:=a_baload;
-                      if not is_signed(def) then
+                      if not is_signed(def) and
+                         (def.typ=orddef) and
+                         (torddef(def).high>127) then
                         finishandval:=255;
                     end;
                   2:
@@ -1904,7 +1909,9 @@ implementation
                           { if we'd treat arrays of word as "array of widechar" we
                             could use a_caload, but that would make for even more
                             awkward interfacing with external Java code }
-                          if not is_signed(def) then
+                          if not is_signed(def) and
+                         (def.typ=orddef) and
+                         (torddef(def).high>32767) then
                             finishandval:=65535;
                         end;
                     end;
@@ -2018,10 +2025,10 @@ implementation
           ((tcgsize2size[fromcgsize]=tcgsize2size[tocgsize]) and
            (fromcgsize<>tocgsize)) or
           { needs to mask out the sign in the top 16 bits }
-          (((fromcgsize=OS_S8) and
-            (tocgsize=OS_16)) or
-           ((tosize=cwidechartype) and
-            (fromsize<>cwidechartype)))) then
+          ((fromcgsize=OS_S8) and
+           (tocgsize=OS_16)) or
+          ((tosize=cwidechartype) and
+           (fromsize<>cwidechartype))) then
         case tocgsize of
           OS_8:
             a_op_const_stack(list,OP_AND,s32inttype,255);
