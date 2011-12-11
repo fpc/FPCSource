@@ -197,8 +197,8 @@ function tjvmloadnode.handle_threadvar_access: tnode;
     result:=cloadnode.create(vs,vs.owner);
     typecheckpass(result);
     result:=ccallnode.createinternmethod(result,'GETREADWRITEREFERENCE',nil);
-    if not(tparavarsym(symtableentry).vardef.typ in [orddef,floatdef]) and
-       not jvmimplicitpointertype(tparavarsym(symtableentry).vardef) then
+    if not(tstaticvarsym(symtableentry).vardef.typ in [orddef,floatdef]) and
+       not jvmimplicitpointertype(tstaticvarsym(symtableentry).vardef) then
       begin
         { in these cases, the threadvar was internally constructed as an
           "array of jlobject", while the variable itself is a different kind of
