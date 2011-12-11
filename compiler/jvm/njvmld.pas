@@ -197,8 +197,30 @@ function tjvmloadnode.handle_threadvar_access: tnode;
     result:=cloadnode.create(vs,vs.owner);
     typecheckpass(result);
     result:=ccallnode.createinternmethod(result,'GETREADWRITEREFERENCE',nil);
-    result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
-    result:=cderefnode.create(result);
+    if not(tparavarsym(symtableentry).vardef.typ in [orddef,floatdef]) and
+       not jvmimplicitpointertype(tparavarsym(symtableentry).vardef) then
+      begin
+        { in these cases, the threadvar was internally constructed as an
+          "array of jlobject", while the variable itself is a different kind of
+          pointer (dynarmic array, class, interface, pointer type). We cannot
+          typecast an "array of jlobject" to e.g. an "array of array of byte",
+          even if all elements inside the array are "array of byte" (since the
+          outer array type is simply different) -> first dereference (= select
+          the array element) and then typecast to the result type. This works
+          even on the left-hand side because then we get e.g.
+            jlobject(threavarinstance.getreadwritereference^):=value;
+
+          threavarinstance.getreadwritereference returns a ppointer in these
+          cases.
+        }
+        result:=cderefnode.create(result);
+        result:=ctypeconvnode.create_explicit(result,resultdef);
+      end
+    else
+      begin
+        result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
+        result:=cderefnode.create(result);
+      end;
   end;
 
 

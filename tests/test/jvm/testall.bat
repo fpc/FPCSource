@@ -220,4 +220,8 @@ ppcjvm -O2 -g -B tdynarrnil
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tdynarrnil
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B tnestdynarr
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tnestdynarr
+if %errorlevel% neq 0 exit /b %errorlevel%
 
