@@ -319,7 +319,7 @@ uses
             else
               { the generic could have been specialized in the globalsymtable
                 already, so search there as well }
-              if specializest<>current_module.globalsymtable then
+              if (specializest<>current_module.globalsymtable) and assigned(current_module.globalsymtable) then
                 begin
                   srsym:=tsym(current_module.globalsymtable.findwithhash(hashedid));
                   if assigned(srsym) then
