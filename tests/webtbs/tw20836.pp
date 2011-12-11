@@ -1,15 +1,10 @@
+{ %NORUN }
+
+{ adjusted test by removing some "Lazarusisms" }
 program tw20836;
 
 {$mode objfpc}{$H+}
 
-uses
-  {$IFDEF UNIX}{$IFDEF UseCThreads}
-  cthreads,
-  {$ENDIF}{$ENDIF}
-  Classes
-  { you can add units after this };
-
-{.$R *.res}
 type
   generic TGObjectChangeCommand<_T>=object
                                         private
