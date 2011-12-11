@@ -83,6 +83,7 @@ uses
         old_current_genericdef,old_current_specializedef : tstoreddef;
         tempst : tglobalsymtable;
         old_block_type: tblock_type;
+        hashedid: thashedidstring;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -306,13 +307,28 @@ uses
         { Can we reuse an already specialized type? }
         if not assigned(tt) then
           begin
-            srsym:=tsym(specializest.find(uspecializename));
+            hashedid.id:=uspecializename;
+
+            srsym:=tsym(specializest.findwithhash(hashedid));
             if assigned(srsym) then
               begin
                 if srsym.typ<>typesym then
                   internalerror(200710171);
                 tt:=ttypesym(srsym).typedef;
-              end;
+              end
+            else
+              { the generic could have been specialized in the globalsymtable
+                already, so search there as well }
+              if specializest<>current_module.globalsymtable then
+                begin
+                  srsym:=tsym(current_module.globalsymtable.findwithhash(hashedid));
+                  if assigned(srsym) then
+                    begin
+                      if srsym.typ<>typesym then
+                        internalerror(2011121101);
+                      tt:=ttypesym(srsym).typedef;
+                    end;
+                end;
           end;
 
         if not assigned(tt) then
