@@ -31,7 +31,12 @@ type
     tm_isdst: longint;
   end;
 
-
+  Ptimeval = ^Ttimeval;
+  Ttimeval = record
+    tv_sec  : longint;
+    tv_usec : longint;
+  end;
+  Timeval = TTimeval;
 (* Some libc functions *)
 //function printf(format: Pchar; args: array of const): longint; cdecl; external;
 function printf(format: Pchar): longint; cdecl; varargs; external;
