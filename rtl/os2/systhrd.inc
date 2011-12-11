@@ -111,7 +111,7 @@ function DosCreateThread (var TID: cardinal; Address: pointer;
                                                  external 'DOSCALLS' index 311;
 
 function DosCreateMutExSem (Name: PChar; var Handle: THandle; Attr: cardinal;
-               State: boolean): cardinal; cdecl; external 'DOSCALLS' index 331;
+              State: cardinal): cardinal; cdecl; external 'DOSCALLS' index 331;
 
 function DosCloseMutExSem (Handle: THandle): cardinal; cdecl;
                                                  external 'DOSCALLS' index 333;
@@ -148,7 +148,7 @@ function DosSetPriority (Scope, TrClass: cardinal; Delta: longint;
                                                  external 'DOSCALLS' index 236;
 
 function DosCreateEventSem (Name: PChar; var Handle: THandle;
-                             Attr: cardinal; State: boolean): cardinal; cdecl;
+                             Attr: cardinal; State: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 324;
 
 function DosCloseEventSem (Handle: THandle): cardinal; cdecl;
@@ -530,7 +530,7 @@ end;
 
 procedure SysInitCriticalSection (var CS);
 begin
-  if DosCreateMutExSem (nil, THandle (CS), 0, false) <> 0 then
+  if DosCreateMutExSem (nil, THandle (CS), 0, 0) <> 0 then
    FPC_ThreadError;
 end;
 
@@ -598,11 +598,15 @@ begin
    Attr := 0
   else
    Attr := DCE_AutoReset;
-  RC := DosCreateEventSem (PChar (Name2), PLocalEventRec (Result)^.FHandle,
-                                                           Attr, InitialState);
+  if Name2 = '' then
+   RC := DosCreateEventSem (nil, PLocalEventRec (Result)^.FHandle,
+                                                 Attr, cardinal (InitialState))
+  else
+   RC := DosCreateEventSem (PChar (Name2), PLocalEventRec (Result)^.FHandle,
+                                                Attr, cardinal (InitialState));
   if RC <> 0 then
    begin
-    FreeMem (Result);
+    Dispose (PLocalEventRec (Result));
     FPC_ThreadError;
    end;
 end;
@@ -610,8 +614,13 @@ end;
 
 procedure SysBasicEventDestroy (State: PEventState);
 begin
-  DosCloseEventSem (PLocalEventRec (State)^.FHandle);
-  Dispose (PLocalEventRec (State));
+  if State = nil then
+   FPC_ThreadError
+  else
+   begin
+    DosCloseEventSem (PLocalEventRec (State)^.FHandle);
+    Dispose (PLocalEventRec (State));
+   end;
 end;
 
 
@@ -619,13 +628,21 @@ procedure SysBasicEventResetEvent (State: PEventState);
 var
   PostCount: cardinal;
 begin
-  DosResetEventSem (PLocalEventRec (State)^.FHandle, PostCount);
+  if State = nil then
+   FPC_ThreadError
+  else
+(* In case of later addition of error checking:    *)
+(* RC 300 = Error_Already_Reset which would be OK. *)
+   DosResetEventSem (PLocalEventRec (State)^.FHandle, PostCount);
 end;
 
 
 procedure SysBasicEventSetEvent (State: PEventState);
 begin
-  DosPostEventSem (PLocalEventRec (State)^.FHandle);
+  if State = nil then
+   FPC_ThreadError
+  else
+   DosPostEventSem (PLocalEventRec (State)^.FHandle);
 end;
 
 
@@ -633,23 +650,28 @@ function SysBasicEventWaitFor (Timeout: Cardinal; State: PEventState): longint;
 var
   RC: cardinal;
 begin
-  RC := DosWaitEventSem (PLocalEventRec (State)^.FHandle, Timeout);
-  case RC of
-   0: Result := wrSignaled;
-   Error_Timeout: Result := wrTimeout;
+  if State = nil then
+   FPC_ThreadError
   else
    begin
-    Result := wrError;
-    PLocalEventRec (State)^.FLastError := RC;
+    RC := DosWaitEventSem (PLocalEventRec (State)^.FHandle, Timeout);
+    case RC of
+     0: Result := wrSignaled;
+     Error_Timeout: Result := wrTimeout;
+    else
+     begin
+      Result := wrError;
+      PLocalEventRec (State)^.FLastError := RC;
+     end;
+    end;
    end;
-  end;
 end;
 
 
 function SysRTLEventCreate: PRTLEvent;
 begin
   Result := PRTLEvent (-1);
-  DosCreateEventSem (nil, THandle (Result), dce_AutoReset, false);
+  DosCreateEventSem (nil, THandle (Result), dce_AutoReset, 0);
 end;
 
 

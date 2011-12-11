@@ -1539,11 +1539,11 @@ function DosSetFSInfo (DiskNum, InfoLevel: cardinal; var Buffer: TFSinfo;
 {Check if verify mode is enabled.}
 function DosQueryVerify (var Enabled: longint): cardinal; cdecl;
 function DosQueryVerify (var Enabled: cardinal): cardinal; cdecl;
-function DosQueryVerify (var Enabled: boolean): cardinal; cdecl;
+function DosQueryVerify (var Enabled: boolean): cardinal;
 
 {Turn the verify mode on or off.}
 function DosSetVerify (Enable: cardinal): cardinal; cdecl;
-function DosSetVerify (Enable: boolean): cardinal; cdecl;
+function DosSetVerify (Enable: boolean): cardinal;
 
 {Change the number of filehandles our program can open. (Default=50). It
  won't hurt if there are files open when you are calling this.}
@@ -1892,7 +1892,7 @@ function DosCreateEventSem (Name: PChar;var Handle: THandle;
 function DosCreateEventSem (const Name: string; var Handle: THandle;
                             Attr, State: cardinal): cardinal;
 function DosCreateEventSem (Name: PChar;var Handle: THandle;
-                            Attr: cardinal; State: boolean): cardinal; cdecl;
+                            Attr: cardinal; State: boolean): cardinal;
 function DosCreateEventSem (const Name: string; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
 
@@ -1948,7 +1948,7 @@ function DosQueryEventSem (Handle: THandle; var Posted: cardinal): cardinal;
  Attr       = One or more of the smXXXX constants.
  State      = Initial state: (0/false=Not owned, 1/true=Owned.)}
 function DosCreateMutExSem (Name: PChar; var Handle: THandle;
-                            Attr: cardinal; State: boolean): cardinal; cdecl;
+                            Attr: cardinal; State: boolean): cardinal;
 function DosCreateMutExSem (const Name: string; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
 function DosCreateMutExSem (Name: PChar; var Handle: THandle;
@@ -2513,7 +2513,7 @@ function DosSetSignalExceptionFocus(Enable:longint;var Times:longint):cardinal;
 function DosSetSignalExceptionFocus (Enable: cardinal;
                                          var Times: cardinal): cardinal; cdecl;
 function DosSetSignalExceptionFocus (Enable: boolean;
-                                         var Times: cardinal): cardinal; cdecl;
+                                                var Times: cardinal): cardinal;
 
 {Tell OS/2 that if an exception occurs, it must queue it up, until a
  DosExitMustComplete follows. Urgent exceptions still occur. The only
@@ -2612,7 +2612,7 @@ function DosPeekQueue(Handle:longint;var ReqBuffer:TRequestData;
 function DosPeekQueue (Handle: THandle; var ReqBuffer: TRequestData;
                        var DataLen: cardinal; var DataPtr: pointer;
                        var Element: cardinal; Wait: boolean;
-                       var Priority: byte; ASem: THandle): cardinal; cdecl;
+                       var Priority: byte; ASem: THandle): cardinal;
 function DosPeekQueue (Handle: THandle; var ReqBuffer: TRequestData;
                        var DataLen: cardinal; var DataPtr: pointer;
                        var Element: cardinal; Wait: cardinal;
@@ -2650,7 +2650,7 @@ function DosReadQueue (Handle: THandle; var ReqBuffer: TRequestData;
 function DosReadQueue (Handle: THandle; var ReqBuffer: TRequestData;
                       var DataLen: cardinal; var DataPtr: pointer;
                       Element: cardinal; Wait: boolean; var Priority: byte;
-                      ASem: THandle): cardinal; cdecl;
+                      ASem: THandle): cardinal;
 
 {Write a data record to a queue.
  Handle         = Handle of queue to write to.
@@ -4705,14 +4705,23 @@ external 'DOSCALLS' index 225;
 function DosQueryVerify (var Enabled: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 225;
 
-function DosQueryVerify (var Enabled: boolean): cardinal; cdecl;
-external 'DOSCALLS' index 225;
-
-function DosSetVerify (Enable: boolean): cardinal; cdecl;
-external 'DOSCALLS' index 210;
+function DosQueryVerify (var Enabled: boolean): cardinal;
+var
+  En: cardinal;
+  RC: cardinal;
+begin
+  RC := DosQueryVerify (En);
+  Enabled := boolean (En);
+  DosQueryVerify := RC;
+end;
 
 function DosSetVerify (Enable: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 210;
+
+function DosSetVerify (Enable: boolean): cardinal;
+begin
+  DosSetVerify := DosSetVerify (cardinal (Enable));
+end;
 
 function DosSetMaxFH (Count: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 209;
@@ -4812,8 +4821,11 @@ function DosCreateEventSem (Name: PChar; var Handle: THandle;
 external 'DOSCALLS' index 324;
 
 function DosCreateEventSem (Name: PChar; var Handle: THandle;
-                            Attr: cardinal; State: boolean): cardinal; cdecl;
-external 'DOSCALLS' index 324;
+                            Attr: cardinal; State: boolean): cardinal;
+begin
+  DosCreateEventSem :=
+                      DosCreateEventSem (Name, Handle, Attr, cardinal (State));
+end;
 
 function DosCreateEventSem (const Name: string; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
@@ -4821,20 +4833,22 @@ function DosCreateEventSem (const Name: string; var Handle: THandle;
 var T:array[0..255] of char;
 
 begin
-    if Name<>'' then
-        begin
-            StrPCopy(@T,Name);
-            DosCreateEventSem:=DosCreateEventSem(@T,Handle,Attr,State);
-        end
-    else
-        DosCreateEventSem:=DosCreateEventSem(nil,Handle,Attr,State);
+  if Name<>'' then
+   begin
+    StrPCopy(@T,Name);
+    DosCreateEventSem :=
+                        DosCreateEventSem (@T, Handle, Attr, cardinal (State));
+   end
+  else
+   DosCreateEventSem :=
+                       DosCreateEventSem (nil, Handle, Attr, cardinal (State));
 end;
 
 function DosCreateEventSem (const Name: string; var Handle: THandle;
                             Attr, State: cardinal): cardinal;
 
 begin
-    DosCreateEventSem:=DosCreateEventSem(Name,Handle,Attr,boolean(State));
+  DosCreateEventSem := DosCreateEventSem (Name, Handle, Attr, boolean (State));
 end;
 
 function DosOpenEventSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
@@ -4873,12 +4887,15 @@ function DosQueryEventSem (Handle: THandle; var Posted: cardinal): cardinal;
 external 'DOSCALLS' index 330;
 
 function DosCreateMutExSem (Name: PChar; var Handle: THandle;
-                            Attr: cardinal; State:boolean): cardinal; cdecl;
+                            Attr, State: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 331;
 
 function DosCreateMutExSem (Name: PChar; var Handle: THandle;
-                            Attr, State: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 331;
+                            Attr: cardinal; State: boolean): cardinal;
+begin
+  DosCreateMutExSem :=
+                      DosCreateMutExSem (Name, Handle, Attr, cardinal (State));
+end;
 
 function DosCreateMutExSem (const Name: string; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
@@ -4886,20 +4903,23 @@ function DosCreateMutExSem (const Name: string; var Handle: THandle;
 var T:array[0..255] of char;
 
 begin
-    if Name<>'' then
-        begin
-            StrPCopy(@T,Name);
-            DosCreateMutExSem:=DosCreateMutExSem(@T,Handle,Attr,State);
-        end
-    else
-        DosCreateMutExSem:=DosCreateMutExSem(nil,Handle,Attr,State);
+  if Name<>'' then
+   begin
+    StrPCopy(@T,Name);
+    DosCreateMutExSem :=
+                        DosCreateMutExSem (@T, Handle, Attr, cardinal (State));
+   end
+  else
+   DosCreateMutExSem :=
+                       DosCreateMutExSem (nil, Handle, Attr, cardinal (State));
 end;
 
 function DosCreateMutExSem (const Name: string; var Handle: THandle;
                             Attr, State: cardinal): cardinal;
 
 begin
-    DosCreateMutExSem:=DosCreateMutExSem(Name,Handle,Attr,boolean(State));
+    DosCreateMutExSem :=
+                       DosCreateMutExSem (Name, Handle, Attr, boolean (State));
 end;
 
 function DosOpenMutExSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
@@ -5218,8 +5238,11 @@ function DosSetSignalExceptionFocus (Enable: cardinal;
 external 'DOSCALLS' index 378;
 
 function DosSetSignalExceptionFocus (Enable: boolean;
-                                         var Times: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 378;
+                                                var Times: cardinal): cardinal;
+begin
+  DosSetSignalExceptionFocus :=
+                         DosSetSignalExceptionFocus (cardinal (Enable), Times);
+end;
 
 function DosEnterMustComplete(var Nesting:longint):cardinal; cdecl;
 external 'DOSCALLS' index 380;
@@ -5296,8 +5319,11 @@ external 'QUECALLS' index 13;
 function DosPeekQueue (Handle: THandle; var ReqBuffer: TRequestData;
                        var DataLen: cardinal; var DataPtr: pointer;
                        var Element: cardinal; Wait: boolean;
-                       var Priority: byte; ASem: THandle): cardinal; cdecl;
-external 'QUECALLS' index 13;
+                       var Priority: byte; ASem: THandle): cardinal;
+begin
+  DosPeekQueue := DosPeekQueue (Handle, ReqBuffer, DataLen, DataPtr, Element,
+                                              cardinal (Wait), Priority, ASem);
+end;
 
 function DosPurgeQueue (Handle: THandle): cardinal; cdecl;
 external 'QUECALLS' index 10;
@@ -5323,8 +5349,11 @@ external 'QUECALLS' index 9;
 function DosReadQueue (Handle: THandle; var ReqBuffer: TRequestData;
                        var DataLen: cardinal; var DataPtr: pointer;
                        Element: cardinal; Wait: boolean; var Priority: byte;
-                       ASem: THandle): cardinal; cdecl;
-external 'QUECALLS' index 9;
+                       ASem: THandle): cardinal;
+begin
+  DosReadQueue := DosReadQueue (Handle, ReqBuffer, DataLen, DataPtr, Element,
+                                              cardinal (Wait), Priority, ASem);
+end;
 
 function DosWriteQueue (Handle: THandle; Request, DataLen: cardinal;
                         var DataBuf; Priority: cardinal): cardinal; cdecl;
