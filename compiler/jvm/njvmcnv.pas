@@ -550,8 +550,9 @@ implementation
           end
         else
           begin
-            if (ressize < sizeof(aint)) and
-               (def_cgsize(left.resultdef)<>def_cgsize(resultdef)) then
+            if ((ressize < sizeof(aint)) and
+                (def_cgsize(left.resultdef)<>def_cgsize(resultdef))) or
+               (is_widechar(left.resultdef)<>is_widechar(resultdef)) then
               begin
                 location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
                 location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
