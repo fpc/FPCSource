@@ -41,7 +41,7 @@ type
 implementation
 
   uses
-    jdk15;
+    {$ifdef java}jdk15{$else}androidr14{$endif};
 
   constructor tintfclass.create;
     begin

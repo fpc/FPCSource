@@ -4,7 +4,7 @@ program trange3;
 
 {$ifdef cpujvm}
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 {$macro on}
 {$define writeln:=jlsystem.fout.println}

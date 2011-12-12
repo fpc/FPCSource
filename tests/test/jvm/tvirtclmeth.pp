@@ -3,7 +3,7 @@ program tvirtclmeth;
 {$mode delphi}
 
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 type
   tvirtclmethbase = class

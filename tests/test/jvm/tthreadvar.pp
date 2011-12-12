@@ -4,7 +4,7 @@ program tthreadvar;
 {$modeswitch unicodestrings}
 
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 type
   tc = class

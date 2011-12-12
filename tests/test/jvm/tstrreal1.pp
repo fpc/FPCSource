@@ -2,7 +2,7 @@
 program tstrreal1;
 
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 {$macro on}
 {$define write:=JLSystem.fout.print}

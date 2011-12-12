@@ -3,7 +3,7 @@ program tvarpara;
 {$mode objfpc}
 
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 procedure test(var c: char);
 begin

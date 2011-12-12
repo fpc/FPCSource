@@ -4,7 +4,7 @@ program sort;
 {$modeswitch unicodestrings}
 
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 function test : string;
 var

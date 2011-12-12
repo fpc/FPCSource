@@ -2,7 +2,7 @@ program tstring1;
 
 {$ifdef cpujvm}
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 {$macro on}
 {$define write:=JLSystem.fout.print}

@@ -3,7 +3,7 @@ program tprop2;
 {$mode delphi}
 
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 type
  tpropclass1 = class

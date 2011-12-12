@@ -3,7 +3,7 @@ program tnestproc;
 {$mode delphi}
 
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 procedure outer(var para: byte);
   const xxx: longint = 5;

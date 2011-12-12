@@ -3,7 +3,7 @@ program tstring9
 {$ifdef fpc}{$mode objfpc}{$h+}{$endif}
 
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 {$macro on}
 {$define write:=JLSystem.fout.print}

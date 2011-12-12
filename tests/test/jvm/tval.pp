@@ -10,7 +10,7 @@ program tval;
 
 uses
 {$ifdef cpujvm}
-  jdk15,
+  {$ifdef java}jdk15{$else}androidr14{$endif},
 {$endif}
   { longint type, short string }
   tval1,

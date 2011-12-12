@@ -6,7 +6,7 @@ program tint;
 {$modeswitch exceptions}
 
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 {$ifdef VER1_0}
   {$define SKIP_CURRENCY_TEST}

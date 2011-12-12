@@ -25,7 +25,7 @@ Program taddset;
 {$define writeln:=jlsystem.fout.println}
 
 uses
-  jdk15;
+  {$ifdef java}jdk15{$else}androidr14{$endif};
 
 procedure halt(l: longint);
 begin
