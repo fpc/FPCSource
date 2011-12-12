@@ -148,7 +148,8 @@ const
   { 68 }  'NativeNT-i386',
   { 69 }  'iPhoneSim-i386',
   { 70 }  'Wii-powerpc',
-  { 71 }  'Java-JVM'
+  { 71 }  'Java-JVM',
+  { 72 }  'Android-JVM'
   );
 
 const

@@ -768,7 +768,7 @@ begin
                         break;
                       end;
                     'v' :
-                       If target_info.system=system_jvm_java32 then
+                       If target_info.system in systems_jvm then
                          If UnsetBool(More, j) then
                            exclude(init_settings.localswitches,cs_check_var_copyout)
                          Else
@@ -2313,7 +2313,8 @@ begin
     system_i386_nativent:
       // until these features are implemented, they are disabled in the compiler
       target_unsup_features:=[f_stackcheck];
-    system_jvm_java32:
+    system_jvm_java32,
+    system_jvm_android32:
       target_unsup_features:=[f_heap,f_textio,f_consoleio,f_fileio,
          f_variants,f_objects,f_threading,f_commandargs,
          f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources];
@@ -2862,6 +2863,15 @@ if (target_info.system=system_arm_darwin) then
       init_settings.optimizecputype:=cpu_armv6;
   end;
 {$endif arm}
+
+{$ifdef jvm}
+  { set default CPU type to Dalvik when targeting Android }
+  if target_info.system=system_jvm_android32 then
+    begin
+      if not option.CPUSetExplicitly then
+        init_settings.cputype:=cpu_dalvik;
+    end;
+{$endif jvm}
 
   { now we can define cpu and fpu type }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);

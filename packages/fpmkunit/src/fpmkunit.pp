@@ -69,7 +69,8 @@ Type
     linux,go32v2,win32,os2,freebsd,beos,netbsd,
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
-    win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,java
+    win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
+    java,android
   );
   TOSes = Set of TOS;
 
@@ -155,7 +156,8 @@ Const
     { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false),
     { haiku }   ( false, true,  false, false, false, false, false, false, false, false, false),
     { iphonesim}( false, true,  false, false, false, false, false, false, false, false, false),
-    { java }    ( false, false, false, false, false, false, false, false, false, false, true )
+    { java }    ( false, false, false, false, false, false, false, false, false, false, true ),
+    { android } ( false, false, false, false, false, false, false, false, false, false, true )
 
   );
 

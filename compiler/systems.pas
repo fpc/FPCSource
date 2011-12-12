@@ -303,26 +303,36 @@ interface
 
        { all systems that use garbage collection for reference-counted types }
        systems_garbage_collected_managed_types = [
-         system_jvm_java32
+         system_jvm_java32,
+         system_jvm_android32
        ];
 
        { all systems that use a managed vm (-> no real pointers, internal VMT
          format, ...) }
        systems_managed_vm = [
-         system_jvm_java32
+         system_jvm_java32,
+         system_jvm_android32
+       ];
+
+       { all systems based on the JVM }
+       systems_jvm = [
+         system_jvm_java32,
+         system_jvm_android32
        ];
 
        { all systems where typed constants have to be translated into node
          trees that initialise the data instead of into data sections }
        systems_typed_constants_node_init = [
-         system_jvm_java32
+         system_jvm_java32,
+         system_jvm_android32
        ];
 
        { all systems that don't use a built-in framepointer for accessing nested
          variables, but emulate it by wrapping nested variables in records
          whose address is passed around }
        systems_fpnestedstruct = [
-         system_jvm_java32
+         system_jvm_java32,
+         system_jvm_android32
        ];
 
        cpu2str : array[TSystemCpu] of string[10] =

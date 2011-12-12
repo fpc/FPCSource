@@ -1226,7 +1226,7 @@ implementation
          idtxt  : 'Jasmin';
          asmbin : 'java';
          asmcmd : '-jar $JASMINJAR $ASM -d $OBJDIR';
-         supported_targets : [system_jvm_java32];
+         supported_targets : [system_jvm_java32,system_jvm_android32];
          flags : [];
          labelprefix : 'L';
          comment : ' ; ';

@@ -922,7 +922,7 @@ implementation
       sstate: tscannerstate;
     begin
       { only necessary for the JVM target currently }
-      if not (target_info.system in [system_jvm_java32]) then
+      if not (target_info.system in systems_jvm) then
         exit;
       replace_scanner('synthetic_impl',sstate);
       add_synthetic_method_implementations_for_st(st);
@@ -1163,7 +1163,7 @@ implementation
     begin
       { create a dummy typesym for the JVM target, because the record
         has to be wrapped by a class }
-      if (target_info.system=system_jvm_java32) and
+      if (target_info.system in systems_jvm) and
          (def.typ=recorddef) and
          not assigned(def.typesym) then
         begin

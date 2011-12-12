@@ -1800,7 +1800,7 @@ begin
           if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
             hs:=target_info.sharedlibprefix+hs;
           { the JVM expects java/lang/Object rather than java.lang.Object }
-          if target_info.system=system_jvm_java32 then
+          if target_info.system in systems_jvm then
             Replace(hs,'.','/');
           import_dll:=stringdup(hs);
           include(procoptions,po_has_importdll);

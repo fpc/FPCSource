@@ -108,6 +108,71 @@ unit i_jvm;
             abi          : abi_default;
           );
 
+
+       system_jvm_android32_info : tsysteminfo =
+          (
+            system       : system_jvm_android32;
+            name         : 'Android via JVM';
+            shortname    : 'android';
+            flags        : [tf_files_case_sensitive,tf_no_generic_stackcheck,
+                            { avoid the creation of threadvar tables }
+                            tf_section_threadvars];
+            cpu          : cpu_jvm;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.j';
+            objext       : '.class';
+            resext       : '';
+            resobjext    : '.jar';
+            sharedlibext : '.jar';
+            staticlibext : '.jar';
+            staticlibprefix : '';
+            sharedlibprefix : '';
+            sharedClibext : '.jar';
+            staticClibext : '.jar';
+            staticClibprefix : '';
+            sharedClibprefix : '';
+            importlibprefix : '';
+            importlibext : '.jar';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_jvm_jasmin;
+            assemextern  : as_jvm_jasmin;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_none;
+            res          : res_jvm_raw;
+            dbg          : dbg_jasmin;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 4;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 0;
+            stacksize   : 262144;
+            abi          : abi_default;
+          );
+
+
   implementation
 
 end.

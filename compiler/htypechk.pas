@@ -1253,7 +1253,7 @@ implementation
                  { typeconversions on the assignment side must keep
                    left.location the same }
                  if not(gotderef or
-                        ((target_info.system=system_jvm_java32) and
+                        ((target_info.system in systems_jvm) and
                          (gotsubscript or gotvec))) then
                    begin
                      ttypeconvnode(hp).assignment_side:=true;

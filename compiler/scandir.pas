@@ -1144,7 +1144,7 @@ unit scandir;
 
     procedure dir_varparacopyoutcheck;
       begin
-        if target_info.system<>system_jvm_java32 then
+        if not(target_info.system in systems_jvm) then
           begin
             Message1(scan_w_illegal_switch,pattern);
             exit;

@@ -978,7 +978,7 @@ implementation
          current_specializedef:=nil;
          { create recdef }
          if (n<>'') or
-            (target_info.system<>system_jvm_java32) then
+            not(target_info.system in systems_jvm) then
            begin
              recst:=trecordsymtable.create(n,current_settings.packrecords);
              { can't use recst.realname^ instead of n, because recst.realname is

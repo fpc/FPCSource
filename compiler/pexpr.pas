@@ -2358,7 +2358,7 @@ implementation
                  if assigned(current_procinfo) and
                     assigned(current_structdef) and
                     ((current_structdef.typ=objectdef) or
-                     ((target_info.system=system_jvm_java32) and
+                     ((target_info.system in systems_jvm) and
                       (current_structdef.typ=recorddef)))then
                   begin
                     { for record helpers in mode Delphi "inherited" is not

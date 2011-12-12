@@ -35,6 +35,7 @@ dirs_embedded=embedded
 dirs_nativent=nativent
 dirs_wii=wii
 dirs_java=java
+dirs_jvm_android=android/jvm
 
 [install]
 fpcpackage=y

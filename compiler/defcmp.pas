@@ -665,7 +665,7 @@ implementation
                      { ugly, but delphi allows it }
                      if cdo_explicit in cdoptions then
                        begin
-                         if target_info.system in [system_jvm_java32] then
+                         if target_info.system in systems_jvm then
                            begin
                              doconv:=tc_equal;
                              eq:=te_convert_l1;
@@ -687,7 +687,7 @@ implementation
                            typecasts must not be treated as integer-like
                            conversions
                          }
-                         if target_info.system in [system_jvm_java32] then
+                         if target_info.system in systems_jvm then
                            begin
                              doconv:=tc_equal;
                              eq:=te_convert_l1;
@@ -1049,7 +1049,7 @@ implementation
                      }
                      if (((cdo_explicit in cdoptions) and
                           ((m_delphi in current_settings.modeswitches) or
-                           (target_info.system in [system_jvm_java32])
+                           (target_info.system in systems_jvm)
                           )
                          ) or
                          (cdo_internal in cdoptions)
@@ -1059,7 +1059,7 @@ implementation
                            typecasts must not be treated as integer-like
                            conversions
                          }
-                         if target_info.system in [system_jvm_java32] then
+                         if target_info.system in systems_jvm then
                            begin
                              doconv:=tc_equal;
                              eq:=te_convert_l1;
@@ -1435,7 +1435,7 @@ implementation
                    { in Java enums /are/ class instances, and hence such
                      typecasts must not be treated as integer-like conversions
                    }
-                   else if ((not(target_info.system in [system_jvm_java32]) and
+                   else if ((not(target_info.system in systems_jvm) and
                         (def_from.typ=enumdef)) or
                        (def_from.typ=orddef)) and
                       (m_delphi in current_settings.modeswitches) and

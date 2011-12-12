@@ -1697,7 +1697,7 @@ implementation
     function tstringdef.is_related(d: tdef): boolean;
       begin
         result:=
-          (target_info.system=system_jvm_java32) and
+          (target_info.system in systems_jvm) and
           (((stringtype in [st_unicodestring,st_widestring]) and
             ((d=java_jlobject) or
              (d=java_jlstring))) or
@@ -3312,7 +3312,7 @@ implementation
         { records are implemented via classes in the JVM target, and are
           all descendents of the java_fpcbaserecordtype class }
         is_related:=false;
-        if (target_info.system=system_jvm_java32) then
+        if (target_info.system in systems_jvm) then
           begin
             if d.typ=objectdef then
               begin
@@ -6537,7 +6537,7 @@ implementation
           assigned(def) and
           (((def.typ=objectdef) and
             (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava])) or
-           ((target_info.system=system_jvm_java32) and
+           ((target_info.system in systems_jvm) and
             (def.typ=recorddef)));
       end;
 

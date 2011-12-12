@@ -1796,7 +1796,7 @@ implementation
                 selfdef:=tprocdef(procdefinition).struct;
               if (oo_has_vmt in tprocdef(procdefinition).struct.objectoptions) or
                  { all Java classes have a "VMT" }
-                 (target_info.system in [system_jvm_java32]) then
+                 (target_info.system in systems_jvm) then
                 begin
                   { we only need the vmt, loading self is not required and there is no
                     need to check for typen, because that will always get the

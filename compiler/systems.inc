@@ -148,7 +148,8 @@
              system_i386_nativent,      { 68 }
              system_i386_iphonesim,     { 69 }
              system_powerpc_wii,        { 70 }
-             system_jvm_java32          { 71 }
+             system_jvm_java32,         { 71 }
+             system_jvm_android32       { 72 }
        );
 
      type

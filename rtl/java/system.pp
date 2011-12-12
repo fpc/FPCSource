@@ -72,8 +72,21 @@ const
 
 
 { Java base class type }
+{$ifdef java}
+{$define GOTJAVASYSINCLUDE}
 {$i java_sysh.inc}
 {$i java_sys.inc}
+{$endif}
+
+{$ifdef android}
+{$define GOTJAVASYSINCLUDE}
+{$i java_sysh_android.inc}
+{$i java_sys_android.inc}
+{$endif}
+
+{$ifndef GOTJAVASYSINCLUDE}
+{$error Missing include file with base Java classes}
+{$endif}
 
   FpcEnumValueObtainable = interface
     function fpcOrdinal: jint;

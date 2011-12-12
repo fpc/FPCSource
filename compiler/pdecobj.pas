@@ -421,7 +421,7 @@ implementation
             if hs<>'' then
               begin
                 { the JVM expects java/lang/Object rather than java.lang.Object }
-                if target_info.system=system_jvm_java32 then
+                if target_info.system in systems_jvm then
                   Replace(hs,'.','/');
                 stringdispose(od.import_lib);
                 od.import_lib:=stringdup(hs);
