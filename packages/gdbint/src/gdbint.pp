@@ -120,13 +120,41 @@ interface
   {$define GDB_HAS_BP_NONE}
 {$endif def GDB_V608}
 
+{ 7.4.x }
+{$ifdef GDB_V704}
+  {$info using gdb 7.4.x}
+  {$define GDB_V7}
+  {$define GDB_BP_LOCATION_HAS_GDBARCH}
+  {$define GDB_HAS_PROGRAM_SPACE}
+  {$define GDB_NO_UIOUT}
+  {$define GDB_NEEDS_INTERPRETER_SETUP}
+  {$define GDB_NEEDS_SET_INSTREAM}
+  {$define GDB_NOTIFY_BREAKPOINT_ARG_IS_BREAKPOINT_PTR}
+  {$define GDB_USES_BP_OPS}
+  {$define GDB_BP_TI_HAS_LENGTH}
+  {$define GDB_BP_LOCATION_HAS_REFCOUNT}
+  {$define GDB_BP_LOCATION_HAS_OPS}
+  {$define GDB_UI_FILE_HAS_WRITE_ASYNC}
+{$endif def GDB_V704}
+
 { 7.3.x }
 {$ifdef GDB_V703}
   {$info using gdb 7.3.x}
   {$define GDB_V7}
   {$define GDB_BP_LOCATION_HAS_GDBARCH}
   {$define GDB_HAS_PROGRAM_SPACE}
-{$endif def GDB_V702}
+  {$define GDB_BP_TI_HAS_LENGTH}
+  {$define GDB_BP_LOCATION_HAS_REFCOUNT}
+  {$ifdef GDB_CVS}
+    {$define GDB_NO_UIOUT}
+    {$define GDB_NEEDS_INTERPRETER_SETUP}
+    {$define GDB_NEEDS_SET_INSTREAM}
+    {$define GDB_NOTIFY_BREAKPOINT_ARG_IS_BREAKPOINT_PTR}
+    {$define GDB_USES_BP_OPS}
+    {$define GDB_BP_LOCATION_HAS_OPS}
+    {$define GDB_UI_FILE_HAS_WRITE_ASYNC}
+  {$endif GDB_CVS}
+{$endif def GDB_V703}
 
 { 7.2.x }
 {$ifdef GDB_V702}
@@ -448,8 +476,9 @@ interface
   {$LINKLIB libintl.a}
   {$LINKLIB imagehlp}
   {$endif not USE_MINGW_GDB}
-  {$LINKLIB kernel32}
+  {$LINKLIB advapi32}
   {$LINKLIB user32}
+  {$LINKLIB kernel32}
 {$endif win32}
 
 {$ifdef win64}
@@ -588,9 +617,11 @@ type
 type
 
   pui_file = ^ui_file;
+  pstdio_file = ^stdio_file;
 
   ui_file_flush_ftype = procedure(stream : pui_file);cdecl;
   ui_file_write_ftype = procedure(stream : pui_file;buf : pchar;len : longint);cdecl;
+  ui_file_write_async_save_ftype = procedure(stream : pui_file;buf : pchar;len : longint);cdecl;
   ui_file_fputs_ftype = procedure(buf : pchar; stream : pui_file);cdecl;
   ui_file_delete_ftype = procedure(stream : pui_file);cdecl;
   ui_file_isatty_ftype = function(stream : pui_file) : longbool;cdecl;
@@ -605,6 +636,9 @@ type
       magic : plongint;
       to_flush  : ui_file_flush_ftype;
       to_write  : ui_file_write_ftype;
+      {$ifdef GDB_UI_FILE_HAS_WRITE_ASYNC}
+      to_write_async_safe   : ui_file_write_async_save_ftype;
+      {$endif}
       to_fputs  : ui_file_fputs_ftype;
       {$ifdef GDB_V6}
       to_read   : ui_file_read_ftype;
@@ -614,6 +648,13 @@ type
       to_rewind : ui_file_rewind_ftype;
       to_put    : ui_file_put_ftype;
       to_data   : pointer;
+    end;
+
+  stdio_file = record
+      magic : plongint;
+      _file : P_C_FILE;
+      df : longint;
+      close_p : longint;
     end;
 
   { used to delete stdio_ui_file  gdb_stdout and gdb_stderr }
@@ -774,10 +815,16 @@ function  inferior_pid : longint;
 {$ifdef GDB_V6}
 type
   ui_out = pointer;
+{$ifndef GDB_NO_UIOUT}
 var
   uiout : ui_out;cvar;external;
+{$else  GDB_NO_UIOUT}
+var
+  cli_uiout : ui_out;cvar;external;
+  current_uiout : ui_out;cvar;external;
+{$endif GDB_NO_UIOUT}
 function cli_out_new (stream : pui_file):ui_out;cdecl;external;
-{$endif}
+{$endif GDB_V6}
 
 {$ifdef go32v2}
   { needed to be sure %fs contains the DOS memory selector
@@ -869,6 +916,13 @@ type
      pCORE_ADDR = ^CORE_ADDR;
      pblock = ^block;
 
+     tframe_id = record
+       stack_addr, code_addr, special_addr : CORE_ADDR;
+       addr_p_flags : byte;{ for three 1 bit flags
+       stack_addr_p, code_addr_p, special_addr_p : cint : 1; }
+       inline_depth : longint;
+     end;
+
      tlanguage = (language_unknown,language_auto,language_c,
        language_cplus,language_java,language_chill,
        language_fortran,language_m2,language_asm,
@@ -897,9 +951,18 @@ type
 
      target_hw_bp_type = (hw_write, hw_read, hw_access, hw_execute);
 
+     { pointer to structures that we don't need }
+     pbp_ops = pointer;
+     pbp_location_ops = pointer;
+     pprogram_space = pointer;
+     pgdbarch = pointer;
+
 {$PACKRECORDS 4}
      pbreakpoint = ^breakpoint;
      breakpoint = record
+{$ifdef GDB_USES_BP_OPS}
+          ops : pbp_ops;
+{$endif GDB_USES_BP_OPS}
           next : pbreakpoint;
           typ : bptype;
           enable : tenable;
@@ -910,19 +973,36 @@ type
 {$else not GDB_USES_BP_LOCATION}
           address : CORE_ADDR;
 {$endif not GDB_USES_BP_LOCATION}
+{$ifndef GDB_USES_BP_OPS}
           line_number : longint;
           source_file : pchar;
+{$endif not GDB_USES_BP_OPS}
           silent : byte;
+{$ifdef GDB_USES_BP_OPS}
+          display_canonical: byte;
+{$endif GDB_USES_BP_OPS}
+
           ignore_count : longint;
 {$ifndef GDB_USES_BP_LOCATION}
           shadow_contents : array[0..15] of char;
           inserted : char;
           duplicate : char;
 {$endif not GDB_USES_BP_LOCATION}
+
           commands : pointer; {^command_line}
+{$ifdef GDB_USES_BP_OPS}
+          frame_id : tframe_id;
+          pspace : pprogram_space;
+{$else not GDB_USES_BP_OPS}
           frame : CORE_ADDR;
           cond : pointer; {^expression}
-          addr_string : ^char;
+{$endif GDB_USES_BP_OPS}
+          addr_string : pchar;
+{$ifdef GDB_USES_BP_OPS}
+          filter : pchar;
+          addr_string_range_end : pchar;
+          gdbarch : pgdbarch;
+{$endif GDB_USES_BP_OPS}
           language : tlanguage;
           input_radix : longint;
           cond_string : ^char;
@@ -941,6 +1021,9 @@ type
      bp_target_info = record
           placed_address_space : pointer;{paddress_space;}
           placed_address : CORE_ADDR;
+{$ifdef GDB_BP_TI_HAS_LENGTH}
+          length : longint;
+{$endif GDB_BP_TI_HAS_LENGTH}
           shadow_contents : array[0..15] of char;
           shadow_len : longint;
           placed_size : longint;
@@ -948,9 +1031,17 @@ type
 
      bp_location = record
          next : pbp_location;
+{$ifdef GDB_BP_LOCATION_HAS_OPS}
+         ops : pbp_location_ops;
+{$endif GDB_BP_LOCATION_HAS_OPS}
+
+{$ifdef GDB_BP_LOCATION_HAS_REFCOUNT}
+        refc : longint;
+{$else}
 {$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          global_next : pbp_location;
 {$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+{$endif}
          loc_type : bp_loc_type;
          owner : pbreakpoint;
 {$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
@@ -961,10 +1052,10 @@ type
          inserted : byte;
          duplicate : byte;
 {$ifdef GDB_BP_LOCATION_HAS_GDBARCH}
-         gdbarch : pointer;{pgdbarch;}
+         gdbarch : pgdbarch;
 {$endif GDB_BP_LOCATION_HAS_GDBARCH}
 {$ifdef GDB_HAS_PROGRAM_SPACE}
-         pspace : pointer;{pprogram_space;}
+         pspace : pprogram_space;
 {$endif GDB_HAS_PROGRAM_SPACE}
          address : CORE_ADDR;
 {$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
@@ -979,6 +1070,11 @@ type
          target_info : bp_target_info;
          overlay_target_info : bp_target_info;
          events_till_retirement : longint;
+{$ifdef GDB_USES_BP_OPS}
+        { line and source file are in location }
+          line_number : longint;
+          source_file : pchar;
+{$endif not GDB_USES_BP_OPS}
       end;
 
      tfreecode=(free_nothing,free_contents,free_linetable);
@@ -1508,6 +1604,12 @@ var
   dbx_commands : longint;cvar;public;
 {$endif GDB_HAS_DB_COMMANDS}
 
+{$ifdef GDB_NEEDS_SET_INSTREAM}
+var
+  gdb_stdin : pui_file;cvar;public;
+  instream : P_C_FILE;cvar;external;
+  function gdb_fopen (filename : pchar; mode : pchar) : pui_file;cdecl;external;
+{$endif GDB_NEEDS_SET_INSTREAM}
 var
   gdb_stdout : pui_file;cvar;public;
   gdb_stderr : pui_file;cvar;public;
@@ -2451,7 +2553,12 @@ begin
      last_breakpoint_number:=b.number;
      { function breakpoints have zero as file and as line !!
        but they are valid !! }
+{$ifndef GDB_USES_BP_OPS}
      invalid_breakpoint_line:=(b.line_number<>sym.line) and (b.line_number<>0);
+{$else GDB_USES_BP_OPS}
+     invalid_breakpoint_line:=(b.loc=nil) or
+       ((b.loc^.line_number<>sym.line) and (b.loc^.line_number<>0));
+{$endif GDB_USES_BP_OPS}
 {$ifdef GDB_USES_BP_LOCATION}
      if assigned (b.loc) then
        last_breakpoint_address:=b.loc^.address
@@ -2471,7 +2578,11 @@ end;
 {$ifdef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
 
 type
+{$ifdef GDB_NOTIFY_BREAKPOINT_ARG_IS_BREAKPOINT_PTR}
+  breakpoint_created_function_type = procedure (bpp : pbreakpoint); cdecl;
+{$else not GDB_NOTIFY_BREAKPOINT_ARG_IS_BREAKPOINT_PTR}
   breakpoint_created_function_type = procedure (bpnum : longint); cdecl;
+{$endif not GDB_NOTIFY_BREAKPOINT_ARG_IS_BREAKPOINT_PTR}
   pobserver = pointer;
 var
   breakpoint_created_observer : pobserver = nil;
@@ -2479,8 +2590,14 @@ var
 function observer_attach_breakpoint_created(create_func : breakpoint_created_function_type) : pobserver;cdecl;external;
 procedure observer_detach_breakpoint_created(pob : pobserver);cdecl;external;
 
-var breakpoint_chain : pbreakpoint ;cvar;external;
 
+{$ifdef GDB_NOTIFY_BREAKPOINT_ARG_IS_BREAKPOINT_PTR}
+procedure notify_breakpoint_created(bpp : pbreakpoint); cdecl;
+begin
+  CreateBreakpointHook(bpp^);
+end;
+{$else not GDB_NOTIFY_BREAKPOINT_ARG_IS_BREAKPOINT_PTR}
+var breakpoint_chain : pbreakpoint ;cvar;external;
 
 procedure notify_breakpoint_created(bpnum : longint);cdecl;
 var
@@ -2498,6 +2615,7 @@ begin
         pb:=pb^.next;
     end;
 end;
+{$endif not GDB_NOTIFY_BREAKPOINT_ARG_IS_BREAKPOINT_PTR}
 {$endif def GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
 
 {*****************************************************************************
@@ -2981,6 +3099,12 @@ var
   current_directory : pchar; cvar; external;
   gdb_dirbuf : array[0..0] of char; cvar; external;
   CurrentDir : AnsiString;
+{$ifdef GDB_NEEDS_INTERPRETER_SETUP}
+  type
+     interpreter_struct_p = pointer; { to opaque type }
+  function interp_lookup (name : pchar) : interpreter_struct_p;cdecl; external;
+  function interp_set (interp : interpreter_struct_p) : longbool;cdecl; external;
+{$endif GDB_NEEDS_INTERPRETER_SETUP}
 const
   DIRBUF_SIZE = 1024;
 
@@ -2989,10 +3113,23 @@ procedure InitLibGDB;
 var
   OldSigInt : SignalHandler;
 {$endif supportexceptions}
+{$ifdef GDB_NEEDS_SET_INSTREAM}
+var
+  dummy_file : pui_file;
+{$endif GDB_NEEDS_SET_INSTREAM}
+
 {$ifdef GDB_INIT_HAS_ARGV0}
 var
   argv0 : pchar;
 {$endif not GDB_INIT_HAS_ARGV0}
+{$ifdef GDB_NEEDS_INTERPRETER_SETUP}
+var
+  interp : interpreter_struct_p;
+{$endif GDB_NEEDS_INTERPRETER_SETUP}
+var
+ save_gdb_stdin,
+ save_gdb_stdout,
+ save_gdb_stderr : pui_file;
 begin
 {$ifdef go32v2}
   c_environ:=system.envp;
@@ -3015,8 +3152,25 @@ begin
     ui_file_delete(gdb_stderr);
   if assigned(gdb_stdout) then
     ui_file_delete(gdb_stdout);
+{$ifdef GDB_NEEDS_SET_INSTREAM}
+  if assigned(gdb_stdin) then
+    ui_file_delete(gdb_stdin);
+  gdb_stdin:=mem_fileopen;
+  save_gdb_stdin:=gdb_stdin;
+  dummy_file :=gdb_fopen('dummy.$$$','a');
+  {in captured_main code, this is simply
+   instream:=stdin; but stdin is a highly system dependent macro
+   so that we try to avoid it here }
+  if assigned(dummy_file) then
+    instream:=pstdio_file(dummy_file^.to_data)^._file
+  else
+    instream:=nil;
+{$endif GDB_NEEDS_SET_INSTREAM}
+
   gdb_stderr:=mem_fileopen;
   gdb_stdout:=mem_fileopen;
+  save_gdb_stderr:=gdb_stderr;
+  save_gdb_stdout:=gdb_stdout;
   gdb_stdlog:=gdb_stderr;
   gdb_stdtarg:=gdb_stderr;
   set_ui_file_write(gdb_stdout,@gdbint_ui_file_write);
@@ -3025,7 +3179,9 @@ begin
   error_init;
 {$endif GDB_NEEDS_NO_ERROR_INIT}
 {$ifdef GDB_V6}
-//  gdb_stdtargin := gdb_stdin;
+{$ifdef GDB_NEEDS_SET_INSTREAM}
+  gdb_stdtargin := gdb_stdin;
+{$endif GDB_NEEDS_SET_INSTREAM}
   gdb_stdtargerr := gdb_stderr;
 {$endif}
   GetDir(0, CurrentDir);
@@ -3037,8 +3193,10 @@ begin
   next_exit:=exitproc;
   exitproc:=@DoneLibGDB;
 {$ifdef GDB_V6}
+{$ifndef GDB_NO_UIOUT}
   uiout := cli_out_new (gdb_stdout);
-{$endif}
+{$endif not GDB_NO_UIOUT}
+{$endif GDB_V6}
 {$ifdef GDB_INIT_HAS_ARGV0}
   getmem(argv0,length(paramstr(0))+1);
   strpcopy(argv0,paramstr(0));
@@ -3047,6 +3205,31 @@ begin
 {$else not GDB_INIT_HAS_ARGV0}
   gdb_init;
 {$endif not GDB_INIT_HAS_ARGV0}
+{$ifdef GDB_NEEDS_INTERPRETER_SETUP}
+  { interpreter can only be set after all files are
+    initialized, which is done in gdb_init function. }
+  interp := interp_lookup ('console');
+  interp_set (interp);
+
+  { We need to re-set gdb_stdXX ui_files }
+  if assigned(gdb_stderr) then
+    ui_file_delete(gdb_stderr);
+  if assigned(gdb_stdout) then
+    ui_file_delete(gdb_stdout);
+  if assigned(gdb_stdin) then
+    ui_file_delete(gdb_stdin);
+  gdb_stdin:=save_gdb_stdin;
+  gdb_stderr:=save_gdb_stderr;
+  gdb_stdout:=save_gdb_stdout;
+  gdb_stdlog:=gdb_stderr;
+  gdb_stdtarg:=gdb_stderr;
+  set_ui_file_write(gdb_stdout,@gdbint_ui_file_write);
+  set_ui_file_write(gdb_stderr,@gdbint_ui_file_write);
+{$ifdef GDB_NO_UIOUT}
+  cli_uiout := cli_out_new (gdb_stdout);
+  current_uiout:=cli_uiout;
+{$endif GDB_NO_UIOUT}
+{$endif GDB_NEEDS_INTERPRETER_SETUP}
 {$ifdef supportexceptions}
   {$ifdef unix}
     fpsignal(SIGINT,OldSigInt);
