@@ -201,5 +201,10 @@ BEGIN
   dispose(X);
  { for i:=1 to 99 do
     Writeln('Line ',i); }
+  if (TestOne<>1) or (TestOne(5)<>5) or (TestOne('6')<>6) then
+    begin
+      Writeln('Error while testing TestOne function overloads');
+      RunError(200);
+    end;
   Halt(4);
 END.
