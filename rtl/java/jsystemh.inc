@@ -760,7 +760,7 @@ const
 
 { documenting compiler proc. is useless, they shouldn't be used by the user anyways }
 {$ifndef fpdocsystem}
-{$i compproc.inc}
+{$i jcompproc.inc}
 {$endif fpdocsystem}
 
 {*****************************************************************************
