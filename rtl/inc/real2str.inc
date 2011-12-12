@@ -64,7 +64,7 @@ type
   TIntPartStack = array[1..maxDigits+1] of valReal;
 
 var
-{$ifdef jvm}
+{$ifdef cpujvm}
   doublebits: int64;
 {$endif}
   roundCorr, corrVal, factor : valReal;

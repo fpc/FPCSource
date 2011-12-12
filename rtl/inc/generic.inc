@@ -1140,7 +1140,7 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
-{$ifndef JVM}
+{$ifndef cpujvm}
 
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
 
@@ -1163,7 +1163,7 @@ function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_STRTOSHORTSTRINGPROC}
   end;
 
-{$endif not JVM}
+{$endif not cpujvm}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
@@ -1781,7 +1781,7 @@ function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLIN
   end;
 
 
-{$ifndef JVM}
+{$ifndef cpujvm}
 function align(addr : Pointer;alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
   var
     tmp: PtrUInt;
