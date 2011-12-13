@@ -1510,7 +1510,7 @@ begin
 end;
 {$endif}
 
-procedure InitHeap;
+procedure InitHeap; public name '_FPC_InitHeap';
 var
   loc_freelists: pfreelists;
 begin

@@ -47,6 +47,7 @@ function TlsGetValue(dwTlsIndex : DWord) : pointer; stdcall;
 
 procedure InitSystemThreads; external name '_FPC_InitSystemThreads';
 procedure SysAllocateThreadVars; external name '_FPC_SysAllocateThreadVars';
+procedure InitHeap; external name '_FPC_InitHeap';
 {$endif FPC_INSSIDE_SYSINIT}
 
 procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer);
@@ -68,7 +69,10 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
          Exec_Tls_Callback is now part of sysinit unit for win32
          and the EntryInformation is a constant which sholud prevent troubles }
        EXEC_PROCESS_ATTACH:
-         InitSystemThreads;
+         begin
+           InitHeap;
+           InitSystemThreads;
+         end;
 
        EXEC_THREAD_ATTACH :
          begin

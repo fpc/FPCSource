@@ -584,8 +584,12 @@ begin
     SysInstance:=getmodulehandle(nil);
   MainInstance:=SysInstance;
   cmdshow:=startupinfo.wshowwindow;
-  { Setup heap }
-  InitHeap;
+  { Setup heap and threading, these may be already initialized from TLS callback }
+  if not Assigned(CurrentTM.BeginThread) then
+  begin
+    InitHeap;
+    InitSystemThreads;
+  end;  
   SysInitExceptions;
   { setup fastmove stuff }
   fpc_cpucodeinit;
@@ -598,8 +602,6 @@ begin
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
-  { threading }
-  InitSystemThreads;
   { Reset internal error variable }
   errno:=0;
   initvariantmanager;
