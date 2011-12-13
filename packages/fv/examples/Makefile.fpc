@@ -5,6 +5,9 @@
 [target]
 programs=testapp
 
+[compiler]
+includedir=../src
+
 [require]
 packages=fv
 
