@@ -33,5 +33,4 @@ begin
   else
     result:=-1;
 end;
-WWWWW
 end.
