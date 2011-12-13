@@ -148,9 +148,6 @@ const
 
 procedure install_exception_handlers;forward;
 procedure remove_exception_handlers;forward;
-{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
-procedure PascalMain;stdcall;external name 'PASCALMAIN';
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
 Procedure ExitDLL(Exitcode : longint); forward;
 
@@ -173,15 +170,8 @@ begin
    end;
   remove_exception_handlers;
 
-  { in 2.0 asm_exit does an exitprocess }
-{$ifndef ver2_0}
   { do cleanup required by the startup code }
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
   EntryInformation.asm_exit();
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
-  asm_exit;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-{$endif ver2_0}
 
   { call exitprocess, with cleanup as required }
   ExitProcess(exitcode);
@@ -224,11 +214,7 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
         movl %eax,_SS
         xorl %ebp,%ebp
      end;
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
      EntryInformation.PascalMain();
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
-     PascalMain;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
      asm
         popl %ebp
      end;
@@ -420,23 +406,11 @@ procedure JumpToHandleErrorFrame;
       SysResetFPU;
     { build a fake stack }
     asm
-{$ifdef REGCALL}
       movl   ebp,%ecx
       movl   eip,%edx
       movl   error,%eax
       pushl  eip
       movl   ebp,%ebp // Change frame pointer
-{$else}
-      movl   ebp,%eax
-      pushl  %eax
-      movl   eip,%eax
-      pushl  %eax
-      movl   error,%eax
-      pushl  %eax
-      movl   eip,%eax
-      pushl  %eax
-      movl   ebp,%ebp // Change frame pointer
-{$endif}
 
 {$ifdef SYSTEMEXCEPTIONDEBUG}
       jmpl   DebugHandleErrorAddrFrame
