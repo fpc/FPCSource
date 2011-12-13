@@ -1789,7 +1789,7 @@ begin
         cmDebuggerStopped :
           begin
             if Assigned(DebuggerValue) and
-               (DebuggerValue^.GDBI<>Event.InfoLong) then
+               (DebuggerValue^.GDBI<>PtrInt(Event.InfoPtr)) then
               begin
                 If Assigned(ST^.Text) then
                   DisposeStr(ST^.Text);
