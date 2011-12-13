@@ -199,6 +199,7 @@ implementation
                           A_CMOVcc,
                           A_MOVZX,
                           A_MOVSX,
+                          A_MOVSXD,
                           A_MULSS,
                           A_MULSD,
                           A_SUBSS,
