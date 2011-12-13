@@ -11,7 +11,7 @@ units=CocoaAll WebKit CoreData
 implicitunits=AnonClassDefinitionsQuartzcore AnonClassDefinitionsWebkit
 
 [libs]
-libversion=2.5.1
+libversion=2.6.0
 
 [install]
 fpcpackage=y
