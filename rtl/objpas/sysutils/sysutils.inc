@@ -267,24 +267,27 @@
        ErrCode:=Code;
     end;
 
+{$ifdef windows}
+function EExternal.GetExceptionRecord: PExceptionRecord;
+begin
+  result:=@FExceptionRecord;
+end;
+
+{$endif windows}
 
 {$push}
 {$S-}
 Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer; FrameCount: Longint; Frames: PPointer);[public,alias:'FPC_BREAK_UNHANDLED_EXCEPTION'];
 Var
-  Message : String;
   i : longint;
   hstdout : ^text;
 begin
   hstdout:=@stdout;
-  Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(PtrUInt(Addr),sizeof(PtrUInt)*2),' :');
+  Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(Addr),':');
   if Obj is exception then
-   begin
-     Message:=Exception(Obj).ClassName+' : '+Exception(Obj).Message;
-     Writeln(hstdout^,Message);
-   end
+    Writeln(hstdout^,Obj.ClassName,': ',Exception(Obj).Message)
   else
-   Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.');
+    Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.');
   Writeln(hstdout^,BackTraceStrFunc(Addr));
   if (FrameCount>0) then
     begin

@@ -1264,10 +1264,42 @@ procedure InitWin32Widestrings;
     widestringmanager.CompareTextUnicodeStringProc:=@Win32CompareTextUnicodeString;
   end;
 
+{ Platform-specific exception support }
+
+function WinExceptionObject(code: Longint; const rec: TExceptionRecord): Exception;
+var
+  entry: PExceptMapEntry;
+begin
+  entry := FindExceptMapEntry(code);
+  if assigned(entry) then
+    result:=entry^.cls.CreateRes(entry^.msg)
+  else
+    result:=EExternalException.CreateResFmt(@SExternalException,[rec.ExceptionCode]);
+
+  if result is EExternal then
+    EExternal(result).FExceptionRecord:=rec;
+end;
+
+function WinExceptionClass(code: longint): ExceptClass;
+var
+  entry: PExceptMapEntry;
+begin
+  entry := FindExceptMapEntry(code);
+  if assigned(entry) then
+    result:=entry^.cls
+  else
+    result:=EExternalException;
+end;
+
 
 Initialization
   InitWin32Widestrings;
   InitExceptions;       { Initialize exceptions. OS independent }
+{$ifdef win64}          { Nothing win64-specific here, just keeping exe size down
+                          as these procedures aren't used in generic exception handling }
+  ExceptObjProc:=@WinExceptionObject;
+  ExceptClsProc:=@WinExceptionClass;
+{$endif win64}
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;

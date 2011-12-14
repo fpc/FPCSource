@@ -124,10 +124,15 @@ type
    ExceptClass = class of Exception;
 
    EExternal = class(Exception)
+{$ifdef windows}
+   { OS-provided exception record is stored on stack and has very limited lifetime.
+     Therefore store a complete copy. }
+   private
+     FExceptionRecord: TExceptionRecord;
+     function GetExceptionRecord: PExceptionRecord;
    public
-{$ifdef win32}
-     ExceptionRecord : PExceptionRecord;
-{$endif win32}
+     property ExceptionRecord : PExceptionRecord read GetExceptionRecord;
+{$endif windows}
    end;
 
    { integer math exceptions }
