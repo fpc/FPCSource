@@ -179,26 +179,6 @@ Procedure fpc_WideStr_Incr_Ref(Var S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_
 { alias for internal use }
 Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);[external name 'FPC_WIDESTR_INCR_REF'];
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  compilerproc;
-{
-  Converts a WideString to a ShortString;
-}
-Var
-  Size : SizeInt;
-  temp : ansistring;
-begin
-  result:='';
-  Size:=Length(S2);
-  if Size>0 then
-    begin
-      If Size>high_of_res then
-        Size:=high_of_res;
-      widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,Size);
-      result:=temp;
-    end;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_WideStr_To_ShortStr (out res: ShortString;const S2 : WideString); [Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];compilerproc;
 {
   Converts a WideString to a ShortString;
@@ -217,7 +197,6 @@ begin
       res:=temp;
     end;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString;compilerproc;
@@ -535,92 +514,6 @@ begin
 end;
 
 
-{$ifndef FPC_STRTOCHARARRAYPROC}
-
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ chararray we're converting to (JM)                                    }
-function fpc_widestr_to_chararray(arraysize: SizeInt; const src: WideString): fpc_big_chararray;[public,alias: 'FPC_WIDESTR_TO_CHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-  temp: ansistring;
-begin
-  len := length(src);
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    widestringmanager.wide2ansimoveproc(pwidechar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-{$push}
-{$r-}
-  move(temp[1],fpc_widestr_to_chararray[0],len);
-  fillchar(fpc_widestr_to_chararray[len],arraysize-len,0);
-{$pop}
-end;
-
-
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ widechararray we're converting to (JM)                                }
-function fpc_widestr_to_widechararray(arraysize: SizeInt; const src: WideString): fpc_big_widechararray;[public,alias: 'FPC_WIDESTR_TO_WIDECHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-begin
-  len := length(src);
-  if len > arraysize then
-    len := arraysize;
-{$push}
-{$r-}
-  { make sure we don't try to access element 1 of the ansistring if it's nil }
-  if len > 0 then
-    move(src[1],fpc_widestr_to_widechararray[0],len*SizeOf(WideChar));
-  fillchar(fpc_widestr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
-{$pop}
-end;
-
-
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ chararray we're converting to (JM)                                    }
-function fpc_ansistr_to_widechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_widechararray;[public,alias: 'FPC_ANSISTR_TO_WIDECHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-  temp: widestring;
-begin
-  len := length(src);
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-
-{$push}
-{$r-}
-  move(temp[1],fpc_ansistr_to_widechararray[0],len*sizeof(widechar));
-  fillchar(fpc_ansistr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
-{$pop}
-end;
-
-function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray;[public,alias: 'FPC_SHORTSTR_TO_WIDECHARARRAY']; compilerproc;
-var
-  len: longint;
-  temp : widestring;
-begin
-  len := length(src);
-  { make sure we don't access char 1 if length is 0 (JM) }
-  if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-{$push}
-{$r-}
-  move(temp[1],fpc_shortstr_to_widechararray[0],len*sizeof(widechar));
-  fillchar(fpc_shortstr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
-{$pop}
-end;
-
-{$else ndef FPC_STRTOCHARARRAYPROC}
-
 procedure fpc_widestr_to_chararray(out res: array of char; const src: WideString); compilerproc;
 var
   len: SizeInt;
@@ -658,7 +551,6 @@ begin
 end;
 
 
-{$endif ndef FPC_STRTOCHARARRAYPROC}
 
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt;[Public,Alias : 'FPC_WIDESTR_COMPARE']; compilerproc;
 {

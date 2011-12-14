@@ -431,33 +431,6 @@ end;
 Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; [external name 'FPC_ANSISTR_TO_ANSISTR'];
 {$endif FPC_HAS_CPSTRING}
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-
-{ the following declaration has exactly the same effect as                   }
-{ procedure fpc_AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);     }
-{ which is what the old helper was, so we don't need an extra implementation }
-{ of the old helper (JM)                                                     }
-function fpc_AnsiStr_To_ShortStr (high_of_res: SizeInt;const S2 : Ansistring): shortstring; [Public, alias: 'FPC_ANSISTR_TO_SHORTSTR']; compilerproc;
-{
-  Converts a AnsiString to a ShortString;
-}
-Var
-  Size : SizeInt;
-begin
-  if S2='' then
-   fpc_AnsiStr_To_ShortStr:=''
-  else
-   begin
-     Size:=Length(S2);
-     If Size>high_of_res then
-      Size:=high_of_res;
-     Move (S2[1],fpc_AnsiStr_To_ShortStr[1],Size);
-     byte(fpc_AnsiStr_To_ShortStr[0]):=byte(Size);
-   end;
-end;
-
-{$else FPC_STRTOSHORTSTRINGPROC}
-
 procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : RawByteString);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
 {
   Converts a AnsiString to a ShortString;
@@ -477,7 +450,6 @@ begin
    end;
 end;
 
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
@@ -588,27 +560,6 @@ begin
     end;
 end;
 
-{$ifndef FPC_STRTOCHARARRAYPROC}
-
-{ note: inside the compiler, the resulttype is modified to be the length }
-{ of the actual chararray to which we convert (JM)                       }
-function fpc_ansistr_to_chararray(arraysize: SizeInt; const src: ansistring): fpc_big_chararray; [public, alias: 'FPC_ANSISTR_TO_CHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-begin
-  len := length(src);
-  if len > arraysize then
-    len := arraysize;
-{$push}{$r-}
-  { make sure we don't try to access element 1 of the ansistring if it's nil }
-  if len > 0 then
-    move(src[1],fpc_ansistr_to_chararray[0],len);
-  { fpc_big_chararray is defined as array[0..0], see compproc.inc why }
-  fillchar(fpc_ansistr_to_chararray[len],arraysize-len,0);
-{$pop}
-end;
-
-{$else ndef FPC_STRTOCHARARRAYPROC}
 
 procedure  fpc_ansistr_to_chararray(out res: array of AnsiChar; const src: RawByteString); compilerproc;
 var
@@ -621,12 +572,10 @@ begin
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
     move(src[1],res[0],len);
-  { fpc_big_chararray is defined as array[0..0], see compproc.inc why }
   fillchar(res[len],length(res)-len,0);
 {$pop}
 end;
 
-{$endif ndef FPC_STRTOCHARARRAYPROC}
 
 Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  compilerproc;
 {

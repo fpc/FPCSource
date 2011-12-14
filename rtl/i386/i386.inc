@@ -655,52 +655,6 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
-begin
-  asm
-  {$ifdef FPC_PROFILE}
-        push  %eax
-        push  %edx
-        push  %ecx
-        call  mcount
-        pop   %ecx
-        pop   %edx
-        pop   %eax
-  {$endif FPC_PROFILE}
-        cld
-        movl    __RESULT,%edi
-        movl    sstr,%esi
-        xorl    %eax,%eax
-        movl    len,%ecx
-        lodsb
-        cmpl    %ecx,%eax
-        jbe     .LStrCopy1
-        movl    %ecx,%eax
-.LStrCopy1:
-        stosb
-        cmpl    $7,%eax
-        jl      .LStrCopy2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrCopy2:
-        movl    %eax,%ecx
-        rep
-        movsb
-  end ['ESI','EDI','EAX','ECX'];
-end;
-
-
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring);assembler;[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
   var
    saveesi,saveedi : longint;
@@ -747,7 +701,6 @@ procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring)
         movl    saveedi,%edi
         movl    saveesi,%esi
   end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
@@ -997,10 +950,6 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_pchar_to_shortstr(p:pchar):shortstring;assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
-{$include strpas.inc}
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 var
   saveres,saveebx,saveesi,saveedi : longint;
@@ -1093,7 +1042,6 @@ asm
         movl    saveedi,%edi
         movl    saveebx,%ebx
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 

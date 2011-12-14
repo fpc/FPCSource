@@ -243,26 +243,6 @@ Procedure fpc_UnicodeStr_Incr_Ref(S : Pointer);[Public,Alias:'FPC_UNICODESTR_INC
 { alias for internal use }
 Procedure fpc_UnicodeStr_Incr_Ref (S : Pointer);[external name 'FPC_UNICODESTR_INCR_REF'];
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_UnicodeStr_To_ShortStr (high_of_res: SizeInt;const S2 : UnicodeString): shortstring;[Public, alias: 'FPC_UNICODESTR_TO_SHORTSTR'];  compilerproc;
-{
-  Converts a UnicodeString to a ShortString;
-}
-Var
-  Size : SizeInt;
-  temp : ansistring;
-begin
-  result:='';
-  Size:=Length(S2);
-  if Size>0 then
-    begin
-      If Size>high_of_res then
-        Size:=high_of_res;
-      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(S2),temp,Size);
-      result:=temp;
-    end;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_UnicodeStr_To_ShortStr (out res: ShortString;const S2 : UnicodeString); [Public, alias: 'FPC_UNICODESTR_TO_SHORTSTR'];compilerproc;
 {
   Converts a UnicodeString to a ShortString;
@@ -281,7 +261,6 @@ begin
       res:=temp;
     end;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_ShortStr_To_UnicodeStr (Const S2 : ShortString): UnicodeString;compilerproc;
@@ -407,23 +386,6 @@ begin
 end;
 
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_PUnicodeChar_To_ShortStr(const p : punicodechar): shortstring; compilerproc;
-var
-  Size : SizeInt;
-  temp: ansistring;
-begin
-  result:='';
-  if p=nil then
-    exit;
-  Size := IndexWord(p^, $7fffffff, 0);
-  if Size>0 then
-    begin
-      widestringmanager.Unicode2AnsiMoveProc(p,temp,Size);
-      result:=temp;
-    end;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_PUnicodeChar_To_ShortStr(out res : shortstring;const p : punicodechar); compilerproc;
 var
   Size : SizeInt;
@@ -439,7 +401,6 @@ begin
       res:=temp;
     end;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): ansistring; compilerproc;
@@ -461,23 +422,6 @@ begin
 end;
 
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
-var
-  Size : SizeInt;
-  temp: ansistring;
-begin
-  result:='';
-  if p=nil then
-    exit;
-  Size := IndexWord(p^, $7fffffff, 0);
-  if Size>0 then
-    begin
-      widestringmanager.Wide2AnsiMoveProc(p,temp,Size);
-      result:=temp;
-    end;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_PWideChar_To_ShortStr(out res : shortstring;const p : pwidechar); compilerproc;
 var
   Size : SizeInt;
@@ -493,7 +437,6 @@ begin
       res:=temp;
     end;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 { checked against the ansistring routine, 2001-05-27 (FK) }
@@ -748,18 +691,6 @@ begin
 end;
 
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
-{
-  Converts a WideChar to a ShortString;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Wide2AnsiMoveProc(@c, s, 1);
-  fpc_WChar_To_ShortStr:= s;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
 {
   Converts a WideChar to a ShortString;
@@ -770,7 +701,6 @@ begin
   widestringmanager.Wide2AnsiMoveProc(@c,s,DefaultSystemCodePage,1);
   res:=s;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_UChar_To_UnicodeStr(const c : UnicodeChar): UnicodeString; compilerproc;
@@ -801,18 +731,6 @@ begin
 end;
 
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_UChar_To_ShortStr(const c : UnicodeChar): ShortString; compilerproc;
-{
-  Converts a UnicodeChar to a ShortString;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Unicode2AnsiMoveProc(@c, s, 1);
-  fpc_UChar_To_ShortStr:= s;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : UnicodeChar) compilerproc;
 {
   Converts a UnicodeChar to a ShortString;
@@ -823,7 +741,6 @@ begin
   widestringmanager.Unicode2AnsiMoveProc(@c,s,DefaultSystemCodePage,1);
   res:=s;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_PChar_To_UnicodeStr(const p : pchar): UnicodeString; compilerproc;
@@ -862,33 +779,6 @@ begin
 end;
 
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_UnicodeCharArray_To_ShortStr(const arr: array of unicodechar; zerobased: boolean = true): shortstring;[public,alias:'FPC_UNICODECHARARRAY_TO_SHORTSTR']; compilerproc;
-var
-  l: longint;
- index: longint;
- len: byte;
- temp: ansistring;
-begin
-  l := high(arr)+1;
-  if l>=256 then
-    l:=255
-  else if l<0 then
-    l:=0;
-  if zerobased then
-    begin
-      index:=IndexWord(arr[0],l,0);
-      if (index < 0) then
-        len := l
-      else
-        len := index;
-    end
-  else
-    len := l;
-  widestringmanager.Unicode2AnsiMoveProc (punicodechar(@arr),temp,len);
-  fpc_UnicodeCharArray_To_ShortStr := temp;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_UnicodeCharArray_To_ShortStr(out res : shortstring;const arr: array of unicodechar; zerobased: boolean = true);[public,alias:'FPC_UNICODECHARARRAY_TO_SHORTSTR']; compilerproc;
 var
   l: longint;
@@ -914,7 +804,6 @@ begin
   widestringmanager.Unicode2AnsiMoveProc (punicodechar(@arr),temp,DefaultSystemCodePage,len);
   res:=temp;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 Function fpc_UnicodeCharArray_To_AnsiStr(const arr: array of unicodechar; {$ifdef FPC_HAS_CPSTRING}cp : TSystemCodePage;{$endif FPC_HAS_CPSTRING}zerobased: boolean = true): AnsiString; compilerproc;
 var
@@ -975,33 +864,6 @@ end;
 
 { due to their names, the following procedures should be in wstrings.inc,
   however, the compiler generates code using this functions on all platforms }
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
-var
-  l: longint;
- index: longint;
- len: byte;
- temp: ansistring;
-begin
-  l := high(arr)+1;
-  if l>=256 then
-    l:=255
-  else if l<0 then
-    l:=0;
-  if zerobased then
-    begin
-      index:=IndexWord(arr[0],l,0);
-      if (index < 0) then
-        len := l
-      else
-        len := index;
-    end
-  else
-    len := l;
-  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
-  fpc_WideCharArray_To_ShortStr := temp;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_WideCharArray_To_ShortStr(out res : shortstring;const arr: array of widechar; zerobased: boolean = true);[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
 var
   l: longint;
@@ -1027,7 +889,6 @@ begin
   widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,DefaultSystemCodePage,len);
   res:=temp;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; {$ifdef FPC_HAS_CPSTRING}cp : TSystemCodePage;{$endif FPC_HAS_CPSTRING} zerobased: boolean = true): AnsiString; compilerproc;
 var
@@ -1067,90 +928,6 @@ begin
   Move(arr[0], Pointer(fpc_WideCharArray_To_WideStr)^,i*sizeof(WideChar));
 end;
 
-{$ifndef FPC_STRTOCHARARRAYPROC}
-
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ chararray we're converting to (JM)                                    }
-function fpc_unicodestr_to_chararray(arraysize: SizeInt; const src: UnicodeString): fpc_big_chararray;[public,alias: 'FPC_UNICODESTR_TO_CHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-  temp: ansistring;
-begin
-  len := length(src);
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    widestringmanager.unicode2ansimoveproc(punicodechar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-{$push}
-{$r-}
-  move(temp[1],fpc_unicodestr_to_chararray[0],len);
-  fillchar(fpc_unicodestr_to_chararray[len],arraysize-len,0);
-{$pop}
-end;
-
-
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ unicodechararray we're converting to (JM)                                }
-function fpc_unicodestr_to_unicodechararray(arraysize: SizeInt; const src: UnicodeString): fpc_big_unicodechararray;[public,alias: 'FPC_UNICODESTR_TO_UNICODECHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-begin
-  len := length(src);
-  if len > arraysize then
-    len := arraysize;
-{$push}
-{$r-}
-  { make sure we don't try to access element 1 of the ansistring if it's nil }
-  if len > 0 then
-    move(src[1],fpc_unicodestr_to_unicodechararray[0],len*SizeOf(UnicodeChar));
-  fillchar(fpc_unicodestr_to_unicodechararray[len],(arraysize-len)*SizeOf(UnicodeChar),0);
-{$pop}
-end;
-
-
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ chararray we're converting to (JM)                                    }
-function fpc_ansistr_to_unicodechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_unicodechararray;[public,alias: 'FPC_ANSISTR_TO_UNICODECHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-  temp: unicodestring;
-begin
-  len := length(src);
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    widestringmanager.ansi2unicodemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-{$push}
-{$r-}
-  move(temp[1],fpc_ansistr_to_unicodechararray[0],len*sizeof(unicodechar));
-  fillchar(fpc_ansistr_to_unicodechararray[len],(arraysize-len)*SizeOf(UnicodeChar),0);
-{$pop}
-end;
-
-function fpc_shortstr_to_unicodechararray(arraysize: SizeInt; const src: ShortString): fpc_big_unicodechararray;[public,alias: 'FPC_SHORTSTR_TO_UNICODECHARARRAY']; compilerproc;
-var
-  len: longint;
-  temp : unicodestring;
-begin
-  len := length(src);
-  { make sure we don't access char 1 if length is 0 (JM) }
-  if len > 0 then
-    widestringmanager.ansi2unicodemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-{$push}
-{$r-}
-  move(temp[1],fpc_shortstr_to_unicodechararray[0],len*sizeof(unicodechar));
-  fillchar(fpc_shortstr_to_unicodechararray[len],(arraysize-len)*SizeOf(UnicodeChar),0);
-{$pop}
-end;
-
-{$else ndef FPC_STRTOCHARARRAYPROC}
 
 procedure fpc_unicodestr_to_chararray(out res: array of char; const src: UnicodeString); compilerproc;
 var
@@ -1283,7 +1060,6 @@ begin
 end;
 
 
-{$endif ndef FPC_STRTOCHARARRAYPROC}
 
 Function fpc_UnicodeStr_Compare(const S1,S2 : UnicodeString): SizeInt;[Public,Alias : 'FPC_UNICODESTR_COMPARE']; compilerproc;
 {
