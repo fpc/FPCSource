@@ -7,7 +7,7 @@ name=fcl-db
 version=2.7.1
 
 [target]
-dirs=src/sdf src/memds src/sqldb src/base src/sql
+dirs=src/sdf src/memds src/sqldb src/base src/sql src/json
 dirs_beos=src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 dirs_haiku=src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 dirs_linux=src/dbase src/sqlite src/paradox src/export src/datadict src/codegen 
@@ -22,7 +22,7 @@ dirs_win64=src/dbase src/export src/datadict src/codegen
 dirs_wince=src/dbase src/sqlite src/export src/datadict src/codegen
 
 [require]
-packages=fcl-base fcl-xml
+packages=fcl-base fcl-xml fcl-json
 
 [compiler]
 options=-S2h
@@ -57,4 +57,10 @@ src/dbase_debug: src/base_debug
 src/dbase_smart: src/base_smart
 src/dbase_release: src/base_release
 src/dbase_shared: src/base_shared
+
+src/json_all: src/base_all
+src/json_debug: src/base_debug
+src/json_smart: src/base_smart
+src/json_release: src/base_release
+src/json_shared: src/base_shared
 
