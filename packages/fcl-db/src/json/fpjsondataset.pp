@@ -5,7 +5,7 @@ unit fpjsondataset;
 interface
 
 uses
-  DB, typinfo, Classes, SysUtils, fpjson, fpwebdata;
+  DB, typinfo, Classes, SysUtils, fpjson;
 
 type
 
