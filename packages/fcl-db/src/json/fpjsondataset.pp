@@ -1,6 +1,6 @@
 {$mode objfpc}
 {$h+}
-unit jsondataset;
+unit fpjsondataset;
 
 interface
 

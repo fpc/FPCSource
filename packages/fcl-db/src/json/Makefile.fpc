@@ -6,7 +6,7 @@
 main=fcl-db
 
 [target]
-units=jsondataset
+units=fpjsondataset
 
 [require]
 packages=fcl-base fcl-json
