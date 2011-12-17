@@ -3,7 +3,7 @@ program testjsondataset;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, sysutils, DB, jsondataset, fpjson, jsonparser;
+  Classes, sysutils, DB, fpjsondataset, fpjson, jsonparser;
 
 {$R *.res}
 
