@@ -138,62 +138,6 @@ end;
 { alias for internal use }
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_ANSISTR_ASSIGN'];
 
-{$ifndef STR_CONCAT_PROCS}
-
-function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): ansistring; compilerproc;
-Var
-  Size,Location : SizeInt;
-  pc : PAnsiChar;
-begin
-  { only assign if s1 or s2 is empty }
-  if (S1='') then
-    begin
-      result:=s2;
-      exit;
-    end;
-  if (S2='') then
-    begin
-      result:=s1;
-      exit;
-    end;
-  Location:=Length(S1);
-  Size:=length(S2);
-  SetLength(result,Size+Location);
-  pc:=PAnsiChar(result);
-  Move(S1[1],pc^,Location);
-  inc(pc,location);
-  Move(S2[1],pc^,Size+1);
-end;
-
-
-function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
-Var
-  i  : Longint;
-  p  : pointer;
-  pc : PAnsiChar;
-  Size,NewLen : SizeInt;
-begin
-  { First calculate size of the result so we can do
-    a single call to SetLength() }
-  NewLen:=0;
-  for i:=low(sarr) to high(sarr) do
-    inc(NewLen,length(sarr[i]));
-  SetLength(result,NewLen);
-  pc:=PAnsiChar(result);
-  for i:=low(sarr) to high(sarr) do
-    begin
-      p:=pointer(sarr[i]);
-      if assigned(p) then
-        begin
-          Size:=length(ansistring(p));
-          Move(PAnsiChar(p)^,pc^,Size+1);
-          inc(pc,size);
-        end;
-    end;
-end;
-
-{$else STR_CONCAT_PROCS}
-
 procedure fpc_AnsiStr_Concat (var DestS:RawByteString;const S1,S2 : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Var
   Size,Location : SizeInt;
@@ -370,7 +314,6 @@ begin
     end;
   fpc_AnsiStr_Decr_Ref(destcopy);
 end;
-{$endif STR_CONCAT_PROCS}
 
 
 {$ifdef EXTRAANSISHORT}

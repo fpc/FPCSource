@@ -891,24 +891,6 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
-
-{$ifndef STR_CONCAT_PROCS}
-
-function fpc_shortstr_concat(const s1,s2:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_CONCAT']; compilerproc;
-var
-  s1l, s2l : byte;
-begin
-  s1l:=length(s1);
-  s2l:=length(s2);
-  if s1l+s2l>255 then
-    s2l:=255-s1l;
-  move(s1[1],fpc_shortstr_concat[1],s1l);
-  move(s2[1],fpc_shortstr_concat[s1l+1],s2l);
-  fpc_shortstr_concat[0]:=chr(s1l+s2l);
-end;
-
-{$else STR_CONCAT_PROCS}
-
 procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
 var
   s1l, s2l : longint;
@@ -1001,9 +983,6 @@ begin
   if needtemp then
     DestS:=TmpStr;
 end;
-
-{$endif STR_CONCAT_PROCS}
-
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
 

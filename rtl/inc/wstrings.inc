@@ -305,61 +305,6 @@ end;
 { alias for internal use }
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_WIDESTR_ASSIGN'];
 
-{$ifndef STR_CONCAT_PROCS}
-
-function fpc_WideStr_Concat (const S1,S2 : WideString): WideString; compilerproc;
-Var
-  Size,Location : SizeInt;
-  pc : pwidechar;
-begin
-  { only assign if s1 or s2 is empty }
-  if (S1='') then
-    begin
-      result:=s2;
-      exit;
-    end;
-  if (S2='') then
-    begin
-      result:=s1;
-      exit;
-    end;
-  Location:=Length(S1);
-  Size:=length(S2);
-  SetLength(result,Size+Location);
-  pc:=pwidechar(result);
-  Move(S1[1],pc^,Location*sizeof(WideChar));
-  inc(pc,location);
-  Move(S2[1],pc^,(Size+1)*sizeof(WideChar));
-end;
-
-
-function fpc_WideStr_Concat_multi (const sarr:array of Widestring): widestring; compilerproc;
-Var
-  i  : Longint;
-  p  : pointer;
-  pc : pwidechar;
-  Size,NewSize : SizeInt;
-begin
-  { First calculate size of the result so we can do
-    a single call to SetLength() }
-  NewSize:=0;
-  for i:=low(sarr) to high(sarr) do
-    inc(Newsize,length(sarr[i]));
-  SetLength(result,NewSize);
-  pc:=pwidechar(result);
-  for i:=low(sarr) to high(sarr) do
-    begin
-      p:=pointer(sarr[i]);
-      if assigned(p) then
-        begin
-          Size:=length(widestring(p));
-          Move(pwidechar(p)^,pc^,(Size+1)*sizeof(WideChar));
-          inc(pc,size);
-        end;
-    end;
-end;
-
-{$else STR_CONCAT_PROCS}
 
 procedure fpc_WideStr_Concat (var DestS:Widestring;const S1,S2 : WideString); compilerproc;
 Var
@@ -437,7 +382,6 @@ begin
   DestS:=DestTmp;
 end;
 
-{$endif STR_CONCAT_PROCS}
 
 
 Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;

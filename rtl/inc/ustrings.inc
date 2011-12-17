@@ -457,62 +457,6 @@ end;
 { alias for internal use }
 Procedure fpc_UnicodeStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_UNICODESTR_ASSIGN'];
 
-{$ifndef STR_CONCAT_PROCS}
-
-function fpc_UnicodeStr_Concat (const S1,S2 : UnicodeString): UnicodeString; compilerproc;
-Var
-  Size,Location : SizeInt;
-  pc : punicodechar;
-begin
-  { only assign if s1 or s2 is empty }
-  if (S1='') then
-    begin
-      result:=s2;
-      exit;
-    end;
-  if (S2='') then
-    begin
-      result:=s1;
-      exit;
-    end;
-  Location:=Length(S1);
-  Size:=length(S2);
-  SetLength(result,Size+Location);
-  pc:=punicodechar(result);
-  Move(S1[1],pc^,Location*sizeof(UnicodeChar));
-  inc(pc,location);
-  Move(S2[1],pc^,(Size+1)*sizeof(UnicodeChar));
-end;
-
-
-function fpc_UnicodeStr_Concat_multi (const sarr:array of Unicodestring): unicodestring; compilerproc;
-Var
-  i  : Longint;
-  p  : pointer;
-  pc : punicodechar;
-  Size,NewSize : SizeInt;
-begin
-  { First calculate size of the result so we can do
-    a single call to SetLength() }
-  NewSize:=0;
-  for i:=low(sarr) to high(sarr) do
-    inc(Newsize,length(sarr[i]));
-  SetLength(result,NewSize);
-  pc:=punicodechar(result);
-  for i:=low(sarr) to high(sarr) do
-    begin
-      p:=pointer(sarr[i]);
-      if assigned(p) then
-        begin
-          Size:=length(unicodestring(p));
-          Move(punicodechar(p)^,pc^,(Size+1)*sizeof(UnicodeChar));
-          inc(pc,size);
-        end;
-    end;
-end;
-
-{$else STR_CONCAT_PROCS}
-
 procedure fpc_UnicodeStr_Concat (var DestS:Unicodestring;const S1,S2 : UnicodeString); compilerproc;
 Var
   Size,Location : SizeInt;
@@ -619,7 +563,6 @@ begin
   fpc_UnicodeStr_Decr_Ref(destcopy);
 end;
 
-{$endif STR_CONCAT_PROCS}
 
 Function fpc_Char_To_UChar(const c : Char): UnicodeChar; compilerproc;
 var

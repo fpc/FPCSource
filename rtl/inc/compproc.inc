@@ -38,12 +38,8 @@ Procedure fpc_freemem(p:pointer);compilerproc;
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring); compilerproc;
 
-{$ifndef STR_CONCAT_PROCS}
-function fpc_shortstr_concat(const s1,s2:shortstring): shortstring; compilerproc;
-{$else STR_CONCAT_PROCS}
 procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
 procedure fpc_shortstr_concat_multi(var dests:shortstring;const sarr:array of pshortstring);compilerproc;
-{$endif STR_CONCAT_PROCS}
 procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring); compilerproc;
 function fpc_shortstr_compare(const left,right:shortstring) : longint; compilerproc;
 function fpc_shortstr_compare_equal(const left,right:shortstring) : longint; compilerproc;
@@ -213,13 +209,8 @@ Function fpc_Val_int64_UnicodeStr (Const S : UnicodeString; out Code : ValSInt):
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc;
 Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Assign (Var DestS : Pointer;S2 : Pointer); compilerproc;
-{$ifdef STR_CONCAT_PROCS}
 Procedure fpc_AnsiStr_Concat (Var DestS : RawByteString;const S1,S2 : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Procedure fpc_AnsiStr_Concat_multi (Var DestS : RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-{$else STR_CONCAT_PROCS}
-function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
-function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
-{$endif STR_CONCAT_PROCS}
 {$ifdef EXTRAANSISHORT}
 Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString); compilerproc;
 {$endif EXTRAANSISHORT}
@@ -267,13 +258,8 @@ Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString; compilerp
 Function fpc_WideStr_To_AnsiStr (const S2 : WideString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
 Function fpc_AnsiStr_To_WideStr (Const S2 : RawByteString): WideString; compilerproc;
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
-{$ifndef STR_CONCAT_PROCS}
-Function fpc_WideStr_Concat (const S1,S2 : WideString) : WideString; compilerproc;
-function fpc_WideStr_Concat_multi (const sarr:array of Widestring): widestring; compilerproc;
-{$else STR_CONCAT_PROCS}
 Procedure fpc_WideStr_Concat (Var DestS : Widestring;const S1,S2 : WideString); compilerproc;
 Procedure fpc_WideStr_Concat_multi (Var DestS : Widestring;const sarr:array of Widestring); compilerproc;
-{$endif STR_CONCAT_PROCS}
 Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
 Function fpc_CharArray_To_WideStr(const arr: array of char; zerobased: boolean = true): WideString; compilerproc;
@@ -319,13 +305,8 @@ Function fpc_AnsiStr_To_UnicodeStr (Const S2 : RawByteString): UnicodeString; co
 Function fpc_UnicodeStr_To_WideStr (const S2 : UnicodeString): WideString; compilerproc;
 Function fpc_WideStr_To_UnicodeStr (Const S2 : WideString): UnicodeString; compilerproc;
 Procedure fpc_UnicodeStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
-{$ifndef STR_CONCAT_PROCS}
-Function fpc_UnicodeStr_Concat (const S1,S2 : UnicodeString) : UnicodeString; compilerproc;
-function fpc_UnicodeStr_Concat_multi (const sarr:array of Unicodestring): unicodestring; compilerproc;
-{$else STR_CONCAT_PROCS}
 Procedure fpc_UnicodeStr_Concat (Var DestS : Unicodestring;const S1,S2 : UnicodeString); compilerproc;
 Procedure fpc_UnicodeStr_Concat_multi (Var DestS : Unicodestring;const sarr:array of Unicodestring); compilerproc;
-{$endif STR_CONCAT_PROCS}
 Function fpc_Char_To_UnicodeStr(const c : Char): UnicodeString; compilerproc;
 Function fpc_PChar_To_UnicodeStr(const p : pchar): UnicodeString; compilerproc;
 Function fpc_CharArray_To_UnicodeStr(const arr: array of char; zerobased: boolean = true): UnicodeString; compilerproc;
