@@ -9734,6 +9734,7 @@ tests/test/packages/cocoaint/tobjc33a.pp svneol=native#text/plain
 tests/test/packages/cocoaint/tobjcnh1.pp svneol=native#text/plain
 tests/test/packages/cocoaint/tvarpara.pp svneol=native#text/plain
 tests/test/packages/cocoaint/tw16329.pp svneol=native#text/plain
+tests/test/packages/cocoaint/tw20876.pp svneol=native#text/plain
 tests/test/packages/fcl-base/tascii85.pp svneol=native#text/plain
 tests/test/packages/fcl-base/tgettext1.pp svneol=native#text/plain
 tests/test/packages/fcl-db/assertions.pas svneol=native#text/plain
