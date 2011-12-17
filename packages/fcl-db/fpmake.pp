@@ -37,6 +37,7 @@ begin
     P.SourcePath.Add('src/sqldb/examples');
     P.SourcePath.Add('src/sqldb/oracle');
     P.SourcePath.Add('src/sdf');
+    P.SourcePath.Add('src/json');
     P.SourcePath.Add('src/datadict');
     P.SourcePath.Add('src/memds');
     P.SourcePath.Add('src/codegen');
@@ -660,6 +661,9 @@ begin
           AddUnit('fpsqlscanner');
         end;
     T.ResourceStrings := True;
+
+    // JSON
+    T:=P.Targets.AddUnit('fpjsondataset.pp');
 
     P.ExamplePath.Add('tests');
     T:=P.Targets.AddExampleProgram('dbftoolsunit.pas');
