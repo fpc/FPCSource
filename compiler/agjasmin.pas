@@ -612,9 +612,7 @@ implementation
                   begin
                     intf:=TImplementedInterface(tobjectdef(obj).ImplementedInterfaces[i]).IntfDef;
                     AsmWrite('.implements ');
-                    if assigned(intf.import_lib) then
-                      AsmWrite(intf.import_lib^+'/');
-                    AsmWriteln(intf.objextname^);
+                    AsmWriteLn(intf.jvm_full_typename(true));
                   end;
               end;
             { signature for enum classes (must come after superclass and
