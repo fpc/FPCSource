@@ -5,8 +5,6 @@ program testjsondataset;
 uses
   Classes, sysutils, DB, fpjsondataset, fpjson, jsonparser;
 
-{$R *.res}
-
 Function ExtractData(Const AFileName : string) : TJSONObject;
 
 Var
