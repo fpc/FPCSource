@@ -262,88 +262,10 @@ function is_prefetch(p : pointer) : boolean;
 //
 // Hardware exception handling
 //
+{$I seh64.inc}
 
 
 type
-  M128A = record
-    Low : QWord;
-    High : Int64;
-  end;
-
-  PContext = ^TContext;
-  TContext = record
-    P1Home : QWord;
-    P2Home : QWord;
-    P3Home : QWord;
-    P4Home : QWord;
-    P5Home : QWord;
-    P6Home : QWord;
-    ContextFlags : DWord;
-    MxCsr : DWord;
-    SegCs : word;
-    SegDs : word;
-    SegEs : word;
-    SegFs : word;
-    SegGs : word;
-    SegSs : word;
-    EFlags : DWord;
-    Dr0 : QWord;
-    Dr1 : QWord;
-    Dr2 : QWord;
-    Dr3 : QWord;
-    Dr6 : QWord;
-    Dr7 : QWord;
-    Rax : QWord;
-    Rcx : QWord;
-    Rdx : QWord;
-    Rbx : QWord;
-    Rsp : QWord;
-    Rbp : QWord;
-    Rsi : QWord;
-    Rdi : QWord;
-    R8 : QWord;
-    R9 : QWord;
-    R10 : QWord;
-    R11 : QWord;
-    R12 : QWord;
-    R13 : QWord;
-    R14 : QWord;
-    R15 : QWord;
-    Rip : QWord;
-    Header : array[0..1] of M128A;
-    Legacy : array[0..7] of M128A;
-    Xmm0 : M128A;
-    Xmm1 : M128A;
-    Xmm2 : M128A;
-    Xmm3 : M128A;
-    Xmm4 : M128A;
-    Xmm5 : M128A;
-    Xmm6 : M128A;
-    Xmm7 : M128A;
-    Xmm8 : M128A;
-    Xmm9 : M128A;
-    Xmm10 : M128A;
-    Xmm11 : M128A;
-    Xmm12 : M128A;
-    Xmm13 : M128A;
-    Xmm14 : M128A;
-    Xmm15 : M128A;
-    VectorRegister : array[0..25] of M128A;
-    VectorControl : QWord;
-    DebugControl : QWord;
-    LastBranchToRip : QWord;
-    LastBranchFromRip : QWord;
-    LastExceptionToRip : QWord;
-    LastExceptionFromRip : QWord;
- end;
-
-type
-  PExceptionPointers = ^TExceptionPointers;
-  TExceptionPointers = packed record
-    ExceptionRecord   : PExceptionRecord;
-    ContextRecord     : PContext;
-  end;
-
   TVectoredExceptionHandler = function (excep : PExceptionPointers) : Longint;
 
 function AddVectoredExceptionHandler(FirstHandler : DWORD;VectoredHandler : TVectoredExceptionHandler) : longint;
