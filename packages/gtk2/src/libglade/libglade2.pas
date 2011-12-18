@@ -34,7 +34,7 @@ uses
   glib2, gtk2;
 
 const
-{$ifdef win32}
+{$ifdef windows}
   {$define gtkwin}
   LibGladeLib = 'libglade-2.0-0.dll';
   {$IFDEF FPC}

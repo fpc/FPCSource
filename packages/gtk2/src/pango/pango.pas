@@ -36,7 +36,7 @@ uses glib2;
 {$DEFINE PANGO_ENABLE_BACKEND}
 
 const
-{$ifdef win32}
+{$ifdef windows}
   {$define pangowin}
   pangolib = 'libpango-1.0-0.dll';
   {$IFDEF FPC}

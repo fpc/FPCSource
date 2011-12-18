@@ -102,7 +102,7 @@ const
    GLIB_SYSDEF_POLLHUP   = 16;
    GLIB_SYSDEF_POLLNVAL  = 32;
 
-{$ifdef win32}
+{$ifdef windows}
    G_MODULE_SUFFIX  = 'dll';
 {$else}
    G_MODULE_SUFFIX  = 'so';

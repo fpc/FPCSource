@@ -12,7 +12,7 @@
         container : TGtkBin;
         hscrollbar : PGtkWidget;
         vscrollbar : PGtkWidget;
-        flag0 : {$ifdef win32}longint{$else}word{$endif};
+        flag0 : {$ifdef windows}longint{$else}word{$endif};
         shadow_type : guint16;
      end;
 

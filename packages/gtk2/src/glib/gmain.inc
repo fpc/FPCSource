@@ -182,7 +182,7 @@ function g_idle_remove_by_data(data:gpointer):gboolean;cdecl;external gliblib na
 // GLIB_VAR GSourceFuncs g_timeout_funcs;
 // GLIB_VAR GSourceFuncs g_idle_funcs;
 
-{$ifdef win32}
+{$ifdef windows}
 procedure g_main_poll_win32_msg_add(priority:gint; fd:PGPollFD; hwnd:guint);cdecl;external gliblib name 'g_main_poll_win32_msg_add';
 {$endif}
 
