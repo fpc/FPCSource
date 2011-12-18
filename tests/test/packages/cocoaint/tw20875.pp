@@ -1,3 +1,4 @@
+{ %target=darwin }
 { %norun }
 
 program testlink;
