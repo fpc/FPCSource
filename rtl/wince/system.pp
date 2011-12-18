@@ -981,8 +981,6 @@ const
 
   CONTEXT_FULL                    = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
 
-  EXCEPTION_MAXIMUM_PARAMETERS    = 15;
-
   NUM_VFP_REGS = 32;
   NUM_EXTRA_CONTROL_REGS = 8;
 
@@ -1030,7 +1028,6 @@ const
   CONTEXT_EXTENDED_REGISTERS      = CONTEXT_X86 or $00000020;
 
   MAXIMUM_SUPPORTED_EXTENSION     = 512;
-  EXCEPTION_MAXIMUM_PARAMETERS    = 15;
 
 type
   PFloatingSaveArea = ^TFloatingSaveArea;
@@ -1101,16 +1098,6 @@ type
 {$endif CPUI386}
 
 type
-  PExceptionRecord = ^TExceptionRecord;
-  TExceptionRecord = packed record
-    ExceptionCode   : Longint;
-    ExceptionFlags  : Longint;
-    ExceptionRecord : PExceptionRecord;
-    ExceptionAddress : Pointer;
-    NumberParameters : Longint;
-    ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
-  end;
-
   PExceptionPointers = ^TExceptionPointers;
   TExceptionPointers = packed record
     ExceptionRecord   : PExceptionRecord;

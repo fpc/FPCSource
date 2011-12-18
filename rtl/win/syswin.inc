@@ -85,8 +85,6 @@ const
   EXCEPTION_CONTINUE_EXECUTION            = -1;
   EXCEPTION_CONTINUE_SEARCH               = 0;
 
-  EXCEPTION_MAXIMUM_PARAMETERS            = 15;
-
   CONTEXT_X86                             = $00010000;
   CONTEXT_CONTROL                         = CONTEXT_X86 or $00000001;
   CONTEXT_INTEGER                         = CONTEXT_X86 or $00000002;

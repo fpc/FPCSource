@@ -106,6 +106,8 @@ const
     ERROR_DIR_NOT_EMPTY = 145;
     ERROR_ALREADY_EXISTS = 183;
 
+    EXCEPTION_MAXIMUM_PARAMETERS = 15;
+
 type
    {UINT  = longint;
    BOOL  = longint; obsolete }
@@ -172,6 +174,17 @@ type
     zero_fill_size : dword;
     flags : dword;
   end;
+
+  PExceptionRecord = ^TExceptionRecord;
+  TExceptionRecord = record
+    ExceptionCode   : cardinal;
+    ExceptionFlags  : cardinal;
+    ExceptionRecord : PExceptionRecord;
+    ExceptionAddress : Pointer;
+    NumberParameters : Longint;
+    ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
+  end;
+
 
 threadvar
   errno : longint;

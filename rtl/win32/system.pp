@@ -339,16 +339,6 @@ type
           ExtendedRegisters : array[0..MAXIMUM_SUPPORTED_EXTENSION-1] of Byte;
   end;
 
-type
-  PExceptionRecord = ^TExceptionRecord;
-  TExceptionRecord = packed record
-          ExceptionCode   : cardinal;
-          ExceptionFlags  : Longint;
-          ExceptionRecord : PExceptionRecord;
-          ExceptionAddress : Pointer;
-          NumberParameters : Longint;
-          ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
-  end;
 
   PExceptionPointers = ^TExceptionPointers;
   TExceptionPointers = packed record

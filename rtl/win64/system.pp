@@ -338,16 +338,6 @@ type
  end;
 
 type
-  PExceptionRecord = ^TExceptionRecord;
-  TExceptionRecord = record
-    ExceptionCode   : DWord;
-    ExceptionFlags  : DWord;
-    ExceptionRecord : PExceptionRecord;
-    ExceptionAddress : Pointer;
-    NumberParameters : DWord;
-    ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
-  end;
-
   PExceptionPointers = ^TExceptionPointers;
   TExceptionPointers = packed record
     ExceptionRecord   : PExceptionRecord;
