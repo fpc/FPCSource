@@ -93,7 +93,12 @@ begin
           AddUnit('xshm');
         end;
     T:=P.Targets.AddUnit('xv.pp');
-
+    T:=P.Targets.AddUnit('fontconfig.pas');
+    T.Dependencies.AddUnit('xlib');
+    T:=P.Targets.AddUnit('xft.pas');
+    T.Dependencies.AddUnit('xlib');
+    T.Dependencies.AddUnit('xrender');
+    T.Dependencies.AddUnit('fontconfig');
 
 {$ifndef ALLPACKAGES}
     Run;
