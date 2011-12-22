@@ -312,7 +312,7 @@ unit winsock;
        taken from the BSD file sys/socket.h.
     }
     const
-       INVALID_SOCKET = TSocket(not(1));
+       INVALID_SOCKET = TSocket(not(0));
        SOCKET_ERROR = -1;
        SOCK_STREAM = 1;
        SOCK_DGRAM = 2;
