@@ -808,8 +808,6 @@ Type
     FZipFile: TZipper;
 {$endif HAS_UNIT_ZIPPER}
     FExternalPackages : TPackages;
-    // Logging
-    FLogPrefix : String;
     // Events
     FOnLog: TLogEvent;
     FAfterArchive: TNotifyEvent;
@@ -908,8 +906,8 @@ Type
     procedure Manifest(Packages: TPackages);
     Procedure Clean(Packages : TPackages; AllTargets: boolean);
 
-    Procedure Log(Level : TVerboseLevel; Const Msg : String);
-    Procedure Log(Level : TVerboseLevel; Const Fmt : String; const Args : Array Of Const);
+    Procedure Log(Level : TVerboseLevel; Msg : String);
+    Procedure Log(Level : TVerboseLevel; Fmt : String; const Args : Array Of Const);
 
     Property ListMode : Boolean Read FListMode Write FListMode;
     Property ForceCompile : Boolean Read FForceCompile Write FForceCompile;
@@ -1072,6 +1070,9 @@ var
   CustomFpmakeCommandlineOptions: TStrings;
   CustomFpMakeCommandlineValues: TStrings;
 
+threadvar
+  GLogPrefix  : string;
+
 ResourceString
   SErrInvalidCPU        = 'Invalid CPU name "%s"';
   SErrInvalidOS         = 'Invalid OS name "%s"';
@@ -1130,6 +1131,7 @@ ResourceString
   SInfoCleaningPackage    = 'Cleaning package %s';
   SInfoManifestPackage    = 'Creating manifest for package %s';
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
+  SInfoDeletingFile       = 'Deleting file "%s"';
   SInfoSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
   SInfoFallbackBuildmode  = 'Buildmode not spported by package, falling back to one by one unit compilation';
 
@@ -1284,7 +1286,7 @@ var
         if ch in [#10, #13] then
         begin
           if Verbose then
-            writeln(sLine)
+            installer.log(vlInfo,sLine)
           else
             begin
               for msg := Low(TMessages) to High(TMessages) do
@@ -1292,7 +1294,7 @@ var
                 snum := Format('(%d)', [MsgNum[msg]]);
                 ipos := Pos(snum, sLine);
                 if ipos = 1 then
-                  writeln('      ', Copy(sLine, ipos + Length(snum), Length(sLine) - ipos - Length(snum) + 1));
+                  installer.log(vlCommand,'      '+ Copy(sLine, ipos + Length(snum), Length(sLine) - ipos - Length(snum) + 1));
               end;
             end;
 
@@ -3235,10 +3237,13 @@ begin
   result := FPackages;
 end;
 
-procedure TCustomInstaller.Log(Level: TVerboseLevel; const Msg: String);
+procedure TCustomInstaller.Log(Level: TVerboseLevel; Const Msg: String);
 begin
   If Level in FLogLevels then
-    Writeln(StdOut,Msg);
+    begin
+    Writeln(StdOut, Msg);
+    Flush(StdOut);
+    end;
 end;
 
 
@@ -3764,13 +3769,14 @@ end;
 
 procedure TBuildEngine.SysDeleteFile(Const AFileName : String);
 begin
+  Log(vlInfo,SInfoDeletingFile,[AFileName]);
   if not FileExists(AFileName) then
     Log(vldebug,SDbgFileDoesNotExist,[AFileName])
   else If Not DeleteFile(AFileName) then
     Error(SErrDeletingFile,[AFileName]);
 end;
 
-procedure TBuildEngine.SysDeleteDirectory(const ADirectoryName: String);
+procedure TBuildEngine.SysDeleteDirectory(Const ADirectoryName: String);
 begin
   if not DirectoryExists(ADirectoryName) then
     Log(vldebug,SDbgDirectoryDoesNotExist,[ADirectoryName])
@@ -3833,29 +3839,29 @@ end;
 
 procedure TBuildEngine.LogIndent;
 begin
-  FLogPrefix:=FLogPrefix+'  ';
+  GLogPrefix:=GLogPrefix+'  ';
 end;
 
 
 procedure TBuildEngine.LogUnIndent;
 begin
-  Delete(FLogPrefix,1,2);
+  Delete(GLogPrefix,1,2);
 end;
 
 
-procedure TBuildEngine.Log(Level: TVerboseLevel; const Msg: String);
+procedure TBuildEngine.Log(Level: TVerboseLevel; Msg: String);
 begin
   If Assigned(FOnLog) then
     begin
       if Level in [vlInfo,vlDebug] then
-        FOnLog(Level,FLogPrefix+Msg)
+        FOnLog(Level,GLogPrefix+Msg)
       else
         FOnLog(Level,Msg);
     end;
 end;
 
 
-procedure TBuildEngine.Log(Level: TVerboseLevel; const Fmt: String;const Args: array of const);
+procedure TBuildEngine.Log(Level: TVerboseLevel; Fmt: String;const Args: array of const);
 begin
   Log(Level,Format(Fmt,Args));
 end;
