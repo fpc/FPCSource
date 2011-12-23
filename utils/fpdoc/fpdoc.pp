@@ -80,6 +80,7 @@ begin
   Writeln(SUsageOption130);
   Writeln(SUsageOption140);
   Writeln(SUsageOption150);
+  Writeln(SUsageOption155);
   Writeln(SUsageOption160);
   Writeln(SUsageOption170);
   Writeln(SUsageOption180);
@@ -90,6 +91,7 @@ begin
   Writeln(SUsageOption230);
   Writeln(SUsageOption240);
   Writeln(SUsageOption250);
+  Writeln(SUsageOption260);
   L:=TStringList.Create;
   Try
     Backend:=FCreator.OPtions.Backend;

@@ -145,6 +145,7 @@ resourcestring
   SUsageOption130  = '--output=name     use name as the output name.';
   SUsageOption140  = '                  Each backend interpretes this as needed.';
   SUsageOption150  = '--package=name    Set the package name for which to create output';
+  SUsageOption155  = '--project=file    Use file as project file';  
   SUsageOption160  = '--show-private    Show private methods.';
   SUsageOption170  = '--warn-no-node    Warn if no documentation node was found.';
   SUsageOption180  = '--mo-dir=dir      Set directory where language files reside to dir';
@@ -155,6 +156,8 @@ resourcestring
   SUsageOption230 =  '--dry-run         Only parse sources and XML, do not create output';
   SUsageOption240 =  '--descr-dir=Dir   Add All XML files in Dir to list of description files';
   SUsageOption250 =  '--input-dir=Dir   Add All *.pp and *.pas files in Dir to list of input files';
+  SUsageOption260 =  '--write-project=file Write all command-line options to a project file';
+  
 
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
