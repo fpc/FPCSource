@@ -39,6 +39,7 @@ Type
     function CurrentToken: TJSONToken;
     function ParseArray: TJSONArray;
     function ParseObject: TJSONObject;
+    Property Scanner : TJSONScanner read FScanner;
   Public
     function Parse: TJSONData;
     Constructor Create(Source : TStream); overload;
