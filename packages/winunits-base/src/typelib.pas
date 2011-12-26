@@ -69,15 +69,8 @@ Type
     FHeader : TStrings;
     FInterface : TStrings;
     FImplementation : TStrings;
-    procedure CreateCoClasses(const TL: ITypeLib; TICount: Integer);
-    procedure CreateForwards(const TL: ITypeLib; TICount: Integer);
-    procedure CreateInterfaces(const TL: ITypeLib; TICount: Integer);
-    procedure CreateRecordsUnionsAliases(const TL: ITypeLib; TICount: Integer);
-    procedure CreateUnitHeader(const TL: ITypeLib; const LA: lpTLIBATTR);
     function GetDependencies: TStrings;
     function GetUnitSource: TStrings;
-    procedure ImportEnums(const TL: ITypeLib; TICount: Integer);
-    procedure ImportGUIDs(const TL: ITypeLib; TICount: Integer);
     procedure SetOutputFileName(AValue: String);
     procedure SetUnitName(AValue: string);
   Protected
@@ -98,7 +91,14 @@ Type
     function VarTypeToStr(ParamType: integer): string; virtual;
     function TypeToString(TI: ITypeInfo; TD: TYPEDESC): string; virtual;
     function ValidateID(id: string): boolean; virtual;
-    // The actual routine that does the work.
+    // The actual routines that do the work.
+    procedure CreateCoClasses(const TL: ITypeLib; TICount: Integer); virtual;
+    procedure CreateForwards(const TL: ITypeLib; TICount: Integer); virtual;
+    procedure CreateInterfaces(const TL: ITypeLib; TICount: Integer); virtual;
+    procedure CreateRecordsUnionsAliases(const TL: ITypeLib; TICount: Integer); virtual;
+    procedure CreateUnitHeader(const TL: ITypeLib; const LA: lpTLIBATTR); virtual;
+    procedure ImportEnums(const TL: ITypeLib; TICount: Integer); virtual;
+    procedure ImportGUIDs(const TL: ITypeLib; TICount: Integer); virtual;
     Procedure DoImportTypelib;virtual;
     // For the benefit of descendents;
     Property UsesClause : TStrings read FUses;
