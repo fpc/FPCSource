@@ -13072,6 +13072,10 @@ utils/h2pas/scan.pas svneol=native#text/plain
 utils/h2pas/testit.h -text
 utils/h2pas/yylex.cod -text
 utils/h2pas/yyparse.cod -text
+utils/importtl/Makefile svneol=native#text/plain
+utils/importtl/Makefile.fpc svneol=native#text/plain
+utils/importtl/importtl.lpi svneol=native#text/plain
+utils/importtl/importtl.pas svneol=native#text/plain
 utils/instantfpc/Makefile svneol=native#text/plain
 utils/instantfpc/Makefile.fpc svneol=native#text/plain
 utils/instantfpc/README.txt svneol=native#text/plain
