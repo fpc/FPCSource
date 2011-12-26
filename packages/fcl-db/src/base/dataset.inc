@@ -414,9 +414,17 @@ end;
 
 Procedure TDataset.DoOnCalcFields;
 
+var
+  oldState: TDataSetState;
+
 begin
  If assigned(FOnCalcfields) then
+ begin
+   oldState := FState;
+   FState := dsCalcFields;
    FOnCalcFields(Self);
+   FState := oldState;
+  end;
 end;
 
 Procedure TDataset.DoOnNewRecord;
