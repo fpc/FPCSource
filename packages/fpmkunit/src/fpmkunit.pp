@@ -326,6 +326,32 @@ Type
     Property ConditionalStrings[Index : Integer] : TConditionalString Read GetConditionalString Write SetConditionalString; default;
   end;
 
+  { TDictionary }
+
+  TReplaceFunction = Function (Const AName,Args : String) : String of Object;
+
+  TDictionary = Class(TComponent)
+  private
+    FList : TStringList;
+  Public
+    Constructor Create(AOwner : TComponent); override;
+    Destructor Destroy;override;
+    Procedure AddVariable(const AName,Value : String);
+    Procedure AddFunction(const AName : String; FReplacement : TReplaceFunction);
+    Procedure RemoveItem(const AName : String);
+    Function GetValue(AName : String) : String;
+    Function GetValue(const AName,Args : String) : String; virtual;
+    Function ReplaceStrings(Const ASource : String) : String; virtual;
+  end;
+
+  { TPackageDictionary }
+
+  TPackageDictionary = Class(TDictionary)
+  Public
+    Function GetValue(const AName,Args : String) : String; override;
+  end;
+
+
   { TDependency }
   TDependency = Class(TConditionalString)
   private
@@ -584,9 +610,13 @@ Type
     FInstalledChecksum : Cardinal;
     // Cached directory of installed packages
     FUnitDir : String;
+    // Used by buildunits
     FBUTargets: TTargets;
     FBUTarget: TTarget;
+    // Dictionary
+    FDictionary : TDictionary;
     Function GetDescription : string;
+    function GetDictionary: TDictionary;
     Function GetFileName : string;
     function GetOptions: TStrings;
     Function GetVersion : string;
@@ -597,6 +627,7 @@ Type
     procedure LoadUnitConfigFromFile(Const AFileName: String);
     procedure SaveUnitConfigToStringList(Const AStringList: TStrings;ACPU:TCPU;AOS:TOS); virtual;
     procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
+    property Dictionary: TDictionary read GetDictionary;
   Public
     constructor Create(ACollection: TCollection); override;
     destructor destroy; override;
@@ -841,7 +872,7 @@ Type
     Function InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String):Boolean;
     Function FileNewer(const Src,Dest : String) : Boolean;
     Procedure LogSearchPath(const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
-    Function FindFileInPath(Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
+    Function FindFileInPath(APackage: TPackage; Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
 
     procedure GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
     //package commands
@@ -977,8 +1008,6 @@ Type
     Constructor Create(AOwner : TComponent); override;
   end;
 
-  TReplaceFunction = Function (Const AName,Args : String) : String of Object;
-
   { TValueItem }
 
   TValueItem = Class(TObject)
@@ -993,20 +1022,6 @@ Type
     Constructor Create(AFunc : TReplaceFunction);
   end;
 
-  { TDictionary }
-
-  TDictionary = Class(TComponent)
-    FList : TStringList;
-  Public
-    Constructor Create(AOwner : TComponent); override;
-    Destructor Destroy;override;
-    Procedure AddVariable(Const AName,Value : String);
-    Procedure AddFunction(Const AName : String; FReplacement : TReplaceFunction);
-    Procedure RemoveItem(Const AName : String);
-    Function GetValue(Const AName : String) : String;
-    Function GetValue(Const AName,Args : String) : String; virtual;
-    Function ReplaceStrings(Const ASource : String) : String; virtual;
-  end;
 
   ECollectionError = Class(Exception);
   EDictionaryError = Class(Exception);
@@ -1021,11 +1036,12 @@ Type
 
 Var
   DictionaryClass : TDictionaryClass = TDictionary;
+  PackageDictionaryClass : TDictionaryClass = TPackageDictionary;
   OnArchiveFiles : TArchiveEvent = Nil;
   ArchiveFilesProc : TArchiveProc = Nil;
 
   Defaults : TCustomDefaults; // Set by installer.
-  Dictionary : TDictionary;
+  GlobalDictionary : TDictionary;
 
 
 Function CurrentOS : String;
@@ -1707,24 +1723,30 @@ function AddConditionalStrings(Dest : TStrings; Src : TConditionalStrings;ACPU:T
 Var
   I : Integer;
   C : TConditionalString;
+  D : TDictionary;
   S : String;
 begin
   Result:=0;
-  Dictionary.AddVariable('CPU',CPUToString(ACPU));
-  Dictionary.AddVariable('OS',OSToString(AOS));
-  For I:=0 to Src.Count-1 do
-    begin
-      C:=Src[I];
-      if (ACPU in C.CPUs) and (AOS in C.OSes) then
-        begin
-          If (APrefix<>'') then
-            S:=APrefix+C.Value
-          else
-            S:=C.Value;
-          Dest.Add(Dictionary.ReplaceStrings(S));
-          Inc(Result);
-        end;
-    end;
+  D := PackageDictionaryClass.Create(nil);
+  try
+    D.AddVariable('CPU',CPUToString(ACPU));
+    D.AddVariable('OS',OSToString(AOS));
+    For I:=0 to Src.Count-1 do
+      begin
+        C:=Src[I];
+        if (ACPU in C.CPUs) and (AOS in C.OSes) then
+          begin
+            If (APrefix<>'') then
+              S:=APrefix+C.Value
+            else
+              S:=C.Value;
+            Dest.Add(D.ReplaceStrings(S));
+            Inc(Result);
+          end;
+      end;
+  finally
+    D.Free;
+  end;
 end;
 
 
@@ -1928,6 +1950,26 @@ begin
   Move(Buf,Result[1],Count);
 end;
 {$endif HAS_UNIT_PROCESS}
+
+{ TPackageDictionary }
+
+function TPackageDictionary.GetValue(const AName, Args: String): String;
+Var
+  O : TObject;
+  I : Integer;
+begin
+  I:=Flist.IndexOf(AName);
+  If (I=-1) then
+    begin
+      result := GlobalDictionary.GetValue(AName,Args);
+      Exit;
+    end;
+  O:=Flist.Objects[I];
+  If O is TValueItem then
+    Result:=TValueItem(O).FValue
+  else
+    Result:=TFunctionItem(O).FFunc(AName,Args);
+end;
 
 
 {****************************************************************************
@@ -2350,6 +2392,7 @@ end;
 
 destructor TPackage.destroy;
 begin
+  FreeAndNil(FDictionary);
   FreeAndNil(FDependencies);
   FreeAndNil(FInstallFiles);
   FreeAndNil(FCleanFiles);
@@ -2486,6 +2529,13 @@ begin
             end;
           end;
       end;
+end;
+
+function TPackage.GetDictionary: TDictionary;
+begin
+  if not assigned(FDictionary) then
+    FDictionary:=PackageDictionaryClass.Create(Nil);
+  result := FDictionary;
 end;
 
 
@@ -2758,6 +2808,7 @@ end;
 procedure TCustomDefaults.SetCPU(const AValue: TCPU);
 begin
   FCPU:=AValue;
+  GlobalDictionary.AddVariable('CPU',CPUToString(FCPU));
   RecalcTarget;
 end;
 
@@ -2836,9 +2887,7 @@ end;
 
 function TCustomDefaults.GetUnitInstallDir: String;
 begin
-  Dictionary.AddVariable('target',Target);
-  Dictionary.AddVariable('BaseInstallDir',BaseInstallDir);
-  result := FixPath(Dictionary.ReplaceStrings(FUnitInstallDir));
+  result := FixPath(GlobalDictionary.ReplaceStrings(FUnitInstallDir));
 end;
 
 
@@ -2892,6 +2941,7 @@ begin
     FBaseInstallDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
   else
     FBaseInstallDir:='';
+  GlobalDictionary.AddVariable('baseinstalldir',BaseInstallDir);
   BinInstallDir:='';
   ExamplesInstallDir:='';
 end;
@@ -2900,6 +2950,7 @@ end;
 procedure TCustomDefaults.SetOS(const AValue: TOS);
 begin
   FOS:=AValue;
+  GlobalDictionary.AddVariable('OS',OSToString(FOS));
   Recalctarget;
 end;
 
@@ -2922,11 +2973,14 @@ begin
       If (P<>0) then
         begin
           FOS:=StringToOS(System.Copy(Avalue,P+1,Length(AValue)-P));
+          GlobalDictionary.AddVariable('OS',OSToString(FOS));
           FCPU:=StringToCPU(System.Copy(Avalue,1,P-1));
+          GlobalDictionary.AddVariable('CPU',CPUToString(FCPU));
         end
       else
         FOS:=StringToOS(AValue);
       FTarget:=AValue;
+      GlobalDictionary.AddVariable('target',Target);
     end;
 end;
 
@@ -2942,6 +2996,7 @@ end;
 procedure TCustomDefaults.RecalcTarget;
 begin
   Ftarget:=CPUToString(FCPU)+'-'+OStoString(FOS);
+  GlobalDictionary.AddVariable('target',Target);
 end;
 
 function TCustomDefaults.CmdLineOptions: String;
@@ -3164,6 +3219,9 @@ begin
       FInstallExamples:=(Upcase(Values[KeyInstallExamples])='Y');
       FNoFPCCfg:=(Upcase(Values[KeyNoFPCCfg])='Y');
       FUseEnvironment:=(Upcase(Values[KeyUseEnv])='Y');
+
+      GlobalDictionary.AddVariable('target',Target);
+      GlobalDictionary.AddVariable('baseinstalldir',BaseInstallDir);
       end;
   Finally
     L.Free;
@@ -3218,8 +3276,10 @@ end;
 
 constructor TCustomInstaller.Create(AOwner: TComponent);
 begin
-  Dictionary:=DictionaryClass.Create(Nil);
+  GlobalDictionary:=DictionaryClass.Create(Nil);
   AnalyzeOptions;
+  GlobalDictionary.AddVariable('BaseInstallDir',Defaults.BaseInstallDir);
+  GlobalDictionary.AddVariable('Target',Defaults.Target);
   CreatePackages;
 end;
 
@@ -3228,7 +3288,7 @@ destructor TCustomInstaller.Destroy;
 begin
   FreePackages;
   FreeAndNil(Defaults);
-  FreeAndNil(Dictionary);
+  FreeAndNil(GlobalDictionary);
   inherited destroy;
 end;
 
@@ -4048,7 +4108,7 @@ begin
         begin
           E:=True;
           If (C.SourceFile<>'') and (C.DestFile<>'')  then
-            E:=FileNewer(C.SourceFile,IncludeTrailingPathDelimiter(Dictionary.GetValue('OUTPUTDIR'))+C.DestFile);
+            E:=FileNewer(C.SourceFile,IncludeTrailingPathDelimiter(GlobalDictionary.GetValue('OUTPUTDIR'))+C.DestFile);
           If E then
             begin
             If Assigned(C.BeforeCommand) then
@@ -4080,7 +4140,7 @@ begin
         begin
           if S<>'' then
             S:=S+PathSeparator;
-          S:=S+Dictionary.ReplaceStrings(C.Value)
+          S:=S+GlobalDictionary.ReplaceStrings(C.Value)
         end;
     end;
   if S<>'' then
@@ -4088,7 +4148,7 @@ begin
 end;
 
 
-Function TBuildEngine.FindFileInPath(Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
+Function TBuildEngine.FindFileInPath(APackage: TPackage; Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
 var
   I : Integer;
   C : TConditionalString;
@@ -4099,7 +4159,7 @@ begin
       C:=Path[I];
       if (ACPU in C.CPUs) and (AOS in C.OSes) then
         begin
-          FoundPath:=IncludeTrailingPathDelimiter(Dictionary.ReplaceStrings(C.Value));
+          FoundPath:=IncludeTrailingPathDelimiter(APackage.Dictionary.ReplaceStrings(C.Value));
           if FileExists(FoundPath+AFileName) then
             begin
               result:=true;
@@ -4128,10 +4188,10 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
     SD,SF  : String;
   begin
     LogSearchPath('package source',APackage.SourcePath,ACPU,AOS);
-    SD:=Dictionary.ReplaceStrings(T.Directory);
-    SF:=Dictionary.ReplaceStrings(T.SourceFileName);
+    SD:=APackage.Dictionary.ReplaceStrings(T.Directory);
+    SF:=APackage.Dictionary.ReplaceStrings(T.SourceFileName);
     if SD='' then
-      FindFileInPath(APackage.SourcePath,SF,SD,ACPU,AOS);
+      FindFileInPath(APackage,APackage.SourcePath,SF,SD,ACPU,AOS);
     if SD<>'' then
       SD:=IncludeTrailingPathDelimiter(SD);
     T.FTargetSourceFileName:=SD+SF;
@@ -4162,11 +4222,11 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
               begin
                 if ExtractFilePath(D.Value)='' then
                   begin
-                    SF:=Dictionary.ReplaceStrings(D.Value);
+                    SF:=APAckage.Dictionary.ReplaceStrings(D.Value);
                     SD:='';
                     // first check the target specific path
-                    if not FindFileInPath(T.IncludePath,SF,SD,ACPU,AOS) then
-                      FindFileInPath(APackage.IncludePath,SF,SD,ACPU,AOS);
+                    if not FindFileInPath(APackage, T.IncludePath,SF,SD,ACPU,AOS) then
+                      FindFileInPath(APackage, APackage.IncludePath,SF,SD,ACPU,AOS);
                      if SD<>'' then
                        SD:=IncludeTrailingPathDelimiter(SD);
                      D.TargetFileName:=SD+SF;
@@ -4190,10 +4250,10 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
     SD,SF  : String;
   begin
     LogSearchPath('package example',APackage.ExamplePath,ACPU,AOS);
-    SD:=Dictionary.ReplaceStrings(T.Directory);
-    SF:=Dictionary.ReplaceStrings(T.SourceFileName);
+    SD:=APackage.Dictionary.ReplaceStrings(T.Directory);
+    SF:=APackage.Dictionary.ReplaceStrings(T.SourceFileName);
     if SD='' then
-      FindFileInPath(APackage.ExamplePath,SF,SD,ACPU,AOS);
+      FindFileInPath(APackage, APackage.ExamplePath,SF,SD,ACPU,AOS);
     if SD<>'' then
       SD:=IncludeTrailingPathDelimiter(SD);
     T.FTargetSourceFileName:=SD+SF;
@@ -4215,8 +4275,8 @@ begin
   try
     if DoChangeDir and (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
-    Dictionary.AddVariable('CPU',CPUToString(ACPU));
-    Dictionary.AddVariable('OS',OSToString(AOS));
+    APackage.Dictionary.AddVariable('CPU',CPUToString(ACPU));
+    APackage.Dictionary.AddVariable('OS',OSToString(AOS));
     For I:=0 to APackage.Targets.Count-1 do
       begin
         T:=APackage.FTargets.TargetItems[I];
@@ -4985,8 +5045,8 @@ begin
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
     CreateOutputDir(APackage);
-    Dictionary.AddVariable('UNITSOUTPUTDIR',APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
-    Dictionary.AddVariable('BINOUTPUTDIR',APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
+    APackage.Dictionary.AddVariable('UNITSOUTPUTDIR',APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
+    APackage.Dictionary.AddVariable('BINOUTPUTDIR',APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
     DoBeforeCompile(APackage);
     RegenerateUnitconfigFile:=False;
     if APackage.BuildMode=bmBuildUnit then
@@ -5204,7 +5264,7 @@ begin
     DoBeforeInstall(APackage);
     // units
     B:=false;
-    Dictionary.AddVariable('PackageName',APackage.Name);
+    GlobalDictionary.AddVariable('PackageName',APackage.Name);
     D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir);
     if InstallPackageFiles(APAckage,ttUnit,D) then
       B:=true;
@@ -6204,7 +6264,7 @@ begin
 end;
 
 
-function TDictionary.GetValue(const AName: String): String;
+function TDictionary.GetValue(AName: String): String;
 begin
   Result:=GetValue(AName,'');
 end;
@@ -6264,13 +6324,13 @@ begin
   I:=0;
   While I<High(Macros) do
     begin
-      Dictionary.AddVariable(Macros[i],Macros[I+1]);
+      GlobalDictionary.AddVariable(Macros[i],Macros[I+1]);
       Inc(I,2);
     end;
-  Result:=Dictionary.ReplaceStrings(Source);
+  Result:=GlobalDictionary.ReplaceStrings(Source);
   While I<High(Macros) do
     begin
-      Dictionary.RemoveItem(Macros[i]);
+      GlobalDictionary.RemoveItem(Macros[i]);
       Inc(I,2);
     end;
 end;
@@ -6347,6 +6407,6 @@ Finalization
   FreeAndNil(CustomFpMakeCommandlineValues);
   FreeAndNil(CustomFpmakeCommandlineOptions);
   FreeAndNil(DefInstaller);
-  FreeAndNil(Dictionary);
+  FreeAndNil(GlobalDictionary);
   FreeAndNil(Defaults);
 end.
