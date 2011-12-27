@@ -69,12 +69,13 @@ Type
     FHeader : TStrings;
     FInterface : TStrings;
     FImplementation : TStrings;
+    FTypes : TStrings;
     function GetDependencies: TStrings;
     function GetUnitSource: TStrings;
     procedure SetOutputFileName(AValue: String);
     procedure SetUnitName(AValue: string);
   Protected
-    bIsCustomAutomatable,bIsInterface,bIsAutomatable:boolean;
+    bIsCustomAutomatable,bIsInterface,bIsAutomatable,bIsExternalDecl,bIsUserDefined:boolean;
     // Construct unit from header, uses, interface,
     procedure BuildUnit; virtual;
     // Add to various parts of sources
@@ -153,7 +154,8 @@ function TTypeLibImporter.VarTypeIsAutomatable(ParamType:integer): boolean;
 begin
 result:=ParamType in [vt_i1,vt_ui1,vt_i2,vt_ui2,vt_i4,vt_ui4,vt_uint,
             vt_i8,VT_UI8,vt_bool,vt_r4,vt_r8,vt_cy,vt_date,
-            VT_BSTR,VT_VARIANT,VT_DISPATCH,VT_UNKNOWN,vt_hresult,VT_INT];
+            VT_BSTR,VT_VARIANT,VT_DISPATCH,VT_UNKNOWN,vt_hresult,VT_INT,
+            VT_LPWSTR,VT_LPSTR];
 end;
 
 function TTypeLibImporter.VarTypeToStr(ParamType:integer): string;
@@ -188,6 +190,8 @@ begin
     vt_hresult : Result := 'HResult';
     VT_INT:Result:='SYSINT';
     VT_SAFEARRAY:Result:='PSafeArray';
+    VT_LPWSTR:Result:='PWideChar';
+    VT_LPSTR:Result:='PChar';
   else
     Result := 'Unknown (' + IntToStr(ParamType) + ')';
   end;
@@ -247,10 +251,13 @@ begin
   result:='';
   bIsCustomAutomatable:=false;
   bIsInterface:=false;
+  bIsExternalDecl:=false;
+  bIsUserDefined:=false;
   if (TD.vt=vt_userdefined) or ((TD.vt=VT_PTR) and (TD.lptdesc^.vt=vt_userdefined)) then
     begin
     // interface references are dealt with now because they are pointers in fpc.
     // Recursive algorithm makes it difficult to remove a single preceding 'P' from the result.
+    bIsUserDefined:=true;
     bWasPointer:=(TD.vt=VT_PTR);
     if bWasPointer then
       TD:=TD.lptdesc^;
@@ -277,6 +284,9 @@ begin
       sl:=format('%s_TLB',[BstrName]);
     if (LowerCase(BstrName)='stdole') then // don't include, uses pre-defined stdole2.pas if V2
       begin
+      bIsExternalDecl:=true;
+      if lowercase(result)='guid' then
+        result:='TGUID';
       if (LARef^.wMajorVerNum=2) and (FUses.IndexOf('stdole2')=-1) then
         begin
         AddToHeader('// Dependency: stdole v2 (stdole2.pas)');
@@ -286,6 +296,7 @@ begin
     else if (LowerCase(sl)<>LowerCase(UnitName)) and (FUses.IndexOf(sl)=-1) then
       begin  // add dependency
       // find source in registry key HKEY_CLASSES_ROOT\TypeLib\GUID\version\0\win32
+      bIsExternalDecl:=true;
       il:=MAX_PATH;
       SetLength(sRefSrc,il);
       sKey:=format('\TypeLib\%s\%d.%d\0\win32',[GUIDToString(LARef^.GUID),LARef^.wMajorVerNum,LARef^.wMinorVerNum]);
@@ -725,7 +736,13 @@ begin
     if TIT=TKIND_ENUM then
       begin
       bDuplicate:=false;
-      sl:=BstrName;
+      if ValidateID(BstrName) then
+        sl:=BstrName
+      else
+        begin
+        sl:=BstrName+'_';
+        AddToHeader('//  Warning: renamed enum type ''%s'' to ''%s''',[BstrName,sl],True);
+        end;
       if (InterfaceSection.IndexOf(Format('  %s =TOleEnum;',[sl]))<>-1) then  // duplicate enums fe. AXVCL.dll 1.0
         begin
         sl:=sl+IntToStr(i); // index is unique in this typelib
@@ -734,6 +751,7 @@ begin
         end;
       AddToInterface('Type');
       AddToInterface('  %s =TOleEnum;',[sl]);
+      FTypes.Add(sl);
       AddToInterface('Const');
       for j:=0 to TA^.cVars-1 do
         begin
@@ -741,7 +759,13 @@ begin
         if assigned(VD) then
           begin
           TI.GetDocumentation(VD^.memId,@BstrName, nil, nil, nil);
-          sl:=BstrName;
+          if ValidateID(BstrName) then
+            sl:=BstrName
+          else
+            begin
+            sl:=BstrName+'_';
+            AddToHeader('//  Warning: renamed enum value ''%s'' to ''%s''',[BstrName,sl],True);
+            end;
           if bDuplicate then
             sl:=sl+IntToStr(i);
           if assigned(VD^.lpvarValue) then
@@ -800,43 +824,151 @@ Var
   TA:LPTYPEATTR;
   TIT: TYPEKIND;
   VD: lpVARDESC;
+  slDeferredType,slDeferredPendingType,slDeferredDeclaration:TStrings;
+  sl,sldeclaration,stype,smembername,srecordname:string;
+  bIsDeferred:boolean;
+ 
+  procedure ReleasePendingType(sPen:string);
+  var k:integer;
+    sDec,sTyp:string;
+  begin
+    k:=slDeferredPendingType.IndexOf(sPen);
+    while (k>=0) do
+      begin
+      sDec:=slDeferredDeclaration[k];
+      sTyp:=slDeferredType[k];
+      slDeferredPendingType.Delete(k);
+      slDeferredDeclaration.Delete(k);
+      slDeferredType.Delete(k);
+      // any other types pending for this declaration ? If yes, wait until all types declared.
+      if slDeferredDeclaration.IndexOf(sDec)=-1 then
+        begin
+        AddToInterface(sDec);
+        FTypes.Add(sTyp);
+        ReleasePendingType(sTyp);
+        end;
+      k:=slDeferredPendingType.IndexOf(sPen);
+      end;
+  end;
 
 begin
   //records, unions aliases
   AddToInterface('');
   AddToInterface('//records, unions, aliases');
   AddToInterface('');
+  slDeferredType:=TStringList.Create;
+  slDeferredPendingType:=TStringList.Create;
+  slDeferredDeclaration:=TStringList.Create;
+  try
 
   for i:=0 to TIcount-1 do
     begin
+    bIsDeferred:=false;
+    sldeclaration:='';
     OleCheck(TL.GetTypeInfoType(i, TIT));
     //s:=s+format('type %d'#13#10,[ord(TIT)]);
     OleCheck(TL.GetTypeInfo(i, TI));
     OleCheck(TL.GetDocumentation(i, @BstrName, @BstrDocString, @dwHelpContext, @BstrHelpFile));
     OleCheck(TI.GetTypeAttr(TA));
     case TIT of
-      TKIND_RECORD:
+     TKIND_RECORD,TKIND_UNION:
         begin
-        AddToInterface(' P%s = ^%s;',[BstrName,BstrName]);
-        AddToInterface(' %s = packed record',[BstrName]);
+        if ValidateID(BstrName) then
+          sRecordName:=BstrName
+        else
+          begin
+          sRecordName:=BstrName+'_';
+          AddToHeader('//  Warning: renamed record ''%s'' to ''%s''',[BstrName,sRecordName],True);
+          end;
+        AddToInterface(' P%s = ^%s;'#13#10,[sRecordName,sRecordName]);
+        FTypes.Add('P'+sRecordName);
+        ReleasePendingType('P'+sRecordName);
+        if TIT=TKIND_RECORD then
+          sldeclaration:=sldeclaration+format(' %s = packed record'#13#10,[sRecordName])
+        else
+          begin
+          sldeclaration:=sldeclaration+format(' %s =  record'#13#10,[sRecordName]);
+          sldeclaration:=sldeclaration+'    case Integer of'#13#10;
+          end;
         for j:=0 to TA^.cVars-1 do
           begin
           TI.GetVarDesc(j,VD);
           TI.GetDocumentation(VD^.memId,@BstrName, @BstrDocString, @dwHelpContext, @BstrHelpFile);
-          AddToInterface('     %s : %s;',[BstrName,TypeToString(TI, VD^.ElemdescVar.tdesc)]);
+          if ValidateID(BstrName) then
+            smemberName:=BstrName
+          else
+            begin
+            smemberName:=BstrName+'_';
+            AddToHeader('//  Warning: renamed record member ''%s'' in %s to ''%s''',[BstrName,sRecordName,smemberName],True);
+            end;
+          stype:=TypeToString(TI, VD^.ElemdescVar.tdesc);
+          if bIsUserDefined and not ValidateID(stype) then
+            stype:=stype+'_';
+          if bIsUserDefined and not bIsExternalDecl and (FTypes.IndexOf(stype)=-1) then //not defined yet, defer
+            begin
+            bIsDeferred:=true;
+            slDeferredPendingType.Add(stype);
+            slDeferredType.Add(sRecordName);
+            end;
+          if TIT=TKIND_RECORD then
+            sldeclaration:=sldeclaration+format('     %s : %s;'#13#10,[smemberName,stype])
+          else
+            sldeclaration:=sldeclaration+format('     %d: (%s : %s);'#13#10,[j,smemberName,stype]);
           end;
-        AddToInterface(' end;');
+        sldeclaration:=sldeclaration+' end;';
+        if not bIsDeferred then
+          begin
+          AddToInterface(sldeclaration);
+          FTypes.Add(sRecordName);
+          ReleasePendingType(sRecordName);
+          end
+        else
+          for j:=slDeferredDeclaration.Count to slDeferredType.Count-1 do  // catch up on slDeferredType
+            slDeferredDeclaration.Add(sldeclaration);
         end;
       TKIND_ALIAS:
         begin
-        AddToInterface('     %s = %s;',[BstrName,TypeToString(TI, TA^.tdescAlias)]);
-        end;
-      TKIND_UNION:
-        begin
+        stype:=TypeToString(TI, TA^.tdescAlias);
+        if bIsUserDefined and not ValidateID(stype) then
+          stype:=stype+'_';
+        if ValidateID(BstrName) then
+          sRecordName:=BstrName
+        else
+          begin
+          sRecordName:=BstrName+'_';
+          AddToHeader('//  Warning: renamed alias ''%s'' to ''%s''',[BstrName,sRecordName],True);
+          end;
+        sl:=format(' %s = %s;',[sRecordName,stype]);
+        if bIsUserDefined and not bIsExternalDecl and (FTypes.IndexOf(stype)=-1) then //not defined yet, defer
+          begin
+          slDeferredDeclaration.Add(sl);
+          slDeferredPendingType.Add(stype);
+          slDeferredType.Add(sRecordName);
+          end
+        else
+          begin
+          AddToInterface(sl);
+          FTypes.Add(sRecordName);
+		  ReleasePendingType(sRecordName);
+          end;
         end;
       end;
     TI.ReleaseTypeAttr(TA);
     end;
+  if slDeferredDeclaration.Count>1 then  // circular references
+    begin
+    AddToHeader('//  Error : the following type declarations have circular references',True);
+    AddToInterface('// circular references start here');
+    for j:=0 to slDeferredDeclaration.Count-1 do
+      AddToHeader('//          %s',[slDeferredType[j]]);
+    for j:=0 to slDeferredDeclaration.Count-1 do
+      AddToInterface(slDeferredDeclaration[j]);
+    end;
+  finally
+    slDeferredDeclaration.Free;
+    slDeferredPendingType.Free;
+    slDeferredType.Free;
+  end;
 end;
 
 Procedure TTypeLibImporter.CreateInterfaces(Const TL : ITypeLib; TICount : Integer);
@@ -1114,11 +1246,13 @@ begin
   FInterface:=TStringList.Create;
   FImplementation:=TStringList.Create;
   FUses:=TStringList.Create;
+  FTypes:=TStringList.Create;
   try
     DoImportTypeLib;
     If (OutputFileName<>'') then
       UnitSource.SaveToFile(OutputFileName);
   finally
+    FreeAndNil(FTypes);
     FreeAndNil(FUses);
     FreeAndNil(FInterface);
     FreeAndNil(FHeader);
