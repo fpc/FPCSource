@@ -8,3 +8,5 @@ programs=importtl
 [default]
 fpcdir=../..
 
+[require]
+packages=winunits-base
