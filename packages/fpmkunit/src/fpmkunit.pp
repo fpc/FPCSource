@@ -882,6 +882,7 @@ Type
   Public
     Constructor Create(AOwner : TComponent); override;
     destructor Destroy;override;
+    function AddPathPrefix(APackage: TPackage; APath: string): string;
 
     property Verbose : boolean read FVerbose write FVerbose;
     Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true);
@@ -1087,6 +1088,7 @@ var
   CustomFpMakeCommandlineValues: TStrings;
 
 threadvar
+  GPathPrefix : string;
   GLogPrefix  : string;
 
 ResourceString
@@ -4160,7 +4162,7 @@ begin
       if (ACPU in C.CPUs) and (AOS in C.OSes) then
         begin
           FoundPath:=IncludeTrailingPathDelimiter(APackage.Dictionary.ReplaceStrings(C.Value));
-          if FileExists(FoundPath+AFileName) then
+          if FileExists(AddPathPrefix(APackage,FoundPath+AFileName)) then
             begin
               result:=true;
               exit;
@@ -4195,7 +4197,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
     if SD<>'' then
       SD:=IncludeTrailingPathDelimiter(SD);
     T.FTargetSourceFileName:=SD+SF;
-    if FileExists(T.TargetSourceFileName) then
+    if FileExists(AddPathPrefix(APackage,T.TargetSourceFileName)) then
       Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
     else
       begin
@@ -4233,7 +4235,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
                   end
                 else
                   D.TargetFileName:=D.Value;
-                if FileExists(D.TargetFileName) then
+                if FileExists(AddPathPrefix(APackage,D.TargetFileName)) then
                   Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.TargetFileName])
                 else
                   begin
@@ -4257,7 +4259,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
     if SD<>'' then
       SD:=IncludeTrailingPathDelimiter(SD);
     T.FTargetSourceFileName:=SD+SF;
-    if FileExists(T.TargetSourceFileName) then
+    if FileExists(AddPathPrefix(APackage,T.TargetSourceFileName)) then
       Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
     else
       begin
@@ -4274,7 +4276,7 @@ begin
     exit;
   try
     if DoChangeDir and (APackage.Directory<>'') then
-      EnterDir(APackage.Directory);
+      GPathPrefix := APackage.Directory;
     APackage.Dictionary.AddVariable('CPU',CPUToString(ACPU));
     APackage.Dictionary.AddVariable('OS',OSToString(AOS));
     For I:=0 to APackage.Targets.Count-1 do
@@ -4307,7 +4309,7 @@ begin
       end;
   finally
     If DoChangeDir and (APackage.Directory<>'') then
-      EnterDir('');
+      GPathPrefix := '';
   end;
 end;
 
@@ -4421,6 +4423,14 @@ begin
     end;
 end;
 
+function TBuildEngine.AddPathPrefix(APackage: TPackage; APath: string): string;
+begin
+  if IsRelativePath(APath) and (GPathPrefix<>'') then
+    result := IncludeTrailingPathDelimiter(GPathPrefix) + APath
+  else
+    result := APath;
+end;
+
 
 Function TBuildEngine.GetCompilerCommand(APackage : TPackage; ATarget : TTarget; Env: TStrings) : String;
 Var
@@ -4451,15 +4461,15 @@ begin
     Args.Add('-M'+ModeToString(Defaults.Mode));
   // Output file paths
   If ATarget.TargetType in ProgramTargets then
-    Args.Add('-FE'+APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
-  Args.Add('-FU'+APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
+    Args.Add('-FE'+AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
+  Args.Add('-FU'+AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
   // Object Path
   L:=TUnsortedDuplicatesStringList.Create;
   L.Duplicates:=dupIgnore;
   AddConditionalStrings(L,APackage.ObjectPath,Defaults.CPU,Defaults.OS);
   AddConditionalStrings(L,ATarget.ObjectPath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
-    Args.Add('-Fo'+L[i]);
+    Args.Add('-Fo'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
   // Unit Dirs
   L:=TUnsortedDuplicatesStringList.Create;
@@ -4469,7 +4479,7 @@ begin
   AddConditionalStrings(L,APackage.UnitPath,Defaults.CPU,Defaults.OS);
   AddConditionalStrings(L,ATarget.UnitPath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
-    Args.Add('-Fu'+L[i]);
+    Args.Add('-Fu'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
   // Include Path
   L:=TUnsortedDuplicatesStringList.Create;
@@ -4478,7 +4488,7 @@ begin
   AddConditionalStrings(L,APackage.IncludePath,Defaults.CPU,Defaults.OS);
   AddConditionalStrings(L,ATarget.IncludePath,Defaults.CPU,Defaults.OS);
   for i:=0 to L.Count-1 do
-    Args.Add('-Fi'+L[i]);
+    Args.Add('-Fi'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
   // Custom Options
   If (Defaults.HaveOptions) then
@@ -4511,7 +4521,7 @@ begin
     end;
 
   // Add Filename to compile
-  result := result + ' ' + ATarget.TargetSourceFileName;
+  result := result + ' ' + AddPathPrefix(APackage,ATarget.TargetSourceFileName);
 
   Args.Free;
 end;
@@ -4542,7 +4552,7 @@ Var
   i: integer;
 begin
   //create a units directory
-  D:=APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS);
+  D:=AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
   If not SysDirectoryExists(D) then
     begin
       Log(vlInfo,SInfoCreatingOutputDir,[D]);
@@ -4554,7 +4564,7 @@ begin
     begin
       if APackage.Targets.TargetItems[i].TargetType in (ProgramTargets-[ttExampleProgram]) then
         begin
-          D:=APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS);
+          D:=AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
           If not SysDirectoryExists(D) then
             begin
               Log(vlInfo,SInfoCreatingOutputDir,[D]);
@@ -4949,7 +4959,7 @@ Var
     if (APackage.FBUTarget.Dependencies.Count>0) then
       begin
         Log(vldebug, Format(SDbgGenerateBuildUnit, [APackage.FBUTarget.Name]));
-        system.Assign(F,APackage.FBUTarget.FTargetSourceFileName);
+        system.Assign(F,AddPathPrefix(APackage,APackage.FBUTarget.FTargetSourceFileName));
         Rewrite(F);
         writeln(F,'unit ' + APackage.FBUTarget.Name +';');
         writeln(F,'interface');
@@ -5041,12 +5051,11 @@ begin
                  end;
   end;
 
+  GPathPrefix:=APackage.Directory;
   Try
-    If (APackage.Directory<>'') then
-      EnterDir(APackage.Directory);
     CreateOutputDir(APackage);
-    APackage.Dictionary.AddVariable('UNITSOUTPUTDIR',APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
-    APackage.Dictionary.AddVariable('BINOUTPUTDIR',APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
+    APackage.Dictionary.AddVariable('UNITSOUTPUTDIR',AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
+    APackage.Dictionary.AddVariable('BINOUTPUTDIR',AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
     DoBeforeCompile(APackage);
     RegenerateUnitconfigFile:=False;
     if APackage.BuildMode=bmBuildUnit then
@@ -5078,11 +5087,11 @@ begin
 
               //add unit dependencies
               if dep.DependencyType = depUnit then
-                cmdOpts := cmdOpts + ' --input=' + dep.Value;
+                cmdOpts := cmdOpts + ' --input=' + AddPathPrefix(APackage,dep.Value);
             end;
 
             //check if a documentation target is given
-            cmdOpts := cmdOpts + ' --input=' + T.Directory + T.Name + T.Extension + ' --descr='+ T.XML;
+            cmdOpts := cmdOpts + ' --input=' + AddPathPrefix(APackage,T.Directory + T.Name + T.Extension) + ' --descr='+ T.XML;
           end
         else
           log(vldebug, SDbgTargetIsNotAUnitOrProgram,[T.Name]);
@@ -5105,7 +5114,7 @@ begin
 
     if RegenerateUnitconfigFile then
       begin
-        UC:=IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS))+UnitConfigFile;
+        UC:=IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)))+UnitConfigFile;
         Log(vlInfo, Format(SDbgGenerating, [UC]));
         APackage.SaveUnitConfigToFile(UC,Defaults.CPU,Defaults.OS);
       end;
@@ -5122,12 +5131,12 @@ begin
         begin
           //prepend output format
           case IFPDocFormat of
-            ffHtml:      sFPDocFormat := '--format=html --output=' + Defaults.FPDocOutputDir;
-            ffHtm:       sFPDocFormat := '--format=htm --output=' + Defaults.FPDocOutputDir;
-            ffXHtml:     sFPDocFormat := '--format=xhtml --output=' + Defaults.FPDocOutputDir;
-            ffLaTex:     sFPDocFormat := '--format=latex --output=' + Defaults.FPDocOutputDir + APackage.Name + '.tex';
-            ffXMLStruct: sFPDocFormat := '--format=xml-struct --output=' + Defaults.FPDocOutputDir;
-            ffChm:       sFPDocFormat := '--format=chm --output=' + Defaults.FPDocOutputDir + APackage.Name + '.chm';
+            ffHtml:      sFPDocFormat := '--format=html --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir);
+            ffHtm:       sFPDocFormat := '--format=htm --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir);
+            ffXHtml:     sFPDocFormat := '--format=xhtml --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir);
+            ffLaTex:     sFPDocFormat := '--format=latex --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir) + APackage.Name + '.tex';
+            ffXMLStruct: sFPDocFormat := '--format=xml-struct --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir);
+            ffChm:       sFPDocFormat := '--format=chm --output=' + AddPathPrefix(APackage,Defaults.FPDocOutputDir) + APackage.Name + '.chm';
           end;
 
           //execute fpdoc
@@ -5140,8 +5149,7 @@ begin
 
     DoAfterCompile(APackage);
   Finally
-    If (APackage.Directory<>'') then
-      EnterDir('');
+    GPathPrefix:='';
   end;
   inc(FProgressCount);
   if FProgressMax>0 then
