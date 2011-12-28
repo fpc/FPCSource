@@ -1096,8 +1096,12 @@ begin
   s := ResolveLinkID(a);
   if Length(s) = 0 then
   begin
-
-    DoLog(SErrUnknownLinkID, [a]);
+    if assigned(module) then
+      s:=module.name
+    else
+      s:='?';
+    if a='' then a:='<empty>';
+    DoLog(SErrUnknownLinkID, [s,a]);
     PushOutputNode(CreateEl(CurOutputNode, 'b'));
   end else
     PushOutputNode(CreateLink(CurOutputNode, s));
@@ -2046,7 +2050,12 @@ begin
        s:= ResolveLinkID(l);
        if Length(s)=0 then
          begin
-         DoLog(SErrUnknownLinkID, [l]);
+         if assigned(module) then
+           s:=module.name
+         else
+           s:='?';
+         if l='' then l:='<empty>';
+         DoLog(SErrUnknownLinkID, [s,l]);
          NewEl := CreateEl(ParaEl,'b')
          end
        else
