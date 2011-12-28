@@ -2449,12 +2449,14 @@ begin
     NextToken;
     If isCallingConvention(CurTokenString,cc) then
       begin
-      TPasProcedure(Parent).CallingConvention:=CC;
+        if parent is TPasProcedure then
+          TPasProcedure(Parent).CallingConvention:=CC;
       ExpectToken(tkSemicolon);
       end
     else if IsModifier(CurTokenString,pm) then
       begin
-      TPasProcedure(Parent).AddModifier(pm);
+      if parent is TPasProcedure then
+        TPasProcedure(Parent).AddModifier(pm);
       if pm=pmExternal then
         begin
         NextToken;
@@ -2491,8 +2493,9 @@ begin
           NextToken;
           If CurToken<>tkSemicolon then
             begin
-            TPasProcedure(Parent).MessageName:=CurtokenString;
-            If (CurToken=tkString) then
+            if parent is TPasProcedure then
+              TPasProcedure(Parent).MessageName:=CurtokenString;
+            If (CurToken=tkString) and (parent is TPasProcedure) then
               TPasProcedure(Parent).Messagetype:=pmtString;
             end;
         until CurToken = tkSemicolon;
