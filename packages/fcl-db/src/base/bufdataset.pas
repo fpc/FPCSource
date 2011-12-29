@@ -2980,7 +2980,8 @@ var CurrLinkItem    : PBufRecLinkItem;
     FiltAcceptable  : boolean;
 
 begin
-  Result := False;
+  // Call inherited to make sure the dataset is bi-directional
+  Result := inherited;
   CheckActive;
   if IsEmpty then exit;
 
