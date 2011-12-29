@@ -762,7 +762,7 @@ implementation
     { true, if def is a 64 bit type }
     function is_64bit(def : tdef) : boolean;
       begin
-         is_64bit:=(def.typ=orddef) and (torddef(def).ordtype in [u64bit,s64bit,scurrency])
+         is_64bit:=(def.typ=orddef) and (torddef(def).ordtype in [u64bit,s64bit,scurrency,pasbool64,bool64bit])
       end;
 
 
