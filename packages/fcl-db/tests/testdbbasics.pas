@@ -20,36 +20,15 @@ type
 
   TTestDBBasics = class(TTestCase)
   private
-    procedure TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
     procedure TestfieldDefinition(AFieldType : TFieldType;ADatasize : integer;var ADS : TDataset; var AFld: TField);
     procedure TestcalculatedField_OnCalcfields(DataSet: TDataSet);
 
-    procedure FTestDelete1(TestCancelUpdate : boolean);
-    procedure FTestDelete2(TestCancelUpdate : boolean);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
-    procedure TestCancelUpdDelete1;
-    procedure TestCancelUpdDelete2;
-    procedure TestAppendInsertRecord;
-    procedure TestBookmarks;
-    procedure TestBookmarkValid;
-
-    procedure TestLocate;
-    procedure TestLocateCaseIns;
-
-    procedure TestFirst;
-    procedure TestDelete1;
-    procedure TestDelete2;
-    procedure TestIntFilter;
-    procedure TestOnFilter;
-    procedure TestStringFilter;
-
     procedure TestSetFieldValues;
     procedure TestGetFieldValues;
-
-    procedure TestNullAtOpen;
 
     procedure TestSupportIntegerFields;
     procedure TestSupportSmallIntFields;
@@ -64,10 +43,6 @@ type
     procedure TestSupportfmtBCDFields;
     procedure TestSupportFixedStringFields;
 
-    procedure TestAppendOnEmptyDataset;
-    procedure TestInsertOnEmptyDataset;
-
-    procedure TestEofAfterFirst;           //bug 7211
     procedure TestDoubleClose;
     procedure TestCalculatedField;
     procedure TestAssignFieldftString;
@@ -79,18 +54,10 @@ type
     procedure TestEOFBOFClosedDataset;
     procedure TestLayoutChangedEvents;
     procedure TestDataEventsResync;
-    procedure TestBug7007;
-    procedure TestBug6893;
     procedure TestRecordcountAfterReopen;  // partly bug 8228
     procedure TestdeFieldListChange;
-    procedure TestLastAppendCancel;        // bug 5058
-    procedure TestRecNo;                   // bug 5061
-    procedure TestSetRecNo;                // bug 6919
-    procedure TestRequired;
     procedure TestExceptionLocateClosed;    // bug 13938
     procedure TestCanModifySpecialFields;
-
-    procedure TestOldValue;
   end;
 
   { TTestBufDatasetDBBasics }
@@ -144,6 +111,52 @@ type
   TTestUniDirectionalDBBasics = class(TTestDBBasics)
   end;
 
+  { TTestCursorDBBasics }
+
+  TTestCursorDBBasics = class(TTestCase)
+  private
+    procedure TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
+    procedure FTestDelete1(TestCancelUpdate : boolean);
+    procedure FTestDelete2(TestCancelUpdate : boolean);
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestCancelUpdDelete1;
+    procedure TestCancelUpdDelete2;
+
+    procedure TestAppendInsertRecord;
+
+    procedure TestBookmarks;
+    procedure TestBookmarkValid;
+
+    procedure TestDelete1;
+    procedure TestDelete2;
+
+    procedure TestLocate;
+    procedure TestLocateCaseIns;
+
+    procedure TestFirst;
+    procedure TestIntFilter;
+    procedure TestOnFilter;
+    procedure TestStringFilter;
+
+    procedure TestNullAtOpen;
+
+    procedure TestAppendOnEmptyDataset;
+    procedure TestInsertOnEmptyDataset;
+
+    procedure TestEofAfterFirst;           //bug 7211
+    procedure TestLastAppendCancel;        // bug 5058
+    procedure TestRecNo;                   // bug 5061
+    procedure TestSetRecNo;                // bug 6919
+    procedure TestBug7007;
+    procedure TestBug6893;
+    procedure TestRequired;
+    procedure TestOldValue;
+  end;
+
+
   { TDBBasicsUniDirectionalTestSetup }
 {$ifdef fpc}
   TDBBasicsUniDirectionalTestSetup = class(TDBBasicsTestSetup)
@@ -165,7 +178,19 @@ uses
 
 type THackDataLink=class(TdataLink);
 
-procedure TTestDBBasics.TestAppendOnEmptyDataset;
+{ TTestCursorDBBasics }
+
+procedure TTestCursorDBBasics.SetUp;
+begin
+  DBConnector.StartTest;
+end;
+
+procedure TTestCursorDBBasics.TearDown;
+begin
+  DBConnector.StopTest;
+end;
+
+procedure TTestCursorDBBasics.TestAppendOnEmptyDataset;
 begin
   with DBConnector.GetNDataset(0) do
     begin
@@ -183,7 +208,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestInsertOnEmptyDataset;
+procedure TTestCursorDBBasics.TestInsertOnEmptyDataset;
 begin
   with DBConnector.GetNDataset(0) do
     begin
@@ -403,7 +428,7 @@ begin
   end;
 end;
 
-procedure TTestDBBasics.TestLastAppendCancel;
+procedure TTestCursorDBBasics.TestLastAppendCancel;
 
 var count : integer;
 
@@ -424,7 +449,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestRecNo;
+procedure TTestCursorDBBasics.TestRecNo;
 var i       : longint;
     passed  : boolean;
 begin
@@ -499,7 +524,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestSetRecNo;
+procedure TTestCursorDBBasics.TestSetRecNo;
 begin
   with DBConnector.GetNDataset(15) do
     begin
@@ -541,7 +566,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestRequired;
+procedure TTestCursorDBBasics.TestRequired;
 begin
   with DBConnector.GetNDataset(2) do
     begin
@@ -583,7 +608,7 @@ begin
   DBConnector.StopTest;
 end;
 
-procedure TTestDBBasics.TestOldValue;
+procedure TTestCursorDBBasics.TestOldValue;
 var v : variant;
     bufds: TDataset;
 begin
@@ -630,7 +655,7 @@ begin
 end;
 
 
-procedure TTestDBBasics.TestAppendInsertRecord;
+procedure TTestCursorDBBasics.TestAppendInsertRecord;
 begin
   with DBConnector.GetNDataset(true,6) do
     begin
@@ -652,7 +677,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestBookmarks;
+procedure TTestCursorDBBasics.TestBookmarks;
 var BM1,BM2,BM3,BM4,BM5 : TBookmark;
 begin
   with DBConnector.GetNDataset(true,14) do
@@ -726,7 +751,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestBookmarkValid;
+procedure TTestCursorDBBasics.TestBookmarkValid;
 var BM1,BM2,BM3,BM4,BM5 : TBookmark;
 begin
   with DBConnector.GetNDataset(true,14) do
@@ -762,7 +787,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestLocate;
+procedure TTestCursorDBBasics.TestLocate;
 begin
   with DBConnector.GetNDataset(true,13) do
     begin
@@ -784,7 +809,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestLocateCaseIns;
+procedure TTestCursorDBBasics.TestLocateCaseIns;
 begin
   with DBConnector.GetNDataset(true,13) do
     begin
@@ -869,7 +894,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestFirst;
+procedure TTestCursorDBBasics.TestFirst;
 var i : integer;
 begin
   with DBConnector.GetNDataset(true,14) do
@@ -891,27 +916,27 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestDelete1;
+procedure TTestCursorDBBasics.TestDelete1;
 begin
   FTestDelete1(false);
 end;
 
-procedure TTestDBBasics.TestDelete2;
+procedure TTestCursorDBBasics.TestDelete2;
 begin
   FTestDelete2(false);
 end;
 
-procedure TTestDBBasics.TestCancelUpdDelete1;
+procedure TTestCursorDBBasics.TestCancelUpdDelete1;
 begin
   FTestDelete1(true);
 end;
 
-procedure TTestDBBasics.TestCancelUpdDelete2;
+procedure TTestCursorDBBasics.TestCancelUpdDelete2;
 begin
   FTestDelete2(true);
 end;
 
-procedure TTestDBBasics.FTestDelete1(TestCancelUpdate : boolean);
+procedure TTestCursorDBBasics.FTestDelete1(TestCancelUpdate : boolean);
 // Test the deletion of records, including the first and the last one
 var i  : integer;
     ds : TDataset;
@@ -961,7 +986,7 @@ begin
 {$endif}
 end;
 
-procedure TTestDBBasics.FTestDelete2(TestCancelUpdate : boolean);
+procedure TTestCursorDBBasics.FTestDelete2(TestCancelUpdate : boolean);
 // Test the deletion of edited and appended records
 var i : integer;
     ds : TDataset;
@@ -1032,14 +1057,14 @@ begin
 {$endif fpc}
 end;
 
-procedure TTestDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
+procedure TTestCursorDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
 
 var a : TDataSetState;
 begin
   Accept := odd(Dataset.FieldByName('ID').AsInteger);
 end;
 
-procedure TTestDBBasics.TestOnFilter;
+procedure TTestCursorDBBasics.TestOnFilter;
 var tel : byte;
 begin
   with DBConnector.GetNDataset(15) do
@@ -1056,7 +1081,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestIntFilter;
+procedure TTestCursorDBBasics.TestIntFilter;
 var tel : byte;
 begin
   with DBConnector.GetNDataset(15) do
@@ -1100,7 +1125,7 @@ begin
   end;
 end;
 
-procedure TTestDBBasics.TestStringFilter;
+procedure TTestCursorDBBasics.TestStringFilter;
 var tel : byte;
 begin
   with DBConnector.GetNDataset(15) do
@@ -1916,7 +1941,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestEofAfterFirst;
+procedure TTestCursorDBBasics.TestEofAfterFirst;
 begin
   with DBConnector.GetNDataset(0) do
     begin
@@ -2204,7 +2229,7 @@ begin
   AParam.Free;
 end;
 
-procedure TTestDBBasics.Testbug7007;
+procedure TTestCursorDBBasics.Testbug7007;
 
 var
   datalink1: tdatalink;
@@ -2250,7 +2275,7 @@ begin
   end;
 end;
 
-procedure TTestDBBasics.TestBug6893;
+procedure TTestCursorDBBasics.TestBug6893;
 var
   datalink1: tdatalink;
   datasource1: tdatasource;
@@ -2290,7 +2315,7 @@ begin
   end;
 end;
 
-procedure TTestDBBasics.TestNullAtOpen;
+procedure TTestCursorDBBasics.TestNullAtOpen;
 begin
   with dbconnector.getndataset(0) do
     begin
@@ -2334,6 +2359,7 @@ end;
 initialization
 {$ifdef fpc}
   RegisterTestDecorator(TDBBasicsTestSetup, TTestDBBasics);
+  RegisterTestDecorator(TDBBasicsTestSetup, TTestCursorDBBasics);
 
   if uppercase(dbconnectorname)='SQL' then
     begin
