@@ -1770,7 +1770,7 @@ unit cgx86;
         ai:=Taicpu.op_reg(A_SETcc,S_B,hreg);
         ai.setcondition(flags_to_cond(f));
         list.concat(ai);
-        if (reg<>hreg) then
+        if reg<>hreg then
           a_load_reg_reg(list,OS_8,size,hreg,reg);
       end;
 

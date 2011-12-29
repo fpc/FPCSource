@@ -570,6 +570,7 @@ implementation
          alignmentrequirement,
          len : aint;
          r : tregister;
+         r64 : tregister64;
          oldflowcontrol : tflowcontrol;
       begin
         location_reset(location,LOC_VOID,OS_NO);
@@ -958,10 +959,25 @@ implementation
                     end
                   else
                     begin
-                      r:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
-                      cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,r);
-                      cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,left.location.size,r,r);
-                      cg.a_load_reg_loc(current_asmdata.CurrAsmList,left.location.size,r,left.location);
+{$ifdef cpu32bitalu}
+                      if left.location.size in [OS_S64,OS_64] then
+                        begin
+                          r64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                          r64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                          cg.g_flags2reg(current_asmdata.CurrAsmList,OS_32,right.location.resflags,r64.reglo);
+                          cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,r64.reghi);
+                          cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S64,
+                            r64,r64);
+                          cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,r64,left.location);
+                        end
+                      else
+{$endif cpu32bitalu}
+                        begin
+                          r:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
+                          cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,r);
+                          cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,left.location.size,r,r);
+                          cg.a_load_reg_loc(current_asmdata.CurrAsmList,left.location.size,r,left.location);
+                        end
                     end;
                 end;
 {$endif cpuflags}
