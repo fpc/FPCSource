@@ -1775,19 +1775,26 @@ unit cgx86;
       end;
 
 
-     procedure tcgx86.g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);
-       var
-         ai : taicpu;
-         tmpref  : treference;
-       begin
-          tmpref:=ref;
-          make_simple_ref(list,tmpref);
-          if not(size in [OS_8,OS_S8]) then
-            a_load_const_ref(list,size,0,tmpref);
-          ai:=Taicpu.op_ref(A_SETcc,S_B,tmpref);
-          ai.setcondition(flags_to_cond(f));
-          list.concat(ai);
-       end;
+    procedure tcgx86.g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);
+      var
+        ai : taicpu;
+        tmpref  : treference;
+      begin
+         tmpref:=ref;
+         make_simple_ref(list,tmpref);
+         if not(size in [OS_8,OS_S8]) then
+           a_load_const_ref(list,size,0,tmpref);
+         ai:=Taicpu.op_ref(A_SETcc,S_B,tmpref);
+         ai.setcondition(flags_to_cond(f));
+         list.concat(ai);
+{$ifndef cpu64bitalu}
+         if size in [OS_S64,OS_64] then
+           begin
+             inc(tmpref.offset,4);
+             a_load_const_ref(list,OS_32,0,tmpref);
+           end;
+{$endif cpu64bitalu}
+      end;
 
 
 { ************* concatcopy ************ }

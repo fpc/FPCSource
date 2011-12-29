@@ -944,7 +944,15 @@ implementation
                     begin
                       case left.location.loc of
                         LOC_REGISTER,LOC_CREGISTER:
-                          cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.register);
+{$ifdef cpu32bitalu}
+                          if left.location.size in [OS_S64,OS_64] then
+                            begin
+                              cg.g_flags2reg(current_asmdata.CurrAsmList,OS_32,right.location.resflags,left.location.register64.reglo);
+                              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,left.location.register64.reghi);
+                            end
+                          else
+{$endif cpu32bitalu}
+                            cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.register);
                         LOC_REFERENCE:
                           cg.g_flags2ref(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.reference);
                         LOC_SUBSETREG,LOC_SUBSETREF:
