@@ -289,6 +289,7 @@ begin
     Raise EIDEAError.Create(SErrEmptyKey);
   If (Length(S)>SizeOf(Key)) then
     KLen:=SizeOf(Key);
+  FillChar(Key,SizeOf(Key),0);
   Move(S[1],Key,KLen);
 end;
 
