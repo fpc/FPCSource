@@ -270,6 +270,7 @@ begin
 {$endif HAS_MEMORYMANAGER}
 end;
 
+{$ifdef FPC_HAS_FEATURE_HEAP}
 procedure GetMem(Out p:pointer;Size:ptruint);
 begin
   p := MemoryManager.GetMem(Size);
@@ -357,8 +358,10 @@ procedure fpc_freemem(p:pointer);compilerproc;[public,alias:'FPC_FREEMEM'];
 begin
   MemoryManager.FreeMem(p);
 end;
+{$endif FPC_HAS_FEATURE_HEAP}
 {$endif FPC_IN_HEAPMGR}
 
+{$if defined(FPC_HAS_FEATURE_HEAP) or defined(FPC_IN_HEAPMGR)}
 {$ifndef HAS_MEMORYMANAGER}
 {*****************************************************************************
                                GetHeapStatus
@@ -1615,3 +1618,5 @@ begin
 end;
 
 {$endif HAS_MEMORYMANAGER}
+{$endif defined(FPC_HAS_FEATURE_HEAP) or defined(FPC_IN_HEAPMGR)}
+

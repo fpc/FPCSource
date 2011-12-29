@@ -1118,12 +1118,10 @@ Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 Procedure Dump_Stack(var f : text;bp:pointer);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-{$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 Procedure RunError(w:Word);
 Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1229,9 +1227,7 @@ const
                                Heap
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_HEAP}
 {$i heaph.inc}
-{$endif FPC_HAS_FEATURE_HEAP}
 
 {*****************************************************************************
                           Thread support

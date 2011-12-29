@@ -78,6 +78,7 @@ function  SysGetHeapStatus:THeapStatus;
 function  SysGetFPCHeapStatus:TFPCHeapStatus;
 {$endif EMBEDDED}
 
+{$ifdef FPC_HAS_FEATURE_HEAP}
 { Tp7 functions }
 Procedure Getmem(Out p:pointer;Size:ptruint);
 Procedure Getmemory(Out p:pointer;Size:ptruint);
@@ -97,6 +98,5 @@ function ReAllocMem(var p:pointer;Size:ptruint):pointer;
 function ReAllocMemory(p:pointer;Size:ptruint):pointer; cdecl;
 function GetHeapStatus:THeapStatus;
 function GetFPCHeapStatus:TFPCHeapStatus;
-
-{ Bootstrapping }
+{$endif FPC_HAS_FEATURE_HEAP}
 

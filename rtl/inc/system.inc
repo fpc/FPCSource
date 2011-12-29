@@ -64,9 +64,7 @@ Const
 {$i filerec.inc}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
-{$ifdef FPC_HAS_FEATURE_TEXTIO}
 {$i textrec.inc}
-{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   {$ifdef FPC_OBJFPC_EXTENDED_IF}
@@ -85,7 +83,6 @@ Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
 type
   FileFunc = Procedure(var t : TextRec);
 {$endif FPC_HAS_FEATURE_TEXTIO}
-
 
 const
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
@@ -1012,14 +1009,13 @@ Begin
   Halt(0);
 End;
 
-Procedure Error(RunTimeError : TRunTimeError);
 
+Procedure Error(RunTimeError : TRunTimeError);
 begin
   RunError(RuntimeErrorExitCodes[RunTimeError]);
 end;
 
 
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 Procedure dump_stack(var f : text;bp : Pointer);
 var
   i : Longint;
@@ -1073,8 +1069,6 @@ begin
     WriteLn(f,BackTraceStrFunc(Frames[FrameNumber]));
 end;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-
-{$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
@@ -1276,11 +1270,9 @@ end;
                                Heap
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_HEAP}
 {$i sysheap.inc}
 
 {$i heap.inc}
-{$endif FPC_HAS_FEATURE_HEAP}
 
 {*****************************************************************************
                           Thread support
@@ -1332,9 +1324,7 @@ end;
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { Text file }
-{$ifdef FPC_HAS_FEATURE_TEXTIO}
 {$i text.inc}
-{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Untyped file }

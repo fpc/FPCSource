@@ -366,7 +366,7 @@ Function fpc_Char_To_WChar(const c : Char): WideChar; compilerproc;
 Function fpc_WChar_To_Char(const c : WideChar): Char; compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
-{$ifdef FPC_HAS_FEATURE_TEXTIO}
+{ $ifdef FPC_HAS_FEATURE_TEXTIO}
 { from text.inc }
 Function fpc_get_input:PText;compilerproc;
 Function fpc_get_output:PText;compilerproc;
@@ -433,7 +433,7 @@ function fpc_SetupReadStr_Unicodestr(const s: unicodestring): PText; compilerpro
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 function fpc_SetupReadStr_Widestr(const s: widestring): PText; compilerproc;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-{$endif FPC_HAS_FEATURE_TEXTIO}
+{ $endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
 procedure fpc_variant_init(var v: tvardata);compilerproc;

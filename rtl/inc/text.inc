@@ -704,7 +704,7 @@ begin
           fpc_WriteBlanks(f,Len-SLen);
         if slen > 0 then
           begin
-            {$ifdef FPC_HAS_CPSTRING}
+            {$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
             a:=fpc_AnsiStr_To_AnsiStr(S,TextRec(f).CodePage);
             fpc_WriteBuffer(f,PAnsiChar(a)^,Length(a));
             {$else}
@@ -2020,14 +2020,14 @@ begin
     fmInput :
       begin
         TextRec(f).InOutFunc:=@FileReadFunc;
-      {$ifdef FPC_HAS_CPSTRING}
+      {$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_WIDESTRINGS)}
         TextRec(f).CodePage:=WideStringManager.GetStandardCodePageProc(scpConsoleInput);
       {$endif}
       end;
     fmOutput :
       begin
         TextRec(f).InOutFunc:=@FileWriteFunc;
-      {$ifdef FPC_HAS_CPSTRING}
+        {$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_WIDESTRINGS)}
         TextRec(f).CodePage:=WideStringManager.GetStandardCodePageProc(scpConsoleOutput);
       {$endif}
         if Do_Isdevice(hdl) then
