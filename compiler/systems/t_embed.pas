@@ -768,6 +768,47 @@ function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):
       sh_entsize        : longint;
     end;
 
+  function MayBeSwapHeader(h : telf32header) : telf32header;
+    begin
+      result:=h;
+      if source_info.endian<>target_info.endian then
+        with h do
+          begin
+            result.e_type:=swapendian(e_type);
+            result.e_machine:=swapendian(e_machine);
+            result.e_version:=swapendian(e_version);
+            result.e_entry:=swapendian(e_entry);
+            result.e_phoff:=swapendian(e_phoff);
+            result.e_shoff:=swapendian(e_shoff);
+            result.e_flags:=swapendian(e_flags);
+            result.e_ehsize:=swapendian(e_ehsize);
+            result.e_phentsize:=swapendian(e_phentsize);
+            result.e_phnum:=swapendian(e_phnum);
+            result.e_shentsize:=swapendian(e_shentsize);
+            result.e_shnum:=swapendian(e_shnum);
+            result.e_shstrndx:=swapendian(e_shstrndx);
+          end;
+    end;
+
+  function MaybeSwapSecHeader(h : telf32sechdr) : telf32sechdr;
+    begin
+      result:=h;
+      if source_info.endian<>target_info.endian then
+        with h do
+          begin
+            result.sh_name:=swapendian(sh_name);
+            result.sh_type:=swapendian(sh_type);
+            result.sh_flags:=swapendian(sh_flags);
+            result.sh_addr:=swapendian(sh_addr);
+            result.sh_offset:=swapendian(sh_offset);
+            result.sh_size:=swapendian(sh_size);
+            result.sh_link:=swapendian(sh_link);
+            result.sh_info:=swapendian(sh_info);
+            result.sh_addralign:=swapendian(sh_addralign);
+            result.sh_entsize:=swapendian(sh_entsize);
+          end;
+    end;
+
   var
     f : file;
 
@@ -805,10 +846,12 @@ function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):
       Message1(execinfo_f_cant_open_executable,fn);
     { read header }
     blockread(f,elfheader,sizeof(tElf32header));
+    elfheader:=MayBeSwapHeader(elfheader);
     seek(f,elfheader.e_shoff);
     { read string section header }
     seek(f,elfheader.e_shoff+sizeof(TElf32sechdr)*elfheader.e_shstrndx);
     blockread(f,secheader,sizeof(secheader));
+    secheader:=MaybeSwapSecHeader(secheader);
     stringoffset:=secheader.sh_offset;
 
     seek(f,elfheader.e_shoff);
@@ -816,6 +859,7 @@ function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):
     for i:=0 to elfheader.e_shnum-1 do
       begin
         blockread(f,secheader,sizeof(secheader));
+        secheader:=MaybeSwapSecHeader(secheader);
         secname:=ReadSectionName(stringoffset+secheader.sh_name);
         if secname='.text' then
           begin
