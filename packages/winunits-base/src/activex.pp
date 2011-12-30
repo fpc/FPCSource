@@ -3333,9 +3333,9 @@ type
 
    IOleInPlaceSite = interface(IOleWindow)
       ['{00000119-0000-0000-C000-000000000046}']
-      function CanInPlaceActivate : HResult;
-      function OnInPlaceActivate : HResult;
-      function OnUIActivate : HResult;
+      function CanInPlaceActivate : HResult;stdcall;
+      function OnInPlaceActivate : HResult;stdcall;
+      function OnUIActivate : HResult;stdcall;
       function GetWindowContext(out ppframe:IOleInPlaceFrame;out ppdoc:IOleInPlaceUIWindow;lprcposrect:LPRECT;lprccliprect:LPRECT;lpframeinfo:LPOLEINPLACEFRAMEINFO):hresult; stdcall;
       function Scroll(scrollExtant:TSIZE):hresult; stdcall;
       function OnUIDeactivate(fUndoable:BOOL):hresult; stdcall;
@@ -3347,10 +3347,10 @@ type
 
     IOleInPlaceObject = interface(IOleWindow)
       ['{00000113-0000-0000-C000-000000000046}']
-      function InPlaceDeactivate : HResult;
-      function UIDeactivate : HResult;
+      function InPlaceDeactivate : HResult;stdcall;
+      function UIDeactivate : HResult;stdcall;
       function SetObjectRects(lprcPosRect:LPRect;lprcClipRect:LPRect):hresult; stdcall;
-      function ReactivateAndUndo : HResult;
+      function ReactivateAndUndo : HResult;stdcall;
      end;
 
     IOleDocumentView = interface(IUnknown)
@@ -3362,12 +3362,12 @@ type
         function Getrect(prcView:LPRect):hresult; stdcall;
         function SetRectComplex(prcview:LPRect;prcHScroll:LPRect;prcVScroll:LPRect;prcSizeBox:LPRect):hresult; stdcall;
         function Show(fshow:Bool) :hresult; stdcall;
-        function UIActivate(fUIActive :BOOL): HResult;
+        function UIActivate(fUIActive :BOOL): HResult;stdcall;
         function Open :hresult; stdcall;
         function Closeview(dwreserved:DWORD):hresult; stdcall;
         function SaveViewState(pstm:IStream):hresult; stdcall;
         function ApplyViewState(pstm:IStream):hresult; stdcall;
-        function Clone(pipsitenew: IOleInPlaceSite;out ppviewNew:IOleDocumentView):HResult;
+        function Clone(pipsitenew: IOleInPlaceSite;out ppviewNew:IOleDocumentView):HResult;stdcall;
         end;
 
     IEnumOleDocumentViews = Interface(IUnknown)
