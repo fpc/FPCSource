@@ -2416,6 +2416,14 @@ begin
       if CfgFileExists(configpath+fn) then
        foundfn:=configpath+fn
      else
+{$ifdef WINDOWS}
+       if (GetEnvironmentVariable('USERPROFILE')<>'') and CfgFileExists(FixPath(GetEnvironmentVariable('USERPROFILE'),false)+fn) then
+         foundfn:=FixPath(GetEnvironmentVariable('USERPROFILE'),false)+fn
+     else
+       if (GetEnvironmentVariable('ALLUSERSPROFILE')<>'') and CfgFileExists(FixPath(GetEnvironmentVariable('ALLUSERSPROFILE'),false)+fn) then
+         foundfn:=FixPath(GetEnvironmentVariable('ALLUSERSPROFILE'),false)+fn
+     else
+{$endif WINDOWS}
 {$ifndef Unix}
       if CfgFileExists(exepath+fn) then
        foundfn:=exepath+fn
