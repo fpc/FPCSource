@@ -784,7 +784,6 @@ implementation
                          sepChar := '@'
                        else
                          sepChar := '%';
-                       if (tf_needs_symbol_type in target_info.flags) then
 {$ifdef avr}
                        if (tf_needs_symbol_type in target_info.flags) then
                          asmwriteln(#9'.type '+ReplaceForbiddenChars(Tai_datablock(hp).sym.name)+','+sepChar+'object');
