@@ -276,7 +276,7 @@ unit optdfa;
                     foreachnodestatic(pm_postprocess,twhilerepeatnode(node).left,@AddDefUse,@dfainfo);
                   end;
 
-                { NB: this node should typically have empty def set }                  
+                { NB: this node should typically have empty def set }
                 if assigned(node.successor) then
                   DFASetDiff(l,node.successor.optinfo^.life,node.optinfo^.def)
                 else if assigned(resultnode) then
@@ -344,10 +344,14 @@ unit optdfa;
                 { update for node }
                 { life:=life+use+body }
                 l:=copy(node.optinfo^.life);
-                DFASetIncludeSet(l,node.optinfo^.use);
                 DFASetIncludeSet(l,tfornode(node).t2.optinfo^.life);
                 { the for loop always updates its control variable }
                 DFASetDiff(l,l,node.optinfo^.def);
+
+                { ... but it could be that left/right use it, so do it after
+                  removing def }
+                DFASetIncludeSet(l,node.optinfo^.use);
+
                 UpdateLifeInfo(node,l);
 
                 { ... and a second iteration for fast convergence }
