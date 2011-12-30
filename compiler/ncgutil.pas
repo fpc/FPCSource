@@ -332,6 +332,17 @@ implementation
                        end;
                      LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
                        begin
+{$ifndef cpu64bitalu}
+                         if opsize in [OS_64,OS_S64] then
+                           begin
+                             location_force_reg(list,p.location,opsize,true);
+                             tmpreg:=cg.getintregister(list,OS_32);
+                             cg.a_op_reg_reg_reg(list,OP_OR,OS_32,p.location.register64.reglo,p.location.register64.reghi,tmpreg);
+                             location_reset(p.location,LOC_REGISTER,OS_32);
+                             p.location.register:=tmpreg;
+                             opsize:=OS_32;
+                           end;
+{$endif not cpu64bitalu}
                          cg.a_cmp_const_loc_label(list,opsize,OC_NE,0,p.location,current_procinfo.CurrTrueLabel);
                          cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
                        end;
