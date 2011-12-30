@@ -954,7 +954,20 @@ implementation
 {$endif cpu32bitalu}
                             cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.register);
                         LOC_REFERENCE:
-                          cg.g_flags2ref(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.reference);
+                        { i386 has a hack in its code generator so that it can
+                          deal with 64 bit locations in this parcticular case }
+{$if defined(cpu32bitalu) and not defined(x86)}
+                          if left.location.size in [OS_S64,OS_64] then
+                            begin
+                              r64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                              r64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                              cg.g_flags2reg(current_asmdata.CurrAsmList,OS_32,right.location.resflags,r64.reglo);
+                              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,r64.reghi);
+                              cg64.a_load64_reg_ref(current_asmdata.CurrAsmList,r64,left.location.reference);
+                            end
+                          else
+{$endif cpu32bitalu}
+                            cg.g_flags2ref(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.reference);
                         LOC_SUBSETREG,LOC_SUBSETREF:
                           begin
                             r:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
