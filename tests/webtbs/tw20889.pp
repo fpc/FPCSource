@@ -10,10 +10,14 @@ program qwordbool_test_02;
 // Sample:
 //
 function qbool_result(something:integer):qwordbool;
-begin qbool_result:=(something<>0);
-      end;
+  begin 
+    qbool_result:=(something<>0);
+  end;
 
 var   test:boolean;
-begin test:=qbool_result(123);  //here(17,13) Fatal: Internal error 200410105
-      writeln(test);
-      end.
+begin 
+  test:=qbool_result(123);  //here(17,13) Fatal: Internal error 200410105
+  if not(test) then
+    halt(1);
+  writeln('ok');      
+end.
