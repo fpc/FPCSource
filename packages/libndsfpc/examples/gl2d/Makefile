@@ -100,9 +100,7 @@ endif
 endif
 export ECHO
 endif
-override OS_TARGET_DEFAULT=nds
-override CPU_TARGET_DEFAULT=arm
-override DEFAULT_FPCDIR=../..
+override DEFAULT_FPCDIR=../../../..
 ifndef FPC
 ifdef PP
 FPC=$(PP)
@@ -288,24 +286,10 @@ FPMAKE_SKIP_CONFIG=-n
 FPCFPMAKE=$(FPC)
 endif
 endif
-override PACKAGE_NAME=libndsfpc
-override PACKAGE_VERSION=2.7.1
-BINUTILSPREFIX=arm-eabi-
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=nds9 nds7 dswifi9 dswifi7 fat filesystem maxmod9  maxmod7 gl2d
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_EXAMPLEDIRS+=examples
+override TARGET_DIRS+=2Dplus3D dual_screen fonts primitives scrolling sprites
 endif
 override INSTALL_FPCPACKAGE=y
-ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_INCLUDEDIR+=src src/dswifi src/fat src/maxmod src/gl2d
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_SOURCEDIR+=src tests
-endif
-override SHARED_BUILD=n
-override SHARED_BUILD=n
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
@@ -918,6 +902,48 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
+override REQUIRE_PACKAGES=libndsfpc
+ifeq ($(FULL_TARGET),arm-nds)
+REQUIRE_PACKAGES_LIBNDSFPC=1
+endif
+ifdef REQUIRE_PACKAGES_LIBNDSFPC
+PACKAGEDIR_LIBNDSFPC:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /libndsfpc/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_LIBNDSFPC),)
+ifneq ($(wildcard $(PACKAGEDIR_LIBNDSFPC)/units/$(TARGETSUFFIX)),)
+UNITDIR_LIBNDSFPC=$(PACKAGEDIR_LIBNDSFPC)/units/$(TARGETSUFFIX)
+else
+UNITDIR_LIBNDSFPC=$(PACKAGEDIR_LIBNDSFPC)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_LIBNDSFPC)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_LIBNDSFPC=$(PACKAGEDIR_LIBNDSFPC)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_LIBNDSFPC)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_LIBNDSFPC=$(PACKAGEDIR_LIBNDSFPC)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_LIBNDSFPC=$(PACKAGEDIR_LIBNDSFPC)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_LIBNDSFPC)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_LIBNDSFPC) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_LIBNDSFPC)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_LIBNDSFPC=
+UNITDIR_LIBNDSFPC:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /libndsfpc/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_LIBNDSFPC),)
+UNITDIR_LIBNDSFPC:=$(firstword $(UNITDIR_LIBNDSFPC))
+else
+UNITDIR_LIBNDSFPC=
+endif
+endif
+ifdef UNITDIR_LIBNDSFPC
+override COMPILER_UNITDIR+=$(UNITDIR_LIBNDSFPC)
+endif
+ifdef UNITDIR_FPMAKE_LIBNDSFPC
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_LIBNDSFPC)
+endif
+endif
 ifndef NOCPUDEF
 override FPCOPTDEF=$(ARCH)
 endif
@@ -1071,269 +1097,10 @@ EXECPPAS:=@$(PPAS)
 endif
 endif
 endif
-.PHONY: fpc_units
-ifneq ($(TARGET_UNITS)$(TARGET_IMPLICITUNITS),)
-override ALLTARGET+=fpc_units
-override UNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_UNITS))
-override IMPLICITUNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_IMPLICITUNITS))
-override INSTALLPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
-override CLEANPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
-endif
-fpc_units: $(COMPILER_UNITTARGETDIR) $(UNITPPUFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
 endif
-.PHONY: fpc_examples
-ifneq ($(TARGET_EXAMPLES),)
-HASEXAMPLES=1
-override EXAMPLESOURCEFILES:=$(wildcard $(addsuffix .pp,$(TARGET_EXAMPLES)) $(addsuffix .pas,$(TARGET_EXAMPLES)) $(addsuffix .lpr,$(TARGET_EXAMPLES)) $(addsuffix .dpr,$(TARGET_EXAMPLES)))
-override EXAMPLEFILES:=$(addsuffix $(EXEEXT),$(TARGET_EXAMPLES))
-override EXAMPLEOFILES:=$(addsuffix $(OEXT),$(TARGET_EXAMPLES)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_EXAMPLES))) $(addprefix $(IMPORTLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_EXAMPLES)))
-override EXAMPLEDBGFILES:=$(addsuffix $(EXEDBGEXT),$(TARGET_EXAMPLES))
-override CLEANEXEFILES+=$(EXAMPLEFILES) $(EXAMPLEOFILES)
-override CLEANEXEDBGFILES+=$(EXAMPLEDBGFILES)
-ifeq ($(OS_TARGET),os2)
-override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_EXAMPLES))
-endif
-ifeq ($(OS_TARGET),emx)
-override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_EXAMPLES))
-endif
-endif
-ifneq ($(TARGET_EXAMPLEDIRS),)
-HASEXAMPLES=1
-endif
-fpc_examples: all $(EXAMPLEFILES) $(addsuffix _all,$(TARGET_EXAMPLEDIRS))
-.PHONY: fpc_all fpc_smart fpc_debug fpc_release fpc_shared
-$(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
-	@$(ECHOREDIR) Compiled > $(FPCMADE)
-fpc_all: $(FPCMADE)
-fpc_smart:
-	$(MAKE) all LINKSMART=1 CREATESMART=1
-fpc_debug:
-	$(MAKE) all DEBUG=1
-fpc_release:
-	$(MAKE) all RELEASE=1
-.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .lpr .dpr .pp .rc .res
-$(COMPILER_UNITTARGETDIR):
-	$(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
-$(COMPILER_TARGETDIR):
-	$(MKDIRTREE) $(COMPILER_TARGETDIR)
-%$(PPUEXT): %.pp
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(PPUEXT): %.pas
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.pp
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.pas
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.lpr
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.dpr
-	$(COMPILER) $<
-	$(EXECPPAS)
-%.res: %.rc
-	windres -i $< -o $@
-vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.lpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.dpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.inc $(COMPILER_INCLUDEDIR)
-vpath %$(OEXT) $(COMPILER_UNITTARGETDIR)
-vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
-.PHONY: fpc_shared
-override INSTALLTARGET+=fpc_shared_install
-ifndef SHARED_LIBVERSION
-SHARED_LIBVERSION=$(FPC_VERSION)
-endif
-ifndef SHARED_LIBNAME
-SHARED_LIBNAME=$(PACKAGE_NAME)
-endif
-ifndef SHARED_FULLNAME
-SHARED_FULLNAME=$(SHAREDLIBPREFIX)$(SHARED_LIBNAME)-$(SHARED_LIBVERSION)$(SHAREDLIBEXT)
-endif
-ifndef SHARED_LIBUNITS
-SHARED_LIBUNITS:=$(TARGET_UNITS) $(TARGET_IMPLICITUNITS)
-override SHARED_LIBUNITS:=$(filter-out $(INSTALL_BUILDUNIT),$(SHARED_LIBUNITS))
-endif
-fpc_shared:
-ifdef HASSHAREDLIB
-	$(MAKE) all CREATESHARED=1 LINKSHARED=1 CREATESMART=1
-ifneq ($(SHARED_BUILD),n)
-	$(PPUMOVE) -q $(SHARED_LIBUNITS) -i$(COMPILER_UNITTARGETDIR) -o$(SHARED_FULLNAME) -d$(COMPILER_UNITTARGETDIR)
-endif
-else
-	@$(ECHO) Shared Libraries not supported
-endif
-fpc_shared_install:
-ifneq ($(SHARED_BUILD),n)
-ifneq ($(SHARED_LIBUNITS),)
-ifneq ($(wildcard $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME)),)
-	$(INSTALL) $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME) $(INSTALL_SHAREDDIR)
-endif
-endif
-endif
-.PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
-ifdef INSTALL_UNITS
-override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(INSTALL_UNITS))
-endif
-ifdef INSTALL_BUILDUNIT
-override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT)$(PPUEXT),$(INSTALLPPUFILES))
-endif
-ifdef INSTALLPPUFILES
-override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES))) $(addprefix $(IMPORTLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
-ifneq ($(UNITTARGETDIRPREFIX),)
-override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(notdir $(INSTALLPPUFILES)))
-override INSTALLPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(notdir $(INSTALLPPULINKFILES))))
-endif
-override INSTALL_CREATEPACKAGEFPC=1
-endif
-ifdef INSTALLEXEFILES
-ifneq ($(TARGETDIRPREFIX),)
-override INSTALLEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(notdir $(INSTALLEXEFILES)))
-endif
-endif
-fpc_install: all $(INSTALLTARGET)
-ifdef INSTALLEXEFILES
-	$(MKDIR) $(INSTALL_BINDIR)
-ifdef UPXPROG
-	-$(UPXPROG) $(INSTALLEXEFILES)
-endif
-	$(INSTALLEXE) $(INSTALLEXEFILES) $(INSTALL_BINDIR)
-endif
-ifdef INSTALL_CREATEPACKAGEFPC
-ifdef FPCMAKE
-ifdef PACKAGE_VERSION
-ifneq ($(wildcard Makefile.fpc),)
-	$(FPCMAKE) -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
-	$(MKDIR) $(INSTALL_UNITDIR)
-	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
-endif
-endif
-endif
-endif
-ifdef INSTALLPPUFILES
-	$(MKDIR) $(INSTALL_UNITDIR)
-	$(INSTALL) $(INSTALLPPUFILES) $(INSTALL_UNITDIR)
-ifneq ($(INSTALLPPULINKFILES),)
-	$(INSTALL) $(INSTALLPPULINKFILES) $(INSTALL_UNITDIR)
-endif
-ifneq ($(wildcard $(LIB_FULLNAME)),)
-	$(MKDIR) $(INSTALL_LIBDIR)
-	$(INSTALL) $(LIB_FULLNAME) $(INSTALL_LIBDIR)
-ifdef inUnix
-	ln -sf $(LIB_FULLNAME) $(INSTALL_LIBDIR)/$(LIB_NAME)
-endif
-endif
-endif
-ifdef INSTALL_FILES
-	$(MKDIR) $(INSTALL_DATADIR)
-	$(INSTALL) $(INSTALL_FILES) $(INSTALL_DATADIR)
-endif
-fpc_sourceinstall: distclean
-	$(MKDIR) $(INSTALL_SOURCEDIR)
-	$(COPYTREE) $(BASEDIR)/* $(INSTALL_SOURCEDIR)
-fpc_exampleinstall: $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
-ifdef HASEXAMPLES
-	$(MKDIR) $(INSTALL_EXAMPLEDIR)
-endif
-ifdef EXAMPLESOURCEFILES
-	$(COPY) $(EXAMPLESOURCEFILES) $(INSTALL_EXAMPLEDIR)
-endif
-ifdef TARGET_EXAMPLEDIRS
-	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
-endif
-.PHONY: fpc_distinstall
-fpc_distinstall: install exampleinstall
-.PHONY: fpc_zipinstall fpc_zipsourceinstall fpc_zipexampleinstall
-ifndef PACKDIR
-ifndef inUnix
-PACKDIR=$(BASEDIR)/../fpc-pack
-else
-PACKDIR=/tmp/fpc-pack
-endif
-endif
-ifndef ZIPNAME
-ifdef DIST_ZIPNAME
-ZIPNAME=$(DIST_ZIPNAME)
-else
-ZIPNAME=$(PACKAGE_NAME)
-endif
-endif
-ifndef FULLZIPNAME
-FULLZIPNAME=$(ZIPCROSSPREFIX)$(ZIPPREFIX)$(ZIPNAME)$(ZIPSUFFIX)
-endif
-ifndef ZIPTARGET
-ifdef DIST_ZIPTARGET
-ZIPTARGET=DIST_ZIPTARGET
-else
-ZIPTARGET=install
-endif
-endif
-ifndef USEZIP
-ifdef inUnix
-USETAR=1
-endif
-endif
-ifndef inUnix
-USEZIPWRAPPER=1
-endif
-ifdef USEZIPWRAPPER
-ZIPPATHSEP=$(PATHSEP)
-ZIPWRAPPER=$(subst /,$(PATHSEP),$(DIST_DESTDIR)/fpczip$(SRCBATCHEXT))
-else
-ZIPPATHSEP=/
-endif
-ZIPCMD_CDPACK:=cd $(subst /,$(ZIPPATHSEP),$(PACKDIR))
-ZIPCMD_CDBASE:=cd $(subst /,$(ZIPPATHSEP),$(BASEDIR))
-ifdef USETAR
-ZIPDESTFILE:=$(DIST_DESTDIR)/$(FULLZIPNAME)$(TAREXT)
-ZIPCMD_ZIP:=$(TARPROG) c$(TAROPT)f $(ZIPDESTFILE) *
-else
-ZIPDESTFILE:=$(DIST_DESTDIR)/$(FULLZIPNAME)$(ZIPEXT)
-ZIPCMD_ZIP:=$(subst /,$(ZIPPATHSEP),$(ZIPPROG)) -Dr $(ZIPOPT) $(ZIPDESTFILE) *
-endif
-fpc_zipinstall:
-	$(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
-	$(MKDIR) $(DIST_DESTDIR)
-	$(DEL) $(ZIPDESTFILE)
-ifdef USEZIPWRAPPER
-ifneq ($(ECHOREDIR),echo)
-	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDPACK))" > $(ZIPWRAPPER)
-	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_ZIP))" >> $(ZIPWRAPPER)
-	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDBASE))" >> $(ZIPWRAPPER)
-else
-	echo $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
-	echo $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
-	echo $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
-endif
-ifdef inUnix
-	/bin/sh $(ZIPWRAPPER)
-else
-ifdef RUNBATCH
-	$(RUNBATCH) $(ZIPWRAPPER)
-else
-	$(ZIPWRAPPER)
-endif
-endif
-	$(DEL) $(ZIPWRAPPER)
-else
-	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
-endif
-	$(DELTREE) $(PACKDIR)
-fpc_zipsourceinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=$(ZIPSOURCESUFFIX)
-fpc_zipexampleinstall:
-ifdef HASEXAMPLES
-	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=$(ZIPEXAMPLESUFFIX)
-endif
-fpc_zipdistinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=distinstall
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -1520,73 +1287,303 @@ fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIR
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),arm-nds)
-TARGET_EXAMPLEDIRS_EXAMPLES=1
+TARGET_DIRS_2DPLUS3D=1
+TARGET_DIRS_DUAL_SCREEN=1
+TARGET_DIRS_FONTS=1
+TARGET_DIRS_PRIMITIVES=1
+TARGET_DIRS_SCROLLING=1
+TARGET_DIRS_SPRITES=1
 endif
-ifdef TARGET_EXAMPLEDIRS_EXAMPLES
-examples_all:
-	$(MAKE) -C examples all
-examples_debug:
-	$(MAKE) -C examples debug
-examples_smart:
-	$(MAKE) -C examples smart
-examples_release:
-	$(MAKE) -C examples release
-examples_units:
-	$(MAKE) -C examples units
-examples_examples:
-	$(MAKE) -C examples examples
-examples_shared:
-	$(MAKE) -C examples shared
-examples_install:
-	$(MAKE) -C examples install
-examples_sourceinstall:
-	$(MAKE) -C examples sourceinstall
-examples_exampleinstall:
-	$(MAKE) -C examples exampleinstall
-examples_distinstall:
-	$(MAKE) -C examples distinstall
-examples_zipinstall:
-	$(MAKE) -C examples zipinstall
-examples_zipsourceinstall:
-	$(MAKE) -C examples zipsourceinstall
-examples_zipexampleinstall:
-	$(MAKE) -C examples zipexampleinstall
-examples_zipdistinstall:
-	$(MAKE) -C examples zipdistinstall
-examples_clean:
-	$(MAKE) -C examples clean
-examples_distclean:
-	$(MAKE) -C examples distclean
-examples_cleanall:
-	$(MAKE) -C examples cleanall
-examples_info:
-	$(MAKE) -C examples info
-examples_makefiles:
-	$(MAKE) -C examples makefiles
-examples:
-	$(MAKE) -C examples all
-.PHONY: examples_all examples_debug examples_smart examples_release examples_units examples_examples examples_shared examples_install examples_sourceinstall examples_exampleinstall examples_distinstall examples_zipinstall examples_zipsourceinstall examples_zipexampleinstall examples_zipdistinstall examples_clean examples_distclean examples_cleanall examples_info examples_makefiles examples
+ifdef TARGET_DIRS_2DPLUS3D
+2Dplus3D_all:
+	$(MAKE) -C 2Dplus3D all
+2Dplus3D_debug:
+	$(MAKE) -C 2Dplus3D debug
+2Dplus3D_smart:
+	$(MAKE) -C 2Dplus3D smart
+2Dplus3D_release:
+	$(MAKE) -C 2Dplus3D release
+2Dplus3D_units:
+	$(MAKE) -C 2Dplus3D units
+2Dplus3D_examples:
+	$(MAKE) -C 2Dplus3D examples
+2Dplus3D_shared:
+	$(MAKE) -C 2Dplus3D shared
+2Dplus3D_install:
+	$(MAKE) -C 2Dplus3D install
+2Dplus3D_sourceinstall:
+	$(MAKE) -C 2Dplus3D sourceinstall
+2Dplus3D_exampleinstall:
+	$(MAKE) -C 2Dplus3D exampleinstall
+2Dplus3D_distinstall:
+	$(MAKE) -C 2Dplus3D distinstall
+2Dplus3D_zipinstall:
+	$(MAKE) -C 2Dplus3D zipinstall
+2Dplus3D_zipsourceinstall:
+	$(MAKE) -C 2Dplus3D zipsourceinstall
+2Dplus3D_zipexampleinstall:
+	$(MAKE) -C 2Dplus3D zipexampleinstall
+2Dplus3D_zipdistinstall:
+	$(MAKE) -C 2Dplus3D zipdistinstall
+2Dplus3D_clean:
+	$(MAKE) -C 2Dplus3D clean
+2Dplus3D_distclean:
+	$(MAKE) -C 2Dplus3D distclean
+2Dplus3D_cleanall:
+	$(MAKE) -C 2Dplus3D cleanall
+2Dplus3D_info:
+	$(MAKE) -C 2Dplus3D info
+2Dplus3D_makefiles:
+	$(MAKE) -C 2Dplus3D makefiles
+2Dplus3D:
+	$(MAKE) -C 2Dplus3D all
+.PHONY: 2Dplus3D_all 2Dplus3D_debug 2Dplus3D_smart 2Dplus3D_release 2Dplus3D_units 2Dplus3D_examples 2Dplus3D_shared 2Dplus3D_install 2Dplus3D_sourceinstall 2Dplus3D_exampleinstall 2Dplus3D_distinstall 2Dplus3D_zipinstall 2Dplus3D_zipsourceinstall 2Dplus3D_zipexampleinstall 2Dplus3D_zipdistinstall 2Dplus3D_clean 2Dplus3D_distclean 2Dplus3D_cleanall 2Dplus3D_info 2Dplus3D_makefiles 2Dplus3D
 endif
-all: fpc_all
-debug: fpc_debug
-smart: fpc_smart
-release: fpc_release
-units: fpc_units
-examples: fpc_examples
-shared: fpc_shared
-install: fpc_install
-sourceinstall: fpc_sourceinstall
-exampleinstall: fpc_exampleinstall
-distinstall: fpc_distinstall
-zipinstall: fpc_zipinstall
-zipsourceinstall: fpc_zipsourceinstall
-zipexampleinstall: fpc_zipexampleinstall
-zipdistinstall: fpc_zipdistinstall
-clean: fpc_clean $(addsuffix _clean,$(TARGET_EXAMPLEDIRS))
-distclean: fpc_distclean
-cleanall: fpc_cleanall
+ifdef TARGET_DIRS_DUAL_SCREEN
+dual_screen_all:
+	$(MAKE) -C dual_screen all
+dual_screen_debug:
+	$(MAKE) -C dual_screen debug
+dual_screen_smart:
+	$(MAKE) -C dual_screen smart
+dual_screen_release:
+	$(MAKE) -C dual_screen release
+dual_screen_units:
+	$(MAKE) -C dual_screen units
+dual_screen_examples:
+	$(MAKE) -C dual_screen examples
+dual_screen_shared:
+	$(MAKE) -C dual_screen shared
+dual_screen_install:
+	$(MAKE) -C dual_screen install
+dual_screen_sourceinstall:
+	$(MAKE) -C dual_screen sourceinstall
+dual_screen_exampleinstall:
+	$(MAKE) -C dual_screen exampleinstall
+dual_screen_distinstall:
+	$(MAKE) -C dual_screen distinstall
+dual_screen_zipinstall:
+	$(MAKE) -C dual_screen zipinstall
+dual_screen_zipsourceinstall:
+	$(MAKE) -C dual_screen zipsourceinstall
+dual_screen_zipexampleinstall:
+	$(MAKE) -C dual_screen zipexampleinstall
+dual_screen_zipdistinstall:
+	$(MAKE) -C dual_screen zipdistinstall
+dual_screen_clean:
+	$(MAKE) -C dual_screen clean
+dual_screen_distclean:
+	$(MAKE) -C dual_screen distclean
+dual_screen_cleanall:
+	$(MAKE) -C dual_screen cleanall
+dual_screen_info:
+	$(MAKE) -C dual_screen info
+dual_screen_makefiles:
+	$(MAKE) -C dual_screen makefiles
+dual_screen:
+	$(MAKE) -C dual_screen all
+.PHONY: dual_screen_all dual_screen_debug dual_screen_smart dual_screen_release dual_screen_units dual_screen_examples dual_screen_shared dual_screen_install dual_screen_sourceinstall dual_screen_exampleinstall dual_screen_distinstall dual_screen_zipinstall dual_screen_zipsourceinstall dual_screen_zipexampleinstall dual_screen_zipdistinstall dual_screen_clean dual_screen_distclean dual_screen_cleanall dual_screen_info dual_screen_makefiles dual_screen
+endif
+ifdef TARGET_DIRS_FONTS
+fonts_all:
+	$(MAKE) -C fonts all
+fonts_debug:
+	$(MAKE) -C fonts debug
+fonts_smart:
+	$(MAKE) -C fonts smart
+fonts_release:
+	$(MAKE) -C fonts release
+fonts_units:
+	$(MAKE) -C fonts units
+fonts_examples:
+	$(MAKE) -C fonts examples
+fonts_shared:
+	$(MAKE) -C fonts shared
+fonts_install:
+	$(MAKE) -C fonts install
+fonts_sourceinstall:
+	$(MAKE) -C fonts sourceinstall
+fonts_exampleinstall:
+	$(MAKE) -C fonts exampleinstall
+fonts_distinstall:
+	$(MAKE) -C fonts distinstall
+fonts_zipinstall:
+	$(MAKE) -C fonts zipinstall
+fonts_zipsourceinstall:
+	$(MAKE) -C fonts zipsourceinstall
+fonts_zipexampleinstall:
+	$(MAKE) -C fonts zipexampleinstall
+fonts_zipdistinstall:
+	$(MAKE) -C fonts zipdistinstall
+fonts_clean:
+	$(MAKE) -C fonts clean
+fonts_distclean:
+	$(MAKE) -C fonts distclean
+fonts_cleanall:
+	$(MAKE) -C fonts cleanall
+fonts_info:
+	$(MAKE) -C fonts info
+fonts_makefiles:
+	$(MAKE) -C fonts makefiles
+fonts:
+	$(MAKE) -C fonts all
+.PHONY: fonts_all fonts_debug fonts_smart fonts_release fonts_units fonts_examples fonts_shared fonts_install fonts_sourceinstall fonts_exampleinstall fonts_distinstall fonts_zipinstall fonts_zipsourceinstall fonts_zipexampleinstall fonts_zipdistinstall fonts_clean fonts_distclean fonts_cleanall fonts_info fonts_makefiles fonts
+endif
+ifdef TARGET_DIRS_PRIMITIVES
+primitives_all:
+	$(MAKE) -C primitives all
+primitives_debug:
+	$(MAKE) -C primitives debug
+primitives_smart:
+	$(MAKE) -C primitives smart
+primitives_release:
+	$(MAKE) -C primitives release
+primitives_units:
+	$(MAKE) -C primitives units
+primitives_examples:
+	$(MAKE) -C primitives examples
+primitives_shared:
+	$(MAKE) -C primitives shared
+primitives_install:
+	$(MAKE) -C primitives install
+primitives_sourceinstall:
+	$(MAKE) -C primitives sourceinstall
+primitives_exampleinstall:
+	$(MAKE) -C primitives exampleinstall
+primitives_distinstall:
+	$(MAKE) -C primitives distinstall
+primitives_zipinstall:
+	$(MAKE) -C primitives zipinstall
+primitives_zipsourceinstall:
+	$(MAKE) -C primitives zipsourceinstall
+primitives_zipexampleinstall:
+	$(MAKE) -C primitives zipexampleinstall
+primitives_zipdistinstall:
+	$(MAKE) -C primitives zipdistinstall
+primitives_clean:
+	$(MAKE) -C primitives clean
+primitives_distclean:
+	$(MAKE) -C primitives distclean
+primitives_cleanall:
+	$(MAKE) -C primitives cleanall
+primitives_info:
+	$(MAKE) -C primitives info
+primitives_makefiles:
+	$(MAKE) -C primitives makefiles
+primitives:
+	$(MAKE) -C primitives all
+.PHONY: primitives_all primitives_debug primitives_smart primitives_release primitives_units primitives_examples primitives_shared primitives_install primitives_sourceinstall primitives_exampleinstall primitives_distinstall primitives_zipinstall primitives_zipsourceinstall primitives_zipexampleinstall primitives_zipdistinstall primitives_clean primitives_distclean primitives_cleanall primitives_info primitives_makefiles primitives
+endif
+ifdef TARGET_DIRS_SCROLLING
+scrolling_all:
+	$(MAKE) -C scrolling all
+scrolling_debug:
+	$(MAKE) -C scrolling debug
+scrolling_smart:
+	$(MAKE) -C scrolling smart
+scrolling_release:
+	$(MAKE) -C scrolling release
+scrolling_units:
+	$(MAKE) -C scrolling units
+scrolling_examples:
+	$(MAKE) -C scrolling examples
+scrolling_shared:
+	$(MAKE) -C scrolling shared
+scrolling_install:
+	$(MAKE) -C scrolling install
+scrolling_sourceinstall:
+	$(MAKE) -C scrolling sourceinstall
+scrolling_exampleinstall:
+	$(MAKE) -C scrolling exampleinstall
+scrolling_distinstall:
+	$(MAKE) -C scrolling distinstall
+scrolling_zipinstall:
+	$(MAKE) -C scrolling zipinstall
+scrolling_zipsourceinstall:
+	$(MAKE) -C scrolling zipsourceinstall
+scrolling_zipexampleinstall:
+	$(MAKE) -C scrolling zipexampleinstall
+scrolling_zipdistinstall:
+	$(MAKE) -C scrolling zipdistinstall
+scrolling_clean:
+	$(MAKE) -C scrolling clean
+scrolling_distclean:
+	$(MAKE) -C scrolling distclean
+scrolling_cleanall:
+	$(MAKE) -C scrolling cleanall
+scrolling_info:
+	$(MAKE) -C scrolling info
+scrolling_makefiles:
+	$(MAKE) -C scrolling makefiles
+scrolling:
+	$(MAKE) -C scrolling all
+.PHONY: scrolling_all scrolling_debug scrolling_smart scrolling_release scrolling_units scrolling_examples scrolling_shared scrolling_install scrolling_sourceinstall scrolling_exampleinstall scrolling_distinstall scrolling_zipinstall scrolling_zipsourceinstall scrolling_zipexampleinstall scrolling_zipdistinstall scrolling_clean scrolling_distclean scrolling_cleanall scrolling_info scrolling_makefiles scrolling
+endif
+ifdef TARGET_DIRS_SPRITES
+sprites_all:
+	$(MAKE) -C sprites all
+sprites_debug:
+	$(MAKE) -C sprites debug
+sprites_smart:
+	$(MAKE) -C sprites smart
+sprites_release:
+	$(MAKE) -C sprites release
+sprites_units:
+	$(MAKE) -C sprites units
+sprites_examples:
+	$(MAKE) -C sprites examples
+sprites_shared:
+	$(MAKE) -C sprites shared
+sprites_install:
+	$(MAKE) -C sprites install
+sprites_sourceinstall:
+	$(MAKE) -C sprites sourceinstall
+sprites_exampleinstall:
+	$(MAKE) -C sprites exampleinstall
+sprites_distinstall:
+	$(MAKE) -C sprites distinstall
+sprites_zipinstall:
+	$(MAKE) -C sprites zipinstall
+sprites_zipsourceinstall:
+	$(MAKE) -C sprites zipsourceinstall
+sprites_zipexampleinstall:
+	$(MAKE) -C sprites zipexampleinstall
+sprites_zipdistinstall:
+	$(MAKE) -C sprites zipdistinstall
+sprites_clean:
+	$(MAKE) -C sprites clean
+sprites_distclean:
+	$(MAKE) -C sprites distclean
+sprites_cleanall:
+	$(MAKE) -C sprites cleanall
+sprites_info:
+	$(MAKE) -C sprites info
+sprites_makefiles:
+	$(MAKE) -C sprites makefiles
+sprites:
+	$(MAKE) -C sprites all
+.PHONY: sprites_all sprites_debug sprites_smart sprites_release sprites_units sprites_examples sprites_shared sprites_install sprites_sourceinstall sprites_exampleinstall sprites_distinstall sprites_zipinstall sprites_zipsourceinstall sprites_zipexampleinstall sprites_zipdistinstall sprites_clean sprites_distclean sprites_cleanall sprites_info sprites_makefiles sprites
+endif
+all: $(addsuffix _all,$(TARGET_DIRS))
+debug: $(addsuffix _debug,$(TARGET_DIRS))
+smart: $(addsuffix _smart,$(TARGET_DIRS))
+release: $(addsuffix _release,$(TARGET_DIRS))
+units: $(addsuffix _units,$(TARGET_DIRS))
+examples: $(addsuffix _examples,$(TARGET_DIRS))
+shared: $(addsuffix _shared,$(TARGET_DIRS))
+install: $(addsuffix _install,$(TARGET_DIRS))
+sourceinstall: $(addsuffix _sourceinstall,$(TARGET_DIRS))
+exampleinstall: $(addsuffix _exampleinstall,$(TARGET_DIRS))
+distinstall: $(addsuffix _distinstall,$(TARGET_DIRS))
+zipinstall: $(addsuffix _zipinstall,$(TARGET_DIRS))
+zipsourceinstall: $(addsuffix _zipsourceinstall,$(TARGET_DIRS))
+zipexampleinstall: $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
+zipdistinstall: $(addsuffix _zipdistinstall,$(TARGET_DIRS))
+clean: $(addsuffix _clean,$(TARGET_DIRS))
+distclean: $(addsuffix _distclean,$(TARGET_DIRS))
+cleanall: $(addsuffix _cleanall,$(TARGET_DIRS))
 info: fpc_info
-makefiles: fpc_makefiles
+makefiles: fpc_makefiles $(addsuffix _makefiles,$(TARGET_DIRS))
 .PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
