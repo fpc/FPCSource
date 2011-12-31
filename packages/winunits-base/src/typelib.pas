@@ -44,13 +44,16 @@ Reads type information from 'FileName' and converts it in a freepascal binding u
 contents of the unit is returned as the function result.
 Returns in 'sUnitName' the unit name with '.pas' extension.
 Appends to 'slDependencies' the filenames of the additional typelibs needed.
+If bActiveX is true an ActiveXContainer descendant is created with the evenual OnEvent hooks
+If bActiveX is false and an event source is found an TEventSink descendant is created with the OnEvent hooks
 
 By default, the type library is extracted from the first resource of type ITypeLib.
 To load a different type of library resource, append an integer index to 'FileName'.
 
 Example:  C:\WINDOWS\system32\msvbvm60.dll\3
 }
-function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList):string;
+function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList;
+    bActiveX:boolean):string;
 
 
 Type
@@ -59,6 +62,7 @@ Type
 
   TTypeLibImporter = Class(TComponent)
   private
+    FActiveX: Boolean;
     FAppendVersionNumber: Boolean;
     FDependencies: TStringList;
     FUnitSource: TStringList;
@@ -70,6 +74,12 @@ Type
     FInterface : TStrings;
     FImplementation : TStrings;
     FTypes : TStrings;
+    FEventDisp : TStrings;
+    FEventIID : TStrings;
+    FEventSignatures: TStrings;
+    FEventFunctions: TStrings;
+    FEventProperties: TStrings;
+    FEventImplementations: TStrings;
     function GetDependencies: TStrings;
     function GetUnitSource: TStrings;
     procedure SetOutputFileName(AValue: String);
@@ -87,7 +97,8 @@ Type
     Procedure AddToImplementation(Const ALine : String);virtual;
     Procedure AddToImplementation(Const Fmt : String; Args : Array of const);
     // utility functions
-    function interfacedeclaration(iName, iDoc: string; TI: ITypeInfo; TA: LPTYPEATTR; bIsDispatch: boolean): string;
+    function interfacedeclaration(iName, iDoc: string; TI: ITypeInfo; TA: LPTYPEATTR;
+      bIsDispatch,bCreateEvents:boolean): string;
     function VarTypeIsAutomatable(ParamType: integer): boolean; virtual;
     function VarTypeToStr(ParamType: integer): string; virtual;
     function TypeToString(TI: ITypeInfo; TD: TYPEDESC): string; virtual;
@@ -113,6 +124,8 @@ Type
     Property Dependencies : TStrings Read GetDependencies;
     Property UnitSource : TStrings Read GetUnitSource;
   Published
+    // Create ActiveXContainer descendant: default false
+    Property ActiveX : Boolean Read FActiveX write FActiveX Default False;
     // Append version number to unit name.
     Property AppendVersionNumber : Boolean Read FAppendVersionNumber Write FAppendVersionNumber Default True;
     // File to read typelib from.
@@ -129,12 +142,14 @@ implementation
 Resourcestring
   SErrInvalidUnitName = 'Invalid unit name : %s';
 
-function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList):string;
+function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList;
+  bActiveX:boolean):string;
 var i:integer;
 begin
   With TTypeLibImporter.Create(Nil) do
     try
       InputFileName:=FileName;
+      ActiveX:=bActiveX;
       Execute;
       Result:=UnitSource.Text;
       sUnitname:=UnitName+'.pas';
@@ -174,7 +189,7 @@ begin
     vt_dispatch  : Result := 'IDispatch';
     vt_error : Result := 'SCODE';
     vt_bool : Result := 'WordBool';
-    vt_variant : Result := 'OleVariant';
+    vt_variant : Result := 'Variant';
     vt_unknown : Result := 'IUnknown';
     vt_i1  : Result := 'ShortInt';
     vt_ui1 : Result := 'Byte';
@@ -322,7 +337,7 @@ begin
     begin
     TD:=TD.lptdesc^;
     result:='P'+TypeToString(TI,TD);
-    bIsAutomatable:=(VarTypeIsAutomatable(TD.vt) and (TD.vt<>VT_VARIANT)) or bIsCustomAutomatable;
+    bIsAutomatable:=(VarTypeIsAutomatable(TD.vt) {and (TD.vt<>VT_VARIANT)}) or bIsCustomAutomatable;
     exit;
     end
   else if TD.vt=VT_CARRAY then //C type array
@@ -343,7 +358,8 @@ begin
   bIsAutomatable:=VarTypeIsAutomatable(TD.vt) or bIsCustomAutomatable;
 end;
 
-function TTypeLibImporter.interfacedeclaration(iName,iDoc:string;TI:ITypeInfo;TA:LPTYPEATTR;bIsDispatch:boolean):string;
+function TTypeLibImporter.interfacedeclaration(iName,iDoc:string;TI:ITypeInfo;TA:LPTYPEATTR;
+  bIsDispatch,bCreateEvents:boolean):string;
 
 type
   TPropertyDef=record
@@ -362,13 +378,14 @@ var
   RTIT: HREFTYPE;
   TIref: ITypeInfo;
   BstrName,BstrNameRef,BstrDocString : WideString;
-  s,sl,sPropIntfc,sPropDispIntfc,sType,sConv,sFunc,sVarName,sMethodName,sPropParam,sPropParam2:string;
+  s,sl,sPropIntfc,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,sPropParam,sPropParam2:string;
+  sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:string;
   i,j,k:integer;
   FD: lpFUNCDESC;
   BL : array[0..99] of TBstr;
   cnt:LongWord;
   TD: TYPEDESC;
-  bPropHasParam,bIsFunction:boolean;
+  bPropHasParam,bIsFunction,bParamByRef:boolean;
   VD: lpVARDESC;
   aPropertyDefs:array of TPropertyDef;
   Propertycnt,iType:integer;
@@ -403,7 +420,10 @@ var
 begin
   Propertycnt:=0;
   SetLength(aPropertyDefs,TA^.cFuncs+TA^.cVars);   // worst case, all functions getters or all setters
-  result:='TA^.cFuncs';
+  sEventSignatures:='';
+  sEventFunctions:='';
+  sEventProperties:='';
+  sEventImplementations:='';
   if not bIsDispatch then
     begin
     // find base class
@@ -490,28 +510,37 @@ begin
           AddToHeader('//  Warning: ''%s'' not automatable in %sdisp.%s',[stype,iname,BstrName],True);
           sType:='{!! '+sType+' !!} OleVariant';
           end;
+        if bCreateEvents then
+          begin
+          sEventSignatures:=sEventSignatures+format('  T%s%s = procedure(Sender: TObject;',[iname,sMethodName]);
+          sEventFunctions:=sEventFunctions+format('    FOn%s:T%s%s;'#13#10,[sMethodName,iname,sMethodName]);
+          sEventProperties:=sEventProperties+format('    property On%s : T%s%s read FOn%s write FOn%s;'#13#10,
+            [sMethodName,iname,sMethodName,sMethodName,sMethodName]);
+          sEventImplementations:=sEventImplementations+
+            format('    %d: if assigned(On%s) then'#13#10+
+                   '          On%s(Self,',[FD^.memid,sMethodName,sMethodName]);
+          end;
         // parameters
         for k:=0 to FD^.cParams-1 do
           begin
+          bParamByRef:=(FD^.lprgelemdescParam[k].tdesc.vt=VT_PTR) and                         // by ref
+            not((FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface);// but not pointer to interface
           if (FD^.lprgelemdescParam[k].paramdesc.wParamFlags and PARAMFLAG_FRETVAL ) <>0 then  //return type
             continue;
           sl:=TypeToString(TI,FD^.lprgelemdescParam[k].tdesc);
-          if sMethodName='Clone' then
-            sl:=sl;
-          if (FD^.lprgelemdescParam[k].tdesc.vt=VT_PTR) and                                        // by ref
-            not((FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface) then // but not pointer to interface
+          if bParamByRef then
              delete(sl,1,1);
           if bIsDispatch and not bIsAutomatable then
             begin
             AddToHeader('//  Warning: ''%s'' not automatable in %sdisp.%s',[sl,iname,sMethodName],True);
             sl:='{!! '+sl+' !!} OleVariant';
             end;
-          if (FD^.lprgelemdescParam[k].tdesc.vt=VT_PTR) and                                          // by ref
-              not((FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface) then // but not pointer to interface
+          sPar:='';
+          if bParamByRef then
             case FD^.lprgelemdescParam[k].paramdesc.wParamFlags and (PARAMFLAG_FIN or PARAMFLAG_FOUT) of
-            PARAMFLAG_FIN or PARAMFLAG_FOUT:sFunc:=sFunc+'var ';
-            PARAMFLAG_FOUT:sFunc:=sFunc+'out ';
-            PARAMFLAG_FIN:sFunc:=sFunc+'var '; //constref in safecall? TBD
+            PARAMFLAG_FIN or PARAMFLAG_FOUT:sPar:='var ';
+            PARAMFLAG_FOUT:sPar:='out ';
+            PARAMFLAG_FIN:sPar:='var '; //constref in safecall? TBD
             end;
           if ValidateID(BL[k+1]) then
             sVarName:=BL[k+1]
@@ -520,13 +549,53 @@ begin
             sVarName:=BL[k+1]+'_';
             AddToHeader('//  Warning: renamed parameter ''%s'' in %s.%s to ''%s'''#13#10,[BL[k+1],iname,sMethodName,sVarName],True);
             end;
-          sFunc:=sFunc+format('%s:%s;',[sVarName,sl]);
+          sPar:=sPar+format('%s:%s;',[sVarName,sl]);
+          sFunc:=sFunc+sPar;
+          if bCreateEvents then
+            begin
+            sEventSignatures:=sEventSignatures+sPar;
+            //params are numbered last to first
+            if bParamByRef and not(bIsDispatch and not bIsAutomatable) then
+              begin
+              case FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt of
+                VT_UI1:       sl:='pbVal';
+                VT_UI2:       sl:='puiVal';
+                VT_UI4:       sl:='pulVal';
+                VT_UI8:       sl:='pullVal';
+                VT_I1:        sl:='pcVal';
+                VT_I2:        sl:='piVal';
+                VT_I4:        sl:='plVal';
+                VT_I8:        sl:='pllVal';
+                VT_R4:        sl:='pfltVal';
+                VT_R8:        sl:='pdblVal';
+                VT_BOOL:      sl:='pbool';
+                VT_ERROR:     sl:='pscode';
+                VT_CY:        sl:='pcyVal';
+                VT_DATE:      sl:='pdate';
+                VT_BSTR:      sl:='pbstrVal';
+                VT_UNKNOWN:   sl:='punkVal';
+                VT_DISPATCH:  sl:='pdispVal';
+                VT_ARRAY:     sl:='pparray';
+                VT_VARIANT:   sl:='pvarVal';
+              end;
+              sEventImplementations:=sEventImplementations+format(' Params.rgvarg[%d].%s^,',[FD^.cParams-1-k,sl]);
+              end
+            else
+              sEventImplementations:=sEventImplementations+format(' OleVariant(Params.rgvarg[%d]),',[FD^.cParams-1-k]);
+            end;
           end;
         // finish interface and dispinterface
         if sFunc[length(sFunc)]=';' then
           sFunc[length(sFunc)]:=')'
         else  // no params
           delete(sFunc,length(sFunc),1);
+        if bCreateEvents then
+          begin
+          sEventSignatures[length(sEventSignatures)]:=')';
+          sEventSignatures:=sEventSignatures+' of object;'#13#10;
+          sEventImplementations[length(sEventImplementations)]:=')';
+          sEventImplementations:=sEventImplementations+';'#13#10;
+          end;
         if bIsFunction then
           sFunc:=sFunc+format(':%s',[sType]);
         if bIsDispatch then
@@ -646,6 +715,15 @@ begin
           [BstrName,BstrDocString,sMethodName,sType,VD^.memId]);
         end;
       end;
+    end;
+  if bCreateEvents then
+    begin
+    FEventDisp.Add(iname);
+    FEventIID.Add(GUIDToString(TA^.GUID));
+    FEventSignatures.Add(sEventSignatures);
+    FEventFunctions.Add(sEventFunctions);
+    FEventProperties.Add(sEventProperties);
+    FEventImplementations.Add(sEventImplementations);
     end;
   if bIsDispatch then
     result:=s + sPropDispIntfc +'  end;'#13#10
@@ -827,7 +905,7 @@ Var
   slDeferredType,slDeferredPendingType,slDeferredDeclaration:TStrings;
   sl,sldeclaration,stype,smembername,srecordname:string;
   bIsDeferred:boolean;
- 
+
   procedure ReleasePendingType(sPen:string);
   var k:integer;
     sDec,sTyp:string;
@@ -860,7 +938,6 @@ begin
   slDeferredPendingType:=TStringList.Create;
   slDeferredDeclaration:=TStringList.Create;
   try
-
   for i:=0 to TIcount-1 do
     begin
     bIsDeferred:=false;
@@ -871,7 +948,7 @@ begin
     OleCheck(TL.GetDocumentation(i, @BstrName, @BstrDocString, @dwHelpContext, @BstrHelpFile));
     OleCheck(TI.GetTypeAttr(TA));
     case TIT of
-     TKIND_RECORD,TKIND_UNION:
+      TKIND_RECORD,TKIND_UNION:
         begin
         if ValidateID(BstrName) then
           sRecordName:=BstrName
@@ -949,7 +1026,7 @@ begin
           begin
           AddToInterface(sl);
           FTypes.Add(sRecordName);
-		  ReleasePendingType(sRecordName);
+          ReleasePendingType(sRecordName);
           end;
         end;
       end;
@@ -981,7 +1058,6 @@ Var
   TA,TAref : LPTYPEATTR;
   TIT : TYPEKIND;
   RTIT : HREFTYPE;
-
 begin
   // interface declarations
   AddToInterface('//interface declarations');
@@ -1001,13 +1077,15 @@ begin
           OleCheck(TI.GetRefTypeOfImplType(-1,RTIT));
           OleCheck(TI.GetRefTypeInfo(RTIT,TIref));
           OleCheck(TIref.GetTypeAttr(TAref));
-          AddToInterface(interfacedeclaration(BstrName,BstrDocString,TIref,TAref,false));
+          AddToInterface(interfacedeclaration(BstrName,BstrDocString,TIref,TAref,false,false));
           TIref.ReleaseTypeAttr(TAref);
-          end;
-        AddToInterface(interfacedeclaration(BstrName,BstrDocString,TI,TA,true));
+          AddToInterface(interfacedeclaration(BstrName,BstrDocString,TI,TA,true,false));
+          end
+        else
+          AddToInterface(interfacedeclaration(BstrName,BstrDocString,TI,TA,true,true));
         end
       else
-        AddToInterface(interfacedeclaration(BstrName,BstrDocString,TI,TA,false));
+        AddToInterface(interfacedeclaration(BstrName,BstrDocString,TI,TA,false,false));
       TI.ReleaseTypeAttr(TA);
       end;
     end;
@@ -1016,14 +1094,15 @@ end;
 Procedure TTypeLibImporter.CreateCoClasses(Const TL : ITypeLib; TICount : Integer);
 
 Var
-  i : integer;
+  i, j ,idx: integer;
   BstrName, BstrDocString, BstrHelpFile, BstrNameRef : WideString;
   dwHelpContext : DWORD;
   TI,TIref : ITypeInfo;
   TA : LPTYPEATTR;
   TIT : TYPEKIND;
   RTIT : HREFTYPE;
-
+  sDefIntf, sDefEvents : string;
+  ITF:WINT;
 begin
   //CoClasses
   AddToInterface('//CoClasses');
@@ -1039,24 +1118,186 @@ begin
       OleCheck(TL.GetTypeInfo(i, TI));
       OleCheck(TL.GetDocumentation(i, @BstrName, @BstrDocString, @dwHelpContext, @BstrHelpFile));
       OleCheck(TI.GetTypeAttr(TA));
-      OleCheck(TI.GetRefTypeOfImplType(0,RTIT));
-      OleCheck(TI.GetRefTypeInfo(RTIT,TIref));
-      OleCheck(TIRef.GetDocumentation(DISPID_UNKNOWN, @BstrNameRef, nil, nil, nil));
+      // get default interface and events.
+      sDefEvents:='';
+      for j:=0 to TA^.cImplTypes-1 do
+        begin
+        OleCheck(TI.GetImplTypeFlags(J,ITF));
+        if (ITF and IMPLTYPEFLAG_FDEFAULT)<>0 then
+          begin
+          OleCheck(TI.GetRefTypeOfImplType(J,RTIT));
+          OleCheck(TI.GetRefTypeInfo(RTIT,TIref));
+          OleCheck(TIRef.GetDocumentation(DISPID_UNKNOWN, @BstrNameRef, nil, nil, nil));
+          if (ITF and IMPLTYPEFLAG_FSOURCE)<>0 then
+            begin
+            sDefEvents:=BstrNameRef;
+            idx:=FEventDisp.IndexOf(sDefEvents);
+            if idx<0 then // should not happen
+              sDefEvents:='';
+            end
+          else
+            sDefIntf:=BstrNameRef;
+          end;
+        end;
+      if sDefEvents<>'' then //add event signatures
+        begin
+        AddToInterface(FEventSignatures[idx]);
+        FEventSignatures[idx]:='';  // only add event signatures only once. Multiple coclasses can use same events
+        AddToInterface('');
+        end;
       AddToInterFace('  Co%s = Class',[BstrName]);
-      AddToInterface('    Class Function Create: %s;',[BstrNameRef]);
-      AddToInterFace('    Class Function CreateRemote(const MachineName: string): %s;',[BstrNameRef]);
+      AddToInterface('  Public');
+      AddToInterface('    Class Function Create: %s;',[sDefIntf]);
+      AddToInterFace('    Class Function CreateRemote(const MachineName: string): %s;',[sDefIntf]);
       AddToInterFace('  end;');
       AddToInterFace('');
-      AddToImplementation('Class Function Co%s.Create: %s;',[BstrName,BstrNameRef]);
+      if FActiveX then
+        begin
+        if FUses.IndexOf('ActiveXContainer')<0 then
+          FUses.Add('ActiveXContainer');
+        AddToInterFace('  T%s = Class(TActiveXContainer)',[BstrName]);
+        AddToInterface('  Private');
+        AddToInterface('    FServer:%s;',[sDefIntf]);
+        if (sDefEvents<>'') then //add function variables
+          begin
+          if FUses.IndexOf('Eventsink')<0 then
+            FUses.Add('EventSink');
+          AddToInterface(FEventFunctions[idx]);
+          AddToInterface('    FEventSink:TEventSink;',[sDefIntf]);
+          AddToInterface('    procedure EventSinkInvoke(Sender: TObject; DispID: Integer;');
+          AddToInterface('          const IID: TGUID; LocaleID: Integer; Flags: Word;');
+          AddToInterface('          Params: tagDISPPARAMS; VarResult, ExcepInfo, ArgErr: Pointer);');
+          end;
+        AddToInterface('  Public');
+        AddToInterface('    constructor Create(TheOwner: TComponent); override;');
+        AddToInterface('    destructor Destroy; override;');
+        AddToInterface('    property OleServer:%s read FServer;',[sDefIntf]);
+        AddToInterFace('  Published');
+        AddToInterFace('    property Align;');
+        AddToInterFace('    property Anchors;');
+        AddToInterFace('    property AutoSize;');
+        AddToInterFace('    property BorderSpacing;');
+        AddToInterFace('    property ChildSizing;');
+        AddToInterFace('    property ClientHeight;');
+        AddToInterFace('    property ClientWidth;');
+        AddToInterFace('    property Constraints;');
+        AddToInterFace('    property DockSite;');
+        AddToInterFace('    property DragCursor;');
+        AddToInterFace('    property DragKind;');
+        AddToInterFace('    property DragMode;');
+        AddToInterFace('    property Enabled;');
+        AddToInterFace('    property ParentShowHint;');
+        AddToInterFace('    property PopupMenu;');
+        AddToInterFace('    property ShowHint;');
+        AddToInterFace('    property TabOrder;');
+        AddToInterFace('    property TabStop;');
+        AddToInterFace('    property UseDockManager default True;');
+        AddToInterFace('    property Visible;');
+        AddToInterFace('    property OnContextPopup;');
+        AddToInterFace('    property OnDockDrop;');
+        AddToInterFace('    property OnDockOver;');
+        AddToInterFace('    property OnDragDrop;');
+        AddToInterFace('    property OnDragOver;');
+        AddToInterFace('    property OnEndDock;');
+        AddToInterFace('    property OnEndDrag;');
+        AddToInterFace('    property OnEnter;');
+        AddToInterFace('    property OnExit;');
+        AddToInterFace('    property OnGetSiteInfo;');
+        AddToInterFace('    property OnGetDockCaption;');
+        AddToInterFace('    property OnResize;');
+        AddToInterFace('    property OnStartDock;');
+        AddToInterFace('    property OnStartDrag;');
+        AddToInterFace('    property OnStatusText;');
+        AddToInterFace('    property OnUnDock;');
+        if (sDefEvents<>'') then
+          AddToInterface(FEventProperties[idx]);
+        AddToInterFace('    property Active;');
+        AddToInterFace('  end;');
+        AddToInterFace('');
+        end
+      else if (sDefEvents<>'') then //add function variables
+        begin
+        if FUses.IndexOf('Eventsink')<0 then
+          FUses.Add('EventSink');
+        AddToInterFace('  T%s = Class(TEventSink)',[BstrName]);
+        AddToInterface('  Private');
+        AddToInterface(FEventFunctions[idx]);
+        AddToInterface('    fServer:%s;',[sDefIntf]);
+        AddToInterface('    procedure EventSinkInvoke(Sender: TObject; DispID: Integer;');
+        AddToInterface('          const IID: TGUID; LocaleID: Integer; Flags: Word;');
+        AddToInterface('          Params: tagDISPPARAMS; VarResult, ExcepInfo, ArgErr: Pointer);');
+        AddToInterface('  Public');
+        AddToInterface('    constructor Create(TheOwner: TComponent); override;');
+        AddToInterface('    property ComServer:%s read fServer;',[sDefIntf]);
+        AddToInterface(FEventProperties[idx]);
+        AddToInterFace('  end;');
+        AddToInterFace('');
+        end;
+      AddToImplementation('Class Function Co%s.Create: %s;',[BstrName,sDefIntf]);
       AddToImplementation('begin');
-      AddToImplementation('  Result := CreateComObject(CLASS_%s) as %s;',[BstrName,BstrNameRef]);
+      AddToImplementation('  Result := CreateComObject(CLASS_%s) as %s;',[BstrName,sDefIntf]);
       AddToImplementation('end;');
       AddToImplementation('');
-      AddToImplementation('Class Function Co%s.CreateRemote(const MachineName: string): %s;',[BstrName,BstrNameRef]);
+      AddToImplementation('Class Function Co%s.CreateRemote(const MachineName: string): %s;',[BstrName,sDefIntf]);
       AddToImplementation('begin');
-      AddToImplementation('  Result := CreateRemoteComObject(MachineName,CLASS_%s) as %s;',[BstrName,BstrNameRef]);
+      AddToImplementation('  Result := CreateRemoteComObject(MachineName,CLASS_%s) as %s;',[BstrName,sDefIntf]);
       AddToImplementation('end;');
       AddToImplementation('');
+      if FActiveX then
+        begin
+        AddToImplementation('constructor T%s.Create(TheOwner: TComponent);',[BstrName]);
+        AddToImplementation('begin');
+        AddToImplementation('  inherited Create(TheOwner);');
+        AddToImplementation('  FServer:=Co%s.Create;',[BstrName]);
+        AddToImplementation('  ComServer:=FServer;',[BstrName]);
+        if (sDefEvents<>'') then
+          begin
+          AddToImplementation('  FEventSink:=TEventSink.Create(Self);');
+          AddToImplementation('  FEventSink.OnInvoke:=EventSinkInvoke;');
+          AddToImplementation('  FEventSink.Connect(FServer,%s);',[FEventDisp[idx]]);
+          end;
+        AddToImplementation('end;');
+        AddToImplementation('');
+        AddToImplementation('destructor T%s.Destroy;',[BstrName]);
+        AddToImplementation('begin');
+        if (sDefEvents<>'') then
+          AddToImplementation('  FEventSink.Destroy;');
+        AddToImplementation('  inherited destroy;');
+        AddToImplementation('end;');
+        AddToImplementation('');
+        if (sDefEvents<>'') then
+          begin
+          AddToImplementation('procedure T%s.EventSinkInvoke(Sender: TObject; DispID: Integer;',[BstrName]);
+          AddToImplementation('  const IID: TGUID; LocaleID: Integer; Flags: Word; Params: tagDISPPARAMS;');
+          AddToImplementation('  VarResult, ExcepInfo, ArgErr: Pointer);');
+          AddToImplementation('begin');
+          AddToImplementation('  case DispID of');
+          AddToImplementation(FEventImplementations[idx]);
+          AddToImplementation('  end;');
+          AddToImplementation('end;');
+          AddToImplementation('');
+          end;
+        end
+      else if sDefEvents<>'' then //add event implementations
+        begin
+        AddToImplementation('constructor T%s.Create(TheOwner: TComponent);',[BstrName]);
+        AddToImplementation('begin');
+        AddToImplementation('  inherited Create(TheOwner);');
+        AddToImplementation('  OnInvoke:=EventSinkInvoke;');
+        AddToImplementation('  fServer:=Co%s.Create;',[BstrName]);
+        AddToImplementation('  Connect(fServer,%s);',[FEventDisp[idx]]);
+        AddToImplementation('end;');
+        AddToImplementation('');
+        AddToImplementation('procedure T%s.EventSinkInvoke(Sender: TObject; DispID: Integer;',[BstrName]);
+        AddToImplementation('  const IID: TGUID; LocaleID: Integer; Flags: Word; Params: tagDISPPARAMS;');
+        AddToImplementation('  VarResult, ExcepInfo, ArgErr: Pointer);');
+        AddToImplementation('begin');
+        AddToImplementation('  case DispID of');
+        AddToImplementation(FEventImplementations[idx]);
+        AddToImplementation('  end;');
+        AddToImplementation('end;');
+        AddToImplementation('');
+        end;
       TI.ReleaseTypeAttr(TA);
       end;
     end;
@@ -1088,7 +1329,7 @@ begin
   FUses.Add('Windows');
   FUses.Add('ActiveX');
   FUses.Add('Classes');
-  FUses.Add('OleServer');
+  //FUses.Add('OleServer');
   FUses.Add('Variants');
   AddToInterface('Const');
   AddToInterface('  %sMajorVersion = %d;',[BstrName,LA^.wMajorVerNum]);
@@ -1247,11 +1488,23 @@ begin
   FImplementation:=TStringList.Create;
   FUses:=TStringList.Create;
   FTypes:=TStringList.Create;
+  FEventDisp:=TStringList.Create;
+  FEventIID:=TStringList.Create;
+  FEventSignatures:=TStringList.Create;
+  FEventFunctions:=TStringList.Create;
+  FEventProperties:=TStringList.Create;
+  FEventImplementations:=TStringList.Create;
   try
     DoImportTypeLib;
     If (OutputFileName<>'') then
       UnitSource.SaveToFile(OutputFileName);
   finally
+    FreeAndNil(FEventImplementations);
+    FreeAndNil(FEventProperties);
+    FreeAndNil(FEventFunctions);
+    FreeAndNil(FEventSignatures);
+    FreeAndNil(FEventIID);
+    FreeAndNil(FEventDisp);
     FreeAndNil(FTypes);
     FreeAndNil(FUses);
     FreeAndNil(FInterface);
