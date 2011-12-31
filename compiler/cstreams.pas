@@ -203,7 +203,7 @@ implementation
 
     begin
     // We do nothing. Pipe streams don't support this
-    // As wel as possible read-ony streams !!
+    // As well as possible read-ony streams !!
     end;
 
   procedure TCStream.ReadBuffer(var Buffer; Count: Longint);
