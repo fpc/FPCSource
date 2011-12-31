@@ -11,16 +11,18 @@ var
   F:text;
   slDep:TStringList;
   i:integer;
-  bNoRecurse,bHelp:boolean;
+  bNoRecurse,bHelp, bActivex:boolean;
 
 begin
   slDep:=TStringList.Create;
   bNoRecurse:=false;
   bHelp:=false;
+  bActiveX:=false;
   i:=1;
   while i<=Paramcount do
     begin
     if pos('-n',ParamStr(i))>0 then bNoRecurse:=true
+    else if pos('-a',ParamStr(i))>0 then bActiveX:=true
     else if pos('-h',ParamStr(i))>0 then bHelp:=true
     else if pos('-d',ParamStr(i))>0 then
       begin
@@ -48,6 +50,7 @@ begin
     writeln('units.');
     writeln('Options.');
     writeln('  -h    : displays this text.');
+    writeln('  -a    : create ActiveXContainer descendants');
     writeln('  -d dir: set output directory. Default: current directory.');
     writeln('  -n    : do not recurse typelibs. Default: create bindingss for all');
     writeln('          dependencies.');
@@ -57,7 +60,8 @@ begin
   i:=0;
   repeat
     writeln('Reading typelib from '+slDep[i]+ ' ...');
-    sTL:=ImportTypelib(slDep[i],unitname,slDep);
+    sTL:=ImportTypelib(slDep[i],unitname,slDep,bActiveX);
+    bActiveX:=false;  //don't create ActiveXContainer descendants in descendants
     unitname:=sOutDir+unitname;
     writeln('Writing to '+unitname);
     AssignFile(F,unitname);
