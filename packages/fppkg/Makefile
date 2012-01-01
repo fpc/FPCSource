@@ -322,7 +322,7 @@ ifeq ($(FULL_TARGET),i386-netware)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
@@ -370,7 +370,7 @@ ifeq ($(FULL_TARGET),m68k-atari)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos

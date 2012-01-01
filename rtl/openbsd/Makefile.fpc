@@ -12,14 +12,13 @@ fpcpackage=y
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas iso7185 strings syscall baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd initc \
-      dos crt objects printer matrix rtlconsts \
+      $(CPU_UNITS) dos crt objects printer matrix rtlconsts \
       sysutils fgl classes fmtbcd typinfo math varutils \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets ipc terminfo dateutils strutils \
       video mouse keyboard  serial variants types sysctl sysconst \
       fpintres convutils stdconvs dynlibs cwstring cmem dl termio
 
-units_netbsd_i386=mmx cpu
 rsts=math varutils typinfo variants classes sysconst dateutils
 implicitunits=exeinfo
 
@@ -74,6 +73,10 @@ endif
 # which will not be recompiled
 ifdef RELEASE
 override FPCOPT+=-Ur
+endif
+
+ifeq ($(ARCH),i386)
+CPU_UNITS=x86 ports cpu mmx
 endif
 
 # Paths

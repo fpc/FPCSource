@@ -318,6 +318,9 @@ endif
 ifeq ($(FULL_TARGET),i386-netware)
 override TARGET_DIRS+=netware
 endif
+ifeq ($(FULL_TARGET),i386-openbsd)
+override TARGET_DIRS+=openbsd
+endif
 ifeq ($(FULL_TARGET),i386-darwin)
 override TARGET_DIRS+=darwin
 endif
@@ -353,6 +356,9 @@ override TARGET_DIRS+=netbsd
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_DIRS+=amiga
+endif
+ifeq ($(FULL_TARGET),m68k-openbsd)
+override TARGET_DIRS+=openbsd
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=palmos
@@ -1580,6 +1586,9 @@ endif
 ifeq ($(FULL_TARGET),i386-netware)
 TARGET_DIRS_NETWARE=1
 endif
+ifeq ($(FULL_TARGET),i386-openbsd)
+TARGET_DIRS_OPENBSD=1
+endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_DARWIN=1
 endif
@@ -1615,6 +1624,9 @@ TARGET_DIRS_NETBSD=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_AMIGA=1
+endif
+ifeq ($(FULL_TARGET),m68k-openbsd)
+TARGET_DIRS_OPENBSD=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 TARGET_DIRS_PALMOS=1
@@ -2170,6 +2182,51 @@ netware_makefiles:
 netware:
 	$(MAKE) -C netware all
 .PHONY: netware_all netware_debug netware_smart netware_release netware_units netware_examples netware_shared netware_install netware_sourceinstall netware_exampleinstall netware_distinstall netware_zipinstall netware_zipsourceinstall netware_zipexampleinstall netware_zipdistinstall netware_clean netware_distclean netware_cleanall netware_info netware_makefiles netware
+endif
+ifdef TARGET_DIRS_OPENBSD
+openbsd_all:
+	$(MAKE) -C openbsd all
+openbsd_debug:
+	$(MAKE) -C openbsd debug
+openbsd_smart:
+	$(MAKE) -C openbsd smart
+openbsd_release:
+	$(MAKE) -C openbsd release
+openbsd_units:
+	$(MAKE) -C openbsd units
+openbsd_examples:
+	$(MAKE) -C openbsd examples
+openbsd_shared:
+	$(MAKE) -C openbsd shared
+openbsd_install:
+	$(MAKE) -C openbsd install
+openbsd_sourceinstall:
+	$(MAKE) -C openbsd sourceinstall
+openbsd_exampleinstall:
+	$(MAKE) -C openbsd exampleinstall
+openbsd_distinstall:
+	$(MAKE) -C openbsd distinstall
+openbsd_zipinstall:
+	$(MAKE) -C openbsd zipinstall
+openbsd_zipsourceinstall:
+	$(MAKE) -C openbsd zipsourceinstall
+openbsd_zipexampleinstall:
+	$(MAKE) -C openbsd zipexampleinstall
+openbsd_zipdistinstall:
+	$(MAKE) -C openbsd zipdistinstall
+openbsd_clean:
+	$(MAKE) -C openbsd clean
+openbsd_distclean:
+	$(MAKE) -C openbsd distclean
+openbsd_cleanall:
+	$(MAKE) -C openbsd cleanall
+openbsd_info:
+	$(MAKE) -C openbsd info
+openbsd_makefiles:
+	$(MAKE) -C openbsd makefiles
+openbsd:
+	$(MAKE) -C openbsd all
+.PHONY: openbsd_all openbsd_debug openbsd_smart openbsd_release openbsd_units openbsd_examples openbsd_shared openbsd_install openbsd_sourceinstall openbsd_exampleinstall openbsd_distinstall openbsd_zipinstall openbsd_zipsourceinstall openbsd_zipexampleinstall openbsd_zipdistinstall openbsd_clean openbsd_distclean openbsd_cleanall openbsd_info openbsd_makefiles openbsd
 endif
 ifdef TARGET_DIRS_DARWIN
 darwin_all:

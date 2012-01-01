@@ -498,6 +498,9 @@ endif
 ifeq ($(FULL_TARGET),i386-solaris)
 override TARGET_UNITS+=pkglnet
 endif
+ifeq ($(FULL_TARGET),i386-openbsd)
+override TARGET_UNITS+=pkglnet
+endif
 ifeq ($(FULL_TARGET),i386-darwin)
 override TARGET_UNITS+=pkglnet
 endif
@@ -514,6 +517,9 @@ ifeq ($(FULL_TARGET),m68k-freebsd)
 override TARGET_UNITS+=pkglnet
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
+override TARGET_UNITS+=pkglnet
+endif
+ifeq ($(FULL_TARGET),m68k-openbsd)
 override TARGET_UNITS+=pkglnet
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)

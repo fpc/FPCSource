@@ -709,6 +709,10 @@ begin
     default_target(system_i386_freebsd);
     {$define default_target_set}
    {$endif}
+   {$ifdef openbsd}
+    default_target(system_i386_openbsd);
+    {$define default_target_set}
+   {$endif}
    {$ifdef darwin}
     default_target(system_i386_darwin);
     {$define default_target_set}
