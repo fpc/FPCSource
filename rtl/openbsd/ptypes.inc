@@ -56,6 +56,7 @@ type
     size_t   = cuint32;         { as definied in the C standard}
     TSize    = size_t;
     pSize    = ^size_t;
+    pSize_t  = ^size_t;
 
     ssize_t  = cint32;          { used by function for returning number of bytes }
     TsSize   = ssize_t;
@@ -154,7 +155,7 @@ type
   ufs_args_rec		= record end;
   mfs_args_rec		= record end;
   nfs_args_rec		= record end;
-  iso_args_rec		= record end;
+  isofs_args_rec       	= record end;
   procfs_args_rec	= record end;
   msdosfs_args_rec	= record end;
   ntfs_args_rec		= record end;
@@ -163,12 +164,12 @@ type
       case byte of
         0: (ufs_args:     ^ufs_args_rec);
         1: (mfs_args:     ^mfs_args_rec);
-	2: (ntfs_args:    ^nfsfs_args_rec);
+	2: (nfs_args:     ^nfs_args_rec);
 	3: (isofs_args:   ^isofs_args_rec);
 	4: (procfs_args:  ^procfs_args_rec);
 	5: (msdosfs_args: ^msdosfs_args_rec);
 	6: (ntfs_args:    ^ntfs_args_rec);
-	7: (__align: array[0..159] of char { 64-bit alignment and room to grow }
+	7: (__align: array[0..159] of char); { 64-bit alignment and room to grow }
     end;
 
 // kernel statfs from mount.h
@@ -226,7 +227,7 @@ const
     SYS_NMLN = 256;                {BSD utsname struct limit}
 
     SIG_MAXSIG      = 33;      	   // highest signal version
-    wordsinsigset   = 4;           // words in sigset_t
+    // set in ostypes.inc wordsinsigset   = 4;           // words in sigset_t
 
   { For getting/setting priority }
    Prio_Process = 0;
