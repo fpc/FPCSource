@@ -140,17 +140,6 @@ interface
 
     Function nextafter(x,y:double):double;
 
-{$ifdef ver2_0}
-{ RTL routines not available yet in 2.0.x }
-function SwapEndian(const AValue: SmallInt): SmallInt;
-function SwapEndian(const AValue: Word): Word;
-function SwapEndian(const AValue: LongInt): LongInt;
-function SwapEndian(const AValue: DWord): DWord;
-function SwapEndian(const AValue: Int64): Int64;
-function SwapEndian(const AValue: QWord): QWord;
-{$endif ver2_0}
-
-
 implementation
 
     uses
@@ -1367,67 +1356,6 @@ implementation
 
     end;
 
-
-{$ifdef ver2_0}
-function SwapEndian(const AValue: SmallInt): SmallInt;
-  begin
-    { the extra Word type cast is necessary because the "AValue shr 8" }
-    { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
-    { the sign bits from the upper 16 bits are shifted in rather than  }
-    { zeroes.                                                          }
-    Result := SmallInt((Word(AValue) shr 8) or (Word(AValue) shl 8));
-  end;
-
-
-function SwapEndian(const AValue: Word): Word;
-  begin
-    Result := (AValue shr 8) or (AValue shl 8);
-  end;
-
-
-function SwapEndian(const AValue: LongInt): LongInt;
-  begin
-    Result := (AValue shl 24)
-           or ((AValue and $0000FF00) shl 8)
-           or ((AValue and $00FF0000) shr 8)
-           or (AValue shr 24);
-  end;
-
-
-function SwapEndian(const AValue: DWord): DWord;
-  begin
-    Result := (AValue shl 24)
-           or ((AValue and $0000FF00) shl 8)
-           or ((AValue and $00FF0000) shr 8)
-           or (AValue shr 24);
-  end;
-
-
-function SwapEndian(const AValue: Int64): Int64;
-  begin
-    Result := (AValue shl 56)
-           or ((AValue and $000000000000FF00) shl 40)
-           or ((AValue and $0000000000FF0000) shl 24)
-           or ((AValue and $00000000FF000000) shl 8)
-           or ((AValue and $000000FF00000000) shr 8)
-           or ((AValue and $0000FF0000000000) shr 24)
-           or ((AValue and $00FF000000000000) shr 40)
-           or (AValue shr 56);
-  end;
-
-
-function SwapEndian(const AValue: QWord): QWord;
-  begin
-    Result := (AValue shl 56)
-           or ((AValue and $000000000000FF00) shl 40)
-           or ((AValue and $0000000000FF0000) shl 24)
-           or ((AValue and $00000000FF000000) shl 8)
-           or ((AValue and $000000FF00000000) shr 8)
-           or ((AValue and $0000FF0000000000) shr 24)
-           or ((AValue and $00FF000000000000) shr 40)
-           or (AValue shr 56);
-  end;
-{$endif ver2_0}
 
 initialization
   internalerrorproc:=@defaulterror;

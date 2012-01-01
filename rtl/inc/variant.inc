@@ -291,14 +291,12 @@ end;
 {$endif SUPPORT_COMP}
 
 
-{$ifndef VER2_0}
 {$ifndef FPUNONE}
 Operator :=(const source : real) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   VariantManager.VarFromReal(Dest,Source);
 end;
 {$endif}
-{$endif VER2_0}
 
 
 { Misc. }
@@ -499,14 +497,12 @@ end;
 {$endif SUPPORT_COMP}
 
 
-{$ifndef VER2_0}
 {$ifndef FPUNONE}
 operator :=(const source : variant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   dest:=variantmanager.vartoreal(source);
 end;
 {$endif}
-{$endif VER2_0}
 
 { Misc. }
 operator :=(const source : variant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -847,12 +843,10 @@ operator :=(const source : olevariant) dest : comp;{$ifdef SYSTEMINLINE}inline;{
 
 
 {$ifndef FPUNONE}
-{$ifndef VER2_0}
 operator :=(const source : olevariant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     dest:=variantmanager.vartoreal(variant(tvardata(source)));
   end;
-{$endif VER2_0}
 {$endif}
 
 { Misc. }
@@ -1018,14 +1012,12 @@ operator :=(const source : comp) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{
 {$endif SUPPORT_COMP}
 
 
-{$ifndef VER2_0}
 {$ifndef FPUNONE}
 operator :=(const source : real) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     variantmanager.varfromreal(variant(tvardata(dest)),source);
   end;
 {$endif}
-{$endif VER2_0}
 
 
 { Misc. }
