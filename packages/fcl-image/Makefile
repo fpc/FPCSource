@@ -2065,7 +2065,7 @@ include fpcmake.loc
 endif
 .NOTPARALLEL:
 fpmake: fpmake.pp
-	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR))
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT)
 all:	fpmake
 	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 smart:	fpmake
