@@ -13,9 +13,9 @@ verbose=0
 fpc_syscall_prefix=syscall_nr_
 syscall_prefix=SYS_
 
-# You should only need to change the varaibles above
+# You should only need to change the variables above
 
-sed -n "s:${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\).*:check_syscall_number ${syscall_prefix}\1 \2:p" sysnr.inc > check_sys_list.sh
+sed -n "s:^[ \t]*${fpc_syscall_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\).*:check_syscall_number ${syscall_prefix}\1 \2:p" sysnr.inc > check_sys_list.sh
 
 function check_syscall_number ()
 {
@@ -25,7 +25,7 @@ function check_syscall_number ()
     echo Testing $sys value $value
   fi
   found=`sed -n "/#define.*${sys}[^A-Za-z0-9_]/p" ${syscall_header}`
-  val=`sed -n "s:#define.*${sys}[^A-Za-z0-9_]*\([0-9]*\).*:\1:p" ${syscall_header}`
+  val=`sed -n "s:#define.*${sys}[^A-Za-z0-9_][^A-Za-z0-9_]*\([0-9]*\).*:\1:p" ${syscall_header}`
   if [ $verbose -ne 0 ] ; then
     echo Test for $sys found \"${found}\" \"${value}\" \"${val}\"
   fi
@@ -37,10 +37,10 @@ function check_syscall_number ()
     if [ "${val}" == "" ] ; then
       found=`sed -n "/#define.*[^A-Za-z0-9_]${value}$/p" ${syscall_header}`
       if [ "${found}" == "" ] ; then
-        found=`sed -n "s|/\\*.* ${value} is compat|${value} is compat|p" ${syscall_header}`
+        found=`sed -n "s:\/\* ${value} is compa: ${value} is compa:p" ${syscall_header}`
       fi
     fi
-    echo problem for ${sys} expected ${value} line is \"${found}\"
+    echo problem for ${sys} expected ${value}, line is \"${found}\", val found is \"${val}\"
   fi
 }
 

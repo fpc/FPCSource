@@ -300,8 +300,17 @@ endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 needlinkparam=1
 endif
+ifeq ($(OS_TARGET),freebsd)
+needusrlocallib=1
+endif
+ifeq ($(OS_TARGET),openbsd)
+needusrlocallib=1
+endif
 ifdef needlinkparam
 override SPECIALLINK=-Xe -k--allow-multiple-definition
+endif
+ifdef needusrlocallib
+override SPECIALLINK+=-Fl/usr/local/lib
 endif
 ifdef GDBLIBDIR
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))

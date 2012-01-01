@@ -17,7 +17,8 @@ units=$(SYSTEMUNIT) objpas macpas iso7185 strings syscall baseunix \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets ipc terminfo dateutils strutils \
       video mouse keyboard  serial variants types sysctl sysconst \
-      fpintres convutils stdconvs dynlibs cwstring cmem dl termio
+      fpintres convutils stdconvs dynlibs cwstring cmem dl termio \
+      cthreads
 
 rsts=math varutils typinfo variants classes sysconst dateutils
 implicitunits=exeinfo
