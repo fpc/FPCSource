@@ -24,21 +24,14 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
         cld
-{$ifdef REGCALL}
+
         movl    %eax,%edi          // load destination address
         movl    %edx,%esi          // Load Source adress
-{$else}
-        movl    s,%esi          // Load Source adress
-        movl    d,%edi          // load destination address
-{$endif}
         movzbl  (%esi),%ecx        // load length in ECX
         incl    %esi
         rep
         movsb
         movb    $0,(%edi)
-{$ifndef REGCALL}
-        movl    d,%eax       // return value to EAX
-{$endif}
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;

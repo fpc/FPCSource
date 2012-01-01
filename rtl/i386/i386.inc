@@ -95,7 +95,7 @@ function mmx_support : boolean;
   end;
 
 {$ifndef FPC_PIC}
-{$if not defined(FPC_SYSTEM_HAS_MOVE) and defined(REGCALL) }
+{$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define USE_FASTMOVE}
 {$i fastmove.inc}
 {$endif FPC_SYSTEM_HAS_MOVE}
@@ -137,15 +137,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifdef REGCALL}
         movl    %eax,%esi
         movl    %edx,%edi
         movl    %ecx,%edx
-{$else}
-        movl    dest,%edi
-        movl    source,%esi
-        movl    count,%edx
-{$endif}
         movl    %edi,%eax
 { check for zero or negative count }
         cmpl    $0,%edx
@@ -259,15 +253,9 @@ var
   saveedi : longint;
 asm
         movl    %edi,saveedi
-{$ifdef REGCALL}
         movl    %eax,%edi
         movzwl  %cx,%eax
         movl    %edx,%ecx
-{$else}
-        movl    x,%edi
-        movl    count,%ecx
-        movzwl  value,%eax
-{$endif}
 { check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillWordEnd
@@ -296,15 +284,9 @@ var
   saveedi : longint;
 asm
         movl    %edi,saveedi
-{$ifdef REGCALL}
         movl    %eax,%edi
         movl    %ecx,%eax
         movl    %edx,%ecx
-{$else}
-        movl    x,%edi
-        movl    count,%ecx
-        movl    value,%eax
-{$endif}
 { check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillDWordEnd
@@ -391,15 +373,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %ebx,saveebx
-{$ifdef REGCALL}
         movl    %eax,%edi
         movl    %ecx,%ebx
         movl    %edx,%ecx
-{$else}
-        movl    Len,%ecx       // Load len
-        movl    Buf,%edi       // Load String
-        movl    b,%ebx
-{$endif}
         xorl    %eax,%eax
         testl   %ecx,%ecx
         jz      .Lcharposnotfound
@@ -645,14 +621,8 @@ asm
         movl    %ebx,saveebx
 // Can't use scasb, or will have to do it twice, think this
 //   is faster for small "len"
-{$ifdef REGCALL}
         movl    %eax,%esi        // Load address
         movzbl  %cl,%ebx          // Load searchpattern
-{$else}
-        movl    Buf,%esi        // Load address
-        movl    len,%edx        // load maximal searchdistance
-        movzbl  b,%ebx          // Load searchpattern
-{$endif}
         testl   %edx,%edx
         je      .LFound
         xorl    %ecx,%ecx       // zero index in Buf
@@ -749,11 +719,7 @@ procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring)
         cld
         movl    res,%edi
         movl    sstr,%esi
-{$ifdef regcall}
         movl    %edx,%ecx
-{$else regcall}
-        movl    res+4,%ecx
-{$endif regcall}
         xorl    %eax,%eax
         lodsb
         cmpl    %ecx,%eax
@@ -1051,20 +1017,13 @@ asm
         movl    %ebx,saveebx
         movl    %esi,saveesi
         movl    %edi,saveedi
-{$ifdef regcall}
         movl    %ecx,%esi
         movl    %eax,%edi
         movl    %edi,saveres
-{$else}
-        movl    p,%esi
-{$endif}
         movl    $1,%ecx
         testl   %esi,%esi
         movl    %esi,%eax
         jz      .LStrPasDone
-{$ifndef REGCALL}
-        movl    res,%edi
-{$endif}
         leal    3(%esi),%edx
         andl    $-4,%edx
         // skip length byte
@@ -1127,11 +1086,7 @@ asm
         incb    %cl
         jnz     .LStrPasEndLoop
 .LStrPasDone:
-{$ifdef REGCALL}
         movl    saveres,%edi
-{$else}
-        movl    res,%edi
-{$endif}
         addb    $255,%cl
         movb    %cl,(%edi)
         movl    saveesi,%esi
@@ -1159,11 +1114,7 @@ asm
         pop   %eax
 {$endif FPC_PROFILE}
         movl    %edi,saveedi
-{$ifdef REGCALL}
         movl    %eax,%edi
-{$else}
-        movl    p,%edi
-{$endif}
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
 	test    %edi,%edi
@@ -1190,9 +1141,6 @@ end;
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;nostackframe;assembler;
 asm
-{$ifndef REGCALL}
-        movl    framebp,%eax
-{$endif}
         orl     %eax,%eax
         jz      .Lg_a_null
         movl    4(%eax),%eax
@@ -1203,9 +1151,6 @@ end;
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;nostackframe;assembler;
 asm
-{$ifndef REGCALL}
-        movl    framebp,%eax
-{$endif}
         orl     %eax,%eax
         jz      .Lgnf_null
         movl    (%eax),%eax
@@ -1344,9 +1289,6 @@ end;
 function cpudeclocked(var l : longint) : boolean;assembler;nostackframe;
 
   asm
-{$ifndef REGCALL}
-     movl       l,%eax
-{$endif}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      lock
@@ -1358,9 +1300,6 @@ function cpudeclocked(var l : longint) : boolean;assembler;nostackframe;
 procedure cpuinclocked(var l : longint);assembler;nostackframe;
 
   asm
-{$ifndef REGCALL}
-     movl       l,%eax
-{$endif}
      lock
      incl       (%eax)
   end;
@@ -1392,13 +1331,8 @@ end;
 
 function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
-{$ifdef REGCALL}
         movl    $-1,%edx
         xchgl   %edx,%eax
-{$else}
-        movl    Target, %edx
-        movl    $-1, %eax
-{$endif}
         lock
         xaddl   %eax, (%edx)
         decl    %eax
@@ -1407,13 +1341,8 @@ end;
 
 function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
-{$ifdef REGCALL}
         movl    $1,%edx
         xchgl   %edx,%eax
-{$else}
-        movl    Target, %edx
-        movl    $1, %eax
-{$endif}
         lock
         xaddl   %eax, (%edx)
         incl    %eax
@@ -1422,25 +1351,14 @@ end;
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
 asm
-{$ifdef REGCALL}
         xchgl   (%eax),%edx
         movl    %edx,%eax
-{$else}
-        movl    Target,%ecx
-        movl    Source,%eax
-        xchgl   (%ecx),%eax
-{$endif}
 end;
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
 asm
-{$ifdef REGCALL}
         xchgl   %eax,%edx
-{$else}
-        movl    Target,%edx
-        movl    Source,%eax
-{$endif}
         lock
         xaddl   %eax, (%edx)
 end;
@@ -1448,13 +1366,7 @@ end;
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler;
 asm
-{$ifdef REGCALL}
         xchgl   %eax,%ecx
-{$else}
-        movl    Target,%ecx
-        movl    NewValue,%edx
-        movl    Comperand,%eax
-{$endif}
         lock
         cmpxchgl   %edx, (%ecx)
 end;
@@ -1464,11 +1376,7 @@ function InterlockedCompareExchange64(var Target: int64; NewValue: int64; Comper
 asm
         pushl       %ebx
         pushl       %edi
-{$ifdef REGCALL}
         movl        %eax,%edi
-{$else}
-        movl        Target,%edi
-{$endif}
         movl        Comperand+4,%edx
         movl        Comperand+0,%eax
         movl        NewValue+4,%ecx
