@@ -91,7 +91,7 @@ type
     Destructor Destroy; override;
     property Context : String read FContext;
     property ErrorCode : integer read FErrorcode;
-    property OriginalExcaption : Exception read FOriginalException;
+    property OriginalException : Exception read FOriginalException;
     property PreviousError : Integer read FPreviousError;
   end;
   
