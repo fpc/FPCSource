@@ -69,7 +69,7 @@ endif
 # distinstall also installs the example-sources
 distinstall:	fpmake
 ifdef UNIXHier
-	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR) -ie
 else
 	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
 endif
