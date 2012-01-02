@@ -5,7 +5,7 @@
 	
   TVertexbuffer class
 *)
-*
+
 unit VBuffer;
 
 {$mode objfpc}
