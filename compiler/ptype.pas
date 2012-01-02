@@ -1119,7 +1119,15 @@ implementation
                  current_genericdef:=arrdef;
                symtablestack.push(arrdef.symtable);
                insert_generic_parameter_types(arrdef,genericdef,genericlist);
-               parse_generic:=(df_generic in arrdef.defoptions);
+               { there are two possibilties for the following to be true:
+                 * the array declaration itself is generic
+                 * the array is declared inside a generic
+                 in both cases we need "parse_generic" and "current_genericdef"
+                 so that e.g. specializations of another generic inside the
+                 current generic can be used (either inline ones or "type" ones) }
+               parse_generic:=(df_generic in arrdef.defoptions) or old_parse_generic;
+               if parse_generic and not assigned(current_genericdef) then
+                 current_genericdef:=old_current_genericdef;
              end;
            consume(_OF);
            read_anon_type(tt2,true);
@@ -1166,7 +1174,15 @@ implementation
               current_genericdef:=pd;
             symtablestack.push(pd.parast);
             insert_generic_parameter_types(pd,genericdef,genericlist);
-            parse_generic:=(df_generic in pd.defoptions);
+            { there are two possibilties for the following to be true:
+              * the procvar declaration itself is generic
+              * the procvar is declared inside a generic
+              in both cases we need "parse_generic" and "current_genericdef"
+              so that e.g. specializations of another generic inside the
+              current generic can be used (either inline ones or "type" ones) }
+            parse_generic:=(df_generic in pd.defoptions) or old_parse_generic;
+            if parse_generic and not assigned(current_genericdef) then
+              current_genericdef:=old_current_genericdef;
             { don't allow to add defs to the symtable - use it for type param search only }
             tparasymtable(pd.parast).readonly:=true;
 
