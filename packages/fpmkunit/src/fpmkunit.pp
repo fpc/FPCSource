@@ -44,6 +44,11 @@ Interface
 {$endif NO_UNIT_ZIPPER}
 
 uses
+{$ifndef NO_THREADING}
+{$ifdef UNIX}
+  cthreads,
+{$endif UNIX}
+{$endif NO_THREADING}
   SysUtils, Classes, StrUtils
 {$ifdef HAS_UNIT_PROCESS}
   ,process
@@ -107,6 +112,8 @@ Type
 
   TBuildMode = (bmOneByOne, bmBuildUnit{, bmSkipImplicitUnits});
   TBuildModes = set of TBuildMode;
+  TProcessPackageResult = (ppHandled, ppDelayed);
+  TCheckDependencyResult = (cdAvailable, cdNotAvailable, cdNotYetAvailable);
 
 Const
   // Aliases
@@ -613,6 +620,8 @@ Type
     // Used by buildunits
     FBUTargets: TTargets;
     FBUTarget: TTarget;
+    // Used to identify if package is being processed by a thread
+    FProcessing : boolean;
     // Dictionary
     FDictionary : TDictionary;
     Function GetDescription : string;
@@ -737,6 +746,7 @@ Type
     FBinInstallDir,
     FDocInstallDir,
     FExamplesInstallDir : String;
+    FThreadsAmount: integer;
     FRemoveTree: String;
     FRemoveDir: String;
     FRemove: String;
@@ -784,6 +794,20 @@ Type
     Property UnixPaths : Boolean Read FUnixPaths Write FUnixPaths;
     Property Options : TStrings Read GetOptions Write SetOptions;    // Default compiler options.
     Property NoFPCCfg : Boolean Read FNoFPCCfg Write FNoFPCCfg;
+    // When ThreadsAmount is specified, #threadsamount# worker-threads are
+    // created. When such a worker-thread is ready all worker-threads are evaluated
+    // to see if there are idle threads (there is always at least one such thread.)
+    // To each idle thread a package is assigned which has to be compiled for the
+    // current target and for which all dependencies are compiled earlier.
+    // When no package is available the thread remains idle until another thread
+    // has finished it's task. Compilation stops when all packages are compiled
+    // or when an error occures.
+    //
+    // When ThreadsAmount is not specified (-1), all packages are compiled on by one.
+    // Dependencies are compiled recursively. When a package is already compiled
+    // (because some other package was depending on it) the package is skipped.
+    // When the last package in the list is compiled, the compilation stops.
+    Property ThreadsAmount : integer Read FThreadsAmount Write FThreadsAmount;
     // paths etc.
     Property LocalUnitDir : String Read GetLocalUnitDir Write SetLocalUnitDir;
     Property GlobalUnitDir : String Read GetGlobalUnitDir Write SetGlobalUnitDir;
@@ -923,12 +947,14 @@ Type
     Function  NeedsCompile(APackage : TPackage) : Boolean; virtual;
     Procedure Compile(APackage : TPackage);
     Procedure MaybeCompile(APackage:TPackage);
+    Function ReadyToCompile(APackage:TPackage) : Boolean;
     Procedure Install(APackage : TPackage);
     Procedure Archive(APackage : TPackage);
     Procedure Manifest(APackage : TPackage);
     Procedure Clean(APackage : TPackage; AllTargets: boolean);
     Procedure Clean(APackage : TPackage; ACPU:TCPU; AOS : TOS);
     Procedure CompileDependencies(APackage : TPackage);
+    function CheckDependencies(APackage : TPackage): TCheckDependencyResult;
     Function  CheckExternalPackage(Const APackageName : String):TPackage;
     procedure CreateOutputDir(APackage: TPackage);
     // Packages commands
@@ -1023,6 +1049,30 @@ Type
     Constructor Create(AFunc : TReplaceFunction);
   end;
 
+{$ifndef NO_THREADING}
+
+  { TCompileWorkerThread }
+
+  TCompileWorkerThread = class(TThread)
+  private
+    FBuildEngine: TBuildEngine;
+    FCompilationOK: boolean;
+    FDone: boolean;
+    FNotifyMainThreadEvent: PRTLEvent;
+    FNotifyStartTask: PRTLEvent;
+    FPackage: TPackage;
+  protected
+    procedure execute; override;
+    property Done: boolean read FDone;
+    property APackage: TPackage read FPackage write FPackage;
+    property CompilationOK: boolean read FCompilationOK;
+    property NotifyStartTask: PRTLEvent read FNotifyStartTask;
+  public
+    constructor Create(ABuildEngine: TBuildEngine; NotifyMainThreadEvent: PRTLEvent); virtual;
+    destructor Destroy; override;
+  end;
+
+{$endif NO_THREADING}
 
   ECollectionError = Class(Exception);
   EDictionaryError = Class(Exception);
@@ -1087,7 +1137,11 @@ var
   CustomFpmakeCommandlineOptions: TStrings;
   CustomFpMakeCommandlineValues: TStrings;
 
+{$ifdef NO_THREADING}
+var
+{$else NO_THREADING}
 threadvar
+{$endif NO_THREADING}
   GPathPrefix : string;
   GLogPrefix  : string;
 
@@ -1215,6 +1269,7 @@ ResourceString
   SHelpInstExamples   = 'Install the example-sources.';
   SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
   sHelpFpdocOutputDir = 'Use indicated directory as fpdoc output folder.';
+  sHelpThreads        = 'Enable the indicated amount of worker threads.';
   sHelpUseEnvironment = 'Use environment to pass options to compiler.';
   SHelpUseBuildUnit   = 'Compile package in Build-unit mode.';
 
@@ -1973,6 +2028,47 @@ begin
     Result:=TFunctionItem(O).FFunc(AName,Args);
 end;
 
+{$ifndef NO_THREADING}
+
+{ TCompileWorkerThread }
+
+constructor TCompileWorkerThread.Create(ABuildEngine: TBuildEngine; NotifyMainThreadEvent: PRTLEvent);
+begin
+  inherited Create(false);
+  FNotifyStartTask := RTLEventCreate;
+  FBuildEngine := ABuildEngine;
+  FNotifyMainThreadEvent:=NotifyMainThreadEvent;
+end;
+
+destructor TCompileWorkerThread.Destroy;
+begin
+  RTLeventdestroy(FNotifyStartTask);
+  inherited Destroy;
+end;
+
+procedure TCompileWorkerThread.execute;
+begin
+  while not Terminated do
+    begin
+    FDone:=true;
+    RTLeventSetEvent(FNotifyMainThreadEvent);
+    RTLeventWaitFor(FNotifyStartTask,500);
+    if not FDone then
+      begin
+      FBuildEngine.log(vlInfo,'Compiling: '+APackage.Name);
+      FCompilationOK:=false;
+      try
+        FBuildEngine.Compile(APackage);
+        FCompilationOK:=true;
+      except
+        on E: Exception do
+          writeln(E.Message);
+      end;
+      end;
+    end;
+end;
+
+{$endif NO_THREADING}
 
 {****************************************************************************
                            TUnsortedDuplicatesStringList
@@ -3026,6 +3122,7 @@ begin
   FOS:=osNone;
   FUnitInstallDir:='$(BaseInstallDir)units/$(target)/$(packagename)';
   FBuildMode:=bmOneByOne;
+  FThreadsAmount:=-1;
 end;
 
 function TCustomDefaults.HaveOptions: Boolean;
@@ -3303,7 +3400,7 @@ procedure TCustomInstaller.Log(Level: TVerboseLevel; Const Msg: String);
 begin
   If Level in FLogLevels then
     begin
-    Writeln(StdOut, Msg);
+    Writeln(StdOut,hexStr(GetThreadID,8),': ', Msg);
     Flush(StdOut);
     end;
 end;
@@ -3478,6 +3575,10 @@ begin
     else if Checkoption(I,'e','useenv') then
       Defaults.UseEnvironment:=true
 {$endif}
+{$ifndef NO_THREADING}
+    else if CheckOption(I,'T','threads') then
+      Defaults.ThreadsAmount:=StrToIntDef(OptionArg(I),-1)
+{$endif NO_THREADING}
     else if CheckOption(I,'B','baseinstalldir') then
       Defaults.BaseInstallDir:=OptionArg(I)
     else if CheckOption(I,'U','unitinstalldir') then
@@ -3576,6 +3677,9 @@ begin
   LogArgOption('o','options',SHelpOptions);
   LogArgOption('io','ignoreinvalidoption',SHelpIgnoreInvOpt);
   LogArgOption('d', 'doc-folder', sHelpFpdocOutputDir);
+{$ifndef NO_THREADING}
+  LogArgOption('T', 'threads', sHelpThreads);
+{$endif NO_THREADING}
   if assigned(CustomFpmakeCommandlineOptions) then for i  := 0 to CustomFpmakeCommandlineOptions.Count-1 do
     LogArgOption(' ',CustomFpmakeCommandlineOptions.Names[i],CustomFpmakeCommandlineOptions.ValueFromIndex[i]);
   Log(vlInfo,'');
@@ -3713,7 +3817,7 @@ end;
 
 procedure TBuildEngine.Error(const Fmt: String; const Args: array of const);
 begin
-  Raise EInstallerError.CreateFmt(Fmt,Args);
+  Raise EInstallerError.CreateFmt(hexStr(GetThreadID,8)+ ': '+Fmt,Args);
 end;
 
 
@@ -3849,7 +3953,7 @@ begin
 end;
 
 
-procedure TBuildEngine.SysDeleteTree(const ADirectoryName: String);
+procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
 
   function IntRemoveTree(const ADirectoryName: String) : boolean;
   var
@@ -4933,6 +5037,47 @@ begin
     end;
 end;
 
+function TBuildEngine.CheckDependencies(APackage: TPackage): TCheckDependencyResult;
+Var
+  I : Integer;
+  P : TPackage;
+  D : TDependency;
+begin
+  result := cdAvailable;
+  For I:=0 to APackage.Dependencies.Count-1 do
+    begin
+      D:=APackage.Dependencies[i];
+      if (D.DependencyType=depPackage) and
+         (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then
+        begin
+          P:=TPackage(D.Target);
+          If Assigned(P) then
+            begin
+              if (Defaults.CPU in P.CPUs) and (Defaults.OS in P.OSes) then
+                begin
+                  case P.State of
+                    tsNeutral :
+                      result := cdNotYetAvailable;
+                    tsConsidering :
+                      Log(vlWarning,SWarnCircularPackageDependency,[APackage.Name,P.Name]);
+                  end;
+                end
+              else
+                Log(vlWarning,SWarnDependOnOtherPlatformPackage,[APackage.Name, D.Value, MakeTargetString(Defaults.CPU, Defaults.OS)]);
+            end
+          else
+            begin
+              D.Target:=CheckExternalPackage(D.Value);
+              P:=TPackage(D.Target);
+            end;
+          if (D.RequireChecksum<>$ffffffff) and
+             (P.InstalledChecksum<>$ffffffff) and
+             (P.InstalledChecksum<>D.RequireChecksum) then
+            Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);
+        end;
+    end;
+end;
+
 
 procedure TBuildEngine.Compile(APackage: TPackage);
 Var
@@ -5158,9 +5303,18 @@ begin
     log(vlWarning,SWarnCompilingPackagecomplete,[APackage.Name]);
 end;
 
-
 procedure TBuildEngine.MaybeCompile(APackage: TPackage);
 begin
+  if ReadyToCompile(APackage) then
+    begin
+      Compile(APackage);
+      APackage.FTargetState:=tsCompiled;
+    end;
+end;
+
+function TBuildEngine.ReadyToCompile(APackage: TPackage) : Boolean;
+begin
+  result := False;
   if APackage.State in [tsCompiled, tsNoCompile] then
     begin
       Log(vlInfo,SInfoPackageAlreadyProcessed,[APackage.Name]);
@@ -5170,15 +5324,23 @@ begin
     Error(SErrInvalidState,[APackage.Name]);
   Log(vlDebug,SDbgConsideringPackage,[APackage.Name]);
   LogIndent;
-  APackage.FTargetState:=tsConsidering;
+  if Defaults.ThreadsAmount=-1 then
+    APackage.FTargetState:=tsConsidering;
   ResolveDependencies(APackage.Dependencies,(APackage.Collection as TPackages));
-  CompileDependencies(APackage);
+  // When multiple threads are used, delay the compilation of the package when
+  // there are unsolved dependencies. When no threads are used, compile all
+  // dependencies.
+  if Defaults.ThreadsAmount=-1 then
+    CompileDependencies(APackage)
+  else if CheckDependencies(APackage)=cdNotYetAvailable then
+    begin
+      log(vlInfo,'Delaying package '+apackage.name);
+      result := False;
+      Exit;
+    end;
   ResolveFileNames(APackage,Defaults.CPU,Defaults.OS);
   If NeedsCompile(APackage) then
-    begin
-      Compile(APackage);
-      APackage.FTargetState:=tsCompiled;
-    end
+    result := True
   else
     begin
       APackage.FTargetState:=tsNoCompile;
@@ -5513,24 +5675,136 @@ end;
 
 
 procedure TBuildEngine.Compile(Packages: TPackages);
+
+  function IsReadyToCompile(APackage:TPackage): boolean;
+  begin
+    result := False;
+    if not APackage.FProcessing and (APackage.State=tsNeutral) then
+      begin
+        if PackageOK(APackage) then
+          result := ReadyToCompile(APackage)
+        else
+          begin
+            inc(FProgressCount);
+            log(vlWarning,SWarnSkipPackageTargetProgress,[(FProgressCount)/FProgressMax * 100, APackage.Name, Defaults.Target]);
+            APackage.FTargetState:=tsNoCompile;
+          end;
+      end;
+  end;
+
 Var
-  I : Integer;
+  I : integer;
+{$ifndef NO_THREADING}
+  Thr : Integer;
+  Finished : boolean;
+  NotifyThreadWaiting : PRTLEvent;
+  Threads : array of TCompileWorkerThread;
+{$endif NO_THREADING}
   P : TPackage;
+
+{$ifndef NO_THREADING}
+  procedure ProcessThreadResult(ATHread: TCompileWorkerThread);
+  var
+    StartI: integer;
+    CompilePackage: TPackage;
+    PackageAvailable: boolean;
+  begin
+    if AThread.Done then
+      begin
+        if assigned(AThread.APackage) then
+          begin
+            // The thread has completed compiling the package
+            if AThread.CompilationOK then
+              AThread.APackage.FTargetState:=tsCompiled
+            else // A problem occured, stop the compilation
+              Finished:=true;
+            AThread.APackage := nil;
+          end;
+        StartI := I;
+
+        CompilePackage := nil;
+        PackageAvailable:=false;
+        repeat
+        if IsReadyToCompile(Packages.PackageItems[i]) then
+          CompilePackage := Packages.PackageItems[i];
+        if not (Packages.PackageItems[i].State in [tsCompiled, tsNoCompile]) then
+          PackageAvailable:=true;
+        inc(I);
+        if I=packages.Count then
+          i := 0;
+        until Assigned(CompilePackage) or (I=StartI);
+        if Assigned(CompilePackage) then
+          begin
+          // Instruct thread to compile package
+          AThread.APackage := CompilePackage;
+          AThread.APackage.FProcessing := true;
+          AThread.FDone:=False;
+          RTLeventSetEvent(AThread.NotifyStartTask);
+          end;
+        if not PackageAvailable then
+          Finished := True;
+      end;
+  end;
+
+{$endif NO_THREADING}
+
 begin
   If Assigned(BeforeCompile) then
     BeforeCompile(Self);
   FProgressMax:=Packages.Count;
   FProgressCount:=0;
-  For I:=0 to Packages.Count-1 do
+
+  if Defaults.ThreadsAmount<0 then
     begin
-      P:=Packages.PackageItems[i];
-      If PackageOK(P) then
-        MaybeCompile(P)
-      else
+      // Do not use any threading to compile the packages
+      For I:=0 to Packages.Count-1 do
         begin
-        inc(FProgressCount);
-        log(vlWarning,SWarnSkipPackageTargetProgress,[(FProgressCount)/FProgressMax * 100, P.Name, Defaults.Target]);
+          P:=Packages.PackageItems[i];
+          If PackageOK(P) then
+            MaybeCompile(P)
+          else
+            begin
+            inc(FProgressCount);
+            log(vlWarning,SWarnSkipPackageTargetProgress,[(FProgressCount)/FProgressMax * 100, P.Name, Defaults.Target]);
+            end;
         end;
+    end
+  else
+    begin
+{$ifndef NO_THREADING}
+      // Use worker-threads to compile the packages
+      Finished := False;
+      I := 0;
+      // This event is set by the worker-threads to notify the main/this thread
+      // that a package finished it's task.
+      NotifyThreadWaiting := RTLEventCreate;
+      SetLength(Threads,Defaults.ThreadsAmount);
+      // Create all worker-threads
+      for Thr:=0 to Defaults.ThreadsAmount-1 do
+        Threads[Thr] := TCompileWorkerThread.Create(self,NotifyThreadWaiting);
+      try
+        // When a thread notifies this thread that it is ready, loop on all
+        // threads to check their state and if possible assign a new package
+        // to them to compile.
+        while not Finished do
+          begin
+            RTLeventWaitFor(NotifyThreadWaiting);
+            for Thr:=0 to Defaults.ThreadsAmount-1 do if not Finished then
+              ProcessThreadResult(Threads[Thr]);
+          end;
+        // Compilation finished or aborted. Wait for all threads to end.
+        for thr:=0 to Defaults.ThreadsAmount-1 do
+          begin
+            Threads[Thr].Terminate;
+            RTLeventSetEvent(Threads[Thr].NotifyStartTask);
+            Threads[Thr].WaitFor;
+          end;
+      finally
+        RTLeventdestroy(NotifyThreadWaiting);
+        for thr:=0 to Defaults.ThreadsAmount-1 do
+          Threads[Thr].Free;
+      end;
+{$endif NO_THREADING}
     end;
   If Assigned(AfterCompile) then
     AfterCompile(Self);
@@ -5614,7 +5888,6 @@ begin
   If Assigned(AfterClean) then
     AfterClean(Self);
 end;
-
 
 {****************************************************************************
                                TFPVersion
