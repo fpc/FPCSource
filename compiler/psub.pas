@@ -284,6 +284,7 @@ implementation
               begin
                 if is_class(current_structdef) then
                   begin
+                    include(current_procinfo.flags,pi_needs_implicit_finally);
                     srsym:=search_struct_member(current_structdef,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
@@ -698,13 +699,7 @@ implementation
           end
         else
           begin
-            { Constructors need the destroy-on-exception code even if they don't
-              use managed variables/temps. }
-            if (cs_implicit_exceptions in current_settings.moduleswitches) and
-               (is_class(procdef.struct) and (procdef.proctypeoption=potype_constructor)) then
-              maybe_add_constructor_wrapper(code,true)
-            else
-              maybe_add_constructor_wrapper(code,false);
+            maybe_add_constructor_wrapper(code,false);
             addstatement(newstatement,loadpara_asmnode);
             addstatement(newstatement,stackcheck_asmnode);
             addstatement(newstatement,entry_asmnode);

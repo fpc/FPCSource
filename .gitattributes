@@ -9541,6 +9541,7 @@ tests/test/cg/tcnvstr2.pp svneol=native#text/plain
 tests/test/cg/tcnvstr3.pp svneol=native#text/plain
 tests/test/cg/tcppcl1.pp svneol=native#text/plain
 tests/test/cg/tcppcl2.pp svneol=native#text/plain
+tests/test/cg/tctr1.pp svneol=native#text/plain
 tests/test/cg/tderef.pp svneol=native#text/plain
 tests/test/cg/tdivz1.pp svneol=native#text/plain
 tests/test/cg/tdivz2.pp svneol=native#text/plain
