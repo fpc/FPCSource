@@ -81,6 +81,7 @@ interface
        end;
 
        tcgtryfinallynode = class(ttryfinallynode)
+          procedure handle_safecall_exception;
           procedure pass_generate_code;override;
        end;
 
@@ -1437,6 +1438,28 @@ implementation
                              SecondTryFinally
 *****************************************************************************}
 
+    procedure tcgtryfinallynode.handle_safecall_exception;
+      var
+        cgpara: tcgpara;
+        selfsym: tparavarsym;
+      begin
+        { call fpc_safecallhandler, passing self for methods of classes,
+          nil otherwise. }
+        cgpara.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara);
+        if is_class(current_procinfo.procdef.struct) then
+          begin
+            selfsym:=tparavarsym(current_procinfo.procdef.parast.Find('self'));
+            if (selfsym=nil) or (selfsym.typ<>paravarsym) then
+              InternalError(2011123101);
+            cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,selfsym.localloc,cgpara);
+          end
+        else
+          cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,cgpara);
+        cgpara.done;
+        cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLHANDLER');
+      end;
+
     procedure tcgtryfinallynode.pass_generate_code;
       var
          reraiselabel,
@@ -1451,7 +1474,6 @@ implementation
          oldflowcontrol,tryflowcontrol : tflowcontrol;
          decconst : longint;
          excepttemps : texceptiontemps;
-         retsym: tlocalvarsym;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -1541,15 +1563,7 @@ implementation
 {$if defined(x86) or defined(arm)}
              if (tf_safecall_exceptions in target_info.flags) and
                 (current_procinfo.procdef.proccalloption=pocall_safecall) then
-               begin
-                 { find safe_result variable we created in the generate_except_block }
-                 retsym:=tlocalvarsym(current_procinfo.procdef.localst.Find('safe_result'));
-                 { Set return value of safecall procedure to indicate exception.       }
-                 { Exception will be raised after procedure exit based on return value }
-                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-                 cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,retsym.localloc,NR_FUNCTION_RESULT_REG);
-                 cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-               end
+               handle_safecall_exception
              else
 {$endif}
                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);

@@ -459,9 +459,6 @@ implementation
     function generate_except_block:tnode;
       var
         newstatement : tstatementnode;
-        { safecall handling }
-        sym: tsym;
-        argnode: tnode;
       begin
         generate_except_block:=internalstatements(newstatement);
 
@@ -477,30 +474,6 @@ implementation
                (not paramanager.ret_in_param(current_procinfo.procdef.returndef, current_procinfo.procdef.proccalloption)) and
                (not is_class(current_procinfo.procdef.returndef)) then
               addstatement(newstatement,finalize_data_node(load_result_node));
-{$if defined(x86) or defined(arm)}
-            { safecall handling }
-            if (tf_safecall_exceptions in target_info.flags) and
-               (current_procinfo.procdef.proccalloption=pocall_safecall) then
-              begin
-                { create a local hidden variable "safe_result"    }
-                { it will be used in ncgflw unit                  }
-                { to set "real" result value for safecall routine }
-                sym:=tlocalvarsym.create('$safe_result',vs_value,hresultdef,[]);
-                include(sym.symoptions,sp_internal);
-                current_procinfo.procdef.localst.insert(sym);
-                { if safecall is used for a class method we need to call }
-                { SafecallException virtual method                       }
-                { In other case we return E_UNEXPECTED error value       }
-                if is_class(current_procinfo.procdef.struct) then
-                  argnode:=load_self_node
-                else
-                  argnode:=cnilnode.create;
-                addstatement(newstatement,cassignmentnode.create(
-                  cloadnode.create(sym,sym.Owner),
-                  ccallnode.createinternres('fpc_safecallhandler',
-                    ccallparanode.create(argnode,nil),hresultdef)));
-              end;
-{$endif}
           end;
       end;
 
