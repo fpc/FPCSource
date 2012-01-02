@@ -284,7 +284,6 @@ implementation
               begin
                 if is_class(current_structdef) then
                   begin
-                    include(current_procinfo.flags,pi_needs_implicit_finally);
                     srsym:=search_struct_member(current_structdef,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
@@ -544,6 +543,16 @@ implementation
                       occurred then we will execute afterconstruction,
                       otherwise we won't (the exception will jump over us) }
                     addstatement(newstatement,tocode);
+                    { if implicit finally node wasn't created, then exit label and
+                      finalization code must be handled here and placed before
+                      afterconstruction }
+                    if not ((pi_needs_implicit_finally in flags) and
+                      (cs_implicit_exceptions in current_settings.moduleswitches)) then
+                      begin
+                        include(tocode.flags,nf_block_with_exit);
+                        addstatement(newstatement,final_asmnode);
+                      end;
+
                     { Self can be nil when fail is called }
                     { if self<>nil and vmt<>nil then afterconstruction }
                     addstatement(newstatement,cifnode.create(
@@ -615,7 +624,11 @@ implementation
         codestatement,
         newstatement : tstatementnode;
         oldfilepos   : tfileposinfo;
+        is_constructor: boolean;
       begin
+        is_constructor:=assigned(procdef.struct) and
+          (procdef.proctypeoption=potype_constructor);
+
         oldfilepos:=current_filepos;
         { Generate code/locations used at start of proc }
         current_filepos:=entrypos;
@@ -634,6 +647,13 @@ implementation
           depending on the implicit finally we need to add
           an try...finally...end wrapper }
         newblock:=internalstatements(newstatement);
+        { initialization is common for all cases }
+        addstatement(newstatement,loadpara_asmnode);
+        addstatement(newstatement,stackcheck_asmnode);
+        addstatement(newstatement,entry_asmnode);
+        addstatement(newstatement,init_asmnode);
+        addstatement(newstatement,bodyentrycode);
+
         if (cs_implicit_exceptions in current_settings.moduleswitches) and
            (pi_needs_implicit_finally in flags) and
            { but it's useless in init/final code of units }
@@ -647,12 +667,7 @@ implementation
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
             addstatement(codestatement,final_asmnode);
-            { Initialize before try...finally...end frame }
-            addstatement(newstatement,loadpara_asmnode);
-            addstatement(newstatement,stackcheck_asmnode);
-            addstatement(newstatement,entry_asmnode);
-            addstatement(newstatement,init_asmnode);
-            addstatement(newstatement,bodyentrycode);
+
             current_filepos:=entrypos;
             wrappedbody:=ctryfinallynode.create_implicit(
                code,
@@ -672,16 +687,15 @@ implementation
           end
         else
           begin
-            maybe_add_constructor_wrapper(code,false);
-            addstatement(newstatement,loadpara_asmnode);
-            addstatement(newstatement,stackcheck_asmnode);
-            addstatement(newstatement,entry_asmnode);
-            addstatement(newstatement,init_asmnode);
-            addstatement(newstatement,bodyentrycode);
+            { constructors need destroy-on-exception code even if they don't
+              have managed variables/temps }
+            maybe_add_constructor_wrapper(code,
+              cs_implicit_exceptions in current_settings.moduleswitches);
             addstatement(newstatement,code);
             addstatement(newstatement,exitlabel_asmnode);
             addstatement(newstatement,bodyexitcode);
-            addstatement(newstatement,final_asmnode);
+            if not is_constructor then
+              addstatement(newstatement,final_asmnode);
           end;
         do_firstpass(tnode(newblock));
         code:=newblock;
