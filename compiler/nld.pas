@@ -163,7 +163,7 @@ implementation
 
     uses
       cutils,verbose,globtype,globals,systems,
-      symnot,
+      symnot,symtable,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
       cpuinfo,
@@ -696,6 +696,7 @@ implementation
       var
         hp: tnode;
         oldassignmentnode : tassignmentnode;
+        hdef: tdef;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -769,10 +770,14 @@ implementation
           vararrays which must be really copied }
         else if left.resultdef.typ=variantdef then
          begin
+           { remove property flag to avoid errors, see comments for }
+           { tf_winlikewidestring assignments below                 }
+           exclude(left.flags,nf_isproperty);
+           hdef:=search_system_type('TVARDATA').typedef;
            hp:=ccallparanode.create(ctypeconvnode.create_internal(
-                 caddrnode.create_internal(right),voidpointertype),
+                 right,hdef),
                ccallparanode.create(ctypeconvnode.create_internal(
-                 caddrnode.create_internal(left),voidpointertype),
+                 left,hdef),
                nil));
            result:=ccallnode.createintern('fpc_variant_copy',hp);
            firstpass(result);

@@ -438,8 +438,13 @@ function fpc_SetupReadStr_Widestr(const s: widestring): PText; compilerproc;
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
 procedure fpc_variant_init(var v: tvardata);compilerproc;
 procedure fpc_variant_clear(var v: tvardata);compilerproc;
+{$ifdef FPC_VARIANTCOPY_FIXED}
+procedure fpc_variant_copy(var d: tvardata; const s : tvardata);compilerproc;
+procedure fpc_variant_copy_overwrite(const source: tvardata; var dest : tvardata);compilerproc;
+{$else FPC_VARIANTCOPY_FIXED}
 procedure fpc_variant_copy(d,s : pointer);compilerproc;
 procedure fpc_variant_copy_overwrite(source, dest : pointer);compilerproc;
+{$endif FPC_VARIANTCOPY_FIXED}
 procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); compilerproc;
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
 function fpc_dynarray_to_variant(dynarr : pointer;typeinfo : pointer) : variant;compilerproc;

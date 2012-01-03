@@ -45,6 +45,20 @@ procedure variant_addref(var v : tvardata);[Public,Alias:'FPC_VARIANT_ADDREF'];
       VarAddRefProc(v);
   end;
 
+{$ifdef FPC_VARIANTCOPY_FIXED}
+procedure fpc_variant_copy(var d: tvardata; const s : tvardata);[Public,Alias:'FPC_VARIANT_COPY']; compilerproc;
+  begin
+    if assigned(VarCopyProc) then
+      VarCopyProc(d,s);
+  end;
+
+procedure fpc_variant_copy_overwrite(const source: tvardata; var dest : tvardata);[Public,Alias:'FPC_VARIANT_COPY_OVERWRITE']; compilerproc;
+  begin
+    dest.VType := varEmpty;
+    if assigned(VarCopyProc) then
+      VarCopyProc(dest,source);
+  end;
+{$else FPC_VARIANTCOPY_FIXED}
 { using pointers as argument here makes life for the compiler easier }
 procedure fpc_variant_copy(d,s : pointer);[Public,Alias:'FPC_VARIANT_COPY']; compilerproc;
   begin
@@ -59,6 +73,7 @@ procedure fpc_variant_copy_overwrite(source, dest : pointer);[Public,Alias:'FPC_
     if assigned(VarCopyProc) then
       VarCopyProc(tvardata(dest^),tvardata(source^));
   end;
+{$endif FPC_VARIANTCOPY_FIXED}
 
 Procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); iocheck; [Public,Alias:'FPC_WRITE_TEXT_VARIANT']; compilerproc;
   begin
