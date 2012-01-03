@@ -180,6 +180,10 @@ implementation
                            href,third.location,'FPC_DECREF_ARRAY');
                        end;
                    end
+                 else if (resultdef.typ=formaldef) then
+                   { stuff being passed to formal parameter has to be completely cleaned,
+                     because it cannot be initialized at callee side (bug #20962) }
+                   cg.g_finalize(current_asmdata.CurrAsmList,left.resultdef,href)
                  else
                    cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
                end;
