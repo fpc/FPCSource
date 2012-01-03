@@ -3400,7 +3400,7 @@ procedure TCustomInstaller.Log(Level: TVerboseLevel; Const Msg: String);
 begin
   If Level in FLogLevels then
     begin
-    Writeln(StdOut,hexStr(GetThreadID,8),': ', Msg);
+    Writeln(StdOut, Msg);
     Flush(StdOut);
     end;
 end;
@@ -3817,7 +3817,7 @@ end;
 
 procedure TBuildEngine.Error(const Fmt: String; const Args: array of const);
 begin
-  Raise EInstallerError.CreateFmt(hexStr(GetThreadID,8)+ ': '+Fmt,Args);
+  Raise EInstallerError.CreateFmt(Fmt,Args);
 end;
 
 
