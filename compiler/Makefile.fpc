@@ -586,7 +586,10 @@ ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
 # building a native compiler for embedded targets is not possible
 ifneq ($(OS_TARGET),embedded)
+# building a native compiler for the arm-gba target is not possible
+ifneq ($(OS_TARGET),gba)
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+endif
 endif
 endif
 
@@ -616,7 +619,10 @@ ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' rtlclean rtl
 # building a native compiler for embedded targets is not possible
 ifneq ($(OS_TARGET),embedded)
+# building a native compiler for the arm-gba target is not possible
+ifneq ($(OS_TARGET),gba)
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' cycleclean compiler
+endif
 endif
 endif
 
