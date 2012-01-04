@@ -3056,7 +3056,11 @@ end;
 procedure TCustomDefaults.SetPrefix(const AValue: String);
 begin
   if FPrefix=AValue then exit;
-  FPrefix:=IncludeTrailingPathDelimiter(AValue);
+  // Use ExpandFileName to support ~/ expansion
+  if AValue<>'' then
+    FPrefix:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
+  else
+    FPrefix:='';
   BaseInstallDir:='';
 end;
 
