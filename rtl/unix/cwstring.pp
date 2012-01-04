@@ -212,7 +212,8 @@ begin
   iconv_wide2ansi:=iconv_open('UTF-8',unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,'UTF-8');
 {$endif}
-  if assigned(iconvctl) then
+  if assigned(iconvctl) and
+     (iconv_wide2ansi<>iconv_t(-1)) then
   begin
     transliterate:=1;
     iconvctl(iconv_wide2ansi,ICONV_SET_TRANSLITERATE,@transliterate);
