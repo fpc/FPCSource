@@ -2296,10 +2296,12 @@ function SarLongint(Const AValue : Longint;const Shift : Byte): Longint;
 
 {$ifndef FPC_HAS_INTERNAL_SAR_QWORD}
 {$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
-function SarInt64(Const AValue : Int64;const Shift : Byte): Int64;
+function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,Alias:'FPC_SARINT64']; compilerproc;
   begin
     Result:=int64(qword(qword(qword(AValue) shr (Shift and 63)) or (qword(int64(qword(0-qword(qword(AValue) shr 63)) and qword(int64(0-(ord((Shift and 63)<>0){ and 1}))))) shl (64-(Shift and 63)))));
   end;
+
+function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external name 'FPC_SARINT64'];
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 {$endif FPC_SYSTEM_HAS_SAR_QWORD}
 

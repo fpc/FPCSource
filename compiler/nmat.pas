@@ -102,7 +102,7 @@ implementation
       defutil,
       htypechk,pass_1,
       cgbase,
-      ncon,ncnv,ncal,nadd,nld,nbas,nflw,
+      ncon,ncnv,ncal,nadd,nld,nbas,nflw,ninl,
       nutils;
 
 {****************************************************************************
@@ -419,47 +419,63 @@ implementation
 
     function tmoddivnode.firstoptimize: tnode;
       var
-        power{,shiftval} : longint;
+        power,shiftval : longint;
         newtype: tnodetype;
+        statements : tstatementnode;
+        temp : ttempcreatenode;
       begin
         result := nil;
         { divide/mod a number by a constant which is a power of 2? }
-        if (cs_opt_peephole in current_settings.optimizerswitches) and
-           (right.nodetype = ordconstn) and
-{           ((nodetype = divn) or
-            not is_signed(resultdef)) and}
-           (not is_signed(resultdef)) and
+        if (right.nodetype = ordconstn) and
+{$ifdef cpu64bitalu}
+          { for 64 bit, we leave the optimization to the cg }
+            (not is_signed(resultdef)) and
+{$else cpu64bitalu}
+           ((nodetype=divn) and (is_64bit(resultdef)) or
+            not is_signed(resultdef)) and
+{$endif cpu64bitalu}
            ispowerof2(tordconstnode(right).value,power) then
           begin
-            if nodetype = divn then
+            if nodetype=divn then
               begin
-(*
                 if is_signed(resultdef) then
                   begin
                     if is_64bitint(left.resultdef) then
                       if not (cs_opt_size in current_settings.optimizerswitches) then
-                        shiftval := 63
+                        shiftval:=63
                       else
                         { the shift code is a lot bigger than the call to }
                         { the divide helper                               }
                         exit
                     else
-                      shiftval := 31;
-                    { we reuse left twice, so create once a copy of it     }
-                    { !!! if left is a call is -> call gets executed twice }
-                    left := caddnode.create(addn,left,
-                      caddnode.create(andn,
-                        cshlshrnode.create(sarn,left.getcopy,
-                          cordconstnode.create(shiftval,sinttype,false)),
-                        cordconstnode.create(tordconstnode(right).value-1,
-                          right.resultdef,false)));
-                    newtype := sarn;
+                      shiftval:=31;
+
+                    result:=internalstatements(statements);
+                    temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+                    addstatement(statements,temp);
+                    addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp),
+                     left));
+                    left:=nil;
+
+                    addstatement(statements,ccallnode.createintern('fpc_sarint64',
+                      ccallparanode.create(cordconstnode.create(power,u8inttype,false),
+                      ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp),
+                        caddnode.create(andn,
+                          ccallnode.createintern('fpc_sarint64',
+                            ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
+                            ccallparanode.create(ctemprefnode.create(temp),nil))
+                          ),
+                          cordconstnode.create(tordconstnode(right).value-1,
+                            right.resultdef,false)
+                        )),nil
+                      )))
+                    );
                   end
                 else
-*)
-                  newtype := shrn;
-                tordconstnode(right).value := power;
-                result := cshlshrnode.create(newtype,left,right)
+                  begin
+                    tordconstnode(right).value:=power;
+                    result:=cshlshrnode.create(shrn,left,right)
+                  end;
               end
             else
               begin

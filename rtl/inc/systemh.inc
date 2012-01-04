@@ -783,6 +783,7 @@ function SarLongint(Const AValue : Longint;const Shift : Byte = 1): Longint;
 function SarInt64(Const AValue : Int64): Int64;[internproc:fpc_in_sar_x];
 function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_sar_x_y];
 {$else FPC_HAS_INTERNAL_SAR_QWORD}
+function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64;compilerproc;
 function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64;
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
