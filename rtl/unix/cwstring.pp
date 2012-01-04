@@ -874,8 +874,18 @@ begin
 end;
 
 function GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
+var
+  langinfo: pchar;
 begin
-  Result := iconv2win(ansistring(nl_langinfo(CODESET)))
+  langinfo:=nl_langinfo(CODESET);
+  { there's a bug in the Mac OS X 10.5 libc (based on FreeBSD's)
+    that causes it to return an empty string of UTF-8 locales
+    -> patch up (and in general, UTF-8 is a good default on
+    Unix platforms) }
+  if not assigned(langinfo) or
+     (langinfo^=#0) then
+    langinfo:='UTF-8';
+  Result := iconv2win(ansistring(langinfo));
 end;
 
 {$ifdef FPC_HAS_CPSTRING}
