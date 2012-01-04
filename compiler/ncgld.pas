@@ -929,12 +929,32 @@ implementation
                   current_asmdata.getjumplabel(hlabel);
                   cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
                   if is_pasbool(left.resultdef) then
-                    cg.a_load_const_loc(current_asmdata.CurrAsmList,1,left.location)
+                    begin
+{$ifndef cpu64bitalu}
+                      if left.location.size in [OS_64,OS_S64] then
+                        cg64.a_load64_const_loc(current_asmdata.CurrAsmList,1,left.location)
+                      else
+{$endif not cpu64bitalu}
+                        cg.a_load_const_loc(current_asmdata.CurrAsmList,1,left.location)
+                    end
                   else
-                    cg.a_load_const_loc(current_asmdata.CurrAsmList,-1,left.location);
+                    begin
+{$ifndef cpu64bitalu}
+                      if left.location.size in [OS_64,OS_S64] then
+                        cg64.a_load64_const_loc(current_asmdata.CurrAsmList,-1,left.location)
+                      else
+{$endif not cpu64bitalu}
+                        cg.a_load_const_loc(current_asmdata.CurrAsmList,-1,left.location);
+                    end;
+
                   cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
                   cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
-                  cg.a_load_const_loc(current_asmdata.CurrAsmList,0,left.location);
+{$ifndef cpu64bitalu}
+                  if left.location.size in [OS_64,OS_S64] then
+                    cg64.a_load64_const_loc(current_asmdata.CurrAsmList,0,left.location)
+                  else
+{$endif not cpu64bitalu}
+                    cg.a_load_const_loc(current_asmdata.CurrAsmList,0,left.location);
                   cg.a_label(current_asmdata.CurrAsmList,hlabel);
                 end;
 {$ifdef cpuflags}
