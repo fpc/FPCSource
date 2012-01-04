@@ -17,6 +17,7 @@ packages_i386_iphonesim=x11
 [target]
 units=gl glu glut
 units_win32=glext
+units_win64=glext
 units_haiku=glext
 units_linux=glx glext
 units_freebsd=glx glext
