@@ -19,11 +19,6 @@ interface
 {$define __ARM__}
 
 {$define FPC_IS_SYSTEM}
-{$define FPC_HAS_FEATURE_THREADING}
-{$define FPC_HAS_FEATURE_CONSOLEIO}
-{$define FPC_HAS_FEATURE_COMMANDARGS}
-{$define FPC_HAS_FEATURE_TEXTIO}
-{$define FPC_HAS_FEATURE_FILEIO}
 
 {$i systemh.inc}
 {$i gbabiosh.inc}
@@ -52,16 +47,13 @@ const
  MaxPathLen = 255;
  AllFilesMask = '*';
 
- sLineBreak : string[1] = LineEnding;
+ sLineBreak = LineEnding;
  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
   UnusedHandle    = $ffff;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = $ffff;
-
-
-
 
 var
   argc: LongInt = 0;
@@ -126,21 +118,21 @@ const
 { set randseed to a new pseudo random value }
 procedure randomize();
 begin
-  RandSeed := 63458; 
+  RandSeed := 63458;
 end;
 
 procedure randomize(value: integer);
 begin
-  RandSeed := value; 
+  RandSeed := value;
 end;
 
-function random(): integer; 
+function random(): integer;
 begin	
 	RandSeed := QRAN_A * RandSeed + QRAN_C;
 	random := (RandSeed shr 16) and QRAN_MAX;
 end;
 
-function random(value: integer): integer; 
+function random(value: integer): integer;
 var
   a: integer;
 begin	
@@ -150,7 +142,7 @@ begin
 end;
 
 
-{$ifdef FPC_HAS_FEATURE_COMMANDARGS}  
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 { number of args }
 function paramcount : longint;
 begin
