@@ -4,9 +4,12 @@ program fpmake;
 
 uses fpmkunit;
 
+const ParadoxOSes = [beos,haiku,linux,freebsd,netbsd,openbsd,win32];
+
 Var
   P : TPackage;
   T : TTarget;
+
 begin
   With Installer do
     begin
@@ -62,7 +65,7 @@ begin
     P.Dependencies.Add('oracle');
     P.Dependencies.Add('postgres');
     P.Dependencies.Add('sqlite');
-    P.Dependencies.Add('pxlib');
+    P.Dependencies.Add('pxlib',ParadoxOSes);
     P.Dependencies.Add('fcl-json');
 
     P.Options.Add('-S2h');
@@ -602,7 +605,7 @@ begin
           AddUnit('db');
           AddUnit('dbconst');
         end;
-    T:=P.Targets.AddUnit('paradox.pp');
+    T:=P.Targets.AddUnit('paradox.pp',ParadoxOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
@@ -663,7 +666,7 @@ begin
         end;
     T.ResourceStrings := True;
 
-T:=P.Targets.AddUnit('fpjsondataset.pp');
+    T:=P.Targets.AddUnit('fpjsondataset.pp');
 
     P.ExamplePath.Add('tests');
     T:=P.Targets.AddExampleProgram('dbftoolsunit.pas');
