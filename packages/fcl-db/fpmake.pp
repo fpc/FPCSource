@@ -63,6 +63,7 @@ begin
     P.Dependencies.Add('postgres');
     P.Dependencies.Add('sqlite');
     P.Dependencies.Add('pxlib');
+    P.Dependencies.Add('fcl-json');
 
     P.Options.Add('-S2h');
 
@@ -662,8 +663,7 @@ begin
         end;
     T.ResourceStrings := True;
 
-    // JSON
-    T:=P.Targets.AddUnit('fpjsondataset.pp');
+T:=P.Targets.AddUnit('fpjsondataset.pp');
 
     P.ExamplePath.Add('tests');
     T:=P.Targets.AddExampleProgram('dbftoolsunit.pas');
