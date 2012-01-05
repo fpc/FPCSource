@@ -1,0 +1,27 @@
+#
+#   Makefile.fpc for SysLog Units
+#
+
+[package]
+name=syslog
+version=2.7.1
+
+[target]
+units=systemlog
+exampledirs=examples
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[rules]
+.NOTPARALLEL:

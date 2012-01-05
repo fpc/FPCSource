@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for cdrom
+#
+
+[package]
+name=cdrom
+version=2.7.1
+
+[target]
+units=cdrom discid fpcddb
+implicitunits_win32=scsidefs wnaspi32 cdromioctl wincd
+implicitunits_linux=major lincd
+exampledirs=examples
+
+[install]
+fpcpackage=y
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

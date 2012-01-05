@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for A52DEC bindings
+#
+
+[package]
+name=a52
+version=2.7.1
+
+[target]
+units=a52
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:

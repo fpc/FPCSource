@@ -1,0 +1,34 @@
+#
+#   Makefile.fpc for SDL bindings
+#
+
+[package]
+name=sdl
+version=2.7.1
+
+[require]
+libc=y
+packages=pthreads x11
+
+[target]
+units=sdl sdl_image sdl_mixer sdl_mixer_nosmpeg sdl_ttf sdl_gfx sdl_net smpeg logger
+units_i386_linux=sdlutils
+units_powerpc_linux=sdlutils
+units_i386_freebsd=sdlutils
+units_win32=sdlutils
+units_powerpc_darwin=sdlutils
+units_i386_darwin=sdlutils
+units_i386_iphonesim=sdlutils
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:
