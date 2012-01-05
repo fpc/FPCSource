@@ -1456,6 +1456,7 @@ implementation
           end
         else
           cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,cgpara);
+        paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
         cgpara.done;
         cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLHANDLER');
       end;
