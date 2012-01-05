@@ -24,6 +24,13 @@ ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
 LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
+# By default COMPILER_TARGETDIR is set to '.'. This is passed in the -FE parameter to the compiler
+# which leads to executables being placed into the wrong directory by the compiler.
+ifdef PACKAGEDIR_MAIN
+COMPILER_TARGETDIR=$(PACKAGEDIR_MAIN)/bin/$(TARGETSUFFIX)
+else
+COMPILER_TARGETDIR=bin/$(TARGETSUFFIX)
+endif
 
 [rules]
 .NOTPARALLEL:
