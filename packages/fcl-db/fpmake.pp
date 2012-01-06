@@ -3,6 +3,9 @@
 program fpmake;
 
 uses fpmkunit;
+{$endif ALLPACKAGES}
+
+procedure add_fcl_db;
 
 const
   ParadoxOSes  = [beos,haiku,linux,freebsd,netbsd,openbsd,win32];
@@ -18,8 +21,6 @@ Var
 begin
   With Installer do
     begin
-{$endif ALLPACKAGES}
-
     P:=AddPackage('fcl-db');
 
     P.Author := '<various>';
@@ -689,11 +690,16 @@ begin
     // database.ini.txt
     // README.txt
 
-{$ifndef ALLPACKAGES}
-    Run;
     end;
+end;
+
+{$ifndef ALLPACKAGES}
+begin
+  add_fcl_db;
+  Installer.Run;
 end.
 {$endif ALLPACKAGES}
+
 
 
 

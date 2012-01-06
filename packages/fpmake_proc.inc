@@ -82,11 +82,7 @@ begin
 {$include fcl-base/fpmake.pp}
 end;
 
-procedure add_fcl_db;
-begin
-  with Installer do
 {$include fcl-db/fpmake.pp}
-end;
 
 procedure add_fcl_extra;
 begin
