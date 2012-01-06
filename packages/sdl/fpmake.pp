@@ -4,6 +4,10 @@ program fpmake;
 
 uses fpmkunit;
 
+const
+  SDLUtilsOSes  = [linux,freebsd,win32,darwin,iphonesim];
+  SDLUtilsProcs = [i386,powerpc];
+
 Var
   P : TPackage;
   T : TTarget;
@@ -19,8 +23,8 @@ begin
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
-    P.Dependencies.Add('x11');
-    P.Dependencies.Add('pthreads');
+    P.Dependencies.Add('x11',SDLUtilsProcs,SDLUtilsOSes);
+    P.Dependencies.Add('pthreads',SDLUtilsProcs,SDLUtilsOSes);
 
     T:=P.Targets.AddUnit('logger.pas');
       with T.Dependencies do
@@ -69,7 +73,7 @@ begin
           AddInclude('jedi-sdl.inc');
           AddUnit('sdl');
         end;
-    T:=P.Targets.AddUnit('sdlutils.pas',[i386,powerpc],[linux,freebsd,win32,darwin]);
+    T:=P.Targets.AddUnit('sdlutils.pas',SDLUtilsProcs,SDLUtilsOSes);
       with T.Dependencies do
         begin
           AddInclude('jedi-sdl.inc');
