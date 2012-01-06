@@ -162,6 +162,7 @@
 # searchpath for libraries
 #-Fl%basepath%/lib
 #-Fl/lib;/usr/lib
+-Fl%basepath%/lib/$FPCTARGET
 
 # searchpath for tools
 -FD%basepath%/bin/$FPCTARGET
