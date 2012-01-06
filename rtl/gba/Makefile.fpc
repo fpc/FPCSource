@@ -9,6 +9,7 @@ main=rtl
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas iso7185 strings \
 #      dos \
+      objects \
       sysutils strutils \
       classes math typinfo varutils fmtbcd ctypes \
       charset ucomplex getopts matrix \
