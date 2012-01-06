@@ -1,6 +1,9 @@
 #
 #   Makefile.fpc for h2pas
 #
+[install]
+fpcpackage=y
+
 
 [target]
 programs=importtl
