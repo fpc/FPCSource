@@ -55,7 +55,6 @@ begin
         AddUnit('cfarray');
         AddUnit('cggeometry');
         AddUnit('drag');
-        AddUnit('hiobjectcore');
         AddUnit('higeometry');
       end;
   T:=P.Targets.AddImplicitUnit('ABTypedefs.pas');
@@ -786,7 +785,6 @@ begin
         AddUnit('mactypes');
         AddUnit('cfbase');
         AddUnit('cfstring');
-        AddUnit('cmtypes');
         AddUnit('cgbase');
         AddUnit('cgdataprovider');
       end;
@@ -1138,7 +1136,6 @@ begin
     with T.Dependencies do
       begin
         AddUnit('mactypes');
-        AddUnit('cmtypes');
         AddUnit('events');
       end;
   T:=P.Targets.AddImplicitUnit('CarbonEvents.pas');
@@ -1151,7 +1148,6 @@ begin
         AddUnit('axuielement');
         AddUnit('drag');
         AddUnit('cfarray');
-        AddUnit('hiobjectcore');
         AddUnit('events');
         AddUnit('menus');
         AddUnit('controls');
@@ -1185,8 +1181,6 @@ begin
     with T.Dependencies do
       begin
         AddUnit('mactypes');
-        AddUnit('cmtypes');
-        AddUnit('cmiccprofile');
         AddUnit('mixedmode');
         AddUnit('quickdraw');
         AddUnit('events');
@@ -1381,7 +1375,6 @@ begin
       begin
         AddUnit('mactypes');
         AddUnit('quickdraw');
-        AddUnit('cmtypes');
         AddUnit('aedatamodel');
         AddUnit('conditionalmacros');
         AddUnit('components');
@@ -1557,7 +1550,6 @@ begin
         AddUnit('cfbundle');
         AddUnit('events');
         AddUnit('carbonevents');
-        AddUnit('hiobjectcore');
         AddUnit('axuielement');
         AddUnit('cfdictionary');
         AddUnit('carboneventscore');
@@ -1604,7 +1596,6 @@ begin
         AddUnit('cgimage');
         AddUnit('icons');
         AddUnit('menus');
-        AddUnit('hiobjectcore');
         AddUnit('quickdraw');
       end;
   T:=P.Targets.AddImplicitUnit('HIToolbox.pas');
@@ -1737,7 +1728,6 @@ begin
         AddUnit('dialogs');
         AddUnit('quickdraw');
         AddUnit('components');
-        AddUnit('gxtypes');
         AddUnit('imagecompression');
         AddUnit('movies');
       end;
@@ -1835,7 +1825,6 @@ begin
         AddUnit('menus');
         AddUnit('cgcontext');
         AddUnit('quickdraw');
-        AddUnit('hiobjectcore');
         AddUnit('textcommon');
         AddUnit('cfbase');
         AddUnit('cfdictionary');
@@ -1902,7 +1891,6 @@ begin
         AddUnit('events');
         AddUnit('macerrors');
         AddUnit('carbonevents');
-        AddUnit('hiobjectcore');
         AddUnit('hiview');
         AddUnit('higeometry');
       end;
@@ -2312,7 +2300,6 @@ begin
     with T.Dependencies do
       begin
         AddUnit('mactypes');
-        AddUnit('cmtypes');
         AddUnit('cgdirectdisplay');
         AddUnit('components');
         AddUnit('mixedmode');
