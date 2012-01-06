@@ -66,6 +66,8 @@ procedure randomize(value: integer);
 
 implementation
 
+{$linklib sysbase}
+
 {$define fpc_softfpu_implementation}
   {$i softfpu.pp}
 {$undef fpc_softfpu_implementation}
