@@ -7,9 +7,9 @@ name=fcl-process
 version=2.7.1
 
 [target]
-units=pipes process 
+units=pipes process
 units_beos=simpleipc dbugmsg dbugintf pipesipc
-units_haiku=simpleipc dbugmsg dbugintf pipesipc 
+units_haiku=simpleipc dbugmsg dbugintf pipesipc
 units_freebsd=simpleipc dbugmsg dbugintf pipesipc
 units_darwin=simpleipc dbugmsg dbugintf pipesipc
 units_iphonesim=simpleipc dbugmsg dbugintf pipesipc
@@ -48,6 +48,7 @@ includedir_morphos=src/dummy
 includedir_amiga=src/dummy
 includedir_netware=src/dummy
 includedir_netwlibc=src/dummy
+includedir_gba=src/dummy
 sourcedir=src/$(OS_TARGET) src
 
 [install]
