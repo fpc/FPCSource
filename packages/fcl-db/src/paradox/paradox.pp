@@ -43,7 +43,7 @@ type
     FPXLibrary : String;
     FCurrRecNo : Integer;
     FDoc       : PPX_Doc;
-    FFilterBuffer : PChar;
+    FFilterBuffer : TRecordBuffer;
     FOffsets   : PInteger;
     FTableName : String;
     FInputEncoding : String;
@@ -54,8 +54,8 @@ type
     function GetTargetEncoding: String;
     procedure OpenBlobFile;
     procedure PXAppendRecord(Buffer: Pointer);
-    function PXFilterRecord(Buffer: PChar): Boolean;
-    function PXGetActiveBuffer(var Buffer: PChar): Boolean;
+    function PXFilterRecord(Buffer: TRecordBuffer): Boolean;
+    function PXGetActiveBuffer(var Buffer: TRecordBuffer): Boolean;
     procedure RaiseError(Fmt: String; Args: array of const);
     procedure SetBlobFileName(const AValue: String);
     procedure SetFileName(const AValue: String);
@@ -70,12 +70,12 @@ type
     procedure SetFiltered(Value: Boolean); override; {virtual;}
     procedure ParseFilter(const AFilter: string);
 
-    function  AllocRecordBuffer: PChar; override;
-    procedure FreeRecordBuffer(var Buffer: PChar); override;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    function  GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
+    function  AllocRecordBuffer: TRecordBuffer; override;
+    procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
+    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
+    function  GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; override;
     function  GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
-    function  GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    function  GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     function  GetRecordSize: Word; override;
     procedure InternalAddRecord(Buffer: Pointer; DoAppend: Boolean); override;
     procedure InternalClose; override;
@@ -83,14 +83,14 @@ type
     procedure InternalFirst; override;
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
     procedure InternalInitFieldDefs; override;
-    procedure InternalInitRecord(Buffer: PChar); override;
+    procedure InternalInitRecord(Buffer: TRecordBuffer); override;
     procedure InternalLast; override;
     procedure InternalOpen; override;
     procedure InternalPost; override;
-    procedure InternalSetToRecord(Buffer: PChar); override;
+    procedure InternalSetToRecord(Buffer: TRecordBuffer); override;
     function  IsCursorOpen: Boolean; override;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
+    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); override;
+    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
     procedure DataConvert(aField: TField; aSource, aDest: Pointer; aToNative: Boolean); override;
     function  CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
@@ -276,7 +276,7 @@ begin
   FBlobFileName:=AValue;
 end;
 
-function TParadox.PXFilterRecord(Buffer: PChar): Boolean;
+function TParadox.PXFilterRecord(Buffer: TRecordBuffer): Boolean;
 
 var
   SaveState: TDatasetState;
@@ -299,20 +299,20 @@ end;
 
 {
 
-procedure TParadox.MDSReadRecord(Buffer:PChar;ARecNo:Integer);   //Reads a Rec from Stream in Buffer
+procedure TParadox.MDSReadRecord(Buffer:TRecordBuffer;ARecNo:Integer);   //Reads a Rec from Stream in Buffer
 begin
   FStream.Position:=MDSGetRecordOffset(ARecNo);
   FStream.ReadBuffer(Buffer^, FRecSize);
 end;
 
-procedure TParadox.MDSWriteRecord(Buffer:PChar;ARecNo:Integer);  //Writes a Rec from Buffer to Stream
+procedure TParadox.MDSWriteRecord(Buffer:TRecordBuffer;ARecNo:Integer);  //Writes a Rec from Buffer to Stream
 begin
   FStream.Position:=MDSGetRecordOffset(ARecNo);
   FStream.WriteBuffer(Buffer^, FRecSize);
   FFileModified:=True;
 end;
 
-procedure TParadox.MDSAppendRecord(Buffer:PChar);   //Appends a Rec (from Buffer) to Stream
+procedure TParadox.MDSAppendRecord(Buffer:TRecordBuffer);   //Appends a Rec (from Buffer) to Stream
 begin
   FStream.Position:=MDSGetRecordOffset(FRecCount);
   FStream.WriteBuffer(Buffer^, FRecSize);
@@ -320,7 +320,7 @@ begin
 end;
 }
 
-function TParadox.PXGetActiveBuffer(var Buffer: PChar): Boolean;
+function TParadox.PXGetActiveBuffer(var Buffer: TRecordBuffer): Boolean;
 
 begin
  case State of
@@ -390,18 +390,18 @@ end;
 
 
 //Abstract Overrides
-function TParadox.AllocRecordBuffer: PChar;
+function TParadox.AllocRecordBuffer: TRecordBuffer;
 begin
   Result:=Nil;
   GetMem(Result,SizeOf(TPXRecInfo)+GetRecordSize);
 end;
 
-procedure TParadox.FreeRecordBuffer (var Buffer: PChar);
+procedure TParadox.FreeRecordBuffer (var Buffer: TRecordBuffer);
 begin
   FreeMem(Buffer);
 end;
 
-procedure TParadox.InternalInitRecord(Buffer: PChar);
+procedure TParadox.InternalInitRecord(Buffer: TRecordBuffer);
 
 begin
   fillchar((Buffer+DataOffSet)^,GetRecordSize,0);
@@ -579,7 +579,7 @@ begin
   if ((State<>dsEdit) and (State<>dsInsert)) then
     Exit;
   if (State=dsEdit) then
-    PX_put_recordn(FDoc,ActiveBuffer, FCurrRecNo)
+    PX_put_recordn(FDoc,pansichar(ActiveBuffer), FCurrRecNo)
   else
     InternalAddRecord(ActiveBuffer,True);
 end;
@@ -590,7 +590,7 @@ begin
   Result:=(FDoc<>Nil);
 end;
 
-function TParadox.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
+function TParadox.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 
 var
   Accepted: Boolean;
@@ -621,7 +621,7 @@ begin
     end;
     if result=grOK then
       begin
-      PX_get_record(Doc,FCurrRecNo,Buffer+DataOffset);
+      PX_get_record(Doc,FCurrRecNo,pansichar(Buffer+DataOffset));
       PPXRecInfo(Buffer)^.Bookmark:=FCurrRecNo;
       PPXRecInfo(Buffer)^.BookmarkFlag:=bfCurrent;
       if (Filtered) then
@@ -637,7 +637,7 @@ end;
 function TParadox.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
 var
-  Buf          : PChar;
+  Buf          : TRecordbuffer;
   No,pft,flen : integer;
   pxf          : PPx_field;
   Value        : Pchar;
@@ -660,7 +660,7 @@ begin
     Case pft of
       pxfAlpha:
         begin
-        Result:=PX_get_data_alpha(FDoc,Buf,flen,@value)>0;
+        Result:=PX_get_data_alpha(FDoc,pansichar(Buf),flen,@value)>0;
         If result then
           begin
           Move(Value^,Buffer^,flen);
@@ -671,7 +671,7 @@ begin
         end;
       pxfDate:
         begin
-        Result:=PX_get_data_long(FDoc,Buf,flen,@longv)>0;
+        Result:=PX_get_data_long(FDoc,pansichar(Buf),flen,@longv)>0;
         If Result then
           begin
           // 1721425 is the number of the days between the start of the
@@ -683,33 +683,33 @@ begin
         end;
       pxfShort:
         begin
-        Result:=PX_get_data_short(FDoc,Buf, flen, @D)>0;
+        Result:=PX_get_data_short(FDoc,pansichar(Buf), flen, @D)>0;
         If result then
           PSmallInt(Buffer)^:=D;
         end;
       pxfAutoInc,
       pxfLong:
         begin
-        Result:=(PX_get_data_long(FDoc,buf,flen,@longv)>0);
+        Result:=(PX_get_data_long(FDoc,pansichar(buf),flen,@longv)>0);
         If Result then
           PInteger(Buffer)^:=Longv;
         end;
       pxfCurrency,
       pxfNumber:
         begin
-        Result:=(PX_get_data_double(FDoc,Buf,Flen,@R)>0);
+        Result:=(PX_get_data_double(FDoc,pansichar(Buf),Flen,@R)>0);
         If Result then
           PDouble(Buffer)^:=R;
         end;
       pxfLogical:
         begin
-        Result:=(PX_get_data_byte(FDoc,Buf,flen,@C)>0);
+        Result:=(PX_get_data_byte(FDoc,pansichar(Buf),flen,@C)>0);
         If result then
           PWordBool(Buffer)^:=(C<>#0);
         end;
       pxfBytes:
         begin
-        Result:=PX_get_data_bytes(FDoc,Buf,FLen,@Value)>0;
+        Result:=PX_get_data_bytes(FDoc,pansichar(Buf),FLen,@Value)>0;
         If Result then
           begin
           Move(Value^,Buffer^,FLen);
@@ -727,13 +727,13 @@ begin
         end;
       pxfTime:
         begin
-        Result:=(PX_get_data_long(FDoc,Buf,flen,@longv)>0);
+        Result:=(PX_get_data_long(FDoc,pansichar(Buf),flen,@longv)>0);
         If result then
           PDateTime(Buffer)^:=longv/MSecsPerDay;
         end;
       pxfTimestamp:
         begin
-        Result:=(PX_get_data_double(FDoc,buf,flen,@R)>0);
+        Result:=(PX_get_data_double(FDoc,pansichar(buf),flen,@R)>0);
         if Result then
           begin
           R:=R/1000.0;
@@ -761,7 +761,7 @@ end;
 procedure TParadox.SetFieldData(Field: TField; Buffer: Pointer);
 
 var
- DestBuffer: PChar;
+ DestBuffer: TRecordBuffer;
  I: integer;
 
 begin
@@ -848,7 +848,7 @@ begin
     RaiseError(SErrBookMarkNotFound,[ReqBookmark]);
 end;
 
-procedure TParadox.InternalSetToRecord(Buffer: PChar);
+procedure TParadox.InternalSetToRecord(Buffer: TRecordBuffer);
 
 var
   ReqBookmark: integer;
@@ -858,26 +858,26 @@ begin
   InternalGotoBookmark (@ReqBookmark);
 end;
 
-function TParadox.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+function TParadox.GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag;
 
 begin
   Result:=PPXRecInfo(Buffer)^.BookmarkFlag;
 end;
 
-procedure TParadox.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+procedure TParadox.SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag);
 
 begin
   PPXRecInfo(Buffer)^.BookmarkFlag := Value;
 end;
 
-procedure TParadox.GetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TParadox.GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 
 begin
   if Data<>nil then
     PInteger(Data)^:=PPXRecInfo(Buffer)^.Bookmark;
 end;
 
-procedure TParadox.SetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TParadox.SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 
 begin
   if Data<>nil then

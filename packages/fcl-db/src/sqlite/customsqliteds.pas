@@ -169,15 +169,15 @@ type
     function GetRowsAffected: Integer; virtual; abstract;
     procedure RetrieveFieldDefs; virtual; abstract;
     //TDataSet overrides
-    function AllocRecordBuffer: PChar; override;
-    procedure ClearCalcFields(Buffer: PChar); override;
+    function AllocRecordBuffer: TRecordBuffer; override;
+    procedure ClearCalcFields(Buffer: TRecordBuffer); override;
     procedure DoBeforeClose; override;
     procedure DoAfterInsert; override;
     procedure DoBeforeInsert; override;
-    procedure FreeRecordBuffer(var Buffer: PChar); override;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
+    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
+    function GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; override;
+    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     function GetRecordCount: Integer; override;
     function GetRecNo: Integer; override;
     function GetRecordSize: Word; override; 
@@ -189,14 +189,14 @@ type
     procedure InternalFirst; override;
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
     procedure InternalInitFieldDefs; override;
-    procedure InternalInitRecord(Buffer: PChar); override;
+    procedure InternalInitRecord(Buffer: TRecordBuffer); override;
     procedure InternalLast; override;
     procedure InternalOpen; override;
     procedure InternalPost; override;
-    procedure InternalSetToRecord(Buffer: PChar); override;
+    procedure InternalSetToRecord(Buffer: TRecordBuffer); override;
     function IsCursorOpen: Boolean; override;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
+    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
+    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); override;
     procedure SetExpectedAppends(AValue: Integer);
     procedure SetExpectedUpdates(AValue: Integer);
     procedure SetExpectedDeletes(AValue: Integer);
@@ -428,13 +428,13 @@ end;
  
 // TCustomSqliteDataset override methods
 
-function TCustomSqliteDataset.AllocRecordBuffer: PChar;
+function TCustomSqliteDataset.AllocRecordBuffer: TRecordBuffer;
 begin
   Result := AllocMem(SizeOf(PPDataRecord));
   PDataRecord(Pointer(Result)^) := FBeginItem;
 end;
 
-procedure TCustomSqliteDataset.ClearCalcFields(Buffer: PChar);
+procedure TCustomSqliteDataset.ClearCalcFields(Buffer: TRecordBuffer);
 var
   i: Integer;
   RecordItem: PDataRecord;
@@ -668,17 +668,17 @@ begin
   FreeMem(FCacheItem^.Row, FRowBufferSize);
 end;
 
-procedure TCustomSqliteDataset.FreeRecordBuffer(var Buffer: PChar);
+procedure TCustomSqliteDataset.FreeRecordBuffer(var Buffer: TRecordBuffer);
 begin
   FreeMem(Buffer);
 end;
 
-procedure TCustomSqliteDataset.GetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TCustomSqliteDataset.GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 begin
   Pointer(Data^) := PPDataRecord(Buffer)^;
 end;
 
-function TCustomSqliteDataset.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+function TCustomSqliteDataset.GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag;
 begin
   Result := PPDataRecord(Buffer)^^.BookmarkFlag;
 end;
@@ -737,7 +737,7 @@ begin
   Result := GetFieldData(Field, Buffer, False);
 end;
 
-function TCustomSqliteDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
+function TCustomSqliteDataset.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 begin
   Result := grOk;
   case GetMode of
@@ -936,7 +936,7 @@ begin
   RetrieveFieldDefs;
 end;
 
-procedure TCustomSqliteDataset.InternalInitRecord(Buffer: PChar);
+procedure TCustomSqliteDataset.InternalInitRecord(Buffer: TRecordBuffer);
 var
   TempStr: String;
 begin
@@ -996,7 +996,7 @@ begin
   end;
 end;
 
-procedure TCustomSqliteDataset.InternalSetToRecord(Buffer: PChar);
+procedure TCustomSqliteDataset.InternalSetToRecord(Buffer: TRecordBuffer);
 begin
   FCurrentItem := PPDataRecord(Buffer)^;
 end;
@@ -1283,7 +1283,7 @@ begin
   begin
     SaveState := SetTempState(dsInternalCalc);
     try
-      CalculateFields(PChar(@TempItem));
+      CalculateFields(TRecordBuffer(@TempItem));
       Result := FieldByName(ResultFields).Value;
     finally
       RestoreState(SaveState);
@@ -1293,12 +1293,12 @@ begin
     Result := Null;
 end;  
 
-procedure TCustomSqliteDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TCustomSqliteDataset.SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 begin
   //The BookMarkData is the Buffer itself: no need to set nothing;
 end;
 
-procedure TCustomSqliteDataset.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+procedure TCustomSqliteDataset.SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag);
 begin
   PPDataRecord(Buffer)^^.BookmarkFlag := Value;
 end;

@@ -1257,6 +1257,7 @@ type
   Testing with TRecordBuffer=PByte will turn up typing problems. TRecordBuffer=pansichar is backwards
   compatible, even if overriden with "pchar" variants.
 }
+  TRecordBufferBaseType = AnsiChar; // must match TRecordBuffer. 
   TRecordBuffer = PAnsiChar;
   PBufferList = ^TBufferList;
   TBufferList = array[0..dsMaxBufferCount - 1] of TRecordBuffer;  // Dynamic array in Delphi.

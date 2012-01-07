@@ -76,12 +76,12 @@ type
     procedure SetRows(AValue: TJSONArray);
   protected
     // dataset virtual methods
-    function AllocRecordBuffer: PChar; override;
-    procedure FreeRecordBuffer(var Buffer: PChar); override;
-    procedure InternalInitRecord(Buffer: PChar); override;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    function AllocRecordBuffer: TRecordBuffer; override;
+    procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
+    procedure InternalInitRecord(Buffer: TRecordBuffer); override;
+    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
+    function GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; override;
+    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     function GetRecordSize: Word; override;
     procedure InternalClose; override;
     procedure InternalDelete; override;
@@ -94,11 +94,11 @@ type
     procedure InternalEdit; override;
     procedure InternalCancel; override;
     procedure InternalInitFieldDefs; override;
-    procedure InternalSetToRecord(Buffer: PChar); override;
+    procedure InternalSetToRecord(Buffer: TRecordBuffer); override;
     function  GetFieldClass(FieldType: TFieldType): TFieldClass; override;
     function IsCursorOpen: Boolean; override;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
+    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); override;
+    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat : Boolean): Boolean; override;
     procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat : Boolean); override;
     function GetRecordCount: Integer; override;
@@ -319,27 +319,28 @@ begin
   FRows:=AValue;
 end;
 
-function TBaseJSONDataSet.AllocRecordBuffer: PChar;
+function TBaseJSONDataSet.AllocRecordBuffer: TRecordBuffer;
 begin
-  Result := StrAlloc(fRecordSize);
+  Result := TRecordBuffer(StrAlloc(fRecordSize));
 end;
 
-procedure TBaseJSONDataSet.InternalInitRecord(Buffer: PChar);
+// the next two are particularly ugly.
+procedure TBaseJSONDataSet.InternalInitRecord(Buffer: TRecordBuffer);
 begin
   FillChar(Buffer^, FRecordSize, 0);
 end;
 
-procedure TBaseJSONDataSet.FreeRecordBuffer (var Buffer: PChar);
+procedure TBaseJSONDataSet.FreeRecordBuffer (var Buffer: TRecordBuffer);
 begin
-  StrDispose(Buffer);
+  StrDispose(pansichar(Buffer));
 end;
 
-procedure TBaseJSONDataSet.GetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TBaseJSONDataSet.GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 begin
   PInteger(Data)^ := PRecInfo(Buffer)^.Bookmark;
 end;
 
-function TBaseJSONDataSet.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+function TBaseJSONDataSet.GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag;
 begin
   Result := PRecInfo(Buffer)^.BookmarkFlag;
 end;
@@ -706,7 +707,7 @@ begin
     end;
 end;
 
-function TBaseJSONDataSet.GetRecord(Buffer: PChar; GetMode: TGetMode;
+function TBaseJSONDataSet.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
 begin
   Result := grOK; // default
@@ -869,7 +870,7 @@ begin
   FEditRow:=Nil;
 end;
 
-procedure TBaseJSONDataSet.InternalSetToRecord(Buffer: PChar);
+procedure TBaseJSONDataSet.InternalSetToRecord(Buffer: TRecordBuffer);
 begin
   FCurrent := PRecInfo(Buffer)^.Index;
 end;
@@ -890,7 +891,7 @@ begin
   Result := Assigned(FDefaultList);
 end;
 
-procedure TBaseJSONDataSet.SetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TBaseJSONDataSet.SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 begin
   PRecInfo(Buffer)^.Bookmark := PInteger(Data)^;
 end;
@@ -1074,7 +1075,7 @@ begin
 //  Writeln('Field data is set : ',FEditRow.AsJSON);
 end;
 
-procedure TBaseJSONDataSet.SetBookmarkFlag(Buffer: PChar;
+procedure TBaseJSONDataSet.SetBookmarkFlag(Buffer: TRecordBuffer;
   Value: TBookmarkFlag);
 begin
   PRecInfo(Buffer)^.BookmarkFlag := Value;

@@ -7,6 +7,7 @@ interface
 uses
   SysUtils,
   Classes,
+  db,
   dbf_cursor,
   dbf_idxfile,
   dbf_prsdef,
@@ -30,7 +31,7 @@ type
     procedure SetPhysicalRecNo(RecNo: Integer); override;
     procedure SetSequentialRecNo(RecNo: Integer); override;
 
-    procedure VariantStrToBuffer(Key: Variant; ABuffer: PChar);
+    procedure VariantStrToBuffer(Key: Variant; ABuffer: TRecordBuffer);
   public
     constructor Create(DbfIndexFile: TIndexFile);
     destructor Destroy; override;
@@ -40,11 +41,11 @@ type
     procedure First; override;
     procedure Last; override;
 
-    procedure Insert(RecNo: Integer; Buffer: PChar);
-    procedure Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar);
+    procedure Insert(RecNo: Integer; Buffer: TRecordBuffer);
+    procedure Update(RecNo: Integer; PrevBuffer, NewBuffer: TRecordBuffer);
 
 {$ifdef SUPPORT_VARIANTS}
-    function  VariantToBuffer(Key: Variant; ABuffer: PChar): TExpressionType;
+    function  VariantToBuffer(Key: Variant; ABuffer: TRecordBuffer): TExpressionType;
 {$endif}
     function  CheckUserKey(Key: PChar; StringBuf: PChar): PChar;
 
@@ -79,13 +80,13 @@ begin
   inherited Destroy;
 end;
 
-procedure TIndexCursor.Insert(RecNo: Integer; Buffer: PChar);
+procedure TIndexCursor.Insert(RecNo: Integer; Buffer: TRecordBuffer);
 begin
   TIndexFile(PagedFile).Insert(RecNo,Buffer);
   // TODO SET RecNo and Key
 end;
 
-procedure TIndexCursor.Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar);
+procedure TIndexCursor.Update(RecNo: Integer; PrevBuffer, NewBuffer: TRecordBuffer);
 begin
   TIndexFile(PagedFile).Update(RecNo, PrevBuffer, NewBuffer);
 end;
@@ -137,18 +138,18 @@ end;
 
 {$ifdef SUPPORT_VARIANTS}
 
-procedure TIndexCursor.VariantStrToBuffer(Key: Variant; ABuffer: PChar);
+procedure TIndexCursor.VariantStrToBuffer(Key: Variant; ABuffer: TRecordBuffer);
 var
   currLen: Integer;
   StrKey: string;
 begin
   StrKey := Key;
-  currLen := TranslateString(GetACP, FIndexFile.CodePage, PChar(StrKey), ABuffer, -1);
+  currLen := TranslateString(GetACP, FIndexFile.CodePage, PAnsiChar(StrKey), PAnsiChar(ABuffer), -1);
   // we have null-terminated string, pad with spaces if string too short
   FillChar(ABuffer[currLen], TIndexFile(PagedFile).KeyLen-currLen, ' ');
 end;
 
-function TIndexCursor.VariantToBuffer(Key: Variant; ABuffer: PChar): TExpressionType;
+function TIndexCursor.VariantToBuffer(Key: Variant; ABuffer: TRecordBuffer): TExpressionType;
 // assumes ABuffer is large enough ie. at least max key size
 begin
   if (TIndexFile(PagedFile).KeyType='N') then

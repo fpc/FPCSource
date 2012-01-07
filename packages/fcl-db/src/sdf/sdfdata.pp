@@ -144,7 +144,7 @@ type
   private
     FSchema             :TStringList;
     FFileName           :TFileName;
-    FFilterBuffer       :PChar;
+    FFilterBuffer       :TRecordBuffer;
     FFileMustExist      :Boolean;
     FReadOnly           :Boolean;
     FLoadfromStream     :Boolean;
@@ -156,8 +156,8 @@ type
     procedure SetReadOnly(Value : Boolean);
     procedure RemoveWhiteLines(List : TStrings; IsFileRecord : Boolean);
     procedure LoadFieldScheme(List : TStrings; MaxSize : Integer);
-    function GetActiveRecBuf(var RecBuf: PChar): Boolean;
-    procedure SetFieldPos(var Buffer : PChar; FieldNo : Integer);
+    function GetActiveRecBuf(var RecBuf: TRecordBuffer): Boolean;
+    procedure SetFieldPos(var Buffer : TRecordBuffer; FieldNo : Integer);
   protected
     FData               :TStringlist;
     FCurRec             :Integer;
@@ -170,8 +170,8 @@ type
     FDefaultRecordLength:Cardinal;
     FDataOffset         : Integer;
   protected
-    function AllocRecordBuffer: PChar; override;
-    procedure FreeRecordBuffer(var Buffer: PChar); override;
+    function AllocRecordBuffer: TRecordBuffer; override;
+    procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
     procedure InternalAddRecord(Buffer: Pointer; DoAppend: Boolean); override;
     procedure InternalClose; override;
     procedure InternalDelete; override;
@@ -179,28 +179,28 @@ type
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
     procedure InternalHandleException; override;
     procedure InternalInitFieldDefs; override;
-    procedure InternalInitRecord(Buffer: PChar); override;
+    procedure InternalInitRecord(Buffer: TRecordBuffer); override;
     procedure InternalLast; override;
     procedure InternalOpen; override;
     procedure InternalPost; override;
     procedure InternalEdit; override;
-    procedure InternalSetToRecord(Buffer: PChar); override;
+    procedure InternalSetToRecord(Buffer: TRecordBuffer); override;
     function IsCursorOpen: Boolean; override;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
+    function GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; override;
+    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     function GetRecordSize: Word; override;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
+    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); override;
+    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
-    procedure ClearCalcFields(Buffer: PChar); override;
+    procedure ClearCalcFields(Buffer: TRecordBuffer); override;
     function GetRecordCount: Integer; override;
     function GetRecNo: Integer; override;
     procedure SetRecNo(Value: Integer); override;
     function GetCanModify: boolean; override;
-    function TxtGetRecord(Buffer : PChar; GetMode: TGetMode): TGetResult;
+    function TxtGetRecord(Buffer : TRecordBuffer; GetMode: TGetMode): TGetResult;
     function RecordFilter(RecBuf: Pointer; ARecNo: Integer): Boolean;
-    function BufToStore(Buffer: PChar): String; virtual;
+    function BufToStore(Buffer: TRecordBuffer): String; virtual;
     function StoreToBuf(Source: String): String; virtual;
   public
     property DefaultRecordLength: Cardinal read FDefaultRecordLength
@@ -262,9 +262,9 @@ type
     procedure SetDelimiter(Value : Char);
   protected
     procedure InternalInitFieldDefs; override;
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean)
+    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean)
              : TGetResult; override;
-    function BufToStore(Buffer: PChar): String; override;
+    function BufToStore(Buffer: TRecordBuffer): String; override;
     function StoreToBuf(Source: String): String; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -447,7 +447,7 @@ begin
 end;
 
 // Record Functions
-function TFixedFormatDataSet.AllocRecordBuffer: PChar;
+function TFixedFormatDataSet.AllocRecordBuffer: TRecordBuffer;
 begin
   if FRecBufSize > 0 then
     Result := AllocMem(FRecBufSize)
@@ -455,23 +455,23 @@ begin
     Result := nil;
 end;
 
-procedure TFixedFormatDataSet.FreeRecordBuffer(var Buffer: PChar);
+procedure TFixedFormatDataSet.FreeRecordBuffer(var Buffer: TRecordBuffer);
 begin
   if Buffer <> nil then
     FreeMem(Buffer);
 end;
 
-procedure TFixedFormatDataSet.InternalInitRecord(Buffer: PChar);
+procedure TFixedFormatDataSet.InternalInitRecord(Buffer: TRecordBuffer);
 begin
   FillChar(Buffer[0], FRecordSize, 0);
 end;
 
-procedure TFixedFormatDataSet.ClearCalcFields(Buffer: PChar);
+procedure TFixedFormatDataSet.ClearCalcFields(Buffer: TRecordBuffer);
 begin
   FillChar(Buffer[RecordSize], CalcFieldsSize, 0);
 end;
 
-function TFixedFormatDataSet.GetRecord(Buffer: PChar; GetMode: TGetMode;
+function TFixedFormatDataSet.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
 begin
   if (FData.Count < (1+FDataOffset)) then
@@ -500,7 +500,7 @@ end;
 
 function TFixedFormatDataSet.GetRecNo: Longint;
 var
-  BufPtr: PChar;
+  BufPtr: TRecordBuffer;
 begin
   Result := -1;
   if GetActiveRecBuf(BufPtr) then
@@ -524,7 +524,7 @@ begin
   Result := FRecordSize;
 end;
 
-function TFixedFormatDataSet.GetActiveRecBuf(var RecBuf: PChar): Boolean;
+function TFixedFormatDataSet.GetActiveRecBuf(var RecBuf: TRecordBuffer): Boolean;
 begin
   case State of
     dsBrowse: if IsEmpty then RecBuf := nil else RecBuf := ActiveBuffer;
@@ -537,7 +537,7 @@ begin
   Result := RecBuf <> nil;
 end;
 
-function TFixedFormatDataSet.TxtGetRecord(Buffer : PChar; GetMode: TGetMode): TGetResult;
+function TFixedFormatDataSet.TxtGetRecord(Buffer : TRecordBuffer; GetMode: TGetMode): TGetResult;
 var
   Accepted : Boolean;
 begin
@@ -624,15 +624,15 @@ end;
 
 function TFixedFormatDataSet.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 var
-  TempPos, RecBuf: PChar;
+  TempPos, recbuf : PChar;
 begin
-  Result := GetActiveRecBuf(RecBuf);
+  Result := GetActiveRecBuf(TRecordBuffer(RecBuf));
   if Result then
   begin
     if Field.FieldNo > 0 then
     begin
       TempPos := RecBuf;
-      SetFieldPos(RecBuf, Field.FieldNo);
+      SetFieldPos(TRecordBuffer(RecBuf), Field.FieldNo);
       Result := (RecBuf < StrEnd(TempPos));
     end
     else
@@ -661,12 +661,13 @@ end;
 
 procedure TFixedFormatDataSet.SetFieldData(Field: TField; Buffer: Pointer);
 var
-  RecBuf, BufEnd: PChar;
+  RecBuf: PChar;
+  BufEnd: PChar;
   p : Integer;
 begin
   if not (State in dsWriteModes) then
     DatabaseError(SNotEditing, Self);
-  GetActiveRecBuf(RecBuf);
+  GetActiveRecBuf(TRecordBuffer(RecBuf));
   if Field.FieldNo > 0 then
   begin
     if State = dsCalcFields then
@@ -677,8 +678,8 @@ begin
       Field.Validate(Buffer);
     if Field.FieldKind <> fkInternalCalc then
     begin
-      SetFieldPos(RecBuf, Field.FieldNo);
-      BufEnd := StrEnd(ActiveBuffer);  // Fill with blanks when necessary
+      SetFieldPos(TRecordBuffer(RecBuf), Field.FieldNo);
+      BufEnd := StrEnd(pansichar(ActiveBuffer));  // Fill with blanks when necessary
       if BufEnd > RecBuf then
         BufEnd := RecBuf;
       FillChar(BufEnd[0], Field.Size + PtrInt(RecBuf) - PtrInt(BufEnd), Ord(' '));
@@ -697,7 +698,7 @@ begin
     DataEvent(deFieldChange, Ptrint(Field));
 end;
 
-procedure TFixedFormatDataSet.SetFieldPos(var Buffer : PChar; FieldNo : Integer);
+procedure TFixedFormatDataSet.SetFieldPos(var Buffer : TRecordBuffer; FieldNo : Integer);
 var
   i : Integer;
 begin
@@ -770,28 +771,28 @@ begin
     DatabaseError('Bookmark not found');
 end;
 
-procedure TFixedFormatDataSet.InternalSetToRecord(Buffer: PChar);
+procedure TFixedFormatDataSet.InternalSetToRecord(Buffer: TRecordBuffer);
 begin
   if (State <> dsInsert) then
     InternalGotoBookmark(@PRecInfo(Buffer + FRecInfoOfs)^.RecordNumber);
 end;
 
-function TFixedFormatDataSet.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+function TFixedFormatDataSet.GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag;
 begin
   Result := PRecInfo(Buffer + FRecInfoOfs)^.BookmarkFlag;
 end;
 
-procedure TFixedFormatDataSet.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+procedure TFixedFormatDataSet.SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag);
 begin
   PRecInfo(Buffer + FRecInfoOfs)^.BookmarkFlag := Value;
 end;
 
-procedure TFixedFormatDataSet.GetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TFixedFormatDataSet.GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 begin
   Move(Buffer[FRecInfoOfs], Data^, BookmarkSize);
 end;
 
-procedure TFixedFormatDataSet.SetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TFixedFormatDataSet.SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 begin
   Move(Data^, Buffer[FRecInfoOfs], BookmarkSize);
 end;
@@ -823,7 +824,7 @@ var
   i : Integer;
 begin
   for i := FData.Count -1 downto 0 do
-    FData[i] := BufToStore(PChar(StoreToBuf(FData[i])));
+    FData[i] := BufToStore(trecordbuffer(StoreToBuf(FData[i])));
   FData.SaveToFile(FileName);
 end;
 
@@ -839,9 +840,9 @@ begin
   Result := Source;
 end;
 
-function TFixedFormatDataSet.BufToStore(Buffer: PChar): String;
+function TFixedFormatDataSet.BufToStore(Buffer: TRecordBuffer): String;
 begin
-  Result := Copy(Buffer, 1, FRecordSize);
+  Result := Copy(pansichar(Buffer), 1, FRecordSize);
 end;
 
 //-----------------------------------------------------------------------------
@@ -910,7 +911,7 @@ begin
   inherited;
 end;
 
-function TSdfDataSet.GetRecord(Buffer: PChar; GetMode: TGetMode;
+function TSdfDataSet.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
 begin
   if FirstLineAsSchema then
@@ -1020,7 +1021,7 @@ begin
   Result := Ret;
 end;
 
-function TSdfDataSet.BufToStore(Buffer: PChar): String;
+function TSdfDataSet.BufToStore(Buffer: TRecordBuffer): String;
 const
  QuoteDelimiter='"';
 var
@@ -1033,7 +1034,7 @@ begin
   QuoteMe:=false;
   for i := 0 to FieldDefs.Count - 1 do
   begin
-    Str := Trim(Copy(Buffer, p, FieldDefs[i].Size));
+    Str := Trim(Copy(pansichar(Buffer), p, FieldDefs[i].Size));
     Inc(p, FieldDefs[i].Size);
     if FFMultiLine=true then
       begin

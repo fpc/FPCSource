@@ -48,8 +48,8 @@ type
     FIndexNames: TStringList;
     FIndexFiles: TList;
     FDbfVersion: TXBaseVersion;
-    FPrevBuffer: PChar;
-    FDefaultBuffer: PChar;
+    FPrevBuffer: TRecordBuffer;
+    FDefaultBuffer: TRecordBuffer;
     FRecordBufferSize: Integer;
     FLockUserLen: DWORD;
     FFileCodePage: Cardinal;
@@ -76,7 +76,7 @@ type
     procedure ConstructFieldDefs;
     procedure InitDefaultBuffer;
     procedure UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; Action: TUpdateNullField);
-    procedure WriteLockInfo(Buffer: PChar);
+    procedure WriteLockInfo(Buffer: TRecordBuffer);
 
   public
     constructor Create;
@@ -97,9 +97,9 @@ type
     procedure CloseIndex(AIndexName: string);
     procedure RepageIndex(AIndexFile: string);
     procedure CompactIndex(AIndexFile: string);
-    function  Insert(Buffer: PChar): integer;
+    function  Insert(Buffer: TRecordBuffer): integer;
     procedure WriteHeader; override;
-    procedure ApplyAutoIncToBuffer(DestBuf: PChar);     // dBase7 support. Writeback last next-autoinc value
+    procedure ApplyAutoIncToBuffer(DestBuf: TRecordBuffer);     // dBase7 support. Writeback last next-autoinc value
     procedure FastPackTable;
     procedure RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
     procedure Rename(DestFileName: string; NewIndexFileNames: TStrings; DeleteFiles: boolean);
@@ -109,13 +109,13 @@ type
     function  GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType; 
       Src, Dst: Pointer; NativeFormat: boolean): Boolean;
     procedure SetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; NativeFormat: boolean);
-    procedure InitRecord(DestBuf: PChar);
+    procedure InitRecord(DestBuf: TRecordBuffer);
     procedure PackIndex(lIndexFile: TIndexFile; AIndexName: string);
     procedure RegenerateIndexes;
-    procedure LockRecord(RecNo: Integer; Buffer: PChar);
-    procedure UnlockRecord(RecNo: Integer; Buffer: PChar);
-    procedure RecordDeleted(RecNo: Integer; Buffer: PChar);
-    procedure RecordRecalled(RecNo: Integer; Buffer: PChar);
+    procedure LockRecord(RecNo: Integer; Buffer: TRecordBuffer);
+    procedure UnlockRecord(RecNo: Integer; Buffer: TRecordBuffer);
+    procedure RecordDeleted(RecNo: Integer; Buffer: TRecordBuffer);
+    procedure RecordRecalled(RecNo: Integer; Buffer: TRecordBuffer);
 
     property MemoFile: TMemoFile read FMemoFile;
     property FieldDefs: TDbfFieldDefs read FFieldDefs;
@@ -128,7 +128,7 @@ type
     property UseCodePage: Cardinal read FUseCodePage write FUseCodePage;
     property FileLangId: Byte read FFileLangId write FFileLangId;
     property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
-    property PrevBuffer: PChar read FPrevBuffer;
+    property PrevBuffer: TRecordBuffer read FPrevBuffer;
     property ForceClose: Boolean read FForceClose;
     property CopyDateTimeAsString: Boolean read FCopyDateTimeAsString write FCopyDateTimeAsString;
     property DateTimeHandling: TDateTimeHandling read FDateTimeHandling write FDateTimeHandling;
@@ -1133,7 +1133,7 @@ var
   OldIndexFiles: TStrings;
   IndexName, NewBaseName: string;
   I, lRecNo, lFieldNo, lFieldSize, lBlobPageNo, lWRecNo, srcOffset, dstOffset: Integer;
-  pBuff, pDestBuff: PChar;
+  pBuff, pDestBuff: TRecordBuffer;
   RestructFieldInfo: PRestructFieldInfo;
   BlobStream: TMemoryStream;
 begin
@@ -1264,7 +1264,7 @@ begin
       // read record from original dbf
       ReadRecord(lRecNo, pBuff);
       // copy record?
-      if (pBuff^ <> '*') or not Pack then
+      if (ansichar(pBuff^) <> '*') or not Pack then
       begin
         // if restructure, initialize dest
         if DbfFieldDefs <> nil then
@@ -1940,14 +1940,14 @@ begin
   end;
 end;
 
-procedure TDbfFile.InitRecord(DestBuf: PChar);
+procedure TDbfFile.InitRecord(DestBuf: TRecordBuffer);
 begin
   if FDefaultBuffer = nil then
     InitDefaultBuffer;
   Move(FDefaultBuffer^, DestBuf^, RecordSize);
 end;
 
-procedure TDbfFile.ApplyAutoIncToBuffer(DestBuf: PChar);
+procedure TDbfFile.ApplyAutoIncToBuffer(DestBuf: TRecordBuffer);
 var
   TempFieldDef: TDbfFieldDef;
   I, NextVal, lAutoIncOffset: {LongWord} Cardinal;    {Delphi 3 does not know LongWord?}
@@ -2358,7 +2358,7 @@ begin
   end;
 end;
 
-function TDbfFile.Insert(Buffer: PChar): integer;
+function TDbfFile.Insert(Buffer: TRecordBuffer): integer;
 type
   TErrorContext = (ecNone, ecInsert, ecWriteIndex, ecWriteDbf);
 var
@@ -2472,7 +2472,7 @@ begin
     Result := newRecord;
 end;
 
-procedure TDbfFile.WriteLockInfo(Buffer: PChar);
+procedure TDbfFile.WriteLockInfo(Buffer: TRecordBuffer);
 //
 // *) assumes FHasLockField = true
 //
@@ -2486,19 +2486,19 @@ begin
   // set time
   DecodeDate(Now(), year, month, day);
   DecodeTime(Now(), hour, minute, sec, msec);
-  Buffer[lockoffset+2] := Char(hour);
-  Buffer[lockoffset+3] := Char(minute);
-  Buffer[lockoffset+4] := Char(sec);
+  Buffer[lockoffset+2] := TRecordBufferBaseType(hour);
+  Buffer[lockoffset+3] := TRecordBufferBaseType(minute);
+  Buffer[lockoffset+4] := TRecordBufferBaseType(sec);
   // set date
-  Buffer[lockoffset+5] := Char(year - 1900);
-  Buffer[lockoffset+6] := Char(month);
-  Buffer[lockoffset+7] := Char(day);
+  Buffer[lockoffset+5] := TRecordBufferBaseType(year - 1900);
+  Buffer[lockoffset+6] := TRecordBufferBaseType(month);
+  Buffer[lockoffset+7] := TRecordBufferBaseType(day);
   // set name
   FillChar(Buffer[lockoffset+8], FLockField.Size-8, ' ');
   Move(DbfGlobals.UserName[1], Buffer[lockoffset+8], FLockUserLen);
 end;
 
-procedure TDbfFile.LockRecord(RecNo: Integer; Buffer: PChar);
+procedure TDbfFile.LockRecord(RecNo: Integer; Buffer: TRecordBuffer);
 begin
   if LockPage(RecNo, false) then
   begin
@@ -2518,7 +2518,7 @@ begin
     raise EDbfError.Create(STRING_RECORD_LOCKED);
 end;
 
-procedure TDbfFile.UnlockRecord(RecNo: Integer; Buffer: PChar);
+procedure TDbfFile.UnlockRecord(RecNo: Integer; Buffer: TRecordBuffer);
 var
   I: Integer;
   lIndex, lErrorIndex: TIndexFile;
@@ -2548,7 +2548,7 @@ begin
   UnlockPage(RecNo);
 end;
 
-procedure TDbfFile.RecordDeleted(RecNo: Integer; Buffer: PChar);
+procedure TDbfFile.RecordDeleted(RecNo: Integer; Buffer: TRecordBuffer);
 var
   I: Integer;
   lIndex: TIndexFile;
@@ -2561,7 +2561,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.RecordRecalled(RecNo: Integer; Buffer: PChar);
+procedure TDbfFile.RecordRecalled(RecNo: Integer; Buffer: TRecordBuffer);
 var
   I: Integer;
   lIndex, lErrorIndex: TIndexFile;

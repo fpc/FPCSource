@@ -285,12 +285,12 @@ type
     function  CalcTagOffset(AIndex: Integer): Pointer;
 
     function  FindKey(AInsert: boolean): Integer;
-    function  InsertKey(Buffer: PChar): Boolean;
-    procedure DeleteKey(Buffer: PChar);
+    function  InsertKey(Buffer: TRecordBuffer): Boolean;
+    procedure DeleteKey(Buffer: TRecordBuffer);
     function  InsertCurrent: Boolean;
     procedure DeleteCurrent;
-    function  UpdateCurrent(PrevBuffer, NewBuffer: PChar): Boolean;
-    function  UpdateIndex(Index: Integer; PrevBuffer, NewBuffer: PChar): Boolean;
+    function  UpdateCurrent(PrevBuffer, NewBuffer: TRecordBuffer): Boolean;
+    function  UpdateIndex(Index: Integer; PrevBuffer, NewBuffer: TRecordBuffer): Boolean;
     procedure ReadIndexes;
     procedure Resync(Relative: boolean);
     procedure ResyncRoot;
@@ -337,19 +337,19 @@ type
     procedure AddNewLevel;
     procedure UnlockHeader;
     procedure InsertError;
-    function  Insert(RecNo: Integer; Buffer: PChar): Boolean;
-    function  Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar): Boolean;
-    procedure Delete(RecNo: Integer; Buffer: PChar);
-    function  CheckKeyViolation(Buffer: PChar): Boolean;
-    procedure RecordDeleted(RecNo: Integer; Buffer: PChar);
-    function  RecordRecalled(RecNo: Integer; Buffer: PChar): Boolean;
+    function  Insert(RecNo: Integer; Buffer:TRecordBuffer ): Boolean;
+    function  Update(RecNo: Integer; PrevBuffer, NewBuffer: TRecordBuffer): Boolean;
+    procedure Delete(RecNo: Integer; Buffer: TRecordBuffer);
+    function  CheckKeyViolation(Buffer: TRecordBuffer): Boolean;
+    procedure RecordDeleted(RecNo: Integer; Buffer: TRecordBuffer);
+    function  RecordRecalled(RecNo: Integer; Buffer: TRecordBuffer): Boolean;
     procedure DeleteIndex(const AIndexName: string);
     procedure RepageFile;
     procedure CompactFile;
     procedure PrepareRename(NewFileName: string);
 
     procedure CreateIndex(FieldDesc, TagName: string; Options: TIndexOptions);
-    function  ExtractKeyFromBuffer(Buffer: PChar): PChar;
+    function  ExtractKeyFromBuffer(Buffer: TRecordBuffer): PChar;
     function  SearchKey(Key: PChar; SearchType: TSearchKeyType): Boolean;
     function  Find(RecNo: Integer; Buffer: PChar): Integer;
     function  IndexOf(const AIndexName: string): Integer;
@@ -371,7 +371,7 @@ type
     function  MatchKey(UserKey: PChar): Integer;
     function  CompareKey(Key: PChar): Integer;
     function  CompareKeys(Key1, Key2: PChar): Integer;
-    function  PrepareKey(Buffer: PChar; ResultType: TExpressionType): PChar;
+    function  PrepareKey(Buffer: TRecordBuffer; ResultType: TExpressionType): PChar;
 
     property KeyLen: Integer read GetKeyLen;
     property IndexVersion: TXBaseVersion read FIndexVersion;
@@ -1725,7 +1725,7 @@ const
   AnsiFuncsToMode: array[boolean] of TStringFieldMode = (smRaw, smAnsi);
 var
   TempRec: PExpressionRec;
-  TempBuffer: pchar;
+  TempBuffer: TRecordBuffer;
   I: integer;
   hasAnsiFuncs: boolean;
 begin
@@ -2818,7 +2818,7 @@ begin
     UnlockPage(0);
 end;
 
-function TIndexFile.Insert(RecNo: Integer; Buffer: PChar): Boolean; {override;}
+function TIndexFile.Insert(RecNo: Integer; Buffer: TRecordBuffer): Boolean; {override;}
 var
   I, curSel, count: Integer;
 begin
@@ -2856,7 +2856,7 @@ begin
   ResyncRange(true);
 end;
 
-function TIndexFile.CheckKeyViolation(Buffer: PChar): Boolean;
+function TIndexFile.CheckKeyViolation(Buffer: TRecordBuffer): Boolean;
 var
   I, curSel: Integer;
 begin
@@ -2886,7 +2886,7 @@ begin
   end;
 end;
 
-function TIndexFile.PrepareKey(Buffer: PChar; ResultType: TExpressionType): PChar;
+function TIndexFile.PrepareKey(Buffer: TRecordBuffer; ResultType: TExpressionType): PChar;
 var
   FloatRec: TFloatRec;
   I, IntSrc, NumDecimals: Integer;
@@ -2898,7 +2898,7 @@ var
 
 begin
   // need to convert numeric?
-  Result := Buffer;
+  Result := PChar(Buffer);
   if PIndexHdr(FIndexHeader)^.KeyType in ['N', 'F'] then
   begin
     if FIndexVersion = xBaseIII then
@@ -3000,19 +3000,19 @@ begin
   end;
 end;
 
-function TIndexFile.ExtractKeyFromBuffer(Buffer: PChar): PChar;
+function TIndexFile.ExtractKeyFromBuffer(Buffer: TRecordBuffer): PChar;
 begin
   // execute expression to get key
-  Result := PrepareKey(FCurrentParser.ExtractFromBuffer(Buffer), FCurrentParser.ResultType);
+  Result := PrepareKey(TRecordBuffer(FCurrentParser.ExtractFromBuffer(Buffer)), FCurrentParser.ResultType);
   if FCurrentParser.StringFieldMode <> smRaw then
     TranslateString(GetACP, FCodePage, Result, Result, KeyLen);
 end;
 
-function TIndexFile.InsertKey(Buffer: PChar): boolean;
+function TIndexFile.InsertKey(Buffer: TRecordBuffer): boolean;
 begin
   Result := true;
   // ignore deleted records
-  if (FModifyMode = mmNormal) and (FUniqueMode = iuDistinct) and (Buffer^ = '*') then
+  if (FModifyMode = mmNormal) and (FUniqueMode = iuDistinct) and (AnsiChar(Buffer^) = '*') then
     exit;
   // check proper index and modifiability
   if FCanEdit and (PIndexHdr(FIndexHeader)^.KeyLen <> 0) then
@@ -3077,7 +3077,7 @@ begin
   raise EDbfError.Create(errorStr);
 end;
 
-procedure TIndexFile.Delete(RecNo: Integer; Buffer: PChar);
+procedure TIndexFile.Delete(RecNo: Integer; Buffer: TRecordBuffer);
 var
   I, curSel: Integer;
 begin
@@ -3101,7 +3101,7 @@ begin
   ResyncRange(true);
 end;
 
-procedure TIndexFile.DeleteKey(Buffer: PChar);
+procedure TIndexFile.DeleteKey(Buffer: TRecordBuffer);
 begin
   if FCanEdit and (PIndexHdr(FIndexHeader)^.KeyLen <> 0) then
   begin
@@ -3131,13 +3131,13 @@ begin
   end;
 end;
 
-function TIndexFile.UpdateIndex(Index: Integer; PrevBuffer, NewBuffer: PChar): Boolean;
+function TIndexFile.UpdateIndex(Index: Integer; PrevBuffer, NewBuffer: TRecordBuffer): Boolean;
 begin
   SelectIndexVars(Index);
   Result := UpdateCurrent(PrevBuffer, NewBuffer);
 end;
 
-function TIndexFile.Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar): Boolean;
+function TIndexFile.Update(RecNo: Integer; PrevBuffer, NewBuffer: TRecordBuffer): Boolean;
 var
   I, curSel, count: Integer;
 begin
@@ -3175,7 +3175,7 @@ begin
     ResyncRange(true);
 end;
 
-function TIndexFile.UpdateCurrent(PrevBuffer, NewBuffer: PChar): boolean;
+function TIndexFile.UpdateCurrent(PrevBuffer, NewBuffer: TRecordBuffer): boolean;
 var
   InsertKey, DeleteKey: PChar;
   TempBuffer: array [0..100] of Char;
@@ -3421,7 +3421,7 @@ begin
   ResyncRange(true);
 end;
 
-procedure TIndexFile.RecordDeleted(RecNo: Integer; Buffer: PChar);
+procedure TIndexFile.RecordDeleted(RecNo: Integer; Buffer: TRecordBuffer);
 begin
   // are we distinct -> then delete record from index
   FModifyMode := mmDeleteRecall;
@@ -3429,7 +3429,7 @@ begin
   FModifyMode := mmNormal;
 end;
 
-function TIndexFile.RecordRecalled(RecNo: Integer; Buffer: PChar): Boolean;
+function TIndexFile.RecordRecalled(RecNo: Integer; Buffer: TRecordBuffer): Boolean;
 begin
   // are we distinct -> then reinsert record in index
   FModifyMode := mmDeleteRecall;

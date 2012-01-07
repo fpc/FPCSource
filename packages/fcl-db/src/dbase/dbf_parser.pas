@@ -55,7 +55,7 @@ type
     procedure ClearExpressions; override;
 
     procedure ParseExpression(AExpression: string); virtual;
-    function ExtractFromBuffer(Buffer: PChar): PChar; virtual;
+    function ExtractFromBuffer(Buffer: TRecordBuffer): PChar; virtual;
 
     property DbfFile: Pointer read FDbfFile write FDbfFile;
     property Expression: string read FCurrentExpression;
@@ -96,7 +96,7 @@ type
   public
     constructor Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
 
-    procedure Refresh(Buffer: PChar); virtual; abstract;
+    procedure Refresh(Buffer: TRecordBuffer); virtual; abstract;
 
     property FieldVal: Pointer read GetFieldVal;
     property FieldDef: TDbfFieldDef read FFieldDef;
@@ -118,7 +118,7 @@ type
   public
     destructor Destroy; override;
 
-    procedure Refresh(Buffer: PChar); override;
+    procedure Refresh(Buffer: TRecordBuffer); override;
 
     property Mode: TStringFieldMode read FMode write SetMode;
   end;
@@ -130,7 +130,7 @@ type
     function GetFieldVal: Pointer; override;
     function GetFieldType: TExpressionType; override;
   public
-    procedure Refresh(Buffer: PChar); override;
+    procedure Refresh(Buffer: TRecordBuffer); override;
   end;
 
   TIntegerFieldVar = class(TFieldVar)
@@ -140,7 +140,7 @@ type
     function GetFieldVal: Pointer; override;
     function GetFieldType: TExpressionType; override;
   public
-    procedure Refresh(Buffer: PChar); override;
+    procedure Refresh(Buffer: TRecordBuffer); override;
   end;
 
 {$ifdef SUPPORT_INT64}
@@ -151,7 +151,7 @@ type
     function GetFieldVal: Pointer; override;
     function GetFieldType: TExpressionType; override;
   public
-    procedure Refresh(Buffer: PChar); override;
+    procedure Refresh(Buffer: TRecordBuffer); override;
   end;
 {$endif}
 
@@ -162,7 +162,7 @@ type
   protected
     function GetFieldVal: Pointer; override;
   public
-    procedure Refresh(Buffer: PChar); override;
+    procedure Refresh(Buffer: TRecordBuffer); override;
   end;
 
   TBooleanFieldVar = class(TFieldVar)
@@ -172,7 +172,7 @@ type
   protected
     function GetFieldVal: Pointer; override;
   public
-    procedure Refresh(Buffer: PChar); override;
+    procedure Refresh(Buffer: TRecordBuffer); override;
   end;
 
 { TFieldVar }
@@ -212,10 +212,10 @@ begin
   Result := etString;
 end;
 
-procedure TStringFieldVar.Refresh(Buffer: PChar);
+procedure TStringFieldVar.Refresh(Buffer: TRecordBuffer);
 var
   Len: Integer;
-  Src: PChar;
+  Src: TRecordBuffer;
 begin
   Src := Buffer+FieldDef.Offset;
   if FMode <> smRaw then
@@ -223,12 +223,12 @@ begin
     // copy field data
     Len := FieldDef.Size;
     if FMode = smAnsiTrim then
-      while (Len >= 1) and (Src[Len-1] = ' ') do Dec(Len);
+      while (Len >= 1) and (Src[Len-1] = TRecordbufferbasetype(' ')) do Dec(Len);
     // translate to ANSI
-    Len := TranslateString(DbfFile.UseCodePage, GetACP, Src, FFieldVal, Len);
+    Len := TranslateString(DbfFile.UseCodePage, GetACP, pansichar(Src), FFieldVal, Len);
     FFieldVal[Len] := #0;
   end else
-    FFieldVal := Src;
+    FFieldVal := pansichar(Src);
 end;
 
 procedure TStringFieldVar.SetExprWord(NewExprWord: TExprWord);
@@ -269,7 +269,7 @@ begin
   Result := etFloat;
 end;
 
-procedure TFloatFieldVar.Refresh(Buffer: PChar);
+procedure TFloatFieldVar.Refresh(Buffer: TRecordBuffer);
 begin
   // database width is default 64-bit double
   if not FDbfFile.GetFieldDataFromDef(FieldDef, FieldDef.FieldType, Buffer, @FFieldVal, false) then
@@ -287,7 +287,7 @@ begin
   Result := etInteger;
 end;
 
-procedure TIntegerFieldVar.Refresh(Buffer: PChar);
+procedure TIntegerFieldVar.Refresh(Buffer: TRecordBuffer);
 begin
   FFieldVal := 0;
   FDbfFile.GetFieldDataFromDef(FieldDef, FieldDef.FieldType, Buffer, @FFieldVal, false);
@@ -306,7 +306,7 @@ begin
   Result := etLargeInt;
 end;
 
-procedure TLargeIntFieldVar.Refresh(Buffer: PChar);
+procedure TLargeIntFieldVar.Refresh(Buffer: TRecordBuffer);
 begin
   if not FDbfFile.GetFieldDataFromDef(FieldDef, FieldDef.FieldType, Buffer, @FFieldVal, false) then
     FFieldVal := 0;
@@ -325,7 +325,7 @@ begin
   Result := etDateTime;
 end;
 
-procedure TDateTimeFieldVar.Refresh(Buffer: PChar);
+procedure TDateTimeFieldVar.Refresh(Buffer: TRecordBuffer);
 begin
   if not FDbfFile.GetFieldDataFromDef(FieldDef, ftDateTime, Buffer, @FFieldVal, false) then
     FFieldVal.DateTime := 0.0;
@@ -342,7 +342,7 @@ begin
   Result := etBoolean;
 end;
 
-procedure TBooleanFieldVar.Refresh(Buffer: PChar);
+procedure TBooleanFieldVar.Refresh(Buffer: TRecordBuffer);
 var
   lFieldVal: word;
 begin
@@ -575,7 +575,7 @@ begin
   FCurrentExpression := AExpression;
 end;
 
-function TDbfParser.ExtractFromBuffer(Buffer: PChar): PChar;
+function TDbfParser.ExtractFromBuffer(Buffer: TRecordBuffer): PChar;
 var
   I: Integer;
 begin
