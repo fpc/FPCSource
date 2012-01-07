@@ -154,6 +154,18 @@ type
     );
   TTokens = set of TToken;
 
+  { TMacroDef }
+
+  TMacroDef = Class(TObject)
+  Private
+    FName: String;
+    FValue: String;
+  Public
+    Constructor Create(Const AName,AValue : String);
+    Property Name  : String Read FName;
+    Property Value : String Read FValue Write FValue;
+  end;
+
   { TLineReader }
 
   TLineReader = class
@@ -203,6 +215,17 @@ type
   TStringStreamLineReader = class(TStreamLineReader)
   Public
     constructor Create(const AFilename: string; Const ASource: String);
+  end;
+
+  { TMacroReader }
+
+  TMacroReader = Class(TStringStreamLineReader)
+  private
+    FCurCol: Integer;
+    FCurRow: Integer;
+  Public
+    Property CurCol : Integer Read FCurCol Write FCurCol;
+    Property CurRow : Integer Read FCurRow Write FCurRow;
   end;
 
   { TBaseFileResolver }
@@ -282,6 +305,7 @@ type
     FCurToken: TToken;
     FCurTokenString: string;
     FCurLine: string;
+    FMacros,
     FDefines: TStrings;
     FOptions: TPOptions;
     FLogEvents: TPScannerLogEvents;
@@ -305,9 +329,15 @@ type
     Procedure DoLog(Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Args: array of Const);overload;
+    procedure HandleDefine(Param: String);
+    procedure HandleIncludeFile(Param: String);
+    procedure HandleUnDefine(Param: String);
+    procedure PushStackItem;
+    function HandleMacro(AIndex: integer): TToken;
     function DoFetchTextToken: TToken;
     function DoFetchToken: TToken;
     procedure ClearFiles;
+    Procedure ClearMacros;
     function LogEvent(E : TPScannerLogEvent) : Boolean; inline;
   public
     constructor Create(AFileResolver: TBaseFileResolver);
@@ -328,6 +358,7 @@ type
     property CurTokenString: string read FCurTokenString;
 
     property Defines: TStrings read FDefines;
+    property Macros: TStrings read FMacros;
     Property Options : TPOptions Read FOptions Write SetOptions;
     Property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
     Property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
@@ -562,6 +593,14 @@ end;
 function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
 begin
   Result:=(TheFilename<>'') and (TheFilename[1]='/');
+end;
+
+{ TMacroDef }
+
+constructor TMacroDef.Create(const AName, AValue: String);
+begin
+  FName:=AName;
+  FValue:=AValue;
 end;
 
 { TStreamResolver }
@@ -898,16 +937,28 @@ end;
   ---------------------------------------------------------------------}
 
 constructor TPascalScanner.Create(AFileResolver: TBaseFileResolver);
+
+  Function CS : TStringList;
+
+  begin
+    Result:=TStringList.Create;
+    Result.Sorted:=True;
+    Result.Duplicates:=dupError;
+  end;
+
 begin
   inherited Create;
   FFileResolver := AFileResolver;
   FIncludeStack := TFPList.Create;
-  FDefines := TStringList.Create;
+  FDefines := CS;
+  FMacros:=CS;
 end;
 
 destructor TPascalScanner.Destroy;
 begin
-  FDefines.Free;
+  ClearMacros;
+  FreeAndNil(FMacros);
+  FreeAndNil(FDefines);
   ClearFiles;
   FIncludeStack.Free;
   inherited Destroy;
@@ -924,6 +975,17 @@ begin
     end;
   FIncludeStack.Clear;
   FreeAndNil(FCurSourceFile);
+end;
+
+procedure TPascalScanner.ClearMacros;
+
+Var
+  I : Integer;
+
+begin
+  For I:=0 to FMacros.Count-1 do
+      FMacros.Objects[i].Free;
+  FMacros.Clear;
 end;
 
 procedure TPascalScanner.OpenFile(const AFilename: string);
@@ -1051,6 +1113,110 @@ begin
 
 end;
 
+Procedure TPascalScanner.PushStackItem;
+
+Var
+  SI: TIncludeStackItem;
+
+begin
+  SI := TIncludeStackItem.Create;
+  SI.SourceFile := CurSourceFile;
+  SI.Filename := CurFilename;
+  SI.Token := CurToken;
+  SI.TokenString := CurTokenString;
+  SI.Line := CurLine;
+  SI.Row := CurRow;
+  SI.TokenStr := TokenStr;
+  FIncludeStack.Add(SI);
+  TokenStr:=Nil;
+  FCurRow := 0;
+end;
+
+Procedure TPascalScanner.HandleIncludeFile(Param : String);
+
+begin
+  PushStackItem;
+  if Length(Param)>1 then
+    begin
+      if (Param[1]=#39) and (Param[length(Param)]=#39) then
+       param:=copy(param,2,length(param)-2);
+    end;
+  FCurSourceFile := FileResolver.FindIncludeFile(Param);
+  if not Assigned(CurSourceFile) then
+    Error(SErrIncludeFileNotFound, [Param]);
+  FCurFilename := Param;
+  if FCurSourceFile is TFileLineReader then
+    FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
+  If LogEvent(sleFile) then
+    DoLog(SLogOpeningFile,[FCurFileName],True);
+end;
+
+function TPascalScanner.HandleMacro(AIndex : integer) : TToken;
+
+Var
+  M : TMacroDef;
+  ML : TMacroReader;
+
+begin
+//  Writeln('Handling macro ',FMacros[AIndex]);
+  PushStackItem;
+  M:=FMacros.Objects[AIndex] as TMacroDef;
+  ML:=TMacroReader.Create(FCurFileName,M.Value);
+  ML.CurRow:=FCurRow;
+  ML.CurCol:=CurColumn;
+  FCurSourceFile:=ML;
+  Result:=DofetchToken;
+//  Writeln(Result,Curtoken);
+end;
+
+Procedure TPascalScanner.HandleDefine(Param : String);
+
+Var
+  Index : Integer;
+  MN,MV : String;
+
+begin
+  Param := UpperCase(Param);
+  Index:=Pos(':=',Param);
+  If (Index=0) then
+    begin
+    if Defines.IndexOf(Param) < 0 then
+      Defines.Add(Param);
+    end
+  else
+    begin
+    MV:=Trim(Param);
+    MN:=Trim(Copy(MV,1,Index-1));
+    Delete(MV,1,Index+1);
+    Index:=FMacros.IndexOf(MN);
+    If (Index=-1) then
+      FMacros.AddObject(MN,TMacroDef.Create(MN,MV))
+    else
+      TMacroDef(FMacros.Objects[index]).Value:=MV;
+    end;
+end;
+
+Procedure TPascalScanner.HandleUnDefine(Param : String);
+
+Var
+  Index : integer;
+
+begin
+  Param := UpperCase(Param);
+  Index := Defines.IndexOf(Param);
+  if Index >= 0 then
+    Defines.Delete(Index)
+  else
+    begin
+    Index := FMacros.IndexOf(Param);
+    If (Index>=0) then
+      begin
+      FMacros.Objects[Index].FRee;
+      FMacros.Delete(Index);
+      end;
+    end;
+end;
+
 function TPascalScanner.DoFetchToken: TToken;
 
   function FetchLine: Boolean;
@@ -1075,8 +1241,7 @@ var
   TokenStart, CurPos: PChar;
   i: TToken;
   OldLength, SectionLength, NestingLevel, Index: Integer;
-  Directive, Param: string;
-  IncludeStackItem: TIncludeStackItem;
+  Directive, Param, MN, MV: string;
 begin
   if TokenStr = nil then
     if not FetchLine then
@@ -1418,63 +1583,27 @@ begin
                 Move(TokenStart^, Param[1], SectionLength);
             end else
               Param := '';
-            // WriteLn('Direktive: "', Directive, '", Param: "', Param, '"');
-            if (Directive = 'I') or (Directive = 'INCLUDE') then
-            begin
-              if (not PPIsSkipping) and ((Param='') or (Param[1]<>'%')) then
+            if Not PPIsSkipping then
               begin
-                IncludeStackItem := TIncludeStackItem.Create;
-                IncludeStackItem.SourceFile := CurSourceFile;
-                IncludeStackItem.Filename := CurFilename;
-                IncludeStackItem.Token := CurToken;
-                IncludeStackItem.TokenString := CurTokenString;
-                IncludeStackItem.Line := CurLine;
-                IncludeStackItem.Row := CurRow;
-                IncludeStackItem.TokenStr := TokenStr;
-                FIncludeStack.Add(IncludeStackItem);
-                if Length(Param)>1 then
-                  begin
-                    if (Param[1]=#39) and (Param[length(Param)]=#39) then
-                     param:=copy(param,2,length(param)-2);
-                  end;
-               
-                FCurSourceFile := FileResolver.FindIncludeFile(Param);
-                if not Assigned(CurSourceFile) then
-                  Error(SErrIncludeFileNotFound, [Param]);
-                FCurFilename := Param;
-                if FCurSourceFile is TFileLineReader then
-                  FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
-                If LogEvent(sleFile) then
-                  DoLog(SLogOpeningFile,[FCurFileName],True);
-                FCurRow := 0;
-              end
-             else
-              if Param[1]='%' then
+              if (Directive = 'I') or (Directive = 'INCLUDE') then
                 begin
+                if ((Param='') or (Param[1]<>'%')) then
+                  HandleIncludeFile(param)
+                else if Param[1]='%' then
+                  begin
                   fcurtokenstring:='{$i '+param+'}';
                   fcurtoken:=tkstring;  
                   result:=fcurtoken;
-                  exit; 
-                end;
-            end else if Directive = 'DEFINE' then
-            begin
-              if not PPIsSkipping then
-              begin
-                Param := UpperCase(Param);
-                if Defines.IndexOf(Param) < 0 then
-                  Defines.Add(Param);
+                  exit;
+                  end
+                end
+              else if (Directive = 'DEFINE') then
+                HandleDefine(Param)
+              else if (Directive = 'UNDEF') then
+                HandleUnDefine(Param)
               end;
-            end else if Directive = 'UNDEF' then
-            begin
-              if not PPIsSkipping then
+            if (Directive = 'IFDEF') then
               begin
-                Param := UpperCase(Param);
-                Index := Defines.IndexOf(Param);
-                if Index >= 0 then
-                  Defines.Delete(Index);
-              end;
-            end else if Directive = 'IFDEF' then
-            begin
               if PPSkipStackIndex = High(PPSkipModeStack) then
                 Error(SErrIfXXXNestingLimitReached);
               PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
@@ -1597,25 +1726,18 @@ begin
         SetLength(FCurTokenString, SectionLength);
         if SectionLength > 0 then
           Move(TokenStart^, FCurTokenString[1], SectionLength);
-
-        // Check if this is a keyword or identifier
-        // !!!: Optimize this!
-        {if IsNamedToken(CurTokenString,Result) then
-          FCurToken:=Result
-         else
-           begin
-           Result:=tkIdentifier;
-           FCurtoken:=tkIdentifier;
-           end;
-        }for i := tkAbsolute to tkXOR do
+        for i := tkAbsolute to tkXOR do
           if CompareText(CurTokenString, TokenInfos[i]) = 0 then
           begin
             Result := i;
             FCurToken := Result;
             exit;
           end;
-
-        Result := tkIdentifier;
+        Index:=FMacros.IndexOf(CurtokenString);
+        if (Index=-1) then
+          Result := tkIdentifier
+        else
+          Result:=HandleMacro(index);
       end;
   else
     if PPIsSkipping then

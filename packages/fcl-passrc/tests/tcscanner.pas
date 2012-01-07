@@ -181,6 +181,9 @@ type
     Procedure TestDefine11;
     Procedure TestDefine12;
     Procedure TestInclude;
+    Procedure TestInclude2;
+    Procedure TestMacro1;
+    procedure TestMacro2;
   end;
 
 implementation
@@ -1254,6 +1257,28 @@ begin
   FScanner.SkipWhiteSpace:=True;
   FScanner.SkipComments:=True;
   TestTokens([tkIf,tkTrue,tkThen],'{$I myinclude.inc}',True,False);
+end;
+
+procedure TTestScanner.TestInclude2;
+begin
+  FResolver.AddStream('myinclude.inc',TStringStream.Create('if true then'));
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  TestTokens([tkIf,tkTrue,tkThen,tkElse],'{$I myinclude.inc} else',True,False);
+end;
+
+procedure TTestScanner.TestMacro1;
+begin
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  TestTokens([tkbegin,tkend,tkDot],'{$DEFINE MM:=begin end.}'#13#10'MM',True,False);
+end;
+
+procedure TTestScanner.TestMacro2;
+begin
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  TestTokens([tkbegin,tkend,tkDot],'{$DEFINE MM:=begin end}'#13#10'MM .',True,False);
 end;
 
 
