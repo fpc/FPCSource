@@ -5132,8 +5132,8 @@ Var
           // Delete temporary build-unit files
           L := TStringList.Create;
           try
-            APackage.FBUTarget.GetCleanFiles(L,IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)),'',Defaults.CPU,Defaults.OS);
-            L.Add(APackage.FBUTarget.SourceFileName);
+            APackage.FBUTarget.GetCleanFiles(L,IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS))),'',Defaults.CPU,Defaults.OS);
+            L.Add(AddPathPrefix(APackage,APackage.FBUTarget.SourceFileName));
             CmdDeleteFiles(L);
           finally
             L.Free;
