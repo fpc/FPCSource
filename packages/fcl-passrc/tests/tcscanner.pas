@@ -184,6 +184,7 @@ type
     Procedure TestInclude2;
     Procedure TestMacro1;
     procedure TestMacro2;
+    procedure TestMacro3;
   end;
 
 implementation
@@ -1279,6 +1280,13 @@ begin
   FScanner.SkipWhiteSpace:=True;
   FScanner.SkipComments:=True;
   TestTokens([tkbegin,tkend,tkDot],'{$DEFINE MM:=begin end}'#13#10'MM .',True,False);
+end;
+
+procedure TTestScanner.TestMacro3;
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  TestTokens([tkof],'{$DEFINE MM:=begin end}'#13#10'{$IFDEF MM} of {$ELSE} in {$ENDIF}');
 end;
 
 

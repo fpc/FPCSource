@@ -1158,7 +1158,6 @@ Var
   ML : TMacroReader;
 
 begin
-//  Writeln('Handling macro ',FMacros[AIndex]);
   PushStackItem;
   M:=FMacros.Objects[AIndex] as TMacroDef;
   ML:=TMacroReader.Create(FCurFileName,M.Value);
@@ -1617,6 +1616,8 @@ begin
               begin
                 Param := UpperCase(Param);
                 Index := Defines.IndexOf(Param);
+                if Index < 0 then
+                  Index := Macros.IndexOf(Param);
                 if Index < 0 then
                 begin
                   PPSkipMode := ppSkipIfBranch;
