@@ -42,7 +42,9 @@ interface
          { the loadnode is generated internally and a varspez=vs_const should be ignore,
            this requires that the parameter is actually passed by value
            Be really carefull when using this flag! }
-         loadnf_isinternal_ignoreconst
+         loadnf_isinternal_ignoreconst,
+
+         loadnf_only_uninitialized_hint
         );
 
        tloadnode = class(tunarynode)
@@ -356,7 +358,10 @@ implementation
                  typecheckpass(left);
              end;
            labelsym:
-             resultdef:=voidtype;
+             begin
+               tlabelsym(symtableentry).used:=true;
+               resultdef:=voidtype;
+             end;
            else
              internalerror(200104141);
          end;
