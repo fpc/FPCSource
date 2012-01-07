@@ -50,6 +50,7 @@ resourcestring
   SParserInvalidTypeDef = 'Invalid type definition';
   SParserExpectedIdentifier = 'Identifier expected';
   SParserNotAProcToken = 'Not a procedure or function token';
+  SRangeExpressionExpected = 'Range expression expected';
 
   SLogStartImplementation = 'Start parsing implementation section.';
   SLogStartInterface = 'Start parsing interface section';
@@ -112,7 +113,7 @@ type
   TPasParser = class
   private
     FCurModule: TPasModule;
-    FFileResolver: TFileResolver;
+    FFileResolver: TBaseFileResolver;
     FLogEvents: TPParserLogEvents;
     FOnLog: TPasParserLogHandler;
     FOptions: TPOptions;
@@ -164,7 +165,7 @@ type
     procedure AddProcOrFunction(Decs: TPasDeclarations; AProc: TPasProcedure);
     function  CheckIfOverloaded(AParent: TPasElement; const AName: String): TPasElement;
   public
-    constructor Create(AScanner: TPascalScanner; AFileResolver: TFileResolver;  AEngine: TPasTreeContainer);
+    constructor Create(AScanner: TPascalScanner; AFileResolver: TBaseFileResolver;  AEngine: TPasTreeContainer);
     // General parsing routines
     function CurTokenName: String;
     function CurTokenText: String;
@@ -219,7 +220,7 @@ type
     procedure ParseProcedureOrFunctionHeader(Parent: TPasElement; Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
     procedure ParseProcedureBody(Parent: TPasElement);
     // Properties for external access
-    property FileResolver: TFileResolver read FFileResolver;
+    property FileResolver: TBaseFileResolver read FFileResolver;
     property Scanner: TPascalScanner read FScanner;
     property Engine: TPasTreeContainer read FEngine;
     property CurToken: TToken read FCurToken;
@@ -231,7 +232,8 @@ type
   end;
 
 function ParseSource(AEngine: TPasTreeContainer;
-                     const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
+                     const FPCCommandLine, OSTarget, CPUTarget: String;
+                     UseStreams  : Boolean = False): TPasModule;
 Function IsHintToken(T : String; Out AHint : TPasMemberHint) : boolean;
 Function IsModifier(S : String; Out Pm : TProcedureModifier) : Boolean;
 Function IsCallingConvention(S : String; out CC : TCallingConvention) : Boolean;
@@ -320,7 +322,8 @@ begin
 end;
 
 function ParseSource(AEngine: TPasTreeContainer;
-  const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
+  const FPCCommandLine, OSTarget, CPUTarget: String;
+  UseStreams  : Boolean = False): TPasModule;
 var
   FileResolver: TFileResolver;
   Parser: TPasParser;
@@ -352,7 +355,6 @@ var
         'S': // -S mode
           if  (length(s)>2) and (s[3]='d') then
             begin // -Sd mode delphi
-              Scanner.Options:=Scanner.Options+[po_delphi];
               Parser.Options:=Parser.Options+[po_delphi];
             end;
       end;
@@ -372,6 +374,7 @@ begin
   Parser := nil;
   try
     FileResolver := TFileResolver.Create;
+    FileResolver.UseStreams:=UseStreams;
     Scanner := TPascalScanner.Create(FileResolver);
     Scanner.Defines.Append('FPK');
     Scanner.Defines.Append('FPC');
@@ -504,7 +507,7 @@ begin
 end;
 
 constructor TPasParser.Create(AScanner: TPascalScanner;
-  AFileResolver: TFileResolver; AEngine: TPasTreeContainer);
+  AFileResolver: TBaseFileResolver; AEngine: TPasTreeContainer);
 begin
   inherited Create;
   FScanner := AScanner;
@@ -903,7 +906,7 @@ begin
       tkRecord: Result := ParseRecordDecl(Parent,TypeName,PM);
     else
       UngetToken;
-      Result:=ParseRangeType(Parent,'');
+      Result:=ParseRangeType(Parent,TypeName);
     end;
     if CH then
       CheckHint(Result,True);
@@ -2013,7 +2016,9 @@ begin
   Result := TPasResString(CreateElement(TPasResString, CurTokenString, Parent));
   try
     ExpectToken(tkEqual);
-    Result.Value := ParseExpression(Result);
+    NextToken; // skip tkEqual
+    Result.Expr:=DoParseConstValueExpression(Result);
+    UngetToken;
     CheckHint(Result,True);
   except
     Result.Free;
@@ -2041,13 +2046,23 @@ end;
 // Starts after the type name
 Function TPasParser.ParseRangeType(AParent : TPasElement; Const TypeName : String) : TPasRangeType;
 
+Var
+  PE : TPasExpr;
+
 begin
   Result := TPasRangeType(CreateElement(TPasRangeType, TypeName, AParent));
   try
-    TPasRangeType(Result).RangeStart := ParseExpression(Result);
-    ExpectToken(tkDotDot);
-    TPasRangeType(Result).RangeEnd := ParseExpression(Result);
-    // CheckHint(Result,True);
+    If not (CurToken=tkEqual) then
+      ParseExc(Format(SParserExpectTokenError,[TokenInfos[tkEqual]]));
+    NextToken;
+    PE:=DoParseExpression(Result,Nil);
+    if not ((PE is TBinaryExpr) and (TBinaryExpr(PE).Kind=pekRange)) then
+      begin
+      FreeAndNil(PE);
+      ParseExc(SRangeExpressionExpected);
+      end;
+    Result.RangeExpr:=PE as TBinaryExpr;
+    UngetToken;
   except
     FreeAndNil(Result);
     raise;
@@ -3463,7 +3478,8 @@ begin
     ExpectIdentifier;
     UngetToken;                // Only names are allowed as following type
     TPasClassOfType(Result).DestType := ParseType(Result);
-    ExpectToken(tkSemicolon);
+    CheckHint(Result,true);
+//    ExpectToken(tkSemicolon);
     exit;
   end;
 

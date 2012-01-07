@@ -116,6 +116,7 @@ type
     function PathName: string;          // = Module.Name + FullName
     function GetModule: TPasModule;
     function ElementTypeName: string; virtual;
+    Function HintsString : String;
     function GetDeclaration(full : Boolean) : string; virtual;
     procedure Accept(Visitor: TPassTreeVisitor); override;
     property RefCount: LongWord read FRefCount;
@@ -307,10 +308,11 @@ type
 
   TPasResString = class(TPasElement)
   public
+    Destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : Boolean) : string; Override;
   public
-    Value: string;
+    Expr: TPasExpr;
   end;
 
   { TPasType }
@@ -365,7 +367,10 @@ type
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
   public
-    RangeStart, RangeEnd: string;
+    RangeExpr : TBinaryExpr;
+    Destructor Destroy; override;
+    Function RangeStart : String;
+    Function RangeEnd : String;
   end;
 
   { TPasArrayType }
@@ -399,8 +404,8 @@ type
   public
     function ElementTypeName: string; override;
   public
-    IsValueUsed: Boolean;
-    Value: Integer;
+//    IsValueUsed: Boolean;
+//    Value: Integer;
     AssignedValue : string;
   end;
 
@@ -1059,6 +1064,23 @@ uses SysUtils;
 { Parse tree element type name functions }
 
 function TPasElement.ElementTypeName: string; begin Result := SPasTreeElement end;
+
+function TPasElement.HintsString: String;
+
+Var
+  H : TPasmemberHint;
+
+begin
+  Result:='';
+  For H := Low(TPasmemberHint) to High(TPasMemberHint) do
+    if H in Hints then
+      begin
+      If (Result<>'') then
+        Result:=Result+'; ';
+      Result:=Result+cPasMemberHint[h];
+      end;
+end;
+
 function TPasDeclarations.ElementTypeName: string; begin Result := SPasTreeSection end;
 function TPasModule.ElementTypeName: string; begin Result := SPasTreeModule end;
 function TPasPackage.ElementTypeName: string; begin Result := SPasTreePackage end;
@@ -1119,17 +1141,18 @@ end;
 procedure TPasElement.ProcessHints(const ASemiColonPrefix: boolean; var AResult: string);
 var
   h: TPasMemberHint;
+  S : String;
 begin
   if Hints <> [] then
-  begin
+    begin
     if ASemiColonPrefix then
       AResult := AResult + ';';
-    for h := Low(TPasMemberHint) to High(TPasMemberHint) do
-    begin
-      if h in Hints then
-        AResult := AResult + ' ' + cPasMemberHint[h] + ';'
+    S:=HintsString;
+    if (S<>'') then
+      AResult:=AResult+' '+S;
+    if ASemiColonPrefix then
+      AResult:=AResult+';';
     end;
-  end;
 end;
 
 constructor TPasElement.Create(const AName: string; AParent: TPasElement);
@@ -1810,37 +1833,75 @@ end;
 
 function TPasResString.GetDeclaration (full : boolean) : string;
 begin
-  Result:=Value;
+  Result:=Expr.GetDeclaration(true);
   If Full Then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
+end;
+
+destructor TPasResString.Destroy;
+begin
+  If Assigned(Expr) then
+    Expr.Release;
+  inherited Destroy;
 end;
 
 function TPasPointerType.GetDeclaration (full : boolean) : string;
 begin
   Result:='^'+DestType.Name;
   If Full then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
 end;
 
 function TPasAliasType.GetDeclaration (full : boolean) : string;
 begin
   Result:=DestType.Name;
   If Full then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
 end;
 
 function TPasClassOfType.GetDeclaration (full : boolean) : string;
 begin
   Result:='Class of '+DestType.Name;
   If Full then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
 end;
 
 function TPasRangeType.GetDeclaration (full : boolean) : string;
 begin
   Result:=RangeStart+'..'+RangeEnd;
   If Full then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
+end;
+
+destructor TPasRangeType.Destroy;
+begin
+  FreeAndNil(RangeExpr);
+  inherited Destroy;
+end;
+
+function TPasRangeType.RangeStart: String;
+begin
+  Result:=RangeExpr.Left.GetDeclaration(False);
+end;
+
+function TPasRangeType.RangeEnd: String;
+begin
+  Result:=RangeExpr.Right.GetDeclaration(False);
 end;
 
 function TPasArrayType.GetDeclaration (full : boolean) : string;
@@ -1856,7 +1917,10 @@ begin
   else
     Result:=Result+'const';
   If Full Then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
 end;
 
 function TPasArrayType.IsPacked: Boolean;
@@ -1870,7 +1934,10 @@ begin
   If Assigned(Eltype) then
     Result:=Result+' of '+ElType.Name;
   If Full Then
+    begin
     Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
 end;
 
 Function IndentStrings(S : TStrings; indent : Integer) : string;
@@ -1914,6 +1981,8 @@ begin
       Result:=IndentStrings(S,Length(Name)+4)
     else
       Result:=IndentStrings(S,1);
+    if Full then
+      ProcessHints(False,Result);
   finally
     S.Free;
   end;
@@ -1948,6 +2017,8 @@ begin
     If Full then
       Result:=Name+' = '+Result;
     end;
+  If Full then
+    ProcessHints(False,Result);
 end;
 
 function TPasRecordType.GetDeclaration (full : boolean) : string;
@@ -2085,6 +2156,9 @@ function TPasVariable.GetDeclaration (full : boolean) : string;
 Const
  Seps : Array[Boolean] of Char = ('=',':');
 
+Var
+  H : TPasMemberHint;
+  B : Boolean;
 begin
   if (Value = '') and Assigned(Expr) then
     Value := Expr.GetDeclaration(full);
@@ -2101,7 +2175,10 @@ begin
   else
     Result:=Value;
   If Full then
+    begin
     Result:=Name+' '+Seps[Assigned(VarType)]+' '+Result;
+    Result:=Result+HintsString;
+    end;
 end;
 
 function TPasProperty.GetDeclaration (full : boolean) : string;
