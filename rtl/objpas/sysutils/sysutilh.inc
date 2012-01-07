@@ -199,6 +199,9 @@ type
    ENoWideStringSupport = Class(Exception);
    ENotImplemented = class(Exception);
 
+   EArgumentException = class(Exception);
+   EArgumentOutOfRangeException = class(EArgumentException);
+
    { Exception handling routines }
    function ExceptObject: TObject;
    function ExceptAddr: Pointer;

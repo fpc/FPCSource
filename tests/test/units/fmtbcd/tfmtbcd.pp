@@ -2,7 +2,7 @@
 
 {$ifdef fpc}{$mode objfpc}{$h+}{$endif}
 
-uses SysUtils, FmtBCD;
+uses SysUtils, FmtBCD, Variants;
 
 var
   ErrorCount: integer;
@@ -17,7 +17,7 @@ begin
      (bcdtostr(bcd3) <> bcdtostr(bcdmul)) then
   begin
     writeln(bcdtostr(bcd1), ' * ', bcdtostr(bcd2), ' = ', bcdtostr(bcdmul), ' but expected ', bcdtostr(bcd3));
-    writeln('Expected: ', bcd3.Precision,',',bcd3.SignSpecialPlaces, ' but calculated: ', bcdmul.Precision,',',bcdmul.SignSpecialPlaces);
+    writeln('Expected: (', bcd3.Precision,',',bcd3.SignSpecialPlaces, ') but calculated: (', bcdmul.Precision,',',bcdmul.SignSpecialPlaces,')');
     inc(ErrorCount);
   end;
 end;
@@ -53,6 +53,57 @@ begin
     writeln('StrToBcd: ', bcdtostr(bcd), ' (', s, ') Precision:', bcd.Precision, ' Scale: ', BCDScale(bcd));
     inc(ErrorCount);
   end;
+end;
+
+procedure testBCDCompare(bcd1,bcd2: TBCD; res: integer);
+begin
+  if (BCDCompare(bcd1,bcd2) <> res) then
+  begin
+    writeln('BCDCompare failed; bcd1:', bcdtostr(bcd1), ' bcd2:', bcdtostr(bcd2));
+    inc(ErrorCount);
+  end;
+end;
+
+procedure testVariantOp(v1, v2: variant);
+var v: variant;
+    i: integer;
+    d: double;
+    s1: shortstring;
+    s2: ansistring;
+    s3: unicodestring;
+begin
+  //arithmetic op. ... invalid variant operation ?
+  v := v1 + v2;
+  v := v * v2;
+  v := v / v2;
+  v := v - v2;
+  if VarIsFmtBCD(v1) and not VarIsFmtBCD(v) then inc(ErrorCount);
+
+  //compare op.
+  if not(v1=v) or (v1<>v) then
+  begin
+    writeln('Original variant: ', vartostr(v1), 'recomputed variant: ', vartostr(v));
+    inc(ErrorCount);
+  end;
+  v := v + 1;
+  if (v1 >= v) or not(v1 < v) then
+  begin
+    writeln('Compare2 failed; v1: ', vartostr(v1), ' v: ', vartostr(v));
+    inc(ErrorCount);
+  end;
+  v := v - 1.1;
+  if (v1 <= v) or not(v1 > v) then
+  begin
+    writeln('Compare3 failed; v1: ', vartostr(v1), ' v: ', vartostr(v));
+    inc(ErrorCount);
+  end;
+
+  //assign op. ... invalid variant typecast ?
+  //i := v;
+  d := v;
+  //s1 := v;
+  s2 := v;
+  //s3 := v;
 end;
 
 begin
@@ -94,8 +145,8 @@ begin
   // test BCDMultiply:
   FS.DecimalSeparator:='.';
   FS.ThousandSeparator:=#0;
-  testBCDMultiply(1000, 1000, 1000000);
-  testBCDMultiply(1000, 0.001, 1);
+  testBCDMultiply(1000, -1000, -1000000);
+  testBCDMultiply(-1000, -0.001, 1);
   testBCDMultiply(1000, 0.0001, 0.1);
   testBCDMultiply(strtobcd('12345678901234567890',FS), strtobcd('0.0000000001',FS), strtobcd('1234567890.123456789',FS));
 
@@ -110,7 +161,25 @@ begin
   testBCDDivide(100, -2, -50);
   testBCDDivide(1007, 5, 201.4);
 
+  // test BCDCompare:
+  testBCDCompare(100, 100, 0);
+  testBCDCompare(-100.1, -100.1, 0);
+  testBCDCompare(-100.1, 100.1, -1);
+  testBCDCompare(-100.1, -100.2, 1);
+  testBCDCompare(100, 100.1, -1);
 
-  if ErrorCount<>0 then writeln('FmtBCD test program found ', ErrorCount, ' errors!');
-  Halt(ErrorCount);
+  // test Variant support:
+  testVariantOp(varFmtBcdCreate(100), varFmtBcdCreate(-100));
+  testVariantOp(double(2.5), varFmtBcdCreate(100)); //double on left side
+  testVariantOp(varFmtBcdCreate(100), integer(-10));
+  testVariantOp(varFmtBcdCreate(-100), shortstring(floattostr(10.2)));
+  testVariantOp(varFmtBcdCreate(-100), ansistring(floattostr(0.2)));
+  testVariantOp(varFmtBcdCreate(-100), unicodestring(floattostr(-0.2)));
+
+
+  if ErrorCount<>0 then
+  begin
+    writeln('FmtBCD test program found ', ErrorCount, ' errors!');
+    Halt(ErrorCount);
+  end;
 end.

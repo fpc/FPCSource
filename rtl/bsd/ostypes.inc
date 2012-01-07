@@ -232,15 +232,64 @@ CONST
 
 
   { For File control mechanism }
-  F_GetFd  = 1;
-  F_SetFd  = 2;
-  F_GetFl  = 3;
-  F_SetFl  = 4;
-  F_GetLk  = 5;
-  F_SetLk  = 6;
-  F_SetLkW = 7;
-  F_SetOwn = 8;
-  F_GetOwn = 9;
+  F_DupFd          = 0;           { duplicate file descriptor }
+  F_GetFd          = 1;           { get file descriptor flags }
+  F_SetFd          = 2;           { set file descriptor flags }
+  F_GetFl          = 3;           { get file status flags }
+  F_SetFl          = 4;           { set file status flags }
+  F_GetOwn         = 5;           { get SIGIO/SIGURG proc/pgrp }
+  F_SetOwn         = 6;           { set SIGIO/SIGURG proc/pgrp }
+{$ifdef freebsd}
+  F_OGetLk         = 7;           { get record locking information }
+  F_OSetLk         = 8;           { set record locking information }
+  F_OSetLkW        = 9;           { F_SETLK; wait if blocked }
+  F_Dup2Fd         = 10;          { duplicate file descriptor to arg }
+  F_GetLk          = 11;          { get record locking information}
+  F_SetLk          = 12;          { set record locking information }
+  F_SetLkW         = 13;          { F_SETLK; wait if blocked }
+  F_SetLkRemote    = 14;          { debugging support for remote locks }
+{$endif}
+{$ifdef netbsd}
+  F_GetLk          = 7;           { get record locking information}
+  F_SetLk          = 8;           { set record locking information }
+  F_SetLkW         = 9;           { F_SETLK; wait if blocked }
+  F_CloseM	   = 10;	  { close all fds >= to the one given }
+  F_MaxFd          = 11;	  { return the max open fd }
+  F_DupFd_CloExec  = 12;	  { close on exec duplicated fd }
+{$endif}
+{$ifdef openbsd}
+  F_GetLk          = 7;           { get record locking information}
+  F_SetLk          = 8;           { set record locking information }
+  F_SetLkW         = 9;           { F_SETLK; wait if blocked }
+  F_DupFd_CloExec  = 10;	  { duplicate with FD_CLOEXEC set }
+{$endif}
+{$ifdef darwin}
+  F_GetLk          = 7;           { get record locking information}
+  F_SetLk          = 8;           { set record locking information }
+  F_SetLkW         = 9;           { F_SETLK; wait if blocked }
+{$endif}
+
+  { File descriptor flags (F_GETFD, F_SETFD) }
+  FD_CLOEXEC	   = 1;		  { close-on-exec flag }
+
+  { Record locking flags (F_GETLK, F_SETLK, F_SETLKW) }
+  F_RDLCK          = 1;		  { shared or read lock }
+  F_UNLCK          = 2;		  { unlock }
+  F_WRLCK          = 3;		  { exclusive or write lock }
+{$ifdef freebsd}
+  F_UNLCKSYS       = 4;		  { purge locks for a given system ID }
+  F_CANCEL         = 5;		  { cancel an async lock request }
+{$endif}
+{$ifndef darwin}
+  F_WAIT	   = $10;	  { Wait until lock is granted }
+  F_FLOCK          = $20;         { Use flock(2) semantics for lock }
+  F_POSIX          = $40; 	  { Use POSIX semantics for lock }
+{$endif}
+{$ifdef freebsd}
+  F_REMOTE	   = $80;	  { Lock owner is remote NFS client }
+  F_NOINTR	   = $100;        { Ignore signals when waiting }
+{$endif}
+
 {$ifdef darwin}
   F_CHKCLEAN       = 41;          { Used for regression test }
   F_PREALLOCATE    = 42;          { Preallocate storage }

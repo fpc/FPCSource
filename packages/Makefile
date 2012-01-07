@@ -293,7 +293,7 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes fppkg  fv graph unzip gdbint
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes fppkg  fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint libpng mad tcl opengl gtk1 gtk2 librsvg a52 cdrom fpgtk openal fftw lua fcl-extra zorba oggvorbis sdl openssl graph pcap  httpd22 pxlib numlib winceunits cairo libxml gmp opencl libsee nvapi ptc
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes fppkg  fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint libpng mad tcl opengl gtk1 gtk2 librsvg a52 cdrom fpgtk openal fftw lua fcl-extra zorba oggvorbis sdl openssl graph pcap  httpd22 pxlib numlib winceunits cairo libxml gmp opencl libsee nvapi ptc aspell
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes fppkg  fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
@@ -1610,6 +1610,7 @@ TARGET_DIRS_OPENCL=1
 TARGET_DIRS_LIBSEE=1
 TARGET_DIRS_NVAPI=1
 TARGET_DIRS_PTC=1
+TARGET_DIRS_ASPELL=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_HASH=1

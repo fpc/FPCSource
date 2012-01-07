@@ -1720,7 +1720,7 @@ end;
 function EncodeTimeInterval(Hour, Minute, Second, MilliSecond: word): TDateTime;
 begin
    If not TryEncodeTimeInterval(Hour,Minute,Second,MilliSecond,Result) then
-     Raise EConvertError.CreateFmt('%d:%d:%d.%d is not a valid time specification',
+     Raise EConvertError.CreateFmt(SerrInvalidHourMinuteSecMsec,
                                [Hour,Minute,Second,MilliSecond]);
 end;
 
