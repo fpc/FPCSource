@@ -99,6 +99,16 @@ begin
           AddUnit('fpcunitreport');
           AddUnit('testutils');
         end;
+    T:=P.Targets.AddUnit('consoletestrunner.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpcunit');
+          AddUnit('fpcunitreport');
+          AddUnit('testutils');
+          AddUnit('xmltestreport.pp');
+          AddUnit('latextestreport.pp');
+          AddUnit('plaintestreport.pp');
+        end;
 
 {$ifndef ALLPACKAGES}
     Run;
