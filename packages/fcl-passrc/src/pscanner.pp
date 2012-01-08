@@ -329,15 +329,16 @@ type
     Procedure DoLog(Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Args: array of Const);overload;
-    procedure HandleDefine(Param: String);
-    procedure HandleIncludeFile(Param: String);
-    procedure HandleUnDefine(Param: String);
-    procedure PushStackItem;
-    function HandleMacro(AIndex: integer): TToken;
+    procedure HandleDefine(Param: String); virtual;
+    procedure HandleIncludeFile(Param: String); virtual;
+    procedure HandleUnDefine(Param: String);virtual;
+    function HandleMacro(AIndex: integer): TToken;virtual;
+    procedure PushStackItem; virtual;
     function DoFetchTextToken: TToken;
     function DoFetchToken: TToken;
     procedure ClearFiles;
     Procedure ClearMacros;
+    Procedure SetCurTokenString(AValue : string);
     function LogEvent(E : TPScannerLogEvent) : Boolean; inline;
   public
     constructor Create(AFileResolver: TBaseFileResolver);
@@ -986,6 +987,11 @@ begin
   For I:=0 to FMacros.Count-1 do
       FMacros.Objects[i].Free;
   FMacros.Clear;
+end;
+
+procedure TPascalScanner.SetCurTokenString(AValue: string);
+begin
+  FCurtokenString:=AValue;
 end;
 
 procedure TPascalScanner.OpenFile(const AFilename: string);
