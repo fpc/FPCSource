@@ -154,6 +154,8 @@ type
              UseParentAsResultParent: Boolean): TPasFunctionType;
     Function IsCurTokenHint(out AHint : TPasMemberHint) : Boolean; overload;
     Function IsCurTokenHint: Boolean; overload;
+    Function TokenIsCallingConvention(Context : TPasProcedureType; S : String; out CC : TCallingConvention) : Boolean; virtual;
+    Function TokenIsProcedureModifier(Context : TPasProcedureType; S : String; Out Pm : TProcedureModifier) : Boolean; virtual;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
     function ParseParams(AParent : TPasElement;paramskind: TPasExprKind): TParamsExpr;
     function ParseExpIdent(AParent : TPasElement): TPasExpr;
@@ -302,7 +304,7 @@ Const
                 = ('virtual', 'dynamic','abstract', 'override',
                    'exported', 'overload', 'message', 'reintroduce',
                    'static','inline','assembler','varargs',
-                   'compilerproc','external','extdecl','forward');
+                   'compilerproc','external','forward');
 
 Var
   P : TProcedureModifier;
@@ -436,7 +438,7 @@ begin
 
     if Filename = '' then
       raise Exception.Create(SErrNoSourceGiven);
-
+    FileResolver.AddIncludePath(ExtractFilePath(FileName));
     Scanner.OpenFile(Filename);
     Parser.ParseMain(Result);
   finally
@@ -627,6 +629,18 @@ var
   dummy : TPasMemberHint;
 begin
   Result:=IsCurTokenHint(dummy);
+end;
+
+function TPasParser.TokenIsCallingConvention(Context: TPasProcedureType; S: String;
+  out CC: TCallingConvention): Boolean;
+begin
+  Result:=IsCallingConvention(S,CC);
+end;
+
+function TPasParser.TokenIsProcedureModifier(Context: TPasProcedureType;
+  S: String; out Pm: TProcedureModifier): Boolean;
+begin
+  Result:=IsModifier(S,PM);
 end;
 
 
@@ -2414,7 +2428,7 @@ begin
     ptProcedure,ptConstructor,ptDestructor,ptClassProcedure:
       begin
       NextToken;
-      if (CurToken = tkSemicolon)
+      if (CurToken = tkSemicolon) or IsCurtokenHint
         or (OfObjectPossible and (CurToken in [tkOf,tkEqual]))
       then
         UngetToken
@@ -2458,17 +2472,17 @@ begin
   end else
     UngetToken;
 
-  ExpectToken(tkSemicolon);
+  ConsumeSemi; //ExpectToken(tkSemicolon);
   while True do
     begin
     NextToken;
-    If isCallingConvention(CurTokenString,cc) then
+    If TokenisCallingConvention(Element,CurTokenString,cc) then
       begin
-        if parent is TPasProcedure then
-          TPasProcedure(Parent).CallingConvention:=CC;
+      if Assigned(Element) then        // !!!
+        Element.CallingConvention:=Cc;
       ExpectToken(tkSemicolon);
       end
-    else if IsModifier(CurTokenString,pm) then
+    else if TokenIsProcedureModifier(Element,CurTokenString,pm) then
       begin
       if parent is TPasProcedure then
         TPasProcedure(Parent).AddModifier(pm);
