@@ -38,13 +38,25 @@ type
     Procedure TestTwoLines;
   end;
 
+  { TTestingPascalScanner }
+
+  TTestingPascalScanner = Class(TPascalScanner)
+  private
+    FDoSpecial: Boolean;
+  protected
+    function HandleMacro(AIndex: integer): TToken;override;
+  Public
+    Property DoSpecial : Boolean Read FDoSpecial Write FDoSpecial;
+  end;
+
   { TTestScanner }
   TTestScanner= class(TTestCase)
   Private
+    FLI: String;
     FScanner : TPascalScanner;
     FResolver : TStreamResolver;
   protected
-    procedure SetUp; override; 
+    procedure SetUp; override;
     procedure TearDown; override;
     Function TokenToString(tk : TToken) : string;
     Procedure AssertEquals(Msg : String; Expected,Actual : TToken); overload;
@@ -52,6 +64,7 @@ type
     Procedure DoTestToken(t : TToken; Const ASource : String; Const CheckEOF : Boolean = True);
     Procedure TestToken(t : TToken; Const ASource : String; Const CheckEOF : Boolean = True);
     Procedure TestTokens(t : array of TToken; Const ASource : String; Const CheckEOF : Boolean = True;Const DoClear : Boolean = True);
+    Property LastIDentifier : String Read FLI Write FLi;
   published
     procedure TestEOF;
     procedure TestWhitespace;
@@ -185,9 +198,23 @@ type
     Procedure TestMacro1;
     procedure TestMacro2;
     procedure TestMacro3;
+    procedure TestMacroHandling;
   end;
 
 implementation
+
+{ TTestingPascalScanner }
+
+function TTestingPascalScanner.HandleMacro(AIndex: integer): TToken;
+begin
+  if DoSpecial then
+    begin
+    Result:=tkIdentifier;
+    SetCurTokenstring('somethingweird');
+    end
+  else
+    Result:=inherited HandleMacro(AIndex);
+end;
 
 { TTestTokenFinder }
 
@@ -300,7 +327,7 @@ procedure TTestScanner.SetUp;
 begin
   FResolver:=TStreamResolver.Create;
   FResolver.OwnsStreams:=True;
-  FScanner:=TPascalScanner.Create(FResolver);
+  FScanner:=TTestingPascalScanner.Create(FResolver);
   // Do nothing
 end; 
 
@@ -374,6 +401,8 @@ begin
     begin
     tk:=FScanner.FetchToken;
     AssertEquals(Format('Read token %d equals expected token.',[i]),t[i],tk);
+    if tk=tkIdentifier then
+      LastIdentifier:=FScanner.CurtokenString;
     end;
   if CheckEOF then
     begin
@@ -1287,6 +1316,15 @@ begin
   FScanner.SkipComments:=True;
   FScanner.SkipWhiteSpace:=True;
   TestTokens([tkof],'{$DEFINE MM:=begin end}'#13#10'{$IFDEF MM} of {$ELSE} in {$ENDIF}');
+end;
+
+procedure TTestScanner.TestMacroHandling;
+begin
+  TTestingPascalScanner(FScanner).DoSpecial:=True;
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  TestTokens([tkIdentifier],'{$DEFINE MM:=begin end}'#13#10'MM');
+  AssertEQuals('Correct identifier', 'somethingweird',LastIdentifier);
 end;
 
 
