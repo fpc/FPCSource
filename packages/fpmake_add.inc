@@ -27,7 +27,6 @@
   add_fftw;
   add_fpgtk;
   add_fpmkunit;
-  add_fpvectorial;
   add_fv;
   add_gdbint;
   add_gdbm;
