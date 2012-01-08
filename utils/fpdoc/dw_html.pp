@@ -2607,7 +2607,7 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
       ParaEl := CreatePara(BodyElement);
       AppendText(CreateCode(ParaEl), Decl.Name);
       CreateEl(ParaEl, 'br');
-      AppendText(ParaEl, Decl.Value);
+      AppendText(ParaEl, Decl.Expr.getDeclaration(true));
     end;
   end;
   
@@ -2718,8 +2718,8 @@ begin
         AppendShortDescrCell(TREl, EnumValue);
         AppendNbSp(CodeEl, 2);
         s := EnumValue.Name;
-        if EnumValue.IsValueUsed then
-          s := s + ' = ' + IntToStr(EnumValue.Value);
+        if EnumValue.AssignedValue<>'' then
+          s := s + ' = ' + EnumValue.AssignedValue;
         if i < TPasEnumType(AType).Values.Count - 1 then
           s := s + ',';
         AppendPasSHFragment(CodeEl, s, 0);
@@ -2763,8 +2763,8 @@ begin
           AppendShortDescrCell(TREl, EnumValue);
           AppendNbSp(CodeEl, 2);
           s := EnumValue.Name;
-          if EnumValue.IsValueUsed then
-            s := s + ' = ' + IntToStr(EnumValue.Value);
+          if (EnumValue.AssignedValue<>'') then
+            s := s + ' = ' + EnumValue.AssignedValue;
           if i < EnumType.Values.Count - 1 then
             s := s + ',';
           AppendPasSHFragment(CodeEl, s, 0);
