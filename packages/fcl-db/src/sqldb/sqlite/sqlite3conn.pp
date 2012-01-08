@@ -16,6 +16,11 @@
 { 
   Based on an implementation by Martin Schreiber, part of MSEIDE.
   Reworked all code so it conforms to FCL coding standards.
+
+  TSQLite3Connection properties
+      Params - "foreign_keys=ON" - enable foreign key support for this connection:
+                                   http://www.sqlite.org/foreignkeys.html#fk_enable
+
 } 
  
 unit sqlite3conn;
@@ -708,6 +713,8 @@ begin
   InitializeSqlite(SQLiteLibraryName);
   str1:= databasename;
   checkerror(sqlite3_open(pchar(str1),@fhandle));
+  if Params.IndexOfName('foreign_keys') <> -1 then
+    execsql('PRAGMA foreign_keys =  '+Params.Values['foreign_keys']);
 end;
 
 procedure TSQLite3Connection.DoInternalDisconnect;

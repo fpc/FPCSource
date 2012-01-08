@@ -79,6 +79,7 @@ type
     procedure DeAllocateCursorHandle(var cursor:TSQLCursor); override;
     function AllocateTransactionHandle:TSQLHandle; override;
     // - Statement handling
+    function StrToStatementType(s : string) : TStatementType; override;
     procedure PrepareStatement(cursor:TSQLCursor; ATransaction:TSQLTransaction; buf:string; AParams:TParams); override;
     procedure UnPrepareStatement(cursor:TSQLCursor); override;
     // - Transaction handling
@@ -297,6 +298,14 @@ begin
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
   FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
 {$ENDIF}
+end;
+
+function TODBCConnection.StrToStatementType(s : string) : TStatementType;
+begin
+  S:=Lowercase(s);
+  if s = 'transform' then Result:=stSelect //MS Access
+  else if s = 'exec' then Result:=stExecProcedure
+  else Result := inherited StrToStatementType(s);
 end;
 
 procedure TODBCConnection.SetParameters(ODBCCursor: TODBCCursor; AParams: TParams);
