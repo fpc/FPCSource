@@ -98,6 +98,7 @@ type
 
   TPasElement = class(TPasElementBase)
   private
+    FData: TObject;
     FRefCount: LongWord;
     FName: string;
     FParent: TPasElement;
@@ -123,6 +124,7 @@ type
     property Name: string read FName write FName;
     property Parent: TPasElement read FParent;
     Property Hints : TPasMemberHints Read FHints Write FHints;
+    Property CustomData : TObject Read FData Write FData;
   end;
 
   TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst, pekRange,
@@ -521,6 +523,7 @@ type
   public
     IsOfObject: Boolean;
     Args: TFPList;        // List of TPasArgument objects
+    CallingConvention : TCallingConvention;
   end;
 
   { TPasResultElement }
@@ -628,7 +631,7 @@ type
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExported, pmOverload, pmMessage, pmReintroduce,
                         pmStatic,pmInline,pmAssembler,pmVarargs,
-                        pmCompilerProc,pmExternal,pmExtdecl,pmForward);
+                        pmCompilerProc,pmExternal,pmForward);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtInteger,pmtString);
                         
@@ -636,10 +639,11 @@ type
 
   TPasProcedure = class(TPasProcedureBase)
   Private
-    FCallingConvention : TCallingConvention;
     FModifiers : TProcedureModifiers;
     FMessageName : String;
     FMessageType : TProcedureMessageType;
+    function GetCallingConvention: TCallingConvention;
+    procedure SetCallingConvention(AValue: TCallingConvention);
   public
     destructor Destroy; override;
     function ElementTypeName: string; override;
@@ -662,7 +666,7 @@ type
     Function IsStatic : Boolean;
     Function IsForward: Boolean;
     Property Modifiers : TProcedureModifiers Read FModifiers Write FModifiers;
-    Property CallingConvention : TCallingConvention Read FCallingConvention Write FCallingConvention;
+    Property CallingConvention : TCallingConvention Read GetCallingConvention Write SetCallingConvention;
     Property MessageName : String Read FMessageName Write FMessageName;
     property MessageType : TProcedureMessageType Read FMessageType Write FMessageType;
   end;
@@ -1048,6 +1052,8 @@ const
 
   cPasMemberHint : array[TPasMemberHint] of string =
       ( 'deprecated', 'library', 'platform', 'experimental', 'unimplemented' );
+  cCallingConventions : array[TCallingConvention] of string =
+      ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall');
 
 implementation
 
@@ -1559,6 +1565,18 @@ begin
     SetLength(Result, 0);
 end;
 
+function TPasProcedure.GetCallingConvention: TCallingConvention;
+begin
+  Result:=ccDefault;
+  if Assigned(ProcType) then
+    Result:=ProcType.CallingConvention;
+end;
+
+procedure TPasProcedure.SetCallingConvention(AValue: TCallingConvention);
+begin
+  if Assigned(ProcType) then
+    ProcType.CallingConvention:=AValue;
+end;
 
 destructor TPasProcedure.Destroy;
 begin
