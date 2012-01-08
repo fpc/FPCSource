@@ -930,6 +930,7 @@ end;
 procedure TCustomSQLQuery.OnChangeSQL(Sender : TObject);
 
 var ConnOptions : TConnOptions;
+    NewParams: TParams;
 
 begin
   UnPrepare;
@@ -940,7 +941,15 @@ begin
       ConnOptions := TSQLConnection(DataBase).ConnOptions
     else
       ConnOptions := [sqEscapeRepeat,sqEscapeSlash];
-    Fparams.ParseSQL(FSQL.Text,True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase);
+    //preserve existing param. values
+    NewParams := TParams.Create(Self);
+    try
+      NewParams.ParseSQL(FSQL.Text, True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions, psInterbase);
+      NewParams.AssignValues(FParams);
+      FParams.Assign(NewParams);
+    finally
+      NewParams.Free;
+    end;
     If Assigned(FMasterLink) then
       FMasterLink.RefreshParamNames;
     end;
@@ -1142,8 +1151,6 @@ begin
 
   if not FIsEof then FIsEOF := not TSQLConnection(Database).Fetch(Fcursor);
   Result := not FIsEOF;
-  // A stored procedure is always at EOF after its first fetch
-  if FCursor.FStatementType = stExecProcedure then FIsEOF := True;
 end;
 
 procedure TCustomSQLQuery.Execute;
@@ -1978,7 +1985,7 @@ procedure TSQLConnector.SetTransaction(Value: TSQLTransaction);
 begin
   inherited SetTransaction(Value);
   If Assigned(FProxy) and (FProxy.Transaction<>Value) then
-    FProxy.Transaction:=Value;
+    FProxy.FTransaction:=Value;
 end;
 
 procedure TSQLConnector.DoInternalConnect;
@@ -1989,11 +1996,13 @@ Var
 begin
   inherited DoInternalConnect;
   CreateProxy;
+  FProxy.CharSet:=Self.CharSet;
+  FProxy.Role:=self.Role;
   FProxy.DatabaseName:=Self.DatabaseName;
   FProxy.HostName:=Self.HostName;
   FProxy.UserName:=Self.UserName;
   FProxy.Password:=Self.Password;
-  FProxy.Transaction:=Self.Transaction;
+  FProxy.FTransaction:=Self.Transaction;
   D:=GetConnectionDef(ConnectorType);
   D.ApplyParams(Params,FProxy);
   FProxy.Connected:=True;
@@ -2021,6 +2030,7 @@ begin
   If (D=Nil) then
     DatabaseErrorFmt(SErrUnknownConnectorType,[ConnectorType],Self);
   FProxy:=D.ConnectionClass.Create(Self);
+  FFieldNameQuoteChars := FProxy.FieldNameQuoteChars;
 end;
 
 procedure TSQLConnector.FreeProxy;

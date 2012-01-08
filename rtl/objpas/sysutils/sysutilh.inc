@@ -98,6 +98,8 @@ type
    PWordarray = ^TWordArray;
    TWordArray = array[0..16383] of Word;
 
+   TBytes = array of Byte;   
+
    { exceptions }
    Exception = class(TObject)
     private

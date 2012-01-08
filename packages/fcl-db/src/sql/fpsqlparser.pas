@@ -323,8 +323,13 @@ begin
        T.Params:=ParseValueList(AParent,[eoParamValue]);
        GetNextToken;
        end;
-     if (CurrentToken=tsqlIdentifier) then
+     if (CurrentToken in [tsqlIdentifier,tsqlAs]) then
        begin
+       if CurrentToken=tsqlAs then
+         begin
+         GetNextToken;
+         Expect(tsqlIdentifier);
+         end;
        T.AliasName:=CreateIdentifier(T,CurrentTokenString);
        GetNextToken;
        end;
