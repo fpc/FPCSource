@@ -216,7 +216,7 @@ interface
           top_none   : ();
           top_reg    : (reg:tregister);
           top_ref    : (ref:preference);
-          top_const  : (val:aint);
+          top_const  : (val:tcgint);
           top_bool   : (b:boolean);
           { local varsym that will be inserted in pass_generate_code }
           top_local  : (localoper:plocaloper);
