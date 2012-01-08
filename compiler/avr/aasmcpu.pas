@@ -294,7 +294,8 @@ implementation
 
     procedure taicpu.ResetPass2;
       begin
-{        { we are here in a second pass, check if the instruction can be optimized }
+        { we are here in a second pass, check if the instruction can be optimized }
+{
         if assigned(InsEntry) and
            ((InsEntry^.flags and IF_PASS2)<>0) then
          begin
