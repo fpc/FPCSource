@@ -2431,7 +2431,7 @@ special_type_name :
      SHORT INT
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(csint_STR))
+       $$:=new(presobject,init_id(cshort_STR))
      else
        $$:=new(presobject,init_intid(SMALL_STR));
      } |
