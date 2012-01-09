@@ -180,6 +180,8 @@ begin
 {$include fpmkunit/fpmake.pp}
 end;
 
+{$include fppkg/fpmake.pp}
+
 procedure add_fv;
 begin
   with Installer do
