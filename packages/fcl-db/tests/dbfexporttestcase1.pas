@@ -1,20 +1,20 @@
-unit XMLXSDExportTestCase1;
+unit dbfexporttestcase1;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, Fpcunit, Testutils, Testregistry, DB, fpXMLXSDExport,
+  Classes, SysUtils, Fpcunit, Testutils, Testregistry, DB, fpdbfexport,
   BufDataset, dateutils;
 
 type
 
-  { Ttestxmlxsdexport1 }
+  { TTestDBFExport1 }
 
-  Ttestxmlxsdexport1 = class(Ttestcase)
+  TTestDBFExport1 = class(Ttestcase)
   const
-    KeepFilesAfterTest = true;
+    KeepFilesAfterTest = false;
     //Change if you want to keep export files for further testing
   private
     procedure FillTestData;
@@ -28,251 +28,59 @@ type
     procedure Setup; override;
     procedure Teardown; override;
   published
-    procedure TestXSDExport_Access_NoXSD_DecimalOverride;
-    procedure TestXSDExport_Access_NoXSD_NoDecimalOverride;
-    procedure TestXSDExport_Access_XSD_DecimalOverride;
-    procedure TestXSDExport_Access_XSD_NoDecimalOverride;
-    procedure TestXSDExport_ADONET_NoXSD;
-    procedure TestXSDExport_ADONET_XSD;
-    procedure TestXSDExport_DelphiClientDataset;
-    procedure TestXSDExport_Excel;
+    procedure TestDBExportRuns;
   end;
 
 implementation
 
-procedure Ttestxmlxsdexport1.TestXSDExport_Access_NoXSD_NoDecimalOverride;
+function FileSize(FileName: string): integer;
+  // LCL has similar function, but we don't want to depend on that.
+var
+  SearchResult: TSearchRec;
+begin
+  Result := 0;
+  if FindFirst(FileName, faAnyFile, SearchResult) = 0 then
+  begin
+    try
+      Result := SearchResult.Size;
+    finally
+      FindClose(SearchResult);
+    end;
+  end;
+end;
+
+procedure TTestDBFExport1.TestDBExportRuns;
 
 var
-  Export: TXMLXSDExporter;
-  Settings: TXMLXSDFormatSettings;
+  Export: TFPDBFExport;
+  ExportSettings: TDBFExportFormatSettings;
   NumberExported: integer;
-
 begin
-  Export := TXMLXSDExporter.Create(nil);
-  Settings := TXMLXSDFormatSettings.Create(True);
+  Export := TFPDBFExport.Create(nil);
+  ExportSettings:=TDBFExportFormatSettings.Create(true);
   try
     //Don't override decimal separator
-    Settings.CreateXSD := False;
-    Settings.DecimalSeparator := char(''); //Don't override decimalseparator
-    Settings.ExportFormat := AccessCompatible;
+    ExportSettings.TableFormat:=tfDBaseVII; //dbase IV seems to have a 10 character field name limit
+    Export.FormatSettings:=ExportSettings;
     Export.Dataset := FTestDataset;
-    Export.FormatSettings := Settings;
-    Export.FileName := FExportTempDir + 'Access_NoXSD_NoDecimalOverride.xml';
+    Export.FileName := FExportTempDir + 'dbfexporttest.dbf';
     NumberExported := Export.Execute;
     FTestDataset.Close;
     AssertEquals('Number of records exported', NumberExported, FTestDataset.RecordCount);
+    AssertTrue('Output file created', FileExists(Export.FileName));
+    AssertTrue('Output file has contents', (FileSize(Export.FileName) > 0));
   finally
-    Settings.Free;
     if (KeepFilesAfterTest = False) then
     begin
       DeleteFile(Export.FileName);
     end;
-    Export.Free;
-  end;
-end;
-
-procedure Ttestxmlxsdexport1.TestXSDExport_Access_NoXSD_DecimalOverride;
-var
-  Export: TXMLXSDExporter;
-  Settings: TXMLXSDFormatSettings;
-  NumberExported: integer;
-
-begin
-  Export := TXMLXSDExporter.Create(nil);
-  Settings := TXMLXSDFormatSettings.Create(True);
-  try
-    Settings.DecimalSeparator := ',';
-    //Try to override decimal separator specified by fpXMLXSDExport
-    Settings.CreateXSD := False;
-    Settings.ExportFormat := AccessCompatible;
-    Export.Dataset := FTestDataset;
-    Export.FormatSettings := Settings;
-    Export.FileName := FExportTempDir + 'Access_NoXSD_DecimalOverride.xml';
-    NumberExported := Export.Execute;
-    FTestDataset.Close;
-    AssertEquals('Number of records exported', NumberExported, FTestDataset.RecordCount);
-  finally
-    Settings.Free;
-    if (KeepFilesAfterTest = False) then
-    begin
-      DeleteFile(Export.FileName);
-    end;
-    Export.Free;
-  end;
-end;
-
-procedure Ttestxmlxsdexport1.TestXSDExport_Access_XSD_NoDecimalOverride;
-var
-  Export: TXMLXSDExporter;
-  Settings: TXMLXSDFormatSettings;
-  NumberExported: integer;
-
-begin
-  Export := TXMLXSDExporter.Create(nil);
-  Settings := TXMLXSDFormatSettings.Create(True);
-  try
-    //Settings.DecimalSeparator := ','; //Don't override decimal separator
-    Settings.CreateXSD := True;
-    Settings.ExportFormat := AccessCompatible;
-    Export.Dataset := FTestDataset;
-    Export.FormatSettings := Settings;
-    Export.FileName := FExportTempDir + 'Access_XSD_NoDecimalOverride.xml';
-    NumberExported := Export.Execute;
-    FTestDataset.Close;
-    AssertEquals('Number of records exported', NumberExported, FTestDataset.RecordCount);
-  finally
-    Settings.Free;
-    if (KeepFilesAfterTest = False) then
-    begin
-      DeleteFile(Export.FileName);
-    end;
-    Export.Free;
-  end;
-end;
-
-procedure Ttestxmlxsdexport1.TestXSDExport_Access_XSD_DecimalOverride;
-var
-  Export: TXMLXSDExporter;
-  Settings: TXMLXSDFormatSettings;
-  NumberExported: integer;
-
-begin
-  Export := TXMLXSDExporter.Create(nil);
-  Settings := TXMLXSDFormatSettings.Create(True);
-  try
-    Settings.DecimalSeparator := ','; //Try to override decimal separator
-    Settings.CreateXSD := True;
-    Settings.ExportFormat := AccessCompatible;
-    Export.Dataset := FTestDataset;
-    Export.FormatSettings := Settings;
-    Export.FileName := FExportTempDir + 'Access_XSD_DecimalOverride.xml';
-    NumberExported := Export.Execute;
-    FTestDataset.Close;
-    AssertEquals('Number of records exported', NumberExported, FTestDataset.RecordCount);
-  finally
-    Settings.Free;
-    if (KeepFilesAfterTest = False) then
-    begin
-      DeleteFile(Export.FileName);
-    end;
-    Export.Free;
-  end;
-end;
-
-procedure Ttestxmlxsdexport1.TestXSDExport_ADONET_NoXSD;
-var
-  Export: TXMLXSDExporter;
-  Settings: TXMLXSDFormatSettings;
-  NumberExported: integer;
-
-begin
-  Export := TXMLXSDExporter.Create(nil);
-  Settings := TXMLXSDFormatSettings.Create(True);
-  try
-    Settings.CreateXSD := False;
-    Settings.ExportFormat := ADONETCompatible;
-    Export.Dataset := FTestDataset;
-    Export.FormatSettings := Settings;
-    Export.FileName := FExportTempDir + 'ADONET_NoXSD.xml';
-    NumberExported := Export.Execute;
-    FTestDataset.Close;
-    AssertEquals('Number of records exported', NumberExported, FTestDataset.RecordCount);
-  finally
-    Settings.Free;
-    if (KeepFilesAfterTest = False) then
-    begin
-      DeleteFile(Export.FileName);
-    end;
-    Export.Free;
-  end;
-end;
-
-procedure Ttestxmlxsdexport1.TestXSDExport_ADONET_XSD;
-var
-  Export: TXMLXSDExporter;
-  Settings: TXMLXSDFormatSettings;
-  NumberExported: integer;
-
-begin
-  Export := TXMLXSDExporter.Create(nil);
-  Settings := TXMLXSDFormatSettings.Create(True);
-  try
-    Settings.CreateXSD := True;
-    Settings.ExportFormat := ADONETCompatible;
-    Export.Dataset := FTestDataset;
-    Export.FormatSettings := Settings;
-    Export.FileName := FExportTempDir + 'ADONET_XSD.xml';
-    NumberExported := Export.Execute;
-    FTestDataset.Close;
-    AssertEquals('Number of records exported', NumberExported, FTestDataset.RecordCount);
-  finally
-    Settings.Free;
-    if (KeepFilesAfterTest = False) then
-    begin
-      DeleteFile(Export.FileName);
-    end;
-    Export.Free;
-  end;
-end;
-
-procedure Ttestxmlxsdexport1.TestXSDExport_DelphiClientDataset;
-var
-  Export: TXMLXSDExporter;
-  Settings: TXMLXSDFormatSettings;
-  NumberExported: integer;
-
-begin
-  Export := TXMLXSDExporter.Create(nil);
-  Settings := TXMLXSDFormatSettings.Create(True);
-  try
-    Settings.ExportFormat := DelphiClientDataset;
-    Export.Dataset := FTestDataset;
-    Export.FormatSettings := Settings;
-    Export.FileName := FExportTempDir + 'DelphiClientDataset.xml';
-    NumberExported := Export.Execute;
-    FTestDataset.Close;
-    AssertEquals('Number of records exported', NumberExported, FTestDataset.RecordCount);
-    //we should have exported 2 records.
-  finally
-    Settings.Free;
-    if (KeepFilesAfterTest = False) then
-    begin
-      DeleteFile(Export.FileName);
-    end;
-    Export.Free;
-  end;
-end;
-
-procedure Ttestxmlxsdexport1.TestXSDExport_Excel;
-var
-  Export: TXMLXSDExporter;
-  Settings: TXMLXSDFormatSettings;
-  NumberExported: integer;
-
-begin
-  Export := TXMLXSDExporter.Create(nil);
-  Settings := TXMLXSDFormatSettings.Create(True);
-  try
-    Settings.ExportFormat := ExcelCompatible;
-    Export.Dataset := FTestDataset;
-    Export.FormatSettings := Settings;
-    Export.FileName := FExportTempDir + 'Excel.xml';
-    NumberExported := Export.Execute;
-    FTestDataset.Close;
-    AssertEquals('Number of records exported', NumberExported, FTestDataset.RecordCount);
-    //we should have exported 2 records.
-  finally
-    Settings.Free;
-    if (KeepFilesAfterTest = False) then
-    begin
-      DeleteFile(Export.FileName);
-    end;
+    ExportSettings.Free;
     Export.Free;
   end;
 end;
 
 
-procedure Ttestxmlxsdexport1.FillTestData;
+procedure TTestDBFExport1.FillTestData;
 var
   RowNumber: integer; //Keep track of how many rows we inserted
   TestBoolean: boolean;
@@ -382,7 +190,7 @@ begin
   AssertEquals('Number of records in test dataset', RowNumber, FTestDataset.RecordCount);
 end;
 
-procedure Ttestxmlxsdexport1.Setup;
+procedure TTestDBFExport1.Setup;
 const
   NumberOfDecimals = 2;
   NumberOfBytes = 10;
@@ -391,7 +199,7 @@ var
 begin
   FExportTempDir := GetTempDir(False);
   FTestDataset := TBufDataset.Create(nil);
-
+  {Tweaked for dbf export}
   {We should cover all data types defined in FPC:
 
   FPC maps "external" types such as ftOracleBlob to
@@ -429,6 +237,7 @@ begin
   //Size is the number of digits after the decimal place
 
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
+  //Note dbf 3 has a 10 character field length limit
   FieldDef.Name := 'ftBlob_4096';
   FieldDef.DataType := ftBlob;
   FieldDef.Size := 4096;//large but hopefully not too large for memory.
@@ -574,15 +383,15 @@ begin
   FieldDef.DataType := ftTimeStamp;
   }
 
+  {
+  //Bufdataset probably doesn't support this
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
-  FieldDef.Name := 'ftTypedBinary';
+  // DBF 10 character limit comes into play here:
+  FieldDef.Name := 'ftTypedBin';
   FieldDef.DataType := ftTypedBinary;
   FieldDef.Size := 4096;//large but hopefully not too large for memory.
+  }
 
-  { ftVariant and ftVarBytes don't work; see bug 19930
-  However, there's more wront in bufdataset; if I don't
-  include these field definitions, I get access violations later on.}
-  FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftVariant';
   FieldDef.DataType := ftVariant;
   FieldDef.Size := NumberOfBytes;
@@ -604,6 +413,14 @@ begin
   FieldDef := FTestDataset.FieldDefs.AddFieldDef;
   FieldDef.Name := 'ftWord';
   FieldDef.DataType := ftWord;
+  
+  //Finally, a long field name that should trigger
+  //field renaming code in dbf export
+  //(dbase VII supports up to 32 characters, others up to 10)
+  FieldDef := FTestDataset.FieldDefs.AddFieldDef;
+  FieldDef.Name := 'AVeryLongFieldDataTypeDoesNotMatter';
+  FieldDef.DataType := ftString;
+  FieldDef.Size := 256;
 
   //Createtable is needed if you use a memds
   //FTestDataset.CreateTable;
@@ -614,14 +431,13 @@ begin
   FillTestData;
 end;
 
-procedure Ttestxmlxsdexport1.FillRecord(const RowNumber: integer;
+procedure TTestDBFExport1.FillRecord(const RowNumber: integer;
   const TestString: string; const TestGUID: string; const TestInteger: integer;
   const TestExtended: extended; const TestDatetime: Tdatetime;
   const TestBoolean: boolean);
 var
   FieldCounter: integer;
 begin
-  writeln('*** Starting to fill row ' + IntToStr(RowNumber));
   {As our bufdataset doesn't support these datatypes, don't use them:
 ftAutoInc -> exists but doesn't seem to return any data.
 ftCursor
@@ -649,48 +465,31 @@ ftTimeStamp}
   FTestDataset.FieldByName('ftLargeint').AsInteger := Testinteger;
   FTestDataset.FieldByName('ftMemo').AsString := Teststring;
   FTestDataset.FieldByName('ftOraBlob').AsString := Teststring;
+  {
   FTestDataset.FieldByName('ftOraClob').AsString := Teststring;
+  }
   FTestDataset.FieldByName('ftParadoxOle').AsString := Teststring;
   FTestDataset.FieldByName('ftSmallInt').AsInteger := Testinteger;
   FTestDataset.FieldByName('ftString_1').AsString := Teststring;
   FTestDataset.FieldByName('ftString_256').AsString := Teststring;
   FTestDataset.FieldByName('ftTime').AsDateTime := Testdatetime;
-  FTestDataset.FieldByName('ftTypedBinary').AsString := Teststring;
-  { ftVarBytes and ftVariant don't work; see bug 19930}
   {
+  FTestDataset.FieldByName('ftTypedBin').AsString := Teststring;
+  }
   FTestDataSet.FieldByName('ftVarBytes').AsString := TestString;
   FTestDataSet.FieldByName('ftVariant').AsString := TestString;
-  }
   FTestDataset.FieldByName('ftWideMemo').AsString := Teststring;
   FTestDataset.FieldByName('ftWideString256').AsString := Teststring;
   FTestDataset.FieldByName('ftWord').AsInteger := Abs(Testinteger);
-  //If I keep the output code below on Win32, I don't get an access violation.
-  //If I remove it, I do. Probably bug 19930 again?
-  for Fieldcounter := 0 to FTestDataset.Fields.Count - 1 do
-  begin
-    try
-      writeln('Field: ' + FTestDataset.Fields[FieldCounter].FieldName +
-        ' has value ' + FTestDataset.Fields[FieldCounter].AsString);
-      {writeln('Field: ' + FTestDataset.Fields[FieldCounter].FieldName +
-        ' has displaytext ' + FTestDataset.Fields[FieldCounter].DisplayText);}
-    except
-      on E: Exception do
-      begin
-        writeln('Field: ' + FTestDataset.Fields[FieldCounter].FieldName +
-          ': error retrieving value: ');
-        writeln(E.ClassName, '; detailed error message: ', E.message);
-      end;
-    end;
-  end;
-  writeln('*** Finished filling row ' + IntToStr(RowNumber));
+  FTestDataset.FieldByName('AVeryLongFieldDataTypeDoesNotMatter').AsString := Teststring;
 end;
 
-procedure Ttestxmlxsdexport1.Teardown;
+procedure TTestDBFExport1.Teardown;
 begin
   FTestDataset.Free;
 end;
 
 initialization
-  Registertest(Ttestxmlxsdexport1);
+  Registertest(TTestDBFExport1);
 end.
 
