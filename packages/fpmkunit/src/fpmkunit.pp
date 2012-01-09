@@ -3651,7 +3651,10 @@ procedure TCustomInstaller.Usage(const FMT: String; Args: array of const);
 
   Procedure LogArgOption(const C,LC,Msg : String);
   begin
-    Log(vlInfo,Format(' -%s --%-20s %s',[C,LC+'='+SValue,MSG]));
+    if trim(c)='' then
+      Log(vlInfo,Format('    --%-20s %s',[LC+'='+SValue,MSG]))
+    else
+      Log(vlInfo,Format(' -%s --%-20s %s',[C,LC+'='+SValue,MSG]));
   end;
 
 var
