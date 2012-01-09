@@ -10512,6 +10512,7 @@ tests/test/ulib2a.pp svneol=native#text/plain
 tests/test/umaclocalprocparam3f.pp svneol=native#text/plain
 tests/test/umacpas1.pp svneol=native#text/plain
 tests/test/umainnam.pp svneol=native#text/plain
+tests/test/units/classes/tbytesstreamtest.pp svneol=native#text/pascal
 tests/test/units/classes/tmakeobjinst.pp svneol=native#text/plain
 tests/test/units/classes/tsetstream.pp svneol=native#text/plain
 tests/test/units/classes/tvclcomobject.pp svneol=native#text/plain
