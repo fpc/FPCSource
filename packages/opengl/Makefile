@@ -427,7 +427,7 @@ ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_UNITS+=gl glu glut  glx glext
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=gl glu glut
+override TARGET_UNITS+=gl glu glut  glext
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_UNITS+=gl glu glut
