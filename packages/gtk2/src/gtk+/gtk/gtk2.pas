@@ -72,7 +72,7 @@ uses
 
 const
 // OS dependent defines
-{$ifdef win32}
+{$ifdef windows}
   {$DEFINE GTK_WINDOWING_WIN32}
   gtklib = 'libgtk-win32-2.0-0.dll';
   {$IFDEF FPC}

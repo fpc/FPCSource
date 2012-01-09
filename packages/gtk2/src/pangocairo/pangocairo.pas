@@ -33,7 +33,7 @@ interface
 uses glib2, pango, cairo;
 
 const
-{$ifdef win32}
+{$ifdef windows}
   {$define pangowin}
   pangocairolib = 'libpangocairo-1.0-0.dll';
   {$IFDEF FPC}

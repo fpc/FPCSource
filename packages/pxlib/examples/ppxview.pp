@@ -55,6 +55,7 @@ var
   buf, fbuf,value : Pchar;
   longv : clong;
   y,m,d : cint;
+  si: shortint;
   R : Double;
   c : char;
   
@@ -89,8 +90,8 @@ begin
               {$endif}
               end;
         pxfShort:
-          if PX_get_data_short(Doc,fbuf, flen, @D)>0 then
-            S:=IntToStr(D);
+          if PX_get_data_short(Doc,fbuf, flen, @si)>0 then
+            S:=IntToStr(si);
         pxfAutoInc,
         pxfLong:
           if (PX_get_data_long(Doc,fbuf,flen,@longv)>0) then
@@ -158,6 +159,7 @@ begin
       Inc(Pxf);
       end;
     end;  
+  FreeMem(Buf);
 end;
 
 Var

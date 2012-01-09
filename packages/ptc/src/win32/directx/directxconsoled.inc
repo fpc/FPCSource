@@ -51,7 +51,7 @@ type
 //    FDefaultPages: Integer;
     FCenterWindow: Boolean;
     FSynchronizedUpdate: Boolean;
-    FDefaultFormat: TPTCFormat;
+    FDefaultFormat: IPTCFormat;
     FOutputMode: (DEFAULT, WINDOWED, FULLSCREEN); {Output}
     FWindowMode: (RESIZABLE, FIXED); {Window}
     FPrimaryModeWindowed: TPrimaryModeEnum; {Primary}
@@ -77,8 +77,8 @@ type
     FPrimary: TDirectXPrimary;
 
     { internal console management routines }
-    procedure internal_open(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
-    procedure internal_recycle(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_open(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_recycle(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
     procedure internal_close;
     procedure internal_shutdown;
 
@@ -88,20 +88,20 @@ type
     procedure internal_open_reset;
 
     { internal fullscreen open routines }
-    procedure internal_open_fullscreen_start(window: HWND; const mode: TPTCMode; exact: Boolean);
-    procedure internal_open_fullscreen_change(const mode: TPTCMode; exact: Boolean);
-    procedure internal_open_fullscreen_surface(const mode: TPTCMode; _pages: Integer);
+    procedure internal_open_fullscreen_start(window: HWND; const mode: IPTCMode; exact: Boolean);
+    procedure internal_open_fullscreen_change(const mode: IPTCMode; exact: Boolean);
+    procedure internal_open_fullscreen_surface(const mode: IPTCMode; _pages: Integer);
     procedure internal_open_fullscreen_finish;
 
     { internal windowed open routines }
-    procedure internal_open_windowed_start(window: HWND; const mode: TPTCMode; exact: Boolean);
-    procedure internal_open_windowed_change(const mode: TPTCMode; exact: Boolean);
-    procedure internal_open_windowed_surface(const mode: TPTCMode; _pages: Integer);
+    procedure internal_open_windowed_start(window: HWND; const mode: IPTCMode; exact: Boolean);
+    procedure internal_open_windowed_change(const mode: IPTCMode; exact: Boolean);
+    procedure internal_open_windowed_surface(const mode: IPTCMode; _pages: Integer);
     procedure internal_open_windowed_finish;
 
     { internal console open recycling routines }
-    procedure internal_recycle_fullscreen(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
-    procedure internal_recycle_windowed(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_recycle_fullscreen(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_recycle_windowed(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
 
 {$IFDEF DEBUG}
     { debug }
@@ -119,59 +119,59 @@ type
     destructor Destroy; override;
     procedure Configure(const AFileName: String); override;
     function Option(const AOption: String): Boolean; override;
-    function Modes: PPTCMode; override;
+    function Modes: TPTCModeList; override;
     procedure Open(const ATitle: string; APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; const AFormat: TPTCFormat;
+    procedure Open(const ATitle: string; AFormat: IPTCFormat;
                    APages: Integer = 0); overload; override;
     procedure Open(const ATitle: string; AWidth, AHeight: Integer;
-                   const AFormat: TPTCFormat; APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; const AMode: TPTCMode;
+                   AFormat: IPTCFormat; APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: string; AMode: IPTCMode;
                    APages: Integer = 0); overload; override;
     procedure Close; override;
     procedure Flush; override;
     procedure Finish; override;
     procedure Update; override;
-    procedure Update(const AArea: TPTCArea); override;
-    procedure Copy(ASurface: TPTCBaseSurface); override;
-    procedure Copy(ASurface: TPTCBaseSurface;
-                   const ASource, ADestination: TPTCArea); override;
+    procedure Update(AArea: IPTCArea); override;
+    procedure Copy(ASurface: IPTCSurface); override;
+    procedure Copy(ASurface: IPTCSurface;
+                   ASource, ADestination: IPTCArea); override;
     function Lock: Pointer; override;
     procedure Unlock; override;
     procedure Load(const APixels: Pointer;
                    AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette); override;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette); override;
     procedure Load(const APixels: Pointer;
                    AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette;
-                   const ASource, ADestination: TPTCArea); override;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea); override;
     procedure Save(APixels: Pointer;
                    AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette); override;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette); override;
     procedure Save(APixels: Pointer;
                    AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette;
-                   const ASource, ADestination: TPTCArea); override;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea); override;
     procedure Clear; override;
-    procedure Clear(const AColor: TPTCColor); override;
-    procedure Clear(const AColor: TPTCColor;
-                    const AArea: TPTCArea); override;
-    procedure Palette(const APalette: TPTCPalette); override;
-    function Palette: TPTCPalette; override;
-    procedure Clip(const AArea: TPTCArea); override;
+    procedure Clear(AColor: IPTCColor); override;
+    procedure Clear(AColor: IPTCColor;
+                    AArea: IPTCArea); override;
+    procedure Palette(APalette: IPTCPalette); override;
+    function Palette: IPTCPalette; override;
+    procedure Clip(AArea: IPTCArea); override;
     function GetWidth: Integer; override;
     function GetHeight: Integer; override;
     function GetPitch: Integer; override;
     function GetPages: Integer; override;
-    function GetArea: TPTCArea; override;
-    function Clip: TPTCArea; override;
-    function GetFormat: TPTCFormat; override;
+    function GetArea: IPTCArea; override;
+    function Clip: IPTCArea; override;
+    function GetFormat: IPTCFormat; override;
     function GetName: string; override;
     function GetTitle: string; override;
     function GetInformation: string; override;
-    function NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
-    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent; override;
+    function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
+    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; override;
   end;

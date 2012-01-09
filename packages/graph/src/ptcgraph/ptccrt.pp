@@ -110,56 +110,51 @@ end;
 
 procedure GetKeyEvents;
 var
-  ev: TPTCEvent;
-  KeyEv: TPTCKeyEvent;
+  ev: IPTCEvent;
+  KeyEv: IPTCKeyEvent;
 begin
-  ev := nil;
-  try
-    repeat
-      PTCWrapperObject.NextEvent(ev, False, [PTCKeyEvent]);
-      if ev <> nil then
+  repeat
+    PTCWrapperObject.NextEvent(ev, False, [PTCKeyEvent]);
+    if ev <> nil then
+    begin
+      KeyEv := ev as IPTCKeyEvent;
+      if KeyEv.Press then
       begin
-        KeyEv := TPTCKeyEvent(ev);
-        if KeyEv.Press then
-        begin
-          case KeyEv.Code of
-            PTCKEY_BACKSPACE:
-              if KeyEv.Control then
-                KeyBufAdd(#127)
-              else
-                KeyBufAdd(#8);
-            PTCKEY_ENTER:  KeyBufAdd(#13);
-            PTCKEY_ESCAPE: KeyBufAdd(#27);
-            PTCKEY_INSERT: KeyBufAdd(#0#82);
-            PTCKEY_DELETE: KeyBufAdd(#0#83);
-            PTCKEY_LEFT:   KeyBufAdd(#0#75);
-            PTCKEY_UP:     KeyBufAdd(#0#72);
-            PTCKEY_RIGHT:  KeyBufAdd(#0#77);
-            PTCKEY_DOWN:   KeyBufAdd(#0#80);
-            PTCKEY_HOME:     KeyBufAdd(#0#71);
-            PTCKEY_END:      KeyBufAdd(#0#79);
-            PTCKEY_PAGEUP:   KeyBufAdd(#0#73);
-            PTCKEY_PAGEDOWN: KeyBufAdd(#0#81);
-            PTCKEY_F1:     KeyBufAdd(#0#59);
-            PTCKEY_F2:     KeyBufAdd(#0#60);
-            PTCKEY_F3:     KeyBufAdd(#0#61);
-            PTCKEY_F4:     KeyBufAdd(#0#62);
-            PTCKEY_F5:     KeyBufAdd(#0#63);
-            PTCKEY_F6:     KeyBufAdd(#0#64);
-            PTCKEY_F7:     KeyBufAdd(#0#65);
-            PTCKEY_F8:     KeyBufAdd(#0#66);
-            PTCKEY_F9:     KeyBufAdd(#0#67);
-            PTCKEY_F10:    KeyBufAdd(#0#68);
+        case KeyEv.Code of
+          PTCKEY_BACKSPACE:
+            if KeyEv.Control then
+              KeyBufAdd(#127)
             else
-              if (KeyEv.Unicode >= 32) and (KeyEv.Unicode <= 127) then
-                KeyBufAdd(Chr(KeyEv.Unicode));
-          end;
+              KeyBufAdd(#8);
+          PTCKEY_ENTER:  KeyBufAdd(#13);
+          PTCKEY_ESCAPE: KeyBufAdd(#27);
+          PTCKEY_INSERT: KeyBufAdd(#0#82);
+          PTCKEY_DELETE: KeyBufAdd(#0#83);
+          PTCKEY_LEFT:   KeyBufAdd(#0#75);
+          PTCKEY_UP:     KeyBufAdd(#0#72);
+          PTCKEY_RIGHT:  KeyBufAdd(#0#77);
+          PTCKEY_DOWN:   KeyBufAdd(#0#80);
+          PTCKEY_HOME:     KeyBufAdd(#0#71);
+          PTCKEY_END:      KeyBufAdd(#0#79);
+          PTCKEY_PAGEUP:   KeyBufAdd(#0#73);
+          PTCKEY_PAGEDOWN: KeyBufAdd(#0#81);
+          PTCKEY_F1:     KeyBufAdd(#0#59);
+          PTCKEY_F2:     KeyBufAdd(#0#60);
+          PTCKEY_F3:     KeyBufAdd(#0#61);
+          PTCKEY_F4:     KeyBufAdd(#0#62);
+          PTCKEY_F5:     KeyBufAdd(#0#63);
+          PTCKEY_F6:     KeyBufAdd(#0#64);
+          PTCKEY_F7:     KeyBufAdd(#0#65);
+          PTCKEY_F8:     KeyBufAdd(#0#66);
+          PTCKEY_F9:     KeyBufAdd(#0#67);
+          PTCKEY_F10:    KeyBufAdd(#0#68);
+          else
+            if (KeyEv.Unicode >= 32) and (KeyEv.Unicode <= 127) then
+              KeyBufAdd(Chr(KeyEv.Unicode));
         end;
       end;
-    until ev = nil;
-  finally
-    ev.Free;
-  end;
+    end;
+  until ev = nil;
 end;
 
 function KeyPressed: Boolean;

@@ -165,6 +165,14 @@ end;
 function WndProcSingleThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
 begin
   case message of
+    WM_SYSCOMMAND:
+      begin
+        { this fixes the pausing of the application when the Alt or F10 key is pressed }
+        if wParam = SC_KEYMENU then
+	  Result := 0
+	else
+          Result := DefWindowProc(hWnd, message, wParam, lParam);
+      end;
     WM_SETCURSOR: begin
       {$WARNING GCLP_HCURSOR not defined in windows unit}
       if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, {GCLP_HCURSOR}GCL_HCURSOR) = 0) then
@@ -188,6 +196,14 @@ function WndProcMultiThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam:
 begin
   Result := 0;
   case message of
+    WM_SYSCOMMAND:
+      begin
+        { this fixes the pausing of the application when the Alt or F10 key is pressed }
+        if wParam = SC_KEYMENU then
+	  Result := 0
+	else
+          Result := DefWindowProc(hWnd, message, wParam, lParam);
+      end;
     WM_SETCURSOR: begin
       {$WARNING GCLP_HCURSOR not defined in windows unit}
       if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, {GCLP_HCURSOR}GCL_HCURSOR) = 0) then

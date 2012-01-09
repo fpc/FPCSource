@@ -52,7 +52,7 @@ function g_mem_is_system_malloc:gboolean; cdecl; external gliblib;
 {$IFNDEF KYLIX}
 { Memory profiler and checker, has to be enabled via g_mem_set_vtable() }
 var
-  {$IFDEF WIN32}
+  {$IFDEF WINDOWS}
   glib_mem_profiler_table : PGMemVTable; external gliblib name 'glib_mem_profiler_table';
   {$ELSE}
   glib_mem_profiler_table : PGMemVTable;cvar;external;

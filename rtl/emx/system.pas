@@ -538,7 +538,11 @@ begin
 {$WARNING To be checked/corrected!}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
-                ProcessID := 1;
+                asm
+                    mov ax, 7F05h
+                    call syscall
+                    mov ProcessID, eax
+                end ['eax'];
                 ThreadID := 1;
             end;
         osOS2:
@@ -560,7 +564,6 @@ begin
 {$WARNING To be checked/corrected!}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
-                ProcessID := 1;
                 ThreadID := 1;
             end;
     end;

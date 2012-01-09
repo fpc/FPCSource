@@ -51,16 +51,16 @@ type
     { Conversion object }
     FCopy: TPTCCopy;
     FClear: TPTCClear;
-    FPalette: TPTCPalette;
+    FPalette: IPTCPalette;
 
-    FArea: TPTCArea;
-    FClip: TPTCArea;
+    FArea: IPTCArea;
+    FClip: IPTCArea;
 
     FEventQueue: TEventQueue;
 
     FFlags: TX11Flags;
     FWidth, FHeight: Integer;
-    FFormat: TPTCFormat;
+    FFormat: IPTCFormat;
 
     FDisplay: PDisplay;
     FScreen: Integer;
@@ -71,13 +71,13 @@ type
     FFunctionKeys: PInteger;
     FNormalKeys: PInteger;
 
-    function NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; virtual; abstract;
-    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent; virtual; abstract;
+    function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; virtual; abstract;
+    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; virtual; abstract;
 
     function GetX11DirectFormat(ABitsPerPixel: Integer;
                                 AR, AG, AB: DWord;
-                                AByteOrder: cint): TPTCFormat;
-    function GetX11Format(const AFormat: TPTCFormat): TPTCFormat;
+                                AByteOrder: cint): IPTCFormat;
+    function GetX11Format(AFormat: IPTCFormat): IPTCFormat;
 
     { initialise the keyboard mapping table }
     procedure SetKeyMapping;
@@ -86,51 +86,51 @@ type
     function GetWidth: Integer;
     function GetHeight: Integer;
     function GetPitch: Integer; virtual; abstract;
-    function GetFormat: TPTCFormat;
-    function GetArea: TPTCArea;
+    function GetFormat: IPTCFormat;
+    function GetArea: IPTCArea;
   public
     constructor Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags); virtual;
     destructor Destroy; override;
 
-    procedure Open(ATitle: string; AWidth, AHeight: Integer; const AFormat: TPTCFormat); virtual; abstract;
+    procedure Open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat); virtual; abstract;
 
     { This will always return a windowed console. The first version
       fills the whole window, the second one has a custom size }
-    procedure Open(AWindow: TWindow; const AFormat: TPTCFormat); virtual; abstract;
-    procedure Open(AWindow: TWindow; const AFormat: TPTCFormat; AX, AY, AWidth, AHeight: Integer); virtual; abstract;
+    procedure Open(AWindow: TWindow; AFormat: IPTCFormat); virtual; abstract;
+    procedure Open(AWindow: TWindow; AFormat: IPTCFormat; AX, AY, AWidth, AHeight: Integer); virtual; abstract;
 
     procedure Close; virtual; abstract;
 
     procedure Update; virtual; abstract;
-    procedure Update(const AArea: TPTCArea); virtual; abstract;
+    procedure Update(AArea: IPTCArea); virtual; abstract;
 
     function Lock: Pointer; virtual; abstract;
     procedure Unlock; virtual; abstract;
 
     { load pixels to console }
     procedure Load(const APixels: Pointer; AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat; const APalette: TPTCPalette); virtual;
+                   AFormat: IPTCFormat; APalette: IPTCPalette); virtual;
     procedure Load(const APixels: Pointer; AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat; const APalette: TPTCPalette;
-                   const ASource, ADestination: TPTCArea); virtual;
+                   AFormat: IPTCFormat; APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea); virtual;
 
     { save console pixels }
     procedure Save(APixels: Pointer; AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat; const APalette: TPTCPalette); virtual;
+                   AFormat: IPTCFormat; APalette: IPTCPalette); virtual;
     procedure Save(APixels: Pointer; AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat; const APalette: TPTCPalette;
-                   const ASource, ADestination: TPTCArea); virtual;
+                   AFormat: IPTCFormat; APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea); virtual;
 
     { clear surface }
-    procedure Clear(const AColor: TPTCColor); virtual;
-    procedure Clear(const AColor: TPTCColor; const AArea: TPTCArea); virtual;
+    procedure Clear(AColor: IPTCColor); virtual;
+    procedure Clear(AColor: IPTCColor; AArea: IPTCArea); virtual;
 
     { Console palette }
-    procedure Palette(const APalette: TPTCPalette); virtual; abstract;
-    function Palette: TPTCPalette; virtual;
+    procedure Palette(APalette: IPTCPalette); virtual; abstract;
+    function Palette: IPTCPalette; virtual;
 
     { console clip area }
-    procedure Clip(const AArea: TPTCArea);
+    procedure Clip(AArea: IPTCArea);
 
     { cursor control }
     procedure SetCursor(AVisible: Boolean); virtual; abstract;
@@ -139,14 +139,14 @@ type
     procedure SetMouseGrab(AGrabMouse: Boolean); virtual; abstract;
 
     { Data access }
-    function Clip: TPTCArea;
+    function Clip: IPTCArea;
 
     function IsFullScreen: Boolean; virtual; abstract;
 
     { set flags (only used internally now!) }
     procedure SetFlags(AFlags: TX11Flags);
 
-    procedure GetModes(var AModes: TPTCModeDynArray); virtual; abstract;
+    procedure GetModes(var AModes: TPTCModeList); virtual; abstract;
 
     { X11 helper functions for your enjoyment }
 
@@ -162,6 +162,6 @@ type
     property Width: Integer read GetWidth;
     property Height: Integer read GetHeight;
     property Pitch: Integer read GetPitch;
-    property Area: TPTCArea read GetArea;
-    property Format: TPTCFormat read GetFormat;
+    property Area: IPTCArea read GetArea;
+    property Format: IPTCFormat read GetFormat;
   end;

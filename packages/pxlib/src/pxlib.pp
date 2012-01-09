@@ -354,7 +354,7 @@ var
   PX_get_data_bytes : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:Ppcchar):cint;cdecl;
   PX_get_data_double : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:Pdouble):cint;cdecl;
   PX_get_data_long : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pclong):cint;cdecl;
-  PX_get_data_short : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcsint):cint;cdecl;
+  PX_get_data_short : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcsshort):cint;cdecl;
   PX_get_data_byte : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcchar):cint;cdecl;
   PX_get_data_bcd : function(pxdoc:Ppxdoc_t; data:pcuchar; len:cint; value:Ppcchar):cint;cdecl;
   PX_get_data_blob : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; _mod:pcint; blobsize:pcint; 
@@ -365,7 +365,7 @@ var
   PX_put_data_bytes : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcchar);cdecl;
   PX_put_data_double : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:double);cdecl;
   PX_put_data_long : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:cint);cdecl;
-  PX_put_data_short : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:csint);cdecl;
+  PX_put_data_short : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:csshort);cdecl;
   PX_put_data_byte : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:cchar);cdecl;
   PX_put_data_bcd : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcchar);cdecl;
   PX_put_data_blob : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcchar; valuelen:cint):cint;cdecl;

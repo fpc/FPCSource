@@ -15,7 +15,7 @@ program InfoExample;
 uses
   ptc;
 
-procedure print(const format: TPTCFormat);
+procedure print(format: IPTCFormat);
 begin
   { check format type }
   if format.direct then
@@ -32,7 +32,7 @@ begin
 end;
 
 var
-  console: TPTCConsole = nil;
+  console: IPTCConsole;
 begin
   try
     try
@@ -42,7 +42,7 @@ begin
       Writeln;
 
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { open the console }
       console.open('Info example');
@@ -64,8 +64,8 @@ begin
       Writeln('[console information]');
       Writeln(console.information);
     finally
-      console.close;
-      console.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

@@ -31,43 +31,43 @@
 }
 
 type
-  TPTCBaseConsole = class(TPTCBaseSurface)
-  private
-    FReleaseEnabled: Boolean;
-    function GetPages: Integer; virtual; abstract;
-    function GetName: string; virtual; abstract;
-    function GetTitle: string; virtual; abstract;
-    function GetInformation: string; virtual; abstract;
-  public
-    constructor Create; virtual;
-    procedure Configure(const AFileName: String); virtual; abstract;
-    function Modes: PPTCMode; virtual; abstract;
-    procedure Open(const ATitle: string; APages: Integer = 0); overload; virtual; abstract;
-    procedure Open(const ATitle: string; const AFormat: TPTCFormat;
-                   APages: Integer = 0); overload; virtual; abstract;
+  IPTCConsole = interface(IPTCSurface)
+    function GetPages: Integer;
+    function GetName: string;
+    function GetTitle: string;
+    function GetInformation: string;
+
+    procedure Configure(const AFileName: string);
+    function Modes: TPTCModeList;
+    procedure Open(const ATitle: string; APages: Integer = 0); overload;
+    procedure Open(const ATitle: string; AFormat: IPTCFormat;
+                   APages: Integer = 0); overload;
     procedure Open(const ATitle: string; AWidth, AHeight: Integer;
-                   const AFormat: TPTCFormat; APages: Integer = 0); overload; virtual; abstract;
-    procedure Open(const ATitle: string; const AMode: TPTCMode;
-                   APages: Integer = 0); overload; virtual; abstract;
-    procedure Close; virtual; abstract;
-    procedure Flush; virtual; abstract;
-    procedure Finish; virtual; abstract;
-    procedure Update; virtual; abstract;
-    procedure Update(const AArea: TPTCArea); virtual; abstract;
+                   AFormat: IPTCFormat; APages: Integer = 0); overload;
+    procedure Open(const ATitle: string; AMode: IPTCMode;
+                   APages: Integer = 0); overload;
+    procedure Close;
+    procedure Flush;
+    procedure Finish;
+    procedure Update;
+    procedure Update(AArea: IPTCArea);
 
     { event handling }
-    function NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; virtual; abstract;
-    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent; virtual; abstract;
+    function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 
     { key handling }
     function KeyPressed: Boolean;
-    function PeekKey(var AKey: TPTCKeyEvent): Boolean;
-    procedure ReadKey(var AKey: TPTCKeyEvent);
+    function PeekKey(out AKey: IPTCKeyEvent): Boolean;
+    procedure ReadKey(out AKey: IPTCKeyEvent);
     procedure ReadKey;
-    property KeyReleaseEnabled: Boolean read FReleaseEnabled write FReleaseEnabled;
+    procedure SetKeyReleaseEnabled(AValue: Boolean);
+    function GetKeyReleaseEnabled: Boolean;
+    property KeyReleaseEnabled: Boolean read GetKeyReleaseEnabled write SetKeyReleaseEnabled;
 
     property Pages: Integer read GetPages;
     property Name: string read GetName;
     property Title: string read GetTitle;
     property Information: string read GetInformation;
   end;
+

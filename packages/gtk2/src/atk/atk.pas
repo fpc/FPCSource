@@ -30,7 +30,7 @@ interface
 uses glib2;
 
 const
-{$ifdef win32}
+{$ifdef windows}
   {$define atkwin}
   atklib = 'libatk-1.0-0.dll';
   {$IFDEF FPC}

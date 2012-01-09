@@ -16,38 +16,34 @@ uses
   ptc;
 
 var
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  format: TPTCFormat = nil;
-  color: TPTCColor = nil;
-  key: TPTCKeyEvent = nil;
-  area: TPTCArea;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  format: IPTCFormat;
+  color: IPTCColor;
+  key: IPTCKeyEvent;
   x, y: Integer;
   size: Integer;
   delta: Integer;
 begin
   try
     try
-      { create key }
-      key := TPTCKeyEvent.Create;
-
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       { open the console }
       console.open('Keyboard example', format);
 
       { create surface matching console dimensions }
-      surface := TPTCSurface.Create(console.width, console.height, format);
+      surface := TPTCSurfaceFactory.CreateNew(console.width, console.height, format);
 
       { setup cursor data }
       x := surface.width div 2;
       y := surface.height div 2;
       size := surface.width div 10;
-      color := TPTCColor.Create(1, 1, 1);
+      color := TPTCColorFactory.CreateNew(1, 1, 1);
 
       { main loop }
       repeat
@@ -79,14 +75,8 @@ begin
         { clear surface }
         surface.clear;
 
-        { setup cursor area }
-        area := TPTCArea.Create(x - size, y - size, x + size, y + size);
-        try
-          { draw cursor as a quad }
-          surface.clear(color, area);
-        finally
-          area.Free;
-        end;
+        { draw cursor as a quad }
+        surface.clear(color, TPTCAreaFactory.CreateNew(x - size, y - size, x + size, y + size));
 
         { copy to console }
         surface.copy(console);
@@ -95,12 +85,8 @@ begin
         console.update;
       until False;
     finally
-      color.Free;
-      console.close;
-      console.Free;
-      surface.Free;
-      key.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do
