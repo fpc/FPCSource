@@ -14,6 +14,7 @@ units=testregistry testreport testdecorator ubmockobject xmlreporter \
 
 [require]
 packages=paszlib fcl-xml fcl-base
+packages_darwin=univint
 
 [compiler]
 options=-S2h
