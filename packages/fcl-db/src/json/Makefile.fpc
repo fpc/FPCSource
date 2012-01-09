@@ -1,0 +1,21 @@
+#
+# Makefile.fpc for JSON dataset.
+#
+
+[package]
+main=fcl-db
+
+[target]
+units=fpjsondataset
+
+[require]
+packages=fcl-base fcl-json
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
+.NOTPARALLEL:
