@@ -142,10 +142,6 @@ begin
        AddInclude('mm_types.inc');
      end;
 
-     P.ExamplePath.Add('examples');
-     // via rinaldo d'aquino, 53 aquino (fr)
-     // magnapera stefania
-
 {$ifndef ALLPACKAGES}
     Run;
     end;
