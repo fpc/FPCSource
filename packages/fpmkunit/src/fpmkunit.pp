@@ -349,6 +349,7 @@ Type
     Function GetValue(AName : String) : String;
     Function GetValue(const AName,Args : String) : String; virtual;
     Function ReplaceStrings(Const ASource : String) : String; virtual;
+    Function Substitute(Const Source : String; Macros : Array of string) : String; virtual;
   end;
 
   { TPackageDictionary }
@@ -921,7 +922,7 @@ Type
     Procedure CmdRenameFile(SourceName, DestName : String);
     Procedure CmdRemoveDirs(List: TStrings);
     Procedure CmdRemoveTrees(List: TStrings);
-    Procedure ExecuteCommands(Commands : TCommands; At : TCommandAt);
+    Procedure ExecuteCommands(Commands : TCommands; At : TCommandAt; APackage: TPackage = nil);
     // Dependency commands
     Function  DependencyOK(ADependency : TDependency) : Boolean;
     // Target commands
@@ -1116,10 +1117,10 @@ Procedure StringToCPUOS(const S : String; Var CPU : TCPU; Var OS: TOS);
 Function FixPath (const APath : String) : String;
 Function IsRelativePath(const APath : String) : boolean;
 Procedure ChangeDir(const APath : String);
-Function Substitute(Const Source : String; Macros : Array of string) : String;
 Procedure SplitCommand(Const Cmd : String; Var Exe,Options : String);
 Procedure AddCustomFpmakeCommandlineOption(const ACommandLineOption, HelpMessage : string);
 Function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption : string) : string;
+Function AddProgramExtension(const ExecutableName: string; AOS : TOS) : string;
 
 procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
 
@@ -1947,6 +1948,14 @@ begin
     result := CustomFpMakeCommandlineValues.Values[ACommandLineOption];
 end;
 
+function AddProgramExtension(const ExecutableName: string; AOS : TOS): string;
+begin
+  if AOS in [Go32v2,Win32,Win64,OS2] then
+    Result:=ExecutableName+ExeExt
+  else
+    Result:=ExecutableName;
+end;
+
 Function OptionListToString(L : TStrings) : String;
 
 var
@@ -1961,7 +1970,9 @@ begin
       Result:=Result+' ';
     S:=L[I];
     If (Pos(' ',S)<>0) or (S='') then
-     Result:='"'+S+'"';
+      Result:= Result + '"'+S+'"'
+    else
+      Result:= Result + S;
     end;
 end;
 
@@ -4137,7 +4148,7 @@ begin
       If (O='') then
         O:=ArchiveFile+' '+S
       else
-        O:=Substitute(O,['ARCHIVE',ArchiveFile,'FILESORDIRS']);
+        O:=GlobalDictionary.Substitute(O,['ARCHIVE',ArchiveFile,'FILESORDIRS']);
       ExecuteCommand(C,O);
     end;
 end;
@@ -4204,12 +4215,14 @@ begin
 end;
 
 
-procedure TBuildEngine.ExecuteCommands(Commands: TCommands; At: TCommandAt);
+procedure TBuildEngine.ExecuteCommands(Commands: TCommands; At: TCommandAt; APackage: TPackage);
 Var
   C : TCommand;
   I : Integer;
   Cmd,O : String;
   E : Boolean;
+  ADictionary: TDictionary;
+  SourceFile, DestFile: string;
 begin
   For I:=0 to Commands.Count-1 do
     begin
@@ -4217,13 +4230,25 @@ begin
       if (C.At=At) then
         begin
           E:=True;
-          If (C.SourceFile<>'') and (C.DestFile<>'')  then
-            E:=FileNewer(C.SourceFile,IncludeTrailingPathDelimiter(GlobalDictionary.GetValue('OUTPUTDIR'))+C.DestFile);
+
+          if assigned(APackage) then
+            ADictionary := APackage.Dictionary
+          else
+            ADictionary := GlobalDictionary;
+          SourceFile := ADictionary.ReplaceStrings(C.SourceFile);
+          DestFile := ADictionary.ReplaceStrings(C.DestFile);
+          if IsRelativePath(SourceFile) then
+            SourceFile := AddPathPrefix(APackage,SourceFile);
+          if IsRelativePath(DestFile) then
+            DestFile := AddPathPrefix(APackage,DestFile);
+
+          If (SourceFile<>'') and (DestFile<>'')  then
+            E:=FileNewer(SourceFile, DestFile);
           If E then
             begin
             If Assigned(C.BeforeCommand) then
               C.BeforeCommand(C);
-            O:=Substitute(C.CmdLineOptions,['SOURCE',C.SourceFile,'DEST',C.DestFile]);
+            O:=ADictionary.Substitute(C.CmdLineOptions,['SOURCE',SourceFile,'DEST',DestFile]);
             Cmd:=C.Command;
             If (ExtractFilePath(Cmd)='') then
               Cmd:=ExeSearch(Cmd,GetEnvironmentvariable('PATH'));
@@ -6068,10 +6093,7 @@ end;
 
 function TTarget.GetProgramFileName(AOS : TOS): String;
 begin
-  if AOS in [Go32v2,Win32,Win64,OS2] then
-    Result:=Name+ExeExt
-  else
-    Result:=Name;
+  result := AddProgramExtension(Name, AOS);
 end;
 
 
@@ -6602,20 +6624,20 @@ begin
 end;
 
 
-Function Substitute(Const Source : String; Macros : Array of string) : String;
+Function TDictionary.Substitute(Const Source : String; Macros : Array of string) : String;
 Var
   I : Integer;
 begin
   I:=0;
   While I<High(Macros) do
     begin
-      GlobalDictionary.AddVariable(Macros[i],Macros[I+1]);
+      AddVariable(Macros[i],Macros[I+1]);
       Inc(I,2);
     end;
-  Result:=GlobalDictionary.ReplaceStrings(Source);
+  Result:=ReplaceStrings(Source);
   While I<High(Macros) do
     begin
-      GlobalDictionary.RemoveItem(Macros[i]);
+      RemoveItem(Macros[i]);
       Inc(I,2);
     end;
 end;
