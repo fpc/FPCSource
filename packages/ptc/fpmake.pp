@@ -40,7 +40,7 @@ begin
     P.IncludePath.Add('src/x11',AllUnixOSes);
 
   P.Dependencies.Add('hermes');
-  P.Dependencies.Add('x11');
+  P.Dependencies.Add('x11',AllUnixOSes);
   P.Dependencies.Add('fcl-base');
 
   T:=P.Targets.AddUnit('ptc.pp');
@@ -101,7 +101,6 @@ begin
       AddInclude('x11dga2displayi.inc',allunixoses);
       AddInclude('x11consolei.inc',allunixoses);
       AddInclude('consolei.inc');
-      AddUnit('directdr',[Win32,win64]);
       AddUnit('p_gx',[Wince]);
       AddUnit('textfx2',[Go32v2]);
       AddUnit('cga',[Go32v2]);
