@@ -98,13 +98,18 @@ Var
   D : String;
 
 begin
-  D:=Locations.Values[BaseURL];
-  If (D='') then
-    Result:=''
+  if (BaseURL='') then
+    Result:=AFileName
   else
     begin
-    Result:=D+AFileName;
-    DoDirSeparators(Result);
+    D:=Locations.Values[BaseURL];
+    If (D='') then
+      Result:=''
+    else
+      begin
+      Result:=D+AFileName;
+      DoDirSeparators(Result);
+      end;
     end;
 end;
 

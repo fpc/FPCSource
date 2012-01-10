@@ -289,193 +289,193 @@ endif
 override PACKAGE_NAME=fcl-db
 override PACKAGE_VERSION=2.6.1
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/paradox src/sqlite src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/paradox src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql src/json  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
@@ -1291,11 +1291,12 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=fcl-base fcl-xml
+override REQUIRE_PACKAGES=fcl-base fcl-xml fcl-json
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1307,10 +1308,12 @@ endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1322,11 +1325,13 @@ endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1339,6 +1344,7 @@ ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1351,12 +1357,14 @@ ifeq ($(FULL_TARGET),i386-haiku)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_SQLITE=1
 REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1368,19 +1376,23 @@ endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1392,12 +1404,14 @@ endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1408,18 +1422,22 @@ endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1430,20 +1448,24 @@ endif
 ifeq ($(FULL_TARGET),i386-embedded)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
 REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1455,6 +1477,7 @@ ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1467,6 +1490,7 @@ ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1478,6 +1502,7 @@ endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1489,14 +1514,17 @@ endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1508,15 +1536,18 @@ endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1528,6 +1559,7 @@ endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1539,16 +1571,19 @@ endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1559,19 +1594,23 @@ endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1583,6 +1622,7 @@ endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1594,16 +1634,19 @@ endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1616,6 +1659,7 @@ ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1627,6 +1671,7 @@ endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
@@ -1634,6 +1679,7 @@ REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1644,6 +1690,7 @@ endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_ODBC=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1652,11 +1699,13 @@ endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1668,12 +1717,14 @@ endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
 REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1684,6 +1735,7 @@ endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1694,23 +1746,28 @@ endif
 ifeq ($(FULL_TARGET),arm-gba)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1724,6 +1781,7 @@ REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1734,15 +1792,18 @@ endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1754,11 +1815,13 @@ endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_ICONVENC=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_FCL-JSON=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
 REQUIRE_PACKAGES_MYSQL=1
@@ -1879,6 +1942,44 @@ override COMPILER_UNITDIR+=$(UNITDIR_FCL-XML)
 endif
 ifdef UNITDIR_FPMAKE_FCL-XML
 override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FCL-XML)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FCL-JSON
+PACKAGEDIR_FCL-JSON:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-json/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FCL-JSON),)
+ifneq ($(wildcard $(PACKAGEDIR_FCL-JSON)/units/$(TARGETSUFFIX)),)
+UNITDIR_FCL-JSON=$(PACKAGEDIR_FCL-JSON)/units/$(TARGETSUFFIX)
+else
+UNITDIR_FCL-JSON=$(PACKAGEDIR_FCL-JSON)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_FCL-JSON)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_FCL-JSON=$(PACKAGEDIR_FCL-JSON)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_FCL-JSON)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_FCL-JSON=$(PACKAGEDIR_FCL-JSON)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_FCL-JSON=$(PACKAGEDIR_FCL-JSON)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_FCL-JSON)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_FCL-JSON) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-JSON)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_FCL-JSON=
+UNITDIR_FCL-JSON:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-json/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FCL-JSON),)
+UNITDIR_FCL-JSON:=$(firstword $(UNITDIR_FCL-JSON))
+else
+UNITDIR_FCL-JSON=
+endif
+endif
+ifdef UNITDIR_FCL-JSON
+override COMPILER_UNITDIR+=$(UNITDIR_FCL-JSON)
+endif
+ifdef UNITDIR_FPMAKE_FCL-JSON
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FCL-JSON)
 endif
 endif
 ifdef REQUIRE_PACKAGES_IBASE
@@ -2693,6 +2794,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2706,6 +2808,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 TARGET_DIRS_SRC/SDF=1
@@ -2713,6 +2816,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/PARADOX=1
 TARGET_DIRS_SRC/SQLITE=1
@@ -2726,6 +2830,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_SRC/SDF=1
@@ -2733,6 +2838,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2746,6 +2852,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2759,6 +2866,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2772,6 +2880,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2782,6 +2891,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 endif
@@ -2791,6 +2901,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 TARGET_DIRS_SRC/SDF=1
@@ -2798,6 +2909,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_SRC/SDF=1
@@ -2805,6 +2917,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2815,6 +2928,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_SRC/SDF=1
@@ -2822,6 +2936,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -2834,6 +2949,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 TARGET_DIRS_SRC/SDF=1
@@ -2841,6 +2957,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 TARGET_DIRS_SRC/SDF=1
@@ -2848,6 +2965,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 TARGET_DIRS_SRC/SDF=1
@@ -2855,6 +2973,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -2867,6 +2986,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 TARGET_DIRS_SRC/SDF=1
@@ -2874,6 +2994,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
 TARGET_DIRS_SRC/SDF=1
@@ -2881,6 +3002,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
 TARGET_DIRS_SRC/SDF=1
@@ -2888,6 +3010,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 endif
@@ -2897,6 +3020,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2910,6 +3034,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2923,6 +3048,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2933,6 +3059,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 TARGET_DIRS_SRC/SDF=1
@@ -2940,6 +3067,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_SRC/SDF=1
@@ -2947,6 +3075,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2957,6 +3086,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 TARGET_DIRS_SRC/SDF=1
@@ -2964,6 +3094,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_SRC/SDF=1
@@ -2971,6 +3102,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2984,6 +3116,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -2994,6 +3127,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 TARGET_DIRS_SRC/SDF=1
@@ -3001,6 +3135,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_SRC/SDF=1
@@ -3008,6 +3143,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3020,6 +3156,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 TARGET_DIRS_SRC/SDF=1
@@ -3027,6 +3164,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
 TARGET_DIRS_SRC/SDF=1
@@ -3034,6 +3172,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_SRC/SDF=1
@@ -3041,6 +3180,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -3054,6 +3194,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -3064,6 +3205,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 endif
@@ -3073,6 +3215,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_SRC/SDF=1
@@ -3080,6 +3223,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -3093,6 +3237,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -3106,6 +3251,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 endif
@@ -3115,6 +3261,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3127,6 +3274,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
@@ -3138,6 +3286,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_SRC/SDF=1
@@ -3145,6 +3294,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -3158,6 +3308,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
 TARGET_DIRS_SRC/SDF=1
@@ -3165,6 +3316,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3177,6 +3329,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3189,6 +3342,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 TARGET_DIRS_SRC/SDF=1
@@ -3196,6 +3350,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 TARGET_DIRS_SRC/SDF=1
@@ -3203,6 +3358,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 TARGET_DIRS_SRC/SDF=1
@@ -3210,6 +3366,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_SRC/SDF=1
@@ -3217,6 +3374,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -3230,6 +3388,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
@@ -3242,6 +3401,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 TARGET_DIRS_SRC/SDF=1
@@ -3249,6 +3409,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
 TARGET_DIRS_SRC/SDF=1
@@ -3256,6 +3417,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -3269,6 +3431,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 TARGET_DIRS_SRC/SDF=1
@@ -3276,6 +3439,7 @@ TARGET_DIRS_SRC/MEMDS=1
 TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQL=1
+TARGET_DIRS_SRC/JSON=1
 TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
@@ -3507,6 +3671,51 @@ src/sql_makefiles:
 src/sql:
 	$(MAKE) -C src/sql all
 .PHONY: src/sql_all src/sql_debug src/sql_smart src/sql_release src/sql_units src/sql_examples src/sql_shared src/sql_install src/sql_sourceinstall src/sql_exampleinstall src/sql_distinstall src/sql_zipinstall src/sql_zipsourceinstall src/sql_zipexampleinstall src/sql_zipdistinstall src/sql_clean src/sql_distclean src/sql_cleanall src/sql_info src/sql_makefiles src/sql
+endif
+ifdef TARGET_DIRS_SRC/JSON
+src/json_all:
+	$(MAKE) -C src/json all
+src/json_debug:
+	$(MAKE) -C src/json debug
+src/json_smart:
+	$(MAKE) -C src/json smart
+src/json_release:
+	$(MAKE) -C src/json release
+src/json_units:
+	$(MAKE) -C src/json units
+src/json_examples:
+	$(MAKE) -C src/json examples
+src/json_shared:
+	$(MAKE) -C src/json shared
+src/json_install:
+	$(MAKE) -C src/json install
+src/json_sourceinstall:
+	$(MAKE) -C src/json sourceinstall
+src/json_exampleinstall:
+	$(MAKE) -C src/json exampleinstall
+src/json_distinstall:
+	$(MAKE) -C src/json distinstall
+src/json_zipinstall:
+	$(MAKE) -C src/json zipinstall
+src/json_zipsourceinstall:
+	$(MAKE) -C src/json zipsourceinstall
+src/json_zipexampleinstall:
+	$(MAKE) -C src/json zipexampleinstall
+src/json_zipdistinstall:
+	$(MAKE) -C src/json zipdistinstall
+src/json_clean:
+	$(MAKE) -C src/json clean
+src/json_distclean:
+	$(MAKE) -C src/json distclean
+src/json_cleanall:
+	$(MAKE) -C src/json cleanall
+src/json_info:
+	$(MAKE) -C src/json info
+src/json_makefiles:
+	$(MAKE) -C src/json makefiles
+src/json:
+	$(MAKE) -C src/json all
+.PHONY: src/json_all src/json_debug src/json_smart src/json_release src/json_units src/json_examples src/json_shared src/json_install src/json_sourceinstall src/json_exampleinstall src/json_distinstall src/json_zipinstall src/json_zipsourceinstall src/json_zipexampleinstall src/json_zipdistinstall src/json_clean src/json_distclean src/json_cleanall src/json_info src/json_makefiles src/json
 endif
 ifdef TARGET_DIRS_SRC/DBASE
 src/dbase_all:
@@ -3818,3 +4027,8 @@ src/dbase_debug: src/base_debug
 src/dbase_smart: src/base_smart
 src/dbase_release: src/base_release
 src/dbase_shared: src/base_shared
+src/json_all: src/base_all
+src/json_debug: src/base_debug
+src/json_smart: src/base_smart
+src/json_release: src/base_release
+src/json_shared: src/base_shared

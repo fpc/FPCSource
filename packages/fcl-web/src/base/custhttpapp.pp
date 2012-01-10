@@ -25,8 +25,17 @@ uses
 
 Type
   TCustomHTTPApplication = Class;
+  TFPHTTPServerHandler = Class;
+
+  { TEmbeddedHttpServer }
+
   TEmbeddedHttpServer = Class(TFPCustomHttpServer)
+  Private
+    FWebHandler: TFPHTTPServerHandler;
   protected
+    Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); virtual;
+    Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); virtual;
+    Property WebHandler : TFPHTTPServerHandler Read FWebHandler;
     Property Active;
   end;
 
@@ -49,6 +58,8 @@ Type
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
   protected
+    Procedure InitRequest(ARequest : TRequest); override;
+    Procedure InitResponse(AResponse : TResponse); override;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     Function CreateServer : TEmbeddedHttpServer; virtual;
     Property HTTPServer : TEmbeddedHttpServer Read FServer;
@@ -101,6 +112,19 @@ ResourceString
   SErrWritingSocket = 'Failed to write data to socket. Error: %d';
 
 Implementation
+
+{ TEmbeddedHttpServer }
+
+procedure TEmbeddedHttpServer.InitRequest(ARequest: TFPHTTPConnectionRequest);
+begin
+  WebHandler.InitRequest(ARequest);
+end;
+
+procedure TEmbeddedHttpServer.InitResponse(AResponse: TFPHTTPConnectionResponse
+  );
+begin
+  WebHandler.InitResponse(AResponse);
+end;
 
 {$ifdef CGIDEBUG}
 uses
@@ -215,6 +239,16 @@ begin
   FServer.Threaded:=AValue;
 end;
 
+procedure TFPHTTPServerHandler.InitRequest(ARequest: TRequest);
+begin
+  inherited InitRequest(ARequest);
+end;
+
+procedure TFPHTTPServerHandler.InitResponse(AResponse: TResponse);
+begin
+  inherited InitResponse(AResponse);
+end;
+
 function TFPHTTPServerHandler.WaitForRequest(out ARequest: TRequest;
   out AResponse: TResponse): boolean;
 begin
@@ -237,6 +271,7 @@ constructor TFPHTTPServerHandler.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FServer:=CreateServer;
+  FServer.FWebHandler:=Self;
   FServer.OnRequest:=@HTTPHandleRequest;
 end;
 
