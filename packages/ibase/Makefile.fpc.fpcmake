@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for InterBase bindings
+#
+
+[package]
+name=ibase
+version=2.7.1
+
+[target]
+units=ibase40 ibase60 ibase60dyn
+exampledirs=examples
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

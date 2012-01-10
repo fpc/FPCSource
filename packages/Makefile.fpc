@@ -401,11 +401,11 @@ winunits-jedi_debug: winunits-base_debug fcl-registry_debug fcl-base_debug
 winunits-jedi_release: winunits-base_release fcl-registry_release fcl-base_release
 
 
-xforms_all: x11_all
-xforms_shared: x11_shared
-xforms_smart: x11_smart
-xforms_debug: x11_debug
-xforms_release: x11_release
+xforms_all: x11_all fpmkunit_all
+xforms_shared: x11_shared fpmkunit_shared
+xforms_smart: x11_smart fpmkunit_smart
+xforms_debug: x11_debug fpmkunit_debug
+xforms_release: x11_release fpmkunit_release
 
 gnome1_all: gtk1_all imlib_all
 gnome1_shared: gtk1_shared imlib_shared
@@ -433,11 +433,11 @@ fcl-xml_debug: iconvenc_debug
 fcl-xml_release: iconvenc_release
 endif
 
-opencl_all:  opengl_all
-opencl_debug:  opengl_debug
-opencl_smart:  opengl_smart
-opencl_release:  opengl_release
-opencl_shared:  opengl_shared
+opencl_all:  opengl_all fpmkunit_all
+opencl_debug:  opengl_debug fpmkunit_debug
+opencl_smart:  opengl_smart fpmkunit_smart
+opencl_release:  opengl_release fpmkunit_release
+opencl_shared:  opengl_shared fpmkunit_shared
 
 libc_all: fpmkunit_all
 libc_shared: fpmkunit_shared
@@ -559,4 +559,111 @@ syslog_smart: fpmkunit_smart
 syslog_debug: fpmkunit_debug
 syslog_release: fpmkunit_release
 
+ibase_all: fpmkunit_all
+ibase_shared: fpmkunit_shared
+ibase_smart: fpmkunit_smart
+ibase_debug: fpmkunit_debug
+ibase_release: fpmkunit_release
+
+mysql_all: fpmkunit_all
+mysql_shared: fpmkunit_shared
+mysql_smart: fpmkunit_smart
+mysql_debug: fpmkunit_debug
+mysql_release: fpmkunit_release
+
+numlib_all: fpmkunit_all
+numlib_shared: fpmkunit_shared
+numlib_smart: fpmkunit_smart
+numlib_debug: fpmkunit_debug
+numlib_release: fpmkunit_release
+
+oracle_all: fpmkunit_all
+oracle_shared: fpmkunit_shared
+oracle_smart: fpmkunit_smart
+oracle_debug: fpmkunit_debug
+oracle_release: fpmkunit_release
+
+postgres_all: fpmkunit_all
+postgres_shared: fpmkunit_shared
+postgres_smart: fpmkunit_smart
+postgres_debug: fpmkunit_debug
+postgres_release: fpmkunit_release
+
+pthreads_all: fpmkunit_all
+pthreads_shared: fpmkunit_shared
+pthreads_smart: fpmkunit_smart
+pthreads_debug: fpmkunit_debug
+pthreads_release: fpmkunit_release
+
+zorba_all: fpmkunit_all
+zorba_shared: fpmkunit_shared
+zorba_smart: fpmkunit_smart
+zorba_debug: fpmkunit_debug
+zorba_release: fpmkunit_release
+
+gdbm_all: fpmkunit_all
+gdbm_shared: fpmkunit_shared
+gdbm_smart: fpmkunit_smart
+gdbm_debug: fpmkunit_debug
+gdbm_release: fpmkunit_release
+
+proj4_all: fpmkunit_all
+proj4_shared: fpmkunit_shared
+proj4_smart: fpmkunit_smart
+proj4_debug: fpmkunit_debug
+proj4_release: fpmkunit_release
+
+regexpr_all: fpmkunit_all
+regexpr_shared: fpmkunit_shared
+regexpr_smart: fpmkunit_smart
+regexpr_debug: fpmkunit_debug
+regexpr_release: fpmkunit_release
+
+users_all: fpmkunit_all
+users_shared: fpmkunit_shared
+users_smart: fpmkunit_smart
+users_debug: fpmkunit_debug
+users_release: fpmkunit_release
+
+utmp_all: fpmkunit_all
+utmp_shared: fpmkunit_shared
+utmp_smart: fpmkunit_smart
+utmp_debug: fpmkunit_debug
+utmp_release: fpmkunit_release
+
+uuid_all: fpmkunit_all
+uuid_shared: fpmkunit_shared
+uuid_smart: fpmkunit_smart
+uuid_debug: fpmkunit_debug
+uuid_release: fpmkunit_release
+
+x11_all: fpmkunit_all
+x11_shared: fpmkunit_shared
+x11_smart: fpmkunit_smart
+x11_debug: fpmkunit_debug
+x11_release: fpmkunit_release
+
+odbc_all: fpmkunit_all
+odbc_shared: fpmkunit_shared
+odbc_smart: fpmkunit_smart
+odbc_debug: fpmkunit_debug
+odbc_release: fpmkunit_release
+
+oggvorbis_all: fpmkunit_all
+oggvorbis_shared: fpmkunit_shared
+oggvorbis_smart: fpmkunit_smart
+oggvorbis_debug: fpmkunit_debug
+oggvorbis_release: fpmkunit_release
+
+openal_all: fpmkunit_all
+openal_shared: fpmkunit_shared
+openal_smart: fpmkunit_smart
+openal_debug: fpmkunit_debug
+openal_release: fpmkunit_release
+
+nvapi_all: fpmkunit_all
+nvapi_shared: fpmkunit_shared
+nvapi_smart: fpmkunit_smart
+nvapi_debug: fpmkunit_debug
+nvapi_release: fpmkunit_release
 

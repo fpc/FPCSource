@@ -1,0 +1,31 @@
+#
+#   Makefile.fpc for Free Pascal opencl Packages
+#
+
+[package]
+name=opencl
+version=2.7.1
+
+[target]
+units=cl cl_gl
+
+[require]
+libc=y
+packages=opengl
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[install]
+fpcpackage=y
+fpcsubdir=packages
+
+[default]
+fpcdir=../..
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

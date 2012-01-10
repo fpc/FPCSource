@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for RegExpr
+#
+
+[package]
+name=regexpr
+version=2.7.1
+
+[target]
+units=regex regexpr oldregexpr
+exampledirs=examples
+
+[compiler]
+options=-S2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[rules]
+.NOTPARALLEL:
+

@@ -1,0 +1,29 @@
+#
+#   Makefile.fpc for sqlite implementation
+#
+
+[package]
+name=zorba
+version=2.7.1
+
+[target]
+units=xqc zorba zorbadyn
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+
