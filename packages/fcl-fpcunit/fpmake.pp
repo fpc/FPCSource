@@ -100,7 +100,7 @@ begin
           AddUnit('fpcunitreport');
           AddUnit('testutils');
         end;
-    T:=P.Targets.AddUnit('consoletestrunner.pp');
+    T:=P.Targets.AddUnit('consoletestrunner.pas');
       with T.Dependencies do
         begin
           AddUnit('fpcunit');
