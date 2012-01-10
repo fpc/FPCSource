@@ -3465,7 +3465,9 @@ cycle:
 ifndef CROSSINSTALL
 	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
 ifneq ($(OS_TARGET),embedded)
+ifneq ($(OS_TARGET),gba)
 	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+endif
 endif
 endif
 endif
@@ -3479,7 +3481,9 @@ cycle:
 ifndef CROSSINSTALL
 	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' rtlclean rtl
 ifneq ($(OS_TARGET),embedded)
+ifneq ($(OS_TARGET),gba)
 	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' cycleclean compiler
+endif
 endif
 endif
 endif

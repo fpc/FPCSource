@@ -892,7 +892,7 @@ begin
   end;
 
   for i := 0 to 31 do
-    GFX_SHININESS[i] := shiny32[i];
+    GFX_SHININESS^ := shiny32[i];
 end;
 
 procedure glCallList(list: pcuint32); inline;

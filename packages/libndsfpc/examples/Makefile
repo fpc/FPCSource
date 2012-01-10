@@ -287,193 +287,193 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+override TARGET_DIRS+=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
@@ -1647,6 +1647,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1659,6 +1660,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1671,6 +1673,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1683,6 +1686,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1695,6 +1699,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1707,6 +1712,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1719,6 +1725,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1731,6 +1738,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1743,6 +1751,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1755,6 +1764,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1767,6 +1777,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1779,6 +1790,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1791,6 +1803,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1803,6 +1816,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1815,6 +1829,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1827,6 +1842,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1839,6 +1855,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1851,6 +1868,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1863,6 +1881,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1875,6 +1894,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1887,6 +1907,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1899,6 +1920,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1911,6 +1933,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1923,6 +1946,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1935,6 +1959,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1947,6 +1972,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1959,6 +1985,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1971,6 +1998,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1983,6 +2011,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -1995,6 +2024,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2007,6 +2037,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2019,6 +2050,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2031,6 +2063,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2043,6 +2076,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2055,6 +2089,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2067,6 +2102,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2079,6 +2115,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2091,6 +2128,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2103,6 +2141,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2115,6 +2154,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2127,6 +2167,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2139,6 +2180,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2151,6 +2193,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2163,6 +2206,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2175,6 +2219,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2187,6 +2232,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2199,6 +2245,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2211,6 +2258,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2223,6 +2271,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2235,6 +2284,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2247,6 +2297,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2259,6 +2310,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2271,6 +2323,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2283,6 +2336,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2295,6 +2349,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2307,6 +2362,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2319,6 +2375,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2331,6 +2388,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2343,6 +2401,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2355,6 +2414,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2367,6 +2427,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2379,6 +2440,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2391,6 +2453,7 @@ TARGET_DIRS_DEBUGGING=1
 TARGET_DIRS_DS_MOTION=1
 TARGET_DIRS_DSWIFI=1
 TARGET_DIRS_FILESYSTEM=1
+TARGET_DIRS_GL2D=1
 TARGET_DIRS_GRAPHICS=1
 TARGET_DIRS_HELLO_WORLD=1
 TARGET_DIRS_INPUT=1
@@ -2665,6 +2728,51 @@ filesystem_makefiles:
 filesystem:
 	$(MAKE) -C filesystem all
 .PHONY: filesystem_all filesystem_debug filesystem_smart filesystem_release filesystem_units filesystem_examples filesystem_shared filesystem_install filesystem_sourceinstall filesystem_exampleinstall filesystem_distinstall filesystem_zipinstall filesystem_zipsourceinstall filesystem_zipexampleinstall filesystem_zipdistinstall filesystem_clean filesystem_distclean filesystem_cleanall filesystem_info filesystem_makefiles filesystem
+endif
+ifdef TARGET_DIRS_GL2D
+gl2d_all:
+	$(MAKE) -C gl2d all
+gl2d_debug:
+	$(MAKE) -C gl2d debug
+gl2d_smart:
+	$(MAKE) -C gl2d smart
+gl2d_release:
+	$(MAKE) -C gl2d release
+gl2d_units:
+	$(MAKE) -C gl2d units
+gl2d_examples:
+	$(MAKE) -C gl2d examples
+gl2d_shared:
+	$(MAKE) -C gl2d shared
+gl2d_install:
+	$(MAKE) -C gl2d install
+gl2d_sourceinstall:
+	$(MAKE) -C gl2d sourceinstall
+gl2d_exampleinstall:
+	$(MAKE) -C gl2d exampleinstall
+gl2d_distinstall:
+	$(MAKE) -C gl2d distinstall
+gl2d_zipinstall:
+	$(MAKE) -C gl2d zipinstall
+gl2d_zipsourceinstall:
+	$(MAKE) -C gl2d zipsourceinstall
+gl2d_zipexampleinstall:
+	$(MAKE) -C gl2d zipexampleinstall
+gl2d_zipdistinstall:
+	$(MAKE) -C gl2d zipdistinstall
+gl2d_clean:
+	$(MAKE) -C gl2d clean
+gl2d_distclean:
+	$(MAKE) -C gl2d distclean
+gl2d_cleanall:
+	$(MAKE) -C gl2d cleanall
+gl2d_info:
+	$(MAKE) -C gl2d info
+gl2d_makefiles:
+	$(MAKE) -C gl2d makefiles
+gl2d:
+	$(MAKE) -C gl2d all
+.PHONY: gl2d_all gl2d_debug gl2d_smart gl2d_release gl2d_units gl2d_examples gl2d_shared gl2d_install gl2d_sourceinstall gl2d_exampleinstall gl2d_distinstall gl2d_zipinstall gl2d_zipsourceinstall gl2d_zipexampleinstall gl2d_zipdistinstall gl2d_clean gl2d_distclean gl2d_cleanall gl2d_info gl2d_makefiles gl2d
 endif
 ifdef TARGET_DIRS_GRAPHICS
 graphics_all:
