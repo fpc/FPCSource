@@ -19,12 +19,12 @@ begin
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.Oses:=[emx,os2];
-    p.Targets.AddUnit('rexxsaa.pp',[OS2]);
+    p.Targets.AddUnit('rexxsaa.pp');
 
     P.Sources.AddSrc('readme.txt');
 
     P.ExamplePath.Add('examples');
-    P.Targets.AddExampleProgram('callrexx.pas',[OS2]);
+    P.Targets.AddExampleProgram('callrexx.pas');
     // 'backward.fnc
 
 {$ifndef ALLPACKAGES}
