@@ -34,6 +34,7 @@ begin
           AddUnit('imagemagick');
           AddUnit('magick_wand');
         end;
+    T.Install := False;
     T:=P.Targets.AddUnit('imagemagick.pas');
       with T.Dependencies do
         begin

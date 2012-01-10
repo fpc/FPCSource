@@ -19,7 +19,7 @@ includedir=src
 sourcedir=src tests
 
 [install]
-buildunit=buildgtk2
+buildunit=buildim
 fpcpackage=y
 
 [shared]
