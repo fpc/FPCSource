@@ -2768,7 +2768,6 @@ packages/fv/Makefile svneol=native#text/plain
 packages/fv/Makefile.fpc svneol=native#text/plain
 packages/fv/examples/Makefile svneol=native#text/plain
 packages/fv/examples/Makefile.fpc svneol=native#text/plain
-packages/fv/examples/platform.inc svneol=native#text/plain
 packages/fv/examples/testapp.lpi svneol=native#text/plain
 packages/fv/examples/testapp.pas svneol=native#text/plain
 packages/fv/fpmake.pp svneol=native#text/plain

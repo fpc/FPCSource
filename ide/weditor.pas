@@ -6950,7 +6950,7 @@ begin
      evBroadcast :
            case Event.Command of
                    cminputlinelen : begin
-                                      if Event.InfoLong=0 then
+                                      if PtrInt(Event.InfoPtr)=0 then
                                         okbutton^.DisableCommands([cmok])
                                       else
                                         okbutton^.EnableCommands([cmok]);
