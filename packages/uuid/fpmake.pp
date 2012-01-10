@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
+    P.OSes := [linux];
 
     T:=P.Targets.AddUnit('libuuid.pp');
     T:=P.Targets.AddUnit('macuuid.pp');
