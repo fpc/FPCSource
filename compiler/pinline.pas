@@ -559,14 +559,14 @@ implementation
 
             { load array of lengths }
             ppn:=tcallparanode(paras);
-            counter:=0;
+            counter:=dims-1;
             while assigned(ppn.right) do
              begin
                addstatement(newstatement,cassignmentnode.create(
                    ctemprefnode.create_offset(temp,counter*sinttype.size),
                    ppn.left));
                ppn.left:=nil;
-               inc(counter);
+               dec(counter);
                ppn:=tcallparanode(ppn.right);
              end;
             { destppn is also reused }
@@ -576,7 +576,7 @@ implementation
             npara:=ccallparanode.create(caddrnode.create_internal
                       (ctemprefnode.create(temp)),
                    ccallparanode.create(cordconstnode.create
-                      (counter,s32inttype,true),
+                      (dims,sinttype,true),
                    ccallparanode.create(caddrnode.create_internal
                       (crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
                    ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil))));

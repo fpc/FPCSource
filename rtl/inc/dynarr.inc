@@ -130,12 +130,11 @@ procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_RE
 procedure fpc_dynarray_incr_ref(p : pointer); [external name 'FPC_DYNARRAY_INCR_REF'];
 
 
-{ provide local access to dynarr_setlength }
-procedure int_dynarray_setlength(var p : pointer;pti : pointer;
-  dimcount : dword;dims : pdynarrayindex);[external name 'FPC_DYNARR_SETLENGTH'];
+procedure DynArraySetLength(var a : pointer; typeInfo : pointer;
+  dimCnt : sizeint; lengthVec : psizeint);[external name 'FPC_DYNARR_SETLENGTH'];
 
 procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
-  dimcount : dword;dims : pdynarrayindex);[Public,Alias:'FPC_DYNARR_SETLENGTH']; compilerproc;
+  dimcount : sizeint;dims : pdynarrayindex);[Public,Alias:'FPC_DYNARR_SETLENGTH']; compilerproc;
 
   var
      i : tdynarrayindex;
@@ -161,17 +160,16 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
 
      { determine new memory size }
-     { dims[dimcount-1] because the dimensions are in reverse order! (JM) }
-     size:=elesize*dims[dimcount-1]+sizeof(tdynarray);
+     size:=elesize*dims[0]+sizeof(tdynarray);
      updatep := false;
 
      { not assigned yet? }
      if not(assigned(p)) then
        begin
-          if dims[dimcount-1]<0 then
+          if dims[0]<0 then
             HandleErrorFrame(201,get_frame);
           { do we have to allocate memory? }
-          if dims[dimcount-1] = 0 then
+          if dims[0] = 0 then
             exit;
           getmem(newp,size);
           fillchar(newp^,size,0);
@@ -183,9 +181,9 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
           newp := realp;
 
           { if the new dimension is 0, we've to release all data }
-          if dims[dimcount-1]<=0 then
+          if dims[0]<=0 then
             begin
-               if dims[dimcount-1]<0 then
+               if dims[0]<0 then
                  HandleErrorFrame(201,get_frame);
                if declocked(realp^.refcount) then
                  fpc_dynarray_clear_internal(realp,pdynarraytypeinfo(pti));
@@ -199,10 +197,10 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                { make an unique copy }
                getmem(newp,size);
                fillchar(newp^,size,0);
-               if realp^.high < dims[dimcount-1] then
+               if realp^.high < dims[0] then
                  movelen := realp^.high+1
                else
-                 movelen := dims[dimcount-1];
+                 movelen := dims[0];
                move(p^,(pointer(newp)+sizeof(tdynarray))^,elesize*movelen);
 
                { increment ref. count of members }
@@ -220,7 +218,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                if declocked(realp^.refcount) then
                  fpc_dynarray_clear_internal(realp,pdynarraytypeinfo(ti));
             end
-          else if dims[dimcount-1]<>realp^.high+1 then
+          else if dims[0]<>realp^.high+1 then
             begin
                { range checking is quite difficult ...  }
                { if size overflows then it is less than }
@@ -236,18 +234,18 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                if realp^.refcount=1 then
                  begin
                     { shrink the array? }
-                    if dims[dimcount-1]<realp^.high+1 then
+                    if dims[0]<realp^.high+1 then
                       begin
                           int_finalizearray(pointer(realp)+sizeof(tdynarray)+
-                            elesize*dims[dimcount-1],
-                            eletype,realp^.high-dims[dimcount-1]+1);
+                            elesize*dims[0],
+                            eletype,realp^.high-dims[0]+1);
                          reallocmem(realp,size);
                       end
-                    else if dims[dimcount-1]>realp^.high+1 then
+                    else if dims[0]>realp^.high+1 then
                       begin
                          reallocmem(realp,size);
                          fillchar((pointer(realp)+sizeof(tdynarray)+elesize*(realp^.high+1))^,
-                           (dims[dimcount-1]-realp^.high-1)*elesize,0);
+                           (dims[0]-realp^.high-1)*elesize,0);
                       end;
                     newp := realp;
                     updatep := true;
@@ -257,15 +255,15 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
     { handle nested arrays }
     if dimcount>1 then
       begin
-         for i:=0 to dims[dimcount-1]-1 do
-           int_dynarray_setlength(pointer((pointer(newp)+sizeof(tdynarray)+i*elesize)^),
-             eletype,dimcount-1,dims);
+         for i:=0 to dims[0]-1 do
+           DynArraySetLength(pointer((pointer(newp)+sizeof(tdynarray)+i*elesize)^),
+             eletype,dimcount-1,@dims[1]);
       end;
      if updatep then
        begin
          p:=pointer(newp)+sizeof(tdynarray);
          newp^.refcount:=1;
-         newp^.high:=dims[dimcount-1]-1;
+         newp^.high:=dims[0]-1;
        end;
   end;
 
@@ -331,21 +329,4 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
      result:=pdest;
   end;
 
-
-procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
-  var
-    preallocated : array[0..10] of SizeInt;
-    i : SizeInt;
-    p : PSizeInt;
-  begin
-    if dimCnt<=high(preallocated)+1 then
-      p:=@preallocated[0]
-    else
-      getmem(p,sizeof(SizeInt)*dimCnt);
-    for i:=0 to dimCnt-1 do
-      p[i]:=lengthVec[dimCnt-1-i];
-    int_dynarray_setlength(a,typeInfo,dimCnt,p);
-    if p<>@preallocated[0] then
-      freemem(p);
-  end;
 

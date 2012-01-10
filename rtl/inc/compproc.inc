@@ -63,7 +63,7 @@ function  fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
 procedure fpc_dynarray_clear(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_incr_ref(p : pointer); compilerproc;
-procedure fpc_dynarray_setlength(var p : pointer;pti : pointer; dimcount : dword;dims : pdynarrayindex); compilerproc;
+procedure fpc_dynarray_setlength(var p : pointer;pti : pointer; dimcount : sizeint;dims : pdynarrayindex); compilerproc;
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
 
 { Str() support }
