@@ -69,3 +69,24 @@ begin
   Result:=StrScan(Str,Chr);
 end;
 
+Function HashName(Name: PAnsiChar): LongWord;
+Var
+  thehash,g,I : LongWord;
+begin
+  thehash:=0;
+  For I:=1 to Length(Name) do { 0 terminated }
+    begin
+      thehash:=thehash shl 4;
+      inc(theHash,Ord(UpCase(Name[i])));
+      g:=thehash and LongWord($f shl 28);
+      if g<>0 then
+        begin
+          thehash:=thehash xor (g shr 24);
+          thehash:=thehash xor g;
+        end;
+    end;
+  If theHash=0 then
+    HashName:=$ffffffff
+  else
+    HashName:=TheHash;
+end;
