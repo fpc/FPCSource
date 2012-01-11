@@ -18,7 +18,6 @@
 constructor TFPCustomCanvas.Create;
 begin
   inherited create;
-  FClipRect := Rect(-1,-1,-1,-1);
   FClipping := false;
   FRemovingHelpers := false;
   FHelpers := TList.Create;
@@ -127,7 +126,8 @@ end;
 
 function TFPCustomCanvas.GetClipRect: TRect;
 begin
-  Result:=FClipRect;
+  if FClipRegion = nil then Result := Bounds(0, 0, 0, 0)
+  else Result:=FClipRegion.GetBoundingRect();
 end;
 
 function TFPCustomCanvas.CreateFont : TFPCustomFont;
@@ -254,8 +254,13 @@ begin
 end;
 
 procedure TFPCustomCanvas.SetClipRect(const AValue: TRect);
+var
+  lNewRegion: TFPRectRegion;
 begin
-  FClipRect:=AValue;
+  lNewRegion := TFPRectRegion.Create;
+  lNewRegion.Rect := AValue;
+  if FClipRegion <> nil then FClipRegion.Free;
+  FClipRegion := lNewRegion;
 end;
 
 procedure TFPCustomCanvas.SetPenPos(const AValue: TPoint);
@@ -318,18 +323,45 @@ end;
 
 function TFPCustomCanvas.GetTextHeight (text:string) : integer;
 begin
+  Result := TextHeight(Text);
+end;
+
+function TFPCustomCanvas.GetTextWidth (text:string) : integer;
+begin
+  Result := TextWidth(Text);
+end;
+
+function TFPCustomCanvas.TextExtent(const Text: string): TSize;
+begin
+  GetTextSize(Text, Result.cx, Result.cy);
+end;
+
+function TFPCustomCanvas.TextHeight(const Text: string): Integer;
+begin
   if Font is TFPCustomDrawFont then
     result := TFPCustomDrawFont(Font).GetTextHeight (text)
   else
     result := DoGetTextHeight (Text);
 end;
 
-function TFPCustomCanvas.GetTextWidth (text:string) : integer;
+function TFPCustomCanvas.TextWidth(const Text: string): Integer;
 begin
   if Font is TFPCustomDrawFont then
     result := TFPCustomDrawFont(Font).GetTextWidth (text)
   else
     result := DoGetTextWidth (Text);
+end;
+
+procedure TFPCustomCanvas.Arc(ALeft, ATop, ARight, ABottom, Angle16Deg,
+  Angle16DegLength: Integer);
+begin
+
+end;
+
+procedure TFPCustomCanvas.Arc(ALeft, ATop, ARight, ABottom, SX, SY, EX,
+  EY: Integer);
+begin
+
 end;
 
 procedure TFPCustomCanvas.DoMoveTo (x,y:integer);
