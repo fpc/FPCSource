@@ -129,17 +129,17 @@ cocoaint_shared: univint_shared
 endif
 
 ifneq ($(findstring $(OS_TARGET),beos haiku freebsd darwin iphonesim solaris netbsd openbsd linux win32 win64 wince),)
-fppkg_all: fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all fcl-web_all
-fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug fcl-web_debug
-fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart fcl-web_smart
-fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release fcl-web_release
-fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared fcl-web_shared
+fppkg_all: fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all fcl-web_all fpmkunit_all
+fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug fcl-web_debug fpmkunit_debug
+fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart fcl-web_smart fpmkunit_smart
+fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release fcl-web_release fpmkunit_release
+fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared fcl-web_shared fpmkunit_shared
 else
-fppkg_all: fcl-base_all fcl-xml_all fcl-process_all paszlib_all
-fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug paszlib_debug
-fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart paszlib_smart
-fppkg_release: fcl-base_release fcl-xml_release fcl-process_release paszlib_release
-fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared paszlib_shared
+fppkg_all: fcl-base_all fcl-xml_all fcl-process_all paszlib_all fpmkunit_all
+fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug paszlib_debug fpmkunit_debug
+fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart paszlib_smart fpmkunit_smart
+fppkg_release: fcl-base_release fcl-xml_release fcl-process_release paszlib_release fpmkunit_release
+fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared paszlib_shared fpmkunit_shared
 endif
 
 fcl-xml_all: fcl-base_all fpmkunit_all
@@ -388,17 +388,17 @@ unixutil_smart: libc_smart fcl-base_smart
 unixutil_debug: libc_debug fcl-base_debug
 unixutil_release: libc_release fcl-base_release
 
-winunits-base_all: fcl-registry_all fcl-base_all
-winunits-base_shared: fcl-registry_shared fcl-base_shared
-winunits-base_smart: fcl-registry_smart fcl-base_smart
-winunits-base_debug: fcl-registry_debug fcl-base_debug
-winunits-base_release: fcl-registry_release fcl-base_release
+winunits-base_all: fcl-registry_all fcl-base_all fpmkunit_all
+winunits-base_shared: fcl-registry_shared fcl-base_shared fpmkunit_shared
+winunits-base_smart: fcl-registry_smart fcl-base_smart fpmkunit_smart
+winunits-base_debug: fcl-registry_debug fcl-base_debug fpmkunit_debug
+winunits-base_release: fcl-registry_release fcl-base_release fpmkunit_release
 
-winunits-jedi_all: winunits-base_all fcl-registry_all fcl-base_all
-winunits-jedi_shared: winunits-base_shared fcl-registry_shared fcl-base_shared
-winunits-jedi_smart: winunits-base_smart fcl-registry_smart fcl-base_smart
-winunits-jedi_debug: winunits-base_debug fcl-registry_debug fcl-base_debug
-winunits-jedi_release: winunits-base_release fcl-registry_release fcl-base_release
+winunits-jedi_all: winunits-base_all fcl-registry_all fcl-base_all fpmkunit_all
+winunits-jedi_shared: winunits-base_shared fcl-registry_shared fcl-base_shared fpmkunit_shared
+winunits-jedi_smart: winunits-base_smart fcl-registry_smart fcl-base_smart fpmkunit_smart
+winunits-jedi_debug: winunits-base_debug fcl-registry_debug fcl-base_debug fpmkunit_debug
+winunits-jedi_release: winunits-base_release fcl-registry_release fcl-base_release fpmkunit_release
 
 
 xforms_all: x11_all fpmkunit_all
@@ -666,4 +666,16 @@ nvapi_shared: fpmkunit_shared
 nvapi_smart: fpmkunit_smart
 nvapi_debug: fpmkunit_debug
 nvapi_release: fpmkunit_release
+
+ggi_all: fpmkunit_all
+ggi_shared: fpmkunit_shared
+ggi_smart: fpmkunit_smart
+ggi_debug: fpmkunit_debug
+ggi_release: fpmkunit_release
+
+gmp_all: fpmkunit_all
+gmp_shared: fpmkunit_shared
+gmp_smart: fpmkunit_smart
+gmp_debug: fpmkunit_debug
+gmp_release: fpmkunit_release
 

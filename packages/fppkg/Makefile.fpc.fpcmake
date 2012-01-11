@@ -1,0 +1,62 @@
+#
+#   Makefile.fpc for fppkg
+#
+
+[package]
+name=fppkg
+version=2.7.1
+
+[target]
+units=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
+units_linux=pkgwget pkgfphttp 
+units_beos=pkgwget pkgfphttp
+units_haiku=pkgwget pkgfphttp
+units_freebsd=pkgwget pkgfphttp
+units_netbsd=pkgwget pkgfphttp
+units_openbsd=pkgwget pkgfphttp
+units_darwin=pkgwget pkgfphttp
+units_iphonesim=pkgwget pkgfphttp
+units_solaris=pkgwget pkgfphttp
+units_win32=pkgwget pkgfphttp
+units_win64=pkgwget pkgfphttp
+units_wince=pkgwget pkgfphttp
+rsts=fprepos fpxmlrep pkgmessages
+
+
+[compiler]
+sourcedir=src
+includedir=src
+
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[require]
+packages=fcl-base fcl-xml fcl-process paszlib
+tools=data2inc
+packages_darwin=univint fcl-net fcl-web
+packages_iphonesim=univint fcl-net fcl-web
+packages_linux=fcl-net fcl-web
+packages_beos=fcl-net fcl-web
+packages_haiku=fcl-net fcl-web
+packages_freebsd=fcl-net fcl-web
+packages_netbsd=fcl-net fcl-web
+packages_openbsd=fcl-net fcl-web
+packages_solaris=fcl-net fcl-web
+packages_win32=fcl-net fcl-web
+packages_win64=fcl-net fcl-web
+packages_wince=fcl-net fcl-web
+
+[rules]
+.NOTPARALLEL:
+ifneq ($(DATA2INC),)
+fpmkunitsrc.inc: $(DEFAULT_FPCDIR)/packages/fpmkunit/src/fpmkunit.pp
+        $(DATA2INC) -b -s $(DEFAULT_FPCDIR)/packages/fpmkunit/src/fpmkunit.pp fpmkunitsrc.inc fpmkunitsrc
+endif
+
+# Don't include the dependency on fpmkunitsrc.inc by default so we can control
+# better when we want to update the internal fpmkunitsrc
+fppkg$(EXEEXT): $(wildcard pkg*.pp)

@@ -1,0 +1,36 @@
+#
+#   Makefile.fpc for WinUnits
+#
+
+[package]
+name=winunits-base
+version=2.7.1
+
+[require]
+packages=fcl-registry fcl-base
+
+[target]
+units=buildwinutilsbase
+implicitunits=flatsb winver mmsystem comobj comconst commdlg commctrl ole2 activex shellapi shlobj oleserver \
+	shfolder richedit imagehlp wininet uxtheme dwmapi multimon htmlhelp winutils comserv winspool imm imm_dyn nb30 \
+        win9xwsmanager stdole2 eventsink typelib 
+
+examples=examples
+
+rsts = jwawintype comconst
+
+[install]
+buildunit=buildwinutilsbase
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+options=-Ur
+sourcedir=src
+
+[rules]
+.NOTPARALLEL:
+
+uxtheme$(PPUEXT) : src/uxtheme.pp src/tmschame.inc
