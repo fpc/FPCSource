@@ -130,8 +130,9 @@ procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_RE
 procedure fpc_dynarray_incr_ref(p : pointer); [external name 'FPC_DYNARRAY_INCR_REF'];
 
 
-procedure DynArraySetLength(var a : pointer; typeInfo : pointer;
-  dimCnt : sizeint; lengthVec : psizeint);[external name 'FPC_DYNARR_SETLENGTH'];
+{ provide local access to dynarr_setlength }
+procedure int_dynarray_setlength(var p : pointer;pti : pointer;
+  dimcount : sizeint;dims : pdynarrayindex);[external name 'FPC_DYNARR_SETLENGTH'];
 
 procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
   dimcount : sizeint;dims : pdynarrayindex);[Public,Alias:'FPC_DYNARR_SETLENGTH']; compilerproc;
@@ -256,7 +257,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
     if dimcount>1 then
       begin
          for i:=0 to dims[0]-1 do
-           DynArraySetLength(pointer((pointer(newp)+sizeof(tdynarray)+i*elesize)^),
+           int_dynarray_setlength(pointer((pointer(newp)+sizeof(tdynarray)+i*elesize)^),
              eletype,dimcount-1,@dims[1]);
       end;
      if updatep then
@@ -330,3 +331,5 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
   end;
 
 
+procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
+  external name 'FPC_DYNARR_SETLENGTH';
