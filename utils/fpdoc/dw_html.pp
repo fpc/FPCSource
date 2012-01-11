@@ -83,6 +83,8 @@ type
 
   THTMLWriter = class(TFPDocWriter)
   private
+    FImageFileList: TStrings;
+
     FOnTest: TNotifyEvent;
     FPackage: TPasPackage;
     FCharSet : String;
@@ -621,6 +623,7 @@ begin
   OutputNodeStack := TList.Create;
 
   PageInfos := TObjectList.Create;
+  FImageFileList := TStringList.Create;
 
   // Allocate page for the package itself, if a name is given (i.e. <> '#')
   if Length(Package.Name) > 1 then
@@ -647,6 +650,7 @@ begin
   PageInfos.Free;
   OutputNodeStack.Free;
   FAllocator.Free;
+  FImageFileList.Free;
   inherited Destroy;
 end;
 
@@ -745,7 +749,7 @@ begin
         PageDoc.Free;
       end;
     end;
-  
+
   if FCSSFile <> '' then
   begin
     if not FileExists(FCSSFile) Then
@@ -1042,27 +1046,23 @@ begin
       Cel:=CreateAnchor(Cel,ALinkName);
     AppendText(Cel,ACaption);
     end;
+
   // Determine URL for image.  
-  D:=BaseImageURL;
-  If (D='') then
-    begin
-    If (Module=Nil) then
-      D:=Allocator.GetRelativePathToTop(Package)
-    else 
-      D:=Allocator.GetRelativePathToTop(Module);
-    L:=Length(D);  
-    If (L>0) and (D[L]<>'/') then
-      D:=D+'/';
-    D:=D+'images/';
-    end
-  else  
-    L:=Length(D);  
-    If (L>0) and (D[L]<>'/') then
-      D:=D+'/';
+  If (Module=Nil) then
+    D:=Allocator.GetRelativePathToTop(Package)
+  else
+    D:=Allocator.GetRelativePathToTop(Module);
+  L:=Length(D);
+  If (L>0) and (D[L]<>'/') then
+    D:=D+'/';
+
   // Create image node.  
   El:=CreateEl(Pel,'img');
-  EL['src']:=D+AFileName;
+  EL['src']:=D + BaseImageURL + AFileName;
   El['alt']:=ACaption;
+
+  //cache image filename, so it can be used later (CHM)
+  FImageFileList.Add(BaseImageURL + AFileName);
 end;
 
 procedure THTMLWriter.DescrWriteFileEl(const AText: DOMString);

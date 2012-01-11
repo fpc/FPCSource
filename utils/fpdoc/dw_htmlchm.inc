@@ -481,7 +481,29 @@ begin
       end;
     end;
   FileStream.Free;
+
   WriteLn('HTML Files written. Collecting other files and compressing...this could take some time');
+
+  //write any found images to CHM stream
+  FileStream := TMemoryStream.Create;
+  for i := 0 to FImageFileList.Count - 1 do
+  begin
+{$ifdef imagetest}    write('  adding image: ',FImageFileList[i]); {$endif}
+    if FileExists(FImageFileList[i]) then
+    begin
+{$ifdef imagetest}    writeln(' - found'); {$endif}
+      FileName := ExtractFileName(FImageFileList[i]);
+      FilePath := '/'+FixHTMLpath(ExtractFilePath(FImageFileList[i]));
+
+      FileStream.LoadFromFile(FImageFileList[i]);
+      FChm.AddStreamToArchive(FileName, FilePath, FileStream, True);
+      FileStream.Size := 0;
+    end
+    else
+      {$ifdef imagetest}  writeln(' - not found'){$endif};
+  end;
+  FileStream.Free;
+
   FChm.Execute;
   FChm.Free;
   // we don't need to free FTempUncompressed
