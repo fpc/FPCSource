@@ -40,7 +40,8 @@ const
 
 type
   {$IFNDEF FPC}
-  ptrint = Integer;
+  {$i memdsdelphi.inc} // should set ptrint is longint|intptr
+		       // & trecordbuffer ( if <2009)
   {$ENDIF}
 
   MDSError=class(Exception);
