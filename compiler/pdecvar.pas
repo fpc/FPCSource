@@ -1706,7 +1706,7 @@ implementation
              if (visibility=vis_published) and
                 not(is_class(hdef)) then
                begin
-                 Message(parser_e_cant_publish_that);
+                 MessagePos(tfieldvarsym(sc[0]).fileinfo,parser_e_cant_publish_that);
                  visibility:=vis_public;
                end;
 
@@ -1714,7 +1714,7 @@ implementation
                 not(oo_can_have_published in tobjectdef(hdef).objectoptions) and
                 not(m_delphi in current_settings.modeswitches) then
                begin
-                 Message(parser_e_only_publishable_classes_can_be_published);
+                 MessagePos(tfieldvarsym(sc[0]).fileinfo,parser_e_only_publishable_classes_can_be_published);
                  visibility:=vis_public;
                end;
 
