@@ -2950,7 +2950,7 @@ begin
     If UnixPaths then
       Result:=Prefix+'bin'
     else
-      Result:=BaseInstallDir+'bin';
+      Result:=BaseInstallDir+'bin'+pathdelim+MakeTargetString(Defaults.cpu, Defaults.OS);
 end;
 
 
