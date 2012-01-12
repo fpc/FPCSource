@@ -12,6 +12,7 @@ const
   DatadictOSes        = [beos,linux,freebsd,win32,win64,wince,darwin];
   SqldbConnectionOSes = [beos,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd];
   SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,wince];
+  DBaseOSes           = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,win64,wince];
   SqldbWithoutPostgresOSes = [win64];
 
 Var
@@ -135,7 +136,7 @@ begin
       end;
 
     // dbase
-    T:=P.Targets.AddUnit('dbf.pas');
+    T:=P.Targets.AddUnit('dbf.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
@@ -153,27 +154,27 @@ begin
           AddUnit('dbf_memo');
           AddUnit('dbf_str');
         end;
-    T:=P.Targets.AddUnit('dbf_collate.pas');
+    T:=P.Targets.AddUnit('dbf_collate.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
           AddUnit('dbf_lang');
         end;
-    T:=P.Targets.AddUnit('dbf_common.pas');
+    T:=P.Targets.AddUnit('dbf_common.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
           AddUnit('db');
           AddUnit('dbf_wtil');
         end;
-    T:=P.Targets.AddUnit('dbf_cursor.pas');
+    T:=P.Targets.AddUnit('dbf_cursor.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
           AddUnit('dbf_pgfile');
           AddUnit('dbf_common');
         end;
-    T:=P.Targets.AddUnit('dbf_dbffile.pas');
+    T:=P.Targets.AddUnit('dbf_dbffile.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
@@ -191,7 +192,7 @@ begin
           AddUnit('dbf_prssupp');
           AddUnit('dbf_prsdef');
         end;
-    T:=P.Targets.AddUnit('dbf_fields.pas');
+    T:=P.Targets.AddUnit('dbf_fields.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
@@ -201,7 +202,7 @@ begin
           AddUnit('dbf_str');
           AddUnit('dbf_dbffile');
         end;
-    T:=P.Targets.AddUnit('dbf_idxcur.pas');
+    T:=P.Targets.AddUnit('dbf_idxcur.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
@@ -211,7 +212,7 @@ begin
           AddUnit('dbf_wtil');
           AddUnit('dbf_common');
         end;
-    T:=P.Targets.AddUnit('dbf_idxfile.pas');
+    T:=P.Targets.AddUnit('dbf_idxfile.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
@@ -230,13 +231,13 @@ begin
           AddUnit('dbf_prscore');
           AddUnit('dbf_lang');
         end;
-    T:=P.Targets.AddUnit('dbf_lang.pas');
+    T:=P.Targets.AddUnit('dbf_lang.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
           AddUnit('dbf_wtil');
         end;
-    T:=P.Targets.AddUnit('dbf_memo.pas');
+    T:=P.Targets.AddUnit('dbf_memo.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
@@ -244,7 +245,7 @@ begin
           AddUnit('dbf_common');
           AddUnit('dbf_dbffile');
         end;
-    T:=P.Targets.AddUnit('dbf_parser.pas');
+    T:=P.Targets.AddUnit('dbf_parser.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
@@ -259,7 +260,7 @@ begin
           AddUnit('dbf_dbffile');
           AddUnit('dbf_str');
         end;
-    T:=P.Targets.AddUnit('dbf_pgfile.pas');
+    T:=P.Targets.AddUnit('dbf_pgfile.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
@@ -289,13 +290,13 @@ begin
           AddInclude('getstrfromint.inc');
           AddInclude('getstrfromint.inc');
         end;
-    T:=P.Targets.AddUnit('dbf_str.pas');
+    T:=P.Targets.AddUnit('dbf_str.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
           AddInclude('dbf_str.inc');
         end;
-    T:=P.Targets.AddUnit('dbf_wtil.pas');
+    T:=P.Targets.AddUnit('dbf_wtil.pas', DBaseOSes);
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
@@ -675,7 +676,7 @@ begin
     T:=P.Targets.AddUnit('fpjsondataset.pp');
 
     P.ExamplePath.Add('tests');
-    T:=P.Targets.AddExampleProgram('dbftoolsunit.pas');
+    T:=P.Targets.AddExampleProgram('dbftoolsunit.pas', DBaseOSes);
     T:=P.Targets.AddExampleProgram('dbtestframework.pas');
     T:=P.Targets.AddExampleProgram('memdstoolsunit.pas');
     T:=P.Targets.AddExampleProgram('sdfdstoolsunit.pas');
