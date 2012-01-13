@@ -33,11 +33,11 @@ begin
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('paszlib');
-    P.Dependencies.Add('httpd22');
 
     P.Dependencies.Add('univint',[MacOSX,iphonesim]);
     P.Dependencies.Add('fcl-net', TargetsWithfpWeb);
     P.Dependencies.Add('fcl-web', TargetsWithfpWeb);
+    P.Dependencies.Add('httpd22', TargetsWithfpWeb);
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
