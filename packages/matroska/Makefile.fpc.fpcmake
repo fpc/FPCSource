@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for libmatroska bindings
+#
+
+[package]
+name=matroska
+version=2.7.1
+
+[target]
+units=matroska
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:

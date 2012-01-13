@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for gnome bindings
+#
+
+[package]
+name=gnome1
+version=2.7.1
+
+[require]
+libc=y
+packages=gtk1 imlib
+
+[target]
+units=libzvt libart libgnome gconf gconfclient libgnomeui  
+
+[compiler]
+includedir=src src/libgnome src/zvt src/gconf src/gconfclient src/libgnomeui 
+sourcedir=src tests examples src src/zvt src/libgnome src/gconfclient src/gconf src/libgnomeui
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+

@@ -166,11 +166,11 @@ fcl-image_smart: fcl-base_smart paszlib_smart pasjpeg_smart
 fcl-image_release: fcl-base_release paszlib_release pasjpeg_release
 fcl-image_shared: fcl-base_shared paszlib_shared pasjpeg_shared
 
-fcl-fpcunit_all: fcl-xml_all paszlib_all
-fcl-fpcunit_debug: fcl-xml_debug paszlib_debug
-fcl-fpcunit_smart: fcl-xml_smart paszlib_smart
-fcl-fpcunit_release: fcl-xml_release paszlib_release
-fcl-fpcunit_shared: fcl-xml_shared paszlib_shared
+fcl-fpcunit_all: fcl-xml_all paszlib_all fpmkunit_all
+fcl-fpcunit_debug: fcl-xml_debug paszlib_debug fpmkunit_debug
+fcl-fpcunit_smart: fcl-xml_smart paszlib_smart fpmkunit_smart
+fcl-fpcunit_release: fcl-xml_release paszlib_release fpmkunit_release
+fcl-fpcunit_shared: fcl-xml_shared paszlib_shared fpmkunit_shared
 
 fcl-registry_all: fpmkunit_all fcl-xml_all
 fcl-registry_debug: fpmkunit_debug fcl-xml_debug
@@ -299,38 +299,38 @@ graph_release: ptc_release
 endif
 
 ifneq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris),)
-gtk1_all: x11_all opengl_all
-gtk1_debug: x11_debug opengl_debug
-gtk1_smart: x11_smart opengl_smart
-gtk1_release: x11_release opengl_release
-gtk1_shared: x11_shared opengl_shared
+gtk1_all: x11_all opengl_all fpmkunit_all
+gtk1_debug: x11_debug opengl_debug fpmkunit_debug
+gtk1_smart: x11_smart opengl_smart fpmkunit_smart
+gtk1_release: x11_release opengl_release fpmkunit_release
+gtk1_shared: x11_shared opengl_shared fpmkunit_shared
 
-gtk2_all: x11_all cairo_all
-gtk2_shared: x11_shared cairo_shared
-gtk2_smart: x11_smart cairo_smart
-gtk2_debug: x11_debug cairo_debug
-gtk2_release: x11_release cairo_release
+gtk2_all: x11_all cairo_all fpmkunit_all
+gtk2_shared: x11_shared cairo_shared fpmkunit_debug
+gtk2_smart: x11_smart cairo_smart fpmkunit_smart
+gtk2_debug: x11_debug cairo_debug fpmkunit_release
+gtk2_release: x11_release cairo_release fpmkunit_shared
 else
 ifeq ($(findstring $(OS_TARGET),os2 emx),)
-gtk1_all:  opengl_all
-gtk1_debug:  opengl_debug
-gtk1_smart:  opengl_smart
-gtk1_release:  opengl_release
-gtk1_shared:  opengl_shared
+gtk1_all:  opengl_all fpmkunit_all
+gtk1_debug:  opengl_debug fpmkunit_debug
+gtk1_smart:  opengl_smart fpmkunit_smart
+gtk1_release:  opengl_release fpmkunit_release
+gtk1_shared:  opengl_shared fpmkunit_shared
 endif
 
-gtk2_all: cairo_all
-gtk2_shared: cairo_shared
-gtk2_smart: cairo_smart
-gtk2_debug: cairo_debug
-gtk2_release: cairo_release
+gtk2_all: cairo_all fpmkunit_all
+gtk2_shared: cairo_shared fpmkunit_shared
+gtk2_smart: cairo_smart fpmkunit_smart
+gtk2_debug: cairo_debug fpmkunit_debug
+gtk2_release: cairo_release fpmkunit_release
 endif
 
-imlib_all: gtk1_all x11_all
-imlib_shared: gtk1_shared x11_shared
-imlib_smart: gtk1_smart x11_smart
-imlib_debug: gtk1_debug x11_debug
-imlib_release: gtk1_release x11_release
+imlib_all: gtk1_all x11_all fpmkunit_all
+imlib_shared: gtk1_shared x11_shared fpmkunit_shared
+imlib_smart: gtk1_smart x11_smart fpmkunit_smart
+imlib_debug: gtk1_debug x11_debug fpmkunit_debug
+imlib_release: gtk1_release x11_release fpmkunit_release
 
 ldap_all: hash_all fpmkunit_all
 ldap_shared: hash_shared fpmkunit_shared
@@ -407,11 +407,11 @@ xforms_smart: x11_smart fpmkunit_smart
 xforms_debug: x11_debug fpmkunit_debug
 xforms_release: x11_release fpmkunit_release
 
-gnome1_all: gtk1_all imlib_all
-gnome1_shared: gtk1_shared imlib_shared
-gnome1_smart: gtk1_smart imlib_smart
-gnome1_debug: gtk1_debug imlib_debug
-gnome1_release: gtk1_release imlib_release
+gnome1_all: gtk1_all imlib_all fpmkunit_all
+gnome1_shared: gtk1_shared imlib_shared fpmkunit_shared
+gnome1_smart: gtk1_smart imlib_smart fpmkunit_smart
+gnome1_debug: gtk1_debug imlib_debug fpmkunit_debug
+gnome1_release: gtk1_release imlib_release fpmkunit_release
 
 ptc_all: hermes_all fcl-base_all
 ptc_shared: hermes_shared fcl-base_shared
@@ -678,4 +678,82 @@ gmp_shared: fpmkunit_shared
 gmp_smart: fpmkunit_smart
 gmp_debug: fpmkunit_debug
 gmp_release: fpmkunit_release
+
+fv_all: fpmkunit_all
+fv_shared: fpmkunit_shared
+fv_smart: fpmkunit_smart
+fv_debug: fpmkunit_debug
+fv_release: fpmkunit_release
+
+graph_all: fpmkunit_all
+graph_shared: fpmkunit_shared
+graph_smart: fpmkunit_smart
+graph_debug: fpmkunit_debug
+graph_release: fpmkunit_release
+
+hermes_all: fpmkunit_all
+hermes_shared: fpmkunit_shared
+hermes_smart: fpmkunit_smart
+hermes_debug: fpmkunit_debug
+hermes_release: fpmkunit_release
+
+httpd22_all: fpmkunit_all
+httpd22_shared: fpmkunit_shared
+httpd22_smart: fpmkunit_smart
+httpd22_debug: fpmkunit_debug
+httpd22_release: fpmkunit_release
+
+iconvenc_all: fpmkunit_all
+iconvenc_shared: fpmkunit_shared
+iconvenc_smart: fpmkunit_smart
+iconvenc_debug: fpmkunit_debug
+iconvenc_release: fpmkunit_release
+
+imagemagick_all: fpmkunit_all
+imagemagick_shared: fpmkunit_shared
+imagemagick_smart: fpmkunit_smart
+imagemagick_debug: fpmkunit_debug
+imagemagick_release: fpmkunit_release
+
+libxml_all: fpmkunit_all
+libxml_shared: fpmkunit_shared
+libxml_smart: fpmkunit_smart
+libxml_debug: fpmkunit_debug
+libxml_release: fpmkunit_release
+
+mad_all: fpmkunit_all
+mad_shared: fpmkunit_shared
+mad_smart: fpmkunit_smart
+mad_debug: fpmkunit_debug
+mad_release: fpmkunit_release
+
+modplug_all: fpmkunit_all
+modplug_shared: fpmkunit_shared
+modplug_smart: fpmkunit_smart
+modplug_debug: fpmkunit_debug
+modplug_release: fpmkunit_release
+
+ncurses_all: fpmkunit_all
+ncurses_shared: fpmkunit_shared
+ncurses_smart: fpmkunit_smart
+ncurses_debug: fpmkunit_debug
+ncurses_release: fpmkunit_release
+
+newt_all: fpmkunit_all
+newt_shared: fpmkunit_shared
+newt_smart: fpmkunit_smart
+newt_debug: fpmkunit_debug
+newt_release: fpmkunit_release
+
+zlib_all: fpmkunit_all
+zlib_shared: fpmkunit_shared
+zlib_smart: fpmkunit_smart
+zlib_debug: fpmkunit_debug
+zlib_release: fpmkunit_release
+
+unzip_all: fpmkunit_all
+unzip_shared: fpmkunit_shared
+unzip_smart: fpmkunit_smart
+unzip_debug: fpmkunit_debug
+unzip_release: fpmkunit_release
 

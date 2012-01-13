@@ -1,0 +1,32 @@
+#
+#   Makefile.fpc for Free Pascal ImLib 1.x Packages
+#
+
+[package]
+name=iconvenc 
+version=2.7.1
+
+[target]
+units=iconvenc iconvenc_dyn
+exampledirs=examples
+
+[require]
+libc=y
+
+[compiler]
+includedir=src
+sourcedir=src 
+
+
+[install]
+fpcpackage=y
+fpcsubdir=packages
+
+[default]
+fpcdir=../..
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

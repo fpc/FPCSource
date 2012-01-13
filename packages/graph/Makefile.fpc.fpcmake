@@ -1,0 +1,117 @@
+#
+#   Makefile.fpc for Free Component Library
+#
+
+[package]
+name=graph
+version=2.7.1
+
+[require]
+libc=y
+packages_linux=ptc
+packages_win32=ptc
+packages_win64=ptc
+packages_linux_i386=sdl
+packages_linux_powerpc=sdl
+packages_freebsd_i386=sdl
+packages_win32=sdl
+packages_darwin_powerpc=sdl
+packages_darwin_i386=sdl
+
+# clean package units
+[clean]
+units=$(GGIGRAPH_UNIT) $(GRAPH_UNIT)
+
+[target]
+dirs=
+units=
+units_linux=$(GRAPH_UNIT) $(GGIGRAPH_UNIT) ptcgraph ptccrt
+units_freebsd=graph $(GGIGRAPH_UNIT)
+units_win32=graph wincrt winmouse
+units_win64=graph wincrt winmouse
+units_go32v2=graph
+units_amiga=graph
+units_i386_linux=sdlgraph
+units_powerpc_linux=sdlgraph
+units_i386_freebsd=sdlgraph
+units_win32=sdlgraph
+units_powerpc_darwin=sdlgraph
+units_i386_darwin=sdlgraph
+units_win32=ptcgraph ptccrt
+units_win64=ptcgraph ptccrt
+
+[compiler]
+options=-S2
+includedir=src/$(OS_TARGET) src/inc
+includedir_linux=src/unix
+includedir_freebsd=src/unix
+includedir_darwin=src/unix
+includedir_netbsd=src/unix
+includedir_openbsd=src/unix
+sourcedir=src/$(OS_TARGET) src/inc src/ptcgraph tests examples
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[shared]
+build=n
+
+[prerules]
+GRAPHDIR=src/inc
+UNIXINC=src/unix
+
+ifndef USELIBGGI
+USELIBGGI=NO
+endif
+
+GGIGRAPH_UNIT=ggigraph
+GRAPH_UNIT=graph
+GRAPHUNIT_DIR=src/$(OS_TARGET)
+
+ifeq ($(OS_TARGET),linux)
+GRAPHUNIT_DIR=src/unix
+UNIXINCDEPS=$(UNIXINC)/graph16.inc
+
+ifeq ($(CPU_TARGET),powerpc64)
+GGIGRAPH_UNIT=
+endif
+
+ifneq ($(CPU_TARGET),i386)
+GRAPH_UNIT=
+endif
+endif
+
+ifeq ($(OS_TARGET),freebsd)
+GRAPHUNIT_DIR=src/unix
+UNIXINCDEPS=$(UNIXINC)/graph16.inc
+endif
+
+[rules]
+include src/inc/makefile.inc
+GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES)) $(UNIXINCDEPS)
+
+ifeq ($(OS_TARGET),win64)
+graph$(PPUEXT) : src/win32/graph.pp $(GRAPHINCDEPS)
+        $(COMPILER) -I$(GRAPHDIR) src/win32/graph.pp
+else
+graph$(PPUEXT) : graph.pp $(GRAPHINCDEPS)
+        $(COMPILER) -I$(GRAPHDIR) $(GRAPHUNIT_DIR)/graph.pp
+endif
+
+ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp $(GRAPHINCDEPS)
+        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/ggigraph.pp
+
+winmouse$(PPUEXT) : src/win32/winmouse.pp graph$(PPUEXT)
+	$(COMPILER) src/win32/winmouse.pp
+
+wincrt$(PPUEXT) : src/win32/wincrt.pp graph$(PPUEXT)
+        $(COMPILER) src/win32/wincrt.pp
+
+sdlgraph$(PPUEXT) : src/sdlgraph/sdlgraph.pp $(GRAPHINCDEPS)
+        $(COMPILER) -I$(GRAPHDIR) src/sdlgraph/sdlgraph.pp
+
+.NOTPARALLEL:
+
