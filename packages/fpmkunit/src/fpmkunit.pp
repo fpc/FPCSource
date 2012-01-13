@@ -4590,6 +4590,11 @@ begin
   // Target OS
   Args.Add('-T'+OSToString(Defaults.OS));
 
+  // Target CPU.
+  // This setting is only applicable when 'fpc' is used as compiler-executable.
+  if ExtractFileName(GetCompiler) = 'fpc' then
+    Args.Add('-P'+CPUToString(Defaults.CPU));
+
   // Compile mode
   If ATarget.Mode<>cmFPC then
     Args.Add('-M'+ModeToString(ATarget.Mode))
