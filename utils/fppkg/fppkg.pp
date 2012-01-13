@@ -320,8 +320,12 @@ begin
     FindInstalledPackages(FPMakeCompilerOptions,true);
     CheckFPMakeDependencies;
     // We only need to reload the status when we use a different
-    // configuration for compiling fpmake
-    if GlobalOptions.CompilerConfig<>GlobalOptions.FPMakeCompilerConfig then
+    // configuration for compiling fpmake or when the CPU, OS or compiler
+    // are set in the command-line
+    if (GlobalOptions.CompilerConfig<>GlobalOptions.FPMakeCompilerConfig) or
+       (CompilerOptions.CompilerCPU<>FPMakeCompilerOptions.CompilerCPU) or
+       (CompilerOptions.CompilerOS<>FPMakeCompilerOptions.CompilerOS) or
+       (CompilerOptions.Compiler<>FPMakeCompilerOptions.Compiler) then
       FindInstalledPackages(CompilerOptions,true);
 
     // Check for broken dependencies
