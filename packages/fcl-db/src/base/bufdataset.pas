@@ -446,7 +446,6 @@ type
     procedure SetMaxIndexesCount(const AValue: Integer);
     procedure SetPacketRecords(aValue : integer);
     function  IntAllocRecordBuffer: TRecordBuffer;
-    procedure DoFilterRecord(out Acceptable: Boolean);
     procedure ParseFilter(const AFilter: string);
     procedure IntLoadFielddefsFromFile;
     procedure IntLoadRecordsFromFile;
@@ -493,6 +492,7 @@ type
     procedure SetFiltered(Value: Boolean); override; {virtual;}
     procedure InternalRefresh; override;
     procedure BeforeRefreshOpenCursor; virtual;
+    procedure DoFilterRecord(out Acceptable: Boolean); virtual;
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
