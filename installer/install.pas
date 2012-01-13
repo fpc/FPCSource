@@ -910,8 +910,8 @@ program install;
           S := 'and your LIBPATH with ''' + S
          else
           S := 'Extend your LIBPATH with ''' + S;
-         System.Delete (S, Length (S) - 3, 4);
-         S := S + '\dll''';
+         System.Delete (S, Length (S) - 6, 7);
+         S := S + 'dll''';
          R.Assign (2, YB - 14, 64, YB - 12);
          P := New (PStaticText, Init (R, S));
          Insert (P);
