@@ -60,6 +60,7 @@ begin
           Add('src/gtkext');
           Add('src/gtk2x11');
         end;
+    T.Install:=False;
 
     T:=P.Targets.AddImplicitUnit('src/atk/atk.pas');
      T.IncludePath.Add('src/atk');
