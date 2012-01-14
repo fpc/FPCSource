@@ -35,6 +35,7 @@ interface
       private
         procedure maybe_add_constructor_wrapper(var tocode: tnode; withexceptblock: boolean);
         procedure add_entry_exit_code;
+        procedure setup_tempgen;
       public
         { code for the subroutine as tree }
         code : tnode;
@@ -725,6 +726,65 @@ implementation
            end;
       end;
 
+    procedure tcgprocinfo.setup_tempgen;
+      begin
+        tg:=ttgobj.create;
+
+{$if defined(x86) or defined(arm)}
+        { try to strip the stack frame }
+        { set the framepointer to esp if:
+          - no assembler directive, those are handled in assembler_block
+            in pstatment.pas (for cases not caught by the Delphi
+            exception below)
+          - no exceptions are used
+          - no pushes are used/esp modifications, could be:
+            * outgoing parameters on the stack
+            * incoming parameters on the stack
+            * open arrays
+          - no inline assembler
+         or
+          - Delphi mode
+          - assembler directive
+          - no pushes are used/esp modifications, could be:
+            * outgoing parameters on the stack
+            * incoming parameters on the stack
+            * open arrays
+          - no local variables
+        }
+        if ((po_assembler in procdef.procoptions) and
+           (m_delphi in current_settings.modeswitches) and
+           { localst at main_program_level is a staticsymtable }
+            (procdef.localst.symtablelevel<>main_program_level) and
+            (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
+           ((cs_opt_stackframe in current_settings.optimizerswitches) and
+            not(cs_generate_stackframes in current_settings.localswitches) and
+            not(po_assembler in procdef.procoptions) and
+            ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
+                    pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
+                    pi_needs_stackframe])=[])
+           )
+        then
+          begin
+            { we need the parameter info here to determine if the procedure gets
+              parameters on the stack
+
+              calling generate_parameter_info doesn't hurt but it costs time
+              (necessary to init para_stack_size)
+            }
+            generate_parameter_info;
+            if not(procdef.stack_tainting_parameter(calleeside)) and
+               not(has_assembler_child) and (para_stack_size=0) then
+              begin
+                { Only need to set the framepointer }
+                framepointer:=NR_STACK_POINTER_REG;
+                tg.direction:=1;
+              end;
+          end;
+
+{$endif}
+        { set the start offset to the start of the temp area in the stack }
+        set_first_temp_offset;
+      end;
 
     function tcgprocinfo.has_assembler_child : boolean;
       var
@@ -898,65 +958,11 @@ implementation
           begin
             create_codegen;
 
-            { set the start offset to the start of the temp area in the stack }
-            tg:=ttgobj.create;
+            setup_tempgen;
 
-{$if defined(x86) or defined(arm)}
-            { try to strip the stack frame }
-            { set the framepointer to esp if:
-              - no assembler directive, those are handled in assembler_block
-                in pstatment.pas (for cases not caught by the Delphi
-                exception below)
-              - no exceptions are used
-              - no pushes are used/esp modifications, could be:
-                * outgoing parameters on the stack
-                * incoming parameters on the stack
-                * open arrays
-              - no inline assembler
-             or
-              - Delphi mode
-              - assembler directive
-              - no pushes are used/esp modifications, could be:
-                * outgoing parameters on the stack
-                * incoming parameters on the stack
-                * open arrays
-              - no local variables
-            }
-            if ((po_assembler in procdef.procoptions) and
-                (m_delphi in current_settings.modeswitches) and
-                { localst at main_program_level is a staticsymtable }
-                (procdef.localst.symtablelevel<>main_program_level) and
-                (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
-               ((cs_opt_stackframe in current_settings.optimizerswitches) and
-                not(cs_generate_stackframes in current_settings.localswitches) and
-                not(po_assembler in procdef.procoptions) and
-                ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
-                        pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
-                        pi_needs_stackframe])=[])
-               )
-             then
-               begin
-                 { we need the parameter info here to determine if the procedure gets
-                   parameters on the stack
-
-                   calling generate_parameter_info doesn't hurt but it costs time
-                   (necessary to init para_stack_size)
-                 }
-                 generate_parameter_info;
-                 if not(procdef.stack_tainting_parameter(calleeside)) and
-                   not(has_assembler_child) and (para_stack_size=0) then
-                   begin
-                     { Only need to set the framepointer }
-                     framepointer:=NR_STACK_POINTER_REG;
-                     tg.direction:=1;
-                   end;
-               end;
-
-{$endif}
-            { Create register allocator }
+            { Create register allocator, must come after framepointer is known }
             cg.init_register_allocators;
 
-            set_first_temp_offset;
             generate_parameter_info;
 
             { allocate got register if needed }
