@@ -234,6 +234,7 @@ begin
 
       ct_stm32f103rb,
       ct_stm32f103re,
+      ct_stm32f103c4t,
 
       { TI - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
@@ -307,6 +308,7 @@ begin
       ct_lm3s9b92,
       ct_lm3s9b95,
       ct_lm3s9b96,
+      ct_sc32442b,
       ct_thumb2bare:
         begin
          with embedded_controllers[current_settings.controllertype] do

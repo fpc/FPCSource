@@ -76,6 +76,7 @@ Type
       { STMicroelectronics }
       ct_stm32f103rb,
       ct_stm32f103re,
+      ct_stm32f103c4t,
 
       { TI - Fury Class - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
@@ -149,6 +150,9 @@ Type
       ct_lm3s9b92,
       ct_lm3s9b95,
       ct_lm3s9b96,
+      
+      { SAMSUNG }
+      ct_sc32442b,
 
       // generic Thumb2 target
       ct_thumb2bare
@@ -316,6 +320,16 @@ Const
         flashsize:$00080000;
         srambase:$20000000;
         sramsize:$00010000
+        ),
+        // ct_stm32f103re,
+        (
+    	controllertypestr:'STM32F103C4T';
+        controllerunitstr:'STM32F103';
+        interruptvectors:12;
+        flashbase:$08000000;
+        flashsize:$00004000;
+        srambase:$20000000;
+        sramsize:$00001800
         ),
 
       { TI - 64 K Flash, 16 K SRAM Devices }
@@ -975,6 +989,18 @@ Const
         srambase:$20000000;
         sramsize:$00010000
         ),
+        
+        //ct_SC32442b,
+        (
+    	controllertypestr:'SC32442B';
+        controllerunitstr:'sc32442b';
+        interruptvectors:7;
+	flashbase:$00000000;
+        flashsize:$00000000;
+        srambase:$00000000;
+        sramsize:$08000000
+        ),
+        
         // bare bones Thumb2
         (
     	controllertypestr:'THUMB2_BARE';

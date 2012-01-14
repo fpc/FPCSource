@@ -52,10 +52,10 @@ ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=lm3fury lm3tempest stm32f103 lpc1768 # thumb2_bare
 endif
 ifeq ($(SUBARCH),armv4t)
-CPU_UNITS=lpc21x4 at91sam7x256
+CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
 endif
 ifeq ($(SUBARCH),armv4)
-CPU_UNITS=lpc21x4 at91sam7x256
+CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
 endif
 endif
 
