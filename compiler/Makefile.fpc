@@ -71,6 +71,9 @@ endif
 ifdef MIPSEL
 PPC_TARGET=mipsel
 endif
+ifdef AVR
+PPC_TARGET=avr
+endif
 
 # Default is to generate a compiler for the same
 # platform as CPU_TARGET (a native compiler)
@@ -153,6 +156,9 @@ CPUSUF=mips
 endif
 ifeq ($(CPC_TARGET),mipsel)
 CPUSUF=mipsel
+endif
+ifeq ($(CPC_TARGET),avr)
+CPUSUF=avr
 endif
 
 # Do not define the default -d$(CPU_TARGET) because that
@@ -322,7 +328,7 @@ endif
 # CPU targets
 #####################################################################
 
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel avr
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 
 .PHONY: $(PPC_TARGETS) $(INSTALL_TARGETS)
