@@ -25,9 +25,11 @@ begin
 
     P.Sources.AddSrc('README.txt');
 
-    P.ExamplePath.Add('tests/');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testlibuid.pp');
     P.Targets.AddExampleProgram('testuid.pp');
+    P.Sources.AddExampleFiles('examples/*',false,'.');
+
 
 {$ifndef ALLPACKAGES}
     Run;

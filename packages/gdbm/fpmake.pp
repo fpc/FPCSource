@@ -29,8 +29,8 @@ begin
     T:=P.Targets.AddUnit('gdbm.pp');
 
     P.ExamplePath.Add('examples');
-    P.Targets.AddExampleProgram('tests/testgdbm.pp');
-    P.Targets.AddExampleProgram('tests/testgdbm2.pp');
+    P.Targets.AddExampleProgram('testgdbm.pp');
+    P.Targets.AddExampleProgram('testgdbm2.pp');
 
 
 {$ifndef ALLPACKAGES}

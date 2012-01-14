@@ -30,9 +30,11 @@ begin
 
     T:=P.Targets.AddUnit('libcurl.pp');
 
-    P.ExamplePath.Add('tests');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testcurl.pp');
     P.Targets.AddExampleProgram('teststream.pp');
+    P.Sources.AddExampleFiles('examples/*',false,'.');
+
 
 {$ifndef ALLPACKAGES}
     Run;

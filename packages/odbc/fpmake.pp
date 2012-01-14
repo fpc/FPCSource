@@ -31,9 +31,9 @@ begin
           AddInclude('odbcsql.inc');
         end;
 
-    P.ExamplePath.Add('tests');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testodbc.pp');
-    // 'testodbc.mdb
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

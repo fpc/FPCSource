@@ -1263,6 +1263,17 @@ begin
            AddInclude('htmldocument.inc');
            AddInclude('htmlview.inc');
          end;}
+    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/filechooser/*',false,'filechooser');
+    P.Sources.AddExampleFiles('examples/gettingstarted/*',false,'gettingstarted');
+    P.Sources.AddExampleFiles('examples/gtk_demo/*',false,'gtk_demo');
+    P.Sources.AddExampleFiles('examples/gtkglext/*',false,'gtkglext');
+    P.Sources.AddExampleFiles('examples/helloworld/*',false,'helloworld');
+    P.Sources.AddExampleFiles('examples/helloworld2/*',false,'helloworld2');
+    P.Sources.AddExampleFiles('examples/plugins/*',false,'plugins');
+    P.Sources.AddExampleFiles('examples/scribble_simple/*',false,'scribble_simple');
+
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

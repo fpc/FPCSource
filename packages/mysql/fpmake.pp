@@ -122,7 +122,7 @@ begin
         end;
     T.ResourceStrings := True;
 
-    P.ExamplePath.Add('tests');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testdb3.pp');
     P.Targets.AddExampleProgram('testdb4.pp');
     P.Targets.AddExampleProgram('mysqls.pp');

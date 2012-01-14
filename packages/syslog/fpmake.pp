@@ -21,8 +21,9 @@ begin
 
     T:=P.Targets.AddUnit('systemlog.pp');
 
-    P.ExamplePath.Add('tests/');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testlog.pp');
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

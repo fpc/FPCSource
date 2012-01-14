@@ -40,9 +40,10 @@ begin
           AddInclude('ibase60.inc');
         end;
 
-    P.ExamplePath.Add('tests');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testib40.pp');
     P.Targets.AddExampleProgram('testib60.pp');
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

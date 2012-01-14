@@ -51,10 +51,11 @@ begin
 
     P.Sources.AddSrc('README.txt');
 
-    P.ExamplePath.Add('tests/');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testpg2.pp');
     P.Targets.AddExampleProgram('testpg1.pp');
-  
+    P.Sources.AddExampleFiles('examples/*',false,'.');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

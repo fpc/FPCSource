@@ -85,10 +85,7 @@ begin
     P.Targets.AddExampleProgram('tree2.pas');
     P.Targets.AddExampleProgram('exutils.pas');
     P.Targets.AddExampleProgram('reader2.pas');
-    // 'Makefile
-    // 'Makefile.fpc
-    // 'test1.xml
-    // 'test2.xml
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

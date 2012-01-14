@@ -28,6 +28,9 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('gmp.pas');
+
+    P.Sources.AddExampleFiles('examples/*',false,'.');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
