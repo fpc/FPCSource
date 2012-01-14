@@ -177,7 +177,6 @@ unit cgcpu;
 
     procedure tcgx86_64.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
       var
-        stacksize : longint;
         href : treference;
       begin
         { Release PIC register }
@@ -189,16 +188,8 @@ unit cgcpu;
           begin
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
-                stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.system in systems_need_16_byte_stack_alignment) and
-                   ((stacksize <> 0) or
-                    (pi_do_call in current_procinfo.flags) or
-                    { can't detect if a call in this case -> use nostackframe }
-                    { if you (think you) know what you are doing              }
-                    (po_assembler in current_procinfo.procdef.procoptions)) then
-                  stacksize := align(stacksize+sizeof(aint),16) - sizeof(aint);
-                if (stacksize<>0) then
-                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
+                if (current_procinfo.final_localsize<>0) then
+                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,current_procinfo.final_localsize,NR_STACK_POINTER_REG);
               end
             else if (target_info.system=system_x86_64_win64) then
               begin
