@@ -65,7 +65,7 @@ begin
 end;
 
 
-procedure MyDllHook(DllParma : longint);
+procedure MyDllHook(DllParma : PtrInt);
 begin
   Writeln('DLL: Thread Detach Hook  called with DLLParam=',DllParam);
   Writeln('DLL: Thread Id is ',GetCurrentThreadId);
