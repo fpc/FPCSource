@@ -32,7 +32,7 @@ begin
 
     // Dependencies for ptc, due to fpcmake bug:
     P.Dependencies.Add('fcl-base',[win32,win64,linux]);
-    P.Dependencies.Add('x11',[win32,win64,linux]);
+    P.Dependencies.Add('x11',[freebsd,linux]); // ptc only depends on reebsd and linux on x11
     P.Dependencies.Add('hermes',[win32,win64,linux]);
 
     P.SourcePath.Add('src');
