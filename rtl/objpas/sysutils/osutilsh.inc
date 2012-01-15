@@ -19,7 +19,8 @@ Type TExecuteFlags = Set of ( ExecInheritsHandles);
 {$ifdef HAS_OSERROR}
 Function GetLastOSError : Integer;
 {$endif}
-Procedure RaiseLastOSError;
+Procedure RaiseLastOSError;overload;
+Procedure RaiseLastOSError(LastError: Integer);overload;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 Function GetEnvironmentVariableCount : Integer;
 Function GetEnvironmentString(Index : Integer) : String;
