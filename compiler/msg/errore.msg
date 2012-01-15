@@ -2531,7 +2531,7 @@ exec_i_assembling_pipe=09001_I_Assembling (pipe) $1
 exec_d_cant_create_asmfile=09002_E_Can't create assembler file: $1
 % The mentioned file can't be created. Check if you have
 % access permissions to create this file.
-exec_e_cant_create_objectfile=09003_E_Can't create object file: $1
+exec_e_cant_create_objectfile=09003_E_Can't create object file: $1 (error code: $2)
 % The mentioned file can't be created. Check if you have
 % got access permissions to create this file.
 exec_e_cant_create_archivefile=09004_E_Can't create archive file: $1
