@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for SDL bindings
+#
+
+[package]
+name=os2units
+version=2.7.1
+
+[require]
+libc=y
+
+[target]
+units=buildall clkdll dive ftpapi hwvideo lvm mciapi mcidrv mci mmbase mmio sw
+# som wpstk
+exampledirs=examples
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[rules]
+.NOTPARALLEL:

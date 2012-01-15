@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for Unzip
+#
+
+[package]
+name=unzip
+version=2.7.1
+
+[target]
+units=ziptypes unzip51g
+units_emx=unzipdll
+units_os2=unzipdll
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

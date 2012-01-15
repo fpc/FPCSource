@@ -276,11 +276,11 @@ chm_smart:  fcl-xml_smart fpmkunit_smart
 chm_debug:  fcl-xml_debug fpmkunit_debug
 chm_release:  fcl-xml_release fpmkunit_release
 
-fpgtk_all: fcl-base_all gtk1_all
-fpgtk_shared: fcl-base_shared gtk1_shared
-fpgtk_smart: fcl-base_smart gtk1_smart
-fpgtk_debug: fcl-base_debug gtk1_debug
-fpgtk_release: fcl-base_release gtk1_release
+fpgtk_all: fcl-base_all gtk1_all fpmkunit_all
+fpgtk_shared: fcl-base_shared gtk1_shared fpmkunit_shared
+fpgtk_smart: fcl-base_smart gtk1_smart fpmkunit_smart
+fpgtk_debug: fcl-base_debug gtk1_debug fpmkunit_debug
+fpgtk_release: fcl-base_release gtk1_release fpmkunit_release
 
 ifeq ($(findstring $(OS_TARGET),go32v2),)
 graph_all: sdl_all
@@ -357,23 +357,36 @@ sdl_smart: pthreads_smart x11_smart fpmkunit_smart
 sdl_debug: pthreads_debug x11_debug fpmkunit_debug
 sdl_release: pthreads_release x11_release_release
 
-opengl_all: x11_all
-opengl_shared: x11_shared
-opengl_smart: x11_smart
-opengl_debug: x11_debug
-opengl_release: x11_release
+opengl_all: x11_all fpmkunit_all
+opengl_shared: x11_shared fpmkunit_shared
+opengl_smart: x11_smart fpmkunit_smart
+opengl_debug: x11_debug fpmkunit_debug
+opengl_release: x11_release fpmkunit_release
 
-ptc_all: x11_all
-ptc_shared: x11_shared
-ptc_smart: x11_smart
-ptc_debug: x11_debug
-ptc_release: x11_release
+ptc_all: x11_all fpmkunit_all
+ptc_shared: x11_shared fpmkunit_shared
+ptc_smart: x11_smart fpmkunit_smart
+ptc_debug: x11_debug fpmkunit_debug
+ptc_release: x11_release fpmkunit_release
 else
 sdl_all: fpmkunit_all
 sdl_shared: fpmkunit_shared
 sdl_smart: fpmkunit_smart
 sdl_debug: fpmkunit_debug
 sdl_release: fpmkunit_release
+
+ptc_all: fpmkunit_all
+ptc_shared: fpmkunit_shared
+ptc_smart: fpmkunit_smart
+ptc_debug: fpmkunit_debug
+ptc_release: fpmkunit_release
+
+opengl_all: fpmkunit_all
+opengl_shared: fpmkunit_shared
+opengl_smart: fpmkunit_smart
+opengl_debug: fpmkunit_debug
+opengl_release: fpmkunit_release
+
 endif
 
 tcl_all: fcl-base_all fpmkunit_all
@@ -382,11 +395,11 @@ tcl_smart: fcl-base_smart fpmkunit_smart
 tcl_debug: fcl-base_debug fpmkunit_debug
 tcl_release: fcl-base_release fpmkunit_release
 
-unixutil_all: libc_all fcl-base_all
-unixutil_shared: libc_shared fcl-base_shared
-unixutil_smart: libc_smart fcl-base_smart
-unixutil_debug: libc_debug fcl-base_debug
-unixutil_release: libc_release fcl-base_release
+unixutil_all: libc_all fcl-base_all fpmkunit_all
+unixutil_shared: libc_shared fcl-base_shared fpkmunit_shared
+unixutil_smart: libc_smart fcl-base_smart fpmkunit_smart
+unixutil_debug: libc_debug fcl-base_debug fpmkunit_debug
+unixutil_release: libc_release fcl-base_release fpmkunit_release
 
 winunits-base_all: fcl-registry_all fcl-base_all fpmkunit_all
 winunits-base_shared: fcl-registry_shared fcl-base_shared fpmkunit_shared
@@ -756,4 +769,76 @@ unzip_shared: fpmkunit_shared
 unzip_smart: fpmkunit_smart
 unzip_debug: fpmkunit_debug
 unzip_release: fpmkunit_release
+
+os2units_all: fpmkunit_all
+os2units_shared: fpmkunit_shared
+os2units_smart: fpmkunit_smart
+os2units_debug: fpmkunit_debug
+os2units_release: fpmkunit_release
+
+gdbint_all: fpmkunit_all
+gdbint_shared: fpmkunit_shared
+gdbint_smart: fpmkunit_smart
+gdbint_debug: fpmkunit_debug
+gdbint_release: fpmkunit_release
+
+univint_all: fpmkunit_all
+univint_shared: fpmkunit_shared
+univint_smart: fpmkunit_smart
+univint_debug: fpmkunit_debug
+univint_release: fpmkunit_release
+
+cocoaint_all: fpmkunit_all
+cocoaint_shared: fpmkunit_shared
+cocoaint_smart: fpmkunit_smart
+cocoaint_debug: fpmkunit_debug
+cocoaint_release: fpmkunit_release
+
+pcap_all: fpmkunit_all
+pcap_shared: fpmkunit_shared
+pcap_smart: fpmkunit_smart
+pcap_debug: fpmkunit_debug
+pcap_release: fpmkunit_release
+
+pasjpeg_all: fpmkunit_all
+pasjpeg_shared: fpmkunit_shared
+pasjpeg_smart: fpmkunit_smart
+pasjpeg_debug: fpmkunit_debug
+pasjpeg_release: fpmkunit_release
+
+palmunits_all: fpmkunit_all
+palmunits_shared: fpmkunit_shared
+palmunits_smart: fpmkunit_smart
+palmunits_debug: fpmkunit_debug
+palmunits_release: fpmkunit_release
+
+opengles_all: fpmkunit_all
+opengles_shared: fpmkunit_shared
+opengles_smart: fpmkunit_smart
+opengles_debug: fpmkunit_debug
+opengles_release: fpmkunit_release
+
+openssl_all: fpmkunit_all
+openssl_shared: fpmkunit_shared
+openssl_smart: fpmkunit_smart
+openssl_debug: fpmkunit_debug
+openssl_release: fpmkunit_release
+
+pxlib_all: fpmkunit_all
+pxlib_shared: fpmkunit_shared
+pxlib_smart: fpmkunit_smart
+pxlib_debug: fpmkunit_debug
+pxlib_release: fpmkunit_release
+
+rexx_all: fpmkunit_all
+rexx_shared: fpmkunit_shared
+rexx_smart: fpmkunit_smart
+rexx_debug: fpmkunit_debug
+rexx_release: fpmkunit_release
+
+objcrtl_all: fpmkunit_all
+objcrtl_shared: fpmkunit_shared
+objcrtl_smart: fpmkunit_smart
+objcrtl_debug: fpmkunit_debug
+objcrtl_release: fpmkunit_release
 

@@ -1,0 +1,42 @@
+#
+#   Makefile.fpc for OpenGL for FPC
+#
+
+[package]
+name=opengl
+version=2.7.1
+
+[require]
+packages_linux=x11
+packages_freebsd=x11
+packages_netbsd=x11
+packages_openbsd=x11
+packages_darwin=x11
+packages_i386_iphonesim=x11
+
+[target]
+units=gl glu glut
+units_win32=glext
+units_win64=glext
+units_haiku=glext
+units_linux=glx glext
+units_freebsd=glx glext
+units_netbsd=glx glext
+units_openbsd=glx glext
+units_darwin=glx glext
+exampledirs=examples
+
+implicitunits=freeglut
+
+[install]
+fpcpackage=y
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

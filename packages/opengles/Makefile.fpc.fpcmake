@@ -1,0 +1,34 @@
+#
+#   Makefile.fpc for OpenGL ES for FPC
+#
+
+[package]
+name=opengles
+version=2.7.1
+
+# [require]
+# packages_linux=x11
+#
+
+[target]
+units_arm_darwin=gles11
+units_i386_iphonesim=gles11
+units_linux=gles20
+units_wince=gles20
+units_win32=gles20
+units_win64=gles20
+units_darwin=gles20
+exampledirs=examples
+
+[install]
+fpcpackage=y
+
+[compiler]
+includedir=src
+sourcedir=src examples
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

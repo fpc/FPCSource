@@ -1,0 +1,37 @@
+#
+#   Makefile.fpc for PTCPas
+#
+
+[package]
+name=ptc
+version=2.7.1
+
+[target]
+units=ptc ptcwrapper ptceventqueue
+units_win32=p_ddraw
+units_win64=p_ddraw
+exampledirs=examples
+
+[compiler]
+#unitdir=src/ptcwrapper src/x11
+unitdir_go32v2=src/dos/base src/dos/cga src/dos/vga src/dos/textfx2 src/dos/timeunit src/dos/vesa
+unitdir_win32=src/win32/directx
+unitdir_win64=src/win32/directx
+sourcedir_win32=src/win32/directx
+sourcedir_win64=src/win32/directx
+unitdir_wince=src/wince/gapi
+sourcedir=src src/ptcwrapper
+
+[require]
+packages=hermes fcl-base
+packages_linux=x11
+packages_freebsd=x11
+
+[default]
+fpcdir=../..
+
+[install]
+fpcpackage=y
+
+[rules]
+.NOTPARALLEL:

@@ -1,0 +1,193 @@
+#
+#   Makefile.fpc for Free Pascal GDB Interface
+#
+
+
+[package]
+name=gdbint
+version=2.7.1
+
+[target]
+units=gdbint gdbcon
+examples=examples/testgdb examples/symify
+
+[compiler]
+objectdir=$(GDBLIBDIR)
+librarydir=$(GDBLIBDIR)
+includedir=$(GDBLIBDIR) src
+sourcedir=src tests
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+
+[prerules]
+# For unix be sure to use the locally created gdbver
+ifdef inUnix
+CURRDIR=./
+else
+CURRDIR=
+endif
+
+# Look for a valid GDBLIBDIR environment variable
+ifdef GDBLIBDIR
+override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+endif
+
+# Use default dirs if not available
+ifeq ($(LIBGDBFILE),)
+# Default locations <target>/<cpu> (linux) or <target> (win32,go32v2) only
+override GDBLIBDIR=$(wildcard $(FPCDIR)/libgdb/$(OS_TARGET)/$(CPU_TARGET))
+ifeq ($(GDBLIBDIR),)
+override GDBLIBDIR=$(FPCDIR)/libgdb/$(OS_TARGET)
+endif
+# Detect if libgdb.a is available
+override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+endif
+
+# Set GDBFOUND variable
+ifeq ($(LIBGDBFILE),)
+GDBFOUND=0
+else
+GDBFOUND=1
+# Detect if gdblib.inc is available
+override LIBGDBINC:=$(firstword $(wildcard $(addsuffix /gdblib.inc,$(GDBLIBDIR))))
+ifeq ($(LIBGDBINC),)
+GDBLIBINCFOUND=0
+GDBLIBINCCOND=
+else
+GDBLIBINCFOUND=1
+GDBLIBINCCOND=-dUSE_GDBLIBINC
+endif
+ifdef NO_GDBLIBINC
+GDBLIBINCFOUND=0
+GDBLIBINCCOND=
+endif
+endif
+
+
+[rules]
+ifeq ($(FULL_SOURCE),$(FULL_TARGET))
+CAN_RUN_GDBVER=1
+endif
+
+ifeq ($(FULL_SOURCE),i386-win32)
+ifeq ($(FULL_TARGET),i386-go32v2)
+CAN_RUN_GDBVER=1
+endif
+endif
+
+
+ifdef CAN_RUN_GDBVER
+ifeq ($(GDBFOUND),1)
+# libgdb.a found
+
+$(CURRDIR)getver$(EXEEXT) : gdbver.pp
+	$(COMPILER) -o$(CURRDIR)getver$(EXEEXT) gdbver.pp
+
+ifndef GOTGDBVER
+# gdbver doesn't exists, build it first
+gdbint$(PPUEXT): $(CURRDIR)gdbver$(EXEEXT) gdbint.pp
+	$(MAKE) gdbint$(PPUEXT) GOTGDBVER=1
+else
+# gdbver exists
+GDBVER:=GDB_V$(strip $(shell $(CURRDIR)gdbver$(EXEEXT) -n))
+gdbver.inc: gdbver$(EXEEXT)
+        ./gdbver$(EXEEXT) -o gdbver.inc
+gdbint$(PPUEXT): gdbint.pp gdbver.inc
+# MingW?
+ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
+	@$(ECHO) Using GDB $(GDBVER)
+        $(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND) -Fisrc -Fusrc src/gdbint.pp
+else
+	@$(ECHO) Using GDB $(GDBVER) \(MingW\)
+	$(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND) -dUSE_MINGW_GDB -Fisrc -Fusrc src/gdbint.pp
+endif
+	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
+endif
+
+else
+# libgdb.a not found, default to libgdb v6
+GDBVER=GDB_V606
+gdbver.inc:
+        $(CPPROG) src/gdbver_nogdb.inc src/gdbver.inc
+gdbint$(PPUEXT): gdbint.pp gdbver.inc
+	@$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
+	$(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND)  -Fisrc -Fusrc src/gdbint.pp
+        $(DEL) src/gdbver.inc
+endif
+
+else
+# Different OS_TARGET, default to libgdb v6
+GDBVER=GDB_V606
+gdbver.inc:
+        $(CPPROG) src/gdbver_nogdb.inc src/gdbver.inc
+gdbint$(PPUEXT): gdbint.pp gdbver.inc
+	@$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
+	$(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND)  -Fisrc -Fusrc src/gdbint.pp
+endif
+
+gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
+ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
+        $(COMPILER) src/gdbcon.pp
+else
+        $(COMPILER) -dUSE_MINGW_GDB src/gdbcon.pp
+endif
+	$(EXECPPAS)
+
+ifeq ($(OS_TARGET),go32v2)
+DBGCOM=dbgcom$(OEXT)
+else
+DBGCOM=
+endif
+
+ifdef $(COMPILEDBGCOM)
+# FPC conditionnal remove the file watching mecanism introduced
+# in v2.02 of dbgcom.c because it relies
+# on the fact that all files are opened via C lib calls
+# which is wrong for FPC !!
+$(DBGCOM): ../v4.16/dbgcom.c
+	gcc -c -DFPC -Dother_sel -gstabs -o dbgcom.o -I../v4.16 ../v4.16/dbgcom.c
+else
+$(DBGCOM):
+endif
+
+simple: $(DBGCOM)
+	-rm gdbint.ppu
+	ppc386 -dUSE_LIBGDB -fisrc -fusrc gdbint
+	ppc386 testgdb
+
+examples/testgdb$(EXEEXT): examples/testgdb.pp gdbint$(PPUEXT) gdbcon$(PPUEXT) $(DBGCOM)
+ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
+	$(COMPILER) -FEexamples  examples/testgdb.pp
+else
+	$(COMPILER) -FEexamples -dUSE_MINGW_GDB examples/testgdb.pp
+endif
+	$(EXECPPAS)
+
+examples/symify$(EXEEXT): examples/symify.pp gdbint$(PPUEXT) gdbcon$(PPUEXT) $(DBGCOM)
+ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
+        $(COMPILER) -FEexamples  examples/symify.pp
+else
+        $(COMPILER) -FEexamples -dUSE_MINGW_GDB examples/symify.pp
+endif
+	$(EXECPPAS)
+
+# Allow test for example
+.PHONY: test
+
+test: examples
+
+clean: fpc_clean
+	$(DEL) src/gdbver$(EXEEXT) src/gdbver$(OEXT)
+
+distclean: fpc_distclean
+	$(DEL) src/gdbver.inc
+
+.NOTPARALLEL:
