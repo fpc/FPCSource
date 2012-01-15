@@ -25,7 +25,7 @@ begin
     P.NeedLibC:= false;  // true for headers that indirectly link to libc? OS specific?
 
     P.CPUs:=[i386,x86_64,powerpc];
-    P.OSes:=[win32,linux,freebsd,darwin];
+    P.OSes:=[win32,win64,linux,freebsd,darwin];
 
     P.Dependencies.Add('sdl',[i386,powerpc],[win32,linux,freebsd,darwin]);
     P.Dependencies.Add('ptc',[win32,win64,linux]);
