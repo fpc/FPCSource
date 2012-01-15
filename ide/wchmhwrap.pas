@@ -121,6 +121,7 @@ var
     i,j : integer;
     item : TChmSiteMapItem;
     tli: integer;
+    s  : String;
 begin
  result:=false;
  if floaded then exit;
@@ -160,12 +161,16 @@ begin
   for i:=0 to findex.items.count-1 do
     begin
       item:=findex.items.item[i];
-      if (length(item.local)>0) and (item.local[1]<>'/') then
-        tli:=TopicLinks^.AddItem('/'+item.local)
-      else
-        tli:=TopicLinks^.AddItem(item.local);
-      TLI:=EncodeHTMLCtx(ID,TLI+1);
-      IndexEntries^.Insert(NewIndexEntry(  FormatAlias(item.text),ID,TLI));
+      s:=formatalias(item.text);
+      if s<>'' then
+        begin
+          if (length(item.local)>0) and (item.local[1]<>'/') then
+            tli:=TopicLinks^.AddItem('/'+item.local)
+          else
+            tli:=TopicLinks^.AddItem(item.local);
+          TLI:=EncodeHTMLCtx(ID,TLI+1);
+          IndexEntries^.Insert(NewIndexEntry(  FormatAlias(item.text),ID,TLI));
+        end;
     end;
    {$ifdef wdebug}
      debugmessageS({$i %file%},'TCHMWrapper: endloadindex ',{$i %line%},'1',0,0);
