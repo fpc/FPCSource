@@ -26,6 +26,11 @@ interface
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_WIDESTRINGMANAGER}
 
+{$ifdef FPC_USE_WIN64_SEH}
+  {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
+  {$define FPC_SYSTEM_HAS_RERAISE}
+{$endif FPC_USE_WIN64_SEH}
+
 { include system-independent routine headers }
 {$I systemh.inc}
 
@@ -126,7 +131,9 @@ var
                          System Dependent Exit code
 *****************************************************************************}
 
+{$ifndef FPC_USE_WIN64_SEH}
 procedure install_exception_handlers;forward;
+{$endif FPC_USE_WIN64_SEH}
 procedure remove_exception_handlers;forward;
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
@@ -166,6 +173,20 @@ var
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
 
+{$ifdef FPC_USE_WIN64_SEH}
+procedure main_wrapper(p: TProcedure); assembler; nostackframe;
+asm
+    subq   $40, %rsp
+.seh_stackalloc 40
+.seh_endprologue
+    call   %rcx
+    nop                     { this nop is critical for exception handling }
+    addq   $40, %rsp
+.seh_handler __FPC_default_handler,@except,@unwind
+end;
+{$endif FPC_USE_WIN64_SEH}
+
+
 procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
   var
     ST : pointer;
@@ -173,7 +194,9 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
+{$ifndef FPC_USE_WIN64_SEH}
      install_exception_handlers;
+{$endif FPC_USE_WIN64_SEH}
      ExitCode:=0;
      asm
         movq %rsp,%rax
@@ -186,7 +209,12 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
         movl %eax,_SS(%rip)
         movq %rbp,%rsi
         xorq %rbp,%rbp
+{$ifdef FPC_USE_WIN64_SEH}
+        lea  PASCALMAIN(%rip),%rcx
+        call main_wrapper
+{$else FPC_USE_WIN64_SEH}
         call PASCALMAIN
+{$endif FPC_USE_WIN64_SEH}
         movq %rsi,%rbp
      end ['RSI','RBP'];     { <-- specifying RSI allows compiler to save/restore it properly }
      { if we pass here there was no error ! }
@@ -271,6 +299,8 @@ type
 
 function AddVectoredExceptionHandler(FirstHandler : DWORD;VectoredHandler : TVectoredExceptionHandler) : longint;
         external 'kernel32' name 'AddVectoredExceptionHandler';
+
+{$ifndef FPC_USE_WIN64_SEH}
 const
   MaxExceptionLevel = 16;
   exceptLevel : Byte = 0;
@@ -442,6 +472,7 @@ procedure install_exception_handlers;
   begin
     AddVectoredExceptionHandler(1,@syswin64_x86_64_exception_handler);
   end;
+{$endif ndef FPC_USE_WIN64_SEH}
 
 
 procedure remove_exception_handlers;

@@ -1237,7 +1237,7 @@ implementation
 
            ait_seh_directive :
              begin
-{$ifdef TEST_WIN64_UNWIND}
+{$ifdef TEST_WIN64_SEH}
                AsmWrite(sehdirectivestr[tai_seh_directive(hp).kind]);
                case tai_seh_directive(hp).datatype of
                  sd_none:;
@@ -1258,7 +1258,7 @@ implementation
                      tostr(tai_seh_directive(hp).data.offset));
                end;
                AsmLn;
-{$endif TEST_WIN64_UNWIND}
+{$endif TEST_WIN64_SEH}
              end;
 
            else

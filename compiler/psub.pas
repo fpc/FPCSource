@@ -51,6 +51,7 @@ interface
         procedure printproc(pass:string);
         procedure generate_code;
         procedure generate_code_tree;
+        procedure generate_exceptfilter(nestedpi: tcgprocinfo);
         procedure resetprocdef;
         procedure add_to_symtablestack;
         procedure remove_from_symtablestack;
@@ -819,6 +820,24 @@ implementation
         resetprocdef;
       end;
 
+    procedure tcgprocinfo.generate_exceptfilter(nestedpi: tcgprocinfo);
+      var
+        saved_cg: tcg;
+      begin
+        if nestedpi.procdef.proctypeoption<>potype_exceptfilter then
+          InternalError(201201141);
+        { flush code generated this far }
+        aktproccode.concatlist(current_asmdata.CurrAsmList);
+        { save the codegen }
+        saved_cg:=cg;
+        cg:=nil;
+        nestedpi.generate_code;
+        { prevents generating code the second time when processing nested procedures }
+        nestedpi.resetprocdef;
+        cg:=saved_cg;
+        add_reg_instruction_hook:=@cg.add_reg_instruction;
+      end;
+
     procedure tcgprocinfo.generate_code;
       var
         old_current_procinfo : tprocinfo;
@@ -845,8 +864,9 @@ implementation
         if (df_generic in procdef.defoptions) then
           internalerror(200511152);
 
-        { The RA and Tempgen shall not be available yet }
-        if assigned(tg) then
+        { For regular procedures the RA and Tempgen shall not be available yet,
+          but exception filters reuse Tempgen of parent }
+        if assigned(tg)<>(procdef.proctypeoption=potype_exceptfilter) then
           internalerror(200309201);
 
         old_current_procinfo:=current_procinfo;
@@ -958,7 +978,8 @@ implementation
           begin
             create_codegen;
 
-            setup_tempgen;
+            if (procdef.proctypeoption<>potype_exceptfilter) then
+              setup_tempgen;
 
             { Create register allocator, must come after framepointer is known }
             cg.init_register_allocators;
@@ -1018,14 +1039,19 @@ implementation
 
             cg.set_regalloc_live_range_direction(rad_forward);
 
-            gen_finalize_code(templist);
-            { the finalcode must be concated if there was no position available,
-              using insertlistafter will result in an insert at the start
-              when currentai=nil }
-            if assigned(final_asmnode.currenttai) then
-              aktproccode.insertlistafter(final_asmnode.currenttai,templist)
+            if assigned(finalize_procinfo) then
+              generate_exceptfilter(tcgprocinfo(finalize_procinfo))
             else
-              aktproccode.concatlist(templist);
+              begin
+                gen_finalize_code(templist);
+                { the finalcode must be concated if there was no position available,
+                  using insertlistafter will result in an insert at the start
+                  when currentai=nil }
+                if assigned(final_asmnode) and assigned(final_asmnode.currenttai) then
+                  aktproccode.insertlistafter(final_asmnode.currenttai,templist)
+                else
+                  aktproccode.concatlist(templist);
+              end;
             { insert exit label at the correct position }
             cg.a_label(templist,CurrExitLabel);
             if assigned(exitlabel_asmnode.currenttai) then
@@ -1221,13 +1247,15 @@ implementation
               current_asmdata.asmlists[al_procedures].concatlist(aktlocaldata);
 
             { only now we can remove the temps }
-            tg.resettempgen;
-
+            if (procdef.proctypeoption<>potype_exceptfilter) then
+              begin
+                tg.resettempgen;
+                tg.free;
+                tg:=nil;
+              end;
             { stop tempgen and ra }
-            tg.free;
             cg.done_register_allocators;
             destroy_codegen;
-            tg:=nil;
           end;
 
         dfabuilder.free;

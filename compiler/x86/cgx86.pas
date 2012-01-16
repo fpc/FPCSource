@@ -156,7 +156,7 @@ unit cgx86;
        globals,verbose,systems,cutils,
        defutil,paramgr,procinfo,
        tgobj,ncgutil,
-       fmodule;
+       fmodule,symsym;
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,
@@ -2147,6 +2147,7 @@ unit cgx86;
     procedure tcgx86.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
         stackmisalignment: longint;
+        para: tparavarsym;
       begin
 {$ifdef i386}
         { interrupt support for i386 }
@@ -2191,7 +2192,25 @@ unit cgx86;
                 { Return address and FP are both on stack }
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
                 current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
-                list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG));
+                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                  list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG))
+                else
+                  begin
+                    { load framepointer from hidden $parentfp parameter }
+                    para:=tparavarsym(current_procinfo.procdef.paras[0]);
+                    if not (vo_is_parentfp in para.varoptions) then
+                      InternalError(201201142);
+                    if (para.paraloc[calleeside].location^.loc<>LOC_REGISTER) or
+                       (para.paraloc[calleeside].location^.next<>nil) then
+                      InternalError(201201143);
+                    list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],
+                      para.paraloc[calleeside].location^.register,NR_FRAME_POINTER_REG));
+                    { Need only as much stack space as necessary to do the calls.
+                      Exception filters don't have own local vars, and temps are 'mapped'
+                      to the parent procedure.
+                      maxpushedparasize is already aligned at least on x86_64. }
+                    localsize:=current_procinfo.maxpushedparasize;
+                  end;
                 current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
                 {
                   TODO: current framepointer handling is not compatible with Win64 at all:

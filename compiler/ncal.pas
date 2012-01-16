@@ -162,6 +162,7 @@ interface
           { force the name of the to-be-called routine to a particular string,
             used for Objective-C message sending.  }
           property parameters : tnode read left write left;
+          property pushed_parasize: longint read pushedparasize;
        private
           AbstractMethodsList : TFPHashList;
        end;
@@ -2355,9 +2356,13 @@ implementation
                    begin
                      if not assigned(right) then
                        begin
-                         if not(assigned(procdefinition.owner.defowner)) then
+                         if assigned(procdefinition.owner.defowner) then
+                           para.left:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner))
+                         { exceptfilters called from main level are not owned }
+                         else if procdefinition.proctypeoption=potype_exceptfilter then
+                           para.left:=cloadparentfpnode.create(current_procinfo.procdef)
+                         else
                            internalerror(200309287);
-                         para.left:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner))
                        end
                      else
                        para.left:=gen_procvar_context_tree;

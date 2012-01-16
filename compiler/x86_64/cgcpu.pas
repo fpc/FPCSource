@@ -39,6 +39,7 @@ unit cgcpu;
         procedure g_proc_entry(list : TAsmList; parasize:longint; nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+        procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
 
         procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize;intreg, mmreg: tregister; shuffle: pmmshuffle); override;
         procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister;shuffle : pmmshuffle); override;
@@ -50,7 +51,7 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,cclasses,
-       symsym,defutil,paramgr,fmodule,
+       symsym,defutil,paramgr,fmodule,cpupi,
        rgobj,tgobj,rgcpu;
 
 
@@ -183,13 +184,20 @@ unit cgcpu;
         if cs_create_pic in current_settings.moduleswitches then
           list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
 
+        { Prevent return address from a possible call from ending up in the epilogue }
+        { (restoring registers happens before epilogue, providing necessary padding) }
+        if (current_procinfo.flags*[pi_has_unwind_info,pi_do_call,pi_has_saved_regs])=[pi_has_unwind_info,pi_do_call] then
+          list.concat(Taicpu.op_none(A_NOP));
         { remove stackframe }
         if not nostackframe then
           begin
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
+               (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
               begin
                 if (current_procinfo.final_localsize<>0) then
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,current_procinfo.final_localsize,NR_STACK_POINTER_REG);
+                if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+                  list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
               end
             else if (target_info.system=system_x86_64_win64) then
               begin
@@ -208,7 +216,10 @@ unit cgcpu;
 
         list.concat(Taicpu.Op_none(A_RET,S_NO));
         if (pi_has_unwind_info in current_procinfo.flags) then
-          list.concat(cai_seh_directive.create(ash_endproc));
+          begin
+            tx86_64procinfo(current_procinfo).dump_scopes(list);
+            list.concat(cai_seh_directive.create(ash_endproc));
+          end;
       end;
 
 
@@ -275,6 +286,31 @@ unit cgcpu;
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
+    procedure tcgx86_64.g_local_unwind(list: TAsmList; l: TAsmLabel);
+      var
+        para1,para2: tcgpara;
+        href:treference;
+      begin
+        if (target_info.system<>system_x86_64_win64) then
+          begin
+            inherited g_local_unwind(list,l);
+            exit;
+          end;
+        para1.init;
+        para2.init;
+        paramanager.getintparaloc(pocall_default,1,para1);
+        paramanager.getintparaloc(pocall_default,2,para2);
+        reference_reset_symbol(href,l,0,1);
+        { TODO: using RSP is correct only while the stack is fixed!!
+          (true now, but will change if/when allocating from stack is implemented) }
+        a_load_reg_cgpara(list,OS_ADDR,NR_STACK_POINTER_REG,para1);
+        a_loadaddr_ref_cgpara(list,href,para2);
+        paramanager.freecgpara(list,para2);
+        paramanager.freecgpara(list,para1);
+        g_call(current_asmdata.CurrAsmList,'_FPC_local_unwind');
+        para2.done;
+        para1.done;
+      end;
 
     procedure tcgx86_64.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle);
       var

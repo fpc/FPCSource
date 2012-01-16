@@ -65,6 +65,9 @@ unit procinfo;
           { procinfo of the main procedure that is inlining
             the current function, only used in tcgcallnode.inlined_pass2 }
           inlining_procinfo : tprocinfo;
+          { nested implicit finalzation procedure, used for platform-specific
+            exception handling }
+          finalize_procinfo : tprocinfo;
           { file location of begin of procedure }
           entrypos  : tfileposinfo;
           { file location of end of procedure }
@@ -148,6 +151,9 @@ unit procinfo;
 
           function get_first_nestedproc: tprocinfo;
           function has_nestedprocs: boolean;
+
+          { Add to parent's list of nested procedures even if parent is a 'main' procedure }
+          procedure force_nested;
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -193,6 +199,11 @@ implementation
           parent.addnestedproc(Self);
       end;
 
+    procedure tprocinfo.force_nested;
+      begin
+        if Assigned(parent) and (parent.procdef.parast.symtablelevel<normal_function_level) then
+          parent.addnestedproc(Self);
+      end;
 
     destructor tprocinfo.destroy;
       begin

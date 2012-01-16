@@ -54,6 +54,9 @@ unit cpunode;
        nx64cal,
        nx64cnv,
        nx64mat,
+{$ifdef TEST_WIN64_SEH}
+       nx64flw,
+{$endif TEST_WIN64_SEH}
        nx64inl
        ;
 

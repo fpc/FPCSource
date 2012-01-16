@@ -1294,6 +1294,13 @@ Implementation
                begin
                  ObjOutput.exportsymbol(ObjData.SymbolRef(Tai_symbol(hp).sym));
                end;
+            ait_symbol_end :
+               begin
+                 { recalculate size, as some preceding instructions
+                   could have been changed to smaller size }
+                 objsym:=ObjData.SymbolRef(Tai_symbol_end(hp).sym);
+                 objsym.size:=ObjData.CurrObjSec.Size-objsym.offset;
+               end;
              ait_datablock :
                begin
                  ObjOutput.exportsymbol(ObjData.SymbolRef(Tai_datablock(hp).sym));
@@ -1393,10 +1400,10 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
-{$ifdef TEST_WIN64_UNWIND}
+{$ifdef TEST_WIN64_SEH}
              ait_seh_directive :
                tai_seh_directive(hp).generate_code(objdata);
-{$endif TEST_WIN64_UNWIND}
+{$endif TEST_WIN64_SEH}
            end;
            hp:=Tai(hp.next);
          end;

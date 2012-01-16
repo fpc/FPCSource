@@ -1440,7 +1440,8 @@ const
      (mask:potype_class_destructor;  str:'Class Destructor'),
      { Dispinterface property accessors }
      (mask:potype_propgetter;        str:'Property Getter'),
-     (mask:potype_propsetter;        str:'Property Setter')
+     (mask:potype_propsetter;        str:'Property Setter'),
+     (mask:potype_exceptfilter;      str:'SEH filter')
   );
   procopt : array[1..ord(high(tprocoption))] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),

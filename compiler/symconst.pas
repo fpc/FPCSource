@@ -247,7 +247,8 @@ type
     potype_class_constructor, { class constructor }
     potype_class_destructor,  { class destructor  }
     potype_propgetter,        { Dispinterface property accessors }
-    potype_propsetter
+    potype_propsetter,
+    potype_exceptfilter       { SEH exception filter or termination handler }
   );
   tproctypeoptions=set of tproctypeoption;
 

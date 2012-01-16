@@ -162,7 +162,7 @@ begin
     Halt(errorcode);
 end;
 
-
+{$ifndef FPC_SYSTEM_HAS_RAISEEXCEPTION}
 Function fpc_RaiseException (Obj : TObject; AnAddr,AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
 var
   _ExceptObjectStack : PExceptObject;
@@ -182,6 +182,7 @@ begin
       RaiseProc(FObject,Addr,FrameCount,Frames);
   longjmp(_ExceptAddrStack^.Buf^,FPC_Exception);
 end;
+{$endif FPC_SYSTEM_HAS_RAISEEXCEPTION}
 
 
 Procedure fpc_PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK']; compilerproc;
@@ -272,6 +273,7 @@ begin
     end;
 end;
 
+{$ifndef FPC_SYSTEM_HAS_RERAISE}
 Procedure fpc_ReRaise;[Public, Alias : 'FPC_RERAISE']; compilerproc;
 var
   _ExceptAddrStack : PExceptAddr;
@@ -285,6 +287,7 @@ begin
   ExceptObjectStack^.refcount := 0;
   longjmp(_ExceptAddrStack^.Buf^,FPC_Exception);
 end;
+{$endif FPC_SYSTEM_HAS_RERAISE}
 
 function Internal_PopSecondObjectStack : TObject; external name 'FPC_POPSECONDOBJECTSTACK';
 function Internal_PopObjectStack: TObject; external name 'FPC_POPOBJECTSTACK';
@@ -369,7 +372,7 @@ begin
   else
     adr:=nil;
   exc:=Internal_PopObjectStack;
-  if Assigned(obj) then
+  if Assigned(obj) and Assigned(exc) then
     result:=obj.SafeCallException(exc,adr)
   else
     result:=E_UNEXPECTED;

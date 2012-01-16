@@ -647,6 +647,7 @@ compiler/x86_64/cputarg.pas svneol=native#text/plain
 compiler/x86_64/nx64add.pas svneol=native#text/plain
 compiler/x86_64/nx64cal.pas svneol=native#text/plain
 compiler/x86_64/nx64cnv.pas svneol=native#text/plain
+compiler/x86_64/nx64flw.pas svneol=native#text/plain
 compiler/x86_64/nx64inl.pas svneol=native#text/plain
 compiler/x86_64/nx64mat.pas svneol=native#text/plain
 compiler/x86_64/r8664ari.inc svneol=native#text/plain

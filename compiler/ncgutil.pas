@@ -2093,7 +2093,10 @@ implementation
         currpara : tparavarsym;
         paraloc  : pcgparalocation;
       begin
-        if (po_assembler in current_procinfo.procdef.procoptions) then
+        if (po_assembler in current_procinfo.procdef.procoptions) or
+        { exceptfilters have a single hidden 'parentfp' parameter, which
+          is handled by tcg.g_proc_entry. }
+           (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
           exit;
 
         { Allocate registers used by parameters }
@@ -2181,7 +2184,8 @@ implementation
         end;
 
         { initialisizes temp. ansi/wide string data }
-        inittempvariables(list);
+        if (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
+          inittempvariables(list);
 
 {$ifdef OLDREGVARS}
         load_regvars(list,nil);
@@ -2190,7 +2194,17 @@ implementation
 
 
     procedure gen_finalize_code(list:TAsmList);
+      var
+        old_current_procinfo: tprocinfo;
       begin
+        old_current_procinfo:=current_procinfo;
+        if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+          begin
+            if (current_procinfo.parent.finalize_procinfo<>current_procinfo) then
+              exit;
+            current_procinfo:=current_procinfo.parent;
+          end;
+
 {$ifdef OLDREGVARS}
         cleanup_regvars(list);
 {$endif OLDREGVARS}
@@ -2220,6 +2234,7 @@ implementation
         if assigned(current_procinfo.procdef.parast) and
            not(po_assembler in current_procinfo.procdef.procoptions) then
           current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
+        current_procinfo:=old_current_procinfo;
       end;
 
 
@@ -2620,6 +2635,13 @@ implementation
                     in the original location }
                   if (po_assembler in current_procinfo.procdef.procoptions) then
                     tparavarsym(vs).paraloc[calleeside].get_location(vs.initialloc)
+                  { exception filters receive their frame pointer as a parameter }
+                  else if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) and
+                    (vo_is_parentfp in vs.varoptions) then
+                    begin
+                      location_reset(vs.initialloc,LOC_REGISTER,OS_ADDR);
+                      vs.initialloc.register:=NR_FRAME_POINTER_REG;
+                    end
                   else
                     begin
                       isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,current_procinfo.procdef.proccalloption);
