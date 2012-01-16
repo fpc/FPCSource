@@ -3457,7 +3457,7 @@ end;
 
 Class Function THTMLWriter.FileNameExtension : String; 
 begin
-  result:='.html';
+  result:='';
 end;
 
 // private methods

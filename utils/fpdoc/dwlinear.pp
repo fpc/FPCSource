@@ -588,7 +588,9 @@ var
 begin
   PackageName := LowerCase(Copy(Package.Name, 2, 255));
   If (Engine.OutPut='') then
-    Engine.Output:=PackageName+FileNameExtension;
+    Engine.Output:=PackageName+FileNameExtension
+  else if (ExtractFileExt(Engine.output)='') and (FileNameExtension<>'') then
+    Engine.Output:=ChangeFileExt(Engine.output,FileNameExtension);  
   FStream:=TFileStream.Create(Engine.Output,fmCreate);
   try
     WriteBeginDocument;
