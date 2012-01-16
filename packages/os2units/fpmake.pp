@@ -6,7 +6,6 @@ uses fpmkunit;
 
 Var
   P : TPackage;
-  T : TTarget;
 begin
   With Installer do
     begin
@@ -17,22 +16,22 @@ begin
     P.Directory:='os2units';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.SourcePath.Add('src',[OS2]);
+    P.SourcePath.Add('src',[OS2,emx]);
 //    P.Dependencies.Add('x11');
    // P.Targets.AddUnit('buildall.pas',[OS2]);
-    P.Targets.AddUnit('clkdll.pas',[OS2]);
-    P.Targets.AddUnit('dive.pas',[OS2]);
-    P.Targets.AddUnit('ftpapi.pas',[OS2]);
-    P.Targets.AddUnit('hwvideo.pas',[OS2]);
-    P.Targets.AddUnit('lvm.pas',[OS2]);
-    P.Targets.AddUnit('mciapi.pas',[OS2]);
-    P.Targets.AddUnit('mcidrv.pas',[OS2]);
-    P.Targets.AddUnit('mci.pas',[OS2]);
-    P.Targets.AddUnit('mmbase.pas',[OS2]);
-    P.Targets.AddUnit('mmio.pas',[OS2]);
-    P.Targets.AddUnit('som.pas',[OS2]);
-    P.Targets.AddUnit('sw.pas',[OS2]);
-    P.Targets.AddUnit('wpstk.pp',[OS2]);
+    P.Targets.AddUnit('clkdll.pas');
+    P.Targets.AddUnit('dive.pas');
+    P.Targets.AddUnit('ftpapi.pas');
+    P.Targets.AddUnit('hwvideo.pas');
+    P.Targets.AddUnit('lvm.pas');
+    P.Targets.AddUnit('mciapi.pas');
+    P.Targets.AddUnit('mcidrv.pas');
+    P.Targets.AddUnit('mci.pas');
+    P.Targets.AddUnit('mmbase.pas');
+    P.Targets.AddUnit('mmio.pas');
+    P.Targets.AddUnit('som.pas');
+    P.Targets.AddUnit('sw.pas');
+    P.Targets.AddUnit('wpstk.pp');
 
     P.Sources.AddSrc('readme.txt');
 
@@ -44,8 +43,7 @@ begin
     P.Targets.AddExampleProgram('clktest.pas');
     P.Targets.AddExampleProgram('ftptest.pas');
     P.Targets.AddExampleProgram('lvmtest.pas');
-
-
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;
