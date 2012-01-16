@@ -149,13 +149,7 @@ begin
     P.Targets.AddExampleProgram('con_info.pp');
     P.Targets.AddExampleProgram('area.pp');
     P.Targets.AddExampleProgram('tunnel3d.pp');
-    // 'Makefile
-    // 'stretch.tga
-    // 'Makefile.fpc
-    // 'mojo.raw
-    // 'tunnel3d.raw
-    // 'image.tga
-
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;
