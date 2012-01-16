@@ -85,7 +85,6 @@ Type
     procedure StartUnitOverview(AModuleName,AModuleLabel : String);virtual; Abstract;
     procedure WriteUnitEntry(UnitRef : TPasType);virtual; Abstract;
     procedure EndUnitOverview; virtual; Abstract;
-    Class Function FileNameExtension : String;virtual; Abstract;
     Property LastURL : DomString Read FLastURL Write FLastURL;
   Public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;

@@ -82,7 +82,6 @@ Type
     procedure EndOverview; override;
     procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
     procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
-    Class Function FileNameExtension : String; override;
     // Description node conversion
     procedure DescrBeginBold; override;
     procedure DescrEndBold; override;
@@ -130,6 +129,7 @@ Type
     procedure DescrEndTableCell; override;
   Public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
+    Class Function FileNameExtension : String; override;
     Class Procedure Usage(List : TStrings) ; override;
     Function InterpretOption(Const Cmd,Arg : String) : Boolean; override;
   end;

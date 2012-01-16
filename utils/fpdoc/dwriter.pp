@@ -160,6 +160,7 @@ type
     Property ImageExtension : String Read FImgExt Write FImgExt;
     // Should return True if option was succesfully interpreted.
     Function InterpretOption(Const Cmd,Arg : String) : Boolean; Virtual;
+    Class Function FileNameExtension : String; virtual;
     Class Procedure Usage(List : TStrings); virtual;
     procedure WriteDoc; virtual; Abstract;
     Function WriteDescr(Element: TPasElement) : TDocNode;
@@ -348,6 +349,12 @@ end;
 function TFPDocWriter.InterpretOption(Const Cmd,Arg : String): Boolean;
 begin
   Result:=False;
+end;
+
+class function TFPDocWriter.FileNameExtension: String;
+begin
+//Override in linear writers with the expected extension.
+  Result := ''; //Output must not contain an extension.
 end;
 
 Class procedure TFPDocWriter.Usage(List: TStrings);

@@ -161,7 +161,7 @@ Type
     // Provide feedback about usage of this backend.
     Class procedure Usage(List: TStrings); override;
     // For info only. See linear writer for an example.
-    Class Function FileNameExtension : String;virtual;
+    Class Function FileNameExtension : String; override;
   end;
 
 implementation

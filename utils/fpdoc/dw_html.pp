@@ -255,6 +255,7 @@ type
 
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Procedure WriteDoc; override;
+    Class Function FileNameExtension : String; override;
     class procedure Usage(List: TStrings); override;
     Property SearchPage: String Read FSearchPage Write FSearchPage;
     property Allocator: TFileAllocator read FAllocator;
@@ -3452,6 +3453,11 @@ begin
   List.Add(SHTMLIndexColcount);
   List.Add('--image-url=url');
   List.Add(SHTMLImageUrl);
+end;
+
+Class Function THTMLWriter.FileNameExtension : String; 
+begin
+  result:='.html';
 end;
 
 // private methods
