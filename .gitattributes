@@ -6577,6 +6577,7 @@ packages/uuid/src/libuuid.pp svneol=native#text/plain
 packages/uuid/src/macuuid.pp svneol=native#text/plain
 packages/winceunits/Makefile svneol=native#text/plain
 packages/winceunits/Makefile.fpc svneol=native#text/plain
+packages/winceunits/fpmake.pp svneol=native#text/plain
 packages/winceunits/src/aygshell.pp svneol=native#text/plain
 packages/winceunits/src/bt_api.pp svneol=native#text/plain
 packages/winceunits/src/bt_sdp.pp svneol=native#text/plain
