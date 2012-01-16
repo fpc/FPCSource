@@ -50,7 +50,6 @@ interface
 {$ifdef GDB_V601}
   {$info using gdb 6.1.x}
   {$define GDB_V6}
-  {$define GDB_HAS_DB_COMMANDS}
   {$undef GDB_HAS_DEPRECATED_CBPH}
 {$endif def GDB_V601}
 
@@ -58,14 +57,12 @@ interface
 {$ifdef GDB_V602}
   {$info using gdb 6.2.x}
   {$define GDB_V6}
-  {$define GDB_HAS_DB_COMMANDS}
 {$endif def GDB_V602}
 
 { 6.3.x }
 {$ifdef GDB_V603}
   {$info using gdb 6.3.x}
   {$define GDB_V6}
-  {$define GDB_HAS_DB_COMMANDS}
 {$endif def GDB_V603}
 
 { 6.4.x }
@@ -73,7 +70,6 @@ interface
   {$info using gdb 6.4.x}
   {$define GDB_V6}
   {$define GDB_NEEDS_NO_ERROR_INIT}
-  {$define GDB_HAS_DB_COMMANDS}
 {$endif def GDB_V604}
 
 { 6.5.x }
@@ -87,7 +83,6 @@ interface
 {$ifdef GDB_V606}
   {$info using gdb 6.6.x}
   {$define GDB_V6}
-  {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
@@ -98,7 +93,6 @@ interface
 {$ifdef GDB_V607}
   {$info using gdb 6.7.x}
   {$define GDB_V6}
-  {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
@@ -109,7 +103,6 @@ interface
 {$ifdef GDB_V608}
   {$info using gdb 6.8.x}
   {$define GDB_V6}
-  {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_USES_BP_LOCATION}
   {$define GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
   {$define GDB_NEEDS_NO_ERROR_INIT}
@@ -1584,7 +1577,9 @@ var
   {$endif ndef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   current_target : target_ops;cvar;external;
   stop_pc      : CORE_ADDR;cvar;external;
-  { Only used from GDB 5.01 but doesn't hurst otherwise }
+  { Only used from GDB 5.0 but doesn't hurst otherwise }
+  { This global variable is declared in defs.h as external
+    and instanciated in main.c since version 5.0. }
   interpreter_p : pchar;cvar;public;
 
 { we need also to declare some vars }
@@ -1598,6 +1593,8 @@ var
 
 { Whether xdb commands will be handled }
 {$ifdef GDB_HAS_DB_COMMANDS}
+  { These two global variables are declared in defs.h
+    since version 4.18 }
   xdb_commands : longint;cvar;public;
 
 { Whether dbx commands will be handled }
@@ -1606,11 +1603,12 @@ var
 
 {$ifdef GDB_NEEDS_SET_INSTREAM}
 var
-  gdb_stdin : pui_file;cvar;public;
   instream : P_C_FILE;cvar;external;
   function gdb_fopen (filename : pchar; mode : pchar) : pui_file;cdecl;external;
 {$endif GDB_NEEDS_SET_INSTREAM}
 var
+  { The four following variables are defined in defs.h 
+    and instanciated in main.c since version 5.0 }
   gdb_stdout : pui_file;cvar;public;
   gdb_stderr : pui_file;cvar;public;
   gdb_stdlog : pui_file;cvar;public;
@@ -1618,6 +1616,9 @@ var
   event_loop_p : longint;cvar;public;
 {$ifdef GDB_V6}
 (* target IO streams *)
+  { The three following variables are declared in defs.h
+    and instanciated in main.c since version 6.0 }
+  gdb_stdin : pui_file;cvar;public;
   gdb_stdtargin : pui_file;cvar;public;
   gdb_stdtargerr : pui_file;cvar;public;
 {$endif}
@@ -3262,14 +3263,34 @@ begin
 end;
 
 {$ifdef GDB_HAS_SYSROOT}
-var gdb_sysroot  : pchar; cvar;public;
-    gdb_datadir  : pchar; cvar;public;
-    python_libdir : pchar;cvar;public;
+  { Here we declare as cvar;public; a bunch of global
+    variables that are defined in main.c source.
+    We must not load main.o otherwise, we will get
+    into multiply defined symbols troubles. }
+var 
     gdb_sysrootc : char;
+    { used locally only to provide a pchar pointing to '\0' }
+    gdb_sysroot  : pchar; cvar;public; 
+    { gdb_sysroot global variable is declared in defs.h and
+      instanciated in main.c since version 6.0 }
+    gdb_datadir  : pchar; cvar;public;
+    { gdb_datadir global variable is declared in defs.h and
+      instanciated in main.c since version 7.0 }
+    python_libdir : pchar;cvar;public;
+    { python_libdir global variable is declared in defs.h and instanciated
+      in main.c since version 7.2 }
     return_child_result : longbool;cvar;public;
+    { return_chlid_result global variable is declared in main.h and
+      instanciated in main.c since version 6.4 }
     return_child_result_value : longint;cvar;public;
+    { return_child_result_value global variable is declared in main.h and
+      instanciated in main.c since version 6.4 with a startup value of -1 }
     batch_silent : longbool;cvar;public;
+    { batch_silent global variable is declared in main.h since 7.0, but
+      instanciated in main.c since version 6.4 }
     batch_flag : longbool;cvar;public;
+    { batch_flag global variable is declared in main.h and
+      instanciated in main.c since version 7.2 }
 {$endif}
 {$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
 var
@@ -3279,6 +3300,7 @@ var
 begin
 {$ifdef GDB_HAS_SYSROOT}
   gdb_sysrootc := #0;
+  return_child_result_value := -1;
   gdb_sysroot := @gdb_sysrootc;
   gdb_datadir := @gdb_sysrootc;
   python_libdir := @gdb_sysrootc;
