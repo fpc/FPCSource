@@ -592,6 +592,12 @@ begin
 {$include uuid/fpmake.pp}
 end;
 
+procedure add_winceunits;
+begin
+  with Installer do
+{$include winceunits/fpmake.pp}
+end;
+
 procedure add_winunits_base;
 begin
   with Installer do

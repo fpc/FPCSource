@@ -99,6 +99,7 @@
   add_users;
   add_utmp;
   add_uuid;
+  add_winceunits;
   add_winunits_base;
   add_winunits_jedi;
   add_x11;

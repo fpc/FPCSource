@@ -10121,3 +10121,8 @@ objcrtl_shared: fpmkunit_shared
 objcrtl_smart: fpmkunit_smart
 objcrtl_debug: fpmkunit_debug
 objcrtl_release: fpmkunit_release
+winceunits_all: fpmkunit_all
+winceunits_shared: fpmkunit_shared
+winceunits_smart: fpmkunit_smart
+winceunits_debug: fpmkunit_debug
+winceunits_release: fpmkunit_release
