@@ -2647,7 +2647,7 @@ implementation
     constructor tarraydef.create_from_pointer(def:tdef);
       begin
          { use -1 so that the elecount will not overflow }
-         self.create(0,high(aint)-1,s32inttype);
+         self.create(0,high(aint)-1,ptrsinttype);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def);
       end;
