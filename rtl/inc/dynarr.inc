@@ -24,6 +24,16 @@ type
       high : tdynarrayindex;
    end;
 
+   pdynarraytypedata = ^tdynarraytypedata;
+   tdynarraytypedata =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+   packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+   record
+     elSize : PtrUInt;
+     elType2 : Pointer;
+     varType : Longint;
+   end;
 
 procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; compilerproc;
   begin
@@ -52,21 +62,15 @@ function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNA
 
 { releases and finalizes the data of a dyn. array and sets p to nil }
 procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
-  var
-    eletype : pdynarraytypeinfo;
   begin
      if p=nil then
        exit;
 
      { skip kind and name }
-     inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen)+2);
-
-     ti:=aligntoptr(ti);
-
-     eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
+     ti:=aligntoptr(ti+2+PByte(ti)[1]);
 
      { finalize all data }
-     int_finalizearray(p+sizeof(tdynarray),eletype,pdynarray(p)^.high+1);
+     int_finalizearray(p+sizeof(tdynarray),pdynarraytypedata(ti)^.elType2,pdynarray(p)^.high+1);
 
      { release the data }
      freemem(p);
@@ -104,7 +108,7 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [Public,Alias:'FP
      { should we remove the array? }
      if declocked(realp^.refcount) then
        begin
-         fpc_dynarray_clear_internal(realp,pdynarraytypeinfo(ti));
+         fpc_dynarray_clear_internal(realp,ti);
          p := nil;
        end;
   end;
@@ -144,21 +148,17 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      { contains the "fixed" pointers where the refcount }
      { and high are at positive offsets                 }
      realp,newp : pdynarray;
-     ti : pdynarraytypeinfo;
+     ti : pointer;
      updatep: boolean;
      elesize : sizeint;
-     eletype : pdynarraytypeinfo;
+     eletype : pointer;
 
   begin
-     ti:=pdynarraytypeinfo(pti);
-
      { skip kind and name }
-     inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen)+2);
+     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
 
-     ti:=aligntoptr(ti);
-
-     elesize:=psizeint(ti)^;
-     eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
+     elesize:=pdynarraytypedata(ti)^.elSize;
+     eletype:=pdynarraytypedata(ti)^.elType2;
 
      { determine new memory size }
      size:=elesize*dims[0]+sizeof(tdynarray);
@@ -187,7 +187,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                if dims[0]<0 then
                  HandleErrorFrame(201,get_frame);
                if declocked(realp^.refcount) then
-                 fpc_dynarray_clear_internal(realp,pdynarraytypeinfo(pti));
+                 fpc_dynarray_clear_internal(realp,pti);
                p:=nil;
                exit;
             end;
@@ -217,7 +217,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                { if the array is now removed             }
                { fpc_dynarray_decr_ref(p,ti); }
                if declocked(realp^.refcount) then
-                 fpc_dynarray_clear_internal(realp,pdynarraytypeinfo(ti));
+                 fpc_dynarray_clear_internal(realp,pti);
             end
           else if dims[0]<>realp^.high+1 then
             begin
@@ -282,7 +282,7 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
     i,size : longint;
     highidx : tdynarrayindex;
     elesize : sizeint;
-    eletype : pdynarraytypeinfo;
+    eletype : pointer;
     pdest : pointer;
   begin
      highidx:=lowidx+count-1;
@@ -292,12 +292,10 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
        exit;
      realpsrc:=pdynarray(psrc-sizeof(tdynarray));
      { skip kind and name }
-     inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen)+2);
+     ti:=aligntoptr(ti+2+PByte(ti)[1]);
 
-     ti:=aligntoptr(ti);
-
-     elesize:=psizeint(ti)^;
-     eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
+     elesize:=pdynarraytypedata(ti)^.elSize;
+     eletype:=pdynarraytypedata(ti)^.elType2;
 
      { -1, -1 (highidx=lowidx-1-1=-3) is used to copy the whole array like a:=copy(b);, so
        update the lowidx and highidx with the values from psrc }

@@ -511,13 +511,13 @@ type
     positions : tdynarraypositions;
     Dims : SizeInt;
     data : Pointer;
-    constructor init(d : Pointer;p : pdynarraytypeinfo;_dims: SizeInt;b : tdynarraybounds);
+    constructor init(d : Pointer;typeInfo : Pointer;_dims: SizeInt;b : tdynarraybounds);
     function next : Boolean;
     destructor done;
   end;
 
 
-constructor tdynarrayiter.init(d : Pointer;p : pdynarraytypeinfo;_dims: SizeInt;b : tdynarraybounds);
+constructor tdynarrayiter.init(d : Pointer;typeInfo : Pointer;_dims: SizeInt;b : tdynarraybounds);
   var
     i : sizeint;
   begin
@@ -534,16 +534,10 @@ constructor tdynarrayiter.init(d : Pointer;p : pdynarraytypeinfo;_dims: SizeInt;
         if i>0 then
           positions[i]:=Pointer(positions[i-1]^);
         { skip kind and name }
-        inc(Pointer(p),ord(pdynarraytypeinfo(p)^.namelen)+2);
+        typeInfo:=aligntoptr(typeInfo+2+Length(PTypeInfo(typeInfo)^.Name));
 
-        p:=AlignToPtr(p);
-
-        elesize[i]:=psizeint(p)^;
-
-        { skip elesize }
-        inc(Pointer(p),SizeOf(sizeint));
-
-        p:=pdynarraytypeinfo(ppointer(p)^);
+        elesize[i]:=PTypeData(typeInfo)^.elSize;
+        typeInfo:=PTypeData(typeInfo)^.elType2;
       end;
     data:=positions[Dims-1];
   end;
@@ -819,12 +813,11 @@ begin
 
   { get TypeInfo of second level }
   { skip kind and name }
-  inc(Pointer(TypeInfo),ord(pdynarraytypeinfo(TypeInfo)^.namelen)+2);
-  TypeInfo:=AlignToPtr(TypeInfo);
-  TypeInfo:=ppointer(TypeInfo+SizeOf(sizeint))^;
+  TypeInfo:=aligntoptr(TypeInfo+2+Length(PTypeInfo(TypeInfo)^.Name));
+  TypeInfo:=PTypeData(TypeInfo)^.elType2;
 
   { check recursively? }
-  if assigned(pdynarraytypeinfo(TypeInfo)) and (pdynarraytypeinfo(TypeInfo)^.kind=byte(tkDynArray)) then
+  if assigned(TypeInfo) and (PTypeInfo(TypeInfo)^.kind=tkDynArray) then
     begin
       { set to dimension of first element }
       arraysize:=psizeint(ppointer(p)^-SizeOf(sizeint))^;
@@ -3371,22 +3364,13 @@ function DynArrayGetVariantInfo(p : Pointer; var Dims : sizeint) : sizeint;
   begin
     Result:=varNull;
     { skip kind and name }
-    inc(Pointer(p),ord(pdynarraytypeinfo(p)^.namelen)+2);
-
-    p:=AlignToPtr(p);
-
-    { skip elesize }
-    inc(p,SizeOf(sizeint));
+    p:=aligntoptr(p+2+Length(PTypeInfo(p)^.Name));
 
     { search recursive? }
-    if pdynarraytypeinfo(ppointer(p)^)^.kind=21{tkDynArr} then
-      Result:=DynArrayGetVariantInfo(ppointer(p)^,Dims)
+    if PTypeInfo(PTypeData(p)^.elType2)^.kind=tkDynArray then
+      Result:=DynArrayGetVariantInfo(PTypeData(p)^.elType2,Dims)
     else
-      begin
-        { skip dynarraytypeinfo }
-        inc(p,SizeOf(pdynarraytypeinfo));
-        Result:=plongint(p)^;
-      end;
+      Result:=PTypeData(p)^.varType;
     inc(Dims);
   end;
 
