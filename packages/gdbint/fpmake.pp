@@ -69,7 +69,7 @@ begin
       Installer.BuildEngine.Log(vlCommand,'GDB-lib found, compiling and running gdbver to obtain GDB-version');
       Installer.BuildEngine.Compile(P,GdbVerTarget);
       p.Targets.Delete(GdbVerTarget.Index);
-      Installer.BuildEngine.ExecuteCommand('src/gdbver','-o src/gdbver.inc');
+      Installer.BuildEngine.ExecuteCommand(AddProgramExtension('src/gdbver',HostOS),'-o src/gdbver.inc');
 
       // Pass -dUSE_MINGW_GDB to the compiler when a MinGW gdb is used
       if FileExists(GdbLibDir+PathDelim+MinGWGdbLibName) then
@@ -132,6 +132,9 @@ begin
     P.Email := '';
     P.Description := 'Interface to libgdb, the GDB debugger in library format';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+    // In case of using a buildunit, it is not possible to compile a single
+    // file within the BeforeCompile event.
+    P.SupportBuildModes:= [bmOneByOne];
 
     P.OSes:=[beos,haiku,freebsd,netbsd,openbsd,linux,win32,win64,go32v2];
 
