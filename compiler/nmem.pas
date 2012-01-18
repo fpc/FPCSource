@@ -770,6 +770,7 @@ implementation
       var
          hightree: tnode;
          htype,elementdef : tdef;
+         newordtyp: tordtype;
          valid : boolean;
       begin
          result:=nil;
@@ -808,30 +809,58 @@ implementation
           exit;
 
          { maybe type conversion for the index value, but
-           do not convert enums, char (why not? (JM))
-           and do not convert range nodes }
-         if (right.nodetype<>rangen) and (is_integer(right.resultdef) or is_boolean(right.resultdef) or (left.resultdef.typ<>arraydef)) then
+           do not convert range nodes }
+         if (right.nodetype<>rangen) then
            case left.resultdef.typ of
              arraydef:
-               if ado_isvariant in Tarraydef(left.resultdef).arrayoptions then
-                 {Variant arrays are a special array, can have negative indexes and would therefore
-                  need s32bit. However, they should not appear in a vecn, as they are handled in
-                  handle_variantarray in pexpr.pas. Therefore, encountering a variant array is an
-                  internal error... }
-                 internalerror(200707031)
-               else if is_special_array(left.resultdef) then
-                 {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
-                  convert indexes into these arrays to aword.}
-                 inserttypeconv(right,uinttype)
-               { convert between pasbool and cbool if necessary }
-               else if is_boolean(right.resultdef) then
-                 inserttypeconv(right,tarraydef(left.resultdef).rangedef)
-               else
-                 {Convert array indexes to low_bound..high_bound.}
-                 inserttypeconv(right,Torddef.create(Torddef(sinttype).ordtype,
-                                                     int64(Tarraydef(left.resultdef).lowrange),
-                                                     int64(Tarraydef(left.resultdef).highrange)
-                                                    ));
+               begin
+                 htype:=Tarraydef(left.resultdef).rangedef;
+                 if ado_isvariant in Tarraydef(left.resultdef).arrayoptions then
+                   {Variant arrays are a special array, can have negative indexes and would therefore
+                    need s32bit. However, they should not appear in a vecn, as they are handled in
+                    handle_variantarray in pexpr.pas. Therefore, encountering a variant array is an
+                    internal error... }
+                   internalerror(200707031)
+                 else if is_special_array(left.resultdef) then
+                   {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
+                    convert indexes into these arrays to aword.}
+                   inserttypeconv(right,uinttype)
+                 { note: <> rather than </>, because indexing e.g. an array 0..0
+                     must not result in truncating the indexing value from 2/4/8
+                     bytes to 1 byte (with range checking off, the full index
+                     value must be used) }
+                 else if (htype.typ=enumdef) and
+                         (right.resultdef.typ=enumdef) and
+                         (tenumdef(htype).basedef=tenumdef(right.resultdef).basedef) and
+                    ((tarraydef(left.resultdef).lowrange<>tenumdef(htype).min) or
+                     (tarraydef(left.resultdef).highrange<>tenumdef(htype).max)) then
+                   {Convert array indexes to low_bound..high_bound.}
+                   inserttypeconv(right,tenumdef.create_subrange(tenumdef(right.resultdef),
+                                                      asizeint(Tarraydef(left.resultdef).lowrange),
+                                                      asizeint(Tarraydef(left.resultdef).highrange)
+                                                     ))
+                 else if (htype.typ=orddef) and
+                    { don't try to create boolean types with custom ranges }
+                    not is_boolean(right.resultdef) and
+                    { ordtype determines the size of the loaded value -> make
+                      sure we don't truncate }
+                    ((Torddef(right.resultdef).ordtype<>torddef(htype).ordtype) or
+                     (tarraydef(left.resultdef).lowrange<>torddef(htype).low) or
+                     (tarraydef(left.resultdef).highrange<>torddef(htype).high)) then
+                    {Convert array indexes to low_bound..high_bound.}
+                   begin
+                     if right.resultdef.typ=orddef then
+                       newordtyp:=Torddef(right.resultdef).ordtype
+                     else
+                       newordtyp:=torddef(ptrsinttype).ordtype;
+                     inserttypeconv(right,Torddef.create(newordtyp,
+                                                         int64(Tarraydef(left.resultdef).lowrange),
+                                                         int64(Tarraydef(left.resultdef).highrange)
+                                                        ))
+                   end
+                 else
+                   inserttypeconv(right,htype)
+               end;
              stringdef:
                if is_open_string(left.resultdef) then
                  inserttypeconv(right,u8inttype)
