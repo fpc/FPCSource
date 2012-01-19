@@ -94,6 +94,7 @@ type
     procedure TestFloatParamQuery;
     procedure TestBCDParamQuery;
     procedure TestBytesParamQuery;
+    procedure TestVarBytesParamQuery;
     procedure TestAggregates;
 
     procedure TestStringLargerThen8192;
@@ -150,7 +151,12 @@ const
   );
 
   testBytesValuesCount = 5;
-  testBytesValues : Array[0..testBytesValuesCount-1] of shortstring = (#1#0#1#0#1, #0#0#1#0#1, #0''''#13#0#1, '\'#0'"\'#13, #13#13#0#10#10);
+  testVarBytesValuesCount = 8;
+  testBytesValues : Array[0..testVarBytesValuesCount-1] of shortstring = (
+    #1#0#1#0#1, #0#0#1#0#1, #0''''#13#0#1, '\'#0'"\'#13, #13#13#0#10#10,
+    '', #0, #0#1#2#3#4#5#6#7#8#9
+  );
+
 
 procedure TTestFieldTypes.TestpfInUpdateFlag;
 var ds   : TCustomBufDataset;
@@ -801,6 +807,11 @@ begin
   TestXXParamQuery(ftBytes, FieldtypeDefinitions[ftBytes], testBytesValuesCount, true);
 end;
 
+procedure TTestFieldTypes.TestVarBytesParamQuery;
+begin
+  TestXXParamQuery(ftVarBytes, FieldtypeDefinitions[ftVarBytes], testVarBytesValuesCount);
+end;
+
 procedure TTestFieldTypes.TestStringParamQuery;
 
 begin
@@ -862,6 +873,7 @@ begin
                      Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
                    else
                      Params.ParamByName('field1').AsBlob := testBytesValues[i];
+        ftVarBytes:Params.ParamByName('field1').AsString := testBytesValues[i];
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -886,6 +898,7 @@ begin
         ftDate   : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftFMTBcd : AssertEquals(testFmtBCDValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
+        ftVarBytes,
         ftBytes  : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
       else
         AssertTrue('no test for paramtype available',False);

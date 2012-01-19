@@ -55,7 +55,7 @@ Type
     FNeedData : Boolean;
     FStatement : String;
     Row : MYSQL_ROW;
-    Lengths : pculong;                { Lengths of the columns of the current row }
+    Lengths : pculong;                  { Lengths of the columns of the current row }
     RowsAffected : QWord;
     LastInsertID : QWord;
     ParamBinding : TParamBinding;
@@ -870,7 +870,7 @@ var
 begin
   Result := False;
   CreateBlob := False;
-  if Source = Nil then
+  if Source = Nil then // If the pointer is NULL, the field is NULL
     exit;
   SetString(Src, Source, Len);
   case AField^.ftype of
@@ -966,14 +966,26 @@ begin
           end;
       Writeln;
 }
-      // String-fields which can contain more then dsMaxStringSize characters
-      // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
-      if FieldDef.DataType in [ftBlob,ftMemo] then
-        CreateBlob := True
-      else if Src<> '' then
-        Move(Source^, Dest^, FieldDef.Size)
-      else
-        Dest^ := #0;
+      if Len > FieldDef.Size then
+        Len := FieldDef.Size;
+      case FieldDef.DataType of
+        // String-fields which can contain more then dsMaxStringSize characters
+        // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
+        ftBlob, ftMemo:
+          CreateBlob := True;
+        ftVarBytes:
+          begin
+          PWord(Dest)^ := Len;
+          Move(Source^, (Dest+sizeof(Word))^, Len);
+          end;
+        ftBytes:
+          Move(Source^, Dest^, Len);
+        else // ftString, ftFixedChar
+          begin
+          Move(Source^, Dest^, Len);
+          (Dest+Len)^ := #0;
+          end;
+      end;
       end;
     FIELD_TYPE_BLOB:
       CreateBlob := True;

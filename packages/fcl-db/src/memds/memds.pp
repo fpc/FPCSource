@@ -40,7 +40,8 @@ const
 
 type
   {$IFNDEF FPC}
-  ptrint = Integer;
+  {$i memdsdelphi.inc} // should set ptrint is longint|intptr
+		       // & trecordbuffer ( if <2009)
   {$ENDIF}
 
   MDSError=class(Exception);
@@ -66,29 +67,29 @@ type
     FCurrRecNo: integer;
     FIsOpen: boolean;
     FTableIsCreated: boolean;
-    FFilterBuffer: PChar;
+    FFilterBuffer: TRecordBuffer;
     ffieldoffsets: PInteger;
     ffieldsizes: PInteger;
-    function GetCharPointer(p:PChar; Pos:Integer):PChar;
+    function GetRecordBufferPointer(p:TRecordBuffer; Pos:Integer):TRecordBuffer;
     function GetIntegerPointer(p:PInteger; Pos:Integer):PInteger;
 
     procedure calcrecordlayout;
     function  MDSGetRecordOffset(ARecNo: integer): longint;
     function  MDSGetFieldOffset(FieldNo: integer): integer;
     function  MDSGetBufferSize(FieldNo: integer): integer;
-    function  MDSGetActiveBuffer(var Buffer: PChar): Boolean;
-    procedure MDSReadRecord(Buffer:PChar;ARecNo:Integer);
-    procedure MDSWriteRecord(Buffer:PChar;ARecNo:Integer);
-    procedure MDSAppendRecord(Buffer:PChar);
-    function  MDSFilterRecord(Buffer: PChar): Boolean;
+    function  MDSGetActiveBuffer(var Buffer: TRecordBuffer): Boolean;
+    procedure MDSReadRecord(Buffer:TRecordBuffer;ARecNo:Integer);
+    procedure MDSWriteRecord(Buffer:TRecordBuffer;ARecNo:Integer);
+    procedure MDSAppendRecord(Buffer:TRecordBuffer);
+    function  MDSFilterRecord(Buffer:TRecordBuffer): Boolean;
   protected
     // Mandatory
-    function  AllocRecordBuffer: PChar; override;
-    procedure FreeRecordBuffer(var Buffer: PChar); override;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    function  GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
+    function  AllocRecordBuffer: TRecordBuffer; override;
+    procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
+    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
+    function  GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; override;
     function  GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
-    function  GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    function  GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     function  GetRecordSize: Word; override;
     procedure InternalAddRecord(Buffer: Pointer; DoAppend: Boolean); override;
     procedure InternalClose; override;
@@ -96,14 +97,14 @@ type
     procedure InternalFirst; override;
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
     procedure InternalInitFieldDefs; override;
-    procedure InternalInitRecord(Buffer: PChar); override;
+    procedure InternalInitRecord(Buffer: TRecordBuffer); override;
     procedure InternalLast; override;
     procedure InternalOpen; override;
     procedure InternalPost; override;
-    procedure InternalSetToRecord(Buffer: PChar); override;
+    procedure InternalSetToRecord(Buffer: TRecordBuffer); override;
     function  IsCursorOpen: Boolean; override;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
+    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); override;
+    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
 
     // Optional.
@@ -328,7 +329,7 @@ begin
 {$ENDIF}
 end;
 
-function TMemDataset.MDSGetActiveBuffer(var Buffer: PChar): Boolean;
+function TMemDataset.MDSGetActiveBuffer(var Buffer: TRecordBuffer): Boolean;
 
 begin
  case State of
@@ -348,20 +349,20 @@ begin
  Result:=(Buffer<>nil);
 end;
 
-procedure TMemDataset.MDSReadRecord(Buffer:PChar;ARecNo:Integer);   //Reads a Rec from Stream in Buffer
+procedure TMemDataset.MDSReadRecord(Buffer:TRecordBuffer;ARecNo:Integer);   //Reads a Rec from Stream in Buffer
 begin
   FStream.Position:=MDSGetRecordOffset(ARecNo);
   FStream.ReadBuffer(Buffer^, FRecSize);
 end;
 
-procedure TMemDataset.MDSWriteRecord(Buffer:PChar;ARecNo:Integer);  //Writes a Rec from Buffer to Stream
+procedure TMemDataset.MDSWriteRecord(Buffer:TRecordBuffer;ARecNo:Integer);  //Writes a Rec from Buffer to Stream
 begin
   FStream.Position:=MDSGetRecordOffset(ARecNo);
   FStream.WriteBuffer(Buffer^, FRecSize);
   FFileModified:=True;
 end;
 
-procedure TMemDataset.MDSAppendRecord(Buffer:PChar);   //Appends a Rec (from Buffer) to Stream
+procedure TMemDataset.MDSAppendRecord(Buffer:TRecordBuffer);   //Appends a Rec (from Buffer) to Stream
 begin
   FStream.Position:=MDSGetRecordOffset(FRecCount);
   FStream.WriteBuffer(Buffer^, FRecSize);
@@ -369,17 +370,17 @@ begin
 end;
 
 //Abstract Overrides
-function TMemDataset.AllocRecordBuffer: PChar;
+function TMemDataset.AllocRecordBuffer: TRecordBuffer;
 begin
   GetMem(Result,FRecBufferSize);
 end;
 
-procedure TMemDataset.FreeRecordBuffer (var Buffer: PChar);
+procedure TMemDataset.FreeRecordBuffer (var Buffer: TRecordBuffer);
 begin
   FreeMem(Buffer);
 end;
 
-procedure TMemDataset.InternalInitRecord(Buffer: PChar);
+procedure TMemDataset.InternalInitRecord(Buffer: TRecordBuffer);
 
 var
   I : integer;
@@ -663,7 +664,7 @@ begin
   Result:=FIsOpen;
 end;
 
-function TMemDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
+function TMemDataset.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 
 var
   Accepted: Boolean;
@@ -709,7 +710,7 @@ end;
 
 function TMemDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 var
- SrcBuffer: PChar;
+ SrcBuffer: TRecordBuffer;
  I: integer;
 begin
  I:= Field.FieldNo - 1;
@@ -717,13 +718,13 @@ begin
           not getfieldisnull(pointer(srcbuffer),I);
  if result and (buffer <> nil) then 
    begin
-   Move(getcharpointer(SrcBuffer,getintegerpointer(ffieldoffsets,I)^)^, Buffer^,GetIntegerPointer(FFieldSizes, I)^);
+   Move(GetRecordBufferPointer((SrcBuffer),getintegerpointer(ffieldoffsets,I)^)^, Buffer^,GetIntegerPointer(FFieldSizes, I)^);
    end;
 end;
 
 procedure TMemDataset.SetFieldData(Field: TField; Buffer: Pointer);
 var
- DestBuffer: PChar;
+ DestBuffer: TRecordBuffer;
  I,J: integer;
 
 begin
@@ -740,7 +741,7 @@ begin
      J:=GetIntegerPointer(FFieldSizes, I)^;
      if Field.DataType=ftString then
        Dec(J); // Do not move terminating 0, which is in the size.
-     Move(Buffer^,GetCharPointer(DestBuffer, getIntegerPointer(FFieldOffsets, I)^)^,J);
+     Move(Buffer^,GetRecordBufferPointer((DestBuffer), getIntegerPointer(FFieldOffsets, I)^)^,J);
      dataevent(defieldchange,ptrint(field));
      end;
    end;
@@ -765,7 +766,7 @@ begin
     RaiseError(SErrBookMarkNotFound,[ReqBookmark]);
 end;
 
-procedure TMemDataset.InternalSetToRecord(Buffer: PChar);
+procedure TMemDataset.InternalSetToRecord(Buffer: TRecordBuffer);
 
 var
   ReqBookmark: integer;
@@ -775,26 +776,26 @@ begin
   InternalGotoBookmark (@ReqBookmark);
 end;
 
-function TMemDataset.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+function TMemDataset.GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag;
 
 begin
   Result:=PRecInfo(Buffer+FRecInfoOffset)^.BookmarkFlag;
 end;
 
-procedure TMemDataset.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+procedure TMemDataset.SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag);
 
 begin
   PRecInfo(Buffer+FRecInfoOffset)^.BookmarkFlag := Value;
 end;
 
-procedure TMemDataset.GetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TMemDataset.GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 
 begin
   if Data<>nil then
     PInteger(Data)^:=PRecInfo(Buffer+FRecInfoOffset)^.Bookmark;
 end;
 
-procedure TMemDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TMemDataset.SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 
 begin
   if Data<>nil then
@@ -803,7 +804,7 @@ begin
     PRecInfo(Buffer+FRecInfoOffset)^.Bookmark:=0;
 end;
 
-function TMemDataset.MDSFilterRecord(Buffer: PChar): Boolean;
+function TMemDataset.MDSFilterRecord(Buffer: TRecordBuffer): Boolean;
 
 var
   SaveState: TDatasetState;
@@ -1007,7 +1008,7 @@ begin
     end;
 end;
 
-function TMemDataset.GetCharPointer(p:PChar; Pos:Integer):PChar;
+function TMemDataset.GetRecordBufferPointer(p:TRecordBuffer; Pos:Integer):TRecordBuffer;
 begin
   Result:=p;
   inc(Result, Pos);

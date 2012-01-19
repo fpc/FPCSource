@@ -1250,9 +1250,19 @@ type
   PBookmarkFlag = ^TBookmarkFlag;
   TBookmarkFlag = (bfCurrent, bfBOF, bfEOF, bfInserted);
 
+{ These types are used by Delphi/Unicode to replace the ambiguous "pchar" buffer types.
+  For now, they are just aliases to PAnsiChar, but in Delphi/Unicode it is pbyte. This will
+  be changed later (2.8?), to allow a grace period for descendents to catch up.
+  
+  Testing with TRecordBuffer=PByte will turn up typing problems. TRecordBuffer=pansichar is backwards
+  compatible, even if overriden with "pchar" variants.
+}
+  TRecordBufferBaseType = AnsiChar; // must match TRecordBuffer. 
+  TRecordBuffer = PAnsiChar;
   PBufferList = ^TBufferList;
-  TBufferList = array[0..dsMaxBufferCount - 1] of PChar;
-
+  TBufferList = array[0..dsMaxBufferCount - 1] of TRecordBuffer;  // Dynamic array in Delphi.
+  TBufferArray = ^TRecordBuffer;
+  
   TGetMode = (gmCurrent, gmNext, gmPrior);
 
   TGetResult = (grOK, grBOF, grEOF, grError);
@@ -1282,7 +1292,7 @@ type
     var Accept: Boolean) of object;
 
   TDatasetClass = Class of TDataset;
-  TBufferArray = ^pchar;
+
 
 {------------------------------------------------------------------------------}
 {IProviderSupport interface}
@@ -1355,7 +1365,7 @@ type
     FBookmarkSize: Longint;
     FBuffers : TBufferArray;
     FBufferCount: Longint;
-    FCalcBuffer: PChar;
+    FCalcBuffer: TRecordBuffer;
     FCalcFieldsSize: Longint;
     FConstraints: TCheckConstraints;
     FDisableControlsCount : Integer;
@@ -1385,7 +1395,7 @@ type
     FInternalOpenComplete: Boolean;
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
-    Function  GetBuffer (Index : longint) : Pchar;
+    Function  GetBuffer (Index : longint) : TRecordBuffer;
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADatasource : TDataSource);
     Procedure RemoveField (Field : TField);
@@ -1404,13 +1414,13 @@ type
     procedure ActivateBuffers; virtual;
     procedure BindFields(Binding: Boolean);
     function  BookmarkAvailable: Boolean;
-    procedure CalculateFields(Buffer: PChar); virtual;
+    procedure CalculateFields(Buffer: TRecordBuffer); virtual;
     procedure CheckActive; virtual;
     procedure CheckInactive; virtual;
     procedure CheckBiDirectional;
     procedure Loaded; override;
     procedure ClearBuffers; virtual;
-    procedure ClearCalcFields(Buffer: PChar); virtual;
+    procedure ClearCalcFields(Buffer: TRecordBuffer); virtual;
     procedure CloseBlob(Field: TField); virtual;
     procedure CloseCursor; virtual;
     procedure CreateFields; virtual;
@@ -1440,7 +1450,7 @@ type
     function  FindRecord(Restart, GoForward: Boolean): Boolean; virtual;
     procedure FreeFieldBuffers; virtual;
     function  GetBookmarkStr: TBookmarkStr; virtual;
-    procedure GetCalcFields(Buffer: PChar); virtual;
+    procedure GetCalcFields(Buffer: TRecordBuffer); virtual;
     function  GetCanModify: Boolean; virtual;
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     function  GetFieldClass(FieldType: TFieldType): TFieldClass; virtual;
@@ -1456,14 +1466,14 @@ type
     function  GetRecNo: Longint; virtual;
     procedure InitFieldDefs; virtual;
     procedure InitFieldDefsFromfields;
-    procedure InitRecord(Buffer: PChar); virtual;
+    procedure InitRecord(Buffer: TRecordBuffer); virtual;
     procedure InternalCancel; virtual;
     procedure InternalEdit; virtual;
     procedure InternalInsert; virtual;
     procedure InternalRefresh; virtual;
     procedure OpenCursor(InfoQuery: Boolean); virtual;
     procedure OpenCursorcomplete; virtual;
-    procedure RefreshInternalCalcFields(Buffer: PChar); virtual;
+    procedure RefreshInternalCalcFields(Buffer: TRecordBuffer); virtual;
     procedure RestoreState(const Value: TDataSetState);
     Procedure SetActive (Value : Boolean); virtual;
     procedure SetBookmarkStr(const Value: TBookmarkStr); virtual;
@@ -1482,22 +1492,22 @@ type
     procedure SetRecNo(Value: Longint); virtual;
     procedure SetState(Value: TDataSetState);
     function SetTempState(const Value: TDataSetState): TDataSetState;
-    Function Tempbuffer: PChar;
+    Function Tempbuffer: TRecordBuffer;
     procedure UpdateIndexDefs; virtual;
     property ActiveRecord: Longint read FActiveRecord;
     property CurrentRecord: Longint read FCurrentRecord;
     property BlobFieldCount: Longint read FBlobFieldCount;
     property BookmarkSize: Longint read FBookmarkSize write FBookmarkSize;
-    property Buffers[Index: Longint]: PChar read GetBuffer;
+    property Buffers[Index: Longint]: TRecordBuffer read GetBuffer;
     property BufferCount: Longint read FBufferCount;
-    property CalcBuffer: PChar read FCalcBuffer;
+    property CalcBuffer: TRecordBuffer read FCalcBuffer;
     property CalcFieldsSize: Longint read FCalcFieldsSize;
     property InternalCalcFields: Boolean read FInternalCalcFields;
     property Constraints: TCheckConstraints read FConstraints write FConstraints;
-    function AllocRecordBuffer: PChar; virtual;
-    procedure FreeRecordBuffer(var Buffer: PChar); virtual;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual;
-    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual;
+    function AllocRecordBuffer: TRecordBuffer; virtual;
+    procedure FreeRecordBuffer(var Buffer: TRecordBuffer); virtual;
+    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); virtual;
+    function GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; virtual;
     function GetDataSource: TDataSource; virtual;
     function GetRecordSize: Word; virtual;
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); virtual;
@@ -1505,15 +1515,15 @@ type
     procedure InternalFirst; virtual;
     procedure InternalGotoBookmark(ABookmark: Pointer); virtual;
     procedure InternalHandleException; virtual;
-    procedure InternalInitRecord(Buffer: PChar); virtual;
+    procedure InternalInitRecord(Buffer: TRecordBuffer); virtual;
     procedure InternalLast; virtual;
     procedure InternalPost; virtual;
-    procedure InternalSetToRecord(Buffer: PChar); virtual;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual;
+    procedure InternalSetToRecord(Buffer: TRecordBuffer); virtual;
+    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); virtual;
+    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); virtual;
     procedure SetUniDirectional(const Value: Boolean);
   protected { abstract methods }
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
+    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     procedure InternalClose; virtual; abstract;
     procedure InternalOpen; virtual; abstract;
     procedure InternalInitFieldDefs; virtual; abstract;
@@ -1547,7 +1557,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function ActiveBuffer: PChar;
+    function ActiveBuffer: TRecordBuffer;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; virtual;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; virtual;
     procedure SetFieldData(Field: TField; Buffer: Pointer); overload; virtual;
@@ -1577,7 +1587,7 @@ type
     procedure First;
     procedure FreeBookmark(ABookmark: TBookmark); virtual;
     function GetBookmark: TBookmark; virtual;
-    function GetCurrentRecord(Buffer: PChar): Boolean; virtual;
+    function GetCurrentRecord(Buffer: TRecordBuffer): Boolean; virtual;
     procedure GetFieldList(List: TList; const FieldNames: string);
     procedure GetFieldNames(List: TStrings);
     procedure GotoBookmark(ABookmark: TBookmark);

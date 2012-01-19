@@ -84,7 +84,7 @@ type
      - If UpdateKind is ukModify it contains a record-buffer which contains the old data
      - If UpdateKind is ukDelete it contains a record-buffer with the data of the deleted record
 }
-    OldValuesBuffer    : pchar;
+    OldValuesBuffer    : TRecordBuffer;
   end;
 
   PBufBlobField = ^TBufBlobField;
@@ -116,10 +116,10 @@ type
   protected
     function GetBookmarkSize: integer; virtual; abstract;
     function GetCurrentBuffer: Pointer; virtual; abstract;
-    function GetCurrentRecord: PChar; virtual; abstract;
+    function GetCurrentRecord: TRecordBuffer; virtual; abstract;
     function GetIsInitialized: boolean; virtual; abstract;
-    function GetSpareBuffer: PChar; virtual; abstract;
-    function GetSpareRecord: PChar; virtual; abstract;
+    function GetSpareBuffer: TRecordBuffer; virtual; abstract;
+    function GetSpareRecord: TRecordBuffer; virtual; abstract;
   public
     DBCompareStruct : TDBCompareStruct;
     Name            : String;
@@ -151,7 +151,7 @@ type
 
     procedure InitialiseIndex; virtual; abstract;
 
-    procedure InitialiseSpareRecord(const ASpareRecord : PChar); virtual; abstract;
+    procedure InitialiseSpareRecord(const ASpareRecord : TRecordBuffer); virtual; abstract;
     procedure ReleaseSpareRecord; virtual; abstract;
 
     procedure BeginUpdate; virtual; abstract;
@@ -160,7 +160,7 @@ type
     procedure AddRecord; virtual; abstract;
     // Inserts a record before the current record, or if the record is sorted,
     // insert it to the proper position
-    procedure InsertRecordBeforeCurrentRecord(Const ARecord : PChar); virtual; abstract;
+    procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); virtual; abstract;
     procedure EndUpdate; virtual; abstract;
     
     procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); virtual; abstract;
@@ -169,9 +169,9 @@ type
     Function GetRecNo(const ABookmark : PBufBookmark) : integer; virtual; abstract;
 
 
-    property SpareRecord : PChar read GetSpareRecord;
-    property SpareBuffer : PChar read GetSpareBuffer;
-    property CurrentRecord : PChar read GetCurrentRecord;
+    property SpareRecord : TRecordBuffer read GetSpareRecord;
+    property SpareBuffer : TRecordBuffer read GetSpareBuffer;
+    property CurrentRecord : TRecordBuffer read GetCurrentRecord;
     property CurrentBuffer : Pointer read GetCurrentBuffer;
     property IsInitialized : boolean read GetIsInitialized;
     property BookmarkSize : integer read GetBookmarkSize;
@@ -190,10 +190,10 @@ type
   protected
     function GetBookmarkSize: integer; override;
     function GetCurrentBuffer: Pointer; override;
-    function GetCurrentRecord: PChar; override;
+    function GetCurrentRecord: TRecordBuffer; override;
     function GetIsInitialized: boolean; override;
-    function GetSpareBuffer: PChar; override;
-    function GetSpareRecord: PChar; override;
+    function GetSpareBuffer: TRecordBuffer; override;
+    function GetSpareRecord: TRecordBuffer; override;
   public
     FLastRecBuf     : PBufRecLinkItem;
     FFirstRecBuf    : PBufRecLinkItem;
@@ -219,7 +219,7 @@ type
 
     procedure InitialiseIndex; override;
 
-    procedure InitialiseSpareRecord(const ASpareRecord : PChar); override;
+    procedure InitialiseSpareRecord(const ASpareRecord : TRecordBuffer); override;
     procedure ReleaseSpareRecord; override;
 
     procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); override;
@@ -227,7 +227,7 @@ type
 
     procedure BeginUpdate; override;
     procedure AddRecord; override;
-    procedure InsertRecordBeforeCurrentRecord(Const ARecord : PChar); override;
+    procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); override;
     procedure EndUpdate; override;
   end;
 
@@ -235,14 +235,14 @@ type
 
   TUniDirectionalBufIndex = class(TBufIndex)
   private
-    FSPareBuffer: PChar;
+    FSPareBuffer:  TRecordBuffer;
   protected
     function GetBookmarkSize: integer; override;
     function GetCurrentBuffer: Pointer; override;
-    function GetCurrentRecord: PChar; override;
+    function GetCurrentRecord: TRecordBuffer; override;
     function GetIsInitialized: boolean; override;
-    function GetSpareBuffer: PChar; override;
-    function GetSpareRecord: PChar; override;
+    function GetSpareBuffer: TRecordBuffer; override;
+    function GetSpareRecord: TRecordBuffer; override;
   public
     function ScrollBackward : TGetResult; override;
     function ScrollForward : TGetResult; override;
@@ -264,7 +264,7 @@ type
     procedure GotoBookmark(const ABookmark : PBufBookmark); override;
 
     procedure InitialiseIndex; override;
-    procedure InitialiseSpareRecord(const ASpareRecord : PChar); override;
+    procedure InitialiseSpareRecord(const ASpareRecord : TRecordBuffer); override;
     procedure ReleaseSpareRecord; override;
 
     procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); override;
@@ -272,7 +272,7 @@ type
 
     procedure BeginUpdate; override;
     procedure AddRecord; override;
-    procedure InsertRecordBeforeCurrentRecord(Const ARecord : PChar); override;
+    procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); override;
     procedure EndUpdate; override;
   end;
 
@@ -289,10 +289,10 @@ type
   protected
     function GetBookmarkSize: integer; override;
     function GetCurrentBuffer: Pointer; override;
-    function GetCurrentRecord: PChar; override;
+    function GetCurrentRecord: TRecordBuffer; override;
     function GetIsInitialized: boolean; override;
-    function GetSpareBuffer: PChar; override;
-    function GetSpareRecord: PChar; override;
+    function GetSpareBuffer: TRecordBuffer; override;
+    function GetSpareRecord: TRecordBuffer; override;
   public
     FCurrentRecInd  : integer;
     FRecordArray    : array of Pointer;
@@ -320,12 +320,12 @@ type
 
     procedure InitialiseIndex; override;
 
-    procedure InitialiseSpareRecord(const ASpareRecord : PChar); override;
+    procedure InitialiseSpareRecord(const ASpareRecord : TRecordBuffer); override;
     procedure ReleaseSpareRecord; override;
 
     Function GetRecNo(const ABookmark : PBufBookmark) : integer; override;
     procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); override;
-    procedure InsertRecordBeforeCurrentRecord(Const ARecord : PChar); override;
+    procedure InsertRecordBeforeCurrentRecord(Const ARecord : TRecordBuffer); override;
 
     procedure BeginUpdate; override;
     procedure AddRecord; override;
@@ -405,7 +405,7 @@ type
     FIndexesCount   : integer;
     FCurrentIndex   : TBufIndex;
 
-    FFilterBuffer   : pchar;
+    FFilterBuffer   : TRecordBuffer;
     FBRecordCount   : integer;
 
     FPacketRecords  : integer;
@@ -430,12 +430,12 @@ type
     procedure FetchAll;
     procedure BuildIndex(var AIndex : TBufIndex);
     function GetIndexDefs : TIndexDefs;
-    function  GetCurrentBuffer: PChar;
+    function  GetCurrentBuffer: TRecordBuffer;
     procedure CalcRecordSize;
     function GetIndexFieldNames: String;
     function GetIndexName: String;
     function GetBufUniDirectional: boolean;
-    function LoadBuffer(Buffer : PChar): TGetResult;
+    function LoadBuffer(Buffer : TRecordBuffer): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer(const ABookmark : TBufBookmark; IncludePrior : boolean = false; AFindNext : boolean = false) : boolean;
     function GetRecordUpdateBufferCached(const ABookmark : TBufBookmark; IncludePrior : boolean = false) : boolean;
@@ -445,12 +445,11 @@ type
     procedure SetIndexName(AValue: String);
     procedure SetMaxIndexesCount(const AValue: Integer);
     procedure SetPacketRecords(aValue : integer);
-    function  IntAllocRecordBuffer: PChar;
-    procedure DoFilterRecord(out Acceptable: Boolean);
+    function  IntAllocRecordBuffer: TRecordBuffer;
     procedure ParseFilter(const AFilter: string);
     procedure IntLoadFielddefsFromFile;
     procedure IntLoadRecordsFromFile;
-    procedure CurrentRecordToBuffer(Buffer: PChar);
+    procedure CurrentRecordToBuffer(Buffer: TRecordBuffer);
     procedure SetBufUniDirectional(const AValue: boolean);
     procedure InitDefaultIndexes;
   protected
@@ -461,12 +460,12 @@ type
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
     function GetChangeCount: integer; virtual;
-    function  AllocRecordBuffer: PChar; override;
-    procedure FreeRecordBuffer(var Buffer: PChar); override;
-    procedure ClearCalcFields(Buffer: PChar); override;
-    procedure InternalInitRecord(Buffer: PChar); override;
+    function  AllocRecordBuffer: TRecordBuffer override;
+    procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
+    procedure ClearCalcFields(Buffer: TRecordBuffer); override;
+    procedure InternalInitRecord(Buffer: TRecordBuffer); override;
     function  GetCanModify: Boolean; override;
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
     procedure DoBeforeClose; override;
     procedure InternalOpen; override;
     procedure InternalClose; override;
@@ -479,12 +478,12 @@ type
     procedure InternalDelete; override;
     procedure InternalFirst; override;
     procedure InternalLast; override;
-    procedure InternalSetToRecord(Buffer: PChar); override;
+    procedure InternalSetToRecord(Buffer: TRecordBuffer); override;
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
+    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
+    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); override;
+    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
+    function GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; override;
     function IsCursorOpen: Boolean; override;
     function  GetRecordCount: Longint; override;
     procedure ApplyRecUpdate(UpdateKind : TUpdateKind); virtual;
@@ -493,6 +492,7 @@ type
     procedure SetFiltered(Value: Boolean); override; {virtual;}
     procedure InternalRefresh; override;
     procedure BeforeRefreshOpenCursor; virtual;
+    procedure DoFilterRecord(out Acceptable: Boolean); virtual;
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
@@ -1072,13 +1072,13 @@ begin
   Result:= True;
 end;
 
-function TCustomBufDataset.intAllocRecordBuffer: PChar;
+function TCustomBufDataset.intAllocRecordBuffer: TRecordBuffer;
 begin
   // Note: Only the internal buffers of TDataset provide bookmark information
   result := AllocMem(FRecordsize+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
 end;
 
-function TCustomBufDataset.AllocRecordBuffer: PChar;
+function TCustomBufDataset.AllocRecordBuffer: TRecordBuffer;
 begin
   result := AllocMem(FRecordsize + BookmarkSize + CalcfieldsSize);
 // The records are initialised, or else the fields of an empty, just-opened dataset
@@ -1086,12 +1086,12 @@ begin
   InitRecord(result);
 end;
 
-procedure TCustomBufDataset.FreeRecordBuffer(var Buffer: PChar);
+procedure TCustomBufDataset.FreeRecordBuffer(var Buffer: TRecordBuffer);
 begin
   ReAllocMem(Buffer,0);
 end;
 
-procedure TCustomBufDataset.ClearCalcFields(Buffer: PChar);
+procedure TCustomBufDataset.ClearCalcFields(Buffer: TRecordBuffer);
 begin
   if CalcFieldsSize > 0 then
     FillByte((Buffer+RecordSize)^,CalcFieldsSize,0);
@@ -1136,7 +1136,7 @@ procedure TCustomBufDataset.InternalClose;
 
 var r  : integer;
     iGetResult : TGetResult;
-    pc : pchar;
+    pc : TRecordBuffer;
 
 begin
   FOpen:=False;
@@ -1199,9 +1199,9 @@ begin
   SetToLastRecord;
 end;
 
-function TDoubleLinkedBufIndex.GetCurrentRecord: PChar;
+function TDoubleLinkedBufIndex.GetCurrentRecord: TRecordBuffer;
 begin
-  Result := pchar(FCurrentRecBuf);
+  Result := TRecordBuffer(FCurrentRecBuf);
 end;
 
 function TDoubleLinkedBufIndex.GetBookmarkSize: integer;
@@ -1219,14 +1219,14 @@ begin
   Result := (FFirstRecBuf<>nil);
 end;
 
-function TDoubleLinkedBufIndex.GetSpareBuffer: PChar;
+function TDoubleLinkedBufIndex.GetSpareBuffer: TRecordBuffer;
 begin
   Result := pointer(FLastRecBuf)+(sizeof(TBufRecLinkItem)*FDataset.MaxIndexesCount);
 end;
 
-function TDoubleLinkedBufIndex.GetSpareRecord: PChar;
+function TDoubleLinkedBufIndex.GetSpareRecord: TRecordBuffer;
 begin
-  Result := pchar(FLastRecBuf);
+  Result := TRecordBuffer(FLastRecBuf);
 end;
 
 constructor TBufIndex.Create(const ADataset: TCustomBufDataset);
@@ -1351,7 +1351,7 @@ begin
     Result := True;
 end;
 
-procedure TDoubleLinkedBufIndex.InitialiseSpareRecord(const ASpareRecord : PChar);
+procedure TDoubleLinkedBufIndex.InitialiseSpareRecord(const ASpareRecord : TRecordBuffer);
 begin
   FFirstRecBuf := pointer(ASpareRecord);
   FLastRecBuf := FFirstRecBuf;
@@ -1402,7 +1402,7 @@ begin
 end;
 
 procedure TDoubleLinkedBufIndex.AddRecord;
-var ARecord: PChar;
+var ARecord: TRecordBuffer;
 begin
   ARecord := FDataset.IntAllocRecordBuffer;
   FLastRecBuf[IndNr].next := pointer(ARecord);
@@ -1411,7 +1411,7 @@ begin
   FLastRecBuf := FLastRecBuf[IndNr].next;
 end;
 
-procedure TDoubleLinkedBufIndex.InsertRecordBeforeCurrentRecord(const ARecord: PChar);
+procedure TDoubleLinkedBufIndex.InsertRecordBeforeCurrentRecord(const ARecord: TRecordBuffer);
 var ANewRecord : PBufRecLinkItem;
 begin
   ANewRecord:=PBufRecLinkItem(ARecord);
@@ -1434,7 +1434,7 @@ begin
   if FCursOnFirstRec then FCurrentRecBuf:=FLastRecBuf;
 end;
 
-procedure TCustomBufDataset.CurrentRecordToBuffer(Buffer: PChar);
+procedure TCustomBufDataset.CurrentRecordToBuffer(Buffer: TRecordBuffer);
 var ABookMark : PBufBookmark;
 begin
   with FCurrentIndex do
@@ -1472,7 +1472,7 @@ begin
     end;
 end;
 
-function TCustomBufDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
+function TCustomBufDataset.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 
 var Acceptable : Boolean;
     SaveState : TDataSetState;
@@ -1607,27 +1607,27 @@ begin
     DatabaseError(SMinIndexes);
 end;
 
-procedure TCustomBufDataset.InternalSetToRecord(Buffer: PChar);
+procedure TCustomBufDataset.InternalSetToRecord(Buffer: TRecordBuffer);
 begin
   FCurrentIndex.GotoBookmark(PBufBookmark(Buffer+FRecordSize));
 end;
 
-procedure TCustomBufDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TCustomBufDataset.SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 begin
   PBufBookmark(Buffer + FRecordSize)^ := PBufBookmark(Data)^;
 end;
 
-procedure TCustomBufDataset.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+procedure TCustomBufDataset.SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag);
 begin
   PBufBookmark(Buffer + FRecordSize)^.BookmarkFlag := Value;
 end;
 
-procedure TCustomBufDataset.GetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TCustomBufDataset.GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 begin
   PBufBookmark(Data)^ := PBufBookmark(Buffer + FRecordSize)^;
 end;
 
-function TCustomBufDataset.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+function TCustomBufDataset.GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag;
 begin
   Result := PBufBookmark(Buffer + FRecordSize)^.BookmarkFlag;
 end;
@@ -1642,7 +1642,7 @@ end;
 function TCustomBufDataset.getnextpacket : integer;
 
 var i : integer;
-    pb : pchar;
+    pb : TRecordBuffer;
 
 begin
   if FAllPacketsFetched then
@@ -1747,7 +1747,7 @@ begin
     Result := GetRecordUpdateBuffer(ABookmark,IncludePrior);
 end;
 
-function TCustomBufDataset.LoadBuffer(Buffer : PChar): TGetResult;
+function TCustomBufDataset.LoadBuffer(Buffer : TRecordBuffer): TGetResult;
 
 var NullMask        : pbyte;
     x               : longint;
@@ -1791,7 +1791,7 @@ begin
   Result := grOK;
 end;
 
-function TCustomBufDataset.GetCurrentBuffer: PChar;
+function TCustomBufDataset.GetCurrentBuffer: TRecordBuffer;
 begin
   if State = dsFilter then Result := FFilterBuffer
   else if state = dsCalcFields then Result := CalcBuffer
@@ -1807,7 +1807,7 @@ end;
 
 function TCustomBufDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
-var CurrBuff : pchar;
+var CurrBuff : TRecordBuffer;
 
 begin
   Result := False;
@@ -1935,7 +1935,7 @@ procedure TCustomBufDataset.CancelUpdates;
 var StoreRecBM     : TBufBookmark;
   procedure CancelUpdBuffer(var AUpdBuffer : TRecUpdateBuffer);
   var
-    TmpBuf         : PChar;
+    TmpBuf         : TRecordBuffer;
     StoreUpdBuf    : integer;
     Bm             : TBufBookmark;
     x              : Integer;
@@ -1945,15 +1945,15 @@ var StoreRecBM     : TBufBookmark;
       if (UpdateKind = ukModify) then
         begin
         FCurrentIndex.GotoBookmark(@BookmarkData);
-        move(pchar(OldValuesBuffer)^,pchar(FCurrentIndex.CurrentBuffer)^,FRecordSize);
+        move(TRecordBuffer(OldValuesBuffer)^,TRecordBuffer(FCurrentIndex.CurrentBuffer)^,FRecordSize);
         FreeRecordBuffer(OldValuesBuffer);
         end
       else if (UpdateKind = ukDelete) and (assigned(OldValuesBuffer)) then
         begin
         FCurrentIndex.GotoBookmark(@NextBookmarkData);
-        FCurrentIndex.InsertRecordBeforeCurrentRecord(PChar(BookmarkData.BookmarkData));
+        FCurrentIndex.InsertRecordBeforeCurrentRecord(TRecordBuffer(BookmarkData.BookmarkData));
         FCurrentIndex.ScrollBackward;
-        move(pchar(OldValuesBuffer)^,pchar(FCurrentIndex.CurrentBuffer)^,FRecordSize);
+        move(TRecordBuffer(OldValuesBuffer)^,TRecordBuffer(FCurrentIndex.CurrentBuffer)^,FRecordSize);
 
 {        for x := length(FUpdateBuffer)-1 downto 0 do
           begin
@@ -2083,7 +2083,7 @@ begin
           begin
           FreeRecordBuffer(FUpdateBuffer[r].OldValuesBuffer);
           if FUpdateBuffer[r].UpdateKind = ukDelete then
-            FreeRecordBuffer(PChar(FUpdateBuffer[r].BookmarkData.BookmarkData));
+            FreeRecordBuffer( TRecordBuffer(FUpdateBuffer[r].BookmarkData.BookmarkData));
           FUpdateBuffer[r].BookmarkData.BookmarkData := nil;
           end
         end;
@@ -2137,7 +2137,7 @@ end;
 
 procedure TCustomBufDataset.InternalPost;
 
-Var CurrBuff     : PChar;
+Var CurrBuff     :  TRecordBuffer;
     i            : integer;
     blobbuf      : tbufblobfield;
     NullMask     : pbyte;
@@ -2272,7 +2272,7 @@ begin
 end;
 
 
-procedure TCustomBufDataset.InternalInitRecord(Buffer: PChar);
+procedure TCustomBufDataset.InternalInitRecord(Buffer:  TRecordBuffer);
 
 begin
   FillChar(Buffer^, FRecordSize, #0);
@@ -2305,7 +2305,7 @@ end;
 
 function TCustomBufDataset.GetRecNo: Longint;
 
-Var abuf            : PChar;
+Var abuf            :  TRecordBuffer;
 
 begin
   abuf := GetCurrentBuffer;
@@ -2848,7 +2848,6 @@ begin
   // check filtertext
   if Acceptable and (Length(Filter) > 0) then
     Acceptable := Boolean((FParser.ExtractFromBuffer(GetCurrentBuffer))^);
-
 end;
 
 procedure TCustomBufDataset.SetFilterText(const Value: String);
@@ -2976,7 +2975,7 @@ var CurrLinkItem    : PBufRecLinkItem;
     DBCompareStruct : TDBCompareStruct;
     FieldNr         : Integer;
     StoreDSState    : TDataSetState;
-    FilterBuffer    : PChar;
+    FilterBuffer    :  TRecordBuffer;
     FiltAcceptable  : boolean;
 
 begin
@@ -3059,10 +3058,10 @@ end;
 
 function TArrayBufIndex.GetCurrentBuffer: Pointer;
 begin
-  Result:=pchar(FRecordArray[FCurrentRecInd]);
+  Result:=TRecordBuffer(FRecordArray[FCurrentRecInd]);
 end;
 
-function TArrayBufIndex.GetCurrentRecord: PChar;
+function TArrayBufIndex.GetCurrentRecord:  TRecordBuffer;
 begin
   Result:=GetCurrentBuffer;
 end;
@@ -3072,15 +3071,15 @@ begin
   Result:=Length(FRecordArray)>0;
 end;
 
-function TArrayBufIndex.GetSpareBuffer: PChar;
+function TArrayBufIndex.GetSpareBuffer:  TRecordBuffer;
 begin
   if FLastRecInd>-1 then
-    Result:=pchar(FRecordArray[FLastRecInd])
+    Result:= TRecordBuffer(FRecordArray[FLastRecInd])
   else
     Result := nil;
 end;
 
-function TArrayBufIndex.GetSpareRecord: PChar;
+function TArrayBufIndex.GetSpareRecord:  TRecordBuffer;
 begin
   Result := GetSpareBuffer;
 end;
@@ -3205,7 +3204,7 @@ begin
   FLastRecInd:=-1;
 end;
 
-procedure TArrayBufIndex.InitialiseSpareRecord(const ASpareRecord: PChar);
+procedure TArrayBufIndex.InitialiseSpareRecord(const ASpareRecord:  TRecordBuffer);
 begin
   FLastRecInd := 0;
  // FCurrentRecInd := 0;
@@ -3230,7 +3229,7 @@ begin
   dec(FLastRecInd);
 end;
 
-procedure TArrayBufIndex.InsertRecordBeforeCurrentRecord(const ARecord: PChar);
+procedure TArrayBufIndex.InsertRecordBeforeCurrentRecord(const ARecord:  TRecordBuffer);
 begin
   inc(FLastRecInd);
   if FLastRecInd >= length(FRecordArray) then
@@ -3247,7 +3246,7 @@ begin
 end;
 
 procedure TArrayBufIndex.AddRecord;
-var ARecord: PChar;
+var ARecord:  TRecordBuffer;
 begin
   ARecord := FDataset.IntAllocRecordBuffer;
   inc(FLastRecInd);
@@ -3418,7 +3417,7 @@ begin
   result := FSPareBuffer;
 end;
 
-function TUniDirectionalBufIndex.GetCurrentRecord: PChar;
+function TUniDirectionalBufIndex.GetCurrentRecord:  TRecordBuffer;
 begin
 //  Result:=inherited GetCurrentRecord;
 end;
@@ -3428,12 +3427,12 @@ begin
   Result := Assigned(FSPareBuffer);
 end;
 
-function TUniDirectionalBufIndex.GetSpareBuffer: PChar;
+function TUniDirectionalBufIndex.GetSpareBuffer:  TRecordBuffer;
 begin
   result := FSPareBuffer;
 end;
 
-function TUniDirectionalBufIndex.GetSpareRecord: PChar;
+function TUniDirectionalBufIndex.GetSpareRecord:  TRecordBuffer;
 begin
   result := FSPareBuffer;
 end;
@@ -3514,7 +3513,7 @@ begin
   // do nothing
 end;
 
-procedure TUniDirectionalBufIndex.InitialiseSpareRecord(const ASpareRecord: PChar);
+procedure TUniDirectionalBufIndex.InitialiseSpareRecord(const ASpareRecord:  TRecordBuffer);
 begin
   FSPareBuffer:=ASpareRecord;
 end;
@@ -3544,7 +3543,7 @@ begin
   // Do nothing
 end;
 
-procedure TUniDirectionalBufIndex.InsertRecordBeforeCurrentRecord(const ARecord: PChar);
+procedure TUniDirectionalBufIndex.InsertRecordBeforeCurrentRecord(const ARecord:  TRecordBuffer);
 begin
   // Do nothing
 end;

@@ -641,13 +641,19 @@ begin
       if int1 > 0 then
         move(sqlite3_column_text16(st,fnum)^, buffer^, int1); //Strings returned by sqlite3_column_text() and sqlite3_column_text16(), even empty strings, are always zero terminated.
       end;
+    ftVarBytes,
     ftBytes:
       begin
       int1 := sqlite3_column_bytes(st,fnum);
       if int1 > FieldDef.Size then
         int1 := FieldDef.Size;
+      if FieldDef.DataType = ftVarBytes then
+      begin
+        PWord(buffer)^ := int1;
+        inc(buffer, sizeof(Word));
+      end;
       if int1 > 0 then
-         move(sqlite3_column_blob(st,fnum)^, buffer^, int1);
+        move(sqlite3_column_blob(st,fnum)^, buffer^, int1);
       end;
     ftWideMemo,
     ftMemo,

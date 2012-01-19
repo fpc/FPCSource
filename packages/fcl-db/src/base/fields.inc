@@ -429,7 +429,7 @@ end;
 function TField.GetAsBytes: TBytes;
 begin
   SetLength(Result, DataSize);
-  if not GetData(@Result[0], False) then
+  if assigned(result) and not GetData(@Result[0], False) then
     Result := nil;
 end;
 
@@ -2181,14 +2181,22 @@ begin
   // Just check for really invalid stuff; actual size is
   // dependent on the record...
   If AValue<1 then
-    DatabaseErrorfmt(SInvalidFieldSize,[Avalue]);
+    DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
 end;
 
 function TBinaryField.GetAsBytes: TBytes;
+var B: TBytes;
 begin
-  SetLength(Result, DataSize);
-  if not GetData(Pointer(Result), True) then
-    SetLength(Result, 0);
+  SetLength(B, DataSize);
+  if not assigned(B) or not GetData(Pointer(B), True) then
+    SetLength(Result, 0)
+  else if DataType = ftVarBytes then
+  begin
+    SetLength(Result, PWord(B)^);
+    Move(B[sizeof(Word)], Result[0], Length(Result));
+  end
+  else // ftBytes
+    Result := B;
 end;
 
 
@@ -2199,10 +2207,7 @@ begin
   if length(B) = 0 then
     Result := ''
   else
-  begin
-    SetLength(Result, length(B) div SizeOf(Char));
-    Move(B[0], Result[1], length(Result) * SizeOf(Char));
-  end;
+    SetString(Result, @B[0], length(B) div SizeOf(Char));
 end;
 
 
@@ -2246,8 +2251,8 @@ begin
     end;
 
     if DataType = ftVarBytes then begin
-      Move(AValue[0], P[2], Len);
       PWord(P)^ := Len;
+      Move(AValue[0], P[sizeof(Word)], Len);
     end
     else begin // ftBytes
       Move(AValue[0], P^, Len);
