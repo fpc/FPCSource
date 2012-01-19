@@ -702,6 +702,8 @@ implementation
         hp: tnode;
         oldassignmentnode : tassignmentnode;
         hdef: tdef;
+        hs: string;
+        needrtti: boolean;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -731,6 +733,8 @@ implementation
          if is_managed_type(left.resultdef) then
            include(current_procinfo.flags,pi_do_call);
 
+         needrtti:=false;
+
         if (is_shortstring(left.resultdef)) then
           begin
            if right.resultdef.typ=stringdef then
@@ -748,9 +752,9 @@ implementation
                  firstpass(result);
                  left:=nil;
                  right:=nil;
-                 exit;
                end;
             end;
+            exit;
            end
         { call helpers for composite types containing automated types }
         else if is_managed_type(left.resultdef) and
@@ -790,34 +794,51 @@ implementation
            right:=nil;
            exit;
          end
-        { call helpers for windows widestrings, they aren't ref. counted }
-        else if (tf_winlikewidestring in target_info.flags) and is_widestring(left.resultdef) then
-         begin
-           { The first argument of fpc_widestr_assign is a var parameter. Properties cannot   }
-           { be passed to var or out parameters, because in that case setters/getters are not }
-           { used. Further, if we would allow it in case there are no getters or setters, you }
-           { would need source changes in case these are introduced later on, thus defeating  }
-           { part of the transparency advantages of properties. In this particular case,      }
-           { however:                                                                         }
-           {   a) if there is a setter, this code will not be used since then the assignment  }
-           {      will be converted to a procedure call                                       }
-           {   b) the getter is irrelevant, because fpc_widestr_assign must always decrease   }
-           {      the refcount of the field to which we are writing                           }
-           {   c) source code changes are not required if a setter is added/removed, because  }
-           {      this transformation is handled at compile time                              }
-           {  -> we can remove the nf_isproperty flag (if any) from left, so that in case it  }
-           {     is a property which refers to a field without a setter call, we will not get }
-           {     an error about trying to pass a property as a var parameter                  }
-           exclude(left.flags,nf_isproperty);
-           hp:=ccallparanode.create(ctypeconvnode.create_internal(right,voidpointertype),
-               ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),
-               nil));
-           result:=ccallnode.createintern('fpc_widestr_assign',hp);
-           firstpass(result);
-           left:=nil;
-           right:=nil;
-           exit;
-         end;
+        { call helpers for pointer-sized managed types }
+        else if is_widestring(left.resultdef) then
+          hs:='fpc_widestr_assign'
+        else if is_ansistring(left.resultdef) then
+          hs:='fpc_ansistr_assign'
+        else if is_unicodestring(left.resultdef) then
+          hs:='fpc_unicodestr_assign'
+        else if is_interfacecom_or_dispinterface(left.resultdef) then
+          hs:='fpc_intf_assign'
+        else if is_dynamic_array(left.resultdef) then
+          begin
+            hs:='fpc_dynarray_assign';
+            needrtti:=true;
+          end
+        else
+          exit;
+
+        { The first argument of these procedures is a var parameter. Properties cannot     }
+        { be passed to var or out parameters, because in that case setters/getters are not }
+        { used. Further, if we would allow it in case there are no getters or setters, you }
+        { would need source changes in case these are introduced later on, thus defeating  }
+        { part of the transparency advantages of properties. In this particular case,      }
+        { however:                                                                         }
+        {   a) if there is a setter, this code will not be used since then the assignment  }
+        {      will be converted to a procedure call                                       }
+        {   b) the getter is irrelevant, because fpc_widestr_assign must always decrease   }
+        {      the refcount of the field to which we are writing                           }
+        {   c) source code changes are not required if a setter is added/removed, because  }
+        {      this transformation is handled at compile time                              }
+        {  -> we can remove the nf_isproperty flag (if any) from left, so that in case it  }
+        {     is a property which refers to a field without a setter call, we will not get }
+        {     an error about trying to pass a property as a var parameter                  }
+        exclude(left.flags,nf_isproperty);
+        hp:=ccallparanode.create(ctypeconvnode.create_internal(right,voidpointertype),
+            ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),
+            nil));
+        if needrtti then
+          hp:=ccallparanode.create(
+            caddrnode.create_internal(
+              crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
+            hp);
+        result:=ccallnode.createintern(hs,hp);
+        firstpass(result);
+        left:=nil;
+        right:=nil;
       end;
 
 

@@ -574,6 +574,9 @@ implementation
          oldflowcontrol : tflowcontrol;
       begin
         location_reset(location,LOC_VOID,OS_NO);
+        { managed types should be handled in firstpass }
+        if is_managed_type(left.resultdef) or is_managed_type(right.resultdef) then
+          InternalError(2012011901);
 
         otlabel:=current_procinfo.CurrTrueLabel;
         oflabel:=current_procinfo.CurrFalseLabel;
@@ -594,31 +597,13 @@ implementation
           loading the left node afterwards can destroy the flags.
         }
         if not(right.expectloc in [LOC_FLAGS,LOC_JUMP]) and
-           (is_managed_type(right.resultdef) or
-            (node_complexity(right)>node_complexity(left))) then
+            (node_complexity(right)>node_complexity(left)) then
          begin
            secondpass(right);
-           { increment source reference counter, this is
-             useless for constants }
-           if is_managed_type(right.resultdef) and
-              not is_constnode(right) then
-            begin
-              location_force_mem(current_asmdata.CurrAsmList,right.location);
-              location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false,sizeof(pint));
-              cg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
-            end;
            if codegenerror then
              exit;
 
-           { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
-           { can be false                                             }
            secondpass(left);
-           { decrement destination reference counter }
-           if is_managed_type(left.resultdef) then
-             begin
-               location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
-               cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
-             end;
            if codegenerror then
              exit;
          end
@@ -626,12 +611,6 @@ implementation
          begin
            { calculate left sides }
            secondpass(left);
-           { decrement destination reference counter }
-           if is_managed_type(left.resultdef) then
-             begin
-               location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
-               cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
-             end;
            if codegenerror then
              exit;
 
@@ -641,19 +620,8 @@ implementation
            oldflowcontrol:=flowcontrol;
            include(flowcontrol,fc_lefthandled);
 
-           { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
-           { can be false                                             }
            secondpass(right);
            flowcontrol:=oldflowcontrol;
-           { increment source reference counter, this is
-             useless for string constants}
-           if is_managed_type(right.resultdef) and
-              (right.nodetype<>stringconstn) then
-             begin
-               location_force_mem(current_asmdata.CurrAsmList,right.location);
-               location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false,sizeof(pint));
-               cg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
-             end;
 
            if codegenerror then
              exit;
