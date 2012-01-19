@@ -856,7 +856,7 @@ _pascal_start:
         movl    %esp,%ebx
         movl    12(%ebx),%eax
         movl    %eax,operatingsystem_parameter_envp
-        movl    %eax,_environ
+        movl    %eax,__environ
         movl    8(%ebx),%eax
         movl    %eax,_args
         movl    4(%ebx),%eax
@@ -891,9 +891,13 @@ _core_selector:
         .globl ___v2prt0_start_fs
 ___v2prt0_start_fs:
         .word 0
-        .globl  _environ
-_environ:
-         .long 0
+         /* DJGPP CVS crt1.c code uses __environ symbol */
+         /* corresponding to _environ C variable */
+         /* instead of _environ symbol since commit rev 1.11 */
+         /* Thu Aug 19 9:11:52 2004 UTC by peuha */
+         /* _environ is provided by linker script at the same address */
+         /* as __environ if needed by linker. */
+        .comm  __environ,4
 
 /* Here Pierre Muller added all what was in crt1.c  */
 /* in assembler                              */
