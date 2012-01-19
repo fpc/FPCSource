@@ -364,7 +364,8 @@ begin
           SqlType:=SQL_BIGINT;
           ColumnSize:=19;
         end;
-      ftString, ftFixedChar, ftBlob, ftMemo, ftGuid:
+      ftString, ftFixedChar, ftBlob, ftMemo, ftGuid,
+      ftBytes, ftVarBytes:
         begin
           StrVal:=AParams[ParamIndex].AsString;
           StrLenOrInd:=Length(StrVal);
@@ -378,6 +379,11 @@ begin
           ColumnSize:=Size;
           BufferLength:=Size;
           case AParams[ParamIndex].DataType of
+            ftBytes, ftVarBytes:
+              begin
+              CType:=SQL_C_BINARY;
+              SqlType:=SQL_VARBINARY;
+              end;
             ftBlob:
               begin
               CType:=SQL_C_BINARY;
@@ -825,7 +831,13 @@ begin
     ftBytes:              // mapped to TBytesField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, FieldDef.Size, @StrLenOrInd);
     ftVarBytes:           // mapped to TVarBytesField
-      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, FieldDef.Size, @StrLenOrInd);
+    begin
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer+SizeOf(Word), FieldDef.Size, @StrLenOrInd);
+      if StrLenOrInd < 0 then
+        PWord(buffer)^ := 0
+      else
+        PWord(buffer)^ := StrLenOrInd;
+    end;
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
     ftWideMemo,
 {$ENDIF}
