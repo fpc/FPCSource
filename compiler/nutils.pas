@@ -626,57 +626,27 @@ implementation
     function finalize_data_node(p:tnode):tnode;
       var
         newstatement : tstatementnode;
+        hs : string;
       begin
         if not assigned(p.resultdef) then
           typecheckpass(p);
+        { 'decr_ref' suffix is somewhat misleading, all these helpers
+          set the passed pointer to nil now }
         if is_ansistring(p.resultdef) then
-          begin
-            result:=internalstatements(newstatement);
-            addstatement(newstatement,ccallnode.createintern('fpc_ansistr_decr_ref',
-                  ccallparanode.create(
-                    ctypeconvnode.create_internal(p,voidpointertype),
-                  nil)));
-            addstatement(newstatement,cassignmentnode.create(
-               ctypeconvnode.create_internal(p.getcopy,voidpointertype),
-               cnilnode.create
-               ));
-          end
+          hs:='fpc_ansistr_decr_ref'
         else if is_widestring(p.resultdef) then
-          begin
-            result:=internalstatements(newstatement);
-            addstatement(newstatement,ccallnode.createintern('fpc_widestr_decr_ref',
-                  ccallparanode.create(
-                    ctypeconvnode.create_internal(p,voidpointertype),
-                  nil)));
-            addstatement(newstatement,cassignmentnode.create(
-               ctypeconvnode.create_internal(p.getcopy,voidpointertype),
-               cnilnode.create
-               ));
-          end
+          hs:='fpc_widestr_decr_ref'
         else if is_unicodestring(p.resultdef) then
-          begin
-            result:=internalstatements(newstatement);
-            addstatement(newstatement,ccallnode.createintern('fpc_unicodestr_decr_ref',
-                  ccallparanode.create(
-                    ctypeconvnode.create_internal(p,voidpointertype),
-                  nil)));
-            addstatement(newstatement,cassignmentnode.create(
-               ctypeconvnode.create_internal(p.getcopy,voidpointertype),
-               cnilnode.create
-               ));
-          end
+          hs:='fpc_unicodestr_decr_ref'
         else if is_interfacecom_or_dispinterface(p.resultdef) then
-          begin
-            result:=internalstatements(newstatement);
-            addstatement(newstatement,ccallnode.createintern('fpc_intf_decr_ref',
-                  ccallparanode.create(
-                    ctypeconvnode.create_internal(p,voidpointertype),
-                  nil)));
-            addstatement(newstatement,cassignmentnode.create(
-               ctypeconvnode.create_internal(p.getcopy,voidpointertype),
-               cnilnode.create
-               ));
-          end
+          hs:='fpc_intf_decr_ref'
+        else
+          hs:='';
+        if hs<>'' then
+          result:=ccallnode.createintern(hs,
+             ccallparanode.create(
+               ctypeconvnode.create_internal(p,voidpointertype),
+               nil))
         else if p.resultdef.typ=variantdef then
           begin
             result:=ccallnode.createintern('fpc_variant_clear',

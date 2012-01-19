@@ -1712,10 +1712,10 @@ implementation
                   eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
                   if not assigned(hsym) then
                     internalerror(201003032);
-                  cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_DECREF_ARRAY');
+                  cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_FINALIZE_ARRAY');
                 end
               else
-                cg.g_decrrefcount(list,tparavarsym(p).vardef,href);
+                cg.g_finalize(list,tparavarsym(p).vardef,href);
             end;
          end;
         { open arrays can contain elements requiring init/final code, so the else has been removed here }

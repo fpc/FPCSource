@@ -216,15 +216,13 @@ Begin
     exit;
   { check for constant strings ...}
   p:=PUnicodeRec(S-UnicodeFirstOff);
+  S:=nil;
   if p^.Ref<0 then
     exit;
 
   { declocked does a MT safe dec and returns true, if the counter is 0 }
   if declocked(p^.Ref) then
-    begin
-      FreeMem(p);
-      S:=nil;
-    end;
+    FreeMem(p);
 end;
 
 { alias for internal use }

@@ -177,15 +177,11 @@ implementation
                            InternalError(201103063);
                          secondpass(third);
                          cg.g_array_rtti_helper(current_asmdata.CurrAsmList,tarraydef(resultdef).elementdef,
-                           href,third.location,'FPC_DECREF_ARRAY');
+                           href,third.location,'FPC_FINALIZE_ARRAY');
                        end;
                    end
-                 else if (resultdef.typ=formaldef) then
-                   { stuff being passed to formal parameter has to be completely cleaned,
-                     because it cannot be initialized at callee side (bug #20962) }
-                   cg.g_finalize(current_asmdata.CurrAsmList,left.resultdef,href)
                  else
-                   cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
+                   cg.g_finalize(current_asmdata.CurrAsmList,left.resultdef,href)
                end;
 
              paramanager.createtempparaloc(current_asmdata.CurrAsmList,aktcallnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
@@ -397,7 +393,7 @@ implementation
               function since this is code is only executed after the function call has returned }
             if is_managed_type(funcretnode.resultdef) and
                (funcretnode.nodetype<>temprefn) then
-              cg.g_decrrefcount(current_asmdata.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
+              cg.g_finalize(current_asmdata.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
 
             case location.loc of
               LOC_REGISTER :

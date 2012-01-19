@@ -446,7 +446,6 @@ unit cgobj;
           procedure g_copyvariant(list : TAsmList;const source,dest : treference);
 
           procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);
-          procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);
           procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation;
             const name: string);
           procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);
@@ -3514,72 +3513,6 @@ implementation
       end;
 
 
-    procedure tcg.g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);
-      var
-        href : treference;
-        decrfunc : string;
-        needrtti : boolean;
-        cgpara1,cgpara2 : TCGPara;
-        tempreg1,tempreg2 : TRegister;
-      begin
-        cgpara1.init;
-        cgpara2.init;
-        paramanager.getintparaloc(pocall_default,1,cgpara1);
-        paramanager.getintparaloc(pocall_default,2,cgpara2);
-        needrtti:=false;
-        if is_interfacecom_or_dispinterface(t) then
-          decrfunc:='FPC_INTF_DECR_REF'
-        else if is_ansistring(t) then
-          decrfunc:='FPC_ANSISTR_DECR_REF'
-         else if is_widestring(t) then
-          decrfunc:='FPC_WIDESTR_DECR_REF'
-         else if is_unicodestring(t) then
-          decrfunc:='FPC_UNICODESTR_DECR_REF'
-         else if is_dynamic_array(t) then
-          begin
-            decrfunc:='FPC_DYNARRAY_DECR_REF';
-            needrtti:=true;
-          end
-         else
-          decrfunc:='';
-         { call the special decr function or the generic decref }
-         if decrfunc<>'' then
-          begin
-            if needrtti then
-             begin
-               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-               tempreg2:=getaddressregister(list);
-               a_loadaddr_ref_reg(list,href,tempreg2);
-             end;
-            tempreg1:=getaddressregister(list);
-            a_loadaddr_ref_reg(list,ref,tempreg1);
-            if needrtti then
-              a_load_reg_cgpara(list,OS_ADDR,tempreg2,cgpara2);
-            a_load_reg_cgpara(list,OS_ADDR,tempreg1,cgpara1);
-            paramanager.freecgpara(list,cgpara1);
-            if needrtti then
-              paramanager.freecgpara(list,cgpara2);
-            allocallcpuregisters(list);
-            a_call_name(list,decrfunc,false);
-            deallocallcpuregisters(list);
-          end
-         else
-          begin
-            if is_open_array(t) then
-              InternalError(201103053);
-            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-            a_loadaddr_ref_cgpara(list,href,cgpara2);
-            a_loadaddr_ref_cgpara(list,ref,cgpara1);
-            paramanager.freecgpara(list,cgpara1);
-            paramanager.freecgpara(list,cgpara2);
-            allocallcpuregisters(list);
-            a_call_name(list,'FPC_DECREF',false);
-            deallocallcpuregisters(list);
-         end;
-        cgpara2.done;
-        cgpara1.done;
-      end;
-
     procedure tcg.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
       var
         cgpara1,cgpara2,cgpara3: TCGPara;
@@ -3671,43 +3604,45 @@ implementation
       var
          href : treference;
          cgpara1,cgpara2 : TCGPara;
+         decrfunc : string;
       begin
+        if is_interfacecom_or_dispinterface(t) then
+          decrfunc:='FPC_INTF_DECR_REF'
+        else if is_ansistring(t) then
+          decrfunc:='FPC_ANSISTR_DECR_REF'
+        else if is_widestring(t) then
+          decrfunc:='FPC_WIDESTR_DECR_REF'
+        else if is_unicodestring(t) then
+          decrfunc:='FPC_UNICODESTR_DECR_REF'
+        else if t.typ=variantdef then
+          decrfunc:='FPC_VARIANT_CLEAR'
+        else
+          begin
+            cgpara1.init;
+            cgpara2.init;
+            if is_open_array(t) then
+              InternalError(201103051);
+            paramanager.getintparaloc(pocall_default,1,cgpara1);
+            paramanager.getintparaloc(pocall_default,2,cgpara2);
+            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
+            a_loadaddr_ref_cgpara(list,href,cgpara2);
+            a_loadaddr_ref_cgpara(list,ref,cgpara1);
+            paramanager.freecgpara(list,cgpara1);
+            paramanager.freecgpara(list,cgpara2);
+            if is_dynamic_array(t) then
+              g_call(list,'FPC_DYNARRAY_CLEAR')
+            else
+              g_call(list,'FPC_FINALIZE');
+            cgpara1.done;
+            cgpara2.done;
+            exit;
+          end;
         cgpara1.init;
-        cgpara2.init;
-         if is_ansistring(t) or
-            is_widestring(t) or
-            is_unicodestring(t) or
-            is_interfacecom_or_dispinterface(t) then
-            begin
-              g_decrrefcount(list,t,ref);
-              a_load_const_ref(list,OS_ADDR,0,ref);
-            end
-         else if t.typ=variantdef then
-           begin
-             paramanager.getintparaloc(pocall_default,1,cgpara1);
-             a_loadaddr_ref_cgpara(list,ref,cgpara1);
-             paramanager.freecgpara(list,cgpara1);
-             allocallcpuregisters(list);
-             a_call_name(list,'FPC_VARIANT_CLEAR',false);
-             deallocallcpuregisters(list);
-           end
-         else
-           begin
-              if is_open_array(t) then
-                InternalError(201103051);
-              paramanager.getintparaloc(pocall_default,1,cgpara1);
-              paramanager.getintparaloc(pocall_default,2,cgpara2);
-              reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-              a_loadaddr_ref_cgpara(list,href,cgpara2);
-              a_loadaddr_ref_cgpara(list,ref,cgpara1);
-              paramanager.freecgpara(list,cgpara1);
-              paramanager.freecgpara(list,cgpara2);
-              allocallcpuregisters(list);
-              a_call_name(list,'FPC_FINALIZE',false);
-              deallocallcpuregisters(list);
-           end;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
+        a_loadaddr_ref_cgpara(list,ref,cgpara1);
+        paramanager.freecgpara(list,cgpara1);
+        g_call(list,decrfunc);
         cgpara1.done;
-        cgpara2.done;
       end;
 
 

@@ -92,13 +92,11 @@ Begin
     exit;
   { check for constant strings ...}
   p:=PAnsiRec(S-AnsiFirstOff);
+  s:=nil;
   If p^.ref<0 then exit;
   { declocked does a MT safe dec and returns true, if the counter is 0 }
   If declocked(p^.ref) then
-    begin
-      FreeMem(p);
-      s:=nil;
-    end;
+    FreeMem(p);
 end;
 
 {$endif FPC_SYSTEM_HAS_ANSISTR_DECR_REF}

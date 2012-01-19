@@ -1333,23 +1333,14 @@ function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
 
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF']; compilerproc; nostackframe; assembler;
 asm
-        cmpl $0,(%eax)
-        jne .Ldecr_ref_continue
-        ret
-.Ldecr_ref_continue:
-// Temps allocated between ebp-24 and ebp+0
-        subl    $4,%esp
-// Var S located in register
-// Var l located in register
-        movl    %eax,(%esp)
-// [101] l:=@PAnsiRec(S-FirstOff)^.Ref;
-        movl    (%eax),%edx
-        subl    $8,%edx
-// [102] If l^<0 then exit;
-        cmpl    $0,(%edx)
+        cmpl    $0,(%eax)
+        je      .Lquit
+        pushl   %esi
+        movl    (%eax),%esi
+        subl    $12,%esi           // points to start of allocation
+        movl    $0,(%eax)          // s:=nil
+        cmpl    $0,4(%esi)         // exit if refcount<0
         jl      .Lj3596
-.Lj3603:
-// [104] If declocked(l^) then
   {$ifdef FPC_PIC}
 	pushl	%ebx
         call	fpc_geteipasebx
@@ -1362,27 +1353,20 @@ asm
         cmpl    $0,ismultithread
   {$endif FPC_PIC}
         jne     .Lj3610
-        decl    (%edx)
+        decl    4(%esi)
         je      .Lj3620
-        addl    $4,%esp
-        ret
+        jmp     .Lj3596
 .Lj3610:
-        movl    %edx,%eax
+        leal    4(%esi),%eax
         call    cpudeclocked
         testb   %al,%al
-        je      .Lj3605
+        je      .Lj3596
 .Lj3620:
-        movl    (%esp),%eax
-        movl    (%eax),%eax
-        subl    $12,%eax
+        movl    %esi,%eax
         call    FPC_FREEMEM_X
-        movl    (%esp),%eax
-        movl    $0,(%eax)
-.Lj3618:
-.Lj3605:
 .Lj3596:
-// [107] end;
-        addl $4,%esp
+        popl    %esi
+.Lquit:
 end;
 
 function fpc_truely_ansistr_unique(Var S : Pointer): Pointer; forward;
