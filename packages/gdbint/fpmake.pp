@@ -69,7 +69,7 @@ begin
       Installer.BuildEngine.Log(vlCommand,'GDB-lib found, compiling and running gdbver to obtain GDB-version');
       Installer.BuildEngine.Compile(P,GdbVerTarget);
       p.Targets.Delete(GdbVerTarget.Index);
-      Installer.BuildEngine.ExecuteCommand(AddProgramExtension('src/gdbver',HostOS),'-o src/gdbver.inc');
+      Installer.BuildEngine.ExecuteCommand(AddProgramExtension('.'+PathDelim+'gdbver',HostOS),'-o src'+PathDelim+'gdbver.inc');
 
       // Pass -dUSE_MINGW_GDB to the compiler when a MinGW gdb is used
       if FileExists(GdbLibDir+PathDelim+MinGWGdbLibName) then
