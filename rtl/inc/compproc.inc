@@ -64,6 +64,7 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_incr_ref(p : pointer); compilerproc;
 procedure fpc_dynarray_setlength(var p : pointer;pti : pointer; dimcount : sizeint;dims : pdynarrayindex); compilerproc;
+procedure fpc_dynarray_assign(var dest : pointer; src : pointer; ti: pointer); compilerproc;
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
 
 { Str() support }

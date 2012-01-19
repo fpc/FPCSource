@@ -275,11 +275,7 @@ begin
   case PByte(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring:
-      begin
-        fpc_AnsiStr_Incr_Ref(PPointer(Src)^);
-        fpc_AnsiStr_Decr_Ref(PPointer(Dest)^);
-        PPointer(Dest)^:=PPointer(Src)^;
-      end;
+      fpc_AnsiStr_Assign(PPointer(Dest)^,PPointer(Src)^);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
@@ -325,18 +321,10 @@ begin
       end;
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
-      begin
-        fpc_dynarray_Incr_Ref(PPointer(Src)^);
-        fpc_dynarray_Decr_Ref(PPointer(Dest)^,typeinfo);
-        PPointer(Dest)^:=PPointer(Src)^;
-      end;
+      fpc_dynarray_assign(PPointer(Dest)^,PPointer(Src)^,typeinfo);
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
     tkInterface:
-      begin
-        Intf_Incr_Ref(PPointer(Src)^);
-        Intf_Decr_Ref(PPointer(Dest)^);
-        PPointer(Dest)^:=PPointer(Src)^;
-      end;
+      fpc_intf_assign(PPointer(Dest)^,PPointer(Src)^);
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
       begin

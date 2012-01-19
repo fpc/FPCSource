@@ -134,6 +134,15 @@ procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_RE
 procedure fpc_dynarray_incr_ref(p : pointer); [external name 'FPC_DYNARRAY_INCR_REF'];
 
 
+procedure fpc_dynarray_assign(var dest: Pointer; src: Pointer; ti: pointer);[public,alias:'FPC_DYNARRAY_ASSIGN']; compilerproc;
+  begin
+    fpc_dynarray_incr_ref(src);
+    fpc_dynarray_decr_ref(dest,ti);
+    Dest:=Src;
+  end;
+
+procedure fpc_dynarray_assign(var dest: Pointer; src: Pointer; ti: pointer);[external name 'FPC_DYNARRAY_ASSIGN'];
+
 { provide local access to dynarr_setlength }
 procedure int_dynarray_setlength(var p : pointer;pti : pointer;
   dimcount : sizeint;dims : pdynarrayindex);[external name 'FPC_DYNARR_SETLENGTH'];
