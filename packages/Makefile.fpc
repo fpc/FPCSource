@@ -75,14 +75,30 @@ fpcdir=..
 
 [rules]
 fpmkunit_bootstrap:
-ifdef CROSSCOMPILE
 	$(MAKE) -C fpmkunit bootstrap
-endif
 fpmkunit_all: fpmkunit_bootstrap fcl-process_all paszlib_all
 fpmkunit_debug: fpmkunit_bootstrap fcl-process_debug paszlib_debug
 fpmkunit_smart: fpmkunit_bootstrap fcl-process_smart paszlib_smart
 fpmkunit_release: fpmkunit_bootstrap fcl-process_release paszlib_release
 fpmkunit_shared: fpmkunit_bootstrap fcl-process_shared paszlib_shared
+
+hash_all: fpmkunit_bootstrap
+hash_shared: fpmkunit_bootstrap
+hash_smart: fpmkunit_bootstrap
+hash_debug: fpmkunit_bootstrap
+hash_release: fpmkunit_bootstrap
+
+paszlib_all: hash_all fpmkunit_bootstrap
+paszlib_shared: hash_shared fpmkunit_bootstrap
+paszlib_smart: hash_smart fpmkunit_bootstrap
+paszlib_debug: hash_debug fpmkunit_bootstrap
+paszlib_release: hash_release fpmkunit_bootstrap
+
+fcl-process_all: fpmkunit_bootstrap
+fcl-process_shared: fpmkunit_bootstrap
+fcl-process_smart: fpmkunit_bootstrap
+fcl-process_debug: fpmkunit_bootstrap
+fcl-process_release: fpmkunit_bootstrap
 
 ifneq ($(findstring $(OS_TARGET),darwin iphonesim),)
 fcl-base_all: fpmkunit_all univint_all paszlib_all
@@ -343,12 +359,6 @@ libpng_shared: zlib_shared
 libpng_smart: zlib_smart
 libpng_debug: zlib_debug
 libpng_release: zlib_release
-
-paszlib_all: hash_all
-paszlib_shared: hash_shared
-paszlib_smart: hash_smart
-paszlib_debug: hash_debug
-paszlib_release: hash_release
 
 ifneq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris),)
 sdl_all: pthreads_all x11_all fpmkunit_all
@@ -848,3 +858,8 @@ winceunits_smart: fpmkunit_smart
 winceunits_debug: fpmkunit_debug
 winceunits_release: fpmkunit_release
 
+hash_all: fpmkunit_bootstrap
+hash_shared: fpmkunit_bootstrap
+hash_smart: fpmkunit_bootstrap
+hash_debug: fpmkunit_bootstrap
+hash_release: fpmkunit_bootstrap
