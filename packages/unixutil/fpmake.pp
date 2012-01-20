@@ -19,12 +19,9 @@ begin
     P.Version:='2.7.1';
     P.OSes:=[Linux];
     P.CPUs:=[i386];
+    P.Dependencies.add('libc');
     P.SourcePath.Add('src');
-    T:=P.Targets.AddUnit('unixutils.pp',[i386],[linux]);
-      with T.Dependencies do
-        begin
-          AddUnit('libc');
-        end;
+    T:=P.Targets.AddUnit('unixutils.pp');
 
 {$ifndef ALLPACKAGES}
     Run;
