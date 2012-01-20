@@ -182,3 +182,7 @@ begin
   StrLCopy := Dest;
 end;
 
+Function CharInSet(Ch:WideChar;Const CSet : TSysCharSet) : Boolean;
+begin
+  result:=(Ch<=#$FF) and (ansichar(ch) in CSet);
+end;

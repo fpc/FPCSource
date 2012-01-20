@@ -29,3 +29,5 @@ function HashName(Name: PAnsiChar): LongWord;
 
 function BytesOf(const Val: RawByteString): TBytes;
 function BytesOf(const Val: AnsiChar): TBytes;
+
+Function CharInSet(Ch: AnsiChar;Const CSet : TSysCharSet) : Boolean;

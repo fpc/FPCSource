@@ -106,3 +106,8 @@ begin
   SetLength(Result,1);
   Result[0]:=Byte(Val);
 end;
+
+Function CharInSet(Ch:AnsiChar;Const CSet : TSysCharSet) : Boolean;
+begin
+  result:=ch in CSet;
+end;
