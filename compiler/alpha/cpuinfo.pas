@@ -56,7 +56,7 @@ Const
    { Size of native extended type }
    extended_size = 16;
    {# Size of a pointer                           }
-   sizeof(aint)  = 8;
+   aint_size  = 8;
    {# Size of a multimedia register               }
    mmreg_size = 8;
 
