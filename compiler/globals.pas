@@ -415,6 +415,11 @@ interface
         optimizecputype : cpu_athlon64;
         fputype : fpu_sse64;
   {$endif x86_64}
+  {$ifdef ia64}
+        cputype : cpu_itanium;
+        optimizecputype : cpu_itanium;
+        fputype : fpu_itanium;
+  {$endif ia64}
   {$ifdef avr}
         cputype : cpuinfo.cpu_avr5;
         optimizecputype : cpuinfo.cpu_avr5;

@@ -5,9 +5,9 @@
 ; editing by hand
 ;
 ; layout
-; <name>,<type>,<value>,<stdname>,<gasname>,<stabidx>
+; <name>,<type>,<value>,<stdname>,<gasname>
 ;
-NO,$00,$00,INVALID,INVALID,INVALID,INVALID,-1,-1
+NO,$00,$00,INVALID,INVALID
 
 R0,$01,0,r0,r0
 R1,$01,1,r1,r1
