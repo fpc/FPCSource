@@ -60,23 +60,6 @@ function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNA
   end;
 
 
-{ releases and finalizes the data of a dyn. array and sets p to nil }
-procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
-  begin
-     if p=nil then
-       exit;
-
-     { skip kind and name }
-     ti:=aligntoptr(ti+2+PByte(ti)[1]);
-
-     { finalize all data }
-     int_finalizearray(p+sizeof(tdynarray),pdynarraytypedata(ti)^.elType2,pdynarray(p)^.high+1);
-
-     { release the data }
-     freemem(p);
-  end;
-
-
 procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_CLEAR']; compilerproc;
   var
      realp : pdynarray;
@@ -84,37 +67,21 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
     if (P=Nil) then
       exit;
     realp:=pdynarray(p-sizeof(tdynarray));
+    if realp^.refcount=0 then
+      HandleErrorFrame(204,get_frame);
+
     if declocked(realp^.refcount) then
-      fpc_dynarray_clear_internal(p-sizeof(tdynarray),ti);
+      begin
+        ti:=aligntoptr(ti+2+PByte(ti)[1]);
+        int_finalizearray(p,pdynarraytypedata(ti)^.elType2,realp^.high+1);
+        freemem(realp);
+      end;
     p:=nil;
   end;
 
 { alias for internal use }
 Procedure fpc_dynarray_clear (var p : pointer;ti : pointer);[external name 'FPC_DYNARRAY_CLEAR'];
 
-
-procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_DECR_REF']; compilerproc;
-  var
-     realp : pdynarray;
-  begin
-     if p=nil then
-       exit;
-
-     realp:=pdynarray(p-sizeof(tdynarray));
-     if realp^.refcount=0 then
-       HandleErrorFrame(204,get_frame);
-
-     { decr. ref. count }
-     { should we remove the array? }
-     if declocked(realp^.refcount) then
-       begin
-         fpc_dynarray_clear_internal(realp,ti);
-         p := nil;
-       end;
-  end;
-
-{ provide local access to dynarr_decr_ref for dynarr_setlength }
-procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [external name 'FPC_DYNARRAY_DECR_REF'];
 
 procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_REF']; compilerproc;
   var
@@ -137,7 +104,7 @@ procedure fpc_dynarray_incr_ref(p : pointer); [external name 'FPC_DYNARRAY_INCR_
 procedure fpc_dynarray_assign(var dest: Pointer; src: Pointer; ti: pointer);[public,alias:'FPC_DYNARRAY_ASSIGN']; compilerproc;
   begin
     fpc_dynarray_incr_ref(src);
-    fpc_dynarray_decr_ref(dest,ti);
+    fpc_dynarray_clear(dest,ti);
     Dest:=Src;
   end;
 
@@ -163,6 +130,10 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      eletype : pointer;
 
   begin
+     { negative length is not allowed }
+     if dims[0]<0 then
+       HandleErrorFrame(201,get_frame);
+
      { skip kind and name }
      ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
 
@@ -176,8 +147,6 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      { not assigned yet? }
      if not(assigned(p)) then
        begin
-          if dims[0]<0 then
-            HandleErrorFrame(201,get_frame);
           { do we have to allocate memory? }
           if dims[0] = 0 then
             exit;
@@ -187,19 +156,15 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
        end
      else
        begin
-          realp:=pdynarray(p-sizeof(tdynarray));
-          newp := realp;
-
           { if the new dimension is 0, we've to release all data }
-          if dims[0]<=0 then
+          if dims[0]=0 then
             begin
-               if dims[0]<0 then
-                 HandleErrorFrame(201,get_frame);
-               if declocked(realp^.refcount) then
-                 fpc_dynarray_clear_internal(realp,pti);
-               p:=nil;
+               fpc_dynarray_clear(p,pti);
                exit;
             end;
+
+          realp:=pdynarray(p-sizeof(tdynarray));
+          newp := realp;
 
           if realp^.refcount<>1 then
             begin
@@ -224,9 +189,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
 
                { it is, because it doesn't really matter }
                { if the array is now removed             }
-               { fpc_dynarray_decr_ref(p,ti); }
-               if declocked(realp^.refcount) then
-                 fpc_dynarray_clear_internal(realp,pti);
+               fpc_dynarray_clear(p,pti);
             end
           else if dims[0]<>realp^.high+1 then
             begin
@@ -340,3 +303,10 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
 
 procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
   external name 'FPC_DYNARR_SETLENGTH';
+
+{ obsolete but needed for bootstrapping }
+procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_DECR_REF']; compilerproc;
+  begin
+    fpc_dynarray_clear(p,ti);
+  end;
+
