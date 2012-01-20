@@ -849,7 +849,16 @@ implementation
                      (tarraydef(left.resultdef).highrange<>torddef(htype).high)) then
                     {Convert array indexes to low_bound..high_bound.}
                    begin
-                     if right.resultdef.typ=orddef then
+                     if (right.resultdef.typ=orddef)
+{$ifndef cpu64bitaddr}
+                        { do truncate 64 bit values on 32 bit cpus, since
+                           a) the arrays cannot be > 32 bit anyway
+                           b) their code generators can't directly handle 64 bit
+                              loads
+                        }
+                        and not is_64bit(right.resultdef)
+{$endif not cpu64bitaddr}
+                        then
                        newordtyp:=Torddef(right.resultdef).ordtype
                      else
                        newordtyp:=torddef(ptrsinttype).ordtype;
