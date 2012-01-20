@@ -5416,6 +5416,7 @@ packages/opengles/examples/Makefile svneol=native#text/plain
 packages/opengles/examples/Makefile.fpc svneol=native#text/plain
 packages/opengles/examples/es2example1.pas svneol=native#text/pascal
 packages/opengles/examples/glutdemoes.pp svneol=native#text/plain
+packages/opengles/fpmake.pp svneol=native#text/plain
 packages/opengles/src/gles11.pp svneol=native#text/plain
 packages/opengles/src/gles20.pas svneol=native#text/pascal
 packages/openssl/Makefile svneol=native#text/plain
