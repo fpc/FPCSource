@@ -1334,14 +1334,18 @@ implementation
           n.methodpointer:=methodpointer.dogetcopy
         else
           n.methodpointer:=nil;
-        if assigned(funcretnode) then
-          n.funcretnode:=funcretnode.dogetcopy
-        else
-          n.funcretnode:=nil;
+        { must be copied before the funcretnode, because the callcleanup block
+          may contain a ttempdeletenode that sets the tempinfo of the
+          corresponding temp to ti_nextref_set_hookoncopy_nil, and this nextref
+          itself may be the funcretnode }
         if assigned(callcleanupblock) then
           n.callcleanupblock:=tblocknode(callcleanupblock.dogetcopy)
         else
           n.callcleanupblock:=nil;
+        if assigned(funcretnode) then
+          n.funcretnode:=funcretnode.dogetcopy
+        else
+          n.funcretnode:=nil;
         if assigned(varargsparas) then
          begin
            n.varargsparas:=tvarargsparalist.create(true);
