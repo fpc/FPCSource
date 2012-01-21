@@ -27,6 +27,10 @@ const
   {$endif}
 {$endif}
 
+{$if defined(linux) or defined(freebsd) or defined(openbsd)}
+  {$define ELF} // ELF symbol versioning.
+{$endif}
+
 {$if defined(linux) and defined(cpuarm)}
 { arm-linux seems to require this }
 {$linklib c}
@@ -56,6 +60,9 @@ type
 
 function dlopen(Name : PChar; Flags : longint) : Pointer; cdecl; external libdl;
 function dlsym(Lib : Pointer; Name : Pchar) : Pointer; cdecl; external Libdl;
+{$ifdef ELF}
+function dlvsym(Lib : Pointer; Name : Pchar; Version: Pchar) : Pointer; cdecl; external Libdl;
+{$endif}
 function dlclose(Lib : Pointer) : Longint; cdecl; external libdl;
 function dlerror() : Pchar; cdecl; external libdl;
 { overloaded for compatibility with hmodule }
