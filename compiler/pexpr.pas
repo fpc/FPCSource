@@ -1154,6 +1154,8 @@ implementation
                          if not handle_staticfield_access(sym,false,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
+                         { catch expressions like "(propx):=1;" }
+                         include(p1.flags,nf_no_lvalue);
                        end;
                      procsym :
                        begin
@@ -1165,6 +1167,7 @@ implementation
                           p1:=ccallnode.create(paras,tprocsym(sym),st,p1,callflags);
                           paras:=nil;
                           include(p1.flags,nf_isproperty);
+                          include(p1.flags,nf_no_lvalue);
                        end
                      else
                        begin

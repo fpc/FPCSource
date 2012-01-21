@@ -1133,6 +1133,8 @@ implementation
                       (gotderef) or
                       { same when we got a class and subscript (= deref) }
                       (gotclass and gotsubscript) or
+                      { indexing a dynamic array = dereference }
+                      (gotdynarray and gotvec) or
                       (
                        { allowing assignments to typecasted properties
                            a) is Delphi-incompatible
@@ -1146,7 +1148,8 @@ implementation
                        }
                        not(gottypeconv) and
                        not(gotsubscript and gotrecord) and
-                       not(gotstring and gotvec)
+                       not(gotstring and gotvec) and
+                       not(nf_no_lvalue in hp.flags)
                       ) then
                      result:=true
                    else
@@ -1261,8 +1264,12 @@ implementation
                      exit;
                    end;
                  gotvec:=true;
-                 { accesses to dyn. arrays override read only access in delphi }
-                 if (m_delphi in current_settings.modeswitches) and is_dynamic_array(tunarynode(hp).left.resultdef) then
+                 { accesses to dyn. arrays override read only access in delphi
+                   -- now also in FPC, because the elements of a dynamic array
+                      returned by a function can also be changed, or you can
+                      assign the dynamic array to a variable and then change
+                      its elements anyway }
+                 if is_dynamic_array(tunarynode(hp).left.resultdef) then
                    gotdynarray:=true;
                  hp:=tunarynode(hp).left;
                end;
