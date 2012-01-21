@@ -212,6 +212,7 @@ interface
          nf_is_funcret,
          nf_isproperty,
          nf_processing,
+         nf_no_lvalue,   { Node cannot be assigned to }
 
          { taddrnode }
          nf_typedaddr,
@@ -260,8 +261,8 @@ interface
          { tloadvmtaddrnode }
          nf_ignore_for_wpo  { we know that this loadvmtaddrnode cannot be used to construct a class instance }
 
-         { WARNING: there are now 32 elements in this type, and a set of this
-             type is written to the PPU. So before adding any more elements,
+         { WARNING: there are now 31 elements in this type, and a set of this
+             type is written to the PPU. So before adding more than 32 elements,
              either move some flags to specific nodes, or stream a normalset
              to the ppu
          }
