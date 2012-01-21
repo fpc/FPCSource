@@ -1618,7 +1618,7 @@ implementation
         objsym : TObjSymbol;
         exesym : TExeSymbol;
       begin
-        val(avalue,ImageBase,code);
+        val(avalue,FImageBase,code);
         if code<>0 then
           Comment(V_Error,'Invalid number '+avalue);
         { Create __image_base__ symbol, create the symbol
