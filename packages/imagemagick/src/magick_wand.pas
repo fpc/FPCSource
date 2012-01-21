@@ -31,7 +31,7 @@ unit magick_wand;
 	{$PACKRECORDS C}
 {$ENDIF}
 
-{$PACKENUM 4}
+{$z4}
 
 interface
 
