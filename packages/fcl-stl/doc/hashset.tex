@@ -1,0 +1,58 @@
+\chapter{THashSet}
+
+Implements container for storing unordered set of unique elements.
+Takes 2 arguments for specialization, first one is type of elements, second one is a hash functor
+(class which has class function hash, which takes element and number $n$ and returns hash of the
+element in range $0, 1, \dots, n-1$). 
+Usage example:
+
+\lstinputlisting[language=Pascal]{hashsetexample.pp}
+
+Memory complexity:
+Arounds two times of size of stored elements 
+Members list:
+
+\begin{longtable}{|m{10cm}|m{5cm}|}
+\hline
+Method & Complexity guarantees \\ \hline
+\multicolumn{2}{|m{15cm}|}{Description} \\ \hline\hline
+
+\verb!Create! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Constructor. Creates empty set.} \\ \hline\hline
+
+\verb!function Size(): SizeUInt! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Returns number of elements in set.} \\\hline\hline
+
+\verb!procedure Insert(value: T)! &
+O(1) on average \\ \hline
+\multicolumn{2}{|m{15cm}|}{Inserts element into set, if given element is already there nothing
+happens.} \\\hline\hline
+
+\verb!procedure Delete(value: T)! &
+O(1) on average \\ \hline
+\multicolumn{2}{|m{15cm}|}{Deletes value from set. If element is not in set, nothing happens.} \\\hline\hline
+
+\verb!function Contains(value: T):boolean! & O(1) on average \\\hline
+\multicolumn{2}{|m{15cm}|}{Checks whether element is in set.} \\\hline\hline
+
+\verb!function Iterator:TIterator! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Returns iterator allowing traversal through set. If set is empty returns nil.} \\\hline\hline
+
+\verb!function IsEmpty(): boolean! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Returns true when set is empty.} \\\hline
+
+\end{longtable}
+
+Some methods return type TIterator, which has following methods:
+\begin{longtable}{|m{10cm}|m{5cm}|}                                                             
+\hline
+Method & Complexity guarantees \\ \hline                                                  
+\multicolumn{2}{|m{15cm}|}{Description} \\ \hline\hline                                               
+\verb!function Next:boolean! & O(N) worst case, but traversal of whole set takes O(N) time \\\hline
+\multicolumn{2}{|m{15cm}|}{Moves iterator to next larger element in set. Returns true on
+success. If the iterator is already pointing on last element returns false.} \\\hline\hline
+
+\verb!property Data:T! & $O(1)$ \\\hline
+\multicolumn{2}{|m{15cm}|}{Property, which allows reading of the element.} \\\hline
+
+\end{longtable}

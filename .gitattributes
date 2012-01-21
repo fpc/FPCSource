@@ -2323,6 +2323,11 @@ packages/fcl-stl/Makefile.fpc svneol=native#text/plain
 packages/fcl-stl/doc/arrayutils.tex svneol=native#text/plain
 packages/fcl-stl/doc/deque.tex svneol=native#text/plain
 packages/fcl-stl/doc/dequeexample.pp svneol=native#text/plain
+packages/fcl-stl/doc/hashmap.tex svneol=native#text/plain
+packages/fcl-stl/doc/hashmapexample.pp svneol=native#text/plain
+packages/fcl-stl/doc/hashset.tex svneol=native#text/plain
+packages/fcl-stl/doc/hashsetexample.pp svneol=native#text/plain
+packages/fcl-stl/doc/main.pdf -text
 packages/fcl-stl/doc/main.tex svneol=native#text/plain
 packages/fcl-stl/doc/makra.tex svneol=native#text/plain
 packages/fcl-stl/doc/map.tex svneol=native#text/plain

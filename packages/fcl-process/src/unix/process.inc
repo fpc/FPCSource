@@ -109,6 +109,7 @@ Function DetectXterm : String;
       Result:=TestTerminal(Terminals[i]);
       If Result then
         XTermProgram:=Terminals[i];
+       inc(i);
       end;
   end;
 

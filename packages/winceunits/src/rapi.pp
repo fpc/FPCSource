@@ -339,7 +339,7 @@ type
   //added 01/19/2003 - Octavio Hernandez; dotnet@danysoft.com
   TDeviceToDesktop = function(DesktopLocation, TableList: String; Sync: BOOL; Overwrite: Integer; DeviceLocation: String): Longint stdcall;
 
-  TCeRapiUnInit = function : LongInt stdcall;
+  TCeRapiUninit = function : LongInt stdcall;
   TCeFindAllFiles = function(Path: PWideChar; Attr: DWORD; var Count: DWord;
     var FindData: PCe_Find_Data_array): BOOL stdcall;
   TRapiFreeBuffer = procedure(p: Pointer) stdcall;
@@ -348,7 +348,7 @@ type
 
 function CeRapiInit: LongInt;
 function CeRapiInitEx(var RInit: TRapiInit) : LongInt;
-function CeRapiUnInit: LongInt;
+function CeRapiUninit: LongInt;
 function CeFindAllFiles(Path: PWideChar; Attr: DWORD;
   var Count: DWord; var FindData: PCe_Find_Data_array): BOOL;
 procedure RapiFreeBuffer(p: Pointer);
@@ -444,7 +444,7 @@ IMPLEMENTATION
 
 var
   mCeRapiInit : TCeRapiInit;
-  mCeRapiUnInit : TCeRapiUnInit;
+  mCeRapiUninit : TCeRapiUninit;
   mCeFindAllFiles: TCeFindAllFiles;
   mRapiFreeBuffer : TRapiFreeBuffer;
   mCeRapiInitEx: TCeRapiInitEx;
@@ -530,7 +530,7 @@ begin
     {...and load all globals}
     @mCeRapiInit := GetProcAddress(RapiModule, 'CeRapiInit');
     @mCeRapiInitEx := GetProcAddress(RapiModule, 'CeRapiInitEx');
-    @mCeRapiUnInit := GetProcAddress(RapiModule, 'CeRapiUnInit');
+    @mCeRapiUninit := GetProcAddress(RapiModule, 'CeRapiUninit');
     @mCeFindAllFiles := GetProcAddress(RapiModule, 'CeFindAllFiles');
     @mRapiFreeBuffer := GetProcAddress(RapiModule, 'RapiFreeBuffer');
 
