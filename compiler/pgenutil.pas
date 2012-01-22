@@ -40,7 +40,7 @@ implementation
 
 uses
   { common }
-  cutils,
+  cutils,fpccrc,
   { global }
   globals,globtype,tokens,verbose,
   { symtable }
@@ -64,7 +64,7 @@ uses
         first,
         err : boolean;
         i,
-        gencount : longint;
+        gencount,crc : longint;
         genericdef : tstoreddef;
         generictype : ttypesym;
         genericdeflist : TFPObjectList;
@@ -73,9 +73,9 @@ uses
         oldextendeddefs    : TFPHashObjectList;
         hmodule : tmodule;
         pu : tused_unit;
-        prettyname : ansistring;
-        uspecializename,
-        countstr,genname,ugenname,specializename : string;
+        prettyname,specializename : ansistring;
+        ufinalspecializename,
+        countstr,genname,ugenname,finalspecializename : string;
         vmtbuilder : TVMTBuilder;
         specializest : tsymtable;
         item : tobject;
@@ -165,7 +165,7 @@ uses
         if assigned(parsedtype) then
           begin
             genericdeflist.Add(parsedtype);
-            specializename:='$'+parsedtype.typesym.realname;
+            specializename:='$'+parsedtype.typename;
             prettyname:=parsedtype.typesym.prettyname;
           end
         else
@@ -189,7 +189,7 @@ uses
                   message(type_e_generics_cannot_reference_itself)
                 else
                   begin
-                    specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
+                    specializename:=specializename+'$'+pt2.resultdef.typename;
                     if first then
                       prettyname:=prettyname+pt2.resultdef.typesym.prettyname
                     else
@@ -258,8 +258,9 @@ uses
         genericdef:=tstoreddef(ttypesym(srsym).typedef);
 
         { build the new type's name }
-        specializename:=genname+specializename;
-        uspecializename:=upper(specializename);
+        crc:=UpdateCrc32(0,specializename[1],length(specializename));
+        finalspecializename:=genname+'$crc'+hexstr(crc,8);
+        ufinalspecializename:=upper(finalspecializename);
         prettyname:=genericdef.typesym.prettyname+'<'+prettyname+'>';
 
         { select the symtable containing the params }
@@ -295,7 +296,7 @@ uses
 
         { Special case if we are referencing the current defined object }
         if assigned(current_structdef) and
-           (current_structdef.objname^=uspecializename) then
+           (current_structdef.objname^=ufinalspecializename) then
           tt:=current_structdef;
 
         { decide in which symtable to put the specialization }
@@ -307,7 +308,7 @@ uses
         { Can we reuse an already specialized type? }
         if not assigned(tt) then
           begin
-            hashedid.id:=uspecializename;
+            hashedid.id:=ufinalspecializename;
 
             srsym:=tsym(specializest.findwithhash(hashedid));
             if assigned(srsym) then
@@ -387,7 +388,7 @@ uses
 
                 { First a new typesym so we can reuse this specialization and
                   references to this specialization can be handled }
-                srsym:=ttypesym.create(specializename,generrordef);
+                srsym:=ttypesym.create(finalspecializename,generrordef);
                 specializest.insert(srsym);
 
                 { specializations are declarations as such it is the wisest to
@@ -402,7 +403,7 @@ uses
                   internalerror(200511171);
                 current_scanner.startreplaytokens(genericdef.generictokenbuf,
                   genericdef.change_endian);
-                read_named_type(tt,specializename,genericdef,generictypelist,false);
+                read_named_type(tt,finalspecializename,genericdef,generictypelist,false);
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;
 
