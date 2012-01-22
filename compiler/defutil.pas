@@ -1047,7 +1047,7 @@ implementation
         case p.typ of
           orddef:
             result:=torddef(p).ordtype in [u8bit,s8bit,u16bit,s16bit,u32bit,s32bit,
-              u64bit,s64bit,bool16bit];
+              u64bit,s64bit,bool16bit,scurrency];
           floatdef:
             result:=tfloatdef(p).floattype in [s64currency,s64real,s32real];
           stringdef:
