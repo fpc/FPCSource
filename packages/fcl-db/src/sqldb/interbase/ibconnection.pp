@@ -7,7 +7,7 @@ unit IBConnection;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db, math, dbconst, bufdataset,
+  Classes, SysUtils, sqldb, db, dbconst, bufdataset,
 {$IfDef LinkDynamically}
   ibase60dyn;
 {$Else}
@@ -749,6 +749,19 @@ begin
   Result := (retcode = 0);
 end;
 
+function IntPower10(e: integer): double;
+const PreComputedPower10: array[0..9] of integer = (1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000);
+var n: integer;
+begin
+  n := abs(e); //exponent can't be greater than 18
+  if n <= 9 then
+    Result := PreComputedPower10[n]
+  else
+    Result := PreComputedPower10[9] * PreComputedPower10[n-9];
+  if e < 0 then
+    Result := 1 / Result;
+end;
+
 procedure TIBConnection.SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
 
 var ParNr,SQLVarNr : integer;
@@ -805,8 +818,7 @@ var
   // This should be a pointer, because the ORIGINAL variables must
   // be modified.
   VSQLVar: ^XSQLVAR;
-  d : double;
-  
+
 begin
   {$push}
   {$R-}
@@ -826,7 +838,7 @@ begin
             if VSQLVar^.sqlscale = 0 then
               i := AParams[ParNr].AsInteger
             else
-              i := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar^.sqlscale));
+              i := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
             Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_SHORT :
@@ -834,7 +846,7 @@ begin
             if VSQLVar^.sqlscale = 0 then
               si := AParams[ParNr].AsSmallint
             else
-              si := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar^.sqlscale));
+              si := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
             i := si;
             Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
@@ -870,12 +882,9 @@ begin
             if VSQLVar^.sqlscale = 0 then
               li := AParams[ParNr].AsLargeInt
             else if AParams[ParNr].DataType = ftFMTBcd then
-              begin
-              d:=AParams[ParNr].AsFMTBCD * IntPower(10, -VSQLVar^.sqlscale);
-              li := Round(d)
-              end
+              li := AParams[ParNr].AsFMTBCD * IntPower10(-VSQLVar^.sqlscale)
             else
-              li := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar^.sqlscale));
+              li := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
             Move(li, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_DOUBLE, SQL_FLOAT:
@@ -896,9 +905,13 @@ var
   CurrBuff     : pchar;
   c            : currency;
   AFmtBcd      : tBCD;
-  smalli       : smallint;
-  longi        : longint;
-  largei       : largeint;
+
+  function BcdDivPower10(Dividend: largeint; e: integer): TBCD;
+  var d: double;
+  begin
+    d := Dividend / IntPower10(e);
+    Result := StrToBCD( FloatToStr(d) );
+  end;
 
 begin
   CreateBlob := False;
@@ -937,18 +950,9 @@ begin
         ftBCD :
           begin
             case SQLDA^.SQLVar[x].SQLLen of
-              2 : begin
-                  Move(CurrBuff^, smalli, 2);
-                  c := smalli*intpower(10,SQLDA^.SQLVar[x].SQLScale);
-                  end;
-              4 : begin
-                  Move(CurrBuff^, longi, 4);
-                  c := longi*intpower(10,SQLDA^.SQLVar[x].SQLScale);
-                  end;
-              8 : begin
-                  Move(CurrBuff^, largei, 8);
-                  c := largei*intpower(10,SQLDA^.SQLVar[x].SQLScale);
-                  end;
+              2 : c := PSmallint(CurrBuff)^ / IntPower10(-SQLDA^.SQLVar[x].SQLScale);
+              4 : c := PLongint(CurrBuff)^  / IntPower10(-SQLDA^.SQLVar[x].SQLScale);
+              8 : c := PLargeint(CurrBuff)^ / IntPower10(-SQLDA^.SQLVar[x].SQLScale);
               else
                 Result := False; // Just to be sure, in principle this will never happen
             end; {case}
@@ -957,18 +961,9 @@ begin
         ftFMTBcd :
           begin
             case SQLDA^.SQLVar[x].SQLLen of
-              2 : begin
-                  Move(CurrBuff^, smalli, 2);
-                  AFmtBCD:= smalli*intpower(10,SQLDA^.SQLVar[x].SQLScale);
-                  end;
-              4 : begin
-                  Move(CurrBuff^, longi, 4);
-                  AFmtBcd := longi*intpower(10,SQLDA^.SQLVar[x].SQLScale);
-                  end;
-              8 : begin
-                  Move(CurrBuff^, largei, 8);
-                  AFmtBcd := largei*intpower(10,SQLDA^.SQLVar[x].SQLScale);
-                  end;
+              2 : AFmtBcd := BcdDivPower10(PSmallint(CurrBuff)^, -SQLDA^.SQLVar[x].SQLScale);
+              4 : AFmtBcd := BcdDivPower10(PLongint(CurrBuff)^,  -SQLDA^.SQLVar[x].SQLScale);
+              8 : AFmtBcd := BcdDivPower10(PLargeint(CurrBuff)^, -SQLDA^.SQLVar[x].SQLScale);
               else
                 Result := False; // Just to be sure, in principle this will never happen
             end; {case}
