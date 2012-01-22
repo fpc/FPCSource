@@ -26,4 +26,5 @@ Solaris-i386 : gcc (GCC) 3.4.3 (csl-sol210-3_4-20050802)
 Solaris-x86_64 : gcc (GCC) 3.4.3 (csl-sol210-3_4-20050802) with -m64 option
 
 Freebsd-x86_64 : gcc (GCC) 4.2.1 20070719  [FreeBSD]
+
 OpenBSD-i386 : gcc (GCC) 4.2.1 20070719 

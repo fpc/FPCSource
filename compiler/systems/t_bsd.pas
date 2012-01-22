@@ -273,9 +273,18 @@ begin
 { set special options for some targets }
   if not IsDarwin Then
     begin
-      prtobj:='prt0';
-      cprtobj:='cprt0';
-      gprtobj:='gprt0';
+      if isdll and (target_info.system in systems_freebsd) then
+        begin
+          prtobj:='dllprt0';
+          cprtobj:='dllprt0';
+          gprtobj:='dllprt0';
+        end
+      else
+        begin
+          prtobj:='prt0';
+          cprtobj:='cprt0';
+          gprtobj:='gprt0';
+        end;
       linkdynamic:=not(SharedLibFiles.empty);
       linklibc:=(SharedLibFiles.Find('c')<>nil);
       // this one is a bit complex.
@@ -386,6 +395,28 @@ begin
          HPath:=TCmdStrListItem(HPath.Next);
        end;
     end;
+      { force local symbol resolution (i.e., inside the shared }
+      { library itself) for all non-exorted symbols, otherwise }
+      { several RTL symbols of FPC-compiled shared libraries   }
+      { will be bound to those of a single shared library or   }
+      { to the main program                                    }
+      if (isdll) and (target_info.system in systems_freebsd) then
+        begin
+          LinkRes.add('VERSION');
+          LinkRes.add('{');
+          LinkRes.add('  {');
+          if not texportlibunix(exportlib).exportedsymnames.empty then
+            begin
+              LinkRes.add('    global:');
+              repeat
+                LinkRes.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
+              until texportlibunix(exportlib).exportedsymnames.empty;
+            end;
+          LinkRes.add('    local:');
+          LinkRes.add('      *;');
+          LinkRes.add('  };');
+          LinkRes.add('}');
+        end;
 
   if not LdSupportsNoResponseFile then
     LinkRes.Add('INPUT(');

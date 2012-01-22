@@ -1282,7 +1282,7 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_x86_64_linux];
+            supported_targets : [system_x86_64_linux,system_x86_64_freebsd];
             flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';

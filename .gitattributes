@@ -7101,6 +7101,7 @@ rtl/freebsd/errnostr.inc svneol=native#text/plain
 rtl/freebsd/freebsd.pas -text svneol=unset#text/plain
 rtl/freebsd/i386/bsyscall.inc svneol=native#text/plain
 rtl/freebsd/i386/cprt0.as svneol=native#text/plain
+rtl/freebsd/i386/dllprt0.as svneol=native#text/plain
 rtl/freebsd/i386/gprt0.as svneol=native#text/plain
 rtl/freebsd/i386/identpatch.sh svneol=native#text/plain
 rtl/freebsd/i386/prt0.as svneol=native#text/plain
@@ -7128,6 +7129,7 @@ rtl/freebsd/unxsockh.inc svneol=native#text/plain
 rtl/freebsd/unxsysc.inc svneol=native#text/plain
 rtl/freebsd/x86_64/bsyscall.inc svneol=native#text/plain
 rtl/freebsd/x86_64/cprt0.as svneol=native#text/plain
+rtl/freebsd/x86_64/dllprt0.as svneol=native#text/plain
 rtl/freebsd/x86_64/gprt0.as svneol=native#text/plain
 rtl/freebsd/x86_64/prt0.as svneol=native#text/plain
 rtl/freebsd/x86_64/si_c.inc svneol=native#text/plain
@@ -9291,10 +9293,13 @@ tests/test/cg/obj/freebsd/i386/ctest.o -text
 tests/test/cg/obj/freebsd/i386/tcext3.o -text
 tests/test/cg/obj/freebsd/i386/tcext4.o -text
 tests/test/cg/obj/freebsd/i386/tcext5.o -text
+tests/test/cg/obj/freebsd/x86_64/cpptcl1.o -text
+tests/test/cg/obj/freebsd/x86_64/cpptcl2.o -text
 tests/test/cg/obj/freebsd/x86_64/ctest.o -text
 tests/test/cg/obj/freebsd/x86_64/tcext3.o -text
 tests/test/cg/obj/freebsd/x86_64/tcext4.o -text
 tests/test/cg/obj/freebsd/x86_64/tcext5.o -text
+tests/test/cg/obj/freebsd/x86_64/tcext6.o -text
 tests/test/cg/obj/go32v2/i386/cpptcl1.o -text
 tests/test/cg/obj/go32v2/i386/cpptcl2.o -text
 tests/test/cg/obj/go32v2/i386/ctest.o -text

@@ -156,7 +156,7 @@ unit i_bsd;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_gas;
+            assem        : as_x86_64_elf64;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
