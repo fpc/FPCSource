@@ -1,4 +1,4 @@
-{ %skiptarget=go32v2 }
+{ %skiptarget=go32v2,os2 }
 { %opt=-gl -O- }
 { %needlibrary }
 {$goto on}
