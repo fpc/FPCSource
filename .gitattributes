@@ -10936,6 +10936,7 @@ tests/test/units/fpcunit/testclasses.lpr svneol=native#text/plain
 tests/test/units/fpcunit/testcomps.pp svneol=native#text/plain
 tests/test/units/fpcunit/tstrutils.lpi svneol=native#text/plain
 tests/test/units/fpcunit/tstrutils.lpr svneol=native#text/plain
+tests/test/units/lineinfo/tlininfo.pp svneol=native#text/plain
 tests/test/units/math/tdivmod.pp svneol=native#text/plain
 tests/test/units/math/tmask.inc svneol=native#text/plain
 tests/test/units/math/tmask.pp svneol=native#text/plain
