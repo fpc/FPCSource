@@ -353,6 +353,98 @@ const
 function sync_file_range(fd: cInt; offset, nbytes: off64_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'sync_file_range'; {$ENDIF}
 function fdatasync (fd: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'sync_file_range'; {$ENDIF}
 
+{$PACKRECORDS 1}
+
+  { Flags for the parameter of inotify_init1.   }
+
+Const
+  IN_CLOEXEC  = &02000000;
+  IN_NONBLOCK = &00004000;
+
+Type
+  inotify_event = record
+    wd     : cint;
+    mask   : cuint32;
+    cookie : cuint32;
+    len    : cuint32;
+    name   : char;
+  end;
+  Pinotify_event = ^inotify_event;
+
+  { Supported events suitable for MASK parameter of INOTIFY_ADD_WATCH.   }
+
+  const
+    IN_ACCESS        = $00000001;     { File was accessed.   }
+    IN_MODIFY        = $00000002;     { File was modified.   }
+    IN_ATTRIB        = $00000004;     { Metadata changed.   }
+    IN_CLOSE_WRITE   = $00000008;     { Writtable file was closed.   }
+    IN_CLOSE_NOWRITE = $00000010;     { Unwrittable file closed.   }
+    IN_OPEN          = $00000020;     { File was opened.   }
+    IN_MOVED_FROM    = $00000040;     { File was moved from X.   }
+    IN_MOVED_TO      = $00000080;     { File was moved to Y.   }
+    
+    IN_CLOSE         = IN_CLOSE_WRITE or IN_CLOSE_NOWRITE;      { Close.   }
+    IN_MOVE          = IN_MOVED_FROM or IN_MOVED_TO;      { Moves.   }
+
+    IN_CREATE        = $00000100;     { Subfile was created.   }
+    IN_DELETE        = $00000200;     { Subfile was deleted.   }
+    IN_DELETE_SELF   = $00000400;     { Self was deleted.   }
+    IN_MOVE_SELF     = $00000800;     { Self was moved.   }
+
+  { Events sent by the kernel.   }
+    IN_UNMOUNT       = $00002000;     { Backing fs was unmounted.   }
+    IN_Q_OVERFLOW    = $00004000;     { Event queued overflowed.   }
+    IN_IGNORED       = $00008000;     { File was ignored.   }
+
+  { Special flags.   }
+    IN_ONLYDIR       = $01000000;     { Only watch the path if it is a directory.   }
+    IN_DONT_FOLLOW   = $02000000;     { Do not follow a sym link.   }
+    IN_MASK_ADD      = $20000000;     { Add to the mask of an already  existing watch.   }
+    IN_ISDIR         = $40000000;     { Event occurred against dir.   }
+    IN_ONESHOT       = $80000000;     { Only send event once.   }
+
+  { All events which a program can wait on.   }
+    IN_ALL_EVENTS = IN_ACCESS or IN_MODIFY or IN_ATTRIB or IN_CLOSE 
+                    or IN_OPEN or IN_MOVE or IN_CREATE or IN_DELETE 
+                    or IN_DELETE_SELF or IN_MOVE_SELF;    
+                    
+{ Create and initialize inotify instance.   }
+function inotify_init: cint;
+{ Create and initialize inotify instance.   }
+function inotify_init1(flags:cint):cint;
+
+{ Add watch of object NAME to inotify instance FD.  
+  Notify about events specified by MASK.   }
+function inotify_add_watch(fd:cint; name:Pchar; mask:cuint32):cint;
+
+{ Remove the watch specified by WD from the inotify instance FD.   }
+function inotify_rm_watch(fd:cint; wd: cint):cint;
+
+{ clock_gettime, clock_settime, clock_getres }
+
+Const
+  // Taken from linux/time.h
+  // Posix timers
+  CLOCK_REALTIME                  = 0;
+  CLOCK_MONOTONIC                 = 1;
+  CLOCK_PROCESS_CPUTIME_ID        = 2;
+  CLOCK_THREAD_CPUTIME_ID         = 3;
+  CLOCK_MONOTONIC_RAW             = 4;
+  CLOCK_REALTIME_COARSE           = 5;
+  CLOCK_MONOTONIC_COARSE          = 6;
+  // Linux specific
+  CLOCK_SGI_CYCLE                 = 10;
+  MAX_CLOCKS                      = 16;
+  CLOCKS_MASK                     = CLOCK_REALTIME or CLOCK_MONOTONIC;
+  CLOCKS_MONO                     = CLOCK_MONOTONIC;
+
+Type
+  clockid_t = cint;
+
+function clock_getres(clk_id : clockid_t; res : ptimespec) : cint;
+function clock_gettime(clk_id : clockid_t; tp: ptimespec) : cint;
+function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint;
+  
 implementation
 
 
@@ -575,6 +667,49 @@ end;
 function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
+end;
+
+
+function inotify_init:cint;
+
+begin
+  inotify_init:=inotify_init1(0);
+end;
+
+function inotify_init1(flags:cint):cint;
+
+begin
+  inotify_init1:=do_SysCall(syscall_nr_inotify_init,tsysparam(flags));
+end;
+
+function inotify_add_watch(fd:cint; name:Pchar; mask:cuint32):cint;
+
+begin
+  inotify_add_watch:=do_SysCall(syscall_nr_inotify_add_watch,tsysparam(fd),tsysparam(name),tsysparam(mask));
+end;
+
+function inotify_rm_watch(fd:cint; wd:cint):cint;
+
+begin
+  inotify_rm_watch:=do_SysCall(syscall_nr_inotify_rm_watch,tsysparam(fd),tsysparam(wd));
+end;
+
+function clock_getres(clk_id : clockid_t; res : ptimespec) : cint;
+
+begin
+  clock_getres:=do_SysCall(syscall_nr_clock_getres,tsysparam(clk_id),tsysparam(res));
+end;
+
+function clock_gettime(clk_id : clockid_t; tp: ptimespec) : cint;
+
+begin
+  clock_gettime:=do_SysCall(syscall_nr_clock_gettime,tsysparam(clk_id),tsysparam(tp));
+end;
+
+function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint;
+
+begin
+  clock_settime:=do_SysCall(syscall_nr_clock_settime,tsysparam(clk_id),tsysparam(tp));
 end;
 
 end.
