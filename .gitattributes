@@ -6534,6 +6534,7 @@ packages/winunits-base/src/commdlg.pp svneol=native#text/plain
 packages/winunits-base/src/comobj.pp svneol=native#text/plain
 packages/winunits-base/src/comserv.pp svneol=native#text/plain
 packages/winunits-base/src/dwmapi.pp svneol=native#text/plain
+packages/winunits-base/src/eventsink.pp svneol=native#text/plain
 packages/winunits-base/src/flatsb.pp svneol=native#text/plain
 packages/winunits-base/src/htmlhelp.pp svneol=native#text/plain
 packages/winunits-base/src/imagehlp.pp svneol=native#text/plain
@@ -6548,7 +6549,9 @@ packages/winunits-base/src/richedit.pp svneol=native#text/plain
 packages/winunits-base/src/shellapi.pp svneol=native#text/plain
 packages/winunits-base/src/shfolder.pp svneol=native#text/plain
 packages/winunits-base/src/shlobj.pp svneol=native#text/plain
+packages/winunits-base/src/stdole2.pas svneol=native#text/plain
 packages/winunits-base/src/tmschema.inc svneol=native#text/plain
+packages/winunits-base/src/typelib.pas svneol=native#text/plain
 packages/winunits-base/src/uxtheme.pp svneol=native#text/plain
 packages/winunits-base/src/win9xwsmanager.pp svneol=native#text/pascal
 packages/winunits-base/src/wininet.pp svneol=native#text/plain
@@ -12902,6 +12905,10 @@ utils/h2pas/scan.pas svneol=native#text/plain
 utils/h2pas/testit.h -text
 utils/h2pas/yylex.cod -text
 utils/h2pas/yyparse.cod -text
+utils/importtl/Makefile svneol=native#text/plain
+utils/importtl/Makefile.fpc svneol=native#text/plain
+utils/importtl/importtl.lpi svneol=native#text/plain
+utils/importtl/importtl.pas svneol=native#text/plain
 utils/instantfpc/Makefile svneol=native#text/plain
 utils/instantfpc/Makefile.fpc svneol=native#text/plain
 utils/instantfpc/README.txt svneol=native#text/plain

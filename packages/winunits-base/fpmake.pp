@@ -56,6 +56,9 @@ begin
           AddUnit('multimon');
           AddUnit('htmlhelp');
           AddUnit('winspool');
+		  AddUnit('stdole2');
+		  AddUnit('eventsink');
+		  AddUnit('typelib');
         end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
     T:=P.Targets.AddImplicitUnit('comconst.pp');
@@ -80,6 +83,9 @@ begin
     T:=P.Targets.AddImplicitUnit('dwmapi.pp');
     T:=P.Targets.AddImplicitUnit('htmlhelp.pp');
     T:=P.Targets.AddImplicitUnit('winspool.pp');
+	T:=P.Targets.AddImplicitUnit('stdole2');
+	T:=P.Targets.AddImplicitUnit('eventsink');
+	T:=P.Targets.AddImplicitUnit('typelib');
     T.Dependencies.AddInclude('tmschema.inc');
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testcom1.pp');

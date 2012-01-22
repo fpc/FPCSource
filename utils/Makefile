@@ -295,7 +295,7 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  rmwait
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait instantfpc importtl
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait
@@ -340,7 +340,7 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait instantfpc importtl
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
@@ -427,7 +427,7 @@ ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo instantfpc
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait instantfpc importtl
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
@@ -442,7 +442,7 @@ ifeq ($(FULL_TARGET),arm-darwin)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo instantfpc
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait instantfpc
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait instantfpc importtl
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
@@ -2838,6 +2838,7 @@ TARGET_DIRS_FPMC=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_IMPORTTL=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_FPPKG=1
@@ -3010,6 +3011,7 @@ TARGET_DIRS_FPCMKCFG=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_IMPORTTL=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 TARGET_DIRS_FPPKG=1
@@ -3337,6 +3339,7 @@ TARGET_DIRS_FPMC=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_IMPORTTL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_FPPKG=1
@@ -3395,6 +3398,7 @@ TARGET_DIRS_FPCMKCFG=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
 TARGET_DIRS_INSTANTFPC=1
+TARGET_DIRS_IMPORTTL=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 TARGET_DIRS_FPPKG=1
@@ -4054,6 +4058,51 @@ fpmc_makefiles:
 fpmc:
 	$(MAKE) -C fpmc all
 .PHONY: fpmc_all fpmc_debug fpmc_smart fpmc_release fpmc_units fpmc_examples fpmc_shared fpmc_install fpmc_sourceinstall fpmc_exampleinstall fpmc_distinstall fpmc_zipinstall fpmc_zipsourceinstall fpmc_zipexampleinstall fpmc_zipdistinstall fpmc_clean fpmc_distclean fpmc_cleanall fpmc_info fpmc_makefiles fpmc
+endif
+ifdef TARGET_DIRS_IMPORTTL
+importtl_all:
+	$(MAKE) -C importtl all
+importtl_debug:
+	$(MAKE) -C importtl debug
+importtl_smart:
+	$(MAKE) -C importtl smart
+importtl_release:
+	$(MAKE) -C importtl release
+importtl_units:
+	$(MAKE) -C importtl units
+importtl_examples:
+	$(MAKE) -C importtl examples
+importtl_shared:
+	$(MAKE) -C importtl shared
+importtl_install:
+	$(MAKE) -C importtl install
+importtl_sourceinstall:
+	$(MAKE) -C importtl sourceinstall
+importtl_exampleinstall:
+	$(MAKE) -C importtl exampleinstall
+importtl_distinstall:
+	$(MAKE) -C importtl distinstall
+importtl_zipinstall:
+	$(MAKE) -C importtl zipinstall
+importtl_zipsourceinstall:
+	$(MAKE) -C importtl zipsourceinstall
+importtl_zipexampleinstall:
+	$(MAKE) -C importtl zipexampleinstall
+importtl_zipdistinstall:
+	$(MAKE) -C importtl zipdistinstall
+importtl_clean:
+	$(MAKE) -C importtl clean
+importtl_distclean:
+	$(MAKE) -C importtl distclean
+importtl_cleanall:
+	$(MAKE) -C importtl cleanall
+importtl_info:
+	$(MAKE) -C importtl info
+importtl_makefiles:
+	$(MAKE) -C importtl makefiles
+importtl:
+	$(MAKE) -C importtl all
+.PHONY: importtl_all importtl_debug importtl_smart importtl_release importtl_units importtl_examples importtl_shared importtl_install importtl_sourceinstall importtl_exampleinstall importtl_distinstall importtl_zipinstall importtl_zipsourceinstall importtl_zipexampleinstall importtl_zipdistinstall importtl_clean importtl_distclean importtl_cleanall importtl_info importtl_makefiles importtl
 endif
 ifdef TARGET_DIRS_FPCRESLIPO
 fpcreslipo_all:
