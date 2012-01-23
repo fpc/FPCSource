@@ -6,24 +6,25 @@ uses
   classes,typelib,sysutils;
 
 var
-  unitname:string;
+  unitname,sPackageSource,sPackageRegUnitSource:string;
   sTL,sOutDir:string;
   F:text;
   slDep:TStringList;
   i:integer;
-  bNoRecurse,bHelp, bActivex:boolean;
-
+  bNoRecurse,bHelp,bActiveX,bPackage:boolean;
 begin
   slDep:=TStringList.Create;
   bNoRecurse:=false;
   bHelp:=false;
   bActiveX:=false;
+  bPackage:=false;
   i:=1;
   while i<=Paramcount do
     begin
     if pos('-n',ParamStr(i))>0 then bNoRecurse:=true
     else if pos('-a',ParamStr(i))>0 then bActiveX:=true
     else if pos('-h',ParamStr(i))>0 then bHelp:=true
+    else if pos('-p',ParamStr(i))>0 then bPackage:=true
     else if pos('-d',ParamStr(i))>0 then
       begin
       sOutDir:=trim(copy(ParamStr(i), pos('-d',ParamStr(i))+2, 260));  // windows MAX_PATH
@@ -54,17 +55,32 @@ begin
     writeln('  -d dir: set output directory. Default: current directory.');
     writeln('  -n    : do not recurse typelibs. Default: create bindingss for all');
     writeln('          dependencies.');
+    writeln('  -p    : create lazarus package for ActiveXContainer descendants');
     exit;
     end;
   slDep.Add(paramstr(Paramcount));
   i:=0;
   repeat
     writeln('Reading typelib from '+slDep[i]+ ' ...');
-    sTL:=ImportTypelib(slDep[i],unitname,slDep,bActiveX);
-    bActiveX:=false;  //don't create ActiveXContainer descendants in descendants
+    sTL:=ImportTypelib(slDep[i],unitname,slDep,bActiveX,bPackage,sPackageSource,sPackageRegUnitSource);
     unitname:=sOutDir+unitname;
-    writeln('Writing to '+unitname);
-    AssignFile(F,unitname);
+    if (bPackage) and (sPackageSource<>'') then
+      begin
+      writeln('Writing package file to '+unitname+'P.lpk' );
+      AssignFile(F,unitname+'P.lpk');
+      Rewrite(F);
+      Write(F,sPackageSource);
+      CloseFile(F);
+      writeln('Writing package registration file to '+unitname+'Preg.pas');
+      AssignFile(F,unitname+'Preg.pas');
+      Rewrite(F);
+      Write(F,sPackageSource);
+      CloseFile(F);
+      end;
+    bActiveX:=false;  //don't create ActiveXContainer descendants in descendants
+    bPackage:=false;
+    writeln('Writing to '+unitname+'.pas');
+    AssignFile(F,unitname+'.pas');
     Rewrite(F);
     Write(F,sTL);
     CloseFile(F);
