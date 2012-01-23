@@ -396,7 +396,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ld $OPT -o $OUT @$RES';
-     ExeCmd[2]:='emxbind -b $STRIP $APPTYPE $RSRC -k$STACKKB -h1 -o $EXE $OUT -ai -s8';
+     ExeCmd[2]:='emxbind -b $STRIP $MAP $APPTYPE $RSRC -k$STACKKB -h1 -o $EXE $OUT -ai -s8';
      if Source_Info.Script = script_dos then
       ExeCmd[3]:='del $OUT';
    end;
@@ -472,7 +472,9 @@ var
   success : boolean;
   i       : longint;
   AppTypeStr,
-  StripStr: string[40];
+  StripStr: string[3];
+  MapStr: shortstring;
+  BaseFilename: TPathStr;
   RsrcStr : string;
   OutName: TPathStr;
 begin
@@ -480,11 +482,16 @@ begin
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
-  OutName := ChangeFileExt(current_module.exefilename^,'.out');
+  BaseFilename := ChangeFileExt(current_module.exefilename^,'');
+  OutName := BaseFilename + '.out';
   if (cs_link_strip in current_settings.globalswitches) then
-   StripStr := '-s'
+   StripStr := '-s '
   else
    StripStr := '';
+  if (cs_link_map in current_settings.globalswitches) then
+   MapStr := '-m' + BaseFileName + ' '
+  else
+   MapStr := '';
   if (usewindowapi) or (AppType = app_gui) then
    AppTypeStr := '-p'
   else if AppType = app_fs then
@@ -514,7 +521,8 @@ begin
         {When an EMX program runs in DOS, the heap and stack share the
          same memory pool. The heap grows upwards, the stack grows downwards.}
         Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+1023) shr 10));
-        Replace(cmdstr,'$STRIP',StripStr);
+        Replace(cmdstr,'$STRIP ', StripStr);
+        Replace(cmdstr,'$MAP ', MapStr);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
 (*
    Arrgh!!! The ancient EMX LD.EXE simply dies without saying anything
@@ -525,8 +533,8 @@ begin
         Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
 *)
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
-        Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RSRC',RsrcStr);
+        Replace(cmdstr,'$OPT ',Info.ExtraOptions);
+        Replace(cmdstr,'$RSRC ',RsrcStr);
         Replace(cmdstr,'$OUT',maybequoted(OutName));
         Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
         if i<>3 then
