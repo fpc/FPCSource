@@ -131,6 +131,7 @@ Const
   AllLimit83fsOses= [go32v2,os2,emx,watcom];
 
   AllSmartLinkLibraryOSes = [Linux]; // OSes that use .a library files for smart-linking
+  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
@@ -442,6 +443,7 @@ Type
     function GetUnitLibFileName: String; virtual;
     Function GetObjectFileName : String; virtual;
     Function GetRSTFileName : String; Virtual;
+    function GetImportLibFileName(AOS : TOS) : String; Virtual;
     Function GetProgramFileName(AOS : TOS) : String; Virtual;
   Public
     Constructor Create(ACollection : TCollection); override;
@@ -1121,6 +1123,7 @@ Procedure SplitCommand(Const Cmd : String; Var Exe,Options : String);
 Procedure AddCustomFpmakeCommandlineOption(const ACommandLineOption, HelpMessage : string);
 Function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption : string) : string;
 Function AddProgramExtension(const ExecutableName: string; AOS : TOS) : string;
+Function GetImportLibraryFilename(const UnitName: string; AOS : TOS) : string;
 
 procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
 
@@ -1948,10 +1951,21 @@ end;
 
 function AddProgramExtension(const ExecutableName: string; AOS : TOS): string;
 begin
-  if AOS in [Go32v2,Win32,Win64,Wince,OS2,EMX,Watcom] then
+  if AOS in [Go32v2,Win32,Win64,Wince,OS2] then
     Result:=ExecutableName+ExeExt
   else
     Result:=ExecutableName;
+end;
+
+function GetImportLibraryFilename(const UnitName: string; AOS: TOS): string;
+begin
+  if AOS in [go32v2,watcom,os2,emx] then
+    Result := 'libimp'+UnitName
+  else if AOS in [netware,netwlibc,macos] then
+    Result := 'lib'+UnitName
+  else
+    Result := 'libimp'+UnitName;
+  Result := Result + LibExt;
 end;
 
 Function OptionListToString(L : TStrings) : String;
@@ -6060,6 +6074,11 @@ begin
   Result:=FOptions;
 end;
 
+function TTarget.GetImportLibFileName(AOS : TOS) : String;
+begin
+  result := GetImportLibraryFilename(Name,AOS);
+end;
+
 function TTarget.GetUnitLibFileName: String;
 begin
   Result:='libp'+Name+LibExt;
@@ -6145,6 +6164,8 @@ begin
       List.Add(APrefixU + UnitFileName);
       if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + UnitLibFileName) then
         List.Add(APrefixU + UnitLibFileName);
+      if (AOS in AllImportLibraryOSes) and FileExists(APrefixU + GetImportLibFilename(AOS)) then
+        List.Add(APrefixU + GetImportLibFilename(AOS));
     end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
@@ -6165,6 +6186,8 @@ begin
     List.Add(APrefixU + UnitFileName);
     if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + UnitLibFileName) then
       List.Add(APrefixU + UnitLibFileName);
+    if (AOS in AllImportLibraryOSes) and FileExists(APrefixU + GetImportLibFilename(AOS)) then
+      List.Add(APrefixU + GetImportLibFilename(AOS));
     end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
