@@ -50,7 +50,7 @@ interface
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
 
     { generate persistent type information like VMT, RTTI and inittables }
-    procedure write_persistent_type_info(st:tsymtable);
+    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
 
 implementation
 
@@ -1552,7 +1552,7 @@ implementation
       end;
 
 
-    procedure write_persistent_type_info(st:tsymtable);
+    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
       var
         i : longint;
         def : tdef;
@@ -1563,14 +1563,14 @@ implementation
             def:=tdef(st.DefList[i]);
             case def.typ of
               recorddef :
-                write_persistent_type_info(trecorddef(def).symtable);
+                write_persistent_type_info(trecorddef(def).symtable,is_global);
               objectdef :
                 begin
                   { Skip generics and forward defs }
                   if (df_generic in def.defoptions) or
                      (oo_is_forward in tobjectdef(def).objectoptions) then
                     continue;
-                  write_persistent_type_info(tobjectdef(def).symtable);
+                  write_persistent_type_info(tobjectdef(def).symtable,is_global);
                   { Write also VMT if not done yet }
                   if not(ds_vmt_written in def.defstates) then
                     begin
@@ -1587,9 +1587,9 @@ implementation
                 begin
                   if assigned(tprocdef(def).localst) and
                      (tprocdef(def).localst.symtabletype=localsymtable) then
-                    write_persistent_type_info(tprocdef(def).localst);
+                    write_persistent_type_info(tprocdef(def).localst,false);
                   if assigned(tprocdef(def).parast) then
-                    write_persistent_type_info(tprocdef(def).parast);
+                    write_persistent_type_info(tprocdef(def).parast,false);
                 end;
             end;
             { generate always persistent tables for types in the interface so it can
@@ -1597,7 +1597,7 @@ implementation
             { Init }
             if (
                 assigned(def.typesym) and
-                (st.symtabletype=globalsymtable) and
+                is_global and
                 not is_objc_class_or_protocol(def)
                ) or
                is_managed_type(def) or
@@ -1606,7 +1606,7 @@ implementation
             { RTTI }
             if (
                 assigned(def.typesym) and
-                (st.symtabletype=globalsymtable) and
+                is_global and
                 not is_objc_class_or_protocol(def)
                ) or
                (ds_rtti_table_used in def.defstates) then

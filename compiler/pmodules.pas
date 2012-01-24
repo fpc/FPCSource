@@ -1398,8 +1398,8 @@ implementation
          gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
 
          { generate rtti/init tables }
-         write_persistent_type_info(current_module.globalsymtable);
-         write_persistent_type_info(current_module.localsymtable);
+         write_persistent_type_info(current_module.globalsymtable,true);
+         write_persistent_type_info(current_module.localsymtable,false);
 
          { Tables }
          InsertThreadvars;
@@ -2395,7 +2395,7 @@ implementation
          InsertThreadvars;
 
          { generate rtti/init tables }
-         write_persistent_type_info(current_module.localsymtable);
+         write_persistent_type_info(current_module.localsymtable,false);
 
          { if an Objective-C module, generate rtti and module info }
          MaybeGenerateObjectiveCImageInfo(nil,current_module.localsymtable);
