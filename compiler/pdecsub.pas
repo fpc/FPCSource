@@ -48,6 +48,15 @@ interface
       );
       tpdflags=set of tpdflag;
 
+      // flags of handle_calling_convention routine
+      thccflag=(
+        hcc_check,                // perform checks and outup errors if found
+        hcc_insert_hidden_paras   // insert hidden parameters
+      );
+      thccflags=set of thccflag;
+    const
+      hcc_all=[hcc_check,hcc_insert_hidden_paras];
+
     function  check_proc_directive(isprocvar:boolean):boolean;
 
     procedure insert_funcret_local(pd:tprocdef);
@@ -56,7 +65,7 @@ interface
     function  proc_get_importname(pd:tprocdef):string;
     procedure proc_set_mangledname(pd:tprocdef);
 
-    procedure handle_calling_convention(pd:tabstractprocdef);
+    procedure handle_calling_convention(pd:tabstractprocdef;flags:thccflags=hcc_all);
 
     procedure parse_parameter_dec(pd:tabstractprocdef);
     procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
@@ -2839,103 +2848,109 @@ const
       end;
 
 
-    procedure handle_calling_convention(pd:tabstractprocdef);
+    procedure handle_calling_convention(pd:tabstractprocdef;flags:thccflags=hcc_all);
       begin
-        { set the default calling convention if none provided }
-        if (pd.typ=procdef) and
-           (is_objc_class_or_protocol(tprocdef(pd).struct) or
-            is_cppclass(tprocdef(pd).struct)) then
+        if hcc_check in flags then
           begin
-            { none of the explicit calling conventions should be allowed }
-            if (po_hascallingconvention in pd.procoptions) then
-              internalerror(2009032501);
-            if is_cppclass(tprocdef(pd).struct) then
-              pd.proccalloption:=pocall_cppdecl
+            { set the default calling convention if none provided }
+            if (pd.typ=procdef) and
+               (is_objc_class_or_protocol(tprocdef(pd).struct) or
+                is_cppclass(tprocdef(pd).struct)) then
+              begin
+                { none of the explicit calling conventions should be allowed }
+                if (po_hascallingconvention in pd.procoptions) then
+                  internalerror(2009032501);
+                if is_cppclass(tprocdef(pd).struct) then
+                  pd.proccalloption:=pocall_cppdecl
+                else
+                  pd.proccalloption:=pocall_cdecl;
+              end
+            else if not(po_hascallingconvention in pd.procoptions) then
+              pd.proccalloption:=current_settings.defproccall
             else
-              pd.proccalloption:=pocall_cdecl;
-          end
-        else if not(po_hascallingconvention in pd.procoptions) then
-          pd.proccalloption:=current_settings.defproccall
-        else
-          begin
-            if pd.proccalloption=pocall_none then
-              internalerror(200309081);
+              begin
+                if pd.proccalloption=pocall_none then
+                  internalerror(200309081);
+              end;
+
+            { handle proccall specific settings }
+            case pd.proccalloption of
+              pocall_cdecl,
+              pocall_cppdecl :
+                begin
+                  { check C cdecl para types }
+                  check_c_para(pd);
+                end;
+              pocall_far16 :
+                begin
+                  { Temporary stub, must be rewritten to support OS/2 far16 }
+                  Message1(parser_w_proc_directive_ignored,'FAR16');
+                end;
+            end;
+
+            { Inlining is enabled and supported? }
+            if (po_inline in pd.procoptions) and
+               not(cs_do_inline in current_settings.localswitches) then
+              begin
+                { Give an error if inline is not supported by the compiler mode,
+                  otherwise only give a warning that this procedure will not be inlined }
+                if not(m_default_inline in current_settings.modeswitches) then
+                  Message(parser_e_proc_inline_not_supported)
+                else
+                  Message(parser_w_inlining_disabled);
+                exclude(pd.procoptions,po_inline);
+              end;
+
+            { For varargs directive also cdecl and external must be defined }
+            if (po_varargs in pd.procoptions) then
+             begin
+               { check first for external in the interface, if available there
+                 then the cdecl must also be there since there is no implementation
+                 available to contain it }
+               if parse_only then
+                begin
+                  { if external is available, then cdecl must also be available,
+                    procvars don't need external }
+                  if not((po_external in pd.procoptions) or
+                         (pd.typ=procvardef) or
+                         { for objcclasses this is checked later, because the entire
+                           class may be external.  }
+                         is_objc_class_or_protocol(tprocdef(pd).struct)) and
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
+                    Message(parser_e_varargs_need_cdecl_and_external);
+                end
+               else
+                begin
+                  { both must be defined now }
+                  if not((po_external in pd.procoptions) or
+                         (pd.typ=procvardef)) or
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
+                    Message(parser_e_varargs_need_cdecl_and_external);
+                end;
+             end;
           end;
 
-        { handle proccall specific settings }
-        case pd.proccalloption of
-          pocall_cdecl,
-          pocall_cppdecl :
-            begin
-              { check C cdecl para types }
-              check_c_para(pd);
-            end;
-          pocall_far16 :
-            begin
-              { Temporary stub, must be rewritten to support OS/2 far16 }
-              Message1(parser_w_proc_directive_ignored,'FAR16');
-            end;
-        end;
-
-        { Inlining is enabled and supported? }
-        if (po_inline in pd.procoptions) and
-           not(cs_do_inline in current_settings.localswitches) then
+        if hcc_insert_hidden_paras in flags then
           begin
-            { Give an error if inline is not supported by the compiler mode,
-              otherwise only give a warning that this procedure will not be inlined }
-            if not(m_default_inline in current_settings.modeswitches) then
-              Message(parser_e_proc_inline_not_supported)
-            else
-              Message(parser_w_inlining_disabled);
-            exclude(pd.procoptions,po_inline);
+            { insert hidden high parameters }
+            pd.parast.SymList.ForEachCall(@insert_hidden_para,pd);
+
+            { insert hidden self parameter }
+            insert_self_and_vmt_para(pd);
+
+            { insert funcret parameter if required }
+            insert_funcret_para(pd);
+
+            { Make var parameters regable, this must be done after the calling
+              convention is set. }
+            { this must be done before parentfp is insert, because getting all cases
+              where parentfp must be in a memory location isn't catched properly so
+              we put parentfp never in a register }
+            pd.parast.SymList.ForEachCall(@set_addr_param_regable,pd);
+
+            { insert parentfp parameter if required }
+            insert_parentfp_para(pd);
           end;
-
-        { For varargs directive also cdecl and external must be defined }
-        if (po_varargs in pd.procoptions) then
-         begin
-           { check first for external in the interface, if available there
-             then the cdecl must also be there since there is no implementation
-             available to contain it }
-           if parse_only then
-            begin
-              { if external is available, then cdecl must also be available,
-                procvars don't need external }
-              if not((po_external in pd.procoptions) or
-                     (pd.typ=procvardef) or
-                     { for objcclasses this is checked later, because the entire
-                       class may be external.  }
-                     is_objc_class_or_protocol(tprocdef(pd).struct)) and
-                 not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
-                Message(parser_e_varargs_need_cdecl_and_external);
-            end
-           else
-            begin
-              { both must be defined now }
-              if not((po_external in pd.procoptions) or
-                     (pd.typ=procvardef)) or
-                 not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
-                Message(parser_e_varargs_need_cdecl_and_external);
-            end;
-         end;
-
-        { insert hidden high parameters }
-        pd.parast.SymList.ForEachCall(@insert_hidden_para,pd);
-
-        { insert hidden self parameter }
-        insert_self_and_vmt_para(pd);
-
-        { insert funcret parameter if required }
-        insert_funcret_para(pd);
-
-        { Make var parameters regable, this must be done after the calling
-          convention is set. }
-        { this must be done before parentfp is insert, because getting all cases
-          where parentfp must be in a memory location isn't catched properly so
-          we put parentfp never in a register }
-        pd.parast.SymList.ForEachCall(@set_addr_param_regable,pd);
-
-        { insert parentfp parameter if required }
-        insert_parentfp_para(pd);
 
         { Calculate parameter tlist }
         pd.calcparas;

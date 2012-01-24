@@ -602,11 +602,17 @@ implementation
                           { Insert hidden parameters }
                           handle_calling_convention(writeprocdef);
                           { search procdefs matching writeprocdef }
+                          { skip hidden part (same as for _READ part ) because of the }
+                          { possible different calling conventions and especialy for  }
+                          { records - their methods hidden parameters are handled     }
+                          { after the full record parse                               }
                           if cs_varpropsetter in current_settings.localswitches then
-                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorevarspez])
+                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorevarspez,cpo_ignorehidden])
                           else
-                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
-                          if not assigned(p.propaccesslist[palt_write].procdef) then
+                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
+                          if not assigned(p.propaccesslist[palt_write].procdef) or
+                           { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
+                           ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_write].procdef).no_self_node) then
                             Message(parser_e_ill_property_access_sym);
                         end;
                       fieldvarsym :

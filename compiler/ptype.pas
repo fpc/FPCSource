@@ -402,7 +402,7 @@ implementation
           end;
       end;
 
-    procedure parse_record_members;
+    procedure parse_record_members(procdeflist:TFPObjectList);
 
         procedure maybe_parse_hint_directives(pd:tprocdef);
         var
@@ -548,7 +548,9 @@ implementation
                           begin
                             parse_record_proc_directives(pd);
 
-                            handle_calling_convention(pd);
+                            // postpone adding hidden params
+                            handle_calling_convention(pd,[hcc_check]);
+                            procdeflist.add(pd);
 
                             { add definition to procsym }
                             proc_add_definition(pd);
@@ -618,7 +620,11 @@ implementation
                     if is_classdef and not (po_staticmethod in pd.procoptions) then
                       MessagePos(pd.fileinfo, parser_e_class_methods_only_static_in_records);
 
-                    handle_calling_convention(pd);
+                    // we can't add hidden params here because record is not yet defined
+                    // and therefore record size which has influence on paramter passing rules may change too
+                    // look at record_dec to see where calling conventions are applied (issue #0021044)
+                    handle_calling_convention(pd,[hcc_check]);
+                    procdeflist.add(pd);
 
                     { add definition to procsym }
                     proc_add_definition(pd);
@@ -705,6 +711,11 @@ implementation
          old_current_specializedef: tstoreddef;
          old_parse_generic: boolean;
          recst: trecordsymtable;
+         procdeflist: TFPObjectList;
+         i: integer;
+         pd: tprocdef;
+         oldparse_only: boolean;
+         oldpos : tfileposinfo;
       begin
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
@@ -739,7 +750,23 @@ implementation
            include(current_structdef.defoptions, df_generic);
          parse_generic:=(df_generic in current_structdef.defoptions);
          if m_advanced_records in current_settings.modeswitches then
-           parse_record_members
+           begin
+             procdeflist:=TFPObjectList.Create(false);
+             parse_record_members(procdeflist);
+             // handle calling conventions of record methods
+             oldpos:=current_filepos;
+             oldparse_only:=parse_only;
+             parse_only:=true;
+             for i := 0 to procdeflist.count - 1 do
+               begin
+                 pd:=tprocdef(procdeflist[i]);
+                 current_filepos:=pd.fileinfo;
+                 handle_calling_convention(pd,[hcc_insert_hidden_paras]);
+               end;
+             parse_only:=oldparse_only;
+             current_filepos:=oldpos;
+             procdeflist.free;
+           end
          else
            begin
              read_record_fields([vd_record]);
