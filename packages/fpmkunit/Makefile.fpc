@@ -28,22 +28,23 @@ CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/trees.ppu units_bs/$(SOURCESUFFIX)/trees.o
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/zdeflate.ppu units_bs/$(SOURCESUFFIX)/zdeflate.o units_bs/$(SOURCESUFFIX)/zinflate.o units_bs/$(SOURCESUFFIX)/zinflate.ppu
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/zipper.ppu units_bs/$(SOURCESUFFIX)/zipper.o units_bs/$(SOURCESUFFIX)/zipper.rst units_bs/$(SOURCESUFFIX)/zstream.o units_bs/$(SOURCESUFFIX)/zstream.ppu units_bs/$(SOURCESUFFIX)/zstream.rst
 # Set NO_UNIT_PROCESS on hosts that do not support the process unit
-ifneq ($(findstring $(OS_SOURCE),os2 go32v2),)
+ifneq ($(findstring $(OS_SOURCE),os2 go32v2 haiku),)
 NO_UNIT_PROCESS=1
 endif
 ifdef NO_UNIT_PROCESS
 UNIT_PROCESS=-dNO_UNIT_PROCESS
 else
-UNIT_PROCESS=-Fu../fcl-process/src -Fi../fcl-process/isrc/dummy -Fi../fcl-process/isrc/$(OS_SOURCE)
+UNIT_PROCESS=
 ifneq ($(findstring $(OS_SOURCE),win32 win64),)
 UNIT_PROCESS+=-Fi../fcl-process/src/win
 endif
-ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin iphonesim netbsd openbsd solaris),)
+ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin iphonesim netbsd openbsd solaris haiku),)
 UNIT_PROCESS+=-Fi../fcl-process/src/unix
 endif
 ifneq ($(findstring $(OS_SOURCE),os2 emx),)
 UNIT_PROCESS+=-Fi../fcl-process/src/os2
 endif
+UNIT_PROCESS+=-Fu../fcl-process/src -Fi../fcl-process/src/$(OS_SOURCE) -Fi../fcl-process/src/dummy
 endif
 ifdef NO_UNIT_ZIPPER
 UNIT_ZIPPER=-dNO_UNIT_ZIPPER
