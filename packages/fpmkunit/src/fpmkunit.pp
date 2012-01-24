@@ -1869,17 +1869,15 @@ end;
 procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
 
   procedure AddRecursiveFiles(const SearchDir, FileMask: string; Recursive: boolean);
-  const
-    IgnoreCase = {$ifdef UNIX}False{$else}True{$endif};
   var
     Info : TSearchRec;
   begin
-    if FindFirst(SearchDir+'*',faAnyFile and faDirectory,Info)=0 then
+    if FindFirst(SearchDir+AllFilesMask,faAnyFile and faDirectory,Info)=0 then
     begin
       repeat
           if ((Info.Attr and faDirectory) = faDirectory) and (Info.Name <> '.') and (Info.Name <> '..') and (Recursive) then
             AddRecursiveFiles(SearchDir + Info.Name + PathDelim, FileMask, Recursive);
-          if ((Info.Attr and faDirectory) <> faDirectory) and IsWild(Info.Name, FileMask, IgnoreCase) then
+          if ((Info.Attr and faDirectory) <> faDirectory) and IsWild(Info.Name, FileMask, FileNameCaseSensitive) then
             List.Add(SearchDir + Info.Name);
       until FindNext(Info)<>0;
     end;
