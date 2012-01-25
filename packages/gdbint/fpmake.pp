@@ -81,6 +81,13 @@ begin
         begin
           Installer.BuildEngine.Log(vlCommand,'Using GDB')
         end;
+  // Detect if gdblib.inc is available
+      if FileExists(GDBLibDir+PathDelim+'gdblib.inc') then
+        begin
+          P.Options.Add('-dUSE_GDBLIBINC');
+          P.Options.Add('-Fi'+GdbLibDir);
+          Installer.BuildEngine.Log(vlCommand,'Using gdblib.inc include file')
+        end;
     end
   else
     begin
