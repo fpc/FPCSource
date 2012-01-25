@@ -5706,6 +5706,27 @@
     flags   : if_486
   ),
   (
+    opcode  : A_XADD;
+    ops     : 2;
+    optypes : (ot_reg8,ot_reg8,ot_none,ot_none);
+    code    : #2#15#192#65;
+    flags   : if_486
+  ),
+  (
+    opcode  : A_XADD;
+    ops     : 2;
+    optypes : (ot_reg16,ot_reg16,ot_none,ot_none);
+    code    : #208#2#15#193#65;
+    flags   : if_486
+  ),
+  (
+    opcode  : A_XADD;
+    ops     : 2;
+    optypes : (ot_reg32,ot_reg32,ot_none,ot_none);
+    code    : #209#2#15#193#65;
+    flags   : if_486
+  ),
+  (
     opcode  : A_XBTS;
     ops     : 2;
     optypes : (ot_reg16,ot_memory,ot_none,ot_none);

@@ -2022,6 +2022,10 @@ void                  \2\x0F\x30                      PENT,PRIV
 (Ch_All, Ch_None, Ch_None)
 mem,reg16|32|64       \320\2\x0F\xC1\101              486,SM
 rm8,reg8              \2\x0F\xC0\101                  486
+reg8,reg8             \2\x0F\xC0\101                  486
+reg16,reg16           \320\2\x0F\xC1\101              486
+reg32,reg32           \321\2\x0F\xC1\101              486
+reg64,reg64           \320\2\x0F\xC1\101              X86_64
 
 [XBTS,xbtsX]
 (Ch_All, Ch_None, Ch_None)
