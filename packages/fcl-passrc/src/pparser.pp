@@ -348,7 +348,7 @@ var
     begin
       case s[2] of
         'd': // -d define
-          Scanner.Defines.Append(UpperCase(Copy(s, 3, Length(s))));
+          Scanner.AddDefine(UpperCase(Copy(s, 3, Length(s))));
         'F': // -F
           if (length(s)>2) and (s[3] = 'i') then // -Fi include path
             FileResolver.AddIncludePath(Copy(s, 4, Length(s)));
@@ -378,42 +378,42 @@ begin
     FileResolver := TFileResolver.Create;
     FileResolver.UseStreams:=UseStreams;
     Scanner := TPascalScanner.Create(FileResolver);
-    Scanner.Defines.Append('FPK');
-    Scanner.Defines.Append('FPC');
+    Scanner.AddDefine('FPK');
+    Scanner.AddDefine('FPC');
     SCanner.LogEvents:=AEngine.ScannerLogEvents;
     SCanner.OnLog:=AEngine.Onlog;
 
     // TargetOS
     s := UpperCase(OSTarget);
-    Scanner.Defines.Append(s);
+    Scanner.AddDefine(s);
     if s = 'LINUX' then
-      Scanner.Defines.Append('UNIX')
+      Scanner.AddDefine('UNIX')
     else if s = 'FREEBSD' then
     begin
-      Scanner.Defines.Append('BSD');
-      Scanner.Defines.Append('UNIX');
+      Scanner.AddDefine('BSD');
+      Scanner.AddDefine('UNIX');
     end else if s = 'NETBSD' then
     begin
-      Scanner.Defines.Append('BSD');
-      Scanner.Defines.Append('UNIX');
+      Scanner.AddDefine('BSD');
+      Scanner.AddDefine('UNIX');
     end else if s = 'SUNOS' then
     begin
-      Scanner.Defines.Append('SOLARIS');
-      Scanner.Defines.Append('UNIX');
+      Scanner.AddDefine('SOLARIS');
+      Scanner.AddDefine('UNIX');
     end else if s = 'GO32V2' then
-      Scanner.Defines.Append('DPMI')
+      Scanner.AddDefine('DPMI')
     else if s = 'BEOS' then
-      Scanner.Defines.Append('UNIX')
+      Scanner.AddDefine('UNIX')
     else if s = 'QNX' then
-      Scanner.Defines.Append('UNIX');
+      Scanner.AddDefine('UNIX');
 
     // TargetCPU
     s := UpperCase(CPUTarget);
-    Scanner.Defines.Append('CPU'+s);
+    Scanner.AddDefine('CPU'+s);
     if (s='x86_64') then
-      Scanner.Defines.Append('CPU64')
+      Scanner.AddDefine('CPU64')
     else
-      Scanner.Defines.Append('CPU32');
+      Scanner.AddDefine('CPU32');
 
     Parser := TPasParser.Create(Scanner, FileResolver, AEngine);
     Filename := '';
