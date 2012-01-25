@@ -12,7 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=AddPackage('xml2');
+    P:=AddPackage('libxml2');
 {$ifdef ALLPACKAGES}
     P.Directory:='libxml';
 {$endif ALLPACKAGES}
