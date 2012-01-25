@@ -12,7 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=AddPackage('gd');
+    P:=AddPackage('libgd');
 {$ifdef ALLPACKAGES}
     P.Directory:='libgd';
 {$endif ALLPACKAGES}
