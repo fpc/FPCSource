@@ -161,3 +161,8 @@ _actualsyscall:
 .long 1
 .ascii "NetBSD\0\0"
 .long 199905
+
+        .comm operatingsystem_parameter_envp,4
+        .comm operatingsystem_parameter_argc,4
+        .comm operatingsystem_parameter_argv,4
+
