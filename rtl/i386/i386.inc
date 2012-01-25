@@ -1113,12 +1113,12 @@ asm
         pop   %edx
         pop   %eax
 {$endif FPC_PROFILE}
+        test    %eax,%eax
+        jz      .LStrLenDone
         movl    %edi,saveedi
         movl    %eax,%edi
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
-	test    %edi,%edi
-	jz      .LStrLenDone
         cld
         repne
         scasb
