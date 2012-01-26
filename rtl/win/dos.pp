@@ -744,6 +744,10 @@ function GetEnvironmentStrings : pchar;
 function FreeEnvironmentStrings(p : pchar) : longbool;
   stdcall; external 'kernel32' name 'FreeEnvironmentStringsA';
 
+{$push}
+{ GetEnvironmentStrings cannot be checked by CheckPointer function }
+{$checkpointer off}
+
 function envcount : longint;
 var
    hp,p : pchar;
@@ -814,7 +818,7 @@ begin
      end;
    FreeEnvironmentStrings(p);
 end;
-
+{$pop}
 
 function GetModuleHandle(p : PChar) : PtrUInt;
   stdcall; external 'kernel32' name 'GetModuleHandleA';

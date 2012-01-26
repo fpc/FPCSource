@@ -768,7 +768,7 @@ begin
 *)
 end;
 
-procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); 
+procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings);
 var
   HF  : Shortstring;
   LID : Windows.LCID;
@@ -894,6 +894,10 @@ end;
                               Initialization code
 ****************************************************************************}
 
+{$push}
+{ GetEnvironmentStrings cannot be checked by CheckPointer function }
+{$checkpointer off}
+
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 var
@@ -957,6 +961,7 @@ begin
   FreeEnvironmentStrings(p);
 end;
 
+{$pop}
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 // win specific  function
