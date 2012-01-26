@@ -1359,7 +1359,7 @@ endif
 ifndef LOG
 export LOG:=$(TEST_OUTPUTDIR)/log
 endif
-TESTSUBDIRS=cg cg/variants cg/cdecl library opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils units/matrix
+TESTSUBDIRS=cg cg/variants cg/cdecl library opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils units/matrix units/lineinfo
 TESTPACKAGESUBDIRS=packages/win-base packages/webtbs packages/hash packages/fcl-registry packages/fcl-process packages/zlib packages/fcl-db packages/fcl-base packages/fcl-xml packages/cocoaint
 ifdef QUICKTEST
 export QUICKTEST
