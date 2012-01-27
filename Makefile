@@ -387,10 +387,16 @@ BUILDOPTS=FPC=$(PPNEW) RELEASE=1
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 ifndef CROSSCOMPILE
 ifneq ($(wildcard ide),)
-IDETARGETS=go32v2 win32 win64 linux freebsd os2 emx beos haiku 
+IDETARGETS=go32v2 win32 win64 linux freebsd os2 emx beos haiku
 ifneq ($(findstring $(OS_TARGET),$(IDETARGETS)),)
 IDE=1
 endif
+endif
+endif
+ifneq ($(wildcard utils),)
+NOUTILSTARGETS=embedded gba
+ifeq ($(findstring $(OS_TARGET),$(NOUTILSTARGETS)),)
+UTILS=1
 endif
 endif
 ifeq ($(FULL_TARGET),i386-linux)
@@ -2494,14 +2500,18 @@ $(BUILDSTAMP):
 	$(MAKE) compiler_cycle RELEASE=1
 	$(MAKE) rtl_clean $(CLEANOPTS)
 	$(MAKE) packages_clean $(CLEANOPTS)
+ifdef UTILS
 	$(MAKE) utils_clean $(CLEANOPTS)
+endif
 ifdef IDE
 	$(MAKE) ide_clean $(CLEANOPTS)
 	$(MAKE) installer_clean $(CLEANOPTS)
 endif
 	$(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
 	$(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
+ifdef UTILS
 	$(MAKE) utils_all $(BUILDOPTS)
+endif
 ifdef IDE
 	$(MAKE) ide_all $(BUILDOPTS)
 	$(MAKE) installer_all $(BUILDOPTS)
@@ -2520,7 +2530,9 @@ installbase:
 	$(MAKE) rtl_$(INSTALLTARGET) $(INSTALLOPTS)
 installother:
 	$(MAKE) packages_$(INSTALLTARGET) $(INSTALLOPTS)
+ifdef UTILS
 	$(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
+endif
 ifdef IDE
 	$(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
 endif
@@ -2528,7 +2540,9 @@ zipinstallbase:
 	$(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=base $(INSTALLOPTS)
 zipinstallother:
 	$(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
+ifdef UTILS
 	$(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS)
+endif
 ifdef IDE
 	$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)
 endif
