@@ -265,7 +265,7 @@ begin
   FRecBufferSize:=0;
   FRecInfoOffset:=0;
   FCurrRecNo:=-1;
-  BookmarkSize := sizeof(TMTRecInfo);
+  BookmarkSize := sizeof(Longint);
   FIsOpen:=False;
 end;
 
