@@ -13,24 +13,25 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 #**********************************************************************}
-#
+
 # FreeBSD  ELF startup code for Free Pascal for dynamical linking to libc.
 #
-# To avoid needing a "COMPAT" system, patch this file to change the number 
-# according to what is retured by the "file" command on a normal binary:
+# To avoid needing a "COMPAT" system, patch the constant following the 
+# "FreeBSD" field in the abitag to the relevant ABI number 
+# Some versions of the "file" command support
+# visualizing this constant. If not use elfdump, or patch 
+# automatically using the ../i386/identpatch.sh script
 #
-# `file gcc` gives
+# some typical values: 
 #
-# gcc: ELF 32-bit LSB executable, Intel 80386, version 1 (FreeBSD), for 
-# FreeBSD 7.0 ($IDVERSION), statically linked, FreeBSD-style, stripped
-# 
 # freebsd 5.4 504000
 # freebsd 6.3 (prerelease) : 603100
 # freebsd 7.0 700055
-#
+# freebsd 8.0 800500  (-stable)
+# FreeBSD 9.0 900044
 
         .file   "cprt0.as"
-        .ident  "FreePascal 2.2.x series dynlinked to libc"
+        .ident  "FreePascal 2.6.x/2.7.x series dynlinked to libc"
 .section        .note.ABI-tag,"a",@progbits
         .p2align 2
         .type   abitag, @object
@@ -40,7 +41,7 @@ abitag:
         .long   4
         .long   1
         .string "FreeBSD"
-        .long   504000
+        .long   900044
         .section	.rodata.str1.1,"aMS",@progbits,1
 .LC0:
         .string ""
