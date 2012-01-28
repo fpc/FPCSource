@@ -16,7 +16,8 @@ begin
     P.Directory:='os2units';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.SourcePath.Add('src',[OS2,emx]);
+    P.OSes := [OS2,emx];
+    P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');
    // P.Targets.AddUnit('buildall.pas',[OS2]);
     P.Targets.AddUnit('clkdll.pas');
