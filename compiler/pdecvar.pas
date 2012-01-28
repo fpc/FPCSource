@@ -1519,7 +1519,6 @@ implementation
          srsymtable : TSymtable;
          visibility : tvisibility;
          recst : tabstractrecordsymtable;
-         recstlist : tfpobjectlist;
          unionsymtable : trecordsymtable;
          offset : longint;
          uniondef : trecorddef;
@@ -1545,7 +1544,6 @@ implementation
            consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
-         recstlist:=TFPObjectList.create(false);
          removeclassoption:=false;
          while (token=_ID) and
             not(((vd_object in options) or
@@ -1571,16 +1569,6 @@ implementation
                block_type:=old_block_type;
              consume(_COLON);
 
-             { Don't search for types where they can't be:
-               types can be only in objects, classes and records.
-               This just speedup the search a bit. }
-             recstlist.count:=0;
-             if not is_class_or_object(tdef(recst.defowner)) and
-                not is_record(tdef(recst.defowner)) then
-               begin
-                 recstlist.add(recst);
-                 symtablestack.pop(recst);
-               end;
              read_anon_type(hdef,false);
              block_type:=bt_var;
              { allow only static fields reference to struct where they are declared }
@@ -1591,12 +1579,6 @@ implementation
                  Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(hdef).RttiName);
                  { for error recovery or compiler will crash later }
                  hdef:=generrordef;
-               end;
-             { restore stack }
-             for i:=recstlist.count-1 downto 0 do
-               begin
-                 recst:=tabstractrecordsymtable(recstlist[i]);
-                 symtablestack.push(recst);
                end;
 
              { Process procvar directives }
@@ -1733,7 +1715,6 @@ implementation
                    recst.addfield(fieldvs,visibility);
                end;
            end;
-          recstlist.free;
 
          if m_delphi in current_settings.modeswitches then
            block_type:=bt_var_type

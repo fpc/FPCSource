@@ -10547,6 +10547,7 @@ tests/test/tobjc35i.pp svneol=native#text/plain
 tests/test/tobjc36.pp svneol=native#text/plain
 tests/test/tobjc36a.pp svneol=native#text/plain
 tests/test/tobjc37.pp svneol=native#text/plain
+tests/test/tobjc38.pp svneol=native#text/plain
 tests/test/tobjc4.pp svneol=native#text/plain
 tests/test/tobjc4a.pp svneol=native#text/plain
 tests/test/tobjc5.pp svneol=native#text/plain
