@@ -225,6 +225,7 @@ interface
     procedure addsymref(sym:tsym);
     function  is_owned_by(childdef,ownerdef:tdef):boolean;
     function  sym_is_owned_by(childsym:tsym;symtable:tsymtable):boolean;
+    function  defs_belong_to_same_generic(def1,def2:tdef):boolean;
     function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
@@ -1880,10 +1881,24 @@ implementation
 
     function sym_is_owned_by(childsym:tsym;symtable:tsymtable):boolean;
       begin
-        result:=childsym.owner=symtable;
-        if not result and (childsym.owner.symtabletype in [objectsymtable,recordsymtable]) then
+        result:=assigned(childsym) and (childsym.owner=symtable);
+        if not result and assigned(childsym) and
+            (childsym.owner.symtabletype in [objectsymtable,recordsymtable]) then
           result:=sym_is_owned_by(tabstractrecorddef(childsym.owner.defowner).typesym,symtable);
       end;
+
+    function defs_belong_to_same_generic(def1, def2: tdef): boolean;
+    begin
+      result:=false;
+      if not assigned(def1) or not assigned(def2) then
+        exit;
+      { for both defs walk to the topmost generic }
+      while assigned(def1.owner.defowner) and (df_generic in tstoreddef(def1.owner.defowner).defoptions) do
+        def1:=tdef(def1.owner.defowner);
+      while assigned(def2.owner.defowner) and (df_generic in tstoreddef(def2.owner.defowner).defoptions) do
+        def2:=tdef(def2.owner.defowner);
+      result:=def1=def2;
+    end;
 
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
       var

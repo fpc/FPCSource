@@ -1152,6 +1152,12 @@ implementation
         if assigned(old_current_structdef) and
             (df_specialization in old_current_structdef.defoptions) then
           include(current_structdef.defoptions,df_specialization);
+        if assigned(old_current_structdef) and
+            (df_generic in old_current_structdef.defoptions) then
+          begin
+            include(current_structdef.defoptions,df_generic);
+            current_genericdef:=current_structdef;
+          end;
 
         { set published flag in $M+ mode, it can also be inherited and will
           be added when the parent class set with tobjectdef.set_parent (PFV) }

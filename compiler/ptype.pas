@@ -386,7 +386,14 @@ implementation
                   (
                     parse_generic and
                     (current_genericdef.typ in [recorddef,objectdef]) and
-                    sym_is_owned_by(srsym,tabstractrecorddef(current_genericdef).symtable)
+                    (
+                      { if both defs belong to the same generic (e.g. both are
+                        subtypes) then we must allow the usage }
+                      defs_belong_to_same_generic(def,current_genericdef) or
+                      { this is needed to correctly resolve "type Foo=SomeGeneric<T>"
+                        declarations inside a generic }
+                      sym_is_owned_by(srsym,tabstractrecorddef(current_genericdef).symtable)
+                    )
                   )
                 then
               begin
@@ -742,6 +749,12 @@ implementation
          if assigned(old_current_structdef) and
              (df_specialization in old_current_structdef.defoptions) then
            include(current_structdef.defoptions,df_specialization);
+         if assigned(old_current_structdef) and
+             (df_generic in old_current_structdef.defoptions) then
+           begin
+             include(current_structdef.defoptions,df_generic);
+             current_genericdef:=current_structdef;
+           end;
 
          insert_generic_parameter_types(current_structdef,genericdef,genericlist);
          { when we are parsing a generic already then this is a generic as
@@ -921,8 +934,17 @@ implementation
                                parse_generic and
                                (current_genericdef.typ in [recorddef,objectdef]) and
                                (def.typ in [recorddef,objectdef]) and
-                               (ttypenode(pt1).typesym<>nil) and
-                               sym_is_owned_by(ttypenode(pt1).typesym,tabstractrecorddef(current_genericdef).symtable)
+                               (
+                                 { if both defs belong to the same generic (e.g. both are
+                                   subtypes) then we must allow the usage }
+                                 defs_belong_to_same_generic(def,current_genericdef) or
+                                 { this is needed to correctly resolve "type Foo=SomeGeneric<T>"
+                                   declarations inside a generic }
+                                 (
+                                   (ttypenode(pt1).typesym<>nil) and
+                                   sym_is_owned_by(ttypenode(pt1).typesym,tabstractrecorddef(current_genericdef).symtable)
+                                 )
+                               )
                              )
                            then
                          begin
