@@ -301,35 +301,135 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler;
-var
-  saveedi,saveebx : longint;
+function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
 asm
-        movl    %edi,saveedi
-        movl    %ebx,saveebx
-        movl    buf,%edi       // Load String
-        movb    b,%bl
-        movl    len,%ecx       // Load len
-        xorl    %eax,%eax
-        testl   %ecx,%ecx
-        jz      .Lcharposnotfound
-        cld
-        movl    %ecx,%edx      // Copy for easy manipulation
-        movb    %bl,%al
-        repne
-        scasb
-        jne     .Lcharposnotfound
-        incl    %ecx
-        subl    %ecx,%edx
-        movl    %edx,%eax
-        jmp     .Lready
-.Lcharposnotfound:
-        movl    $-1,%eax
-.Lready:
-        movl    saveedi,%edi
-        movl    saveebx,%ebx
+        push  %esi
+        push  %edi
+        push  %eax                  { save initial value of 'buf' }
+
+        cmp   $4,%edx               { less than 4 bytes, just test byte by byte. }
+        jb    .Ltail
+
+        mov    %cl,%ch              { prepare pattern }
+        movzwl %cx,%esi
+        shl    $16,%ecx
+        or     %esi,%ecx
+
+.Lalignloop:
+        test  $3,%al                { align to 4 bytes if necessary }
+        je    .Laligned
+        cmp   %cl,(%eax)
+        je    .Lexit
+        inc   %eax
+        dec   %edx
+        jmp   .Lalignloop
+
+.balign 16                      { Main loop, unrolled 4 times for speed }
+
+.Lloop:
+        mov   (%eax),%esi           { load dword }
+        xor   %ecx,%esi             { XOR with pattern, bytes equal to target are now 0 }
+        lea   -0x01010101(%esi),%edi
+        xor   %esi,%edi             { (x-0x01010101) xor x }
+        not   %esi
+        and   $0x80808080,%esi
+        and   %edi,%esi             { ((x-0x01010101) xor x) and (not x) and 0x80808080 }
+        jnz   .Lfound               { one of the bytes matches }
+
+        mov   4(%eax),%esi
+        xor   %ecx,%esi
+        lea   -0x01010101(%esi),%edi
+        xor   %esi,%edi
+        not   %esi
+        and   $0x80808080,%esi
+        and   %edi,%esi
+        jnz   .Lfound4
+
+        mov   8(%eax),%esi
+        xor   %ecx,%esi
+        lea   -0x01010101(%esi),%edi
+        xor   %esi,%edi
+        not   %esi
+        and   $0x80808080,%esi
+        and   %edi,%esi
+        jnz   .Lfound8
+
+        mov   12(%eax),%esi
+        xor   %ecx,%esi
+        lea   -0x01010101(%esi),%edi
+        xor   %esi,%edi
+        not   %esi
+        and   $0x80808080,%esi
+        and   %edi,%esi
+        jnz   .Lfound12
+
+        add   $16,%eax
+.Laligned:
+        sub   $16,%edx
+        jae   .Lloop                { Still more than 16 bytes remaining }
+
+{ Process remaining bytes (<16 left at this point) }
+{ length is offset by -16 at this point }
+.Lloop2:
+        cmp   $4-16,%edx            { < 4 bytes left? }
+        jb    .Ltail
+
+        mov   (%eax),%esi
+        xor   %ecx,%esi
+        lea   -0x01010101(%esi),%edi
+        xor   %esi,%edi
+        not   %esi
+        and   $0x80808080,%esi
+        and   %edi,%esi
+        jne   .Lfound
+
+        add   $4,%eax
+        sub   $4,%edx
+        jmp   .Lloop2
+
+.Ltail:                         { Less than 4 bytes remaining, check one by one }
+        and   $3, %edx
+        jz    .Lnotfound
+.Lloop3:
+        cmp   %cl,(%eax)
+        je    .Lexit
+        inc   %eax
+        dec   %edx
+        jnz   .Lloop3
+
+.Lnotfound:
+        or    $-1,%eax
+        jmp   .Lexit1
+
+{ add missing source pointer increments }
+.Lfound12:
+        add   $4,%eax
+.Lfound8:
+        add   $4,%eax
+.Lfound4:
+        add   $4,%eax
+
+.Lfound:
+        test  $0xff,%esi
+        jnz   .Lexit
+        inc   %eax
+
+        test  $0xff00,%esi
+        jnz   .Lexit
+        inc   %eax
+
+        test  $0xff0000,%esi
+        jnz   .Lexit
+        inc   %eax
+
+.Lexit:
+        sub   (%esp),%eax
+.Lexit1:
+        pop   %ecx               { removes initial 'buf' value }
+        pop   %edi
+        pop   %esi
 end;
-{$endif FPC_SYSTEM_HAS_FILLDWORD}
+{$endif FPC_SYSTEM_HAS_INDEXBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
