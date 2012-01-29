@@ -1,4 +1,4 @@
-{%OPT=-gl -o}
+{%OPT=-gl -O-}
 {%TARGET=os2,go32v2,win32}
 program tlininfo;
 
