@@ -23,6 +23,7 @@ begin
     P.Email := '';
     P.Description := 'GNU dbm is a set of database routines that use extensible hashing.';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+    P.OSes := AllUnixOSes - [qnx];
 
     P.SourcePath.Add('src');
 

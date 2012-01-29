@@ -20,6 +20,7 @@ begin
     P.Email := '';
     P.Description := 'A free library for decoding ATSC A/52 streams.';
     P.NeedLibC:= true;
+    P.OSes := [linux.win32];
 
 {$ifdef ALLPACKAGES}
     P.Directory:='a52';

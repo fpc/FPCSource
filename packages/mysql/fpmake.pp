@@ -19,6 +19,7 @@ begin
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
 
     T:=P.Targets.AddUnit('my4_sys.pp');
     T:=P.Targets.AddUnit('mysql3_comdyn.pp');

@@ -23,6 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Headers for the Apache 2.0(.58) www server';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/apr');

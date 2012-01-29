@@ -23,6 +23,7 @@ begin
     P.Email := 'leonard@users.sourceforge.net';
     P.Description := 'Headers for the libSEE library (javascript engine)';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+    P.OSes := [linux,win32];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

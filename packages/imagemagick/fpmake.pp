@@ -24,6 +24,7 @@ begin
     P.Email := '';
     P.Description := 'Header to Imagemagick, a graphics manipulation program .';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+    P.OSes := AllUnixOSes+[win32,win64]-[qnx];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

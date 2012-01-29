@@ -17,6 +17,7 @@ begin
     P.Directory:='zorba';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := [linux,win32];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

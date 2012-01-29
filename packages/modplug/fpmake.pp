@@ -17,6 +17,7 @@ begin
     P.Directory:='modplug';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := [linux];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('modplug.pas');

@@ -17,6 +17,7 @@ begin
     P.Directory:='libxml';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := [freebsd,linux,win32];
     P.SourcePath.Add('src');
 
   T:=P.Targets.AddUnit('xml2.pas');

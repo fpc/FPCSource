@@ -18,6 +18,8 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
+    P.OSes := AllUnixOSes-[qnx]+[win32,os2,emx];
+
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('dllistdyn.pp');

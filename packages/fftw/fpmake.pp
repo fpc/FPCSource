@@ -25,6 +25,7 @@ begin
     P.Email := '';
     P.Description := 'Library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data';
     P.NeedLibC:= true; // should be true for a header linking to C?
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
 
     P.SourcePath.Add('src');
 

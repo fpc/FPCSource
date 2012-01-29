@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
+    P.OSes := AllUnixOSes+[win32]-[qnx];
 
     T:=P.Targets.AddUnit('pcap.pp');
 

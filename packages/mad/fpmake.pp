@@ -17,6 +17,7 @@ begin
     P.Directory:='mad';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := [linux,win32];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('mad.pas');
