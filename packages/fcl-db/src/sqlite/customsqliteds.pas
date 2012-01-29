@@ -45,6 +45,9 @@ const
   DefaultStringSize = 255;
 
 type
+  {$ifndef ver2_7}
+  TRecordBuffer = PAnsiChar;
+  {$endif}
   TCustomSqliteDataset = class;
 
   PDataRecord = ^DataRecord;
