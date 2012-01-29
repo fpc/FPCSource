@@ -2337,6 +2337,12 @@ implementation
                        para.left:=gen_procvar_context_tree
                      else
                        para.left:=gen_self_tree;
+                     { make sure that e.g. the self pointer of an advanced
+                       record does not become a regvar, because it's a vs_var
+                       parameter }
+                     if paramanager.push_addr_param(para.parasym.varspez,para.parasym.vardef,
+                         procdefinition.proccalloption) then
+                       make_not_regable(para.left,[ra_addr_regable]);
                    end
                 else
                  if vo_is_vmt in para.parasym.varoptions then
