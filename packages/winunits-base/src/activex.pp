@@ -4196,6 +4196,51 @@ function VarUI8FromUI4(ulIn:ULONG; pi64Out:PULONG64):HResult;stdcall;external ol
 function VarUI8FromDec(var pdecIn:TDecimal; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromDec';
 function VarUI8FromInt(intIn:cint; pi64Out:PULONG64):HResult;stdcall;external oleaut32dll name 'VarUI8FromInt';
 
+{ SafeArray API }
+
+function SafeArrayAllocDescriptor(cDims: UINT; out psaOut: PSafeArray): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayAllocDescriptor';
+function SafeArrayAllocData(psa: PSafeArray): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayAllocData';
+function SafeArrayCreate(vt: TVarType; cDims: UINT; rgsabound: PSafeArrayBound): PSafeArray; stdcall;
+  external oleaut32dll name 'SafeArrayCreate';
+function SafeArrayCreateVector(vt: TVarType; Lbound: Longint; cElements: ULONG): PSafeArray; stdcall;
+  external oleaut32dll name 'SafeArrayCreateVector';
+function SafeArrayCopyData(psaSource, psaTarget: PSafeArray): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayCopyData';
+function SafeArrayDestroyDescriptor(psa: PSafeArray): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayDestroyDescriptor';
+function SafeArrayDestroyData(psa: PSafeArray): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayDestroyData';
+function SafeArrayDestroy(psa: PSafeArray): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayDestroy';
+function SafeArrayRedim(psa: PSafeArray; saboundNew: PSafeArrayBound): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayRedim';
+function SafeArrayGetDim(psa: PSafeArray): UINT; stdcall;
+  external oleaut32dll name 'SafeArrayGetDim';
+function SafeArrayGetElemsize(psa: PSafeArray): UINT; stdcall;
+  external oleaut32dll name 'SafeArrayGetElemsize';
+function SafeArrayGetUBound(psa: PSafeArray; nDim: UINT; out lUbound: Longint): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayGetUBound';
+function SafeArrayGetLBound(psa: PSafeArray; nDim: UINT; out lLbound: Longint): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayGetLBound';
+function SafeArrayLock(psa: PSafeArray): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayLock';
+function SafeArrayUnlock(psa: PSafeArray): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayUnlock';
+function SafeArrayAccessData(psa: PSafeArray; out pvData: Pointer): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayAccessData';
+function SafeArrayUnaccessData(psa: PSafeArray): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayUnaccessData';
+function SafeArrayGetElement(psa: PSafeArray; rgIndices: PLongint; out pv): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayGetElement';
+function SafeArrayPutElement(psa: PSafeArray; rgIndices: PLongint; const pv): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayPutElement';
+function SafeArrayCopy(psa: PSafeArray; out psaOut: PSafeArray): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayCopy';
+function SafeArrayPtrOfIndex(psa: PSafeArray; rgIndices: PLongint; out pvData: Pointer): HResult; stdcall;
+  external oleaut32dll name 'SafeArrayPtrOfIndex';
+  
 implementation
 
 function Succeeded(Res: HResult) : Boolean;inline;
