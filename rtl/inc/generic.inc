@@ -874,13 +874,11 @@ begin
   res[0]:=chr(slen);
 end;
 
-procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN']; {$ifdef HAS_COMPILER_PROC} compilerproc; {$endif}
+procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
 var
   slen : byte;
-type
-  pstring = ^string;
 begin
-  slen:=length(pstring(sstr)^);
+  slen:=length(pshortstring(sstr)^);
   if slen<len then
     len:=slen;
   move(sstr^,dstr^,len+1);
@@ -1635,7 +1633,7 @@ function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLIN
   var
     tmp: PtrUInt;
   begin
-    tmp:=addr+alignment-1;
+    tmp:=addr+(alignment-1);
     result:=tmp-(tmp mod alignment)
   end;
 
@@ -1644,7 +1642,7 @@ function align(addr : Pointer;alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLIN
   var
     tmp: PtrUInt;
   begin
-    tmp:=PtrUInt(addr)+alignment-1;
+    tmp:=PtrUInt(addr)+(alignment-1);
     result:=pointer(tmp-(tmp mod alignment));
   end;
 
