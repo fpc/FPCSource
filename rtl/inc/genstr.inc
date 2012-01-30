@@ -26,18 +26,18 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRCOPY}
+{ Beware, the naive implementation (copying bytes forward until zero
+  is encountered) will end up in undefined behavior if source and dest
+  happen to overlap. So do it in a bit more reliable way.
+  Also this implementation should not need per-platform optimization,
+  given that IndexByte and Move are optimized. }
  Function StrCopy(Dest, Source:PChar): PChar;
  var
    counter : SizeInt;
  Begin
-   counter := 0;
-   while Source[counter] <> #0 do
-   begin
-     Dest[counter] := char(Source[counter]);
-     Inc(counter);
-   end;
-   { terminate the string }
-   Dest[counter] := #0;
+   counter := IndexByte(Source^,-1,0);
+   { counter+1 will move zero terminator }
+   Move(Source^,Dest^,counter+1);
    StrCopy := Dest;
  end;
 {$endif FPC_UNIT_HAS_STRCOPY}
@@ -203,15 +203,10 @@
  var
    counter : SizeInt;
  Begin
-   counter := 0;
-   while Source[counter] <> #0 do
-   begin
-     Dest[counter] := char(Source[counter]);
-     Inc(counter);
-   end;
-   { terminate the string }
-   Dest[counter] := #0;
-   StrECopy:=@(Dest[counter]);
+   counter := IndexByte(Source,-1,0);
+   { counter+1 will move zero terminator }
+   Move(Source^,Dest^,counter+1);
+   StrECopy := Dest+counter;
  end;
 {$endif FPC_UNIT_HAS_STRECOPY}
 
