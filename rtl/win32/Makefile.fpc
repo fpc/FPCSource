@@ -112,3 +112,12 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
 
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -I$(WININC) -Fu$(WININC) -Fu$(WINDIR) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
+
+softfpu$(PPUEXT) : ../inc/softfpu.pp system$(PPUEXT)
+	$(COMPILER) ../inc/softfpu.pp
+
+sfpu128$(PPUEXT) : ../inc/sfpu128.pp system$(PPUEXT)
+	$(COMPILER) ../inc/sfpu128.pp
+
+sfpux80$(PPUEXT) : ../inc/sfpux80.pp system$(PPUEXT)
+        $(COMPILER) ../inc/sfpux80.pp
