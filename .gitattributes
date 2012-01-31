@@ -7445,6 +7445,8 @@ rtl/inc/readme -text
 rtl/inc/real2str.inc svneol=native#text/plain
 rtl/inc/resh.inc svneol=native#text/plain
 rtl/inc/rtti.inc svneol=native#text/plain
+rtl/inc/sfpu128.pp svneol=native#text/pascal
+rtl/inc/sfpux80.pp svneol=native#text/pascal
 rtl/inc/sockets.inc svneol=native#text/plain
 rtl/inc/socketsh.inc svneol=native#text/plain
 rtl/inc/sockovl.inc svneol=native#text/plain
