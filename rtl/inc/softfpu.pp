@@ -84,6 +84,8 @@ unit softfpu;
 }
 {$Q-}
 {$goto on}
+{$macro on}
+{$define compilerproc:=stdcall }
 
 interface
 {$endif not(defined(fpc_softfpu_interface)) and not(defined(fpc_softfpu_implementation))}
