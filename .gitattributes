@@ -588,6 +588,7 @@ compiler/utils/mk68kreg.pp svneol=native#text/plain
 compiler/utils/mkarmins.pp svneol=native#text/plain
 compiler/utils/mkarmreg.pp svneol=native#text/plain
 compiler/utils/mkavrreg.pp svneol=native#text/plain
+compiler/utils/mkia64reg.pp svneol=native#text/pascal
 compiler/utils/mkmpsreg.pp svneol=native#text/plain
 compiler/utils/mkppcreg.pp svneol=native#text/plain
 compiler/utils/mkspreg.pp svneol=native#text/plain
