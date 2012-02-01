@@ -1331,19 +1331,21 @@ begin
 end;
 
 
-Function Pos (c : RawByteString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+{ DO NOT inline these! Inlining a managed typecast creates an implicit try..finally
+  block, which is significant bloat without any sensible speed improvement. }
+Function Pos (const c : RawByteString; Const s : UnicodeString) : SizeInt;
   begin
     result:=Pos(UnicodeString(c),s);
   end;
 
 
-Function Pos (c : ShortString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : ShortString; Const s : UnicodeString) : SizeInt;
   begin
     result:=Pos(UnicodeString(c),s);
   end;
 
 
-Function Pos (c : UnicodeString; Const s : RawByteString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : UnicodeString; Const s : RawByteString) : SizeInt;
   begin
     result:=Pos(c,UnicodeString(s));
   end;

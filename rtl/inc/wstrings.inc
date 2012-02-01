@@ -712,26 +712,27 @@ begin
   pos:=0;
 end;
 
-
+{ DO NOT inline these! Inlining a managed typecast creates an implicit try..finally
+  block, which is significant bloat without any sensible speed improvement. }
 Function Pos (c : WideChar; Const s : RawByteString) : SizeInt;
   begin
     result:=Pos(c,WideString(s));
   end;
 
 
-Function Pos (c : RawByteString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : RawByteString; Const s : WideString) : SizeInt;
   begin
     result:=Pos(WideString(c),s);
   end;
 
 
-Function Pos (c : ShortString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : ShortString; Const s : WideString) : SizeInt;
   begin
     result:=Pos(WideString(c),s);
   end;
 
 
-Function Pos (c : WideString; Const s : RawByteString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : WideString; Const s : RawByteString) : SizeInt;
   begin
     result:=Pos(c,WideString(s));
   end;

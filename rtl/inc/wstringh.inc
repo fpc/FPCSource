@@ -20,9 +20,9 @@ Function Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
 Function Pos (c : Char; Const s : WideString) : SizeInt;
 Function Pos (c : WideChar; Const s : WideString) : SizeInt;
 Function Pos (c : WideChar; Const s : RawByteString) : SizeInt;
-Function Pos (c : RawByteString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Pos (c : WideString; Const s : RawByteString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Pos (c : ShortString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : RawByteString; Const s : WideString) : SizeInt;
+Function Pos (const c : WideString; Const s : RawByteString) : SizeInt;
+Function Pos (const c : ShortString; Const s : WideString) : SizeInt;
 
 Function UpCase(const s : WideString) : WideString;
 

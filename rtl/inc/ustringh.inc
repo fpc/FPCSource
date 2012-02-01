@@ -19,9 +19,9 @@ Procedure UniqueString (Var S : UnicodeString);external name 'FPC_UNICODESTR_UNI
 Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt;
 Function Pos (c : Char; Const s : UnicodeString) : SizeInt;
 Function Pos (c : UnicodeChar; Const s : UnicodeString) : SizeInt;
-Function Pos (c : RawByteString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Pos (c : UnicodeString; Const s : RawByteString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Pos (c : ShortString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : RawByteString; Const s : UnicodeString) : SizeInt;
+Function Pos (const c : UnicodeString; Const s : RawByteString) : SizeInt;
+Function Pos (const c : ShortString; Const s : UnicodeString) : SizeInt;
 
 Function UpCase(const s : UnicodeString) : UnicodeString;
 Function  UpCase(c:UnicodeChar):UnicodeChar;
