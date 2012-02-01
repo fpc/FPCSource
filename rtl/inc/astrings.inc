@@ -672,37 +672,25 @@ begin
   if (l>0) then
     begin
       if Pointer(S)=nil then
-       begin
-         GetMem(Pointer(S),AnsiRecLen+L);
-         PAnsiRec(S)^.Ref:=1;
-{$ifdef FPC_HAS_CPSTRING}
-         if (cp=CP_ACP) then
-           cp:=DefaultSystemCodePage;
-         PAnsiRec(S)^.CodePage:=cp;
-{$else}
-         PAnsiRec(S)^.CodePage:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}
-         PAnsiRec(S)^.ElementSize:=1;
-         inc(Pointer(S),AnsiFirstOff);
-       end
+        begin
+          Pointer(S):=NewAnsiString(L);
+        end
       else if PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref=1 then
         begin
-          Dec(Pointer(S),AnsiFirstOff);
-          lens:=MemSize(Pointer(s));
+          Temp:=Pointer(s)-AnsiFirstOff;
+          lens:=MemSize(Temp);
           lena:=AnsiRecLen+L;
           { allow shrinking string if that saves at least half of current size }
           if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
-            reallocmem(pointer(S),AnsiRecLen+L);
-          Inc(Pointer(S),AnsiFirstOff);
+            begin
+              reallocmem(Temp,AnsiRecLen+L);
+              Pointer(S):=Temp+AnsiFirstOff;
+            end;
         end
       else
         begin
           { Reallocation is needed... }
-          Temp:=Pointer(NewAnsiString(L));
-{$ifdef FPC_HAS_CPSTRING}
-          PAnsiRec(Pointer(Temp)-AnsiFirstOff)^.CodePage:=cp;
-{$endif FPC_HAS_CPSTRING}
-
+          Temp:=NewAnsiString(L);
           { also move terminating null }
           lens:=succ(length(s));
           if l<lens then
@@ -710,23 +698,22 @@ begin
           else
             movelen:=lens;
           Move(Pointer(S)^,Temp^,movelen);
-          { ref count dropped to zero in the mean time? }
-          If (PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref>0) and
-            declocked(PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref) then
-            freemem(PAnsiRec(Pointer(s)-AnsiFirstOff));
+          fpc_ansistr_decr_ref(Pointer(s));
           Pointer(S):=Temp;
-       end;
+        end;
+{$ifdef FPC_HAS_CPSTRING}
+      if (cp=CP_ACP) then
+        cp:=DefaultSystemCodePage;
+      PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=cp;
+{$else}
+      PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
       { Force nil termination in case it gets shorter }
       PByte(Pointer(S)+l)^:=0;
       PAnsiRec(Pointer(S)-AnsiFirstOff)^.Len:=l;
     end
-  else
-    begin
-      { Length=0 }
-      if Pointer(S)<>nil then
-        fpc_ansistr_decr_ref (Pointer(S));
-      Pointer(S):=Nil;
-    end;
+  else  { length=0, deallocate the string }
+    fpc_ansistr_decr_ref (Pointer(S));
 end;
 
 {$ifdef EXTRAANSISHORT}
@@ -808,9 +795,7 @@ begin
    Size:=Length(S)-Index;
   If Size>0 then
    begin
-     If Index<0 Then
-      Index:=0;
-     ResultAddress:=Pointer(NewAnsiString (Size));
+     ResultAddress:=NewAnsiString(Size);
      if ResultAddress<>Nil then
       begin
         Move (Pointer(Pointer(S)+index)^,ResultAddress^,Size);
