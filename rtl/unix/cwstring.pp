@@ -302,7 +302,6 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
     my0:=0;
     { rought estimation }
     setlength(dest,len*3);
-    SetCodePage(dest,cp,false);
     outlength:=len*3;
     srclen:=len*2;
     srcpos:=source;
@@ -344,6 +343,7 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
       end;
     // truncate string
     setlength(dest,length(dest)-outleft);
+    SetCodePage(dest,cp,false);
     if free_iconv then
       iconv_close(use_iconv);
   end;
