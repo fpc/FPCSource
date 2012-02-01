@@ -27,7 +27,7 @@ procedure fpc_tcon_shortint_array_from_string(const s: unicodestring; var arr: a
         arr[startindex+i*2+1]:=shortint(ord(c));
       end;
     if odd(len) then
-      arr[startindex+len-1]:=ord(s[len div 2]) shr 8;
+      arr[startindex+len-1]:=ord(s[len div 2 + 1]) shr 8;
   end;
 
 
