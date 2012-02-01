@@ -54,7 +54,7 @@
       <Unit2>
         <Filename Value="dw_dxml.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_dxml"/>
+        <UnitName Value="dw_dXML"/>
       </Unit2>
       <Unit3>
         <Filename Value="dw_html.pp"/>

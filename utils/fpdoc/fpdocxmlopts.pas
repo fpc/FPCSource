@@ -285,51 +285,14 @@ begin
   AddBool('dont-trim', Options.DontTrim);
 end;
 
+
 Procedure TXMLFPDocOptions.SaveInputFile(Const AInputFile : String; XML : TXMLDocument; AParent: TDOMElement);
 
-  Function GetNextWord(Var s : string) : String;
-
-  Const
-    WhiteSpace = [' ',#9,#10,#13];
-
-  var
-    i,j: integer;
-
-  begin
-    I:=1;
-    While (I<=Length(S)) and (S[i] in WhiteSpace) do
-      Inc(I);
-    J:=I;
-    While (J<=Length(S)) and (not (S[J] in WhiteSpace)) do
-      Inc(J);
-    if (I<=Length(S)) then
-      Result:=Copy(S,I,J-I);
-    Delete(S,1,J);
-  end;
-
-
 Var
-  S,W,F,O : String;
+  F,O : String;
 
 begin
-  S:=AInputFile;
-  O:='';
-  F:='';
-  While (S<>'') do
-    begin
-    W:=GetNextWord(S);
-    If (W<>'') then
-      begin
-      if W[1]='-' then
-        begin
-        if (O<>'') then
-          O:=O+' ';
-        o:=O+W;
-        end
-      else
-        F:=W;
-      end;
-    end;
+  SplitInputFileOption(AInputFile,F,O);
   AParent['file']:=F;
   AParent['options']:=O;
 end;

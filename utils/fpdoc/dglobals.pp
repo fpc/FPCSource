@@ -172,6 +172,7 @@ resourcestring
   SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
   SErrCouldNotCreateFile      = 'Could not create file "%s": %s';
   SSeeURL                     = '(See %s)';      // For linear text writers.
+  SParsingUsedUnit            = 'Parsing used unit "%s" with commandLine "%s"';
 
 Const
   SVisibility: array[TPasMemberVisibility] of string =
@@ -272,11 +273,13 @@ type
   // The main FPDoc engine
   TFPDocLogLevel = (dleWarnNoNode);
   TFPDocLogLevels = set of TFPDocLogLevel;
+  TOnParseUnitEvent = Procedure (Sender : TObject; Const AUnitName : String; Out AInputFile,OSTarget,CPUTarget : String) of  Object;
 
   { TFPDocEngine }
   TFPDocEngine = class(TPasTreeContainer)
   private
     FDocLogLevels: TFPDocLogLevels;
+    FOnParseUnit: TOnParseUnitEvent;
   protected
     DescrDocs: TObjectList;             // List of XML documents
     DescrDocNames: TStringList;         // Names of the XML documents
@@ -285,6 +288,7 @@ type
     FPackages: TFPList;                   // List of TFPPackage objects
     CurModule: TPasModule;
     CurPackageDocNode: TDocNode;
+    function ParseUsedUnit(AName, AInputLine,AOSTarget,ACPUTarget: String): TPasModule; virtual;
     Function LogEvent(E : TFPDocLogLevel) : Boolean;
     Procedure DoLog(Const Msg : String);overload;
     Procedure DoLog(Const Fmt : String; Args : Array of const);overload;
@@ -328,6 +332,7 @@ type
     property RootLinkNode: TLinkNode read FRootLinkNode;
     property RootDocNode: TDocNode read FRootDocNode;
     Property DocLogLevels : TFPDocLogLevels Read FDocLogLevels Write FDocLogLevels;
+    Property OnParseUnit : TOnParseUnitEvent Read FOnParseUnit Write FOnParseUnit;
   end;
 
 
@@ -1168,6 +1173,8 @@ function TFPDocEngine.FindModule(const AName: String): TPasModule;
 
 var
   i: Integer;
+  AInPutLine,OSTarget,CPUTarget : String;
+
 begin
   Result := FindInPackage(Package);
   if not Assigned(Result) then
@@ -1179,6 +1186,29 @@ begin
       if Assigned(Result) then
         exit;
     end;
+  if Not Assigned(Result) and Assigned(FOnParseUnit) then
+    begin
+    FOnParseUnit(Self,AName,AInputLine,OSTarget,CPUTarget);
+    If (AInPutLine<>'') then
+      Result:=ParseUsedUnit(AName,AInputLine,OSTarget,CPUTarget);
+    end;
+end;
+
+Function TFPDocEngine.ParseUsedUnit(AName,AInputLine,AOSTarget,ACPUTarget : String) : TPasModule;
+
+Var
+  M : TPasModule;
+
+begin
+  DoLog(SParsingUsedUnit,[AName,AInputLine]);
+  M:=CurModule;
+  CurModule:=Nil;
+  try
+    ParseSource(Self,AInputLine,AOSTarget,ACPUTarget,True);
+    Result:=CurModule;
+  finally
+    CurModule:=M;
+  end;
 end;
 
 procedure TFPDocEngine.AddLink(const APathName, ALinkTo: String);
