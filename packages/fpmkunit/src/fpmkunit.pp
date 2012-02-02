@@ -44,6 +44,9 @@ Interface
 {$endif NO_UNIT_ZIPPER}
 
 uses
+{$ifdef UNIX}
+  BaseUnix,
+{$endif UNIX}
 {$ifndef NO_THREADING}
 {$ifdef UNIX}
   cthreads,
@@ -1197,6 +1200,8 @@ ResourceString
   SWarnSkipPackageTarget = 'Skipped package %s which has been disabled for target %s';
   SWarnInstallationPackagecomplete = 'Installation package %s for target %s succeeded';
   SWarnCleanPackagecomplete = 'Clean of package %s completed';
+  SWarnCanNotGetAccessRights = 'Warning: Failed to copy access-rights from file %s';
+  SWarnCanNotSetAccessRights = 'Warning: Failed to copy access-rights to file %s';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -3913,6 +3918,9 @@ Var
   Fin,FOut : TFileStream;
   Count : Int64;
   A : Integer;
+{$ifdef UNIX}
+  FileStat: stat;
+{$endif UNIX}
 begin
   Log(vlInfo,SInfoCopyingFile,[Src,Dest]);
   FIn:=TFileStream.Create(Src,fmopenRead);
@@ -3936,6 +3944,14 @@ begin
     else
       if FileSetDate(S,A)<>0 then
         Log(vlWarning,SWarnFailedToSetTime,[S]);
+{$ifdef UNIX}
+    // Copy the file-access rights on Unix, especially the executable-bit
+    if FpStat(Src,FileStat) <> 0 then
+      Log(vlWarning,SWarnCanNotGetAccessRights,[Src])
+    else
+      if FpChmod(s,FileStat.mode) <> 0 then
+        Log(vlWarning,SWarnCanNotSetAccessRights,[S]);
+{$endif UNIX}
   finally
     FreeAndNil(Fin);
   end;
