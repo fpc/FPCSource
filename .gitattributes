@@ -260,6 +260,7 @@ compiler/mips/ncpuinln.pas svneol=native#text/pascal
 compiler/mips/ncpumat.pas svneol=native#text/pascal
 compiler/mips/ncpuset.pas svneol=native#text/pascal
 compiler/mips/opcode.inc svneol=native#text/plain
+compiler/mips/racpugas.pas svneol=native#text/plain
 compiler/mips/rgcpu.pas svneol=native#text/plain
 compiler/mips/rmipscon.inc svneol=native#text/plain
 compiler/mips/rmipsdwf.inc svneol=native#text/plain
