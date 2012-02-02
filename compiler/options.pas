@@ -2632,6 +2632,21 @@ begin
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif avr}
 
+{$ifdef mips}
+
+// HIGHLY TENTATIVE, from David Zhang's options.pas. MarkMLl.
+
+  def_system_macro('CPUMIPS');
+  def_system_macro('CPUMIPS32');
+  def_system_macro('CPU32');
+//  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+//  def_system_macro('FPC_HAS_TYPE_SINGLE');
+//  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+//  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+{$endif}
+
   { read configuration file }
   if (not disable_configfile) and
      (ppccfg<>'') then

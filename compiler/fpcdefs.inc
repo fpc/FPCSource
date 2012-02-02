@@ -167,7 +167,7 @@
   { $define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpurequiresproperalignment}
-  {$define cpumm}
+  { define cpumm}
 {$endif mips}
 
 {$IFDEF MACOS}
