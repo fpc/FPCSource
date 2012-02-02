@@ -42,7 +42,7 @@ uses
 
 const
   gas_regname_table: array[tregisterindex] of string[7] = (
-        {$i rmipsstd.inc}
+        {$i rmipsgas.inc}
     );
 
   gas_regname_index: array[tregisterindex] of tregisterindex = (
