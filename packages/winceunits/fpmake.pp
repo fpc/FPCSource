@@ -26,16 +26,16 @@ begin
     P.HomepageURL := 'www.freepascal.org';
 
     P.SourcePath.Add('src');
+    P.SupportBuildModes := [bmOneByOne];
 
     P.Options.Add('-Ur');
 
     // These units are from the winunits-base package.
-    //P.SourcePath := '../winunits-base/src';
     T:=P.Targets.AddUnit('../winunits-base/src/comobj.pp', [wince]);
     T:=P.Targets.AddUnit('../winunits-base/src/activex.pp', [wince]);
-    T:=P.Targets.AddUnit('../wininits-base/ole2.pp', [wince]);
-    T:=P.Targets.AddUnit('../wininits-base/tlhelp32.pp', [wince]);
-    T:=P.Targets.AddUnit('../wininits-base/comconst.pp', [wince]);
+    T:=P.Targets.AddUnit('../winunits-base/src/ole2.pp', [wince]);
+    T:=P.Targets.AddUnit('tlhelp32.pas', [wince]);
+    T:=P.Targets.AddUnit('../winunits-base/src/comconst.pp', [wince]);
     T.ResourceStrings:=True;
 
     T:=P.Targets.AddUnit('buildwinceunits.pp', [wince]);
