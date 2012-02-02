@@ -34,6 +34,10 @@ implementation
 {$ifndef NOOPT}
       ,aoptcpu
 {$endif NOOPT}
+{$ifndef NOMIPSGAS}
+      ,racpugas
+{$endif NOMIPSGAS}
+
 
 {**************************************
              Targets
