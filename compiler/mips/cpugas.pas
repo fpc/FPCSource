@@ -83,7 +83,7 @@ unit cpugas;
           begin
       {$ifdef extdebug}
             if assigned(symbol) and
-              not(refaddr in [addr_pic,addr_lo]) then
+              not(refaddr in [addr_pic,addr_low]) then
               internalerror(2003052601);
       {$endif extdebug}
             if base <> NR_NO then
