@@ -105,7 +105,7 @@ begin
          AInputFile:=S;
          OSTarget:=FProject.Options.OSTarget;
          CPUTarget:=FProject.Options.CPUTarget;
-         FProcessedUnits.Add(AInputFile);
+         FProcessedUnits.Add(UN);
          end;
        Inc(I);
        end;
