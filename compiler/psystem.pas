@@ -214,6 +214,13 @@ implementation
         sc80floattype:=tfloatdef.create(sc80real);
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif avr}
+{$ifdef mips}
+
+// HIGHLY TENTATIVE, modelled after powerpc. MarkMLl.
+
+        create_fpu_types;
+        s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
+{$endif mips}
 {$ifdef cpu64bitaddr}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
