@@ -105,6 +105,7 @@ unit raatt;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure handlepercent;virtual;
+         procedure handledollar;virtual;
          procedure HandleTargetDirective;virtual;
        end;
        tcattreader = class of tattreader;
@@ -173,6 +174,12 @@ unit raatt;
         is_locallabel:=(length(s)>=2) and (s[1]='.') and (s[2]='L');
       end;
 
+
+    procedure tattreader.handledollar;
+      begin
+        c:=current_scanner.asmgetchar;
+        actasmtoken:=AS_DOLLAR;
+      end;
 
     procedure tattreader.handlepercent;
       begin
@@ -603,8 +610,7 @@ unit raatt;
 
              '$' :
                begin
-                 actasmtoken:=AS_DOLLAR;
-                 c:=current_scanner.asmgetchar;
+                 handledollar;
                  exit;
                end;
 
