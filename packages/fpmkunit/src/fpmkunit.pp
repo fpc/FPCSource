@@ -3949,7 +3949,7 @@ begin
     if FpStat(Src,FileStat) <> 0 then
       Log(vlWarning,SWarnCanNotGetAccessRights,[Src])
     else
-      if FpChmod(s,FileStat.mode) <> 0 then
+      if FpChmod(s,FileStat.st_mode) <> 0 then
         Log(vlWarning,SWarnCanNotSetAccessRights,[S]);
 {$endif UNIX}
   finally
