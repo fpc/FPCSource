@@ -16,6 +16,11 @@
 {$mode objfpc}
 {$H+}
 
+{ Disable rangechecks. 
+  Buffers of unknown size are received and handled with a dummy array type }
+
+{$RANGECHECKS OFF}
+
 unit custfcgi;
 
 Interface
