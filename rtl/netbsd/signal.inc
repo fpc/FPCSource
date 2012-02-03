@@ -68,8 +68,64 @@ Const   { For sending a signal }
 
 
 {$packrecords C}
+
+{ from NetBSD /usr/include/sys/siginfo.h }
 const
-  SI_PAD_SIZE   = ((128/sizeof(longint)) - 3);
+  SI_PAD_SIZE   = 128;
+
+type
+
+  tsigval = record
+      sival_int : cint;
+      sival_ptr : pointer;
+    end;
+
+  tsig_rt = record
+      _uid : tuid; { defined in ptypes.inc }
+      _value : tsigval;
+    end;
+
+  tsig_child = record
+      _pid : tpid;
+      _status : cint;
+      _utime : tclock;
+      _stime : tclock;
+    end;
+
+  tsig_fault = record
+      _addr : pointer;
+      _trap : cint;
+    end;
+
+  tsig_poll = record
+     _band : clong;
+     _fd : cint;
+    end;
+
+  ksiginfo = record
+       si_signo : cint;
+       si_code  : cint;
+       si_errno : cint;
+{$ifdef cpu64}
+       si_pad   : cint;
+{$endif cpu64}
+       _reason : record
+         case longint of
+          0 : (_rt : tsig_rt);
+          1 : (_child : tsig_child);
+          2 : (_fault : tsig_fault);
+          3 : (_poll : tsig_poll);
+          { not yet filled }
+        end;
+   end;
+
+  psiginfo = ^tsiginfo;
+  tsiginfo = record
+          case longint of
+              0 : ( _pad : array[0..(SI_PAD_SIZE)-1] of char );
+              1 : ( _info : ksiginfo);
+          { end; }
+    end;
 
 {
  * The sequence of the fields/registers in struct sigcontext should match
