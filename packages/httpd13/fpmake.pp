@@ -1,4 +1,6 @@
-{$ifndef ALLPACKAGES}
+{$ifdef ALLPACKAGES}
+begin end; // By default, do not build this package
+{$else ALLPACKAGES}
 {$mode objfpc}{$H+}
 program fpmake;
 
@@ -10,7 +12,7 @@ Var
 begin
   With Installer do
     begin
-{$endif ALLPACKAGES}
+{ $endif ALLPACKAGES}
 
     P:=AddPackage('httpd13');
 {$ifdef ALLPACKAGES}
@@ -51,7 +53,7 @@ begin
           AddInclude('http_vhost.inc');
         end;
 
-{$ifndef ALLPACKAGES}
+{ $ifndef ALLPACKAGES}
     Run;
     end;
 end.

@@ -1,4 +1,6 @@
-{$ifndef ALLPACKAGES}
+{$ifdef ALLPACKAGES}
+begin end; // By default, do not build this package
+{$else ALLPACKAGES}
 {$mode objfpc}{$H+}
 program fpmake;
 
@@ -10,7 +12,7 @@ Var
 begin
   With Installer do
     begin
-{$endif ALLPACKAGES}
+{ $endif ALLPACKAGES}
 
     P:=AddPackage('httpd20');
 {$ifdef ALLPACKAGES}
@@ -111,7 +113,7 @@ begin
     T:=P.Targets.AddExampleProgram('testmodule.pp');
     T.Dependencies.AddInclude('define.inc');	
 
-{$ifndef ALLPACKAGES}
+{ $ifndef ALLPACKAGES}
     Run;
     end;
 end.
