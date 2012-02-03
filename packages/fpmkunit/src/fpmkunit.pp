@@ -1956,7 +1956,7 @@ end;
 
 function AddProgramExtension(const ExecutableName: string; AOS : TOS): string;
 begin
-  if AOS in [Go32v2,Win32,Win64,Wince,OS2] then
+  if AOS in [Go32v2,Win32,Win64,Wince,OS2,EMX,Watcom] then
     Result:=ExecutableName+ExeExt
   else
     Result:=ExecutableName;
