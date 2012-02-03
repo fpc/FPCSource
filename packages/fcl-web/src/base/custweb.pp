@@ -277,7 +277,7 @@ begin
     end;
   If (not R.HeadersSent) then
     begin
-    //R.Code:=500;
+    R.Code:=500;
     R.CodeText:='Application error '+E.ClassName;
     R.ContentType:='text/html';
     end;
