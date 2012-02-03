@@ -302,8 +302,11 @@ var
 
   function GetString(ALength : integer) : string;
   begin
+    if (ALength<0) then
+      ALength:=0;
     SetLength(Result,ALength);
-    move(ARecord^.ContentData[i],Result[1],ALength);
+    if (ALength>0) then
+      move(ARecord^.ContentData[i],Result[1],ALength);
     inc(i,ALength);
   end;
 
