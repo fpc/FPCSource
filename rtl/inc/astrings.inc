@@ -136,20 +136,21 @@ end;
 { alias for internal use }
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_ANSISTR_ASSIGN'];
 
-procedure fpc_AnsiStr_Concat (var DestS:RawByteString;const S1,S2 : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-Var
-  Size,Location : SizeInt;
-  same : boolean;
-  S1CP, S2CP, DestCP: TSystemCodePage;
+{ keeps implicit try..finally block out from primary control flow }
+procedure ansistr_concat_complex(var DestS: RawByteString; const S1,S2: RawByteString; cp: TSystemCodePage);
+var
   U: UnicodeString;
 begin
-  { if codepages are differ then concat using unicodestring }
-  S1CP:=StringCodePage(S1);
-  if (S1CP=CP_ACP) then
-    S1CP:=DefaultSystemCodePage;
-  S2CP:=StringCodePage(S2);
-  if (S2CP=CP_ACP) then
-    S2CP:=DefaultSystemCodePage;
+  U:=UnicodeString(S1)+UnicodeString(S2);
+  widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(U)),DestS,cp,Length(U));
+end;
+
+procedure fpc_AnsiStr_Concat (var DestS:RawByteString;const S1,S2 : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+Var
+  S1Len, S2Len: SizeInt;
+  same : boolean;
+  S1CP, S2CP, DestCP: TSystemCodePage;
+begin
 {$ifdef FPC_HAS_CPSTRING}
   if (Pointer(DestS)=nil) then
     DestCP:=cp
@@ -160,11 +161,24 @@ begin
 {$endif FPC_HAS_CPSTRING}
   if (DestCP=CP_ACP) then
     DestCP:=DefaultSystemCodePage;
+  { if codepages are different then concat using unicodestring,
+    but avoid conversions if either addend is empty (StringCodePage will return
+    DefaultSystemCodePage in that case, which may differ from other addend/dest) }
+  if S1='' then
+    S1CP:=DestCP
+  else
+    S1CP:=StringCodePage(S1);
+  if (S1CP=CP_ACP) then
+    S1CP:=DefaultSystemCodePage;
+  if S2='' then
+    S2CP:=DestCP
+  else
+    S2CP:=StringCodePage(S2);
+  if (S2CP=CP_ACP) then
+    S2CP:=DefaultSystemCodePage;
   if (S1CP<>DestCP) or (S2CP<>DestCP) then
     begin
-      U:=UnicodeString(S1)+UnicodeString(S2);
-      DestS:='';
-      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(U)),DestS,DestCP,Length(U));
+      ansistr_concat_complex(DestS,S1,S2,DestCP);
       exit;
     end;
   { only assign if s1 or s2 is empty }
@@ -178,30 +192,29 @@ begin
       DestS:=s1;
       exit;
     end;
-  Location:=Length(S1);
-  Size:=length(S2);
+  S1Len:=Length(S1);
+  S2Len:=length(S2);
   { Use Pointer() typecasts to prevent extra conversion code }
   if Pointer(DestS)=Pointer(S1) then
     begin
       same:=Pointer(S1)=Pointer(S2);
-      SetLength(DestS,Size+Location);
+      SetLength(DestS,S1Len+S2Len);
       if same then
-        Move(Pointer(DestS)^,(Pointer(DestS)+Location)^,Size)
+        Move(Pointer(DestS)^,(Pointer(DestS)+S1Len)^,S2Len)
       else
-        Move(Pointer(S2)^,(Pointer(DestS)+Location)^,Size+1);
+        Move(Pointer(S2)^,(Pointer(DestS)+S1Len)^,S2Len+1);
     end
   else if Pointer(DestS)=Pointer(S2) then
     begin
-      SetLength(DestS,Size+Location);
-      Move(Pointer(DestS)^,(Pointer(DestS)+Location)^,Size+1);
-      Move(Pointer(S1)^,Pointer(DestS)^,Location);
+      SetLength(DestS,S1Len+S2Len);
+      Move(Pointer(DestS)^,(Pointer(DestS)+S1Len)^,S2Len+1);
+      Move(Pointer(S1)^,Pointer(DestS)^,S1Len);
     end
   else
     begin
-      DestS:='';
-      SetLength(DestS,Size+Location);
-      Move(Pointer(S1)^,Pointer(DestS)^,Location);
-      Move(Pointer(S2)^,(Pointer(DestS)+Location)^,Size+1);
+      SetLength(DestS,S1Len+S2Len);
+      Move(Pointer(S1)^,Pointer(DestS)^,S1Len);
+      Move(Pointer(S2)^,(Pointer(DestS)+S1Len)^,S2Len+1);
     end;
   SetCodePage(DestS,DestCP,false);
 end;
