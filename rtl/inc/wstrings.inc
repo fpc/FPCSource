@@ -50,25 +50,6 @@ Const
   These routines can be overwritten for the Current Locale
 }
 
-procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;cp : TSystemCodePage;len:SizeInt);
-var
-  i : SizeInt;
-  destp: PChar;
-begin
-  setlength(dest,len);
-  destp := PChar(Pointer(dest));
-  for i:=1 to len do
-    begin
-      if word(source^)<256 then
-        destp^:=char(word(source^))
-      else
-        destp^:='?';
-      inc(source);
-      inc(destp);
-    end;
-end;
-
-
 procedure DefaultAnsi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
 var
   i : SizeInt;
@@ -91,23 +72,6 @@ procedure WideStringError;
   begin
     HandleErrorFrame(204,get_frame);
   end;
-
-
-{$ifdef WideStrDebug}
-Procedure DumpWideRec(S : Pointer);
-begin
-  If S=Nil then
-    Writeln ('String is nil')
-  Else
-    Begin
-      With PWideRec(S-WideFirstOff)^ do
-       begin
-         Write   ('(Len:',len);
-         Writeln (' Ref: ',ref,')');
-       end;
-    end;
-end;
-{$endif}
 
 
 Function NewWideString(Len : SizeInt) : Pointer;
@@ -294,11 +258,7 @@ begin
           end;
     end
   else
-    begin
-      { Free S1 }
-      fpc_widestr_decr_ref (S1);
-      S1:=nil;
-    end;
+    fpc_widestr_decr_ref (S1);  // will set S1 to nil
 end;
 
 
@@ -618,13 +578,8 @@ begin
 {$endif MSWINDOWS}
         PWideRec(Pointer(S)-WideFirstOff)^.Len:=l*sizeof(WideChar);
     end
-  else
-    begin
-      { Length=0 }
-      if Pointer(S)<>nil then
-        fpc_widestr_decr_ref (Pointer(S));
-      Pointer(S):=Nil;
-    end;
+  else  // length=0, deallocate the string
+    fpc_widestr_decr_ref (Pointer(S));
 end;
 
 {*****************************************************************************
@@ -652,15 +607,10 @@ begin
    Size:=Length(S)-Index;
   If Size>0 then
    begin
-     If Index<0 Then
-      Index:=0;
-     ResultAddress:=Pointer(NewWideString (Size));
-     if ResultAddress<>Nil then
-      begin
-        Move (PWideChar(S)[Index],ResultAddress^,Size*sizeof(WideChar));
-        PWideRec(ResultAddress-WideFirstOff)^.Len:=Size*sizeof(WideChar);
-        PWideChar(ResultAddress+Size*sizeof(WideChar))^:=#0;
-      end;
+     { NewWideString won't return a nil pointer }
+     ResultAddress:=NewWideString(Size);
+     Move (PWideChar(S)[Index],ResultAddress^,Size*sizeof(WideChar));
+     PWideChar(ResultAddress+Size*sizeof(WideChar))^:=#0;
    end;
   fpc_widestr_decr_ref(Pointer(fpc_widestr_copy));
   Pointer(fpc_widestr_Copy):=ResultAddress;
@@ -771,7 +721,6 @@ begin
   if (Index>LS) or (Index<=0) or (Size<=0) then
     exit;
 
-  UniqueString (S);
   { (Size+Index) will overflow if Size=MaxInt. }
   if Size>LS-Index then
     Size:=LS-Index+1;
@@ -797,7 +746,6 @@ begin
   if index > LS then
    index := LS+1;
   Dec(Index);
-  Pointer(Temp) := NewWideString(Length(Source)+LS);
   SetLength(Temp,Length(Source)+LS);
   If Index>0 then
     move (PWideChar(S)^,PWideChar(Temp)^,Index*sizeof(WideChar));
@@ -824,9 +772,10 @@ end;
 
 Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
 begin
-  SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
-    widestringmanager.Ansi2WideMoveProc(Buf,DefaultSystemCodePage,S,Len);
+    widestringmanager.Ansi2WideMoveProc(Buf,DefaultSystemCodePage,S,Len)
+  else
+    SetLength(s,len);
 end;
 
 
@@ -1509,7 +1458,7 @@ procedure initwidestringmanager;
   begin
     fillchar(widestringmanager,sizeof(widestringmanager),0);
 {$ifndef HAS_WIDESTRINGMANAGER}
-    widestringmanager.Wide2AnsiMoveProc:=@DefaultWide2AnsiMove;
+    widestringmanager.Wide2AnsiMoveProc:=@DefaultUnicode2AnsiMove;
     widestringmanager.Ansi2WideMoveProc:=@DefaultAnsi2WideMove;
     widestringmanager.UpperWideStringProc:=@GenericWideCase;
     widestringmanager.LowerWideStringProc:=@GenericWideCase;

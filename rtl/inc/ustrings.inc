@@ -162,23 +162,6 @@ procedure UnicodeStringError;
   end;
 
 
-{$ifdef UnicodeStrDebug}
-Procedure DumpUnicodeRec(S : Pointer);
-begin
-  If S=Nil then
-    Writeln ('String is nil')
-  Else
-    Begin
-      With PUnicodeRec(S-UnicodeFirstOff)^ do
-       begin
-         Write   ('(Len:',len);
-         Writeln (' Ref: ',ref,')');
-       end;
-    end;
-end;
-{$endif}
-
-
 Function NewUnicodeString(Len : SizeInt) : Pointer;
 {
   Allocate a new UnicodeString on the heap.
@@ -271,11 +254,7 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    begin
-      widestringmanager.Ansi2UnicodeMoveProc(PChar(@S2[1]),DefaultSystemCodePage,result,Size);
-      { Terminating Zero }
-      PUnicodeChar(Pointer(fpc_ShortStr_To_UnicodeStr)+Size*sizeof(UnicodeChar))^:=#0;
-    end;
+    widestringmanager.Ansi2UnicodeMoveProc(PChar(@S2[1]),DefaultSystemCodePage,result,Size);
 end;
 
 
@@ -715,7 +694,6 @@ begin
     end
   else
     i:=high(arr)+1;
-  SetLength(fpc_CharArray_To_UnicodeStr,i);
   widestringmanager.Ansi2UnicodeMoveProc(pchar(@arr),DefaultSystemCodePage,fpc_CharArray_To_UnicodeStr,i);
 end;
 
@@ -764,7 +742,6 @@ begin
     end
   else
     i := high(arr)+1;
-  SetLength(fpc_UnicodeCharArray_To_AnsiStr,i);
   widestringmanager.Unicode2AnsiMoveProc (punicodechar(@arr),fpc_UnicodeCharArray_To_AnsiStr,cp,i);
 end;
 
@@ -849,7 +826,6 @@ begin
     end
   else
     i := high(arr)+1;
-  SetLength(fpc_WideCharArray_To_AnsiStr,i);
   widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),fpc_WideCharArray_To_AnsiStr,cp,i);
 end;
 
@@ -1089,17 +1065,19 @@ begin
       else
         if (PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Ref = 1) then
           begin
-            Dec(Pointer(S),UnicodeFirstOff);
-            lens:=MemSize(Pointer(s));
+            Temp:=Pointer(s)-UnicodeFirstOff;
+            lens:=MemSize(Temp);
             lena:=SizeUInt(L*sizeof(UnicodeChar)+UnicodeRecLen);
             if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
-              reallocmem(pointer(S), lena);
-            Inc(Pointer(S), UnicodeFirstOff);
-        end
+              begin
+                reallocmem(Temp, lena);
+                Pointer(S):=Temp+UnicodeFirstOff;
+              end;
+          end
       else
         begin
           { Reallocation is needed... }
-          Temp:=Pointer(NewUnicodeString(L));
+          Temp:=NewUnicodeString(L);
           if Length(S)>0 then
             begin
               if l < succ(length(s)) then
@@ -1116,13 +1094,8 @@ begin
       PWord(Pointer(S)+l*sizeof(UnicodeChar))^:=0;
       PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len:=l;
     end
-  else
-    begin
-      { Length=0 }
-      if Pointer(S)<>nil then
-        fpc_unicodestr_decr_ref (Pointer(S));
-      Pointer(S):=Nil;
-    end;
+  else  { length=0, deallocate the string }
+    fpc_unicodestr_decr_ref (Pointer(S));
 end;
 
 {*****************************************************************************
@@ -1270,15 +1243,10 @@ begin
    Size:=Length(S)-Index;
   If Size>0 then
    begin
-     If Index<0 Then
-      Index:=0;
-     ResultAddress:=Pointer(NewUnicodeString (Size));
-     if ResultAddress<>Nil then
-      begin
-        Move (PUnicodeChar(S)[Index],ResultAddress^,Size*sizeof(UnicodeChar));
-        PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Len:=Size;
-        PUnicodeChar(ResultAddress+Size*sizeof(UnicodeChar))^:=#0;
-      end;
+     ResultAddress:=NewUnicodeString(Size);
+     Move (PUnicodeChar(S)[Index],ResultAddress^,Size*sizeof(UnicodeChar));
+     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Len:=Size;
+     PUnicodeChar(ResultAddress+Size*sizeof(UnicodeChar))^:=#0;
    end;
   fpc_unicodestr_decr_ref(Pointer(fpc_unicodestr_copy));
   Pointer(fpc_unicodestr_Copy):=ResultAddress;
@@ -1409,7 +1377,6 @@ begin
   if index > LS then
    index := LS+1;
   Dec(Index);
-  Pointer(Temp) := NewUnicodeString(Length(Source)+LS);
   SetLength(Temp,Length(Source)+LS);
   If Index>0 then
     move (PUnicodeChar(S)^,PUnicodeChar(Temp)^,Index*sizeof(UnicodeChar));
@@ -1444,12 +1411,11 @@ end;
 
 
 Procedure SetString (Out S : UnicodeString; Buf : PChar; Len : SizeInt);
-var
-  BufLen: SizeInt;
 begin
-  SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
-    widestringmanager.Ansi2UnicodeMoveProc(Buf,DefaultSystemCodePage,S,Len);
+    widestringmanager.Ansi2UnicodeMoveProc(Buf,DefaultSystemCodePage,S,Len)
+  else
+    SetLength(S,Len);
 end;
 
 
