@@ -79,6 +79,9 @@ type
 { Exception classes }
 
   EDatabaseError = class(Exception);
+
+  { EUpdateError }
+
   EUpdateError   = class(EDatabaseError)
   private
     FContext           : String;

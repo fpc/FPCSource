@@ -1,6 +1,4 @@
-{$ifdef ALLPACKAGES}
-begin end; // By default, do not build this package
-{$else ALLPACKAGES}
+{$ifndef ALLPACKAGES}
 {$mode objfpc}{$H+}
 program fpmake;
 
@@ -12,7 +10,7 @@ Var
 begin
   With Installer do
     begin
-{ $endif ALLPACKAGES}
+{$endif ALLPACKAGES}
 
     P:=AddPackage('httpd13');
 {$ifdef ALLPACKAGES}
@@ -25,8 +23,11 @@ begin
     P.Email := '';
     P.Description := 'Headers for the Apache 1.3 www server';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+{$ifdef ALLPACKAGES}
+    P.OSes := []; // By default, do not build this package
+{$else ALLPACKAGES}
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
-
+{$endif ALLPACKAGES}
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -53,7 +54,7 @@ begin
           AddInclude('http_vhost.inc');
         end;
 
-{ $ifndef ALLPACKAGES}
+{$ifndef ALLPACKAGES}
     Run;
     end;
 end.

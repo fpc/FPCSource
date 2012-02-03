@@ -613,11 +613,16 @@ begin
 end;
 
 procedure TField.CalcLookupValue;
+var
+  s: string;
 begin
   if FLookupCache then
     Value := LookupList.ValueOfKey(FDataSet.FieldValues[FKeyFields])
   else if Assigned(FLookupDataSet) and FDataSet.Active then
+    begin
     Value := FLookupDataSet.Lookup(FLookupKeyfields, FDataSet.FieldValues[FKeyFields], FLookupresultField);
+    s := FLookupDataSet.Lookup(FLookupKeyfields, FDataSet.FieldValues[FKeyFields], FLookupresultField);
+    end;
 end;
 
 function TField.getIndex : longint;

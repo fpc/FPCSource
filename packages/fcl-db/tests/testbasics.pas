@@ -125,7 +125,7 @@ var ds       : TDataset;
   Procedure CompareFieldAndFieldDef(Fld: TField; FldDef : TFieldDef);
   
   begin
-    AssertEquals(Fld.FieldName,FldDef.Name);
+    CheckEquals(Fld.FieldName,FldDef.Name);
     AssertEquals(Fld.Size,FldDef.Size);
     AssertEquals(Fld.Required,FldDef.Required);
     AssertTrue(Fld.DataType=FldDef.DataType);
