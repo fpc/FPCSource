@@ -11,7 +11,7 @@
 unit MacOSAll;
 interface
 
-{$ifc defined CPUPOWERPC32 or defined CPUI386}
+{$ifc (defined CPUPOWERPC32 or defined CPUI386) and not defined(iphonesim)}
 {$linkframework Carbon}
 {$elsec}
 {$linkframework CoreFoundation}
