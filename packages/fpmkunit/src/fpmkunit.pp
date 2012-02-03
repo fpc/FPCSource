@@ -5648,11 +5648,12 @@ begin
     DoBeforeClean(Apackage);
     if AllTargets then
       begin
-        // Remove the unit-directory completely. This is safer in case of files
+        // Remove the unit-and bin-directories completely. This is safer in case of files
         // being renamed and such. See also bug 19655
         DirectoryList := TStringList.Create;
         try
           DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
+          DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
           CmdRemoveTrees(DirectoryList);
         finally
           DirectoryList.Free;
