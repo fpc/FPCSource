@@ -2164,7 +2164,12 @@ implementation
                      (df_generic in current_structdef.defoptions) and
                      not (m_delphi in current_settings.modeswitches) and
                      (upper(srsym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
-                   )) then
+                   )) and
+                   { it could be a rename of a generic para }
+                   { Note: if this generates false positives we'll need to
+                           include a "basesym" to tsym to track the original
+                           symbol }
+                   not (sp_explicitrename in srsym.symoptions) then
                  begin
                    identifier_not_found(orgstoredpattern);
                    srsym:=generrorsym;

@@ -168,10 +168,12 @@ type
     sp_hint_experimental,
     sp_generic_para,
     sp_has_deprecated_msg,
-    sp_generic_dummy        { this is used for symbols that are generated when a
+    sp_generic_dummy,       { this is used for symbols that are generated when a
                               generic is encountered to ease inline
                               specializations, etc; those symbols can be
                               "overridden" with a completely different symbol }
+    sp_explicitrename       { this is used to keep track of type renames created
+                              by the user }
   );
   tsymoptions=set of tsymoption;
 

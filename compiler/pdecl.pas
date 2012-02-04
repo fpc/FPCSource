@@ -582,7 +582,10 @@ implementation
               if assigned(hdef) then
                 begin
                   if assigned(hdef.typesym) then
-                    istyperenaming:=true;
+                    begin
+                      istyperenaming:=true;
+                      include(newtype.symoptions,sp_explicitrename);
+                    end;
                   if isunique then
                     begin
                       if is_objc_class_or_protocol(hdef) then
