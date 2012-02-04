@@ -84,6 +84,7 @@ uses
         tempst : tglobalsymtable;
         old_block_type: tblock_type;
         hashedid: thashedidstring;
+        unitsyms : tfphashobjectlist;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -346,14 +347,28 @@ uses
             hmodule:=find_module_from_symtable(genericdef.owner);
             if hmodule=nil then
               internalerror(200705152);
+            { collect all unit syms in the generic's unit as we need to establish
+              their unitsym.module link again so that unit identifiers can be used }
+            unitsyms:=tfphashobjectlist.create(false);
+            if (hmodule<>current_module) and assigned(hmodule.globalsymtable) then
+              for i:=0 to hmodule.globalsymtable.symlist.count-1 do
+                begin
+                  srsym:=tsym(hmodule.globalsymtable.symlist[i]);
+                  if srsym.typ=unitsym then
+                    unitsyms.add(upper(srsym.realname),srsym);
+                end;
             pu:=tused_unit(hmodule.used_units.first);
             while assigned(pu) do
               begin
                 if not assigned(pu.u.globalsymtable) then
                   internalerror(200705153);
                 symtablestack.push(pu.u.globalsymtable);
+                srsym:=tsym(unitsyms.find(pu.u.modulename^));
+                if assigned(srsym) and not assigned(tunitsym(srsym).module) then
+                  tunitsym(srsym).module:=pu.u;
                 pu:=tused_unit(pu.next);
               end;
+            unitsyms.free;
 
             if assigned(hmodule.globalsymtable) then
               symtablestack.push(hmodule.globalsymtable);

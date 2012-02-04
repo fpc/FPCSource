@@ -1977,6 +1977,9 @@ implementation
         pu : tused_unit;
         hmodule : tmodule;
         specobj : tabstractrecorddef;
+        unitsyms : TFPHashObjectList;
+        sym : tsym;
+        i : Integer;
 
       procedure process_abstractrecorddef(def:tabstractrecorddef);
         var
@@ -2038,14 +2041,28 @@ implementation
         hmodule:=find_module_from_symtable(specobj.genericdef.owner);
         if hmodule=nil then
           internalerror(200705152);
+        { collect all unit syms in the generic's unit as we need to establish
+          their unitsym.module link again so that unit identifiers can be used }
+        unitsyms:=tfphashobjectlist.create(false);
+        if (hmodule<>current_module) and assigned(hmodule.globalsymtable) then
+          for i:=0 to hmodule.globalsymtable.symlist.count-1 do
+            begin
+              sym:=tsym(hmodule.globalsymtable.symlist[i]);
+              if sym.typ=unitsym then
+                unitsyms.add(upper(sym.realname),sym);
+            end;
         pu:=tused_unit(hmodule.used_units.first);
         while assigned(pu) do
           begin
             if not assigned(pu.u.globalsymtable) then
               internalerror(200705153);
             symtablestack.push(pu.u.globalsymtable);
+            sym:=tsym(unitsyms.find(pu.u.modulename^));
+            if assigned(sym) and not assigned(tunitsym(sym).module) then
+              tunitsym(sym).module:=pu.u;
             pu:=tused_unit(pu.next);
           end;
+        unitsyms.free;
         if assigned(hmodule.globalsymtable) then
           symtablestack.push(hmodule.globalsymtable);
         if assigned(hmodule.localsymtable) then
