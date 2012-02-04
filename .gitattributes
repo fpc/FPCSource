@@ -12174,6 +12174,7 @@ tests/webtbs/tw20821.pp svneol=native#text/pascal
 tests/webtbs/tw20827.pp svneol=native#text/plain
 tests/webtbs/tw20836.pp svneol=native#text/pascal
 tests/webtbs/tw20851.pp svneol=native#text/pascal
+tests/webtbs/tw20871.pp svneol=native#text/pascal
 tests/webtbs/tw20872a.pp svneol=native#text/pascal
 tests/webtbs/tw20872b.pp svneol=native#text/pascal
 tests/webtbs/tw20872c.pp svneol=native#text/pascal

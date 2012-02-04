@@ -106,12 +106,17 @@ uses
           for recording in genericbuf }
         if parse_generic then
           begin
-            if not try_to_consume(_LT) then
+            first:=assigned(parsedtype);
+            if not first and not try_to_consume(_LT) then
               consume(_LSHARPBRACKET);
             gencount:=0;
             repeat
-              pt2:=factor(false,true);
-              pt2.free;
+              if not first then
+                begin
+                  pt2:=factor(false,true);
+                  pt2.free;
+                end;
+              first:=false;
               inc(gencount);
             until not try_to_consume(_COMMA);
             if not try_to_consume(_GT) then
