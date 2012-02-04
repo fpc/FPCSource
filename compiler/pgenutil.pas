@@ -74,7 +74,7 @@ uses
         err : boolean;
         i,
         gencount,crc : longint;
-        genericdef : tstoreddef;
+        genericdef,def : tstoreddef;
         generictype : ttypesym;
         genericdeflist : TFPObjectList;
         generictypelist : TFPObjectList;
@@ -118,7 +118,7 @@ uses
               consume(_RSHARPBRACKET);
             { we need to return a def that can later pass some checks like
               whether it's an interface or not }
-            if parse_generic and (not assigned(tt) or (tt.typ=undefineddef)) then
+            if not assigned(tt) or (tt.typ=undefineddef) then
               begin
                 if (symname='') and (df_generic in genericdef.defoptions) then
                   { this happens in non-Delphi modes }
@@ -134,19 +134,39 @@ uses
                       genname:=symname;
                     genname:=genname+'$'+countstr;
                     ugenname:=upper(genname);
-                    if not searchsym(ugenname,srsym,st) or
-                        (srsym.typ<>typesym) then
+                    { first check whether the found name is the same as that of
+                      the current def or one of its (generic) surrounding defs;
+                      this is necessary as the symbol of the generic can not yet
+                      be used for lookup as it still contains a reference to an
+                      errordef) }
+                    def:=current_genericdef;
+                    repeat
+                      if def.typ in [objectdef,recorddef] then
+                        if tabstractrecorddef(def).objname^=ugenname then
+                          begin
+                            tt:=def;
+                            break;
+                          end;
+                      def:=tstoreddef(def.owner.defowner);
+                    until not assigned(def) or not (df_generic in def.defoptions);
+                    { it's not part of the current object hierarchy, so search
+                      for the symbol }
+                    if not assigned(tt) then
                       begin
-                        identifier_not_found(genname);
-                        exit;
-                      end;
-                    tt:=ttypesym(srsym).typedef;
-                    { this happens in non-Delphi modes if we encounter a
-                      specialization of the generic class or record we're
-                      currently parsing }
-                    if (tt.typ=errordef) and assigned(current_structdef) and
-                        (current_structdef.objname^=ugenname) then
-                      tt:=current_structdef;
+                      if not searchsym(ugenname,srsym,st) or
+                          (srsym.typ<>typesym) then
+                        begin
+                          identifier_not_found(genname);
+                          exit;
+                        end;
+                      tt:=ttypesym(srsym).typedef;
+                      { this happens in non-Delphi modes if we encounter a
+                        specialization of the generic class or record we're
+                        currently parsing }
+                      if (tt.typ=errordef) and assigned(current_structdef) and
+                          (current_structdef.objname^=ugenname) then
+                        tt:=current_structdef;
+                    end;
                   end;
               end;
             exit;
@@ -312,6 +332,25 @@ uses
           specializest:=current_module.localsymtable;
 
         { Can we reuse an already specialized type? }
+
+        { for this first check whether we are currently specializing a nested
+          type of the current (main) specialization (this is necessary, because
+          during that time the symbol of the main specialization will still
+          contain a reference to an errordef) }
+        if not assigned(tt) and assigned(current_specializedef) then
+          begin
+            def:=current_specializedef;
+            repeat
+              if def.typ in [objectdef,recorddef] then
+                if tabstractrecorddef(def).objname^=ufinalspecializename then begin
+                  tt:=def;
+                  break;
+                end;
+              def:=tstoreddef(def.owner.defowner);
+            until not assigned(def) or not (df_specialization in def.defoptions);
+          end;
+
+        { now check whether there is a specialization somewhere else }
         if not assigned(tt) then
           begin
             hashedid.id:=ufinalspecializename;
