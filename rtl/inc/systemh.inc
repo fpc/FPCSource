@@ -194,6 +194,26 @@ Type
   FarPointer = Pointer;
 {$endif CPUSPARC}
 
+{$ifdef CPUMIPS32}
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+
+  {$ifndef FPUNONE}
+    ValReal = Double;
+  {$endif}
+
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+
+  FarPointer = Pointer;
+{$endif CPUMIPS32}
+
+
 {$ifdef CPUARM}
   {$define DEFAULT_DOUBLE}
 

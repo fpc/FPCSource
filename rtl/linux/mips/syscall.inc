@@ -55,7 +55,7 @@ asm
   b     .LFailed
   nop
 .LThreaded:
-  sw   $2,-4($fp)#temp#sw $4
+  sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
   jal   $8
@@ -123,12 +123,12 @@ asm
   b     .LFailed
   nop
 .LThreaded:
-  sw   $2,-4($fp)#temp#sw $4
+  sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
   jal   $8
   nop
-  lw  $8,-4($fp)
+  lw  $8,temp
   sw  $8,0($2)
 .LFailed:
   li    $2,-1
@@ -189,12 +189,12 @@ asm
   b     .LFailed
   nop
 .LThreaded:
-  sw   $2,-4($fp)#temp#sw $4
+  sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
   jal   $8
   nop
-  lw  $8,-4($fp)
+  lw  $8,temp
   sw  $8,0($2)
 .LFailed:
   li    $2,-1
@@ -256,12 +256,12 @@ asm
   b     .LFailed
   nop
 .LThreaded:
-  sw   $2,-4($fp)#temp#sw $4
+  sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
   jal   $8
   nop
-  lw  $8,-4($fp)
+  lw  $8,temp
   sw  $8,0($2)
 .LFailed:
   li    $2,-1
@@ -324,12 +324,12 @@ asm
   b     .LFailed
   nop
 .LThreaded:
-  sw   $2,-4($fp)#temp#sw $4
+  sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
   jal   $8
   nop
-  lw  $8,-4($fp)
+  lw  $8,temp
   sw  $8,0($2)
 .LFailed:
   li    $2,-1
@@ -393,12 +393,12 @@ asm
   b     .LFailed
   nop
 .LThreaded:
-  sw   $2,-4($fp)#temp#sw $4
+  sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
   jal   $8
   nop
-  lw  $8,-4($fp)
+  lw  $8,temp
   sw  $8,0($2)
 .LFailed:
   li    $2,-1
@@ -447,7 +447,7 @@ asm
   move  $5,$6
   move  $6,$7
   move  $7,$8
-#  move  $8,$9
+  move  $8,$9
   subu  $29,32
   sw    $9, 16($29)
 
@@ -468,12 +468,12 @@ asm
   b     .LFailed
   nop
 .LThreaded:
-  sw   $2,-4($fp)#temp#sw $4
+  sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
   jal   $8
   nop
-  lw  $8,-4($fp)
+  lw  $8,temp
   sw  $8,0($2)
 .LFailed:
   li    $2,-1
@@ -546,12 +546,12 @@ asm
   b     .LFailed
   nop
 .LThreaded:
-  sw   $2,-4($fp)#temp#sw $4
+  sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
   jal   $8
   nop
-  lw  $8,-4($fp)
+  lw  $8,temp
   sw  $8,0($2)
 .LFailed:
   li    $2,-1
