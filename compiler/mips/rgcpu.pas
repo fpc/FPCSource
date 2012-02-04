@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2009 by Florian Klaempfl and David Zhang
 
-    This unit implements the register allocator for MIPLEL
+    This unit implements the register allocator for MIPS(EL)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

@@ -74,15 +74,15 @@ unit cpubase;
 
       { Integer Super registers first and last }
       first_int_supreg = RS_R0;
-      first_int_imreg = $10;
+      first_int_imreg = $20;
 
       { Float Super register first and last }
       first_fpu_supreg    = RS_F0;
-      first_fpu_imreg     = $08;
+      first_fpu_imreg     = $20;
 
       { MM Super register first and last }
-      first_mm_supreg    = RS_NO;
-      first_mm_imreg     = RS_NO;
+      first_mm_supreg    = 0;
+      first_mm_imreg     = 1;
 
 { TODO: Calculate bsstart}
       regnumber_count_bsstart = 64;

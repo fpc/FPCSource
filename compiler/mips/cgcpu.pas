@@ -503,15 +503,15 @@ begin
 
   if (cs_create_pic in current_settings.moduleswitches) and
     (pi_needs_got in current_procinfo.flags) then
-  begin
-    current_procinfo.got := NR_GP;
-    rg[R_INTREGISTER]    := Trgcpu.Create(R_INTREGISTER, R_SUBD,
-      [RS_R4, RS_R5, RS_R6, RS_R7, RS_R8, RS_R9, RS_R10, RS_R11,
-       RS_R12, RS_R13, RS_R14 {, RS_R15 for tmp_const in ncpuadd.pas} {, RS_R24, RS_R25}],
-      first_int_imreg, []);
-  end
+    begin
+      current_procinfo.got := NR_GP;
+      rg[R_INTREGISTER]    := Trgcpu.Create(R_INTREGISTER, R_SUBD,
+        [RS_R4, RS_R5, RS_R6, RS_R7, RS_R8, RS_R9, RS_R10, RS_R11,
+         RS_R12, RS_R13, RS_R14 {, RS_R15 for tmp_const in ncpuadd.pas} {, RS_R24, RS_R25}],
+        first_int_imreg, []);
+    end
   else
-    rg[R_INTREGISTER] := Trgcpu.Create(R_INTREGISTER, R_SUBD,
+    rg[R_INTREGISTER] := trgcpu.Create(R_INTREGISTER, R_SUBD,
       [RS_R4, RS_R5, RS_R6, RS_R7, RS_R8, RS_R9, RS_R10, RS_R11,
        RS_R12, RS_R13, RS_R14 {, RS_R15 for tmp_const in ncpuadd.pas} {, RS_R24=VMT, RS_R25=PIC jump}],
       first_int_imreg, []);
@@ -522,6 +522,10 @@ begin
     RS_F16, RS_F18, RS_F20, RS_F22,
     RS_F24, RS_F26, RS_F28, RS_F30],
     first_fpu_imreg, []);
+
+  { needs at least one element for rgobj not to crash }
+  rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
+      [RS_R0],first_mm_imreg,[]);
 end;
 
 
@@ -530,6 +534,7 @@ procedure TCgMPSel.done_register_allocators;
 begin
   rg[R_INTREGISTER].Free;
   rg[R_FPUREGISTER].Free;
+  rg[R_MMREGISTER].Free;
   inherited done_register_allocators;
 end;
 
@@ -556,7 +561,7 @@ begin
     begin
       with paraloc.location^.Reference do
       begin
-        if (Index = NR_SP) and (Offset < Target_info.first_parm_offset) then
+        if (Index = NR_SP) and (Offset < 0) then
           InternalError(2002081104);
         reference_reset_base(ref, index, offset, sizeof(aint));
       end;
@@ -584,7 +589,7 @@ begin
       begin
         with Reference do
         begin
-          if (Index = NR_SP) and (Offset < Target_info.first_parm_offset) then
+          if (Index = NR_SP) and (Offset < 0) then
             InternalError(2002081104);
           reference_reset_base(ref, index, offset, sizeof(aint));
         end;
@@ -640,11 +645,13 @@ begin
     case hloc^.loc of
       LOC_REGISTER:
         a_load_ref_reg(list, hloc^.size, hloc^.size, href, hloc^.Register);
+      LOC_FPUREGISTER,LOC_CFPUREGISTER :
+        a_loadfpu_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
       LOC_REFERENCE:
-      begin
-        reference_reset_base(href2, hloc^.reference.index, hloc^.reference.offset, sizeof(aint));
-        a_load_ref_ref(list, hloc^.size, hloc^.size, href, href2);
-      end;
+        begin
+          reference_reset_base(href2, hloc^.reference.index, hloc^.reference.offset, sizeof(aint));
+          a_load_ref_ref(list, hloc^.size, hloc^.size, href, href2);
+        end;
       else
         internalerror(200408241);
     end;
