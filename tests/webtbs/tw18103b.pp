@@ -1,3 +1,5 @@
+{ %NORUN }
+
 program gentest;
 
 // alias test generic class
