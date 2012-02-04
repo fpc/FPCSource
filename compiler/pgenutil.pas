@@ -30,11 +30,20 @@ uses
   { common }
   cclasses,
   { symtable }
-  symtype,symdef;
+  symtype,symdef,symbase;
 
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string);
     function parse_generic_parameters:TFPObjectList;
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
+
+    type
+      tspecializationstate = record
+        oldsymtablestack   : tsymtablestack;
+        oldextendeddefs    : TFPHashObjectList;
+      end;
+
+    procedure specialization_init(genericdef:tdef;var state:tspecializationstate);
+    procedure specialization_done(var state:tspecializationstate);
 
 implementation
 
@@ -44,7 +53,7 @@ uses
   { global }
   globals,globtype,tokens,verbose,
   { symtable }
-  symconst,symbase,symsym,symtable,
+  symconst,symsym,symtable,
   { modules }
   fmodule,
   { pass 1 }
@@ -69,10 +78,6 @@ uses
         generictype : ttypesym;
         genericdeflist : TFPObjectList;
         generictypelist : TFPObjectList;
-        oldsymtablestack   : tsymtablestack;
-        oldextendeddefs    : TFPHashObjectList;
-        hmodule : tmodule;
-        pu : tused_unit;
         prettyname,specializename : ansistring;
         ufinalspecializename,
         countstr,genname,ugenname,finalspecializename : string;
@@ -84,7 +89,7 @@ uses
         tempst : tglobalsymtable;
         old_block_type: tblock_type;
         hashedid: thashedidstring;
-        unitsyms : tfphashobjectlist;
+        state : tspecializationstate;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -335,47 +340,7 @@ uses
 
         if not assigned(tt) then
           begin
-            { Setup symtablestack at definition time
-              to get types right, however this is not perfect, we should probably record
-              the resolved symbols }
-            oldsymtablestack:=symtablestack;
-            oldextendeddefs:=current_module.extendeddefs;
-            current_module.extendeddefs:=TFPHashObjectList.create(true);
-            symtablestack:=tdefawaresymtablestack.create;
-            if not assigned(genericdef) then
-              internalerror(200705151);
-            hmodule:=find_module_from_symtable(genericdef.owner);
-            if hmodule=nil then
-              internalerror(200705152);
-            { collect all unit syms in the generic's unit as we need to establish
-              their unitsym.module link again so that unit identifiers can be used }
-            unitsyms:=tfphashobjectlist.create(false);
-            if (hmodule<>current_module) and assigned(hmodule.globalsymtable) then
-              for i:=0 to hmodule.globalsymtable.symlist.count-1 do
-                begin
-                  srsym:=tsym(hmodule.globalsymtable.symlist[i]);
-                  if srsym.typ=unitsym then
-                    unitsyms.add(upper(srsym.realname),srsym);
-                end;
-            pu:=tused_unit(hmodule.used_units.first);
-            while assigned(pu) do
-              begin
-                if not assigned(pu.u.globalsymtable) then
-                  internalerror(200705153);
-                symtablestack.push(pu.u.globalsymtable);
-                srsym:=tsym(unitsyms.find(pu.u.modulename^));
-                if assigned(srsym) and not assigned(tunitsym(srsym).module) then
-                  tunitsym(srsym).module:=pu.u;
-                pu:=tused_unit(pu.next);
-              end;
-            unitsyms.free;
-
-            if assigned(hmodule.globalsymtable) then
-              symtablestack.push(hmodule.globalsymtable);
-
-            { push the localsymtable if needed }
-            if (hmodule<>current_module) or not current_module.in_interface then
-              symtablestack.push(hmodule.localsymtable);
+            specialization_init(genericdef,state);
 
             { push a temporary global symtable so that the specialization is
               added to the correct symtable; this symtable does not contain
@@ -499,11 +464,7 @@ uses
 
             tempst.free;
 
-            { Restore symtablestack }
-            current_module.extendeddefs.free;
-            current_module.extendeddefs:=oldextendeddefs;
-            symtablestack.free;
-            symtablestack:=oldsymtablestack;
+            specialization_done(state);
           end;
 
         if not (token in [_GT, _RSHARPBRACKET]) then
@@ -570,5 +531,66 @@ uses
             st.insert(generictype);
           end;
        end;
+
+    procedure specialization_init(genericdef:tdef;var state: tspecializationstate);
+    var
+      pu : tused_unit;
+      hmodule : tmodule;
+      unitsyms : TFPHashObjectList;
+      sym : tsym;
+      i : Integer;
+    begin
+      if not assigned(genericdef) then
+        internalerror(200705151);
+      { Setup symtablestack at definition time
+        to get types right, however this is not perfect, we should probably record
+        the resolved symbols }
+      state.oldsymtablestack:=symtablestack;
+      state.oldextendeddefs:=current_module.extendeddefs;
+      current_module.extendeddefs:=TFPHashObjectList.create(true);
+      symtablestack:=tdefawaresymtablestack.create;
+      hmodule:=find_module_from_symtable(genericdef.owner);
+      if hmodule=nil then
+        internalerror(200705152);
+      { collect all unit syms in the generic's unit as we need to establish
+        their unitsym.module link again so that unit identifiers can be used }
+      unitsyms:=tfphashobjectlist.create(false);
+      if (hmodule<>current_module) and assigned(hmodule.globalsymtable) then
+        for i:=0 to hmodule.globalsymtable.symlist.count-1 do
+          begin
+            sym:=tsym(hmodule.globalsymtable.symlist[i]);
+            if sym.typ=unitsym then
+              unitsyms.add(upper(sym.realname),sym);
+          end;
+      { add all interface units to the new symtable stack }
+      pu:=tused_unit(hmodule.used_units.first);
+      while assigned(pu) do
+        begin
+          if not assigned(pu.u.globalsymtable) then
+            internalerror(200705153);
+          symtablestack.push(pu.u.globalsymtable);
+          sym:=tsym(unitsyms.find(pu.u.modulename^));
+          if assigned(sym) and not assigned(tunitsym(sym).module) then
+            tunitsym(sym).module:=pu.u;
+          pu:=tused_unit(pu.next);
+        end;
+      unitsyms.free;
+      if assigned(hmodule.globalsymtable) then
+        symtablestack.push(hmodule.globalsymtable);
+      { push the localsymtable if needed }
+      if (hmodule<>current_module) or not current_module.in_interface then
+        symtablestack.push(hmodule.localsymtable);
+    end;
+
+    procedure specialization_done(var state: tspecializationstate);
+    begin
+      { Restore symtablestack }
+      current_module.extendeddefs.free;
+      current_module.extendeddefs:=state.oldextendeddefs;
+      symtablestack.free;
+      symtablestack:=state.oldsymtablestack;
+      { clear the state record to be on the safe side }
+      fillchar(state, sizeof(state), 0);
+    end;
 
 end.

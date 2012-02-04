@@ -99,7 +99,7 @@ implementation
 {$endif}
        { parser }
        scanner,import,gendef,
-       pbase,pstatmnt,pdecl,pdecsub,pexports,
+       pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,
        { codegen }
        tgobj,cgbase,cgobj,cgcpu,dbgbase,
        ncgutil,regvars,
@@ -1972,20 +1972,18 @@ implementation
     procedure specialize_objectdefs(p:TObject;arg:pointer);
       var
         oldcurrent_filepos : tfileposinfo;
-        oldsymtablestack   : tsymtablestack;
-        oldextendeddefs    : TFPHashObjectList;
-        pu : tused_unit;
-        hmodule : tmodule;
         specobj : tabstractrecorddef;
-        unitsyms : TFPHashObjectList;
-        sym : tsym;
-        i : Integer;
+        state : tspecializationstate;
 
       procedure process_abstractrecorddef(def:tabstractrecorddef);
         var
           i  : longint;
           hp : tdef;
+          hmodule : tmodule;
         begin
+          hmodule:=find_module_from_symtable(def.genericdef.owner);
+          if hmodule=nil then
+            internalerror(201202041);
           for i:=0 to def.symtable.DefList.Count-1 do
             begin
               hp:=tdef(def.symtable.DefList[i]);
@@ -2032,50 +2030,12 @@ implementation
         if not (is_class_or_object(specobj) or is_record(specobj)) then
           exit;
 
-        oldsymtablestack:=symtablestack;
-        oldextendeddefs:=current_module.extendeddefs;
-        current_module.extendeddefs:=TFPHashObjectList.create(true);
-        symtablestack:=tdefawaresymtablestack.create;
-        if not assigned(specobj.genericdef) then
-          internalerror(200705151);
-        hmodule:=find_module_from_symtable(specobj.genericdef.owner);
-        if hmodule=nil then
-          internalerror(200705152);
-        { collect all unit syms in the generic's unit as we need to establish
-          their unitsym.module link again so that unit identifiers can be used }
-        unitsyms:=tfphashobjectlist.create(false);
-        if (hmodule<>current_module) and assigned(hmodule.globalsymtable) then
-          for i:=0 to hmodule.globalsymtable.symlist.count-1 do
-            begin
-              sym:=tsym(hmodule.globalsymtable.symlist[i]);
-              if sym.typ=unitsym then
-                unitsyms.add(upper(sym.realname),sym);
-            end;
-        pu:=tused_unit(hmodule.used_units.first);
-        while assigned(pu) do
-          begin
-            if not assigned(pu.u.globalsymtable) then
-              internalerror(200705153);
-            symtablestack.push(pu.u.globalsymtable);
-            sym:=tsym(unitsyms.find(pu.u.modulename^));
-            if assigned(sym) and not assigned(tunitsym(sym).module) then
-              tunitsym(sym).module:=pu.u;
-            pu:=tused_unit(pu.next);
-          end;
-        unitsyms.free;
-        if assigned(hmodule.globalsymtable) then
-          symtablestack.push(hmodule.globalsymtable);
-        if assigned(hmodule.localsymtable) then
-          symtablestack.push(hmodule.localsymtable);
+        specialization_init(specobj.genericdef,state);
 
         { procedure definitions for classes or objects }
         process_abstractrecorddef(specobj);
 
-        { Restore symtablestack }
-        current_module.extendeddefs.free;
-        current_module.extendeddefs:=oldextendeddefs;
-        symtablestack.free;
-        symtablestack:=oldsymtablestack;
+        specialization_done(state);
       end;
 
 
