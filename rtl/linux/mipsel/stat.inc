@@ -1,1 +1,1 @@
-{$i ../mips/math.inc}
+{$i ../mips/stat.inc}
