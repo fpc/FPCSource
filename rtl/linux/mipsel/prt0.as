@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2009 by Michael Van Canneyt and David Zhang
 
-    Startup code for elf32-mipsel
+    Startup code for elf32-mipsel/elf32-mips
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -17,38 +17,40 @@
 
 	.align 4
 	.global _dynamic_start
+	.ent	_dynamic_start
 	.type _dynamic_start,@function
 _dynamic_start:
         /* TODO: check whether this code is correct */
         lui     $a2,%hi(__dl_fini)
         sw      $v0,%lo(__dl_fini)($a2)
         b _start
+	nop
 
+	.end	_dynamic_start
+	.size 	_dynamic_start, .-_start
 
 	.align 4
 	.global _start
-	.type _start,@function
+        .set    nomips16
+        .ent    _start
+ 	.type	_start,@function
 /*  This is the canonical entry point, usually the first thing in the text
     segment.  The SVR4/Mips ABI (pages 3-31, 3-32) says that when the entry
     point runs, most registers' values are unspecified, except for:
 
-    v0 ($2)	Contains a function pointer to be registered with `atexit'.
- 		This is how the dynamic linker arranges to have DT_FINI
- 		functions called for shared libraries that have been loaded
- 		before this code runs.
+    v0 ($2)	Function pointer of a function to be executed at exit
 
     sp ($29)	The stack contains the arguments and environment:
- 		0(%esp)			argc
- 		4(%esp)			argv[0]
+ 		0(%sp)			argc
+ 		4(%sp)			argv[0]
 
  		...
- 		(4*argc)(%esp)		NULL
- 		(4*(argc+1))(%esp)	envp[0]
+ 		(4*argc)(%sp)		NULL
+ 		(4*(argc+1))(%sp)	envp[0]
  		...
  					NULL
-    ra ($31)	The return address register is set to zero so that programs
- 		that search backword through stack frames recognize the last
- 		stack frame.
+    ra ($31)	Return address set to zero.
+*/
 _start:
         /* load fp */
         move    $s8,$sp
@@ -79,13 +81,19 @@ _start:
         addiu   $a2,$a0,1
         sll     $a2,$a2,0x2
         addu    $a2,$a2,$a1
-        lui     $a3,$hi(operatingsystem_parameter_envp)
+        lui     $a3,%hi(operatingsystem_parameter_envp)
         jal     PASCALMAIN
         sw      $a2,%lo(operatingsystem_parameter_envp)($a3)
         nop
+	b       _haltproc
+        nop
 
-.globl  _haltproc
-.type   _haltproc,@function
+	.end	_start
+	.size 	_start, .-_start
+
+	.globl  _haltproc
+	.ent	_haltproc
+	.type   _haltproc,@function
 _haltproc:
         /* TODO: need to check whether __dl_fini is non-zero and call the function pointer in case */
 
@@ -96,7 +104,8 @@ _haltproc:
         b       _haltproc
         nop
 
-	.size _start, .-_start
+	.end _haltproc
+	.size _haltproc, .-_haltproc
 
         .comm __stkptr,4
         .comm __dl_fini,4
@@ -104,3 +113,4 @@ _haltproc:
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
+
