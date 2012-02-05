@@ -1,4 +1,5 @@
 { don't edit, this file is generated from mipsreg.dat }
+32,
 68,
 33,
 34,
@@ -50,7 +51,6 @@
 29,
 27,
 28,
-32,
 17,
 18,
 19,
