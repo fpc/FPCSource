@@ -36,10 +36,6 @@ procedure DefaultAnsi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widest
 type
   TWideStringManager = TUnicodeStringManager;
 
-function UnicodeToUtf8(Dest: PChar; Source: PWideChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PWideChar; SourceChars: SizeUInt): SizeUInt;
-function Utf8ToUnicode(Dest: PWideChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
 function UTF8Encode(const s : WideString) : RawByteString;
 
 {$ifdef MSWINDOWS}
