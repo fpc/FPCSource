@@ -26,6 +26,7 @@ var s : string;
     names,
     regtypes,
     supregs,
+    subregs,
     numbers,
     stdnames,
     gasnames,
@@ -205,6 +206,8 @@ begin
         readcomma;
         regtypes[regcount]:=readstr;
         readcomma;
+        subregs[regcount]:=readstr;
+        readcomma;
         supregs[regcount]:=readstr;
         readcomma;
         stdnames[regcount]:=readstr;
@@ -221,7 +224,7 @@ begin
             writeln('Line: "',s,'"');
             halt(1);
           end;
-        numbers[regcount]:=regtypes[regcount]+'0000'+copy(supregs[regcount],2,255);
+        numbers[regcount]:=regtypes[regcount]+copy(subregs[regcount],2,255)+'00'+copy(supregs[regcount],2,255);
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);
@@ -275,9 +278,9 @@ begin
         end
       else
         first:=false;
-      writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
       writeln(confile,'NR_'+names[i],' = ','tregister(',numbers[i],')',';');
-      write(numfile,'tregister(',numbers[i],')');
+      writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
+      write(numfile,'NR_',names[i]);
       write(stdfile,'''',stdnames[i],'''');
       write(gasfile,'''',gasnames[i],'''');
       write(stabfile,stabs[i]);

@@ -117,7 +117,8 @@ implementation
 
             helpins:=spilling_create_load(tmpref,tempreg);
             helplist.concat(helpins);
-            list.insertlistafter(pos,helplist)
+            list.insertlistafter(pos,helplist);
+            helplist.free;
           end
         else
           inherited do_spill_read(list,pos,spilltemp,tempreg);
@@ -126,7 +127,6 @@ implementation
 
     procedure trgcpu.do_spill_written(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
-        helpins  : tai;
         tmpref   : treference;
         helplist : tasmlist;
         hreg     : tregister;
@@ -151,12 +151,12 @@ implementation
 
             reference_reset_base(tmpref,hreg,0,sizeof(aint));
 
-            helpins:=spilling_create_store(tempreg,tmpref);
-            helplist.concat(helpins);
+            helplist.concat(spilling_create_store(tempreg,tmpref));
             if getregtype(tempreg)=R_INTREGISTER then
               ungetregisterinline(helplist,hreg);
 
-            list.insertlistafter(pos,helplist)
+            list.insertlistafter(pos,helplist);
+            helplist.free;
           end
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);

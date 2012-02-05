@@ -67,7 +67,7 @@ unit cpubase;
       {$i rmipssup.inc}
 
       { No Subregisters }
-      R_SUBWHOLE = R_SUBNONE;
+      R_SUBWHOLE = R_SUBD;
 
       { Available Registers }
       {$i rmipscon.inc}

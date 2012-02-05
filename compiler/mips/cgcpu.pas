@@ -517,10 +517,10 @@ begin
       first_int_imreg, []);
 
   rg[R_FPUREGISTER] := trgcpu.Create(R_FPUREGISTER, R_SUBFS{R_SUBFD},
-    [RS_F0, RS_F2, RS_F4, RS_F6,
-    RS_F8, RS_F10, RS_F12, RS_F14,
-    RS_F16, RS_F18, RS_F20, RS_F22,
-    RS_F24, RS_F26, RS_F28, RS_F30],
+    [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,
+     RS_F8,RS_F9,RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15,
+     RS_F16,RS_F17,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,
+     RS_F24,RS_F25,RS_F26,RS_F27,RS_F28,RS_F29,RS_F30,RS_F31],
     first_fpu_imreg, []);
 
   { needs at least one element for rgobj not to crash }
@@ -542,7 +542,7 @@ end;
 function TCgMPSel.getfpuregister(list: tasmlist; size: Tcgsize): Tregister;
 begin
   if size = OS_F64 then
-    Result := rg[R_FPUREGISTER].getregister(list, R_SUBFD)
+    Result := rg[R_FPUREGISTER].getregister(list, R_SUBFS)
   else
     Result := rg[R_FPUREGISTER].getregister(list, R_SUBFS);
 end;
@@ -696,7 +696,7 @@ begin
     list.concat(taicpu.op_reg_reg(A_MOVE, reg, NR_R0))
   { LUI allows to set the upper 16 bits, so we'll take full advantage of it }
   else if (a and aint($ffff)) = 0 then
-    list.concat(taicpu.op_reg_const(A_LUI, reg, a shr 16))
+    list.concat(taicpu.op_reg_const(A_LUI, reg, aint(a) shr 16))
   else if (a >= simm16lo) and (a <= simm16hi) then
     list.concat(taicpu.op_reg_reg_const(A_ADDIU, reg, NR_R0, a))
   else if (a>=0) and (a <= 65535) then
