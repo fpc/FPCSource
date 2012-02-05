@@ -15,17 +15,6 @@
 
  **********************************************************************}
 
-const
-  FPE_INTDIV = 1;
-  FPE_INTOVF = 2;
-  FPE_FLTDIV = 3;
-  FPE_FLTOVF = 4;
-  FPE_FLTUND = 5;
-  FPE_FLTRES = 6;
-  FPE_FLTINV = 7;
-  FPE_FLTSUB = 8;
-
-
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 var
   res : word;
@@ -36,7 +25,7 @@ begin
   case sig of
     SIGFPE :
         begin
-          addr := siginfo^._sifields._sigfault.si_addr;
+          addr := siginfo^._sifields._sigfault._addr;
           res := 207;
           case  siginfo^.si_code of
             FPE_INTDIV:
@@ -61,7 +50,7 @@ begin
     SIGBUS,
     SIGSEGV :
         begin
-          addr := siginfo^._sifields._sigfault.si_addr;
+          addr := siginfo^._sifields._sigfault._addr;
           res:=216;
         end;
   end;

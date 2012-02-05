@@ -13,7 +13,6 @@
 
  **********************************************************************}
 
-
 {****************************************************************************
                            MIPS specific stuff
 ****************************************************************************}
@@ -65,14 +64,14 @@ function get_frame:pointer;assembler;nostackframe;
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
   asm
-    lw $2,4($4) #movl    4(%eax),%eax
+    lw $2,4($4) // #movl    4(%eax),%eax
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
   asm
-    lw $2,0($4)#movl    (%eax),%eax
+    lw $2,0($4) // #movl    (%eax),%eax
   end;
 
 
@@ -94,44 +93,44 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
     $9/l0/l1/l2 qword move
 }
 
-  sw  $4,0($23)
-  sw  $5,-4($23)
-  sw  $6,-8($23)
-  sw  $7,-12($23)
-  sw  $8,-16($23)
-  sw  $9,-20($23)
-  sw  $10,-24($23)
-  sw  $11,-28($23)
-  sw  $12,-32($23)
-  sw  $13,-36($23)
-  sw  $14,-40($23)
-  addiu  $23,$23,-44
+    sw  $4,0($23)
+    sw  $5,-4($23)
+    sw  $6,-8($23)
+    sw  $7,-12($23)
+    sw  $8,-16($23)
+    sw  $9,-20($23)
+    sw  $10,-24($23)
+    sw  $11,-28($23)
+    sw  $12,-32($23)
+    sw  $13,-36($23)
+    sw  $14,-40($23)
+    addiu  $23,$23,-44
 
 
-    # count <= 0 ?
+    // count <= 0 ?
     ble $6,$0,.Lmoveexit
     nop
 
-    # source = dest ?
+    // source = dest ?
     beq $4,$5,.Lmoveexit
     nop
 
-    # possible overlap?
+    // possible overlap?
     bgt $4,$5,.Lnopossibleoverlap
     nop
-    # source < dest ....
+    // source < dest ....
     addu $7,$6,$4
-    # overlap?
-    # source+count < dest ?
+    // overlap?
+    // source+count < dest ?
     blt $7,$5,.Lnopossibleoverlap
     nop
 
   .Lcopybackward:
-    # check alignment of source and dest
+    // check alignment of source and dest
     or $2,$4,$5
 
-    # move src and dest to the end of the blocks
-    # assuming 16 byte block size
+    // move src and dest to the end of the blocks
+    // assuming 16 byte block size
     addiu $3,$6,-1
     addu $4,$4,$3
     addu $5,$5,$3
@@ -141,14 +140,14 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
 
 .Lnopossibleoverlap:
 
-    # check alignment of source and dest
+    // check alignment of source and dest
     or $2,$4,$5
 
-    # everything 16 byte aligned ?
+    // everything 16 byte aligned ?
     andi $13,$2,15
 
     beq $13,$0,.Lmovetwordwise
-    # load direction in delay slot
+    // load direction in delay slot
     li $3,16
 
 
@@ -293,11 +292,11 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}nostackframe;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}
+function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}nostackframe;
 asm
-    sra $1,$4,31 #$at,$4,31
-    xor $2,$4,$1 #$2,$4,$at
-    sub $2,$2,$1 #$2,$2,$at
+    sra $1,$4,31 // $at,$4,31
+    xor $2,$4,$1 // $2,$4,$at
+    sub $2,$2,$1 // $2,$2,$at
 end;
 
 var
@@ -421,3 +420,32 @@ asm
   lw  $14,-40($23)
 
 end;
+
+function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
+asm
+  { FIXME!!!!!!!!! }
+end;
+
+
+function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
+asm
+ { FIXME!!!!!!!!! }
+end;
+
+
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+asm
+ { FIXME!!!!!!!!! }
+end;
+
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+asm
+{ FIXME!!!!!!!!! }
+end;
+
+
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
+asm
+  { FIXME!!!!!!!!! }
+end;
+

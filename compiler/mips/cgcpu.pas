@@ -1643,31 +1643,32 @@ end;
 
 
 procedure TCgMPSel.g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint);
-      procedure loadvmttor24;
-        var
-          href: treference;
-        begin
-          reference_reset_base(href, NR_R2, 0, sizeof(aint));  { return value }
-          cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
-        end;
+
+  procedure loadvmttor24;
+    var
+      href: treference;
+    begin
+      reference_reset_base(href, NR_R2, 0, sizeof(aint));  { return value }
+      cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
+    end;
 
 
-      procedure op_onr24methodaddr;
-        var
-          href : treference;
-        begin
-          if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
-          { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href, NR_R24, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
-          cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
-          list.concat(taicpu.op_reg(A_JR, NR_R24));
-        end;
+   procedure op_onr24methodaddr;
+     var
+       href : treference;
+     begin
+       if (procdef.extnumber=$ffff) then
+         Internalerror(200006139);
+       { call/jmp  vmtoffs(%eax) ; method offs }
+       reference_reset_base(href, NR_R24, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
+       cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
+       list.concat(taicpu.op_reg(A_JR, NR_R24));
+     end;
 var
   make_global: boolean;
   href: treference;
 begin
-  if procdef.proctypeoption <> potype_none then
+  if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
     Internalerror(200006137);
   if not assigned(procdef.struct) or
     (procdef.procoptions * [po_classmethod, po_staticmethod,

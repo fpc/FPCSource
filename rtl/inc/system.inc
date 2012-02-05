@@ -230,6 +230,25 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpuavr}
 
+{$ifdef cpumips}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i mips.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpumips}
+
+{$ifdef cpumipsel}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i mipsel.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpumipsel}
+
+{$ifndef SYSPROCDEFINED}
+  {$Error Can't determine processor type !}
+{$endif}
 
 procedure fillchar(var x;count : SizeInt;value : boolean);
 begin
