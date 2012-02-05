@@ -362,24 +362,10 @@ threadvar
     end;
 
 
-  {$ifdef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-    Function NewUnicodeString(Len : SizeInt) : Pointer;forward;
-  {$else}
-    Function NewWideString(Len : SizeInt) : Pointer;forward;
-  {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-
-
   function StringToOleStr(const source : UnicodeString) : PWideChar;inline;
     begin
-      if source<>'' then
-        begin
-        {$ifdef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-          result:=NewUnicodeString(Length(source));
-        {$else}
-          result:=NewWideString(Length(source));
-        {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-          move(source[1],result^,Length(source));
-        end
-      else
-        result:=nil;
+      result:=nil;
+      { will call UnicodeString overload if FPC_WIDESTRING_EQUAL_UNICODESTRING is set }
+      SetString(widestring(pointer(result)),PWideChar(source),length(source));
     end;
+
