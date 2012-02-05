@@ -152,6 +152,7 @@ function do_isdevice(handle:thandle):boolean;forward;
     {$Error Can't determine processor type !}
   {$endif}
   {$i i386.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
 {$endif cpui386}
 
 {$ifdef cpum68k}
