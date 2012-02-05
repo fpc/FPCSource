@@ -93,9 +93,4 @@ begin
 end;
 
 end.
-{
-  $Log: itcpugas.pas,v $
-  Revision 1.7  2005/02/14 17:13:10  peter
-    * truncate log
 
-}
