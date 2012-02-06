@@ -505,10 +505,7 @@ Function fpc_Char_To_UnicodeStr(const c : Char): UnicodeString; compilerproc;
   Converts a Char to a UnicodeString;
 }
 begin
-  Setlength(fpc_Char_To_UnicodeStr,1);
-  fpc_Char_To_UnicodeStr[1]:=c;
-  { Terminating Zero }
-  PUnicodeChar(Pointer(fpc_Char_To_UnicodeStr)+sizeof(UnicodeChar))^:=#0;
+  widestringmanager.Ansi2UnicodeMoveProc(@c,DefaultSystemCodePage,result,1);
 end;
 
 
@@ -1437,9 +1434,7 @@ function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): Si
 function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar; SourceChars: SizeUInt): SizeUInt;
   var
     i,j : SizeUInt;
-    w : word;
     lw : longword;
-    len : longint;
   begin
     result:=0;
     if source=nil then
@@ -1450,28 +1445,28 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar
       begin
         while (i<SourceChars) and (j<MaxDestBytes) do
           begin
-            w:=word(Source[i]);
-            case w of
+            lw:=ord(Source[i]);
+            case lw of
               0..$7f:
                 begin
-                  Dest[j]:=char(w);
+                  Dest[j]:=char(lw);
                   inc(j);
                 end;
               $80..$7ff:
                 begin
                   if j+1>=MaxDestBytes then
                     break;
-                  Dest[j]:=char($c0 or (w shr 6));
-                  Dest[j+1]:=char($80 or (w and $3f));
+                  Dest[j]:=char($c0 or (lw shr 6));
+                  Dest[j+1]:=char($80 or (lw and $3f));
                   inc(j,2);
                 end;
               $800..$d7ff,$e000..$ffff:
                 begin
                   if j+2>=MaxDestBytes then
                     break;
-                  Dest[j]:=char($e0 or (w shr 12));
-                  Dest[j+1]:=char($80 or ((w shr 6) and $3f));
-                  Dest[j+2]:=char($80 or (w and $3f));
+                  Dest[j]:=char($e0 or (lw shr 12));
+                  Dest[j+1]:=char($80 or ((lw shr 6) and $3f));
+                  Dest[j+2]:=char($80 or (lw and $3f));
                   inc(j,3);
                 end;
               $d800..$dbff:
@@ -1479,11 +1474,12 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar
                 begin
                   if j+3>=MaxDestBytes then
                     break;
-                  if (i<sourcechars-1) and
+                  if (i+1<sourcechars) and
                      (word(Source[i+1]) >= $dc00) and
                      (word(Source[i+1]) <= $dfff) then
                     begin
-                      lw:=longword(utf16toutf32(Source[i] + Source[i+1], 1, len));
+                      { $d7c0 is ($d800 - ($10000 shr 10)) }
+                      lw:=(longword(lw-$d7c0) shl 10) + (ord(source[i+1]) xor $dc00);
                       Dest[j]:=char($f0 or (lw shr 18));
                       Dest[j+1]:=char($80 or ((lw shr 12) and $3f));
                       Dest[j+2]:=char($80 or ((lw shr 6) and $3f));
@@ -1514,7 +1510,7 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar
                 inc(j,3);
               $d800..$dbff:
                 begin
-                  if (i<sourcechars-1) and
+                  if (i+1<sourcechars) and
                      (word(Source[i+1]) >= $dc00) and
                      (word(Source[i+1]) <= $dfff) then
                     begin
