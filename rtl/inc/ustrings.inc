@@ -1895,35 +1895,27 @@ function WideStringToUCS4String(const s : WideString) : UCS4String;
   end;
 
 
-{ concatenates an utf-32 char to a unicodestring. S *must* be unique when entering. }
-procedure ConcatUTF32ToUnicodeStr(const nc: UCS4Char; var S: UnicodeString; var index: SizeInt);
+{ dest should point to previously allocated wide/unicodestring }
+procedure UCS4Decode(const s: UCS4String; dest: PWideChar);
 var
-  p : PUnicodeChar;
+  i: sizeint;
+  nc: UCS4Char;
 begin
-  { if nc > $ffff, we need two places }
-  if (index+ord(nc > $ffff)>length(s)) then
-    if (length(s) < 10*256) then
-      setlength(s,length(s)+10)
-    else
-      setlength(s,length(s)+length(s) shr 8);
-  { we know that s is unique -> avoid uniquestring calls}
-  p:=@s[index];
-  if (nc<$ffff) then
+  for i:=0 to length(s)-2 do  { -2 because s contains explicit terminating #0 }
     begin
-      p^:=unicodechar(nc);
-      inc(index);
-    end
-  else if (dword(nc)<=$10ffff) then
-    begin
-      p^:=unicodechar((nc - $10000) shr 10 + $d800);
-      (p+1)^:=unicodechar((nc - $10000) and $3ff + $dc00);
-      inc(index,2);
-    end
-  else
-    { invalid code point }
-    begin
-      p^:='?';
-      inc(index);
+      nc:=s[i];
+      if (nc<$ffff) then
+        dest^:=widechar(nc)
+      else if (dword(nc)<=$10ffff) then
+        begin
+          dest^:=widechar(nc shr 10 + $d7c0);
+          { subtracting $10000 doesn't change low 10 bits }
+          dest[1]:=widechar(nc and $3ff + $dc00);
+          inc(dest);
+        end
+      else  { invalid code point }
+        dest^:='?';
+      inc(dest);
     end;
 end;
 
@@ -1931,65 +1923,26 @@ end;
 function UCS4StringToUnicodeString(const s : UCS4String) : UnicodeString;
   var
     i        : SizeInt;
-    resindex : SizeInt;
+    reslen   : SizeInt;
   begin
-    { skip terminating #0 }
-    SetLength(result,length(s)-1);
-    resindex:=1;
-    for i:=0 to high(s)-1 do
-      ConcatUTF32ToUnicodeStr(s[i],result,resindex);
-    { adjust result length (may be too big due to growing }
-    { for surrogate pairs)                                }
-    setlength(result,resindex-1);
+    reslen:=0;
+    for i:=0 to length(s)-2 do     { skip terminating #0 }
+      Inc(reslen,1+ord((s[i]>$ffff) and (s[i]<=$10ffff)));
+    SetLength(result,reslen);
+    UCS4Decode(s,pointer(result));
   end;
-
-
-{ concatenates an utf-32 char to a widestring. S *must* be unique when entering. }
-procedure ConcatUTF32ToWideStr(const nc: UCS4Char; var S: WideString; var index: SizeInt);
-var
-  p : PWideChar;
-begin
-  { if nc > $ffff, we need two places }
-  if (index+ord(nc > $ffff)>length(s)) then
-    if (length(s) < 10*256) then
-      setlength(s,length(s)+10)
-    else
-      setlength(s,length(s)+length(s) shr 8);
-  { we know that s is unique -> avoid uniquestring calls}
-  p:=@s[index];
-  if (nc<$ffff) then
-    begin
-      p^:=widechar(nc);
-      inc(index);
-    end
-  else if (dword(nc)<=$10ffff) then
-    begin
-      p^:=widechar((nc - $10000) shr 10 + $d800);
-      (p+1)^:=widechar((nc - $10000) and $3ff + $dc00);
-      inc(index,2);
-    end
-  else
-    { invalid code point }
-    begin
-      p^:='?';
-      inc(index);
-    end;
-end;
 
 
 function UCS4StringToWideString(const s : UCS4String) : WideString;
   var
-    i        : SizeInt;
-    resindex : SizeInt;
+    i      : SizeInt;
+    reslen : SizeInt;
   begin
-    { skip terminating #0 }
-    SetLength(result,length(s)-1);
-    resindex:=1;
-    for i:=0 to high(s)-1 do
-      ConcatUTF32ToWideStr(s[i],result,resindex);
-    { adjust result length (may be too big due to growing }
-    { for surrogate pairs)                                }
-    setlength(result,resindex-1);
+    reslen:=0;
+    for i:=0 to length(s)-2 do     { skip terminating #0 }
+      Inc(reslen,1+ord((s[i]>$ffff) and (s[i]<=$10ffff)));
+    SetLength(result,reslen);
+    UCS4Decode(s,pointer(result));
   end;
 
 
