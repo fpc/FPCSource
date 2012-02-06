@@ -106,7 +106,7 @@ Interface
 	       begin
 	         { Try to convert to std register }
                   if actasmtoken=AS_INTNUM then
-                    actasmregister:=gas_regnum_search('r'+actasmpattern)
+                    actasmregister:=gas_regnum_search('$'+actasmpattern)
                   else
                     begin
                       { AS_ID is uppercased by default but register names
