@@ -1388,38 +1388,6 @@ end;
 
 {$endif CPU64}
 
-{ converts an utf-16 code point or surrogate pair to utf-32 }
-function utf16toutf32(const S: UnicodeString; const index: SizeInt; out len: longint): UCS4Char; [public, alias: 'FPC_UTF16TOUTF32'];
-var
-  w: unicodechar;
-begin
-  { UTF-16 points in the range #$0-#$D7FF and #$E000-#$FFFF }
-  { are the same in UTF-32                                  }
-  w:=s[index];
-  if (w<=#$d7ff) or
-     (w>=#$e000) then
-    begin
-      result:=UCS4Char(w);
-      len:=1;
-    end
-  { valid surrogate pair? }
-  else if (w<=#$dbff) and
-          { w>=#$d7ff check not needed, checked above }
-          (index<length(s)) and
-          (s[index+1]>=#$dc00) and
-          (s[index+1]<=#$dfff) then
-      { convert the surrogate pair to UTF-32 }
-    begin
-      result:=(UCS4Char(w)-$d800) shl 10 + (UCS4Char(s[index+1])-$dc00) + $10000;
-      len:=2;
-    end
-  else
-    { invalid surrogate -> do nothing }
-    begin
-      result:=UCS4Char(w);
-      len:=1;
-    end;
-end;
 
 
 function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1870,26 +1838,60 @@ function Utf8ToAnsi(const s : RawByteString) : RawByteString;{$ifdef SYSTEMINLIN
   end;
 
 
-function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;
+procedure UCS4Encode(p: PWideChar; len: sizeint; out res: UCS4String);
   var
-    i, slen,
-    destindex : SizeInt;
-    len       : longint;
+    i, reslen: sizeint;
+    w: longint;
   begin
-    slen:=length(s);
-    setlength(result,slen+1);
-    i:=1;
-    destindex:=0;
-    while (i<=slen) do
+    reslen:=0;
+    i:=0;
+    { calculate required length }
+    while (i<len) do
       begin
-        result[destindex]:=utf16toutf32(s,i,len);
-        inc(destindex);
-        inc(i,len);
+        if (p[i]<=#$d7ff) or (p[i]>=#$e000) then
+          inc(i)
+        else if (p[i]<=#$dbff) and
+          (i+1<len) and
+          (p[i+1]>=#$dc00) and
+          (p[i+1]<=#$dfff) then
+          inc(i,2)
+        else
+          inc(i);
+        inc(reslen);
       end;
-    { destindex <= slen (surrogate pairs may have been merged) }
-    { destindex+1 for terminating #0 (dynamic arrays are       }
-    { implicitely filled with zero)                            }
-    setlength(result,destindex+1);
+    SetLength(res,reslen+1); { +1 for null termination }
+    reslen:=0;
+    i:=0;
+    { do conversion }
+    while (i<len) do
+      begin
+        w:=ord(p[i]);
+        if (w<=$d7ff) or (w>=$e000) then
+          res[reslen]:=w
+        else if (w<=$dbff) and
+          (i+1<len) and
+          (p[i+1]>=#$dc00) and
+          (p[i+1]<=#$dfff) then
+          begin
+            res[reslen]:=(UCS4Char(w-$d7c0) shl 10)+(UCS4Char(p[i+1]) xor $dc00);
+            inc(i);
+          end
+        else { invalid surrogate pair }
+          res[reslen]:=w;
+        inc(i);
+        inc(reslen);
+      end;
+    res[reslen]:=0;
+  end;
+
+function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;
+  begin
+    UCS4Encode(PWideChar(s),Length(s),result);
+  end;
+
+function WideStringToUCS4String(const s : WideString) : UCS4String;
+  begin
+    UCS4Encode(PWideChar(s),Length(s),result);
   end;
 
 
@@ -1939,29 +1941,6 @@ function UCS4StringToUnicodeString(const s : UCS4String) : UnicodeString;
     { adjust result length (may be too big due to growing }
     { for surrogate pairs)                                }
     setlength(result,resindex-1);
-  end;
-
-
-function WideStringToUCS4String(const s : WideString) : UCS4String;
-  var
-    i, slen,
-    destindex : SizeInt;
-    len       : longint;
-  begin
-    slen:=length(s);
-    setlength(result,slen+1);
-    i:=1;
-    destindex:=0;
-    while (i<=slen) do
-      begin
-        result[destindex]:=utf16toutf32(s,i,len);
-        inc(destindex);
-        inc(i,len);
-      end;
-    { destindex <= slen (surrogate pairs may have been merged) }
-    { destindex+1 for terminating #0 (dynamic arrays are       }
-    { implicitely filled with zero)                            }
-    setlength(result,destindex+1);
   end;
 
 

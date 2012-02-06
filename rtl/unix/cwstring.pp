@@ -643,14 +643,10 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
     SetLength(result,resindex-1);
   end;
 
-
-function utf16toutf32(const S: WideString; const index: SizeInt; out len: longint): UCS4Char; external name 'FPC_UTF16TOUTF32';
-
 function WideStringToUCS4StringNoNulls(const s : WideString) : UCS4String;
   var
     i, slen,
     destindex : SizeInt;
-    len       : longint;
     uch       : UCS4Char;
   begin
     slen:=length(s);
@@ -659,16 +655,28 @@ function WideStringToUCS4StringNoNulls(const s : WideString) : UCS4String;
     destindex:=0;
     while (i<=slen) do
       begin
-        uch:=utf16toutf32(s,i,len);
-        if (uch=UCS4Char(0)) then
-          uch:=UCS4Char(32);
-        result[destindex]:=uch;
+        uch:=UCS4Char(s[i]);
+        if (uch=0) then
+          result[destindex]:=32
+        else if (uch<=$d7ff) or (uch>=$e000) then
+          result[destindex]:=uch
+        else if (uch<=$dbff) and
+          (i<slen) and
+          (s[i+1]>=#$dc00) and
+          (s[i+1]<=#$dfff) then
+          begin
+            result[destindex]:=(UCS4Char(uch-$d7c0) shl 10)+(UCS4Char(s[i+1]) xor $dc00);
+            inc(i);
+          end
+        else { invalid surrogate pair }
+          result[destindex]:=uch;
+        inc(i);
         inc(destindex);
-        inc(i,len);
       end;
     result[destindex]:=UCS4Char(0);
-    { destindex <= slen }
-    setlength(result,destindex+1);
+    { Trimming length in this particular case is just a waste of time,
+      because result will be interpreted as null-terminated and discarded
+      almost immediately }
   end;
 
 
