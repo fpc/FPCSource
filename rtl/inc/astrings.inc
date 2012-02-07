@@ -35,7 +35,7 @@
 
 Type
   PAnsiRec = ^TAnsiRec;
-  TAnsiRec = Packed Record
+  TAnsiRec = Record
     CodePage    : TSystemCodePage;
     ElementSize : Word;
 {$ifdef CPU64}	
@@ -44,12 +44,10 @@ Type
 {$endif CPU64}
     Ref         : SizeInt;
     Len         : SizeInt;
-    First       : AnsiChar;
   end;
 
 Const
-  AnsiRecLen = SizeOf(TAnsiRec);
-  AnsiFirstOff = SizeOf(TAnsiRec)-1;
+  AnsiFirstOff = SizeOf(TAnsiRec);
 
 {****************************************************************************
                     Internal functions, not in interface.
@@ -64,15 +62,15 @@ Var
   P : Pointer;
 begin
   { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
-  GetMem(P,Len+AnsiRecLen);
+  GetMem(P,Len+(AnsiFirstOff+sizeof(char)));
   If P<>Nil then
    begin
      PAnsiRec(P)^.Ref:=1;         { Set reference count }
      PAnsiRec(P)^.Len:=0;         { Initial length }
      PAnsiRec(P)^.CodePage:=DefaultSystemCodePage;
      PAnsiRec(P)^.ElementSize:=SizeOf(AnsiChar);
-     PAnsiRec(P)^.First:=#0;      { Terminating #0 }
      inc(p,AnsiFirstOff);         { Points to string now }
+     PAnsiChar(P)^:=#0;           { Terminating #0 }
    end;
   NewAnsiString:=P;
 end;
@@ -692,11 +690,11 @@ begin
         begin
           Temp:=Pointer(s)-AnsiFirstOff;
           lens:=MemSize(Temp);
-          lena:=AnsiRecLen+L;
+          lena:=AnsiFirstOff+L+sizeof(AnsiChar);
           { allow shrinking string if that saves at least half of current size }
           if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
             begin
-              reallocmem(Temp,AnsiRecLen+L);
+              reallocmem(Temp,lena);
               Pointer(S):=Temp+AnsiFirstOff;
             end;
         end

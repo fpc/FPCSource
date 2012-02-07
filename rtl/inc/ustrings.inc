@@ -35,7 +35,7 @@
 
 Type
   PUnicodeRec = ^TUnicodeRec;
-  TUnicodeRec = Packed Record
+  TUnicodeRec = Record
     CodePage    : TSystemCodePage;
     ElementSize : Word;
 {$ifdef CPU64}	
@@ -44,12 +44,10 @@ Type
 {$endif CPU64}
     Ref         : SizeInt;
     Len         : SizeInt;
-    First       : UnicodeChar;
   end;
 
 Const
-  UnicodeRecLen = SizeOf(TUnicodeRec);
-  UnicodeFirstOff = SizeOf(TUnicodeRec)-sizeof(UnicodeChar);
+  UnicodeFirstOff = SizeOf(TUnicodeRec);
 
 {
   Default UnicodeChar <-> Char conversion is to only convert the
@@ -170,15 +168,15 @@ Function NewUnicodeString(Len : SizeInt) : Pointer;
 Var
   P : Pointer;
 begin
-  GetMem(P,Len*sizeof(UnicodeChar)+UnicodeRecLen);
+  GetMem(P,Len*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)));
   If P<>Nil then
     begin
       PUnicodeRec(P)^.Len:=Len;       { Initial length }
       PUnicodeRec(P)^.Ref:=1;         { Initial Refcount }
       PUnicodeRec(P)^.CodePage:=DefaultUnicodeCodePage;
       PUnicodeRec(P)^.ElementSize:=SizeOf(UnicodeChar);
-      PUnicodeRec(P)^.First:=#0;      { Terminating #0 }
       inc(p,UnicodeFirstOff);         { Points to string now }
+      PUnicodeChar(P)^:=#0;           { Terminating #0 }
     end
   else
     UnicodeStringError;
@@ -848,7 +846,7 @@ begin
           begin
             Temp:=Pointer(s)-UnicodeFirstOff;
             lens:=MemSize(Temp);
-            lena:=SizeUInt(L*sizeof(UnicodeChar)+UnicodeRecLen);
+            lena:=SizeUInt(L*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)));
             if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
               begin
                 reallocmem(Temp, lena);
