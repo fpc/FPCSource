@@ -206,7 +206,7 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
     sw $9,0($5)
     sw $10,4($5)
     addu $5,$3,$5
-    bne $13,0,.Lmoveqwordwise_loop
+    bne $13,$0,.Lmoveqwordwise_loop
     nop
 
     subu $6,$6,$14
