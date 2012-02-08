@@ -1314,8 +1314,6 @@ const
   VSTOP = 9;
   VSUSP = 10;
 
-
-const
   VREPRINT = 12;
   VDISCARD = 13;
   VWERASE = 14;
@@ -1452,10 +1450,24 @@ const
   TCIOFF = 2;
   TCION = 3;
 
-
   TCIFLUSH = 0;
   TCOFLUSH = 1;
   TCIOFLUSH = 2;
+
+  TIOCM_LE   = $001;
+  TIOCM_DTR  = $002;
+  TIOCM_RTS  = $004;
+  TIOCM_ST   = $008;
+  TIOCM_SR   = $010;
+  TIOCM_CTS  = $020;
+  TIOCM_CAR  = $040;
+  TIOCM_RNG  = $080;
+  TIOCM_DSR  = $100;
+  TIOCM_CD   = TIOCM_CAR;
+  TIOCM_RI   = TIOCM_RNG;
+  TIOCM_OUT1 = $2000;
+  TIOCM_OUT2 = $4000;
+  TIOCM_LOOP = $8000;
 
   TCSANOW = TCSETS;
   TCSADRAIN = TCSETSW;
