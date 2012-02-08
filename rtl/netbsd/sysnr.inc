@@ -410,6 +410,9 @@ const
      syscall_nr_mlockall = 242;
   { syscall: "munlockall" ret: "int" args:  }
      syscall_nr_munlockall = 243;
+  { syscall: "__sigtimedwait" ret:"int" args: "const sigset_t *" "siginfo_t *" 
+             "struct timespec *" }
+     syscall_nr_sigtimedwait = 244;
   { syscall: "__posix_rename" ret: "int" args: "const char  " "const char  "  }
      syscall_nr___posix_rename = 270;
   { syscall: "swapctl" ret: "int" args: "int" "const void  " "int"  }

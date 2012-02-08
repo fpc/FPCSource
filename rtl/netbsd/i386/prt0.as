@@ -50,7 +50,7 @@ ___fpc_brk_addr:
         .long   0
 
 #APP
-	
+
 	.text
 	.align	4
 	.globl	__start
@@ -87,14 +87,27 @@ ___start:
 	movl %edx,__progname
 	testl %edx,%edx
 	je .L2
-	pushl $47
-	movl __progname,%eax
-	pushl %eax
-	call _strrchr
-	addl $8,%esp
-	movl %eax,%eax
-	movl %eax,__progname
-	cmpl $0,__progname
+        movl __progname,%edx
+        // Increase until 0 found
+        movl $0,%ebx
+.LL1:
+        movb (%edx,%ebx),%al
+        orb  %al,%al
+        je .LL2
+        incl %ebx
+.LL2:
+        decl %ebx
+        movb (%edx,%ebx),%al
+        cmpb $47,%al
+        je   .LL3
+        cmpl $0,%ebx
+        je   .LL4
+.LL3:    // slash found
+        incl %ebx
+        leal (%edx,%ebx),%eax
+        movl %eax,__progname
+.LL4:
+        cmpl $0,__progname
 	jne .L3
 	movl 12(%ebp),%eax
 	movl (%eax),%edx
@@ -162,6 +175,7 @@ _actualsyscall:
 .ascii "NetBSD\0\0"
 .long 199905
 
+        .comm environ,4
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
