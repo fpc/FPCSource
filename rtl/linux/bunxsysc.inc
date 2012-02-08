@@ -576,6 +576,7 @@ begin
   Fppwrite:=do_syscall(syscall_nr_pwrite,Fd,TSysParam(buf),nbytes,0,  { align parameters as required with dummy }
     {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
+   );
 {$endif CPUMIPS32}
 {$endif}
 end;
