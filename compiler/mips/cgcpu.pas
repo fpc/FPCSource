@@ -703,7 +703,7 @@ begin
     list.concat(taicpu.op_reg_reg_const(A_ORI, reg, NR_R0, a))
   else
   begin
-    list.concat(taicpu.op_reg_const(A_LI, reg, a ));
+    list.concat(taicpu.op_reg_const(A_LI, reg, aint(a) ));
   end;
 end;
 
