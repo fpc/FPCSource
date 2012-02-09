@@ -63,6 +63,7 @@ __start:
 	pushl	%ecx
 	pushl	%edx
 	pushl	%eax
+	movl	%ecx,operatingsystem_parameter_envp
 	movl	%eax,operatingsystem_parameter_argc
 	movl	%edx,operatingsystem_parameter_argv
 	call	___start
@@ -87,7 +88,6 @@ ___start:
 	movl 28(%ebp),%edi
 	movl environ@GOT(%ebx),%eax
 	movl %edx,(%eax)
-	movl %edx,operatingsystem_parameter_envp
 	movl __progname@GOT(%ebx),%edx
 	movl (%esi),%eax
 	movl %eax,(%edx)
@@ -140,6 +140,7 @@ ___start:
 
 //        xorl    %ebp,%ebp               /* Detect main from nested */
                                         /* procs/unwinding? */
+        movl operatingsystem_parameter_envp, %eax
 	pushl (%eax)
 	pushl (%esi)
 	pushl 8(%ebp)
@@ -420,6 +421,9 @@ _dladdr:
 .Lfe8:
 	.size	 _dladdr,.Lfe8-_dladdr
 	.comm	environ,4,4
+        .comm operatingsystem_parameter_envp,4,4
+        .comm operatingsystem_parameter_argc,4,4
+        .comm operatingsystem_parameter_argv,4,4
 	.comm	__mainprog_obj,4,4
 
 
