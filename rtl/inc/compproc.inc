@@ -236,7 +236,7 @@ Procedure fpc_AnsiStr_CheckRange(p : Pointer; index : SizeInt); compilerproc;
 {$endif VER2_4}
 
 Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-Function  fpc_ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt) : RawByteString;compilerproc;
+Function  fpc_ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc;
 {$ifdef EXTRAANSISHORT}
 Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): SizeInt; compilerproc;
 {$endif EXTRAANSISHORT}

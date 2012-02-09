@@ -791,7 +791,7 @@ begin
 end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 
-Function Fpc_Ansistr_Copy(Const S : RawByteString; Index,Size : SizeInt) : RawByteString;compilerproc;
+Function Fpc_Ansistr_Copy(Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc;
 var
   ResultAddress : Pointer;
 begin
@@ -809,7 +809,7 @@ begin
      ResultAddress:=NewAnsiString(Size);
      if ResultAddress<>Nil then
       begin
-        Move (Pointer(Pointer(S)+index)^,ResultAddress^,Size);
+        Move(Pointer(Pointer(S)+index)^,ResultAddress^,Size);
         PByte(ResultAddress+Size)^:=0;
         PAnsiRec(ResultAddress-AnsiFirstOff)^.Len:=Size;
         PAnsiRec(ResultAddress-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
