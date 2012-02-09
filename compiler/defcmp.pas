@@ -363,17 +363,19 @@ implementation
                             end;
                          end;
                       end
-                     else if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and
+                     else if (tstringdef(def_to).stringtype=st_ansistring) and
                              (tstringdef(def_from).stringtype=st_ansistring) then 
                       begin
-                        { don't convert ansistrings if any conditions is true:
+                        { don't convert ansistrings if any condition is true:
                           1) same encoding
                           2) from explicit codepage ansistring to ansistring and vice versa
-                          3) from any ansistring to rawbytestring }
+                          3) from any ansistring to rawbytestring 
+                          4) from rawbytestring to any ansistring }
                         if (tstringdef(def_from).encoding=tstringdef(def_to).encoding) or
                            ((tstringdef(def_to).encoding=0) and (tstringdef(def_from).encoding=getansistringcodepage)) or
                            ((tstringdef(def_to).encoding=getansistringcodepage) and (tstringdef(def_from).encoding=0)) or
-                           (tstringdef(def_to).encoding=globals.CP_NONE) then
+                           (tstringdef(def_to).encoding=globals.CP_NONE) or
+                           (tstringdef(def_from).encoding=globals.CP_NONE) then
                          begin
                            eq:=te_equal;
                          end

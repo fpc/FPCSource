@@ -711,12 +711,14 @@ implementation
            ppn:=tcallparanode(ppn.right);
          end;
         paradef:=ppn.left.resultdef;
-        if is_ansistring(paradef) or
-           (is_chararray(paradef) and
-            (paradef.size>255)) or
-           ((cs_ansistrings in current_settings.localswitches) and
-            is_pchar(paradef)) then
-          copynode:=ccallnode.createintern('fpc_ansistr_copy',paras)
+        if is_ansistring(paradef) then
+          // set resultdef to argument def
+          copynode:=ccallnode.createinternres('fpc_ansistr_copy',paras,paradef)
+        else
+         if (is_chararray(paradef) and (paradef.size>255)) or
+            ((cs_ansistrings in current_settings.localswitches) and is_pchar(paradef)) then
+           // set resultdef to ansistring type since result will be in ansistring codepage
+           copynode:=ccallnode.createinternres('fpc_ansistr_copy',paras,getansistringdef)
         else
          if is_widestring(paradef) then
            copynode:=ccallnode.createintern('fpc_widestr_copy',paras)
@@ -756,10 +758,10 @@ implementation
             npara:=ccallparanode.create(highppn,
                    ccallparanode.create(lowppn,
                    ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(ppn.left.resultdef),initrtti,rdt_normal)),
+                      (crttinode.create(tstoreddef(paradef),initrtti,rdt_normal)),
                    ccallparanode.create
                       (ctypeconvnode.create_internal(ppn.left,voidpointertype),nil))));
-            copynode:=ccallnode.createinternres('fpc_dynarray_copy',npara,ppn.left.resultdef);
+            copynode:=ccallnode.createinternres('fpc_dynarray_copy',npara,paradef);
 
             ppn.left:=nil;
             paras.free;
