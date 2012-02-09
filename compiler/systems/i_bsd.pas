@@ -215,7 +215,7 @@ unit i_bsd;
             sharedClibprefix : 'lib';
             importlibprefix : 'libimp';
             importlibext : '.a';
-            Cprefix      : '_';
+            Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
             assem        : as_gas;
