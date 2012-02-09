@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) objpas macpas iso7185 strings syscall baseunix \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets terminfo \
       video mouse keyboard  serial variants types sysctl sysconst $(CPU_UNITS) \
-      fpintres
+      fpintres cthreads unixtype unixutil strutils
       # ipc
 
 rsts=math varutils typinfo variants classes sysconst fpmkunit
@@ -183,6 +183,10 @@ classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) 
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
+
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
