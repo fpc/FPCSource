@@ -40,7 +40,11 @@ __progname:
 __ps_strings:
 	.long 0
 	.align 4
+.ifdef CPREFIX
 ___fpucw:
+.else
+__fpucw:
+.endif
         .long   0x1332
 
         .globl  ___fpc_brk_addr         /* heap management */
@@ -131,12 +135,19 @@ ___start:
 
         finit                           /* initialize fpu */
         fwait
+ .ifdef CPREFIX
         fldcw   ___fpucw
-
+ .else
+        fldcw   __fpucw
+ .endif
         xorl    %ebp,%ebp
 
+.ifdef CPREFIX
 	call _main
-	pushl %eax
+.else
+	call main
+.endif
+pushl %eax
 	jmp  _haltproc
 
 .p2align 2,0x90
@@ -175,8 +186,8 @@ _actualsyscall:
 .ascii "NetBSD\0\0"
 .long 199905
 
-        .comm environ,4
-        .comm operatingsystem_parameter_envp,4
-        .comm operatingsystem_parameter_argc,4
-        .comm operatingsystem_parameter_argv,4
+        .comm environ,4,4
+        .comm operatingsystem_parameter_envp,4,4
+        .comm operatingsystem_parameter_argc,4,4
+        .comm operatingsystem_parameter_argv,4,4
 
