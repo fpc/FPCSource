@@ -26,6 +26,9 @@ endif
 LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 
 [rules]
+# Do not pass the Makefile's unit and binary target locations. fpmake uses it's own.
+override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
+override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
 .NOTPARALLEL:
 
 fpmake: fpmake.pp

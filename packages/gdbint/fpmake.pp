@@ -40,7 +40,7 @@ begin
   // Try the default locations
   if not GdbLibFound then
     begin
-      GdbLibDir:='..'+PathDelim+'..'+PathDelim+'libgdb';
+      GdbLibDir:=Installer.BuildEngine.AddPathPrefix(p,'..'+PathDelim+'..'+PathDelim+'libgdb');
       if DirectoryExists(GdbLibDir) then
         begin
           GdbLibDir:=GdbLibDir+PathDelim+OSToString(Defaults.OS);
@@ -64,12 +64,13 @@ begin
        or ((Defaults.CPU=i386) and (Defaults.OS=go32v2) and (HostOS=win32) and (HostCPU=i386))) then
     begin
       P.Options.Add('-Fl'+GdbLibDir);
-      GdbVerTarget:=p.Targets.AddUnit('src'+PathDelim+'gdbver.pp');
+      GdbVerTarget:=p.Targets.AddProgram('src'+PathDelim+'gdbver.pp');
       Installer.BuildEngine.ResolveFileNames(p,HostCPU,HostOS,false);
+      Installer.BuildEngine.CreateOutputDir(p);
       Installer.BuildEngine.Log(vlCommand,'GDB-lib found, compiling and running gdbver to obtain GDB-version');
       Installer.BuildEngine.Compile(P,GdbVerTarget);
       p.Targets.Delete(GdbVerTarget.Index);
-      Installer.BuildEngine.ExecuteCommand(AddProgramExtension('.'+PathDelim+'gdbver',HostOS),'-o src'+PathDelim+'gdbver.inc');
+      Installer.BuildEngine.ExecuteCommand(Installer.BuildEngine.AddPathPrefix(p,p.GetBinOutputDir(HostCPU, HostOS))+PathDelim+AddProgramExtension('gdbver',HostOS),'-o ' + Installer.BuildEngine.AddPathPrefix(p,'src'+PathDelim+'gdbver.inc'));
 
       // Pass -dUSE_MINGW_GDB to the compiler when a MinGW gdb is used
       if FileExists(GdbLibDir+PathDelim+MinGWGdbLibName) then
