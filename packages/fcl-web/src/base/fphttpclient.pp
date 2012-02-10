@@ -45,6 +45,7 @@ Type
     FSocket : TInetSocket;
     FBuffer : Ansistring;
     function CheckContentLength: Integer;
+    function CheckTransferEncoding: string;
     function GetCookies: TStrings;
     procedure SetCookies(const AValue: TStrings);
     procedure SetRequestHeaders(const AValue: TStrings);
@@ -153,6 +154,8 @@ resourcestring
   SErrInvalidProtocolVersion = 'Invalid protocol version in response: "%s"';
   SErrInvalidStatusCode = 'Invalid response status code: %s';
   SErrUnexpectedResponse = 'Unexpected response status code: %d';
+  SErrChunkTooBig = 'Chunk too big';
+  SErrChunkLineEndMissing = 'Chunk line end missing';
 
 Const
   CRLF = #13#10;
@@ -257,9 +260,7 @@ end;
 procedure TFPCustomHTTPClient.AddHeader(const AHeader, AValue: String);
 
 Var
-  I,J,L : Integer;
-  H : String;
-
+  J: Integer;
 begin
   j:=IndexOfHeader(Aheader);
   if (J<>-1) then
@@ -540,6 +541,30 @@ begin
     end;
 end;
 
+Function TFPCustomHTTPClient.CheckTransferEncoding: string;
+
+Const CL ='transfer-encoding:';
+
+Var
+  S : String;
+  I : integer;
+
+begin
+  Result:='';
+  I:=0;
+  While (I<FResponseHeaders.Count) do
+    begin
+    S:=Trim(LowerCase(FResponseHeaders[i]));
+    If (Copy(S,1,Length(Cl))=Cl) then
+      begin
+      Delete(S,1,Length(CL));
+      Result:=Trim(S);
+      exit;
+      end;
+    Inc(I);
+    end;
+end;
+
 function TFPCustomHTTPClient.GetCookies: TStrings;
 begin
   If (FCookies=Nil) then
@@ -565,39 +590,145 @@ procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream; Const AllowedRespons
       Stream.Write(FBuffer[1],Result);
   end;
 
+  Procedure ReadChunkedResponse;
+  { HTTP 1.1 chunked response:
+    There is no content-length. The response consists of several chunks of
+    data, each
+    - beginning with a line
+      - starting with a hex number DataSize,
+      - an optional parameter,
+      - ending with #13#10,
+    - followed by the data,
+    - ending with #13#10 (not in DataSize),
+    It ends when the DataSize is 0.
+    After the last chunk there can be a some optional entity header fields.
+    This trailer is not yet implemented. }
+  var
+    BufPos: Integer;
+
+    function FetchData(out Cnt: integer): boolean;
+
+    begin
+      SetLength(FBuffer,ReadBuflen);
+      Cnt:=FSocket.Read(FBuffer[1],length(FBuffer));
+      If Cnt<0 then
+        Raise EHTTPClient.Create(SErrReadingSocket);
+      SetLength(FBuffer,Cnt);
+      BufPos:=1;
+      Result:=Cnt>0;
+    end;
+
+    Function ReadData(Data: PByte; Cnt: integer): integer;
+
+    var
+      l: Integer;
+    begin
+      Result:=0;
+      while Cnt>0 do
+        begin
+        l:=length(FBuffer)-BufPos+1;
+        if l=0 then
+          if not FetchData(l) then
+            exit; // end of stream
+        if l>Cnt then
+          l:=Cnt;
+        System.Move(FBuffer[BufPos],Data^,l);
+        inc(BufPos,l);
+        inc(Data,l);
+        inc(Result,l);
+        dec(Cnt,l);
+      end;
+    end;
+
+  var
+    c: char;
+    ChunkSize: Integer;
+    l: Integer;
+  begin
+    BufPos:=1;
+    repeat
+      // read ChunkSize
+      ChunkSize:=0;
+      repeat
+        if ReadData(@c,1)<1 then exit;
+        case c of
+        '0'..'9': ChunkSize:=ChunkSize*16+ord(c)-ord('0');
+        'a'..'f': ChunkSize:=ChunkSize*16+ord(c)-ord('a')+10;
+        'A'..'F': ChunkSize:=ChunkSize*16+ord(c)-ord('A')+10;
+        else break;
+        end;
+        if ChunkSize>1000000 then
+          Raise EHTTPClient.Create(SErrChunkTooBig);
+      until false;
+      // read till line end
+      while (c<>#10) do
+        if ReadData(@c,1)<1 then exit;
+      if ChunkSize=0 then exit;
+      // read data
+      repeat
+        l:=length(FBuffer)-BufPos+1;
+        if l=0 then
+          if not FetchData(l) then
+            exit; // end of stream
+        if l>ChunkSize then
+          l:=ChunkSize;
+        if l>0 then
+          begin
+          // copy chunk data to output
+          Stream.Write(FBuffer[BufPos],l);
+          inc(BufPos,l);
+          dec(ChunkSize,l);
+          end;
+      until ChunkSize=0;
+      // read #13#10
+      if ReadData(@c,1)<1 then exit;
+      if c<>#13 then
+        Raise EHTTPClient.Create(SErrChunkLineEndMissing);
+      if ReadData(@c,1)<1 then exit;
+      if c<>#10 then
+        Raise EHTTPClient.Create(SErrChunkLineEndMissing);
+      // next chunk
+    until false;
+  end;
+
 Var
   L,LB,R : Integer;
-  ResponseOK : Boolean;
-
 begin
   SetLength(FBuffer,0);
   FResponseStatusCode:=ReadResponseHeaders;
   if not CheckResponseCode(FResponseStatusCode,AllowedResponseCodes) then
     Raise EHTTPClient.CreateFmt(SErrUnexpectedResponse,[ResponseStatusCode]);
-  // Write remains of buffer to output.
-  LB:=Length(FBuffer);
-  If (LB>0) then
-    Stream.WriteBuffer(FBuffer[1],LB);
-  // Now read the rest, if any.
-  SetLength(FBuffer,ReadBuflen);
-  L:=CheckContentLength;
-  If (L>LB) then
+  if CompareText(CheckTransferEncoding,'chunked')=0 then
+    ReadChunkedResponse
+  else
     begin
-    // We cannot use copyfrom, it uses ReadBuffer, and this is dangerous with sockets
-    L:=L-LB;
-    Repeat
-      LB:=ReadBufLen;
-      If (LB>L) then
-        LB:=L;
-      R:=Transfer(LB);
-      L:=L-R;
-    until (L=0) or (R=0);
-    end
-  else if L<0 then
-    // No content-length, so we read till no more data available.
-    Repeat
-      R:=Transfer(ReadBufLen);
-    until (R=0);
+    // Write remains of buffer to output.
+    LB:=Length(FBuffer);
+    If (LB>0) then
+      Stream.WriteBuffer(FBuffer[1],LB);
+    // Now read the rest, if any.
+    SetLength(FBuffer,ReadBuflen);
+    L:=CheckContentLength;
+    If (L>LB) then
+      begin
+      // We cannot use copyfrom, it uses ReadBuffer, and this is dangerous with sockets
+      L:=L-LB;
+      Repeat
+        LB:=ReadBufLen;
+        If (LB>L) then
+          LB:=L;
+        R:=Transfer(LB);
+        L:=L-R;
+      until (L=0) or (R=0);
+      end
+    else if L<0 then
+      begin
+      // No content-length, so we read till no more data available.
+      Repeat
+        R:=Transfer(ReadBufLen);
+      until (R=0);
+      end;
+    end;
 end;
 
 procedure TFPCustomHTTPClient.DoMethod(Const AMethod,AURL: String; Stream: TStream; Const AllowedResponseCodes : Array of Integer);
@@ -720,9 +851,6 @@ end;
 procedure TFPCustomHTTPClient.FormPost(const URL, FormData: string;
   const Response: TStream);
 
-Var
-  S : TStringStream;
-
 begin
   RequestBody:=TStringStream.Create(FormData);
   try
@@ -798,8 +926,6 @@ Var
   S, Sep : string;
   SS : TStringStream;
   F : TFileStream;
-  DS : TBase64EncodingStream;
-
 begin
   Sep:=Format('%.8x_multipart_boundary',[Random($ffffff)]);
   AddHeader('Content-type','multipart/form-data; boundary='+Sep);
