@@ -491,6 +491,11 @@ const
      syscall_nr_issetugid = 305;
   { syscall: "utrace" ret: "int" args: "const char  " "void  " "size_t"  }
      syscall_nr_utrace = 306;
+  { syscall: "kqueue" ret: "int" args: }
+     syscall_nr_kqueue = 344;
+  { syscall: "kevent" ret: "int" args: "int" "const struct kevent *" "size_t" "struct kevent *" "size_t" "const struct timespec *" }
+    syscall_nr_kevent = 345;
+
      syscall_nr_MAXSYSCALL = 340;
      syscall_nr_NSYSENT = 512;
 
