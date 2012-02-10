@@ -47,6 +47,15 @@ endif
 # Do not pass the Makefile's unit and binary target locations. fpmake uses it's own.
 override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
 override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
+# Compose general fpmake-parameters
+ifdef FPMAKEOPT
+FPMAKE_OPT+=$(FPMAKEOPT)
+endif
+FPMAKE_OPT+=--localunitdir=..
+FPMAKE_OPT+=$(FPC_TARGETOPT)
+FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
+FPMAKE_OPT+=--compiler=$(FPC)
+FPMAKE_OPT+=-bu
 .NOTPARALLEL:
 
 fpmkunit_bootstrap:
@@ -54,13 +63,13 @@ fpmkunit_bootstrap:
 fpmake: fpmake.pp fpmkunit_bootstrap
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT)
 all:	fpmake
-	$(LOCALFPMAKE) compile --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT)  
 smart:	fpmake
-	$(LOCALFPMAKE) compile --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu -o -XX -o -CX
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -XX -o -CX
 release:	fpmake
-	$(LOCALFPMAKE) compile --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu -o -dRELEASE
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dRELEASE
 debug:	fpmake
-	$(LOCALFPMAKE) compile --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu -o -dDEBUG
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dDEBUG
 # If no fpmake exists and (dist)clean is called, do not try to build fpmake, it will
 # most often fail because the dependencies are cleared.
 # In case of a clean, simply do nothing
@@ -68,7 +77,7 @@ ifeq ($(FPMAKE_BIN_CLEAN),)
 clean:	
 else
 clean:	
-	$(FPMAKE_BIN_CLEAN) clean --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
 endif
 # In case of a distclean, perform an 'old'-style distclean. This to avoid problems
 # when the package is compiled using fpcmake prior to running this clean using fpmake
@@ -78,23 +87,23 @@ distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
 else
 distclean:	
 ifdef inUnix
-        { $(FPMAKE_BIN_CLEAN) distclean --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
+        { $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
 else
-        $(FPMAKE_BIN_CLEAN) distclean --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+        $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT)
 endif
 	-$(DEL) $(LOCALFPMAKE)
 endif
 install:	fpmake
 ifdef UNIXHier
-	$(LOCALFPMAKE) install --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT)
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT)
 else
-	$(LOCALFPMAKE) install --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT)
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT)
 endif
 # distinstall also installs the example-sources
 distinstall:	fpmake
 ifdef UNIXHier
-	$(LOCALFPMAKE) install --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT) -ie
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT) -ie
 else
-	$(LOCALFPMAKE) install --localunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT) -ie
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT) -ie
 endif
 
