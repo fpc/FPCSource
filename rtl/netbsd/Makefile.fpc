@@ -11,13 +11,13 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas iso7185 strings syscall baseunix \
-      $(LINUXUNIT) unix rtlconsts ctypes initc \
-      dos crt objects printer matrix \
+      $(LINUXUNIT) unix rtlconsts ctypes bsd initc \
+      dos crt objects printer matrix dl dynlibs \
       sysutils types fgl classes typinfo math varutils fmtbcd \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets terminfo \
       video mouse keyboard  serial variants types sysctl sysconst $(CPU_UNITS) \
-      fpintres
+      fpintres cthreads unixtype unixutil strutils dateutils
       # ipc
 
 rsts=math varutils typinfo variants classes sysconst fpmkunit
@@ -148,6 +148,11 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/fi
                  syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc \
                  unxsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
+dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)
+
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
+
+#
 
 #
 # TP7 Compatible RTL Units
@@ -174,6 +179,9 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
                     objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
+dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
+
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
 	$(COMPILER): $(OBJPASDIR)/rtlconsts.pp
 
@@ -183,6 +191,10 @@ classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) 
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
+
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
