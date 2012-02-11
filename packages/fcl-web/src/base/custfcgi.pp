@@ -16,6 +16,11 @@
 {$mode objfpc}
 {$H+}
 
+{ Disable rangechecks. 
+  Buffers of unknown size are received and handled with a dummy array type }
+
+{$RANGECHECKS OFF}
+
 unit custfcgi;
 
 Interface
@@ -302,8 +307,11 @@ var
 
   function GetString(ALength : integer) : string;
   begin
+    if (ALength<0) then
+      ALength:=0;
     SetLength(Result,ALength);
-    move(ARecord^.ContentData[i],Result[1],ALength);
+    if (ALength>0) then
+      move(ARecord^.ContentData[i],Result[1],ALength);
     inc(i,ALength);
   end;
 

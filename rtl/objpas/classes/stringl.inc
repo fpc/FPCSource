@@ -1133,10 +1133,7 @@ Var I : Longint;
 begin
   FOnChange:=Nil;
   FOnChanging:=Nil;
-  // This will force a dereference. Can be done better...
-  For I:=0 to FCount-1 do
-    FList^[I].FString:='';
-  FCount:=0;
+  Clear;
   SetCapacity(0);
   Inherited destroy;
 end;
