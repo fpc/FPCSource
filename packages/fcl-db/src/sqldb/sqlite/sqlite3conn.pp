@@ -94,6 +94,7 @@ type
     constructor Create(AOwner : TComponent); override;
     function GetInsertID: int64;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
+    procedure LoadExtension(LibraryFile: string);
   published
     property Options: TSqliteOptions read FOptions write SetOptions;
   end;
@@ -908,6 +909,31 @@ procedure TSQLite3Connection.GetFieldNames(const TableName: string;
   List: TStrings);
 begin
   GetDBInfo(stColumns,TableName,'name',List);
+end;
+
+procedure Tsqlite3connection.LoadExtension(Libraryfile: String);
+var
+  LoadResult: integer;
+begin
+  CheckConnected; //Apparently we need a connection before we can load extensions.
+  LoadResult:=SQLITE_ERROR; //Default to failed  
+  try    
+    LoadResult:=sqlite3_enable_load_extension(fhandle, 1); //Make sure we are allowed to load
+    if LoadResult=SQLITE_OK then
+      begin
+      LoadResult:=sqlite3_load_extension(fhandle, PChar(LibraryFile), nil, nil); //Actually load extension
+      if LoadResult=SQLITE_ERROR then
+        begin
+        DatabaseError('LoadExtension: failed to load SQLite extension (SQLite returned an error while loading).',Self);
+        end;
+      end
+      else
+      begin
+        DatabaseError('LoadExtension: failed to load SQLite extension (SQLite returned an error while enabling extensions).',Self);
+      end;
+  except
+    DatabaseError('LoadExtension: failed to load SQLite extension.',Self)
+  end;
 end;
 
 procedure TSQLite3Connection.setoptions(const avalue: tsqliteoptions);

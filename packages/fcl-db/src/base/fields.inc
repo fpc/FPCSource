@@ -2167,8 +2167,13 @@ end;
 procedure TTimeField.SetAsString(const AValue: string);
 Var R : TDateTime;
 begin
-  R:=StrToTime(AVAlue);
-  SetData(@R);
+  if AValue='' then
+    Clear    // set to NULL
+  else
+    begin
+    R:=StrToTime(AVAlue);
+    SetData(@R);
+    end;
 end;
 
 
@@ -2483,7 +2488,10 @@ end;
 procedure TBCDField.SetAsString(const AValue: string);
 
 begin
-  SetAsCurrency(strtocurr(AValue));
+  if AValue='' then
+    Clear    // set to NULL
+  else
+    SetAsCurrency(strtocurr(AValue));
 end;
 
 constructor TBCDField.Create(AOwner: TComponent);
@@ -2664,7 +2672,10 @@ end;
 
 procedure TFMTBCDField.SetAsString(const AValue: string);
 begin
-  SetAsBCD(StrToBCD(AValue));
+  if AValue='' then
+    Clear    // set to NULL
+  else
+    SetAsBCD(StrToBCD(AValue));
 end;
 
 

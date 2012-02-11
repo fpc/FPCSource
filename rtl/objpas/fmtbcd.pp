@@ -43,8 +43,8 @@
 
 { $define debug_version}
 
-{$r+,q+,s+}
-{ $r-,q-,s-}
+// Dont use s+ (Stack checking on) because it crashes libraries, see bug 21208
+{$r+,q+,s-}
 
 {$mode objfpc}
 {$h-}
