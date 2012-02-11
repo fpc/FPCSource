@@ -383,7 +383,7 @@ begin
       Exit;
     end;
     if (S <> '') or (PropInfo^.PropType^.Kind in [tkString
-      , tkLString,  tkWString, tkWChar ]) then
+      , tkLString, tkAString, tkWString, tkWChar ]) then
       WriteString(Section, GetItemName(PropInfo^.Name), Trim(S));
   end;
 end;

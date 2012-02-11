@@ -618,8 +618,8 @@ procedure TFPReaderPNG.DoDecompress;
         begin
         StartPass := 0;
         EndPass := 0;
-        CountScanlines[0] := Height;
-        ScanLineLength[0] := Width;
+        FCountScanlines[0] := Height;
+        FScanLineLength[0] := Width;
         end
       else
         begin
@@ -630,11 +630,11 @@ procedure TFPReaderPNG.DoDecompress;
           d := Height div delta[r,1];
           if (height mod delta[r,1]) > startpoints[r,1] then
             inc (d);
-          CountScanLines[r] := d;
+          FCountScanlines[r] := d;
           d := width div delta[r,0];
           if (width mod delta[r,0]) > startpoints[r,0] then
             inc (d);
-          ScanLineLength[r] := d;
+          FScanLineLength[r] := d;
           end;
         end;
       Fpltte := (ColorType = 3);
