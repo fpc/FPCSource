@@ -24,7 +24,10 @@ begin
     P.Description := 'Header to the GTK widgetset (v1).';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
 
-    P.OSes:=AllUnixOSes+[Win32,Win64];
+    P.OSes:=AllUnixOSes+[Win32,Win64]-[darwin,iphonesim];
+    if Defaults.CPU<>arm then
+      P.OSes := P.OSes + [darwin];
+
     P.Dependencies.Add('opengl');
 
     T:=P.Targets.AddUnit('src/gdk/gdkpixbuf.pp');

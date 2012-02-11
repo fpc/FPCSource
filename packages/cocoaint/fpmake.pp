@@ -17,7 +17,8 @@ begin
     P.Directory:='cocoaint';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes:=[darwin,iphonesim];
+    P.CPUs:=[i386,x86_64,powerpc,powerpc64];
+    P.OSes:=[darwin];
     P.Dependencies.Add('univint');
     P.SourcePath.Add('src');
 

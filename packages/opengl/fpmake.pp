@@ -19,7 +19,9 @@ begin
     P.Version:='2.7.1';
     P.OSes:=AllUnixOSes+[Win32,Win64];
 
-    P.Dependencies.Add('x11',AllUnixOSes);
+    P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim]);
+    if Defaults.CPU<>arm then
+      P.Dependencies.Add('x11',[darwin]);
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -30,7 +32,9 @@ begin
     T:=P.Targets.AddUnit('glu.pp');
     T:=P.Targets.AddUnit('glut.pp');
     T.Dependencies.Add('freeglut',AllOSes-[morphos]);
-    T:=P.Targets.AddUnit('glx.pp',AllUnixOSes);
+    T:=P.Targets.AddUnit('glx.pp',AllUnixOSes-[darwin,iphonesim]);
+    if Defaults.CPU<>arm then
+      T:=P.Targets.AddUnit('glx.pp',[darwin]);
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('radblur.pp');

@@ -17,7 +17,9 @@ begin
     P.Directory:='gnome1';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes:=AllUnixOSes;
+    P.OSes:=AllUnixOSes-[darwin,iphonesim];
+    if Defaults.CPU<>arm then
+      P.OSes := P.OSes + [darwin];
 
     P.Author := 'Library: Gnome project, header: FPC team';
     P.License := 'Library: LGPL2 or later, header: LGPL2 with modification, ';

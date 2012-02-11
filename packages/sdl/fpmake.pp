@@ -21,6 +21,9 @@ begin
     P.IncludePath.Add('src');
     P.Dependencies.Add('x11',AllUnixOSes);
     P.Dependencies.Add('pthreads',AllUnixOSes);
+    if Defaults.CPU=arm then
+       P.OSes := P.OSes - [darwin];
+    P.OSes := P.OSes - [iphonesim];
 
     T:=P.Targets.AddUnit('logger.pas');
       with T.Dependencies do
