@@ -53,7 +53,7 @@ To load a different type of library resource, append an integer index to 'FileNa
 Example:  C:\WINDOWS\system32\msvbvm60.dll\3
 }
 function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList;
-    bActiveX:boolean):string;
+  bActiveX,bPackage:boolean;var sPackageSource,sPackageRegUnitSource:String):string;
 
 
 Type
@@ -64,8 +64,11 @@ Type
   private
     FActiveX: Boolean;
     FAppendVersionNumber: Boolean;
+    FCreatePackage: Boolean;
     FDependencies: TStringList;
     FUnitSource: TStringList;
+    FPackageSource: TStringList;
+    FPackageRegUnitSource: TStringList;
     FInputFileName: WideString;
     FOutputFileName: String;
     FUnitname: string;
@@ -74,14 +77,21 @@ Type
     FInterface : TStrings;
     FImplementation : TStrings;
     FTypes : TStrings;
+    FDeclared : TStrings;
     FEventDisp : TStrings;
     FEventIID : TStrings;
     FEventSignatures: TStrings;
     FEventFunctions: TStrings;
     FEventProperties: TStrings;
     FEventImplementations: TStrings;
+    FAXClasses: TStrings;
+    FAXImages: TStrings;
     function GetDependencies: TStrings;
     function GetUnitSource: TStrings;
+    function GetPackageSource: TStrings;
+    function GetPackageRegUnitSource: TStrings;
+    procedure SetActiveX(AValue: Boolean);
+    procedure SetCreatePackage(AValue: Boolean);
     procedure SetOutputFileName(AValue: String);
     procedure SetUnitName(AValue: string);
   Protected
@@ -103,6 +113,9 @@ Type
     function VarTypeToStr(ParamType: integer): string; virtual;
     function TypeToString(TI: ITypeInfo; TD: TYPEDESC): string; virtual;
     function ValidateID(id: string): boolean; virtual;
+    function ValidateIDAgainstDeclared(id: string): boolean; virtual;
+    function MakeValidId(id:string;var valid:string): boolean; virtual;
+    function MakeValidIdAgainstDeclared(id:string;var valid:string): boolean;
     // The actual routines that do the work.
     procedure CreateCoClasses(const TL: ITypeLib; TICount: Integer); virtual;
     procedure CreateForwards(const TL: ITypeLib; TICount: Integer); virtual;
@@ -111,6 +124,7 @@ Type
     procedure CreateUnitHeader(const TL: ITypeLib; const LA: lpTLIBATTR); virtual;
     procedure ImportEnums(const TL: ITypeLib; TICount: Integer); virtual;
     procedure ImportGUIDs(const TL: ITypeLib; TICount: Integer); virtual;
+    Procedure DoBuildPackage;virtual;
     Procedure DoImportTypelib;virtual;
     // For the benefit of descendents;
     Property UsesClause : TStrings read FUses;
@@ -123,11 +137,15 @@ Type
     Procedure Execute;
     Property Dependencies : TStrings Read GetDependencies;
     Property UnitSource : TStrings Read GetUnitSource;
+    Property PackageSource: TStrings Read GetPackageSource;
+    Property PackageRegUnitSource: TStrings Read GetPackageRegUnitSource;
   Published
     // Create ActiveXContainer descendant: default false
-    Property ActiveX : Boolean Read FActiveX write FActiveX Default False;
+    Property ActiveX : Boolean Read FActiveX write SetActiveX Default False;
     // Append version number to unit name.
     Property AppendVersionNumber : Boolean Read FAppendVersionNumber Write FAppendVersionNumber Default True;
+    // Create lpk package for ActiveXContainer descendant: default false
+    Property CreatePackage : Boolean Read FCreatePackage write SetCreatePackage Default False;
     // File to read typelib from.
     Property InputFileName : WideString Read FInputFileName Write FInputFileName;
     // If set, unit source will be written to this file.
@@ -143,16 +161,19 @@ Resourcestring
   SErrInvalidUnitName = 'Invalid unit name : %s';
 
 function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList;
-  bActiveX:boolean):string;
+  bActiveX,bPackage:boolean;var sPackageSource,sPackageRegUnitSource:String):string;
 var i:integer;
 begin
   With TTypeLibImporter.Create(Nil) do
     try
       InputFileName:=FileName;
       ActiveX:=bActiveX;
+      CreatePackage:=bPackage;
       Execute;
       Result:=UnitSource.Text;
-      sUnitname:=UnitName+'.pas';
+      sUnitname:=UnitName;
+      sPackageSource:=FPackageSource.Text;
+      sPackageRegUnitSource:=FPackageRegUnitSource.Text;
       if Assigned(slDependencies) then
         begin  //add new dependencies
         for i:=0 to Dependencies.Count-1 do
@@ -189,7 +210,7 @@ begin
     vt_dispatch  : Result := 'IDispatch';
     vt_error : Result := 'SCODE';
     vt_bool : Result := 'WordBool';
-    vt_variant : Result := 'Variant';
+    vt_variant : Result := 'OleVariant';
     vt_unknown : Result := 'IUnknown';
     vt_i1  : Result := 'ShortInt';
     vt_ui1 : Result := 'Byte';
@@ -248,6 +269,38 @@ begin
       end;
 end;
 
+function TTypeLibImporter.ValidateIDAgainstDeclared(id: string): boolean;
+var i:integer;
+begin
+  id:=lowercase(id);
+  i:=FDeclared.Count-1;
+  while i>=0 do
+    begin
+    if lowercase(FDeclared[i])=id then
+      break;
+    i:=i-1;
+    end;
+  result:=i<0;
+end;
+
+function TTypeLibImporter.MakeValidId(id:string;var valid:string): boolean;
+begin
+  result:= ValidateID(id);
+  if result then
+    valid:=id
+  else
+    valid:=id+'_';
+end;
+
+function TTypeLibImporter.MakeValidIdAgainstDeclared(id:string;var valid:string): boolean;
+begin
+  result:= ValidateIDAgainstDeclared(id) and ValidateID(id);
+  if result then
+    valid:=id
+  else
+    MakeValidIdAgainstDeclared(id+'_',valid);
+end;
+
 
 function TTypeLibImporter.TypeToString(TI:ITypeInfo; TD:TYPEDESC):string;
 
@@ -278,16 +331,16 @@ begin
       TD:=TD.lptdesc^;
     OleCheck(TI.GetRefTypeInfo(TD.hreftype,TIref));
     OleCheck(TIRef.GetDocumentation(DISPID_UNKNOWN, @BstrName, nil, nil, nil));
-    result:=BstrName;
+    MakeValidId(BstrName,result);
     OleCheck(TIRef.GetTypeAttr(TARef));
-    bIsCustomAutomatable:=TARef^.typekind in [TKIND_DISPATCH,TKIND_INTERFACE,TKIND_ENUM];
+    bIsCustomAutomatable:=TARef^.typekind in [TKIND_DISPATCH,TKIND_INTERFACE,TKIND_ENUM,TKIND_COCLASS];
     if TARef^.typekind=TKIND_ALIAS then
       begin
       TypeToString(TIRef,TARef^.tdescAlias); //not interested in result, only bIsCustomAutomatable and bIsInterface
       bIsCustomAutomatable:=bIsAutomatable;
       end
     else
-      bIsInterface:=TARef^.typekind in [TKIND_DISPATCH,TKIND_INTERFACE] ;
+      bIsInterface:=TARef^.typekind in [TKIND_DISPATCH,TKIND_INTERFACE,TKIND_COCLASS] ;
     if bWasPointer and not bIsInterface then  // interfaces are pointers to interface in fpc
       result:='P'+result;
     OleCheck(TIRef.GetContainingTypeLib(TLRef,il));
@@ -337,7 +390,7 @@ begin
     begin
     TD:=TD.lptdesc^;
     result:='P'+TypeToString(TI,TD);
-    bIsAutomatable:=(VarTypeIsAutomatable(TD.vt) {and (TD.vt<>VT_VARIANT)}) or bIsCustomAutomatable;
+    bIsAutomatable:=VarTypeIsAutomatable(TD.vt) or bIsCustomAutomatable;
     exit;
     end
   else if TD.vt=VT_CARRAY then //C type array
@@ -364,21 +417,22 @@ function TTypeLibImporter.interfacedeclaration(iName,iDoc:string;TI:ITypeInfo;TA
 type
   TPropertyDef=record
     idispid:integer;
-    bput,bget:boolean;
-    iptype,igtype:integer;
-    name,
-    sptype,          // only used if iptype=igtype
+    bput,bputref,bget:boolean;
+    name,pname,prname,
+    sgtype,sptype,sprtype,
     sorgname,
     sdoc,
     sParam,
-    sDefault:string;
+    sDefault,
+    sPutSuffix:string;
   end;
 
 var
   RTIT: HREFTYPE;
   TIref: ITypeInfo;
   BstrName,BstrNameRef,BstrDocString : WideString;
-  s,sl,sPropIntfc,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,sPropParam,sPropParam2:string;
+  s,sl,sPropIntfc,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,
+  sPropParam,sPropParam2,sPropParam3:string;
   sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:string;
   i,j,k:integer;
   FD: lpFUNCDESC;
@@ -405,15 +459,19 @@ var
       begin
       idispid:=ireqdispid;
       bput:=false;
+      bputref:=false;
       bget:=false;
       name:='';
-      iptype:=vt_empty;
-      igtype:=vt_empty;
+      pname:='';
+      prname:='';
+      sgtype:='';
       sptype:='';
+      sprtype:='';
       sorgname:='';
       sdoc:='';
       sParam:='';
       sDefault:='';
+      sPutSuffix:='';
       end;
   end;
 
@@ -432,7 +490,8 @@ begin
       OleCheck(TI.GetRefTypeOfImplType(0,RTIT));
       OleCheck(TI.GetRefTypeInfo(RTIT,TIref));
       OleCheck(TIRef.GetDocumentation(DISPID_UNKNOWN, @BstrNameRef, nil, nil, nil));
-      s:=format(#13#10'// %s : %s'#13#10#13#10' %s = interface(%s)'#13#10,[iname,iDoc,iname,BstrNameRef]);
+      MakeValidId(BstrNameRef,sl);
+      s:=format(#13#10'// %s : %s'#13#10#13#10' %s = interface(%s)'#13#10,[iname,iDoc,iname,sl]);
       end
     else // no base class
       begin
@@ -459,6 +518,8 @@ begin
       ((sl='gettypeinfocount') or (sl='gettypeinfo') or (sl='getidsofnames') or (sl='invoke')) then  //IDispatch
       continue;
     // get return type
+    if iname='DocumentProperty' then
+      sl:=sl;   //remove
     if bIsDispatch and ((FD^.invkind=INVOKE_PROPERTYGET) or (FD^.invkind=INVOKE_FUNC)) then
       begin
       sType:=TypeToString(TI,FD^.elemdescFunc.tdesc);
@@ -475,7 +536,13 @@ begin
           if assigned(FD^.lprgelemdescParam[FD^.cParams-1].tdesc.lptdesc) then
             iType:=FD^.lprgelemdescParam[FD^.cParams-1].tdesc.lptdesc^.vt;
           end;
-        end;
+        end
+      else
+        if((FD^.invkind=INVOKE_PROPERTYGET) or (FD^.invkind=INVOKE_FUNC)) then
+          begin
+          sType:=TypeToString(TI,FD^.elemdescFunc.tdesc);
+          iType:=FD^.elemdescFunc.tdesc.vt;
+          end;
     //get calling convention
     if FD^.callconv=CC_STDCALL then
       begin
@@ -492,20 +559,15 @@ begin
       // build function/procedure
       INVOKE_FUNC :
         begin
-        if ValidateID(BstrName) then
-          sMethodName:=BstrName
-        else
-          begin
-          sMethodName:=BstrName+'_';
+        if not MakeValidId(BstrName,sMethodName) then
           AddToHeader('//  Warning: renamed method ''%s'' in %s to ''%s''',[BstrName,iname,sMethodName],True);
-          end;
         bIsFunction:=(bIsDispatch and (FD^.elemdescFunc.tdesc.vt<>VT_VOID)) or
           (not bIsDispatch and (FD^.cParams>0) and ((FD^.lprgelemdescParam[FD^.cParams-1].paramdesc.wParamFlags and PARAMFLAG_FRETVAL ) <>0));
         if bIsFunction then
           sFunc:=format('    // %s : %s '#13#10'   function %s(',[sMethodName,BstrDocString,sMethodName])
         else
           sFunc:=format('    // %s : %s '#13#10'   procedure %s(',[sMethodName,BstrDocString,sMethodName]);
-        if bIsFunction and bIsDispatch and not bIsAutomatable then
+        if bIsFunction and bIsDispatch and (not bIsAutomatable or (sType='POleVariant')) then
           begin
           AddToHeader('//  Warning: ''%s'' not automatable in %sdisp.%s',[stype,iname,BstrName],True);
           sType:='{!! '+sType+' !!} OleVariant';
@@ -523,11 +585,13 @@ begin
         // parameters
         for k:=0 to FD^.cParams-1 do
           begin
-          bParamByRef:=(FD^.lprgelemdescParam[k].tdesc.vt=VT_PTR) and                         // by ref
-            not((FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface);// but not pointer to interface
           if (FD^.lprgelemdescParam[k].paramdesc.wParamFlags and PARAMFLAG_FRETVAL ) <>0 then  //return type
             continue;
           sl:=TypeToString(TI,FD^.lprgelemdescParam[k].tdesc);
+          bParamByRef:=(FD^.lprgelemdescParam[k].tdesc.vt=VT_PTR) and                         // by ref
+            not((FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface);// but not pointer to interface
+          if BL[k+1]='pFormat' then
+            sl:=sl; //remove
           if bParamByRef then
              delete(sl,1,1);
           if bIsDispatch and not bIsAutomatable then
@@ -542,13 +606,8 @@ begin
             PARAMFLAG_FOUT:sPar:='out ';
             PARAMFLAG_FIN:sPar:='var '; //constref in safecall? TBD
             end;
-          if ValidateID(BL[k+1]) then
-            sVarName:=BL[k+1]
-          else
-            begin
-            sVarName:=BL[k+1]+'_';
-            AddToHeader('//  Warning: renamed parameter ''%s'' in %s.%s to ''%s'''#13#10,[BL[k+1],iname,sMethodName,sVarName],True);
-            end;
+          if not MakeValidId(BL[k+1],sVarName) then
+            AddToHeader('//  Warning: renamed parameter ''%s'' in %s.%s to ''%s''',[BL[k+1],iname,sMethodName,sVarName],True);
           sPar:=sPar+format('%s:%s;',[sVarName,sl]);
           sFunc:=sFunc+sPar;
           if bCreateEvents then
@@ -557,28 +616,50 @@ begin
             //params are numbered last to first
             if bParamByRef and not(bIsDispatch and not bIsAutomatable) then
               begin
-              case FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt of
-                VT_UI1:       sl:='pbVal';
-                VT_UI2:       sl:='puiVal';
-                VT_UI4:       sl:='pulVal';
-                VT_UI8:       sl:='pullVal';
-                VT_I1:        sl:='pcVal';
-                VT_I2:        sl:='piVal';
-                VT_I4:        sl:='plVal';
-                VT_I8:        sl:='pllVal';
-                VT_R4:        sl:='pfltVal';
-                VT_R8:        sl:='pdblVal';
-                VT_BOOL:      sl:='pbool';
-                VT_ERROR:     sl:='pscode';
-                VT_CY:        sl:='pcyVal';
-                VT_DATE:      sl:='pdate';
-                VT_BSTR:      sl:='pbstrVal';
-                VT_UNKNOWN:   sl:='punkVal';
-                VT_DISPATCH:  sl:='pdispVal';
-                VT_ARRAY:     sl:='pparray';
-                VT_VARIANT:   sl:='pvarVal';
-              end;
-              sEventImplementations:=sEventImplementations+format(' Params.rgvarg[%d].%s^,',[FD^.cParams-1-k,sl]);
+              if ((FD^.lprgelemdescParam[k].paramdesc.wParamFlags and (PARAMFLAG_FIN or PARAMFLAG_FOUT))<>0)
+                and (FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt=VT_PTR)
+                and (FD^.lprgelemdescParam[k].tdesc.lptdesc^.lptdesc^.vt=VT_USERDEFINED) then
+                //some casting needed for interfaces!!
+                sEventImplementations:=sEventImplementations+format(' %s(Params.rgvarg[%d].byRef^),',[sl,FD^.cParams-1-k])
+              else if  FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt=VT_USERDEFINED then
+                //some casting needed for enums!!
+                sEventImplementations:=sEventImplementations+format(' %s(Params.rgvarg[%d].byRef^),',[sl,FD^.cParams-1-k])
+              else if  FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt=VT_VARIANT then
+                //pvarVal^ results in Error: Can't take the address of constant expressions ?????
+                sEventImplementations:=sEventImplementations+format(' OleVariant(Params.rgvarg[%d].byRef^),',[FD^.cParams-1-k])
+              else if  FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt=VT_BSTR then
+                //pbstrVal^ results in Error: Can't take the address of constant expressions ?????
+                sEventImplementations:=sEventImplementations+format(' WideString(Params.rgvarg[%d].byRef^),',[FD^.cParams-1-k])
+              else
+                begin
+                case FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt of
+                  VT_UI1:       sl:='pbVal';
+                  VT_UI2:       sl:='puiVal';
+                  VT_UI4:       sl:='pulVal';
+                  VT_UI8:       sl:='pullVal';
+                  VT_I1:        sl:='pcVal';
+                  VT_I2:        sl:='piVal';
+                  VT_I4:        sl:='plVal';
+                  VT_I8:        sl:='pllVal';
+                  VT_R4:        sl:='pfltVal';
+                  VT_R8:        sl:='pdblVal';
+                  VT_BOOL:      sl:='pbool';
+                  VT_ERROR:     sl:='pscode';
+                  VT_CY:        sl:='pcyVal';
+                  VT_DATE:      sl:='pdate';
+//                  VT_BSTR:      sl:='pbstrVal';
+                  VT_UNKNOWN:   sl:='punkVal';
+                  VT_DISPATCH:  sl:='pdispVal';
+                  VT_ARRAY:     sl:='pparray';
+                  //VT_VARIANT:   sl:='pvarVal';
+                  VT_INT:       sl:='pintVal';
+                  VT_UINT:      sl:='puintVal';
+                  VT_DECIMAL:   sl:='pdecVal';
+                else
+                  sl:='byRef';
+                end;
+                sEventImplementations:=sEventImplementations+format(' Params.rgvarg[%d].%s^,',[FD^.cParams-1-k,sl]);
+                end;
               end
             else
               sEventImplementations:=sEventImplementations+format(' OleVariant(Params.rgvarg[%d]),',[FD^.cParams-1-k]);
@@ -606,13 +687,8 @@ begin
       INVOKE_PROPERTYGET,INVOKE_PROPERTYPUT,INVOKE_PROPERTYPUTREF :
         // build properties. Use separate string to group properties at end of interface declaration.
         begin
-        if ValidateID(BstrName) then
-          sMethodName:=BstrName
-        else
-          begin
-          sMethodName:=BstrName+'_';
+        if not MakeValidId(BstrName,sMethodName) then
           AddToHeader('//  Warning: renamed property ''%s'' in %s to ''%s''',[BstrName,iname,sMethodName]);
-          end;
         bPropHasParam:=(((FD^.invkind=INVOKE_PROPERTYGET) and (FD^.cParams>0)) or (FD^.cParams>1))
             and ((FD^.lprgelemdescParam[0].paramdesc.wParamFlags and PARAMFLAG_FIN) = PARAMFLAG_FIN) ;
         if (FD^.memid=0) and  bPropHasParam then sl:=' default;' else sl:='';
@@ -620,11 +696,13 @@ begin
         sPropParam2:='';
         if bPropHasParam then
           begin
-          sPropParam:=BL[1]+':'+TypeToString(TI,FD^.lprgelemdescParam[0].tdesc);
+          if not MakeValidId(BL[1],sPropParam) then
+            AddToHeader('//  Warning: renamed property index  ''%s'' in %s.%s to ''%s''',[BL[1],iname,sMethodName,sPropParam]);
+          sPropParam:=sPropParam+':'+TypeToString(TI,FD^.lprgelemdescParam[0].tdesc);
           end;
         if bIsDispatch then
           begin
-          if (TD.vt<>VT_VOID) and not bIsAutomatable then
+          if (TD.vt<>VT_VOID) and (not bIsAutomatable or (sType='POleVariant')) then
             begin
             AddToHeader('//  Warning: ''%s'' not automatable in %s.%s',[stype,iname,BstrName]);
             sType:='{!! '+sType+' !!} OleVariant';
@@ -635,14 +713,16 @@ begin
           if i<=0 then
             begin
             if FD^.invkind=INVOKE_PROPERTYGET then
-              sType:=sType+' readonly '
+              sType:=sType+'  readonly'
             else
               sType:=sType+' writeonly';
             sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s%s:%s dispid %d;%s'#13#10,
               [BstrName,BstrDocString,sMethodName,sPropParam,sType,FD^.memid,sl]);
             end
           else //remove readonly or writeonly
-            delete(sPropDispIntfc,i-11,10);   //10= length(' readonly ')
+            // make sure writeonly isn't delete twice (put and putref !!)
+            if pos(format('only dispid %d;',[FD^.memid]),sPropDispIntfc)>0 then
+              delete(sPropDispIntfc,i-11,10);   //10= length('  readonly')
           end
         else
           begin
@@ -651,8 +731,11 @@ begin
           if bPropHasParam then
             begin
             sPropParam2:='('+sPropParam+')';
+            sPropParam3:=sPropParam+'; const par'+sMethodName;
             sPropParam:='['+sPropParam+']';
             end;
+          if sMethodName='SelectedItem' then
+            sl:=sl; //remove
           if FD^.invkind=INVOKE_PROPERTYGET then
             begin
             s:=s+format('   function Get_%s%s : %s; %s;'#13#10,[sMethodName,sPropParam2,sType,sConv]);
@@ -660,8 +743,7 @@ begin
               begin
               bget:=true;
               name:=sMethodName;
-              igtype:=itype;
-              sptype:=sType;
+              sgtype:=sType;
               sorgname:=BstrName;
               sdoc:=BstrDocString;
               sParam:=sPropParam;
@@ -670,25 +752,35 @@ begin
             end
           else
             begin
-            if ValidateID(BL[1]) then
-              sVarName:=BL[1]
-            else
-              begin
-              sVarName:=BL[1]+'_';
+            if not MakeValidId(BL[1],sVarName) then
               AddToHeader('//  Warning: renamed parameter ''%s'' in %s.Set_%s to ''%s''',[BL[1],iname,sMethodName,sVarName]);
-              end;
-            s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sVarName,sType,sConv]);
             with aPropertyDefs[findProperty(FD^.memid)] do
               begin
-              bput:=true;
-              name:=sMethodName;
-              iptype:=itype;
-              sptype:=sType;
+              if FD^.invkind=INVOKE_PROPERTYPUT then
+                begin
+                sptype:=sType;
+                bput:=true;
+                if bputref then                  //disambiguate  multiple setter
+                  sMethodName:=sMethodName+'_';
+                pname:=sMethodName;
+                end
+              else
+                begin
+                sprtype:=sType;
+                bputref:=true;
+                if bput then                     //disambiguate  multiple setter
+                  sMethodName:=sMethodName+'_';
+                prname:=sMethodName;
+                end;
               sorgname:=BstrName;
               sdoc:=BstrDocString;
               sParam:=sPropParam;
               sDefault:=sl;
               end;
+            if bPropHasParam then
+              s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sPropParam3,sType,sConv])
+            else
+              s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sVarName,sType,sConv]);
             end;
           end;
         end;
@@ -703,13 +795,8 @@ begin
       if assigned(VD) then
         begin
         TI.GetDocumentation(VD^.memId,@BstrName, @BstrDocString, nil, nil);
-        if ValidateID(BstrName) then
-          sMethodName:=BstrName
-        else
-          begin
-          sMethodName:=BstrName+'_';
-          AddToHeader('//  Warning: renamed property ''%s'' in %s to ''%s'''#13#10,[BstrName,iname,sMethodName]);
-          end;
+        if not MakeValidId(BstrName,sMethodName) then
+          AddToHeader('//  Warning: renamed property ''%s'' in %s to ''%s''',[BstrName,iname,sMethodName]);
         sType:=TypeToString(TI,VD^.ElemdescVar.tdesc);
         sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s:%s  dispid %d;'#13#10,
           [BstrName,BstrDocString,sMethodName,sType,VD^.memId]);
@@ -732,15 +819,28 @@ begin
     // add interface properties
     for i:=0 to Propertycnt-1 do
       with aPropertyDefs[i] do
-      if (iptype=igtype) or not bget or not bput then
+      if not bget then //setter only
         begin
-        s:=s+format('    // %s : %s '#13#10'   property %s%s:%s',[sorgname,sdoc,name,sParam,sptype]);
-        if bget then
-          s:=s+format(' read Get_%s',[name]);
         if bput then
-          s:=s+format(' write Set_%s',[name]);
-        s:=s+format(';%s'#13#10,[sDefault]);
-        end;
+          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s write Set_%s;%s'#13#10,
+            [sorgname,sdoc,pname,sParam,sptype,pname,sDefault])
+        else
+          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s write Set_%s;%s'#13#10,
+            [sorgname,sdoc,prname,sParam,sprtype,prname,sDefault]);
+        end
+      else if not (bput or bputref) then //getter only
+        s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s;%s'#13#10,
+          [sorgname,sdoc,name,sParam,sgtype,name,sDefault])
+      else if bput and (sptype=sgtype) then //don't create property if no matching type.
+        begin
+        s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s write Set_%s;%s'#13#10,
+          [sorgname,sdoc,name,sParam,sptype,name,pname,sDefault]);
+        end
+        else if bputref and (sprtype=sgtype) then //don't create property if no matching type.
+          begin
+          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s write Set_%s;%s'#13#10,
+            [sorgname,sdoc,name,sParam,sprtype,name,prname,sDefault]);
+          end;
     result:=s+'  end;'#13#10;
     end;
 end;
@@ -753,6 +853,30 @@ end;
 function TTypeLibImporter.GetUnitSource: TStrings;
 begin
   Result:=FUnitSource;
+end;
+
+function TTypeLibImporter.GetPackageSource: TStrings;
+begin
+  Result:=FPackageSource;
+end;
+
+function TTypeLibImporter.GetPackageRegUnitSource: TStrings;
+begin
+   Result:=FPackageRegUnitSource;
+end;
+
+procedure TTypeLibImporter.SetActiveX(AValue: Boolean);
+begin
+  if FActiveX=AValue then Exit;
+  FActiveX:=AValue;
+  if not FActiveX then FCreatePackage:=false;
+end;
+
+procedure TTypeLibImporter.SetCreatePackage(AValue: Boolean);
+begin
+  if FCreatePackage=AValue then Exit;
+  FCreatePackage:=AValue;
+  if FCreatePackage then FActiveX:=true;
 end;
 
 Procedure TTypeLibImporter.ImportGUIDs(Const TL : ITypeLib; TICount : Integer);
@@ -777,21 +901,114 @@ begin
       TKIND_DISPATCH,TKIND_INTERFACE:
         begin
         AddToInterface('  IID_%s : TGUID = ''%s'';',[BstrName,GUIDToString(TA^.GUID)]);
+        FTypes.Add(BstrName);
+        FDeclared.Add(BstrName);
         end;
       TKIND_COCLASS:
         begin
         AddToInterface('  CLASS_%s : TGUID = ''%s'';',[BstrName,GUIDToString(TA^.GUID)]);
+        FTypes.Add(BstrName);
+        FDeclared.Add(BstrName);
         end;
       end;
     TI.ReleaseTypeAttr(TA);
     end;
 end;
 
+procedure TTypeLibImporter.DoBuildPackage;
+var
+  i : integer;
+  sl:string;
+begin
+  if FAXClasses.Count=0 then  //nothing to do
+    exit;
+  // create lpk
+  FPackageSource.Clear;
+  FPackageSource.Add('<?xml version="1.0"?>');
+  FPackageSource.Add('<CONFIG>');
+  FPackageSource.Add('  <Package Version="4">');
+  FPackageSource.Add('    <PathDelim Value="\"/>');
+  FPackageSource.Add(format('    <Name Value="%sP"/>',[unitname]));
+  FPackageSource.Add('    <CompilerOptions>');
+  FPackageSource.Add('      <Version Value="11"/>');
+  FPackageSource.Add('      <PathDelim Value="\"/>');
+  FPackageSource.Add('      <SearchPaths>');
+  FPackageSource.Add('        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>');
+  FPackageSource.Add('      </SearchPaths>');
+  FPackageSource.Add('      <Other>');
+  FPackageSource.Add('        <CompilerMessages>');
+  FPackageSource.Add('          <UseMsgFile Value="True"/>');
+  FPackageSource.Add('        </CompilerMessages>');
+  FPackageSource.Add('        <CustomOptions Value="-Ur"/>');
+  FPackageSource.Add('        <CompilerPath Value="$(CompPath)"/>');
+  FPackageSource.Add('      </Other>');
+  FPackageSource.Add('    </CompilerOptions>');
+  FPackageSource.Add(format('    <Description Value="%s package"/>',[unitname]));
+  FPackageSource.Add('    <Version Minor="1"/>');
+  FPackageSource.Add('    <Files Count="2">');
+  FPackageSource.Add('      <Item1>');
+  FPackageSource.Add(format('        <Filename Value="%s.pas"/>',[unitname]));
+  FPackageSource.Add(format('        <UnitName Value="%s"/>',[unitname]));
+  FPackageSource.Add('      </Item1>');
+  FPackageSource.Add('      <Item2>');
+  FPackageSource.Add(format('        <Filename Value="%sPreg.pas"/>',[unitname]));
+  FPackageSource.Add('        <HasRegisterProc Value="True"/>');
+  FPackageSource.Add('        <AddToUsesPkgSection Value="False"/>');
+  FPackageSource.Add(format('        <UnitName Value="%sPreg"/>',[unitname]));
+  FPackageSource.Add('      </Item2>');
+  FPackageSource.Add('    </Files>');
+  FPackageSource.Add('    <Type Value="RunAndDesignTime"/>');
+  FPackageSource.Add('    <RequiredPkgs Count="1">');
+  FPackageSource.Add('      <Item1>');
+  FPackageSource.Add('        <PackageName Value="LazActiveX"/>');
+  FPackageSource.Add('      </Item1>');
+  FPackageSource.Add('    </RequiredPkgs>');
+  FPackageSource.Add('    <UsageOptions>');
+  FPackageSource.Add('      <UnitPath Value="$(PkgOutDir)"/>');
+  FPackageSource.Add('    </UsageOptions>');
+  FPackageSource.Add('    <PublishOptions>');
+  FPackageSource.Add('      <Version Value="2"/>');
+  FPackageSource.Add('    </PublishOptions>');
+  FPackageSource.Add('  </Package>');
+  FPackageSource.Add('</CONFIG>');
+  // create registration unit
+  FPackageRegUnitSource.Clear;
+  FPackageRegUnitSource.Add(format('unit %sPreg;',[unitname]));
+  FPackageRegUnitSource.Add('');
+  FPackageRegUnitSource.Add('interface');
+  FPackageRegUnitSource.Add('');
+  FPackageRegUnitSource.Add('uses');
+  FPackageRegUnitSource.Add(format('  %s;',[unitname]));
+  FPackageRegUnitSource.Add('');
+  FPackageRegUnitSource.Add('procedure Register;');
+  FPackageRegUnitSource.Add('');
+  FPackageRegUnitSource.Add('implementation');
+  FPackageRegUnitSource.Add('');
+  FPackageRegUnitSource.Add('uses  classes,LResources;');
+  FPackageRegUnitSource.Add('');
+  FPackageRegUnitSource.Add('');
+  FPackageRegUnitSource.Add('procedure Register;');
+  FPackageRegUnitSource.Add('begin');
+  sl:='';
+  for i:=0 to FAXClasses.Count-1 do
+    sl:=sl+FAXClasses[i]+',';
+  sl[Length(sl)]:=']';
+  FPackageRegUnitSource.Add(format('  RegisterComponents(''ActiveX'', [%s);',[sl]));
+  FPackageRegUnitSource.Add('end;');
+  FPackageRegUnitSource.Add('');
+  FPackageRegUnitSource.Add('initialization');
+  FPackageRegUnitSource.Add('');
+  for i:=0 to FAXImages.Count-1 do
+    PackageRegUnitSource.Add(FAXImages[i]);
+  FPackageRegUnitSource.Add('');
+  FPackageRegUnitSource.Add('end.');
+end;
+
 Procedure TTypeLibImporter.ImportEnums(Const TL : ITypeLib; TICount : Integer);
 
 Var
   i,j : integer;
-  sl : string;
+  sl ,senum: string;
   BstrName, BstrDocString, BstrHelpFile : WideString;
   dwHelpContext: DWORD;
   TI:ITypeInfo;
@@ -814,22 +1031,18 @@ begin
     if TIT=TKIND_ENUM then
       begin
       bDuplicate:=false;
-      if ValidateID(BstrName) then
-        sl:=BstrName
-      else
+      if not MakeValidId(BstrName,senum) then
+        AddToHeader('//  Warning: renamed enum type ''%s'' to ''%s''',[BstrName,senum],True);
+      if (InterfaceSection.IndexOf(Format('  %s =LongWord;',[senum]))<>-1) then  // duplicate enums fe. AXVCL.dll 1.0
         begin
-        sl:=BstrName+'_';
-        AddToHeader('//  Warning: renamed enum type ''%s'' to ''%s''',[BstrName,sl],True);
-        end;
-      if (InterfaceSection.IndexOf(Format('  %s =TOleEnum;',[sl]))<>-1) then  // duplicate enums fe. AXVCL.dll 1.0
-        begin
-        sl:=sl+IntToStr(i); // index is unique in this typelib
-        AddToHeader('//  Warning: duplicate enum ''%s''. Renamed to ''%s''. consts appended with %d',[BstrName,sl,i]);
+        senum:=senum+IntToStr(i); // index is unique in this typelib
+        AddToHeader('//  Warning: duplicate enum ''%s''. Renamed to ''%s''. consts appended with %d',[BstrName,senum,i]);
         bDuplicate:=true;
         end;
       AddToInterface('Type');
-      AddToInterface('  %s =TOleEnum;',[sl]);
-      FTypes.Add(sl);
+      AddToInterface('  %s =LongWord;',[senum]);
+      FTypes.Add(senum);
+      FDeclared.Add(senum);
       AddToInterface('Const');
       for j:=0 to TA^.cVars-1 do
         begin
@@ -837,17 +1050,17 @@ begin
         if assigned(VD) then
           begin
           TI.GetDocumentation(VD^.memId,@BstrName, nil, nil, nil);
-          if ValidateID(BstrName) then
-            sl:=BstrName
-          else
-            begin
-            sl:=BstrName+'_';
-            AddToHeader('//  Warning: renamed enum value ''%s'' to ''%s''',[BstrName,sl],True);
-            end;
           if bDuplicate then
-            sl:=sl+IntToStr(i);
+            sl:=BstrName+IntToStr(i)
+          else
+            sl:=BstrName;
           if assigned(VD^.lpvarValue) then
+            begin
+            if not MakeValidIdAgainstDeclared(sl,sl) then
+              AddToHeader('//  Warning: renamed enum member ''%s'' of ''%s'' to ''%s''',[BstrName,senum,sl],True);
             AddToInterface('  %s = $%s;',[sl,IntToHex(PtrInt(VD^.lpvarValue^),16)]);
+            FDeclared.Add(sl);
+            end;
           end;
         end;
       end;
@@ -858,12 +1071,15 @@ end;
 Procedure TTypeLibImporter.CreateForwards(Const TL : ITypeLib; TICount : Integer);
 
 Var
-  i : integer;
-  BstrName, BstrDocString, BstrHelpFile : WideString;
+  i, j: integer;
+  BstrName, BstrNameRef : WideString;
   dwHelpContext: DWORD;
-  TI:ITypeInfo;
+  TI, TIref:ITypeInfo;
   TA:LPTYPEATTR;
   TIT: TYPEKIND;
+  RTIT : HREFTYPE;
+  ITF:WINT;
+  sl,slref:string;
 
 begin
   // Forward declarations
@@ -874,20 +1090,57 @@ begin
     begin
     OleCheck(TL.GetTypeInfoType(i, TIT));
     OleCheck(TL.GetTypeInfo(i, TI));
-    OleCheck(TL.GetDocumentation(i, @BstrName, @BstrDocString, @dwHelpContext, @BstrHelpFile));
+    OleCheck(TL.GetDocumentation(i, @BstrName, nil, nil, nil));
     OleCheck(TI.GetTypeAttr(TA));
     if (TIT=TKIND_DISPATCH) then
       begin
+      if not MakeValidId(BstrName,sl) then
+        AddToHeader('//  Warning: renamed interface ''%s'' to ''%s''',[BstrName,sl],True);
       if (TA^.wTypeFlags and TYPEFLAG_FDUAL)=TYPEFLAG_FDUAL then
         begin
-        AddToInterface(' %s = interface;',[BstrName]);
-        AddToInterFace(' %sDisp = dispinterface;',[BstrName]);
+        AddToInterface(' %s = interface;',[sl]);
+        AddToInterFace(' %sDisp = dispinterface;',[sl]);
+        FDeclared.Add(sl+'disp');
         end
       else
-        AddToInterface(' %s = dispinterface;',[BstrName]);
+        AddToInterface(' %s = dispinterface;',[sl]);
       end
     else if (TIT=TKIND_INTERFACE) then
-      AddToInterface(' %s = interface;',[BstrName]);
+      begin
+      if not MakeValidId(BstrName,sl) then
+        AddToHeader('//  Warning: renamed interface ''%s'' to ''%s''',[BstrName,sl],True);
+      AddToInterface(' %s = interface;',[sl]);
+      end;
+    TI.ReleaseTypeAttr(TA);
+    end;
+  // Default interfaces for Co Classes
+  AddToInterface('');
+  AddToInterface('//Map CoClass to its default interface');
+  AddToInterface('');
+  for i:=0 to TIcount-1 do
+    begin
+    OleCheck(TL.GetTypeInfoType(i, TIT));
+    OleCheck(TL.GetTypeInfo(i, TI));
+    OleCheck(TL.GetDocumentation(i, @BstrName, nil, nil, nil));
+    OleCheck(TI.GetTypeAttr(TA));
+    if (TIT=TKIND_COCLASS) then
+      begin //find default interface
+      if not MakeValidId(BstrName,sl) then
+        AddToHeader('//  Warning: renamed coclass ''%s'' to ''%s''',[BstrName,sl],True);
+      for j:=0 to TA^.cImplTypes-1 do
+        begin
+        OleCheck(TI.GetImplTypeFlags(J,ITF));
+        if (ITF and (IMPLTYPEFLAG_FDEFAULT or IMPLTYPEFLAG_FSOURCE))= IMPLTYPEFLAG_FDEFAULT then
+          begin
+          OleCheck(TI.GetRefTypeOfImplType(J,RTIT));
+          OleCheck(TI.GetRefTypeInfo(RTIT,TIref));
+          OleCheck(TIRef.GetDocumentation(DISPID_UNKNOWN, @BstrNameRef, nil, nil, nil));
+          MakeValidId(BstrNameRef,slRef);
+          AddToInterface(' %s = %s;',[sl,slRef]);
+          break;
+          end;
+        end;
+      end;
     TI.ReleaseTypeAttr(TA);
     end;
 end;
@@ -923,6 +1176,7 @@ Var
         begin
         AddToInterface(sDec);
         FTypes.Add(sTyp);
+        FDeclared.Add(sTyp);
         ReleasePendingType(sTyp);
         end;
       k:=slDeferredPendingType.IndexOf(sPen);
@@ -950,15 +1204,11 @@ begin
     case TIT of
       TKIND_RECORD,TKIND_UNION:
         begin
-        if ValidateID(BstrName) then
-          sRecordName:=BstrName
-        else
-          begin
-          sRecordName:=BstrName+'_';
+        if not MakeValidId(BstrName,sRecordName) then
           AddToHeader('//  Warning: renamed record ''%s'' to ''%s''',[BstrName,sRecordName],True);
-          end;
         AddToInterface(' P%s = ^%s;'#13#10,[sRecordName,sRecordName]);
         FTypes.Add('P'+sRecordName);
+        FDeclared.Add('P'+sRecordName);
         ReleasePendingType('P'+sRecordName);
         if TIT=TKIND_RECORD then
           sldeclaration:=sldeclaration+format(' %s = packed record'#13#10,[sRecordName])
@@ -971,13 +1221,8 @@ begin
           begin
           TI.GetVarDesc(j,VD);
           TI.GetDocumentation(VD^.memId,@BstrName, @BstrDocString, @dwHelpContext, @BstrHelpFile);
-          if ValidateID(BstrName) then
-            smemberName:=BstrName
-          else
-            begin
-            smemberName:=BstrName+'_';
+          if not MakeValidId(BstrName,smemberName) then
             AddToHeader('//  Warning: renamed record member ''%s'' in %s to ''%s''',[BstrName,sRecordName,smemberName],True);
-            end;
           stype:=TypeToString(TI, VD^.ElemdescVar.tdesc);
           if bIsUserDefined and not ValidateID(stype) then
             stype:=stype+'_';
@@ -997,6 +1242,7 @@ begin
           begin
           AddToInterface(sldeclaration);
           FTypes.Add(sRecordName);
+          FDeclared.Add(sRecordName);
           ReleasePendingType(sRecordName);
           end
         else
@@ -1008,13 +1254,8 @@ begin
         stype:=TypeToString(TI, TA^.tdescAlias);
         if bIsUserDefined and not ValidateID(stype) then
           stype:=stype+'_';
-        if ValidateID(BstrName) then
-          sRecordName:=BstrName
-        else
-          begin
-          sRecordName:=BstrName+'_';
+        if not MakeValidId(BstrName,sRecordName) then
           AddToHeader('//  Warning: renamed alias ''%s'' to ''%s''',[BstrName,sRecordName],True);
-          end;
         sl:=format(' %s = %s;',[sRecordName,stype]);
         if bIsUserDefined and not bIsExternalDecl and (FTypes.IndexOf(stype)=-1) then //not defined yet, defer
           begin
@@ -1026,6 +1267,7 @@ begin
           begin
           AddToInterface(sl);
           FTypes.Add(sRecordName);
+          FDeclared.Add(sRecordName);
           ReleasePendingType(sRecordName);
           end;
         end;
@@ -1034,8 +1276,8 @@ begin
     end;
   if slDeferredDeclaration.Count>1 then  // circular references
     begin
-    AddToHeader('//  Error : the following type declarations have circular references',True);
-    AddToInterface('// circular references start here');
+    AddToHeader('//  Error : the following type declarations have circular or unresolved references',True);
+    AddToInterface('// circular or unresolved references start here');
     for j:=0 to slDeferredDeclaration.Count-1 do
       AddToHeader('//          %s',[slDeferredType[j]]);
     for j:=0 to slDeferredDeclaration.Count-1 do
@@ -1052,43 +1294,124 @@ Procedure TTypeLibImporter.CreateInterfaces(Const TL : ITypeLib; TICount : Integ
 
 Var
   i : integer;
-  BstrName, BstrDocString, BstrHelpFile : WideString;
+  BstrName, BstrDocString, BstrHelpFile, BstrNameRef : WideString;
   dwHelpContext : DWORD;
-  TI,TIref : ITypeInfo;
-  TA,TAref : LPTYPEATTR;
+  TI,TIref,TIref2 : ITypeInfo;
+  TA,TAref,TAref2 : LPTYPEATTR;
   TIT : TYPEKIND;
   RTIT : HREFTYPE;
+  sl: string;
+  slDeclaredType,slDeferredType,slDeferredPendingType,slDeferredDeclaration: Tstrings;
+  bDeferred:boolean;
+
+  procedure ReleasePendingType(sPen:string);
+  var k:integer;
+    sDec,sTyp:string;
+  begin
+    slDeclaredType.Add(sPen);
+    k:=slDeferredPendingType.IndexOf(sPen);
+    while (k>=0) do
+      begin
+      sDec:=slDeferredDeclaration[k];
+      sTyp:=slDeferredType[k];
+      slDeferredPendingType.Delete(k);
+      slDeferredDeclaration.Delete(k);
+      slDeferredType.Delete(k);
+      AddToInterface(sDec);
+      ReleasePendingType(sTyp);
+      k:=slDeferredPendingType.IndexOf(sPen);
+      end;
+  end;
+
 begin
   // interface declarations
-  AddToInterface('//interface declarations');
-  for i:=0 to TIcount-1 do
-    begin
-    OleCheck(TL.GetTypeInfoType(i, TIT));
-    OleCheck(TL.GetTypeInfo(i, TI));
-    OleCheck(TL.GetDocumentation(i, @BstrName, @BstrDocString, @dwHelpContext, @BstrHelpFile));
-    if (TIT=TKIND_DISPATCH) or (TIT=TKIND_INTERFACE) then
+  slDeclaredType:=TStringList.Create;
+  slDeferredType:=TStringList.Create;
+  slDeferredPendingType:=TStringList.Create;
+  slDeferredDeclaration:=TStringList.Create;
+  slDeclaredType.Add('IDispatch');
+  slDeclaredType.Add('IUnknown');
+  try
+    AddToInterface('');
+    AddToInterface('//interface declarations');
+    for i:=0 to TIcount-1 do
       begin
-      OleCheck(TI.GetTypeAttr(TA));
-      if (TIT=TKIND_DISPATCH) then
+      OleCheck(TL.GetTypeInfoType(i, TIT));
+      OleCheck(TL.GetTypeInfo(i, TI));
+      OleCheck(TL.GetDocumentation(i, @BstrName, @BstrDocString, @dwHelpContext, @BstrHelpFile));
+      if (TIT=TKIND_DISPATCH) or (TIT=TKIND_INTERFACE) then
         begin
-        // get also TKIND_INTERFACE if dual interface
-        if (TA^.wTypeFlags and TYPEFLAG_FDUAL)=TYPEFLAG_FDUAL then
+        OleCheck(TI.GetTypeAttr(TA));
+        bDeferred:=false;
+        MakeValidId(BstrName,sl);
+        if (TIT=TKIND_DISPATCH) then
           begin
-          OleCheck(TI.GetRefTypeOfImplType(-1,RTIT));
-          OleCheck(TI.GetRefTypeInfo(RTIT,TIref));
-          OleCheck(TIref.GetTypeAttr(TAref));
-          AddToInterface(interfacedeclaration(BstrName,BstrDocString,TIref,TAref,false,false));
-          TIref.ReleaseTypeAttr(TAref);
-          AddToInterface(interfacedeclaration(BstrName,BstrDocString,TI,TA,true,false));
+          // get also TKIND_INTERFACE if dual interface
+          if (TA^.wTypeFlags and TYPEFLAG_FDUAL)=TYPEFLAG_FDUAL then
+            begin
+            //get TKIND_INTERFACE
+            OleCheck(TI.GetRefTypeOfImplType(-1,RTIT));
+            OleCheck(TI.GetRefTypeInfo(RTIT,TIref));
+            //get its ancestor
+            OleCheck(TIref.GetRefTypeOfImplType(0,RTIT));
+            OleCheck(TIref.GetRefTypeInfo(RTIT,TIref2));
+            OleCheck(TIRef2.GetDocumentation(DISPID_UNKNOWN, @BstrNameRef, nil, nil, nil));
+            bDeferred:=slDeclaredType.IndexOf(BstrNameRef)<0;
+            OleCheck(TIref.GetTypeAttr(TAref));
+            if bDeferred then
+              begin
+              slDeferredType.Add(sl);
+              slDeferredPendingType.Add(BstrNameRef);
+              slDeferredDeclaration.Add(interfacedeclaration(sl,BstrDocString,TIref,TAref,false,false)+
+                interfacedeclaration(sl,BstrDocString,TI,TA,true,false));
+              end
+            else
+              begin
+              AddToInterface(interfacedeclaration(sl,BstrDocString,TIref,TAref,false,false));
+              AddToInterface(interfacedeclaration(sl,BstrDocString,TI,TA,true,false));
+              ReleasePendingType(sl);
+              end;
+            TIref.ReleaseTypeAttr(TAref);
+            end
+          else
+            AddToInterface(interfacedeclaration(sl,BstrDocString,TI,TA,true,true));
           end
         else
-          AddToInterface(interfacedeclaration(BstrName,BstrDocString,TI,TA,true,true));
-        end
-      else
-        AddToInterface(interfacedeclaration(BstrName,BstrDocString,TI,TA,false,false));
-      TI.ReleaseTypeAttr(TA);
+          begin
+          if (TA^.cImplTypes>0) then
+            begin
+            //get ancestor
+            OleCheck(TI.GetRefTypeOfImplType(0,RTIT));
+            OleCheck(TI.GetRefTypeInfo(RTIT,TIref));
+            OleCheck(TIRef.GetDocumentation(DISPID_UNKNOWN, @BstrNameRef, nil, nil, nil));
+            bDeferred:=slDeclaredType.IndexOf(BstrNameRef)<0;
+            end;
+          if bDeferred then
+            begin
+            slDeferredType.Add(sl);
+            slDeferredPendingType.Add(BstrNameRef);
+            slDeferredDeclaration.Add(interfacedeclaration(sl,BstrDocString,TI,TA,false,false));
+            end
+          else
+            begin
+            AddToInterface(interfacedeclaration(sl,BstrDocString,TI,TA,false,false));
+            ReleasePendingType(sl);
+            end;
+          end;
+        TI.ReleaseTypeAttr(TA);
+        end;
       end;
-    end;
+    for i:=0 to slDeferredPendingType.Count-1 do // should not happen
+      begin
+      AddToInterface('// should not happen');
+      AddToInterface(slDeferredDeclaration[i]);
+      end;
+  finally
+    slDeferredDeclaration.Free;
+    slDeferredPendingType.Free;
+    slDeferredType.Free;
+    slDeclaredType.Free;
+  end;
 end;
 
 Procedure TTypeLibImporter.CreateCoClasses(Const TL : ITypeLib; TICount : Integer);
@@ -1098,11 +1421,18 @@ Var
   BstrName, BstrDocString, BstrHelpFile, BstrNameRef : WideString;
   dwHelpContext : DWORD;
   TI,TIref : ITypeInfo;
-  TA : LPTYPEATTR;
+  TA,TARef : LPTYPEATTR;
   TIT : TYPEKIND;
   RTIT : HREFTYPE;
   sDefIntf, sDefEvents : string;
   ITF:WINT;
+  RegHandle:HKEY;
+  il,il2:LongWord;
+  sRefSrc,sKey,sl:string;
+  resHandle:hmodule;
+  bmhandle:handle;
+  pData:pByte;
+  bIsDispatch:boolean;
 begin
   //CoClasses
   AddToInterface('//CoClasses');
@@ -1120,6 +1450,7 @@ begin
       OleCheck(TI.GetTypeAttr(TA));
       // get default interface and events.
       sDefEvents:='';
+      bIsDispatch:=false;
       for j:=0 to TA^.cImplTypes-1 do
         begin
         OleCheck(TI.GetImplTypeFlags(J,ITF));
@@ -1130,19 +1461,27 @@ begin
           OleCheck(TIRef.GetDocumentation(DISPID_UNKNOWN, @BstrNameRef, nil, nil, nil));
           if (ITF and IMPLTYPEFLAG_FSOURCE)<>0 then
             begin
-            sDefEvents:=BstrNameRef;
+            MakeValidId(BstrNameRef,sDefEvents);
             idx:=FEventDisp.IndexOf(sDefEvents);
             if idx<0 then // should not happen
-              sDefEvents:='';
+              sDefEvents:=''
+            else
+              if FEventSignatures[idx]='' then //interface defined but no events
+                sDefEvents:='';
             end
           else
-            sDefIntf:=BstrNameRef;
+            begin
+            MakeValidId(BstrNameRef,sDefIntf);
+            // is this a dispinterface?
+            OleCheck(TIRef.GetTypeAttr(TARef));
+            bIsDispatch:= TARef^.typekind=TKIND_DISPATCH;
+            end;
           end;
         end;
-      if sDefEvents<>'' then //add event signatures
+      if bIsDispatch and (sDefEvents<>'') then //add event signatures
         begin
         AddToInterface(FEventSignatures[idx]);
-        FEventSignatures[idx]:='';  // only add event signatures only once. Multiple coclasses can use same events
+        FEventSignatures[idx]:='';  // add event signatures only once. Multiple coclasses can use same events
         AddToInterface('');
         end;
       AddToInterFace('  Co%s = Class',[BstrName]);
@@ -1151,11 +1490,11 @@ begin
       AddToInterFace('    Class Function CreateRemote(const MachineName: string): %s;',[sDefIntf]);
       AddToInterFace('  end;');
       AddToInterFace('');
-      if FActiveX then
+      if FActiveX and bIsDispatch then
         begin
         if FUses.IndexOf('ActiveXContainer')<0 then
           FUses.Add('ActiveXContainer');
-        AddToInterFace('  T%s = Class(TActiveXContainer)',[BstrName]);
+        AddToInterFace('  TAxc%s = Class(TActiveXContainer)',[BstrName]);
         AddToInterface('  Private');
         AddToInterface('    FServer:%s;',[sDefIntf]);
         if (sDefEvents<>'') then //add function variables
@@ -1215,11 +1554,11 @@ begin
         AddToInterFace('  end;');
         AddToInterFace('');
         end
-      else if (sDefEvents<>'') then //add function variables
+      else if bIsDispatch and (sDefEvents<>'') then //add function variables
         begin
         if FUses.IndexOf('Eventsink')<0 then
           FUses.Add('EventSink');
-        AddToInterFace('  T%s = Class(TEventSink)',[BstrName]);
+        AddToInterFace('  TEvs%s = Class(TEventSink)',[BstrName]);
         AddToInterface('  Private');
         AddToInterface(FEventFunctions[idx]);
         AddToInterface('    fServer:%s;',[sDefIntf]);
@@ -1243,9 +1582,9 @@ begin
       AddToImplementation('  Result := CreateRemoteComObject(MachineName,CLASS_%s) as %s;',[BstrName,sDefIntf]);
       AddToImplementation('end;');
       AddToImplementation('');
-      if FActiveX then
+      if FActiveX and bIsDispatch then
         begin
-        AddToImplementation('constructor T%s.Create(TheOwner: TComponent);',[BstrName]);
+        AddToImplementation('constructor TAxc%s.Create(TheOwner: TComponent);',[BstrName]);
         AddToImplementation('begin');
         AddToImplementation('  inherited Create(TheOwner);');
         AddToImplementation('  FServer:=Co%s.Create;',[BstrName]);
@@ -1258,7 +1597,7 @@ begin
           end;
         AddToImplementation('end;');
         AddToImplementation('');
-        AddToImplementation('destructor T%s.Destroy;',[BstrName]);
+        AddToImplementation('destructor TAxc%s.Destroy;',[BstrName]);
         AddToImplementation('begin');
         if (sDefEvents<>'') then
           AddToImplementation('  FEventSink.Destroy;');
@@ -1267,7 +1606,7 @@ begin
         AddToImplementation('');
         if (sDefEvents<>'') then
           begin
-          AddToImplementation('procedure T%s.EventSinkInvoke(Sender: TObject; DispID: Integer;',[BstrName]);
+          AddToImplementation('procedure TAxc%s.EventSinkInvoke(Sender: TObject; DispID: Integer;',[BstrName]);
           AddToImplementation('  const IID: TGUID; LocaleID: Integer; Flags: Word; Params: tagDISPPARAMS;');
           AddToImplementation('  VarResult, ExcepInfo, ArgErr: Pointer);');
           AddToImplementation('begin');
@@ -1278,9 +1617,9 @@ begin
           AddToImplementation('');
           end;
         end
-      else if sDefEvents<>'' then //add event implementations
+      else if (sDefEvents<>'') and bIsDispatch then //add event implementations
         begin
-        AddToImplementation('constructor T%s.Create(TheOwner: TComponent);',[BstrName]);
+        AddToImplementation('constructor TEvs%s.Create(TheOwner: TComponent);',[BstrName]);
         AddToImplementation('begin');
         AddToImplementation('  inherited Create(TheOwner);');
         AddToImplementation('  OnInvoke:=EventSinkInvoke;');
@@ -1288,7 +1627,7 @@ begin
         AddToImplementation('  Connect(fServer,%s);',[FEventDisp[idx]]);
         AddToImplementation('end;');
         AddToImplementation('');
-        AddToImplementation('procedure T%s.EventSinkInvoke(Sender: TObject; DispID: Integer;',[BstrName]);
+        AddToImplementation('procedure TEvs%s.EventSinkInvoke(Sender: TObject; DispID: Integer;',[BstrName]);
         AddToImplementation('  const IID: TGUID; LocaleID: Integer; Flags: Word; Params: tagDISPPARAMS;');
         AddToImplementation('  VarResult, ExcepInfo, ArgErr: Pointer);');
         AddToImplementation('begin');
@@ -1297,6 +1636,59 @@ begin
         AddToImplementation('  end;');
         AddToImplementation('end;');
         AddToImplementation('');
+        end;
+      if CreatePackage and bIsDispatch then
+        begin
+        //get image location from registry
+        il:=MAX_PATH;
+        SetLength(sRefSrc,il);
+        sKey:=format('\CLSID\%s\ToolboxBitmap32',[GUIDToString(TA^.GUID)]);
+        bmhandle:=0;
+        if (RegOpenKeyEx(HKEY_CLASSES_ROOT,pchar(sKey),0,KEY_READ,RegHandle) = ERROR_SUCCESS) then
+          begin
+          if RegQueryValue(RegHandle,nil,@sRefSrc[1],@il) = ERROR_SUCCESS then
+            begin
+            SetLength(sRefSrc,il-1);  // includes null terminator
+            sl:=trim(copy(sRefSrc,pos(',',sRefSrc)+1,length(sRefSrc))); //format: filename, id
+            sRefSrc:=copy(sRefSrc,1,pos(',',sRefSrc)-1);
+            //Load bitmap
+            ResHandle:=LoadLibraryEx(pchar(sRefSrc),0,$00000022); //LOAD_LIBRARY_AS_IMAGE_RESOURCE or LOAD_LIBRARY_AS_DATAFILE
+            if (ResHandle<>0) then
+              begin
+              bmhandle:=FindResource(ResHandle,makeintresource(StrToIntDef(sl,0)),RT_BITMAP);
+              if bmhandle<>0 then
+                begin
+                // get pointer to raw bitmap data
+                pData:=LockResource(LoadResource(ResHandle, bmhandle));
+                // convert to ascii. These are small bitmaps, don't bother making smallest possible
+                il:=SizeofResource(ResHandle, bmhandle);
+                //pixel offset=size-16*2*bits/color  (16x16 bitmap)
+                il2:=14+il-32*pbyte(pData+14)^;
+                //bmp header
+                sl:='#$42#$4D#'+IntTostr((14+il) mod 256) +'#'+IntTostr((14+il) div 256)
+                  +'#0#0#0#0#0#0#'+IntTostr(il2 mod 256) +'#'+IntTostr(il2 div 256)
+                  +'#0#0+'#13#10;
+                while il>0 do
+                  begin
+                  sl:=sl+'#'+inttostr(pData^);
+                  pData:=pData+1;
+                  il:=il-1;
+                  if ((il mod 16)=0) and (il>0) then
+                    sl:=sl+'+'#13#10;
+                  end;
+                sl:=format('LazarusResources.Add(''T%s'',''BMP'',['#13#10,[BstrName])
+                    + sl + #13#10']);'#13#10;
+                FAXImages.Add(sl);
+                end;
+              FreeLibrary(ResHandle);
+              end;
+            end
+          else
+          RegCloseKey(RegHandle);
+          end;
+        FAXClasses.Add(format('TAxc%s',[BstrName]));
+        if FAXImages.Count<FAXClasses.Count then //couldn't load image for this coclass
+          FAXImages.Add('');
         end;
       TI.ReleaseTypeAttr(TA);
       end;
@@ -1469,6 +1861,8 @@ begin
   inherited Create(AOwner);
   FDependencies:=TStringList.Create;
   FUnitSource:=TStringList.Create;
+  FPackageSource:=TStringList.Create;
+  FPackageRegUnitSource:=TStringList.Create;
   FAppendVersionNumber:=true;
 end;
 
@@ -1476,6 +1870,8 @@ destructor TTypeLibImporter.Destroy;
 begin
   FreeAndNil(FDependencies);
   FreeAndNil(FUnitSource);
+  FreeAndNil(FPackageSource);
+  FreeAndNil(FPackageRegUnitSource);
   inherited Destroy;
 end;
 
@@ -1487,6 +1883,7 @@ begin
   FInterface:=TStringList.Create;
   FImplementation:=TStringList.Create;
   FUses:=TStringList.Create;
+  FDeclared:=TStringList.Create;
   FTypes:=TStringList.Create;
   FEventDisp:=TStringList.Create;
   FEventIID:=TStringList.Create;
@@ -1494,11 +1891,17 @@ begin
   FEventFunctions:=TStringList.Create;
   FEventProperties:=TStringList.Create;
   FEventImplementations:=TStringList.Create;
+  FAXClasses:=TStringList.Create;
+  FAXImages:=TStringList.Create;
   try
     DoImportTypeLib;
     If (OutputFileName<>'') then
       UnitSource.SaveToFile(OutputFileName);
+    If (CreatePackage) then
+      DoBuildPackage;
   finally
+    FreeAndNil(FAXImages);
+    FreeAndNil(FAXClasses);
     FreeAndNil(FEventImplementations);
     FreeAndNil(FEventProperties);
     FreeAndNil(FEventFunctions);
@@ -1506,6 +1909,7 @@ begin
     FreeAndNil(FEventIID);
     FreeAndNil(FEventDisp);
     FreeAndNil(FTypes);
+    FreeAndNil(FDeclared);
     FreeAndNil(FUses);
     FreeAndNil(FInterface);
     FreeAndNil(FHeader);

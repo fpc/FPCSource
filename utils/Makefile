@@ -340,7 +340,7 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait instantfpc importtl
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait instantfpc
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
@@ -442,7 +442,7 @@ ifeq ($(FULL_TARGET),arm-darwin)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo instantfpc
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait instantfpc importtl
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait instantfpc
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
@@ -3011,7 +3011,6 @@ TARGET_DIRS_FPCMKCFG=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
 TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_IMPORTTL=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 TARGET_DIRS_FPPKG=1
@@ -3398,7 +3397,6 @@ TARGET_DIRS_FPCMKCFG=1
 TARGET_DIRS_FPCRES=1
 TARGET_DIRS_RMWAIT=1
 TARGET_DIRS_INSTANTFPC=1
-TARGET_DIRS_IMPORTTL=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 TARGET_DIRS_FPPKG=1
