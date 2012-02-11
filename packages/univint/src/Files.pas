@@ -197,8 +197,8 @@ type
 	ConstHFSUniStr255Param = ^HFSUniStr255;
 
 type
-	DirIDTypePtr = UInt32Ptr;
-	DirIDType = UInt32;
+	DirIDTypePtr = ^DirIDType;
+	DirIDType = SInt32;
 
 {
     File Permissions
@@ -3543,7 +3543,7 @@ procedure PBIterateForksAsync( var paramBlock: FSForkIOParam ); external name '_
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
  }
-function FSOpenFork( const (*var*) ref: FSRef; forkNameLength: UniCharCount; forkName: UniCharPtr; permissions: SInt8; var forkRefNum: SInt16 ): OSErr; external name '_FSOpenFork';
+function FSOpenFork( const (*var*) ref: FSRef; forkNameLength: UniCharCount; forkName: UniCharPtr; permissions: SInt8; var forkRefNum: FSIORefNum ): OSErr; external name '_FSOpenFork';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
