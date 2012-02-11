@@ -1064,6 +1064,7 @@ Type
     FBuildEngine: TBuildEngine;
     FCompilationOK: boolean;
     FDone: boolean;
+    FErrorMessage: string;
     FNotifyMainThreadEvent: PRTLEvent;
     FNotifyStartTask: PRTLEvent;
     FPackage: TPackage;
@@ -1073,6 +1074,7 @@ Type
     property APackage: TPackage read FPackage write FPackage;
     property CompilationOK: boolean read FCompilationOK;
     property NotifyStartTask: PRTLEvent read FNotifyStartTask;
+    property ErrorMessage: string read FErrorMessage;
   public
     constructor Create(ABuildEngine: TBuildEngine; NotifyMainThreadEvent: PRTLEvent); virtual;
     destructor Destroy; override;
@@ -2090,7 +2092,7 @@ begin
         FCompilationOK:=true;
       except
         on E: Exception do
-          writeln(E.Message);
+          FErrorMessage := E.Message;
       end;
       end;
     end;
@@ -5763,6 +5765,8 @@ Var
 {$ifndef NO_THREADING}
   Thr : Integer;
   Finished : boolean;
+  ErrorState: boolean;
+  ErrorMessage: string;
   NotifyThreadWaiting : PRTLEvent;
   Threads : array of TCompileWorkerThread;
 {$endif NO_THREADING}
@@ -5783,7 +5787,11 @@ Var
             if AThread.CompilationOK then
               AThread.APackage.FTargetState:=tsCompiled
             else // A problem occured, stop the compilation
+              begin
+              ErrorState:=true;
+              ErrorMessage:=AThread.ErrorMessage;
               Finished:=true;
+              end;
             AThread.APackage := nil;
           end;
         StartI := I;
@@ -5839,6 +5847,7 @@ begin
     begin
 {$ifndef NO_THREADING}
       // Use worker-threads to compile the packages
+      ErrorState := False;
       Finished := False;
       I := 0;
       // This event is set by the worker-threads to notify the main/this thread
@@ -5870,6 +5879,8 @@ begin
         for thr:=0 to Defaults.ThreadsAmount-1 do
           Threads[Thr].Free;
       end;
+    if ErrorState then
+      raise Exception.Create(ErrorMessage);
 {$endif NO_THREADING}
     end;
   If Assigned(AfterCompile) then
