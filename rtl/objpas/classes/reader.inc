@@ -539,28 +539,30 @@ type
 
 function GetFieldClass(Instance: TObject; const ClassName: string): TPersistentClass;
 var
-  UClassName: String;
+  ShortClassName: shortstring;
   ClassType: TClass;
   ClassTable: PFieldClassTable;
   i: Integer;
-{  FieldTable: PFieldTable; }
+  FieldTable: PFieldTable;
 begin
   // At first, try to locate the class in the class tables
-  UClassName := UpperCase(ClassName);
+  ShortClassName := ClassName;
   ClassType := Instance.ClassType;
   while ClassType <> TPersistent do
   begin
-{    FieldTable := PFieldTable((Pointer(ClassType) + vmtFieldTable)^); }
-    ClassTable := PFieldTable((Pointer(ClassType) + vmtFieldTable)^)^.ClassTable;
-    if Assigned(ClassTable) then
+    FieldTable := PFieldTable(PVmt(ClassType)^.vFieldTable);
+    if Assigned(FieldTable) then
+    begin
+      ClassTable := FieldTable^.ClassTable;
       for i := 0 to ClassTable^.Count - 1 do
       begin
         Result := ClassTable^.Entries[i];
-        if UpperCase(Result.ClassName) = UClassName then
+        if Result.ClassNameIs(ShortClassName) then
           exit;
       end;
-     // Try again with the parent class type
-     ClassType := ClassType.ClassParent;
+    end;
+    // Try again with the parent class type
+    ClassType := ClassType.ClassParent;
   end;
   Result := Classes.GetClass(ClassName);
 end;
@@ -1638,10 +1640,11 @@ function TReader.FindComponentClass(const AClassName: String): TComponentClass;
 
 var
   PersistentClass: TPersistentClass;
-  UClassName: shortstring;
+  ShortClassName: shortstring;
 
   procedure FindInFieldTable(RootComponent: TComponent);
   var
+    FieldTable: PFieldTable;
     FieldClassTable: PFieldClassTable;
     Entry: TPersistentClass;
     i: Integer;
@@ -1651,16 +1654,20 @@ var
     // it is not necessary to look in the FieldTable of TComponent,
     // because TComponent doesn't have published properties that are
     // descendants of TComponent
-    while ComponentClassType<>TComponent do begin
-      FieldClassTable :=
-        PFieldTable((Pointer(ComponentClassType)+vmtFieldTable)^)^.ClassTable;
-      if assigned(FieldClassTable) then begin
-        for i := 0 to FieldClassTable^.Count -1 do begin
+    while ComponentClassType<>TComponent do
+    begin
+      FieldTable:=PVmt(ComponentClassType)^.vFieldTable;
+      if assigned(FieldTable) then
+      begin
+        FieldClassTable := FieldTable^.ClassTable;
+        for i := 0 to FieldClassTable^.Count -1 do
+        begin
           Entry := FieldClassTable^.Entries[i];
           //writeln(format('Looking for %s in field table of class %s. Found %s',
             //[AClassName, ComponentClassType.ClassName, Entry.ClassName]));
-          if (UpperCase(Entry.ClassName)=UClassName) and
-            (Entry.InheritsFrom(TComponent)) then begin
+          if Entry.ClassNameIs(ShortClassName) and
+            (Entry.InheritsFrom(TComponent)) then
+          begin
             Result := TComponentClass(Entry);
             Exit;
           end;
@@ -1673,7 +1680,7 @@ var
   
 begin
   Result := nil;
-  UClassName:=UpperCase(AClassName);
+  ShortClassName:=AClassName;
   FindInFieldTable(Root);
   
   if (Result=nil) and assigned(LookupRoot) and (LookupRoot<>Root) then
