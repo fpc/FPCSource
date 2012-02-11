@@ -82,6 +82,7 @@ resourcestring
   SDocVisibility             = 'Visibility';
   SDocOpaque                 = 'Opaque type';
   SDocDateGenerated          = 'Documentation generated on: %s';
+  SDocNotes                  = 'Notes';
   
   // Topics
   SDocRelatedTopics = 'Related topics';
@@ -239,6 +240,7 @@ type
     FErrorsDoc: TDOMElement;
     FSeeAlso: TDOMElement;
     FFirstExample: TDOMElement;
+    FNotes : TDomElement;
     FLink: String;
     FTopicNode : Boolean;
     FRefCount : Integer;
@@ -263,6 +265,7 @@ type
     Property Version : TDomElement Read FVersion;
     property SeeAlso: TDOMElement read FSeeAlso;
     property FirstExample: TDOMElement read FFirstExample;
+    property Notes : TDOMElement read FNotes;
     property Link: String read FLink;
     Property TopicNode : Boolean Read FTopicNode;
     Property RefCount : Integer Read FRefCount;
@@ -1366,7 +1369,9 @@ procedure TFPDocEngine.AddDocFile(const AFilename: String;DontTrim:boolean=false
           Result.FSeeAlso := TDOMElement(Subnode)
         else if (Subnode.NodeName = 'example') and
           not Assigned(Result.FirstExample) then
-          Result.FFirstExample := TDOMElement(Subnode);
+          Result.FFirstExample := TDOMElement(Subnode)
+        else if (Subnode.NodeName = 'notes') then
+          Result.FNotes := TDOMElement(Subnode);
       end;
       Subnode := Subnode.NextSibling;
     end;

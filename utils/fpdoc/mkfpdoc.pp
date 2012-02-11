@@ -155,6 +155,7 @@ begin
       If FVerbose then
         DoLog('Writing documentation');
       OnLog:=Self.OnLog;
+      EmitNotes:=Options.EmitNotes;
       If Options.BackendOptions.Count>0 then
         for I:=0 to ((Options.BackendOptions.Count-1) div 2) do
           begin

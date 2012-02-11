@@ -50,6 +50,7 @@ Type
     FBackEndoptions: TStrings;
     FCPUTarget: String;
     FDefaultPackageName: String;
+    FEmitNotes: Boolean;
     FFormat: String;
     FHidePrivate: Boolean;
     FHideProtected: Boolean;
@@ -79,6 +80,7 @@ Type
     Property MoDir : String Read FMoDir Write FMODir;
     Property DefaultPackageName : String Read FDefaultPackageName Write FDefaultPackageName;
     Property DontTrim : Boolean Read FDontTrim Write FDontTrim;
+    Property EmitNotes : Boolean Read FEmitNotes Write FEmitNotes;
   end;
 
   { TFPDocProject }

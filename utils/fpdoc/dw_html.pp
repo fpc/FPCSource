@@ -137,6 +137,8 @@ type
     function CreateWarning(Parent: TDOMNode): THTMLElement;
 
     // Description node conversion
+    Procedure DescrEmitNotesHeader(AContext : TPasElement); override;
+    Procedure DescrEmitNotesFooter(AContext : TPasElement); override;
     procedure PushOutputNode(ANode: TDOMNode);
     procedure PopOutputNode;
     procedure DescrWriteText(const AText: DOMString); override;
@@ -187,7 +189,6 @@ type
     procedure DescrEndTableRow; override;
     procedure DescrBeginTableCell; override;
     procedure DescrEndTableCell; override;
-
 
     procedure AppendText(Parent: TDOMNode; const AText: DOMString);
     procedure AppendNbSp(Parent: TDOMNode; ACount: Integer);
@@ -974,6 +975,17 @@ function THTMLWriter.CreateWarning(Parent: TDOMNode): THTMLElement;
 begin
   Result := CreateEl(Parent, 'span');
   Result['class'] := 'warning';
+end;
+
+procedure THTMLWriter.DescrEmitNotesHeader(AContext: TPasElement);
+begin
+  AppendText(CreateH2(BodyElement), SDocNotes);
+  PushOutputNode(BodyElement);
+end;
+
+procedure THTMLWriter.DescrEmitNotesFooter(AContext: TPasElement);
+begin
+  PopOutPutNode;
 end;
 
 procedure THTMLWriter.PushOutputNode(ANode: TDOMNode);
@@ -2187,6 +2199,8 @@ begin
 
     // Append examples, if present
     AppendExampleSection(AElement,DocNode);
+    // Append notes, if present
+    ConvertNotes(AElement,DocNode.Notes);
     end;
 end;
 
@@ -2210,6 +2224,7 @@ begin
     AppendSeeAlsoSection(AElement,DocNode);
     CreateTopicLinks(DocNode,AElement);
     AppendExampleSection(AElement,DocNode);
+    ConvertNotes(AElement,DocNode.Notes);
     end;
 end;
 
@@ -2545,6 +2560,7 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
       begin
       if Assigned(DocNode.Descr) then
         AppendDescrSection(AModule, BodyElement, DocNode.Descr, SDocOverview);
+      ConvertNotes(AModule,DocNode.Notes);
       CreateTopicLinks(DocNode,AModule);
       end;
   end;
