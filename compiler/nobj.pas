@@ -49,7 +49,6 @@ interface
         procedure intf_allocate_vtbls;
       public
         constructor create(c:tobjectdef);
-        destructor  destroy;override;
         procedure  generate_vmt;
         procedure  build_interface_mappings;
       end;
@@ -72,9 +71,9 @@ interface
         procedure insertmsgstr(p:TObject;arg:pointer);
         procedure insertint(p : pprocdeftree;var at : pprocdeftree;var count:longint);
         procedure insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
-        procedure writenames(p : pprocdeftree);
-        procedure writeintentry(p : pprocdeftree);
-        procedure writestrentry(p : pprocdeftree);
+        procedure writenames(list : TAsmList;p : pprocdeftree);
+        procedure writeintentry(list : TAsmList;p : pprocdeftree);
+        procedure writestrentry(list : TAsmList;p : pprocdeftree);
 {$ifdef WITHDMT}
         { dmt }
         procedure insertdmtentry(p:TObject;arg:pointer);
@@ -92,8 +91,8 @@ interface
         procedure intf_gen_intf_ref(rawdata: TAsmList;AImplIntf:TImplementedInterface);
         function  intf_write_table:TAsmLabel;
         { generates the message tables for a class }
-        function  genstrmsgtab : tasmlabel;
-        function  genintmsgtab : tasmlabel;
+        function  genstrmsgtab(list : TAsmList) : tasmlabel;
+        function  genintmsgtab(list : TAsmList) : tasmlabel;
         function  genpublishedmethodstable : tasmlabel;
         function  generate_field_table : tasmlabel;
 {$ifdef WITHDMT}
@@ -102,7 +101,6 @@ interface
 {$endif WITHDMT}
       public
         constructor create(c:tobjectdef);
-        destructor destroy;override;
         { write the VMT to al_globals }
         procedure writevmt;
         procedure writeinterfaceids;
@@ -129,11 +127,6 @@ implementation
       begin
         inherited Create;
         _Class:=c;
-      end;
-
-
-    destructor TVMTBuilder.destroy;
-      begin
       end;
 
 
@@ -833,11 +826,6 @@ implementation
       end;
 
 
-    destructor TVMTWriter.destroy;
-      begin
-      end;
-
-
 {**************************************
            Message Tables
 **************************************}
@@ -939,44 +927,44 @@ implementation
       end;
 
 
-    procedure TVMTWriter.writenames(p : pprocdeftree);
+    procedure TVMTWriter.writenames(list : TAsmList;p : pprocdeftree);
       var
         ca : pchar;
         len : byte;
       begin
          current_asmdata.getdatalabel(p^.nl);
          if assigned(p^.l) then
-           writenames(p^.l);
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(p^.nl));
+           writenames(list,p^.l);
+         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(Tai_label.Create(p^.nl));
          len:=length(p^.data.messageinf.str^);
-         current_asmdata.asmlists[al_globals].concat(tai_const.create_8bit(len));
+         list.concat(tai_const.create_8bit(len));
          getmem(ca,len+1);
          move(p^.data.messageinf.str^[1],ca^,len);
          ca[len]:=#0;
-         current_asmdata.asmlists[al_globals].concat(Tai_string.Create_pchar(ca,len));
+         list.concat(Tai_string.Create_pchar(ca,len));
          if assigned(p^.r) then
-           writenames(p^.r);
+           writenames(list,p^.r);
       end;
 
-    procedure TVMTWriter.writestrentry(p : pprocdeftree);
+    procedure TVMTWriter.writestrentry(list : TAsmList;p : pprocdeftree);
 
       begin
          if assigned(p^.l) then
-           writestrentry(p^.l);
+           writestrentry(list,p^.l);
 
          { write name label }
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(p^.nl));
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
+         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(Tai_const.Create_sym(p^.nl));
+         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(Tai_const.Createname(p^.data.mangledname,0));
 
          if assigned(p^.r) then
-           writestrentry(p^.r);
+           writestrentry(list,p^.r);
      end;
 
 
-    function TVMTWriter.genstrmsgtab : tasmlabel;
+    function TVMTWriter.genstrmsgtab(list : TAsmList) : tasmlabel;
       var
          count : longint;
       begin
@@ -987,40 +975,40 @@ implementation
 
          { write all names }
          if assigned(root) then
-           writenames(root);
+           writenames(list,root);
 
          { now start writing of the message string table }
          current_asmdata.getdatalabel(result);
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(result));
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(longint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(Tai_label.Create(result));
+         list.concat(cai_align.create(const_align(sizeof(longint))));
+         list.concat(Tai_const.Create_32bit(count));
+         list.concat(cai_align.create(const_align(sizeof(pint))));
          if assigned(root) then
            begin
-              writestrentry(root);
+              writestrentry(list,root);
               disposeprocdeftree(root);
            end;
       end;
 
 
-    procedure TVMTWriter.writeintentry(p : pprocdeftree);
+    procedure TVMTWriter.writeintentry(list : TAsmList;p : pprocdeftree);
       begin
          if assigned(p^.l) then
-           writeintentry(p^.l);
+           writeintentry(list,p^.l);
 
          { write name label }
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(longint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(p^.data.messageinf.i));
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
+         list.concat(cai_align.create(const_align(sizeof(longint))));
+         list.concat(Tai_const.Create_32bit(p^.data.messageinf.i));
+         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(Tai_const.Createname(p^.data.mangledname,0));
 
          if assigned(p^.r) then
-           writeintentry(p^.r);
+           writeintentry(list,p^.r);
       end;
 
 
-    function TVMTWriter.genintmsgtab : tasmlabel;
+    function TVMTWriter.genintmsgtab(list : TAsmList) : tasmlabel;
       var
          r : tasmlabel;
          count : longint;
@@ -1032,15 +1020,15 @@ implementation
 
          { now start writing of the message string table }
          current_asmdata.getdatalabel(r);
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(r));
+         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(Tai_label.Create(r));
          genintmsgtab:=r;
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(longint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(cai_align.create(const_align(sizeof(longint))));
+         list.concat(Tai_const.Create_32bit(count));
+         list.concat(cai_align.create(const_align(sizeof(pint))));
          if assigned(root) then
            begin
-              writeintentry(root);
+              writeintentry(list,root);
               disposeprocdeftree(root);
            end;
       end;
@@ -1504,9 +1492,9 @@ implementation
 
             { generate message and dynamic tables }
             if (oo_has_msgstr in _class.objectoptions) then
-              strmessagetable:=genstrmsgtab;
+              strmessagetable:=genstrmsgtab(current_asmdata.asmlists[al_globals]);
             if (oo_has_msgint in _class.objectoptions) then
-              intmessagetable:=genintmsgtab;
+              intmessagetable:=genintmsgtab(current_asmdata.asmlists[al_globals]);
           end;
 
         { write debug info }
