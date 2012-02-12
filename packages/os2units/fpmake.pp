@@ -30,9 +30,9 @@ begin
     P.Targets.AddUnit('mci.pas');
     P.Targets.AddUnit('mmbase.pas');
     P.Targets.AddUnit('mmio.pas');
-    P.Targets.AddUnit('som.pas');
+//    P.Targets.AddUnit('som.pas');
     P.Targets.AddUnit('sw.pas');
-    P.Targets.AddUnit('wpstk.pp');
+//    P.Targets.AddUnit('wpstk.pp');
 
     P.Sources.AddSrc('readme.txt');
 
