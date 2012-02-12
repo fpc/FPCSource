@@ -762,6 +762,9 @@ initialization
   {$IFDEF Windows}
   LoadGlut('glut32.dll');
   {$ELSE}
+  {$IFDEF OS2}
+  LoadGlut('glut.dll');
+  {$ELSE OS2}
   {$ifdef darwin}
   LoadGlut('/System/Library/Frameworks/GLUT.framework/GLUT');
   {$else}
@@ -773,6 +776,7 @@ initialization
   {$ENDIF}
   {$ENDIF}
   {$endif}
+  {$ENDIF OS2}
   {$ENDIF}
 
 finalization

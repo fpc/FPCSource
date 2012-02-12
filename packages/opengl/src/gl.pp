@@ -44,7 +44,9 @@
     {$INLINE ON}
     {$DEFINE GL_UNIT}
   {$ELSE}
+   {$IFNDEF OS2}
     {$LINKLIB c}
+   {$ENDIF OS2}
   {$ENDIF}
 {$ENDIF}
 
@@ -2256,6 +2258,9 @@ initialization
   {$IFDEF Windows}
   LoadOpenGL('opengl32.dll');
   {$ELSE}
+  {$IFDEF OS2}
+  LoadOpenGL('opengl.dll');
+  {$ELSE OS2}
   {$ifdef darwin}
   LoadOpenGL('/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib');
   {$ELSE}
@@ -2269,6 +2274,7 @@ initialization
   {$endif}
   {$ENDIF}
   {$endif}
+  {$ENDIF OS2}
   {$ENDIF}
 
 finalization

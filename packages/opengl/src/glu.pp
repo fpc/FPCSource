@@ -70,6 +70,9 @@ Const
 {$IFDEF Windows}
   GLU_Lib = 'glu32.dll';
 {$ELSE}
+{$IFDEF OS2}
+  GLU_Lib = 'opengl.dll';
+{$ELSE OS2}
 {$ifdef darwin}
   GLU_LIB =  '/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib';
 {$else}
@@ -81,6 +84,7 @@ Const
 {$endif}
 {$ENDIF}
 {$ENDIF}
+{$ENDIF OS2}
 {$endif}
                               
 
