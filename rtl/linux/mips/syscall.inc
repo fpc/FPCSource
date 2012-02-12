@@ -26,19 +26,6 @@ function Fpfork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];assembler;
 var
   temp: longint;
 asm
-  sw  $4,0($23)
-  sw  $5,-4($23)
-  sw  $6,-8($23)
-  sw  $7,-12($23)
-  sw  $8,-16($23)
-  sw  $9,-20($23)
-  sw  $10,-24($23)
-  sw  $11,-28($23)
-  sw  $12,-32($23)
-  sw  $13,-36($23)
-  sw  $14,-40($23)
-  addiu  $23,$23,-44
-
   li  $2,4002
   syscall
   nop
@@ -65,20 +52,6 @@ asm
 .LFailed:
   li    $2,-1
 .LDone:
-
-  addiu  $23,$23,44
-  lw  $4,0($23)
-  lw  $5,-4($23)
-  lw  $6,-8($23)
-  lw  $7,-12($23)
-  lw  $8,-16($23)
-  lw  $9,-20($23)
-  lw  $10,-24($23)
-  lw  $11,-28($23)
-  lw  $12,-32($23)
-  lw  $13,-36($23)
-  lw  $14,-40($23)
-
 end;
 
 
@@ -94,20 +67,7 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
 var
   temp: longint;
 asm
-  sw  $4,0($23)
-  sw  $5,-4($23)
-  sw  $6,-8($23)
-  sw  $7,-12($23)
-  sw  $8,-16($23)
-  sw  $9,-20($23)
-  sw  $10,-24($23)
-  sw  $11,-28($23)
-  sw  $12,-32($23)
-  sw  $13,-36($23)
-  sw  $14,-40($23)
-  addiu  $23,$23,-44
-
-  move  $2,$4
+  move  $v0,$a0
   syscall
   nop
   beq $7,$0,.LDone
@@ -133,20 +93,6 @@ asm
 .LFailed:
   li    $2,-1
 .LDone:
-
-  addiu  $23,$23,44
-  lw  $4,0($23)
-  lw  $5,-4($23)
-  lw  $6,-8($23)
-  lw  $7,-12($23)
-  lw  $8,-16($23)
-  lw  $9,-20($23)
-  lw  $10,-24($23)
-  lw  $11,-28($23)
-  lw  $12,-32($23)
-  lw  $13,-36($23)
-  lw  $14,-40($23)
-
 end;
 
 
@@ -158,22 +104,8 @@ function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'
 var
   temp: longint;
 asm
-  sw  $4,0($23)
-  sw  $5,-4($23)
-  sw  $6,-8($23)
-  sw  $7,-12($23)
-  sw  $8,-16($23)
-  sw  $9,-20($23)
-  sw  $10,-24($23)
-  sw  $11,-28($23)
-  sw  $12,-32($23)
-  sw  $13,-36($23)
-  sw  $14,-40($23)
-  addiu  $23,$23,-44
-
-
-  move  $2,$4
-  move  $4,$5
+  move  $v0,$a0
+  move  $a0,$a1
   syscall
   nop
   beq $7,$0,.LDone
@@ -199,20 +131,6 @@ asm
 .LFailed:
   li    $2,-1
 .LDone:
-
-  addiu  $23,$23,44
-  lw  $4,0($23)
-  lw  $5,-4($23)
-  lw  $6,-8($23)
-  lw  $7,-12($23)
-  lw  $8,-16($23)
-  lw  $9,-20($23)
-  lw  $10,-24($23)
-  lw  $11,-28($23)
-  lw  $12,-32($23)
-  lw  $13,-36($23)
-  lw  $14,-40($23)
-
 end;
 
 
@@ -224,23 +142,9 @@ function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,
 var
   temp: longint;
 asm
-  sw  $4,0($23)
-  sw  $5,-4($23)
-  sw  $6,-8($23)
-  sw  $7,-12($23)
-  sw  $8,-16($23)
-  sw  $9,-20($23)
-  sw  $10,-24($23)
-  sw  $11,-28($23)
-  sw  $12,-32($23)
-  sw  $13,-36($23)
-  sw  $14,-40($23)
-  addiu  $23,$23,-44
-
-
-  move  $2,$4
-  move  $4,$5
-  move  $5,$6
+  move  $v0,$a0
+  move  $a0,$a1
+  move  $a1,$a2
   syscall
   nop
   beq $7,$0,.LDone
@@ -266,20 +170,6 @@ asm
 .LFailed:
   li    $2,-1
 .LDone:
-
-  addiu  $23,$23,44
-  lw  $4,0($23)
-  lw  $5,-4($23)
-  lw  $6,-8($23)
-  lw  $7,-12($23)
-  lw  $8,-16($23)
-  lw  $9,-20($23)
-  lw  $10,-24($23)
-  lw  $11,-28($23)
-  lw  $12,-32($23)
-  lw  $13,-36($23)
-  lw  $14,-40($23)
-
 end;
 
 
@@ -291,24 +181,10 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[
 var
   temp: longint;
 asm
-  sw  $4,0($23)
-  sw  $5,-4($23)
-  sw  $6,-8($23)
-  sw  $7,-12($23)
-  sw  $8,-16($23)
-  sw  $9,-20($23)
-  sw  $10,-24($23)
-  sw  $11,-28($23)
-  sw  $12,-32($23)
-  sw  $13,-36($23)
-  sw  $14,-40($23)
-  addiu  $23,$23,-44
-
-
-  move  $2,$4
-  move  $4,$5
-  move  $5,$6
-  move  $6,$7
+  move  $v0,$a0
+  move  $a0,$a1
+  move  $a1,$a2
+  move  $a2,$a3
   syscall
   nop
   beq $7,$0,.LDone
@@ -334,20 +210,6 @@ asm
 .LFailed:
   li    $2,-1
 .LDone:
-
-  addiu  $23,$23,44
-  lw  $4,0($23)
-  lw  $5,-4($23)
-  lw  $6,-8($23)
-  lw  $7,-12($23)
-  lw  $8,-16($23)
-  lw  $9,-20($23)
-  lw  $10,-24($23)
-  lw  $11,-28($23)
-  lw  $12,-32($23)
-  lw  $13,-36($23)
-  lw  $14,-40($23)
-
 end;
 
 
@@ -359,25 +221,11 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
 var
   temp: longint;
 asm
-  sw  $4,0($23)
-  sw  $5,-4($23)
-  sw  $6,-8($23)
-  sw  $7,-12($23)
-  sw  $8,-16($23)
-  sw  $9,-20($23)
-  sw  $10,-24($23)
-  sw  $11,-28($23)
-  sw  $12,-32($23)
-  sw  $13,-36($23)
-  sw  $14,-40($23)
-  addiu  $23,$23,-44
-
-
-  move  $2,$4
-  move  $4,$5
-  move  $5,$6
-  move  $6,$7
-  move  $7,$8
+  move  $v0,$a0
+  move  $a0,$a1
+  move  $a1,$a2
+  move  $a2,$a3
+  lw    $a3,16($sp)
   syscall
   nop
   beq $7,$0,.LDone
@@ -403,20 +251,6 @@ asm
 .LFailed:
   li    $2,-1
 .LDone:
-
-  addiu  $23,$23,44
-  lw  $4,0($23)
-  lw  $5,-4($23)
-  lw  $6,-8($23)
-  lw  $7,-12($23)
-  lw  $8,-16($23)
-  lw  $9,-20($23)
-  lw  $10,-24($23)
-  lw  $11,-28($23)
-  lw  $12,-32($23)
-  lw  $13,-36($23)
-  lw  $14,-40($23)
-
 end;
 
 
