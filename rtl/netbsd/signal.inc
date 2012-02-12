@@ -135,6 +135,7 @@ type
 type sigset_t = array[0..3] of cardinal;
 
     PSigContextRec = ^SigContextRec;
+    PSigContext = ^SigContextRec;
     SigContextRec = record
        sc_mask      : sigset_t;          { signal mask to restore }
        sc_onstack   : longint;              { sigstack state to restore }
