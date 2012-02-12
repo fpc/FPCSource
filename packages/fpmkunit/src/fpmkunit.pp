@@ -35,6 +35,11 @@ Interface
  {$DEFINE NO_UNIT_PROCESS}
 {$ENDIF GO32V2}
 
+{$IFDEF NETBSD}
+ { NetBSD pthreads are not yet working, try to use fpmake without threads }
+  {$DEFINE NO_THREADING}
+{$ENDIF NETBSD}
+
 {$ifndef NO_UNIT_PROCESS}
   {$define HAS_UNIT_PROCESS}
 {$endif NO_UNIT_PROCESS}
