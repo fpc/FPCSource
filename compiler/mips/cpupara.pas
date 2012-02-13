@@ -65,7 +65,7 @@ implementation
 
     function TMIPSELParaManager.get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;
       begin
-        result:=[RS_R16..RS_R23];
+        result:=[RS_R1..RS_R15,RS_R24..RS_R25];
       end;
 
 

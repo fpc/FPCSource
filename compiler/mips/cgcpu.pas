@@ -506,17 +506,19 @@ begin
     begin
       current_procinfo.got := NR_GP;
       rg[R_INTREGISTER]    := Trgcpu.Create(R_INTREGISTER, R_SUBD,
-        [RS_R4, RS_R5, RS_R6, RS_R7, RS_R8, RS_R9, RS_R10, RS_R11,
-         RS_R12, RS_R13, RS_R14 {, RS_R15 for tmp_const in ncpuadd.pas} {, RS_R24, RS_R25}],
+        [RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
+       RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
+       RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],
         first_int_imreg, []);
     end
   else
     rg[R_INTREGISTER] := trgcpu.Create(R_INTREGISTER, R_SUBD,
-      [RS_R4, RS_R5, RS_R6, RS_R7, RS_R8, RS_R9, RS_R10, RS_R11,
-       RS_R12, RS_R13, RS_R14 {, RS_R15 for tmp_const in ncpuadd.pas} {, RS_R24=VMT, RS_R25=PIC jump}],
+      [RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
+       RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
+       RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],
       first_int_imreg, []);
 
-  rg[R_FPUREGISTER] := trgcpu.Create(R_FPUREGISTER, R_SUBFS{R_SUBFD},
+  rg[R_FPUREGISTER] := trgcpu.Create(R_FPUREGISTER, R_SUBFS,
     [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,
      RS_F8,RS_F9,RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15,
      RS_F16,RS_F17,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,
