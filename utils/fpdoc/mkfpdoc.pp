@@ -5,7 +5,7 @@ unit mkfpdoc;
 interface
 
 uses
-  Classes, SysUtils, dglobals, fpdocxmlopts, dwriter, pscanner, pparser, fpdocproj;
+  Classes, SysUtils, dglobals, DOM, fpdocxmlopts, dwriter, pscanner, pparser, fpdocproj;
 
 const
   DefOSTarget    = {$I %FPCTARGETOS%};
@@ -29,6 +29,7 @@ Type
     function GetOptions: TEngineOptions;
     function GetPackages: TFPDocPackages;
   Protected
+    Procedure DoBeforeEmitNote(Sender : TObject; Note : TDomElement; Var EmitNote : Boolean); virtual;
     procedure HandleOnParseUnit(Sender: TObject; const AUnitName: String; out AInputFile, OSTarget, CPUTarget: String);
     procedure SetVerbose(AValue: Boolean); virtual;
     Procedure DoLog(Const Msg : String);
@@ -122,6 +123,12 @@ begin
   Result:=FProject.Packages;
 end;
 
+procedure TFPDocCreator.DoBeforeEmitNote(Sender: TObject; Note: TDomElement;
+  var EmitNote: Boolean);
+begin
+  EmitNote:=True;
+end;
+
 constructor TFPDocCreator.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -155,6 +162,7 @@ begin
       If FVerbose then
         DoLog('Writing documentation');
       OnLog:=Self.OnLog;
+      BeforeEmitNote:=@self.DoBeforeEmitNote;
       EmitNotes:=Options.EmitNotes;
       If Options.BackendOptions.Count>0 then
         for I:=0 to ((Options.BackendOptions.Count-1) div 2) do

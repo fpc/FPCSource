@@ -64,7 +64,8 @@ type
   end;
 
   TWriterLogEvent = Procedure(Sender : TObject; Const Msg : String) of object;
-
+  TWriterNoteEvent = Procedure(Sender : TObject; Note : TDomElement; Var EmitNote : Boolean) of object;
+  
   { TFPDocWriter }
 
   TFPDocWriter = class
@@ -74,6 +75,7 @@ type
     FPackage : TPasPackage;
     FTopics  : TList;
     FImgExt : String;
+    FBeforeEmitNote : TWriterNoteEvent;
     procedure ConvertURL(AContext: TPasElement; El: TDOMElement);
     
   protected
@@ -175,6 +177,7 @@ type
     Function  ShowMember(M : TPasElement) : boolean;
     Procedure GetMethodList(ClassDecl: TPasClassType; List : TStringList);
     Property EmitNotes : Boolean Read FEmitNotes Write FEmitNotes;
+    Property BeforeEmitNote : TWriterNoteEvent Read FBeforeEmitNote Write FBeforeEmitNote;
   end;
 
   TFPDocWriterClass = Class of TFPDocWriter;
@@ -495,6 +498,7 @@ Var
   L : TFPList;
   N : TDomNode;
   I : Integer;
+  B : Boolean;
 
 begin
   Result:=Assigned(El) and EmitNotes;
@@ -506,7 +510,13 @@ begin
     While Assigned(N) do
       begin
       If (N.NodeType=ELEMENT_NODE) and (N.NodeName='note') then
-        L.Add(N);
+        begin
+        B:=True;
+        if Assigned(FBeforeEmitNote) then
+          FBeforeEmitNote(Self,TDomElement(N),B);
+        If B then
+          L.Add(N);
+        end;
       N:=N.NextSibling;
       end;
     Result:=L.Count>0;
