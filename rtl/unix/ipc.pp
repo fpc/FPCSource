@@ -43,6 +43,16 @@ Type
    {$ENDIF}
    key_t  = TKey;
 
+{$if defined(FreeBSD) or defined(Darwin) or defined(OpenBSD)}
+   uid_t = cushort;
+   gid_t = cushort;
+   mode_t = cushort;
+{$endif}
+{$ifdef netbsd}
+   uid_t = cuint32;
+   gid_t = cuint32;
+   mode_t = cuint32;
+{$endif}
 
 Const
   { IPC flags for get calls }
@@ -81,13 +91,13 @@ type
 {$ifdef darwin}
 {$packrecords 4}
 {$endif}
-{$if defined(FreeBSD) or defined(Darwin) or defined(OpenBSD)}
+{$if defined(FreeBSD) or defined(Darwin) or defined(OpenBSD) or defined(NetBSD) }
   TIPC_Perm = record
-        cuid  : cushort;  { creator user id }
-        cgid  : cushort;  { creator group id }
-        uid   : cushort;  { user id }
-        gid   : cushort;  { group id }
-        mode  : cushort;  { r/w permission }
+        cuid  : uid_t;  { creator user id }
+        cgid  : gid_t;  { creator group id }
+        uid   : uid_t;  { user id }
+        gid   : gid_t;  { group id }
+        mode  : mode_t;  { r/w permission }
         seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
         key   : key_t;    { user specified msg/sem/shm key }
   End;
@@ -146,7 +156,7 @@ Function ftok (Path : pchar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; ex
 Type
   PShmid_DS = ^TShmid_ds;
 
-{$if defined(FreeBSD) or defined(OpenBSD)}
+{$if defined(FreeBSD) or defined(OpenBSD) or defined (NetBSD) }
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
     shm_segsz : cint;
