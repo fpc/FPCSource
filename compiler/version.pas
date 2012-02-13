@@ -71,6 +71,12 @@ interface
 {$ifdef cpuarm}
         source_cpu_string = 'arm';
 {$endif cpuarm}
+{$ifdef cpumips}
+        source_cpu_string = 'mips';
+{$endif cpumips}
+{$ifdef cpumipsel}
+        source_cpu_string = 'mipsel';
+{$endif cpumipsel}
 
 function version_string:string;
 function full_version_string:string;
