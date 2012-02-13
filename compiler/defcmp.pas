@@ -50,7 +50,15 @@ interface
 
        tcompare_paras_options = set of tcompare_paras_option;
 
-       tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant,cdo_parameter,cdo_warn_incompatible_univ);
+       tcompare_defs_option = (
+          cdo_internal,
+          cdo_explicit,
+          cdo_check_operator,
+          cdo_allow_variant,
+          cdo_parameter,
+          cdo_warn_incompatible_univ,
+          cdo_strict_undefined_check  // undefined defs are incompatible to everything except other undefined defs
+       );
        tcompare_defs_options = set of tcompare_defs_option;
 
        tconverttype = (tc_none,
@@ -210,14 +218,38 @@ implementation
             exit;
           end;
 
-         { undefined def? then mark it as equal }
-         if (def_from.typ=undefineddef) or
-            (def_to.typ=undefineddef) then
-          begin
-            doconv:=tc_equal;
-            compare_defs_ext:=te_exact;
-            exit;
-          end;
+         if cdo_strict_undefined_check in cdoptions then
+           begin
+             { undefined defs are considered equal if both are undefined defs }
+             if (def_from.typ=undefineddef) and
+                (def_to.typ=undefineddef) then
+              begin
+                doconv:=tc_equal;
+                compare_defs_ext:=te_exact;
+                exit;
+              end;
+
+             { if only one def is a undefined def then they are not considered as
+               equal}
+             if (def_from.typ=undefineddef) or
+                (def_to.typ=undefineddef) then
+              begin
+                doconv:=tc_not_possible;
+                compare_defs_ext:=te_incompatible;
+                exit;
+              end;
+           end
+         else
+           begin
+             { undefined defs are considered equal }
+             if (def_from.typ=undefineddef) or
+                (def_to.typ=undefineddef) then
+              begin
+                doconv:=tc_equal;
+                compare_defs_ext:=te_exact;
+                exit;
+              end;
+           end;
 
          { we walk the wanted (def_to) types and check then the def_from
            types if there is a conversion possible }
@@ -1668,7 +1700,7 @@ implementation
         i1,i2     : byte;
       begin
          compare_paras:=te_incompatible;
-         cdoptions:=[cdo_parameter,cdo_check_operator,cdo_allow_variant];
+         cdoptions:=[cdo_parameter,cdo_check_operator,cdo_allow_variant,cdo_strict_undefined_check];
          { we need to parse the list from left-right so the
            not-default parameters are checked first }
          lowesteq:=high(tequaltype);
