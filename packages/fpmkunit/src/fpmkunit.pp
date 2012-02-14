@@ -5013,9 +5013,8 @@ begin
   // Recompile a Target of this package?
   If Not Result then
     begin
+      GPathPrefix := APackage.Directory;
       try
-        If (APackage.Directory<>'') then
-          EnterDir(APackage.Directory);
         for i:=0 to APackage.Targets.Count-1 do
           begin
             Result:=NeedsCompile(APackage,APackage.Targets.TargetItems[i]);
@@ -5023,8 +5022,7 @@ begin
               break;
           end;
       Finally
-        If (APackage.Directory<>'') then
-          EnterDir('');
+        GPathPrefix := '';
       end;
     end;
 
