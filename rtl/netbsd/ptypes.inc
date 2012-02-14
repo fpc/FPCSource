@@ -75,6 +75,10 @@ type
     TUid     = Uid_t;
     pUid     = ^Uid_t;
 
+    wint_t    = cint32;
+    wchar_t   = cint32;
+    pwchar_t  = ^wchar_t;
+    
     clock_t  = culong;
     TClock   = clock_t;
     pClock   = ^clock_t;
@@ -136,6 +140,13 @@ type
   ptimespec= ^timespec;
   Ttimespec= timespec;
 
+   mbstate_t = record
+      case byte of
+        0: (__mbstate8: array[0..127] of char);
+        1: (_mbstateL: cint64); { for alignment }
+    end;
+   pmbstate_t = ^mbstate_t;
+  
    pthread_t            = pointer;
    pthread_attr_t       = pointer;
    pthread_mutex_t      = {$i pmutext.inc}

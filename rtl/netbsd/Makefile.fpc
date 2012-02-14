@@ -10,18 +10,19 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0
-units=$(SYSTEMUNIT) objpas macpas iso7185 strings syscall baseunix \
-      $(LINUXUNIT) unix rtlconsts ctypes bsd initc \
-      dos crt objects printer matrix dl dynlibs \
-      sysutils types fgl classes typinfo math varutils fmtbcd \
-      charset ucomplex getopts heaptrc lineinfo lnfodwrf \
-      errors sockets terminfo \
-      video mouse keyboard  serial variants types sysctl sysconst $(CPU_UNITS) \
-      fpintres cthreads unixtype unixutil strutils dateutils
-      # ipc
-
-rsts=math varutils typinfo variants classes sysconst fpmkunit
+units=$(SYSTEMUNIT) unixtype ctypes objpas macpas iso7185 \
+      strings syscall sysctl  baseunix unixutil character \
+      unix rtlconsts initc cmem matrix \
+       dl termio  printer \
+      sysutils varutils math variants typinfo types classes fgl fmtbcd dynlibs \
+      $(CPU_UNITS) charset ucomplex crt getopts heaptrc lnfodwrf lineinfo \
+      errors sockets ipc terminfo bsd \
+      video mouse keyboard serial dateutils \
+      sysconst cthreads strutils convutils stdconvs dos objects cwstring \
+      fpintres clocale
 implicitunits=exeinfo
+
+rsts=math varutils typinfo classes variants dateutils sysconst
 
 [require]
 nortl=y
@@ -196,6 +197,14 @@ strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/strutils.pp
 
+convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/convutils.pp
+
+stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
+
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
@@ -214,6 +223,10 @@ types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
+
+character$(PPUEXT): $(OBJPASDIR)/character.pas objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/character.pas
+
 
 #
 # Mac Pascal Model
@@ -271,7 +284,10 @@ sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
+variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
+        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
+
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 
 gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
 
