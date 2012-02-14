@@ -135,30 +135,60 @@ type
 type sigset_t = array[0..3] of cardinal;
 
     PSigContextRec = ^SigContextRec;
-    SigContextRec = record
-       sc_mask      : sigset_t;          { signal mask to restore }
-       sc_onstack   : longint;              { sigstack state to restore }
+    PSigContext = ^SigContextRec;
+{
+struct sigcontext {
+	int	sc_gs;
+	int	sc_fs;
+	int	sc_es;
+	int	sc_ds;
+	int	sc_edi;
+	int	sc_esi;
+	int	sc_ebp;
+	int	sc_ebx;
+	int	sc_edx;
+	int	sc_ecx;
+	int	sc_eax;
+	/* XXX */
+	int	sc_eip;
+	int	sc_cs;
+	int	sc_eflags;
+	int	sc_esp;
+	int	sc_ss;
 
-       sc_gs        : longint;              { machine state (struct trapframe): }
+	int	sc_onstack;		/* sigstack state to restore */
+	int	__sc_mask13;		/* signal mask to restore (old style) */
+
+	int	sc_trapno;		/* XXX should be above */
+	int	sc_err;
+
+	sigset_t sc_mask;		/* signal mask to restore (new style) */
+};
+}
+    SigContextRec = record
+       sc_gs        : longint;   { machine state (struct trapframe): }
        sc_fs        : longint;
        sc_es        : longint;
        sc_ds        : longint;
        sc_edi       : longint;
        sc_esi       : longint;
        sc_ebp       : longint;
-       sc_isp       : longint;
        sc_ebx       : longint;
        sc_edx       : longint;
        sc_ecx       : longint;
        sc_eax       : longint;
-       sc_trapno    : longint;
-       sc_err       : longint;
        sc_eip       : longint;
        sc_cs        : longint;
        sc_efl       : longint;
        sc_esp       : longint;
        sc_ss        : longint;
-        {
+       sc_onstack   : longint;
+       __sc_mask13  : longint;
+       sc_trapno    : longint;
+       sc_err       : longint;
+       sc_mask      : sigset_t;
+ 
+(*           {
          * XXX FPU state is 27 * 4 bytes h/w, 1 * 4 bytes s/w (probably not
          * needed here), or that + 16 * 4 bytes for emulators (probably all
          * needed here).  The "spare" bytes are mostly not spare.
@@ -173,7 +203,7 @@ type sigset_t = array[0..3] of cardinal;
        en_fos       : cardinal;     { floating operand segment selector }
        fpr_acc      : array[0..79] of char;
        fpr_ex_sw    : cardinal;
-       fpr_pad      : array[0..63] of char;
+       fpr_pad      : array[0..63] of char; *)
        end;
 
   SignalHandler   = Procedure(Sig : Longint);cdecl;
@@ -181,16 +211,8 @@ type sigset_t = array[0..3] of cardinal;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
 
-{$ifdef powerpc}
-  SigactionHandler =  procedure(Sig: Longint); cdecl;
-{$else}
-{$define BSDHandler}
-{$ifdef BSDHandler}
-  SigActionHandler  = procedure(Sig: Longint; code:longint;var SigContext: SigContextRec);cdecl;
-{$else}
-  SigActionHandler  = procedure(Sig: Longint; var sininfo:tsiginfo_t;var SigContext: SigContextRec);cdecl;
-{$endif}
-{$endif}
+  sigActionHandler = procedure(Sig: Longint; sininfo:psiginfo; SigContext: PSigContext);cdecl;
+
 
   Sigset=sigset_t;
   TSigset=sigset_t;
