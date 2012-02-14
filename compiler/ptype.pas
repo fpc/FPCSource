@@ -652,8 +652,8 @@ implementation
               end;
             _CONSTRUCTOR :
               begin
-                //if not is_classdef then
-                //  Message(parser_e_no_constructor_in_records);
+                if not is_classdef then
+                  Message(parser_e_no_constructor_in_records);
                 if not is_classdef and (current_structdef.symtable.currentvisibility <> vis_public) then
                   Message(parser_w_constructor_should_be_public);
 
