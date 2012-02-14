@@ -8461,7 +8461,6 @@ rtl/x86_64/setjump.inc svneol=native#text/plain
 rtl/x86_64/setjumph.inc svneol=native#text/plain
 rtl/x86_64/strings.inc svneol=native#text/plain
 rtl/x86_64/stringss.inc svneol=native#text/plain
-rtl/x86_64/strlen.inc svneol=native#text/plain
 rtl/x86_64/x86_64.inc svneol=native#text/plain
 tests/MPWMake -text
 tests/Makefile svneol=native#text/plain
