@@ -1677,19 +1677,6 @@ implementation
               if (p.resultdef.typ=stringdef) and
                  (tstringdef(def_to).stringtype=tstringdef(p.resultdef).stringtype) then
                 eq:=te_equal
-              else
-              { Passing a constant char to ansistring or shortstring or
-                a widechar to widestring then handle it as equal. }
-               if (p.left.nodetype=ordconstn) and
-                  (
-                   is_char(p.resultdef) and
-                   (is_shortstring(def_to) or is_ansistring(def_to))
-                  ) or
-                  (
-                   is_widechar(p.resultdef) and
-                   (is_widestring(def_to) or is_unicodestring(def_to))
-                  ) then
-                eq:=te_equal
             end;
           setdef :
             begin

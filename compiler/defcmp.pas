@@ -481,11 +481,30 @@ implementation
                  orddef :
                    begin
                    { char to string}
-                     if is_char(def_from) or
-                        is_widechar(def_from) then
+                     if is_char(def_from) then
+                       begin
+                         doconv:=tc_char_2_string;
+                         case tstringdef(def_to).stringtype of
+                           st_shortstring: eq:=te_convert_l1;
+                           st_ansistring: eq:=te_convert_l2;
+                           st_unicodestring: eq:=te_convert_l3;
+                           st_widestring: eq:=te_convert_l4;
+                         else
+                           eq:=te_convert_l5;
+                         end;
+                       end
+                     else
+                     if is_widechar(def_from) then
                       begin
                         doconv:=tc_char_2_string;
-                        eq:=te_convert_l1;
+                        case tstringdef(def_to).stringtype of
+                          st_unicodestring: eq:=te_convert_l1;
+                          st_widestring: eq:=te_convert_l2;
+                          st_ansistring: eq:=te_convert_l3;
+                          st_shortstring: eq:=te_convert_l4;
+                        else
+                          eq:=te_convert_l5;
+                        end;
                       end;
                    end;
                  arraydef :
