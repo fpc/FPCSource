@@ -55,7 +55,10 @@ begin
     { this is not allways necessary but I don't know yet
       how to tell if it is or not PM }
           res:=200;
-          fpustate:=info^._info.si_code;
+          if assigned(info) then
+            fpustate:=info^._info.si_code
+          else
+            fpustate:=FPE_IntDiv;
 
           { if (FpuState and FPU_All) <> 0 then }
            begin
@@ -91,7 +94,10 @@ begin
   if res<>0 then
    begin
 {$ifdef cpui386}
-      HandleErrorAddrFrame(res,pointer(SigContext^.sc_eip),pointer(SigContext^.sc_ebp));
+      if assigned(SigContext) then
+        HandleErrorAddrFrame(res,pointer(SigContext^.sc_eip),pointer(SigContext^.sc_ebp))
+      else
+        HandleErrorAddrFrame(res,nil,nil);
 {$endif}
    end;
 end;
