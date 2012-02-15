@@ -191,7 +191,7 @@ unit i_bsd;
             system       : system_i386_NetBSD;
             name         : 'NetBSD for i386';
             shortname    : 'NetBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
+            flags        : [tf_pic_uses_got,tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
