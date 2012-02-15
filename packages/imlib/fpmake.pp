@@ -25,7 +25,7 @@ begin
     P.Description := 'Headers to imlib, an efficient bitmap manipulation program';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
 
-    P.OSes:=AllUnixOSes-[darwin,iphonesim];
+    P.OSes:=AllUnixOSes+[OS2,EMX]-[darwin,iphonesim];
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
 
