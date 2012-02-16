@@ -52,6 +52,24 @@ implementation
 **************************************}
 
       ,CpuGas
+
+{**************************************
+             Debuginfo
+**************************************}
+
+{$define NoCFIDwarf}
+{$define NoDbgDwarf}
+{ Try only stabs for a start }
+  {$ifndef NoCFIDwarf}
+      ,cfidwarf
+  {$endif NoCFIDwarf}
+  {$ifndef NoDbgStabs}
+      ,dbgstabs
+  {$endif NoDbgStabs}
+  {$ifndef NoDbgDwarf}
+      ,dbgdwarf
+  {$endif NoDbgDwarf}
+
       ;
 
 end.
