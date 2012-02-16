@@ -225,8 +225,8 @@ struct sigcontext {
 //        0: (Sh: SignalHandler);
 //        1: (Sa: TSigAction);
 //      end;
-    Sa_Flags    : Longint;
     Sa_Mask     : SigSet;
+    Sa_Flags    : Longint;
   end;
 
   PSigActionRec = ^SigActionRec;
