@@ -134,7 +134,6 @@ var
 {$ifndef FPC_USE_WIN64_SEH}
 procedure install_exception_handlers;forward;
 {$endif FPC_USE_WIN64_SEH}
-procedure remove_exception_handlers;forward;
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
 Procedure ExitDLL(Exitcode : longint); forward;
@@ -156,7 +155,6 @@ begin
      { what about Input and Output ?? PM }
      { now handled, FPK }
    end;
-  remove_exception_handlers;
 
   { call exitprocess, with cleanup as required }
   ExitProcess(exitcode);
@@ -475,16 +473,6 @@ procedure install_exception_handlers;
 {$endif ndef FPC_USE_WIN64_SEH}
 
 
-procedure remove_exception_handlers;
-  begin
-  end;
-
-
-procedure fpc_cpucodeinit;
-  begin
-  end;
-
-
 procedure LinkIn(p1,p2,p3: Pointer); inline;
 begin
 end;
@@ -535,8 +523,6 @@ begin
     InitSystemThreads;
   end;  
   SysInitExceptions;
-  { setup fastmove stuff }
-  fpc_cpucodeinit;
   initwidestringmanager;
   initunicodestringmanager;
   InitWin32Widestrings;
