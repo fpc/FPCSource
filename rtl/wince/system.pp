@@ -848,13 +848,6 @@ var
   _SS : Cardinal;
 {$endif cpu386}
 
-Const
-  { DllEntryPoint  }
-     DLL_PROCESS_ATTACH = 1;
-     DLL_THREAD_ATTACH = 2;
-     DLL_PROCESS_DETACH = 0;
-     DLL_THREAD_DETACH = 3;
-
 function Dll_entry : longbool;[public, alias : '_FPC_DLL_Entry'];
 begin
    IsLibrary:=true;

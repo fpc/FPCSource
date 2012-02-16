@@ -20,16 +20,13 @@
 { Process TLS callback function }
 { This is only useful for executables
   for DLLs, DLL_Entry gets called. PM }
-{ The consts are the same as for DDL_Entry,
-  but as this file can be either in system unit or sysinitXXX
-  we need to rename them with EXEC prefix
-  to avoid duplicate entries. }
-Const
-   EXEC_PROCESS_ATTACH = 1;
-   EXEC_THREAD_ATTACH = 2;
-   EXEC_PROCESS_DETACH = 0;
-   EXEC_THREAD_DETACH = 3;
 {$ifdef FPC_INSSIDE_SYSINIT}
+Const
+  DLL_PROCESS_ATTACH = 1;
+  DLL_THREAD_ATTACH = 2;
+  DLL_PROCESS_DETACH = 0;
+  DLL_THREAD_DETACH = 3;
+
 var
    TlsKey : dword; external name '_FPC_TlsKey';
 
@@ -56,11 +53,11 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
      if IsLibrary then
        Exit;
      case reason of
-       { For executables, EXEC_PROCESS_ATTACH is called *before* the entry point,
-         and EXEC_PROCESS_DETACH is called *after* RTL shuts down and calls ExitProcess.
+       { For executables, DLL_PROCESS_ATTACH is called *before* the entry point,
+         and DLL_PROCESS_DETACH is called *after* RTL shuts down and calls ExitProcess.
          It isn't a good idea to handle resources of the main thread at these points.
          InitSystemThreads is necessary however, because if some statically loaded
-         DLL creates a thread, it will invoke EXEC_THREAD_ATTACH before anything else is
+         DLL creates a thread, it will invoke DLL_THREAD_ATTACH before anything else is
          initialized.
          TODO: The problem is that InitSystemThreads depends (in case of Win32)
          on EntryInformation which is not available at this point.
@@ -68,13 +65,13 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
          to sysinit unit or something like that.
          Exec_Tls_Callback is now part of sysinit unit for win32
          and the EntryInformation is a constant which sholud prevent troubles }
-       EXEC_PROCESS_ATTACH:
+       DLL_PROCESS_ATTACH:
          begin
            InitHeap;
            InitSystemThreads;
          end;
 
-       EXEC_THREAD_ATTACH :
+       DLL_THREAD_ATTACH :
          begin
          {  !!! SysInitMultithreading must NOT be called here. Windows guarantees that
             the main thread invokes PROCESS_ATTACH, not THREAD_ATTACH. So this always
@@ -92,7 +89,7 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
            { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
            InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
          end;
-       EXEC_THREAD_DETACH :
+       DLL_THREAD_DETACH :
          begin
            if TlsGetValue(TLSKey)<>nil then
              DoneThread; { Assume everything is idempotent there }

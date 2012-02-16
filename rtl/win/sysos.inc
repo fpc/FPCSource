@@ -63,6 +63,12 @@ const
    VER_PLATFORM_WIN32_WINDOWS = 1;
    VER_PLATFORM_WIN32_NT = 2;
 
+   { DllEntryPoint }
+   DLL_PROCESS_ATTACH = 1;
+   DLL_THREAD_ATTACH = 2;
+   DLL_PROCESS_DETACH = 0;
+   DLL_THREAD_DETACH = 3;
+
   { These constants are used for conversion of error codes }
   { from win32 i/o errors to tp i/o errors                 }
   { errors 1 to 18 are the same as in Turbo Pascal         }
