@@ -20,7 +20,7 @@ begin
   end;
 end;
 
-{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 function OverAll(const S: WideString): Integer; overload;
 begin
   Result := 1;
@@ -42,7 +42,7 @@ begin
   Result := 4;
 end;
 
-{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 function OverWide(const S: WideString): Integer; overload;
 begin
   Result := 1;
@@ -64,7 +64,7 @@ begin
   Result := 4;
 end;
 
-{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 function OverAllNoUni(const S: WideString): Integer; overload;
 begin
   Result := 1;
@@ -81,7 +81,7 @@ begin
 end;
 {$endif}
 
-{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 function OverAllNoShort(const S: WideString): Integer; overload;
 begin
   Result := 1;
@@ -103,7 +103,7 @@ begin
   Test(OverAll(WC), 2, 2);
   Test(OverWide(AC), 2, 3);
   Test(OverNonWide(WC), 3, 4);
-  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
   Test(OverAllNoUni(WC), 1, 5);
   {$endif}
   Test(OverAllNoShort(AC), 3, 6);
