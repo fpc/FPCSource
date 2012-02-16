@@ -140,6 +140,8 @@ const
 { include system independent routines }
 {$I system.inc}
 
+{ include code common with win64 }
+{$I syswin.inc}
 
 
 {*****************************************************************************
@@ -148,16 +150,22 @@ const
 
 procedure install_exception_handlers;forward;
 procedure remove_exception_handlers;forward;
-procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
-Procedure ExitDLL(Exitcode : longint); forward;
 
 Procedure system_exit;
 begin
-  { don't call ExitProcess inside
-    the DLL exit code !!
-    This crashes Win95 at least PM }
   if IsLibrary then
-    ExitDLL(ExitCode);
+  begin
+    { If exiting from DLL_PROCESS_ATTACH/DETACH, unwind to DllMain context. }
+    if DllInitState in [DLL_PROCESS_ATTACH,DLL_PROCESS_DETACH] then
+      LongJmp(DLLBuf,1)
+    else
+    { Abnormal termination, Halt has been called from DLL function,
+      put down the entire process (DLL_PROCESS_DETACH will still
+      occur). At this point RTL has been already finalized in InternalExit
+      and shouldn't be finalized another time in DLL_PROCESS_DETACH.
+      Indicate this by resetting MainThreadIdWin32. }
+      MainThreadIDWin32:=0;
+  end;
   if not IsConsole then
    begin
      Close(stderr);
@@ -168,7 +176,8 @@ begin
      { what about Input and Output ?? PM }
      { now handled, FPK }
    end;
-  remove_exception_handlers;
+  if not IsLibrary then
+    remove_exception_handlers;
 
   { do cleanup required by the startup code }
   EntryInformation.asm_exit();
@@ -259,12 +268,6 @@ function is_prefetch(p : pointer) : boolean;
         inc(i);
       end;
   end;
-
-{******************************************************************************}
-{ include code common with win64 }
-
-{$I syswin.inc}
-{******************************************************************************}
 
 //
 // Hardware exception handling

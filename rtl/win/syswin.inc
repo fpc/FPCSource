@@ -246,9 +246,9 @@ const
 
 
 
-Const
-   DLLExitOK : boolean = true;
+
 Var
+  DLLInitState : Longint = -1;
   DLLBuf : Jmp_buf;
 
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
@@ -257,6 +257,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
      EntryInformation:=info;
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
      IsLibrary:=true;
+     DllInitState:=DLLreason;
      Dll_entry:=false;  { return value is ignored, except when DLLreason=DLL_PROCESS_ATTACH }
      case DLLreason of
        DLL_PROCESS_ATTACH :
@@ -273,7 +274,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
                Dll_entry:=true;
              end
            else
-             Dll_entry:=DLLExitOK;
+             Dll_entry:=(ExitCode=0);
          end;
        DLL_THREAD_ATTACH :
          begin
@@ -299,12 +300,14 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
          end;
        DLL_PROCESS_DETACH :
          begin
-	   if MainThreadIDWin32=0 then // already been here.
-	     exit;
+           if MainThreadIDWin32=0 then // already been here.
+             exit;
            If SetJmp(DLLBuf) = 0 then
-             FPC_Do_Exit;
-           if assigned(Dll_Process_Detach_Hook) then
-             Dll_Process_Detach_Hook(DllParam);
+             begin
+               if assigned(Dll_Process_Detach_Hook) then
+                 Dll_Process_Detach_Hook(DllParam);
+               InternalExit;
+             end;
 
            SysReleaseThreadVars;
            { Free TLS resources used by ThreadVars }
@@ -312,18 +315,8 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            MainThreadIDWin32:=0;
          end;
      end;
+     DllInitState:=-1;
   end;
-
-
-Procedure ExitDLL(Exitcode : longint);
-  begin
-    DLLExitOK:=ExitCode=0;
-    LongJmp(DLLBuf,1);
-  end;
-
-{$ifdef win64}
-{$include systlsdir.inc}
-{$endif win64}
 
 
 {****************************************************************************

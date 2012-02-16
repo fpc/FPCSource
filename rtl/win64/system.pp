@@ -135,16 +135,23 @@ var
 procedure install_exception_handlers;forward;
 {$endif FPC_USE_WIN64_SEH}
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
-procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
-Procedure ExitDLL(Exitcode : longint); forward;
+
+{ include code common with win32 }
+{$I syswin.inc}
+
+{ TLS directory code }
+{$I systlsdir.inc}
 
 Procedure system_exit;
 begin
-  { don't call ExitProcess inside
-    the DLL exit code !!
-    This crashes Win95 at least PM }
+  { see comments in win32/system.pp about this logic }
   if IsLibrary then
-    ExitDLL(ExitCode);
+  begin
+    if DllInitState in [DLL_PROCESS_ATTACH,DLL_PROCESS_DETACH] then
+      LongJmp(DLLBuf,1)
+    else
+      MainThreadIDWin32:=0;
+  end;
   if not IsConsole then
    begin
      Close(stderr);
@@ -219,9 +226,6 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      system_exit;
   end;
 
-function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool;forward;
-
-
 
 procedure _FPC_DLLMainCRTStartup(_hinstance : qword;_dllreason : dword;_dllparam:Pointer);stdcall;public name '_DLLMainCRTStartup';
 begin
@@ -280,11 +284,6 @@ function is_prefetch(p : pointer) : boolean;
       end;
   end;
 
-{******************************************************************************}
-{ include code common with win64 }
-
-{$I syswin.inc}
-{******************************************************************************}
 
 //
 // Hardware exception handling
