@@ -28,7 +28,7 @@ begin
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
 
-    P.Dependencies.Add('opengl',AllUnixOSes);
+    P.Dependencies.Add('opengl',AllUnixOSes+[Win32,Win64]);
 
     T:=P.Targets.AddUnit('src/gdk/gdkpixbuf.pp');
       with T.Dependencies do
