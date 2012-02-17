@@ -799,6 +799,7 @@ invalid:
             end;
             if d < u_threshold then begin
               float_raise(float_flag_underflow); { underflow }
+              result:=0; { Result if underflow masked }
               exit;
             end;
           end;
@@ -913,6 +914,7 @@ invalid:
       if( d < MINLOG ) then
       begin
         float_raise(float_flag_underflow);
+        result:=0; { Result if underflow masked }
       end
       else
       begin
