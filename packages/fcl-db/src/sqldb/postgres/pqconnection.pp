@@ -115,6 +115,8 @@ const Oid_Bool     = 16;
       Oid_Money    = 790;
       Oid_Float8   = 701;
       Oid_Unknown  = 705;
+      Oid_MacAddr  = 829;
+      Oid_Inet     = 869;
       Oid_bpchar   = 1042;
       Oid_varchar  = 1043;
       oid_date      = 1082;
@@ -122,6 +124,7 @@ const Oid_Bool     = 16;
       Oid_timeTZ    = 1266;
       Oid_timestamp = 1114;
       Oid_timestampTZ = 1184;
+      Oid_interval  = 1186;
       oid_numeric   = 1700;
       Oid_uuid      = 2950;
 
@@ -416,6 +419,7 @@ begin
     Oid_TimeStamp,
     Oid_TimeStampTZ        : Result := ftDateTime;
     Oid_Date               : Result := ftDate;
+    Oid_Interval,
     Oid_Time,
     Oid_TimeTZ             : Result := ftTime;
     Oid_Bool               : Result := ftBoolean;
@@ -441,6 +445,14 @@ begin
     Oid_uuid               : begin
                              Result := ftGuid;
                              Size := 38;
+                             end;
+    Oid_MacAddr            : begin
+                             Result := ftFixedChar;
+                             Size := 17;
+                             end;
+    Oid_Inet               : begin
+                             Result := ftString;
+                             Size := 39;
                              end;
     Oid_Unknown            : Result := ftUnknown;
   else
@@ -729,12 +741,28 @@ end;
 function TPQConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
 const NBASE=10000;
+      DAYS_PER_MONTH=30;
 
 type TNumericRecord = record
        Digits : SmallInt;
        Weight : SmallInt;
        Sign   : SmallInt;
        Scale  : Smallint;
+     end;
+     TIntervalRec = packed record
+       time  : int64;
+       day   : longint;
+       month : longint;
+     end;
+     TMacAddrRec = packed record
+       a, b, c, d, e, f: byte;
+     end;
+     TInetRec = packed record
+       family : byte;
+       bits   : byte;
+       is_cidr: byte;
+       nb     : byte;
+       ipaddr : array[1..16] of byte;
      end;
 
 var
@@ -747,6 +775,8 @@ var
   NumericRecord : ^TNumericRecord;
   guid          : TGUID;
   bcd           : TBCD;
+  macaddr       : ^TMacAddrRec;
+  inet          : ^TInetRec;
 
 begin
   Createblob := False;
@@ -784,9 +814,32 @@ begin
           end;
         ftString, ftFixedChar :
           begin
-          li := pqgetlength(res,curtuple,x);
-          if li > dsMaxStringSize then li := dsMaxStringSize;
-          Move(CurrBuff^, Buffer^, li);
+          case PQftype(res, x) of
+            Oid_MacAddr:
+            begin
+              macaddr := Pointer(CurrBuff);
+              li := FormatBuf(Buffer^, FieldDef.Size, '%.2x:%.2x:%.2x:%.2x:%.2x:%.2x', 29,
+                    [macaddr^.a,macaddr^.b,macaddr^.c,macaddr^.d,macaddr^.e,macaddr^.f]);
+            end;
+            Oid_Inet:
+            begin
+              inet := Pointer(CurrBuff);
+              if inet^.nb = 4 then
+                li := FormatBuf(Buffer^, FieldDef.Size, '%d.%d.%d.%d', 11,
+                      [inet^.ipaddr[1],inet^.ipaddr[2],inet^.ipaddr[3],inet^.ipaddr[4]])
+              else if inet^.nb = 16 then
+                li := FormatBuf(Buffer^, FieldDef.Size, '%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x', 55,
+                      [inet^.ipaddr[1],inet^.ipaddr[2],inet^.ipaddr[3],inet^.ipaddr[4],inet^.ipaddr[5],inet^.ipaddr[6],inet^.ipaddr[7],inet^.ipaddr[8],inet^.ipaddr[9],inet^.ipaddr[10],inet^.ipaddr[11],inet^.ipaddr[12],inet^.ipaddr[13],inet^.ipaddr[14],inet^.ipaddr[15],inet^.ipaddr[16]])
+              else
+                li := 0;
+            end
+            else
+            begin
+              li := pqgetlength(res,curtuple,x);
+              if li > dsMaxStringSize then li := dsMaxStringSize;
+              Move(CurrBuff^, Buffer^, li);
+            end;
+          end;
           pchar(Buffer + li)^ := #0;
           end;
         ftBlob, ftMemo :
@@ -798,15 +851,22 @@ begin
           end;
         ftDateTime, ftTime :
           begin
-          pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
           dbl := pointer(buffer);
-          if FIntegerDatetimes then dbl^ := pint64(buffer)^/1000000;
-          if FieldDef.DataType = ftDateTime then
-            dbl^ := dbl^ + 3.1558464E+009; // postgres counts seconds elapsed since 1-1-2000
-          dbl^ := dbl^ / 86400;
+          if FIntegerDatetimes then
+            dbl^ := BEtoN(pint64(CurrBuff)^) / 1000000
+          else
+            pint64(dbl)^ := BEtoN(pint64(CurrBuff)^);
+          case PQftype(res, x) of
+            Oid_Timestamp, Oid_TimestampTZ:
+              dbl^ := dbl^ + 3.1558464E+009; // postgres counts seconds elapsed since 1-1-2000
+            Oid_Interval:
+              dbl^ := dbl^ + BEtoN(plongint(CurrBuff+ 8)^) * SecsPerDay
+                           + BEtoN(plongint(CurrBuff+12)^) * SecsPerDay * DAYS_PER_MONTH;
+          end;
+          dbl^ := dbl^ / SecsPerDay;
           // Now convert the mathematically-correct datetime to the
           // illogical windows/delphi/fpc TDateTime:
-          if (dbl^ <= 0) and (frac(dbl^)<0) then
+          if (dbl^ <= 0) and (frac(dbl^) < 0) then
             dbl^ := trunc(dbl^)-2-frac(dbl^);
           end;
         ftBCD, ftFmtBCD:
