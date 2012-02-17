@@ -1891,11 +1891,13 @@ end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure ReadAnsiStrFinal(var t: textrec);
 begin
   { finalise the temp ansistring }
   PAnsiString(@t.userdata[StrPtrIndex])^ := '';
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
 procedure ReadStrCommon(var t: textrec; strdata: pchar; len: sizeint);
@@ -1938,6 +1940,7 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 function fpc_SetupReadStr_Ansistr(const s: ansistring): PText; [public, alias: 'FPC_SETUPREADSTR_ANSISTR']; compilerproc;
 begin
   setupreadstrcommon(ReadWriteStrText);
@@ -1950,6 +1953,7 @@ begin
 end;
 
 function fpc_SetupReadStr_Ansistr_Intern(const s: ansistring): PText; [external name 'FPC_SETUPREADSTR_ANSISTR'];
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
 function fpc_SetupReadStr_Shortstr(const s: shortstring): PText; compilerproc;
