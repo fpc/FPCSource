@@ -38,11 +38,10 @@ Type
 
    {$IFDEF FreeBSD}
    TKey   = clong;
-   {$ELSE}
+{$ELSE}
    TKey   = cint;
-   {$ENDIF}
+{$ENDIF}
    key_t  = TKey;
-
 
 Const
   { IPC flags for get calls }
@@ -78,10 +77,10 @@ Const
 
 type
   PIPC_Perm = ^TIPC_Perm;
-{$ifdef darwin}
+{$ifdef darwin }
 {$packrecords 4}
-{$endif}
-{$if defined(FreeBSD) or defined(Darwin) or defined(OpenBSD)}
+{ This is also the strcut for FreeBSD up to version 7
+  renamed ipc_perm_old in /usr/include/sys/ipc.h in version 8 and after }
   TIPC_Perm = record
         cuid  : cushort;  { creator user id }
         cgid  : cushort;  { creator group id }
@@ -91,10 +90,19 @@ type
         seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
         key   : key_t;    { user specified msg/sem/shm key }
   End;
-{$ifdef darwin}
 {$packrecords c}
-{$endif}
-{$else} // linux
+{$else }
+{$if defined(NetBSD) or defined(OpenBSD) or defined(FreeBSD) }
+  TIPC_Perm = record
+        cuid  : uid_t;  { creator user id }
+        cgid  : gid_t;  { creator group id }
+        uid   : uid_t;  { user id }
+        gid   : gid_t;  { group id }
+        mode  : mode_t;  { r/w permission }
+        seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
+        key   : key_t;    { user specified msg/sem/shm key }
+  End;
+{$else } // linux
 
 {$ifdef cpu32}
   {$ifndef linux_ipc64}
@@ -133,7 +141,8 @@ type
         seq   : cushort;
   End;
 {$endif not(linux_ipc32) and not(FPC_USE_LIBC)}
-{$endif}
+{$endif not netbsd}
+{$endif not others}
 
 
 { Function to generate a IPC key. }
@@ -146,7 +155,7 @@ Function ftok (Path : pchar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; ex
 Type
   PShmid_DS = ^TShmid_ds;
 
-{$if defined(FreeBSD) or defined(OpenBSD)}
+{$if defined(FreeBSD) or defined(OpenBSD) or defined (NetBSD) }
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
     shm_segsz : cint;
