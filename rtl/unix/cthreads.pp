@@ -34,11 +34,11 @@
 
 { Darwin doesn't support nameless semaphores in at least }
 { Mac OS X 10.4.8/Darwin 8.8                             }
-{$ifndef darwin}
+{$if not defined(darwin) and not defined(iphonesim)}
 {$define has_sem_init}
 {$define has_sem_getvalue}
 {$else }
-{$ifdef darwin}
+{$if defined(darwin) or defined(iphonesim)}
 {$define has_sem_open}
 {$endif}
 {$endif}
@@ -53,7 +53,7 @@ interface
 
 {$ifndef dynpthreads}   // If you have problems compiling this on FreeBSD 5.x
  {$linklib c}           // try adding -Xf
- {$ifndef Darwin}
+ {$if not defined(Darwin) and not defined(iphonesim)}
    {$ifndef haiku}
      {$linklib pthread}
    {$endif haiku}
