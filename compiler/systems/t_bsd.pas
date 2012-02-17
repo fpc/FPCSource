@@ -189,8 +189,10 @@ begin
      { OpenBSD seems to use a wrong dynamic linker by default }
      if target_info.system = system_i386_openbsd then
       DynamicLinker:='/usr/libexec/ld.so'
+     else if target_info.system = system_i386_netbsd then
+      DynamicLinker:='/usr/libexec/ld.elf_so'
      else
-      DynamicLinker:='';
+       DynamicLinker:='';
    end;
 end;
 
