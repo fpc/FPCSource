@@ -233,7 +233,13 @@ type
   TFileTime = _FILETIME;
   FILETIME = _FILETIME;
   PFileTime = ^TFileTime;
-
+{$else}
+type
+  PCLSID    = Windows.PCLSID;
+  TCLSID    = Windows.CLSID;
+  TFiletime = Windows.TFileTime;
+  Filetime  = Windows.FileTime;
+  PFiletime = Windows.PFileTime;
 {$endif Windows}
 
 type
