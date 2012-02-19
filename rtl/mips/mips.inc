@@ -82,6 +82,7 @@ function Sptr:Pointer;assembler;nostackframe;
   end;
 
 
+{$ifdef USE_MIPS_STK2_ASM}
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
@@ -420,6 +421,7 @@ asm
   lw  $14,-40($23)
 
 end;
+{$endif def USE_MIPS_STK2_ASM}
 
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
