@@ -250,7 +250,10 @@ begin
   lowstart:=low(sarr);
   for i:=lowstart to high(sarr) do
     begin
-      if (DestCP<>StringCodePage(sarr[i])) then
+      tmpCP:=StringCodePage(sarr[i]);
+      if tmpCP=CP_ACP then
+        tmpCP:=DefaultSystemCodePage;
+      if (DestCP<>tmpCp) then
         begin
           sameCP:=false;
           break;
