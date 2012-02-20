@@ -104,27 +104,8 @@ begin
 end;
 
 function TPipeClientComm.ServerRunning: Boolean;
-var
-  fd: cint;
 begin
   Result:=FileExists(FFileName);
-  // it's possible to have a stale file that is not open for reading which will
-  // cause fpOpen to hang/block later when .Active is set to true while it
-  // wait's for the pipe to be opened on the other end
-  if Result then
-  begin
-    // O_WRONLY | O_NONBLOCK causes fpOpen to return -1 if the file is not open for reading
-    // so in fact the 'server' is not running
-    fd := FpOpen(FFileName, O_WRONLY or O_NONBLOCK);
-    if fd = -1 then
-    begin
-      Result := False;
-      // delete the named pipe since it's orphaned
-      FpUnlink(FFileName);
-    end
-    else
-      FpClose(fd);
-  end;
 end;
 
 
