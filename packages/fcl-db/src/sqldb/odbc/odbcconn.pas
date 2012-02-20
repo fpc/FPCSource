@@ -1135,13 +1135,13 @@ begin
       FieldSize:=dsMaxStringSize-1;
     end
     else
-    if (FieldType in [ftInteger]) and (AutoIncAttr=SQL_FALSE) then //if the column is an autoincrementing column
-                                                                   //any exact numeric type with scale 0 can have identity attr.
-                                                                   //only one column per table can have identity attr.
+    // any exact numeric type with scale 0 can have identity attr.
+    // only one column per table can have identity attr.
+    if (FieldType in [ftInteger,ftLargeInt]) and (AutoIncAttr=SQL_FALSE) then
     begin
       ODBCCheckResult(
-        SQLColAttribute(ODBCCursor.FSTMTHandle, // statement handle
-                        i,                      // column number
+        SQLColAttribute(ODBCCursor.FSTMTHandle,     // statement handle
+                        i,                          // column number
                         SQL_DESC_AUTO_UNIQUE_VALUE, // FieldIdentifier
                         nil,                        // buffer
                         0,                          // buffer size
@@ -1149,7 +1149,7 @@ begin
                         @AutoIncAttr),              // NumericAttribute
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get autoincrement attribute for column %d.',[i]
       );
-      if AutoIncAttr=SQL_TRUE then
+      if (AutoIncAttr=SQL_TRUE) and (FieldType=ftInteger) then
         FieldType:=ftAutoInc;
     end;
 
@@ -1190,7 +1190,7 @@ begin
     end;
 
     // add FieldDef
-    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (FieldType<>ftAutoInc), i);
+    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), i);
   end;
 end;
 
