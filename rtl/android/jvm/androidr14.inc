@@ -21296,18 +21296,6 @@
     constructor create(para1: JLThrowable); overload;
   end;
 
-  JLAssertionError = class external 'java.lang' name 'AssertionError' (JLError)
-  public
-    constructor create(); overload;
-    constructor create(para1: JLObject); overload;
-    constructor create(para1: jboolean); overload;
-    constructor create(para1: jchar); overload;
-    constructor create(para1: jint); overload;
-    constructor create(para1: jlong); overload;
-    constructor create(para1: jfloat); overload;
-    constructor create(para1: jdouble); overload;
-  end;
-
   JLThreadDeath = class external 'java.lang' name 'ThreadDeath' (JLError)
   public
     constructor create(); overload;

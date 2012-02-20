@@ -76,6 +76,7 @@ interface
           function first_box: tnode; virtual; abstract;
           function first_unbox: tnode; virtual; abstract;
           function first_assigned: tnode; virtual;
+          function first_assert: tnode; virtual;
 
         private
           function handle_str: tnode;
@@ -3249,7 +3250,7 @@ implementation
 
          in_assert_x_y :
             begin
-              expectloc:=LOC_VOID;
+              result := first_assert;
             end;
 
           in_low_x,
@@ -3618,6 +3619,13 @@ implementation
          result:=nil;
          expectloc := LOC_JUMP;
        end;
+
+
+     function tinlinenode.first_assert: tnode;
+       begin
+         expectloc:=LOC_VOID;
+       end;
+
 
      function tinlinenode.handle_box: tnode;
        begin

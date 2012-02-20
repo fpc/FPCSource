@@ -1,4 +1,4 @@
-{ Imports for Java packages/classes: java.io.IIOException, java.io.IOException, java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IllegalStateException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Math, java.lang.NoSuchMethodException, java.lang.Number, java.lang.Object, java.lang.Readable, java.lang.Runtime, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.ThreadLocal, java.lang.Throwable, java.lang.UnsupportedOperationException, java.lang.reflect.AccessibleObject, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.Field, java.lang.reflect.GenericDeclaration, java.lang.reflect.Member, java.lang.reflect.Method, java.lang.reflect.Type, java.math.BigInteger, java.nio.Buffer, java.nio.ByteBuffer, java.nio.CharBuffer, java.nio.charset., java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Calendar, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
+{ Imports for Java packages/classes: java.io.IIOException, java.io.IOException, java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.AssertionError, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IllegalStateException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Math, java.lang.NoSuchMethodException, java.lang.Number, java.lang.Object, java.lang.Readable, java.lang.Runtime, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.ThreadLocal, java.lang.Throwable, java.lang.UnsupportedOperationException, java.lang.reflect.AccessibleObject, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.Field, java.lang.reflect.GenericDeclaration, java.lang.reflect.InvocationTargetException, java.lang.reflect.Member, java.lang.reflect.Method, java.lang.reflect.Type, java.math.BigInteger, java.nio.Buffer, java.nio.ByteBuffer, java.nio.CharBuffer, java.nio.charset., java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Calendar, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
 type
   JLNoSuchMethodException = class;
   Arr1JLNoSuchMethodException = array of JLNoSuchMethodException;
@@ -20,6 +20,11 @@ type
   Arr2JLAbstractStringBuilder = array of Arr1JLAbstractStringBuilder;
   Arr3JLAbstractStringBuilder = array of Arr2JLAbstractStringBuilder;
 
+  JLRInvocationTargetException = class;
+  Arr1JLRInvocationTargetException = array of JLRInvocationTargetException;
+  Arr2JLRInvocationTargetException = array of Arr1JLRInvocationTargetException;
+  Arr3JLRInvocationTargetException = array of Arr2JLRInvocationTargetException;
+
   JLError = class;
   Arr1JLError = array of JLError;
   Arr2JLError = array of Arr1JLError;
@@ -29,11 +34,6 @@ type
   Arr1JLRField = array of JLRField;
   Arr2JLRField = array of Arr1JLRField;
   Arr3JLRField = array of Arr2JLRField;
-
-  JLRInvocationTargetException = class;
-  Arr1JLRInvocationTargetException = array of JLRInvocationTargetException;
-  Arr2JLRInvocationTargetException = array of Arr1JLRInvocationTargetException;
-  Arr3JLRInvocationTargetException = array of Arr2JLRInvocationTargetException;
 
   JNBuffer = class;
   Arr1JNBuffer = array of JNBuffer;
@@ -304,6 +304,11 @@ type
   Arr1JLSystem = array of JLSystem;
   Arr2JLSystem = array of Arr1JLSystem;
   Arr3JLSystem = array of Arr2JLSystem;
+
+  JLAssertionError = class;
+  Arr1JLAssertionError = array of JLAssertionError;
+  Arr2JLAssertionError = array of Arr1JLAssertionError;
+  Arr3JLAssertionError = array of Arr2JLAssertionError;
 
   JLIterable = interface;
   Arr1JLIterable = array of JLIterable;

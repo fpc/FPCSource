@@ -3575,11 +3575,6 @@ type
   Arr2JLIClassDefinition = array of Arr1JLIClassDefinition;
   Arr3JLIClassDefinition = array of Arr2JLIClassDefinition;
 
-  JSSystemEventQueueUtilities = class;
-  Arr1JSSystemEventQueueUtilities = array of JSSystemEventQueueUtilities;
-  Arr2JSSystemEventQueueUtilities = array of Arr1JSSystemEventQueueUtilities;
-  Arr3JSSystemEventQueueUtilities = array of Arr2JSSystemEventQueueUtilities;
-
   JRNoSuchObjectException = class;
   Arr1JRNoSuchObjectException = array of JRNoSuchObjectException;
   Arr2JRNoSuchObjectException = array of Arr1JRNoSuchObjectException;
@@ -4565,15 +4560,15 @@ type
   Arr2JAIImagingOpException = array of Arr1JAIImagingOpException;
   Arr3JAIImagingOpException = array of Arr2JAIImagingOpException;
 
-  JSInvalidParameterException = class;
-  Arr1JSInvalidParameterException = array of JSInvalidParameterException;
-  Arr2JSInvalidParameterException = array of Arr1JSInvalidParameterException;
-  Arr3JSInvalidParameterException = array of Arr2JSInvalidParameterException;
-
   JLVirtualMachineError = class;
   Arr1JLVirtualMachineError = array of JLVirtualMachineError;
   Arr2JLVirtualMachineError = array of Arr1JLVirtualMachineError;
   Arr3JLVirtualMachineError = array of Arr2JLVirtualMachineError;
+
+  JSInvalidParameterException = class;
+  Arr1JSInvalidParameterException = array of JSInvalidParameterException;
+  Arr2JSInvalidParameterException = array of Arr1JSInvalidParameterException;
+  Arr3JSInvalidParameterException = array of Arr2JSInvalidParameterException;
 
   OJXDIDDOMTransform = class;
   Arr1OJXDIDDOMTransform = array of OJXDIDDOMTransform;
@@ -13275,15 +13270,15 @@ type
   Arr2JTAttributeEntry = array of Arr1JTAttributeEntry;
   Arr3JTAttributeEntry = array of Arr2JTAttributeEntry;
 
-  JURPatternSyntaxException = class;
-  Arr1JURPatternSyntaxException = array of JURPatternSyntaxException;
-  Arr2JURPatternSyntaxException = array of Arr1JURPatternSyntaxException;
-  Arr3JURPatternSyntaxException = array of Arr2JURPatternSyntaxException;
-
   JBDefaultPersistenceDelegate = class;
   Arr1JBDefaultPersistenceDelegate = array of JBDefaultPersistenceDelegate;
   Arr2JBDefaultPersistenceDelegate = array of Arr1JBDefaultPersistenceDelegate;
   Arr3JBDefaultPersistenceDelegate = array of Arr2JBDefaultPersistenceDelegate;
+
+  JURPatternSyntaxException = class;
+  Arr1JURPatternSyntaxException = array of JURPatternSyntaxException;
+  Arr2JURPatternSyntaxException = array of Arr1JURPatternSyntaxException;
+  Arr3JURPatternSyntaxException = array of Arr2JURPatternSyntaxException;
 
   JPAHashPrintRequestAttributeSet = class;
   Arr1JPAHashPrintRequestAttributeSet = array of JPAHashPrintRequestAttributeSet;
@@ -14009,11 +14004,6 @@ type
   Arr1JSPSSynthEditorPaneUI = array of JSPSSynthEditorPaneUI;
   Arr2JSPSSynthEditorPaneUI = array of Arr1JSPSSynthEditorPaneUI;
   Arr3JSPSSynthEditorPaneUI = array of Arr2JSPSSynthEditorPaneUI;
-
-  JLAssertionError = class;
-  Arr1JLAssertionError = array of JLAssertionError;
-  Arr2JLAssertionError = array of Arr1JLAssertionError;
-  Arr3JLAssertionError = array of Arr2JLAssertionError;
 
   JNURISyntaxException = class;
   Arr1JNURISyntaxException = array of JNURISyntaxException;

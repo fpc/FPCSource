@@ -2343,3 +2343,15 @@
     function getCharsetName(): JLString; overload; virtual;
   end;
 
+  JLAssertionError = class external 'java.lang' name 'AssertionError' (JLError)
+  public
+    constructor create(); overload;
+    constructor create(para1: JLObject); overload;
+    constructor create(para1: jboolean); overload;
+    constructor create(para1: jchar); overload;
+    constructor create(para1: jint); overload;
+    constructor create(para1: jlong); overload;
+    constructor create(para1: jfloat); overload;
+    constructor create(para1: jdouble); overload;
+  end;
+

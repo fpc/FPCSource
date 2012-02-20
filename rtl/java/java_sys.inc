@@ -1472,18 +1472,18 @@
   JLClass = class sealed external 'java.lang' name 'Class' (JLObject, JISerializable, JLRGenericDeclaration, JLRType, JLRAnnotatedElement)
   public
     type
-      InnerMethodArray = class;
-      Arr1InnerMethodArray = array of InnerMethodArray;
-      Arr2InnerMethodArray = array of Arr1InnerMethodArray;
-      Arr3InnerMethodArray = array of Arr2InnerMethodArray;
       InnerEnclosingMethodInfo = class;
       Arr1InnerEnclosingMethodInfo = array of InnerEnclosingMethodInfo;
       Arr2InnerEnclosingMethodInfo = array of Arr1InnerEnclosingMethodInfo;
       Arr3InnerEnclosingMethodInfo = array of Arr2InnerEnclosingMethodInfo;
-      InnerMethodArray = class external 'java.lang' name 'MethodArray' 
+      InnerMethodArray = class;
+      Arr1InnerMethodArray = array of InnerMethodArray;
+      Arr2InnerMethodArray = array of Arr1InnerMethodArray;
+      Arr3InnerMethodArray = array of Arr2InnerMethodArray;
+      InnerEnclosingMethodInfo = class sealed external 'java.lang' name 'EnclosingMethodInfo' 
       end;
 
-      InnerEnclosingMethodInfo = class sealed external 'java.lang' name 'EnclosingMethodInfo' 
+      InnerMethodArray = class external 'java.lang' name 'MethodArray' 
       end;
 
   public
@@ -1711,15 +1711,15 @@
   JUAbstractMap = class abstract external 'java.util' name 'AbstractMap' (JLObject, JUMap)
   public
     type
-      InnerSimpleImmutableEntry = class;
-      Arr1InnerSimpleImmutableEntry = array of InnerSimpleImmutableEntry;
-      Arr2InnerSimpleImmutableEntry = array of Arr1InnerSimpleImmutableEntry;
-      Arr3InnerSimpleImmutableEntry = array of Arr2InnerSimpleImmutableEntry;
       InnerSimpleEntry = class;
       Arr1InnerSimpleEntry = array of InnerSimpleEntry;
       Arr2InnerSimpleEntry = array of Arr1InnerSimpleEntry;
       Arr3InnerSimpleEntry = array of Arr2InnerSimpleEntry;
-      InnerSimpleImmutableEntry = class external 'java.util' name 'SimpleImmutableEntry' (JLObject, JUMap.InnerEntry, JISerializable)
+      InnerSimpleImmutableEntry = class;
+      Arr1InnerSimpleImmutableEntry = array of InnerSimpleImmutableEntry;
+      Arr2InnerSimpleImmutableEntry = array of Arr1InnerSimpleImmutableEntry;
+      Arr3InnerSimpleImmutableEntry = array of Arr2InnerSimpleImmutableEntry;
+      InnerSimpleEntry = class external 'java.util' name 'SimpleEntry' (JLObject, JUMap.InnerEntry, JISerializable)
       public
         constructor create(para1: JLObject; para2: JLObject); overload;
         constructor create(para1: JUMap.InnerEntry); overload;
@@ -1731,7 +1731,7 @@
         function toString(): JLString; overload; virtual;
       end;
 
-      InnerSimpleEntry = class external 'java.util' name 'SimpleEntry' (JLObject, JUMap.InnerEntry, JISerializable)
+      InnerSimpleImmutableEntry = class external 'java.util' name 'SimpleImmutableEntry' (JLObject, JUMap.InnerEntry, JISerializable)
       public
         constructor create(para1: JLObject; para2: JLObject); overload;
         constructor create(para1: JUMap.InnerEntry); overload;
@@ -2139,16 +2139,6 @@
     constructor create(para1: JLThrowable); overload;
   end;
 
-  JLRInvocationTargetException = class external 'java.lang.reflect' name 'InvocationTargetException' (JLException)
-  strict protected
-    constructor create(); overload;
-  public
-    constructor create(para1: JLThrowable); overload;
-    constructor create(para1: JLThrowable; para2: JLString); overload;
-    function getTargetException(): JLThrowable; overload; virtual;
-    function getCause(): JLThrowable; overload; virtual;
-  end;
-
   JLStringBuffer = class sealed external 'java.lang' name 'StringBuffer' (JLAbstractStringBuilder, JISerializable, JLCharSequence)
   public
     constructor create(); overload;
@@ -2454,18 +2444,14 @@
   JUHashMap = class external 'java.util' name 'HashMap' (JUAbstractMap, JUMap, JLCloneable, JISerializable)
   public
     type
-      InnerEntrySet = class;
-      Arr1InnerEntrySet = array of InnerEntrySet;
-      Arr2InnerEntrySet = array of Arr1InnerEntrySet;
-      Arr3InnerEntrySet = array of Arr2InnerEntrySet;
-      InnerKeySet = class;
-      Arr1InnerKeySet = array of InnerKeySet;
-      Arr2InnerKeySet = array of Arr1InnerKeySet;
-      Arr3InnerKeySet = array of Arr2InnerKeySet;
-      InnerValues = class;
-      Arr1InnerValues = array of InnerValues;
-      Arr2InnerValues = array of Arr1InnerValues;
-      Arr3InnerValues = array of Arr2InnerValues;
+      InnerEntry = class;
+      Arr1InnerEntry = array of InnerEntry;
+      Arr2InnerEntry = array of Arr1InnerEntry;
+      Arr3InnerEntry = array of Arr2InnerEntry;
+      InnerEntryIterator = class;
+      Arr1InnerEntryIterator = array of InnerEntryIterator;
+      Arr2InnerEntryIterator = array of Arr1InnerEntryIterator;
+      Arr3InnerEntryIterator = array of Arr2InnerEntryIterator;
       InnerKeyIterator = class;
       Arr1InnerKeyIterator = array of InnerKeyIterator;
       Arr2InnerKeyIterator = array of Arr1InnerKeyIterator;
@@ -2474,25 +2460,26 @@
       Arr1InnerValueIterator = array of InnerValueIterator;
       Arr2InnerValueIterator = array of Arr1InnerValueIterator;
       Arr3InnerValueIterator = array of Arr2InnerValueIterator;
-      InnerEntryIterator = class;
-      Arr1InnerEntryIterator = array of InnerEntryIterator;
-      Arr2InnerEntryIterator = array of Arr1InnerEntryIterator;
-      Arr3InnerEntryIterator = array of Arr2InnerEntryIterator;
-      InnerEntry = class;
-      Arr1InnerEntry = array of InnerEntry;
-      Arr2InnerEntry = array of Arr1InnerEntry;
-      Arr3InnerEntry = array of Arr2InnerEntry;
+      InnerEntrySet = class;
+      Arr1InnerEntrySet = array of InnerEntrySet;
+      Arr2InnerEntrySet = array of Arr1InnerEntrySet;
+      Arr3InnerEntrySet = array of Arr2InnerEntrySet;
+      InnerKeySet = class;
+      Arr1InnerKeySet = array of InnerKeySet;
+      Arr2InnerKeySet = array of Arr1InnerKeySet;
+      Arr3InnerKeySet = array of Arr2InnerKeySet;
       InnerHashIterator = class;
       Arr1InnerHashIterator = array of InnerHashIterator;
       Arr2InnerHashIterator = array of Arr1InnerHashIterator;
       Arr3InnerHashIterator = array of Arr2InnerHashIterator;
-      InnerEntrySet = class sealed external 'java.util' name 'EntrySet' 
+      InnerValues = class;
+      Arr1InnerValues = array of InnerValues;
+      Arr2InnerValues = array of Arr1InnerValues;
+      Arr3InnerValues = array of Arr2InnerValues;
+      InnerEntry = class external 'java.util' name 'Entry' 
       end;
 
-      InnerKeySet = class sealed external 'java.util' name 'KeySet' 
-      end;
-
-      InnerValues = class sealed external 'java.util' name 'Values' 
+      InnerEntryIterator = class sealed external 'java.util' name 'EntryIterator' 
       end;
 
       InnerKeyIterator = class sealed external 'java.util' name 'KeyIterator' 
@@ -2501,13 +2488,16 @@
       InnerValueIterator = class sealed external 'java.util' name 'ValueIterator' 
       end;
 
-      InnerEntryIterator = class sealed external 'java.util' name 'EntryIterator' 
+      InnerEntrySet = class sealed external 'java.util' name 'EntrySet' 
       end;
 
-      InnerEntry = class external 'java.util' name 'Entry' 
+      InnerKeySet = class sealed external 'java.util' name 'KeySet' 
       end;
 
       InnerHashIterator = class abstract external 'java.util' name 'HashIterator' 
+      end;
+
+      InnerValues = class sealed external 'java.util' name 'Values' 
       end;
 
   public
@@ -2528,6 +2518,18 @@
     function keySet(): JUSet; overload; virtual;
     function values(): JUCollection; overload; virtual;
     function entrySet(): JUSet; overload; virtual;
+  end;
+
+  JLAssertionError = class external 'java.lang' name 'AssertionError' (JLError)
+  public
+    constructor create(); overload;
+    constructor create(para1: JLObject); overload;
+    constructor create(para1: jboolean); overload;
+    constructor create(para1: jchar); overload;
+    constructor create(para1: jint); overload;
+    constructor create(para1: jlong); overload;
+    constructor create(para1: jfloat); overload;
+    constructor create(para1: jdouble); overload;
   end;
 
   JLLinkageError = class external 'java.lang' name 'LinkageError' (JLError)
@@ -2561,6 +2563,16 @@
     constructor create(para1: JLString); overload;
     constructor create(para1: JLString; para2: JLThrowable); overload;
     constructor create(para1: JLThrowable); overload;
+  end;
+
+  JLRInvocationTargetException = class external 'java.lang.reflect' name 'InvocationTargetException' (JLException)
+  strict protected
+    constructor create(); overload;
+  public
+    constructor create(para1: JLThrowable); overload;
+    constructor create(para1: JLThrowable; para2: JLString); overload;
+    function getTargetException(): JLThrowable; overload; virtual;
+    function getCause(): JLThrowable; overload; virtual;
   end;
 
   JUAbstractSet = class abstract external 'java.util' name 'AbstractSet' (JUAbstractCollection, JUSet)

@@ -129,3 +129,5 @@ $PPC -O2 -g -B tnestdynarr
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tnestdynarr
 $PPC -O2 -g -B topovl
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. topovl
+$PPC -O2 -g -B -Sa tassert
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tassert

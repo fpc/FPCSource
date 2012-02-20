@@ -9782,6 +9782,7 @@ tests/test/jvm/taddset.pp svneol=native#text/plain
 tests/test/jvm/taddsetint.pp svneol=native#text/plain
 tests/test/jvm/tarray2.pp svneol=native#text/plain
 tests/test/jvm/tarray3.pp svneol=native#text/plain
+tests/test/jvm/tassert.pp svneol=native#text/plain
 tests/test/jvm/tbyte.pp svneol=native#text/plain
 tests/test/jvm/tbytearrres.pp svneol=native#text/plain
 tests/test/jvm/tclassproptest.pp svneol=native#text/plain

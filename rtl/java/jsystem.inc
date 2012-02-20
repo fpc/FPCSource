@@ -1289,14 +1289,15 @@ begin
 end;
 
 
-Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer); [Public,Alias : 'FPC_ASSERT']; compilerproc;
+Procedure fpc_assert(Const Msg,FName:unicodestring;LineNo:Longint{;ErrorAddr:Pointer}); [Public,Alias : 'FPC_ASSERT']; compilerproc;
 begin
 (*
   if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
   else
-*)
     HandleErrorFrame(227,get_frame);
+*)
+  raise JLAssertionError.Create(JLObject(Fname+'('+unicodestring(JLInteger.valueOf(LineNo).toString)+'): '+Msg));
 end;
 
 

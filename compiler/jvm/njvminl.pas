@@ -39,6 +39,8 @@ interface
           function first_copy: tnode; override;
           function first_assigned: tnode; override;
 
+          function first_assert: tnode; override;
+
           function first_box: tnode; override;
           function first_unbox: tnode; override;
 
@@ -71,11 +73,11 @@ interface
 implementation
 
     uses
-      cutils,globals,verbose,globtype,constexp,
+      cutils,globals,verbose,globtype,constexp,fmodule,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symtype,symconst,symdef,symsym,symtable,jvmdef,
       defutil,
-      nadd,nbas,ncon,ncnv,nmem,ncal,nld,nflw,nutils,
+      nadd,nbas,ncon,ncnv,nmat,nmem,ncal,nld,nflw,nutils,
       cgbase,pass_1,pass_2,
       cpuinfo,ncgutil,
       cgutils,hlcgobj,hlcgcpu;
@@ -238,6 +240,20 @@ implementation
           end
         else
           result:=inherited;
+      end;
+
+
+    function tjvminlinenode.first_assert: tnode;
+      var
+        paras: tcallparanode;
+      begin
+        paras:=tcallparanode(tcallparanode(left).right);
+        paras:=ccallparanode.create(cstringconstnode.createstr(current_module.sourcefiles.get_file_name(current_filepos.fileindex)),paras);
+        paras:=ccallparanode.create(genintconstnode(fileinfo.line),paras);
+        result:=cifnode.create(cnotnode.create(tcallparanode(left).left),
+           ccallnode.createintern('fpc_assert',paras),nil);
+        tcallparanode(left).left:=nil;
+        tcallparanode(left).right:=nil;
       end;
 
 

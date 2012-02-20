@@ -8865,11 +8865,6 @@ type
   Arr2JNURISyntaxException = array of Arr1JNURISyntaxException;
   Arr3JNURISyntaxException = array of Arr2JNURISyntaxException;
 
-  JLAssertionError = class;
-  Arr1JLAssertionError = array of JLAssertionError;
-  Arr2JLAssertionError = array of Arr1JLAssertionError;
-  Arr3JLAssertionError = array of Arr2JLAssertionError;
-
   OAHCMHttpPost = class;
   Arr1OAHCMHttpPost = array of OAHCMHttpPost;
   Arr2OAHCMHttpPost = array of Arr1OAHCMHttpPost;
