@@ -420,6 +420,9 @@ unit hlcgobj;
           The default implementation issues a jump instruction to the external name. }
 //          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
+         protected
+            procedure g_allocload_reg_reg(list: TAsmList; regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
+         public
           { create "safe copy" of a tlocation that can be used later: all
             registers used in the tlocation are copied to new ones, so that
             even if the original ones change, things stay the same (except if
@@ -427,7 +430,7 @@ unit hlcgobj;
             kept). Must only be used on lvalue locations.
             It's intended as some kind of replacement for a_loadaddr_ref_reg()
             for targets without pointers. }
-          procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); virtual; abstract;
+          procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); virtual;
 
 
           { routines migrated from ncgutil }
@@ -1857,6 +1860,54 @@ implementation
 
   procedure thlcgobj.g_profilecode(list: TAsmList);
     begin
+    end;
+
+  procedure thlcgobj.g_allocload_reg_reg(list: TAsmList; regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
+    begin
+      case regtyp of
+        R_INTREGISTER:
+          toreg:=getintregister(list,regsize);
+        R_ADDRESSREGISTER:
+          toreg:=getaddressregister(list,regsize);
+        R_FPUREGISTER:
+          toreg:=getfpuregister(list,regsize);
+      end;
+      a_load_reg_reg(list,regsize,regsize,fromreg,toreg);
+    end;
+
+  procedure thlcgobj.g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation);
+
+    begin
+      toloc:=fromloc;
+      case fromloc.loc of
+        { volatile location, can't get a permanent reference }
+        LOC_REGISTER,
+        LOC_FPUREGISTER:
+          internalerror(2012012702);
+        LOC_CONSTANT:
+          { finished }
+          ;
+        LOC_CREGISTER:
+          g_allocload_reg_reg(list,def,fromloc.reference.index,toloc.reference.index,R_INTREGISTER);
+        LOC_CFPUREGISTER:
+          g_allocload_reg_reg(list,def,fromloc.reference.index,toloc.reference.index,R_FPUREGISTER);
+        { although LOC_CREFERENCE cannot be an lvalue, we may want to take a
+          reference to such a location for multiple reading }
+        LOC_CREFERENCE,
+        LOC_REFERENCE:
+          begin
+            if (fromloc.reference.base<>NR_NO) and
+               (fromloc.reference.base<>current_procinfo.framepointer) and
+               (fromloc.reference.base<>NR_STACK_POINTER_REG) then
+              g_allocload_reg_reg(list,voidpointertype,fromloc.reference.base,toloc.reference.base,getregtype(fromloc.reference.base));
+            if (fromloc.reference.index<>NR_NO) and
+               (fromloc.reference.index<>current_procinfo.framepointer) and
+               (fromloc.reference.index<>NR_STACK_POINTER_REG) then
+              g_allocload_reg_reg(list,voidpointertype,fromloc.reference.index,toloc.reference.index,getregtype(fromloc.reference.index));
+          end;
+        else
+          internalerror(2012012701);
+      end;
     end;
 
   procedure thlcgobj.location_force_reg(list: TAsmList; var l: tlocation; src_size, dst_size: tdef; maybeconst: boolean);
