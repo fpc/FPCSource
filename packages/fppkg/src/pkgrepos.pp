@@ -306,7 +306,7 @@ begin
           // Don't stop on missing dependencies
           if assigned(DepPackage) then
             begin
-              if (DepPackage.Checksum<>D.RequireChecksum) then
+              if (D.RequireChecksum<>$ffffffff) and (DepPackage.Checksum<>D.RequireChecksum) then
                 begin
                   log(vlInfo,SLogPackageChecksumChanged,[APackage.Name,D.PackageName]);
                   result:=true;
