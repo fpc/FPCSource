@@ -476,7 +476,7 @@ begin
   Result := InitValue;
   while KeyLen <> 0 do
   begin
-{$push}{$q-}
+{$push}{$r-}{$q-}
     Result := Result * $F4243 xor ord(Key^);
 {$pop}
     Inc(Key);

@@ -392,7 +392,7 @@ begin
           DoEndElement('',
             SplitTagString(Copy(TokenText, 2, Length(TokenText)), Attr), '');
         end
-        else if TokenText[1] <> '!' then
+        else if (TokenText[1] <> '!') and (TokenText[1] <> '?') then
         begin
           // Do NOT combine to a single line, as Attr is an output value!
           TagName := SplitTagString(TokenText, Attr);
