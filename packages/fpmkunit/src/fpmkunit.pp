@@ -4797,7 +4797,7 @@ Var
   I : Integer;
   D : TDependency;
   T : TTarget;
-  OD,OFN : String;
+  OD,OFN,TFN : String;
 begin
   Result:=False;
 
@@ -4818,7 +4818,7 @@ begin
         OD:=APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS);
       If (OD<>'') then
         OD:=IncludeTrailingPathDelimiter(OD);
-      OFN:=OD+ATarget.GetOutPutFileName(Defaults.OS);
+      OFN:=AddPathPrefix(APackage, OD+ATarget.GetOutPutFileName(Defaults.OS));
       Result:=Not FileExists(OFN);
       if Result then
         Log(vlDebug,SDbgOutputNotYetAvailable,[OFN]);
@@ -4827,8 +4827,9 @@ begin
   // Check main source
   If not Result then
     begin
-      if FileExists(ATarget.TargetSourceFileName) then
-        Result:=FileNewer(ATarget.TargetSourceFileName,OFN)
+      TFN := AddPathPrefix(APackage,ATarget.TargetSourceFileName);
+      if FileExists(TFN) then
+        Result:=FileNewer(TFN,OFN)
     end;
 
   // Check unit and include dependencies
