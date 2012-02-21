@@ -111,9 +111,9 @@ type
 //   DOMString
 // -------------------------------------------------------
 
-  TSetOfChar = set of Char;
-  DOMString = WideString;
-  DOMPChar = PWideChar;
+  TSetOfChar = xmlutils.TSetOfChar;  { to be removed: not used in DOM unit }
+  DOMString = XMLString;
+  DOMPChar = PXMLChar;
   PDOMString = ^DOMString;
 
   EDOMError = class(Exception)
@@ -2076,9 +2076,9 @@ begin
   // QName contains prefix, but no namespace
   if ((nsIdx = 0) and (Result > 0)) or
   // Bad usage of 'http://www.w3.org/2000/xmlns/'
-  ((((L = 5) or (Result = 6)) and (Pos(WideString('xmlns'), QName) = 1)) <> (nsIdx = 2)) or
+  ((((L = 5) or (Result = 6)) and (Pos(DOMString('xmlns'), QName) = 1)) <> (nsIdx = 2)) or
   // Bad usage of 'http://www.w3.org/XML/1998/namespace'
-  ((Result = 4) and (Pos(WideString('xml'), QName) = 1) and (nsIdx <> 1)) then
+  ((Result = 4) and (Pos(DOMString('xml'), QName) = 1) and (nsIdx <> 1)) then
     Result := -NAMESPACE_ERR;
 end;
 

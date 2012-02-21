@@ -23,7 +23,7 @@ unit SAX;
 
 interface
 
-uses SysUtils, Classes;
+uses SysUtils, Classes, xmlutils;
 
 resourcestring
   SSAXAttributeIndexError = 'Invalid attribute index %d';
@@ -35,9 +35,9 @@ const
 
 type
 
-  SAXString = WideString;
+  SAXString = XMLString;
   SAXChar = WideChar;
-  PSAXChar = ^SAXChar;
+  PSAXChar = PXMLChar;
 
 { Exceptions }
 

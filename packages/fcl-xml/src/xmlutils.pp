@@ -22,25 +22,29 @@ interface
 uses
   SysUtils, Classes;
 
-function IsXmlName(const Value: WideString; Xml11: Boolean = False): Boolean; overload;
+type
+  TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
+  TSetOfChar = set of Char;
+  XMLString = WideString;
+  PXMLChar = PWideChar;
+
+function IsXmlName(const Value: XMLString; Xml11: Boolean = False): Boolean; overload;
 function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean; overload;
-function IsXmlNames(const Value: WideString; Xml11: Boolean = False): Boolean;
-function IsXmlNmToken(const Value: WideString; Xml11: Boolean = False): Boolean;
-function IsXmlNmTokens(const Value: WideString; Xml11: Boolean = False): Boolean;
-function IsValidXmlEncoding(const Value: WideString): Boolean;
+function IsXmlNames(const Value: XMLString; Xml11: Boolean = False): Boolean;
+function IsXmlNmToken(const Value: XMLString; Xml11: Boolean = False): Boolean;
+function IsXmlNmTokens(const Value: XMLString; Xml11: Boolean = False): Boolean;
+function IsValidXmlEncoding(const Value: XMLString): Boolean;
 function Xml11NamePages: PByteArray;
-procedure NormalizeSpaces(var Value: WideString);
+procedure NormalizeSpaces(var Value: XMLString);
 function IsXmlWhiteSpace(c: WideChar): Boolean;
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
 { beware, works in ASCII range only }
 function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
-procedure WStrLower(var S: WideString);
+procedure WStrLower(var S: XMLString);
 
-type
-  TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
 
 const
-  xmlVersionStr: array[TXMLVersion] of WideString = ('', '1.0', '1.1');
+  xmlVersionStr: array[TXMLVersion] of XMLString = ('', '1.0', '1.1');
 
 type
   TXMLNodeType = (ntNone, ntElement, ntAttribute, ntText,
@@ -77,7 +81,7 @@ type
   PPHashItem = ^PHashItem;
   PHashItem = ^THashItem;
   THashItem = record
-    Key: WideString;
+    Key: XMLString;
     HashValue: LongWord;
     Next: PHashItem;
     Data: TObject;
@@ -102,7 +106,7 @@ type
     function Find(Key: PWideChar; KeyLen: Integer): PHashItem;
     function FindOrAdd(Key: PWideChar; KeyLen: Integer; var Found: Boolean): PHashItem; overload;
     function FindOrAdd(Key: PWideChar; KeyLen: Integer): PHashItem; overload;
-    function FindOrAdd(const Key: WideString): PHashItem; overload;
+    function FindOrAdd(const Key: XMLString): PHashItem; overload;
     function Get(Key: PWideChar; KeyLen: Integer): TObject;
     function Remove(Entry: PHashItem): Boolean;
     function RemoveData(aData: TObject): Boolean;
@@ -154,7 +158,7 @@ type
     FIDEntry: PHashItem;           // ID attributes: entry in ID map
     FNodeType: TXMLNodeType;
 
-    FValueStr: WideString;
+    FValueStr: XMLString;
     FValueStart: PWideChar;
     FValueLength: Integer;
     FIsDefault: Boolean;
@@ -165,7 +169,7 @@ type
 
   TBinding = class
   public
-    uri: WideString;
+    uri: XMLString;
     next: TBinding;
     prevPrefixBinding: TObject;
     Prefix: PHashItem;
@@ -189,12 +193,12 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure DefineBinding(const Prefix, nsURI: WideString; out Binding: TBinding);
-    function CheckAttribute(const Prefix, nsURI: WideString;
+    procedure DefineBinding(const Prefix, nsURI: XMLString; out Binding: TBinding);
+    function CheckAttribute(const Prefix, nsURI: XMLString;
       out Binding: TBinding): TAttributeAction;
     function IsPrefixBound(P: PWideChar; Len: Integer; out Prefix: PHashItem): Boolean;
     function GetPrefix(P: PWideChar; Len: Integer): PHashItem;
-    function BindPrefix(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+    function BindPrefix(const nsURI: XMLString; aPrefix: PHashItem): TBinding;
     function DefaultNSBinding: TBinding;
     procedure StartElement;
     procedure EndElement;
@@ -212,7 +216,7 @@ type
 procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
 procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
 procedure BufAppendChunk(var ABuf: TWideCharBuf; pstart, pend: PWideChar);
-function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
+function BufEquals(const ABuf: TWideCharBuf; const Arg: XMLString): Boolean;
 procedure BufNormalize(var Buf: TWideCharBuf; out Modified: Boolean);
 
 { Built-in decoder functions for UTF-8, UTF-16 and ISO-8859-1 }
@@ -268,7 +272,7 @@ begin
     Result := False;
 end;
 
-function IsXml11Char(const Value: WideString; var Index: Integer): Boolean; overload;
+function IsXml11Char(const Value: XMLString; var Index: Integer): Boolean; overload;
 begin
   if (Value[Index] >= #$D800) and (Value[Index] <= #$DB7F) then
   begin
@@ -279,7 +283,7 @@ begin
     Result := False;
 end;
 
-function IsXmlName(const Value: WideString; Xml11: Boolean): Boolean;
+function IsXmlName(const Value: XMLString; Xml11: Boolean): Boolean;
 begin
   Result := IsXmlName(PWideChar(Value), Length(Value), Xml11);
 end;
@@ -312,7 +316,7 @@ begin
   Result := True;
 end;
 
-function IsXmlNames(const Value: WideString; Xml11: Boolean): Boolean;
+function IsXmlNames(const Value: XMLString; Xml11: Boolean): Boolean;
 var
   Pages: PByteArray;
   I: Integer;
@@ -345,7 +349,7 @@ begin
   Result := True;
 end;
 
-function IsXmlNmToken(const Value: WideString; Xml11: Boolean): Boolean;
+function IsXmlNmToken(const Value: XMLString; Xml11: Boolean): Boolean;
 var
   I: Integer;
   Pages: PByteArray;
@@ -369,7 +373,7 @@ begin
   Result := True;
 end;
 
-function IsXmlNmTokens(const Value: WideString; Xml11: Boolean): Boolean;
+function IsXmlNmTokens(const Value: XMLString; Xml11: Boolean): Boolean;
 var
   I: Integer;
   Pages: PByteArray;
@@ -396,7 +400,7 @@ begin
   Result := True;
 end;
 
-function IsValidXmlEncoding(const Value: WideString): Boolean;
+function IsValidXmlEncoding(const Value: XMLString): Boolean;
 var
   I: Integer;
 begin
@@ -409,7 +413,7 @@ begin
   Result := True;
 end;
 
-procedure NormalizeSpaces(var Value: WideString);
+procedure NormalizeSpaces(var Value: XMLString);
 var
   I, J: Integer;
 begin
@@ -462,7 +466,7 @@ begin
   result := c1 - c2;
 end;
 
-procedure WStrLower(var S: WideString);
+procedure WStrLower(var S: XMLString);
 var
   i: Integer;
 begin
@@ -484,7 +488,7 @@ begin
   end;
 end;
 
-function KeyCompare(const Key1: WideString; Key2: Pointer; Key2Len: Integer): Boolean;
+function KeyCompare(const Key1: XMLString; Key2: Pointer; Key2Len: Integer): Boolean;
 begin
 {$IFDEF FPC}
   Result := (Length(Key1)=Key2Len) and (CompareWord(Pointer(Key1)^, Key2^, Key2Len) = 0);
@@ -554,7 +558,7 @@ begin
   Result := Lookup(Key, KeyLen, Dummy, True);
 end;
 
-function THashTable.FindOrAdd(const Key: WideString): PHashItem;
+function THashTable.FindOrAdd(const Key: XMLString): PHashItem;
 var
   Dummy: Boolean;
 begin
@@ -791,7 +795,7 @@ begin
   inherited Destroy;
 end;
 
-function TNSSupport.BindPrefix(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+function TNSSupport.BindPrefix(const nsURI: XMLString; aPrefix: PHashItem): TBinding;
 begin
   { try to reuse an existing binding }
   result := FFreeBindings;
@@ -819,7 +823,7 @@ begin
   result := TBinding(FDefaultPrefix.Data);
 end;
 
-procedure TNSSupport.DefineBinding(const Prefix, nsURI: WideString;
+procedure TNSSupport.DefineBinding(const Prefix, nsURI: XMLString;
   out Binding: TBinding);
 var
   Pfx: PHashItem;
@@ -833,7 +837,7 @@ begin
     Binding := nil;
 end;
 
-function TNSSupport.CheckAttribute(const Prefix, nsURI: WideString;
+function TNSSupport.CheckAttribute(const Prefix, nsURI: XMLString;
   out Binding: TBinding): TAttributeAction;
 var
   Pfx: PHashItem;
@@ -968,7 +972,7 @@ begin
   Inc(ABuf.Length, Len);
 end;
 
-function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
+function BufEquals(const ABuf: TWideCharBuf; const Arg: XMLString): Boolean;
 begin
   Result := (ABuf.Length = Length(Arg)) and
     CompareMem(ABuf.Buffer, Pointer(Arg), ABuf.Length*sizeof(WideChar));
