@@ -181,13 +181,11 @@ end;
 
 procedure TStringFieldVar.Refresh(Buffer: TRecordBuffer);
 var Fieldbuf : TStringFieldBuffer;
-    s        : string;
 begin
   if not FField.DataSet.GetFieldData(FField,@Fieldbuf) then
-    s := ''
+    FFieldVal^:=#0
   else
-    s := Fieldbuf;
-  strcopy(FFieldVal,@s[1]);
+    strcopy(FFieldVal,@Fieldbuf[0]);
 end;
 
 //--TFloatFieldVar-----------------------------------------------------------
