@@ -50,6 +50,7 @@ type
     FEndOfStream: Boolean;
     FScannerContext: THTMLScannerContext;
     FTokenText: SAXString;
+    FRawTokenText: string;
     FCurStringValueDelimiter: Char;
     FAttrNameRead: Boolean;
     FStack: array of THTMLElementTag;
@@ -202,7 +203,7 @@ begin
           case Buffer[BufferPos] of
             #9, #10, #13, ' ':
               begin
-                FTokenText := FTokenText + Buffer[BufferPos];
+                FRawTokenText := FRawTokenText + Buffer[BufferPos];
                 Inc(BufferPos);
               end;
             '&':
@@ -232,7 +233,7 @@ begin
               end;
             else
             begin
-              FTokenText := FTokenText + Buffer[BufferPos];
+              FRawTokenText := FRawTokenText + Buffer[BufferPos];
               Inc(BufferPos);
             end;
           end;
@@ -246,7 +247,7 @@ begin
             EnterNewScannerContext(scUnknown)
           else
           begin
-            FTokenText := FTokenText + Buffer[BufferPos];
+            FRawTokenText := FRawTokenText + Buffer[BufferPos];
             Inc(BufferPos);
           end;
         scTag:
@@ -263,13 +264,13 @@ begin
                     FAttrNameRead := False;
                   end;
                 end;
-                FTokenText := FTokenText + Buffer[BufferPos];
+                FRawTokenText := FRawTokenText + Buffer[BufferPos];
                 Inc(BufferPos);
               end;
             '=':
               begin
                 FAttrNameRead := True;
-                FTokenText := FTokenText + Buffer[BufferPos];
+                FRawTokenText := FRawTokenText + Buffer[BufferPos];
                 Inc(BufferPos);
               end;
             '>':
@@ -282,22 +283,22 @@ begin
               begin
                 // TODO: this check is hardly complete, probably must also check if
                 // tag name is followed by legal attributes.
-                if CheckForName(FTokenText) then
+                if CheckForName(FRawTokenText) then   { <-- ansi to wide conversion here }
                   EnterNewScannerContext(scUnknown)   // assume unclosed tag
-                else if (FTokenText <> '') and (FTokenText[1] <> '!') then
+                else if (FRawTokenText <> '') and (FRawTokenText[1] <> '!') then
                 begin
-                  Insert('<', FTokenText, 1);         // assume plaintext
+                  Insert('<', FRawTokenText, 1);         // assume plaintext
                   FScannerContext := scText;
                   EnterNewScannerContext(scUnknown);
                 end
                 else
                 begin  // in comment, ignore
-                  FTokenText := FTokenText + Buffer[BufferPos];
+                  FRawTokenText := FRawTokenText + Buffer[BufferPos];
                   Inc(BufferPos);
                 end;
               end;
           else
-            FTokenText := FTokenText + Buffer[BufferPos];
+            FRawTokenText := FRawTokenText + Buffer[BufferPos];
             Inc(BufferPos);
           end;
         end;    // case ScannerContext of
@@ -449,6 +450,7 @@ var
   i: Integer;
   elTag: THTMLElementTag;
 begin
+  FTokenText := FRawTokenText;
   case ScannerContext of
     scWhitespace:
       if (FNesting > 0) and (efPCDataContent in HTMLElementProps[FStack[FNesting-1]].Flags) then
@@ -524,7 +526,8 @@ begin
       end;
   end;
   FScannerContext := NewContext;
-  SetLength(FTokenText, 0);
+  FTokenText := '';
+  FRawTokenText := '';
   FCurStringValueDelimiter := #0;
   FAttrNameRead := False;
 end;
