@@ -175,7 +175,7 @@ TYPE
 
   int64rec = record
     case byte of
-      1: high,low : bits32;
+      1: (high,low : bits32);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
