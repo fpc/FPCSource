@@ -36,8 +36,8 @@ Type
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
   End;
-  
-  
+
+
   TCpuThumb2AsmOptimizer = class(TCpuAsmOptimizer)
     { uses the same constructor as TAopObj }
     procedure PeepHoleOptPass2;override;
@@ -47,6 +47,7 @@ Implementation
 
   uses
     verbose,
+    cgutils,
     aasmbase,aasmcpu;
 
   function CanBeCond(p : tai) : boolean;
@@ -59,95 +60,174 @@ Implementation
     end;
 
 
+  function RefsEqual(const r1, r2: treference): boolean;
+    begin
+      refsequal :=
+        (r1.offset = r2.offset) and
+        (r1.base = r2.base) and
+        (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
+        (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
+        (r1.relsymbol = r2.relsymbol) and
+        (r1.signindex = r2.signindex) and
+        (r1.shiftimm = r2.shiftimm) and
+        (r1.addressmode = r2.addressmode) and
+        (r1.shiftmode = r2.shiftmode);
+    end;
+
+
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       next1: tai;
-      hp1: tai;
+      hp1,hp2: tai;
     begin
       result := false;
       case p.typ of
         ait_instruction:
           begin
-            case taicpu(p).opcode of
-              A_MOV:
-                begin
-                  { fold
-                    mov reg1,reg0, shift imm1
-                    mov reg1,reg1, shift imm2
-                    to
-                    mov reg1,reg0, shift imm1+imm2
-                  }
-                  if (taicpu(p).ops=3) and
-                     (taicpu(p).oper[0]^.typ = top_reg) and
-                     (taicpu(p).oper[2]^.typ = top_shifterop) and
-                     (taicpu(p).oper[2]^.shifterop^.rs = NR_NO) and
-                     getnextinstruction(p,next1) and
-                     (next1.typ = ait_instruction) and
-                     (taicpu(next1).opcode = A_MOV) and
-                     (taicpu(p).condition=taicpu(next1).condition) and
-                     (taicpu(next1).ops=3) and
-                     (taicpu(next1).oper[0]^.typ = top_reg) and
-                     (taicpu(p).oper[0]^.reg=taicpu(next1).oper[0]^.reg) and
-                     (taicpu(next1).oper[1]^.typ = top_reg) and
-                     (taicpu(p).oper[0]^.reg=taicpu(next1).oper[1]^.reg) and
-                     (taicpu(next1).oper[2]^.typ = top_shifterop) and
-                     (taicpu(next1).oper[2]^.shifterop^.rs = NR_NO) and
-                     (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(next1).oper[2]^.shifterop^.shiftmode) then
-                    begin
-                      inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(next1).oper[2]^.shifterop^.shiftimm);
-                      { avoid overflows }
-                      if taicpu(p).oper[2]^.shifterop^.shiftimm>31 then
-                        case taicpu(p).oper[2]^.shifterop^.shiftmode of
-                          SM_ROR:
-                            taicpu(p).oper[2]^.shifterop^.shiftimm:=taicpu(p).oper[2]^.shifterop^.shiftimm and 31;
-                          SM_ASR:
-                            taicpu(p).oper[2]^.shifterop^.shiftimm:=31;
-                          SM_LSR,
-                          SM_LSL:
-                            begin
-                              hp1:=taicpu.op_reg_const(A_MOV,taicpu(p).oper[0]^.reg,0);
-                              InsertLLItem(p.previous, p.next, hp1);
-                              p.free;
-                              p:=hp1;
-                            end;
-                          else
-                            internalerror(2008072803);
-                        end;
-                      asml.remove(next1);
-                      next1.free;
-                      result := true;
-                    end;
-                end;
-              A_AND:
-                begin
-                  {
-                    change
-                    and reg2,reg1,const1
-                    and reg2,reg2,const2
-                    to
-                    and reg2,reg1,(const1 and const2)
-                  }
-                  if (taicpu(p).oper[0]^.typ = top_reg) and
-                     (taicpu(p).oper[1]^.typ = top_reg) and
-                     (taicpu(p).oper[2]^.typ = top_const) and
-                     GetNextInstruction(p, hp1) and
-                     (tai(hp1).typ = ait_instruction) and
-                     (taicpu(hp1).opcode = A_AND) and
-                     (taicpu(p).condition=taicpu(hp1).condition) and
-                     (taicpu(p).oppostfix=PF_None) and
-                     (taicpu(hp1).oper[0]^.typ = top_reg) and
-                     (taicpu(hp1).oper[1]^.typ = top_reg) and
-                     (taicpu(hp1).oper[2]^.typ = top_const) and
-                     (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
-                     (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) then
-                    begin
-                      taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
-                      taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
-                      asml.remove(hp1);
-                      hp1.free;
-                    end;
-                end;
-            end;
+            {
+              change
+              <op> reg,x,y
+              cmp reg,#0
+              into
+              <op>s reg,x,y
+            }
+            { this optimization can applied only to the currently enabled operations because
+              the other operations do not update all flags and FPC does not track flag usage }
+            if (taicpu(p).opcode in [A_ADC,A_ADD,A_SUB {A_UDIV,A_SDIV,A_MUL,A_MVN,A_MOV,A_ORR,A_EOR,A_AND}]) and
+              (taicpu(p).oper[0]^.typ = top_reg) and
+              (taicpu(p).oppostfix = PF_None) and
+              (taicpu(p).condition = C_None) and
+              GetNextInstruction(p, hp1) and
+              (tai(hp1).typ = ait_instruction) and
+              (taicpu(hp1).opcode = A_CMP) and
+              (taicpu(hp1).oppostfix = PF_None) and
+              (taicpu(hp1).condition = C_None) and
+              (taicpu(hp1).oper[0]^.typ = top_reg) and
+              (taicpu(hp1).oper[1]^.typ = top_const) and
+              (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
+              (taicpu(hp1).oper[1]^.val = 0) { and
+              GetNextInstruction(hp1, hp2) and
+              (tai(hp2).typ = ait_instruction) and
+              // be careful here, following instructions could use other flags
+              // however after a jump fpc never depends on the value of flags
+              (taicpu(hp2).opcode = A_B) and
+              (taicpu(hp2).condition in [C_EQ,C_NE,C_MI,C_PL])} then
+             begin
+               taicpu(p).oppostfix:=PF_S;
+               asml.remove(hp1);
+               hp1.free;
+             end
+           else
+              case taicpu(p).opcode of
+                A_STR:
+                  begin
+                    { change
+                      str reg1,ref
+                      ldr reg2,ref
+                      into
+                      str reg1,ref
+                      mov reg2,reg1
+                    }
+                    if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                       getnextinstruction(p,hp1) and
+                       (hp1.typ = ait_instruction) and
+                       (taicpu(hp1).opcode = A_LDR) and
+                       RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
+                       (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
+                      begin
+                        if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
+                          begin
+                            asml.remove(hp1);
+                            hp1.free;
+                          end
+                        else
+                          begin
+                            taicpu(hp1).opcode:=A_MOV;
+                            taicpu(hp1).oppostfix:=PF_None;
+                            taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
+                          end;
+                        result := true;
+                      end;
+                  end;
+                A_MOV:
+                  begin
+                    { fold
+                      mov reg1,reg0, shift imm1
+                      mov reg1,reg1, shift imm2
+                      to
+                      mov reg1,reg0, shift imm1+imm2
+                    }
+                    if (taicpu(p).ops=3) and
+                       (taicpu(p).oper[0]^.typ = top_reg) and
+                       (taicpu(p).oper[2]^.typ = top_shifterop) and
+                       (taicpu(p).oper[2]^.shifterop^.rs = NR_NO) and
+                       getnextinstruction(p,next1) and
+                       (next1.typ = ait_instruction) and
+                       (taicpu(next1).opcode = A_MOV) and
+                       (taicpu(p).condition=taicpu(next1).condition) and
+                       (taicpu(next1).ops=3) and
+                       (taicpu(next1).oper[0]^.typ = top_reg) and
+                       (taicpu(p).oper[0]^.reg=taicpu(next1).oper[0]^.reg) and
+                       (taicpu(next1).oper[1]^.typ = top_reg) and
+                       (taicpu(p).oper[0]^.reg=taicpu(next1).oper[1]^.reg) and
+                       (taicpu(next1).oper[2]^.typ = top_shifterop) and
+                       (taicpu(next1).oper[2]^.shifterop^.rs = NR_NO) and
+                       (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(next1).oper[2]^.shifterop^.shiftmode) then
+                      begin
+                        inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(next1).oper[2]^.shifterop^.shiftimm);
+                        { avoid overflows }
+                        if taicpu(p).oper[2]^.shifterop^.shiftimm>31 then
+                          case taicpu(p).oper[2]^.shifterop^.shiftmode of
+                            SM_ROR:
+                              taicpu(p).oper[2]^.shifterop^.shiftimm:=taicpu(p).oper[2]^.shifterop^.shiftimm and 31;
+                            SM_ASR:
+                              taicpu(p).oper[2]^.shifterop^.shiftimm:=31;
+                            SM_LSR,
+                            SM_LSL:
+                              begin
+                                hp1:=taicpu.op_reg_const(A_MOV,taicpu(p).oper[0]^.reg,0);
+                                InsertLLItem(p.previous, p.next, hp1);
+                                p.free;
+                                p:=hp1;
+                              end;
+                            else
+                              internalerror(2008072803);
+                          end;
+                        asml.remove(next1);
+                        next1.free;
+                        result := true;
+                      end;
+                  end;
+                A_AND:
+                  begin
+                    {
+                      change
+                      and reg2,reg1,const1
+                      and reg2,reg2,const2
+                      to
+                      and reg2,reg1,(const1 and const2)
+                    }
+                    if (taicpu(p).oper[0]^.typ = top_reg) and
+                       (taicpu(p).oper[1]^.typ = top_reg) and
+                       (taicpu(p).oper[2]^.typ = top_const) and
+                       GetNextInstruction(p, hp1) and
+                       (tai(hp1).typ = ait_instruction) and
+                       (taicpu(hp1).opcode = A_AND) and
+                       (taicpu(p).condition=taicpu(hp1).condition) and
+                       (taicpu(p).oppostfix=PF_None) and
+                       (taicpu(hp1).oper[0]^.typ = top_reg) and
+                       (taicpu(hp1).oper[1]^.typ = top_reg) and
+                       (taicpu(hp1).oper[2]^.typ = top_const) and
+                       (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
+                       (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) then
+                      begin
+                        taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                        taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
+                        asml.remove(hp1);
+                        hp1.free;
+                      end;
+                  end;
+              end;
           end;
       end;
     end;
