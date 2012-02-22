@@ -420,7 +420,7 @@ begin
             else        SqlType:=SQL_WVARCHAR;
           end;
         end;
-      ftFloat:
+      ftFloat, ftCurrency:
         begin
           FloatVal:=AParams[ParamIndex].AsFloat;
           PVal:=@FloatVal;
