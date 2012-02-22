@@ -40,7 +40,7 @@ begin
     T:=P.Targets.AddUnit('bzip2stream.pp');
       with T.Dependencies do
         begin
-          AddInclude('bzip2sii386.inc',[i386],AllOSes);
+          AddInclude('bzip2si386.inc',[i386],AllOSes);
           AddUnit('bzip2comn');
         end;
     T.ResourceStrings := true;
