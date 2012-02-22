@@ -23,7 +23,7 @@ unit XMLRead;
 interface
 
 uses
-  SysUtils, Classes, DOM;
+  SysUtils, Classes, DOM, xmlutils;
 
 type
   TErrorSeverity = (esWarning, esError, esFatal);
@@ -98,18 +98,18 @@ type
   private
     FStream: TStream;
     FStringData: string;
-    FBaseURI: WideString;
-    FSystemID: WideString;
-    FPublicID: WideString;
+    FBaseURI: XMLString;
+    FSystemID: XMLString;
+    FPublicID: XMLString;
 //    FEncoding: string;
   public
     constructor Create(AStream: TStream); overload;
     constructor Create(const AStringData: string); overload;
     property Stream: TStream read FStream;
     property StringData: string read FStringData;
-    property BaseURI: WideString read FBaseURI write FBaseURI;
-    property SystemID: WideString read FSystemID write FSystemID;
-    property PublicID: WideString read FPublicID write FPublicID;
+    property BaseURI: XMLString read FBaseURI write FBaseURI;
+    property SystemID: XMLString read FSystemID write FSystemID;
+    property PublicID: XMLString read FPublicID write FPublicID;
 //    property Encoding: string read FEncoding write FEncoding;
   end;
 
@@ -121,7 +121,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure Parse(Src: TXMLInputSource; out ADoc: TXMLDocument);
-    procedure ParseUri(const URI: WideString; out ADoc: TXMLDocument);
+    procedure ParseUri(const URI: XMLString; out ADoc: TXMLDocument);
     function ParseWithContext(Src: TXMLInputSource; Context: TDOMNode;
       Action: TXMLContextAction): TDOMNode;
     property Options: TDOMParseOptions read FOptions;
@@ -143,7 +143,7 @@ procedure RegisterDecoder(Proc: TGetDecoderProc);
 implementation
 
 uses
-  UriParser, xmlutils, dtdmodel;
+  UriParser, dtdmodel;
 
 const
   PubidChars: TSetOfChar = [' ', #13, #10, 'a'..'z', 'A'..'Z', '0'..'9',
@@ -172,25 +172,25 @@ type
     FLineNo: Integer;
     LFPos: PWideChar;
     FXML11Rules: Boolean;
-    FSystemID: WideString;
+    FSystemID: XMLString;
     FCharCount: Cardinal;
     FStartNesting: Integer;
     FXMLVersion: TXMLVersion;
-    FXMLEncoding: WideString;
-    function GetSystemID: WideString;
+    FXMLEncoding: XMLString;
+    function GetSystemID: XMLString;
   protected
     function Reload: Boolean; virtual;
   public
     Kind: TXMLSourceKind;
-    constructor Create(const AData: WideString);
+    constructor Create(const AData: XMLString);
     procedure NextChar;
     procedure NewLine; virtual;
     function SkipUntil(var ToFill: TWideCharBuf; const Delim: TSetOfChar;
       wsflag: PBoolean = nil): WideChar; virtual;
     procedure Initialize; virtual;
     function SetEncoding(const AEncoding: string): Boolean; virtual;
-    function Matches(const arg: WideString): Boolean;
-    property SystemID: WideString read GetSystemID write FSystemID;
+    function Matches(const arg: XMLString): Boolean;
+    property SystemID: XMLString read GetSystemID write FSystemID;
   end;
 
   TXMLDecodingSource = class(TXMLCharSource)
@@ -241,7 +241,7 @@ type
 
   PForwardRef = ^TForwardRef;
   TForwardRef = record
-    Value: WideString;
+    Value: XMLString;
     Loc: TLocation;
   end;
 
@@ -324,7 +324,7 @@ type
     procedure XML11_BuildTables;
     function ParseQuantity: TCPQuant;
     procedure StoreLocation(out Loc: TLocation);
-    function ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: WideString): Boolean;
+    function ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: XMLString): Boolean;
     procedure ValidateAttrValue(AttrDef: TAttributeDef; attrData: PNodeData);
     procedure AddForwardRef(Buf: PWideChar; Length: Integer);
     procedure ClearForwardRefs;
@@ -373,7 +373,7 @@ type
     procedure RaiseNameNotFound;
     function  CheckName(aFlags: TCheckNameFlags = []): Boolean;
     procedure CheckNCName;
-    function  ExpectName: WideString;                                   // [5]
+    function  ExpectName: XMLString;                                    // [5]
     function ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
       Required: Boolean): Boolean;
     procedure ExpectAttValue(attrData: PNodeData; NonCDATA: Boolean);   // [10]
@@ -402,7 +402,7 @@ type
     function PrefetchEntity(AEntity: TEntityDecl): Boolean;
     procedure StartPE;
     function  ParseRef(var ToFill: TWideCharBuf): Boolean;              // [67]
-    function  ParseExternalID(out SysID, PubID: WideString;             // [75]
+    function  ParseExternalID(out SysID, PubID: XMLString;              // [75]
       SysIdOptional: Boolean): Boolean;
 
     procedure BadPENesting(S: TErrorSeverity = esError);
@@ -411,7 +411,7 @@ type
     procedure ExpectChoiceOrSeq(CP: TContentParticle; MustEndIn: TObject);
     procedure ParseElementDecl;
     procedure ParseNotationDecl;
-    function ResolveResource(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
+    function ResolveResource(const ASystemID, APublicID, ABaseURI: XMLString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(ElDef: TElementDecl);
     procedure ProcessNamespaceAtts;
     function AddBinding(attrData: PNodeData): Boolean;
@@ -425,7 +425,7 @@ type
     procedure DTDReloadHook;
     procedure ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
     function DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
-    procedure DoNotationDecl(const aName, aPubID, aSysID: WideString);
+    procedure DoNotationDecl(const aName, aPubID, aSysID: XMLString);
   public
     doc: TDOMDocument;
     constructor Create; overload;
@@ -548,7 +548,7 @@ begin
   end;
 end;
 
-procedure TDOMParser.ParseUri(const URI: WideString; out ADoc: TXMLDocument);
+procedure TDOMParser.ParseUri(const URI: XMLString; out ADoc: TXMLDocument);
 var
   Src: TXMLCharSource;
 begin
@@ -611,7 +611,7 @@ end;
 
 { TXMLCharSource }
 
-constructor TXMLCharSource.Create(const AData: WideString);
+constructor TXMLCharSource.Create(const AData: XMLString);
 begin
   inherited Create;
   FLineNo := 1;
@@ -630,7 +630,7 @@ begin
   Result := True; // always succeed
 end;
 
-function TXMLCharSource.GetSystemID: WideString;
+function TXMLCharSource.GetSystemID: XMLString;
 begin
   if FSystemID <> '' then
     Result := FSystemID
@@ -674,7 +674,7 @@ begin
     wsflag^ := wsflag^ or nonws;
 end;
 
-function TXMLCharSource.Matches(const arg: WideString): Boolean;
+function TXMLCharSource.Matches(const arg: XMLString): Boolean;
 begin
   Result := False;
   if (FBufEnd >= FBuf + Length(arg)) or Reload then
@@ -983,9 +983,9 @@ begin
   Loc.LinePos := FSource.FBuf-FSource.LFPos;
 end;
 
-function TXMLTextReader.ResolveResource(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
+function TXMLTextReader.ResolveResource(const ASystemID, APublicID, ABaseURI: XMLString; out Source: TXMLCharSource): Boolean;
 var
-  AbsSysID: WideString;
+  AbsSysID: XMLString;
   Filename: string;
   Stream: TStream;
   fd: THandle;
@@ -1047,7 +1047,7 @@ end;
 
 procedure TXMLTextReader.ValidationErrorWithName(const Msg: string; LineOffs: Integer);
 var
-  ws: WideString;
+  ws: XMLString;
 begin
   SetString(ws, FName.Buffer, FName.Length);
   ValidationError(Msg, [ws], LineOffs);
@@ -1076,7 +1076,7 @@ end;
 procedure TXMLTextReader.DoErrorPos(Severity: TErrorSeverity; const descr: string; const ErrPos: TLocation);
 var
   E: EXMLReadError;
-  sysid: WideString;
+  sysid: XMLString;
 begin
   if Assigned(FSource) then
   begin
@@ -1464,7 +1464,7 @@ begin
     FatalError('Name starts with invalid character');
 end;
 
-function TXMLTextReader.ExpectName: WideString;
+function TXMLTextReader.ExpectName: XMLString;
 begin
   CheckName;
   SetString(Result, FName.Buffer, FName.Length);
@@ -1709,7 +1709,7 @@ end;
 
 function TXMLTextReader.EntityCheck(NoExternals: Boolean): TEntityDecl;
 var
-  RefName: WideString;
+  RefName: XMLString;
   cnt: Integer;
 begin
   Result := nil;
@@ -1923,7 +1923,7 @@ end;
 
 function TXMLTextReader.CreatePINode: TDOMNode;
 var
-  NameStr, ValueStr: WideString;
+  NameStr, ValueStr: DOMString;
 begin
   SetString(NameStr, FName.Buffer, FName.Length);
   SetString(ValueStr, FValue.Buffer, FValue.Length);
@@ -2267,7 +2267,7 @@ end;
 
 procedure TXMLTextReader.ParseNotationDecl;        // [82]
 var
-  NameStr, SysID, PubID: WideString;
+  NameStr, SysID, PubID: XMLString;
 begin
   ExpectWhitespace;
   NameStr := ExpectName;
@@ -2280,7 +2280,7 @@ begin
 end;
 
 const
-  AttrDataTypeNames: array[TAttrDataType] of WideString = (
+  AttrDataTypeNames: array[TAttrDataType] of XMLString = (
     'CDATA',
     'ID',
     'IDREF',
@@ -3536,7 +3536,7 @@ begin
   end;
 end;
 
-function TXMLTextReader.ParseExternalID(out SysID, PubID: WideString;     // [75]
+function TXMLTextReader.ParseExternalID(out SysID, PubID: XMLString;     // [75]
   SysIdOptional: Boolean): Boolean;
 var
   I: Integer;
@@ -3569,7 +3569,7 @@ begin
   Result := True;
 end;
 
-function TXMLTextReader.ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: WideString): Boolean;
+function TXMLTextReader.ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: XMLString): Boolean;
 begin
   case AttrDef.DataType of
     dtId, dtIdRef, dtEntity: Result := IsXmlName(aValue, FXML11) and
@@ -3639,7 +3639,7 @@ end;
 
 function TXMLTextReader.DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
 var
-  s: WideString;
+  s: XMLString;
 begin
   Assert(not FCDSectionsAsText, 'Should not be called when CDSectionsAsText=True');
 
@@ -3647,7 +3647,7 @@ begin
   result := doc.CreateCDATASection(s);
 end;
 
-procedure TXMLTextReader.DoNotationDecl(const aName, aPubID, aSysID: WideString);
+procedure TXMLTextReader.DoNotationDecl(const aName, aPubID, aSysID: XMLString);
 var
   Notation: TNotationDecl;
   Entry: PHashItem;

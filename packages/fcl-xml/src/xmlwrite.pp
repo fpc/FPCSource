@@ -55,12 +55,12 @@ type
     FStream: TStream;
     FInsideTextNode: Boolean;
     FCanonical: Boolean;
-    FIndent: WideString;
+    FIndent: XMLString;
     FIndentCount: Integer;
     FBuffer: PChar;
     FBufPos: PChar;
     FCapacity: Integer;
-    FLineBreak: WideString;
+    FLineBreak: XMLString;
     FNSHelper: TNSSupport;
     FAttrFixups: TFPList;
     FScratch: TFPList;
@@ -68,11 +68,11 @@ type
     procedure wrtChars(Src: PWideChar; Length: Integer);
     procedure IncIndent;
     procedure DecIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
-    procedure wrtStr(const ws: WideString); {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtStr(const ws: XMLString); {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtChr(c: WideChar); {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
-    procedure wrtQuotedLiteral(const ws: WideString);
-    procedure ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
+    procedure wrtQuotedLiteral(const ws: XMLString);
+    procedure ConvWrite(const s: XMLString; const SpecialChars: TSetOfChar;
       const SpecialCharCallback: TSpecialCharCallback);
     procedure WriteNSDef(B: TBinding);
     procedure NamespaceFixup(Element: TDOMElement);
@@ -247,7 +247,7 @@ begin
   FBufPos := pb;
 end;
 
-procedure TXMLWriter.wrtStr(const ws: WideString); { inline }
+procedure TXMLWriter.wrtStr(const ws: XMLString); { inline }
 begin
   wrtChars(PWideChar(ws), Length(ws));
 end;
@@ -284,7 +284,7 @@ begin
   if FIndentCount>0 then dec(FIndentCount);
 end;
 
-procedure TXMLWriter.ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
+procedure TXMLWriter.ConvWrite(const s: XMLString; const SpecialChars: TSetOfChar;
   const SpecialCharCallback: TSpecialCharCallback);
 var
   StartPos, EndPos: Integer;
@@ -381,7 +381,7 @@ const
     @TextnodeCanonicalCallback
   );
 
-procedure TXMLWriter.wrtQuotedLiteral(const ws: WideString);
+procedure TXMLWriter.wrtQuotedLiteral(const ws: XMLString);
 var
   Quote: WideChar;
 begin

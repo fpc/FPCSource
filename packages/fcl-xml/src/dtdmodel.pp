@@ -73,12 +73,12 @@ type
     FDefault: TAttrDefault;
     FTag: Cardinal;
     FIsNamespaceDecl: Boolean;
-    FEnumeration: array of WideString;
+    FEnumeration: array of XMLString;
   public
     constructor Create(aName: PHashItem; aColonPos: Integer);
     destructor Destroy; override;
     function AddEnumToken(Buf: PWideChar; Len: Integer): Boolean;
-    function HasEnumToken(const aValue: WideString): Boolean;
+    function HasEnumToken(const aValue: XMLString): Boolean;
     property Data: PNodeData read FData;
     property Default: TAttrDefault read FDefault write FDefault;
     property DataType: TAttrDataType read FDataType write FDataType;
@@ -115,14 +115,14 @@ type
 
   TEntityDecl = class(TDTDObject)
   public
-    FName: WideString;   // TODO: change to PHashItem
-    FInputEncoding: WideString;
-    FXMLEncoding: WideString;
-    FPublicID: WideString;
-    FSystemID: WideString;
-    FNotationName: WideString;
-    FURI: WideString;
-    FReplacementText: WideString;
+    FName: XMLString;   // TODO: change to PHashItem
+    FInputEncoding: XMLString;
+    FXMLEncoding: XMLString;
+    FPublicID: XMLString;
+    FSystemID: XMLString;
+    FNotationName: XMLString;
+    FURI: XMLString;
+    FReplacementText: XMLString;
     FXMLVersion: TXMLVersion;
     FPrefetched: Boolean;
     FResolved: Boolean;
@@ -135,9 +135,9 @@ type
 
   TNotationDecl = class(TDTDObject)
   public
-    FName: WideString;
-    FPublicID: WideString;
-    FSystemID: WideString;
+    FName: XMLString;
+    FPublicID: XMLString;
+    FSystemID: XMLString;
   end;
 
   TDTDModel = class
@@ -149,10 +149,10 @@ type
     function GetEntities: THashTable;
     function GetNotations: THashTable;
   public
-    FName: WideString;
-    FSystemID: WideString;
-    FPublicID: WideString;
-    FInternalSubset: WideString;
+    FName: XMLString;
+    FSystemID: XMLString;
+    FPublicID: XMLString;
+    FInternalSubset: XMLString;
     constructor Create(aNameTable: THashTable);
     destructor Destroy; override;
     function Reference: TDTDModel;
@@ -391,7 +391,7 @@ begin
   FData^.FColonPos := aColonPos;
   FData^.FTypeInfo := Self;
   FIsNamespaceDecl := ((Length(aName^.Key) = 5) or (aColonPos = 6)) and
-    (Pos(WideString('xmlns'), aName^.Key) = 1);
+    (Pos(XMLString('xmlns'), aName^.Key) = 1);
 end;
 
 destructor TAttributeDef.Destroy;
@@ -426,7 +426,7 @@ begin
   Result := True;
 end;
 
-function TAttributeDef.HasEnumToken(const aValue: WideString): Boolean;
+function TAttributeDef.HasEnumToken(const aValue: XMLString): Boolean;
 var
   I: Integer;
 begin
