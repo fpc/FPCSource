@@ -1709,8 +1709,7 @@ Function TimeStampStructToDateTime( B :  PSQL_TIMESTAMP_STRUCT) : TDateTime;
 
 begin
  With B^ do
-   Result:=EncodeDate(Year,Month,Day)+
-           EncodeTime(Hour,Minute,Second,Fraction div 1000000);
+   Result:=ComposeDateTime(EncodeDate(Year,Month,Day), EncodeTime(Hour,Minute,Second,Fraction div 1000000));
 end;
 
 Function TimeStructToDateTime (B : PSQL_TIME_STRUCT) : TDateTime;
