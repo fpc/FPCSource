@@ -41,7 +41,7 @@
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="../inc;../$(TargetCPU);../unix;../objpas/classes;../objpas/sysutils;../objpas;$(TargetCPU)"/>
       <OtherUnitFiles Value="../objpas;../objpas/classes;../objpas/sysutils;../inc;../unix;../$(TargetCPU)"/>
