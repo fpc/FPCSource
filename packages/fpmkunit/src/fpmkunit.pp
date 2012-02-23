@@ -1210,6 +1210,7 @@ ResourceString
   SWarnCleanPackagecomplete = 'Clean of package %s completed';
   SWarnCanNotGetAccessRights = 'Warning: Failed to copy access-rights from file %s';
   SWarnCanNotSetAccessRights = 'Warning: Failed to copy access-rights to file %s';
+  SWarnCanNotGetFileAge = 'Warning: Failed to get FileAge for %s';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -1222,7 +1223,7 @@ ResourceString
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
   SInfoDeletingFile       = 'Deleting file "%s"';
   SInfoSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
-  SInfoFallbackBuildmode  = 'Buildmode not spported by package, falling back to one by one unit compilation';
+  SInfoFallbackBuildmode  = 'Buildmode not supported by package, falling back to one by one unit compilation';
 
   SDbgComparingFileTimes    = 'Comparing file "%s" time "%s" to "%s" time "%s".';
   SDbgCompilingDependenciesOfTarget = 'Compiling dependencies of target %s';
@@ -1387,8 +1388,17 @@ var
                   installer.log(vlCommand,'      '+ Copy(sLine, ipos + Length(snum), Length(sLine) - ipos - Length(snum) + 1));
               end;
             end;
-
-          sLine := '';
+          if (LineEnding=#13#10) and (ch=#13) and
+             (ConsoleOutput.Position<BytesRead) then
+            begin
+              ConsoleOutput.Read(ch,1);
+              if ch=#10 then
+                sLine:=''
+              else
+                sLine:=ch;
+            end
+          else
+            sLine := '';
           BuffPos := ConsoleOutput.Position;
         end
         else
@@ -4247,6 +4257,7 @@ begin
   { Return false if file not found or not accessible }
   if DS=-1 then
     begin
+      Log(vlWarning,SWarnCanNotGetFileAge,[Src]);
       Result:=false;
       exit;
     end;
