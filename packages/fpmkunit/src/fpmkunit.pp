@@ -4244,6 +4244,12 @@ Var
 
 begin
   DS:=FileAge(Src);
+  { Return false if file not found or not accessible }
+  if DS=-1 then
+    begin
+      Result:=false;
+      exit;
+    end;
   DD:=FileAge(Dest);
   D1:=FileDateToDateTime(DS);
   D2:=FileDateToDateTime(DD);
@@ -4857,7 +4863,10 @@ begin
                 depInclude :
                   begin
                     if D.TargetFileName<>'' then
-                      Result:=FileNewer(D.TargetFileName,OFN)
+                      begin
+                        TFN:=AddPathPrefix(APackage,D.TargetFileName);
+                        Result:=FileNewer(TFN,OFN);
+                      end;
                   end;
                 depPackage :
                   begin
