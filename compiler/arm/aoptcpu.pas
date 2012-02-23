@@ -84,6 +84,7 @@ Implementation
       case p.typ of
         ait_instruction:
           begin
+            (* optimization proved not to be safe, see tw4768.pp
             {
               change
               <op> reg,x,y
@@ -118,6 +119,7 @@ Implementation
                hp1.free;
              end
            else
+           *)
               case taicpu(p).opcode of
                 A_STR:
                   begin
@@ -129,7 +131,7 @@ Implementation
                       mov reg2,reg1
                     }
                     if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
-                       getnextinstruction(p,hp1) and
+                       GetNextInstruction(p,hp1) and
                        (hp1.typ = ait_instruction) and
                        (taicpu(hp1).opcode = A_LDR) and
                        RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
@@ -148,7 +150,39 @@ Implementation
                           end;
                         result := true;
                       end;
-                  end;
+                  end;                
+                A_LDR:
+                  begin
+                    { change
+                      ldr reg1,ref
+                      ldr reg2,ref
+                      into
+                      ldr reg1,ref
+                      mov reg2,reg1
+                    }
+                    if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                       GetNextInstruction(p,hp1) and
+                       (hp1.typ = ait_instruction) and
+                       (taicpu(hp1).opcode = A_LDR) and
+                       RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
+                       (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.index) and
+                       (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.base) and
+                       (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
+                      begin
+                        if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
+                          begin
+                            asml.remove(hp1);
+                            hp1.free;
+                          end
+                        else
+                          begin
+                            taicpu(hp1).opcode:=A_MOV;
+                            taicpu(hp1).oppostfix:=PF_None;
+                            taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
+                          end;
+                        result := true;
+                      end;                      
+                  end;                  
                 A_MOV:
                   begin
                     { fold
