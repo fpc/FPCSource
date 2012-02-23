@@ -536,8 +536,9 @@ begin
   FBlockStream.WriteByte(Offset);
 
   // length can be 0 if it is the same word as the last. there is a word entry each for title and content
+
   if Length(NewWord) > 0 then
-    FBlockStream.Write(NewWord[1], Length(Trim(NewWord)));
+    FBlockStream.Write(NewWord[1], Length(NewWord));
 
   FBlockStream.WriteByte(Ord(AWord.IsTitle));
   WriteCompressedIntegerBE(FBlockStream, AWord.DocumentCount);
