@@ -261,8 +261,9 @@ begin
           AddUnit('fvconsts');
         end;
     P.ExamplePath.Add('examples');
+    P.ExamplePath.Add('src');
     P.Targets.AddExampleProgram('examples/testapp.pas');
-    P.Targets.AddExampleProgram('examples/platform.inc');
+    P.Targets.AddExampleProgram('src/platform.inc');
     // 'examples/Makefile
     // 'examples/testapp.lpi
     // 'examples/Makefile.fpc

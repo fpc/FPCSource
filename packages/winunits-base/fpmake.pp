@@ -92,13 +92,13 @@ begin
     T:=P.Targets.AddImplicitUnit('winutils.pp');
     T:=P.Targets.AddImplicitUnit('comserv.pp');
     T:=P.Targets.AddImplicitUnit('winspool.pp');
-    T:=P.Targets.AddImplicitUnit('imm');
-    T:=P.Targets.AddImplicitUnit('imm_dyn');
+    T:=P.Targets.AddImplicitUnit('imm.pas');
+    T:=P.Targets.AddImplicitUnit('imm_dyn.pas');
     T:=P.Targets.AddImplicitUnit('nb30.pp');
     T:=P.Targets.AddImplicitUnit('win9xwsmanager.pp', [win32]);
-	T:=P.Targets.AddImplicitUnit('stdole2');
-	T:=P.Targets.AddImplicitUnit('eventsink');
-	T:=P.Targets.AddImplicitUnit('typelib');
+	T:=P.Targets.AddImplicitUnit('stdole2.pas');
+	T:=P.Targets.AddImplicitUnit('eventsink.pp');
+	T:=P.Targets.AddImplicitUnit('typelib.pas');
     T.Dependencies.AddInclude('tmschema.inc');
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testcom1.pp');

@@ -144,7 +144,7 @@ begin
     P.Targets.AddExampleProgram('fire.pp');
     P.Targets.AddExampleProgram('mojo.pp');
     P.Targets.AddExampleProgram('land.pp');
-    P.Targets.AddExampleProgram('keybrd2.pp');
+    P.Targets.AddExampleProgram('keyboard2.pp');
     P.Targets.AddExampleProgram('clear.pp');
     P.Targets.AddExampleProgram('con_info.pp');
     P.Targets.AddExampleProgram('area.pp');
