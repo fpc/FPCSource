@@ -216,6 +216,7 @@ type
 procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
 procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
 procedure BufAppendChunk(var ABuf: TWideCharBuf; pstart, pend: PWideChar);
+procedure BufAppendString(var ABuf: TWideCharBuf; const AValue: XMLString);
 function BufEquals(const ABuf: TWideCharBuf; const Arg: XMLString): Boolean;
 procedure BufNormalize(var Buf: TWideCharBuf; out Modified: Boolean);
 
@@ -490,11 +491,7 @@ end;
 
 function KeyCompare(const Key1: XMLString; Key2: Pointer; Key2Len: Integer): Boolean;
 begin
-{$IFDEF FPC}
-  Result := (Length(Key1)=Key2Len) and (CompareWord(Pointer(Key1)^, Key2^, Key2Len) = 0);
-{$ELSE}
   Result := (Length(Key1)=Key2Len) and CompareMem(Pointer(Key1), Key2, Key2Len*2);
-{$ENDIF}
 end;
 
 { THashTable }
@@ -969,6 +966,22 @@ begin
     ReallocMem(ABuf.Buffer, ABuf.MaxLength * sizeof(WideChar));
   end;
   Move(pstart^, ABuf.Buffer[ABuf.Length], Len * sizeof(WideChar));
+  Inc(ABuf.Length, Len);
+end;
+
+procedure BufAppendString(var ABuf: TWideCharBuf; const AValue: XMLString);
+var
+  Len: Integer;
+begin
+  Len := Length(AValue);
+  if Len <= 0 then
+    Exit;
+  if Len >= ABuf.MaxLength - ABuf.Length then
+  begin
+    ABuf.MaxLength := (Len + ABuf.Length)*2;
+    ReallocMem(ABuf.Buffer, ABuf.MaxLength * sizeof(WideChar));
+  end;
+  Move(PWideChar(AValue)^, ABuf.Buffer[ABuf.Length], Len * sizeof(WideChar));
   Inc(ABuf.Length, Len);
 end;
 
