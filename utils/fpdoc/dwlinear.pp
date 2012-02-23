@@ -893,7 +893,8 @@ begin
         Writeln(Format('%s : ',[SDocVersion]));
         WriteDescr(TypeDecl, DocNode.Version);
         end;
-      ConvertNotes(TypeDecl,DocNode.Notes);
+      if Assigned(DocNode) and assigned(DocNode.Notes) then
+        ConvertNotes(TypeDecl,DocNode.Notes);
       DescrEndParagraph;
       end;
   end;
