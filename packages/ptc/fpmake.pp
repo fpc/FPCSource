@@ -22,8 +22,9 @@ begin
     p.OSes:=[linux,win32,win64];
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/ptcwrapper');
-    P.SourcePath.Add('src/win32/directx', [win32, win64]); 
+    P.SourcePath.Add('src/win32/directx', [win32, win64]);
     P.IncludePath.Add('src');
+    P.IncludePath.Add('src/core');
     P.IncludePath.Add('src/dos',[go32v2]);
     P.IncludePath.Add('src/dos/base',[go32v2]);
     P.SourcePath.Add('src/dos/cga',[go32v2]);
@@ -37,6 +38,9 @@ begin
     P.IncludePath.Add('src/dos/timeunit',[go32v2]);
     P.IncludePath.Add('src/dos/vesa',[go32v2]);
     P.IncludePath.Add('src/win32',[win32,win64]);
+    P.IncludePath.Add('src/win32/base', [win32, win64]);
+    P.IncludePath.Add('src/win32/directx', [win32, win64]);
+    P.IncludePath.Add('src/win32/gdi', [win32, win64]);
     P.IncludePath.Add('src/wince',[wince]);
     P.IncludePath.Add('src/x11',AllUnixOSes);
 

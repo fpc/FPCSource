@@ -19,6 +19,7 @@ begin
     P.Version:='2.7.1';
     P.OSes := [freebsd,linux,win32];
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
   T:=P.Targets.AddUnit('xml2.pas');
   with T.Dependencies do

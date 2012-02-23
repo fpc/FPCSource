@@ -41,7 +41,7 @@ begin
       with T.Dependencies do
         begin
           AddInclude('resolve.inc');
-          AddUnit('netdb');
+          AddUnit('netdb',AllUnixOSes);
         end;
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('ssockets.pp',AllUnixOSes+AllWindowsOSes+[OS2,EMX]);

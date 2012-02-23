@@ -31,7 +31,7 @@ begin
     T:=P.Targets.AddUnit('gl.pp');
     T:=P.Targets.AddUnit('glu.pp');
     T:=P.Targets.AddUnit('glut.pp');
-    T.Dependencies.Add('freeglut',AllOSes-[morphos]);
+    // T.Dependencies.Add('freeglut',AllOSes-[morphos]);
     T:=P.Targets.AddUnit('glx.pp',AllUnixOSes-[darwin,iphonesim]);
     if Defaults.CPU<>arm then
       T:=P.Targets.AddUnit('glx.pp',[darwin]);
