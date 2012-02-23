@@ -28,7 +28,7 @@ CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/trees.ppu units_bs/$(SOURCESUFFIX)/trees.o
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/zdeflate.ppu units_bs/$(SOURCESUFFIX)/zdeflate.o units_bs/$(SOURCESUFFIX)/zinflate.o units_bs/$(SOURCESUFFIX)/zinflate.ppu
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/zipper.ppu units_bs/$(SOURCESUFFIX)/zipper.o units_bs/$(SOURCESUFFIX)/zipper.rst units_bs/$(SOURCESUFFIX)/zstream.o units_bs/$(SOURCESUFFIX)/zstream.ppu units_bs/$(SOURCESUFFIX)/zstream.rst
 # Set NO_UNIT_PROCESS on hosts that do not support the process unit
-ifneq ($(findstring $(OS_SOURCE),os2 go32v2 haiku),)
+ifneq ($(findstring $(OS_SOURCE),os2 go32v2),)
 NO_UNIT_PROCESS=1
 endif
 ifdef NO_UNIT_PROCESS
