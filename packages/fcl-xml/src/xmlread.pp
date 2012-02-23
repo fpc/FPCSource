@@ -332,11 +332,11 @@ type
     procedure StandaloneError(LineOffs: Integer = 0);
     procedure CallErrorHandler(E: EXMLReadError);
     function  FindOrCreateElDef: TElementDecl;
-    function  SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
+    function  SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar): Boolean;
     procedure CheckMaxChars(ToAdd: Cardinal);
     function AllocNodeData(AIndex: Integer): PNodeData;
     function AllocAttributeData: PNodeData;
-    function AllocAttributeValueChunk(APrev: PNodeData): PNodeData;
+    procedure AllocAttributeValueChunk(var APrev: PNodeData; Offset: Integer);
     procedure CleanupAttribute(aNode: PNodeData);
     procedure CleanupAttributes;
     procedure SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
@@ -393,7 +393,7 @@ type
     procedure ResolveEntity;
     procedure DoStartEntity;
     procedure ParseAttribute(ElDef: TElementDecl);
-    procedure ParseContent(parent: TDOMNode_WithChildren);              // [43]
+    procedure ParseContent(cursor: TDOMNode_WithChildren);              // [43]
     function  ReadTopLevel: Boolean;
     function  Read: Boolean;
     function  ResolvePredefined: Boolean;
@@ -955,7 +955,7 @@ type
 
 destructor THandleOwnerStream.Destroy;
 begin
-  if Handle >= 0 then FileClose(Handle);
+  FileClose(Handle);
   inherited Destroy;
 end;
 
@@ -1593,13 +1593,8 @@ begin
       if ((ent = nil) or (not FExpandEntities)) and (FSource.FEntity = start) then
       begin
         if FValue.Length > StartPos then
-        begin
-          curr := AllocAttributeValueChunk(curr);
-          curr^.FNodeType := ntText;
-          // without PWideChar typecast and in {$T-}, FPC treats '@' result as PAnsiChar...
-          SetString(curr^.FValueStr, PWideChar(@FValue.Buffer[StartPos]), FValue.Length-StartPos);
-        end;
-        curr := AllocAttributeValueChunk(curr);
+          AllocAttributeValueChunk(curr, StartPos);
+        AllocAttributeValueChunk(curr, FValue.Length);
         curr^.FNodeType := ntEntityReference;
         curr^.FQName := entName;
       end;
@@ -1627,11 +1622,7 @@ begin
   begin
     FAttrCleanupFlag := True;
     if FValue.Length > StartPos then
-    begin
-      curr := AllocAttributeValueChunk(curr);
-      curr^.FNodeType := ntText;
-      SetString(curr^.FValueStr, PWideChar(@FValue.Buffer[StartPos]), FValue.Length-StartPos);
-    end;
+      AllocAttributeValueChunk(curr, StartPos);
   end;
   if nonCDATA then
     BufNormalize(FValue, attrData^.FDenormalized)
@@ -1847,7 +1838,7 @@ begin
     BufNormalize(ToFill, dummy);
 end;
 
-function TXMLTextReader.SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
+function TXMLTextReader.SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar): Boolean;
 var
   wc: WideChar;
 begin
@@ -1858,12 +1849,11 @@ begin
     if wc <> #0 then
     begin
       FSource.NextChar;
-      if (FValue.Length > ord(c2 <> #0)) then
+      if (FValue.Length > 0) then
       begin
-        if (FValue.Buffer[FValue.Length-1] = c1) and
-          ((c2 = #0) or ((c2 <> #0) and (FValue.Buffer[FValue.Length-2] = c2))) then
+        if (FValue.Buffer[FValue.Length-1] = c1) then
         begin
-          Dec(FValue.Length, ord(c2 <> #0) + 1);
+          Dec(FValue.Length);
           Result := True;
           Exit;
         end;
@@ -2886,12 +2876,10 @@ const
     ntText
   );
 
-procedure TXMLTextReader.ParseContent(parent: TDOMNode_WithChildren);
+procedure TXMLTextReader.ParseContent(cursor: TDOMNode_WithChildren);
 var
-  cursor: TDOMNode_WithChildren;
   element: TDOMElement;
 begin
-  cursor := parent;
   while Read do
   begin
     if FValidate then
@@ -3700,30 +3688,31 @@ begin
   Result^.FValueLength := 0;
 end;
 
-function TXMLTextReader.AllocAttributeValueChunk(APrev: PNodeData): PNodeData;
+procedure TXMLTextReader.AllocAttributeValueChunk(var APrev: PNodeData; Offset: Integer);
+var
+  chunk: PNodeData;
 begin
   { when parsing DTD, don't take ownership of allocated data }
-  if FState = rsDTD then
+  chunk := FFreeAttrChunk;
+  if Assigned(chunk) and (FState <> rsDTD) then
   begin
-    New(result);
-    FillChar(result^, sizeof(TNodeData), 0);
+    FFreeAttrChunk := chunk^.FNext;
+    chunk^.FNext := nil;
   end
-  else
+  else { no free chunks, create a new one }
   begin
-    result := FFreeAttrChunk;
-    if Assigned(result) then
-    begin
-      FFreeAttrChunk := result^.FNext;
-      result^.FNext := nil;
-    end
-    else { no free chunks, create a new one }
-    begin
-      New(result);
-      FillChar(result^, sizeof(TNodeData), 0);
-      FAttrChunks.Add(result);
-    end;
+    New(chunk);
+    FillChar(chunk^, sizeof(TNodeData), 0);
+    if FState <> rsDTD then
+      FAttrChunks.Add(chunk);
   end;
-  APrev^.FNext := result;
+  APrev^.FNext := chunk;
+  APrev := chunk;
+  { assume text node, for entity refs it is overridden later }
+  chunk^.FNodeType := ntText;
+  chunk^.FQName := nil;
+  { without PWideChar typecast and in $T-, FPC treats '@' result as PAnsiChar... }
+  SetString(chunk^.FValueStr, PWideChar(@FValue.Buffer[Offset]), FValue.Length-Offset);
 end;
 
 procedure TXMLTextReader.CleanupAttributes;
@@ -3738,17 +3727,17 @@ end;
 
 procedure TXMLTextReader.CleanupAttribute(aNode: PNodeData);
 var
-  chunk, tmp: PNodeData;
+  chunk: PNodeData;
 begin
-  chunk := aNode^.FNext;
-  while Assigned(chunk) do
+  if Assigned(aNode^.FNext) then
   begin
-    tmp := chunk^.FNext;
+    chunk := aNode^.FNext;
+    while Assigned(chunk^.FNext) do
+      chunk := chunk^.FNext;
     chunk^.FNext := FFreeAttrChunk;
-    FFreeAttrChunk := chunk;
-    chunk := tmp;
+    FFreeAttrChunk := aNode^.FNext;
+    aNode^.FNext := nil;
   end;
-  aNode^.FNext := nil;
 end;
 
 procedure TXMLTextReader.SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
