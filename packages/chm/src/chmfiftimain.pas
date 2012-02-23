@@ -135,7 +135,7 @@ type
     constructor Create(AStream: TStream; AFreeStreamOnDestroy: Boolean);
     destructor  Destroy; override;
     procedure   DumpData(AFoundDataEvent: TChmSearchReaderFoundDataEvent);
-    function    LookupWord(AWord: String; out ATitleHits: TChmWLCTopicArray): TChmWLCTopicArray;
+    function    LookupWord(AWord: String; out ATitleHits: TChmWLCTopicArray; AStartsWith: Boolean = True): TChmWLCTopicArray;
     property    FileIsValid: Boolean read FFileIsValid;
   end;
 
@@ -534,7 +534,11 @@ begin
 
   FBlockStream.WriteByte(Length(NewWord)+1);
   FBlockStream.WriteByte(Offset);
-  FBlockStream.Write(NewWord[1], Length(Trim(NewWord)));
+
+  // length can be 0 if it is the same word as the last. there is a word entry each for title and content
+  if Length(NewWord) > 0 then
+    FBlockStream.Write(NewWord[1], Length(Trim(NewWord)));
+
   FBlockStream.WriteByte(Ord(AWord.IsTitle));
   WriteCompressedIntegerBE(FBlockStream, AWord.DocumentCount);
   FBlockStream.WriteDWord(NtoLE(DWord(FWriteStream.Position)));
@@ -996,7 +1000,7 @@ begin
   until False; //FStream.Position - FActiveNodeStart >= FIFTI_NODE_SIZE - FActiveNodeFreeSpace
 end;
 
-function TChmSearchReader.LookupWord(AWord: String; out ATitleHits: TChmWLCTopicArray): TChmWLCTopicArray;
+function TChmSearchReader.LookupWord(AWord: String; out ATitleHits: TChmWLCTopicArray; AStartsWith: Boolean = True): TChmWLCTopicArray;
 var
   LastWord: String;
   NewWord: String;
@@ -1020,7 +1024,7 @@ begin
      if ReadIndexNodeEntry(LastWord, NewWord, NewNodePosition) <> False then
      begin
        //WriteLn('Found Index Entry: ', NewWord, ' Comparing to ', AWord);
-       if ChmCompareText(NewWord, AWord) >= 0 then
+       if  ChmCompareText(NewWord, AWord) >= 0 then
        begin
          LastWord := '';
          Dec(NodeLevel);
@@ -1038,7 +1042,13 @@ begin
   begin
     //WriteLn('Found Leaf Entry: ', NewWord, ' Comparing to ', AWord);
     LastWord := NewWord;
-    CompareResult := ChmCompareText(AWord, NewWord);
+    if Length(NewWord) < Length(AWord) then
+      continue;
+
+    if AStartsWith then //it only has to start with the searched term
+      CompareResult := ChmCompareText(AWord, Copy(NewWord, 1, Length(AWord)))
+    else // it must match exactly
+      CompareResult := ChmCompareText(AWord, NewWord);
     if CompareResult < 0 then
       Exit;
     if CompareResult = 0 then

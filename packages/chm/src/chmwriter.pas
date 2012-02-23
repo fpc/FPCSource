@@ -647,6 +647,7 @@ begin
     then begin
       // the current file has been read. move to the next file in the list
       FCurrentStream.Position := 0;
+      FCurrentStream.Size:=0;
       Inc(FCurrentIndex);
       ForceExit := OnGetFileData(FFileNames[FCurrentIndex], FileEntry.Path, FileEntry.Name, FCurrentStream);
       FileEntry.DecompressedSize := FCurrentStream.Size;

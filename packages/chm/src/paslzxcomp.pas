@@ -421,7 +421,10 @@ begin
 	Inc(pathlength);
       end;
       leaves[i].code := cur_code;
-      Inc(cur_code);
+      {$PUSH}
+      {$R-}
+      Inc(cur_code); // range error but i = 0 so it's harmless
+      {$POP}
     end;
 //#endif
 
