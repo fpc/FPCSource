@@ -314,10 +314,10 @@ implementation
             scurrency,
             s64bit:
               procname := procname + 'int64';
+{$endif}
             pasbool8,pasbool16,pasbool32,pasbool64,
             bool8bit,bool16bit,bool32bit,bool64bit:
               procname := procname + 'bool';
-{$endif}
             else
               procname := procname + 'sint';
           end;
