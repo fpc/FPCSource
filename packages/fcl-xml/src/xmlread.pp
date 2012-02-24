@@ -282,7 +282,6 @@ type
     FName: TWideCharBuf;
     FTokenStart: TLocation;
     FStandalone: Boolean;
-    FNamePages: PByteArray;
     FDocType: TDTDModel;
     FPEMap: THashTable;
     FForwardRefs: TFPList;
@@ -321,7 +320,6 @@ type
     procedure EntityToSource(AEntity: TEntityDecl; out Src: TXMLCharSource);
     function ContextPush(AEntity: TEntityDecl): Boolean;
     function ContextPop(Forced: Boolean = False): Boolean;
-    procedure XML11_BuildTables;
     function ParseQuantity: TCPQuant;
     procedure StoreLocation(out Loc: TLocation);
     function ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: XMLString): Boolean;
@@ -817,7 +815,7 @@ begin
   end;
   FBufSize := 2047;
   if FReader.FXML11 then
-    FReader.XML11_BuildTables;
+    FXml11Rules := True;
 end;
 
 function TXMLDecodingSource.SetEncoding(const AEncoding: string): Boolean;
@@ -1148,8 +1146,8 @@ begin
       if FSource.FBuf > FSource.FBufEnd-2 then
         FSource.Reload;
 
-      if (not PercentAloneIsOk) or (Byte(FSource.FBuf[1]) in NamingBitmap[FNamePages^[$100+hi(Word(FSource.FBuf[1]))]]) or
-        (FXML11 and (FSource.FBuf[1] >= #$D800) and (FSource.FBuf[1] <= #$DB7F)) then
+      if (not PercentAloneIsOk) or (Byte(FSource.FBuf[1]) in NamingBitmap[NamePages[hi(Word(FSource.FBuf[1]))]]) or
+        ((FSource.FBuf[1] >= #$D800) and (FSource.FBuf[1] <= #$DB7F)) then
       begin
         Inc(FSource.FBuf);    // skip '%'
         CheckName;
@@ -1242,8 +1240,6 @@ begin
   FForwardRefs := TFPList.Create;
   FAttrChunks := TFPList.Create;
 
-  // Set char rules to XML 1.0
-  FNamePages := @NamePages;
   SetLength(FNodeStack, 16);
   SetLength(FValidators, 16);
 end;
@@ -1292,12 +1288,6 @@ begin
   inherited Destroy;
 end;
 
-procedure TXMLTextReader.XML11_BuildTables;
-begin
-  FNamePages := Xml11NamePages;
-  FXML11 := True;
-  FSource.FXml11Rules := True;
-end;
 
 { Must be executed after doc has been set.
   After introducing own NameTable, merge this into constructor }
@@ -1385,10 +1375,10 @@ begin
   repeat
     if NameStartFlag then
     begin
-      if (Byte(p^) in NamingBitmap[FNamePages^[hi(Word(p^))]]) or
+      if (Byte(p^) in NamingBitmap[NamePages[hi(Word(p^))]]) or
         ((p^ = ':') and (not FNamespaces)) then
         Inc(p)
-      else if FXML11 and ((p^ >= #$D800) and (p^ <= #$DB7F) and
+      else if ((p^ >= #$D800) and (p^ <= #$DB7F) and
         (p[1] >= #$DC00) and (p[1] <= #$DFFF)) then
         Inc(p, 2)
       else
@@ -1402,19 +1392,15 @@ begin
       NameStartFlag := False;
     end;
 
-    if FXML11 then
     repeat
-      if Byte(p^) in NamingBitmap[FNamePages^[$100+hi(Word(p^))]] then
+      if Byte(p^) in NamingBitmap[NamePages[$100+hi(Word(p^))]] then
         Inc(p)
       else if ((p^ >= #$D800) and (p^ <= #$DB7F) and
         (p[1] >= #$DC00) and (p[1] <= #$DFFF)) then
         Inc(p,2)
       else
         Break;
-    until False
-    else
-    while Byte(p^) in NamingBitmap[FNamePages^[$100+hi(Word(p^))]] do
-      Inc(p);
+    until False;
 
     if p^ = ':' then
     begin
@@ -1936,6 +1922,8 @@ begin
     ExpectString('version');
     ExpectEq;
     SkipQuote(Delim);
+    { !! Definition "VersionNum ::= '1.' [0-9]+" per XML 1.0 Fifth Edition
+      implies that version literal can have unlimited length. }
     I := 0;
     while (I < 3) and (FSource.FBuf^ <> Delim) do
     begin
@@ -1944,7 +1932,7 @@ begin
       FSource.NextChar;
     end;
     if (I <> 3) or (buf[0] <> '1') or (buf[1] <> '.') or
-      ((buf[2] <> '0') and (buf[2] <> '1')) then
+      (buf[2] < '0') or (buf[2] > '9') then
       FatalError('Illegal version number', -1);
 
     ExpectChar(Delim);
@@ -3560,12 +3548,12 @@ end;
 function TXMLTextReader.ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: XMLString): Boolean;
 begin
   case AttrDef.DataType of
-    dtId, dtIdRef, dtEntity: Result := IsXmlName(aValue, FXML11) and
+    dtId, dtIdRef, dtEntity: Result := IsXmlName(aValue) and
       ((not FNamespaces) or (Pos(WideChar(':'), aValue) = 0));
-    dtIdRefs, dtEntities: Result := IsXmlNames(aValue, FXML11) and
+    dtIdRefs, dtEntities: Result := IsXmlNames(aValue) and
       ((not FNamespaces) or (Pos(WideChar(':'), aValue) = 0));
-    dtNmToken: Result := IsXmlNmToken(aValue, FXML11) and AttrDef.HasEnumToken(aValue);
-    dtNmTokens: Result := IsXmlNmTokens(aValue, FXML11);
+    dtNmToken: Result := IsXmlNmToken(aValue) and AttrDef.HasEnumToken(aValue);
+    dtNmTokens: Result := IsXmlNmTokens(aValue);
     // IsXmlName() not necessary - enum is never empty and contains valid names
     dtNotation: Result := AttrDef.HasEnumToken(aValue);
   else

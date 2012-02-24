@@ -34,7 +34,7 @@ function IsXmlNames(const Value: XMLString; Xml11: Boolean = False): Boolean;
 function IsXmlNmToken(const Value: XMLString; Xml11: Boolean = False): Boolean;
 function IsXmlNmTokens(const Value: XMLString; Xml11: Boolean = False): Boolean;
 function IsValidXmlEncoding(const Value: XMLString): Boolean;
-function Xml11NamePages: PByteArray;
+
 procedure NormalizeSpaces(var Value: XMLString);
 function IsXmlWhiteSpace(c: WideChar): Boolean;
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
@@ -231,37 +231,6 @@ function Decode_8859_1(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutB
 
 implementation
 
-var
-  Xml11Pg: PByteArray = nil;
-
-function Xml11NamePages: PByteArray;
-var
-  I: Integer;
-  p: PByteArray;
-begin
-  if Xml11Pg = nil then
-  begin
-    GetMem(p, 512);
-    for I := 0 to 255 do
-      p^[I] := ord(Byte(I) in Xml11HighPages);
-    p^[0] := 2;
-    p^[3] := $2c;
-    p^[$20] := $2a;
-    p^[$21] := $2b;
-    p^[$2f] := $29;
-    p^[$30] := $2d;
-    p^[$fd] := $28;
-    p^[$ff] := $30;
-
-    Move(p^, p^[256], 256);
-    p^[$100] := $19;
-    p^[$103] := $2E;
-    p^[$120] := $2F;
-    Xml11Pg := p;
-  end;
-  Result := Xml11Pg;
-end;
-
 function IsXml11Char(Value: PWideChar; var Index: Integer): Boolean; overload;
 begin
   if (Value[Index] >= #$D800) and (Value[Index] <= #$DB7F) then
@@ -291,26 +260,18 @@ end;
 
 function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean;
 var
-  Pages: PByteArray;
   I: Integer;
 begin
   Result := False;
-  if Xml11 then
-    Pages := Xml11NamePages
-  else
-    Pages := @NamePages;
-
   I := 0;
-  if (Len = 0) or not ((Byte(Value[I]) in NamingBitmap[Pages^[hi(Word(Value[I]))]]) or
-    (Value[I] = ':') or
-    (Xml11 and IsXml11Char(Value, I))) then
+  if (Len = 0) or not ((Byte(Value[I]) in NamingBitmap[NamePages[hi(Word(Value[I]))]]) or
+    (Value[I] = ':') or IsXml11Char(Value, I)) then
       Exit;
   Inc(I);
   while I < Len do
   begin
-    if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
-      (Value[I] = ':') or
-      (Xml11 and IsXml11Char(Value, I))) then
+    if not ((Byte(Value[I]) in NamingBitmap[NamePages[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or IsXml11Char(Value, I)) then
         Exit;
     Inc(I);
   end;
@@ -319,14 +280,9 @@ end;
 
 function IsXmlNames(const Value: XMLString; Xml11: Boolean): Boolean;
 var
-  Pages: PByteArray;
   I: Integer;
   Offset: Integer;
 begin
-  if Xml11 then
-    Pages := Xml11NamePages
-  else
-    Pages := @NamePages;
   Result := False;
   if Value = '' then
     Exit;
@@ -334,9 +290,8 @@ begin
   Offset := 0;
   while I <= Length(Value) do
   begin
-    if not ((Byte(Value[I]) in NamingBitmap[Pages^[Offset+hi(Word(Value[I]))]]) or
-      (Value[I] = ':') or
-      (Xml11 and IsXml11Char(Value, I))) then
+    if not ((Byte(Value[I]) in NamingBitmap[NamePages[Offset+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or IsXml11Char(Value, I)) then
     begin
       if (I = Length(Value)) or (Value[I] <> #32) then
         Exit;
@@ -353,21 +308,15 @@ end;
 function IsXmlNmToken(const Value: XMLString; Xml11: Boolean): Boolean;
 var
   I: Integer;
-  Pages: PByteArray;
 begin
-  if Xml11 then
-    Pages := Xml11NamePages
-  else
-    Pages := @NamePages;
   Result := False;
   if Value = '' then
     Exit;
   I := 1;
   while I <= Length(Value) do
   begin
-    if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
-      (Value[I] = ':') or
-      (Xml11 and IsXml11Char(Value, I))) then
+    if not ((Byte(Value[I]) in NamingBitmap[NamePages[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or IsXml11Char(Value, I)) then
         Exit;
     Inc(I);
   end;
@@ -377,21 +326,15 @@ end;
 function IsXmlNmTokens(const Value: XMLString; Xml11: Boolean): Boolean;
 var
   I: Integer;
-  Pages: PByteArray;
 begin
-  if Xml11 then
-    Pages := Xml11NamePages
-  else
-    Pages := @NamePages;
   I := 1;
   Result := False;
   if Value = '' then
     Exit;
   while I <= Length(Value) do
   begin
-    if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
-      (Value[I] = ':') or
-      (Xml11 and IsXml11Char(Value, I))) then
+    if not ((Byte(Value[I]) in NamingBitmap[NamePages[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or IsXml11Char(Value, I)) then
     begin
       if (I = Length(Value)) or (Value[I] <> #32) then
         Exit;
@@ -1160,12 +1103,5 @@ begin
     Result := OutCnt-i;
   OutCnt := i;
 end;
-
-
-initialization
-
-finalization
-  if Assigned(Xml11Pg) then
-    FreeMem(Xml11Pg);
 
 end.

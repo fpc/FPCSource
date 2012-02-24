@@ -37,6 +37,8 @@ const
   parserName = parser;
   os = 'Unknown OS';
   runtime = 'FPC RTL';
+  { Defines which tests to skip (sets for editions 1-4 and edition 5 are mutually exclusive) }
+  FifthEditionCompliant = True;
 
 
 type
@@ -362,7 +364,7 @@ begin
   FTestID := Element['ID'];
   TestType := Element['TYPE'];
   xmlEdition := Element['EDITION'];
-  if (xmlEdition <> '') and (Pos(WideChar('5'), Element['EDITION']) > 0) then
+  if (xmlEdition <> '') and ((Pos(WideChar('5'), Element['EDITION']) = 0) = FifthEditionCompliant) then
   begin
     Inc(FSkipped);
     Exit;

@@ -2019,11 +2019,11 @@ end;
 { if nsIdx = -1, checks only the name. Otherwise additionally checks if the prefix is
   valid for standard namespace specified by nsIdx. 
   Non-negative return value is Pos(':', QName), negative is DOM error code. }
-function CheckQName(const QName: DOMString; nsIdx: Integer; Xml11: Boolean): Integer;
+function CheckQName(const QName: DOMString; nsIdx: Integer): Integer;
 var
   I, L: Integer;
 begin
-  if not IsXmlName(QName, Xml11) then
+  if not IsXmlName(QName) then
   begin
     Result := -INVALID_CHARACTER_ERR;
     Exit;
@@ -2041,7 +2041,7 @@ begin
       end;
     // Name validity has already been checked by IsXmlName() call above.  
     // So just check that colon isn't first or last char, and that it is follwed by NameStartChar.
-    if ((Result = 1) or (Result = L) or not IsXmlName(@QName[Result+1], 1, Xml11)) then
+    if ((Result = 1) or (Result = L) or not IsXmlName(@QName[Result+1], 1)) then
     begin
       Result := -NAMESPACE_ERR;
       Exit;
@@ -2074,7 +2074,7 @@ var
   res: Integer;
   model: TDTDModel;
 begin
-  res := CheckQName(QualifiedName, -1, False);
+  res := CheckQName(QualifiedName, -1);
   if res < 0 then
     raise EDOMError.Create(-res, 'Implementation.CreateDocumentType');
   model := TDTDModel.Create(nil); // !!nowhere to get nametable from at this time
@@ -2280,7 +2280,7 @@ end;
 
 function TDOMDocument.CreateElement(const tagName: DOMString): TDOMElement;
 begin
-  if not IsXmlName(tagName, FXMLVersion = xmlVersion11) then
+  if not IsXmlName(tagName) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'DOMDocument.CreateElement');
   TDOMNode(Result) := Alloc(TDOMElement);
   Result.Create(Self);
@@ -2348,7 +2348,7 @@ end;
 
 function TDOMDocument.CreateAttribute(const name: DOMString): TDOMAttr;
 begin
-  if not IsXmlName(name, FXMLVersion = xmlVersion11) then
+  if not IsXmlName(name) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'DOMDocument.CreateAttribute');
   TDOMNode(Result) := Alloc(TDOMAttr);
   Result.Create(Self);
@@ -2450,7 +2450,7 @@ var
   idx, PrefIdx: Integer;
 begin
   idx := IndexOfNS(nsURI, True);
-  PrefIdx := CheckQName(QualifiedName, idx, FXMLVersion = xmlVersion11);
+  PrefIdx := CheckQName(QualifiedName, idx);
   if PrefIdx < 0 then
     raise EDOMError.Create(-PrefIdx, 'Document.CreateAttributeNS');
   TDOMNode(Result) := Alloc(TDOMAttr);
@@ -2468,7 +2468,7 @@ var
   idx, PrefIdx: Integer;
 begin
   idx := IndexOfNS(nsURI, True);
-  PrefIdx := CheckQName(QualifiedName, idx, FXMLVersion = xmlVersion11);
+  PrefIdx := CheckQName(QualifiedName, idx);
   if PrefIdx < 0 then
     raise EDOMError.Create(-PrefIdx, 'Document.CreateElementNS');
   TDOMNode(Result) := Alloc(TDOMElement);
@@ -2541,7 +2541,7 @@ end;
 function TXMLDocument.CreateProcessingInstruction(const target,
   data: DOMString): TDOMProcessingInstruction;
 begin
-  if not IsXmlName(target, FXMLVersion = xmlVersion11) then
+  if not IsXmlName(target) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'XMLDocument.CreateProcessingInstruction');
   TDOMNode(Result) := Alloc(TDOMProcessingInstruction);
   Result.Create(Self);
@@ -2555,7 +2555,7 @@ var
   dType: TDOMDocumentType;
   ent: TDOMEntity;
 begin
-  if not IsXmlName(name, FXMLVersion = xmlVersion11) then
+  if not IsXmlName(name) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'XMLDocument.CreateEntityReference');
   TDOMNode(Result) := Alloc(TDOMEntityReference);
   Result.Create(Self);
@@ -2624,7 +2624,7 @@ var
   NewName: DOMString;
 begin
   Changing;
-  if not IsXmlName(Value, FOwnerDocument.FXMLVersion = xmlVersion11) then
+  if not IsXmlName(Value) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'Node.SetPrefix');
 
   if (Pos(WideChar(':'), Value) > 0) or not (nfLevel2 in FFlags) or
@@ -2979,7 +2979,7 @@ var
 begin
   Changing;
   idx := FOwnerDocument.IndexOfNS(nsURI, True);
-  prefIdx := CheckQName(qualifiedName, idx, FOwnerDocument.FXMLVersion = xmlVersion11);
+  prefIdx := CheckQName(qualifiedName, idx);
   if prefIdx < 0 then
     raise EDOMError.Create(-prefIdx, 'Element.SetAttributeNS');
 
