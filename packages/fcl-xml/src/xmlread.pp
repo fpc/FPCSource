@@ -293,6 +293,7 @@ type
     FNext: TXMLToken;
     FCurrEntity: TEntityDecl;
     FIDMap: THashTable;
+    FAttrDefIndex: array of Cardinal;
 
     FNSHelper: TNSSupport;
     FNsAttHash: TDblHashArray;
@@ -2625,7 +2626,6 @@ begin
     Exit;
   InnerReader := TXMLTextReader.Create(FCtrl);
   try
-    InnerReader.FAttrTag := FAttrTag;
     InnerReader.FDocType := FDocType.Reference;
     EntityToSource(AEntity, Src);
     Ent.SetReadOnly(False);
@@ -2633,7 +2633,6 @@ begin
       InnerReader.ProcessFragment(Src, Ent);
     AEntity.FResolved := True;
   finally
-    FAttrTag := InnerReader.FAttrTag;
     InnerReader.Free;
     AEntity.FOnStack := False;
     Ent.SetReadOnly(True);
@@ -3208,14 +3207,25 @@ var
   IsEmpty: Boolean;
   ElName: PHashItem;
   b: TBinding;
+  Len: Integer;
 begin
-  // we're about to process a new set of attributes
-  Inc(FAttrTag);
-
-  // Get hash entry for element name
   ElName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
-  // Find declaration for this element
   ElDef := TElementDecl(ElName^.Data);
+  if Assigned(ElDef) then
+    Len := ElDef.AttrDefCount+8  { overallocate a bit }
+  else
+    Len := 0;
+  // (re)initialize array of attribute definition tags
+  if (Len-8 > Length(FAttrDefIndex)) or (FAttrTag = 0) then
+  begin
+    SetLength(FAttrDefIndex, Len);
+    for Len := 0 to High(FAttrDefIndex) do
+      FAttrDefIndex[Len] := FAttrTag;
+  end;
+  // we're about to process a new set of attributes
+{$push}{$r-,q-}
+  Dec(FAttrTag);
+{$pop}
 
   IsEmpty := False;
   FAttrCount := 0;
@@ -3334,8 +3344,9 @@ begin
   if Assigned(ElDef) then
   begin
     AttDef := ElDef.GetAttrDef(attrName);
+    // mark attribute as specified
     if Assigned(AttDef) then
-      AttDef.Tag := FAttrTag;  // indicates that this one is specified
+      FAttrDefIndex[AttDef.Index] := FAttrTag;
   end
   else
     AttDef := nil;
@@ -3419,7 +3430,7 @@ begin
   begin
     AttDef := ElDef.AttrDefs[I];
 
-    if AttDef.Tag <> FAttrTag then  // this one wasn't specified
+    if FAttrDefIndex[AttDef.Index] <> FAttrTag then  // this one wasn't specified
     begin
       case AttDef.Default of
         adDefault, adFixed: begin

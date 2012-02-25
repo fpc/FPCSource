@@ -71,7 +71,7 @@ type
     FData: PNodeData;
     FDataType: TAttrDataType;
     FDefault: TAttrDefault;
-    FTag: Cardinal;
+    FIndex: Cardinal;
     FIsNamespaceDecl: Boolean;
     FEnumeration: array of XMLString;
   public
@@ -82,7 +82,7 @@ type
     property Data: PNodeData read FData;
     property Default: TAttrDefault read FDefault write FDefault;
     property DataType: TAttrDataType read FDataType write FDataType;
-    property Tag: Cardinal read FTag write FTag;
+    property Index: Cardinal read FIndex;
     property IsNamespaceDecl: Boolean read FIsNamespaceDecl;
   end;
 
@@ -375,7 +375,7 @@ procedure TElementDecl.AddAttrDef(aDef: TAttributeDef);
 begin
   if FAttrDefs = nil then
     FAttrDefs := TFPList.Create;
-  FAttrDefs.Add(aDef);
+  aDef.FIndex := FAttrDefs.Add(aDef);
   if aDef.Default in [adRequired, adDefault, adFixed] then
     FNeedsDefaultPass := True;
 end;
