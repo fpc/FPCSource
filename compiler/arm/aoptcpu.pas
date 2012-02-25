@@ -135,6 +135,8 @@ Implementation
                        (hp1.typ = ait_instruction) and
                        (taicpu(hp1).opcode = A_LDR) and
                        RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
+                       ((taicpu(p).condition = taicpu(hp1).condition) or
+                        (taicpu(p).condition = C_None)) and
                        (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
                       begin
                         if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
@@ -150,7 +152,7 @@ Implementation
                           end;
                         result := true;
                       end;
-                  end;                
+                  end;
                 A_LDR:
                   begin
                     { change
@@ -165,6 +167,8 @@ Implementation
                        (hp1.typ = ait_instruction) and
                        (taicpu(hp1).opcode = A_LDR) and
                        RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
+                       ((taicpu(p).condition = taicpu(hp1).condition) or
+                        (taicpu(p).condition = C_None)) and
                        (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.index) and
                        (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.base) and
                        (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
@@ -181,8 +185,8 @@ Implementation
                             taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
                           end;
                         result := true;
-                      end;                      
-                  end;                  
+                      end;
+                  end;
                 A_MOV:
                   begin
                     { fold
