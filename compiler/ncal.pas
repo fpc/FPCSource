@@ -2739,7 +2739,7 @@ implementation
                                     ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
                   candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,
                     not(nf_isproperty in flags),cnf_objc_id_call in callnodeflags,cnf_unit_specified in callnodeflags,
-                    callnodeflags*[cnf_anon_inherited,cnf_inherited]=[]);
+                    callnodeflags*[cnf_anon_inherited,cnf_inherited]=[],cnf_anon_inherited in callnodeflags);
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are

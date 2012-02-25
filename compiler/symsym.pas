@@ -381,14 +381,26 @@ implementation
 
 
     procedure tstoredsym.ppuwrite(ppufile:tcompilerppufile);
+      var
+        oldintfcrc : boolean;
       begin
          ppufile.putlongint(SymId);
          ppufile.putstring(realname);
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
+         { symoptions can differ between interface and implementation, except
+           for overload (this is checked in pdecsub.proc_add_definition() )
+
+           These differences can lead to compiler crashes, so ignore them.
+           This does mean that changing e.g. the "deprecated" state of a symbol
+           by itself will not trigger a recompilation of dependent units.
+         }
+         oldintfcrc:=ppufile.do_interface_crc;
+         ppufile.do_interface_crc:=false;
          ppufile.putsmallset(symoptions);
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
+         ppufile.do_interface_crc:=oldintfcrc;
       end;
 
 

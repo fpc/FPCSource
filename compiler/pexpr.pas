@@ -2321,6 +2321,7 @@ implementation
          hs,hsorg   : string;
          hdef       : tdef;
          filepos    : tfileposinfo;
+         callflags  : tcallnodeflags;
          again,
          updatefpos,
          nodechanged  : boolean;
@@ -2467,7 +2468,10 @@ implementation
                              p1:=cerrornode.create;
                            end;
                        end;
-                       do_member_read(hclassdef,getaddr,srsym,p1,again,[cnf_inherited,cnf_anon_inherited]);
+                       callflags:=[cnf_inherited];
+                       if anon_inherited then
+                         include(callflags,cnf_anon_inherited);
+                       do_member_read(hclassdef,getaddr,srsym,p1,again,callflags);
                      end
                     else
                      begin

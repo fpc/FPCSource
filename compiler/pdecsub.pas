@@ -3204,7 +3204,12 @@ const
                      po_comp:=[po_classmethod,po_methodpointer];
 
                    if ((po_comp * fwpd.procoptions)<>(po_comp * currpd.procoptions)) or
-                      (fwpd.proctypeoption <> currpd.proctypeoption) then
+                      (fwpd.proctypeoption <> currpd.proctypeoption) or
+                      { if the implementation version has an "overload" modifier,
+                        the interface version must also have it (otherwise we can
+                        get annoying crashes due to interface crc changes) }
+                      (not(po_overload in fwpd.procoptions) and
+                       (po_overload in currpd.procoptions)) then
                      begin
                        MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
                                    fwpd.fullprocname(false));
@@ -3344,7 +3349,7 @@ const
                   begin
                     MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
                     break;
-                  end;
+                  end
                end
               else
                begin
