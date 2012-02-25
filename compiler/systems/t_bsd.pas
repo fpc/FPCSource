@@ -339,29 +339,25 @@ begin
       LinkRes.Add(sysrootpath);
     end;
 
-  if (not isdll) or
-     (apptype=app_bundle) then
+  if (target_info.system in systems_darwin) then
     begin
-      if (target_info.system in systems_darwin) then
-        begin
-          LinkRes.Add('-arch');
-          case target_info.system of
-            system_powerpc_darwin:
-              LinkRes.Add('ppc');
-            system_i386_darwin,
-            system_i386_iphonesim:
-              LinkRes.Add('i386');
-            system_powerpc64_darwin:
-              LinkRes.Add('ppc64');
-            system_x86_64_darwin:
-              LinkRes.Add('x86_64');
-            system_arm_darwin:
-              { current versions of the linker require the sub-architecture type
-                to be specified }
-              LinkRes.Add(lower(cputypestr[current_settings.cputype]));
-          end;
+      LinkRes.Add('-arch');
+      case target_info.system of
+        system_powerpc_darwin:
+          LinkRes.Add('ppc');
+        system_i386_darwin,
+        system_i386_iphonesim:
+          LinkRes.Add('i386');
+        system_powerpc64_darwin:
+          LinkRes.Add('ppc64');
+        system_x86_64_darwin:
+          LinkRes.Add('x86_64');
+        system_arm_darwin:
+          { current versions of the linker require the sub-architecture type
+            to be specified }
+          LinkRes.Add(lower(cputypestr[current_settings.cputype]));
       end;
-  end;
+    end;
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do

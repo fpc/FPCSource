@@ -1695,7 +1695,20 @@ const
 
     procedure tcg64fppc.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       begin
-        a_op64_reg_reg_reg(list,op,size,regsrc,regdst,regdst);
+        case op of
+          OP_NOT:
+            begin
+              cg.a_op_reg_reg(list,OP_NOT,OS_32,regsrc.reglo,regdst.reglo);
+              cg.a_op_reg_reg(list,OP_NOT,OS_32,regsrc.reghi,regdst.reghi);
+            end;
+          OP_NEG:
+            begin
+              list.concat(taicpu.op_reg_reg_const(a_subfic,regdst.reglo,regsrc.reglo,0));
+              list.concat(taicpu.op_reg_reg(a_subfze,regdst.reghi,regsrc.reghi));
+            end;
+          else
+            a_op64_reg_reg_reg(list,op,size,regsrc,regdst,regdst);
+        end;
       end;
 
 

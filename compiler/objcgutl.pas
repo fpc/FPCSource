@@ -1128,6 +1128,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     }
     lbl:=current_asmdata.DefineAsmSymbol(protocol.rtti_mangledname(objcclassrtti),AB_PRIVATE_EXTERN,AT_DATA);
     list.Concat(tai_symbol.Create_Global(lbl,0));
+    list.Concat(tai_directive.Create(asd_weak_definition,lbl.name));
     protocollabel:=lbl;
 
     { protocol's isa - always nil }

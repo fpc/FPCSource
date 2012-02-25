@@ -928,10 +928,21 @@ implementation
                else
                  CGMessage(type_e_mismatch);
              end;
-             if not forinline then
+             { not-nodes are not range checked by the code generator -> also
+               don't range check while inlining; the resultdef is a bit tricky
+               though: the node's resultdef gets changed in most cases compared
+               to left, but the not-operation itself is caried out in the code
+               generator using the size of left
+               }
+             if not(forinline) then
                t:=cordconstnode.create(v,def,false)
              else
-               t:=create_simplified_ord_const(v,resultdef,true);
+               begin
+                 { cut off the value if necessary }
+                 t:=cordconstnode.create(v,left.resultdef,false);
+                 { now convert to node's resultdef }
+                 inserttypeconv_explicit(t,def);
+               end;
              result:=t;
              exit;
           end;

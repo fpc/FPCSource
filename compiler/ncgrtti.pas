@@ -171,7 +171,8 @@ implementation
                (
                 (rt=fullrtti) or
                 tfieldvarsym(sym).vardef.needs_inittable
-               ) then
+               ) and
+               not is_objc_class_or_protocol(tfieldvarsym(sym).vardef) then
               begin
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tfieldvarsym(sym).vardef,rt)));
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tfieldvarsym(sym).fieldoffset));

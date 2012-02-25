@@ -703,6 +703,8 @@ implementation
         bestpd,
         pd : tprocdef;
         eq,besteq : tequaltype;
+        sym: tsym;
+        ps: tprocsym;
       begin
         { This function will return the pprocdef of pprocsym that
           is the best match for procvardef. When there are multiple
@@ -710,23 +712,47 @@ implementation
         result:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
-        for i:=0 to ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(ProcdefList[i]);
-            eq:=proc_to_procvar_equal(pd,d,false);
-            if eq>=te_convert_l1 then
-              begin
-                { multiple procvars with the same equal level }
-                if assigned(bestpd) and
-                   (besteq=eq) then
-                  exit;
-                if eq>besteq then
-                  begin
-                    besteq:=eq;
-                    bestpd:=pd;
-                  end;
-              end;
-          end;
+        ps:=self;
+        repeat
+          for i:=0 to ps.ProcdefList.Count-1 do
+            begin
+              pd:=tprocdef(ps.ProcdefList[i]);
+              eq:=proc_to_procvar_equal(pd,d,false);
+              if eq>=te_convert_l1 then
+                begin
+                  { multiple procvars with the same equal level }
+                  if assigned(bestpd) and
+                     (besteq=eq) then
+                    exit;
+                  if eq>besteq then
+                    begin
+                      besteq:=eq;
+                      bestpd:=pd;
+                    end;
+                end;
+            end;
+          { maybe TODO: also search class helpers? -- this code is similar to
+            what happens in htypechk in
+            tcallcandidates.collect_overloads_in_struct: keep searching in
+            parent types in case the currently found procdef is marked as
+            "overload" and we haven't found a proper match yet }
+          if assigned(ps.owner.defowner) and
+             (ps.owner.defowner.typ=objectdef) and
+             assigned(tobjectdef(ps.owner.defowner).childof) and
+             (not assigned(bestpd) or
+              (po_overload in bestpd.procoptions)) then
+            begin
+              sym:=tsym(tobjectdef(ps.owner.defowner).childof.symtable.find(ps.name));
+              if assigned(sym) and
+                 (sym.typ=procsym) then
+                ps:=tprocsym(sym)
+              else
+                ps:=nil;
+            end
+          else
+            ps:=nil;
+        until (besteq>=te_equal) or
+              not assigned(ps);
         result:=bestpd;
       end;
 
@@ -1419,7 +1445,8 @@ implementation
     constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
          inherited create(paravarsym,n,vsp,def,vopts);
-         if (vsp in [vs_var,vs_value,vs_const,vs_constref]) then
+         if (vsp in [vs_var,vs_value,vs_const,vs_constref]) and
+            not(vo_is_funcret in vopts) then
            varstate := vs_initialised;
          paranr:=nr;
          paraloc[calleeside].init;

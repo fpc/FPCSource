@@ -398,7 +398,7 @@ type
 	PtrPtr = ^Ptr;       
 	Handle = ^Ptr;
 	Handle_fix = Handle; { used as field type when a record declaration contains a Handle field identifier }
-	Size = SInt32;
+	Size = SIGNEDLONG;
 	Size_fix = Size; { used as field type when a record declaration contains a Size field identifier }
 	SizePtr = ^Size;
 	UnivPtr = Pointer;
@@ -437,16 +437,16 @@ type
 	ConstLogicalAddress = UnivPtr;
 	PhysicalAddress = UnivPtr;
 	BytePtr = UInt8Ptr;
-	ByteCount = UInt32;
+	ByteCount = UNSIGNEDLONG;
  	ByteCountPtr = ^ByteCount;
-	ByteOffset = UInt32;
+	ByteOffset = UNSIGNEDLONG;
  	ByteOffsetPtr = ^ByteOffset;
 	Duration = SInt32;
 	AbsoluteTime = UnsignedWide;
 	AbsoluteTimePtr = ^AbsoluteTime;
 	OptionBits = UInt32;
 	OptionBitsPtr = ^OptionBits;
-	ItemCount = UInt32;
+	ItemCount = UNSIGNEDLONG;
  	ItemCountPtr = ^ItemCount;
 	PBVersion = UInt32;
 	ScriptCode = SInt16;
@@ -623,7 +623,7 @@ type
 	UTF8Char = UInt8;
 	UniCharPtr = ^UniChar;
 	ConstUniCharPtr = UniCharPtr;
-	UniCharCount = UInt32;
+	UniCharCount = UNSIGNEDLONG;
 	UniCharCountPtr = ^UniCharCount;
 	Str15 = STRING[15];
 	Str27 = STRING[27];

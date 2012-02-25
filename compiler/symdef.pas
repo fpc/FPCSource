@@ -1955,6 +1955,7 @@ implementation
       begin
         if (target_info.system in [system_i386_darwin,system_i386_iphonesim,system_arm_darwin]) then
           case floattype of
+            sc80real,
             s80real: result:=16;
             s64real,
             s64currency,
@@ -2563,7 +2564,7 @@ implementation
     constructor tarraydef.create_from_pointer(def:tdef);
       begin
          { use -1 so that the elecount will not overflow }
-         self.create(0,high(aint)-1,s32inttype);
+         self.create(0,high(aint)-1,ptrsinttype);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def);
       end;

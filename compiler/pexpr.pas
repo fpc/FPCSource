@@ -891,8 +891,9 @@ implementation
                getaddr:=true;
              end
             else
-             if (m_tp_procvar in current_settings.modeswitches) or
-                (m_mac_procvar in current_settings.modeswitches) then
+             if ((m_tp_procvar in current_settings.modeswitches) or
+                 (m_mac_procvar in current_settings.modeswitches)) and
+                not(token in [_CARET,_POINT,_LKLAMMER]) then
               begin
                 aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(getprocvardef);
                 if assigned(aprocdef) then

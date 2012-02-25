@@ -45,13 +45,16 @@ function f(p : pointer) : ptrint;
 
 var
    i : ptrint;
+   started: longint;
 begin
    finished:=0;
+   started:=0;
 
    for i:=1 to threadcount do
-     BeginThread({$ifdef fpc}@{$endif}f,pointer(i));
+     if BeginThread({$ifdef fpc}@{$endif}f,pointer(i)) <> tthreadid(0) then
+       inc(started);
 
-   while finished<threadcount do
+   while finished<started do
      {$ifdef wince}sleep(10){$endif};
    writeln(finished);
 end.

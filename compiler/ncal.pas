@@ -2334,6 +2334,12 @@ implementation
                        para.left:=gen_procvar_context_tree
                      else
                        para.left:=gen_self_tree;
+                     { make sure that e.g. the self pointer of an advanced
+                       record does not become a regvar, because it's a vs_var
+                       parameter }
+                     if paramanager.push_addr_param(para.parasym.varspez,para.parasym.vardef,
+                         procdefinition.proccalloption) then
+                       make_not_regable(para.left,[ra_addr_regable]);
                    end
                 else
                  if vo_is_vmt in para.parasym.varoptions then
@@ -2966,6 +2972,14 @@ implementation
                 else
                   CGMessage(cg_e_cant_call_abstract_method);
               end;
+
+            { directly calling an interface/protocol/category/class helper
+              method via its type is not possible (always must be called via
+              the actual instance) }
+            if (methodpointer.nodetype=typen) and
+               (is_interface(methodpointer.resultdef) or
+                is_objc_protocol_or_category(methodpointer.resultdef)) then
+              CGMessage1(type_e_class_type_expected,methodpointer.resultdef.typename);
 
             { if an inherited con- or destructor should be  }
             { called in a con- or destructor then a warning }

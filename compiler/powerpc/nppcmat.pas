@@ -648,7 +648,7 @@ end;
 
       var
          hl : tasmlabel;
-
+         tmpreg: tregister;
       begin
          if is_boolean(resultdef) then
           begin
@@ -682,7 +682,18 @@ end;
                   LOC_SUBSETREF, LOC_CSUBSETREF:
                     begin
                       location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
-                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMPWI,left.location.register,0));
+                      tmpreg:=left.location.register;
+{$ifndef cpu64bitalu}
+                      { 64 bit pascal booleans have their truth value stored in
+                        the lower 32 bits; with cbools, it can be anywhere }
+                      if (left.location.size in [OS_64,OS_S64]) and
+                         not is_pasbool(left.resultdef) then
+                        begin
+                          tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                          cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,tmpreg);
+                        end;
+{$endif not cpu64bitalu}
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMPWI,tmpreg,0));
                       location_reset(location,LOC_FLAGS,OS_NO);
                       location.resflags.cr:=RS_CR0;
                       location.resflags.flag:=F_EQ;
