@@ -1593,7 +1593,7 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
 
   procedure DoInsert(DoAppend : Boolean);
 
-  Var BookBeforeInsert : TBookmarkStr;
+  Var BookBeforeInsert : TBookmark;
       TempBuf : pointer;
 
   begin
