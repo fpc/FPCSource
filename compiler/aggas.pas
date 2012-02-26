@@ -782,6 +782,7 @@ implementation
                          sepChar := '@'
                        else
                          sepChar := '%';
+                       if (tf_needs_symbol_type in target_info.flags) then
                          asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+','+sepChar+'object');
                        if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
                          asmwriteln(#9'.size '+Tai_datablock(hp).sym.name+','+tostr(Tai_datablock(hp).size));
