@@ -3150,7 +3150,7 @@ option_help_pages=11025_[
 **0*_Put + after a boolean switch option to enable it, - to disable it
 **1a_The compiler doesn't delete the generated assembler file
 **2al_List sourcecode lines in assembler file
-**2an_List node info in assembler file
+**2an_List node info in assembler file (-dEXTDEBUG compiler)
 *L2ap_Use pipes instead of creating temporary assembler files
 **2ar_List register allocation/release info in assembler file
 **2at_List temp allocation/release info in assembler file
