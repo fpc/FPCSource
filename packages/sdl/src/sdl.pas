@@ -297,6 +297,10 @@ uses
   Windows;
 {$ENDIF}
 
+{$IFDEF OS2}
+  doscalls;
+{$ENDIF OS2}
+
 {$IFDEF UNIX}
   {$IFDEF FPC}
   pthreads,
@@ -329,6 +333,10 @@ const
 {$IFDEF WINDOWS}
   SDLLibName = 'SDL.dll';
 {$ENDIF}
+
+{$IFDEF OS2}
+  SDLLibName = 'SDL12.dll';
+{$ENDIF OS2}
 
 {$IFDEF UNIX}
 {$IFDEF DARWIN}
@@ -4203,6 +4211,10 @@ begin
   Result := libc.getenv(name);  
   {$ENDIF}
 
+  {$ELSE UNIX}
+   {$IFDEF OS2}
+  DosScanEnv (Name, Result);
+   {$ENDIF OS2}
   {$ENDIF}
 
   {$ENDIF}
