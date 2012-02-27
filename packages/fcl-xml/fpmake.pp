@@ -100,11 +100,17 @@ begin
           AddUnit('xmlwrite');
         end;
     T.ResourceStrings:=True;
+    T:=P.Targets.AddUnit('xmlreader.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('xmlutils');
+        end;
     T:=P.Targets.AddUnit('xmlread.pp');
       with T.Dependencies do
         begin
           AddUnit('dom');
           AddUnit('xmlutils');
+          AddUnit('xmlreader');
         end;
     T:=P.Targets.AddUnit('xmlstreaming.pp');
       with T.Dependencies do

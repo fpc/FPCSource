@@ -2736,6 +2736,7 @@ packages/fcl-xml/src/xmlconf.pp svneol=native#text/plain
 packages/fcl-xml/src/xmliconv.pas svneol=native#text/plain
 packages/fcl-xml/src/xmliconv_windows.pas svneol=native#text/plain
 packages/fcl-xml/src/xmlread.pp svneol=native#text/plain
+packages/fcl-xml/src/xmlreader.pp svneol=native#text/plain
 packages/fcl-xml/src/xmlstreaming.pp svneol=native#text/plain
 packages/fcl-xml/src/xmlutils.pp svneol=native#text/plain
 packages/fcl-xml/src/xmlwrite.pp svneol=native#text/plain
