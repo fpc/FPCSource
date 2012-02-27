@@ -328,7 +328,6 @@ type
     procedure AddForwardRef(Buf: PWideChar; Length: Integer);
     procedure ClearForwardRefs;
     procedure ValidateIdRefs;
-    procedure StandaloneError(LineOffs: Integer = 0);
     procedure CallErrorHandler(E: EXMLReadError);
     function  FindOrCreateElDef: TElementDecl;
     function  SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar): Boolean;
@@ -372,7 +371,6 @@ type
     procedure RaiseNameNotFound;
     function  CheckName(aFlags: TCheckNameFlags = []): Boolean;
     procedure CheckNCName;
-    function  ExpectName: XMLString;                                    // [5]
     function ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
       Required: Boolean): Boolean;
     procedure ExpectAttValue(attrData: PNodeData; NonCDATA: Boolean);   // [10]
@@ -1451,12 +1449,6 @@ begin
     FatalError('Name starts with invalid character');
 end;
 
-function TXMLTextReader.ExpectName: XMLString;
-begin
-  CheckName;
-  SetString(Result, FName.Buffer, FName.Length);
-end;
-
 function TXMLTextReader.ResolvePredefined: Boolean;
 var
   wc: WideChar;
@@ -2028,7 +2020,8 @@ begin
   FDTDProcessed := True;    // assume success
   FState := rsDTD;
 
-  FDocType.FName := ExpectName;
+  CheckName;
+  SetString(FDocType.FName, FName.Buffer, FName.Length);
   SkipS(True);
   ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, False);
   SkipS;
@@ -2090,11 +2083,6 @@ procedure TXMLTextReader.BadPENesting(S: TErrorSeverity);
 begin
   if (S = esFatal) or FValidate then
     DoError(S, 'Parameter entities must be properly nested');
-end;
-
-procedure TXMLTextReader.StandaloneError(LineOffs: Integer);
-begin
-  ValidationError('Standalone constriant violation', [], LineOffs);
 end;
 
 function TXMLTextReader.ParseQuantity: TCPQuant;
@@ -2249,8 +2237,9 @@ var
   NameStr, SysID, PubID: XMLString;
 begin
   ExpectWhitespace;
-  NameStr := ExpectName;
+  CheckName;
   CheckNCName;
+  SetString(NameStr, FName.Buffer, FName.Length);
   ExpectWhitespace;
   if not ParseExternalID(SysID, PubID, True) then
     FatalError('Expected external or public ID');
@@ -2457,8 +2446,9 @@ begin
         if FSource.Matches('NDATA') then
         begin
           ExpectWhitespace;
-          StoreLocation(FTokenStart);
-          Entity.FNotationName := ExpectName;
+          StoreLocation(FTokenStart);  { needed for AddForwardRef }
+          CheckName;
+          SetString(Entity.FNotationName, FName.Buffer, FName.Length);
           if FValidate then
             AddForwardRef(FName.Buffer, FName.Length);
           // SAX: DTDHandler.UnparsedEntityDecl(...);
@@ -2676,6 +2666,9 @@ begin
 
         PushVC(ElDef);
 
+        if ElDef = nil then
+          Exit;
+
         { Validate attributes }
         for i := 1 to FAttrCount do
         begin
@@ -2687,11 +2680,10 @@ begin
           else if ((AttDef.DataType <> dtCdata) or (AttDef.Default = adFixed)) then
           begin
             if FStandalone and AttDef.ExternallyDeclared then
-              { TODO: perhaps should use different and more descriptive messages }
               if attr^.FDenormalized then
-                DoErrorPos(esError, 'Standalone constraint violation', attr^.FLoc2)
+                DoErrorPos(esError, 'In a standalone document, externally defined attribute cannot cause value normalization', attr^.FLoc2)
               else if i > FSpecifiedAttrs then
-                DoError(esError, 'Standalone constraint violation');
+                DoError(esError, 'In a standalone document, attribute cannot have a default value defined externally');
 
             // TODO: what about normalization of AttDef.Value? (Currently it IS normalized)
             if (AttDef.Default = adFixed) and (AttDef.Data^.FValueStr <> attr^.FValueStr) then
@@ -2701,6 +2693,18 @@ begin
             ValidateAttrValue(AttDef, attr);
           end;
         end;
+
+        { Check presence of #REQUIRED attributes }
+        if ElDef.HasRequiredAtts then
+          for i := 0 to ElDef.AttrDefCount-1 do
+          begin
+            if FAttrDefIndex[i] = FAttrTag then
+              Continue;
+            AttDef := ElDef.AttrDefs[i];
+            if AttDef.Default = adRequired then
+              ValidationError('Required attribute ''%s'' of element ''%s'' is missing',
+                [AttDef.Data^.FQName^.Key, FCurrNode^.FQName^.Key], 0)
+          end;
       end;
 
     ntEndElement:
@@ -2719,7 +2723,7 @@ begin
           else
           begin
             if FValidators[FValidatorNesting].FSaViolation then
-              StandaloneError(-1);
+              ValidationError('Standalone constraint violation',[]);
             FCurrNode^.FNodeType := ntWhitespace;
           end;
         ctEmpty:
@@ -3428,10 +3432,9 @@ var
 begin
   for I := 0 to ElDef.AttrDefCount-1 do
   begin
-    AttDef := ElDef.AttrDefs[I];
-
-    if FAttrDefIndex[AttDef.Index] <> FAttrTag then  // this one wasn't specified
+    if FAttrDefIndex[I] <> FAttrTag then  // this one wasn't specified
     begin
+      AttDef := ElDef.AttrDefs[I];
       case AttDef.Default of
         adDefault, adFixed: begin
           attrData := AllocAttributeData;
@@ -3456,9 +3459,6 @@ begin
             end;
           end;
         end;
-        adRequired:
-          ValidationError('Required attribute ''%s'' of element ''%s'' is missing',
-            [AttDef.Data^.FQName^.Key, FNodeStack[FNesting].FQName^.Key], 0)
       end;
     end;
   end;

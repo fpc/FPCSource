@@ -98,6 +98,7 @@ type
   private
     FAttrDefs: TFPList;
     FNeedsDefaultPass: Boolean;
+    FHasRequiredAtts: Boolean;
     function GetAttrDefCount: Integer;
     function AttrDefByIndex(index: Integer): TAttributeDef;
   public
@@ -111,6 +112,7 @@ type
     property AttrDefCount: Integer read GetAttrDefCount;
     property AttrDefs[index: Integer]: TAttributeDef read AttrDefByIndex;
     property NeedsDefaultPass: Boolean read FNeedsDefaultPass;
+    property HasRequiredAtts: Boolean read FHasRequiredAtts;
   end;
 
   TEntityDecl = class(TDTDObject)
@@ -378,6 +380,8 @@ begin
   aDef.FIndex := FAttrDefs.Add(aDef);
   if aDef.Default in [adRequired, adDefault, adFixed] then
     FNeedsDefaultPass := True;
+  if aDef.Default = adRequired then
+    FHasRequiredAtts := True;
 end;
 
 { TAttributeDef }
