@@ -143,7 +143,7 @@ procedure RegisterDecoder(Proc: TGetDecoderProc);
 implementation
 
 uses
-  UriParser, dtdmodel;
+  UriParser, dtdmodel, xmlreader;
 
 const
   PubidChars: TSetOfChar = [' ', #13, #10, 'a'..'z', 'A'..'Z', '0'..'9',
@@ -266,9 +266,11 @@ type
     xtCDSect, xtComment, xtPI, xtDoctype, xtEntity, xtEntityEnd, xtPopElement,
     xtPopEmptyElement, xtPushElement, xtPushEntity, xtPopEntity, xtFakeLF);
 
+  TAttributeReadState = (arsNone, arsText, arsEntity, arsEntityEnd, arsPushEntity);
+
   TLiteralType = (ltPlain, ltPubid, ltEntity);
 
-  TXMLTextReader = class
+  TXMLTextReader = class(TXMLReader)
   private
     FSource: TXMLCharSource;
     FNameTable: THashTable;
@@ -313,7 +315,9 @@ type
     FDisallowDoctype: Boolean;
     FCanonical: Boolean;
     FMaxChars: Cardinal;
+    FCurrAttrIndex: Integer;
 
+    procedure CleanAttrReadState;
     procedure SetEOFState;
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
     procedure Initialize(ASource: TXMLCharSource);
@@ -352,6 +356,9 @@ type
     FAttrChunks: TFPList;
     FFreeAttrChunk: PNodeData;
     FAttrCleanupFlag: Boolean;
+    // ReadAttributeValue state
+    FAttrReadState: TAttributeReadState;
+    FAttrBaseSource: TObject;
 
     procedure DoError(Severity: TErrorSeverity; const descr: string; LineOffs: Integer=0);
     procedure DoErrorPos(Severity: TErrorSeverity; const descr: string;
@@ -387,12 +394,36 @@ type
     function DoStartElement: TDOMElement;
     procedure HandleEntityStart;
     procedure HandleEntityEnd;
-    procedure ResolveEntity;
     procedure DoStartEntity;
     procedure ParseAttribute(ElDef: TElementDecl);
     procedure ParseContent(cursor: TDOMNode_WithChildren);              // [43]
     function  ReadTopLevel: Boolean;
-    function  Read: Boolean;
+    procedure NextAttrValueChunk;
+  public
+    function  Read: Boolean; override;
+    function  MoveToFirstAttribute: Boolean; override;
+    function  MoveToNextAttribute: Boolean; override;
+    function  MoveToElement: Boolean; override;
+    function  ReadAttributeValue: Boolean; override;
+    procedure Close; override;
+    procedure ResolveEntity; override;
+    function  GetAttribute(i: Integer): XMLString; override;
+    function  GetAttribute(const AName: XMLString): XMLString; override;
+    function  GetAttribute(const ALocalName, nsuri: XMLString): XMLString; override;
+  protected
+    function  GetDepth: Integer; override;
+    function  GetNodeType: TXmlNodeType; override;
+    function  GetName: XMLString; override;
+    function  GetValue: XMLString; override;
+    function  GetLocalName: XMLString; override;
+    function  GetPrefix: XMLString; override;
+    function  GetNamespaceUri: XMLString; override;
+    function  GetHasValue: Boolean; override;
+    function  GetAttributeCount: Integer; override;
+    function  GetBaseUri: XMLString; override;
+    function  GetIsDefault: Boolean; override;
+
+
     function  ResolvePredefined: Boolean;
     function  EntityCheck(NoExternals: Boolean = False): TEntityDecl;
     procedure LoadEntity(AEntity: TEntityDecl);
@@ -1120,6 +1151,7 @@ begin
     if E.Severity = esFatal then
       raise E;
   except
+    FReadState := rsError;
     if ExceptObject <> E then
       E.Free;
     raise;
@@ -2630,11 +2662,296 @@ begin
 end;
 
 
+procedure TXMLTextReader.Close;
+begin
+  FReadState := rsClosed;
+end;
+
+function TXMLTextReader.GetAttributeCount: Integer;
+begin
+  result := FAttrCount;
+end;
+
+function TXMLTextReader.GetAttribute(i: Integer): XMLString;
+begin
+  result := '';
+end;
+
+function TXMLTextReader.GetAttribute(const AName: XMLString): XMLString;
+var
+  i: Integer;
+  p: PHashItem;
+begin
+  p := FNameTable.Find(PWideChar(AName), Length(AName));
+  if Assigned(p) then
+    for i := 1 to FAttrCount do
+      if FNodeStack[FNesting+i].FQName = p then
+      begin
+        result := FNodeStack[FNesting+i].FValueStr;
+        Exit;
+      end;
+  result := '';
+end;
+
+function TXMLTextReader.GetAttribute(const aLocalName, nsuri: XMLString): XMLString;
+var
+  i: Integer;
+  p: PWideChar;
+  p1: PHashItem;
+  node: PNodeData;
+begin
+  p1 := FNameTable.Find(PWideChar(nsuri), Length(nsuri));
+  if Assigned(p1) then
+    for i := 1 to FAttrCount do
+    begin
+      node := @FNodeStack[FNesting+i];
+      if node^.FNsUri = p1 then
+      begin
+        P := PWideChar(node^.FQName^.Key);
+        if node^.FColonPos > 0 then
+          Inc(P, node^.FColonPos+1);
+        if (Length(node^.FQName^.Key)-node^.FColonPos-1 = Length(aLocalName)) and
+          CompareMem(P, PWideChar(aLocalName), Length(aLocalName)*sizeof(WideChar)) then
+        begin
+          result := node^.FValueStr;
+          Exit;
+        end;
+      end;
+    end;
+  result := '';
+end;
+
+function TXMLTextReader.GetDepth: Integer;
+begin
+  result := FNesting;
+  if FCurrAttrIndex >= 0 then
+    Inc(result);
+  if FAttrReadState <> arsNone then
+    Inc(result);
+end;
+
+function TXMLTextReader.GetNodeType: TXmlNodeType;
+begin
+  result := FCurrNode^.FNodeType;
+end;
+
+function TXMLTextReader.GetName: XMLString;
+begin
+  if Assigned(FCurrNode^.FQName) then
+    result := FCurrNode^.FQName^.Key
+  else
+    result := '';
+end;
+
+function TXMLTextReader.GetIsDefault: Boolean;
+begin
+  result := FCurrNode^.FIsDefault;
+end;
+
+function TXMLTextReader.GetBaseUri: XMLString;
+begin
+  { TODO: implement }
+  result := '';
+end;
+
+function TXMLTextReader.MoveToFirstAttribute: Boolean;
+begin
+  result := False;
+  if FAttrCount = 0 then
+    exit;
+  FCurrAttrIndex := 0;
+  if FAttrReadState <> arsNone then
+    CleanAttrReadState;
+  FCurrNode := @FNodeStack[FNesting+1];
+  result := True;
+end;
+
+function TXMLTextReader.MoveToNextAttribute: Boolean;
+begin
+  result := False;
+  if FCurrAttrIndex+1 >= FAttrCount then
+    exit;
+  Inc(FCurrAttrIndex);
+  if FAttrReadState <> arsNone then
+    CleanAttrReadState;
+  FCurrNode := @FNodeStack[FNesting+1+FCurrAttrIndex];
+  result := True;
+end;
+
+function TXMLTextReader.MoveToElement: Boolean;
+begin
+  result := False;
+  if FAttrReadState <> arsNone then
+    CleanAttrReadState
+  else if FCurrNode^.FNodeType <> ntAttribute then
+    exit;
+  FCurrNode := @FNodeStack[FNesting];
+  FCurrAttrIndex := -1;
+  result := True;
+end;
+
+function TXMLTextReader.ReadAttributeValue: Boolean;
+var
+  attrNode: PNodeData;
+begin
+  Result := False;
+  if FAttrReadState = arsNone then
+  begin
+    if (FReadState <> rsInteractive) or (FCurrAttrIndex < 0) then
+      Exit;
+
+    attrNode := @FNodeStack[FNesting+FCurrAttrIndex+1];
+    if attrNode^.FNext = nil then
+    begin
+      if attrNode^.FValueStr = '' then
+        Exit;   { we don't want to expose empty textnodes }
+      FCurrNode := AllocNodeData(FNesting+FAttrCount+1);
+      FCurrNode^.FNodeType := ntText;
+      FCurrNode^.FValueStr := attrNode^.FValueStr;
+      FCurrNode^.FLoc := attrNode^.FLoc2;
+    end
+    else
+      FCurrNode := attrNode^.FNext;
+    FAttrReadState := arsText;
+    FAttrBaseSource := FSource;
+    Result := True;
+  end
+  else    // already reading, advance to next chunk
+  begin
+    if FSource = FAttrBaseSource then
+    begin
+      Result := Assigned(FCurrNode^.FNext);
+      if Result then
+        FCurrNode := FCurrNode^.FNext;
+    end
+    else
+    begin
+      NextAttrValueChunk;
+      Result := True;
+    end;
+  end;
+end;
+
+procedure TXMLTextReader.NextAttrValueChunk;
+var
+  wc: WideChar;
+  tok: TAttributeReadState;
+begin
+  if FAttrReadState = arsPushEntity then
+  begin
+    Inc(FNesting);
+    { make sure that the location is available }
+    AllocNodeData(FNesting+FAttrCount+1);
+    FAttrReadState := arsText;
+  end;
+
+  FCurrNode := @FNodeStack[FNesting+FAttrCount+1];
+  FValue.Length := 0;
+  if FAttrReadState = arsText then
+  repeat
+    wc := FSource.SkipUntil(FValue, [#0, '&', #9, #10, #13]);
+    if wc = '&' then
+    begin
+      if ParseRef(FValue) or ResolvePredefined then
+        Continue;
+      tok := arsEntity;
+    end
+    else if wc <> #0 then  { #9,#10,#13 -> replace by #32 }
+    begin
+      FSource.NextChar;
+      BufAppend(FValue, #32);
+      Continue;
+    end
+    else  // #0
+      tok := arsEntityEnd;
+
+    if FValue.Length <> 0 then
+    begin
+      FCurrNode^.FNodeType := ntText;
+      FCurrNode^.FQName := nil;
+      SetString(FCurrNode^.FValueStr, FValue.Buffer, FValue.Length);
+      FAttrReadState := tok;
+      Exit;
+    end;
+    Break;
+  until False
+  else
+    tok := FAttrReadState;
+
+  if tok = arsEntity then
+  begin
+    FCurrNode^.FNodeType := ntEntityReference;
+    FCurrNode^.FQName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
+    FCurrNode^.FValueStart := nil;
+    FCurrNode^.FValueLength := 0;
+    FCurrNode^.FValueStr := '';
+    FAttrReadState := arsText;
+  end
+  else if tok = arsEntityEnd then
+  begin
+    ContextPop(True);
+    Dec(FNesting);
+    FCurrNode := @FNodeStack[FNesting+FAttrCount+1];
+    FCurrNode^.FNodeType := ntEndEntity;
+    FAttrReadState := arsText;
+  end;
+end;
+
+procedure TXMLTextReader.CleanAttrReadState;
+begin
+  while FSource <> FAttrBaseSource do
+    ContextPop(True);
+  FAttrReadState := arsNone;
+end;
+
+function TXMLTextReader.GetHasValue: Boolean;
+begin
+  result := FCurrNode^.FNodeType in [ntAttribute,ntText,ntCDATA,
+    ntProcessingInstruction,ntComment,ntWhitespace,ntSignificantWhitespace,
+    ntDocumentType];
+end;
+
+function TXMLTextReader.GetValue: XMLString;
+begin
+  if (FCurrAttrIndex>=0) or (FAttrReadState <> arsNone) then
+    result := FCurrNode^.FValueStr
+  else
+    SetString(result, FCurrNode^.FValueStart, FCurrNode^.FValueLength);
+end;
+
+function TXMLTextReader.GetPrefix: XMLString;
+begin
+  if Assigned(FCurrNode^.FPrefix) then
+    result := FCurrNode^.FPrefix^.Key
+  else
+    result := '';
+end;
+
+function TXMLTextReader.GetLocalName: XMLString;
+begin
+  if FNamespaces and Assigned(FCurrNode^.FQName) then
+    if FColonPos < 0 then
+      Result := FCurrNode^.FQName^.Key
+    else
+      Result := Copy(FCurrNode^.FQName^.Key, FCurrNode^.FColonPos+2, MaxInt)
+  else
+    Result := '';
+end;
+
+function TXMLTextReader.GetNamespaceUri: XMLString;
+begin
+  if Assigned(FCurrNode^.FNSURI) then
+    result := FCurrNode^.FNSURI^.Key
+  else
+    result := '';
+end;
+
 procedure TXMLTextReader.SetEOFState;
 begin
   FCurrNode := @FNodeStack[0];
   Finalize(FCurrNode^);
   FillChar(FCurrNode^, sizeof(TNodeData), 0);
+  FReadState := rsEndOfFile;
 end;
 
 procedure TXMLTextReader.ValidateCurrentNode;
@@ -2767,13 +3084,35 @@ begin
 end;
 
 procedure TXMLTextReader.ResolveEntity;
+var
+  n: PNodeData;
+  ent: TEntityDecl;
+  src: TXMLCharSource;
 begin
   if FCurrNode^.FNodeType <> ntEntityReference then
     raise EInvalidOperation.Create('Wrong node type');
 
-  {... here must actually call EntityCheck, but it's called in main loop}
+  if FAttrReadState <> arsNone then
+  begin
+    { copy the EntityReference node to the stack if not already there }
+    n := AllocNodeData(FNesting+FAttrCount+1);
+    if n <> FCurrNode then
+      n^ := FCurrNode^;
 
-  FNext := xtPushEntity;
+    if Assigned(FDocType) then
+      ent := FDocType.Entities.Get(PWideChar(n^.FQName^.Key),Length(n^.FQName^.Key)) as TEntityDecl;
+    if ent = nil then
+    begin
+      src := TXMLCharSource.Create('');
+      Initialize(src);
+    end
+    else
+      ContextPush(ent);
+    FAttrReadState := arsPushEntity;
+  end
+  else
+    {... here must actually call EntityCheck, but it's called in main loop}
+    FNext := xtPushEntity;
 end;
 
 procedure TXMLTextReader.DoStartEntity;
@@ -3022,6 +3361,14 @@ var
   InCDATA: Boolean;
   tok: TXMLToken;
 begin
+  if FReadState > rsInteractive then
+  begin
+    Result := False;
+    Exit;
+  end;
+  FReadState := rsInteractive;
+  if FAttrReadState <> arsNone then
+    CleanAttrReadState;
   if FNext = xtPopEmptyElement then
   begin
     FNext := xtPopElement;
@@ -3029,6 +3376,7 @@ begin
     if FAttrCleanupFlag then
       CleanupAttributes;
     FAttrCount := 0;
+    FCurrAttrIndex := -1;
     Result := True;
     Exit;
   end;
@@ -3038,6 +3386,7 @@ begin
       CleanupAttributes;
     FAttrCount := 0;
     Inc(FNesting);
+    FCurrAttrIndex := -1;
     FNext := xtText;
   end
   else if FNext = xtPopElement then
@@ -3233,6 +3582,7 @@ begin
 
   IsEmpty := False;
   FAttrCount := 0;
+  FCurrAttrIndex := -1;
   FPrefixedAttrs := 0;
   FSpecifiedAttrs := 0;
 
