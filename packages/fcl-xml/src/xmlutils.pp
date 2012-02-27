@@ -26,6 +26,7 @@ type
   TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
   TSetOfChar = set of Char;
   XMLString = WideString;
+  PXMLString = ^XMLString;
   PXMLChar = PWideChar;
 
 function IsXmlName(const Value: XMLString; Xml11: Boolean = False): Boolean; overload;
@@ -45,6 +46,9 @@ procedure WStrLower(var S: XMLString);
 
 const
   xmlVersionStr: array[TXMLVersion] of XMLString = ('', '1.0', '1.1');
+  // URIs of predefined namespaces
+  stduri_xml: XMLString = 'http://www.w3.org/XML/1998/namespace';
+  stduri_xmlns: XMLString = 'http://www.w3.org/2000/xmlns/';
 
 type
   TXMLNodeType = (ntNone, ntElement, ntAttribute, ntText,
@@ -119,7 +123,7 @@ type
   TExpHashEntry = record
     rev: LongWord;
     hash: LongWord;
-    uriPtr: PWideString;
+    uriPtr: PXMLString;
     lname: PWideChar;
     lnameLen: Integer;
   end;
@@ -133,7 +137,7 @@ type
     FData: PExpHashEntryArray;
   public  
     procedure Init(NumSlots: Integer);
-    function Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
+    function Locate(uri: PXMLString; localName: PWideChar; localLength: Integer): Boolean;
     destructor Destroy; override;
   end;
 
@@ -672,7 +676,7 @@ begin
   Dec(FRevision);
 end;
 
-function TDblHashArray.Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
+function TDblHashArray.Locate(uri: PXMLString; localName: PWideChar; localLength: Integer): Boolean;
 var
   step: Byte;
   mask: LongWord;
@@ -720,8 +724,7 @@ begin
   SetLength(FBindingStack, 16);
 
   { provide implicit binding for the 'xml' prefix }
-  // TODO: move stduri_xml, etc. to this unit, so they are reused.
-  DefineBinding('xml', 'http://www.w3.org/XML/1998/namespace', b);
+  DefineBinding('xml', stduri_xml, b);
 end;
 
 destructor TNSSupport.Destroy;

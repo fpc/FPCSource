@@ -782,12 +782,6 @@ type
     procedure FreeNode(ANode: TDOMNode);
   end;
 
-
-// URIs of predefined namespaces
-const
-  stduri_xml: DOMString = 'http://www.w3.org/XML/1998/namespace';
-  stduri_xmlns: DOMString = 'http://www.w3.org/2000/xmlns/';
-
 // temporary until things are settled
 function LoadAttribute(doc: TDOMDocument; src: PNodeData): TDOMAttr;
 
