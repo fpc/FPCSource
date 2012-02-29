@@ -203,6 +203,7 @@ Type
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
   {$ifndef FPUNONE}
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
     ValReal = Double;
   {$endif}
 
@@ -256,7 +257,7 @@ Type
   PComp = ^Comp;
 
   FarPointer = Pointer;
-{$endif CPUARM}
+{$endif CPUAVR}
 
 {$ifdef CPU64}
   SizeInt = Int64;
