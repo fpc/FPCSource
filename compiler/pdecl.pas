@@ -44,7 +44,7 @@ interface
     procedure types_dec(in_structure: boolean);
     procedure var_dec;
     procedure threadvar_dec;
-    procedure property_dec(is_classpropery: boolean);
+    procedure property_dec;
     procedure resourcestring_dec;
 
 implementation
@@ -773,9 +773,10 @@ implementation
       end;
 
 
-    procedure property_dec(is_classpropery: boolean);
+    procedure property_dec;
+    { parses a global property (fpc mode feature) }
       var
-         old_block_type : tblock_type;
+         old_block_type: tblock_type;
       begin
          consume(_PROPERTY);
          if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
@@ -783,7 +784,7 @@ implementation
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
-           read_property_dec(is_classpropery, nil);
+           read_property_dec(false, nil);
            consume(_SEMICOLON);
          until token<>_ID;
          block_type:=old_block_type;

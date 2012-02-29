@@ -1840,8 +1840,8 @@ implementation
                   if try_to_consume(_CLASS) then
                    begin
                      { class modifier is only allowed for procedures, functions, }
-                     { constructors, destructors, fields and properties          }
-                     if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
+                     { constructors, destructors                                 }
+                     if not(token in [_FUNCTION,_PROCEDURE,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
                         not((token=_ID) and (idtoken=_OPERATOR)) then
                        Message(parser_e_procedure_or_function_expected);
 
@@ -1902,10 +1902,7 @@ implementation
                     _PROPERTY:
                       begin
                         if (m_fpc in current_settings.modeswitches) then
-                        begin
-                          property_dec(is_classdef);
-                          is_classdef:=false;
-                        end
+                          property_dec
                         else
                           break;
                       end;
@@ -1947,7 +1944,7 @@ implementation
                    _PROPERTY:
                      begin
                        if (m_fpc in current_settings.modeswitches) then
-                         property_dec(false)
+                         property_dec
                        else
                          break;
                      end;
