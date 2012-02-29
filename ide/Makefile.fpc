@@ -21,7 +21,7 @@ fpcpackage=y
 options=-Sg
 
 [require]
-packages=fv gdbint regexpr chm
+packages=fv gdbint regexpr chm  fcl-base fcl-xml
 packages_go32v2=graph
 libc=y
 
