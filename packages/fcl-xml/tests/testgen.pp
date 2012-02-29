@@ -427,6 +427,8 @@ begin
       rslt.Add(indent + 'AssertEqualsCollection(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');')
     else if cond = '_list' then
       rslt.Add(indent + 'AssertEqualsList(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');')
+    else if cond = 'DOMString' then
+      rslt.Add(indent + 'AssertEqualsW(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');')
     else if node['ignoreCase'] = 'true' then
       rslt.Add(indent + 'AssertEqualsNoCase(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');')
     else
@@ -975,7 +977,7 @@ begin
   if ParamCount < 2 then
   begin
     writeln;
-    writeln('Usage: ', ParamStr(0), ' <suite dir> <outputunit.pp> [-f]');
+    writeln('Usage: ', ExtractFileName(ParamStr(0)), ' <suite dir> <outputunit.pp> [-f]');
     writeln('  -f: force conversion of tests which contain unknown tags');
     Exit;
   end;

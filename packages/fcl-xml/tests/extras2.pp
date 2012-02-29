@@ -116,7 +116,7 @@ begin
     nodeType := node.nodeType;
     assertEquals('PIisFifthChild', 7, nodeType);
     nodeValue := TDOMProcessingInstruction(node).data;
-    assertEquals('trailingPIData', '', nodeValue);
+    assertEqualsW('trailingPIData', '', nodeValue);
     node := node.nextSibling;
     nodeType := node.nodeType;
     assertEquals('TextisSixthChild', 3, nodeType);
@@ -178,7 +178,7 @@ begin
     nodeType := node.nodeType;
     assertEquals('PIisFifthChild', 7, nodeType);
     nodeValue := TDOMProcessingInstruction(node).data;
-    assertEquals('trailingPIData', '', nodeValue);
+    assertEqualsW('trailingPIData', '', nodeValue);
     node := node.nextSibling;
     assertNull('SixthIsNull', node);
   end;
@@ -223,7 +223,7 @@ begin
   attrSpecified := attr.specified;
   assertTrue('titleSpecified', attrSpecified);
   attrValue := attr.nodeValue;
-  assertEquals('titleValue', 'default', attrValue);
+  assertEqualsW('titleValue', 'default', attrValue);
 end;
 
 { tests that namespace fixup is done while serializing }
@@ -256,11 +256,11 @@ begin
 
   docElem := parsedDoc.documentElement;
   docElemLocalName := docElem.localName;
-  assertEquals('docElemLocalName', 'test', docElemLocalName);
+  assertEqualsW('docElemLocalName', 'test', docElemLocalName);
   docElemNS := TDOMNode(docElem).namespaceURI;
-  assertEquals('docElemNS', namespaceURI, docElemNS);
+  assertEqualsW('docElemNS', namespaceURI, docElemNS);
   attrValue := docElem.getAttributeNS(namespaceURI, 'attr');
-  assertEquals('properNSAttrValue', 'test value', attrValue);
+  assertEqualsW('properNSAttrValue', 'test value', attrValue);
 end;
 
 { tests that namespace fixup is done while serializing }
@@ -293,11 +293,11 @@ begin
 
   docElem := parsedDoc.documentElement;
   docElemLocalName := docElem.localName;
-  assertEquals('docElemLocalName', 'test', docElemLocalName);
+  assertEqualsW('docElemLocalName', 'test', docElemLocalName);
   docElemNS := TDOMNode(docElem).namespaceURI;
-  assertEquals('docElemNS', namespaceURI, docElemNS);
+  assertEqualsW('docElemNS', namespaceURI, docElemNS);
   attrValue := docElem.getAttributeNS(namespaceURI, 'attr');
-  assertEquals('properNSAttrValue', 'test value', attrValue);
+  assertEqualsW('properNSAttrValue', 'test value', attrValue);
 end;
 
 initialization
