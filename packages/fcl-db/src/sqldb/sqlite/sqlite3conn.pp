@@ -505,7 +505,7 @@ begin
   Delete(S,1,P);
 end;
 
-Function ParseSQLiteDate(S : ShortString;sepc:ansichar=' ') : TDateTime;
+Function ParseSQLiteDate(S : ShortString) : TDateTime;
 
 Var
   Year, Month, Day : Integer;
@@ -513,7 +513,7 @@ begin
  Result:=0;
  If TryStrToInt(NextWord(S,'-'),Year) then
    if TryStrToInt(NextWord(S,'-'),Month) then
-     if TryStrToInt(NextWord(S,sepc),Day) then
+     if TryStrToInt(NextWord(S,' '),Day) then
         Result:=EncodeDate(Year,Month,Day);
 end;
 
@@ -559,7 +559,7 @@ begin
     else if (Pos(':',S)<>0) then
       TS:=S;
     end;
-  Result:=ComposeDateTime(ParseSQLiteDate(DS,'-'),ParseSQLiteTime(TS,False));
+  Result:=ComposeDateTime(ParseSQLiteDate(DS),ParseSQLiteTime(TS,False));
 end;
 
 function TSQLite3Connection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
