@@ -1635,7 +1635,10 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
     // 1-apr-06, JvdS: It just sets the bookmark of the newly inserted record to the place
     // where the record should be inserted. So it is ok.
     if FRecordcount > 0 then
+      begin
       SetBookMarkData(ActiveBuffer,pointer(BookBeforeInsert));
+      FreeBookmark(BookBeforeInsert);
+      end;
     end;
 
   InternalInsert;
