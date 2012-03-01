@@ -61,7 +61,8 @@ uses
 *)
 
 type
-  SQLCHAR      = char;
+  SQLCHAR      = cuchar;
+  SQLSCHAR     = cschar;
   SQLSMALLINT  = csshort;
   SQLUSMALLINT = cushort;
   SQLRETURN    = SQLSMALLINT;
@@ -283,6 +284,13 @@ type
     Fraction : SQLUINTEGER;
   end;
   PSQL_TIMESTAMP_STRUCT = ^SQL_TIMESTAMP_STRUCT;
+
+  SQL_NUMERIC_STRUCT = packed record
+    precision: SQLCHAR;
+    scale    : SQLSCHAR;
+    sign     : SQLCHAR; // 1 if positive, 0 if negative
+    val      : array[0..15] of SQLCHAR;
+  end;
 
 const
   SQL_NAME_LEN = 128;
@@ -1115,6 +1123,15 @@ type   TSQLGetStmtAttr=function (StatementHandle:SQLHSTMT;
            Attribute:SQLINTEGER;Value:SQLPOINTER;
            BufferLength:SQLINTEGER;StringLength:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
+type   TSQLSetDescField=function (DescriptorHandle:SQLHDESC;
+           RecNumber:SQLSMALLINT; FieldIdentifier:SQLSMALLINT;
+           ValuePtr:SQLPOINTER; BufferLength:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
+
+type   TSQLSetDescRec=function (DescriptorHandle:SQLHDESC;
+           RecNumber:SQLSMALLINT; DescType, SubType:SQLSMALLINT;
+           Length:SQLINTEGER; Precision, Scale: SQLSMALLINT;
+           DataPtr:SQLPOINTER; StringLengthPtr,IndicatorPtr:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
+
 type   tSQLGetInfo=function (ConnectionHandle:SQLHDBC;
            InfoType:SQLUSMALLINT;InfoValue:SQLPOINTER;
            BufferLength:SQLSMALLINT;StringLength:PSQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
@@ -1242,6 +1259,8 @@ var    SQLExtendedFetch:TSQLExtendedFetch;
 var    SQLGetData:TSQLGetData;
 var    SQLSetStmtAttr:TSQLSetStmtAttr;
 var    SQLGetStmtAttr:TSQLGetStmtAttr;
+//var    SQLSetDescField:TSQLSetDescField;
+var    SQLSetDescRec:TSQLSetDescRec;
 var    SQLBulkOperations:TSQLBulkOperations;
 var    SQLPutData:TSQLPutData;
 var    SQLBindCol:TSQLBindCol;
@@ -1525,6 +1544,7 @@ procedure DateTime2TimeStampStruct( var Value:SQL_TIMESTAMP_STRUCT; b:TDateTime)
 Function TimeStampStructToDateTime( B :  PSQL_TIMESTAMP_STRUCT) : TDateTime;
 Function TimeStructToDateTime (B : PSQL_TIME_STRUCT) : TDateTime;
 function DateTimeToTimeStruct(b: TDateTime) : SQL_TIME_STRUCT;
+function CurrToNumericStruct(c: currency): SQL_NUMERIC_STRUCT;
 
 
 {$IFDEF DYNLOADINGODBC}
@@ -1584,6 +1604,8 @@ begin
     pointer(SQLGetData) := GetProcedureAddress(ODBCLibraryHandle,'SQLGetData');
     pointer(SQLSetStmtAttr) := GetProcedureAddress(ODBCLibraryHandle,'SQLSetStmtAttr');
     pointer(SQLGetStmtAttr) := GetProcedureAddress(ODBCLibraryHandle,'SQLGetStmtAttr');
+    //pointer(SQLSetDescField) := GetProcedureAddress(ODBCLibraryHandle,'SQLSetDescField');
+    pointer(SQLSetDescRec) := GetProcedureAddress(ODBCLibraryHandle,'SQLSetDescRec');
     pointer(SQLBulkOperations) := GetProcedureAddress(ODBCLibraryHandle,'SQLBulkOperations');
     pointer(SQLPutData) := GetProcedureAddress(ODBCLibraryHandle,'SQLPutData');
     pointer(SQLBindCol) := GetProcedureAddress(ODBCLibraryHandle,'SQLBindCol');
@@ -1627,6 +1649,8 @@ begin
     SQLGetData := GetProcedureAddress(ODBCLibraryHandle,'SQLGetData');
     SQLSetStmtAttr := GetProcedureAddress(ODBCLibraryHandle,'SQLSetStmtAttr');
     SQLGetStmtAttr := GetProcedureAddress(ODBCLibraryHandle,'SQLGetStmtAttr');
+    //SQLSetDescField := GetProcedureAddress(ODBCLibraryHandle,'SQLSetDescField');
+    SQLSetDescRec := GetProcedureAddress(ODBCLibraryHandle,'SQLSetDescRec');
     SQLBulkOperations := GetProcedureAddress(ODBCLibraryHandle,'SQLBulkOperations');
     SQLPutData := GetProcedureAddress(ODBCLibraryHandle,'SQLPutData');
     SQLBindCol := GetProcedureAddress(ODBCLibraryHandle,'SQLBindCol');
@@ -1731,3 +1755,20 @@ begin
   Result.Second:=w3;
 end;
 
+function CurrToNumericStruct(c: currency): SQL_NUMERIC_STRUCT;
+var n: int64; i: integer;
+begin
+  Result.precision:=18;
+  Result.scale:=4;
+  if c >= 0 then
+    Result.sign:=1
+  else begin
+    Result.sign:=0;
+    c := -c;
+  end;
+  n := int64(c);
+  for i:=0 to 15 do begin
+    Result.val[i] := n and $ff;
+    n := n shr 8;
+  end;
+end;

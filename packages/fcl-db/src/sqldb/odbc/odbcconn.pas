@@ -322,8 +322,10 @@ var
   TimeVal: SQL_TIME_STRUCT;
   TimeStampVal: SQL_TIMESTAMP_STRUCT;
   BoolVal: byte;
+  NumericVal: SQL_NUMERIC_STRUCT;
   ColumnSize, BufferLength, StrLenOrInd: SQLINTEGER;
   CType, SqlType, DecimalDigits:SQLSMALLINT;
+  APD: SQLHDESC;
 begin
   // Note: it is assumed that AParams is the same as the one passed to PrepareStatement, in the sense that
   //       the parameters have the same order and names
@@ -420,7 +422,7 @@ begin
             else        SqlType:=SQL_WVARCHAR;
           end;
         end;
-      ftFloat, ftCurrency:
+      ftFloat:
         begin
           FloatVal:=AParams[ParamIndex].AsFloat;
           PVal:=@FloatVal;
@@ -428,6 +430,16 @@ begin
           CType:=SQL_C_DOUBLE;
           SqlType:=SQL_DOUBLE;
           ColumnSize:=15;
+        end;
+      ftCurrency, ftBCD:
+        begin
+          NumericVal:=CurrToNumericStruct(AParams[ParamIndex].AsCurrency);
+          PVal:=@NumericVal;
+          Size:=SizeOf(NumericVal);
+          CType:=SQL_C_NUMERIC;
+          SqlType:=SQL_NUMERIC;
+          ColumnSize:=NumericVal.precision;
+          DecimalDigits:=NumericVal.scale;
         end;
       ftDate:
         begin
@@ -496,6 +508,16 @@ begin
                           PStrLenOrInd),          // StrLen_or_IndPtr
          SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not bind parameter %d.', [i]
        );
+
+    // required by MSSQL:
+    if CType = SQL_C_NUMERIC then
+    begin
+      ODBCCheckResult(
+        SQLGetStmtAttr(ODBCCursor.FSTMTHandle, SQL_ATTR_APP_PARAM_DESC, @APD, 0, nil),
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get parameter descriptor.'
+      );
+      SQLSetDescRec(APD, i+1, SQL_C_NUMERIC, 0, ColumnSize+2, ColumnSize, DecimalDigits, Buf, nil, nil);
+    end;
   end;
 end;
 
@@ -1206,7 +1228,7 @@ var
   _Type     :SQLSMALLINT; _TypeIndOrLen     :SQLINTEGER;
   OrdinalPos:SQLSMALLINT; OrdinalPosIndOrLen:SQLINTEGER;
   ColName   :string;      ColNameIndOrLen   :SQLINTEGER;
-  AscOrDesc :SQLCHAR;     AscOrDescIndOrLen :SQLINTEGER;
+  AscOrDesc :char;        AscOrDescIndOrLen :SQLINTEGER;
   PKName    :string;      PKNameIndOrLen    :SQLINTEGER;
 const
   DEFAULT_NAME_LEN = 255;
