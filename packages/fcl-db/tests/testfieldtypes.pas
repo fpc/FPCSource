@@ -808,7 +808,7 @@ end;
 procedure TTestFieldTypes.TestFloatParamQuery;
 
 begin
-  TestXXParamQuery(ftFloat,'FLOAT',testFloatValuesCount);
+  TestXXParamQuery(ftFloat,FieldtypeDefinitions[ftFloat],testFloatValuesCount);
 end;
 
 procedure TTestFieldTypes.TestBCDParamQuery;
