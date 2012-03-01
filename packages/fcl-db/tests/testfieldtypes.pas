@@ -110,6 +110,7 @@ type
     // Test SQL-field type recognition
     procedure TestSQLClob;
     procedure TestSQLLargeint;
+    procedure TestSQLInterval;
   end;
 
 implementation
@@ -1792,6 +1793,44 @@ begin
   else
     datatype:='BIGINT';
   TestSQLFieldType(ftLargeint, datatype, 8, @TestSQLLargeint_GetSQLText, @CheckFieldValue);
+end;
+
+var testIntervalValuesCount: integer;
+const testIntervalValues: array[0..4] of shortstring = ('00:00:00.000','00:00:01.000','23:59:59.000','838:59:59.000','1000:00:00.000');
+// Placed here, as long as bug 18702 is not solved
+function TestSQLInterval_GetSQLText(const a: integer) : string;
+begin
+  if a < testIntervalValuesCount then
+    Result := QuotedStr(testIntervalValues[a])
+  else
+    Result := 'NULL'
+end;
+procedure TTestFieldTypes.TestSQLInterval;
+  procedure CheckFieldValue(AField: TField; a: integer);
+  begin
+    if a < testIntervalValuesCount then
+      AssertEquals(testIntervalValues[a], DateTimeToTimeString(AField.AsDateTime))
+    else
+      AssertTrue(AField.IsNull);
+  end;
+var datatype: string;
+begin
+  if sqlDBType = postgresql then
+  begin
+    datatype:='INTERVAL';
+    testIntervalValuesCount := 5;
+  end
+  else
+  begin
+    datatype:=FieldtypeDefinitions[ftTime];
+    if sqlDBType = sqlite3 then
+      testIntervalValuesCount := 5
+    else if sqlDBType in MySQLdbTypes then
+      testIntervalValuesCount := 4
+    else
+      testIntervalValuesCount := 3;
+  end;
+  TestSQLFieldType(ftTime, datatype, sizeof(TDateTime), @TestSQLInterval_GetSQLText, @CheckFieldValue);
 end;
 
 procedure TTestFieldTypes.TestUpdateIndexDefs;
