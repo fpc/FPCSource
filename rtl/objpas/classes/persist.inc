@@ -49,13 +49,6 @@ begin
   Result:=Nil;
 end;
 
-destructor TPersistent.Destroy;
-
-begin
-  Inherited Destroy;
-end;
-
-
 procedure TPersistent.Assign(Source: TPersistent);
 
 begin

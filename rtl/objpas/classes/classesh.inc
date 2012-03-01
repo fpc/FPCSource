@@ -396,7 +396,6 @@ type
     procedure DefineProperties(Filer: TFiler); virtual;
     function  GetOwner: TPersistent; dynamic;
   public
-    destructor Destroy; override;
     procedure Assign(Source: TPersistent); virtual;
     function  GetNamePath: string; virtual; {dynamic;}
   end;
