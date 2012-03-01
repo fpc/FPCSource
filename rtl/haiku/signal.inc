@@ -283,13 +283,13 @@ type
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
   {$WARNING TODO : check with signal.h}
-  { Note: As of R1alpha3, sa_handler still was of SignalHandler type, with one one parameter,
+  { Note: As of R1alpha3, sa_handler still was of SignalHandler type, with one parameter,
     but the Signal stack has a second parameter that is set to zero
     and a third that is of type pvregs }
   sigActionHandler = procedure(Sig: Longint; SigContext: PSigContextRec; uContext : Pvregs);cdecl;
 
   { Add those type definition to obtain same declaration as for other unix targets 
-    but do not forget the PSigInfo filed is currently nil for Haiku as of  R1alpha3 }
+    but do not forget the PSigInfo field is currently nil for Haiku as of R1alpha3. }
   PSigInfo = PSigContextRec;
   PSigContext = Pvregs;
 
