@@ -2222,7 +2222,7 @@ end;
 function SameValue(const A, B: Extended): Boolean;inline;
 
 begin
-  Result:=SameValue(A,B,0);
+  Result:=SameValue(A,B,0.0);
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
@@ -2231,7 +2231,7 @@ end;
 function SameValue(const A, B: Double): Boolean;inline;
 
 begin
-  Result:=SameValue(A,B,0);
+  Result:=SameValue(A,B,0.0);
 end;
 
 function SameValue(const A, B: Double; Epsilon: Double): Boolean;
