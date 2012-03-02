@@ -142,7 +142,7 @@ end;
 
 procedure TRecall.Store;
 begin
-  if Assigned(FReference) then
+  if Assigned(FStorage) and Assigned(FReference) then
     FStorage.Assign(FReference);
 end;
 
