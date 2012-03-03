@@ -276,6 +276,7 @@ type
     FNameTable: THashTable;
     FCtrl: TDOMParser;
     FXML11: Boolean;
+    FNameTableOwned: Boolean;
     FState: TXMLReadState;
     FHavePERefs: Boolean;
     FInsideDecl: Boolean;
@@ -321,7 +322,6 @@ type
     procedure SetEOFState;
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
     procedure Initialize(ASource: TXMLCharSource);
-    procedure NSPrepare;
     procedure EntityToSource(AEntity: TEntityDecl; out Src: TXMLCharSource);
     function ContextPush(AEntity: TEntityDecl): Boolean;
     function ContextPop(Forced: Boolean = False): Boolean;
@@ -383,7 +383,6 @@ type
     procedure ExpectAttValue(attrData: PNodeData; NonCDATA: Boolean);   // [10]
     procedure ParseComment(discard: Boolean);                           // [15]
     procedure ParsePI;                                                  // [16]
-    function CreatePINode: TDOMNode;
     procedure ParseXmlOrTextDecl(TextDecl: Boolean);
     procedure ExpectEq;
     procedure ParseDoctypeDecl;                                         // [28]
@@ -391,12 +390,10 @@ type
     procedure ParseIgnoreSection;
     procedure ParseStartTag;                                            // [39]
     procedure ParseEndTag;                                              // [42]
-    function DoStartElement: TDOMElement;
     procedure HandleEntityStart;
     procedure HandleEntityEnd;
     procedure DoStartEntity;
     procedure ParseAttribute(ElDef: TElementDecl);
-    procedure ParseContent(cursor: TDOMNode_WithChildren);              // [43]
     function  ReadTopLevel: Boolean;
     procedure NextAttrValueChunk;
   public
@@ -452,16 +449,32 @@ type
     procedure ValidationErrorWithName(const Msg: string; LineOffs: Integer = -1);
     procedure DTDReloadHook;
     procedure ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
-    function DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
     procedure DoNotationDecl(const aName, aPubID, aSysID: XMLString);
+    procedure SetOptions(AParser: TDOMParser);
   public
-    doc: TDOMDocument;
+    { Entity loading still needs to reference the document, at least as an opaque pointer }
+    FDoc: TObject;
     constructor Create; overload;
-    constructor Create(AParser: TDOMParser); overload;
+    constructor Create(ASrc: TXMLCharSource; ANameTable: THashTable); overload;
+    constructor Create(ASrc: TXMLCharSource; AParent: TXMLTextReader); overload;
+    constructor Create(const uri: XMLString; ANameTable: THashTable; AParser: TDOMParser); overload;
+    constructor Create(ASrc: TXMLInputSource; ANameTable: THashTable; AParser: TDOMParser); overload;
     destructor Destroy; override;
-    procedure ProcessXML(ASource: TXMLCharSource);                // [1]
-    procedure ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
-    procedure ProcessDTD(ASource: TXMLCharSource);               // ([29])
+    procedure AfterConstruction; override;
+  end;
+
+  TLoader = object
+    doc: TDOMDocument;
+    reader: TXMLTextReader;
+    function DoStartElement: TDOMElement;
+    function DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
+    function CreatePINode: TDOMNode;
+    procedure ParseContent(cursor: TDOMNode_WithChildren);
+
+    procedure ProcessXML(ADoc: TDOMDocument; AReader: TXMLTextReader);
+    procedure ProcessFragment(AOwner: TDOMNode; AReader: TXMLTextReader);
+    procedure ProcessDTD(ADoc: TDOMDocument; AReader: TXMLTextReader);
+    procedure ProcessEntity(ADoc: TObject; AReader: TXMLTextReader; AEntity: TEntityDecl);
   end;
 
 const
@@ -564,41 +577,39 @@ end;
 
 procedure TDOMParser.Parse(Src: TXMLInputSource; out ADoc: TXMLDocument);
 var
-  InputSrc: TXMLCharSource;
+  Reader: TXMLTextReader;
+  ldr: TLoader;
 begin
-  with TXMLTextReader.Create(Self) do
+  ADoc := TXMLDocument.Create;
+  Reader := TXMLTextReader.Create(Src, ADoc.Names, Self);
   try
-    ConvertSource(Src, InputSrc);  // handles 'no-input-specified' case
-    ProcessXML(InputSrc)
+    ldr.ProcessXML(ADoc, Reader);
   finally
-    ADoc := TXMLDocument(doc);
-    Free;
+    Reader.Free;
   end;
 end;
 
 procedure TDOMParser.ParseUri(const URI: XMLString; out ADoc: TXMLDocument);
 var
-  Src: TXMLCharSource;
+  Reader: TXMLTextReader;
+  ldr: TLoader;
 begin
-  ADoc := nil;
-  with TXMLTextReader.Create(Self) do
+  ADoc := TXMLDocument.Create;
+  Reader := TXMLTextReader.Create(URI, ADoc.Names, Self);
   try
-    if ResolveResource(URI, '', '', Src) then
-      ProcessXML(Src)
-    else
-      DoErrorPos(esFatal, 'The specified URI could not be resolved', NullLocation);
+    ldr.ProcessXML(ADoc, Reader)
   finally
-    ADoc := TXMLDocument(doc);
-    Free;
+    Reader.Free;
   end;
 end;
 
 function TDOMParser.ParseWithContext(Src: TXMLInputSource;
   Context: TDOMNode; Action: TXMLContextAction): TDOMNode;
 var
-  InputSrc: TXMLCharSource;
   Frag: TDOMDocumentFragment;
   node: TDOMNode;
+  reader: TXMLTextReader;
+  ldr: TLoader;
 begin
   if Action in [xaInsertBefore, xaInsertAfter, xaReplace] then
     node := Context.ParentNode
@@ -611,12 +622,11 @@ begin
   if not (node.NodeType in [ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE]) then
     raise EDOMHierarchyRequest.Create('DOMParser.ParseWithContext');
 
-  with TXMLTextReader.Create(Self) do
+  reader := TXMLTextReader.Create(Src, Context.OwnerDocument.Names, Self);
   try
-    ConvertSource(Src, InputSrc);    // handles 'no-input-specified' case
     Frag := Context.OwnerDocument.CreateDocumentFragment;
     try
-      ProcessFragment(InputSrc, Frag);
+      ldr.ProcessFragment(Frag, reader);
       Result := Frag.FirstChild;
       case Action of
         xaAppendAsChildren: Context.AppendChild(Frag);
@@ -633,7 +643,7 @@ begin
       Frag.Free;
     end;
   finally
-    Free;
+    reader.Free;
   end;
 end;
 
@@ -1275,9 +1285,8 @@ begin
   SetLength(FValidators, 16);
 end;
 
-constructor TXMLTextReader.Create(AParser: TDOMParser);
+procedure TXMLTextReader.SetOptions(AParser: TDOMParser);
 begin
-  Create;
   FCtrl := AParser;
   if FCtrl = nil then
     Exit;
@@ -1291,6 +1300,51 @@ begin
   FDisallowDoctype := FCtrl.Options.DisallowDoctype;
   FCanonical := FCtrl.Options.CanonicalForm;
   FMaxChars := FCtrl.Options.MaxChars;
+end;
+
+constructor TXMLTextReader.Create(ASrc: TXMLInputSource; ANameTable: THashTable; AParser: TDOMParser);
+var
+  InputSrc: TXMLCharSource;
+begin
+  Create;
+  SetOptions(AParser);
+  FNameTable := ANameTable;
+  ConvertSource(ASrc, InputSrc);
+  FSource := InputSrc;
+  FSource.FReader := Self;
+end;
+
+constructor TXMLTextReader.Create(const uri: XMLString; ANameTable: THashTable; AParser: TDOMParser);
+begin
+  Create;
+  SetOptions(AParser);
+  FNameTable := ANameTable;
+  { TODO: should not open file in ResolveResource, but do it when Read() is called
+    for the first time }
+  if ResolveResource(uri, '', '', FSource) then
+    FSource.FReader := Self
+  else
+    DoErrorPos(esFatal, 'The specified URI could not be resolved', NullLocation);
+end;
+
+
+constructor TXMLTextReader.Create(ASrc: TXMLCharSource; ANameTable: THashTable);
+begin
+  if ANameTable = nil then
+  begin
+    ANameTable := THashTable.Create(256, True);
+    FNameTableOwned := True;
+  end;
+  FNameTable := ANameTable;
+  Create;
+  FSource := ASrc;
+  FSource.FReader := Self;
+end;
+
+constructor TXMLTextReader.Create(ASrc: TXMLCharSource; AParent: TXMLTextReader);
+begin
+  Create(ASrc, AParent.FNameTable);
+  SetOptions(AParent.FCtrl);
 end;
 
 destructor TXMLTextReader.Destroy;
@@ -1314,16 +1368,17 @@ begin
   FIDMap.Free;
   FForwardRefs.Free;
   FAttrChunks.Free;
-  if doc = nil then
+  if FNameTableOwned then
     FNameTable.Free;
   inherited Destroy;
 end;
 
 
-{ Must be executed after doc has been set.
-  After introducing own NameTable, merge this into constructor }
-procedure TXMLTextReader.NSPrepare;
+procedure TXMLTextReader.AfterConstruction;
 begin
+  FNesting := 0;
+  FValidatorNesting := 0;
+  FCurrNode := @FNodeStack[0];
   if FNamespaces then
   begin
     FNSHelper := TNSSupport.Create;
@@ -1336,62 +1391,164 @@ begin
   end;
 end;
 
-procedure TXMLTextReader.ProcessXML(ASource: TXMLCharSource);
+procedure TLoader.ProcessXML(ADoc: TDOMDocument; AReader: TXMLTextReader);
 begin
-  doc := TXMLDocument.Create;
-  doc.documentURI := ASource.SystemID;  // TODO: to be changed to URI or BaseURI
-  FNameTable := doc.Names;
-  FState := rsProlog;
-  FNesting := 0;
-  FValidatorNesting := 0;
-  FCurrNode := @FNodeStack[0];
-  FFragmentMode := False;
-  NSPrepare;
-  Initialize(ASource);
-  if FSource.FXMLVersion <> xmlVersionUnknown then
-    TDOMTopNodeEx(TDOMNode(doc)).FXMLVersion := FSource.FXMLVersion;
-  TDOMTopNodeEx(TDOMNode(doc)).FXMLEncoding := FSource.FXMLEncoding;
-  doc.XMLStandalone := FStandalone;
-  FNext := xtText;
+  doc := ADoc;
+  reader := AReader;
+  reader.FDoc := ADoc;
+  doc.documentURI := reader.BaseURI;
+  reader.FState := rsProlog;
+  reader.FFragmentMode := False;
   ParseContent(doc);
+  doc.XMLStandalone := reader.FStandalone;
 
-  if FValidate then
-    ValidateIdRefs;
+  if reader.FValidate then
+    reader.ValidateIdRefs;
 
-  doc.IDs := FIDMap;
-  FIDMap := nil;
+  doc.IDs := reader.FIDMap;
+  reader.FIDMap := nil;
 end;
 
-procedure TXMLTextReader.ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
+procedure TLoader.ProcessFragment(AOwner: TDOMNode; AReader: TXMLTextReader);
 var
   DoctypeNode: TDOMDocumentTypeEx;
 begin
   doc := AOwner.OwnerDocument;
-  FNameTable := doc.Names;
-  FState := rsRoot;
-  FNesting := 0;
-  FValidatorNesting := 0;
-  FCurrNode := @FNodeStack[0];
-  FFragmentMode := True;
-  FXML11 := doc.XMLVersion = '1.1';
-  NSPrepare;
-  Initialize(ASource);
-  { Get doctype from the owner's document, but only if it is not already assigned
-   (It is set directly when parsing children of an Entity, see LoadEntity procedure) }
-  if FDocType = nil then
-  begin
-    DoctypeNode := TDOMDocumentTypeEx(doc.DocType);
-    if Assigned(DoctypeNode) then
-      FDocType := DocTypeNode.FModel.Reference;
-  end;
-  if AOwner is TDOMEntity then
-  begin
-    TDOMTopNodeEx(AOwner).FXMLVersion := FSource.FXMLVersion;
-    TDOMTopNodeEx(AOwner).FXMLEncoding := FSource.FXMLEncoding;
-  end;
-  FNext := xtText;
+  reader := AReader;
+  reader.FDoc := doc;
+  reader.FState := rsRoot;
+  reader.FFragmentMode := True;
+  reader.FXML11 := doc.XMLVersion = '1.1';
+  DoctypeNode := TDOMDocumentTypeEx(doc.DocType);
+  if Assigned(DoctypeNode) then
+    reader.FDocType := DocTypeNode.FModel.Reference;
   ParseContent(aOwner as TDOMNode_WithChildren);
 end;
+
+procedure TLoader.ProcessEntity(ADoc: TObject; AReader: TXMLTextReader; AEntity: TEntityDecl);
+var
+  DoctypeNode: TDOMDocumentType;
+  Ent: TDOMEntityEx;
+  src: TXMLCharSource;
+begin
+  DoctypeNode := TDOMDocument(ADoc).DocType;
+  if DoctypeNode = nil then
+    Exit;
+  Ent := TDOMEntityEx(DocTypeNode.Entities.GetNamedItem(AEntity.FName));
+  if Ent = nil then
+    Exit;
+  AReader.EntityToSource(AEntity, Src);
+  if Src = nil then
+    Exit;
+  reader := TXMLTextReader.Create(Src, AReader);
+  try
+    Ent.SetReadOnly(False);
+    ProcessFragment(Ent, reader);
+    AEntity.FResolved := True;
+  finally
+    reader.Free;
+    AEntity.FOnStack := False;
+    Ent.SetReadOnly(True);
+  end;
+end;
+
+procedure TLoader.ParseContent(cursor: TDOMNode_WithChildren);
+var
+  element: TDOMElement;
+begin
+  if reader.ReadState = rsInitial then
+  begin
+    reader.Read;
+    if cursor is TDOMNode_TopLevel then
+    begin
+      if reader.FSource.FXMLVersion <> xmlVersionUnknown then
+        TDOMTopNodeEx(cursor).FXMLVersion := reader.FSource.FXMLVersion;
+      TDOMTopNodeEx(cursor).FXMLEncoding := reader.FSource.FXMLEncoding;
+    end;
+  end;
+
+  with reader do
+  repeat
+    if FValidate then
+      ValidateCurrentNode;
+
+    case FCurrNode^.FNodeType of
+      ntText:
+        cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, False));
+
+      ntWhitespace, ntSignificantWhitespace:
+        if FPreserveWhitespace then
+          cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, FCurrNode^.FNodeType = ntWhitespace));
+
+      ntCDATA:
+        cursor.InternalAppend(DoCDSect(FValue.Buffer, FValue.Length));
+
+      ntProcessingInstruction:
+        cursor.InternalAppend(CreatePINode);
+
+      ntComment:
+        if not FIgnoreComments then
+          cursor.InternalAppend(doc.CreateCommentBuf(FCurrNode^.FValueStart, FCurrNode^.FValueLength));
+
+      ntElement:
+        begin
+          element := DoStartElement;
+          cursor.InternalAppend(element);
+          cursor := element;
+        end;
+
+      ntEndElement:
+          cursor := TDOMNode_WithChildren(cursor.ParentNode);
+
+      ntDocumentType:
+        if not FCanonical then
+          cursor.InternalAppend(TDOMDocumentType.Create(doc, FDocType));
+
+      ntEntityReference:
+        cursor.InternalAppend(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
+    end;
+  until not Read;
+end;
+
+function TLoader.DoStartElement: TDOMElement;
+var
+  Attr: TDOMAttr;
+  i: Integer;
+begin
+  with reader.FCurrNode^ do
+  begin
+    Result := doc.CreateElementBuf(PWideChar(FQName^.Key), Length(FQName^.Key));
+    if Assigned(FNsUri) then
+      Result.SetNSI(FNsUri^.Key, FColonPos+1);
+  end;
+
+  for i := 1 to reader.FAttrCount do
+  begin
+    Attr := LoadAttribute(doc, @reader.FNodeStack[reader.FNesting+i]);
+    Result.SetAttributeNode(Attr);
+    // Attach element to ID map entry if necessary
+    if Assigned(reader.FNodeStack[reader.FNesting+i].FIDEntry) then
+      reader.FNodeStack[reader.FNesting+i].FIDEntry^.Data := Result;
+  end;
+end;
+
+function TLoader.CreatePINode: TDOMNode;
+var
+  NameStr, ValueStr: DOMString;
+begin
+  SetString(NameStr, reader.FName.Buffer, reader.FName.Length);
+  SetString(ValueStr, reader.FValue.Buffer, reader.FValue.Length);
+  result := Doc.CreateProcessingInstruction(NameStr, ValueStr);
+end;
+
+function TLoader.DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
+var
+  s: XMLString;
+begin
+  SetString(s, ch, Count);
+  result := doc.CreateCDATASection(s);
+end;
+
 
 function TXMLTextReader.CheckName(aFlags: TCheckNameFlags): Boolean;
 var
@@ -1920,15 +2077,6 @@ begin
     FatalError('Unterminated processing instruction', -1);
   SetNodeInfoWithValue(ntProcessingInstruction,
     FNameTable.FindOrAdd(FName.Buffer, FName.Length));
-end;
-
-function TXMLTextReader.CreatePINode: TDOMNode;
-var
-  NameStr, ValueStr: DOMString;
-begin
-  SetString(NameStr, FName.Buffer, FName.Length);
-  SetString(ValueStr, FValue.Buffer, FValue.Length);
-  result := Doc.CreateProcessingInstruction(NameStr, ValueStr);
 end;
 
 const
@@ -2550,8 +2698,6 @@ begin
     if FSource.FBuf^ = '?' then
     begin
       ParsePI;
-      if Assigned(doc) then
-        doc.AppendChild(CreatePINode);
     end
     else
     begin
@@ -2617,48 +2763,22 @@ begin
     FatalError('Illegal character in DTD');
 end;
 
-procedure TXMLTextReader.ProcessDTD(ASource: TXMLCharSource);
+procedure TLoader.ProcessDTD(ADoc: TDOMDocument; AReader: TXMLTextReader);
 begin
-  doc := TXMLDocument.Create;
-  FNameTable := doc.Names;
-  FDocType := TDTDModel.Create(FNameTable);
+  AReader.FDocType := TDTDModel.Create(AReader.FNameTable);
   // TODO: DTD labeled version 1.1 will be rejected - must set FXML11 flag
-  doc.AppendChild(TDOMDocumentType.Create(doc, FDocType));
-  NSPrepare;
-  Initialize(ASource);
-  ParseMarkupDecl;
+  doc.AppendChild(TDOMDocumentType.Create(doc, AReader.FDocType));
+  AReader.FSource.Initialize;
+  AReader.ParseMarkupDecl;
 end;
 
 
 procedure TXMLTextReader.LoadEntity(AEntity: TEntityDecl);
 var
-  InnerReader: TXMLTextReader;
-  Src: TXMLCharSource;
-  Ent: TDOMEntityEx;
-  DoctypeNode: TDOMDocumentType;
+  ldr: TLoader;
 begin
-  if Assigned(doc) then
-    DoctypeNode := doc.DocType
-  else
-    Exit;
-  if DoctypeNode = nil then
-    Exit;
-  Ent := TDOMEntityEx(DocTypeNode.Entities.GetNamedItem(AEntity.FName));
-  if Ent = nil then
-    Exit;
-  InnerReader := TXMLTextReader.Create(FCtrl);
-  try
-    InnerReader.FDocType := FDocType.Reference;
-    EntityToSource(AEntity, Src);
-    Ent.SetReadOnly(False);
-    if Assigned(Src) then
-      InnerReader.ProcessFragment(Src, Ent);
-    AEntity.FResolved := True;
-  finally
-    InnerReader.Free;
-    AEntity.FOnStack := False;
-    Ent.SetReadOnly(True);
-  end;
+  if Assigned(FDoc) then
+    ldr.ProcessEntity(FDoc, Self, AEntity);
 end;
 
 
@@ -2750,8 +2870,7 @@ end;
 
 function TXMLTextReader.GetBaseUri: XMLString;
 begin
-  { TODO: implement }
-  result := '';
+  result := FSource.SystemID;
 end;
 
 function TXMLTextReader.MoveToFirstAttribute: Boolean;
@@ -3133,26 +3252,6 @@ begin
   FNext := xtText;
 end;
 
-function TXMLTextReader.DoStartElement: TDOMElement;
-var
-  Attr: TDOMAttr;
-  i: Integer;
-begin
-  with FCurrNode^.FQName^ do
-    Result := doc.CreateElementBuf(PWideChar(Key), Length(Key));
-  if Assigned(FCurrNode^.FNsUri) then
-    Result.SetNSI(FCurrNode^.FNsUri^.Key, FCurrNode^.FColonPos+1);
-
-  for i := 1 to FAttrCount do
-  begin
-    Attr := LoadAttribute(doc, @FNodeStack[FNesting+i]);
-    Result.SetAttributeNode(Attr);
-    // Attach element to ID map entry if necessary
-    if Assigned(FNodeStack[FNesting+i].FIDEntry) then
-      FNodeStack[FNesting+i].FIDEntry^.Data := Result;
-  end;
-end;
-
 // The code below does the bulk of the parsing, and must be as fast as possible.
 // To minimize CPU cache effects, methods from different classes are kept together
 
@@ -3205,53 +3304,6 @@ const
     ntSignificantWhitespace,
     ntText
   );
-
-procedure TXMLTextReader.ParseContent(cursor: TDOMNode_WithChildren);
-var
-  element: TDOMElement;
-begin
-  while Read do
-  begin
-    if FValidate then
-      ValidateCurrentNode;
-
-    case FCurrNode^.FNodeType of
-      ntText:
-        cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, False));
-
-      ntWhitespace, ntSignificantWhitespace:
-        if FPreserveWhitespace then
-          cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, FCurrNode^.FNodeType = ntWhitespace));
-
-      ntCDATA:
-        cursor.InternalAppend(DoCDSect(FValue.Buffer, FValue.Length));
-
-      ntProcessingInstruction:
-        cursor.InternalAppend(CreatePINode);
-
-      ntComment:
-        if not FIgnoreComments then
-          cursor.InternalAppend(doc.CreateCommentBuf(FCurrNode^.FValueStart, FCurrNode^.FValueLength));
-
-      ntElement:
-        begin
-          element := DoStartElement;
-          cursor.InternalAppend(element);
-          cursor := element;
-        end;
-
-      ntEndElement:
-          cursor := TDOMNode_WithChildren(cursor.ParentNode);
-
-      ntDocumentType:
-        if not FCanonical then
-          cursor.InternalAppend(TDOMDocumentType.Create(doc, FDocType));
-
-      ntEntityReference:
-        cursor.InternalAppend(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
-    end;
-  end;
-end;
 
 function TXMLTextReader.ReadTopLevel: Boolean;
 var
@@ -3366,7 +3418,12 @@ begin
     Result := False;
     Exit;
   end;
-  FReadState := rsInteractive;
+  if FReadState = rsInitial then
+  begin
+    FReadState := rsInteractive;
+    FSource.Initialize;
+    FNext := xtText;
+  end;
   if FAttrReadState <> arsNone then
     CleanAttrReadState;
   if FNext = xtPopEmptyElement then
@@ -3973,17 +4030,6 @@ begin
         DoErrorPos(esError, 'Notation ''%s'' is not declared', [Value], Loc);
 end;
 
-
-function TXMLTextReader.DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
-var
-  s: XMLString;
-begin
-  Assert(not FCDSectionsAsText, 'Should not be called when CDSectionsAsText=True');
-
-  SetString(s, ch, Count);
-  result := doc.CreateCDATASection(s);
-end;
-
 procedure TXMLTextReader.DoNotationDecl(const aName, aPubID, aSysID: XMLString);
 var
   Notation: TNotationDecl;
@@ -4190,14 +4236,14 @@ procedure ReadXMLFile(out ADoc: TXMLDocument; var f: Text);
 var
   Reader: TXMLTextReader;
   Src: TXMLCharSource;
+  ldr: TLoader;
 begin
-  ADoc := nil;
+  ADoc := TXMLDocument.Create;
   Src := TXMLFileInputSource.Create(f);
-  Reader := TXMLTextReader.Create;
+  Reader := TXMLTextReader.Create(Src, ADoc.Names);
   try
-    Reader.ProcessXML(Src);
+    ldr.ProcessXML(ADoc,Reader);
   finally
-    ADoc := TXMLDocument(Reader.Doc);
     Reader.Free;
   end;
 end;
@@ -4206,15 +4252,15 @@ procedure ReadXMLFile(out ADoc: TXMLDocument; f: TStream; const ABaseURI: String
 var
   Reader: TXMLTextReader;
   Src: TXMLCharSource;
+  ldr: TLoader;
 begin
-  ADoc := nil;
-  Reader := TXMLTextReader.Create;
+  ADoc := TXMLDocument.Create;
+  Src := TXMLStreamInputSource.Create(f, False);
+  Src.SystemID := ABaseURI;
+  Reader := TXMLTextReader.Create(Src, ADoc.Names);
   try
-    Src := TXMLStreamInputSource.Create(f, False);
-    Src.SystemID := ABaseURI;
-    Reader.ProcessXML(Src);
+    ldr.ProcessXML(ADoc, Reader);
   finally
-    ADoc := TXMLDocument(Reader.doc);
     Reader.Free;
   end;
 end;
@@ -4241,11 +4287,12 @@ procedure ReadXMLFragment(AParentNode: TDOMNode; var f: Text);
 var
   Reader: TXMLTextReader;
   Src: TXMLCharSource;
+  ldr: TLoader;
 begin
-  Reader := TXMLTextReader.Create;
+  Src := TXMLFileInputSource.Create(f);
+  Reader := TXMLTextReader.Create(Src, AParentNode.OwnerDocument.Names);
   try
-    Src := TXMLFileInputSource.Create(f);
-    Reader.ProcessFragment(Src, AParentNode);
+    ldr.ProcessFragment(AParentNode, Reader);
   finally
     Reader.Free;
   end;
@@ -4255,12 +4302,13 @@ procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream; const ABaseURI: Str
 var
   Reader: TXMLTextReader;
   Src: TXMLCharSource;
+  ldr: TLoader;
 begin
-  Reader := TXMLTextReader.Create;
+  Src := TXMLStreamInputSource.Create(f, False);
+  Src.SystemID := ABaseURI;
+  Reader := TXMLTextReader.Create(Src, AParentNode.OwnerDocument.Names);
   try
-    Src := TXMLStreamInputSource.Create(f, False);
-    Src.SystemID := ABaseURI;
-    Reader.ProcessFragment(Src, AParentNode);
+    ldr.ProcessFragment(AParentNode, Reader);
   finally
     Reader.Free;
   end;
@@ -4288,14 +4336,14 @@ procedure ReadDTDFile(out ADoc: TXMLDocument; var f: Text);
 var
   Reader: TXMLTextReader;
   Src: TXMLCharSource;
+  ldr: TLoader;
 begin
-  ADoc := nil;
-  Reader := TXMLTextReader.Create;
+  ADoc := TXMLDocument.Create;
+  Src := TXMLFileInputSource.Create(f);
+  Reader := TXMLTextReader.Create(Src, ADoc.Names);
   try
-    Src := TXMLFileInputSource.Create(f);
-    Reader.ProcessDTD(Src);
+    ldr.ProcessDTD(ADoc,Reader);
   finally
-    ADoc := TXMLDocument(Reader.doc);
     Reader.Free;
   end;
 end;
@@ -4304,15 +4352,15 @@ procedure ReadDTDFile(out ADoc: TXMLDocument; f: TStream; const ABaseURI: String
 var
   Reader: TXMLTextReader;
   Src: TXMLCharSource;
+  ldr: TLoader;
 begin
-  ADoc := nil;
-  Reader := TXMLTextReader.Create;
+  ADoc := TXMLDocument.Create;
+  Src := TXMLStreamInputSource.Create(f, False);
+  Src.SystemID := ABaseURI;
+  Reader := TXMLTextReader.Create(Src, ADoc.Names);
   try
-    Src := TXMLStreamInputSource.Create(f, False);
-    Src.SystemID := ABaseURI;
-    Reader.ProcessDTD(Src);
+    ldr.ProcessDTD(ADoc,Reader);
   finally
-    ADoc := TXMLDocument(Reader.doc);
     Reader.Free;
   end;
 end;
