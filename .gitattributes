@@ -9464,10 +9464,13 @@ tests/test/cg/obj/darwin/x86_64/tcext3.o -text
 tests/test/cg/obj/darwin/x86_64/tcext4.o -text
 tests/test/cg/obj/darwin/x86_64/tcext5.o -text
 tests/test/cg/obj/darwin/x86_64/tcext6.o -text
+tests/test/cg/obj/freebsd/i386/cpptcl1.o -text svneol=unset#application/x-object
+tests/test/cg/obj/freebsd/i386/cpptcl2.o -text svneol=unset#application/x-object
 tests/test/cg/obj/freebsd/i386/ctest.o -text
 tests/test/cg/obj/freebsd/i386/tcext3.o -text
 tests/test/cg/obj/freebsd/i386/tcext4.o -text
 tests/test/cg/obj/freebsd/i386/tcext5.o -text
+tests/test/cg/obj/freebsd/i386/tcext6.o -text svneol=unset#application/x-object
 tests/test/cg/obj/freebsd/x86_64/cpptcl1.o -text
 tests/test/cg/obj/freebsd/x86_64/cpptcl2.o -text
 tests/test/cg/obj/freebsd/x86_64/ctest.o -text
