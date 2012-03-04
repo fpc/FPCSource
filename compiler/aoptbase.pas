@@ -53,6 +53,8 @@ unit aoptbase;
         { returns true if register Reg is used in the reference Ref }
         Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
 
+        function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean;virtual;
+
         { returns true if the references are completely equal }
         {Function RefsEqual(Const R1, R2: TReference): Boolean;}
 
@@ -113,11 +115,11 @@ unit aoptbase;
     Begin
       TmpResult := False;
       Count := 0;
-      If (p1.typ = ait_instruction) Then
+      If (p1.typ = ait_instruction) and assigned(TInstr(p1).oper[0]) Then
         Repeat
-          TmpResult := RegInOp(Reg, PInstr(p1)^.oper[Count]^);
+          TmpResult := RegInOp(Reg, TInstr(p1).oper[Count]^);
           Inc(Count)
-        Until (Count = MaxOps) or TmpResult;
+        Until (TInstr(p1).oper[Count]=nil) or (Count = MaxOps) or TmpResult;
       RegInInstruction := TmpResult
     End;
 
@@ -139,6 +141,11 @@ unit aoptbase;
   {$ifdef RefsHaveIndexReg}
     Or (Ref.Index = Reg)
   {$endif RefsHaveIndexReg}
+  End;
+
+  Function TAOptBase.RegModifiedByInstruction(Reg: TRegister; p1: tai): Boolean;
+  Begin
+    Result:=true;
   End;
 
   function labelCanBeSkipped(p: tai_label): boolean;
