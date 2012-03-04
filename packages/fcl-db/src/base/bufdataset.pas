@@ -903,7 +903,7 @@ begin
  // One AS is enough, and makes debugging easier.
   DblLinkIndex:=(AIndex as TDoubleLinkedBufIndex);
   Index0:=(FIndexes[0] as TDoubleLinkedBufIndex);
-  with DblLinkAIndex do
+  with DblLinkIndex do
     begin
     IndexFields := TList.Create;
     DescIndexFields := TList.Create;
