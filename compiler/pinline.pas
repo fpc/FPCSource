@@ -749,9 +749,9 @@ implementation
              end
             else
              begin
-               { use special -1,-1 argument to copy the whole array }
-               highppn:=cordconstnode.create(int64(-1),s32inttype,false);
-               lowppn:=cordconstnode.create(int64(-1),s32inttype,false);
+               { copy the whole array using [0..high(sizeint)] range }
+               highppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false);
+               lowppn:=cordconstnode.create(0,sinttype,false);
              end;
 
             { create call to fpc_dynarray_copy }

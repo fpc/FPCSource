@@ -2505,6 +2505,7 @@ begin
   def_system_macro('FPC_HAS_CONSTREF');
   def_system_macro('FPC_STATICRIPFIXED');
   def_system_macro('FPC_VARIANTCOPY_FIXED');
+  def_system_macro('FPC_DYNARRAYCOPY_FIXED');
 {$if defined(x86) or defined(powerpc) or defined(powerpc64)}
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
 {$endif}

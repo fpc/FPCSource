@@ -248,56 +248,55 @@ function int_dynarray_copy(psrc : pointer;ti : pointer;
 function fpc_dynarray_copy(psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex) : pointer;[Public,Alias:'FPC_DYNARR_COPY'];compilerproc;
   var
-    realpdest,
     realpsrc : pdynarray;
-    cnt,
-    i,size : longint;
-    highidx : tdynarrayindex;
+    i,size : sizeint;
     elesize : sizeint;
     eletype : pointer;
-    pdest : pointer;
   begin
-     highidx:=lowidx+count-1;
-     pdest:=nil;
-     result:=pdest;
+     result:=nil;
      if psrc=nil then
        exit;
+{$ifndef FPC_DYNARRAYCOPY_FIXED}
+     if (lowidx=-1) and (count=-1) then
+       begin
+         lowidx:=0;
+         count:=high(tdynarrayindex);
+       end;
+{$endif FPC_DYNARRAYCOPY_FIXED}
      realpsrc:=pdynarray(psrc-sizeof(tdynarray));
+     if (lowidx<0) then
+       begin
+       { Decrease count if index is negative, this is different from how copy()
+         works on strings. Checked against D7. }
+         if count<=0 then
+           exit;              { may overflow when adding lowidx }
+         count:=count+lowidx;
+         lowidx:=0;
+       end;
+     if (count>realpsrc^.high-lowidx+1) then
+       count:=realpsrc^.high-lowidx+1;
+     if count<=0 then
+       exit;
+
      { skip kind and name }
      ti:=aligntoptr(ti+2+PByte(ti)[1]);
 
      elesize:=pdynarraytypedata(ti)^.elSize;
      eletype:=pdynarraytypedata(ti)^.elType2;
 
-     { -1, -1 (highidx=lowidx-1-1=-3) is used to copy the whole array like a:=copy(b);, so
-       update the lowidx and highidx with the values from psrc }
-     if (lowidx=-1) and (highidx=-3) then
-      begin
-        lowidx:=0;
-        highidx:=realpsrc^.high;
-      end;
-     { get number of elements and check for invalid values }
-     if (lowidx<0) or (highidx<0) or (lowidx > realpsrc^.high) then
-       HandleErrorFrame(201,get_frame);
-     cnt:=highidx-lowidx+1;
-     if (cnt > realpsrc^.high - lowidx + 1) then
-       cnt := realpsrc^.high - lowidx + 1;
      { create new array }
-     size:=elesize*cnt;
-     getmem(realpdest,size+sizeof(tdynarray));
-     pdest:=pointer(realpdest)+sizeof(tdynarray);
+     size:=elesize*count;
+     getmem(result,size+sizeof(tdynarray));
+     pdynarray(result)^.refcount:=1;
+     pdynarray(result)^.high:=count-1;
+     inc(result,sizeof(tdynarray));
      { copy data }
-     move(pointer(psrc+elesize*lowidx)^,pdest^,size);
-     { fill new refcount }
-     realpdest^.refcount:=1;
-     realpdest^.high:=cnt-1;
+     move(pointer(psrc+elesize*lowidx)^,result^,size);
 
      { increment ref. count of members? }
      if PByte(eletype)^ in tkManagedTypes then
-       for i:= 0 to cnt-1 do
-         int_addref(pointer(pdest+elesize*i),eletype);
-
-     result:=pdest;
+       for i:=0 to count-1 do
+         int_addref(pointer(result+elesize*i),eletype);
   end;
 
 
