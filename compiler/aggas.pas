@@ -575,10 +575,10 @@ implementation
                   ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit])
               ) or
               (hp.sym.typ=AT_DATA);
-  
+
         end;
-  
-  
+
+
       procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint);
         var
           i: longint;
@@ -1260,7 +1260,16 @@ implementation
                AsmLn;
 {$endif TEST_WIN64_SEH}
              end;
-
+           ait_varloc:
+             begin
+               if tai_varloc(hp).newlocationhi<>NR_NO then
+                 AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                   std_regname(tai_varloc(hp).newlocationhi)+':'+std_regname(tai_varloc(hp).newlocation)))
+               else
+                 AsmWrite(strpnew('Var '+tai_varloc(hp).varsym.realname+' located in register '+
+                   std_regname(tai_varloc(hp).newlocation)));
+               AsmLn;
+             end;
            else
              internalerror(2006012201);
          end;
