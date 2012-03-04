@@ -121,6 +121,7 @@ Implementation
            else
            *)
               case taicpu(p).opcode of
+                (*
                 A_STR:
                   begin
                     { change
@@ -187,6 +188,7 @@ Implementation
                         result := true;
                       end;
                   end;
+                *)
                 A_MOV:
                   begin
                     { fold
