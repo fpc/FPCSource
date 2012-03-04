@@ -877,28 +877,33 @@ var PCurRecLinkItem : PBufRecLinkItem;
     FieldsAmount    : Integer;
     FieldNr         : integer;
     AField          : TField;
+    Index0,
+    DblLinkIndex    : TDoubleLinkedBufIndex;
 
   procedure PlaceNewRec(var e: PBufRecLinkItem; var esize: integer);
   begin
-    if (AIndex as TDoubleLinkedBufIndex).FFirstRecBuf=nil then
+    if DblLinkIndex.FFirstRecBuf=nil then
      begin
-     (AIndex as TDoubleLinkedBufIndex).FFirstRecBuf:=e;
-     e[(AIndex as TDoubleLinkedBufIndex).IndNr].prior:=nil;
+     DblLinkIndex.FFirstRecBuf:=e;
+     e[DblLinkIndex.IndNr].prior:=nil;
      l:=e;
      end
    else
      begin
-     l[(AIndex as TDoubleLinkedBufIndex).IndNr].next:=e;
-     e[(AIndex as TDoubleLinkedBufIndex).IndNr].prior:=l;
+     l[DblLinkIndex.IndNr].next:=e;
+     e[DblLinkIndex.IndNr].prior:=l;
      l:=e;
      end;
-   e := e[(AIndex as TDoubleLinkedBufIndex).IndNr].next;
+   e := e[DblLinkIndex.IndNr].next;
    dec(esize);
   end;
 
 begin
-  // Build the DBCompareStructure
-  with AIndex do
+ // Build the DBCompareStructure
+ // One AS is enough, and makes debugging easier.
+  DblLinkIndex:=(AIndex as TDoubleLinkedBufIndex);
+  Index0:=(FIndexes[0] as TDoubleLinkedBufIndex);
+  with DblLinkAIndex do
     begin
     IndexFields := TList.Create;
     DescIndexFields := TList.Create;
@@ -931,27 +936,27 @@ begin
     end;
 
 // This simply copies the index...
-  PCurRecLinkItem:=(FIndexes[0] as TDoubleLinkedBufIndex).FFirstRecBuf;
-  PCurRecLinkItem[(AIndex as TDoubleLinkedBufIndex).IndNr].next := PCurRecLinkItem[0].next;
-  PCurRecLinkItem[(AIndex as TDoubleLinkedBufIndex).IndNr].prior := PCurRecLinkItem[0].prior;
+  PCurRecLinkItem:=Index0.FFirstRecBuf;
+  PCurRecLinkItem[DblLinkIndex.IndNr].next := PCurRecLinkItem[0].next;
+  PCurRecLinkItem[DblLinkIndex.IndNr].prior := PCurRecLinkItem[0].prior;
 
-  if PCurRecLinkItem <> (FIndexes[0] as TDoubleLinkedBufIndex).FLastRecBuf then
+  if PCurRecLinkItem <> Index0.FLastRecBuf then
     begin
-    while PCurRecLinkItem^.next<>(FIndexes[0] as TDoubleLinkedBufIndex).FLastRecBuf do
+    while PCurRecLinkItem^.next<>Index0.FLastRecBuf do
       begin
       PCurRecLinkItem:=PCurRecLinkItem^.next;
 
-      PCurRecLinkItem[(AIndex as TDoubleLinkedBufIndex).IndNr].next := PCurRecLinkItem[0].next;
-      PCurRecLinkItem[(AIndex as TDoubleLinkedBufIndex).IndNr].prior := PCurRecLinkItem[0].prior;
+      PCurRecLinkItem[DblLinkIndex.IndNr].next := PCurRecLinkItem[0].next;
+      PCurRecLinkItem[DblLinkIndex.IndNr].prior := PCurRecLinkItem[0].prior;
       end;
     end;
 
 // Set FirstRecBuf and FCurrentRecBuf
-  (AIndex as TDoubleLinkedBufIndex).FFirstRecBuf:=(FIndexes[0] as TDoubleLinkedBufIndex).FFirstRecBuf;
-  (FCurrentIndex as TDoubleLinkedBufIndex).FCurrentRecBuf:=(AIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
+  DblLinkIndex.FFirstRecBuf:=Index0.FFirstRecBuf;
+  (FCurrentIndex as TDoubleLinkedBufIndex).FCurrentRecBuf:=DblLinkIndex.FFirstRecBuf;
 // Link in the FLastRecBuf that belongs to this index
-  PCurRecLinkItem[(AIndex as TDoubleLinkedBufIndex).IndNr].next:=(AIndex as TDoubleLinkedBufIndex).FLastRecBuf;
-  (AIndex as TDoubleLinkedBufIndex).FLastRecBuf[(AIndex as TDoubleLinkedBufIndex).IndNr].prior:=PCurRecLinkItem;
+  PCurRecLinkItem[DblLinkIndex.IndNr].next:=DblLinkIndex.FLastRecBuf;
+  DblLinkIndex.FLastRecBuf[DblLinkIndex.IndNr].prior:=PCurRecLinkItem;
 
 // Mergesort. Used the algorithm as described here by Simon Tatham
 // http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
@@ -967,14 +972,14 @@ begin
 // and also preparing an empty list L which we will add elements to the end
 // of as we finish dealing with them.
 
-  p := (AIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
-  (AIndex as TDoubleLinkedBufIndex).ffirstRecBuf := nil;
+  p := DblLinkIndex.FFirstRecBuf;
+  DblLinkIndex.ffirstRecBuf := nil;
   q := p;
   MergeAmount := 0;
 
 // Then:
 //    * If p is null, terminate this pass.
-  while p <> (AIndex as TDoubleLinkedBufIndex).FLastRecBuf do
+  while p <> DblLinkIndex.FLastRecBuf do
     begin
 
 //    * Otherwise, there is at least one element in the next pair of length-K
@@ -987,10 +992,10 @@ begin
 //      first. Let psize be the number of elements you managed to step q past.
 
     i:=0;
-    while (i<k) and (q<>(AIndex as TDoubleLinkedBufIndex).FLastRecBuf) do
+    while (i<k) and (q<>DblLinkIndex.FLastRecBuf) do
       begin
       inc(i);
-      q := q[(AIndex as TDoubleLinkedBufIndex).IndNr].next;
+      q := q[DblLinkIndex.IndNr].next;
       end;
     psize :=i;
 
@@ -1002,7 +1007,7 @@ begin
 //    * So, as long as either the p-list is non-empty (psize > 0) or the q-list
 //      is non-empty (qsize > 0 and q points to something non-null):
 
-    while (psize>0) or ((qsize>0) and (q <> (AIndex as TDoubleLinkedBufIndex).FLastRecBuf)) do
+    while (psize>0) or ((qsize>0) and (q <> DblLinkIndex.FLastRecBuf)) do
       begin
 //          o Choose which list to take the next element from. If either list
 //            is empty, we must choose from the other one. (By assumption, at
@@ -1013,9 +1018,9 @@ begin
 //            swapped, so stability is guaranteed.)
       if (psize=0)  then
         PlaceQRec := true
-      else if (qsize=0) or (q = (AIndex as TDoubleLinkedBufIndex).FLastRecBuf) then
+      else if (qsize=0) or (q = DblLinkIndex.FLastRecBuf) then
         PlaceQRec := False
-      else if IndexCompareRecords(p,q,aindex.DBCompareStruct) <= 0 then
+      else if IndexCompareRecords(p,q,DblLinkIndex.DBCompareStruct) <= 0 then
         PlaceQRec := False
       else
         PlaceQRec := True;
@@ -1038,13 +1043,13 @@ begin
 // algorithm terminates, and the output list L is sorted. Otherwise, double the
 // value of K, and go back to the beginning.
 
-  l[(AIndex as TDoubleLinkedBufIndex).IndNr].next:=(AIndex as TDoubleLinkedBufIndex).FLastRecBuf;
+  l[DblLinkIndex.IndNr].next:=DblLinkIndex.FLastRecBuf;
 
   k:=k*2;
 
   until MergeAmount = 1;
-  (AIndex as TDoubleLinkedBufIndex).FLastRecBuf[(AIndex as TDoubleLinkedBufIndex).IndNr].next:=(AIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
-  (AIndex as TDoubleLinkedBufIndex).FLastRecBuf[(AIndex as TDoubleLinkedBufIndex).IndNr].prior:=l;
+  DblLinkIndex.FLastRecBuf[DblLinkIndex.IndNr].next:=DblLinkIndex.FFirstRecBuf;
+  DblLinkIndex.FLastRecBuf[DblLinkIndex.IndNr].prior:=l;
 end;
 
 function TCustomBufDataset.GetIndexDefs : TIndexDefs;
