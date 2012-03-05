@@ -396,6 +396,8 @@ type
     procedure ParseAttribute(ElDef: TElementDecl);
     function  ReadTopLevel: Boolean;
     procedure NextAttrValueChunk;
+    function  GetLineNumber: Integer;
+    function  GetLinePosition: Integer;
   public
     function  Read: Boolean; override;
     function  MoveToFirstAttribute: Boolean; override;
@@ -407,6 +409,9 @@ type
     function  GetAttribute(i: Integer): XMLString; override;
     function  GetAttribute(const AName: XMLString): XMLString; override;
     function  GetAttribute(const ALocalName, nsuri: XMLString): XMLString; override;
+    function  LookupNamespace(const APrefix: XMLString): XMLString; override;
+    property  LineNumber: Integer read GetLineNumber;
+    property  LinePosition: Integer read GetLinePosition;
   protected
     function  GetDepth: Integer; override;
     function  GetNodeType: TXmlNodeType; override;
@@ -1379,6 +1384,7 @@ begin
   FNesting := 0;
   FValidatorNesting := 0;
   FCurrNode := @FNodeStack[0];
+  FCurrAttrIndex := -1;
   if FNamespaces then
   begin
     FNSHelper := TNSSupport.Create;
@@ -2794,7 +2800,9 @@ end;
 
 function TXMLTextReader.GetAttribute(i: Integer): XMLString;
 begin
-  result := '';
+  if (i < 0) or (i >= FAttrCount) then
+    raise EArgumentOutOfRangeException.Create('index');
+  result := FNodeStack[FNesting+i+1].FValueStr;
 end;
 
 function TXMLTextReader.GetAttribute(const AName: XMLString): XMLString;
@@ -2871,6 +2879,31 @@ end;
 function TXMLTextReader.GetBaseUri: XMLString;
 begin
   result := FSource.SystemID;
+end;
+
+function TXMLTextReader.GetLineNumber: Integer;
+begin
+  result := FCurrNode^.FLoc.Line;
+end;
+
+function TXMLTextReader.GetLinePosition: Integer;
+begin
+  result := FCurrNode^.FLoc.LinePos;
+end;
+
+function TXMLTextReader.LookupNamespace(const APrefix: XMLString): XMLString;
+var
+  prefixatom: PHashItem;
+  b: TBinding;
+begin
+  result := '';
+  if FNamespaces then
+  begin
+    prefixatom := FNSHelper.GetPrefix(PWideChar(APrefix),Length(APrefix));
+    b := TBinding(prefixatom^.Data);
+    if Assigned(b) then
+      result := b.Uri;
+  end;
 end;
 
 function TXMLTextReader.MoveToFirstAttribute: Boolean;

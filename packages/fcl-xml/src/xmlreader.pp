@@ -72,6 +72,7 @@ type
     procedure ReadStartElement(const aLocalName, aNamespace: XMLString); overload;
     function ReadString: XMLString; virtual;
     procedure Skip; virtual;
+    function LookupNamespace(const APrefix: XMLString): XMLString; virtual; abstract;
 
     function GetAttribute(i: Integer): XMLString; virtual; abstract;
     function GetAttribute(const Name: XMLString): XMLString; virtual; abstract;
