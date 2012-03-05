@@ -1943,9 +1943,16 @@ unit cgcpu;
         srcref:=source;
         if cs_opt_size in current_settings.optimizerswitches then
           helpsize:=8;
-        if (len<=helpsize) and aligned then
+        if aligned and (len=4) then
+          begin
+            tmpreg:=getintregister(list,OS_32);
+            a_load_ref_reg(list,OS_32,OS_32,source,tmpreg);
+            a_load_reg_ref(list,OS_32,OS_32,tmpreg,dest);
+          end
+        else if (len<=helpsize) and aligned then
           begin
             tmpregi:=0;
+
             srcreg:=getintregister(list,OS_ADDR);
 
             { explicit pc relative addressing, could be
