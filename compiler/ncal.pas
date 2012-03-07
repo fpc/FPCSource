@@ -3699,8 +3699,11 @@ implementation
                 { otherwise if the parameter is "complex", take the address   }
                 { of the parameter expression, store it in a temp and replace }
                 { occurrences of the parameter with dereferencings of this    }
-                { temp                                                        }
-                else if (paracomplexity > 1) then
+                { temp                                    }
+                else
+                  { don't create a temp. for the often seen case that p^ is passed to a var parameter }
+                  if (paracomplexity>2) or
+                    ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var))) then
                   begin
                     ptrtype:=tpointerdef.create(para.left.resultdef);
                     tempnode := ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
