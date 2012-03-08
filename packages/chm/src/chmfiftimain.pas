@@ -287,7 +287,7 @@ begin
   // write the glorious header
   FHeaderRec.Sig[2] := $28;
   FHeaderRec.HTMLFilesCount := FWordList.IndexedFileCount;
-  FHeaderRec.RootNodeOffset := FStream.Size-4096;
+  FHeaderRec.RootNodeOffset := FStream.Size-FIFTI_NODE_SIZE;
   FHeaderRec.LeafNodeCount := TLeafNode(FActiveLeafNode).LeafNodeCount;
   FHeaderRec.CopyOfRootNodeOffset := FHeaderRec.RootNodeOffset;
   FHeaderRec.TreeDepth := 0;
@@ -305,7 +305,7 @@ begin
   //FHeaderRec.CodeCountRootSize := 15;
   //FHeaderRec.LocationCodeRootSize := 15;
 
-  FHeaderRec.NodeSize := 4096;
+  FHeaderRec.NodeSize := FIFTI_NODE_SIZE;
   FHeaderRec.LongestWordLength := FWordList.LongestWord;
   FHeaderRec.TotalWordsIndexed := FWordList.TotalWordCount;
   FHeaderRec.TotalWords := FWordList.TotalDIfferentWords;
@@ -549,6 +549,8 @@ begin
   WLCSize := WriteWLCEntries(AWord, FDocRootSize, FCodeRootSize, FLocRootSize);
 
   WriteCompressedIntegerBE(FBlockStream, WLCSize);
+  if FBlockStream.Position > FIFTI_NODE_SIZE then
+    raise Exception.Create('FIFTIMAIN Leaf node has written past the block!');
 end;
 
 function Min(AValue, BValue: Byte): Byte;
@@ -692,6 +694,8 @@ begin
   FBlockStream.Write(AWord[1], Length(AWord));
   FBlockStream.WriteDWord(NtoLE(ANodeOffset));
   FBlockStream.WriteWord(0);
+  if FBlockStream.Position > FIFTI_NODE_SIZE then
+    raise Exception.Create('FIFTIMAIN Index node has written past the block!');
 end;
 
 procedure TIndexNode.Flush ( NewBlockNeeded: Boolean ) ;
@@ -718,6 +722,7 @@ begin
   FBlockStream.Position := 0;
 
   FWriteStream.CopyFrom(FBlockStream, FIFTI_NODE_SIZE);
+  FBlockStream.Position := 0;
 
   FLastWord := '';
 
