@@ -567,7 +567,10 @@ begin
       end;
     FIELD_TYPE_LONG, FIELD_TYPE_INT24:
       begin
-      NewType := ftInteger;
+      if AField^.flags and AUTO_INCREMENT_FLAG <> 0 then
+        NewType := ftAutoInc
+      else
+        NewType := ftInteger;
       NewSize := 0;
       end;
 {$ifdef mysql50_up}

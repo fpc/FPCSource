@@ -111,6 +111,7 @@ type
     procedure TestSQLClob;
     procedure TestSQLLargeint;
     procedure TestSQLInterval;
+    procedure TestSQLIdentity;
   end;
 
 implementation
@@ -157,6 +158,8 @@ const
     #1#0#1#0#1, #0#0#1#0#1, #0''''#13#0#1, '\'#0'"\'#13, #13#13#0#10#10,
     '', #0, #0#1#2#3#4#5#6#7#8#9
   );
+
+  STestNotApplicable = 'This test does not apply to this sqldb-connection type';
 
 
 procedure TTestFieldTypes.TestpfInUpdateFlag;
@@ -1216,7 +1219,7 @@ end;
 
 procedure TTestFieldTypes.TestInsertReturningQuery;
 begin
-  if not(SQLDbType in [postgresql,interbase,oracle]) then Ignore('This test does not apply to this db-engine');
+  if not(SQLDbType in [postgresql,interbase,oracle]) then Ignore(STestNotApplicable);
   with TSQLDBConnector(DBConnector) do
     begin
     // This only works with databases that supports 'insert into .. returning'
@@ -1831,6 +1834,45 @@ begin
       testIntervalValuesCount := 3;
   end;
   TestSQLFieldType(ftTime, datatype, sizeof(TDateTime), @TestSQLInterval_GetSQLText, @CheckFieldValue);
+end;
+
+procedure TTestFieldTypes.TestSQLIdentity;
+var datatype, values: string;
+    fieldtype: TFieldType;
+    i: integer;
+begin
+  if sqlDBType in MySQLdbTypes then
+  begin
+    datatype:='INT AUTO_INCREMENT PRIMARY KEY';
+    values:='VALUES(DEFAULT)';
+    fieldtype:=ftAutoInc;
+  end
+  else if sqlDBType = sqlite3 then
+  begin
+    datatype:='INTEGER PRIMARY KEY';
+    values:='DEFAULT VALUES';
+    fieldtype:=ftInteger;
+  end
+  else
+    Ignore(STestNotApplicable);
+
+  CreateTableWithFieldType(fieldtype, datatype);
+  TestFieldDeclaration(fieldtype, sizeof(longint));
+
+  for i := 1 to 3 do
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 '+values);
+
+  with TSQLDBConnector(DBConnector).Query do
+  begin
+    Open;
+    AssertTrue(Locate('FT',1,[])); // bug 17624
+    for i := 1 to 3 do
+    begin
+      AssertEquals(Fields[0].AsInteger, i);
+      Next;
+    end;
+    Close;
+  end;
 end;
 
 procedure TTestFieldTypes.TestUpdateIndexDefs;
