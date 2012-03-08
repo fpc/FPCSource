@@ -203,7 +203,7 @@
  var
    counter : SizeInt;
  Begin
-   counter := IndexByte(Source,-1,0);
+   counter := IndexByte(Source^,-1,0);
    { counter+1 will move zero terminator }
    Move(Source^,Dest^,counter+1);
    StrECopy := Dest+counter;
