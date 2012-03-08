@@ -366,7 +366,6 @@ begin
       LocRootSize := FHeaderRec.LocationCodeRootSize;
     end;
   end;
-
   if FActiveLeafNode.GuessIfCanHold(AWord.TheWord) = False then
   begin
     FActiveLeafNode.Flush(True);
@@ -681,17 +680,19 @@ end;
 procedure TIndexNode.ChildIsFull ( AWord: String; ANodeOffset: DWord ) ;
 var
   Offset: Byte;
+  NewWord: String;
 begin
   if FBlockStream.Position = 0 then
     FBlockStream.WriteWord(0); // free space at end. updated when the block is flushed
   if GuessIfCanHold(AWord) = False then
     Flush(True);
-  AWord := AdjustedWord(AWord, Offset, FLastWord);
+  NewWord := AdjustedWord(AWord, Offset, FLastWord);
+  FLastWord:=AWord;
 
   // Write the Index node Entry
-  FBlockStream.WriteByte(Length(AWord)+1);
+  FBlockStream.WriteByte(Length(NewWord)+1);
   FBlockStream.WriteByte(Offset);
-  FBlockStream.Write(AWord[1], Length(AWord));
+  FBlockStream.Write(NewWord[1], Length(NewWord));
   FBlockStream.WriteDWord(NtoLE(ANodeOffset));
   FBlockStream.WriteWord(0);
   if FBlockStream.Position > FIFTI_NODE_SIZE then
