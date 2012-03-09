@@ -38,6 +38,8 @@
 #ifdef darwin
 # use pipes instead of temporary files for assembling
 -ap
+# path to Xcode 4.3+ utilities (no problem if it doesn't exist)
+-FD/Applications/Xcode.app/Contents/Developer/usr/bin
 #endif
 
 # ----------------
