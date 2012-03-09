@@ -121,7 +121,9 @@ program fpc;
      ppccommandlinelen : longint;
      i : longint;
      errorvalue     : Longint;
+     dohelp         : Boolean;
   begin
+     dohelp        := false;
      setlength(ppccommandline,paramcount);
      ppccommandlinelen:=0;
      cpusuffix     :='';        // if not empty, signals attempt at cross
@@ -135,10 +137,6 @@ program fpc;
      ppcbin:='ppc68k';
      processorname:='m68k';
 {$endif m68k}
-{$ifdef alpha}
-     ppcbin:='ppcapx';
-     processorname:='alpha';
-{$endif alpha}
 {$ifdef powerpc}
      ppcbin:='ppcppc';
      processorname:='powerpc';
@@ -159,10 +157,6 @@ program fpc;
      ppcbin:='ppcx64';
      processorname:='x86_64';
 {$endif x86_64}
-{$ifdef ia64}
-     ppcbin:='ppcia64';
-     processorname:='ia64';
-{$endif ia64}
      versionstr:='';                      { Default is just the name }
      for i:=1 to paramcount do
        begin
@@ -196,22 +190,22 @@ program fpc;
                      else
                        if processorstr <> processorname then
                          begin
-                           if processorstr='i386' then
+                           if processorstr='arm' then
+                             cpusuffix:='arm'
+                           else if processorstr='i386' then
                              cpusuffix:='386'
                            else if processorstr='m68k' then
                              cpusuffix:='68k'
-                           else if processorstr='alpha' then
-                             cpusuffix:='apx'
+                           else if processorstr='mips' then
+                             cpusuffix:='mips'
+                           else if processorstr='mipsel' then
+                             cpusuffix:='mipsel'
                            else if processorstr='powerpc' then
                              cpusuffix:='ppc'
                            else if processorstr='powerpc64' then
                              cpusuffix:='ppc64'
-                           else if processorstr='arm' then
-                             cpusuffix:='arm'
                            else if processorstr='sparc' then
                              cpusuffix:='sparc'
-                           else if processorstr='ia64' then
-                             cpusuffix:='ia64'
                            else if processorstr='x86_64' then
                              cpusuffix:='x64'
                            else
@@ -233,6 +227,8 @@ program fpc;
                 extrapath:=copy(s,4,length(s)-3)
               else
                 begin
+                  if pos('-h',s)=1 then
+                    dohelp:=true;
                   ppccommandline[ppccommandlinelen]:=s;
                   inc(ppccommandlinelen);
                 end;
@@ -261,7 +257,26 @@ program fpc;
        on e : exception do
          error(ppcbin+' can''t be executed, error message: '+e.message);
      end;
-     if errorvalue<>0 then
-       error(ppcbin+' returned an error exitcode (normal if you did not specify a source file to be compiled)');
+     if (errorvalue<>0) and
+        (paramcount<>0) then
+       error(ppcbin+' returned an error exitcode');
+     if dohelp or
+        (paramcount=0) then
+       begin
+         if not dohelp then
+           begin
+             writeln('*** press enter ***');
+             readln;
+           end
+         else
+           writeln;
+         writeln(paramstr(0),' [options] <inputfile> [options]');
+         writeln('  -X<x>  Target CPU options');
+         writeln('      -PB        Show default compiler binary');
+         writeln('      -PP        Show default target cpu');
+         writeln('      -P<x>      Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)');
+         Writeln('  -V<x>  Append ''-<x>'' to the used compiler binary name');
+         Writeln('  -Xp<x> First search for the compiler binary in the directory <x>');
+       end;
      halt(errorvalue);
   end.
