@@ -968,10 +968,13 @@ implementation
         docompare :=
           inherited docompare(p) and
           (len = tstringconstnode(p).len) and
-          { Don't compare the pchars, since they may contain null chars }
-          { Since all equal constant strings are replaced by the same   }
-          { label, the following compare should be enough (JM)          }
-          (lab_str = tstringconstnode(p).lab_str);
+          (lab_str = tstringconstnode(p).lab_str) and
+          { This is enough as soon as labels are allocated, otherwise }
+          { fall back to content compare.                             }
+          (assigned(lab_str) or
+            (cst_type = tstringconstnode(p).cst_type) and
+            (fullcompare(tstringconstnode(p)) = 0))
+          ;
       end;
 
 

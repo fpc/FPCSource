@@ -833,9 +833,12 @@ implementation
               this simplification always
             }
             if is_boolean(left.resultdef) and is_boolean(right.resultdef) and
-            { since the expressions might have sideeffects, we may only remove them
-              if short boolean evaluation is turned on }
-            (nf_short_bool in flags) then
+               { even when short circuit boolean evaluation is active, this
+                 optimization cannot be performed in case the node has
+                 side effects, because this can change the result (e.g., in an
+                 or-node that calls the same function twice and first returns
+                 false and then true because of a global state change }
+               not might_have_sideeffects(left) then
               begin
                 if left.isequal(right) then
                   begin
