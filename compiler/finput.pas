@@ -654,6 +654,7 @@ uses
            begin
              exefilename:=stringdup(p+OutputFileName);
              sharedlibfilename:=stringdup(p+OutputFileName);
+             n:=ChangeFileExt(OutputFileName,''); { for mapfilename and dbgfilename } 
            end
          else
            begin
