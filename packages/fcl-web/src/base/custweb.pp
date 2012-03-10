@@ -101,6 +101,7 @@ Type
     FTitle: string;
     FOnTerminate : TNotifyEvent;
     FOnLog : TLogEvent;
+    FPreferModuleName : Boolean;
   protected
     procedure Terminate;
     Function GetModuleName(Arequest : TRequest) : string;
@@ -136,6 +137,7 @@ Type
     Property OnLog : TLogEvent Read FOnLog Write FOnLog;
     Property OnUnknownRequestEncoding : TOnUnknownEncodingEvent Read FOnUnknownRequestEncoding Write FOnUnknownRequestEncoding;
     Property OnInitModule: TInitModuleEvent Read FOnInitModule write FOnInitModule;
+    Property PreferModuleName : Boolean Read FPreferModuleName Write FPreferModuleName;
   end;
 
   TCustomWebApplication = Class(TCustomApplication)
@@ -154,6 +156,7 @@ Type
     function GetOnUnknownRequestEncoding: TOnUnknownEncodingEvent;
     function GetRedirectOnError: boolean;
     function GetRedirectOnErrorURL: string;
+    function GetPreferModuleName: boolean;
     procedure SetAdministrator(const AValue: String);
     procedure SetAllowDefaultModule(const AValue: Boolean);
     procedure SetApplicationURL(const AValue: String);
@@ -165,6 +168,7 @@ Type
     procedure SetOnUnknownRequestEncoding(AValue: TOnUnknownEncodingEvent);
     procedure SetRedirectOnError(const AValue: boolean);
     procedure SetRedirectOnErrorURL(const AValue: string);
+    procedure SetPreferModuleName(const AValue: boolean);
     procedure DoOnTerminate(Sender : TObject);
   protected
     Procedure DoRun; override;
@@ -190,6 +194,7 @@ Type
     property OnShowRequestException: TOnShowRequestException read GetOnShowRequestException write SetOnShowRequestException;
     Property OnUnknownRequestEncoding : TOnUnknownEncodingEvent Read GetOnUnknownRequestEncoding Write SetOnUnknownRequestEncoding;
     Property EventLog: TEventLog read GetEventLog;
+    Property PreferModuleName : Boolean Read GetPreferModuleName Write SetPreferModuleName;
   end;
 
   EFPWebError = Class(Exception);
@@ -404,7 +409,7 @@ begin
     If (I>0) and (S[I]='/') then
       Delete(S,I,1);                      //Delete the trailing '/' if exists
     I:=Pos('/',S);
-    if (I>0) then
+    if (I>0) or PreferModuleName then
       Result:=ARequest.GetNextPathInfo;
     end;
   If (Result='') then
@@ -537,6 +542,11 @@ begin
   result := FWebHandler.RedirectOnError;
 end;
 
+function TCustomWebApplication.GetPreferModuleName: boolean;
+begin
+  result := FWebHandler.PreferModuleName;
+end;
+
 function TCustomWebApplication.GetRedirectOnErrorURL: string;
 begin
   result := FWebHandler.RedirectOnErrorURL;
@@ -591,6 +601,11 @@ end;
 procedure TCustomWebApplication.SetRedirectOnError(const AValue: boolean);
 begin
   FWebHandler.RedirectOnError := AValue;
+end;
+
+procedure TCustomWebApplication.SetPreferModuleName(const AValue: boolean);
+begin
+  FWebHandler.PreferModuleName := AValue;
 end;
 
 procedure TCustomWebApplication.SetRedirectOnErrorURL(const AValue: string);
