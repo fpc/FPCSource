@@ -1413,7 +1413,7 @@ parser_e_invalid_codepage=03314_E_Invalid codepage
 % \end{description}
 # Type Checking
 #
-# 04108 is the last used one
+# 04110 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1795,6 +1795,10 @@ type_w_explicit_string_cast_loss=04107_-W_Explicit string typecast with potentia
 type_w_unicode_data_loss=04108_W_Unicode constant cast with potential data loss
 % Conversion from a WideChar to AnsiChar can lose data since now all unicode characters may be represented in the current
 % system codepage
+% You can nest function definitions only 31 levels deep.
+type_e_range_check_error_bounds=04109_E_range check error while evaluating constants ($1 must be between $2 and $3)
+type_w_range_check_error_bounds=04110_W_range check error while evaluating constants ($1 must be between $2 and $3)
+% The constants are outside their allowed range.
 % \end{description}
 #
 # Symtable

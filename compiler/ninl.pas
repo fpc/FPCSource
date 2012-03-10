@@ -1917,9 +1917,9 @@ implementation
                   if left.nodetype in [ordconstn,realconstn] then
                     begin
                       vr:=getconstrealvalue;
-                      if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
+                      if (vr>=9223372036854775807.99) or (vr<=-9223372036854775808.0) then
                         begin
-                          CGMessage(parser_e_range_check_error);
+                          message3(type_e_range_check_error_bounds,realtostr(vr),'-9223372036854775808.0','9223372036854775807.99..');
                           result:=cordconstnode.create(1,s64inttype,false)
                         end
                       else
@@ -1935,7 +1935,7 @@ implementation
                       vr:=getconstrealvalue;
                       if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
                         begin
-                          CGMessage(parser_e_range_check_error);
+                          message3(type_e_range_check_error_bounds,realtostr(vr),'-9223372036854775808.49..','9223372036854775807.49..');
                           result:=cordconstnode.create(1,s64inttype,false)
                         end
                       else

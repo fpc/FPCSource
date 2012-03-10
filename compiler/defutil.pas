@@ -785,9 +785,9 @@ implementation
                      not(m_delphi in current_settings.modeswitches)) or
                     (cs_check_range in current_settings.localswitches) or
                     forcerangecheck then
-                   Message(parser_e_range_check_error)
+                   Message3(type_e_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv))
                  else
-                   Message(parser_w_range_check_error);
+                   Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
                end;
              { Fix the value to fit in the allocated space for this type of variable }
              case longint(todef.size) of

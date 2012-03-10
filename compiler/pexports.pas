@@ -142,7 +142,7 @@ implementation
                            (Tordconstnode(pt).value>int64(high(index))) then
                           begin
                             index:=0;
-                            message(parser_e_range_check_error)
+                            message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(index)),tostr(high(index)))
                           end
                         else
                           index:=Tordconstnode(pt).value.svalue

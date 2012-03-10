@@ -501,11 +501,11 @@ implementation
                                    {Prevent overflow.}
                                    v:=get_ordinal_value(tvecnode(hp).right)-base;
                                    if (v<int64(low(offset))) or (v>int64(high(offset))) then
-                                     message(parser_e_range_check_error);
+                                     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(offset)),tostr(high(offset)));
                                    if high(offset)-offset div len>v then
                                      inc(offset,len*v.svalue)
                                    else
-                                     message(parser_e_range_check_error);
+                                     message3(type_e_range_check_error_bounds,tostr(v),'0',tostr(high(offset)-offset div len))
                                  end
                                else
                                  Message(parser_e_illegal_expression);
@@ -799,7 +799,7 @@ implementation
                 exit;
               end;
             if (Tordconstnode(n).value<qword(low(Aword))) or (Tordconstnode(n).value>qword(high(Aword))) then
-              message(parser_e_range_check_error)
+              message3(type_e_range_check_error_bounds,tostr(Tordconstnode(n).value),tostr(low(Aword)),tostr(high(Aword)))
             else
               bitpackval(Tordconstnode(n).value.uvalue,bp);
             if (bp.curbitoffset>=AIntBits) then

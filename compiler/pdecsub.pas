@@ -1602,7 +1602,7 @@ begin
   consume(_COLON);
   v:=get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
-    message(parser_e_range_check_error)
+    message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
     Tprocdef(pd).extnumber:=longint(v.svalue);
 end;
@@ -1618,7 +1618,7 @@ begin
   consume(_COLON);
   v:=get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
-    message(parser_e_range_check_error)
+    message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
     Tprocdef(pd).extnumber:=longint(v.svalue);
   { the proc is defined }
@@ -1750,7 +1750,7 @@ begin
   pt:=comp_expr(true,false);
   if is_constintnode(pt) then
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
-      message(parser_e_range_check_error)
+      message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
     else
       Tprocdef(pd).dispid:=Tordconstnode(pt).value.svalue
   else
@@ -1842,7 +1842,7 @@ begin
       include(pd.procoptions,po_msgint);
       if (Tordconstnode(pt).value<int64(low(Tprocdef(pd).messageinf.i))) or
          (Tordconstnode(pt).value>int64(high(Tprocdef(pd).messageinf.i))) then
-        message(parser_e_range_check_error)
+        message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(Tprocdef(pd).messageinf.i)),tostr(high(Tprocdef(pd).messageinf.i)))
       else
         Tprocdef(pd).messageinf.i:=tordconstnode(pt).value.svalue;
     end
@@ -1914,7 +1914,7 @@ begin
 
       v:=get_intconst;
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
-        message(parser_e_range_check_error)
+        message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
       else
         Tprocdef(pd).extnumber:=v.uvalue;
     end;

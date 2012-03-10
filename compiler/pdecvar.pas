@@ -284,7 +284,7 @@ implementation
                   pt:=comp_expr(true,false);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
-                      message(parser_e_range_check_error)
+                      message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
                     else
                       hdispid:=Tordconstnode(pt).value.svalue
                   else
@@ -774,7 +774,7 @@ implementation
                     ordconstn :
                       if (Tordconstnode(pt).value<int64(low(longint))) or
                          (Tordconstnode(pt).value>int64(high(cardinal))) then
-                        message(parser_e_range_check_error)
+                        message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(cardinal)))
                       else
                         p.default:=longint(tordconstnode(pt).value.svalue);
                     niln :
@@ -1206,8 +1206,8 @@ implementation
               }
               if (Tordconstnode(pt).value<int64(low(abssym.addroffset))) or
                  (Tordconstnode(pt).value>int64(high(abssym.addroffset))) then
-                message(parser_e_range_check_error)
-              else
+                message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
+             else
 {$endif}
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
 {$ifdef i386}
@@ -1222,7 +1222,7 @@ implementation
                       tmpaddr:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
                       if (tmpaddr<int64(low(abssym.addroffset))) or
                          (tmpaddr>int64(high(abssym.addroffset))) then
-                        message(parser_e_range_check_error)
+                        message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
                       else
                         abssym.addroffset:=tmpaddr;
                       abssym.absseg:=true;
