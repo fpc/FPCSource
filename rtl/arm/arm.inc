@@ -106,28 +106,23 @@ end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;
+function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
 asm
-  movs r0,r0
-  beq .Lg_a_null
-  ldr r0,[r0,#-4]
-.Lg_a_null:
+  cmp r0,#0
+  ldrne r0,[r0,#-4]
 end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;
+function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
 asm
-  movs r0,r0
-  beq .Lgnf_null
-  // see comments in arm/cgcpu.pas, g_proc_entry
-  ldr r0,[r0,#-12]
-.Lgnf_null:
+  cmp r0,#0
+  ldrne r0,[r0,#-12]
 end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : pointer;assembler;
+Function Sptr : pointer;assembler;nostackframe;
 asm
   mov    r0,sp
 end;
