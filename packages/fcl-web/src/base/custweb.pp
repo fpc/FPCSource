@@ -78,12 +78,14 @@ Type
                                Var ModuleClass : TCustomHTTPModuleClass) of object;
   TOnShowRequestException = procedure(AResponse: TResponse; AnException: Exception; var handled: boolean);
   TLogEvent = Procedure (EventType: TEventType; const Msg: String) of object;
+  TInitModuleEvent = Procedure (Sender : TObject; Module: TCustomHTTPModule) of object;
 
   { TWebHandler }
 
   TWebHandler = class(TComponent)
   private
     FOnIdle: TNotifyEvent;
+    FOnInitModule: TInitModuleEvent;
     FOnUnknownRequestEncoding: TOnUnknownEncodingEvent;
     FTerminated: boolean;
     FAdministrator: String;
@@ -133,6 +135,7 @@ Type
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
     Property OnLog : TLogEvent Read FOnLog Write FOnLog;
     Property OnUnknownRequestEncoding : TOnUnknownEncodingEvent Read FOnUnknownRequestEncoding Write FOnUnknownRequestEncoding;
+    Property OnInitModule: TInitModuleEvent Read FOnInitModule write FOnInitModule;
   end;
 
   TCustomWebApplication = Class(TCustomApplication)
@@ -343,6 +346,9 @@ begin
       else
         M:=MC.Create(Self);
     SetBaseURL(M,MN,ARequest);
+    if (OnInitModule<>Nil) then
+      OnInitModule(Self,M);
+    M.DoAfterInitModule(ARequest);
     if M.Kind=wkOneShot then
       begin
       try
