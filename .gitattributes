@@ -2785,6 +2785,7 @@ packages/fpgtk/src/pgtk/pgtk.pp svneol=native#text/plain
 packages/fpgtk/src/pgtk/pgtk.ppr -text
 packages/fpindexer/Makefile svneol=native#text/plain
 packages/fpindexer/Makefile.fpc svneol=native#text/plain
+packages/fpindexer/README.txt svneol=native#text/plain
 packages/fpindexer/examples/TestDBindexer.lpi svneol=native#text/plain
 packages/fpindexer/examples/TestDBindexer.pp svneol=native#text/plain
 packages/fpindexer/examples/TestIndexer.lpi svneol=native#text/plain
