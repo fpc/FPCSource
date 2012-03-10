@@ -561,6 +561,32 @@ asm
   mov r0, r1
   bx  lr
 {$else}
+{$if defined(linux)}
+
+  stmfd r13!, {lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
+.Latomic_dec_loop:
+  ldr r0, [r2]   // Load the current value
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+
+  sub r1, r0, #1 // Decrement value
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+
+  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  ldmcsfd r13!, {pc}
+  b .Latomic_dec_loop // kuser_cmpxchg sets C flag on error
+
+{$else}
 // lock
   ldr r3, .Lfpc_system_lock
   mov r1, #1
@@ -580,6 +606,7 @@ asm
 .Lfpc_system_lock:
   .long fpc_system_lock
 {$endif}
+{$endif}
 end;
 
 
@@ -594,6 +621,32 @@ asm
   bne .Lloop
   mov r0, r1
   bx  lr
+{$else}
+{$if defined(linux)}
+
+  stmfd r13!, {lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
+.Latomic_inc_loop:
+  ldr r0, [r2]   // Load the current value
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+
+  add r1, r0, #1 // Decrement value
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+
+  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  ldmcsfd r13!, {pc}
+  b .Latomic_inc_loop // kuser_cmpxchg sets C flag on error
+
 {$else}
 // lock
   ldr r3, .Lfpc_system_lock
@@ -613,6 +666,7 @@ asm
 
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif}
 {$endif}
 end;
 
@@ -646,6 +700,33 @@ asm
   mov  r0, r2
   bx  lr
 {$else}
+{$if defined(linux)}
+
+  stmfd r13!, {r4, lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
+  mov r4, r1   // Save addend
+.Latomic_add_loop:
+  ldr r0, [r2]   // Load the current value
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+
+  add r1, r0, r4 // Add to value
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+
+  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  ldmcsfd r13!, {r4, pc}
+  b .Latomic_add_loop // kuser_cmpxchg sets C flag on error
+
+{$else}
 // lock
   ldr r3, .Lfpc_system_lock
   mov r2, #1
@@ -666,6 +747,7 @@ asm
 .Lfpc_system_lock:
   .long fpc_system_lock
 {$endif}
+{$endif}
 end;
 
 
@@ -681,6 +763,23 @@ asm
   bne      .Lloop
   mov      r0, r3
   bx       lr
+{$else}
+{$if defined(linux)}
+
+  stmfd r13!, {lr}
+
+  mvn   r3, #0x0000f000
+  sub   r3, r3, #0x3F
+
+  mov   ip, r2 // Swap parameters around
+  mov   r2, r0
+  mov   r0, ip
+
+  blx   r3       // Call kuser_cmpxchg sets C-Flag on success
+  ldrcc r0, [r2] // Load the currently set value on failure
+                 // We could use "mov r0, r3" here, but thats undocumented
+  ldmfd r13!, {lr}
+
 {$else}
 // lock
   ldr r12, .Lfpc_system_lock
@@ -701,6 +800,7 @@ asm
 
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif}
 {$endif}
 end;
 
