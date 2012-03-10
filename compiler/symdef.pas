@@ -827,7 +827,7 @@ interface
     function use_vectorfpu(def : tdef) : boolean;
 
     function getansistringcodepage:tstringencoding; inline;
-    function getansistringdef:tstringdef; inline;
+    function getansistringdef:tstringdef;
     function getparaencoding(def:tdef):tstringencoding; inline;
 
 implementation
@@ -860,7 +860,7 @@ implementation
           result:=0;
       end;
 
-    function getansistringdef:tstringdef; inline;
+    function getansistringdef:tstringdef;
       var
         symtable:tsymtable;
       begin
