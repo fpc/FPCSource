@@ -425,7 +425,11 @@ implementation
                      end;
                 end;
            labelsym :
-             ;
+             begin
+               if not assigned(tlabelsym(symtableentry).asmblocklabel) and
+                  not assigned(tlabelsym(symtableentry).code) then
+                 Message(parser_e_label_outside_proc);
+             end
            else
              internalerror(200104143);
          end;
