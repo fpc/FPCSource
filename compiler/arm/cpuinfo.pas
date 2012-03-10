@@ -36,6 +36,7 @@ Type
        cpu_armv4,
        cpu_armv4t,
        cpu_armv5,
+       cpu_armv5t,
        cpu_armv6,
        cpu_armv7,
        cpu_armv7m
@@ -190,6 +191,7 @@ Const
      'ARMV4',
      'ARMV4T',
      'ARMV5',
+     'ARMV5T',
      'ARMV6',
      'ARMV7',
      'ARMV7M'
