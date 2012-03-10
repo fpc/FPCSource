@@ -126,10 +126,10 @@ Begin
       Begin
         If OldOp.ref^.base <> R_NO Then
           AddReg(OldOp.ref^.base, NewOp.ref^.base);
-{$ifdef RefsHaveIndexReg}
+{$ifdef cpurefshaveindexreg}
         If OldOp.ref^.index <> R_NO Then
           AddReg(OldOp.ref^.index, NewOp.ref^.index);
-{$endif RefsHaveIndexReg}
+{$endif cpurefshaveindexreg}
       End;
   End;
 End;
@@ -184,9 +184,9 @@ Begin
     RefsEquivalent := (OldRef.Offset+OldRef.OffsetFixup =
                          NewRef.Offset+NewRef.OffsetFixup) And
                       RegsEquivalent(OldRef.Base, NewRef.Base, OpAct)
-{$ifdef RefsHaveindexReg}
+{$ifdef cpurefshaveindexreg}
                       And RegsEquivalent(OldRef.Index, NewRef.Index, OpAct)
-{$endif RefsHaveIndexReg}
+{$endif cpurefshaveindexreg}
 {$ifdef RefsHaveScale}
                       And (OldRef.ScaleFactor = NewRef.ScaleFactor)
 {$endif RefsHaveScale}
@@ -252,10 +252,10 @@ Begin
                     If Not(Base in [ProcInfo.FramePointer, R_NO, STACK_POINTER_REG])
 { it won't do any harm if the register is already in RegsLoadedForRef }
                       Then RegsLoadedForRef := RegsLoadedForRef + [Base];
-{$ifdef RefsHaveIndexReg}
+{$ifdef cpurefshaveindexreg}
                     If Not(Index in [ProcInfo.FramePointer, R_NO, STACK_POINTER_REG])
                       Then RegsLoadedForRef := RegsLoadedForRef + [Index];
-{$endif RefsHaveIndexReg}
+{$endif cpurefshaveindexreg}
                   End;
 { add the registers from the reference (.oper[Src]) to the RegInfo, all }
 { registers from the reference are the same in the old and in the new   }
@@ -290,7 +290,7 @@ Begin
                       Writeln(std_reg2str[base], ' added');
 {$endif csdebug}
                     end;
-{$Ifdef RefsHaveIndexReg}
+{$Ifdef cpurefshaveindexreg}
                 If Not(Index in [ProcInfo.FramePointer,
                                  RegMaxSize(PInstr(NewP)^.oper[LoadDst].reg),
                                  R_NO,StackPtr])
@@ -301,7 +301,7 @@ Begin
                       Writeln(std_reg2str[index], ' added');
 {$endif csdebug}
                     end;
-{$endif RefsHaveIndexReg}
+{$endif cpurefshaveindexreg}
               End;
 
 { now, remove the destination register of the load from the                 }

@@ -399,9 +399,9 @@ Unit AoptObj;
             If IsLoadMemReg(p) Then
               With PInstr(p)^.oper[LoadSrc]^.ref^ Do
                 If (Base = ProcInfo.FramePointer)
-      {$ifdef RefsHaveIndexReg}
+      {$ifdef cpurefshaveindexreg}
                    And (Index = R_NO)
-      {$endif RefsHaveIndexReg} Then
+      {$endif cpurefshaveindexreg} Then
                   Begin
                     RegsChecked := RegsChecked +
                       [RegMaxSize(PInstr(p)^.oper[LoadDst]^.reg)];
@@ -413,12 +413,12 @@ Unit AoptObj;
                     If (Base = Reg) And
                        Not(Base In RegsChecked)
                       Then TmpResult := True;
-      {$ifdef RefsHaveIndexReg}
+      {$ifdef cpurefshaveindexreg}
                     If Not(TmpResult) And
                        (Index = Reg) And
                          Not(Index In RegsChecked)
                       Then TmpResult := True;
-      {$Endif RefsHaveIndexReg}
+      {$Endif cpurefshaveindexreg}
                   End
             Else TmpResult := RegInInstruction(Reg, p);
             Inc(Counter);
@@ -487,9 +487,9 @@ Unit AoptObj;
             Assigned(Ref.Symbol) Then
           Begin
             If
-      {$ifdef refsHaveIndexReg}
+      {$ifdef cpurefshaveindexreg}
                (Ref.Index = R_NO) And
-      {$endif refsHaveIndexReg}
+      {$endif cpurefshaveindexreg}
                (Not(Assigned(Ref.Symbol)) or
                 (Ref.base = R_NO)) Then
         { local variable which is not an array }
@@ -599,10 +599,10 @@ Unit AoptObj;
       (*!!!!!!
         If Ref^.Base <> R_NO Then
           ReadReg(Ref^.Base);
-      {$ifdef refsHaveIndexReg}
+      {$ifdef cpurefshaveindexreg}
         If Ref^.Index <> R_NO Then
           ReadReg(Ref^.Index);
-      {$endif}
+      {$endif cpurefshaveindexreg}
       *)
       End;
 

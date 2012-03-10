@@ -26,10 +26,7 @@ Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 { enable the following define if memory references can have both a base and }
 { index register in 1 operand                                               }
 
-{$define RefsHaveIndexReg}
-
 { enable the following define if memory references can have a scaled index }
-
 {$define RefsHaveScale}
 
 { enable the following define if memory references can have a segment }

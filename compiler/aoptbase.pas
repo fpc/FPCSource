@@ -138,9 +138,9 @@ unit aoptbase;
   Begin
     Reg := RegMaxSize(Reg);
     RegInRef := (Ref.Base = Reg)
-  {$ifdef RefsHaveIndexReg}
+  {$ifdef cpurefshaveindexreg}
     Or (Ref.Index = Reg)
-  {$endif RefsHaveIndexReg}
+  {$endif cpurefshaveindexreg}
   End;
 
   Function TAOptBase.RegModifiedByInstruction(Reg: TRegister; p1: tai): Boolean;
