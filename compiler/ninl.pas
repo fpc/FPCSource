@@ -3081,6 +3081,12 @@ implementation
          in_assert_x_y :
             begin
               expectloc:=LOC_VOID;
+{$ifdef i386}
+              { hack: on i386, the fourth parameter is passed via memory ->
+                we have to allocate enough stack space for it on targets that
+                use a fixed stack }
+              current_procinfo.allocate_push_parasize(4);
+{$endif}
             end;
 
           in_low_x,
