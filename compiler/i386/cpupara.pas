@@ -284,7 +284,7 @@ unit cpupara;
            size:=OS_INT;
            if calloption=pocall_register then
              begin
-               if (nr<=high(parasupregs)+1) then
+               if (nr<=length(parasupregs)) then
                  begin
                    if nr=0 then
                      internalerror(200309271);
@@ -295,7 +295,8 @@ unit cpupara;
                  begin
                    loc:=LOC_REFERENCE;
                    reference.index:=NR_STACK_POINTER_REG;
-                   reference.offset:=sizeof(aint)*nr;
+                   { the previous parameters didn't take up room in memory }
+                   reference.offset:=sizeof(aint)*(nr-length(parasupregs)-1)
                  end;
              end
            else
