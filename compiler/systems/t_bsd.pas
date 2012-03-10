@@ -61,6 +61,7 @@ implementation
       LdSupportsNoResponseFile : boolean;
       LibrarySuffix : Char;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
+      function GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;
       Function GetDarwinPrtobjName(isdll: boolean): TCmdStr;
     public
       constructor Create;override;
@@ -223,32 +224,80 @@ else
 End;
 
 
-Function TLinkerBSD.GetDarwinPrtobjName(isdll: boolean): TCmdStr;
+function TLinkerBSD.GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;
 begin
-  if not(isdll) then
-    if not(cs_profile in current_settings.moduleswitches) then
-      begin
-        if not librarysearchpath.FindFile('crt1.o',false,result) then
-          result:='/usr/lib/crt1.o';
-      end
-    else
-      begin
-        if not librarysearchpath.FindFile('gcrt1.o',false,result) then
-          result:='/usr/lib/gcrt1.o';
-      end
+  if not isdll then
+    begin
+      if not(cs_profile in current_settings.moduleswitches) then
+        begin
+          { x86: crt1.10.6.o -> crt1.10.5.o -> crt1.o }
+          { others: crt1.10.5 -> crt1.o }
+{$if defined(i386) or defined(x86_64)}
+          if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
+            exit('crt1.10.6.o');
+{$endif}
+          if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
+            exit('crt1.10.5.o');
+          { iOS/simulator: crt1.3.1.o -> crt1.o }
+{$if defined(i386) or defined(arm)}
+          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
+             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+             exit('crt1.3.1.o');
+{$endif}
+          { nothing special -> default }
+          result:='crt1.o';
+        end
+      else
+        result:='gcrt1.o';
+    end
   else
     begin
       if (apptype=app_bundle) then
         begin
-          if not librarysearchpath.FindFile('bundle1.o',false,result) then
-            result:='/usr/lib/bundle1.o'
+          { < 10.6: bundle1.o
+            >= 10.6: nothing }
+          if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
+            exit('');
+          { iOS/simulator: < 3.1: bundle1.o
+                           >= 3.1: nothing }
+{$if defined(i386) or defined(arm)}
+          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
+             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+            exit('');
+{$endif}
+          result:='bundle1.o';
         end
       else
         begin
-          if not librarysearchpath.FindFile('dylib1.o',false,result) then
-            result:='/usr/lib/dylib1.o'
+          { >= 10.6: nothing
+            = 10.5: dylib1.10.5.o
+            < 10.5: dylib1.o
+          }
+          if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
+            exit('');
+          if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
+            exit('dylib1.10.5.o');
+          { iOS/simulator: < 3.1: dylib1.o
+                           >= 3.1: nothing }
+{$if defined(i386) or defined(arm)}
+          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
+             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+            exit('');
+{$endif}
+          result:='dylib1.o';
         end;
     end;
+end;
+
+
+Function TLinkerBSD.GetDarwinPrtobjName(isdll: boolean): TCmdStr;
+var
+  startupfile: TCmdStr;
+begin
+  startupfile:=GetDarwinCrt1ObjName(isdll);
+  if (startupfile<>'') and
+     not librarysearchpath.FindFile(startupfile,false,result) then
+    result:='/usr/lib/'+startupfile;
   result:=maybequoted(result);
 end;
 
@@ -357,6 +406,16 @@ begin
             to be specified }
           LinkRes.Add(lower(cputypestr[current_settings.cputype]));
       end;
+      if MacOSXVersionMin<>'' then
+        begin
+          LinkRes.Add('-macosx_version_min');
+          LinkRes.Add(MacOSXVersionMin);
+        end
+      else if iPhoneOSVersionMin<>'' then
+        begin
+          LinkRes.Add('-ios_version_min');
+          LinkRes.Add(iPhoneOSVersionMin);
+        end;
     end;
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);

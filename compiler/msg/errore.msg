@@ -19,6 +19,7 @@
 #   asmr_     assembler parsing
 #   asmw_     assembler writing/binary writers
 #   unit_     unit handling
+#   option_   command line parameter parsing
 #   scan_     scanner
 #   parser_   parser
 #   type_     type checking
@@ -2870,7 +2871,7 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 #
 #  Options
 #
-# 11049 is the last used one
+# 11051 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2999,6 +3000,13 @@ option_debug_external_unsupported=11048_W_Disabling external debug information b
 option_dwarf_smartlink_creation=11049_N_DWARF debug information cannot be used with smart linking with external assembler, disabling static library creation.
 % Smart linking is currently incompatble with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
+option_invalid_macosx_deployment_target=11050_E_Invalid value for MACOSX_DEPLOYMENT_TARGET environment variable: $1
+option_invalid_iphoneos_deployment_target=11051_E_Invalid value for IPHONEOS_DEPLOYMENT_TARGET environment variable: $1
+% On Mac OS X, the MACOSX_DEPLOYMENT_TARGET/IPHONEOS_DEPLOYMENT_TARGET environment variable can be
+% used to set the default target OS version. In case of Mac OS X, it has to be of the format
+% XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
+% In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
+% digits from 0-9.
 %\end{description}
 # EndOfTeX
 
@@ -3413,11 +3421,17 @@ p*2Wi_Use internal resources (Darwin)
 3*2WI_Turn on/off the usage of import sections (Windows)
 4*2WI_Turn on/off the usage of import sections (Windows)
 A*2WI_Turn on/off the usage of import sections (Windows)
+3*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
+4*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
+p*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
+P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 3*2WN_Do not generate relocation code, needed for debugging (Windows)
 4*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2Wpxxxx_Specify the controller type, see fpc -i for possible values
 V*2Wpxxxx_Specify the controller type, see fpc -i for possible values
+3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
+A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 3*2WR_Generate relocation code (Windows)
 4*2WR_Generate relocation code (Windows)
 A*2WR_Generate relocation code (Windows)

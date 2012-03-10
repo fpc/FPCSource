@@ -895,6 +895,8 @@ const
   option_ignored_target=11047;
   option_debug_external_unsupported=11048;
   option_dwarf_smartlink_creation=11049;
+  option_invalid_macosx_deployment_target=11050;
+  option_invalid_iphoneos_deployment_target=11051;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -919,9 +921,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 62257;
+  MsgTxtSize = 62838;
 
   MsgIdxMax : array[1..20] of longint=(
     26,90,315,109,85,55,116,26,202,63,
-    50,20,1,1,1,1,1,1,1,1
+    52,20,1,1,1,1,1,1,1,1
   );

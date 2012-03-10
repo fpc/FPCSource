@@ -64,6 +64,10 @@ Type
     procedure TargetOptions(def:boolean);
     procedure CheckOptionsCompatibility;
     procedure ForceStaticLinking;
+   protected
+    MacVersionSet: boolean;
+    function ParseMacVersionMin(out minstr, emptystr: string; const compvarname, value: string; ios: boolean): boolean;
+    procedure MaybeSetDefaultMacVersionMacro;
   end;
 
   TOptionClass=class of toption;
@@ -473,6 +477,160 @@ begin
   exclude(init_settings.globalswitches,cs_link_smart);
   exclude(init_settings.globalswitches,cs_link_shared);
   LinkTypeSetExplicitly:=true;
+end;
+
+
+function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarname, value: string; ios: boolean): boolean;
+
+  function subval(start,maxlen: longint; out stop: longint): string;
+    var
+      i: longint;
+    begin
+      result:='';
+      i:=start;
+      while (i<=length(value)) and
+            (value[i] in ['0'..'9']) do
+        inc(i);
+      { sufficient amount of digits? }
+      if (i=start) or
+         (i-start>maxlen) then
+        exit;
+      result:=copy(value,start,i-start);
+      stop:=i;
+    end;
+
+  var
+    temp,
+    compvarvalue: string[15];
+    i: longint;
+  begin
+    minstr:=value;
+    emptystr:='';
+    MacVersionSet:=false;
+    { check whether the value is a valid version number }
+    if value='' then
+      begin
+        undef_system_macro(compvarname);
+        exit(true);
+      end;
+    { major version number }
+    compvarvalue:=subval(1,2,i);
+    { not enough digits -> invalid }
+    if compvarvalue='' then
+      exit(false);
+    { already end of string -> invalid }
+    if (i>=length(value)) or
+       (value[i]<>'.') then
+      exit(false);
+    { minor version number }
+    temp:=subval(i+1,2,i);
+    if temp='' then
+      exit(false);
+    { on Mac OS X, the minor version number is limited to 1 digit }
+    if not ios then
+      begin
+        if length(temp)<>1 then
+          exit(false);
+      end
+    { the minor version number always takes up two digits on iOS }
+    else if length(temp)=1 then
+      temp:='0'+temp;
+    compvarvalue:=compvarvalue+temp;
+    { optional patch level }
+    if i<=length(value) then
+      begin
+        if value[i]<>'.' then
+          exit(false);
+        temp:=subval(i+1,2,i);
+        if temp='' then
+          exit(false);
+        { there's only room for a single digit patch level in the version macro
+          for Mac OS X. gcc sets it to zero if there are more digits, but that
+          seems worse than clamping to 9 (don't declare as invalid like with
+          minor version number, because there is a precedent like 10.4.11)
+        }
+        if not ios then
+          begin
+            if length(temp)<>1 then
+              temp:='9';
+          end
+        else
+          begin
+            { on iOS, the patch level is always two digits }
+            if length(temp)=1 then
+              temp:='0'+temp;
+          end;
+        compvarvalue:=compvarvalue+temp;
+        { must be the end }
+        if i<=length(value) then
+          exit(false);
+      end
+    else if not ios then
+      compvarvalue:=compvarvalue+'0'
+    else
+      compvarvalue:=compvarvalue+'00';
+    set_system_compvar(compvarname,compvarvalue);
+    MacVersionSet:=true;
+    result:=true;
+  end;
+
+
+procedure TOption.MaybeSetDefaultMacVersionMacro;
+var
+  envstr: ansistring;
+begin
+  if not(target_info.system in systems_darwin) then
+    exit;
+  if MacVersionSet then
+    exit;
+  { check for deployment target set via environment variable }
+  if not(target_info.system in [system_i386_iphonesim,system_arm_darwin]) then
+    begin
+      envstr:=GetEnvironmentVariable('MACOSX_DEPLOYMENT_TARGET');
+      if envstr<>'' then
+        if not ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',envstr,false) then
+          Message1(option_invalid_macosx_deployment_target,envstr)
+        else
+          exit;
+    end
+  else
+    begin
+      envstr:=GetEnvironmentVariable('IPHONEOS_DEPLOYMENT_TARGET');
+      if envstr<>'' then
+        if not ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',envstr,true) then
+          Message1(option_invalid_iphoneos_deployment_target,envstr)
+        else
+          exit;
+    end;
+  { nothing specified -> defaults }
+  case target_info.system of
+    system_powerpc_darwin:
+      begin
+        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1030');
+        MacOSXVersionMin:='10.3';
+      end;
+    system_powerpc64_darwin,
+    system_i386_darwin:
+      begin
+        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1040');
+        MacOSXVersionMin:='10.4';
+      end;
+    system_x86_64_darwin:
+      begin
+        { actually already works on 10.4, but it's unlikely any 10.4 system
+          with an x86-64 is still in use, so don't default to it }
+        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1050');
+        MacOSXVersionMin:='10.5';
+      end;
+    system_arm_darwin,
+    system_i386_iphonesim:
+      begin
+        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','30000');
+        MacOSXVersionMin:='3.0';
+      end;
+    else
+      internalerror(2012031001);
+  end;
 end;
 
 
@@ -1598,6 +1756,16 @@ begin
                         else
                           IllegalPara(opt);
                       end;
+                    'M':
+                      begin
+                        if (target_info.system in (systems_darwin-[system_i386_iphonesim])) and
+                           ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2,255),false) then
+                          begin
+                            break;
+                          end
+                        else
+                          IllegalPara(opt);
+                      end;
                     'N':
                       begin
                         if target_info.system in systems_all_windows then
@@ -1620,6 +1788,16 @@ begin
                           end
                         else
 {$endif defined(arm) or defined(avr)}
+                          IllegalPara(opt);
+                      end;
+                    'P':
+                      begin
+                        if (target_info.system in [system_i386_iphonesim,system_arm_darwin]) and
+                           ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2,255),true) then
+                          begin
+                            break;
+                          end
+                        else
                           IllegalPara(opt);
                       end;
                     'R':
@@ -2359,6 +2537,7 @@ begin
   ParaLibraryPath:=TSearchPathList.Create;
   ParaFrameworkPath:=TSearchPathList.Create;
   FillChar(ParaAlignment,sizeof(ParaAlignment),0);
+  MacVersionSet:=false;
 end;
 
 
@@ -2846,6 +3025,9 @@ begin
      ) and
      not(cs_link_separate_dbg_file in init_settings.globalswitches) then
     exclude(init_settings.globalswitches,cs_link_strip);
+
+  { set Mac OS X version default macros if not specified explicitly }
+  option.MaybeSetDefaultMacVersionMacro;
 
   { force fpu emulation on arm/wince, arm/gba, arm/embedded, arm/nds and
     arm/darwin if fpu type not explicitly set }
