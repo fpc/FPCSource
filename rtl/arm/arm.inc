@@ -635,7 +635,7 @@ asm
   mvn r3, #0x0000f000
   sub r3, r3, #0x3F
 
-  add r1, r0, #1 // Decrement value
+  add r1, r0, #1 // Increment value
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
 
   movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
@@ -765,7 +765,6 @@ asm
 {$if defined(LINUX) and defined(CPUARMEL)}
 
   stmfd r13!, {r4, lr}
-
   mvn   r3, #0x0000f000
   sub   r3, r3, #0x3F
 
@@ -773,10 +772,23 @@ asm
   mov   r2, r0
   mov   r0, r4 // Use r4 because we'll need the new value for later
 
+  // r1 and r2 will not be clobbered by kuser_cmpxchg
+  // If we have to loop, r0 will be set to the original Comperand
+  .Linterlocked_compare_exchange_loop:
+
   blx   r3       // Call kuser_cmpxchg sets C-Flag on success
-  ldrcc r0, [r2] // Load the currently set value on failure
-  movcs r0, r4   // Load the previous value on success
-  ldmfd r13!, {r4, pc}
+  movcs r0, r4   // Return the previous value on success
+  ldmcsfd r13!, {r4, pc}
+  // The error case is a bit tricky, kuser_cmpxchg does not return the current value
+  // So we may need to loop to avoid race conditions
+  // The loop case is HIGHLY unlikely, it would require that we got rescheduled between
+  // calling kuser_cmpxchg and the ldr. While beeing rescheduled another process/thread
+  // would have the set the value to our comperand
+  ldr	r0, [r2] // Load the currently set value
+  cmp   r0, r4   // Return if Comperand != current value, otherwise loop again
+  ldmnefd r13!, {r4, pc}
+  // If we need to loop here, we have to
+  b	.Linterlocked_compare_exchange_loop
 
 {$else}
 // lock
