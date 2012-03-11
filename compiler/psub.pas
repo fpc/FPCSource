@@ -1138,6 +1138,16 @@ implementation
             cg.set_regalloc_live_range_direction(rad_forward);
             }
 
+
+{$ifndef NoOpt}
+{$ifndef i386}
+            if (cs_opt_scheduler in current_settings.optimizerswitches) and
+              { do not optimize pure assembler procedures }
+              not(pi_is_assembler in flags) then
+              preregallocschedule(aktproccode);
+{$endif i386}
+{$endif NoOpt}
+
             { The procedure body is finished, we can now
               allocate the registers }
             cg.do_register_allocation(aktproccode,headertai);
@@ -1206,6 +1216,14 @@ implementation
                    { do not optimize pure assembler procedures }
                    not(pi_is_assembler in flags)  then
                   optimize(aktproccode);
+{$ifndef i386}
+                { schedule after assembler optimization, it could have brought up
+                  new schedule possibilities }
+                if (cs_opt_scheduler in current_settings.optimizerswitches) and
+                  { do not optimize pure assembler procedures }
+                  not(pi_is_assembler in flags)  then
+                  preregallocschedule(aktproccode);
+{$endif i386}
               end;
 {$endif NoOpt}
 
