@@ -124,7 +124,7 @@ Implementation
     begin
       result:=false;
       for i:=0 to taicpu(p1).ops-1 do
-        if (taicpu(p1).oper[i]^.typ=top_reg) and (taicpu(p1).oper[i]^.reg=REg) and (taicpu(p1).spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
+        if (taicpu(p1).oper[i]^.typ=top_reg) and (taicpu(p1).oper[i]^.reg=Reg) and (taicpu(p1).spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
           begin
             result:=true;
             exit;
