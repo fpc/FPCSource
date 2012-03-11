@@ -556,7 +556,7 @@ asm
   mov r0, r1
   bx  lr
 {$else}
-{$if defined(linux)}
+{$if defined(LINUX) and defined(CPUARMEL)}
 
   stmfd r13!, {lr}
   mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
@@ -617,7 +617,7 @@ asm
   mov r0, r1
   bx  lr
 {$else}
-{$if defined(linux)}
+{$if defined(LINUX) and defined(CPUARMEL)}
 
   stmfd r13!, {lr}
   mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
@@ -695,7 +695,7 @@ asm
   mov  r0, r2
   bx  lr
 {$else}
-{$if defined(linux)}
+{$if defined(LINUX) and defined(CPUARMEL)}
 
   stmfd r13!, {r4, lr}
   mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
@@ -716,10 +716,13 @@ asm
 
   add r1, r0, r4 // Add to value
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
-
-  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  // r1 does not get clobbered, so just get back the original value
+  // Otherwise we would have to allocate one more register and store the
+  // temporary value
+  subcs   r0, r1, r4
   ldmcsfd r13!, {r4, pc}
-  b .Latomic_add_loop // kuser_cmpxchg sets C flag on error
+
+  b .Latomic_add_loop // kuser_cmpxchg failed, loop back
 
 {$else}
 // lock
@@ -759,21 +762,21 @@ asm
   mov      r0, r3
   bx       lr
 {$else}
-{$if defined(linux)}
+{$if defined(LINUX) and defined(CPUARMEL)}
 
-  stmfd r13!, {lr}
+  stmfd r13!, {r4, lr}
 
   mvn   r3, #0x0000f000
   sub   r3, r3, #0x3F
 
-  mov   ip, r2 // Swap parameters around
+  mov   r4, r2 // Swap parameters around
   mov   r2, r0
-  mov   r0, ip
+  mov   r0, r4 // Use r4 because we'll need the new value for later
 
   blx   r3       // Call kuser_cmpxchg sets C-Flag on success
   ldrcc r0, [r2] // Load the currently set value on failure
-                 // We could use "mov r0, r3" here, but thats undocumented
-  ldmfd r13!, {lr}
+  movcs r0, r4   // Load the previous value on success
+  ldmfd r13!, {r4, pc}
 
 {$else}
 // lock
