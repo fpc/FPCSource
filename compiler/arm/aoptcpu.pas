@@ -461,11 +461,8 @@ Implementation
                               A_STRH,A_STRT,A_STF,A_SFM,A_STM,A_FSTS,A_FSTD];
 
   function TCpuPreRegallocScheduler.PeepHoleOptPass1Cpu(var p: tai): boolean;
-  {
-    TODO:
-      - move in right pass
-      - changes of R15
-  }
+  { TODO : schedule also forward }
+  { TODO : schedule distance > 1 }
     var
       hp1,hp2 : tai;
     begin
