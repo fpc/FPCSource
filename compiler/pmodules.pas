@@ -1015,9 +1015,11 @@ implementation
 
     function try_consume_hintdirective(var moduleopt:tmoduleoptions; var deprecatedmsg:pshortstring):boolean;
       var
+        deprecated_seen,
         last_is_deprecated:boolean;
       begin
         try_consume_hintdirective:=false;
+        deprecated_seen:=false;
         repeat
           last_is_deprecated:=false;
           case idtoken of
@@ -1028,9 +1030,13 @@ implementation
               end;
             _DEPRECATED :
               begin
+                { allow deprecated only once }
+                if deprecated_seen then
+                  break;
                 include(moduleopt,mo_hint_deprecated);
                 try_consume_hintdirective:=true;
                 last_is_deprecated:=true;
+                deprecated_seen:=true;
               end;
             _EXPERIMENTAL :
               begin
