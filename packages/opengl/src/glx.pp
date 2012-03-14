@@ -300,6 +300,9 @@ var
   glXReleaseBufferMESA: function(dpy: PDisplay; d: GLXDrawable): Boolean; cdecl;
   glXCopySubBufferMESA: procedure(dpy: PDisplay; drawbale: GLXDrawable; x, y, width, height: Integer); cdecl;
 
+  // GLX_SGI_swap_control
+  glXSwapIntervalSGI: function(interval: Integer): Integer; cdecl;
+
   // GLX_SGI_video_sync
   glXGetVideoSyncSGI: function(var counter: LongWord): Integer; cdecl;
   glXWaitVideoSyncSGI: function(divisor, remainder: Integer; var count: LongWord): Integer; cdecl;
@@ -346,6 +349,7 @@ function GLX_ARB_create_context_robustness(Display: PDisplay; Screen: Integer): 
 function GLX_ARB_multisample(Display: PDisplay; Screen: Integer): boolean;
 function GLX_EXT_visual_info(Display: PDisplay; Screen: Integer): boolean;
 function GLX_MESA_pixmap_colormap(Display: PDisplay; Screen: Integer): boolean;
+function GLX_SGI_swap_control(Display: PDisplay; Screen: Integer): boolean;
 function GLX_SGI_video_sync(Display: PDisplay; Screen: Integer): boolean;
 function GLX_SGIS_multisample(Display: PDisplay; Screen: Integer): boolean;
 
@@ -548,6 +552,19 @@ begin
   end;
 end;
 
+function GLX_SGI_swap_control(Display: PDisplay; Screen: Integer): boolean;
+var
+  GlxExtensions: PChar;
+begin
+  Result := GLX_version_1_1(Display);
+  if Result then
+  begin
+    GlxExtensions := glXQueryExtensionsString(Display, Screen);
+    Result := glext_ExtensionSupported('GLX_SGI_swap_control', GlxExtensions) and
+      Assigned(glXSwapIntervalSGI);
+  end;
+end;
+
 function GLX_SGI_video_sync(Display: PDisplay; Screen: Integer): boolean;
 var
   GlxExtensions: PChar;
@@ -576,7 +593,13 @@ end;
 
 function GetProc(handle: PtrInt; name: PChar): Pointer;
 begin
-  Result := GetProcAddress(handle, name);
+  if Assigned(glXGetProcAddress) then
+    Result := glXGetProcAddress(name)
+  else
+    if Assigned(glXGetProcAddressARB) then
+      Result := glXGetProcAddressARB(name)
+    else
+      Result := GetProcAddress(handle, name);
   if (Result = nil) and GLXDumpUnresolvedFunctions then
     WriteLn('Unresolved: ', name);
 end;
@@ -596,6 +619,16 @@ begin
   if OurLibGL = 0 then
     exit;
 
+  // glXGetProcAddress and glXGetProcAddressARB are imported first,
+  // so we can use them (when they are available) to resolve all the
+  // other imports
+
+  // GLX 1.4 and later
+  glXGetProcAddress := GetProc(OurLibGL, 'glXGetProcAddress');
+  // GLX_ARB_get_proc_address
+  glXGetProcAddressARB := GetProc(OurLibGL, 'glXGetProcAddressARB');
+
+  // GLX 1.0
   glXChooseVisual := GetProc(OurLibGL, 'glXChooseVisual');
   glXCreateContext := GetProc(OurLibGL, 'glXCreateContext');
   glXDestroyContext := GetProc(OurLibGL, 'glXDestroyContext');
@@ -637,11 +670,7 @@ begin
   glXQueryContext := GetProc(OurLibGL, 'glXQueryContext');
   glXSelectEvent := GetProc(OurLibGL, 'glXSelectEvent');
   glXGetSelectedEvent := GetProc(OurLibGL, 'glXGetSelectedEvent');
-  // GLX 1.4 and later
-  glXGetProcAddress := GetProc(OurLibGL, 'glXGetProcAddress');
   // Extensions
-  // GLX_ARB_get_proc_address
-  glXGetProcAddressARB := GetProc(OurLibGL, 'glXGetProcAddressARB');
   // GLX_ARB_create_context
   glXCreateContextAttribsARB := GetProc(OurLibGL, 'glXCreateContextAttribsARB');
   // GLX_MESA_pixmap_colormap
@@ -649,6 +678,8 @@ begin
   // Unknown Mesa GLX extension
   glXReleaseBufferMESA := GetProc(OurLibGL, 'glXReleaseBufferMESA');
   glXCopySubBufferMESA := GetProc(OurLibGL, 'glXCopySubBufferMESA');
+  // GLX_SGI_swap_control
+  glXSwapIntervalSGI := GetProc(OurLibGL, 'glXSwapIntervalSGI');
   // GLX_SGI_video_sync
   glXGetVideoSyncSGI := GetProc(OurLibGL, 'glXGetVideoSyncSGI');
   glXWaitVideoSyncSGI := GetProc(OurLibGL, 'glXWaitVideoSyncSGI');
