@@ -85,7 +85,7 @@ begin
       if (aFileOffset + aBufferSize > len) then
         aBufferSize := len - aFileOffset;
 
-      move(aBuffer^, (PChar(hello_str) + aFileOffset)^, aBufferSize);
+      move((PChar(hello_str) + aFileOffset)^,ABuffer^, aBufferSize);
     end else
       aBufferSize := 0;
 
