@@ -296,6 +296,10 @@ var
   // GLX_MESA_pixmap_colormap
   glXCreateGLXPixmapMESA: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap; cmap: XColormap): GLXPixmap; cdecl;
 
+  // GLX_MESA_swap_control
+  glXSwapIntervalMESA: function(interval: LongWord): Integer; cdecl;
+  glXGetSwapIntervalMESA: function: Integer; cdecl;
+
   // Unknown Mesa GLX extension (undocumented in current GLX C headers?)
   glXReleaseBufferMESA: function(dpy: PDisplay; d: GLXDrawable): Boolean; cdecl;
   glXCopySubBufferMESA: procedure(dpy: PDisplay; drawbale: GLXDrawable; x, y, width, height: Integer); cdecl;
@@ -349,6 +353,7 @@ function GLX_ARB_create_context_robustness(Display: PDisplay; Screen: Integer): 
 function GLX_ARB_multisample(Display: PDisplay; Screen: Integer): boolean;
 function GLX_EXT_visual_info(Display: PDisplay; Screen: Integer): boolean;
 function GLX_MESA_pixmap_colormap(Display: PDisplay; Screen: Integer): boolean;
+function GLX_MESA_swap_control(Display: PDisplay; Screen: Integer): boolean;
 function GLX_SGI_swap_control(Display: PDisplay; Screen: Integer): boolean;
 function GLX_SGI_video_sync(Display: PDisplay; Screen: Integer): boolean;
 function GLX_SGIS_multisample(Display: PDisplay; Screen: Integer): boolean;
@@ -552,6 +557,20 @@ begin
   end;
 end;
 
+function GLX_MESA_swap_control(Display: PDisplay; Screen: Integer): boolean;
+var
+  GlxExtensions: PChar;
+begin
+  Result := GLX_version_1_1(Display);
+  if Result then
+  begin
+    GlxExtensions := glXQueryExtensionsString(Display, Screen);
+    Result := glext_ExtensionSupported('GLX_MESA_swap_control', GlxExtensions) and
+      Assigned(glXSwapIntervalMESA) and
+      Assigned(glXGetSwapIntervalMESA);
+  end;
+end;
+
 function GLX_SGI_swap_control(Display: PDisplay; Screen: Integer): boolean;
 var
   GlxExtensions: PChar;
@@ -675,6 +694,9 @@ begin
   glXCreateContextAttribsARB := GetProc(OurLibGL, 'glXCreateContextAttribsARB');
   // GLX_MESA_pixmap_colormap
   glXCreateGLXPixmapMESA := GetProc(OurLibGL, 'glXCreateGLXPixmapMESA');
+  // GLX_MESA_swap_control
+  glXSwapIntervalMESA := GetProc(OurLibGL, 'glXSwapIntervalMESA');
+  glXGetSwapIntervalMESA := GetProc(OurLibGL, 'glXGetSwapIntervalMESA');
   // Unknown Mesa GLX extension
   glXReleaseBufferMESA := GetProc(OurLibGL, 'glXReleaseBufferMESA');
   glXCopySubBufferMESA := GetProc(OurLibGL, 'glXCopySubBufferMESA');
