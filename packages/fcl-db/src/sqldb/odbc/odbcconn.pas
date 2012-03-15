@@ -322,8 +322,10 @@ var
   TimeVal: SQL_TIME_STRUCT;
   TimeStampVal: SQL_TIMESTAMP_STRUCT;
   BoolVal: byte;
+  NumericVal: SQL_NUMERIC_STRUCT;
   ColumnSize, BufferLength, StrLenOrInd: SQLINTEGER;
   CType, SqlType, DecimalDigits:SQLSMALLINT;
+  APD: SQLHDESC;
 begin
   // Note: it is assumed that AParams is the same as the one passed to PrepareStatement, in the sense that
   //       the parameters have the same order and names
@@ -429,6 +431,16 @@ begin
           SqlType:=SQL_DOUBLE;
           ColumnSize:=15;
         end;
+      ftCurrency, ftBCD:
+        begin
+          NumericVal:=CurrToNumericStruct(AParams[ParamIndex].AsCurrency);
+          PVal:=@NumericVal;
+          Size:=SizeOf(NumericVal);
+          CType:=SQL_C_NUMERIC;
+          SqlType:=SQL_NUMERIC;
+          ColumnSize:=NumericVal.precision;
+          DecimalDigits:=NumericVal.scale;
+        end;
       ftDate:
         begin
           DateVal:=DateTimeToDateStruct(AParams[ParamIndex].AsDate);
@@ -496,6 +508,16 @@ begin
                           PStrLenOrInd),          // StrLen_or_IndPtr
          SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not bind parameter %d.', [i]
        );
+
+    // required by MSSQL:
+    if CType = SQL_C_NUMERIC then
+    begin
+      ODBCCheckResult(
+        SQLGetStmtAttr(ODBCCursor.FSTMTHandle, SQL_ATTR_APP_PARAM_DESC, @APD, 0, nil),
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get parameter descriptor.'
+      );
+      SQLSetDescRec(APD, i+1, SQL_C_NUMERIC, 0, ColumnSize+2, ColumnSize, DecimalDigits, Buf, nil, nil);
+    end;
   end;
 end;
 
@@ -1135,13 +1157,13 @@ begin
       FieldSize:=dsMaxStringSize-1;
     end
     else
-    if (FieldType in [ftInteger]) and (AutoIncAttr=SQL_FALSE) then //if the column is an autoincrementing column
-                                                                   //any exact numeric type with scale 0 can have identity attr.
-                                                                   //only one column per table can have identity attr.
+    // any exact numeric type with scale 0 can have identity attr.
+    // only one column per table can have identity attr.
+    if (FieldType in [ftInteger,ftLargeInt]) and (AutoIncAttr=SQL_FALSE) then
     begin
       ODBCCheckResult(
-        SQLColAttribute(ODBCCursor.FSTMTHandle, // statement handle
-                        i,                      // column number
+        SQLColAttribute(ODBCCursor.FSTMTHandle,     // statement handle
+                        i,                          // column number
                         SQL_DESC_AUTO_UNIQUE_VALUE, // FieldIdentifier
                         nil,                        // buffer
                         0,                          // buffer size
@@ -1149,7 +1171,7 @@ begin
                         @AutoIncAttr),              // NumericAttribute
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get autoincrement attribute for column %d.',[i]
       );
-      if AutoIncAttr=SQL_TRUE then
+      if (AutoIncAttr=SQL_TRUE) and (FieldType=ftInteger) then
         FieldType:=ftAutoInc;
     end;
 
@@ -1190,7 +1212,7 @@ begin
     end;
 
     // add FieldDef
-    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (FieldType<>ftAutoInc), i);
+    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), i);
   end;
 end;
 
@@ -1206,7 +1228,7 @@ var
   _Type     :SQLSMALLINT; _TypeIndOrLen     :SQLINTEGER;
   OrdinalPos:SQLSMALLINT; OrdinalPosIndOrLen:SQLINTEGER;
   ColName   :string;      ColNameIndOrLen   :SQLINTEGER;
-  AscOrDesc :SQLCHAR;     AscOrDescIndOrLen :SQLINTEGER;
+  AscOrDesc :char;        AscOrDescIndOrLen :SQLINTEGER;
   PKName    :string;      PKNameIndOrLen    :SQLINTEGER;
 const
   DEFAULT_NAME_LEN = 255;

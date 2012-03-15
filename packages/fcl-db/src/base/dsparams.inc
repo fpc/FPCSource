@@ -815,9 +815,8 @@ begin
       ftWord     : Field.AsInteger:=AsWord;
       ftInteger,
       ftAutoInc  : Field.AsInteger:=AsInteger;
-      // Need TField.AsCurrency
-      ftCurrency : Field.asFloat:=AsCurrency;
-      ftFloat    : Field.asFloat:=AsFloat;
+      ftCurrency : Field.AsCurrency:=AsCurrency;
+      ftFloat    : Field.AsFloat:=AsFloat;
       ftBoolean  : Field.AsBoolean:=AsBoolean;
       ftBlob,
       ftGraphic..ftTypedBinary,
@@ -853,9 +852,9 @@ begin
       ftWord     : AsWord:=Field.AsInteger;
       ftInteger,
       ftAutoInc  : AsInteger:=Field.AsInteger;
-      // Need TField.AsCurrency
-      ftCurrency : AsCurrency:=Field.asCurrency;
-      ftFloat    : AsFloat:=Field.asFloat;
+      ftBCD,
+      ftCurrency : AsCurrency:=Field.AsCurrency;
+      ftFloat    : AsFloat:=Field.AsFloat;
       ftBoolean  : AsBoolean:=Field.AsBoolean;
       ftBlob,
       ftGraphic..ftTypedBinary,

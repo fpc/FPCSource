@@ -275,20 +275,28 @@ procedure TTestFieldTypes.TestNumeric;
 
 const
   testValuesCount = 13;
-  testValues : Array[0..testValuesCount-1] of currency = (-123456.789,-10200,-10000,-1875.25,-10,-0.5,0,0.5,10,1875.25,10000,10200,123456.789);
-  Sizes: array [0..4] of integer = (4,0,3,5,0); //scale
+  testValues4 : Array[0..testValuesCount-1] of currency = (-99.99,-12.34,-10.2,-10,-0.5,-0.01,0,0.01,0.5,10,10.2,12.34,99.99);
+  testValues9 : Array[0..testValuesCount-1] of currency = (-123456.789,-10000,-1875.25,-10,-0.5,-0.001,0,0.001,0.5,10,1875.25,10000,123456.789);
+  FieldTypes: array [0..7] of TFieldType = (ftBCD, ftBCD, ftBCD, ftFmtBCD, ftLargeInt, ftFmtBCD, ftFmtBCD, ftFmtBCD);
+  FieldSizes: array [0..7] of integer = (4,2,3,5,0,3,5,0); //scale
 
 var
-  i          : byte;
-  s          : string;
+  i,d        : integer;
+  s,s4,s9    : string;
+  t          : TFieldType;
 
 begin
   with TSQLDBConnector(DBConnector) do begin
     if SQLDbType = INTERBASE then
-      s := '' //Interbase supports precision up to 18 only
+    begin
+      //Interbase internal storage of exact numeric data types based on precision:
+      // 1-4 (smallint), 5-9 (integer), 10-18 (int64)
+      s := ''; //Interbase supports precision up to 18 only
+      FieldTypes[5] := ftBCD; //ATM TIBConnection incorrectly maps NUMERIC(18,3) to ftBCD
+    end
     else
-      s := ', N4 NUMERIC(19,0)';
-    Connection.ExecuteDirect('create table FPDEV2 (FT NUMERIC(18,4), N1 NUMERIC(18,0), N2 NUMERIC(18,3), N3 NUMERIC(18,5)' + s + ')');
+      s := ', N19_0 NUMERIC(19,0)';
+    Connection.ExecuteDirect('create table FPDEV2 (FT NUMERIC(18,4), N4_2 NUMERIC(4,2), N9_3 NUMERIC(9,3), N9_5 NUMERIC(9,5), N18_0 NUMERIC(18,0), N18_3 NUMERIC(18,3), N18_5 NUMERIC(18,5)' + s + ')');
     Transaction.CommitRetaining;
 
     with Query do
@@ -296,18 +304,20 @@ begin
       SQL.Text := 'select * from FPDEV2';
       Open;
 
-      AssertEquals(sizeof(Currency), Fields[0].DataSize);
-      AssertTrue(Fields[0].DataType=ftBCD);
-      AssertEquals(Sizes[0], Fields[0].Size);
-
-      AssertTrue(Fields[1].DataType in [ftFmtBCD, ftLargeInt]);
-      AssertEquals(Sizes[1], Fields[1].Size);
-
-      for i := 2 to FieldCount-1 do
+      for i := 0 to FieldCount-1 do
       begin
-        AssertEquals(sizeof(TBCD), Fields[i].DataSize);
-        AssertTrue(Fields[i].DataType=ftFmtBCD);
-        AssertEquals(Sizes[i], Fields[i].Size);
+        case Fields[i].DataType of
+          ftBCD:      d := sizeof(Currency);
+          ftFmtBCD:   d := sizeof(TBCD);
+          ftLargeInt: d := sizeof(int64);
+          else        d := 0;
+        end;
+        t := FieldTypes[i];
+        if t = ftLargeInt then t := ftFmtBCD; //acceptable alternative
+
+        AssertEquals(Fields[i].DataSize, d);
+        AssertTrue(Fields[i].DataType in [FieldTypes[i], t]);
+        AssertEquals(Fields[i].Size, FieldSizes[i]);
       end;
 
       Close;
@@ -315,8 +325,9 @@ begin
 
     for i := 0 to testValuesCount-1 do
     begin
-      s :=CurrToStrF(testValues[i],ffFixed,3,DBConnector.FormatSettings);
-      Connection.ExecuteDirect(format('insert into FPDEV2 (FT,N2,N3) values (%s,%s,%s)', [s,s,s]));
+      s4 := CurrToStrF(testValues4[i],ffFixed,2,DBConnector.FormatSettings);
+      s9 := CurrToStrF(testValues9[i],ffFixed,3,DBConnector.FormatSettings);
+      Connection.ExecuteDirect(format('insert into FPDEV2 (N4_2,N9_5,FT,N9_3,N18_3,N18_5) values (%s,%s,%s,%s,%s,%s)', [s4,s4,s9,s9,s9,s9]));
     end;
 
     with Query do
@@ -324,9 +335,12 @@ begin
       Open;
       for i := 0 to testValuesCount-1 do
       begin
-        AssertEquals(testValues[i], Fields[0].AsCurrency);
-        AssertEquals(testValues[i], Fields[2].AsCurrency);
-        AssertEquals(testValues[i], Fields[3].AsCurrency);
+        AssertEquals(testValues4[i], Fields[1].AsCurrency);
+        AssertEquals(testValues4[i], Fields[3].AsCurrency);
+        AssertEquals(testValues9[i], Fields[0].AsCurrency);
+        AssertEquals(testValues9[i], Fields[2].AsCurrency);
+        AssertEquals(testValues9[i], Fields[5].AsCurrency);
+        AssertEquals(testValues9[i], Fields[6].AsCurrency);
         Next;
       end;
       Close;

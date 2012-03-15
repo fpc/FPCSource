@@ -165,7 +165,6 @@ constructor TIBConnection.Create(AOwner : TComponent);
 begin
   inherited;
   FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
-  FieldNameQuoteChars:=DoubleQuotes;
   FBLobSegmentSize := 65535; //Shows we're using the maximum segment size
   FDialect := -1;
   FDBDialect := -1;
@@ -649,9 +648,14 @@ begin
 end;
 
 procedure TIBConnection.DoConnect;
+const NoQuotes: TQuoteChars = (' ',' ');
 begin
   inherited DoConnect;
-  FDbDialect := GetDBDialect;
+  FDBDialect := GetDBDialect;
+  if Dialect < 3 then
+    FieldNameQuoteChars := NoQuotes
+  else
+    FieldNameQuoteChars := DoubleQuotes;
 end;
 
 procedure TIBConnection.FreeFldBuffers(cursor : TSQLCursor);
@@ -702,10 +706,11 @@ begin
 
       FD := TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
          TransLen, (SQLDA^.SQLVar[x].sqltype and 1)=0, (x + 1));
-      if TransType = ftBCD then
+      if TransType in [ftBCD, ftFmtBCD] then
         case (SQLDA^.SQLVar[x].sqltype and not 1) of
           SQL_SHORT : FD.precision := 4;
           SQL_LONG  : FD.precision := 9;
+          SQL_DOUBLE,
           SQL_INT64 : FD.precision := 18;
           else FD.precision := SQLDA^.SQLVar[x].SQLLen;
         end;
@@ -945,7 +950,10 @@ begin
             case SQLDA^.SQLVar[x].SQLLen of
               2 : c := PSmallint(CurrBuff)^ / IntPower10(-SQLDA^.SQLVar[x].SQLScale);
               4 : c := PLongint(CurrBuff)^  / IntPower10(-SQLDA^.SQLVar[x].SQLScale);
-              8 : c := PLargeint(CurrBuff)^ / IntPower10(-SQLDA^.SQLVar[x].SQLScale);
+              8 : if Dialect < 3 then
+                    c := PDouble(CurrBuff)^
+                  else
+                    c := PLargeint(CurrBuff)^ / IntPower10(-SQLDA^.SQLVar[x].SQLScale);
               else
                 Result := False; // Just to be sure, in principle this will never happen
             end; {case}
@@ -956,7 +964,10 @@ begin
             case SQLDA^.SQLVar[x].SQLLen of
               2 : AFmtBcd := BcdDivPower10(PSmallint(CurrBuff)^, -SQLDA^.SQLVar[x].SQLScale);
               4 : AFmtBcd := BcdDivPower10(PLongint(CurrBuff)^,  -SQLDA^.SQLVar[x].SQLScale);
-              8 : AFmtBcd := BcdDivPower10(PLargeint(CurrBuff)^, -SQLDA^.SQLVar[x].SQLScale);
+              8 : if Dialect < 3 then
+                    AFmtBcd := PDouble(CurrBuff)^
+                  else
+                    AFmtBcd := BcdDivPower10(PLargeint(CurrBuff)^, -SQLDA^.SQLVar[x].SQLScale);
               else
                 Result := False; // Just to be sure, in principle this will never happen
             end; {case}

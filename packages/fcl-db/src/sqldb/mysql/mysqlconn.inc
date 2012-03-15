@@ -560,7 +560,7 @@ begin
       NewType := ftLargeint;
       NewSize := 0;
       end;
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT:
+    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_YEAR:
       begin
       NewType := ftSmallint;
       NewSize := 0;
@@ -874,7 +874,7 @@ begin
     exit;
   SetString(Src, Source, Len);
   case AField^.ftype of
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT:
+    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_YEAR:
       begin
       if (Src<>'') then
         VS := StrToInt(Src)

@@ -712,10 +712,11 @@ begin
     FLookupDataSet.DisableControls;
     try
       FLookupDataSet.First;
-      repeat
+      while not FLookupDataSet.Eof do
+      begin
         FLookupList.Add(FLookupDataSet.FieldValues[FLookupKeyfields], FLookupDataSet.FieldValues[FLookupResultField]);
         FLookupDataSet.Next;
-      until FLookupDataSet.EOF;
+      end;
     finally
       FLookupDataSet.EnableControls;
     end;
