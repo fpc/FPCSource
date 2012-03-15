@@ -224,7 +224,7 @@ implementation
     defutil,
     aasmtai,aasmcpu,
     symtable,jvmdef,
-    procinfo,cgcpu,tgobj;
+    procinfo,cpuinfo,cgcpu,tgobj;
 
   const
     TOpCG2IAsmOp : array[topcg] of TAsmOp=(                       { not = xor -1 }
@@ -853,7 +853,8 @@ implementation
       const
         overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
       begin
-        if (op in overflowops) and
+        if ((op in overflowops) or
+            (current_settings.cputype=cpu_dalvik)) and
            (def_cgsize(size) in [OS_8,OS_S8,OS_16,OS_S16]) then
           resize_stack_int_val(list,s32inttype,size,false);
       end;
