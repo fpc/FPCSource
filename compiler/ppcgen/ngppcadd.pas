@@ -179,17 +179,20 @@ implementation
         cmpop:=false;
         if (torddef(left.resultdef).ordtype in [pasbool8,bool8bit]) or
            (torddef(right.resultdef).ordtype in [pasbool8,bool8bit]) then
-         cgsize:=OS_8
+          cgsize:=OS_8
+        else if (torddef(left.resultdef).ordtype in [pasbool16,bool16bit]) or
+           (torddef(right.resultdef).ordtype in [pasbool16,bool16bit]) then
+          cgsize:=OS_16
+        else if (torddef(left.resultdef).ordtype in [pasbool32,bool32bit]) or
+           (torddef(right.resultdef).ordtype in [pasbool32,bool32bit]) then
+          cgsize:=OS_32
         else
-          if (torddef(left.resultdef).ordtype in [pasbool16,bool16bit]) or
-             (torddef(right.resultdef).ordtype in [pasbool16,bool16bit]) then
-           cgsize:=OS_16
-        else
-           cgsize:=OS_32;
+          cgsize:=OS_64;
 
-        if ((cs_full_boolean_eval in current_settings.localswitches) and
-            not(nf_short_bool in flags)) or
-           (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
+        if {$ifndef cpu64bitalu}(cgsize<>OS_64) and{$endif}
+           (((cs_full_boolean_eval in current_settings.localswitches) and
+             not(nf_short_bool in flags)) or
+            (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn])) then
           begin
             if left.nodetype in [ordconstn,realconstn] then
              swapleftright;
