@@ -9778,6 +9778,7 @@ tests/test/jvm/nested.pp svneol=native#text/plain
 tests/test/jvm/outpara.pp svneol=native#text/plain
 tests/test/jvm/sort.pp svneol=native#text/plain
 tests/test/jvm/tabs.pp svneol=native#text/plain
+tests/test/jvm/taddbool.pp svneol=native#text/plain
 tests/test/jvm/taddset.pp svneol=native#text/plain
 tests/test/jvm/taddsetint.pp svneol=native#text/plain
 tests/test/jvm/tarray2.pp svneol=native#text/plain

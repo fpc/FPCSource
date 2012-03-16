@@ -41,6 +41,7 @@ interface
       end;
 
       tjvmnotnode = class(tcgnotnode)
+         function pass_1: tnode; override;
          procedure second_boolean;override;
       end;
 
@@ -170,44 +171,34 @@ implementation
                                tjvmnotnode
 *****************************************************************************}
 
+    function tjvmnotnode.pass_1: tnode;
+      begin
+        result:=inherited;
+        if not assigned(result) and
+           is_boolean(resultdef) then
+          expectloc:=LOC_JUMP;
+      end;
+
+
     procedure tjvmnotnode.second_boolean;
       var
         hl : tasmlabel;
       begin
-        { if the location is LOC_JUMP, we do the secondpass after the
-          labels are allocated
-        }
-        if left.expectloc=LOC_JUMP then
-          begin
-            hl:=current_procinfo.CurrTrueLabel;
-            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-            current_procinfo.CurrFalseLabel:=hl;
-            secondpass(left);
-            hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
-            hl:=current_procinfo.CurrTrueLabel;
-            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-            current_procinfo.CurrFalseLabel:=hl;
-            location.loc:=LOC_JUMP;
-          end
-        else
-          begin
-            secondpass(left);
-            case left.location.loc of
-              LOC_REGISTER, LOC_CREGISTER,
-              LOC_REFERENCE, LOC_CREFERENCE:
-                begin
-                  location_reset(location,LOC_REGISTER,left.location.size);
-                  location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-                  thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-                  thlcgjvm(hlcg).a_op_reg_stack(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,NR_NO);
-                  thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
-                end;
-              else
-                internalerror(2011010417);
-            end;
-          end;
+        hl:=current_procinfo.CurrTrueLabel;
+        current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
+        current_procinfo.CurrFalseLabel:=hl;
+        secondpass(left);
+        hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
+        hl:=current_procinfo.CurrTrueLabel;
+        current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
+        current_procinfo.CurrFalseLabel:=hl;
+        location.loc:=LOC_JUMP;
       end;
 
+
+{*****************************************************************************
+                            tjvmunaryminustnode
+*****************************************************************************}
 
     procedure tjvmunaryminusnode.second_float;
       var

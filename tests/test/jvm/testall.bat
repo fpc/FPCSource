@@ -232,4 +232,8 @@ ppcjvm -O2 -g -B tassert
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa tassert
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B taddbool
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. -Sa TAddBool
+if %errorlevel% neq 0 exit /b %errorlevel%
 
