@@ -293,6 +293,9 @@ var
   // GLX_ARB_create_context
   //glXCreateContextAttribsARB -> internal_glXCreateContextAttribsARB in implementation
 
+  // GLX_EXT_swap_control
+  glXSwapIntervalEXT: function(dpy: PDisplay; drawable: TGLXDrawable; interval: cint): cint; cdecl;
+
   // GLX_MESA_pixmap_colormap
   glXCreateGLXPixmapMESA: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap; cmap: XColormap): GLXPixmap; cdecl;
 
@@ -356,6 +359,7 @@ function GLX_ARB_create_context(Display: PDisplay; Screen: Integer): boolean;
 function GLX_ARB_create_context_profile(Display: PDisplay; Screen: Integer): boolean;
 function GLX_ARB_create_context_robustness(Display: PDisplay; Screen: Integer): boolean;
 function GLX_ARB_multisample(Display: PDisplay; Screen: Integer): boolean;
+function GLX_EXT_swap_control(Display: PDisplay; Screen: Integer): boolean;
 function GLX_EXT_visual_info(Display: PDisplay; Screen: Integer): boolean;
 function GLX_MESA_pixmap_colormap(Display: PDisplay; Screen: Integer): boolean;
 function GLX_MESA_swap_control(Display: PDisplay; Screen: Integer): boolean;
@@ -557,6 +561,19 @@ begin
   end;
 end;
 
+function GLX_EXT_swap_control(Display: PDisplay; Screen: Integer): boolean;
+var
+  GlxExtensions: PChar;
+begin
+  Result := GLX_version_1_1(Display);
+  if Result then
+  begin
+    GlxExtensions := glXQueryExtensionsString(Display, Screen);
+    Result := glext_ExtensionSupported('GLX_EXT_swap_control', GlxExtensions) and
+      Assigned(glXSwapIntervalEXT);
+  end;
+end;
+
 function GLX_EXT_visual_info(Display: PDisplay; Screen: Integer): boolean;
 var
   GlxExtensions: PChar;
@@ -717,6 +734,8 @@ begin
   // Extensions
   // GLX_ARB_create_context
   internal_glXCreateContextAttribsARB := GetProc(OurLibGL, 'glXCreateContextAttribsARB');
+  // GLX_EXT_swap_control
+  glXSwapIntervalEXT := GetProc(OurLibGL, 'glXSwapIntervalEXT');
   // GLX_MESA_pixmap_colormap
   glXCreateGLXPixmapMESA := GetProc(OurLibGL, 'glXCreateGLXPixmapMESA');
   // GLX_MESA_swap_control
