@@ -6,15 +6,15 @@
 main=fcl-db
 
 [target]
-dirs_beos=interbase postgres mysql odbc oracle sqlite
-dirs_linux=interbase postgres mysql odbc oracle sqlite
-dirs_freebsd=interbase postgres mysql odbc oracle sqlite
-dirs_darwin=interbase postgres mysql odbc oracle sqlite
+dirs_beos=interbase postgres mysql odbc oracle sqlite mssql
+dirs_linux=interbase postgres mysql odbc oracle sqlite mssql 
+dirs_freebsd=interbase postgres mysql odbc oracle sqlite mssql
+dirs_darwin=interbase postgres mysql odbc oracle sqlite 
 dirs_iphonesim=interbase postgres mysql odbc oracle sqlite
-dirs_netbsd=interbase postgres mysql odbc oracle sqlite
-dirs_openbsd=interbase postgres mysql odbc oracle sqlite
-dirs_win32=interbase postgres mysql odbc oracle sqlite
-dirs_win64=interbase odbc mysql sqlite
+dirs_netbsd=interbase postgres mysql odbc oracle sqlite mssql
+dirs_openbsd=interbase postgres mysql odbc oracle sqlite mssql
+dirs_win32=interbase postgres mysql odbc oracle sqlite mssql
+dirs_win64=interbase odbc mysql sqlite mssql
 dirs_wince=interbase postgres mysql odbc oracle sqlite
 units=sqldb
 rsts=sqldb

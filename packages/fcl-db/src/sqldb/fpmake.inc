@@ -18,4 +18,7 @@ T.ResourceStrings:=True;
 
 { Interbase/Firebird }
 {$i interbase/fpmake.inc}
+
+{ MS SQL }
+{$i mssql/fpmake.inc}
     
