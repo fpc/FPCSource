@@ -147,6 +147,15 @@ type
     LinePos: Integer;
   end;
 
+  IXmlLineInfo = interface(IInterface)['{FD0A892B-B26C-4954-9995-103B2A9D178A}']
+    function GetHasLineInfo: Boolean;
+    function GetLineNumber: Integer;
+    function GetLinePosition: Integer;
+    property HasLineInfo: Boolean read GetHasLineInfo;
+    property LineNumber: Integer read GetLineNumber;
+    property LinePosition: Integer read GetLinePosition;
+  end;
+
 { generic node info record, shared between DOM and reader }
 
   PNodeData = ^TNodeData;

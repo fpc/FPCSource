@@ -268,7 +268,7 @@ type
 
   TLiteralType = (ltPlain, ltPubid, ltEntity);
 
-  TXMLTextReader = class(TXMLReader)
+  TXMLTextReader = class(TXMLReader, IXmlLineInfo)
   private
     FSource: TXMLCharSource;
     FNameTable: THashTable;
@@ -341,6 +341,9 @@ type
     procedure SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
     function SetupFakeLF(nextstate: TXMLToken): Boolean;
     function AddId(aNodeData: PNodeData): Boolean;
+    function QueryInterface(constref iid: TGUID; out obj): HRESULT; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   protected
     FNesting: Integer;
     FCurrNode: PNodeData;
@@ -392,6 +395,7 @@ type
     procedure ParseAttribute(ElDef: TElementDecl);
     function  ReadTopLevel: Boolean;
     procedure NextAttrValueChunk;
+    function  GetHasLineInfo: Boolean;
     function  GetLineNumber: Integer;
     function  GetLinePosition: Integer;
   public
@@ -999,6 +1003,24 @@ begin
 end;
 
 { TXMLTextReader }
+
+function TXMLTextReader.QueryInterface(constref iid: TGUID; out obj): HRESULT; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+  if GetInterface(iid,obj) then
+    result := S_OK
+  else
+    result:= E_NOINTERFACE;
+end;
+
+function TXMLTextReader._AddRef: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+  result := -1;
+end;
+
+function TXMLTextReader._Release: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+  result := -1;
+end;
 
 procedure TXMLTextReader.ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
 begin
@@ -1746,9 +1768,12 @@ var
   start: TObject;
   curr: PNodeData;
   StartPos: Integer;
+  StartLoc: TLocation;
   entName: PHashItem;
 begin
   SkipQuote(Delim);
+  AttrData^.FLoc2 := FTokenStart;
+  StartLoc := FTokenStart;
   curr := AttrData;
   FValue.Length := 0;
   StartPos := 0;
@@ -1767,10 +1792,16 @@ begin
       if ((ent = nil) or (not FExpandEntities)) and (FSource.FEntity = start) then
       begin
         if FValue.Length > StartPos then
+        begin
           AllocAttributeValueChunk(curr, StartPos);
+          curr^.FLoc := StartLoc;
+        end;
         AllocAttributeValueChunk(curr, FValue.Length);
         curr^.FNodeType := ntEntityReference;
         curr^.FQName := entName;
+        StoreLocation(StartLoc);
+        curr^.FLoc := StartLoc;
+        Dec(curr^.FLoc.LinePos, FName.Length+1);
       end;
       StartPos := FValue.Length;
       if Assigned(ent) then
@@ -1796,7 +1827,10 @@ begin
   begin
     FAttrCleanupFlag := True;
     if FValue.Length > StartPos then
+    begin
       AllocAttributeValueChunk(curr, StartPos);
+      curr^.FLoc := StartLoc;
+    end;
   end;
   if nonCDATA then
     BufNormalize(FValue, attrData^.FDenormalized)
@@ -2193,6 +2227,7 @@ end;
 procedure TXMLTextReader.ParseDoctypeDecl;    // [28]
 var
   Src: TXMLCharSource;
+  DTDName: PHashItem;
 begin
   if FState >= rsDTD then
     FatalError('Markup declaration is not allowed here');
@@ -2208,6 +2243,7 @@ begin
 
   CheckName;
   SetString(FDocType.FName, FName.Buffer, FName.Length);
+  DTDName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
   SkipS(True);
   ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, False);
   SkipS;
@@ -2249,7 +2285,9 @@ begin
     end;
   end;
   FState := rsAfterDTD;
-  FCurrNode^.FNodeType := ntDocumentType;
+  FValue.Length := 0;
+  BufAppendString(FValue, FDocType.FInternalSubset);
+  SetNodeInfoWithValue(ntDocumentType, DTDName);
 end;
 
 procedure TXMLTextReader.ExpectEq;   // [25]
@@ -2792,6 +2830,8 @@ end;
 procedure TXMLTextReader.Close;
 begin
   FReadState := rsClosed;
+  FTokenStart.Line := 0;
+  FTokenStart.LinePos := 0;
 end;
 
 function TXMLTextReader.GetAttributeCount: Integer;
@@ -2882,14 +2922,27 @@ begin
   result := FSource.SystemID;
 end;
 
+{ IXmlLineInfo methods }
+
+function TXMLTextReader.GetHasLineInfo: Boolean;
+begin
+  result := True;
+end;
+
 function TXMLTextReader.GetLineNumber: Integer;
 begin
-  result := FCurrNode^.FLoc.Line;
+  if (FCurrNode^.FNodeType in [ntElement,ntAttribute]) or (FAttrReadState <> arsNone) then
+    result := FCurrNode^.FLoc.Line
+  else
+    result := FTokenStart.Line;
 end;
 
 function TXMLTextReader.GetLinePosition: Integer;
 begin
-  result := FCurrNode^.FLoc.LinePos;
+  if (FCurrNode^.FNodeType in [ntElement,ntAttribute]) or (FAttrReadState <> arsNone) then
+    result := FCurrNode^.FLoc.LinePos
+  else
+    result := FTokenStart.LinePos;
 end;
 
 function TXMLTextReader.LookupNamespace(const APrefix: XMLString): XMLString;
@@ -2999,6 +3052,7 @@ begin
   end;
 
   FCurrNode := @FNodeStack[FNesting+FAttrCount+1];
+  StoreLocation(FCurrNode^.FLoc);
   FValue.Length := 0;
   if FAttrReadState = arsText then
   repeat
@@ -3033,19 +3087,12 @@ begin
 
   if tok = arsEntity then
   begin
-    FCurrNode^.FNodeType := ntEntityReference;
-    FCurrNode^.FQName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
-    FCurrNode^.FValueStart := nil;
-    FCurrNode^.FValueLength := 0;
-    FCurrNode^.FValueStr := '';
+    HandleEntityStart;
     FAttrReadState := arsText;
   end
   else if tok = arsEntityEnd then
   begin
-    ContextPop(True);
-    Dec(FNesting);
-    FCurrNode := @FNodeStack[FNesting+FAttrCount+1];
-    FCurrNode^.FNodeType := ntEndEntity;
+    HandleEntityEnd;
     FAttrReadState := arsText;
   end;
 end;
@@ -3219,21 +3266,26 @@ end;
 
 procedure TXMLTextReader.HandleEntityStart;
 begin
-  FCurrNode := @FNodeStack[FNesting];
+  FCurrNode := @FNodeStack[FNesting+(FAttrCount+1)*ord(FAttrReadState<>arsNone)];
   FCurrNode^.FNodeType := ntEntityReference;
   FCurrNode^.FQName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
+  FCurrNode^.FColonPos := -1;
   FCurrNode^.FValueStart := nil;
   FCurrNode^.FValueLength := 0;
+  FCurrNode^.FValueStr := '';
+  StoreLocation(FCurrNode^.FLoc);
+  { point past '&' to first char of entity name }
+  Dec(FCurrNode^.FLoc.LinePos, FName.Length+1);
 end;
 
 procedure TXMLTextReader.HandleEntityEnd;
 begin
   ContextPop(True);
   if FNesting > 0 then Dec(FNesting);
-  FCurrNode := @FNodeStack[FNesting];
+  FCurrNode := @FNodeStack[FNesting+(FAttrCount+1)*ord(FAttrReadState<>arsNone)];
   FCurrNode^.FNodeType := ntEndEntity;
-  // TODO: other properties of FCurrNode
-  FNext := xtText;
+  { point to trailing ';' }
+  Inc(FCurrNode^.FLoc.LinePos, Length(FCurrNode^.FQName^.Key));
 end;
 
 procedure TXMLTextReader.ResolveEntity;
@@ -3252,6 +3304,7 @@ begin
     if n <> FCurrNode then
       n^ := FCurrNode^;
 
+    ent := nil;
     if Assigned(FDocType) then
       ent := FDocType.Entities.Get(PWideChar(n^.FQName^.Key),Length(n^.FQName^.Key)) as TEntityDecl;
     if ent = nil then
@@ -3754,6 +3807,8 @@ begin
 
   FCurrNode := @FNodeStack[FNesting];  // move off the possible child
   FCurrNode^.FNodeType := ntEndElement;
+  Inc(FTokenStart.LinePos, 2);         // move over '</' chars
+  FCurrNode^.FLoc := FTokenStart;
   ElName := FCurrNode^.FQName;
 
   CheckName;
@@ -3766,7 +3821,6 @@ begin
     SkipS;
     ExpectChar('>');
   end;
-  Inc(FTokenStart.LinePos, 2);   // move over '</' chars
   FNext := xtPopElement;
 end;
 
@@ -3822,7 +3876,6 @@ begin
 
   ExpectEq;
   ExpectAttValue(attrData, Assigned(AttDef) and (AttDef.DataType <> dtCDATA));
-  attrData^.FLoc2 := FTokenStart;
 
   if Assigned(attrData^.FNsUri) then
   begin
