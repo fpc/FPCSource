@@ -79,6 +79,7 @@ type
     destructor Destroy; override;
     function AddEnumToken(Buf: PWideChar; Len: Integer): Boolean;
     function HasEnumToken(const aValue: XMLString): Boolean;
+    function ValidateSyntax(const aValue: XMLString; Namespaces: Boolean): Boolean;
     property Data: PNodeData read FData;
     property Default: TAttrDefault read FDefault write FDefault;
     property DataType: TAttrDataType read FDataType write FDataType;
@@ -443,6 +444,22 @@ begin
       Exit;
   end;
   Result := False;
+end;
+
+function TAttributeDef.ValidateSyntax(const aValue: XMLString; Namespaces: Boolean): Boolean;
+begin
+  case FDataType of
+    dtId, dtIdRef, dtEntity: Result := IsXmlName(aValue) and
+      ((not Namespaces) or (Pos(WideChar(':'), aValue) = 0));
+    dtIdRefs, dtEntities: Result := IsXmlNames(aValue) and
+      ((not Namespaces) or (Pos(WideChar(':'), aValue) = 0));
+    dtNmToken: Result := IsXmlNmToken(aValue) and HasEnumToken(aValue);
+    dtNmTokens: Result := IsXmlNmTokens(aValue);
+    // IsXmlName() not necessary - enum is never empty and contains valid names
+    dtNotation: Result := HasEnumToken(aValue);
+  else
+    Result := True;
+  end;
 end;
 
 end.

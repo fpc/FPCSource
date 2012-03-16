@@ -156,8 +156,6 @@ type
 
   TXMLSourceKind = (skNone, skInternalSubset, skManualPop);
 
-  TLocation = xmlutils.TLocation;
-
   TDOMEntityEx = class(TDOMEntity);
 
   TXMLTextReader = class;
@@ -327,7 +325,6 @@ type
     function ContextPop(Forced: Boolean = False): Boolean;
     function ParseQuantity: TCPQuant;
     procedure StoreLocation(out Loc: TLocation);
-    function ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: XMLString): Boolean;
     procedure ValidateAttrValue(AttrDef: TAttributeDef; attrData: PNodeData);
     procedure AddForwardRef(Buf: PWideChar; Length: Integer);
     procedure ClearForwardRefs;
@@ -353,7 +350,6 @@ type
     FNodeStack: TNodeDataDynArray;
     FValidatorNesting: Integer;
     FValidators: TValidatorDynArray;
-    FAttrChunks: TFPList;
     FFreeAttrChunk: PNodeData;
     FAttrCleanupFlag: Boolean;
     // ReadAttributeValue state
@@ -1283,8 +1279,6 @@ begin
   inherited Create;
   BufAllocate(FName, 128);
   BufAllocate(FValue, 512);
-  FForwardRefs := TFPList.Create;
-  FAttrChunks := TFPList.Create;
 
   SetLength(FNodeStack, 16);
   SetLength(FValidators, 16);
@@ -1354,10 +1348,17 @@ end;
 
 destructor TXMLTextReader.Destroy;
 var
-  i: Integer;
+  cur: PNodeData;
 begin
-  for i := FAttrChunks.Count-1 downto 0 do
-    Dispose(PNodeData(FAttrChunks.List^[i]));
+  if FAttrCleanupFlag then
+    CleanupAttributes;
+  while Assigned(FFreeAttrChunk) do
+  begin
+    cur := FFreeAttrChunk;
+    FFreeAttrChunk := cur^.FNext;
+    Dispose(cur);
+  end;
+
   if Assigned(FEntityValue.Buffer) then
     FreeMem(FEntityValue.Buffer);
   FreeMem(FName.Buffer);
@@ -1372,7 +1373,6 @@ begin
   FDocType.Release;
   FIDMap.Free;
   FForwardRefs.Free;
-  FAttrChunks.Free;
   if FNameTableOwned then
     FNameTable.Free;
   inherited Destroy;
@@ -2523,7 +2523,8 @@ begin
               if not AttDef.AddEnumToken(FName.Buffer, FName.Length) then
                 ValidationError('Duplicate token in NOTATION attribute declaration',[], FName.Length);
 
-              if (not DiscardIt) and FValidate then
+              if (not DiscardIt) and FValidate and
+                (FDocType.Notations.Get(FName.Buffer,FName.Length)=nil) then
                 AddForwardRef(FName.Buffer, FName.Length);
               SkipWhitespace;
             until not CheckForChar('|');
@@ -2563,7 +2564,7 @@ begin
 // See comments to valid-sa-094: PE expansion should be disabled in AttDef.
         ExpectAttValue(AttDef.Data, dt <> dtCDATA);
 
-        if not ValidateAttrSyntax(AttDef, AttDef.Data^.FValueStr) then
+        if not AttDef.ValidateSyntax(AttDef.Data^.FValueStr, FNamespaces) then
           ValidationError('Default value for attribute ''%s'' has wrong syntax', [attrName^.Key]);
       end;
       // SAX: DeclHandler.AttributeDecl(...)
@@ -2635,7 +2636,7 @@ begin
           StoreLocation(FTokenStart);  { needed for AddForwardRef }
           CheckName;
           SetString(Entity.FNotationName, FName.Buffer, FName.Length);
-          if FValidate then
+          if FValidate and (FDocType.Notations.Get(FName.Buffer, FName.Length)=nil) then
             AddForwardRef(FName.Buffer, FName.Length);
           // SAX: DTDHandler.UnparsedEntityDecl(...);
         end;
@@ -3157,7 +3158,7 @@ begin
             // TODO: what about normalization of AttDef.Value? (Currently it IS normalized)
             if (AttDef.Default = adFixed) and (AttDef.Data^.FValueStr <> attr^.FValueStr) then
               DoErrorPos(esError, 'Value of attribute ''%s'' does not match its #FIXED default',[attr^.FQName^.Key], attr^.FLoc2);
-            if not ValidateAttrSyntax(AttDef, attr^.FValueStr) then
+            if not AttDef.ValidateSyntax(attr^.FValueStr, FNamespaces) then
               DoErrorPos(esError, 'Attribute ''%s'' type mismatch', [attr^.FQName^.Key], attr^.FLoc2);
             ValidateAttrValue(AttDef, attr);
           end;
@@ -3838,6 +3839,8 @@ procedure TXMLTextReader.AddForwardRef(Buf: PWideChar; Length: Integer);
 var
   w: PForwardRef;
 begin
+  if FForwardRefs = nil then
+    FForwardRefs := TFPList.Create;
   New(w);
   SetString(w^.Value, Buf, Length);
   w^.Loc := FTokenStart;
@@ -3848,20 +3851,26 @@ procedure TXMLTextReader.ClearForwardRefs;
 var
   I: Integer;
 begin
-  for I := 0 to FForwardRefs.Count-1 do
-    Dispose(PForwardRef(FForwardRefs.List^[I]));
-  FForwardRefs.Clear;
+  if Assigned(FForwardRefs) then
+  begin
+    for I := 0 to FForwardRefs.Count-1 do
+      Dispose(PForwardRef(FForwardRefs.List^[I]));
+    FForwardRefs.Clear;
+  end;
 end;
 
 procedure TXMLTextReader.ValidateIdRefs;
 var
   I: Integer;
 begin
-  for I := 0 to FForwardRefs.Count-1 do
-    with PForwardRef(FForwardRefs.List^[I])^ do
-      if (FIDMap = nil) or (FIDMap.Find(PWideChar(Value), Length(Value)) = nil) then
-        DoErrorPos(esError, 'The ID ''%s'' does not match any element', [Value], Loc);
-  ClearForwardRefs;
+  if Assigned(FForwardRefs) then
+  begin
+    for I := 0 to FForwardRefs.Count-1 do
+      with PForwardRef(FForwardRefs.List^[I])^ do
+        if (FIDMap = nil) or (FIDMap.Find(PWideChar(Value), Length(Value)) = nil) then
+          DoErrorPos(esError, 'The ID ''%s'' does not match any element', [Value], Loc);
+    ClearForwardRefs;
+  end;
 end;
 
 procedure TXMLTextReader.ProcessDefaultAttributes(ElDef: TElementDecl);
@@ -3996,22 +4005,6 @@ begin
   Result := True;
 end;
 
-function TXMLTextReader.ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: XMLString): Boolean;
-begin
-  case AttrDef.DataType of
-    dtId, dtIdRef, dtEntity: Result := IsXmlName(aValue) and
-      ((not FNamespaces) or (Pos(WideChar(':'), aValue) = 0));
-    dtIdRefs, dtEntities: Result := IsXmlNames(aValue) and
-      ((not FNamespaces) or (Pos(WideChar(':'), aValue) = 0));
-    dtNmToken: Result := IsXmlNmToken(aValue) and AttrDef.HasEnumToken(aValue);
-    dtNmTokens: Result := IsXmlNmTokens(aValue);
-    // IsXmlName() not necessary - enum is never empty and contains valid names
-    dtNotation: Result := AttrDef.HasEnumToken(aValue);
-  else
-    Result := True;
-  end;
-end;
-
 procedure TXMLTextReader.ValidateAttrValue(AttrDef: TAttributeDef; attrData: PNodeData);
 var
   L, StartPos, EndPos: Integer;
@@ -4057,10 +4050,13 @@ procedure TXMLTextReader.ValidateDTD;
 var
   I: Integer;
 begin
-  for I := 0 to FForwardRefs.Count-1 do
-    with PForwardRef(FForwardRefs[I])^ do
-      if FDocType.Notations.Get(PWideChar(Value), Length(Value)) = nil then
-        DoErrorPos(esError, 'Notation ''%s'' is not declared', [Value], Loc);
+  if Assigned(FForwardRefs) then
+  begin
+    for I := 0 to FForwardRefs.Count-1 do
+      with PForwardRef(FForwardRefs[I])^ do
+        if FDocType.Notations.Get(PWideChar(Value), Length(Value)) = nil then
+          DoErrorPos(esError, 'Notation ''%s'' is not declared', [Value], Loc);
+  end;
 end;
 
 procedure TXMLTextReader.DoNotationDecl(const aName, aPubID, aSysID: XMLString);
@@ -4128,17 +4124,13 @@ begin
     chunk^.FNext := nil;
   end
   else { no free chunks, create a new one }
-  begin
-    New(chunk);
-    FillChar(chunk^, sizeof(TNodeData), 0);
-    if FState <> rsDTD then
-      FAttrChunks.Add(chunk);
-  end;
+    chunk := AllocMem(sizeof(TNodeData));
   APrev^.FNext := chunk;
   APrev := chunk;
   { assume text node, for entity refs it is overridden later }
   chunk^.FNodeType := ntText;
   chunk^.FQName := nil;
+  chunk^.FColonPos := -1;
   { without PWideChar typecast and in $T-, FPC treats '@' result as PAnsiChar... }
   SetString(chunk^.FValueStr, PWideChar(@FValue.Buffer[Offset]), FValue.Length-Offset);
 end;
@@ -4173,6 +4165,7 @@ begin
   FCurrNode := @FNodeStack[FNesting];
   FCurrNode^.FNodeType := typ;
   FCurrNode^.FQName := AName;
+  FCurrNode^.FColonPos := -1;
   FCurrNode^.FValueStart := FValue.Buffer;
   FCurrNode^.FValueLength := FValue.Length;
 end;
