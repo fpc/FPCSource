@@ -1993,10 +1993,19 @@ implementation
         above. We still may have to truncare or sign extend in case the
         destination type is smaller that the source type, or has a different
         sign. In case the destination is a widechar and the source is not, we
-        also have to insert a conversion to widechar }
+        also have to insert a conversion to widechar.
+
+        In case of Dalvik, we also have to insert conversions for e.g. byte
+        -> smallint, because truncating a byte happens via "and 255", and the
+        result is a longint in Dalvik's type verification model (so we have
+        to "truncate" it back to smallint) }
       if (not(fromcgsize in [OS_S64,OS_64,OS_32,OS_S32]) or
           not(tocgsize in [OS_S64,OS_64,OS_32,OS_S32])) and
-         ((tcgsize2size[fromcgsize]>tcgsize2size[tocgsize]) or
+         (((current_settings.cputype=cpu_dalvik) and
+           not(tocgsize in [OS_32,OS_S32]) and
+           not is_signed(fromsize) and
+           is_signed(tosize)) or
+          (tcgsize2size[fromcgsize]>tcgsize2size[tocgsize]) or
           ((tcgsize2size[fromcgsize]=tcgsize2size[tocgsize]) and
            (fromcgsize<>tocgsize)) or
           { needs to mask out the sign in the top 16 bits }
