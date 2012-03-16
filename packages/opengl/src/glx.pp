@@ -37,7 +37,7 @@ interface
 
 {$IFDEF Unix}
   uses
-    X, XLib, XUtil;
+    ctypes, X, XLib, XUtil;
   {$DEFINE HasGLX}  // Activate GLX stuff
 {$ELSE}
   {$MESSAGE Unsupported platform.}
@@ -237,50 +237,50 @@ type
   TGLXPbuffer = TXID;
 
 var
-  glXChooseVisual: function(dpy: PDisplay; screen: Integer; attribList: PInteger): PXVisualInfo; cdecl;
-  glXCreateContext: function(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: Boolean): GLXContext; cdecl;
+  glXChooseVisual: function(dpy: PDisplay; screen: cint; attribList: Pcint): PXVisualInfo; cdecl;
+  //glXCreateContext -> internal_glXCreateContext in implementation
   glXDestroyContext: procedure(dpy: PDisplay; ctx: GLXContext); cdecl;
-  glXMakeCurrent: function(dpy: PDisplay; drawable: GLXDrawable; ctx: GLXContext): Boolean; cdecl;
-  glXCopyContext: procedure(dpy: PDisplay; src, dst: GLXContext; mask: LongWord); cdecl;
+  glXMakeCurrent: function(dpy: PDisplay; drawable: GLXDrawable; ctx: GLXContext): TBoolResult; cdecl;
+  glXCopyContext: procedure(dpy: PDisplay; src, dst: GLXContext; mask: culong); cdecl;
   glXSwapBuffers: procedure(dpy: PDisplay; drawable: GLXDrawable); cdecl;
   glXCreateGLXPixmap: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap): GLXPixmap; cdecl;
   glXDestroyGLXPixmap: procedure(dpy: PDisplay; pixmap: GLXPixmap); cdecl;
-  glXQueryExtension: function(dpy: PDisplay; var errorb, event: Integer): Boolean; cdecl;
-  glXQueryVersion: function(dpy: PDisplay; var maj, min: Integer): Boolean; cdecl;
-  glXIsDirect: function(dpy: PDisplay; ctx: GLXContext): Boolean; cdecl;
-  glXGetConfig: function(dpy: PDisplay; visual: PXVisualInfo; attrib: Integer; var value: Integer): Integer; cdecl;
+  glXQueryExtension: function(dpy: PDisplay; var errorb, event: cint): TBoolResult; cdecl;
+  glXQueryVersion: function(dpy: PDisplay; var maj, min: cint): TBoolResult; cdecl;
+  glXIsDirect: function(dpy: PDisplay; ctx: GLXContext): TBoolResult; cdecl;
+  glXGetConfig: function(dpy: PDisplay; visual: PXVisualInfo; attrib: cint; var value: cint): cint; cdecl;
   glXGetCurrentContext: function: GLXContext; cdecl;
   glXGetCurrentDrawable: function: GLXDrawable; cdecl;
   glXWaitGL: procedure; cdecl;
   glXWaitX: procedure; cdecl;
-  glXUseXFont: procedure(font: XFont; first, count, list: Integer); cdecl;
+  glXUseXFont: procedure(font: XFont; first, count, list: cint); cdecl;
 
   // GLX 1.1 and later
-  glXQueryExtensionsString: function(dpy: PDisplay; screen: Integer): PChar; cdecl;
-  glXQueryServerString: function(dpy: PDisplay; screen, name: Integer): PChar; cdecl;
-  glXGetClientString: function(dpy: PDisplay; name: Integer): PChar; cdecl;
+  glXQueryExtensionsString: function(dpy: PDisplay; screen: cint): PChar; cdecl;
+  glXQueryServerString: function(dpy: PDisplay; screen, name: cint): PChar; cdecl;
+  glXGetClientString: function(dpy: PDisplay; name: cint): PChar; cdecl;
 
   // GLX 1.2 and later
   glXGetCurrentDisplay: function: PDisplay; cdecl;
 
   // GLX 1.3 and later
-  glXChooseFBConfig: function(dpy: PDisplay; screen: Integer; attribList: PInteger; var nitems: Integer): PGLXFBConfig; cdecl;
-  glXGetFBConfigAttrib: function(dpy: PDisplay; config: TGLXFBConfig; attribute: Integer; var value: Integer): Integer; cdecl;
-  glXGetFBConfigs: function(dpy: PDisplay; screen: Integer; var nelements: Integer): PGLXFBConfig; cdecl;
+  glXChooseFBConfig: function(dpy: PDisplay; screen: cint; attribList: Pcint; var nitems: cint): PGLXFBConfig; cdecl;
+  glXGetFBConfigAttrib: function(dpy: PDisplay; config: TGLXFBConfig; attribute: cint; var value: cint): cint; cdecl;
+  glXGetFBConfigs: function(dpy: PDisplay; screen: cint; var nelements: cint): PGLXFBConfig; cdecl;
   glXGetVisualFromFBConfig: function(dpy: PDisplay; config: TGLXFBConfig): PXVisualInfo; cdecl;
-  glXCreateWindow: function(dpy: PDisplay; config: TGLXFBConfig; win: X.TWindow; attribList: PInteger): TGLXWindow; cdecl;
+  glXCreateWindow: function(dpy: PDisplay; config: TGLXFBConfig; win: X.TWindow; attribList: Pcint): TGLXWindow; cdecl;
   glXDestroyWindow: procedure (dpy: PDisplay; window: TGLXWindow); cdecl;
-  glXCreatePixmap: function(dpy: PDisplay; config: TGLXFBConfig; pixmap: TXPixmap; attribList: PInteger): TGLXPixmap; cdecl;
+  glXCreatePixmap: function(dpy: PDisplay; config: TGLXFBConfig; pixmap: TXPixmap; attribList: Pcint): TGLXPixmap; cdecl;
   glXDestroyPixmap: procedure (dpy: PDisplay; pixmap: TGLXPixmap); cdecl;
-  glXCreatePbuffer: function(dpy: PDisplay; config: TGLXFBConfig; attribList: PInteger): TGLXPbuffer; cdecl;
+  glXCreatePbuffer: function(dpy: PDisplay; config: TGLXFBConfig; attribList: Pcint): TGLXPbuffer; cdecl;
   glXDestroyPbuffer: procedure (dpy: PDisplay; pbuf: TGLXPbuffer); cdecl;
-  glXQueryDrawable: procedure (dpy: PDisplay; draw: TGLXDrawable; attribute: Integer; value: PLongWord); cdecl;
-  glXCreateNewContext: function(dpy: PDisplay; config: TGLXFBConfig; renderType: Integer; shareList: TGLXContext; direct: boolean): TGLXContext; cdecl;
-  glXMakeContextCurrent: function(dpy: PDisplay; draw: TGLXDrawable; read: GLXDrawable; ctx: TGLXContext): boolean; cdecl;
+  glXQueryDrawable: procedure (dpy: PDisplay; draw: TGLXDrawable; attribute: cint; value: Pcuint); cdecl;
+  //glXCreateNewContext -> internal_glXCreateNewContext in implementation
+  glXMakeContextCurrent: function(dpy: PDisplay; draw: TGLXDrawable; read: GLXDrawable; ctx: TGLXContext): TBoolResult; cdecl;
   glXGetCurrentReadDrawable: function: TGLXDrawable; cdecl;
-  glXQueryContext: function(dpy: PDisplay; ctx: TGLXContext; attribute: Integer; var value: Integer): Integer; cdecl;
-  glXSelectEvent: procedure (dpy: PDisplay; drawable: TGLXDrawable; mask: LongWord); cdecl;
-  glXGetSelectedEvent: procedure (dpy: PDisplay; drawable: TGLXDrawable; mask: PLongWord); cdecl;
+  glXQueryContext: function(dpy: PDisplay; ctx: TGLXContext; attribute: cint; var value: cint): cint; cdecl;
+  glXSelectEvent: procedure (dpy: PDisplay; drawable: TGLXDrawable; mask: culong); cdecl;
+  glXGetSelectedEvent: procedure (dpy: PDisplay; drawable: TGLXDrawable; mask: Pculong); cdecl;
 
   // GLX 1.4 and later
   glXGetProcAddress: function(procname: PChar): Pointer; cdecl;
@@ -291,29 +291,34 @@ var
   glXGetProcAddressARB: function(procname: PChar): Pointer; cdecl;
 
   // GLX_ARB_create_context
-  glXCreateContextAttribsARB: function (dpy: PDisplay; config: TGLXFBConfig; share_context: TGLXContext; direct: boolean; attrib_list: PInteger): TGLXContext; cdecl;
+  //glXCreateContextAttribsARB -> internal_glXCreateContextAttribsARB in implementation
 
   // GLX_MESA_pixmap_colormap
   glXCreateGLXPixmapMESA: function(dpy: PDisplay; visual: PXVisualInfo; pixmap: XPixmap; cmap: XColormap): GLXPixmap; cdecl;
 
   // GLX_MESA_swap_control
-  glXSwapIntervalMESA: function(interval: LongWord): Integer; cdecl;
-  glXGetSwapIntervalMESA: function: Integer; cdecl;
+  glXSwapIntervalMESA: function(interval: cuint): cint; cdecl;
+  glXGetSwapIntervalMESA: function: cint; cdecl;
 
   // Unknown Mesa GLX extension (undocumented in current GLX C headers?)
-  glXReleaseBufferMESA: function(dpy: PDisplay; d: GLXDrawable): Boolean; cdecl;
-  glXCopySubBufferMESA: procedure(dpy: PDisplay; drawbale: GLXDrawable; x, y, width, height: Integer); cdecl;
+  glXReleaseBuffersMESA: function(dpy: PDisplay; d: GLXDrawable): TBoolResult; cdecl;
+  glXCopySubBufferMESA: procedure(dpy: PDisplay; drawable: GLXDrawable; x, y, width, height: cint); cdecl;
 
   // GLX_SGI_swap_control
-  glXSwapIntervalSGI: function(interval: Integer): Integer; cdecl;
+  glXSwapIntervalSGI: function(interval: cint): cint; cdecl;
 
   // GLX_SGI_video_sync
-  glXGetVideoSyncSGI: function(var counter: LongWord): Integer; cdecl;
-  glXWaitVideoSyncSGI: function(divisor, remainder: Integer; var count: LongWord): Integer; cdecl;
+  glXGetVideoSyncSGI: function(var count: cuint): cint; cdecl;
+  glXWaitVideoSyncSGI: function(divisor, remainder: cint; var count: cuint): cint; cdecl;
 
 // =======================================================
 //
 // =======================================================
+
+// Overloaded functions to handle TBool parameters as actual booleans.
+function glXCreateContext(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: Boolean): GLXContext;
+function glXCreateNewContext(dpy: PDisplay; config: TGLXFBConfig; renderType: cint; shareList: TGLXContext; direct: Boolean): TGLXContext;
+function glXCreateContextAttribsARB(dpy: PDisplay; config: TGLXFBConfig; share_context: TGLXContext; direct: Boolean; attrib_list: Pcint): TGLXContext;
 
 {
   Safe checking of glX version and extension presence.
@@ -364,6 +369,26 @@ uses GL, dynlibs, GLExt { for glext_ExtensionSupported utility };
 
 {$LINKLIB m}
 
+var
+  internal_glXCreateContext: function(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: TBool): GLXContext; cdecl;
+  internal_glXCreateNewContext: function(dpy: PDisplay; config: TGLXFBConfig; renderType: cint; shareList: TGLXContext; direct: TBool): TGLXContext; cdecl;
+  internal_glXCreateContextAttribsARB: function (dpy: PDisplay; config: TGLXFBConfig; share_context: TGLXContext; direct: TBool; attrib_list: Pcint): TGLXContext; cdecl;
+
+function glXCreateContext(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: Boolean): GLXContext;
+begin
+  Result := internal_glXCreateContext(dpy, vis, shareList, Ord(direct));
+end;
+
+function glXCreateNewContext(dpy: PDisplay; config: TGLXFBConfig; renderType: cint; shareList: TGLXContext; direct: Boolean): TGLXContext;
+begin
+  Result := internal_glXCreateNewContext(dpy, config, renderType, shareList, Ord(direct));
+end;
+
+function glXCreateContextAttribsARB(dpy: PDisplay; config: TGLXFBConfig; share_context: TGLXContext; direct: Boolean; attrib_list: Pcint): TGLXContext;
+begin
+  Result := internal_glXCreateContextAttribsARB(dpy, config, share_context, Ord(direct), attrib_list);
+end;
+
 function GLX_version_1_0(Display: PDisplay): boolean;
 var
   IgnoredErrorb, IgnoredEvent, Major, Minor: Integer;
@@ -378,7 +403,7 @@ begin
     (Major >= 1) and
     { check entry points assigned }
     Assigned(glXChooseVisual) and
-    Assigned(glXCreateContext) and
+    Assigned(internal_glXCreateContext) and
     Assigned(glXDestroyContext) and
     Assigned(glXMakeCurrent) and
     Assigned(glXCopyContext) and
@@ -448,7 +473,7 @@ begin
     Assigned(glXCreatePbuffer) and
     Assigned(glXDestroyPbuffer) and
     Assigned(glXQueryDrawable) and
-    Assigned(glXCreateNewContext) and
+    Assigned(internal_glXCreateNewContext) and
     Assigned(glXMakeContextCurrent) and
     Assigned(glXGetCurrentReadDrawable) and
     Assigned(glXQueryContext) and
@@ -492,7 +517,7 @@ begin
   begin
     GlxExtensions := glXQueryExtensionsString(Display, Screen);
     Result := glext_ExtensionSupported('GLX_ARB_create_context', GlxExtensions) and
-      Assigned(glXCreateContextAttribsARB);
+      Assigned(internal_glXCreateContextAttribsARB);
   end;
 end;
 
@@ -649,7 +674,7 @@ begin
 
   // GLX 1.0
   glXChooseVisual := GetProc(OurLibGL, 'glXChooseVisual');
-  glXCreateContext := GetProc(OurLibGL, 'glXCreateContext');
+  internal_glXCreateContext := GetProc(OurLibGL, 'glXCreateContext');
   glXDestroyContext := GetProc(OurLibGL, 'glXDestroyContext');
   glXMakeCurrent := GetProc(OurLibGL, 'glXMakeCurrent');
   glXCopyContext := GetProc(OurLibGL, 'glXCopyContext');
@@ -683,7 +708,7 @@ begin
   glXCreatePbuffer := GetProc(OurLibGL, 'glXCreatePbuffer');
   glXDestroyPbuffer := GetProc(OurLibGL, 'glXDestroyPbuffer');
   glXQueryDrawable := GetProc(OurLibGL, 'glXQueryDrawable');
-  glXCreateNewContext := GetProc(OurLibGL, 'glXCreateNewContext');
+  internal_glXCreateNewContext := GetProc(OurLibGL, 'glXCreateNewContext');
   glXMakeContextCurrent := GetProc(OurLibGL, 'glXMakeContextCurrent');
   glXGetCurrentReadDrawable := GetProc(OurLibGL, 'glXGetCurrentReadDrawable');
   glXQueryContext := GetProc(OurLibGL, 'glXQueryContext');
@@ -691,14 +716,14 @@ begin
   glXGetSelectedEvent := GetProc(OurLibGL, 'glXGetSelectedEvent');
   // Extensions
   // GLX_ARB_create_context
-  glXCreateContextAttribsARB := GetProc(OurLibGL, 'glXCreateContextAttribsARB');
+  internal_glXCreateContextAttribsARB := GetProc(OurLibGL, 'glXCreateContextAttribsARB');
   // GLX_MESA_pixmap_colormap
   glXCreateGLXPixmapMESA := GetProc(OurLibGL, 'glXCreateGLXPixmapMESA');
   // GLX_MESA_swap_control
   glXSwapIntervalMESA := GetProc(OurLibGL, 'glXSwapIntervalMESA');
   glXGetSwapIntervalMESA := GetProc(OurLibGL, 'glXGetSwapIntervalMESA');
   // Unknown Mesa GLX extension
-  glXReleaseBufferMESA := GetProc(OurLibGL, 'glXReleaseBufferMESA');
+  glXReleaseBuffersMESA := GetProc(OurLibGL, 'glXReleaseBuffersMESA');
   glXCopySubBufferMESA := GetProc(OurLibGL, 'glXCopySubBufferMESA');
   // GLX_SGI_swap_control
   glXSwapIntervalSGI := GetProc(OurLibGL, 'glXSwapIntervalSGI');
