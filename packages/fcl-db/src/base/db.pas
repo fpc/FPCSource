@@ -1413,6 +1413,7 @@ type
     procedure RecalcBufListSize;
     procedure ActivateBuffers; virtual;
     procedure BindFields(Binding: Boolean);
+    procedure BlockReadNext; virtual;
     function  BookmarkAvailable: Boolean;
     procedure CalculateFields(Buffer: TRecordBuffer); virtual;
     procedure CheckActive; virtual;
