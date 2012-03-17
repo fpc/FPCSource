@@ -719,6 +719,8 @@ begin
   InitializeSqlite(SQLiteLibraryName);
   str1:= databasename;
   checkerror(sqlite3_open(pchar(str1),@fhandle));
+  if (Length(Password)>0) and assigned(sqlite3_key) then
+    checkerror(sqlite3_key(fhandle,PChar(Password),StrLen(PChar(Password))));
   if Params.IndexOfName('foreign_keys') <> -1 then
     execsql('PRAGMA foreign_keys =  '+Params.Values['foreign_keys']);
 end;
