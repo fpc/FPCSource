@@ -687,32 +687,52 @@ end;
 
 function TODBCConnection.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
-  // Tranactions not implemented yet
+  Result := nil;
 end;
 
 function TODBCConnection.StartDBTransaction(trans: TSQLHandle; AParams:string): boolean;
+var AutoCommit: SQLINTEGER;
 begin
-  // Tranactions not implemented yet
+  // set some connection attributes
+  if StrToBoolDef(Params.Values['AUTOCOMMIT'], True) then
+    AutoCommit := SQL_AUTOCOMMIT_ON
+  else
+    AutoCommit := SQL_AUTOCOMMIT_OFF;
+
+  ODBCCheckResult(
+    SQLSetConnectAttr(FDBCHandle, SQL_ATTR_AUTOCOMMIT, SQLPOINTER(AutoCommit), SQL_IS_UINTEGER),
+    SQL_HANDLE_DBC,FDBCHandle,'Could not start transaction!'
+  );
+
+  Result := AutoCommit=SQL_AUTOCOMMIT_OFF;
 end;
 
 function TODBCConnection.Commit(trans: TSQLHandle): boolean;
 begin
-  // Tranactions not implemented yet
+  ODBCCheckResult(
+    SQLEndTran(SQL_HANDLE_DBC, FDBCHandle, SQL_COMMIT),
+    SQL_HANDLE_DBC, FDBCHandle, 'Could not commit!'
+  );
+  Result := True;
 end;
 
 function TODBCConnection.Rollback(trans: TSQLHandle): boolean;
 begin
-  // Tranactions not implemented yet
+  ODBCCheckResult(
+    SQLEndTran(SQL_HANDLE_DBC, FDBCHandle, SQL_ROLLBACK),
+    SQL_HANDLE_DBC, FDBCHandle, 'Could not rollback!'
+  );
+  Result := True;
 end;
 
 procedure TODBCConnection.CommitRetaining(trans: TSQLHandle);
 begin
-  // Tranactions not implemented yet
+  Commit(trans);
 end;
 
 procedure TODBCConnection.RollbackRetaining(trans: TSQLHandle);
 begin
-  // Tranactions not implemented yet
+  Rollback(trans);
 end;
 
 procedure TODBCConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
