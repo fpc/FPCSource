@@ -1899,7 +1899,9 @@ var i         : Integer;
     StartInd  : Integer;
     RemRec    : pointer;
     RemRecBookmrk : TBufBookmark;
+    free_rec: Boolean;
 begin
+  free_rec := False;
   InternalSetToRecord(ActiveBuffer);
   // Remove the record from all active indexes
   FCurrentIndex.StoreCurrentRecIntoBookmark(@RemRecBookmrk);
@@ -1921,11 +1923,13 @@ begin
     begin
     if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind <> ukModify then
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := nil;  //this 'disables' the updatebuffer
+    free_rec := FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukInsert; // mantis #18004
     end;
   FCurrentIndex.StoreCurrentRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
   FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := RemRecBookmrk;
   FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukDelete;
-
+  if free_rec then
+    FreeRecordBuffer(TRecordBuffer(RemRecBookmrk.BookmarkData));
   dec(FBRecordCount);
 end;
 
