@@ -191,7 +191,7 @@ Function TCustomSQLExporter.SQLValue(F : TField) : String;
 
 begin
   Result:=FormatField(F);
-  If (F.DataType in StringFieldTypes+DateFieldTypes) then
+  If (F.DataType in BlobFieldTypes+StringFieldTypes+MemoFieldTypes+DateFieldTypes) then
     Result:=''''+QuoteFIeld(Result)+'''';
 end;
 
