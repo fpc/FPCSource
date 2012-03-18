@@ -188,7 +188,8 @@ type
     nfLevel2,
     nfIgnorableWS,
     nfSpecified,
-    nfDestroying
+    nfDestroying,
+    nfFirstChild
   );
   TNodeFlags = set of TNodeFlagEnum;
 
@@ -206,6 +207,7 @@ type
     procedure SetNodeValue(const AValue: DOMString); virtual;
     function  GetFirstChild: TDOMNode; virtual;
     function  GetLastChild: TDOMNode; virtual;
+    function  GetPreviousSibling: TDOMNode; virtual;
     function  GetAttributes: TDOMNamedNodeMap; virtual;
     function GetRevision: Integer;
     function GetNodeType: Integer; virtual; abstract;
@@ -233,7 +235,7 @@ type
     property FirstChild: TDOMNode read GetFirstChild;
     property LastChild: TDOMNode read GetLastChild;
     property ChildNodes: TDOMNodeList read GetChildNodes;
-    property PreviousSibling: TDOMNode read FPreviousSibling;
+    property PreviousSibling: TDOMNode read GetPreviousSibling;
     property NextSibling: TDOMNode read FNextSibling;
     property Attributes: TDOMNamedNodeMap read GetAttributes;
     property OwnerDocument: TDOMDocument read GetOwnerDocument;
@@ -275,7 +277,7 @@ type
 
   TDOMNode_WithChildren = class(TDOMNode)
   protected
-    FFirstChild, FLastChild: TDOMNode;
+    FFirstChild: TDOMNode;
     FChildNodes: TDOMNodeList;
     function GetFirstChild: TDOMNode; override;
     function GetLastChild: TDOMNode; override;
@@ -932,6 +934,14 @@ begin
   Result := nil;
 end;
 
+function TDOMNode.GetPreviousSibling: TDOMNode;
+begin
+  if nfFirstChild in FFlags then
+    Result := nil
+  else
+    Result := FPreviousSibling;
+end;
+
 function TDOMNode.GetAttributes: TDOMNamedNodeMap;
 begin
   Result := nil;
@@ -1279,7 +1289,10 @@ end;
 
 function TDOMNode_WithChildren.GetLastChild: TDOMNode;
 begin
-  Result := FLastChild;
+  if FFirstChild = nil then
+    Result := nil
+  else
+    Result := FFirstChild.FPreviousSibling;
 end;
 
 destructor TDOMNode_WithChildren.Destroy;
@@ -1354,21 +1367,28 @@ begin
   begin
     if Assigned(FFirstChild) then
     begin
-      FLastChild.FNextSibling := NewChild;
-      NewChild.FPreviousSibling := FLastChild;
-    end else
+      Tmp := FFirstChild.FPreviousSibling;      { our last child }
+      Tmp.FNextSibling := NewChild;
+      NewChild.FPreviousSibling := Tmp;
+    end
+    else
+    begin
       FFirstChild := NewChild;
-    FLastChild := NewChild;
+      Include(NewChild.FFlags, nfFirstChild);
+    end;
+    FFirstChild.FPreviousSibling := NewChild;   { becomes our last child }
   end
   else   // insert before RefChild
   begin
+    NewChild.FPreviousSibling := RefChild.FPreviousSibling;
     if RefChild = FFirstChild then
-      FFirstChild := NewChild
-    else
     begin
+      Exclude(RefChild.FFlags, nfFirstChild);
+      FFirstChild := NewChild;
+      Include(NewChild.FFlags, nfFirstChild);
+    end
+    else
       RefChild.FPreviousSibling.FNextSibling := NewChild;
-      NewChild.FPreviousSibling := RefChild.FPreviousSibling;
-    end;
     RefChild.FPreviousSibling := NewChild;
   end;
   NewChild.FParentNode := Self;
@@ -1384,6 +1404,8 @@ begin
 end;
 
 function TDOMNode_WithChildren.DetachChild(OldChild: TDOMNode): TDOMNode;
+var
+  prev, next: TDOMNode;
 begin
   Changing;
 
@@ -1393,15 +1415,26 @@ begin
   Inc(FOwnerDocument.FRevision); // invalidate nodelists
 
   if OldChild = FFirstChild then
-    FFirstChild := FFirstChild.FNextSibling
+  begin
+    Exclude(OldChild.FFlags, nfFirstChild);
+    FFirstChild := FFirstChild.FNextSibling;
+    if Assigned(FFirstChild) then
+    begin
+      { maintain lastChild }
+      Include(FFirstChild.FFlags, nfFirstChild);
+      FFirstChild.FPreviousSibling := OldChild.FPreviousSibling;
+    end;
+  end
   else
-    OldChild.FPreviousSibling.FNextSibling := OldChild.FNextSibling;
-
-  if OldChild = FLastChild then
-    FLastChild := FLastChild.FPreviousSibling
-  else
-    OldChild.FNextSibling.FPreviousSibling := OldChild.FPreviousSibling;
-
+  begin
+    prev := OldChild.FPreviousSibling;
+    next := OldChild.FNextSibling;
+    prev.FNextSibling := next;
+    if Assigned(next) then     { removing node in the middle }
+      next.FPreviousSibling := prev
+    else                       { removing the last child }
+      FFirstChild.FPreviousSibling := prev;
+  end;
   // Make sure removed child does not contain references to nowhere
   OldChild.FPreviousSibling := nil;
   OldChild.FNextSibling := nil;
@@ -1410,14 +1443,21 @@ begin
 end;
 
 procedure TDOMNode_WithChildren.InternalAppend(NewChild: TDOMNode);
+var
+  Tmp: TDOMNode;
 begin
   if Assigned(FFirstChild) then
   begin
-    FLastChild.FNextSibling := NewChild;
-    NewChild.FPreviousSibling := FLastChild;
-  end else
+    Tmp := FFirstChild.FPreviousSibling;      { our last child }
+    Tmp.FNextSibling := NewChild;
+    NewChild.FPreviousSibling := Tmp;
+  end
+  else
+  begin
     FFirstChild := NewChild;
-  FLastChild := NewChild;
+    Include(NewChild.FFlags, nfFirstChild);
+  end;
+  FFirstChild.FPreviousSibling := NewChild;   { becomes our last child }
   NewChild.FParentNode := Self;
 end;
 
@@ -1465,7 +1505,6 @@ begin
     child := next;
   end;
   FFirstChild := nil;
-  FLastChild := nil;
 end;
 
 function TDOMNode_WithChildren.GetTextContent: DOMString;
