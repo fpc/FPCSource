@@ -123,7 +123,7 @@ type
   TExpHashEntry = record
     rev: LongWord;
     hash: LongWord;
-    uriPtr: PXMLString;
+    uriPtr: Pointer;
     lname: PWideChar;
     lnameLen: Integer;
   end;
@@ -137,7 +137,7 @@ type
     FData: PExpHashEntryArray;
   public  
     procedure Init(NumSlots: Integer);
-    function Locate(uri: PXMLString; localName: PWideChar; localLength: Integer): Boolean;
+    function Locate(uri: Pointer; localName: PWideChar; localLength: Integer): Boolean;
     destructor Destroy; override;
   end;
 
@@ -182,7 +182,7 @@ type
 
   TBinding = class
   public
-    uri: XMLString;
+    uri: PHashItem;
     next: TBinding;
     prevPrefixBinding: TObject;
     Prefix: PHashItem;
@@ -196,6 +196,7 @@ type
 
   TNSSupport = class(TObject)
   private
+    FNameTable: THashTable;
     FNesting: Integer;
     FPrefixSeqNo: Integer;
     FFreeBindings: TBinding;
@@ -204,17 +205,17 @@ type
     FPrefixes: THashTable;
     FDefaultPrefix: THashItem;
   public
-    constructor Create;
+    constructor Create(aNameTable: THashTable);
     destructor Destroy; override;
     procedure DefineBinding(const Prefix, nsURI: XMLString; out Binding: TBinding);
     function CheckAttribute(const Prefix, nsURI: XMLString;
       out Binding: TBinding): TAttributeAction;
-    function IsPrefixBound(P: PWideChar; Len: Integer; out Prefix: PHashItem): Boolean;
     function GetPrefix(P: PWideChar; Len: Integer): PHashItem;
-    function BindPrefix(const nsURI: XMLString; aPrefix: PHashItem): TBinding;
+    function BindPrefix(nsURI, aPrefix: PHashItem): TBinding;
     function DefaultNSBinding: TBinding;
-    procedure StartElement;
-    procedure EndElement;
+    function LookupNamespace(const APrefix: XMLString): XMLString;
+    procedure PushScope;
+    function PopScope: Boolean;
   end;
 
 { Buffer builder, used to compose long strings without too much memory allocations }
@@ -685,15 +686,14 @@ begin
   Dec(FRevision);
 end;
 
-function TDblHashArray.Locate(uri: PXMLString; localName: PWideChar; localLength: Integer): Boolean;
+function TDblHashArray.Locate(uri: Pointer; localName: PWideChar; localLength: Integer): Boolean;
 var
   step: Byte;
   mask: LongWord;
   idx: Integer;
   HashValue: LongWord;
 begin
-  HashValue := Hash(0, PWideChar(uri^), Length(uri^));
-  HashValue := Hash(HashValue, localName, localLength);
+  HashValue := Hash(PtrUInt(uri), localName, localLength);
 
   mask := (1 shl FSizeLog) - 1;
   step := (HashValue and (not mask)) shr (FSizeLog-1) and (mask shr 2) or 1;
@@ -701,7 +701,7 @@ begin
   result := True;
   while FData^[idx].rev = FRevision do
   begin
-    if (HashValue = FData^[idx].hash) and (FData^[idx].uriPtr^ = uri^) and
+    if (HashValue = FData^[idx].hash) and (FData^[idx].uriPtr = uri) and
       (FData^[idx].lnameLen = localLength) and
        CompareMem(FData^[idx].lname, localName, localLength * sizeof(WideChar)) then
       Exit;
@@ -723,11 +723,12 @@ end;
 
 { TNSSupport }
 
-constructor TNSSupport.Create;
+constructor TNSSupport.Create(aNameTable: THashTable);
 var
   b: TBinding;
 begin
   inherited Create;
+  FNameTable := aNameTable;
   FPrefixes := THashTable.Create(16, False);
   FBindings := TFPList.Create;
   SetLength(FBindingStack, 16);
@@ -747,7 +748,7 @@ begin
   inherited Destroy;
 end;
 
-function TNSSupport.BindPrefix(const nsURI: XMLString; aPrefix: PHashItem): TBinding;
+function TNSSupport.BindPrefix(nsURI, aPrefix: PHashItem): TBinding;
 begin
   { try to reuse an existing binding }
   result := FFreeBindings;
@@ -778,13 +779,14 @@ end;
 procedure TNSSupport.DefineBinding(const Prefix, nsURI: XMLString;
   out Binding: TBinding);
 var
-  Pfx: PHashItem;
+  Pfx, uri: PHashItem;
 begin
   Pfx := @FDefaultPrefix;
   if (nsURI <> '') and (Prefix <> '') then
     Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix));
-  if (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> nsURI) then
-    Binding := BindPrefix(nsURI, Pfx)
+  uri := FNameTable.FindOrAdd(PWideChar(nsURI),Length(nsURI));
+  if (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> uri) then
+    Binding := BindPrefix(uri, Pfx)
   else
     Binding := nil;
 end;
@@ -797,6 +799,7 @@ var
   b: TBinding;
   buf: array[0..31] of WideChar;
   p: PWideChar;
+  uri: PHashItem;
 begin
   Binding := nil;
   Pfx := nil;
@@ -805,8 +808,9 @@ begin
     Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix))
   else if nsURI = '' then
     Exit;
+  uri := FNameTable.FindOrAdd(PWideChar(nsURI), Length(nsURI));
   { if the prefix is already bound to correct URI, we're done }
-  if Assigned(Pfx) and Assigned(Pfx^.Data) and (TBinding(Pfx^.Data).uri = nsURI) then
+  if Assigned(Pfx) and Assigned(Pfx^.Data) and (TBinding(Pfx^.Data).uri = uri) then
     Exit;
 
   { see if there's another prefix bound to the target URI }
@@ -816,7 +820,7 @@ begin
     b := FBindingStack[i];
     while Assigned(b) do
     begin
-      if (b.uri = nsURI) and (b.Prefix <> @FDefaultPrefix) then
+      if (b.uri = uri) and (b.Prefix <> @FDefaultPrefix) then
       begin
         Binding := b;   // found one -> override the attribute's prefix
         Result := aaPrefix;
@@ -841,15 +845,8 @@ begin
     p^ := 'N';
     Pfx := FPrefixes.FindOrAdd(p, @Buf[high(Buf)]-p+1);
   until Pfx^.Data = nil;
-  Binding := BindPrefix(nsURI, Pfx);
+  Binding := BindPrefix(uri, Pfx);
   Result := aaBoth;
-end;
-
-function TNSSupport.IsPrefixBound(P: PWideChar; Len: Integer; out
-  Prefix: PHashItem): Boolean;
-begin
-  Prefix := FPrefixes.FindOrAdd(P, Len);
-  Result := Assigned(Prefix^.Data) and (TBinding(Prefix^.Data).uri <> '');
 end;
 
 function TNSSupport.GetPrefix(P: PWideChar; Len: Integer): PHashItem;
@@ -860,17 +857,34 @@ begin
     Result := @FDefaultPrefix;
 end;
 
-procedure TNSSupport.StartElement;
+function TNSSupport.LookupNamespace(const APrefix: XMLString): XMLString;
+var
+  prefixatom: PHashItem;
+  b: TBinding;
+begin
+  prefixatom := GetPrefix(PWideChar(APrefix),Length(APrefix));
+  b := TBinding(prefixatom^.Data);
+  if Assigned(b) and Assigned(b.Uri) then
+    result := b.Uri^.Key
+  else
+    result := '';
+end;
+
+procedure TNSSupport.PushScope;
 begin
   Inc(FNesting);
   if FNesting >= Length(FBindingStack) then
     SetLength(FBindingStack, FNesting * 2);
 end;
 
-procedure TNSSupport.EndElement;
+function TNSSupport.PopScope: Boolean;
 var
   b, temp: TBinding;
 begin
+  { don't unbind prefixes declared before the first call to PushScope }
+  Result := FNesting > 0;
+  if not Result then
+    Exit;
   temp := FBindingStack[FNesting];
   while Assigned(temp) do
   begin
@@ -881,8 +895,7 @@ begin
     b.Prefix^.Data := b.prevPrefixBinding;
   end;
   FBindingStack[FNesting] := nil;
-  if FNesting > 0 then
-    Dec(FNesting);
+  Dec(FNesting);
 end;
 
 { Buffer builder utils }

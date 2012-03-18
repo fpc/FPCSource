@@ -90,7 +90,7 @@ type
     procedure VisitDocumentType(Node: TDOMNode);
     procedure VisitPI(Node: TDOMNode);
   public
-    constructor Create(AStream: TStream);
+    constructor Create(AStream: TStream; ANameTable: THashTable);
     destructor Destroy; override;
   end;
 
@@ -139,7 +139,7 @@ const
   ltStr = '&lt;';
   gtStr = '&gt;';
 
-constructor TXMLWriter.Create(AStream: TStream);
+constructor TXMLWriter.Create(AStream: TStream; ANameTable: THashTable);
 var
   I: Integer;
 begin
@@ -165,7 +165,7 @@ begin
     FIndent[2] := ' ';
   for I := 3 to 100 do FIndent[I] := ' ';
   FIndentCount := 0;
-  FNSHelper := TNSSupport.Create;
+  FNSHelper := TNSSupport.Create(ANameTable);
   FScratch := TFPList.Create;
   FNSDefs := TFPList.Create;
   FAttrFixups := TFPList.Create;
@@ -426,7 +426,8 @@ begin
     wrtStr(B.Prefix^.Key);
   end;
   wrtChars('="', 2);
-  ConvWrite(B.uri, AttrSpecialChars, @AttrSpecialCharCallback);
+  if Assigned(B.uri) then
+    ConvWrite(B.uri^.Key, AttrSpecialChars, @AttrSpecialCharCallback);
   wrtChr('"');
 end;
 
@@ -575,7 +576,7 @@ var
 begin
   if not FInsideTextNode then
     wrtIndent;
-  FNSHelper.StartElement;
+  FNSHelper.PushScope;
   wrtChr('<');
   wrtStr(TDOMElement(node).TagName);
 
@@ -611,7 +612,7 @@ begin
     wrtStr(TDOMElement(Node).TagName);
     wrtChr('>');
   end;
-  FNSHelper.EndElement;
+  FNSHelper.PopScope;
 end;
 
 procedure TXMLWriter.VisitText(node: TDOMNode);
@@ -825,7 +826,7 @@ var
 begin
   s := TTextStream.Create(AFile);
   try
-    with TXMLWriter.Create(s) do
+    with TXMLWriter.Create(s, doc.Names) do
     try
       WriteNode(doc);
     finally
@@ -838,7 +839,7 @@ end;
 
 procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
 begin
-  with TXMLWriter.Create(AStream) do
+  with TXMLWriter.Create(AStream, doc.Names) do
   try
     WriteNode(doc);
   finally

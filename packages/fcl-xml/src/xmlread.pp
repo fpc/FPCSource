@@ -1409,7 +1409,7 @@ begin
   FCurrAttrIndex := -1;
   if FNamespaces then
   begin
-    FNSHelper := TNSSupport.Create;
+    FNSHelper := TNSSupport.Create(FNameTable);
     FNsAttHash := TDblHashArray.Create;
     FStdPrefix_xml := FNSHelper.GetPrefix(@PrefixDefault, 3);
     FStdPrefix_xmlns := FNSHelper.GetPrefix(@PrefixDefault, 5);
@@ -2946,18 +2946,11 @@ begin
 end;
 
 function TXMLTextReader.LookupNamespace(const APrefix: XMLString): XMLString;
-var
-  prefixatom: PHashItem;
-  b: TBinding;
 begin
-  result := '';
-  if FNamespaces then
-  begin
-    prefixatom := FNSHelper.GetPrefix(PWideChar(APrefix),Length(APrefix));
-    b := TBinding(prefixatom^.Data);
-    if Assigned(b) then
-      result := b.Uri;
-  end;
+  if Assigned(FNSHelper) then
+    result := FNSHelper.LookupNamespace(APrefix)
+  else
+    result := '';
 end;
 
 function TXMLTextReader.MoveToFirstAttribute: Boolean;
@@ -3739,7 +3732,7 @@ begin
 
   if FNamespaces then
   begin
-    FNSHelper.StartElement;
+    FNSHelper.PushScope;
     if FColonPos > 0 then
       FCurrNode^.FPrefix := FNSHelper.GetPrefix(FName.Buffer, FColonPos);
   end;
@@ -3774,15 +3767,15 @@ begin
     if Assigned(FCurrNode^.FPrefix) then
     begin
       b := TBinding(FCurrNode^.FPrefix^.Data);
-      if not (Assigned(b) and (b.uri <> '')) then
+      if not (Assigned(b) and Assigned(b.uri) and (b.uri^.Key <> '')) then
         DoErrorPos(esFatal, 'Unbound element name prefix "%s"', [FCurrNode^.FPrefix^.Key],FCurrNode^.FLoc);
-      FCurrNode^.FNsUri := FNameTable.FindOrAdd(b.uri);
+      FCurrNode^.FNsUri := b.uri;
     end
     else
     begin
       b := FNSHelper.DefaultNSBinding;
       if Assigned(b) then
-        FCurrNode^.FNsUri := FNameTable.FindOrAdd(b.uri);
+        FCurrNode^.FNsUri := b.uri;
     end;
   end;
 
@@ -3990,9 +3983,9 @@ begin
   if (attrData^.FValueStr = '') and not (FXML11 or (Pfx^.Key = '')) then
     DoErrorPos(esFatal, 'Illegal undefining of namespace', attrData^.FLoc2);
 
-  Result := (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> attrData^.FValueStr);
+  Result := (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> nsUri);
   if Result then
-    FNSHelper.BindPrefix(attrData^.FValueStr, Pfx);
+    FNSHelper.BindPrefix(nsUri, Pfx);
 end;
 
 procedure TXMLTextReader.ProcessNamespaceAtts;
@@ -4011,17 +4004,17 @@ begin
 
     Pfx := attrData^.FPrefix;
     b := TBinding(Pfx^.Data);
-    if not (Assigned(b) and (b.uri <> '')) then
+    if not (Assigned(b) and Assigned (b.uri) and (b.uri^.Key <> '')) then
       DoErrorPos(esFatal, 'Unbound attribute name prefix "%s"', [Pfx^.Key], attrData^.FLoc);
 
     { detect duplicates }
     J := attrData^.FColonPos+1;
     AttrName := attrData^.FQName;
 
-    if FNsAttHash.Locate(@b.uri, @AttrName^.Key[J], Length(AttrName^.Key) - J+1) then
+    if FNsAttHash.Locate(b.uri, @AttrName^.Key[J], Length(AttrName^.Key) - J+1) then
       DoErrorPos(esFatal, 'Duplicate prefixed attribute', attrData^.FLoc);
 
-    attrData^.FNsUri := FNameTable.FindOrAdd(b.uri);
+    attrData^.FNsUri := b.uri;
   end;
 end;
 
@@ -4256,7 +4249,7 @@ end;
 procedure TXMLTextReader.PopElement;
 begin
   if FNamespaces then
-    FNSHelper.EndElement;
+    FNSHelper.PopScope;
 
   if (FNesting = 0) and (not FFragmentMode) then
     FState := rsEpilog;
