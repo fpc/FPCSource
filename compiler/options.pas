@@ -626,7 +626,7 @@ begin
     system_i386_iphonesim:
       begin
         set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','30000');
-        MacOSXVersionMin:='3.0';
+        iPhoneOSVersionMin:='3.0';
       end;
     else
       internalerror(2012031001);
