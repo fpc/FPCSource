@@ -20,7 +20,7 @@ begin
     P.Directory:='dblib';
 {$endif ALLPACKAGES}
     P.Version:='1.0';
-    P.Author := 'Library: (FreeTDS/Microsoft), header: Lacack2';
+    P.Author := 'Library: (FreeTDS/Microsoft), header: Ladislav Karrach';
     P.License := 'Library: FreeTDS License, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
