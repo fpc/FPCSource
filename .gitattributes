@@ -9992,6 +9992,7 @@ tests/test/packages/cocoaint/tw20876.pp svneol=native#text/plain
 tests/test/packages/cocoaint/uw20875a.pp svneol=native#text/plain
 tests/test/packages/cocoaint/uw20875b.pp svneol=native#text/plain
 tests/test/packages/fcl-base/tascii85.pp svneol=native#text/plain
+tests/test/packages/fcl-base/testuri.pp svneol=native#text/plain
 tests/test/packages/fcl-base/tgettext1.pp svneol=native#text/plain
 tests/test/packages/fcl-db/assertions.pas svneol=native#text/plain
 tests/test/packages/fcl-db/dbftoolsunit.pas svneol=native#text/plain
