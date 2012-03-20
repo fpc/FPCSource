@@ -7,13 +7,13 @@ interface
 uses
   Classes, SysUtils, toolsunit,
   db,
-  sqldb, ibconnection, mysql40conn, mysql41conn, mysql50conn, mysql51conn, pqconnection,odbcconn,oracleconnection,sqlite3conn;
+  sqldb, ibconnection, mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn, pqconnection,odbcconn,oracleconnection,sqlite3conn;
 
-type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,postgresql,interbase,odbc,oracle,sqlite3);
+type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3);
 
-const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51];
+const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
       DBTypesNames : Array [TSQLDBTypes] of String[19] =
-             ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3');
+             ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3');
              
       FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
         (
@@ -111,6 +111,7 @@ begin
   if SQLDbType = MYSQL41 then Fconnection := tMySQL41Connection.Create(nil);
   if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
   if SQLDbType = MYSQL51 then Fconnection := tMySQL51Connection.Create(nil);
+  if SQLDbType = MYSQL55 then Fconnection := tMySQL55Connection.Create(nil);
   if SQLDbType in [mysql40,mysql41] then
     begin
     // Mysql versions prior to 5.0.3 removes the trailing spaces on varchar
@@ -156,7 +157,7 @@ begin
   if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
 
-  if SQLDbType in [mysql40,mysql41,mysql50,mysql51,odbc,interbase] then
+  if SQLDbType in [mysql40,mysql41,mysql50,mysql51,mysql55,odbc,interbase] then
     begin
     // Some DB's do not support milliseconds in datetime and time fields.
     // Firebird support miliseconds, see BUG 17199 (when resolved, then interbase can be excluded)

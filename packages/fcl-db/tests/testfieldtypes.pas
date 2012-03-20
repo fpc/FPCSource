@@ -394,10 +394,7 @@ begin
     Open;
     for i := 0 to testValuesCount-1 do
       begin
-      if (SQLDbType in [mysql40,mysql41]) then
-        AssertEquals(TrimRight(testValues[i]),fields[0].AsString) // MySQL < 5.0.3 automatically trims strings
-      else
-        AssertEquals(testValues[i],fields[0].AsString);
+      AssertEquals(testValues[i], Fields[0].AsString);
       Next;
       end;
     close;
@@ -635,16 +632,13 @@ const
   );
 
 var
-  i, corrTestValueCount : byte;
+  i : byte;
 
 begin
   CreateTableWithFieldType(ftDateTime,FieldtypeDefinitions[ftDateTime]);
   TestFieldDeclaration(ftDateTime,8);
 
-  if SQLDbType=mysql40 then corrTestValueCount := testValuesCount-21
-    else corrTestValueCount := testValuesCount;
-
-  for i := 0 to corrTestValueCount-1 do
+  for i := 0 to testValuesCount-1 do
     if SQLDbType=oracle then
       TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (to_date (''' + testValues[i] + ''',''YYYY-MM-DD HH24:MI:SS''))')
     else
@@ -653,7 +647,7 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
-    for i := 0 to corrTestValueCount-1 do
+    for i := 0 to testValuesCount-1 do
       begin
       if length(testValues[i]) < 12 then
         AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd', fields[0].AsDateTime, DBConnector.FormatSettings))
