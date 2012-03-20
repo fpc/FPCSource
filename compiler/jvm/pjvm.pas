@@ -659,7 +659,7 @@ implementation
         symtablestack.push(pd.owner);
         { get a copy of the constructor }
         wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
-        { this one is is a class method rather than a constructor }
+        { this one is a class method rather than a constructor }
         include(wrapperpd.procoptions,po_classmethod);
         wrapperpd.proctypeoption:=potype_function;
         wrapperpd.returndef:=tobjectdef(pd.owner.defowner);
@@ -677,9 +677,21 @@ implementation
           copy the vmt parameter from the constructor, that's different) }
         insert_self_and_vmt_para(wrapperpd);
         wrapperpd.calcparas;
-        { implementation: call through to the constructor }
-        wrapperpd.synthetickind:=tsk_callthrough;
-        wrapperpd.skpara:=pd;
+        { implementation: call through to the constructor, except in case of
+          an abstract class: then do nothing, because constructing an abstract
+          class is not possible; we still need the method definition because
+          it's used elsewhere by the compiler (it can be "overridden" by
+          child classes) }
+        if (pd.struct.typ=objectdef) and
+           (tobjectdef(pd.struct).abstractcnt=0) then
+          begin
+            wrapperpd.synthetickind:=tsk_callthrough;
+            wrapperpd.skpara:=pd;
+          end
+        else
+          begin
+            wrapperpd.synthetickind:=tsk_empty;
+          end;
         symtablestack.pop(pd.owner);
         { and now wrap this generated virtual static method itself as well }
         jvm_wrap_virtual_class_method(wrapperpd);
