@@ -818,11 +818,13 @@ function InternalStrToTime(S: string): TDateTime;
 
 var
   EH, EM, ES: Word;
+  p: integer;
 
 begin
-  EH := StrToInt(Copy(S, 1, 2));
-  EM := StrToInt(Copy(S, 4, 2));
-  ES := StrToInt(Copy(S, 7, 2));
+  p := 1;
+  EH := StrToInt(ExtractSubstr(S, p, [':'])); //hours can be 2 or 3 digits
+  EM := StrToInt(ExtractSubstr(S, p, [':']));
+  ES := StrToInt(ExtractSubstr(S, p, ['.']));
   Result := EncodeTimeInterval(EH, EM, ES, 0);
 end;
 
@@ -852,7 +854,7 @@ begin
     Result := 0
   else
     Result := EncodeDate(EY, EM, ED);
-  Result := Result + EncodeTime(EH, EN, ES, 0);;
+  Result := Result + EncodeTime(EH, EN, ES, 0);
 end;
 
 function TConnectionName.MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;

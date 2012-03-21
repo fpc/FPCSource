@@ -122,6 +122,7 @@ begin
     begin
     //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
     FieldtypeDefinitions[ftBoolean] := '';
+    FieldtypeDefinitions[ftFloat] := 'DOUBLE';
     // Use 'DATETIME' for datetime-fields instead of timestamp, because
     // mysql's timestamps are only valid in the range 1970-2038.
     // Downside is that fields defined as 'TIMESTAMP' aren't tested

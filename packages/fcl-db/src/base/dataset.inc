@@ -141,15 +141,22 @@ end;
 Procedure TDataset.CalculateFields(Buffer: TRecordBuffer);
 var
   i: Integer;
+  OldState: TDatasetState;
 begin
   FCalcBuffer := Buffer; 
-  if not IsUniDirectional and (FState <> dsInternalCalc) then try
-    ClearCalcFields(FCalcBuffer);
-    for i := 0 to FFieldList.Count - 1 do
-      if FFieldList[i].FieldKind = fkLookup then
-        FFieldList[i].CalcLookupValue;
-  finally
-    DoOnCalcFields;
+  if not IsUniDirectional and (FState <> dsInternalCalc) then
+  begin
+    OldState := FState;
+    FState := dsCalcFields;
+    try
+      ClearCalcFields(FCalcBuffer);
+      for i := 0 to FFieldList.Count - 1 do
+        if FFieldList[i].FieldKind = fkLookup then
+          FFieldList[i].CalcLookupValue;
+    finally
+      DoOnCalcFields;
+      FState := OldState;
+    end;
   end;
 end;
 
@@ -413,17 +420,9 @@ end;
 
 Procedure TDataset.DoOnCalcFields;
 
-var
-  oldState: TDataSetState;
-
 begin
- If assigned(FOnCalcfields) then
- begin
-   oldState := FState;
-   FState := dsCalcFields;
+ If Assigned(FOnCalcfields) then
    FOnCalcFields(Self);
-   FState := oldState;
-  end;
 end;
 
 Procedure TDataset.DoOnNewRecord;
@@ -473,19 +472,9 @@ end;
 
 Procedure TDataset.GetCalcFields(Buffer: TRecordBuffer);
 
-var
-  dss: TDataSetState;
 begin
   if (FCalcFieldsSize > 0) or FInternalCalcFields then
-  begin
-    dss := FState;
-    FState := dsCalcFields;
-    try
-      CalculateFields(Buffer);
-    finally
-      FState := dss;
-    end;
-  end;
+    CalculateFields(Buffer);
 end;
 
 Function TDataset.GetCanModify: Boolean;
