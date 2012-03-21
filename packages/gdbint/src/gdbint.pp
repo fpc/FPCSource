@@ -815,7 +815,10 @@ type
   jmp_buf = dpmi_jmp_buf;
   pjmp_buf = pdpmi_jmp_buf;
 
+
   function setjmp(var rec : jmp_buf) : longint;cdecl;external;
+
+  function malloc(size : longint) : pointer;cdecl;external;
 
   procedure longjmp(var rec : jmp_buf;return_value : longint);cdecl;external;
 
@@ -2973,6 +2976,32 @@ var
   c_environ : ppchar;external name '_environ';
   c_argc : longint;external name '___crt0_argc';
   c_argv : ppchar;external name '___crt0_argv';
+
+  procedure ReallocateEnvironUsingCMalloc;
+
+  var
+    neededsize , count : longint;
+    penv : pchar;
+    newenv : ppchar;
+  begin
+    if not assigned(c_environ) then
+      neededsize:=0
+    else
+      begin
+        count:=0;
+        penv:=c_environ^;
+        while assigned(penv) do
+          begin
+            inc(count);
+            inc(penv,sizeof(pchar));
+          end;
+        neededsize:=count*sizeof(pchar);
+      end;
+    newenv:=malloc(neededsize);
+    system.move(c_environ,newenv,neededsize);
+    c_environ:=newenv;
+  end;
+
 {$endif def go32v2}
 var
   current_directory : pchar; cvar; external;
@@ -2992,7 +3021,9 @@ var
 {$endif not GDB_INIT_HAS_ARGV0}
 begin
 {$ifdef go32v2}
-  c_environ:=system.envp;
+  { c_environ:=system.envp; }
+  { DJGPP libC presupposes the c_enivron was malloc'ated }
+  ReallocateEnvironUsingCMalloc;
   c_argc:=system.argc;
   c_argv:=system.argv;
 {$endif def go32v2}
