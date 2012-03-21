@@ -13,7 +13,7 @@
 {$mode objfpc}
 {$h+}
 
-Unit UnixUtils;
+Unit UnixUtils platform deprecated 'Linux/i386 legacy unit';
 
 Interface
 
