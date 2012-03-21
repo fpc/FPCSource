@@ -261,8 +261,8 @@
 -->
 <item id="isId"/>
 <item id="documentURI" type="prop"/>
-<!--
 <item id="baseURI"/>
+<!--
 // assertNotEquals
 // assertLowerSeverity
 

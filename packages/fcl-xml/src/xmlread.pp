@@ -454,7 +454,6 @@ type
     procedure ValidationErrorWithName(const Msg: string; LineOffs: Integer = -1);
     procedure DTDReloadHook;
     procedure ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
-    procedure DoNotationDecl(const aName, aPubID, aSysID: XMLString);
     procedure SetOptions(AParser: TDOMParser);
   public
     { Entity loading still needs to reference the document, at least as an opaque pointer }
@@ -471,7 +470,6 @@ type
   TLoader = object
     doc: TDOMDocument;
     reader: TXMLTextReader;
-    function DoStartElement: TDOMElement;
     function DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
     function CreatePINode: TDOMNode;
     procedure ParseContent(cursor: TDOMNode_WithChildren);
@@ -1520,7 +1518,7 @@ begin
 
       ntElement:
         begin
-          element := DoStartElement;
+          element := LoadElement(doc, FCurrNode, reader.FAttrCount);
           cursor.InternalAppend(element);
           cursor := element;
         end;
@@ -1536,28 +1534,6 @@ begin
         cursor.InternalAppend(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
     end;
   until not Read;
-end;
-
-function TLoader.DoStartElement: TDOMElement;
-var
-  Attr: TDOMAttr;
-  i: Integer;
-begin
-  with reader.FCurrNode^ do
-  begin
-    Result := doc.CreateElementBuf(PWideChar(FQName^.Key), Length(FQName^.Key));
-    if Assigned(FNsUri) then
-      Result.SetNSI(FNsUri^.Key, FColonPos+1);
-  end;
-
-  for i := 1 to reader.FAttrCount do
-  begin
-    Attr := LoadAttribute(doc, @reader.FNodeStack[reader.FNesting+i]);
-    Result.SetAttributeNode(Attr);
-    // Attach element to ID map entry if necessary
-    if Assigned(reader.FNodeStack[reader.FNesting+i].FIDEntry) then
-      reader.FNodeStack[reader.FNesting+i].FIDEntry^.Data := Result;
-  end;
 end;
 
 function TLoader.CreatePINode: TDOMNode;
@@ -2459,7 +2435,11 @@ end;
 procedure TXMLTextReader.ParseNotationDecl;        // [82]
 var
   NameStr, SysID, PubID: XMLString;
+  Notation: TNotationDecl;
+  Entry: PHashItem;
+  Src: TXMLCharSource;
 begin
+  Src := FSource;
   ExpectWhitespace;
   CheckName;
   CheckNCName;
@@ -2468,7 +2448,20 @@ begin
   if not ParseExternalID(SysID, PubID, True) then
     FatalError('Expected external or public ID');
   if FDTDProcessed then
-    DoNotationDecl(NameStr, PubID, SysID);
+  begin
+    Entry := FDocType.Notations.FindOrAdd(NameStr);
+    if Entry^.Data = nil then
+    begin
+      Notation := TNotationDecl.Create;
+      Notation.FName := NameStr;
+      Notation.FPublicID := PubID;
+      Notation.FSystemID := SysID;
+      Notation.FURI := Src.SystemID;
+      Entry^.Data := Notation;
+    end
+    else
+      ValidationError('Duplicate notation declaration: ''%s''', [NameStr]);
+  end;
 end;
 
 const
@@ -2624,7 +2617,9 @@ var
   Entity: TEntityDecl;
   Map: THashTable;
   Item: PHashItem;
+  Src: TXMLCharSource;
 begin
+  Src := FSource;
   if not SkipWhitespace(True) then
     FatalError('Expected whitespace');
   IsPE := CheckForChar('%');
@@ -2647,8 +2642,9 @@ begin
     Item := Map.FindOrAdd(FName.Buffer, FName.Length, Exists);
     ExpectWhitespace;
 
-    // remember where the entity is declared
-    Entity.FURI := FSource.SystemID;
+    // remember where the entity is declared, use URI from the point where declaration
+    // was starting.
+    Entity.FURI := Src.SystemID;
 
     if FEntityValue.Buffer = nil then
       BufAllocate(FEntityValue, 256);
@@ -4103,24 +4099,6 @@ begin
         if FDocType.Notations.Get(PWideChar(Value), Length(Value)) = nil then
           DoErrorPos(esError, 'Notation ''%s'' is not declared', [Value], Loc);
   end;
-end;
-
-procedure TXMLTextReader.DoNotationDecl(const aName, aPubID, aSysID: XMLString);
-var
-  Notation: TNotationDecl;
-  Entry: PHashItem;
-begin
-  Entry := FDocType.Notations.FindOrAdd(aName);
-  if Entry^.Data = nil then
-  begin
-    Notation := TNotationDecl.Create;
-    Notation.FName := aName;
-    Notation.FPublicID := aPubID;
-    Notation.FSystemID := aSysID;
-    Entry^.Data := Notation;
-  end
-  else
-    ValidationError('Duplicate notation declaration: ''%s''', [aName]);
 end;
 
 function TXMLTextReader.AddId(aNodeData: PNodeData): Boolean;

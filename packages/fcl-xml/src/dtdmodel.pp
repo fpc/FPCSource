@@ -141,6 +141,7 @@ type
     FName: XMLString;
     FPublicID: XMLString;
     FSystemID: XMLString;
+    FURI: XMLString;
   end;
 
   TDTDModel = class

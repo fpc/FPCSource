@@ -695,6 +695,7 @@ type
   TDOMNotation = class(TDOMNode)
   protected
     FDecl: TNotationDecl;
+    FBaseURI: DOMString;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
     function GetPublicID: DOMString;
@@ -713,6 +714,7 @@ type
   TDOMEntity = class(TDOMNode_TopLevel)
   protected
     FDecl: TEntityDecl;
+    FBaseURI: DOMString;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
     function GetPublicID: DOMString;
@@ -785,12 +787,15 @@ type
   end;
 
 // temporary until things are settled
-function LoadAttribute(doc: TDOMDocument; src: PNodeData): TDOMAttr;
+function LoadElement(doc: TDOMDocument; src: PNodeData; attrCount: Integer): TDOMElement;
 
 // =======================================================
 // =======================================================
 
 implementation
+
+uses
+  UriParser;
 
 { a namespace-enabled NamedNodeMap }
 type
@@ -1241,17 +1246,71 @@ begin
   result := GetAncestorElement(Self).IsDefaultNamespace(nsURI);
 end;
 
+function GetParentURI(n: TDOMNode): DOMString;
+var
+  entity, parent: TDOMNode;
+begin
+  parent := n.ParentNode;
+  if Assigned(parent) then
+  begin
+    entity := nil;
+    case parent.nodeType of
+      ENTITY_NODE:
+        entity := parent;
+      ENTITY_REFERENCE_NODE:
+        if Assigned(n.OwnerDocument.DocType) then
+          entity := n.OwnerDocument.DocType.Entities.GetNamedItem(parent.NodeName);
+    end;
+    if entity = nil then
+      result := parent.BaseURI
+    else
+    { TODO: this will need fix when resource resolving is implemented;
+      it should return the URI of actually fetched entity. }
+      ResolveRelativeURI(TDOMEntity(entity).FDecl.FURI, TDOMEntity(entity).SystemID, result) then
+  end
+  else
+    result := n.OwnerDocument.DocumentURI;
+end;
+
 function TDOMNode.GetBaseURI: DOMString;
+var
+  base: DOMString;
+  dtype: TDOMDocumentType;
+  ent: TDOMEntity;
 begin
   case NodeType of
-  // !! Incomplete !!
+    ELEMENT_NODE:
+      begin
+        result := GetParentURI(Self);
+        { 'xml' prefix is restricted to xml namespace, so this will work
+          regardless of namespace processing enabled }
+        base := TDOMElement(Self).GetAttribute('xml:base');
+        if base <> '' then
+        begin
+          ResolveRelativeUri(result, base, result);
+        end;
+      end;
     DOCUMENT_NODE:
       result := TDOMDocument(Self).FURI;
     PROCESSING_INSTRUCTION_NODE:
-      if Assigned(ParentNode) then
-        result := ParentNode.GetBaseURI
-      else
-        result := OwnerDocument.DocumentURI;
+      result := GetParentURI(Self);
+    { BaseUri of entities and notations is the URI where they're defined;
+      cloning should cause this property to get lost. }
+    ENTITY_NODE:
+      result := TDOMEntity(Self).FBaseURI;
+    NOTATION_NODE:
+      result := TDOMNotation(Self).FBaseURI;
+    ENTITY_REFERENCE_NODE:
+      begin
+        result := '';
+        dtype := OwnerDocument.DocType;
+        if Assigned(dtype) then
+        begin
+          ent := TDOMEntity(dtype.Entities.GetNamedItem(NodeName));
+          if Assigned(ent) then
+            result := ent.FDecl.FURI;
+        end;
+      end
   else
     result := '';
   end;
@@ -2891,6 +2950,25 @@ begin
     result.InternalAppend(doc.CreateTextNode(src^.FValueStr));
 end;
 
+function LoadElement(doc: TDOMDocument; src: PNodeData; attrCount: Integer): TDOMElement;
+var
+  i: Integer;
+begin
+  TDOMNode(result) := doc.Alloc(TDOMElement);
+  result.Create(doc);
+  result.FNSI.QName := src^.FQName;
+  if Assigned(src^.FNsUri) then
+    result.SetNSI(src^.FNsUri^.Key, src^.FColonPos+1);
+  for i := 0 to attrCount-1 do
+  begin
+    Inc(src);
+    result.SetAttributeNode(LoadAttribute(doc, src));
+    // Attach element to ID map entry if necessary
+    if Assigned(src^.FIDEntry) then
+      src^.FIDEntry^.Data := Result;
+  end;
+end;
+
 procedure TDOMElement.RestoreDefaultAttr(AttrDef: TAttributeDef);
 var
   Attr: TDOMAttr;
@@ -3234,6 +3312,7 @@ var
 begin
   node := TDOMEntity.Create(this.ownerDocument);
   node.FDecl := TEntityDecl(Entry^.Data);
+  node.FBaseURI := node.FDecl.FURI;
   node.SetReadOnly(True);
   this.Entities.SetNamedItem(node);
   Result := True;
@@ -3246,6 +3325,7 @@ var
 begin
   node := TDOMNotation.Create(this.ownerDocument);
   node.FDecl := TNotationDecl(Entry^.Data);
+  node.FBaseURI := node.FDecl.FURI;
   node.SetReadOnly(True);
   this.Notations.SetNamedItem(node);
   Result := True;

@@ -79,6 +79,7 @@ type
     destructor Destroy; override;
   end;
 
+{ obsolete, now TDOMNode.BaseURI does the job }
 function GetBaseURI(Element: TDOMNode; const DocumentURI: string): string;
 var
   Ent: TDOMNode;
@@ -370,7 +371,7 @@ begin
     Exit;
   end;
 
-  root := GetBaseURI(Element, FRootUri);
+  root := Element.BaseURI;
   ResolveRelativeURI(root, UTF8Encode(Element['URI']), s);
 
   table := nil;
