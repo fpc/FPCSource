@@ -552,13 +552,14 @@ implementation
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=TAsmData.create(realmodulename^);
-        InitDebugInfo(self);
+        InitDebugInfo(self,false);
       end;
 
 
     destructor tmodule.Destroy;
       var
         i : longint;
+        current_debuginfo_reset : boolean;
       begin
         if assigned(unitmap) then
           freemem(unitmap);
@@ -598,7 +599,7 @@ implementation
             { release procinfo tree }
             tprocinfo(procinfo).destroy_tree;
           end;
-        DoneDebugInfo(self);
+        DoneDebugInfo(self,current_debuginfo_reset);
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
@@ -654,6 +655,7 @@ implementation
     procedure tmodule.reset;
       var
         i   : longint;
+        current_debuginfo_reset : boolean;
       begin
         if assigned(scanner) then
           begin
@@ -683,7 +685,7 @@ implementation
             asmdata.free;
             asmdata:=nil;
           end;
-        DoneDebugInfo(self);
+        DoneDebugInfo(self,current_debuginfo_reset);
         globalsymtable.free;
         globalsymtable:=nil;
         localsymtable.free;
@@ -721,7 +723,7 @@ implementation
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         asmdata:=TAsmData.create(realmodulename^);
-        InitDebugInfo(self);
+        InitDebugInfo(self,current_debuginfo_reset);
         _exports.free;
         _exports:=tlinkedlist.create;
         dllscannerinputlist.free;
