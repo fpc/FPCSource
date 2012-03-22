@@ -47,14 +47,18 @@ Uses
 Const
 {$ifndef useiconv}
     libiconvname='c';  // is in libc under Linux.
+    libprefix='lib';
 {$else}
   {$ifdef haiku}
     libiconvname='textencoding';  // is in libtextencoding under Haiku
+    libprefix='lib';
   {$else}
     {$ifdef darwin}
       libiconvname='libiconv';
+      libprefix='';
     {$else}
       libiconvname='iconv';
+      libprefix='lib';
     {$endif}
   {$endif}
 {$endif}
@@ -978,7 +982,7 @@ initialization
   setlocale(LC_ALL,'');
 
   { load iconvctl function }
-  iconvlib:=LoadLibrary(libiconvname+'.'+SharedSuffix);
+  iconvlib:=LoadLibrary(libprefix+libiconvname+'.'+SharedSuffix);
   if iconvlib<>0 then
     pointer(iconvctl):=GetProcAddress(iconvlib,iconvctlname);
 
