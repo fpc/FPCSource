@@ -122,13 +122,14 @@ var
   AJSonArray: TJSONArray;
   n: Integer;
 begin
-  if AJsonData.JSONType <> jtArray then
-    raise Exception.CreateFmt('Array expected but not found. (%s)',[AJsonData.AsString]);
-  AJSonArray := AJsonData as TJSONArray;
-  for n := 0 to AJSonArray.Count-1 do
+  if AJsonData.JSONType = jtArray then
     begin
-    ParseConditionalString(ACondStrings.add(''), AJSonArray.Items[n], ValueCaption);
-    end;
+    AJSonArray := AJsonData as TJSONArray;
+    for n := 0 to AJSonArray.Count-1 do
+      ParseConditionalString(ACondStrings.add(''), AJSonArray.Items[n], ValueCaption);
+    end
+  else
+    ParseConditionalString(ACondStrings.add(''), AJsonData, ValueCaption);
 end;
 
 procedure ParseUnitTarget(aTarget: TTarget; aJSONData: TJSONData);
