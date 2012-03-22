@@ -1484,6 +1484,7 @@ var
         do_load,
         second_time        : boolean;
         old_current_module : tmodule;
+        pu : tused_unit;
       begin
         old_current_module:=current_module;
         Message3(unit_u_load_unit,old_current_module.modulename^,
@@ -1620,7 +1621,19 @@ var
                   begin
                     printcomments;
                     if recompile_reason=rr_noppu then
-                      Message2(unit_f_cant_find_ppu,realmodulename^,loaded_from.realmodulename^)
+                      begin
+                        pu:=tused_unit(loaded_from.used_units.first);
+                        while assigned(pu) do
+                          begin
+                            if pu.u=self then
+                              break;
+                            pu:=tused_unit(pu.next);
+                          end;
+                        if assigned(pu) then
+                          MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,loaded_from.realmodulename^)
+                        else
+                          Message2(unit_f_cant_find_ppu,realmodulename^,loaded_from.realmodulename^);
+                      end
                     else
                       Message1(unit_f_cant_compile_unit,realmodulename^);
                   end;

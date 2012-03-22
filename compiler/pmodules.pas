@@ -761,11 +761,13 @@ implementation
          pu      : tused_unit;
          hp2     : tmodule;
          unitsym : tunitsym;
+         filepos : tfileposinfo;
       begin
          consume(_USES);
          repeat
            s:=pattern;
            sorg:=orgpattern;
+           filepos:=current_tokenpos;
            consume(_ID);
            while token=_POINT do
              begin
@@ -811,6 +813,7 @@ implementation
               { Create unitsym, we need to use the name as specified, we
                 can not use the modulename because that can be different
                 when -Un is used }
+              current_tokenpos:=filepos;
               unitsym:=tunitsym.create(sorg,nil);
               tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
               { the current module uses the unit hp2 }
