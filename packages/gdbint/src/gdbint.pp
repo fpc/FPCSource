@@ -1523,10 +1523,7 @@ var
 { used for gdb_stdout and gdb_stderr }
 function  xmalloc(size : longint) : pointer;cdecl;external;
 { used for QueryHook }
-{ xvasprintf is present at least from GDB 5.3
-  while xstrvprintf only appears in version 6.2,
-  so only use xvasprintf function }
-function xvasprintf(ret : ppchar; msg : pchar) : pchar; varargs; cdecl; external;
+function xstrvprintf(msg : pchar) : pchar; varargs; cdecl; external;
 procedure xfree(p : pointer); cdecl; external;
 function  find_pc_line(i:CORE_ADDR;l:longint):symtab_and_line;cdecl;external;
 function  find_pc_function(i:CORE_ADDR):psymbol;cdecl;external;
@@ -2409,15 +2406,11 @@ begin
     QueryHook:=0
   else
     begin
-      if curr_gdb^.reset_command and ((pos('Kill',question)>0) or
-         (pos('Discard symbol table',question)>0)) then
+      if curr_gdb^.reset_command and (pos('Kill',question)>0) then
         QueryHook:=1
       else if pos('%',question)>0 then
         begin
-          xvasprintf(@local,question,arg);
-          { xvasprintf can failed, in that case local is set to nil }
-          if not assigned(local) then
-            local:=question;
+          local:=xstrvprintf(question,arg);
           QueryHook:=curr_gdb^.Query(local, nil);
           xfree(local);
         end
