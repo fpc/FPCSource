@@ -1088,11 +1088,16 @@ begin
 end;
 
 procedure TDebugController.Reset;
+var
+  old_reset : boolean;
 begin
   inherited Reset;
   { we need to free the executable
     if we want to recompile it }
+  old_reset:=reset_command;
+  reset_command:=true;
   SetExe('');
+  reset_command:=old_reset;
   NoSwitch:=false;
   { In case we have something that the compiler touched }
   If IDEApp.IsRunning then
