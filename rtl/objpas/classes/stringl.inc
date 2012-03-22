@@ -908,7 +908,28 @@ begin
   SetCapacity(NC);
 end;
 
+Procedure TStringList.InternalClear;
 
+Var
+  I: Integer;
+
+begin
+  if FOwnsObjects then
+    begin
+      For I:=0 to FCount-1 do
+        begin
+          Flist^[I].FString:='';
+          freeandnil(Flist^[i].FObject);
+        end;
+    end
+  else
+    begin
+      For I:=0 to FCount-1 do
+        Flist^[I].FString:='';
+    end;
+  FCount:=0;
+  SetCapacity(0);
+end;
 
 Procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
 var
@@ -1128,13 +1149,8 @@ end;
 
 destructor TStringList.Destroy;
 
-Var I : Longint;
-
 begin
-  FOnChange:=Nil;
-  FOnChanging:=Nil;
-  Clear;
-  SetCapacity(0);
+  InternalClear;
   Inherited destroy;
 end;
 
@@ -1156,26 +1172,10 @@ end;
 
 Procedure TStringList.Clear;
 
-Var I : longint;
-
 begin
   if FCount = 0 then Exit;
   Changing;
-  if FOwnsObjects then
-    begin
-      For I:=0 to FCount-1 do
-        begin
-          Flist^[I].FString:='';
-          freeandnil(Flist^[i].FObject);
-        end;
-    end
-  else
-    begin
-      For I:=0 to FCount-1 do
-        Flist^[I].FString:='';
-    end;
-  FCount:=0;
-  SetCapacity(0);
+  InternalClear;
   Changed;
 end;
 
