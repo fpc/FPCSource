@@ -111,11 +111,11 @@ start:
         movw    %ds, %bx
         movw    $0x000a, %ax
         int     $0x31
-        jnc     ds_alias_ok
+        jnc     .Lds_alias_ok
         movb    $0x4c, %ah
         int     $0x21
 
-ds_alias_ok:
+.Lds_alias_ok:
         movw    %ax, ___v2prt0_ds_alias
         movl    %eax, %ebx
         movw    $0x0009, %ax
@@ -149,11 +149,11 @@ ds_alias_ok:
         shrl    $4, %ebx
         movw    $0x0100, %ax
         int     $0x31
-        jnc     dos_alloc_ok
+        jnc     .Ldos_alloc_ok
         movb    $0x4c, %ah
         int     $0x21
 
-dos_alloc_ok:
+.Ldos_alloc_ok:
         movw    %cs, 2(%esi)
 /* store API information */
         movw    %ds, 4(%esi)
@@ -234,14 +234,14 @@ dos_alloc_ok:
         .byte 0x64 /* fs: */
         movl    STUBINFO_MINSTACK, %ecx /* get stub-requested stack size */
         cmpl    %ecx, %eax
-        jge     use_stubinfo_stack_size /* use the larger of the two */
+        jge     .Luse_stubinfo_stack_size /* use the larger of the two */
         movl    %ecx, %eax
         movl    %eax, __stklen    /* store the actual stack length */
-use_stubinfo_stack_size:
+.Luse_stubinfo_stack_size:
         pushl   %eax
         call    ___sbrk          /* allocate the memory */
         cmpl    $-1, %eax
-        je      no_memory
+        je      .Lno_memory
         movl    %eax, ___djgpp_stack_limit      /* Bottom of stack */
         addl    $256,%eax
         movl    %eax,__stkbottom               /* for stack checks */
@@ -258,7 +258,7 @@ use_stubinfo_stack_size:
         call    ___prt1_startup  /* run program */
         jmp     exit
 
-no_memory:
+.Lno_memory:
         movb    $0xff, %al
         jmp     exit
 
@@ -284,11 +284,11 @@ exit:
         movw    %ax,%fs
         movw    %ax,%gs
         cmpl    $0,_exception_exit
-        jz      no_exception
+        jz      .Lno_exception
         pushl   %ecx
         call    *_exception_exit
         popl    %ecx
-no_exception:
+.Lno_exception:
         cli                          /* Just in case they didn't unhook ints */
         FREESEL U_SYSTEM_GO32_INFO_BLOCK+26     /* selector for linear memory */
         FREESEL ___v2prt0_ds_alias      /* DS alias for rmcb exceptions */
@@ -356,13 +356,13 @@ ___sbrk:
         movl    __what_size_app_thinks_it_is, %eax
         movl    4(%esp), %ecx              /* Increment size */
         addl    %ecx, %eax
-        jnc     brk_common
+        jnc     .Lbrk_common
         /* Carry is only set if a negative increment or wrap happens. Negative
            increment is semi-OK, wrap (only for multiple zone sbrk) isn't. */
         test    $0x80000000, %ecx              /* Clears carry */
-        jnz     brk_common
+        jnz     .Lbrk_common
         stc                                  /* Put carry back */
-        jmp     brk_common
+        jmp     .Lbrk_common
 
         .globl  ___brk
         .align  2
@@ -370,7 +370,7 @@ ___brk:
         movl    4(%esp), %eax
         clc
 
-brk_common:
+.Lbrk_common:
         pushl   %esi
         pushl   %edi
         pushl   %ebx
@@ -382,7 +382,7 @@ brk_common:
         /* multi code is not present */
         /* jc      10f                                           Wrap for multi-zone */
         cmpl    __what_size_dpmi_thinks_we_are, %eax        /* don't bother shrinking */
-        jbe     brk_nochange
+        jbe     .Lbrk_nochange
 
         addl    $0x0000ffff, %eax                              /* round up to 64K block */
         andl    $0xffff0000, %eax
@@ -405,7 +405,7 @@ brk_common:
 
         test    %dl,%dl
         popl    %edx
-        jne     brk_error
+        jne     .Lbrk_error
 
         movl    %edi, ___djgpp_memory_handle_list              /* store new handle */
         movw    %si, ___djgpp_memory_handle_list+2
@@ -452,7 +452,7 @@ brk_common:
         movl    ___djgpp_selector_limit, %edx
 12:     incl    %edx                                        /* Size not limit */
         testb   $0x60, __crt0_startup_flags     /* include/crt0.h */
-        jz      no_fill_sbrk_memory
+        jz      .Lno_fill_sbrk_memory
         pushl   %ds
         popl    %es
 
@@ -461,26 +461,26 @@ brk_common:
         subl    %edi, %ecx                    /* Adjust count for base */
         xorl    %eax, %eax
         testb   $0x40, __crt0_startup_flags
-        jz      no_deadbeef
+        jz      .Lno_deadbeef
         movl    $0xdeadbeef, %eax              /* something really easy to spot */
-no_deadbeef:
+.Lno_deadbeef:
         shrl    $2, %ecx                        /* div 4 Longwords not bytes */
         cld
         rep
         stosl
-no_fill_sbrk_memory:
+.Lno_fill_sbrk_memory:
         movl    %edx, __what_size_dpmi_thinks_we_are
 
-brk_nochange:                              /* successful return */
+.Lbrk_nochange:                              /* successful return */
         movl    __what_we_return_to_app_as_old_size, %eax
-        jmp     brk_return
+        jmp     .Lbrk_return
 
-brk_error:                                    /* error return */
+.Lbrk_error:                                    /* error return */
         movl    __what_we_return_to_app_as_old_size, %eax
         movl    %eax, __what_size_app_thinks_it_is
         movl    $0, %eax
 
-brk_return:
+.Lbrk_return:
         popl    %ebx
         popl    %edi
         popl    %esi
@@ -853,6 +853,7 @@ _pascal_start:
         movl    12(%ebx),%eax
         movl    %eax,U_SYSTEM_ENVP
         movl    %eax,__environ
+        movl    %eax,_environ
         movl    8(%ebx),%eax
         movl    %eax,_args
         movl    4(%ebx),%eax
@@ -889,8 +890,9 @@ ___v2prt0_start_fs:
         .word 0
         /* _environ or __environ are used depending on
            crt1.c versions for DJGPP, the linker script
-           now just provides an alias to avoid problems. */
+           now just provides both here to avoid problems. */
         .comm  __environ,4
+        .comm  _environ,4
 
 /* Here Pierre Muller added all what was in crt1.c  */
 /* in assembler                              */
