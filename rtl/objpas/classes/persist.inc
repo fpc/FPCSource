@@ -68,12 +68,14 @@ end;
 function  TPersistent.GetNamePath: string;
 
 Var OwnerName :String;
+    TheOwner: TPersistent;
 
 begin
- Result:=ClassNAme;
- If GetOwner<>Nil then
+ Result:=ClassName;
+ TheOwner:=GetOwner;
+ If TheOwner<>Nil then
    begin
-   OwnerName:=GetOwner.GetNamePath;
+   OwnerName:=TheOwner.GetNamePath;
    If OwnerName<>'' then Result:=OwnerName+'.'+Result;
    end;
 end;
@@ -84,10 +86,14 @@ end;
 {****************************************************************************}
 
 procedure TInterfacedPersistent.AfterConstruction;
+
+Var TheOwner: TPersistent;
+
 begin
   inherited;
-  if assigned(GetOwner) then
-    GetOwner.GetInterface(IUnknown,FOwnerInterface);
+  TheOwner:=GetOwner;
+  if assigned(TheOwner) then
+    TheOwner.GetInterface(IUnknown,FOwnerInterface);
 end;
 
 

@@ -680,6 +680,7 @@ type
     FOwnsObjects : Boolean;
     procedure ExchangeItems(Index1, Index2: Integer);
     procedure Grow;
+    procedure InternalClear;
     procedure QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(b : boolean);
