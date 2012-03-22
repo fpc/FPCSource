@@ -5,7 +5,7 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 2.6.0
+title=Free Pascal Compiler 2.6.0a (with go32v2 specific fixes)
 version=2.6.0
 
 #
