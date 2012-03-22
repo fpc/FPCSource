@@ -3735,6 +3735,9 @@ begin
 {$endif def GDBWINDOW}
 end;
 
+const
+  Invalid_gdb_file_handle: boolean = false;
+
 
 procedure DoneDebugger;
 begin
@@ -3755,7 +3758,20 @@ begin
   If Use_gdb_file then
     begin
       Use_gdb_file:=false;
+{$IFOPT I+}
+  {$I-}
+  {$DEFINE REENABLE_I}
+{$ENDIF}
       Close(GDB_file);
+      if ioresult<>0 then
+        begin
+          { This handle seems to get lost for DJGPP
+            don't bother too much about this. }
+          Invalid_gdb_file_handle:=true;
+        end;
+{$IFDEF REENABLE_I}
+  {$I+}
+{$ENDIF}
     end;
   If IDEApp.IsRunning then
     PopStatus;
