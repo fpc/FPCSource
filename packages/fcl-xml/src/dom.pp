@@ -1266,7 +1266,7 @@ begin
     else
     { TODO: this will need fix when resource resolving is implemented;
       it should return the URI of actually fetched entity. }
-      ResolveRelativeURI(TDOMEntity(entity).FDecl.FURI, TDOMEntity(entity).SystemID, result) then
+      ResolveRelativeURI(TDOMEntity(entity).FDecl.FURI, TDOMEntity(entity).SystemID, result);
   end
   else
     result := n.OwnerDocument.DocumentURI;
