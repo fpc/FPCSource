@@ -1,0 +1,33 @@
+{$ifndef ALLPACKAGES}
+{$mode objfpc}{$H+}
+program fpmake;
+
+uses fpmkunit;
+
+Var
+  T : TTarget;
+  P : TPackage;
+begin
+  With Installer do
+    begin
+{$endif ALLPACKAGES}
+    P:=AddPackage('%packagename%');
+{$ifdef ALLPACKAGES}
+    P.Directory:='%directory%';
+{$endif ALLPACKAGES}
+    P.Version:='%version%';
+    P.License:='%license%';
+    P.Author:='%author%';
+    P.Email:='%email%';
+    P.Description:=%quotedstr(description)%;
+    P.HomepageURL:='%homepageurl%';
+%conditionalpackageproperties%
+%packagedependencies%
+%packagesourcepaths%
+%targets%
+{$ifndef ALLPACKAGES}
+    Run;
+    end;
+end.
+{$endif ALLPACKAGES}
+
