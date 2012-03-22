@@ -13316,6 +13316,7 @@ utils/fppkg/examples/rep2xml.lpi svneol=native#text/plain
 utils/fppkg/examples/rep2xml.lpr svneol=native#text/plain
 utils/fppkg/examples/testdownload.pp svneol=native#text/plain
 utils/fppkg/examples/testrep.pp svneol=native#text/plain
+utils/fppkg/fpmake.pp svneol=native#text/plain
 utils/fppkg/fppkg.lpi svneol=native#text/plain
 utils/fppkg/fppkg.pp svneol=native#text/plain
 utils/fppkg/lnet/LICENSE -text
