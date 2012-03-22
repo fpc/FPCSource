@@ -94,6 +94,15 @@ connector=sql
 connectorparams=sqlite3
 name=test.db
 
+; MS SQL Server database:
+[mssql]
+connector=sql
+connectorparams=mssql
+name=pubs
+user=sa
+password=
+hostname=127.0.0.1
+
 ; TDBf: DBase/FoxPro database:
 [dbf]
 connector=dbf

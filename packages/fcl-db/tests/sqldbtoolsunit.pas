@@ -6,14 +6,15 @@ interface
 
 uses
   Classes, SysUtils, toolsunit,
-  db,
-  sqldb, ibconnection, mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn, pqconnection,odbcconn,oracleconnection,sqlite3conn;
+  db, sqldb,
+  mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn,
+  ibconnection, pqconnection, odbcconn, oracleconnection, sqlite3conn, mssqlconn;
 
-type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3);
+type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql);
 
 const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
       DBTypesNames : Array [TSQLDBTypes] of String[19] =
-             ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3');
+        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL');
              
       FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
         (
@@ -24,37 +25,37 @@ const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51,mysql55];
           '',
           'BOOLEAN',
           'FLOAT',
-          '',
-          'DECIMAL(18,4)',
+          '',             // ftCurrency
+          'DECIMAL(18,4)',// ftBCD
           'DATE',
           'TIME',
-          'TIMESTAMP',
+          'TIMESTAMP',    // ftDateTime
           '',
           '',
           '',
-          'BLOB',
-          'BLOB',
-          'BLOB',
-          '',
-          '',
-          '',
-          '',
-          '',
-          'CHAR(10)',
-          '',
-          'BIGINT',
+          'BLOB',         // ftBlob
+          'BLOB',         // ftMemo
+          'BLOB',         // ftGraphic
           '',
           '',
           '',
           '',
+          '',
+          'CHAR(10)',     // ftFixedChar
+          '',
+          'BIGINT',       // ftLargeInt
           '',
           '',
           '',
           '',
           '',
           '',
-          'TIMESTAMP',
-          'NUMERIC(18,6)',
+          '',
+          '',
+          '',
+          '',             // ftGuid
+          'TIMESTAMP',    // ftTimestamp
+          'NUMERIC(18,6)',// ftFmtBCD
           '',
           ''
         );
@@ -156,6 +157,20 @@ begin
     end;
   if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
+  if SQLDbType = MSSQL then
+    begin
+    Fconnection := TMSSQLConnection.Create(nil);
+    FieldtypeDefinitions[ftBoolean] := 'BIT';
+    FieldtypeDefinitions[ftCurrency]:= 'MONEY';
+    FieldtypeDefinitions[ftDate]    := 'DATETIME';
+    FieldtypeDefinitions[ftTime]    := '';
+    FieldtypeDefinitions[ftDateTime]:= 'DATETIME';
+    FieldtypeDefinitions[ftBytes]   := 'BINARY(5)';
+    FieldtypeDefinitions[ftVarBytes]:= 'VARBINARY(10)';
+    FieldtypeDefinitions[ftBlob]    := 'IMAGE';
+    FieldtypeDefinitions[ftMemo]    := 'TEXT';
+    FieldtypeDefinitions[ftGraphic] := '';
+    end;
 
   if SQLDbType in [mysql40,mysql41,mysql50,mysql51,mysql55,odbc,interbase] then
     begin
@@ -169,7 +184,7 @@ begin
         testValues[ftDateTime,t] := copy(testValues[ftDateTime,t],1,19)+'.000';
       end;
     end;
-  if SQLDbType in [postgresql,interbase] then
+  if SQLDbType in [postgresql,interbase,mssql] then
     begin
     // Some db's do not support times > 24:00:00
     testTimeValues[3]:='13:25:15.000';
@@ -182,11 +197,15 @@ begin
       end;
     end;
 
-  if SQLDbType in [sqlite3] then
-    testValues[ftCurrency]:=testValues[ftBCD]; //decimal separator for currencies must be decimal point
+  // DecimalSeparator must correspond to monetary locale (lc_monetary) set on PostgreSQL server
+  // Here we assume, that locale on client side is same as locale on server
+  if SQLDbType in [postgresql] then
+    for t := 0 to testValuesCount-1 do
+      testValues[ftCurrency,t] := QuotedStr(CurrToStr(testCurrencyValues[t]));
 
   // SQLite does not support fixed length CHAR datatype
   // MySQL by default trimms trailing spaces on retrieval; so set sql-mode="PAD_CHAR_TO_FULL_LENGTH" - supported from MySQL 5.1.20
+  // MSSQL set SET ANSI_PADDING ON
   if SQLDbType in [sqlite3] then
     for t := 0 to testValuesCount-1 do
       testValues[ftFixedChar,t] := PadRight(testValues[ftFixedChar,t], 10);
@@ -291,7 +310,10 @@ begin
           begin
           sql := sql + ',F' + Fieldtypenames[FType];
           if testValues[FType,CountID] <> '' then
-            sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
+            if FType in [ftCurrency] then
+              sql1 := sql1 + ',' + testValues[FType,CountID]
+            else
+              sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
           else
             sql1 := sql1 + ',NULL';
           end;
@@ -303,7 +325,10 @@ begin
 
     Ftransaction.Commit;
   except
-    if Ftransaction.Active then Ftransaction.Rollback
+    on E: Exception do begin
+      //writeln(E.Message);
+      if Ftransaction.Active then Ftransaction.Rollback;
+    end;
   end;
 end;
 
