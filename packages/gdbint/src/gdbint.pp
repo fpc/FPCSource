@@ -2980,32 +2980,48 @@ end;
 
 {$ifdef go32v2}
 var
-  c_environ : ppchar;external name '_environ';
+  c_environ : ppchar;external name '__environ';
   c_argc : longint;external name '___crt0_argc';
   c_argv : ppchar;external name '___crt0_argv';
 
   procedure ReallocateEnvironUsingCMalloc;
 
   var
-    neededsize , count : longint;
+    neededsize , i, count : longint;
     penv : pchar;
     newenv : ppchar;
   begin
     if not assigned(c_environ) then
-      neededsize:=0
+      neededsize:=sizeof(pchar)
     else
       begin
         count:=0;
-        penv:=c_environ^;
+        penv:=c_environ[count];
         while assigned(penv) do
           begin
             inc(count);
-            inc(penv,sizeof(pchar));
+            penv:=c_environ[count];
           end;
+        inc(count);
         neededsize:=count*sizeof(pchar);
       end;
     newenv:=malloc(neededsize);
-    system.move(c_environ,newenv,neededsize);
+    system.move(c_environ^,newenv^,neededsize);
+    if assigned(c_environ) then
+      begin
+        for i:=0 to count-1 do
+          begin
+            penv:=c_environ[i];
+            if assigned(penv) then
+              begin
+                neededsize:=strlen(penv)+1;
+                newenv[i]:=malloc(neededsize);
+                system.move(penv^,newenv[i]^,neededsize);
+              end
+            else
+              newenv[i]:=nil;
+          end;
+      end;
     c_environ:=newenv;
   end;
 
