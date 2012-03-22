@@ -108,13 +108,13 @@ begin
       else if AJsonObject.Names[m] = ValueCaption then
         ADependency.Value := AJsonObject.Items[m].AsString
       else
-        raise Exception.CreateFmt('Unknown dependency property ''%s''.',[AJsonObject.Names[m]]);
+        raise Exception.CreateFmt('Unknown conditional property ''%s''.',[AJsonObject.Names[m]]);
       end {case}
       end;
 
     end
   else
-    raise Exception.CreateFmt('Invalid dependency. (%s)',[AJsonData.AsString]);
+    raise Exception.CreateFmt('Invalid conditional. (%s)',[AJsonData.AsString]);
 end;
 
 procedure ParseConditionalArray(ACondStrings: TConditionalStrings; AJsonData: TJSonData; ValueCaption: string);
@@ -130,6 +130,54 @@ begin
     end
   else
     ParseConditionalString(ACondStrings.add(''), AJsonData, ValueCaption);
+end;
+
+procedure ParseDependenciesArray(ACondStrings: TDependencies; AJsonData: TJSonData; ValueCaption: string; aDepType: TDependencyType);
+var
+  AJSonArray: TJSONArray;
+  n: Integer;
+
+  function GetDep: TDependency;
+  begin
+    if aDepType=depInclude then
+      result := ACondStrings.AddInclude('')
+    else if aDepType=depUnit then
+      result := ACondStrings.AddUnit('')
+    else
+      result := ACondStrings.Add('');
+  end;
+
+begin
+  if AJsonData.JSONType = jtArray then
+    begin
+    AJSonArray := AJsonData as TJSONArray;
+    for n := 0 to AJSonArray.Count-1 do
+      ParseConditionalString(GetDep, AJSonArray.Items[n], ValueCaption);
+    end
+  else
+    ParseConditionalString(GetDep, AJsonData, ValueCaption);
+end;
+
+procedure ParseDependencies(aDependencies: TDependencies; aJSONData: TJSONData);
+var
+  AJsonObject: TJSONObject;
+  m: Integer;
+begin
+  if aJSONData.JSONType<>jtObject then
+    raise exception.create('A target''s dependency has to be an object which encapsulated the different types of dependencies.')
+  else
+    begin
+    AJsonObject := aJSONData as TJSONObject;
+    for m := 0 to AJsonObject.Count-1 do
+      begin
+      case AJsonObject.Names[m] of
+        'includefiles'    : ParseDependenciesArray(aDependencies, AJsonObject.items[m],'filename', depInclude);
+        'units'           : ParseDependenciesArray(aDependencies, AJsonObject.items[m],'filename', depUnit);
+      else
+        raise Exception.CreateFmt('Unknown dependency property ''%s''.',[AJsonObject.Names[m]]);
+      end {case}
+      end;
+    end
 end;
 
 procedure ParseUnitTarget(aTarget: TTarget; aJSONData: TJSONData);
@@ -149,6 +197,7 @@ begin
         'resourcestrings' : atarget.ResourceStrings := (AJsonObject.items[m] as TJSONBoolean).AsBoolean;
         'oses'            : aTarget.OSes := ExtStringToOSes(AJsonObject.Items[m].AsString);
         'cpus'            : aTarget.cpus := ExtStringToCPUs(AJsonObject.Items[m].AsString);
+        'dependencies'    : ParseDependencies(aTarget.Dependencies, AJsonObject.Items[m]);
       else
         raise Exception.CreateFmt('Unknown targets property ''%s''.',[AJsonObject.Names[m]]);
       end {case}

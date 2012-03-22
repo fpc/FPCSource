@@ -89,6 +89,7 @@ function GetTargetsMacro(aTargets: TTargets): string;
 var
   ATarget: TTarget;
   i: Integer;
+  d: integer;
 begin
   if aTargets.Count=0 then
     Exit;
@@ -100,6 +101,15 @@ begin
     result := result + GetConditionalAdd(ATarget.Name + ATarget.Extension, ATarget.CPUs, ATarget.OSes,'  T := AddUnit');
     if atarget.ResourceStrings then
       result := result + '      T.Resourcestrings := True;'+LineEnding;
+    for d := 0 to aTarget.Dependencies.Count-1 do
+      begin
+      if ATarget.Dependencies[d].DependencyType=depInclude then
+        result := result + '      T.Dependencies.AddInclude('''+ATarget.Dependencies[d].Value+''');'+LineEnding
+      else if ATarget.Dependencies[d].DependencyType=depUnit then
+        result := result + '      T.Dependencies.AddUnit('''+ATarget.Dependencies[d].Value+''');'+LineEnding
+      else
+        result := result + '      T.Dependencies.Add('''+ATarget.Dependencies[d].Value+''');'+LineEnding;
+      end;
     end;
   result := result +
             '      end;';
