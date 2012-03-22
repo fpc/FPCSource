@@ -852,7 +852,7 @@ _pascal_start:
         movl    %esp,%ebx
         movl    12(%ebx),%eax
         movl    %eax,U_SYSTEM_ENVP
-        movl    %eax,__environ
+        movl    %eax,_environ
         movl    8(%ebx),%eax
         movl    %eax,_args
         movl    4(%ebx),%eax
@@ -887,10 +887,9 @@ _core_selector:
         .globl ___v2prt0_start_fs
 ___v2prt0_start_fs:
         .word 0
-        /* _environ or __environ are used depending on
-           crt1.c versions for DJGPP, the linker script
-           now just provides an alias to avoid problems. */
-        .comm  __environ,4
+        .globl  _environ
+_environ:
+         .long 0
 
 /* Here Pierre Muller added all what was in crt1.c  */
 /* in assembler                              */
