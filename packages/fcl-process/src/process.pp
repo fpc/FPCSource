@@ -293,7 +293,6 @@ end;
 procedure TProcess.FreeStream(var AStream: THandleStream);
 begin
   if AStream = nil then exit;
-  FileClose(AStream.Handle);
   FreeAndNil(AStream);
 end;
 

@@ -181,7 +181,7 @@ implementation
   call IPCInit and IPCDone in the initialization/finalization code.
   
   --------------------------------------------------------------------- }
-{$UNDEFINE OSNEEDIPCINITDONE}
+{$UNDEF OSNEEDIPCINITDONE}
 
 {$i simpleipc.inc}
 
