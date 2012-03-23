@@ -243,6 +243,7 @@ begin
     begin
     database := Fconnection;
     transaction := Ftransaction;
+    PacketRecords := -1;  // To avoid: "Connection is busy with results for another hstmt" (ODBC,MSSQL)
     end;
 end;
 
