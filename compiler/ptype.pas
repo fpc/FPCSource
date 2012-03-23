@@ -922,7 +922,8 @@ implementation
                      begin
                        generate_specialization(def,false,name,nil,'');
                        { handle nested types }
-                       post_comp_expr_gendef(def);
+                       if assigned(def) then
+                         post_comp_expr_gendef(def);
                      end
                    else
                      begin
