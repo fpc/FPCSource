@@ -693,7 +693,7 @@ var
   idx: Integer;
   HashValue: LongWord;
 begin
-  HashValue := Hash(PtrUInt(uri), localName, localLength);
+  HashValue := Hash(LongWord(PtrUInt(uri)), localName, localLength);
 
   mask := (1 shl FSizeLog) - 1;
   step := (HashValue and (not mask)) shr (FSizeLog-1) and (mask shr 2) or 1;
