@@ -1030,6 +1030,7 @@ begin
      //WriteLn('At Node Level ', NodeLevel);
      if ReadIndexNodeEntry(LastWord, NewWord, NewNodePosition) <> False then
      begin
+       LastWord := NewWord;
        //WriteLn('Found Index Entry: ', NewWord, ' Comparing to ', AWord);
        if  ChmCompareText(NewWord, AWord) >= 0 then
        begin
