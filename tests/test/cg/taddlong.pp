@@ -5,6 +5,9 @@
 {   - if statements function correctly.                      }
 {   - subroutine calls function correctly.                   }
 
+{$R-}
+{$Q-}
+
 procedure fail;
 begin
   WriteLn('Failed!');

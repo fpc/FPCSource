@@ -1,3 +1,6 @@
+{$Q-}
+{$R-}
+
 // tests whether the rol/ror operations properly mask out the shift count
 procedure do_error(i : integer);
   begin

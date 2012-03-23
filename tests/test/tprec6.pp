@@ -6,7 +6,7 @@ Uses uprec6;
 Var I,J:Integer;
     APackedBoolean:TPackedBoolean;
 Begin
- writeln(sizeof(APackedBoolean[0]));
+// writeln(sizeof(APackedBoolean[0])); Index is 1..5 range
  writeln(sizeof(APackedBoolean[1]));
 // writeln(ptruint(@APackedBoolean[1])-ptruint(@APackedBoolean[0]));
 // writeln(ptruint(@APackedBoolean[2])-ptruint(@APackedBoolean[1]));

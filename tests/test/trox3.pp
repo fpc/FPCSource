@@ -1,3 +1,6 @@
+{$Q-}
+{$R-}
+
 procedure do_error(i : integer);
   begin
     writeln('Error: ',i);

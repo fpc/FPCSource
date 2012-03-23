@@ -1,6 +1,9 @@
 { Source provided for Free Pascal Bug Report 3360 }
 { Submitted by "Thomas Schatzl" on  2004-10-17 }
 { e-mail:  }
+{$R-}
+{$Q-}
+
 type
         tdef = record
           f1 : longint;

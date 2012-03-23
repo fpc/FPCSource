@@ -27,6 +27,9 @@
     999999999
 }
 
+{$R-}
+{$Q-}
+
 uses SysUtils,erroru;
 
 procedure Check(a,b:ansistring);

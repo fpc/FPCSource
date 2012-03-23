@@ -3,6 +3,9 @@
 { e-mail: graphcoloring@yahoo.com.cn }
 program fpc_test_3;
 
+{$R-}
+{$Q-}
+
 {$APPTYPE CONSOLE}
 
 {$IFDEF FPC}

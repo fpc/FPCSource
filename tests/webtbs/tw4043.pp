@@ -1,4 +1,5 @@
 { %target=win32 }
+{ %OPT=-Cr- }
 
 uses
   windows;

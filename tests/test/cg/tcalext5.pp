@@ -1,13 +1,15 @@
-{ Tests passing of different records by value to C methods. 
+{ Tests passing of different records by value to C methods.
  One type of these records has one field which is a simple array of bytes,
  the other consists of a few fields of atomic size.
- 
+
  Note that it does not only test a single field of these records, but all
  by comparing the sum of the field values with the sum returned by the
  C function.
 }
 program calext3;
 {$MODE DELPHI}
+{$R-}
+{$Q-}
 
 { requires libgcc for the C functions }
 {$ifdef FPUSOFT}
@@ -127,7 +129,7 @@ type
     v1 : int32_t;
     v2 : int16_t;
   end;
-  
+
   struct7 = record
     v1 : int32_t;
     v2 : int16_t;
@@ -170,8 +172,8 @@ type
     v2 : int32_t;
     v3 : int16_t;
   end;
-  
-  struct15 = record 
+
+  struct15 = record
     v1 : int64_t;
     v2 : int32_t;
     v3 : int16_t;
@@ -526,7 +528,7 @@ var
   sa31 : struct_arr31;
   sa32 : struct_arr32;
   sa33 : struct_arr33;
-  
+
   s1 : struct1;
   s2 : struct2;
   s3 : struct3;
@@ -543,7 +545,7 @@ var
   s14 : struct14;
   s15 : struct15;
   s31 : struct31;
-  
+
   c: cardinal;
 
 begin

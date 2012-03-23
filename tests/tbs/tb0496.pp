@@ -28,7 +28,7 @@ procedure tmyclass.m2;
 var
   myclass : tmyclass;
 begin
-  res:=$deadbeef;
+  res:=longint($deadbeef);
   myclass:=tmyclass.create;
   myclass.m2;
   myclass.free;
