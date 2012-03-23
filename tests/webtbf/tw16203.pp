@@ -1,4 +1,4 @@
-{ %OPT=-vh -Seh -CO }
+{ %OPT=-vh -Seh -CO  -Cr- }
 { %fail }
 
 var
