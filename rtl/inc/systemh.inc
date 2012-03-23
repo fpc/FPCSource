@@ -291,7 +291,7 @@ Type
 
   Int8    = ShortInt;
   Int16   = SmallInt;
-  Int32   = Integer;
+  Int32   = Longint;
   IntPtr  = PtrInt;
   UInt8   = Byte;
   UInt16  = Word;
