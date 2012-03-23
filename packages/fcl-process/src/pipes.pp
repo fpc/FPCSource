@@ -80,6 +80,7 @@ end;
 destructor TInputPipeStream.Destroy;
 begin
   PipeClose (Handle);
+  inherited;
 end;
 
 Function TInputPipeStream.Write (Const Buffer; Count : Longint) : longint;
@@ -110,6 +111,7 @@ end;
 destructor TOutputPipeStream.Destroy;
 begin
   PipeClose (Handle);
+  inherited;
 end;
 
 Function TOutputPipeStream.Read(Var Buffer; Count : Longint) : longint;
