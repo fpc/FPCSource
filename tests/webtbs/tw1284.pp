@@ -1,6 +1,6 @@
 { %version=1.1 }
+{ %OPT=-CO- -Seh -vh }
 
-{ %OPT=-Seh -vh }
 {$mode objfpc}
  function f(p: word): boolean;
  begin
