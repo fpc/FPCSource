@@ -1,4 +1,7 @@
 
+{ This test requires overflow check to be off }
+{$O-}
+
 procedure error(n: longint);
 begin
   writeln('Test failed: ', n);

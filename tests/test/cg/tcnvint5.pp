@@ -1,3 +1,7 @@
+
+{ This test requires overflow check to be off }
+{$O-}
+
 var
   error: boolean;
 
