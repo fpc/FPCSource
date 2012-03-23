@@ -49,13 +49,6 @@ begin
   Result:=Nil;
 end;
 
-destructor TPersistent.Destroy;
-
-begin
-  Inherited Destroy;
-end;
-
-
 procedure TPersistent.Assign(Source: TPersistent);
 
 begin
@@ -155,7 +148,7 @@ end;
 
 procedure TRecall.Store;
 begin
-  if Assigned(FReference) then
+  if Assigned(FStorage) and Assigned(FReference) then
     FStorage.Assign(FReference);
 end;
 

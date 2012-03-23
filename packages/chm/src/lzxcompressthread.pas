@@ -294,7 +294,7 @@ begin
     FMemList.Delete(0);
   end
   else
-    Result := Getmem(FCompressor.BlockSize);
+    Result := Getmem(FCompressor.BlockSize*2); // it's unlikely but possible for the block to be bigger than the orig size
 end;
 
 procedure TLZXMasterThread.Lock;
@@ -514,7 +514,9 @@ begin
   FreeOnTerminate := True;
 
   Data  := GetMem(ABlockSize);
-  CompressedData:=GetMem(ABlockSize);
+
+  //it's possible to have a chunk be slightly bigger than the data it's compressing
+  CompressedData:=GetMem(ABlockSize*2);
 
   lzx_init(@LZXdata, longint(WindowSizeCode),
            TGetBytesFunc(@TLZXWorkerThread.GetBytes), Self,

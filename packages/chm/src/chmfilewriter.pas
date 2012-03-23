@@ -209,6 +209,7 @@ begin
   FSpareString.Free;
   FTotalFileList.FreeAndClear;
   FTotalFileList.Free;
+  fAllowedExtensions.Free;
   inherited Destroy;
 end;
 
@@ -1052,8 +1053,8 @@ begin
   Writer.FullTextSearch := MakeSearchable;
   Writer.HasBinaryTOC := MakeBinaryTOC;
   Writer.HasBinaryIndex := MakeBinaryIndex;
-  Writer.IndexName := IndexFileName;
-  Writer.TocName   := TableOfContentsFileName;
+  Writer.IndexName := ExtractFileName(IndexFileName);
+  Writer.TocName   := ExtractFileName(TableOfContentsFileName);
   Writer.ReadmeMessage := ReadmeMessage;
   for i:=0 to files.count-1 do
     begin
