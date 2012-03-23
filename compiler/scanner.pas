@@ -1743,6 +1743,7 @@ In case not, the value returned can be arbitrary.
         args  : string;
         hp    : tinputfile;
         found : boolean;
+        macroIsString : boolean;
       begin
         current_scanner.skipspace;
         args:=current_scanner.readcomment;
@@ -1760,6 +1761,7 @@ In case not, the value returned can be arbitrary.
          { save old }
            path:=hs;
          { first check for internal macros }
+           macroIsString:=true;
            if hs='TIME' then
             hs:=gettimestr
            else
@@ -1771,6 +1773,12 @@ In case not, the value returned can be arbitrary.
            else
             if hs='LINE' then
              hs:=tostr(current_filepos.line)
+           else
+            if hs='LINENUM' then 
+              begin
+                hs:=tostr(current_filepos.line);
+                macroIsString:=false;
+              end 
            else
             if hs='FPCVERSION' then
              hs:=version_string
@@ -1791,9 +1799,10 @@ In case not, the value returned can be arbitrary.
            if hs='' then
             Message1(scan_w_include_env_not_found,path);
            { make it a stringconst }
-           hs:=''''+hs+'''';
+           if macroIsString then
+             hs:=''''+hs+'''';
            current_scanner.insertmacro(path,@hs[1],length(hs),
-            current_scanner.line_no,current_scanner.inputfile.ref_index);
+           current_scanner.line_no,current_scanner.inputfile.ref_index);
          end
         else
          begin
