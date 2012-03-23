@@ -519,6 +519,7 @@ interface
          tsk_empty,                 // an empty routine
          tsk_tcinit,                // initialisation of typed constants
          tsk_callthrough,           // call through to another routine with the same parameters/return type (its def is stored in the skpara field)
+         tsk_callthrough_nonabstract,// call through to another routine if the current class not abstract (otherwise do the same as tsk_empty)
          tsk_jvm_enum_values,       // Java "values" class method of JLEnum descendants
          tsk_jvm_enum_valueof,      // Java "valueOf" class method of JLEnum descendants
          tsk_jvm_enum_classconstr,  // Java class constructor for JLEnum descendants

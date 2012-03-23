@@ -878,6 +878,14 @@ implementation
               implement_empty(pd);
             tsk_callthrough:
               implement_callthrough(pd);
+            tsk_callthrough_nonabstract:
+              begin
+                if (pd.owner.defowner.typ<>objectdef) or
+                   (tobjectdef(pd.owner.defowner).abstractcnt=0) then
+                  implement_callthrough(pd)
+                else
+                  implement_empty(pd);
+              end;
 {$ifdef jvm}
             tsk_jvm_enum_values:
               implement_jvm_enum_values(pd);

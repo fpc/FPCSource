@@ -677,21 +677,13 @@ implementation
           copy the vmt parameter from the constructor, that's different) }
         insert_self_and_vmt_para(wrapperpd);
         wrapperpd.calcparas;
-        { implementation: call through to the constructor, except in case of
-          an abstract class: then do nothing, because constructing an abstract
-          class is not possible; we still need the method definition because
-          it's used elsewhere by the compiler (it can be "overridden" by
-          child classes) }
-        if (pd.struct.typ=objectdef) and
-           (tobjectdef(pd.struct).abstractcnt=0) then
-          begin
-            wrapperpd.synthetickind:=tsk_callthrough;
-            wrapperpd.skpara:=pd;
-          end
-        else
-          begin
-            wrapperpd.synthetickind:=tsk_empty;
-          end;
+        { implementation: call through to the constructor
+          Exception: if the current class is abstract, do not call the
+            constructor, since abstract class cannot be constructed (and the
+            Android verifier does not accept such code, even if it is
+            unreachable) }
+        wrapperpd.synthetickind:=tsk_callthrough_nonabstract;
+        wrapperpd.skpara:=pd;
         symtablestack.pop(pd.owner);
         { and now wrap this generated virtual static method itself as well }
         jvm_wrap_virtual_class_method(wrapperpd);

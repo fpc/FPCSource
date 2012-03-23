@@ -571,7 +571,7 @@ implementation
             be indirect; make sure we don't replace the callthrough to the
             original constructor with another call to the wrapper }
           if (procdefinition.typ=procdef) and
-             (current_procinfo.procdef.synthetickind<>tsk_callthrough) and
+             not(current_procinfo.procdef.synthetickind in [tsk_callthrough,tsk_callthrough_nonabstract]) and
              not(cnf_inherited in callnodeflags) and
              ((procdefinition.proctypeoption=potype_constructor) or
               (po_classmethod in procdefinition.procoptions)) and
