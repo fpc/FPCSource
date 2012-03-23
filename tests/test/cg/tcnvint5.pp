@@ -1,6 +1,6 @@
 
 { This test requires overflow check to be off }
-{$O-}
+{$Q-}
 
 var
   error: boolean;
