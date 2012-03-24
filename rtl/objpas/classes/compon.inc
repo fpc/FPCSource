@@ -78,7 +78,10 @@ begin
  if assigned(intf) and supports(intf,IInterfaceComponentReference,ref) then
    begin
     comp:=ref.getcomponent;
-    comp.notification(self,op); 
+    if op = opInsert then
+      comp.FreeNotification(Self)
+    else
+      comp.RemoveFreeNotification(Self); 
    end;
 end;
 
