@@ -1,33 +1,13 @@
 #
-#   Makefile.fpc for fppkg
+#   Makefile.fpc for running fpmake
 #
 
 [package]
-name=fppkg
+name=fppkg-util
 version=2.7.1
 
-[target]
-programs=fppkg
-
-units_linux=pkglnet
-units_beos=pkglnet
-units_haiku=pkglnet
-units_freebsd=pkglnet
-units_netbsd=pkglnet
-units_openbsd=pkglnet
-units_darwin=pkglnet
-units_iphonesim=pkglnet
-units_solaris=pkglnet
-units_win32=pkglnet
-units_win64=pkglnet
-units_wince=pkglnet
-
-[compiler]
-unitdir=lnet
-includedir=lnet/sys
-
-[clean]
-units=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
+[require]
+packages=rtl fpmkunit
 
 [install]
 fpcpackage=y
@@ -35,19 +15,74 @@ fpcpackage=y
 [default]
 fpcdir=../..
 
-[require]
-packages=fcl-base fcl-xml fcl-process fcl-net paszlib libcurl fppkg
-tools=data2inc
-packages_darwin=univint
-packages_iphonesim=univint
+[prerules]
+FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
+ifdef OS_TARGET
+FPC_TARGETOPT+=--os=$(OS_TARGET)
+endif
+ifdef CPU_TARGET
+FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
+endif
+LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 
 [rules]
-.NOTPARALLEL:
-ifneq ($(DATA2INC),)
-fpmkunitsrc.inc: $(DEFAULT_FPCDIR)/packages/fpmkunit/src/fpmkunit.pp
-        $(DATA2INC) -b -s $(DEFAULT_FPCDIR)/packages/fpmkunit/src/fpmkunit.pp fpmkunitsrc.inc fpmkunitsrc
+# Do not pass the Makefile's unit and binary target locations. fpmake uses it's own.
+override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
+override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
+# Compose general fpmake-parameters
+ifdef FPMAKEOPT
+FPMAKE_OPT+=$(FPMAKEOPT)
 endif
+FPMAKE_OPT+=--localunitdir=../..
+FPMAKE_OPT+=--globalunitdir=../../packages
+FPMAKE_OPT+=$(FPC_TARGETOPT)
+FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
+FPMAKE_OPT+=--compiler=$(FPC)
+FPMAKE_OPT+=-bu
+.NOTPARALLEL:
 
-# Don't include the dependency on fpmkunitsrc.inc by default so we can control
-# better when we want to update the internal fpmkunitsrc
-fppkg$(EXEEXT): $(wildcard pkg*.pp)
+fpmake: fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT)
+all:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT)
+smart:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -bu -o -XX -o -CX
+release:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dRELEASE
+debug:	fpmake
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dDEBUG
+# If no fpmake exists and (dist)clean is called, do not try to build fpmake, it will
+# most often fail because the dependencies are cleared.
+# In case of a clean, simply do nothing
+ifeq ($(FPMAKE_BIN_CLEAN),)
+clean:
+else
+clean:
+	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
+endif
+# In case of a distclean, perform an 'old'-style distclean. This to avoid problems
+# when the package is compiled using fpcmake prior to running this clean using fpmake
+ifeq ($(FPMAKE_BIN_CLEAN),)
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
+else
+distclean:
+ifdef inUnix
+        { $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
+else
+        $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT)
+endif
+	-$(DEL) $(LOCALFPMAKE)
+endif
+install:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR)
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR)
+endif
+# distinstall also installs the example-sources
+distinstall:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR) -ie
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
+endif

@@ -13310,6 +13310,7 @@ utils/fpmc/readmsg.pp svneol=native#text/plain
 utils/fpmc/test.mc -text
 utils/fppkg/Makefile svneol=native#text/plain
 utils/fppkg/Makefile.fpc svneol=native#text/plain
+utils/fppkg/Makefile.fpc.fpcmake svneol=native#text/plain
 utils/fppkg/README.txt svneol=native#text/plain
 utils/fppkg/examples/pkglibcurl.pp svneol=native#text/plain
 utils/fppkg/examples/pkgocurl.pp svneol=native#text/plain
