@@ -791,7 +791,7 @@ var ParNr,SQLVarNr : integer;
     with cursor as TIBCursor do
       begin
       TransactionHandle := aTransation.Handle;
-      blobhandle := nil;
+      blobhandle := FB_API_NULLHANDLE;
       if isc_create_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
        CheckError('TIBConnection.CreateBlobStream', FStatus);
 
@@ -1269,7 +1269,7 @@ begin
   blobId := PISC_QUAD(@(ABlobBuf^.ConnBlobBuffer));
 
   TransactionHandle := Atransaction.Handle;
-  blobHandle := nil;
+  blobHandle := FB_API_NULLHANDLE;
 
   if isc_open_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, blobId) <> 0 then
     CheckError('TIBConnection.CreateBlobStream', FStatus);
