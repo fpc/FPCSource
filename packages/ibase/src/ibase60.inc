@@ -90,6 +90,11 @@ Type
 
 
   const
+     {$IFDEF CPU64}
+     FB_API_NULLHANDLE = 0;
+     {$ELSE}
+     FB_API_NULLHANDLE = nil;
+     {$ENDIF}
      DSQL_close = 1;
      DSQL_drop = 2;
 
