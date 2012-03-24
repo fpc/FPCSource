@@ -903,7 +903,7 @@ Type
     procedure LogUnIndent;
     Procedure EnterDir(ADir : String);
     Function GetCompiler : String;
-    Function InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Dest : String):Boolean;
+    Function InstallPackageFiles(APAckage : TPackage; tt : TTargetTypes; Const Dest : String):Boolean;
     Procedure InstallUnitConfigFile(APAckage : TPackage; Const Dest : String);
     Function InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String):Boolean;
     Function FileNewer(const Src,Dest : String) : Boolean;
@@ -2599,14 +2599,18 @@ Var
   I : Integer;
   T : TTarget;
 begin
-  OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(Defaults.CPU,Defaults.OS));
-  OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
-  AddConditionalStrings(List,InstallFiles,ACPU,AOS);
-  For I:=0 to FTargets.Count-1 do
+  if Types=[] then
+    AddConditionalStrings(List,InstallFiles,ACPU,AOS)
+  else
     begin
-      T:=FTargets.TargetItems[I];
-      if (T.TargetType in Types) and (T.Install) then
-        T.GetInstallFiles(List, OU, OB, ACPU, AOS);
+      OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(Defaults.CPU,Defaults.OS));
+      OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
+      For I:=0 to FTargets.Count-1 do
+        begin
+          T:=FTargets.TargetItems[I];
+          if (T.TargetType in Types) and (T.Install) then
+            T.GetInstallFiles(List, OU, OB, ACPU, AOS);
+        end;
     end;
 end;
 
@@ -5442,14 +5446,14 @@ begin
 end;
 
 
-Function TBuildEngine.InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Dest : String):Boolean;
+Function TBuildEngine.InstallPackageFiles(APAckage : TPackage; tt : TTargetTypes; Const Dest : String):Boolean;
 Var
   List : TStringList;
 begin
   Result:=False;
   List:=TStringList.Create;
   Try
-    APackage.GetInstallFiles(List,[tt],Defaults.CPU, Defaults.OS);
+    APackage.GetInstallFiles(List,tt,Defaults.CPU, Defaults.OS);
     if (List.Count>0) then
       begin
         Result:=True;
@@ -5527,10 +5531,13 @@ begin
     // units
     B:=false;
     GlobalDictionary.AddVariable('PackageName',APackage.Name);
-    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir);
-    if InstallPackageFiles(APAckage,ttUnit,D) then
+    D:=IncludeTrailingPathDelimiter(Defaults.BaseInstallDir);
+    // This is to install the TPackage.Installfiles, which are not related to any
+    // target
+    if InstallPackageFiles(APackage,[],D) then
       B:=true;
-    if InstallPackageFiles(APAckage,ttImplicitUnit,D) then
+    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir);
+    if InstallPackageFiles(APackage,[ttUnit, ttImplicitUnit],D) then
       B:=true;
     // By default do not install the examples. Maybe add an option for this later
     //if InstallPackageFiles(APAckage,ttExampleUnit,D) then
@@ -5540,7 +5547,7 @@ begin
       InstallUnitConfigFile(APackage,D);
     // Programs
     D:=IncludeTrailingPathDelimiter(Defaults.BinInstallDir);
-    InstallPackageFiles(APAckage,ttProgram,D);
+    InstallPackageFiles(APAckage,[ttProgram],D);
     //InstallPackageFiles(APAckage,ttExampleProgram,D);
     // Documentation
     D:=IncludeTrailingPathDelimiter(Defaults.DocInstallDir)+'fpc-'+APackage.FileName+PathDelim;
@@ -6246,7 +6253,6 @@ begin
     List.Add(APrefixB + GetProgramFileName(AOS));
   If ResourceStrings then
     List.Add(APrefixU + RSTFileName);
-  // Maybe add later ?  AddConditionalStrings(List,InstallFiles);
 end;
 
 
