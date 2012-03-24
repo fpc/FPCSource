@@ -38,6 +38,27 @@ begin
     end;
 end;
 
+Procedure DoTest2;
+begin
+  // if file does not exists, then create it with schema at first line
+  With TSdfDataSet.Create(Nil) do
+    try
+      Delimiter := #9;
+      FileName := 'fpc2.ssy';
+      FileMustExist := False;
+      FirstLineAsSchema := True;
+      Schema.Add('First Name');
+      Schema.Add('Last Name');
+      Schema.Add('Email');
+      Open;
+      AppendRecord(['FName', 'LName', 'name@freepascal.org']);
+      Close;
+    finally
+      Free;
+    end;
+end;
+
 begin
   DoTest;
+  DoTest2;
 end.
