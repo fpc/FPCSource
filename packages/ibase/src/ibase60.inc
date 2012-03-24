@@ -68,7 +68,9 @@ type
 
 Type
    ISC_USHORT    = word;
-   ISC_STATUS    = clong;
+   ISC_STATUS    = ptrint;  { CLong according the sources but they ifdef
+				for win64, the only significant platform
+				where clong<>ptrint}
    ISC_INT64     = int64;
    ISC_UINT64    = qword;
    ISC_LONG      = Longint;
@@ -79,6 +81,13 @@ Type
    PISC_INT64 = ^ISC_INT64;
    PISC_UINT64 = ^ISC_UINT64;
    PISC_LONG = ^ISC_LONG;
+
+   {$IFDEF CPU64}
+    FB_API_HANDLE = cuint;
+   {$ELSE}
+    FB_API_HANDLE = pointer;
+   {$ENDIF}
+
 
   const
      DSQL_close = 1;
@@ -327,15 +336,16 @@ type
   {                               }
 
   type
-     isc_att_handle = pointer;
-     isc_blob_handle = pointer;
-     isc_db_handle = pointer;
-     isc_form_handle = pointer;
-     isc_req_handle = pointer;
-     isc_stmt_handle = pointer;
-     isc_svc_handle = pointer;
-     isc_tr_handle = pointer;
-     isc_win_handle = pointer;
+
+     isc_att_handle  = FB_API_HANDLE;
+     isc_blob_handle = FB_API_HANDLE;
+     isc_db_handle   = FB_API_HANDLE;
+     isc_form_handle = FB_API_HANDLE; // can't find in 2.5.1
+     isc_req_handle  = FB_API_HANDLE;
+     isc_stmt_handle = FB_API_HANDLE;
+     isc_svc_handle  = FB_API_HANDLE;
+     isc_tr_handle   = FB_API_HANDLE;
+     isc_win_handle  = pointer;       // can't find in 2.5.1 
      isc_callback = procedure ;extdecl;
      isc_resv_handle = ISC_LONG;
      tisc_att_handle = isc_att_handle;
