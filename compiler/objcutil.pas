@@ -146,6 +146,7 @@ end;
                 else
 {$endif onlymacosx10_6 or arm}
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
+                tloadvmtaddrnode(result).forcall:=true;
                 result:=objcloadbasefield(result,'ISA');
                 typecheckpass(result);
                 { we're done }
