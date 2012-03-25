@@ -710,9 +710,9 @@ parser_e_function_already_declared_public_forward=03120_E_Функция "$1" уже объяв
 % в секции \var{implmentation}.
 parser_e_not_external_and_export=03121_E_Hельзя использовать EXPORT совместно с EXTERNAL
 % ти две директивы являются взаимоисключающими
-parser_w_not_supported_for_inline=03123_W_"$1" не поддеpживается внyтpи INLINE пpоцедypы/фyнкции
+parser_h_not_supported_for_inline=03123_H_"$1" не поддеpживается внyтpи INLINE пpоцедypы/фyнкции
 % Встраиваемые процедуры не поддерживают этот тип объявления.
-parser_w_inlining_disabled=03124_W_Встраивание (INLINE) отключено
+parser_h_inlining_disabled=03124_H_Встраивание (INLINE) отключено
 % Встраивание процедур отключено.
 parser_i_writing_browser_log=03125_I_Записываем лог бpаyзеpа $1
 % Когда включены информационные сообщения, компилятор сообщает

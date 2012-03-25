@@ -1352,8 +1352,8 @@ implementation
         result := false;
         if (pi_has_assembler_block in current_procinfo.flags) then
           begin
-            Message1(parser_w_not_supported_for_inline,'assembler');
-            Message(parser_w_inlining_disabled);
+            Message1(parser_h_not_supported_for_inline,'assembler');
+            Message(parser_h_inlining_disabled);
             exit;
           end;
         for i:=0 to procdef.paras.count-1 do
@@ -1364,8 +1364,8 @@ implementation
                 begin
                   if (currpara.varspez in [vs_out,vs_var,vs_const,vs_constref]) then
                     begin
-                      Message1(parser_w_not_supported_for_inline,'formal parameter');
-                      Message(parser_w_inlining_disabled);
+                      Message1(parser_h_not_supported_for_inline,'formal parameter');
+                      Message(parser_h_inlining_disabled);
                       exit;
                     end;
                 end;
@@ -1374,8 +1374,8 @@ implementation
                   if is_array_of_const(currpara.vardef) or
                      is_variant_array(currpara.vardef) then
                     begin
-                      Message1(parser_w_not_supported_for_inline,'array of const');
-                      Message(parser_w_inlining_disabled);
+                      Message1(parser_h_not_supported_for_inline,'array of const');
+                      Message(parser_h_inlining_disabled);
                       exit;
                     end;
                   { open arrays might need re-basing of the index, i.e. if you pass
@@ -1383,8 +1383,8 @@ implementation
                     if you directly inline it }
                   if is_open_array(currpara.vardef) then
                     begin
-                      Message1(parser_w_not_supported_for_inline,'open array');
-                      Message(parser_w_inlining_disabled);
+                      Message1(parser_h_not_supported_for_inline,'open array');
+                      Message(parser_h_inlining_disabled);
                       exit;
                     end;
                 end;
@@ -1610,8 +1610,8 @@ implementation
             else
              if (po_inline in current_procinfo.procdef.procoptions) then
               begin
-                Message1(parser_w_not_supported_for_inline,'nested procedures');
-                Message(parser_w_inlining_disabled);
+                Message1(parser_h_not_supported_for_inline,'nested procedures');
+                Message(parser_h_inlining_disabled);
                 exclude(current_procinfo.procdef.procoptions,po_inline);
               end;
           end;

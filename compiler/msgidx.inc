@@ -221,8 +221,8 @@ const
   parser_e_proc_dir_not_allowed_in_procvar=03119;
   parser_e_function_already_declared_public_forward=03120;
   parser_e_not_external_and_export=03121;
-  parser_w_not_supported_for_inline=03123;
-  parser_w_inlining_disabled=03124;
+  parser_h_not_supported_for_inline=03123;
+  parser_h_inlining_disabled=03124;
   parser_i_writing_browser_log=03125;
   parser_h_maybe_deref_caret_missing=03126;
   parser_f_assembler_reader_not_supported=03127;

@@ -251,8 +251,8 @@ const msgtxt : array[0..000262,1..240] of char=(
   '03119_E_Procedure directive "$1" not allowed in procvar declaration'#000+
   '03120_E_Function is already declared Public/Forward "$1"'#000+
   '03121_E_Can'#039't use both EXPORT and EXTERNAL'#000+
-  '03123_W_"$1" not yet supported inside inline procedure/function'#000+
-  '0','3124_W_Inlining disabled'#000+
+  '03123_H_"$1" not yet supported inside inline procedure/function'#000+
+  '0','3124_H_Inlining disabled'#000+
   '03125_I_Writing Browser log $1'#000+
   '03126_H_may be pointer dereference is missing'#000+
   '03127_F_Selected assembler reader not supported'#000+

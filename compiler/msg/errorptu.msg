@@ -772,9 +772,9 @@ parser_e_function_already_declared_public_forward=03120_E_Função já declarada
 % declaration in the \var{implementation} section.
 parser_e_not_external_and_export=03121_E_Impossível usar ambos EXPORT e EXTERNAL
 % These two procedure directives are mutually exclusive.
-parser_w_not_supported_for_inline=03123_W_"$1" não suportado ainda dentro procedimento/função em linha
+parser_h_not_supported_for_inline=03123_H_"$1" não suportado ainda dentro procedimento/função em linha
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_Procedimentos em linha desabilitados
+parser_h_inlining_disabled=03124_H_Procedimentos em linha desabilitados
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_Gravando histório Navegador $1
 % When information messages are on, the compiler warns you when it

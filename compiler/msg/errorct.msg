@@ -716,9 +716,9 @@ parser_e_function_already_declared_public_forward=03120_E_La funció "$1" ja està
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_No es poden utilitzar EXPORT i EXTERNAL conjuntament
 % These two procedure directives are mutually exclusive
-parser_w_not_supported_for_inline=03123_W_Encara no es permet "$1" dins de procediment/funció inserits
+parser_h_not_supported_for_inline=03123_H_Encara no es permet "$1" dins de procediment/funció inserits
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_S'ha deshabilitat l'inseriment
+parser_h_inlining_disabled=03124_H_S'ha deshabilitat l'inseriment
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_S'està escrivint el registre del navegador $1
 % When information messages are on, the compiler warns you when it

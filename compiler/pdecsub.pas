@@ -2893,11 +2893,11 @@ const
                not(cs_do_inline in current_settings.localswitches) then
               begin
                 { Give an error if inline is not supported by the compiler mode,
-                  otherwise only give a warning that this procedure will not be inlined }
+                  otherwise only give a hint that this procedure will not be inlined }
                 if not(m_default_inline in current_settings.modeswitches) then
                   Message(parser_e_proc_inline_not_supported)
                 else
-                  Message(parser_w_inlining_disabled);
+                  Message(parser_h_inlining_disabled);
                 exclude(pd.procoptions,po_inline);
               end;
 

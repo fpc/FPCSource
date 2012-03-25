@@ -760,9 +760,9 @@ parser_e_function_already_declared_public_forward=03120_E_Fungsi sudah dideklara
 % \var{forward} dalam seksi \var{implmentation}.
 parser_e_not_external_and_export=03121_E_Tidak bisa menggunakan EXPORT dan EXTERNAL
 % Dua prosedur ini adalah mutual eksklusif
-parser_w_not_supported_for_inline=03123_W_"$1" belum didukung di dalam inline procedure/function
+parser_h_not_supported_for_inline=03123_H_"$1" belum didukung di dalam inline procedure/function
 % Inline procedures tidak mendukung deklarasi ini.
-parser_w_inlining_disabled=03124_W_Inlining dimatikan
+parser_h_inlining_disabled=03124_H_Inlining dimatikan
 % Inlining dari prosedur dimatikan.
 parser_i_writing_browser_log=03125_I_Menulis log Browser $1
 % Ketika pesan informasi hidup, kompilator memperingatkan anda saat ia
