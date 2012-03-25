@@ -221,16 +221,13 @@ implementation
          expectloc:=LOC_REGISTER;
          if left.nodetype<>typen then
            begin
-             { make sure that the isa field is loaded correctly in case
-               of the non-fragile ABI }
              if is_objcclass(left.resultdef) and
                 (left.nodetype<>typen) then
                begin
-                 vs:=search_struct_member(tobjectdef(left.resultdef),'ISA');
-                 if not assigned(vs) or
-                    (tsym(vs).typ<>fieldvarsym) then
-                   internalerror(2009092502);
-                 result:=csubscriptnode.create(tfieldvarsym(vs),left);
+                 { don't use the ISA field name, assume this field is at offset
+                   0 (just like gcc/clang) }
+                 result:=ctypeconvnode.create_internal(left,voidpointertype);
+                 result:=cderefnode.create(result);
                  inserttypeconv_internal(result,resultdef);
                  { reused }
                  left:=nil;
