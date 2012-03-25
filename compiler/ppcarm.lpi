@@ -47,6 +47,7 @@
       <Unit3>
         <Filename Value="aopt.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="aopt"/>
       </Unit3>
     </Units>
   </ProjectOptions>
