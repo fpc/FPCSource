@@ -52,6 +52,12 @@ begin
 {$include cocoaint/fpmake.pp}
 end;
 
+procedure add_dblib;
+begin
+  with Installer do
+{$include dblib/fpmake.pp}
+end;
+
 procedure add_dbus;
 begin
   with Installer do

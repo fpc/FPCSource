@@ -7,6 +7,7 @@
   add_cdrom;
   add_chm;
   add_cocoaint;
+  add_dblib;
   add_dbus;
   add_dts;
   add_fastcgi;
