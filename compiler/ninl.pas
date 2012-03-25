@@ -3094,7 +3094,7 @@ implementation
             internalerror(200104047);
 
           in_slice_x:
-            internalerror(2005101501);
+            internalerror(2005101502);
 
           in_ord_x,
           in_chr_byte:
