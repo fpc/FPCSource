@@ -123,6 +123,34 @@ implementation
                       PROCEDURE/FUNCTION BODY PARSING
 ****************************************************************************}
 
+    procedure initializedefaultvars(p:TObject;arg:pointer);
+      var
+        b : tblocknode;
+      begin
+        if tsym(p).typ<>localvarsym then
+         exit;
+        with tabstractnormalvarsym(p) do
+         begin
+           if vo_is_default_var in varoptions then
+             begin
+               b:=tblocknode(arg);
+               b.left:=cstatementnode.create(
+                         ccallnode.createintern('fpc_zeromem',
+                           ccallparanode.create(
+                             cordconstnode.create(vardef.size,ptruinttype,false),
+                             ccallparanode.create(
+                               caddrnode.create_internal(
+                                 cloadnode.create(tsym(p),tsym(p).owner)),
+                                 nil
+                               )
+                             )
+                           ),
+                         b.left);
+             end;
+         end;
+      end;
+
+
     procedure initializevars(p:TObject;arg:pointer);
       var
         b : tblocknode;
@@ -139,7 +167,9 @@ implementation
                             cloadnode.create(tsym(p),tsym(p).owner),
                             cloadnode.create(defaultconstsym,defaultconstsym.owner)),
                         b.left);
-            end;
+            end
+           else
+             initializedefaultvars(p,arg);
          end;
       end;
 
@@ -232,7 +262,17 @@ implementation
                    current_filepos:=current_procinfo.entrypos;
                    current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
                    current_filepos:=oldfilepos;
-                 end;
+                 end
+               else
+                 if current_procinfo.procdef.localst.symtabletype=staticsymtable then
+                   begin
+                     { for program and unit initialization code we also need to
+                       initialize the local variables used of Default() }
+                     oldfilepos:=current_filepos;
+                     current_filepos:=current_procinfo.entrypos;
+                     current_procinfo.procdef.localst.SymList.ForEachCall(@initializedefaultvars,block);
+                     current_filepos:=oldfilepos;
+                   end;
             end;
       end;
 

@@ -174,6 +174,10 @@ interface
 
     procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
 
+    { returns whether the def may be used in the Default() intrinsic; static
+      arrays, records and objects are checked recursively }
+    function is_valid_for_default(def:tdef):boolean;
+
 implementation
 
     uses
@@ -2956,6 +2960,53 @@ implementation
                  MessagePos(location,type_h_smaller_possible_range_check);
              end;
          end;
+      end;
+
+    function is_valid_for_default(def:tdef):boolean;
+
+      function is_valid_record_or_object(def:tabstractrecorddef):boolean;
+        var
+          sym : tsym;
+          i : longint;
+        begin
+          for i:=0 to def.symtable.symlist.count-1 do
+            begin
+              sym:=tsym(def.symtable.symlist[i]);
+              if sym.typ<>fieldvarsym then
+                continue;
+              if not is_valid_for_default(tfieldvarsym(sym).vardef) then
+                begin
+                  result:=false;
+                  exit;
+                end;
+            end;
+          result:=true;
+        end;
+
+      begin
+        case def.typ of
+          recorddef:
+            result:=is_valid_record_or_object(tabstractrecorddef(def));
+          objectdef:
+            if is_implicit_pointer_object_type(def) then
+              result:=true
+            else
+              if is_object(def) then
+                result:=is_valid_record_or_object(tabstractrecorddef(def))
+              else
+                result:=false;
+          arraydef:
+            if not (ado_isdynamicarray in tarraydef(def).arrayoptions) then
+              result:=is_valid_for_default(tarraydef(def).elementdef)
+            else
+              result:=true;
+          formaldef,
+          abstractdef,
+          filedef:
+            result:=false;
+          else
+            result:=true;
+        end;
       end;
 
 

@@ -1496,6 +1496,7 @@ implementation
            ) and
            not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
            not(vo_is_external in tabstractvarsym(p).varoptions) and
+           not(vo_is_default_var in tabstractvarsym(p).varoptions) and
            (is_managed_type(tabstractvarsym(p).vardef) or
             ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
            ) then
@@ -1537,6 +1538,7 @@ implementation
            (tlocalvarsym(p).refs>0) and
            not(vo_is_external in tlocalvarsym(p).varoptions) and
            not(vo_is_funcret in tlocalvarsym(p).varoptions) and
+           not(vo_is_default_var in tlocalvarsym(p).varoptions) and
            is_managed_type(tlocalvarsym(p).vardef) then
           finalize_sym(TAsmList(arg),tsym(p));
       end;

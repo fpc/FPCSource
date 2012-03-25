@@ -102,6 +102,7 @@ implementation
         systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
         systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
         systemunit.insert(tsyssym.create('ObjCEncode',in_objc_encode_x)); { objc only }
+        systemunit.insert(tsyssym.create('Default',in_default_x));
       end;
 
 

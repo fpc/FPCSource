@@ -71,6 +71,7 @@ interface
           function handle_typed_read_write(filepara,params:Ttertiarynode;var newstatement:Tnode):boolean;
           function handle_read_write: tnode;
           function handle_val: tnode;
+          function handle_default: tnode;
        end;
        tinlinenodeclass = class of tinlinenode;
 
@@ -84,7 +85,7 @@ implementation
     uses
       verbose,globals,systems,constexp,
       globtype, cutils,
-      symconst,symdef,symsym,symtable,paramgr,defutil,
+      symconst,symdef,symsym,symtable,paramgr,defutil,symbase,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       nobjc,objcdef,
@@ -1357,6 +1358,130 @@ implementation
         result.free;
         { and return it }
         result := newblock;
+      end;
+
+    function tinlinenode.handle_default: tnode;
+
+      function getdefaultvarsym(def:tdef):tnode;
+        var
+          hashedid : thashedidstring;
+          srsym : tsym;
+          srsymtable : tsymtable;
+          defaultname : tidstring;
+        begin
+          if not assigned(def) or
+              not (def.typ in [arraydef,recorddef,variantdef,objectdef,procvardef]) or
+              ((def.typ=objectdef) and not is_object(def)) then
+            internalerror(201202101);
+          defaultname:=make_mangledname('zero',def.owner,def.typesym.Name);
+          hashedid.id:=defaultname;
+          { the default sym is always part of the current procedure/function }
+          srsymtable:=current_procinfo.procdef.localst;
+          srsym:=tsym(srsymtable.findwithhash(hashedid));
+          if not assigned(srsym) then
+            begin
+              { no valid default variable found, so create it }
+              srsym:=tlocalvarsym.create(defaultname,vs_const,def,[]);
+              srsymtable.insert(srsym);
+              { mark the staticvarsym as typedconst }
+              include(tabstractvarsym(srsym).varoptions,vo_is_typed_const);
+              include(tabstractvarsym(srsym).varoptions,vo_is_default_var);
+              { The variable has a value assigned }
+              tabstractvarsym(srsym).varstate:=vs_initialised;
+              { the variable can't be placed in a register }
+              tabstractvarsym(srsym).varregable:=vr_none;
+            end;
+          result:=cloadnode.create(srsym,srsymtable);
+        end;
+
+      var
+        def : tdef;
+      begin
+        if not assigned(left) or (left.nodetype<>typen) then
+          internalerror(2012032101);
+        def:=ttypenode(left).typedef;
+        result:=nil;
+        case def.typ of
+          enumdef,
+          orddef:
+            { don't do a rangecheck as Default will also return 0
+              for the following types (Delphi compatible):
+              TRange1 = -10..-5;
+              TRange2 = 5..10;
+              TEnum = (a:=5;b:=10); }
+            result:=cordconstnode.create(0,def,false);
+          classrefdef,
+          pointerdef:
+            result:=cpointerconstnode.create(0,def);
+          procvardef:
+            if tprocvardef(def).size<>sizeof(pint) then
+              result:=getdefaultvarsym(def)
+            else
+              result:=cpointerconstnode.create(0,def);
+          stringdef:
+            result:=cstringconstnode.createstr('');
+          floatdef:
+            result:=crealconstnode.create(0,def);
+          objectdef:
+            begin
+              if is_implicit_pointer_object_type(def) then
+                result:=cpointerconstnode.create(0,def)
+              else
+                if is_object(def) then
+                  begin
+                    { Delphi does not recursively check whether
+                      an object contains unsupported types }
+                    if not (m_delphi in current_settings.modeswitches) and
+                        not is_valid_for_default(def) then
+                      Message(type_e_type_not_allowed_for_default);
+                    result:=getdefaultvarsym(def);
+                  end
+                else
+                  Message(type_e_type_not_allowed_for_default);
+            end;
+          variantdef,
+          recorddef:
+            begin
+              { Delphi does not recursively check whether a record
+                contains unsupported types }
+              if (def.typ=recorddef) and not (m_delphi in current_settings.modeswitches) and
+                  not is_valid_for_default(def) then
+                Message(type_e_type_not_allowed_for_default);
+              result:=getdefaultvarsym(def);
+            end;
+          setdef:
+            begin
+              result:=csetconstnode.create(nil,def);
+              New(tsetconstnode(result).value_set);
+              tsetconstnode(result).value_set^:=[];
+            end;
+          arraydef:
+            begin
+              { can other array types be parsed by single_type? }
+              if ado_isdynamicarray in tarraydef(def).arrayoptions then
+                result:=cpointerconstnode.create(0,def)
+              else
+                begin
+                  result:=getdefaultvarsym(def);
+                end;
+            end;
+          undefineddef:
+            begin
+              if sp_generic_dummy in def.typesym.symoptions then
+                begin
+                  { this matches the error messages that are printed
+                    in case of non-Delphi modes }
+                  Message(parser_e_no_generics_as_types);
+                  Message(type_e_type_id_expected);
+                end
+              else
+                result:=cpointerconstnode.create(0,def);
+            end;
+          else
+            Message(type_e_type_not_allowed_for_default);
+        end;
+        if not assigned(result) then
+          result:=cerrornode.create;
       end;
 
 {$maxfpuregisters 0}
@@ -2756,6 +2881,10 @@ implementation
                 begin
                   result:=handle_objc_encode;
                 end;
+              in_default_x:
+                begin
+                  result:=handle_default;
+                end;
               else
                 internalerror(8);
             end;
@@ -3094,7 +3223,7 @@ implementation
             internalerror(200104047);
 
           in_slice_x:
-            internalerror(2005101502);
+            internalerror(2005101501);
 
           in_ord_x,
           in_chr_byte:

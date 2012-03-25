@@ -508,6 +508,7 @@ const
   type_w_unicode_data_loss=04108;
   type_e_range_check_error_bounds=04109;
   type_w_range_check_error_bounds=04110;
+  type_e_type_not_allowed_for_default=04111;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -923,9 +924,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 63006;
+  MsgTxtSize = 63069;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,90,315,111,85,55,116,26,202,63,
+    26,90,315,112,85,55,116,26,202,63,
     52,20,1,1,1,1,1,1,1,1
   );

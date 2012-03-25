@@ -83,6 +83,7 @@ const
    in_sar_x             = 73;
    in_bsf_x             = 74;
    in_bsr_x             = 75;
+   in_default_x         = 76;
 
 { Internal constant functions }
    in_const_sqr        = 100;

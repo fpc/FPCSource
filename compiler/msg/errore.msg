@@ -774,9 +774,9 @@ parser_e_function_already_declared_public_forward=03120_E_Function is already de
 % declaration in the \var{implementation} section.
 parser_e_not_external_and_export=03121_E_Can't use both EXPORT and EXTERNAL
 % These two procedure directives are mutually exclusive.
-parser_h_not_supported_for_inline=03123_H_"$1" not yet supported inside inline procedure/function
+parser_w_not_supported_for_inline=03123_W_"$1" not yet supported inside inline procedure/function
 % Inline procedures don't support this declaration.
-parser_h_inlining_disabled=03124_H_Inlining disabled
+parser_w_inlining_disabled=03124_W_Inlining disabled
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_Writing Browser log $1
 % When information messages are on, the compiler warns you when it
@@ -1413,7 +1413,7 @@ parser_e_invalid_codepage=03314_E_Invalid codepage
 % \end{description}
 # Type Checking
 #
-# 04110 is the last used one
+# 04111 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1799,6 +1799,8 @@ type_w_unicode_data_loss=04108_W_Unicode constant cast with potential data loss
 type_e_range_check_error_bounds=04109_E_range check error while evaluating constants ($1 must be between $2 and $3)
 type_w_range_check_error_bounds=04110_W_range check error while evaluating constants ($1 must be between $2 and $3)
 % The constants are outside their allowed range.
+type_e_type_not_allowed_for_default=04111_E_This type is not supported for the Default() intrinsic
+% Some types like for example Text and File Of X are not supported by the Default intrinsic.
 % \end{description}
 #
 # Symtable
@@ -3096,7 +3098,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2012 by Florian Klaempfl and others
+Copyright (c) 1993-2011 by Florian Klaempfl and others
 ]
 
 #
