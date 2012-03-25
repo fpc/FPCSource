@@ -1112,6 +1112,11 @@ implementation
       { TODO, here or in peepholeopt: use iinc when possible }
       a_load_ref_stack(list,size,ref,extra_slots);
       a_op_const_stack(list,op,size,a);
+      { for android verifier }
+      if (def2regtyp(size)=R_INTREGISTER) and
+         ((ref.arrayreftype<>art_none) or
+          assigned(ref.symbol)) then
+        resize_stack_int_val(list,size,size,true);
       a_load_stack_ref(list,size,ref,extra_slots);
     end;
 
