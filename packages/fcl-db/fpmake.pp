@@ -643,14 +643,13 @@ begin
           AddUnit('bufdataset');
         end;
     T:=P.Targets.AddUnit('mssqlconn.pp', mssqlOSes);
-    T.ResourceStrings:=true;
-      with T.Dependencies do
-        begin
-          AddUnit('sqldb');
-          AddUnit('db');
-          AddUnit('dbconst');
-          AddUnit('bufdataset');
-        end;
+    with T.Dependencies do
+      begin
+        AddUnit('sqldb');
+        AddUnit('db');
+        AddUnit('dbconst');
+        AddUnit('bufdataset');
+      end;
     T:=P.Targets.AddUnit('sdfdata.pp');
       with T.Dependencies do
         begin
