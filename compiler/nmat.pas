@@ -190,10 +190,6 @@ implementation
          maybe_call_procvar(left,true);
          maybe_call_procvar(right,true);
 
-         result:=simplify(false);
-         if assigned(result) then
-           exit;
-
          { allow operator overloading }
          t:=self;
          if isbinaryoverloaded(t) then
@@ -204,10 +200,20 @@ implementation
 
          { we need 2 orddefs always }
          if (left.resultdef.typ<>orddef) then
-           inserttypeconv(right,sinttype);
+           inserttypeconv(left,sinttype);
          if (right.resultdef.typ<>orddef) then
            inserttypeconv(right,sinttype);
          if codegenerror then
+           exit;
+
+         { Try only now to simply constant
+           as otherwise you might create
+           tconstnode with return type that are
+           not compatible with tconst node
+           as in bug report 21566 PM }
+
+         result:=simplify(false);
+         if assigned(result) then
            exit;
 
          rd:=torddef(right.resultdef);
@@ -567,10 +573,6 @@ implementation
          maybe_call_procvar(left,true);
          maybe_call_procvar(right,true);
 
-         result:=simplify(false);
-         if assigned(result) then
-           exit;
-
          { allow operator overloading }
          t:=self;
          if isbinaryoverloaded(t) then
@@ -578,6 +580,10 @@ implementation
               result:=t;
               exit;
            end;
+
+         result:=simplify(false);
+         if assigned(result) then
+           exit;
 
 {$ifdef cpunodefaultint}
          { for small cpus we use the smallest common type }
