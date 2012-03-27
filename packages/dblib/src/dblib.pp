@@ -163,13 +163,13 @@ type
   ULONG=longword;
 
   // DB-Library datatypes
-  DBCHAR=char;
-  DBTINYINT=byte;
-  DBSMALLINT=smallint;
-  DBINT=longint;
-	DBUSMALLINT=word;
-  DBFLT8=double;
+  DBCHAR=shortint;
   DBBIT=byte;
+  DBTINYINT=byte;
+  DBSMALLINT=smallint;   // 16-bit int (short)
+  DBUSMALLINT=word;      // 16-bit unsigned int (unsigned short)
+  DBINT=longint;         // 32-bit int (int)
+  DBFLT8=double;         // 64-bit real (double)
   DBBINARY=byte;
 
   {$PACKRECORDS C}
