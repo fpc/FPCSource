@@ -38,6 +38,7 @@ const
 procedure SignalToRunerror(Sig: longint;info : PSigInfo;SigContext: PSigContextRec); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 
 var
+  code : ptruint;
   res,fpustate : word;
 begin
   res:=0;
@@ -49,14 +50,20 @@ begin
   end;
 {$endif cpui386}
 {$endif BSD}
+{$ifdef DEBUG}
+         Writeln(stderr,'Info is 0x',hexstr(ptruint(info),8));
+{$endif}
   case sig of
     SIGFPE :
           begin
     { this is not allways necessary but I don't know yet
       how to tell if it is or not PM }
           res:=200;
-          if assigned(info) then
-            fpustate:=info^._info.si_code
+          { In netbsd, the second parameter is a code, not a pointer to a siginfo structure
+            at least as long as we use sigaction14 }
+          code:=ptruint(info);
+          if code < high(fpustate) then
+            fpustate:=code
           else
             fpustate:=FPE_IntDiv;
 
