@@ -321,7 +321,7 @@ type
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
     procedure Initialize(ASource: TXMLCharSource);
     procedure EntityToSource(AEntity: TEntityDecl; out Src: TXMLCharSource);
-    function ContextPush(AEntity: TEntityDecl): Boolean;
+    function ContextPush(AEntity: TEntityDecl; DummySource: Boolean = False): Boolean;
     function ContextPop(Forced: Boolean = False): Boolean;
     function ParseQuantity: TCPQuant;
     procedure StoreLocation(out Loc: TLocation);
@@ -1847,11 +1847,19 @@ begin
   Src.FEntity := AEntity;
 end;
 
-function TXMLTextReader.ContextPush(AEntity: TEntityDecl): Boolean;
+function TXMLTextReader.ContextPush(AEntity: TEntityDecl; DummySource: Boolean): Boolean;
 var
   Src: TXMLCharSource;
 begin
-  EntityToSource(AEntity, Src);
+  Src := nil;
+  if Assigned(AEntity) then
+    EntityToSource(AEntity, Src);
+  if (Src = nil) and DummySource then
+  begin
+    Src := TXMLCharSource.Create('');
+    if FExpandEntities then
+      Src.Kind := skManualPop;
+  end;
   Result := Assigned(Src);
   if Result then
     Initialize(Src);
@@ -2927,7 +2935,7 @@ end;
 
 function TXMLTextReader.GetLineNumber: Integer;
 begin
-  if (FCurrNode^.FNodeType in [ntElement,ntAttribute]) or (FAttrReadState <> arsNone) then
+  if (FCurrNode^.FNodeType in [ntElement,ntAttribute,ntEntityReference,ntEndEntity]) or (FAttrReadState <> arsNone) then
     result := FCurrNode^.FLoc.Line
   else
     result := FTokenStart.Line;
@@ -2935,7 +2943,7 @@ end;
 
 function TXMLTextReader.GetLinePosition: Integer;
 begin
-  if (FCurrNode^.FNodeType in [ntElement,ntAttribute]) or (FAttrReadState <> arsNone) then
+  if (FCurrNode^.FNodeType in [ntElement,ntAttribute,ntEntityReference,ntEndEntity]) or (FAttrReadState <> arsNone) then
     result := FCurrNode^.FLoc.LinePos
   else
     result := FTokenStart.LinePos;
@@ -3296,35 +3304,18 @@ begin
     ent := nil;
     if Assigned(FDocType) then
       ent := FDocType.Entities.Get(PWideChar(n^.FQName^.Key),Length(n^.FQName^.Key)) as TEntityDecl;
-    if ent = nil then
-    begin
-      src := TXMLCharSource.Create('');
-      Initialize(src);
-    end
-    else
-      ContextPush(ent);
+    ContextPush(ent, True);
     FAttrReadState := arsPushEntity;
   end
   else
-    {... here must actually call EntityCheck, but it's called in main loop}
     FNext := xtPushEntity;
 end;
 
 procedure TXMLTextReader.DoStartEntity;
-var
-  src: TXMLCharSource;
 begin
   Inc(FNesting);
   FCurrNode := AllocNodeData(FNesting);
-  if Assigned(FCurrEntity) then
-    ContextPush(FCurrEntity)
-  else
-  begin
-  // Undefined entity -- use a dummy inputsource, in order to get a matching EndEntity event
-    src := TXMLCharSource.Create('');
-    src.Kind := skManualPop;
-    Initialize(src);
-  end;
+  ContextPush(FCurrEntity, True);
   FNext := xtText;
 end;
 
