@@ -1456,7 +1456,7 @@ begin
                            include(init_settings.localswitches,cs_do_assertion);
                        'c' :
                          If UnsetBool(More, j) then
-                           include(init_settings.moduleswitches,cs_support_c_operators)
+                           exclude(init_settings.moduleswitches,cs_support_c_operators)
                          else
                            include(init_settings.moduleswitches,cs_support_c_operators);
                        'd' : //an alternative to -Mdelphi
