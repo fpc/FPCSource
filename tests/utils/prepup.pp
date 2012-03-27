@@ -30,7 +30,6 @@ procedure dosearch(const dir : string);
     Var
       Info : TSearchRec;
       hs : string;
-      i : integer;
     begin
       If FindFirst (dir+DirectorySeparator+s,faAnyFile,Info)=0 then
         begin

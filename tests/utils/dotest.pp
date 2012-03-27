@@ -14,6 +14,7 @@
 
  **********************************************************************}
 {$H+}
+{$mode objfpc}
 {$goto on}
 
 program dotest;
@@ -707,9 +708,118 @@ begin
 end;
 
 
+{ Takes each option from AddOptions list
+  considered as a space separated list
+  and adds the option to args
+  unless option contains a percent sign,
+  in that case, the option after % will be added
+  to args only if CompilerTarget is listed in
+  the string part before %.
+  NOTE: this function does not check for
+  quoted options...
+  The list before % must of course contain no spaces. }
+
+procedure AppendOptions(AddOptions : string;var args : string);
+var
+  endopt,percentpos : longint;
+  opttarget, currentopt : string;
+begin
+  Verbose(V_Debug,'AppendOptions called with AddOptions="'+AddOptions+'"');
+  AddOptions:=trimspace(AddOptions);
+  repeat
+    endopt:=pos(' ',AddOptions);
+    if endopt=0 then
+      endopt:=length(AddOptions);
+    currentopt:=trimspace(copy(AddOptions,1,endopt));
+    AddOptions:=trimspace(copy(Addoptions,endopt+1,length(AddOptions)));
+    if currentopt<>'' then
+      begin
+        percentpos:=pos('%',currentopt);
+        if (percentpos=0) then
+          begin
+            Verbose(V_Debug,'Adding option="'+currentopt+'"');
+            args:=args+' '+currentopt;
+          end
+        else
+          begin
+            opttarget:=lowercase(copy(currentopt,1,percentpos-1));
+            if IsInList(CompilerTarget, opttarget) then
+              begin
+                Verbose(V_Debug,'Adding target specific option="'+currentopt+'" for '+opttarget);
+                args:=args+' '+copy(currentopt,percentpos+1,length(currentopt))
+              end
+            else
+              Verbose(V_Debug,'No matching target "'+currentopt+'"');
+          end;
+      end;
+  until AddOptions='';
+end;
+
+{ This function removes some incompatible
+  options from TEST_OPT before adding them to
+  the list of options passed to the compiler.
+  %DELOPT=XYZ  will remove XYZ exactly
+  %DELOPT=XYZ* will remove all options starting with XYZ.
+  NOTE: This fuinction does not handle quoted options. }
+function DelOptions(Pattern, opts : string) : string;
+var
+  currentopt : string;
+  optpos, endopt, endpos : longint;
+  iswild : boolean;
+begin
+  opts:=trimspace(opts);
+  pattern:=trimspace(pattern);
+  repeat
+    endpos:=pos(' ',pattern);
+    if endpos=0 then
+      endpos:=length(pattern);
+    currentopt:=trimspace(copy(pattern,1,endpos));
+    pattern:=trimspace(copy(pattern,endpos+1,length(pattern)));
+    if currentopt<>'' then
+      begin
+        if currentopt[length(currentopt)]='*' then
+          begin
+            iswild:=true;
+            system.delete(currentopt,length(currentopt),1);
+          end
+        else
+          iswild:=false;
+        repeat
+          optpos:=pos(currentopt,opts);
+          if optpos>0 then
+            begin
+              endopt:=optpos+length(currentopt);
+              if iswild then
+                begin
+                  while (opts[endopt]<>' ') and
+                    (endopt<length(opts)) do
+                    inc(endopt);
+                  Verbose(V_Debug,'Pattern match found "'+currentopt+'*" in "'+opts+'"');
+                  system.delete(opts,optpos,endopt-optpos+1);
+                  Verbose(V_Debug,'After opts="'+opts+'"');
+                end
+              else
+                begin
+                  if (endopt=length(opts)) or (opts[endopt]=' ') then
+                    begin
+                      Verbose(V_Debug,'Exact match found "'+currentopt+'" in "'+opts+'"');
+                      system.delete(opts,optpos,endopt-optpos+1);
+                      Verbose(V_Debug,'After opts="'+opts+'"');
+                    end
+                  else
+                    Verbose(V_Debug,'No exact match "'+currentopt+'" in "'+opts+'"');
+                end;
+
+            end;
+        until optpos=0;
+      end;
+  until pattern='';
+  DelOptions:=opts;
+end;
+
 function RunCompiler:boolean;
 var
-  args,
+  args,LocalExtraArgs,
   wpoargs : string;
   passnr,
   passes  : longint;
@@ -722,8 +832,13 @@ begin
   args:=args+' -FE'+TestOutputDir;
   if TargetIsMacOS then
     args:=args+' -WT ';  {tests should be compiled as MPWTool}
-  if ExtraCompilerOpts<>'' then
-   args:=args+ExtraCompilerOpts;
+  if Config.DelOptions<>'' then
+   LocalExtraArgs:=DelOptions(Config.DelOptions,ExtraCompilerOpts)
+  else
+    LocalExtraArgs:=ExtraCompilerOpts;
+
+  if LocalExtraArgs<>'' then
+   args:=args+' '+LocalExtraArgs;
   if TargetIsUnix then
     begin
       { Add runtime library path to current dir to find .so files }
@@ -738,7 +853,7 @@ begin
         end;
     end;
   if Config.NeedOptions<>'' then
-   args:=args+' '+Config.NeedOptions;
+   AppendOptions(Config.NeedOptions,args);
   wpoargs:='';
   if (Config.WpoPasses=0) or
      (Config.WpoParas='') then
@@ -903,7 +1018,7 @@ begin
   close(t);
 end;
 
-function LibraryExists(const PPFile : string; var FileName : string) : boolean;
+function LibraryExists(const PPFile : string; out FileName : string) : boolean;
 begin
    { Check if a dynamic library XXX was created }
    { Windows XXX.dll style }
@@ -950,7 +1065,7 @@ begin
     end;
   LibraryExists:=false;
 end;
-function ExecuteRemote(const prog,args:string;var StartTicks,EndTicks : int64):boolean;
+function ExecuteRemote(const prog,args:string;out StartTicks,EndTicks : int64):boolean;
 const
   MaxTrials = 5;
 var
@@ -980,7 +1095,7 @@ begin
   ExecuteRemote:=res;
 end;
 
-function ExecuteEmulated(const prog,args,FullExeLogFile:string;var StartTicks,EndTicks : int64):boolean;
+function ExecuteEmulated(const prog,args,FullExeLogFile:string;out StartTicks,EndTicks : int64):boolean;
 begin
   Verbose(V_Debug,'EmulatorExecuting '+Prog+' '+args);
   StartTicks:=GetMicroSTicks;
