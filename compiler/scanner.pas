@@ -1774,11 +1774,11 @@ In case not, the value returned can be arbitrary.
             if hs='LINE' then
              hs:=tostr(current_filepos.line)
            else
-            if hs='LINENUM' then 
+            if hs='LINENUM' then
               begin
                 hs:=tostr(current_filepos.line);
                 macroIsString:=false;
-              end 
+              end
            else
             if hs='FPCVERSION' then
              hs:=version_string
@@ -3005,6 +3005,7 @@ In case not, the value returned can be arbitrary.
         savetokenpos;
         repeat
           current_scanner.gettokenpos;
+          Message1(scan_d_handling_switch,'$'+p.name);
           p.proc();
           { accept the text ? }
           if (current_scanner.preprocstack=nil) or current_scanner.preprocstack.accept then
@@ -3021,7 +3022,6 @@ In case not, the value returned can be arbitrary.
                  p:=tdirectiveitem(mac_scannerdirectives.Find(current_scanner.readid));
              until assigned(p) and (p.is_conditional);
              current_scanner.gettokenpos;
-             Message1(scan_d_handling_switch,'$'+p.name);
            end;
         until false;
         restoretokenpos;
@@ -3066,6 +3066,7 @@ In case not, the value returned can be arbitrary.
          { Check for compiler switches }
          while (length(hs)=1) and (c in ['-','+']) do
           begin
+            Message1(scan_d_handling_switch,'$'+hs+c);
             HandleSwitch(hs[1],c);
             current_scanner.readchar; {Remove + or -}
             if c=',' then
@@ -3082,9 +3083,7 @@ In case not, the value returned can be arbitrary.
                    end;
                   if (hs='') then
                    Message1(scan_w_illegal_directive,'$'+c);
-                end
-               else
-                Message1(scan_d_handling_switch,'$'+hs);
+                end;
              end
             else
              hs:='';
