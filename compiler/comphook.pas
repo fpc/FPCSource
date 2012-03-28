@@ -335,7 +335,7 @@ begin
   if (status.verbosity and V_TimeStamps)<>0 then
     begin
       system.str(getrealtime-starttime:0:3,hs2);
-      hs:='['+hs2+'] '+s;
+      hs:='['+hs2+'] '+hs;
     end;
 
   { Display line }
