@@ -13,9 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$H+}
 {$mode objfpc}
 {$goto on}
+{$H+}
 
 program dotest;
 uses
