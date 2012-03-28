@@ -1527,8 +1527,7 @@ begin
           cursor := TDOMNode_WithChildren(cursor.ParentNode);
 
       ntDocumentType:
-        if not FCanonical then
-          cursor.InternalAppend(TDOMDocumentType.Create(doc, FDocType));
+        cursor.InternalAppend(TDOMDocumentType.Create(doc, FDocType));
 
       ntEntityReference:
         cursor.InternalAppend(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
@@ -3464,7 +3463,7 @@ begin
         if FCanonical then
         begin
           // recurse, effectively ignoring the DTD
-          result := ReadTopLevel;
+          result := ReadTopLevel();
           Exit;
         end;
       end;
