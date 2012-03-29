@@ -151,7 +151,7 @@
 // as in linux freebsd netbsd and openbsd
 // Start
 Type
-  winsize = packed record
+  winsize = record
     ws_row,
     ws_col,
     ws_xpixel,

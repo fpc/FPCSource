@@ -99,7 +99,7 @@ type
     ptimeval = ^timeval;
     TTimeVal = timeval;
 
-    timespec = packed record
+    timespec = record
       tv_sec   : time_t;
       tv_nsec  : clong;
     end;
