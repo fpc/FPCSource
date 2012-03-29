@@ -14,7 +14,7 @@ program calext6;
   {$define NO_FLOAT}
 {$endif}
 
-{$ifdef CPUARMEL}
+{$if defined(CPUARMEL) and defined(FPUSOFT)}
 { for softfloat calls in the C code }
 {$linklib gcc}
 {$endif}
