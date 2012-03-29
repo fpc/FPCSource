@@ -3193,6 +3193,8 @@ implementation
 
 
     procedure tcg.a_loadmm_loc_reg(list: TAsmList; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
+      var
+        tmpreg: tregister;
       begin
         case loc.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -3201,6 +3203,13 @@ implementation
             a_loadmm_ref_reg(list,loc.size,size,loc.reference,reg,shuffle);
           LOC_REGISTER,LOC_CREGISTER:
             a_loadmm_intreg_reg(list,loc.size,size,loc.register,reg,shuffle);
+          LOC_SUBSETREF,LOC_CSUBSETREF,
+          LOC_SUBSETREG,LOC_CSUBSETREG:
+            begin
+              tmpreg:=getintregister(list,loc.size);
+              a_load_loc_reg(list,loc.size,loc,tmpreg);
+              a_loadmm_intreg_reg(list,loc.size,size,tmpreg,reg,shuffle);
+            end
           else
             internalerror(200310121);
         end;
