@@ -80,9 +80,17 @@ unit agarmgas;
         result:=inherited MakeCmdLine;
         if (current_settings.fputype = fpu_soft) then
           result:='-mfpu=softvfp '+result;
-
+        if (current_settings.fputype = fpu_vfpv2) then
+          result:='-mfpu=vfpv2 '+result;
+        if (current_settings.fputype = fpu_vfpv3) then
+          result:='-mfpu=vfpv3 '+result;
+        if (current_settings.fputype = fpu_vfpv3_d16) then
+          result:='-mfpu=vfpv3-d16 '+result;
         if current_settings.cputype = cpu_armv7m then
           result:='-march=armv7m -mthumb -mthumb-interwork '+result;
+        if target_info.abi = abi_eabihf then
+          { options based on what gcc uses on debian armhf }
+          result:='-mfloat-abi=hard -meabi=5 '+result;
       end;
 
     procedure TArmGNUAssembler.WriteExtraHeader;

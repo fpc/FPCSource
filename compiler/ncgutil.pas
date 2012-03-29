@@ -1997,22 +1997,25 @@ implementation
           LOC_CFPUREGISTER :
             begin
 {$if defined(sparc) or defined(arm)}
-              { Arm and Sparc passes floats in int registers, when loading to fpu register
-                we need a temp }
-              sizeleft := TCGSize2Size[destloc.size];
-              tg.GetTemp(list,sizeleft,sizeleft,tt_normal,tempref);
-              href:=tempref;
-              while assigned(paraloc) do
+              { Arm (with softfloat ABI) and Sparc passes floats in int registers, 
+                when loading to fpu register we need a temp }
+              if (paraloc^.loc = LOC_REGISTER) then 
                 begin
-                  unget_para(paraloc^);
-                  cg.a_load_cgparaloc_ref(list,paraloc^,href,sizeleft,destloc.reference.alignment);
-                  inc(href.offset,TCGSize2Size[paraloc^.size]);
-                  dec(sizeleft,TCGSize2Size[paraloc^.size]);
-                  paraloc:=paraloc^.next;
-                end;
-              gen_alloc_regloc(list,destloc);
-              cg.a_loadfpu_ref_reg(list,destloc.size,destloc.size,tempref,destloc.register);
-              tg.UnGetTemp(list,tempref);
+                  sizeleft := TCGSize2Size[destloc.size];
+                  tg.GetTemp(list,sizeleft,sizeleft,tt_normal,tempref);
+                  href:=tempref;
+                  while assigned(paraloc) do
+                    begin
+                      unget_para(paraloc^);
+                      cg.a_load_cgparaloc_ref(list,paraloc^,href,sizeleft,destloc.reference.alignment);
+                      inc(href.offset,TCGSize2Size[paraloc^.size]);
+                      dec(sizeleft,TCGSize2Size[paraloc^.size]);
+                      paraloc:=paraloc^.next;
+                    end;
+                  gen_alloc_regloc(list,destloc);
+                  cg.a_loadfpu_ref_reg(list,destloc.size,destloc.size,tempref,destloc.register);
+                  tg.UnGetTemp(list,tempref);
+               end;
 {$else sparc}
               unget_para(paraloc^);
               gen_alloc_regloc(list,destloc);

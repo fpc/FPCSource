@@ -43,6 +43,7 @@ program pp;
   FPC_ARMEB           create an arm big endian compiler
   FPC_OARM            create an arm oabi compiler, only needed when the host
                       compiler is ARMEL or ARMEB
+  FPC_ARMHF           create an armhf (eabi vfp variant) compiler
   -----------------------------------------------------------------
   cpuflags            The target processor has status flags (on by default)
   cpufpemu            The target compiler will also support emitting software

@@ -185,11 +185,15 @@ begin
 {$endif powerpc64}
 
 {$ifdef arm}
+{$ifdef FPC_ARMHF}
+     defdynlinker:='/lib/arm-linux-gnueabihf/ld-linux.so.3';
+{$else FPC_ARMHF}
 {$ifdef FPC_ARMEL}
      defdynlinker:='/lib/ld-linux.so.3';
 {$else FPC_ARMEL}
      defdynlinker:='/lib/ld-linux.so.2';
 {$endif FPC_ARMEL}
+{$endif FPC_ARMHF}
 {$endif arm}
 
 {$ifdef mips}

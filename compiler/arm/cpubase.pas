@@ -87,7 +87,7 @@ unit cpubase;
 
       { MM Super register first and last }
       first_mm_supreg    = RS_S0;
-      first_mm_imreg     = $20;
+      first_mm_imreg     = $30;
 
 { TODO: Calculate bsstart}
       regnumber_count_bsstart = 64;
@@ -106,7 +106,7 @@ unit cpubase;
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_R0..RS_R3,RS_R12..RS_R14];
       VOLATILE_FPUREGISTERS = [RS_F0..RS_F3];
-      VOLATILE_MMREGISTERS =  [RS_D0..RS_D7,RS_D16..RS_D31];
+      VOLATILE_MMREGISTERS =  [RS_D0..RS_D7,RS_D16..RS_D31,RS_S1..RS_S15];
 
       VOLATILE_INTREGISTERS_DARWIN = [RS_R0..RS_R3,RS_R9,RS_R12..RS_R14];
 
@@ -286,7 +286,7 @@ unit cpubase;
 
       NR_FPU_RESULT_REG = NR_F0;
 
-      NR_MM_RESULT_REG  = NR_NO;
+      NR_MM_RESULT_REG  = NR_D0;
 
       NR_RETURN_ADDRESS_REG = NR_FUNCTION_RETURN_REG;
 

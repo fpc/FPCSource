@@ -2883,6 +2883,11 @@ begin
     undef_system_macro('FPC_ABI_'+abi2str[abi]);
   def_system_macro('FPC_ABI_'+abi2str[target_info.abi]);
 
+  { Define FPC_ABI_EABI in addition to FPC_ABI_EABIHF on EABI VFP hardfloat
+    systems since most code needs to behave the same on both}
+  if target_info.abi = abi_eabihf then 
+    def_system_macro('FPC_ABI_EABI');
+
   { Write logo }
   if option.ParaLogo then
     option.writelogo;
@@ -3051,6 +3056,24 @@ begin
     end;
 
 {$ifdef arm}
+  if target_info.abi = abi_eabihf then 
+    begin
+      if not(option.FPUSetExplicitly) then 
+        begin
+          init_settings.fputype:=fpu_vfpv3_d16
+        end
+      else
+        begin
+          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16]) then 
+            begin
+              Message(option_illegal_fpu_eabihf);
+              StopOptions(1);
+            end;
+        end;
+    end;
+{$endif arm}
+
+{$ifdef arm}
 { set default cpu type to ARMv6 for Darwin unless specified otherwise }
 if (target_info.system=system_arm_darwin) then
   begin
@@ -3059,6 +3082,16 @@ if (target_info.system=system_arm_darwin) then
     if not option.OptCPUSetExplicitly then
       init_settings.optimizecputype:=cpu_armv6;
   end;
+
+{ set default cpu type to ARMv7 for ARMHF unless specified otherwise }
+if (target_info.abi = abi_eabihf) then 
+  begin
+    if not option.CPUSetExplicitly then
+      init_settings.cputype:=cpu_armv7;
+    if not option.OptCPUSetExplicitly then
+      init_settings.optimizecputype:=cpu_armv7;
+  end;
+
 {$endif arm}
 
   { now we can define cpu and fpu type }

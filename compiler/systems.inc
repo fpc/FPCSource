@@ -210,7 +210,7 @@
 
        tabi = (abi_default
             ,abi_powerpc_sysv,abi_powerpc_aix
-            ,abi_eabi,abi_armeb
+            ,abi_eabi,abi_armeb,abi_eabihf
        );
 
 

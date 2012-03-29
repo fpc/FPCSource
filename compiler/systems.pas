@@ -314,7 +314,7 @@ interface
              'mips','arm', 'powerpc64', 'avr', 'mipsel');
 
        abi2str : array[tabi] of string[10] =
-         ('DEFAULT','SYSV','AIX','EABI','ARMEB');
+         ('DEFAULT','SYSV','AIX','EABI','ARMEB','EABIHF');
 
     var
        targetinfos   : array[tsystem] of psysteminfo;
