@@ -849,10 +849,10 @@ initialization
   {$ifdef Darwin}
      set_source_info(system_powerpc64_darwin_info);
   {$endif Darwin}
+{$endif powerpc64}
 {$ifdef cpuarm}
   {$ifdef Darwin}
      set_source_info(system_arm_darwin_info);
   {$endif Darwin}
 {$endif cpuarm}
-{$endif powerpc64}
 end.
