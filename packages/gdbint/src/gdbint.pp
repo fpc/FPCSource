@@ -2629,6 +2629,13 @@ end;
 {$endif not GDB_NOTIFY_BREAKPOINT_ARG_IS_BREAKPOINT_PTR}
 {$endif def GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
 
+{ Avoid loading of main.o object by providing a
+  stripped down version of relocate_gdb_directory function }
+function relocate_gdb_directory(path : pchar) : pchar; cdecl; public;
+begin
+  relocate_gdb_directory:=path;
+end;
+
 {*****************************************************************************
                                  tgdbinterface
 *****************************************************************************}
