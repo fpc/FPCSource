@@ -207,17 +207,17 @@ threadvar
 procedure InitThread;
 var
   transliterate: cint;
-{$if not(defined(darwin) and defined(cpuarm))}
+{$if not(defined(darwin) and defined(cpuarm)) and not defined(iphonesim)}
   iconvname: rawbytestring;
 {$endif}
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
-{$if not(defined(darwin) and defined(cpuarm))}
+{$if not(defined(darwin) and defined(cpuarm)) and not defined(iphonesim)}
   iconvname:=win2iconv(DefaultSystemCodePage);
   iconv_wide2ansi:=iconv_open(pchar(iconvname),unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,pchar(iconvname));
 {$else}
-  { Unix locale settings are ignored on iPhoneOS }
+  { Unix locale settings are ignored on iPhoneOS/iPhoneSimulator }
   iconv_wide2ansi:=iconv_open('UTF-8',unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,'UTF-8');
 {$endif}
