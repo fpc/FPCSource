@@ -713,11 +713,11 @@ var Param      : POCIParam;
 
     FieldType  : TFieldType;
     FieldName  : string;
-    FieldSize  : integer;
+    FieldSize  : cardinal;
 
     OFieldType   : ub2;
     OFieldName   : Pchar;
-    OFieldSize   : sb4;
+    OFieldSize   : ub4;
     OFNameLength : ub4;
     NumCols      : ub4;
     FOciDefine   : POCIDefine;
@@ -736,6 +736,12 @@ begin
 
     for tel := 1 to numcols do
       begin
+      // Clear OFieldSize. Oracle 9i, 10g doc says *ub4 but some clients use *ub2 leaving
+      // high 16 bit untouched resulting in huge values and ORA-01062
+      // WARNING: this is not working in big endian systems !!!!
+      // To be tested if BE systems have this *ub2<->*ub4 problem
+      OFieldSize:=0;
+
       if OCIParamGet(FOciStmt,OCI_HTYPE_STMT,FOciError,Param,tel) = OCI_ERROR then
         HandleError;
 
