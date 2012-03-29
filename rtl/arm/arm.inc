@@ -101,7 +101,11 @@ end;
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
 asm
+{$ifndef darwin}
   mov    r0,r11
+{$else}
+  mov    r0,r7
+{$endif}
 end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
@@ -109,7 +113,11 @@ end;
 function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
 asm
   cmp r0,#0
+{$ifndef darwin}
   ldrne r0,[r0,#-4]
+{$else}
+  ldrne r0,[r0,#4]
+{$endif}
 end;
 
 
@@ -117,7 +125,11 @@ end;
 function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
 asm
   cmp r0,#0
+{$ifndef darwin}
   ldrne r0,[r0,#-12]
+{$else}
+  ldrne r0,[r0]
+{$endif}
 end;
 
 

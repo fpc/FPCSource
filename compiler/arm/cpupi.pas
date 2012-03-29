@@ -38,6 +38,7 @@ unit cpupi;
           // procedure after_pass1;override;
           procedure set_first_temp_offset;override;
           function calc_stackframe_size:longint;override;
+          procedure init_framepointer; override;
        end;
 
 
@@ -70,8 +71,10 @@ unit cpupi;
                 register (= last register in list above) -> + 4 }
               tg.setfirsttemp(-28-16+4)
             else
-              { on Darwin r9 is not usable -> one less register to save }
-              tg.setfirsttemp(-24-16+4)
+              { on Darwin first r4-r7,r14 are saved, then r7 is adjusted to
+                point to the saved r7, and next r8,r10,r11 gets saved -> -24
+                (r4-r6 and r8,r10,r11) }
+              tg.setfirsttemp(-24)
           end
         else
           tg.setfirsttemp(maxpushedparasize);
@@ -121,6 +124,21 @@ unit cpupi;
         floatregstart:=tg.direction*result+maxpushedparasize;
         if tg.direction=1 then
           dec(floatregstart,floatsavesize);
+      end;
+
+
+    procedure tarmprocinfo.init_framepointer;
+      begin
+        if not(target_info.system in systems_darwin) then
+          begin
+            RS_FRAME_POINTER_REG:=RS_R11;
+            NR_FRAME_POINTER_REG:=NR_R11;
+          end
+        else
+          begin
+            RS_FRAME_POINTER_REG:=RS_R7;
+            NR_FRAME_POINTER_REG:=NR_R7;
+          end;
       end;
 
 

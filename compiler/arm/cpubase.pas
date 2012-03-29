@@ -269,9 +269,9 @@ unit cpubase;
       { Stack pointer register }
       NR_STACK_POINTER_REG = NR_R13;
       RS_STACK_POINTER_REG = RS_R13;
-      { Frame pointer register }
-      RS_FRAME_POINTER_REG = RS_R11;
-      NR_FRAME_POINTER_REG = NR_R11;
+      { Frame pointer register (initialized in tarmprocinfo.init_framepointer) }
+      RS_FRAME_POINTER_REG: tsuperregister = RS_NO;
+      NR_FRAME_POINTER_REG: tregister = NR_NO;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM

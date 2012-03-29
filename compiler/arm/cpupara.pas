@@ -487,7 +487,16 @@ unit cpupara;
                      if paraloc^.loc=LOC_REFERENCE then
                        begin
                          paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                         inc(paraloc^.reference.offset,4);
+                         { on non-Darwin, the framepointer contains the value
+                           of the stack pointer on entry. On Darwin, the
+                           framepointer points to the previously saved
+                           framepointer (which is followed only by the saved
+                           return address -> framepointer + 4 = stack pointer
+                           on entry }
+                         if not(target_info.system in systems_darwin) then
+                           inc(paraloc^.reference.offset,4)
+                         else
+                           inc(paraloc^.reference.offset,8);
                        end;
                    end;
                  dec(paralen,tcgsize2size[paraloc^.size]);

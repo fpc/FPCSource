@@ -140,6 +140,9 @@ unit procinfo;
           { Allocate got register }
           procedure allocate_got_register(list: TAsmList);virtual;
 
+          { get frame pointer }
+          procedure init_framepointer; virtual;
+
           { Destroy the entire procinfo tree, starting from the outermost parent }
           procedure destroy_tree;
 
@@ -182,6 +185,7 @@ implementation
         procdef:=nil;
         para_stack_size:=0;
         flags:=[];
+        init_framepointer;
         framepointer:=NR_FRAME_POINTER_REG;
         maxpushedparasize:=0;
         { asmlists }
@@ -286,6 +290,13 @@ implementation
     procedure tprocinfo.allocate_got_register(list: TAsmList);
       begin
         { most os/cpu combo's don't use this yet, so not yet abstract }
+      end;
+
+
+    procedure tprocinfo.init_framepointer;
+      begin
+        { most targets use a constant, but some have a typed constant that must
+          be initialized }
       end;
 
 
