@@ -329,6 +329,18 @@ _rtld_setup:
         .comm operatingsystem_parameter_argc,4,4
         .comm operatingsystem_parameter_argv,4,4
 	.weak	_DYNAMIC
+# This section is needed for NetBSD to recognize a NetBSD binary as such.
+# otherwise it will be startup in Linux emulation mode.
+
+.section ".note.netbsd.ident","a"
+.p2align 2
+
+.long 7
+.long 4
+# ELF NOTE TYPE NETBSD TAG
+.long 1
+.ascii "NetBSD\0\0"
+.long 199905
 	.section	.debug_frame,"",@progbits
 .Lframe0:
 	.long	.LECIE0-.LSCIE0
