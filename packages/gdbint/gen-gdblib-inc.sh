@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Function to display help
 usage ()
 {
   echo "Script used to easily create collection of libraries needed"
@@ -12,7 +13,8 @@ usage ()
   echo "should be copied."
   echo "Possible parameters for this script:"
   echo "--forcestatic, to convert all -lname into $LINKLIB libname.a"
-  echo "implicitlibs=\"space separated list if system librairies used\""
+  echo "implicitlibs=\"space separated list of used system libraries\""
+  echo "libdir=\"space separated list of library directories\""
 }
 
 # Try to find GNU make and GNU awk
@@ -34,20 +36,46 @@ if [ "$1" == "--help" ]; then
   exit
 fi
 
+
+forcestatic=0
+
+# Function to treat all command line option
+handle_option ()
+{
+opt_handled=0
+if [ "$1" == "" ] ; then
+  return
+fi
+
 if [ "$1" == "--forcestatic" ]; then
   echo "Using only static libraries in gdblib.inc"
   forcestatic=1
   MAKEOPT="LDFLAGS=-static"
-  shift
-else
-  forcestatic=0
+  opt_handled=1
 fi
 
 if [ "${1#implicitlibs=}" != "$1" ]; then
   implicitlibs=${1#implicitlibs=}
   echo "Also adding implicit libs \"$implicitlibs\""
-  shift
+  opt_handled=1
 fi
+
+if [ "${1#libdir=}" != "$1" ]; then
+  libdir=${1#libdir=}
+  echo "libdir is set to \"$libdir\""
+  opt_handled=1
+fi
+}
+
+# Try to handle all command line options
+opt_handled=1
+while [ $opt_handled -eq 1 ]
+do
+  handle_option $1
+  if [ $opt_handled -eq 1 ] ; then
+    shift
+  fi
+done
 
 if [ "$1" != "" ]; then
   echo "Unrecognized option \"$1\""
@@ -63,12 +91,16 @@ if [ "${PATHEXT}" != "" ]; then
   fi
 else
   EXEEXT=
-  libdir=/lib
+  if [ "$libdir" == "" ]; then
+    libdir=/lib
+  fi
 fi
 
 if [ "$OSTYPE" == "msys" ]; then
   echo "MSYS system detected"
   in_msys=1
+else
+  in_msys=0
 fi
 
 echo "Deleting gdb${EXEEXT} to force recompile"
@@ -129,7 +161,7 @@ if [ "$gcccompiler" != "" ]; then
       for let in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z; do
         gcclibs=${gcclibs//$let:/\/$let}
       done
-      libdir=${gcclibs//;/ }
+      libdir="$libdir ${gcclibs//;/ }"
     else
       # if ; is present in gcclibs,assume this is the separator instead of :
       if [ "${gcclibs//;/ }" != "${gcclibs}" ]; then
@@ -137,9 +169,9 @@ if [ "$gcccompiler" != "" ]; then
           # list also contains spaces, convert ' ' into '\ '
           gcclibs=${gcclibs// /\\ }
         fi
-        libdir=${gcclibs//;/ }
+        libdir="$libdir ${gcclibs//;/ }"
       else
-        libdir=${gcclibs//:/ }
+        libdir="$libdir ${gcclibs//:/ }"
       fi
     fi
     echo "gcc libs are \"$libdir\""
@@ -185,10 +217,10 @@ BEGIN {
     if ( list[i] ~ /^-l/ ) {
       print "#Looking for shared libs"
       systemlib = gensub (/-l([^ ]*)/,"lib\\1.a ","g",list[i]);
-      print "systemlib=`find " libdir " -name " systemlib " -print -quit 2> /dev/null `" ;
+      print "systemlib=`find " libdir " -iname " systemlib " -print 2> /dev/null `" ;
       print "if [ \"${systemlib}\" != \"\" ]; then";
-      print "  echo System lib found: ${systemlib}";
-      print "  cp -p ${systemlib} ${destdir}";
+      print "  echo System lib found: ${systemlib%%[$IFS]*}";
+      print "  cp -p ${systemlib%%[$IFS]*} ${destdir}";
       print "else";
       print "  echo Library " systemlib " not found, shared library assumed";
       print "fi";
@@ -200,10 +232,10 @@ END {
   for (i=1;i<=nb; i++) {
     systemlib = "lib" list[i] ".a";
     print "echo Adding system library " systemlib;
-    print "systemlib=`find " libdir " -name " systemlib " -print -quit 2> /dev/null `" ;
+    print "systemlib=`find " libdir " -iname " systemlib " -print 2> /dev/null `" ;
     print "if [ \"${systemlib}\" != \"\" ]; then";
-    print "  echo System lib found: ${systemlib}";
-    print "  cp -p ${systemlib} ${destdir}";
+    print "  echo System lib found: ${systemlib%%[$IFS]*}";
+    print "  cp -p ${systemlib%%[$IFS]*} ${destdir}";
     print "else";
     print "  echo Library " systemlib " not found, shared library assumed";
     print "fi";
