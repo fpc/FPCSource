@@ -350,7 +350,7 @@ begin
   closeinc(grifile);
   closeinc(mrifile);
   writeln('Done!');
-  writeln(regcount,' registers procesed');
+  writeln(regcount,' registers processed');
 end;
 
 

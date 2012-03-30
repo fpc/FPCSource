@@ -257,7 +257,7 @@ begin
   closeinc(rnifile);
   closeinc(srifile);
   writeln('Done!');
-  writeln(regcount,' registers procesed');
+  writeln(regcount,' registers processed');
 end;
 
 

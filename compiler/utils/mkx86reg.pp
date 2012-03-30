@@ -396,7 +396,7 @@ begin
   closeinc(irifile);
   closeinc(nrifile);
   writeln('Done!');
-  writeln(regcount,' registers procesed');
+  writeln(regcount,' registers processed');
 end;
 
 

@@ -400,5 +400,5 @@ begin
    writeln(nopfile,insns,';');
    close(nopfile);
 {   closeinc(propfile); }
-   writeln(insns,' nodes procesed (maxinfolen=',maxinfolen,')');
+   writeln(insns,' nodes processed (maxinfolen=',maxinfolen,')');
 end.
