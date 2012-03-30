@@ -809,26 +809,46 @@ end;
 // -------------------------------------------------------------------
 
 procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
+begin
+  WriteXML(doc, AFileName);
+end;
+
+procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
+begin
+  WriteXML(doc, AFile);
+end;
+
+procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
+begin
+  WriteXML(doc, AStream);
+end;
+
+procedure WriteXML(Element: TDOMNode; const AFileName: String);
 var
   fs: TFileStream;
 begin
   fs := TFileStream.Create(AFileName, fmCreate);
   try
-    WriteXMLFile(doc, fs);
+    WriteXML(Element, fs);
   finally
     fs.Free;
   end;
 end;
 
-procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
+procedure WriteXML(Element: TDOMNode; var AFile: Text);
 var
   s: TStream;
+  doc: TDOMDocument;
 begin
+  if Element.NodeType = DOCUMENT_NODE then
+    doc := TDOMDocument(Element)
+  else
+    doc := Element.OwnerDocument;
   s := TTextStream.Create(AFile);
   try
     with TXMLWriter.Create(s, doc.Names) do
     try
-      WriteNode(doc);
+      WriteNode(Element);
     finally
       Free;
     end;
@@ -837,29 +857,20 @@ begin
   end;
 end;
 
-procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
+procedure WriteXML(Element: TDOMNode; AStream: TStream);
+var
+  doc: TDOMDocument;
 begin
+  if Element.NodeType = DOCUMENT_NODE then
+    doc := TDOMDocument(Element)
+  else
+    doc := Element.OwnerDocument;
   with TXMLWriter.Create(AStream, doc.Names) do
   try
-    WriteNode(doc);
+    WriteNode(Element);
   finally
     Free;
   end;
-end;
-
-procedure WriteXML(Element: TDOMNode; const AFileName: String);
-begin
-  WriteXMLFile(TXMLDocument(Element), AFileName);
-end;
-
-procedure WriteXML(Element: TDOMNode; var AFile: Text);
-begin
-  WriteXMLFile(TXMLDocument(Element), AFile);
-end;
-
-procedure WriteXML(Element: TDOMNode; AStream: TStream);
-begin
-  WriteXMLFile(TXMLDocument(Element), AStream);
 end;
 
 
