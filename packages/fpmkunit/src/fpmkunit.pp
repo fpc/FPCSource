@@ -5613,7 +5613,7 @@ begin
   If (Apackage.State<>tsCompiled) then
     MaybeCompile(APackage);
   try
-    Log(vlInfo,SInfoInstallingPackage,[APackage.Name]);
+    Log(vlCommand,SInfoInstallingPackage,[APackage.Name]);
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
     DoBeforeInstall(APackage);
