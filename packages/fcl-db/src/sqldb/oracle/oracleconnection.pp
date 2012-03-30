@@ -533,8 +533,9 @@ begin
           ftFloat : begin OFieldType := SQLT_FLT; OFieldSize := sizeof(double); end;
           ftDate, ftDateTime : begin OFieldType := SQLT_DAT; OFieldSize := 7; end;
           ftString  : begin OFieldType := SQLT_STR; OFieldSize := 4000; end;
-          ftFMTBcd : begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
-
+          ftFMTBcd,ftBCD : begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
+        else
+          DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[tel].DataType]],self);
         end;
         parambuffers[tel].buffer := getmem(OFieldSize);
         parambuffers[tel].Len := OFieldSize;
@@ -602,9 +603,11 @@ begin
                             pb[5] := 1;
                             pb[6] := 1;
                             end;
-        ftFmtBCD          : begin
+        ftFmtBCD,ftBCD    : begin
                             FmtBCD2Nvu(asFmtBCD,parambuffers[SQLVarNr].buffer);
                             end;
+        else
+          DatabaseErrorFmt(SUnsupportedParameter,[DataType],self);
       end;
 
       end;
