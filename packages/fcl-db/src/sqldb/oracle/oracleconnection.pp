@@ -87,6 +87,8 @@ type
     function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer; out CreateBlob : boolean):boolean; override;
 //    function CreateBlobStream(Field:TField; Mode:TBlobStreamMode):TStream; override;
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
+    procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
 
   public
     constructor Create(AOwner : TComponent); override;
@@ -916,6 +918,96 @@ end;}
 procedure TOracleConnection.FreeFldBuffers(cursor: TSQLCursor);
 begin
 //  inherited FreeFldBuffers(cursor);
+end;
+
+procedure TOracleConnection.UpdateIndexDefs(IndexDefs: TIndexDefs;
+  TableName: string);
+var qry : TSQLQuery;
+
+begin
+  if not assigned(Transaction) then
+    DatabaseError(SErrConnTransactionnSet);
+
+  qry := tsqlquery.Create(nil);
+  qry.transaction := Transaction;
+  qry.database := Self;
+  with qry do
+    begin
+    ReadOnly := True;
+    sql.clear;
+
+    sql.add('SELECT '+
+              'i.INDEX_NAME,  '+
+              'c.COLUMN_NAME, '+
+              'p.CONSTRAINT_TYPE '+
+            'FROM ALL_INDEXES i, ALL_IND_COLUMNS c,ALL_CONSTRAINTS p  '+
+            'WHERE '+
+              'i.OWNER=c.INDEX_OWNER AND '+
+              'i.INDEX_NAME=c.INDEX_NAME AND '+
+              'p.INDEX_NAME(+)=i.INDEX_NAME AND '+
+              'Upper(c.TABLE_NAME) = ''' +  UpperCase(TableName) +''' '+
+            'ORDER by i.INDEX_NAME,c.COLUMN_POSITION');
+    open;
+    end;
+  while not qry.eof do with IndexDefs.AddIndexDef do
+    begin
+    Name := trim(qry.fields[0].asstring);
+    Fields := trim(qry.Fields[1].asstring);
+    If UpperCase(qry.fields[2].asString)='P' then options := options + [ixPrimary];
+    If UpperCase(qry.fields[2].asString)='U' then options := options + [ixUnique];
+    qry.next;
+    while (name = qry.fields[0].asstring) and (not qry.eof) do
+      begin
+      Fields := Fields + ';' + trim(qry.Fields[2].asstring);
+      qry.next;
+      end;
+    end;
+  qry.close;
+  qry.free;
+end;
+
+function TOracleConnection.GetSchemaInfoSQL(SchemaType: TSchemaType;
+  SchemaObjectName, SchemaPattern: string): string;
+var s : string;
+
+begin
+  case SchemaType of
+    stTables     : s := 'SELECT '+
+                          '''' + DatabaseName + ''' as catalog_name, '+
+                          'sys_context( ''userenv'', ''current_schema'' ) as schema_name, '+
+                          'TABLE_NAME '+
+                        'FROM USER_CATALOG ' +
+                        'WHERE '+
+                          'TABLE_TYPE<>''SEQUENCE'' '+
+                        'ORDER BY TABLE_NAME';
+
+    stSysTables  : s := 'SELECT '+
+                          '''' + DatabaseName + ''' as catalog_name, '+
+                          'OWNER as schema_name, '+
+                          'TABLE_NAME '+
+                        'FROM ALL_CATALOG ' +
+                        'WHERE '+
+                          'TABLE_TYPE<>''SEQUENCE'' '+
+                        'ORDER BY TABLE_NAME';
+    stColumns    : s := 'SELECT '+
+                          'COLUMN_NAME, '+
+                          'DATA_TYPE as column_datatype, '+
+                          'CHARACTER_SET_NAME, '+
+                          'NULLABLE as column_nullable, '+
+                          'DATA_LENGTH as column_length, '+
+                          'DATA_PRECISION as column_precision, '+
+                          'DATA_SCALE as column_scale, '+
+                          'DATA_DEFAULT '+
+                        'FROM ALL_TAB_COLUMNS '+
+                        'WHERE Upper(TABLE_NAME) = '''+UpperCase(SchemaObjectName)+''' '+
+                        'ORDER BY COLUMN_NAME';
+    stProcedures : s := 'SELECT '+
+                          'case when PROCEDURE_NAME is null then OBJECT_NAME ELSE OBJECT_NAME || ''.'' || PROCEDURE_NAME end AS proc_name '+
+                        'FROM USER_PROCEDURES ';
+  else
+    DatabaseError(SMetadataUnavailable)
+  end; {case}
+  result := s;
 end;
 
 constructor TOracleConnection.Create(AOwner: TComponent);
