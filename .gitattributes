@@ -9558,10 +9558,13 @@ tests/test/cg/obj/linux/powerpc64/tcext3.o -text
 tests/test/cg/obj/linux/powerpc64/tcext4.o -text
 tests/test/cg/obj/linux/powerpc64/tcext5.o -text
 tests/test/cg/obj/linux/powerpc64/tcext6.o -text
+tests/test/cg/obj/linux/sparc/cpptcl1.o -text
+tests/test/cg/obj/linux/sparc/cpptcl2.o -text
 tests/test/cg/obj/linux/sparc/ctest.o -text
 tests/test/cg/obj/linux/sparc/tcext3.o -text
 tests/test/cg/obj/linux/sparc/tcext4.o -text
 tests/test/cg/obj/linux/sparc/tcext5.o -text
+tests/test/cg/obj/linux/sparc/tcext6.o -text
 tests/test/cg/obj/linux/x86_64/cpptcl1.o -text
 tests/test/cg/obj/linux/x86_64/cpptcl2.o -text
 tests/test/cg/obj/linux/x86_64/ctest.o -text
