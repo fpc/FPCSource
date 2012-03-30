@@ -343,6 +343,34 @@ Type
     Property ConditionalStrings[Index : Integer] : TConditionalString Read GetConditionalString Write SetConditionalString; default;
   end;
 
+  { TConditionalDestString }
+
+  TConditionalDestString = Class(TConditionalString)
+  private
+    FDestPath: string;
+  public
+    property DestPath: string read FDestPath write FDestPath;
+  end;
+
+  TConditionalDestStringClass = class of TConditionalDestString;
+
+  { TConditionalDestStrings }
+
+  TConditionalDestStrings = Class(TConditionalStrings)
+  private
+    function GetConditionalString(Index : Integer): TConditionalDestString;
+    procedure SetConditionalString(Index : Integer; AValue: TConditionalDestString);
+  public
+    Constructor Create(AClass:TConditionalDestStringClass);
+    Function Add(Const Value : String; ADestPath: String) : TConditionalDestString;inline;
+    Function Add(Const Value : String;const OSes:TOSes; ADestPath: String) : TConditionalDestString;inline;
+{$ifdef cpu_only_overloads}
+    Function Add(Const Value : String;const CPUs:TCPUs; ADestPath: String) : TConditionalDestString;inline;
+{$endif cpu_only_overloads}
+    Function Add(Const Value : String;const CPUs:TCPUs;const OSes:TOSes; ADestPath: String) : TConditionalDestString;
+    Property ConditionalStrings[Index : Integer] : TConditionalDestString Read GetConditionalString Write SetConditionalString; default;
+  end;
+
   { TDictionary }
 
   TReplaceFunction = Function (Const AName,Args : String) : String of Object;
@@ -605,8 +633,8 @@ Type
     FSourcePath,
     FExamplePath,
     FTestPath,
-    FCleanFiles,
-    FInstallFiles : TConditionalStrings;
+    FCleanFiles   : TConditionalStrings;
+    FInstallFiles : TConditionalDestStrings;
     FDependencies : TDependencies;
     FCPUs: TCPUs;
     FOSes: TOSes;
@@ -688,7 +716,7 @@ Type
     Property TestPath : TConditionalStrings Read FTestPath;
     Property FPDocFormat: TFPDocFormats read FFPDocFormat write FFPDocFormat;
     // Targets and dependencies
-    Property InstallFiles : TConditionalStrings Read FInstallFiles;
+    Property InstallFiles : TConditionalDestStrings Read FInstallFiles;
     Property CleanFiles : TConditionalStrings Read FCleanFiles;
     Property Dependencies : TDependencies Read FDependencies;
     Property Commands : TCommands Read FCommands;
@@ -1824,7 +1852,17 @@ begin
               S:=APrefix+C.Value
             else
               S:=C.Value;
-            Dest.Add(D.ReplaceStrings(S));
+            S := D.ReplaceStrings(s);
+            if C is TConditionalDestString then
+              begin
+                // If a destination path is given, omit the path of the sourcefile
+                if TConditionalDestString(c).DestPath='' then
+                  Dest.values[S] :=  D.ReplaceStrings(IncludeTrailingPathDelimiter(TConditionalDestString(c).DestPath))+S
+                else
+                  Dest.values[S] :=  D.ReplaceStrings(IncludeTrailingPathDelimiter(TConditionalDestString(c).DestPath)+APrefix+ExtractFileName(C.Value));
+              end
+            else
+              Dest.Add(S);
             Inc(Result);
           end;
       end;
@@ -2052,7 +2090,51 @@ begin
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);
 end;
+
 {$endif HAS_UNIT_PROCESS}
+
+{ TConditionalDestStrings }
+
+function TConditionalDestStrings.GetConditionalString(Index : Integer): TConditionalDestString;
+begin
+  Result:=TConditionalDestString(Items[Index]);
+end;
+
+procedure TConditionalDestStrings.SetConditionalString(Index : Integer; AValue: TConditionalDestString);
+begin
+  Items[Index]:=AValue;
+end;
+
+constructor TConditionalDestStrings.Create(AClass: TConditionalDestStringClass);
+begin
+  inherited Create(AClass);
+end;
+
+function TConditionalDestStrings.Add(const Value: String; ADestPath: String): TConditionalDestString;
+begin
+  Add(Value, AllCPUs, AllOSes, ADestPath);
+end;
+
+function TConditionalDestStrings.Add(const Value: String; const OSes: TOSes; ADestPath: String): TConditionalDestString;
+begin
+  Add(Value, AllCPUs, OSes, ADestPath);
+end;
+
+{$ifdef cpu_only_overloads}
+Function TConditionalDestStrings.Add(Const Value : String;const CPUs:TCPUs; ADestPath: String) : TConditionalDestString;inline;
+begin
+  Add(Value, CPUs, AllOSes, ADestPath);
+end;
+{$endif cpu_only_overloads}
+
+
+function TConditionalDestStrings.Add(const Value: String; const CPUs: TCPUs; const OSes: TOSes; ADestPath: String): TConditionalDestString;
+var
+  ACondString: TConditionalDestString;
+begin
+  ACondString := inherited Add(Value,CPUs,OSes) as TConditionalDestString;
+  ACondString.DestPath:=ADestPath;
+end;
 
 { TPackageDictionary }
 
@@ -2516,7 +2598,7 @@ begin
   FTargets:=TTargets.Create(TTarget);
   FSources:=TSources.Create(TSource);
   FDependencies:=TDependencies.Create(TDependency);
-  FInstallFiles:=TConditionalStrings.Create(TConditionalString);
+  FInstallFiles:=TConditionalDestStrings.Create(TConditionalDestString);
   FCleanFiles:=TConditionalStrings.Create(TConditionalString);
   FUnitPath:=TConditionalStrings.Create(TConditionalString);
   FObjectPath:=TConditionalStrings.Create(TConditionalString);
@@ -3090,6 +3172,7 @@ begin
   else
     FBaseInstallDir:='';
   GlobalDictionary.AddVariable('baseinstalldir',BaseInstallDir);
+  GlobalDictionary.AddVariable('bininstalldir',BinInstallDir);
   BinInstallDir:='';
   ExamplesInstallDir:='';
 end;
@@ -3111,6 +3194,8 @@ begin
     FPrefix:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
   else
     FPrefix:='';
+  GlobalDictionary.AddVariable('prefix',Prefix);
+  GlobalDictionary.AddVariable('bininstalldir',BinInstallDir);
   BaseInstallDir:='';
 end;
 
@@ -3375,6 +3460,8 @@ begin
 
       GlobalDictionary.AddVariable('target',Target);
       GlobalDictionary.AddVariable('baseinstalldir',BaseInstallDir);
+      GlobalDictionary.AddVariable('prefix',Prefix);
+      GlobalDictionary.AddVariable('bininstalldir',BinInstallDir);
       end;
   Finally
     L.Free;
@@ -3432,7 +3519,9 @@ begin
   GlobalDictionary:=DictionaryClass.Create(Nil);
   AnalyzeOptions;
   GlobalDictionary.AddVariable('BaseInstallDir',Defaults.BaseInstallDir);
+  GlobalDictionary.AddVariable('bininstalldir',Defaults.BinInstallDir);
   GlobalDictionary.AddVariable('Target',Defaults.Target);
+  GlobalDictionary.AddVariable('Prefix',Defaults.Prefix);
   CreatePackages;
 end;
 
@@ -5531,6 +5620,8 @@ begin
     // units
     B:=false;
     GlobalDictionary.AddVariable('PackageName',APackage.Name);
+    GlobalDictionary.AddVariable('unitinstalldir',Defaults.UnitInstallDir);
+
     D:=IncludeTrailingPathDelimiter(Defaults.BaseInstallDir);
     // This is to install the TPackage.Installfiles, which are not related to any
     // target
