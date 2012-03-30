@@ -473,6 +473,8 @@ begin
     begin
     if Length(FieldBuffers) > 0 then
       for tel := 0 to high(FieldBuffers) do freemem(FieldBuffers[tel].buffer);
+    if Length(ParamBuffers) > 0 then
+      for tel := 0 to high(ParamBuffers) do freemem(ParamBuffers[tel].buffer);
     end;
   FreeAndNil(cursor);
 end;
