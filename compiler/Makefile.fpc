@@ -431,11 +431,15 @@ insdat: insdatx86 insdatarm
 
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
-        cd arm && ..$(PATHSEP)utils$PATHSEP)mkarmreg$(SRCEXEEXT)
+        cd arm && ..$(PATHSEP)utils$(PATHSEP)mkarmreg$(SRCEXEEXT)
 
 regdatia64 : ia64/ia64reg.dat
             $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkia64reg.pp
-        cd ia64 && ..$(PATHSEP)utils$PATHSEP)mkia64reg$(SRCEXEEXT)
+        cd ia64 && ..$(PATHSEP)utils$(PATHSEP)mkia64reg$(SRCEXEEXT)
+
+regdatsp : sparc/spreg.dat
+            $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkspreg.pp
+        cd sparc && ..$(PATHSEP)utils$(PATHSEP)mkspreg$(SRCEXEEXT)
 
 # revision.inc rule
 revision.inc :
