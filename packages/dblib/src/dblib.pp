@@ -43,7 +43,11 @@ const
   {$IFDEF ntwdblib}'ntwdblib.dll'{$ENDIF}
   {$IFDEF freetds} 'dblib.dll'   {$ENDIF}
 {$ELSE}
-  'libsybdb.so'
+  {$IFDEF DARWIN}
+    'libsybdb.dylib'
+  {$ELSE}
+    'libsybdb.so'
+  {$ENDIF}
 {$ENDIF}
   ;
 
@@ -150,6 +154,9 @@ const
 
   DBUNKNOWN = 2; //FALSE = 0, TRUE = 1
 
+  // Error codes:
+  SYBEFCON = 20002;      // SQL Server connection failed
+
 type
   PLOGINREC=Pointer;
   PDBPROCESS=Pointer;
@@ -230,7 +237,7 @@ type
 
   DBVARYCHAR=packed record
     len: {$IFDEF freetds}DBINT{$ELSE}DBSMALLINT{$ENDIF};
-    str: array[0..DBMAXCHAR-1] of CHAR;
+    str: array[0..DBMAXCHAR-1] of AnsiChar;
   end;
 
   DBERRHANDLE_PROC=function(dbproc: PDBPROCESS; severity, dberr, oserr:INT; dberrstr, oserrstr:PChar):INT; cdecl;
@@ -241,9 +248,9 @@ type
   {$ENDIF}
   DBCOL=record
    	SizeOfStruct: DBINT;
-   	Name: array[0..MAXCOLNAMELEN] of char;
-   	ActualName: array[0..MAXCOLNAMELEN] of char;
-   	TableName: array[0..MAXTABLENAME] of char;
+   	Name: array[0..MAXCOLNAMELEN] of AnsiChar;
+   	ActualName: array[0..MAXCOLNAMELEN] of AnsiChar;
+   	TableName: array[0..MAXTABLENAME] of AnsiChar;
    	Typ: SHORT;
    	UserType: DBINT;
    	MaxLength: DBINT;
@@ -396,7 +403,7 @@ begin
     if DBLibLibraryHandle = nilhandle then
     begin
       RefCount := 0;
-      raise EInOutError.CreateFmt('Can not load DB-Lib client library "%s". Check your installation.'#13'%s',
+      raise EInOutError.CreateFmt('Can not load DB-Lib client library "%s". Check your installation.'+LineEnding+'%s',
                                   [libname, SysErrorMessage(GetLastOSError)]);
     end;
 
