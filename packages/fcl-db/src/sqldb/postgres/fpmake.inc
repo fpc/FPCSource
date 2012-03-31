@@ -6,6 +6,6 @@
 Targets.ResetDefaults;
 Targets.DefaultDir:='db/sqldb/postgres';
 { Drivers only for the following OSes }
-Targets.DefaultOS:=[win32,openbsd,netbsd,freebsd,darwin,linux];
+Targets.DefaultOS:=[win32,openbsd,netbsd,freebsd,darwin,linux,haiku];
 T:=Targets.AddUnit('pqconnection');
 T.ResourceStrings:=True;
