@@ -268,6 +268,8 @@ type
 
   TLiteralType = (ltPlain, ltPubid, ltEntity);
 
+  TEntityEvent = procedure(Sender: TXMLTextReader; AEntity: TEntityDecl) of object;
+
   TXMLTextReader = class(TXMLReader, IXmlLineInfo)
   private
     FSource: TXMLCharSource;
@@ -316,6 +318,7 @@ type
     FMaxChars: Cardinal;
     FCurrAttrIndex: Integer;
 
+    FOnEntity: TEntityEvent;
     procedure CleanAttrReadState;
     procedure SetEOFState;
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
@@ -428,7 +431,6 @@ type
 
     function  ResolvePredefined: Boolean;
     function  EntityCheck(NoExternals: Boolean = False): TEntityDecl;
-    procedure LoadEntity(AEntity: TEntityDecl);
     function PrefetchEntity(AEntity: TEntityDecl): Boolean;
     procedure StartPE;
     function  ParseRef(var ToFill: TWideCharBuf): Boolean;              // [67]
@@ -456,8 +458,6 @@ type
     procedure ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
     procedure SetOptions(AParser: TDOMParser);
   public
-    { Entity loading still needs to reference the document, at least as an opaque pointer }
-    FDoc: TObject;
     constructor Create; overload;
     constructor Create(ASrc: TXMLCharSource; ANameTable: THashTable); overload;
     constructor Create(ASrc: TXMLCharSource; AParent: TXMLTextReader); overload;
@@ -465,6 +465,7 @@ type
     constructor Create(ASrc: TXMLInputSource; ANameTable: THashTable; AParser: TDOMParser); overload;
     destructor Destroy; override;
     procedure AfterConstruction; override;
+    property OnEntity: TEntityEvent read FOnEntity write FOnEntity;
   end;
 
   TLoader = object
@@ -477,7 +478,7 @@ type
     procedure ProcessXML(ADoc: TDOMDocument; AReader: TXMLTextReader);
     procedure ProcessFragment(AOwner: TDOMNode; AReader: TXMLTextReader);
     procedure ProcessDTD(ADoc: TDOMDocument; AReader: TXMLTextReader);
-    procedure ProcessEntity(ADoc: TObject; AReader: TXMLTextReader; AEntity: TEntityDecl);
+    procedure ProcessEntity(Sender: TXMLTextReader; AEntity: TEntityDecl);
   end;
 
 const
@@ -1421,7 +1422,7 @@ procedure TLoader.ProcessXML(ADoc: TDOMDocument; AReader: TXMLTextReader);
 begin
   doc := ADoc;
   reader := AReader;
-  reader.FDoc := ADoc;
+  reader.OnEntity := @ProcessEntity;
   doc.documentURI := reader.BaseURI;
   reader.FState := rsProlog;
   reader.FFragmentMode := False;
@@ -1441,7 +1442,7 @@ var
 begin
   doc := AOwner.OwnerDocument;
   reader := AReader;
-  reader.FDoc := doc;
+  reader.OnEntity := @ProcessEntity;
   reader.FState := rsRoot;
   reader.FFragmentMode := True;
   reader.FXML11 := doc.XMLVersion = '1.1';
@@ -1451,28 +1452,30 @@ begin
   ParseContent(aOwner as TDOMNode_WithChildren);
 end;
 
-procedure TLoader.ProcessEntity(ADoc: TObject; AReader: TXMLTextReader; AEntity: TEntityDecl);
+procedure TLoader.ProcessEntity(Sender: TXMLTextReader; AEntity: TEntityDecl);
 var
   DoctypeNode: TDOMDocumentType;
   Ent: TDOMEntityEx;
   src: TXMLCharSource;
+  InnerReader: TXMLTextReader;
+  InnerLoader: TLoader;
 begin
-  DoctypeNode := TDOMDocument(ADoc).DocType;
+  DoctypeNode := TDOMDocument(doc).DocType;
   if DoctypeNode = nil then
     Exit;
   Ent := TDOMEntityEx(DocTypeNode.Entities.GetNamedItem(AEntity.FName));
   if Ent = nil then
     Exit;
-  AReader.EntityToSource(AEntity, Src);
+  Sender.EntityToSource(AEntity, Src);
   if Src = nil then
     Exit;
-  reader := TXMLTextReader.Create(Src, AReader);
+  InnerReader := TXMLTextReader.Create(Src, Sender);
   try
     Ent.SetReadOnly(False);
-    ProcessFragment(Ent, reader);
+    InnerLoader.ProcessFragment(Ent, InnerReader);
     AEntity.FResolved := True;
   finally
-    reader.Free;
+    InnerReader.Free;
     AEntity.FOnStack := False;
     Ent.SetReadOnly(True);
   end;
@@ -1530,7 +1533,19 @@ begin
         cursor.InternalAppend(TDOMDocumentType.Create(doc, FDocType));
 
       ntEntityReference:
-        cursor.InternalAppend(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
+        begin
+          cursor.InternalAppend(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
+          { Seeing an entity reference while expanding means that the entity
+            fails to expand. }
+          if not FExpandEntities then
+          begin
+            { Make reader iterate through contents of the reference,
+              to ensure correct validation events and character counts. }
+            ResolveEntity;
+            while FCurrNode^.FNodeType <> ntEndEntity do
+              Read;
+          end;
+        end;
     end;
   until not Read;
 end;
@@ -1919,7 +1934,8 @@ begin
     FatalError('External entity reference is not allowed in attribute value', cnt);
 
   if not Result.FResolved then
-    LoadEntity(Result);
+    if Assigned(FOnEntity) then
+      FOnEntity(Self, Result);
 
   // at this point we know the charcount of the entity being included
   if Result.FCharCount >= cnt then
@@ -2821,13 +2837,6 @@ begin
 end;
 
 
-procedure TXMLTextReader.LoadEntity(AEntity: TEntityDecl);
-var
-  ldr: TLoader;
-begin
-  if Assigned(FDoc) then
-    ldr.ProcessEntity(FDoc, Self, AEntity);
-end;
 
 
 procedure TXMLTextReader.Close;
