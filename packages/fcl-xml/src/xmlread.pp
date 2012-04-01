@@ -3382,8 +3382,6 @@ const
 
 function TXMLTextReader.ReadTopLevel: Boolean;
 var
-  nonWs: Boolean;
-  wc: WideChar;
   tok: TXMLToken;
 begin
   if FNext = xtFakeLF then
@@ -3393,20 +3391,16 @@ begin
   end;
 
   StoreLocation(FTokenStart);
-  nonWs := False;
-  FValue.Length := 0;
 
   if FNext = xtText then
   repeat
-    wc := FSource.SkipUntil(FValue, [#0, '<'], @nonWs);
-    if wc = '<' then
+    SkipS;
+    if FSource.FBuf^ = '<' then
     begin
       Inc(FSource.FBuf);
       if FSource.FBufEnd < FSource.FBuf + 2 then
         FSource.Reload;
-      if CheckName([cnOptional]) then
-        tok := xtElement
-      else if FSource.FBuf^ = '!' then
+      if FSource.FBuf^ = '!' then
       begin
         Inc(FSource.FBuf);
         if FSource.FBuf^ = '-' then
@@ -3424,16 +3418,19 @@ begin
       else if FSource.FBuf^ = '?' then
         tok := xtPI
       else
-        RaiseNameNotFound;
+      begin
+        CheckName;
+        tok := xtElement;
+      end;
     end
-    else  // #0
+    else if FSource.FBuf^ = #0 then
     begin
       if FState < rsRoot then
         FatalError('Root element is missing');
       tok := xtEOF;
-    end;
-    if nonWs then
-      FatalError('Illegal at document level', -1);
+    end
+    else
+      FatalError('Illegal at document level');
 
     if FCanonical and (FState > rsRoot) and (tok <> xtEOF) then
     begin
