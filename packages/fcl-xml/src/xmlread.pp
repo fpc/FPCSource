@@ -170,12 +170,12 @@ type
     FLineNo: Integer;
     LFPos: PWideChar;
     FXML11Rules: Boolean;
-    FSystemID: XMLString;
+    FSourceURI: XMLString;
     FCharCount: Cardinal;
     FStartNesting: Integer;
     FXMLVersion: TXMLVersion;
     FXMLEncoding: XMLString;
-    function GetSystemID: XMLString;
+    function GetSourceURI: XMLString;
   protected
     function Reload: Boolean; virtual;
   public
@@ -188,7 +188,7 @@ type
     procedure Initialize; virtual;
     function SetEncoding(const AEncoding: string): Boolean; virtual;
     function Matches(const arg: XMLString): Boolean;
-    property SystemID: XMLString read GetSystemID write FSystemID;
+    property SourceURI: XMLString read GetSourceURI write FSourceURI;
   end;
 
   TXMLDecodingSource = class(TXMLCharSource)
@@ -672,12 +672,12 @@ begin
   Result := True; // always succeed
 end;
 
-function TXMLCharSource.GetSystemID: XMLString;
+function TXMLCharSource.GetSourceURI: XMLString;
 begin
-  if FSystemID <> '' then
-    Result := FSystemID
+  if FSourceURI <> '' then
+    Result := FSourceURI
   else if Assigned(FParent) then
-    Result := FParent.SystemID
+    Result := FParent.SourceURI
   else
     Result := '';
 end;
@@ -966,7 +966,7 @@ end;
 constructor TXMLFileInputSource.Create(var AFile: Text);
 begin
   FFile := @AFile;
-  SystemID := FilenameToURI(TTextRec(AFile).Name);
+  SourceURI := FilenameToURI(TTextRec(AFile).Name);
   FetchData;
 end;
 
@@ -1045,14 +1045,14 @@ end;
 
 function TXMLTextReader.ResolveResource(const ASystemID, APublicID, ABaseURI: XMLString; out Source: TXMLCharSource): Boolean;
 var
-  AbsSysID: XMLString;
+  SrcURI: XMLString;
   Filename: string;
   Stream: TStream;
   fd: THandle;
 begin
   Source := nil;
   Result := False;
-  if not ResolveRelativeURI(ABaseURI, ASystemID, AbsSysID) then
+  if not ResolveRelativeURI(ABaseURI, ASystemID, SrcURI) then
     Exit;
   { TODO: alternative resolvers
     These may be 'internal' resolvers or a handler set by application.
@@ -1061,14 +1061,14 @@ begin
     External resolver will produce TXMLInputSource that should be converted.
     External resolver must NOT be called for root entity.
     External resolver can return nil, in which case we do the default }
-  if URIToFilename(AbsSysID, Filename) then
+  if URIToFilename(SrcURI, Filename) then
   begin
     fd := FileOpen(Filename, fmOpenRead + fmShareDenyWrite);
     if fd <> THandle(-1) then
     begin
       Stream := THandleOwnerStream.Create(fd);
       Source := TXMLStreamInputSource.Create(Stream, True);
-      Source.SystemID := AbsSysID;    // <- Revisit: Really need absolute sysID?
+      Source.SourceURI := SrcURI;
     end;
   end;
   Result := Assigned(Source);
@@ -1136,14 +1136,14 @@ end;
 procedure TXMLTextReader.DoErrorPos(Severity: TErrorSeverity; const descr: string; const ErrPos: TLocation);
 var
   E: EXMLReadError;
-  sysid: XMLString;
+  srcuri: XMLString;
 begin
   if Assigned(FSource) then
   begin
-    sysid := FSource.FSystemID;
-    if (sysid = '') and Assigned(FSource.FEntity) then
-      sysid := FSource.FEntity.FURI;
-    E := EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [sysid, ErrPos.Line, ErrPos.LinePos, descr]);
+    srcuri := FSource.FSourceURI;
+    if (srcuri = '') and Assigned(FSource.FEntity) then
+      srcuri := FSource.FEntity.FURI;
+    E := EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [srcuri, ErrPos.Line, ErrPos.LinePos, descr]);
   end
   else
     E := EXMLReadError.Create(descr);
@@ -1854,7 +1854,7 @@ begin
     Src.LFPos := Src.FBuf - AEntity.FStartLocation.LinePos;
     // needed in case of prefetched external PE
     if AEntity.FSystemID <> '' then
-      Src.SystemID := AEntity.FURI;
+      Src.SourceURI := AEntity.FURI;
   end;
 
   AEntity.FOnStack := True;
@@ -1981,7 +1981,7 @@ begin
     AEntity.FCharCount := FValue.Length;
     AEntity.FStartLocation.Line := 1;
     AEntity.FStartLocation.LinePos := 1;
-    AEntity.FURI := FSource.SystemID;    // replace base URI with absolute one
+    AEntity.FURI := FSource.SourceURI;    // replace base URI with absolute one
   finally
     ContextPop;
     AEntity.FPrefetched := True;
@@ -2267,7 +2267,7 @@ begin
 
   if (FDocType.FSystemID <> '') then
   begin
-    if ResolveResource(FDocType.FSystemID, FDocType.FPublicID, FSource.SystemID, Src) then
+    if ResolveResource(FDocType.FSystemID, FDocType.FPublicID, FSource.SourceURI, Src) then
     begin
       Initialize(Src);
       try
@@ -2479,7 +2479,7 @@ begin
       Notation.FName := NameStr;
       Notation.FPublicID := PubID;
       Notation.FSystemID := SysID;
-      Notation.FURI := Src.SystemID;
+      Notation.FURI := Src.SourceURI;
       Entry^.Data := Notation;
     end
     else
@@ -2667,7 +2667,7 @@ begin
 
     // remember where the entity is declared, use URI from the point where declaration
     // was starting.
-    Entity.FURI := Src.SystemID;
+    Entity.FURI := Src.SourceURI;
 
     if FEntityValue.Buffer = nil then
       BufAllocate(FEntityValue, 256);
@@ -2931,7 +2931,7 @@ end;
 
 function TXMLTextReader.GetBaseUri: XMLString;
 begin
-  result := FSource.SystemID;
+  result := FSource.SourceURI;
 end;
 
 { IXmlLineInfo methods }
@@ -3297,7 +3297,6 @@ procedure TXMLTextReader.ResolveEntity;
 var
   n: PNodeData;
   ent: TEntityDecl;
-  src: TXMLCharSource;
 begin
   if FCurrNode^.FNodeType <> ntEntityReference then
     raise EInvalidOperation.Create('Wrong node type');
@@ -4302,7 +4301,7 @@ var
 begin
   ADoc := TXMLDocument.Create;
   Src := TXMLStreamInputSource.Create(f, False);
-  Src.SystemID := ABaseURI;
+  Src.SourceURI := ABaseURI;
   Reader := TXMLTextReader.Create(Src, ADoc.Names);
   try
     ldr.ProcessXML(ADoc, Reader);
@@ -4351,7 +4350,7 @@ var
   ldr: TLoader;
 begin
   Src := TXMLStreamInputSource.Create(f, False);
-  Src.SystemID := ABaseURI;
+  Src.SourceURI := ABaseURI;
   Reader := TXMLTextReader.Create(Src, AParentNode.OwnerDocument.Names);
   try
     ldr.ProcessFragment(AParentNode, Reader);
@@ -4402,7 +4401,7 @@ var
 begin
   ADoc := TXMLDocument.Create;
   Src := TXMLStreamInputSource.Create(f, False);
-  Src.SystemID := ABaseURI;
+  Src.SourceURI := ABaseURI;
   Reader := TXMLTextReader.Create(Src, ADoc.Names);
   try
     ldr.ProcessDTD(ADoc,Reader);
