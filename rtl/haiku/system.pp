@@ -322,7 +322,7 @@ end;
 //int		sigaltstack(const stack_t *ss, stack_t *oss);
 
 procedure set_signal_stack(ptr : pointer; size : size_t); cdecl; external 'root' name 'set_signal_stack';
-function sigaltstack(const ss : pstack_t; oss : pstack_t) : integer; cdecl; external 'root' name 'sigaltstack'; 
+function sigaltstack(const stack : pstack_t; oldStack : pstack_t) : integer; cdecl; external 'root' name 'sigaltstack'; 
 
 type
   {$PACKRECORDS C}
