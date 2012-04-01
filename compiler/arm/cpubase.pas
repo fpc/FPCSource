@@ -233,13 +233,6 @@ unit cpubase;
 *****************************************************************************}
 
     const
-      firstsaveintreg = RS_R4;
-      lastsaveintreg  = RS_R10;
-      firstsavefpureg = RS_F4;
-      lastsavefpureg  = RS_F7;
-      firstsavemmreg  = RS_D8;
-      lastsavemmreg   = RS_D15;
-
       maxvarregs = 7;
       varregs : Array [1..maxvarregs] of tsuperregister =
                 (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
