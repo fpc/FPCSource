@@ -150,7 +150,10 @@ type
    pthread_t            = pointer;
    pthread_attr_t       = pointer;
    pthread_mutex_t      = {$i pmutext.inc}
-   pthread_mutexattr_t  = pointer;
+   pthread_mutexattr_t = record
+     ptma_magic : cint;
+     ptma_private : pointer;
+   end;
    pthread_cond_t       = pointer;
    pthread_condattr_t   = pointer;
    pthread_key_t        = cint;
