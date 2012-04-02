@@ -13,7 +13,7 @@ const
   SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd];
   SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,wince];
   DBaseOSes           = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,win64,wince];
-  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,win32];
+  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,win32,win64];
   SqldbWithoutPostgresOSes = [win64];
 
 Var
@@ -47,7 +47,7 @@ begin
     P.SourcePath.Add('src/sqldb/odbc', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/examples', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/oracle', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
-    P.SourcePath.Add('src/sqldb/mssql', MSSQlOSes);
+    P.SourcePath.Add('src/sqldb/mssql', MSSQLOSes);
     P.SourcePath.Add('src/sdf');
     P.SourcePath.Add('src/json');
     P.SourcePath.Add('src/datadict', DatadictOSes);
@@ -74,7 +74,7 @@ begin
     P.Dependencies.Add('oracle', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
     P.Dependencies.Add('postgres', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
     P.Dependencies.Add('sqlite', SqldbConnectionOSes+SqliteOSes);
-    P.Dependencies.Add('dblib', MSSQLOses);
+    P.Dependencies.Add('dblib', MSSQLOSes);
     P.Dependencies.Add('pxlib',ParadoxOSes);
     P.Dependencies.Add('fcl-json');
 
@@ -642,7 +642,7 @@ begin
           AddUnit('dbconst');
           AddUnit('bufdataset');
         end;
-    T:=P.Targets.AddUnit('mssqlconn.pp', mssqlOSes);
+    T:=P.Targets.AddUnit('mssqlconn.pp', MSSQLOSes);
     with T.Dependencies do
       begin
         AddUnit('sqldb');

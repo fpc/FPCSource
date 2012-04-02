@@ -7,7 +7,8 @@ interface
 uses
   Classes, SysUtils, toolsunit
   ,db, sqldb
-  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn,ibconnection
+  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn
+  ,ibconnection
   {$IFNDEF WIN64}
   {See packages\fcl-db\src\sqldb\postgres\fpmake.pp: postgres connector won't be present on Win64}
   ,pqconnection
@@ -18,10 +19,7 @@ uses
   ,oracleconnection
   {$ENDIF WIN64}
   ,sqlite3conn
-  {$IFNDEF WIN64}
-  {This won't be available on Windows 64, either; perhaps other systems as well}
   ,mssqlconn
-  {$ENDIF WIN64}
   ;
 
 type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql);
@@ -175,7 +173,6 @@ begin
   {$IFNDEF Win64}
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
   {$ENDIF Win64}
-  {$IFNDEF Win64}
   if SQLDbType = MSSQL then
     begin
     Fconnection := TMSSQLConnection.Create(nil);
@@ -190,7 +187,6 @@ begin
     FieldtypeDefinitions[ftMemo]    := 'TEXT';
     FieldtypeDefinitions[ftGraphic] := '';
     end;
-  {$ENDIF Win64}
 
   if SQLDbType in [mysql40,mysql41,mysql50,mysql51,mysql55,odbc,interbase] then
     begin

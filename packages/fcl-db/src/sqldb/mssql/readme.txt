@@ -14,6 +14,12 @@ Compiling FreeTDS DB-Lib with MS Visual C++ 2005/2008/2010:
 4.   The dblib.dll will appear in the .\dbdll_Release\ subdirectory
      Note: To avoid dependency on msvc*.dll you can set in C/C++ / Code Generation / Runtime Library : "Multi-threaded (/MT)" in all projects
 
+     To build dblib.dll under MS Visual C++ 2010 Express for Win64 you must:
+     - download and install Microsoft Windows Software Development Kit 7.1
+     - setup FreeTDS project to target 64-bit platform (http://msdn.microsoft.com/en-us/library/9yb4317s.aspx)
+     - Right-click on project "dblib_dll" and select "Properties".
+       Linker / General / Additional Library Directories add path to "Microsoft SDKs\Windows\v7.1\Lib\x64"
+
 
 Compiling FreeTDS with iconv support:
 =====================================
