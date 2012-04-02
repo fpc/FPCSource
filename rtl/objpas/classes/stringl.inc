@@ -603,7 +603,21 @@ begin
   end;
 end;
 
+Procedure TStrings.AddStrings(const TheStrings: array of string);
 
+Var Runner : longint;
+
+begin
+  try
+    beginupdate;
+    if Count + High(TheStrings)+1 > Capacity then
+      Capacity := Count + High(TheStrings)+1;
+    For Runner:=Low(TheStrings) to High(TheStrings) do
+      self.Add(Thestrings[Runner]);
+  finally
+    EndUpdate;
+  end;
+end;
 
 Procedure TStrings.Assign(Source: TPersistent);
 

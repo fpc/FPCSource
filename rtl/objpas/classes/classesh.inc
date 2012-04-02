@@ -606,7 +606,8 @@ type
     function Add(const S: string): Integer; virtual;
     function AddObject(const S: string; AObject: TObject): Integer; virtual;
     procedure Append(const S: string);
-    procedure AddStrings(TheStrings: TStrings); virtual;
+    procedure AddStrings(TheStrings: TStrings); overload; virtual;
+    procedure AddStrings(const TheStrings: array of string); overload; virtual;
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
     procedure Clear; virtual; abstract;
