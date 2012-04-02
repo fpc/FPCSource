@@ -3156,6 +3156,7 @@ or
 #    6 = 680x0 targets
 #    A = ARM
 #    e = in extended debug mode only
+#    F = help for the 'fpc' binary (independent of the target compiler)
 #    P = PowerPC targets
 #    S = Sparc targets
 #    V = Virtual machine targets
@@ -3306,6 +3307,10 @@ S*2Aas_Assemble using GNU AS
 **2Ow<x>_Perform whole-program optimization <x>, see fpc -i for possible values
 **2Os_Optimize for size rather than speed
 **1pg_Generate profile code for gprof (defines FPC_PROFILE)
+F*1P<x>_Target CPU / compiler related options:
+F*2PB_Show default compiler binary
+F*2PP_Show default target cpu
+F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 **1R<x>_Assembler reading style:
 **2Rdefault_Use default assembler for target
 3*2Ratt_Read AT&T style assembler
@@ -3391,6 +3396,7 @@ S*2Tlinux_Linux
 **2*_    with full path              v : Write fpcdebug.txt with
 **2*_                                    lots of debugging info
 **2*_m<x>,<y> : Don't show messages numbered <x> and <y>
+F*1V<x>_Append '-<x>' to the used compiler binary name (e.g. for version)
 **1W<x>_Target-specific options (targets)
 3*2WA_Specify native type application (Windows)
 4*2WA_Specify native type application (Windows)
@@ -3456,6 +3462,7 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xi_Use internal linker
 **2Xm_Generate link map
 **2XM<x>_Set the name of the 'main' program routine (default is 'main')
+F*2Xp<x>_First search for the compiler binary in the directory <x>
 **2XP<x>_Prepend the binutils names with the prefix <x>
 **2Xr<x>_Set the linker's rlink-path to <x> (needed for cross compile, see the ld manual for more information) (BeOS, Linux)
 **2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)

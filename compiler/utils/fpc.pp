@@ -121,9 +121,7 @@ program fpc;
      ppccommandlinelen : longint;
      i : longint;
      errorvalue     : Longint;
-     dohelp         : Boolean;
   begin
-     dohelp        := false;
      setlength(ppccommandline,paramcount);
      ppccommandlinelen:=0;
      cpusuffix     :='';        // if not empty, signals attempt at cross
@@ -158,7 +156,14 @@ program fpc;
      processorname:='x86_64';
 {$endif x86_64}
      versionstr:='';                      { Default is just the name }
-     for i:=1 to paramcount do
+     if ParamCount = 0 then
+       begin
+         SetLength (PPCCommandLine, 1);
+         PPCCommandLine [PPCCommandLineLen] := '-?F' + ParamStr (0);
+         Inc (PPCCommandLineLen);
+       end
+     else
+      for i:=1 to paramcount do
        begin
           s:=paramstr(i);
           if pos('-V',s)=1 then
@@ -169,7 +174,7 @@ program fpc;
                  begin
                    processorstr:=copy(s,3,length(s)-2);
                   { -PB is a special code that will show the
-                    default compiler and exit immediatly. It's
+                    default compiler and exit immediately. It's
                      main usage is for Makefile }
                    if processorstr='B' then
                      begin
@@ -179,7 +184,7 @@ program fpc;
                        halt(0);
                      end
                      { -PP is a special code that will show the
-                       processor and exit immediatly. It's
+                       processor and exit immediately. It's
                        main usage is for Makefile }
                      else if processorstr='P' then
                       begin
@@ -228,8 +233,9 @@ program fpc;
               else
                 begin
                   if pos('-h',s)=1 then
-                    dohelp:=true;
-                  ppccommandline[ppccommandlinelen]:=s;
+                    ppccommandline[ppccommandlinelen] := '-hF' + ParamStr (0)
+                  else
+                    ppccommandline[ppccommandlinelen]:=s;
                   inc(ppccommandlinelen);
                 end;
             end;
@@ -260,23 +266,5 @@ program fpc;
      if (errorvalue<>0) and
         (paramcount<>0) then
        error(ppcbin+' returned an error exitcode');
-     if dohelp or
-        (paramcount=0) then
-       begin
-         if not dohelp then
-           begin
-             writeln('*** press enter ***');
-             readln;
-           end
-         else
-           writeln;
-         writeln(paramstr(0),' [options] <inputfile> [options]');
-         writeln('  -X<x>  Target CPU options');
-         writeln('      -PB        Show default compiler binary');
-         writeln('      -PP        Show default target cpu');
-         writeln('      -P<x>      Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)');
-         Writeln('  -V<x>  Append ''-<x>'' to the used compiler binary name');
-         Writeln('  -Xp<x> First search for the compiler binary in the directory <x>');
-       end;
      halt(errorvalue);
   end.

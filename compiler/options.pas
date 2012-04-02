@@ -34,12 +34,14 @@ Type
     FirstPass,
     ParaLogo,
     NoPressEnter,
+    FPCHelpLines,
     LogoWritten,
     FPUSetExplicitly,
     CPUSetExplicitly,
     OptCPUSetExplicitly: boolean;
     FileLevel : longint;
     QuickInfo : string;
+    FPCBinaryPath: string;
     ParaIncludePath,
     ParaUnitPath,
     ParaObjectPath,
@@ -330,7 +332,10 @@ var
 begin
   WriteLogo;
   Lines:=4;
-  Message1(option_usage,FixFileName(system.paramstr(0)));
+  if FPCHelpLines then
+   Message1(option_usage,FixFileName(FPCBinaryPath))
+  else
+   Message1(option_usage,FixFileName(system.paramstr(0)));
   lastident:=0;
   p:=MessagePChar(option_help_pages);
   while assigned(p) do
@@ -341,6 +346,8 @@ begin
      show:=false;
    { parse options }
      case s[1] of
+      'F': if FPCHelpLines then
+            Show := true;
 {$ifdef UNITALIASES}
       'a',
 {$endif}
@@ -685,7 +692,15 @@ begin
            Message1(option_interpreting_option,opt);
          case opt[2] of
            '?' :
-             WriteHelpPages;
+             begin
+               if More [1] = 'F' then
+                 begin
+                   FPCHelpLines := true;
+                   Delete (More, 1, 1);
+                   FPCBinaryPath := More;
+                 end;
+               WriteHelpPages;
+             end;
 
            'a' :
              begin
@@ -1233,6 +1248,12 @@ begin
            'h' :
              begin
                NoPressEnter:=true;
+               if More [1] = 'F' then
+                 begin
+                   FPCHelpLines := true;
+                   Delete (More, 1, 1);
+                   FPCBinaryPath := More;
+                 end;
                WriteHelpPages;
              end;
 
