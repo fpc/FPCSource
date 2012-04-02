@@ -234,6 +234,8 @@ program fpc;
                 begin
                   if pos('-h',s)=1 then
                     ppccommandline[ppccommandlinelen] := '-hF' + ParamStr (0)
+                  else if pos('-?',s)=1 then
+                    ppccommandline[ppccommandlinelen] := '-?F' + ParamStr (0)
                   else
                     ppccommandline[ppccommandlinelen]:=s;
                   inc(ppccommandlinelen);
