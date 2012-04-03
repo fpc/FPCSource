@@ -470,7 +470,7 @@ implementation
         newblock : tnode;
       begin
         { for easy exiting if something goes wrong }
-        result := cerrornode.create;
+        result:=cerrornode.create;
 
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
