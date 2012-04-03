@@ -61,6 +61,7 @@ implementation
        { symtable }
        symconst,symbase,symtype,symtable,paramgr,defutil,
        { pass 1 }
+       htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
        ncgutil,
@@ -150,7 +151,8 @@ implementation
                 Message(parser_e_illegal_expression);
              end;
            else
-             Message(parser_e_illegal_expression);
+             if not(in_generic) then
+               Message(parser_e_illegal_expression);
         end;
         current_tokenpos:=storetokenpos;
         p.free;

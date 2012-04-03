@@ -173,7 +173,8 @@ implementation
             if is_constnode(n) then
               IncompatibleTypes(n.resultdef, def)
             else
-              Message(parser_e_illegal_expression);
+             if not(in_generic) then
+                Message(parser_e_illegal_expression);
           end;
 
         begin
@@ -216,8 +217,8 @@ implementation
                 end;
               uchar :
                 begin
-                   if is_constwidecharnode(n) then 
-                     inserttypeconv(n,cchartype); 
+                   if is_constwidecharnode(n) then
+                     inserttypeconv(n,cchartype);
                    if is_constcharnode(n) or
                      ((m_delphi in current_settings.modeswitches) and
                       is_constwidecharnode(n) and

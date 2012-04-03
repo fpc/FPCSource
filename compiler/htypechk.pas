@@ -178,6 +178,10 @@ interface
       arrays, records and objects are checked recursively }
     function is_valid_for_default(def:tdef):boolean;
 
+    { returns true if currently a generic declaration or definition is parsed/compiled,
+      regardless if it's a subroutine or type }
+    function in_generic : boolean;
+
 implementation
 
     uses
@@ -992,34 +996,38 @@ implementation
                        begin
                          { Give warning/note for uninitialized locals }
                          if assigned(hsym.owner) and
-                           not(cs_opt_nodedfa in current_settings.optimizerswitches) and
                             not(vo_is_external in hsym.varoptions) and
                             (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
                             ((hsym.owner=current_procinfo.procdef.localst) or
                              (hsym.owner=current_procinfo.procdef.parast)) then
                            begin
-                             if (vo_is_funcret in hsym.varoptions) then
+                             if vsf_use_hints in varstateflags then
+                               include(tloadnode(p).loadnodeflags,loadnf_only_uninitialized_hint);
+                             if not(cs_opt_nodedfa in current_settings.optimizerswitches) then
                                begin
-                                 if (vsf_use_hints in varstateflags) then
-                                   CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
-                                 else
-                                   CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
-                               end
-                             else
-                               begin
-                                 if tloadnode(p).symtable.symtabletype=localsymtable then
+                                 if (vo_is_funcret in hsym.varoptions) then
                                    begin
                                      if (vsf_use_hints in varstateflags) then
-                                       CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
+                                       CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
                                      else
-                                       CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
+                                       CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
                                    end
                                  else
                                    begin
-                                     if (vsf_use_hints in varstateflags) then
-                                       CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
+                                     if tloadnode(p).symtable.symtabletype=localsymtable then
+                                       begin
+                                         if (vsf_use_hints in varstateflags) then
+                                           CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
+                                         else
+                                           CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
+                                       end
                                      else
-                                       CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
+                                       begin
+                                         if (vsf_use_hints in varstateflags) then
+                                           CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
+                                         else
+                                           CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
+                                       end;
                                    end;
                                end;
                            end
@@ -3007,6 +3015,13 @@ implementation
           else
             result:=true;
         end;
+      end;
+
+
+    function in_generic: boolean;
+      begin
+        result:=(assigned(current_structdef) and (df_generic in current_structdef.defoptions)) or
+          (assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions));
       end;
 
 
