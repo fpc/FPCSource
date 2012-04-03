@@ -1629,7 +1629,7 @@ var
                               break;
                             pu:=tused_unit(pu.next);
                           end;
-                        if assigned(pu) then
+                        if assigned(pu) and assigned(pu.unitsym) then
                           MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,loaded_from.realmodulename^)
                         else
                           Message2(unit_f_cant_find_ppu,realmodulename^,loaded_from.realmodulename^);
