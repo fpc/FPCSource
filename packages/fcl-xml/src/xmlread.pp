@@ -260,7 +260,7 @@ type
 
   TCheckNameFlags = set of (cnOptional, cnToken);
 
-  TXMLToken = (xtNone, xtEOF, xtText, xtWhitespace, xtElement, xtEndElement,
+  TXMLToken = (xtNone, xtEOF, xtText, xtElement, xtEndElement,
     xtCDSect, xtComment, xtPI, xtDoctype, xtEntity, xtEntityEnd, xtPopElement,
     xtPopEmptyElement, xtPushElement, xtPushEntity, xtPopEntity, xtFakeLF);
 
@@ -457,9 +457,11 @@ type
     procedure DTDReloadHook;
     procedure ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
     procedure SetOptions(AParser: TDOMParser);
+    procedure SetNametable(ANameTable: THashTable);
   public
     constructor Create; overload;
-    constructor Create(ASrc: TXMLCharSource; ANameTable: THashTable); overload;
+    constructor Create(var AFile: Text; ANameTable: THashTable); overload;
+    constructor Create(AStream: TStream; const ABaseUri: XMLString; ANameTable: THashTable); overload;
     constructor Create(ASrc: TXMLCharSource; AParent: TXMLTextReader); overload;
     constructor Create(const uri: XMLString; ANameTable: THashTable; AParser: TDOMParser); overload;
     constructor Create(ASrc: TXMLInputSource; ANameTable: THashTable; AParser: TDOMParser); overload;
@@ -1339,8 +1341,6 @@ begin
   Create;
   SetOptions(AParser);
   FNameTable := ANameTable;
-  { TODO: should not open file in ResolveResource, but do it when Read() is called
-    for the first time }
   if ResolveResource(uri, '', '', FSource) then
     FSource.FReader := Self
   else
@@ -1348,7 +1348,7 @@ begin
 end;
 
 
-constructor TXMLTextReader.Create(ASrc: TXMLCharSource; ANameTable: THashTable);
+procedure TXMLTextReader.SetNametable(ANameTable: THashTable);
 begin
   if ANameTable = nil then
   begin
@@ -1356,14 +1356,31 @@ begin
     FNameTableOwned := True;
   end;
   FNameTable := ANameTable;
+end;
+
+constructor TXMLTextReader.Create(var AFile: Text; ANameTable: THashTable);
+begin
+  SetNametable(ANameTable);
   Create;
-  FSource := ASrc;
+  FSource := TXMLFileInputSource.Create(AFile);
+  FSource.FReader := Self;
+end;
+
+constructor TXMLTextReader.Create(AStream: TStream; const ABaseUri: XMLString; ANameTable: THashTable);
+begin
+  SetNametable(ANameTable);
+  Create;
+  FSource := TXMLStreamInputSource.Create(AStream, False);
+  FSource.SourceURI := ABaseUri;
   FSource.FReader := Self;
 end;
 
 constructor TXMLTextReader.Create(ASrc: TXMLCharSource; AParent: TXMLTextReader);
 begin
-  Create(ASrc, AParent.FNameTable);
+  FNameTable := AParent.FNameTable;
+  Create;
+  FSource := ASrc;
+  FSource.FReader := Self;
   SetOptions(AParent.FCtrl);
 end;
 
@@ -1487,7 +1504,8 @@ var
 begin
   if reader.ReadState = rsInitial then
   begin
-    reader.Read;
+    if not reader.Read then
+      Exit;
     if cursor is TDOMNode_TopLevel then
     begin
       if reader.FSource.FXMLVersion <> xmlVersionUnknown then
@@ -4280,12 +4298,10 @@ end;
 procedure ReadXMLFile(out ADoc: TXMLDocument; var f: Text);
 var
   Reader: TXMLTextReader;
-  Src: TXMLCharSource;
   ldr: TLoader;
 begin
   ADoc := TXMLDocument.Create;
-  Src := TXMLFileInputSource.Create(f);
-  Reader := TXMLTextReader.Create(Src, ADoc.Names);
+  Reader := TXMLTextReader.Create(f, ADoc.Names);
   try
     ldr.ProcessXML(ADoc,Reader);
   finally
@@ -4296,13 +4312,10 @@ end;
 procedure ReadXMLFile(out ADoc: TXMLDocument; f: TStream; const ABaseURI: String);
 var
   Reader: TXMLTextReader;
-  Src: TXMLCharSource;
   ldr: TLoader;
 begin
   ADoc := TXMLDocument.Create;
-  Src := TXMLStreamInputSource.Create(f, False);
-  Src.SourceURI := ABaseURI;
-  Reader := TXMLTextReader.Create(Src, ADoc.Names);
+  Reader := TXMLTextReader.Create(f, ABaseURI, ADoc.Names);
   try
     ldr.ProcessXML(ADoc, Reader);
   finally
@@ -4331,11 +4344,9 @@ end;
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: Text);
 var
   Reader: TXMLTextReader;
-  Src: TXMLCharSource;
   ldr: TLoader;
 begin
-  Src := TXMLFileInputSource.Create(f);
-  Reader := TXMLTextReader.Create(Src, AParentNode.OwnerDocument.Names);
+  Reader := TXMLTextReader.Create(f, AParentNode.OwnerDocument.Names);
   try
     ldr.ProcessFragment(AParentNode, Reader);
   finally
@@ -4346,12 +4357,9 @@ end;
 procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream; const ABaseURI: String);
 var
   Reader: TXMLTextReader;
-  Src: TXMLCharSource;
   ldr: TLoader;
 begin
-  Src := TXMLStreamInputSource.Create(f, False);
-  Src.SourceURI := ABaseURI;
-  Reader := TXMLTextReader.Create(Src, AParentNode.OwnerDocument.Names);
+  Reader := TXMLTextReader.Create(f, ABaseURI, AParentNode.OwnerDocument.Names);
   try
     ldr.ProcessFragment(AParentNode, Reader);
   finally
@@ -4380,12 +4388,10 @@ end;
 procedure ReadDTDFile(out ADoc: TXMLDocument; var f: Text);
 var
   Reader: TXMLTextReader;
-  Src: TXMLCharSource;
   ldr: TLoader;
 begin
   ADoc := TXMLDocument.Create;
-  Src := TXMLFileInputSource.Create(f);
-  Reader := TXMLTextReader.Create(Src, ADoc.Names);
+  Reader := TXMLTextReader.Create(f, ADoc.Names);
   try
     ldr.ProcessDTD(ADoc,Reader);
   finally
@@ -4400,9 +4406,7 @@ var
   ldr: TLoader;
 begin
   ADoc := TXMLDocument.Create;
-  Src := TXMLStreamInputSource.Create(f, False);
-  Src.SourceURI := ABaseURI;
-  Reader := TXMLTextReader.Create(Src, ADoc.Names);
+  Reader := TXMLTextReader.Create(f, ABaseURI, ADoc.Names);
   try
     ldr.ProcessDTD(ADoc,Reader);
   finally
