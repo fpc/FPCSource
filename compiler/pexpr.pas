@@ -407,7 +407,7 @@ implementation
                 begin
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1);
                   { no packed bit support for these things }
-                  if (l = in_bitsizeof_x) then
+                  if l=in_bitsizeof_x then
                     statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sinttype,true));
                 end
               else
