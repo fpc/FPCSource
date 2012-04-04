@@ -52,7 +52,7 @@ Implementation
     cutils,
     verbose,
     cgbase,cgutils,
-    aasmbase,aasmcpu;
+    aasmbase,aasmdata,aasmcpu;
 
   function CanBeCond(p : tai) : boolean;
     begin
@@ -464,9 +464,11 @@ Implementation
   { TODO : schedule also forward }
   { TODO : schedule distance > 1 }
     var
-      hp1,hp2 : tai;
+      hp1,hp2,hp3,hp4 : tai;
+      list : TAsmList;
     begin
       result:=true;
+      list:=TAsmList.Create;
       p := BlockStart;
       { UsedRegs := []; }
       while (p <> BlockEnd) Do
@@ -516,16 +518,34 @@ Implementation
              not(RegModifiedByInstruction(taicpu(hp1).oper[1]^.ref^.index,p))
             ) then
             begin
+              hp3:=tai(p.Previous);
               asml.Remove(p);
+              { if there is a reg. dealloc instruction associated with p, move it together with p }
+              while assigned(hp3) and (hp3.typ<>ait_instruction) do
+                begin
+                  if (hp3.typ=ait_regalloc) and (tai_regalloc(hp3).ratype in [ra_dealloc]) and
+                    RegInInstruction(tai_regalloc(hp3).reg,p) then
+                    begin
+                      hp4:=hp3;
+                      hp3:=tai(hp3.Previous);
+                      asml.Remove(hp4);
+                      list.Concat(hp4);
+                    end
+                  else
+                  hp3:=tai(hp3.Previous);
+                end;
+              list.Concat(p);
+
               asml.Remove(hp1);
 {$ifdef DEBUG_PREREGSCHEDULER}
               asml.InsertBefore(tai_comment.Create(strpnew('Rescheduled')),hp2);
 {$endif DEBUG_PREREGSCHEDULER}
               asml.InsertBefore(hp1,hp2);
-              asml.InsertBefore(p,hp2);
+              asml.InsertListBefore(hp2,list);
             end;
           p := tai(p.next)
         end;
+      list.Free;
     end;
 
 
