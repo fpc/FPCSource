@@ -94,6 +94,7 @@ const
   RemoteAddr : string = '';
   RemotePath : string = '/tmp';
   RemotePara : string = '';
+  RemoteRshParas : string = '';
   RemoteShell : string = '';
   RemoteShellBase : string = '';
   RemoteShellNeedsExport : boolean = false;
@@ -1124,7 +1125,7 @@ begin
   { We don't want to create subdirs, remove paths from the test }
   TestRemoteExe:=RemotePath+'/'+SplitFileName(FileToCopy);
   if deBefore in DelExecutable then
-    ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe,
+    ExecuteRemote(rshprog,RemoteRshParas+' rm -f '+TestRemoteExe,
                   StartTicks,EndTicks);
   execres:=ExecuteRemote(rcpprog,RemotePara+' '+FileToCopy+' '+
                          RemoteAddr+':'+TestRemoteExe,StartTicks,EndTicks);
@@ -1211,10 +1212,10 @@ begin
       { rsh doesn't pass the exitcode, use a second command to print the exitcode
         on the remoteshell to stdout }
       if DoVerbose and (rshprog='plink') then
-        execcmd:='-v '
+        execcmd:='-v '+RemoteRshParas
       else
-        execcmd:='';
-      execcmd:=execcmd+RemotePara+' '+RemoteAddr+' '+rquote+
+        execcmd:=RemoteRshParas;
+      execcmd:=execcmd+' '+rquote+
          'chmod 755 '+TestRemoteExe+
           ' ; cd '+RemotePath+' ; ';
       { Using -rpath . at compile time does not seem
@@ -1249,7 +1250,7 @@ begin
       execcmd:=execcmd+' ; echo "TestExitCode: $?"';
       if (deAfter in DelExecutable) and
          not Config.NeededAfter then
-        execcmd:=execcmd+' ; rm -f '+TestRemoteExe;
+        execcmd:=execcmd+' ; rm -f '+SplitFileName(TestRemoteExe);
       execcmd:=execcmd+rquote;
       execres:=ExecuteRemote(rshprog,execcmd,StartTicks,EndTicks);
       { Check for TestExitCode error in output, sets ExecuteResult }
@@ -1358,7 +1359,7 @@ begin
   if RemoteAddr='' then
     exit;
   ExeLogFile:='__remote.tmp';
-  ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+
+  ExecuteRemote(rshprog,RemoteRshParas+
                 ' "echo SHELL=${SHELL}"',StartTicks,EndTicks);
   Assign(f,ExeLogFile);
   Reset(f);
@@ -1555,6 +1556,13 @@ begin
       DoGraph:=false;
       DoInteractive:=false;
     end;
+  { If we use PuTTY plink program with -load option,
+    the IP address or name should not be added to
+    the command line }
+  if (rshprog='plink') and (pos('-load',RemotePara)>0) then
+    RemoteRshParas:=RemotePara
+  else
+    RemoteRshParas:=RemotePara+' '+RemoteAddr;
 end;
 
 
