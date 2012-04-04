@@ -1307,7 +1307,7 @@ const
    1E28, 1E29, 1E30, 1E31);
 
 {$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
-  mul_expbits_5_to_8:packed array[1..C_HIGH_EXPBITS_5TO8]of ValReal=(
+  mul_expbits_5_to_8:packed array[1..C_HIGH_EXPBITS_5TO8] of ValReal=(
    1E32,  1E64,  1E96,  1E128,
    1E160, 1E192, 1E224, 1E256, 1E288
   {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)},
@@ -1318,7 +1318,7 @@ const
 {$ENDIF}
 
 {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
-  mul_expbits_9_and_up:packed array[1..C_HIGH_EXPBITS_9ANDUP]of ValReal=(
+  mul_expbits_9_and_up:packed array[1..C_HIGH_EXPBITS_9ANDUP] of ValReal=(
    1E512,  1E1024, 1E1536, 1E2048,
    1E2560, 1E3072, 1E3584, 1E4096,
    1E4608);
@@ -1374,6 +1374,7 @@ end;
 
 Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
 var
+  hd,
   sign : valreal;
   esign,
   exponent,
@@ -1465,7 +1466,28 @@ begin
   fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*sign;
 
 { Calculate Exponent }
-fpc_Val_Real_ShortStr:=mul_by_power10(fpc_Val_Real_ShortStr,exponent*esign);
+  hd:=1.0;
+  { the magnitude range maximum (normal) is lower in absolute value than the }
+  { the magnitude range minimum (denormal). E.g. an extended value can go    }
+  { up to 1E4932, but "down" to 1E-4951. So make sure that we don't try to   }
+  { calculate 1E4951 as factor, since that would overflow and result in 0.   }
+  if (exponent>valmaxexpnorm-2) then
+    begin
+      hd:=mul_by_power10(hd,valmaxexpnorm-2);
+      if esign>0 then
+        fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
+      else
+        fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
+      dec(exponent,valmaxexpnorm-2);
+      hd:=1.0;
+    end;
+  hd:=mul_by_power10(hd,exponent);
+
+  if esign>0 then
+    fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
+  else
+    fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
+
 
 { Not all characters are read ? }
   if length(s)>=code then
