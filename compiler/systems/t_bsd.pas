@@ -847,6 +847,10 @@ initialization
   RegisterImport(system_x86_64_freebsd,timportlibbsd);
   RegisterExport(system_x86_64_freebsd,texportlibbsd);
   RegisterTarget(system_x86_64_freebsd_info);
+  RegisterExternalLinker(system_x86_64_OpenBSD_info,TLinkerBSD);
+  RegisterImport(system_x86_64_openbsd,timportlibbsd);
+  RegisterExport(system_x86_64_openbsd,texportlibbsd);
+  RegisterTarget(system_x86_64_openbsd_info);
 
   RegisterExternalLinker(system_x86_64_darwin_info,TLinkerBSD);
   RegisterImport(system_x86_64_darwin,timportlibdarwin);
