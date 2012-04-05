@@ -147,7 +147,8 @@ const
   { 67 }  'Linux-MIPSel',
   { 68 }  'NativeNT-i386',
   { 69 }  'iPhoneSim-i386',
-  { 70 }  'Wii-powerpc'
+  { 70 }  'Wii-powerpc',
+  { 71 }  'OpenBSD-x86-64'
   );
 
 const
