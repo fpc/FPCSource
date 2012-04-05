@@ -15,10 +15,23 @@
 
 CONST FPU_ALL=$7F;
 
+{$ifdef cpui386}
 function getfpustate(sininfo:psiginfo):longint; {inline;}
 begin
-  getfpustate:=sininfo^.si_code;
+  if ptruint(sininfo)> high(word) then
+    getfpustate:=sininfo^.si_code
+  else
+    getfpustate:=word(ptruint(sininfo));
 end;
+
+function getaltfpustate(sigcontext:psigcontextrec):longint; {inline;}
+begin
+  if assigned(sigcontext) then
+    getaltfpustate:=sigcontext^.sc_fpustate^.en_sw 
+  else
+    getaltfpustate:=0;
+end;
+{$endif}
 
 procedure SignalToRunerror(Sig: longint;sininfo:psiginfo; SigContext: PSigContextRec); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 
@@ -40,8 +53,11 @@ begin
     { this is not allways necessary but I don't know yet
       how to tell if it is or not PM }
           res:=200;
-          fpustate:=GetFPUState(sininfo);
-
+{$ifdef cpui386}
+          fpustate:=GetaltFPUState(sigcontext);
+{$else}
+          fpustate:=0;
+{$endif}
           if (FpuState and FPU_All) <> 0 then
             begin
               { first check the more precise options }
