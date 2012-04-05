@@ -24,7 +24,7 @@
 
 type
 
-    dev_t    = cuint32;         { used for device numbers      }
+    dev_t    = cint32;          { used for device numbers      }
     TDev     = dev_t;
     pDev     = ^dev_t;
 
@@ -33,7 +33,7 @@ type
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
-    ino_t    = clong;           { used for file serial numbers }
+    ino_t    = cuint32;         { used for file serial numbers }
     TIno     = ino_t;
     pIno     = ^ino_t;
 
