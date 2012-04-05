@@ -464,7 +464,7 @@ Implementation
   { TODO : schedule also forward }
   { TODO : schedule distance > 1 }
     var
-      hp1,hp2,hp3,hp4 : tai;
+      hp1,hp2,hp3,hp4,hp5 : tai;
       list : TAsmList;
     begin
       result:=true;
@@ -519,8 +519,11 @@ Implementation
             ) then
             begin
               hp3:=tai(p.Previous);
+              hp5:=tai(p.next);
               asml.Remove(p);
               { if there is a reg. dealloc instruction associated with p, move it together with p }
+
+              { before the instruction? }
               while assigned(hp3) and (hp3.typ<>ait_instruction) do
                 begin
                   if (hp3.typ=ait_regalloc) and (tai_regalloc(hp3).ratype in [ra_dealloc]) and
@@ -535,6 +538,20 @@ Implementation
                   hp3:=tai(hp3.Previous);
                 end;
               list.Concat(p);
+              { after the instruction? }
+              while assigned(hp5) and (hp5.typ<>ait_instruction) do
+                begin
+                  if (hp5.typ=ait_regalloc) and (tai_regalloc(hp5).ratype in [ra_dealloc]) and
+                    RegInInstruction(tai_regalloc(hp5).reg,p) then
+                    begin
+                      hp4:=hp5;
+                      hp5:=tai(hp5.next);
+                      asml.Remove(hp4);
+                      list.Concat(hp4);
+                    end
+                  else
+                  hp5:=tai(hp5.Next);
+                end;
 
               asml.Remove(hp1);
 {$ifdef DEBUG_PREREGSCHEDULER}
