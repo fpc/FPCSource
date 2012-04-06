@@ -2762,6 +2762,7 @@ begin
 {$ifdef i386}
   def_system_macro('CPUI386');
   def_system_macro('CPU32');
+  def_system_macro('CPUX86');
   def_system_macro('FPC_HAS_TYPE_EXTENDED');
   def_system_macro('FPC_HAS_TYPE_DOUBLE');
   def_system_macro('FPC_HAS_TYPE_SINGLE');
@@ -2800,6 +2801,7 @@ begin
   def_system_macro('CPUX86_64');
   def_system_macro('CPUAMD64');
   def_system_macro('CPU64');
+  def_system_macro('CPUX64');
   { not supported for now, afaik (FK)
    def_system_macro('FPC_HAS_TYPE_FLOAT128'); }
   { win64 doesn't support the legacy fpu }
@@ -2906,7 +2908,7 @@ begin
 
   { Define FPC_ABI_EABI in addition to FPC_ABI_EABIHF on EABI VFP hardfloat
     systems since most code needs to behave the same on both}
-  if target_info.abi = abi_eabihf then 
+  if target_info.abi = abi_eabihf then
     def_system_macro('FPC_ABI_EABI');
 
   { Write logo }
@@ -3077,15 +3079,15 @@ begin
     end;
 
 {$ifdef arm}
-  if target_info.abi = abi_eabihf then 
+  if target_info.abi = abi_eabihf then
     begin
-      if not(option.FPUSetExplicitly) then 
+      if not(option.FPUSetExplicitly) then
         begin
           init_settings.fputype:=fpu_vfpv3_d16
         end
       else
         begin
-          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16]) then 
+          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16]) then
             begin
               Message(option_illegal_fpu_eabihf);
               StopOptions(1);
@@ -3105,7 +3107,7 @@ if (target_info.system=system_arm_darwin) then
   end;
 
 { set default cpu type to ARMv7 for ARMHF unless specified otherwise }
-if (target_info.abi = abi_eabihf) then 
+if (target_info.abi = abi_eabihf) then
   begin
     if not option.CPUSetExplicitly then
       init_settings.cputype:=cpu_armv7;
