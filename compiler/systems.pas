@@ -757,6 +757,10 @@ begin
     default_target(system_x86_64_openbsd);
     {$define default_target_set}
    {$endif}
+   {$ifdef netbsd}
+    default_target(system_x86_64_netbsd);
+    {$define default_target_set}
+   {$endif}
    {$ifdef solaris}
     default_target(system_x86_64_solaris);
     {$define default_target_set}
