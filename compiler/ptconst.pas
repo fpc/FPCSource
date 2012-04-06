@@ -261,7 +261,7 @@ implementation
               scurrency:
                 begin
                    if is_constintnode(n) then
-                     intvalue := tordconstnode(n).value
+                     intvalue:=tordconstnode(n).value*10000
                    { allow bootstrapping }
                    else if is_constrealnode(n) then
                      intvalue:=PInt64(@trealconstnode(n).value_currency)^
