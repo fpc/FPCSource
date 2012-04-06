@@ -1203,6 +1203,7 @@ ResourceString
   SErrInstaller         = 'The installer encountered the following error:';
   SErrDepUnknownTarget  = 'Unknown target for unit "%s" in dependencies for %s in package %s';
   SErrExternalCommandFailed = 'External command "%s" failed with exit code %d. Console output:'+LineEnding+'%s';
+  SErrExtCommandNotFound= 'External command "%s" not found';
   SErrCreatingDirectory = 'Failed to create directory "%s"';
   SErrDeletingFile      = 'Failed to delete file "%s"';
   SErrRemovingDirectory = 'Failed to remove directory "%s"';
@@ -1241,6 +1242,7 @@ ResourceString
   SWarnCanNotGetAccessRights = 'Warning: Failed to copy access-rights from file %s';
   SWarnCanNotSetAccessRights = 'Warning: Failed to copy access-rights to file %s';
   SWarnCanNotGetFileAge = 'Warning: Failed to get FileAge for %s';
+  SWarnExtCommandNotFound = 'Warning: External command "%s" not found but "%s" is older then "%s"';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -1253,6 +1255,7 @@ ResourceString
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
   SInfoDeletingFile       = 'Deleting file "%s"';
   SInfoSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
+  SInfoDestDoesNotExist   = 'Destination file "%s" does not exist.';
   SInfoFallbackBuildmode  = 'Buildmode not supported by package, falling back to one by one unit compilation';
 
   SDbgComparingFileTimes    = 'Comparing file "%s" time "%s" to "%s" time "%s".';
@@ -4394,16 +4397,33 @@ begin
           if IsRelativePath(DestFile) then
             DestFile := AddPathPrefix(APackage,DestFile);
 
+          Cmd:=C.Command;
+          If (ExtractFilePath(Cmd)='') then
+            Cmd:=ExeSearch(Cmd,GetEnvironmentvariable('PATH'));
+
           If (SourceFile<>'') and (DestFile<>'')  then
-            E:=FileNewer(SourceFile, DestFile);
+            begin
+              if not FileExists(DestFile) then
+                Log(vlInfo,SInfoDestDoesNotExist,[DestFile])
+              else
+                begin
+                E:=FileNewer(SourceFile, DestFile);
+                if E and (cmd = '') then
+                  begin
+                  log(vlWarning,SWarnExtCommandNotFound,[C.Command,DestFile,SourceFile]);
+                  E := False;
+                  end;
+                end;
+            end;
           If E then
             begin
+            if Cmd = '' then
+              error(SErrExtCommandNotFound,[C.Command]);
+
             If Assigned(C.BeforeCommand) then
               C.BeforeCommand(C);
             O:=ADictionary.Substitute(C.CmdLineOptions,['SOURCE',SourceFile,'DEST',DestFile]);
-            Cmd:=C.Command;
-            If (ExtractFilePath(Cmd)='') then
-              Cmd:=ExeSearch(Cmd,GetEnvironmentvariable('PATH'));
+
             ExecuteCommand(Cmd,O,nil,C.IgnoreResult);
             If Assigned(C.AfterCommand) then
               C.AfterCommand(C);
