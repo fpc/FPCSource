@@ -439,7 +439,7 @@ type
     function  ParseExternalID(out SysID, PubID: XMLString;              // [75]
       SysIdOptional: Boolean): Boolean;
 
-    procedure BadPENesting(S: TErrorSeverity = esError);
+    procedure CheckPENesting(aExpected: TObject);
     procedure ParseEntityDecl;
     procedure ParseAttlistDecl;
     procedure ExpectChoiceOrSeq(CP: TContentParticle; MustEndIn: TObject);
@@ -1929,7 +1929,7 @@ begin
     FSource := Src;
 // correct position of this error is after PE reference
     if Error then
-      BadPENesting(esFatal);
+      FatalError('Parameter entities must be properly nested');
   end;
 end;
 
@@ -2331,10 +2331,10 @@ end;
 
 { DTD stuff }
 
-procedure TXMLTextReader.BadPENesting(S: TErrorSeverity);
+procedure TXMLTextReader.CheckPENesting(aExpected: TObject);
 begin
-  if (S = esFatal) or FValidate then
-    DoError(S, 'Parameter entities must be properly nested');
+  if FSource.FEntity <> aExpected then
+    ValidationError('Parameter entities must be properly nested', [], 0);
 end;
 
 function TXMLTextReader.ParseQuantity: TCPQuant;
@@ -2394,8 +2394,7 @@ begin
         FatalError(Delim);
     FSource.NextChar; // skip delimiter
   until False;
-  if MustEndIn <> FSource.FEntity then
-    BadPENesting;
+  CheckPENesting(MustEndIn);
   FSource.NextChar;
 
   if Delim = '|' then
@@ -2451,8 +2450,7 @@ begin
           end;
           SkipWhitespace;
         end;
-        if CurrentEntity <> FSource.FEntity then
-          BadPENesting;
+        CheckPENesting(CurrentEntity);
         FSource.NextChar;
         if (not CheckForChar('*')) and (CP.ChildCount > 0) then
           FatalError(WideChar('*'));
@@ -2813,8 +2811,7 @@ begin
           FatalError('Expected "INCLUDE" or "IGNORE"');
 
         SkipWhitespace;
-        if CurrentEntity <> FSource.FEntity then
-          BadPENesting;
+        CheckPENesting(CurrentEntity);
         ExpectChar('[');
         if CondType = ctInclude then
         begin
@@ -2841,8 +2838,7 @@ begin
 
         SkipWhitespace;
 
-        if CurrentEntity <> FSource.FEntity then
-          BadPENesting;
+        CheckPENesting(CurrentEntity);
         ExpectChar('>');
         FInsideDecl := False;
       end;
