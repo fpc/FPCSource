@@ -219,7 +219,8 @@ interface
                           system_x86_64_freebsd];
        systems_netbsd  = [system_i386_netbsd,
                           system_m68k_netbsd,
-                          system_powerpc_netbsd];
+                          system_powerpc_netbsd,
+                          system_x86_64_netbsd];
        systems_openbsd = [system_i386_openbsd,
                           system_m68k_openbsd,
                           system_x86_64_openbsd];

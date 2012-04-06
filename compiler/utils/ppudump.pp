@@ -148,7 +148,8 @@ const
   { 68 }  'NativeNT-i386',
   { 69 }  'iPhoneSim-i386',
   { 70 }  'Wii-powerpc',
-  { 71 }  'OpenBSD-x86-64'
+  { 71 }  'OpenBSD-x86-64',
+  { 72 }  'NetBSD-x86-64'
   );
 
 const
