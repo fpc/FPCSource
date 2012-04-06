@@ -33,7 +33,7 @@ type
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
-    ino_t    = clong;           { used for file serial numbers }
+    ino_t    = cint64;          { used for file serial numbers }
     TIno     = ino_t;
     pIno     = ^ino_t;
 
