@@ -270,7 +270,7 @@ end;
 
 procedure TTestRunner.DoRun;
 
-  procedure CheckTestRegistry (test:TTest; ATestName:string);
+  procedure CheckTestRegistry (test:TTest; ATestName:string; res : TTestSuite);
   var s, c : string;
       I, p : integer;
   begin
@@ -288,21 +288,23 @@ procedure TTestRunner.DoRun;
         c := ATestName;
         end;
       if comparetext(c, test.TestName) = 0 then
-        DoTestRun(test)
+        res.AddTest(test)
       else if (CompareText( s, Test.TestName) = 0) or (s = '') then
         for I := 0 to TTestSuite(test).Tests.Count - 1 do
-          CheckTestRegistry (TTest(TTestSuite(test).Tests[I]), c)
+          CheckTestRegistry (TTest(TTestSuite(test).Tests[I]), c, res)
       end
     else // if test is TTestCase then
       begin
       if comparetext(test.TestName, ATestName) = 0 then
-        DoTestRun(test);
+        res.AddTest(test);
       end;
   end;
 
 var
-  I: integer;
-  S: string;
+  I,P : integer;
+  S : string;
+  TS : TTestSuite;
+  
 begin
   S := CheckOptions(GetShortOpts, LongOpts);
   if (S <> '') then
@@ -328,8 +330,36 @@ begin
       for I := 0 to GetTestRegistry.Tests.Count - 1 do
         writeln(GetTestRegistry[i].TestName)
     else
-      for I := 0 to GetTestRegistry.Tests.count-1 do
-        CheckTestRegistry (GetTestregistry[I], S);
+      begin
+        TS:=TTestSuite.Create('SuiteList');
+        try
+        while Not(S = '') Do
+          begin
+            P:=Pos(',',S);
+            if P = 0 Then
+              begin
+                for I := 0 to GetTestRegistry.Tests.count-1 do
+                  CheckTestRegistry (GetTestregistry[I], S, TS);
+                S := '';
+              end
+            else
+              begin
+                for I := 0 to GetTestRegistry.Tests.count-1 do
+                  CheckTestRegistry (GetTestregistry[I],Copy(S, 1,P - 1), TS);
+                Delete(S, 1, P);
+              end;
+          end;
+          if (TS.CountTestCases>1) then
+            DoTestRun(TS)
+          else if TS.CountTestCases=1 then
+            DoTestRun(TS[0])
+          else
+            Writeln('No tests selected.');  
+        finally
+          TS.Tests.Clear;
+          TS.Free;
+        end;
+      end;
   end
   else if HasOption('a', 'all') or (DefaultRunAllTests and Not HasOption('l','list')) then
     DoTestRun(GetTestRegistry) ;
