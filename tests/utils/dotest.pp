@@ -765,7 +765,7 @@ end;
 function DelOptions(Pattern, opts : string) : string;
 var
   currentopt : string;
-  optpos, endopt, endpos : longint;
+  optpos, endopt, startpos, endpos : longint;
   iswild : boolean;
 begin
   opts:=trimspace(opts);
@@ -785,30 +785,41 @@ begin
           end
         else
           iswild:=false;
+        startpos:=1;
         repeat
-          optpos:=pos(currentopt,opts);
+          optpos:=pos(currentopt,copy(opts,startpos,length(opts)));
           if optpos>0 then
             begin
+              { move to index in full opts string }
+              optpos:=optpos+startpos-1;
+              { compute position of end of opt }
               endopt:=optpos+length(currentopt);
+              { use that end as start position for next round }
+              startpos:=endopt;
               if iswild then
                 begin
                   while (opts[endopt]<>' ') and
                     (endopt<length(opts)) do
-                    inc(endopt);
+                    begin
+                      inc(endopt);
+                      inc(startpos);
+                    end;
                   Verbose(V_Debug,'Pattern match found "'+currentopt+'*" in "'+opts+'"');
                   system.delete(opts,optpos,endopt-optpos+1);
                   Verbose(V_Debug,'After opts="'+opts+'"');
                 end
               else
                 begin
-                  if (endopt=length(opts)) or (opts[endopt]=' ') then
+                  if (endopt>length(opts)) or (opts[endopt]=' ') then
                     begin
                       Verbose(V_Debug,'Exact match found "'+currentopt+'" in "'+opts+'"');
                       system.delete(opts,optpos,endopt-optpos+1);
                       Verbose(V_Debug,'After opts="'+opts+'"');
                     end
                   else
-                    Verbose(V_Debug,'No exact match "'+currentopt+'" in "'+opts+'"');
+                    begin
+                      Verbose(V_Debug,'No exact match "'+currentopt+'" in "'+opts+'"');
+                    end;
                 end;
 
             end;
