@@ -664,6 +664,8 @@ Type
     FProcessing : boolean;
     // Dictionary
     FDictionary : TDictionary;
+    // Is set when all sourcefiles are found
+    FAllFilesResolved: boolean;
     Function GetDescription : string;
     function GetDictionary: TDictionary;
     Function GetFileName : string;
@@ -949,7 +951,7 @@ Type
     function AddPathPrefix(APackage: TPackage; APath: string): string;
 
     property Verbose : boolean read FVerbose write FVerbose;
-    Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true);
+    Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
 
     // Public Copy/delete/Move/Archive/Mkdir Commands.
     Procedure ExecuteCommand(const Cmd,Args : String; const Env: TStrings = nil; IgnoreError : Boolean = False); virtual;
@@ -1257,6 +1259,7 @@ ResourceString
   SDbgCompilingDependenciesOfTarget = 'Compiling dependencies of target %s';
   SDbgResolvingSourcesOfTarget = 'Resolving filenames of target %s for %s';
   SDbgResolvedSourceFile    = 'Resolved source file %s to "%s"';
+  SDbgSourceAlreadyResolved = 'Source file of %s has been resolved earlier';
   SDbgResolvedIncludeFile   = 'Resolved include file %s to "%s"';
   SDbgOutputNotYetAvailable = 'Output file %s not available';
   SDbgDependencyOnUnit      = 'Dependency of %s on unit %s';
@@ -4465,7 +4468,7 @@ begin
 end;
 
 
-Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true);
+Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
 
   procedure FindMainSource(T:TTarget);
   var
@@ -4483,7 +4486,9 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
       Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
     else
       begin
-        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,APackage.Name,MakeTargetString(ACPU,AOS)]);
+        if WarnIfNotFound then
+          Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,APackage.Name,MakeTargetString(ACPU,AOS)]);
+        APackage.FAllFilesResolved:=false;
         T.FTargetSourceFileName:='';
       end;
   end;
@@ -4501,7 +4506,11 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
         D:=T.Dependencies[j];
         if (D.DependencyType=depInclude) then
           begin
-            D.TargetFileName:='';
+            if D.TargetFileName<>'' then
+              begin
+              Exit;
+              Log(vlDebug,SDbgSourceAlreadyResolved,[T.Name]);
+              end;
             if (ACPU in D.CPUs) and (AOS in D.OSes) then
               begin
                 if ExtractFilePath(D.Value)='' then
@@ -4521,7 +4530,9 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
                   Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.TargetFileName])
                 else
                   begin
-                    Log(vlWarning,SWarnIncludeFileNotFound,[D.Value, APackage.Name, MakeTargetString(ACPU,AOS)]);
+                    if WarnIfNotFound then
+                      Log(vlWarning,SWarnIncludeFileNotFound,[D.Value, APackage.Name, MakeTargetString(ACPU,AOS)]);
+                    APackage.FAllFilesResolved:=false;
                     D.TargetFileName:='';
                   end;
               end;
@@ -4545,8 +4556,10 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
       Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
     else
       begin
-        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName, APackage.Name, MakeTargetString(ACPU,AOS)]);
+        if WarnIfNotFound then
+          Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName, APackage.Name, MakeTargetString(ACPU,AOS)]);
         T.FTargetSourceFileName:='';
+        APackage.FAllFilesResolved:=false;
       end;
   end;
 
@@ -4556,6 +4569,9 @@ var
 begin
   if not((ACPU in APackage.CPUs) and (AOS in APackage.OSes)) then
     exit;
+  if APackage.FAllFilesResolved then
+    Exit;
+  APackage.FAllFilesResolved:=true;
   try
     if DoChangeDir and (APackage.Directory<>'') then
       GPathPrefix := APackage.Directory;
@@ -4575,14 +4591,20 @@ begin
               ttUnit,
               ttImplicitUnit :
                 begin
-                  FindMainSource(T);
+                  if T.FTargetSourceFileName<>'' then
+                    Log(vlDebug,SDbgSourceAlreadyResolved,[T.Name])
+                  else
+                    FindMainSource(T);
                   if T.Dependencies.Count>0 then
                     FindIncludeSources(T);
                 end;
               ttExampleUnit,
               ttExampleProgram :
                 begin
-                  FindExampleSource(T);
+                  if T.FTargetSourceFileName<>'' then
+                    Log(vlDebug,SDbgSourceAlreadyResolved,[T.Name])
+                  else
+                    FindExampleSource(T);
                 end;
             end;
 
@@ -4889,6 +4911,8 @@ begin
     APackage.BeforeCompile(APackage);
   If Assigned(APackage.BeforeCompileProc) then
     APackage.BeforeCompileProc(APackage);
+  // It could be that files that weren't found before are available now.
+  ResolveFileNames(APackage,Defaults.CPU,Defaults.OS,true,true);
 end;
 
 
@@ -5523,7 +5547,7 @@ begin
       result := False;
       Exit;
     end;
-  ResolveFileNames(APackage,Defaults.CPU,Defaults.OS);
+  ResolveFileNames(APackage,Defaults.CPU,Defaults.OS,True,False);
   If NeedsCompile(APackage) then
     result := True
   else
