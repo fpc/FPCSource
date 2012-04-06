@@ -188,9 +188,9 @@ begin
      else
        DllCmd[2]:='strip -x $EXE';
      { OpenBSD seems to use a wrong dynamic linker by default }
-     if target_info.system = system_i386_openbsd then
+     if target_info.system in systems_openbsd then
       DynamicLinker:='/usr/libexec/ld.so'
-     else if target_info.system = system_i386_netbsd then
+     else if target_info.system in systems_netbsd then
       DynamicLinker:='/usr/libexec/ld.elf_so'
      else
        DynamicLinker:='';
