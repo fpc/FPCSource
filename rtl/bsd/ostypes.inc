@@ -69,8 +69,14 @@ TYPE
         st_nlink      : nlink_t;           // number of hard links
         st_ino        : ino_t;             // inode's number
 {$else}
+{$ifdef netbsd}
+     { order is inverted for better alignment probably }
+        st_mode       : mode_t;            // inode protection mode
+        st_ino        : ino_t;             // inode's number
+{$else not netbsd}
         st_ino        : ino_t;             // inode's number
         st_mode       : mode_t;            // inode protection mode
+{$endif not netbsd}
         st_nlink      : nlink_t;           // number of hard links
 {$endif}
         st_uid        : uid_t;             // user ID of the file's owner
