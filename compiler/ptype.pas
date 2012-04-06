@@ -1059,6 +1059,7 @@ implementation
         var
           old_current_genericdef,
           old_current_specializedef: tstoreddef;
+          first,
           old_parse_generic: boolean;
         begin
            old_current_genericdef:=current_genericdef;
@@ -1067,8 +1068,28 @@ implementation
 
            current_genericdef:=nil;
            current_specializedef:=nil;
-           arrdef:=nil;
+           first:=true;
+           arrdef:=tarraydef.create(0,0,s32inttype);
            consume(_ARRAY);
+
+           { usage of specialized type inside its generic template }
+           if assigned(genericdef) then
+             current_specializedef:=arrdef
+           { reject declaration of generic class inside generic class }
+           else if assigned(genericlist) then
+             current_genericdef:=arrdef;
+           symtablestack.push(arrdef.symtable);
+           insert_generic_parameter_types(arrdef,genericdef,genericlist);
+           { there are two possibilties for the following to be true:
+             * the array declaration itself is generic
+             * the array is declared inside a generic
+             in both cases we need "parse_generic" and "current_genericdef"
+             so that e.g. specializations of another generic inside the
+             current generic can be used (either inline ones or "type" ones) }
+           parse_generic:=(df_generic in arrdef.defoptions) or old_parse_generic;
+           if parse_generic and not assigned(current_genericdef) then
+             current_genericdef:=old_current_genericdef;
+
            { open array? }
            if try_to_consume(_LECKKLAMMER) then
              begin
@@ -1136,17 +1157,23 @@ implementation
                      pt.free;
                    end;
 
-                  { if the array is already created add the new arrray
-                    as element of the existing array, otherwise create a new array }
-                  if assigned(arrdef) then
+                  { if we are not at the first dimension, add the new arrray
+                    as element of the existing array, otherwise modify the existing array }
+                  if not(first) then
                     begin
                       arrdef.elementdef:=tarraydef.create(lowval.svalue,highval.svalue,indexdef);
+                      { push new symtable }
+                      symtablestack.pop(arrdef.symtable);
                       arrdef:=tarraydef(arrdef.elementdef);
+                      symtablestack.push(arrdef.symtable);
                     end
                   else
                     begin
-                      arrdef:=tarraydef.create(lowval.svalue,highval.svalue,indexdef);
+                      arrdef.lowrange:=lowval.svalue;
+                      arrdef.highrange:=highval.svalue;
+                      arrdef.rangedef:=indexdef;
                       def:=arrdef;
+                      first:=false;
                     end;
                   if is_packed then
                     include(arrdef.arrayoptions,ado_IsBitPacked);
@@ -1162,29 +1189,11 @@ implementation
              begin
                 if is_packed then
                   Message(parser_e_packed_dynamic_open_array);
-                arrdef:=tarraydef.create(0,-1,s32inttype);
+                arrdef.lowrange:=0;
+                arrdef.highrange:=-1;
+                arrdef.rangedef:=s32inttype;
                 include(arrdef.arrayoptions,ado_IsDynamicArray);
                 def:=arrdef;
-             end;
-           if assigned(arrdef) then
-             begin
-               { usage of specialized type inside its generic template }
-               if assigned(genericdef) then
-                 current_specializedef:=arrdef
-               { reject declaration of generic class inside generic class }
-               else if assigned(genericlist) then
-                 current_genericdef:=arrdef;
-               symtablestack.push(arrdef.symtable);
-               insert_generic_parameter_types(arrdef,genericdef,genericlist);
-               { there are two possibilties for the following to be true:
-                 * the array declaration itself is generic
-                 * the array is declared inside a generic
-                 in both cases we need "parse_generic" and "current_genericdef"
-                 so that e.g. specializations of another generic inside the
-                 current generic can be used (either inline ones or "type" ones) }
-               parse_generic:=(df_generic in arrdef.defoptions) or old_parse_generic;
-               if parse_generic and not assigned(current_genericdef) then
-                 current_genericdef:=old_current_genericdef;
              end;
            consume(_OF);
            read_anon_type(tt2,true);
@@ -1202,6 +1211,7 @@ implementation
            current_genericdef:=old_current_genericdef;
            current_specializedef:=old_current_specializedef;
         end;
+
 
         function procvar_dec(genericdef:tstoreddef;genericlist:TFPObjectList):tdef;
           var
