@@ -2712,7 +2712,7 @@ begin
     T:=P.Targets.AddImplicitUnit('CTFontTraits.pas');
     T:=P.Targets.AddImplicitUnit('CTFrame.pas');
     T:=P.Targets.AddImplicitUnit('CTFrameSetter.pas');
-    T:=P.Targets.AddImplicitUnit('AUComponent.ppu');
+    T:=P.Targets.AddImplicitUnit('AUComponent.pas');
     T:=P.Targets.AddImplicitUnit('AXConstants.pas');
     T:=P.Targets.AddImplicitUnit('Accessibility.pas');
     T:=P.Targets.AddImplicitUnit('AudioCodecs.pas');
