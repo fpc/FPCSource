@@ -191,6 +191,7 @@ type
     procedure Initialize; virtual;
     function SetEncoding(const AEncoding: string): Boolean; virtual;
     function Matches(const arg: XMLString): Boolean;
+    function MatchesLong(const arg: XMLString): Boolean;
     property SourceURI: XMLString read GetSourceURI write FSourceURI;
   end;
 
@@ -740,6 +741,34 @@ begin
     if FBuf >= FBufEnd then
       Reload;
   end;
+end;
+
+{ Used to check element name in end-tags, difference from Matches is that
+  buffer may be reloaded more than once. XML has no restriction on name
+  length, so a name longer than input buffer may be encountered. }
+function TXMLCharSource.MatchesLong(const arg: XMLString): Boolean;
+var
+  idx, len, chunk: Integer;
+begin
+  Result := False;
+  idx := 1;
+  len := Length(arg);
+  repeat
+    if (FBuf >= FBufEnd) and not Reload then
+      Exit;
+    if FBufEnd >= FBuf + len then
+      chunk := len
+    else
+      chunk := FBufEnd - FBuf;
+    if not CompareMem(@arg[idx], FBuf, chunk*sizeof(WideChar)) then
+      Exit;
+    Inc(FBuf, chunk);
+    Inc(idx,chunk);
+    Dec(len,chunk);
+  until len = 0;
+  Result := True;
+  if FBuf >= FBufEnd then
+    Reload;
 end;
 
 { TXMLDecodingSource }
@@ -3816,17 +3845,16 @@ begin
 
   FCurrNode := @FNodeStack[FNesting];  // move off the possible child
   FCurrNode^.FNodeType := ntEndElement;
-  Inc(FTokenStart.LinePos, 2);         // move over '</' chars
+  StoreLocation(FTokenStart);
   FCurrNode^.FLoc := FTokenStart;
   ElName := FCurrNode^.FQName;
 
-  CheckName;
-  if not BufEquals(FName, ElName^.Key) then
-    FatalError('Unmatching element end tag (expected "</%s>")', [ElName^.Key], FName.Length);
+  if not FSource.MatchesLong(ElName^.Key) then
+    FatalError('Unmatching element end tag (expected "</%s>")', [ElName^.Key], -1);
   if FSource.FBuf^ = '>' then    // this handles majority of cases
     FSource.NextChar
   else
-  begin
+  begin             // gives somewhat incorrect message for <a></aa>
     SkipS;
     ExpectChar('>');
   end;
