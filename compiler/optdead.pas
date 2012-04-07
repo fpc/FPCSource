@@ -351,7 +351,8 @@ const
       { regular nm }
       if not symbolprogfound then
         symbolprogfound:=findutil('nm',nmfullname,symbolprogfullpath);
-      if not symbolprogfound then
+      if not symbolprogfound and
+         (target_info.system in systems_linux) then
         begin
           { try objdump }
           symbolprogfound:=findutil('objdump',objdumpfullname,symbolprogfullpath);
