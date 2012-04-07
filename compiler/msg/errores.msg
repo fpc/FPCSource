@@ -2137,8 +2137,6 @@ Para mas informació lea COPYING.FPC
 
 Para informar de errores, sugerencias, etc:
                  http://bugs.freepascal.org
-o
-                 bugs@freepascal.org
 ]
 
 #

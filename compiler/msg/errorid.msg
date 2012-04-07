@@ -2450,8 +2450,6 @@ Untuk informasi lebih jauh baca COPYING.FPC
 
 Laporkan bugs, saran, dll ke:
                  http://bugs.freepascal.org
-atau
-                 bugs@freepascal.org
 ]
 
 #

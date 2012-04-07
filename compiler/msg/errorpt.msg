@@ -3122,8 +3122,6 @@ Para maiores informa‡äes leia COPYING.FPC
 
 Reportar falhas, sugestäes, etc. para:
                  http://bugs.freepascal.org
-ou
-                 bugs@freepascal.org
 ]
 
 #

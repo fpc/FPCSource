@@ -2273,8 +2273,7 @@ Ce programme est fourni sous la License Publique Générale GNU (GNU GPL).
 Pour plus d'informations, consultez le fichier COPYING.FPC.
 Rapports de bogues, suggestions, etc. à:
     http://bugs.freepascal.org
-ou
-    bugs@freepascal.org ]
+]
 #
 # Help pages (option -? and -h)
 #

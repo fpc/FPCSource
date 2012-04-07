@@ -2227,8 +2227,6 @@ Læs COPYING.FPC for mere information
 
 Indsend fejlbeskrivelser, forslag, etc til
                  http://bugs.freepascal.org
-og
-                 bugs@freepascal.org
 
 For kommentarer vedrørende den danske oversættelse, skriv til
                  chrivers@iversen-net.dk

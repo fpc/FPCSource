@@ -2142,8 +2142,6 @@ Przeczytaj COPYING.FPC aby dowiedzie† si© wi©cej
 
 Zgˆaszanie bˆ©d¢w, sugestii itp.
                  http://bugs.freepascal.org
-lub
-                 bugs@freepascal.org
 ]
 
 #

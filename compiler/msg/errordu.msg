@@ -3093,8 +3093,6 @@ Weitere Informationen sind in COPYING.FPC zu finden
 
 Fehlerberichte, Vorschläge usw. bitte senden an:
              http://bugs.freepascal.org
-oder
-             bugs@freepascal.org
 ]
 
 #

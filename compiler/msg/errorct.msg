@@ -2120,8 +2120,6 @@ Per a més informació llegiu COPYING.FPC
 
 Comuniqueu les errades, suggeriments, etc a:
   http://bugs.freepascal.org
-o
-  bugs@freepascal.org
 ]
 
 #

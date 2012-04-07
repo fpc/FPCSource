@@ -2542,8 +2542,6 @@ For more information read COPYING.FPC
 
 Report bugs, suggestions, etc. to:
                  http://bugs.freepascal.org
-or
-                 bugs@freepascal.org
 ]
 
 #

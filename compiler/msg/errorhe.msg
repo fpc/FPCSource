@@ -2433,8 +2433,6 @@ Free Pascal Compiler version $FPCVERSION
 
 דיווח על תקלות (באגים), הצעות וכו':
                  http://bugs.freepascal.org
-
-                 bugs@freepascal.org
 ]
 
 #

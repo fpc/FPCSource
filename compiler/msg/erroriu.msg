@@ -2729,8 +2729,6 @@ Per ulteriori informazioni leggere il file COPYING.FPC
 
 Riferire difetti, suggerimenti ecc. a:
                  http://bugs.freepascal.org
-oppure a
-                 bugs@freepascal.org
 ]
 
 #
