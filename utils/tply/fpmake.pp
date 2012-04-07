@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 {$endif ALLPACKAGES}
 
-procedure add_lexyacc;
+procedure add_tply;
 
 Var
   P : TPackage;
@@ -15,7 +15,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('lexyacc');
+    P:=AddPackage('tply');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -25,7 +25,7 @@ begin
     P.NeedLibC:= false;
 
 {$ifdef ALLPACKAGES}
-    P.Directory:='lexyacc';
+    P.Directory:='tply';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
 
@@ -76,8 +76,7 @@ begin
     P.Sources.AddSrc('fpcmake.ini');
     P.Sources.AddSrc('fpcmake.inc');
 
-    writeln({$I %FPCTARGETOS%});
-    if (OSToString(defaults.OS)=lowercase({$I %FPCTARGETOS%})) and
+     if (OSToString(defaults.OS)=lowercase({$I %FPCTARGETOS%})) and
        (CPUToString(defaults.CPU)=lowercase({$I %FPCTARGETCPU%})) then
       begin
       // Do not install these files when performing a cross-installation
@@ -93,7 +92,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_lexyacc;
+  add_tply;
   Installer.Run;
 end.
 {$endif ALLPACKAGES}
