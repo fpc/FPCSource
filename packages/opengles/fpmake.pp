@@ -28,7 +28,7 @@ begin
     T:=P.Targets.AddUnit('gles11.pp',[darwin,iphonesim]);
     T:=P.Targets.AddUnit('gles20.pas',[linux,win32,win64,wince,darwin]);
 
-    P.Targets.AddExampleProgram('es2example1.pas');
+    P.Targets.AddExampleProgram('examples/es2example1.pas');
     P.Sources.AddExampleFiles('examples/*',false,'.');
 
 
