@@ -69,7 +69,7 @@ TYPE
         st_nlink      : nlink_t;           // number of hard links
         st_ino        : ino_t;             // inode's number
 {$else}
-{$ifdef netbsd}
+{$ifdef netbsd_use_stat30}
      { order is inverted for better alignment probably }
         st_mode       : mode_t;            // inode protection mode
         st_ino        : ino_t;             // inode's number
