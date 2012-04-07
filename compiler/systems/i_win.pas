@@ -133,7 +133,7 @@ unit i_win;
             newline      : #13#10;
             dirsep       : '\';
             assem        : as_x86_64_pecoff;
-            assemextern  : as_x86_64_masm;
+            assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
