@@ -1209,30 +1209,7 @@ const
 //==================================
 // assuming "type ValReal=extended;"
 //
-type
-  TValRealRec = packed record
-    case byte of
-    0: (
-      {$ifndef ENDIAN_BIG}
-        mant_lo, mant_hi : longword; expsign : word // little-endian/default
-      {$else}
-        expsign : word; mant_hi, mant_lo : longword // big-endian
-      {$endif}
-       );
-    1: (v : extended);
-  end;
-
 const
- {$ifndef ENDIAN_BIG}
-  // little-endian/default
-  C_INFTYP:TValRealRec=(mant_lo:0;mant_hi:$80000000;expsign:$7FFF); //+INF
-  C_INFTYM:TValRealRec=(mant_lo:0;mant_hi:$80000000;expsign:$FFFF); //-INF
- {$else}
-  // big-endian
-  C_INFTYP:TValRealRec=(expsign:$7FFF;mant_hi:$80000000;mant_lo:0); //+INF
-  C_INFTYM:TValRealRec=(expsign:$FFFF;mant_hi:$80000000;mant_lo:0); //-INF
- {$endif}
-
   C_MAX_POWER = 5119;
 
   C_HIGH_EXPBITS_5TO8   = 15;
@@ -1242,30 +1219,7 @@ const
 //==================================
 // assuming "type ValReal=double;"
 //
-type
-  TValRealRec = packed record
-    case byte of
-    0: (
-      {$ifndef ENDIAN_BIG}
-        raw_lo, raw_hi : longword // little-endian/default
-      {$else}
-        raw_hi, raw_lo : longword // big-endian
-      {$endif}
-       );
-    1: (v : double);
-  end;
-
 const
- {$ifndef ENDIAN_BIG}
-  // little-endian/default
-  C_INFTYP:TValRealRec=(raw_lo:0;raw_hi:$7FF00000); //+INF
-  C_INFTYM:TValRealRec=(raw_lo:0;raw_hi:$FFF00000); //-INF
- {$else}
-  // big-endian
-  C_INFTYP:TValRealRec=(raw_hi:$7FF00000;raw_lo:0); //+INF
-  C_INFTYM:TValRealRec=(raw_hi:$FFF00000;raw_lo:0); //-INF
- {$endif}
-
   C_MAX_POWER = 319;
 
   C_HIGH_EXPBITS_5TO8 = 9;
@@ -1274,17 +1228,7 @@ const
 //==================================
 // assuming "type ValReal=single;"
 //
-type
-  TValRealRec = packed record
-    case byte of
-    0: (raw : longword);
-    1: (v : single);
-  end;
-
 const
-  C_INFTYP:TValRealRec=(raw:$7F800000); //+INF
-  C_INFTYM:TValRealRec=(raw:$FF800000); //-INF
-
   C_MAX_POWER = 63;
 
 {$ELSE}
@@ -1296,6 +1240,9 @@ const
 
 //==================================
 const
+  C_INFTYP = ValReal( 1.0/0.0);
+  C_INFTYM = ValReal(-1.0/0.0);
+
   mul_expbits_0_to_4:packed array[0..31]of ValReal=(
    1E0,  1E1,  1E2,  1E3,
    1E4,  1E5,  1E6,  1E7,
@@ -1328,8 +1275,8 @@ begin
   if power=0 then mul_by_power10:=x else
   if power<-C_MAX_POWER then mul_by_power10:=0 else
   if power>C_MAX_POWER then
-   if x<0 then mul_by_power10:=C_INFTYM.v else
-   if x>0 then mul_by_power10:=C_INFTYP.v else mul_by_power10:=0
+   if x<0 then mul_by_power10:=C_INFTYM else
+   if x>0 then mul_by_power10:=C_INFTYP else mul_by_power10:=0
   else
    if power<0 then
     begin
