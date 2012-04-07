@@ -3139,8 +3139,13 @@ Supported Microcontroller types:
 This program comes under the GNU General Public Licence
 For more information read COPYING.FPC
 
-Report bugs, suggestions, etc. to:
+Please report bugs in our bug tracker on:
                  http://bugs.freepascal.org
+
+More information may be found on our WWW pages (including directions
+for mailing lists useful for asking questions or discussing potential
+new features, etc.):
+                 http://www.freepascal.org
 ]
 
 #
