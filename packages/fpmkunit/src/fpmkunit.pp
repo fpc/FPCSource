@@ -4424,6 +4424,7 @@ begin
               C.BeforeCommand(C);
             O:=ADictionary.Substitute(C.CmdLineOptions,['SOURCE',SourceFile,'DEST',DestFile]);
 
+            Log(vlCommand,SInfoExecutingCommand,[Cmd,O]);
             ExecuteCommand(Cmd,O,nil,C.IgnoreResult);
             If Assigned(C.AfterCommand) then
               C.AfterCommand(C);
@@ -4932,7 +4933,7 @@ begin
   If Assigned(APackage.BeforeCompileProc) then
     APackage.BeforeCompileProc(APackage);
   // It could be that files that weren't found before are available now.
-  ResolveFileNames(APackage,Defaults.CPU,Defaults.OS,true,true);
+  ResolveFileNames(APackage,Defaults.CPU,Defaults.OS,false,true);
 end;
 
 
