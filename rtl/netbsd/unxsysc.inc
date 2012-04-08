@@ -93,8 +93,8 @@ Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; oldfpcc
   If the operation was unsuccesful, linuxerror is set.
 }
 
-begin
 {$ifdef cpui386}
+begin
  asm
    mov $42,%eax
    int $0x80
@@ -113,8 +113,41 @@ begin
    mov Errn,%edx
    mov %ebx,(%edx)
  end;
-{$endif}
 end;
+{$else}
+{$ifdef cpuxx86_64}
+begin
+ asm
+   mov $42,%eax
+   syscall
+   jb .Lerror
+   mov pipe_in,%rbx
+   mov %eax,(%rbx)
+   mov pipe_out,%rbx
+   mov $0,%rax
+   mov %edx,(%rbx)
+   mov %rax,%rbx
+   jmp .Lexit
+.Lerror:
+   mov %eax,%ebx
+   mov $-1,%eax
+.Lexit:
+   mov Errn,%rdx
+   mov %ebx,(%rdx)
+ end;
+end;
+{$else}
+  var fildes : tfildes;
+begin
+  fildes[0]:=pipe_in;
+  fildes[1]:=pipe_out;
+  errn:=do_syscall(syscall_nr_pipe,TSysParam(@fildes));
+  pipe_in:=fildes[0];
+  pipe_out:=fildes[1];
+  intAssignPipe:=errn;
+end;
+{$endif}
+{$endif}
 
 
 {
