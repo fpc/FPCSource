@@ -115,7 +115,7 @@ begin
  end;
 end;
 {$else}
-{$ifdef cpuxx86_64}
+{$ifdef cpux86_64}
 begin
  asm
    mov $42,%eax
