@@ -408,7 +408,7 @@ type
     FFilterBuffer   : TRecordBuffer;
     FBRecordCount   : integer;
 
-    FOldState          : TDatasetState;
+    FSavedState     : TDatasetState;
     FPacketRecords  : integer;
     FRecordSize     : Integer;
     FNullmaskSize   : byte;
@@ -1820,7 +1820,7 @@ begin
   Result := False;
   if State = dsOldValue then
   begin
-    if FOldState = dsInsert then
+    if FSavedState = dsInsert then
       CurrBuff := nil // old values = null
     else if GetActiveRecordUpdateBuffer then
       CurrBuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer
@@ -2916,7 +2916,7 @@ procedure TCustomBufDataset.DataEvent(Event: TDataEvent; Info: Ptrint);
 begin
   if Event = deUpdateState then
     // Save DataSet.State set by DataSet.SetState (filter out State set by DataSet.SetTempState)
-    FOldState := State;
+    FSavedState := State;
   inherited;
 end;
 
