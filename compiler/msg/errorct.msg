@@ -4,7 +4,7 @@
 #
 #   Catalan Language File for Free Pascal
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -2116,12 +2116,10 @@ Plataformes compatibles     :
  $OSTARGETS
 
 Aquest programa ve sota la Llicència Pública General de GNU
-Per a més informació llegiu COPYING.FPC
+Per a més informació llegiu COPYING.v2
 
 Comuniqueu les errades, suggeriments, etc a:
   http://bugs.freepascal.org
-o
-  bugs@freepascal.org
 ]
 
 #

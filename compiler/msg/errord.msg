@@ -8,7 +8,7 @@
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2010 by the Free Pascal Development team
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -3026,12 +3026,10 @@ Untersttzte Microcontroller:
   $CONTROLLERTYPES
 
 Dieses Programm unterliegt der GNU General Public Licence
-Weitere Informationen sind in COPYING.FPC zu finden
+Weitere Informationen sind in COPYING.v2 zu finden
 
 Fehlerberichte, Vorschl„ge usw. bitte senden an:
              http://bugs.freepascal.org
-oder
-             bugs@freepascal.org
 ]
 
 #

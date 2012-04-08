@@ -6,7 +6,7 @@
 #   Contributed by Massimo Soricetti <notturno at quipo.it>
 #   Translation for FPC 2.4.2, april 16, 2011, Tolentino, Italy
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -2725,12 +2725,10 @@ Tipi di microcontroller supportati:
   $CONTROLLERTYPES
 
 Questo programma è distribuito sotto la GNU General Public Licence
-Per ulteriori informazioni leggere il file COPYING.FPC
+Per ulteriori informazioni leggere il file COPYING.v2
 
 Riferire difetti, suggerimenti ecc. a:
                  http://bugs.freepascal.org
-oppure a
-                 bugs@freepascal.org
 ]
 
 #

@@ -4,7 +4,7 @@
 #
 #   English (default) Language File for Free Pascal
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -3053,12 +3053,15 @@ Supported Microcontroller types:
   $CONTROLLERTYPES
 
 This program comes under the GNU General Public Licence
-For more information read COPYING.FPC
+For more information read COPYING.v2
 
-Report bugs, suggestions, etc. to:
+Please report bugs in our bug tracker on:
                  http://bugs.freepascal.org
-or
-                 bugs@freepascal.org
+
+More information may be found on our WWW pages (including directions
+for mailing lists useful for asking questions or discussing potential
+new features, etc.):
+                 http://www.freepascal.org
 ]
 
 #

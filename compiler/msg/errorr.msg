@@ -7,7 +7,7 @@
 #   This file corresponds to SVN revision 13665 of errore.msg
 #   Translated by Sergei Gorelkin <sergei_gorelkin at mail.ru>
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -2538,12 +2538,10 @@ Compiler CPU Target: $FPCCPU
   $CONTROLLERTYPES
 
 This program comes under the GNU General Public Licence
-For more information read COPYING.FPC
+For more information read COPYING.v2
 
 Report bugs, suggestions, etc. to:
                  http://bugs.freepascal.org
-or
-                 bugs@freepascal.org
 ]
 
 #

@@ -9,7 +9,7 @@
 #
 #   This file is encoded in UTF-8, and based on r4084 of errore.eng
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -2223,12 +2223,10 @@ Understøttede platforme:
   $OSTARGETS
 
 Dette program dækkes af reglerne for GNU General Public License
-Læs COPYING.FPC for mere information
+Læs COPYING.v2 for mere information
 
 Indsend fejlbeskrivelser, forslag, etc til
                  http://bugs.freepascal.org
-og
-                 bugs@freepascal.org
 
 For kommentarer vedrørende den danske oversættelse, skriv til
                  chrivers@iversen-net.dk
