@@ -47,7 +47,7 @@ ___start:
 	movq	%r9, -64(%rbp)
 	movq	-40(%rbp), %rax
 	movq	%rax, environ(%rip)
-	movq    %rax,operatingsystem_parameter_envp
+	movq    %rax,operatingsystem_parameter_envp(%rip)
 	movq	-32(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, -8(%rbp)
@@ -103,8 +103,8 @@ ___start:
 	movq	environ(%rip), %rdx
 	movq	-32(%rbp), %rsi
 	movl	-20(%rbp), %edi
-	movq    %rdi,operatingsystem_parameter_argc
-	movq    %rsi,operatingsystem_parameter_argv
+	movq    %rdi,operatingsystem_parameter_argc(%rip)
+	movq    %rsi,operatingsystem_parameter_argv(%rip)
 	movl	$0, %eax
 	call	main
 	# movl	%eax, %edi
@@ -117,7 +117,7 @@ ___start:
 
 _haltproc:
            movq $1,%rax
-           movzwq operatingsystem_result,%rbx
+           movzwq operatingsystem_result(%rip),%rbx
            pushq   %rbx
            call .Lactualsyscall
            addq  $8,%rsp
