@@ -61,6 +61,7 @@ type
 
   TXMLReaderSettings = class(TObject)
   private
+    FNameTable: THashTable;
     FValidate: Boolean;
     FPreserveWhitespace: Boolean;
     FExpandEntities: Boolean;
@@ -74,6 +75,7 @@ type
     function GetCanonical: Boolean;
     procedure SetCanonical(aValue: Boolean);
   public
+    property NameTable: THashTable read FNameTable write FNameTable;
     property Validate: Boolean read FValidate write FValidate;
     property PreserveWhitespace: Boolean read FPreserveWhitespace write FPreserveWhitespace;
     property ExpandEntities: Boolean read FExpandEntities write FExpandEntities;
@@ -325,7 +327,7 @@ type
     procedure CleanAttrReadState;
     procedure SetEOFState;
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
-    procedure Initialize(ASource: TXMLCharSource);
+    procedure SetSource(ASource: TXMLCharSource);
     procedure EntityToSource(AEntity: TEntityDecl; out Src: TXMLCharSource);
     function ContextPush(AEntity: TEntityDecl; DummySource: Boolean = False): Boolean;
     function ContextPop(Forced: Boolean = False): Boolean;
@@ -464,9 +466,10 @@ type
   public
     constructor Create(var AFile: Text; ANameTable: THashTable); overload;
     constructor Create(AStream: TStream; const ABaseUri: XMLString; ANameTable: THashTable); overload;
+    constructor Create(AStream: TStream; const ABaseUri: XMLString; ASettings: TXMLReaderSettings); overload;
     constructor Create(ASrc: TXMLCharSource; AParent: TXMLTextReader); overload;
-    constructor Create(const uri: XMLString; ANameTable: THashTable; ASettings: TXMLReaderSettings); overload;
-    constructor Create(ASrc: TXMLInputSource; ANameTable: THashTable; ASettings: TXMLReaderSettings); overload;
+    constructor Create(const uri: XMLString; ASettings: TXMLReaderSettings); overload;
+    constructor Create(ASrc: TXMLInputSource; ASettings: TXMLReaderSettings); overload;
     destructor Destroy; override;
     procedure AfterConstruction; override;
     property OnEntity: TEntityEvent read FOnEntity write FOnEntity;
@@ -599,7 +602,8 @@ var
   ldr: TLoader;
 begin
   ADoc := TXMLDocument.Create;
-  Reader := TXMLTextReader.Create(Src, ADoc.Names, Options);
+  Options.NameTable := ADoc.Names;
+  Reader := TXMLTextReader.Create(Src, Options);
   try
     ldr.ProcessXML(ADoc, Reader);
   finally
@@ -613,7 +617,8 @@ var
   ldr: TLoader;
 begin
   ADoc := TXMLDocument.Create;
-  Reader := TXMLTextReader.Create(URI, ADoc.Names, Options);
+  Options.NameTable := ADoc.Names;
+  Reader := TXMLTextReader.Create(URI, Options);
   try
     ldr.ProcessXML(ADoc, Reader)
   finally
@@ -628,6 +633,7 @@ var
   node: TDOMNode;
   reader: TXMLTextReader;
   ldr: TLoader;
+  doc: TDOMDocument;
 begin
   if Action in [xaInsertBefore, xaInsertAfter, xaReplace] then
     node := Context.ParentNode
@@ -640,9 +646,15 @@ begin
   if not (node.NodeType in [ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE]) then
     raise EDOMHierarchyRequest.Create('DOMParser.ParseWithContext');
 
-  reader := TXMLTextReader.Create(Src, Context.OwnerDocument.Names, Options);
+  if Context.NodeType = DOCUMENT_NODE then
+    doc := TDOMDocument(Context)
+  else
+    doc := Context.OwnerDocument;
+
+  Options.NameTable := doc.Names;
+  reader := TXMLTextReader.Create(Src, Options);
   try
-    Frag := Context.OwnerDocument.CreateDocumentFragment;
+    Frag := doc.CreateDocumentFragment;
     try
       ldr.ProcessFragment(Frag, reader);
       Result := Frag.FirstChild;
@@ -1116,13 +1128,12 @@ begin
   Result := Assigned(Source);
 end;
 
-procedure TXMLTextReader.Initialize(ASource: TXMLCharSource);
+procedure TXMLTextReader.SetSource(ASource: TXMLCharSource);
 begin
   ASource.FParent := FSource;
   FSource := ASource;
   FSource.FReader := Self;
   FSource.FStartNesting := FNesting;
-  FSource.Initialize;
 end;
 
 procedure TXMLTextReader.FatalError(Expected: WideChar);
@@ -1351,23 +1362,21 @@ begin
   FOnError := AValue.OnError;
 end;
 
-constructor TXMLTextReader.Create(ASrc: TXMLInputSource; ANameTable: THashTable; ASettings: TXMLReaderSettings);
+constructor TXMLTextReader.Create(ASrc: TXMLInputSource; ASettings: TXMLReaderSettings);
 var
   InputSrc: TXMLCharSource;
 begin
-  Create;
+  SetNametable(ASettings.NameTable);
   SetOptions(ASettings);
-  FNameTable := ANameTable;
   ConvertSource(ASrc, InputSrc);
   FSource := InputSrc;
   FSource.FReader := Self;
 end;
 
-constructor TXMLTextReader.Create(const uri: XMLString; ANameTable: THashTable; ASettings: TXMLReaderSettings);
+constructor TXMLTextReader.Create(const uri: XMLString; ASettings: TXMLReaderSettings);
 begin
-  Create;
+  SetNametable(ASettings.NameTable);
   SetOptions(ASettings);
-  FNameTable := ANameTable;
   if ResolveResource(uri, '', '', FSource) then
     FSource.FReader := Self
   else
@@ -1395,6 +1404,15 @@ end;
 constructor TXMLTextReader.Create(AStream: TStream; const ABaseUri: XMLString; ANameTable: THashTable);
 begin
   SetNametable(ANameTable);
+  FSource := TXMLStreamInputSource.Create(AStream, False);
+  FSource.SourceURI := ABaseUri;
+  FSource.FReader := Self;
+end;
+
+constructor TXMLTextReader.Create(AStream: TStream; const ABaseUri: XMLString; ASettings: TXMLReaderSettings); overload;
+begin
+  SetNametable(ASettings.NameTable);
+  SetOptions(ASettings);
   FSource := TXMLStreamInputSource.Create(AStream, False);
   FSource.SourceURI := ABaseUri;
   FSource.FReader := Self;
@@ -1934,7 +1952,10 @@ begin
   end;
   Result := Assigned(Src);
   if Result then
-    Initialize(Src);
+  begin
+    SetSource(Src);
+    Src.Initialize;
+  end;
 end;
 
 function TXMLTextReader.ContextPop(Forced: Boolean): Boolean;
@@ -2327,7 +2348,8 @@ begin
   begin
     if ResolveResource(FDocType.FSystemID, FDocType.FPublicID, FSource.SourceURI, Src) then
     begin
-      Initialize(Src);
+      SetSource(Src);
+      Src.Initialize;
       try
         Src.Kind := skManualPop;
         ParseMarkupDecl;
