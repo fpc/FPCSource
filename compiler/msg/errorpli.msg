@@ -4,7 +4,7 @@
 #
 #   Polish (ISO 8859-2) Language File for Free Pascal
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -2138,7 +2138,7 @@ Wspierane instrukcje FPU:
   $FPUINSTRUCTIONSETS
   
 Ten program jest oparty na GNU General Public Licence
-Przeczytaj COPYING.FPC aby dowiedzieæ siê wiêcej
+Przeczytaj COPYING.v2 aby dowiedzieæ siê wiêcej
 
 Zg³aszanie b³êdów, sugestii itp.
                  http://bugs.freepascal.org

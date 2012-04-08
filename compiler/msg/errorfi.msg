@@ -6,7 +6,7 @@
 #   Latest updates contributed by Rémi Dorlet <remi at dorlet.org>
 #   Based on errore.msg of SVN revision 4165
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -2270,7 +2270,7 @@ Jeu d'instructions CPU supportés: $INSTRUCTIONSETS
 Jeu d'instructions FPU supportés: $FPUINSTRUCTIONSETS
 Optimisations supportées: $OPTIMIZATIONS
 Ce programme est fourni sous la License Publique Générale GNU (GNU GPL).
-Pour plus d'informations, consultez le fichier COPYING.FPC.
+Pour plus d'informations, consultez le fichier COPYING.v2.
 Rapports de bogues, suggestions, etc. à:
     http://bugs.freepascal.org
 ]

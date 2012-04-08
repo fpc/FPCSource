@@ -6,7 +6,7 @@
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
 #   Based on errore.msg of SVN revision 8988
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -2429,7 +2429,7 @@ Free Pascal Compiler version $FPCVERSION
   $OPTIMIZATIONS
 
 התוכנה מוגשת תחת רישיון GNU General Public License
-למידע נוסף יש לקרוא את COPYING.FPC
+למידע נוסף יש לקרוא את COPYING.v2
 
 דיווח על תקלות (באגים), הצעות וכו':
                  http://bugs.freepascal.org

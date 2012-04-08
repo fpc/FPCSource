@@ -4,7 +4,7 @@
 #
 #   Spanish Language File for Free Pascal
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -2127,7 +2127,7 @@ Sets de instrucciones de la FPU soportados:
   $FPUINSTRUCTIONSETS
 
 Este programa esta bajo la licencia GNU General Public Licence
-Para mas informació lea COPYING.FPC
+Para mas informació lea COPYING.v2
 
 Para informar de errores, sugerencias, etc:
                  http://bugs.freepascal.org

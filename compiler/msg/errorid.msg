@@ -5,7 +5,7 @@
 #   Indonesian Language File for Free Pascal
 #   Contributed by Zaenal Mutaqin <ade999 at gmail.com>
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -2446,7 +2446,7 @@ Optimasi Didukung:
   $OPTIMIZATIONS
 
 Program ini datang bersama GNU General Public Licence
-Untuk informasi lebih jauh baca COPYING.FPC
+Untuk informasi lebih jauh baca COPYING.v2
 
 Laporkan bugs, saran, dll ke:
                  http://bugs.freepascal.org

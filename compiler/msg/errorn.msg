@@ -6,7 +6,7 @@
 #   Latest updates contributed by Matthijs Willemstein <matthijs at willemstein.net>
 #   Based on errore.msg of SVN revision 3982
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -2193,7 +2193,7 @@ Free Pascal Compiler versie $FPCVERSION
 Compiler datum:       $FPCDATE
 Compiler doelsysteem: $FPCTARGET
 Dit programma wordt verspreid onder de GNU General Public Licence
-Voor meer informatie, lees COPYING.FPC. Hiervan is helaas geen
+Voor meer informatie, lees COPYING.v2. Hiervan is helaas geen
 Nederlandse vertaling beschikbaar.
 
                 http://bugs.freepascal.org

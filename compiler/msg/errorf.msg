@@ -4,7 +4,7 @@
 #
 #   French (cp850) Language File for Free Pascal
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -1726,7 +1726,7 @@ Cible du compilateur : $FPCTARGET
 # the next lines are NOT translated on purpose !!!
 
 This program comes under the GNU General Public Licence
-For more information read COPYING.FPC
+For more information read COPYING.v2
 
 Report bugs,suggestions etc to:
                  http://bugs.freepascal.org

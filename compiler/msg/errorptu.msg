@@ -6,7 +6,7 @@
 #   Contributed by Marcelo B Paula, based on errore.msg SVN Rev.19883
 #   Former translator: Ari Ricardo Ody <ary.odi at japinfo.com.br>
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -3118,7 +3118,7 @@ Tipos Microcontroladores suportados:
   $CONTROLLERTYPES
 
 Este programa é oferecido sob a Licença Geral Pública GNU
-Para maiores informações leia COPYING.FPC
+Para maiores informações leia COPYING.v2
 
 Reportar falhas, sugestões, etc. para:
                  http://bugs.freepascal.org
