@@ -56,6 +56,8 @@ begin
         end;
     end;
 
+  GdbVerTarget:=TTarget(p.Targets.ItemByName('gdbver'));
+
   // When we're cross-compiling, running the gdbver executable to detect the
   // gdb-version is not possible, unless a i386-win32 to i386-go32v2 compilation
   // is performed.
@@ -64,12 +66,9 @@ begin
        or ((Defaults.CPU=i386) and (Defaults.OS=go32v2) and (HostOS=win32) and (HostCPU=i386))) then
     begin
       P.Options.Add('-Fl'+GdbLibDir);
-      GdbVerTarget:=p.Targets.AddProgram('src'+PathDelim+'gdbver.pp');
-      Installer.BuildEngine.ResolveFileNames(p,HostCPU,HostOS,false);
       Installer.BuildEngine.CreateOutputDir(p);
       Installer.BuildEngine.Log(vlCommand,'GDB-lib found, compiling and running gdbver to obtain GDB-version');
       Installer.BuildEngine.Compile(P,GdbVerTarget);
-      p.Targets.Delete(GdbVerTarget.Index);
       Installer.BuildEngine.ExecuteCommand(Installer.BuildEngine.AddPathPrefix(p,p.
         GetBinOutputDir(Defaults.CPU, Defaults.OS))+PathDelim+
         AddProgramExtension('gdbver',HostOS),'-o ' +
@@ -95,7 +94,10 @@ begin
     end
   else
     begin
-      // No suitable gdb found, use gdb_nogdb.inc
+      // No suitable gdb found
+      // No need to compile gdbver.
+      p.Targets.Delete(GdbVerTarget.Index);
+      // use gdb_nogdb.inc
       L := TStringList.Create;
       try
         if P.Directory<>'' then
@@ -155,6 +157,7 @@ begin
     P.BeforeCompileProc:=@BeforeCompile_gdbint;
     P.AfterCompileProc:=@AfterCompile_gdbint;
 
+    p.Targets.AddProgram('src'+PathDelim+'gdbver.pp');
     //
     // NOTE: the gdbver.inc dependancies gives warnings because the makefile.fpc
     // does a "cp src/gdbver_nogdb.inc src/gdbver.inc" to create it
