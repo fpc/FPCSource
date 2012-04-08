@@ -252,7 +252,7 @@ end;
 
 function TExtJSJSONArrayDataSet.CreateFieldMapper: TJSONFieldMapper;
 begin
-  Result:=TJSONObjectFieldMapper.Create;
+  Result:=TJSONArrayFieldMapper.Create;
 end;
 
 { TJSONObjectDataSet }
