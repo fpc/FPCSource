@@ -3054,9 +3054,9 @@ end;
 
 function VarEnsureRange(const AValue, AMin, AMax: Variant): Variant;
 begin
-  If Result>AMAx then
+  If AValue>AMAx then
     Result:=AMax
-  else If Result<AMin Then
+  else If AValue<AMin Then
     Result:=AMin
   else
     Result:=AValue;
