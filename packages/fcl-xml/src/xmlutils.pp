@@ -158,6 +158,7 @@ type
 
 { generic node info record, shared between DOM and reader }
 
+  PPNodeData = ^PNodeData;
   PNodeData = ^TNodeData;
   TNodeData = record
     FNext: PNodeData;
@@ -176,6 +177,10 @@ type
     FValueLength: Integer;
     FIsDefault: Boolean;
     FDenormalized: Boolean;        // Whether attribute value changes by normalization
+  end;
+
+  IGetNodeDataPtr = interface(IInterface)['{81F6ADA2-8F5E-41D7-872D-226163FF4E45}']
+    function CurrentNodePtr: PPNodeData;
   end;
 
 { TNSSupport provides tracking of prefix-uri pairs and namespace fixup for writer }

@@ -276,7 +276,7 @@ type
 
   TEntityEvent = procedure(Sender: TXMLTextReader; AEntity: TEntityDecl) of object;
 
-  TXMLTextReader = class(TXMLReader, IXmlLineInfo)
+  TXMLTextReader = class(TXMLReader, IXmlLineInfo, IGetNodeDataPtr)
   private
     FSource: TXMLCharSource;
     FNameTable: THashTable;
@@ -406,6 +406,7 @@ type
     function  GetHasLineInfo: Boolean;
     function  GetLineNumber: Integer;
     function  GetLinePosition: Integer;
+    function  CurrentNodePtr: PPNodeData;
   public
     function  Read: Boolean; override;
     function  MoveToFirstAttribute: Boolean; override;
@@ -473,13 +474,16 @@ type
     destructor Destroy; override;
     procedure AfterConstruction; override;
     property OnEntity: TEntityEvent read FOnEntity write FOnEntity;
+    { needed for TLoader }
+    property Standalone: Boolean read FStandalone write FStandalone;
+    property DtdSchemaInfo: TDTDModel read FDocType write FDocType;
   end;
 
   TLoader = object
     doc: TDOMDocument;
     reader: TXMLTextReader;
-    function DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
-    function CreatePINode: TDOMNode;
+    function CreateCDATANode(currnode: PNodeData): TDOMNode;
+    function CreatePINode(currnode: PNodeData): TDOMNode;
     procedure ParseContent(cursor: TDOMNode_WithChildren);
 
     procedure ProcessXML(ADoc: TDOMDocument; AReader: TXMLTextReader);
@@ -1329,7 +1333,7 @@ begin
     Inc(FSource.FBuf);
     if FSource.FBuf >= FSource.FBufEnd then
       FSource.Reload;
-  end;  
+  end;
 end;
 
 procedure TXMLTextReader.SkipQuote(out Delim: WideChar; required: Boolean);
@@ -1502,7 +1506,7 @@ begin
   reader.FState := rsProlog;
   reader.FFragmentMode := False;
   ParseContent(doc);
-  doc.XMLStandalone := reader.FStandalone;
+  doc.XMLStandalone := reader.Standalone;
 
   if reader.FValidate then
     reader.ValidateIdRefs;
@@ -1523,7 +1527,7 @@ begin
   reader.FXML11 := doc.XMLVersion = '1.1';
   DoctypeNode := TDOMDocumentTypeEx(doc.DocType);
   if Assigned(DoctypeNode) then
-    reader.FDocType := DocTypeNode.FModel.Reference;
+    reader.DtdSchemaInfo := DocTypeNode.FModel.Reference;
   ParseContent(aOwner as TDOMNode_WithChildren);
 end;
 
@@ -1559,7 +1563,10 @@ end;
 procedure TLoader.ParseContent(cursor: TDOMNode_WithChildren);
 var
   element: TDOMElement;
+  currnodeptr: PPNodeData;
+  currnode: PNodeData;
 begin
+  currnodeptr := (reader as IGetNodeDataPtr).CurrentNodePtr;
   if reader.ReadState = rsInitial then
   begin
     if not reader.Read then
@@ -1577,27 +1584,28 @@ begin
     if FValidate then
       ValidateCurrentNode;
 
-    case FCurrNode^.FNodeType of
+    currnode := currnodeptr^;
+    case currnode^.FNodeType of
       ntText:
-        cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, False));
+        cursor.InternalAppend(doc.CreateTextNodeBuf(currnode^.FValueStart, currnode^.FValueLength, False));
 
       ntWhitespace, ntSignificantWhitespace:
         if FPreserveWhitespace then
-          cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, FCurrNode^.FNodeType = ntWhitespace));
+          cursor.InternalAppend(doc.CreateTextNodeBuf(currnode^.FValueStart, currnode^.FValueLength, currnode^.FNodeType = ntWhitespace));
 
       ntCDATA:
-        cursor.InternalAppend(DoCDSect(FValue.Buffer, FValue.Length));
+        cursor.InternalAppend(CreateCDATANode(currnode));
 
       ntProcessingInstruction:
-        cursor.InternalAppend(CreatePINode);
+        cursor.InternalAppend(CreatePINode(currnode));
 
       ntComment:
         if not FIgnoreComments then
-          cursor.InternalAppend(doc.CreateCommentBuf(FCurrNode^.FValueStart, FCurrNode^.FValueLength));
+          cursor.InternalAppend(doc.CreateCommentBuf(currnode^.FValueStart, currnode^.FValueLength));
 
       ntElement:
         begin
-          element := LoadElement(doc, FCurrNode, reader.FAttrCount);
+          element := LoadElement(doc, currnode, reader.FAttrCount);
           cursor.InternalAppend(element);
           cursor := element;
         end;
@@ -1606,11 +1614,11 @@ begin
           cursor := TDOMNode_WithChildren(cursor.ParentNode);
 
       ntDocumentType:
-        cursor.InternalAppend(TDOMDocumentType.Create(doc, FDocType));
+        cursor.InternalAppend(TDOMDocumentType.Create(doc, DtdSchemaInfo));
 
       ntEntityReference:
         begin
-          cursor.InternalAppend(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
+          cursor.InternalAppend(doc.CreateEntityReference(currnode^.FQName^.Key));
           { Seeing an entity reference while expanding means that the entity
             fails to expand. }
           if not FExpandEntities then
@@ -1618,7 +1626,7 @@ begin
             { Make reader iterate through contents of the reference,
               to ensure correct validation events and character counts. }
             ResolveEntity;
-            while FCurrNode^.FNodeType <> ntEndEntity do
+            while currnodeptr^^.FNodeType <> ntEndEntity do
               Read;
           end;
         end;
@@ -1626,20 +1634,19 @@ begin
   until not Read;
 end;
 
-function TLoader.CreatePINode: TDOMNode;
+function TLoader.CreatePINode(currnode: PNodeData): TDOMNode;
 var
-  NameStr, ValueStr: DOMString;
+  s: DOMString;
 begin
-  SetString(NameStr, reader.FName.Buffer, reader.FName.Length);
-  SetString(ValueStr, reader.FValue.Buffer, reader.FValue.Length);
-  result := Doc.CreateProcessingInstruction(NameStr, ValueStr);
+  SetString(s, currnode^.FValueStart, currnode^.FValueLength);
+  result := Doc.CreateProcessingInstruction(currnode^.FQName^.Key, s);
 end;
 
-function TLoader.DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
+function TLoader.CreateCDATANode(currnode: PNodeData): TDOMNode;
 var
   s: XMLString;
 begin
-  SetString(s, ch, Count);
+  SetString(s, currnode^.FValueStart, currnode^.FValueLength);
   result := doc.CreateCDATASection(s);
 end;
 
@@ -1754,7 +1761,7 @@ begin
       else if (Length = 4) and (Buffer[1] = 'p') and (Buffer[2] = 'o') and
        (Buffer[3] = 's') then
         wc := ''''
-      else Exit;  
+      else Exit;
     end
     else if (Length = 4) and (Buffer[0] = 'q') and (Buffer[1] = 'u') and
       (Buffer[2] = 'o') and (Buffer[3] ='t') then
@@ -2905,9 +2912,9 @@ end;
 
 procedure TLoader.ProcessDTD(ADoc: TDOMDocument; AReader: TXMLTextReader);
 begin
-  AReader.FDocType := TDTDModel.Create(AReader.FNameTable);
+  AReader.DtdSchemaInfo := TDTDModel.Create(AReader.FNameTable);
   // TODO: DTD labeled version 1.1 will be rejected - must set FXML11 flag
-  doc.AppendChild(TDOMDocumentType.Create(doc, AReader.FDocType));
+  doc.AppendChild(TDOMDocumentType.Create(doc, AReader.DtdSchemaInfo));
   AReader.FSource.Initialize;
   AReader.ParseMarkupDecl;
 end;
@@ -3031,6 +3038,11 @@ begin
     result := FCurrNode^.FLoc.LinePos
   else
     result := FTokenStart.LinePos;
+end;
+
+function TXMLTextReader.CurrentNodePtr: PPNodeData;
+begin
+  result := @FCurrNode;
 end;
 
 function TXMLTextReader.LookupNamespace(const APrefix: XMLString): XMLString;
