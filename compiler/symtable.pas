@@ -810,7 +810,8 @@ implementation
            localvarsym,
            paravarsym :
              begin
-               if is_managed_type(tabstractvarsym(sym).vardef) then
+               if assigned(tabstractvarsym(sym).vardef) and
+                  is_managed_type(tabstractvarsym(sym).vardef) then
                  b_needs_init_final:=true;
              end;
          end;
