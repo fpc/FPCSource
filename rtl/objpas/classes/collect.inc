@@ -343,6 +343,8 @@ end;
 
 procedure TCollection.Clear;
 begin
+  if (FItems=Nil) or (FItems.Count=0) then
+    exit; // Prevent Changed
   BeginUpdate;
   try
     DoClear;
