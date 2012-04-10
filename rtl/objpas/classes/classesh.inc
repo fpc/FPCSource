@@ -487,6 +487,7 @@ type
     function GetPropName: string;
     procedure InsertItem(Item: TCollectionItem);
     procedure RemoveItem(Item: TCollectionItem);
+    procedure DoClear;
   protected
     { Design-time editor support }
     function GetAttrCount: Integer; dynamic;
