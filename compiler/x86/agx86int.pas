@@ -839,8 +839,7 @@ implementation
                  else
                    internalerror(200509192);
                end;
-               if assigned(tai_directive(hp).name) then
-                 AsmWrite(tai_directive(hp).name^);
+               AsmWrite(tai_directive(hp).name);
                AsmLn;
              end;
            ait_seh_directive :

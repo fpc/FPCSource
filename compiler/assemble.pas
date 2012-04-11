@@ -1155,9 +1155,9 @@ Implementation
                      ;
                    asd_lazy_reference:
                      begin
-                       if tai_directive(hp).name = nil then
+                       if tai_directive(hp).name='' then
                          Internalerror(2009112101);
-                       objsym:=ObjData.symbolref(tai_directive(hp).name^);
+                       objsym:=ObjData.symbolref(tai_directive(hp).name);
                        objsym.bind:=AB_LAZY;
                      end;
                    asd_reference:
@@ -1292,9 +1292,9 @@ Implementation
                begin
                  case tai_directive(hp).directive of
                    asd_indirect_symbol:
-                     if tai_directive(hp).name = nil then
+                     if tai_directive(hp).name='' then
                        Internalerror(2009101103)
-                     else if not SetIndirectToSymbol(Tai(hp.Previous), tai_directive(hp).name^) then
+                     else if not SetIndirectToSymbol(Tai(hp.Previous), tai_directive(hp).name) then
                        Internalerror(2009101102);
                    asd_lazy_reference:
                      { handled in TreePass0 }

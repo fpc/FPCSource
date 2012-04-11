@@ -963,13 +963,13 @@ interface
                  else
                    internalerror(200509191);
                end;
-               if assigned(tai_directive(hp).name) then
+               if tai_directive(hp).name<>'' then
                  begin
 
                    if SmartAsm then
-                     AddSymbol(tai_directive(hp).name^,false);
+                     AddSymbol(tai_directive(hp).name,false);
 
-                   AsmWrite(tai_directive(hp).name^);
+                   AsmWrite(tai_directive(hp).name);
                  end;
                AsmLn;
              end;
