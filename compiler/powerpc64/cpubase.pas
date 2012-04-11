@@ -366,11 +366,13 @@ const
   { offset in the linkage area for the saved stack pointer }
   LA_SP = 0;
   { offset in the linkage area for the saved conditional register}
-  LA_CR_ELF = 8;
+  LA_CR_SYSV = 8;
   { offset in the linkage area for the saved link register}
-  LA_LR_ELF = 16;
+  LA_LR_AIX = 16;
+  LA_LR_SYSV = 16;
   { offset in the linkage area for the saved RTOC register}
-  LA_RTOC_ELF = 40;
+  LA_RTOC_SYSV = 40;
+  LA_RTOC_AIX = 40;
 
   PARENT_FRAMEPOINTER_OFFSET = 24;
 

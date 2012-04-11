@@ -420,9 +420,39 @@ unit cgppc;
 
     { calling a procedure by address }
     procedure tcgppcgen.a_call_reg(list : TAsmList;reg: tregister);
+      var
+        tmpref: treference;
+        tmpreg: tregister;
       begin
+        if target_info.system in systems_aix then
+          begin
+            { load function address in R0, and swap "reg" for R0 }
+            reference_reset_base(tmpref,reg,0,sizeof(pint));
+            a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R0);
+            tmpreg:=reg;
+            { no need to allocate/free R0, is already allocated by call node
+              because it's a volatile register }
+            reg:=NR_R0;
+            { save current TOC }
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_AIX,sizeof(pint));
+            a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,tmpref);
+          end;
         list.concat(taicpu.op_reg(A_MTCTR,reg));
+        if target_info.system in systems_aix then
+          begin
+            { load target TOC and possible link register }
+            reference_reset_base(tmpref,tmpreg,sizeof(pint),sizeof(pint));
+            a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
+            tmpref.offset:=2*sizeof(pint);
+            a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R11);
+          end;
         list.concat(taicpu.op_none(A_BCTRL));
+        if target_info.system in systems_aix then
+          begin
+            { restore our TOC }
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_AIX,sizeof(pint));
+            a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
+          end;
         include(current_procinfo.flags,pi_do_call);
       end;
 

@@ -541,7 +541,7 @@ var
   tmpref: treference;
   tempreg : TRegister;
 begin
-  if (target_info.system = system_powerpc64_darwin) then
+  if (target_info.abi<>abi_powerpc_sysv) then
     inherited a_call_reg(list,reg)
   else if (not (cs_opt_size in current_settings.optimizerswitches)) then begin
     tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
@@ -551,7 +551,7 @@ begin
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, tempreg);
 
     { save TOC pointer in stackframe }
-    reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_ELF, 8);
+    reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_SYSV, 8);
     a_load_reg_ref(list, OS_ADDR, OS_ADDR, NR_RTOC, tmpref);
 
     { move actual function pointer to CTR register }
@@ -578,7 +578,7 @@ begin
   end;
 
   { we need to load the old RTOC from stackframe because we changed it}
-  reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_ELF, 8);
+  reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_SYSV, 8);
   a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
 
   include(current_procinfo.flags, pi_do_call);
@@ -1482,7 +1482,7 @@ var
 
     { we may need to store R0 (=LR) ourselves }
     if ((cs_profile in init_settings.moduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
-      reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF, 8);
+      reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8);
       list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
     end;
   end;
@@ -1620,7 +1620,7 @@ var
 
       { restore LR (if needed) }
       if (needslinkreg) then begin
-        reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF, 8);
+        reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8);
         list.concat(taicpu.op_reg_ref(A_LD, NR_R0, href));
         list.concat(taicpu.op_reg(A_MTLR, NR_R0));
       end;
