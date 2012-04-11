@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas iso7185 \
       unix initc cmem matrix dynlibs $(CPU_UNITS) \
       dos dl objects printer sockets \
       sysutils typinfo fgl classes math varutils types \
-      charset character ucomplex getopts heaptrc lineinfo lnfodwrf \
+      charset character ucomplex getopts heaptrc lineinfo lnfodwrf lnfogdb \
       errors ipc terminfo termio video crt mouse keyboard  \
       variants dateutils convutils stdconvs \
       sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd \
@@ -276,6 +276,8 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) $(INC)/exeinfo.pp
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) $(INC)/exeinfo.pp lineinfo$(PPUEXT)
+
+lnfogdb$(PPUEXT) : $(UNIXINC)/lnfogdb.pp $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 
