@@ -344,6 +344,8 @@ type
     function AllocNodeData(AIndex: Integer): PNodeData;
     function AllocAttributeData: PNodeData;
     procedure AllocAttributeValueChunk(var APrev: PNodeData; Offset: Integer);
+    procedure AddPseudoAttribute(aName: PHashItem; const aValue: XMLString;
+      const nameLoc, valueLoc: TLocation);
     procedure CleanupAttribute(aNode: PNodeData);
     procedure CleanupAttributes;
     procedure SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
@@ -422,6 +424,9 @@ type
     property  LineNumber: Integer read GetLineNumber;
     property  LinePosition: Integer read GetLinePosition;
   protected
+    function  GetXmlVersion: TXMLVersion;
+    function  GetXmlEncoding: XMLString;
+    function  GetNameTable: THashTable; override;
     function  GetDepth: Integer; override;
     function  GetNodeType: TXmlNodeType; override;
     function  GetName: XMLString; override;
@@ -441,7 +446,7 @@ type
     procedure StartPE;
     function  ParseRef(var ToFill: TWideCharBuf): Boolean;              // [67]
     function  ParseExternalID(out SysID, PubID: XMLString;              // [75]
-      SysIdOptional: Boolean): Boolean;
+      out PubIDLoc: TLocation; SysIdOptional: Boolean): Boolean;
 
     procedure CheckPENesting(aExpected: TObject);
     procedure ParseEntityDecl;
@@ -477,6 +482,8 @@ type
     { needed for TLoader }
     property Standalone: Boolean read FStandalone write FStandalone;
     property DtdSchemaInfo: TDTDModel read FDocType write FDocType;
+    property XMLVersion: TXMLVersion read GetXMLVersion;
+    property XMLEncoding: XMLString read GetXMLEncoding;
   end;
 
   TLoader = object
@@ -1573,9 +1580,9 @@ begin
       Exit;
     if cursor is TDOMNode_TopLevel then
     begin
-      if reader.FSource.FXMLVersion <> xmlVersionUnknown then
-        TDOMTopNodeEx(cursor).FXMLVersion := reader.FSource.FXMLVersion;
-      TDOMTopNodeEx(cursor).FXMLEncoding := reader.FSource.FXMLEncoding;
+      if reader.XMLVersion <> xmlVersionUnknown then
+        TDOMTopNodeEx(cursor).FXMLVersion := reader.XMLVersion;
+      TDOMTopNodeEx(cursor).FXMLEncoding := reader.XMLEncoding;
     end;
   end;
 
@@ -1605,7 +1612,7 @@ begin
 
       ntElement:
         begin
-          element := LoadElement(doc, currnode, reader.FAttrCount);
+          element := LoadElement(doc, currnode, reader.AttributeCount);
           cursor.InternalAppend(element);
           cursor := element;
         end;
@@ -2313,6 +2320,8 @@ procedure TXMLTextReader.ParseDoctypeDecl;    // [28]
 var
   Src: TXMLCharSource;
   DTDName: PHashItem;
+  Locs: array [0..2] of TLocation;
+  HasAtts: Boolean;
 begin
   if FState >= rsDTD then
     FatalError('Markup declaration is not allowed here');
@@ -2330,7 +2339,10 @@ begin
   SetString(FDocType.FName, FName.Buffer, FName.Length);
   DTDName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
   SkipS(True);
-  ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, False);
+  StoreLocation(Locs[0]);
+  HasAtts := ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, Locs[1], False);
+  if HasAtts then
+    Locs[2] := FTokenStart;
   SkipS;
 
   if CheckForChar('[') then
@@ -2374,6 +2386,12 @@ begin
   FValue.Length := 0;
   BufAppendString(FValue, FDocType.FInternalSubset);
   SetNodeInfoWithValue(ntDocumentType, DTDName);
+  if HasAtts then
+  begin
+    if FDocType.FPublicID <> '' then
+      AddPseudoAttribute(FNameTable.FindOrAdd('PUBLIC'), FDocType.FPublicID, Locs[0], Locs[1]);
+    AddPseudoAttribute(FNameTable.FindOrAdd('SYSTEM'), FDocType.FSystemID, Locs[0], Locs[2]);
+  end;
 end;
 
 procedure TXMLTextReader.ExpectEq;   // [25]
@@ -2546,6 +2564,7 @@ var
   Notation: TNotationDecl;
   Entry: PHashItem;
   Src: TXMLCharSource;
+  dummy: TLocation;
 begin
   Src := FSource;
   ExpectWhitespace;
@@ -2553,7 +2572,7 @@ begin
   CheckNCName;
   SetString(NameStr, FName.Buffer, FName.Length);
   ExpectWhitespace;
-  if not ParseExternalID(SysID, PubID, True) then
+  if not ParseExternalID(SysID, PubID, dummy, True) then
     FatalError('Expected external or public ID');
   if FDTDProcessed then
   begin
@@ -2726,6 +2745,7 @@ var
   Map: THashTable;
   Item: PHashItem;
   Src: TXMLCharSource;
+  dummy: TLocation;
 begin
   Src := FSource;
   if not SkipWhitespace(True) then
@@ -2765,7 +2785,7 @@ begin
     end
     else
     begin
-      if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, False) then
+      if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, dummy, False) then
         FatalError('Expected entity value or external ID');
 
       if not IsPE then                // [76]
@@ -2912,7 +2932,7 @@ end;
 
 procedure TLoader.ProcessDTD(ADoc: TDOMDocument; AReader: TXMLTextReader);
 begin
-  AReader.DtdSchemaInfo := TDTDModel.Create(AReader.FNameTable);
+  AReader.DtdSchemaInfo := TDTDModel.Create(AReader.NameTable);
   // TODO: DTD labeled version 1.1 will be rejected - must set FXML11 flag
   doc.AppendChild(TDOMDocumentType.Create(doc, AReader.DtdSchemaInfo));
   AReader.FSource.Initialize;
@@ -2994,6 +3014,11 @@ begin
     Inc(result);
 end;
 
+function TXMLTextReader.GetNameTable: THashTable;
+begin
+  result := FNameTable;
+end;
+
 function TXMLTextReader.GetNodeType: TXmlNodeType;
 begin
   result := FCurrNode^.FNodeType;
@@ -3015,6 +3040,16 @@ end;
 function TXMLTextReader.GetBaseUri: XMLString;
 begin
   result := FSource.SourceURI;
+end;
+
+function TXMLTextReader.GetXmlVersion: TXMLVersion;
+begin
+  result := FSource.FXMLVersion;
+end;
+
+function TXMLTextReader.GetXmlEncoding: XMLString;
+begin
+  result := FSource.FXMLEncoding;
 end;
 
 { IXmlLineInfo methods }
@@ -4097,7 +4132,7 @@ begin
 end;
 
 function TXMLTextReader.ParseExternalID(out SysID, PubID: XMLString;     // [75]
-  SysIdOptional: Boolean): Boolean;
+  out PubIDLoc: TLocation; SysIdOptional: Boolean): Boolean;
 var
   I: Integer;
   wc: WideChar;
@@ -4109,6 +4144,7 @@ begin
   begin
     ExpectWhitespace;
     ParseLiteral(FValue, ltPubid, True);
+    PubIDLoc := FTokenStart;
     SetString(PubID, FValue.Buffer, FValue.Length);
     for I := 1 to Length(PubID) do
     begin
@@ -4201,6 +4237,19 @@ begin
   Result^.FNodeType := ntAttribute;
   Result^.FIsDefault := False;
   Inc(FAttrCount);
+end;
+
+procedure TXMLTextReader.AddPseudoAttribute(aName: PHashItem; const aValue: XMLString;
+  const nameLoc, valueLoc: TLocation);
+begin
+  with AllocAttributeData^ do
+  begin
+    FQName := aName;
+    FColonPos := -1;
+    FValueStr := aValue;
+    FLoc := nameLoc;
+    FLoc2 := valueLoc;
+  end;
 end;
 
 function TXMLTextReader.AllocNodeData(AIndex: Integer): PNodeData;

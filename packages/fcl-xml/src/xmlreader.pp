@@ -42,6 +42,7 @@ type
     FReadStringBuf: TWideCharBuf;
   protected
     function GetEOF: Boolean; virtual;
+    function GetNameTable: THashTable; virtual; abstract;
     function GetDepth: Integer; virtual; abstract;
     function GetNodeType: TXMLNodeType; virtual; abstract;
     function GetValue: XMLString; virtual; abstract;
@@ -78,6 +79,7 @@ type
     function GetAttribute(const Name: XMLString): XMLString; virtual; abstract;
     function GetAttribute(const localName, nsUri: XMLString): XMLString; virtual; abstract;
 
+    property NameTable: THashTable read GetNameTable;
     property nodeType: TXMLNodeType read GetNodeType;
     property ReadState: TXMLReadState read FReadState;
     property Depth: Integer read GetDepth;
