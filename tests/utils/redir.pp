@@ -50,6 +50,9 @@ Interface
 {$ifdef sunos}
 {$define implemented}
 {$endif}
+{$ifdef aix}
+{$define implemented}
+{$endif}
 
 Var
   IOStatus                   : Integer;

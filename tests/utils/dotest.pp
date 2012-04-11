@@ -609,7 +609,8 @@ begin
     (LTarget='haiku') or
     (LTarget='solaris') or
     (LTarget='iphonesim') or
-    (LTarget='darwin');
+    (LTarget='darwin') or
+    (LTarget='aix');
 
   { Set ExeExt for CompilerTarget.
     This list has been set up 2011-06 using the information in
@@ -856,12 +857,14 @@ begin
       { Add runtime library path to current dir to find .so files }
       if Config.NeedLibrary then
         begin
-          if CompilerTarget<>'darwin' then
+          if CompilerTarget='darwin' then
+            args:=args+' -Fl'+TestOutputDir
+	  else if CompilerTarget='aix' then
+	    args:=args+' -blibpath:'+TestOutputDir
+	  else
           { do not use single quote for -k as they are mishandled on
             Windows Shells }
             args:=args+' -Fl'+TestOutputDir+' -k-rpath -k.'
-          else
-            args:=args+' -Fl'+TestOutputDir;
         end;
     end;
   if Config.NeedOptions<>'' then
