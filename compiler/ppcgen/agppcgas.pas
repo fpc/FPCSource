@@ -54,9 +54,11 @@ unit agppcgas;
 
     TPPCAIXAssembler=class(TPPCGNUAssembler)
       constructor create(smart: boolean); override;
+     protected
+      function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
       procedure WriteExtraHeader; override;
       procedure WriteExtraFooter; override;
-      function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
+      procedure WriteDirectiveName(dir: TAsmDirective); override;
     end;
 
     topstr = string[4];
@@ -490,6 +492,20 @@ unit agppcgas;
 {$else cpu64bitaddr}
         AsmWrite(#9'.long _section_.text')
 {$endif cpu64bitaddr}
+      end;
+
+
+    procedure TPPCAIXAssembler.WriteDirectiveName(dir: TAsmDirective);
+      begin
+        case dir of
+          asd_reference:
+            AsmWrite('.ref ');
+          asd_weak_reference,
+          asd_weak_definition:
+            AsmWrite('.weak ');
+          else
+            inherited WriteDirectiveName(dir);
+        end;
       end;
 
 

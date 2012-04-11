@@ -54,6 +54,7 @@ interface
         procedure WriteWeakSymbolDef(s: tasmsymbol); virtual;
         procedure WriteAixStringConst(hp: tai_string);
         procedure WriteAixIntConst(hp: tai_const);
+        procedure WriteDirectiveName(dir: TAsmDirective); virtual;
        public
         function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
@@ -1317,7 +1318,7 @@ implementation
 
            ait_directive :
              begin
-               AsmWrite('.'+directivestr[tai_directive(hp).directive]+' ');
+               WriteDirectiveName(tai_directive(hp).directive);
                if tai_directive(hp).name <>'' then
                  AsmWrite(tai_directive(hp).name);
                AsmLn;
@@ -1493,6 +1494,12 @@ implementation
             internalerror(2012010402);
         end;
       end;
+
+
+    procedure TGNUAssembler.WriteDirectiveName(dir: TAsmDirective);
+    begin
+      AsmWrite('.'+directivestr[dir]+' ');
+    end;
 
 
     procedure TGNUAssembler.WriteAsmList;
