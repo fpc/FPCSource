@@ -9,10 +9,10 @@ procedure add_fcl_db;
 
 const
   ParadoxOSes         = [beos,haiku,linux,freebsd,netbsd,openbsd,win32];
-  DatadictOSes        = [beos,haiku,linux,freebsd,win32,win64,wince,darwin];
-  SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd];
-  SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,wince];
-  DBaseOSes           = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,win64,wince];
+  DatadictOSes        = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,aix];
+  SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd,aix];
+  SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,wince,aix];
+  DBaseOSes           = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,win64,wince,aix];
   MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,win32,win64];
   SqldbWithoutPostgresOSes = [win64];
 

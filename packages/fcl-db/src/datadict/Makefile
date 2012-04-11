@@ -409,7 +409,7 @@ ifeq ($(FULL_TARGET),powerpc-wii)
 override TARGET_UNITS+=fpdatadict fpdddiff fpdddbf fpddsqldb
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_UNITS+=fpdatadict fpdddiff fpdddbf fpddsqldb
+override TARGET_UNITS+=fpdatadict fpdddiff fpdddbf fpddsqldb  fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 override TARGET_UNITS+=fpdatadict fpdddiff fpdddbf fpddsqldb  fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
@@ -478,7 +478,7 @@ ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_UNITS+=fpdatadict fpdddiff fpdddbf fpddsqldb
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_UNITS+=fpdatadict fpdddiff fpdddbf fpddsqldb
+override TARGET_UNITS+=fpdatadict fpdddiff fpdddbf fpddsqldb  fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 override TARGET_UNITS+=fpdatadict fpdddiff fpdddbf fpddsqldb
@@ -610,7 +610,7 @@ ifeq ($(FULL_TARGET),powerpc-wii)
 override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpdddiff
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpdddiff
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpdddiff  fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpdddiff  fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
@@ -679,7 +679,7 @@ ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpdddiff
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpdddiff
+override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpdddiff  fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 override TARGET_RSTS+=fpdatadict fpddfb fpddsqldb fpdddiff
@@ -1937,6 +1937,12 @@ REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_POSTGRES=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2212,6 +2218,12 @@ REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_FPMKUNIT=1
 REQUIRE_PACKAGES_FCL-BASE=1
 REQUIRE_PACKAGES_FCL-XML=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_POSTGRES=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 REQUIRE_PACKAGES_RTL=1
