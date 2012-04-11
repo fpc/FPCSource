@@ -129,8 +129,12 @@ const
   unicode_encoding2 = 'UTF-16LE';
   unicode_encoding4 = 'UCS-4LE';
 {$else  FPC_LITTLE_ENDIAN}
+{$ifdef AIX}
+  unicode_encoding2 = 'UTF-16';
+{$else AIX}
   unicode_encoding2 = 'UTF-16BE';
   unicode_encoding4 = 'UCS-4BE';
+{$endif AIX}
 {$endif  FPC_LITTLE_ENDIAN}
 
 { en_US.UTF-8 needs maximally 6 chars, UCS-4/UTF-32 needs 4   }
@@ -193,19 +197,24 @@ threadvar
   current_DefaultSystemCodePage: TSystemCodePage;
 
 
-  function win2iconv(cp: word): rawbytestring; forward;
-
+{$i winiconv.inc}
 
 procedure InitThread;
 var
   transliterate: cint;
+  iconvindex: longint;
 {$if not(defined(darwin) and defined(cpuarm)) and not defined(iphonesim)}
   iconvname: rawbytestring;
 {$endif}
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
 {$if not(defined(darwin) and defined(cpuarm)) and not defined(iphonesim)}
-  iconvname:=win2iconv(DefaultSystemCodePage);
+  iconvindex:=win2iconv(DefaultSystemCodePage);
+  if iconvindex<>-1 then
+    iconvname:=win2iconv_arr[iconvindex].name
+  else
+    { default to UTF-8 on Unix platforms }
+    iconvname:='UTF-8';
   iconv_wide2ansi:=iconv_open(pchar(iconvname),unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,pchar(iconvname));
 {$else}
@@ -231,9 +240,6 @@ begin
 end;
 
 
-{$i winiconv.inc}
-
-
 {$if defined(beos) and not defined(haiku)}
 function nl_langinfo(__item:nl_item):pchar;
 begin
@@ -250,6 +256,37 @@ begin
 end;
 {$endif}
 
+
+function open_iconv_for_cps(cp: TSystemCodePage; const otherencoding: pchar; cp_is_from: boolean): iconv_t;
+  var
+    iconvindex: longint;
+  begin
+    { TODO: add caching (then we also don't need separate code for
+      the default system page and other ones)
+
+      -- typecasting an ansistring function result to pchar is
+        unsafe normally, but these are constant strings -> no
+        problem }
+    open_iconv_for_cps:=iconv_t(-1);
+    iconvindex:=win2iconv(cp);
+    if iconvindex=-1 then
+      exit;
+    repeat
+      if cp_is_from then
+        open_iconv_for_cps:=iconv_open(otherencoding,pchar(win2iconv_arr[iconvindex].name))
+      else
+        open_iconv_for_cps:=iconv_open(pchar(win2iconv_arr[iconvindex].name),otherencoding);
+      inc(iconvindex);
+    until (open_iconv_for_cps<>iconv_t(-1)) or
+          (iconvindex>high(win2iconv_arr)) or
+          (win2iconv_arr[iconvindex].cp<>cp);
+  end;
+
+
+{$ifdef aix}
+{$i cwstraix.inc}
+{$endif aix}
+
 procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCodePage; len:SizeInt);
   var
     outlength,
@@ -261,10 +298,23 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
     destpos: pchar;
     mynil : pchar;
     my0 : size_t;
-    err,
+    err : longint;
     transliterate: cint;
     free_iconv: boolean;
+{$ifdef aix}
+    intermediate: rawbytestring;
+{$endif aix}
   begin
+{$ifdef aix}
+    { AIX libiconv does not support converting cp866 to anything else except
+      for iso-8859-5 -> always first convert to iso-8859-5, then to UTF-16 }
+    if cp=866 then
+      begin
+        Wide2AnsiMove(source,intermediate,28595,len);
+        if handle_aix_intermediate(pchar(intermediate),28595,cp,dest,len) then
+          exit;
+      end;
+{$endif aix}
     if (cp=DefaultSystemCodePage) then
       begin
         { update iconv converter in case the DefaultSystemCodePage has been
@@ -279,14 +329,9 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
       end
     else
       begin
-        { TODO: add caching (then we also don't need separate code for
-          the default system page and other ones)
-
-          -- typecasting an ansistring function result to pchar is
-            unsafe normally, but these are constant strings -> no
-            problem }
-        use_iconv:=iconv_open(pchar(win2iconv(cp)),unicode_encoding2);
-        if assigned(iconvctl) then
+        use_iconv:=open_iconv_for_cps(cp,unicode_encoding2,false);
+        if (use_iconv<>iconv_t(-1)) and
+           assigned(iconvctl) then
         begin
           transliterate:=1;
           iconvctl(use_iconv,ICONV_SET_TRANSLITERATE,@transliterate);
@@ -361,8 +406,21 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
     mynil : pchar;
     my0 : size_t;
     err: cint;
+    iconvindex: longint;
     free_iconv: boolean;
+{$ifdef aix}
+    intermediate: rawbytestring;
+{$endif aix}
   begin
+{$ifdef aix}
+    { AIX libiconv does not support converting cp866 to anything else except
+      for iso-8859-5 -> always first convert to iso-8859-5, then to UTF-16 }
+    if cp=866 then
+      begin
+        if handle_aix_intermediate(source,cp,cp,intermediate,len) then
+          source:=pchar(intermediate);
+      end;
+{$endif aix}
     if (cp=DefaultSystemCodePage) then
       begin
         { update iconv converter in case the DefaultSystemCodePage has been
@@ -383,7 +441,7 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
           -- typecasting an ansistring function result to pchar is
             unsafe normally, but these are constant strings -> no
             problem }
-        use_iconv:=iconv_open(unicode_encoding2,pchar(win2iconv(cp)));
+        use_iconv:=open_iconv_for_cps(cp,unicode_encoding2,true);
         free_iconv:=true;
       end;
     { unsupported encoding -> default move }
@@ -682,6 +740,7 @@ function WideStringToUCS4StringNoNulls(const s : WideString) : UCS4String;
 
 
 function CompareWideString(const s1, s2 : WideString) : PtrInt;
+{$if not(defined (aix) and defined(cpupowerpc32))}
   var
     hs1,hs2 : UCS4String;
   begin
@@ -690,6 +749,32 @@ function CompareWideString(const s1, s2 : WideString) : PtrInt;
     hs2:=WideStringToUCS4StringNoNulls(s2);
     result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
   end;
+{$else}
+  { AIX/PPC32 has a 16 bit wchar_t }
+  var
+    i, len: longint;
+    hs1, hs2: array of widechar;
+  begin
+    len:=length(s1);
+    setlength(hs1,len+1);
+    for i:=1 to len do
+      if s1[i]<>#0 then
+        hs1[i-1]:=s1[i]
+      else
+        hs1[i-1]:=#32;
+    hs1[len]:=#0;
+
+    len:=length(s2);
+    setlength(hs2,len+1);
+    for i:=1 to len do
+      if s2[i]<>#0 then
+        hs2[i-1]:=s2[i]
+      else
+        hs2[i-1]:=#32;
+    hs2[len]:=#0;
+    result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
+  end;
+{$endif}
 
 
 function CompareTextWideString(const s1, s2 : WideString): PtrInt;
@@ -728,7 +813,6 @@ function CharLengthPChar(const Str: PChar): PtrInt;
 
 function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
   var
-    nextlen: ptrint;
 {$ifndef beos}
     mbstate: mbstate_t;
 {$endif not beos}

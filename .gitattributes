@@ -8350,6 +8350,7 @@ rtl/unix/convert.inc svneol=native#text/plain
 rtl/unix/crt.pp svneol=native#text/plain
 rtl/unix/cthreads.pp svneol=native#text/plain
 rtl/unix/ctypes.inc svneol=native#text/plain
+rtl/unix/cwstraix.inc svneol=native#text/plain
 rtl/unix/cwstring.pp svneol=native#text/plain
 rtl/unix/dl.pp svneol=native#text/plain
 rtl/unix/dos.pp svneol=native#text/plain
