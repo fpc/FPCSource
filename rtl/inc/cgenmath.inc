@@ -97,7 +97,7 @@
 
 {$else SUPPORT_DOUBLE}
 
-    function c_truncf(d: double): double; cdecl; external 'c' name 'truncf';
+    function c_truncf(d: single): double; cdecl; external 'c' name 'truncf';
 
     function fpc_int_real(d: ValReal): ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
       begin
