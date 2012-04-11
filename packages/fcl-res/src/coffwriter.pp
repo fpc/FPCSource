@@ -24,6 +24,18 @@ uses
 
 type
 
+  { TCoffStringTable }
+
+  TCoffStringTable = class(TStringList)
+   private
+    fSize: ptruint;
+   public
+    constructor Create;
+    function Add(const S: string): Integer; override;
+    procedure Delete(Index: Integer); override;
+    property Size: ptruint read fSize;
+  end;
+
   { TResourceStringTable }
 
   TResourceStringTable = class
@@ -58,19 +70,22 @@ type
 
   TCoffRelocations = class
   private
+    fMachineType: TCoffMachineType;
     fList : TFPList;
     fStartAddress : longword;
   protected
     function GetCount : integer;
     function GetRelocation(index : integer) : PCoffRelocation;
   public
-    constructor Create;
+    constructor Create(aMachineType: TCoffMachineType);
     destructor Destroy; override;
-    procedure Add(aAddress : longword; aType : word);
+    procedure Add(aAddress : longword; aType : word; aSymTableIndex: longword);
+    procedure AddRelativeToSection(aAddress : longword; aSectSymTableIndex: longword);
     procedure Clear;
     property Count : integer read GetCount;
     property Items[index : integer] : PCoffRelocation read GetRelocation; default;
     property StartAddress : longword read fStartAddress write fStartAddress;
+    property MachineType : TCoffMachineType read fMachineType write fMachineType;
   end;
 
   { TCoffResourceWriter }
@@ -79,47 +94,77 @@ type
   private
     fExtensions : string;
     fDescription : string;
-    fRoot : TRootResTreeNode;
     fResStringTable : TResourceStringTable;
-    fResDataEntryCurrentRVA : longword;
-    fRelocations : TCoffRelocations;
-    fSymTablePtr : longword;
     fMachineType : TCoffMachineType;
+    procedure SetDefaultTarget;
     procedure AlignDword(aStream : TStream);
     function NextAlignedDword(aValue : longword) : longword;
     procedure SetNodeStringRVA(aNode : TResourceTreeNode);
-    function PrescanNode(aNode : TResourceTreeNode) : longword;
-    procedure PrescanResourceTree;
-    procedure WriteEmptyCoffHeader(aStream : TStream);
-    procedure WriteEmptySectionHeader(aStream : TStream);
     procedure WriteResDirTables(aStream : TStream);
     procedure WriteNodeTables(aStream : TStream; aNode : TResourceTreeNode);
     procedure WriteNodeDirEntry(aStream : TStream; aNode : TResourceTreeNode);
-    procedure WriteResStringTable(aStream : TStream);
     procedure WriteResString(aStream : TStream; TheString : string);
     procedure WriteResDataEntries(aStream : TStream);
     procedure WriteResDataEntry(aStream : TStream; aNode : TResourceTreeNode);
-    procedure WriteRawData(aStream : TStream);
     procedure WriteNodeRawData(aStream : TStream; aNode : TResourceTreeNode);
-    procedure WriteRelocations(aStream : TStream);
     procedure WriteRelocation(aStream : TStream; aRelocation : PCoffRelocation);
-    procedure WriteSymbolTable(aStream : TStream);
-    procedure WriteEmptyCoffStringTable(aStream : TStream);
-    procedure FixCoffHeader(aStream : TStream);
-    procedure FixSectionHeader(aStream : TStream);
+    procedure SetMachineType(AValue: TCoffMachineType);
   protected
+    fRoot : TRootResTreeNode;
+    fRelocations : TCoffRelocations;
+    fResDataSectionSymIdx,
+    fResHandlesSectionSymIdx : word;
+    fResDataEntryCurrentRVA : longword;
+    fSymTablePtr : longword;
+    fStringTable: TCoffStringTable;
+    fNumSymtableEntries: longword;
+    fSymStorageClass: byte;
+    fOppositeEndianess : boolean;
+    procedure WriteEmptyCoffHeader(aStream : TStream);
+    procedure WriteEmptySectionHeader(aStream : TStream); virtual;
+    procedure WriteResStringTable(aStream : TStream); virtual;
+    procedure WriteRawData(aStream : TStream);
+    procedure WriteRelocations(aStream : TStream);
+    procedure WriteCoffStringTable(aStream : TStream);
+    function GetFixedCoffHeader:TCoffHeader; virtual;
+    procedure FixCoffHeader(aStream : TStream);
+    procedure FixSectionHeader(aStream : TStream; aResources : TResources); virtual;
     function GetExtensions : string; override;
     function GetDescription : string; override;
+    function PrescanNode(aNode : TResourceTreeNode; aNodeSize : longword) : longword; virtual;
+    procedure PrescanResourceTree; virtual;
     procedure Write(aResources : TResources; aStream : TStream); override;
+    procedure WriteSymbolTable(aStream : TStream; aResources : TResources); virtual;
   public
     constructor Create; override;
     destructor Destroy; override;
-    property MachineType : TCoffMachineType read fMachineType write fMachineType;
+    property MachineType : TCoffMachineType read fMachineType write SetMachineType;
+    property OppositeEndianess : boolean read fOppositeEndianess write fOppositeEndianess;
   end;
 
 implementation
 
 uses coffconsts;
+
+{ TCoffStringTable }
+
+constructor TCoffStringTable.Create;
+  begin
+    fSize:=4;
+    Duplicates:=dupIgnore;
+  end;
+
+function TCoffStringTable.Add(const S: string): Integer;
+  begin
+    Result:=inherited Add(S);
+    inc(fSize,length(S)+1);
+  end;
+
+procedure TCoffStringTable.Delete(Index: Integer);
+begin
+  dec(fSize,length(Get(Index))+1);
+  inherited Delete(Index);
+end;
 
 (* Utility function to calculate the timestamp *)
 (*
@@ -135,6 +180,30 @@ end;
 *)
 
 { TCoffResourceWriter }
+
+procedure TCoffResourceWriter.SetDefaultTarget;
+begin
+  fMachineType:=cmti386; //default
+  fSymStorageClass:=IMAGE_SYM_CLASS_STATIC;
+  {$IFDEF CPUX86_64}
+  fMachineType:=cmtx8664;
+  fSymStorageClass:=IMAGE_SYM_CLASS_STATIC;
+  {$ENDIF}
+  {$IFDEF CPUARM}
+  fMachineType:=cmtarm;
+  fSymStorageClass:=IMAGE_SYM_CLASS_STATIC;
+  {$ENDIF}
+  {$IFDEF CPUPOWERPC32}
+  fMachineType:=cmtppc32aix;
+  fSymStorageClass:=IMAGE_SYM_CLASS_HIDEXT;
+  {$ENDIF}
+  {$IFDEF CPUPOWERPC64}
+  fMachineType:=cmtppc64aix;
+  fSymStorageClass:=IMAGE_SYM_CLASS_HIDEXT;
+  {$ENDIF}
+
+  fOppositeEndianess:=false;
+end;
 
 procedure TCoffResourceWriter.AlignDword(aStream: TStream);
 var topad : integer;
@@ -177,14 +246,15 @@ begin
   table.VerMinor:=0;
   table.NamedEntriesCount:=aNode.NamedCount;
   table.IDEntriesCount:=aNode.IDCount;
-  {$IFDEF ENDIAN_BIG}
-  table.Characteristics:=SwapEndian(table.Characteristics);
-  table.TimeStamp:=SwapEndian(table.TimeStamp);
-  table.VerMajor:=SwapEndian(table.VerMajor);
-  table.VerMinor:=SwapEndian(table.VerMinor);
-  table.NamedEntriesCount:=SwapEndian(table.NamedEntriesCount);
-  table.IDEntriesCount:=SwapEndian(table.IDEntriesCount);
-  {$ENDIF}
+  if OppositeEndianess then
+    begin
+      table.Characteristics:=SwapEndian(table.Characteristics);
+      table.TimeStamp:=SwapEndian(table.TimeStamp);
+      table.VerMajor:=SwapEndian(table.VerMajor);
+      table.VerMinor:=SwapEndian(table.VerMinor);
+      table.NamedEntriesCount:=SwapEndian(table.NamedEntriesCount);
+      table.IDEntriesCount:=SwapEndian(table.IDEntriesCount);
+    end;
   aStream.WriteBuffer(table,sizeof(Table));
 
   for i:=0 to aNode.NamedCount-1 do
@@ -211,19 +281,15 @@ begin
   begin
     entry.DataSubDirRVA:=fResDataEntryCurrentRVA;
     inc(fResDataEntryCurrentRVA,sizeof(TResDataEntry));
-    case fMachineType of
-      cmti386  : reloctype:=IMAGE_REL_I386_DIR32NB;
-      cmtarm   : reloctype:=IMAGE_REL_ARM_ADDR32NB;
-      cmtx8664 : reloctype:=IMAGE_REL_AMD64_ADDR32NB;
-    end;
-    fRelocations.Add(entry.DataSubDirRVA,reloctype);
+    fRelocations.AddRelativeToSection(entry.DataSubDirRVA,fResDataSectionSymIdx);
   end
   else entry.DataSubDirRVA:=aNode.SubDirRVA or $80000000;
 
-  {$IFDEF ENDIAN_BIG}
-  entry.NameID:=SwapEndian(entry.NameID);
-  entry.DataSubDirRVA:=SwapEndian(entry.DataSubDirRVA);
-  {$ENDIF}
+  if OppositeEndianess then
+    begin
+      entry.NameID:=SwapEndian(entry.NameID);
+      entry.DataSubDirRVA:=SwapEndian(entry.DataSubDirRVA);
+    end;
   aStream.WriteBuffer(entry,sizeof(entry));
 end;
 
@@ -250,17 +316,15 @@ var ws : widestring;
     i : integer;
 begin
   w:=length(thestring);
-  {$IFDEF ENDIAN_BIG}
-  w:=SwapEndian(w);
-  {$ENDIF}
+  if OppositeEndianess then
+    w:=SwapEndian(w);
   aStream.WriteBuffer(w,2);
   ws:=TheString;
   for i:=1 to length(ws) do
   begin
     w:=word(ws[i]);
-    {$IFDEF ENDIAN_BIG}
-    w:=SwapEndian(w);
-    {$ENDIF}
+    if OppositeEndianess then
+      w:=SwapEndian(w);
     aStream.WriteBuffer(w,2);
   end;
 end;
@@ -286,12 +350,13 @@ begin
     entry.Reserved:=0;
     inc(fResDataEntryCurrentRVA,entry.Size);
     fResDataEntryCurrentRVA:=NextAlignedDword(fResDataEntryCurrentRVA);
-    {$IFDEF ENDIAN_BIG}
-    entry.DataRVA:=SwapEndian(entry.DataRVA);
-    entry.Size:=SwapEndian(entry.Size);
-    entry.Codepage:=SwapEndian(entry.Codepage);
-    entry.Reserved:=SwapEndian(entry.Reserved);
-    {$ENDIF}
+    if OppositeEndianess then
+      begin
+        entry.DataRVA:=SwapEndian(entry.DataRVA);
+        entry.Size:=SwapEndian(entry.Size);
+        entry.Codepage:=SwapEndian(entry.Codepage);
+        entry.Reserved:=SwapEndian(entry.Reserved);
+      end;
     aStream.WriteBuffer(entry,sizeof(entry));
   end;
   for i:=0 to aNode.NamedCount-1 do
@@ -336,42 +401,65 @@ procedure TCoffResourceWriter.WriteRelocation(aStream: TStream;
 var r : TCoffRelocation;
 begin
   r:=aRelocation^;
-  {$IFDEF ENDIAN_BIG}
-  r.VirtualAddress:=SwapEndian(r.VirtualAddress);
-  r.SymTableIndex:=SwapEndian(r.SymTableIndex);
-  r._type:=SwapEndian(r._type);;
-  {$ENDIF}
+  if OppositeEndianess then
+    begin
+      r.VirtualAddress:=SwapEndian(r.VirtualAddress);
+      r.SymTableIndex:=SwapEndian(r.SymTableIndex);
+      r._type:=SwapEndian(r._type);
+    end;
   aStream.WriteBuffer(r,sizeof(r));
 end;
 
-procedure TCoffResourceWriter.WriteSymbolTable(aStream: TStream);
-var st : TCoffSectionTable;
+procedure TCoffResourceWriter.WriteSymbolTable(aStream: TStream; aResources : TResources);
+var
+  st : TCoffSectionTable;
+  aux : TXCoffAuxSymbol32;
+  offs : dword;
 begin
   fSymTablePtr:=aStream.Position;
   st.Name:=RSRCSectName;
   st.Value:=0;
   st.SectionNumber:=1;
   st._type:=0;
-  st.StorageClass:=IMAGE_SYM_CLASS_STATIC;
-  st.NumAuxSymbol:=0;
-  {$IFDEF ENDIAN_BIG}
-  st.Value:=SwapEndian(st.Value);
-  st.SectionNumber:=SwapEndian(st.SectionNumber);
-  st._type:=SwapEndian(st._type);
-  st.StorageClass:=SwapEndian(st.StorageClass);
-  st.NumAuxSymbol:=SwapEndian(st.NumAuxSymbol);
-  {$ENDIF}
+  st.StorageClass:=fSymStorageClass;
+  if OppositeEndianess then
+    begin
+      st.Value:=SwapEndian(st.Value);
+      st.SectionNumber:=SwapEndian(st.SectionNumber);
+      st._type:=SwapEndian(st._type);
+    end;
   aStream.WriteBuffer(st,sizeof(st));
+  inc(fNumSymtableEntries);
 end;
 
-procedure TCoffResourceWriter.WriteEmptyCoffStringTable(aStream : TStream);
-var lw : longword;
+procedure TCoffResourceWriter.WriteCoffStringTable(aStream : TStream);
+var
+  lw : longword;
+  i : longint;
 begin
-  lw:=4;
-  {$IFDEF ENDIAN_BIG}
-  lw:=SwapEndian(lw);
-  {$ENDIF}
+  lw:=fStringTable.Size;
+  if OppositeEndianess then
+    lw:=SwapEndian(lw);
   aStream.WriteBuffer(lw,4);
+  for i:=0 to fStringTable.Count-1 do
+    aStream.WriteBuffer(fStringTable[i][1],length(fStringTable[i])+1);
+end;
+
+function TCoffResourceWriter.GetFixedCoffHeader: TCoffHeader;
+begin
+  case fMachineType of
+    cmti386     : Result.machine:=IMAGE_FILE_MACHINE_I386;
+    cmtarm      : Result.machine:=IMAGE_FILE_MACHINE_ARM;
+    cmtx8664    : Result.machine:=IMAGE_FILE_MACHINE_AMD64;
+    cmtppc32aix : Result.machine:=IMAGE_FILE_MACHINE_POWERPC32_AIX;
+    cmtppc64aix : Result.machine:=IMAGE_FILE_MACHINE_POWERPC64_AIX;
+  end;
+  Result.numsects:=1;
+  Result.timestamp:=0; //DateTimeToTimeT(now);   //we need a crossplatform way to have it UTC
+  Result.symtableptr:=fSymTablePtr;
+  Result.symnum:=fNumSymtableEntries;
+  Result.opthdrsize:=0;
+  Result.characteristics:=IMAGE_FILE_32BIT_MACHINE or IMAGE_FILE_LINE_NUMS_STRIPPED;
 end;
 
 procedure TCoffResourceWriter.FixCoffHeader(aStream: TStream);
@@ -382,33 +470,24 @@ begin
   oldpos:=aStream.Position;
   aStream.Position:=0;
 
-  case fMachineType of
-    cmti386  : hdr.machine:=IMAGE_FILE_MACHINE_I386;
-    cmtarm   : hdr.machine:=IMAGE_FILE_MACHINE_ARM;
-    cmtx8664 : hdr.machine:=IMAGE_FILE_MACHINE_AMD64;
-  end;
-  hdr.numsects:=1;
-  hdr.timestamp:=0; //DateTimeToTimeT(now);   //we need a crossplatform way to have it UTC
-  hdr.symtableptr:=fSymTablePtr;
-  hdr.symnum:=1;
-  hdr.opthdrsize:=0;
-  hdr.characteristics:=IMAGE_FILE_32BIT_MACHINE or IMAGE_FILE_LINE_NUMS_STRIPPED;
-  {$IFDEF ENDIAN_BIG}
-  hdr.machine:=SwapEndian(hdr.machine);
-  hdr.numsects:=SwapEndian(hdr.numsects);
-  hdr.timestamp:=SwapEndian(hdr.timestamp);
-  hdr.symtableptr:=SwapEndian(hdr.symtableptr);
-  hdr.symnum:=SwapEndian(hdr.symnum);
-  hdr.opthdrsize:=SwapEndian(hdr.opthdrsize);
-  hdr.characteristics:=SwapEndian(hdr.characteristics);
-  {$ENDIF}
+  hdr:=GetFixedCoffHeader;
+  if OppositeEndianess then
+    begin
+      hdr.machine:=SwapEndian(hdr.machine);
+      hdr.numsects:=SwapEndian(hdr.numsects);
+      hdr.timestamp:=SwapEndian(hdr.timestamp);
+      hdr.symtableptr:=SwapEndian(hdr.symtableptr);
+      hdr.symnum:=SwapEndian(hdr.symnum);
+      hdr.opthdrsize:=SwapEndian(hdr.opthdrsize);
+      hdr.characteristics:=SwapEndian(hdr.characteristics);
+    end;
   aStream.WriteBuffer(hdr,sizeof(hdr));
   
   aStream.Position:=oldpos;
 
 end;
 
-procedure TCoffResourceWriter.FixSectionHeader(aStream : TStream);
+procedure TCoffResourceWriter.FixSectionHeader(aStream : TStream; aResources: TResources);
 var hdr : TCoffSectionHeader;
     oldpos : int64;
 begin
@@ -426,20 +505,43 @@ begin
   hdr.NumberOfLineNumbers:=0;
   hdr.Characteristics:=IMAGE_SCN_CNT_INITIALIZED_DATA or IMAGE_SCN_MEM_READ or
                        IMAGE_SCN_MEM_WRITE;
-  {$IFDEF ENDIAN_BIG}
-  hdr.VirtualSize:=SwapEndian(hdr.VirtualSize);
-  hdr.VirtualAddress:=SwapEndian(hdr.VirtualAddress);
-  hdr.SizeOfRawData:=SwapEndian(hdr.SizeOfRawData);
-  hdr.PointerToRawData:=SwapEndian(hdr.PointerToRawData);
-  hdr.PointerToRelocations:=SwapEndian(hdr.PointerToRelocations);
-  hdr.PointerToLineNumbers:=SwapEndian(hdr.PointerToLineNumbers);
-  hdr.NumberOfRelocations:=SwapEndian(hdr.NumberOfRelocations);
-  hdr.NumberOfLineNumbers:=SwapEndian(hdr.NumberOfLineNumbers);
-  hdr.Characteristics:=SwapEndian(hdr.Characteristics);
-  {$ENDIF}
+  if OppositeEndianess then
+    begin
+      hdr.VirtualSize:=SwapEndian(hdr.VirtualSize);
+      hdr.VirtualAddress:=SwapEndian(hdr.VirtualAddress);
+      hdr.SizeOfRawData:=SwapEndian(hdr.SizeOfRawData);
+      hdr.PointerToRawData:=SwapEndian(hdr.PointerToRawData);
+      hdr.PointerToRelocations:=SwapEndian(hdr.PointerToRelocations);
+      hdr.PointerToLineNumbers:=SwapEndian(hdr.PointerToLineNumbers);
+      hdr.NumberOfRelocations:=SwapEndian(hdr.NumberOfRelocations);
+      hdr.NumberOfLineNumbers:=SwapEndian(hdr.NumberOfLineNumbers);
+      hdr.Characteristics:=SwapEndian(hdr.Characteristics);
+    end;
   aStream.WriteBuffer(hdr,sizeof(hdr));
 
   aStream.Position:=oldpos;
+end;
+
+procedure TCoffResourceWriter.SetMachineType(AValue: TCoffMachineType);
+begin
+  fMachineType:=AValue;
+{$IFDEF ENDIAN_BIG}
+  if fMachineType in [cmti386,cmtx8664,cmtarm] then
+    fOppositeEndianess:=true;
+{$ELSE}
+  if fMachineType in [cmtppc32aix,cmtppc64aix] then
+    fOppositeEndianess:=true;
+{$ENDIF}
+  case fMachineType of
+    cmti386,
+    cmtx8664,
+    cmtarm:
+      fSymStorageClass:=IMAGE_SYM_CLASS_STATIC;
+    cmtppc32aix,
+    cmtppc64aix:
+      fSymStorageClass:=IMAGE_SYM_CLASS_HIDEXT;
+  end;
+  fRelocations.MachineType:=fMachineType;
 end;
 
 function TCoffResourceWriter.GetExtensions: string;
@@ -467,8 +569,7 @@ begin
   fResStringTable.Add(aNode.Desc.Name);
 end;
 
-function TCoffResourceWriter.PrescanNode(aNode: TResourceTreeNode
-  ): longword;
+function TCoffResourceWriter.PrescanNode(aNode: TResourceTreeNode; aNodeSize : longword): longword;
 var i : integer;
     currva : longword;
     subnode : TResourceTreeNode;
@@ -486,13 +587,13 @@ begin
   begin
     subnode:=aNode.NamedEntries[i];
     subnode.SubDirRVA:=currva;
-    currva:=PrescanNode(subnode);
+    currva:=PrescanNode(subnode,0);
   end;
   for i:=0 to aNode.IDCount-1 do
   begin
     subnode:=aNode.IDEntries[i];
     subnode.SubDirRVA:=currva;
-    currva:=PrescanNode(subnode);
+    currva:=PrescanNode(subnode,0);
   end;
   Result:=currva;
 end;
@@ -501,7 +602,7 @@ procedure TCoffResourceWriter.PrescanResourceTree;
 begin
   fRoot.SubDirRVA:=0;
   fResStringTable.Clear;
-  fResStringTable.StartRVA:=PrescanNode(fRoot);
+  fResStringTable.StartRVA:=PrescanNode(fRoot,0);
 end;
 
 procedure TCoffResourceWriter.Write(aResources: TResources; aStream: TStream);
@@ -515,28 +616,33 @@ begin
   WriteResDataEntries(aStream);
   WriteRawData(aStream);
   WriteRelocations(aStream);
-  WriteSymbolTable(aStream);
-  WriteEmptyCoffStringTable(aStream);
+  WriteSymbolTable(aStream,aResources);
+  WriteCoffStringTable(aStream);
   FixCoffHeader(aStream);
-  FixSectionHeader(aStream);
+  FixSectionHeader(aStream,aResources);
 end;
 
 constructor TCoffResourceWriter.Create;
 begin
   fExtensions:='.o .obj';
   fDescription:='COFF resource writer';
-  fMachineType:=cmti386;
+  SetDefaultTarget;
   fRoot:=nil;
   fResStringTable:=TResourceStringTable.Create;
   fResDataEntryCurrentRVA:=0;
   fSymTablePtr:=0;
-  fRelocations:=TCoffRelocations.Create;
+  fRelocations:=TCoffRelocations.Create(fMachineType);
+  fStringTable:=TCoffStringTable.Create;
+  fResDataSectionSymIdx:=0;
+  // unused for win32
+  fResHandlesSectionSymIdx:=word(low(smallint));
 end;
 
 destructor TCoffResourceWriter.Destroy;
 begin
   fResStringTable.Free;
   fRelocations.Free;
+  fStringTable.Free;
 end;
 
 { TResourceStringTable }
@@ -600,9 +706,10 @@ begin
   Result:=PCoffRelocation(fList[index]);
 end;
 
-constructor TCoffRelocations.Create;
+constructor TCoffRelocations.Create(aMachineType: TCoffMachineType);
 begin
   fList:=TFPList.Create;
+  fMachineType:=aMachineType;
   fStartAddress:=0;
 end;
 
@@ -612,14 +719,27 @@ begin
   fList.Free;
 end;
 
-procedure TCoffRelocations.Add(aAddress: longword; aType: word);
+procedure TCoffRelocations.Add(aAddress : longword; aType : word; aSymTableIndex: longword);
 var p : PCoffRelocation;
 begin
   p:=GetMem(sizeof(TCoffRelocation));
   p^.VirtualAddress:=aAddress;
-  p^.SymTableIndex:=0;
+  p^.SymTableIndex:=aSymTableIndex;
   p^._type:=aType;
   fList.Add(p);
+end;
+
+procedure TCoffRelocations.AddRelativeToSection(aAddress : longword; aSectSymTableIndex: longword);
+var reloctype: word;
+begin
+  case fMachineType of
+    cmti386     : reloctype:=IMAGE_REL_I386_DIR32NB;
+    cmtarm      : reloctype:=IMAGE_REL_ARM_ADDR32NB;
+    cmtx8664    : reloctype:=IMAGE_REL_AMD64_ADDR32NB;
+    cmtppc32aix : reloctype:=IMAGE_REL_PPC_POS;
+    cmtppc64aix : reloctype:=IMAGE_REL_PPC_POS;
+  end;
+  Add(aAddress,reloctype,aSectSymTableIndex);
 end;
 
 procedure TCoffRelocations.Clear;

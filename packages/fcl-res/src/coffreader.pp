@@ -28,6 +28,7 @@ type
 
   TCoffResourceReader = class (TAbstractResourceReader)
   private
+    fOppositeEndianess: boolean;
     fDescription: string;
     fExtensions: string;
     fCoffHeader : TCoffHeader;
@@ -82,23 +83,37 @@ begin
   except
     on e : EReadError do exit;
   end;
-  
-  {$IFDEF ENDIAN_BIG}
-  hdr.machine:=SwapEndian(hdr.machine);
-  hdr.numsects:=SwapEndian(hdr.numsects);
-  hdr.timestamp:=SwapEndian(hdr.timestamp);
-  hdr.symtableptr:=SwapEndian(hdr.symtableptr);
-  hdr.symnum:=SwapEndian(hdr.symnum);
-  hdr.opthdrsize:=SwapEndian(hdr.opthdrsize);
-  hdr.characteristics:=SwapEndian(hdr.characteristics);
-  {$ENDIF}
 
   case hdr.machine of
     IMAGE_FILE_MACHINE_I386  : fMachineType:=cmti386;
     IMAGE_FILE_MACHINE_ARM   : fMachineType:=cmtarm;
-    IMAGE_FILE_MACHINE_AMD64 : fMachineType:=cmtx8664
-    else exit;
+    IMAGE_FILE_MACHINE_AMD64 : fMachineType:=cmtx8664;
+    IMAGE_FILE_MACHINE_POWERPC32_AIX : fMachineType:=cmtppc32aix;
+    IMAGE_FILE_MACHINE_POWERPC64_AIX : fMachineType:=cmtppc64aix;
+    else
+      begin
+        fOppositeEndianess:=true;
+        case SwapEndian(hdr.machine) of
+          IMAGE_FILE_MACHINE_I386  : fMachineType:=cmti386;
+          IMAGE_FILE_MACHINE_ARM   : fMachineType:=cmtarm;
+          IMAGE_FILE_MACHINE_AMD64 : fMachineType:=cmtx8664;
+          IMAGE_FILE_MACHINE_POWERPC32_AIX : fMachineType:=cmtppc32aix;
+          IMAGE_FILE_MACHINE_POWERPC64_AIX : fMachineType:=cmtppc64aix;
+          else exit;
+        end;
+      end;
   end;
+
+  if fOppositeEndianess then
+    begin
+      hdr.machine:=SwapEndian(hdr.machine);
+      hdr.numsects:=SwapEndian(hdr.numsects);
+      hdr.timestamp:=SwapEndian(hdr.timestamp);
+      hdr.symtableptr:=SwapEndian(hdr.symtableptr);
+      hdr.symnum:=SwapEndian(hdr.symnum);
+      hdr.opthdrsize:=SwapEndian(hdr.opthdrsize);
+      hdr.characteristics:=SwapEndian(hdr.characteristics);
+    end;
 
   if hdr.opthdrsize>0 then
     aStream.Seek(hdr.opthdrsize,soFromCurrent);
@@ -115,17 +130,18 @@ begin
   begin
     aStream.ReadBuffer(hdr,sizeof(hdr));
 
-    {$IFDEF ENDIAN_BIG}
-    hdr.VirtualSize:=SwapEndian(hdr.VirtualSize);
-    hdr.VirtualAddress:=SwapEndian(hdr.VirtualAddress);
-    hdr.SizeOfRawData:=SwapEndian(hdr.SizeOfRawData);
-    hdr.PointerToRawData:=SwapEndian(hdr.PointerToRawData);
-    hdr.PointerToRelocations:=SwapEndian(hdr.PointerToRelocations);
-    hdr.PointerToLineNumbers:=SwapEndian(hdr.PointerToLineNumbers);
-    hdr.NumberOfRelocations:=SwapEndian(hdr.NumberOfRelocations);
-    hdr.NumberOfLineNumbers:=SwapEndian(hdr.NumberOfLineNumbers);
-    hdr.Characteristics:=SwapEndian(hdr.Characteristics);
-    {$ENDIF}
+    if fOppositeEndianess then
+      begin
+        hdr.VirtualSize:=SwapEndian(hdr.VirtualSize);
+        hdr.VirtualAddress:=SwapEndian(hdr.VirtualAddress);
+        hdr.SizeOfRawData:=SwapEndian(hdr.SizeOfRawData);
+        hdr.PointerToRawData:=SwapEndian(hdr.PointerToRawData);
+        hdr.PointerToRelocations:=SwapEndian(hdr.PointerToRelocations);
+        hdr.PointerToLineNumbers:=SwapEndian(hdr.PointerToLineNumbers);
+        hdr.NumberOfRelocations:=SwapEndian(hdr.NumberOfRelocations);
+        hdr.NumberOfLineNumbers:=SwapEndian(hdr.NumberOfLineNumbers);
+        hdr.Characteristics:=SwapEndian(hdr.Characteristics);
+      end;
 
     if CheckRsrcName(hdr.Name) then
     begin
@@ -150,14 +166,15 @@ var table : TResDirTable;
     i : integer;
 begin
   aStream.ReadBuffer(table,sizeof(table));
-  {$IFDEF ENDIAN_BIG}
-  table.Characteristics:=SwapEndian(table.Characteristics);
-  table.TimeStamp:=SwapEndian(table.TimeStamp);
-  table.VerMajor:=SwapEndian(table.VerMajor);
-  table.VerMinor:=SwapEndian(table.VerMinor);
-  table.NamedEntriesCount:=SwapEndian(table.NamedEntriesCount);
-  table.IDEntriesCount:=SwapEndian(table.IDEntriesCount);
-  {$ENDIF}
+  if fOppositeEndianess then
+    begin
+      table.Characteristics:=SwapEndian(table.Characteristics);
+      table.TimeStamp:=SwapEndian(table.TimeStamp);
+      table.VerMajor:=SwapEndian(table.VerMajor);
+      table.VerMinor:=SwapEndian(table.VerMinor);
+      table.NamedEntriesCount:=SwapEndian(table.NamedEntriesCount);
+      table.IDEntriesCount:=SwapEndian(table.IDEntriesCount);
+    end;
 
   for i:=1 to table.NamedEntriesCount do
     ReadNodeDirEntry(aStream,aNode,aResources);
@@ -174,10 +191,11 @@ var entry : TResDirEntry;
 begin
   aStream.ReadBuffer(entry,sizeof(entry));
   oldpos:=aStream.Position;
-  {$IFDEF ENDIAN_BIG}
-  entry.NameID:=SwapEndian(entry.NameID);
-  entry.DataSubDirRVA:=SwapEndian(entry.DataSubDirRVA);
-  {$ENDIF}
+  if fOppositeEndianess then
+    begin
+      entry.NameID:=SwapEndian(entry.NameID);
+      entry.DataSubDirRVA:=SwapEndian(entry.DataSubDirRVA);
+    end;
 
   desc:=TResourceDesc.Create;
   try
@@ -213,17 +231,15 @@ begin
   aStream.Position:=fResSectStart+aRVA;
 
   aStream.ReadBuffer(w,2);
-  {$IFDEF ENDIAN_BIG}
-  w:=SwapEndian(w);
-  {$ENDIF}
+  if fOppositeEndianess then
+    w:=SwapEndian(w);
   setlength(ws,w);
 
   for i:=1 to length(ws) do
   begin
     aStream.ReadBuffer(w,2);
-    {$IFDEF ENDIAN_BIG}
-    w:=SwapEndian(w);
-    {$ENDIF}
+    if fOppositeEndianess then
+      w:=SwapEndian(w);
     ws[i]:=widechar(w);
   end;
   aStream.Position:=oldpos;
@@ -237,12 +253,13 @@ var entry : TResDataEntry;
     RawData : TResourceDataStream;
 begin
   aStream.ReadBuffer(entry,sizeof(entry));
-  {$IFDEF ENDIAN_BIG}
-  entry.DataRVA:=SwapEndian(entry.DataRVA);
-  entry.Size:=SwapEndian(entry.Size);
-  entry.Codepage:=SwapEndian(entry.Codepage);
-  entry.Reserved:=SwapEndian(entry.Reserved);
-  {$ENDIF}
+  if fOppositeEndianess then
+    begin
+      entry.DataRVA:=SwapEndian(entry.DataRVA);
+      entry.Size:=SwapEndian(entry.Size);
+      entry.Codepage:=SwapEndian(entry.Codepage);
+      entry.Reserved:=SwapEndian(entry.Reserved);
+    end;
 
   res:=aNode.CreateResource;
   if res=nil then
@@ -294,6 +311,7 @@ begin
   FillByte(fResSectHeader,sizeof(fResSectHeader),0);
   fRoot:=nil;
   fMachineType:=cmti386;
+  fOppositeEndianess:=false;
 end;
 
 destructor TCoffResourceReader.Destroy;

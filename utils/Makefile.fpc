@@ -24,6 +24,7 @@ dirs_solaris=fpcres instantfpc
 dirs_os2=fpmc fpcres rmwait
 dirs_emx=fpmc fpcres rmwait
 dirs_go32v2=rmwait
+dirs_aix=fpcres instantfpc
 rsts=rstconv
 
 [require]

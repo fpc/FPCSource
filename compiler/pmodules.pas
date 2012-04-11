@@ -339,7 +339,7 @@ implementation
       ResourceInfo : TAsmList;
 
     begin
-      if (target_res.id in [res_elf,res_macho]) then
+      if (target_res.id in [res_elf,res_macho,res_xcoff]) then
         begin
         ResourceInfo:=TAsmList.Create;
 

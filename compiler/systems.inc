@@ -197,7 +197,7 @@
        tres = (res_none
             ,res_gnu_windres,res_watcom_wrc_os2
             ,res_m68k_palmos,res_m68k_mpw
-            ,res_powerpc_mpw,res_elf
+            ,res_powerpc_mpw,res_elf,res_xcoff
             ,res_win64_gorc, res_macho, res_ext
        );
 

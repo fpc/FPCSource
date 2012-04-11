@@ -409,7 +409,7 @@ ifeq ($(FULL_TARGET),powerpc-wii)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
@@ -478,7 +478,7 @@ ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres instantfpc
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
@@ -3536,6 +3536,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_FPCRES=1
+TARGET_DIRS_INSTANTFPC=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_FPPKG=1
@@ -3801,6 +3803,8 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_FPCRES=1
+TARGET_DIRS_INSTANTFPC=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 TARGET_DIRS_FPPKG=1

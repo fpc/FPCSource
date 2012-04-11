@@ -2338,6 +2338,7 @@ packages/fcl-res/src/versionconsts.pp svneol=native#text/plain
 packages/fcl-res/src/versionresource.pp svneol=native#text/plain
 packages/fcl-res/src/versiontypes.pp svneol=native#text/plain
 packages/fcl-res/src/winpeimagereader.pp svneol=native#text/plain
+packages/fcl-res/src/xcoffwriter.pp svneol=native#text/plain
 packages/fcl-res/xml/acceleratorsresource.xml svneol=native#text/plain
 packages/fcl-res/xml/bitmapresource.xml svneol=native#text/plain
 packages/fcl-res/xml/clean.sh svneol=native#text/plain

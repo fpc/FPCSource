@@ -20,7 +20,7 @@ unit cofftypes;
 interface
 
 type
-  TCoffMachineType = (cmti386, cmtarm, cmtx8664);
+  TCoffMachineType = (cmti386, cmtarm, cmtx8664, cmtppc32aix, cmtppc64aix);
 
 type
   TSectionName = array [0..7] of char;
@@ -52,13 +52,49 @@ type
     Characteristics : longword;
   end;
 
-  TCoffSectionTable = packed record
-    Name : TSectionName;
-    Value : longword;
-    SectionNumber : word;
-    _type : word;
-    StorageClass : byte;
-    NumAuxSymbol : byte;
+  TXCoff32SectionHeader = packed record
+    s_name : TSectionName;
+    s_paddr : longword;
+    s_vaddr : longword;
+    s_size : longword;
+    s_scnptr : longword;
+    s_relptr : longword;
+    s_lnnoptr : longword;
+    s_nreloc : word;
+    s_nlnno : word;
+    s_flags : longword
+  end;
+
+  TCoffSymtableEntry = packed record
+    case byte of
+      1: (
+            Name : TSectionName;
+            Value : longword;
+            SectionNumber : word;
+            _type : word;
+            StorageClass : byte;
+            NumAuxSymbol : byte;
+         );
+      { AIX names }
+      2: (
+            n_name : TSectionName;
+            n_value : longword;
+            n_scnum : word;
+            n_type : word;
+            n_sclass : byte;
+            n_numaux : byte;
+         );
+  end;
+  TCoffSectionTable = TCoffSymtableEntry;
+
+  TXCoffAuxSymbol32 = packed record
+    x_scnlen: longword;
+    x_parmhash: longword;
+    x_snhash: word;
+    x_smtyp: byte;
+    x_smclas: byte;
+    x_stab: longword;
+    x_snstab: word;
   end;
 
   TResDirTable = packed record

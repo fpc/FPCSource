@@ -417,5 +417,5 @@ initialization
   RegisterExport(system_powerpc64_aix,texportlibaix);
   RegisterTarget(system_powerpc64_aix_info);
 {$endif powerpc64}
-  RegisterRes(res_elf_info,TWinLikeResourceFile);
+  RegisterRes(res_xcoff_info,TWinLikeResourceFile);
 end.
