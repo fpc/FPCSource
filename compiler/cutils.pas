@@ -114,6 +114,7 @@ interface
        to that mem
     }
     function  strpnew(const s : string) : pchar;
+    function  strpnew(const s : ansistring) : pchar;
 
     {# makes the character @var(c) lowercase, with spanish, french and german
        character set
@@ -800,6 +801,7 @@ implementation
         end;
     end;
 
+
     function octal_quote(const s:string;const qchars:Tcharset):string;
 
     var i:byte;
@@ -1007,6 +1009,15 @@ implementation
          move(s[1],p^,length(s));
          p[length(s)]:=#0;
          result:=p;
+      end;
+
+    function strpnew(const s: ansistring): pchar;
+      var
+         p : pchar;
+      begin
+        getmem(p,length(s)+1);
+        move(s[1],p^,length(s)+1);
+        result:=p;
       end;
 
 
