@@ -108,14 +108,23 @@ end;
 
 
 procedure TLinkerAIX.SetDefaultInfo;
-const
-{$ifdef powerpc}platform_select='-b32';{$endif}
-{$ifdef POWERPC64} platform_select='-b64';{$endif}
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld '+platform_select+' $OPT $STRIP -L. -o $EXE $CATRES';
-     DllCmd[1]:='ld '+platform_select+' $OPT $INITFINI $STRIP -L. -o $EXE $CATRES';
+     { the -bpT and -bpD options set the base addresses for text and data
+       sections. They are required because otherwise they are both 0 and hence
+       overlap, which confuses gdb. GCC uses those same options. -btextro makes
+       sure that the binary does not contain any relocations in the text
+       section (otherwise you get an error at load time instead of at link time
+       in case something is wrong) }
+     ExeCmd[1]:='ld -bpT:0x10000000 -bpD:0x20000000 -btextro $OPT $STRIP -L. -o $EXE $CATRES' {$ifdef powerpc64}+' -b64'{$endif};
+     DllCmd[1]:='ld -bpT:0x10000000 -bpD:0x20000000 -btextro $OPT $INITFINI $STRIP -G -L. -o $EXE $CATRES' {$ifdef powerpc64}+' -b64'{$endif};
+     if cs_debuginfo in current_settings.moduleswitches then
+       begin
+         { debugging helpers }
+         ExeCmd[1]:=ExeCmd[1]+' -lg -bexport:/usr/lib/libg.exp';
+         DllCmd[1]:=DllCmd[1]+' -lg -bexport:/usr/lib/libg.exp';
+       end;
    end;
 {$if defined(powerpc)}
    if not(cs_profile in current_settings.moduleswitches) then
@@ -139,8 +148,12 @@ Var
   i            : longint;
   HPath        : TCmdStrListItem;
   s,s1         : TCmdStr;
+  assumebinutils : boolean;
 begin
   result:=False;
+  assumebinutils:=
+    not(cs_link_on_target in current_settings.globalswitches) and
+    not(source_info.system in systems_aix) ;
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
   with linkres do
@@ -149,16 +162,24 @@ begin
       HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
       while assigned(HPath) do
        begin
-         Add('-L'+HPath.Str);
+         if assumebinutils then
+           Add('SEARCH_DIR('+maybequoted(HPath.Str)+')')
+         else
+           Add('-L'+HPath.Str);
          HPath:=TCmdStrListItem(HPath.Next);
        end;
       HPath:=TCmdStrListItem(LibrarySearchPath.First);
       while assigned(HPath) do
        begin
-         Add('-L'+HPath.Str);
+         if assumebinutils then
+           Add('SEARCH_DIR('+maybequoted(HPath.Str)+')')
+         else
+           Add('-L'+HPath.Str);
          HPath:=TCmdStrListItem(HPath.Next);
        end;
 
+       if assumebinutils then
+        StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
       AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
       { main objectfiles }
@@ -195,6 +216,8 @@ begin
            if librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
              Add('-lgcc_eh');
          end;
+       if assumebinutils then
+         EndSection(')');
 
       { Write and Close response }
       writetodisk;
@@ -216,6 +239,7 @@ begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
+  linkscript:=nil;
 { Create some replacements }
   StripStr:='';
   if (cs_link_strip in current_settings.globalswitches) and
@@ -231,7 +255,16 @@ begin
   binstr:=FindUtil(utilsprefix+BinStr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
+  { the native AIX linker does not support linkres files, so we need
+    CatFileContent(). The binutils cross-linker does support such files, so
+    use them when cross-compiling to avoid overflowing the Windows maximum
+    command line length
+  }
+  if not(cs_link_on_target in current_settings.globalswitches) and
+     not(source_info.system in systems_aix) then
+    Replace(cmdstr,'$CATRES',outputexedir+Info.ResName)
+  else
+    Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
 
   { create dynamic symbol table? }
@@ -246,14 +279,17 @@ begin
      not(tf_no_backquote_support in source_info.flags) then
     begin
       { we have to use a script to use the IFS hack }
-      linkscript:=TAsmScriptUnix.create(outputexedir+'ppaslink');
+      linkscript:=GenerateScript(outputexedir+'ppaslink');
       linkscript.AddLinkCommand(binstr,CmdStr,'');
 //      if (extdbgbinstr<>'') then
 //        linkscript.AddLinkCommand(extdbgbinstr,extdbgcmdstr,'');
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
-        BinStr:='./'+BinStr;
+        if cs_link_on_target in current_settings.globalswitches then
+          BinStr:='.'+target_info.dirsep+BinStr
+        else
+          BinStr:='.'+source_info.dirsep+BinStr;
       CmdStr:='';
     end;
 
@@ -263,20 +299,30 @@ begin
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
       DeleteFile(outputexedir+Info.ResName);
-      DeleteFile(outputexedir+'ppaslink.sh');
+      if assigned(linkscript) then
+        DeleteFile(linkscript.fn);
     end;
+  linkscript.free;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
 
 Function TLinkerAIX.MakeSharedLibrary:boolean;
+const
+{$ifdef cpu64bitaddr}
+  libobj = 'shr_64.o';
+{$else}
+  libobj = 'shr.o';
+{$endif}
 var
+  linkscript  : TAsmScript;
   exportedsyms: text;
   InitFiniStr : string[80];
   StripStr,
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr,
+  libfn: TCmdStr;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
@@ -288,6 +334,7 @@ begin
 
  { Create some replacements }
   InitFiniStr:='-binitfini:'+exportlib.initname+':'+exportlib.fininame;
+  Replace(InitFiniStr,'$','.');
   if cs_link_strip in current_settings.globalswitches then
     StripStr:='-s'
   else
@@ -295,13 +342,19 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+  binstr:=FindUtil(utilsprefix+BinStr);
+  { on AIX, shared libraries are special object files that are stored inside
+    an archive. In that archive, the 32 bit version of the library is called
+    shr.o and the 64 bit version shr_64.o }
+  Replace(cmdstr,'$EXE',maybequoted(libobj));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
+  if not(cs_link_on_target in current_settings.globalswitches) and
+     not(source_info.system in systems_aix) then
+    Replace(cmdstr,'$CATRES',outputexedir+Info.ResName)
+  else
+    Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$INITFINI',InitFiniStr);
   Replace(cmdstr,'$STRIP',StripStr);
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
-
   { exported symbols }
   if not texportlibunix(exportlib).exportedsymnames.empty then
     begin
@@ -314,12 +367,36 @@ begin
       cmdstr:=cmdstr+' -bE:'+maybequoted(outputexedir)+'linksyms.fpc';
     end;
 
-{ Remove ReponseFile }
+  libfn:=maybequoted(current_module.sharedlibfilename^);
+  { we have to use a script to use the IFS hack }
+  linkscript:=GenerateScript(outputexedir+'ppaslink');
+  linkscript.AddLinkCommand(binstr,CmdStr,'');
+  { delete the target static library containing the dynamic object file in
+    case it already existed }
+  if FileExists(libfn,true) then
+    linkscript.AddDeleteCommand(libfn);
+  { and create the new one }
+  linkscript.AddLinkCommand(FindUtil(utilsprefix+'ar'),' -X32_64 -q '+libfn+(' '+libobj),'');
+  linkscript.WriteToDisk;
+  BinStr:=linkscript.fn;
+  if not path_absolute(BinStr) then
+    if cs_link_on_target in current_settings.globalswitches then
+      BinStr:='.'+target_info.dirsep+BinStr
+    else
+      BinStr:='.'+source_info.dirsep+BinStr;
+  CmdStr:='';
+
+  success:=DoExec(BinStr,cmdstr,true,true);
+
+  { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
+      DeleteFile(libobj);
       DeleteFile(outputexedir+Info.ResName);
       DeleteFile(outputexedir+'linksyms.fpc');
+      DeleteFile(linkscript.fn);
     end;
+  linkscript.free;
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
 
