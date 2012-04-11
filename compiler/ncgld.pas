@@ -286,20 +286,7 @@ implementation
            staticvarsym :
              begin
                gvs:=tstaticvarsym(symtableentry);
-               if ([vo_is_dll_var,vo_is_external] * gvs.varoptions <> []) then
-                 begin
-                  { assume external variables use the default alignment }
-                  location.reference.alignment:=gvs.vardef.alignment;
-                   location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tstaticvarsym(symtableentry).mangledname,
-                     vo_is_weak_external in gvs.varoptions);
-                   if (location.reference.base <> NR_NO) then
-                     exit;
-                 end
-               else
-                 begin
-                   location.reference.alignment:=var_align(gvs.vardef.alignment);
-                 end;
-
+               location.reference.alignment:=var_align(gvs.vardef.alignment);
 
                if (vo_is_dll_var in gvs.varoptions) then
                { DLL variable }
@@ -536,16 +523,10 @@ implementation
                  else
                    begin
                       pd:=tprocdef(tprocsym(symtableentry).ProcdefList[0]);
-                      if (po_external in pd.procoptions) then
-                        location.reference.base :=
-                           cg.g_indirect_sym_load(current_asmdata.CurrAsmList,pd.mangledname,
-                                                  po_weakexternal in pd.procoptions);
-                      {!!!!! Be aware, work on virtual methods too }
-                      if (location.reference.base = NR_NO) then
-                        if not(po_weakexternal in pd.procoptions) then
-                          location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname)
-                        else
-                          location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(procdef.mangledname);
+                      if not(po_weakexternal in pd.procoptions) then
+                        location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname)
+                      else
+                        location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(procdef.mangledname);
                    end;
               end;
            labelsym :
