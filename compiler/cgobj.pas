@@ -899,6 +899,8 @@ implementation
       begin
          cgpara.check_simple_location;
          paramanager.alloccgpara(list,cgpara);
+         if cgpara.location^.shiftval<0 then
+           a_op_const_reg(list,OP_SHL,cgpara.location^.size,-cgpara.location^.shiftval,r);
          case cgpara.location^.loc of
             LOC_REGISTER,LOC_CREGISTER:
               a_load_reg_reg(list,size,cgpara.location^.size,r,cgpara.location^.register);
@@ -974,6 +976,8 @@ implementation
                      begin
                        cgpara.check_simple_location;
                        a_load_ref_reg(list,size,location^.size,tmpref,location^.register);
+                       if location^.shiftval<0 then
+                         a_op_const_reg(list,OP_SHL,location^.size,-location^.shiftval,location^.register);
                      end
                    { there's a lot more data left, and the current paraloc's
                      register is entirely filled with part of that data }
@@ -987,6 +991,8 @@ implementation
                    else if (sizeleft in [1,2{$ifndef cpu16bitalu},4{$endif}{$ifdef cpu64bitalu},8{$endif}]) then
                      begin
                        a_load_ref_reg(list,int_cgsize(sizeleft),location^.size,tmpref,location^.register);
+                       if location^.shiftval<0 then
+                         a_op_const_reg(list,OP_SHL,location^.size,-location^.shiftval,location^.register);
                      end
                    { we're at the end of the data, and we need multiple loads
                      to get it in the register because it's an irregular size }
@@ -1047,6 +1053,8 @@ implementation
                              a_load_reg_reg(list,location^.size,location^.size,tmpreg,location^.register);
                            inc(tmpref.offset);
                          end;
+                       if location^.shiftval<0 then
+                         a_op_const_reg(list,OP_SHL,location^.size,-location^.shiftval,location^.register);
                        { the loop will already adjust the offset and sizeleft }
                        dec(tmpref.offset,orgsizeleft);
                        sizeleft:=orgsizeleft;
@@ -1128,15 +1136,28 @@ implementation
     procedure tcg.a_load_cgparaloc_ref(list : TAsmList;const paraloc : TCGParaLocation;const ref : treference;sizeleft : tcgint;align : longint);
       var
         href : treference;
+        hreg : tregister;
+        cgsize: tcgsize;
       begin
          case paraloc.loc of
            LOC_REGISTER :
              begin
-{$IFDEF POWERPC64}
-               if (paraloc.shiftval <> 0) then
-                 a_op_const_reg_reg(list, OP_SHL, OS_INT, paraloc.shiftval, paraloc.register, paraloc.register);
-{$ENDIF POWERPC64}
-               a_load_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
+               hreg:=paraloc.register;
+               cgsize:=paraloc.size;
+               if paraloc.shiftval>0 then
+                 a_op_const_reg_reg(list,OP_SHL,OS_INT,paraloc.shiftval,paraloc.register,paraloc.register)
+               else if (paraloc.shiftval<0) and
+                       (sizeleft in [1,2,4]) then
+                 begin
+                   a_op_const_reg_reg(list,OP_SHR,OS_INT,-paraloc.shiftval,paraloc.register,paraloc.register);
+                   { convert to a register of 1/2/4 bytes in size, since the
+                     original register had to be made larger to be able to hold
+                     the shifted value }
+                   cgsize:=int_cgsize(tcgsize2size[OS_INT]-(-paraloc.shiftval div 8));
+                   hreg:=getintregister(list,cgsize);
+                   a_load_reg_reg(list,OS_INT,cgsize,paraloc.register,hreg);
+                 end;
+               a_load_reg_ref(list,paraloc.size,cgsize,hreg,ref);
              end;
            LOC_MMREGISTER :
              begin
@@ -1175,6 +1196,8 @@ implementation
          case paraloc.loc of
            LOC_REGISTER :
              begin
+               if paraloc.shiftval<0 then
+                 a_op_const_reg_reg(list,OP_SHR,OS_INT,-paraloc.shiftval,paraloc.register,paraloc.register);
                case getregtype(reg) of
                  R_INTREGISTER:
                    a_load_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);

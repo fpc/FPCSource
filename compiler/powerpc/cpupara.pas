@@ -137,9 +137,10 @@ unit cpupara;
               else
                 result:=LOC_REFERENCE;
             recorddef:
-              if (target_info.abi<>abi_powerpc_aix) or
-                 ((p.size >= 3) and
-                  ((p.size mod 4) <> 0)) then
+              if not(target_info.system in systems_aix) and
+                 ((target_info.abi<>abi_powerpc_aix) or
+                  ((p.size >= 3) and
+                   ((p.size mod 4) <> 0))) then
                 result:=LOC_REFERENCE
               else
                 result:=LOC_REGISTER;
@@ -501,6 +502,15 @@ unit cpupara;
                         paraloc^.size := OS_INT
                       else
                         paraloc^.size := paracgsize;
+                      { aix requires that record data stored in parameter
+                        registers is left-aligned }
+                      if (target_info.system in systems_aix) and
+                         (paradef.typ = recorddef) and
+                         (tcgsize2size[paraloc^.size] <> sizeof(aint)) then
+                        begin
+                          paraloc^.shiftval := (sizeof(aint)-tcgsize2size[paraloc^.size])*(-8);
+                          paraloc^.size := OS_INT;
+                        end;
                       paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
                       inc(nextintreg);
                       dec(paralen,tcgsize2size[paraloc^.size]);
@@ -561,9 +571,11 @@ unit cpupara;
                            tppcprocinfo(current_procinfo).needs_frame_pointer := true;
                          end;
 
-                       if (target_info.abi = abi_powerpc_aix) and
+                       if not((target_info.system in systems_aix) and
+                              (paradef.typ=recorddef)) and
+                          (target_info.abi = abi_powerpc_aix) and
                           (hp.paraloc[side].intsize < 3) then
-                           paraloc^.reference.offset:=stack_offset+(4-paralen)
+                         paraloc^.reference.offset:=stack_offset+(4-paralen)
                        else
                          paraloc^.reference.offset:=stack_offset;
 

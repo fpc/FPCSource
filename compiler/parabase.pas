@@ -48,7 +48,11 @@ unit parabase;
            LOC_CMMREGISTER,
            LOC_REGISTER,
            LOC_CREGISTER : (
-             { The number of bits the value in the register must be shifted to the left before
+             {
+
+             * If shiftval > 0:
+
+             The number of bits the value in the register must be shifted to the left before
              it can be stored to memory in the function prolog.
              This is used for passing OS_NO memory blocks less than register size and of "odd"
              (3, 5, 6, 7) size on big endian machines, so that small memory blocks passed via
@@ -56,8 +60,15 @@ unit parabase;
 
              E.g. the value $5544433 is passed in bits 40-63 of the register (others are zero),
              but they should actually be stored in the first bits of the stack location reserved
-             for this value. So they have to be shifted left by this amount of bits before. }
-             {$IFDEF POWERPC64}shiftval : byte;{$ENDIF POWERPC64}
+             for this value. So they have to be shifted left by this amount of bits before.
+
+             * if shiftval < 0:
+
+             Similar as above, but the shifting must always be done and
+               1) for all parameter sizes < regsize
+               2) on the caller side
+             }
+             shiftval : shortint;
              register : tregister);
        end;
 
@@ -281,9 +292,7 @@ implementation
               LOC_REGISTER,
               LOC_CREGISTER :
                 begin
-{$ifdef powerpc64}
                   ppufile.putbyte(hparaloc^.shiftval);
-{$endif}
                   ppufile.putlongint(longint(hparaloc^.register));
                 end;
               { This seems to be required for systems using explicitparaloc (eg. MorphOS)
@@ -331,9 +340,7 @@ implementation
               LOC_REGISTER,
               LOC_CREGISTER :
                 begin
-{$ifdef powerpc64}
                   hparaloc^.shiftval:=ppufile.getbyte;
-{$endif}
                   hparaloc^.register:=tregister(ppufile.getlongint);
                 end;
               { This seems to be required for systems using explicitparaloc (eg. MorphOS)

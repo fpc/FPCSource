@@ -366,6 +366,7 @@ implementation
               len:=tcgsize2size[paraloc^.size];
             newparaloc:=cgpara.add_location;
             newparaloc^.size:=paraloc^.size;
+            newparaloc^.shiftval:=paraloc^.shiftval;
             { $warning maybe release this optimization for all targets?  }
             { released for all CPUs:
               i386 isn't affected anyways because it uses the stack to push parameters
