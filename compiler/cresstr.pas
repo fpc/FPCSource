@@ -207,7 +207,7 @@ uses
         { Update: the Mac OS X 10.6 linker orders data that needs to be    }
         { relocated before all other data, so make this data relocatable,  }
         { otherwise the end label won't be moved with the rest             }
-        if (target_info.system in systems_darwin) then
+        if (target_info.system in (systems_darwin+systems_aix)) then
           current_asmdata.asmlists[al_resourcestrings].concat(Tai_const.create_sym(endsymlab));
       end;
 
