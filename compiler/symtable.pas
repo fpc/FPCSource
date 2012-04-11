@@ -946,6 +946,14 @@ implementation
         l:=sym.getsize;
         vardef:=sym.vardef;
         varalign:=vardef.alignment;
+{$if defined(powerpc) or defined(powerpc64)}
+        { aix is really annoying: the recommended scalar alignment for both
+          int64 and double is 64 bits, but in structs int64 has to be aligned
+          to 8 bytes and double to 4 bytes }
+        if (target_info.system in systems_aix) and
+           is_double(vardef) then
+          varalign:=4;
+{$endif powerpc or powerpc64}
 
         case usefieldalignment of
           bit_alignment:

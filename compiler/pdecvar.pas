@@ -1596,7 +1596,7 @@ implementation
                  (32-bit) alignment, in which case the alignment is determined by
                  the alignment of the first field.  */
              }
-             if (target_info.system in [system_powerpc_darwin, system_powerpc_macos, system_powerpc64_darwin]) and
+             if (target_info.abi=abi_powerpc_aix) and
                 is_first_type and
                 (symtablestack.top.symtabletype=recordsymtable) and
                 (trecordsymtable(symtablestack.top).usefieldalignment=C_alignment) then
