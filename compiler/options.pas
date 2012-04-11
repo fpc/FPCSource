@@ -693,7 +693,7 @@ begin
          case opt[2] of
            '?' :
              begin
-               if More [1] = 'F' then
+               if (More <> '') and (More [1] = 'F') then
                  begin
                    FPCHelpLines := true;
                    Delete (More, 1, 1);
@@ -1253,7 +1253,7 @@ begin
            'h' :
              begin
                NoPressEnter:=true;
-               if More [1] = 'F' then
+               if (More <> '') and (More [1] = 'F') then
                  begin
                    FPCHelpLines := true;
                    Delete (More, 1, 1);
