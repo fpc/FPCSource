@@ -20,6 +20,67 @@
 
 {$ifndef SOLARIS}
 
+
+{$ifdef aix}
+    { aix math library routines don't raise exceptions, you have to manually
+      check for them }
+    function feclearexcept(flags: longint): longint; cdecl; external 'c';
+    function fetestexcept(flags: longint): longint; cdecl; external 'c';
+
+    const
+      FE_DIVBYZERO  = $04000000;
+      FE_INEXACT    = $02000000;
+      FE_INVALID    = $20000000;
+      FE_OVERFLOW   = $10000000;
+      FE_UNDERFLOW  = $08000000;
+      FE_ALL_EXCEPT = $3E000000;
+
+    procedure resetexcepts;
+      begin
+        seterrno(0);
+        feclearexcept(FE_ALL_EXCEPT);
+      end;
+
+    procedure checkexcepts;
+      var
+        feres: longint;
+        sfexcepts: shortint;
+      begin
+        feres:=fetestexcept(FE_ALL_EXCEPT);
+        sfexcepts:=0;
+        if feres<>0 then
+          begin
+            if (feres and FE_DIVBYZERO) <> 0 then
+              sfexcepts:=sfexcepts or float_flag_divbyzero;
+            if (feres and FE_INEXACT) <> 0 then
+              sfexcepts:=sfexcepts or float_flag_inexact;
+            if (feres and FE_INVALID) <> 0 then
+              sfexcepts:=sfexcepts or float_flag_invalid;
+            if (feres and FE_OVERFLOW) <> 0 then
+              sfexcepts:=sfexcepts or float_flag_overflow;
+            if (feres and FE_UNDERFLOW) <> 0 then
+              sfexcepts:=sfexcepts or float_flag_underflow;
+          end
+        { unknown error }
+        else if (geterrno<>0) then
+          sfexcepts:=sfexcepts or float_flag_invalid;
+        if sfexcepts<>0 then
+          float_raise(sfexcepts);
+      end;
+
+{$else aix}
+    procedure resetexcepts; inline;
+      begin
+      end;
+
+
+    procedure checkexcepts; inline;
+      begin
+      end;
+
+{$endif aix}
+
+
 {$ifndef FPC_SYSTEM_HAS_INT}
 {$define FPC_SYSTEM_HAS_INT}
 
@@ -28,7 +89,9 @@
 
     function fpc_int_real(d: ValReal): ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
+      resetexcepts;
       result := c_trunc(d);
+      checkexcepts;
     end;
 
 
@@ -40,7 +103,9 @@
       begin
         { this will be correct since real = single in the case of }
         { the motorola version of the compiler...                 }
+        resetexcepts;
         int:=c_truncf(d);
+        checkexcepts;
       end;
 {$endif SUPPORT_DOUBLE}
 
@@ -55,8 +120,10 @@
     var
       l: longint;
     begin
+      resetexcepts;
       frexp := c_frexp(x,l);
       e := l;
+      checkexcepts;
     end;
 {$endif not SYSTEM_HAS_FREXP}
 
@@ -67,7 +134,9 @@
 
     function ldexp( x: ValReal; N: Integer):ValReal;{$ifdef MATHINLINE}inline;{$endif}
     begin
+      resetexcepts;
       ldexp := c_ldexp(x,n);
+      checkexcepts;
     end;
 {$endif not SYSTEM_HAS_LDEXP}
 
@@ -79,7 +148,9 @@
 
     function fpc_sqrt_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
+      resetexcepts;
       result := c_sqrt(d);
+      checkexcepts;
     end;
 
 {$endif}
@@ -89,9 +160,12 @@
 {$define FPC_SYSTEM_HAS_EXP}
     function c_exp(d: double): double; cdecl; external 'c' name 'exp';
 
+
     function fpc_Exp_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-    begin
-      result := c_exp(d);
+      begin
+        resetexcepts;
+        result := c_exp(d);
+        checkexcepts;
     end;
 {$endif}
 
@@ -103,7 +177,9 @@
 
     function fpc_Ln_real(d:ValReal):ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
     begin
+      resetexcepts;
       result := c_log(d);
+      checkexcepts;
     end;
 {$endif}
 
@@ -114,7 +190,9 @@
 
     function fpc_Sin_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
+      resetexcepts;
       result := c_sin(d);
+      checkexcepts;
     end;
 {$endif}
 
@@ -126,7 +204,9 @@
 
     function fpc_Cos_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
+      resetexcepts;
       result := c_cos(d);
+      checkexcepts;
     end;
 {$endif}
 
@@ -138,7 +218,9 @@
 
     function fpc_ArcTan_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
+      resetexcepts;
       result := c_atan(d);
+      checkexcepts;
     end;
 {$endif}
 
