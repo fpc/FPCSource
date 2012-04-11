@@ -857,10 +857,9 @@ begin
       { Add runtime library path to current dir to find .so files }
       if Config.NeedLibrary then
         begin
-          if CompilerTarget='darwin' then
+          if (CompilerTarget='darwin') or
+	     (CompilerTarget='aix') then
             args:=args+' -Fl'+TestOutputDir
-	  else if CompilerTarget='aix' then
-	    args:=args+' -blibpath:'+TestOutputDir
 	  else
           { do not use single quote for -k as they are mishandled on
             Windows Shells }
