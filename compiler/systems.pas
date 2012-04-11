@@ -259,6 +259,9 @@ interface
        { all systems that allow section directive }
        systems_allow_section = systems_embedded;
 
+       { systems that uses dotted function names as descriptors }
+       systems_dotted_function_names = [system_powerpc64_linux]+systems_aix;
+
        systems_allow_section_no_semicolon = systems_allow_section
 {$ifndef DISABLE_TLS_DIRECTORY}
        + systems_windows
