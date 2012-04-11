@@ -15,6 +15,7 @@
 
 {$mode objfpc}
 {$inline on}
+{$implicitexceptions off}
 
 unit cwstring;
 
