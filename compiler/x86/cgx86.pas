@@ -506,7 +506,7 @@ unit cgx86;
                   ((cs_create_pic in current_settings.moduleswitches) and
                    (ref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
                  begin
-                   hreg:=g_indirect_sym_load(list,ref.symbol.name,ref.symbol.bind=AB_WEAK_EXTERNAL);
+                   hreg:=g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
                    ref.symbol:=nil;
                  end
                else
@@ -919,7 +919,7 @@ unit cgx86;
                             (ref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
                           begin
                              reference_reset_base(tmpref,
-                               g_indirect_sym_load(list,ref.symbol.name,ref.symbol.bind=AB_WEAK_EXTERNAL),
+                               g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol)),
                                offset,sizeof(pint));
                              a_loadaddr_ref_reg(list,tmpref,r);
                           end

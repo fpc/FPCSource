@@ -45,6 +45,8 @@ unit cgobj;
     type
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
        tsubsetloadopt = (SL_REG,SL_REGNOSRCMASK,SL_SETZERO,SL_SETMAX);
+       tindsymflag = (is_data,is_weak);
+       tindsymflags = set of tindsymflag;
 
        {# @abstract(Abstract code generator)
           This class implements an abstract instruction generator. Some of
@@ -513,7 +515,7 @@ unit cgobj;
           procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);virtual;
 
-          function g_indirect_sym_load(list:TAsmList;const symname: string; weak: boolean): tregister;virtual;
+          function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;virtual;
           { generate a stub which only purpose is to pass control the given external method,
           setting up any additional environment before doing so (if required).
 
@@ -625,6 +627,8 @@ unit cgobj;
        {# Code generator class for all operations working with 64-Bit operands }
        cg64 : tcg64;
 {$endif cpu64bitalu}
+
+    function asmsym2indsymflags(sym: TAsmSymbol): tindsymflags;
 
     procedure destroy_codegen;
 
@@ -4174,7 +4178,7 @@ implementation
       end;
 
 
-   function tcg.g_indirect_sym_load(list:TAsmList;const symname: string; weak: boolean): tregister;
+   function tcg.g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;
       var
         l: tasmsymbol;
         ref: treference;
@@ -4195,7 +4199,7 @@ implementation
                   new_section(current_asmdata.asmlists[al_picdata],sec_data_nonlazy,'',sizeof(pint));
                   l:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
-                  if not(weak) then
+                  if not(is_weak in flags) then
                     current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,current_asmdata.RefAsmSymbol(symname).Name))
                   else
                     current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,current_asmdata.WeakRefAsmSymbol(symname).Name));
@@ -4210,8 +4214,8 @@ implementation
               { a_load_ref_reg will turn this into a pic-load if needed }
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
             end;
-          end;
         end;
+      end;
 
 
     procedure tcg.g_maybe_got_init(list: TAsmList);
@@ -4390,6 +4394,14 @@ implementation
       end;
 {$endif cpu64bitalu}
 
+    function asmsym2indsymflags(sym: TAsmSymbol): tindsymflags;
+      begin
+        result:=[];
+        if sym.typ<>AT_FUNCTION then
+          include(result,is_data);
+        if sym.bind=AB_WEAK_EXTERNAL then
+          include(result,is_weak);
+      end;
 
     procedure destroy_codegen;
       begin
