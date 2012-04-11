@@ -52,5 +52,5 @@ exports
   _test name '_TEST',
   _myvar;
 
-end.
 {$endif supported}
+end.
