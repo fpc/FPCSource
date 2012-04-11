@@ -46,7 +46,8 @@ interface
       protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;
         function sectionattrs_coff(atype:TAsmSectiontype):string;virtual;
-        procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder);
+        function sectionalignment_aix(atype:TAsmSectiontype;secalign: byte):string;
+        procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:byte);
         procedure WriteExtraHeader;virtual;
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
@@ -463,7 +464,23 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder);
+    function TGNUAssembler.sectionalignment_aix(atype:TAsmSectiontype;secalign: byte): string;
+      var
+        l: longint;
+      begin
+        if (secalign=0) or
+           not(atype in [sec_code,sec_bss,sec_rodata_norel]) then
+          begin
+            result:='';
+            exit;
+          end;
+        if not ispowerof2(secalign,l) then
+          internalerror(2012022201);
+        result:=tostr(l);
+      end;
+
+
+    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:byte);
       var
         s : string;
       begin
@@ -532,7 +549,13 @@ implementation
               s:=sectionattrs_coff(atype);
               if (s<>'') then
                 AsmWrite(',"'+s+'"');
-            end;
+            end
+         else if target_info.system in systems_aix then
+           begin
+             s:=sectionalignment_aix(atype,secalign);
+             if s<>'' then
+               AsmWrite(','+s);
+           end;
         end;
         AsmLn;
         LastSecType:=atype;
@@ -698,9 +721,9 @@ implementation
              begin
                if tai_section(hp).sectype<>sec_none then
                  if replaceforbidden then
-                   WriteSection(tai_section(hp).sectype,ReplaceForbiddenAsmSymbolChars(tai_section(hp).name^),tai_section(hp).secorder)
+                   WriteSection(tai_section(hp).sectype,ReplaceForbiddenAsmSymbolChars(tai_section(hp).name^),tai_section(hp).secorder,tai_section(hp).secalign)
                  else
-                   WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder)
+                   WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder,tai_section(hp).secalign)
                else
                  begin
 {$ifdef EXTDEBUG}
@@ -729,7 +752,7 @@ implementation
                        asmwrite(tai_datablock(hp).sym.name);
                        asmwriteln(', '+tostr(tai_datablock(hp).size)+','+tostr(last_align));
                        if not(LastSecType in [sec_data,sec_none]) then
-                         writesection(LastSecType,'',secorder_default);
+                         writesection(LastSecType,'',secorder_default,last_align);
                      end
                    else
                      begin
@@ -751,7 +774,7 @@ implementation
                        asmwrite(#9'.space ');
                        asmwriteln(tostr(tai_datablock(hp).size));
                        if not(LastSecType in [sec_data,sec_none]) then
-                         writesection(LastSecType,'',secorder_default);
+                         writesection(LastSecType,'',secorder_default,last_align);
                      end
                    else
                      begin
@@ -1281,7 +1304,7 @@ implementation
                      hp:=tai(hp.next);
                    end;
                   if LastSecType<>sec_none then
-                    WriteSection(LastSecType,'',secorder_default);
+                    WriteSection(LastSecType,'',secorder_default,last_align);
                   AsmStartSize:=AsmSize;
                 end;
              end;
