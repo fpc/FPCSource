@@ -53,6 +53,9 @@ implementation
     {$ifndef NOTARGETWII}
       ,t_wii
     {$endif}
+    {$ifndef NOTARGETAIX}
+      ,t_aix
+    {$endif}
 
 {**************************************
              Assemblers

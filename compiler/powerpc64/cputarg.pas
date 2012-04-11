@@ -41,6 +41,9 @@ implementation
     {$ifndef NOTARGETBSD}
       ,t_bsd
     {$endif}
+    {$ifndef NOTARGETAIX}
+      ,t_aix
+    {$endif}
 
 {**************************************
              Assemblers

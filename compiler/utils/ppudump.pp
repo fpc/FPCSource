@@ -149,7 +149,9 @@ const
   { 69 }  'iPhoneSim-i386',
   { 70 }  'Wii-powerpc',
   { 71 }  'OpenBSD-x86-64',
-  { 72 }  'NetBSD-x86-64'
+  { 72 }  'NetBSD-x86-64',
+  { 73 }  'AIX-powerpc',
+  { 74 }  'AIX-powerpc64'
   );
 
 const

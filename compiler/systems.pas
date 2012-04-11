@@ -227,6 +227,8 @@ interface
 
        systems_bsd = systems_freebsd + systems_netbsd + systems_openbsd;
 
+       systems_aix = [system_powerpc_aix,system_powerpc64_aix];
+
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
        systems_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
 
@@ -806,6 +808,10 @@ begin
     {$define default_target_set}
    {$endif}
   {$endif cpupowerpc}
+  {$ifdef aix}
+   default_target(system_powerpc_aix);
+   {$define default_target_set}
+  {$endif}
   {$ifndef default_target_set}
     default_target(system_powerpc_linux);
   {$endif default_target_set}
@@ -822,6 +828,10 @@ begin
     {$endif}
     {$ifdef linux}
      default_target(system_powerpc64_linux);
+     {$define default_target_set}
+    {$endif}
+    {$ifdef aix}
+     default_target(system_powerpc64_aix);
      {$define default_target_set}
     {$endif}
   {$endif cpupowerpc64}

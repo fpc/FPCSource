@@ -148,7 +148,9 @@
              system_i386_iphonesim,     { 69 }
              system_powerpc_wii,        { 70 }
              system_x86_64_openbsd,     { 71 }
-             system_x86_64_netbsd       { 72 }
+             system_x86_64_netbsd,      { 72 }
+             system_powerpc_aix,        { 73 }
+             system_powerpc64_aix       { 74 }
        );
 
      type
@@ -202,7 +204,7 @@
             ,res_single_file);
 
        tdbg = (dbg_none
-            ,dbg_stabs,dbg_dwarf2,dbg_dwarf3,dbg_dwarf4
+            ,dbg_stabs,dbg_stabx,dbg_dwarf2,dbg_dwarf3,dbg_dwarf4
        );
 
        tscripttype = (script_none
