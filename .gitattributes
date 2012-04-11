@@ -138,6 +138,7 @@ compiler/cwindirs.pp svneol=native#text/plain
 compiler/dbgbase.pas svneol=native#text/plain
 compiler/dbgdwarf.pas svneol=native#text/plain
 compiler/dbgstabs.pas svneol=native#text/plain
+compiler/dbgstabx.pas svneol=native#text/plain
 compiler/defcmp.pas svneol=native#text/plain
 compiler/defutil.pas svneol=native#text/plain
 compiler/export.pas svneol=native#text/plain

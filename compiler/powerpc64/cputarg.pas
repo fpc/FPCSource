@@ -67,12 +67,16 @@ implementation
 
 { stabs debug info are not supported, so do not include them here}
 { they are supported on darwin/ppc64 }
-  {$ifndef NoDbgDwarf}
+  {$ifndef NoDbgStabs}
       ,dbgstabs
-  {$endif NoDbgDwarf}
+  {$endif NoDbgStabs}
+  {$ifndef NoDbgStabx}
+      ,dbgstabx
+  {$endif NoDbgStabx}
   {$ifndef NoDbgDwarf}
       ,dbgdwarf
   {$endif NoDbgDwarf}
+
 
 {**************************************
              Optimizer

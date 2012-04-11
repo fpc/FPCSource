@@ -271,7 +271,17 @@ interface
 
       TRegAllocType = (ra_alloc,ra_dealloc,ra_sync,ra_resize);
 
-      TStabType = (stab_stabs,stab_stabn,stab_stabd);
+      TStabType = (stab_stabs,stab_stabn,stab_stabd,
+                   { AIX/XCOFF stab types }
+                   stab_stabx,
+                   { begin/end include file }
+                   stabx_bi,stabx_ei,
+                   { begin/end function }
+                   stabx_bf, stabx_ef,
+                   { begin/end static data block }
+                   stabx_bs, stabx_es,
+                   { line spec, function start/end label }
+                   stabx_line, stabx_function);
 
       TAsmDirective=(
         asd_indirect_symbol,
@@ -292,7 +302,13 @@ interface
     const
       regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized');
       tempallocstr : array[boolean] of string[10]=('released','allocated');
-      stabtypestr : array[TStabType] of string[5]=('stabs','stabn','stabd');
+      stabtypestr : array[TStabType] of string[8]=(
+        'stabs','stabn','stabd',
+        'stabx',
+        'bi','ei',
+        'bf','ef',
+        'bs','es',
+        'line','function');
       directivestr : array[TAsmDirective] of string[23]=(
         'indirect_symbol',
         'extern','nasm_import', 'tc', 'reference',

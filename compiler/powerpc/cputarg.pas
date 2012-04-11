@@ -86,6 +86,9 @@ implementation
   {$ifndef NoDbgStabs}
       ,dbgstabs
   {$endif NoDbgStabs}
+  {$ifndef NoDbgStabx}
+      ,dbgstabx
+  {$endif NoDbgStabx}
   {$ifndef NoDbgDwarf}
       ,dbgdwarf
   {$endif NoDbgDwarf}

@@ -2582,7 +2582,20 @@ implementation
            (assigned(current_procinfo) and
             (po_inline in current_procinfo.procdef.procoptions)) or
            (vo_is_public in sym.varoptions) then
-          list.concat(Tai_datablock.create_global(sym.mangledname,l))
+          begin
+            { on AIX/stabx, we cannot generate debug information that encodes
+              the address of a global symbol, you need a symbol with the same
+              name as the identifier -> create an extra *local* symbol.
+              Moreover, such a local symbol will be removed if it's not
+              referenced anywhere, so also create a reference }
+            if (target_dbg.id=dbg_stabx) and
+               (cs_debuginfo in current_settings.moduleswitches) then
+              begin
+                list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA),0));
+                list.concat(tai_directive.Create(asd_reference,sym.name));
+              end;
+            list.concat(Tai_datablock.create_global(sym.mangledname,l));
+          end
         else
           list.concat(Tai_datablock.create(sym.mangledname,l));
         current_filepos:=storefilepos;
