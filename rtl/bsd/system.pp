@@ -169,6 +169,13 @@ begin
   seterrno(olderrno);
 end;
 
+{$ifdef DEBUG}
+  { Declare InstallDefaultSignalHandler as forward to be able
+    to test aclling fpsigaction again within SignalToRunError
+    function implemented within sighnd.inc inlcude file }
+procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); forward;
+{$endif}
+
 {$i sighnd.inc}
 
 procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
