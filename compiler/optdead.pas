@@ -28,7 +28,7 @@ unit optdead;
 
     uses
       globtype,
-      cclasses,
+      classes,cclasses,
       symtype,
       wpobase;
 
@@ -71,6 +71,8 @@ unit optdead;
         fsymnamepos  : longint;
         fsymfile     : text;
         fsymfilename : tcmdstr;
+        aixstrings   : tstringlist;
+        fuseaixextractstrings : boolean;
         function parselinenm(const line: ansistring): boolean;
         function parselineobjdump(const line: ansistring): boolean;
        public
@@ -78,6 +80,7 @@ unit optdead;
 
         { information collection }
         procedure constructfromcompilerstate; override;
+        destructor destroy; override;
       end;
 
 
@@ -216,16 +219,33 @@ const
 
   function twpodeadcodeinfofromexternallinker.parselinenm(const line: ansistring): boolean;
     begin
-      if (length(line) < fsymnamepos) then
+      if fuseaixextractstrings then
         begin
-          cgmessage1(wpo_error_reading_symbol_file,'nm');
-          close(fsymfile);
-          deletefile(fsymfilename);
-          result:=false;
-          exit;
+          result:=true;
+          if ExtractStrings([' ',#9],[],pchar(line),aixstrings)>=2 then
+            begin
+              if (length(aixstrings[1])=1) and
+                 (aixstrings[1][1] in ['t','T']) and
+                 (aixstrings[0][1]='.') then
+                fsymbols.add(copy(aixstrings[0],2,length(aixstrings[0])),pointer(1));
+            end;
+          aixstrings.clear;
+        end
+      else
+        begin
+          if (length(line) < fsymnamepos) then
+            begin
+              cgmessage1(wpo_error_reading_symbol_file,'nm');
+              close(fsymfile);
+              deletefile(fsymfilename);
+              result:=false;
+              exit;
+            end;
+          if (line[fsymtypepos] in ['T','t']) and
+             (not(target_info.system in systems_dotted_function_names) or
+              (line[fsymnamepos-1]='.')) then
+            fsymbols.add(copy(line,fsymnamepos,length(line)),pointer(1));
         end;
-      if (line[fsymtypepos] in ['T','t']) then
-        fsymbols.add(copy(line,fsymnamepos,length(line)),pointer(1));
       result:=true;
     end;
 
@@ -300,12 +320,27 @@ const
             ...
         }
         result:=false;
+        if (source_info.system in systems_aix) and
+           (target_info.system in systems_aix) then
+          begin
+            { check for native aix nm:
+              .__start             t   268435792         213
+              .__start             T   268435792
+            }
+            if not(line[1] in ['0'..'9','a'..'f','A'..'F']) then
+              begin
+                fuseaixextractstrings:=true;
+                aixstrings:=tstringlist.create;
+                result:=true;
+                exit;
+              end;
+          end;
         fsymtypepos:=pos(' ',line)+1;
         fsymnamepos:=fsymtypepos+2;
         { on Linux/ppc64, there is an extra '.' at the start
           of public function names
         }
-        if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
+        if (target_info.system=system_powerpc64_linux) then
           inc(fsymnamepos);
         if failiferror(fsymtypepos<=0) then
           exit;
@@ -346,6 +381,7 @@ const
 
 
     begin { twpodeadcodeinfofromexternallinker }
+      fuseaixextractstrings:=false;
       { gnu-nm (e.g., on solaris) }
       symbolprogfound:=findutil('gnm',nmfullname,symbolprogfullpath);
       { regular nm }
@@ -415,6 +451,13 @@ const
         end;
       close(fsymfile);
       deletefile(fsymfilename);
+    end;
+
+
+  destructor twpodeadcodeinfofromexternallinker.destroy;
+    begin
+      aixstrings.free;
+      inherited destroy;
     end;
 
 
