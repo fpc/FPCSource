@@ -7,8 +7,8 @@ uses fpmkunit;
 
 procedure add_fpindexer;
 Const
-  SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd];
-  SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,win32,wince];
+  SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd,aix];
+  SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,win32,wince,aix];
     
 Var
   T : TTarget;
@@ -21,7 +21,7 @@ begin
       P.Directory:='fpindexer';
 {$endif ALLPACKAGES}
       P.Version:='2.7.1';
-      P.OSes := [beos,haiku,freebsd,darwin,solaris,netbsd,openbsd,linux,win32,win64,wince];
+      P.OSes := [beos,haiku,freebsd,darwin,solaris,netbsd,openbsd,linux,win32,win64,wince,aix];
       P.Dependencies.Add('fcl-base');
       P.Dependencies.Add('fcl-db');
       P.Dependencies.Add('chm'); // for fastreaderhtml

@@ -8,7 +8,7 @@ uses fpmkunit;
 procedure add_fppkg_util;
 
 const
-  lnetOSes = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince];
+  lnetOSes = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince,aix];
 
 Var
   P : TPackage;
@@ -41,7 +41,7 @@ begin
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('paszlib');
-    //P.Dependencies.Add('libcurl',[beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux]);
+    //P.Dependencies.Add('libcurl',[beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,aix]);
     P.Dependencies.Add('fppkg');
     P.Dependencies.Add('univint', [Darwin, iphonesim]);
 

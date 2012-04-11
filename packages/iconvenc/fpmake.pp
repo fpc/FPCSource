@@ -19,7 +19,7 @@ begin
     P.Version:='2.7.1';
     P.Author := 'Marco van de Voort';
     P.License := 'Library: LGPL2 or later, header: LGPL with modification, ';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,linux];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,linux,aix];
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'A libiconv header translation.';

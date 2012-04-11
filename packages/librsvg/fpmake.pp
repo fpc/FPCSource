@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='librsvg';
 {$endif ALLPACKAGES}
-    P.OSes := [beos,haiku,freebsd,netbsd,openbsd,linux,win32];
+    P.OSes := [beos,haiku,freebsd,netbsd,openbsd,linux,win32,aix];
     // Do not build x11 on iPhone (=arm-darwin)
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];

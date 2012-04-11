@@ -17,7 +17,7 @@ begin
     P.Directory:='syslog';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,aix];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('systemlog.pp');

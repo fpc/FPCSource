@@ -21,7 +21,7 @@ begin
     P.Options.Add('-S2h');
     D:=P.Dependencies.Add('fcl-base');
       D.Version:='2.7.1';
-    D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,freebsd,haiku,beos]);
+    D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,freebsd,haiku,beos,aix]);
 
     P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';
     P.License := 'LGPL with modification, ';
@@ -140,7 +140,7 @@ begin
           AddUnit('dom');
           AddUnit('htmldefs');
         end;
-    T:=P.Targets.AddUnit('xmliconv.pas',[linux,freebsd,darwin,iphonesim,haiku,beos]);
+    T:=P.Targets.AddUnit('xmliconv.pas',[linux,freebsd,darwin,iphonesim,haiku,beos,aix]);
       with T.Dependencies do
         begin
           AddUnit('xmlread');

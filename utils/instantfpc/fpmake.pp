@@ -31,7 +31,7 @@ begin
     P.Dependencies.Add('fcl-process');
     P.Options.Add('-S2h');
 
-    P.OSes := [win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris];
+    P.OSes := [win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris,aix];
 
     T:=P.Targets.AddProgram('instantfpc.pas');
     T.Dependencies.AddUnit('instantfptools');

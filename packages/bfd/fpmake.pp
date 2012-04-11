@@ -23,7 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Binary File Descriptor library.';
     P.NeedLibC:= true;
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,aix];
 
     P.SourcePath.Add('src');
 

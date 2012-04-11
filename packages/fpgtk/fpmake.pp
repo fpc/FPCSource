@@ -17,7 +17,7 @@ begin
     P.Directory:='fpgtk';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes := [beos,haiku,freebsd,solaris,netbsd,openbsd,linux,win32,win64,os2,emx];
+    P.OSes := [beos,haiku,freebsd,solaris,netbsd,openbsd,linux,win32,win64,os2,emx,aix];
     // Do not build fpgtk on iPhone (=arm-darwin)
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
