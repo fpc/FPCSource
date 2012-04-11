@@ -8364,6 +8364,7 @@ rtl/unix/initc.pp svneol=native#text/plain
 rtl/unix/ipc.pp svneol=native#text/plain
 rtl/unix/ipccdecl.inc svneol=native#text/plain
 rtl/unix/keyboard.pp svneol=native#text/plain
+rtl/unix/lnfogdb.pp svneol=native#text/plain
 rtl/unix/mouse.pp svneol=native#text/plain
 rtl/unix/oscdecl.inc svneol=native#text/plain
 rtl/unix/oscdeclh.inc svneol=native#text/plain

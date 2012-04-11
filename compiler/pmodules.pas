@@ -675,10 +675,14 @@ implementation
              AddUnit('heaptrc');
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin
-             if (paratargetdbg = dbg_stabs) then
-               AddUnit('lineinfo')
-             else
-               AddUnit('lnfodwrf');
+             case paratargetdbg of
+               dbg_stabs:
+                 AddUnit('lineinfo');
+               dbg_stabx:
+                 AddUnit('lnfogdb');
+               else
+                 AddUnit('lnfodwrf');
+             end;
            end;
            { Valgrind requires c memory manager }
            if (cs_gdb_valgrind in current_settings.globalswitches) then
