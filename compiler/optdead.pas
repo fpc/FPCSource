@@ -305,7 +305,7 @@ const
         { on Linux/ppc64, there is an extra '.' at the start
           of public function names
         }
-        if (target_info.system=system_powerpc64_linux) then
+        if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
           inc(fsymnamepos);
         if failiferror(fsymtypepos<=0) then
           exit;
