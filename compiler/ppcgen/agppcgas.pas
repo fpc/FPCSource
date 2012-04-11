@@ -52,6 +52,13 @@ unit agppcgas;
       function MakeCmdLine: TCmdStr; override;
     end;
 
+    TPPCAIXAssembler=class(TPPCGNUAssembler)
+      constructor create(smart: boolean); override;
+      procedure WriteExtraHeader; override;
+      procedure WriteExtraFooter; override;
+      function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
+    end;
+
     topstr = string[4];
 
     function getreferencestring(var ref : treference) : string;
@@ -91,22 +98,47 @@ unit agppcgas;
           if ((offset < -32768) or (offset > 32767)) and
              (refaddr = addr_no) then
             internalerror(2006052501);
-          if (refaddr = addr_no) then
-            s := ''
-          else
-            begin
-              if target_info.system in [system_powerpc_darwin,system_powerpc64_darwin] then
-                s := refaddr2str_darwin[refaddr]
-              else
-                s :='';
-              s := s+'(';
-              if assigned(symbol) then
-                begin
-                  s:=s+symbol.name;
-                  if assigned(relsymbol) then
-                    s:=s+'-'+relsymbol.name;
-                end;
-            end;
+          case refaddr of
+            addr_no:
+              s := '';
+            addr_pic_no_got:
+              begin
+                { used for TOC-based loads }
+                if (base<>NR_RTOC) or
+                   (index<>NR_NO) or
+                   (offset<>0) or
+                   not assigned(symbol) then
+                  internalerror(2011122701);
+                if target_asm.dollarsign<>'$' then
+                  getreferencestring:=ReplaceForbiddenAsmSymbolChars(symbol.name)+'('+gas_regname(NR_RTOC)+')'
+                else
+                  getreferencestring:=symbol.name+'('+gas_regname(NR_RTOC)+')';
+                exit;
+              end
+            else
+              begin
+                if target_info.system in [system_powerpc_darwin,system_powerpc64_darwin] then
+                  s := refaddr2str_darwin[refaddr]
+                else
+                  s :='';
+                s := s+'(';
+                if assigned(symbol) then
+                  begin
+                    if target_asm.dollarsign<>'$' then
+                      begin
+                        s:=s+ReplaceForbiddenAsmSymbolChars(symbol.name);
+                        if assigned(relsymbol) then
+                          s:=s+'-'+ReplaceForbiddenAsmSymbolChars(relsymbol.name)
+                      end
+                    else
+                      begin
+                        s:=s+symbol.name;
+                        if assigned(relsymbol) then
+                          s:=s+'-'+relsymbol.name;
+                      end;
+                  end;
+              end;
+          end;
           if offset<0 then
            s:=s+tostr(offset)
           else
@@ -414,7 +446,77 @@ unit agppcgas;
       end;
 
 
+{****************************************************************************}
+{                         AIX PPC Assembler writer                           }
+{****************************************************************************}
 
+    constructor TPPCAIXAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := TPPCInstrWriter.create(self);
+      end;
+
+
+    procedure TPPCAIXAssembler.WriteExtraHeader;
+      var
+        i: longint;
+      begin
+        inherited WriteExtraHeader;
+        { AIX assembler notation for .quad is .llong, let assembler itself
+          perform the substitution; the aix assembler uses .quad for defining
+          128 bit floating point numbers, but
+            a) we don't support those yet
+            b) once we support them, we'll encode them byte per byte like other
+               floating point numbers }
+        AsmWriteln(#9'.set'#9'.quad,.llong');
+        { map cr registers to plain numbers }
+        for i:=0 to 7 do
+          AsmWriteln(#9'.set'#9'cr'+tostr(i)+','+tostr(i));
+        { make sure we always have a code and toc section, the linker expects
+          that }
+        AsmWriteln(#9'.csect .text[PR]');
+        AsmWriteln(#9'.toc');
+      end;
+
+
+    procedure TPPCAIXAssembler.WriteExtraFooter;
+      begin
+        inherited WriteExtraFooter;
+        { link between data and text section }
+        AsmWriteln('_section_.text:');
+        AsmWriteln(#9'.csect .data[RW],4');
+{$ifdef cpu64bitaddr}
+        AsmWrite(#9'.llong _section_.text')
+{$else cpu64bitaddr}
+        AsmWrite(#9'.long _section_.text')
+{$endif cpu64bitaddr}
+      end;
+
+
+    function TPPCAIXAssembler.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
+      begin
+        case atype of
+          sec_code:
+            result:='.csect .text[PR]';
+          sec_data,
+          sec_rodata,
+          { don't use .bss[BS], causes relocation problems }
+          sec_bss:
+            result:='.csect .data[RW]';
+          sec_rodata_norel:
+            result:='.csect .text[RO]';
+          sec_fpc:
+            result:='.csect .fpc[RO]';
+          sec_toc:
+            result:='.toc';
+          { automatically placed in the right section }
+          sec_stab,
+          sec_stabstr:
+            result:='';
+          else
+            internalerror(2011122601);
+        end;
+      end;
 
 
 {*****************************************************************************
@@ -456,7 +558,27 @@ unit agppcgas;
        );
 
 
+    as_ppc_aix_powerpc_info : tasminfo =
+       (
+         id     : as_powerpc_xcoff;
+
+         idtxt  : 'AS-AIX';
+         asmbin : 'as';
+         { -u: allow using symbols before they are defined (when using native
+               AIX assembler, ignore by GNU assembler)
+           -mpwr5: we actually support Power3 and higher, but the AIX assembler
+               has no parameter to select that one (only -mpwr3 and -mpwr5) }
+         asmcmd : '-u -o $OBJ $ASM -mpwr5';
+         supported_targets : [system_powerpc_aix,system_powerpc64_aix];
+         flags : [af_needar,af_smartlink_sections,af_stabs_use_function_absolute_addresses];
+         labelprefix : 'L';
+         comment : '# ';
+         dollarsign : '.'
+       );
+
+
 begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
   RegisterAssembler(as_ppc_gas_darwin_powerpc_info,TPPCAppleGNUAssembler);
+  RegisterAssembler(as_ppc_aix_powerpc_info,TPPCAIXAssembler);
 end.

@@ -184,6 +184,7 @@
              ,as_i386_nasmhaiku
              ,as_powerpc_vasm
              ,as_i386_nlmcoff
+             ,as_powerpc_xcoff
        );
 
        tar = (ar_none
