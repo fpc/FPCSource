@@ -1518,7 +1518,7 @@ implementation
       else
         n:=InputFileName;
 
-      { gcc does not add it either for Darwin (and AIX). Grep for
+      { gcc does not add it either for Darwin. Grep for
         TARGET_ASM_FILE_START_FILE_DIRECTIVE in gcc/config/*.h
       }
       if not(target_info.system in systems_darwin) then
