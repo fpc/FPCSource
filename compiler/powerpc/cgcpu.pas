@@ -199,7 +199,9 @@ const
          if not(pi_do_call in current_procinfo.flags) then
            internalerror(2003060703);
 }
-       include(current_procinfo.flags,pi_do_call);
+       { not assigned while generating external wrappers }
+       if assigned(current_procinfo) then
+         include(current_procinfo.flags,pi_do_call);
       end;
 
     { calling a procedure by address }

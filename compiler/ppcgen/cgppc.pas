@@ -68,6 +68,7 @@ unit cgppc;
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
 
         function get_aix_toc_sym(const symname: string; const flags: tindsymflags):tasmsymbol;
+        procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
        protected
         function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
@@ -841,6 +842,56 @@ unit cgppc;
           current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
         end;
     end;
+
+
+    procedure tcgppcgen.g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string);
+      var
+        href : treference;
+      begin
+        if not(target_info.system in ([system_powerpc64_linux]+systems_aix)) then begin
+          inherited;
+          exit;
+        end;
+
+        { for ppc64/linux and aix emit correct code which sets up a stack frame
+          and then calls the external method normally to ensure that the GOT/TOC
+          will be loaded correctly if required.
+
+        The resulting code sequence looks as follows:
+
+        mflr r0
+        stw/d r0, 16(r1)
+        stw/du r1, -112(r1)
+        bl <external_method>
+        nop
+        addi r1, r1, 112
+        lwz/d r0, 16(r1)
+        mtlr r0
+        blr
+
+        }
+        list.concat(taicpu.op_reg(A_MFLR, NR_R0));
+        if target_info.abi=abi_powerpc_sysv then
+          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8)
+        else
+          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_AIX, 8);
+        a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_R0,href);
+        reference_reset_base(href, NR_STACK_POINTER_REG, -MINIMUM_STACKFRAME_SIZE, 8);
+        list.concat(taicpu.op_reg_ref({$ifdef cpu64bitaddr}A_STDU{$else}A_STWU{$endif}, NR_STACK_POINTER_REG, href));
+
+        a_call_name(list,externalname,false);
+
+        list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, MINIMUM_STACKFRAME_SIZE));
+
+
+        if target_info.abi=abi_powerpc_sysv then
+          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8)
+        else
+          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_AIX, 8);
+        a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
+        list.concat(taicpu.op_reg(A_MTLR, NR_R0));
+        list.concat(taicpu.op_none(A_BLR));
+      end;
 
 
     function tcgppcgen.fixref(list: TAsmList; var ref: treference): boolean;
