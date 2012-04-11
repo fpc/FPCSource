@@ -752,6 +752,11 @@ Unit rappcgas;
                (instr.Operands[1].opr.ref.index<>NR_NO) then
               Message(asmr_e_syn_operand);
           end;
+        { regular name is toc entry, .-based name is actual code }
+        if (target_info.system in (systems_aix+[system_powerpc64_linux])) and
+           (instr.Operands[1].opr.typ = OPR_SYMBOL) and
+           (instr.Operands[1].opr.symbol.typ=AT_FUNCTION) then
+          instr.Operands[1].opr.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.symbol.name,instr.Operands[1].opr.symbol.bind,AT_FUNCTION);
       end;
 
 

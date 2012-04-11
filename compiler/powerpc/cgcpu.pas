@@ -181,14 +181,24 @@ const
          { MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
            if it is a cross-TOC call. If so, it also replaces the NOP
            with some restore code.}
-         if (target_info.system <> system_powerpc_darwin) then
+         if (target_info.system<>system_powerpc_darwin) then
            begin
-             if not(weak) then
-               list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+             if target_info.system<>system_powerpc_aix then
+               begin
+                 if not(weak) then
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+                 else
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)));
+               end
              else
-               list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)));
+               begin
+                 if not(weak) then
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol('.'+s)))
+                 else
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol('.'+s)));
+               end;
 
-             if target_info.system=system_powerpc_macos then
+             if target_info.system in [system_powerpc_macos,system_powerpc_aix] then
                list.concat(taicpu.op_none(A_NOP));
            end
          else

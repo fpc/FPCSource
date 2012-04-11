@@ -779,7 +779,9 @@ unit cgppc;
             system_powerpc_darwin,
             system_powerpc64_darwin:
               list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname,false)));
-            system_powerpc64_linux:
+            system_powerpc64_linux,
+            system_powerpc_aix,
+            system_powerpc64_aix:
               {$note ts:todo add GOT change?? - think not needed :) }
               list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
             else
