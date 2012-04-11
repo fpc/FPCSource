@@ -995,12 +995,15 @@ implementation
         Marker  : tai;
         reg     : tregister;
         asmreader : tbaseasmreader;
+        entrypos : tfileposinfo;
       begin
          Inside_asm_statement:=true;
          if assigned(asmmodeinfos[current_settings.asmmode]) then
            begin
              asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create;
+             entrypos:=current_filepos;
              asmstat:=casmnode.create(asmreader.assemble as TAsmList);
+             asmstat.fileinfo:=entrypos;
              asmreader.free;
            end
          else
