@@ -678,7 +678,8 @@ Implementation
         f : text;
         st : string;
       begin
-        if not (tf_no_backquote_support in source_info.flags) then
+        if not (tf_no_backquote_support in source_info.flags) or
+           (cs_link_on_target in current_settings.globalswitches) then
            begin
              CatFileContent:='`cat '+MaybeQuoted(para)+'`';
              Exit;
