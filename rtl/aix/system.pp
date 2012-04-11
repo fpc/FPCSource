@@ -236,6 +236,27 @@ begin
   result := stklen;
 end;
 
+
+const
+  FP_TRAP_SYNC = 1;                { precise fpu exceptions }
+  FP_TRAP_OFF = 0;                 { disable fpu exceptions }
+  FP_TRAP_QUERY = 2;               { current fpu exception state }
+  FP_TRAP_IMP = 3;                 { imprecise non-recoverable fpu exceptions }
+  FP_TRAP_IMP_REC = 4;             { imprecise recoverable fpu exceptions }
+  FP_TRAP_FASTMODE = 128;          { fastest fpu exception state }
+  FP_TRAP_ERROR = -1;
+  FP_TRAP_UNIMPL = -2;
+
+  TRP_INVALID     = $00000080;
+  TRP_OVERFLOW    = $00000040;
+  TRP_UNDERFLOW   = $00000020;
+  TRP_DIV_BY_ZERO = $00000010;
+  TRP_INEXACT     = $00000008;
+
+
+function fp_trap(flag: longint): longint; cdecl; external;
+procedure fp_enable(Mask: DWord);cdecl;external;
+
 Begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
@@ -245,7 +266,18 @@ Begin
 
   SysResetFPU;
   if not(IsLibrary) then
-    SysInitFPU;
+    begin
+      { clear pending exceptions }
+      feclearexcept(FE_ALL_EXCEPT);
+      { enable floating point exceptions process-wide (try two possibilities) }
+      if fp_trap(FP_TRAP_SYNC)=FP_TRAP_UNIMPL then
+        fp_trap(FP_TRAP_IMP);
+
+      SysInitFPU;
+      { now enable the actual individual exceptions, except for underflow and
+        inexact (also disabled by default on x86 and in the softfpu mask) }
+      fp_enable(TRP_INVALID or TRP_DIV_BY_ZERO or TRP_OVERFLOW);
+    end;
 
 { Setup heap }
   InitHeap;

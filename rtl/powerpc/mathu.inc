@@ -21,6 +21,7 @@ const
   UnderflowMask        = %00100000;
   ZeroDivideMask       = %00010000;
   InexactMask          = %00001000;
+  AllExceptionsMask    = %11111000;
   ExceptionsPendingMask = %11111111111111100000011100000000;
 
   ExceptionMask        = InvalidOperationMask or OverflowMask or UnderflowMask or ZeroDivideMask or InexactMask;
@@ -41,13 +42,39 @@ asm
   mtfsf 255, f0
 end;
 
+{$ifdef aix}
+const
+  FP_RND_RZ = 0;
+  FP_RND_RN = 1;
+  FP_RND_RP = 2;
+  FP_RND_RM = 3;
+
+function fp_is_enabled(Mask: DWord): boolean;cdecl;external;
+procedure fp_enable(Mask: DWord);cdecl;external;
+function feclearexcept(Mask: DWord):DWord;cdecl;external;
+procedure fp_disable(Mask: DWord);cdecl;external;
+function fp_read_rnd: word;cdecl;external;
+function fp_swap_rnd(RoundMode: word): word;cdecl;external;
+
+{$else aix}
+const
+  FP_RND_RZ = 1;
+  FP_RND_RN = 0;
+  FP_RND_RP = 2;
+  FP_RND_RM = 3;
+{$endif aix}
+
 function GetRoundMode: TFPURoundingMode;
 begin
+{$ifndef aix}
   case (getFPSCR and RoundModeMask) of
-    0 : result := rmNearest;
-    1 : result := rmTruncate;
-    2 : result := rmUp;
-    3 : result := rmDown;
+{$else not aix}
+  case fp_read_rnd of
+{$endif not aix}
+    FP_RND_RN : result := rmNearest;
+    FP_RND_RZ : result := rmTruncate;
+    FP_RND_RP : result := rmUp;
+    FP_RND_RM : result := rmDown;
   end;
 end;
 
@@ -58,26 +85,30 @@ begin
   case (RoundMode) of
     rmNearest :
       begin
-        mode := 0;
+        mode := FP_RND_RN;
         softfloat_rounding_mode := float_round_nearest_even;
       end;
     rmTruncate :
       begin
-        mode := 1;
+        mode := FP_RND_RZ;
         softfloat_rounding_mode := float_round_to_zero;
       end;
     rmUp :
       begin
-        mode := 2;
+        mode := FP_RND_RP;
         softfloat_rounding_mode := float_round_up;
       end;
     rmDown :
       begin
-        mode := 3;
+        mode := FP_RND_RM;
         softfloat_rounding_mode := float_round_down;
       end;
   end;
+{$ifndef aix}
   setFPSCR((getFPSCR and (not RoundModeMask)) or mode);
+{$else not aix}
+  fp_swap_rnd(mode);
+{$endif not aix}
   result := RoundMode;
 end;
 
@@ -97,6 +128,7 @@ end;
 function GetExceptionMask: TFPUExceptionMask;
 begin
   result := [];
+{$ifndef aix}
   if ((getFPSCR and InvalidOperationMask) = 0) then 
     result := result + [exInvalidOp];
   if ((getFPSCR and OverflowMask) = 0) then 
@@ -107,6 +139,18 @@ begin
     result := result + [exZeroDivide];
   if ((getFPSCR and InexactMask) = 0) then 
     result := result + [exPrecision];
+{$else not aix}
+  if not fp_is_enabled(InvalidOperationMask) then
+    result := result + [exInvalidOp];
+  if not fp_is_enabled(OverflowMask) then
+    result := result + [exOverflow];
+  if not fp_is_enabled(UnderflowMask) then
+    result := result + [exUnderflow];
+  if not fp_is_enabled(ZeroDivideMask) then
+    result := result + [exZeroDivide];
+  if not fp_is_enabled(InexactMask) then
+    result := result + [exPrecision];
+{$endif not aix}
 end;
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
@@ -114,24 +158,55 @@ var
   mode : DWord;
 begin
   mode := 0;
+  softfloat_exception_mask := 0;
   if (exInvalidOp in Mask) then
-    mode := mode or InvalidOperationMask;
+    begin
+      mode := mode or InvalidOperationMask;
+      softfloat_exception_mask := softfloat_exception_mask or float_flag_invalid;
+    end;
   if (exOverflow in Mask) then
-    mode := mode or OverflowMask;
+    begin
+      mode := mode or OverflowMask;
+      softfloat_exception_mask := softfloat_exception_mask or float_flag_overflow;
+    end;
   if (exUnderflow in Mask) then
-    mode := mode or UnderflowMask;
+    begin
+      mode := mode or UnderflowMask;
+      softfloat_exception_mask := softfloat_exception_mask or float_flag_underflow;
+    end;
   if (exZeroDivide in Mask) then
-    mode := mode or ZeroDivideMask;
+    begin
+      mode := mode or ZeroDivideMask;
+      softfloat_exception_mask := softfloat_exception_mask or float_flag_divbyzero;
+    end;
   if (exPrecision in Mask) then
-    mode := mode or InexactMask;
-  
+    begin
+      mode := mode or InexactMask;
+      softfloat_exception_mask := softfloat_exception_mask or float_flag_inexact;
+    end;
+
   setFPSCR((getFPSCR or ExceptionMask) and not mode and not ExceptionsPendingMask);
+  softfloat_exception_flags := 0;;
+  { also clear out pending exceptions on AIX }
+{$ifdef aix}
+  { clear pending exceptions }
+  feclearexcept(AllExceptionsMask);
+  { enable the exceptions that are not disabled }
+  fp_enable(mode xor AllExceptionsMask);
+  { and disable the rest }
+  fp_disable(mode);
+{$endif}
   result := Mask - [exDenormalized];
 end;
 
 
 procedure ClearExceptions(RaisePending: Boolean = true);
 begin
+{$ifdef aix}
+  { clear pending exceptions }
+  feclearexcept(AllExceptionsMask);
+{$endif}
+  softfloat_exception_flags := 0;
   { RaisePending has no effect on PPC, always raises them at the correct location }
   setFPSCR(getFPSCR and (not ExceptionsPendingMask));
 end;

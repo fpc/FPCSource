@@ -170,6 +170,8 @@
 {$endif}
 
 
+{ buggy on aix, sets DIV_BY_ZERO flag for some valid inputs }
+{$ifndef aix}
 {$ifndef FPC_SYSTEM_HAS_LN}
 {$define FPC_SYSTEM_HAS_LN}
 
@@ -181,6 +183,7 @@
       result := c_log(d);
       checkexcepts;
     end;
+{$endif}
 {$endif}
 
 
