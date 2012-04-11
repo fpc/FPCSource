@@ -58,26 +58,43 @@ Const
   IPC_M      =  1 shl 12;
 {$endif}
 
-  IPC_CREAT  =  1 shl 9;  { create if key is nonexistent }
+{$ifdef aix}
+  IPC_R      =  4 shl 6;
+  IPC_W      =  2 shl 6;
+  { no IPC_M }
+{$endif}
+
+{$ifndef aix}
+  IPC_CREAT  =  1 shl 9;  { create if key is non-existent }
+{$else aix}
+  IPC_CREAT  =  2 shl 12;
+{$endif aix}
   IPC_EXCL   =  2 shl 9;  { fail if key exists }
   IPC_NOWAIT =  4 shl 9;  { return error on wait }
 
 {$if defined(FreeBSD) or defined(Darwin) or defined(Linux) or defined(OpenBSD)}
-  IPC_PRIVATE : TKey = 0;
+  IPC_PRIVATE = TKey(0);
+{$elseif defined(aix)}
+  IPC_PRIVATE = TKey(-1)
 {$endif}
 
   { Actions for ctl calls }
 
   IPC_RMID = 0;     { remove resource }
+{$ifndef aix}
   IPC_SET  = 1;     { set ipc_perm options }
   IPC_STAT = 2;     { get ipc_perm options }
+{$else aix}
+  IPC_SET  = 101;     { set ipc_perm options }
+  IPC_STAT = 102;     { get ipc_perm options }
+{$endif aix}
 {$ifndef Darwin}
   IPC_INFO = 3;     { see ipcs }
 {$endif}
 
 type
   PIPC_Perm = ^TIPC_Perm;
-{$ifdef darwin }
+{$if defined(darwin) }
 {$packrecords 4}
 { This is also the strcut for FreeBSD up to version 7
   renamed ipc_perm_old in /usr/include/sys/ipc.h in version 8 and after }
@@ -91,8 +108,7 @@ type
         key   : key_t;    { user specified msg/sem/shm key }
   End;
 {$packrecords c}
-{$else }
-{$if defined(NetBSD) or defined(OpenBSD) or defined(FreeBSD) }
+{$elseif defined(NetBSD) or defined(OpenBSD) or defined(FreeBSD) }
   TIPC_Perm = record
         cuid  : uid_t;  { creator user id }
         cgid  : gid_t;  { creator group id }
@@ -102,6 +118,16 @@ type
         seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
         key   : key_t;    { user specified msg/sem/shm key }
   End;
+{$elseif defined(aix)}
+  TIPC_Perm = record
+       uid     : uid_t;
+       git     : gid_t;
+       cuid    : uid_t;
+       cgit    : git_t;
+       mode    : mode_t;
+       seq     : cushort;
+       key     : key_t;
+  end;
 {$else } // linux
 
 {$ifdef cpu32}
@@ -141,8 +167,7 @@ type
         seq   : cushort;
   End;
 {$endif not(linux_ipc32) and not(FPC_USE_LIBC)}
-{$endif not netbsd}
-{$endif not others}
+{$endif}
 
 
 { Function to generate a IPC key. }
@@ -216,6 +241,27 @@ Type
 {$endif cpux86_64}
 {$endif}
 
+{$ifdef aix}
+  shmatt_t = {$ifdef cpu64}culong{$else}cushort{$endif};
+  TShmid_ds = record
+    shm_perm      : TIPC_Perm;
+    shm_segsz     : size_t;
+    shm_lpid      : pid_t;
+    shm_cpid      : pid_t;
+    shm_nattch    : shmatt_t;
+    shm_cnattch   : shmatt_t;
+    shm_atime     : time_t;
+    shm_dtime     : time_t;
+    shm_ctime     : time_t;
+    shm_handle    : {$ifdef cpu64}cuint{$else}culong{$endif};
+    shm_extshm    : cint;
+    shm_pagesize  : cint64;
+    shm_lba       : cuint64;
+    shm_reserved0 : cint64;
+    shm_reserved1 : cint64;
+  end;
+{$endif aix}
+
   const
 {$ifdef Linux}
      SHM_R      = 4 shl 6;
@@ -233,9 +279,21 @@ Type
 {$ifdef Darwin}
      SHMLBA     = 4096;
 {$endif}
+{$ifdef aix}
+     SHM_PIN    = 4 shl 9;
+     SHM_LGPAGE = 2 shl 30; { only available with SHM_PIN }
+{$endif}
 
+{$ifndef aix}
      SHM_LOCK   = 11;
      SHM_UNLOCK = 12;
+{$else not aix}
+     SHM_SIZE      = 6;
+     SHM_PAGESIZE  = 200;
+     SHM_LOCK      = 201;
+     SHM_UNLOCK    = 202;
+     SHM_GETLBA    = 203;
+{$endif not aix}
 
 {$ifdef FreeBSD}        // ipcs shmctl commands
      SHM_STAT   = 13;
@@ -244,6 +302,7 @@ Type
 
 type            // the shm*info kind is "kernel" only.
   PSHMinfo = ^TSHMinfo;
+{$ifndef aix}
   TSHMinfo = record             // comment under FreeBSD/Darwin: do we really need this?
     shmmax : cint;
     shmmin : cint;
@@ -251,6 +310,13 @@ type            // the shm*info kind is "kernel" only.
     shmseg : cint;
     shmall : cint;
   end;
+{$else not aix }
+  TSHMinfo = record
+    shmmax : culonglong;
+    shmmin : cint;
+    shmmni : cint;
+  end;
+{$endif not aix}
 
 {$if defined(FreeBSD) or defined(OpenBSD) or defined(Linux)}
   PSHM_info = ^TSHM_info;
@@ -286,21 +352,40 @@ const
 
 type
   msglen_t = culong;
+{$ifndef aix}
   msgqnum_t= culong;
+{$else not aix}
+  msgqnum_t= cuint;
+{$endif not aix}
 
 {$ifdef Darwin}
   user_msglen_t = culonglong;
   user_msgqnum_t= culonglong;
 {$endif}
 
+{$ifdef aix}
+  TMsg_Hdr = record
+    mtime : time_t;
+    muid  : uid_t;
+    mgid  : git_t;
+    mpid  : pid_t;
+    mtype : clong;
+  end;
+{$endif aix}
+
   PMSG = ^TMSG;
   TMSG = record
-{$ifndef FreeBSD}                       // opague in FreeBSD
-   {$ifdef Darwin}
+{$ifndef FreeBSD}                       // opaque in FreeBSD
+   {$if defined(Darwin)}
     msg_next  : PMSG;
     msg_type  : clong;
     msg_ts    : cushort;
     mac_label : pointer;
+   {$elseif defined(aix)}
+    msg_next  : PMSG;
+    msg_attr  : TMsg_Hdr;
+    msg_ts    : cuint;
+    msg_spot  : pchar;
    {$else}
     msg_next  : PMSG;
     msg_type  : Longint;
@@ -329,7 +414,7 @@ type
     msg_lrpid  : ipc_pid_t;
   end;
 {$else}
-  {$ifdef Darwin}
+  {$if defined(Darwin)}
 {$packrecords 4}
      PMSQid_ds = ^TMSQid_ds;
      TMSQid_ds = record
@@ -350,6 +435,29 @@ type
        msg_pad4   : array [0..3] of cint32;
      end;
 {$packrecords c}
+  {$elseif defined(aix)}
+      PMSQid_ds = ^TMSQid_ds;
+      TMSQid_ds = record
+        msg_perm   : TIPC_perm;
+       {$ifdef cpu64}
+        msg_first  : cuint;
+        msg_last   : cuint;
+       {$else cpu64}
+        msg_first  : PMsg;
+        msg_last   : PMsg;
+       {$endif}
+        msg_cbytes : cuint;
+        msg_qnum   : msgqnum_t;
+        msg_qbytes : msglen_t;
+        msg_lspid  : pid_t;
+        msg_lrpid  : pid_t;
+        msg_stime  : time_t;
+        msg_rtime  : time_t;
+        msg_ctime  : time_t;
+        msg_rwait  : cint;
+        msg_wwait  : cint;
+        msg_reqevents : cushort;
+      end;
   {$else}
      PMSQid_ds = ^TMSQid_ds;
      TMSQid_ds = record
@@ -378,7 +486,7 @@ type
     mtext : array[0..0] of char;
   end;
 
-{$ifdef linux}
+{$if defined(linux)}
   PMSGinfo = ^TMSGinfo;
   TMSGinfo = record
     msgpool : cint;
@@ -389,6 +497,14 @@ type
     msgssz  : cint;
     msgtql  : cint;
     msgseg  : cushort;
+  end;
+{$elseif defined(aix)}
+  PMSGinfo = ^TMSGinfo;
+  TMSGinfo = record
+    msgmax,
+    msgmnb,
+    msgmni,
+    msgmnm  : cint;
   end;
 {$else}
   PMSGinfo = ^TMSGinfo;
@@ -404,7 +520,7 @@ type
 
 Function msgget(key: TKey; msgflg:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgget'; {$endif}
 Function msgsnd(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgsnd'; {$endif}
-Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:clong; msgflg:cint): {$ifdef Darwin}ssize_t;{$else}cint;{$endif} {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgrcv'; {$endif}
+Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:clong; msgflg:cint): {$if defined(Darwin) or defined(aix)}ssize_t;{$else}cint;{$endif} {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgrcv'; {$endif}
 Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgctl'; {$endif}
 
 { ----------------------------------------------------------------------
@@ -431,6 +547,7 @@ const
   SEM_UNDO = 1 shl 12;
   MAX_SOPS = 5;
 
+{$if not defined(aix) and not defined(darwin)}
   SEM_GETNCNT = 3;   { Return the value of sempid {READ}  }
   SEM_GETPID  = 4;   { Return the value of semval {READ}  }
   SEM_GETVAL  = 5;   { Return semvals into arg.array {READ}  }
@@ -438,11 +555,13 @@ const
   SEM_GETZCNT = 7;   { Set the value of semval to arg.val {ALTER}  }
   SEM_SETVAL  = 8;   { Set semvals from arg.array {ALTER}  }
   SEM_SETALL  = 9;
+{$endif}
 
   { Permissions  }
 
   SEM_A = 2 shl 6;  { alter permission  }
   SEM_R = 4 shl 6;  { read permission  }
+
 {$endif}
 
 type
@@ -474,7 +593,7 @@ type
   end;
 {$endif not linux_ipc32}
 {$else Linux}
-   {$ifdef Darwin}
+   {$if defined(Darwin)}
      PSEM = ^TSEM;
      TSEM = record
        semval  : cushort;
@@ -495,9 +614,33 @@ type
              sem_pad3 : array[0..3] of cint32;
           end;
 {$packrecords c}
+   {$elseif defined(aix)}
+     tid_t = {$ifdef cpu64}clong{$else}cint{$endif};
+     PSEM = ^TSEM;
+     TSEM = record
+       semval   : cushort;
+       flags    : cushort;
+       sempid   : pid_t;
+       semncnt  : cushort;
+       semzcnt  : cushort;
+       semnwait : tid_t;
+       semzwait : tid_t;
+     end;
+     PSEMid_ds = ^TSEMid_ds;
+     TSEMid_ds = record
+       sem_perm: tipc_perm;
+      {$ifdef cpu64}
+       sem_base: cuint;
+      {$else}
+       sem_base: PSEM;
+      {$endif}
+       sem_nsems: cushort;
+       sem_otime: time_t;
+       sem_ctime: time_t;
+     end;
    {$else}
      PSEM = ^TSEM;
-     TSEM = record end; // opague
+     TSEM = record end; // opaque
 
      PSEMid_ds = ^TSEMid_ds;
      TSEMid_ds = record
@@ -522,6 +665,7 @@ type
 
 
   PSEMinfo = ^TSEMinfo;
+{$ifndef aix}
   TSEMinfo = record
     semmap : cint;
     semmni : cint;
@@ -534,6 +678,17 @@ type
     semvmx : cint;
     semaem : cint;
   end;
+{$else not aix}
+  TSEMinfo = record
+    semmni : cint;
+    semmsl : cint;
+    semopm : cint;
+    semume : cint;
+    semusz : cint;
+    semvmx : cint;
+    semaem : cint;
+  end;
+{$endif not aix}
 
 { internal mode bits}
 
@@ -561,6 +716,10 @@ Function semop(semid:cint; sops: psembuf; nsops: cuint): cint; {$ifdef FPC_USE_L
 Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;
 {$ifdef linux}
 Function semtimedop(semid:cint; sops: psembuf; nsops: cuint; timeOut: ptimespec): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'semtimedop'; platform; {$else} platform; {$endif}
+{$endif}
+{$ifdef aix}
+{ only available as of AIX 6.1 }
+Function semtimedop(semid:cint; sops: psembuf; nsops: size_t; timeOut: ptimespec): cint; {$ifdef FPC_USE_LIBC} cdecl; weakexternal name 'semtimedop'; platform; {$else} platform; {$endif}
 {$endif}
 
 implementation

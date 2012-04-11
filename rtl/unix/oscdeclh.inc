@@ -25,7 +25,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      pFilDes = ^TFilDes;
 
 const
-{$if defined(linux) and defined(cpu32) and not defined(fs32bit)}
+{$if (defined(linux) and defined(cpu32) and not defined(fs32bit)) or defined(aix)}
     suffix64bit = '64';
 {$else}    
     suffix64bit = '';
@@ -35,8 +35,8 @@ const
     function  FpChdir   (path : pchar): cint; cdecl; external clib name 'chdir';
     Function  FpChown   (path : pChar; owner : TUid; group : TGid): cInt; cdecl; external clib name 'chown';
     function  FpClose   (fd : cint): cint; cdecl; external clib name 'close';
-    Function  FpClosedir (var dirp : Dir): cInt; cdecl; external clib name 'closedir';
-    function  FpClosedir (dirp : pdir): cint; cdecl; external clib name 'closedir';
+    Function  FpClosedir (var dirp : Dir): cInt; cdecl; external clib name 'closedir'{$ifdef aix}+suffix64bit{$endif};
+    function  FpClosedir (dirp : pdir): cint; cdecl; external clib name 'closedir'{$ifdef aix}+suffix64bit{$endif};
     function  FpDup     (oldd:cint):cint; cdecl; external clib name 'dup';
     function  FpDup2    (oldd:cint;newd:cint):cint; cdecl; external clib name 'dup2';
     function  FpExecve  (path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external clib name 'execve';
@@ -51,8 +51,8 @@ const
                                               {$ifdef FPC_IS_SYSTEM}forward;{$endif} inline;
     function  __FpOpen  (path: pchar; flags : cint; mode: TMode):cint; 
 {$endif}
-                                                                        cdecl; external clib name 'open';
-    function  FpOpendir (dirname : pchar): pdir; cdecl; external clib name 'opendir';
+                                                                        cdecl; external clib name 'open'{$ifdef aix}+suffix64bit{$endif};
+    function  FpOpendir (dirname : pchar): pdir; cdecl; external clib name 'opendir'{$ifdef aix}+suffix64bit{$endif};
     function  FpRead    (fd: cint; buf: pchar; nbytes : TSize): TSSize; cdecl; external clib name 'read';
     function  FpReaddir (dirp : pdir) : pdirent;cdecl; external clib name 'readdir'+suffix64bit;
     Function  FpReaddir (var dirp : Dir) : pDirent;cdecl; external clib name 'readdir'+suffix64bit;

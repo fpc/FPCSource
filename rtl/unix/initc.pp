@@ -80,6 +80,10 @@ function geterrnolocation: pcint; cdecl;external clib name '___errno';
 function geterrnolocation: pcint; cdecl;external 'root' name '_errnop';
 {$endif}
 
+{$ifdef aix}
+function geterrnolocation: pcint; cdecl;external clib name '_Errno';
+{$endif}
+
 function fpgetCerrno:cint;
 
 begin

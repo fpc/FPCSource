@@ -43,7 +43,7 @@
 {$endif}
 {$endif}
 
-{$ifdef linux}
+{$if defined(linux) or defined(aix)}
 {$define has_sem_timedwait}
 {$endif}
 

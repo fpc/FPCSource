@@ -74,7 +74,7 @@ const
         // make d positive
         fabs    f1,f1
         // load 2^32 in f2
-        {$ifndef macos}
+        {$if not defined(macos) and not defined(aix)}
         {$ifdef FPC_PIC}
         {$ifdef darwin}
         mflr   r0
@@ -91,10 +91,10 @@ const
         lis    r4,factor@ha
         lfd    f2,factor@l(r4)
         {$endif FPC_PIC}
-        {$else not macos}
+        {$else not macos/aix}
         lwz    r4,factor(r2)
         lfd    f2,0(r4)
-        {$endif not macos}
+        {$endif not macos/aix}
         // check if value is < 0
         // f3 := d / 2^32;
         fdiv     f3,f1,f2
@@ -109,7 +109,7 @@ const
         stw      r0,temp
         xoris    r0,r3,0x8000
         stw      r0,temp+4
-        {$ifndef macos}
+        {$if not defined(macos) and not defined(aix)}
         {$ifdef FPC_PIC}
         {$ifdef darwin}
         addis  r4,r5,(longint_to_real_helper-.Lpiclab)@ha
@@ -121,10 +121,10 @@ const
         lis    r4,longint_to_real_helper@ha
         lfd    f0,longint_to_real_helper@l(r4)
         {$endif FPC_PIC}
-        {$else not macos}
+        {$else not macos/aix}
         lwz    r4,longint_to_real_helper(r2)
         lfd    f0,0(r4)
-        {$endif not macos}
+        {$endif not macos/aix}
         lfd    f3,temp
         fsub   f3,f3,f0
 
@@ -135,7 +135,7 @@ const
         // now, convert to unsigned 32 bit
 
         // load 2^31 in f2
-        {$ifndef macos}
+        {$if not defined(macos) and not defined(aix)}
         {$ifdef FPC_PIC}
         {$ifdef darwin}
         addis  r4,r5,(factor2-.Lpiclab)@ha
@@ -147,10 +147,10 @@ const
         lis    r4,factor2@ha
         lfd    f2,factor2@l(r4)
         {$endif FPC_PIC}
-        {$else not macos}
+        {$else not macos/aix}
         lwz    r4,factor2(r2)
         lfd    f2,0(r4)
-        {$endif not macos}
+        {$endif not macos/aix}
 
         // subtract 2^31
         fsub   f3,f4,f2
@@ -201,7 +201,7 @@ const
         // make d positive
         fabs    f1,f1
         // load 2^32 in f2
-        {$ifndef macos}
+        {$if not defined(macos) and not defined(aix)}
         lis    r4,factor@ha
         lfd    f2,factor@l(r4)
         {$else}
@@ -222,7 +222,7 @@ const
         stw      r0,temp
         xoris    r0,r3,0x8000
         stw      r0,temp+4
-        {$ifndef macos}
+        {$if not defined(macos) and not defined(aix)}
         lis    r4,longint_to_real_helper@ha
         lfd    f0,longint_to_real_helper@l(r4)
         {$else}
@@ -239,7 +239,7 @@ const
         // now, convert to unsigned 32 bit
 
         // load 2^31 in f2
-        {$ifndef macos}
+        {$if not defined(macos) and not defined(aix)}
         lis    r4,factor2@ha
         lfd    f2,factor2@l(r4)
         {$else}
@@ -275,6 +275,8 @@ const
 {****************************************************************************
                          Int to real helpers
  ****************************************************************************}
+{$ifndef aix}
+{ these helpers somehow don't seem to work on AIX/Power 7 }
 
 {$define FPC_SYSTEM_HAS_INT64_TO_DOUBLE}
 function fpc_int64_to_double(i: int64): double; compilerproc;
@@ -292,7 +294,7 @@ asm
            stw    r0,temp
            xoris  r3,r3,0x8000
            stw    r3,temp+4
-           {$ifndef macos}
+           {$if not defined(macos) and not defined(aix)}
            {$ifdef FPC_PIC}
            {$ifdef darwin}
            mflr   r0
@@ -309,14 +311,14 @@ asm
            lis    r3,longint_to_real_helper@ha
            lfd    f1,longint_to_real_helper@l(r3)
            {$endif FPC_PIC}
-           {$else not macos}
+           {$else not macos/aix}
            lwz    r3,longint_to_real_helper(r2)
            lfd    f1,0(r3)
            {$endif not mac os}
            lfd    f0,temp
            stw    r4,temp+4
            fsub   f0,f0,f1
-           {$ifndef macos}
+           {$if not defined(macos) and not defined(aix)}
            {$ifdef FPC_PIC}
            {$ifdef darwin}
            addis  r4,r5,(cardinal_to_real_helper-.Lpiclab)@ha
@@ -334,13 +336,13 @@ asm
            lfd    f3,temp
            lfd    f2,int_to_real_factor@l(r4)
            {$endif FPC_PIC}
-           {$else not macos}
+           {$else not macos/aix}
            lwz    r4,cardinal_to_real_helper(r2)
            lwz    r3,int_to_real_factor(r2)
            lfd    f3,temp
            lfd    f1,0(r4)
            lfd    f2,0(r3)
-           {$endif not macos}
+           {$endif not macos/aix}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
 end;
@@ -362,7 +364,7 @@ asm
            stw    r0,temp
            stw    r3,temp+4
            lfd    f0,temp
-           {$ifndef macos}
+           {$if not defined(macos) and not defined(aix)}
            {$ifdef FPC_PIC}
            {$ifdef darwin}
            mflr   r0
@@ -379,14 +381,14 @@ asm
            lis    r3,cardinal_to_real_helper@ha
            lfd    f1,cardinal_to_real_helper@l(r3)
            {$endif FPC_PIC}
-           {$else not macos}
+           {$else not macos/aix}
            lwz    r3,longint_to_real_helper(r2)
            lfd    f1,0(r3)
-           {$endif not macos}
+           {$endif not macos/aix}
            stw    r4,temp+4
            fsub   f0,f0,f1
            lfd    f3,temp
-           {$ifndef macos}
+           {$if not defined(macos) and not defined(aix)}
            {$ifdef FPC_PIC}
            {$ifdef darwin}
            addis  r4,r5,(int_to_real_factor-.Lpiclab)@ha
@@ -398,12 +400,12 @@ asm
            lis    r4,int_to_real_factor@ha
            lfd    f2,int_to_real_factor@l(r4)
            {$endif FPC_PIC}
-           {$else not macos}
+           {$else not macos/aix}
            lwz    r4,int_to_real_factor(r2)
            lfd    f2,0(r4)
-           {$endif not macos}
+           {$endif not macos/aix}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
 end;
-
+{$endif}
 

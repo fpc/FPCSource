@@ -15,13 +15,13 @@
 
 type filedesarray=array[0..1] of cint;
 
-{$ifdef solaris}
+{$if defined(solaris) or defined(aix)}
 Function fpFlock (fd,mode : longint) : cint;{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
-{$else solaris}
+{$else solaris or aix}
 {$ifndef beos}
 Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
 {$endif beos}
-{$endif solaris}
+{$endif solaris or aix}
 
 {$if defined(beos) or defined(solaris) }
 Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fstatvfs';

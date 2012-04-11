@@ -280,7 +280,6 @@ var
   f,len : longint;
   s : shortstring;
   info : stat;
-
 begin
   GetTimezoneFile:='';
   f:=fpopen(TimeZoneLocationFile,Open_RdOnly);

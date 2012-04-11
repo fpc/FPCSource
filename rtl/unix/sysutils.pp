@@ -351,10 +351,10 @@ begin
 {$else}
   if (Handle>=0) then
     begin
-{$ifdef solaris}
-      { Solaris' flock is based on top of fcntl, which does not allow
-        exclusive locks for files only opened for reading nor shared
-        locks for files opened only for writing.
+{$if defined(solaris) or defined(aix)}
+      { Solaris' & AIX' flock is based on top of fcntl, which does not allow
+        exclusive locks for files only opened for reading nor shared locks
+        for files opened only for writing.
         
         If no locking is specified, we normally need an exclusive lock.
         So create an exclusive lock for fmOpenWrite and fmOpenReadWrite,

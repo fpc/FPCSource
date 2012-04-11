@@ -53,7 +53,7 @@ Const
     libiconvname='textencoding';  // is in libtextencoding under Haiku
     libprefix='lib';
   {$else}
-    {$ifdef darwin}
+    {$if defined(darwin) or defined(aix)}
       libiconvname='libiconv';
       libprefix='';
     {$else}
@@ -82,29 +82,25 @@ function mblen(const s: pchar; n: size_t): size_t; cdecl; external clib name 'mb
 
 
 const
-{$ifdef linux}
+{$if defined(linux)}
   __LC_CTYPE = 0;
   LC_ALL = 6;
   _NL_CTYPE_CLASS = (__LC_CTYPE shl 16);
   _NL_CTYPE_CODESET_NAME = (_NL_CTYPE_CLASS)+14;
   CODESET = _NL_CTYPE_CODESET_NAME;
-{$else linux}
-{$ifdef darwin}
+{$elseif defined(darwin)}
   CODESET = 0;
   LC_ALL = 0;
-{$else darwin}
-{$ifdef FreeBSD} // actually FreeBSD5. internationalisation is afaik not default on 4.
+{$elseif defined(FreeBSD)} // actually FreeBSD5. internationalisation is afaik not default on 4.
   __LC_CTYPE = 0;
   LC_ALL = 0;
   _NL_CTYPE_CLASS = (__LC_CTYPE shl 16);
   _NL_CTYPE_CODESET_NAME = (_NL_CTYPE_CLASS)+14;
   CODESET = 0; // _NL_CTYPE_CODESET_NAME;
-{$else freebsd}
-{$ifdef solaris}
+{$elseif defined(solaris)}
   CODESET=49;
   LC_ALL = 6;
-{$else solaris}
-{$ifdef beos}
+{$elseif defined(beos)}
   {$warning check correct value for BeOS}
   CODESET=49;
   {$ifdef haiku}
@@ -113,24 +109,19 @@ const
   LC_ALL = 6; // Checked for BeOS
   {$endif}
   ESysEILSEQ = EILSEQ;
-{$else}
-{$ifdef OpenBSD}
+{$elseif defined(OpenBSD)}
   CODESET = 51;
   LC_ALL = 0;
-{$else not OpenBSD}
-{$ifdef NetBSD}
+{$elseif defined(NetBSD)}
   CODESET = 51;
   LC_ALL = 0;
-{$else not NetBSD}
+{$elseif defined(aix)}
+  CODESET = 49;
+  LC_ALL = -1;
+{$else not aix}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
 // and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
-{$endif NetBSD}
-{$endif OpenBSD}
-{$endif beos}
-{$endif solaris}
-{$endif FreeBSD}
-{$endif darwin}
-{$endif linux}
+{$endif}
 
 { unicode encoding name }
 {$ifdef FPC_LITTLE_ENDIAN}
