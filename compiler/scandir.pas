@@ -286,6 +286,12 @@ unit scandir;
       end;
 
 
+    procedure dir_checklowaddrloads;
+      begin
+        do_localswitchdefault(cs_check_low_addr_load);
+      end;
+
+
     procedure dir_checkpointer;
       begin
         do_localswitchdefault(cs_checkpointer);
@@ -1438,6 +1444,7 @@ unit scandir;
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
         AddDirective('BITPACKING',directive_all, @dir_bitpacking);
         AddDirective('CALLING',directive_all, @dir_calling);
+        AddDirective('CHECKLOWADDRLOADS',directive_all, @dir_checklowaddrloads);
         AddDirective('CHECKPOINTER',directive_all, @dir_checkpointer);
         AddDirective('CODEALIGN',directive_all, @dir_codealign);
         AddDirective('CODEPAGE',directive_all, @dir_codepage);

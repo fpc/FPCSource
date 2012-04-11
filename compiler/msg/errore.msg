@@ -3223,6 +3223,7 @@ S*2Aas_Assemble using GNU AS
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking
 **2Cn_Omit linking stage
+P*2CN_Generate nil-pointer checks (AIX-only)
 **2Co_Check overflow of integer operations
 **2CO_Check for possible overflow of integer operations
 **2Cp<x>_Select instruction set, see fpc -i for possible values

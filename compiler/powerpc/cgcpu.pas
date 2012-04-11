@@ -284,6 +284,8 @@ const
          ref2: treference;
 
        begin
+          if target_info.system=system_powerpc_aix then
+            g_load_check_simple(list,ref,65536);
           { TODO: optimize/take into consideration fromsize/tosize. Will }
           { probably only matter for OS_S8 loads though                  }
           if not(fromsize in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then

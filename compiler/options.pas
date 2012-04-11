@@ -853,6 +853,11 @@ begin
                         exclude(init_settings.globalswitches,cs_link_nolink)
                       Else
                         include(init_settings.globalswitches,cs_link_nolink);
+                    'N' :
+                      If UnsetBool(More, j) then
+                        exclude(init_settings.localswitches,cs_check_low_addr_load)
+                      Else
+                        include(init_settings.localswitches,cs_check_low_addr_load);
                     'o' :
                       If UnsetBool(More, j) then
                         exclude(init_settings.localswitches,cs_check_overflow)

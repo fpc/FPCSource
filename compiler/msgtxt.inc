@@ -1195,151 +1195,152 @@ const msgtxt : array[0..000265,1..240] of char=(
   '**2Ch<n>_<n> bytes heap (between 1023 and 67107840)'#010+
   '**2Ci_IO-checking'#010+
   '**2Cn_Omit linki','ng stage'#010+
+  'P*2CN_Generate nil-pointer checks (AIX-only)'#010+
   '**2Co_Check overflow of integer operations'#010+
   '**2CO_Check for possible overflow of integer operations'#010+
   '**2Cp<x>_Select instruction set, see fpc -i for possible values'#010+
-  '**2CP<x>=<y>_ packing settings'#010+
-  '**3CPPACKSET=<y>_ <y> set allocation:',' 0, 1 or DEFAULT or NORMAL, 2, '+
-  '4 and 8'#010+
+  '**2CP<x>=<y>_ packing s','ettings'#010+
+  '**3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 '+
+  'and 8'#010+
   '**2Cr_Range checking'#010+
   '**2CR_Verify object method call validity'#010+
   '**2Cs<n>_Set stack checking size to <n>'#010+
   '**2Ct_Stack checking (for testing only, see manual)'#010+
-  '**2CX_Create also smartlinked library'#010+
-  '**1d<x>_D','efines the symbol <x>'#010+
+  '**','2CX_Create also smartlinked library'#010+
+  '**1d<x>_Defines the symbol <x>'#010+
   '**1D_Generate a DEF file'#010+
   '**2Dd<x>_Set description to <x>'#010+
   '**2Dv<x>_Set DLL version to <x>'#010+
   '*O2Dw_PM application'#010+
   '**1e<x>_Set path to executable'#010+
   '**1E_Same as -Cn'#010+
-  '**1fPIC_Same as -Cg'#010+
+  '**1fPIC_Same as',' -Cg'#010+
   '**1F<x>_Set file names and paths:'#010+
-  '**2Fa<','x>[,y]_(for a program) load units <x> and [y] before uses is p'+
-  'arsed'#010+
+  '**2Fa<x>[,y]_(for a program) load units <x> and [y] before uses is par'+
+  'sed'#010+
   '**2Fc<x>_Set input codepage to <x>'#010+
   '**2FC<x>_Set RC compiler binary name to <x>'#010+
-  '**2Fd_Disable the compiler'#039's internal directory cache'#010+
-  '**2FD<x>_Set the directory where to sea','rch for compiler utilities'#010+
+  '**2Fd_Disable the compiler'#039's internal directory ','cache'#010+
+  '**2FD<x>_Set the directory where to search for compiler utilities'#010+
   '**2Fe<x>_Redirect error output to <x>'#010+
   '**2Ff<x>_Add <x> to framework path (Darwin only)'#010+
   '**2FE<x>_Set exe/unit output path to <x>'#010+
   '**2Fi<x>_Add <x> to include path'#010+
-  '**2Fl<x>_Add <x> to library path'#010+
-  '**2FL<x>_Use <x> as',' dynamic linker'#010+
+  '**2Fl<x','>_Add <x> to library path'#010+
+  '**2FL<x>_Use <x> as dynamic linker'#010+
   '**2Fm<x>_Load unicode conversion table from <x>.txt in the compiler di'+
   'r'#010+
   '**2Fo<x>_Add <x> to object path'#010+
   '**2Fr<x>_Load error message file <x>'#010+
-  '**2FR<x>_Set resource (.res) linker to <x>'#010+
+  '**2FR<x>_Set resource (.res) linker to',' <x>'#010+
   '**2Fu<x>_Add <x> to unit path'#010+
-  '**2FU<x>_S','et unit output path to <x>, overrides -FE'#010+
+  '**2FU<x>_Set unit output path to <x>, overrides -FE'#010+
   '**2FW<x>_Store generated whole-program optimization feedback in <x>'#010+
   '**2Fw<x>_Load previously stored whole-program optimization feedback fr'+
   'om <x>'#010+
-  '*g1g_Generate debug information (default format for t','arget)'#010+
+  '*g1g_Gen','erate debug information (default format for target)'#010+
   '*g2gc_Generate checks for pointers'#010+
   '*g2gh_Use heaptrace unit (for memory leak/corruption debugging)'#010+
   '*g2gl_Use line info unit (show more info with backtraces)'#010+
-  '*g2go<x>_Set debug information options'#010+
-  '*g3godwarfsets_ Enable DWARF '#039'set'#039' ty','pe debug information (b'+
-  'reaks gdb < 6.5)'#010+
+  '*g2go<x>_Set debug information ','options'#010+
+  '*g3godwarfsets_ Enable DWARF '#039'set'#039' type debug information (bre'+
+  'aks gdb < 6.5)'#010+
   '*g3gostabsabsincludes_ Store absolute/full include file paths in Stabs'+
   #010+
   '*g3godwarfmethodclassprefix_ Prefix method names in DWARF with class n'+
   'ame'#010+
-  '*g2gp_Preserve case in stabs symbol names'#010+
-  '*g2gs_Generat','e Stabs debug information'#010+
+  '*g2gp_Pres','erve case in stabs symbol names'#010+
+  '*g2gs_Generate Stabs debug information'#010+
   '*g2gt_Trash local variables (to detect uninitialized uses)'#010+
   '*g2gv_Generates programs traceable with Valgrind'#010+
   '*g2gw_Generate DWARFv2 debug information (same as -gw2)'#010+
-  '*g2gw2_Generate DWARFv2 debug information'#010+
-  '*g2gw3_G','enerate DWARFv3 debug information'#010+
+  '*g2gw','2_Generate DWARFv2 debug information'#010+
+  '*g2gw3_Generate DWARFv3 debug information'#010+
   '*g2gw4_Generate DWARFv4 debug information (experimental)'#010+
   '**1i_Information'#010+
   '**2iD_Return compiler date'#010+
   '**2iV_Return short compiler version'#010+
-  '**2iW_Return full compiler version'#010+
+  '**2iW_Return full compil','er version'#010+
   '**2iSO_Return compiler OS'#010+
-  '**2iSP_R','eturn compiler host processor'#010+
+  '**2iSP_Return compiler host processor'#010+
   '**2iTO_Return target OS'#010+
   '**2iTP_Return target processor'#010+
   '**1I<x>_Add <x> to include path'#010+
   '**1k<x>_Pass <x> to the linker'#010+
   '**1l_Write logo'#010+
-  '**1M<x>_Set language mode to <x>'#010+
+  '**1M<x>_Set language mode to <x','>'#010+
   '**2Mfpc_Free Pascal dialect (default)'#010+
-  '**2Mo','bjfpc_FPC mode with Object Pascal support'#010+
+  '**2Mobjfpc_FPC mode with Object Pascal support'#010+
   '**2Mdelphi_Delphi 7 compatibility mode'#010+
   '**2Mtp_TP/BP 7.0 compatibility mode'#010+
   '**2Mmacpas_Macintosh Pascal dialects compatibility mode'#010+
-  '**1n_Do not read the default config files'#010+
-  '**1N<x>_Node tree optimiz','ations'#010+
+  '**1n_Do not read the d','efault config files'#010+
+  '**1N<x>_Node tree optimizations'#010+
   '**2Nu_Unroll loops'#010+
   '**1o<x>_Change the name of the executable produced to <x>'#010+
   '**1O<x>_Optimizations:'#010+
   '**2O-_Disable optimizations'#010+
   '**2O1_Level 1 optimizations (quick and debugger friendly)'#010+
-  '**2O2_Level 2 optimizations (-O1 + quick optimi','zations)'#010+
+  '**','2O2_Level 2 optimizations (-O1 + quick optimizations)'#010+
   '**2O3_Level 3 optimizations (-O2 + slow optimizations)'#010+
   '**2Oa<x>=<y>_Set alignment'#010+
   '**2Oo[NO]<x>_Enable or disable optimizations, see fpc -i for possible '+
   'values'#010+
-  '**2Op<x>_Set target cpu for optimizing, see fpc -i for possible values'+
-  #010+
-  '*','*2OW<x>_Generate whole-program optimization feedback for optimizati'+
-  'on <x>, see fpc -i for possible values'#010+
+  '**2Op<x>_Set target cpu for',' optimizing, see fpc -i for possible valu'+
+  'es'#010+
+  '**2OW<x>_Generate whole-program optimization feedback for optimization'+
+  ' <x>, see fpc -i for possible values'#010+
   '**2Ow<x>_Perform whole-program optimization <x>, see fpc -i for possib'+
   'le values'#010+
-  '**2Os_Optimize for size rather than speed'#010+
-  '**1pg_Genera','te profile code for gprof (defines FPC_PROFILE)'#010+
+  '**2Os_Opt','imize for size rather than speed'#010+
+  '**1pg_Generate profile code for gprof (defines FPC_PROFILE)'#010+
   'F*1P<x>_Target CPU / compiler related options:'#010+
   'F*2PB_Show default compiler binary'#010+
   'F*2PP_Show default target cpu'#010+
-  'F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sp'+
-  'arc,x86_64',#010+
+  'F*2P<x>_Set target CPU (arm,i386,m6','8k,mips,mipsel,powerpc,powerpc64,'+
+  'sparc,x86_64'#010+
   '**1R<x>_Assembler reading style:'#010+
   '**2Rdefault_Use default assembler for target'#010+
   '3*2Ratt_Read AT&T style assembler'#010+
   '3*2Rintel_Read Intel style assembler'#010+
   '6*2RMOT_Read motorola style assembler'#010+
-  '**1S<x>_Syntax options:'#010+
+  '**1S<x>','_Syntax options:'#010+
   '**2S2_Same as -Mobjfpc'#010+
-  '**2Sc','_Support operators like C (*=,+=,/= and -=)'#010+
+  '**2Sc_Support operators like C (*=,+=,/= and -=)'#010+
   '**2Sa_Turn on assertions'#010+
   '**2Sd_Same as -Mdelphi'#010+
   '**2Se<x>_Error options. <x> is a combination of the following:'#010+
-  '**3*_<n> : Compiler halts after the <n> errors (default is 1)'#010+
-  '**3*_w : Compiler also ','halts after warnings'#010+
+  '**3*_<n> : Compiler halts after the <n> ','errors (default is 1)'#010+
+  '**3*_w : Compiler also halts after warnings'#010+
   '**3*_n : Compiler also halts after notes'#010+
   '**3*_h : Compiler also halts after hints'#010+
   '**2Sg_Enable LABEL and GOTO (default in -Mtp and -Mdelphi)'#010+
-  '**2Sh_Use ansistrings by default instead of shortstrings'#010+
-  '**2Si_Turn on inlinin','g of procedures/functions declared as "inline"'#010+
+  '**2Sh_Use ansistrings by default ','instead of shortstrings'#010+
+  '**2Si_Turn on inlining of procedures/functions declared as "inline"'#010+
   '**2Sk_Load fpcylix unit'#010+
   '**2SI<x>_Set interface style to <x>'#010+
   '**3SIcom_COM compatible interface (default)'#010+
   '**3SIcorba_CORBA compatible interface'#010+
-  '**2Sm_Support macros like C (global)'#010+
-  '**2So_Same as ','-Mtp'#010+
+  '**2Sm_','Support macros like C (global)'#010+
+  '**2So_Same as -Mtp'#010+
   '**2Ss_Constructor name must be init (destructor must be done)'#010+
   '**2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)'#010+
   '**2Sy_@<pointer> returns a typed pointer, same as $T+'#010+
-  '**1s_Do not call assembler and linker'#010+
-  '**2sh_Generate s','cript to link on host'#010+
+  '**1s_Do n','ot call assembler and linker'#010+
+  '**2sh_Generate script to link on host'#010+
   '**2st_Generate script to link on target'#010+
   '**2sr_Skip register allocation phase (use with -alr)'#010+
   '**1T<x>_Target operating system:'#010+
   '3*2Tdarwin_Darwin/Mac OS X'#010+
-  '3*2Temx_OS/2 via EMX (including EMX/RSX extender)'#010+
-  '3*2Tfreebsd_Fre','eBSD'#010+
+  '3*2Temx_OS/2 via EMX',' (including EMX/RSX extender)'#010+
+  '3*2Tfreebsd_FreeBSD'#010+
   '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
   '3*2Tiphonesim_ iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tda'+
   'rwin)'#010+
   '3*2Tlinux_Linux'#010+
   '3*2Tnetbsd_NetBSD'#010+
-  '3*2Tnetware_Novell Netware Module (clib)'#010+
-  '3*2Tnetwlibc_Novell Netware Module (','libc)'#010+
+  '3*2Tnetware_Novell Netware Modul','e (clib)'#010+
+  '3*2Tnetwlibc_Novell Netware Module (libc)'#010+
   '3*2Topenbsd_OpenBSD'#010+
   '3*2Tos2_OS/2 / eComStation'#010+
   '3*2Tsunos_SunOS/Solaris'#010+
@@ -1347,19 +1348,19 @@ const msgtxt : array[0..000265,1..240] of char=(
   '3*2Tsolaris_Solaris'#010+
   '3*2Twatcom_Watcom compatible DOS extender'#010+
   '3*2Twdosx_WDOSX DOS extender'#010+
-  '3*2Twin32_Windows 32 Bit'#010+
+  '3*2T','win32_Windows 32 Bit'#010+
   '3*2Twince_Windows CE'#010+
-  '4*2','Tdarwin_Darwin/Mac OS X'#010+
+  '4*2Tdarwin_Darwin/Mac OS X'#010+
   '4*2Tlinux_Linux'#010+
   '4*2Twin64_Win64 (64 bit Windows systems)'#010+
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
   '6*2Tlinux_Linux'#010+
   '6*2Tpalmos_PalmOS'#010+
-  'A*2Tdarwin_Darwin/iPhoneOS/iOS'#010+
+  'A*2Tdarwin_Darwin/iPhoneOS/i','OS'#010+
   'A*2Tlinux_Linux'#010+
   'A*2Twince_Windows CE'#010+
-  'P*2Ta','miga_AmigaOS'#010+
+  'P*2Tamiga_AmigaOS'#010+
   'P*2Tdarwin_Darwin/Mac OS X'#010+
   'P*2Tlinux_Linux'#010+
   'P*2Tmacos_Mac OS (classic)'#010+
@@ -1368,112 +1369,112 @@ const msgtxt : array[0..000265,1..240] of char=(
   'S*2Tlinux_Linux'#010+
   '**1u<x>_Undefines the symbol <x>'#010+
   '**1U_Unit options:'#010+
-  '**2Un_Do not check where the unit name matches th','e file name'#010+
+  '**2U','n_Do not check where the unit name matches the file name'#010+
   '**2Ur_Generate release unit files (never automatically recompiled)'#010+
   '**2Us_Compile a system unit'#010+
   '**1v<x>_Be verbose. <x> is a combination of the following letters:'#010+
-  '**2*_e : Show errors (default)       0 : Show nothing (except erro','rs'+
+  '**2*_e : Show errors ','(default)       0 : Show nothing (except errors'+
   ')'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
   '**2*_n : Show notes                  t : Show tried/used files'#010+
   '**2*_h : Show hints                  c : Show conditionals'#010+
-  '**2*_i : Show general info           d : Show debug info'#010+
-  '*','*2*_l : Show linenumbers            r : Rhide/GCC compatibility mod'+
-  'e'#010+
+  '**2*_i : Show',' general info           d : Show debug info'#010+
+  '**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode'#010+
   '**2*_s : Show time stamps            q : Show message numbers'#010+
-  '**2*_a : Show everything             x : Executable info (Win32 only)'#010+
-  '**2*_b : Write file names messages   p ',': Write tree.log with parse t'+
-  'ree'#010+
+  '**2*_a : Show everything             x : Executable info (Win32 ','only'+
+  ')'#010+
+  '**2*_b : Write file names messages   p : Write tree.log with parse tre'+
+  'e'#010+
   '**2*_    with full path              v : Write fpcdebug.txt with'#010+
   '**2*_                                    lots of debugging info'#010+
-  '**2*_m<x>,<y> : Don'#039't show messages numbered <x> and <y>'#010+
-  'F*1V<x>_Append '#039'-<x>'#039,' to the used compiler binary name (e.g. '+
-  'for version)'#010+
+  '**2*_m<x>,<y> : Don'#039't show messag','es numbered <x> and <y>'#010+
+  'F*1V<x>_Append '#039'-<x>'#039' to the used compiler binary name (e.g. f'+
+  'or version)'#010+
   '**1W<x>_Target-specific options (targets)'#010+
   '3*2WA_Specify native type application (Windows)'#010+
   '4*2WA_Specify native type application (Windows)'#010+
-  'A*2WA_Specify native type application (Windows)'#010+
-  '3','*2Wb_Create a bundle instead of a library (Darwin)'#010+
+  'A*2W','A_Specify native type application (Windows)'#010+
+  '3*2Wb_Create a bundle instead of a library (Darwin)'#010+
   'P*2Wb_Create a bundle instead of a library (Darwin)'#010+
   'p*2Wb_Create a bundle instead of a library (Darwin)'#010+
-  'A*2Wb_Create a bundle instead of a library (Darwin)'#010+
-  '4*2Wb_Create a bundle instead of ','a library (Darwin)'#010+
+  'A*2Wb_Create a bundle instead of a libra','ry (Darwin)'#010+
+  '4*2Wb_Create a bundle instead of a library (Darwin)'#010+
   '3*2WB_Create a relocatable image (Windows, Symbian)'#010+
   '3*2WBxxxx_Set image base to xxxx (Windows, Symbian)'#010+
   '4*2WB_Create a relocatable image (Windows)'#010+
-  '4*2WBxxxx_Set image base to xxxx (Windows)'#010+
-  'A*2WB_Create a relocatable imag','e (Windows, Symbian)'#010+
+  '4*2WBxxxx_Set image base to x','xxx (Windows)'#010+
+  'A*2WB_Create a relocatable image (Windows, Symbian)'#010+
   'A*2WBxxxx_Set image base to xxxx (Windows, Symbian)'#010+
   '3*2WC_Specify console type application (EMX, OS/2, Windows)'#010+
   '4*2WC_Specify console type application (EMX, OS/2, Windows)'#010+
-  'A*2WC_Specify console type application (Windows',')'#010+
+  'A*','2WC_Specify console type application (Windows)'#010+
   'P*2WC_Specify console type application (Classic Mac OS)'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
   '4*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
-  'A*2WD_Use DEFFILE to export functions of DLL or EXE (Windo','ws)'#010+
+  'A*2WD_Use DEF','FILE to export functions of DLL or EXE (Windows)'#010+
   '3*2We_Use external resources (Darwin)'#010+
   '4*2We_Use external resources (Darwin)'#010+
   'A*2We_Use external resources (Darwin)'#010+
   'P*2We_Use external resources (Darwin)'#010+
   'p*2We_Use external resources (Darwin)'#010+
-  '3*2WF_Specify full-screen type application (EM','X, OS/2)'#010+
+  '3','*2WF_Specify full-screen type application (EMX, OS/2)'#010+
   '3*2WG_Specify graphic type application (EMX, OS/2, Windows)'#010+
   '4*2WG_Specify graphic type application (EMX, OS/2, Windows)'#010+
   'A*2WG_Specify graphic type application (Windows)'#010+
-  'P*2WG_Specify graphic type application (Classic Mac OS)'#010+
-  '3*2Wi_','Use internal resources (Darwin)'#010+
+  'P*2WG_Specify gra','phic type application (Classic Mac OS)'#010+
+  '3*2Wi_Use internal resources (Darwin)'#010+
   '4*2Wi_Use internal resources (Darwin)'#010+
   'A*2Wi_Use internal resources (Darwin)'#010+
   'P*2Wi_Use internal resources (Darwin)'#010+
   'p*2Wi_Use internal resources (Darwin)'#010+
-  '3*2WI_Turn on/off the usage of import sections (Windows)',#010+
+  '3*2WI_Turn ','on/off the usage of import sections (Windows)'#010+
   '4*2WI_Turn on/off the usage of import sections (Windows)'#010+
   'A*2WI_Turn on/off the usage of import sections (Windows)'#010+
   '3*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwi'+
   'n)'#010+
-  '4*2WM<x>_Minimum Mac OS X deployment version: 10.4, ','10.5.1, ... (Dar'+
+  '4*2WM<x','>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Dar'+
   'win)'#010+
   'p*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwi'+
   'n)'#010+
   'P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwi'+
   'n)'#010+
-  '3*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
-  '4*2','WN_Do not generate relocation code, needed for debugging (Windows'+
+  '3*2WN_Do not generate reloca','tion code, needed for debugging (Windows'+
   ')'#010+
+  '4*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
   'A*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
-  'A*2Wpxxxx_Specify the controller type, see fpc -i for possible values'#010+
-  'V*2Wpxxxx_Specify the controller ','type, see fpc -i for possible value'+
+  'A*2Wpxxxx_Specify the controller type, see fpc -i for poss','ible value'+
   's'#010+
+  'V*2Wpxxxx_Specify the controller type, see fpc -i for possible values'#010+
   '3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)'#010+
   'A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)'#010+
-  '3*2WR_Generate relocation code (Windows)'#010+
-  '4*2WR_Generate relocation c','ode (Windows)'#010+
+  '3*2WR_Generate relocati','on code (Windows)'#010+
+  '4*2WR_Generate relocation code (Windows)'#010+
   'A*2WR_Generate relocation code (Windows)'#010+
   'P*2WT_Specify MPW tool type application (Classic Mac OS)'#010+
   '**2WX_Enable executable stack (Linux)'#010+
   '**1X_Executable options:'#010+
-  '**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD',', L'+
+  '**2Xc_Pass --shared/','-dynamic to the linker (BeOS, Darwin, FreeBSD, L'+
   'inux)'#010+
   '**2Xd_Do not use standard library search path (needed for cross compil'+
   'e)'#010+
   '**2Xe_Use external linker'#010+
   '**2Xg_Create debuginfo in a separate file and add a debuglink section '+
   'to executable'#010+
-  '**2XD_Try to link units dynamically      (define','s FPC_LINK_DYNAMIC)'#010+
+  '**2','XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
   '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
-  'F*2Xp<x>_First search for the compiler binary in the directory <x>'#010+
-  '**2XP<x>_Prepend the binutils n','ames with the prefix <x>'#010+
+  'F*2Xp<x>_First search for the compiler binary in the ','directory <x>'#010+
+  '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
   '**2Xr<x>_Set the linker'#039's rlink-path to <x> (needed for cross comp'+
   'ile, see the ld manual for more information) (BeOS, Linux)'#010+
-  '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD'+
-  ', Linux, Mac OS, Sol','aris)'#010+
+  '**2XR<x>_Prepend <x> to all linker search pat','hs (BeOS, Darwin, FreeB'+
+  'SD, Linux, Mac OS, Solaris)'#010+
   '**2Xs_Strip all symbols from executable'#010+
   '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
   '**2Xt_Link with static libraries (-static is passed to linker)'#010+
-  '**2XX_Try to smartlink units             (defines FPC_LINK_SM','ART)'#010+
+  '**2XX_Try to sma','rtlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+
   '**1h_Shows this help without waiting'

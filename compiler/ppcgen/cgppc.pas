@@ -68,6 +68,7 @@ unit cgppc;
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
 
         function get_aix_toc_sym(const symname: string; const flags: tindsymflags):tasmsymbol;
+        procedure g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
         procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
        protected
         function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
@@ -527,6 +528,8 @@ unit cgppc;
          ref2: treference;
 
        begin
+         if target_info.system in systems_aix then
+           g_load_check_simple(list,ref,65536);
          if not(fromsize in [OS_F32,OS_F64]) or
             not(tosize in [OS_F32,OS_F64]) then
            internalerror(200201121);
@@ -843,6 +846,47 @@ unit cgppc;
           newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
           current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
         end;
+    end;
+
+
+  procedure tcgppcgen.g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
+    var
+      reg: tregister;
+      lab: tasmlabel;
+    begin
+      if not(cs_check_low_addr_load in current_settings.localswitches) then
+        exit;
+      { this is mainly for AIX, which does not trap loads from address 0. A
+        global symbol (if not weak) will always map to a proper address, and
+        the same goes for stack addresses -> skip }
+      if assigned(ref.symbol) and
+         (ref.symbol.bind<>AB_WEAK_EXTERNAL) then
+        exit;
+      if (ref.base=NR_STACK_POINTER_REG) or
+         (ref.index=NR_STACK_POINTER_REG) or
+         (assigned(current_procinfo) and
+          ((ref.base=current_procinfo.framepointer) or
+           (ref.index=current_procinfo.framepointer))) then
+        exit;
+      if assigned(ref.symbol) or
+         (ref.offset<>0) or
+         ((ref.base<>NR_NO) and (ref.index<>NR_NO)) then
+        begin
+          { can't allocate register, also used in wrappers and the like }
+          reg:=NR_R0;
+          a_reg_alloc(list,reg);
+          a_loadaddr_ref_reg(list,ref,reg);
+        end
+      else if ref.base<>NR_NO then
+        reg:=ref.base
+      else
+        reg:=ref.index;
+      current_asmdata.getjumplabel(lab);
+      if reg=NR_R0 then
+        a_reg_dealloc(list,reg);
+      a_cmp_const_reg_label(list,OS_ADDR,OC_A,size-1,reg,lab);
+      a_call_name(list,'FPC_INVALIDPOINTER',false);
+      a_label(list,lab);
     end;
 
 
