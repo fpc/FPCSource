@@ -20,31 +20,27 @@ interface
 {$mode objfpc}
 {$PACKRECORDS C}
 
-{$ifdef BSD}
-uses initc,BaseUnix, unixtype;
-{$i pthrbsd.inc}
-{$else}
- {$ifdef linux}
- uses initc, ctypes, unixtype;
- {$i pthrlinux.inc}
- {$else}
-
-  {$ifdef sunos}
+{$if defined(BSD)}
+  uses initc,BaseUnix, unixtype;
+  {$i pthrbsd.inc}
+{$elseif defined(linux)}
+  uses initc, ctypes, unixtype;
+  {$i pthrlinux.inc}
+{$elseif defined(sunos)}
   uses initc, ctypes, unixtype;
   {$i pthrsnos.inc}
+{$elseif defined(beos)}
+  uses initc, ctypes, baseunix, unixtype;
+  {$ifdef haiku}
+    {$i pthrhaiku.inc}
   {$else}
-   {$ifdef beos}
-   uses initc, ctypes, baseunix, unixtype;
-     {$ifdef haiku}
-       {$i pthrhaiku.inc}
-     {$else}
-       {$i pthrbeos.inc}
-     {$endif}
-   {$else}
-    {$error operating system not detected}
-   {$endif}
+    {$i pthrbeos.inc}
   {$endif}
- {$endif}
+{$elseif defined(aix)}
+  uses initc, ctypes, baseunix, unixtype;
+  {$i pthraix.inc}
+{$else}
+  {$error operating system not detected}
 {$endif}
 
 implementation
