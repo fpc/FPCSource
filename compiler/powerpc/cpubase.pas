@@ -500,6 +500,7 @@ implementation
 
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
       begin
+        r.dirhint := DH_None;
         r.simple := true;
         r.cond := cond;
         case cond of
