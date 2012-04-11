@@ -35,6 +35,7 @@ dirs_symbian=symbian
 dirs_embedded=embedded
 dirs_nativent=nativent
 dirs_wii=wii
+dirs_aix=aix
 
 [install]
 fpcpackage=y

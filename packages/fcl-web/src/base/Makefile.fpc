@@ -23,6 +23,7 @@ units_openbsd=custfcgi fpfcgi
 units_linux=custfcgi fpfcgi
 units_win32=custfcgi fpfcgi
 units_win64=custfcgi fpfcgi
+units_aix=custfcgi fpfcgi
 
 [require]
 packages=fcl-base fcl-xml fcl-db fcl-process httpd22 fastcgi fcl-net

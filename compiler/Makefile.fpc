@@ -261,10 +261,7 @@ endif
 # Setup Targets
 #####################################################################
 
-ifeq ($(OS_TARGET),win32)
-USE_CMP_FOR_DIFF=1
-endif
-ifeq ($(OS_TARGET),win64)
+ifneq ($(findstring $(OS_TARGET),win32 win64 aix),)
 USE_CMP_FOR_DIFF=1
 endif
 
