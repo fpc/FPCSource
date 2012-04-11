@@ -1,4 +1,4 @@
-{%TARGET=linux,freebsd,darwin}
+{%TARGET=linux,freebsd,darwin,aix}
 program tb0524;
 
 uses sockets,baseunix,sysutils;

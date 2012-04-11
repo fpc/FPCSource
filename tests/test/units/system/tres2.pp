@@ -1,6 +1,6 @@
 { Test for FindResourceEx function. }
 
-{%TARGET=win32,win64,linux,freebsd,darwin,netbsd,openbsd,solaris,haiku}
+{%TARGET=win32,win64,linux,freebsd,darwin,netbsd,openbsd,solaris,haiku,aix }
 
 {$mode objfpc}
 

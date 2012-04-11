@@ -1,4 +1,4 @@
-{ %target=win32,win64,wince,darwin,linux,freebsd,solaris,beos}
+{ %target=win32,win64,wince,darwin,linux,freebsd,solaris,beos,aix }
 { %NEEDLIBRARY }
 
 {$mode delphi}

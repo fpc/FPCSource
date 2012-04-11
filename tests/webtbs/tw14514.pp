@@ -1,4 +1,4 @@
-{ %target=linux,darwin,solaris,freebsd,haiku,beos }
+{ %target=linux,darwin,solaris,freebsd,haiku,beos,aix }
 
 program TestSignal;
 
