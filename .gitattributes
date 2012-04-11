@@ -7076,6 +7076,7 @@ rtl/COPYING.txt svneol=native#text/plain
 rtl/Makefile svneol=native#text/plain
 rtl/Makefile.fpc svneol=native#text/plain
 rtl/README.txt svneol=native#text/plain
+rtl/aix/Makefile svneol=native#text/plain
 rtl/aix/Makefile.fpc svneol=native#text/plain
 rtl/aix/clocale.inc svneol=native#text/plain
 rtl/aix/dlaix.inc svneol=native#text/plain
