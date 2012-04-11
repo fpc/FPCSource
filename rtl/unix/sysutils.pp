@@ -106,7 +106,14 @@ function InternalInquireSignal(RtlSigNum: Integer; out act: SigActionRec; fromin
             if not frominit then
               begin
                 { check whether the installed signal handler is still ours }
+{$if not defined(aix) and (not defined(linux) or not defined(cpupowerpc64))}
                 if (pointer(act.sa_handler)=pointer(@defaultsighandler)) then
+{$else}
+                { on aix and linux/ppc64, procedure addresses are actually
+                  descriptors -> check whether the code addresses inside the
+                  descriptors match, rather than the descriptors themselves }
+                if (ppointer(act.sa_handler)^=ppointer(@defaultsighandler)^) then
+{$endif}
                   result:=ssHooked
                 else
                   result:=ssOverridden;
@@ -121,7 +128,11 @@ function InternalInquireSignal(RtlSigNum: Integer; out act: SigActionRec; fromin
                 { program -> signals have been hooked by system init code }
                 if (byte(RtlSigNum) in [RTL_SIGFPE,RTL_SIGSEGV,RTL_SIGILL,RTL_SIGBUS]) then
                   begin
+{$if not defined(aix) and (not defined(linux) or not defined(cpupowerpc64))}
                     if (pointer(act.sa_handler)=pointer(@defaultsighandler)) then
+{$else}
+                    if (ppointer(act.sa_handler)^=ppointer(@defaultsighandler)^) then
+{$endif}
                       result:=ssHooked
                     else
                       result:=ssOverridden;
