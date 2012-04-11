@@ -404,7 +404,7 @@ implementation
          begin
            { Redefine is allowed, but the types must be the same. The redefine
              is needed for Darwin where the labels are first allocated }
-           if (hp.bind<>AB_EXTERNAL) then
+           if not(hp.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
              begin
                if (hp.bind<>_bind) and
                   (hp.typ<>_typ) then
