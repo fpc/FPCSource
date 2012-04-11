@@ -1,3 +1,9 @@
+{ %opt=-CN }
+
+{ the -CN is to generated null pointer load checks for AIX,
+  ignored on other platforms because there the OS performs
+  this checking for you }
+
 {$mode objfpc}
 
 uses

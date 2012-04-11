@@ -16,15 +16,16 @@ asm
 // for simplicity sake do not bother about setting the GOT and
 // environment pointer correctly
   ld r4,0(r3)
-{$ifdef linux}
   ld r4,+vmtoffset tc.v(r4)
+{$if defined(linux) or defined(aix)}
   ld r4,0(r4)
-{$else linux}
-  ld r4,+vmtoffset tc.v(r4)
-{$endif linux}
+{$endif linux or aix}
 {$else}
   lwz r4,0(r3)
   lwz r4,+vmtoffset tc.v(r4)
+{$if defined(aix)}
+  lwz r4,0(r4)
+{$endif aix}
 {$endif}
   mtctr r4
   bctr

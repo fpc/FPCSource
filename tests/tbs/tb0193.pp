@@ -22,7 +22,7 @@ end ['EAX'];
 end ['D0'];
 {$endif CPU68K}
 {$ifdef cpupowerpc}
-{$ifndef macos}
+{$if not defined(macos) and not defined(aix)}
        lis r3, stacksize@ha
        lwz r3, stacksize@l(r3)
 {$else macos}

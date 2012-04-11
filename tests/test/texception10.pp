@@ -1,5 +1,9 @@
 {$ifdef fpc}{$mode objfpc}{$H+}{$endif}
 
+{$ifdef aix}
+{$CHECKLOWADDRLOADS+}
+{$endif}
+
 uses
   Classes, SysUtils;
 
