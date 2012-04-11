@@ -63,6 +63,8 @@ begin
       { the address of a function is a descriptor, and we need the actual
         address here -> dereference }
       pointer(SigContext^.uc_mcontext.iar) := ppointer(@HandleErrorAddrFrame)^;
+      { set corresponding TOC for the routine we are returning to }
+      pointer(SigContext^.uc_mcontext.gpr[2]) := (ppointer(@HandleErrorAddrFrame)+1)^;
     end;
 end;
 
