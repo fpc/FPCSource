@@ -56,7 +56,7 @@ Unit rappcgas;
       { parser }
       procinfo,
       rabase,rautils,
-      cgbase,cgobj
+      cgbase,cgobj,cgppc
       ;
 
     procedure tppcattreader.ReadSym(oper : tppcoperand);
@@ -142,6 +142,7 @@ Unit rappcgas;
         l : aint;
         relsym: string;
         asmsymtyp: tasmsymtype;
+        isflags: tindsymflags;
 
       begin
         Consume(AS_LPAREN);
@@ -176,6 +177,18 @@ Unit rappcgas;
               { (reg)        }
               if actasmtoken=AS_RPAREN then
                Begin
+                 { detect RTOC-based symbol accesses }
+                 if assigned(oper.opr.ref.symbol) and
+                    (oper.opr.ref.base=NR_RTOC) and
+                    (oper.opr.ref.offset=0) then
+                   begin
+                     { replace global symbol reference with TOC entry name
+                       for AIX }
+                     if target_info.system in systems_aix then
+                       oper.opr.ref.symbol:=
+                         tcgppcgen(cg).get_aix_toc_sym(oper.opr.ref.symbol.name,asmsym2indsymflags(oper.opr.ref.symbol));
+                     oper.opr.ref.refaddr:=addr_pic_no_got;
+                   end;
                  Consume_RParen;
                  exit;
                end;
