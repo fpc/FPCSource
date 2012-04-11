@@ -24,8 +24,6 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas iso7185 macpas \
       dos objects \
       cwstring fpintres clocale $(CPU_UNITS)
 
-implicitunits=exeinfo
-
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconst stdconvs
 
 [require]
