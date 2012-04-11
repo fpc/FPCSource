@@ -69,14 +69,15 @@ Const   { For sending a signal }
 
 {$packrecords C}
 const
-  SI_PAD_SIZE   = ((128/sizeof(longint)) - 3);
+  SI_MAXSZ = 128;
+  SI_PAD_SIZE = ((SI_MAXSZ div sizeof(longint)) - 3);
 
 {
  * The sequence of the fields/registers in struct sigcontext should match
  * those in mcontext_t.
  }
 
-type sigset_t = array[0..3] of cardinal;
+type sigset_t = array [0..0] of cuint32 {array[0..3] of cardinal};
 
     PSigContextRec = ^SigContextRec;
     psigcontext = ^sigcontextrec;
@@ -147,7 +148,7 @@ type sigset_t = array[0..3] of cardinal;
 {$endif def cpux86_64}
      end;
 {$ifdef cpui386}
-     TFpuState = record
+     TFpuX87State = record
         {
          * XXX FPU state is 27 * 4 bytes h/w, 1 * 4 bytes s/w (probably not
          * needed here), or that + 16 * 4 bytes for emulators (probably all
@@ -166,6 +167,25 @@ type sigset_t = array[0..3] of cardinal;
        fpr_ex_tw    : cardinal;     { tag word of last exception }
        fpr_pad      : array[0..63] of char;
        end;
+    TFpuXMMState = packed record
+	fx_fcw : cuint16;
+        fx_fsw : cuint16;
+        fx_ftw : cuint8;
+        fx_unused1 : cuint8;
+        fx_fop : cuint16;
+        fx_rip : cuint64;
+        fx_rdp : cuint64;
+        fx_mxcsr : cuint32;
+        fx_mxcsr_mask : cuint32;
+        fx_st : array[0..7] of array [0..1] of cuint64;
+        fx_xmm : array [0..15] of array [0..1] of cuint64;
+        fx_unusued3 : array [0..95] of cuint8;
+    end;
+    TFpuState = record
+      case integer of
+       0 : (X87State : TFpuX87State);
+       1 : (XMMState : TFpuXMMState);
+    end; 
 {$endif def cpui386}
 
 (*  From /usr/include/amd64/fpu.h header 
@@ -260,7 +280,6 @@ struct savefpu {
   PSigInfo_t = ^SigInfo_t;
   SigInfo_t = record
                 si_signo,                       { signal number }
-                si_errno,                       { errno association }
         {
          * Cause of signal, one of the SI_ macros or signal-specific
          * values, i.e. one of the FPE_... values for SIGFPE. This
@@ -268,13 +287,19 @@ struct savefpu {
          * FreeBSD signal handler.
          }
                 si_code,                        { signal code }
+                si_errno : cint32;              { errno association }
+                case integer of
+                0 : (
                 si_pid          : Longint;      { sending process }
                 si_uid          : Cardinal;     { sender's ruid }
                 si_status       : Longint;      { exit value }
                 si_addr         : Pointer;      { faulting instruction }
                 si_value        : SigVal;       { signal value }
                 si_band         : Cardinal;     { band event for SIGPOLL }
-                __spare         : array[0..6] of Longint; { gimme some slack }
+                __spare         : array[0..6] of Longint;); { gimme some slack }
+                1 : ( fault_addr : pointer;
+                      fault_trapno : cint; );
+                2 : (pad : array [0..SI_PAD_SIZE] of cuint32;);
                 end;
   TSigInfo = SigInfo_t;
   TSigInfo_t = TSigInfo;
@@ -312,8 +337,8 @@ struct savefpu {
 //        0: (Sh: SignalHandler);
 //        1: (Sa: TSigAction);
 //      end;
-    Sa_Flags    : Longint;
     Sa_Mask     : SigSet;
+    Sa_Flags    : Longint;
   end;
 
 {
