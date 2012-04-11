@@ -19,6 +19,12 @@
 {   var
      Errno : cint; external clib name 'errno';}
 
+{$if defined(aix) and not defined(FPC_IS_SYSTEM)}
+{ in AIX, several UNIX routines are part of the "compatibility interface for
+  older Berkeley Software Distribution (BSD) system programs" }
+{$linklib libbsd}
+{$endif aix}
+
 Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      pGrpArr = ^TGrpArr;
      TFilDes = Array [0..1] of cInt;
