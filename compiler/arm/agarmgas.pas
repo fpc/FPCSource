@@ -313,6 +313,7 @@ unit agarmgas;
             flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';
+            dollarsign: '$';
           );
 
        as_arm_gas_darwin_info : tasminfo =
@@ -325,6 +326,7 @@ unit agarmgas;
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
+            dollarsign: '$';
           );
 
 

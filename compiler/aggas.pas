@@ -626,9 +626,11 @@ implementation
       do_line  : boolean;
 
       sepChar : char;
+      replaceforbidden: boolean;
     begin
       if not assigned(p) then
        exit;
+      replaceforbidden:=target_asm.dollarsign<>'$';
 
       last_align := 2;
       InlineLevel:=0;
@@ -690,11 +692,10 @@ implementation
            ait_section :
              begin
                if tai_section(hp).sectype<>sec_none then
-{$ifdef avr}
-                 WriteSection(tai_section(hp).sectype,ReplaceForbiddenChars(tai_section(hp).name^),tai_section(hp).secorder)
-{$else avr}
-                 WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder)
-{$endif avr}
+                 if replaceforbidden then
+                   WriteSection(tai_section(hp).sectype,ReplaceForbiddenAsmSymbolChars(tai_section(hp).name^),tai_section(hp).secorder)
+                 else
+                   WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder)
                else
                  begin
 {$ifdef EXTDEBUG}
@@ -746,11 +747,10 @@ implementation
                        if tai_datablock(hp).is_global then
                          begin
                            asmwrite(#9'.comm'#9);
-{$ifdef avr}
-                           asmwrite(ReplaceForbiddenChars(tai_datablock(hp).sym.name));
-{$else avr}
-                           asmwrite(tai_datablock(hp).sym.name);
-{$endif avr}
+                           if replaceforbidden then
+                             asmwrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name))
+                           else
+                             asmwrite(tai_datablock(hp).sym.name);
                            asmwrite(','+tostr(tai_datablock(hp).size));
                            asmwrite(','+tostr(last_align));
                            asmln;
@@ -758,11 +758,10 @@ implementation
                        else
                          begin
                            asmwrite(#9'.lcomm'#9);
-{$ifdef avr}
-                           asmwrite(ReplaceForbiddenChars(tai_datablock(hp).sym.name));
-{$else avr}
-                           asmwrite(tai_datablock(hp).sym.name);
-{$endif avr}
+                           if replaceforbidden then
+                             asmwrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name));
+                           else
+                             asmwrite(tai_datablock(hp).sym.name);
                            asmwrite(','+tostr(tai_datablock(hp).size));
                            asmwrite(','+tostr(last_align));
                            asmln;
@@ -774,29 +773,31 @@ implementation
                        if Tai_datablock(hp).is_global then
                          begin
                            asmwrite(#9'.globl ');
-{$ifdef avr}
-                           asmwriteln(ReplaceForbiddenChars(Tai_datablock(hp).sym.name));
-{$else avr}
-                           asmwriteln(Tai_datablock(hp).sym.name);
-{$endif avr}
+                           if replaceforbidden then
+                             asmwriteln(ReplaceForbiddenAsmSymbolChars(Tai_datablock(hp).sym.name))
+                           else
+                             asmwriteln(Tai_datablock(hp).sym.name);
                          end;
                        if (target_info.system <> system_arm_linux) then
                          sepChar := '@'
                        else
                          sepChar := '%';
-{$ifdef avr}
-                       if (tf_needs_symbol_type in target_info.flags) then
-                         asmwriteln(#9'.type '+ReplaceForbiddenChars(Tai_datablock(hp).sym.name)+','+sepChar+'object');
-                       if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
-                          asmwriteln(#9'.size '+ReplaceForbiddenChars(Tai_datablock(hp).sym.name)+','+tostr(Tai_datablock(hp).size));
-                       asmwrite(ReplaceForbiddenChars(Tai_datablock(hp).sym.name));
-{$else avr}
-                       if (tf_needs_symbol_type in target_info.flags) then
-                         asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+','+sepChar+'object');
-                       if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
-                         asmwriteln(#9'.size '+Tai_datablock(hp).sym.name+','+tostr(Tai_datablock(hp).size));
-                       asmwrite(Tai_datablock(hp).sym.name);
-{$endif avr}
+                       if replaceforbidden then
+                         begin
+                           if (tf_needs_symbol_type in target_info.flags) then
+                             asmwriteln(#9'.type '+ReplaceForbiddenAsmSymbolChars(Tai_datablock(hp).sym.name)+','+sepChar+'object');
+                           if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
+                              asmwriteln(#9'.size '+ReplaceForbiddenAsmSymbolChars(Tai_datablock(hp).sym.name)+','+tostr(Tai_datablock(hp).size));
+                           asmwrite(ReplaceForbiddenAsmSymbolChars(Tai_datablock(hp).sym.name))
+                         end
+                       else
+                         begin
+                           if (tf_needs_symbol_type in target_info.flags) then
+                             asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+','+sepChar+'object');
+                           if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
+                             asmwriteln(#9'.size '+Tai_datablock(hp).sym.name+','+tostr(Tai_datablock(hp).size));
+                           asmwrite(Tai_datablock(hp).sym.name);
+                         end;
                        asmwriteln(':');
                        asmwriteln(#9'.zero '+tostr(Tai_datablock(hp).size));
                      end;
@@ -879,9 +880,8 @@ implementation
                                   end
                                else
                                  s:=tai_const(hp).sym.name;
-{$ifdef avr}
-                               s:=ReplaceForbiddenChars(s);
-{$endif avr}
+                               if replaceforbidden then
+                                 s:=ReplaceForbiddenAsmSymbolChars(s);
                                if tai_const(hp).value<>0 then
                                  s:=s+tostr_with_plus(tai_const(hp).value);
                              end
@@ -1062,17 +1062,15 @@ implementation
                   if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
                    begin
                      AsmWrite('.globl'#9);
-{$ifdef avr}
-                     AsmWriteLn(ReplaceForbiddenChars(tai_label(hp).labsym.name));
-{$else avr}
-                     AsmWriteLn(tai_label(hp).labsym.name);
-{$endif avr}
+                     if replaceforbidden then
+                       AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
+                     else
+                       AsmWriteLn(tai_label(hp).labsym.name);
                    end;
-{$ifdef avr}
-                  AsmWrite(ReplaceForbiddenChars(tai_label(hp).labsym.name));
-{$else avr}
-                  AsmWrite(tai_label(hp).labsym.name);
-{$endif avr}
+                  if replaceforbidden then
+                    AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
+                  else
+                    AsmWrite(tai_label(hp).labsym.name);
                   AsmWriteLn(':');
                 end;
              end;
@@ -1082,11 +1080,10 @@ implementation
                if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) then
                  begin
                    AsmWrite(#9'.private_extern ');
-{$ifdef avr}
-                   AsmWriteln(ReplaceForbiddenChars(tai_symbol(hp).sym.name));
-{$else avr}
-                   AsmWriteln(tai_symbol(hp).sym.name);
-{$endif avr}
+                   if replaceforbidden then
+                     AsmWriteln(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name))
+                   else
+                     AsmWriteln(tai_symbol(hp).sym.name);
                  end;
                if (target_info.system = system_powerpc64_linux) and
                  (tai_symbol(hp).sym.typ = AT_FUNCTION) and (cs_profile in current_settings.moduleswitches) then
@@ -1095,11 +1092,10 @@ implementation
                if tai_symbol(hp).is_global then
                 begin
                   AsmWrite('.globl'#9);
-{$ifdef avr}
-                  AsmWriteln(ReplaceForbiddenChars(tai_symbol(hp).sym.name));
-{$else avr}
-                  AsmWriteln(tai_symbol(hp).sym.name);
-{$endif avr}
+                  if replaceforbidden then
+                    AsmWriteln(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name))
+                  else
+                    AsmWriteln(tai_symbol(hp).sym.name);
                 end;
                if (target_info.system = system_powerpc64_linux) and
                  (tai_symbol(hp).sym.typ = AT_FUNCTION) then
@@ -1131,17 +1127,15 @@ implementation
                          AsmWriteLn(',' + sepChar + 'function');
                      end;
                  end;
-{$ifdef avr}
-               if not(tai_symbol(hp).has_value) then
-                 AsmWriteLn(ReplaceForbiddenChars(tai_symbol(hp).sym.name + ':'))
-               else
-                 AsmWriteLn(ReplaceForbiddenChars(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value)));
-{$else avr}
-               if not(tai_symbol(hp).has_value) then
+               if replaceforbidden then
+                 if not(tai_symbol(hp).has_value) then
+                   AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name + ':'))
+                 else
+                   AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value)))
+               else if not(tai_symbol(hp).has_value) then
                  AsmWriteLn(tai_symbol(hp).sym.name + ':')
                else
                  AsmWriteLn(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value));
-{$endif avr}
              end;
 {$ifdef arm}
            ait_thumb_func:
@@ -1160,19 +1154,17 @@ implementation
                   AsmWrite(#9'.size'#9);
                   if (target_info.system = system_powerpc64_linux) and (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then
                     AsmWrite('.');
-{$ifdef avr}
-                  AsmWrite(ReplaceForbiddenChars(tai_symbol_end(hp).sym.name));
-{$else avr}
-                  AsmWrite(tai_symbol_end(hp).sym.name);
-{$endif avr}
+                  if replaceforbidden then
+                    AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbol_end(hp).sym.name))
+                  else
+                    AsmWrite(tai_symbol_end(hp).sym.name);
                   AsmWrite(', '+s+' - ');
                   if (target_info.system = system_powerpc64_linux) and (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then
                      AsmWrite('.');
-{$ifdef avr}
-                  AsmWriteLn(ReplaceForbiddenChars(tai_symbol_end(hp).sym.name));
-{$else avr}
-                  AsmWriteLn(tai_symbol_end(hp).sym.name);
-{$endif avr}
+                  if replaceforbidden then
+                    AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol_end(hp).sym.name))
+                  else
+                    AsmWriteLn(tai_symbol_end(hp).sym.name);
                 end;
              end;
 

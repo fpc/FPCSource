@@ -1058,6 +1058,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmwin32_info : tasminfo =
@@ -1070,6 +1071,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmobj_info : tasminfo =
@@ -1082,6 +1084,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmwdosx_info : tasminfo =
@@ -1094,6 +1097,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
 
@@ -1107,6 +1111,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmbeos_info : tasminfo =
@@ -1119,6 +1124,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmhaiku_info : tasminfo =
@@ -1131,6 +1137,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
 

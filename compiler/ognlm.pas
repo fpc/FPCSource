@@ -1510,6 +1510,7 @@ const
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 
 

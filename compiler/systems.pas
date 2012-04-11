@@ -89,6 +89,9 @@ interface
           flags        : set of tasmflags;
           labelprefix : string[3];
           comment     : string[3];
+          { set to '$' if that character is allowed in symbol names, otherwise
+            to alternate character by which '$' should be replaced }
+          dollarsign  : char;
        end;
 
        parinfo = ^tarinfo;

@@ -840,7 +840,7 @@ unit cgppc;
             current_asmdata.WeakRefAsmSymbol(symname)
           else
             current_asmdata.WeakRefAsmSymbol('.'+symname);
-          newsymname:=ReplaceForbiddenChars(symname);
+          newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
           current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
         end;
     end;

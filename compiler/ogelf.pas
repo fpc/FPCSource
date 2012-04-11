@@ -1275,6 +1275,7 @@ implementation
             flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif i386}
 {$ifdef x86_64}
@@ -1290,6 +1291,7 @@ implementation
             flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif x86_64}
 {$ifdef sparc}
@@ -1305,6 +1307,7 @@ implementation
             flags : [af_outputbinary,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif sparc}
 

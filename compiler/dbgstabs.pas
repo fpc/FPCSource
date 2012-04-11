@@ -125,10 +125,8 @@ implementation
         result := Sym.Name
       else
         result := Sym.RealName;
-{$ifdef avr}
-      if target_asm.id=as_gas then
-        result:=ReplaceForbiddenChars(result);
-{$endif avr}
+      if target_asm.dollarsign<>'$' then
+        result:=ReplaceForbiddenAsmSymbolChars(result);
     end;
 
     function GetSymTableName(SymTable : TSymTable) : string;
@@ -137,10 +135,8 @@ implementation
         result := SymTable.Name^
       else
         result := SymTable.RealName^;
-{$ifdef avr}
-      if target_asm.id=as_gas then
-        result:=ReplaceForbiddenChars(result);
-{$endif avr}
+      if target_asm.dollarsign<>'$' then
+        result:=ReplaceForbiddenAsmSymbolChars(result);
     end;
 
     const

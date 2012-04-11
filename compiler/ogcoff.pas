@@ -3053,6 +3053,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 
        as_i386_pecoff_info : tasminfo =
@@ -3065,6 +3066,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 
        as_i386_pecoffwdosx_info : tasminfo =
@@ -3077,6 +3079,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 
        as_i386_pecoffwince_info : tasminfo =
@@ -3089,6 +3092,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif i386}
 {$ifdef x86_64}
@@ -3103,6 +3107,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif x86_64}
 {$ifdef arm}
@@ -3117,6 +3122,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif arm}
 

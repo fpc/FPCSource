@@ -1241,6 +1241,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_labelprefix_only_inside_procedure];
             labelprefix : '@';
             comment : '; ';
+            dollarsign: 's';
           );
 
 initialization

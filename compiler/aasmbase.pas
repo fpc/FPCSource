@@ -189,6 +189,8 @@ interface
     function EncodeUleb128(a: qword;out buf) : byte;
     function EncodeSleb128(a: int64;out buf) : byte;
 
+    function ReplaceForbiddenAsmSymbolChars(const s: string): string;
+
 
 implementation
 
@@ -325,6 +327,19 @@ implementation
           if not(more) then
             break;
         until false;
+      end;
+
+
+    function ReplaceForbiddenAsmSymbolChars(const s: string): string;
+      var
+        i : longint;
+        rchar: char;
+      begin
+        Result:=s;
+        rchar:=target_asm.dollarsign;
+        for i:=1 to Length(Result) do
+          if Result[i]='$' then
+            Result[i]:=rchar;
       end;
 
 

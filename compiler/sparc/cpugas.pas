@@ -217,6 +217,7 @@ implementation
            flags : [af_allowdirect,af_needar,af_smartlink_sections];
            labelprefix : '.L';
            comment : '# ';
+           dollarsign: '$';
          );
 
       as_sparc_gas_info : tasminfo =
@@ -229,6 +230,7 @@ implementation
            flags : [af_allowdirect,af_needar,af_smartlink_sections];
            labelprefix : '.L';
            comment : '# ';
+           dollarsign: '$';
          );
 
 begin

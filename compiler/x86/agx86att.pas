@@ -340,6 +340,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
+            dollarsign: '$';
           );
 
        as_x86_64_gas_info : tasminfo =
@@ -352,6 +353,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
+            dollarsign: '$';
           );
 
 
@@ -366,6 +368,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';
+            dollarsign: '$';
           );
 
 {$else x86_64}
@@ -382,6 +385,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
+            dollarsign: '$';
           );
 
 
@@ -395,6 +399,7 @@ interface
             flags : [af_allowdirect,af_needar,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
+            dollarsign: '$';
           );
 
 
@@ -408,6 +413,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
+            dollarsign: '$';
           );
 
        as_i386_gas_info : tasminfo =
@@ -422,6 +428,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
+            dollarsign: '$';
           );
 {$endif x86_64}
 

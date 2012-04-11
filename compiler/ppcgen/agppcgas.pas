@@ -172,6 +172,8 @@ unit agppcgas;
             if o.ref^.refaddr<>addr_full then
               internalerror(200402262);
             hs:=o.ref^.symbol.name;
+            if target_asm.dollarsign<>'$' then
+              hs:=ReplaceForbiddenAsmSymbolChars(hs);
             if o.ref^.offset>0 then
               hs:=hs+'+'+tostr(o.ref^.offset)
             else
@@ -200,6 +202,8 @@ unit agppcgas;
           if o.ref^.refaddr=addr_full then
             begin
               hs:=o.ref^.symbol.name;
+              if target_asm.dollarsign<>'$' then
+                hs:=ReplaceForbiddenAsmSymbolChars(hs);
               if o.ref^.offset>0 then
                hs:=hs+'+'+tostr(o.ref^.offset)
               else
@@ -433,6 +437,7 @@ unit agppcgas;
          flags : [af_allowdirect,af_needar,af_smartlink_sections];
          labelprefix : '.L';
          comment : '# ';
+         dollarsign: '$';
        );
 
 
@@ -447,6 +452,7 @@ unit agppcgas;
          flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
          comment : '# ';
+         dollarsign : '$';
        );
 
 
