@@ -1259,7 +1259,7 @@ begin
   Result := False;
   repeat
     Result := SkipS or Result;
-    if FSource.FBuf^ = #0 then
+    if FSource.FBuf >= FSource.FBufEnd then
     begin
       Result := True;      // report whitespace upon exiting the PE
       if not ContextPop then
@@ -1267,7 +1267,7 @@ begin
     end
     else if FSource.FBuf^ = '%' then
     begin
-      if (FState <> rsDTD) or ((FSource.Kind = skInternalSubset) and FInsideDecl) then
+      if (FState <> rsDTD) then
         Break;
 // This is the only case where look-ahead is needed
       if FSource.FBuf > FSource.FBufEnd-2 then
@@ -1276,9 +1276,6 @@ begin
       if (not PercentAloneIsOk) or (Byte(FSource.FBuf[1]) in NamingBitmap[NamePages[hi(Word(FSource.FBuf[1]))]]) or
         ((FSource.FBuf[1] >= #$D800) and (FSource.FBuf[1] <= #$DB7F)) then
       begin
-        Inc(FSource.FBuf);    // skip '%'
-        CheckName;
-        ExpectChar(';');
         StartPE;
         Result := True;        // report whitespace upon entering the PE
       end
@@ -1689,7 +1686,8 @@ begin
     end;
 
     repeat
-      if Byte(p^) in NamingBitmap[NamePages[$100+hi(Word(p^))]] then
+      if (Byte(p^) in NamingBitmap[NamePages[$100+hi(Word(p^))]]) or
+        ((p^= ':') and ((cnToken in aFlags) or not FNamespaces)) then
         Inc(p)
       else if ((p^ >= #$D800) and (p^ <= #$DB7F) and
         (p[1] >= #$DC00) and (p[1] <= #$DFFF)) then
@@ -1698,27 +1696,19 @@ begin
         Break;
     until False;
 
-    if p^ = ':' then
+    if (p^ = ':') and (FColonPos < 0) then
     begin
-      if (cnToken in aFlags) or not FNamespaces then  // colon has no specific meaning
-      begin
-        Inc(p);
-        if p^ <> #0 then Continue;
-      end
-      else if FColonPos = -1 then       // this is the first colon, remember it
-      begin
-        FColonPos := p-FSource.FBuf+FName.Length;
-        NameStartFlag := True;
-        Inc(p);
-        if p^ <> #0 then Continue;
-      end;
+      FColonPos := p-FSource.FBuf+FName.Length;
+      NameStartFlag := True;
+      Inc(p);
+      if p < FSource.FBufEnd then Continue;
     end;
 
     BufAppendChunk(FName, FSource.FBuf, p);
     Result := (FName.Length > 0);
 
     FSource.FBuf := p;
-    if (p^ <> #0) or not FSource.Reload then
+    if (p < FSource.FBufEnd) or not FSource.Reload then
       Break;
 
     p := FSource.FBuf;
@@ -2039,6 +2029,11 @@ procedure TXMLTextReader.StartPE;
 var
   PEnt: TEntityDecl;
 begin
+  FSource.NextChar;    // skip '%'
+  CheckName;
+  ExpectChar(';');
+  if (FSource.Kind = skInternalSubset) and FInsideDecl then
+    FatalError('Parameter entity references cannot appear inside markup declarations in internal subset', FName.Length+2);
   PEnt := nil;
   if Assigned(FPEMap) then
     PEnt := FPEMap.Get(FName.Buffer, FName.Length) as TEntityDecl;
@@ -2105,14 +2100,7 @@ begin
   repeat
     wc := FSource.SkipUntil(ToFill, LiteralDelims[aType]);
     if wc = '%' then       { ltEntity only }
-    begin
-      FSource.NextChar;
-      CheckName;
-      ExpectChar(';');
-      if FSource.Kind = skInternalSubset then
-        FatalError('PE reference not allowed here in internal subset', FName.Length+2);
-      StartPE;
-    end
+      StartPE
     else if wc = '&' then  { ltEntity }
     begin
       if ParseRef(ToFill) then   // charRefs always expanded
@@ -2546,7 +2534,7 @@ begin
   end
   else
     FatalError('Invalid content specification');
-  // SAX: DeclHandler.ElementDecl(name, model);
+
   if FDTDProcessed and (ElDef.ContentType = ctUndeclared) then
   begin
     ElDef.ExternallyDeclared := ExtDecl;
@@ -2725,7 +2713,6 @@ begin
         if not AttDef.ValidateSyntax(AttDef.Data^.FValueStr, FNamespaces) then
           ValidationError('Default value for attribute ''%s'' has wrong syntax', [attrName^.Key]);
       end;
-      // SAX: DeclHandler.AttributeDecl(...)
       if DiscardIt then
         AttDef.Free
       else
@@ -2744,35 +2731,31 @@ var
   Entity: TEntityDecl;
   Map: THashTable;
   Item: PHashItem;
-  Src: TXMLCharSource;
   dummy: TLocation;
 begin
-  Src := FSource;
-  if not SkipWhitespace(True) then
-    FatalError('Expected whitespace');
-  IsPE := CheckForChar('%');
-  if IsPE then                  // [72]
-  begin
-    ExpectWhitespace;
-    if FPEMap = nil then
-      FPEMap := THashTable.Create(64, True);
-    Map := FPEMap;
-  end
-  else
-    Map := FDocType.Entities;
-
   Entity := TEntityDecl.Create;
   try
     Entity.ExternallyDeclared := FSource.Kind <> skInternalSubset;
+    Entity.FURI := FSource.SourceURI;
+
+    if not SkipWhitespace(True) then
+      FatalError('Expected whitespace');
+    IsPE := CheckForChar('%');
+    if IsPE then                  // [72]
+    begin
+      ExpectWhitespace;
+      if FPEMap = nil then
+        FPEMap := THashTable.Create(64, True);
+      Map := FPEMap;
+    end
+    else
+      Map := FDocType.Entities;
+
     Entity.FIsPE := IsPE;
     CheckName;
     CheckNCName;
     Item := Map.FindOrAdd(FName.Buffer, FName.Length, Exists);
     ExpectWhitespace;
-
-    // remember where the entity is declared, use URI from the point where declaration
-    // was starting.
-    Entity.FURI := Src.SourceURI;
 
     if FEntityValue.Buffer = nil then
       BufAllocate(FEntityValue, 256);
@@ -2800,7 +2783,6 @@ begin
           SetString(Entity.FNotationName, FName.Buffer, FName.Length);
           if FValidate and (FDocType.Notations.Get(FName.Buffer, FName.Length)=nil) then
             AddForwardRef(FName.Buffer, FName.Length);
-          // SAX: DTDHandler.UnparsedEntityDecl(...);
         end;
       end;
     end;
@@ -2924,10 +2906,9 @@ begin
   until False;
   if IncludeLevel > 0 then
     DoErrorPos(esFatal, 'INCLUDE section is not closed', IncludeLoc);
-  if (FSource.Kind = skInternalSubset) and (FSource.FBuf^ = ']') then
-    Exit;
-  if FSource.FBuf^ <> #0 then
-    FatalError('Illegal character in DTD');
+  if FSource.FBuf < FSource.FBufEnd then
+    if (FSource.Kind <> skInternalSubset) or (FSource.FBuf^ <> ']') then
+      FatalError('Illegal character in DTD');
 end;
 
 procedure TLoader.ProcessDTD(ADoc: TDOMDocument; AReader: TXMLTextReader);
@@ -3258,7 +3239,7 @@ end;
 function TXMLTextReader.GetLocalName: XMLString;
 begin
   if FNamespaces and Assigned(FCurrNode^.FQName) then
-    if FColonPos < 0 then
+    if FCurrNode^.FColonPos < 0 then
       Result := FCurrNode^.FQName^.Key
     else
       Result := Copy(FCurrNode^.FQName^.Key, FCurrNode^.FColonPos+2, MaxInt)
@@ -3545,7 +3526,7 @@ begin
         tok := xtElement;
       end;
     end
-    else if FSource.FBuf^ = #0 then
+    else if FSource.FBuf >= FSource.FBufEnd then
     begin
       if FState < rsRoot then
         FatalError('Root element is missing');
