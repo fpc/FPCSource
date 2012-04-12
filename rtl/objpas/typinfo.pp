@@ -1222,15 +1222,37 @@ begin
   Result:=GetInterfaceProp(Instance,FindPropInfo(Instance,PropName));
 end;
 
-function GetInterfaceProp(Instance: TObject; PropInfo: PPropInfo): IInterface;
 
+function GetInterfaceProp(Instance: TObject; PropInfo: PPropInfo): IInterface;
+type
+  TGetInterfaceProc=function:IInterface of object;
+  TGetInterfaceProcIndex=function(index:longint):IInterface of object;
+var
+  TypeInfo: PTypeInfo;
+  AMethod : TMethod;
 begin
-{$ifdef cpu64}
-  Result:=IInterface(GetInt64Prop(Instance,PropInfo));
-{$else cpu64}
-  Result:=IInterface(PtrInt(GetOrdProp(Instance,PropInfo)));
-{$endif cpu64}
+  Result:=nil;
+
+  TypeInfo := PropInfo^.PropType;
+  case (PropInfo^.PropProcs) and 3 of
+    ptfield:
+      Result:=IInterface(PPointer(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^);
+    ptstatic,
+    ptvirtual :
+      begin
+        if (PropInfo^.PropProcs and 3)=ptStatic then
+          AMethod.Code:=PropInfo^.GetProc
+        else
+          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+        AMethod.Data:=Instance;
+        if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+          Result:=TGetInterfaceProcIndex(AMethod)(PropInfo^.Index)
+        else
+          Result:=TGetInterfaceProc(AMethod)();
+      end;
+  end;
 end;
+
 
 procedure SetInterfaceProp(Instance: TObject; const PropName: string; const Value: IInterface);
 
