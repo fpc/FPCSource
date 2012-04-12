@@ -1209,7 +1209,7 @@ implementation
                 but searches the same name or with a leading underscore
                 but these names don't exist in pascal !}
               st:='S'+st;
-              ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(nsym,'0','${line}',staticvarsym_mangled_name(sym)+'$2'),[st,threadvaroffset]);
+              ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(nsym,'0','${line}','$2$3'),[st,staticvarsym_mangled_name(sym),threadvaroffset]);
             end;
         end;
         write_sym_stabstr(list,sym,ss);
