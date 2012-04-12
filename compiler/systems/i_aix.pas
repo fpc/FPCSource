@@ -157,13 +157,13 @@ unit i_aix;
 
 initialization
 {$ifdef CPUPOWERPC32}
-  {$ifdef linux}
+  {$ifdef aix}
     set_source_info(system_powerpc_aix_info);
-  {$endif linux}
+  {$endif aix}
 {$endif CPUPOWERPC32}
 {$ifdef CPUPOWERPC64}
-  {$ifdef linux}
+  {$ifdef aix}
     set_source_info(system_powerpc64_aix_info);
-  {$endif linux}
+  {$endif aix}
 {$endif CPUPOWERPC64}
 end.
