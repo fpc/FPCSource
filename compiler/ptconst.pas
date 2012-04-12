@@ -173,7 +173,7 @@ implementation
             if is_constnode(n) then
               IncompatibleTypes(n.resultdef, def)
             else
-             if not(in_generic) then
+             if not(parse_generic) then
                 Message(parser_e_illegal_expression);
           end;
 

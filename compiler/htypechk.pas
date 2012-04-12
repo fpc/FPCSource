@@ -178,10 +178,6 @@ interface
       arrays, records and objects are checked recursively }
     function is_valid_for_default(def:tdef):boolean;
 
-    { returns true if currently a generic declaration or definition is parsed/compiled,
-      regardless if it's a subroutine or type }
-    function in_generic : boolean;
-
 implementation
 
     uses
@@ -3015,13 +3011,6 @@ implementation
           else
             result:=true;
         end;
-      end;
-
-
-    function in_generic: boolean;
-      begin
-        result:=(assigned(current_structdef) and (df_generic in current_structdef.defoptions)) or
-          (assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions));
       end;
 
 

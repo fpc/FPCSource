@@ -151,7 +151,7 @@ implementation
                 Message(parser_e_illegal_expression);
              end;
            else
-             if not(in_generic) then
+             if not(parse_generic) then
                Message(parser_e_illegal_expression);
         end;
         current_tokenpos:=storetokenpos;
