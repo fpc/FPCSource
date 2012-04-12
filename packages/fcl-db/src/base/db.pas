@@ -1623,7 +1623,7 @@ type
     property FieldDefs: TFieldDefs read FFieldDefs write SetFieldDefs;
 //    property Fields[Index: Longint]: TField read GetField write SetField;
     property Found: Boolean read FFound;
-    property Modified: Boolean read FModified write SetModified;
+    property Modified: Boolean read FModified;
     property IsUniDirectional: Boolean read FIsUniDirectional default False;
     property RecordCount: Longint read GetRecordCount;
     property RecNo: Longint read GetRecNo write SetRecNo;
