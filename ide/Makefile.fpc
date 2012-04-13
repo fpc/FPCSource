@@ -56,6 +56,7 @@ endif
 
 ifeq ($(OS_TARGET),freebsd)
 needusrlocallib=1
+neednostdlib=1
 endif
 ifeq ($(OS_TARGET),openbsd)
 needusrlocallib=1
@@ -67,6 +68,9 @@ endif
 
 ifdef needusrlocallib
 override SPECIALLINK+=-Fl/usr/local/lib
+endif
+ifdef neednostdlib
+override SPECIALLINK+=-Xd
 endif
 # Try to find GDB library
 # Look for a valid GDBLIBDIR environment variable
