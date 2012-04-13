@@ -1,10 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002 by Florian Klaempfl.
-    Member of the Free Pascal development team
-
-    Parts of this code are derived from the x86-64 linux port
-    Copyright 2002 Andi Kleen
+    Copyright (c) 2002 by Florian Klaempfl and Sergei Gorelkin
+    Members of the Free Pascal development team
 
     Processor dependent implementation for the system unit for
     the x86-64 architecture
@@ -618,6 +615,41 @@ end;
 {$endif FPC_SYSTEM_HAS_INDEXWORD}
 
 {$endif freebsd}
+
+{$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
+{$define FPC_SYSTEM_HAS_COMPAREBYTE}
+function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+{ win64: rcx buf, rdx buf, r8 len
+  linux: rdi buf, rsi buf, rdx len }
+asm
+{$ifndef win64}
+    mov    %rdx, %r8
+    mov    %rsi, %rdx
+    mov    %rdi, %rcx
+{$endif win64}
+    testq   %r8,%r8
+    je      .LCmpbyteZero
+
+.LCmpbyteLoop:
+    movb    (%rcx),%r9b
+    cmpb    (%rdx),%r9b
+    leaq    1(%rcx),%rcx
+    leaq    1(%rdx),%rdx
+    jne     .LCmpbyteExitFast
+    decq    %r8
+    jne     .LCmpbyteLoop
+.LCmpbyteExitFast:
+     movzbq  -1(%rdx),%r8     { Compare last position }
+     movzbq  %r9b,%rax
+     subq    %r8,%rax
+     ret
+
+.LCmpbyteZero:
+     movq    $0,%rax
+     ret
+end;
+{$endif FPC_SYSTEM_HAS_COMPAREBYTE}
+
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 { does a thread save inc/dec }
