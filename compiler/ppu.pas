@@ -135,6 +135,7 @@ const
   ibrecsymtableoptions = 91;
   { target-specific things }
   iblinkotherframeworks = 100;
+  ibjvmnamespace = 101;
 
 { unit flags }
   uf_init                = $000001; { unit has initialization section }

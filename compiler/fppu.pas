@@ -952,17 +952,13 @@ var
          repeat
            b:=ppufile.readentry;
            case b of
+             ibjvmnamespace :
+               begin
+                 namespace:=stringdup(ppufile.getstring);
+               end;
              ibmodulename :
                begin
                  newmodulename:=ppufile.getstring;
-                 { namespace? }
-                 b:=rpos('.',newmodulename);
-                 if b<>0 then
-                   begin
-                     stringdispose(namespace);
-                     namespace:=stringdup(copy(newmodulename,1,b-1));
-                     delete(newmodulename,1,b);
-                   end;
                  if (cs_check_unit_name in current_settings.globalswitches) and
                     (upper(newmodulename)<>modulename^) then
                    Message2(unit_f_unit_name_error,realmodulename^,newmodulename);
@@ -1054,8 +1050,6 @@ var
 
 
     procedure tppumodule.writeppu;
-      var
-        ns: string;
       begin
          Message1(unit_u_ppu_write,realmodulename^);
 
@@ -1078,11 +1072,14 @@ var
          if not ppufile.createfile then
           Message(unit_f_ppu_cannot_write);
 
-         { first the unitname }
-         ns:='';
+         { first the (JVM) namespace }
          if assigned(namespace) then
-          ns:=namespace^+'.';
-         ppufile.putstring(ns+realmodulename^);
+           begin
+             ppufile.putstring(namespace^);
+             ppufile.writeentry(ibjvmnamespace);
+           end;
+         { the unitname }
+         ppufile.putstring(realmodulename^);
          ppufile.writeentry(ibmodulename);
 
          ppufile.putsmallset(moduleoptions);
@@ -1221,8 +1218,6 @@ var
 
 
     procedure tppumodule.getppucrc;
-      var
-        ns: string;
       begin
 {$ifdef Test_Double_checksum_write}
          Assign(CRCFile,s+'.INT')
@@ -1235,11 +1230,14 @@ var
          if not ppufile.createfile then
            Message(unit_f_ppu_cannot_write);
 
-         { first the unitname }
-         ns:='';
+         { first the (JVM) namespace }
          if assigned(namespace) then
-          ns:=namespace^+'.';
-         ppufile.putstring(ns+realmodulename^);
+           begin
+             ppufile.putstring(namespace^);
+             ppufile.writeentry(ibjvmnamespace);
+           end;
+         { the unitname }
+         ppufile.putstring(realmodulename^);
          ppufile.writeentry(ibmodulename);
 
          ppufile.putsmallset(moduleoptions);
