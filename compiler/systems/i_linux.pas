@@ -452,8 +452,8 @@ unit i_linux;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 8;
-                loopalign       : 4;
+                procalign       : 16;
+                loopalign       : 8;
                 jumpalign       : 0;
                 constalignmin   : 0;
                 constalignmax   : 8;
