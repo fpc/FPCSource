@@ -1311,11 +1311,6 @@ begin
   FFiltered := value;
 end;
 
-Procedure TDataset.SetFound(const Value: Boolean);
-
-begin
-  FFound := Value;
-end;
 
 Procedure TDataset.SetModified(Value: Boolean);
 
@@ -1325,7 +1320,7 @@ end;
 
 Procedure TDataset.SetName(const Value: TComponentName);
 
-function CheckName(FieldName: string): string;
+function CheckName(const FieldName: string): string;
 var i,j: integer;
 begin
   Result := FieldName;
