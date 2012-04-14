@@ -630,6 +630,7 @@ asm
     testq   %r8,%r8
     je      .LCmpbyteZero
 
+    .balign 8
 .LCmpbyteLoop:
     movb    (%rcx),%r9b
     cmpb    (%rdx),%r9b
