@@ -822,7 +822,9 @@ Unit AoptObj;
             Top_None :
               OpsEqual := True
             else OpsEqual := False
-          End;
+          End
+        else
+          OpsEqual := False;
       End;
 
       Function TAOptObj.FindRegAlloc(Reg: TRegister; StartPai: Tai): Boolean;
