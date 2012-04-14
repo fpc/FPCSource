@@ -1366,7 +1366,9 @@ end;
 destructor TPasSetType.Destroy;
 begin
   if Assigned(EnumType) then
+    begin
     EnumType.Release;
+    end;
   inherited Destroy;
 end;
 
@@ -2814,6 +2816,7 @@ destructor TParamsExpr.Destroy;
 var
   i : Integer;
 begin
+  FreeAndNil(Value);
   for i:=0 to length(Params)-1 do Params[i].Free;
   inherited Destroy;
 end;
