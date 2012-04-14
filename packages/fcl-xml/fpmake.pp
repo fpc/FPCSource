@@ -105,12 +105,20 @@ begin
         begin
           AddUnit('xmlutils');
         end;
+    T:=P.Targets.AddUnit('xmltextreader.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('xmlutils');
+          AddUnit('xmlreader');
+          AddUnit('dtdmodel');
+        end;
     T:=P.Targets.AddUnit('xmlread.pp');
       with T.Dependencies do
         begin
           AddUnit('dom');
           AddUnit('xmlutils');
           AddUnit('xmlreader');
+          AddUnit('xmltextreader');
         end;
     T:=P.Targets.AddUnit('xmlstreaming.pp');
       with T.Dependencies do
@@ -130,6 +138,7 @@ begin
     T:=P.Targets.AddUnit('xpath.pp');
       with T.Dependencies do
         begin
+          AddInclude('xpathkw.inc');
           AddUnit('dom');
         end;
     T.ResourceStrings:=True;

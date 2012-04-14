@@ -23,6 +23,26 @@ uses
   Classes, SysUtils, xmlutils;
 
 type
+  TErrorSeverity = (esWarning, esError, esFatal);
+
+  EXMLReadError = class(Exception)
+  private
+    FSeverity: TErrorSeverity;
+    FErrorMessage: string;
+    FLine: Integer;
+    FLinePos: Integer;
+  public
+    constructor Create(sev: TErrorSeverity; const AMsg: string; ALine, ALinePos: Integer;
+      const uri: string); overload;
+    constructor Create(const AMsg: string); overload;
+    property Severity: TErrorSeverity read FSeverity;
+    property ErrorMessage: string read FErrorMessage;
+    property Line: Integer read FLine;
+    property LinePos: Integer read FLinePos;
+  end;
+
+  TXMLErrorEvent = procedure(e: EXMLReadError) of object;
+
   TXMLReadState = (
     rsInitial,
     rsInteractive,
@@ -31,10 +51,57 @@ type
     rsClosed
   );
 
-  { TODO: move EXmlReadError here from xmlread unit,
-    it must have location information available }
-  EXmlError = class(Exception) end;
+  TXMLInputSource = class(TObject)
+  private
+    FStream: TStream;
+    FStringData: string;
+    FBaseURI: XMLString;
+    FSystemID: XMLString;
+    FPublicID: XMLString;
+//    FEncoding: string;
+  public
+    constructor Create(AStream: TStream); overload;
+    constructor Create(const AStringData: string); overload;
+    property Stream: TStream read FStream;
+    property StringData: string read FStringData;
+    property BaseURI: XMLString read FBaseURI write FBaseURI;
+    property SystemID: XMLString read FSystemID write FSystemID;
+    property PublicID: XMLString read FPublicID write FPublicID;
+//    property Encoding: string read FEncoding write FEncoding;
+  end;
 
+  TConformanceLevel = (clAuto, clFragment, clDocument);
+
+  TXMLReaderSettings = class(TObject)
+  private
+    FNameTable: THashTable;
+    FValidate: Boolean;
+    FPreserveWhitespace: Boolean;
+    FExpandEntities: Boolean;
+    FIgnoreComments: Boolean;
+    FCDSectionsAsText: Boolean;
+    FNamespaces: Boolean;
+    FDisallowDoctype: Boolean;
+    FCanonical: Boolean;
+    FMaxChars: Cardinal;
+    FOnError: TXMLErrorEvent;
+    FConformance: TConformanceLevel;
+    function GetCanonical: Boolean;
+    procedure SetCanonical(aValue: Boolean);
+  public
+    property NameTable: THashTable read FNameTable write FNameTable;
+    property Validate: Boolean read FValidate write FValidate;
+    property PreserveWhitespace: Boolean read FPreserveWhitespace write FPreserveWhitespace;
+    property ExpandEntities: Boolean read FExpandEntities write FExpandEntities;
+    property IgnoreComments: Boolean read FIgnoreComments write FIgnoreComments;
+    property CDSectionsAsText: Boolean read FCDSectionsAsText write FCDSectionsAsText;
+    property Namespaces: Boolean read FNamespaces write FNamespaces;
+    property DisallowDoctype: Boolean read FDisallowDoctype write FDisallowDoctype;
+    property MaxChars: Cardinal read FMaxChars write FMaxChars;
+    property CanonicalForm: Boolean read GetCanonical write SetCanonical;
+    property OnError: TXMLErrorEvent read FOnError write FOnError;
+    property ConformanceLevel: TConformanceLevel read FConformance write FConformance;
+  end;
 
   TXMLReader = class(TObject)
   protected
@@ -101,6 +168,63 @@ const
   ContentNodeTypes = [ntText, ntCDATA, ntElement, ntEndElement,
     ntEntityReference, ntEndEntity];
 
+{ EXMLReadError }
+
+constructor EXMLReadError.Create(sev: TErrorSeverity; const AMsg: string; ALine, ALinePos: Integer;
+    const uri: string);
+begin
+  inherited CreateFmt('In ''%s'' (line %d pos %d): %s',[uri, ALine, ALinePos, AMsg]);
+  FSeverity := sev;
+  FErrorMessage := AMsg;
+  FLine := ALine;
+  FLinePos := ALinePos;
+end;
+
+constructor EXMLReadError.Create(const AMsg: string);
+begin
+  inherited Create(AMsg);
+  FErrorMessage := AMsg;
+  FSeverity := esFatal;
+end;
+
+{ TXMLInputSource }
+
+constructor TXMLInputSource.Create(AStream: TStream);
+begin
+  inherited Create;
+  FStream := AStream;
+end;
+
+constructor TXMLInputSource.Create(const AStringData: string);
+begin
+  inherited Create;
+  FStringData := AStringData;
+end;
+
+{ TXMLReaderSettings }
+
+function TXMLReaderSettings.GetCanonical: Boolean;
+begin
+  Result := FCanonical and FExpandEntities and FCDSectionsAsText and
+  { (not normalizeCharacters) and } FNamespaces and
+  { namespaceDeclarations and } FPreserveWhitespace;
+end;
+
+procedure TXMLReaderSettings.SetCanonical(aValue: Boolean);
+begin
+  FCanonical := aValue;
+  if aValue then
+  begin
+    FExpandEntities := True;
+    FCDSectionsAsText := True;
+    FNamespaces := True;
+    FPreserveWhitespace := True;
+    { normalizeCharacters := False; }
+    { namespaceDeclarations := True; }
+    { wellFormed := True; }
+  end;
+end;
+
 { TXMLReader }
 
 destructor TXMLReader.Destroy;
@@ -137,7 +261,7 @@ begin
   ReadStartElement;
   result := ReadString;
   if NodeType <> ntEndElement then
-    raise EXmlError.Create('Expecting end of element');
+    raise EXMLReadError.Create('Expecting end of element');
   Read;
 end;
 
@@ -146,7 +270,7 @@ begin
   ReadStartElement(aName);
   result := ReadString;
   if NodeType <> ntEndElement then
-    raise EXmlError.Create('Expecting end of element');
+    raise EXMLReadError.Create('Expecting end of element');
   Read;
 end;
 
@@ -155,39 +279,39 @@ begin
   ReadStartElement(aLocalName, aNamespace);
   result := ReadString;
   if NodeType <> ntEndElement then
-    raise EXmlError.Create('Expecting end of element');
+    raise EXMLReadError.Create('Expecting end of element');
   Read;
 end;
 
 procedure TXMLReader.ReadEndElement;
 begin
   if MoveToContent <> ntEndElement then
-    raise EXmlError.Create('Expecting end of element');
+    raise EXMLReadError.Create('Expecting end of element');
   Read;
 end;
 
 procedure TXMLReader.ReadStartElement;
 begin
   if MoveToContent <> ntElement then
-    raise EXmlError.Create('Invalid node type');
+    raise EXMLReadError.Create('Invalid node type');
   Read;
 end;
 
 procedure TXMLReader.ReadStartElement(const aName: XMLString);
 begin
   if MoveToContent <> ntElement then
-    raise EXmlError.Create('Invalid node type') ;
+    raise EXMLReadError.Create('Invalid node type') ;
   if Name <> aName then
-    raise EXmlError.CreateFmt('Element ''%s'' was not found',[aName]);
+    raise EXMLReadError.CreateFmt('Element ''%s'' was not found',[aName]);
   Read;
 end;
 
 procedure TXMLReader.ReadStartElement(const aLocalName, aNamespace: XMLString);
 begin
   if MoveToContent <> ntElement then
-    raise EXmlError.Create('Invalid node type');
+    raise EXMLReadError.Create('Invalid node type');
   if (localName <> aLocalName) or (NamespaceURI <> aNamespace) then
-    raise EXmlError.CreateFmt('Element ''%s'' with namespace ''%s'' was not found',
+    raise EXMLReadError.CreateFmt('Element ''%s'' with namespace ''%s'' was not found',
       [aLocalName, aNamespace]);
   Read;
 end;
