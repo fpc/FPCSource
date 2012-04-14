@@ -1117,6 +1117,7 @@ implementation
         end;
 
       { Set the assembler name }
+      tstaticvarsym(vs).set_mangledbasename(mangledname);
       tstaticvarsym(vs).set_mangledname(mangledname);
     end;
 
