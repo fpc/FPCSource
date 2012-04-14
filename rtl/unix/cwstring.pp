@@ -812,8 +812,8 @@ function CharLengthPChar(const Str: PChar): PtrInt;
 
 
 function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
-  var
 {$ifndef beos}
+  var
     mbstate: mbstate_t;
 {$endif not beos}
   begin
