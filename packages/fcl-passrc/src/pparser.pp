@@ -1252,7 +1252,7 @@ var
   
 const
   PrefixSym = [tkPlus, tkMinus, tknot, tkAt]; // + - not @
-  BinaryOP  = [tkMul, tkDivision, tkdiv, tkmod,
+  BinaryOP  = [tkMul, tkDivision, tkdiv, tkmod, tkDotDot,
                tkand, tkShl,tkShr, tkas, tkPower,
                tkPlus, tkMinus, tkor, tkxor, tkSymmetricalDifference,
                tkEqual, tkNotEqual, tkLessThan, tkLessEqualThan,
@@ -1304,7 +1304,6 @@ begin
     repeat
       NotBinary:=True;
       pcount:=0;
-
       if not Assigned(InitExpr) then
       begin
         // the first part of the expression has been parsed externally.
@@ -1348,9 +1347,17 @@ begin
 
         if not Assigned(x) then Exit;
         expstack.Add(x);
+
         for i:=1 to pcount do begin
           tempop:=PopOper;
-          expstack.Add( TUnaryExpr.Create(AParent, PopExp, TokenToExprOp(tempop) ));
+          x:=popexp;
+          if (tempop=tkMinus) and (X.Kind=pekRange) then
+            begin
+            TBinaryExpr(x).Left:=TUnaryExpr.Create(x, TBinaryExpr(X).left, eopSubtract);
+            expstack.Add(x);
+            end
+           else
+            expstack.Add( TUnaryExpr.Create(AParent, PopExp, TokenToExprOp(tempop) ));
         end;
 
       end else
@@ -1358,7 +1365,6 @@ begin
         expstack.Add(InitExpr);
         InitExpr:=nil;
       end;
-
       if (CurToken in BinaryOP) then begin
         // Adjusting order of the operations
         NotBinary:=False;
