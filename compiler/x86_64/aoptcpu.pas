@@ -25,17 +25,321 @@ unit aoptcpu;
 
 {$i fpcdefs.inc}
 
-  Interface
+interface
 
-    uses
-      cpubase, aoptobj, aoptcpub, aopt;
+uses cpubase, aasmtai, aopt, aoptcpub;
 
-    Type
-      TCpuAsmOptimizer = class(TAsmOptimizer)
-      End;
+type
+  TCpuAsmOptimizer = class(TAsmOptimizer)
+    function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
+  end;
 
-  Implementation
+implementation
+
+uses
+  globtype, globals,
+  cutils,
+  verbose,
+  cgbase, cgutils,
+  aasmbase, aasmdata, aasmcpu;
+
+function isFoldableArithOp(hp1: taicpu; reg: tregister): boolean;
+begin
+  isFoldableArithOp := False;
+  case hp1.opcode of
+    A_ADD, A_SUB, A_OR, A_XOR, A_AND, A_SHL, A_SHR, A_SAR:
+      isFoldableArithOp :=
+        ((taicpu(hp1).oper[0]^.typ = top_const) or
+        ((taicpu(hp1).oper[0]^.typ = top_reg) and
+        (taicpu(hp1).oper[0]^.reg<>reg))) and
+        (taicpu(hp1).oper[1]^.typ = top_reg) and
+        (taicpu(hp1).oper[1]^.reg = reg);
+    A_INC, A_DEC:
+      isFoldableArithOp :=
+        (taicpu(hp1).oper[0]^.typ = top_reg) and
+        (taicpu(hp1).oper[0]^.reg = reg);
+    end;
+end;
+
+function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
+var
+  next1: tai;
+  hp1, hp2: tai;
+begin
+  Result := False;
+  case p.typ of
+    ait_instruction:
+      begin
+      case taicpu(p).opcode of
+        A_AND:
+          begin
+          if (taicpu(p).oper[0]^.typ = top_const) and
+            (taicpu(p).oper[1]^.typ = top_reg) and
+            GetNextInstruction(p, hp1) and
+            (tai(hp1).typ = ait_instruction) and
+            (taicpu(hp1).opcode = A_AND) and
+            (taicpu(hp1).oper[0]^.typ = top_const) and
+            (taicpu(hp1).oper[1]^.typ = top_reg) and
+            (getsupreg(taicpu(p).oper[1]^.reg) = getsupreg(
+            taicpu(hp1).oper[1]^.reg)) and
+            (getsubreg(taicpu(p).oper[1]^.reg)<=getsubreg(
+            taicpu(hp1).oper[1]^.reg)) and
+            (abs(taicpu(p).oper[0]^.val and
+             taicpu(hp1).oper[0]^.val)<$80000000) then
+            {change "and const1, reg; and const2, reg" to "and (const1 and const2), reg"}
+            begin
+              taicpu(hp1).loadConst(0, taicpu(p).oper[0]^.val and
+                taicpu(hp1).oper[0]^.val);
+              asml.remove(p);
+              p.Free;
+              p := hp1;
+            end;
+(*                      else
+  {change "and x, reg; jxx" to "test x, reg", if reg is deallocated before the
+  jump, but only if it's a conditional jump (PFV) }
+                      if (taicpu(p).oper[1]^.typ = top_reg) and
+                         GetNextInstruction(p, hp1) and
+                         (hp1.typ = ait_instruction) and
+                         (taicpu(hp1).is_jmp) and
+                         (taicpu(hp1).opcode<>A_JMP) and
+                         not(getsupreg(taicpu(p).oper[1]^.reg) in UsedRegs) then
+                        taicpu(p).opcode := A_TEST;*)
+          end;
+        A_MOVSX,
+        A_MOVZX:
+          begin
+          if (taicpu(p).oper[1]^.typ = top_reg) and
+            GetNextInstruction(p, hp1) and
+            (hp1.typ = ait_instruction) and
+            IsFoldableArithOp(taicpu(hp1), taicpu(p).oper[1]^.reg) and
+            GetNextInstruction(hp1, hp2) and
+            (hp2.typ = ait_instruction) and
+            (taicpu(hp2).opcode = A_MOV) and
+            (taicpu(hp2).oper[0]^.typ = top_reg) and
+            OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) then
+            { change   movsX/movzX    reg/ref, reg2             }
+            {          add/sub/or/... reg3/$const, reg2         }
+            {          mov            reg2 reg/ref              }
+            { to       add/sub/or/... reg3/$const, reg/ref      }
+            begin
+              { by example:
+                  movswl  %si,%eax        movswl  %si,%eax      p
+                  decl    %eax            addl    %edx,%eax     hp1
+                  movw    %ax,%si         movw    %ax,%si       hp2
+                ->
+                  movswl  %si,%eax        movswl  %si,%eax      p
+                  decw    %eax            addw    %edx,%eax     hp1
+                  movw    %ax,%si         movw    %ax,%si       hp2
+              }
+              taicpu(hp1).changeopsize(taicpu(hp2).opsize);
+              {
+                ->
+                  movswl  %si,%eax        movswl  %si,%eax      p
+                  decw    %si             addw    %dx,%si       hp1
+                  movw    %ax,%si         movw    %ax,%si       hp2
+              }
+              case taicpu(hp1).ops of
+                1:
+                  taicpu(hp1).loadoper(0, taicpu(hp2).oper[1]^);
+                2:
+                  begin
+                    taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
+                    if (taicpu(hp1).oper[0]^.typ = top_reg) then
+                      setsubreg(taicpu(hp1).oper[0]^.reg,
+                        getsubreg(taicpu(hp2).oper[0]^.reg));
+                  end;
+                else
+                  internalerror(2008042701);
+              end;
+              {
+                ->
+                  decw    %si             addw    %dx,%si       p
+              }
+              asml.remove(p);
+              asml.remove(hp2);
+              p.Free;
+              hp2.Free;
+              p := hp1;
+            end
+          { removes superfluous And's after movzx's }
+          else if taicpu(p).opcode = A_MOVZX then
+            begin
+            if (taicpu(p).oper[1]^.typ = top_reg) and
+              GetNextInstruction(p, hp1) and
+              (tai(hp1).typ = ait_instruction) and
+              (taicpu(hp1).opcode = A_AND) and
+              (taicpu(hp1).oper[0]^.typ = top_const) and
+              (taicpu(hp1).oper[1]^.typ = top_reg) and
+              (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
+              case taicpu(p).opsize of
+                S_BL, S_BW, S_BQ:
+                  if (taicpu(hp1).oper[0]^.val = $ff) then
+                    begin
+                      asml.remove(hp1);
+                      hp1.Free;
+                    end;
+                S_WL, S_WQ:
+                  if (taicpu(hp1).oper[0]^.val = $ffff) then
+                    begin
+                      asml.remove(hp1);
+                      hp1.Free;
+                    end;
+                S_LQ:
+                  if (taicpu(hp1).oper[0]^.val = $ffffffff) then
+                    begin
+                      asml.remove(hp1);
+                      hp1.Free;
+                    end;
+                end;
+            { changes some movzx constructs to faster synonims (all examples
+              are given with eax/ax, but are also valid for other registers)}
+            if (taicpu(p).oper[1]^.typ = top_reg) then
+              if (taicpu(p).oper[0]^.typ = top_reg) then
+                case taicpu(p).opsize of
+                  S_BW:
+                    begin
+                    if (getsupreg(taicpu(p).oper[0]^.reg) =
+                      getsupreg(taicpu(p).oper[1]^.reg)) and  not
+                      (cs_opt_size in current_settings.optimizerswitches) then
+                      {Change "movzbw %al, %ax" to "andw $0x0ffh, %ax"}
+                      begin
+                      taicpu(p).opcode := A_AND;
+                      taicpu(p).changeopsize(S_W);
+                      taicpu(p).loadConst(0, $ff);
+                      end
+                    else if GetNextInstruction(p, hp1) and
+                      (tai(hp1).typ = ait_instruction) and
+                      (taicpu(hp1).opcode = A_AND) and
+                      (taicpu(hp1).oper[0]^.typ = top_const) and
+                      (taicpu(hp1).oper[1]^.typ = top_reg) and
+                      (taicpu(hp1).oper[1]^.reg =
+                      taicpu(p).oper[1]^.reg) then
+                      { Change "movzbw %reg1, %reg2; andw $const, %reg2"
+                        to "movw %reg1, reg2; andw $(const1 and $ff), %reg2"}
+                      begin
+                        taicpu(p).opcode := A_MOV;
+                        taicpu(p).changeopsize(S_W);
+                        setsubreg(taicpu(p).oper[0]^.reg, R_SUBW);
+                        taicpu(hp1).loadConst(
+                          0, taicpu(hp1).oper[0]^.val and $ff);
+                      end;
+                    end;
+                  S_BL:
+                    begin
+                    if (getsupreg(taicpu(p).oper[0]^.reg) =
+                      getsupreg(taicpu(p).oper[1]^.reg)) and not
+                      (cs_opt_size in current_settings.optimizerswitches) then
+                      { Change "movzbl %al, %eax" to "andl $0x0ffh, %eax"}
+                      begin
+                      taicpu(p).opcode := A_AND;
+                      taicpu(p).changeopsize(S_L);
+                      taicpu(p).loadConst(0, $ff);
+                      end
+                    else if GetNextInstruction(p, hp1) and
+                      (tai(hp1).typ = ait_instruction) and
+                      (taicpu(hp1).opcode = A_AND) and
+                      (taicpu(hp1).oper[0]^.typ = top_const) and
+                      (taicpu(hp1).oper[1]^.typ = top_reg) and
+                      (taicpu(hp1).oper[1]^.reg =
+                      taicpu(p).oper[1]^.reg) then
+                      { Change "movzbl %reg1, %reg2; andl $const, %reg2"
+                        to "movl %reg1, reg2; andl $(const1 and $ff), %reg2"}
+                      begin
+                        taicpu(p).opcode := A_MOV;
+                        taicpu(p).changeopsize(S_L);
+                        setsubreg(taicpu(p).oper[0]^.reg, R_SUBWHOLE);
+                        taicpu(hp1).loadConst(
+                          0, taicpu(hp1).oper[0]^.val and $ff);
+                      end;
+                    end;
+                  S_WL:
+                    begin
+                    if (getsupreg(taicpu(p).oper[0]^.reg) =
+                      getsupreg(taicpu(p).oper[1]^.reg)) and  not
+                      (cs_opt_size in current_settings.optimizerswitches) then
+                      { Change "movzwl %ax, %eax" to "andl $0x0ffffh, %eax" }
+                      begin
+                      taicpu(p).opcode := A_AND;
+                      taicpu(p).changeopsize(S_L);
+                      taicpu(p).loadConst(0, $ffff);
+                      end
+                    else if GetNextInstruction(p, hp1) and
+                      (tai(hp1).typ = ait_instruction) and
+                      (taicpu(hp1).opcode = A_AND) and
+                      (taicpu(hp1).oper[0]^.typ = top_const) and
+                      (taicpu(hp1).oper[1]^.typ = top_reg) and
+                      (taicpu(hp1).oper[1]^.reg =
+                      taicpu(p).oper[1]^.reg) then
+                      { Change "movzwl %reg1, %reg2; andl $const, %reg2"
+                        to "movl %reg1, reg2; andl $(const1 and $ffff), %reg2"}
+                      begin
+                        taicpu(p).opcode := A_MOV;
+                        taicpu(p).changeopsize(S_L);
+                        setsubreg(taicpu(p).oper[0]^.reg, R_SUBWHOLE);
+                        taicpu(hp1).loadConst(
+                          0, taicpu(hp1).oper[0]^.val and $ffff);
+                      end;
+                    end;
+                  end
+              else if (taicpu(p).oper[0]^.typ = top_ref) then
+                begin
+                if GetNextInstruction(p, hp1) and
+                  (tai(hp1).typ = ait_instruction) and
+                  (taicpu(hp1).opcode = A_AND) and
+                  (taicpu(hp1).oper[0]^.typ = Top_Const) and
+                  (taicpu(hp1).oper[1]^.typ = Top_Reg) and
+                  (taicpu(hp1).oper[1]^.reg =
+                  taicpu(p).oper[1]^.reg) then
+                  begin
+                  taicpu(p).opcode := A_MOV;
+                  case taicpu(p).opsize of
+                    S_BL:
+                      begin
+                        taicpu(p).changeopsize(S_L);
+                        taicpu(hp1).loadConst(
+                          0, taicpu(hp1).oper[0]^.val and $ff);
+                      end;
+                    S_WL:
+                      begin
+                        taicpu(p).changeopsize(S_L);
+                        taicpu(hp1).loadConst(
+                          0, taicpu(hp1).oper[0]^.val and $ffff);
+                      end;
+                    S_BW:
+                      begin
+                        taicpu(p).changeopsize(S_W);
+                        taicpu(hp1).loadConst(
+                          0, taicpu(hp1).oper[0]^.val and $ff);
+                      end;
+                    S_BQ:
+                      begin
+                        taicpu(p).changeopsize(S_Q);
+                        taicpu(hp1).loadConst(
+                          0, taicpu(hp1).oper[0]^.val and $ff);
+                      end;
+                    S_WQ:
+                      begin
+                        taicpu(p).changeopsize(S_Q);
+                        taicpu(hp1).loadConst(
+                          0, taicpu(hp1).oper[0]^.val and $ffff);
+                      end;
+                    S_LQ:
+                      begin
+                        taicpu(p).changeopsize(S_Q);
+                        taicpu(hp1).loadConst(
+                          0, taicpu(hp1).oper[0]^.val and $ffffffff);
+                      end;
+                    end;
+                  end;
+                end;
+            end;
+          end;
+        end;
+      end;
+    end;
+end;
 
 begin
-  casmoptimizer:=TCpuAsmOptimizer;
+  casmoptimizer := TCpuAsmOptimizer;
 end.
+
