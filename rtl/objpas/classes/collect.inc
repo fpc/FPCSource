@@ -153,10 +153,7 @@ end;
 function TCollection.GetCount: Integer;
 
 begin
-  If Assigned(FItems) Then
-    Result:=FItems.Count
-  else
-    Result:=0;
+  Result:=FItems.Count;
 end;
 
 
@@ -254,11 +251,11 @@ end;
 
 
 function TCollection.GetNamePath: string;
-var o : TObject;
+var o : TPersistent;
 begin
   o:=getowner;
-  if assigned(o) and (propname<>'') and (o IS TPersistent) then 
-     result:=TPersistent(o).getnamepath+'.'+propname
+  if assigned(o) and (propname<>'') then 
+     result:=o.getnamepath+'.'+propname
    else
      result:=classname;
 end;
@@ -304,11 +301,8 @@ end;
 
 destructor TCollection.Destroy;
 begin
-  If Assigned(FItems) Then 
-    begin
-    BeginUpdate; // Prevent OnChange
-    DoClear;
-    end;
+  BeginUpdate; // Prevent OnChange
+  DoClear;
   FItems.Free;
   Inherited Destroy;
 end;
@@ -343,7 +337,7 @@ end;
 
 procedure TCollection.Clear;
 begin
-  if (FItems=Nil) or (FItems.Count=0) then
+  if FItems.Count=0 then
     exit; // Prevent Changed
   BeginUpdate;
   try
@@ -356,8 +350,7 @@ end;
 
 procedure TCollection.DoClear;
 begin
-  If Assigned(FItems) then
-    While FItems.Count>0 do TCollectionItem(FItems.Last).Free;
+  While FItems.Count>0 do TCollectionItem(FItems.Last).Free;
 end;
 
 
@@ -384,9 +377,12 @@ end;
 
 
 procedure TCollection.Delete(Index: Integer);
+Var
+  Item : TCollectionItem;
 begin
-  Notify(TCollectionItem(FItems[Index]),cnDeleting);
-  TCollectionItem(FItems[Index]).Free;
+  Item:=TCollectionItem(FItems[Index]);
+  Notify(Item,cnDeleting);
+  Item.Free;
 end;
 
 
