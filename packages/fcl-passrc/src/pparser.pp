@@ -783,7 +783,7 @@ begin
     stkRange:
       begin
       UnGetToken;
-      Result:=ParseRangeType(Parent,TypeName);
+      Result:=ParseRangeType(Parent,TypeName,False);
       end;
     stkAlias:
       begin
