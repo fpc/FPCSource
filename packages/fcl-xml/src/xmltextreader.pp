@@ -78,8 +78,6 @@ type
   TNodeDataDynArray = array of TNodeData;
   TValidatorDynArray = array of TElementValidator;
 
-  TXMLReadState = (rsProlog, rsDTD, rsAfterDTD, rsRoot, rsEpilog);
-
   TCheckNameFlags = set of (cnOptional, cnToken);
 
   TXMLToken = (xtNone, xtEOF, xtText, xtElement, xtEndElement,
@@ -98,7 +96,7 @@ type
     FNameTable: THashTable;
     FXML11: Boolean;
     FNameTableOwned: Boolean;
-    FState: TXMLReadState;
+    FState: (rsProlog, rsDTD, rsAfterDTD, rsRoot, rsEpilog);
     FHavePERefs: Boolean;
     FInsideDecl: Boolean;
     FValue: TWideCharBuf;
