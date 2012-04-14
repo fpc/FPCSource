@@ -35,6 +35,7 @@ interface
         protected
          function isrefparaload: boolean;
          function isarrayele0load: boolean;
+         function isdererence: boolean;
         public
          function pass_typecheck: tnode; override;
          procedure pass_generate_code; override;
@@ -146,6 +147,16 @@ implementation
       end;
 
 
+    function tjvmaddrnode.isdererence: boolean;
+      var
+        target: tnode;
+      begin
+        target:=left.actualtargetnode;
+        result:=
+          (left.nodetype=derefn);
+      end;
+
+
     function tjvmaddrnode.pass_typecheck: tnode;
       var
         fsym: tsym;
@@ -233,9 +244,11 @@ implementation
             if not jvmimplicitpointertype(left.resultdef) then
               begin
                 { allow taking the address of a copy-out parameter (it's an
-                  array reference) or of the first element of an array }
+                  array reference), of the first element of an array and of a
+                  pointer derefence }
                 if not isrefparaload and
-                   not isarrayele0load then
+                   not isarrayele0load and
+                   not isdererence then
                   begin
                     CGMessage(parser_e_illegal_expression);
                     exit
