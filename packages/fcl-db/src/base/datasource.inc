@@ -494,12 +494,8 @@ Procedure TMasterParamsDataLink.DoMasterDisable;
 
 begin
   Inherited;
-  if Assigned(Params) and Assigned(DetailDataset) and DetailDataset.Active then
-    begin
-    DetailDataSet.CheckBrowseMode;
+  If Assigned(DetailDataset) and DetailDataset.Active then
     DetailDataset.Close;
-    DetailDataset.Open;
-    end;
 end;
 
 Procedure TMasterParamsDataLink.DoMasterChange; 

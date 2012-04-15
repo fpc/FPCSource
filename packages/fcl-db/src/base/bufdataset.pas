@@ -36,20 +36,18 @@ type
     FieldNo : integer;
     OrgBufID: integer;
     Buffer  : pointer;
-    Size    : PtrInt;
+    Size    : ptrint;
   end;
 
   TBufBlobStream = class(TStream)
   private
     FBlobBuffer : PBlobBuffer;
-    FPosition   : PtrInt;
+    FPosition   : ptrint;
     FDataset    : TCustomBufDataset;
   protected
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
-    function GetPosition: Int64; override;
-    function GetSize : Int64; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
   public
     constructor Create(Field: TBlobField; Mode: TBlobStreamMode);
   end;
@@ -2392,25 +2390,15 @@ begin
   ABlobBuffer := Nil;
 end;
 
-function TBufBlobStream.Seek(const Offset: int64; Origin: TSeekOrigin): int64;
+function TBufBlobStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
   Case Origin of
-    soBeginning : FPosition:=Offset;
-    soEnd       : FPosition:=FBlobBuffer^.Size+Offset;
-    soCurrent   : FpoSition:=FPosition+Offset;
+    soFromBeginning : FPosition:=Offset;
+    soFromEnd       : FPosition:=FBlobBuffer^.Size+Offset;
+    soFromCurrent   : FpoSition:=FPosition+Offset;
   end;
   Result:=FPosition;
-end;
-
-function TBufBlobStream.GetPosition: Int64;
-begin
-  Result:=FPosition;
-end;
-
-function TBufBlobStream.GetSize: Int64;
-begin
-  Result:=FBlobBuffer^.Size;
 end;
 
 
