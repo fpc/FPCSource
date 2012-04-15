@@ -33,7 +33,7 @@ const
  PathSeparator = ';';
  AllowDirectorySeparators : set of char = ['\','/'];
  AllowDriveSeparators : set of char = [':'];
-{ FileNameCaseSensitive is defined separately below!!! }
+{ FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;
  AllFilesMask = '*';
@@ -85,6 +85,7 @@ const   UnusedHandle=-1;
 
         LFNSupport: boolean = true;
         FileNameCaseSensitive: boolean = false;
+        FileNameCasePreserving: boolean = false;
         CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
 
         sLineBreak = LineEnding;
@@ -555,6 +556,7 @@ begin
                 ProcessID := PIB^.PID;
                 ThreadID := TIB^.TIB2^.TID;
                 IsConsole := ApplicationType <> 3;
+                FileNameCasePreserving := true;
             end;
         osDPMI:
             begin

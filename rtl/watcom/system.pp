@@ -36,7 +36,7 @@ const
  PathSeparator = ';';
  AllowDirectorySeparators : set of char = ['\','/'];
  AllowDriveSeparators : set of char = [':'];
-{ FileNameCaseSensitive is defined separately below!!! }
+{ FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;
 
@@ -48,6 +48,7 @@ const
   StdErrorHandle  = 2;
 
   FileNameCaseSensitive : boolean = false;
+  FileNameCasePreserving: boolean = false;
   CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
 
   sLineBreak = LineEnding;
@@ -773,7 +774,7 @@ Begin
   LFNSupport:=CheckLFN;
   if LFNSupport then
    begin
-    FileNameCaseSensitive:=true;
+    FileNameCasePreserving:=true;
     AllFilesMask := '*';
    end
   else

@@ -44,7 +44,7 @@ const
  PathSeparator = ';';
  AllowDirectorySeparators : set of char = ['\','/'];
  AllowDriveSeparators : set of char = [':'];
-{ FileNameCaseSensitive is defined separately below!!! }
+{ FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;
  AllFilesMask = '*';
@@ -57,6 +57,7 @@ CONST
    StdErrorHandle  : THandle = 0;
 
    FileNameCaseSensitive : boolean = false;
+   FileNameCasePreserving: boolean = true; (* Not really correct on older Netware versions without the LFN support switched on... *)
    CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
 
    sLineBreak = LineEnding;

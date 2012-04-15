@@ -33,7 +33,7 @@ const
  PathSeparator = ':';
  AllowDirectorySeparators : set of char = ['\','/'];
  AllowDriveSeparators : set of char = [];
-{ FileNameCaseSensitive is defined below! }
+{ FileNameCaseSensitive and FileNameCasePreserving are defined below! }
  maxExitCode = 255;
  {$ifdef LINUX}
  MaxPathLen = 4096; // linux has always got to be BIGGER
@@ -49,6 +49,7 @@ const
   StdErrorHandle  = 2;
 
   FileNameCaseSensitive : boolean = true;
+  FileNameCasePreserving: boolean = true;
   CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
 
   sLineBreak = LineEnding;

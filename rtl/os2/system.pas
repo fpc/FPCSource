@@ -41,7 +41,7 @@ const
   PathSeparator = ';';
   AllowDirectorySeparators : set of char = ['\','/'];
   AllowDriveSeparators : set of char = [':'];
-{ FileNameCaseSensitive is defined separately below!!! }
+{ FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
   MaxExitCode = 65535;
   MaxPathLen = 256;
   AllFilesMask = '*';
@@ -58,6 +58,7 @@ const   UnusedHandle=-1;
 
         LFNSupport: boolean = true;
         FileNameCaseSensitive: boolean = false;
+        FileNameCasePreserving: boolean = true;
         CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
 
         sLineBreak = LineEnding;
@@ -1084,6 +1085,9 @@ var TIB: PThreadInfoBlock;
 const
     DosCallsName: array [0..8] of char = 'DOSCALLS'#0;
 
+{$IFDEF OS2UNICODE}
+ {$I sysucode.inc}
+{$ENDIF OS2UNICODE}
 
 {*var}
 {* ST: pointer;}
@@ -1179,9 +1183,10 @@ begin
     SysInitExceptions;
     fpc_cpucodeinit;
 
-{$ifdef HASWIDESTRING}
     InitUnicodeStringManager;
-{$endif HASWIDESTRING}
+{$ifdef OS2UCODE}
+    InitOS2WideStrings;
+{$endif OS2UCODE}
 
     { ... and I/O }
     SysInitStdIO;

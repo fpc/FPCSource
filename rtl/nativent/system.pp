@@ -49,7 +49,7 @@ const
  AllowDirectorySeparators : set of char = ['\'];
  AllowDriveSeparators : set of char = [];
 
-{ FileNameCaseSensitive is defined separately below!!! }
+{ FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = High(ErrorCode);
  MaxPathLen = High(Word);
  AllFilesMask = '*';
@@ -87,6 +87,7 @@ const
 const
   // NT is case sensitive
   FileNameCaseSensitive : boolean = true;
+  FileNameCasePreserving: boolean = true;
   // todo: check whether this is really the case on NT
   CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
 

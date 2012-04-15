@@ -39,7 +39,7 @@ const
  PathSeparator = ';';
  AllowDirectorySeparators : set of char = ['\','/'];
  AllowDriveSeparators : set of char = [':'];
-{ FileNameCaseSensitive is defined separately below!!! }
+{ FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = 65535;
  MaxPathLen = 260;
  AllFilesMask = '*';
@@ -51,7 +51,8 @@ const
   StdOutputHandle : THandle = 0;
   StdErrorHandle  : THandle = 0;
 
-  FileNameCaseSensitive : boolean = true;
+  FileNameCaseSensitive : boolean = false;
+  FileNameCasePreserving: boolean = true;
   CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
 
   sLineBreak = LineEnding;

@@ -45,7 +45,7 @@ const
   AllowDriveSeparators : set of char = [':'];
 {$endif FPC_HAS_FEATURE_FILEIO}
 
-{ FileNameCaseSensitive is defined below! }
+{ FileNameCaseSensitive and FileNameCasePreserving are defined below! }
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   maxExitCode = 255;
@@ -61,6 +61,7 @@ const
   StdErrorHandle  = 2;
 
   FileNameCaseSensitive : boolean = true;
+  FileNameCasePreserving: boolean = true;
 {$endif FPC_HAS_FEATURE_FILEIO}
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
   CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)

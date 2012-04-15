@@ -5207,6 +5207,7 @@ function FExpand (const Path: PathStr): PathStr;
 const
   LFNSupport = true;
   FileNameCaseSensitive = true;
+  FileNameCasePreserving = true;
 
 {$I fexpand.inc}
 
