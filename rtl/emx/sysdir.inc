@@ -230,7 +230,7 @@ begin
             end ['eax'];
             dir[1]:=char(i);
         end;
-    if not (FileNameCaseSensitive) then dir:=upcase(dir);
+    if not (FileNameCasePreserving) then dir:=upcase(dir);
 end;
 
 

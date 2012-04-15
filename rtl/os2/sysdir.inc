@@ -130,7 +130,7 @@ begin
             DosQueryCurrentDisk(l, l2);
             dir[1]:=chr(64+l);
         end;
-    if not (FileNameCaseSensitive) then dir:=upcase(dir);
+    if not (FileNameCasePreserving) then dir:=upcase(dir);
 end;
 
 

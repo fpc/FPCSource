@@ -120,7 +120,7 @@ begin
   dir[3]:='\';
   dir[0]:=char(i+3);
 { upcase the string }
-  if not FileNameCaseSensitive then
+  if not FileNameCasePreserving then
    dir:=upcase(dir);
   if drivenr<>0 then   { Drive was supplied. We know it }
    dir[1]:=char(65+drivenr-1)

@@ -102,7 +102,7 @@ begin
   if not defaultdrive then
    SetCurrentDirectory(@SaveBuf);
   dir:=strpas(DirBuf);
-  if not FileNameCaseSensitive then
+  if not FileNameCasePreserving then
    dir:=upcase(dir);
 {$else WINCE}
   Dir:='\';
