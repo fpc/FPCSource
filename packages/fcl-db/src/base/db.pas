@@ -1399,6 +1399,7 @@ type
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADatasource : TDataSource);
     Procedure RemoveField (Field : TField);
+    procedure SetConstraints(Value: TCheckConstraints);
     Procedure SetField (Index : Longint;Value : TField);
     Procedure ShiftBuffersForward;
     Procedure ShiftBuffersBackward;
@@ -1503,7 +1504,7 @@ type
     property CalcBuffer: TRecordBuffer read FCalcBuffer;
     property CalcFieldsSize: Longint read FCalcFieldsSize;
     property InternalCalcFields: Boolean read FInternalCalcFields;
-    property Constraints: TCheckConstraints read FConstraints write FConstraints;
+    property Constraints: TCheckConstraints read FConstraints write SetConstraints;
     function AllocRecordBuffer: TRecordBuffer; virtual;
     procedure FreeRecordBuffer(var Buffer: TRecordBuffer); virtual;
     procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); virtual;
@@ -2419,6 +2420,7 @@ Function TCheckConstraints.GetItem(Index : Longint) : TCheckConstraint;
 
 begin
   //!! To be implemented
+  Result := nil;
 end;
 
 
@@ -2433,6 +2435,7 @@ function TCheckConstraints.GetOwner: TPersistent;
 
 begin
   //!! To be implemented
+  Result := nil;
 end;
 
 
@@ -2440,6 +2443,7 @@ constructor TCheckConstraints.Create(AOwner: TPersistent);
 
 begin
   //!! To be implemented
+  inherited Create(TCheckConstraint);
 end;
 
 
@@ -2447,6 +2451,7 @@ function TCheckConstraints.Add: TCheckConstraint;
 
 begin
   //!! To be implemented
+  Result := nil;
 end;
 
 { TLookupList }

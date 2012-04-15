@@ -2240,6 +2240,11 @@ begin
   //!! To be implemented
 end;
 
+procedure TDataSet.SetConstraints(Value: TCheckConstraints);
+begin
+  FConstraints.Assign(Value);
+end;
+
 Function TDataset.Getfieldcount : Longint;
 
 begin
