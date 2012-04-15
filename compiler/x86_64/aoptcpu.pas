@@ -105,6 +105,25 @@ begin
                          not(getsupreg(taicpu(p).oper[1]^.reg) in UsedRegs) then
                         taicpu(p).opcode := A_TEST;*)
           end;
+        A_MOV:
+        { removes superfluous And's after mov's }
+          begin
+            if (taicpu(p).oper[1]^.typ = top_reg) and
+               GetNextInstruction(p, hp1) and
+               (tai(hp1).typ = ait_instruction) and
+               (taicpu(hp1).opcode = A_AND) and
+               (taicpu(hp1).oper[0]^.typ = top_const) and
+               (taicpu(hp1).oper[1]^.typ = top_reg) and
+               (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
+              case taicpu(p).opsize Of
+                S_L:
+                  if (taicpu(hp1).oper[0]^.val = $ffffffff) then
+                    begin
+                      asml.remove(hp1);
+                      hp1.free;
+                    end;
+              end;
+          end;
         A_MOVSX,
         A_MOVZX:
           begin
