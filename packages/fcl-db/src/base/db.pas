@@ -1487,6 +1487,7 @@ type
     procedure SetFilterOptions(Value: TFilterOptions); virtual;
     procedure SetFilterText(const Value: string); virtual;
     procedure SetFieldValues(const fieldname: string; Value: Variant); virtual;
+    procedure SetFound(const Value: Boolean); virtual;
     procedure SetModified(Value: Boolean);
     procedure SetName(const Value: TComponentName); override;
     procedure SetOnFilterRecord(const Value: TFilterRecordEvent); virtual;
