@@ -61,7 +61,8 @@ type
     fAllowedExtensions: TStringList;
     fTotalFileList : TAvlTree;
     FSpareString   : TStringIndex;
-    FBasePath       : String;     // location of the .hhp file. Needed to resolve relative paths
+    FBasePath      : String;     // location of the .hhp file. Needed to resolve relative paths
+    FReadmeMessage : String;     // readme message
   protected
     function GetData(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
@@ -101,6 +102,7 @@ type
     property OnError   : TChmErrorCB read FOnError write FOnError;
     property DefaultWindow : String read FDefaultWindow write FDefaultWindow;
     property ScanHtmlContents  : Boolean read fScanHtmlContents write fScanHtmlContents;
+    property ReadmeMessage : String read FReadmeMessage write FReadmeMessage;
     property AllowedExtensions : TStringList read FAllowedExtensions;
   end;
 
@@ -207,6 +209,7 @@ begin
   FSpareString.Free;
   FTotalFileList.FreeAndClear;
   FTotalFileList.Free;
+  fAllowedExtensions.Free;
   inherited Destroy;
 end;
 
@@ -1050,9 +1053,9 @@ begin
   Writer.FullTextSearch := MakeSearchable;
   Writer.HasBinaryTOC := MakeBinaryTOC;
   Writer.HasBinaryIndex := MakeBinaryIndex;
-  Writer.IndexName := IndexFileName;
-  Writer.TocName   := TableOfContentsFileName;
-
+  Writer.IndexName := ExtractFileName(IndexFileName);
+  Writer.TocName   := ExtractFileName(TableOfContentsFileName);
+  Writer.ReadmeMessage := ReadmeMessage;
   for i:=0 to files.count-1 do
     begin
       nd:=TChmContextNode(files.objects[i]);

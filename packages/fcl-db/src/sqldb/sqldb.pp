@@ -509,7 +509,7 @@ const DefaultSQLFormatSettings : TFormatSettings = (
   TimeAMString: '';
   TimePMString: '';
   ShortTimeFormat: 'hh:nn:ss';
-  LongTimeFormat: 'hh:nn:ss';
+  LongTimeFormat: 'hh:nn:ss.zzz';
   ShortMonthNames: ('','','','','','','','','','','','');
   LongMonthNames: ('','','','','','','','','','','','');
   ShortDayNames: ('','','','','','','');
@@ -703,9 +703,9 @@ function TSQLConnection.GetAsSQLText(Field : TField) : string;
 begin
   if (not assigned(field)) or field.IsNull then Result := 'Null'
   else case field.DataType of
-    ftString   : Result := '''' + field.asstring + '''';
+    ftString   : Result := QuotedStr(Field.AsString);
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime,FSqlFormatSettings) + '''';
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss',Field.AsDateTime,FSqlFormatSettings) + '''';
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Field.AsDateTime,FSqlFormatSettings) + '''';
     ftTime     : Result := QuotedStr(TimeIntervalToString(Field.AsDateTime));
   else
     Result := field.asstring;
@@ -716,12 +716,13 @@ function TSQLConnection.GetAsSQLText(Param: TParam) : string;
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
   else case param.DataType of
+    ftGuid,
     ftMemo,
     ftFixedChar,
     ftString   : Result := QuotedStr(Param.AsString);
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime,FSQLFormatSettings) + '''';
     ftTime     : Result := QuotedStr(TimeIntervalToString(Param.AsDateTime));
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss', Param.AsDateTime, FSQLFormatSettings) + '''';
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', Param.AsDateTime, FSQLFormatSettings) + '''';
     ftCurrency,
     ftBcd      : Result := CurrToStr(Param.AsCurrency, FSQLFormatSettings);
     ftFloat    : Result := FloatToStr(Param.AsFloat, FSQLFormatSettings);
@@ -929,6 +930,7 @@ end;
 procedure TCustomSQLQuery.OnChangeSQL(Sender : TObject);
 
 var ConnOptions : TConnOptions;
+    NewParams: TParams;
 
 begin
   UnPrepare;
@@ -939,7 +941,15 @@ begin
       ConnOptions := TSQLConnection(DataBase).ConnOptions
     else
       ConnOptions := [sqEscapeRepeat,sqEscapeSlash];
-    Fparams.ParseSQL(FSQL.Text,True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase);
+    //preserve existing param. values
+    NewParams := TParams.Create(Self);
+    try
+      NewParams.ParseSQL(FSQL.Text, True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions, psInterbase);
+      NewParams.AssignValues(FParams);
+      FParams.Assign(NewParams);
+    finally
+      NewParams.Free;
+    end;
     If Assigned(FMasterLink) then
       FMasterLink.RefreshParamNames;
     end;
@@ -1141,8 +1151,6 @@ begin
 
   if not FIsEof then FIsEOF := not TSQLConnection(Database).Fetch(Fcursor);
   Result := not FIsEOF;
-  // A stored procedure is always at EOF after its first fetch
-  if FCursor.FStatementType = stExecProcedure then FIsEOF := True;
 end;
 
 procedure TCustomSQLQuery.Execute;
@@ -1200,11 +1208,11 @@ begin
 
   try
     FieldDefs.Clear;
-
+    if not Assigned(Database) then DatabaseError(SErrDatabasenAssigned);
     TSQLConnection(Database).AddFieldDefs(fcursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
-    FCursor.FInitFieldDef := false;
+    if Assigned(FCursor) then FCursor.FInitFieldDef := false;
   end;
 end;
 
@@ -1543,17 +1551,17 @@ Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
 
 var FieldNamesQuoteChars : TQuoteChars;
 
-  procedure InitialiseModifyQuery(var qry : TCustomSQLQuery; aSQL: String);
+  function InitialiseModifyQuery(var qry : TCustomSQLQuery): TCustomSQLQuery;
 
   begin
-    qry := TCustomSQLQuery.Create(nil);
-    with qry do
-      begin
-      ParseSQL := False;
-      DataBase := Self.DataBase;
-      Transaction := Self.Transaction;
-      SQL.text := aSQL;
-      end;
+    if not assigned(qry) then
+    begin
+      qry := TCustomSQLQuery.Create(nil);
+      qry.ParseSQL := False;
+      qry.DataBase := Self.DataBase;
+      qry.Transaction := Self.Transaction;
+    end;
+    Result:=qry;
   end;
 
   procedure UpdateWherePart(var sql_where : string;x : integer);
@@ -1561,8 +1569,11 @@ var FieldNamesQuoteChars : TQuoteChars;
   begin
     if (pfInKey in Fields[x].ProviderFlags) or
        ((FUpdateMode = upWhereAll) and (pfInWhere in Fields[x].ProviderFlags)) or
-       ((FUpdateMode = UpWhereChanged) and (pfInWhere in Fields[x].ProviderFlags) and (fields[x].value <> fields[x].oldvalue)) then
-      sql_where := sql_where + '(' + FieldNamesQuoteChars[0] + fields[x].FieldName + FieldNamesQuoteChars[1] + '= :"' + 'OLD_' + fields[x].FieldName + '") and ';
+       ((FUpdateMode = UpWhereChanged) and (pfInWhere in Fields[x].ProviderFlags) and (Fields[x].Value <> Fields[x].OldValue)) then
+       if Fields[x].OldValue = NULL then
+          sql_where := sql_where + FieldNamesQuoteChars[0] + Fields[x].FieldName + FieldNamesQuoteChars[1] + ' is null and '
+       else
+          sql_where := sql_where + '(' + FieldNamesQuoteChars[0] + Fields[x].FieldName + FieldNamesQuoteChars[1] + '= :"' + 'OLD_' + Fields[x].FieldName + '") and ';
   end;
 
   function ModifyRecQuery : string;
@@ -1631,6 +1642,7 @@ var FieldNamesQuoteChars : TQuoteChars;
   end;
 
 var qry : TCustomSQLQuery;
+    s   : string;
     x   : integer;
     Fld : TField;
 
@@ -1638,37 +1650,25 @@ begin
   FieldNamesQuoteChars := TSQLConnection(DataBase).FieldNameQuoteChars;
 
   case UpdateKind of
-    ukModify : begin
-               if not assigned(FUpdateQry) then
-                 begin
-                 if (trim(FUpdateSQL.Text)<> '') then
-                   InitialiseModifyQuery(FUpdateQry,FUpdateSQL.Text)
-                 else
-                   InitialiseModifyQuery(FUpdateQry,ModifyRecQuery);
-                 end;
-               qry := FUpdateQry;
-               end;
     ukInsert : begin
-               if not assigned(FInsertQry) then
-                 begin
-                 if (trim(FInsertSQL.Text)<> '') then
-                   InitialiseModifyQuery(FInsertQry,FInsertSQL.Text)
-                 else
-                   InitialiseModifyQuery(FInsertQry,InsertRecQuery);
-                 end;
-               qry := FInsertQry;
+               s := trim(FInsertSQL.Text);
+               if s = '' then s := InsertRecQuery;
+               qry := InitialiseModifyQuery(FInsertQry);
+               end;
+    ukModify : begin
+               s := trim(FUpdateSQL.Text);
+               if (s='') and (not assigned(FUpdateQry) or (UpdateMode<>upWhereKeyOnly)) then //first time or dynamic where part
+                 s := ModifyRecQuery;
+               qry := InitialiseModifyQuery(FUpdateQry);
                end;
     ukDelete : begin
-               if not assigned(FDeleteQry) then
-                 begin
-                 if (trim(FDeleteSQL.Text)<> '') then
-                   InitialiseModifyQuery(FDeleteQry,FDeleteSQL.Text)
-                 else
-                   InitialiseModifyQuery(FDeleteQry,DeleteRecQuery);
-                 end;
-               qry := FDeleteQry;
+               s := trim(FDeleteSQL.Text);
+               if (s='') and (not assigned(FDeleteQry) or (UpdateMode<>upWhereKeyOnly)) then
+                 s := DeleteRecQuery;
+               qry := InitialiseModifyQuery(FDeleteQry);
                end;
   end;
+  if (qry.SQL.Text<>s) and (s<>'') then qry.SQL.Text:=s; //assign only when changed, to avoid UnPrepare/Prepare
   assert(qry.sql.Text<>'');
   with qry do
     begin
@@ -1985,7 +1985,7 @@ procedure TSQLConnector.SetTransaction(Value: TSQLTransaction);
 begin
   inherited SetTransaction(Value);
   If Assigned(FProxy) and (FProxy.Transaction<>Value) then
-    FProxy.Transaction:=Value;
+    FProxy.FTransaction:=Value;
 end;
 
 procedure TSQLConnector.DoInternalConnect;
@@ -1996,11 +1996,13 @@ Var
 begin
   inherited DoInternalConnect;
   CreateProxy;
+  FProxy.CharSet:=Self.CharSet;
+  FProxy.Role:=self.Role;
   FProxy.DatabaseName:=Self.DatabaseName;
   FProxy.HostName:=Self.HostName;
   FProxy.UserName:=Self.UserName;
   FProxy.Password:=Self.Password;
-  FProxy.Transaction:=Self.Transaction;
+  FProxy.FTransaction:=Self.Transaction;
   D:=GetConnectionDef(ConnectorType);
   D.ApplyParams(Params,FProxy);
   FProxy.Connected:=True;
@@ -2028,6 +2030,7 @@ begin
   If (D=Nil) then
     DatabaseErrorFmt(SErrUnknownConnectorType,[ConnectorType],Self);
   FProxy:=D.ConnectionClass.Create(Self);
+  FFieldNameQuoteChars := FProxy.FieldNameQuoteChars;
 end;
 
 procedure TSQLConnector.FreeProxy;

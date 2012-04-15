@@ -187,8 +187,87 @@ procedure fillchar(var arr: array of jlong; len: sizeint; val: boolean);
 {$define FPC_SYSTEM_HAS_FILLWORD}
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 {$define FPC_SYSTEM_HAS_FILLQWORD}
+
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
+
+function  IndexByte(const buf: array of jbyte;len:SizeInt;b:jbyte):SizeInt;
+  var
+    i: SizeInt;
+  begin
+    if len<0 then
+      len:=high(buf);
+    for i:=0 to len do
+      if buf[i]=b then
+        exit(i);
+    IndexByte:=-1;
+  end;
+
+
+function  IndexByte(const buf: array of boolean;len:SizeInt;b:jbyte):SizeInt;
+var
+  i: SizeInt;
+begin
+  if len<0 then
+    len:=high(buf);
+  for i:=0 to len do
+    if jbyte(buf[i])=b then
+      exit(i);
+  IndexByte:=-1;
+end;
+
+
+function  IndexChar(const buf: array of boolean;len:SizeInt;b:ansichar):SizeInt;
+  begin
+    IndexChar:=IndexByte(buf,len,jbyte(b));
+  end;
+
+
+function  IndexChar(const buf: array of jbyte;len:SizeInt;b:ansichar):SizeInt;
+begin
+  IndexChar:=IndexByte(buf,len,jbyte(b));
+end;
+
 {$define FPC_SYSTEM_HAS_INDEXWORD}
+
+function  IndexWord(const buf: array of jshort;len:SizeInt;b:jshort):SizeInt;
+  var
+    i: SizeInt;
+  begin
+    if len<0 then
+      len:=high(buf);
+    for i:=0 to len do
+      if buf[i]=b then
+        exit(i);
+    IndexWord:=-1;
+  end;
+
+
+function  IndexWord(const buf: array of jchar;len:SizeInt;b:jchar):SizeInt;
+  var
+    i: SizeInt;
+  begin
+    if len<0 then
+      len:=high(buf);
+    for i:=0 to len do
+      if buf[i]=b then
+        exit(i);
+    IndexWord:=-1;
+  end;
+
+function  IndexWord(const buf: array of jchar;len:SizeInt;b:jshort):SizeInt;
+  var
+    i: SizeInt;
+    c: jchar;
+  begin
+    c:=jchar(b);
+    if len<0 then
+      len:=high(buf);
+    for i:=0 to len do
+      if buf[i]=c then
+        exit(i);
+    IndexWord:=-1;
+  end;
+
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
 {$define FPC_SYSTEM_HAS_INDEXQWORD}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
@@ -201,9 +280,6 @@ procedure fillchar(var arr: array of jlong; len: sizeint; val: boolean);
 {****************************************************************************
                                  String
 ****************************************************************************}
-
-{ more lies }
-{$define FPC_STRTOSHORTSTRINGPROC}
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar); compilerproc;
@@ -221,6 +297,7 @@ begin
     res:=''
 end;
 
+
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring); compilerproc;
 var
@@ -230,7 +307,8 @@ begin
   if len>high(res) then
     len:=high(res);
   ShortstringClass(@res).curlen:=len;
-  JLSystem.ArrayCopy(JLObject(ShortstringClass(@sstr).fdata),0,JLObject(ShortstringClass(@res).fdata),0,len);
+  if len>0 then
+    JLSystem.ArrayCopy(JLObject(ShortstringClass(@sstr).fdata),0,JLObject(ShortstringClass(@res).fdata),0,len);
 end;
 
 
@@ -243,7 +321,8 @@ begin
   s2l:=length(s2);
   if s1l+s2l>high(s1) then
     s2l:=high(s1)-s1l;
-  JLSystem.ArrayCopy(JLObject(ShortstringClass(@s2).fdata),0,JLObject(ShortstringClass(@s1).fdata),s1l,s2l);
+  if s2l>0 then
+    JLSystem.ArrayCopy(JLObject(ShortstringClass(@s2).fdata),0,JLObject(ShortstringClass(@s1).fdata),s1l,s2l);
   s1[0]:=chr(s1l+s2l);
 end;
 
@@ -318,7 +397,8 @@ begin
     end
   else
     len:=l;
-  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(ShortstringClass(@res).fdata),0,len);
+  if len>0 then
+    JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(ShortstringClass(@res).fdata),0,len);
   ShortstringClass(@res).curlen:=len;
 end;
 

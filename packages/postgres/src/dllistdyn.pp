@@ -16,7 +16,7 @@ uses
 
 {$IFDEF Unix}
   const
-    pqlib = 'libpq.so';
+    pqlib = 'libpq.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Windows}
   const

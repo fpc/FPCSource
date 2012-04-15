@@ -67,6 +67,7 @@ TConfigOpt = (
   coPassword,
   coPort,
   coLogFile,
+  coLongLogFile,
   coOS,
   coCPU,
   coCategory,
@@ -100,6 +101,7 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'password',
   'port',
   'logfile',
+  'longlogfile',
   'os',
   'cpu',
   'category',
@@ -132,7 +134,7 @@ ConfigAddCols : Array [TConfigAddOpt] of string = (
  );
 
 ConfigOpts : Array[TConfigOpt] of char
-           = ('d','h','u','p','P','l','o','c','a','v','t','s','m','C','S','r','V');
+           = ('d','h','u','p','P','l','L','o','c','a','v','t','s','m','C','S','r','V');
 
 Var
   TestOS,
@@ -144,6 +146,7 @@ Var
   UserName,
   Password,
   Port,
+  LongLogFileName,
   LogFileName,
   Submitter,
   Machine,
@@ -185,6 +188,7 @@ begin
     coPassword     : Password:=Value;
     coPort         : Port:=Value;
     coLogFile      : LogFileName:=Value;
+    coLongLogFile  : LongLogFileName:=Value;
     coOS           : TestOS:=Value;
     coCPU          : TestCPU:=Value;
     coCategory     : TestCategory:=Value;
@@ -376,9 +380,61 @@ begin
     CleanTestRun(TestRunID);
 end;
 
-Function GetLog(FN : String) : String;
+
+var
+  LongLogFile : Text;
+const
+  UseLongLog : boolean = false;
+
+Function GetContentsFromLongLog(Line : String) : String;
+var
+  S : String;
+  IsFirst, IsFound : boolean;
+begin
+  Result:='';
+  IsFirst:=true;
+  IsFound:=false;
+  While Not(EOF(LongLogFile)) do
+    begin
+      ReadLn(LongLogFile,S);
+      if pos(Line,S)=1 then
+        begin
+          IsFound:=true;
+          while not eof(LongLogFile) do
+            begin
+              ReadLn(LongLogFile,S);
+              { End of file marker }
+              if eof(LongLogFile) or (pos('>>>>>>>>>>>',S)=1) then
+                exit;
+              Result:=Result+S+LineEnding;
+            end;
+        end
+      else if IsFirst then
+        begin
+          Verbose(V_Warning,'Line "'+Line+'" not found as next "'+S+'"');
+          IsFirst:=false;
+        end;
+    end;
+  if not IsFound then
+    begin
+      Verbose(V_Warning,'Line "'+Line+'" not found');
+      { Restart to get a chance to find others }
+      if eof(LongLogFile) then
+        begin
+          Close(LongLogFile);
+          Reset(LongLogFile);
+        end;
+    end;
+end;
+
+Function GetLog(Line, FN : String) : String;
 
 begin
+  if UseLongLog then
+    begin
+      Result:=GetContentsFromLongLog(Line);
+      exit;
+    end;
   FN:=ChangeFileExt(FN,'.log');
   If FileExists(FN) then
     Result:=GetFileContents(FN)
@@ -386,9 +442,14 @@ begin
     Result:='';
 end;
 
-Function GetExecuteLog(FN : String) : String;
+Function GetExecuteLog(Line, FN : String) : String;
 
 begin
+  if UseLongLog then
+    begin
+      Result:=GetContentsFromLongLog(Line);
+      exit;
+    end;
   FN:=ChangeFileExt(FN,'.elg');
   If FileExists(FN) then
     Result:=GetFileContents(FN)
@@ -400,7 +461,7 @@ Procedure Processfile (FN: String);
 
 var
   logfile : text;
-  line,prevLine : string;
+  fullline,line,prevLine : string;
   TS,PrevTS : TTestStatus;
   ID,PrevID : integer;
   Testlog : string;
@@ -414,11 +475,12 @@ begin
 {$i-}
   reset(logfile);
   if ioresult<>0 then
-    Verbose(V_Error,'Unable to open log file'+logfilename);
+    Verbose(V_Error,'Unable to open log file'+FN);
 {$i+}
   while not eof(logfile) do
     begin
     readln(logfile,line);
+    fullline:=line;
     If analyse(line,TS) then
       begin
       Verbose(V_NORMAL,'Analysing result for test '+Line);
@@ -439,13 +501,13 @@ begin
           begin
           If Not (TestOK[TS] or TestSkipped[TS]) then
             begin
-              TestLog:=GetExecuteLog(Line);
+              TestLog:=GetExecuteLog(Fullline,Line);
               if pos(failed_to_compile,TestLog)=1 then
-                TestLog:=GetLog(Line);
+                TestLog:=GetLog(Fullline,Line);
             end
           else
             TestLog:='';
-          { AddTestResult can fail for test that contain %recompile 
+          { AddTestResult can fail for test that contain %recompile
             as the same }
           if AddTestResult(ID,TestRunID,Ord(TS),TestOK[TS],
                TestSkipped[TS],TestLog,is_new) <> -1 then
@@ -459,17 +521,17 @@ begin
             begin
               Verbose(V_Warning,'Test: "'+line+'" already registered');
             end;
-              
+
           end;
         end
-      else  
+      else
         begin
           Inc(StatusCount[TS]);
           PrevTS:=TS;
           PrevID:=RequireTestID(line);
           PrevLine:=line;
         end;
- 
+
       end
     else
       begin
@@ -516,9 +578,20 @@ begin
   If LogFileName<>'' then
     begin
     ConnectToDatabase(DatabaseName,HostName,UserName,Password,Port);
+    if LongLogFileName<>'' then
+      begin
+{$I-}
+        Assign(LongLogFile,LongLogFileName);
+        Reset(LongLogFile);
+        If IOResult=0 then
+          UseLongLog:=true;
+{$I+}
+      end;
     GetIDs;
     ProcessFile(LogFileName);
     UpdateTestRun;
+    if UseLongLog then
+      Close(LongLogFile);
     end
   else
     Verbose(V_ERROR,'Missing log file name');

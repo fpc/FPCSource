@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=embedded_gbfs libfat nitrofs
+dirs=libfat nitrofs
 
 [require]
 packages=libndsfpc

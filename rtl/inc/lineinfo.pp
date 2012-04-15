@@ -96,7 +96,12 @@ begin
       if not OpenExeFile(e,dbgfn) then
         exit;
     end;
-  e.processaddress:=ptruint(baseaddr)-e.processaddress;
+{$ifdef BeOS}
+  { Do not change ProcessAddress field for BeOS/Haiku
+    if baseAddr is lower than ProcessAdress }
+  if ptruint(baseaddr)>ptruint(e.processaddress) then
+{$endif BeOS}
+    e.processaddress:=ptruint(baseaddr)-e.processaddress;
   StabsFunctionRelative := E.FunctionRelative;
   if FindExeSection(e,'.stab',stabofs,stablen) and
      FindExeSection(e,'.stabstr',stabstrofs,stabstrlen) then

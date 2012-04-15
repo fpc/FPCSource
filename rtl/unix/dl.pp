@@ -27,11 +27,24 @@ const
   {$endif}
 {$endif}
 
+{$if defined(linux) or defined(freebsd) or defined(openbsd)}
+  {$define ELF} // ELF symbol versioning.
+{$endif}
+
 {$if defined(linux) and defined(cpuarm)}
 { arm-linux seems to require this }
 {$linklib c}
 {$endif}
 
+{$ifdef aix}
+  RTLD_LAZY         = $004;
+  RTLD_NOW          = $002;
+  RTLD_BINDING_MASK = $006;
+  RTLD_GLOBAL       = $10000;
+  RTLD_MEMBER       = $40000;
+  RTLD_NEXT         = pointer(-3);
+  RTLD_DEFAULT      = pointer(-1);
+{$else}
   RTLD_LAZY         = $001;
   RTLD_NOW          = $002;
   RTLD_BINDING_MASK = $003;
@@ -43,6 +56,7 @@ const
 {$ifdef BSD}
   RTLD_DEFAULT      = pointer(-2);
   RTLD_MODEMASK     = RTLD_BINDING_MASK;
+{$endif}
 {$endif}
 
 type
@@ -56,14 +70,20 @@ type
 
 function dlopen(Name : PChar; Flags : longint) : Pointer; cdecl; external libdl;
 function dlsym(Lib : Pointer; Name : Pchar) : Pointer; cdecl; external Libdl;
+{$ifdef ELF}
+function dlvsym(Lib : Pointer; Name : Pchar; Version: Pchar) : Pointer; cdecl; external Libdl;
+{$endif}
 function dlclose(Lib : Pointer) : Longint; cdecl; external libdl;
 function dlerror() : Pchar; cdecl; external libdl;
 { overloaded for compatibility with hmodule }
 function dlsym(Lib : PtrInt; Name : Pchar) : Pointer; cdecl; external Libdl;
 function dlclose(Lib : PtrInt) : Longint; cdecl; external libdl;
-function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; external;
+function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; {$ifndef aix}external;{$endif}
 
 implementation
+
+uses
+  ctypes;
 
   function PosLastSlash(const s : string) : longint;
     var
@@ -94,6 +114,11 @@ implementation
       if SimpleExtractFilename(filename)=SimpleExtractFilename(ParamStr(0)) then
         baseaddr:=nil;
     end;
+
+{$ifdef aix}
+{$i dlaix.inc}
+{$endif}
+
 
 begin
   UnixGetModuleByAddrHook:=@UnixGetModuleByAddr;

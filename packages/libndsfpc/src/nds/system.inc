@@ -42,12 +42,13 @@ const
 //	POWER_ALL      : PM_Bits = PM_ARM9_DIRECT or POWER_ALL_2D or POWER_3D_CORE or POWER_MATRIX;
 	POWER_ALL      : PM_Bits = (1 shl 16) or (1 shl 0) or (1 shl 1) or (1 shl 9) or (1 shl 3) or (1 shl 2);
 
-procedure sleep(); cdecl; external;
+//procedure SystemSleep(); cdecl; external;
+procedure ledBlink(bm: cint); cdecl; external;
 
 {$ifdef ARM9}
+procedure SystemSleep(); cdecl; external;
 procedure powerOn(bits: cint); cdecl; external;
 procedure powerOff(bits: cint); cdecl; external;
-procedure ledBlink(bm: cint); cdecl; external;
 
 procedure systemMsgHandler(bytes: cint; user_data: pointer); cdecl; external;
 procedure powerValueHandler(value: cuint32; data: pointer); cdecl; external;
@@ -76,6 +77,14 @@ type
 
 var
   SystemVectors: sysVectors; cvar; external;
+
+// Helper functions for heap size
+//! returns current start of heap space
+function getHeapStart(): pcuint8; cdecl; external;
+//! returns current end of heap space
+function getHeapEnd(): pcuint8; cdecl; external;
+//! returns current heap limit
+function getHeapLimit(): pcuint8; cdecl; external;
 
 {$endif ARM9}
 

@@ -77,7 +77,7 @@ unit cgcpu;
 
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
         { that's the case, we can use rlwinm to do an AND operation        }
-        function get_rlwi_const(a: tcgint; var l1, l2: longint): boolean;
+        function get_rlwi_const(a: aint; var l1, l2: longint): boolean;
 
       protected
        procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
@@ -181,14 +181,24 @@ const
          { MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
            if it is a cross-TOC call. If so, it also replaces the NOP
            with some restore code.}
-         if (target_info.system <> system_powerpc_darwin) then
+         if (target_info.system<>system_powerpc_darwin) then
            begin
-             if not(weak) then
-               list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+             if target_info.system<>system_powerpc_aix then
+               begin
+                 if not(weak) then
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+                 else
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)));
+               end
              else
-               list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)));
+               begin
+                 if not(weak) then
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol('.'+s)))
+                 else
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol('.'+s)));
+               end;
 
-             if target_info.system=system_powerpc_macos then
+             if target_info.system in [system_powerpc_macos,system_powerpc_aix] then
                list.concat(taicpu.op_none(A_NOP));
            end
          else
@@ -199,7 +209,9 @@ const
          if not(pi_do_call in current_procinfo.flags) then
            internalerror(2003060703);
 }
-       include(current_procinfo.flags,pi_do_call);
+       { not assigned while generating external wrappers }
+       if assigned(current_procinfo) then
+         include(current_procinfo.flags,pi_do_call);
       end;
 
     { calling a procedure by address }
@@ -272,6 +284,8 @@ const
          ref2: treference;
 
        begin
+          if target_info.system=system_powerpc_aix then
+            g_load_check_simple(list,ref,65536);
           { TODO: optimize/take into consideration fromsize/tosize. Will }
           { probably only matter for OS_S8 loads though                  }
           if not(fromsize in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
@@ -435,7 +449,7 @@ const
           end;
         ophi := TOpCG2AsmOpConstHi[op];
         oplo := TOpCG2AsmOpConstLo[op];
-        gotrlwi := get_rlwi_const(a,l1,l2);
+        gotrlwi := get_rlwi_const(aint(a),l1,l2);
         if (op in [OP_AND,OP_OR,OP_XOR]) then
           begin
             if (a = 0) then
@@ -1627,11 +1641,11 @@ const
 
     { find out whether a is of the form 11..00..11b or 00..11...00. If }
     { that's the case, we can use rlwinm to do an AND operation        }
-    function tcgppc.get_rlwi_const(a: tcgint; var l1, l2: longint): boolean;
+    function tcgppc.get_rlwi_const(a: aint; var l1, l2: longint): boolean;
 
       var
         temp : longint;
-        testbit : tcgint;
+        testbit : aint;
         compare: boolean;
 
       begin
@@ -1695,7 +1709,20 @@ const
 
     procedure tcg64fppc.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       begin
-        a_op64_reg_reg_reg(list,op,size,regsrc,regdst,regdst);
+        case op of
+          OP_NOT:
+            begin
+              cg.a_op_reg_reg(list,OP_NOT,OS_32,regsrc.reglo,regdst.reglo);
+              cg.a_op_reg_reg(list,OP_NOT,OS_32,regsrc.reghi,regdst.reghi);
+            end;
+          OP_NEG:
+            begin
+              list.concat(taicpu.op_reg_reg_const(a_subfic,regdst.reglo,regsrc.reglo,0));
+              list.concat(taicpu.op_reg_reg(a_subfze,regdst.reghi,regsrc.reghi));
+            end;
+          else
+            a_op64_reg_reg_reg(list,op,size,regsrc,regdst,regdst);
+        end;
       end;
 
 
@@ -1742,8 +1769,8 @@ const
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg_reg(list,op,OS_32,tcgint(value),regsrc.reglo,regdst.reglo);
-              cg.a_op_const_reg_reg(list,op,OS_32,tcgint(value shr 32),regsrc.reghi,
+              cg.a_op_const_reg_reg(list,op,OS_32,aint(value),regsrc.reglo,regdst.reglo);
+              cg.a_op_const_reg_reg(list,op,OS_32,aint(value shr 32),regsrc.reghi,
                 regdst.reghi);
             end;
           OP_ADD, OP_SUB:
@@ -1771,7 +1798,7 @@ const
                   else if ((value shr 32) = 0) then
                     begin
                       tmpreg := tcgppc(cg).rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                      cg.a_load_const_reg(list,OS_32,tcgint(value),tmpreg);
+                      cg.a_load_const_reg(list,OS_32,aint(value),tmpreg);
                       list.concat(taicpu.op_reg_reg_reg(ops[issub,2],
                         regdst.reglo,regsrc.reglo,tmpreg));
                       list.concat(taicpu.op_reg_reg(ops[issub,3],
@@ -1788,7 +1815,7 @@ const
               else
                 begin
                   cg.a_load_reg_reg(list,OS_INT,OS_INT,regsrc.reglo,regdst.reglo);
-                  cg.a_op_const_reg_reg(list,op,OS_32,tcgint(value shr 32),regsrc.reghi,
+                  cg.a_op_const_reg_reg(list,op,OS_32,aint(value shr 32),regsrc.reghi,
                     regdst.reghi);
                 end;
             end;

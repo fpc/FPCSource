@@ -112,6 +112,8 @@ unit cgcpu;
         procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister; shuffle : pmmshuffle); override;
 
         procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); override;
+        { Transform unsupported methods into Internal errors }
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
       private
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
@@ -207,17 +209,18 @@ unit cgcpu;
     procedure tarmcgarm.init_register_allocators;
       begin
         inherited init_register_allocators;
-        { currently, we save R14 always, so we can use it }
+        { currently, we always save R14, so we can use it }
         if (target_info.system<>system_arm_darwin) then
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-               RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[])
+              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R12,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+               RS_R9,RS_R10,RS_R14],first_int_imreg,[])
         else
-          { r9 is not (always) available on Darwin according to the llvm code
-            generator. }
+          { r7 is not available on Darwin, it's used as frame pointer (always,
+            for backtrace support -- also in gcc/clang -> R11 can be used).
+            r9 is volatile }
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-               RS_R10,RS_R12,RS_R14],first_int_imreg,[]);
+              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R9,RS_R12,RS_R4,RS_R5,RS_R6,RS_R8,
+               RS_R10,RS_R11,RS_R14],first_int_imreg,[]);
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
         { The register allocator currently cannot deal with multiple
@@ -283,6 +286,7 @@ unit cgcpu;
                current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
                hr.symbol:=l;
+               hr.base:=NR_PC;
                list.concat(taicpu.op_reg_ref(A_LDR,reg,hr));
             end;
        end;
@@ -510,14 +514,22 @@ unit cgcpu;
 
 
     procedure tcgarm.a_call_name(list : TAsmList;const s : string; weak: boolean);
+      var
+        branchopcode: tasmop;
       begin
+        { check not really correct: should only be used for non-Thumb cpus }
+        if (current_settings.cputype<cpu_armv5) or
+           (current_settings.cputype in cpu_thumb2) then
+          branchopcode:=A_BL
+        else
+          branchopcode:=A_BLX;
         if target_info.system<>system_arm_darwin then
           if not weak then
-            list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+            list.concat(taicpu.op_sym(branchopcode,current_asmdata.RefAsmSymbol(s)))
           else
-            list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)))
+            list.concat(taicpu.op_sym(branchopcode,current_asmdata.WeakRefAsmSymbol(s)))
         else
-          list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
+          list.concat(taicpu.op_sym(branchopcode,get_darwin_call_stub(s,weak)));
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
@@ -633,8 +645,7 @@ unit cgcpu;
 
         if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
           case op of
-            OP_NEG,OP_NOT,
-            OP_DIV,OP_IDIV:
+            OP_NEG,OP_NOT:
               internalerror(200308281);
             OP_SHL:
               begin
@@ -735,11 +746,11 @@ unit cgcpu;
         else
           begin
             { there could be added some more sophisticated optimizations }
-            if (op in [OP_MUL,OP_IMUL]) and (a=1) then
+            if (op in [OP_MUL,OP_IMUL,OP_DIV,OP_IDIV]) and (a=1) then
               a_load_reg_reg(list,size,size,src,dst)
             else if (op in [OP_MUL,OP_IMUL]) and (a=0) then
               a_load_const_reg(list,size,0,dst)
-            else if (op in [OP_IMUL]) and (a=-1) then
+            else if (op in [OP_IMUL,OP_IDIV]) and (a=-1) then
               a_op_reg_reg(list,OP_NEG,size,src,dst)
             { we do this here instead in the peephole optimizer because
               it saves us a register }
@@ -928,6 +939,7 @@ unit cgcpu;
            ((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and
             ((ref.offset<-1020) or
              (ref.offset>1020) or
+             ((abs(ref.offset) mod 4)<>0) or
              { the usual pc relative symbol handling assumes possible offsets of +/- 4095 }
              assigned(ref.symbol)
             )
@@ -1343,6 +1355,11 @@ unit cgcpu;
       end;
 
 
+    procedure tcgarm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+      begin
+        Comment(V_Error,'tcgarm.a_bit_scan_reg_reg method not implemented');
+      end;
+
     procedure tcgarm.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
         list.concat(taicpu.op_reg_reg(A_CMP,reg2,reg1));
@@ -1394,7 +1411,8 @@ unit cgcpu;
          firstfloatreg,lastfloatreg,
          r : byte;
          mmregs,
-         regs : tcpuregisterset;
+         regs, saveregs : tcpuregisterset;
+         r7offset,
          stackmisalignment : pint;
          postfix: toppostfix;
       begin
@@ -1422,48 +1440,99 @@ unit cgcpu;
                       end;
                 end;
               fpu_vfpv2,
-              fpu_vfpv3:
+              fpu_vfpv3,
+              fpu_vfpv3_d16:
                 begin;
                   mmregs:=rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
                 end;
             end;
             a_reg_alloc(list,NR_STACK_POINTER_REG);
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-              begin
-                a_reg_alloc(list,NR_FRAME_POINTER_REG);
-                a_reg_alloc(list,NR_R12);
-
-                list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
-              end;
+              a_reg_alloc(list,NR_FRAME_POINTER_REG);
             { save int registers }
             reference_reset(ref,4);
             ref.index:=NR_STACK_POINTER_REG;
             ref.addressmode:=AM_PREINDEXED;
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-            { the (old) ARM APCS requires saving both the stack pointer (to
-              crawl the stack) and the PC (to identify the function this
-              stack frame belongs to) -> also save R12 (= copy of R13 on entry)
-              and R15 -- still needs updating for EABI and Darwin, they don't
-              need that }
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-              regs:=regs+[RS_FRAME_POINTER_REG,RS_R12,RS_R14,RS_R15]
-            else
-              if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
-                include(regs,RS_R14);
-            if regs<>[] then
-               begin
-                 for r:=RS_R0 to RS_R15 do
-                   if (r in regs) then
-                     inc(stackmisalignment,4);
-                 list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_FD));
-               end;
-
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if not(target_info.system in systems_darwin) then
               begin
-                { the framepointer now points to the saved R15, so the saved
-                  framepointer is at R11-12 (for get_caller_frame) }
-                list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
-                a_reg_dealloc(list,NR_R12);
+                a_reg_alloc(list,NR_STACK_POINTER_REG);
+                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  begin
+                    a_reg_alloc(list,NR_R12);
+                    list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
+                  end;
+                { the (old) ARM APCS requires saving both the stack pointer (to
+                  crawl the stack) and the PC (to identify the function this
+                  stack frame belongs to) -> also save R12 (= copy of R13 on entry)
+                  and R15 -- still needs updating for EABI and Darwin, they don't
+                  need that }
+                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  regs:=regs+[RS_FRAME_POINTER_REG,RS_R12,RS_R14,RS_R15]
+                else
+                  if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
+                    include(regs,RS_R14);
+                if regs<>[] then
+                   begin
+                     for r:=RS_R0 to RS_R15 do
+                       if r in regs then
+                         inc(stackmisalignment,4);
+                     list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_FD));
+                   end;
+
+                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  begin
+                    { the framepointer now points to the saved R15, so the saved
+                      framepointer is at R11-12 (for get_caller_frame) }
+                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
+                    a_reg_dealloc(list,NR_R12);
+                  end;
+              end
+            else
+              begin
+                { always save r14 if we use r7 as the framepointer, because
+                  the parameter offsets are hardcoded in advance and always
+                  assume that r14 sits on the stack right behind the saved r7
+                }
+                if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+                  include(regs,RS_FRAME_POINTER_REG);
+                if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
+                    include(regs,RS_R14);
+                if regs<>[] then
+                  begin
+                    { on Darwin, you first have to save [r4-r7,lr], and then
+                      [r8,r10,r11] and make r7 point to the previously saved
+                      r7 so that you can perform a stack crawl based on it
+                      ([r7] is previous stack frame, [r7+4] is return address
+                    }
+                    include(regs,RS_FRAME_POINTER_REG);
+                    saveregs:=regs-[RS_R8,RS_R10,RS_R11];
+                    r7offset:=0;
+                    for r:=RS_R0 to RS_R15 do
+                      if r in saveregs then
+                        begin
+                          inc(stackmisalignment,4);
+                          if r<RS_FRAME_POINTER_REG then
+                            inc(r7offset,4);
+                        end;
+                    { save the registers }
+                    list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,saveregs),PF_FD));
+                    { make r7 point to the saved r7 (regardless of whether this
+                      frame uses the framepointer, for backtrace purposes) }
+                    if r7offset<>0 then
+                      list.concat(taicpu.op_reg_reg_const(A_ADD,NR_FRAME_POINTER_REG,NR_R13,r7offset))
+                    else
+                      list.concat(taicpu.op_reg_reg(A_MOV,NR_R7,NR_R13));
+                    { now save the rest (if any) }
+                    saveregs:=regs-saveregs;
+                    if saveregs<>[] then
+                      begin
+                        for r:=RS_R8 to RS_R11 do
+                          if r in saveregs then
+                            inc(stackmisalignment,4);
+                        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,R_INTREGISTER,R_SUBWHOLE,saveregs),PF_FD));
+                      end;
+                  end;
               end;
 
             stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
@@ -1493,7 +1562,7 @@ unit cgcpu;
              begin
                reference_reset(ref,4);
                if (tg.direction*tarmprocinfo(current_procinfo).floatregstart>=1023) or
-                  (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3]) then
+                  (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16]) then
                  begin
                    if not is_shifter_const(tarmprocinfo(current_procinfo).floatregstart,shift) then
                      begin
@@ -1521,7 +1590,8 @@ unit cgcpu;
                        lastfloatreg-firstfloatreg+1,ref));
                    end;
                  fpu_vfpv2,
-                 fpu_vfpv3:
+                 fpu_vfpv3,
+                 fpu_vfpv3_d16:
                    begin
                      ref.index:=ref.base;
                      ref.base:=NR_NO;
@@ -1546,6 +1616,7 @@ unit cgcpu;
          r,
          shift : byte;
          mmregs,
+         saveregs,
          regs : tcpuregisterset;
          stackmisalignment: pint;
          mmpostfix: toppostfix;
@@ -1575,7 +1646,8 @@ unit cgcpu;
                       end;
                 end;
               fpu_vfpv2,
-              fpu_vfpv3:
+              fpu_vfpv3,
+              fpu_vfpv3_d16:
                 begin;
                   { restore vfp registers? }
                   mmregs:=rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
@@ -1587,7 +1659,7 @@ unit cgcpu;
               begin
                 reference_reset(ref,4);
                 if (tg.direction*tarmprocinfo(current_procinfo).floatregstart>=1023) or
-                   (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3]) then
+                   (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16]) then
                   begin
                     if not is_shifter_const(tarmprocinfo(current_procinfo).floatregstart,shift) then
                       begin
@@ -1614,7 +1686,8 @@ unit cgcpu;
                         lastfloatreg-firstfloatreg+1,ref));
                     end;
                   fpu_vfpv2,
-                  fpu_vfpv3:
+                  fpu_vfpv3,
+                  fpu_vfpv3_d16:
                     begin
                       ref.index:=ref.base;
                       ref.base:=NR_NO;
@@ -1629,22 +1702,47 @@ unit cgcpu;
               end;
 
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)        ;
-            if (pi_do_call in current_procinfo.flags) or (regs<>[]) then
+            if (pi_do_call in current_procinfo.flags) or
+               (regs<>[]) or
+               ((target_info.system in systems_darwin) and
+                (current_procinfo.framepointer<>NR_STACK_POINTER_REG)) then
               begin
                 exclude(regs,RS_R14);
                 include(regs,RS_R15);
+                if (target_info.system in systems_darwin) then
+                  include(regs,RS_FRAME_POINTER_REG);
               end;
-            { restore saved stack pointer to SP (R13) and saved lr to PC (R15).
-              The saved PC came after that but is discarded, since we restore
-              the stack pointer }
-            if (current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
-              regs:=regs+[RS_FRAME_POINTER_REG,RS_R13,RS_R15];
 
+            if not(target_info.system in systems_darwin) then
+              begin
+                { restore saved stack pointer to SP (R13) and saved lr to PC (R15).
+                  The saved PC came after that but is discarded, since we restore
+                  the stack pointer }
+                if (current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
+                  regs:=regs+[RS_FRAME_POINTER_REG,RS_R13,RS_R15];
+              end
+            else
+              begin
+                { restore R8-R11 already if necessary (they've been stored
+                  before the others) }
+                saveregs:=regs*[RS_R8,RS_R10,RS_R11];
+                if saveregs<>[] then
+                  begin
+                    reference_reset(ref,4);
+                    ref.index:=NR_STACK_POINTER_REG;
+                    ref.addressmode:=AM_PREINDEXED;
+                    for r:=RS_R8 to RS_R11 do
+                      if r in saveregs then
+                        inc(stackmisalignment,4);
+                    regs:=regs-saveregs;
+                  end;
+              end;
             for r:=RS_R0 to RS_R15 do
-              if (r in regs) then
+              if r in regs then
                 inc(stackmisalignment,4);
             stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
+               (target_info.system in systems_darwin) then
               begin
                 LocalSize:=current_procinfo.calc_stackframe_size;
                 if (LocalSize<>0) or
@@ -1665,6 +1763,10 @@ unit cgcpu;
                         list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
                       end;
                   end;
+
+                if (target_info.system in systems_darwin) and
+                   (saveregs<>[]) then
+                  list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,R_INTREGISTER,R_SUBWHOLE,saveregs),PF_FD));
 
                 if regs=[] then
                   begin
@@ -1927,9 +2029,16 @@ unit cgcpu;
         srcref:=source;
         if cs_opt_size in current_settings.optimizerswitches then
           helpsize:=8;
-        if (len<=helpsize) and aligned then
+        if aligned and (len=4) then
+          begin
+            tmpreg:=getintregister(list,OS_32);
+            a_load_ref_reg(list,OS_32,OS_32,source,tmpreg);
+            a_load_reg_ref(list,OS_32,OS_32,tmpreg,dest);
+          end
+        else if (len<=helpsize) and aligned then
           begin
             tmpregi:=0;
+
             srcreg:=getintregister(list,OS_ADDR);
 
             { explicit pc relative addressing, could be
@@ -3185,8 +3294,7 @@ unit cgcpu;
       begin
         ovloc.loc:=LOC_VOID;
         case op of
-           OP_NEG,OP_NOT,
-           OP_DIV,OP_IDIV:
+           OP_NEG,OP_NOT:
               internalerror(200308281);
            OP_ROL:
               begin

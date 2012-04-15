@@ -196,14 +196,19 @@ implementation
                  hlcg.location_get_data_ref(current_asmdata.CurrAsmList,left.resultdef,left.location,href,false,sizeof(pint));
                  if is_open_array(resultdef) then
                    begin
-                     if third=nil then
-                       InternalError(201103063);
-                     secondpass(third);
-                     cg.g_array_rtti_helper(current_asmdata.CurrAsmList,tarraydef(resultdef).elementdef,
-                       href,third.location,'FPC_DECREF_ARRAY');
+                     { if elementdef is not managed, omit fpc_decref_array
+                       because it won't do anything anyway }
+                     if is_managed_type(tarraydef(resultdef).elementdef) then
+                       begin
+                         if third=nil then
+                           InternalError(201103063);
+                         secondpass(third);
+                         cg.g_array_rtti_helper(current_asmdata.CurrAsmList,tarraydef(resultdef).elementdef,
+                           href,third.location,'FPC_FINALIZE_ARRAY');
+                       end;
                    end
                  else
-                   hlcg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
+                   hlcg.g_finalize(current_asmdata.CurrAsmList,left.resultdef,href)
                end;
 
              paramanager.createtempparaloc(current_asmdata.CurrAsmList,aktcallnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
@@ -296,6 +301,10 @@ implementation
 {*****************************************************************************
                              TCGCALLNODE
 *****************************************************************************}
+
+{$if first_mm_imreg = 0}
+  {$WARN 4044 OFF} { Comparison might be always false ... }
+{$endif}
 
     procedure tcgcallnode.extra_interrupt_code;
       begin
@@ -426,7 +435,7 @@ implementation
               function since this is code is only executed after the function call has returned }
             if is_managed_type(funcretnode.resultdef) and
                (funcretnode.nodetype<>temprefn) then
-              hlcg.g_decrrefcount(current_asmdata.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
+              hlcg.g_finalize(current_asmdata.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
 
             case location.loc of
               LOC_REGISTER :

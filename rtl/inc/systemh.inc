@@ -194,6 +194,27 @@ Type
   FarPointer = Pointer;
 {$endif CPUSPARC}
 
+{$ifdef CPUMIPS32}
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+
+  {$ifndef FPUNONE}
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+    ValReal = Double;
+  {$endif}
+
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+
+  FarPointer = Pointer;
+{$endif CPUMIPS32}
+
+
 {$ifdef CPUARM}
   {$define DEFAULT_DOUBLE}
 
@@ -236,7 +257,7 @@ Type
   PComp = ^Comp;
 
   FarPointer = Pointer;
-{$endif CPUARM}
+{$endif CPUAVR}
 
 {$ifdef CPU64}
   SizeInt = Int64;
@@ -268,11 +289,31 @@ Type
   NativeInt  = PtrInt;
   NativeUint = PtrUint;
 
+  Int8    = ShortInt;
+  Int16   = SmallInt;
+  Int32   = Longint;
+  IntPtr  = PtrInt;
+  UInt8   = Byte;
+  UInt16  = Word;
+  UInt32  = Cardinal;
+  UIntPtr = PtrUInt;
+
 { Zero - terminated strings }
   PChar               = ^Char;
   PPChar              = ^PChar;
   PPPChar             = ^PPChar;
 
+{ some values which are used in RTL for TSystemCodePage type }
+const
+  CP_ACP     = 0;     // default to ANSI code page
+  CP_UTF16   = 1200;  // utf-16
+  CP_UTF16BE = 1201;  // unicodeFFFE
+  CP_UTF7    = 65000; // utf-7
+  CP_UTF8    = 65001; // utf-8
+  CP_ASCII   = 20127; // us-ascii
+  CP_NONE    = $FFFF; // rawbytestring encoding
+
+type
   { AnsiChar is equivalent of Char, so we need
     to use type renamings }
   TAnsiChar           = Char;
@@ -290,8 +331,18 @@ Type
   PUCS4CharArray      = ^TUCS4CharArray;
   UCS4String          = array of UCS4Char;
 
+{$ifdef FPC_HAS_CPSTRING}
+  UTF8String          = type AnsiString(CP_UTF8);
+{$else FPC_HAS_CPSTRING}
   UTF8String          = type ansistring;
+{$endif FPC_HAS_CPSTRING}
   PUTF8String         = ^UTF8String;
+
+{$ifdef FPC_HAS_CPSTRING}
+  RawByteString       = type AnsiString(CP_NONE);
+{$else FPC_HAS_CPSTRING}
+  RawByteString       = ansistring;
+{$endif FPC_HAS_CPSTRING}
 
   HRESULT             = type Longint;
 {$ifndef FPUNONE}
@@ -343,7 +394,7 @@ Type
 
 {$ifndef FPUNONE}
   PDate               = ^TDateTime;
-  PDateTime	      = ^TDateTime;
+  PDateTime           = ^TDateTime;
 {$endif}
   PError              = ^TError;
   PVariant            = ^Variant;
@@ -360,6 +411,8 @@ Type
   UnicodeChar         = WideChar;
   PUnicodeChar        = ^UnicodeChar;
   PUnicodeString      = ^UnicodeString;
+
+  TSystemCodePage     = Word;
 
   { Needed for fpc_get_output }
   PText               = ^Text;
@@ -471,18 +524,33 @@ var
   ExitCode    : Longint; public name 'operatingsystem_result';
   RandSeed    : Cardinal;
   { Delphi compatibility }
-  IsLibrary : boolean = false;
-  IsConsole : boolean;
+
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+  IsLibrary : boolean = false; public name 'operatingsystem_islibrary';
+{$else FPC_HAS_FEATURE_DYNLIBS}
+const
+  IsLibrary = false;
+var
+{$endif FPC_HAS_FEATURE_DYNLIBS}
+  IsConsole : boolean = false; public name 'operatingsystem_isconsole';
   { Threading support }
   fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
+
+  DefaultSystemCodePage,
+  DefaultUnicodeCodePage,
+  UTF8CompareLocale : TSystemCodePage;
+
 
 {$ifndef HAS_CMDLINE}
 {Value should be changed during system initialization as appropriate.}
 var cmdline:Pchar=nil;
 {$endif}
 
-
+{$ifdef FPC_HAS_FEATURE_THREADING}
 ThreadVar
+{$else FPC_HAS_FEATURE_THREADING}
+Var
+{$endif FPC_HAS_FEATURE_THREADING}
   ThreadID    : TThreadID;
   { Standard In- and Output }
   ErrOutput,
@@ -745,7 +813,8 @@ function SarLongint(Const AValue : Longint;const Shift : Byte = 1): Longint;
 function SarInt64(Const AValue : Int64): Int64;[internproc:fpc_in_sar_x];
 function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_sar_x_y];
 {$else FPC_HAS_INTERNAL_SAR_QWORD}
-function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64;
+function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64;compilerproc;
+function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external name 'FPC_SARINT64'];
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSX}
@@ -821,9 +890,9 @@ Procedure Insert(source:Char;var s:shortstring;index:SizeInt);
 Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
 Function  Pos(C:Char;const s:shortstring):SizeInt;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function  Pos (const Substr : ShortString; const Source : AnsiString) : SizeInt;
-Procedure SetString (out S : AnsiString; Buf : PChar; Len : SizeInt);
-Procedure SetString (out S : AnsiString; Buf : PWideChar; Len : SizeInt);
+Function  Pos(const Substr : ShortString; const Source : RawByteString) : SizeInt;
+Procedure SetString(out S : AnsiString; Buf : PAnsiChar; Len : SizeInt);
+Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure SetString (out S : Shortstring; Buf : PChar; Len : SizeInt);
 function  ShortCompareText(const S1, S2: shortstring): SizeInt;
@@ -853,14 +922,20 @@ function  pos(const substr : shortstring;c:char): SizeInt;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure UniqueString(var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
-Function  Pos (const Substr : AnsiString; const Source : AnsiString) : SizeInt;
-Function  Pos (c : Char; const s : AnsiString) : SizeInt;
-Procedure Insert (const Source : AnsiString; var S : AnsiString; Index : SizeInt);
-Procedure Delete (var S : AnsiString; Index,Size: SizeInt);
-Function  StringOfChar(c : char;l : SizeInt) : AnsiString;
+Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}external name 'FPC_ANSISTR_UNIQUE';
+Function  Pos (const Substr : RawByteString; const Source : RawByteString) : SizeInt;
+Function  Pos (c : AnsiChar; const s : RawByteString) : SizeInt;
+Procedure Insert (const Source : RawByteString; var S : RawByteString; Index : SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
+Procedure Delete (var S : RawByteString; Index,Size: SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
+Function  StringOfChar(c : Ansichar;l : SizeInt) : AnsiString;
 function  upcase(const s : ansistring) : ansistring;
 function  lowercase(const s : ansistring) : ansistring;
+
+function StringCodePage(const S : RawByteString): TSystemCodePage; overload;
+function StringElementSize(const S : RawByteString): Word; overload;
+function StringRefCount(const S : RawByteString): SizeInt; overload;
+procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
+procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
@@ -953,6 +1028,8 @@ Function  SeekEOF:Boolean;
 Procedure SetTextBuf(var f:Text; var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
 Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
 Procedure SetTextLineEnding(var f:Text; Ending:string);
+function GetTextCodePage(var T: Text): TSystemCodePage;
+procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {****************************************************************************
@@ -1072,12 +1149,10 @@ Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 Procedure Dump_Stack(var f : text;bp:pointer);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-{$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 Procedure RunError(w:Word);
 Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1092,8 +1167,10 @@ Procedure halt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure SysInitExceptions;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+{$ifndef EMBEDDED}
 procedure SysInitStdIO;
 procedure SysFlushStdIO;
+{$endif EMBEDDED}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 {$ifndef FPUNONE}
 Procedure SysResetFPU;
@@ -1136,6 +1213,10 @@ const
   AbstractErrorProc : TAbstractErrorProc = nil;
   AssertErrorProc   : TAssertErrorProc = @SysAssert;
   SafeCallErrorProc : TSafeCallErrorProc = nil;
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  ExceptObjProc     : Pointer = nil; { Used to convert OS exceptions to FPC exceptions. }
+  ExceptClsProc     : Pointer = nil;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 {*****************************************************************************
                           SetJmp/LongJmp
@@ -1177,9 +1258,7 @@ const
                                Heap
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_HEAP}
 {$i heaph.inc}
-{$endif FPC_HAS_FEATURE_HEAP}
 
 {*****************************************************************************
                           Thread support

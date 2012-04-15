@@ -45,7 +45,6 @@ interface
           function first_unbox: tnode; override;
 
           function first_setlength_array: tnode;
-          function first_setlength_string: tnode;
          public
           { typecheck override to intercept handling }
           function pass_typecheck: tnode; override;
@@ -517,59 +516,13 @@ implementation
       end;
 
 
-    function tjvminlinenode.first_setlength_string: tnode;
-      var
-        newblock: tblocknode;
-        newstatement: tstatementnode;
-        lefttemp: ttempcreatenode;
-        assignmenttarget: tnode;
-        stringtype: tstringdef;
-      begin
-        if is_wide_or_unicode_string(left.resultdef) or
-           is_ansistring(left.resultdef) then
-          begin
-            stringtype:=tstringdef(left.resultdef);
-            { store left into a temp in case it may contain a function call
-              (which must not be evaluated twice) }
-            newblock:=nil;
-            newstatement:=nil;
-            lefttemp:=maybereplacewithtempref(tcallparanode(left).left,newblock,newstatement,stringtype.size,false);
-            if assigned(lefttemp) then
-              begin
-                assignmenttarget:=ctemprefnode.create(lefttemp);
-                typecheckpass(tnode(assignmenttarget));
-              end
-            else
-              assignmenttarget:=tcallparanode(left).left.getcopy;
-            { back to original order for the call }
-            left:=reverseparameters(tcallparanode(left));
-            result:=cassignmentnode.create(assignmenttarget,
-              ccallnode.createintern('fpc_'+stringtype.stringtypname+'_setlength',left));
-            if assigned(lefttemp) then
-              begin
-                addstatement(newstatement,result);
-                addstatement(newstatement,ctempdeletenode.create(lefttemp));
-                result:=newblock;
-              end;
-            left:=nil;
-          end
-        else
-          internalerror(2011031405);
-      end;
-
-
     function tjvminlinenode.first_setlength: tnode;
       begin
         { reverse the parameter order so we can process them more easily }
         left:=reverseparameters(tcallparanode(left));
-        if is_shortstring(left.resultdef) then
-          begin
-            left:=reverseparameters(tcallparanode(left));
-            result:=inherited first_setlength;
-            exit;
-          end;
         { treat setlength(x,0) specially: used to init uninitialised locations }
-        if not assigned(tcallparanode(tcallparanode(left).right).right) and
+        if not is_shortstring(left.resultdef) and
+           not assigned(tcallparanode(tcallparanode(left).right).right) and
            is_constintnode(tcallparanode(tcallparanode(left).right).left) and
            (tordconstnode(tcallparanode(tcallparanode(left).right).left).value=0) then
           begin
@@ -577,11 +530,16 @@ implementation
             expectloc:=LOC_VOID;
             exit;
           end;
+        { strings are handled the same as on other platforms }
+        if left.resultdef.typ=stringdef then
+          begin
+            left:=reverseparameters(tcallparanode(left));
+            result:=inherited first_setlength;
+            exit;
+          end;
         case left.resultdef.typ of
           arraydef:
             result:=first_setlength_array;
-          stringdef:
-            result:=first_setlength_string;
           else
             internalerror(2011031204);
         end;

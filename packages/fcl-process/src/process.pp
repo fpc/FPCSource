@@ -160,6 +160,8 @@ Type
 
   EProcess = Class(Exception);
 
+Procedure CommandToList(S : String; List : TStrings);
+
 {$ifdef unix}
 Var
   TryTerminals : Array of string;
@@ -169,29 +171,14 @@ Var
 
 implementation
 
-{$ifdef WINDOWS}
-Uses
-  Windows;
-{$endif WINDOWS}
-{$ifdef UNIX}
-uses
-   ctypes,
-   UnixType,
-   Unix,
-   Baseunix;
-{$endif UNIX}
-
-Resourcestring
-  SNoCommandLine        = 'Cannot execute empty command-line';
-  SErrNoSuchProgram     = 'Executable not found: "%s"';
-  SErrNoTerminalProgram = 'Could not detect X-Terminal program';
+{$i process.inc}
 
 Procedure CommandToList(S : String; List : TStrings);
 
   Function GetNextWord : String;
 
   Const
-    WhiteSpace = [' ',#8,#10];
+    WhiteSpace = [' ',#9,#10,#13];
     Literals = ['"',''''];
 
   Var
@@ -243,8 +230,6 @@ begin
       List.Add(W);
     end;
 end;
-
-{$i process.inc}
 
 Constructor TProcess.Create (AOwner : TComponent);
 begin
@@ -308,7 +293,6 @@ end;
 procedure TProcess.FreeStream(var AStream: THandleStream);
 begin
   if AStream = nil then exit;
-  FileClose(AStream.Handle);
   FreeAndNil(AStream);
 end;
 

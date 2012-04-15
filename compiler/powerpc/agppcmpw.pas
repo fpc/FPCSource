@@ -25,6 +25,9 @@
 unit agppcmpw;
 
 {$i fpcdefs.inc}
+ { We know that use_PR is a const boolean
+   but we don't care about this warning }
+ {$WARN 6018 OFF}
 
 interface
 
@@ -1238,6 +1241,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_labelprefix_only_inside_procedure];
             labelprefix : '@';
             comment : '; ';
+            dollarsign: 's';
           );
 
 initialization

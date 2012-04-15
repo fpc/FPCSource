@@ -19,10 +19,10 @@ Procedure UniqueString (Var S : WideString);external name 'FPC_WIDESTR_UNIQUE';
 Function Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
 Function Pos (c : Char; Const s : WideString) : SizeInt;
 Function Pos (c : WideChar; Const s : WideString) : SizeInt;
-Function Pos (c : WideChar; Const s : AnsiString) : SizeInt;
-Function Pos (c : AnsiString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Pos (c : WideString; Const s : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Pos (c : ShortString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (c : WideChar; Const s : RawByteString) : SizeInt;
+Function Pos (const c : RawByteString; Const s : WideString) : SizeInt;
+Function Pos (const c : WideString; Const s : RawByteString) : SizeInt;
+Function Pos (const c : ShortString; Const s : WideString) : SizeInt;
 
 Function UpCase(const s : WideString) : WideString;
 
@@ -31,17 +31,12 @@ Procedure Delete (Var S : WideString; Index,Size: SizeInt);
 Procedure SetString (Out S : WideString; Buf : PWideChar; Len : SizeInt);
 Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
 
-procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
-procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+procedure DefaultAnsi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
 
 type
   TWideStringManager = TUnicodeStringManager;
 
-function UnicodeToUtf8(Dest: PChar; Source: PWideChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PWideChar; SourceChars: SizeUInt): SizeUInt;
-function Utf8ToUnicode(Dest: PWideChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
-function UTF8Encode(const s : WideString) : UTF8String;
+function UTF8Encode(const s : WideString) : RawByteString;
 
 {$ifdef MSWINDOWS}
 const

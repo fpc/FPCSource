@@ -24,10 +24,10 @@ type
   TPQCursor = Class(TSQLCursor)
     protected
     Statement    : string;
+    StmtName     : string;
     tr           : TPQTrans;
     res          : PPGresult;
     CurTuple     : integer;
-    Nr           : string;
     FieldBinding : array of integer;
   end;
 
@@ -39,7 +39,7 @@ type
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
-    function TranslateFldType(res : PPGresult; Tuple : integer; var Size : integer) : TFieldType;
+    function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
   protected
     procedure DoInternalConnect; override;
@@ -89,7 +89,7 @@ type
 
 implementation
 
-uses math, strutils;
+uses math, strutils, FmtBCD;
 
 ResourceString
   SErrRollbackFailed = 'Rollback transaction failed';
@@ -115,11 +115,16 @@ const Oid_Bool     = 16;
       Oid_Money    = 790;
       Oid_Float8   = 701;
       Oid_Unknown  = 705;
+      Oid_MacAddr  = 829;
+      Oid_Inet     = 869;
       Oid_bpchar   = 1042;
       Oid_varchar  = 1043;
-      Oid_timestamp = 1114;
       oid_date      = 1082;
       oid_time      = 1083;
+      Oid_timeTZ    = 1266;
+      Oid_timestamp = 1114;
+      Oid_timestampTZ = 1184;
+      Oid_interval  = 1186;
       oid_numeric   = 1700;
       Oid_uuid      = 2950;
 
@@ -382,7 +387,8 @@ begin
 
 end;
 
-function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; var Size : integer) : TFieldType;
+function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
+const VARHDRSZ=sizeof(longint);
 var li : longint;
 begin
   Size := 0;
@@ -397,7 +403,7 @@ begin
                                if li = -1 then
                                  size := dsMaxStringSize
                                else
-                                 size := (li-4) and $FFFF;
+                                 size := (li-VARHDRSZ) and $FFFF;
                                end;
                              if size > dsMaxStringSize then size := dsMaxStringSize;
                              end;
@@ -410,9 +416,12 @@ begin
     Oid_int2               : Result := ftSmallInt;
     Oid_Float4             : Result := ftFloat;
     Oid_Float8             : Result := ftFloat;
-    Oid_TimeStamp          : Result := ftDateTime;
+    Oid_TimeStamp,
+    Oid_TimeStampTZ        : Result := ftDateTime;
     Oid_Date               : Result := ftDate;
-    Oid_Time               : Result := ftTime;
+    Oid_Interval,
+    Oid_Time,
+    Oid_TimeTZ             : Result := ftTime;
     Oid_Bool               : Result := ftBoolean;
     Oid_Numeric            : begin
                              Result := ftBCD;
@@ -421,11 +430,11 @@ begin
                                size := 4 // No information about the size available, use the maximum value
                              else
                              // The precision is the high 16 bits, the scale the
-                             // low 16 bits. Both with an offset of 4.
-                             // In this case we need the scale:
+                             // low 16 bits with an offset of sizeof(int32).
                                begin
-                               size := (li-4) and $FFFF;
-                               if size > 4 then size:=4; //ftBCD allows max.scale 4, when ftFmtBCD will be implemented then use it
+                               size := (li-VARHDRSZ) and $FFFF;
+                               if (size > MaxBCDScale) or ((li shr 16)-size > MaxBCDPrecision-MaxBCDScale) then
+                                 Result := ftFmtBCD;
                                end;
                              end;
     Oid_Money              : Result := ftCurrency;
@@ -436,6 +445,14 @@ begin
     Oid_uuid               : begin
                              Result := ftGuid;
                              Size := 38;
+                             end;
+    Oid_MacAddr            : begin
+                             Result := ftFixedChar;
+                             Size := 17;
+                             end;
+    Oid_Inet               : begin
+                             Result := ftString;
+                             Size := 39;
                              end;
     Oid_Unknown            : Result := ftUnknown;
   else
@@ -515,16 +532,16 @@ begin
   with (cursor as TPQCursor) do
     begin
     FPrepared := False;
-    nr := inttostr(FCursorcount);
-    inc(FCursorCount);
     // Prior to v8 there is no support for cursors and parameters.
     // So that's not supported.
     if FStatementType in [stInsert,stUpdate,stDelete, stSelect] then
       begin
+      StmtName := 'prepst'+inttostr(FCursorCount);
+      inc(FCursorCount);
       tr := TPQTrans(aTransaction.Handle);
       // Only available for pq 8.0, so don't use it...
       // Res := pqprepare(tr,'prepst'+name+nr,pchar(buf),params.Count,pchar(''));
-      s := 'prepare prepst'+nr+' ';
+      s := 'prepare '+StmtName+' ';
       if Assigned(AParams) and (AParams.count > 0) then
         begin
         s := s + '(';
@@ -547,6 +564,15 @@ begin
         pqclear(res);
         DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self)
         end;
+      // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
+      // override the statement type derrived by parsing the query.
+      if (FStatementType in [stInsert,stUpdate,stDelete]) and (pos('RETURNING', upcase(s)) > 0) then
+        begin
+        PQclear(res);
+        res := PQdescribePrepared(tr.PGConn,pchar(StmtName));
+        if (PQresultStatus(res) = PGRES_COMMAND_OK) and (PQnfields(res) > 0) then
+          FStatementType := stSelect;
+        end;
       FPrepared := True;
       end
     else
@@ -562,7 +588,7 @@ begin
     if not tr.ErrorOccured then
       begin
       PQclear(res);
-      res := pqexec(tr.PGConn,pchar('deallocate prepst'+nr));
+      res := pqexec(tr.PGConn,pchar('deallocate '+StmtName));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
           pqclear(res);
@@ -613,7 +639,9 @@ begin
                 cash:=NtoBE(round(AParams[i].AsCurrency*100));
                 setlength(s, sizeof(cash));
                 Move(cash, s[1], sizeof(cash));
-              end
+              end;
+            ftFmtBCD:
+              s := BCDToStr(AParams[i].AsFMTBCD, FSQLFormatSettings);
             else
               s := AParams[i].AsString;
           end; {case}
@@ -627,12 +655,12 @@ begin
           end
         else
           FreeAndNil(ar[i]);
-        res := PQexecPrepared(tr.PGConn,pchar('prepst'+nr),Aparams.count,@Ar[0],@Lengths[0],@Formats[0],1);
+        res := PQexecPrepared(tr.PGConn,pchar(StmtName),Aparams.count,@Ar[0],@Lengths[0],@Formats[0],1);
         for i := 0 to AParams.count -1 do
           FreeMem(ar[i]);
         end
       else
-        res := PQexecPrepared(tr.PGConn,pchar('prepst'+nr),0,nil,nil,nil,1);
+        res := PQexecPrepared(tr.PGConn,pchar(StmtName),0,nil,nil,nil,1);
       end
     else
       begin
@@ -712,23 +740,43 @@ end;
 
 function TPQConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
+const NBASE=10000;
+      DAYS_PER_MONTH=30;
+
 type TNumericRecord = record
        Digits : SmallInt;
        Weight : SmallInt;
        Sign   : SmallInt;
        Scale  : Smallint;
      end;
+     TIntervalRec = packed record
+       time  : int64;
+       day   : longint;
+       month : longint;
+     end;
+     TMacAddrRec = packed record
+       a, b, c, d, e, f: byte;
+     end;
+     TInetRec = packed record
+       family : byte;
+       bits   : byte;
+       is_cidr: byte;
+       nb     : byte;
+       ipaddr : array[1..16] of byte;
+     end;
 
 var
-  x,i           : integer;
+  x,i,j         : integer;
   s             : string;
   li            : Longint;
   CurrBuff      : pchar;
-  tel           : byte;
   dbl           : pdouble;
   cur           : currency;
   NumericRecord : ^TNumericRecord;
   guid          : TGUID;
+  bcd           : TBCD;
+  macaddr       : ^TMacAddrRec;
+  inet          : ^TInetRec;
 
 begin
   Createblob := False;
@@ -760,15 +808,38 @@ begin
             sizeof(integer) : pinteger(buffer)^ := BEtoN(pinteger(CurrBuff)^);
             sizeof(smallint) : psmallint(buffer)^ := BEtoN(psmallint(CurrBuff)^);
           else
-            for tel := 1 to i do
-              pchar(Buffer)[tel-1] := CurrBuff[i-tel];
+            for j := 1 to i do
+              pchar(Buffer)[j-1] := CurrBuff[i-j];
           end; {case}
           end;
         ftString, ftFixedChar :
           begin
-          li := pqgetlength(res,curtuple,x);
-          if li > dsMaxStringSize then li := dsMaxStringSize;
-          Move(CurrBuff^, Buffer^, li);
+          case PQftype(res, x) of
+            Oid_MacAddr:
+            begin
+              macaddr := Pointer(CurrBuff);
+              li := FormatBuf(Buffer^, FieldDef.Size, '%.2x:%.2x:%.2x:%.2x:%.2x:%.2x', 29,
+                    [macaddr^.a,macaddr^.b,macaddr^.c,macaddr^.d,macaddr^.e,macaddr^.f]);
+            end;
+            Oid_Inet:
+            begin
+              inet := Pointer(CurrBuff);
+              if inet^.nb = 4 then
+                li := FormatBuf(Buffer^, FieldDef.Size, '%d.%d.%d.%d', 11,
+                      [inet^.ipaddr[1],inet^.ipaddr[2],inet^.ipaddr[3],inet^.ipaddr[4]])
+              else if inet^.nb = 16 then
+                li := FormatBuf(Buffer^, FieldDef.Size, '%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x', 55,
+                      [inet^.ipaddr[1],inet^.ipaddr[2],inet^.ipaddr[3],inet^.ipaddr[4],inet^.ipaddr[5],inet^.ipaddr[6],inet^.ipaddr[7],inet^.ipaddr[8],inet^.ipaddr[9],inet^.ipaddr[10],inet^.ipaddr[11],inet^.ipaddr[12],inet^.ipaddr[13],inet^.ipaddr[14],inet^.ipaddr[15],inet^.ipaddr[16]])
+              else
+                li := 0;
+            end
+            else
+            begin
+              li := pqgetlength(res,curtuple,x);
+              if li > dsMaxStringSize then li := dsMaxStringSize;
+              Move(CurrBuff^, Buffer^, li);
+            end;
+          end;
           pchar(Buffer + li)^ := #0;
           end;
         ftBlob, ftMemo :
@@ -780,36 +851,55 @@ begin
           end;
         ftDateTime, ftTime :
           begin
-          pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
           dbl := pointer(buffer);
-          if FIntegerDatetimes then dbl^ := pint64(buffer)^/1000000;
-          if FieldDef.DataType = ftDateTime then
-            dbl^ := dbl^ + 3.1558464E+009; // postgres counts seconds elapsed since 1-1-2000
-          dbl^ := dbl^ / 86400;
+          if FIntegerDatetimes then
+            dbl^ := BEtoN(pint64(CurrBuff)^) / 1000000
+          else
+            pint64(dbl)^ := BEtoN(pint64(CurrBuff)^);
+          case PQftype(res, x) of
+            Oid_Timestamp, Oid_TimestampTZ:
+              dbl^ := dbl^ + 3.1558464E+009; // postgres counts seconds elapsed since 1-1-2000
+            Oid_Interval:
+              dbl^ := dbl^ + BEtoN(plongint(CurrBuff+ 8)^) * SecsPerDay
+                           + BEtoN(plongint(CurrBuff+12)^) * SecsPerDay * DAYS_PER_MONTH;
+          end;
+          dbl^ := dbl^ / SecsPerDay;
           // Now convert the mathematically-correct datetime to the
           // illogical windows/delphi/fpc TDateTime:
-          if (dbl^ <= 0) and (frac(dbl^)<0) then
+          if (dbl^ <= 0) and (frac(dbl^) < 0) then
             dbl^ := trunc(dbl^)-2-frac(dbl^);
           end;
-        ftBCD:
+        ftBCD, ftFmtBCD:
           begin
           NumericRecord := pointer(CurrBuff);
           NumericRecord^.Digits := BEtoN(NumericRecord^.Digits);
-          NumericRecord^.Scale := BEtoN(NumericRecord^.Scale);
           NumericRecord^.Weight := BEtoN(NumericRecord^.Weight);
+          NumericRecord^.Sign := BEtoN(NumericRecord^.Sign);
+          NumericRecord^.Scale := BEtoN(NumericRecord^.Scale);
           inc(pointer(currbuff),sizeof(TNumericRecord));
-          cur := 0;
           if (NumericRecord^.Digits = 0) and (NumericRecord^.Scale = 0) then // = NaN, which is not supported by Currency-type, so we return NULL
             result := false
-          else
+          else if FieldDef.DataType = ftBCD then
             begin
-            for tel := 1 to NumericRecord^.Digits  do
+            cur := 0;
+            for i := 0 to NumericRecord^.Digits-1 do
               begin
-              cur := cur + beton(pword(currbuff)^) * intpower(10000,-(tel-1)+NumericRecord^.weight);
-              inc(pointer(currbuff),2);
+              cur := cur + beton(pword(CurrBuff)^) * intpower(NBASE, NumericRecord^.weight-i);
+              inc(pointer(CurrBuff),2);
               end;
-            if BEtoN(NumericRecord^.Sign) <> 0 then cur := -cur;
+            if NumericRecord^.Sign <> 0 then cur := -cur;
             Move(Cur, Buffer^, sizeof(currency));
+            end
+          else //ftFmtBCD
+            begin
+            bcd := 0;
+            for i := 0 to NumericRecord^.Digits-1 do
+              begin
+              BCDAdd(bcd, beton(pword(CurrBuff)^) * intpower(NBASE, NumericRecord^.weight-i), bcd);
+              inc(pointer(CurrBuff),2);
+              end;
+            if NumericRecord^.Sign <> 0 then BCDNegate(bcd);
+            Move(bcd, Buffer^, sizeof(bcd));
             end;
           end;
         ftCurrency  :

@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=audio card debugging ds_motion dswifi filesystem graphics hello_world input time
+dirs=audio card debugging ds_motion dswifi filesystem gl2d graphics hello_world input time
 
 [require]
 packages=libndsfpc

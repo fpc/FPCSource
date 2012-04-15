@@ -251,9 +251,9 @@ begin
   if pos('.fd',FileName)=0 then
     FileName:=FileName+'.fd';
   assign(infile,Filename);
-{$i-}
+{$push}{$i-}
   reset (infile);
-{$i+}
+{$pop}
   if ioresult<>0 then
     begin
     EmitError('Can''t open : '+filename);
@@ -509,9 +509,9 @@ begin
     end;
 
   assign(outfile,filename);
-{$i-}
+{$push}{$i-}
   rewrite(outfile);
-{$i+}
+{$pop}
   if ioresult<>0 then
     begin
     EmitError('Couldn''t open output file : '+filename);

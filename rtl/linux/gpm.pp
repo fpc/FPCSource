@@ -76,7 +76,7 @@ const
 type
 {$PACKRECORDS c}
      Pgpm_event=^Tgpm_event;
-     Tgpm_event=packed record
+     Tgpm_event=record
           buttons : byte;
           modifiers : byte;
           vc : word;
@@ -99,20 +99,20 @@ type
 
   type
      Pgpm_connect = ^TGpm_connect;
-     Tgpm_connect = packed record
+     Tgpm_connect = record
           eventMask : word;
           defaultMask : word;
           minMod : word;
           maxMod : word;
           pid : longint;
           vc : longint;
-       end;
+end;
 
      Pgpmconnect=Pgpm_connect;
      Tgpmconnect=Tgpm_connect;
 
      Pgpm_roi=^Tgpm_roi;
-     Tgpm_roi=packed record
+     Tgpm_roi= record
        xmin,xmax:integer;
        ymin,ymax:integer;
        minmod,maxmod:word;

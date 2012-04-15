@@ -12,6 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
 program mkmipsreg;
 
 const Version = '1.00';
@@ -25,6 +26,7 @@ var s : string;
     names,
     regtypes,
     supregs,
+    subregs,
     numbers,
     stdnames,
     gasnames,
@@ -32,8 +34,7 @@ var s : string;
     stabs : array[0..max_regcount-1] of string[63];
     regnumber_index,
     std_regname_index,
-    gas_regname_index,
-    mot_regname_index : array[0..max_regcount-1] of byte;
+    gas_regname_index : array[0..max_regcount-1] of byte;
 
 function tostr(l : longint) : string;
 
@@ -43,9 +44,6 @@ end;
 
 function readstr : string;
 
-  var
-     result : string;
-
   begin
      result:='';
      while (s[i]<>',') and (i<=length(s)) do
@@ -53,7 +51,6 @@ function readstr : string;
           result:=result+s[i];
           inc(i);
        end;
-     readstr:=result;
   end;
 
 
@@ -76,7 +73,7 @@ procedure skipspace;
        inc(i);
   end;
 
-procedure openinc(var f:text;const fn:string);
+procedure openinc(out f:text;const fn:string);
 begin
   writeln('creating ',fn);
   assign(f,fn);
@@ -209,6 +206,8 @@ begin
         readcomma;
         regtypes[regcount]:=readstr;
         readcomma;
+        subregs[regcount]:=readstr;
+        readcomma;
         supregs[regcount]:=readstr;
         readcomma;
         stdnames[regcount]:=readstr;
@@ -225,7 +224,7 @@ begin
             writeln('Line: "',s,'"');
             halt(1);
           end;
-        numbers[regcount]:=regtypes[regcount]+'0000'+copy(supregs[regcount],2,255);
+        numbers[regcount]:=regtypes[regcount]+copy(subregs[regcount],2,255)+'00'+copy(supregs[regcount],2,255);
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);
@@ -247,7 +246,7 @@ procedure write_inc_files;
 var
     norfile,stdfile,supfile,
     numfile,stabfile,confile,gasfile,dwarffile,
-    rnifile,srifile,mrifile,grifile : text;
+    rnifile,srifile,grifile : text;
     first:boolean;
 
 begin
@@ -263,7 +262,6 @@ begin
   openinc(rnifile,'rmipsrni.inc');
   openinc(srifile,'rmipssri.inc');
   openinc(grifile,'rmipsgri.inc');
-  openinc(mrifile,'rmipsmri.inc');
   first:=true;
   for i:=0 to regcount-1 do
     begin
@@ -277,13 +275,12 @@ begin
           writeln(rnifile,',');
           writeln(srifile,',');
           writeln(grifile,',');
-          writeln(mrifile,',');
         end
       else
         first:=false;
-      writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
       writeln(confile,'NR_'+names[i],' = ','tregister(',numbers[i],')',';');
-      write(numfile,'tregister(',numbers[i],')');
+      writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
+      write(numfile,'NR_',names[i]);
       write(stdfile,'''',stdnames[i],'''');
       write(gasfile,'''',gasnames[i],'''');
       write(stabfile,stabs[i]);
@@ -291,7 +288,6 @@ begin
       write(rnifile,regnumber_index[i]);
       write(srifile,std_regname_index[i]);
       write(grifile,gas_regname_index[i]);
-      write(mrifile,mot_regname_index[i]);
     end;
   write(norfile,regcount);
   close(confile);
@@ -305,9 +301,8 @@ begin
   closeinc(rnifile);
   closeinc(srifile);
   closeinc(grifile);
-  closeinc(mrifile);
   writeln('Done!');
-  writeln(regcount,' registers procesed');
+  writeln(regcount,' registers processed');
 end;
 
 

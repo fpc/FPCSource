@@ -1,11 +1,5 @@
 {$codepage cp866}
 
-{ warning: this test will terminate successfully when run on systems that do
-  not support the character used below in the current code page, even if the
-  used compiler is buggy. On other systems, the test will properly fail if
-  the compiler is buggy.
-}
-
 {$ifdef unix}
 uses
   cwstring;
@@ -14,6 +8,7 @@ var
   s: ansistring;
   ws, ws3: widestring;
 begin
+    SetMultiByteConversionCodePage(866);
     // must not be converted
     s := '£';
     if (length(s)<>1) or

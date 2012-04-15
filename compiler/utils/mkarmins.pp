@@ -12,6 +12,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
+
 program mkarmins;
 
 const
@@ -89,7 +91,6 @@ function readnumber : longint;
 
   var
      base : longint;
-     result : longint;
 
   begin
      result:=0;
@@ -117,7 +118,6 @@ function readnumber : longint;
           end;
           inc(i);
        end;
-     readnumber:=result;
   end;
 
 function tostr(l : longint) : string;
@@ -132,9 +132,6 @@ function tostr(l : longint) : string;
 
 function readstr : string;
 
-  var
-     result : string;
-
   begin
      result:='';
      while (s[i] in ['0'..'9','A'..'Z','a'..'z','_']) and (i<=length(s)) do
@@ -142,7 +139,6 @@ function readstr : string;
           result:=result+s[i];
           inc(i);
        end;
-     readstr:=result;
   end;
 
 procedure skipspace;
@@ -152,7 +148,7 @@ procedure skipspace;
        inc(i);
   end;
 
-procedure openinc(var f:text;const fn:string);
+procedure openinc(out f:text;const fn:string);
 begin
   writeln('creating ',fn);
   assign(f,fn);
@@ -404,5 +400,5 @@ begin
    writeln(nopfile,insns,';');
    close(nopfile);
 {   closeinc(propfile); }
-   writeln(insns,' nodes procesed (maxinfolen=',maxinfolen,')');
+   writeln(insns,' nodes processed (maxinfolen=',maxinfolen,')');
 end.

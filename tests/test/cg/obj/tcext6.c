@@ -1,4 +1,19 @@
+#if defined(__BORLANDC__)
+/* ## include <stdint.h> */
+#define long_long __int64
+#define int8_t __int8
+#define uint8_t  unsigned __int8
+#define int16_t __int16
+#define uint16_t  unsigned __int16
+#define int32_t __int32
+#define uint32_t  unsigned __int32
+#define int64_t __int64
+#define uint64_t  unsigned __int64
+
+#else
 #include <stdint.h>
+#define long_long long long
+#endif
 
 struct struct1 {
   float v;
@@ -131,9 +146,9 @@ these four paragraphs for those parts of this code that are retained.
 
 */
 
-#define LIT64( a ) a##LL
+#define LIT64(a) a##LL
 
-#define double2float64( a ) (*(float64*)&(a))
+#define double2float64(a) (*(float64*)&(a))
 
 typedef char flag;
 
@@ -143,7 +158,7 @@ typedef int64_t sbits64;
 
 bits64 extractFloat64Frac( float64 a )
 {
-    return a & LIT64( 0x000FFFFFFFFFFFFF );
+    return a & LIT64(0x000FFFFFFFFFFFFF) ;
 }
 
 int16_t extractFloat64Exp( float64 a )

@@ -13,7 +13,7 @@
 }
 
 
-program MakeSkel;
+program unitdiff;
 
 uses
   SysUtils, Classes, Gettext,

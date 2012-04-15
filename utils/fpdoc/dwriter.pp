@@ -45,7 +45,7 @@ resourcestring
 
   SErrDescrTagUnknown = 'Warning: Unknown tag "%s" in description';
   SErrUnknownEntityReference = 'Warning: Unknown entity reference "&%s;" found';
-  SErrUnknownLinkID = 'Warning: Target ID of <link> is unknown: "%s"';
+  SErrUnknownLinkID = 'Warning: Target ID of <link> in unit "%s" is unknown: "%s"';
   SErrUnknownPrintShortID = 'Warning: Target ID of <printshort> is unknown: "%s"';
   SErrUnknownLink = 'Could not resolve link to "%s"';
   SErralreadyRegistered = 'Class for output format "%s" already registered';
@@ -63,17 +63,24 @@ type
     Destructor Destroy; override;
   end;
 
+  TWriterLogEvent = Procedure(Sender : TObject; Const Msg : String) of object;
+  TWriterNoteEvent = Procedure(Sender : TObject; Note : TDomElement; Var EmitNote : Boolean) of object;
+  
   { TFPDocWriter }
 
   TFPDocWriter = class
   private
+    FEmitNotes: Boolean;
     FEngine  : TFPDocEngine;
     FPackage : TPasPackage;
     FTopics  : TList;
     FImgExt : String;
+    FBeforeEmitNote : TWriterNoteEvent;
     procedure ConvertURL(AContext: TPasElement; El: TDOMElement);
     
   protected
+    Procedure DoLog(Const Msg : String);
+    Procedure DoLog(Const Fmt : String; Args : Array of const);
     procedure Warning(AContext: TPasElement; const AMsg: String);
     procedure Warning(AContext: TPasElement; const AMsg: String;
       const Args: array of const);
@@ -84,6 +91,7 @@ type
     function IsDescrNodeEmpty(Node: TDOMNode): Boolean;
     function IsExtShort(Node: TDOMNode): Boolean;
     function ConvertShort(AContext: TPasElement; El: TDOMElement): Boolean;
+    function ConvertNotes(AContext: TPasElement; El: TDOMElement): Boolean; virtual;
     function ConvertBaseShort(AContext: TPasElement; Node: TDOMNode): Boolean;
     procedure ConvertBaseShortList(AContext: TPasElement; Node: TDOMNode;
       MayBeEmpty: Boolean);
@@ -98,7 +106,9 @@ type
     function ConvertSimpleBlock(AContext: TPasElement; Node: TDOMNode): Boolean;
     Function FindTopicElement(Node : TDocNode): TTopicElement;
     Procedure ConvertImage(El : TDomElement);
-    
+
+    Procedure DescrEmitNotesHeader(AContext : TPasElement); virtual;
+    Procedure DescrEmitNotesFooter(AContext : TPasElement); virtual;
     procedure DescrWriteText(const AText: DOMString); virtual; abstract;
     procedure DescrBeginBold; virtual; abstract;
     procedure DescrEndBold; virtual; abstract;
@@ -156,6 +166,7 @@ type
     Property ImageExtension : String Read FImgExt Write FImgExt;
     // Should return True if option was succesfully interpreted.
     Function InterpretOption(Const Cmd,Arg : String) : Boolean; Virtual;
+    Class Function FileNameExtension : String; virtual;
     Class Procedure Usage(List : TStrings); virtual;
     procedure WriteDoc; virtual; Abstract;
     Function WriteDescr(Element: TPasElement) : TDocNode;
@@ -165,6 +176,8 @@ type
     Procedure FPDocError(Fmt : String; Args : Array of Const);
     Function  ShowMember(M : TPasElement) : boolean;
     Procedure GetMethodList(ClassDecl: TPasClassType; List : TStringList);
+    Property EmitNotes : Boolean Read FEmitNotes Write FEmitNotes;
+    Property BeforeEmitNote : TWriterNoteEvent Read FBeforeEmitNote Write FBeforeEmitNote;
   end;
 
   TFPDocWriterClass = Class of TFPDocWriter;
@@ -341,12 +354,18 @@ begin
   Inherited;
 end;
 
-function TFPDocWriter.InterpretOption(Const Cmd,Arg : String): Boolean;
+function TFPDocWriter.InterpretOption(const Cmd, Arg: String): Boolean;
 begin
   Result:=False;
 end;
 
-Class procedure TFPDocWriter.Usage(List: TStrings);
+class function TFPDocWriter.FileNameExtension: String;
+begin
+//Override in linear writers with the expected extension.
+  Result := ''; //Output must not contain an extension.
+end;
+
+class procedure TFPDocWriter.Usage(List: TStrings);
 begin
   // Do nothing.
 end;
@@ -367,10 +386,11 @@ begin
     end;
 end;
 
-Procedure TFPDocWriter.DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); 
+procedure TFPDocWriter.DescrWriteImageEl(const AFileName, ACaption,
+  ALinkName: DOMString);
 
 begin
-  system.writeln(ClassName,': No support for images yet: ',AFileName,' (caption: "',ACaption,'")');
+  DoLog('%s : No support for images yet: %s (caption: "%s")',[ClassName,AFileName,ACaption]);
 end;
 
 { ---------------------------------------------------------------------
@@ -388,9 +408,9 @@ end;
 procedure TFPDocWriter.Warning(AContext: TPasElement; const AMsg: String);
 begin
   if (AContext<>nil) then
-    WriteLn('[', AContext.PathName, '] ', AMsg)
+    DoLog('[%s] %s',[AContext.PathName,AMsg])
   else
-    WriteLn('[<no context>] ', AMsg);
+    DoLog('[<no context>] %s', [AMsg]);
 end;
 
 procedure TFPDocWriter.Warning(AContext: TPasElement; const AMsg: String;
@@ -469,6 +489,52 @@ begin
     Node := Node.NextSibling;
   end;
   Result := True;
+end;
+
+function TFPDocWriter.ConvertNotes(AContext: TPasElement; El: TDOMElement
+  ): Boolean;
+
+Var
+  L : TFPList;
+  N : TDomNode;
+  I : Integer;
+  B : Boolean;
+
+begin
+  Result:=Assigned(El) and EmitNotes;
+  If Not Result then
+    exit;
+  L:=TFPList.Create;
+  try
+    N:=El.FirstChild;
+    While Assigned(N) do
+      begin
+      If (N.NodeType=ELEMENT_NODE) and (N.NodeName='note') then
+        begin
+        B:=True;
+        if Assigned(FBeforeEmitNote) then
+          FBeforeEmitNote(Self,TDomElement(N),B);
+        If B then
+          L.Add(N);
+        end;
+      N:=N.NextSibling;
+      end;
+    Result:=L.Count>0;
+    If Not Result then
+      exit;
+    DescrEmitNotesHeader(AContext);
+    DescrBeginUnorderedList;
+    For i:=0 to L.Count-1 do
+      begin
+      DescrBeginListItem;
+      ConvertExtShortOrNonSectionBlocks(AContext, TDOMNode(L[i]).FirstChild);
+      DescrEndListItem;
+      end;
+    DescrEndUnorderedList;
+    DescrEmitNotesFooter(AContext);
+  finally
+    L.Free;
+  end;
 end;
 
 function TFPDocWriter.ConvertBaseShort(AContext: TPasElement;
@@ -610,6 +676,17 @@ begin
   else
     DescrWriteText(El['href']);
   DescrEndURL;
+end;
+
+procedure TFPDocWriter.DoLog(const Msg: String);
+begin
+  If Assigned(FEngine.OnLog) then
+    FEngine.OnLog(Self,Msg);
+end;
+
+procedure TFPDocWriter.DoLog(const Fmt: String; Args: array of const);
+begin
+  DoLog(Format(Fmt,Args));
 end;
 
 function TFPDocWriter.ConvertExtShort(AContext: TPasElement;
@@ -1020,6 +1097,20 @@ begin
   LinkName:=El['name'];
   FN:=ChangeFileExt(FN,ImageExtension);
   DescrWriteImageEl(FN,Cap,LinkName);
+end;
+
+procedure TFPDocWriter.DescrEmitNotesHeader(AContext: TPasElement);
+begin
+  DescrWriteLinebreak;
+  DescrBeginBold;
+  DescrWriteText(SDocNotes);
+  DescrEndBold;
+  DescrWriteLinebreak;
+end;
+
+procedure TFPDocWriter.DescrEmitNotesFooter(AContext: TPasElement);
+begin
+  DescrWriteLinebreak;
 end;
 
 

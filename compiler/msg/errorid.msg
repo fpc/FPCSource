@@ -5,7 +5,7 @@
 #   Indonesian Language File for Free Pascal
 #   Contributed by Zaenal Mutaqin <ade999 at gmail.com>
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -760,9 +760,9 @@ parser_e_function_already_declared_public_forward=03120_E_Fungsi sudah dideklara
 % \var{forward} dalam seksi \var{implmentation}.
 parser_e_not_external_and_export=03121_E_Tidak bisa menggunakan EXPORT dan EXTERNAL
 % Dua prosedur ini adalah mutual eksklusif
-parser_w_not_supported_for_inline=03123_W_"$1" belum didukung di dalam inline procedure/function
+parser_h_not_supported_for_inline=03123_H_"$1" belum didukung di dalam inline procedure/function
 % Inline procedures tidak mendukung deklarasi ini.
-parser_w_inlining_disabled=03124_W_Inlining dimatikan
+parser_h_inlining_disabled=03124_H_Inlining dimatikan
 % Inlining dari prosedur dimatikan.
 parser_i_writing_browser_log=03125_I_Menulis log Browser $1
 % Ketika pesan informasi hidup, kompilator memperingatkan anda saat ia
@@ -2421,7 +2421,7 @@ option_confict_asm_debug=11041_W_Output assembler yang dipilih "$1" tidak bisa m
 #
 option_logo=11023_[
 Free Pascal Compiler versi $FPCFULLVERSION [$FPCDATE] untuk $FPCCPU
-Hak Cipta (c) 1993-2011 oleh Florian Klaempfl
+Hak Cipta (c) 1993-2012 oleh Florian Klaempfl
 ]
 
 #
@@ -2446,12 +2446,10 @@ Optimasi Didukung:
   $OPTIMIZATIONS
 
 Program ini datang bersama GNU General Public Licence
-Untuk informasi lebih jauh baca COPYING.FPC
+Untuk informasi lebih jauh baca COPYING.v2
 
 Laporkan bugs, saran, dll ke:
                  http://bugs.freepascal.org
-atau
-                 bugs@freepascal.org
 ]
 
 #

@@ -16,6 +16,10 @@ rcsid:
 	.size	__progname , 4
 __progname:
 	.long .LC0
+.global __progname_storage
+	.type __progname_storage, @ object
+	.size  __progname_storage, 256
+
         .align  4
 ___fpucw:
         .long   0x1332
@@ -59,7 +63,7 @@ ___start:
 	movl 12(%ebp),%esi
 	movl 16(%ebp),%eax
 	movl %eax,environ
-	movl %eax,U_SYSTEM_ENVP
+	movl %eax,operatingsystem_parameter_envp
 	movl (%esi),%ebx
 	testl %ebx,%ebx
 	je .L3
@@ -100,15 +104,15 @@ ___start:
 	subl $16,%esp
 	pushl %eax
 	movl 8(%ebp),%eax
-	movl %eax,U_SYSTEM_ARGC
-	movl %esi,U_SYSTEM_ARGV
+	movl %eax,operatingsystem_parameter_argc
+	movl %esi,operatingsystem_parameter_argv
 	popl %eax
 #	pushl environ
 #	pushl %esi
 #	pushl 8(%ebp)
 	finit
 	fwait
-	fldcw __fpucw
+	fldcw ___fpucw
 	xorl  %ebp,%ebp
 	call main
 	pushl %eax
@@ -119,8 +123,8 @@ ___start:
 .type _haltproc,@function
 
 _haltproc:
-           mov $1,%eax 
-           movzwl U_SYSTEM_EXITCODE,%ebx
+           mov $1,%eax
+           movzwl operatingsystem_result,%ebx
            pushl %ebx
            call .Lactualsyscall
            addl  $4,%esp
@@ -168,3 +172,7 @@ _strrchr:
 	.size	_strrchr , . - _strrchr
 	.comm	environ,4,4
 	.comm	__progname_storage,256,32
+        .comm   operatingsystem_parameter_envp,4,4
+        .comm   operatingsystem_parameter_argc,4,4
+        .comm   operatingsystem_parameter_argv,4,4
+

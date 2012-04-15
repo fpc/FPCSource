@@ -599,7 +599,7 @@ type
   end;
 
 const
- StartPageSize = $1000;
+ PageSizeFill = $FFF;
 
 var
  DosHeader: TDosHeader;
@@ -618,6 +618,9 @@ begin
  if E.Size > SizeOf (DosHeader) then
  begin
   BlockRead (E.F, DosHeader, SizeOf (TDosHeader));
+{$IFDEF DEBUG_LINEINFO}
+  WriteLn (StdErr, 'DosHeader.E_CParHdr = ', DosHeader.E_cParHdr);
+{$ENDIF DEBUG_LINEINFO}
   if E.Size > DosHeader.e_cparhdr shl 4 + SizeOf (TEmxHeader) then
   begin
    Seek (E.F, DosHeader.e_cparhdr shl 4);
@@ -627,17 +630,28 @@ begin
    if (S4 = 'emx ') and
                        (E.Size > EmxHeader.AoutOfs + SizeOf (TAoutHeader)) then
    begin
+{$IFDEF DEBUG_LINEINFO}
+    WriteLn (StdErr, 'EmxHeader.AoutOfs = ', EmxHeader.AoutOfs, '/', HexStr (pointer (EmxHeader.AoutOfs)));
+{$ENDIF DEBUG_LINEINFO}
     Seek (E.F, EmxHeader.AoutOfs);
     BlockRead (E.F, AoutHeader, SizeOf (TAoutHeader));
-   if AOutHeader.Magic = $10B then
-     StabOfs := StartPageSize
-   else
-     StabOfs := EmxHeader.AoutOfs + SizeOf (TAoutHeader);
-   StabOfs := StabOfs
-                + AoutHeader.TextSize
-                + AoutHeader.DataSize
-                + AoutHeader.TextRelocSize
-                + AoutHeader.DataRelocSize;
+{$IFDEF DEBUG_LINEINFO}
+    WriteLn (StdErr, 'AoutHeader.Magic = ', AoutHeader.Magic);
+{$ENDIF DEBUG_LINEINFO}
+{    if AOutHeader.Magic = $10B then}
+    StabOfs := (EmxHeader.AoutOfs or PageSizeFill) + 1
+                 + AoutHeader.TextSize
+                 + AoutHeader.DataSize
+                 + AoutHeader.TextRelocSize
+                 + AoutHeader.DataRelocSize;
+{$IFDEF DEBUG_LINEINFO}
+    WriteLn (StdErr, 'AoutHeader.TextSize = ', AoutHeader.TextSize, '/', HexStr (pointer (AoutHeader.TextSize)));
+    WriteLn (StdErr, 'AoutHeader.DataSize = ', AoutHeader.DataSize, '/', HexStr (pointer (AoutHeader.DataSize)));
+    WriteLn (StdErr, 'AoutHeader.TextRelocSize = ', AoutHeader.TextRelocSize, '/', HexStr (pointer (AoutHeader.TextRelocSize)));
+    WriteLn (StdErr, 'AoutHeader.DataRelocSize = ', AoutHeader.DataRelocSize, '/', HexStr (pointer (AoutHeader.DataRelocSize)));
+    WriteLn (StdErr, 'AoutHeader.SymbSize = ', AoutHeader.SymbSize, '/', HexStr (pointer (AoutHeader.SymbSize)));
+    WriteLn (StdErr, 'StabOfs = ', StabOfs, '/', HexStr (pointer (StabOfs)));
+{$ENDIF DEBUG_LINEINFO}
     if E.Size > StabOfs + AoutHeader.SymbSize then
      OpenEMXaout := true;
    end;
@@ -815,7 +829,8 @@ const
    B_LIBRARY_IMAGE = 2;
    B_ADD_ON_IMAGE  = 3;
    B_SYSTEM_IMAGE  = 4;
-
+   B_OK = 0;
+   
 type
     image_info = packed record
      id      : image_id;
@@ -848,13 +863,20 @@ var
 begin
   // The only BeOS specific part is setting the processaddress
   cookie := 0;
+  OpenElf32Beos:=false;
   fillchar(info, sizeof(image_info), 0);
-  get_next_image_info(0,cookie,info,sizeof(info));
-  if (info._type = B_APP_IMAGE) then
-     e.processaddress := cardinal(info.text)
-  else
-     e.processaddress := 0;
-  OpenElf32Beos := OpenElf(e);
+  while get_next_image_info(0,cookie,info,sizeof(info))=B_OK do
+    begin
+        if e.filename=String(pchar(@info.name)) then
+          begin
+              if (info._type = B_APP_IMAGE) then
+                e.processaddress := cardinal(info.text)
+             else
+                e.processaddress := 0;
+             OpenElf32Beos := OpenElf(e);
+             exit;
+         end;
+    end;
 end;
 {$endif beos}
 

@@ -1,0 +1,29 @@
+This document describes the API changes introduced in version 0.99.12 of PTCPas
+
+Since version 0.99.12, most PTCPas classes have been made descendants of
+TInterfacedObject and are now only accessible via interfaces. The reason for
+this change is to provide automatic memory management via reference counting for
+the PTC core objects, so that they are freed automatically, once they're no
+longer in use, without causing any memory leaks.
+
+Unfortunately, this breaks existing code. However, it's relatively easy to fix
+it and the purpose of this document is to explain how. Here's a basic summary
+of the changes that need to be made:
+
+1) in your source code, replace "TPTCSomething.Create" with
+"TPTCSomethingFactory.CreateNew" (where 'Something' will correspond to one of
+those, depending on which objects are used in your program: Area, Color,
+Console, Event, Format, KeyEvent, Mode, MouseButtonEvent, MouseEvent, Palette,
+Surface and Timer)
+2) replace "TPTCSomething" with "IPTCSomething" (where 'Something' = an object
+from point #1)
+3) try compiling your code and you'll probably get some errors. Remove every
+call to .Free that fails with a compilation error, since it's no longer needed -
+PTC core objects are freed automatically when their reference count reaches
+zero.
+4) if you are using FreeAndNil, be extra careful! Since it accepts an untyped
+var parameter (bad design coming from Delphi), it will not cause a compilation
+error, if you are using it on an interface, but you will instead get a crash at
+runtime. Sadly, there's not much you can do, besides checking every call to
+FreeAndNil and replacing it with ":= nil" when you're using it on a PTC core
+object.

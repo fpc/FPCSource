@@ -23,6 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Header to openldap, a library that to access directory services';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+    P.OSes := [linux];
 
 
     P.SourcePath.Add('src');

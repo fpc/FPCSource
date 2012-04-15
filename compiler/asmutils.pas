@@ -26,26 +26,26 @@ interface
 {$i fpcdefs.inc}
 
 uses
+  globtype,
   aasmbase,
   aasmdata;
 
 
-    function emit_ansistring_const(list:TAsmList;data:PChar;len:LongInt;NewSection:Boolean=True):TAsmLabel;
-    function emit_unicodestring_const(list:TAsmList;data:Pointer;Winlike:Boolean):TAsmLabel;
+    function emit_ansistring_const(list:TAsmList;data:PChar;len:LongInt;encoding:tstringencoding;NewSection:Boolean=True):TAsmLabel;
+    function emit_unicodestring_const(list:TAsmList;data:Pointer;encoding:tstringencoding;Winlike:Boolean):TAsmLabel;
 
 
 implementation
 
 uses
   globals,
-  globtype,
   systems,
   verbose,
   aasmtai,
   widestr,
   symdef;
 
-    function emit_ansistring_const(list:TAsmList;data:PChar;len:LongInt;NewSection:Boolean): TAsmLabel;
+    function emit_ansistring_const(list:TAsmList;data:PChar;len:LongInt;encoding:tstringencoding;NewSection:Boolean): TAsmLabel;
       var
         referencelab: TAsmLabel;
         s: PChar;
@@ -59,6 +59,12 @@ uses
             current_asmdata.getdatalabel(referencelab);
             list.concat(tai_label.create(referencelab));
           end;
+        list.concat(tai_const.create_16bit(encoding));
+        list.concat(tai_const.create_16bit(1));
+{$ifdef cpu64bitaddr}
+        { dummy for alignment }
+        list.concat(tai_const.create_32bit(0));
+{$endif cpu64bitaddr}
         list.concat(tai_const.create_pint(-1));
         list.concat(tai_const.create_pint(len));
         { make sure the string doesn't get dead stripped if the header is referenced }
@@ -75,7 +81,8 @@ uses
         list.concat(tai_string.create_pchar(s,len+1)); { terminating zero included }
       end;
 
-    function emit_unicodestring_const(list:TAsmList;data:Pointer;Winlike:Boolean):TAsmLabel;
+
+    function emit_unicodestring_const(list:TAsmList;data:Pointer;encoding:tstringencoding;Winlike:Boolean):TAsmLabel;
       var
         referencelab: TAsmLabel;
         i, strlength: SizeInt;
@@ -90,11 +97,17 @@ uses
           end;
         strlength := getlengthwidestring(pcompilerwidestring(data));
         if Winlike then
-           list.concat(Tai_const.Create_32bit(strlength*cwidechartype.size))
+          list.concat(Tai_const.Create_32bit(strlength*cwidechartype.size))
         else
           begin
+            list.concat(tai_const.create_16bit(encoding));
+            list.concat(tai_const.create_16bit(2));
+    {$ifdef cpu64bitaddr}
+            { dummy for alignment }
+            list.concat(Tai_const.Create_32bit(0));
+    {$endif cpu64bitaddr}
             list.concat(Tai_const.Create_pint(-1));
-            list.concat(Tai_const.Create_pint(strlength*cwidechartype.size));
+            list.concat(Tai_const.Create_pint(strlength));
           end;
         { make sure the string doesn't get dead stripped if the header is referenced }
         if (target_info.system in systems_darwin) then

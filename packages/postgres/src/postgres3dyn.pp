@@ -98,6 +98,7 @@ var
   PQexecParams : function (conn:PPGconn; command:Pchar; nParams:longint; paramTypes:POid; paramValues:PPchar;paramLengths:Plongint; paramFormats:Plongint; resultFormat:longint):PPGresult;cdecl;
   PQexecPrepared : function (conn:PPGconn; stmtName:Pchar; nParams:longint; paramValues:PPchar; paramLengths:Plongint;paramFormats:Plongint; resultFormat:longint):PPGresult;cdecl;
   PQPrepare : function (conn:PPGconn; stmtName:Pchar; query:Pchar; nParams:longint; paramTypes:POid):PPGresult;cdecl;
+  PQdescribePrepared : function (conn:PPGconn; stmtName:Pchar):PPGresult;cdecl;
 { Interface for multiple-result or asynchronous queries  }
   PQsendQuery : function (conn:PPGconn; query:Pchar):longint;cdecl;
   PQsendQueryParams : function (conn:PPGconn; command:Pchar; nParams:longint; paramTypes:POid; paramValues:PPchar;paramLengths:Plongint; paramFormats:Plongint; resultFormat:longint):longint;cdecl;
@@ -279,6 +280,7 @@ begin
     pointer(PQexecParams) := GetProcedureAddress(Postgres3LibraryHandle,'PQexecParams');
     pointer(PQexecPrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQexecPrepared');
     pointer(PQPrepare) := GetProcedureAddress(Postgres3LibraryHandle,'PQprepare');
+    pointer(PQdescribePrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQdescribePrepared');
     pointer(PQsendQuery) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQuery');
     pointer(PQsendQueryParams) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQueryParams');
     pointer(PQsendQueryPrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQueryPrepared');

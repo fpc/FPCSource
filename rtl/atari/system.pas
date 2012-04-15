@@ -762,6 +762,9 @@ begin
   ExitProc:=Nil;
 { Setup heap }
   InitHeap;
+{$ifdef HASWIDESTRING}
+  InitUnicodeStringManager;
+{$endif HASWIDESTRING}
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
@@ -776,11 +779,4 @@ begin
 { Setup command line arguments }
   argc:=GetParamCount(args);
   InitVariantManager;
-{$ifdef HASWIDESTRING}
- {$ifdef VER2_2}
-  InitWideStringManager;
- {$else VER2_2}
-  InitUnicodeStringManager;
- {$endif VER2_2}
-{$endif HASWIDESTRING}
 end.

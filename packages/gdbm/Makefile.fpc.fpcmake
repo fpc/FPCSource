@@ -1,0 +1,33 @@
+#
+#   Makefile.fpc for gdbm bindings
+#
+
+[package]
+name=gdbm
+version=2.7.1
+
+[target]
+units=gdbm
+exampledirs=examples
+
+[require]
+package=rtl
+
+[install]
+examplesubdir=gdbm
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+

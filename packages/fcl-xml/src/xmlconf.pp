@@ -49,7 +49,7 @@ type
     FStartEmpty: Boolean;
     FRootName: DOMString;
     FDummy: DOMString;
-    FPathStack: array of WideString;
+    FPathStack: array of DOMString;
     FPathCount: Integer;
     FPathDirty: Boolean;
     FElement: TDOMElement;
@@ -57,9 +57,9 @@ type
     procedure SetFilename(const AFilename: String);
     procedure SetStartEmpty(AValue: Boolean);
     procedure SetRootName(const AValue: DOMString);
-    function DoFindNode(const APath: WideString; var Ident: DOMString;
+    function DoFindNode(const APath: DOMString; var Ident: DOMString;
       Flags: TPathFlags): TDomElement;
-    function FindNode(const APath: WideString; out Ident: DOMString;
+    function FindNode(const APath: DOMString; out Ident: DOMString;
       Flags: TPathFlags): TDOMElement;
   protected
     Doc: TXMLDocument;
@@ -70,23 +70,23 @@ type
     destructor Destroy; override;
     procedure Clear;
     procedure Flush;    // Writes the XML file
-    procedure OpenKey(const aPath: WideString);
+    procedure OpenKey(const aPath: DOMString);
     procedure CloseKey;
     procedure ResetKey;
 
-    function  GetValue(const APath: WideString; const ADefault: WideString): WideString; overload;
-    function  GetValue(const APath: WideString; ADefault: Integer): Integer; overload;
-    function  GetValue(const APath: WideString; ADefault: Boolean): Boolean; overload;
-    procedure SetValue(const APath: WideString; const AValue: WideString); overload;
-    procedure SetValue(const APath: WideString; AValue: Integer); overload;
-    procedure SetValue(const APath: WideString; AValue: Boolean); overload;
+    function  GetValue(const APath: DOMString; const ADefault: DOMString): DOMString; overload;
+    function  GetValue(const APath: DOMString; ADefault: Integer): Integer; overload;
+    function  GetValue(const APath: DOMString; ADefault: Boolean): Boolean; overload;
+    procedure SetValue(const APath: DOMString; const AValue: DOMString); overload;
+    procedure SetValue(const APath: DOMString; AValue: Integer); overload;
+    procedure SetValue(const APath: DOMString; AValue: Boolean); overload;
 
-    procedure SetDeleteValue(const APath: WideString; const AValue, DefValue: WideString); overload;
-    procedure SetDeleteValue(const APath: WideString; AValue, DefValue: Integer); overload;
-    procedure SetDeleteValue(const APath: WideString; AValue, DefValue: Boolean); overload;
+    procedure SetDeleteValue(const APath: DOMString; const AValue, DefValue: DOMString); overload;
+    procedure SetDeleteValue(const APath: DOMString; AValue, DefValue: Integer); overload;
+    procedure SetDeleteValue(const APath: DOMString; AValue, DefValue: Boolean); overload;
 
-    procedure DeletePath(const APath: WideString);
-    procedure DeleteValue(const APath: WideString);
+    procedure DeletePath(const APath: DOMString);
+    procedure DeleteValue(const APath: DOMString);
     property Modified: Boolean read FModified;
   published
     property Filename: String read FFilename write SetFilename;
@@ -131,7 +131,7 @@ begin
   end;
 end;
 
-function TXMLConfig.GetValue(const APath: WideString; const ADefault: WideString): WideString;
+function TXMLConfig.GetValue(const APath: DOMString; const ADefault: DOMString): DOMString;
 var
   Node: TDOMElement;
   Attr: TDOMAttr;
@@ -148,12 +148,12 @@ begin
   end;
 end;
 
-function TXMLConfig.GetValue(const APath: WideString; ADefault: Integer): Integer;
+function TXMLConfig.GetValue(const APath: DOMString; ADefault: Integer): Integer;
 begin
   Result := StrToIntDef(GetValue(APath, ''),ADefault);
 end;
 
-function TXMLConfig.GetValue(const APath: WideString; ADefault: Boolean): Boolean;
+function TXMLConfig.GetValue(const APath: DOMString; ADefault: Boolean): Boolean;
 var
   s: DOMString;
 begin
@@ -167,7 +167,7 @@ begin
     Result := ADefault;
 end;
 
-procedure TXMLConfig.SetValue(const APath: WideString; const AValue: WideString);
+procedure TXMLConfig.SetValue(const APath: DOMString; const AValue: DOMString);
 var
   Node: TDOMElement;
   Attr: TDOMAttr;
@@ -183,7 +183,7 @@ begin
   end;
 end;
 
-procedure TXMLConfig.SetDeleteValue(const APath: WideString; const AValue, DefValue: WideString);
+procedure TXMLConfig.SetDeleteValue(const APath: DOMString; const AValue, DefValue: DOMString);
 begin
   if AValue = DefValue then
     DeleteValue(APath)
@@ -191,12 +191,12 @@ begin
     SetValue(APath, AValue);
 end;
 
-procedure TXMLConfig.SetValue(const APath: WideString; AValue: Integer);
+procedure TXMLConfig.SetValue(const APath: DOMString; AValue: Integer);
 begin
   SetValue(APath, IntToStr(AValue));
 end;
 
-procedure TXMLConfig.SetDeleteValue(const APath: WideString; AValue,
+procedure TXMLConfig.SetDeleteValue(const APath: DOMString; AValue,
   DefValue: Integer);
 begin
   if AValue = DefValue then
@@ -205,7 +205,7 @@ begin
     SetValue(APath, AValue);
 end;
 
-procedure TXMLConfig.SetValue(const APath: WideString; AValue: Boolean);
+procedure TXMLConfig.SetValue(const APath: DOMString; AValue: Boolean);
 begin
   if AValue then
     SetValue(APath, 'True')
@@ -213,7 +213,7 @@ begin
     SetValue(APath, 'False');
 end;
 
-procedure TXMLConfig.SetDeleteValue(const APath: WideString; AValue,
+procedure TXMLConfig.SetDeleteValue(const APath: DOMString; AValue,
   DefValue: Boolean);
 begin
   if AValue = DefValue then
@@ -222,7 +222,7 @@ begin
     SetValue(APath,AValue);
 end;
 
-procedure TXMLConfig.DeletePath(const APath: WideString);
+procedure TXMLConfig.DeletePath(const APath: DOMString);
 var
   Node: TDomNode;
   Ident: DOMString;
@@ -237,7 +237,7 @@ begin
   end;
 end;
 
-procedure TXMLConfig.DeleteValue(const APath: WideString);
+procedure TXMLConfig.DeleteValue(const APath: DOMString);
 var
   Node: TDOMElement;
   Ident: DOMString;
@@ -285,7 +285,7 @@ begin
   end;
 end;
 
-function TXMLConfig.FindNode(const APath: WideString; out Ident: DOMString;
+function TXMLConfig.FindNode(const APath: DOMString; out Ident: DOMString;
   Flags: TPathFlags): TDOMElement;
 var
   I: Integer;
@@ -299,7 +299,7 @@ begin
   Result := DoFindNode(APath, Ident, Flags);
 end;
 
-function TXMLConfig.DoFindNode(const APath: WideString; var Ident: DOMString;
+function TXMLConfig.DoFindNode(const APath: DOMString; var Ident: DOMString;
   Flags: TPathFlags): TDomElement;
 var
   StartPos, EndPos: integer;
@@ -413,7 +413,7 @@ begin
   end;
 end;
 
-procedure TXMLConfig.OpenKey(const aPath: WideString);
+procedure TXMLConfig.OpenKey(const aPath: DOMString);
 begin
   if aPath <> '' then
   begin
@@ -431,7 +431,7 @@ procedure TXMLConfig.ResetKey;
 var
   I: Integer;
 begin
-  for I := Length(FPathStack) downto 0 do
+  for I := Length(FPathStack)-1 downto 0 do
     FPathStack[I] := '';
   FElement := nil;    
   FPathDirty := False;

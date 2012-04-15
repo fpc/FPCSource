@@ -41,10 +41,10 @@ type
     FCopy: TPTCCopy;
     FClear: TPTCClear;
     FEventQueue: TEventQueue;
-    FArea: TPTCArea;
-    FClip: TPTCArea;
-    FPalette: TPTCPalette;
-    FModes: array [0..1] of TPTCMode;
+    FArea: IPTCArea;
+    FClip: IPTCArea;
+    FPalette: IPTCPalette;
+    FModes: array of IPTCMode;
 
     FOpen: Boolean;
     FLocked: Boolean;
@@ -58,15 +58,15 @@ type
 
     FDefaultWidth: Integer;
     FDefaultHeight: Integer;
-    FDefaultFormat: TPTCFormat;
+    FDefaultFormat: IPTCFormat;
 
     procedure UpdateCursor;
 
     function GetWidth: Integer; override;
     function GetHeight: Integer; override;
     function GetPitch: Integer; override;
-    function GetArea: TPTCArea; override;
-    function GetFormat: TPTCFormat; override;
+    function GetArea: IPTCArea; override;
+    function GetFormat: IPTCFormat; override;
     function GetPages: Integer; override;
     function GetName: string; override;
     function GetTitle: string; override;
@@ -79,59 +79,59 @@ type
     destructor Destroy; override;
 
     procedure Open(const ATitle: string; APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; const AFormat: TPTCFormat;
+    procedure Open(const ATitle: string; AFormat: IPTCFormat;
                    APages: Integer = 0); overload; override;
     procedure Open(const ATitle: string; AWidth, AHeight: Integer;
-                   const AFormat: TPTCFormat; APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; const AMode: TPTCMode;
+                   AFormat: IPTCFormat; APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: string; AMode: IPTCMode;
                    APages: Integer = 0); overload; override;
     procedure Close; override;
 
-    procedure Copy(ASurface: TPTCBaseSurface); override;
-    procedure Copy(ASurface: TPTCBaseSurface;
-                   const ASource, ADestination: TPTCArea); override;
+    procedure Copy(ASurface: IPTCSurface); override;
+    procedure Copy(ASurface: IPTCSurface;
+                   ASource, ADestination: IPTCArea); override;
 
     procedure Load(const APixels: Pointer;
                    AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette); override;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette); override;
     procedure Load(const APixels: Pointer;
                    AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette;
-                   const ASource, ADestination: TPTCArea); override;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea); override;
     procedure Save(APixels: Pointer;
                    AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette); override;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette); override;
     procedure Save(APixels: Pointer;
                    AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette;
-                   const ASource, ADestination: TPTCArea); override;
+                   AFormat: IPTCFormat;
+                   APalette: IPTCPalette;
+                   ASource, ADestination: IPTCArea); override;
 
     function Lock: Pointer; override;
     procedure Unlock; override;
 
     procedure Clear; override;
-    procedure Clear(const AColor: TPTCColor); override;
-    procedure Clear(const AColor: TPTCColor;
-                    const AArea: TPTCArea); override;
+    procedure Clear(AColor: IPTCColor); override;
+    procedure Clear(AColor: IPTCColor;
+                    AArea: IPTCArea); override;
 
     procedure Configure(const AFileName: String); override;
     function Option(const AOption: String): Boolean; override;
 
-    procedure Palette(const APalette: TPTCPalette); override;
-    procedure Clip(const AArea: TPTCArea); override;
-    function Clip: TPTCArea; override;
-    function Palette: TPTCPalette; override;
-    function Modes: PPTCMode; override;
+    procedure Palette(APalette: IPTCPalette); override;
+    procedure Clip(AArea: IPTCArea); override;
+    function Clip: IPTCArea; override;
+    function Palette: IPTCPalette; override;
+    function Modes: TPTCModeList; override;
 
     procedure Flush; override;
     procedure Finish; override;
     procedure Update; override;
-    procedure Update(const AArea: TPTCArea); override;
+    procedure Update(AArea: IPTCArea); override;
 
-    function NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
-    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent; override;
+    function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
+    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; override;
   end;

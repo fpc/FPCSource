@@ -946,6 +946,11 @@ var
    edata : ptruint; external name '__data_end__';
    sbss : ptruint; external name '__bss_start__';
    ebss : ptruint; external name '__bss_end__';
+   TLSKey : DWord; external name '_FPC_TlsKey';
+   TLSSize : DWord; external name '_FPC_TlsSize';
+
+function TlsGetValue(dwTlsIndex : DWord) : pointer;
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TlsGetValue';
 {$endif}
 
 {$ifdef BEOS}
@@ -968,6 +973,9 @@ var
   get_ebp,stack_top : longword;
   bss_end : longword;
 {$endif go32v2}
+{$ifdef windows}
+  datap : pointer;
+{$endif windows}
 {$ifdef morphos}
   stack_top: longword;
 {$endif morphos}
@@ -1016,6 +1024,14 @@ begin
   { inside bss ? }
   if (ptruint(p)>=ptruint(@sbss)) and (ptruint(p)<ptruint(@ebss)) then
     goto _exit;
+  { is program multi-threaded and p inside Threadvar range? }
+  if TlsKey<>-1 then
+    begin
+      datap:=TlsGetValue(tlskey);
+      if ((ptruint(p)>=ptruint(datap)) and
+          (ptruint(p)<ptruint(datap)+TlsSize)) then
+        goto _exit;
+    end;
 {$endif windows}
 
 {$IFDEF OS2}
@@ -1120,7 +1136,7 @@ begin
       end;
    end;
   writeln(ptext^,'pointer $',hexstr(p),' does not point to valid memory block');
-  dump_error(p,ptext^);
+  dump_stack(ptext^,get_caller_frame(get_frame));
   runerror(204);
 _exit:
 end;

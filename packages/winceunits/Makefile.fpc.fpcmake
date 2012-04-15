@@ -1,0 +1,40 @@
+#
+#   Makefile.fpc for WinCE Units
+#
+
+[package]
+name=winceunits
+version=2.7.1
+
+[target]
+units_wince=comobj buildwinceunits
+implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi \
+                    gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl \
+                    sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled \
+                    phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror \
+                    sip projects wap tsp extapi imm \
+                    activex ole2 comconst rapitypes tlhelp32
+
+units_win32=rapi cesync rapitypes
+
+rsts=comconst
+
+[install]
+buildunit=buildwinceunits
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+options=-Ur
+sourcedir=src
+
+[prerules]
+WINDIR=../winunits-base/src
+
+[rules]
+.NOTPARALLEL:
+
+comobj$(PPUEXT) : $(WINDIR)/comobj.pp $(WINDIR)/activex.pp
+        $(COMPILER) $(WINDIR)/comobj.pp

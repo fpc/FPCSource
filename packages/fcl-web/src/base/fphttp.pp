@@ -104,14 +104,18 @@ Type
   
   { TCustomHTTPModule }
 
+  TInitModuleEvent = Procedure (Sender : TObject; ARequest : TRequest) of object;
   TCustomHTTPModule = Class(TDataModule)
   private
+    FAfterInitModule : TInitModuleEvent;
     FBaseURL: String;
     FWebModuleKind: TWebModuleKind;
   public
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
+    Procedure DoAfterInitModule(ARequest : TRequest); virtual;
     property Kind: TWebModuleKind read FWebModuleKind write FWebModuleKind default wkPooled;
     Property BaseURL : String Read FBaseURL Write FBaseURL;
+    Property AfterInitModule : TInitModuleEvent Read FAfterInitModule Write FAfterInitModule;
   end;
   TCustomHTTPModuleClass = Class of TCustomHTTPModule;
 
@@ -242,6 +246,14 @@ begin
     GSM:=SessionFactoryClass.Create(Nil)
     end;
   Result:=GSM;
+end;
+
+{ TCustomHTTPModule }
+
+procedure TCustomHTTPModule.DoAfterInitModule(ARequest: TRequest);
+begin
+  If Assigned(FAfterInitModule) then
+    FAfterInitModule(Self, ARequest);
 end;
 
 { TSessionFactory }

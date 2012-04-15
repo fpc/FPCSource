@@ -302,9 +302,9 @@ begin
                       begin     { too expensive to do twice! }
 {$ifdef QUANT_2PASS_SUPPORTED}  { otherwise can't quantize to supplied map }
                         assign(mapfile, ParamStr(argn));
-                        {$I-}
+{$push}{$I-}
                         reset(mapfile, 1);
-                        {$IFDEF IoCheck} {$I+} {$ENDIF}
+{$pop}
                         if (IOresult <> 0) then
                         begin
                           WriteLn(output, progname, ': can''t open ', ParamStr(argn));
@@ -584,9 +584,9 @@ begin
   if (file_index < argc) then
   begin
     assign(input_file, ParamStr(file_index));
-    {$I-}
+    {$push}{$I-}
     Reset(input_file, 1);
-    {$I+}
+    {$pop}
     if (IOresult <> 0) then
     begin
       WriteLn(output, progname, ': can''t open ', ParamStr(file_index));
@@ -604,9 +604,9 @@ begin
   if (outfilename <> '') then
   begin
     assign(output_file, outfilename);
-    {$I-}
+    {$push}{$I-}
     rewrite(output_file, 1);
-    {$I+}
+    {$pop}
     if (IOresult <> 0) then
     begin
       WriteLn(output, progname, ': can''t open ', outfilename);

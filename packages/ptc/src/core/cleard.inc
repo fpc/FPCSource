@@ -34,12 +34,12 @@ type
   TPTCClear = class
   private
     FHandle: THermesClearerHandle;
-    FFormat: TPTCFormat;
+    FFormat: IPTCFormat;
   public
     constructor Create;
     destructor Destroy; override;
-    procedure Request(const AFormat: TPTCFormat);
+    procedure Request(AFormat: IPTCFormat);
     procedure Clear(APixels: Pointer;
                     AX, AY, AWidth, AHeight, APitch: Integer;
-                    const AColor: TPTCColor);
+                    AColor: IPTCColor);
   end;

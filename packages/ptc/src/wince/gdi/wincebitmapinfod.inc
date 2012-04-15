@@ -30,11 +30,11 @@
 }
 
 type
-  TWinCEBitmapInfo = Class(TObject)
+  TWinCEBitmapInfo = class(TObject)
   private
     FBitmapInfo: PBITMAPINFO;
 //    FPixels: Pointer;
-    FFormat: TPTCFormat;
+    FFormat: IPTCFormat;
     FWidth, FHeight, FPitch: Integer;
   public
     constructor Create(AWidth, AHeight: Integer);
@@ -43,6 +43,6 @@ type
     property Width: Integer read FWidth;
     property Height: Integer read FHeight;
     property Pitch: Integer read FPitch;
-    property Format: TPTCFormat read FFormat;
+    property Format: IPTCFormat read FFormat;
 //    property Pixels: Pointer read FPixels;
   end;

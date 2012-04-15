@@ -963,17 +963,18 @@ interface
                  else
                    internalerror(200509191);
                end;
-               if assigned(tai_directive(hp).name) then
+               if tai_directive(hp).name<>'' then
                  begin
 
                    if SmartAsm then
-                     AddSymbol(tai_directive(hp).name^,false);
+                     AddSymbol(tai_directive(hp).name,false);
 
-                   AsmWrite(tai_directive(hp).name^);
+                   AsmWrite(tai_directive(hp).name);
                  end;
                AsmLn;
              end;
-
+           ait_seh_directive :
+             { Ignore for now };
            else
              internalerror(10000);
          end;
@@ -1057,6 +1058,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmwin32_info : tasminfo =
@@ -1069,6 +1071,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmobj_info : tasminfo =
@@ -1081,6 +1084,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmwdosx_info : tasminfo =
@@ -1093,6 +1097,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
 
@@ -1106,6 +1111,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmbeos_info : tasminfo =
@@ -1118,6 +1124,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
        as_i386_nasmhaiku_info : tasminfo =
@@ -1130,6 +1137,7 @@ interface
             flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
+            dollarsign: '$';
           );
 
 

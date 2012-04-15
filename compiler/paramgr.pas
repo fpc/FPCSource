@@ -138,6 +138,8 @@ unit paramgr;
 
           { allocate room for parameters on the stack in the entry code? }
           function use_fixed_stack: boolean;
+          { whether stack pointer can be changed in the middle of procedure }
+          function use_stackalloc: boolean;
        end;
 
 
@@ -248,6 +250,9 @@ implementation
         result:=[];
       end;
 
+{$if first_mm_imreg = 0}
+  {$WARN 4044 OFF} { Comparison might be always false ... }
+{$endif}
 
     procedure tparamanager.allocparaloc(list: TAsmList; const paraloc: pcgparalocation);
       begin
@@ -372,6 +377,7 @@ implementation
               len:=tcgsize2size[paraloc^.size];
             newparaloc:=cgpara.add_location;
             newparaloc^.size:=paraloc^.size;
+            newparaloc^.shiftval:=paraloc^.shiftval;
             { $warning maybe release this optimization for all targets?  }
             { released for all CPUs:
               i386 isn't affected anyways because it uses the stack to push parameters
@@ -449,7 +455,7 @@ implementation
         p.init_paraloc_info(callbothsides);
         result:=p.calleeargareasize;
       end;
-      
+
 
     function tparamanager.parseparaloc(parasym: tparavarsym; const s: string): boolean;
       begin
@@ -478,6 +484,13 @@ implementation
 {$endif i386}
       end;
 
+    { This is a separate function because at least win64 allows stack allocations
+      despite of fixed stack semantics (actually supporting it requires generating
+      a compliant stack frame, not yet possible) }
+    function tparamanager.use_stackalloc: boolean;
+      begin
+        result:=not use_fixed_stack;
+      end;
 
 initialization
   ;

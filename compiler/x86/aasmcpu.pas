@@ -1729,7 +1729,9 @@ implementation
         c     : byte;
         len     : shortint;
         ea_data : ea;
+{$ifdef x86_64}
         omit_rexw : boolean;
+{$endif x86_64}
       begin
         len:=0;
         codes:=@p^.code[0];

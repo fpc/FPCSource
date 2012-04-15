@@ -94,8 +94,8 @@ interface
       CDebugInfo : array[tdbg] of TDebugInfoClass;
       current_debuginfo : tdebuginfo;
 
-    procedure InitDebugInfo(hp:tmodule);
-    procedure DoneDebugInfo(hp:tmodule);
+    procedure InitDebugInfo(hp:tmodule; restore_current_debuginfo : boolean);
+    procedure DoneDebugInfo(hp:tmodule;var current_debuginfo_reset : boolean);
     procedure RegisterDebugInfo(const r:tdbginfo;c:TDebugInfoClass);
 
 
@@ -420,6 +420,9 @@ implementation
             appendsym_absolute(list,tabsolutevarsym(sym));
           propertysym :
             appendsym_property(list,tpropertysym(sym));
+          namespacesym :
+            { ignore namespace syms, they are only of internal use }
+            ;
           else
             internalerror(200601242);
         end;
@@ -576,7 +579,7 @@ implementation
                            Init / Done
 ****************************************************************************}
 
-    procedure InitDebugInfo(hp:tmodule);
+    procedure InitDebugInfo(hp:tmodule; restore_current_debuginfo : boolean);
       begin
         if not assigned(CDebugInfo[target_dbg.id]) then
           begin
@@ -584,13 +587,26 @@ implementation
             exit;
           end;
         hp.DebugInfo:=CDebugInfo[target_dbg.id].Create;
+        if restore_current_debuginfo then
+          begin
+            if current_debuginfo=nil then
+              current_debuginfo:=tdebuginfo(hp.DebugInfo)
+            else
+              internalerror(2012032101);
+          end;
       end;
 
 
-    procedure DoneDebugInfo(hp:tmodule);
+    procedure DoneDebugInfo(hp:tmodule;var current_debuginfo_reset : boolean);
       begin
+        current_debuginfo_reset:=false;
         if assigned(hp.DebugInfo) then
           begin
+            if hp.DebugInfo=current_debuginfo then
+              begin
+                current_debuginfo:=nil;
+                current_debuginfo_reset:=true;
+              end;
             hp.DebugInfo.Free;
             hp.DebugInfo:=nil;
           end;

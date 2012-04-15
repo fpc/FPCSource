@@ -278,9 +278,7 @@ operator :=(const source : extended) dest : variant;{$ifdef SYSTEMINLINE}inline;
 operator :=(const source : comp) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
 {$ifndef FPUNONE}
-{$ifndef VER2_0}
 operator :=(const source : real) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$endif VER2_0}
 {$endif}
 
 { Misc. }
@@ -337,9 +335,7 @@ operator :=(const source : variant) dest : extended;{$ifdef SYSTEMINLINE}inline;
 operator :=(const source : variant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
 {$ifndef FPUNONE}
-{$ifndef VER2_0}
 operator :=(const source : variant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$endif VER2_0}
 {$endif}
 
 { done by the compiler now }
@@ -431,9 +427,7 @@ operator :=(const source : olevariant) dest : extended;{$ifdef SYSTEMINLINE}inli
 operator :=(const source : olevariant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
 {$ifndef FPUNONE}
-{$ifndef VER2_0}
 operator :=(const source : olevariant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$endif VER2_0}
 {$endif}
 
 { Misc. }
@@ -488,9 +482,7 @@ operator :=(const source : extended) dest : olevariant;{$ifdef SYSTEMINLINE}inli
 operator :=(const source : comp) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
 {$ifndef FPUNONE}
-{$ifndef VER2_0}
 operator :=(const source : real) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$endif VER2_0}
 {$endif}
 
 { Misc. }

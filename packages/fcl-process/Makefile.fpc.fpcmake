@@ -1,0 +1,61 @@
+#
+#   Makefile.fpc for Free Component Library
+#
+
+[package]
+name=fcl-process
+version=2.7.1
+
+[target]
+units=pipes process
+units_beos=simpleipc dbugmsg dbugintf pipesipc
+units_haiku=simpleipc dbugmsg dbugintf pipesipc
+units_freebsd=simpleipc dbugmsg dbugintf pipesipc
+units_darwin=simpleipc dbugmsg dbugintf pipesipc
+units_iphonesim=simpleipc dbugmsg dbugintf pipesipc
+units_solaris=simpleipc dbugmsg dbugintf pipesipc
+units_netbsd=simpleipc dbugmsg dbugintf pipesipc
+units_openbsd=simpleipc dbugmsg dbugintf pipesipc
+units_linux=simpleipc dbugmsg dbugintf pipesipc
+units_win32=simpleipc dbugmsg dbugintf
+units_win64=simpleipc dbugmsg dbugintf
+units_wince=simpleipc dbugmsg dbugintf
+units_qnx=simpleipc dbugmsg dbugintf pipesipc
+units_os2=simpleipc dbugmsg dbugintf
+units_emx=simpleipc dbugmsg dbugintf
+rsts=process simpleipc
+
+[compiler]
+options=-S2h
+includedir=src/$(OS_TARGET) src
+includedir_linux=src/unix src/dummy
+includedir_freebsd=src/unix src/dummy
+includedir_darwin=src/unix src/dummy
+includedir_iphonesim=src/unix src/dummy
+includedir_netbsd=src/unix src/dummy
+includedir_openbsd=src/unix src/dummy
+includedir_solaris=src/unix src/dummy
+includedir_qnx=src/unix src/dummy
+includedir_beos=src/unix src/dummy
+includedir_haiku=src/unix src/dummy
+includedir_emx=src/os2 src/dummy
+includedir_win32=src/win src/dummy
+includedir_win64=src/win src/dummy
+includedir_wince=src/wince src/dummy
+includedir_go32v2=src/dummy
+includedir_os2=src/os2 src/dummy
+includedir_morphos=src/dummy
+includedir_amiga=src/dummy
+includedir_netware=src/dummy
+includedir_netwlibc=src/dummy
+includedir_gba=src/dummy
+sourcedir=src/$(OS_TARGET) src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

@@ -214,7 +214,7 @@ asm
    movq   _environ@GOTPCREL(%rip),%rcx
    movq   (%rcx),%rcx
 {$else FPC_PIC}
-   movq   _environ{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif},%rcx
+   movq   _environ(%rip),%rcx
 {$endif FPC_PIC}
    testq  %rcx,%rcx
    jne    .Label3
@@ -224,14 +224,14 @@ asm
    movq   _environ@GOTPCREL(%rip),%rbx
    movq   %rcx,(%rbx)
 {$else FPC_PIC}
-   movq   %rcx,_environ{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
+   movq   %rcx,_environ(%rip)
 {$endif FPC_PIC}
    // Specific to Free Pascal
 {$ifdef FPC_PIC}
    movq   envp@GOTPCREL(%rip),%rbx
    movq   %rcx,(%rbx)
 {$else FPC_PIC}
-   movq   %rcx,envp{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
+   movq   %rcx,envp(%rip)
 {$endif FPC_PIC}
 
 (*
@@ -247,7 +247,7 @@ asm
    movq   ___Argv@GOTPCREL(%rip),%rbx
    movq   %rdx,(%rbx)
 {$else FPC_PIC}
-   movq   %rdx,___Argv{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
+   movq   %rdx,___Argv(%rip)
 {$endif FPC_PIC}
 {$ifdef FPC_PIC}
    movq   argv@GOTPCREL(%rip),%rbx

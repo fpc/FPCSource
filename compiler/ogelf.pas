@@ -753,13 +753,17 @@ implementation
         if CurrObjSec.sectype in [sec_rodata,sec_bss,sec_threadvar] then
           internalerror(200408252);
 {$endif userodata}
+        { Using RELOC_RVA to map 32-bit RELOC_ABSOLUTE to R_X86_64_32
+          (RELOC_ABSOLUTE maps to R_X86_64_32S) }
+        if (reltype=RELOC_ABSOLUTE) and (len<>sizeof(pint)) then
+          reltype:=RELOC_RVA;
         if assigned(p) then
          begin
            { real address of the symbol }
            symaddr:=p.address;
            { Local ObjSymbols can be resolved already or need a section reloc }
            if (p.bind=AB_LOCAL) and
-              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32{$endif x86_64}]) then
+              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32,RELOC_RVA{$endif x86_64}]) then
              begin
                { For a reltype relocation in the same section the
                  value can be calculated }
@@ -810,8 +814,10 @@ implementation
         relsym,
         reltyp   : longint;
         relocsect : TObjSection;
+{$ifdef x86_64}	
         tmp: aint;
         asize: longint;
+{$endif x86_64}	
       begin
         with elf32data do
          begin
@@ -869,6 +875,8 @@ implementation
                    reltyp:=R_X86_64_64;
                  RELOC_ABSOLUTE32 :
                    reltyp:=R_X86_64_32S;
+                 RELOC_RVA :
+                   reltyp:=R_X86_64_32;
                  RELOC_GOTPCREL :
                    begin
                      reltyp:=R_X86_64_GOTPCREL;
@@ -1259,11 +1267,15 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_i386_linux,system_i386_beos,system_i386_freebsd,system_i386_haiku,system_i386_Netware,system_i386_netwlibc,
-	                              system_i386_solaris,system_i386_embedded];
+            supported_targets : [system_i386_linux,system_i386_beos,
+                                 system_i386_freebsd,system_i386_haiku,
+                                 system_i386_openbsd,system_i386_netbsd,
+                                 system_i386_Netware,system_i386_netwlibc,
+	                         system_i386_solaris,system_i386_embedded];
             flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif i386}
 {$ifdef x86_64}
@@ -1274,10 +1286,12 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_x86_64_linux];
+            supported_targets : [system_x86_64_linux,system_x86_64_freebsd,
+                                 system_x86_64_openbsd,system_x86_64_netbsd];
             flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif x86_64}
 {$ifdef sparc}
@@ -1293,6 +1307,7 @@ implementation
             flags : [af_outputbinary,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif sparc}
 

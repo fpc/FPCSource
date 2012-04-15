@@ -415,6 +415,7 @@ begin
 { Setup heap }
   InitHeap;
   SysInitExceptions;
+  initunicodestringmanager;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Reset IO Error }
@@ -423,9 +424,4 @@ begin
   GenerateArgs;
   InitSystemThreads;
   initvariantmanager;
-{$ifdef VER2_2}
-  initwidestringmanager;
-{$else VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
 end.

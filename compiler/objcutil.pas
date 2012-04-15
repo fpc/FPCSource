@@ -146,6 +146,7 @@ end;
                 else
 {$endif onlymacosx10_6 or arm}
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
+                tloadvmtaddrnode(result).forcall:=true;
                 result:=objcloadbasefield(result,'ISA');
                 typecheckpass(result);
                 { we're done }
@@ -163,7 +164,8 @@ end;
             if not(oo_is_classhelper in tobjectdef(def).objectoptions) then
               result:=cloadvmtaddrnode.create(ctypenode.create(def))
             else
-              result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(def).childof))
+              result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(def).childof));
+            tloadvmtaddrnode(result).forcall:=true;
           end;
 
 {$if defined(onlymacosx10_6) or defined(arm) }

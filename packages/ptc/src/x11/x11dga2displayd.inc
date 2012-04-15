@@ -52,24 +52,24 @@ type
     FModeIsSet: Boolean;
     FFramebufferIsOpen: Boolean;
 
-    function NextEvent(var event: TPTCEvent; wait: Boolean; const EventMask: TPTCEventMask): Boolean; override;
-    function PeekEvent(wait: Boolean; const EventMask: TPTCEventMask): TPTCEvent; override;
+    function NextEvent(out event: IPTCEvent; wait: Boolean; const EventMask: TPTCEventMask): Boolean; override;
+    function PeekEvent(wait: Boolean; const EventMask: TPTCEventMask): IPTCEvent; override;
 
     procedure HandleEvents;
   public
     constructor Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags); override;
     destructor Destroy; override;
 
-    procedure open(ATitle: string; AWidth, AHeight: Integer; const AFormat: TPTCFormat); override;
-    procedure open(w: TWindow; const _format: TPTCFormat); override;
-    procedure open(_window: TWindow; const _format: TPTCFormat; x, y, w, h: Integer); override;
-    procedure close; override;
-    procedure GetModes(var AModes: TPTCModeDynArray); override;
-    procedure update; override;
-    procedure update(const _area: TPTCArea); override;
+    procedure Open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat); override;
+    procedure Open(w: TWindow; _format: IPTCFormat); override;
+    procedure Open(_window: TWindow; _format: IPTCFormat; x, y, w, h: Integer); override;
+    procedure Close; override;
+    procedure GetModes(var AModes: TPTCModeList); override;
+    procedure Update; override;
+    procedure Update(AArea: IPTCArea); override;
     function lock: Pointer; override;
     procedure unlock; override;
-    procedure palette(const _palette: TPTCPalette); override;
+    procedure Palette(_palette: IPTCPalette); override;
     function GetPitch: Integer; override;
     function getX11Window: TWindow; override;
     function isFullScreen: Boolean; override;

@@ -16,13 +16,13 @@ uses
   ptc;
 
 var
-  console: TPTCConsole = nil;
-  palette: TPTCPalette = nil;
+  console: IPTCConsole;
+  palette: IPTCPalette;
   data: array [0..255] of DWord;
   i: Integer;
   pixels: PByte;
   width, height, pitch: Integer;
-  format: TPTCFormat;
+  format: IPTCFormat;
   bits, bytes: Integer;
   x, y: Integer;
   color: DWord;
@@ -32,29 +32,29 @@ begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { open the console with one page }
       console.open('Console example', 1);
 
       { create palette }
-      palette := TPTCPalette.Create;
+      palette := TPTCPaletteFactory.CreateNew;
 
       { generate palette }
       for i := 0 to 255 do
         data[i] := i;
 
       { load palette data }
-      palette.load(data);
+      palette.Load(data);
 
       { set console palette }
-      console.palette(palette);
+      console.Palette(palette);
 
       { loop until a key is pressed }
       while not console.KeyPressed do
       begin
         { lock console }
-        pixels := console.lock;
+        pixels := console.Lock;
 
         try
           { get console dimensions }
@@ -104,16 +104,15 @@ begin
           end;
         finally
           { unlock console }
-          console.unlock;
+          console.Unlock;
         end;
 
         { update console }
-        console.update;
+        console.Update;
       end;
     finally
-      palette.Free;
-      console.close;
-      console.Free;
+      if Assigned(console) then
+        console.Close;
     end;
   except
     on error: TPTCError do

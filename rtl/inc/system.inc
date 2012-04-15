@@ -64,9 +64,7 @@ Const
 {$i filerec.inc}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
-{$ifdef FPC_HAS_FEATURE_TEXTIO}
 {$i textrec.inc}
-{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   {$ifdef FPC_OBJFPC_EXTENDED_IF}
@@ -86,14 +84,13 @@ type
   FileFunc = Procedure(var t : TextRec);
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
-
 const
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
 
 { For Error Handling.}
-  ErrorBase : Pointer = nil;
+  ErrorBase : Pointer = nil;public name 'FPC_ERRORBASE';
 
 { Used by the ansi/widestrings and maybe also other things in the future }
 var
@@ -155,6 +152,7 @@ function do_isdevice(handle:thandle):boolean;forward;
     {$Error Can't determine processor type !}
   {$endif}
   {$i i386.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
 {$endif cpui386}
 
 {$ifdef cpum68k}
@@ -233,6 +231,25 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpuavr}
 
+{$ifdef cpumips}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i mips.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpumips}
+
+{$ifdef cpumipsel}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i mipsel.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpumipsel}
+
+{$ifndef SYSPROCDEFINED}
+  {$Error Can't determine processor type !}
+{$endif}
 
 procedure fillchar(var x;count : SizeInt;value : boolean);
 begin
@@ -263,6 +280,10 @@ begin
   CompareChar:=CompareByte(buf1,buf2,len);
 end;
 
+procedure fpc_zeromem(p:pointer;len:ptruint);
+begin
+  FillChar(p^,len,0);
+end;
 
 { Include generic pascal only routines which are not defined in the processor
   specific include file }
@@ -629,20 +650,10 @@ End;
 
 
 
-{$ifopt R+}
-{$define RangeCheckWasOn}
+{$push}
 {$R-}
-{$endif opt R+}
-
-{$ifopt I+}
-{$define IOCheckWasOn}
 {$I-}
-{$endif opt I+}
-
-{$ifopt Q+}
-{$define OverflowCheckWasOn}
 {$Q-}
-{$endif opt Q+}
 
 {*****************************************************************************
                              Miscellaneous
@@ -669,6 +680,12 @@ end;
 procedure fpc_threaderror; [public,alias:'FPC_THREADERROR'];
 begin
   HandleErrorFrame(6,get_frame);
+end;
+
+
+procedure fpc_invalidpointer; [public,alias:'FPC_INVALIDPOINTER'];
+begin
+  HandleErrorFrame(216,get_frame);
 end;
 
 
@@ -728,9 +745,7 @@ end;
 
 {$IFNDEF NO_GENERIC_STACK_CHECK}
 
-{$IFOPT S+}
-{$DEFINE STACKCHECK}
-{$ENDIF}
+{$PUSH}
 {$S-}
 procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK'];
 var
@@ -749,10 +764,7 @@ begin
      HandleError(202);
    end;
 end;
-{$IFDEF STACKCHECK}
-{$S+}
-{$ENDIF}
-{$UNDEF STACKCHECK}
+{$POP}
 
 {$ENDIF NO_GENERIC_STACK_CHECK}
 
@@ -809,10 +821,12 @@ procedure internal_initializeunits; external name 'FPC_INITIALIZEUNITS';
 
 procedure fpc_LibInitializeUnits;[public,alias:'FPC_LIBINITIALIZEUNITS'];
 begin
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
   IsLibrary:=true;
   { must also be set to true for packages when implemented }
   ModuleIsLib:=true;
   internal_initializeunits;
+{$endif FPC_HAS_FEATURE_DYNLIBS}
 end;
 
 
@@ -886,6 +900,10 @@ Begin
   FinalizeUnits;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  { the embedded system unit itself contains no routines for console i/o
+    console i/o is done by the Consoleio unit which can do things like
+    redirection to seriell i/o }
+{$ifndef EMBEDDED}
   { Show runtime error and exit }
   pstdout:=@stdout;
   If erroraddr<>nil Then
@@ -897,6 +915,7 @@ Begin
      Writeln(pstdout^,'');
    End;
   SysFlushStdIO;
+{$endif EMBEDDED}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 {$if defined(MSWINDOWS) or defined(OS2)}
@@ -947,7 +966,14 @@ end;
 
 Procedure Halt(ErrNum: Longint);
 Begin
-  ExitCode:=Errnum;
+{$ifdef FPC_HAS_FEATURE_EXITCODE}
+{$ifdef FPC_LIMITED_EXITCODE}
+  if ErrNum > maxExitCode then
+    ExitCode:=255
+  else
+{$endif FPC_LIMITED_EXITCODE}
+    ExitCode:=ErrNum;
+{$endif FPC_HAS_FEATURE_EXITCODE}
   Do_Exit;
 end;
 
@@ -969,17 +995,7 @@ begin
   if ExceptAddrStack <> nil then
     raise TObject(nil) at addr,frame;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
-{$ifdef FPC_LIMITED_EXITCODE}
-  if errorcode > maxExitCode then
-    halt(255)
-  else
-{$endif FPC_LIMITED_EXITCODE}
-    halt(errorcode);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
+  Halt(errorcode);
 end;
 
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer);
@@ -1008,16 +1024,7 @@ begin
   errorcode:=w;
   erroraddr:=get_caller_addr(get_frame);
   errorbase:=get_caller_frame(get_frame);
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
-{$ifdef FPC_LIMITED_EXITCODE}
-  if errorcode > maxExitCode then
-    halt(255)
-  else
-{$endif FPC_LIMITED_EXITCODE}
-    halt(errorcode);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
+  Halt(errorcode);
 end;
 
 
@@ -1032,14 +1039,13 @@ Begin
   Halt(0);
 End;
 
-Procedure Error(RunTimeError : TRunTimeError);
 
+Procedure Error(RunTimeError : TRunTimeError);
 begin
   RunError(RuntimeErrorExitCodes[RunTimeError]);
 end;
 
 
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 Procedure dump_stack(var f : text;bp : Pointer);
 var
   i : Longint;
@@ -1093,8 +1099,6 @@ begin
     WriteLn(f,BackTraceStrFunc(Frames[FrameNumber]));
 end;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-
-{$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
@@ -1277,11 +1281,7 @@ begin
     write(stderr,msg);
   Writeln(stderr,' (',FName,', line ',LineNo,').');
   Writeln(stderr,'');
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
   Halt(227);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 end;
 
@@ -1293,28 +1293,16 @@ end;
 {$i setjump.inc}
 
 
-{$ifdef IOCheckWasOn}
-{$I+}
-{$endif}
-
-{$ifdef RangeCheckWasOn}
-{$R+}
-{$endif}
-
-{$ifdef OverflowCheckWasOn}
-{$Q+}
-{$endif}
+{$pop} //{$I-,R-,Q-} before 'procedure fpc_rangeerror'
 
 
 {*****************************************************************************
                                Heap
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_HEAP}
 {$i sysheap.inc}
 
 {$i heap.inc}
-{$endif FPC_HAS_FEATURE_HEAP}
 
 {*****************************************************************************
                           Thread support
@@ -1366,9 +1354,7 @@ end;
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { Text file }
-{$ifdef FPC_HAS_FEATURE_TEXTIO}
 {$i text.inc}
-{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Untyped file }

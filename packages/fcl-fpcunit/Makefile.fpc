@@ -1,23 +1,13 @@
 #
-#   Makefile.fpc for FCL FPCUnit test framework.
+#   Makefile.fpc for running fpmake
 #
 
 [package]
 name=fcl-fpcunit
 version=2.7.1
 
-[target]
-units=testregistry testreport testdecorator ubmockobject xmlreporter \
-      fpcunitreport latextestreport xmltestreport plaintestreport fpcunit \
-      testutils digesttestreport
-#exampledirs=exampletests
-
 [require]
-packages=paszlib fcl-xml
-
-[compiler]
-options=-S2h
-sourcedir=src
+packages=rtl fpmkunit
 
 [install]
 fpcpackage=y
@@ -25,5 +15,62 @@ fpcpackage=y
 [default]
 fpcdir=../..
 
+[prerules]
+FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
+ifdef OS_TARGET
+FPC_TARGETOPT+=--os=$(OS_TARGET)
+endif
+ifdef CPU_TARGET
+FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
+endif
+LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
+
 [rules]
 .NOTPARALLEL:
+
+fpmake: fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT)
+all:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu
+smart:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu -o -XX -o -CX
+release:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu -o -dRELEASE
+debug:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu -o -dDEBUG
+# If no fpmake exists and (dist)clean is called, do not try to build fpmake, it will
+# most often fail because the dependencies are cleared.
+# In case of a clean, simply do nothing
+ifeq ($(FPMAKE_BIN_CLEAN),)
+clean:	
+else
+clean:	
+	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+endif
+# In case of a distclean, perform an 'old'-style distclean. This to avoid problems
+# when the package is compiled using fpcmake prior to running this clean using fpmake
+ifeq ($(FPMAKE_BIN_CLEAN),)
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
+else
+distclean:	
+ifdef inUnix
+        { $(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
+else
+        $(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+endif
+	-$(DEL) $(LOCALFPMAKE)
+endif
+install:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR)
+else
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR)
+endif
+# distinstall also installs the example-sources
+distinstall:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR) -ie
+else
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
+endif
+

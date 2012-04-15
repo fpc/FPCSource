@@ -30,7 +30,7 @@ const
 {$if not(defined(wince)) and not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
-{$if not defined(darwin) and not defined(FPUVFPV2) and not defined(FPUVFPV3)}
+{$if not defined(darwin) and not defined(FPUVFPV2) and not defined(FPUVFPV3) and not defined(FPUVFPV3_D16)}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
@@ -101,33 +101,40 @@ end;
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
 asm
+{$ifndef darwin}
   mov    r0,r11
+{$else}
+  mov    r0,r7
+{$endif}
 end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;
+function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
 asm
-  movs r0,r0
-  beq .Lg_a_null
-  ldr r0,[r0,#-4]
-.Lg_a_null:
+  cmp r0,#0
+{$ifndef darwin}
+  ldrne r0,[r0,#-4]
+{$else}
+  ldrne r0,[r0,#4]
+{$endif}
 end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;
+function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
 asm
-  movs r0,r0
-  beq .Lgnf_null
-  // see comments in arm/cgcpu.pas, g_proc_entry
-  ldr r0,[r0,#-12]
-.Lgnf_null:
+  cmp r0,#0
+{$ifndef darwin}
+  ldrne r0,[r0,#-12]
+{$else}
+  ldrne r0,[r0]
+{$endif}
 end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : pointer;assembler;
+Function Sptr : pointer;assembler;nostackframe;
 asm
   mov    r0,sp
 end;
@@ -561,6 +568,32 @@ asm
   mov r0, r1
   bx  lr
 {$else}
+{$if defined(LINUX) and defined(CPUARMEL)}
+
+  stmfd r13!, {lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
+.Latomic_dec_loop:
+  ldr r0, [r2]   // Load the current value
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+
+  sub r1, r0, #1 // Decrement value
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+
+  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  ldmcsfd r13!, {pc}
+  b .Latomic_dec_loop // kuser_cmpxchg sets C flag on error
+
+{$else}
 // lock
   ldr r3, .Lfpc_system_lock
   mov r1, #1
@@ -580,6 +613,7 @@ asm
 .Lfpc_system_lock:
   .long fpc_system_lock
 {$endif}
+{$endif}
 end;
 
 
@@ -594,6 +628,32 @@ asm
   bne .Lloop
   mov r0, r1
   bx  lr
+{$else}
+{$if defined(LINUX) and defined(CPUARMEL)}
+
+  stmfd r13!, {lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
+.Latomic_inc_loop:
+  ldr r0, [r2]   // Load the current value
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+
+  add r1, r0, #1 // Increment value
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+
+  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  ldmcsfd r13!, {pc}
+  b .Latomic_inc_loop // kuser_cmpxchg sets C flag on error
+
 {$else}
 // lock
   ldr r3, .Lfpc_system_lock
@@ -613,6 +673,7 @@ asm
 
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif}
 {$endif}
 end;
 
@@ -646,6 +707,36 @@ asm
   mov  r0, r2
   bx  lr
 {$else}
+{$if defined(LINUX) and defined(CPUARMEL)}
+
+  stmfd r13!, {r4, lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
+  mov r4, r1   // Save addend
+.Latomic_add_loop:
+  ldr r0, [r2]   // Load the current value
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+
+  add r1, r0, r4 // Add to value
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+  // r1 does not get clobbered, so just get back the original value
+  // Otherwise we would have to allocate one more register and store the
+  // temporary value
+  subcs   r0, r1, r4
+  ldmcsfd r13!, {r4, pc}
+
+  b .Latomic_add_loop // kuser_cmpxchg failed, loop back
+
+{$else}
 // lock
   ldr r3, .Lfpc_system_lock
   mov r2, #1
@@ -666,6 +757,7 @@ asm
 .Lfpc_system_lock:
   .long fpc_system_lock
 {$endif}
+{$endif}
 end;
 
 
@@ -681,6 +773,35 @@ asm
   bne      .Lloop
   mov      r0, r3
   bx       lr
+{$else}
+{$if defined(LINUX) and defined(CPUARMEL)}
+
+  stmfd r13!, {r4, lr}
+  mvn   r3, #0x0000f000
+  sub   r3, r3, #0x3F
+
+  mov   r4, r2 // Swap parameters around
+  mov   r2, r0
+  mov   r0, r4 // Use r4 because we'll need the new value for later
+
+  // r1 and r2 will not be clobbered by kuser_cmpxchg
+  // If we have to loop, r0 will be set to the original Comperand
+  .Linterlocked_compare_exchange_loop:
+
+  blx   r3       // Call kuser_cmpxchg sets C-Flag on success
+  movcs r0, r4   // Return the previous value on success
+  ldmcsfd r13!, {r4, pc}
+  // The error case is a bit tricky, kuser_cmpxchg does not return the current value
+  // So we may need to loop to avoid race conditions
+  // The loop case is HIGHLY unlikely, it would require that we got rescheduled between
+  // calling kuser_cmpxchg and the ldr. While beeing rescheduled another process/thread
+  // would have the set the value to our comperand
+  ldr	r0, [r2] // Load the currently set value
+  cmp   r0, r4   // Return if Comperand != current value, otherwise loop again
+  ldmnefd r13!, {r4, pc}
+  // If we need to loop here, we have to
+  b	.Linterlocked_compare_exchange_loop
+
 {$else}
 // lock
   ldr r12, .Lfpc_system_lock
@@ -701,6 +822,7 @@ asm
 
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif}
 {$endif}
 end;
 
@@ -731,6 +853,127 @@ begin
   else
     moveproc:=@move_blended;
 {$endif FPC_SYSTEM_FPC_MOVE}
+end;
+
+{$define FPC_SYSTEM_HAS_SWAPENDIAN}
+
+{ SwapEndian(<16 Bit>) being inlined is faster than using assembler }
+function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    { the extra Word type cast is necessary because the "AValue shr 8" }
+    { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
+    { the sign bits from the upper 16 bits are shifted in rather than  }
+    { zeroes.                                                          }
+    Result := SmallInt((Word(AValue) shr 8) or (Word(AValue) shl 8));
+  end;
+
+
+function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result := Word((AValue shr 8) or (AValue shl 8));
+  end;
+
+(*
+This is kept for reference. Thats what the compiler COULD generate in these cases.
+But FPC currently does not support inlining of asm-functions, so the whole call-overhead
+is bigger than the gain of the optimized function.
+function AsmSwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif};assembler;nostackframe;
+asm
+	// We're starting with 4321
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+	mov r0, r0, shl #16	// Shift to make that 2100
+	mov r0, r0, ror #24	// Rotate to 1002
+	orr r0, r0, r0 shr #16  // Shift and combine into 0012
+{$else}
+	rev r0, r0		// Reverse byteorder    r0 = 1234
+	mov r0, r0, shr #16	// Shift down to 16bits r0 = 0012
+{$endif}
+end;
+
+*)
+
+function SwapEndian(const AValue: LongInt): LongInt;assembler;nostackframe;
+asm
+        // We're starting with r0 = 4321
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+        mov r2, r0, lsr #24             // r2 = 0004
+        and r1, r0, #16711680           // r1 = 0300
+        orr r2, r2, r0, lsl #24         // r2 = 1004
+        orr r2, r2, r1, lsr #8          // r2 = 1034
+        and r0, r0, #65280              // r0 = 0020
+        orr r0, r2, r0, lsl #8          // r0 = 1234
+{$else}
+	rev r0, r0
+{$endif}
+end;
+
+function SwapEndian(const AValue: DWord): DWord;assembler;nostackframe;
+asm
+        // We're starting with r0 = 4321
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+        mov r2, r0, lsr #24             // r2 = 0004
+        and r1, r0, #16711680           // r1 = 0300
+        orr r2, r2, r0, lsl #24         // r2 = 1004
+        orr r2, r2, r1, lsr #8          // r2 = 1034
+        and r0, r0, #65280              // r0 = 0020
+        orr r0, r2, r0, lsl #8          // r0 = 1234
+{$else}
+	rev r0, r0
+{$endif}
+end;
+
+function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
+asm
+        // We're starting with r0 = 4321 r1 = 8765
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+        mov ip, r1
+
+        mov r2, r0, lsr #24             // r2 = 0004
+        and r3, r0, #16711680           // r3 = 0300
+        orr r2, r2, r0, lsl #24         // r2 = 1004
+        orr r2, r2, r3, lsr #8          // r2 = 1034
+        and r0, r0, #65280              // r0 = 0020
+        orr r1, r2, r0, lsl #8          // r1 = 1234
+
+        mov r2, ip, lsr #24             // r2 = 0008
+        and r3, ip, #16711680           // r1 = 0700
+        orr r2, r2, ip, lsl #24         // r2 = 5008
+        orr r2, r2, r3, lsr #8          // r2 = 5078
+        and ip, ip, #65280              // ip = 0060
+        orr r0, r2, ip, lsl #8          // r0 = 5678
+        bx lr
+{$else}
+	rev r2, r0
+	rev r0, r1
+	mov r1, r2
+{$endif}
+end;
+
+function SwapEndian(const AValue: QWord): QWord; assembler; nostackframe;
+asm
+        // We're starting with r0 = 4321 r1 = 8765
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+        mov ip, r1
+
+        mov r2, r0, lsr #24             // r2 = 0004
+        and r3, r0, #16711680           // r3 = 0300
+        orr r2, r2, r0, lsl #24         // r2 = 1004
+        orr r2, r2, r3, lsr #8          // r2 = 1034
+        and r0, r0, #65280              // r0 = 0020
+        orr r1, r2, r0, lsl #8          // r1 = 1234
+
+        mov r2, ip, lsr #24             // r2 = 0008
+        and r3, ip, #16711680           // r1 = 0700
+        orr r2, r2, ip, lsl #24         // r2 = 5008
+        orr r2, r2, r3, lsr #8          // r2 = 5078
+        and ip, ip, #65280              // ip = 0060
+        orr r0, r2, ip, lsl #8          // r0 = 5678
+        bx lr
+{$else}
+	rev r2, r0
+	rev r0, r1
+	mov r1, r2
+{$endif}
 end;
 
 {include hand-optimized assembler division code}

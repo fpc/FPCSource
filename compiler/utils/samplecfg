@@ -24,6 +24,12 @@ fi
 FPCBIN=`dirname "$1"`/../../bin/fpc
 FPBIN=`dirname "$1"`/../../bin/fp
 FPPKGBIN=`dirname "$1"`/../../bin/fppkg
+FPCMKCFGBIN=`dirname "$1"`/../../bin/fpcmkcfg
+# Look for one in the PATH, if no new one was installed.
+if [ ! -f $FPCMKCFGBIN ]; then
+  FPCMKCFGBIN=fpcmkcfg
+fi
+
 sysfpdirbase=`dirname "$1"`/`"$FPCBIN" -iV`
 sysfpdirbase2=$sysfpdirbase/ide
 sysfpdir=$sysfpdirbase2/text
@@ -67,7 +73,7 @@ FPCGLOBALPREFIX=`dirname "$1"`/../../
 
 # Write (.)fpc.cfg
 echo Writing sample configuration file to $fpccfgfile
-fpcmkcfg -d "basepath=$FPCPATH" -o $fpccfgfile
+${FPCMKCFGBIN} -d "basepath=$FPCPATH" -o $fpccfgfile
 
 if ! [ -f "$FPBIN" ] ; then
   exit
@@ -75,11 +81,11 @@ fi
 
 # Write fp.cfg
 echo Writing sample configuration file to $fpcfgfile
-fpcmkcfg -p -1 -d "basepath=$FPCPATH" -o $fpcfgfile
+${FPCMKCFGBIN} -p -1 -d "basepath=$FPCPATH" -o $fpcfgfile
 
 # Write fp.ini
 echo Writing sample configuration file to $fpinifile
-fpcmkcfg -p -2 -o $fpinifile
+${FPCMKCFGBIN} -p -2 -o $fpinifile
 
 # Do not write fppkg configuration when fppkg is not available
 if ! [ -f "$FPPKGBIN" ] ; then
@@ -88,8 +94,8 @@ fi
 
 # Write fppkg.cfg
 echo Writing sample configuration file to $fppkgfile
-fpcmkcfg -p -3 $compilerconfigdir -o $fppkgfile
+${FPCMKCFGBIN} -p -3 $compilerconfigdir -o $fppkgfile
 
 # Write default
 echo Writing sample configuration file to $defaultfile
-fpcmkcfg -p -4 -d "GlobalPrefix=$FPCGLOBALPREFIX" -o $defaultfile
+${FPCMKCFGBIN} -p -4 -d "GlobalPrefix=$FPCGLOBALPREFIX" -o $defaultfile

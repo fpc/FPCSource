@@ -18,7 +18,13 @@ unit fpcunit;
 {$h+}
 
 interface
-{$IFNDEF MORPHOS}
+
+{ The following is wrong. The lineinfo unit only works on platforms that
+  use stabs. It does not work on platforms that use stabx or Dwarf. The
+  correct unit can only be safely included by compiling the main program
+  with -gl. Directly using any of those units won't work most of the time.
+}
+{$IF not defined(MORPHOS) and not defined(AIX)}
   {$DEFINE SHOWLINEINFO}
 {$ENDIF}
 

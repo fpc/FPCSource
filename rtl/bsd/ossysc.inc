@@ -223,9 +223,13 @@ with blockmode have this higher?}
 function readbuffer:longint;
 
 var retval :longint;
-
+    basep : clong;
 begin
+{$ifdef USE_GETDIRENTRIES_SYSCALL}
+ Retval:=do_syscall(syscall_nr_getdirentries,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)},TSysParam(@basep));
+{$else not USE_GETDIRENTRIES_SYSCALL}
  Retval:=do_syscall(syscall_nr_getdents,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)});
+{$endif not USE_GETDIRENTRIES_SYSCALL}
    dirp^.dd_rewind:=TSysParam(dirp^.dd_buf);
    if retval=0 then
     begin
@@ -306,7 +310,7 @@ function Fpsigaction(sig: cint; act, oact: psigactionrec): cint; [public, alias 
 }
 
 begin
-  do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
+  fpsigaction:=do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
 end;
 
 (*=================== MOVED from sysunix.inc ========================*)
@@ -534,8 +538,17 @@ begin
                End;
            End
       end
-         else
-            pt:=nil;
+{$ifdef openbsd}
+   { At least for openbsd, a positive return value is
+     the length of the returned pchar }
+   else if (ret<0) then
+{$else not opensd}
+   else
+{$endif openbsd}
+     begin
+       seterrno(-ret);
+       pt:=nil;
+     end;
  Fpgetcwd:=pt;
 end;
 

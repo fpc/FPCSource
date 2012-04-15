@@ -1,0 +1,36 @@
+#
+#   Makefile.fpc for LUA library
+#
+
+[package]
+name=lua
+version=2.7.1
+
+[target]
+units=lua lualib lauxlib
+examples=
+
+[require]
+package=rtl
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+
+lua$(PPUEXT) : lua.pas
+
+lualib$(PPUEXT) : lualib.pas lua$(PPUEXT)
+
+lauxlib$(PPUEXT) : lauxlib.pas lua$(PPUEXT)

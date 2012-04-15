@@ -1,0 +1,37 @@
+#
+#   Makefile.fpc for nds units
+#
+
+[package]
+name=libndsfpc
+version=2.7.1
+
+[target]
+units=nds9 nds7 dswifi9 dswifi7 fat filesystem maxmod9  maxmod7 gl2d
+exampledirs=examples
+
+[compiler]
+options=
+includedir=src src/dswifi src/fat src/maxmod src/gl2d
+sourcedir=src tests
+
+[prerules]
+BINUTILSPREFIX=arm-eabi-
+
+[install]
+fpcpackage=y
+
+[default]
+cpu=arm
+target=nds
+fpcdir=../..
+
+[require]
+nortl=y
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+

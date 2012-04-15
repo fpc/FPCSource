@@ -34,6 +34,13 @@ Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
   OpMax  = 25;
 
+{$if max_operands = 2}
+  {$define MAX_OPER_2}
+{$endif}
+{$if max_operands = 3}
+  {$define MAX_OPER_3}
+{$endif}
+
 {---------------------------------------------------------------------
                        Local Label Management
 ---------------------------------------------------------------------}
@@ -1027,12 +1034,14 @@ end;
               Operands[1]:=Operands[2];
               Operands[2]:=p;
             end;
+{$ifndef MAX_OPER_2}
         3 : begin
               { 0,1,2 -> 2,1,0 }
               p:=Operands[1];
               Operands[1]:=Operands[3];
               Operands[3]:=p;
             end;
+{$ifndef MAX_OPER_3}
         4 : begin
               { 0,1,2,3 -> 3,2,1,0 }
               p:=Operands[1];
@@ -1042,6 +1051,8 @@ end;
               Operands[2]:=Operands[3];
               Operands[3]:=p;
             end;
+{$endif}
+{$endif}
         else
           internalerror(201108142);
       end;

@@ -17,7 +17,7 @@ Const   { For sending a signal }
 
   SA_NOCLDSTOP = $01;
   SA_NOCLDWAIT = $02;
-  SA_RESETHAND = $03;
+  SA_RESETHAND = $04;
   SA_NODEFER   = $08;
   SA_RESTART   = $10;
   SA_ONSTACK   = $20;
@@ -78,8 +78,9 @@ Const   { For sending a signal }
   SIGVTALRM  = 27;
   SIGXCPU    = 28;
   SIGXFSZ    = 29;
-  
-  SIGBUS     = SIGSEGV;
+  SIGBUS     = 30;
+  SIGRESERVED1 = 31;
+  SIGRESERVED2 = 32;
   
 {
    Signal numbers 23-32 are currently free but may be used in future
@@ -234,7 +235,9 @@ type
   
   Pvregs = ^vregs;
 
-  sigset_t = array[0..0] of Longint;
+  sigset_t = array[0..1] of Cardinal;
+
+    PSigContext = ^vregs;
 
     PSigContextRec = ^SigContextRec;
     SigContextRec = record
@@ -277,13 +280,37 @@ type
        fpr_ex_sw    : cardinal;
        fpr_pad      : array[0..63] of char;
        end;
+
+  Sigval = Record
+            Case Boolean OF
+        { Members as suggested by Annex C of POSIX 1003.1b. }
+                false : (sigval_int : Longint);
+                True  : (sigval_ptr : Pointer);
+            End;
+
+
+  PSigInfo   = ^SigInfo_t;
+  PSigInfo_t = ^SigInfo_t;
+  SigInfo_t = packed record
+                si_signo,                       { signal number }
+                si_code,                        { signal code }
+                si_errno,                       { errno association }
+                si_pid          : pid_t;      { sending process }
+                si_uid          : uid_t;     { sender's ruid }
+                si_addr         : Pointer;      { faulting instruction }                
+                si_status       : Longint;      { exit value }
+                si_band         : Cardinal;     { band event for SIGPOLL }                
+                si_value        : SigVal;       { signal value }
+                end;
+  TSigInfo = SigInfo_t;
+  TSigInfo_t = TSigInfo;       
        
   SignalHandler   = Procedure(Sig : Longint);cdecl;
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
-  {$WARNING TODO : check with signal.h}
-  sigActionHandler = procedure(Sig: Longint; SigContext: PSigContextRec; uContext : Pvregs);cdecl;
+  sigActionHandler = procedure(Sig: Longint; SigInfo: PSigInfo; uContext : PSigContext);cdecl;
+
 
   Sigset=sigset_t;
   TSigset=sigset_t;
@@ -306,7 +333,7 @@ type
 
   {$PACKRECORDS C}
   pstack_t = ^stack_t;
-  stack_t = record
+  stack_t = packed record
     ss_sp: pChar;                       {* signal stack base *}
     ss_size: size_t;                    {* signal stack length *}
     ss_flags: cInt;                     {* SS_DISABLE and/or SS_ONSTACK *}

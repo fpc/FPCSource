@@ -45,7 +45,11 @@ var _imp__atexit : TAtExitFunction; Cvar; external;  // "true" atexit in mingw l
 var
  hMsvcrt : HModule = 0;
  free_Msvcrt : boolean;
+{$ifdef win32}
  fctMsvcrtLongJmp : pointer;cvar;external;
+{$else not win32}
+ fctMsvcrtLongJmp : pointer;cvar;
+{$endif not win32}
 
 function atexit(p:TCFunction):longint;cdecl; [public, alias : '_atexit'];
 

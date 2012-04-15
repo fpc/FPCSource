@@ -18,6 +18,8 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
+    P.OSes := AllUnixOSes-[qnx]+AllWindowsOSes;
+
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('dllistdyn.pp');
@@ -51,10 +53,11 @@ begin
 
     P.Sources.AddSrc('README.txt');
 
-    P.ExamplePath.Add('tests/');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testpg2.pp');
     P.Targets.AddExampleProgram('testpg1.pp');
-  
+    P.Sources.AddExampleFiles('examples/*',false,'.');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

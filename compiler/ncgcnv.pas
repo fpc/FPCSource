@@ -34,6 +34,11 @@ interface
        { tcgtypeconvnode }
 
        tcgtypeconvnode = class(ttypeconvnode)
+       protected
+{$ifdef cpuflags}
+         { CPUs without flags need a specific implementation of int -> bool }
+         procedure second_int_to_bool;override;
+{$endif cpuflags}
          procedure second_int_to_int;override;
          procedure second_cstring_to_pchar;override;
          procedure second_cstring_to_int;override;
@@ -52,11 +57,8 @@ interface
          procedure second_char_to_char;override;
          procedure second_elem_to_openarray;override;
          procedure second_nothing;override;
+       public
          procedure pass_generate_code;override;
-{$ifdef cpuflags}
-         { CPUs without flags need a specific implementation of int -> bool }
-         procedure second_int_to_bool;override;
-{$endif cpuflags}
        end;
 
        tcgasnode = class(tasnode)

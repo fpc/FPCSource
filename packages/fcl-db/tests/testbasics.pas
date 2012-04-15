@@ -22,6 +22,7 @@ type
     procedure TestInitFielddefsFromFields;
     procedure TestDoubleFieldDef;
     procedure TestFieldDefWithoutDS;
+    procedure TestExtractFieldName;
   end;
 
 implementation
@@ -36,6 +37,8 @@ procedure TTestBasics.TestParseSQL;
 var Params  : TParams;
     ReplStr : string;
     pb      : TParamBinding;
+    i       : integer;
+    SQLStr  : string;
 begin
   Params := TParams.Create;
 
@@ -104,6 +107,13 @@ begin
 
   AssertEquals(     'select * from table where "field-name" = ?',
     params.ParseSQL('select * from table where "field-name" = :"field-name',true,True,True,psInterbase));
+
+// Test more than 99 params - bug 19645
+  SQLStr := 'update test set';
+  for i := 1 to 101 do
+    SQLStr := format('%s field%d=:par%d', [SQLStr,i,i]);
+  AssertEquals( StringReplace(SQLStr, ':par', '$', [rfReplaceAll]),
+    Params.ParseSQL(SQLStr, True, True, True, psPostgreSQL) );
 
   Params.Free;
 end;
@@ -177,6 +187,47 @@ begin
   FieldDefs := TFieldDefs.Create(nil);
   FieldDefs.Add('test',ftString);
   FieldDefs.Free;
+end;
+
+
+procedure TTestBasics.TestExtractFieldName;
+var
+  i: Integer;
+  Fields: String;
+  FieldName: String;
+begin
+  Fields := '';
+  i := 1;
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(1, i);
+  AssertEquals('', FieldName);
+
+  Fields := 'test';
+  i := 1;
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(5, i);
+  AssertEquals('test', FieldName);
+
+  Fields := 'test;';
+  i := 1;
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(6, i);
+  AssertEquals('test', FieldName);
+
+  Fields := ' test ';
+  i := 1;
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(7, i);
+  AssertEquals('test', FieldName);
+
+  Fields := 'test;xxx';
+  i := 1;
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(6, i);
+  AssertEquals('test', FieldName);
+  FieldName := ExtractFieldName(Fields, i);
+  AssertEquals(9, i);
+  AssertEquals('xxx', FieldName);
 end;
 
 initialization

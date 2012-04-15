@@ -290,7 +290,7 @@ implementation
                   pt:=comp_expr(true,false);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
-                      message(parser_e_range_check_error)
+                      message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
                     else
                       hdispid:=Tordconstnode(pt).value.svalue
                   else
@@ -321,6 +321,21 @@ implementation
                   writepd.proctypeoption:=potype_propsetter;
                   writepd.dispid:=hdispid;
                   create_accessor_procsym(p,writepd,'put$',palt_write);
+                end;
+            end;
+
+          procedure add_parameters(p: tpropertysym; readprocdef, writeprocdef: tprocdef);
+            var
+              i: integer;
+              orig, hparavs: tparavarsym;
+            begin
+              for i := 0 to p.parast.SymList.Count - 1 do
+                begin
+                  orig:=tparavarsym(p.parast.SymList[i]);
+                  hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
+                  readprocdef.parast.insert(hparavs);
+                  hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
+                  writeprocdef.parast.insert(hparavs);
                 end;
             end;
 
@@ -392,7 +407,8 @@ implementation
                 not (m_delphi in current_settings.modeswitches) then
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
-              symtablestack.push(readprocdef.parast);
+              p.parast:=tparasymtable.create(nil,0);
+              symtablestack.push(p.parast);
               sc:=TFPObjectList.create(false);
               repeat
                 if try_to_consume(_VAR) then
@@ -409,7 +425,7 @@ implementation
                 repeat
                   inc(paranr);
                   hreadparavs:=tparavarsym.create(orgpattern,10*paranr,varspez,generrordef,[]);
-                  readprocdef.parast.insert(hreadparavs);
+                  p.parast.insert(hreadparavs);
                   sc.add(hreadparavs);
                   consume(_ID);
                 until not try_to_consume(_COMMA);
@@ -430,22 +446,19 @@ implementation
                 else
                   hdef:=cformaltype;
                 for i:=0 to sc.count-1 do
-                  begin
-                    hreadparavs:=tparavarsym(sc[i]);
-                    hreadparavs.vardef:=hdef;
-                    { also update the writeprocdef }
-                    hparavs:=tparavarsym.create(hreadparavs.realname,hreadparavs.paranr,vs_value,hdef,[]);
-                    writeprocdef.parast.insert(hparavs);
-                  end;
+                  tparavarsym(sc[i]).vardef:=hdef;
               until not try_to_consume(_SEMICOLON);
               sc.free;
-              symtablestack.pop(readprocdef.parast);
+              symtablestack.pop(p.parast);
               consume(_RECKKLAMMER);
 
               { the parser need to know if a property has parameters, the
                 index parameter doesn't count (PFV) }
               if paranr>0 then
-                include(p.propoptions,ppo_hasparameters);
+                begin
+                  add_parameters(p,readprocdef,writeprocdef);
+                  include(p.propoptions,ppo_hasparameters);
+                end;
            end;
          { overridden property ?                                 }
          { force property interface
@@ -454,7 +467,7 @@ implementation
          if (token=_COLON) or (paranr>0) or (astruct=nil) then
            begin
               consume(_COLON);
-              single_type(p.propdef,[]);
+              single_type(p.propdef,[stoAllowSpecialization]);
 
               if is_dispinterface(astruct) and not is_automatable(p.propdef) then
                 Message1(type_e_not_automatable,p.propdef.typename);
@@ -506,7 +519,13 @@ implementation
                   p.propdef:=tpropertysym(overridden).propdef;
                   p.index:=tpropertysym(overridden).index;
                   p.default:=tpropertysym(overridden).default;
-                  p.propoptions:=tpropertysym(overridden).propoptions;
+                  p.propoptions:=tpropertysym(overridden).propoptions + [ppo_overrides];
+                  if ppo_hasparameters in p.propoptions then
+                    begin
+                      p.parast:=tpropertysym(overridden).parast.getcopy;
+                      add_parameters(p,readprocdef,writeprocdef);
+                      paranr:=p.parast.SymList.Count;
+                    end;
                   if ppo_indexed in p.propoptions then
                     add_index_parameter(paranr,p,readprocdef,writeprocdef);
                 end
@@ -611,11 +630,17 @@ implementation
                           { Insert hidden parameters }
                           handle_calling_convention(writeprocdef);
                           { search procdefs matching writeprocdef }
+                          { skip hidden part (same as for _READ part ) because of the }
+                          { possible different calling conventions and especialy for  }
+                          { records - their methods hidden parameters are handled     }
+                          { after the full record parse                               }
                           if cs_varpropsetter in current_settings.localswitches then
-                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorevarspez])
+                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorevarspez,cpo_ignorehidden])
                           else
-                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
-                          if not assigned(p.propaccesslist[palt_write].procdef) then
+                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
+                          if not assigned(p.propaccesslist[palt_write].procdef) or
+                             { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
+                             ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_write].procdef).no_self_node) then
                             Message(parser_e_ill_property_access_sym)
                           else
                             begin
@@ -799,7 +824,7 @@ implementation
                     ordconstn :
                       if (Tordconstnode(pt).value<int64(low(longint))) or
                          (Tordconstnode(pt).value>int64(high(cardinal))) then
-                        message(parser_e_range_check_error)
+                        message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(cardinal)))
                       else
                         p.default:=longint(tordconstnode(pt).value.svalue);
                     niln :
@@ -822,7 +847,7 @@ implementation
 *)
          { Parse possible "implements" keyword }
          if not is_record(astruct) and try_to_consume(_IMPLEMENTS) then
-           begin
+           repeat
              single_type(def,[]);
 
              if not(is_interface(def)) then
@@ -830,7 +855,8 @@ implementation
 
              if is_interface(p.propdef) then
                begin
-                 if compare_defs(def,p.propdef,nothingn)<te_equal then
+                 { an interface type may delegate itself or one of its ancestors }
+                 if not p.propdef.is_related(def) then
                    begin
                      message2(parser_e_implements_must_have_correct_type,def.typename,p.propdef.typename);
                      exit;
@@ -929,7 +955,7 @@ implementation
                end
              else
                message1(parser_e_implements_uses_non_implemented_interface,def.typename);
-         end;
+           until not try_to_consume(_COMMA);
 
          { remove unneeded procdefs }
          if readprocdef.proctypeoption<>potype_propgetter then
@@ -1257,8 +1283,8 @@ implementation
               }
               if (Tordconstnode(pt).value<int64(low(abssym.addroffset))) or
                  (Tordconstnode(pt).value>int64(high(abssym.addroffset))) then
-                message(parser_e_range_check_error)
-              else
+                message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
+             else
 {$endif}
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
 {$ifdef i386}
@@ -1273,7 +1299,7 @@ implementation
                       tmpaddr:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
                       if (tmpaddr<int64(low(abssym.addroffset))) or
                          (tmpaddr>int64(high(abssym.addroffset))) then
-                        message(parser_e_range_check_error)
+                        message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
                       else
                         abssym.addroffset:=tmpaddr;
                       abssym.absseg:=true;
@@ -1571,13 +1597,13 @@ implementation
          srsymtable : TSymtable;
          visibility : tvisibility;
          recst : tabstractrecordsymtable;
-         recstlist : tfpobjectlist;
          unionsymtable : trecordsymtable;
          offset : longint;
          uniondef : trecorddef;
          hintsymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
-         semicoloneaten: boolean;
+         semicoloneaten,
+         removeclassoption: boolean;
 {$if defined(powerpc) or defined(powerpc64)}
          tempdef: tdef;
          is_first_type: boolean;
@@ -1595,7 +1621,7 @@ implementation
            consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
-         recstlist:=TFPObjectList.create(false);;
+         removeclassoption:=false;
          while (token=_ID) and
             not(((vd_object in options) or
                  ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
@@ -1622,17 +1648,6 @@ implementation
                block_type:=old_block_type;
              consume(_COLON);
 
-             { Don't search for types where they can't be:
-               types can be only in objects, classes and records.
-               This just speedup the search a bit. }
-             recstlist.count:=0;
-             if not is_class_or_object(tdef(recst.defowner)) and
-                not is_record(tdef(recst.defowner)) and
-                not is_java_class_or_interface(tdef(recst.defowner)) then
-               begin
-                 recstlist.add(recst);
-                 symtablestack.pop(recst);
-               end;
              read_anon_type(hdef,false);
              maybe_guarantee_record_typesym(hdef,symtablestack.top);
              block_type:=bt_var;
@@ -1644,12 +1659,6 @@ implementation
                  Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(hdef).RttiName);
                  { for error recovery or compiler will crash later }
                  hdef:=generrordef;
-               end;
-             { restore stack }
-             for i:=recstlist.count-1 downto 0 do
-               begin
-                 recst:=tabstractrecordsymtable(recstlist[i]);
-                 symtablestack.push(recst);
                end;
 
              { Process procvar directives }
@@ -1667,7 +1676,7 @@ implementation
                  (32-bit) alignment, in which case the alignment is determined by
                  the alignment of the first field.  */
              }
-             if (target_info.system in [system_powerpc_darwin, system_powerpc_macos, system_powerpc64_darwin]) and
+             if (target_info.abi=abi_powerpc_aix) and
                 is_first_type and
                 (symtablestack.top.symtabletype=recordsymtable) and
                 (trecordsymtable(symtablestack.top).usefieldalignment=C_alignment) then
@@ -1733,7 +1742,8 @@ implementation
                  if not (vd_class in options) and try_to_consume(_STATIC) then
                    begin
                      consume(_SEMICOLON);
-                     include(options, vd_class);
+                     include(options,vd_class);
+                     removeclassoption:=true;
                    end;
                  { Fields in Java classes/interfaces can have a separately
                    specified external name }
@@ -1744,7 +1754,7 @@ implementation
              if (visibility=vis_published) and
                 not(is_class(hdef)) then
                begin
-                 Message(parser_e_cant_publish_that);
+                 MessagePos(tfieldvarsym(sc[0]).fileinfo,parser_e_cant_publish_that);
                  visibility:=vis_public;
                end;
 
@@ -1752,7 +1762,7 @@ implementation
                 not(oo_can_have_published in tobjectdef(hdef).objectoptions) and
                 not(m_delphi in current_settings.modeswitches) then
                begin
-                 Message(parser_e_only_publishable_classes_can_be_published);
+                 MessagePos(tfieldvarsym(sc[0]).fileinfo,parser_e_only_publishable_classes_can_be_published);
                  visibility:=vis_public;
                end;
              if vd_class in options then
@@ -1766,6 +1776,11 @@ implementation
                      cnodeutils.insertbssdata(hstaticvs);
                      if vd_final in options then
                        hstaticvs.varspez:=vs_final;
+                   end;
+                 if removeclassoption then
+                   begin
+                     exclude(options,vd_class);
+                     removeclassoption:=false;
                    end;
                end;
              if vd_final in options then
@@ -1787,7 +1802,6 @@ implementation
                    recst.addfield(fieldvs,visibility);
                end;
            end;
-          recstlist.free;
 
          if m_delphi in current_settings.modeswitches then
            block_type:=bt_var_type

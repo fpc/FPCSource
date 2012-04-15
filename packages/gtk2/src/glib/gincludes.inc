@@ -66,7 +66,7 @@
 
 {$include gmarshal.inc}
 
-{$IFDEF win32}
+{$IFDEF winDOWS}
 {$include gwin32.inc}
 {$ENDIF}
 

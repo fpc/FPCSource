@@ -124,8 +124,13 @@ rm16|32|64,imm        \320\2\x0F\xBA\205\25           386,SB
 [CALL,call]
 ; don't know value of any register
 (Ch_ROp1, Ch_All, Ch_None)
+; Compiler emits CALL/JMP with opsize=S_NO which matches any size,
+; and will match the first entry in sequence.
+; Therefore rm16 must be placed after rm32/rm64
+rm32                  \325\1\xFF\202                  386,NOX86_64
+rm64                  \335\1\xFF\202                  X86_64
+rm16                  \324\1\xFF\202                  8086
 imm                   \320\1\xE8\64                   8086
-rm16|32|64            \320\1\xFF\202                  8086
 imm|near              \320\1\xE8\64                   8086
 imm|far               \320\1\x9A\34\37                8086,ND,NOX86_64
 mem|near              \320\1\xFF\202                  8086
@@ -862,6 +867,10 @@ void                  \325\1\xCF                      386
 (Ch_All, Ch_None, Ch_None)
 void                  \324\1\xCF                      8086
 
+[IRETQ]
+(Ch_All, Ch_None, Ch_None)
+void                  \326\1\xCF                      X86_64
+
 [JCXZ]
 (Ch_RECX, Ch_None, Ch_None)
 imm                   \310\1\xE3\50                   8086,NOX86_64
@@ -876,9 +885,12 @@ imm                   \1\xE3\50                       X86_64
 
 [JMP,jmpX]
 (Ch_ROp1, Ch_None, Ch_None)
+; rm16 should be after rm32/rm64, see comments for CALL.
 imm8                  \1\xEB\50                       8086,PASS2
 imm16|32              \320\1\xE9\64                   8086,PASS2
-rm16|32|64            \320\1\xFF\204                  8086
+rm32                  \325\1\xFF\204                  386,NOX86_64
+rm64                  \335\1\xFF\204                  X86_64
+rm16                  \324\1\xFF\204                  8086
 imm|short             \1\xEB\50                       8086,PASS2
 imm|near              \320\1\xE9\64                   8086,ND,PASS2
 imm|far               \320\1\xEA\34\37                8086,ND,PASS2,NOX86_64
@@ -899,10 +911,11 @@ reg16|32|64,regmem    \320\2\x0F\x02\110              286,PROT,SM
 
 [LCALL,lcall]
 ; don't know value of any register
+; Far call, AT&T only (there are no near/far modifiers in AT&T syntax, so separate mnemonic is needed)
 (Ch_All, Ch_None, Ch_None)
-rm16|32|64            \320\1\xFF\202                  8086
-mem|near              \320\1\xFF\202                  8086
-mem|far               \320\1\xFF\203                  8086
+mem32                  \325\1\xFF\203                  386,NOX86_64
+mem64                  \335\1\xFF\203                  X86_64
+mem16                  \324\1\xFF\203                  8086
 
 [LDS,ldsX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
@@ -939,9 +952,9 @@ mem                   \2\x0F\x01\203                  286,PRIV
 
 [LJMP,ljmp]
 (Ch_ROp1, Ch_None, Ch_None)
-rm16|32|64            \320\1\xFF\205                  8086
-mem|far               \320\1\xFF\205                  8086
-mem|near              \320\1\xFF\204                  8086
+mem32                 \325\1\xFF\205                  386,NOX86_64
+mem64                 \335\1\xFF\205                  X86_64
+mem16                 \324\1\xFF\205                  8086
 
 [LLDT,lldtX]
 (Ch_None, Ch_None, Ch_None)
@@ -2009,6 +2022,10 @@ void                  \2\x0F\x30                      PENT,PRIV
 (Ch_All, Ch_None, Ch_None)
 mem,reg16|32|64       \320\2\x0F\xC1\101              486,SM
 rm8,reg8              \2\x0F\xC0\101                  486
+reg8,reg8             \2\x0F\xC0\101                  486
+reg16,reg16           \320\2\x0F\xC1\101              486
+reg32,reg32           \321\2\x0F\xC1\101              486
+reg64,reg64           \320\2\x0F\xC1\101              X86_64
 
 [XBTS,xbtsX]
 (Ch_All, Ch_None, Ch_None)
@@ -2187,7 +2204,7 @@ xmmreg,xmmrm,imm      \331\2\x0F\xC2\110\22           KATMAI,SSE,SB,AR2
 xmmreg,xmmrm,imm      \333\2\x0F\xC2\110\22           KATMAI,SSE,SB,AR2
 
 [COMISS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Rop2, Ch_WFlags)
 xmmreg,xmmrm          \2\x0F\x2F\110                  KATMAI,SSE
 
 [CVTPI2PS]
@@ -2302,31 +2319,31 @@ xmmreg,xmmrm          \333\2\x0F\x59\110              KATMAI,SSE
 xmmreg,xmmrm          \2\x0F\x56\110                  KATMAI,SSE
 
 [RCPPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \331\2\x0F\x53\110              KATMAI,SSE
 
 [RCPSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \333\2\x0F\x53\110              KATMAI,SSE
 
 [RSQRTPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \331\2\x0F\x52\110              KATMAI,SSE
 
 [RSQRTSS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \333\2\x0F\x52\110              KATMAI,SSE
 
 [SHUFPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop3, Ch_Rop2, Ch_None)
 xmmreg,xmmrm,imm      \2\x0F\xC6\110\22               KATMAI,SSE,SB,AR2
 
 [SQRTPS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \331\2\x0F\x51\110              KATMAI,SSE
 
 [SQRTSS]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \333\2\x0F\x51\110              KATMAI,SSE
 
 [STMXCSR]
@@ -2342,15 +2359,15 @@ xmmreg,xmmrm          \331\2\x0F\x5C\110              KATMAI,SSE
 xmmreg,xmmrm          \333\2\x0F\x5C\110              KATMAI,SSE
 
 [UCOMISS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Rop2, Ch_WFlags)
 xmmreg,xmmrm          \2\x0F\x2E\110                  KATMAI,SSE
 
 [UNPCKHPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \2\x0F\x15\110                  KATMAI,SSE
 
 [UNPCKLPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm          \2\x0F\x14\110                  KATMAI,SSE
 
 [XORPS]
@@ -2688,7 +2705,7 @@ xmmreg,xmmrm            \334\2\x0F\xC2\110\1\x03        WILLAMETTE,SSE2
 xmmreg,xmmrm,imm        \361\2\x0F\xC2\110\26           WILLAMETTE,SSE2,SM2,SB,AR2
 
 [COMISD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Rop2, Ch_WFlags)
 xmmreg,xmmrm            \361\2\x0F\x2F\110              WILLAMETTE,SSE2
 
 [CVTDQ2PD]
@@ -2820,15 +2837,15 @@ xmmreg,xmmrm            \334\2\x0F\x59\110        WILLAMETTE,SSE2
 xmmreg,xmmrm            \361\2\x0F\x56\110        WILLAMETTE,SSE2,SM
 
 [SHUFPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop3, Ch_Rop2, Ch_None)
 xmmreg,xmmrm,imm        \361\2\x0F\xC6\110\26     WILLAMETTE,SSE2,SM2,SB,AR2
 
 [SQRTPD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \361\2\x0F\x51\110        WILLAMETTE,SSE2,SM
 
 [SQRTSD]
-(Ch_Mop2, Ch_Rop1, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \334\2\x0F\x51\110        WILLAMETTE,SSE2
 
 
@@ -2841,7 +2858,7 @@ xmmreg,xmmrm            \361\2\x0F\x5C\110        WILLAMETTE,SSE2,SM
 xmmreg,xmmrm            \334\2\x0F\x5C\110        WILLAMETTE,SSE2
 
 [UCOMISD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Rop1, Ch_Rop2, Ch_WFlags)
 xmmreg,xmmrm            \361\2\x0F\x2E\110        WILLAMETTE,SSE2
 
 [UNPCKHPD]
@@ -2868,19 +2885,19 @@ xmmreg,xmmrm            \361\2\x0F\xD0\110        PRESCOTT,SSE3,SM
 xmmreg,xmmrm            \334\2\x0F\xD0\110        PRESCOTT,SSE3,SM
 
 [HADDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \361\2\x0F\x7C\110        PRESCOTT,SSE3,SM
 
 [HADDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \334\2\x0F\x7C\110        PRESCOTT,SSE3,SM
 
 [HSUBPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \361\2\x0F\x7D\110        PRESCOTT,SSE3,SM
 
 [HSUBPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Mop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm            \334\2\x0F\x7D\110        PRESCOTT,SSE3,SM
 
 [LDDQU]

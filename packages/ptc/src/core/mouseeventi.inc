@@ -30,7 +30,52 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-function TPTCMouseEvent.GetType: TPTCEventType;
+type
+  TPTCMouseEvent = class(TPTCEvent, IPTCMouseEvent)
+  private
+    FX, FY: Integer;
+    FDeltaX, FDeltaY: Integer;
+    FButtonState: TPTCMouseButtonState;
+    function GetX: Integer;
+    function GetY: Integer;
+    function GetDeltaX: Integer;
+    function GetDeltaY: Integer;
+    function GetButtonState: TPTCMouseButtonState;
+  protected
+    function GetEventType: TPTCEventType; override;
+  public
+    constructor Create(AX, AY, ADeltaX, ADeltaY: Integer; AButtonState: TPTCMouseButtonState);
+{    property X: Integer read GetX;
+    property Y: Integer read GetY;
+    property DeltaX: Integer read GetDeltaX;
+    property DeltaY: Integer read GetDeltaY;
+    property ButtonState: TPTCMouseButtonState read GetButtonState;}
+  end;
+  TPTCMouseButtonEvent = class(TPTCMouseEvent, IPTCMouseButtonEvent)
+  private
+    FPress: Boolean;
+    FButton: TPTCMouseButton;
+    function GetPress: Boolean;
+    function GetRelease: Boolean;
+    function GetButton: TPTCMouseButton;
+  public
+    constructor Create(AX, AY, ADeltaX, ADeltaY: Integer; AButtonState: TPTCMouseButtonState; APress: Boolean; AButton: TPTCMouseButton);
+{    property Press: Boolean read GetPress;
+    property Release: Boolean read GetRelease;
+    property Button: TPTCMouseButton read GetButton;}
+  end;
+
+class function TPTCMouseEventFactory.CreateNew(AX, AY, ADeltaX, ADeltaY: Integer; AButtonState: TPTCMouseButtonState): IPTCMouseEvent;
+begin
+  Result := TPTCMouseEvent.Create(AX, AY, ADeltaX, ADeltaY, AButtonState);
+end;
+
+class function TPTCMouseButtonEventFactory.CreateNew(AX, AY, ADeltaX, ADeltaY: Integer; AButtonState: TPTCMouseButtonState; APress: Boolean; AButton: TPTCMouseButton): IPTCMouseButtonEvent;
+begin
+  Result := TPTCMouseButtonEvent.Create(AX, AY, ADeltaX, ADeltaY, AButtonState, APress, AButton);
+end;
+
+function TPTCMouseEvent.GetEventType: TPTCEventType;
 begin
   Result := PTCMouseEvent;
 end;
@@ -44,6 +89,31 @@ begin
   FButtonState := AButtonState;
 end;
 
+function TPTCMouseEvent.GetX: Integer;
+begin
+  Result := FX;
+end;
+
+function TPTCMouseEvent.GetY: Integer;
+begin
+  Result := FY;
+end;
+
+function TPTCMouseEvent.GetDeltaX: Integer;
+begin
+  Result := FDeltaX;
+end;
+
+function TPTCMouseEvent.GetDeltaY: Integer;
+begin
+  Result := FDeltaY;
+end;
+
+function TPTCMouseEvent.GetButtonState: TPTCMouseButtonState;
+begin
+  Result := FButtonState;
+end;
+
 constructor TPTCMouseButtonEvent.Create(AX, AY, ADeltaX, ADeltaY: Integer; AButtonState: TPTCMouseButtonState; APress: Boolean; AButton: TPTCMouseButton);
 begin
   if APress xor (AButton In AButtonState) then
@@ -55,7 +125,17 @@ begin
   FButton := AButton;
 end;
 
+function TPTCMouseButtonEvent.GetPress: Boolean;
+begin
+  Result := FPress;
+end;
+
 function TPTCMouseButtonEvent.GetRelease: Boolean;
 begin
   Result := not FPress;
+end;
+
+function TPTCMouseButtonEvent.GetButton: TPTCMouseButton;
+begin
+  Result := FButton;
 end;

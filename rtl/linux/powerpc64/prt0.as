@@ -56,7 +56,7 @@
     std     2, 40(1)
     mtctr   0
     ld      2, 8(11)
-    ld      11, 8(11)
+    ld      11, 16(11)
     bctr
 .long 0
 .byte 0, 12, 128, 0, 0, 0, 0, 0
@@ -321,54 +321,97 @@ _restvr_31: addi r12,r0,-16
 */
 
 /*
- * Main program entry point label (function), called by the loader
+ * Main program entry point for dynamic executables.
+ *
+ * r7 contains the function pointer that needs to be registered for calling at exit.
+ */
+FUNCTION_PROLOG _dynamic_start
+  LOAD_64BIT_VAL 11, __dl_fini
+  std      7,0(11)
+  LOAD_64BIT_VAL 11, _start
+  /* do not bother loading the actual function address of _start. We can directly jump to it */
+  /* set up GOT pointer from original start function */
+  ld       2,8(11)
+  /* and environment pointer */
+  ld      11,16(11)
+  b       _start
+.long 0
+.byte 0, 12, 64, 0, 0, 0, 0, 0
+
+/*
+ * Main program entry point for static executables
+ *
+ * The document "64-bit PowerPC ELF Application Binary Interface Supplement 1.9"
+ * pg. 24f specifies that argc/argv/envp are passed in registers r3/r4/r5 respectively,
+ * but that does not seem to be the case.
+ *
+ * However the stack layout and contents are the same as for other platforms, so
+ * use this.
  */
 FUNCTION_PROLOG _start
-
-    mr   26, 1            /* save stack pointer */
+    mr     26,1            /* save stack pointer */
     /* Set up an initial stack frame, and clear the LR */
-    clrrdi  1, 1, 5       /* align r1 */
-    li      0, 0
+    clrrdi  1,1,5          /* align r1 */
+    li      0,0
     stdu    1,-128(1)
     mtlr    0
-    std     0, 0(1)       /* r1 = pointer to NULL value */
+    std     0,0(1)        /* r1 = pointer to NULL value */
 
     /* store argument count (= 0(r1) )*/
-    ld      3, 0(26)
-    LOAD_64BIT_VAL 10, operatingsystem_parameter_argc
-    stw     3, 0(10)
+    ld      3,0(26)
+    LOAD_64BIT_VAL 10,operatingsystem_parameter_argc
+    stw     3,0(10)
     /* calculate argument vector address and store (= 8(r1) + 8 ) */
-    addi    4, 26, 8
-    LOAD_64BIT_VAL 10, operatingsystem_parameter_argv
-    std     4, 0(10)
+    addi    4,26,8
+    LOAD_64BIT_VAL 10,operatingsystem_parameter_argv
+    std     4,0(10)
     /* store environment pointer (= argv + (argc+1)* 8 ) */
-    addi    5, 3, 1
-    sldi    5, 5, 3
-    add     5, 4, 5
+    addi    5,3,1
+    sldi    5,5,3
+    add     5,4,5
     LOAD_64BIT_VAL 10, operatingsystem_parameter_envp
-    std     5, 0(10)
+    std     5,0(10)
 
-    LOAD_64BIT_VAL 8, __stkptr
+    LOAD_64BIT_VAL 8,__stkptr
     std     1,0(8)
 
     bl      PASCALMAIN
     nop
 
-    /* directly jump to exit procedure, not via the function pointer */
-    b       ._haltproc
+    /* we should not reach here. Crash horribly */
+    trap
 
 FUNCTION_PROLOG _haltproc
+    mflr  0
+    std   0,16(1)
+    stdu  1,-144(1)
+
+    LOAD_64BIT_VAL 11,__dl_fini
+    ld    11,0(11)
+    cmpdi 11,0
+    beq .LNoCallDlFini
+
+    bl .ptrgl
+    ld      2,40(1)
+
+.LNoCallDlFini:
+
+    LOAD_64BIT_VAL 3, operatingsystem_result
+    lwz     3,0(3)
     /* exit group call */
-    LOAD_64BIT_VAL 3, operatingsystem_result
-    lwz     3, 0(3)
-    li      0, 234
+    li      0,234
     sc
+
+    LOAD_64BIT_VAL 3, operatingsystem_result
+    lwz     3,0(3)
     /* exit call */
-    LOAD_64BIT_VAL 3, operatingsystem_result
-    lwz     3, 0(3)
-    li      0, 1
+    li      0,1
     sc
-    b       ._haltproc
+    /* we should not reach here. Crash horribly */
+    trap
+    /* do not bother cleaning up the stack frame, we should not reach here */
+.long 0
+.byte 0, 12, 64, 0, 0, 0, 0, 0
 
     /* Define a symbol for the first piece of initialized data.  */
     .section ".data"
@@ -382,6 +425,12 @@ data_start:
     .size __stkptr, 8
     .global __stkptr
 __stkptr:
+    .skip 8
+
+    .type __dl_fini, @object
+    .size __dl_fini, 8
+    .global __dl_fini
+__dl_fini:
     .skip 8
 
     .type operatingsystem_parameters, @object

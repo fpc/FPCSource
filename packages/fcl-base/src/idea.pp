@@ -64,9 +64,9 @@ TYPE
   IdeaCryptKey = TIdeaCryptKey;
   IdeaCryptData = TIdeaCryptData;
   
-PROCEDURE EnKeyIdea(UserKey: TIdeacryptkey; VAR z: TIDEAKey);
-PROCEDURE DeKeyIdea(z: TIDEAKey; VAR dk: TIDEAKey);
-PROCEDURE CipherIdea(Input: TIDEACryptData; VAR outdata: TIDEACryptData; z: TIDEAKey);
+PROCEDURE EnKeyIdea(UserKey: TIdeacryptkey; OUT z: TIDEAKey);
+PROCEDURE DeKeyIdea(z: TIDEAKey; OUT dk: TIDEAKey);
+PROCEDURE CipherIdea(Input: TIDEACryptData; OUT outdata: TIDEACryptData; z: TIDEAKey);
 
 Type
   EIDEAError = Class(EStreamError);
@@ -82,7 +82,7 @@ Type
   Protected
     function GetPosition: Int64; override;
     procedure InvalidSeek; override;
-    Procedure CreateCryptKey(Const S : String; Var Key : TIDEACryptKey);
+    Procedure CreateCryptKey(Const S : String; Out Key : TIDEACryptKey);
   Public
     Constructor Create(AKey : TIDEAKey; Dest: TStream); overload;
     Property Key : TIDEAKey Read FKey;
@@ -157,7 +157,7 @@ BEGIN
   inv := word(1-t1);
 END;
 
-PROCEDURE EnKeyIdea(userkey: ideacryptkey; VAR z: ideakey);
+PROCEDURE EnKeyIdea(userkey: ideacryptkey; OUT z: ideakey);
 VAR zi,i,j: integer;
 BEGIN
   FOR j := 0 TO 7 DO z[j] := userkey[j];
@@ -172,7 +172,7 @@ BEGIN
   FOR i := 0 TO 7 DO userkey[i] := 0;
 END;
 
-PROCEDURE DeKeyIdea(z: IDEAKey; VAR dk: ideakey);
+PROCEDURE DeKeyIdea(z: IDEAKey; OUT dk: ideakey);
 VAR j: Integer;
     t1,t2,t3: Word;
     p: IDEAKey;
@@ -218,7 +218,7 @@ BEGIN
   FOR j := 0 TO 51 DO z[j] := 0;
 END;
 
-PROCEDURE CipherIdea(input: ideacryptdata; VAR outdata: ideacryptdata; z:IDEAkey);
+PROCEDURE CipherIdea(input: ideacryptdata; OUT outdata: ideacryptdata; z:IDEAkey);
 VAR x1, x2, x3, x4, t1, t2: Word;
     r: Integer;
     zi: Integer;
@@ -278,7 +278,7 @@ begin
   Raise EIDEAError.Create(SNoSeekAllowed);
 end;
 
-procedure TIDEAStream.CreateCryptKey(const S: String; var Key: TIDEACryptKey);
+procedure TIDEAStream.CreateCryptKey(const S: String; out Key: TIDEACryptKey);
 
 Var
   KLen : Integer;
@@ -289,6 +289,7 @@ begin
     Raise EIDEAError.Create(SErrEmptyKey);
   If (Length(S)>SizeOf(Key)) then
     KLen:=SizeOf(Key);
+  FillChar(Key,SizeOf(Key),0);
   Move(S[1],Key,KLen);
 end;
 

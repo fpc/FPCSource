@@ -6,7 +6,7 @@
 #   Latest updates contributed by Rémi Dorlet <remi at dorlet.org>
 #   Based on errore.msg of SVN revision 4165
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -748,9 +748,9 @@ parser_e_function_already_declared_public_forward=03120_E_La fonction "$1" est d
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_Impossible d'utiliser à la fois EXPORT et EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_w_not_supported_for_inline=03123_W_"$1" n'est pas encore supporté à l'intérieur de procédures/fonctions INLINE
+parser_h_not_supported_for_inline=03123_H_"$1" n'est pas encore supporté à l'intérieur de procédures/fonctions INLINE
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_Inlining désactivé
+parser_h_inlining_disabled=03124_H_Inlining désactivé
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_Ecriture du Browser log $1
 % When information messages are on, the compiler warns you when it
@@ -2258,7 +2258,7 @@ option_config_is_dir=11040_F_Le fichier de configuration $1 est un répertoire
 # Logo (option -l)
 #
 option_logo=11023_[ Compilateur Free Pascal version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2011, Florian Klaempfl ]
+Copyright (c) 1993-2012, Florian Klaempfl ]
 #
 # Info (option -i)
 #
@@ -2270,11 +2270,10 @@ Jeu d'instructions CPU supportés: $INSTRUCTIONSETS
 Jeu d'instructions FPU supportés: $FPUINSTRUCTIONSETS
 Optimisations supportées: $OPTIMIZATIONS
 Ce programme est fourni sous la License Publique Générale GNU (GNU GPL).
-Pour plus d'informations, consultez le fichier COPYING.FPC.
+Pour plus d'informations, consultez le fichier COPYING.v2.
 Rapports de bogues, suggestions, etc. à:
     http://bugs.freepascal.org
-ou
-    bugs@freepascal.org ]
+]
 #
 # Help pages (option -? and -h)
 #

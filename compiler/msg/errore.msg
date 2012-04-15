@@ -4,7 +4,7 @@
 #
 #   English (default) Language File for Free Pascal
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -19,6 +19,7 @@
 #   asmr_     assembler parsing
 #   asmw_     assembler writing/binary writers
 #   unit_     unit handling
+#   option_   command line parameter parsing
 #   scan_     scanner
 #   parser_   parser
 #   type_     type checking
@@ -41,6 +42,9 @@
 #   x_   executable informations
 #   o_   normal (e.g., "press enter to continue")
 #
+# <type> can contain a minus sign at the beginning to mark that
+# the message is off by default. Look at type_w_explicit_string_cast
+# for example.
 
 #
 # General
@@ -79,7 +83,7 @@ general_t_objectpath=01007_T_Using object path: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
 % You can set this path with the \var{-Fo} option.
-general_i_abslines_compiled=01008_I_$1 lines compiled, $2 sec $3
+general_i_abslines_compiled=01008_I_$1 lines compiled, $2 sec$3
 % When the \var{-vi} switch is used, the compiler reports the number
 % of lines compiled, and the time it took to compile them (real time,
 % not program time).
@@ -132,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02089 is the last used one
+# 02090 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -371,15 +375,17 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 % The alignment directive is not valid. Either the alignment type is not known or the alignment
 % value is not a power of two.
-scanner_w_directive_ignored_on_target=02089_W_Directive "$1" is ignored for the the current target platform
+scanner_f_illegal_utf8_bom=02089_F_It is not possible to include a file that starts with an UTF-8 BOM in a module that uses a different code page
+% All source code that is part of a single compilation entity (program, library, unit) must be encoded
+% in the same code page
+scanner_w_directive_ignored_on_target=02090_W_Directive "$1" is ignored for the the current target platform
 % Some directives are ignored for certain targets, such as changing the
 % packrecords and packenum settings on managed platforms.
-%
 % \end{description}
 #
 # Parser
 #
-# 03320 is the last used one
+# 03321 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -541,7 +547,7 @@ parser_e_only_class_members_via_class_ref=03053_E_Only class methods, class prop
 % \end{verbatim}
 % \var{Free} is not a class method and hence cannot be called with a class
 % reference.
-parser_e_only_class_members=03054_E_Only class class methods, class properties and class variables can be accessed in class methods
+parser_e_only_class_members=03054_E_Only class methods, class properties and class variables can be accessed in class methods
 % This is related to the previous error. You cannot call a method of an object
 % from inside a class method. The following code would produce this error:
 % \begin{verbatim}
@@ -772,9 +778,9 @@ parser_e_function_already_declared_public_forward=03120_E_Function is already de
 % declaration in the \var{implementation} section.
 parser_e_not_external_and_export=03121_E_Can't use both EXPORT and EXTERNAL
 % These two procedure directives are mutually exclusive.
-parser_w_not_supported_for_inline=03123_W_"$1" not yet supported inside inline procedure/function
+parser_h_not_supported_for_inline=03123_H_"$1" not yet supported inside inline procedure/function
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_Inlining disabled
+parser_h_inlining_disabled=03124_H_Inlining disabled
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_Writing Browser log $1
 % When information messages are on, the compiler warns you when it
@@ -1405,36 +1411,38 @@ parser_e_mapping_no_implements=03312_E_Interface "$1" can't be delegated by "$2"
 % has to implement the interface directly. Delegation is not possible.
 parser_e_implements_no_mapping=03313_E_Interface "$1" can't have method resolutions, "$2" already delegates it
 % Method resoulution is only possible for interfaces that are implemented directly, not by delegation.
-parser_e_final_only_const_var=03314_E_Only fields (var-sections) and constants can be final in object types
+parser_e_invalid_codepage=03314_E_Invalid codepage
+% When declaring a string with a given codepage, the range of valid codepages values is limited
+% to 0 to 65535.
+parser_e_final_only_const_var=03315_E_Only fields (var-sections) and constants can be final in object types
 % A final (class) field must be assigned a single value in the (class) constructor, and cannot
 % be overwritten afterwards. A final (typed) constant is read-only.
-parser_e_final_only_external=03315_E_Final fields are currently only supported for external classes
+parser_e_final_only_external=03316_E_Final fields are currently only supported for external classes
 % Support for final fields in non-external classes requires a full data flow
 % analysis implementation in FPC, which it currently still lacks.
-parser_e_no_typed_const=03316_E_Typed constants are not allowed here, only formal constants are
+parser_e_no_typed_const=03317_E_Typed constants are not allowed here, only formal constants are
 % Java interfaces define a namespace in which formal constant can be defined,
 % but since they define no storage it is not possible to define typed constants
 % in them (those are more or less the same as initialised class fields).
-parser_e_java_no_inherited_constructor=03317_E_Constructors are not automatically inherited in the JVM; explicitly add a constructor that calls the inherited one if you need it
+parser_e_java_no_inherited_constructor=03318_E_Constructors are not automatically inherited in the JVM; explicitly add a constructor that calls the inherited one if you need it
 % Java does not automatically add inherited constructors to child classes, so that they can be hidden.
 % For compatibility with external Java code, FPC does the same. If you require access to the same
 % constructors in a child class, define them in the child class and call the inherited one from
 % there.
-parser_d_internal_parser_string=03318_D_Parsing internally generated code: $1
+parser_d_internal_parser_string=03319_D_Parsing internally generated code: $1
 % The compiler sometimes internally constructs Pascal code that is subsequently
 % injected into the program. These messages display such code, in order to help
 % with debugging errors in them.
-parser_e_feature_unsupported_for_vm=03319_E_This language feature is not supported on managed VM targets
+parser_e_feature_unsupported_for_vm=03320_E_This language feature is not supported on managed VM targets
 % Certain language features are not supported on targets that are managed virtual machines.
-parser_e_jvm_invalid_virtual_constructor_call=03320_E_Calling a virtual constructor for the current instance inside another constructor is not possible on the JVM target
+parser_e_jvm_invalid_virtual_constructor_call=03321_E_Calling a virtual constructor for the current instance inside another constructor is not possible on the JVM target
 % The JVM does not natively support virtual constructor. Unforunately, we are not aware of a way to
 % emulate them in a way that makes it possible to support calling virtual constructors
 % for the current instance inside another constructor.
-%
 % \end{description}
 # Type Checking
 #
-# 04108 is the last used one
+# 04117 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1621,14 +1629,16 @@ type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completely defined
 type_w_string_too_long=04043_W_String literal has more characters than short string length
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring (255 characters).
-type_w_signed_unsigned_always_false=04044_W_Comparison is always false due to range of values
-% There is a comparison between an unsigned value and a signed constant which is
-% less than zero. Because of type promotion, the statement will always evaluate to
-% false. Explicitly typecast the constant to the correct range to avoid this problem.
-type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to range of values
-% There is a comparison between an unsigned value and a signed constant which is
-% less than zero. Because of type promotion, the statement will always evaluate to
-% true. Explicitly typecast the constant to the correct range to avoid this problem.
+type_w_comparison_always_false=04044_W_Comparison might be always false due to range of constant and expression
+% There is a comparison between a constant and an expression where the constant is out of the
+% valid range of values of the expression. Because of type promotion, the statement will always evaluate to
+% false. Explicitly typecast the constant or the expression to the correct range to avoid this warning
+% if you think the code is correct.
+type_w_comparison_always_true=04045_W_Comparison might be always true due to range of constant and expression
+% There is a comparison between a constant and an expression where the constant is out of the
+% valid range of values of the expression. Because of type promotion, the statement will always evaluate to
+% true. Explicitly typecast the constant or the expression to the correct range to avoid this warning
+% if you think the code is correct.
 type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract method "$2"
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
@@ -1792,12 +1802,40 @@ type_e_class_helper_must_extend_subclass=04101_E_Derived class helper must exten
 type_e_record_helper_must_extend_same_record=04102_E_Derived record helper must extend "$1"
 % If a record helper inherits from another record helper it must extend the same
 % record that the parent record helper extended.
-type_e_java_class_method_not_static_virtual=04103_E_JVM virtual class methods cannot be static
+type_e_procedures_return_no_value=04103_E_Invalid assignment, procedures return no value
+% This error occurs when one tries to assign the result of a procedure or destructor call.
+% A procedure or destructor returns no value so this is not
+% possible.
+type_w_implicit_string_cast=04104_W_Implicit string type conversion from "$1" to "$2"
+% An implicit type conversion from an ansi string type to an unicode string type is
+% encountered. To avoid this warning perform an explicit type conversion.
+type_w_implicit_string_cast_loss=04105_W_Implicit string type conversion with potential data loss from "$1" to "$2"
+% An implicit type conversion from an unicode string type to an ansi string type is
+% encountered. This conversion can lose data since not all unicode characters may be represented in the codepage of
+% destination string type.
+type_w_explicit_string_cast=04106_-W_Explicit string typecast from "$1" to "$2"
+% An explicit typecast from an ansi string type to an unicode string type is
+% encountered. This warning is off by default. You can turn it on to see all suspicious string conversions.
+type_w_explicit_string_cast_loss=04107_-W_Explicit string typecast with potential data loss from "$1" to "$2"
+% An explicit typecast from an unicode string type to an ansi string type is
+% encountered. This conversion can lose data since not all unicode characters may be represented in the codepage of
+% destination string type. This warning is off by default. You can turn it on to see all the places with lossy string
+% conversions.
+type_w_unicode_data_loss=04108_W_Unicode constant cast with potential data loss
+% Conversion from a WideChar to AnsiChar can lose data since now all unicode characters may be represented in the current
+% system codepage
+% You can nest function definitions only 31 levels deep.
+type_e_range_check_error_bounds=04109_E_range check error while evaluating constants ($1 must be between $2 and $3)
+type_w_range_check_error_bounds=04110_W_range check error while evaluating constants ($1 must be between $2 and $3)
+% The constants are outside their allowed range.
+type_e_type_not_allowed_for_default=04111_E_This type is not supported for the Default() intrinsic
+% Some types like for example Text and File Of X are not supported by the Default intrinsic.
+type_e_java_class_method_not_static_virtual=04112_E_JVM virtual class methods cannot be static
 % Virtual class methods cannot be static when targetting the JVM platform, because
 % the self pointer is required for correct dispatching.
-type_e_invalid_final_assignment=04104_E_Final (class) fields can only be assigned in their class' (class) constructor
+type_e_invalid_final_assignment=04113_E_Final (class) fields can only be assigned in their class' (class) constructor
 % It is only possible to assign a value to a final (class) field inside a (class) constructor of its owning class.
-type_e_no_managed_formal_assign_typecast=04105_E_It is not possible to typecast untyped parameters on managed platforms, simply assign a value to them instead.
+type_e_no_managed_formal_assign_typecast=04114_E_It is not possible to typecast untyped parameters on managed platforms, simply assign a value to them instead.
 % On managed platforms, untyped parameters are translated by the compiler into
 % the equivalent of \var{var x: BaseClassType}. Non-class-based types passed to
 % such parameters are automatically wrapped (or boxed) in a class, and after the
@@ -1806,20 +1844,18 @@ type_e_no_managed_formal_assign_typecast=04105_E_It is not possible to typecast 
 % values to them (either class-based or primitive ones). On the caller side,
 % they will be extracted and if their type does not match the original variable's,
 % an exception will be raised.
-type_e_no_managed_assign_generic_typecast=04106_E_The assignment side of an expression cannot be typecasted to a supertype on managed platforms
+type_e_no_managed_assign_generic_typecast=04115_E_The assignment side of an expression cannot be typecasted to a supertype on managed platforms
 % Managed platforms guarantee type safety at the bytecode level. This means that the virtual machine must be able
 % to statically determine that no type-unsafe assignments or operations occur. By assigning a parent class type to a
 % variable of a child type by typecasting the assignment side to the parent class type, the type safety would no
 % longer be guaranteed and the generated code would fail verification at run time time.
-type_w_interface_lower_visibility=04107_W_The interface method "$1" raises the visibility of "$2" to public when accessed via an interface instance
-type_e_interface_lower_visibility=04108_E_The interface method "$1" has a higher visibility (public) than "$2"
+type_w_interface_lower_visibility=04116_W_The interface method "$1" raises the visibility of "$2" to public when accessed via an interface instance
+type_e_interface_lower_visibility=04117_E_The interface method "$1" has a higher visibility (public) than "$2"
 % All methods in an interface have always public visibility. That means that if
 % an interface method is implemented using a (strict) protected or private method,
 % this method is actually publicly accessible via the interface. On the JVM
 % target this situation results in an error because the JVM rejects such
 % attempts to circumvent the visibility rules.
-%
-%
 % \end{description}
 #
 # Symtable
@@ -2232,6 +2268,8 @@ cg_e_labels_cannot_defined_outside_declaration_scope=06052_E_Label must be defin
 cg_e_goto_across_procedures_with_exceptions_not_allowed=06053_E_Leaving procedures containing explicit or implicit exceptions frames using goto is not allowed
 % Non-local gotos might not be used to leave procedures using exceptions either implicitly or explicitly. Procedures
 % which use automated types like ansistrings or class constructurs are affected by this too.
+cg_e_mod_only_defined_for_pos_quotient=06054_E_In ISO mode, the mod operator is defined only for positive quotient
+% In ISO pascal, only positive values are allowed for the quotient: \var{n mod m} is only valid if \var{m>0}.
 % \end{description}
 # EndOfTeX
 
@@ -2494,6 +2532,20 @@ asmr_e_empty_regset=07109_E_A register set cannot be empty
 asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially dangereous for local symbols
 % The use of @GOTPCREL supposes an extra indirection that is
 % not present if the symbol is local, which might lead to wrong asembler code
+asmr_w_general_segment_with_constant=07111_W_Constant with general purpose segment register
+% General purpose register should not have constant offsets
+% as OS memory allocation might not be compatible with that.
+asmr_e_bad_seh_directive_offset=07112_E_Invalid offset value for $1
+% Win64 SEH directives have certain restrictions on possible offset values, e.g. they should
+% be positive and have 3 or 4 low bits clear.
+asmr_e_bad_seh_directive_register=07113_E_Invalid register for $1
+% Win64 SEH directives accept only 64-bit integer registers or XMM registers.
+asmr_e_seh_in_pure_asm_only=07114_E_SEH directives are allowed only in pure assembler procedures
+% Win64 SEH directives are allowed only in pure assembler procedures, not in assembler
+% blocks of regular procedures.
+asmr_e_unsupported_directive=07115_E_Directive "$1" is not supported for the current target
+
+
 #
 # Assembler/binary writers
 #
@@ -2529,11 +2581,20 @@ asmw_e_bad_reg_with_rex=08022_E_Asm: AH,BH,CH or DH cannot be used in an instruc
 % 8086 high byte registers (AH,BH,CH or DH) together with REX prefix in a single instruction.
 % The REX prefix is required whenever the instruction operand size is 64 bits, or
 % when it uses one of extended x86_64 registers (R8-R15 or XMM8-XMM15).
+asmw_e_missing_endprologue=08023_E_Missing .seh_endprologue directive
+% x86_64-win64 only: Normally, SEH directives are handled internally by compiler.
+% However, in pure assembler procedures .seh_endprologue directive is required
+% if other SEH directives are present.
+asmw_e_prologue_too_large=08024_E_Function prologue exceeds 255 bytes
+% x86_64-win64: .seh_prologue directive must be placed within 255 bytes from function start.
+asmw_e_handlerdata_no_handler=08025_E_.seh_handlerdata directive without preceding .seh_handler
+% x86_64-win64: If .seh_handlerdata directive is used, then a .seh_handler directive must be
+% present earlier in the same function.
 
 #
 # Executing linker/assembler
 #
-# 09032 is the last used one
+# 09033 is the last used one
 #
 # BeginOfTeX
 %
@@ -2548,7 +2609,7 @@ exec_i_assembling_pipe=09001_I_Assembling (pipe) $1
 exec_d_cant_create_asmfile=09002_E_Can't create assembler file: $1
 % The mentioned file can't be created. Check if you have
 % access permissions to create this file.
-exec_e_cant_create_objectfile=09003_E_Can't create object file: $1
+exec_e_cant_create_objectfile=09003_E_Can't create object file: $1 (error code: $2)
 % The mentioned file can't be created. Check if you have
 % got access permissions to create this file.
 exec_e_cant_create_archivefile=09004_E_Can't create archive file: $1
@@ -2623,6 +2684,8 @@ exec_e_cant_open_resource_file=09031_E_Can't open resource file "$1"
 % An error occurred resource file cannot be opened.
 exec_e_cant_write_resource_file=09032_E_Can't write resource file "$1"
 % An error occurred resource file cannot be written.
+exec_n_backquote_cat_file_not_found=09033_N_File "$1" not found for backquoted cat command
+% The compiler did not find the file that should be expanded into linker parameters
 %\end{description}
 # EndOfTeX
 
@@ -2882,7 +2945,7 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 #
 #  Options
 #
-# 11048 is the last used one
+# 11052 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2978,10 +3041,10 @@ option_read_config_file=11034_D_Reading config file "$1"
 option_found_file=11035_D_found source file name "$1"
 % Additional information about options.
 % Displayed when you have the debug option turned on.
-option_code_page_not_available=11039_E_Unknown code page
-% An unknown code page for the source files was requested.
-% The compiler is compiled with support for several code pages built-in.
-% The requested code page is not in that list. You will need to recompile
+option_code_page_not_available=11039_E_Unknown codepage
+% An unknown codepage for the source files was requested.
+% The compiler is compiled with support for several codepages built-in.
+% The requested codepage is not in that list. You will need to recompile
 % the compiler with support for the codepage you need.
 option_config_is_dir=11040_F_Config file $1 is a directory
 % Directories cannot be used as configuration files.
@@ -3008,6 +3071,20 @@ option_ignored_target=11047_W_Option "$1" is ignored for the current target plat
 option_debug_external_unsupported=11048_W_Disabling external debug information because it is unsupported for the selected target/debug format combination.
 % Not all debug formats can be stored in an external file on all platforms. In particular, on
 % Mac OS X only DWARF debug information can be stored externally.
+option_dwarf_smartlink_creation=11049_N_DWARF debug information cannot be used with smart linking with external assembler, disabling static library creation.
+% Smart linking is currently incompatble with DWARF debug information on most
+% platforms, so smart linking is disabled in such cases.
+option_invalid_macosx_deployment_target=11050_E_Invalid value for MACOSX_DEPLOYMENT_TARGET environment variable: $1
+option_invalid_iphoneos_deployment_target=11051_E_Invalid value for IPHONEOS_DEPLOYMENT_TARGET environment variable: $1
+% On Mac OS X, the MACOSX_DEPLOYMENT_TARGET/IPHONEOS_DEPLOYMENT_TARGET environment variable can be
+% used to set the default target OS version. In case of Mac OS X, it has to be of the format
+% XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
+% In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
+% digits from 0-9.
+option_illegal_fpu_eabihf=11052_E_You must use a FPU type of VFPV2, VFPV3 or VFPV3_D16 when using the EABIHF ABI target
+% The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
+
+
 %\end{description}
 # EndOfTeX
 
@@ -3093,7 +3170,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2011 by Florian Klaempfl and others
+Copyright (c) 1993-2012 by Florian Klaempfl and others
 ]
 
 #
@@ -3128,12 +3205,15 @@ Supported Microcontroller types:
   $CONTROLLERTYPES
 
 This program comes under the GNU General Public Licence
-For more information read COPYING.FPC
+For more information read COPYING.v2
 
-Report bugs, suggestions, etc. to:
+Please report bugs in our bug tracker on:
                  http://bugs.freepascal.org
-or
-                 bugs@freepascal.org
+
+More information may be found on our WWW pages (including directions
+for mailing lists useful for asking questions or discussing potential
+new features, etc.):
+                 http://www.freepascal.org
 ]
 
 #
@@ -3147,6 +3227,7 @@ or
 #    6 = 680x0 targets
 #    A = ARM
 #    e = in extended debug mode only
+#    F = help for the 'fpc' binary (independent of the target compiler)
 #    P = PowerPC targets
 #    S = Sparc targets
 #    V = Virtual machine targets
@@ -3163,7 +3244,7 @@ option_help_pages=11025_[
 **0*_Put + after a boolean switch option to enable it, - to disable it
 **1a_The compiler doesn't delete the generated assembler file
 **2al_List sourcecode lines in assembler file
-**2an_List node info in assembler file
+**2an_List node info in assembler file (-dEXTDEBUG compiler)
 *L2ap_Use pipes instead of creating temporary assembler files
 **2ar_List register allocation/release info in assembler file
 **2at_List temp allocation/release info in assembler file
@@ -3211,6 +3292,7 @@ S*2Aas_Assemble using GNU AS
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking
 **2Cn_Omit linking stage
+P*2CN_Generate nil-pointer checks (AIX-only)
 **2Co_Check overflow of integer operations
 **2CO_Check for possible overflow of integer operations
 **2Cp<x>_Select instruction set, see fpc -i for possible values
@@ -3301,6 +3383,10 @@ J*2Cv_Var/out parameter copy-out checking
 **2Ow<x>_Perform whole-program optimization <x>, see fpc -i for possible values
 **2Os_Optimize for size rather than speed
 **1pg_Generate profile code for gprof (defines FPC_PROFILE)
+F*1P<x>_Target CPU / compiler related options:
+F*2PB_Show default compiler binary
+F*2PP_Show default target cpu
+F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 **1R<x>_Assembler reading style:
 **2Rdefault_Use default assembler for target
 3*2Ratt_Read AT&T style assembler
@@ -3386,6 +3472,7 @@ S*2Tlinux_Linux
 **2*_    with full path              v : Write fpcdebug.txt with
 **2*_                                    lots of debugging info
 **2*_m<x>,<y> : Don't show messages numbered <x> and <y>
+F*1V<x>_Append '-<x>' to the used compiler binary name (e.g. for version)
 **1W<x>_Target-specific options (targets)
 3*2WA_Specify native type application (Windows)
 4*2WA_Specify native type application (Windows)
@@ -3426,11 +3513,17 @@ p*2Wi_Use internal resources (Darwin)
 3*2WI_Turn on/off the usage of import sections (Windows)
 4*2WI_Turn on/off the usage of import sections (Windows)
 A*2WI_Turn on/off the usage of import sections (Windows)
+3*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
+4*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
+p*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
+P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 3*2WN_Do not generate relocation code, needed for debugging (Windows)
 4*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2Wpxxxx_Specify the controller type, see fpc -i for possible values
 V*2Wpxxxx_Specify the controller type, see fpc -i for possible values
+3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
+A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 3*2WR_Generate relocation code (Windows)
 4*2WR_Generate relocation code (Windows)
 A*2WR_Generate relocation code (Windows)
@@ -3445,6 +3538,7 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xi_Use internal linker
 **2Xm_Generate link map
 **2XM<x>_Set the name of the 'main' program routine (default is 'main')
+F*2Xp<x>_First search for the compiler binary in the directory <x>
 **2XP<x>_Prepend the binutils names with the prefix <x>
 **2Xr<x>_Set the linker's rlink-path to <x> (needed for cross compile, see the ld manual for more information) (BeOS, Linux)
 **2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)

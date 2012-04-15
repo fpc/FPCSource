@@ -31,7 +31,7 @@
 }
 
 type
-  TX11Modes = Class(TObject)
+  TX11Modes = class(TObject)
   private
     FDisplay: PDisplay;
     FScreen: cint;
@@ -40,7 +40,7 @@ type
     function GetHeight: Integer; virtual; abstract;
   public
     constructor Create(ADisplay: PDisplay; AScreen: cint); virtual;
-    procedure GetModes(var AModes: TPTCModeDynArray; ACurrentDesktopFormat: TPTCFormat); virtual; abstract;
+    procedure GetModes(var AModes: TPTCModeList; ACurrentDesktopFormat: IPTCFormat); virtual; abstract;
     procedure SetBestMode(AWidth, AHeight: Integer); virtual; abstract;
     procedure RestorePreviousMode; virtual; abstract;
     property Width: Integer read GetWidth;
@@ -55,7 +55,7 @@ type
     function GetHeight: Integer; override;
   public
     constructor Create(ADisplay: PDisplay; AScreen: cint); override;
-    procedure GetModes(var AModes: TPTCModeDynArray; ACurrentDesktopFormat: TPTCFormat); override;
+    procedure GetModes(var AModes: TPTCModeList; ACurrentDesktopFormat: IPTCFormat); override;
     procedure SetBestMode(AWidth, AHeight: Integer); override;
     procedure RestorePreviousMode; override;
   end;
@@ -88,7 +88,7 @@ type
   public
     constructor Create(ADisplay: PDisplay; AScreen: cint); override;
     destructor Destroy; override;
-    procedure GetModes(var AModes: TPTCModeDynArray; ACurrentDesktopFormat: TPTCFormat); override;
+    procedure GetModes(var AModes: TPTCModeList; ACurrentDesktopFormat: IPTCFormat); override;
     procedure SetBestMode(AWidth, AHeight: Integer); override;
     procedure RestorePreviousMode; override;
   end;
@@ -111,7 +111,7 @@ type
   public
     constructor Create(ADisplay: PDisplay; AScreen: cint); override;
     destructor Destroy; override;
-    procedure GetModes(var AModes: TPTCModeDynArray; ACurrentDesktopFormat: TPTCFormat); override;
+    procedure GetModes(var AModes: TPTCModeList; ACurrentDesktopFormat: IPTCFormat); override;
     procedure SetBestMode(AWidth, AHeight: Integer); override;
     procedure RestorePreviousMode; override;
   end;

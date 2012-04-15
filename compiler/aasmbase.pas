@@ -147,6 +147,11 @@ interface
            TAsmList with loadsym/loadref/const_symbol (PFV) }
          refs       : longint;
        public
+         { on avr the compiler needs to replace cond. jumps with too large offsets
+           so we have to store an offset somewhere to calculate jump distances }
+{$ifdef AVR}
+         offset     : longint;
+{$endif AVR}
          bind       : TAsmsymbind;
          typ        : TAsmsymtype;
          { Alternate symbol which can be used for 'renaming' needed for
@@ -183,6 +188,8 @@ interface
     function LengthSleb128(a: int64) : byte;
     function EncodeUleb128(a: qword;out buf) : byte;
     function EncodeSleb128(a: int64;out buf) : byte;
+
+    function ReplaceForbiddenAsmSymbolChars(const s: string): string;
 
 
 implementation
@@ -320,6 +327,19 @@ implementation
           if not(more) then
             break;
         until false;
+      end;
+
+
+    function ReplaceForbiddenAsmSymbolChars(const s: string): string;
+      var
+        i : longint;
+        rchar: char;
+      begin
+        Result:=s;
+        rchar:=target_asm.dollarsign;
+        for i:=1 to Length(Result) do
+          if Result[i]='$' then
+            Result[i]:=rchar;
       end;
 
 

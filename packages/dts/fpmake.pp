@@ -24,6 +24,7 @@ begin
     P.Email := '';
     P.Description := 'a low-level interface to decoding audio frames encoded using DTS Coherent Acoustics';
     P.NeedLibC:= true;
+    P.OSes := [linux];
 
     P.SourcePath.Add('src');
 

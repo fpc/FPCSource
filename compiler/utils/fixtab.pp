@@ -208,14 +208,14 @@ begin
   new(inbuf);
   new(outbuf);
   assign(f,fn);
-  {$I-}
+  {$push}{$I-}
    reset(f,1);
-  {$I+}
+  {$pop}
   if ioresult<>0 then
    exit;
-  {$I-}
+  {$push}{$I-}
    rewrite(g,1);
-  {$I+}
+  {$pop}
   if ioresult<>0 then
    begin
      close(f);

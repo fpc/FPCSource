@@ -926,7 +926,7 @@ implementation
                        ,oso_keep
 {$endif FPC_USE_TLS_DIRECTORY}
           ],
-          {pdata} [oso_load,oso_readonly,oso_keep],
+          {pdata} [oso_data,oso_load,oso_readonly {$ifndef x86_64},oso_keep{$endif}],
           {stub} [oso_Data,oso_load,oso_readonly,oso_executable],
           {data_nonlazy}  [oso_Data,oso_load,oso_write],
           {data_lazy} [oso_Data,oso_load,oso_write],
@@ -1001,8 +1001,10 @@ implementation
           { For idata (at least idata2) it must be 4 bytes, because
             an entry is always (also in win64) 20 bytes and aligning
             on 8 bytes will insert 4 bytes between the entries resulting
-            in a corrupt idata section }
-          sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7:
+            in a corrupt idata section.
+            Same story with .pdata, it has 4-byte elements which should
+            be packed without gaps. }
+          sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_pdata:
             result:=4;
           else
             result:=sizeof(pint);
@@ -1616,7 +1618,7 @@ implementation
         objsym : TObjSymbol;
         exesym : TExeSymbol;
       begin
-        val(avalue,ImageBase,code);
+        val(avalue,FImageBase,code);
         if code<>0 then
           Comment(V_Error,'Invalid number '+avalue);
         { Create __image_base__ symbol, create the symbol

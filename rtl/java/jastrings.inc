@@ -17,14 +17,18 @@
 { This will release some functions for special shortstring support }
 { define EXTRAANSISHORT}
 
-constructor AnsistringClass.Create(len: longint);
+constructor AnsistringClass.Create(len: longint; cp: TSystemCodePage);
 begin
+  fElementSize:=1;
   { +1 for terminating #0 }
   setlength(fdata,len+1);
+  fCodePage:=cp;
 end;
 
-constructor AnsistringClass.Create(const arr: array of ansichar; length: longint);
+constructor AnsistringClass.Create(const arr: array of ansichar; length: longint; cp: TSystemCodePage);
 begin
+  fElementSize:=1;
+  fCodePage:=cp;
   { make explicit copy so that changing the array afterwards doesn't change
     the string }
   if length=0 then
@@ -39,71 +43,86 @@ begin
 end;
 
 
-constructor AnsistringClass.Create(const arr: array of unicodechar);
+constructor AnsistringClass.Create(const arr: array of unicodechar; cp: TSystemCodePage);
+var
+  temp: RawByteString;
 begin
+  fElementSize:=1;
+  fCodePage:=cp;
   if high(arr)=-1 then
     begin
       { terminating #0 }
       setlength(fdata,1);
       exit;
     end;
-  fdata:=TAnsiCharArray(JLString.Create(arr).getBytes);
-  setlength(fdata,system.length(fdata)+1);
-  // last char is already #0 because of setlength
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr),temp,cp,system.length(arr));
+  fdata:=AnsistringClass(temp).fdata;
+  // last char is already #0 because of Unicode2AnsiMoveProc()
 end;
 
 
-constructor AnsistringClass.Create(const u: unicodestring);
+constructor AnsistringClass.Create(const u: unicodestring; cp: TSystemCodePage);
+var
+  temp: RawByteString;
 begin
+  fElementSize:=1;
+  fCodePage:=cp;
   if system.length(u)=0 then
     begin
       { terminating #0 }
       setlength(fdata,1);
       exit;
     end;
-  fdata:=TAnsiCharArray(JLString(u).getBytes);
-  setlength(fdata,system.length(fdata)+1);
-  // last char is already #0 because of setlength
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(JLString(u).toCharArray),temp,cp,system.length(u));
+  fdata:=AnsistringClass(temp).fdata;
+  // last char is already #0 because of Unicode2AnsiMoveProc()
 end;
 
 
-constructor AnsistringClass.Create(const a: ansistring);
+constructor AnsistringClass.Create(const a: RawByteString; cp: TSystemCodePage);
 begin
-  Create(AnsistringClass(a).fdata,system.length(AnsistringClass(a).fdata)-1);
+  Create(AnsistringClass(a).fdata,system.length(AnsistringClass(a).fdata)-1,cp);
 end;
 
 
-constructor AnsistringClass.Create(const s: shortstring);
+constructor AnsistringClass.Create(const s: shortstring; cp: TSystemCodePage);
 begin
-  Create(ShortstringClass(@s).fdata,system.length(ShortstringClass(@s).fdata));
+  Create(ShortstringClass(@s).fdata,system.length(s),cp);
 end;
 
 
-constructor AnsistringClass.Create(ch: ansichar);
+constructor AnsistringClass.Create(ch: ansichar; cp: TSystemCodePage);
+var
+  arr: array[0..0] of ansichar;
 begin
+  fElementSize:=1;
+  fCodePage:=cp;
   setlength(fdata,2);
   fdata[0]:=ch;
   // last char is already #0 because of setlength
 end;
 
 
-constructor AnsistringClass.Create(ch: unicodechar);
+constructor AnsistringClass.Create(ch: unicodechar; cp: TSystemCodePage);
+var
+  temp: RawByteString;
+  arr: array[0..0] of unicodechar;
 begin
-  fdata:=TAnsiCharArray(JLString.Create(ch).getBytes);
-  setlength(fdata,system.length(fdata)+1);
-  // last char is already #0 because of setlength
+  fElementSize:=1;
+  fCodePage:=cp;
+  arr[0]:=ch;
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr),temp,cp,system.length(arr));
+  fdata:=AnsistringClass(temp).fdata;
 end;
 
 
-class function AnsistringClass.CreateFromLiteralStringBytes(const u: unicodestring): ansistring;
+class function AnsistringClass.CreateFromLiteralStringBytes(const u: unicodestring; cp: TSystemCodePage): RawByteString;
 var
   res: AnsistringClass;
   i: longint;
 begin
   { used to construct constant ansistrings from Java string constants }
-  res:=AnsistringClass.Create;
-  { +1 for terminating #0 }
-  setlength(res.fdata,system.length(u)+1);
+  res:=AnsistringClass.Create(system.length(u),cp);
   for i:=1 to system.length(u) do
     res.fdata[i-1]:=ansichar(ord(u[i]));
   result:=ansistring(res);
@@ -120,19 +139,19 @@ end;
 
 function AnsistringClass.toUnicodeString: unicodestring;
 begin
-  result:=UnicodeString(JLString.Create(TJByteArray(fdata),0,system.length(fdata)-1));
+  widestringmanager.Ansi2UnicodeMoveProc(pchar(fdata),fCodePage,result,system.length(fdata)-1);
 end;
 
 
 function AnsistringClass.toShortstring(maxlen: byte): shortstring;
 begin
-  result:=pshortstring(ShortstringClass.Create(ansistring(self),maxlen))^;
+  ShortstringClass(@result).copyFromAnsiCharArray(fData,maxlen);
 end;
 
 
 function AnsistringClass.toString: JLString;
 begin
-  result:=JLString.Create(TJByteArray(fdata),0,system.length(fdata)-1);
+  result:=JLString(toUnicodeString);
 end;
 
 (*
@@ -179,17 +198,47 @@ begin
   result:=system.length(fdata)-1;
 end;
 
+
+function AnsistringClass.codePage: TSystemCodePage;
+begin
+  result:=fCodePage;
+end;
+
+
+function AnsistringClass.elementSize: Word;
+begin
+  result:=fElementSize;
+end;
+
 {****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}
 
 {$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
-procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: sizeint; var dst: ansistring; const dstindex, len: sizeint); {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: sizeint; var dst: ansistring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   JLSystem.arraycopy(JLObject(src),srcindex,JLObject(AnsistringClass(dst).fdata),dstindex,len);
 end;
 {$endif FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
+
+
+{$ifndef FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
+{$define FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
+procedure fpc_pchar_pchar_intern_charmove(const src: pchar; const srcindex: sizeint; const dst: pchar; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  JLSystem.arraycopy(JLObject(src),srcindex,JLObject(dst),dstindex,len);
+end;
+{$endif FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
+
+
+{$ifndef FPC_HAS_SHORTSTR_ANSISTR_INTERN_CHARMOVE}
+{$define FPC_HAS_SHORTSTR_ANSISTR_INTERN_CHARMOVE}
+procedure fpc_shortstr_ansistr_intern_charmove(const src: shortstring; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  JLSystem.arraycopy(JLObject(ShortStringClass(@src).fdata),srcindex-1,JLObject(AnsistringClass(dst).fdata),dstindex,len);
+end;
+{$endif FPC_HAS_SHORTSTR_ANSISTR_INTERN_CHARMOVE}
 
 
 {$define FPC_HAS_NEWANSISTR}
@@ -199,68 +248,66 @@ Function NewAnsiString(Len : SizeInt) : Pointer;
   initialize it to zero length and reference count 1.
 }
 begin
-  result:=AnsistringClass.Create(len);
+  result:=AnsistringClass.Create(len,DefaultSystemCodePage);
 end;
 
 { not required }
-{$define FPC_HAS_DISPOSE_ANSISTR}
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 {$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
 {$define FPC_HAS_ANSISTR_ASSIGN}
 
-{$define FPC_HAS_ANSISTR_CONCAT}
-procedure fpc_AnsiStr_Concat (var DestS:ansistring;const S1,S2 : AnsiString); compilerproc;
+
+{$ifndef FPC_HAS_ANSISTR_CONCAT_COMPLEX}
+{$define FPC_HAS_ANSISTR_CONCAT_COMPLEX}
+{ keeps implicit try..finally block out from primary control flow }
+procedure ansistr_concat_complex(var DestS: RawByteString; const S1,S2: RawByteString; cp: TSystemCodePage);
 var
-  newdata: array of ansichar;
-  thislen, addlen: sizeint;
+  U: UnicodeString;
 begin
-  thislen:=length(s1);
-  addlen:=length(s2);
-  { +1 for terminating #0 }
-  setlength(newdata,thislen+addlen+1);
-  if thislen>0 then
-    JLSystem.ArrayCopy(JLObject(AnsistringClass(s1).fdata),0,JLObject(newdata),0,thislen);
-  if addlen>0 then
-    JLSystem.ArrayCopy(JLObject(AnsistringClass(s2).fdata),0,JLObject(newdata),thislen,addlen);
-  dests:=Ansistring(AnsistringClass.Create);
-  AnsistringClass(dests).fdata:=newdata;
+  U:=UnicodeString(S1)+UnicodeString(S2);
+  widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(JLString(U).toCharArray),DestS,cp,Length(U));
+  AnsistringClass(DestS).fCodePage:=cp;
+end;
+{$endif FPC_HAS_ANSISTR_CONCAT_COMPLEX}
+
+
+{$define FPC_HAS_ANSISTR_TO_ANSISTR}
+Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; compilerproc;
+{
+  Converts an AnsiString to an AnsiString taking code pages into care
+}
+Var
+  Size : SizeInt;
+  temp : UnicodeString;
+  orgcp: TSystemCodePage;
+begin
+  result:='';
+  Size:=Length(S);
+  if Size>0 then
+    begin
+      if (cp=CP_ACP) then
+        cp:=DefaultSystemCodePage;
+      orgcp:=StringCodePage(S);
+      if (orgcp=CP_ACP) then
+        orgcp:=DefaultSystemCodePage;
+      if (orgcp=cp) or (orgcp=CP_NONE) then
+        begin
+          result:=RawByteString(AnsistringClass.Create(S,cp));
+        end
+      else
+        begin
+          temp:=S;
+          Size:=Length(temp);
+          widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(JLString(temp).toCharArray),result,cp,Size);
+          AnsistringClass(result).fCodePage:=cp;
+        end;
+    end;
 end;
 
-
-{$define FPC_HAS_ANSISTR_CONCAT_MULTI}
-procedure fpc_AnsiStr_Concat_multi (var DestS:Ansistring;const sarr:array of Ansistring); compilerproc;
-  Var
-    i  : longint;
-    size, newsize : sizeint;
-    curlen, addlen, nextlen : sizeint;
-    newdata: array of ansichar;
-    res : AnsistringClass;
-  begin
-    { First calculate size of the result so we can allocate an array of
-      the right size }
-    NewSize:=0;
-    for i:=low(sarr) to high(sarr) do
-      inc(newsize,length(sarr[i]));
-    { +1 for terminating #0 }
-    setlength(newdata,newsize+1);
-    curlen:=0;
-    for i:=low(sarr) to high(sarr) do
-      begin
-        nextlen:=length(sarr[i]);
-        if nextlen>0 then
-          begin
-            JLSystem.ArrayCopy(JLObject(AnsistringClass(sarr[i]).fdata),0,JLObject(newdata),curlen,nextlen);
-            inc(curlen,nextlen);
-          end;
-      end;
-    res:=AnsistringClass.Create;
-    res.fdata:=newdata;
-    dests:=Ansistring(res);
-end;
-
+Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; [external name 'fpc_ansistr_to_ansistr'];
 
 {$define FPC_HAS_ANSISTR_TO_SHORTSTR}
-procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : Ansistring); compilerproc;
+procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : RawByteString);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
 {
   Converts a AnsiString to a ShortString;
 }
@@ -273,100 +320,42 @@ begin
    begin
      Size:=Length(S2);
      If Size>high(res) then
-       Size:=high(res);
-     JLSystem.ArrayCopy(JLObject(AnsistringClass(S2).fdata),0,JLObject(ShortstringClass(@res).fdata),0,Size);
-     setlength(res,Size);
+      Size:=high(res);
+     if Size>0 then
+       JLSystem.ArrayCopy(JLObject(AnsistringClass(S2).fdata),0,JLObject(ShortstringClass(@res).fdata),0,Size);
+     setlength(res,size);
    end;
 end;
 
 
-{$define FPC_HAS_SHORTSTR_TO_ANSISTR}
-Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
-{
-  Converts a ShortString to a AnsiString;
-}
-Var
-  Size : SizeInt;
-begin
-  Size:=Length(S2);
-  Setlength(result,Size);
-  if Size>0 then
-    JLSystem.ArrayCopy(JLObject(ShortstringClass(@S2).fdata),0,JLObject(AnsistringClass(result).fdata),0,Size);
-end;
-
-
-{$define FPC_HAS_CHAR_TO_ANSISTR}
-Function fpc_Char_To_AnsiStr(const c : AnsiChar): AnsiString; compilerproc;
-{
-  Converts a Char to a AnsiString;
-}
-begin
-  result:=ansistring(AnsistringClass.Create(c));
-end;
-
-
 {$define FPC_HAS_PCHAR_TO_ANSISTR}
-Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
-var
-  i, len: longint;
-  arr: TAnsiCharArray;
+Function fpc_PChar_To_AnsiStr(const p : PAnsiChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
+Var
+  L : SizeInt;
+{$ifndef FPC_HAS_CPSTRING}
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
-  arr:=TAnsiCharArray(p);
-  i:=0;
-  while arr[i]<>#0 do
-    inc(i);
-  if i<>0 then
-    result:=ansistring(AnsiStringClass.create(arr,i))
+  if (not assigned(p)) or (p[0]=#0) Then
+    L := 0
   else
-    result:=''
-end;
-
-
-{$define FPC_HAS_CHARARRAY_TO_ANSISTR}
-Function fpc_CharArray_To_AnsiStr(const arr: array of ansichar; zerobased: boolean = true): ansistring; compilerproc;
-var
-  i,j  : SizeInt;
-  localarr: array of jbyte;
-  foundnull: boolean;
-  res: AnsistringClass;
-begin
-  if (zerobased) then
+    L:=IndexChar(Arr1jbyte(p),-1,#0);
+  SetLength(fpc_PChar_To_AnsiStr,L);
+  if L > 0 then
     begin
-      if (arr[0]=#0) Then
-      begin
-        fpc_CharArray_To_AnsiStr := '';
-        exit;
-      end;
-      foundnull:=false;
-      j:=0;
-      for i:=low(arr) to high(arr) do
-        if arr[i]=#0 then
-          begin
-            foundnull:=true;
-            j:=i;
-            break;
-          end;
-      if foundnull then
-        begin
-          res:=AnsistringClass.Create(arr,j);
-          exit;
-        end
-    end
-  else
-    begin
-      res:=AnsistringClass.Create(arr);
-      exit;
+{$ifdef FPC_HAS_CPSTRING}
+      if (cp=CP_ACP) then
+        cp:=DefaultSystemCodePage;
+{$else FPC_HAS_CPSTRING}
+      cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
+      fpc_pchar_ansistr_intern_charmove(p,0,fpc_PChar_To_AnsiStr,0,L);
+      SetCodePage(fpc_PChar_To_AnsiStr,cp,False);
     end;
-  res:=AnsistringClass.Create;
-  { +1 for terminating 0 }
-  setlength(res.fdata,high(arr)+2);
-  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(res.fdata),0,high(arr)+1);
-  result:=Ansistring(res);
 end;
-
 
 {$define FPC_HAS_ANSISTR_TO_CHARARRAY}
-procedure fpc_ansistr_to_chararray(out res: array of ansichar; const src: ansistring); compilerproc;
+procedure  fpc_ansistr_to_chararray(out res: array of AnsiChar; const src: RawByteString); compilerproc;
 var
   len: longint;
 begin
@@ -381,18 +370,18 @@ begin
 end;
 
 
-function fpc_ansistr_setchar(const s: AnsiString; const index: longint; const ch: ansichar): AnsiString; compilerproc;
+function fpc_ansistr_setchar(const s: RawByteString; const index: longint; const ch: ansichar): RawByteString; compilerproc;
 var
   res: AnsistringClass;
 begin
-  res:=AnsistringClass.Create(s);
+  res:=AnsistringClass.Create(s,AnsistringClass(s).fCodePage);
   res.fdata[index-1]:=ch;
   result:=Ansistring(res);
 end;
 
 
 {$define FPC_HAS_ANSISTR_COMPARE}
-Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt;  compilerproc;
+Function fpc_AnsiStr_Compare(const S1,S2 : RawByteString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  compilerproc;
 {
   Compares 2 AnsiStrings;
   The result is
@@ -402,18 +391,32 @@ Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt;  compilerproc;
 }
 Var
   MaxI,Temp, i : SizeInt;
+  cp1,cp2 : TSystemCodePage;
+  r1,r2 : RawByteString;
 begin
   if JLObject(S1)=JLObject(S2) then
     begin
       result:=0;
       exit;
     end;
-  Maxi:=Length(S1);
-  temp:=Length(S2);
-  If MaxI>Temp then
-    MaxI:=Temp;
-  if MaxI>0 then
+  if (pointer(S1)=nil) then
     begin
+      result:=-Length(S2);
+      exit;
+    end;
+  if (pointer(S2)=nil) then
+    begin
+      result:=Length(S1);
+      exit;
+    end;
+  cp1:=StringCodePage(S1);
+  cp2:=StringCodePage(S2);
+  if cp1=cp2 then
+    begin
+      Maxi:=Length(S1);
+      temp:=Length(S2);
+      If MaxI>Temp then
+        MaxI:=Temp;
       for i:=0 to MaxI-1 do
         begin
           result:=ord(AnsistringClass(S1).fdata[i])-ord(AnsistringClass(S2).fdata[i]);
@@ -423,12 +426,23 @@ begin
       result:=Length(S1)-Length(S2);
     end
   else
-    result:=Length(S1)-Length(S2);
+    begin
+      r1:=S1;
+      if (cp1=CP_ACP) then
+        SetCodePage(r1,DefaultSystemCodePage,false);
+      r2:=S2;
+      if (cp2=CP_ACP) then
+        SetCodePage(r2,DefaultSystemCodePage,false);
+      //convert them to utf8 then compare
+      SetCodePage(r1,65001);
+      SetCodePage(r2,65001);
+      Result := fpc_AnsiStr_Compare(r1,r2);
+    end;
 end;
 
 
 {$define FPC_HAS_ANSISTR_COMPARE_EQUAL}
-Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt; compilerproc;
+Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt; compilerproc;
 {
   Compares 2 AnsiStrings for equality/inequality only;
   The result is
@@ -437,13 +451,45 @@ Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt; compilerp
 }
 Var
   MaxI,Temp : SizeInt;
+  cp1,cp2 : TSystemCodePage;
+  r1,r2 : RawByteString;
 begin
   if JLObject(S1)=JLObject(S2) then
     begin
       result:=0;
       exit;
     end;
-  result:=ord(not JUArrays.equals(TJByteArray(AnsistringClass(S1).fdata),TJByteArray(AnsistringClass(S2).fdata)));
+  { don't compare strings if one of them is empty }
+  if (pointer(S1)=nil) then
+    begin
+      result:=-Length(S2);
+      exit;
+    end;
+  if (pointer(S2)=nil) then
+    begin
+      result:=Length(S1);
+      exit;
+    end;
+  cp1:=StringCodePage(S1);
+  cp2:=StringCodePage(S2);
+  if cp1<>cp2 then
+    begin
+      r1:=S1;
+      if (cp1=CP_ACP) then
+        SetCodePage(r1,DefaultSystemCodePage,false);
+      r2:=S2;
+      if (cp2=CP_ACP) then
+        SetCodePage(r2,DefaultSystemCodePage,false);
+      //convert them to utf8 then compare
+      SetCodePage(r1,65001);
+      SetCodePage(r2,65001);
+    end
+  else
+    begin
+      r1:=s1;
+      r2:=s2;
+    end;
+  result:=ord(not JUArrays.equals(TJByteArray(AnsistringClass(r1).fdata),TJByteArray(AnsistringClass(r2).fdata)))
 end;
 
 
@@ -452,20 +498,26 @@ end;
 
 
 {$define FPC_HAS_ANSISTR_SETLENGTH}
-function fpc_AnsiStr_SetLength (S : AnsiString; l : SizeInt): Ansistring; compilerproc;
+Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  compilerproc;
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
 }
+var
+  oldlen: longint;
+  result: RawByteString;
 begin
-  if not assigned(AnsistringClass(s)) then
-    result:=ansistring(AnsistringClass.Create)
-  else
-    result:=s;
-  { +1 for terminating #0 }
-  setlength(AnsistringClass(result).fdata,l+1);
-  { null-terminate in case the string became shorter }
-  AnsistringClass(result).fdata[l]:=#0;
+  if (cp=CP_ACP) then
+    cp:=DefaultSystemCodePage;
+  { no explicit reference counting possible -> can't reuse S because we don't
+    know how many references exist to it }
+  result:=RawByteString(AnsistringClass.Create(l,cp));
+  oldlen:=length(s);
+  if l>oldlen then
+    l:=oldlen;
+  if l>0 then
+    JLSystem.ArrayCopy(JLObject(AnsistringClass(S).fdata),0,JLObject(AnsistringClass(result).fdata),0,l);
+  S:=result;
 end;
 
 {*****************************************************************************
@@ -480,58 +532,12 @@ end;
 {$define FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 procedure FPC_ANSISTR_UNIQUE(var s: AnsiString); inline;
 begin
-  s:=ansistring(AnsistringClass.Create(s));
-end;
-(*
-Function fpc_ansistr_Unique(Var S : jlobject): jlobject; compilerproc;
-begin
-  s:=AnsistringClass.Create(ansistring(s));
-  result:=s;
-end;
-*)
-{$define FPC_HAS_ANSISTR_APPEND_CHAR}
-Procedure fpc_ansistr_append_char(Var S : AnsiString;c : ansichar); compilerproc;
-var
-  curlen: sizeint;
-begin
-  curlen:=length(s);
-  SetLength(s,curlen+1);
-  AnsistringClass(s).fdata[curlen]:=c;
-end;
-
-
-{$define FPC_HAS_ANSISTR_APPEND_SHORTSTR}
-Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); compilerproc;
-var
-   ofs : SizeInt;
-begin
-   if Str='' then
-     exit;
-   ofs:=Length(S);
-   SetLength(S,ofs+length(Str));
-   { the pbyte cast avoids an unique call which isn't necessary because SetLength was just called }
-   JLSystem.ArrayCopy(JLObject(ShortstringClass(@Str).fdata),0,JLObject(AnsistringClass(S).fdata),ofs,length(Str));
-end;
-
-
-{$define FPC_HAS_ANSISTR_APPEND_ANSISTR}
-Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); compilerproc;
-var
-  ofs, strlength: longint;
-begin
-   if Str='' then
-     exit;
-   strlength:=length(str);
-   ofs:=Length(S);
-   { no problem if s and str are the same string, because "var" parameters are
-     copy-in/out for ansistring }
-   SetLength(S,ofs+strlength);
-   JLSystem.ArrayCopy(JLObject(AnsistringClass(Str).fdata),0,JLObject(AnsistringClass(S).fdata),ofs,strlength);
+  s:=ansistring(AnsistringClass.Create(s,AnsiStringClass(s).fCodePage));
 end;
 
 
 {$define FPC_HAS_ANSISTR_COPY}
-Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
+Function Fpc_Ansistr_Copy(Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc;
 var
   res: AnsistringClass;
 begin
@@ -546,6 +552,7 @@ begin
   If Size>0 then
    begin
      res:=AnsistringClass.Create;
+     AnsistringClass(res).fcodepage:=AnsistringClass(S).fcodepage;
      { +1 for terminating #0 }
      setlength(res.fdata,size+1);
      JLSystem.ArrayCopy(JLObject(AnsistringClass(S).fdata),index,JLObject(res.fdata),0,size);
@@ -556,7 +563,7 @@ end;
 
 
 {$define FPC_HAS_POS_SHORTSTR_ANSISTR}
-Function Pos (Const Substr : ShortString; Const Source : AnsiString) : SizeInt;
+Function Pos(Const Substr : ShortString; Const Source : RawByteString) : SizeInt;
 var
   i,j,k,MaxLen, SubstrLen : SizeInt;
 begin
@@ -588,7 +595,7 @@ end;
 
 
 {$define FPC_HAS_POS_ANSISTR_ANSISTR}
-Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : SizeInt;
+Function Pos(Const Substr : RawByteString; Const Source : RawByteString) : SizeInt;
 var
   i,j,k,MaxLen, SubstrLen : SizeInt;
 begin
@@ -624,7 +631,7 @@ end;
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : AnsiChar; Const s : AnsiString) : SizeInt;
+Function Pos (c : AnsiChar; Const s : RawByteString) : SizeInt;
 var
   i: SizeInt;
 begin
@@ -666,4 +673,51 @@ begin
   u:=s;
   result:=lowercase(u);
 end;
+
+{$define FPC_HAS_ANSISTR_STRINGCODEPAGE}
+function StringCodePage(const S: RawByteString): TSystemCodePage; overload;
+  begin
+    if assigned(pointer(S)) then
+       Result:=AnsistringClass(S).fCodePage
+    else
+      Result:=DefaultSystemCodePage;
+  end;
+
+
+{$define FPC_HAS_ANSISTR_STRINGELEMENTSIZE}
+function StringElementSize(const S: RawByteString): Word; overload;
+  begin
+    if assigned(Pointer(S)) then
+      Result:=AnsistringClass(S).fElementSize
+    else
+      Result:=SizeOf(AnsiChar);
+  end;
+
+
+{$define FPC_HAS_ANSISTR_STRINGREFCOUNT}
+function StringRefCount(const S: RawByteString): SizeInt; overload;
+  begin
+    if assigned(Pointer(S)) then
+      Result:=1
+    else
+      Result:=0;
+  end;
+
+
+{$define FPC_HAS_ANSISTR_SETCODEPAGE}
+procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
+  begin
+    if not assigned(Pointer(S)) or (StringCodePage(S)=CodePage) then
+      exit
+    else if (AnsistringClass(S).length<>0) and
+        Convert then
+      begin
+        s:=fpc_AnsiStr_To_AnsiStr(s,CodePage);
+      end
+    else
+      begin
+        AnsistringClass(S).fCodePage:=CodePage;
+      end;
+  end;
+
 

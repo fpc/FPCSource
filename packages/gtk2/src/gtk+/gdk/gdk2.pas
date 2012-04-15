@@ -33,7 +33,7 @@ uses glib2, gdk2pixbuf, pango, cairo;
 
 const
 // OS dependent defines
-{$ifdef win32}
+{$ifdef windows}
   {$DEFINE GDK_WINDOWING_WIN32}
   gdklib = 'libgdk-win32-2.0-0.dll';
   {$IFDEF FPC}
@@ -179,7 +179,7 @@ procedure gdk_event_send_clientmessage_toall(event:PGdkEvent); cdecl; external g
 {$IFNDEF KYLIX}
 { Threading }
 var
-  {$IFDEF WIN32}
+  {$IFDEF WINDOWS}
   gdk_threads_mutex : PGMutex; external gdklib name 'gdk_threads_mutex';
   {$ELSE}
   gdk_threads_mutex : PGMutex; cvar; external;

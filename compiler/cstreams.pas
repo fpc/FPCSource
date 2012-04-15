@@ -203,7 +203,7 @@ implementation
 
     begin
     // We do nothing. Pipe streams don't support this
-    // As wel as possible read-ony streams !!
+    // As well as possible read-ony streams !!
     end;
 
   procedure TCStream.ReadBuffer(var Buffer; Count: Longint);
@@ -371,9 +371,9 @@ begin
   If Mode=fmcreate then
     begin
       system.assign(FHandle,AFileName);
-      {$I-}
+      {$push} {$I-}
        system.rewrite(FHandle,1);
-      {$I+}
+      {$pop}
       CStreamError:=IOResult;
     end
   else
@@ -381,9 +381,9 @@ begin
       oldfilemode:=filemode;
       filemode:=$40 or Mode;
       system.assign(FHandle,AFileName);
-      {$I-}
+      {$push} {$I-}
        system.reset(FHandle,1);
-      {$I+}
+      {$pop}
       CStreamError:=IOResult;
       filemode:=oldfilemode;
     end;
@@ -392,9 +392,9 @@ end;
 
 destructor TCFileStream.Destroy;
 begin
-  {$I-}
+  {$push} {$I-}
    System.Close(FHandle);
-  {$I+}
+  {$pop}
   CStreamError:=IOResult;
 end;
 
@@ -417,10 +417,10 @@ end;
 
 Procedure TCFileStream.SetSize(NewSize: Longint);
 begin
-  {$I-}
+  {$push} {$I-}
    System.Seek(FHandle,NewSize);
    System.Truncate(FHandle);
-  {$I+}
+  {$pop}
   CStreamError:=IOResult;
 end;
 
@@ -429,7 +429,7 @@ function TCFileStream.Seek(Offset: Longint; Origin: Word): Longint;
 var
   l : longint;
 begin
-  {$I-}
+  {$push} {$I-}
    case Origin of
      soFromBeginning :
        begin
@@ -451,7 +451,7 @@ begin
          System.Seek(FHandle,l);
        end;
    end;
-  {$I+}
+  {$pop}
   CStreamError:=IOResult;
   Result:=l;
 end;

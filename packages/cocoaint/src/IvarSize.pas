@@ -1295,7 +1295,10 @@ type
 ;end;
 
 procedure PrintGlue1;
-begin 
+var
+  pool: NSAutoReleasePool;
+begin
+ pool:=NSAutoReleasePool.alloc.init;
  if class_getInstanceSize(TDerivedNSAffineTransform) <> (class_getInstanceSize(NSAffineTransform)+sizeof(pointer)) then
  writeln('size of NSAffineTransform is wrong: ',class_getInstanceSize(TDerivedNSAffineTransform),' <> ',class_getInstanceSize(NSAffineTransform)+sizeof(pointer));
  if class_getInstanceSize(TDerivedNSAppleEventDescriptor) <> (class_getInstanceSize(NSAppleEventDescriptor)+sizeof(pointer)) then
@@ -1945,6 +1948,7 @@ begin
  writeln('size of NSWindowController is wrong: ',class_getInstanceSize(TDerivedNSWindowController),' <> ',class_getInstanceSize(NSWindowController)+sizeof(pointer));
  if class_getInstanceSize(TDerivedNSWorkspace) <> (class_getInstanceSize(NSWorkspace)+sizeof(pointer)) then
  writeln('size of NSWorkspace is wrong: ',class_getInstanceSize(TDerivedNSWorkspace),' <> ',class_getInstanceSize(NSWorkspace)+sizeof(pointer));
+ pool.release;
 end;
 begin
  PrintGlue1;

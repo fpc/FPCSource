@@ -304,6 +304,13 @@ interface
                   if (right.location.size<>left.location.size) or
                      (location.size<>left.location.size) then
                     internalerror(2010123001);
+                  { make sure that location.register is different from
+                    left.location.register, since right will overwrite it
+                    and we'll use left afterwards }
+                  if (right.location.loc=LOC_REGISTER) then
+                    location.register:=right.location.register
+                  else
+                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                   { make sure we don't modify left/right.location, because we told
                     force_reg_left_right above that they can be constant }
                   hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,resultdef,right.location.register,location.register);

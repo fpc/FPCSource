@@ -42,7 +42,7 @@ uses
 type
   PEventLinkedList = ^TEventLinkedList;
   TEventLinkedList = record
-    Event: TPTCEvent;
+    Event: IPTCEvent;
     Next: PEventLinkedList;
   end;
   TEventQueue = class
@@ -51,9 +51,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure AddEvent(event: TPTCEvent);
-    function PeekEvent(const EventMask: TPTCEventMask): TPTCEvent;
-    function NextEvent(const EventMask: TPTCEventMask): TPTCEvent;
+    procedure AddEvent(const event: IPTCEvent);
+    function PeekEvent(const EventMask: TPTCEventMask): IPTCEvent;
+    function NextEvent(const EventMask: TPTCEventMask): IPTCEvent;
   end;
 
 implementation
@@ -71,7 +71,7 @@ begin
   p := FHead;
   while p <> nil do
   begin
-    FreeAndNil(p^.Event);
+    p^.Event := nil;
     pnext := p^.Next;
     Dispose(p);
     p := pnext;
@@ -79,7 +79,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TEventQueue.AddEvent(event: TPTCEvent);
+procedure TEventQueue.AddEvent(const event: IPTCEvent);
 var
   tmp: PEventLinkedList;
 begin
@@ -100,7 +100,7 @@ begin
   end;
 end;
 
-function TEventQueue.PeekEvent(const EventMask: TPTCEventMask): TPTCEvent;
+function TEventQueue.PeekEvent(const EventMask: TPTCEventMask): IPTCEvent;
 var
   p: PEventLinkedList;
 begin
@@ -118,7 +118,7 @@ begin
   Result := nil;
 end;
 
-function TEventQueue.NextEvent(const EventMask: TPTCEventMask): TPTCEvent;
+function TEventQueue.NextEvent(const EventMask: TPTCEventMask): IPTCEvent;
 var
   prev, p: PEventLinkedList;
 begin
@@ -129,6 +129,7 @@ begin
     if p^.Event.EventType In EventMask then
     begin
       Result := p^.Event;
+      p^.Event := nil;
 
       { delete the element from the linked list }
       if prev <> nil then

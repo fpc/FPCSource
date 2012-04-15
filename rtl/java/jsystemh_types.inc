@@ -170,6 +170,27 @@ Type
   FarPointer = Pointer;
 {$endif CPUSPARC}
 
+{$ifdef CPUMIPS32}
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+
+  {$ifndef FPUNONE}
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+    ValReal = Double;
+  {$endif}
+
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+
+  FarPointer = Pointer;
+{$endif CPUMIPS32}
+
+
 {$ifdef CPUARM}
   {$define DEFAULT_DOUBLE}
 
@@ -212,7 +233,7 @@ Type
   PComp = ^Comp;
 
   FarPointer = Pointer;
-{$endif CPUARM}
+{$endif CPUAVR}
 
 {$ifdef CPUJVM}
   {$define DEFAULT_DOUBLE}
@@ -256,10 +277,32 @@ Type
 
   NativeInt  = PtrInt;
   NativeUint = PtrUint;
+
+  Int8    = ShortInt;
+  Int16   = SmallInt;
+  Int32   = Longint;
+  IntPtr  = PtrInt;
+  UInt8   = Byte;
+  UInt16  = Word;
+  UInt32  = Cardinal;
+  UIntPtr = PtrUInt;
+
 { Zero - terminated strings }
   PChar               = ^Char;
   PPChar              = ^PChar;
   PPPChar             = ^PPChar;
+
+{ some values which are used in RTL for TSystemCodePage type }
+const
+  CP_ACP     = 0;     // default to ANSI code page
+  CP_UTF16   = 1200;  // utf-16
+  CP_UTF16BE = 1201;  // unicodeFFFE
+  CP_UTF7    = 65000; // utf-7
+  CP_UTF8    = 65001; // utf-8
+  CP_ASCII   = 20127; // us-ascii
+  CP_NONE    = $FFFF; // rawbytestring encoding
+
+type
   { AnsiChar is equivalent of Char, so we need
     to use type renamings }
   TAnsiChar           = Char;
@@ -277,10 +320,18 @@ Type
   PUCS4CharArray      = ^TUCS4CharArray;
   UCS4String          = array of UCS4Char;
 
+{$ifdef FPC_HAS_CPSTRING}
+  UTF8String          = type AnsiString(CP_UTF8);
+{$else FPC_HAS_CPSTRING}
   UTF8String          = type ansistring;
-(*
+{$endif FPC_HAS_CPSTRING}
   PUTF8String         = ^UTF8String;
-*)
+
+{$ifdef FPC_HAS_CPSTRING}
+  RawByteString       = type AnsiString(CP_NONE);
+{$else FPC_HAS_CPSTRING}
+  RawByteString       = ansistring;
+{$endif FPC_HAS_CPSTRING}
 
   HRESULT             = type Longint;
 {$ifndef FPUNONE}
@@ -347,6 +398,9 @@ Type
   UnicodeChar         = WideChar;
   PUnicodeChar        = ^UnicodeChar;
   PUnicodeString      = ^UnicodeString;
+
+  TSystemCodePage     = Word;
+
 (*
   { Needed for fpc_get_output }
   PText               = ^Text;
@@ -468,10 +522,22 @@ var
   ExitCode    : Longint; (* public name 'operatingsystem_result'; *)
   RandSeed    : Cardinal;
   { Delphi compatibility }
-  IsLibrary : boolean = false;
-  IsConsole : boolean;
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+  IsLibrary : boolean = false; public name 'operatingsystem_islibrary';
+{$else FPC_HAS_FEATURE_DYNLIBS}
+const
+  IsLibrary = false;
+var
+{$endif FPC_HAS_FEATURE_DYNLIBS}
+  IsConsole : boolean = false; public name 'operatingsystem_isconsole';
   { Threading support }
   fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
+
+  DefaultSystemCodePage,
+  DefaultUnicodeCodePage,
+  UTF8CompareLocale : TSystemCodePage;
+
+
 (*
 {$ifndef HAS_CMDLINE}
 {Value should be changed during system initialization as appropriate.}
@@ -480,7 +546,11 @@ var cmdline:Pchar=nil;
 *)
 
 (*
+{$ifdef FPC_HAS_FEATURE_THREADING}
 ThreadVar
+{$else FPC_HAS_FEATURE_THREADING}
+Var
+{$endif FPC_HAS_FEATURE_THREADING}
   ThreadID    : TThreadID;
   { Standard In- and Output }
   ErrOutput,

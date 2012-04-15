@@ -197,6 +197,9 @@ implementation
           pd:=constructor_head;
         potype_destructor:
           pd:=destructor_head;
+        else if assigned(astruct) and
+           (astruct.typ=recorddef) then
+          pd:=parse_record_method_dec(astruct,is_classdef)
         else
           pd:=method_dec(astruct,is_classdef);
       end;
@@ -1038,6 +1041,7 @@ implementation
         representable in source form and we don't need them anyway }
       symtablestack.push(trecorddef(nestedvarsdef).symtable);
       maybe_add_public_default_java_constructor(trecorddef(nestedvarsdef));
+      insert_record_hidden_paras(trecorddef(nestedvarsdef));
       symtablestack.pop(trecorddef(nestedvarsdef).symtable);
 {$endif}
       symtablestack.free;

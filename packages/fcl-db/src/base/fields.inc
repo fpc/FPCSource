@@ -290,6 +290,7 @@ Const
   SLargeInt = 'LargeInt';
   SVariant = 'Variant';
   SString = 'String';
+  SBytes = 'Bytes';
 
 constructor TField.Create(AOwner: TComponent);
 
@@ -415,10 +416,21 @@ begin
   // TDataset manages the buffers.
 end;
 
-function TField.GetAsBoolean: Boolean;
+function TField.GetAsBCD: TBCD;
+begin
+  raise AccessError(SBCD);
+end;
 
+function TField.GetAsBoolean: Boolean;
 begin
   raise AccessError(SBoolean);
+end;
+
+function TField.GetAsBytes: TBytes;
+begin
+  SetLength(Result, DataSize);
+  if assigned(result) and not GetData(@Result[0], False) then
+    Result := nil;
 end;
 
 function TField.GetAsDateTime: TDateTime;
@@ -558,8 +570,8 @@ begin
     DatabaseErrorFmt(SNoDataset,[FieldName]);
   If FVAlidating then
     begin
-    result:=Not(FValueBuffer=Nil);
-    If Result then
+    result:=assigned(FValueBuffer);
+    If Result and assigned(Buffer) then
       Move (FValueBuffer^,Buffer^ ,DataSize);
     end
   else
@@ -617,11 +629,6 @@ begin
     Result:=-1;
 end;
 
-function TField.GetAsBCD: TBCD;
-begin
-  raise AccessError(SBCD);
-end;
-
 function TField.GetLookup: Boolean;
 begin
   Result := FieldKind = fkLookup;
@@ -644,11 +651,6 @@ begin
     FAlignment := Avalue;
     PropertyChanged(false);
     end;
-end;
-
-procedure TField.SetAsBCD(const AValue: TBCD);
-begin
-  Raise AccessError(SBCD);
 end;
 
 procedure TField.SetIndex(const AValue: Integer);
@@ -710,10 +712,11 @@ begin
     FLookupDataSet.DisableControls;
     try
       FLookupDataSet.First;
-      repeat
+      while not FLookupDataSet.Eof do
+      begin
         FLookupList.Add(FLookupDataSet.FieldValues[FLookupKeyfields], FLookupDataSet.FieldValues[FLookupResultField]);
         FLookupDataSet.Next;
-      until FLookupDataSet.EOF;
+      end;
     finally
       FLookupDataSet.EnableControls;
     end;
@@ -746,6 +749,16 @@ begin
   inherited ReadState(Reader);
   if Reader.Parent is TDataSet then
     DataSet := TDataSet(Reader.Parent);
+end;
+
+procedure TField.SetAsBCD(const AValue: TBCD);
+begin
+  Raise AccessError(SBCD);
+end;
+
+procedure TField.SetAsBytes(const AValue: TBytes);
+begin
+  raise AccessError(SBytes);
 end;
 
 procedure TField.SetAsBoolean(AValue: Boolean);
@@ -820,12 +833,6 @@ procedure TField.SetData(Buffer: Pointer; NativeFormat : Boolean);
 begin
   If Not Assigned(FDataset) then
     DatabaseErrorFmt(SNoDataset,[FieldName]);
-  if (FieldNo>0) and not (FDataSet.State in [dsSetKey, dsFilter]) then
-    begin
-    if ReadOnly then 
-      DatabaseErrorFmt(SReadOnlyField, [DisplayName], Self); 
-    Validate(Buffer);
-    end;
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 
@@ -1075,10 +1082,7 @@ end;
 function TStringField.GetDataSize: Integer;
 
 begin
-  if DataType=ftFixedChar then
-    Result:=Size+1
-  else
-    Result:=Size+1;
+  Result:=Size+1;
 end;
 
 function TStringField.GetDefaultWidth: Longint;
@@ -1369,6 +1373,11 @@ begin
   Result:=GetAsLongint;
 end;
 
+function TLongintField.GetAsLargeint: Largeint;
+begin
+  Result:=GetAsLongint;
+end;
+
 function TLongintField.GetAsLongint: Longint;
 
 begin
@@ -1436,6 +1445,14 @@ begin
       ftword               : Avalue:=Pword(P)^;
       ftsmallint           : AValue:=PSmallint(P)^;
     end;
+end;
+
+procedure TLongintField.SetAsLargeint(AValue: Largeint);
+begin
+  if (AValue>=FMinRange) and (AValue<=FMaxRange) then
+    SetAsLongint(AValue)
+  else
+    RangeError(AValue,FMinRange,FMaxRange);
 end;
 
 procedure TLongintField.SetAsFloat(AValue: Double);
@@ -2151,8 +2168,13 @@ end;
 procedure TTimeField.SetAsString(const AValue: string);
 Var R : TDateTime;
 begin
-  R:=StrToTime(AVAlue);
-  SetData(@R);
+  if AValue='' then
+    Clear    // set to NULL
+  else
+    begin
+    R:=StrToTime(AVAlue);
+    SetData(@R);
+    end;
 end;
 
 
@@ -2165,15 +2187,48 @@ begin
   // Just check for really invalid stuff; actual size is
   // dependent on the record...
   If AValue<1 then
-    DatabaseErrorfmt(SInvalidFieldSize,[Avalue]);
+    DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
+end;
+
+function TBinaryField.GetAsBytes: TBytes;
+var B: TBytes;
+begin
+  SetLength(B, DataSize);
+  if not assigned(B) or not GetData(Pointer(B), True) then
+    SetLength(Result, 0)
+  else if DataType = ftVarBytes then
+  begin
+    SetLength(Result, PWord(B)^);
+    Move(B[sizeof(Word)], Result[0], Length(Result));
+  end
+  else // ftBytes
+    Result := B;
 end;
 
 
 function TBinaryField.GetAsString: string;
-
+var B: TBytes;
 begin
-  Setlength(Result,DataSize);
-  GetData(Pointer(Result));
+  B := GetAsBytes;
+  if length(B) = 0 then
+    Result := ''
+  else
+    SetString(Result, @B[0], length(B) div SizeOf(Char));
+end;
+
+
+function TBinaryField.GetAsVariant: Variant;
+var B: TBytes;
+    P: Pointer;
+begin
+  B := GetAsBytes;
+  Result := VarArrayCreate([0, length(B)-1], varByte);
+  P := VarArrayLock(Result);
+  try
+    Move(B[0], P^, length(B));
+  finally
+    VarArrayUnlock(Result);
+  end;
 end;
 
 
@@ -2184,24 +2239,47 @@ begin
 end;
 
 
-procedure TBinaryField.SetAsString(const AValue: string);
-
-Var Buf : PChar;
-    Allocated : Boolean;
-
+procedure TBinaryField.SetAsBytes(const AValue: TBytes);
+var Buf: array[0..dsMaxStringSize] of byte;
+    DynBuf: TBytes;
+    Len: Word;
+    P: PByte;
 begin
-  Allocated:=False;
-  If Length(AVAlue)=DataSize then
-    Buf:=PChar(Avalue)
-  else
-    begin
-    GetMem(Buf,DataSize);
-    Move(Pchar(Avalue)[0],Buf^,DataSize);
-    Allocated:=True;
+  Len := Length(AValue);
+  if Len >= DataSize then
+    P := @AValue[0]
+  else begin
+    if DataSize <= dsMaxStringSize then
+      P := @Buf[0]
+    else begin
+      SetLength(DynBuf, DataSize);
+      P := @DynBuf[0];
     end;
-  SetData(Buf);
-  If Allocated then
-    FreeMem(Buf,DataSize);
+
+    if DataType = ftVarBytes then begin
+      PWord(P)^ := Len;
+      Move(AValue[0], P[sizeof(Word)], Len);
+    end
+    else begin // ftBytes
+      Move(AValue[0], P^, Len);
+      FillChar(P[Len], DataSize-Len, 0); // right pad with #0
+    end;
+  end;
+  SetData(P, True)
+end;
+
+
+procedure TBinaryField.SetAsString(const AValue: string);
+var B : TBytes;
+begin
+  If Length(AValue) = DataSize then
+    SetData(PChar(AValue))
+  else
+  begin
+    SetLength(B, Length(AValue) * SizeOf(Char));
+    Move(AValue[1], B[0], Length(B));
+    SetAsBytes(B);
+  end;
 end;
 
 
@@ -2212,8 +2290,24 @@ begin
 end;
 
 procedure TBinaryField.SetVarValue(const AValue: Variant);
+var P: Pointer;
+    B: TBytes;
+    Len: integer;
 begin
-  SetAsString(Avalue);
+  if VarIsArray(AValue) then
+  begin
+    P := VarArrayLock(AValue);
+    try
+      Len := VarArrayHighBound(AValue, 1) + 1;
+      SetLength(B, Len);
+      Move(P^, B[0], Len);
+    finally
+      VarArrayUnlock(AValue);
+    end;
+    SetAsBytes(B);
+  end
+  else
+    SetAsString(AValue);
 end;
 
 
@@ -2395,7 +2489,10 @@ end;
 procedure TBCDField.SetAsString(const AValue: string);
 
 begin
-  SetAsCurrency(strtocurr(AValue));
+  if AValue='' then
+    Clear    // set to NULL
+  else
+    SetAsCurrency(strtocurr(AValue));
 end;
 
 constructor TBCDField.Create(AOwner: TComponent);
@@ -2576,7 +2673,10 @@ end;
 
 procedure TFMTBCDField.SetAsString(const AValue: string);
 begin
-  SetAsBCD(StrToBCD(AValue));
+  if AValue='' then
+    Clear    // set to NULL
+  else
+    SetAsBCD(StrToBCD(AValue));
 end;
 
 

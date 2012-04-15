@@ -254,9 +254,9 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
          nlmVersionHeader   : nlm32_i386_external_version_header;
          nlmExtHeader       : nlm32_i386_external_extended_header;
          nlmCustHeader      : nlm32_i386_external_custom_header;
-         nlmHelpFileName    : TCmdStr;
-         nlmMessagesFileName: TCmdStr;
-         nlmXdcFileName     : TCmdStr;
+         //nlmHelpFileName    : TCmdStr;
+         //nlmMessagesFileName: TCmdStr;
+         //nlmXdcFileName     : TCmdStr;
          nlmCopyright       : string;
          nlmThreadname      : string;
          nlmScreenname      : string;
@@ -1510,6 +1510,7 @@ const
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 
 

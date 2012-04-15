@@ -123,7 +123,7 @@ interface
 implementation
 
     uses
-      comphook,fmodule,constexp,globals,cfileutl;
+      comphook,fmodule,constexp,globals,cfileutl,switches;
 
 {****************************************************************************
                        Extra Handlers for default compiler
@@ -151,14 +151,14 @@ implementation
           close(status.redirfile);
 
         assign(status.redirfile,fn);
-      {$I-}
+      {$push}{$I-}
         append(status.redirfile);
         if ioresult <> 0 then
           begin
             assign(status.redirfile,fn);
             rewrite(status.redirfile);
           end;
-      {$I+}
+      {$pop}
         status.use_redir:=(ioresult=0);
       end;
 
@@ -171,11 +171,11 @@ implementation
          exit;
         fn:='fpcdebug.txt';
         assign(status.reportbugfile,fn);
-        {$I-}
+        {$push}{$I-}
          append(status.reportbugfile);
          if ioresult <> 0 then
           rewrite(status.reportbugfile);
-        {$I+}
+        {$pop}
         status.use_bugreport:=(ioresult=0);
         if status.use_bugreport then
          writeln(status.reportbugfile,'FPC bug report file');
@@ -194,20 +194,19 @@ implementation
     procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
     var pstate : pmessagestaterecord;
       begin
-        pstate:=fstate;
+        pstate:=unaligned(fstate);
         while assigned(pstate) do
           begin
-            fstate:=pstate^.next;
+            unaligned(fstate):=pstate^.next;
             freemem(pstate);
-            pstate:=fstate;
+            pstate:=unaligned(fstate);
           end;
       end;
 
-    function ChangeMessageVerbosity(s: string; var i: integer;state:tmsgstate): boolean;
+    function ChangeMessageVerbosity(s: string; var i : integer;state:tmsgstate): boolean;
       var
         tok  : string;
-        code : longint;
-        msgnr: longint;
+        msgnr, code : longint;
       begin
         { delete everything up to and including 'm' }
         delete(s,1,i);
@@ -222,16 +221,11 @@ implementation
           if (code<>0) then
             exit;
           if not msg^.setverbosity(msgnr,state) then
-            exit;
+            exit
+          else
+            recordpendingmessagestate(msgnr, state);
         until false;
         result:=true;
-      end;
-
-    { This function is only used for command line argument -vmXXX }
-    { thus the message needs to be cleared globally }
-    function ClearMessageVerbosity(s: string; var i: integer): boolean;
-      begin
-        ClearMessageVerbosity:=ChangeMessageVerbosity(s,i,ms_off_global);
       end;
 
     function SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
@@ -246,6 +240,8 @@ implementation
 
 
     function SetVerbosity(const s:string):boolean;
+      const
+        message_verbosity:array[boolean] of tmsgstate=(ms_off_global,ms_on_global);
       var
         m : Longint;
         i : Integer;
@@ -283,8 +279,7 @@ implementation
                           else
                             status.print_source_path:=true;
                        end;
-                 'M' : if inverse or
-                         not ClearMessageVerbosity(s, i) then
+                 'M' : if not ChangeMessageVerbosity(s,i,message_verbosity[inverse]) then
                          begin
                            result:=false;
                            exit

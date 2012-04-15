@@ -1,124 +1,76 @@
 #
-#   Makefile.fpc for Apple Universal Interfaces for Free Pascal
+#   Makefile.fpc for running fpmake
 #
 
 [package]
 name=univint
 version=2.7.1
 
-[target]
-units=MacOSAll MacOS
-implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEDataModel \
-  AEHelpers AEInteraction AEMach AEObjects AEPackObject AERegistry \
-  AEUserTermTypes AIFF ASDebugging ASRegistry ATSFont ATSLayoutTypes \
-  ATSTypes ATSUnicodeDirectAccess ATSUnicodeDrawing ATSUnicodeFlattening \
-  ATSUnicodeFonts ATSUnicodeGlyphs ATSUnicodeObjects ATSUnicodeTypes \
-  AUComponent AVLTree AXActionConstants AXAttributeConstants AXConstants \
-  AXErrors AXNotificationConstants AXRoleConstants AXTextAttributedString \
-  AXUIElement AXValue AXValueConstants Accessibility Aliases Appearance \
-  AppleDiskPartitions AppleEvents AppleHelp AppleScript AudioCodecs \
-  AudioComponents AudioHardware AudioOutputUnit AudioUnitCarbonViews \
-  AudioUnitParameters AudioUnitProperties AuthSession Authorization \
-  AuthorizationDB AuthorizationPlugin AuthorizationTags BackupCore CFArray \
-  CFAttributedString CFBag CFBase CFBinaryHeap CFBitVector CFBundle \
-  CFByteOrders CFCalendar CFCharacterSet CFData CFDate CFDateFormatter \
-  CFDictionary CFError CFFTPStream CFHTTPAuthentication CFHTTPMessage \
-  CFHTTPStream CFHost CFLocale CFMachPort CFMessagePort CFNetDiagnostics \
-  CFNetServices CFNetworkErrorss CFNotificationCenter CFNumber \
-  CFNumberFormatter CFPlugIn CFPlugInCOM CFPreferences CFPropertyList \
-  CFProxySupport CFRunLoop CFSet CFSocket CFSocketStream CFStream CFString \
-  CFStringEncodingExt CFStringTokenizer CFTimeZone CFTree CFURL CFURLAccess \
-  CFUUID \
-  CFUserNotification CFXMLNode CFXMLParser CGAffineTransforms CGBase \
-  CGBitmapContext CGColor CGColorSpace CGContext CGDataConsumer \
-  CGDataProvider CGDirectDisplay CGDirectPalette CGDisplayConfiguration \
-  CGDisplayFades CGErrors CGEvent CGEventSource CGEventTypes CGFont \
-  CGFunction CGGLContext CGGeometry CGGradient CGImage CGImageDestination \
-  CGImageProperties CGImageSource CGLCurrent CGLDevice CGLProfiler \
-  CGLProfilerFunctionEnums CGLRenderers CGLTypes CGLayer CGPDFArray \
-  CGPDFContentStream CGPDFContext CGPDFDictionary CGPDFDocument CGPDFObject \
-  CGPDFOperatorTable CGPDFPage CGPDFScanner CGPDFStream CGPDFString \
-  CGPSConverter CGPath CGPattern CGRemoteOperation CGSession CGShading \
-  CGWindow CGWindowLevels CMCalibrator CSIdentity CSIdentityAuthority \
-  CSIdentityQuery CTFont CTFontCollection CTFontDescriptor CTFontManager \
-  CTFontManagerErrors CTFontTraits CTFrame CTFramesetter CTGlyphInfo CTLine \
-  CTParagraphStyle CTRun CTStringAttributes CTTextTab CTTypesetter CVBase \
-  CVBuffer CVDisplayLink CVHostTime CVImageBuffer CVOpenGLBuffer \
-  CVOpenGLBufferPool CVOpenGLTexture CVOpenGLTextureCache CVPixelBuffer \
-  CVPixelBufferPool CVPixelFormatDescription CVReturns CarbonEvents \
-  CarbonEventsCore CodeFragments Collections ColorPicker ColorSyncCMM \
-  ColorSyncDeprecated ColorSyncDevice ColorSyncProfile ColorSyncTransform \
-  Components ConditionalMacros ControlDefinitions Controls CoreAudioTypes \
-  CoreFoundation CoreGraphics CoreText DADisk DASession \
-  DHCPClientPreferences DateTimeUtils Debugging Dialogs Dictionary \
-  DigitalHubRegistry Displays Drag DrawSprocket DriverServices \
-  DriverSynchronization Endian Events FSEvents FileTypesAndCreators Files \
-  Finder FinderRegistry FixMath Folders FontPanel FontSync Fonts GestaltEqu \
-  GPCStrings \
-  HFSVolumes HIAccessibility HIArchive HIButtonViews HIClockView HIComboBox \
-  HIContainerViews HIDataBrowser HIDisclosureViews HIGeometry HIImageViews \
-  HILittleArrows HIMenuView HIMovieView HIObject HIPopupButton \
-  HIProgressViews HIRelevanceBar HIScrollView HISearchField HISegmentedView \
-  HISeparator HIShape HISlider HITabbedView HITextLengthFilter HITextUtils \
-  HITextViews HITheme HIToolbar HIToolbox HIToolboxDebugging HIView \
-  HIWindowViews HTMLRendering HostTime IBCarbonRuntime ICAApplication \
-  ICACamera ICADevice IconStorage Icons IconsCore ImageCodec \
-  ImageCompression InternetConfig IntlResources \
-  IOKitReturn IOSurfaceAPI KeyEvents Keyboards \
-  KeychainCore KeychainHI LSInfo LSOpen LSQuarantine LSSharedFileList \
-  LanguageAnalysis Lists LowMem MDExternalDatastore MDImporter MDItem \
-  MDLineage MDQuery MDSchema MIDIDriver MIDIServices MIDISetup \
-  MIDIThruConnection MacApplication MacErrors MacHelp MacLocales MacMemory \
-  MacOSXPosix MacOpenGL MacTextEditor MacTypes MacWindows MachineExceptions \
-  Math64 MediaHandlers Menus MixedMode Movies MoviesFormat \
-  MultiProcessingInfo Multiprocessing MusicDevice NSL NSLCore Navigation \
-  Notification NumberFormatting OSA OSAComp OSAGeneric OSUtils ObjCRuntime \
-  OpenTransport OpenTransportProtocol OpenTransportProviders \
-  PEFBinaryFormat PLStringFuncs PMApplication PMApplicationDeprecated \
-  PMCore PMCoreDeprecated PMDefinitions PMDefinitionsDeprecated PMErrors \
-  PMPrintAETypes PMPrintSettingsKeys PMPrintingDialogExtensions Palettes \
-  Pasteboard PictUtils Power Processes QDCMCommon QDOffscreen \
-  QDPictToCGContext \
-  QLBase QLGenerator QLThumbnailImage \
-  QTML QTSMovie QTStreamingComponents QuickTimeComponents \
-  QuickTimeErrors QuickTimeMusic QuickTimeStreaming QuickTimeVR \
-  QuickTimeVRFormat Quickdraw QuickdrawText QuickdrawTypes Resources \
-  SCDynamicStore SCDynamicStoreCopyDHCPInfos SCDynamicStoreCopySpecific \
-  SCDynamicStoreKey SCNetwork SCNetworkConfiguration SCNetworkConnection \
-  SCNetworkReachability SCPreferences SCPreferencesPath \
-  SCPreferencesSetSpecific SCSI SCSchemaDefinitions SFNTLayoutTypes \
-  SFNTTypes ScalerStreamTypes Scrap Script SecBase SecTrust Sound \
-  SpeechRecognition \
-  SpeechSynthesis StringCompare SystemConfiguration SystemSound TSMTE \
-  TextCommon TextEdit TextEncodingConverter TextEncodingPlugin \
-  TextInputSources TextServices TextUtils Threads Timer ToolUtils \
-  Translation TranslationExtensions TranslationServices TypeSelect \
-  URLAccess UTCUtils UTCoreTypes UTType UnicodeConverter UnicodeUtilities \
-  UniversalAccess Video WSMethodInvocation WSProtocolHandler WSTypes cblas \
-  certextensions cssmapple cssmconfig cssmerr cssmkrapi cssmtype \
-  fenv fp gliContexts gliDispatch gluContext kern_return macgl macglext \
-  macglu mach_error vBLAS vDSP x509defs xattr 
-exampledirs=examples
+[require]
+packages=rtl fpmkunit
 
-[libs]
-libversion=2.0.0
-
-# FPCMacOSAll is not a build unit, but directly includes the code of
-# most other units
 [install]
-buildunit=MacOS
 fpcpackage=y
-
-[compiler]
-includedir=src
-sourcedir=src tests
 
 [default]
 fpcdir=../..
 
 [prerules]
-override FPCOPT+=-Mmacpas
+FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
+ifdef OS_TARGET
+FPC_TARGETOPT+=--os=$(OS_TARGET)
+endif
+ifdef CPU_TARGET
+FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
+endif
+LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 
 [rules]
-MacOSAll$(PPUEXT): $(filter-out MacOS.pas GPCStrings.pas KeyEvents.pas,$(wildcard *.pas))
-MacOS$(PPUEXT): $(filter-out MacOSAll.pas,$(wildcard *.pas))
+.NOTPARALLEL:
+
+fpmake: fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT)
+all:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu
+smart:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu -o -XX -o -CX
+release:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu -o -dRELEASE
+debug:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu -o -dDEBUG
+# If no fpmake exists and (dist)clean is called, do not try to build fpmake, it will
+# most often fail because the dependencies are cleared.
+# In case of a clean, simply do nothing
+ifeq ($(FPMAKE_BIN_CLEAN),)
+clean:	
+else
+clean:	
+	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+endif
+# In case of a distclean, perform an 'old'-style distclean. This to avoid problems
+# when the package is compiled using fpcmake prior to running this clean using fpmake
+ifeq ($(FPMAKE_BIN_CLEAN),)
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
+else
+distclean:	
+ifdef inUnix
+        { $(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
+else
+        $(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+endif
+	-$(DEL) $(LOCALFPMAKE)
+endif
+install:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR)
+else
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR)
+endif
+# distinstall also installs the example-sources
+distinstall:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR) -ie
+else
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
+endif
+

@@ -377,6 +377,7 @@ type
     procedure TestSelectAsteriskOneTable;
     procedure TestSelectDistinctAsteriskOneTable;
     procedure TestSelectOneFieldOneTableAlias;
+    procedure TestSelectOneFieldOneTableAsAlias;
     procedure TestSelectTwoFieldsTwoTables;
     procedure TestSelectTwoFieldsTwoTablesJoin;
     procedure TestSelectTwoFieldsTwoInnerTablesJoin;
@@ -3674,6 +3675,15 @@ end;
 procedure TTestSelectParser.TestSelectOneFieldOneTableAlias;
 begin
   TestSelect('SELECT C.B FROM A C');
+  AssertEquals('One field',1,Select.Fields.Count);
+  AssertField(Select.Fields[0],'C.B');
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'A');
+end;
+
+procedure TTestSelectParser.TestSelectOneFieldOneTableAsAlias;
+begin
+  TestSelect('SELECT C.B FROM A AS C');
   AssertEquals('One field',1,Select.Fields.Count);
   AssertField(Select.Fields[0],'C.B');
   AssertEquals('One table',1,Select.Tables.Count);

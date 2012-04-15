@@ -55,12 +55,12 @@ type
     FStream: TStream;
     FInsideTextNode: Boolean;
     FCanonical: Boolean;
-    FIndent: WideString;
+    FIndent: XMLString;
     FIndentCount: Integer;
     FBuffer: PChar;
     FBufPos: PChar;
     FCapacity: Integer;
-    FLineBreak: WideString;
+    FLineBreak: XMLString;
     FNSHelper: TNSSupport;
     FAttrFixups: TFPList;
     FScratch: TFPList;
@@ -68,11 +68,11 @@ type
     procedure wrtChars(Src: PWideChar; Length: Integer);
     procedure IncIndent;
     procedure DecIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
-    procedure wrtStr(const ws: WideString); {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtStr(const ws: XMLString); {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtChr(c: WideChar); {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
-    procedure wrtQuotedLiteral(const ws: WideString);
-    procedure ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
+    procedure wrtQuotedLiteral(const ws: XMLString);
+    procedure ConvWrite(const s: XMLString; const SpecialChars: TSetOfChar;
       const SpecialCharCallback: TSpecialCharCallback);
     procedure WriteNSDef(B: TBinding);
     procedure NamespaceFixup(Element: TDOMElement);
@@ -90,7 +90,7 @@ type
     procedure VisitDocumentType(Node: TDOMNode);
     procedure VisitPI(Node: TDOMNode);
   public
-    constructor Create(AStream: TStream);
+    constructor Create(AStream: TStream; ANameTable: THashTable);
     destructor Destroy; override;
   end;
 
@@ -130,16 +130,16 @@ end;
   ---------------------------------------------------------------------}
 
 const
-  AttrSpecialChars = ['<', '>', '"', '&', #9, #10, #13];
-  TextSpecialChars = ['<', '>', '&', #10, #13];
-  CDSectSpecialChars = [']'];
+  AttrSpecialChars = ['<', '>', '"', '&', #0..#$1F];
+  TextSpecialChars = ['<', '>', '&', #0..#8, #10..#$1F];
+  CDSectSpecialChars = [#0..#8, #11, #12, #14..#$1F, ']'];
   LineEndingChars = [#13, #10];
   QuotStr = '&quot;';
   AmpStr = '&amp;';
   ltStr = '&lt;';
   gtStr = '&gt;';
 
-constructor TXMLWriter.Create(AStream: TStream);
+constructor TXMLWriter.Create(AStream: TStream; ANameTable: THashTable);
 var
   I: Integer;
 begin
@@ -165,7 +165,7 @@ begin
     FIndent[2] := ' ';
   for I := 3 to 100 do FIndent[I] := ' ';
   FIndentCount := 0;
-  FNSHelper := TNSSupport.Create;
+  FNSHelper := TNSSupport.Create(ANameTable);
   FScratch := TFPList.Create;
   FNSDefs := TFPList.Create;
   FAttrFixups := TFPList.Create;
@@ -247,7 +247,7 @@ begin
   FBufPos := pb;
 end;
 
-procedure TXMLWriter.wrtStr(const ws: WideString); { inline }
+procedure TXMLWriter.wrtStr(const ws: XMLString); { inline }
 begin
   wrtChars(PWideChar(ws), Length(ws));
 end;
@@ -284,7 +284,7 @@ begin
   if FIndentCount>0 then dec(FIndentCount);
 end;
 
-procedure TXMLWriter.ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
+procedure TXMLWriter.ConvWrite(const s: XMLString; const SpecialChars: TSetOfChar;
   const SpecialCharCallback: TSpecialCharCallback);
 var
   StartPos, EndPos: Integer;
@@ -323,7 +323,7 @@ begin
     #10: Sender.wrtStr('&#xA;');
     #13: Sender.wrtStr('&#xD;');
   else
-    Sender.wrtChr(s[idx]);
+    raise EConvertError.Create('Illegal character');
   end;
 end;
 
@@ -344,7 +344,7 @@ begin
       end;
     #10: Sender.wrtStr(Sender.FLineBreak);
   else
-    Sender.wrtChr(s[idx]);
+    raise EConvertError.Create('Illegal character');
   end;
 end;
 
@@ -355,9 +355,10 @@ begin
     '<': Sender.wrtStr(ltStr);
     '>': Sender.wrtStr(gtStr);
     '&': Sender.wrtStr(AmpStr);
-    #13: Sender.wrtStr('&#xD;')
+    #13: Sender.wrtStr('&#xD;');
+    #10: Sender.wrtChr(#10);
   else
-    Sender.wrtChr(s[idx]);
+    raise EConvertError.Create('Illegal character');
   end;
 end;
 
@@ -371,7 +372,7 @@ begin
     // TODO: emit warning 'cdata-section-splitted'
   end
   else
-    Sender.wrtChr(s[idx]);
+    raise EConvertError.Create('Illegal character');
 end;
 
 const
@@ -380,7 +381,7 @@ const
     @TextnodeCanonicalCallback
   );
 
-procedure TXMLWriter.wrtQuotedLiteral(const ws: WideString);
+procedure TXMLWriter.wrtQuotedLiteral(const ws: XMLString);
 var
   Quote: WideChar;
 begin
@@ -425,7 +426,8 @@ begin
     wrtStr(B.Prefix^.Key);
   end;
   wrtChars('="', 2);
-  ConvWrite(B.uri, AttrSpecialChars, @AttrSpecialCharCallback);
+  if Assigned(B.uri) then
+    ConvWrite(B.uri^.Key, AttrSpecialChars, @AttrSpecialCharCallback);
   wrtChr('"');
 end;
 
@@ -574,7 +576,7 @@ var
 begin
   if not FInsideTextNode then
     wrtIndent;
-  FNSHelper.StartElement;
+  FNSHelper.PushScope;
   wrtChr('<');
   wrtStr(TDOMElement(node).TagName);
 
@@ -610,7 +612,7 @@ begin
     wrtStr(TDOMElement(Node).TagName);
     wrtChr('>');
   end;
-  FNSHelper.EndElement;
+  FNSHelper.PopScope;
 end;
 
 procedure TXMLWriter.VisitText(node: TDOMNode);
@@ -807,26 +809,46 @@ end;
 // -------------------------------------------------------------------
 
 procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
+begin
+  WriteXML(doc, AFileName);
+end;
+
+procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
+begin
+  WriteXML(doc, AFile);
+end;
+
+procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
+begin
+  WriteXML(doc, AStream);
+end;
+
+procedure WriteXML(Element: TDOMNode; const AFileName: String);
 var
   fs: TFileStream;
 begin
   fs := TFileStream.Create(AFileName, fmCreate);
   try
-    WriteXMLFile(doc, fs);
+    WriteXML(Element, fs);
   finally
     fs.Free;
   end;
 end;
 
-procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
+procedure WriteXML(Element: TDOMNode; var AFile: Text);
 var
   s: TStream;
+  doc: TDOMDocument;
 begin
+  if Element.NodeType = DOCUMENT_NODE then
+    doc := TDOMDocument(Element)
+  else
+    doc := Element.OwnerDocument;
   s := TTextStream.Create(AFile);
   try
-    with TXMLWriter.Create(s) do
+    with TXMLWriter.Create(s, doc.Names) do
     try
-      WriteNode(doc);
+      WriteNode(Element);
     finally
       Free;
     end;
@@ -835,29 +857,20 @@ begin
   end;
 end;
 
-procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
+procedure WriteXML(Element: TDOMNode; AStream: TStream);
+var
+  doc: TDOMDocument;
 begin
-  with TXMLWriter.Create(AStream) do
+  if Element.NodeType = DOCUMENT_NODE then
+    doc := TDOMDocument(Element)
+  else
+    doc := Element.OwnerDocument;
+  with TXMLWriter.Create(AStream, doc.Names) do
   try
-    WriteNode(doc);
+    WriteNode(Element);
   finally
     Free;
   end;
-end;
-
-procedure WriteXML(Element: TDOMNode; const AFileName: String);
-begin
-  WriteXMLFile(TXMLDocument(Element), AFileName);
-end;
-
-procedure WriteXML(Element: TDOMNode; var AFile: Text);
-begin
-  WriteXMLFile(TXMLDocument(Element), AFile);
-end;
-
-procedure WriteXML(Element: TDOMNode; AStream: TStream);
-begin
-  WriteXMLFile(TXMLDocument(Element), AStream);
 end;
 
 

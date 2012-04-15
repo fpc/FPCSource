@@ -17,12 +17,14 @@ begin
     P.Directory:='syslog';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,aix];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('systemlog.pp');
 
-    P.ExamplePath.Add('tests/');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testlog.pp');
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -1,4 +1,4 @@
-{ %opt=-Cr -Sew -vw }
+{ %opt=-Cr -CO- -Sew -vw }
 
 var
   a: PtrUInt;

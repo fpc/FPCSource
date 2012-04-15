@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002-2010 by Tomas Hajny,
+    Copyright (c) 2002-2011 by Tomas Hajny,
     member of the Free Pascal development team.
 
     OS/2 threading support implementation
@@ -33,7 +33,70 @@ const
  dcWW_NoWait = 1;
  dpThread = 2;
  dpSameClass = 0;
+ dce_AutoReset = $1000;
+ qs_End = 0;
+ qs_Process = 1;
+ qs_Thread = 256;
 
+type
+  PQSTRec = ^TQSTRec;
+  TQSTRec = record
+    RecType: cardinal;              { Record type }
+    TID: word;                      { Thread ID }
+    Slot: word;                     { "Unique" thread slot number }
+    SleepID: cardinal;              { Sleep ID thread is sleeping on }
+    case boolean of
+     false: (
+      Priority: cardinal;           { Thread priority (class + level) }
+      SysTime: cardinal;            { Thread system time }
+      UserTime: cardinal;           { Thread user time }
+      State: byte;                  { Thread state }
+      Pad: array [1..3] of byte);   { Padding for 32-bit alignment }
+     true: (
+      PrioLevel: byte;              { Thread priority level only }
+      PrioClass: byte;              { Thread priority class only }
+      Pad2: array [1..14] of byte);
+  end;
+
+  PQSPRec = ^TQSPRec;
+  TQSPrec = record
+    RecType: cardinal;     { Type of record being processed }
+    PThrdRec: PQSTRec;     { (Far?) pointer to thread records for this process }
+    PID: word;             { Process ID }
+    PPID: word;            { Parent process ID }
+    ProcType: cardinal;    { Process type }
+    Stat: cardinal;        { Process status }
+    SGID: cardinal;        { Process screen group }
+    hMte: word;            { Program module handle for process }
+    cTCB: word;            { Number of TCBs (Thread Control Blocks) in use }
+    c32PSem: cardinal;     { Number of private 32-bit semaphores in use }
+    p32SemRec: pointer;    { (Far?) pointer to head of 32-bit semaphores info }
+    c16Sem: word;          { Number of 16 bit system semaphores in use }
+    cLib: word;            { Number of runtime linked libraries }
+    cShrMem: word;         { Number of shared memory handles }
+    cFH: word;             { Number of open files }
+                           { NOTE: cFH is size of active part of   }
+                           { the handle table if QS_FILE specified }
+    p16SemRec: word;       { Far pointer? to head of 16-bit semaphores info }
+    pLibRec: word;         { Far pointer? to list of runtime libraries }
+    pShrMemRec: word;      { Far pointer? to list of shared memory handles }
+    pFSRec: word;          { Far pointer to list of file handles; }
+                           { 0xFFFF means it's closed, otherwise }
+                           { it's an SFN if non-zero }
+  end;
+
+(* Simplified version here to avoid need for all record types copied here. *)
+  PQSPtrRec = ^TQSPtrRec;
+  TQSPtrRec = record
+    PGlobalRec: pointer;
+    PProcRec: PQSPRec;          { Pointer to head of process records }
+    P16SemRec: pointer;
+    P32SemRec: pointer;
+    PMemRec: pointer;
+    PLibRec: pointer;
+    PShrMemRec: pointer;
+    PFSRec: pointer;
+  end;
 
 { import the necessary stuff from the OS }
 function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
@@ -47,19 +110,16 @@ function DosCreateThread (var TID: cardinal; Address: pointer;
      aParam: pointer; Flags: cardinal; StackSize: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 311;
 
-function DosCreateMutExSem (Name: PChar; var Handle: longint; Attr: cardinal;
-               State: boolean): cardinal; cdecl; external 'DOSCALLS' index 331;
+function DosCreateMutExSem (Name: PChar; var Handle: THandle; Attr: cardinal;
+              State: cardinal): cardinal; cdecl; external 'DOSCALLS' index 331;
 
-function DosCloseMutExSem (Handle: longint): cardinal; cdecl;
+function DosCloseMutExSem (Handle: THandle): cardinal; cdecl;
                                                  external 'DOSCALLS' index 333;
 
-function DosQueryMutExSem (Handle: longint; var PID, TID, Count: cardinal):
-                                cardinal; cdecl; external 'DOSCALLS' index 336;
+function DosRequestMutExSem (Handle: THandle; Timeout: cardinal): cardinal;
+                                          cdecl; external 'DOSCALLS' index 334;
 
-function DosRequestMutExSem (Handle:longint; Timeout: cardinal): cardinal; cdecl;
-                                                 external 'DOSCALLS' index 334;
-
-function DosReleaseMutExSem (Handle: longint): cardinal; cdecl;
+function DosReleaseMutExSem (Handle: THandle): cardinal; cdecl;
                                                  external 'DOSCALLS' index 335;
 
 function DosSuspendThread (TID:cardinal): cardinal; cdecl;
@@ -74,10 +134,6 @@ function DosKillThread (TID: cardinal): cardinal; cdecl;
 function DosWaitThread (var TID: cardinal; Option: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 349;
 
-function DosEnterCritSec:cardinal; cdecl; external 'DOSCALLS' index 232;
-
-function DosExitCritSec:cardinal; cdecl; external 'DOSCALLS' index 233;
-
 procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
 
 {
@@ -90,6 +146,30 @@ Already declared in the main part of system.pas...
 function DosSetPriority (Scope, TrClass: cardinal; Delta: longint;
                                            PortID: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 236;
+
+function DosCreateEventSem (Name: PChar; var Handle: THandle;
+                             Attr: cardinal; State: cardinal): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 324;
+
+function DosCloseEventSem (Handle: THandle): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 326;
+
+function DosResetEventSem (Handle: THandle; var PostCount: cardinal): cardinal;
+                                          cdecl; external 'DOSCALLS' index 327;
+
+function DosPostEventSem (Handle: THandle): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 328;
+
+function DosWaitEventSem (Handle: THandle; Timeout: cardinal): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 329;
+
+function DosQueryEventSem (Handle: THandle; var Posted: cardinal): cardinal;
+                                          cdecl; external 'DOSCALLS' index 330;
+
+function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
+                                var Buffer; BufLen: cardinal): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 368;
+
 
 
 {*****************************************************************************
@@ -352,32 +432,85 @@ begin
 end;
 
 
+function GetOS2ThreadPriority (ThreadHandle: dword): cardinal;
+const
+  BufSize = 32768; (* Sufficient space for > 1000 threads (for one process!) *)
+var
+  PPtrRec: PQSPtrRec;
+  PTRec: PQSTRec;
+  BufEnd: PtrUInt;
+  RC: cardinal;
+begin
+  GetOS2ThreadPriority := cardinal (-1);
+  GetMem (PPtrRec, BufSize);
+  if PPtrRec = nil then
+   begin
+    FreeMem (PPtrRec, BufSize);
+    FPC_ThreadError;
+   end
+  else
+   begin
+    RC := DosQuerySysState (qs_Process, 0, ProcessID, 0, PPtrRec^, BufSize);
+    if (RC = 0) and (PPtrRec^.PProcRec <> nil)
+                                  and (PPtrRec^.PProcRec^.PThrdRec <> nil) then
+     begin
+      BufEnd := PtrUInt (PPtrRec) + BufSize;
+      PTRec := PPtrRec^.PProcRec^.PThrdRec;
+      while (PTRec^.RecType = qs_Thread) and (PTRec^.TID <> ThreadHandle) and
+                                (PtrUInt (PTRec) + SizeOf (PTRec^) < BufEnd) do
+       Inc (PTRec);
+      if (PTRec^.RecType = qs_Thread) and (PTRec^.TID = ThreadHandle) then
+       GetOS2ThreadPriority := PTRec^.Priority;
+     end;
+    FreeMem (PPtrRec, BufSize);
+   end;
+end;
+
+
+type
+  TPrio = packed record
+    PrioLevel: byte;
+    PrioClass: byte;
+    Padding: word;
+  end;
+
+
 function SysThreadSetPriority (ThreadHandle: dword; Prio: longint): boolean;
 {-15..+15, 0=normal}
 var
   Delta: longint;
+  Priority: cardinal;
 begin
-{$WARNING TODO!}
-{
-      SysThreadSetPriority:=WinThreadSetPriority(threadHandle,Prio);
-
-Find out current priority first using DosGetInfoBlocks, then calculate delta
-(recalculate the scale from -15..+15 on input to -31..+31 used by OS/2).
-
-  SysThreadSetPriority := DosSetPriority (dpThread, dpSameClass, Delta,
-                                                                 ThreadHandle);
-}
+  Priority := GetOS2ThreadPriority (ThreadHandle);
+  if Priority > High (word) then
+   SysThreadSetPriority := false
+  else
+   begin
+    Delta := Prio * 2;
+    if Delta + TPrio (Priority).PrioLevel < 0 then
+     Delta := - TPrio (Priority).PrioLevel
+    else if Delta + TPrio (Priority).PrioLevel > 31 then
+     Delta := 31 - TPrio (Priority).PrioLevel;
+    SysThreadSetPriority :=
+               DosSetPriority (dpThread, dpSameClass, Delta, ThreadHandle) = 0;
+   end;
 end;
 
 
 function SysThreadGetPriority (ThreadHandle: dword): longint;
+var
+  Priority: cardinal;
 begin
-{$WARNING TODO!}
-{
-      SysThreadGetPriority:=WinThreadGetPriority(threadHandle);
-
-  DosGetInfoBlocks - recalculate the scale afterwards to -15..+15
-}
+  Priority := GetOS2ThreadPriority (ThreadHandle);
+(*
+  Windows priority levels follow a fairly strange logic; let's mimic at least
+  the part related to the idle priority returning negative numbers.
+  Result range (based on Windows behaviour) is -15..+15.
+*)
+  if TPrio (Priority).PrioClass = 1 then
+   SysThreadGetPriority := TPrio (Priority).PrioLevel div 2 - 15
+  else
+   SysThreadGetPriority := TPrio (Priority).PrioLevel div 2;
 end;
 
 
@@ -395,28 +528,40 @@ end;
                           Delphi/Win32 compatibility
 *****************************************************************************}
 
-{ DosEnter/ExitCritSec have quite a few limitations, so let's try to avoid
-  them. I'm not sure whether mutex semaphores are SMP-safe, though... :-(  }
-
-procedure SysInitCriticalSection(var CS);
+procedure SysInitCriticalSection (var CS);
 begin
-{$WARNING TODO!}
+  if DosCreateMutExSem (nil, THandle (CS), 0, 0) <> 0 then
+   FPC_ThreadError;
 end;
-
 
 procedure SysDoneCriticalSection (var CS);
 begin
-{$WARNING TODO!}
+(* Trying to release first since this might apparently be the expected  *)
+(* behaviour in Delphi according to comment in the Unix implementation. *)
+  repeat
+  until DosReleaseMutExSem (THandle (CS)) <> 0;
+  if DosCloseMutExSem (THandle (CS)) <> 0 then
+   FPC_ThreadError;
 end;
 
 procedure SysEnterCriticalSection (var CS);
 begin
-{$WARNING TODO!}
+  if DosRequestMutExSem (THandle (CS), cardinal (-1)) <> 0 then
+   FPC_ThreadError;
+end;
+
+function SysTryEnterCriticalSection (var CS): longint;
+begin
+  if DosRequestMutExSem (THandle (CS), 0) = 0 then
+   Result := 1
+  else
+   Result := 0;
 end;
 
 procedure SysLeaveCriticalSection (var CS);
 begin
-{$WARNING TODO!}
+  if DosReleaseMutExSem (THandle (CS)) <> 0 then
+   FPC_ThreadError;
 end;
 
 
@@ -429,124 +574,136 @@ type
   PLocalEventRec = ^TBasicEventState;
 
 
-function IntBasicEventCreate (EventAttributes: Pointer;
-     AManualReset, InitialState: Boolean; const Name: ansistring): PEventState;
+const
+  wrSignaled  = 0;
+  wrTimeout   = 1;
+  wrAbandoned = 2;  (* This cannot happen for an event semaphore with OS/2? *)
+  wrError     = 3;
+  Error_Timeout = 640;
+  OS2SemNamePrefix = '\SEM32\';
+
+function SysBasicEventCreate (EventAttributes: Pointer;
+     AManualReset, InitialState: boolean; const Name: ansistring): PEventState;
+var
+  RC: cardinal;
+  Name2: ansistring;
+  Attr: cardinal;
 begin
   New (PLocalEventRec (Result));
-{$WARNING TODO!}
-{
-  PLocalEventrec (Result)^.FHandle :=
-         CreateEvent (EventAttributes, AManualReset, InitialState,PChar(Name));
-}
-end;
-
-
-procedure IntBasicEventDestroy (State: PEventState);
-begin
-{$WARNING TODO!}
-{
-  closehandle(plocaleventrec(state)^.fhandle);
-}
-  Dispose (PLocalEventRec (State));
-end;
-
-
-procedure IntBasicEventResetEvent (State: PEventState);
-begin
-{$WARNING TODO!}
-{
-  ResetEvent(plocaleventrec(state)^.FHandle)
-}
-end;
-
-
-procedure IntBasicEventSetEvent (State: PEventState);
-begin
-{$WARNING TODO!}
-{
-  SetEvent(plocaleventrec(state)^.FHandle);
-}
-end;
-
-
-function IntBasicEventWaitFor (Timeout: Cardinal; State: PEventState): longint;
-begin
-{$WARNING TODO!}
-{
-  case WaitForSingleObject(plocaleventrec(state)^.fHandle, Timeout) of
-    WAIT_ABANDONED: Result := wrAbandoned;
-    WAIT_OBJECT_0: Result := wrSignaled;
-    WAIT_TIMEOUT: Result := wrTimeout;
-    WAIT_FAILED:
-        begin
-        Result := wrError;
-        plocaleventrec(state)^.FLastError := GetLastError;
-       end;
+  if (Name <> '') and (UpCase (Copy (Name, 1, 7)) <> OS2SemNamePrefix) then
+   Name2 := OS2SemNamePrefix + Name
   else
-    Result := wrError;
-  end;
-}
+   Name2 := Name;
+  if AManualReset then
+   Attr := 0
+  else
+   Attr := DCE_AutoReset;
+  if Name2 = '' then
+   RC := DosCreateEventSem (nil, PLocalEventRec (Result)^.FHandle,
+                                                 Attr, cardinal (InitialState))
+  else
+   RC := DosCreateEventSem (PChar (Name2), PLocalEventRec (Result)^.FHandle,
+                                                Attr, cardinal (InitialState));
+  if RC <> 0 then
+   begin
+    Dispose (PLocalEventRec (Result));
+    FPC_ThreadError;
+   end;
 end;
 
 
-function IntRTLEventCreate: PRTLEvent;
+procedure SysBasicEventDestroy (State: PEventState);
 begin
-{$WARNING TODO!}
-{
-  Result := PRTLEVENT(CreateEvent(nil, false, false, nil));
-}
+  if State = nil then
+   FPC_ThreadError
+  else
+   begin
+    DosCloseEventSem (PLocalEventRec (State)^.FHandle);
+    Dispose (PLocalEventRec (State));
+   end;
 end;
 
 
-procedure IntRTLEventDestroy (AEvent: PRTLEvent);
+procedure SysBasicEventResetEvent (State: PEventState);
+var
+  PostCount: cardinal;
 begin
-{$WARNING TODO!}
-{
-  CloseHandle(THANDLE(AEvent));
-}
+  if State = nil then
+   FPC_ThreadError
+  else
+(* In case of later addition of error checking:    *)
+(* RC 300 = Error_Already_Reset which would be OK. *)
+   DosResetEventSem (PLocalEventRec (State)^.FHandle, PostCount);
 end;
 
 
-procedure IntRTLEventSetEvent (AEvent: PRTLEvent);
+procedure SysBasicEventSetEvent (State: PEventState);
 begin
-{$WARNING TODO!}
-{
-  SetEvent(THANDLE(AEvent));
-}
+  if State = nil then
+   FPC_ThreadError
+  else
+   DosPostEventSem (PLocalEventRec (State)^.FHandle);
 end;
 
 
-procedure IntRTLEventWaitFor (AEvent: PRTLEvent);
-CONST INFINITE=-1;
+function SysBasicEventWaitFor (Timeout: Cardinal; State: PEventState): longint;
+var
+  RC: cardinal;
 begin
-{$WARNING TODO!}
-{
-  WaitForSingleObject(THANDLE(AEvent), INFINITE);
-}
+  if State = nil then
+   FPC_ThreadError
+  else
+   begin
+    RC := DosWaitEventSem (PLocalEventRec (State)^.FHandle, Timeout);
+    case RC of
+     0: Result := wrSignaled;
+     Error_Timeout: Result := wrTimeout;
+    else
+     begin
+      Result := wrError;
+      PLocalEventRec (State)^.FLastError := RC;
+     end;
+    end;
+   end;
 end;
 
 
-function SysTryEnterCriticalSection (var CS): longint;
+function SysRTLEventCreate: PRTLEvent;
 begin
-{$WARNING TODO!}
+  Result := PRTLEvent (-1);
+  DosCreateEventSem (nil, THandle (Result), dce_AutoReset, 0);
 end;
 
 
-procedure IntRTLEventWaitForTimeout (AEvent: PRTLEvent; Timeout: longint);
+procedure SysRTLEventDestroy (AEvent: PRTLEvent);
 begin
-{$WARNING TODO!}
-{
-  WaitForSingleObject(THANDLE(AEvent), Timeout);
-}
+  DosCloseEventSem (THandle (AEvent));
 end;
 
 
-procedure intRTLEventResetEvent (AEvent: PRTLEvent);
+procedure SysRTLEventSetEvent (AEvent: PRTLEvent);
 begin
-{$WARNING TODO!}
-{
-  ResetEvent(THANDLE(AEvent));
-}
+  DosPostEventSem (THandle (AEvent));
+end;
+
+
+procedure SysRTLEventWaitFor (AEvent: PRTLEvent);
+begin
+  DosWaitEventSem (THandle (AEvent), cardinal (-1));
+end;
+
+
+procedure SysRTLEventWaitForTimeout (AEvent: PRTLEvent; Timeout: longint);
+begin
+  DosWaitEventSem (THandle (AEvent), Timeout);
+end;
+
+
+procedure SysRTLEventResetEvent (AEvent: PRTLEvent);
+var
+  PostCount: cardinal;
+begin
+  DosResetEventSem (THandle (AEvent), PostCount);
 end;
 
 
@@ -566,8 +723,8 @@ begin
     SuspendThread          :=@SysSuspendThread;
     ResumeThread           :=@SysResumeThread;
     KillThread             :=@SysKillThread;
-    ThreadSwitch           :=@SysThreadSwitch;
     CloseThread		   :=@SysCloseThread;
+    ThreadSwitch           :=@SysThreadSwitch;
     WaitForThreadTerminate :=@SysWaitForThreadTerminate;
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
@@ -581,17 +738,17 @@ begin
     RelocateThreadVar      :=@SysRelocateThreadVar;
     AllocateThreadVars     :=@SysAllocateThreadVars;
     ReleaseThreadVars      :=@SysReleaseThreadVars;
-    BasicEventCreate       :=@IntBasicEventCreate;
-    BasicEventDestroy      :=@IntBasicEventDestroy;
-    BasicEventResetEvent   :=@IntBasicEventResetEvent;
-    BasicEventSetEvent     :=@IntBasicEventSetEvent;
-    BasiceventWaitFor      :=@IntBasiceventWaitFor;
-    RTLEventCreate         :=@IntRTLEventCreate;
-    RTLEventDestroy        :=@IntRTLEventDestroy;
-    RTLEventSetEvent       :=@IntRTLEventSetEvent;
-    RTLEventResetEvent     :=@intRTLEventResetEvent;
-    RTLEventWaitFor        :=@IntRTLEventWaitFor;
-    RTLEventWaitForTimeout :=@intRTLEventWaitForTimeout;
+    BasicEventCreate       :=@SysBasicEventCreate;
+    BasicEventDestroy      :=@SysBasicEventDestroy;
+    BasicEventSetEvent     :=@SysBasicEventSetEvent;
+    BasicEventResetEvent   :=@SysBasicEventResetEvent;
+    BasiceventWaitFor      :=@SysBasiceventWaitFor;
+    RTLEventCreate         :=@SysRTLEventCreate;
+    RTLEventDestroy        :=@SysRTLEventDestroy;
+    RTLEventSetEvent       :=@SysRTLEventSetEvent;
+    RTLEventResetEvent     :=@SysRTLEventResetEvent;
+    RTLEventWaitFor        :=@SysRTLEventWaitFor;
+    RTLEventWaitForTimeout :=@SysRTLEventWaitForTimeout;
     end;
   SetThreadManager (OS2ThreadManager);
 end;

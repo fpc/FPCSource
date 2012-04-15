@@ -19,6 +19,7 @@ begin
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
+    P.OSes := [linux];
 
   T:=P.Targets.AddUnit('proj.pas');
   with T.Dependencies do

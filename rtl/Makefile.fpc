@@ -22,6 +22,7 @@ dirs_beos=beos
 dirs_haiku=haiku
 dirs_amiga=amiga
 dirs_netbsd=netbsd
+dirs_openbsd=openbsd
 dirs_macos=macos
 dirs_morphos=morphos
 dirs_netware=netware
@@ -34,6 +35,7 @@ dirs_symbian=symbian
 dirs_embedded=embedded
 dirs_nativent=nativent
 dirs_wii=wii
+dirs_aix=aix
 dirs_java=java
 dirs_jvm_android=android/jvm
 

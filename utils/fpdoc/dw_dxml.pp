@@ -465,7 +465,7 @@ procedure TDocumentation.DoVisit(obj: TPasResString);
 begin
   WriteLn(f, ' ': lvl * 2, '<resourceString name="' + obj.Name + '">');
   WriteLn(f, ' ': lvl * 2 + 2, '<value>');
-  WriteLn(f, ' ': lvl * 2 + 4, EscapeXml(obj.Value));
+  WriteLn(f, ' ': lvl * 2 + 4, EscapeXml(obj.GetDeclaration(false)));
   WriteLn(f, ' ': lvl * 2 + 2, '</value>');
   WriteLn(f, ' ': lvl * 2, '</resourceString>');
 end;

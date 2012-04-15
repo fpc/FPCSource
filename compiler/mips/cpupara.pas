@@ -65,7 +65,7 @@ implementation
 
     function TMIPSELParaManager.get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;
       begin
-        result:=[RS_R16..RS_R23];
+        result:=[RS_R1..RS_R15,RS_R24..RS_R25];
       end;
 
 
@@ -287,12 +287,12 @@ implementation
                     if side=callerside then
                     begin
                       paraloc^.reference.index := NR_STACK_POINTER_REG;
-                      paraloc^.reference.offset:=target_info.first_parm_offset{1000}-12 - parasize;
+                      paraloc^.reference.offset:=parasize;
                     end
                     else
                     begin
                       paraloc^.reference.index := NR_FRAME_POINTER_REG;
-                      paraloc^.reference.offset:=target_info.first_parm_offset{1000}-4 - parasize;
+                      paraloc^.reference.offset:=target_info.first_parm_offset+parasize;
                       param_offset[i] := @paraloc^.reference.offset;
                     end;
                     inc(parasize,align(tcgsize2size[paraloc^.size],sizeof(aint)));
@@ -313,12 +313,12 @@ implementation
                     if side=callerside then
                       begin
                         paraloc^.reference.index := {NR_R17;//}NR_STACK_POINTER_REG;
-                        paraloc^.reference.offset:=target_info.first_parm_offset{1000}-12 - parasize;
+                        paraloc^.reference.offset:=parasize;
                       end
                     else
                       begin
                         paraloc^.reference.index := {NR_R18;//}NR_FRAME_POINTER_REG;
-                        paraloc^.reference.offset:=target_info.first_parm_offset{1000}-4 - parasize;
+                        paraloc^.reference.offset:=target_info.first_parm_offset+parasize;
                         param_offset[i] := @paraloc^.reference.offset;
                       end;
                     { Parameters are aligned at 4 bytes }
@@ -327,11 +327,13 @@ implementation
                 dec(paralen,tcgsize2size[paraloc^.size]);
               end;
           end;
+        {
         for i:=0 to paras.count-1 do
         begin
           if (side = calleeside) and (param_offset[i] <> nil) then
             param_offset[i]^ := param_offset[i]^ + parasize - 8;
         end;
+        }
       end;
 
 

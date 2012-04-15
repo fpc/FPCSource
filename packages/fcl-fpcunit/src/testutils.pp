@@ -64,6 +64,7 @@ end;
 
 procedure GetMethodList(AClass: TClass; AList: TStrings);
 type
+  PMethodNameRec = ^TMethodNameRec;
   TMethodNameRec = packed record
     name : pshortstring;
     addr : pointer;
@@ -81,6 +82,7 @@ var
   i : dword;
   vmt: TClass;
   idx: integer;
+  pmr: PMethodNameRec;
 begin
   AList.Clear;
   vmt := aClass;
@@ -89,13 +91,15 @@ begin
     methodTable := pMethodNameTable((Pointer(vmt) + vmtMethodTable)^);
     if assigned(MethodTable) then
     begin
+      pmr := @methodTable^.entries[0];
       for i := 0 to MethodTable^.count - 1 do
       begin
-        idx := aList.IndexOf(MethodTable^.entries[i].name^);
+        idx := aList.IndexOf(pmr^.name^);
         if (idx <> - 1) then
         //found overridden method so delete it
           aList.Delete(idx);
-        aList.AddObject(MethodTable^.entries[i].name^, TObject(MethodTable^.entries[i].addr));
+        aList.AddObject(pmr^.name^, TObject(pmr^.addr));
+        Inc(pmr);
       end;
     end;
     vmt := pClass(pointer(vmt) + vmtParent)^;

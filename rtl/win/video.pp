@@ -578,9 +578,9 @@ begin
         pushq   %rsi
         pushq   %rdi
         xorq    %rcx,%rcx  
-        movq    VideoBuf,%rsi
-        movq    OldVideoBuf,%rdi
-        movl    VideoBufSize,%ecx
+        movq    VideoBuf(%rip),%rsi
+        movq    OldVideoBuf(%rip),%rdi
+        movl    VideoBufSize(%rip),%ecx
         shrq    $2,%rcx
         repe
         cmpsl

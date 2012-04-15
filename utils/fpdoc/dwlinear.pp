@@ -34,7 +34,7 @@ Type
     // Auxiliary routines
     procedure DescrBeginURL(const AURL: DOMString); override; // Provides a default implementation
     procedure DescrEndURL; override;
-    procedure SortElementList(List : TList);
+    procedure SortElementList(List : TFPList);
     procedure StartListing(Frames: Boolean);
     Function  ShowMember(M : TPasElement) : boolean;
     procedure StartChapter(ChapterName : String; ChapterLabel : String); virtual;
@@ -85,7 +85,6 @@ Type
     procedure StartUnitOverview(AModuleName,AModuleLabel : String);virtual; Abstract;
     procedure WriteUnitEntry(UnitRef : TPasType);virtual; Abstract;
     procedure EndUnitOverview; virtual; Abstract;
-    Class Function FileNameExtension : String;virtual; Abstract;
     Property LastURL : DomString Read FLastURL Write FLastURL;
   Public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
@@ -413,6 +412,7 @@ begin
     begin
       WriteSeeAlso(DocNode);
     end;
+    ConvertNotes(ClassDecl,DocNode.Notes);
   end;
 
   // Write Interfaces Overview;
@@ -589,7 +589,9 @@ var
 begin
   PackageName := LowerCase(Copy(Package.Name, 2, 255));
   If (Engine.OutPut='') then
-    Engine.Output:=PackageName+FileNameExtension;
+    Engine.Output:=PackageName+FileNameExtension
+  else if (ExtractFileExt(Engine.output)='') and (FileNameExtension<>'') then
+    Engine.Output:=ChangeFileExt(Engine.output,FileNameExtension);  
   FStream:=TFileStream.Create(Engine.Output,fmCreate);
   try
     WriteBeginDocument;
@@ -713,6 +715,7 @@ begin
     begin
     StartSection(SDocOverview);
     WriteDescr(ASection.Parent, DocNode.Descr);
+    ConvertNotes(ASection.Parent,DocNode.Notes);
     end;
 end;
 
@@ -729,6 +732,7 @@ begin
     WriteDescr(Package, DocNode.Descr);
     end;
   WriteSeeAlso(DocNode);
+  ConvertNotes(Nil,DocNode.Notes);
   ProcessTopics(DocNode,1);
 end;
 
@@ -771,6 +775,7 @@ begin
   If Assigned(Node.Descr) then
     WriteDescr(Element,Node.Descr);
   WriteSeeAlso(Node);
+  ConvertNotes(Element,Node.Notes);
   If Level<3 then
     begin
     SubNode:=Node.FirstChild;
@@ -877,15 +882,19 @@ begin
       WriteLabel(TypeDecl);
       WriteIndex(TypeDecl);
       If TypeDecl is TPasEnumType then
-        begin
-        WriteENumElements(TypeDecl as TPasEnumType);
-        end;
-      WriteDescr(TypeDecl);
+        WriteENumElements(TypeDecl as TPasEnumType)
+      else If (TypeDecl is TPasSetType)
+              and (TPasSetType(TypeDecl).EnumType is TPasEnumType)
+              and (TPasSetType(TypeDecl).EnumType.Name='') then
+        WriteENumElements(TPasSetType(TypeDecl).EnumType as TPasEnumType);
+      WriteDescr(TypeDecl,DocNode);
       If Assigned(DocNode) and Assigned(DocNode.Version) then
         begin
         Writeln(Format('%s : ',[SDocVersion]));
         WriteDescr(TypeDecl, DocNode.Version);
         end;
+      if Assigned(DocNode) and assigned(DocNode.Notes) then
+        ConvertNotes(TypeDecl,DocNode.Notes);
       DescrEndParagraph;
       end;
   end;
@@ -916,6 +925,7 @@ begin
         begin
         Writeln(Format('%s : ',[SDocVersion]));
         WriteDescr(VarDecl, DocNode.Version);
+        ConvertNotes(VarDecl,DocNode.Notes);
         end;
       DescrEndParaGraph;
     end;
@@ -988,6 +998,7 @@ begin
       WriteSeeAlso(DocNode);
       EndProcedure;
       WriteExample(DocNode);
+      ConvertNotes(ProcDecl,DocNode.Notes);
       end
      else
       EndProcedure;
@@ -1102,6 +1113,7 @@ begin
         WriteDescr(PropDecl, lNode.Version);
         end;
       WriteSeeAlso(lNode);
+      ConvertNotes(PropDecl,lNode.Notes);
       EndProperty;
       WriteExample(lNode);
     end
@@ -1152,7 +1164,7 @@ begin
   Result:=CompareText(TPasElement(P1).Name,TPasElement(P2).Name);
 end;
 
-procedure TLinearWriter.SortElementList(List : TList);
+procedure TLinearWriter.SortElementList(List : TFPList);
 
 begin
   List.Sort(@CompareElements);
@@ -1227,7 +1239,7 @@ constructor TLinearWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     Engine.AddLink(AElement.PathName, GetLabel(AElement));
   end;
 
-  procedure AddList(AElement: TPasElement; AList: TList);
+  procedure AddList(AElement: TPasElement; AList: TFPList);
   var
     i: Integer;
   begin

@@ -89,7 +89,7 @@ function FpSysCall(sysnr,param1:TSysParam):TSysResult; oldfpccall; assembler;[pu
 function FpSysCall(sysnr,param1:integer):TSysResult; oldfpccall;assembler;[public,alias:'FPC_DOSYS1w'];
 
  asm
-  movl  sysnr,%eax
+  movswl  sysnr,%eax
   pushw Param1
   call  actualsyscall
   add   $2,%esp

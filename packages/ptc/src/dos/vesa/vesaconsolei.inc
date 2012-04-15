@@ -73,24 +73,13 @@ begin
 end;
 
 destructor TVESAConsole.Destroy;
-var
-  I: Integer;
 begin
   Close;
-  
-  for I := Low(FModes) to High(FModes) do
-    FreeAndNil(FModes[I]);
-  SetLength(FModes, 0);
-  SetLength(FModesN, 0);
   
   FKeyboard.Free;
   FMouse.Free;
   FEventQueue.Free;
   FCopy.Free;
-  FDefaultFormat.Free;
-  FPalette.Free;
-  FArea.Free;
-  FClip.Free;
   inherited Destroy;
 end;
 
@@ -99,10 +88,7 @@ var
   I, J: Integer;
   r, g, b, a: DWord;
   tmpbpp: Integer;
-  tmp: TPTCFormat;
 begin
-  for I := Low(FModes) to High(FModes) do
-    FreeAndNil(FModes[I]);
   SetLength(FModes, 0);
   SetLength(FModesN, 0);
 
@@ -134,8 +120,8 @@ begin
             (BitsPerPixel = 24) or
             (BitsPerPixel = 32)) then
         begin
-	  if FTryWindowed and SupportsWindowed then
-	  begin
+          if FTryWindowed and SupportsWindowed then
+          begin
             Inc(J);
             r := MakeMask(WindowedRedMaskSize, WindowedRedFieldPosition);
             g := MakeMask(WindowedGreenMaskSize, WindowedGreenFieldPosition);
@@ -146,17 +132,12 @@ begin
               tmpbpp := 16
             else
               tmpbpp := BitsPerPixel;
-            tmp := TPTCFormat.Create(tmpbpp, r, g, b, a);
-            try
-	      SetLength(FModes, J + 1);
-	      SetLength(FModesN, J + 1);
-              FModes[J] := TPTCMode.Create(XResolution, YResolution, tmp);
-              FModesN[J].Index := I;
-	      FModesN[J].SupportsWindowed := true;
-            finally
-              tmp.Free;
-            end;
-	  end;
+            SetLength(FModes, J + 1);
+            SetLength(FModesN, J + 1);
+            FModes[J] := TPTCMode.Create(XResolution, YResolution, TPTCFormat.Create(tmpbpp, r, g, b, a));
+            FModesN[J].Index := I;
+            FModesN[J].SupportsWindowed := true;
+          end;
 	  
 	  if FTryLFB and SupportsLFB then
 	  begin
@@ -184,16 +165,11 @@ begin
                 tmpbpp := 16
               else
                 tmpbpp := BitsPerPixel;
-              tmp := TPTCFormat.Create(tmpbpp, r, g, b, a);
-              try
-	        SetLength(FModes, J + 1);
-	        SetLength(FModesN, J + 1);
-                FModes[J] := TPTCMode.Create(XResolution, YResolution, tmp);
-                FModesN[J].Index := I;
-  	        FModesN[J].SupportsLFB := true;
-              finally
-                tmp.Free;
-              end;
+              SetLength(FModes, J + 1);
+              SetLength(FModesN, J + 1);
+              FModes[J] := TPTCMode.Create(XResolution, YResolution, TPTCFormat.Create(tmpbpp, r, g, b, a));
+              FModesN[J].Index := I;
+              FModesN[J].SupportsLFB := true;
 	    end;
 	  end;
 {          Inc(FModesLast)}
@@ -202,53 +178,43 @@ begin
           if (MemoryModel = vmmmPackedPixel) and (BitsPerPixel = 8) then
           begin
             Inc(J);
-            tmp := TPTCFormat.Create(8);
-            try
-              SetLength(FModes, J + 1);
-              SetLength(FModesN, J + 1);
-              FModes[J] := TPTCMode.Create(XResolution, YResolution, tmp);
-              FModesN[J].Index := I;
-	      FModesN[J].SupportsWindowed := FTryWindowed and SupportsWindowed;
-	      FModesN[J].SupportsLFB := FTryLFB and SupportsLFB;
-            finally
-              tmp.Free;
-            end;
+            SetLength(FModes, J + 1);
+            SetLength(FModesN, J + 1);
+            FModes[J] := TPTCMode.Create(XResolution, YResolution, TPTCFormat.Create(8));
+            FModesN[J].Index := I;
+            FModesN[J].SupportsWindowed := FTryWindowed and SupportsWindowed;
+            FModesN[J].SupportsLFB := FTryLFB and SupportsLFB;
             Inc(J);
-            tmp := TPTCFormat.Create(8, $E0, $1C, $03); {RGB 332}
-            try
-              SetLength(FModes, J + 1);
-              SetLength(FModesN, J + 1);
-              FModes[J] := TPTCMode.Create(XResolution, YResolution, tmp);
-              FModesN[J].Index := I;
-	      FModesN[J].SupportsWindowed := FTryWindowed and SupportsWindowed;
-	      FModesN[J].SupportsLFB := FTryLFB and SupportsLFB;
-            finally
-              tmp.Free;
-            end;
+			
+            {RGB 332}
+            SetLength(FModes, J + 1);
+            SetLength(FModesN, J + 1);
+            FModes[J] := TPTCMode.Create(XResolution, YResolution, TPTCFormat.Create(8, $E0, $1C, $03));
+            FModesN[J].Index := I;
+            FModesN[J].SupportsWindowed := FTryWindowed and SupportsWindowed;
+            FModesN[J].SupportsLFB := FTryLFB and SupportsLFB;
 {           Inc(FModesLast, 2);}
           end;
 
   FModesLast := J;
-  SetLength(FModes, FModesLast + 2);
-  FModes[FModesLast + 1] := TPTCMode.Create; {mark end of list!}
 end;
 
-procedure TVESAConsole.Configure(const AFileName: String);
+procedure TVESAConsole.Configure(const AFileName: string);
 var
   F: TextFile;
   S: string;
 begin
   AssignFile(F, AFileName);
-  {$I-}
+  {$push}{$I-}
   Reset(F);
-  {$I+}
+  {$pop}
   if IOResult <> 0 then
     exit;
   while not EoF(F) do
   begin
-    {$I-}
+    {$push}{$I-}
     Readln(F, S);
-    {$I+}
+    {$pop}
     if IOResult <> 0 then
       Break;
     Option(S);
@@ -394,12 +360,12 @@ begin
   Result := FCopy.Option(AOption);
 end;
 
-function TVESAConsole.Modes: PPTCMode;
+function TVESAConsole.Modes: TPTCModeList;
 begin
-  Result := @FModes[0];
+  Result := FModes;
 end;
 
-function TVESAConsole.FindBestMode(const AMode: TPTCMode): Integer;
+function TVESAConsole.FindBestMode(const AMode: IPTCMode): Integer;
 var
   I: Integer;
   modefound, bestmodefound: Integer;
@@ -491,26 +457,19 @@ begin
   Open(ATitle, FDefaultFormat, APages);
 end;
 
-procedure TVESAConsole.Open(const ATitle: string; const AFormat: TPTCFormat;
+procedure TVESAConsole.Open(const ATitle: string; AFormat: IPTCFormat;
                             APages: Integer); overload;
 begin
   Open(ATitle, FDefaultWidth, FDefaultHeight, AFormat, APages);
 end;
 
 procedure TVESAConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
-                            const AFormat: TPTCFormat; APages: Integer); overload;
-var
-  m: TPTCMode;
+                            AFormat: IPTCFormat; APages: Integer); overload;
 begin
-  m := TPTCMode.Create(AWidth, AHeight, AFormat);
-  try
-    Open(ATitle, m, APages);
-  finally
-    m.Free;
-  end;
+  Open(ATitle, TPTCMode.Create(AWidth, AHeight, AFormat), APages);
 end;
 
-procedure TVESAConsole.Open(const ATitle: string; const AMode: TPTCMode;
+procedure TVESAConsole.Open(const ATitle: string; AMode: IPTCMode;
                             APages: Integer); overload;
 
   procedure SetRGB332Palette;
@@ -556,7 +515,6 @@ procedure TVESAConsole.Open(const ATitle: string; const AMode: TPTCMode;
 
 var
   ModeFound: Integer;
-  tmpa: TPTCArea;
 begin
   ModeFound := FindBestMode(AMode);
 
@@ -592,7 +550,7 @@ begin
   
   FVESACurrentMode := FModesN[ModeFound].Index;
 
-  with FModes[FCurrentMode].FFormat do
+  with FModes[FCurrentMode].Format do
     if (Bits = 8) and Direct and (R = $E0) and (G = $1C) and (B = $03) then
       SetRGB332Palette;
 
@@ -622,13 +580,8 @@ begin
     else
       FNextVideoPage := 0;
   end;
-  tmpa := TPTCArea.Create(0, 0, FWidth, FHeight);
-  try
-    FArea.Assign(tmpa);
-    FClip.Assign(tmpa);
-  finally
-    tmpa.Free;
-  end;
+  FArea := TPTCArea.Create(0, 0, FWidth, FHeight);
+  FClip := FArea;
 
   FLFBNearPtrAccessAvailable := LFBNearPtrAccessAvailable;
   if not FLFBNearPtrAccessAvailable then
@@ -710,12 +663,12 @@ begin
   end;
 end;
 
-procedure TVESAConsole.Update(const AArea: TPTCArea);
+procedure TVESAConsole.Update(AArea: IPTCArea);
 begin
   Update;
 end;
 
-procedure TVESAConsole.Copy(ASurface: TPTCBaseSurface);
+procedure TVESAConsole.Copy(ASurface: IPTCSurface);
 var
   Pixels: Pointer;
 begin
@@ -734,8 +687,8 @@ begin
   end;
 end;
 
-procedure TVESAConsole.Copy(ASurface: TPTCBaseSurface;
-                            const ASource, ADestination: TPTCArea);
+procedure TVESAConsole.Copy(ASurface: IPTCSurface;
+                            ASource, ADestination: IPTCArea);
 var
   pixels: Pointer;
 begin
@@ -780,10 +733,9 @@ end;
 
 procedure TVESAConsole.Load(const APixels: Pointer;
                             AWidth, AHeight, APitch: Integer;
-                            const AFormat: TPTCFormat;
-                            const APalette: TPTCPalette);
+                            AFormat: IPTCFormat;
+                            APalette: IPTCPalette);
 var
-  Area_: TPTCArea;
   ConsolePixels: Pointer;
 begin
   check_open;
@@ -808,66 +760,44 @@ begin
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, Width, Height);
-    try
-      Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area_, Area);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, TPTCArea.Create(0, 0, Width, Height), Area);
 end;
 
 procedure TVESAConsole.Load(const APixels: Pointer;
                             AWidth, AHeight, APitch: Integer;
-                            const AFormat: TPTCFormat;
-                            const APalette: TPTCPalette;
-                            const ASource, ADestination: TPTCArea);
+                            AFormat: IPTCFormat;
+                            APalette: IPTCPalette;
+                            ASource, ADestination: IPTCArea);
 var
   ConsolePixels: Pointer;
-  ClippedSource: TPTCArea = nil;
-  ClippedDestination: TPTCArea = nil;
-  tmp: TPTCArea;
+  ClippedSource, ClippedDestination: IPTCArea;
 begin
   check_open;
   check_unlocked;
+  ConsolePixels := Lock;
   try
-    ClippedSource := TPTCArea.Create;
-    ClippedDestination := TPTCArea.Create;
-    ConsolePixels := Lock;
     try
-      try
-        tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
-        try
-          TPTCClipper.Clip(ASource, tmp, ClippedSource, ADestination, Clip, ClippedDestination);
-        finally
-          tmp.Free;
-        end;
-        FCopy.Request(AFormat, Format);
-        FCopy.Palette(APalette, Palette);
-        FCopy.Copy(APixels, ClippedSource.Left, ClippedSource.Top, ClippedSource.Width, ClippedSource.Height, APitch,
-                    ConsolePixels, ClippedDestination.Left, ClippedDestination.Top, ClippedDestination.Width, ClippedDestination.Height, Pitch);
-      except
-        on error:TPTCError do
-        begin
-          raise TPTCError.Create('failed to load pixels to console area', error);
-        end;
+      TPTCClipper.Clip(ASource, TPTCArea.Create(0, 0, AWidth, AHeight), ClippedSource, ADestination, Clip, ClippedDestination);
+      FCopy.Request(AFormat, Format);
+      FCopy.Palette(APalette, Palette);
+      FCopy.Copy(APixels, ClippedSource.Left, ClippedSource.Top, ClippedSource.Width, ClippedSource.Height, APitch,
+                 ConsolePixels, ClippedDestination.Left, ClippedDestination.Top, ClippedDestination.Width, ClippedDestination.Height, Pitch);
+    except
+      on error:TPTCError do
+      begin
+        raise TPTCError.Create('failed to load pixels to console area', error);
       end;
-    finally
-      Unlock;
     end;
   finally
-    ClippedSource.Free;
-    ClippedDestination.Free;
+    Unlock;
   end;
 end;
 
 procedure TVESAConsole.Save(APixels: Pointer;
                             AWidth, AHeight, APitch: Integer;
-                            const AFormat: TPTCFormat;
-                            const APalette: TPTCPalette);
+                            AFormat: IPTCFormat;
+                            APalette: IPTCPalette);
 var
-  Area_: TPTCArea;
   ConsolePixels: Pointer;
 begin
   check_open;
@@ -892,100 +822,70 @@ begin
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, Width, Height);
-    try
-      Save(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area, Area_);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Save(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area, TPTCArea.Create(0, 0, Width, Height));
 end;
 
 procedure TVESAConsole.Save(APixels: Pointer;
                             AWidth, AHeight, APitch: Integer;
-                            const AFormat: TPTCFormat;
-                            const APalette: TPTCPalette;
-                            const ASource, ADestination: TPTCArea);
+                            AFormat: IPTCFormat;
+                            APalette: IPTCPalette;
+                            ASource, ADestination: IPTCArea);
 var
   ConsolePixels: Pointer;
-  ClippedSource: TPTCArea = nil;
-  ClippedDestination: TPTCArea = nil;
-  tmp: TPTCArea;
+  ClippedSource, ClippedDestination: IPTCArea;
 begin
   check_open;
   check_unlocked;
+  ConsolePixels := Lock;
   try
-    ClippedSource := TPTCArea.Create;
-    ClippedDestination := TPTCArea.Create;
-    ConsolePixels := Lock;
     try
-      try
-        tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
-        try
-          TPTCClipper.Clip(ASource, Clip, ClippedSource, ADestination, tmp, ClippedDestination);
-        finally
-          tmp.Free;
-        end;
-        FCopy.Request(Format, AFormat);
-        FCopy.Palette(Palette, APalette);
-        FCopy.Copy(ConsolePixels, ClippedSource.Left, ClippedSource.Top, ClippedSource.Width, ClippedSource.Height, Pitch,
-                    APixels, ClippedDestination.Left, ClippedDestination.Top, ClippedDestination.Width, ClippedDestination.Height, APitch);
-      except
-        on error:TPTCError do
-        begin
-          raise TPTCError.Create('failed to save console area pixels', error);
-        end;
+      TPTCClipper.Clip(ASource, Clip, ClippedSource, ADestination, TPTCArea.Create(0, 0, AWidth, AHeight), ClippedDestination);
+      FCopy.Request(Format, AFormat);
+      FCopy.Palette(Palette, APalette);
+      FCopy.Copy(ConsolePixels, ClippedSource.Left, ClippedSource.Top, ClippedSource.Width, ClippedSource.Height, Pitch,
+                 APixels, ClippedDestination.Left, ClippedDestination.Top, ClippedDestination.Width, ClippedDestination.Height, APitch);
+    except
+      on error:TPTCError do
+      begin
+        raise TPTCError.Create('failed to save console area pixels', error);
       end;
-    finally
-      Unlock;
     end;
   finally
-    ClippedSource.Free;
-    ClippedDestination.Free;
+    Unlock;
   end;
 end;
 
 procedure TVESAConsole.Clear;
 var
-  tmp: TPTCColor;
+  Color: IPTCColor;
 begin
   check_open;
   check_unlocked;
   if Format.Direct then
-    tmp := TPTCColor.Create(0, 0, 0, 0)
+    Color := TPTCColor.Create(0, 0, 0, 0)
   else
-    tmp := TPTCColor.Create(0);
-  try
-    Clear(tmp);
-  finally
-    tmp.Free;
-  end;
+    Color := TPTCColor.Create(0);
+  Clear(Color);
 end;
 
-procedure TVESAConsole.Clear(const AColor: TPTCColor);
+procedure TVESAConsole.Clear(AColor: IPTCColor);
 var
   tmp: TPTCArea;
 begin
   check_open;
   check_unlocked;
-  tmp := TPTCArea.Create;
-  try
-    Clear(AColor, tmp);
-  finally
-    tmp.Free;
-  end;
+  Clear(AColor, TPTCArea.Create);
 end;
 
-procedure TVESAConsole.Clear(const AColor: TPTCColor;
-                             const AArea: TPTCArea);
+procedure TVESAConsole.Clear(AColor: IPTCColor;
+                             AArea: IPTCArea);
 begin
   check_open;
   check_unlocked;
   {...}
 end;
 
-procedure TVESAConsole.Palette(const APalette: TPTCPalette);
+procedure TVESAConsole.Palette(APalette: IPTCPalette);
 begin
   check_open;
 
@@ -996,23 +896,18 @@ begin
   end;
 end;
 
-function TVESAConsole.Palette: TPTCPalette;
+function TVESAConsole.Palette: IPTCPalette;
 begin
   check_open;
   Result := FPalette;
 end;
 
-procedure TVESAConsole.Clip(const AArea: TPTCArea);
+procedure TVESAConsole.Clip(AArea: IPTCArea);
 var
   tmp: TPTCArea;
 begin
   check_open;
-  tmp := TPTCClipper.Clip(AArea, FArea);
-  try
-    FClip.Assign(tmp);
-  finally
-    tmp.Free;
-  end;
+  FClip := TPTCClipper.Clip(AArea, FArea);
 end;
 
 function TVESAConsole.GetWidth: Integer;
@@ -1039,19 +934,19 @@ begin
   Result := 2;{FPrimary.pages;}
 end;
 
-function TVESAConsole.GetArea: TPTCArea;
+function TVESAConsole.GetArea: IPTCArea;
 begin
   check_open;
   Result := FArea;
 end;
 
-function TVESAConsole.Clip: TPTCArea;
+function TVESAConsole.Clip: IPTCArea;
 begin
   check_open;
   Result := FClip;
 end;
 
-function TVESAConsole.GetFormat: TPTCFormat;
+function TVESAConsole.GetFormat: IPTCFormat;
 begin
   check_open;
   Result := FModes[FCurrentMode].Format;
@@ -1087,11 +982,10 @@ begin
   FMouse.GetPendingEvents(FEventQueue);
 end;
 
-function TVESAConsole.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+function TVESAConsole.NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
 begin
   check_open;
 
-  FreeAndNil(AEvent);
   repeat
     { get events }
     HandleEvents;
@@ -1102,7 +996,7 @@ begin
   Result := AEvent <> nil;
 end;
 
-function TVESAConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+function TVESAConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 begin
   check_open;
 

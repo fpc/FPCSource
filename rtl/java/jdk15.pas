@@ -3030,11 +3030,6 @@ type
   Arr2JSPSDefaultSynthStyleFactory = array of Arr1JSPSDefaultSynthStyleFactory;
   Arr3JSPSDefaultSynthStyleFactory = array of Arr2JSPSDefaultSynthStyleFactory;
 
-  JUWeakHashMap = class;
-  Arr1JUWeakHashMap = array of JUWeakHashMap;
-  Arr2JUWeakHashMap = array of Arr1JUWeakHashMap;
-  Arr3JUWeakHashMap = array of Arr2JUWeakHashMap;
-
   JSPMMultiPopupMenuUI = class;
   Arr1JSPMMultiPopupMenuUI = array of JSPMMultiPopupMenuUI;
   Arr2JSPMMultiPopupMenuUI = array of Arr1JSPMMultiPopupMenuUI;

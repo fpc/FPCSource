@@ -84,7 +84,7 @@ begin
       halt(1);
     end;
   Assign(ofile,assembler_name);
-{$I-}
+{$push}{$I-}
   Reset(ofile);
   if IOResult<>0 then
     begin
@@ -108,4 +108,5 @@ begin
   Writeln(ofile,'assembler file=',assembler_name);
   Writeln(ofile,'object file=',object_name);
   Close(ofile);
+{$pop}
 end.

@@ -35,6 +35,7 @@ type
     class function CreateEmpty(maxlen: byte): ShortstringClass; static;
     class function CreateFromLiteralStringBytes(const u: unicodestring): shortstring; static;
     procedure FpcDeepCopy(dest: ShortstringClass);
+    procedure copyFromAnsiCharArray(const arr: array of ansichar; maxlen: byte);
     procedure setChar(index: jint; char: ansichar);
     function charAt(index: jint): ansichar;
     function toUnicodeString: unicodestring;

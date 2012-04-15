@@ -16,32 +16,39 @@ unit xmlutils;
 
 {$ifdef fpc}{$mode objfpc}{$endif}
 {$H+}
-{$ifopt Q+}{$define overflow_check}{$endif}
 
 interface
 
 uses
   SysUtils, Classes;
 
-function IsXmlName(const Value: WideString; Xml11: Boolean = False): Boolean; overload;
+type
+  TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
+  TSetOfChar = set of Char;
+  XMLString = WideString;
+  PXMLString = ^XMLString;
+  PXMLChar = PWideChar;
+
+function IsXmlName(const Value: XMLString; Xml11: Boolean = False): Boolean; overload;
 function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean; overload;
-function IsXmlNames(const Value: WideString; Xml11: Boolean = False): Boolean;
-function IsXmlNmToken(const Value: WideString; Xml11: Boolean = False): Boolean;
-function IsXmlNmTokens(const Value: WideString; Xml11: Boolean = False): Boolean;
-function IsValidXmlEncoding(const Value: WideString): Boolean;
-function Xml11NamePages: PByteArray;
-procedure NormalizeSpaces(var Value: WideString);
+function IsXmlNames(const Value: XMLString; Xml11: Boolean = False): Boolean;
+function IsXmlNmToken(const Value: XMLString; Xml11: Boolean = False): Boolean;
+function IsXmlNmTokens(const Value: XMLString; Xml11: Boolean = False): Boolean;
+function IsValidXmlEncoding(const Value: XMLString): Boolean;
+
+procedure NormalizeSpaces(var Value: XMLString);
 function IsXmlWhiteSpace(c: WideChar): Boolean;
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
 { beware, works in ASCII range only }
 function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
-procedure WStrLower(var S: WideString);
+procedure WStrLower(var S: XMLString);
 
-type
-  TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
 
 const
-  xmlVersionStr: array[TXMLVersion] of WideString = ('', '1.0', '1.1');
+  xmlVersionStr: array[TXMLVersion] of XMLString = ('', '1.0', '1.1');
+  // URIs of predefined namespaces
+  stduri_xml: XMLString = 'http://www.w3.org/XML/1998/namespace';
+  stduri_xmlns: XMLString = 'http://www.w3.org/2000/xmlns/';
 
 type
   TXMLNodeType = (ntNone, ntElement, ntAttribute, ntText,
@@ -78,7 +85,7 @@ type
   PPHashItem = ^PHashItem;
   PHashItem = ^THashItem;
   THashItem = record
-    Key: WideString;
+    Key: XMLString;
     HashValue: LongWord;
     Next: PHashItem;
     Data: TObject;
@@ -103,7 +110,7 @@ type
     function Find(Key: PWideChar; KeyLen: Integer): PHashItem;
     function FindOrAdd(Key: PWideChar; KeyLen: Integer; var Found: Boolean): PHashItem; overload;
     function FindOrAdd(Key: PWideChar; KeyLen: Integer): PHashItem; overload;
-    function FindOrAdd(const Key: WideString): PHashItem; overload;
+    function FindOrAdd(const Key: XMLString): PHashItem; overload;
     function Get(Key: PWideChar; KeyLen: Integer): TObject;
     function Remove(Entry: PHashItem): Boolean;
     function RemoveData(aData: TObject): Boolean;
@@ -116,7 +123,7 @@ type
   TExpHashEntry = record
     rev: LongWord;
     hash: LongWord;
-    uriPtr: PWideString;
+    uriPtr: Pointer;
     lname: PWideChar;
     lnameLen: Integer;
   end;
@@ -130,7 +137,7 @@ type
     FData: PExpHashEntryArray;
   public  
     procedure Init(NumSlots: Integer);
-    function Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
+    function Locate(uri: Pointer; localName: PWideChar; localLength: Integer): Boolean;
     destructor Destroy; override;
   end;
 
@@ -140,8 +147,18 @@ type
     LinePos: Integer;
   end;
 
+  IXmlLineInfo = interface(IInterface)['{FD0A892B-B26C-4954-9995-103B2A9D178A}']
+    function GetHasLineInfo: Boolean;
+    function GetLineNumber: Integer;
+    function GetLinePosition: Integer;
+    property HasLineInfo: Boolean read GetHasLineInfo;
+    property LineNumber: Integer read GetLineNumber;
+    property LinePosition: Integer read GetLinePosition;
+  end;
+
 { generic node info record, shared between DOM and reader }
 
+  PPNodeData = ^PNodeData;
   PNodeData = ^TNodeData;
   TNodeData = record
     FNext: PNodeData;
@@ -155,18 +172,22 @@ type
     FIDEntry: PHashItem;           // ID attributes: entry in ID map
     FNodeType: TXMLNodeType;
 
-    FValueStr: WideString;
+    FValueStr: XMLString;
     FValueStart: PWideChar;
     FValueLength: Integer;
     FIsDefault: Boolean;
     FDenormalized: Boolean;        // Whether attribute value changes by normalization
   end;
 
+  IGetNodeDataPtr = interface(IInterface)['{81F6ADA2-8F5E-41D7-872D-226163FF4E45}']
+    function CurrentNodePtr: PPNodeData;
+  end;
+
 { TNSSupport provides tracking of prefix-uri pairs and namespace fixup for writer }
 
   TBinding = class
   public
-    uri: WideString;
+    uri: PHashItem;
     next: TBinding;
     prevPrefixBinding: TObject;
     Prefix: PHashItem;
@@ -180,6 +201,7 @@ type
 
   TNSSupport = class(TObject)
   private
+    FNameTable: THashTable;
     FNesting: Integer;
     FPrefixSeqNo: Integer;
     FFreeBindings: TBinding;
@@ -188,17 +210,17 @@ type
     FPrefixes: THashTable;
     FDefaultPrefix: THashItem;
   public
-    constructor Create;
+    constructor Create(aNameTable: THashTable);
     destructor Destroy; override;
-    procedure DefineBinding(const Prefix, nsURI: WideString; out Binding: TBinding);
-    function CheckAttribute(const Prefix, nsURI: WideString;
+    procedure DefineBinding(const Prefix, nsURI: XMLString; out Binding: TBinding);
+    function CheckAttribute(const Prefix, nsURI: XMLString;
       out Binding: TBinding): TAttributeAction;
-    function IsPrefixBound(P: PWideChar; Len: Integer; out Prefix: PHashItem): Boolean;
     function GetPrefix(P: PWideChar; Len: Integer): PHashItem;
-    function BindPrefix(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+    function BindPrefix(nsURI, aPrefix: PHashItem): TBinding;
     function DefaultNSBinding: TBinding;
-    procedure StartElement;
-    procedure EndElement;
+    function LookupNamespace(const APrefix: XMLString): XMLString;
+    procedure PushScope;
+    function PopScope: Boolean;
   end;
 
 { Buffer builder, used to compose long strings without too much memory allocations }
@@ -213,7 +235,8 @@ type
 procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
 procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
 procedure BufAppendChunk(var ABuf: TWideCharBuf; pstart, pend: PWideChar);
-function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
+procedure BufAppendString(var ABuf: TWideCharBuf; const AValue: XMLString);
+function BufEquals(const ABuf: TWideCharBuf; const Arg: XMLString): Boolean;
 procedure BufNormalize(var Buf: TWideCharBuf; out Modified: Boolean);
 
 { Built-in decoder functions for UTF-8, UTF-16 and ISO-8859-1 }
@@ -227,37 +250,6 @@ function Decode_8859_1(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutB
 
 implementation
 
-var
-  Xml11Pg: PByteArray = nil;
-
-function Xml11NamePages: PByteArray;
-var
-  I: Integer;
-  p: PByteArray;
-begin
-  if Xml11Pg = nil then
-  begin
-    GetMem(p, 512);
-    for I := 0 to 255 do
-      p^[I] := ord(Byte(I) in Xml11HighPages);
-    p^[0] := 2;
-    p^[3] := $2c;
-    p^[$20] := $2a;
-    p^[$21] := $2b;
-    p^[$2f] := $29;
-    p^[$30] := $2d;
-    p^[$fd] := $28;
-    p^[$ff] := $30;
-
-    Move(p^, p^[256], 256);
-    p^[$100] := $19;
-    p^[$103] := $2E;
-    p^[$120] := $2F;
-    Xml11Pg := p;
-  end;
-  Result := Xml11Pg;
-end;
-
 function IsXml11Char(Value: PWideChar; var Index: Integer): Boolean; overload;
 begin
   if (Value[Index] >= #$D800) and (Value[Index] <= #$DB7F) then
@@ -269,7 +261,7 @@ begin
     Result := False;
 end;
 
-function IsXml11Char(const Value: WideString; var Index: Integer): Boolean; overload;
+function IsXml11Char(const Value: XMLString; var Index: Integer): Boolean; overload;
 begin
   if (Value[Index] >= #$D800) and (Value[Index] <= #$DB7F) then
   begin
@@ -280,49 +272,36 @@ begin
     Result := False;
 end;
 
-function IsXmlName(const Value: WideString; Xml11: Boolean): Boolean;
+function IsXmlName(const Value: XMLString; Xml11: Boolean): Boolean;
 begin
   Result := IsXmlName(PWideChar(Value), Length(Value), Xml11);
 end;
 
 function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean;
 var
-  Pages: PByteArray;
   I: Integer;
 begin
   Result := False;
-  if Xml11 then
-    Pages := Xml11NamePages
-  else
-    Pages := @NamePages;
-
   I := 0;
-  if (Len = 0) or not ((Byte(Value[I]) in NamingBitmap[Pages^[hi(Word(Value[I]))]]) or
-    (Value[I] = ':') or
-    (Xml11 and IsXml11Char(Value, I))) then
+  if (Len = 0) or not ((Byte(Value[I]) in NamingBitmap[NamePages[hi(Word(Value[I]))]]) or
+    (Value[I] = ':') or IsXml11Char(Value, I)) then
       Exit;
   Inc(I);
   while I < Len do
   begin
-    if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
-      (Value[I] = ':') or
-      (Xml11 and IsXml11Char(Value, I))) then
+    if not ((Byte(Value[I]) in NamingBitmap[NamePages[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or IsXml11Char(Value, I)) then
         Exit;
     Inc(I);
   end;
   Result := True;
 end;
 
-function IsXmlNames(const Value: WideString; Xml11: Boolean): Boolean;
+function IsXmlNames(const Value: XMLString; Xml11: Boolean): Boolean;
 var
-  Pages: PByteArray;
   I: Integer;
   Offset: Integer;
 begin
-  if Xml11 then
-    Pages := Xml11NamePages
-  else
-    Pages := @NamePages;
   Result := False;
   if Value = '' then
     Exit;
@@ -330,9 +309,8 @@ begin
   Offset := 0;
   while I <= Length(Value) do
   begin
-    if not ((Byte(Value[I]) in NamingBitmap[Pages^[Offset+hi(Word(Value[I]))]]) or
-      (Value[I] = ':') or
-      (Xml11 and IsXml11Char(Value, I))) then
+    if not ((Byte(Value[I]) in NamingBitmap[NamePages[Offset+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or IsXml11Char(Value, I)) then
     begin
       if (I = Length(Value)) or (Value[I] <> #32) then
         Exit;
@@ -346,48 +324,36 @@ begin
   Result := True;
 end;
 
-function IsXmlNmToken(const Value: WideString; Xml11: Boolean): Boolean;
+function IsXmlNmToken(const Value: XMLString; Xml11: Boolean): Boolean;
 var
   I: Integer;
-  Pages: PByteArray;
 begin
-  if Xml11 then
-    Pages := Xml11NamePages
-  else
-    Pages := @NamePages;
   Result := False;
   if Value = '' then
     Exit;
   I := 1;
   while I <= Length(Value) do
   begin
-    if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
-      (Value[I] = ':') or
-      (Xml11 and IsXml11Char(Value, I))) then
+    if not ((Byte(Value[I]) in NamingBitmap[NamePages[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or IsXml11Char(Value, I)) then
         Exit;
     Inc(I);
   end;
   Result := True;
 end;
 
-function IsXmlNmTokens(const Value: WideString; Xml11: Boolean): Boolean;
+function IsXmlNmTokens(const Value: XMLString; Xml11: Boolean): Boolean;
 var
   I: Integer;
-  Pages: PByteArray;
 begin
-  if Xml11 then
-    Pages := Xml11NamePages
-  else
-    Pages := @NamePages;
   I := 1;
   Result := False;
   if Value = '' then
     Exit;
   while I <= Length(Value) do
   begin
-    if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
-      (Value[I] = ':') or
-      (Xml11 and IsXml11Char(Value, I))) then
+    if not ((Byte(Value[I]) in NamingBitmap[NamePages[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or IsXml11Char(Value, I)) then
     begin
       if (I = Length(Value)) or (Value[I] <> #32) then
         Exit;
@@ -397,7 +363,7 @@ begin
   Result := True;
 end;
 
-function IsValidXmlEncoding(const Value: WideString): Boolean;
+function IsValidXmlEncoding(const Value: XMLString): Boolean;
 var
   I: Integer;
 begin
@@ -410,7 +376,7 @@ begin
   Result := True;
 end;
 
-procedure NormalizeSpaces(var Value: WideString);
+procedure NormalizeSpaces(var Value: XMLString);
 var
   I, J: Integer;
 begin
@@ -463,7 +429,7 @@ begin
   result := c1 - c2;
 end;
 
-procedure WStrLower(var S: WideString);
+procedure WStrLower(var S: XMLString);
 var
   i: Integer;
 begin
@@ -477,21 +443,17 @@ begin
   Result := InitValue;
   while KeyLen <> 0 do
   begin
-{$ifdef overflow_check}{$q-}{$endif}
+{$push}{$r-}{$q-}
     Result := Result * $F4243 xor ord(Key^);
-{$ifdef overflow_check}{$q+}{$endif}
+{$pop}
     Inc(Key);
     Dec(KeyLen);
   end;
 end;
 
-function KeyCompare(const Key1: WideString; Key2: Pointer; Key2Len: Integer): Boolean;
+function KeyCompare(const Key1: XMLString; Key2: Pointer; Key2Len: Integer): Boolean;
 begin
-{$IFDEF FPC}
-  Result := (Length(Key1)=Key2Len) and (CompareWord(Pointer(Key1)^, Key2^, Key2Len) = 0);
-{$ELSE}
   Result := (Length(Key1)=Key2Len) and CompareMem(Pointer(Key1), Key2, Key2Len*2);
-{$ENDIF}
 end;
 
 { THashTable }
@@ -555,7 +517,7 @@ begin
   Result := Lookup(Key, KeyLen, Dummy, True);
 end;
 
-function THashTable.FindOrAdd(const Key: WideString): PHashItem;
+function THashTable.FindOrAdd(const Key: XMLString): PHashItem;
 var
   Dummy: Boolean;
 begin
@@ -729,15 +691,14 @@ begin
   Dec(FRevision);
 end;
 
-function TDblHashArray.Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
+function TDblHashArray.Locate(uri: Pointer; localName: PWideChar; localLength: Integer): Boolean;
 var
   step: Byte;
   mask: LongWord;
   idx: Integer;
   HashValue: LongWord;
 begin
-  HashValue := Hash(0, PWideChar(uri^), Length(uri^));
-  HashValue := Hash(HashValue, localName, localLength);
+  HashValue := Hash(LongWord(PtrUInt(uri)), localName, localLength);
 
   mask := (1 shl FSizeLog) - 1;
   step := (HashValue and (not mask)) shr (FSizeLog-1) and (mask shr 2) or 1;
@@ -745,7 +706,7 @@ begin
   result := True;
   while FData^[idx].rev = FRevision do
   begin
-    if (HashValue = FData^[idx].hash) and (FData^[idx].uriPtr^ = uri^) and
+    if (HashValue = FData^[idx].hash) and (FData^[idx].uriPtr = uri) and
       (FData^[idx].lnameLen = localLength) and
        CompareMem(FData^[idx].lname, localName, localLength * sizeof(WideChar)) then
       Exit;
@@ -767,18 +728,18 @@ end;
 
 { TNSSupport }
 
-constructor TNSSupport.Create;
+constructor TNSSupport.Create(aNameTable: THashTable);
 var
   b: TBinding;
 begin
   inherited Create;
+  FNameTable := aNameTable;
   FPrefixes := THashTable.Create(16, False);
   FBindings := TFPList.Create;
   SetLength(FBindingStack, 16);
 
   { provide implicit binding for the 'xml' prefix }
-  // TODO: move stduri_xml, etc. to this unit, so they are reused.
-  DefineBinding('xml', 'http://www.w3.org/XML/1998/namespace', b);
+  DefineBinding('xml', stduri_xml, b);
 end;
 
 destructor TNSSupport.Destroy;
@@ -792,7 +753,7 @@ begin
   inherited Destroy;
 end;
 
-function TNSSupport.BindPrefix(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+function TNSSupport.BindPrefix(nsURI, aPrefix: PHashItem): TBinding;
 begin
   { try to reuse an existing binding }
   result := FFreeBindings;
@@ -820,21 +781,22 @@ begin
   result := TBinding(FDefaultPrefix.Data);
 end;
 
-procedure TNSSupport.DefineBinding(const Prefix, nsURI: WideString;
+procedure TNSSupport.DefineBinding(const Prefix, nsURI: XMLString;
   out Binding: TBinding);
 var
-  Pfx: PHashItem;
+  Pfx, uri: PHashItem;
 begin
   Pfx := @FDefaultPrefix;
   if (nsURI <> '') and (Prefix <> '') then
     Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix));
-  if (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> nsURI) then
-    Binding := BindPrefix(nsURI, Pfx)
+  uri := FNameTable.FindOrAdd(PWideChar(nsURI),Length(nsURI));
+  if (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> uri) then
+    Binding := BindPrefix(uri, Pfx)
   else
     Binding := nil;
 end;
 
-function TNSSupport.CheckAttribute(const Prefix, nsURI: WideString;
+function TNSSupport.CheckAttribute(const Prefix, nsURI: XMLString;
   out Binding: TBinding): TAttributeAction;
 var
   Pfx: PHashItem;
@@ -842,6 +804,7 @@ var
   b: TBinding;
   buf: array[0..31] of WideChar;
   p: PWideChar;
+  uri: PHashItem;
 begin
   Binding := nil;
   Pfx := nil;
@@ -850,8 +813,9 @@ begin
     Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix))
   else if nsURI = '' then
     Exit;
+  uri := FNameTable.FindOrAdd(PWideChar(nsURI), Length(nsURI));
   { if the prefix is already bound to correct URI, we're done }
-  if Assigned(Pfx) and Assigned(Pfx^.Data) and (TBinding(Pfx^.Data).uri = nsURI) then
+  if Assigned(Pfx) and Assigned(Pfx^.Data) and (TBinding(Pfx^.Data).uri = uri) then
     Exit;
 
   { see if there's another prefix bound to the target URI }
@@ -861,7 +825,7 @@ begin
     b := FBindingStack[i];
     while Assigned(b) do
     begin
-      if (b.uri = nsURI) and (b.Prefix <> @FDefaultPrefix) then
+      if (b.uri = uri) and (b.Prefix <> @FDefaultPrefix) then
       begin
         Binding := b;   // found one -> override the attribute's prefix
         Result := aaPrefix;
@@ -886,15 +850,8 @@ begin
     p^ := 'N';
     Pfx := FPrefixes.FindOrAdd(p, @Buf[high(Buf)]-p+1);
   until Pfx^.Data = nil;
-  Binding := BindPrefix(nsURI, Pfx);
+  Binding := BindPrefix(uri, Pfx);
   Result := aaBoth;
-end;
-
-function TNSSupport.IsPrefixBound(P: PWideChar; Len: Integer; out
-  Prefix: PHashItem): Boolean;
-begin
-  Prefix := FPrefixes.FindOrAdd(P, Len);
-  Result := Assigned(Prefix^.Data) and (TBinding(Prefix^.Data).uri <> '');
 end;
 
 function TNSSupport.GetPrefix(P: PWideChar; Len: Integer): PHashItem;
@@ -905,17 +862,34 @@ begin
     Result := @FDefaultPrefix;
 end;
 
-procedure TNSSupport.StartElement;
+function TNSSupport.LookupNamespace(const APrefix: XMLString): XMLString;
+var
+  prefixatom: PHashItem;
+  b: TBinding;
+begin
+  prefixatom := GetPrefix(PWideChar(APrefix),Length(APrefix));
+  b := TBinding(prefixatom^.Data);
+  if Assigned(b) and Assigned(b.Uri) then
+    result := b.Uri^.Key
+  else
+    result := '';
+end;
+
+procedure TNSSupport.PushScope;
 begin
   Inc(FNesting);
   if FNesting >= Length(FBindingStack) then
     SetLength(FBindingStack, FNesting * 2);
 end;
 
-procedure TNSSupport.EndElement;
+function TNSSupport.PopScope: Boolean;
 var
   b, temp: TBinding;
 begin
+  { don't unbind prefixes declared before the first call to PushScope }
+  Result := FNesting > 0;
+  if not Result then
+    Exit;
   temp := FBindingStack[FNesting];
   while Assigned(temp) do
   begin
@@ -926,8 +900,7 @@ begin
     b.Prefix^.Data := b.prevPrefixBinding;
   end;
   FBindingStack[FNesting] := nil;
-  if FNesting > 0 then
-    Dec(FNesting);
+  Dec(FNesting);
 end;
 
 { Buffer builder utils }
@@ -969,7 +942,23 @@ begin
   Inc(ABuf.Length, Len);
 end;
 
-function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
+procedure BufAppendString(var ABuf: TWideCharBuf; const AValue: XMLString);
+var
+  Len: Integer;
+begin
+  Len := Length(AValue);
+  if Len <= 0 then
+    Exit;
+  if Len >= ABuf.MaxLength - ABuf.Length then
+  begin
+    ABuf.MaxLength := (Len + ABuf.Length)*2;
+    ReallocMem(ABuf.Buffer, ABuf.MaxLength * sizeof(WideChar));
+  end;
+  Move(PWideChar(AValue)^, ABuf.Buffer[ABuf.Length], Len * sizeof(WideChar));
+  Inc(ABuf.Length, Len);
+end;
+
+function BufEquals(const ABuf: TWideCharBuf; const Arg: XMLString): Boolean;
 begin
   Result := (ABuf.Length = Length(Arg)) and
     CompareMem(ABuf.Buffer, Pointer(Arg), ABuf.Length*sizeof(WideChar));
@@ -1144,12 +1133,5 @@ begin
     Result := OutCnt-i;
   OutCnt := i;
 end;
-
-
-initialization
-
-finalization
-  if Assigned(Xml11Pg) then
-    FreeMem(Xml11Pg);
 
 end.

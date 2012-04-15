@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for GGI Bindings
+#
+
+[package]
+name=ggi
+version=2.7.1
+
+[target]
+units=gii ggi ggi2d
+exampledirs=examples
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

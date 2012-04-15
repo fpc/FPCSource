@@ -16,6 +16,11 @@
 { 
   Based on an implementation by Martin Schreiber, part of MSEIDE.
   Reworked all code so it conforms to FCL coding standards.
+
+  TSQLite3Connection properties
+      Params - "foreign_keys=ON" - enable foreign key support for this connection:
+                                   http://www.sqlite.org/foreignkeys.html#fk_enable
+
 } 
  
 unit sqlite3conn;
@@ -89,6 +94,7 @@ type
     constructor Create(AOwner : TComponent); override;
     function GetInsertID: int64;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
+    procedure LoadExtension(LibraryFile: string);
   published
     property Options: TSqliteOptions read FOptions write SetOptions;
   end;
@@ -99,7 +105,7 @@ Var
 implementation
 
 uses
-  dbconst, sysutils, dateutils,FmtBCD;
+  dbconst, sysutils, dateutils, FmtBCD;
 
 const
   JulianDateShift = 2415018.5; //distance from "julian day 0" (January 1, 4713 BC 12:00AM) to "1899-12-30 00:00AM"
@@ -111,6 +117,7 @@ type
  TSQLite3Cursor = class(tsqlcursor)
   private
    fhandle : psqlite3;
+   fconnection: TSQLite3Connection;
    fstatement: psqlite3_stmt;
    ftail: pchar;
    fstate: integer;
@@ -189,14 +196,20 @@ begin
                 do1:= P.AsFloat + JulianDateShift;
                 checkerror(sqlite3_bind_double(fstatement,I,do1));
                 end;
-        ftFMTBcd,
+        ftFMTBcd:
+                begin
+                str1:=BCDToStr(P.AsFMTBCD, Fconnection.FSQLFormatSettings);
+                checkerror(sqlite3_bind_text(fstatement, I, PChar(str1), length(str1), sqlite3_destructor_type(SQLITE_TRANSIENT)));
+                end;
         ftstring,
         ftFixedChar,
         ftmemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
                 str1:= p.asstring;
                 checkerror(sqlite3_bind_text(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
                 end;
-        ftblob: begin
+        ftBytes,
+        ftVarBytes,
+        ftBlob: begin
                 str1:= P.asstring;
                 checkerror(sqlite3_bind_blob(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
                 end; 
@@ -315,6 +328,7 @@ Var
 
 begin
   Res:= TSQLite3Cursor.create;
+  Res.fconnection:=Self;
   Result:=Res;
 end;
 
@@ -345,7 +359,7 @@ Type
   end;
   
 Const
-  FieldMapCount = 24;
+  FieldMapCount = 26;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
    (n:'INT'; t: ftInteger),
    (n:'LARGEINT'; t:ftlargeInt),
@@ -362,7 +376,7 @@ Const
    (n:'TIME'; t: ftTime),
    (n:'CURRENCY'; t: ftCurrency),
    (n:'VARCHAR'; t: ftString),
-   (n:'CHAR'; t: ftString),
+   (n:'CHAR'; t: ftFixedChar),
    (n:'NUMERIC'; t: ftBCD),
    (n:'DECIMAL'; t: ftBCD),
    (n:'TEXT'; t: ftmemo),
@@ -370,7 +384,9 @@ Const
    (n:'BLOB'; t: ftBlob),
    (n:'NCHAR'; t: ftFixedWideChar),
    (n:'NVARCHAR'; t: ftWideString),
-   (n:'NCLOB'; t: ftWideMemo)
+   (n:'NCLOB'; t: ftWideMemo),
+   (n:'VARBINARY'; t: ftVarBytes),
+   (n:'BINARY'; t: ftBytes)
 { Template:
   (n:''; t: ft)
 }
@@ -382,11 +398,35 @@ var
  i     : integer;
  FN,FD : string;
  ft1   : tfieldtype;
- size1 : word;
+ size1, size2 : integer;
  ar1   : TStringArray;
  fi    : integer;
  st    : psqlite3_stmt;
- 
+
+ function ExtractPrecisionAndScale(decltype: string; var precision, scale: integer): boolean;
+ var p: integer;
+ begin
+   p:=pos('(', decltype);
+   Result:=p>0;
+   if not Result then Exit;
+   System.Delete(decltype,1,p);
+   p:=pos(')', decltype);
+   Result:=p>0;
+   if not Result then Exit;
+   decltype:=copy(decltype,1,p-1);
+   p:=pos(',', decltype);
+   if p=0 then
+   begin
+     precision:=StrToIntDef(decltype, precision);
+     scale:=0;
+   end
+   else
+   begin
+     precision:=StrToIntDef(copy(decltype,1,p-1), precision);
+     scale:=StrToIntDef(copy(decltype,p+1,length(decltype)-p), scale);
+   end;
+ end;
+
 begin
   st:=TSQLite3Cursor(cursor).fstatement;
   for i:= 0 to sqlite3_column_count(st) - 1 do 
@@ -416,30 +456,24 @@ begin
       ftString,
       ftFixedChar,
       ftFixedWideChar,
-      ftWideString:
-                begin
-                fi:=pos('(',FD);
-                if (fi>0) then
-                  begin
-                  System.Delete(FD,1,fi);
-                  fi:=pos(')',FD);
-                  size1:=StrToIntDef(trim(copy(FD,1,fi-1)),255);
-                  if size1 > dsMaxStringSize then size1 := dsMaxStringSize;
-                  end
-                else size1 := 255;
-                end;
-      ftBCD:    begin
-                fi:=pos(',',FD);
-                if (fi>0) then
-                  begin
-                  System.Delete(FD,1,fi);
-                  fi:=pos(')',FD);
-                  size1:=StrToIntDef(trim(copy(FD,1,fi-1)), 0);
-                  if size1>4 then
-                    ft1 := ftFMTBcd;
-                  end
-                else size1 := 0;
-                end;
+      ftWideString,
+      ftBytes,
+      ftVarBytes:
+               begin
+                 size1 := 255; //sql: if length is omitted then length is 1
+                 size2 := 0;
+                 ExtractPrecisionAndScale(FD, size1, size2);
+                 if size1 > dsMaxStringSize then size1 := dsMaxStringSize;
+               end;
+      ftBCD:   begin
+                 size2 := MaxBCDPrecision; //sql: if a precision is omitted, then use implementation-defined
+                 size1 := 0;               //sql: if a scale is omitted then scale is 0
+                 ExtractPrecisionAndScale(FD, size2, size1);
+                 if (size2<=18) and (size1=0) then
+                   ft1:=ftLargeInt
+                 else if (size2-size1>MaxBCDPrecision-MaxBCDScale) or (size1>MaxBCDScale) then
+                   ft1:=ftFmtBCD;
+               end;
       ftUnknown : DatabaseError('Unknown record type: '+FN);
     end; // Case
     tfielddef.create(fielddefs,FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
@@ -475,12 +509,11 @@ Function ParseSQLiteDate(S : ShortString) : TDateTime;
 
 Var
   Year, Month, Day : Integer;
-
 begin
  Result:=0;
  If TryStrToInt(NextWord(S,'-'),Year) then
    if TryStrToInt(NextWord(S,'-'),Month) then
-     if TryStrToInt(NextWord(S,'-'),Day) then
+     if TryStrToInt(NextWord(S,' '),Day) then
         Result:=EncodeDate(Year,Month,Day);
 end;
 
@@ -528,6 +561,7 @@ begin
     end;
   Result:=ComposeDateTime(ParseSQLiteDate(DS),ParseSQLiteTime(TS,False));
 end;
+
 function TSQLite3Connection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
 var
@@ -607,6 +641,20 @@ begin
       if int1 > 0 then
         move(sqlite3_column_text16(st,fnum)^, buffer^, int1); //Strings returned by sqlite3_column_text() and sqlite3_column_text16(), even empty strings, are always zero terminated.
       end;
+    ftVarBytes,
+    ftBytes:
+      begin
+      int1 := sqlite3_column_bytes(st,fnum);
+      if int1 > FieldDef.Size then
+        int1 := FieldDef.Size;
+      if FieldDef.DataType = ftVarBytes then
+      begin
+        PWord(buffer)^ := int1;
+        inc(buffer, sizeof(Word));
+      end;
+      if int1 > 0 then
+        move(sqlite3_column_blob(st,fnum)^, buffer^, int1);
+      end;
     ftWideMemo,
     ftMemo,
     ftBlob: CreateBlob:=True;
@@ -671,6 +719,10 @@ begin
   InitializeSqlite(SQLiteLibraryName);
   str1:= databasename;
   checkerror(sqlite3_open(pchar(str1),@fhandle));
+  if (Length(Password)>0) and assigned(sqlite3_key) then
+    checkerror(sqlite3_key(fhandle,PChar(Password),StrLen(PChar(Password))));
+  if Params.IndexOfName('foreign_keys') <> -1 then
+    execsql('PRAGMA foreign_keys =  '+Params.Values['foreign_keys']);
 end;
 
 procedure TSQLite3Connection.DoInternalDisconnect;
@@ -770,7 +822,7 @@ function TSQLite3Connection.GetSchemaInfoSQL(SchemaType: TSchemaType;
   
 begin
   case SchemaType of
-    stTables     : result := 'select name as table_name from sqlite_master where type = ''table''';
+    stTables     : result := 'select name as table_name from sqlite_master where type = ''table'' order by 1';
     stColumns    : result := 'pragma table_info(''' + (SchemaObjectName) + ''')';
   else
     DatabaseError(SMetadataUnavailable)
@@ -858,6 +910,31 @@ procedure TSQLite3Connection.GetFieldNames(const TableName: string;
   List: TStrings);
 begin
   GetDBInfo(stColumns,TableName,'name',List);
+end;
+
+procedure Tsqlite3connection.LoadExtension(Libraryfile: String);
+var
+  LoadResult: integer;
+begin
+  CheckConnected; //Apparently we need a connection before we can load extensions.
+  LoadResult:=SQLITE_ERROR; //Default to failed  
+  try    
+    LoadResult:=sqlite3_enable_load_extension(fhandle, 1); //Make sure we are allowed to load
+    if LoadResult=SQLITE_OK then
+      begin
+      LoadResult:=sqlite3_load_extension(fhandle, PChar(LibraryFile), nil, nil); //Actually load extension
+      if LoadResult=SQLITE_ERROR then
+        begin
+        DatabaseError('LoadExtension: failed to load SQLite extension (SQLite returned an error while loading).',Self);
+        end;
+      end
+      else
+      begin
+        DatabaseError('LoadExtension: failed to load SQLite extension (SQLite returned an error while enabling extensions).',Self);
+      end;
+  except
+    DatabaseError('LoadExtension: failed to load SQLite extension.',Self)
+  end;
 end;
 
 procedure TSQLite3Connection.setoptions(const avalue: tsqliteoptions);

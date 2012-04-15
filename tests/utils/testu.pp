@@ -14,6 +14,7 @@ type
 
   TConfig = record
     NeedOptions,
+    DelOptions,
     NeedCPU,
     SkipCPU,
     SkipEmu,
@@ -174,6 +175,9 @@ begin
               delete(s,1,1);
               if GetEntry('OPT') then
                r.NeedOptions:=res
+              else
+               if GetEntry('DELOPT') then
+                r.DelOptions:=res
               else
                if GetEntry('TARGET') then
                 r.NeedTarget:=res

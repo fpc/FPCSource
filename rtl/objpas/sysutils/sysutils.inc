@@ -79,7 +79,7 @@
     {$else unix}
       O:=[sfoImplicitCurrentDir,sfoStripQuotes];
     {$endif unix}
-      Result := FileSearch(Name, D, False);
+      Result := FileSearch(Name, D, O);
     end;
 
   {$ifndef OS_FILEISREADONLY}
@@ -129,6 +129,7 @@
 
   { MCBS functions }
   {$i sysansi.inc}
+  {$i syscodepages.inc}
 
   { wide string functions }
   {$i syswide.inc}
@@ -136,6 +137,7 @@
 {$ifdef FPC_HAS_UNICODESTRING}
   { unicode string functions }
   {$i sysuni.inc}
+  {$i sysencoding.inc}
 {$endif FPC_HAS_UNICODESTRING}
   
   { threading stuff }
@@ -265,26 +267,27 @@
        ErrCode:=Code;
     end;
 
+{$ifdef windows}
+function EExternal.GetExceptionRecord: PExceptionRecord;
+begin
+  result:=@FExceptionRecord;
+end;
 
-{$ifopt S+}
-{$define STACKCHECK_WAS_ON}
+{$endif windows}
+
+{$push}
 {$S-}
-{$endif OPT S }
 Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer; FrameCount: Longint; Frames: PPointer);[public,alias:'FPC_BREAK_UNHANDLED_EXCEPTION'];
 Var
-  Message : String;
   i : longint;
   hstdout : ^text;
 begin
   hstdout:=@stdout;
-  Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(PtrUInt(Addr),sizeof(PtrUInt)*2),' :');
+  Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(Addr),':');
   if Obj is exception then
-   begin
-     Message:=Exception(Obj).ClassName+' : '+Exception(Obj).Message;
-     Writeln(hstdout^,Message);
-   end
+    Writeln(hstdout^,Obj.ClassName,': ',Exception(Obj).Message)
   else
-   Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.');
+    Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.');
   Writeln(hstdout^,BackTraceStrFunc(Addr));
   if (FrameCount>0) then
     begin
@@ -294,22 +297,84 @@ begin
   Writeln(hstdout^,'');
 end;
 
+type
+  PExceptMapEntry=^TExceptMapEntry;
+  TExceptMapEntry=record
+    code: byte;
+    cls:  ExceptClass;
+{$IFDEF FPC_HAS_FEATURE_RESOURCES}  // This is necessary for 2.4.4, which does not have reasources as a separate feature
+    msg:  PResStringRec;
+{$else FPC_HAS_FEATURE_RESOURCES}
+    msg:  PString;
+{$endif FPC_HAS_FEATURE_RESOURCES}
+  end;
+
+const
+  exceptmap: array[0..27] of TExceptMapEntry = (
+    (code: 200; cls: EDivByZero;     msg: @SDivByZero),
+    (code: 201; cls: ERangeError;    msg: @SRangeError),
+    (code: 202; cls: EStackOverflow; msg: @SStackOverflow),
+    (code: 205; cls: EOverflow;      msg: @SOverflow),
+    (code: 206; cls: EUnderflow;     msg: @SUnderflow),
+    (code: 207; cls: EInvalidOp;     msg: @SInvalidOp),
+    { Delphi distinguishes reDivByZero from reZeroDivide, but maps both to code 200. }
+    (code: 208; cls: EZeroDivide;    msg: @SZeroDivide),
+    (code: 211; cls: EAbstractError; msg: @SAbstractError),
+    (code: 212; cls: EExternalException; msg: @SExternalException),
+    (code: 214; cls: EBusError;      msg: @SBusError),
+    (code: 215; cls: EIntOverflow;   msg: @SIntOverflow),
+    (code: 216; cls: EAccessViolation; msg: @SAccessViolation),
+    (code: 217; cls: EControlC;      msg: @SControlC),
+    (code: 218; cls: EPrivilege;     msg: @SPrivilege),
+    (code: 219; cls: EInvalidCast;   msg: @SInvalidCast),
+    (code: 220; cls: EVariantError;  msg: @SInvalidVarCast),
+    (code: 221; cls: EVariantError;  msg: @SInvalidVarOp),
+    (code: 222; cls: EVariantError;  msg: @SDispatchError),
+    (code: 223; cls: EVariantError;  msg: @SVarArrayCreate),
+    (code: 224; cls: EVariantError;  msg: @SVarNotArray),
+    (code: 225; cls: EVariantError;  msg: @SVarArrayBounds),
+    (code: 227; cls: EAssertionFailed; msg: @SAssertionFailed),
+    (code: 228; cls: EIntfCastError; msg: @SIntfCastError),
+    (code: 229; cls: ESafecallException; msg: @SSafecallException),
+    (code: 231; cls: EConvertError;  msg: @SiconvError),
+    (code: 232; cls: ENoThreadSupport; msg: @SNoThreadSupport),
+    (code: 233; cls: ENoWideStringSupport; msg: @SSigQuit),
+    (code: 234; cls: ENoWideStringSupport; msg: @SMissingWStringManager)
+  );
+
+function FindExceptMapEntry(err: longint): PExceptMapEntry;
+var
+  i: longint;
+begin
+  for i:=low(exceptmap) to high(exceptmap) do
+    if err=exceptmap[i].code then
+    begin
+      result:=@exceptmap[i];
+      exit;
+    end;
+  result:=nil;
+end;
 
 Var OutOfMemory : EOutOfMemory;
     InValidPointer : EInvalidPointer;
 
 
 Procedure RunErrorToExcept (ErrNo : Longint; Address,Frame : Pointer);
-
-Var E : Exception;
-    HS : PString;
-
+var
+  E: Exception;
+  HS: PString;
+  Entry: PExceptMapEntry;
 begin
   Case Errno of
    1,203 : E:=OutOfMemory;
    204 : E:=InvalidPointer;
-   2,3,4,5,6,100,101,102,103,105,106 : { I/O errors }
-     begin
+  else
+    Entry:=FindExceptMapEntry(ErrNo);
+    if Assigned(Entry) then
+      E:=Entry^.cls.CreateRes(Entry^.msg)
+    else
+    begin
+     HS:=nil;
      Case Errno of
        2 : HS:=@SFileNotFound;
        3 : HS:=@SInvalidFileName;
@@ -325,7 +390,10 @@ begin
        105 : HS:=@SFileNotOpenForOutput;
        106 : HS:=@SInvalidInput;
      end;
-     E:=EinOutError.Create (HS^);
+     if Assigned(HS) then
+       E:=EInOutError.CreateRes(HS)
+     else
+       E:=EInOutError.CreateResFmt(@SUnknownRunTimeError,[errno]);
      // this routine can be called from FPC_IOCHECK,
      // which clears inoutres and then passes its
      // original value to HandleErrorFrame() (which calls
@@ -335,62 +403,39 @@ begin
      EInoutError(E).ErrorCode:=errno;
      inoutres:=0;
      end;
-  // We don't set abstracterrorhandler, but we do it here.
-  // Unless the use sets another handler we'll get here anyway...
-  200 : E:=EDivByZero.Create(SDivByZero);
-  201 : E:=ERangeError.Create(SRangeError);
-  205 : E:=EOverflow.Create(SOverflow);
-  206 : E:=EOverflow.Create(SUnderflow);
-  207 : E:=EInvalidOp.Create(SInvalidOp);
-  211 : E:=EAbstractError.Create(SAbstractError);
-  212 : E:=EExternalException.Create(SExternalException);
-  214 : E:=EBusError.Create(SBusError);
-  215 : E:=EIntOverflow.Create(SIntOverflow);
-  216 : E:=EAccessViolation.Create(SAccessViolation);
-  217 : E:=EControlC.Create(SControlC);
-  218 : E:=EPrivilege.Create(SPrivilege);
-  219 : E:=EInvalidCast.Create(SInvalidCast);
-  220 : E:=EVariantError.Create(SInvalidVarCast);
-  221 : E:=EVariantError.Create(SInvalidVarOp);
-  222 : E:=EVariantError.Create(SDispatchError);
-  223 : E:=EVariantError.Create(SVarArrayCreate);
-  224 : E:=EVariantError.Create(SVarNotArray);
-  225 : E:=EVariantError.Create(SVarArrayBounds);
-  227 : E:=EAssertionFailed.Create(SAssertionFailed);
-  228 : E:=EIntfCastError.Create(SIntfCastError);
-  229 : E:=ESafecallException.Create(SSafecallException);
-  231 : E:=EConvertError.Create(SiconvError);
-  232 : E:=ENoThreadSupport.Create(SNoThreadSupport);
-  233 : E:=ENoWideStringSupport.Create(SSigQuit);
-  234 : E:=ENoWideStringSupport.Create(SMissingWStringManager);
-  else
-   E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
   Raise E at Address,Frame;
 end;
 
 {$IFDEF HAS_OSERROR}
-Procedure RaiseLastOSError;
-
-var
-  ECode: Cardinal;
-  E : EOSError;
-
+Procedure RaiseLastOSError;overload;
 begin
-  ECode := GetLastOSError;
-  If (ECode<>0) then
-    E:=EOSError.CreateFmt(SOSError, [ECode, SysErrorMessage(ECode)])
+  RaiseLastOSError(GetLastOSError);
+end;
+
+Procedure RaiseLastOSError(LastError: Integer);overload;
+var
+  E : EOSError;
+begin
+  If (LastError<>0) then
+    E:=EOSError.CreateFmt(SOSError, [LastError, SysErrorMessage(LastError)])
   else
     E:=EOSError.Create(SUnkOSError);
-  E.ErrorCode:=ECode;
+  E.ErrorCode:=LastError;
   Raise E;
 end;
-{$else}
-Procedure RaiseLastOSError;
 
+{$else}
+Procedure RaiseLastOSError;overload;
 begin
   Raise Exception.Create('RaiseLastOSError not implemented on this platform.');
 end;
+
+Procedure RaiseLastOSError(LastError: Integer);overload;
+begin
+  RaiseLastOSError;
+end;
+
 {$endif}
 Procedure AssertErrorHandler (Const Msg,FN : ShortString;LineNo:longint; TheAddr : pointer);
 Var
@@ -403,9 +448,7 @@ begin
   Raise EAssertionFailed.Createfmt(SAssertError,[S,Fn,LineNo]) at get_caller_addr(theAddr), get_caller_frame(theAddr);
 end;
 
-{$ifdef STACKCHECK_WAS_ON}
-{$S+}
-{$endif}
+{$pop} //{$S-} for Error handling functions
 
 Procedure InitExceptions;
 {

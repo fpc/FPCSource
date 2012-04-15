@@ -79,6 +79,7 @@ interface
          Constructor Create;override;
          Destructor Destroy;override;
          Function  FindUtil(const s:TCmdStr):TCmdStr;
+         Function  CatFileContent(para:TCmdStr):TCmdStr;
          Function  DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
          procedure SetDefaultInfo;virtual;
          Function  MakeStaticLibrary:boolean;override;
@@ -671,6 +672,40 @@ Implementation
       end;
 
 
+    Function TExternalLinker.CatFileContent(para : TCmdStr) : TCmdStr;
+      var
+        filecontent : TCmdStr;
+        f : text;
+        st : string;
+      begin
+        if not (tf_no_backquote_support in source_info.flags) or
+           (cs_link_on_target in current_settings.globalswitches) then
+           begin
+             CatFileContent:='`cat '+MaybeQuoted(para)+'`';
+             Exit;
+           end;
+        assign(f,para);
+        filecontent:='';
+        {$push}{$I-}
+        reset(f);
+        {$pop}
+        if IOResult<>0 then
+          begin
+            Message1(exec_n_backquote_cat_file_not_found,para);
+          end
+        else
+          begin
+            while not eof(f) do
+              begin
+                readln(f,st);
+                if st<>'' then
+                  filecontent:=filecontent+' '+st;
+              end;
+            close(f);
+          end;
+        CatFileContent:=filecontent;
+      end;
+
     Function TExternalLinker.DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
       var
         exitcode: longint;
@@ -953,7 +988,6 @@ Implementation
 
     procedure TInternalLinker.ParseScript_PostCheck;
       var
-        s : String;
         hp : TCmdStrListItem;
         i : longint;
       begin
@@ -964,7 +998,6 @@ Implementation
             inc(i);
             if not IsHandled^[i] then
               begin
-                s:=hp.str;
                 Comment(V_Warning,'"'+hp.str+
                   '" internal linker script not handled');
               end;

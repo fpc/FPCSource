@@ -164,7 +164,8 @@ interface
                  cgsize2fpuoppostfix[def_cgsize(resultdef)]));
             end;
           fpu_vfpv2,
-          fpu_vfpv3:
+          fpu_vfpv3,
+          fpu_vfpv3_d16:
             begin
               { force mmreg as location, left right doesn't matter
                 as both will be in a fpureg }
@@ -248,7 +249,8 @@ interface
                    cgsize2fpuoppostfix[def_cgsize(resultdef)]));
             end;
           fpu_vfpv2,
-          fpu_vfpv3:
+          fpu_vfpv3,
+          fpu_vfpv3_d16:
             begin
               location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
               location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,true);

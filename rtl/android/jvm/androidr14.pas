@@ -1970,11 +1970,6 @@ type
   Arr2JNSCertPathTrustManagerParameters = array of Arr1JNSCertPathTrustManagerParameters;
   Arr3JNSCertPathTrustManagerParameters = array of Arr2JNSCertPathTrustManagerParameters;
 
-  JUWeakHashMap = class;
-  Arr1JUWeakHashMap = array of JUWeakHashMap;
-  Arr2JUWeakHashMap = array of Arr1JUWeakHashMap;
-  Arr3JUWeakHashMap = array of Arr2JUWeakHashMap;
-
   OAHIDefaultHttpServerConnection = class;
   Arr1OAHIDefaultHttpServerConnection = array of OAHIDefaultHttpServerConnection;
   Arr2OAHIDefaultHttpServerConnection = array of Arr1OAHIDefaultHttpServerConnection;

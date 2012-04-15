@@ -41,7 +41,7 @@ procedure PASCALMAIN; external name 'PASCALMAIN';
  ******************************************************************************}
 
 var
-  dlexitproc: pointer;
+  dlexitproc : pointer;
 
 {$ifdef FPC_PIC}
 function fpc_geteipasebxlocal : pointer; [external name 'fpc_geteipasebx'];
@@ -60,12 +60,9 @@ asm
   {$ifdef FPC_PIC}
         pushl %ebx
         pushl %ecx
-	
-	call fpc_geteipasebxlocal
-        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
 
-	movl  dlexitproc@GOT(%ebx),%ecx
-	movl  %edx,(%ecx)
+        call fpc_geteipasebxlocal
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
 
 	movl  operatingsystem_parameter_envp@GOT(%ebx),%ecx
 	movl  %eax,(%ecx)
@@ -78,7 +75,6 @@ asm
 	popl  %ebx
 	movl  %ebx,(%edx)
   {$else FPC_PIC}
-  	movl  %edx, dlexitproc
   	movl  %eax,operatingsystem_parameter_envp
   	movl  %ecx,operatingsystem_parameter_argc
   	movl  %ebx,operatingsystem_parameter_argv
@@ -102,6 +98,23 @@ asm
   xorl    %ebp,%ebp
   call    PASCALMAIN
 end;
+
+procedure _FPC_dynamic_proc_start; assembler; nostackframe; public name '_dynamic_start';
+asm
+  {$ifdef FPC_PIC}
+  pushl %ebx
+  call fpc_geteipasebxlocal
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+
+  movl  dlexitproc@GOT(%ebx),%ebx
+  movl  %edx,(%ebx)
+  popl  %ebx
+  {$else}
+  movl  %edx, dlexitproc
+  {$endif}
+  jmp _FPC_proc_start
+end;
+
 
 procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
 asm

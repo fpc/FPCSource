@@ -23,6 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Headers for the Interbase/Firebird RDBMS';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -40,9 +41,10 @@ begin
           AddInclude('ibase60.inc');
         end;
 
-    P.ExamplePath.Add('tests');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testib40.pp');
     P.Targets.AddExampleProgram('testib60.pp');
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

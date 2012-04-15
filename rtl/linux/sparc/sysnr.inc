@@ -171,12 +171,12 @@ Const
       syscall_nr_pciconfig_read   = 148 ; // ENOSYS under SunOS
       syscall_nr_pciconfig_write  = 149 ; // ENOSYS under SunOS
       syscall_nr_getsockname      = 150 ; // Common
-//       syscall_nr_getmsg        = 151    SunOS Specific
-//       syscall_nr_putmsg        = 152    SunOS Specific
+      syscall_nr_inotify_init     = 151 ; // Linux specific
+      syscall_nr_inotify_add_watch= 152 ; // Linux specific
       syscall_nr_poll             = 153 ; // Common
       syscall_nr_getdents64       = 154 ; // Linux specific
       syscall_nr_fcntl64          = 155 ; // Linux sparc32 Specific
-//       syscall_nr_getdirentries = 156    SunOS Specific
+      syscall_nr_inotify_rm_watch = 156 ; // Linux specific
       syscall_nr_statfs           = 157 ; // Common
       syscall_nr_fstatfs          = 158 ; // Common
       syscall_nr_umount           = 159 ; // Common

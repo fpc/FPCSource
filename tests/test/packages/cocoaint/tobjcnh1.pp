@@ -1,5 +1,5 @@
 { %target=darwin }
-{ %cpu=powerpc,i386 }
+{ %cpu=powerpc,i386,powerpc64,x86_64 }
 
 {$mode objfpc}{$H+}
 {$modeswitch objectivec1}

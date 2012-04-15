@@ -69,6 +69,5 @@ destructor TWin32DIB.Destroy;
 begin
   FreeMem(FPixels);
   FreeMem(FBitmapInfo);
-  FFormat.Free;
   inherited Destroy;
 end;

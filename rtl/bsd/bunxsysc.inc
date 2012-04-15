@@ -47,9 +47,15 @@ function FPsigsuspend(const sigmask:sigset_t):cint;
 }
 
 begin
+{$ifdef OPENBSD}
+  { OpenBSD sigsuspend syscall wants a simple int as arg }
+  FPsigsuspend:= do_syscall(syscall_nr_sigsuspend,TSysParam(sigmask[0]));
+{$else}
   FPsigsuspend:= do_syscall(syscall_nr_sigsuspend,TSysParam(@sigmask));
+{$endif}
 end;
 
+{$ifndef FPC_SYS_SIGTIMEDWAIT_UNAVAILABLE}
 function fpsigtimedwait(const sigset:TSigSet;info:Psiginfo;timeout:Ptimespec):cint;
 
 begin
@@ -58,6 +64,7 @@ begin
                              Tsysparam(info),
                              Tsysparam(timeout));
 end;
+{$endif ndef FPC_SYS_SIGTIMEDWAIT_UNAVAILABLE}
 
 
 Type // implementation side for now. Should move to BSD unit.
@@ -306,6 +313,12 @@ begin
  FPsetsid:=do_syscall(syscall_nr_setsid);
 end;
 
+function fpgetsid (pid:TPid): pid_t;
+
+begin
+ fpgetsid:=do_syscall(syscall_nr_getsid,TSysParam(pid));
+end;
+
 Function FPumask(cmask:mode_t):mode_t;
 {
   Sets file creation mask to (Mask and 0777 (octal) ), and returns the
@@ -364,6 +377,11 @@ end;
 function __pipe_call(sysnr:TSysParam):TSysResult; {$ifdef cpui386}oldfpccall{$endif} external name 'FPC_DOSYS0';
 
 Function FPpipe(var fildes : tfildes):cint;
+{$ifndef freebsd}
+begin
+  fppipe:=do_syscall(syscall_nr_pipe,TSysParam(@fildes));
+end;
+{$else}
 var
   a, b: cInt;
 begin
@@ -385,6 +403,7 @@ begin
   fildes[0] := a;
   fildes[1] := b;
 end;
+{$endif}
 
 function FPfcntl(fildes:cint;Cmd:cint;Arg:cint):cint;
 
@@ -561,7 +580,7 @@ end;
 function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
 
 begin
-  
+
  	{$ifdef CPU64}
 	    Fppread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,TSysParam(OffSet));
 	{$else}

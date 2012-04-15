@@ -24,23 +24,15 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifdef REGCALL}
         movl    %eax,saveeax
         movl    %edx,%edi
-{$else}
-        movl    source,%edi
-{$endif}
         testl   %edi,%edi
         jz      .LStrCopyDone
         leal    3(%edi),%ecx
         andl    $-4,%ecx
         movl    %edi,%esi
         subl    %edi,%ecx
-{$ifdef REGCALL}
         movl    %eax,%edi
-{$else}
-        movl    dest,%edi
-{$endif}
         jz      .LStrCopyAligned
 .LStrCopyAlignLoop:
         movb    (%esi),%al
@@ -84,11 +76,7 @@ asm
 .LStrCopyByte:
         movb    %al,(%edi)
 .LStrCopyDone:
-{$ifdef REGCALL}
         movl    saveeax,%eax
-{$else}
-        movl    dest,%eax
-{$endif}
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
@@ -197,10 +185,8 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifdef REGCALL}
         movl    %eax,saveeax
         movl    %edx,saveedx
-{$endif}
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -208,13 +194,8 @@ asm
         repne
         scasb
         not     %ecx
-{$ifdef REGCALL}
         movl    saveedx,%edi
         movl    saveeax,%esi
-{$else}
-        movl    str2,%edi
-        movl    str1,%esi
-{$endif}
         repe
         cmpsb
         movb    -1(%esi),%al
@@ -235,11 +216,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifdef REGCALL}
         movl    %eax,saveeax
         movl    %edx,saveedx
         movl    %ecx,saveecx
-{$endif}
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -247,21 +226,12 @@ asm
         repne
         scasb
         not     %ecx
-{$ifdef REGCALL}
         cmpl    saveecx,%ecx
         jl      .LSTRLCOMP1
         movl    saveecx,%ecx
 .LSTRLCOMP1:
         movl    saveedx,%edi
         movl    saveeax,%esi
-{$else}
-        cmpl    l,%ecx
-        jl      .LSTRLCOMP1
-        movl    l,%ecx
-.LSTRLCOMP1:
-        movl    str2,%edi
-        movl    str1,%esi
-{$endif}
         repe
         cmpsb
         movb    -1(%esi),%al
@@ -282,10 +252,8 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifdef REGCALL}
         movl    %eax,saveeax
         movl    %edx,saveedx
-{$endif}
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -293,13 +261,8 @@ asm
         repne
         scasb
         not     %ecx
-{$ifdef REGCALL}
         movl    saveedx,%edi
         movl    saveeax,%esi
-{$else}
-        movl    str2,%edi
-        movl    str1,%esi
-{$endif}
 .LSTRICOMP2:
         repe
         cmpsb
@@ -336,11 +299,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifdef REGCALL}
         movl    %eax,saveeax
         movl    %edx,saveedx
         movl    %ecx,saveecx
-{$endif}
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -348,21 +309,12 @@ asm
         repne
         scasb
         not     %ecx
-{$ifdef REGCALL}
         cmpl    saveecx,%ecx
         jl      .LSTRLICOMP5
         movl    saveecx,%ecx
 .LSTRLICOMP5:
         movl    saveedx,%edi
         movl    saveeax,%esi
-{$else}
-        cmpl    l,%ecx
-        jl      .LSTRLICOMP5
-        movl    l,%ecx
-.LSTRLICOMP5:
-        movl    str2,%edi
-        movl    str1,%esi
-{$endif}
 .LSTRLICOMP2:
         repe
         cmpsb
@@ -399,9 +351,6 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifndef REGCALL}
-        movl    p,%eax
-{$endif}
         xorl    %ecx,%ecx
         testl   %eax,%eax
         jz      .LSTRSCAN
@@ -524,15 +473,11 @@ end;
 {$define FPC_UNIT_HAS_STRRSCAN}
 function strrscan(p : pchar;c : char) : pchar;assembler;
 var
-  {$ifdef regcall}
   saveeax,
-  {$endif}
   saveedi : longint;
 asm
         movl    %edi,saveedi
-{$ifdef regcall}
         movl    %eax,saveeax
-{$endif regcall}
         movl    p,%edi
         xorl    %eax,%eax
         orl     %edi,%edi
@@ -544,11 +489,7 @@ asm
         scasb
         not     %ecx
         movb    c,%al
-{$ifdef regcall}
         movl    saveeax,%edi
-{$else}
-        movl    p,%edi
-{$endif}
         addl    %ecx,%edi
         decl    %edi
         std
@@ -573,9 +514,6 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifndef REGCALL}
-        movl    p,%eax
-{$endif}
         movl    %eax,saveeax
         movl    p,%esi
         orl     %esi,%esi
@@ -608,9 +546,6 @@ var
 asm
         movl    %esi,saveesi
         movl    %edi,saveedi
-{$ifndef REGCALL}
-        movl    p,%eax
-{$endif}
         movl    %eax,saveeax
         movl    p,%esi
         orl     %esi,%esi

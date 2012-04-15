@@ -25,18 +25,11 @@ unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 
 {$I fpcdefs.inc}
 
-{ enable the following define if memory references can have both a base and }
-{ index register in 1 operand                                               }
-
-{$DEFINE RefsHaveIndexReg}
-
 { enable the following define if memory references can have a scaled index }
-
 { define RefsHaveScale}
 
 { enable the following define if memory references can have a segment }
 { override                                                            }
-
 { define RefsHaveSegment}
 
 interface

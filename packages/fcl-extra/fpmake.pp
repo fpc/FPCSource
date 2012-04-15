@@ -18,7 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
-    P.OSes:=AllWindowsOSes+AllUnixOSes;
+    P.OSes:=[Win32,Win64]+AllUnixOSes;
     P.Dependencies.Add('winunits-jedi',[Win32,Win64]);
     P.Dependencies.Add('winunits-base',[Win32,Win64]);
     P.Dependencies.Add('univint',[darwin,iPhoneSim]);

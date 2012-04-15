@@ -447,6 +447,7 @@ type
 type
 	FXInfoPtr = ^FXInfo;
 	FXInfo = record
+		fdIconID: SInt16;              { Reserved (set to 0) }
 		fdReserved: array [0..2] of SInt16;          { Reserved (set to 0) }
 		fdScript: SInt8;               { Extended flags. Script code if high-bit is set }
 		fdXFlags: SInt8;               { Extended flags }

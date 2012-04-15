@@ -19,12 +19,18 @@ begin
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
 
-    T:=P.Targets.AddUnit('regexpr.pp');
+    // Sorokin's RegExpr
+    T:=P.Targets.AddUnit('regexpr.pas');
+
+    // RegEx from Joost
+    T:=P.Targets.AddUnit('oldregexpr.pp');
     T:=P.Targets.AddUnit('regex.pp');
+
     T.ResourceStrings := True;
 
-    P.ExamplePath.Add('tests');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testreg1.pp');
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

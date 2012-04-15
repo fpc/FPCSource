@@ -12,7 +12,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
-unit oldlinux;
+unit oldlinux deprecated 'Use Baseunix/Unix';
 
 Interface
 

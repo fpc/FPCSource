@@ -22,9 +22,6 @@ interface
 { force ansistrings }
 {$H+}
 
-uses
- Dos;
-
 {$DEFINE HAS_SLEEP}
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -33,436 +30,19 @@ uses
 implementation
 
   uses
-    sysconst;
+    sysconst, DosCalls;
+
+
+type
+(* Necessary here due to a different definition of TDateTime in DosCalls. *)
+  TDateTime = System.TDateTime;
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+{$DEFINE FPC_FEXPAND_GETENV_PCHAR}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
-
-
-{****************************************************************************
-                        System (imported) calls
-****************************************************************************}
-
-(* "uses DosCalls" could not be used here due to type    *)
-(* conflicts, so needed parts had to be redefined here). *)
-
-type
-        TFileStatus = object
-        end;
-        PFileStatus = ^TFileStatus;
-
-        TFileStatus3 = object (TFileStatus)
-            DateCreation,               {Date of file creation.}
-            TimeCreation,               {Time of file creation.}
-            DateLastAccess,             {Date of last access to file.}
-            TimeLastAccess,             {Time of last access to file.}
-            DateLastWrite,              {Date of last modification of file.}
-            TimeLastWrite:word;         {Time of last modification of file.}
-            FileSize,                   {Size of file.}
-            FileAlloc:cardinal;         {Amount of space the file really
-                                         occupies on disk.}
-            AttrFile:cardinal;          {Attributes of file.}
-        end;
-        PFileStatus3=^TFileStatus3;
-
-        TFileStatus4=object(TFileStatus3)
-            cbList:cardinal;            {Length of entire EA set.}
-        end;
-        PFileStatus4=^TFileStatus4;
-
-        TFileFindBuf3=object(TFileStatus)
-            NextEntryOffset: cardinal;  {Offset of next entry}
-            DateCreation,               {Date of file creation.}
-            TimeCreation,               {Time of file creation.}
-            DateLastAccess,             {Date of last access to file.}
-            TimeLastAccess,             {Time of last access to file.}
-            DateLastWrite,              {Date of last modification of file.}
-            TimeLastWrite:word;         {Time of last modification of file.}
-            FileSize,                   {Size of file.}
-            FileAlloc:cardinal;         {Amount of space the file really
-                                         occupies on disk.}
-            AttrFile:cardinal;          {Attributes of file.}
-            Name:shortstring;           {Also possible to use as ASCIIZ.
-                                         The byte following the last string
-                                         character is always zero.}
-        end;
-        PFileFindBuf3=^TFileFindBuf3;
-
-        TFileFindBuf4=object(TFileStatus)
-            NextEntryOffset: cardinal;  {Offset of next entry}
-            DateCreation,               {Date of file creation.}
-            TimeCreation,               {Time of file creation.}
-            DateLastAccess,             {Date of last access to file.}
-            TimeLastAccess,             {Time of last access to file.}
-            DateLastWrite,              {Date of last modification of file.}
-            TimeLastWrite:word;         {Time of last modification of file.}
-            FileSize,                   {Size of file.}
-            FileAlloc:cardinal;         {Amount of space the file really
-                                         occupies on disk.}
-            AttrFile:cardinal;          {Attributes of file.}
-            cbList:cardinal;            {Size of the file's extended attributes.}
-            Name:shortstring;           {Also possible to use as ASCIIZ.
-                                         The byte following the last string
-                                         character is always zero.}
-        end;
-        PFileFindBuf4=^TFileFindBuf4;
-
-        TFileFindBuf3L=object(TFileStatus)
-            NextEntryOffset: cardinal;  {Offset of next entry}
-            DateCreation,               {Date of file creation.}
-            TimeCreation,               {Time of file creation.}
-            DateLastAccess,             {Date of last access to file.}
-            TimeLastAccess,             {Time of last access to file.}
-            DateLastWrite,              {Date of last modification of file.}
-            TimeLastWrite:word;         {Time of last modification of file.}
-            FileSize,                   {Size of file.}
-            FileAlloc:int64;            {Amount of space the file really
-                                         occupies on disk.}
-            AttrFile:cardinal;          {Attributes of file.}
-            Name:shortstring;           {Also possible to use as ASCIIZ.
-                                         The byte following the last string
-                                         character is always zero.}
-        end;
-        PFileFindBuf3L=^TFileFindBuf3L;
-
-        TFileFindBuf4L=object(TFileStatus)
-            NextEntryOffset: cardinal;  {Offset of next entry}
-            DateCreation,               {Date of file creation.}
-            TimeCreation,               {Time of file creation.}
-            DateLastAccess,             {Date of last access to file.}
-            TimeLastAccess,             {Time of last access to file.}
-            DateLastWrite,              {Date of last modification of file.}
-            TimeLastWrite:word;         {Time of last modification of file.}
-            FileSize,                   {Size of file.}
-            FileAlloc:int64;            {Amount of space the file really
-                                         occupies on disk.}
-            AttrFile:cardinal;          {Attributes of file.}
-            cbList:cardinal;            {Size of the file's extended attributes.}
-            Name:shortstring;           {Also possible to use as ASCIIZ.
-                                         The byte following the last string
-                                         character is always zero.}
-        end;
-        PFileFindBuf4L=^TFileFindBuf4L;
-
- TFSInfo = record
-            case word of
-             1:
-              (File_Sys_ID,
-               Sectors_Per_Cluster,
-               Total_Clusters,
-               Free_Clusters: cardinal;
-               Bytes_Per_Sector: word);
-             2:                           {For date/time description,
-                                           see file searching realted
-                                           routines.}
-              (Label_Date,                {Date when volume label was created.}
-               Label_Time: word;          {Time when volume label was created.}
-               VolumeLabel: ShortString); {Volume label. Can also be used
-                                           as ASCIIZ, because the byte
-                                           following the last character of
-                                           the string is always zero.}
-           end;
- PFSInfo = ^TFSInfo;
-
- TCountryCode=record
-               Country,            {Country to query info about (0=current).}
-               CodePage: cardinal; {Code page to query info about (0=current).}
-              end;
- PCountryCode=^TCountryCode;
-
- TTimeFmt = (Clock12, Clock24);
-
- TCountryInfo=record
-               Country, CodePage: cardinal;  {Country and codepage requested.}
-               case byte of
-                0:
-                 (DateFormat: cardinal;     {1=ddmmyy 2=yymmdd 3=mmddyy}
-                  CurrencyUnit: array [0..4] of char;
-                  ThousandSeparator: char;  {Thousands separator.}
-                  Zero1: byte;              {Always zero.}
-                  DecimalSeparator: char;   {Decimals separator,}
-                  Zero2: byte;
-                  DateSeparator: char;      {Date separator.}
-                  Zero3: byte;
-                  TimeSeparator: char;      {Time separator.}
-                  Zero4: byte;
-                  CurrencyFormat,           {Bit field:
-                                             Bit 0: 0=indicator before value
-                                                    1=indicator after value
-                                             Bit 1: 1=insert space after
-                                                      indicator.
-                                             Bit 2: 1=Ignore bit 0&1, replace
-                                                      decimal separator with
-                                                      indicator.}
-                  DecimalPlace: byte;       {Number of decimal places used in
-                                             currency indication.}
-                  TimeFormat: TTimeFmt;     {12/24 hour.}
-                  Reserve1: array [0..1] of word;
-                  DataSeparator: char;      {Data list separator}
-                  Zero5: byte;
-                  Reserve2: array [0..4] of word);
-                1:
-                 (fsDateFmt: cardinal;      {1=ddmmyy 2=yymmdd 3=mmddyy}
-                  szCurrency: array [0..4] of char;
-                                            {null terminated currency symbol}
-                  szThousandsSeparator: array [0..1] of char;
-                                            {Thousands separator + #0}
-                  szDecimal: array [0..1] of char;
-                                            {Decimals separator + #0}
-                  szDateSeparator: array [0..1] of char;
-                                            {Date separator + #0}
-                  szTimeSeparator: array [0..1] of char;
-                                            {Time separator + #0}
-                  fsCurrencyFmt,            {Bit field:
-                                             Bit 0: 0=indicator before value
-                                                    1=indicator after value
-                                             Bit 1: 1=insert space after
-                                                      indicator.
-                                             Bit 2: 1=Ignore bit 0&1, replace
-                                                      decimal separator with
-                                                      indicator}
-                  cDecimalPlace: byte;      {Number of decimal places used in
-                                             currency indication}
-                  fsTimeFmt: byte;          {0=12,1=24 hours}
-                  abReserved1: array [0..1] of word;
-                  szDataSeparator: array [0..1] of char;
-                                            {Data list separator + #0}
-                  abReserved2: array [0..4] of word);
-              end;
- PCountryInfo=^TCountryInfo;
-
- TRequestData=record
-               PID,                {ID of process that wrote element.}
-               Data: cardinal;     {Information from process writing the data.}
-              end;
- PRequestData=^TRequestData;
-
-{Queue data structure for synchronously started sessions.}
- TChildInfo = record
-  case boolean of
-   false:
-    (SessionID,
-     Return: word);  {Return code from the child process.}
-   true:
-    (usSessionID,
-     usReturn: word);     {Return code from the child process.}
- end;
- PChildInfo = ^TChildInfo;
-
- TStartData=record
-  {Note: to omit some fields, use a length smaller than SizeOf(TStartData).}
-  Length:word;                {Length, in bytes, of datastructure
-                               (24/30/32/50/60).}
-  Related:word;               {Independent/child session (0/1).}
-  FgBg:word;                  {Foreground/background (0/1).}
-  TraceOpt:word;              {No trace/trace this/trace all (0/1/2).}
-  PgmTitle:PChar;             {Program title.}
-  PgmName:PChar;              {Filename to program.}
-  PgmInputs:PChar;            {Command parameters (nil allowed).}
-  TermQ:PChar;                {System queue. (nil allowed).}
-  Environment:PChar;          {Environment to pass (nil allowed).}
-  InheritOpt:word;            {Inherit environment from shell/
-                               inherit environment from parent (0/1).}
-  SessionType:word;           {Auto/full screen/window/presentation
-                               manager/full screen Dos/windowed Dos
-                               (0/1/2/3/4/5/6/7).}
-  Iconfile:PChar;             {Icon file to use (nil allowed).}
-  PgmHandle:cardinal;         {0 or the program handle.}
-  PgmControl:word;            {Bitfield describing initial state
-                               of windowed sessions.}
-  InitXPos,InitYPos:word;     {Initial top coordinates.}
-  InitXSize,InitYSize:word;   {Initial size.}
-  Reserved:word;
-  ObjectBuffer:PChar;         {If a module cannot be loaded, its
-                               name will be returned here.}
-  ObjectBuffLen:cardinal;     {Size of your buffer.}
- end;
- PStartData=^TStartData;
-
- TResultCodes=record
-  TerminateReason,        {0 = Normal termionation.
-                           1 = Critical error.
-                           2 = Trapped. (GPE, etc.)
-                           3 = Killed by DosKillProcess.}
-  ExitCode:cardinal;      {Exit code of child.}
- end;
-
-const
- ilStandard      = 1;
- ilQueryEAsize   = 2;
- ilQueryEAs      = 3;
- ilQueryFullName = 5;
-
- quFIFO     = 0;
- quLIFO     = 1;
- quPriority = 2;
-
- quNoConvert_Address = 0;
- quConvert_Address   = 4;
-
-{Start the new session independent or as a child.}
- ssf_Related_Independent = 0;    {Start new session independent
-                                  of the calling session.}
- ssf_Related_Child       = 1;    {Start new session as a child
-                                  session to the calling session.}
-
-{Start the new session in the foreground or in the background.}
- ssf_FgBg_Fore           = 0;    {Start new session in foreground.}
- ssf_FgBg_Back           = 1;    {Start new session in background.}
-
-{Should the program started in the new session
- be executed under conditions for tracing?}
- ssf_TraceOpt_None       = 0;    {No trace.}
- ssf_TraceOpt_Trace      = 1;    {Trace with no notification
-                                  of descendants.}
- ssf_TraceOpt_TraceAll   = 2;    {Trace all descendant sessions.
-                                  A termination queue must be
-                                  supplied and Related must be
-                                  ssf_Related_Child (=1).}
-
-{Will the new session inherit open file handles
- and environment from the calling process.}
- ssf_InhertOpt_Shell     = 0;    {Inherit from the shell.}
- ssf_InhertOpt_Parent    = 1;    {Inherit from the calling process.}
-
-{Specifies the type of session to start.}
- ssf_Type_Default        = 0;    {Use program's type.}
- ssf_Type_FullScreen     = 1;    {OS/2 full screen.}
- ssf_Type_WindowableVIO  = 2;    {OS/2 window.}
- ssf_Type_PM             = 3;    {Presentation Manager.}
- ssf_Type_VDM            = 4;    {DOS full screen.}
- ssf_Type_WindowedVDM    = 7;    {DOS window.}
-{Additional values for Windows programs}
- Prog_31_StdSeamlessVDM    = 15; {Windows 3.1 program in its
-                                  own windowed session.}
- Prog_31_StdSeamlessCommon = 16; {Windows 3.1 program in a
-                                  common windowed session.}
- Prog_31_EnhSeamlessVDM    = 17; {Windows 3.1 program in enhanced
-                                  compatibility mode in its own
-                                  windowed session.}
- Prog_31_EnhSeamlessCommon = 18; {Windows 3.1 program in enhanced
-                                  compatibility mode in a common
-                                  windowed session.}
- Prog_31_Enh               = 19; {Windows 3.1 program in enhanced
-                                  compatibility mode in a full
-                                  screen session.}
- Prog_31_Std               = 20; {Windows 3.1 program in a full
-                                  screen session.}
-
-{Specifies the initial attributes for a OS/2 window or DOS window session.}
- ssf_Control_Visible      = 0;   {Window is visible.}
- ssf_Control_Invisible    = 1;   {Window is invisible.}
- ssf_Control_Maximize     = 2;   {Window is maximized.}
- ssf_Control_Minimize     = 4;   {Window is minimized.}
- ssf_Control_NoAutoClose  = 8;   {Window will not close after
-                                  the program has ended.}
- ssf_Control_SetPos   = 32768;   {Use InitXPos, InitYPos,
-                                  InitXSize, and InitYSize for
-                                  the size and placement.}
-
-
-function DosSetFileInfo (Handle: THandle; InfoLevel: cardinal; AFileStatus: PFileStatus;
-        FileStatusLen: cardinal): cardinal; cdecl; external 'DOSCALLS' index 218;
-
-function DosQueryFSInfo (DiskNum, InfoLevel: cardinal; var Buffer: TFSInfo;
-               BufLen: cardinal): cardinal; cdecl; external 'DOSCALLS' index 278;
-
-function DosQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
-           AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal; cdecl;
-                                                 external 'DOSCALLS' index 279;
-
-function DosScanEnv (Name: PChar; var Value: PChar): cardinal; cdecl;
-                                                 external 'DOSCALLS' index 227;
-
-function DosFindFirst (FileMask: PChar; var Handle: THandle; Attrib: cardinal;
-                       AFileStatus: PFileStatus; FileStatusLen: cardinal;
-                    var Count: cardinal; InfoLevel: cardinal): cardinal; cdecl;
-                                                 external 'DOSCALLS' index 264;
-
-function DosFindNext (Handle: THandle; AFileStatus: PFileStatus;
-                FileStatusLen: cardinal; var Count: cardinal): cardinal; cdecl;
-                                                 external 'DOSCALLS' index 265;
-
-function DosFindClose (Handle: THandle): cardinal; cdecl;
-                                                 external 'DOSCALLS' index 263;
-
-function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
-           var Res: TCountryInfo; var ActualSize: cardinal): cardinal; cdecl;
-                                                        external 'NLS' index 5;
-
-function DosMapCase (Size: cardinal; var Country: TCountryCode;
-                      AString: PChar): cardinal; cdecl; external 'NLS' index 7;
-
-function DosDelete(FileName:PChar): cardinal; cdecl;
-    external 'DOSCALLS' index 259;
-
-function DosMove(OldFile, NewFile:PChar): cardinal; cdecl;
-    external 'DOSCALLS' index 271;
-
-function DosQueryPathInfo(FileName:PChar;InfoLevel:cardinal;
-              AFileStatus:PFileStatus;FileStatusLen:cardinal): cardinal; cdecl;
-    external 'DOSCALLS' index 223;
-
-function DosSetPathInfo(FileName:PChar;InfoLevel:cardinal;
-                        AFileStatus:PFileStatus;FileStatusLen,
-                        Options:cardinal):cardinal; cdecl;
-    external 'DOSCALLS' index 219;
-
-function DosClose(Handle: THandle): cardinal; cdecl;
-    external 'DOSCALLS' index 257;
-
-function DosRead(Handle:THandle; var Buffer; Count: cardinal;
-                                      var ActCount: cardinal): cardinal; cdecl;
-    external 'DOSCALLS' index 281;
-
-function DosWrite(Handle: THandle; Buffer: pointer; Count: cardinal;
-                                      var ActCount: cardinal): cardinal; cdecl;
-    external 'DOSCALLS' index 282;
-
-procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
-
-function DosCreateQueue (var Handle: THandle; Priority:longint;
-                        Name: PChar): cardinal; cdecl;
-                                                  external 'QUECALLS' index 16;
-
-function DosReadQueue (Handle: THandle; var ReqBuffer: TRequestData;
-                      var DataLen: cardinal; var DataPtr: pointer;
-                      Element, Wait: cardinal; var Priority: byte;
-                      ASem: THandle): cardinal; cdecl;
-                                                   external 'QUECALLS' index 9;
-
-function DosCloseQueue (Handle: THandle): cardinal; cdecl;
-                                                  external 'QUECALLS' index 11;
-
-function DosStartSession (var AStartData: TStartData;
-                          var SesID, PID: cardinal): cardinal; cdecl;
-                                                    external 'SESMGR' index 37;
-
-function DosFreeMem(P:pointer):cardinal; cdecl; external 'DOSCALLS' index 304;
-
-function DosExecPgm (ObjName: PChar; ObjLen: longint; ExecFlag: cardinal;
-                     Args, Env: PByteArray; var Res: TResultCodes;
-                     FileName:PChar): cardinal; cdecl;
-                                                 external 'DOSCALLS' index 283;
-
-type
-  TDT=packed record
-    Hour,
-    Minute,
-    Second,
-    Sec100,
-    Day,
-    Month: byte;
-    Year: word;
-    TimeZone: smallint;
-    WeekDay: byte;
-  end;
-
-function DosGetDateTime(var Buf: TDT): cardinal; cdecl;
-    external 'DOSCALLS' index 230;
 
 
 {****************************************************************************
@@ -539,7 +119,7 @@ function FileWrite (Handle: THandle; const Buffer; Count: longint): longint;
 Var
   T: cardinal;
 begin
-  DosWrite (Handle, @Buffer, Count, T);
+  DosWrite (Handle, Buffer, Count, T);
   FileWrite := longint (T);
 end;
 
@@ -590,25 +170,25 @@ end;
 
 
 function FileExists (const FileName: string): boolean;
-var
-  SR: TSearchRec;
-  RC: longint;
 begin
-  FileExists:=False;
-  if FindFirst (FileName, faAnyFile and not (faDirectory), SR) = 0
-    then FileExists := True;
-  FindClose(SR);
+  if FileName = '' then
+   Result := false
+  else
+   Result := FileGetAttr (ExpandFileName (FileName)) and
+                                               (faDirectory or faVolumeID) = 0;
+(* Neither VolumeIDs nor directories are files. *)
 end;
+
 
 type    TRec = record
             T, D: word;
         end;
-        PSearchRec = ^SearchRec;
+        PSearchRec = ^TSearchRec;
 
 function FindFirst (const Path: string; Attr: longint; out Rslt: TSearchRec): longint;
 
 var SR: PSearchRec;
-    FStat: PFileFindBuf3;
+    FStat: PFileFindBuf3L;
     Count: cardinal;
     Err: cardinal;
     I: cardinal;
@@ -617,23 +197,36 @@ begin
   New (FStat);
   Rslt.FindHandle := THandle ($FFFFFFFF);
   Count := 1;
-  Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+  if FSApi64 then
+   Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+            Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandardL)
+  else
+   Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandard);
-  if (Err = 0) and (Count = 0) then Err := 18;
+  if (Err = 0) and (Count = 0) then
+   Err := 18;
   FindFirst := -Err;
   if Err = 0 then
-  begin
-    Rslt.Name := FStat^.Name;
-    Rslt.Size := FStat^.FileSize;
-    Rslt.Attr := FStat^.AttrFile;
+   begin
     Rslt.ExcludeAttr := 0;
     TRec (Rslt.Time).T := FStat^.TimeLastWrite;
     TRec (Rslt.Time).D := FStat^.DateLastWrite;
-  end else if (Rslt.Findhandle<>0) then
-  begin
-    FindClose(Rslt); 
-  end;
-  
+    if FSApi64 then
+     begin
+      Rslt.Size := FStat^.FileSize;
+      Rslt.Name := FStat^.Name;
+      Rslt.Attr := FStat^.AttrFile;
+     end
+    else
+     begin
+      Rslt.Size := PFileFindBuf3 (FStat)^.FileSize;
+      Rslt.Name := PFileFindBuf3 (FStat)^.Name;
+      Rslt.Attr := PFileFindBuf3 (FStat)^.AttrFile;
+     end;
+   end
+  else
+   FindClose(Rslt);
+
   Dispose (FStat);
 end;
 
@@ -641,24 +234,33 @@ end;
 function FindNext (var Rslt: TSearchRec): longint;
 var
   SR: PSearchRec;
-  FStat: PFileFindBuf3;
+  FStat: PFileFindBuf3L;
   Count: cardinal;
   Err: cardinal;
 begin
   New (FStat);
   Count := 1;
-  Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^),
-                                                              Count);
-  if (Err = 0) and (Count = 0) then Err := 18;
+  Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^), Count);
+  if (Err = 0) and (Count = 0) then
+   Err := 18;
   FindNext := -Err;
   if Err = 0 then
   begin
-    Rslt.Name := FStat^.Name;
-    Rslt.Size := FStat^.FileSize;
-    Rslt.Attr := FStat^.AttrFile;
     Rslt.ExcludeAttr := 0;
     TRec (Rslt.Time).T := FStat^.TimeLastWrite;
     TRec (Rslt.Time).D := FStat^.DateLastWrite;
+    if FSApi64 then
+     begin
+      Rslt.Size := FStat^.FileSize;
+      Rslt.Name := FStat^.Name;
+      Rslt.Attr := FStat^.AttrFile;
+     end
+    else
+     begin
+      Rslt.Size := PFileFindBuf3 (FStat)^.FileSize;
+      Rslt.Name := PFileFindBuf3 (FStat)^.Name;
+      Rslt.Attr := PFileFindBuf3 (FStat)^.AttrFile;
+     end;
   end;
   Dispose (FStat);
 end;
@@ -676,9 +278,10 @@ function FileGetDate (Handle: THandle): longint;
 var
   FStat: TFileStatus3;
   Time: Longint;
+  RC: cardinal;
 begin
-  DosError := DosQueryFileInfo(Handle, ilStandard, @FStat, SizeOf(FStat));
-  if DosError=0 then
+  RC := DosQueryFileInfo(Handle, ilStandard, @FStat, SizeOf(FStat));
+  if RC = 0 then
   begin
     Time := FStat.TimeLastWrite + longint (FStat.DateLastWrite) shl 16;
     if Time = 0 then
@@ -786,32 +389,44 @@ end;
 
 
 function SetCurrentDir (const NewDir: string): boolean;
+var
+ OrigInOutRes: word;
 begin
+ OrigInOutRes := InOutRes;
+ InOutRes := 0;
 {$I-}
-{$WARNING Should be rewritten to avoid unit dos dependency!}
  ChDir (NewDir);
- Result := (IOResult = 0);
+ Result := InOutRes = 0;
 {$I+}
+ InOutRes := OrigInOutRes;
 end;
 
 
 function CreateDir (const NewDir: string): boolean;
+var
+ OrigInOutRes: word;
 begin
+ OrigInOutRes := InOutRes;
+ InOutRes := 0;
 {$I-}
-{$WARNING Should be rewritten to avoid unit dos dependency!}
  MkDir (NewDir);
- Result := (IOResult = 0);
+ Result := InOutRes = 0;
 {$I+}
+ InOutRes := OrigInOutRes;
 end;
 
 
 function RemoveDir (const Dir: string): boolean;
+var
+ OrigInOutRes: word;
 begin
+ OrigInOutRes := InOutRes;
+ InOutRes := 0;
 {$I-}
-{$WARNING Should be rewritten to avoid unit dos dependency!}
  RmDir (Dir);
- Result := (IOResult = 0);
- {$I+}
+ Result := InOutRes = 0;
+{$I+}
+ InOutRes := OrigInOutRes;
 end;
 
 
@@ -841,7 +456,7 @@ end;
 
 procedure GetLocalTime (var SystemTime: TSystemTime);
 var
-  DT: TDT;
+  DT: DosCalls.TDateTime;
 begin
   DosGetDateTime(DT);
   with SystemTime do
@@ -933,6 +548,66 @@ end;
                               OS Utils
 ****************************************************************************}
 
+function GetEnvPChar (EnvVar: shortstring): PChar;
+(* The assembler version is more than three times as fast as Pascal. *)
+var
+ P: PChar;
+begin
+ EnvVar := UpCase (EnvVar);
+{$ASMMODE INTEL}
+ asm
+  cld
+  mov edi, Environment
+  lea esi, EnvVar
+  xor eax, eax
+  lodsb
+@NewVar:
+  cmp byte ptr [edi], 0
+  jz @Stop
+  push eax        { eax contains length of searched variable name }
+  push esi        { esi points to the beginning of the variable name }
+  mov ecx, -1     { our character ('=' - see below) _must_ be found }
+  mov edx, edi    { pointer to beginning of variable name saved in edx }
+  mov al, '='     { searching until '=' (end of variable name) }
+  repne
+  scasb           { scan until '=' not found }
+  neg ecx         { what was the name length? }
+  dec ecx         { corrected }
+  dec ecx         { exclude the '=' character }
+  pop esi         { restore pointer to beginning of variable name }
+  pop eax         { restore length of searched variable name }
+  push eax        { and save both of them again for later use }
+  push esi
+  cmp ecx, eax    { compare length of searched variable name with name }
+  jnz @NotEqual   { ... of currently found variable, jump if different }
+  xchg edx, edi   { pointer to current variable name restored in edi }
+  repe
+  cmpsb           { compare till the end of variable name }
+  xchg edx, edi   { pointer to beginning of variable contents in edi }
+  jz @Equal       { finish if they're equal }
+@NotEqual:
+  xor eax, eax    { look for 00h }
+  mov ecx, -1     { it _must_ be found }
+  repne
+  scasb           { scan until found }
+  pop esi         { restore pointer to beginning of variable name }
+  pop eax         { restore length of searched variable name }
+  jmp @NewVar     { ... or continue with new variable otherwise }
+@Stop:
+  xor eax, eax
+  mov P, eax      { Not found - return nil }
+  jmp @End
+@Equal:
+  pop esi         { restore the stack position }
+  pop eax
+  mov P, edi      { place pointer to variable contents in P }
+@End:
+ end ['eax','ecx','edx','esi','edi'];
+ GetEnvPChar := P;
+end;
+{$ASMMODE ATT}
+
+
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
@@ -965,108 +640,140 @@ end;
 function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
                                                                        integer;
 var
- HQ: THandle;
- SPID, STID, QName: shortstring;
- SD: TStartData;
- SID, PID: cardinal;
- RD: TRequestData;
- PCI: PChildInfo;
- CISize: cardinal;
- Prio: byte;
  E: EOSError;
  CommandLine: ansistring;
- Args0, Args: PByteArray;
+ Args0, Args: DosCalls.PByteArray;
  ObjNameBuf: PChar;
  ArgSize: word;
  Res: TResultCodes;
  ObjName: shortstring;
+ RC: cardinal;
+ ExecAppType: cardinal;
 
 const
  MaxArgsSize = 3072; (* Amount of memory reserved for arguments in bytes. *)
  ObjBufSize = 512;
 
+function StartSession: cardinal;
+var
+ HQ: THandle;
+ SPID, STID, QName: shortstring;
+ SID, PID: cardinal;
+ SD: TStartData;
+ RD: TRequestData;
+ PCI: PChildInfo;
+ CISize: cardinal;
+ Prio: byte;
 begin
+ Result := $FFFFFFFF;
+ FillChar (SD, SizeOf (SD), 0);
+ SD.Length := SizeOf (SD);
+ SD.Related := ssf_Related_Child;
+ if FileExists (Path) then
+(* Full path necessary for starting different executable files from current *)
+(* directory. *)
+  CommandLine := ExpandFileName (Path)
+ else
+  CommandLine := Path;
+ SD.PgmName := PChar (CommandLine);
+ if ComLine <> '' then
+  SD.PgmInputs := PChar (ComLine);
+ if ExecInheritsHandles in Flags then
+   SD.InheritOpt := ssf_InhertOpt_Parent;
+ Str (GetProcessID, SPID);
+ Str (ThreadID, STID);
+ QName := '\QUEUES\FPC_ExecuteProcess_p' + SPID + 't' + STID + '.QUE'#0;
+ SD.TermQ := @QName [1];
+ SD.ObjectBuffer := ObjNameBuf;
+ SD.ObjectBuffLen := ObjBufSize;
+ RC := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
+ if RC <> 0 then
+  Move (QName [1], ObjNameBuf^, Length (QName))
+ else
+  begin
+   RC := DosStartSession (SD, SID, PID);
+   if (RC = 0) or (RC = 457) then
+    begin
+     RC := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
+     if RC = 0 then
+      begin
+       Result := PCI^.Return;
+       DosCloseQueue (HQ);
+       DosFreeMem (PCI);
+       FreeMem (ObjNameBuf, ObjBufSize);
+      end
+     else
+      DosCloseQueue (HQ);
+    end
+   else
+    DosCloseQueue (HQ);
+  end;
+end;
+
+begin
+ Result := integer ($FFFFFFFF);
  ObjName := '';
  GetMem (ObjNameBuf, ObjBufSize);
  FillChar (ObjNameBuf^, ObjBufSize, 0);
- if ComLine = '' then
+
+ if (DosQueryAppType (PChar (Path), ExecAppType) = 0) and
+                               (ApplicationType and 3 = ExecAppType and 3) then
+(* DosExecPgm should work... *)
   begin
-   Args0 := nil;
-   Args := nil;
-  end
- else
-  begin
-   GetMem (Args0, MaxArgsSize);
-   Args := Args0;
-(* Work around a bug in OS/2 - argument to DosExecPgm *)
-(* should not cross 64K boundary. *)
-   if ((PtrUInt (Args) + 1024) and $FFFF) < 1024 then
-    Inc (pointer (Args), 1024);
-   ArgSize := 0;
-   Move (Path [1], Args^ [ArgSize], Length (Path));
-   Inc (ArgSize, Length (Path));
-   Args^ [ArgSize] := 0;
-   Inc (ArgSize);
-   {Now do the real arguments.}
-   Move (ComLine [1], Args^ [ArgSize], Length (ComLine));
-   Inc (ArgSize, Length (ComLine));
-   Args^ [ArgSize] := 0;
-   Inc (ArgSize);
-   Args^ [ArgSize] := 0;
-  end;
- Result := DosExecPgm (ObjNameBuf, ObjBufSize, 0, Args, nil, Res, PChar (Path));
- if Args0 <> nil then
-  FreeMem (Args0, MaxArgsSize);
- if Result = 0 then
-  begin
-   Result := Res.ExitCode;
-   FreeMem (ObjNameBuf, ObjBufSize);
-  end
- else
-  begin
-   if (Result = 190) or (Result = 191) then
+   if ComLine = '' then
     begin
-     FillChar (SD, SizeOf (SD), 0);
-     SD.Length := 24;
-     SD.Related := ssf_Related_Child;
-     CommandLine := FExpand (Path);    (* Needed for other session types... *)
-     SD.PgmName := PChar (CommandLine);
-     if ComLine <> '' then
-      SD.PgmInputs := PChar (ComLine);
-     SD.InheritOpt := ssf_InhertOpt_Parent;
-     Str (GetProcessID, SPID);
-     Str (ThreadID, STID);
-     QName := '\QUEUES\FPC_ExecuteProcess_p' + SPID + 't' + STID + '.QUE'#0;
-     SD.TermQ := @QName [1];
-     Result := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
-     if Result = 0 then
-      begin
-       Result := DosStartSession (SD, SID, PID);
-       if (Result = 0) or (Result = 457) then
-        begin
-         Result := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
-         if Result = 0 then
-          begin
-           Result := PCI^.Return;
-           DosCloseQueue (HQ);
-           DosFreeMem (PCI);
-           Exit;
-          end;
-        end;
-       DosCloseQueue (HQ);
-      end;
+     Args0 := nil;
+     Args := nil;
     end
    else
-    ObjName := StrPas (ObjNameBuf);
+    begin
+     GetMem (Args0, MaxArgsSize);
+     Args := Args0;
+(* Work around a bug in OS/2 - argument to DosExecPgm *)
+(* should not cross 64K boundary. *)
+     if ((PtrUInt (Args) + 1024) and $FFFF) < 1024 then
+      Inc (pointer (Args), 1024);
+     ArgSize := 0;
+     Move (Path [1], Args^ [ArgSize], Length (Path));
+     Inc (ArgSize, Length (Path));
+     Args^ [ArgSize] := 0;
+     Inc (ArgSize);
+     {Now do the real arguments.}
+     Move (ComLine [1], Args^ [ArgSize], Length (ComLine));
+     Inc (ArgSize, Length (ComLine));
+     Args^ [ArgSize] := 0;
+     Inc (ArgSize);
+     Args^ [ArgSize] := 0;
+    end;
+   Res.ExitCode := $FFFFFFFF;
+   RC := DosExecPgm (ObjNameBuf, ObjBufSize, 0, Args, nil, Res, PChar (Path));
+   if Args0 <> nil then
+    FreeMem (Args0, MaxArgsSize);
+   if RC = 0 then
+    begin
+     Result := Res.ExitCode;
+     FreeMem (ObjNameBuf, ObjBufSize);
+    end
+   else
+    begin
+     if (RC = 190) or (RC = 191) then
+      Result := StartSession;
+    end;
+  end
+ else
+  Result := StartSession;
+ if RC <> 0 then
+  begin
+   ObjName := StrPas (ObjNameBuf);
    FreeMem (ObjNameBuf, ObjBufSize);
    if ComLine = '' then
     CommandLine := Path
    else
     CommandLine := Path + ' ' + ComLine;
    if ObjName = '' then
-    E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, Result])
+    E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, RC])
    else
-    E := EOSError.CreateFmt (SExecuteProcessFailed + '(' + ObjName + ')', [CommandLine, Result]);
+    E := EOSError.CreateFmt (SExecuteProcessFailed + ' (' + ObjName + ')', [CommandLine, RC]);
    E.ErrorCode := Result;
    raise E;
   end;

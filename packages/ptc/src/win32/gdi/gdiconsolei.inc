@@ -50,8 +50,8 @@ begin
 
   FOpen := False;
 
+  SetLength(FModes, 1);
   FModes[0] := TPTCMode.Create(FDisplayWidth, FDisplayHeight, FDefaultFormat);
-  FModes[1] := TPTCMode.Create;
 
   { configure console }
   Configure('ptcpas.cfg');
@@ -67,16 +67,9 @@ begin
 
   FWin32DIB.Free;
   FWindow.Free;
-  FPalette.Free;
   FEventQueue.Free;
   FCopy.Free;
   FClear.Free;
-  FArea.Free;
-  FClip.Free;
-  FDefaultFormat.Free;
-
-  for I := Low(FModes) to High(FModes) do
-    FModes[I].Free;
 
   inherited Destroy;
 end;
@@ -86,22 +79,22 @@ begin
   Open(ATitle, FDefaultFormat, APages);
 end;
 
-procedure TGDIConsole.Open(const ATitle: string; const AFormat: TPTCFormat;
+procedure TGDIConsole.Open(const ATitle: string; AFormat: IPTCFormat;
                APages: Integer = 0);
 begin
   Open(ATitle, FDefaultWidth, FDefaultHeight, AFormat, APages);
 end;
 
-procedure TGDIConsole.Open(const ATitle: string; const AMode: TPTCMode;
+procedure TGDIConsole.Open(const ATitle: string; AMode: IPTCMode;
                            APages: Integer = 0);
 begin
   Open(ATitle, AMode.Width, AMode.Height, AMode.Format, APages);
 end;
 
 procedure TGDIConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
-               const AFormat: TPTCFormat; APages: Integer = 0);
+                           AFormat: IPTCFormat; APages: Integer = 0);
 var
-  tmp: TPTCArea;
+  tmpArea: IPTCArea;
 begin
   if FOpen then
     Close;
@@ -145,13 +138,9 @@ begin
   FKeyboard := TWin32Keyboard.Create(FWindow.Handle, FWindow.Thread, False, FEventQueue);
   FMouse := TWin32Mouse.Create(FWindow.Handle, FWindow.Thread, False, FEventQueue, {FFullScreen}False, AWidth, AHeight);
 
-  tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
-  try
-    FArea.Assign(tmp);
-    FClip.Assign(tmp);
-  finally
-    tmp.Free;
-  end;
+  tmpArea := TPTCArea.Create(0, 0, AWidth, AHeight);
+  FArea := tmpArea;
+  FClip := tmpArea;
 
   FWindow.Update;
 
@@ -180,23 +169,22 @@ begin
   FOpen := False;
 end;
 
-procedure TGDIConsole.Copy(ASurface: TPTCBaseSurface);
+procedure TGDIConsole.Copy(ASurface: IPTCSurface);
 begin
   // todo...
 end;
 
-procedure TGDIConsole.Copy(ASurface: TPTCBaseSurface;
-                           const ASource, ADestination: TPTCArea);
+procedure TGDIConsole.Copy(ASurface: IPTCSurface;
+                           ASource, ADestination: IPTCArea);
 begin
   // todo...
 end;
 
 procedure TGDIConsole.Load(const APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette);
 var
-  Area_: TPTCArea;
   console_pixels: Pointer;
 begin
   CheckOpen(    'TGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette)');
@@ -219,49 +207,30 @@ begin
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, width, height);
-    try
-      Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area_, Area);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, TPTCArea.Create(0, 0, width, height), Area);
 end;
 
 procedure TGDIConsole.Load(const APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 var
   console_pixels: Pointer;
-  clipped_source, clipped_destination: TPTCArea;
-  tmp: TPTCArea;
+  clipped_source, clipped_destination: IPTCArea;
 begin
   CheckOpen(    'TGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination)');
   CheckUnlocked('TGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination)');
-  clipped_source := nil;
-  clipped_destination := nil;
   try
     console_pixels := Lock;
     try
-      clipped_source := TPTCArea.Create;
-      clipped_destination := TPTCArea.Create;
-      tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
-      try
-        TPTCClipper.Clip(ASource, tmp, clipped_source, ADestination, Clip, clipped_destination);
-      finally
-        tmp.Free;
-      end;
+      TPTCClipper.Clip(ASource, TPTCArea.Create(0, 0, AWidth, AHeight), clipped_source, ADestination, Clip, clipped_destination);
       FCopy.request(AFormat, Format);
       FCopy.palette(APalette, Palette);
       FCopy.copy(APixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, APitch,
                  console_pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, Pitch);
     finally
       Unlock;
-      clipped_source.Free;
-      clipped_destination.Free;
     end;
   except
     on error: TPTCError do
@@ -271,17 +240,17 @@ end;
 
 procedure TGDIConsole.Save(APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette);
 begin
   // todo...
 end;
 
 procedure TGDIConsole.Save(APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 begin
   // todo...
 end;
@@ -327,13 +296,13 @@ begin
   // todo...
 end;
 
-procedure TGDIConsole.Clear(const AColor: TPTCColor);
+procedure TGDIConsole.Clear(AColor: IPTCColor);
 begin
   // todo...
 end;
 
-procedure TGDIConsole.Clear(const AColor: TPTCColor;
-                            const AArea: TPTCArea);
+procedure TGDIConsole.Clear(AColor: IPTCColor;
+                            AArea: IPTCArea);
 begin
   // todo...
 end;
@@ -344,16 +313,16 @@ var
   S: string;
 begin
   AssignFile(F, AFileName);
-  {$I-}
+  {$push}{$I-}
   Reset(F);
-  {$I+}
+  {$pop}
   if IOResult <> 0 then
     exit;
   while not EoF(F) do
   begin
-    {$I-}
+    {$push}{$I-}
     Readln(F, S);
-    {$I+}
+    {$pop}
     if IOResult <> 0 then
       Break;
     Option(S);
@@ -397,40 +366,35 @@ begin
   Result := FCopy.Option(AOption);
 end;
 
-procedure TGDIConsole.Palette(const APalette: TPTCPalette);
+procedure TGDIConsole.Palette(APalette: IPTCPalette);
 begin
   // todo...
 end;
 
-procedure TGDIConsole.Clip(const AArea: TPTCArea);
+procedure TGDIConsole.Clip(AArea: IPTCArea);
 var
   tmp: TPTCArea;
 begin
   CheckOpen('TGDIConsole.Clip(AArea)');
 
-  tmp := TPTCClipper.Clip(AArea, FArea);
-  try
-    FClip.Assign(tmp);
-  finally
-    tmp.Free;
-  end;
+  FClip := TPTCClipper.Clip(AArea, FArea);
 end;
 
-function TGDIConsole.Clip: TPTCArea;
+function TGDIConsole.Clip: IPTCArea;
 begin
   CheckOpen('TGDIConsole.Clip');
   Result := FClip;
 end;
 
-function TGDIConsole.Palette: TPTCPalette;
+function TGDIConsole.Palette: IPTCPalette;
 begin
   CheckOpen('TGDIConsole.Palette');
   Result := FPalette;
 end;
 
-function TGDIConsole.Modes: PPTCMode;
+function TGDIConsole.Modes: TPTCModeList;
 begin
-  Result := @FModes[0];
+  Result := FModes;
 end;
 
 procedure TGDIConsole.Flush;
@@ -478,19 +442,18 @@ begin
   end;
 end;
 
-procedure TGDIConsole.Update(const AArea: TPTCArea);
+procedure TGDIConsole.Update(AArea: IPTCArea);
 begin
   Update;
 end;
 
-function TGDIConsole.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+function TGDIConsole.NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
 var
   UseGetMessage: Boolean;
 begin
   CheckOpen('TGDIConsole.NextEvent');
 //  CheckUnlocked('TGDIConsole.NextEvent');
 
-  FreeAndNil(AEvent);
   UseGetMessage := False;
   repeat
     { update window }
@@ -504,7 +467,7 @@ begin
   Result := AEvent <> nil;
 end;
 
-function TGDIConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+function TGDIConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 var
   UseGetMessage: Boolean;
 begin
@@ -541,13 +504,13 @@ begin
   Result := FWin32DIB.Pitch;
 end;
 
-function TGDIConsole.GetArea: TPTCArea;
+function TGDIConsole.GetArea: IPTCArea;
 begin
   CheckOpen('TGDIConsole.GetArea');
   Result := FArea;
 end;
 
-function TGDIConsole.GetFormat: TPTCFormat;
+function TGDIConsole.GetFormat: IPTCFormat;
 begin
   CheckOpen('TGDIConsole.GetFormat');
   Result := FWin32DIB.Format;

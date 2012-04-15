@@ -259,7 +259,7 @@ begin
   asm
 {$ifdef cpupowerpc32}
     la  r3,t
-  {$ifndef macos}
+  {$if not defined(macos) and not defined(aix)}
     lis  r4,p3@ha
     addi r4,r4,p3@l
   {$else}
@@ -310,7 +310,7 @@ begin
   asm
 {$ifdef cpupowerpc32}
     la  r3,t
-  {$ifndef macos}
+  {$if not defined(macos) and not defined(aix)}
     lis  r4,p3@ha
     addi r4,r4,p3@l
   {$else}

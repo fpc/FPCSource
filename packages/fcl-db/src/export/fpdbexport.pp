@@ -293,11 +293,11 @@ Procedure UnRegisterExportFormat(Const AName : String);
 
 Const
   StringFieldTypes = [ftString,ftFixedChar,ftWidestring,ftFixedWideChar];
-  IntFieldTypes    = [ftInteger,ftWord,ftsmallint,ftautoinc];
+  IntFieldTypes    = [ftInteger,ftWord,ftSmallint,ftAutoinc];
   OrdFieldTypes    = IntFieldTypes +[ftBoolean,ftLargeInt];
   DateFieldTypes   = [ftDate,ftTime,ftDateTime,ftTimeStamp];
   MemoFieldTypes   = [ftMemo,ftFmtMemo,ftWideMemo];
-  BlobFieldTypes   =  [ftBlob,ftGraphic,ftOraBlob,ftOraClob];
+  BlobFieldTypes   =  [ftBlob,ftDBaseOLE,ftGraphic,ftOraBlob,ftOraClob,ftParadoxOLE];
   
 
 implementation
@@ -702,7 +702,7 @@ Function TCustomDatasetExporter.Execute : Integer;
 
 Var
   B : Boolean;
-  BM : TBookMarkStr;
+  BM : TBookMark;
 
 begin
   Result:=0;

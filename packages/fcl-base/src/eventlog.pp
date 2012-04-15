@@ -44,6 +44,7 @@ Type
     FOnGetCustomCategory : TLogCategoryEvent;
     FOnGetCustomEventID : TLogCodeEvent;
     FOnGetCustomEvent : TLogCodeEvent;
+    FPaused : Boolean;
     procedure SetActive(const Value: Boolean);
     procedure SetIdentification(const Value: String);
     procedure SetlogType(const Value: TLogType);
@@ -72,6 +73,8 @@ Type
     Function EventTypeToString(E : TEventType) : String;
     Function RegisterMessageFile(AFileName : String) : Boolean; virtual;
     Function UnRegisterMessageFile : Boolean; virtual;
+    Procedure Pause;
+    Procedure Resume;
     Procedure Log (EventType : TEventType; const Msg : String); {$ifndef fpc }Overload;{$endif}
     Procedure Log (EventType : TEventType; const Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
     Procedure Log (const Msg : String); {$ifndef fpc }Overload;{$endif}
@@ -98,6 +101,7 @@ Type
     Property OnGetCustomCategory : TLogCategoryEvent Read FOnGetCustomCategory Write FOnGetCustomCategory;
     Property OnGetCustomEventID : TLogCodeEvent Read FOnGetCustomEventID Write FOnGetCustomEventID;
     Property OnGetCustomEvent : TLogCodeEvent Read FOnGetCustomEvent Write FOnGetCustomEvent;
+    Property Paused : Boolean Read FPaused Write FPaused;
   End;
 
   ELogError = Class(Exception);
@@ -144,6 +148,20 @@ begin
     Active:=True;
 end;
 
+
+Procedure TEventLog.Pause;
+
+begin
+  Paused:=True;
+end;
+
+
+Procedure TEventLog.Resume;
+begin
+  Paused:=False;
+end;
+
+
 procedure TEventLog.Error(const Fmt: String; Args: array of const);
 begin
   Error(Format(Fmt,Args));
@@ -177,6 +195,8 @@ end;
 
 procedure TEventLog.Log(EventType: TEventType; const Msg: String);
 begin
+  If Paused then 
+    exit;
   EnsureActive;
   Case FlogType of
     ltFile   : WriteFileLog(EventType,Msg);

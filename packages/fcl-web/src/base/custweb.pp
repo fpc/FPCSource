@@ -78,12 +78,15 @@ Type
                                Var ModuleClass : TCustomHTTPModuleClass) of object;
   TOnShowRequestException = procedure(AResponse: TResponse; AnException: Exception; var handled: boolean);
   TLogEvent = Procedure (EventType: TEventType; const Msg: String) of object;
+  TInitModuleEvent = Procedure (Sender : TObject; Module: TCustomHTTPModule) of object;
 
   { TWebHandler }
 
   TWebHandler = class(TComponent)
   private
     FOnIdle: TNotifyEvent;
+    FOnInitModule: TInitModuleEvent;
+    FOnUnknownRequestEncoding: TOnUnknownEncodingEvent;
     FTerminated: boolean;
     FAdministrator: String;
     FAllowDefaultModule: Boolean;
@@ -92,13 +95,13 @@ Type
     FModuleVar: String;
     FOnGetModule: TGetModuleEvent;
     FOnShowRequestException: TOnShowRequestException;
-    FRequest : TRequest;
     FHandleGetOnPost : Boolean;
     FRedirectOnError : Boolean;
     FRedirectOnErrorURL : String;
     FTitle: string;
     FOnTerminate : TNotifyEvent;
     FOnLog : TLogEvent;
+    FPreferModuleName : Boolean;
   protected
     procedure Terminate;
     Function GetModuleName(Arequest : TRequest) : string;
@@ -108,6 +111,8 @@ Type
     Procedure SetBaseURL(AModule : TCustomHTTPModule; Const AModuleName : String; ARequest : TRequest); virtual;
     function GetApplicationURL(ARequest : TRequest): String; virtual;
     procedure ShowRequestException(R: TResponse; E: Exception); virtual;
+    Procedure InitRequest(ARequest : TRequest); virtual;
+    Procedure InitResponse(AResponse : TResponse); virtual;
     Function GetEmail : String; virtual;
     Function GetAdministrator : String; virtual;
     property Terminated: boolean read FTerminated;
@@ -121,7 +126,6 @@ Type
     Property RedirectOnError : boolean Read FRedirectOnError Write FRedirectOnError;
     Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write FRedirectOnErrorURL;
     Property ApplicationURL : String Read FApplicationURL Write FApplicationURL;
-    Property Request : TRequest read FRequest;
     Property AllowDefaultModule : Boolean Read FAllowDefaultModule Write FAllowDefaultModule;
     Property ModuleVariable : String Read FModuleVar Write FModuleVar;
     Property OnGetModule : TGetModuleEvent Read FOnGetModule Write FOnGetModule;
@@ -131,6 +135,9 @@ Type
     property OnShowRequestException: TOnShowRequestException read FOnShowRequestException write FOnShowRequestException;
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
     Property OnLog : TLogEvent Read FOnLog Write FOnLog;
+    Property OnUnknownRequestEncoding : TOnUnknownEncodingEvent Read FOnUnknownRequestEncoding Write FOnUnknownRequestEncoding;
+    Property OnInitModule: TInitModuleEvent Read FOnInitModule write FOnInitModule;
+    Property PreferModuleName : Boolean Read FPreferModuleName Write FPreferModuleName;
   end;
 
   TCustomWebApplication = Class(TCustomApplication)
@@ -146,8 +153,10 @@ Type
     function GetModuleVar: String;
     function GetOnGetModule: TGetModuleEvent;
     function GetOnShowRequestException: TOnShowRequestException;
+    function GetOnUnknownRequestEncoding: TOnUnknownEncodingEvent;
     function GetRedirectOnError: boolean;
     function GetRedirectOnErrorURL: string;
+    function GetPreferModuleName: boolean;
     procedure SetAdministrator(const AValue: String);
     procedure SetAllowDefaultModule(const AValue: Boolean);
     procedure SetApplicationURL(const AValue: String);
@@ -156,8 +165,10 @@ Type
     procedure SetModuleVar(const AValue: String);
     procedure SetOnGetModule(const AValue: TGetModuleEvent);
     procedure SetOnShowRequestException(const AValue: TOnShowRequestException);
+    procedure SetOnUnknownRequestEncoding(AValue: TOnUnknownEncodingEvent);
     procedure SetRedirectOnError(const AValue: boolean);
     procedure SetRedirectOnErrorURL(const AValue: string);
+    procedure SetPreferModuleName(const AValue: boolean);
     procedure DoOnTerminate(Sender : TObject);
   protected
     Procedure DoRun; override;
@@ -181,7 +192,9 @@ Type
     Property Email : String Read GetEmail Write SetEmail;
     Property Administrator : String Read GetAdministrator Write SetAdministrator;
     property OnShowRequestException: TOnShowRequestException read GetOnShowRequestException write SetOnShowRequestException;
+    Property OnUnknownRequestEncoding : TOnUnknownEncodingEvent Read GetOnUnknownRequestEncoding Write SetOnUnknownRequestEncoding;
     Property EventLog: TEventLog read GetEventLog;
+    Property PreferModuleName : Boolean Read GetPreferModuleName Write SetPreferModuleName;
   end;
 
   EFPWebError = Class(Exception);
@@ -289,6 +302,16 @@ begin
     end;
 end;
 
+procedure TWebHandler.InitRequest(ARequest: TRequest);
+begin
+  ARequest.OnUnknownEncoding:=Self.OnUnknownRequestEncoding;
+end;
+
+procedure TWebHandler.InitResponse(AResponse: TResponse);
+begin
+  // Do nothing
+end;
+
 function TWebHandler.GetEmail: String;
 begin
   Result := FEmail;
@@ -328,6 +351,9 @@ begin
       else
         M:=MC.Create(Self);
     SetBaseURL(M,MN,ARequest);
+    if (OnInitModule<>Nil) then
+      OnInitModule(Self,M);
+    M.DoAfterInitModule(ARequest);
     if M.Kind=wkOneShot then
       begin
       try
@@ -383,7 +409,7 @@ begin
     If (I>0) and (S[I]='/') then
       Delete(S,I,1);                      //Delete the trailing '/' if exists
     I:=Pos('/',S);
-    if (I>0) then
+    if (I>0) or PreferModuleName then
       Result:=ARequest.GetNextPathInfo;
     end;
   If (Result='') then
@@ -506,9 +532,19 @@ begin
   result := FWebHandler.OnShowRequestException;
 end;
 
+function TCustomWebApplication.GetOnUnknownRequestEncoding: TOnUnknownEncodingEvent;
+begin
+  Result := FWebHandler.OnUnknownRequestEncoding
+end;
+
 function TCustomWebApplication.GetRedirectOnError: boolean;
 begin
   result := FWebHandler.RedirectOnError;
+end;
+
+function TCustomWebApplication.GetPreferModuleName: boolean;
+begin
+  result := FWebHandler.PreferModuleName;
 end;
 
 function TCustomWebApplication.GetRedirectOnErrorURL: string;
@@ -556,9 +592,20 @@ begin
   FWebHandler.OnShowRequestException := AValue;
 end;
 
+procedure TCustomWebApplication.SetOnUnknownRequestEncoding(
+  AValue: TOnUnknownEncodingEvent);
+begin
+  FWebHandler.OnUnknownRequestEncoding:=AValue;
+end;
+
 procedure TCustomWebApplication.SetRedirectOnError(const AValue: boolean);
 begin
   FWebHandler.RedirectOnError := AValue;
+end;
+
+procedure TCustomWebApplication.SetPreferModuleName(const AValue: boolean);
+begin
+  FWebHandler.PreferModuleName := AValue;
 end;
 
 procedure TCustomWebApplication.SetRedirectOnErrorURL(const AValue: string);

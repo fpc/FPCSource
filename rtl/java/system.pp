@@ -32,13 +32,21 @@ Unit system;
 Type
   { Java primitive types }
   jboolean = boolean;
+  pjboolean = ^boolean;
   jbyte = shortint;
+  pjbyte = ^jbyte;
   jshort = smallint;
+  pjshort = ^jshort;
   jint = longint;
+  pjint = ^jint;
   jlong = int64;
+  pjlong = ^jlong;
   jchar = widechar;
+  pjchar = ^jchar;
   jfloat = single;
+  pjfloat = ^jfloat;
   jdouble = double;
+  pjdouble = ^jdouble;
 
   Arr1jboolean = array of jboolean;
   Arr1jbyte = array of jbyte;
@@ -135,6 +143,7 @@ function min(a,b : longint) : longint;
 {$i jdynarr.inc}
 {$i jsystem.inc}
 
+
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
@@ -168,5 +177,7 @@ procedure fpc_var_copyout_mismatch(line,column: longint); compilerproc;
                          SystemUnit Initialization
 *****************************************************************************}
 
+begin
+ initunicodestringmanager
 end.
 

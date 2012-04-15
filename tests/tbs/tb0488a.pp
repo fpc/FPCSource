@@ -27,6 +27,9 @@
     999999999
 }
 
+{$R-}
+{$Q-}
+
 uses {$ifdef unix}cwstring, {$endif}SysUtils,erroru;
 
 procedure Check(a,b:ansistring);

@@ -205,10 +205,12 @@ end;
 function TCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 begin
   FRequest:=CreateRequest;
+  InitRequest(FRequest);
   FRequest.InitFromEnvironment;
   FRequest.InitRequestVars;
   FOutput:=TIOStream.Create(iosOutput);
   FResponse:=CreateResponse(FOutput);
+  InitResponse(FResponse);
   ARequest:=FRequest;
   AResponse:=FResponse;
   Result := True;

@@ -25,6 +25,9 @@ program chmcmd;
 uses
   Classes, Sysutils, chmfilewriter, GetOpts;
 
+Const 
+  CHMCMDVersion = '2.6.0';
+
 Procedure Usage;
 
 begin
@@ -40,7 +43,6 @@ begin
   writeln(stderr,' .hhp projects are default scanned for html, .xml not');
   Halt(1);
 end;
-
 
 var
   theopts : array[1..6] of TOption;
@@ -117,6 +119,7 @@ var
 begin
   ishhp:=uppercase(extractfileext(name))='.HHP';
   Project := TChmProject.Create;
+  Project.ReadMeMessage:='Compiled by CHMCmd '+CHMCMDVersion;
   if ishhp then
     begin
       xmlname:=changefileext(name,'.hhp.xml');

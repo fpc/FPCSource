@@ -1,0 +1,36 @@
+#
+#  Makefile.fpc for oracle units
+#
+
+[package]
+name=oracle
+version=2.7.1
+
+[target]
+units=oci ocidyn oratypes oraoci
+exampledirs=examples
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+# in libdir variable must be path to libraries
+# libclntsh.*,libnlsrtl3.*
+#[compiler]
+#libdir=/usr/local/oracle8cli/lib
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+

@@ -106,9 +106,9 @@ begin
     Exit;
 { open file }
   assign(t,fname);
-  {$I+}
+  {$push}{$I-}
    rewrite(t);
-  {$I-}
+  {$pop}
   if ioresult<>0 then
    exit;
   case target_info.system of

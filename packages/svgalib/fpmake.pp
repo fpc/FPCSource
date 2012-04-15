@@ -17,6 +17,7 @@ begin
     P.Directory:='svgalib';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := [beos,haiku,linux,freebsd,solaris,netbsd,openbsd];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('svgalib.pp');
@@ -24,9 +25,10 @@ begin
 
     P.Sources.AddSrc('README.txt');
  
-    P.ExamplePath.Add('tests/');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testvga.pp');
     P.Targets.AddExampleProgram('vgatest.pp');
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

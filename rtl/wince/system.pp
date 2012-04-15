@@ -303,13 +303,15 @@ const
      MB_COMPOSITE = 2;
      MB_ERR_INVALID_CHARS = 8;
      MB_USEGLYPHCHARS = 4;
-     CP_ACP = 0;
      CP_OEMCP = 1;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
      cdecl; external 'coredll' name 'MultiByteToWideChar';
 function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
      cdecl; external 'coredll' name 'WideCharToMultiByte';
+function GetACP:UINT; cdecl; external 'coredll' name 'GetACP';
+function GetConsoleCP:UINT; cdecl; external 'coredll' name 'GetConsoleCP';
+function GetConsoleOutputCP:UINT; cdecl; external 'coredll' name 'GetConsoleOutputCP';
 
 { Returns number of characters stored to WideBuf, including null-terminator. }
 function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
@@ -487,7 +489,7 @@ const
   UserKData = $00005800;
 {$endif CPUARM}
   SYSHANDLE_OFFSET = $004;
-  SYS_HANDLE_BASE	 = 64;
+  SYS_HANDLE_BASE  = 64;
   SH_CURTHREAD     = 1;
   SH_CURPROC       = 2;
 
@@ -506,8 +508,12 @@ function CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialSta
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
-  AnsiToWideBuf(lpName, -1, buf, SizeOf(buf));
-  CreateEvent := CreateEventW(lpEventAttributes, bManualReset, bInitialState, buf);
+  if lpName=nil then
+    CreateEvent := CreateEventW(lpEventAttributes, bManualReset, bInitialState, nil)
+  else begin
+    AnsiToWideBuf(lpName, -1, buf, SizeOf(buf));
+    CreateEvent := CreateEventW(lpEventAttributes, bManualReset, bInitialState, buf);
+  end;
 end;
 
 function EventModify(h: THandle; func: DWORD): LONGBOOL;
@@ -842,13 +848,6 @@ var
   _SS : Cardinal;
 {$endif cpu386}
 
-Const
-  { DllEntryPoint  }
-     DLL_PROCESS_ATTACH = 1;
-     DLL_THREAD_ATTACH = 2;
-     DLL_PROCESS_DETACH = 0;
-     DLL_THREAD_DETACH = 3;
-
 function Dll_entry : longbool;[public, alias : '_FPC_DLL_Entry'];
 begin
    IsLibrary:=true;
@@ -975,8 +974,6 @@ const
 
   CONTEXT_FULL                    = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
 
-  EXCEPTION_MAXIMUM_PARAMETERS    = 15;
-
   NUM_VFP_REGS = 32;
   NUM_EXTRA_CONTROL_REGS = 8;
 
@@ -1024,7 +1021,6 @@ const
   CONTEXT_EXTENDED_REGISTERS      = CONTEXT_X86 or $00000020;
 
   MAXIMUM_SUPPORTED_EXTENSION     = 512;
-  EXCEPTION_MAXIMUM_PARAMETERS    = 15;
 
 type
   PFloatingSaveArea = ^TFloatingSaveArea;
@@ -1095,16 +1091,6 @@ type
 {$endif CPUI386}
 
 type
-  PExceptionRecord = ^TExceptionRecord;
-  TExceptionRecord = packed record
-    ExceptionCode   : Longint;
-    ExceptionFlags  : Longint;
-    ExceptionRecord : PExceptionRecord;
-    ExceptionAddress : Pointer;
-    NumberParameters : Longint;
-    ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
-  end;
-
   PExceptionPointers = ^TExceptionPointers;
   TExceptionPointers = packed record
     ExceptionRecord   : PExceptionRecord;
@@ -1506,42 +1492,36 @@ function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; cdecl; external Kern
 function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; cdecl; external KernelDLL name 'CharLowerBuffW';
 
 
-procedure WinCEWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
+procedure WinCEWide2AnsiMove(source:pwidechar;var dest:RawByteString;cp:TSystemCodePage;len:SizeInt);
   var
-    i: integer;
+    destlen: SizeInt;
   begin
-    if len = 0 then
-      dest:=''
-    else
-    begin
-      for i:=1 to 2 do begin
-        setlength(dest, len);
-        len:=WideCharToMultiByte(CP_ACP, 0, source, len, @dest[1], len, nil, nil);
-        if len > 0 then
-          break;
-        len:=WideCharToMultiByte(CP_ACP, 0, source, len, nil, 0, nil, nil);
+    // retrieve length including trailing #0
+    // not anymore, because this must also be usable for single characters
+    destlen:=WideCharToMultiByte(cp, 0, source, len, nil, 0, nil, nil);
+    // this will null-terminate
+    setlength(dest, destlen);
+    if destlen>0 then
+      begin
+        WideCharToMultiByte(cp, 0, source, len, @dest[1], destlen, nil, nil);
+        PAnsiRec(pointer(dest)-AnsiFirstOff)^.CodePage:=cp;
       end;
-      setlength(dest, len);
-    end;
   end;
 
-procedure WinCEAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+procedure WinCEAnsi2WideMove(source:pchar;cp:TSystemCodePage;var dest:widestring;len:SizeInt);
   var
-    i: integer;
+    destlen: SizeInt;
+    dwFlags: DWORD;
   begin
-    if len = 0 then
-      dest:=''
+    if cp=CP_UTF8 then
+      dwFlags:=0
     else
-    begin
-      for i:=1 to 2 do begin
-        setlength(dest, len);
-        len:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, @dest[1], len);
-        if len > 0 then
-          break;
-        len:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, nil, 0);
-      end;
-      setlength(dest, len);
-    end;
+      dwFlags:=MB_PRECOMPOSED;
+    destlen:=MultiByteToWideChar(cp, dwFlags, source, len, nil, 0);
+    // this will null-terminate
+    setlength(dest, destlen);
+    if destlen>0 then
+      MultiByteToWideChar(cp, dwFlags, source, len, @dest[1], destlen);
   end;
 
 function WinCEWideUpper(const s : WideString) : WideString;
@@ -1561,18 +1541,40 @@ function WinCEWideLower(const s : WideString) : WideString;
       CharLowerBuff(LPWSTR(result),length(result));
   end;
 
-{ Currently widestrings are ref-counted on wince.
-  Unicode helpers are just wrappers over widestring helpers. }
+procedure WinCEUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp:TSystemCodePage;len:SizeInt);
+  var
+    destlen: SizeInt;
+  begin
+    // retrieve length including trailing #0
+    // not anymore, because this must also be usable for single characters
+    destlen:=WideCharToMultiByte(cp, 0, source, len, nil, 0, nil, nil);
+    // this will null-terminate
+    setlength(dest, destlen);
+    if destlen>0 then
+      begin
+        WideCharToMultiByte(cp, 0, source, len, @dest[1], destlen, nil, nil);
+        PAnsiRec(pointer(dest)-AnsiFirstOff)^.CodePage:=cp;
+      end;
+  end;
 
-procedure WinCEUnicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
-begin
-  WinCEWide2AnsiMove(source, dest, len);
-end;
-
-procedure WinCEAnsi2UnicodeMove(source:pchar;var dest:UnicodeString;len:SizeInt);
-begin
-  WinCEAnsi2WideMove(source, PWideString(@dest)^, len);
-end;
+procedure WinCEAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:UnicodeString;len:SizeInt);
+  var
+    destlen: SizeInt;
+    dwflags: DWORD;
+  begin
+    if cp=CP_UTF8 then
+      dwFlags:=0
+    else
+      dwFlags:=MB_PRECOMPOSED;
+    destlen:=MultiByteToWideChar(cp, dwFlags, source, len, nil, 0);
+    // this will null-terminate
+    setlength(dest, destlen);
+    if destlen>0 then
+      begin
+        MultiByteToWideChar(cp, dwFlags, source, len, @dest[1], destlen);
+        PUnicodeRec(pointer(dest)-UnicodeFirstOff)^.CodePage:=CP_UTF16;
+      end;
+  end;
 
 function WinCEUnicodeUpper(const s : UnicodeString) : UnicodeString;
 begin
@@ -1584,6 +1586,15 @@ begin
   Result:=WinCEWideLower(s);
 end;
 
+function WinCEGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
+  begin
+    case stdcp of
+      scpAnsi: Result := GetACP;
+      scpConsoleInput: Result := GetConsoleCP;
+      scpConsoleOutput: Result := GetConsoleOutputCP;
+    end;
+  end;
+
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
 procedure InitWinCEWidestrings;
@@ -1592,13 +1603,16 @@ procedure InitWinCEWidestrings;
     widestringmanager.Ansi2WideMoveProc:=@WinCEAnsi2WideMove;
     widestringmanager.UpperWideStringProc:=@WinCEWideUpper;
     widestringmanager.LowerWideStringProc:=@WinCEWideLower;
-{$ifndef VER2_2}
     { Unicode }
     widestringmanager.Unicode2AnsiMoveProc:=@WinCEUnicode2AnsiMove;
     widestringmanager.Ansi2UnicodeMoveProc:=@WinCEAnsi2UnicodeMove;
     widestringmanager.UpperUnicodeStringProc:=@WinCEUnicodeUpper;
     widestringmanager.LowerUnicodeStringProc:=@WinCEUnicodeLower;
-{$endif VER2_2}
+    { Codepage }
+    widestringmanager.GetStandardCodePageProc:=@WinCEGetStandardCodePage;
+
+    DefaultSystemCodePage:=GetACP;
+    DefaultUnicodeCodePage:=CP_UTF16;
   end;
 
 
@@ -1814,6 +1828,8 @@ initialization
   InitHeap;
 {$ENDIF HAS_MEMORYMANAGER}
   SysInitExceptions;
+  initunicodestringmanager;
+  InitWinCEWidestrings;
   if not IsLibrary then
     begin
       SysInitStdIO;
@@ -1826,10 +1842,6 @@ initialization
   { Reset internal error variable }
   errno:=0;
   initvariantmanager;
-{$ifndef VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
-  InitWinCEWidestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
 
 finalization

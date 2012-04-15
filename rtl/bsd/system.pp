@@ -169,6 +169,13 @@ begin
   seterrno(olderrno);
 end;
 
+{$ifdef DEBUG}
+  { Declare InstallDefaultSignalHandler as forward to be able
+    to test aclling fpsigaction again within SignalToRunError
+    function implemented within sighnd.inc inlcude file }
+procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); forward;
+{$endif}
+
 {$i sighnd.inc}
 
 procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
@@ -328,6 +335,7 @@ Begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
+  initunicodestringmanager;
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
   { Reset IO Error }
@@ -337,11 +345,6 @@ Begin
   { threading }
   InitSystemThreads;
   initvariantmanager;
-{$ifdef VER2_2}
-  initwidestringmanager;
-{$else VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
   { restore original signal handlers in case this is a library }
   if IsLibrary then
     RestoreOldSignalHandlers;

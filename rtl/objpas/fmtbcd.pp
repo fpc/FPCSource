@@ -43,8 +43,8 @@
 
 { $define debug_version}
 
-{$r+,q+,s+}
-{ $r-,q-,s-}
+// Dont use s+ (Stack checking on) because it crashes libraries, see bug 21208
+{$r+,q+,s-}
 
 {$mode objfpc}
 {$h-}
@@ -1079,15 +1079,16 @@ IMPLEMENTATION
       WITH BCD,
            bh do
         begin
-          lnzf := FDig < 0;
-          while lnzf do
+          lnzf := FDig <= 0;
+          while lnzf do // skip leading 0
             if Singles[FDig] = 0
               then begin
                 Inc ( FDig );
-                if FDig = 0
+                if FDig > 0
                   then lnzf := False;
                end
               else lnzf := False;
+          if FDig > 1 then FDig := 1;
           pre := LDig - FDig + 1;
           fra := Plac;
           doround := False;
@@ -1144,7 +1145,7 @@ IMPLEMENTATION
 
           lnzf := False;
           i := LDig;
-          while ( i >= FDig ) AND ( NOT lnzf ) do
+          while ( i >= FDig ) AND ( NOT lnzf ) do // skip trailing 0
             begin
               if Singles[i] <> 0
                 then begin
@@ -1305,17 +1306,11 @@ IMPLEMENTATION
               if pr1 < pr2
                 then pr := pr1
                 else pr := pr2;
+
               res := 0;
               i := __low_Fraction;
               while ( res = 0 ) AND ( i < ( __low_Fraction + ( pr DIV 2 ) ) ) do
                 begin
-{
-                  if BCD1.Fraction[i] < BCD2.Fraction[i]
-                    then res := -1
-                    else
-                      if BCD1.Fraction[i] > BCD2.Fraction[i]
-                        then res := +1;
-}
                   _SELECT
                     _WHEN BCD1.Fraction[i] < BCD2.Fraction[i]
                       _THEN res := -1
@@ -1325,19 +1320,13 @@ IMPLEMENTATION
                    _endSELECT;
                   Inc ( i );
                  end;
+
               if res = 0
                 then begin
                   if Odd ( pr )
                     then begin
                       f1 := BCD1.Fraction[i] AND $f0;
                       f2 := BCD2.Fraction[i] AND $f0;
-{
-                      if f1 < f2
-                        then res := -1
-                        else
-                          if f1 > f2
-                            then res := +1;
-}
                       _SELECT
                         _WHEN f1 < f2
                           _THEN res := -1
@@ -1345,7 +1334,14 @@ IMPLEMENTATION
                           _THEN res := +1;
                       _endSELECT;
                      end;
+
+                  if res = 0 then
+                    if pr1 > pr2 then
+                      res := +1
+                    else if pr1 < pr2 then
+                      res := -1;
                  end;
+
               if neg1
                 then result := 0 - res
                 else result := res;
@@ -1412,7 +1408,7 @@ IMPLEMENTATION
           WITH lvars,
                bh do
             begin
-              while ( pfnb < lav ) AND ( NOT nbf ) do
+              while ( pfnb < lav ) AND ( NOT nbf ) do // skip leading spaces
                 begin
                   Inc ( pfnb );
                   nbf := aValue[pfnb] <> ' ';
@@ -1421,7 +1417,7 @@ IMPLEMENTATION
                 then begin
                   if aValue[pfnb] IN [ '+', '-' ]
                     then begin
-                      ps := pfnb;
+                      ps := pfnb; // position of sign
                       Inc ( pfnb );
                      end;
                   inife := low ( inife );
@@ -1461,7 +1457,7 @@ IMPLEMENTATION
                                else inife := inexp;
                         '+',
                         '-': if ( inife = inexp ) AND ( fp[inexp] = 0 )
-                               then pse := i
+                               then pse := i // position of exponent sign
                                else result := False;
                         else begin
                           result := False;
@@ -1472,7 +1468,7 @@ IMPLEMENTATION
                   if not result
                     then begin
                       result := True;
-                      for i := errp TO lav do
+                      for i := errp TO lav do // skip trailing spaces
                         if aValue[i] <> ' '
                           then result := False;
                      end;
@@ -2205,9 +2201,7 @@ writeln;
               bh1[True] := null_.bh;
               FlipFlop := False;
               fdset := p > 0;
-              if fdset
-                then bh.FDig := 0;
-              add := 0;
+              Add := 0;
               nz := True;
               while nz do
                 WITH bh1[FlipFlop] do
@@ -2284,9 +2278,6 @@ if p > 3 then halt;
                                 nLDig := 0;
                                 ue := 0;
                                 dd := Singles[lFDig] DIV ( bh2.Singles[lFDig - p] + 1 );
-{
-                                dd := 1;
-}
                                 if dd < 1
                                   then dd := 1;
 {
@@ -2316,21 +2307,10 @@ writeln ( 'p=', p, ' dd=', dd, ' lFdig=', lfdig, ' lldig=', lldig );
                                        end;
 }
                                    end;
-                                            sf := False;
-                                nfdig := lfdig;
-                                nldig := lldig;
+                                sf := False;
+                                nFDig := lFDig;
+                                nLDig := lLDig;
                                 Inc ( Add, dd );
-                                if NOT fdset
-                                  then begin
-                                    bh.FDig := p;
-                                    fdset := True;
-                                   end;
-                                if bh.LDig < p
-                                  then begin
-                                    bh.LDig := p;
-                                    if ( bh.LDig - bh.FDig ) > Succ ( MaxFmtBCDFractionSize )
-                                      then nz := False;
-                                   end;
                                 if sf
                                   then nz := False
                                   else begin
@@ -2344,8 +2324,22 @@ writeln ( 'p=', p, ' dd=', dd, ' lFdig=', lfdig, ' lldig=', lldig );
                                    end;
                                end;
                            end;
+
                         if Add <> 0
                           then begin
+
+                            if NOT fdset
+                              then begin
+                                bh.FDig := p;
+                                fdset := True;
+                               end;
+                            if bh.LDig < p
+                              then begin
+                                bh.LDig := p;
+                                if ( bh.LDig - bh.FDig ) > Succ ( MaxFmtBCDFractionSize )
+                                  then nz := False;
+                               end;
+
                             i4 := p;
                             while ( Add <> 0 ) AND ( i4 >= bh.FDig ) do
                               begin
@@ -3847,6 +3841,8 @@ begin
         varInt64    : Result := vInt64;
         varQword    : Result := vQWord;
         varString   : Result := AnsiString(vString);
+        varOleStr   : Result := WideString(vOleStr);
+        varUString  : Result := UnicodeString(vString);
         else
           if vType=VarFmtBCD then
             Result := TFMTBcdVarData(vPointer).BCD
@@ -3920,8 +3916,10 @@ procedure TFMTBcdFactory.BinaryOp(var Left: TVarData; const Right: TVarData; con
       RaiseInvalidOp;
     end;
 
-    if Left.vType=VarType then
+    if Left.vType = VarType then
       TFMTBcdVarData(Left.VPointer).BCD := l
+    else if Left.vType = varDouble then
+      Left.vDouble := l
     else
       RaiseInvalidOp;
   end;

@@ -364,6 +364,7 @@ interface
         procedure appendsym_absolute(list:TAsmList;sym:tabsolutevarsym);override;
         procedure appendsym_property(list:TAsmList;sym:tpropertysym);override;
 
+        function symdebugname(sym:tsym): String; virtual;
         function symname(sym:tsym): String; virtual;
         procedure append_visibility(vis: tvisibility);
 
@@ -415,7 +416,7 @@ interface
         procedure appenddef_undefined(list:TAsmList;def:tundefineddef); override;
         procedure appenddef_variant(list:TAsmList;def:tvariantdef); override;
 
-        function symname(sym:tsym): String; override;
+        function symdebugname(sym:tsym): String; override;
       public
         function  dwarf_version: Word; override;
       end;
@@ -2044,7 +2045,7 @@ implementation
         procentry      : string;
         cc             : Tdwarf_calling_convention;
         st             : tsymtable;
-        vmtindexnr     : pint;
+        vmtoffset      : pint;
         in_currentunit : boolean;
       begin
         { only write debug info for procedures defined in the current module,
@@ -2128,10 +2129,12 @@ implementation
             { Element number in the vmt (needs to skip stuff coming before the
               actual method addresses in the vmt, so we use vmtmethodoffset()
               and then divide by sizeof(pint)).  }
-            vmtindexnr:=tobjectdef(def.owner.defowner).vmtmethodoffset(def.extnumber) div sizeof(pint);
-            append_attribute(DW_AT_vtable_elem_location,DW_FORM_block1,[1+LengthUleb128(vmtindexnr)]);
+            vmtoffset:=tobjectdef(def.owner.defowner).vmtmethodoffset(def.extnumber);
+            append_attribute(DW_AT_vtable_elem_location,DW_FORM_block1,[3+LengthUleb128(vmtoffset)]);
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_constu)));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_uleb128bit(vmtindexnr));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_uleb128bit(vmtoffset));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus)));
           end;
 
         { accessibility: public/private/protected }
@@ -2761,6 +2764,12 @@ implementation
       end;
 
 
+    function TDebugInfoDwarf.symdebugname(sym: tsym): String;
+    begin
+      result := sym.name;
+    end;
+
+
     procedure TDebugInfoDwarf.appendsym_type(list:TAsmList;sym: ttypesym);
       begin
         { just queue the def if needed, beforeappenddef will
@@ -3209,9 +3218,9 @@ implementation
         else if (ds_dwarf_method_class_prefix in current_settings.debugswitches) and
                 (sym.typ=procsym) and
                 (tprocsym(sym).owner.symtabletype in [objectsymtable,recordsymtable]) then
-          result:=tprocsym(sym).owner.name^+'__'+sym.name
+          result:=tprocsym(sym).owner.name^+'__'+symdebugname(sym)
         else
-          result:=sym.name;
+          result:=symdebugname(sym);
       end;
 
 
@@ -3469,12 +3478,12 @@ implementation
               current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
           end;
         if assigned(objectname) then
-          append_entry(DW_TAG_structure_type,true,[
+          append_entry(DW_TAG_class_type,true,[
             DW_AT_name,DW_FORM_string,objectname^+#0,
             DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
             ])
         else
-          append_entry(DW_TAG_structure_type,true,[
+          append_entry(DW_TAG_class_type,true,[
             DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
             ]);
         { Apple-specific tag that identifies it as an Objective-C class }
@@ -4086,7 +4095,7 @@ implementation
         Result:=3;
       end;
 
-    function TDebugInfoDwarf3.symname(sym: tsym): String;
+    function TDebugInfoDwarf3.symdebugname(sym: tsym): String;
       begin
         Result:=sym.realname;
       end;

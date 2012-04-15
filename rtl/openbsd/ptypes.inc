@@ -24,7 +24,7 @@
 
 type
 
-    dev_t    = cuint32;         { used for device numbers      }
+    dev_t    = cint32;          { used for device numbers      }
     TDev     = dev_t;
     pDev     = ^dev_t;
 
@@ -33,7 +33,7 @@ type
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
-    ino_t    = clong;           { used for file serial numbers }
+    ino_t    = cuint32;         { used for file serial numbers }
     TIno     = ino_t;
     pIno     = ^ino_t;
 
@@ -56,6 +56,7 @@ type
     size_t   = cuint32;         { as definied in the C standard}
     TSize    = size_t;
     pSize    = ^size_t;
+    pSize_t  = ^size_t;
 
     ssize_t  = cint32;          { used by function for returning number of bytes }
     TsSize   = ssize_t;
@@ -154,7 +155,7 @@ type
   ufs_args_rec		= record end;
   mfs_args_rec		= record end;
   nfs_args_rec		= record end;
-  iso_args_rec		= record end;
+  isofs_args_rec       	= record end;
   procfs_args_rec	= record end;
   msdosfs_args_rec	= record end;
   ntfs_args_rec		= record end;
@@ -163,12 +164,12 @@ type
       case byte of
         0: (ufs_args:     ^ufs_args_rec);
         1: (mfs_args:     ^mfs_args_rec);
-	2: (ntfs_args:    ^nfsfs_args_rec);
+	2: (nfs_args:     ^nfs_args_rec);
 	3: (isofs_args:   ^isofs_args_rec);
 	4: (procfs_args:  ^procfs_args_rec);
 	5: (msdosfs_args: ^msdosfs_args_rec);
 	6: (ntfs_args:    ^ntfs_args_rec);
-	7: (__align: array[0..159] of char { 64-bit alignment and room to grow }
+	7: (__align: array[0..159] of char); { 64-bit alignment and room to grow }
     end;
 
 // kernel statfs from mount.h
@@ -177,15 +178,15 @@ type
     bsize,			  { filesystem block size}
     iosize		: cint;   { optimal transfr block size }
     blocks,			  { total data block in file system }
-    bfree		: clong;  { blocks free in fs }
+    bfree		: cuint64;  { blocks free in fs }
     bavail		: cint64; { block available for non-superuser }
     files,			  { total file nodes in file system }
-    ffree		: clong;  { free files nodes in fs }
+    ffree		: cuint64;  { free files nodes in fs }
     favail		: cint64; { free file nodes avail to non-root }
     fsyncwrites,		  { count of sync writes since mount }
     fasyncwrites,		  { count of async writes since mount }
     fsyncreads,			  { count of sync reads since mount }
-    fasyncreads		: clong;  { count of async reads since mount }
+    fasyncreads		: cuint64;  { count of async reads since mount }
     fsid		: fsid_t; { file system id }
     namemax		: cint;   { maximum fileystem length }
     fowner		: tuid;   { user that mounted the fileystem }
@@ -226,7 +227,7 @@ const
     SYS_NMLN = 256;                {BSD utsname struct limit}
 
     SIG_MAXSIG      = 33;      	   // highest signal version
-    wordsinsigset   = 4;           // words in sigset_t
+    // set in ostypes.inc wordsinsigset   = 4;           // words in sigset_t
 
   { For getting/setting priority }
    Prio_Process = 0;

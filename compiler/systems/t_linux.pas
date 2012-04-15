@@ -185,11 +185,15 @@ begin
 {$endif powerpc64}
 
 {$ifdef arm}
+{$ifdef FPC_ARMHF}
+     defdynlinker:='/lib/arm-linux-gnueabihf/ld-linux.so.3';
+{$else FPC_ARMHF}
 {$ifdef FPC_ARMEL}
      defdynlinker:='/lib/ld-linux.so.3';
 {$else FPC_ARMEL}
      defdynlinker:='/lib/ld-linux.so.2';
 {$endif FPC_ARMEL}
+{$endif FPC_ARMHF}
 {$endif arm}
 
 {$ifdef mips}
@@ -330,6 +334,7 @@ Var
   s,s1,s2      : TCmdStr;
   found1,
   found2       : boolean;
+  linksToSharedLibFiles : boolean;
 begin
   result:=False;
 { set special options for some targets }
@@ -432,6 +437,13 @@ begin
 
       { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
         here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+      if (isdll) then
+       begin
+         Add('INPUT(');
+         Add(info.DynamicLinker);
+         Add(')');
+       end;
+      linksToSharedLibFiles := not SharedLibFiles.Empty;
 
       if not SharedLibFiles.Empty then
        begin
@@ -497,8 +509,13 @@ begin
           end;
        end;
 
-      {Entry point.}
-      add('ENTRY(_start)');
+      {Entry point. Only needed for executables, set on the linker command line for
+       shared libraries. }
+      if (not isdll) then
+       if (linksToSharedLibFiles and not linklibc) then
+        add('ENTRY(_dynamic_start)')
+       else
+        add('ENTRY(_start)');
 
 {$ifdef x86_64}
 {$define LINKERSCRIPT_INCLUDED}
@@ -641,7 +658,6 @@ begin
           add('OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm",');
           add('	      "elf32-littlearm")');
           add('OUTPUT_ARCH(arm)');
-          add('ENTRY(_start)');
           add('SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");');
           add('SECTIONS');
           add('{');

@@ -4,21 +4,38 @@
 {$endif}
 var
   test : dword;
-
+  test2 : dword;
 begin
   test:=$deadbeef;
+  test2:=$deadbeef;
   ASM
-    MOVL $0,%EAX
+    MOVL $16,%EAX
+{$ifdef FPC_PIC}
+    LEA .LLT(%RIP),%RBX
+    JMP (%RBX,%RAX)
+{$else not FPC_PIC}
     JMP .LLT(%RAX)
-    .align 16
+{$endif not FPC_PIC}
+    .balign 16
 .LLT:
-    .quad .L1,.L2
+    .quad .L3,.L2,.L1
 .L2:
-    MOVL $12341234,test
+{$ifdef FPC_PIC}
+    MOVL $12341234,test2(%RIP)
+    JMP  .L3(%RIP)
+{$else not FPC_PIC}
+    MOVL $12341234,test2
+    JMP  .L3
+{$endif not FPC_PIC}
 .L1:
+{$ifdef FPC_PIC}
+    MOVL $0,test(%RIP)
+{$else not FPC_PIC}
     MOVL $0,test
+{$endif not FPC_PIC}
+.L3:
   END;
-  if test<>0 then
+  if (test<>0) or (test2<>$deadbeef) then
     halt(1);
   writeln('ok');
 end.

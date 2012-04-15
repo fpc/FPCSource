@@ -86,6 +86,9 @@ type
     procedure g_concatcopy_unaligned(list: tasmlist; const Source, dest: treference; len: tcgint); override;
     procedure g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
     procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
+    { Transform unsupported methods into Internal errors }
+    procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+    procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
   end;
 
   TCg64MPSel = class(tcg64f32)
@@ -500,25 +503,31 @@ begin
 
   if (cs_create_pic in current_settings.moduleswitches) and
     (pi_needs_got in current_procinfo.flags) then
-  begin
-    current_procinfo.got := NR_GP;
-    rg[R_INTREGISTER]    := Trgcpu.Create(R_INTREGISTER, R_SUBD,
-      [RS_R4, RS_R5, RS_R6, RS_R7, RS_R8, RS_R9, RS_R10, RS_R11,
-       RS_R12, RS_R13, RS_R14 {, RS_R15 for tmp_const in ncpuadd.pas} {, RS_R24, RS_R25}],
-      first_int_imreg, []);
-  end
+    begin
+      current_procinfo.got := NR_GP;
+      rg[R_INTREGISTER]    := Trgcpu.Create(R_INTREGISTER, R_SUBD,
+        [RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
+       RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
+       RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],
+        first_int_imreg, []);
+    end
   else
-    rg[R_INTREGISTER] := Trgcpu.Create(R_INTREGISTER, R_SUBD,
-      [RS_R4, RS_R5, RS_R6, RS_R7, RS_R8, RS_R9, RS_R10, RS_R11,
-       RS_R12, RS_R13, RS_R14 {, RS_R15 for tmp_const in ncpuadd.pas} {, RS_R24=VMT, RS_R25=PIC jump}],
+    rg[R_INTREGISTER] := trgcpu.Create(R_INTREGISTER, R_SUBD,
+      [RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
+       RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
+       RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],
       first_int_imreg, []);
 
-  rg[R_FPUREGISTER] := trgcpu.Create(R_FPUREGISTER, R_SUBFS{R_SUBFD},
-    [RS_F0, RS_F2, RS_F4, RS_F6,
-    RS_F8, RS_F10, RS_F12, RS_F14,
-    RS_F16, RS_F18, RS_F20, RS_F22,
-    RS_F24, RS_F26, RS_F28, RS_F30],
+  rg[R_FPUREGISTER] := trgcpu.Create(R_FPUREGISTER, R_SUBFS,
+    [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,
+     RS_F8,RS_F9,RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15,
+     RS_F16,RS_F17,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,
+     RS_F24,RS_F25,RS_F26,RS_F27,RS_F28,RS_F29,RS_F30,RS_F31],
     first_fpu_imreg, []);
+
+  { needs at least one element for rgobj not to crash }
+  rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
+      [RS_R0],first_mm_imreg,[]);
 end;
 
 
@@ -527,6 +536,7 @@ procedure TCgMPSel.done_register_allocators;
 begin
   rg[R_INTREGISTER].Free;
   rg[R_FPUREGISTER].Free;
+  rg[R_MMREGISTER].Free;
   inherited done_register_allocators;
 end;
 
@@ -534,7 +544,7 @@ end;
 function TCgMPSel.getfpuregister(list: tasmlist; size: Tcgsize): Tregister;
 begin
   if size = OS_F64 then
-    Result := rg[R_FPUREGISTER].getregister(list, R_SUBFD)
+    Result := rg[R_FPUREGISTER].getregister(list, R_SUBFS)
   else
     Result := rg[R_FPUREGISTER].getregister(list, R_SUBFS);
 end;
@@ -553,7 +563,7 @@ begin
     begin
       with paraloc.location^.Reference do
       begin
-        if (Index = NR_SP) and (Offset < Target_info.first_parm_offset) then
+        if (Index = NR_SP) and (Offset < 0) then
           InternalError(2002081104);
         reference_reset_base(ref, index, offset, sizeof(aint));
       end;
@@ -581,7 +591,7 @@ begin
       begin
         with Reference do
         begin
-          if (Index = NR_SP) and (Offset < Target_info.first_parm_offset) then
+          if (Index = NR_SP) and (Offset < 0) then
             InternalError(2002081104);
           reference_reset_base(ref, index, offset, sizeof(aint));
         end;
@@ -637,11 +647,13 @@ begin
     case hloc^.loc of
       LOC_REGISTER:
         a_load_ref_reg(list, hloc^.size, hloc^.size, href, hloc^.Register);
+      LOC_FPUREGISTER,LOC_CFPUREGISTER :
+        a_loadfpu_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
       LOC_REFERENCE:
-      begin
-        reference_reset_base(href2, hloc^.reference.index, hloc^.reference.offset, sizeof(aint));
-        a_load_ref_ref(list, hloc^.size, hloc^.size, href, href2);
-      end;
+        begin
+          reference_reset_base(href2, hloc^.reference.index, hloc^.reference.offset, sizeof(aint));
+          a_load_ref_ref(list, hloc^.size, hloc^.size, href, href2);
+        end;
       else
         internalerror(200408241);
     end;
@@ -686,14 +698,14 @@ begin
     list.concat(taicpu.op_reg_reg(A_MOVE, reg, NR_R0))
   { LUI allows to set the upper 16 bits, so we'll take full advantage of it }
   else if (a and aint($ffff)) = 0 then
-    list.concat(taicpu.op_reg_const(A_LUI, reg, a shr 16))
+    list.concat(taicpu.op_reg_const(A_LUI, reg, aint(a) shr 16))
   else if (a >= simm16lo) and (a <= simm16hi) then
     list.concat(taicpu.op_reg_reg_const(A_ADDIU, reg, NR_R0, a))
   else if (a>=0) and (a <= 65535) then
     list.concat(taicpu.op_reg_reg_const(A_ORI, reg, NR_R0, a))
   else
   begin
-    list.concat(taicpu.op_reg_const(A_LI, reg, a ));
+    list.concat(taicpu.op_reg_const(A_LI, reg, aint(a) ));
   end;
 end;
 
@@ -1633,31 +1645,32 @@ end;
 
 
 procedure TCgMPSel.g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint);
-      procedure loadvmttor24;
-        var
-          href: treference;
-        begin
-          reference_reset_base(href, NR_R2, 0, sizeof(aint));  { return value }
-          cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
-        end;
+
+  procedure loadvmttor24;
+    var
+      href: treference;
+    begin
+      reference_reset_base(href, NR_R2, 0, sizeof(aint));  { return value }
+      cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
+    end;
 
 
-      procedure op_onr24methodaddr;
-        var
-          href : treference;
-        begin
-          if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
-          { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href, NR_R24, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
-          cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
-          list.concat(taicpu.op_reg(A_JR, NR_R24));
-        end;
+   procedure op_onr24methodaddr;
+     var
+       href : treference;
+     begin
+       if (procdef.extnumber=$ffff) then
+         Internalerror(200006139);
+       { call/jmp  vmtoffs(%eax) ; method offs }
+       reference_reset_base(href, NR_R24, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
+       cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
+       list.concat(taicpu.op_reg(A_JR, NR_R24));
+     end;
 var
   make_global: boolean;
   href: treference;
 begin
-  if procdef.proctypeoption <> potype_none then
+  if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
     Internalerror(200006137);
   if not assigned(procdef.struct) or
     (procdef.procoptions * [po_classmethod, po_staticmethod,
@@ -1692,6 +1705,16 @@ begin
 
   List.concat(Tai_symbol_end.Createname(labelname));
 end;
+
+procedure TCgMPSel.g_stackpointer_alloc(list : TAsmList;localsize : longint);
+  begin
+    Comment(V_Error,'TCgMPSel.g_stackpointer_alloc method not implemented');
+  end;
+
+procedure TCgMPSel.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+  begin
+    Comment(V_Error,'TCgMPSel.a_bit_scan_reg_reg method not implemented');
+  end;
 
 {****************************************************************************
                                TCG64_MIPSel

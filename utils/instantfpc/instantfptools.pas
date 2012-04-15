@@ -12,6 +12,22 @@ unit InstantFPTools;
   {$undef UseFpExecV}
   {$define HASEXEEXT}
 {$endif go32v2}
+{$ifdef watcom}
+  {$undef UseFpExecV}
+  {$define HASEXEEXT}
+{$endif watcom}
+{$ifdef os2}
+  {$undef UseFpExecV}
+  {$define HASEXEEXT}
+{$endif go32v2}
+
+{$IFNDEF VER2_4}
+{$DEFINE UseExeSearch}
+{$ENDIF}
+
+{$if defined(Windows) or defined(darwin) or defined(os2) or defined(go32v2) or defined(watcom)}
+{$define CaseInsensitiveFilenames}
+{$endif}
 
 interface
 
@@ -27,9 +43,10 @@ function GetCacheDir: string;
 procedure SetCacheDir(AValue : string);
 function IsCacheValid(Src: TStringList;
                       const CachedSrcFile, CachedExeFile: string): boolean;
-procedure Compile(const CacheFilename, OutputFilename: string);
+procedure Compile(const SrcFilename, CacheFilename, OutputFilename: string);
+procedure WriteCompilerOutput(SrcFilename, CacheFilename, CompilerOutput: string);
 function GetCompiler: string;
-procedure SetCompiler(AValue : string); 
+procedure SetCompiler(AValue : string);
 function GetCompilerParameters(const SrcFilename, OutputFilename: string): string;
 procedure Run(const Filename: string);
 
@@ -38,7 +55,7 @@ implementation
 Var
   CmdCacheDir : String;
   CmdCompiler : String;
-  
+
 procedure AddParam(p: string; var Line: string);
 begin
   if p='' then exit;
@@ -87,18 +104,22 @@ end;
 function GetCacheDir: string;
 begin
   Result:=CmdCacheDir;
-  if (Result='') then 
+  if (Result='') then
     begin
     Result:=GetEnvironmentVariable('INSTANTFPCCACHE');
-    if Result='' then 
+    if Result='' then
       begin
       Result:=GetEnvironmentVariable('HOME');
+{$ifdef WINDOWS}
+      if Result='' then
+        Result:=GetEnvironmentVariable('LOCALAPPDATA');
+{$endif WINDOWS}
       if Result<>'' then
         Result:=IncludeTrailingPathDelimiter(Result)+'.cache'+PathDelim+'instantfpc';
       end;
-    end;  
+    end;
   if Result='' then begin
-    writeln('missing environment variable: HOME or INSTANTFPCCACHE');
+    writeln('missing environment variable: HOME or INSTANTFPCCACHE or LOCALAPPDATA');
     Halt(1);
   end;
   Result:=IncludeTrailingPathDelimiter(ExpandFileName(Result));
@@ -131,27 +152,62 @@ begin
   {$ENDIF}
 end;
 
-procedure SetCompiler(AValue : string); 
+procedure SetCompiler(AValue : string);
 
 begin
   CmdCompiler:=AValue;
 end;
 
-function GetCompiler: string;
-
+procedure WriteCompilerOutput(SrcFilename, CacheFilename, CompilerOutput: string);
 var
+  Lines: TStringList;
+  i: Integer;
+  Line: String;
+  p: SizeInt;
+begin
+  // replace in compiler output CacheFilename with SrcFilename
+  Lines:=TStringList.Create;
+  Lines.Text:=CompilerOutput;
+  {$IFDEF CaseInsensitiveFilenames}
+  CacheFilename:=LowerCase(CacheFilename);
+  {$ENDIF}
+  for i:=0 to Lines.Count-1 do begin
+    repeat
+      Line:=Lines[i];
+      {$IFDEF CaseInsensitiveFilenames}
+      Line:=LowerCase(Line);
+      {$ENDIF}
+      p:=Pos(CacheFilename,Line);
+      if p<1 then break;
+      {$IFDEF CaseInsensitiveFilenames}
+      Line:=Lines[i];
+      {$ENDIF}
+      Lines[i]:=copy(Line,1,p-1)+SrcFilename+copy(Line,p+length(CacheFilename),length(Line));
+    until false;
+  end;
+
+  // write to stdout
+  writeln(Lines.Text);
+  {$IFDEF IFFreeMem}
+  Lines.Free;
+  {$ENDIF}
+end;
+
+function GetCompiler: string;
+var
+  CompFile: String;
+{$IFNDEF UseExeSearch}
   Path: String;
   p: Integer;
   StartPos: LongInt;
   Dir: String;
-  CompFile: String;
-
+{$ENDIF}
 begin
   Result:=CmdCompiler;
   if (Result<>'') then
     begin
     Result:=ExpandFileName(Result);
-    if not FileExists(Result) then 
+    if not FileExists(Result) then
       begin
       writeln('Error: '+Result+' not found, check the --compiler parameter.');
       Halt(1);
@@ -159,14 +215,16 @@ begin
     exit;
     end;
 
-  {$IFDEF Windows}
+  {$IFDEF HASEXEEXT}
   CompFile:='fpc.exe';
   {$ELSE}
   CompFile:='fpc';
   {$ENDIF}
+  {$IFDEF UseExeSearch}
+  Result:=ExeSearch(CompFile);
+  {$ELSE}
   Path:=GetEnvironmentVariable('PATH');
-  {$IFDEF VER2_4}
-  if PATH<>'' then begin
+  if Path<>'' then begin
     p:=1;
     while p<=length(Path) do begin
       StartPos:=p;
@@ -179,8 +237,6 @@ begin
       inc(p);
     end;
   end;
-  {$ELSE}
-  Result:=ExeSearch(CompFile);
   {$ENDIF}
 
   if (Result='') then
@@ -190,7 +246,7 @@ begin
     end;
 end;
 
-procedure Compile(const CacheFilename, OutputFilename: string);
+procedure Compile(const SrcFilename, CacheFilename, OutputFilename: string);
 var
   Compiler: String;
   CompParams: String;
@@ -208,17 +264,18 @@ begin
   end;
   Proc:=TProcess.Create(nil);
   Proc.CommandLine:=Compiler+' '+CompParams;
+{$WARNING Unconditional use of pipes breaks for targets not supporting them}
   Proc.Options:= [poUsePipes, poStdErrToOutput];
   Proc.ShowWindow := swoHide;
   Proc.Execute;
   ss:=TStringStream.Create('');
   repeat
-    Count:=Proc.Output.Read(Buf,4096);
+    Count:=Proc.Output.Read(Buf{%H-},4096);
     if Count>0 then
       ss.write(buf,count);
   until Count=0;
   if (not Proc.WaitOnExit) or (Proc.ExitStatus<>0) then begin
-    write(ss.DataString);
+    WriteCompilerOutput(SrcFilename,CacheFilename,ss.DataString);
     Halt(1);
   end;
   ss.Free;
@@ -234,14 +291,14 @@ var
   p: String;
   i : integer;
 begin
-  Result:='';
+  Result:=GetEnvironmentVariable('INSTANTFPCOPTIONS');
   I:=1;
   While (I<=ParamCount) and (Copy(ParamStr(i),1,1)='-') do
     begin
     p:=ParamStr(i);
     if (Copy(p,1,1)='-') and (copy(p,1,2)<>'--') then
       AddParam(P,Result);
-    inc(I);  
+    inc(I);
     end;
   AddParam('-o'+OutputFilename {$IFDEF HASEXEEXT} + '.exe' {$ENDIF},Result);
   AddParam(SrcFilename,Result);

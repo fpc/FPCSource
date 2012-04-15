@@ -43,8 +43,8 @@ Uses
   SysUtils, unixtype, initc;
 
 Const
-{$if defined(BSD) or defined(SUNOS)}
-  // Darwin and FreeBSD. Note the lead underscores are added.
+{$if defined(BSD) or defined(SUNOS) or defined(aix)}
+  // Darwin, FreeBSD, Solaris, AIX. Note the lead underscores are added.
  {$i clocale.inc}
 {$else}
 // checked for Linux only, but might be general glibc.
@@ -224,7 +224,7 @@ const
 var
   i: integer;
   prec, sep, signp: byte;
-  {$if defined(BSD) or defined(SUNOS)}
+  {$if defined(BSD) or defined(SUNOS) or defined(aix)}
    plocale : plconv;
   {$ENDIF}
 begin
@@ -272,7 +272,7 @@ begin
   else
     fmts.LongTimeFormat := TransformFormatStr(fmts.LongTimeFormat);
 
-  {$if defined(BSD) or defined(SUNOS)}
+  {$if defined(BSD) or defined(SUNOS) or defined(aix)}
      plocale:=localeconv;
      // for these fields there is a separate BSD derived POSIX function.
      if not assigned(plocale) then exit; // for now.

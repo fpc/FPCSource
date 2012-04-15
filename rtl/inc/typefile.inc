@@ -60,11 +60,23 @@ Begin
   Rewrite(UnTypedFile(f),Size);
 End;
 
+
+{$ifdef FPC_HAS_FEATURE_RANDOM}
 { this code is duplicated in the iso7185 unit }
 Procedure DoAssign(var t : TypedFile);
 Begin
   Assign(t,'fpc_'+HexStr(random(1000000000),8)+'.tmp');
 End;
+{$else FPC_HAS_FEATURE_RANDOM}
+{ this code is duplicated in the iso7185 unit }
+Procedure DoAssign(var t : TypedFile);
+const
+  start : dword = 0;
+Begin
+  Assign(t,'fpc_'+HexStr(start,8)+'.tmp');
+  inc(start);
+End;
+{$endif FPC_HAS_FEATURE_RANDOM}
 
 
 Procedure fpc_reset_typed_iso(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED_ISO']; compilerproc;

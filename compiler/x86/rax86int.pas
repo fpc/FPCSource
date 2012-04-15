@@ -729,7 +729,7 @@ Unit Rax86int;
         while (actasmtoken=AS_DOT) do
          begin
            Consume(AS_DOT);
-           if actasmtoken in [AS_BYTE,AS_ID,AS_WORD,AS_DWORD,AS_QWORD] then
+           if actasmtoken in [AS_BYTE,AS_ID,AS_WORD,AS_DWORD,AS_QWORD,AS_REGISTER] then
              begin
                s:=s+'.'+actasmpattern;
                consume(actasmtoken);

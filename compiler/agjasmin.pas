@@ -482,8 +482,8 @@ implementation
              ait_directive :
                begin
                  AsmWrite('.'+directivestr[tai_directive(hp).directive]+' ');
-                 if assigned(tai_directive(hp).name) then
-                   AsmWrite(tai_directive(hp).name^);
+                 if tai_directive(hp).name<>'' then
+                   AsmWrite(tai_directive(hp).name);
                  AsmLn;
                end;
 

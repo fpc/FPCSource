@@ -52,10 +52,13 @@ unit raatt;
         AS_DB,AS_DW,AS_DD,AS_DQ,AS_GLOBAL,
         AS_ALIGN,AS_BALIGN,AS_P2ALIGN,AS_ASCII,
         AS_ASCIIZ,AS_LCOMM,AS_COMM,AS_SINGLE,AS_DOUBLE,AS_EXTENDED,AS_CEXTENDED,
-        AS_DATA,AS_TEXT,AS_INIT,AS_FINI,AS_END,
+        AS_DATA,AS_TEXT,AS_INIT,AS_FINI,AS_RVA,AS_END,
         {------------------ Assembler Operators  --------------------}
         AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
-        AS_LO,AS_HI);
+        AS_LO,AS_HI,
+        {------------------ Target-specific directive ---------------}
+        AS_TARGET_DIRECTIVE
+        );
 
         tasmkeyword = string[10];
 
@@ -74,8 +77,9 @@ unit raatt;
         '.byte','.word','.long','.quad','.globl',
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat','.tcfloat',
-        '.data','.text','.init','.fini','END',
-        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi');
+        '.data','.text','.init','.fini','.rva','END',
+        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi',
+        'directive');
 
     type
        tattreader = class(tasmreader)
@@ -86,6 +90,7 @@ unit raatt;
          procedure BuildConstantOperand(oper : toperand);
          procedure BuildRealConstant(typ : tfloattype);
          procedure BuildStringConstant(asciiz: boolean);
+         procedure BuildRva;
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
          procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression(allowref,betweenbracket:boolean): aint;
@@ -95,10 +100,13 @@ unit raatt;
          Function is_asmdirective(const s: string):boolean;
          function is_register(const s:string):boolean;virtual;
          function is_locallabel(const s: string):boolean;
+         function is_targetdirective(const s: string): boolean;virtual;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure handlepercent;virtual;
+         procedure handledollar;virtual;
+         procedure HandleTargetDirective;virtual;
        end;
        tcattreader = class of tattreader;
 
@@ -167,12 +175,26 @@ unit raatt;
       end;
 
 
+    procedure tattreader.handledollar;
+      begin
+        c:=current_scanner.asmgetchar;
+        actasmtoken:=AS_DOLLAR;
+      end;
+
     procedure tattreader.handlepercent;
       begin
         c:=current_scanner.asmgetchar;
         actasmtoken:=AS_MOD;
       end;
 
+    function tattreader.is_targetdirective(const s: string): boolean;
+      begin
+        result:=false;
+      end;
+
+    procedure tattreader.handletargetdirective;
+      begin
+      end;
 
     procedure tattreader.GetToken;
       var
@@ -225,6 +247,11 @@ unit raatt;
                  { directives are case sensitive!! }
                  if is_asmdirective(actasmpattern) then
                   exit;
+                 if is_targetdirective(actasmpattern) then
+                   begin
+                     actasmtoken:=AS_TARGET_DIRECTIVE;
+                     exit;
+                   end;
                  Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
                end;
             end;
@@ -315,6 +342,11 @@ unit raatt;
                   end;
                  if is_asmdirective(actasmpattern) then
                   exit;
+                 if is_targetdirective(actasmpattern) then
+                   begin
+                     actasmtoken:=AS_TARGET_DIRECTIVE;
+                     exit;
+                   end;
                  { local label references and directives }
                  { are case sensitive                    }
                  actasmtoken:=AS_ID;
@@ -578,8 +610,7 @@ unit raatt;
 
              '$' :
                begin
-                 actasmtoken:=AS_DOLLAR;
-                 c:=current_scanner.asmgetchar;
+                 handledollar;
                  exit;
                end;
 
@@ -1159,6 +1190,19 @@ unit raatt;
                Consume(AS_SEPARATOR);
              end;
 
+           AS_RVA:
+             begin
+               { .rva generally applies to systems with COFF output format,
+                 not just Windows. }
+               if not (target_info.system in systems_all_windows) then
+                 Message1(asmr_e_unsupported_directive,token2str[AS_RVA]);
+               Consume(AS_RVA);
+               BuildRva;
+             end;
+
+           AS_TARGET_DIRECTIVE:
+             HandleTargetDirective;
+
            AS_END:
              begin
                break; { end assembly block }
@@ -1563,6 +1607,45 @@ unit raatt;
            oper.opr.typ:=OPR_CONSTANT;
            oper.opr.val:=l;
          end;
+      end;
+
+    procedure tattreader.BuildRva;
+      var
+       asmsymtyp : TAsmSymType;
+       asmsym: string;
+       value : aint;
+       ai:tai_const;
+      begin
+        repeat
+          case actasmtoken of
+            AS_INTNUM,
+            AS_PLUS,
+            AS_MINUS,
+            AS_LPAREN,
+            AS_ID :
+              Begin
+                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
+                if asmsym<>'' then
+                 begin
+                   ai:=tai_const.create_type_sym(aitconst_rva_symbol,current_asmdata.RefAsmSymbol(asmsym));
+                   ai.value:=value;
+                   curlist.concat(ai);
+                 end
+                else
+                 Message(asmr_e_invalid_symbol_ref);
+              end;
+            AS_COMMA:
+              Consume(AS_COMMA);
+            AS_END,
+            AS_SEPARATOR:
+              break;
+            else
+              begin
+                Message(asmr_e_syn_constant);
+                RecoverConsume(false);
+              end
+          end; { end case }
+        until false;
       end;
 
 end.

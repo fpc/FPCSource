@@ -26,7 +26,7 @@ unit ppu;
 interface
 
   uses
-    globtype,constexp,cstreams;
+    systems,globtype,constexp,cstreams;
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 137;
+  CurrentPPUVersion = 147;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -97,7 +97,7 @@ const
   ibunitsym        = 29;
   iblabelsym       = 30;
   ibsyssym         = 31;
-//  ibrttisym        = 32;
+  ibnamespacesym   = 32;
   iblocalvarsym    = 33;
   ibparavarsym     = 34;
   ibmacrosym       = 35;
@@ -161,6 +161,49 @@ const
   uf_has_dwarf_debuginfo = $200000; { this unit has dwarf debuginfo generated }
   uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
   uf_classinits          = $800000; { this unit has class constructors/destructors }
+  uf_resstrinits        = $1000000; { this unit has string consts referencing resourcestrings }
+
+{$ifdef generic_cpu}
+{ We need to use the correct size of aint and pint for
+  the target CPU }
+const
+  CpuAddrBitSize : array[tsystemcpu] of longint =
+    (
+    {  0 } 32 {'none'},
+    {  1 } 32 {'i386'},
+    {  2 } 32 {'m68k'},
+    {  3 } 32 {'alpha'},
+    {  4 } 32 {'powerpc'},
+    {  5 } 32 {'sparc'},
+    {  6 } 32 {'vis'},
+    {  7 } 64 {'ia64'},
+    {  8 } 64 {'x86_64'},
+    {  9 } 32 {'mips'},
+    { 10 } 32 {'arm'},
+    { 11 } 64 {'powerpc64'},
+    { 12 } 16 {'avr'},
+    { 13 } 32 {'mipsel'},
+    { 14 } 32 {'jvm'}
+    );
+  CpuAluBitSize : array[tsystemcpu] of longint =
+    (
+    {  0 } 32 {'none'},
+    {  1 } 32 {'i386'},
+    {  2 } 32 {'m68k'},
+    {  3 } 32 {'alpha'},
+    {  4 } 32 {'powerpc'},
+    {  5 } 32 {'sparc'},
+    {  6 } 32 {'vis'},
+    {  7 } 64 {'ia64'},
+    {  8 } 64 {'x86_64'},
+    {  9 } 32 {'mips'},
+    { 10 } 32 {'arm'},
+    { 11 } 64 {'powerpc64'},
+    { 12 }  8 {'avr'},
+    { 13 } 32 {'mipsel'},
+    { 14 } 64 {'jvm'}
+    );
+{$endif generic_cpu}
 
 type
   { bestreal is defined based on the target architecture }
@@ -207,7 +250,6 @@ type
     crc_test2  : pcrc_array;
   private
 {$endif def Test_Double_checksum}
-    change_endian : boolean;
     buf      : pchar;
     bufstart,
     bufsize,
@@ -223,6 +265,7 @@ type
     entrytyp : byte;
     header           : tppuheader;
     size             : integer;
+    change_endian    : boolean; { Used in ppudump util }
     { crc for the entire unit }
     crc,
     { crc for the interface definitions in this unit }
@@ -250,14 +293,14 @@ type
   {read}
     function  openfile:boolean;
     procedure reloadbuf;
-    procedure readdata(var b;len:integer);
+    procedure readdata(out b;len:integer);
     procedure skipdata(len:integer);
     function  readentry:byte;
     function  EndOfEntry:boolean;
     function  entrysize:longint;
     function  entryleft:longint;
-    procedure getdatabuf(var b;len:integer;var res:integer);
-    procedure getdata(var b;len:integer);
+    procedure getdatabuf(out b;len:integer;out res:integer);
+    procedure getdata(out b;len:integer);
     function  getbyte:byte;
     function  getword:word;
     function  getdword:dword;
@@ -271,8 +314,8 @@ type
     function  getrealsize(sizeofreal : longint):ppureal;
     function  getstring:string;
     function  getansistring:ansistring;
-    procedure getnormalset(var b);
-    procedure getsmallset(var b);
+    procedure getnormalset(out b);
+    procedure getsmallset(out b);
     function  skipuntilentry(untilb:byte):boolean;
   {write}
     function  createfile:boolean;
@@ -302,56 +345,11 @@ type
 implementation
 
   uses
-    systems,
 {$ifdef Test_Double_checksum}
     comphook,
 {$endif def Test_Double_checksum}
     fpccrc,
     cutils;
-
-{$ifdef generic_cpu}
-{ We need to use the correct size of aint and pint for
-  the target CPU }
-const
-  CpuAddrBitSize : array[tsystemcpu] of longint =
-    (
-    {  0 } 32 {'none'},
-    {  1 } 32 {'i386'},
-    {  2 } 32 {'m68k'},
-    {  3 } 32 {'alpha'},
-    {  4 } 32 {'powerpc'},
-    {  5 } 32 {'sparc'},
-    {  6 } 32 {'vis'},
-    {  7 } 64 {'ia64'},
-    {  8 } 64 {'x86_64'},
-    {  9 } 32 {'mips'},
-    { 10 } 32 {'arm'},
-    { 11 } 64 {'powerpc64'},
-    { 12 } 16 {'avr'},
-    { 13 } 32 {'mipsel'},
-    { 14 } 32 {'jvm'}
-    );
-  CpuAluBitSize : array[tsystemcpu] of longint =
-    (
-    {  0 } 32 {'none'},
-    {  1 } 32 {'i386'},
-    {  2 } 32 {'m68k'},
-    {  3 } 32 {'alpha'},
-    {  4 } 32 {'powerpc'},
-    {  5 } 32 {'sparc'},
-    {  6 } 32 {'vis'},
-    {  7 } 64 {'ia64'},
-    {  8 } 64 {'x86_64'},
-    {  9 } 32 {'mips'},
-    { 10 } 32 {'arm'},
-    { 11 } 64 {'powerpc64'},
-    { 12 }  8 {'avr'},
-    { 13 } 32 {'mipsel'},
-    { 14 } 64 {'jvm'}
-    );
-{$endif generic_cpu}
-
-
 
 function swapendian_ppureal(d:ppureal):ppureal;
 
@@ -531,7 +529,7 @@ begin
 end;
 
 
-procedure tppufile.readdata(var b;len:integer);
+procedure tppufile.readdata(out b;len:integer);
 var
   p,pbuf : pchar;
   left : integer;
@@ -626,7 +624,7 @@ begin
 end;
 
 
-procedure tppufile.getdatabuf(var b;len:integer;var res:integer);
+procedure tppufile.getdatabuf(out b;len:integer;out res:integer);
 begin
   if entryidx+len>entry.size then
    res:=entry.size-entryidx
@@ -637,7 +635,7 @@ begin
 end;
 
 
-procedure tppufile.getdata(var b;len:integer);
+procedure tppufile.getdata(out b;len:integer);
 begin
   if entryidx+len>entry.size then
    begin
@@ -790,10 +788,11 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-  if sizeof(aint)=8 then
-    result:=getint64
-  else
-    result:=getlongint;
+{$ifdef cpu64bitalu}
+  result:=getint64
+{$else cpu64bitalu}
+  result:=getlongint;
+{$endif cpu64bitalu}
 {$endif not generic_cpu}
 end;
 
@@ -813,10 +812,11 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-  if sizeof(asizeint)=8 then
-    result:=getint64
-  else
-    result:=getlongint;
+{$ifdef cpu64bitaddr}
+  result:=getint64;
+{$else cpu64bitaddr}
+  result:=getlongint;
+{$endif cpu32bitaddr}
 {$endif not generic_cpu}
 end;
 
@@ -838,10 +838,11 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-  if sizeof(aword)=8 then
-    result:=getqword
-  else
-    result:=getdword;
+{$ifdef cpu64bitalu}
+  result:=getqword;
+{$else cpu64bitalu}
+  result:=getdword;
+{$endif cpu64bitalu}
 {$endif not generic_cpu}
 end;
 
@@ -865,7 +866,6 @@ begin
       else
         result:=e;
       inc(entryidx,sizeof(e));
-      result:=e;
       exit;
     end;
   if sizeofreal=sizeof(d) then
@@ -953,7 +953,7 @@ begin
 end;
 
 
-procedure tppufile.getsmallset(var b);
+procedure tppufile.getsmallset(out b);
 var
   i : longint;
 begin
@@ -964,7 +964,7 @@ begin
 end;
 
 
-procedure tppufile.getnormalset(var b);
+procedure tppufile.getnormalset(out b);
 var
   i : longint;
 begin
@@ -1326,8 +1326,6 @@ procedure tppufile.putsmallset(const b);
 
 
 procedure tppufile.putnormalset(const b);
-  type
-    SetLongintArray = Array [0..7] of longint;
   begin
     putdata(b,32);
   end;

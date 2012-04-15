@@ -1,5 +1,8 @@
 program SimpleBGScroll;
 
+{$mode objfpc}
+{$H+}
+
 uses
   ctypes, gba;
 

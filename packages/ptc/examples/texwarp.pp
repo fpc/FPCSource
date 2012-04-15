@@ -22,7 +22,7 @@ const
   green_balance: Uint32 = 3;
   blue_balance: Uint32 = 1;
 
-procedure blur(s: TPTCSurface);
+procedure blur(s: IPTCSurface);
 var
   d: PUint8;
   pitch: Integer;
@@ -60,7 +60,7 @@ begin
   end;
 end;
 
-procedure generate(surface: TPTCSurface);
+procedure generate(surface: IPTCSurface);
 var
   dest: PUint32;
   i: Integer;
@@ -256,10 +256,10 @@ begin
 end;
 
 var
-  format: TPTCFormat = nil;
-  texture: TPTCSurface = nil;
-  surface: TPTCSurface = nil;
-  console: TPTCConsole = nil;
+  format: IPTCFormat;
+  texture: IPTCSurface;
+  surface: IPTCSurface;
+  console: IPTCConsole;
   lighttable: PUint8 = nil;
   { texture grid }
   grid: array [0..41*26*3-1] of Uint32;
@@ -270,10 +270,10 @@ begin
   try
     try
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       { create texture surface }
-      texture := TPTCSurface.Create(256, 256, format);
+      texture := TPTCSurfaceFactory.CreateNew(256, 256, format);
 
       { create texture }
       generate(texture);
@@ -283,13 +283,13 @@ begin
       make_light_table(lighttable);
 
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { open console }
       console.open('Warp demo', 320, 200, format);
 
       { create drawing surface }
-      surface := TPTCSurface.Create(320, 200, format);
+      surface := TPTCSurfaceFactory.CreateNew(320, 200, format);
 
       { control values }
       xbase := 0;
@@ -365,11 +365,8 @@ begin
         end;
       end;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
-      texture.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
       FreeMem(lighttable);
     end;
   except

@@ -233,7 +233,13 @@ type
   TFileTime = _FILETIME;
   FILETIME = _FILETIME;
   PFileTime = ^TFileTime;
-
+{$else}
+type
+  PCLSID    = Windows.PCLSID;
+  TCLSID    = Windows.CLSID;
+  TFiletime = Windows.TFileTime;
+  Filetime  = Windows.FileTime;
+  PFiletime = Windows.PFileTime;
 {$endif Windows}
 
 type
@@ -294,7 +300,7 @@ function OffsetRect(var Rect : TRect;DX : Integer;DY : Integer) : Boolean;
 function CenterPoint(const Rect: TRect): TPoint;
 function InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
 function Size(AWidth, AHeight: Integer): TSize;
-function Size(ARect: TRect): TSize;
+function Size(const ARect: TRect): TSize;
 
 implementation
 
@@ -460,7 +466,7 @@ begin
   Result.cy := AHeight;
 end;
 
-function Size(ARect: TRect): TSize;
+function Size(const ARect: TRect): TSize;
 begin
   Result.cx := ARect.Right - ARect.Left;
   Result.cy := ARect.Bottom - ARect.Top;

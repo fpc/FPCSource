@@ -320,9 +320,9 @@ Implementation
            hs:=s;
            if hs[length(hs)] in ['/','\'] then
             delete(hs,length(hs),1);
-           {$I-}
+           {$push} {$I-}
             mkdir(hs);
-           {$I+}
+           {$pop}
            if ioresult<>0 then;
          end;
       end;
@@ -405,9 +405,9 @@ Implementation
         else
          begin
            assign(g,AsmFileName);
-           {$I-}
+           {$push} {$I-}
             erase(g);
-           {$I+}
+           {$pop}
            if ioresult<>0 then;
          end;
       end;
@@ -444,9 +444,9 @@ Implementation
         if outcnt>0 then
          begin
            { suppress i/o error }
-           {$i-}
+           {$push} {$I-}
            BlockWrite(outfile,outbuf,outcnt);
-           {$i+}
+           {$pop}
            ioerror:=ioerror or (ioresult<>0);
            outcnt:=0;
          end;
@@ -627,9 +627,9 @@ Implementation
 {$endif}
          begin
            Assign(outfile,AsmFileName);
-           {$I-}
+           {$push} {$I-}
            Rewrite(outfile,1);
-           {$I+}
+           {$pop}
            if ioresult<>0 then
              begin
                ioerror:=true;
@@ -661,9 +661,9 @@ Implementation
            if ppufilename<>'' then
             begin
               Assign(f,ppufilename);
-              {$I-}
+              {$push} {$I-}
               reset(f,1);
-              {$I+}
+              {$pop}
               if ioresult=0 then
                begin
                  FileAge := FileGetDate(GetFileHandle(f));
@@ -1155,9 +1155,9 @@ Implementation
                      ;
                    asd_lazy_reference:
                      begin
-                       if tai_directive(hp).name = nil then
+                       if tai_directive(hp).name='' then
                          Internalerror(2009112101);
-                       objsym:=ObjData.symbolref(tai_directive(hp).name^);
+                       objsym:=ObjData.symbolref(tai_directive(hp).name);
                        objsym.bind:=AB_LAZY;
                      end;
                    asd_reference:
@@ -1292,9 +1292,9 @@ Implementation
                begin
                  case tai_directive(hp).directive of
                    asd_indirect_symbol:
-                     if tai_directive(hp).name = nil then
+                     if tai_directive(hp).name='' then
                        Internalerror(2009101103)
-                     else if not SetIndirectToSymbol(Tai(hp.Previous), tai_directive(hp).name^) then
+                     else if not SetIndirectToSymbol(Tai(hp.Previous), tai_directive(hp).name) then
                        Internalerror(2009101102);
                    asd_lazy_reference:
                      { handled in TreePass0 }
@@ -1346,6 +1346,13 @@ Implementation
              ait_symbol :
                begin
                  ObjOutput.exportsymbol(ObjData.SymbolRef(Tai_symbol(hp).sym));
+               end;
+            ait_symbol_end :
+               begin
+                 { recalculate size, as some preceding instructions
+                   could have been changed to smaller size }
+                 objsym:=ObjData.SymbolRef(Tai_symbol_end(hp).sym);
+                 objsym.size:=ObjData.CurrObjSec.Size-objsym.offset;
                end;
              ait_datablock :
                begin
@@ -1446,6 +1453,10 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
+{$ifdef TEST_WIN64_SEH}
+             ait_seh_directive :
+               tai_seh_directive(hp).generate_code(objdata);
+{$endif TEST_WIN64_SEH}
            end;
            hp:=Tai(hp.next);
          end;

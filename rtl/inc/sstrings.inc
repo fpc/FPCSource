@@ -413,6 +413,7 @@ begin
     s:=space(len-length(s))+s;
 end;
 
+
 procedure fpc_shortstr_UInt(v : valUInt;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_UINT']; compilerproc;
 begin
   int_str_unsigned(v,s);
@@ -538,9 +539,9 @@ begin
         end;
       { temporarily disable range checking because of the access to the array[0..0]
         member of Tenum_ord_to_string_lookup }
-{$PUSH}{$R-}
+{$push}{$R-}
         res:=enum_o2s^.lookup_data[ordinal];
-{$POP}
+{$pop}
         if (not assigned(res)) then
           exit;
         s:=res^;
@@ -553,7 +554,7 @@ begin
       l:=0;
       { temporarily disable range checking because of the access to the array[0..0]
         member of Tenum_ord_to_string_search }
-{$PUSH}{$R-}
+{$push}{$R-}
       h:=enum_o2s^.num_entries-1;
       repeat
         m:=(l+h) div 2;
@@ -566,7 +567,7 @@ begin
         if l>h then
           exit; { Ordinal value not found? Exit }
       until false;
-{$POP}
+{$pop}
       s:=sorted_data[m].name^;
     end;
 
@@ -1213,10 +1214,170 @@ const
 {$endif}
 
 {$ifndef FPUNONE}
+
+(******************
+
+   Derived from: ".\Free Pascal\source\rtl\inc\genmath.inc"
+
+   Origin: "fast 10^n routine"
+     function FPower10(val: Extended; Power: Longint): Extended;
+
+   Changes:
+    > adapted to "ValReal", so float can be single/double/extended
+    > slightly changed arrays [redundant 58+2 float constants gone away]
+    > added some checks etc..
+
+   Notes:
+    > denormalization and overflow should go smooth if corresponding
+      FPU exceptions are masked [no external care needed by now]
+    > adaption to real48 and real128 is not hard if one needed
+
+ ******************)
+//
+   function mul_by_power10(x:ValReal;power:integer):ValReal;
+//
+// result:=X*(10^power)
+//
+// Routine achieves result with no more than 3 floating point mul/div's.
+// Up to ABS(power)=31, only 1 floating point mul/div is needed.
+//
+// Limitations:
+//  for ValReal=extended : power=-5119..+5119
+//  for ValReal=double   : power=-319..+319
+//  for ValReal=single   : power=-63..+63
+//
+// If "power" is beyond this limits, routine gives up and returns 0/+INF/-INF.
+// This is not generally correct, but should be ok when routine is used only
+// as "VAL"-helper, since "x" exponent is reasonably close to 0 in this case.
+//
+//==================================
+{$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
+  {$ERROR C_HIGH_EXPBITS_5TO8 declared somewhere in scope}
+{$ENDIF}
+
+{$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
+  {$ERROR C_HIGH_EXPBITS_9ANDUP declared somewhere in scope}
+{$ENDIF}
+
+{$IF SIZEOF(ValReal)=10}
+//==================================
+// assuming "type ValReal=extended;"
+//
+const
+  C_MAX_POWER = 5119;
+
+  C_HIGH_EXPBITS_5TO8   = 15;
+  C_HIGH_EXPBITS_9ANDUP = 9;
+
+{$ELSEIF SIZEOF(ValReal)=8}
+//==================================
+// assuming "type ValReal=double;"
+//
+const
+  C_MAX_POWER = 319;
+
+  C_HIGH_EXPBITS_5TO8 = 9;
+
+{$ELSEIF SIZEOF(ValReal)=4}
+//==================================
+// assuming "type ValReal=single;"
+//
+const
+  C_MAX_POWER = 63;
+
+{$ELSE}
+//==================================
+// assuming "ValReal=?"
+//
+  {$ERROR Unsupported ValReal type}
+{$ENDIF}
+
+//==================================
+const
+  C_INFTYP = ValReal( 1.0/0.0);
+  C_INFTYM = ValReal(-1.0/0.0);
+
+  mul_expbits_0_to_4:packed array[0..31]of ValReal=(
+   1E0,  1E1,  1E2,  1E3,
+   1E4,  1E5,  1E6,  1E7,
+   1E8,  1E9,  1E10, 1E11,
+   1E12, 1E13, 1E14, 1E15,
+   1E16, 1E17, 1E18, 1E19,
+   1E20, 1E21, 1E22, 1E23,
+   1E24, 1E25, 1E26, 1E27,
+   1E28, 1E29, 1E30, 1E31);
+
+{$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
+  mul_expbits_5_to_8:packed array[1..C_HIGH_EXPBITS_5TO8] of ValReal=(
+   1E32,  1E64,  1E96,  1E128,
+   1E160, 1E192, 1E224, 1E256, 1E288
+  {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)},
+   1E320, 1E352, 1E384, 1E416, 1E448, 1E480
+  {$ENDIF});
+{$ELSE}
+  mul_expbits_5_to_8:ValReal=1E32;
+{$ENDIF}
+
+{$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
+  mul_expbits_9_and_up:packed array[1..C_HIGH_EXPBITS_9ANDUP] of ValReal=(
+   1E512,  1E1024, 1E1536, 1E2048,
+   1E2560, 1E3072, 1E3584, 1E4096,
+   1E4608);
+{$ENDIF}
+
+begin
+  if power=0 then mul_by_power10:=x else
+  if power<-C_MAX_POWER then mul_by_power10:=0 else
+  if power>C_MAX_POWER then
+   if x<0 then mul_by_power10:=C_INFTYM else
+   if x>0 then mul_by_power10:=C_INFTYP else mul_by_power10:=0
+  else
+   if power<0 then
+    begin
+     power:=-power;
+     mul_by_power10:=x/mul_expbits_0_to_4[power and $1F];
+     power:=(power shr 5);
+     if power=0 then exit;
+    {$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
+     if power and $F<>0 then
+      mul_by_power10:=
+       mul_by_power10/mul_expbits_5_to_8[power and $F];
+    {$ELSE} // "single", power<>0, so always div
+     mul_by_power10:=mul_by_power10/mul_expbits_5_to_8;
+    {$ENDIF}
+    {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
+     power:=(power shr 4);
+     if power<>0 then
+      mul_by_power10:=
+       mul_by_power10/mul_expbits_9_and_up[power];
+    {$ENDIF}
+    end
+   else
+    begin
+     mul_by_power10:=x*mul_expbits_0_to_4[power and $1F];
+     power:=(power shr 5);
+     if power=0 then exit;
+    {$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
+     if power and $F<>0 then
+      mul_by_power10:=
+       mul_by_power10*mul_expbits_5_to_8[power and $F];
+    {$ELSE} // "single", power<>0, so always mul
+     mul_by_power10:=mul_by_power10*mul_expbits_5_to_8;
+    {$ENDIF}
+    {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
+     power:=(power shr 4);
+     if power<>0 then
+      mul_by_power10:=
+       mul_by_power10*mul_expbits_9_and_up[power];
+    {$ENDIF}
+    end;
+end;
+
 Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
 var
   hd,
-  esign,sign : valreal;
+  sign : valreal;
+  esign,
   exponent,
   decpoint,i : SizeInt;
   flags      : byte;
@@ -1313,8 +1474,7 @@ begin
   { calculate 1E4951 as factor, since that would overflow and result in 0.   }
   if (exponent>valmaxexpnorm-2) then
     begin
-      for i:=1 to valmaxexpnorm-2 do
-        hd:=hd*10.0;
+      hd:=mul_by_power10(hd,valmaxexpnorm-2);
       if esign>0 then
         fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
       else
@@ -1322,12 +1482,13 @@ begin
       dec(exponent,valmaxexpnorm-2);
       hd:=1.0;
     end;
-  for i:=1 to exponent do
-    hd:=hd*10.0;
+  hd:=mul_by_power10(hd,exponent);
+
   if esign>0 then
     fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
   else
     fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
+
 
 { Not all characters are read ? }
   if length(s)>=code then

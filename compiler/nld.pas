@@ -33,7 +33,19 @@ interface
        symconst,symbase,symtype,symsym,symdef;
 
     type
-       Trttidatatype=(rdt_normal,rdt_ord2str,rdt_str2ord);
+       Trttidatatype = (rdt_normal,rdt_ord2str,rdt_str2ord);
+
+       tloadnodeflags = (
+         loadnf_is_self,
+         loadnf_load_self_pointer,
+         loadnf_inherited,
+         { the loadnode is generated internally and a varspez=vs_const should be ignore,
+           this requires that the parameter is actually passed by value
+           Be really carefull when using this flag! }
+         loadnf_isinternal_ignoreconst,
+
+         loadnf_only_uninitialized_hint
+        );
 
        tloadnode = class(tunarynode)
        protected
@@ -41,6 +53,7 @@ interface
           fprocdefderef : tderef;
           function handle_threadvar_access: tnode; virtual;
        public
+          loadnodeflags : set of tloadnodeflags;
           symtableentry : tsym;
           symtableentryderef : tderef;
           symtable : TSymtable;
@@ -113,6 +126,8 @@ interface
           helperallowed : boolean;
           typedef : tdef;
           typedefderef : tderef;
+          typesym : tsym;
+          typesymderef : tderef;
           constructor create(def:tdef);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -206,6 +221,7 @@ implementation
         ppufile.getderef(symtableentryderef);
         symtable:=nil;
         ppufile.getderef(fprocdefderef);
+        ppufile.getsmallset(loadnodeflags);
       end;
 
 
@@ -214,6 +230,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putderef(symtableentryderef);
         ppufile.putderef(fprocdefderef);
+        ppufile.putsmallset(loadnodeflags);
       end;
 
 
@@ -261,7 +278,7 @@ implementation
         result:=(symtable.symtabletype=parasymtable) and
                 (symtableentry.typ=paravarsym) and
                 not(vo_has_local_copy in tparavarsym(symtableentry).varoptions) and
-                not(nf_load_self_pointer in flags) and
+                not(loadnf_load_self_pointer in loadnodeflags) and
                 paramanager.push_addr_param(tparavarsym(symtableentry).varspez,tparavarsym(symtableentry).vardef,tprocdef(symtable.defowner).proccalloption);
       end;
 
@@ -275,7 +292,7 @@ implementation
            constsym:
              begin
                if tconstsym(symtableentry).consttyp=constresourcestring then
-                 resultdef:=cansistringtype
+                 resultdef:=getansistringdef
                else
                  internalerror(22799);
              end;
@@ -327,7 +344,7 @@ implementation
                       (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
                      resultdef:=tclassrefdef.create(resultdef)
                    else if (is_object(resultdef) or is_record(resultdef)) and
-                           (nf_load_self_pointer in flags) then
+                           (loadnf_load_self_pointer in loadnodeflags) then
                      resultdef:=getpointerdef(resultdef);
                  end
                else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
@@ -359,7 +376,10 @@ implementation
                  typecheckpass(left);
              end;
            labelsym:
-             resultdef:=voidtype;
+             begin
+               tlabelsym(symtableentry).used:=true;
+               resultdef:=voidtype;
+             end;
            else
              internalerror(200104141);
          end;
@@ -423,7 +443,11 @@ implementation
                      end;
                 end;
            labelsym :
-             ;
+             begin
+               if not assigned(tlabelsym(symtableentry).asmblocklabel) and
+                  not assigned(tlabelsym(symtableentry).code) then
+                 Message(parser_e_label_outside_proc);
+             end
            else
              internalerror(200104143);
          end;
@@ -549,6 +573,7 @@ implementation
       var
         hp : tnode;
         useshelper : boolean;
+        oldassignmentnode : tassignmentnode;
       begin
         result:=nil;
         resultdef:=voidtype;
@@ -557,7 +582,14 @@ implementation
         set_unique(left);
 
         typecheckpass(left);
+
+        { PI. This is needed to return correct resultdef of add nodes for ansistrings
+          rawbytestring return needs to be replaced by left.resultdef }
+        oldassignmentnode:=aktassignmentnode;
+        aktassignmentnode:=self;
         typecheckpass(right);
+        aktassignmentnode:=oldassignmentnode;
+
         set_varstate(right,vs_read,[vsf_must_be_valid]);
         set_varstate(left,vs_written,[]);
         if codegenerror then
@@ -635,7 +667,9 @@ implementation
                   if (right.nodetype=stringconstn) and
                      (tstringconstnode(right).len=0) then
                     useshelper:=false;
-                end;
+                end
+              else if (tstringdef(right.resultdef).stringtype in [st_unicodestring,st_widestring]) then
+                Message2(type_w_implicit_string_cast_loss,right.resultdef.typename,left.resultdef.typename);
              { rest is done in pass 1 (JM) }
              if useshelper then
                exit;
@@ -673,7 +707,16 @@ implementation
           begin
             { check if the assignment may cause a range check error }
             check_ranges(fileinfo,right,left.resultdef);
-            inserttypeconv(right,left.resultdef);
+
+            { beginners might be confused about an error message like
+              Incompatible types: got "untyped" expected "LongInt"
+              when trying to assign the result of a procedure, so give
+              a better error message, see also #19122 }
+            if (left.resultdef.typ<>procvardef) and
+              (right.nodetype=calln) and is_void(right.resultdef) then
+              CGMessage(type_e_procedures_return_no_value)
+            else
+              inserttypeconv(right,left.resultdef);
           end;
 
         { call helpers for interface }
@@ -710,6 +753,9 @@ implementation
       var
         hp: tnode;
         oldassignmentnode : tassignmentnode;
+        hdef: tdef;
+        hs: string;
+        needrtti: boolean;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -739,6 +785,8 @@ implementation
          if is_managed_type(left.resultdef) then
            include(current_procinfo.flags,pi_do_call);
 
+         needrtti:=false;
+
         if (is_shortstring(left.resultdef)) then
           begin
            if right.resultdef.typ=stringdef then
@@ -756,9 +804,9 @@ implementation
                  firstpass(result);
                  left:=nil;
                  right:=nil;
-                 exit;
                end;
             end;
+            exit;
            end
         { call helpers for composite types containing automated types }
         else if is_managed_type(left.resultdef) and
@@ -785,10 +833,14 @@ implementation
         else if (left.resultdef.typ=variantdef) and
             not(target_info.system in systems_garbage_collected_managed_types)  then
          begin
+           { remove property flag to avoid errors, see comments for }
+           { tf_winlikewidestring assignments below                 }
+           exclude(left.flags,nf_isproperty);
+           hdef:=search_system_type('TVARDATA').typedef;
            hp:=ccallparanode.create(ctypeconvnode.create_internal(
-                 caddrnode.create_internal(right),voidpointertype),
+                 right,hdef),
                ccallparanode.create(ctypeconvnode.create_internal(
-                 caddrnode.create_internal(left),voidpointertype),
+                 left,hdef),
                nil));
            result:=ccallnode.createintern('fpc_variant_copy',hp);
            firstpass(result);
@@ -796,34 +848,56 @@ implementation
            right:=nil;
            exit;
          end
-        { call helpers for windows widestrings, they aren't ref. counted }
-        else if (tf_winlikewidestring in target_info.flags) and is_widestring(left.resultdef) then
-         begin
-           { The first argument of fpc_widestr_assign is a var parameter. Properties cannot   }
-           { be passed to var or out parameters, because in that case setters/getters are not }
-           { used. Further, if we would allow it in case there are no getters or setters, you }
-           { would need source changes in case these are introduced later on, thus defeating  }
-           { part of the transparency advantages of properties. In this particular case,      }
-           { however:                                                                         }
-           {   a) if there is a setter, this code will not be used since then the assignment  }
-           {      will be converted to a procedure call                                       }
-           {   b) the getter is irrelevant, because fpc_widestr_assign must always decrease   }
-           {      the refcount of the field to which we are writing                           }
-           {   c) source code changes are not required if a setter is added/removed, because  }
-           {      this transformation is handled at compile time                              }
-           {  -> we can remove the nf_isproperty flag (if any) from left, so that in case it  }
-           {     is a property which refers to a field without a setter call, we will not get }
-           {     an error about trying to pass a property as a var parameter                  }
-           exclude(left.flags,nf_isproperty);
-           hp:=ccallparanode.create(ctypeconvnode.create_internal(right,voidpointertype),
-               ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),
-               nil));
-           result:=ccallnode.createintern('fpc_widestr_assign',hp);
-           firstpass(result);
-           left:=nil;
-           right:=nil;
-           exit;
-         end;
+        else if not(target_info.system in systems_garbage_collected_managed_types) then
+          begin
+            { call helpers for pointer-sized managed types }
+            if is_widestring(left.resultdef) then
+              hs:='fpc_widestr_assign'
+            else if is_ansistring(left.resultdef) then
+              hs:='fpc_ansistr_assign'
+            else if is_unicodestring(left.resultdef) then
+              hs:='fpc_unicodestr_assign'
+            else if is_interfacecom_or_dispinterface(left.resultdef) then
+              hs:='fpc_intf_assign'
+            else if is_dynamic_array(left.resultdef) then
+              begin
+                hs:='fpc_dynarray_assign';
+                needrtti:=true;
+              end
+            else
+              exit;
+          end
+        else
+          exit;
+
+        { The first argument of these procedures is a var parameter. Properties cannot     }
+        { be passed to var or out parameters, because in that case setters/getters are not }
+        { used. Further, if we would allow it in case there are no getters or setters, you }
+        { would need source changes in case these are introduced later on, thus defeating  }
+        { part of the transparency advantages of properties. In this particular case,      }
+        { however:                                                                         }
+        {   a) if there is a setter, this code will not be used since then the assignment  }
+        {      will be converted to a procedure call                                       }
+        {   b) the getter is irrelevant, because fpc_widestr_assign must always decrease   }
+        {      the refcount of the field to which we are writing                           }
+        {   c) source code changes are not required if a setter is added/removed, because  }
+        {      this transformation is handled at compile time                              }
+        {  -> we can remove the nf_isproperty flag (if any) from left, so that in case it  }
+        {     is a property which refers to a field without a setter call, we will not get }
+        {     an error about trying to pass a property as a var parameter                  }
+        exclude(left.flags,nf_isproperty);
+        hp:=ccallparanode.create(ctypeconvnode.create_internal(right,voidpointertype),
+            ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),
+            nil));
+        if needrtti then
+          hp:=ccallparanode.create(
+            caddrnode.create_internal(
+              crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
+            hp);
+        result:=ccallnode.createintern(hs,hp);
+        firstpass(result);
+        left:=nil;
+        right:=nil;
       end;
 
 
@@ -1094,6 +1168,7 @@ implementation
       begin
          inherited create(typen);
          typedef:=def;
+         typesym:=def.typesym;
          allowed:=false;
          helperallowed:=false;
       end;
@@ -1103,6 +1178,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getderef(typedefderef);
+        ppufile.getderef(typesymderef);
         allowed:=boolean(ppufile.getbyte);
         helperallowed:=boolean(ppufile.getbyte);
       end;
@@ -1112,6 +1188,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(typedefderef);
+        ppufile.putderef(typesymderef);
         ppufile.putbyte(byte(allowed));
         ppufile.putbyte(byte(helperallowed));
       end;
@@ -1121,6 +1198,7 @@ implementation
       begin
         inherited buildderefimpl;
         typedefderef.build(typedef);
+        typesymderef.build(typesym);
       end;
 
 
@@ -1128,6 +1206,7 @@ implementation
       begin
         inherited derefimpl;
         typedef:=tdef(typedefderef.resolve);
+        typesym:=tsym(typesymderef.resolve);
       end;
 
 
@@ -1171,7 +1250,10 @@ implementation
     function ttypenode.docompare(p: tnode): boolean;
       begin
         docompare :=
-          inherited docompare(p);
+          inherited docompare(p) and
+          (typedef=ttypenode(p).typedef) and
+          (allowed=ttypenode(p).allowed) and
+          (helperallowed=ttypenode(p).helperallowed);
       end;
 
 
@@ -1253,7 +1335,8 @@ implementation
         docompare :=
           inherited docompare(p) and
           (rttidef = trttinode(p).rttidef) and
-          (rttitype = trttinode(p).rttitype);
+          (rttitype = trttinode(p).rttitype) and
+          (rttidatatype = trttinode(p).rttidatatype);
       end;
 
 end.

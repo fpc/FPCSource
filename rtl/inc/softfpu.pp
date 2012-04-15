@@ -84,6 +84,8 @@ unit softfpu;
 }
 {$Q-}
 {$goto on}
+{$macro on}
+{$define compilerproc:=stdcall }
 
 interface
 {$endif not(defined(fpc_softfpu_interface)) and not(defined(fpc_softfpu_implementation))}
@@ -104,12 +106,6 @@ TYPE
   end;
 
   flag = byte;
-  uint8 = byte;
-  int8 = shortint;
-  uint16 = word;
-  int16 = smallint;
-  uint32 = longword;
-  int32 = longint;
 
   bits8 = byte;
   sbits8 = shortint;
@@ -127,42 +123,75 @@ TYPE
   sbits64 = int64;
 
 {$ifdef ENDIAN_LITTLE}
-  float64 = packed record
-    low: bits32;
-    high: bits32;
+  float64 = record
+    case byte of
+      1: (low,high : bits32);
+      // force the record to be aligned like a double
+      // else *_to_double will fail for cpus like sparc
+      // and avoid expensive unpacking/packing operations
+      2: (dummy : double);
   end;
 
-  int64rec = packed record
-    low: bits32;
-    high: bits32;
+  int64rec = record
+    case byte of
+      1: (low,high : bits32);
+      // force the record to be aligned like a double
+      // else *_to_double will fail for cpus like sparc
+      // and avoid expensive unpacking/packing operations
+      2: (dummy : int64);
   end;
 
-  floatx80 = packed record
-    low : qword;
-    high : word;
+  floatx80 = record
+    case byte of
+      1: (low : qword;high : word);
+      // force the record to be aligned like a double
+      // else *_to_double will fail for cpus like sparc
+      // and avoid expensive unpacking/packing operations
+      2: (dummy : extended);
   end;
 
-  float128 = packed record
-    low : qword;
-    high : qword;
+  float128 = record
+    case byte of
+      1: (low,high : qword);
+      // force the record to be aligned like a double
+      // else *_to_double will fail for cpus like sparc
+      // and avoid expensive unpacking/packing operations
+      2: (dummy : qword);
   end;
 {$else}
-  float64 = packed record
-    high,low : bits32;
+  float64 = record
+      case byte of
+        1: (high,low : bits32);
+        // force the record to be aligned like a double
+        // else *_to_double will fail for cpus like sparc
+        2: (dummy : double);
   end;
 
-  int64rec = packed record
-    high,low : bits32;
+  int64rec = record
+    case byte of
+      1: (high,low : bits32);
+      // force the record to be aligned like a double
+      // else *_to_double will fail for cpus like sparc
+      // and avoid expensive unpacking/packing operations
+      2: (dummy : int64);
+end;
+
+  floatx80 = record
+    case byte of
+      1: (high : word;low : qword);
+      // force the record to be aligned like a double
+      // else *_to_double will fail for cpus like sparc
+      // and avoid expensive unpacking/packing operations
+      2: (dummy : qword);
   end;
 
-  floatx80 = packed record
-    high : word;
-    low : qword;
-  end;
-
-  float128 = packed record
-    high : qword;
-    low : qword;
+  float128 = record
+    case byte of
+      1: (high : qword;low : qword);
+      // force the record to be aligned like a double
+      // else *_to_double will fail for cpus like sparc
+      // and avoid expensive unpacking/packing operations
+      2: (dummy : qword);
   end;
 {$endif}
 

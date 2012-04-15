@@ -68,7 +68,9 @@ type
 
 Type
    ISC_USHORT    = word;
-   ISC_STATUS    = clong;
+   ISC_STATUS    = ptrint;  { CLong according the sources but they ifdef
+				for win64, the only significant platform
+				where clong<>ptrint}
    ISC_INT64     = int64;
    ISC_UINT64    = qword;
    ISC_LONG      = Longint;
@@ -80,7 +82,19 @@ Type
    PISC_UINT64 = ^ISC_UINT64;
    PISC_LONG = ^ISC_LONG;
 
+   {$IFDEF CPU64}
+    FB_API_HANDLE = cuint;
+   {$ELSE}
+    FB_API_HANDLE = pointer;
+   {$ENDIF}
+
+
   const
+     {$IFDEF CPU64}
+     FB_API_NULLHANDLE = 0;
+     {$ELSE}
+     FB_API_NULLHANDLE = nil;
+     {$ENDIF}
      DSQL_close = 1;
      DSQL_drop = 2;
 
@@ -327,15 +341,16 @@ type
   {                               }
 
   type
-     isc_att_handle = pointer;
-     isc_blob_handle = pointer;
-     isc_db_handle = pointer;
-     isc_form_handle = pointer;
-     isc_req_handle = pointer;
-     isc_stmt_handle = pointer;
-     isc_svc_handle = pointer;
-     isc_tr_handle = pointer;
-     isc_win_handle = pointer;
+
+     isc_att_handle  = FB_API_HANDLE;
+     isc_blob_handle = FB_API_HANDLE;
+     isc_db_handle   = FB_API_HANDLE;
+     isc_form_handle = FB_API_HANDLE; // can't find in 2.5.1
+     isc_req_handle  = FB_API_HANDLE;
+     isc_stmt_handle = FB_API_HANDLE;
+     isc_svc_handle  = FB_API_HANDLE;
+     isc_tr_handle   = FB_API_HANDLE;
+     isc_win_handle  = pointer;       // can't find in 2.5.1 
      isc_callback = procedure ;extdecl;
      isc_resv_handle = ISC_LONG;
      tisc_att_handle = isc_att_handle;
@@ -2648,8 +2663,9 @@ begin
   else
     begin
     If (TryInitialiseIBase60(fbclib)=0) and
-       (TryInitialiseIBase60(gdslib)=0) then
-        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[gdslib,fbclib]);
+       (TryInitialiseIBase60(gdslib)=0) and
+       (TryInitialiseIBase60(fbembedlib)=0) then
+        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbembedlib,gdslib,fbclib]);
     end;    
   Result := RefCount;
 end;

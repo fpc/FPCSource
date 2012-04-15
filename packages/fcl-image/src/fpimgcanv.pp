@@ -21,9 +21,8 @@ uses FPPixlCanv, FPImage, classes;
 
 type
   TFPImageCanvas = class (TFPPixelCanvas)
-  private
-    FImage : TFPCustomImage;
   protected
+    FImage : TFPCustomImage;
     procedure SetColor (x,y:integer; const AValue:TFPColor); override;
     function  GetColor (x,y:integer) : TFPColor; override;
     procedure SetHeight (AValue : integer); override;

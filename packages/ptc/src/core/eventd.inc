@@ -33,18 +33,11 @@
 type
   TPTCEventType = (PTCKeyEvent, PTCMouseEvent{, PTCExposeEvent});
   TPTCEventMask = set of TPTCEventType;
-  TPTCEvent = class
-  protected
-    function GetType: TPTCEventType; virtual; abstract;
-  public
-    property EventType: TPTCEventType read GetType;
+  IPTCEvent = interface
+    ['{1D5A6831-6648-47B6-83D5-10E65FDB72AD}']
+    function GetEventType: TPTCEventType;
+    property EventType: TPTCEventType read GetEventType;
   end;
 
 const
   PTCAnyEvent: TPTCEventMask = [PTCKeyEvent, PTCMouseEvent{, PTCExposeEvent}];
-
-{type
-  TPTCExposeEvent = Class(TPTCEvent)
-  protected
-    function GetType: TPTCEventType; override;
-  End;}

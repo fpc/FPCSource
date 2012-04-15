@@ -123,6 +123,7 @@ const
 
   function PQexecPrepared(conn:PPGconn; stmtName:Pchar; nParams:longint; paramValues:PPchar; paramLengths:Plongint;
              paramFormats:Plongint; resultFormat:longint):PPGresult;cdecl;external External_library name 'PQexecPrepared';
+  function PQdescribePrepared(conn:PPGconn; stmtName:Pchar):PPGresult;cdecl;external External_library name 'PQdescribePrepared';
 
   { Interface for multiple-result or asynchronous queries  }
   function PQsendQuery(conn:PPGconn; query:Pchar):longint;cdecl;external External_library name 'PQsendQuery';

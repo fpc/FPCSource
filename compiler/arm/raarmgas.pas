@@ -163,22 +163,22 @@ Unit raarmgas;
       procedure test_end(require_rbracket : boolean);
         begin
           if require_rbracket then begin
-            if not(actasmtoken=AS_RBRACKET) then 
-              begin 
-                do_error; 
-                exit; 
+            if not(actasmtoken=AS_RBRACKET) then
+              begin
+                do_error;
+                exit;
               end
-            else 
+            else
               Consume(AS_RBRACKET);
-            if (actasmtoken=AS_NOT) then 
+            if (actasmtoken=AS_NOT) then
               begin
                 oper.opr.ref.addressmode:=AM_PREINDEXED;
                 Consume(AS_NOT);
               end;
           end;
-          if not(actasmtoken in [AS_SEPARATOR,AS_end]) then 
+          if not(actasmtoken in [AS_SEPARATOR,AS_end]) then
             do_error
-          else 
+          else
             begin
 {$IFDEF debugasmreader}
               writeln('TEST_end_FINAL_OK. Created the following ref:');
@@ -197,64 +197,67 @@ Unit raarmgas;
       function is_shifter_ref_operation(var a : tshiftmode) : boolean;
         begin
           a := SM_NONE;
-          if      (actasmpattern='LSL') then 
+          if      (actasmpattern='LSL') then
             a := SM_LSL
-          else if (actasmpattern='LSR') then 
+          else if (actasmpattern='LSR') then
             a := SM_LSR
-          else if (actasmpattern='ASR') then 
+          else if (actasmpattern='ASR') then
             a := SM_ASR
-          else if (actasmpattern='ROR') then 
+          else if (actasmpattern='ROR') then
             a := SM_ROR
-          else if (actasmpattern='RRX') then 
+          else if (actasmpattern='RRX') then
             a := SM_RRX;
           is_shifter_ref_operation := not(a=SM_NONE);
         end;
 
 
       procedure read_index_shift(require_rbracket : boolean);
+        var
+          shift : aint;
         begin
           case actasmtoken of
-            AS_COMMA : 
+            AS_COMMA :
               begin
                 Consume(AS_COMMA);
-                if not(actasmtoken=AS_ID) then 
+                if not(actasmtoken=AS_ID) then
                   do_error;
-                if is_shifter_ref_operation(oper.opr.ref.shiftmode) then 
+                if is_shifter_ref_operation(oper.opr.ref.shiftmode) then
                   begin
                     Consume(AS_ID);
-                    if not(oper.opr.ref.shiftmode=SM_RRX) then 
+                    if not(oper.opr.ref.shiftmode=SM_RRX) then
                       begin
-                        if not(actasmtoken=AS_HASH) then 
+                        if not(actasmtoken=AS_HASH) then
                           do_error;
                         Consume(AS_HASH);
-                        oper.opr.ref.shiftimm := BuildConstExpression(false,true);
-                        if (oper.opr.ref.shiftimm<0) or (oper.opr.ref.shiftimm>32) then 
+                        shift := BuildConstExpression(false,true);
+                        if (shift<0) or (shift>32) then
                           do_error;
+                        oper.opr.ref.shiftimm := shift;
                         test_end(require_rbracket);
                       end;
-                   end 
-                 else 
-                   begin 
-                     do_error; 
-                     exit; 
+                   end
+                 else
+                   begin
+                     do_error;
+                     exit;
                    end;
               end;
-            AS_RBRACKET : 
-              if require_rbracket then 
+            AS_RBRACKET :
+              if require_rbracket then
                 test_end(require_rbracket)
-              else 
-                begin 
-                  do_error; 
-                  exit; 
+              else
+                begin
+                  do_error;
+                  exit;
                 end;
-            AS_SEPARATOR,AS_END : 
-              if not require_rbracket then 
+            AS_SEPARATOR,AS_END :
+              if not require_rbracket then
                 test_end(false)
-               else 
-                 do_error; 
-            else 
+               else
+                 do_error;
+            else
               begin
-                do_error; 
+                do_error;
                 exit;
               end;
           end;
@@ -262,39 +265,39 @@ Unit raarmgas;
 
 
       procedure read_index(require_rbracket : boolean);
-        var 
+        var
           recname : string;
           o_int,s_int : aint;
         begin
           case actasmtoken of
-            AS_REGISTER : 
+            AS_REGISTER :
               begin
-                oper.opr.ref.index:=actasmregister;  
+                oper.opr.ref.index:=actasmregister;
                 Consume(AS_REGISTER);
                 read_index_shift(require_rbracket);
                 exit;
               end;
-            AS_PLUS,AS_MINUS : 
+            AS_PLUS,AS_MINUS :
               begin
-                if actasmtoken=AS_PLUS then 
+                if actasmtoken=AS_PLUS then
                   begin
                     Consume(AS_PLUS);
-                  end 
-                else 
+                  end
+                else
                   begin
                     oper.opr.ref.signindex := -1;
                     Consume(AS_MINUS);
                   end;
-                if actasmtoken=AS_REGISTER then 
+                if actasmtoken=AS_REGISTER then
                   begin
-                    oper.opr.ref.index:=actasmregister;   
+                    oper.opr.ref.index:=actasmregister;
                     Consume(AS_REGISTER);
                     read_index_shift(require_rbracket);
                     exit;
-                  end 
-                else 
+                  end
+                else
                   begin
-                    do_error; 
+                    do_error;
                     exit;
                   end;
                 test_end(require_rbracket);
@@ -304,13 +307,13 @@ Unit raarmgas;
               begin
                 Consume(AS_HASH);
                 o_int := BuildConstExpression(false,true);
-                if (o_int>4095) or (o_int<-4095) then 
+                if (o_int>4095) or (o_int<-4095) then
                   begin
                     Message(asmr_e_constant_out_of_bounds);
                     RecoverConsume(false);
                     exit;
-                  end 
-                else 
+                  end
+                else
                   begin
                     inc(oper.opr.ref.offset,o_int);
                     test_end(require_rbracket);
@@ -322,20 +325,20 @@ Unit raarmgas;
                 recname := actasmpattern;
                 Consume(AS_ID);
                 BuildRecordOffsetSize(recname,o_int,s_int,recname,false);
-                if (o_int>4095)or(o_int<-4095) then 
+                if (o_int>4095)or(o_int<-4095) then
                   begin
                     Message(asmr_e_constant_out_of_bounds);
                     RecoverConsume(false);
                     exit;
-                  end 
-                else 
+                  end
+                else
                   begin
                     inc(oper.opr.ref.offset,o_int);
                     test_end(require_rbracket);
                     exit;
                   end;
               end;
-            AS_AT: 
+            AS_AT:
               begin
                 do_error;
                 exit;
@@ -348,34 +351,34 @@ Unit raarmgas;
               end;
             AS_RBRACKET :
               begin
-                if require_rbracket then 
+                if require_rbracket then
                   begin
                     test_end(require_rbracket);
                     exit;
-                  end 
-                else 
+                  end
+                else
                   begin
                     do_error; // unexpected rbracket
                     exit;
                   end;
               end;
-            AS_SEPARATOR,AS_end : 
+            AS_SEPARATOR,AS_end :
               begin
-                if not require_rbracket then 
+                if not require_rbracket then
                   begin
                     test_end(false);
                     exit;
-                  end 
-                else 
+                  end
+                else
                   begin
-                    do_error; 
+                    do_error;
                     exit;
                   end;
               end;
-            else 
+            else
               begin
                 // unexpected token
-                do_error; 
+                do_error;
                 exit;
               end;
           end; // case
@@ -386,31 +389,31 @@ Unit raarmgas;
         begin
           Consume(AS_RBRACKET);
           case actasmtoken of
-            AS_COMMA : 
+            AS_COMMA :
               begin // post-indexed
                 Consume(AS_COMMA);
                 oper.opr.ref.addressmode:=AM_POSTINDEXED;
                 read_index(false);
                 exit;
               end;
-            AS_NOT : 
+            AS_NOT :
               begin   // pre-indexed
                 Consume(AS_NOT);
                 oper.opr.ref.addressmode:=AM_PREINDEXED;
                 test_end(false);
                 exit;
               end;
-            else 
+            else
               begin
                 test_end(false);
                 exit;
               end;
           end; // case
         end;
- 
-      var 
+
+      var
         lab : TASMLABEL;
-      begin 
+      begin
         Consume(AS_LBRACKET);
         oper.opr.ref.addressmode:=AM_OFFSET; // assume "neither PRE nor POST inc"
         if actasmtoken=AS_REGISTER then
@@ -418,25 +421,25 @@ Unit raarmgas;
             oper.opr.ref.base:=actasmregister;
             Consume(AS_REGISTER);
             case actasmtoken of
-              AS_RBRACKET : 
-                begin 
-                  try_prepostindexed; 
-                  exit; 
+              AS_RBRACKET :
+                begin
+                  try_prepostindexed;
+                  exit;
                 end;
-              AS_COMMA : 
-                begin 
-                  Consume(AS_COMMA); 
-                  read_index(true); 
-                  exit; 
+              AS_COMMA :
+                begin
+                  Consume(AS_COMMA);
+                  read_index(true);
+                  exit;
                 end;
-              else 
+              else
                 begin
                   Message(asmr_e_invalid_reference_syntax);
                   RecoverConsume(false);
                 end;
             end;
           end
-        else 
+        else
 {
   if base isn't a register, r15=PC is implied base, so it must be a local label.
   pascal constants don't make sense, because implied r15
@@ -448,25 +451,26 @@ Unit raarmgas;
 
           Begin
             case actasmtoken of
-              AS_ID : 
+              AS_ID :
                 begin
-                  if is_locallabel(actasmpattern) then 
+                  if is_locallabel(actasmpattern) then
                     begin
                       CreateLocalLabel(actasmpattern,lab,false);
                       oper.opr.ref.symbol := lab;
+                      oper.opr.ref.base := NR_PC;
                       Consume(AS_ID);
                       test_end(true);
                       exit;
-                    end 
-                  else 
+                    end
+                  else
                     begin
-                      // TODO: Stackpointer implied, 
+                      // TODO: Stackpointer implied,
                       Message(asmr_e_invalid_reference_syntax);
                       RecoverConsume(false);
                       exit;
                     end;
                 end;
-              else 
+              else
                 begin // elsecase
                   Message(asmr_e_invalid_reference_syntax);
                   RecoverConsume(false);
@@ -544,6 +548,7 @@ Unit raarmgas;
              begin
                oper.InitRef;
                oper.opr.ref.symbol:=hl;
+               oper.opr.ref.base:=NR_PC;
              end;
           end;
 
@@ -650,7 +655,7 @@ Unit raarmgas;
           var icond: tasmcond;
           begin
             is_ConditionCode := false;
-            
+
             if actopcode in [A_IT,A_ITE,A_ITT,
                              A_ITEE,A_ITTE,A_ITET,A_ITTT,
                              A_ITEEE,A_ITTEE,A_ITETE,A_ITTTE,A_ITEET,A_ITTET,A_ITETT,A_ITTTT] then
@@ -1066,7 +1071,7 @@ Unit raarmgas;
           end;
         if actopcode=A_NONE then
           exit;
-			 
+
         { search for condition, conditions are always 2 chars }
         if length(hs)>1 then
           begin

@@ -26,7 +26,6 @@
 { export for internal usage }
 Procedure int_Finalize (Data,TypeInfo: Pointer); [external name 'FPC_FINALIZE'];
 Procedure int_Addref (Data,TypeInfo : Pointer); [external name 'FPC_ADDREF'];
-Procedure int_DecRef (Data, TypeInfo : Pointer); [external name 'FPC_DECREF'];
 Procedure int_Initialize (Data,TypeInfo: Pointer); [external name 'FPC_INITIALIZE'];
 procedure int_FinalizeArray(data,typeinfo : pointer;count : longint); [external name 'FPC_FINALIZE_ARRAY'];
 

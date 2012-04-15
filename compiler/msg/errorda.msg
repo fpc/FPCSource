@@ -1,5 +1,5 @@
-#
-#   $Id: errorda.msg 621 2006-07-02 15:44:03Z chrivers $
+#$
+#   $Id: errorda.msg 621 2006-07-02 15:44:03Z chrivers 
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
 #
@@ -9,7 +9,7 @@
 #
 #   This file is encoded in UTF-8, and based on r4084 of errore.eng
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -743,9 +743,9 @@ parser_e_function_already_declared_public_forward=03120_E_Funktionen "$1" er all
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_Kan ikke bruge både EXPORT og EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_w_not_supported_for_inline=03123_W_Deklarationen "$1" er endnu ikke understøttet i inline procedurer/funktioner
+parser_H_not_supported_for_inline=03123_H_Deklarationen "$1" er endnu ikke understøttet i inline procedurer/funktioner
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_Inlining slået fra
+parser_h_inlining_disabled=03124_H_Inlining slået fra
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_Skriver browser-log $1
 % When information messages are on, the compiler warns you when it
@@ -2207,7 +2207,7 @@ option_config_is_dir=11040_F_Konfigurationsfilen $1 er et directory
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] til $FPCTARGET
-Copyright (c) 1993-2011 Florian Klaempfl
+Copyright (c) 1993-2012 Florian Klaempfl
 ]
 
 #
@@ -2223,12 +2223,10 @@ Understøttede platforme:
   $OSTARGETS
 
 Dette program dækkes af reglerne for GNU General Public License
-Læs COPYING.FPC for mere information
+Læs COPYING.v2 for mere information
 
 Indsend fejlbeskrivelser, forslag, etc til
                  http://bugs.freepascal.org
-og
-                 bugs@freepascal.org
 
 For kommentarer vedrørende den danske oversættelse, skriv til
                  chrivers@iversen-net.dk

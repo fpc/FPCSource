@@ -116,7 +116,8 @@ implementation
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
               fpu_vfpv2,
-              fpu_vfpv3:
+              fpu_vfpv3,
+              fpu_vfpv3_d16:
                 expectloc:=LOC_MMREGISTER;
               else
                 internalerror(2009112702);
@@ -195,7 +196,8 @@ implementation
               end;
             end;
           fpu_vfpv2,
-          fpu_vfpv3:
+          fpu_vfpv3,
+          fpu_vfpv3_d16:
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;
@@ -215,6 +217,7 @@ implementation
 
     procedure tarmtypeconvnode.second_int_to_bool;
       var
+        hreg1,
         hregister : tregister;
         href      : treference;
         resflags  : tresflags;
@@ -311,10 +314,27 @@ implementation
          end;
          { load flags to register }
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-         cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
+         hreg1:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+         cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
          if (is_cbool(resultdef)) then
-           cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,location.register,location.register);
+           cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
+
+{$ifndef cpu64bitalu}
+         if (location.size in [OS_64,OS_S64]) then
+           begin
+             location.register64.reglo:=hreg1;
+             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+             if (is_cbool(resultdef)) then
+               { reglo is either 0 or -1 -> reghi has to become the same }
+               cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
+             else
+               { unsigned }
+               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
+           end
+         else
+{$endif cpu64bitalu}
+           location.register:=hreg1;
+
          current_procinfo.CurrTrueLabel:=oldTrueLabel;
          current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;

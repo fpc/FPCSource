@@ -85,8 +85,8 @@ type
     procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags;
       reg: TRegister); override;
 
-    { need to override this for ppc64 to avoid calling CG methods which allocate 
-      registers during creation of the interface wrappers to subtract ioffset from 
+    { need to override this for ppc64 to avoid calling CG methods which allocate
+      registers during creation of the interface wrappers to subtract ioffset from
       the self pointer. But register allocation does not take place for them (which
       would probably be the generic fix) so we need to have a specialized method
       that uses the R11 scratch register in these cases.
@@ -107,8 +107,6 @@ type
 
     procedure g_concatcopy(list: TAsmList; const source, dest: treference;
       len: aint); override;
-
-    procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
 
   private
 
@@ -149,7 +147,7 @@ type
     procedure profilecode_savepara(para : tparavarsym; list : TAsmList);
     procedure profilecode_restorepara(para : tparavarsym; list : TAsmList);
   end;
-  
+
   procedure create_codegen;
 
 const
@@ -175,15 +173,9 @@ begin
   end;
 end;
 
-{$ifopt r+}
+{$push}
 {$r-}
-{$define rangeon}
-{$endif}
-
-{$ifopt q+}
 {$q-}
-{$define overflowon}
-{$endif}
 { helper function which calculate "magic" values for replacement of unsigned
  division by constant operation by multiplication. See the PowerPC compiler
  developer manual for more information }
@@ -198,7 +190,10 @@ begin
   two_N_minus_1 := aWord(1) shl (N-1);
 
   magic_add := false;
-  nc := - 1 - (-d) mod d;
+{$push}
+{$warnings off }
+  nc := aWord(-1) - (-d) mod d;
+{$pop}
   p := N-1; { initialize p }
   q1 := two_N_minus_1 div nc; { initialize q1 = 2p/nc }
   r1 := two_N_minus_1 - q1*nc; { initialize r1 = rem(2p,nc) }
@@ -275,15 +270,7 @@ begin
   end;
   magic_s := p - N; { resulting shift }
 end;
-{$ifdef rangeon}
-{$r+}
-{$undef rangeon}
-{$endif}
-
-{$ifdef overflowon}
-{$q+}
-{$undef overflowon}
-{$endif}
+{$pop}
 
 { finds positive and negative powers of two of the given value, returning the
  power and whether it's a negative power or not in addition to the actual result
@@ -540,7 +527,8 @@ begin
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
 
-  if (includeCall) then
+  if (includeCall) and
+    assigned(current_procinfo) then
     include(current_procinfo.flags, pi_do_call);
 end;
 
@@ -552,7 +540,7 @@ var
   tmpref: treference;
   tempreg : TRegister;
 begin
-  if (target_info.system = system_powerpc64_darwin) then
+  if (target_info.abi<>abi_powerpc_sysv) then
     inherited a_call_reg(list,reg)
   else if (not (cs_opt_size in current_settings.optimizerswitches)) then begin
     tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
@@ -562,7 +550,7 @@ begin
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, tempreg);
 
     { save TOC pointer in stackframe }
-    reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_ELF, 8);
+    reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_SYSV, 8);
     a_load_reg_ref(list, OS_ADDR, OS_ADDR, NR_RTOC, tmpref);
 
     { move actual function pointer to CTR register }
@@ -589,7 +577,7 @@ begin
   end;
 
   { we need to load the old RTOC from stackframe because we changed it}
-  reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_ELF, 8);
+  reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_SYSV, 8);
   a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
 
   include(current_procinfo.flags, pi_do_call);
@@ -1493,7 +1481,7 @@ var
 
     { we may need to store R0 (=LR) ourselves }
     if ((cs_profile in init_settings.moduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
-      reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF, 8);
+      reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8);
       list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
     end;
   end;
@@ -1631,7 +1619,7 @@ var
 
       { restore LR (if needed) }
       if (needslinkreg) then begin
-        reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF, 8);
+        reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8);
         list.concat(taicpu.op_reg_ref(A_LD, NR_R0, href));
         list.concat(taicpu.op_reg(A_MTLR, NR_R0));
       end;
@@ -1938,51 +1926,6 @@ begin
     a_load_reg_ref(list, OS_8, OS_8, tempreg, dst);
   end;
 
-end;
-
-procedure tcgppc.g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string);
-var
-  href : treference;
-begin
-  if (target_info.system <> system_powerpc64_linux) then begin
-    inherited;
-    exit;
-  end;
-
-  { for ppc64/linux emit correct code which sets up a stack frame and then calls the
-  external method normally to ensure that the GOT/TOC will be loaded correctly if
-  required.
-
-  It's not really advantageous to use cg methods here because they are too specialized.
-
-  I.e. the resulting code sequence looks as follows:
-
-  mflr r0
-  std r0, 16(r1)
-  stdu r1, -112(r1)
-  bl <external_method>
-  nop
-  addi r1, r1, 112
-  ld r0, 16(r1)
-  mtlr r0
-  blr
-
-  }
-  list.concat(taicpu.op_reg(A_MFLR, NR_R0));
-  reference_reset_base(href, NR_STACK_POINTER_REG, 16, 8);
-  list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
-  reference_reset_base(href, NR_STACK_POINTER_REG, -MINIMUM_STACKFRAME_SIZE, 8);
-  list.concat(taicpu.op_reg_ref(A_STDU, NR_STACK_POINTER_REG, href));
-
-  list.concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(externalname)));
-  list.concat(taicpu.op_none(A_NOP));
-
-  list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, MINIMUM_STACKFRAME_SIZE));
-
-  reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF, 8);
-  list.concat(taicpu.op_reg_ref(A_LD, NR_R0, href));
-  list.concat(taicpu.op_reg(A_MTLR, NR_R0));
-  list.concat(taicpu.op_none(A_BLR));
 end;
 
 {***************** This is private property, keep out! :) *****************}

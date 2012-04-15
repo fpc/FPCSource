@@ -54,7 +54,8 @@ implementation
       pass_2,procinfo,
       ncon,
       cpubase,cpuinfo,
-      ncgutil,cgcpu;
+      ncgutil,cgcpu,
+      nadd,pass_1,symdef;
 
 {*****************************************************************************
                              TARMMODDIVNODE
@@ -72,6 +73,26 @@ implementation
           ) and
           not(is_64bitint(resultdef)) then
           result:=nil
+        else if (current_settings.cputype in [cpu_armv7m]) and
+          (nodetype=divn) and
+          not(is_64bitint(resultdef)) then
+          result:=nil
+        else if (current_settings.cputype in [cpu_armv7m]) and
+          (nodetype=modn) and
+          not(is_64bitint(resultdef)) then
+          begin
+            if (right.nodetype=ordconstn) and
+              ispowerof2(tordconstnode(right).value,power) and
+              (tordconstnode(right).value<=256) and
+              (tordconstnode(right).value>0) then
+              result:=caddnode.create(andn,left,cordconstnode.create(tordconstnode(right).value-1,sinttype,false))
+            else
+              begin
+                result:=caddnode.create(subn,left,caddnode.create(muln,right.getcopy, cmoddivnode.Create(divn,left.getcopy,right.getcopy)));
+                right:=nil;
+              end;
+            left:=nil;
+          end
         else
           result:=inherited first_moddivint;
       end;
@@ -167,37 +188,74 @@ implementation
       begin
         secondpass(left);
         secondpass(right);
-        location_copy(location,left.location);
 
-        { put numerator in register }
-        size:=def_cgsize(left.resultdef);
-        location_force_reg(current_asmdata.CurrAsmList,left.location,
-          size,true);
-        location_copy(location,left.location);
-        numerator:=location.register;
-        resultreg:=location.register;
-        if location.loc=LOC_CREGISTER then
+        if (current_settings.cputype in [cpu_armv7m]) and
+           (nodetype=divn) and
+           not(is_64bitint(resultdef)) then
           begin
+            size:=def_cgsize(left.resultdef);
+            location_force_reg(current_asmdata.CurrAsmList,left.location,size,true);
+
+            location_copy(location,left.location);
             location.loc := LOC_REGISTER;
             location.register := cg.getintregister(current_asmdata.CurrAsmList,size);
             resultreg:=location.register;
-          end
-        else if (nodetype=modn) or (right.nodetype=ordconstn) then
-          begin
-            // for a modulus op, and for const nodes we need the result register
-            // to be an extra register
-            resultreg:=cg.getintregister(current_asmdata.CurrAsmList,size);
-          end;
 
-        if right.nodetype=ordconstn then
-          begin
-            if nodetype=divn then
-              genOrdConstNodeDiv
+            if (right.nodetype=ordconstn) and
+               ((tordconstnode(right).value=1) or
+                (tordconstnode(right).value=int64(-1)) or
+                (tordconstnode(right).value=0) or
+                ispowerof2(tordconstnode(right).value,power)) then
+              begin
+                numerator:=left.location.register;
+
+                genOrdConstNodeDiv;
+              end
             else
-//              genOrdConstNodeMod;
-          end;
+              begin
+                location_force_reg(current_asmdata.CurrAsmList,right.location,size,true);
 
-        location.register:=resultreg;
+                if is_signed(left.resultdef) or
+                   is_signed(right.resultdef) then
+                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_IDIV,OS_INT,right.location.register,left.location.register,location.register)
+                else
+                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_DIV,OS_INT,right.location.register,left.location.register,location.register);
+              end;
+          end
+        else
+          begin
+            location_copy(location,left.location);
+
+            { put numerator in register }
+            size:=def_cgsize(left.resultdef);
+            location_force_reg(current_asmdata.CurrAsmList,left.location,
+              size,true);
+            location_copy(location,left.location);
+            numerator:=location.register;
+            resultreg:=location.register;
+            if location.loc=LOC_CREGISTER then
+              begin
+                location.loc := LOC_REGISTER;
+                location.register := cg.getintregister(current_asmdata.CurrAsmList,size);
+                resultreg:=location.register;
+              end
+            else if (nodetype=modn) or (right.nodetype=ordconstn) then
+              begin
+                // for a modulus op, and for const nodes we need the result register
+                // to be an extra register
+                resultreg:=cg.getintregister(current_asmdata.CurrAsmList,size);
+              end;
+
+            if right.nodetype=ordconstn then
+              begin
+                if nodetype=divn then
+                  genOrdConstNodeDiv
+                else
+    //              genOrdConstNodeMod;
+              end;
+
+            location.register:=resultreg;
+          end;
 
         { unsigned division/module can only overflow in case of division by zero }
         { (but checking this overflow flag is more convoluted than performing a  }
@@ -273,7 +331,8 @@ implementation
                 cgsize2fpuoppostfix[def_cgsize(resultdef)]));
             end;
           fpu_vfpv2,
-          fpu_vfpv3:
+          fpu_vfpv3,
+          fpu_vfpv3_d16:
             begin
               location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
               location:=left.location;

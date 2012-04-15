@@ -21,7 +21,7 @@ Type
   TAnEnumType         = (one,two,three);
   TASetType           = Set of TAnEnumType;
   TAnArrayType        = Array[1..10] of Integer;
-  TASubRangeType      = one..two;
+//  TASubRangeType      = one..two;
   TABooleanArrayType  = Array[Boolean] of Integer;  
   TARecordType        = Record
                          X,Y : Integer;
@@ -40,7 +40,7 @@ Type
                             2 : (phi,Omega : Real);
                           end; 
                           
-//  TADeprecatedType = Integer deprecated;
+  TADeprecatedType = Integer deprecated;
                         
 Var
   ASimpleVar : Integer;  

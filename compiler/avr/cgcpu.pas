@@ -64,6 +64,11 @@ unit cgcpu;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : TAsmList; fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
 
+        { fpu move instructions }
+        procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
+        procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
+        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
           l : tasmlabel);override;
@@ -94,11 +99,14 @@ unit cgcpu;
           tmpreg : tregister) : treference;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+        procedure g_stackpointer_alloc(list : TAsmList;size : longint);override;
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
 
         procedure a_adjust_sp(list: TAsmList; value: longint);
         function GetLoad(const ref : treference) : tasmop;
         function GetStore(const ref: treference): tasmop;
+
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
       end;
 
       tcg64favr = class(tcg64f32)
@@ -1076,6 +1084,24 @@ unit cgcpu;
        end;
 
 
+     procedure tcgavr.a_loadfpu_reg_reg(list: TAsmList; fromsize,tosize: tcgsize; reg1, reg2: tregister);
+       begin
+         internalerror(2012010702);
+       end;
+
+
+     procedure tcgavr.a_loadfpu_ref_reg(list: TAsmList; fromsize,tosize: tcgsize; const ref: treference; reg: tregister);
+       begin
+         internalerror(2012010703);
+       end;
+
+
+     procedure tcgavr.a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference);
+       begin
+         internalerror(2012010704);
+       end;
+
+
     {  comparison operations }
     procedure tcgavr.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;
       cmp_op : topcmp;a : tcgint;reg : tregister;l : tasmlabel);
@@ -1177,6 +1203,12 @@ unit cgcpu;
           end;
 
         a_jmp_cond(list,cmp_op,l);
+      end;
+
+
+    procedure tcgavr.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+      begin
+        Comment(V_Error,'tcgarm.a_bit_scan_reg_reg method not implemented');
       end;
 
 
@@ -1605,27 +1637,79 @@ unit cgcpu;
 
     procedure tcgavr.a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
       var
-        ai : taicpu;
+        ai1,ai2 : taicpu;
+        hl : TAsmLabel;
       begin
-        { TODO : fix a_jmp_cond }
-      {
-        ai:=Taicpu.Op_sym(A_BRxx,l);
+        ai1:=Taicpu.Op_sym(A_BRxx,l);
+        ai1.is_jmp:=true;
+        hl:=nil;
         case cond of
           OC_EQ:
-            ai.SetCondition(C_EQ);
-          OC_GT
-          OC_LT
-          OC_GTE
-          OC_LTE
-          OC_NE
-          OC_BE
-          OC_B
-          OC_AE
-          OC_A:
+            ai1.SetCondition(C_EQ);
+          OC_GT:
+            begin
+              { emulate GT }
+              current_asmdata.getjumplabel(hl);
+              ai2:=Taicpu.Op_Sym(A_BRxx,hl);
+              ai2.SetCondition(C_EQ);
+              ai2.is_jmp:=true;
+              list.concat(ai2);
 
-        ai.is_jmp:=true;
-        list.concat(ai);
-        }
+              ai1.SetCondition(C_GE);
+            end;
+          OC_LT:
+            ai1.SetCondition(C_LT);
+          OC_GTE:
+            ai1.SetCondition(C_GE);
+          OC_LTE:
+            begin
+              { emulate LTE }
+              ai2:=Taicpu.Op_Sym(A_BRxx,l);
+              ai2.SetCondition(C_EQ);
+              ai2.is_jmp:=true;
+              list.concat(ai2);
+
+              ai1.SetCondition(C_LT);
+            end;
+          OC_NE:
+            ai1.SetCondition(C_NE);
+          OC_BE:
+            begin
+              { emulate BE }
+              ai2:=Taicpu.Op_Sym(A_BRxx,l);
+              ai2.SetCondition(C_EQ);
+              ai2.is_jmp:=true;
+              list.concat(ai2);
+
+              ai1.SetCondition(C_LO);
+            end;
+          OC_B:
+            ai1.SetCondition(C_LO);
+          OC_AE:
+            ai1.SetCondition(C_SH);
+          OC_A:
+            begin
+              { emulate A (unsigned GT) }
+              current_asmdata.getjumplabel(hl);
+              ai2:=Taicpu.Op_Sym(A_BRxx,hl);
+              ai2.SetCondition(C_EQ);
+              ai2.is_jmp:=true;
+              list.concat(ai2);
+
+              ai1.SetCondition(C_SH);
+            end;
+          else
+            internalerror(2011082501);
+        end;
+        list.concat(ai1);
+        if assigned(hl) then
+          a_label(list,hl);
+      end;
+
+
+    procedure tcgavr.g_stackpointer_alloc(list: TAsmList; size: longint);
+      begin
+        internalerror(201201071);
       end;
 
 

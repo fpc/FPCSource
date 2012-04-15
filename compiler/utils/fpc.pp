@@ -135,10 +135,6 @@ program fpc;
      ppcbin:='ppc68k';
      processorname:='m68k';
 {$endif m68k}
-{$ifdef alpha}
-     ppcbin:='ppcapx';
-     processorname:='alpha';
-{$endif alpha}
 {$ifdef powerpc}
      ppcbin:='ppcppc';
      processorname:='powerpc';
@@ -159,12 +155,15 @@ program fpc;
      ppcbin:='ppcx64';
      processorname:='x86_64';
 {$endif x86_64}
-{$ifdef ia64}
-     ppcbin:='ppcia64';
-     processorname:='ia64';
-{$endif ia64}
      versionstr:='';                      { Default is just the name }
-     for i:=1 to paramcount do
+     if ParamCount = 0 then
+       begin
+         SetLength (PPCCommandLine, 1);
+         PPCCommandLine [PPCCommandLineLen] := '-?F' + ParamStr (0);
+         Inc (PPCCommandLineLen);
+       end
+     else
+      for i:=1 to paramcount do
        begin
           s:=paramstr(i);
           if pos('-V',s)=1 then
@@ -175,7 +174,7 @@ program fpc;
                  begin
                    processorstr:=copy(s,3,length(s)-2);
                   { -PB is a special code that will show the
-                    default compiler and exit immediatly. It's
+                    default compiler and exit immediately. It's
                      main usage is for Makefile }
                    if processorstr='B' then
                      begin
@@ -185,7 +184,7 @@ program fpc;
                        halt(0);
                      end
                      { -PP is a special code that will show the
-                       processor and exit immediatly. It's
+                       processor and exit immediately. It's
                        main usage is for Makefile }
                      else if processorstr='P' then
                       begin
@@ -196,22 +195,22 @@ program fpc;
                      else
                        if processorstr <> processorname then
                          begin
-                           if processorstr='i386' then
+                           if processorstr='arm' then
+                             cpusuffix:='arm'
+                           else if processorstr='i386' then
                              cpusuffix:='386'
                            else if processorstr='m68k' then
                              cpusuffix:='68k'
-                           else if processorstr='alpha' then
-                             cpusuffix:='apx'
+                           else if processorstr='mips' then
+                             cpusuffix:='mips'
+                           else if processorstr='mipsel' then
+                             cpusuffix:='mipsel'
                            else if processorstr='powerpc' then
                              cpusuffix:='ppc'
                            else if processorstr='powerpc64' then
                              cpusuffix:='ppc64'
-                           else if processorstr='arm' then
-                             cpusuffix:='arm'
                            else if processorstr='sparc' then
                              cpusuffix:='sparc'
-                           else if processorstr='ia64' then
-                             cpusuffix:='ia64'
                            else if processorstr='x86_64' then
                              cpusuffix:='x64'
                            else
@@ -233,7 +232,12 @@ program fpc;
                 extrapath:=copy(s,4,length(s)-3)
               else
                 begin
-                  ppccommandline[ppccommandlinelen]:=s;
+                  if pos('-h',s)=1 then
+                    ppccommandline[ppccommandlinelen] := '-hF' + ParamStr (0)
+                  else if pos('-?',s)=1 then
+                    ppccommandline[ppccommandlinelen] := '-?F' + ParamStr (0)
+                  else
+                    ppccommandline[ppccommandlinelen]:=s;
                   inc(ppccommandlinelen);
                 end;
             end;
@@ -261,7 +265,8 @@ program fpc;
        on e : exception do
          error(ppcbin+' can''t be executed, error message: '+e.message);
      end;
-     if errorvalue<>0 then
-       error(ppcbin+' returned an error exitcode (normal if you did not specify a source file to be compiled)');
+     if (errorvalue<>0) and
+        (paramcount<>0) then
+       error(ppcbin+' returned an error exitcode');
      halt(errorvalue);
   end.

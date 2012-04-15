@@ -254,9 +254,11 @@ Var
 begin
   Req:=TApacheRequest.CreateReq(Self,P);
   Try
+    InitRequest(Req);
     Req.InitRequestVars;
     Resp:=TApacheResponse.CreateApache(Req);
     Try
+      InitResponse(Resp);
       HandleRequest(Req,Resp);
       If Not Resp.ContentSent then
         Resp.SendContent;

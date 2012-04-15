@@ -20,6 +20,7 @@ begin
     P.Author := 'Michael van Canneyt, Marco van de Voort';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
+    P.OSes := [freebsd,linux];
     P.Email := '';
     P.Description := 'Headers to access Unix groups and users.';
     P.NeedLibC:= false;

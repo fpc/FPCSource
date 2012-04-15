@@ -180,6 +180,11 @@ type
     property Current: Pointer read GetCurrent;
   end;
 
+{$ifdef VER2_4}
+type
+  TDirection = (FromBeginning, FromEnd);
+{$endif}
+
   TFPList = class(TObject)
   private
     FList: PPointerList;
@@ -200,6 +205,10 @@ type
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index: Integer);
   public
+{$IFNDEF VER2_4}
+    Type
+      TDirection = (FromBeginning, FromEnd);
+{$ENDIF}
     destructor Destroy; override;
     Procedure AddList(AList : TFPList);
     function Add(Item: Pointer): Integer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
@@ -212,6 +221,7 @@ type
     function First: Pointer;
     function GetEnumerator: TFPListEnumerator;
     function IndexOf(Item: Pointer): Integer;
+    function IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
     procedure Insert(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function Last: Pointer;
     procedure Move(CurIndex, NewIndex: Integer);
@@ -386,7 +396,6 @@ type
     procedure DefineProperties(Filer: TFiler); virtual;
     function  GetOwner: TPersistent; dynamic;
   public
-    destructor Destroy; override;
     procedure Assign(Source: TPersistent); virtual;
     function  GetNamePath: string; virtual; {dynamic;}
   end;
@@ -478,6 +487,7 @@ type
     function GetPropName: string;
     procedure InsertItem(Item: TCollectionItem);
     procedure RemoveItem(Item: TCollectionItem);
+    procedure DoClear;
   protected
     { Design-time editor support }
     function GetAttrCount: Integer; dynamic;
@@ -562,7 +572,7 @@ type
     function GetName(Index: Integer): string;
     function GetValue(const Name: string): string;
     Function GetLBS : TTextLineBreakStyle;
-    Procedure SetLBS (AValue : TTextLineBreakStyle); 
+    Procedure SetLBS (AValue : TTextLineBreakStyle);
     procedure ReadData(Reader: TReader);
     procedure SetCommaText(const Value: string);
     procedure SetStringsAdapter(const Value: IStringsAdapter);
@@ -597,7 +607,8 @@ type
     function Add(const S: string): Integer; virtual;
     function AddObject(const S: string; AObject: TObject): Integer; virtual;
     procedure Append(const S: string);
-    procedure AddStrings(TheStrings: TStrings); virtual;
+    procedure AddStrings(TheStrings: TStrings); overload; virtual;
+    procedure AddStrings(const TheStrings: array of string); overload; virtual;
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
     procedure Clear; virtual; abstract;
@@ -670,6 +681,7 @@ type
     FOwnsObjects : Boolean;
     procedure ExchangeItems(Index1, Index2: Integer);
     procedure Grow;
+    procedure InternalClear;
     procedure QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(b : boolean);
@@ -763,7 +775,7 @@ type
   end;
 
 {$endif}
-  
+
 
 { TStream abstract class }
 
@@ -908,6 +920,18 @@ type
     function Write(const Buffer; Count: LongInt): LongInt; override;
   end;
 
+{ TBytesStream }
+
+  TBytesStream = class(TMemoryStream)
+  private
+    FBytes: TBytes;
+  protected
+    function Realloc(var NewCapacity: PtrInt): Pointer; override;
+  public
+    constructor Create(const ABytes: TBytes); overload;
+    property Bytes: TBytes read FBytes;
+  end;
+
 { TStringStream }
 
   TStringStream = class(TStream)
@@ -934,7 +958,7 @@ type
   TResourceStream = class(TCustomMemoryStream)
   private
     Res: TFPResourceHandle;
-    Handle: THandle;
+    Handle: TFPResourceHGLOBAL;
     procedure Initialize(Instance: THandle; Name, ResType: PWideChar; NameIsID: Boolean);
   public
     constructor Create(Instance: THandle; const ResName: WideString; ResType: PWideChar);
@@ -945,7 +969,7 @@ type
   TResourceStream = class(TCustomMemoryStream)
   private
     Res: TFPResourceHandle;
-    Handle: THandle;
+    Handle: TFPResourceHGLOBAL;
     procedure Initialize(Instance: THandle; Name, ResType: PChar; NameIsID: Boolean);
   public
     constructor Create(Instance: THandle; const ResName: string; ResType: PChar);
@@ -1205,7 +1229,7 @@ type
     function ReadIdent: string;
     function ReadInteger: Longint;
     function ReadInt64: Int64;
-    function ReadSet(EnumType: Pointer): Integer; 
+    function ReadSet(EnumType: Pointer): Integer;
     procedure ReadListBegin;
     procedure ReadListEnd;
     function ReadRootComponent(ARoot: TComponent): TComponent;
@@ -1384,7 +1408,7 @@ type
     procedure WriteIdent(const Ident: string);
     procedure WriteInteger(Value: Longint); overload;
     procedure WriteInteger(Value: Int64); overload;
-    procedure WriteSet(Value: LongInt; SetType: Pointer); 
+    procedure WriteSet(Value: LongInt; SetType: Pointer);
     procedure WriteListBegin;
     procedure WriteListEnd;
     procedure WriteRootComponent(ARoot: TComponent);
@@ -1561,7 +1585,7 @@ type
     procedure FreeOnRelease;
   end;
 
-  IInterfaceComponentReference = interface 
+  IInterfaceComponentReference = interface
     ['{3FEEC8E1-E400-4A24-BCAC-1F01476439B1}']
     function GetComponent:TComponent;
    end;
@@ -1655,7 +1679,7 @@ type
     // fpdoc doesn't handle this yet :(
 {$ifndef fpdocsystem}
     function IInterfaceComponentReference.GetComponent=iicrgetcomponent;
-{$endif}    
+{$endif}
     procedure WriteState(Writer: TWriter); virtual;
     constructor Create(AOwner: TComponent); virtual;
     destructor Destroy; override;

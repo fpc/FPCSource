@@ -31,7 +31,7 @@ procedure SetPrinterDevice(const Device: string);
 
 implementation
 
-uses 
+uses
   Dos,Objects,Drivers,
   FVConsts,
   Version,
@@ -151,6 +151,24 @@ begin
   StartupDir:=CompleteDir(FExpand('.'));
 {$ifndef unix}
   IDEDir:=CompleteDir(DirOf(system.Paramstr(0)));
+{$ifdef WINDOWS}
+  SystemIDEDir:=IDEDir;
+  if GetEnv('APPDATA')<>'' then
+    begin
+      IDEdir:=CompleteDir(FExpand(GetEnv('APPDATA')+'/fp'));
+      If Not ExistsDir(IDEdir) Then
+        begin
+          IDEDir:=SystemIDEDir;
+          if Not ExistsDir(IDEDir) then
+            begin
+              if DirOf(system.paramstr(0))<>'' then
+                IDEDir:=CompleteDir(DirOf(system.ParamStr(0)))
+              else
+                IDEDir:=StartupDir;
+            end;
+        end;
+   end;
+{$endif WINDOWS}
 {$else}
   SystemIDEDir:=FExpand(DirOf(system.paramstr(0))+'../lib/fpc/'+version_string+'/ide/text');
   If Not ExistsDir(SystemIDEdir) Then
@@ -560,6 +578,15 @@ begin
         MkDir(FExpand('~/.fp'));
    end;
 {$endif Unix}
+{$ifdef WINDOWS}
+  if not FromSaveAs and (DirOf(IniFileName)=DirOf(SystemIDEDir)) and
+    (GetEnv('APPDATA')<>'') then
+    begin
+      IniFileName:=FExpand(GetEnv('APPDATA')+'/fp/'+IniName);
+      If not ExistsDir(DirOf(IniFileName)) then
+        MkDir(FExpand(GetEnv('APPDATA')+'/fp'));
+   end;
+{$endif WINDOWS}
   New(INIFile, Init(IniFileName));
   { Files }
   { avoid keeping old files }

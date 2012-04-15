@@ -313,7 +313,7 @@ implementation
           constwstring :
             p1:=cstringconstnode.createwstr(pcompilerwidestring(p.value.valueptr));
           constreal :
-            p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,pbestrealtype^);
+            p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,p.constdef);
           constset :
             p1:=csetconstnode.create(pconstset(p.value.valueptr),p.constdef);
           constpointer :
@@ -342,7 +342,7 @@ implementation
 
     constructor tdataconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       var
-        len : aint;
+        len : tcgint;
         buf : array[0..255] of byte;
       begin
         inherited ppuload(t,ppufile);
@@ -378,7 +378,7 @@ implementation
 
     procedure tdataconstnode.ppuwrite(ppufile:tcompilerppufile);
       var
-        len : aint;
+        len : tcgint;
         buf : array[0..255] of byte;
       begin
         inherited ppuwrite(ppufile);
@@ -406,7 +406,7 @@ implementation
     function tdataconstnode.dogetcopy : tnode;
       var
         n : tdataconstnode;
-        len : aint;
+        len : tcgint;
         buf : array[0..255] of byte;
       begin
         n:=tdataconstnode(inherited dogetcopy);
@@ -926,7 +926,7 @@ implementation
           cst_shortstring :
             resultdef:=cshortstringtype;
           cst_ansistring :
-            resultdef:=cansistringtype;
+            resultdef:=getansistringdef;
           cst_unicodestring :
             resultdef:=cunicodestringtype;
           cst_widestring :
@@ -968,10 +968,13 @@ implementation
         docompare :=
           inherited docompare(p) and
           (len = tstringconstnode(p).len) and
-          { Don't compare the pchars, since they may contain null chars }
-          { Since all equal constant strings are replaced by the same   }
-          { label, the following compare should be enough (JM)          }
-          (lab_str = tstringconstnode(p).lab_str);
+          (lab_str = tstringconstnode(p).lab_str) and
+          { This is enough as soon as labels are allocated, otherwise }
+          { fall back to content compare.                             }
+          (assigned(lab_str) or
+            (cst_type = tstringconstnode(p).cst_type) and
+            (fullcompare(tstringconstnode(p)) = 0))
+          ;
       end;
 
 
@@ -982,6 +985,9 @@ implementation
       var
         pw : pcompilerwidestring;
         pc : pchar;
+        cp1 : tstringencoding;
+        cp2 : tstringencoding;
+        l,l2 : longint;
       begin
         if def.typ<>stringdef then
           internalerror(200510011);
@@ -990,7 +996,7 @@ implementation
            not(cst_type in [cst_widestring,cst_unicodestring]) then
           begin
             initwidestring(pw);
-            ascii2unicode(value_str,len,pw);
+            ascii2unicode(value_str,len,current_settings.sourcecodepage,pw);
             ansistringdispose(value_str,len);
             pcompilerwidestring(value_str):=pw;
           end
@@ -999,11 +1005,93 @@ implementation
           if (cst_type in [cst_widestring,cst_unicodestring]) and
             not(tstringdef(def).stringtype in [st_widestring,st_unicodestring]) then
             begin
-              pw:=pcompilerwidestring(value_str);
-              getmem(pc,getlengthwidestring(pw)+1);
-              unicode2ascii(pw,pc);
-              donewidestring(pw);
-              value_str:=pc;
+              cp1:=tstringdef(def).encoding;
+              if (cp1=CP_NONE) or (cp1=0) then
+                cp1:=current_settings.sourcecodepage;
+              if (cp1=CP_UTF8) then
+                begin
+                  pw:=pcompilerwidestring(value_str);
+                  l2:=len;
+                  l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),l2);
+                  getmem(pc,l);   
+                  UnicodeToUtf8(pc,l,PUnicodeChar(pw^.data),l2);
+                  len:=l-1;
+                  donewidestring(pw);
+                  value_str:=pc;
+                end
+              else
+                begin
+                  pw:=pcompilerwidestring(value_str);
+                  getmem(pc,getlengthwidestring(pw)+1);
+                  unicode2ascii(pw,pc,cp1);
+                  donewidestring(pw);
+                  value_str:=pc;
+                end;
+            end
+        else 
+          if (tstringdef(def).stringtype = st_ansistring) and
+             not(cst_type in [cst_widestring,cst_unicodestring]) then
+            begin
+              cp1:=tstringdef(def).encoding;
+              if cp1=0 then
+                cp1:=current_settings.sourcecodepage;
+              if (cst_type = cst_ansistring) then
+                begin
+                  cp2:=tstringdef(resultdef).encoding;
+                  if cp2=0 then
+                    cp2:=current_settings.sourcecodepage;
+                end
+              else if (cst_type in [cst_shortstring,cst_conststring,cst_longstring]) then
+                cp2:=current_settings.sourcecodepage;
+              { don't change string if codepages are equal or string length is 0 }  
+              if (cp1<>cp2) and (len>0) then
+                begin
+                  if cpavailable(cp1) and cpavailable(cp2) then
+                    changecodepage(value_str,len,cp2,value_str,cp1)
+                  else if (cp1 <> CP_NONE) and (cp2 <> CP_NONE) then
+                    begin
+                      { if source encoding is UTF8 convert using UTF8->UTF16->destination encoding }
+                      if (cp2=CP_UTF8) then
+                        begin
+                          if not cpavailable(cp1) then
+                            Message1(option_code_page_not_available,IntToStr(cp1));
+                          initwidestring(pw);
+                          setlengthwidestring(pw,len);
+                          l:=Utf8ToUnicode(PUnicodeChar(pw^.data),len,value_str,len);
+                          if (l<>getlengthwidestring(pw)) then
+                            begin
+                              setlengthwidestring(pw,l);
+                              ReAllocMem(value_str,l);
+                            end;
+                          unicode2ascii(pw,value_str,cp1);
+                          donewidestring(pw);
+                        end
+                      else
+                      { if destination encoding is UTF8 convert using source encoding->UTF16->UTF8 }
+                      if (cp1=CP_UTF8) then
+                        begin
+                          if not cpavailable(cp2) then
+                            Message1(option_code_page_not_available,IntToStr(cp2));
+                          initwidestring(pw);
+                          setlengthwidestring(pw,len);
+                          ascii2unicode(value_str,len,cp2,pw);
+                          l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),len);
+                          if l<>len then
+                            ReAllocMem(value_str,l);
+                          len:=l-1;
+                          UnicodeToUtf8(value_str,PUnicodeChar(pw^.data),l);
+                          donewidestring(pw);
+                        end
+                      else
+                        begin
+                          { output error message that encoding is not available for the compiler }
+                          if not cpavailable(cp1) then
+                            Message1(option_code_page_not_available,IntToStr(cp1));
+                          if not cpavailable(cp2) then
+                            Message1(option_code_page_not_available,IntToStr(cp2));
+                        end;
+                    end;
+                end;
             end;
         cst_type:=st2cst[tstringdef(def).stringtype];
         resultdef:=def;

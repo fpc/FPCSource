@@ -56,7 +56,7 @@ Unit rappcgas;
       { parser }
       procinfo,
       rabase,rautils,
-      cgbase,cgobj
+      cgbase,cgobj,cgppc
       ;
 
     procedure tppcattreader.ReadSym(oper : tppcoperand);
@@ -142,6 +142,7 @@ Unit rappcgas;
         l : aint;
         relsym: string;
         asmsymtyp: tasmsymtype;
+        isflags: tindsymflags;
 
       begin
         Consume(AS_LPAREN);
@@ -176,6 +177,18 @@ Unit rappcgas;
               { (reg)        }
               if actasmtoken=AS_RPAREN then
                Begin
+                 { detect RTOC-based symbol accesses }
+                 if assigned(oper.opr.ref.symbol) and
+                    (oper.opr.ref.base=NR_RTOC) and
+                    (oper.opr.ref.offset=0) then
+                   begin
+                     { replace global symbol reference with TOC entry name
+                       for AIX }
+                     if target_info.system in systems_aix then
+                       oper.opr.ref.symbol:=
+                         tcgppcgen(cg).get_aix_toc_sym(oper.opr.ref.symbol.name,asmsym2indsymflags(oper.opr.ref.symbol));
+                     oper.opr.ref.refaddr:=addr_pic_no_got;
+                   end;
                  Consume_RParen;
                  exit;
                end;
@@ -338,7 +351,7 @@ Unit rappcgas;
                     if (oper.opr.val<>0) then
                       Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
-                    oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname);
+                    oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION);
                   end
                 else
                   inc(oper.opr.val,l);
@@ -751,7 +764,15 @@ Unit rappcgas;
             if (instr.Operands[1].opr.ref.base<>NR_NO) or
                (instr.Operands[1].opr.ref.index<>NR_NO) then
               Message(asmr_e_syn_operand);
+            if (target_info.system in systems_dotted_function_names) and
+               assigned(instr.Operands[1].opr.ref.symbol) then
+              instr.Operands[1].opr.ref.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.ref.symbol.name,instr.Operands[1].opr.ref.symbol.bind,AT_FUNCTION);
           end;
+        { regular name is toc entry, .-based name is actual code }
+        if (target_info.system in systems_dotted_function_names) and
+           (instr.Operands[1].opr.typ = OPR_SYMBOL) and
+           (instr.Operands[1].opr.symbol.typ=AT_FUNCTION) then
+          instr.Operands[1].opr.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.symbol.name,instr.Operands[1].opr.symbol.bind,AT_FUNCTION);
       end;
 
 

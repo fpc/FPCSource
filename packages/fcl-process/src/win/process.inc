@@ -11,6 +11,17 @@
 
  **********************************************************************}
 
+Uses
+  Windows;
+
+
+Resourcestring
+  SNoCommandLine        = 'Cannot execute empty command-line';
+  SErrCannotExecute     = 'Failed to execute %s : %d';
+{  SErrNoSuchProgram     = 'Executable not found: "%s"';
+  SErrNoTerminalProgram = 'Could not detect X-Terminal program';
+}
+
 Const
   PriorityConstants : Array [TProcessPriority] of Cardinal =
                       (HIGH_PRIORITY_CLASS,IDLE_PRIORITY_CLASS,
@@ -248,7 +259,7 @@ begin
       If Not CreateProcess (PName,PCommandLine,@FProcessAttributes,@FThreadAttributes,
                    FInheritHandles,FCreationFlags,FEnv,PDir,FStartupInfo,
                    fProcessInformation) then
-        Raise EProcess.CreateFmt('Failed to execute %s : %d',[FCommandLine,GetLastError]);
+        Raise EProcess.CreateFmt(SErrCannotExecute,[FCommandLine,GetLastError]);
       FProcessHandle:=FProcessInformation.hProcess;
       FThreadHandle:=FProcessInformation.hThread;
       FProcessID:=FProcessINformation.dwProcessID;

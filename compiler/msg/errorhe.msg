@@ -6,7 +6,7 @@
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
 #   Based on errore.msg of SVN revision 8988
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -761,9 +761,9 @@ parser_e_function_already_declared_public_forward=03120_E_הגדרת הפונקציה "$1" כב
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_לא ניתן להשתמש גם ב EXPORT וגם EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_w_not_supported_for_inline=03123_W_"$1" אינו נתמך עדיין בתוך פונקצית/שגרת inline
+parser_h_not_supported_for_inline=03123_H_"$1" אינו נתמך עדיין בתוך פונקצית/שגרת inline
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_השימוש הישיר מבוטל
+parser_h_inlining_disabled=03124_H_השימוש הישיר מבוטל
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_כותב יומן דפדפן $1
 % When information messages are on, the compiler warns you when it
@@ -2404,7 +2404,7 @@ option_confict_asm_debug=11041_W_סוג הפלט של המאסף שנבחר "$1" אינו יכול ליצור מי
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2011 by Florian Klaempfl
+Copyright (c) 1993-2012 by Florian Klaempfl
 ]
 
 #
@@ -2429,12 +2429,10 @@ Free Pascal Compiler version $FPCVERSION
   $OPTIMIZATIONS
 
 התוכנה מוגשת תחת רישיון GNU General Public License
-למידע נוסף יש לקרוא את COPYING.FPC
+למידע נוסף יש לקרוא את COPYING.v2
 
 דיווח על תקלות (באגים), הצעות וכו':
                  http://bugs.freepascal.org
-
-                 bugs@freepascal.org
 ]
 
 #

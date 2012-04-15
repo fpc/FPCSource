@@ -182,7 +182,12 @@ implementation
                           A_BT,
                           A_BTS,
                           A_BTC,
-                          A_BTR :
+                          A_BTR,
+
+                          { shufp* would require 16 byte alignment for memory locations so we force the source
+                            operand into a register }
+                          A_SHUFPD,
+                          A_SHUFPS :
                             replaceoper:=-1;
                         end;
                       end;
@@ -194,6 +199,7 @@ implementation
                           A_CMOVcc,
                           A_MOVZX,
                           A_MOVSX,
+                          A_MOVSXD,
                           A_MULSS,
                           A_MULSD,
                           A_SUBSS,
@@ -232,7 +238,12 @@ implementation
                           A_ORPD,
                           A_ORPS,
                           A_ANDPD,
-                          A_ANDPS:
+                          A_ANDPS,
+                          A_UNPCKLPS,
+                          A_UNPCKHPS,
+                          A_SHUFPD,
+                          A_SHUFPS:
+
                             replaceoper:=-1;
 {$ifdef x86_64}
                           A_MOV:

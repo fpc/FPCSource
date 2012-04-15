@@ -1986,6 +1986,7 @@ implementation
       begin
          result:=nil;
          include(current_procinfo.flags,pi_do_call);
+         include(current_procinfo.flags,pi_uses_exceptions);
          expectloc:=LOC_VOID;
          firstpass(left);
          { on statements }
@@ -2004,6 +2005,7 @@ implementation
     constructor ttryfinallynode.create(l,r:tnode);
       begin
         inherited create(tryfinallyn,l,r,nil,nil);
+        include(current_procinfo.flags,pi_uses_exceptions);
         implicitframe:=false;
       end;
 

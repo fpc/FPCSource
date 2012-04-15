@@ -138,6 +138,8 @@ interface
       end;
       TAsmCFIClass=class of TAsmCFI;
 
+      { TAsmData }
+
       TAsmData = class
       private
         { Symbols }
@@ -147,6 +149,8 @@ interface
         FNextLabelNr   : array[TAsmLabeltype] of longint;
         { Call Frame Information for stack unwinding}
         FAsmCFI        : TAsmCFI;
+        FConstPools    : array[TConstPoolType] of THashSet;
+        function GetConstPools(APoolType: TConstPoolType): THashSet;
       public
         name,
         realname      : string[80];
@@ -155,8 +159,7 @@ interface
         AsmLists      : array[TAsmListType] of TAsmList;
         CurrAsmList   : TAsmList;
         WideInits     : TLinkedList;
-        { hash tables for reusing constant storage }
-        ConstPools    : array[TConstPoolType] of THashSet;
+        ResStrInits   : TLinkedList;
         constructor create(const n:string);
         destructor  destroy;override;
         { asmsymbol }
@@ -175,13 +178,15 @@ interface
         procedure ResetAltSymbols;
         property AsmSymbolDict:TFPHashObjectList read FAsmSymbolDict;
         property AsmCFI:TAsmCFI read FAsmCFI;
+        { hash tables for reusing constant storage }
+        property ConstPools[APoolType:TConstPoolType]: THashSet read GetConstPools;
       end;
 
       TTCInitItem = class(TLinkedListItem)
         sym: tsym;
         offset: aint;
-        datalabel: TAsmLabel;
-        constructor Create(asym: tsym; aoffset: aint; alabel: TAsmLabel);
+        datalabel: TAsmSymbol;
+        constructor Create(asym: tsym; aoffset: aint; alabel: TAsmSymbol);
       end;
 
     var
@@ -256,7 +261,7 @@ implementation
 *****************************************************************************}
 
 
-    constructor TTCInitItem.Create(asym: tsym; aoffset: aint; alabel: TAsmLabel);
+    constructor TTCInitItem.Create(asym: tsym; aoffset: aint; alabel: TAsmSymbol);
       begin
         inherited Create;
         sym:=asym;
@@ -314,6 +319,17 @@ implementation
                                 TAsmData
 ****************************************************************************}
 
+    function TAsmData.GetConstPools(APoolType: TConstPoolType): THashSet;
+      begin
+        if FConstPools[APoolType] = nil then
+          case APoolType of
+            sp_ansistr: FConstPools[APoolType] := TTagHashSet.Create(64, True, False);
+          else
+            FConstPools[APoolType] := THashSet.Create(64, True, False);
+          end;
+        Result := FConstPools[APoolType];
+      end;
+
     constructor TAsmData.create(const n:string);
       var
         alt : TAsmLabelType;
@@ -334,6 +350,7 @@ implementation
         for hal:=low(TAsmListType) to high(TAsmListType) do
           AsmLists[hal]:=TAsmList.create;
         WideInits :=TLinkedList.create;
+        ResStrInits:=TLinkedList.create;
         { CFI }
         FAsmCFI:=CAsmCFI.Create;
       end;
@@ -365,6 +382,7 @@ implementation
 {$ifdef MEMDEBUG}
          memasmlists.start;
 {$endif}
+        ResStrInits.free;
         WideInits.free;
          for hal:=low(TAsmListType) to high(TAsmListType) do
            AsmLists[hal].free;
@@ -373,7 +391,7 @@ implementation
          memasmlists.stop;
 {$endif}
          for hp := low(TConstPoolType) to high(TConstPoolType) do
-           ConstPools[hp].Free;
+           FConstPools[hp].Free;
       end;
 
 
@@ -386,7 +404,7 @@ implementation
          begin
            { Redefine is allowed, but the types must be the same. The redefine
              is needed for Darwin where the labels are first allocated }
-           if (hp.bind<>AB_EXTERNAL) then
+           if not(hp.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
              begin
                if (hp.bind<>_bind) and
                   (hp.typ<>_typ) then
@@ -451,8 +469,8 @@ implementation
 
     procedure TAsmData.getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
       begin
-        if (target_info.system in systems_linux) and
-           (cs_link_smart in current_settings.globalswitches) and
+        if (target_info.system in (systems_linux + systems_bsd)) and
+           (cs_create_smart in current_settings.moduleswitches) and
            (alt = alt_dbgline) then
           l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt],alt)
         else

@@ -9,7 +9,8 @@ main=rtl
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
 #      dos \
-      sysutils \
+      objects \
+      sysutils strutils \
       classes math typinfo varutils fmtbcd ctypes \
       charset ucomplex getopts matrix \
       variants types rtlconsts sysconst dateutil lineinfo fgl \
@@ -153,6 +154,10 @@ types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/strutils.pp
+
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
@@ -161,6 +166,7 @@ fgl$(PPUEXT): $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT)
 
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
+
 
 #
 # Mac Pascal Model

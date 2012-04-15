@@ -21,7 +21,7 @@ begin
     P.Options.Add('-S2h');
     D:=P.Dependencies.Add('fcl-base');
       D.Version:='2.7.1';
-    D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,freebsd,haiku,beos]);
+    D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,freebsd,haiku,beos,aix]);
 
     P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';
     P.License := 'LGPL with modification, ';
@@ -100,11 +100,25 @@ begin
           AddUnit('xmlwrite');
         end;
     T.ResourceStrings:=True;
+    T:=P.Targets.AddUnit('xmlreader.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('xmlutils');
+        end;
+    T:=P.Targets.AddUnit('xmltextreader.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('xmlutils');
+          AddUnit('xmlreader');
+          AddUnit('dtdmodel');
+        end;
     T:=P.Targets.AddUnit('xmlread.pp');
       with T.Dependencies do
         begin
           AddUnit('dom');
           AddUnit('xmlutils');
+          AddUnit('xmlreader');
+          AddUnit('xmltextreader');
         end;
     T:=P.Targets.AddUnit('xmlstreaming.pp');
       with T.Dependencies do
@@ -124,6 +138,7 @@ begin
     T:=P.Targets.AddUnit('xpath.pp');
       with T.Dependencies do
         begin
+          AddInclude('xpathkw.inc');
           AddUnit('dom');
         end;
     T.ResourceStrings:=True;
@@ -134,7 +149,7 @@ begin
           AddUnit('dom');
           AddUnit('htmldefs');
         end;
-    T:=P.Targets.AddUnit('xmliconv.pas',[linux,freebsd,darwin,iphonesim,haiku,beos]);
+    T:=P.Targets.AddUnit('xmliconv.pas',[linux,freebsd,darwin,iphonesim,haiku,beos,aix]);
       with T.Dependencies do
         begin
           AddUnit('xmlread');
@@ -144,7 +159,6 @@ begin
         begin
           AddUnit('xmlread');
         end;
-    T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('dtdmodel.pp');
       with T.Dependencies do
         begin

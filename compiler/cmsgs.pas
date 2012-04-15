@@ -188,9 +188,9 @@ begin
   getmem(buf,bufsize);
   { Read the message file }
   assign(f,fn);
-  {$I-}
+  {$push}{$I-}
    reset(f);
-  {$I+}
+  {$pop}
   if ioresult<>0 then
    begin
      WriteLn('*** PPC, can not open message file ',fn);
@@ -361,6 +361,12 @@ begin
       begin
         { skip _ }
         inc(hp1);
+        { set default verbosity to off is '-' is found just after the '_' }
+        if hp1^='-' then
+         begin
+           msgstates[numpart]^[numidx]:=ms_off_global;
+           inc(hp1);
+         end;
         { put the address in the idx, the numbers are already checked }
         msgidx[numpart]^[numidx]:=hp1;
       end;

@@ -24,10 +24,14 @@ begin
     P.Email := '';
     P.Description := 'GMP';
     P.NeedLibC:= false;
+    P.OSes := [freebsd,darwin,iphonesim,linux,win32,aix];
 
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('gmp.pas');
+
+    P.Sources.AddExampleFiles('examples/*',false,'.');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

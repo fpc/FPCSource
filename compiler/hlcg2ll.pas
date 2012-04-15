@@ -332,7 +332,6 @@ unit hlcg2ll;
           procedure g_copyvariant(list : TAsmList;const source,dest : treference;vardef:tvariantdef);override;
 
           procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
-          procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
           procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation;
             const name: string);override;
           procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
@@ -381,12 +380,16 @@ unit hlcg2ll;
           procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);override;
 
-          function g_indirect_sym_load(list:TAsmList;const symname: string; weak: boolean): tregister;override;
+          function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;override;
           { generate a stub which only purpose is to pass control the given external method,
           setting up any additional environment before doing so (if required).
 
           The default implementation issues a jump instruction to the external name. }
 //          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); override;
+
+          { Generate code to exit an unwind-protected region. The default implementation
+            produces a simple jump to destination label. }
+          procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
 
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);override;
           procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);override;
@@ -1091,11 +1094,6 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
       cg.g_incrrefcount(list,t,ref);
     end;
 
-  procedure thlcg2ll.g_decrrefcount(list: TAsmList; t: tdef; const ref: treference);
-    begin
-      cg.g_decrrefcount(list,t,ref);
-    end;
-
   procedure thlcg2ll.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
     begin
       cg.g_array_rtti_helper(list, t, ref, highloc, name);
@@ -1166,9 +1164,14 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
       cg.g_adjust_self_value(list,procdef,ioffset);
     end;
 
-  function thlcg2ll.g_indirect_sym_load(list: TAsmList; const symname: string; weak: boolean): tregister;
+  function thlcg2ll.g_indirect_sym_load(list: TAsmList; const symname: string; const flags: tindsymflags): tregister;
     begin
-      result:=cg.g_indirect_sym_load(list,symname,weak);
+      result:=cg.g_indirect_sym_load(list,symname,flags);
+    end;
+
+  procedure thlcg2ll.g_local_unwind(list: TAsmList; l: TAsmLabel);
+    begin
+      cg.g_local_unwind(list, l);
     end;
 
   procedure thlcg2ll.location_force_reg(list: TAsmList; var l: tlocation; src_size, dst_size: tdef; maybeconst: boolean);

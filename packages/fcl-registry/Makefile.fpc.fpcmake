@@ -10,7 +10,7 @@ version=2.7.1
 units=xmlreg registry
 
 [require]
-packages=fcl-xml
+packages=fcl-base fcl-xml
 
 [compiler]
 options=-S2h

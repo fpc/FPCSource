@@ -59,6 +59,14 @@ begin
           AddUnit('cofftypes');
           AddUnit('coffconsts');
         end;
+    T:=P.Targets.AddUnit('xcoffwriter.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('cofftypes');
+          AddUnit('coffwriter');
+          AddUnit('coffconsts');
+          AddUnit('fpcrestypes');
+        end;
     T:=P.Targets.AddUnit('dfmreader.pp');
       with T.Dependencies do
         begin

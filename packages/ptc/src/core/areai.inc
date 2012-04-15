@@ -30,6 +30,38 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+type
+  TPTCArea = class(TInterfacedObject, IPTCArea)
+  private
+    FLeft, FTop, FRight, FBottom: Integer;
+    function GetLeft: Integer;
+    function GetTop: Integer;
+    function GetRight: Integer;
+    function GetBottom: Integer;
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function Equals(AArea: IPTCArea): Boolean;
+  public
+    constructor Create;
+    constructor Create(ALeft, ATop, ARight, ABottom: Integer);
+    constructor Create(AArea: IPTCArea);
+  end;
+
+class function TPTCAreaFactory.CreateNew: IPTCArea;
+begin
+  Result := TPTCArea.Create;
+end;
+
+class function TPTCAreaFactory.CreateNew(ALeft, ATop, ARight, ABottom: Integer): IPTCArea;
+begin
+  Result := TPTCArea.Create(ALeft, ATop, ARight, ABottom);
+end;
+
+class function TPTCAreaFactory.CreateNew(AArea: IPTCArea): IPTCArea;
+begin
+  Result := TPTCArea.Create(AArea);
+end;
+
 constructor TPTCArea.Create(ALeft, ATop, ARight, ABottom: Integer);
 begin
   if ALeft < ARight then
@@ -62,28 +94,40 @@ begin
   FBottom := 0;
 end;
 
-constructor TPTCArea.Create(const AArea: TPTCArea);
+constructor TPTCArea.Create(AArea: IPTCArea);
 begin
-  FLeft   := AArea.FLeft;
-  FTop    := AArea.FTop;
-  FRight  := AArea.FRight;
-  FBottom := AArea.FBottom;
+  FLeft   := AArea.Left;
+  FTop    := AArea.Top;
+  FRight  := AArea.Right;
+  FBottom := AArea.Bottom;
 end;
 
-procedure TPTCArea.Assign(const AArea: TPTCArea);
+function TPTCArea.Equals(AArea: IPTCArea): Boolean;
 begin
-  FLeft   := AArea.FLeft;
-  FTop    := AArea.FTop;
-  FRight  := AArea.FRight;
-  FBottom := AArea.FBottom;
+  Result := (FLeft   = AArea.Left) and
+            (FTop    = AArea.Top) and
+            (FRight  = AArea.Right) and
+            (FBottom = AArea.Bottom);
 end;
 
-function TPTCArea.Equals(const AArea: TPTCArea): Boolean;
+function TPTCArea.GetLeft: Integer;
 begin
-  Result := (FLeft   = AArea.FLeft) and
-            (FTop    = AArea.FTop) and
-            (FRight  = AArea.FRight) and
-            (FBottom = AArea.FBottom);
+  Result := FLeft;
+end;
+
+function TPTCArea.GetTop: Integer;
+begin
+  Result := FTop;
+end;
+
+function TPTCArea.GetRight: Integer;
+begin
+  Result := FRight;
+end;
+
+function TPTCArea.GetBottom: Integer;
+begin
+  Result := FBottom;
 end;
 
 function TPTCArea.GetWidth: Integer;

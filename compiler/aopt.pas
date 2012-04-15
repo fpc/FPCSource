@@ -51,8 +51,10 @@ Unit aopt;
 
     var
       casmoptimizer : TAsmOptimizerClass;
+      cpreregallocscheduler : TAsmOptimizerClass;
 
     procedure Optimize(AsmL:TAsmList);
+    procedure PreRegallocSchedule(AsmL:TAsmList);
 
   Implementation
 
@@ -269,6 +271,16 @@ Unit aopt;
         p : TAsmOptimizer;
       begin
         p:=casmoptimizer.Create(AsmL);
+        p.Optimize;
+        p.free
+      end;
+
+
+    procedure PreRegallocSchedule(AsmL:TAsmList);
+      var
+        p : TAsmOptimizer;
+      begin
+        p:=cpreregallocscheduler.Create(AsmL);
         p.Optimize;
         p.free
       end;

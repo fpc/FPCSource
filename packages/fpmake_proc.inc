@@ -52,6 +52,8 @@ begin
 {$include cocoaint/fpmake.pp}
 end;
 
+{$include dblib/fpmake.pp}
+
 procedure add_dbus;
 begin
   with Installer do
@@ -82,11 +84,7 @@ begin
 {$include fcl-base/fpmake.pp}
 end;
 
-procedure add_fcl_db;
-begin
-  with Installer do
 {$include fcl-db/fpmake.pp}
-end;
 
 procedure add_fcl_extra;
 begin
@@ -178,17 +176,15 @@ begin
 {$include fpgtk/fpmake.pp}
 end;
 
+{$include fpindexer/fpmake.pp}
+
 procedure add_fpmkunit;
 begin
   with Installer do
 {$include fpmkunit/fpmake.pp}
 end;
 
-procedure add_fpvectorial;
-begin
-  with Installer do
-{$include fpvectorial/fpmake.pp}
-end;
+{$include fppkg/fpmake.pp}
 
 procedure add_fv;
 begin
@@ -444,6 +440,12 @@ begin
 {$include opengl/fpmake.pp}
 end;
 
+procedure add_opengles;
+begin
+  with Installer do
+{$include opengles/fpmake.pp}
+end;
+
 procedure add_openssl;
 begin
   with Installer do
@@ -598,6 +600,12 @@ procedure add_uuid;
 begin
   with Installer do
 {$include uuid/fpmake.pp}
+end;
+
+procedure add_winceunits;
+begin
+  with Installer do
+{$include winceunits/fpmake.pp}
 end;
 
 procedure add_winunits_base;

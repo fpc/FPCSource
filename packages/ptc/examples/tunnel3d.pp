@@ -343,7 +343,7 @@ begin
 
         { Calculate texture index at intersection point (cylindrical mapping) }
         { try and adjust the 0.2 to stretch/shrink the texture }
-        u_array[(j shl 6) + i] := Trunc(intsc[2] * 0.2) shl 16;
+        u_array[(j shl 6) + i] := Integer(Trunc(intsc[2] * 0.2) shl 16);
         v_array[(j shl 6) + i] := Trunc(abs(arctan2(intsc[1], intsc[0]) * 256 / pi)) shl 16;
 
         { Calculate the dotproduct between the normal vector and the vector }
@@ -396,23 +396,23 @@ begin
 
       { Set up gradients }
       lu := u_array[iadr]; ru := u_array[iadr + 1];
-      liu := (u_array[iadr + 64] - lu) shr 3;
-      riu := (u_array[iadr + 65] - ru) shr 3;
+      liu := (u_array[iadr + 64] - lu) div 8;
+      riu := (u_array[iadr + 65] - ru) div 8;
 
       lv := v_array[iadr]; rv := v_array[iadr + 1];
-      liv := (v_array[iadr + 64] - lv) shr 3;
-      riv := (v_array[iadr + 65] - rv) shr 3;
+      liv := (v_array[iadr + 64] - lv) div 8;
+      riv := (v_array[iadr + 65] - rv) div 8;
 
       ll := l_array[iadr]; rl := l_array[iadr + 1];
-      lil := (l_array[iadr + 64] - ll) shr 3;
-      ril := (l_array[iadr + 65] - rl) shr 3;
+      lil := (l_array[iadr + 64] - ll) div 8;
+      ril := (l_array[iadr + 65] - rl) div 8;
 
       for y := 0 to 7 do
       begin
-        iu := (ru - lu) shr 3;
-        iv := (rv - lv) shr 3;
+        iu := (ru - lu) div 8;
+        iv := (rv - lv) div 8;
         l := ll;
-        il := (rl - ll) shr 3;
+        il := (rl - ll) div 8;
 
         { Mess up everything for the sake of cache optimised mapping :) }
         til_u := DWord(((lu shl 8) and $F8000000) or ((lu shr 1) and $00007FFF) or (lu and $00070000));
@@ -426,8 +426,8 @@ begin
         for x := 0 to 7 do
         begin
           { Interpolate texture u,v and light }
-          Inc(til_u, til_iu);
-          Inc(til_v, til_iv);
+          til_u := DWord(til_u + til_iu);
+          til_v := DWord(til_v + til_iv);
           Inc(l, il);
 
           adr := adr shr 16;
@@ -502,9 +502,9 @@ begin
 end;
 
 var
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  format: TPTCFormat = nil;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  format: IPTCFormat;
   tunnel: TRayTunnel = nil;
   posz, phase_x, phase_y: Single;
   angle_x, angle_y: Integer;
@@ -512,12 +512,12 @@ var
 begin
   try
     try
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
-      console := TPTCConsole.create;
+      console := TPTCConsoleFactory.CreateNew;
       console.open('Tunnel3D demo', 320, 200, format);
 
-      surface := TPTCSurface.create(320, 200, format);
+      surface := TPTCSurfaceFactory.CreateNew(320, 200, format);
 
       { Create a tunnel, radius=700 }
       tunnel := TRayTunnel.Create(700);
@@ -554,11 +554,9 @@ begin
         phase_y := phase_y + 0.1;
       end;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
+      if Assigned(console) then
+        console.close;
       tunnel.Free;
-      format.Free;
     end;
   except
     on error: TPTCError do

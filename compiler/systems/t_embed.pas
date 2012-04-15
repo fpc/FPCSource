@@ -32,7 +32,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_embed,link,
+       globtype,globals,systems,verbose,comphook,script,fmodule,i_embed,link,
        cpuinfo;
 
     type
@@ -43,6 +43,7 @@ implementation
           constructor Create; override;
           procedure SetDefaultInfo; override;
           function  MakeExecutable:boolean; override;
+          function postprocessexecutable(const fn : string;isdll:boolean):boolean;
        end;
 
 
@@ -79,6 +80,9 @@ Var
   linklibc : boolean;
   found1,
   found2   : boolean;
+{$ifdef ARM}
+  LinkStr  : string;
+{$endif}
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
@@ -216,49 +220,121 @@ begin
 
 {$ifdef ARM}
   case current_settings.controllertype of
-    ct_none:
-      ;
-    ct_lpc2114,
-    ct_lpc2124,
-    ct_lpc2194:
-      with linkres do
-        begin
-          Add('ENTRY(_START)');
-          Add('MEMORY');
-          Add('{');
-          Add('    flash : ORIGIN = 0, LENGTH = 256K');
-          Add('    ram : ORIGIN = 0x40000000, LENGTH = 16K');
-          Add('}');
-          Add('_stack_top = 0x40003FFC;');
-        end;
+      ct_none:
+           begin
+           end;
+      ct_lpc2114,
+      ct_lpc2124,
+      ct_lpc2194,
+      ct_lpc1768,
       ct_at91sam7s256,
       ct_at91sam7se256,
       ct_at91sam7x256,
-      ct_at91sam7xc256:
-      with linkres do
-        begin
-          Add('ENTRY(_START)');
-          Add('MEMORY');
-          Add('{');
-          Add('    flash : ORIGIN = 0, LENGTH = 256K');
-          Add('    ram : ORIGIN = 0x200000, LENGTH = 64K');
-          Add('}');
-          Add('_stack_top = 0x20FFFC;');
-        end;
-      ct_stm32f103re:
-      with linkres do
-        begin
-          Add('ENTRY(_START)');
-          Add('MEMORY');
-          Add('{');
-          Add('    flash : ORIGIN = 0x08000000, LENGTH = 512K');
-          Add('    ram : ORIGIN = 0x20000000, LENGTH = 64K');
-          Add('}');
-          Add('_stack_top = 0x2000FFFC;');
-        end;
+      ct_at91sam7xc256,
 
+      ct_stm32f103rb,
+      ct_stm32f103re,
+      ct_stm32f103c4t,
+
+      { TI - 64 K Flash, 16 K SRAM Devices }
+      ct_lm3s1110,
+      ct_lm3s1133,
+      ct_lm3s1138,
+      ct_lm3s1150,
+      ct_lm3s1162,
+      ct_lm3s1165,
+      ct_lm3s1166,
+      ct_lm3s2110,
+      ct_lm3s2139,
+      ct_lm3s6100,
+      ct_lm3s6110,
+
+      { TI 128 K Flash, 32 K SRAM devices - Fury Class }
+      ct_lm3s1601,
+      ct_lm3s1608,
+      ct_lm3s1620,
+      ct_lm3s1635,
+      ct_lm3s1636,
+      ct_lm3s1637,
+      ct_lm3s1651,
+      ct_lm3s2601,
+      ct_lm3s2608,
+      ct_lm3s2620,
+      ct_lm3s2637,
+      ct_lm3s2651,
+      ct_lm3s6610,
+      ct_lm3s6611,
+      ct_lm3s6618,
+      ct_lm3s6633,
+      ct_lm3s6637,
+      ct_lm3s8630,
+
+      { TI 256 K Flase, 32 K SRAM devices - Fury Class }
+      ct_lm3s1911,
+      ct_lm3s1918,
+      ct_lm3s1937,
+      ct_lm3s1958,
+      ct_lm3s1960,
+      ct_lm3s1968,
+      ct_lm3s1969,
+      ct_lm3s2911,
+      ct_lm3s2918,
+      ct_lm3s2919,
+      ct_lm3s2939,
+      ct_lm3s2948,
+      ct_lm3s2950,
+      ct_lm3s2965,
+      ct_lm3s6911,
+      ct_lm3s6918,
+      ct_lm3s6938,
+      ct_lm3s6950,
+      ct_lm3s6952,
+      ct_lm3s6965,
+      ct_lm3s8930,
+      ct_lm3s8933,
+      ct_lm3s8938,
+      ct_lm3s8962,
+      ct_lm3s8970,
+      ct_lm3s8971,
+
+      { TI - Tempest Tempest - 256 K Flash, 64 K SRAM }
+      ct_lm3s5951,
+      ct_lm3s5956,
+      ct_lm3s1b21,
+      ct_lm3s2b93,
+      ct_lm3s5b91,
+      ct_lm3s9b81,
+      ct_lm3s9b90,
+      ct_lm3s9b92,
+      ct_lm3s9b95,
+      ct_lm3s9b96,
+      ct_sc32442b,
+      ct_thumb2bare:
+        begin
+         with embedded_controllers[current_settings.controllertype] do
+          with linkres do
+            begin
+              Add('ENTRY(_START)');
+              Add('MEMORY');
+              Add('{');
+              if flashsize<>0 then
+                begin
+                  LinkStr := '    flash : ORIGIN = 0x' + IntToHex(flashbase,8)
+                    + ', LENGTH = 0x' + IntToHex(flashsize,8);
+                  Add(LinkStr);
+                end;
+
+              LinkStr := '    ram : ORIGIN = 0x' + IntToHex(srambase,8)
+              	+ ', LENGTH = 0x' + IntToHex(sramsize,8);
+              Add(LinkStr);
+
+              Add('}');
+              Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
+            end;
+        end
     else
-      internalerror(200902011);
+      if not (cs_link_nolink in current_settings.globalswitches) then
+      	 internalerror(200902011);
   end;
 
   with linkres do
@@ -273,14 +349,28 @@ begin
       Add('    *(.rodata, .rodata.*)');
       Add('    *(.comment)');
       Add('    _etext = .;');
-      Add('    } >flash');
+      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        begin
+          Add('    } >flash');
+        end
+      else
+        begin
+          Add('    } >ram');
+        end;
       Add('    .data :');
       Add('    {');
       Add('    _data = .;');
       Add('    *(.data, .data.*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    _edata = .;');
-      Add('    } >ram AT >flash');
+      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        begin
+          Add('    } >ram AT >flash');
+        end
+      else
+        begin
+          Add('    } >ram');
+        end;
       Add('    .bss :');
       Add('    {');
       Add('    _bss_start = .;');
@@ -627,6 +717,9 @@ begin
    DeleteFile(outputexedir+Info.ResName);
 
 { Post process }
+  if success then
+    success:=PostProcessExecutable(current_module.exefilename^+'.elf',false);
+
   if success and (target_info.system in [system_arm_embedded,system_avr_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
@@ -636,6 +729,163 @@ begin
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
+
+
+function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):boolean;
+  type
+    TElf32header=packed record
+      magic0123         : longint;
+      file_class        : byte;
+      data_encoding     : byte;
+      file_version      : byte;
+      padding           : array[$07..$0f] of byte;
+
+      e_type            : word;
+      e_machine         : word;
+      e_version         : longint;
+      e_entry           : longint;          { entrypoint }
+      e_phoff           : longint;          { program header offset }
+
+      e_shoff           : longint;          { sections header offset }
+      e_flags           : longint;
+      e_ehsize          : word;             { elf header size in bytes }
+      e_phentsize       : word;             { size of an entry in the program header array }
+      e_phnum           : word;             { 0..e_phnum-1 of entrys }
+      e_shentsize       : word;             { size of an entry in sections header array }
+      e_shnum           : word;             { 0..e_shnum-1 of entrys }
+      e_shstrndx        : word;             { index of string section header }
+    end;
+    TElf32sechdr=packed record
+      sh_name           : longint;
+      sh_type           : longint;
+      sh_flags          : longint;
+      sh_addr           : longint;
+
+      sh_offset         : longint;
+      sh_size           : longint;
+      sh_link           : longint;
+      sh_info           : longint;
+
+      sh_addralign      : longint;
+      sh_entsize        : longint;
+    end;
+
+  function MayBeSwapHeader(h : telf32header) : telf32header;
+    begin
+      result:=h;
+      if source_info.endian<>target_info.endian then
+        with h do
+          begin
+            result.e_type:=swapendian(e_type);
+            result.e_machine:=swapendian(e_machine);
+            result.e_version:=swapendian(e_version);
+            result.e_entry:=swapendian(e_entry);
+            result.e_phoff:=swapendian(e_phoff);
+            result.e_shoff:=swapendian(e_shoff);
+            result.e_flags:=swapendian(e_flags);
+            result.e_ehsize:=swapendian(e_ehsize);
+            result.e_phentsize:=swapendian(e_phentsize);
+            result.e_phnum:=swapendian(e_phnum);
+            result.e_shentsize:=swapendian(e_shentsize);
+            result.e_shnum:=swapendian(e_shnum);
+            result.e_shstrndx:=swapendian(e_shstrndx);
+          end;
+    end;
+
+  function MaybeSwapSecHeader(h : telf32sechdr) : telf32sechdr;
+    begin
+      result:=h;
+      if source_info.endian<>target_info.endian then
+        with h do
+          begin
+            result.sh_name:=swapendian(sh_name);
+            result.sh_type:=swapendian(sh_type);
+            result.sh_flags:=swapendian(sh_flags);
+            result.sh_addr:=swapendian(sh_addr);
+            result.sh_offset:=swapendian(sh_offset);
+            result.sh_size:=swapendian(sh_size);
+            result.sh_link:=swapendian(sh_link);
+            result.sh_info:=swapendian(sh_info);
+            result.sh_addralign:=swapendian(sh_addralign);
+            result.sh_entsize:=swapendian(sh_entsize);
+          end;
+    end;
+
+  var
+    f : file;
+
+  function ReadSectionName(pos : longint) : String;
+    var
+      oldpos : longint;
+      c : char;
+    begin
+      oldpos:=filepos(f);
+      seek(f,pos);
+      Result:='';
+      while true do
+        begin
+          blockread(f,c,1);
+          if c=#0 then
+            break;
+          Result:=Result+c;
+        end;
+      seek(f,oldpos);
+    end;
+
+  var
+    elfheader : TElf32header;
+    secheader : TElf32sechdr;
+    i : longint;
+    stringoffset : longint;
+    secname : string;
+  begin
+    postprocessexecutable:=false;
+    { open file }
+    assign(f,fn);
+    {$push}{$I-}
+    reset(f,1);
+    if ioresult<>0 then
+      Message1(execinfo_f_cant_open_executable,fn);
+    { read header }
+    blockread(f,elfheader,sizeof(tElf32header));
+    elfheader:=MayBeSwapHeader(elfheader);
+    seek(f,elfheader.e_shoff);
+    { read string section header }
+    seek(f,elfheader.e_shoff+sizeof(TElf32sechdr)*elfheader.e_shstrndx);
+    blockread(f,secheader,sizeof(secheader));
+    secheader:=MaybeSwapSecHeader(secheader);
+    stringoffset:=secheader.sh_offset;
+
+    seek(f,elfheader.e_shoff);
+    status.datasize:=0;
+    for i:=0 to elfheader.e_shnum-1 do
+      begin
+        blockread(f,secheader,sizeof(secheader));
+        secheader:=MaybeSwapSecHeader(secheader);
+        secname:=ReadSectionName(stringoffset+secheader.sh_name);
+        if secname='.text' then
+          begin
+            Message1(execinfo_x_codesize,tostr(secheader.sh_size));
+            status.codesize:=secheader.sh_size;
+          end
+        else if secname='.data' then
+          begin
+            Message1(execinfo_x_initdatasize,tostr(secheader.sh_size));
+            inc(status.datasize,secheader.sh_size);
+          end
+        else if secname='.bss' then
+          begin
+            Message1(execinfo_x_uninitdatasize,tostr(secheader.sh_size));
+            inc(status.datasize,secheader.sh_size);
+          end;
+
+      end;
+    close(f);
+    {$pop}
+    if ioresult<>0 then
+      ;
+    postprocessexecutable:=true;
+  end;
 
 
 {*****************************************************************************

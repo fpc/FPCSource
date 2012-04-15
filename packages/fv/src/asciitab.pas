@@ -183,7 +183,7 @@ var
     DrawCurPos(true);
     ClearEvent(Event);
   end;
-  
+
 begin
   case Event.What of
     evMouseDown :
@@ -249,7 +249,7 @@ begin
   if (Event.what=evCommand) and
      (Event.Command =  AsciiTableCommandBase) then
     begin
-      AsciiChar:=Event.InfoLong;
+      AsciiChar:=PtrInt(Event.InfoPtr);
       Draw;
       ClearEvent(Event);
     end

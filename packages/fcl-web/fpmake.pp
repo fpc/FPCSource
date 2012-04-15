@@ -17,6 +17,7 @@ begin
     P.Directory:='fcl-web';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix];
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
@@ -113,12 +114,12 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
-        OSes:=AllOses-[wince];
+        OSes:=AllOses-[wince,darwin,iphonesim,aix];
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
-        OSes:=AllOses-[wince];
+        OSes:=AllOses-[wince,darwin,iphonesim,aix];
         Dependencies.AddUnit('httpdefs');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;

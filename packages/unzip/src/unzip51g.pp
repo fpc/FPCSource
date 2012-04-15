@@ -534,9 +534,9 @@ BEGIN
     readpos := sizeof ( inbuf ); {Simulates reading -> no blocking}
     zipeof := TRUE
   END ELSE BEGIN
-    {$I-}
+    {$push} {$I-}
     blockread ( infile, inbuf, sizeof ( inbuf ), readpos );
-    {$I+}
+    {$pop}
     IF ( ioresult <> 0 ) OR ( readpos = 0 ) THEN BEGIN  {readpos=0: kein Fehler gemeldet!!!}
       readpos := sizeof ( inbuf ); {Simulates reading -> CRC error}
       zipeof := TRUE;
@@ -659,9 +659,9 @@ FUNCTION flush ( w : word ) : boolean;
 VAR n : nword;          {True wenn OK}
 b : boolean;
 BEGIN
-  {$I-}
+  {$push} {$I-}
   blockwrite ( outfile, slide [ 0 ], w, n );
-  {$I+}
+  {$pop}
   b := ( n = w ) AND ( ioresult = 0 );  {True-> alles ok}
   UpdateCRC ( iobuf ( pointer ( @slide [ 0 ] ) ^ ), w );
   {--}
@@ -1326,9 +1326,9 @@ BEGIN
   WHILE ( reachedsize < compsize ) AND NOT totalabort DO BEGIN
     readin := compsize -reachedsize;
     IF readin > wsize THEN readin := wsize;
-    {$I-}
+    {$push} {$I-}
     blockread ( infile, slide [ 0 ], readin, outcnt );  {Use slide as buffer}
-    {$I+}
+    {$pop}
     IF ( outcnt <> readin ) OR ( ioresult <> 0 ) THEN BEGIN
       copystored := unzip_ReadErr;
       exit
@@ -2024,9 +2024,9 @@ VAR
 n : nword;
 b : boolean;
 BEGIN
-  {$I-}
+  {$push} {$I-}
   blockwrite ( outfile, writebuf^ [ 0 ], write_ptr, n );
-  {$I+}
+  {$pop}
   b := ( n = write_ptr ) AND ( ioresult = 0 );  {True-> alles ok}
   UpdateCRC ( iobuf ( pointer ( @writebuf^ [ 0 ] ) ^ ), write_ptr );
   {--}
@@ -2243,9 +2243,9 @@ BEGIN
   assign ( infile, in_name );
   storefilemode := filemode;
   filemode := 0;
-  {$I-}
+  {$push} {$I-}
   reset ( infile, 1 );
-  {$I+}
+  {$pop}
   filemode := storefilemode;
   IF ioresult <> 0 THEN BEGIN
     freemem ( slide, wsize );
@@ -2253,9 +2253,9 @@ BEGIN
     inuse := FALSE;
     exit
   END;
-  {$I-}
+  {$push} {$I-}
   seek ( infile, offset );       {seek to header position}
-  {$I+}
+  {$pop}
   IF ioresult <> 0 THEN BEGIN
     freemem ( slide, wsize );
     close ( infile );
@@ -2264,9 +2264,9 @@ BEGIN
     exit
   END;
   header := @inbuf;
-  {$I-}
+  {$push} {$I-}
   blockread ( infile, header^, sizeof ( header^ ) );  {read in local header}
-  {$I+}
+  {$pop}
   IF ioresult <> 0 THEN BEGIN
     freemem ( slide, wsize );
     close ( infile );
@@ -2316,16 +2316,16 @@ BEGIN
   seek ( infile, offset );
 
   assign ( outfile, out_name );
-  {$I-}
+  {$push} {$I-}
   rewrite ( outfile, 1 );
-  {$I+}
+  {$pop}
   err := ioresult;
   {create directories not yet in path}
   isadir := ( out_name [ strlen ( out_name ) -1 ] in ['/','\'] );
   IF ( err = 3 ) OR isadir THEN BEGIN  {path not found}
-    {$I-}
+    {$push} {$I-}
     getdir ( 0, oldcurdir );
-    {$I+}
+    {$pop}
     err := ioresult;
     strcopy ( buf, out_name );
     p1 := strrscan ( buf, DirSep );
@@ -2335,27 +2335,27 @@ BEGIN
     IF ( p <> NIL ) AND ( p [ 1 ] = ':' ) THEN BEGIN
       strcopy ( buf0, 'c:\' );    {set drive}
       buf0 [ 0 ] := p [ 0 ];
-      {$I-}
+      {$push} {$I-}
       chdir ( buf0 );
-      {$I+}
+      {$pop}
       err := ioresult;
       p := strtok ( NIL, '\' );
     END;
 {$endif}
     WHILE ( p <> NIL ) AND ( p <> p1 ) DO BEGIN
-      {$I-}
+      {$push} {$I-}
       chdir ( strpas ( p ) );
-      {$I+}
+      {$pop}
       err := ioresult;
       IF err <> 0 THEN BEGIN
-        {$I-}
+        {$push} {$I-}
         mkdir ( strpas ( p ) );
-        {$I+}
+        {$pop}
         err := ioresult;
         IF err = 0 THEN
-          {$I-}
+          {$push} {$I-}
           chdir ( strpas ( p ) );
-          {$I+}
+          {$pop}
           err := ioresult;
       END;
       IF err = 0 THEN
@@ -2363,9 +2363,9 @@ BEGIN
       ELSE
         p := NIL;
     END;
-    {$I-}
+    {$push} {$I-}
     chdir ( oldcurdir );
-    {$I+}
+    {$pop}
     err := ioresult;
     IF isadir THEN BEGIN
       freemem ( slide, wsize );
@@ -2374,9 +2374,9 @@ BEGIN
       inuse := FALSE;
       exit;
     END;
-    {$I-}
+    {$push} {$I-}
     rewrite ( outfile, 1 );
-    {$I+}
+    {$pop}
     err := ioresult;
   END;
 
@@ -2508,9 +2508,9 @@ BEGIN
       THEN BEGIN     {Read over end of header}
         move ( buf^ [ bufsize + 1 ], f, extra );   {Restore file}
         move ( buf^ [ localstart ], buf^ [ 0 ], bufsize -localstart );  {Move end to beginning in buffer}
-        {$I-}
+        {$push} {$I-}
         blockread ( f, buf^ [ bufsize -localstart ], localstart, err );  {Read in full central dir, up to maxbufsize Bytes}
-        {$I+}
+        {$pop}
         IF ( ioresult <> 0 ) OR ( err + localstart < sizeof ( theader ) ) THEN BEGIN
           filloutrec := unzip_nomoreitems;
           exit
@@ -2580,9 +2580,9 @@ BEGIN
  WITH zprec DO BEGIN
   assign ( f, zipfilename );
   filemode := 0;  {Others may read or write};
-  {$I-}
+  {$push} {$I-}
   reset ( f, 1 );
-  {$I+}
+  {$pop}
   IF ioresult <> 0 THEN BEGIN
     GetFirstInZip := unzip_FileError;
     exit
@@ -2590,9 +2590,9 @@ BEGIN
   size := filesize ( f );
   IF size = 0 THEN BEGIN
     GetFirstInZip := unzip_FileError;
-    {$I-}
+    {$push} {$I-}
     close ( f );
-    {$I+}
+    {$pop}
     exit
   END;
   bufsize := 4096;     {in 4k-blocks}
@@ -2607,28 +2607,28 @@ BEGIN
   {Search from back of file to central directory start}
   start := -1;    {Nothing found}
   REPEAT
-    {$I-}
+    {$push} {$I-}
     seek ( f, bufstart );
-    {$I+}
+    {$pop}
     IF ioresult <> 0 THEN BEGIN
       GetFirstInZip := unzip_FileError;
       freeMem ( buf, bufsize + 1 );
       buf := NIL;
-      {$I-}
+      {$push} {$I-}
       close ( f );
-      {$I+}
+      {$pop}
       exit
     END;
-    {$I-}
+    {$push} {$I-}
     blockread ( f, buf^, bufsize, err );
-    {$I+}
+    {$pop}
     IF ( ioresult <> 0 ) OR ( err <> bufsize ) THEN BEGIN
       GetFirstInZip := unzip_FileError;
       freeMem ( buf, bufsize + 1 );
       buf := NIL;
-      {$I-}
+      {$push} {$I-}
       close ( f );
-      {$I+}
+      {$pop}
       exit
     END;
 
@@ -2651,9 +2651,9 @@ BEGIN
     GetFirstInZip := unzip_FileError;
     freeMem ( buf, bufsize + 1 );
     buf := NIL;
-    {$I-}
+    {$push} {$I-}
     close ( f );
-    {$I+}
+    {$pop}
     exit
   END;
   mainh := pmainheader ( @buf^ [ start -bufstart ] );
@@ -2663,9 +2663,9 @@ BEGIN
   IF ( localstart + sizeof ( theader ) > start ) THEN BEGIN
     buf := NIL;
     GetFirstInZip := unzip_InternalError;
-    {$I-}
+    {$push} {$I-}
     close ( f );
-    {$I+}
+    {$pop}
     exit
   END;
   bufstart := headerstart;
@@ -2678,32 +2678,32 @@ BEGIN
     extra := 0
   END;
   getmem ( buf, bufsize + 1 + extra );
-  {$I-}
+  {$push} {$I-}
   seek ( f, bufstart );
-  {$I+}
+  {$pop}
   IF ioresult <> 0 THEN BEGIN
     GetFirstInZip := unzip_FileError;
     freeMem ( buf, bufsize + 1 + extra );
     buf := NIL;
-    {$I-}
+    {$push} {$I-}
     close ( f );
-    {$I+}
+    {$pop}
     exit
   END;
-  {$I-}
+  {$push} {$I-}
   blockread ( f, buf^, bufsize, err );  {Read in full central dir, up to maxbufsize Bytes}
-  {$I+}
+  {$pop}
   IF ioresult <> 0 THEN BEGIN
     GetFirstInZip := unzip_FileError;
     freeMem ( buf, bufsize + 1 + extra );
     buf := NIL;
-    {$I-}
+    {$push} {$I-}
     close ( f );
-    {$I+}
+    {$pop}
     exit
   END;
   IF extra = 0 THEN
-  {$I-} close ( f ) {$I+}
+  {$push} {$I-} close ( f ) {$pop}
     ELSE move ( f, buf^ [ bufsize + 1 ], extra );  {Save file info!}
   err := filloutRec ( zprec );
   IF err <> unzip_ok THEN BEGIN
@@ -2741,9 +2741,9 @@ VAR
 
 BEGIN
   filemode := 0;
-  {$I-}
+  {$push} {$I-}
   getdir ( 0, oldcurdir );
-  {$I+}
+  {$pop}
   err := ioresult;
   isZip := FALSE;
   IF ( strscan ( filename, '.' ) <> NIL )
@@ -2751,33 +2751,33 @@ BEGIN
     strcopy ( myname, filename );
     l := strlen ( myname );
     IF myname [ l -1 ] = DirSep THEN myname [ l -1 ] := #0;
-    {$I-}
+    {$push} {$I-}
     chdir ( Strpas ( myname ) );
-    {$I+}
+    {$pop}
     IF ioresult <> 0 THEN BEGIN
       assign ( f, Strpas ( myname ) );
       filemode := 0;  {Others may read or write};
-      {$I-}
+      {$push} {$I-}
       reset ( f, 1 );
-      {$I+}
+      {$pop}
       IF ioresult = 0 THEN BEGIN
-        {$I-}
+        {$push} {$I-}
         blockread ( f, buf, 4, err );
-        {$I+}
+        {$pop}
         IF ( ioresult = 0 ) THEN BEGIN
           IF ( err = 4 ) AND ( buf [ 0 ] = 'P' ) AND ( buf [ 1 ] = 'K' )
             AND ( buf [ 2 ] = #3 ) AND ( buf [ 3 ] = #4 ) THEN isZip := TRUE
         END;
-        {$I-}
+        {$push} {$I-}
         close ( f );
-        {$I+}
+        {$pop}
         err := ioresult;  {only clears ioresult variable}
       END;
     END;
   END;
-  {$I-}
+  {$push} {$I-}
   chdir ( oldcurdir );
-  {$I+}
+  {$pop}
   err := ioresult;
 END;
 
@@ -2792,9 +2792,9 @@ BEGIN
     IF ( bufsize = maxbufsize ) THEN BEGIN       {Caution: header bigger than 64k!}
       extra := sizeof ( file );
       move ( buf^ [ bufsize + 1 ], f, extra );   {Restore file}
-      {$I-}
+      {$push} {$I-}
       close ( f );
-      {$I+}
+      {$pop}
       IF ioresult <> 0 THEN ;
     END ELSE extra := 0;
     freemem ( buf, bufsize + 1 + extra );
@@ -2816,12 +2816,12 @@ BEGIN
     i := filemode;
     filemode := 0;
     assign ( f, fname );
-    {$i-}
+    {$push} {$I-}
     Reset ( f, 1 );
     filemode := i;
     FileExists := ioresult = 0;
     Close ( f ); IF ioresult <> 0 THEN;
-    {$i+}
+    {$pop}
 END;
 {$endif Delphi}
 
@@ -3121,7 +3121,7 @@ BEGIN
   System.Assign ( f, StrPas ( SourceZipFile ) );
   count := filemode;
   filemode := 0;
-  {$i-}
+  {$push} {$I-}
   Reset ( f, 1 );
   filemode := count;
   IF ioresult <> 0 THEN exit;

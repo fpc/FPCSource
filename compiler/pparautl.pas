@@ -137,7 +137,7 @@ implementation
         storepos : tfileposinfo;
         vs       : tparavarsym;
         hdef     : tdef;
-        selfdef  : tabstractrecorddef;
+        selfdef  : tdef;
         vsp      : tvarspez;
         aliasvs  : tabsolutevarsym;
         sl       : tpropaccesslist;
@@ -303,6 +303,11 @@ implementation
                hvs:=tparavarsym.create('$high'+name,paranr+1,vs_const,sinttype,[vo_is_high_para,vo_is_hidden_para]);
                hvs.symoptions:=[];
                owner.insert(hvs);
+               { don't place to register if it will be accessed from implicit finally block }
+               if (varspez=vs_value) and
+                  is_open_array(vardef) and
+                  is_managed_type(vardef) then
+                 hvs.varregable:=vr_none;
              end
            else
             begin

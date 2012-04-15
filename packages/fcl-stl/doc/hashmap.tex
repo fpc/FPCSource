@@ -1,0 +1,72 @@
+\chapter{THashMap}
+
+Implements container for unordered associative array with unique keys.
+Takes 3 arguments for specialization, first one is type of keys, second one is type of values, third
+one is is a hash functor
+(class which has class function hash, which takes element and number $n$ and returns hash of the
+element in range $0, 1, \dots, n-1$). 
+Usage example:
+
+\lstinputlisting[language=Pascal]{hashmapexample.pp}
+
+Memory complexity:
+Arounds two times of size of stored elements 
+
+Members list:
+
+\begin{longtable}{|m{10cm}|m{5cm}|}
+\hline
+Method & Complexity guarantees \\ \hline
+\multicolumn{2}{|m{15cm}|}{Description} \\ \hline\hline
+
+\verb!Create! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Constructor. Creates empty map.} \\ \hline\hline
+
+\verb!function Size(): SizeUInt! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Returns number of elements in map.} \\\hline\hline
+
+\verb!procedure Insert(key: TKey; value: TValue)! &
+O(1)  \\ \hline
+\multicolumn{2}{|m{15cm}|}{Inserts key value pair into map. If key was already there, it will have
+new value assigned.} \\\hline\hline
+
+\verb!procedure Delete(key: TKey)! &
+O(lg N) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Deletes key (and associated value) from map. If element is not in map, nothing happens.} \\\hline\hline
+
+\verb!function Contains(key: TKey):boolean! & O(1) on average \\\hline
+\multicolumn{2}{|m{15cm}|}{Checks whether element with given key is in map.} \\\hline\hline
+
+\verb!function Iterator:TIterator! & O(1) on average \\\hline
+\multicolumn{2}{|m{15cm}|}{Returns iterator allowing traversal through map. If map is empty returns nil.} \\\hline\hline
+
+\verb!function IsEmpty(): boolean! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Returns true when map is empty.} \\\hline
+
+\verb!property item[i: Key]: TValue; default;! & O(1) on average \\\hline
+\multicolumn{2}{|m{15cm}|}{Property for accessing key i in map. Can be used just by square
+brackets (its default property).} \\\hline\hline
+
+
+\end{longtable}
+
+Some methods return type TIterator, which has following methods:
+\begin{longtable}{|m{10cm}|m{5cm}|}                                                             
+\hline
+Method & Complexity guarantees \\ \hline                                                  
+\multicolumn{2}{|m{15cm}|}{Description} \\ \hline\hline                                               
+\verb!function Next:boolean! & O(N) worst case, but traversal of whole set takes O(N) time \\\hline
+\multicolumn{2}{|m{15cm}|}{Moves iterator to next larger element in set. Returns true on
+success. If the iterator is already pointing on last element returns false.} \\\hline\hline
+
+\verb!property Key:TKey! & $O(1)$ \\\hline
+\multicolumn{2}{|m{15cm}|}{Property, which allows reading the key.} \\\hline
+
+\verb!property Value:TValue! & $O(1)$ \\\hline
+\multicolumn{2}{|m{15cm}|}{Property, which allows reading and writing of the value.} \\\hline
+\verb!property MutableValue:PValue! & $O(1)$ \\\hline
+\multicolumn{2}{|m{15cm}|}{Returns pointer on stored value. Usefull for accessing records and
+objects.} \\\hline
+
+
+\end{longtable}

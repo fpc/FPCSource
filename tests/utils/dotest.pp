@@ -13,8 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$H+}
+{$mode objfpc}
 {$goto on}
+{$H+}
 
 program dotest;
 uses
@@ -65,6 +66,8 @@ var
   TestOutputDir,
   OutputDir : string;
   CompilerBin,
+{ CompilerCPU and CompilerTarget are lowercased at start
+  to avoid need to call lowercase again and again ... }
   CompilerCPU,
   CompilerTarget,
   CompilerVersion,
@@ -91,6 +94,10 @@ const
   RemoteAddr : string = '';
   RemotePath : string = '/tmp';
   RemotePara : string = '';
+  RemoteRshParas : string = '';
+  RemoteShell : string = '';
+  RemoteShellBase : string = '';
+  RemoteShellNeedsExport : boolean = false;
   rshprog : string = 'rsh';
   rcpprog : string = 'rcp';
   rquote : char = '''';
@@ -102,6 +109,7 @@ const
   TargetHasDosStyleDirectories : boolean = false;
   TargetAmigaLike : boolean = false;
   TargetIsMacOS : boolean = false;
+  TargetIsUnix : boolean = false;
 
 { extracted from rtl/macos/macutils.inc }
 
@@ -264,6 +272,16 @@ var
 begin
   FSplit(s,p,n,e);
   SplitFileName:=n+e;
+end;
+
+Function SplitFileBase(const s:string):string;
+var
+  p : dirstr;
+  n : namestr;
+  e : extstr;
+begin
+  FSplit(s,p,n,e);
+  SplitFileBase:=n;
 end;
 
 
@@ -489,6 +507,8 @@ end;
 
 
 function GetCompilerVersion:boolean;
+const
+  CompilerVersionDebugWritten : boolean = false;
 begin
   if CompilerVersion='' then
     begin
@@ -497,36 +517,49 @@ begin
     end
   else
     GetCompilerVersion:=true;
-  if GetCompilerVersion then
-    Verbose(V_Debug,'Compiler Version: "'+CompilerVersion+'"');
+  if GetCompilerVersion and not CompilerVersionDebugWritten then
+    begin
+      Verbose(V_Debug,'Compiler Version: "'+CompilerVersion+'"');
+      CompilerVersionDebugWritten:=true;
+    end;
 end;
 
 
 function GetCompilerCPU:boolean;
+const
+  CompilerCPUDebugWritten : boolean = false;
 begin
   if CompilerCPU='' then
     begin
       GetCompilerCPU:=GetCompilerInfo(compcpu);
-      CompilerCPU:=DefaultCompilerCPU;
+      CompilerCPU:=lowercase(DefaultCompilerCPU);
     end
   else
     GetCompilerCPU:=true;
-  if GetCompilerCPU then
-    Verbose(V_Debug,'Compiler CPU: "'+CompilerCPU+'"');
+  if GetCompilerCPU and not CompilerCPUDebugWritten then
+    begin
+      Verbose(V_Debug,'Compiler CPU: "'+CompilerCPU+'"');
+      CompilerCPUDebugWritten:=true;
+    end;
 end;
 
 
 function GetCompilerTarget:boolean;
+const
+  CompilerTargetDebugWritten : boolean = false;
 begin
   if CompilerTarget='' then
     begin
       GetCompilerTarget:=GetCompilerInfo(comptarget);
-      CompilerTarget:=DefaultCompilerTarget;
+      CompilerTarget:=lowercase(DefaultCompilerTarget);
     end
   else
     GetCompilerTarget:=true;
-  if GetCompilerTarget then
-    Verbose(V_Debug,'Compiler Target: "'+CompilerTarget+'"');
+  if GetCompilerTarget and not CompilerTargetDebugWritten then
+    begin
+      Verbose(V_Debug,'Compiler Target: "'+CompilerTarget+'"');
+      CompilerTargetDebugWritten:=true;
+    end;
 end;
 
 
@@ -548,7 +581,7 @@ var
 begin
   { Call this first to ensure that CompilerTarget is not empty }
   res:=GetCompilerTarget;
-  LTarget := lowercase(CompilerTarget);
+  LTarget := CompilerTarget;
   TargetHasDosStyleDirectories :=
     (LTarget='emx') or
     (LTarget='go32v2') or
@@ -564,6 +597,21 @@ begin
     (LTarget='morphos');
   TargetIsMacOS:=
     (LTarget='macos');
+  { Base on whether UNIX is defined as default macro
+    in extradefines in systesms/i_XXX.pas units }
+  TargetIsUnix:=
+    (LTarget='linux') or
+    (LTarget='linux6432') or
+    (LTarget='freebsd') or
+    (LTarget='openbsd') or
+    (LTarget='netbsd') or
+    (LTarget='beos') or
+    (LTarget='haiku') or
+    (LTarget='solaris') or
+    (LTarget='iphonesim') or
+    (LTarget='darwin') or
+    (LTarget='aix');
+
   { Set ExeExt for CompilerTarget.
     This list has been set up 2011-06 using the information in
     compiler/system/i_XXX.pas units.
@@ -595,7 +643,7 @@ var
 begin
   { Call this first to ensure that CompilerTarget is not empty }
   res:=GetCompilerTarget;
-  LTarget := lowercase(CompilerTarget);
+  LTarget := CompilerTarget;
   UseOSOnly:= (LTarget='emx') or
               (LTarget='go32v2') or
               (LTarget='os2');
@@ -609,7 +657,7 @@ var
 begin
   { Call this first to ensure that CompilerTarget is not empty }
   res:=GetCompilerTarget;
-  LTarget := lowercase(CompilerTarget);
+  LTarget := CompilerTarget;
   { Feel free to add other targets here }
   if (LTarget='go32v2') then
     TargetCanCompileLibraries:=false;
@@ -626,12 +674,12 @@ begin
 end;
 
 
-function TestOutputFileName(Const s,ext:String):String;
+function TestOutputFileName(Const pref,base,ext:String):String;
 begin
 {$ifndef macos}
-  TestOutputFileName:=TestOutputDir+'/'+ForceExtension(SplitFileName(s),ext);
+  TestOutputFileName:=TestOutputDir+'/'+ForceExtension(pref+SplitFileName(base),ext);
 {$else macos}
-  TestOutputFileName:=ConcatMacPath(TestOutputDir,ForceExtension(SplitFileName(s),ext));
+  TestOutputFileName:=ConcatMacPath(TestOutputDir,ForceExtension(pref+SplitFileName(base),ext));
 {$endif macos}
 end;
 
@@ -662,9 +710,129 @@ begin
 end;
 
 
+{ Takes each option from AddOptions list
+  considered as a space separated list
+  and adds the option to args
+  unless option contains a percent sign,
+  in that case, the option after % will be added
+  to args only if CompilerTarget is listed in
+  the string part before %.
+  NOTE: this function does not check for
+  quoted options...
+  The list before % must of course contain no spaces. }
+
+procedure AppendOptions(AddOptions : string;var args : string);
+var
+  endopt,percentpos : longint;
+  opttarget, currentopt : string;
+begin
+  Verbose(V_Debug,'AppendOptions called with AddOptions="'+AddOptions+'"');
+  AddOptions:=trimspace(AddOptions);
+  repeat
+    endopt:=pos(' ',AddOptions);
+    if endopt=0 then
+      endopt:=length(AddOptions);
+    currentopt:=trimspace(copy(AddOptions,1,endopt));
+    AddOptions:=trimspace(copy(Addoptions,endopt+1,length(AddOptions)));
+    if currentopt<>'' then
+      begin
+        percentpos:=pos('%',currentopt);
+        if (percentpos=0) then
+          begin
+            Verbose(V_Debug,'Adding option="'+currentopt+'"');
+            args:=args+' '+currentopt;
+          end
+        else
+          begin
+            opttarget:=lowercase(copy(currentopt,1,percentpos-1));
+            if IsInList(CompilerTarget, opttarget) then
+              begin
+                Verbose(V_Debug,'Adding target specific option="'+currentopt+'" for '+opttarget);
+                args:=args+' '+copy(currentopt,percentpos+1,length(currentopt))
+              end
+            else
+              Verbose(V_Debug,'No matching target "'+currentopt+'"');
+          end;
+      end;
+  until AddOptions='';
+end;
+
+{ This function removes some incompatible
+  options from TEST_OPT before adding them to
+  the list of options passed to the compiler.
+  %DELOPT=XYZ  will remove XYZ exactly
+  %DELOPT=XYZ* will remove all options starting with XYZ.
+  NOTE: This fuinction does not handle quoted options. }
+function DelOptions(Pattern, opts : string) : string;
+var
+  currentopt : string;
+  optpos, endopt, startpos, endpos : longint;
+  iswild : boolean;
+begin
+  opts:=trimspace(opts);
+  pattern:=trimspace(pattern);
+  repeat
+    endpos:=pos(' ',pattern);
+    if endpos=0 then
+      endpos:=length(pattern);
+    currentopt:=trimspace(copy(pattern,1,endpos));
+    pattern:=trimspace(copy(pattern,endpos+1,length(pattern)));
+    if currentopt<>'' then
+      begin
+        if currentopt[length(currentopt)]='*' then
+          begin
+            iswild:=true;
+            system.delete(currentopt,length(currentopt),1);
+          end
+        else
+          iswild:=false;
+        startpos:=1;
+        repeat
+          optpos:=pos(currentopt,copy(opts,startpos,length(opts)));
+          if optpos>0 then
+            begin
+              { move to index in full opts string }
+              optpos:=optpos+startpos-1;
+              { compute position of end of opt }
+              endopt:=optpos+length(currentopt);
+              { use that end as start position for next round }
+              startpos:=endopt;
+              if iswild then
+                begin
+                  while (opts[endopt]<>' ') and
+                    (endopt<length(opts)) do
+                    begin
+                      inc(endopt);
+                      inc(startpos);
+                    end;
+                  Verbose(V_Debug,'Pattern match found "'+currentopt+'*" in "'+opts+'"');
+                  system.delete(opts,optpos,endopt-optpos+1);
+                  Verbose(V_Debug,'After opts="'+opts+'"');
+                end
+              else
+                begin
+                  if (endopt>length(opts)) or (opts[endopt]=' ') then
+                    begin
+                      Verbose(V_Debug,'Exact match found "'+currentopt+'" in "'+opts+'"');
+                      system.delete(opts,optpos,endopt-optpos+1);
+                      Verbose(V_Debug,'After opts="'+opts+'"');
+                    end
+                  else
+                    begin
+                      Verbose(V_Debug,'No exact match "'+currentopt+'" in "'+opts+'"');
+                    end;
+                end;
+
+            end;
+        until optpos=0;
+      end;
+  until pattern='';
+  DelOptions:=opts;
+end;
+
 function RunCompiler:boolean;
 var
-  args,
+  args,LocalExtraArgs,
   wpoargs : string;
   passnr,
   passes  : longint;
@@ -675,22 +843,31 @@ begin
   RunCompiler:=false;
   args:='-n -T'+CompilerTarget+' -Fu'+RTLUnitsDir;
   args:=args+' -FE'+TestOutputDir;
-{$ifdef macos}
-  args:=args+' -WT ';  {tests should be compiled as MPWTool}
-{$endif macos}
-  if ExtraCompilerOpts<>'' then
-   args:=args+ExtraCompilerOpts;
-{$ifdef unix}
-  { Add runtime library path to current dir to find .so files }
-  if Config.NeedLibrary then
-{$ifndef darwin}
-   args:=args+' -Fl'+TestOutputDir+' ''-k-rpath .''';
-{$else darwin}
-   args:=args+' -Fl'+TestOutputDir;
-{$endif darwin}
-{$endif unix}
+  if TargetIsMacOS then
+    args:=args+' -WT ';  {tests should be compiled as MPWTool}
+  if Config.DelOptions<>'' then
+   LocalExtraArgs:=DelOptions(Config.DelOptions,ExtraCompilerOpts)
+  else
+    LocalExtraArgs:=ExtraCompilerOpts;
+
+  if LocalExtraArgs<>'' then
+   args:=args+' '+LocalExtraArgs;
+  if TargetIsUnix then
+    begin
+      { Add runtime library path to current dir to find .so files }
+      if Config.NeedLibrary then
+        begin
+          if (CompilerTarget='darwin') or
+	     (CompilerTarget='aix') then
+            args:=args+' -Fl'+TestOutputDir
+	  else
+          { do not use single quote for -k as they are mishandled on
+            Windows Shells }
+            args:=args+' -Fl'+TestOutputDir+' -k-rpath -k.'
+        end;
+    end;
   if Config.NeedOptions<>'' then
-   args:=args+' '+Config.NeedOptions;
+   AppendOptions(Config.NeedOptions,args);
   wpoargs:='';
   if (Config.WpoPasses=0) or
      (Config.WpoParas='') then
@@ -703,9 +880,9 @@ begin
     begin
       if (passes>1) then
         begin
-          wpoargs:=' -OW'+config.wpoparas+' -FW'+TestOutputFileName(PPFile[current],'wp'+tostr(passnr));
+          wpoargs:=' -OW'+config.wpoparas+' -FW'+TestOutputFileName('',PPFile[current],'wp'+tostr(passnr));
           if (passnr>1) then
-            wpoargs:=wpoargs+' -Ow'+config.wpoparas+' -Fw'+TestOutputFileName(PPFile[current],'wp'+tostr(passnr-1));
+            wpoargs:=wpoargs+' -Ow'+config.wpoparas+' -Fw'+TestOutputFileName('',PPFile[current],'wp'+tostr(passnr-1));
         end;
       Verbose(V_Debug,'Executing '+compilerbin+' '+args+wpoargs);
       { also get the output from as and ld that writes to stderr sometimes }
@@ -754,7 +931,7 @@ begin
          if CopyFile(CompilerLogFile,LongLogFile,true)=0 then
            AddLog(LongLogFile,'Internal error in compiler');
          { avoid to try again }
-         AddLog(ExeLogFile,'Failed to compile '+PPFileInfo[current]);
+         AddLog(ExeLogFile,failed_to_compile+PPFileInfo[current]);
          Verbose(V_Warning,'Internal error in compiler');
          exit;
        end;
@@ -792,7 +969,7 @@ begin
          ((Config.KnownCompileError<>0) and (ExecuteResult=Config.KnownCompileError))) then
       begin
         AddLog(FailLogFile,TestName+known_problem+Config.KnownCompileNote);
-        AddLog(ResLogFile,failed_to_run+PPFileInfo[current]+known_problem+Config.KnownCompileNote);
+        AddLog(ResLogFile,failed_to_compile+PPFileInfo[current]+known_problem+Config.KnownCompileNote);
         AddLog(LongLogFile,line_separation);
         AddLog(LongLogFile,known_problem+Config.KnownCompileNote);
         AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
@@ -847,75 +1024,178 @@ begin
       begin
         delete(s,1,i+14-1);
         val(s,ExecuteResult,code);
-        if code=0 then;
-        CheckTestExitCode:=true;
+        if code=0 then
+          CheckTestExitCode:=true;
         break;
       end;
    end;
   close(t);
 end;
 
+function LibraryExists(const PPFile : string; out FileName : string) : boolean;
+begin
+   { Check if a dynamic library XXX was created }
+   { Windows XXX.dll style }
+  FileName:=TestOutputFilename('',PPFile,'dll');
+  if FileExists(FileName) then
+    begin
+      LibraryExists:=true;
+      exit;
+    end;
+   { Linux libXXX.so style }
+  FileName:=TestOutputFilename('lib',PPFile,'so');
+  if FileExists(FileName) then
+    begin
+      LibraryExists:=true;
+      exit;
+    end;
+   { Darwin libXXX.dylib style }
+  FileName:=TestOutputFilename('lib',PPFile,'dylib');
+  if FileExists(FileName) then
+    begin
+      LibraryExists:=true;
+      exit;
+    end;
+   { MacOS LibXXX style }
+  FileName:=TestOutputFilename('Lib',PPFile,'');
+  if FileExists(FileName) then
+    begin
+      LibraryExists:=true;
+      exit;
+    end;
+   { Netware wlic XXX.nlm style }
+  FileName:=TestOutputFilename('',PPFile,'nlm');
+  if FileExists(FileName) then
+    begin
+      LibraryExists:=true;
+      exit;
+    end;
+   { Amiga  XXX.library style }
+  FileName:=TestOutputFilename('',PPFile,'library');
+  if FileExists(FileName) then
+    begin
+      LibraryExists:=true;
+      exit;
+    end;
+  LibraryExists:=false;
+end;
+function ExecuteRemote(const prog,args:string;out StartTicks,EndTicks : int64):boolean;
+const
+  MaxTrials = 5;
+var
+  Trials : longint;
+  Res : boolean;
+begin
+  Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
+  StartTicks:=GetMicroSTicks;
+  Res:=false;
+  Trials:=0;
+  While (Trials<MaxTrials) and not Res do
+    begin
+      inc(Trials);
+      Res:=ExecuteRedir(prog,args,'',EXELogFile,'stdout');
+      if not Res then
+        Verbose(V_Debug,'Call to '+prog+' failed: '+
+          'IOStatus='+ToStr(IOStatus)+
+          ' RedirErrorOut='+ToStr(RedirErrorOut)+
+          ' RedirErrorIn='+ToStr(RedirErrorIn)+
+          ' RedirErrorError='+ToStr(RedirErrorError)+
+          ' ExecuteResult='+ToStr(ExecuteResult));
+    end;
+
+  if Trials>1 then
+    Verbose(V_Debug,'Done in '+tostr(trials)+' trials');
+  EndTicks:=GetMicroSTicks;
+  ExecuteRemote:=res;
+end;
+
+function ExecuteEmulated(const prog,args,FullExeLogFile:string;out StartTicks,EndTicks : int64):boolean;
+begin
+  Verbose(V_Debug,'EmulatorExecuting '+Prog+' '+args);
+  StartTicks:=GetMicroSTicks;
+  ExecuteEmulated:=ExecuteRedir(prog,args,'',FullExeLogFile,'stdout');
+  EndTicks:=GetMicroSTicks;
+end;
+
+
+function MaybeCopyFiles(const FileToCopy : string) : boolean;
+var
+  TestRemoteExe,
+  s : string;
+  pref     : string;
+  LocalFile, RemoteFile: string;
+  LocalPath: string;
+  index    : integer;
+  execres : boolean;
+  EndTicks,
+  StartTicks : int64;
+begin
+  if RemoteAddr='' then
+    begin
+      exit(false);
+    end;
+  execres:=true;
+  { We don't want to create subdirs, remove paths from the test }
+  TestRemoteExe:=RemotePath+'/'+SplitFileName(FileToCopy);
+  if deBefore in DelExecutable then
+    ExecuteRemote(rshprog,RemoteRshParas+' rm -f '+TestRemoteExe,
+                  StartTicks,EndTicks);
+  execres:=ExecuteRemote(rcpprog,RemotePara+' '+FileToCopy+' '+
+                         RemoteAddr+':'+TestRemoteExe,StartTicks,EndTicks);
+  if not execres then
+  begin
+    Verbose(V_normal, 'Could not copy executable '+FileToCopy);
+    exit(execres);
+  end;
+  s:=Config.Files;
+  if length(s) > 0 then
+  begin
+    LocalPath:=SplitPath(PPFile[current]);
+    if Length(LocalPath) > 0 then
+      LocalPath:=LocalPath+'/';
+    repeat
+      index:=pos(' ',s);
+      if index=0 then
+        LocalFile:=s
+      else
+        LocalFile:=copy(s,1,index-1);
+      RemoteFile:=RemotePath+'/'+SplitFileName(LocalFile);
+      LocalFile:=LocalPath+LocalFile;
+      if DoVerbose and (rcpprog='pscp') then
+        pref:='-v '
+      else
+        pref:='';
+      execres:=ExecuteRemote(rcpprog,pref+RemotePara+' '+LocalFile+' '+
+                             RemoteAddr+':'+RemoteFile,StartTicks,EndTicks);
+      if not execres then
+      begin
+        Verbose(V_normal, 'Could not copy required file '+LocalFile);
+        exit(false);
+      end;
+      if index=0 then
+        break;
+      s:=copy(s,index+1,length(s)-index);
+    until false;
+  end;
+  MaybeCopyFiles:=execres;
+end;
 
 function RunExecutable:boolean;
 const
-  MaxTrials = 5;
 {$ifdef unix}
   CurrDir = './';
 {$else}
   CurrDir = '';
 {$endif}
 var
-  s,
-  OldDir,
+  OldDir, s,
+  execcmd,
   FullExeLogFile,
   TestRemoteExe,
   TestExe  : string;
-  LocalFile, RemoteFile: string;
-  LocalPath: string;
-  execcmd,
-  pref     : string;
   execres  : boolean;
-  index    : integer;
   EndTicks,
   StartTicks : int64;
-  function ExecuteRemote(const prog,args:string):boolean;
-    var
-      Trials : longint;
-      Res : boolean;
-    begin
-      Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
-      StartTicks:=GetMicroSTicks;
-      Res:=false;
-      Trials:=0;
-      While (Trials<MaxTrials) and not Res do
-        begin
-          inc(Trials);
-          Res:=ExecuteRedir(prog,args,'',EXELogFile,'stdout');
-          if not Res then
-            Verbose(V_Debug,'Call to '+prog+' failed: '+
-              'IOStatus='+ToStr(IOStatus)+
-              ' RedirErrorOut='+ToStr(RedirErrorOut)+
-              ' RedirErrorIn='+ToStr(RedirErrorIn)+
-              ' RedirErrorError='+ToStr(RedirErrorError)+
-              ' ExecuteResult='+ToStr(ExecuteResult));
-        end;
-
-      if Trials>1 then
-        Verbose(V_Debug,'Done in '+tostr(trials)+' trials');
-      EndTicks:=GetMicroSTicks;
-      ExecuteRemote:=res;
-    end;
-
-  function ExecuteEmulated(const prog,args:string):boolean;
-    begin
-      Verbose(V_Debug,'EmulatorExecuting '+Prog+' '+args);
-      StartTicks:=GetMicroSTicks;
-      ExecuteEmulated:=ExecuteRedir(prog,args,'',FullExeLogFile,'stdout');
-      EndTicks:=GetMicroSTicks;
-   end;
-
-label
-  done;
 begin
   RunExecutable:=false;
   execres:=true;
@@ -933,68 +1213,46 @@ begin
       {$I+}
       ioresult;
       s:=CurrDir+SplitFileName(TestExe);
-      execres:=ExecuteEmulated(EmulatorName,s);
+      execres:=ExecuteEmulated(EmulatorName,s,FullExeLogFile,StartTicks,EndTicks);
       {$I-}
        ChDir(OldDir);
       {$I+}
     end
   else if RemoteAddr<>'' then
     begin
-      { We don't want to create subdirs, remove paths from the test }
+      execres:=MaybeCopyFiles(TestExe);
       TestRemoteExe:=RemotePath+'/'+SplitFileName(TestExe);
-      if deBefore in DelExecutable then
-        ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' rm -f '+TestRemoteExe);
-      execres:=ExecuteRemote(rcpprog,RemotePara+' '+TestExe+' '+RemoteAddr+':'+TestRemoteExe);
-      if not execres then
-      begin
-        Verbose(V_normal, 'Could not copy executable '+TestExe);
-        goto done;
-      end;
-      s:=Config.Files;
-      if length(s) > 0 then
-      begin
-        LocalPath:=SplitPath(PPFile[current]);
-        if Length(LocalPath) > 0 then
-          LocalPath:=LocalPath+'/';
-        repeat
-          index:=pos(' ',s);
-          if index=0 then
-            LocalFile:=s
-          else
-            LocalFile:=copy(s,1,index-1);
-          RemoteFile:=RemotePath+'/'+SplitFileName(LocalFile);
-          LocalFile:=LocalPath+LocalFile;
-          if DoVerbose and (rcpprog='pscp') then
-            pref:='-v '
-          else
-            pref:='';
-          execres:=ExecuteRemote(rcpprog,pref+RemotePara+' '+LocalFile+' '+RemoteAddr+':'+RemoteFile);
-          if not execres then
-          begin
-            Verbose(V_normal, 'Could not copy required file '+LocalFile);
-            goto done;
-          end;
-          if index=0 then
-            break;
-          s:=copy(s,index+1,length(s)-index);
-        until false;
-      end;
       { rsh doesn't pass the exitcode, use a second command to print the exitcode
         on the remoteshell to stdout }
       if DoVerbose and (rshprog='plink') then
-        execcmd:='-v '
+        execcmd:='-v '+RemoteRshParas
       else
-        execcmd:='';
-      execcmd:=execcmd+RemotePara+' '+RemoteAddr+' '+rquote+
+        execcmd:=RemoteRshParas;
+      execcmd:=execcmd+' '+rquote+
          'chmod 755 '+TestRemoteExe+
           ' ; cd '+RemotePath+' ; ';
+      { Using -rpath . at compile time does not seem
+        to work for programs copied over to remote machine,
+        at least not for FreeBSD.
+        Does this work for all shells? }
+      if Config.NeedLibrary then
+        begin
+          if RemoteShellNeedsExport then
+            execcmd:=execcmd+' LD_LIBRARY_PATH=.; export LD_LIBRARY_PATH;'
+          else
+            execcmd:=execcmd+' setenv LD_LIBRARY_PATH=.; ';
+        end;
+
+
       if UseTimeout then
       begin
-        execcmd:=execcmd+'timeout -9 ';
         if Config.Timeout=0 then
           Config.Timeout:=DefaultTimeout;
         str(Config.Timeout,s);
-        execcmd:=execcmd+s;
+        if (RemoteShellBase='bash') then
+          execcmd:=execcmd+'ulimit -t '+s+'; '
+        else
+          execcmd:=execcmd+'timeout -9 '+s;
       end;
       { as we moved to RemotePath, if path is not absolute
         we need to use ./execfilename only }
@@ -1005,11 +1263,12 @@ begin
       execcmd:=execcmd+' ; echo "TestExitCode: $?"';
       if (deAfter in DelExecutable) and
          not Config.NeededAfter then
-        execcmd:=execcmd+' ; rm -f '+TestRemoteExe;
+        execcmd:=execcmd+' ; rm -f '+SplitFileName(TestRemoteExe);
       execcmd:=execcmd+rquote;
-      execres:=ExecuteRemote(rshprog,execcmd);
+      execres:=ExecuteRemote(rshprog,execcmd,StartTicks,EndTicks);
       { Check for TestExitCode error in output, sets ExecuteResult }
-      CheckTestExitCode(EXELogFile);
+      if not CheckTestExitCode(EXELogFile) then
+        Verbose(V_Debug,'Failed to check exit code for '+execcmd);
     end
   else
     begin
@@ -1041,7 +1300,6 @@ begin
     begin
       Verbose(V_Normal,'Execution took '+ToStr(EndTicks-StartTicks)+' us');
     end;
-done:
   if (not execres) and (ExecuteResult=0) then
     begin
       AddLog(FailLogFile,TestName);
@@ -1102,6 +1360,37 @@ done:
     end;
 end;
 
+
+{ Try to collect information concerning the remote configuration
+  Currently only records RemoteShell name and sets
+  RemoteShellNeedsExport boolean variable }
+procedure SetRemoteConfiguration;
+var
+  f : text;
+  StartTicks,EndTicks : int64;
+begin
+  if RemoteAddr='' then
+    exit;
+  ExeLogFile:='__remote.tmp';
+  ExecuteRemote(rshprog,RemoteRshParas+
+                ' "echo SHELL=${SHELL}"',StartTicks,EndTicks);
+  Assign(f,ExeLogFile);
+  Reset(f);
+  While not eof(f) do
+    begin
+      Readln(f,RemoteShellBase);
+      if pos('SHELL=',RemoteShellBase)>0 then
+        begin
+          RemoteShell:=TrimSpace(Copy(RemoteShellBase,pos('SHELL=',RemoteShellBase)+6,
+                                      length(RemoteShellBase)));
+          Verbose(V_Debug,'Remote shell is "'+RemoteShell+'"');
+          RemoteShellBase:=SplitFileBase(RemoteShell);
+          if (RemoteShellBase='bash') or (RemoteShellBase='sh') then
+            RemoteShellNeedsExport:=true;
+        end;
+    end;
+  Close(f);
+end;
 
 procedure getargs;
 
@@ -1280,12 +1569,19 @@ begin
       DoGraph:=false;
       DoInteractive:=false;
     end;
+  { If we use PuTTY plink program with -load option,
+    the IP address or name should not be added to
+    the command line }
+  if (rshprog='plink') and (pos('-load',RemotePara)>0) then
+    RemoteRshParas:=RemotePara
+  else
+    RemoteRshParas:=RemotePara+' '+RemoteAddr;
 end;
 
 
 procedure RunTest;
 var
-  PPDir : string;
+  PPDir,LibraryName : string;
   Res : boolean;
 begin
   Res:=GetConfig(PPFile[current],Config);
@@ -1328,8 +1624,8 @@ begin
       else
         TestOutputDir:=OutputDir;
       { Per test logfiles }
-      CompilerLogFile:=TestOutputFileName(SplitFileName(PPFile[current]),'log');
-      ExeLogFile:=TestOutputFileName(SplitFileName(PPFile[current]),'elg');
+      CompilerLogFile:=TestOutputFileName('',SplitFileName(PPFile[current]),'log');
+      ExeLogFile:=TestOutputFileName('',SplitFileName(PPFile[current]),'elg');
       Verbose(V_Debug,'Using Compiler logfile: '+CompilerLogFile);
       Verbose(V_Debug,'Using Execution logfile: '+ExeLogFile);
     end;
@@ -1516,6 +1812,8 @@ begin
         AddLog(EXELogFile,skipping_run_test+PPFileInfo[current]);
         AddLog(ResLogFile,skipping_run_test+PPFileInfo[current]);
         Verbose(V_Debug,skipping_run_test);
+        if LibraryExists(PPFile[current],LibraryName) then
+          MaybeCopyFiles(LibraryName);
       end
      else if Config.IsKnownRunError and (not DoKnown) then
       begin
@@ -1528,16 +1826,21 @@ begin
       begin
         if DoExecute then
          begin
-           if FileExists(TestOutputFilename(PPFile[current],'ppu')) or
-              FileExists(TestOutputFilename(PPFile[current],'ppo')) or
-              FileExists(TestOutputFilename(PPFile[current],'ppw')) then
+           if FileExists(TestOutputFilename('',PPFile[current],'ppu')) or
+              FileExists(TestOutputFilename('',PPFile[current],'ppo')) or
+              FileExists(TestOutputFilename('',PPFile[current],'ppw')) then
              begin
                AddLog(ExeLogFile,skipping_run_unit+PPFileInfo[current]);
                AddLog(ResLogFile,skipping_run_unit+PPFileInfo[current]);
                Verbose(V_Debug,'Unit found, skipping run test')
              end
+           else if LibraryExists(PPFile[current],LibraryName) then
+             begin
+               Verbose(V_Debug,'Library found, skipping run test');
+               MaybeCopyFiles(LibraryName);
+             end
            else
-            Res:=RunExecutable;
+             Res:=RunExecutable;
          end;
       end;
    end;
@@ -1553,6 +1856,7 @@ begin
   GetArgs;
   SetTargetDirectoriesStyle;
   SetTargetCanCompileLibraries;
+  SetRemoteConfiguration;
 {$ifdef LIMIT83fs}
   UseOSOnly:=true;
 {$else not LIMIT83fs}

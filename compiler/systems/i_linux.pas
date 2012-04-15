@@ -289,7 +289,7 @@ unit i_linux;
             name         : 'Linux for PowerPC64';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_requires_proper_alignment,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_requires_proper_alignment,tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_powerpc64;
             unit_env     : '';
             extradefines : 'UNIX;HASUNIX';
@@ -452,8 +452,8 @@ unit i_linux;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 8;
-                loopalign       : 4;
+                procalign       : 16;
+                loopalign       : 8;
                 jumpalign       : 0;
                 constalignmin   : 0;
                 constalignmax   : 8;
@@ -534,6 +534,70 @@ unit i_linux;
             abi : abi_default
           );
 
+{$ifdef FPC_ARMHF}
+       system_arm_linux_info : tsysteminfo =
+          (
+            system       : system_arm_Linux;
+            name         : 'Linux for ARMHF';
+            shortname    : 'Linux';
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_requires_proper_alignment,
+                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+            cpu          : cpu_arm;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX;CPUARMHF';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 8;
+                maxCrecordalign : 8
+              );
+            first_parm_offset : 8;
+            stacksize    : 8*1024*1024;
+            abi : abi_eabihf
+          );
+{$else FPC_ARMHF}
 {$ifdef FPC_ARMEL}
        system_arm_linux_info : tsysteminfo =
           (
@@ -726,6 +790,7 @@ unit i_linux;
           );
 {$endif FPC_ARMEB}
 {$endif FPC_ARMEL}
+{$endif FPC_ARMHF}
 
        system_mips_linux_info : tsysteminfo =
           (
@@ -737,7 +802,7 @@ unit i_linux;
                             tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_mips;
             unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX;HASUNIX';
+            extradefines : 'UNIX;HASUNIX;CPUMIPS32';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -801,7 +866,7 @@ unit i_linux;
                             tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_mipsel;
             unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX;HASUNIX;MIPSEL';
+            extradefines : 'UNIX;HASUNIX;MIPSEL;CPUMIPS32';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';

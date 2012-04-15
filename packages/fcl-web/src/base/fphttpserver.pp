@@ -111,6 +111,8 @@ Type
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
   Protected
+    Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); virtual;
+    Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); virtual;
     // Create a connection handling object.
     function CreateConnection(Data : TSocketStream) : TFPHTTPConnection; virtual;
     // Create a connection handling thread.
@@ -226,6 +228,7 @@ procedure TFPHTTPConnectionRequest.SetContent(AValue : String);
 begin
   FContent:=Avalue;
   FContentRead:=true;
+  InitRequestVars;
 end;
 (*
 Procedure TFPHTTPConnectionRequest.SetFieldValue(Index : Integer; Value : String);
@@ -428,6 +431,7 @@ Var
   StartLine,S : String;
 begin
   Result:=TFPHTTPConnectionRequest.Create;
+  Server.InitRequest(Result);
   Result.FConnection:=Self;
   StartLine:=ReadString;
   ParseStartLine(Result,StartLine);
@@ -470,6 +474,7 @@ begin
     // Create Response
     Resp:= TFPHTTPConnectionResponse.Create(Req);
     try
+      Server.InitResponse(Resp);
       Resp.FConnection:=Self;
       // And dispatch
       if Server.Active then
@@ -554,6 +559,17 @@ begin
   if FThreaded=AValue then exit;
   CheckInactive;
   FThreaded:=AValue;
+end;
+
+procedure TFPCustomHttpServer.InitRequest(ARequest: TFPHTTPConnectionRequest);
+begin
+
+end;
+
+procedure TFPCustomHttpServer.InitResponse(AResponse: TFPHTTPConnectionResponse
+  );
+begin
+
 end;
 
 function TFPCustomHttpServer.CreateConnection(Data: TSocketStream): TFPHTTPConnection;

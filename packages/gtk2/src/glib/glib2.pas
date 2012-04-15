@@ -38,7 +38,7 @@ uses
   ctypes,SysUtils;
 
 const
-{$ifdef win32}
+{$ifdef windows}
   {$define gtkwin}
   gliblib    = 'libglib-2.0-0.dll';
   gthreadlib = 'libgthread-2.0-0.dll';

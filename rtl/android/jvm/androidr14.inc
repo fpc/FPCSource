@@ -22082,26 +22082,6 @@
     function size(): jint; overload; virtual;
   end;
 
-  JUWeakHashMap = class external 'java.util' name 'WeakHashMap' (JUAbstractMap, JUMap)
-  public
-    constructor create(); overload;
-    constructor create(para1: jint); overload;
-    constructor create(para1: jint; para2: jfloat); overload;
-    constructor create(para1: JUMap); overload;
-    procedure clear(); overload; virtual;
-    function containsKey(para1: JLObject): jboolean; overload; virtual;
-    function entrySet(): JUSet; overload; virtual;
-    function keySet(): JUSet; overload; virtual;
-    function values(): JUCollection; overload; virtual;
-    function get(para1: JLObject): JLObject; overload; virtual;
-    function containsValue(para1: JLObject): jboolean; overload; virtual;
-    function isEmpty(): jboolean; overload; virtual;
-    function put(para1: JLObject; para2: JLObject): JLObject; overload; virtual;
-    procedure putAll(para1: JUMap); overload; virtual;
-    function remove(para1: JLObject): JLObject; overload; virtual;
-    function size(): jint; overload; virtual;
-  end;
-
   JUGregorianCalendar = class external 'java.util' name 'GregorianCalendar' (JUCalendar)
   public
     const

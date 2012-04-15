@@ -87,7 +87,7 @@ unit cpubase;
 
       { MM Super register first and last }
       first_mm_supreg    = RS_S0;
-      first_mm_imreg     = $20;
+      first_mm_imreg     = $30;
 
 { TODO: Calculate bsstart}
       regnumber_count_bsstart = 64;
@@ -106,7 +106,7 @@ unit cpubase;
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_R0..RS_R3,RS_R12..RS_R14];
       VOLATILE_FPUREGISTERS = [RS_F0..RS_F3];
-      VOLATILE_MMREGISTERS =  [RS_D0..RS_D7,RS_D16..RS_D31];
+      VOLATILE_MMREGISTERS =  [RS_D0..RS_D7,RS_D16..RS_D31,RS_S1..RS_S15];
 
       VOLATILE_INTREGISTERS_DARWIN = [RS_R0..RS_R3,RS_R9,RS_R12..RS_R14];
 
@@ -233,13 +233,6 @@ unit cpubase;
 *****************************************************************************}
 
     const
-      firstsaveintreg = RS_R4;
-      lastsaveintreg  = RS_R10;
-      firstsavefpureg = RS_F4;
-      lastsavefpureg  = RS_F7;
-      firstsavemmreg  = RS_D8;
-      lastsavemmreg   = RS_D15;
-
       maxvarregs = 7;
       varregs : Array [1..maxvarregs] of tsuperregister =
                 (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
@@ -269,9 +262,9 @@ unit cpubase;
       { Stack pointer register }
       NR_STACK_POINTER_REG = NR_R13;
       RS_STACK_POINTER_REG = RS_R13;
-      { Frame pointer register }
-      RS_FRAME_POINTER_REG = RS_R11;
-      NR_FRAME_POINTER_REG = NR_R11;
+      { Frame pointer register (initialized in tarmprocinfo.init_framepointer) }
+      RS_FRAME_POINTER_REG: tsuperregister = RS_NO;
+      NR_FRAME_POINTER_REG: tregister = NR_NO;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -286,7 +279,7 @@ unit cpubase;
 
       NR_FPU_RESULT_REG = NR_F0;
 
-      NR_MM_RESULT_REG  = NR_NO;
+      NR_MM_RESULT_REG  = NR_D0;
 
       NR_RETURN_ADDRESS_REG = NR_FUNCTION_RETURN_REG;
 

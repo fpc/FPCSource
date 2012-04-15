@@ -20,17 +20,23 @@
 
 Const
   { For sending a signal }
-{$ifdef SPARC}
+{$ifdef CPUSPARC}
   SA_SIGINFO   = $200;
   SA_NOMASK    = $20;
 
   SIG_BLOCK   = 1;
   SIG_UNBLOCK = 2;
   SIG_SETMASK = 4;
-{$else SPARC}
+{$else CPUSPARC}
+{$ifdef CPUMIPS}
+  SA_NOCLDSTOP = 1;
+  SA_NOCLDWAIT = $10000;
+  SA_SIGINFO   = 8;
+{$else CPUMIPS}
   SA_NOCLDSTOP = 1;
   SA_NOCLDWAIT = 2;
   SA_SIGINFO   = 4;
+{$endif CPUMIPS}
   SA_RESTORER  = $04000000;
   SA_ONSTACK   = $08000000;
   SA_RESTART   = $10000000;
@@ -44,7 +50,7 @@ Const
   SIG_BLOCK   = 0;
   SIG_UNBLOCK = 1;
   SIG_SETMASK = 2;
-{$endif SPARC}
+{$endif CPUSPARC}
 
   SIG_DFL = 0 ;
   SIG_IGN = 1 ;
@@ -186,14 +192,14 @@ type
   signalhandler_t = procedure(signal: longint); cdecl;
   sigactionhandler_t = procedure(signal: longint; info: psiginfo; context: psigcontext); cdecl;
   sigrestorerhandler_t = procedure; cdecl;
-      
+
   signalhandler = signalhandler_t;
   sigactionhandler = sigactionhandler_t;
   sigrestorerhandler = sigrestorerhandler_t;
   tsignalhandler = signalhandler_t;
   tsigactionhandler = sigactionhandler_t;
   tsigrestorerhandler = sigrestorerhandler_t;
-  
+
   psigactionrec = ^sigactionrec;
 
 {$ifdef FPC_USE_LIBC}  // libc order is different ?

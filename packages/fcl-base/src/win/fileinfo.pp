@@ -226,7 +226,7 @@ begin
   s:=LowerCase(inp);
   I:=0;
   Result:='';
-  While (Result='') and (i<FmyVersionCategories.Count -1) do
+  While (Result='') and (i<FmyVersionCategories.Count) do
     begin
     V:=FmyVersionCategories[i];
     if (V=S) and ((transid=0) or (transid=dword(pointer(FmyVersionCategories.Objects[i])))) then

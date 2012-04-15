@@ -26,11 +26,13 @@ Type
 Const
   NilHandle = TLibHandle(0);
 // these are for easier crossplatform construction of dll names in dynloading libs.
-{$ifdef Darwin}
+{$if defined(Darwin)}
   SharedSuffix = 'dylib';
-{$else Darwin}
+{$elseif defined(aix)}
+  SharedSuffix = 'a';
+{$else}
   SharedSuffix = 'so';
-{$endif Darwin}
+{$endif}
 
 {$else}
 
@@ -41,9 +43,24 @@ Const
 uses dl;
 
 Function LoadLibrary(const Name : AnsiString) : TLibHandle;
-
+{$ifdef aix}
+var
+  MemberName: AnsiString;
+{$endif}
 begin
+{$ifndef aix}
   Result:=TLibHandle(dlopen(Pchar(Name),RTLD_LAZY));
+{$else aix}
+  { in aix, most shared libraries are static libraries (archives) that contain
+    a single object: shr.o for 32 bit, shr_64.o for 64 bit. You have to specify
+    this object file explicitly via the RTLD_MEMBER member flag }
+{$ifdef cpu64}
+  MemberName:=Name+'(shr_64.o)';
+{$else cpu64}
+  MemberName:=Name+'(shr.o)';
+{$endif cpu64}
+  Result:=TLibHandle(dlopen(Pchar(MemberName),RTLD_LAZY or RTLD_MEMBER));
+{$endif aix}
 end;
 
 Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;

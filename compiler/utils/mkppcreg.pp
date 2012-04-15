@@ -12,6 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
 program mkppcreg;
 
 const Version = '1.00';
@@ -45,9 +46,6 @@ end;
 
 function readstr : string;
 
-  var
-     result : string;
-
   begin
      result:='';
      while (s[i]<>',') and (i<=length(s)) do
@@ -55,7 +53,6 @@ function readstr : string;
           result:=result+s[i];
           inc(i);
        end;
-     readstr:=result;
   end;
 
 
@@ -78,7 +75,7 @@ procedure skipspace;
        inc(i);
   end;
 
-procedure openinc(var f:text;const fn:string);
+procedure openinc(out f:text;const fn:string);
 begin
   writeln('creating ',fn);
   assign(f,fn);
@@ -353,7 +350,7 @@ begin
   closeinc(grifile);
   closeinc(mrifile);
   writeln('Done!');
-  writeln(regcount,' registers procesed');
+  writeln(regcount,' registers processed');
 end;
 
 

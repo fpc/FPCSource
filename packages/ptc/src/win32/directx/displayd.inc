@@ -35,13 +35,13 @@ type
   private
     FOpen: Boolean;
     FFullscreen: Boolean;
-    FMode: TPTCMode;
+    FMode: IPTCMode;
     FWindow: HWND;
     FDDraw: IDirectDraw2;
     FModesCount: Integer;
     FResolutionsCount: Integer;
-    FModes: array of TPTCMode;
-    FResolutions: array of TPTCMode;
+    FModes: array of IPTCMode;
+    FResolutions: array of IPTCMode;
     FInformation: string;
 
     FCursorSaved: Boolean;
@@ -50,25 +50,25 @@ type
     FForegroundRect: RECT;
     FForegroundPlacement: WINDOWPLACEMENT;}
 
-    procedure internal_open(const AMode: TPTCMode; AExact: Boolean; AFrequency: Integer);
-    procedure internal_open_nearest(const AMode: TPTCMode; AExact: Boolean; AFrequency: Integer);
+    procedure internal_open(const AMode: IPTCMode; AExact: Boolean; AFrequency: Integer);
+    procedure internal_open_nearest(const AMode: IPTCMode; AExact: Boolean; AFrequency: Integer);
     procedure internal_dispose_modes;
     procedure internal_dispose_resolutions;
 
-    function GetModes: PPTCMode;
+    function GetModes: TPTCModeList;
   public
     constructor Create;
     destructor Destroy; override;
     procedure Setup(const ADDraw: IDirectDraw2);
-    function Test(const AMode: TPTCMode; AExact: Boolean): Boolean;
+    function Test(const AMode: IPTCMode; AExact: Boolean): Boolean;
     procedure Cooperative(AWindow: HWND; AFullscreen: Boolean);
     procedure Open;
-    procedure Open(const AMode: TPTCMode; AExact: Boolean; AFrequency: Integer);
+    procedure Open(const AMode: IPTCMode; AExact: Boolean; AFrequency: Integer);
     procedure Close;
     procedure Save;
     procedure Restore;
-    property Modes: PPTCMode read GetModes;
-    property Mode: TPTCMode read FMode;
+    property Modes: TPTCModeList read GetModes;
+    property Mode: IPTCMode read FMode;
     property Fullscreen: Boolean read FFullscreen;
     property Information: string read FInformation;
   end;

@@ -14,7 +14,7 @@ begin
 
     P:=AddPackage('fcl-stl');
 {$ifdef ALLPACKAGES}
-    P.Directory:='fcl-async';
+    P.Directory:='fcl-stl';
 {$endif ALLPACKAGES}
 
     P.Version:='2.7.1';

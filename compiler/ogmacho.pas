@@ -1214,6 +1214,7 @@ implementation
         flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf{, af_stabs_use_function_absolute_addresses}];
         labelprefix : '.L';
         comment : '#';
+        dollarsign: '$';
       );
 
 initialization

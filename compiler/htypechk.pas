@@ -173,6 +173,10 @@ interface
 
     procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
 
+    { returns whether the def may be used in the Default() intrinsic; static
+      arrays, records and objects are checked recursively }
+    function is_valid_for_default(def:tdef):boolean;
+
 implementation
 
     uses
@@ -992,34 +996,38 @@ implementation
                        begin
                          { Give warning/note for uninitialized locals }
                          if assigned(hsym.owner) and
-                           not(cs_opt_nodedfa in current_settings.optimizerswitches) and
                             not(vo_is_external in hsym.varoptions) and
                             (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
                             ((hsym.owner=current_procinfo.procdef.localst) or
                              (hsym.owner=current_procinfo.procdef.parast)) then
                            begin
-                             if (vo_is_funcret in hsym.varoptions) then
+                             if vsf_use_hints in varstateflags then
+                               include(tloadnode(p).loadnodeflags,loadnf_only_uninitialized_hint);
+                             if not(cs_opt_nodedfa in current_settings.optimizerswitches) then
                                begin
-                                 if (vsf_use_hints in varstateflags) then
-                                   CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
-                                 else
-                                   CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
-                               end
-                             else
-                               begin
-                                 if tloadnode(p).symtable.symtabletype=localsymtable then
+                                 if (vo_is_funcret in hsym.varoptions) then
                                    begin
                                      if (vsf_use_hints in varstateflags) then
-                                       CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
+                                       CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
                                      else
-                                       CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
+                                       CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
                                    end
                                  else
                                    begin
-                                     if (vsf_use_hints in varstateflags) then
-                                       CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
+                                     if tloadnode(p).symtable.symtabletype=localsymtable then
+                                       begin
+                                         if (vsf_use_hints in varstateflags) then
+                                           CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
+                                         else
+                                           CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
+                                       end
                                      else
-                                       CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
+                                       begin
+                                         if (vsf_use_hints in varstateflags) then
+                                           CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
+                                         else
+                                           CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
+                                       end;
                                    end;
                                end;
                            end
@@ -1091,7 +1099,8 @@ implementation
             result:=false;
             { allow p^:= constructions with p is const parameter }
             if gotderef or gotdynarray or (Valid_Const in opts) or
-              (nf_isinternal_ignoreconst in hp.flags) then
+              ((hp.nodetype=loadn) and
+               (loadnf_isinternal_ignoreconst in tloadnode(hp).loadnodeflags)) then
               result:=true
             { final (class) fields can only be initialised in the (class) constructors of
               class in which they have been declared (not in descendent constructors) }
@@ -1181,6 +1190,8 @@ implementation
                       (gotderef) or
                       { same when we got a class and subscript (= deref) }
                       (gotclass and gotsubscript) or
+                      { indexing a dynamic array = dereference }
+                      (gotdynarray and gotvec) or
                       (
                        { allowing assignments to typecasted properties
                            a) is Delphi-incompatible
@@ -1194,7 +1205,8 @@ implementation
                        }
                        not(gottypeconv) and
                        not(gotsubscript and gotrecord) and
-                       not(gotstring and gotvec)
+                       not(gotstring and gotvec) and
+                       not(nf_no_lvalue in hp.flags)
                       ) then
                      result:=true
                    else
@@ -1204,14 +1216,11 @@ implementation
                else
                  begin
                    { 1. if it returns a pointer and we've found a deref,
-                     2. if it returns a class or record and a subscription or with is found
+                     2. if it returns a class and a subscription or with is found
                      3. if the address is needed of a field (subscriptn, vecn) }
                    if (gotpointer and gotderef) or
                       (gotstring and gotvec) or
-                      (
-                       (gotclass or gotrecord) and
-                       (gotsubscript)
-                      ) or
+                      (gotclass and gotsubscript) or
                       (
                         (gotvec and gotdynarray)
                       ) or
@@ -1339,8 +1348,12 @@ implementation
                      exit;
                    end;
                  gotvec:=true;
-                 { accesses to dyn. arrays override read only access in delphi }
-                 if (m_delphi in current_settings.modeswitches) and is_dynamic_array(tunarynode(hp).left.resultdef) then
+                 { accesses to dyn. arrays override read only access in delphi
+                   -- now also in FPC, because the elements of a dynamic array
+                      returned by a function can also be changed, or you can
+                      assign the dynamic array to a variable and then change
+                      its elements anyway }
+                 if is_dynamic_array(tunarynode(hp).left.resultdef) then
                    gotdynarray:=true;
                  hp:=tunarynode(hp).left;
                end;
@@ -1770,19 +1783,6 @@ implementation
               if (p.resultdef.typ=stringdef) and
                  (tstringdef(def_to).stringtype=tstringdef(p.resultdef).stringtype) then
                 eq:=te_equal
-              else
-              { Passing a constant char to ansistring or shortstring or
-                a widechar to widestring then handle it as equal. }
-               if (p.left.nodetype=ordconstn) and
-                  (
-                   is_char(p.resultdef) and
-                   (is_shortstring(def_to) or is_ansistring(def_to))
-                  ) or
-                  (
-                   is_widechar(p.resultdef) and
-                   (is_widestring(def_to) or is_unicodestring(def_to))
-                  ) then
-                eq:=te_equal
             end;
           setdef :
             begin
@@ -1995,12 +1995,11 @@ implementation
                   not hasoverload then
                  break;
              end;
-           if is_objectpascal_helper(structdef) then
+           if is_objectpascal_helper(structdef) and
+              (tobjectdef(structdef).typ in [recorddef,objectdef]) then
              begin
-               if not assigned(tobjectdef(structdef).extendeddef) then
-                 Internalerror(2011062601);
                { search methods in the extended type as well }
-               srsym:=tprocsym(tobjectdef(structdef).extendeddef.symtable.FindWithHash(hashedid));
+               srsym:=tprocsym(tabstractrecorddef(tobjectdef(structdef).extendeddef).symtable.FindWithHash(hashedid));
                if assigned(srsym) and
                   { Delphi allows hiding a property by a procedure with the same name }
                   (srsym.typ=procsym) then
@@ -2107,6 +2106,7 @@ implementation
         st    : TSymtable;
         contextstructdef : tabstractrecorddef;
         ProcdefOverloadList : TFPObjectList;
+        cpoptions : tcompare_paras_options;
       begin
         FCandidateProcs:=nil;
 
@@ -2157,7 +2157,7 @@ implementation
             ((FProcSymtable.symtabletype=withsymtable) and
              (FProcSymtable.defowner.typ in [objectdef,recorddef]))
            ) and
-           (FProcSymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+           (FProcSymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) and
            FProcSymtable.defowner.owner.iscurrentunit then
           contextstructdef:=tabstractrecorddef(FProcSymtable.defowner)
         else
@@ -2196,11 +2196,16 @@ implementation
                ) then
               begin
                 { don't add duplicates, only compare visible parameters for the user }
+                cpoptions:=[cpo_ignorehidden];
+                if (po_compilerproc in pd.procoptions) then
+                  cpoptions:=cpoptions+[cpo_compilerproc];
+                if (po_rtlproc in pd.procoptions) then
+                  cpoptions:=cpoptions+[cpo_rtlproc];
                 found:=false;
                 hp:=FCandidateProcs;
                 while assigned(hp) do
                   begin
-                    if (compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,[cpo_ignorehidden])>=te_equal) and
+                    if (compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,cpoptions)>=te_equal) and
                        (not(po_objc in pd.procoptions) or
                         (pd.messageinf.str^=hp^.data.messageinf.str^)) then
                       begin
@@ -2348,13 +2353,12 @@ implementation
         cdoptions : tcompare_defs_options;
         n : tnode;
 
-    {$ifopt r+}{$define ena_r}{$r-}{$endif}
-    {$ifopt q+}{$define ena_q}{$q-}{$endif}
+    {$push}
+    {$r-}
+    {$q-}
       const
         inf=1.0/0.0;
-    {$ifdef ena_r}{$r+}{$endif}
-    {$ifdef ena_q}{$q+}{$endif}
-
+    {$pop}
       begin
         cdoptions:=[cdo_check_operator];
         if FAllowVariant then
@@ -2522,7 +2526,17 @@ implementation
               else
               { generic type comparision }
                begin
-                 eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
+                 if not(po_compilerproc in hp^.data.procoptions) and
+                    not(po_rtlproc in hp^.data.procoptions) and
+                    is_ansistring(currpara.vardef) and
+                    is_ansistring(currpt.left.resultdef) and
+                    (tstringdef(currpara.vardef).encoding<>tstringdef(currpt.left.resultdef).encoding) and
+                    ((tstringdef(currpara.vardef).encoding=globals.CP_NONE) or
+                     (tstringdef(currpt.left.resultdef).encoding=globals.CP_NONE)
+                    ) then
+                   eq:=te_convert_l1
+                 else
+                   eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
 
                  { when the types are not equal we need to check
                    some special case for parameter passing }
@@ -3068,6 +3082,53 @@ implementation
                  MessagePos(location,type_h_smaller_possible_range_check);
              end;
          end;
+      end;
+
+    function is_valid_for_default(def:tdef):boolean;
+
+      function is_valid_record_or_object(def:tabstractrecorddef):boolean;
+        var
+          sym : tsym;
+          i : longint;
+        begin
+          for i:=0 to def.symtable.symlist.count-1 do
+            begin
+              sym:=tsym(def.symtable.symlist[i]);
+              if sym.typ<>fieldvarsym then
+                continue;
+              if not is_valid_for_default(tfieldvarsym(sym).vardef) then
+                begin
+                  result:=false;
+                  exit;
+                end;
+            end;
+          result:=true;
+        end;
+
+      begin
+        case def.typ of
+          recorddef:
+            result:=is_valid_record_or_object(tabstractrecorddef(def));
+          objectdef:
+            if is_implicit_pointer_object_type(def) then
+              result:=true
+            else
+              if is_object(def) then
+                result:=is_valid_record_or_object(tabstractrecorddef(def))
+              else
+                result:=false;
+          arraydef:
+            if not (ado_isdynamicarray in tarraydef(def).arrayoptions) then
+              result:=is_valid_for_default(tarraydef(def).elementdef)
+            else
+              result:=true;
+          formaldef,
+          abstractdef,
+          filedef:
+            result:=false;
+          else
+            result:=true;
+        end;
       end;
 
 

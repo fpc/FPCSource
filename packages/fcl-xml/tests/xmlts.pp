@@ -37,6 +37,8 @@ const
   parserName = parser;
   os = 'Unknown OS';
   runtime = 'FPC RTL';
+  { Defines which tests to skip (sets for editions 1-4 and edition 5 are mutually exclusive) }
+  FifthEditionCompliant = True;
 
 
 type
@@ -77,6 +79,7 @@ type
     destructor Destroy; override;
   end;
 
+{ obsolete, now TDOMNode.BaseURI does the job }
 function GetBaseURI(Element: TDOMNode; const DocumentURI: string): string;
 var
   Ent: TDOMNode;
@@ -306,10 +309,10 @@ var
   I: Integer;
 begin
   FRootURI := FilenameToURI(Tests);
+  writeln('Loading test suite from ', Tests);
   ReadXMLFile(FDoc, Tests);
   FSuiteTitle := FDoc.DocumentElement['PROFILE'];
   Cases := FDoc.DocumentElement.GetElementsByTagName('TEST');
-  writeln('Using test suite: ', Tests);
   writeln;
   writeln('Testing, validation = ', FValidating);
   try
@@ -342,31 +345,33 @@ end;
 
 procedure TTestSuite.RunTest(Element: TDOMElement);
 var
-  s: UTF8string;
+  s: string;
   TestType: DOMString;
   TempDoc, RefDoc: TXMLDocument;
   table: TDOMNode;
   Positive: Boolean;
-  outURI: UTF8string;
+  outURI: string;
   FailMsg: string;
   ExceptionClass: TClass;
   docNode, refNode: TDOMNode;
   docMap, refMap: TDOMNamedNodeMap;
   docN, refN: TDOMNotation;
   I: Integer;
-  root: UTF8String;
+  root: string;
+  xmlEdition: DOMString;
 begin
   FErrLine := -1;
   FErrCol := -1;
   FTestID := Element['ID'];
   TestType := Element['TYPE'];
-  if Pos(WideChar('5'), Element['EDITION']) > 0 then
+  xmlEdition := Element['EDITION'];
+  if (xmlEdition <> '') and ((Pos(WideChar('5'), Element['EDITION']) = 0) = FifthEditionCompliant) then
   begin
     Inc(FSkipped);
     Exit;
   end;
 
-  root := GetBaseURI(Element, FRootUri);
+  root := Element.BaseURI;
   ResolveRelativeURI(root, UTF8Encode(Element['URI']), s);
 
   table := nil;

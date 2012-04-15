@@ -35,19 +35,13 @@ PROGRAM testapp;
 {    follow in windows.                                                 }
 { ****************************** END REMARK *** Leon de Boer, 06Nov99 * }
 
-{$I Platform.inc}
+{$I platform.inc}
   USES
 {$IFDEF OS2PM}
      {$IFDEF OS_OS2} Os2Def, os2PmApi,  {$ENDIF}
 {$ENDIF OS2PM}
      Objects, Drivers, Views, Editors, Menus, Dialogs, App,             { Standard GFV units }
-     FVConsts,
-     {$ifdef TEST}
-     AsciiTab,
-     {$endif TEST}
-     {$ifdef DEBUG}
-     Gfvgraph,
-     {$endif DEBUG}
+     FVConsts, AsciiTab,
      Gadgets, TimedDlg, MsgBox, StdDlg;
 
 
@@ -61,6 +55,10 @@ CONST cmAppToolbar = 1000;
       cmCloseWindow2    = 1102;
       cmCloseWindow3    = 1103;
 
+{$ifdef DEBUG}
+CONST
+     WriteDebugInfo : boolean = true;
+{$endif DEBUG}
 
 {---------------------------------------------------------------------------}
 {          TTestAppp OBJECT - STANDARD APPLICATION WITH MENU                }
@@ -75,9 +73,7 @@ TYPE
         Clock: PClockView;
         Heap: PHeapView;
         P1,P2,P3 : PGroup;
-     {$ifdef TEST}
         ASCIIChart : PAsciiChart;
-     {$endif TEST}
       CONSTRUCTOR Init;
       PROCEDURE Idle; Virtual;
       PROCEDURE HandleEvent(var Event : TEvent);virtual;
@@ -297,7 +293,6 @@ END;
 
 PROCEDURE TTvDemo.AsciiWindow;
 begin
-{$ifdef TEST}
   if ASCIIChart=nil then
     begin
       New(ASCIIChart, Init);
@@ -305,7 +300,6 @@ begin
     end
   else
     ASCIIChart^.Focus;
-{$endif TEST}
 end;
 
 PROCEDURE TTVDemo.ShowAboutBox;

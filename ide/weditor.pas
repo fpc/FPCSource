@@ -59,7 +59,7 @@ const
       cmExpandFold           = 51267;
       cmDelToEndOfWord       = 51268;
       cmInputLineLen         = 51269;
-      
+
       EditorTextBufSize = 32768;
       MaxLineLength     = 255;
       MaxLineCount      = 2000000;
@@ -711,7 +711,7 @@ type
          Procedure   HandleEvent(var Event : TEvent);virtual;
     end;
     PEditorInputLine = ^TEditorInputLine;
- 
+
     TSearchHelperDialog = object(TDialog)
              OkButton: PButton;
              Procedure   HandleEvent(var Event : TEvent);virtual;
@@ -771,7 +771,11 @@ uses
   WinClip,
 {$endif WinClipSupported}
 {$ifdef TEST_REGEXP}
-  regexpr,
+  {$ifdef USE_OLD_REGEXP}
+    oldregexpr,
+  {$else not USE_OLD_REGEXP}
+    regexpr,
+  {$endif not USE_OLD_REGEXP}
 {$endif TEST_REGEXP}
   WConsts,WCEdit;
 
@@ -6946,13 +6950,13 @@ begin
      evBroadcast :
            case Event.Command of
                    cminputlinelen : begin
-                                      if Event.InfoLong=0 then
-                                        okbutton^.DisableCommands([cmok]) 
+                                      if PtrInt(Event.InfoPtr)=0 then
+                                        okbutton^.DisableCommands([cmok])
                                       else
                                         okbutton^.EnableCommands([cmok]);
                                       clearevent(event);
                                     end;
-             end;      
+             end;
        end;
   inherited HandleEvent(Event);
 end;

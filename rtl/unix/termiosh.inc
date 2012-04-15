@@ -14,12 +14,12 @@
  ***********************************************************************}
 
 { SunOS provides these functions directly }
-{$ifndef SunOS}
+{$if not defined(SunOS) and not defined(aix)}
 Function  TCGetAttr   (fd:cint;var tios:TermIOS):cint; inline;
 Function  TCSetAttr   (fd:cint;OptAct:cint;const tios:TermIOS):cint;
 Procedure CFSetISpeed (var tios:TermIOS;speed:Cardinal); inline;
 Procedure CFSetOSpeed (var tios:TermIOS;speed:Cardinal); inline;
-{$endif SunOS}
+{$endif SunOS or aix}
 Procedure CFMakeRaw   (var tios:TermIOS);
 Function  TCSendBreak (fd,duration:cint):cint; inline;
 Function  TCSetPGrp   (fd,id:cint)  :cint;  inline;

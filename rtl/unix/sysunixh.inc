@@ -54,12 +54,10 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
-{$ifndef Solaris}
-{$ifndef Darwin}
+{$if not defined(solaris) and not defined(darwin) and not defined(aix)}
 var argc:longint;external name 'operatingsystem_parameter_argc';
     argv:PPchar;external name 'operatingsystem_parameter_argv';
     envp:PPchar;external name 'operatingsystem_parameter_envp';
-{$endif}
 {$endif}
 
 {$ifdef unix}

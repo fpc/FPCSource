@@ -19,6 +19,7 @@ begin
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
 //    P.Dependencies.Add('x11');
 
     T:=P.Targets.AddUnit('det.pas');

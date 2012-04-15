@@ -10,7 +10,7 @@ version=2.5.1
 dirs=src/base src/webdata src/jsonrpc
 
 [require]
-packages=fcl-base fcl-xml fcl-db fcl-json fcl-net fcl-process
+packages=fcl-base fcl-xml fcl-db fcl-json fcl-net fcl-process fastcgi httpd22
 
 [compiler]
 options=-S2h

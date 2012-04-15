@@ -24,11 +24,15 @@ Type
   TCharsetDecoderThreadvar = class(JLThreadLocal)
    protected
     function initialValue: JLObject; override;
+   public
+    function getForCodePage(cp: TSystemCodePage): JNCCharsetDecoder;
   end;
 
   TCharsetEncoderThreadvar = class(JLThreadLocal)
    protected
     function initialValue: JLObject; override;
+   public
+    function getForCodePage(cp: TSystemCodePage): JNCCharsetEncoder;
   end;
 
   { hooks for internationalization
@@ -42,8 +46,8 @@ Type
 
     class constructor ClassCreate;
 
-    procedure Wide2AnsiMoveProc(source:pwidechar;var dest:ansistring;len:SizeInt); virtual;
-    procedure Ansi2WideMoveProc(source:pchar;var dest:widestring;len:SizeInt); virtual;
+    procedure Wide2AnsiMoveProc(source:pwidechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt); virtual;
+    procedure Ansi2WideMoveProc(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt); virtual;
 
     function UpperWideStringProc(const S: WideString): WideString; virtual;
     function LowerWideStringProc(const S: WideString): WideString; virtual;
@@ -86,8 +90,8 @@ Type
 //    ThreadFiniProc : procedure;
 
     { this is only different on windows }
-    procedure Unicode2AnsiMoveProc(source:punicodechar;var dest:ansistring;len:SizeInt); virtual;
-    procedure Ansi2UnicodeMoveProc(source:pchar;var dest:unicodestring;len:SizeInt); virtual;
+    procedure Unicode2AnsiMoveProc(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt); virtual;
+    procedure Ansi2UnicodeMoveProc(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt); virtual;
     function UpperUnicodeStringProc(const S: UnicodeString): UnicodeString; virtual;
     function LowerUnicodeStringProc(const S: UnicodeString): UnicodeString; virtual;
     function CompareUnicodeStringProc(const s1, s2 : UnicodeString) : PtrInt; virtual;

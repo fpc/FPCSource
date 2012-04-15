@@ -16,7 +16,7 @@
 
 function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];nostackframe; compilerproc;
   asm
-    {$if defined(FPUVFPV2) or defined(FPUVFPV3)}
+    {$if defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_D16)}
     {$if defined(CPUARMV3) or defined(CPUARMV4) or defined(CPUARMV5)}
     fstmiax r0!, {d8-d15}
     {$else}
@@ -46,7 +46,7 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias 
     movs    r0, r1
     it eq
     moveq   r0, #1
-    {$if defined(FPUVFPV2) or defined(FPUVFPV3)}
+    {$if defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_D16)}
     fldmiad ip!, {d8-d15}
     {$endif}
     ldmia   ip,{v1-v6, sl, fp}
@@ -57,7 +57,7 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias 
     mov     ip, r0
     movs    r0, r1
     moveq   r0, #1
-    {$if defined(FPUVFPV2) or defined(FPUVFPV3)}
+    {$if defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_D16)}
     {$if defined(CPUARMV3) or defined(CPUARMV4) or defined(CPUARMV5)}
     fldmiax ip!, {d8-d15}
     {$else}

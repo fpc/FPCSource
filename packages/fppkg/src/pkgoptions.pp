@@ -19,7 +19,7 @@ interface
 uses Classes, Sysutils, Inifiles, fprepos, fpTemplate, pkgglobals;
 
 Const
-  UnitConfigFileName   = 'fpunits.conf';
+  UnitConfigFileName   = 'fpunits.cfg';
   ManifestFileName     = 'manifest.xml';
   MirrorsFileName      = 'mirrors.xml';
   PackagesFileName     = 'packages.xml';

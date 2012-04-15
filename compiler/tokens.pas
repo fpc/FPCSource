@@ -204,6 +204,7 @@ type
     _PRIVATE,
     _PROGRAM,
     _R12BASE,
+    _RTLPROC,
     _SECTION,
     _STDCALL,
     _SYSCALL,
@@ -500,6 +501,7 @@ const
       (str:'PRIVATE'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PROGRAM'       ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'R12BASE'       ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
+      (str:'RTLPROC'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SECTION'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'STDCALL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SYSCALL'       ;special:false;keyword:m_none;op:NOTOKEN),

@@ -16,9 +16,8 @@ uses
   ptc;
 
 var
-  console: TPTCConsole = nil;
-  format: TPTCFormat = nil;
-  palette: TPTCPalette = nil;
+  console: IPTCConsole;
+  format: IPTCFormat;
   width, height: Integer;
   pixels: PUint32 = nil;
   x, y, r, g, b: Integer;
@@ -27,22 +26,21 @@ begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       { open the console }
-      console.open('Buffer example', format);
+      console.Open('Buffer example', format);
 
       { get console dimensions }
-      width := console.width;
-      height := console.height;
+      width := console.Width;
+      height := console.Height;
 
       { allocate a buffer of pixels }
       pixels := GetMem(width * height * SizeOf(Uint32));
       FillChar(pixels^, width * height * SizeOf(Uint32), 0);
-      palette := TPTCPalette.Create;
 
       { loop until a key is pressed }
       while not console.KeyPressed do
@@ -64,18 +62,16 @@ begin
         end;
 
         { load pixels to console }
-        console.load(pixels, width, height, width * 4, format, palette);
+        console.Load(pixels, width, height, width * 4, format, TPTCPaletteFactory.CreateNew);
 
         { update console }
-        console.update;
+        console.Update;
       end;
     finally
       { free pixels buffer }
       FreeMem(pixels);
-      console.close;
-      palette.Free;
-      format.Free;
-      console.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

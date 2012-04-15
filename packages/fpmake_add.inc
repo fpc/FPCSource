@@ -7,6 +7,7 @@
   add_cdrom;
   add_chm;
   add_cocoaint;
+  add_dblib;
   add_dbus;
   add_dts;
   add_fastcgi;
@@ -28,8 +29,9 @@
   add_fcl_xml;
   add_fftw;
   add_fpgtk;
+  add_fpindexer;
   add_fpmkunit;
-  add_fpvectorial;
+  add_fppkg;
   add_fv;
   add_gdbint;
   add_gdbm;
@@ -73,6 +75,7 @@
   add_openal;
   add_opencl;
   add_opengl;
+  add_opengles;
   add_openssl;
   add_oracle;
   add_os2units;
@@ -99,6 +102,7 @@
   add_users;
   add_utmp;
   add_uuid;
+  add_winceunits;
   add_winunits_base;
   add_winunits_jedi;
   add_x11;

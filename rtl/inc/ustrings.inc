@@ -25,9 +25,8 @@
   a punicodechar that points to :
 
   @-8  : SizeInt for reference count;
-  @-4  : SizeInt for size; size=number of bytes, not the number of chars. Divide or multiply
-         with sizeof(UnicodeChar) to convert. This is needed to be compatible with Delphi and
-         Windows COM BSTR.
+  @-4  : SizeInt for size; size=number of chars. Multiply with
+         sizeof(UnicodeChar) to get the number of bytes. This is compatible with Delphi.
   @    : String + Terminating #0;
   Punicodechar(Unicodestring) is a valid typecast.
   So WS[i] is converted to the address @WS+i-1.
@@ -38,15 +37,19 @@
 
 Type
   PUnicodeRec = ^TUnicodeRec;
-  TUnicodeRec = Packed Record
-    Ref : SizeInt;
-    Len : SizeInt;
-    First : UnicodeChar;
+  TUnicodeRec = Record
+    CodePage    : TSystemCodePage;
+    ElementSize : Word;
+{$ifdef CPU64}	
+    { align fields  }
+	Dummy       : DWord;
+{$endif CPU64}
+    Ref         : SizeInt;
+    Len         : SizeInt;
   end;
 
 Const
-  UnicodeRecLen = SizeOf(TUnicodeRec);
-  UnicodeFirstOff = SizeOf(TUnicodeRec)-sizeof(UnicodeChar);
+  UnicodeFirstOff = SizeOf(TUnicodeRec);
 {$endif FPC_UNICODESTRING_TYPE_DEFINED}
 
 {
@@ -58,7 +61,7 @@ Const
 
 {$ifndef FPC_HAS_DEFAULT_UNICODE_2_ANSI_MOVE}
 {$define FPC_HAS_DEFAULT_UNICODE_2_ANSI_MOVE}
-procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
+procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
 var
   i : SizeInt;
   p : PAnsiChar;
@@ -80,7 +83,7 @@ end;
 
 {$ifndef FPC_HAS_DEFAULT_ANSI_2_UNICODE}
 {$define FPC_HAS_DEFAULT_ANSI_2_UNICODE}
-procedure DefaultAnsi2UnicodeMove(source:pchar;var dest:unicodestring;len:SizeInt);
+procedure DefaultAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 var
   i : SizeInt;
   p : PUnicodeChar;
@@ -113,6 +116,12 @@ function DefaultCodePointLength(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
   end;
 {$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 
+
+function DefaultGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
+  begin
+    { don't raise an exception here. We need this for text file handling }
+    Result:=DefaultSystemCodePage;
+  end;
 
 Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
 begin
@@ -151,32 +160,15 @@ begin
   widestringmanager:=New;
 end;
 
+
 {****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}
-
 
 procedure UnicodeStringError;
   begin
     HandleErrorFrame(204,get_frame);
   end;
-
-
-{$ifdef UnicodeStrDebug}
-Procedure DumpUnicodeRec(S : Pointer);
-begin
-  If S=Nil then
-    Writeln ('String is nil')
-  Else
-    Begin
-      With PUnicodeRec(S-UnicodeFirstOff)^ do
-       begin
-         Write   ('(Len:',len);
-         Writeln (' Ref: ',ref,')');
-       end;
-    end;
-end;
-{$endif}
 
 
 {$ifndef FPC_HAS_NEW_UNICODESTRING}
@@ -189,35 +181,21 @@ Function NewUnicodeString(Len : SizeInt) : Pointer;
 Var
   P : Pointer;
 begin
-  GetMem(P,Len*sizeof(UnicodeChar)+UnicodeRecLen);
+  GetMem(P,Len*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)));
   If P<>Nil then
     begin
-     PUnicodeRec(P)^.Len:=Len*2;     { Initial length }
-     PUnicodeRec(P)^.Ref:=1;         { Initial Refcount }
-     PUnicodeRec(P)^.First:=#0;      { Terminating #0 }
-     inc(p,UnicodeFirstOff);         { Points to string now }
+      PUnicodeRec(P)^.Len:=Len;       { Initial length }
+      PUnicodeRec(P)^.Ref:=1;         { Initial Refcount }
+      PUnicodeRec(P)^.CodePage:=DefaultUnicodeCodePage;
+      PUnicodeRec(P)^.ElementSize:=SizeOf(UnicodeChar);
+      inc(p,UnicodeFirstOff);         { Points to string now }
+      PUnicodeChar(P)^:=#0;           { Terminating #0 }
     end
   else
     UnicodeStringError;
   NewUnicodeString:=P;
 end;
 {$endif FPC_HAS_NEW_UNICODESTRING}
-
-
-{$ifndef FPC_HAS_DISPOSE_UNICODESTRING}
-{$define FPC_HAS_DISPOSE_UNICODESTRING}
-Procedure DisposeUnicodeString(Var S : Pointer);
-{
-  Deallocates a UnicodeString From the heap.
-}
-begin
-  If S=Nil then
-    exit;
-  Dec (S,UnicodeFirstOff);
-  Freemem(S);
-  S:=Nil;
-end;
-{$endif FPC_HAS_DISPOSE_UNICODESTRING}
 
 
 {$ifndef FPC_HAS_UNICODESTR_DECR_REF}
@@ -227,24 +205,21 @@ Procedure fpc_UnicodeStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_UNICODEST
   Decreases the ReferenceCount of a non constant unicodestring;
   If the reference count is zero, deallocate the string;
 }
-Type
-  pSizeInt = ^SizeInt;
 Var
-  l : pSizeInt;
+  p: PUnicodeRec;
 Begin
   { Zero string }
   if S=Nil then
     exit;
   { check for constant strings ...}
-  l:=@PUnicodeRec(S-UnicodeFirstOff)^.Ref;
-  if l^<0 then
+  p:=PUnicodeRec(S-UnicodeFirstOff);
+  S:=nil;
+  if p^.Ref<0 then
     exit;
 
   { declocked does a MT safe dec and returns true, if the counter is 0 }
-  if declocked(l^) then
-    { Ref count dropped to zero ...
-      ... remove }
-  DisposeUnicodeString(S);
+  if declocked(p^.Ref) then
+    FreeMem(p);
 end;
 
 { alias for internal use }
@@ -270,26 +245,6 @@ Procedure fpc_UnicodeStr_Incr_Ref (S : Pointer);[external name 'FPC_UNICODESTR_I
 
 {$ifndef FPC_HAS_UNICODESTR_TO_SHORTSTR}
 {$define FPC_HAS_UNICODESTR_TO_SHORTSTR}
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_UnicodeStr_To_ShortStr (high_of_res: SizeInt;const S2 : UnicodeString): shortstring;[Public, alias: 'FPC_UNICODESTR_TO_SHORTSTR'];  compilerproc;
-{
-  Converts a UnicodeString to a ShortString;
-}
-Var
-  Size : SizeInt;
-  temp : ansistring;
-begin
-  result:='';
-  Size:=Length(S2);
-  if Size>0 then
-    begin
-      If Size>high_of_res then
-        Size:=high_of_res;
-      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(S2),temp,Size);
-      result:=temp;
-    end;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_UnicodeStr_To_ShortStr (out res: ShortString;const S2 : UnicodeString); [Public, alias: 'FPC_UNICODESTR_TO_SHORTSTR'];compilerproc;
 {
   Converts a UnicodeString to a ShortString;
@@ -304,11 +259,10 @@ begin
     begin
       If Size>high(res) then
         Size:=high(res);
-      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(S2),temp,Size);
+      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(S2),temp,DefaultSystemCodePage,Size);
       res:=temp;
     end;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_HAS_UNICODESTR_TO_SHORTSTR}
 
 
@@ -324,45 +278,57 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    begin
-      widestringmanager.Ansi2UnicodeMoveProc(PChar(@S2[1]),result,Size);
-      { Terminating Zero }
-      PUnicodeChar(Pointer(fpc_ShortStr_To_UnicodeStr)+Size*sizeof(UnicodeChar))^:=#0;
-    end;
+    widestringmanager.Ansi2UnicodeMoveProc(PChar(@S2[1]),DefaultSystemCodePage,result,Size);
 end;
 {$endif FPC_HAS_SHORTSTR_TO_UNICODESTR}
 
 
 {$ifndef FPC_HAS_UNICODESTR_TO_ANSISTR}
 {$define FPC_HAS_UNICODESTR_TO_ANSISTR}
-Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString): AnsiString; compilerproc;
+Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
 {
   Converts a UnicodeString to an AnsiString
 }
 Var
   Size : SizeInt;
+{$ifndef FPC_HAS_CPSTRING}
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
+{$ifndef FPC_HAS_CPSTRING}
+  cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),result,Size);
+  begin
+    if (cp=CP_ACP) then
+      cp:=DefaultSystemCodePage;
+    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),result,cp,Size);
+  end;
 end;
 {$endif FPC_HAS_UNICODESTR_TO_ANSISTR}
 
 
 {$ifndef FPC_HAS_ANSISTR_TO_UNICODESTR}
 {$define FPC_HAS_ANSISTR_TO_UNICODESTR}
-Function fpc_AnsiStr_To_UnicodeStr (Const S2 : AnsiString): UnicodeString; compilerproc;
+Function fpc_AnsiStr_To_UnicodeStr (Const S2 : RawByteString): UnicodeString; compilerproc;
 {
   Converts an AnsiString to a UnicodeString;
 }
 Var
   Size : SizeInt;
+  cp: TSystemCodePage;
 begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Ansi2UnicodeMoveProc(PChar(S2),result,Size);
+  begin
+    cp:=StringCodePage(S2);
+    if (cp=CP_ACP) then
+      cp:=DefaultSystemCodePage;
+    widestringmanager.Ansi2UnicodeMoveProc(PChar(S2),cp,result,Size);
+  end;
 end;
 {$endif FPC_HAS_ANSISTR_TO_UNICODESTR}
 
@@ -387,43 +353,6 @@ Function fpc_WideStr_To_UnicodeStr (Const S2 : WideString): UnicodeString; compi
 {$endif FPC_HAS_WIDESTR_TO_UNICODESTR}
 
 
-{$ifndef FPC_HAS_PUNICODECHAR_TO_ANSISTR}
-{$define FPC_HAS_PUNICODECHAR_TO_ANSISTR}
-Function fpc_PUnicodeChar_To_AnsiStr(const p : punicodechar): ansistring; compilerproc;
-var
-  Size : SizeInt;
-begin
-  result:='';
-  if p=nil then
-    exit;
-  Size := IndexWord(p^, -1, 0);
-  if Size>0 then
-    widestringmanager.Unicode2AnsiMoveProc(P,result,Size);
-end;
-{$endif FPC_HAS_PUNICODECHAR_TO_ANSISTR}
-
-
-{$ifndef FPC_HAS_PUNICODECHAR_TO_UNICODESTR}
-{$define FPC_HAS_PUNICODECHAR_TO_UNICODESTR}
-Function fpc_PUnicodeChar_To_UnicodeStr(const p : punicodechar): unicodestring; compilerproc;
-var
-  Size : SizeInt;
-begin
-  result:='';
-  if p=nil then
-    exit;
-  Size := IndexWord(p^, -1, 0);
-  Setlength(result,Size);
-  if Size>0 then
-   begin
-      Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
-      { Terminating Zero }
-      PUnicodeChar(Pointer(result)+Size*sizeof(UnicodeChar))^:=#0;
-   end;
-end;
-{$endif FPC_HAS_PUNICODECHAR_TO_UNICODESTR}
-
-
 {$ifndef FPC_HAS_PWIDECHAR_TO_UNICODESTR}
 {$define FPC_HAS_PWIDECHAR_TO_UNICODESTR}
 Function fpc_PWideChar_To_UnicodeStr(const p : pwidechar): unicodestring; compilerproc;
@@ -436,88 +365,35 @@ begin
   Size := IndexWord(p^, -1, 0);
   Setlength(result,Size);
   if Size>0 then
-   begin
-      Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
-      { Terminating Zero }
-      PUnicodeChar(Pointer(result)+Size*sizeof(UnicodeChar))^:=#0;
-   end;
+    Move(p^,PUnicodeChar(Pointer(result))^,Size*sizeof(UnicodeChar));
 end;
 {$endif FPC_HAS_PWIDECHAR_TO_UNICODESTR}
 
 
-{$ifndef FPC_HAS_PUNICODECHAR_TO_SHORTSTR}
-{$define FPC_HAS_PUNICODECHAR_TO_SHORTSTR}
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_PUnicodeChar_To_ShortStr(const p : punicodechar): shortstring; compilerproc;
-var
-  Size : SizeInt;
-  temp: ansistring;
-begin
-  result:='';
-  if p=nil then
-    exit;
-  Size := IndexWord(p^, $7fffffff, 0);
-  if Size>0 then
-    begin
-      widestringmanager.Unicode2AnsiMoveProc(p,temp,Size);
-      result:=temp;
-    end;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_PUnicodeChar_To_ShortStr(out res : shortstring;const p : punicodechar); compilerproc;
-var
-  Size : SizeInt;
-  temp: ansistring;
-begin
-  res:='';
-  if p=nil then
-    exit;
-  Size:=IndexWord(p^, high(PtrInt), 0);
-  if Size>0 then
-    begin
-      widestringmanager.Unicode2AnsiMoveProc(p,temp,Size);
-      res:=temp;
-    end;
-end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
-{$endif FPC_HAS_PUNICODECHAR_TO_SHORTSTR}
-
-
 {$ifndef FPC_HAS_PWIDECHAR_TO_ANSISTR}
 {$define FPC_HAS_PWIDECHAR_TO_ANSISTR}
-Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
+Function fpc_PWideChar_To_AnsiStr(const p : pwidechar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): ansistring; compilerproc;
 var
   Size : SizeInt;
+{$ifndef FPC_HAS_CPSTRING}
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
+{$ifndef FPC_HAS_CPSTRING}
+  cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
   result:='';
   if p=nil then
     exit;
   Size := IndexWord(p^, -1, 0);
   if Size>0 then
-    widestringmanager.Wide2AnsiMoveProc(P,result,Size);
+    widestringmanager.Wide2AnsiMoveProc(P,result,cp,Size);
 end;
 {$endif FPC_HAS_PWIDECHAR_TO_ANSISTR}
 
 
 {$ifndef FPC_HAS_PWIDECHAR_TO_SHORTSTR}
 {$define FPC_HAS_PWIDECHAR_TO_SHORTSTR}
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
-var
-  Size : SizeInt;
-  temp: ansistring;
-begin
-  result:='';
-  if p=nil then
-    exit;
-  Size := IndexWord(p^, $7fffffff, 0);
-  if Size>0 then
-    begin
-      widestringmanager.Wide2AnsiMoveProc(p,temp,Size);
-      result:=temp;
-    end;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_PWideChar_To_ShortStr(out res : shortstring;const p : pwidechar); compilerproc;
 var
   Size : SizeInt;
@@ -529,11 +405,10 @@ begin
   Size:=IndexWord(p^, high(PtrInt), 0);
   if Size>0 then
     begin
-      widestringmanager.Wide2AnsiMoveProc(p,temp,Size);
+      widestringmanager.Wide2AnsiMoveProc(p,temp,DefaultSystemCodePage,Size);
       res:=temp;
     end;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_HAS_PWIDECHAR_TO_SHORTSTR}
 
 
@@ -560,62 +435,7 @@ Procedure fpc_UnicodeStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name '
 
 
 {$ifndef FPC_HAS_UNICODESTR_CONCAT}
-{$ifndef STR_CONCAT_PROCS}
-
-function fpc_UnicodeStr_Concat (const S1,S2 : UnicodeString): UnicodeString; compilerproc;
-Var
-  Size,Location : SizeInt;
-  pc : punicodechar;
-begin
-  { only assign if s1 or s2 is empty }
-  if (S1='') then
-    begin
-      result:=s2;
-      exit;
-    end;
-  if (S2='') then
-    begin
-      result:=s1;
-      exit;
-    end;
-  Location:=Length(S1);
-  Size:=length(S2);
-  SetLength(result,Size+Location);
-  pc:=punicodechar(result);
-  Move(S1[1],pc^,Location*sizeof(UnicodeChar));
-  inc(pc,location);
-  Move(S2[1],pc^,(Size+1)*sizeof(UnicodeChar));
-end;
-
-
-function fpc_UnicodeStr_Concat_multi (const sarr:array of Unicodestring): unicodestring; compilerproc;
-Var
-  i  : Longint;
-  p  : pointer;
-  pc : punicodechar;
-  Size,NewSize : SizeInt;
-begin
-  { First calculate size of the result so we can do
-    a single call to SetLength() }
-  NewSize:=0;
-  for i:=low(sarr) to high(sarr) do
-    inc(Newsize,length(sarr[i]));
-  SetLength(result,NewSize);
-  pc:=punicodechar(result);
-  for i:=low(sarr) to high(sarr) do
-    begin
-      p:=pointer(sarr[i]);
-      if assigned(p) then
-        begin
-          Size:=length(unicodestring(p));
-          Move(punicodechar(p)^,pc^,(Size+1)*sizeof(UnicodeChar));
-          inc(pc,size);
-        end;
-    end;
-end;
-
-{$else STR_CONCAT_PROCS}
-
+{$define FPC_HAS_UNICODESTR_CONCAT}
 procedure fpc_UnicodeStr_Concat (var DestS:Unicodestring;const S1,S2 : UnicodeString); compilerproc;
 Var
   Size,Location : SizeInt;
@@ -658,8 +478,11 @@ begin
       Move(Pointer(S2)^,(Pointer(DestS)+Location*sizeof(UnicodeChar))^,(Size+1)*sizeof(UnicodeChar));
     end;
 end;
+{$endif FPC_HAS_UNICODESTR_CONCAT}
 
 
+{$ifndef FPC_HAS_UNICODESTR_CONCAT_MULTI}
+{$define FPC_HAS_UNICODESTR_CONCAT_MULTI}
 procedure fpc_UnicodeStr_Concat_multi (var DestS:Unicodestring;const sarr:array of Unicodestring); compilerproc;
 Var
   i           : Longint;
@@ -721,9 +544,7 @@ begin
     end;
   fpc_UnicodeStr_Decr_Ref(destcopy);
 end;
-
-{$endif STR_CONCAT_PROCS}
-{$endif FPC_HAS_UNICODESTR_CONCAT}
+{$endif FPC_HAS_UNICODESTR_CONCAT_MULTI}
 
 
 {$ifndef FPC_HAS_CHAR_TO_UCHAR}
@@ -732,8 +553,8 @@ Function fpc_Char_To_UChar(const c : Char): UnicodeChar; compilerproc;
 var
   w: unicodestring;
 begin
-  widestringmanager.Ansi2UnicodeMoveProc(@c, w, 1);
-  fpc_Char_To_UChar:= w[1];
+  widestringmanager.Ansi2UnicodeMoveProc(@c,DefaultSystemCodePage,w,1);
+  fpc_Char_To_UChar:=w[1];
 end;
 {$endif FPC_HAS_CHAR_TO_UCHAR}
 
@@ -745,10 +566,7 @@ Function fpc_Char_To_UnicodeStr(const c : Char): UnicodeString; compilerproc;
   Converts a Char to a UnicodeString;
 }
 begin
-  Setlength(fpc_Char_To_UnicodeStr,1);
-  fpc_Char_To_UnicodeStr[1]:=c;
-  { Terminating Zero }
-  PUnicodeChar(Pointer(fpc_Char_To_UnicodeStr)+sizeof(UnicodeChar))^:=#0;
+  widestringmanager.Ansi2UnicodeMoveProc(@c,DefaultSystemCodePage,result,1);
 end;
 {$endif FPC_HAS_CHAR_TO_UNICODESTR}
 
@@ -762,7 +580,7 @@ Function fpc_UChar_To_Char(const c : UnicodeChar): Char; compilerproc;
 var
   s: ansistring;
 begin
-  widestringmanager.Unicode2AnsiMoveProc(@c, s, 1);
+  widestringmanager.Unicode2AnsiMoveProc(@c, s, DefaultSystemCodePage, 1);
   if length(s)=1 then
     fpc_UChar_To_Char:= s[1]
   else
@@ -771,77 +589,19 @@ end;
 {$endif FPC_HAS_UCHAR_TO_CHAR}
 
 
-{$ifndef FPC_HAS_WHCAR_TO_UNICODESTR}
-{$define FPC_HAS_WHCAR_TO_UNICODESTR}
-Function fpc_WChar_To_UnicodeStr(const c : WideChar): UnicodeString; compilerproc;
-{
-  Converts a WideChar to a UnicodeString;
-}
-begin
-  Setlength (Result,1);
-  Result[1]:= c;
-end;
-{$endif FPC_HAS_WHCAR_TO_UNICODESTR}
-
-
-{$ifndef FPC_HAS_CHAR_TO_WHCAR}
-{$define FPC_HAS_CHAR_TO_WHCAR}
-Function fpc_Char_To_WChar(const c : Char): WideChar; compilerproc;
-var
-  w: widestring;
-begin
-  widestringmanager.Ansi2WideMoveProc(@c, w, 1);
-  fpc_Char_To_WChar:= w[1];
-end;
-{$endif FPC_HAS_CHAR_TO_WHCAR}
-
-
-{$ifndef FPC_HAS_WCHAR_TO_CHAR}
-{$define FPC_HAS_WCHAR_TO_CHAR}
-Function fpc_WChar_To_Char(const c : WideChar): Char; compilerproc;
-{
-  Converts a WideChar to a Char;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Wide2AnsiMoveProc(@c, s, 1);
-  if length(s)=1 then
-    fpc_WChar_To_Char:= s[1]
-  else
-    fpc_WChar_To_Char:='?';
-end;
-{$endif FPC_HAS_WCHAR_TO_CHAR}
-
-
-{$ifndef FPC_HAS_WCHAR_TO_SHORTSTR}
-{$define FPC_HAS_WCHAR_TO_SHORTSTR}
-
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
+{$ifndef FPC_HAS_UCHAR_TO_SHORTSTR}
+{$define FPC_HAS_UCHAR_TO_SHORTSTR}
+procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
 {
   Converts a WideChar to a ShortString;
 }
 var
   s: ansistring;
 begin
-  widestringmanager.Wide2AnsiMoveProc(@c, s, 1);
-  fpc_WChar_To_ShortStr:= s;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
-{
-  Converts a WideChar to a ShortString;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Wide2AnsiMoveProc(@c,s,1);
+  widestringmanager.Wide2AnsiMoveProc(@c,s,DefaultSystemCodePage,1);
   res:=s;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
-
-{$endif FPC_HAS_WCHAR_TO_SHORTSTR}
+{$endif FPC_HAS_UCHAR_TO_SHORTSTR}
 
 
 {$ifndef FPC_HAS_UCHAR_TO_UNICODESTR}
@@ -859,44 +619,23 @@ end;
 
 {$ifndef FPC_HAS_UCHAR_TO_ANSISTR}
 {$define FPC_HAS_UCHAR_TO_ANSISTR}
-Function fpc_UChar_To_AnsiStr(const c : UnicodeChar): AnsiString; compilerproc;
+Function fpc_UChar_To_AnsiStr(const c : UnicodeChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
 {
   Converts a UnicodeChar to a AnsiString;
 }
+{$ifndef FPC_HAS_CPSTRING}
+var
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
-  widestringmanager.Unicode2AnsiMoveProc(@c, fpc_UChar_To_AnsiStr, 1);
+{$ifndef FPC_HAS_CPSTRING}
+  cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}     
+  if (cp=CP_ACP) then
+    cp:=DefaultSystemCodePage;
+  widestringmanager.Unicode2AnsiMoveProc(@c, fpc_UChar_To_AnsiStr, cp, 1);
 end;
 {$endif FPC_HAS_UCHAR_TO_ANSISTR}
-
-
-{$ifndef FPC_HAS_UCHAR_TO_SHORTSTR}
-{$define FPC_HAS_UCHAR_TO_SHORTSTR}
-
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_UChar_To_ShortStr(const c : UnicodeChar): ShortString; compilerproc;
-{
-  Converts a UnicodeChar to a ShortString;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Unicode2AnsiMoveProc(@c, s, 1);
-  fpc_UChar_To_ShortStr:= s;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : UnicodeChar) compilerproc;
-{
-  Converts a UnicodeChar to a ShortString;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Unicode2AnsiMoveProc(@c,s,1);
-  res:=s;
-end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
-
-{$endif FPC_HAS_UCHAR_TO_SHORTSTR}
 
 
 {$ifndef FPC_HAS_PCHAR_TO_UNICODESTR}
@@ -911,7 +650,7 @@ begin
     exit;
   end;
   l:=IndexChar(p^,-1,#0);
-  widestringmanager.Ansi2UnicodeMoveProc(P,fpc_PChar_To_UnicodeStr,l);
+  widestringmanager.Ansi2UnicodeMoveProc(P,DefaultSystemCodePage,fpc_PChar_To_UnicodeStr,l);
 end;
 {$endif FPC_HAS_PCHAR_TO_UNICODESTR}
 
@@ -922,123 +661,22 @@ Function fpc_CharArray_To_UnicodeStr(const arr: array of char; zerobased: boolea
 var
   i  : SizeInt;
 begin
-  if (zerobased) then
+  if zerobased then
     begin
-      if (arr[0]=#0) Then
-      begin
-        fpc_chararray_to_unicodestr := '';
-        exit;
-      end;
+      if arr[0]=#0 Then
+        begin
+          fpc_chararray_to_unicodestr:='';
+          exit;
+        end;
       i:=IndexChar(arr,high(arr)+1,#0);
-      if i = -1 then
-        i := high(arr)+1;
+      if i=-1 then
+        i:=high(arr)+1;
     end
   else
-    i := high(arr)+1;
-  SetLength(fpc_CharArray_To_UnicodeStr,i);
-  widestringmanager.Ansi2UnicodeMoveProc (pchar(@arr),fpc_CharArray_To_UnicodeStr,i);
+    i:=high(arr)+1;
+  widestringmanager.Ansi2UnicodeMoveProc(pchar(@arr),DefaultSystemCodePage,fpc_CharArray_To_UnicodeStr,i);
 end;
 {$endif FPC_HAS_CHARARRAY_TO_UNICODESTR}
-
-
-{$ifndef FPC_HAS_UNICODECHARARRAY_TO_SHORTSTR}
-{$define FPC_HAS_UNICODECHARARRAY_TO_SHORTSTR}
-
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_UnicodeCharArray_To_ShortStr(const arr: array of unicodechar; zerobased: boolean = true): shortstring;[public,alias:'FPC_UNICODECHARARRAY_TO_SHORTSTR']; compilerproc;
-var
-  l: longint;
- index: longint;
- len: byte;
- temp: ansistring;
-begin
-  l := high(arr)+1;
-  if l>=256 then
-    l:=255
-  else if l<0 then
-    l:=0;
-  if zerobased then
-    begin
-      index:=IndexWord(arr[0],l,0);
-      if (index < 0) then
-        len := l
-      else
-        len := index;
-    end
-  else
-    len := l;
-  widestringmanager.Unicode2AnsiMoveProc (punicodechar(@arr),temp,len);
-  fpc_UnicodeCharArray_To_ShortStr := temp;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_UnicodeCharArray_To_ShortStr(out res : shortstring;const arr: array of unicodechar; zerobased: boolean = true);[public,alias:'FPC_UNICODECHARARRAY_TO_SHORTSTR']; compilerproc;
-var
-  l: longint;
-  index: ptrint;
-  len: byte;
-  temp: ansistring;
-begin
-  l := high(arr)+1;
-  if l>=high(res)+1 then
-    l:=high(res)
-  else if l<0 then
-    l:=0;
-  if zerobased then
-    begin
-      index:=IndexWord(arr[0],l,0);
-      if index<0 then
-        len:=l
-      else
-        len:=index;
-    end
-  else
-    len:=l;
-  widestringmanager.Unicode2AnsiMoveProc (punicodechar(@arr),temp,len);
-  res:=temp;
-end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
-
-{$endif FPC_HAS_UNICODECHARARRAY_TO_SHORTSTR}
-
-
-{$ifndef FPC_HAS_UNICODECHARARRAY_TO_ANSISTR}
-{$define FPC_HAS_UNICODECHARARRAY_TO_ANSISTR}
-Function fpc_UnicodeCharArray_To_AnsiStr(const arr: array of unicodechar; zerobased: boolean = true): AnsiString; compilerproc;
-var
-  i  : SizeInt;
-begin
-  if (zerobased) then
-    begin
-      i:=IndexWord(arr,high(arr)+1,0);
-      if i = -1 then
-        i := high(arr)+1;
-    end
-  else
-    i := high(arr)+1;
-  SetLength(fpc_UnicodeCharArray_To_AnsiStr,i);
-  widestringmanager.Unicode2AnsiMoveProc (punicodechar(@arr),fpc_UnicodeCharArray_To_AnsiStr,i);
-end;
-{$endif FPC_HAS_UNICODECHARARRAY_TO_ANSISTR}
-
-
-{$ifndef FPC_HAS_UNICODECHARARRAY_TO_UNICODESTR}
-{$define FPC_HAS_UNICODECHARARRAY_TO_UNICODESTR}
-Function fpc_UnicodeCharArray_To_UnicodeStr(const arr: array of unicodechar; zerobased: boolean = true): UnicodeString; compilerproc;
-var
-  i  : SizeInt;
-begin
-  if (zerobased) then
-    begin
-      i:=IndexWord(arr,high(arr)+1,0);
-      if i = -1 then
-        i := high(arr)+1;
-    end
-  else
-    i := high(arr)+1;
-  SetLength(fpc_UnicodeCharArray_To_UnicodeStr,i);
-  Move(arr[0], Pointer(fpc_UnicodeCharArray_To_UnicodeStr)^,i*sizeof(UnicodeChar));
-end;
-{$endif FPC_HAS_UNICODECHARARRAY_TO_UNICODESTR}
 
 
 {$ifndef FPC_HAS_WIDECHARARRAY_TO_UNICODESTR}
@@ -1065,33 +703,6 @@ end;
 {$define FPC_HAS_WIDECHARARRAY_TO_SHORTSTR}
 { due to their names, the following procedures should be in wstrings.inc,
   however, the compiler generates code using this functions on all platforms }
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
-var
-  l: longint;
- index: longint;
- len: byte;
- temp: ansistring;
-begin
-  l := high(arr)+1;
-  if l>=256 then
-    l:=255
-  else if l<0 then
-    l:=0;
-  if zerobased then
-    begin
-      index:=IndexWord(arr[0],l,0);
-      if (index < 0) then
-        len := l
-      else
-        len := index;
-    end
-  else
-    len := l;
-  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
-  fpc_WideCharArray_To_ShortStr := temp;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_WideCharArray_To_ShortStr(out res : shortstring;const arr: array of widechar; zerobased: boolean = true);[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
 var
   l: longint;
@@ -1114,20 +725,24 @@ begin
     end
   else
     len:=l;
-  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
+  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,DefaultSystemCodePage,len);
   res:=temp;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
-
 {$endif FPC_HAS_WIDECHARARRAY_TO_SHORTSTR}
 
 
 {$ifndef FPC_HAS_WIDECHARARRAY_TO_ANSISTR}
 {$define FPC_HAS_WIDECHARARRAY_TO_ANSISTR}
-Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
+Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; {$ifdef FPC_HAS_CPSTRING}cp : TSystemCodePage;{$endif FPC_HAS_CPSTRING} zerobased: boolean = true): AnsiString; compilerproc;
 var
   i  : SizeInt;
+{$ifndef FPC_HAS_CPSTRING}
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
+{$ifndef FPC_HAS_CPSTRING}
+  cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
   if (zerobased) then
     begin
       i:=IndexWord(arr,high(arr)+1,0);
@@ -1136,8 +751,7 @@ begin
     end
   else
     i := high(arr)+1;
-  SetLength(fpc_WideCharArray_To_AnsiStr,i);
-  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),fpc_WideCharArray_To_AnsiStr,i);
+  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),RawByteString(fpc_WideCharArray_To_AnsiStr),cp,i);
 end;
 {$endif FPC_HAS_WIDECHARARRAY_TO_ANSISTR}
 
@@ -1162,109 +776,6 @@ end;
 {$endif FPC_HAS_WIDECHARARRAY_TO_WIDESTR}
 
 
-{$ifndef FPC_STRTOCHARARRAYPROC}
-
-{$ifndef FPC_HAS_UNICODESTR_TO_CHARARRAY}
-{$define FPC_HAS_UNICODESTR_TO_CHARARRAY}
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ chararray we're converting to (JM)                                    }
-function fpc_unicodestr_to_chararray(arraysize: SizeInt; const src: UnicodeString): fpc_big_chararray;[public,alias: 'FPC_UNICODESTR_TO_CHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-  temp: ansistring;
-begin
-  len := length(src);
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    widestringmanager.unicode2ansimoveproc(punicodechar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-{$r-}
-  move(temp[1],fpc_unicodestr_to_chararray[0],len);
-  fillchar(fpc_unicodestr_to_chararray[len],arraysize-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-{$endif FPC_HAS_UNICODESTR_TO_CHARARRAY}
-
-
-{$ifndef FPC_HAS_UNICODESTR_TO_UNICODECHARARRAY}
-{$define FPC_HAS_UNICODESTR_TO_UNICODECHARARRAY}
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ unicodechararray we're converting to (JM)                                }
-function fpc_unicodestr_to_unicodechararray(arraysize: SizeInt; const src: UnicodeString): fpc_big_unicodechararray;[public,alias: 'FPC_UNICODESTR_TO_UNICODECHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-begin
-  len := length(src);
-  if len > arraysize then
-    len := arraysize;
-{$r-}
-  { make sure we don't try to access element 1 of the ansistring if it's nil }
-  if len > 0 then
-    move(src[1],fpc_unicodestr_to_unicodechararray[0],len*SizeOf(UnicodeChar));
-  fillchar(fpc_unicodestr_to_unicodechararray[len],(arraysize-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-{$endif FPC_HAS_UNICODESTR_TO_UNICODECHARARRAY}
-
-
-{$ifndef FPC_HAS_ANSISTR_TO_UNICODECHARARRAY}
-{$define FPC_HAS_ANSISTR_TO_UNICODECHARARRAY}
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ chararray we're converting to (JM)                                    }
-function fpc_ansistr_to_unicodechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_unicodechararray;[public,alias: 'FPC_ANSISTR_TO_UNICODECHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-  temp: unicodestring;
-begin
-  len := length(src);
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    widestringmanager.ansi2unicodemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-
-{$r-}
-  move(temp[1],fpc_ansistr_to_unicodechararray[0],len*sizeof(unicodechar));
-  fillchar(fpc_ansistr_to_unicodechararray[len],(arraysize-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-{$endif FPC_HAS_ANSISTR_TO_UNICODECHARARRAY}
-
-
-{$ifndef FPC_HAS_SHORTSTR_TO_UNICODECHARARRAY}
-{$define FPC_HAS_SHORTSTR_TO_UNICODECHARARRAY}
-function fpc_shortstr_to_unicodechararray(arraysize: SizeInt; const src: ShortString): fpc_big_unicodechararray;[public,alias: 'FPC_SHORTSTR_TO_UNICODECHARARRAY']; compilerproc;
-var
-  len: longint;
-  temp : unicodestring;
-begin
-  len := length(src);
-  { make sure we don't access char 1 if length is 0 (JM) }
-  if len > 0 then
-    widestringmanager.ansi2unicodemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-{$r-}
-  move(temp[1],fpc_shortstr_to_unicodechararray[0],len*sizeof(unicodechar));
-  fillchar(fpc_shortstr_to_unicodechararray[len],(arraysize-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-{$endif FPC_HAS_SHORTSTR_TO_UNICODECHARARRAY}
-
-{$else ndef FPC_STRTOCHARARRAYPROC}
-
 {$ifndef FPC_HAS_UNICODESTR_TO_CHARARRAY}
 {$define FPC_HAS_UNICODESTR_TO_CHARARRAY}
 procedure fpc_unicodestr_to_chararray(out res: array of char; const src: UnicodeString); compilerproc;
@@ -1275,93 +786,22 @@ begin
   len := length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
-    widestringmanager.unicode2ansimoveproc(punicodechar(@src[1]),temp,len);
+    widestringmanager.unicode2ansimoveproc(punicodechar(@src[1]),temp,DefaultSystemCodePage,len);
   len := length(temp);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   move(temp[1],res[0],len);
   fillchar(res[len],length(res)-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-{$endif FPC_HAS_UNICODESTR_TO_CHARARRAY}
-
-
-{$ifndef FPC_HAS_UNICODESTR_TO_UNICODECHARARRAY}
-{$define FPC_HAS_UNICODESTR_TO_UNICODECHARARRAY}
-procedure fpc_unicodestr_to_unicodechararray(out res: array of unicodechar; const src: UnicodeString); compilerproc;
-var
-  len: SizeInt;
-begin
-  len := length(src);
-  if len > length(res) then
-    len := length(res);
-{$r-}
-  { make sure we don't try to access element 1 of the ansistring if it's nil }
-  if len > 0 then
-    move(src[1],res[0],len*SizeOf(UnicodeChar));
-  fillchar(res[len],(length(res)-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 {$endif FPC_HAS_UNICODESTR_TO_UNICODECHARARRAY}
 
 
-{$ifndef FPC_HAS_ANSISTR_TO_UNICODECHARARRAY}
-{$define FPC_HAS_ANSISTR_TO_UNICODECHARARRAY}
-procedure fpc_ansistr_to_unicodechararray(out res: array of unicodechar; const src: AnsiString); compilerproc;
-var
-  len: SizeInt;
-  temp: unicodestring;
-begin
-  len := length(src);
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    widestringmanager.ansi2unicodemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > length(res) then
-    len := length(res);
-
-{$r-}
-  move(temp[1],res[0],len*sizeof(unicodechar));
-  fillchar(res[len],(length(res)-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-{$endif FPC_HAS_ANSISTR_TO_UNICODECHARARRAY}
-
-
-{$ifndef FPC_HAS_SHORTSTR_TO_UNICODECHARARRAY}
-{$define FPC_HAS_SHORTSTR_TO_UNICODECHARARRAY}
-procedure fpc_shortstr_to_unicodechararray(out res: array of unicodechar; const src: ShortString); compilerproc;
-var
-  len: longint;
-  temp : unicodestring;
-begin
-  len := length(src);
-  { make sure we don't access char 1 if length is 0 (JM) }
-  if len > 0 then
-    widestringmanager.ansi2unicodemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > length(res) then
-    len := length(res);
-{$r-}
-  move(temp[1],res[0],len*sizeof(unicodechar));
-  fillchar(res[len],(length(res)-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-{$endif FPC_HAS_SHORTSTR_TO_UNICODECHARARRAY}
-
-
 {$ifndef FPC_HAS_ANSISTR_TO_WIDECHARARRAY}
 {$define FPC_HAS_ANSISTR_TO_WIDECHARARRAY}
-procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
+procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: RawByteString); compilerproc;
 var
   len: SizeInt;
   temp: widestring;
@@ -1369,17 +809,15 @@ begin
   len := length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
+    widestringmanager.ansi2widemoveproc(pchar(@src[1]),StringCodePage(src),temp,len);
   len := length(temp);
   if len > length(res) then
     len := length(res);
-
+{$push}
 {$r-}
   move(temp[1],res[0],len*sizeof(widechar));
   fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 {$endif FPC_HAS_ANSISTR_TO_WIDECHARARRAY}
 
@@ -1394,16 +832,15 @@ begin
   len := length(src);
   { make sure we don't access char 1 if length is 0 (JM) }
   if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
+    widestringmanager.ansi2widemoveproc(pchar(@src[1]),DefaultSystemCodePage,temp,len);
   len := length(temp);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   move(temp[1],res[0],len*sizeof(widechar));
   fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 {$endif FPC_HAS_SHORTSTR_TO_WIDECHARARRAY}
 
@@ -1417,18 +854,16 @@ begin
   len := length(src);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   { make sure we don't try to access element 1 of the widestring if it's nil }
   if len > 0 then
     move(src[1],res[0],len*SizeOf(WideChar));
   fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 {$endif FPC_HAS_UNICODESTR_TO_WIDECHARARRAY}
 
-{$endif ndef FPC_STRTOCHARARRAYPROC}
 
 
 {$ifndef FPC_HAS_UNICODESTR_COMPARE}
@@ -1494,7 +929,7 @@ end;
 
 Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
 begin
-  if (index>len div 2) or (Index<1) then
+  if (index>len) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
 
@@ -1503,7 +938,7 @@ end;
 {$define FPC_HAS_UNICODESTR_RANGECHECK}
 Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
 begin
-  if (p=nil) or (index>PUnicodeRec(p-UnicodeFirstOff)^.len div 2) or (Index<1) then
+  if (p=nil) or (index>PUnicodeRec(p-UnicodeFirstOff)^.len) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
 {$endif FPC_HAS_UNICODESTR_RANGECHECK}
@@ -1520,29 +955,31 @@ Procedure fpc_UnicodeStr_SetLength(Var S : UnicodeString; l : SizeInt);[Public,A
 Var
   Temp : Pointer;
   movelen: SizeInt;
+  lens, lena : SizeUInt;
 begin
    if (l>0) then
     begin
       if Pointer(S)=nil then
-       begin
-         { Need a complete new string...}
-         Pointer(s):=NewUnicodeString(l);
-       end
-      { windows doesn't support reallocing unicodestrings, this code
-        is anyways subject to be removed because unicodestrings shouldn't be
-        ref. counted anymore (FK) }
+        begin
+          { Need a complete new string...}
+          Pointer(s):=NewUnicodeString(l);
+        end
       else
         if (PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Ref = 1) then
-        begin
-          Dec(Pointer(S),UnicodeFirstOff);
-          if SizeUInt(L*sizeof(UnicodeChar)+UnicodeRecLen)>MemSize(Pointer(S)) then
-              reallocmem(pointer(S), L*sizeof(UnicodeChar)+UnicodeRecLen);
-          Inc(Pointer(S), UnicodeFirstOff);
-        end
+          begin
+            Temp:=Pointer(s)-UnicodeFirstOff;
+            lens:=MemSize(Temp);
+            lena:=SizeUInt(L*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)));
+            if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
+              begin
+                reallocmem(Temp, lena);
+                Pointer(S):=Temp+UnicodeFirstOff;
+              end;
+          end
       else
         begin
           { Reallocation is needed... }
-          Temp:=Pointer(NewUnicodeString(L));
+          Temp:=NewUnicodeString(L);
           if Length(S)>0 then
             begin
               if l < succ(length(s)) then
@@ -1557,15 +994,10 @@ begin
         end;
       { Force nil termination in case it gets shorter }
       PWord(Pointer(S)+l*sizeof(UnicodeChar))^:=0;
-      PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len:=l*sizeof(UnicodeChar);
+      PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len:=l;
     end
-  else
-    begin
-      { Length=0 }
-      if Pointer(S)<>nil then
-        fpc_unicodestr_decr_ref (Pointer(S));
-      Pointer(S):=Nil;
-    end;
+  else  { length=0, deallocate the string }
+    fpc_unicodestr_decr_ref (Pointer(S));
 end;
 {$endif FPC_HAS_UNICODESTR_SETLENGTH}
 
@@ -1573,7 +1005,7 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
-function UnicodeCharToString(S : PUnicodeChar) : AnsiString;
+function UnicodeCharToString(S : PUnicodeChar) : UnicodeString;
   begin
      result:=UnicodeCharLenToString(s,Length(UnicodeString(s)));
   end;
@@ -1581,25 +1013,14 @@ function UnicodeCharToString(S : PUnicodeChar) : AnsiString;
 
 {$ifndef FPC_HAS_STRING_TO_UNICODECHAR}
 {$define FPC_HAS_STRING_TO_UNICODECHAR}
-function StringToUnicodeChar(const Src : AnsiString;Dest : PUnicodeChar;DestSize : SizeInt) : PUnicodeChar;
-  var
-    temp:unicodestring;
+function StringToUnicodeChar(const Src : RawByteString;Dest : PUnicodeChar;DestSize : SizeInt) : PUnicodeChar;
   begin
-     widestringmanager.Ansi2UnicodeMoveProc(PChar(Src),temp,Length(Src));
-     if Length(temp)<DestSize then
-       move(temp[1],Dest^,Length(temp)*SizeOf(UnicodeChar))
-     else
-       move(temp[1],Dest^,(DestSize-1)*SizeOf(UnicodeChar));
-
-     Dest[DestSize-1]:=#0;
-
-     result:=Dest;
-
+    result:=StringToWideChar(Src,Dest,DestSize);
   end;
 {$endif FPC_HAS_STRING_TO_UNICODECHAR}
 
 
-function WideCharToString(S : PWideChar) : AnsiString;
+function WideCharToString(S : PWideChar) : UnicodeString;
   begin
      result:=WideCharLenToString(s,Length(WideString(s)));
   end;
@@ -1607,11 +1028,11 @@ function WideCharToString(S : PWideChar) : AnsiString;
 
 {$ifndef FPC_HAS_STRING_LEN_TO_WIDECHAR}
 {$define FPC_HAS_STRING_LEN_TO_WIDECHAR}
-function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
+function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
   var
     temp:widestring;
   begin
-     widestringmanager.Ansi2WideMoveProc(PChar(Src),temp,Length(Src));
+     widestringmanager.Ansi2WideMoveProc(PChar(Src),StringCodePage(Src),temp,Length(Src));
      if Length(temp)<DestSize then
        move(temp[1],Dest^,Length(temp)*SizeOf(WideChar))
      else
@@ -1620,52 +1041,69 @@ function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : Siz
      Dest[DestSize-1]:=#0;
 
      result:=Dest;
-
   end;
 {$endif FPC_HAS_STRING_LEN_TO_WIDECHAR}
 
 
 {$ifndef FPC_HAS_UNICODECHAR_LEN_TO_STRING}
 {$define FPC_HAS_UNICODECHAR_LEN_TO_STRING}
-function UnicodeCharLenToString(S : PUnicodeChar;Len : SizeInt) : AnsiString;
+function UnicodeCharLenToString(S : PUnicodeChar;Len : SizeInt) : UnicodeString;
   begin
-     //SetLength(result,Len);
-     widestringmanager.Unicode2AnsiMoveproc(S,result,Len);
+    SetLength(result,Len);
+    Move(S^,Pointer(Result)^,Len*2);
   end;
 {$endif FPC_HAS_UNICODECHAR_LEN_TO_STRING}
 
 
+procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : UnicodeString);
+  begin
+    Dest:=UnicodeCharLenToString(Src,Len);
+  end;
+
+
 procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : AnsiString);
   begin
-     Dest:=UnicodeCharLenToString(Src,Len);
+    Dest:=UnicodeCharLenToString(Src,Len);
   end;
 
 
 procedure UnicodeCharToStrVar(S : PUnicodeChar;out Dest : AnsiString);
   begin
-     Dest:=UnicodeCharToString(S);
+    Dest:=UnicodeCharToString(S);
   end;
 
 
 {$ifndef FPC_HAS_WIDECHAR_LEN_TO_STRING}
 {$define FPC_HAS_WIDECHAR_LEN_TO_STRING}
-function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
+function WideCharLenToString(S : PWideChar;Len : SizeInt) : UnicodeString;
   begin
-     //SetLength(result,Len);
-     widestringmanager.Wide2AnsiMoveproc(S,result,Len);
+    SetLength(result,Len);
+    Move(S^,Pointer(Result)^,Len*2);
   end;
 {$endif FPC_HAS_WIDECHAR_LEN_TO_STRING}
 
 
+procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : UnicodeString);
+  begin
+    Dest:=WideCharLenToString(Src,Len);
+  end;
+
+
 procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : AnsiString);
   begin
-     Dest:=WideCharLenToString(Src,Len);
+    Dest:=WideCharLenToString(Src,Len);
+  end;
+
+
+procedure WideCharToStrVar(S : PWideChar;out Dest : UnicodeString);
+  begin
+    Dest:=WideCharToString(S);
   end;
 
 
 procedure WideCharToStrVar(S : PWideChar;out Dest : AnsiString);
   begin
-     Dest:=WideCharToString(S);
+    Dest:=WideCharToString(S);
   end;
 
 
@@ -1685,10 +1123,10 @@ begin
     exit;
   if PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Ref<>1 then
    begin
-     L:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.len div sizeof(UnicodeChar);
+     L:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.len;
      SNew:=NewUnicodeString (L);
      Move (PUnicodeChar(S)^,SNew^,(L+1)*sizeof(UnicodeChar));
-     PUnicodeRec(SNew-UnicodeFirstOff)^.len:=L * sizeof(UnicodeChar);
+     PUnicodeRec(SNew-UnicodeFirstOff)^.len:=L;
      fpc_unicodestr_decr_ref (Pointer(S));  { Thread safe }
      pointer(S):=SNew;
      pointer(result):=SNew;
@@ -1714,15 +1152,10 @@ begin
    Size:=Length(S)-Index;
   If Size>0 then
    begin
-     If Index<0 Then
-      Index:=0;
-     ResultAddress:=Pointer(NewUnicodeString (Size));
-     if ResultAddress<>Nil then
-      begin
-        Move (PUnicodeChar(S)[Index],ResultAddress^,Size*sizeof(UnicodeChar));
-        PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Len:=Size*sizeof(UnicodeChar);
-        PUnicodeChar(ResultAddress+Size*sizeof(UnicodeChar))^:=#0;
-      end;
+     ResultAddress:=NewUnicodeString(Size);
+     Move (PUnicodeChar(S)[Index],ResultAddress^,Size*sizeof(UnicodeChar));
+     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Len:=Size;
+     PUnicodeChar(ResultAddress+Size*sizeof(UnicodeChar))^:=#0;
    end;
   fpc_unicodestr_decr_ref(Pointer(fpc_unicodestr_copy));
   Pointer(fpc_unicodestr_Copy):=ResultAddress;
@@ -1782,19 +1215,21 @@ end;
 {$endif FPC_HAS_POS_UNICODECHAR_UNICODESTR}
 
 
-Function Pos (c : AnsiString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+{ DO NOT inline these! Inlining a managed typecast creates an implicit try..finally
+  block, which is significant bloat without any sensible speed improvement. }
+Function Pos (const c : RawByteString; Const s : UnicodeString) : SizeInt;
   begin
     result:=Pos(UnicodeString(c),s);
   end;
 
 
-Function Pos (c : ShortString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : ShortString; Const s : UnicodeString) : SizeInt;
   begin
     result:=Pos(UnicodeString(c),s);
   end;
 
 
-Function Pos (c : UnicodeString; Const s : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : UnicodeString; Const s : RawByteString) : SizeInt;
   begin
     result:=Pos(c,UnicodeString(s));
   end;
@@ -1866,7 +1301,6 @@ begin
   if index > LS then
    index := LS+1;
   Dec(Index);
-  Pointer(Temp) := NewUnicodeString(Length(Source)+LS);
   SetLength(Temp,Length(Source)+LS);
   If Index>0 then
     move (PUnicodeChar(S)^,PUnicodeChar(Temp)^,Index*sizeof(UnicodeChar));
@@ -1934,12 +1368,11 @@ end;
 {$ifndef FPC_HAS_SETSTRING_UNICODESTR_PCHAR}
 {$define FPC_HAS_SETSTRING_UNICODESTR_PCHAR}
 Procedure SetString (Out S : UnicodeString; Buf : PChar; Len : SizeInt);
-var
-  BufLen: SizeInt;
 begin
-  SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
-    widestringmanager.Ansi2UnicodeMoveProc(Buf,S,Len);
+    widestringmanager.Ansi2UnicodeMoveProc(Buf,DefaultSystemCodePage,S,Len)
+  else
+    SetLength(S,Len);
 end;
 {$endif FPC_HAS_SETSTRING_UNICODESTR_PCHAR}
 
@@ -2139,58 +1572,20 @@ end;
 
 {$endif CPU64}
 
-{ converts an utf-16 code point or surrogate pair to utf-32 }
-function utf16toutf32(const S: UnicodeString; const index: SizeInt; out len: longint): UCS4Char; [public, alias: 'FPC_UTF16TOUTF32'];
-var
-  w: unicodechar;
-begin
-  { UTF-16 points in the range #$0-#$D7FF and #$E000-#$FFFF }
-  { are the same in UTF-32                                  }
-  w:=s[index];
-  if (w<=#$d7ff) or
-     (w>=#$e000) then
-    begin
-      result:=UCS4Char(w);
-      len:=1;
-    end
-  { valid surrogate pair? }
-  else if (w<=#$dbff) and
-          { w>=#$d7ff check not needed, checked above }
-          (index<length(s)) and
-          (s[index+1]>=#$dc00) and
-          (s[index+1]<=#$dfff) then
-      { convert the surrogate pair to UTF-32 }
-    begin
-      result:=(UCS4Char(w)-$d800) shl 10 + (UCS4Char(s[index+1])-$dc00) + $10000;
-      len:=2;
-    end
-  else
-    { invalid surrogate -> do nothing }
-    begin
-      result:=UCS4Char(w);
-      len:=1;
-    end;
-end;
 
-
-{$ifndef FPC_HAS_UNICODE_TO_UTF8}
-{$define FPC_HAS_UNICODE_TO_UTF8}
 function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     if assigned(Source) then
-      Result:=UnicodeToUtf8(Dest,MaxBytes,Source,IndexWord(Source^,-1,0))
+      Result:=UnicodeToUtf8(Dest,MaxBytes,Source,Length(Source))
     else
       Result:=0;
   end;
-{$endif FPC_HAS_UNICODE_TO_UTF8}
 
 
 function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar; SourceChars: SizeUInt): SizeUInt;
   var
     i,j : SizeUInt;
-    w : word;
     lw : longword;
-    len : longint;
   begin
     result:=0;
     if source=nil then
@@ -2201,28 +1596,28 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar
       begin
         while (i<SourceChars) and (j<MaxDestBytes) do
           begin
-            w:=word(Source[i]);
-            case w of
+            lw:=ord(Source[i]);
+            case lw of
               0..$7f:
                 begin
-                  Dest[j]:=char(w);
+                  Dest[j]:=char(lw);
                   inc(j);
                 end;
               $80..$7ff:
                 begin
                   if j+1>=MaxDestBytes then
                     break;
-                  Dest[j]:=char($c0 or (w shr 6));
-                  Dest[j+1]:=char($80 or (w and $3f));
+                  Dest[j]:=char($c0 or (lw shr 6));
+                  Dest[j+1]:=char($80 or (lw and $3f));
                   inc(j,2);
                 end;
               $800..$d7ff,$e000..$ffff:
                 begin
                   if j+2>=MaxDestBytes then
                     break;
-                  Dest[j]:=char($e0 or (w shr 12));
-                  Dest[j+1]:=char($80 or ((w shr 6) and $3f));
-                  Dest[j+2]:=char($80 or (w and $3f));
+                  Dest[j]:=char($e0 or (lw shr 12));
+                  Dest[j+1]:=char($80 or ((lw shr 6) and $3f));
+                  Dest[j+2]:=char($80 or (lw and $3f));
                   inc(j,3);
                 end;
               $d800..$dbff:
@@ -2230,11 +1625,12 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar
                 begin
                   if j+3>=MaxDestBytes then
                     break;
-                  if (i<sourcechars-1) and
+                  if (i+1<sourcechars) and
                      (word(Source[i+1]) >= $dc00) and
                      (word(Source[i+1]) <= $dfff) then
                     begin
-                      lw:=longword(utf16toutf32(Source[i] + Source[i+1], 1, len));
+                      { $d7c0 is ($d800 - ($10000 shr 10)) }
+                      lw:=(longword(lw-$d7c0) shl 10) + (ord(source[i+1]) xor $dc00);
                       Dest[j]:=char($f0 or (lw shr 18));
                       Dest[j+1]:=char($80 or ((lw shr 12) and $3f));
                       Dest[j+2]:=char($80 or ((lw shr 6) and $3f));
@@ -2265,7 +1661,7 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar
                 inc(j,3);
               $d800..$dbff:
                 begin
-                  if (i<sourcechars-1) and
+                  if (i+1<sourcechars) and
                      (word(Source[i+1]) >= $dc00) and
                      (word(Source[i+1]) <= $dfff) then
                     begin
@@ -2571,7 +1967,7 @@ function UTF8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar
   end;
 
 
-function UTF8Encode(const s : Ansistring) : UTF8String; inline;
+function UTF8Encode(const s : RawByteString) : RawByteString; inline;
   begin
     Result:=UTF8Encode(UnicodeString(s));
   end;
@@ -2579,7 +1975,7 @@ function UTF8Encode(const s : Ansistring) : UTF8String; inline;
 
 {$ifndef FPC_HAS_UTF8ENCODE_UNICODESTRING}
 {$define FPC_HAS_UTF8ENCODE_UNICODESTRING}
-function UTF8Encode(const s : UnicodeString) : UTF8String;
+function UTF8Encode(const s : UnicodeString) : RawByteString;
   var
     i : SizeInt;
     hs : UTF8String;
@@ -2600,7 +1996,7 @@ function UTF8Encode(const s : UnicodeString) : UTF8String;
 
 {$ifndef FPC_HAS_UTF8DECODE_UNICODESTRING}
 {$define FPC_HAS_UTF8DECODE_UNICODESTRING}
-function UTF8Decode(const s : UTF8String): UnicodeString;
+function UTF8Decode(const s : RawByteString): UnicodeString;
   var
     i : SizeInt;
     hs : UnicodeString;
@@ -2619,72 +2015,104 @@ function UTF8Decode(const s : UTF8String): UnicodeString;
 {$endif FPC_HAS_UTF8DECODE_UNICODESTRING}
 
 
-function AnsiToUtf8(const s : ansistring): UTF8String;{$ifdef SYSTEMINLINE}inline;{$endif}
+function AnsiToUtf8(const s : RawByteString): RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Utf8Encode(s);
   end;
 
 
-function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Utf8ToAnsi(const s : RawByteString) : RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Utf8Decode(s);
   end;
 
 
-function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;
+procedure UCS4Encode(p: PWideChar; len: sizeint; out res: UCS4String);
   var
-    i, slen,
-    destindex : SizeInt;
-    len       : longint;
+    i, reslen: sizeint;
+    w: longint;
   begin
-    slen:=length(s);
-    setlength(result,slen+1);
-    i:=1;
-    destindex:=0;
-    while (i<=slen) do
+    reslen:=0;
+    i:=0;
+    { calculate required length }
+    while (i<len) do
       begin
-        result[destindex]:=utf16toutf32(s,i,len);
-        inc(destindex);
-        inc(i,len);
+        if (p[i]<=#$d7ff) or (p[i]>=#$e000) then
+          inc(i)
+        else if (p[i]<=#$dbff) and
+          (i+1<len) and
+          (p[i+1]>=#$dc00) and
+          (p[i+1]<=#$dfff) then
+          inc(i,2)
+        else
+          inc(i);
+        inc(reslen);
       end;
-    { destindex <= slen (surrogate pairs may have been merged) }
-    { destindex+1 for terminating #0 (dynamic arrays are       }
-    { implicitely filled with zero)                            }
-    setlength(result,destindex+1);
+    SetLength(res,reslen+1); { +1 for null termination }
+    reslen:=0;
+    i:=0;
+    { do conversion }
+    while (i<len) do
+      begin
+        w:=ord(p[i]);
+        if (w<=$d7ff) or (w>=$e000) then
+          res[reslen]:=w
+        else if (w<=$dbff) and
+          (i+1<len) and
+          (p[i+1]>=#$dc00) and
+          (p[i+1]<=#$dfff) then
+          begin
+            res[reslen]:=(UCS4Char(w-$d7c0) shl 10)+(UCS4Char(p[i+1]) xor $dc00);
+            inc(i);
+          end
+        else { invalid surrogate pair }
+          res[reslen]:=w;
+        inc(i);
+        inc(reslen);
+      end;
+    res[reslen]:=0;
   end;
-
 
 {$ifndef FPC_HAS_UCS4STRING_TO_UNICODESTR}
 {$define FPC_HAS_UCS4STRING_TO_UNICODESTR}
-{ concatenates an utf-32 char to a unicodestring. S *must* be unique when entering. }
-procedure ConcatUTF32ToUnicodeStr(const nc: UCS4Char; var S: UnicodeString; var index: SizeInt);
+function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;
+  begin
+    UCS4Encode(PWideChar(s),Length(s),result);
+  end;
+{$endif FPC_HAS_UCS4STRING_TO_UNICODESTR}
+
+{$ifndef FPC_HAS_WIDESTR_TO_UCS4STRING}
+{$define FPC_HAS_WIDESTR_TO_UCS4STRING}
+function WideStringToUCS4String(const s : WideString) : UCS4String;
+  begin
+    UCS4Encode(PWideChar(s),Length(s),result);
+  end;
+{$endif FPC_HAS_WIDESTR_TO_UCS4STRING}
+
+
+{$ifndef FPC_HAS_UCS4STRING_TO_WIDESTR}
+{$define FPC_HAS_UCS4STRING_TO_WIDESTR}
+{ dest should point to previously allocated wide/unicodestring }
+procedure UCS4Decode(const s: UCS4String; dest: PWideChar);
 var
-  p : PUnicodeChar;
+  i: sizeint;
+  nc: UCS4Char;
 begin
-  { if nc > $ffff, we need two places }
-  if (index+ord(nc > $ffff)>length(s)) then
-    if (length(s) < 10*256) then
-      setlength(s,length(s)+10)
-    else
-      setlength(s,length(s)+length(s) shr 8);
-  { we know that s is unique -> avoid uniquestring calls}
-  p:=@s[index];
-  if (nc<$ffff) then
+  for i:=0 to length(s)-2 do  { -2 because s contains explicit terminating #0 }
     begin
-      p^:=unicodechar(nc);
-      inc(index);
-    end
-  else if (dword(nc)<=$10ffff) then
-    begin
-      p^:=unicodechar((nc - $10000) shr 10 + $d800);
-      (p+1)^:=unicodechar((nc - $10000) and $3ff + $dc00);
-      inc(index,2);
-    end
-  else
-    { invalid code point }
-    begin
-      p^:='?';
-      inc(index);
+      nc:=s[i];
+      if (nc<$ffff) then
+        dest^:=widechar(nc)
+      else if (dword(nc)<=$10ffff) then
+        begin
+          dest^:=widechar(nc shr 10 + $d7c0);
+          { subtracting $10000 doesn't change low 10 bits }
+          dest[1]:=widechar(nc and $3ff + $dc00);
+          inc(dest);
+        end
+      else  { invalid code point }
+        dest^:='?';
+      inc(dest);
     end;
 end;
 
@@ -2692,94 +2120,26 @@ end;
 function UCS4StringToUnicodeString(const s : UCS4String) : UnicodeString;
   var
     i        : SizeInt;
-    resindex : SizeInt;
+    reslen   : SizeInt;
   begin
-    { skip terminating #0 }
-    SetLength(result,length(s)-1);
-    resindex:=1;
-    for i:=0 to high(s)-1 do
-      ConcatUTF32ToUnicodeStr(s[i],result,resindex);
-    { adjust result length (may be too big due to growing }
-    { for surrogate pairs)                                }
-    setlength(result,resindex-1);
+    reslen:=0;
+    for i:=0 to length(s)-2 do     { skip terminating #0 }
+      Inc(reslen,1+ord((s[i]>$ffff) and (s[i]<=$10ffff)));
+    SetLength(result,reslen);
+    UCS4Decode(s,pointer(result));
   end;
-{$endif FPC_HAS_UCS4STRING_TO_UNICODESTR}
-
-
-{$ifndef FPC_HAS_WIDESTR_TO_UCS4STRING}
-{$define FPC_HAS_WIDESTR_TO_UCS4STRING}
-function WideStringToUCS4String(const s : WideString) : UCS4String;
-  var
-    i, slen,
-    destindex : SizeInt;
-    len       : longint;
-  begin
-    slen:=length(s);
-    setlength(result,slen+1);
-    i:=1;
-    destindex:=0;
-    while (i<=slen) do
-      begin
-        result[destindex]:=utf16toutf32(s,i,len);
-        inc(destindex);
-        inc(i,len);
-      end;
-    { destindex <= slen (surrogate pairs may have been merged) }
-    { destindex+1 for terminating #0 (dynamic arrays are       }
-    { implicitely filled with zero)                            }
-    setlength(result,destindex+1);
-  end;
-{$endif FPC_HAS_WIDESTR_TO_UCS4STRING}
-
-
-{$ifndef FPC_HAS_UCS4STRING_TO_WIDESTR}
-{$define FPC_HAS_UCS4STRING_TO_WIDESTR}
-{ concatenates an utf-32 char to a widestring. S *must* be unique when entering. }
-procedure ConcatUTF32ToWideStr(const nc: UCS4Char; var S: WideString; var index: SizeInt);
-var
-  p : PWideChar;
-begin
-  { if nc > $ffff, we need two places }
-  if (index+ord(nc > $ffff)>length(s)) then
-    if (length(s) < 10*256) then
-      setlength(s,length(s)+10)
-    else
-      setlength(s,length(s)+length(s) shr 8);
-  { we know that s is unique -> avoid uniquestring calls}
-  p:=@s[index];
-  if (nc<$ffff) then
-    begin
-      p^:=widechar(nc);
-      inc(index);
-    end
-  else if (dword(nc)<=$10ffff) then
-    begin
-      p^:=widechar((nc - $10000) shr 10 + $d800);
-      (p+1)^:=widechar((nc - $10000) and $3ff + $dc00);
-      inc(index,2);
-    end
-  else
-    { invalid code point }
-    begin
-      p^:='?';
-      inc(index);
-    end;
-end;
 
 
 function UCS4StringToWideString(const s : UCS4String) : WideString;
   var
-    i        : SizeInt;
-    resindex : SizeInt;
+    i      : SizeInt;
+    reslen : SizeInt;
   begin
-    { skip terminating #0 }
-    SetLength(result,length(s)-1);
-    resindex:=1;
-    for i:=0 to high(s)-1 do
-      ConcatUTF32ToWideStr(s[i],result,resindex);
-    { adjust result length (may be too big due to growing }
-    { for surrogate pairs)                                }
-    setlength(result,resindex-1);
+    reslen:=0;
+    for i:=0 to length(s)-2 do     { skip terminating #0 }
+      Inc(reslen,1+ord((s[i]>$ffff) and (s[i]<=$10ffff)));
+    SetLength(result,reslen);
+    UCS4Decode(s,pointer(result));
   end;
 {$endif FPC_HAS_UCS4STRING_TO_WIDESTR}
 
@@ -2800,6 +2160,36 @@ procedure unimplementedunicodestring;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
     HandleErrorFrame(233,get_frame);
   end;
+
+
+function StringElementSize(const S: UnicodeString): Word; overload;
+  begin
+    if assigned(Pointer(S)) then
+      Result:=PUnicodeRec(pointer(S)-UnicodeFirstOff)^.ElementSize
+    else
+      Result:=SizeOf(UnicodeChar);
+  end;
+
+
+function StringRefCount(const S: UnicodeString): SizeInt; overload;
+  begin
+    if assigned(Pointer(S)) then
+      Result:=PUnicodeRec(pointer(S)-UnicodeFirstOff)^.Ref
+    else
+      Result:=0;
+  end;
+
+
+function StringCodePage(const S: UnicodeString): TSystemCodePage; overload;
+  begin
+{$ifdef FPC_HAS_CPSTRING}
+    if assigned(Pointer(S)) then
+      Result:=PUnicodeRec(pointer(S)-UnicodeFirstOff)^.CodePage
+    else
+{$endif FPC_HAS_CPSTRING}
+      Result:=DefaultUnicodeCodePage;
+  end;
+
 
 {$warnings off}
 function GenericUnicodeCase(const s : UnicodeString) : UnicodeString;
@@ -2823,8 +2213,8 @@ function CompareTextUnicodeString(const s1, s2 : UnicodeString): PtrInt;
 procedure initunicodestringmanager;
   begin
 {$ifndef HAS_WIDESTRINGMANAGER}
-    widestringmanager.Unicode2AnsiMoveProc:=@defaultUnicode2AnsiMove;
-    widestringmanager.Ansi2UnicodeMoveProc:=@defaultAnsi2UnicodeMove;
+    widestringmanager.Unicode2AnsiMoveProc:=@DefaultUnicode2AnsiMove;
+    widestringmanager.Ansi2UnicodeMoveProc:=@DefaultAnsi2UnicodeMove;
     widestringmanager.UpperUnicodeStringProc:=@GenericUnicodeCase;
     widestringmanager.LowerUnicodeStringProc:=@GenericUnicodeCase;
 {$endif HAS_WIDESTRINGMANAGER}
@@ -2843,6 +2233,7 @@ procedure initunicodestringmanager;
     widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
     widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;
   end;
 {$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 

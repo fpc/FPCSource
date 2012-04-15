@@ -33,7 +33,7 @@ interface
 
 uses SysUtils, ctypes;
 
-{$PACKENUM 4}
+{$z4}
 
 // Fix to compile in older FPC versions
 {$ifdef VER2_2}

@@ -16,33 +16,33 @@ uses
   ptc;
 
 var
-  console: TPTCConsole = nil;
-  format: TPTCFormat = nil;
-  surface: TPTCSurface = nil;
+  console: IPTCConsole;
+  format: IPTCFormat;
+  surface: IPTCSurface;
   pixels: PDWord;
   width, height: Integer;
   i: Integer;
   x, y, r, g, b: Integer;
-  area: TPTCArea = nil;
+  area: IPTCArea;
 begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       { create console }
       console.open('Area example', format);
 
       { create surface half the size of the console }
-      surface := TPTCSurface.Create(console.width div 2, console.height div 2, format);
+      surface := TPTCSurfaceFactory.CreateNew(console.width div 2, console.height div 2, format);
 
       { setup destination area }
       x := console.width div 4;
       y := console.height div 4;
-      area := TPTCArea.Create(x, y, x + surface.width, y + surface.height);
+      area := TPTCAreaFactory.CreateNew(x, y, x + surface.width, y + surface.height);
 
       { loop until a key is pressed }
       while not console.KeyPressed do
@@ -81,11 +81,8 @@ begin
         console.update;
       end;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
-      format.Free;
-      area.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

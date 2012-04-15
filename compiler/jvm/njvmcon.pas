@@ -84,7 +84,7 @@ interface
 implementation
 
     uses
-      cutils,widestr,verbose,constexp,fmodule,
+      globals,cutils,widestr,verbose,constexp,fmodule,
       symdef,symsym,symtable,symconst,
       aasmdata,aasmcpu,defutil,
       nutils,ncnv,nld,nmem,pjvm,pass_1,
@@ -164,6 +164,8 @@ implementation
       var
         strclass: tobjectdef;
         pw: pcompilerwidestring;
+        paras: tcallparanode;
+        wasansi: boolean;
       begin
         { all Java strings are utf-16. However, there is no way to
           declare a constant array of bytes (or any other type), those
@@ -179,14 +181,27 @@ implementation
         { convert the constant into a widestring representation without any
           code page conversion }
         initwidestring(pw);
-        ascii2unicode(value_str,len,pw,false);
+        ascii2unicode(value_str,len,current_settings.sourcecodepage,pw,false);
         ansistringdispose(value_str,len);
         pcompilerwidestring(value_str):=pw;
         { and now add a node to convert the data into ansistring format at
           run time }
+        wasansi:=false;
         case cst_type of
           cst_ansistring:
-            strclass:=tobjectdef(search_system_type('ANSISTRINGCLASS').typedef);
+            begin
+              if len=0 then
+                begin
+                  { we have to use nil rather than an empty string, because an
+                    empty string has a code page and this messes up the code
+                    page selection logic in the RTL }
+                  result:=cnilnode.create;
+                  inserttypeconv_internal(result,resultdef);
+                  exit;
+                end;
+              strclass:=tobjectdef(search_system_type('ANSISTRINGCLASS').typedef);
+              wasansi:=true;
+            end;
           cst_shortstring:
             strclass:=tobjectdef(search_system_type('SHORTSTRINGCLASS').typedef);
           cst_conststring:
@@ -196,11 +211,14 @@ implementation
            internalerror(2011052401);
         end;
         cst_type:=cst_unicodestring;
+        paras:=ccallparanode.create(self.getcopy,nil);
+        if wasansi then
+          paras:=ccallparanode.create(
+            genintconstnode(tstringdef(resultdef).encoding),paras);
         { since self will be freed, have to make a copy }
         result:=ccallnode.createinternmethodres(
           cloadvmtaddrnode.create(ctypenode.create(strclass)),
-          'CREATEFROMLITERALSTRINGBYTES',ccallparanode.create(self.getcopy,nil),
-          resultdef);
+          'CREATEFROMLITERALSTRINGBYTES',paras,resultdef);
       end;
 
 

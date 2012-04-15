@@ -49,13 +49,6 @@ begin
   Result:=Nil;
 end;
 
-destructor TPersistent.Destroy;
-
-begin
-  Inherited Destroy;
-end;
-
-
 procedure TPersistent.Assign(Source: TPersistent);
 
 begin
@@ -68,12 +61,14 @@ end;
 function  TPersistent.GetNamePath: string;
 
 Var OwnerName :String;
+    TheOwner: TPersistent;
 
 begin
- Result:=ClassNAme;
- If GetOwner<>Nil then
+ Result:=ClassName;
+ TheOwner:=GetOwner;
+ If TheOwner<>Nil then
    begin
-   OwnerName:=GetOwner.GetNamePath;
+   OwnerName:=TheOwner.GetNamePath;
    If OwnerName<>'' then Result:=OwnerName+'.'+Result;
    end;
 end;
@@ -84,10 +79,14 @@ end;
 {****************************************************************************}
 
 procedure TInterfacedPersistent.AfterConstruction;
+
+Var TheOwner: TPersistent;
+
 begin
   inherited;
-  if assigned(GetOwner) then
-    GetOwner.GetInterface(IUnknown,FOwnerInterface);
+  TheOwner:=GetOwner;
+  if assigned(TheOwner) then
+    TheOwner.GetInterface(IUnknown,FOwnerInterface);
 end;
 
 
@@ -149,7 +148,7 @@ end;
 
 procedure TRecall.Store;
 begin
-  if Assigned(FReference) then
+  if Assigned(FStorage) and Assigned(FReference) then
     FStorage.Assign(FReference);
 end;
 

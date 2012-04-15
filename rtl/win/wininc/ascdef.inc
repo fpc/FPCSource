@@ -165,7 +165,7 @@ function GetComputerName(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'kerne
 function SetComputerName(lpComputerName:LPCSTR):WINBOOL; external 'kernel32' name 'SetComputerNameA';
 function GetCPInfoEx(Codepage:UINT; dwFlags:DWORD; CPInfoEx:LPCPINFOEX):WINBOOL; external 'kernel32' name 'GetCPInfoExA';
 function GetUserName(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'advapi32' name 'GetUserNameA';
-function wvsprintf(_para1:LPSTR; _para2:LPCSTR; arglist:va_list):longint; external 'user32' name 'wvsprintfA';
+function wvsprintf(_para1:LPSTR; _para2:LPCSTR; arglist:va_list):longint; stdcall; external 'user32' name 'wvsprintfA';
 function LoadKeyboardLayout(pwszKLID:LPCSTR; Flags:UINT):HKL; external 'user32' name 'LoadKeyboardLayoutA';
 function GetKeyboardLayoutName(pwszKLID:LPSTR):WINBOOL; external 'user32' name 'GetKeyboardLayoutNameA';
 function CreateDesktop(lpszDesktop:LPSTR; lpszDevice:LPSTR; pDevmode:LPDEVMODE; dwFlags:DWORD; dwDesiredAccess:DWORD;lpsa:LPSECURITY_ATTRIBUTES):HDESK; external 'user32' name 'CreateDesktopA';

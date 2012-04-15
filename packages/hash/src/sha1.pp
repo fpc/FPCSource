@@ -20,7 +20,7 @@ interface
 
 type
   TSHA1Digest = array[0..19] of Byte;
-  
+
   TSHA1Context = record
     State: array[0..4] of Cardinal;
     Buffer: array[0..63] of Byte;
@@ -28,7 +28,7 @@ type
     Length: QWord;     { total count of bytes processed }
   end;
 
-{ core }  
+{ core }
 procedure SHA1Init(out ctx: TSHA1Context);
 procedure SHA1Update(var ctx: TSHA1Context; const Buf; BufLen: PtrUInt);
 procedure SHA1Final(var ctx: TSHA1Context; out Digest: TSHA1Digest);
@@ -76,7 +76,7 @@ const
   K40 = $6ED9EBA1;
   K60 = $8F1BBCDC;
   K80 = $CA62C1D6;
-  
+
 procedure SHA1Transform(var ctx: TSHA1Context; Buf: Pointer);
 var
   A, B, C, D, E, T: Cardinal;
@@ -102,7 +102,7 @@ begin
     Data[i and 15] := roldword(Data[i and 15] xor Data[(i+2) and 15] xor Data[(i+8) and 15] xor Data[(i+13) and 15], 1);
     Inc(i);
   until i > 19;
-  
+
   repeat
     T := (B xor C xor D) + K40 + E;
     E := D;
@@ -113,7 +113,7 @@ begin
     Data[i and 15] := roldword(Data[i and 15] xor Data[(i+2) and 15] xor Data[(i+8) and 15] xor Data[(i+13) and 15], 1);
     Inc(i);
   until i > 39;
-  
+
   repeat
     T := (B and C) or (B and D) or (C and D) + K60 + E;
     E := D;
@@ -123,8 +123,8 @@ begin
     A := T + roldword(A, 5) + Data[i and 15];
     Data[i and 15] := roldword(Data[i and 15] xor Data[(i+2) and 15] xor Data[(i+8) and 15] xor Data[(i+13) and 15], 1);
     Inc(i);
-  until i > 59;  
-  
+  until i > 59;
+
   repeat
     T := (B xor C xor D) + K80 + E;
     E := D;
@@ -134,7 +134,7 @@ begin
     A := T + roldword(A, 5) + Data[i and 15];
     Data[i and 15] := roldword(Data[i and 15] xor Data[(i+2) and 15] xor Data[(i+8) and 15] xor Data[(i+13) and 15], 1);
     Inc(i);
-  until i > 79;  
+  until i > 79;
 
   Inc(ctx.State[0], A);
   Inc(ctx.State[1], B);
@@ -194,7 +194,7 @@ begin
 end;
 
 const
-  PADDING: array[0..63] of Byte = 
+  PADDING: array[0..63] of Byte =
     ($80,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -222,7 +222,7 @@ begin
 
   // 4. Invert state to digest
   Invert(@ctx.State, @Digest, 20);
-  FillChar(ctx, sizeof(TSHA1Context), 0);  
+  FillChar(ctx, sizeof(TSHA1Context), 0);
 end;
 
 function SHA1String(const S: String): TSHA1Digest;
@@ -254,11 +254,11 @@ begin
   SHA1Init(Context);
 
   Assign(F, Filename);
-  {$i-}
+  {$push}{$i-}
   ofm := FileMode;
   FileMode := 0;
   Reset(F, 1);
-  {$i+}
+  {$pop}
 
   if IOResult = 0 then
   begin
@@ -303,3 +303,4 @@ begin
 end;
 
 end.
+k

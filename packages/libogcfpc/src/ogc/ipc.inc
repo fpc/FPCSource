@@ -30,8 +30,6 @@ type
 
 function iosCreateHeap(size: cint32): cint32; cdecl; external;
 
-function iosDestroyHeap(hid: cint32): cint32; cdecl; external;
-
 function iosAlloc(hid, size: cint32): pointer; cdecl; external;
 
 procedure iosFree(hid: cint32; ptr: pointer); cdecl; external;

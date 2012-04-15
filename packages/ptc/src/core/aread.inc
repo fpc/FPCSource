@@ -31,21 +31,27 @@
 }
 
 type
-  TPTCArea = class
-  private
-    FLeft, FTop, FRight, FBottom: Integer;
+  IPTCArea = interface
+    function GetLeft: Integer;
+    function GetTop: Integer;
+    function GetRight: Integer;
+    function GetBottom: Integer;
     function GetWidth: Integer;
     function GetHeight: Integer;
-  public
-    constructor Create;
-    constructor Create(ALeft, ATop, ARight, ABottom: Integer);
-    constructor Create(const AArea: TPTCArea);
-    procedure Assign(const AArea: TPTCArea);
-    function Equals(const AArea: TPTCArea): Boolean;
-    property Left: Integer read FLeft;
-    property Top: Integer read FTop;
-    property Right: Integer read FRight;
-    property Bottom: Integer read FBottom;
+
+    function Equals(AArea: IPTCArea): Boolean;
+
+    property Left: Integer read GetLeft;
+    property Top: Integer read GetTop;
+    property Right: Integer read GetRight;
+    property Bottom: Integer read GetBottom;
     property Width: Integer read GetWidth;
     property Height: Integer read GetHeight;
+  end;
+
+  TPTCAreaFactory = class
+  public
+    class function CreateNew: IPTCArea;
+    class function CreateNew(ALeft, ATop, ARight, ABottom: Integer): IPTCArea;
+    class function CreateNew(AArea: IPTCArea): IPTCArea;
   end;

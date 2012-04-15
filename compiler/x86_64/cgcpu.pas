@@ -35,10 +35,11 @@ unit cgcpu;
     type
       tcgx86_64 = class(tcgx86)
         procedure init_register_allocators;override;
-        procedure done_register_allocators;override;
 
+        procedure g_proc_entry(list : TAsmList; parasize:longint; nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+        procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
 
         procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize;intreg, mmreg: tregister; shuffle: pmmshuffle); override;
         procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister;shuffle : pmmshuffle); override;
@@ -49,8 +50,8 @@ unit cgcpu;
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,
-       symsym,defutil,paramgr,fmodule,
+       globtype,globals,verbose,systems,cutils,cclasses,
+       symsym,defutil,paramgr,fmodule,cpupi,
        rgobj,tgobj,rgcpu;
 
 
@@ -58,6 +59,7 @@ unit cgcpu;
       const
         win64_saved_std_regs : array[0..6] of tsuperregister = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15);
         others_saved_std_regs : array[0..4] of tsuperregister = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
+        saved_regs_length : array[boolean] of longint = (5,7);
 
         win64_saved_xmm_regs : array[0..9] of tsuperregister = (RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
@@ -66,24 +68,28 @@ unit cgcpu;
         framepointer : tsuperregister;
       begin
         inherited init_register_allocators;
-        if target_info.system=system_x86_64_win64 then
+
+        if (length(saved_standard_registers)<>saved_regs_length[target_info.system=system_x86_64_win64]) then
           begin
-            SetLength(saved_standard_registers,Length(win64_saved_std_regs));
-            SetLength(saved_mm_registers,Length(win64_saved_xmm_regs));
+            if target_info.system=system_x86_64_win64 then
+              begin
+                SetLength(saved_standard_registers,Length(win64_saved_std_regs));
+                SetLength(saved_mm_registers,Length(win64_saved_xmm_regs));
 
-            for i:=low(win64_saved_std_regs) to high(win64_saved_std_regs) do
-              saved_standard_registers[i]:=win64_saved_std_regs[i];
+                for i:=low(win64_saved_std_regs) to high(win64_saved_std_regs) do
+                  saved_standard_registers[i]:=win64_saved_std_regs[i];
 
-            for i:=low(win64_saved_xmm_regs) to high(win64_saved_xmm_regs) do
-              saved_mm_registers[i]:=win64_saved_xmm_regs[i];
-          end
-        else
-          begin
-            SetLength(saved_standard_registers,Length(others_saved_std_regs));
-            SetLength(saved_mm_registers,0);
+                for i:=low(win64_saved_xmm_regs) to high(win64_saved_xmm_regs) do
+                  saved_mm_registers[i]:=win64_saved_xmm_regs[i];
+              end
+            else
+              begin
+                SetLength(saved_standard_registers,Length(others_saved_std_regs));
+                SetLength(saved_mm_registers,0);
 
-            for i:=low(others_saved_std_regs) to high(others_saved_std_regs) do
-              saved_standard_registers[i]:=others_saved_std_regs[i];
+                for i:=low(others_saved_std_regs) to high(others_saved_std_regs) do
+                  saved_standard_registers[i]:=others_saved_std_regs[i];
+              end;
           end;
         if assigned(current_procinfo) then
           framepointer:=getsupreg(current_procinfo.framepointer)
@@ -103,37 +109,105 @@ unit cgcpu;
       end;
 
 
-    procedure Tcgx86_64.done_register_allocators;
+    procedure tcgx86_64.g_proc_entry(list : TAsmList;parasize:longint;nostackframe:boolean);
+      var
+        hitem: tlinkedlistitem;
+        r: integer;
+        href: treference;
+        templist: TAsmList;
+        frame_offset: longint;
+        suppress_endprologue: boolean;
       begin
-        inherited done_register_allocators;
-        setlength(saved_standard_registers,0);
-        setlength(saved_mm_registers,0);
+        hitem:=list.last;
+        { pi_has_unwind_info may already be set at this point if there are
+          SEH directives in assembler body. In this case, .seh_endprologue
+          is expected to be one of those directives, and not generated here. }
+        suppress_endprologue:=(pi_has_unwind_info in current_procinfo.flags);
+        inherited g_proc_entry(list,parasize,nostackframe);
+
+        if not (pi_has_unwind_info in current_procinfo.flags) then
+          exit;
+        { Generate unwind data for x86_64-win64 }
+        list.insertafter(cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname),hitem);
+        templist:=TAsmList.Create;
+
+        { We need to record postive offsets from RSP; if registers are saved
+          at negative offsets from RBP we need to account for it. }
+        if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+          frame_offset:=current_procinfo.final_localsize
+        else
+          frame_offset:=0;
+
+        { There's no need to describe position of register saves precisely;
+          since registers are not modified before they are saved, and saves do not
+          change RSP, 'logically' all saves can happen at the end of prologue. }
+        href:=current_procinfo.save_regs_ref;
+        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            begin
+              templist.concat(cai_seh_directive.create_reg_offset(ash_savereg,
+                newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE),
+                href.offset+frame_offset));
+              inc(href.offset,sizeof(aint));
+            end;
+        if uses_registers(R_MMREGISTER) then
+          begin
+            if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
+              inc(href.offset,tcgsize2size[OS_VECTOR]-(href.offset mod tcgsize2size[OS_VECTOR]));
+
+            for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+              begin
+                if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                  begin
+                    templist.concat(cai_seh_directive.create_reg_offset(ash_savexmm,
+                      newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),
+                      href.offset+frame_offset));
+                    inc(href.offset,tcgsize2size[OS_VECTOR]);
+                  end;
+              end;
+          end;
+        if not suppress_endprologue then
+          templist.concat(cai_seh_directive.create(ash_endprologue));
+        if assigned(current_procinfo.endprologue_ai) then
+          current_procinfo.aktproccode.insertlistafter(current_procinfo.endprologue_ai,templist)
+        else
+          list.concatlist(templist);
+        templist.free;
       end;
 
 
     procedure tcgx86_64.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
       var
-        stacksize : longint;
+        href : treference;
       begin
         { Release PIC register }
         if cs_create_pic in current_settings.moduleswitches then
           list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
 
+        { Prevent return address from a possible call from ending up in the epilogue }
+        { (restoring registers happens before epilogue, providing necessary padding) }
+        if (current_procinfo.flags*[pi_has_unwind_info,pi_do_call,pi_has_saved_regs])=[pi_has_unwind_info,pi_do_call] then
+          list.concat(Taicpu.op_none(A_NOP));
         { remove stackframe }
         if not nostackframe then
           begin
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
+               (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
               begin
-                stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.system in systems_need_16_byte_stack_alignment) and
-                   ((stacksize <> 0) or
-                    (pi_do_call in current_procinfo.flags) or
-                    { can't detect if a call in this case -> use nostackframe }
-                    { if you (think you) know what you are doing              }
-                    (po_assembler in current_procinfo.procdef.procoptions)) then
-                  stacksize := align(stacksize+sizeof(aint),16) - sizeof(aint);
-                if (stacksize<>0) then
-                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
+                if (current_procinfo.final_localsize<>0) then
+                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,current_procinfo.final_localsize,NR_STACK_POINTER_REG);
+                if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+                  list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
+              end
+            else if (target_info.system=system_x86_64_win64) then
+              begin
+                { Comply with Win64 unwinding mechanism, which only recognizes
+                  'add $constant,%rsp' and 'lea offset(FPREG),%rsp' as belonging to
+                  the function epilog.
+                  Neither 'leave' nor even 'mov %FPREG,%rsp' are allowed. }
+                reference_reset_base(href,current_procinfo.framepointer,0,sizeof(pint));
+                list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],href,NR_STACK_POINTER_REG));
+                list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],current_procinfo.framepointer));
               end
             else
               list.concat(Taicpu.op_none(A_LEAVE,S_NO));
@@ -141,6 +215,11 @@ unit cgcpu;
           end;
 
         list.concat(Taicpu.Op_none(A_RET,S_NO));
+        if (pi_has_unwind_info in current_procinfo.flags) then
+          begin
+            tx86_64procinfo(current_procinfo).dump_scopes(list);
+            list.concat(cai_seh_directive.create(ash_endproc));
+          end;
       end;
 
 
@@ -207,6 +286,31 @@ unit cgcpu;
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
+    procedure tcgx86_64.g_local_unwind(list: TAsmList; l: TAsmLabel);
+      var
+        para1,para2: tcgpara;
+        href:treference;
+      begin
+        if (target_info.system<>system_x86_64_win64) then
+          begin
+            inherited g_local_unwind(list,l);
+            exit;
+          end;
+        para1.init;
+        para2.init;
+        paramanager.getintparaloc(pocall_default,1,para1);
+        paramanager.getintparaloc(pocall_default,2,para2);
+        reference_reset_symbol(href,l,0,1);
+        { TODO: using RSP is correct only while the stack is fixed!!
+          (true now, but will change if/when allocating from stack is implemented) }
+        a_load_reg_cgpara(list,OS_ADDR,NR_STACK_POINTER_REG,para1);
+        a_loadaddr_ref_cgpara(list,href,para2);
+        paramanager.freecgpara(list,para2);
+        paramanager.freecgpara(list,para1);
+        g_call(current_asmdata.CurrAsmList,'_FPC_local_unwind');
+        para2.done;
+        para1.done;
+      end;
 
     procedure tcgx86_64.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle);
       var

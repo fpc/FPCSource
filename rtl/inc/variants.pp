@@ -361,9 +361,6 @@ uses
   Math,
   VarUtils;
 
-{$IFOPT R-} {$DEFINE RANGECHECKINGOFF} {$ENDIF}
-{$IFOPT Q-} {$DEFINE OVERFLOWCHECKINGOFF} {$ENDIF}
-
 var
   customvarianttypes    : array of TCustomVariantType;
   customvarianttypelock : trtlcriticalsection;
@@ -437,7 +434,7 @@ type
     function AtEnd: Boolean;
   end;
 
-
+{$push}
 {$r-}
 
 constructor TVariantArrayIterator.Init(aDims: SizeInt; aBounds : PVarArrayBoundArray);
@@ -494,9 +491,7 @@ begin
       end;
 end;
 
-{$ifndef RANGECHECKINGOFF}
-{$r+}
-{$endif}
+{$pop}// {$r-} for TVariantArrayIterator
 
 destructor TVariantArrayIterator.done;
   begin
@@ -516,13 +511,13 @@ type
     positions : tdynarraypositions;
     Dims : SizeInt;
     data : Pointer;
-    constructor init(d : Pointer;p : pdynarraytypeinfo;_dims: SizeInt;b : tdynarraybounds);
+    constructor init(d : Pointer;typeInfo : Pointer;_dims: SizeInt;b : tdynarraybounds);
     function next : Boolean;
     destructor done;
   end;
 
 
-constructor tdynarrayiter.init(d : Pointer;p : pdynarraytypeinfo;_dims: SizeInt;b : tdynarraybounds);
+constructor tdynarrayiter.init(d : Pointer;typeInfo : Pointer;_dims: SizeInt;b : tdynarraybounds);
   var
     i : sizeint;
   begin
@@ -539,16 +534,10 @@ constructor tdynarrayiter.init(d : Pointer;p : pdynarraytypeinfo;_dims: SizeInt;
         if i>0 then
           positions[i]:=Pointer(positions[i-1]^);
         { skip kind and name }
-        inc(Pointer(p),ord(pdynarraytypeinfo(p)^.namelen)+2);
+        typeInfo:=aligntoptr(typeInfo+2+Length(PTypeInfo(typeInfo)^.Name));
 
-        p:=AlignToPtr(p);
-
-        elesize[i]:=psizeint(p)^;
-
-        { skip elesize }
-        inc(Pointer(p),SizeOf(sizeint));
-
-        p:=pdynarraytypeinfo(ppointer(p)^);
+        elesize[i]:=PTypeData(typeInfo)^.elSize;
+        typeInfo:=PTypeData(typeInfo)^.elType2;
       end;
     data:=positions[Dims-1];
   end;
@@ -824,12 +813,11 @@ begin
 
   { get TypeInfo of second level }
   { skip kind and name }
-  inc(Pointer(TypeInfo),ord(pdynarraytypeinfo(TypeInfo)^.namelen)+2);
-  TypeInfo:=AlignToPtr(TypeInfo);
-  TypeInfo:=ppointer(TypeInfo+SizeOf(sizeint))^;
+  TypeInfo:=aligntoptr(TypeInfo+2+Length(PTypeInfo(TypeInfo)^.Name));
+  TypeInfo:=PTypeData(TypeInfo)^.elType2;
 
   { check recursively? }
-  if assigned(pdynarraytypeinfo(TypeInfo)) and (pdynarraytypeinfo(TypeInfo)^.kind=byte(tkDynArray)) then
+  if assigned(TypeInfo) and (PTypeInfo(TypeInfo)^.kind=tkDynArray) then
     begin
       { set to dimension of first element }
       arraysize:=psizeint(ppointer(p)^-SizeOf(sizeint))^;
@@ -1243,37 +1231,61 @@ function DoVarCmpComplex(const Left, Right: TVarData; const OpCode: TVarOp): Sho
 var Handler: TCustomVariantType;
     CmpRes: boolean;
 begin
-  if FindCustomVariantType(Left.vType, Handler) then
-    CmpRes := Handler.CompareOp(Left, Right, OpCode)
-  else if FindCustomVariantType(Right.vType, Handler) then
-    CmpRes := Handler.CompareOp(Left, Right, OpCode)
+  if (Left.vType=varnull) or (Right.vType=varnull) then
+    // don't bother custom variant handlers with conversion to NULL
+    begin
+    if OpCode in [opCmpEq,opCmpNe] then
+      begin
+      if (Left.vType=Right.vType) xor (OpCode=opCmpNe) then
+        result:=0
+      else
+        result:=-1;
+      end
+    else
+      if Left.vType=varnull then
+        begin
+        if Right.vType=varnull then
+          Result := 0
+        else
+          Result := -1;
+        end
+      else
+        Result := 1;
+    end
   else
-  VarInvalidOp(Left.vType, Right.vType, OpCode);
+    begin
+    if FindCustomVariantType(Left.vType, Handler) then
+      CmpRes := Handler.CompareOp(Left, Right, OpCode)
+    else if FindCustomVariantType(Right.vType, Handler) then
+      CmpRes := Handler.CompareOp(Left, Right, OpCode)
+    else
+    VarInvalidOp(Left.vType, Right.vType, OpCode);
 
-  case OpCode of
-    opCmpEq:
-      if CmpRes then
-        Result:=0
-      else
-        Result:=1;
-    opCmpNe:
-      if CmpRes then
-        Result:=1
-      else
-        Result:=0;
-    opCmpLt,
-    opCmpLe:
-      if CmpRes then
-        Result:=-1
-      else
-        Result:=1;
-    opCmpGt,
-    opCmpGe:
-      if CmpRes then
-        Result:=1
-      else
-        Result:=-1;
-  end;
+    case OpCode of
+      opCmpEq:
+        if CmpRes then
+          Result:=0
+        else
+          Result:=1;
+      opCmpNe:
+        if CmpRes then
+          Result:=1
+        else
+          Result:=0;
+      opCmpLt,
+      opCmpLe:
+        if CmpRes then
+          Result:=-1
+        else
+          Result:=1;
+      opCmpGt,
+      opCmpGe:
+        if CmpRes then
+          Result:=1
+        else
+          Result:=-1;
+    end;
+    end;
 end;
 
 
@@ -1433,7 +1445,8 @@ begin
   r := VariantToInt64(vr);
   Overflow := False;
   case OpCode of
-    {$R+}{$Q+}
+{$push}
+{$R+}{$Q+}
     opAdd..opMultiply,opPower: try
       case OpCode of
         opAdd      :  l := l  + r;
@@ -1449,7 +1462,7 @@ begin
       on E: SysUtils.EIntOverflow do
         Overflow := True;
     end;
-    {$IFDEF RANGECHECKINGOFF} {$R-} {$ENDIF} {$IFDEF OVERFLOWCHECKINGOFF} {$Q+} {$ENDIF}
+{$pop}
     opIntDivide  : l := l div r;
     opModulus    : l := l mod r;
     opShiftLeft  : l := l shl r;
@@ -2115,17 +2128,12 @@ begin
     try
       { Calculation total number of elements in the array }
       cnt:=1;
-{$ifopt r+}
+{$push}
 { arr^.bounds[] is an array[0..0] }
-{$define rangeon}
 {$r-}
-{$endif}
       for i:=0 to arr^.dimcount - 1 do
         cnt:=cnt*cardinal(arr^.Bounds[i].ElementCount);
-{$ifdef rangeon}
-{$undef rangeon}
-{$r+}
-{$endif}
+{$pop}
 
       { Clearing each element }
       for i:=1 to cnt do begin
@@ -2579,18 +2587,13 @@ begin
       else
         p:=src.vArray;
 
-{$ifopt r+}
-{$define rangeon}
+{$push}
 {$r-}
-{$endif}
       if highbound<p^.Bounds[p^.dimcount-1].LowBound-1 then
         VarInvalidArgError;
 
       newbounds.LowBound:=p^.Bounds[p^.dimcount-1].LowBound;
-{$ifdef rangon}
-{$undef rangeon}
-{$r+}
-{$endif}
+{$pop}
       newbounds.ElementCount:=highbound-newbounds.LowBound+1;
 
       VarResultCheck(SafeArrayRedim(p,newbounds));
@@ -2715,7 +2718,7 @@ end;
 
 
 { import from system unit }
-Procedure fpc_Write_Text_AnsiStr (Len : LongInt; Var f : Text; S : AnsiString); external name 'FPC_WRITE_TEXT_ANSISTR';
+Procedure fpc_Write_Text_AnsiStr (Len : LongInt; Var f : Text; S : RawByteString); external name 'FPC_WRITE_TEXT_ANSISTR';
 
 
 function syswritevariant(var t : text; const v : Variant;width : LongInt) : Pointer;
@@ -3051,9 +3054,9 @@ end;
 
 function VarEnsureRange(const AValue, AMin, AMax: Variant): Variant;
 begin
-  If Result>AMAx then
+  If AValue>AMAx then
     Result:=AMax
-  else If Result<AMin Then
+  else If AValue<AMin Then
     Result:=AMin
   else
     Result:=AValue;
@@ -3161,18 +3164,20 @@ end;
 
 
 { Variant copy support }
+{$push}
 {$warnings off}
 procedure VarCopyNoInd(var Dest: Variant; const Source: Variant);
 
 begin
   NotSupported('VarCopyNoInd');
 end;
-{$warnings on}
+{$pop}
 
 {****************************************************************************
               Variant array support procedures and functions
  ****************************************************************************}
 
+{$push}
 {$r-}
 
 function VarArrayCreate(const Bounds: array of SizeInt; aVarType: TVarType): Variant;
@@ -3205,9 +3210,7 @@ function VarArrayCreate(const Bounds: array of SizeInt; aVarType: TVarType): Var
     end;
   end;
 
-{$ifndef RANGECHECKINGOFF}
-{$r+}
-{$endif}
+{$pop}
 
 function VarArrayCreate(const Bounds: PVarArrayBoundArray; Dims : SizeInt; aVarType: TVarType): Variant;
   var
@@ -3361,26 +3364,17 @@ function DynArrayGetVariantInfo(p : Pointer; var Dims : sizeint) : sizeint;
   begin
     Result:=varNull;
     { skip kind and name }
-    inc(Pointer(p),ord(pdynarraytypeinfo(p)^.namelen)+2);
-
-    p:=AlignToPtr(p);
-
-    { skip elesize }
-    inc(p,SizeOf(sizeint));
+    p:=aligntoptr(p+2+Length(PTypeInfo(p)^.Name));
 
     { search recursive? }
-    if pdynarraytypeinfo(ppointer(p)^)^.kind=21{tkDynArr} then
-      Result:=DynArrayGetVariantInfo(ppointer(p)^,Dims)
+    if PTypeInfo(PTypeData(p)^.elType2)^.kind=tkDynArray then
+      Result:=DynArrayGetVariantInfo(PTypeData(p)^.elType2,Dims)
     else
-      begin
-        { skip dynarraytypeinfo }
-        inc(p,SizeOf(pdynarraytypeinfo));
-        Result:=plongint(p)^;
-      end;
+      Result:=PTypeData(p)^.varType;
     inc(Dims);
   end;
 
-
+{$push}
 {$r-}
 
 procedure DynArrayToVariant(var V: Variant; const DynArray: Pointer; TypeInfo: Pointer);
@@ -3580,9 +3574,7 @@ procedure DynArrayFromVariant(var DynArray: Pointer; const V: Variant; TypeInfo:
       FreeMem(vararraybounds);
     end;
   end;
-{$ifndef RANGECHECKINGOFF}
-{$r+}
-{$endif}
+{$pop}//{$r-} for DynArray[From|To]Variant
 
 
 function FindCustomVariantType(const aVarType: TVarType; out CustomVariantType: TCustomVariantType): Boolean; overload;

@@ -42,7 +42,7 @@ uses
 
 const
   gas_regname_table: array[tregisterindex] of string[7] = (
-        {$i rmipsstd.inc}
+        {$i rmipsgas.inc}
     );
 
   gas_regname_index: array[tregisterindex] of tregisterindex = (
@@ -93,9 +93,4 @@ begin
 end;
 
 end.
-{
-  $Log: itcpugas.pas,v $
-  Revision 1.7  2005/02/14 17:13:10  peter
-    * truncate log
 
-}

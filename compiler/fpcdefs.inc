@@ -59,6 +59,7 @@
   {$define SUPPORT_MMX}
   {$define cpumm}
   {$define fewintregisters}
+  {$define cpurox}
 {$endif i386}
 
 {$ifdef x86_64}
@@ -70,11 +71,22 @@
   {$define cpufloat128}
   {$define cputargethasfixedstack}
   {$define cpumm}
+  {$define cpurox}
+  {$define cpurefshaveindexreg}
 {$endif x86_64}
+
+{$ifdef ia64}
+  {$define cpuflags}
+  {$define cpu64bitalu}
+  {$define cpu64bitaddr}
+  {$define cpuextended}
+  {$define cpufloat128}
+{$endif ia64}
 
 {$ifdef alpha}
   {$define cpu64bitalu}
   {$define cpu64bitaddr}
+  {$define cpurefshaveindexreg}
 {$endif alpha}
 
 {$ifdef sparc}
@@ -83,6 +95,7 @@
   {$define cpu32bitalu}
   {$define cpuflags}
   {$define cputargethasfixedstack}
+  {$define cpurefshaveindexreg}
 {$endif sparc}
 
 {$ifdef powerpc}
@@ -92,6 +105,8 @@
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpumm}
+  {$define cpurox}
+  {$define cpurefshaveindexreg}
 {$endif powerpc}
 
 {$ifdef powerpc64}
@@ -100,6 +115,8 @@
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpumm}
+  {$define cpurox}
+  {$define cpurefshaveindexreg}
 {$endif powerpc64}
 
 {$ifdef arm}
@@ -109,14 +126,24 @@
   {$define cpuflags}
   {$define cpufpemu}
   {$define cpuneedsdiv32helper}
+  {$define cpurox}
   {$define cputargethasfixedstack}
+  {$define cpurefshaveindexreg}
+  { default to armel }
+  {$if not(defined(CPUARM)) and not(defined(CPUARMEB)) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEB)) and not(defined(FPC_ARMHF))}
+    {$define FPC_ARMEL}
+  {$endif}
   { inherit FPC_ARMEL? }
-  {$if defined(CPUARMEL) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEB))}
+  {$if defined(CPUARMEL) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEB)) and not(defined(FPC_ARMHF))}
     {$define FPC_ARMEL}
   {$endif}
   { inherit FPC_ARMEB? }
-  {$if defined(CPUARMEB) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEL))}
+  {$if defined(CPUARMEB) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEL)) and not(defined(FPC_ARMHF))}
     {$define FPC_ARMEB}
+  {$endif}
+  { inherit FPC_ARMHF? }
+  {$if defined(CPUARMHF) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEL)) and not(defined(FPC_ARMEB))}
+    {$define FPC_ARMHF}
   {$endif}
 {$endif arm}
 
@@ -126,6 +153,7 @@
   {$define cpu32bitalu}
   {$define cpuflags}
   {$define cpufpemu}
+  {$define cpurefshaveindexreg}
 {$endif m68k}
 
 {$ifdef avr}
@@ -137,6 +165,7 @@
   {$define cpunodefaultint}
   {$define cpuneedsdiv32helper}
   {$define cpuneedsmulhelper}
+  {$define cpurefshaveindexreg}
 {$endif avr}
 
 {$ifdef mipsel}
@@ -144,12 +173,14 @@
 {$endif mipsel}
 
 {$ifdef mips}
+  {$define cpu32bit}
   {$define cpu32bitalu}
   {$define cpu32bitaddr}
   { $define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpurequiresproperalignment}
-  {$define cpumm}
+  { define cpumm}
+  {$define cpurefshaveindexreg}
 {$endif mips}
 
 {$ifdef jvm}

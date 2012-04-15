@@ -36,7 +36,7 @@ interface
 uses glib2;
 
 const
-{$ifdef win32}
+{$ifdef windows}
   {$define gdkpixbufwin}
   gdkpixbuflib = 'libgdk_pixbuf-2.0-0.dll';
   {$IFDEF FPC}
@@ -77,7 +77,7 @@ const
 
 {$IFNDEF Kylix}
 var
-  {$IFDEF WIN32 }
+  {$IFDEF WINDOWS }
   gdk_pixbuf_major_version: guint; external gdkpixbuflib name 'gdk_pixbuf_major_version';
   gdk_pixbuf_minor_version: guint; external gdkpixbuflib name 'gdk_pixbuf_minor_version';
   gdk_pixbuf_micro_version: guint; external gdkpixbuflib name 'gdk_pixbuf_micro_version';

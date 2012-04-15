@@ -1260,9 +1260,9 @@ distances are limited to MAX_DIST instead of WSIZE. }
   scan_end   := Pwordarray(scan)^[best_len-1];   { fix }
 {$else}
   strend := Pbyte(@(s.window^[s.strstart + MAX_MATCH]));
-  {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
+  {$push} {$R-}
   scan_end1  := Pbytearray(scan)^[best_len-1];
-  {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
+  {$pop}
   scan_end   := Pbytearray(scan)^[best_len];
 {$endif}
 
@@ -1304,11 +1304,11 @@ distances are limited to MAX_DIST instead of WSIZE. }
 {$ifdef DO_UNALIGNED_OK}
         { This code assumes sizeof(cardinal short) = 2. Do not use
           UNALIGNED_OK if your compiler uses a different size. }
-  {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
+  {$PUSH} {$R-}
         if (match[best_len-1]<>scan_end) or
            (match^ <> scan_start) then
           goto nextstep; {continue;}
-  {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
+  {$POP}
 
         { It is not necessary to compare scan[2] and match[2] since they are
           always equal when the other bytes match, given that the hash keys
@@ -1334,11 +1334,11 @@ distances are limited to MAX_DIST instead of WSIZE. }
 
         { Here, scan <= window+strstart+257 }
         {$IFDEF ZLIB_DEBUG}
-        {$ifopt R+} {$define RangeCheck} {$endif} {$R-}
+        {$PUSH} {$R-}
         Assert(ptruint(scan) <=
                ptruint(@(s.window^[cardinal(s.window_size-1)])),
                'wild scan');
-        {$ifdef RangeCheck} {$R+} {$undef RangeCheck} {$endif}
+        {$POP}
         {$ENDIF}
         if scan^=match^ then
           inc(scan);
@@ -1349,12 +1349,12 @@ distances are limited to MAX_DIST instead of WSIZE. }
 
 {$else} { UNALIGNED_OK }
 
-  {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
+  {$PUSH} {$R-}
         if (Pbytearray(match)^[best_len]   <> scan_end) or
            (Pbytearray(match)^[best_len-1] <> scan_end1) or
            (match^ <> scan^) then
           goto nextstep; {continue;}
-  {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
+  {$POP}
         inc(match);
         if (match^ <> Pbytearray(scan)^[1]) then
           goto nextstep; {continue;}
@@ -1402,14 +1402,14 @@ distances are limited to MAX_DIST instead of WSIZE. }
             best_len := len;
             if (len >= nice_match) then
               break;
-  {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
+{$push} {$R-}
 {$ifdef UNALIGNED_OK}
             scan_end   := Pbytearray(scan)^[best_len-1];
 {$else}
             scan_end1  := Pbytearray(scan)^[best_len-1];
             scan_end   := Pbytearray(scan)^[best_len];
 {$endif}
-  {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
+{$pop}
         end;
     nextstep:
       cur_match := prev^[cur_match and wmask];

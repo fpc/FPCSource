@@ -50,26 +50,7 @@ Const
   These routines can be overwritten for the Current Locale
 }
 
-procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
-var
-  i : SizeInt;
-  destp: PChar;
-begin
-  setlength(dest,len);
-  destp := PChar(Pointer(dest));
-  for i:=1 to len do
-    begin
-      if word(source^)<256 then
-        destp^:=char(word(source^))
-      else
-        destp^:='?';
-      inc(source);
-      inc(destp);
-    end;
-end;
-
-
-procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+procedure DefaultAnsi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
 var
   i : SizeInt;
 begin
@@ -82,18 +63,6 @@ begin
 end;
 
 
-(*
-Procedure UniqueWideString(Var S : WideString); [Public,Alias : 'FPC_WIDESTR_UNIQUE'];
-{
-  Make sure reference count of S is 1,
-  using copy-on-write semantics.
-}
-
-begin
-end;
-*)
-
-
 {****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}
@@ -103,23 +72,6 @@ procedure WideStringError;
   begin
     HandleErrorFrame(204,get_frame);
   end;
-
-
-{$ifdef WideStrDebug}
-Procedure DumpWideRec(S : Pointer);
-begin
-  If S=Nil then
-    Writeln ('String is nil')
-  Else
-    Begin
-      With PWideRec(S-WideFirstOff)^ do
-       begin
-         Write   ('(Len:',len);
-         Writeln (' Ref: ',ref,')');
-       end;
-    end;
-end;
-{$endif}
 
 
 Function NewWideString(Len : SizeInt) : Pointer;
@@ -154,35 +106,24 @@ begin
 end;
 
 
-Procedure DisposeWideString(Var S : Pointer);
-{
-  Deallocates a WideString From the heap.
-}
-begin
-  If S=Nil then
-    exit;
-{$ifndef MSWINDOWS}
-  Dec (S,WideFirstOff);
-  Freemem(S);
-{$else MSWINDOWS}
-  if winwidestringalloc then
-    SysFreeString(S)
-  else
-    begin
-      Dec (S,WideFirstOff);
-      Freemem(S);
-    end;
-{$endif MSWINDOWS}
-  S:=Nil;
-end;
-
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR_REF']; compilerproc;
 {
   Decreases the ReferenceCount of a non constant widestring;
   If the reference count is zero, deallocate the string;
 }
 Begin
-  DisposeWideString(S);  { does test for nil }
+  If S=Nil then
+    exit;
+{$ifdef MSWINDOWS}
+  if winwidestringalloc then
+    SysFreeString(S)
+  else
+{$endif MSWINDOWS}
+    begin
+      Dec (S,WideFirstOff);
+      Freemem(S);
+    end;
+  S:=Nil;
 end;
 
 { alias for internal use }
@@ -202,26 +143,6 @@ Procedure fpc_WideStr_Incr_Ref(Var S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_
 { alias for internal use }
 Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);[external name 'FPC_WIDESTR_INCR_REF'];
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  compilerproc;
-{
-  Converts a WideString to a ShortString;
-}
-Var
-  Size : SizeInt;
-  temp : ansistring;
-begin
-  result:='';
-  Size:=Length(S2);
-  if Size>0 then
-    begin
-      If Size>high_of_res then
-        Size:=high_of_res;
-      widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,Size);
-      result:=temp;
-    end;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_WideStr_To_ShortStr (out res: ShortString;const S2 : WideString); [Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];compilerproc;
 {
   Converts a WideString to a ShortString;
@@ -236,11 +157,10 @@ begin
     begin
       If Size>high(res) then
         Size:=high(res);
-      widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,Size);
+      widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,DefaultSystemCodePage,Size);
       res:=temp;
     end;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString;compilerproc;
@@ -253,39 +173,51 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    begin
-      widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),result,Size);
-      { Terminating Zero }
-      PWideChar(Pointer(fpc_ShortStr_To_WideStr)+Size*sizeof(WideChar))^:=#0;
-    end;
+    widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),DefaultSystemCodePage,result,Size);
 end;
 
 
-Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; compilerproc;
+Function fpc_WideStr_To_AnsiStr (const S2 : WideString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
 {
   Converts a WideString to an AnsiString
 }
 Var
   Size : SizeInt;
+{$ifndef FPC_HAS_CPSTRING}
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
 begin
+{$ifndef FPC_HAS_CPSTRING}
+  cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,Size);
+  begin
+    if (cp=CP_ACP) then
+      cp:=DefaultSystemCodePage;
+    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,cp,Size);
+  end;
 end;
 
 
-Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; compilerproc;
+Function fpc_AnsiStr_To_WideStr(Const S2 : RawByteString): WideString; compilerproc;
 {
   Converts an AnsiString to a WideString;
 }
 Var
   Size : SizeInt;
+  cp: TSystemCodePage;
 begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Ansi2WideMoveProc(PChar(S2),result,Size);
+  begin
+    cp:=StringCodePage(S2);
+    if (cp=CP_ACP) then
+      cp:=DefaultSystemCodePage;
+    widestringmanager.Ansi2WideMoveProc(PChar(S2),cp,result,Size);
+  end;
 end;
 
 
@@ -297,13 +229,9 @@ begin
   if p=nil then
     exit;
   Size := IndexWord(p^, -1, 0);
-  Setlength(result,Size);
+  Setlength(result,Size);  // zero-terminates
   if Size>0 then
-   begin
-      Move(p^,PWideChar(Pointer(result))^,Size*sizeof(WideChar));
-      { Terminating Zero }
-      PWideChar(Pointer(result)+Size*sizeof(WideChar))^:=#0;
-   end;
+    Move(p^,PWideChar(Pointer(result))^,Size*sizeof(WideChar));
 end;
 
 
@@ -330,72 +258,13 @@ begin
           end;
     end
   else
-    begin
-      { Free S1 }
-      fpc_widestr_decr_ref (S1);
-      S1:=nil;
-    end;
+    fpc_widestr_decr_ref (S1);  // will set S1 to nil
 end;
 
 
 { alias for internal use }
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_WIDESTR_ASSIGN'];
 
-{$ifndef STR_CONCAT_PROCS}
-
-function fpc_WideStr_Concat (const S1,S2 : WideString): WideString; compilerproc;
-Var
-  Size,Location : SizeInt;
-  pc : pwidechar;
-begin
-  { only assign if s1 or s2 is empty }
-  if (S1='') then
-    begin
-      result:=s2;
-      exit;
-    end;
-  if (S2='') then
-    begin
-      result:=s1;
-      exit;
-    end;
-  Location:=Length(S1);
-  Size:=length(S2);
-  SetLength(result,Size+Location);
-  pc:=pwidechar(result);
-  Move(S1[1],pc^,Location*sizeof(WideChar));
-  inc(pc,location);
-  Move(S2[1],pc^,(Size+1)*sizeof(WideChar));
-end;
-
-
-function fpc_WideStr_Concat_multi (const sarr:array of Widestring): widestring; compilerproc;
-Var
-  i  : Longint;
-  p  : pointer;
-  pc : pwidechar;
-  Size,NewSize : SizeInt;
-begin
-  { First calculate size of the result so we can do
-    a single call to SetLength() }
-  NewSize:=0;
-  for i:=low(sarr) to high(sarr) do
-    inc(Newsize,length(sarr[i]));
-  SetLength(result,NewSize);
-  pc:=pwidechar(result);
-  for i:=low(sarr) to high(sarr) do
-    begin
-      p:=pointer(sarr[i]);
-      if assigned(p) then
-        begin
-          Size:=length(widestring(p));
-          Move(pwidechar(p)^,pc^,(Size+1)*sizeof(WideChar));
-          inc(pc,size);
-        end;
-    end;
-end;
-
-{$else STR_CONCAT_PROCS}
 
 procedure fpc_WideStr_Concat (var DestS:Widestring;const S1,S2 : WideString); compilerproc;
 Var
@@ -473,7 +342,6 @@ begin
   DestS:=DestTmp;
 end;
 
-{$endif STR_CONCAT_PROCS}
 
 
 Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
@@ -481,29 +349,7 @@ Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
   Converts a Char to a WideString;
 }
 begin
-  Setlength(fpc_Char_To_WideStr,1);
-  fpc_Char_To_WideStr[1]:=c;
-  { Terminating Zero }
-  PWideChar(Pointer(fpc_Char_To_WideStr)+sizeof(WideChar))^:=#0;
-end;
-
-
-Function fpc_WChar_To_WideStr(const c : WideChar): WideString; compilerproc;
-{
-  Converts a WideChar to a WideString;
-}
-begin
-  Setlength (fpc_WChar_To_WideStr,1);
-  fpc_WChar_To_WideStr[1]:= c;
-end;
-
-
-Function fpc_WChar_To_AnsiStr(const c : WideChar): AnsiString; compilerproc;
-{
-  Converts a WideChar to a AnsiString;
-}
-begin
-  widestringmanager.Wide2AnsiMoveProc(@c, fpc_WChar_To_AnsiStr, 1);
+  widestringmanager.Ansi2WideMoveProc(@c,DefaultSystemCodePage,fpc_char_To_WideStr,1);
 end;
 
 
@@ -527,7 +373,7 @@ begin
     exit;
   end;
   l:=IndexChar(p^,-1,#0);
-  widestringmanager.Ansi2WideMoveProc(P,fpc_PChar_To_WideStr,l);
+  widestringmanager.Ansi2WideMoveProc(P,DefaultSystemCodePage,fpc_PChar_To_WideStr,l);
 end;
 
 
@@ -548,100 +394,9 @@ begin
     end
   else
     i := high(arr)+1;
-  SetLength(fpc_CharArray_To_WideStr,i);
-  widestringmanager.Ansi2WideMoveProc (pchar(@arr),fpc_CharArray_To_WideStr,i);
+  widestringmanager.Ansi2WideMoveProc(pchar(@arr),DefaultSystemCodePage,fpc_CharArray_To_WideStr,i);
 end;
 
-
-{$ifndef FPC_STRTOCHARARRAYPROC}
-
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ chararray we're converting to (JM)                                    }
-function fpc_widestr_to_chararray(arraysize: SizeInt; const src: WideString): fpc_big_chararray;[public,alias: 'FPC_WIDESTR_TO_CHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-  temp: ansistring;
-begin
-  len := length(src);
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    widestringmanager.wide2ansimoveproc(pwidechar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-{$r-}
-  move(temp[1],fpc_widestr_to_chararray[0],len);
-  fillchar(fpc_widestr_to_chararray[len],arraysize-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-
-
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ widechararray we're converting to (JM)                                }
-function fpc_widestr_to_widechararray(arraysize: SizeInt; const src: WideString): fpc_big_widechararray;[public,alias: 'FPC_WIDESTR_TO_WIDECHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-begin
-  len := length(src);
-  if len > arraysize then
-    len := arraysize;
-{$r-}
-  { make sure we don't try to access element 1 of the ansistring if it's nil }
-  if len > 0 then
-    move(src[1],fpc_widestr_to_widechararray[0],len*SizeOf(WideChar));
-  fillchar(fpc_widestr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-
-
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ chararray we're converting to (JM)                                    }
-function fpc_ansistr_to_widechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_widechararray;[public,alias: 'FPC_ANSISTR_TO_WIDECHARARRAY']; compilerproc;
-var
-  len: SizeInt;
-  temp: widestring;
-begin
-  len := length(src);
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-
-{$r-}
-  move(temp[1],fpc_ansistr_to_widechararray[0],len*sizeof(widechar));
-  fillchar(fpc_ansistr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-
-function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray;[public,alias: 'FPC_SHORTSTR_TO_WIDECHARARRAY']; compilerproc;
-var
-  len: longint;
-  temp : widestring;
-begin
-  len := length(src);
-  { make sure we don't access char 1 if length is 0 (JM) }
-  if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > arraysize then
-    len := arraysize;
-{$r-}
-  move(temp[1],fpc_shortstr_to_widechararray[0],len*sizeof(widechar));
-  fillchar(fpc_shortstr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-
-{$else ndef FPC_STRTOCHARARRAYPROC}
 
 procedure fpc_widestr_to_chararray(out res: array of char; const src: WideString); compilerproc;
 var
@@ -651,16 +406,15 @@ begin
   len := length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
-    widestringmanager.wide2ansimoveproc(pwidechar(@src[1]),temp,len);
+    widestringmanager.wide2ansimoveproc(pwidechar(@src[1]),temp,DefaultSystemCodePage,len);
   len := length(temp);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   move(temp[1],res[0],len);
   fillchar(res[len],length(res)-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 
@@ -671,18 +425,16 @@ begin
   len := length(src);
   if len > length(res) then
     len := length(res);
+{$push}
 {$r-}
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
     move(src[1],res[0],len*SizeOf(WideChar));
   fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
 
 
-{$endif ndef FPC_STRTOCHARARRAYPROC}
 
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt;[Public,Alias : 'FPC_WIDESTR_COMPARE']; compilerproc;
 {
@@ -806,13 +558,8 @@ begin
 {$endif MSWINDOWS}
         PWideRec(Pointer(S)-WideFirstOff)^.Len:=l*sizeof(WideChar);
     end
-  else
-    begin
-      { Length=0 }
-      if Pointer(S)<>nil then
-        fpc_widestr_decr_ref (Pointer(S));
-      Pointer(S):=Nil;
-    end;
+  else  // length=0, deallocate the string
+    fpc_widestr_decr_ref (Pointer(S));
 end;
 
 {*****************************************************************************
@@ -840,15 +587,10 @@ begin
    Size:=Length(S)-Index;
   If Size>0 then
    begin
-     If Index<0 Then
-      Index:=0;
-     ResultAddress:=Pointer(NewWideString (Size));
-     if ResultAddress<>Nil then
-      begin
-        Move (PWideChar(S)[Index],ResultAddress^,Size*sizeof(WideChar));
-        PWideRec(ResultAddress-WideFirstOff)^.Len:=Size*sizeof(WideChar);
-        PWideChar(ResultAddress+Size*sizeof(WideChar))^:=#0;
-      end;
+     { NewWideString won't return a nil pointer }
+     ResultAddress:=NewWideString(Size);
+     Move (PWideChar(S)[Index],ResultAddress^,Size*sizeof(WideChar));
+     PWideChar(ResultAddress+Size*sizeof(WideChar))^:=#0;
    end;
   fpc_widestr_decr_ref(Pointer(fpc_widestr_copy));
   Pointer(fpc_widestr_Copy):=ResultAddress;
@@ -900,26 +642,27 @@ begin
   pos:=0;
 end;
 
-
-Function Pos (c : WideChar; Const s : AnsiString) : SizeInt;
+{ DO NOT inline these! Inlining a managed typecast creates an implicit try..finally
+  block, which is significant bloat without any sensible speed improvement. }
+Function Pos (c : WideChar; Const s : RawByteString) : SizeInt;
   begin
     result:=Pos(c,WideString(s));
   end;
 
 
-Function Pos (c : AnsiString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : RawByteString; Const s : WideString) : SizeInt;
   begin
     result:=Pos(WideString(c),s);
   end;
 
 
-Function Pos (c : ShortString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : ShortString; Const s : WideString) : SizeInt;
   begin
     result:=Pos(WideString(c),s);
   end;
 
 
-Function Pos (c : WideString; Const s : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : WideString; Const s : RawByteString) : SizeInt;
   begin
     result:=Pos(c,WideString(s));
   end;
@@ -958,7 +701,6 @@ begin
   if (Index>LS) or (Index<=0) or (Size<=0) then
     exit;
 
-  UniqueString (S);
   { (Size+Index) will overflow if Size=MaxInt. }
   if Size>LS-Index then
     Size:=LS-Index+1;
@@ -984,7 +726,6 @@ begin
   if index > LS then
    index := LS+1;
   Dec(Index);
-  Pointer(Temp) := NewWideString(Length(Source)+LS);
   SetLength(Temp,Length(Source)+LS);
   If Index>0 then
     move (PWideChar(S)^,PWideChar(Temp)^,Index*sizeof(WideChar));
@@ -1011,9 +752,10 @@ end;
 
 Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
 begin
-  SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
-    widestringmanager.Ansi2WideMoveProc(Buf,S,Len);
+    widestringmanager.Ansi2WideMoveProc(Buf,DefaultSystemCodePage,S,Len)
+  else
+    SetLength(s,len);
 end;
 
 
@@ -1205,437 +947,7 @@ end;
 
 {$endif CPU64}
 
-{ converts an utf-16 code point or surrogate pair to utf-32 }
-function utf16toutf32(const S: WideString; const index: SizeInt; out len: longint): UCS4Char; [public, alias: 'FPC_WIDETOUTF32'];
-var
-  w: widechar;
-begin
-  { UTF-16 points in the range #$0-#$D7FF and #$E000-#$FFFF }
-  { are the same in UTF-32                                  }
-  w:=s[index];
-  if (w<=#$d7ff) or
-     (w>=#$e000) then
-    begin
-      result:=UCS4Char(w);
-      len:=1;
-    end
-  { valid surrogate pair? }
-  else if (w<=#$dbff) and
-          { w>=#$d7ff check not needed, checked above }
-          (index<length(s)) and
-          (s[index+1]>=#$dc00) and
-          (s[index+1]<=#$dfff) then
-      { convert the surrogate pair to UTF-32 }
-    begin
-      result:=(UCS4Char(w)-$d800) shl 10 + (UCS4Char(s[index+1])-$dc00) + $10000;
-      len:=2;
-    end
-  else
-    { invalid surrogate -> do nothing }
-    begin
-      result:=UCS4Char(w);
-      len:=1;
-    end;
-end;
-
-
-function UnicodeToUtf8(Dest: PChar; Source: PWideChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    if assigned(Source) then
-      Result:=UnicodeToUtf8(Dest,MaxBytes,Source,IndexWord(Source^,-1,0))
-    else
-      Result:=0;
-  end;
-
-
-function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PWideChar; SourceChars: SizeUInt): SizeUInt;
-  var
-    i,j : SizeUInt;
-    w : word;
-    lw : longword;
-    len : longint;
-  begin
-    result:=0;
-    if source=nil then
-      exit;
-    i:=0;
-    j:=0;
-    if assigned(Dest) then
-      begin
-        while (i<SourceChars) and (j<MaxDestBytes) do
-          begin
-            w:=word(Source[i]);
-            case w of
-              0..$7f:
-                begin
-                  Dest[j]:=char(w);
-                  inc(j);
-                end;
-              $80..$7ff:
-                begin
-                  if j+1>=MaxDestBytes then
-                    break;
-                  Dest[j]:=char($c0 or (w shr 6));
-                  Dest[j+1]:=char($80 or (w and $3f));
-                  inc(j,2);
-                end;
-              $800..$d7ff,$e000..$ffff:
-                begin
-                  if j+2>=MaxDestBytes then
-                    break;
-                  Dest[j]:=char($e0 or (w shr 12));
-                  Dest[j+1]:=char($80 or ((w shr 6) and $3f));
-                  Dest[j+2]:=char($80 or (w and $3f));
-                  inc(j,3);
-                end;
-              $d800..$dbff:
-                {High Surrogates}
-                begin
-                  if j+3>=MaxDestBytes then
-                    break;
-                  if (i<sourcechars-1) and
-                     (word(Source[i+1]) >= $dc00) and
-                     (word(Source[i+1]) <= $dfff) then
-                    begin
-                      lw:=longword(utf16toutf32(Source[i] + Source[i+1], 1, len));
-                      Dest[j]:=char($f0 or (lw shr 18));
-                      Dest[j+1]:=char($80 or ((lw shr 12) and $3f));
-                      Dest[j+2]:=char($80 or ((lw shr 6) and $3f));
-                      Dest[j+3]:=char($80 or (lw and $3f));
-                      inc(j,4);
-                      inc(i);
-                    end;
-                end;
-              end;
-            inc(i);
-          end;
-
-        if j>SizeUInt(MaxDestBytes-1) then
-          j:=MaxDestBytes-1;
-
-        Dest[j]:=#0;
-      end
-    else
-      begin
-        while i<SourceChars do
-          begin
-            case word(Source[i]) of
-              $0..$7f:
-                inc(j);
-              $80..$7ff:
-                inc(j,2);
-              $800..$d7ff,$e000..$ffff:
-                inc(j,3);
-              $d800..$dbff:
-                begin
-                  if (i<sourcechars-1) and
-                     (word(Source[i+1]) >= $dc00) and
-                     (word(Source[i+1]) <= $dfff) then
-                    begin
-                      inc(j,4);
-                      inc(i);
-                    end;
-                end;
-            end;
-            inc(i);
-          end;
-      end;
-    result:=j+1;
-  end;
-
-
-function Utf8ToUnicode(Dest: PWideChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    if assigned(Source) then
-      Result:=Utf8ToUnicode(Dest,MaxChars,Source,strlen(Source))
-    else
-      Result:=0;
-  end;
-
-
-
-function UTF8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
-  const
-    UNICODE_INVALID=63;
-  var
-    InputUTF8: SizeUInt;
-    IBYTE: BYTE;
-    OutputUnicode: SizeUInt;
-    PRECHAR: SizeUInt;
-    TempBYTE: BYTE;
-    CharLen: SizeUint;
-    LookAhead: SizeUInt;
-    UC: SizeUInt;
-  begin
-    if not assigned(Source) then
-      begin
-        result:=0;
-        exit;
-      end;
-    result:=SizeUInt(-1);
-    InputUTF8:=0;
-    OutputUnicode:=0;
-    PreChar:=0;
-    if Assigned(Dest) Then
-      begin
-        while (OutputUnicode<MaxDestChars) and (InputUTF8<SourceBytes) do
-          begin
-            IBYTE:=byte(Source[InputUTF8]);
-            if (IBYTE and $80) = 0 then
-              begin
-                //One character US-ASCII, convert it to unicode
-                if IBYTE = 10 then
-                  begin
-                    If (PreChar<>13) and FALSE then
-                      begin
-                        //Expand to crlf, conform UTF-8.
-                        //This procedure will break the memory alocation by
-                        //FPC for the widestring, so never use it. Condition never true due the "and FALSE".
-                        if OutputUnicode+1<MaxDestChars then
-                          begin
-                            Dest[OutputUnicode]:=WideChar(13);
-                            inc(OutputUnicode);
-                            Dest[OutputUnicode]:=WideChar(10);
-                            inc(OutputUnicode);
-                            PreChar:=10;
-                          end
-                        else
-                          begin
-                            Dest[OutputUnicode]:=WideChar(13);
-                            inc(OutputUnicode);
-                          end;
-                      end
-                    else
-                      begin
-                        Dest[OutputUnicode]:=WideChar(IBYTE);
-                        inc(OutputUnicode);
-                        PreChar:=IBYTE;
-                      end;
-                  end
-                else
-                  begin
-                    Dest[OutputUnicode]:=WideChar(IBYTE);
-                    inc(OutputUnicode);
-                    PreChar:=IBYTE;
-                  end;
-                inc(InputUTF8);
-              end
-            else
-              begin
-                TempByte:=IBYTE;
-                CharLen:=0;
-                while (TempBYTE and $80)<>0 do
-                  begin
-                    TempBYTE:=(TempBYTE shl 1) and $FE;
-                    inc(CharLen);
-                  end;
-                //Test for the "CharLen" conforms UTF-8 string
-                //This means the 10xxxxxx pattern.
-                if SizeUInt(InputUTF8+CharLen-1)>SourceBytes then
-                  begin
-                    //Insuficient chars in string to decode
-                    //UTF-8 array. Fallback to single char.
-                    CharLen:= 1;
-                  end;
-                for LookAhead := 1 to CharLen-1 do
-                  begin
-                    if ((byte(Source[InputUTF8+LookAhead]) and $80)<>$80) or
-                       ((byte(Source[InputUTF8+LookAhead]) and $40)<>$00) then
-                      begin
-                        //Invalid UTF-8 sequence, fallback.
-                        CharLen:= LookAhead;
-                        break;
-                      end;
-                  end;
-                UC:=$FFFF;
-                case CharLen of
-                  1:  begin
-                        //Not valid UTF-8 sequence
-                        UC:=UNICODE_INVALID;
-                      end;
-                  2:  begin
-                        //Two bytes UTF, convert it
-                        UC:=(byte(Source[InputUTF8]) and $1F) shl 6;
-                        UC:=UC or (byte(Source[InputUTF8+1]) and $3F);
-                        if UC <= $7F then
-                          begin
-                            //Invalid UTF sequence.
-                            UC:=UNICODE_INVALID;
-                          end;
-                      end;
-                  3:  begin
-                        //Three bytes, convert it to unicode
-                        UC:= (byte(Source[InputUTF8]) and $0F) shl 12;
-                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 6);
-                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F));
-                        if (UC <= $7FF) or (UC >= $FFFE) or ((UC >= $D800) and (UC <= $DFFF)) then
-                          begin
-                            //Invalid UTF-8 sequence
-                            UC:= UNICODE_INVALID;
-                          End;
-                      end;
-                  4:  begin
-                        //Four bytes, convert it to two unicode characters
-                        UC:= (byte(Source[InputUTF8]) and $07) shl 18;
-                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 12);
-                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F) shl 6);
-                        UC:= UC or ((byte(Source[InputUTF8+3]) and $3F));
-                        if (UC < $10000) or (UC > $10FFFF) then
-                          begin
-                            UC:= UNICODE_INVALID;
-                          end
-                        else
-                          begin
-                            { only store pair if room }
-                            dec(UC,$10000);
-                            if (OutputUnicode<MaxDestChars-1) then
-                              begin
-                                Dest[OutputUnicode]:=WideChar(UC shr 10 + $D800);
-                                inc(OutputUnicode);
-                                UC:=(UC and $3ff) + $DC00;
-                              end
-                            else
-                              begin
-                                InputUTF8:= InputUTF8 + CharLen;
-                                { don't store anything }
-                                CharLen:=0;
-                              end;
-                          end;
-                      end;
-                  5,6,7:  begin
-                            //Invalid UTF8 to unicode conversion,
-                            //mask it as invalid UNICODE too.
-                            UC:=UNICODE_INVALID;
-                          end;
-                end;
-                if CharLen > 0 then
-                  begin
-                    PreChar:=UC;
-                    Dest[OutputUnicode]:=WideChar(UC);
-                    inc(OutputUnicode);
-                  end;
-                InputUTF8:= InputUTF8 + CharLen;
-              end;
-          end;
-        Result:=OutputUnicode+1;
-      end
-    else
-      begin
-        while (InputUTF8<SourceBytes) do
-          begin
-            IBYTE:=byte(Source[InputUTF8]);
-            if (IBYTE and $80) = 0 then
-              begin
-                //One character US-ASCII, convert it to unicode
-                if IBYTE = 10 then
-                  begin
-                    if (PreChar<>13) and FALSE then
-                      begin
-                        //Expand to crlf, conform UTF-8.
-                        //This procedure will break the memory alocation by
-                        //FPC for the widestring, so never use it. Condition never true due the "and FALSE".
-                        inc(OutputUnicode,2);
-                        PreChar:=10;
-                      end
-                    else
-                      begin
-                        inc(OutputUnicode);
-                        PreChar:=IBYTE;
-                      end;
-                  end
-                else
-                  begin
-                    inc(OutputUnicode);
-                    PreChar:=IBYTE;
-                  end;
-                inc(InputUTF8);
-              end
-            else
-              begin
-                TempByte:=IBYTE;
-                CharLen:=0;
-                while (TempBYTE and $80)<>0 do
-                  begin
-                    TempBYTE:=(TempBYTE shl 1) and $FE;
-                    inc(CharLen);
-                  end;
-                //Test for the "CharLen" conforms UTF-8 string
-                //This means the 10xxxxxx pattern.
-                if SizeUInt(InputUTF8+CharLen-1)>SourceBytes then
-                  begin
-                    //Insuficient chars in string to decode
-                    //UTF-8 array. Fallback to single char.
-                    CharLen:= 1;
-                  end;
-                for LookAhead := 1 to CharLen-1 do
-                  begin
-                    if ((byte(Source[InputUTF8+LookAhead]) and $80)<>$80) or
-                       ((byte(Source[InputUTF8+LookAhead]) and $40)<>$00) then
-                      begin
-                        //Invalid UTF-8 sequence, fallback.
-                        CharLen:= LookAhead;
-                        break;
-                      end;
-                  end;
-                UC:=$FFFF;
-                case CharLen of
-                  1:  begin
-                        //Not valid UTF-8 sequence
-                        UC:=UNICODE_INVALID;
-                      end;
-                  2:  begin
-                        //Two bytes UTF, convert it
-                        UC:=(byte(Source[InputUTF8]) and $1F) shl 6;
-                        UC:=UC or (byte(Source[InputUTF8+1]) and $3F);
-                        if UC <= $7F then
-                          begin
-                            //Invalid UTF sequence.
-                            UC:=UNICODE_INVALID;
-                          end;
-                      end;
-                  3:  begin
-                        //Three bytes, convert it to unicode
-                        UC:= (byte(Source[InputUTF8]) and $0F) shl 12;
-                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 6);
-                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F));
-                        If (UC <= $7FF) or (UC >= $FFFE) or ((UC >= $D800) and (UC <= $DFFF)) then
-                          begin
-                            //Invalid UTF-8 sequence
-                            UC:= UNICODE_INVALID;
-                          end;
-                      end;
-                  4:  begin
-                        //Four bytes, convert it to two unicode characters
-                        UC:= (byte(Source[InputUTF8]) and $07) shl 18;
-                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 12);
-                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F) shl 6);
-                        UC:= UC or ((byte(Source[InputUTF8+3]) and $3F));
-                        if (UC < $10000) or (UC > $10FFFF) then
-                          UC:= UNICODE_INVALID
-                        else
-                          { extra character character }
-                          inc(OutputUnicode);
-                      end;
-                  5,6,7:  begin
-                            //Invalid UTF8 to unicode conversion,
-                            //mask it as invalid UNICODE too.
-                            UC:=UNICODE_INVALID;
-                          end;
-                end;
-                if CharLen > 0 then
-                  begin
-                    PreChar:=UC;
-                    inc(OutputUnicode);
-                  end;
-                InputUTF8:= InputUTF8 + CharLen;
-              end;
-          end;
-        Result:=OutputUnicode+1;
-      end;
-  end;
-
-
-function UTF8Encode(const s : WideString) : UTF8String;
+function UTF8Encode(const s : WideString) : RawByteString;
   var
     i : SizeInt;
     hs : UTF8String;
@@ -1697,8 +1009,8 @@ procedure initwidestringmanager;
   begin
     fillchar(widestringmanager,sizeof(widestringmanager),0);
 {$ifndef HAS_WIDESTRINGMANAGER}
-    widestringmanager.Wide2AnsiMoveProc:=@defaultWide2AnsiMove;
-    widestringmanager.Ansi2WideMoveProc:=@defaultAnsi2WideMove;
+    widestringmanager.Wide2AnsiMoveProc:=@DefaultUnicode2AnsiMove;
+    widestringmanager.Ansi2WideMoveProc:=@DefaultAnsi2WideMove;
     widestringmanager.UpperWideStringProc:=@GenericWideCase;
     widestringmanager.LowerWideStringProc:=@GenericWideCase;
 {$endif HAS_WIDESTRINGMANAGER}

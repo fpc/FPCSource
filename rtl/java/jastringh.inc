@@ -18,17 +18,20 @@
 type
   AnsistringClass = class sealed (JLObject)
    private
-    fdata: TAnsiCharArray;
+    var
+      fElementSize: Word;
+      fCodePage: TSystemCodePage;
+      fdata: TAnsiCharArray;
    public
-    constructor Create(len: longint);overload;
-    constructor Create(const arr: array of ansichar; length: longint);overload;
-    constructor Create(const arr: array of unicodechar);overload;
-    constructor Create(const u: unicodestring);overload;
-    constructor Create(const a: ansistring);overload;
-    constructor Create(const s: shortstring);overload;
-    constructor Create(ch: ansichar);overload;
-    constructor Create(ch: unicodechar);overload;
-    class function CreateFromLiteralStringBytes(const u: unicodestring): ansistring; static;
+    constructor Create(len: longint; cp: TSystemCodePage);overload;
+    constructor Create(const arr: array of ansichar; length: longint; cp: TSystemCodePage);overload;
+    constructor Create(const arr: array of unicodechar; cp: TSystemCodePage);overload;
+    constructor Create(const u: unicodestring; cp: TSystemCodePage);overload;
+    constructor Create(const a: RawByteString; cp: TSystemCodePage);overload;
+    constructor Create(const s: shortstring; cp: TSystemCodePage);overload;
+    constructor Create(ch: ansichar; cp: TSystemCodePage);overload;
+    constructor Create(ch: unicodechar; cp: TSystemCodePage);overload;
+    class function CreateFromLiteralStringBytes(const u: unicodestring; cp: TSystemCodePage): RawByteString; static;
     function charAt(index: jint): ansichar;
     function toUnicodeString: unicodestring;
     function toShortstring(maxlen: byte): shortstring;
@@ -36,6 +39,8 @@ type
 //    function concat(const a: ansistring): ansistring;
 //    function concatmultiple(const arr: array of ansistring): ansistring;
     function length: jint;
+    function codePage: TSystemCodePage;
+    function elementSize: Word;
     property internChars: TAnsiCharArray read fdata;
   end;
 

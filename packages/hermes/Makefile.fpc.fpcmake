@@ -1,0 +1,32 @@
+#
+#   Makefile.fpc for Hermes
+#
+
+[package]
+name=hermes
+version=2.7.1
+
+[target]
+units=hermes
+
+[compiler]
+options_i386_linux=-dI386_ASSEMBLER
+options_i386_win32=-dI386_ASSEMBLER
+options_i386_go32v2=-dI386_ASSEMBLER
+options_i386_freebsd=-dI386_ASSEMBLER
+options_i386_haiku=-dI386_ASSEMBLER
+options_i386_beos=-dI386_ASSEMBLER
+
+unitdir=
+targetdir=.
+includedir=src
+sourcedir=src tests
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

@@ -1,4 +1,4 @@
-{ %target=darwin,linux,freebsd,solaris,beos}
+{ %target=darwin,linux,freebsd,solaris,beos,aix}
 { %NEEDLIBRARY }
 
 { same as tw8730c, but linking to libc so it uses different }

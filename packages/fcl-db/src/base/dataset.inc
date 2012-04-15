@@ -30,7 +30,7 @@ begin
   FConstraints:=TCheckConstraints.Create(Self);
   
 // FBuffer must be allocated on create, to make Activebuffer return nil
-  ReAllocMem(FBuffers,SizeOf(PChar));
+  ReAllocMem(FBuffers,SizeOf(TRecordBuffer));
 //  pointer(FBuffers^) := nil;
   FBuffers[0] := nil;
   FActiveRecord := 0;
@@ -138,19 +138,25 @@ begin
           and (getBookMarkFlag(ActiveBuffer)=bfCurrent);
 end;
 
-Procedure TDataset.CalculateFields(Buffer: PChar);
+Procedure TDataset.CalculateFields(Buffer: TRecordBuffer);
 var
   i: Integer;
+  OldState: TDatasetState;
 begin
-  FCalcBuffer := Buffer;
-  
-  if not IsUniDirectional and (FState <> dsInternalCalc) then try
-    ClearCalcFields(FCalcBuffer);
-    for i := 0 to FFieldList.Count - 1 do
-      if FFieldList[i].FieldKind = fkLookup then
-        FFieldList[i].CalcLookupValue;
-  finally
-    DoOnCalcFields;
+  FCalcBuffer := Buffer; 
+  if not IsUniDirectional and (FState <> dsInternalCalc) then
+  begin
+    OldState := FState;
+    FState := dsCalcFields;
+    try
+      ClearCalcFields(FCalcBuffer);
+      for i := 0 to FFieldList.Count - 1 do
+        if FFieldList[i].FieldKind = fkLookup then
+          FFieldList[i].CalcLookupValue;
+    finally
+      DoOnCalcFields;
+      FState := OldState;
+    end;
   end;
 end;
 
@@ -178,7 +184,7 @@ begin
   FEOF:=True;
 end;
 
-Procedure TDataset.ClearCalcFields(Buffer: PChar);
+Procedure TDataset.ClearCalcFields(Buffer: TRecordBuffer);
 
 begin
   // Empty
@@ -415,7 +421,7 @@ end;
 Procedure TDataset.DoOnCalcFields;
 
 begin
- If assigned(FOnCalcfields) then
+ If Assigned(FOnCalcfields) then
    FOnCalcFields(Self);
 end;
 
@@ -458,27 +464,17 @@ begin
     end
 end;
 
-Function TDataset.GetBuffer (Index : longint) : Pchar;
+Function TDataset.GetBuffer (Index : longint) : TRecordBuffer;
 
 begin
   Result:=FBuffers[Index];
 end;
 
-Procedure TDataset.GetCalcFields(Buffer: PChar);
+Procedure TDataset.GetCalcFields(Buffer: TRecordBuffer);
 
-var
-  dss: TDataSetState;
 begin
   if (FCalcFieldsSize > 0) or FInternalCalcFields then
-  begin
-    dss := FState;
-    FState := dsCalcFields;
-    try
-      CalculateFields(Buffer);
-    finally
-      FState := dss;
-    end;
-  end;
+    CalculateFields(Buffer);
 end;
 
 Function TDataset.GetCanModify: Boolean;
@@ -928,7 +924,7 @@ begin
     end;
 end;
 
-Procedure TDataset.InitRecord(Buffer: PChar);
+Procedure TDataset.InitRecord(Buffer: TRecordBuffer);
 
 begin
   InternalInitRecord(Buffer);
@@ -982,7 +978,7 @@ begin
   end;
 end;
 
-Procedure TDataset.RefreshInternalCalcFields(Buffer: PChar);
+Procedure TDataset.RefreshInternalCalcFields(Buffer: TRecordBuffer);
 
 begin
   //!! To be implemented
@@ -1018,7 +1014,7 @@ begin
     ShowException(ExceptObject,ExceptAddr);
 end;
 
-procedure TDataSet.InternalInitRecord(Buffer: PChar);
+procedure TDataSet.InternalInitRecord(Buffer: TRecordBuffer);
 begin
   // empty stub
 end;
@@ -1047,17 +1043,17 @@ begin
   Checkrequired;
 end;
 
-procedure TDataSet.InternalSetToRecord(Buffer: PChar);
+procedure TDataSet.InternalSetToRecord(Buffer: TRecordBuffer);
 begin
   // empty stub
 end;
 
-procedure TDataSet.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+procedure TDataSet.SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag);
 begin
   // empty stub
 end;
 
-procedure TDataSet.SetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TDataSet.SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 begin
   // empty stub
 end;
@@ -1186,25 +1182,25 @@ begin
   If Value>FBufferCount then
     begin
 {$ifdef dsdebug}
-    Writeln ('   Reallocating memory :',(Value+1)*SizeOf(PChar));
+    Writeln ('   Reallocating memory :',(Value+1)*SizeOf(TRecordBuffer));
 {$endif}
     ReAllocMem(FBuffers,(Value+1)*SizeOf(PChar));
 {$ifdef dsdebug}
-    Writeln ('   Filling memory :',(Value+1-FBufferCount)*SizeOf(PChar));
+    Writeln ('   Filling memory :',(Value+1-FBufferCount)*SizeOf(TRecordBuffer));
 {$endif}
     inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
-    FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOF(Pchar),#0);
+    FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOF(TRecordBuffer),#0);
 {$ifdef dsdebug}
     Writeln ('   Filled memory :');
 {$endif}
     Try
 {$ifdef dsdebug}
-      Writeln ('   Assigning buffers :',(Value)*SizeOf(PChar));
+      Writeln ('   Assigning buffers :',(Value)*SizeOf(TRecordBuffer));
 {$endif}
       For I:=FBufferCount to Value do
         FBuffers[i]:=AllocRecordBuffer;
 {$ifdef dsdebug}
-      Writeln ('   Assigned buffers ',FBufferCount,' :',(Value)*SizeOf(PChar));
+      Writeln ('   Assigned buffers ',FBufferCount,' :',(Value)*SizeOf(TRecordBuffer));
 {$endif}
     except
       I:=FBufferCount;
@@ -1235,11 +1231,11 @@ begin
       // FBuffer must stay allocated, to make sure that Activebuffer returns nil
       if Value = -1 then
         begin
-        ReAllocMem(FBuffers,SizeOf(Pchar));
+        ReAllocMem(FBuffers,SizeOf(TRecordBuffer));
         FBuffers[0] := nil;
         end
       else
-        ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
+        ReAllocMem(FBuffers,(Value+1)*SizeOf(TRecordBuffer));
       end;
     end;
   FBufferCount:=Value;
@@ -1315,11 +1311,6 @@ begin
   FFiltered := value;
 end;
 
-Procedure TDataset.SetFound(const Value: Boolean);
-
-begin
-  FFound := Value;
-end;
 
 Procedure TDataset.SetModified(Value: Boolean);
 
@@ -1329,7 +1320,7 @@ end;
 
 Procedure TDataset.SetName(const Value: TComponentName);
 
-function CheckName(FieldName: string): string;
+function CheckName(const FieldName: string): string;
 var i,j: integer;
 begin
   Result := FieldName;
@@ -1380,7 +1371,7 @@ begin
     end;
 end;
 
-Function TDataset.Tempbuffer: PChar;
+Function TDataset.Tempbuffer: TRecordBuffer;
 
 begin
   Result := FBuffers[FRecordCount];
@@ -1392,22 +1383,22 @@ begin
   // Empty Abstract
 end;
 
-function TDataSet.AllocRecordBuffer: PChar;
+function TDataSet.AllocRecordBuffer: TRecordBuffer;
 begin
   Result := nil;
 end;
 
-procedure TDataSet.FreeRecordBuffer(var Buffer: PChar);
+procedure TDataSet.FreeRecordBuffer(var Buffer: TRecordBuffer);
 begin
   // empty stub
 end;
 
-procedure TDataSet.GetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TDataSet.GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer);
 begin
   // empty stub
 end;
 
-function TDataSet.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+function TDataSet.GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag;
 begin
   Result := bfCurrent;
 end;
@@ -1418,7 +1409,7 @@ begin
   Result := (FDisableControlsCount > 0);
 end;
 
-Function TDataset.ActiveBuffer: PChar;
+Function TDataset.ActiveBuffer: TRecordBuffer;
 
 begin
 {$ifdef dsdebug}
@@ -1586,7 +1577,7 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
 
   procedure DoInsert(DoAppend : Boolean);
 
-  Var BookBeforeInsert : TBookmarkStr;
+  Var BookBeforeInsert : TBookmark;
       TempBuf : pointer;
 
   begin
@@ -1628,7 +1619,10 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
     // 1-apr-06, JvdS: It just sets the bookmark of the newly inserted record to the place
     // where the record should be inserted. So it is ok.
     if FRecordcount > 0 then
+      begin
       SetBookMarkData(ActiveBuffer,pointer(BookBeforeInsert));
+      FreeBookmark(BookBeforeInsert);
+      end;
     end;
 
   InternalInsert;
@@ -1808,7 +1802,7 @@ begin
     Result:=Nil;
 end;
 
-Function TDataset.GetCurrentRecord(Buffer: PChar): Boolean;
+Function TDataset.GetCurrentRecord(Buffer: TRecordBuffer): Boolean;
 
 
 begin
@@ -2031,6 +2025,14 @@ end;
 Procedure TDataset.Next;
 
 begin
+  if BlockReadSize>0 then
+    BlockReadNext
+  else
+    MoveBy(1);
+end;
+
+Procedure TDataset.BlockReadNext;
+begin
   MoveBy(1);
 end;
 
@@ -2236,6 +2238,11 @@ Procedure TDataset.RemoveField (Field : TField);
 
 begin
   //!! To be implemented
+end;
+
+procedure TDataSet.SetConstraints(Value: TCheckConstraints);
+begin
+  FConstraints.Assign(Value);
 end;
 
 Function TDataset.Getfieldcount : Longint;

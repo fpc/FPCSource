@@ -95,7 +95,7 @@ function mmx_support : boolean;
   end;
 
 {$ifndef FPC_PIC}
-{$if not defined(FPC_SYSTEM_HAS_MOVE) and defined(REGCALL) }
+{$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define USE_FASTMOVE}
 {$i fastmove.inc}
 {$endif FPC_SYSTEM_HAS_MOVE}
@@ -137,15 +137,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifdef REGCALL}
         movl    %eax,%esi
         movl    %edx,%edi
         movl    %ecx,%edx
-{$else}
-        movl    dest,%edi
-        movl    source,%esi
-        movl    count,%edx
-{$endif}
         movl    %edi,%eax
 { check for zero or negative count }
         cmpl    $0,%edx
@@ -259,15 +253,9 @@ var
   saveedi : longint;
 asm
         movl    %edi,saveedi
-{$ifdef REGCALL}
         movl    %eax,%edi
         movzwl  %cx,%eax
         movl    %edx,%ecx
-{$else}
-        movl    x,%edi
-        movl    count,%ecx
-        movzwl  value,%eax
-{$endif}
 { check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillWordEnd
@@ -296,15 +284,9 @@ var
   saveedi : longint;
 asm
         movl    %edi,saveedi
-{$ifdef REGCALL}
         movl    %eax,%edi
         movl    %ecx,%eax
         movl    %edx,%ecx
-{$else}
-        movl    x,%edi
-        movl    count,%ecx
-        movl    value,%eax
-{$endif}
 { check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillDWordEnd
@@ -319,35 +301,135 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler;
-var
-  saveedi,saveebx : longint;
+function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
 asm
-        movl    %edi,saveedi
-        movl    %ebx,saveebx
-        movl    buf,%edi       // Load String
-        movb    b,%bl
-        movl    len,%ecx       // Load len
-        xorl    %eax,%eax
-        testl   %ecx,%ecx
-        jz      .Lcharposnotfound
-        cld
-        movl    %ecx,%edx      // Copy for easy manipulation
-        movb    %bl,%al
-        repne
-        scasb
-        jne     .Lcharposnotfound
-        incl    %ecx
-        subl    %ecx,%edx
-        movl    %edx,%eax
-        jmp     .Lready
-.Lcharposnotfound:
-        movl    $-1,%eax
-.Lready:
-        movl    saveedi,%edi
-        movl    saveebx,%ebx
+        push  %esi
+        push  %edi
+        push  %eax                  { save initial value of 'buf' }
+
+        cmp   $4,%edx               { less than 4 bytes, just test byte by byte. }
+        jb    .Ltail
+
+        mov    %cl,%ch              { prepare pattern }
+        movzwl %cx,%esi
+        shl    $16,%ecx
+        or     %esi,%ecx
+
+.Lalignloop:
+        test  $3,%al                { align to 4 bytes if necessary }
+        je    .Laligned
+        cmp   %cl,(%eax)
+        je    .Lexit
+        inc   %eax
+        dec   %edx
+        jmp   .Lalignloop
+
+.balign 16                      { Main loop, unrolled 4 times for speed }
+
+.Lloop:
+        mov   (%eax),%esi           { load dword }
+        xor   %ecx,%esi             { XOR with pattern, bytes equal to target are now 0 }
+        lea   -0x01010101(%esi),%edi
+        xor   %esi,%edi             { (x-0x01010101) xor x }
+        not   %esi
+        and   $0x80808080,%esi
+        and   %edi,%esi             { ((x-0x01010101) xor x) and (not x) and 0x80808080 }
+        jnz   .Lfound               { one of the bytes matches }
+
+        mov   4(%eax),%esi
+        xor   %ecx,%esi
+        lea   -0x01010101(%esi),%edi
+        xor   %esi,%edi
+        not   %esi
+        and   $0x80808080,%esi
+        and   %edi,%esi
+        jnz   .Lfound4
+
+        mov   8(%eax),%esi
+        xor   %ecx,%esi
+        lea   -0x01010101(%esi),%edi
+        xor   %esi,%edi
+        not   %esi
+        and   $0x80808080,%esi
+        and   %edi,%esi
+        jnz   .Lfound8
+
+        mov   12(%eax),%esi
+        xor   %ecx,%esi
+        lea   -0x01010101(%esi),%edi
+        xor   %esi,%edi
+        not   %esi
+        and   $0x80808080,%esi
+        and   %edi,%esi
+        jnz   .Lfound12
+
+        add   $16,%eax
+.Laligned:
+        sub   $16,%edx
+        jae   .Lloop                { Still more than 16 bytes remaining }
+
+{ Process remaining bytes (<16 left at this point) }
+{ length is offset by -16 at this point }
+.Lloop2:
+        cmp   $4-16,%edx            { < 4 bytes left? }
+        jb    .Ltail
+
+        mov   (%eax),%esi
+        xor   %ecx,%esi
+        lea   -0x01010101(%esi),%edi
+        xor   %esi,%edi
+        not   %esi
+        and   $0x80808080,%esi
+        and   %edi,%esi
+        jne   .Lfound
+
+        add   $4,%eax
+        sub   $4,%edx
+        jmp   .Lloop2
+
+.Ltail:                         { Less than 4 bytes remaining, check one by one }
+        and   $3, %edx
+        jz    .Lnotfound
+.Lloop3:
+        cmp   %cl,(%eax)
+        je    .Lexit
+        inc   %eax
+        dec   %edx
+        jnz   .Lloop3
+
+.Lnotfound:
+        or    $-1,%eax
+        jmp   .Lexit1
+
+{ add missing source pointer increments }
+.Lfound12:
+        add   $4,%eax
+.Lfound8:
+        add   $4,%eax
+.Lfound4:
+        add   $4,%eax
+
+.Lfound:
+        test  $0xff,%esi
+        jnz   .Lexit
+        inc   %eax
+
+        test  $0xff00,%esi
+        jnz   .Lexit
+        inc   %eax
+
+        test  $0xff0000,%esi
+        jnz   .Lexit
+        inc   %eax
+
+.Lexit:
+        sub   (%esp),%eax
+.Lexit1:
+        pop   %ecx               { removes initial 'buf' value }
+        pop   %edi
+        pop   %esi
 end;
-{$endif FPC_SYSTEM_HAS_FILLDWORD}
+{$endif FPC_SYSTEM_HAS_INDEXBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
@@ -391,15 +473,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %ebx,saveebx
-{$ifdef REGCALL}
         movl    %eax,%edi
         movl    %ecx,%ebx
         movl    %edx,%ecx
-{$else}
-        movl    Len,%ecx       // Load len
-        movl    Buf,%edi       // Load String
-        movl    b,%ebx
-{$endif}
         xorl    %eax,%eax
         testl   %ecx,%ecx
         jz      .Lcharposnotfound
@@ -645,14 +721,8 @@ asm
         movl    %ebx,saveebx
 // Can't use scasb, or will have to do it twice, think this
 //   is faster for small "len"
-{$ifdef REGCALL}
         movl    %eax,%esi        // Load address
         movzbl  %cl,%ebx          // Load searchpattern
-{$else}
-        movl    Buf,%esi        // Load address
-        movl    len,%edx        // load maximal searchdistance
-        movzbl  b,%ebx          // Load searchpattern
-{$endif}
         testl   %edx,%edx
         je      .LFound
         xorl    %ecx,%ecx       // zero index in Buf
@@ -685,52 +755,6 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
-begin
-  asm
-  {$ifdef FPC_PROFILE}
-        push  %eax
-        push  %edx
-        push  %ecx
-        call  mcount
-        pop   %ecx
-        pop   %edx
-        pop   %eax
-  {$endif FPC_PROFILE}
-        cld
-        movl    __RESULT,%edi
-        movl    sstr,%esi
-        xorl    %eax,%eax
-        movl    len,%ecx
-        lodsb
-        cmpl    %ecx,%eax
-        jbe     .LStrCopy1
-        movl    %ecx,%eax
-.LStrCopy1:
-        stosb
-        cmpl    $7,%eax
-        jl      .LStrCopy2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrCopy2:
-        movl    %eax,%ecx
-        rep
-        movsb
-  end ['ESI','EDI','EAX','ECX'];
-end;
-
-
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring);assembler;[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
   var
    saveesi,saveedi : longint;
@@ -749,11 +773,7 @@ procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring)
         cld
         movl    res,%edi
         movl    sstr,%esi
-{$ifdef regcall}
         movl    %edx,%ecx
-{$else regcall}
-        movl    res+4,%ecx
-{$endif regcall}
         xorl    %eax,%eax
         lodsb
         cmpl    %ecx,%eax
@@ -781,7 +801,6 @@ procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring)
         movl    saveedi,%edi
         movl    saveesi,%esi
   end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
@@ -833,131 +852,6 @@ end;
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
 
-{$ifndef STR_CONCAT_PROCS}
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
-
-function fpc_shortstr_concat(const s1,s2:shortstring):shortstring;compilerproc;
-begin
-  asm
-  {$ifdef FPC_PROFILE}
-        push  %eax
-        push  %edx
-        push  %ecx
-        call  mcount
-        pop   %ecx
-        pop   %edx
-        pop   %eax
-  {$endif FPC_PROFILE}
-        movl    __RESULT,%edi
-        movl    %edi,%ebx
-        movl    s1,%esi         { first string }
-        lodsb
-        andl    $0x0ff,%eax
-        stosb
-        cmpl    $7,%eax
-        jl      .LStrConcat1
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrConcat1:
-        movl    %eax,%ecx
-        rep
-        movsb
-        movl    s2,%esi       { second string }
-        movzbl  (%ebx),%ecx
-        negl    %ecx
-        addl    $0x0ff,%ecx
-        lodsb
-        cmpl    %ecx,%eax
-        jbe     .LStrConcat2
-        movl    %ecx,%eax
-.LStrConcat2:
-        addb    %al,(%ebx)
-        cmpl    $7,%eax
-        jl      .LStrConcat3
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrConcat3:
-        movl    %eax,%ecx
-        rep
-        movsb
-  end ['EBX','ECX','EAX','ESI','EDI'];
-end;
-{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
-
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
-
-procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);compilerproc;
-    [public,alias:'FPC_SHORTSTR_APPEND_SHORTSTR'];
-begin
-  asm
-  {$ifdef FPC_PROFILE}
-        push  %eax
-        push  %edx
-        push  %ecx
-        call  mcount
-        pop   %ecx
-        pop   %edx
-        pop   %eax
-  {$endif FPC_PROFILE}
-        movl    s1,%edi
-        movl    s2,%esi
-        movl    %edi,%ebx
-        movzbl  (%edi),%ecx
-        movl    __HIGH(s1),%eax
-        lea     1(%edi,%ecx),%edi
-        negl    %ecx
-        addl    %eax,%ecx
-        // no need to zero eax, high(s1) <= 255
-        lodsb
-        cmpl    %ecx,%eax
-        jbe     .LStrConcat1
-        movl    %ecx,%eax
-.LStrConcat1:
-        addb    %al,(%ebx)
-        cmpl    $7,%eax
-        jl      .LStrConcat2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrConcat2:
-        movl    %eax,%ecx
-        rep
-        movsb
-  end ['EBX','ECX','EAX','ESI','EDI'];
-end;
-{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
-
-{$endif STR_CONCAT_PROCS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
@@ -1031,10 +925,6 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_pchar_to_shortstr(p:pchar):shortstring;assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
-{$include strpas.inc}
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 var
   saveres,saveebx,saveesi,saveedi : longint;
@@ -1051,20 +941,13 @@ asm
         movl    %ebx,saveebx
         movl    %esi,saveesi
         movl    %edi,saveedi
-{$ifdef regcall}
         movl    %ecx,%esi
         movl    %eax,%edi
         movl    %edi,saveres
-{$else}
-        movl    p,%esi
-{$endif}
         movl    $1,%ecx
         testl   %esi,%esi
         movl    %esi,%eax
         jz      .LStrPasDone
-{$ifndef REGCALL}
-        movl    res,%edi
-{$endif}
         leal    3(%esi),%edx
         andl    $-4,%edx
         // skip length byte
@@ -1127,18 +1010,13 @@ asm
         incb    %cl
         jnz     .LStrPasEndLoop
 .LStrPasDone:
-{$ifdef REGCALL}
         movl    saveres,%edi
-{$else}
-        movl    res,%edi
-{$endif}
         addb    $255,%cl
         movb    %cl,(%edi)
         movl    saveesi,%esi
         movl    saveedi,%edi
         movl    saveebx,%ebx
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 
@@ -1158,16 +1036,12 @@ asm
         pop   %edx
         pop   %eax
 {$endif FPC_PROFILE}
+        test    %eax,%eax
+        jz      .LStrLenDone
         movl    %edi,saveedi
-{$ifdef REGCALL}
         movl    %eax,%edi
-{$else}
-        movl    p,%edi
-{$endif}
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
-	test    %edi,%edi
-	jz      .LStrLenDone
         cld
         repne
         scasb
@@ -1190,9 +1064,6 @@ end;
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;nostackframe;assembler;
 asm
-{$ifndef REGCALL}
-        movl    framebp,%eax
-{$endif}
         orl     %eax,%eax
         jz      .Lg_a_null
         movl    4(%eax),%eax
@@ -1203,9 +1074,6 @@ end;
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;nostackframe;assembler;
 asm
-{$ifndef REGCALL}
-        movl    framebp,%eax
-{$endif}
         orl     %eax,%eax
         jz      .Lgnf_null
         movl    (%eax),%eax
@@ -1344,9 +1212,6 @@ end;
 function cpudeclocked(var l : longint) : boolean;assembler;nostackframe;
 
   asm
-{$ifndef REGCALL}
-     movl       l,%eax
-{$endif}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      lock
@@ -1358,9 +1223,6 @@ function cpudeclocked(var l : longint) : boolean;assembler;nostackframe;
 procedure cpuinclocked(var l : longint);assembler;nostackframe;
 
   asm
-{$ifndef REGCALL}
-     movl       l,%eax
-{$endif}
      lock
      incl       (%eax)
   end;
@@ -1392,13 +1254,8 @@ end;
 
 function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
-{$ifdef REGCALL}
         movl    $-1,%edx
         xchgl   %edx,%eax
-{$else}
-        movl    Target, %edx
-        movl    $-1, %eax
-{$endif}
         lock
         xaddl   %eax, (%edx)
         decl    %eax
@@ -1407,13 +1264,8 @@ end;
 
 function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
-{$ifdef REGCALL}
         movl    $1,%edx
         xchgl   %edx,%eax
-{$else}
-        movl    Target, %edx
-        movl    $1, %eax
-{$endif}
         lock
         xaddl   %eax, (%edx)
         incl    %eax
@@ -1422,25 +1274,14 @@ end;
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
 asm
-{$ifdef REGCALL}
         xchgl   (%eax),%edx
         movl    %edx,%eax
-{$else}
-        movl    Target,%ecx
-        movl    Source,%eax
-        xchgl   (%ecx),%eax
-{$endif}
 end;
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
 asm
-{$ifdef REGCALL}
         xchgl   %eax,%edx
-{$else}
-        movl    Target,%edx
-        movl    Source,%eax
-{$endif}
         lock
         xaddl   %eax, (%edx)
 end;
@@ -1448,13 +1289,7 @@ end;
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler;
 asm
-{$ifdef REGCALL}
         xchgl   %eax,%ecx
-{$else}
-        movl    Target,%ecx
-        movl    NewValue,%edx
-        movl    Comperand,%eax
-{$endif}
         lock
         cmpxchgl   %edx, (%ecx)
 end;
@@ -1464,11 +1299,7 @@ function InterlockedCompareExchange64(var Target: int64; NewValue: int64; Comper
 asm
         pushl       %ebx
         pushl       %edi
-{$ifdef REGCALL}
         movl        %eax,%edi
-{$else}
-        movl        Target,%edi
-{$endif}
         movl        Comperand+4,%edx
         movl        Comperand+0,%eax
         movl        NewValue+4,%ecx
@@ -1602,23 +1433,14 @@ function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
 
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF']; compilerproc; nostackframe; assembler;
 asm
-        cmpl $0,(%eax)
-        jne .Ldecr_ref_continue
-        ret
-.Ldecr_ref_continue:
-// Temps allocated between ebp-24 and ebp+0
-        subl    $4,%esp
-// Var S located in register
-// Var l located in register
-        movl    %eax,(%esp)
-// [101] l:=@PAnsiRec(S-FirstOff)^.Ref;
-        movl    (%eax),%edx
-        subl    $8,%edx
-// [102] If l^<0 then exit;
-        cmpl    $0,(%edx)
+        cmpl    $0,(%eax)
+        je      .Lquit
+        pushl   %esi
+        movl    (%eax),%esi
+        subl    $12,%esi           // points to start of allocation
+        movl    $0,(%eax)          // s:=nil
+        cmpl    $0,4(%esi)         // exit if refcount<0
         jl      .Lj3596
-.Lj3603:
-// [104] If declocked(l^) then
   {$ifdef FPC_PIC}
 	pushl	%ebx
         call	fpc_geteipasebx
@@ -1631,27 +1453,20 @@ asm
         cmpl    $0,ismultithread
   {$endif FPC_PIC}
         jne     .Lj3610
-        decl    (%edx)
+        decl    4(%esi)
         je      .Lj3620
-        addl    $4,%esp
-        ret
+        jmp     .Lj3596
 .Lj3610:
-        movl    %edx,%eax
+        leal    4(%esi),%eax
         call    cpudeclocked
         testb   %al,%al
-        je      .Lj3605
+        je      .Lj3596
 .Lj3620:
-        movl    (%esp),%eax
-        movl    (%eax),%eax
-        subl    $8,%eax
+        movl    %esi,%eax
         call    FPC_FREEMEM_X
-        movl    (%esp),%eax
-        movl    $0,(%eax)
-.Lj3618:
-.Lj3605:
 .Lj3596:
-// [107] end;
-        addl $4,%esp
+        popl    %esi
+.Lquit:
 end;
 
 function fpc_truely_ansistr_unique(Var S : Pointer): Pointer; forward;

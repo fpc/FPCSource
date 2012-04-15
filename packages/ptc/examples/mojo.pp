@@ -520,7 +520,7 @@ begin
   frandtab_seed := (frandtab_seed + 1) and $FFFF;
 end;
 
-procedure VLightPart(console: TPTCConsole; surface: TPTCSurface);
+procedure VLightPart(console: IPTCConsole; surface: IPTCSurface);
 var
   vl: VLight = nil;
   vl2: VLight = nil;
@@ -705,33 +705,31 @@ begin
 end;
 
 var
-  format: TPTCFormat = nil;
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
+  format: IPTCFormat;
+  console: IPTCConsole;
+  surface: IPTCSurface;
 begin
   try
     try
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { open console }
       console.open('mojo by statix', 320, 200, format);
 
       { create main drawing surface }
-      surface := TPTCSurface.Create(320, 200, format);
+      surface := TPTCSurfaceFactory.CreateNew(320, 200, format);
 
       { do the light effect }
       VLightPart(console, surface);
 
     finally
       { close console }
-      console.close;
-      console.Free;
-      surface.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
     end;
 
     { print message to stdout }

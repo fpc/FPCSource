@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for FUSE bindings
+#
+
+[package]
+name=fuse
+version=2.7.1
+
+[target]
+units=fuse
+
+[require]
+
+[install]
+fpcpackage=y
+
+[compiler]
+includedir=src
+sourcedir=src 
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

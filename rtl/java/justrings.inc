@@ -19,34 +19,38 @@
 {$define FPC_UNICODESTRING_TYPE_DEFINED}
 
 {$define FPC_HAS_DEFAULT_UNICODE_2_ANSI_MOVE}
-procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
+procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
 var
   localencoder: JNCCharsetEncoder;
   inbuf: JNCharBuffer;
   outbuf: JNByteBuffer;
 begin
-  localencoder:=JNCCharsetEncoder(widestringmanager.encoder.get);
+  localencoder:=widestringmanager.encoder.getForCodePage(cp);
+  localencoder.reset;
   localencoder.onMalformedInput(JNCCodingErrorAction.fREPLACE);
   localencoder.onUnmappableCharacter(JNCCodingErrorAction.fREPLACE);
-  inbuf:=JNCharBuffer.wrap(TJCharArray(source));
+  inbuf:=JNCharBuffer.wrap(TJCharArray(source),0,len);
   outbuf:=localencoder.encode(inbuf);
   setlength(dest,outbuf.limit);
+  { "The buffer's position will be zero and its limit will *follow* the last
+    byte written" -> we already have a terminating zero }
   outbuf.get(TJByteArray(AnsiStringClass(dest).fdata),0,outbuf.limit);
   { already null-terminated because of setlength }
 end;
 
 
 {$define FPC_HAS_DEFAULT_ANSI_2_UNICODE}
-procedure DefaultAnsi2UnicodeMove(source:pchar;var dest:unicodestring;len:SizeInt);
+procedure DefaultAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 var
   localdecoder: JNCCharsetDecoder;
   inbuf: JNByteBuffer;
   outbuf: JNCharBuffer;
 begin
-  localdecoder:=JNCCharsetDecoder(widestringmanager.decoder.get);
+  localdecoder:=widestringmanager.decoder.getForCodePage(cp);
+  localdecoder.reset;
   localdecoder.onMalformedInput(JNCCodingErrorAction.fREPLACE);
   localdecoder.onUnmappableCharacter(JNCCodingErrorAction.fREPLACE);
-  inbuf:=JNByteBuffer.wrap(TJByteArray(source));
+  inbuf:=JNByteBuffer.wrap(TJByteArray(source),0,len);
   outbuf:=localdecoder.decode(inbuf);
   dest:=outbuf.toString;
 end;
@@ -72,7 +76,6 @@ end;
 
 
 { lie, not required }
-{$define FPC_HAS_DISPOSE_UNICODESTRING}
 {$define FPC_HAS_UNICODESTR_DECR_REF}
 {$define FPC_HAS_UNICODESTR_INCR_REF}
 
@@ -106,24 +109,27 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    result:=unicodestring(JLString.Create(TJByteArray(ShortstringClass(@S2).fdata),0,Size));
+    widestringmanager.Ansi2UnicodeMoveProc(PChar(ShortstringClass(@S2).fdata),DefaultSystemCodePage,result,Size);
 end;
 
 
 {$define FPC_HAS_UNICODESTR_TO_ANSISTR}
-Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString): AnsiString; compilerproc;
+Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
 {
   Converts a UnicodeString to an AnsiString
 }
 Var
   Size : SizeInt;
 begin
-  result:=Ansistring(AnsistringClass.Create(s2));
+  if (cp=CP_ACP) then
+    cp:=DefaultSystemCodePage;
+  { avoid codepage conversion -- why isn't the result rawbytestring? }
+  pointer(result):=pointer(AnsistringClass.Create(s2,cp));
 end;
 
 
 {$define FPC_HAS_ANSISTR_TO_UNICODESTR}
-Function fpc_AnsiStr_To_UnicodeStr (Const S2 : AnsiString): UnicodeString; compilerproc;
+Function fpc_AnsiStr_To_UnicodeStr (Const S2 : RawByteString): UnicodeString; compilerproc;
 {
   Converts an AnsiString to a UnicodeString;
 }
@@ -151,11 +157,6 @@ Function fpc_WideStr_To_UnicodeStr (Const S2 : WideString): UnicodeString; compi
   end;
 
 
-{ lie, not used by the compiler }
-{$define FPC_HAS_PUNICODECHAR_TO_ANSISTR}
-{$define FPC_HAS_PUNICODECHAR_TO_UNICODESTR}
-
-
 {$define FPC_HAS_PWIDECHAR_TO_UNICODESTR}
 Function fpc_PWideChar_To_UnicodeStr(const p : pwidechar): unicodestring; compilerproc;
 var
@@ -177,13 +178,15 @@ end;
 {$define FPC_HAS_PUNICODECHAR_TO_SHORTSTR}
 
 {$define FPC_HAS_PWIDECHAR_TO_ANSISTR}
-Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
+Function fpc_PWideChar_To_AnsiStr(const p : pwidechar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): ansistring; compilerproc;
 begin
   result:='';
   if (p=nil) or
      (p^=#0) then
     exit;
-  result:=unicodestring(p);
+  if (cp=CP_ACP) then
+    cp:=DefaultSystemCodePage;
+  pointer(result):=pointer(AnsistringClass.Create(unicodestring(p),cp));
 end;
 
 
@@ -248,12 +251,12 @@ end;
 {$define FPC_HAS_CHAR_TO_UCHAR}
 Function fpc_Char_To_UChar(const c : AnsiChar): UnicodeChar; compilerproc;
 var
-  str: JLString;
-  arr: array of jbyte;
+  arr: array[0..0] of ansichar;
+  w: unicodestring;
 begin
-  setlength(arr,1);
-  arr[0]:=ord(c);
-  result:=JLString.create(arr,0,1).charAt(0);
+  arr[0]:=c;
+  widestringmanager.Ansi2UnicodeMoveProc(pansichar(@arr),DefaultSystemCodePage,w,1);
+  fpc_Char_To_UChar:=w[1];
 end;
 
 
@@ -273,29 +276,25 @@ end;
 
 
 {$define FPC_HAS_UCHAR_TO_CHAR}
-Function fpc_UChar_To_Char(const c : UnicodeChar): AnsiChar; compilerproc;
+Function fpc_UChar_To_Char(const c : UnicodeChar): Char; compilerproc;
 {
-  Converts a UnicodeChar to a AnsiChar;
+  Converts a UnicodeChar to a Char;
 }
 var
-  arrb: array of jbyte;
-  arrw: array of jchar;
-  str: JLString;
+  u: unicodestring;
+  s: RawByteString;
+  arr: array[0..0] of unicodechar;
 begin
-  setlength(arrw,1);
-  arrw[0]:=c;
-  str:=JLString.create(arrw);
-  arrb:=str.getbytes();
-  result:=chr(arrb[0]);
+  arr[0]:=c;
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr), s, DefaultSystemCodePage, 1);
+  if length(s)=1 then
+    fpc_UChar_To_Char:= s[1]
+  else
+    fpc_UChar_To_Char:='?';
 end;
 
 
 { lie, unused for this target since widechar = unicodechar }
-{$define FPC_HAS_WHCAR_TO_UNICODESTR}
-{$define FPC_HAS_CHAR_TO_WHCAR}
-{$define FPC_HAS_WCHAR_TO_CHAR}
-{$define FPC_HAS_WCHAR_TO_SHORTSTR}
-
 {$define FPC_HAS_UCHAR_TO_UNICODESTR}
 Function fpc_UChar_To_UnicodeStr(const c : UnicodeChar): UnicodeString; compilerproc;
 {
@@ -310,15 +309,19 @@ end;
 
 
 {$define FPC_HAS_UCHAR_TO_ANSISTR}
-Function fpc_UChar_To_AnsiStr(const c : UnicodeChar): AnsiString; compilerproc;
+Function fpc_UChar_To_AnsiStr(const c : UnicodeChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
 {
   Converts a UnicodeChar to a AnsiString;
 }
 var
   u: unicodestring;
+  arr: array[0..0] of unicodechar;
 begin
-  u:=c;
-  result:=u;
+  arr[0]:=c;
+  if (cp=CP_ACP) then
+    cp:=DefaultSystemCodePage;
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr), RawByteString(fpc_UChar_To_AnsiStr), cp, 1);
+  AnsistringClass(fpc_UChar_To_AnsiStr).fCodePage:=cp;
 end;
 
 
@@ -335,6 +338,30 @@ begin
 end;
 
 
+{$ifndef FPC_HAS_UCHAR_TO_ANSISTR}
+{$define FPC_HAS_UCHAR_TO_ANSISTR}
+Function fpc_UChar_To_AnsiStr(const c : UnicodeChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
+{
+  Converts a UnicodeChar to a AnsiString;
+}
+var
+  arr: array[0..0] of unicodechar;
+{$ifndef FPC_HAS_CPSTRING}
+  cp : TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
+begin
+{$ifndef FPC_HAS_CPSTRING}
+  cp:=DefaultSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
+  if (cp=CP_ACP) then
+    cp:=DefaultSystemCodePage;
+  arr[0]:=c;
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr[0]), fpc_UChar_To_AnsiStr, cp, 1);
+  AnsistringClass(fpc_UChar_To_AnsiStr).fCodePage:=cp;
+end;
+{$endif FPC_HAS_UCHAR_TO_ANSISTR}
+
+
 {$define FPC_HAS_PCHAR_TO_UNICODESTR}
 Function fpc_PChar_To_UnicodeStr(const p : pchar): UnicodeString; compilerproc;
 var
@@ -346,49 +373,11 @@ begin
   while arr[i]<>#0 do
     inc(i);
   if i<>0 then
-    result:=JLString.create(TJByteArray(arr),0,i)
+    widestringmanager.Ansi2UnicodeMoveProc(P,DefaultSystemCodePage,fpc_PChar_To_UnicodeStr,i)
   else
     result:=''
 end;
 
-
-{$define FPC_HAS_CHARARRAY_TO_UNICODESTR}
-Function fpc_CharArray_To_UnicodeStr(const arr: array of ansichar; zerobased: boolean = true): UnicodeString; compilerproc;
-var
-  i,j  : SizeInt;
-  localarr: array of jbyte;
-  foundnull: boolean;
-begin
-  if (zerobased) then
-    begin
-      if (arr[0]=#0) Then
-      begin
-        fpc_chararray_to_unicodestr := '';
-        exit;
-      end;
-      foundnull:=false;
-      for i:=low(arr) to high(arr) do
-        if arr[i]=#0 then
-          begin
-            foundnull:=true;
-            break;
-          end;
-      if not foundnull then
-        i := high(arr)+1;
-    end
-  else
-    i := high(arr)+1;
-  setlength(localarr,i);
-  for j:=0 to i-1 do
-    localarr[j]:=ord(arr[j]);
-  result:=JLString.create(localarr,0,i);
-end;
-
-
-{ lie, not used by the compiler }
-{$define FPC_HAS_UNICODECHARARRAY_TO_SHORTSTR}
-{$define FPC_HAS_UNICODECHARARRAY_TO_ANSISTR}
-{$define FPC_HAS_UNICODECHARARRAY_TO_UNICODESTR}
 
 Function real_widechararray_to_unicodestr(const arr: array of widechar; zerobased: boolean): Unicodestring;
 var
@@ -426,14 +415,12 @@ begin
   res:=real_widechararray_to_unicodestr(arr,zerobased);
 end;
 
-{$define FPC_HAS_WIDECHARARRAY_TO_ANSISTR}
-Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
+
+{$define FPC_HAS_WIDECHARARRAY_TO_WIDESTR}
+Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
 begin
   result:=real_widechararray_to_unicodestr(arr,zerobased);
 end;
-
-{ lie, not used by this target }
-{$define FPC_HAS_WIDECHARARRAY_TO_WIDESTR}
 
 
 {$define FPC_HAS_UNICODESTR_TO_CHARARRAY}
@@ -468,13 +455,8 @@ begin
 end;
 
 
-{ lie, not used by the compiler }
-{$define FPC_HAS_UNICODESTR_TO_UNICODECHARARRAY}
-{$define FPC_HAS_ANSISTR_TO_UNICODECHARARRAY}
-{$define FPC_HAS_SHORTSTR_TO_UNICODECHARARRAY}
-
 {$define FPC_HAS_ANSISTR_TO_WIDECHARARRAY}
-procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
+procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: RawByteString); compilerproc;
 var
   len: SizeInt;
   temp: widestring;
@@ -564,13 +546,14 @@ end;
 
 
 {$define FPC_HAS_UNICODESTR_SETLENGTH}
-function fpc_UnicodeStr_SetLength(const S : UnicodeString; l : SizeInt): UnicodeString; compilerproc;
+Procedure fpc_UnicodeStr_SetLength(Var S : UnicodeString; l : SizeInt);[Public,Alias : 'FPC_UNICODESTR_SETLENGTH']; compilerproc;
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
   Returns new val
 }
 Var
+  result: UnicodeString;
   movelen: SizeInt;
   chars: array of widechar;
   strlen: SizeInt;
@@ -602,21 +585,15 @@ begin
     begin
       result:='';
     end;
+  S:=Result;
 end;
 
 {*****************************************************************************
                      Public functions, In interface.
 *****************************************************************************}
 
-{$define FPC_HAS_STRING_TO_UNICODECHAR}
-function StringToUnicodeChar(const Src : AnsiString;Dest : PUnicodeChar;DestSize : SizeInt) : PUnicodeChar;
-  begin
-    result:=StringToWideChar(Src,Dest,DestSize);
-  end;
-
-
 {$define FPC_HAS_STRING_LEN_TO_WIDECHAR}
-function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
+function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
   var
     temp:widestring;
   begin
@@ -631,14 +608,14 @@ function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : Siz
 
 
 {$define FPC_HAS_UNICODECHAR_LEN_TO_STRING}
-function UnicodeCharLenToString(S : PUnicodeChar;Len : SizeInt) : AnsiString;
+function UnicodeCharLenToString(S : PUnicodeChar;Len : SizeInt) : UnicodeString;
   begin
      result:=JLString.Create(TJCharArray(S),0,len);
   end;
 
 
 {$define FPC_HAS_WIDECHAR_LEN_TO_STRING}
-function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
+function WideCharLenToString(S : PWideChar;Len : SizeInt) : UnicodeString;
   begin
      result:=JLString.Create(TJCharArray(S),0,len);
   end;
@@ -791,35 +768,15 @@ end;
 {$define FPC_HAS_SETSTRING_UNICODESTR_PUNICODECHAR}
 Procedure SetString (Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt);
 begin
-  if Len>0 then
+  if assigned(buf) and (Len>0) then
     s:=JLString.Create(TJCharArray(Buf),0,Len)
   else
     s:='';
 end;
 
 
-{$define FPC_HAS_SETSTRING_UNICODESTR_PCHAR}
-Procedure SetString (Out S : UnicodeString; Buf : PChar; Len : SizeInt);
-begin
-  if Len>0 then
-    s:=JLString.Create(TJByteArray(Buf),0,Len)
-  else
-    s:='';
-end;
-
-
-{$define FPC_HAS_UNICODE_TO_UTF8}
-function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    if assigned(Source) then
-      Result:=UnicodeToUtf8(Dest,MaxBytes,Source,length(Source))
-    else
-      Result:=0;
-  end;
-
-
 {$define FPC_HAS_UTF8ENCODE_UNICODESTRING}
-function UTF8Encode(const s : UnicodeString) : UTF8String;
+function UTF8Encode(const s : UnicodeString) : RawByteString;
   var
     i : SizeInt;
     hs : UTF8String;
@@ -840,7 +797,7 @@ function UTF8Encode(const s : UnicodeString) : UTF8String;
 
 
 {$define FPC_HAS_UTF8DECODE_UNICODESTRING}
-function UTF8Decode(const s : UTF8String): UnicodeString;
+function UTF8Decode(const s : RawByteString): UnicodeString;
   var
     i : SizeInt;
     hs : UnicodeString;
@@ -906,6 +863,19 @@ function UCS4StringToUnicodeString(const s : UCS4String) : UnicodeString;
     result:=tmpres.toString;
   end;
 
+procedure UCS4Encode(p: PWideChar; len: sizeint; out res: UCS4String); forward;
+
+{$define FPC_HAS_UCS4STRING_TO_UNICODESTR}
+function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;
+  begin
+    UCS4Encode(PWideChar(JLString(s).toCharArray),Length(s),result);
+  end;
+
+{$define FPC_HAS_WIDESTR_TO_UCS4STRING}
+function WideStringToUCS4String(const s : WideString) : UCS4String;
+  begin
+    UCS4Encode(PWideChar(JLString(s).toCharArray),Length(s),result);
+  end;
 
 
 {$define FPC_HAS_UCS4STRING_TO_WIDESTR}
@@ -914,6 +884,34 @@ function UCS4StringToWideString(const s : UCS4String) : WideString;
     result:=UCS4StringToUnicodeString(s);
   end;
 
+
+function StringElementSize(const S : UnicodeString): Word;
+  begin
+    result:=sizeof(unicodechar);
+  end;
+
+
+function StringRefCount(const S : UnicodeString): SizeInt;
+  begin
+    if assigned(pointer(s)) then
+      result:=1
+    else
+      result:=0;
+  end;
+
+
+function StringCodePage(const S : UnicodeString): TSystemCodePage;
+  begin
+    if assigned(pointer(s)) then
+      result:=CP_UTF16BE
+    else
+      result:=DefaultUnicodeCodePage;
+  end;
+
+
+{ helpers for converting between Windows and Java code page identifiers }
+
+{$i jwin2javacharset.inc}
 
 { *************************************************************************** }
 { ************************* Collator threadvar ****************************** }
@@ -927,16 +925,56 @@ function TCollatorThreadVar.InitialValue: JLObject;
 
 
 { *************************************************************************** }
+{ ************************ Helpers for en/decode **************************** }
+{ *************************************************************************** }
+
+function GetOrInsertNewEnDecoder(hm: JUWeakHashMap; cp: TSystemCodePage; decoder: boolean): JLObject;
+  var
+    cs: JNCCharSet;
+    replacement: array[0..0] of jbyte;
+  begin
+    result:=hm.get(JLInteger.valueOf(cp));
+    if not assigned(result) then
+      begin
+        try
+          cs:=JNCCharSet.forName(win2javacs(cp));
+        except
+          { does not exist or not supported, fall back to ASCII like on other
+            platforms}
+          cs:=JNCCharset.forName('US-ASCII')
+        end;
+        if decoder then
+          begin
+            result:=cs.newDecoder;
+            JNCCharsetDecoder(result).replaceWith('?');
+          end
+        else
+          begin
+            result:=cs.newEncoder;
+            replacement[0]:=ord('?');
+            JNCCharsetEncoder(result).replaceWith(replacement);
+          end;
+        { store in weak hashmap for future (possible) reuse }
+        hm.put(JLInteger.Create(cp),result);
+      end;
+  end;
+
+{ *************************************************************************** }
 { ************************** Decoder threadvar ****************************** }
 { *************************************************************************** }
 
 function TCharsetDecoderThreadvar.InitialValue: JLObject;
-  var
-    decoder: JNCCharsetDecoder;
   begin
-    decoder:=JNCCharset.defaultCharset.newDecoder;
-    decoder.replaceWith('?');
-    result:=decoder;
+    result:=JUWeakHashMap.Create;
+  end;
+
+
+function TCharsetDecoderThreadvar.getForCodePage(cp: TSystemCodePage): JNCCharsetDecoder;
+  var
+    hm: JUWeakHashMap;
+  begin
+    hm:=JUWeakHashMap(get);
+    result:=JNCCharsetDecoder(GetOrInsertNewEnDecoder(hm,cp,true));
   end;
 
 
@@ -945,14 +983,17 @@ function TCharsetDecoderThreadvar.InitialValue: JLObject;
 { *************************************************************************** }
 
 function TCharsetEncoderThreadvar.InitialValue: JLObject;
-  var
-    encoder: JNCCharsetEncoder;
-    replacement: array[0..0] of jbyte;
   begin
-    encoder:=JNCCharset.defaultCharset.newEncoder;
-    replacement[0]:=ord('?');
-    encoder.replaceWith(replacement);
-    result:=encoder;
+    result:=JUWeakHashMap.Create;
+  end;
+
+
+function TCharsetEncoderThreadvar.getForCodePage(cp: TSystemCodePage): JNCCharsetEncoder;
+  var
+    hm: JUWeakHashMap;
+  begin
+    hm:=JUWeakHashMap(get);
+    result:=JNCCharsetEncoder(GetOrInsertNewEnDecoder(hm,cp,false));
   end;
 
 
@@ -965,18 +1006,24 @@ class constructor TUnicodeStringManager.ClassCreate;
     collator:=TCollatorThreadVar.Create;
     decoder:=TCharsetDecoderThreadVar.Create;
     encoder:=TCharsetEncoderThreadVar.Create;
+    DefaultSystemCodePage:=javacs2win(JNCCharset.defaultCharset.name);
+    { unknown/unsupported -> default to ASCII (this will be used to parse
+      stdin etc, so setting this to utf-8 or so won't help) }
+    if DefaultSystemCodePage=65535 then
+      DefaultSystemCodePage:=20127;
+    DefaultUnicodeCodePage:=CP_UTF16BE;
   end;
 
 
-procedure TUnicodeStringManager.Wide2AnsiMoveProc(source:pwidechar;var dest:ansistring;len:SizeInt);
+procedure TUnicodeStringManager.Wide2AnsiMoveProc(source:pwidechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
   begin
-    DefaultUnicode2AnsiMove(source,dest,len);
+    DefaultUnicode2AnsiMove(source,dest,cp,len);
   end;
 
 
-procedure TUnicodeStringManager.Ansi2WideMoveProc(source:pchar;var dest:widestring;len:SizeInt);
+procedure TUnicodeStringManager.Ansi2WideMoveProc(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
   begin
-    DefaultAnsi2UnicodeMove(source,dest,len);
+    DefaultAnsi2UnicodeMove(source,cp,dest,len);
   end;
 
 
@@ -1033,6 +1080,7 @@ function TUnicodeStringManager.CodePointLengthProc(const Str: PChar; Index, MaxL
     limit, maxlimit: longint;
   begin
     localdecoder:=JNCCharsetDecoder(decoder.get);
+    localdecoder.reset;
     localdecoder.onMalformedInput(JNCCodingErrorAction.fREPORT);
     localdecoder.onUnmappableCharacter(JNCCodingErrorAction.fREPORT);
     localdecoder.reset;
@@ -1145,15 +1193,15 @@ function TUnicodeStringManager.StrUpperAnsiStringProc(Str: PChar): PChar;
   end;
 
 
-procedure TUnicodeStringManager.Unicode2AnsiMoveProc(source:punicodechar;var dest:ansistring;len:SizeInt);
+procedure TUnicodeStringManager.Unicode2AnsiMoveProc(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
   begin
-    DefaultUnicode2AnsiMove(source,dest,len);
+    DefaultUnicode2AnsiMove(source,dest,cp,len);
   end;
 
 
-procedure TUnicodeStringManager.Ansi2UnicodeMoveProc(source:pchar;var dest:unicodestring;len:SizeInt);
+procedure TUnicodeStringManager.Ansi2UnicodeMoveProc(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
   begin
-    DefaultAnsi2UnicodeMove(source,dest,len);
+    DefaultAnsi2UnicodeMove(source,cp,dest,len);
   end;
 
 

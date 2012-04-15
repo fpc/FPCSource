@@ -1,0 +1,43 @@
+{
+  "metaData" : {
+    "fields" : [
+      {
+        "name" : "ID",
+        "type" : "int"
+      },
+      {
+        "name" : "Name",
+        "type" : "string",
+        "maxlen" : 20
+      },
+      {
+        "name" : "Email",
+        "type" : "string",
+        "maxlen" : 30
+      }
+    ],
+    "root" : "rows"
+  },
+  "rows" : [
+    {
+      "ID" : 3,
+      "Name" : "Michael",
+      "Email" : "michael@freepascal.org"
+    },
+    {
+      "ID" : 4,
+      "Name" : "jonas",
+      "Email" : "jonas@freepascal.org"
+    },
+    {
+      "ID" : 1,
+      "Name" : "Florian",
+      "Email" : "Florian@freepascal.org"
+    },
+    {
+      "ID" : 12,
+      "Name" : "Marco",
+      "Email" : "Marco@stack.nl"
+    }
+  ]
+}

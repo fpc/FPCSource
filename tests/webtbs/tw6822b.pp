@@ -10,11 +10,7 @@ var
   h: TLibHandle;
 const
 {$ifdef unix}
-{$ifdef darwin}
-libname = './libtw6822a.dylib';
-{$else darwin}
-libname = './libtw6822a.so';
-{$endif darwin}
+libname = './libtw6822a.'+SharedSuffix;
 {$endif unix}
 
 {$ifdef windows}

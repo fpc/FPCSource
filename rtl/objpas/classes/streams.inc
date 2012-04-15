@@ -535,17 +535,7 @@ end;
 constructor TFileStream.Create(const AFileName: string; Mode: Word);
 
 begin
-  FFileName:=AFileName;
-  If (Mode and fmCreate) > 0 then
-    FHandle:=FileCreate(AFileName,Mode,438)
-  else
-    FHAndle:=FileOpen(AFileName,Mode);
-
-  If (THandle(FHandle)=feInvalidHandle) then
-    If Mode=fmcreate then
-      raise EFCreateError.createfmt(SFCreateError,[AFileName])
-    else
-      raise EFOpenError.Createfmt(SFOpenError,[AFilename]);
+  Create(AFileName,Mode,438);
 end;
 
 
@@ -667,7 +657,7 @@ function TMemoryStream.Realloc(var NewCapacity: PtrInt): Pointer;
 begin
   If NewCapacity<0 Then
     NewCapacity:=0
-  else  
+  else
     begin
       // if growing, grow at least a quarter
       if (NewCapacity>FCapacity) and (NewCapacity < (5*FCapacity) div 4) then
@@ -755,6 +745,39 @@ begin
   Result:=Count;
 end;
 
+{****************************************************************************}
+{*                              TBytesStream                                *}
+{****************************************************************************}
+
+constructor TBytesStream.Create(const ABytes: TBytes);
+begin
+  inherited Create;
+  FBytes:=ABytes;
+  SetPointer(Pointer(FBytes),Length(FBytes));
+  FCapacity:=Length(FBytes);
+end;
+
+function TBytesStream.Realloc(var NewCapacity: PtrInt): Pointer;
+begin
+  // adapt TMemoryStream code to use with dynamic array
+  if NewCapacity<0 Then
+    NewCapacity:=0
+  else
+    begin
+      if (NewCapacity>Capacity) and (NewCapacity < (5*Capacity) div 4) then
+        NewCapacity := (5*Capacity) div 4;
+      NewCapacity := (NewCapacity + (TMSGrow-1)) and not (TMSGROW-1);
+    end;
+  if NewCapacity=Capacity then
+    Result:=Pointer(FBytes)
+  else
+    begin
+      SetLength(FBytes,Newcapacity);
+      Result:=Pointer(FBytes);
+      if (Result=nil) and (Newcapacity>0) then
+        raise EStreamError.Create(SMemoryStreamError);
+    end;
+end;
 
 {****************************************************************************}
 {*                             TStringStream                                *}
@@ -951,7 +974,7 @@ begin
     FreeAndNil(FStream);
   inherited Destroy;
 end;
-  
+
 {$warnings off}
 function TStreamAdapter.Read(pv: Pointer; cb: DWORD; pcbRead: PDWORD): HResult; stdcall;
 var
@@ -1006,10 +1029,10 @@ begin
     STREAM_SEEK_SET: newpos := FStream.Seek(dlibMove, soBeginning);
     STREAM_SEEK_CUR: newpos := FStream.Seek(dlibMove, soCurrent);
     STREAM_SEEK_END: newpos := FStream.Seek(dlibMove, soEnd);
-    else 
-      begin 
-        Result := STG_E_INVALIDFUNCTION; 
-        Exit; 
+    else
+      begin
+        Result := STG_E_INVALIDFUNCTION;
+        Exit;
       end;
   end;
   if @libNewPosition <> nil then
@@ -1112,7 +1135,7 @@ begin
     if @statstg <> nil then
     begin
       fillchar(statstg, sizeof(TStatStg),#0);
-      
+
       { //TODO handle pwcsName
         if grfStatFlag = STATFLAG_DEFAULT then
           runerror(217) //Result :={$ifdef windows} STG_E_INVALIDFLAG{$else}E_INVALID_FLAG{$endif}
@@ -1125,7 +1148,7 @@ begin
     Result := S_OK;
   end else
     Result := STG_E_INVALIDFLAG
-end; 
+end;
 
 function TStreamAdapter.Clone(out stm: IStream): HResult; stdcall;
 begin
@@ -1162,11 +1185,11 @@ end;
 function TProxyStream.GetIStream: IStream;
 begin
   Result := FStream;
-end; 
+end;
 
 procedure TProxyStream.Check(err:integer);
 var e : EInOutError;
-begin 
+begin
   e:= EInOutError.Create('Proxystream.Check');
   e.Errorcode:=err;
   raise e;

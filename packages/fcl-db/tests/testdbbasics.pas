@@ -7,7 +7,11 @@ unit TestDBBasics;
 interface
 
 uses
+{$IFDEF FPC}
   fpcunit, testutils, testregistry, testdecorator,
+{$ELSE FPC}
+  TestFramework,
+{$ENDIF FPC}
   Classes, SysUtils, db, ToolsUnit;
 
 type
@@ -16,36 +20,15 @@ type
 
   TTestDBBasics = class(TTestCase)
   private
-    procedure TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
     procedure TestfieldDefinition(AFieldType : TFieldType;ADatasize : integer;var ADS : TDataset; var AFld: TField);
     procedure TestcalculatedField_OnCalcfields(DataSet: TDataSet);
 
-    procedure FTestDelete1(TestCancelUpdate : boolean);
-    procedure FTestDelete2(TestCancelUpdate : boolean);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
-    procedure TestCancelUpdDelete1;
-    procedure TestCancelUpdDelete2;
-    procedure TestAppendInsertRecord;
-    procedure TestBookmarks;
-    procedure TestBookmarkValid;
-
-    procedure TestLocate;
-    procedure TestLocateCaseIns;
-
-    procedure TestFirst;
-    procedure TestDelete1;
-    procedure TestDelete2;
-    procedure TestIntFilter;
-    procedure TestOnFilter;
-    procedure TestStringFilter;
-
     procedure TestSetFieldValues;
     procedure TestGetFieldValues;
-
-    procedure TestNullAtOpen;
 
     procedure TestSupportIntegerFields;
     procedure TestSupportSmallIntFields;
@@ -60,10 +43,6 @@ type
     procedure TestSupportfmtBCDFields;
     procedure TestSupportFixedStringFields;
 
-    procedure TestAppendOnEmptyDataset;
-    procedure TestInsertOnEmptyDataset;
-
-    procedure TestEofAfterFirst;           //bug 7211
     procedure TestDoubleClose;
     procedure TestCalculatedField;
     procedure TestAssignFieldftString;
@@ -75,22 +54,14 @@ type
     procedure TestEOFBOFClosedDataset;
     procedure TestLayoutChangedEvents;
     procedure TestDataEventsResync;
-    procedure TestBug7007;
-    procedure TestBug6893;
     procedure TestRecordcountAfterReopen;  // partly bug 8228
     procedure TestdeFieldListChange;
-    procedure TestLastAppendCancel;        // bug 5058
-    procedure TestRecNo;                   // bug 5061
-    procedure TestSetRecNo;                // bug 6919
-    procedure TestRequired;
     procedure TestExceptionLocateClosed;    // bug 13938
     procedure TestCanModifySpecialFields;
-
-    procedure TestOldValue;
   end;
 
   { TTestBufDatasetDBBasics }
-
+{$ifdef fpc}
   TTestBufDatasetDBBasics = class(TTestCase)
   private
     procedure FTestXMLDatasetDefinition(ADataset : TDataset);
@@ -135,73 +106,126 @@ type
     procedure TestIndexEditRecord;
   end;
 
+{$endif fpc}
 
   TTestUniDirectionalDBBasics = class(TTestDBBasics)
   end;
 
-  { TDBBasicsUniDirectionalTestSetup }
+  { TTestCursorDBBasics }
 
+  TTestCursorDBBasics = class(TTestCase)
+  private
+    procedure TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
+    procedure FTestDelete1(TestCancelUpdate : boolean);
+    procedure FTestDelete2(TestCancelUpdate : boolean);
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestCancelUpdDelete1;
+    procedure TestCancelUpdDelete2;
+
+    procedure TestAppendInsertRecord;
+
+    procedure TestBookmarks;
+    procedure TestBookmarkValid;
+
+    procedure TestDelete1;
+    procedure TestDelete2;
+
+    procedure TestLocate;
+    procedure TestLocateCaseIns;
+
+    procedure TestFirst;
+    procedure TestIntFilter;
+    procedure TestOnFilter;
+    procedure TestStringFilter;
+
+    procedure TestNullAtOpen;
+
+    procedure TestAppendOnEmptyDataset;
+    procedure TestInsertOnEmptyDataset;
+
+    procedure TestEofAfterFirst;           //bug 7211
+    procedure TestLastAppendCancel;        // bug 5058
+    procedure TestRecNo;                   // bug 5061
+    procedure TestSetRecNo;                // bug 6919
+    procedure TestBug7007;
+    procedure TestBug6893;
+    procedure TestRequired;
+    procedure TestOldValue;
+  end;
+
+
+  { TDBBasicsUniDirectionalTestSetup }
+{$ifdef fpc}
   TDBBasicsUniDirectionalTestSetup = class(TDBBasicsTestSetup)
   protected
     procedure OneTimeSetup; override;
     procedure OneTimeTearDown; override;
   end;
-
+{$endif fpc}
 implementation
 
-uses bufdataset, variants, strutils, sqldb, FmtBCD;
+uses
+{$ifdef fpc}
+  bufdataset,
+  sqldb,
+{$endif fpc}
+  variants,
+  strutils,
+  FmtBCD;
 
 type THackDataLink=class(TdataLink);
 
-procedure TTestBufDatasetDBBasics.TestIsEmpty;
-begin
-  with tCustombufdataset(DBConnector.GetNDataset(True,1)) do
-    begin
-    open;
-    delete;
-    Resync([]);
-    applyupdates;
-    AssertTrue(IsEmpty);
+{ TTestCursorDBBasics }
 
-    end;
+procedure TTestCursorDBBasics.SetUp;
+begin
+  DBConnector.StartTest;
 end;
 
-procedure TTestDBBasics.TestAppendOnEmptyDataset;
+procedure TTestCursorDBBasics.TearDown;
+begin
+  DBConnector.StopTest;
+end;
+
+procedure TTestCursorDBBasics.TestAppendOnEmptyDataset;
 begin
   with DBConnector.GetNDataset(0) do
     begin
     open;
-    AssertTrue(CanModify);
-    AssertTrue(eof);
-    AssertTrue(bof);
+    CheckTrue(CanModify);
+    CheckTrue(eof);
+    CheckTrue(bof);
     append;
     FieldByName('id').AsInteger:=0;
-    AssertFalse(Bof);
-    AssertTrue(Eof);
+    CheckFalse(Bof);
+    CheckTrue(Eof);
     post;
-    AssertFalse(eof);
-    AssertFalse(bof);
+    CheckFalse(eof);
+    CheckFalse(bof);
     end;
 end;
 
-procedure TTestDBBasics.TestInsertOnEmptyDataset;
+procedure TTestCursorDBBasics.TestInsertOnEmptyDataset;
 begin
   with DBConnector.GetNDataset(0) do
     begin
     open;
-    AssertTrue(CanModify);
-    AssertTrue(eof);
-    AssertTrue(bof);
-    AssertTrue(IsEmpty);
+    CheckTrue(CanModify);
+    CheckTrue(eof);
+    CheckTrue(bof);
+    CheckTrue(IsEmpty);
     insert;
     FieldByName('id').AsInteger:=0;
-    AssertTrue(Bof);
-    AssertTrue(Eof);
-    AssertFalse(IsEmpty);
+    CheckTrue(Bof);
+    CheckTrue(Eof);
+    CheckFalse(IsEmpty);
     post;
-    AssertFalse(IsEmpty);
-    AssertFalse(eof);
-    AssertFalse(bof);
+    CheckFalse(IsEmpty);
+    CheckFalse(eof);
+    CheckFalse(bof);
     end;
 end;
 
@@ -212,21 +236,21 @@ begin
     begin
     Open;
 
-    AssertEquals(1,RecNo);
-    AssertEquals(1,RecordCount);
+    CheckEquals(1,RecNo);
+    CheckEquals(1,RecordCount);
 
-    AssertEquals(2,FieldCount);
+    CheckEquals(2,FieldCount);
 
-    AssertTrue(CompareText('ID',fields[0].FieldName)=0);
-    AssertTrue(CompareText('ID',fields[0].DisplayName)=0);
-    AssertTrue('The datatype of the field ''ID'' is incorrect, it should be ftInteger',ftInteger=fields[0].DataType);
+    CheckTrue(CompareText('ID',fields[0].FieldName)=0);
+    CheckTrue(CompareText('ID',fields[0].DisplayName)=0);
+    CheckTrue(ftInteger=fields[0].DataType, 'The datatype of the field ''ID'' is incorrect, it should be ftInteger');
 
-    AssertTrue(CompareText('NAME',fields[1].FieldName)=0);
-    AssertTrue(CompareText('NAME',fields[1].DisplayName)=0);
-    AssertTrue(ftString=fields[1].DataType);
+    CheckTrue(CompareText('NAME',fields[1].FieldName)=0);
+    CheckTrue(CompareText('NAME',fields[1].DisplayName)=0);
+    CheckTrue(ftString=fields[1].DataType);
 
-    AssertEquals(1,fields[0].Value);
-    AssertEquals('TestName1',fields[1].Value);
+    CheckEquals(1,fields[0].Value);
+    CheckEquals('TestName1',fields[1].Value);
 
     Close;
     end;
@@ -237,7 +261,7 @@ begin
   with DBConnector.GetNDataset(1) do
     begin
     open;
-    AssertException('Post was called in a non-edit state',EDatabaseError,Post);
+    CheckException(Post,EDatabaseError,'Post was called in a non-edit state');
     end;
 end;
 
@@ -262,24 +286,24 @@ begin
         begin
         i := 1;
         Open;
-        AssertEquals('deUpdateState:0;',DataEvents);
+        CheckEquals('deUpdateState:0;',DataEvents);
         DataEvents := '';
         while not EOF do
           begin
-          AssertEquals(i,fields[0].AsInteger);
-          AssertEquals('TestName'+inttostr(i),fields[1].AsString);
+          CheckEquals(i,fields[0].AsInteger);
+          CheckEquals('TestName'+inttostr(i),fields[1].AsString);
           inc(i);
 
           Next;
           if (i > ABufferCount) and not EOF then
-            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:-1;DataSetScrolled:1;DataSetChanged;',DataEvents)
+            CheckEquals('deCheckBrowseMode:0;deDataSetScroll:-1;DataSetScrolled:1;DataSetChanged;',DataEvents)
           else
-            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:0;DataSetScrolled:0;DataSetChanged;',DataEvents);
+            CheckEquals('deCheckBrowseMode:0;deDataSetScroll:0;DataSetScrolled:0;DataSetChanged;',DataEvents);
           DataEvents := '';
           end;
-        AssertEquals(count,i-1);
+        CheckEquals(count,i-1);
         close;
-        AssertEquals('deUpdateState:0;',DataEvents);
+        CheckEquals('deUpdateState:0;',DataEvents);
         DataEvents := '';
         end;
       end;
@@ -307,10 +331,10 @@ begin
     DataEvents := '';
     open;
     Fields.add(tfield.Create(DBConnector.GetNDataset(1)));
-    AssertEquals('deUpdateState:0;deFieldListChange:0;',DataEvents);
+    CheckEquals('deUpdateState:0;deFieldListChange:0;',DataEvents);
     DataEvents := '';
     fields.Clear;
-    AssertEquals('deFieldListChange:0;',DataEvents)
+    CheckEquals('deFieldListChange:0;',DataEvents)
     end;
   aDatasource.Free;
   aDatalink.Free;
@@ -321,9 +345,11 @@ procedure TTestDBBasics.TestActiveBufferWhenClosed;
 begin
   with DBConnector.GetNDataset(0) do
     begin
+{$ifdef fpc}
     AssertNull(ActiveBuffer);
+{$endif fpc}
     open;
-    AssertFalse('Activebuffer of an empty dataset shouldn''t be nil',ActiveBuffer = nil);
+    CheckFalse(ActiveBuffer = nil,'Activebuffer of an empty dataset shouldn''t be nil');
     end;
 end;
 
@@ -331,12 +357,12 @@ procedure TTestDBBasics.TestEOFBOFClosedDataset;
 begin
   with DBConnector.GetNDataset(1) do
     begin
-    AssertTrue(EOF);
-    AssertTrue(BOF);
+    CheckTrue(EOF);
+    CheckTrue(BOF);
     open;
     close;
-    AssertTrue(EOF);
-    AssertTrue(BOF);
+    CheckTrue(EOF);
+    CheckTrue(BOF);
     end;
 end;
 
@@ -361,7 +387,7 @@ begin
       Active:=False;
       Active:=True;
       EnableControls;
-      AssertEquals('deLayoutChange:0;DataSetChanged;',DataEvents);
+      CheckEquals('deLayoutChange:0;DataSetChanged;',DataEvents);
 
       close;
       end;
@@ -390,10 +416,10 @@ begin
       open;
       DataEvents := '';
       Resync([rmExact]);
-      AssertEquals('deDataSetChange:0;DataSetChanged;',DataEvents);
+      CheckEquals('deDataSetChange:0;DataSetChanged;',DataEvents);
       DataEvents := '';
       next;
-      AssertEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;DataSetChanged;',DataEvents);
+      CheckEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;DataSetChanged;',DataEvents);
       close;
       end;
   finally
@@ -402,7 +428,7 @@ begin
   end;
 end;
 
-procedure TTestDBBasics.TestLastAppendCancel;
+procedure TTestCursorDBBasics.TestLastAppendCancel;
 
 var count : integer;
 
@@ -415,15 +441,15 @@ begin
     Append;
     Cancel;
 
-    AssertEquals(count,fields[0].asinteger);
-    AssertEquals(count,RecordCount);
+    CheckEquals(count,fields[0].asinteger);
+    CheckEquals(count,RecordCount);
 
     Close;
 
     end;
 end;
 
-procedure TTestDBBasics.TestRecNo;
+procedure TTestCursorDBBasics.TestRecNo;
 var i       : longint;
     passed  : boolean;
 begin
@@ -440,7 +466,7 @@ begin
       end;
     end;
     if not passed then
-      AssertEquals('Failed to get the RecNo from a closed dataset',0,RecNo);
+      CheckEquals(0,RecNo,'Failed to get the RecNo from a closed dataset');
 
     // Accessing Recordcount on a closed dataset should raise an EDatabaseError or should
     // return 0
@@ -453,101 +479,101 @@ begin
       end;
     end;
     if not passed then
-      AssertEquals('Failed to get the Recordcount from a closed dataset',0,RecNo);
+      CheckEquals(0,RecNo,'Failed to get the Recordcount from a closed dataset');
 
     Open;
 
-    AssertEquals(0,RecordCount);
-    AssertEquals(0,RecNo);
+    CheckEquals(0,RecordCount);
+    CheckEquals(0,RecNo);
 
     first;
-    AssertEquals(0,RecordCount);
-    AssertEquals(0,RecNo);
+    CheckEquals(0,RecordCount);
+    CheckEquals(0,RecNo);
 
     last;
-    AssertEquals(0,RecordCount);
-    AssertEquals(0,RecNo);
+    CheckEquals(0,RecordCount);
+    CheckEquals(0,RecNo);
 
     append;
-    AssertEquals(0,RecNo);
-    AssertEquals(0,RecordCount);
+    CheckEquals(0,RecNo);
+    CheckEquals(0,RecordCount);
 
     first;
-    AssertEquals(0,RecNo);
-    AssertEquals(0,RecordCount);
+    CheckEquals(0,RecNo);
+    CheckEquals(0,RecordCount);
 
     append;
     FieldByName('id').AsInteger := 1;
-    AssertEquals(0,RecNo);
-    AssertEquals(0,RecordCount);
+    CheckEquals(0,RecNo);
+    CheckEquals(0,RecordCount);
 
     first;
-    AssertEquals(1,RecNo);
-    AssertEquals(1,RecordCount);
+    CheckEquals(1,RecNo);
+    CheckEquals(1,RecordCount);
 
     last;
-    AssertEquals(1,RecNo);
-    AssertEquals(1,RecordCount);
+    CheckEquals(1,RecNo);
+    CheckEquals(1,RecordCount);
 
     append;
     FieldByName('id').AsInteger := 1;
-    AssertEquals(0,RecNo);
-    AssertEquals(1,RecordCount);
+    CheckEquals(0,RecNo);
+    CheckEquals(1,RecordCount);
 
     Close;
     end;
 end;
 
-procedure TTestDBBasics.TestSetRecNo;
+procedure TTestCursorDBBasics.TestSetRecNo;
 begin
   with DBConnector.GetNDataset(15) do
     begin
     Open;
     RecNo := 1;
-    AssertEquals(1,fields[0].AsInteger);
-    AssertEquals(1,RecNo);
+    CheckEquals(1,fields[0].AsInteger);
+    CheckEquals(1,RecNo);
 
     RecNo := 2;
-    AssertEquals(2,fields[0].AsInteger);
-    AssertEquals(2,RecNo);
+    CheckEquals(2,fields[0].AsInteger);
+    CheckEquals(2,RecNo);
 
     RecNo := 8;
-    AssertEquals(8,fields[0].AsInteger);
-    AssertEquals(8,RecNo);
+    CheckEquals(8,fields[0].AsInteger);
+    CheckEquals(8,RecNo);
 
     RecNo := 15;
-    AssertEquals(15,fields[0].AsInteger);
-    AssertEquals(15,RecNo);
+    CheckEquals(15,fields[0].AsInteger);
+    CheckEquals(15,RecNo);
 
     RecNo := 3;
-    AssertEquals(3,fields[0].AsInteger);
-    AssertEquals(3,RecNo);
+    CheckEquals(3,fields[0].AsInteger);
+    CheckEquals(3,RecNo);
 
     RecNo := 14;
-    AssertEquals(14,fields[0].AsInteger);
-    AssertEquals(14,RecNo);
+    CheckEquals(14,fields[0].AsInteger);
+    CheckEquals(14,RecNo);
 
     RecNo := 15;
-    AssertEquals(15,fields[0].AsInteger);
-    AssertEquals(15,RecNo);
+    CheckEquals(15,fields[0].AsInteger);
+    CheckEquals(15,RecNo);
 
     // test for exceptions...
 {    RecNo := 16;
-    AssertEquals(15,fields[0].AsInteger);
-    AssertEquals(15,RecNo);}
+    CheckEquals(15,fields[0].AsInteger);
+    CheckEquals(15,RecNo);}
 
     Close;
     end;
 end;
 
-procedure TTestDBBasics.TestRequired;
+procedure TTestCursorDBBasics.TestRequired;
 begin
   with DBConnector.GetNDataset(2) do
     begin
     Open;
     FieldByName('ID').Required := True;
     Append;
-    AssertException(EDatabaseError,Post);
+    CheckException(Post, EDatabaseError);
     FieldByName('ID').AsInteger := 1000;
     Post;
     Close;
@@ -567,7 +593,7 @@ begin
       passed := E.classname = EDatabaseError.className
       end;
     end;
-    AssertTrue(passed);
+    CheckTrue(passed);
     end;
 end;
 
@@ -582,24 +608,14 @@ begin
   DBConnector.StopTest;
 end;
 
-procedure TTestDBBasics.TestOldValue;
+procedure TTestCursorDBBasics.TestOldValue;
 var v : variant;
-    bufds: TCustomBufDataset;
+    bufds: TDataset;
 begin
-  bufds := DBConnector.GetNDataset(0) as TCustomBufDataset;
+  bufds := DBConnector.GetNDataset(0) as TDataset;
   bufds.Open;
   bufds.InsertRecord([0,'name']);
   v := VarToStr(bufds.fields[1].OldValue);
-end;
-
-procedure TTestBufDatasetDBBasics.TestClosedIndexFieldNames;
-var s : string;
-    bufds: TCustomBufDataset;
-begin
-  bufds := DBConnector.GetNDataset(5) as TCustomBufDataset;
-  s := bufds.IndexFieldNames;
-  s := bufds.IndexName;
-  bufds.CompareBookmarks(nil,nil);
 end;
 
 procedure TTestDBBasics.TestCanModifySpecialFields;
@@ -626,16 +642,530 @@ begin
 
     lds.Open;
     Open;
-    AssertTrue(FieldByName('ID').CanModify);
-    AssertFalse(FieldByName('LookupFld').CanModify);
-    AssertFalse(FieldByName('ID').ReadOnly);
-    AssertFalse(FieldByName('LookupFld').ReadOnly);
+    CheckTrue(FieldByName('ID').CanModify);
+    CheckFalse(FieldByName('LookupFld').CanModify);
+    CheckFalse(FieldByName('ID').ReadOnly);
+    CheckFalse(FieldByName('LookupFld').ReadOnly);
 
-    AssertEquals(1,FieldByName('ID').AsInteger);
-    AssertEquals('name1',FieldByName('LookupFld').AsString);
+    CheckEquals(1,FieldByName('ID').AsInteger);
+    CheckEquals('name1',FieldByName('LookupFld').AsString);
     close;
     lds.Close;
     end;
+end;
+
+
+procedure TTestCursorDBBasics.TestAppendInsertRecord;
+begin
+  with DBConnector.GetNDataset(true,6) do
+    begin
+    open;
+    // InsertRecord should insert a record, set the values, post the record and
+    // make the new record active.
+    InsertRecord([152,'TestInsRec']);
+    CheckEquals(152,fields[0].AsInteger);
+    CheckEquals('TestInsRec',fields[1].AsString);
+    CheckTrue(state=dsBrowse);
+
+    // AppendRecord should append a record, further the same as InsertRecord
+    AppendRecord([151,'TestInsRec']);
+    CheckEquals(151,fields[0].AsInteger);
+    CheckEquals('TestInsRec',fields[1].AsString);
+    CheckTrue(state=dsBrowse);
+    next;
+    CheckTrue(EOF);
+    end;
+end;
+
+procedure TTestCursorDBBasics.TestBookmarks;
+var BM1,BM2,BM3,BM4,BM5 : TBookmark;
+begin
+  with DBConnector.GetNDataset(true,14) do
+    begin
+{$ifdef fpc}
+    AssertNull(GetBookmark);
+{$endif fpc}
+    open;
+    BM1:=GetBookmark; // id=1, BOF
+    next;next;
+    BM2:=GetBookmark; // id=3
+    next;next;next;
+    BM3:=GetBookmark; // id=6
+    next;next;next;next;next;next;next;next;
+    BM4:=GetBookmark; // id=14
+    next;
+    BM5:=GetBookmark; // id=14, EOF
+    
+    GotoBookmark(BM2);
+    CheckEquals(3,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM1);
+    CheckEquals(1,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM3);
+    CheckEquals(6,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM4);
+    CheckEquals(14,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM3);
+    CheckEquals(6,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM5);
+    CheckEquals(14,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM1);
+    CheckEquals(1,FieldByName('id').AsInteger);
+
+    next;
+    delete;
+
+    GotoBookmark(BM2);
+    CheckEquals(3,FieldByName('id').AsInteger);
+    
+    delete;delete;
+
+    GotoBookmark(BM3);
+    CheckEquals(6,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM1);
+    CheckEquals(1,FieldByName('id').AsInteger);
+    insert;
+    fieldbyname('id').AsInteger:=20;
+    insert;
+    fieldbyname('id').AsInteger:=21;
+    insert;
+    fieldbyname('id').AsInteger:=22;
+    insert;
+    fieldbyname('id').AsInteger:=23;
+    post;
+    
+    GotoBookmark(BM3);
+    CheckEquals(6,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM1);
+    CheckEquals(1,FieldByName('id').AsInteger);
+
+    GotoBookmark(BM5);
+    CheckEquals(14,FieldByName('id').AsInteger);
+    end;
+end;
+
+procedure TTestCursorDBBasics.TestBookmarkValid;
+var BM1,BM2,BM3,BM4,BM5 : TBookmark;
+begin
+  with DBConnector.GetNDataset(true,14) do
+    begin
+    BM1 := Nil;
+    CheckFalse(BookmarkValid(BM1));
+    open;
+    BM1:=GetBookmark; // id=1, BOF
+    CheckTrue(BookmarkValid(BM1));
+    next;next;
+    BM2:=GetBookmark; // id=3
+    CheckTrue(BookmarkValid(BM2));
+    next;next;next;
+    BM3:=GetBookmark; // id=6
+    CheckTrue(BookmarkValid(BM3));
+    next;next;next;next;next;next;next;next;
+    BM4:=GetBookmark; // id=14
+    CheckTrue(BookmarkValid(BM4));
+    next;
+    BM5:=GetBookmark; // id=14, EOF
+    CheckTrue(BookmarkValid(BM5));
+
+    CheckTrue(BookmarkValid(BM4));
+    CheckTrue(BookmarkValid(BM3));
+    CheckTrue(BookmarkValid(BM2));
+    CheckTrue(BookmarkValid(BM1));
+    GotoBookmark(BM2);
+    CheckTrue(BookmarkValid(BM5));
+    CheckTrue(BookmarkValid(BM4));
+    CheckTrue(BookmarkValid(BM3));
+    CheckTrue(BookmarkValid(BM2));
+    CheckTrue(BookmarkValid(BM1));
+    end;
+end;
+
+procedure TTestCursorDBBasics.TestLocate;
+begin
+  with DBConnector.GetNDataset(true,13) do
+    begin
+    open;
+    CheckTrue(Locate('id',vararrayof([5]),[]));
+    CheckEquals(5,FieldByName('id').AsInteger);
+    CheckFalse(Locate('id',vararrayof([15]),[]));
+    CheckTrue(Locate('id',vararrayof([12]),[]));
+    CheckEquals(12,FieldByName('id').AsInteger);
+    close;
+    open;
+    CheckTrue(Locate('id',vararrayof([12]),[]));
+    CheckEquals(12,FieldByName('id').AsInteger);
+    CheckTrue(Locate('id;name',vararrayof([4,'TestName4']),[]));
+    CheckEquals(4,FieldByName('id').AsInteger);
+
+    CheckFalse(Locate('id;name',vararrayof([4,'TestName5']),[]));
+
+    end;
+end;
+
+procedure TTestCursorDBBasics.TestLocateCaseIns;
+begin
+  with DBConnector.GetNDataset(true,13) do
+    begin
+    open;
+    CheckFalse(Locate('name',vararrayof(['TEstName5']),[]));
+    CheckTrue(Locate('name',vararrayof(['TEstName5']),[loCaseInsensitive]));
+    CheckEquals(5,FieldByName('id').AsInteger);
+
+    CheckFalse(Locate('name',vararrayof(['TestN']),[]));
+    CheckTrue(Locate('name',vararrayof(['TestN']),[loPartialKey]));
+
+    CheckFalse(Locate('name',vararrayof(['TestNA']),[loPartialKey]));
+    CheckTrue(Locate('name',vararrayof(['TestNA']),[loPartialKey, loCaseInsensitive]));
+    close;
+    end;
+end;
+
+procedure TTestDBBasics.TestSetFieldValues;
+var PassException : boolean;
+begin
+  with DBConnector.GetNDataset(true,11) do
+    begin
+    open;
+    first;
+    edit;
+    FieldValues['id']:=5;
+    post;
+    CheckEquals('TestName1',FieldByName('name').AsString);
+    CheckEquals(5,FieldByName('id').AsInteger);
+    edit;
+    FieldValues['name']:='FieldValuesTestName';
+    post;
+    CheckEquals('FieldValuesTestName',FieldByName('name').AsString);
+    CheckEquals(5,FieldByName('id').AsInteger);
+    edit;
+    FieldValues['id;name']:= VarArrayOf([243,'ValuesTestName']);
+    post;
+    CheckEquals('ValuesTestName',FieldByName('name').AsString);
+    CheckEquals(243,FieldByName('id').AsInteger);
+    
+    PassException:=false;
+    try
+      edit;
+      FieldValues['id;name;fake']:= VarArrayOf([243,'ValuesTestName',4]);
+    except
+      on E: EDatabaseError do PassException := True;
+    end;
+    post;
+    CheckTrue(PassException);
+    end;
+end;
+
+procedure TTestDBBasics.TestGetFieldValues;
+var AVar          : Variant;
+    PassException : boolean;
+begin
+  with DBConnector.GetNDataset(true,14) do
+    begin
+    open;
+    AVar:=FieldValues['id'];
+    CheckEquals(AVar,1);
+
+    AVar:=FieldValues['name'];
+    CheckEquals(AVar,'TestName1');
+
+    AVar:=FieldValues['id;name'];
+    CheckEquals(AVar[0],1);
+    CheckEquals(AVar[1],'TestName1');
+
+    AVar:=FieldValues['name;id;'];
+    CheckEquals(AVar[1],1);
+    CheckEquals(AVar[0],'TestName1');
+    
+    PassException:=false;
+    try
+      AVar:=FieldValues['name;id;fake'];
+    except
+      on E: EDatabaseError do PassException := True;
+    end;
+    CheckTrue(PassException);
+
+    end;
+end;
+
+procedure TTestCursorDBBasics.TestFirst;
+var i : integer;
+begin
+  with DBConnector.GetNDataset(true,14) do
+    begin
+    open;
+    CheckEquals(1,FieldByName('ID').AsInteger);
+    First;
+    CheckEquals(1,FieldByName('ID').AsInteger);
+    next;
+    CheckEquals(2,FieldByName('ID').AsInteger);
+    First;
+    CheckEquals(1,FieldByName('ID').AsInteger);
+    for i := 0 to 12 do
+      next;
+    CheckEquals(14,FieldByName('ID').AsInteger);
+    First;
+    CheckEquals(1,FieldByName('ID').AsInteger);
+    close;
+    end;
+end;
+
+procedure TTestCursorDBBasics.TestDelete1;
+begin
+  FTestDelete1(false);
+end;
+
+procedure TTestCursorDBBasics.TestDelete2;
+begin
+  FTestDelete2(false);
+end;
+
+procedure TTestCursorDBBasics.TestCancelUpdDelete1;
+begin
+  FTestDelete1(true);
+end;
+
+procedure TTestCursorDBBasics.TestCancelUpdDelete2;
+begin
+  FTestDelete2(true);
+end;
+
+procedure TTestCursorDBBasics.FTestDelete1(TestCancelUpdate : boolean);
+// Test the deletion of records, including the first and the last one
+var i  : integer;
+    ds : TDataset;
+begin
+  ds := DBConnector.GetNDataset(true,17);
+  with ds do
+    begin
+    Open;
+
+    for i := 0 to 16 do if i mod 4=0 then
+      delete
+    else
+       next;
+
+    First;
+    for i := 0 to 16 do
+      begin
+      if i mod 4<>0 then
+        begin
+        CheckEquals(i+1,FieldByName('ID').AsInteger);
+        CheckEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
+        next;
+        end;
+      end;
+    end;
+
+{$ifdef fpc}
+  if TestCancelUpdate then
+    begin
+    if not (ds is TCustomBufDataset) then
+      Ignore('This test only applies to TCustomBufDataset and descendents.');
+    with TCustomBufDataset(ds) do
+      begin
+      CancelUpdates;
+
+      First;
+      for i := 0 to 16 do
+        begin
+        CheckEquals(i+1,FieldByName('ID').AsInteger);
+        CheckEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
+        next;
+        end;
+
+      close;
+      end;
+    end;
+{$endif}
+end;
+
+procedure TTestCursorDBBasics.FTestDelete2(TestCancelUpdate : boolean);
+// Test the deletion of edited and appended records
+var i : integer;
+    ds : TDataset;
+begin
+  ds := DBConnector.GetNDataset(true,17);
+  with ds do
+    begin
+    Open;
+
+    for i := 0 to 16 do
+      begin
+      if i mod 4=0 then
+        begin
+        edit;
+        fieldbyname('name').AsString:='this record will be gone soon';
+        post;
+        end;
+      next;
+      end;
+
+    for i := 17 to 20 do
+      begin
+      append;
+      fieldbyname('id').AsInteger:=i+1;
+      fieldbyname('name').AsString:='TestName'+inttostr(i+1);
+      post;
+      end;
+
+    first;
+    for i := 0 to 20 do if i mod 4=0 then
+      delete
+    else
+       next;
+
+    First;
+    i := 0;
+    for i := 0 to 20 do
+      begin
+      if i mod 4<>0 then
+        begin
+        CheckEquals(i+1,FieldByName('ID').AsInteger);
+        CheckEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
+        next;
+        end;
+      end;
+    end;
+
+{$ifdef fpc}
+  if TestCancelUpdate then
+    begin
+    if not (ds is TCustomBufDataset) then
+      Ignore('This test only applies to TCustomBufDataset and descendents.');
+    with TCustomBufDataset(ds) do
+      begin
+      CancelUpdates;
+
+      First;
+      for i := 0 to 16 do
+        begin
+        CheckEquals(i+1,FieldByName('ID').AsInteger);
+        CheckEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
+        next;
+        end;
+
+      close;
+      end;
+    end;
+{$endif fpc}
+end;
+
+procedure TTestCursorDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
+
+var a : TDataSetState;
+begin
+  Accept := odd(Dataset.FieldByName('ID').AsInteger);
+end;
+
+procedure TTestCursorDBBasics.TestOnFilter;
+var tel : byte;
+begin
+  with DBConnector.GetNDataset(15) do
+    begin
+    OnFilterRecord := TestOnFilterProc;
+    Filtered := True;
+    Open;
+    for tel := 1 to 8 do
+      begin
+      CheckTrue(odd(FieldByName('ID').asinteger));
+      next;
+      end;
+    CheckTrue(EOF);
+    end;
+end;
+
+procedure TTestCursorDBBasics.TestIntFilter;
+var tel : byte;
+begin
+  with DBConnector.GetNDataset(15) do
+    begin
+    Filtered := True;
+    Filter := '(id>4) and (id<9)';
+    Open;
+    for tel := 5 to 8 do
+      begin
+      CheckEquals(tel,FieldByName('ID').asinteger);
+      next;
+      end;
+    CheckTrue(EOF);
+    Close;
+    end;
+end;
+
+procedure TTestDBBasics.TestRecordcountAfterReopen;
+var
+  datalink1: tdatalink;
+  datasource1: tdatasource;
+  query1: TDataSet;
+
+begin
+  query1:= DBConnector.GetNDataset(11);
+  datalink1:= TDataLink.create;
+  datasource1:= tdatasource.create(nil);
+  try
+    datalink1.datasource:= datasource1;
+    datasource1.dataset:= query1;
+
+    query1.active := true;
+    query1.active := False;
+    CheckEquals(0, THackDataLink(datalink1).RecordCount);
+    query1.active := true;
+    CheckTrue(THackDataLink(datalink1).RecordCount>0);
+    query1.active := false;
+  finally
+    datalink1.free;
+    datasource1.free;
+  end;
+end;
+
+procedure TTestCursorDBBasics.TestStringFilter;
+var tel : byte;
+begin
+  with DBConnector.GetNDataset(15) do
+    begin
+    Open;
+    //FilterOptions := [foNoPartialCompare];
+    //FilterOptions := [];
+    Filter := '(name=''*Name3'')';
+    Filtered := True;
+    CheckFalse(EOF);
+    CheckEquals(3,FieldByName('ID').asinteger);
+    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    next;
+    CheckTrue(EOF);
+    Close;
+    end;
+end;
+
+{$ifdef fpc}
+procedure TTestBufDatasetDBBasics.TestIsEmpty;
+begin
+  with tCustombufdataset(DBConnector.GetNDataset(True,1)) do
+    begin
+    open;
+    delete;
+    Resync([]);
+    applyupdates;
+    CheckTrue(IsEmpty);
+
+    end;
+end;
+
+procedure TTestBufDatasetDBBasics.TestClosedIndexFieldNames;
+var s : string;
+    bufds: TCustomBufDataset;
+begin
+  bufds := DBConnector.GetNDataset(5) as TCustomBufDataset;
+  s := bufds.IndexFieldNames;
+  s := bufds.IndexName;
+  bufds.CompareBookmarks(nil,nil);
 end;
 
 procedure TTestBufDatasetDBBasics.TestSafeAsXML;
@@ -694,511 +1224,141 @@ begin
   ds.first;
   for i := 1 to 10 do
     begin
-    AssertEquals(i,ds.fieldbyname('ID').asinteger);
-    AssertEquals('TestName' + inttostr(i),ds.fieldbyname('NAME').AsString);
+    CheckEquals(i,ds.fieldbyname('ID').asinteger);
+    CheckEquals('TestName' + inttostr(i),ds.fieldbyname('NAME').AsString);
     ds.next;
     end;
-  AssertTrue(ds.EOF);
+  CheckTrue(ds.EOF);
   DS.Close;
 end;
 
-procedure TTestDBBasics.TestAppendInsertRecord;
+procedure TTestBufDatasetDBBasics.TestBufDatasetCancelUpd;
+var i : byte;
 begin
-  with DBConnector.GetNDataset(true,6) do
+  with DBConnector.GetNDataset(5) as TCustomBufDataset do
     begin
     open;
-    // InsertRecord should insert a record, set the values, post the record and
-    // make the new record active.
-    InsertRecord([152,'TestInsRec']);
-    AssertEquals(152,fields[0].AsInteger);
-    AssertEquals('TestInsRec',fields[1].AsString);
-    AssertTrue(state=dsBrowse);
-
-    // AppendRecord should append a record, further the same as InsertRecord
-    AppendRecord([151,'TestInsRec']);
-    AssertEquals(151,fields[0].AsInteger);
-    AssertEquals('TestInsRec',fields[1].AsString);
-    AssertTrue(state=dsBrowse);
     next;
-    AssertTrue(EOF);
-    end;
-end;
-
-procedure TTestDBBasics.TestBookmarks;
-var BM1,BM2,BM3,BM4,BM5 : TBookmark;
-begin
-  with DBConnector.GetNDataset(true,14) do
-    begin
-    AssertNull(GetBookmark);
-    open;
-    BM1:=GetBookmark; // id=1, BOF
-    next;next;
-    BM2:=GetBookmark; // id=3
-    next;next;next;
-    BM3:=GetBookmark; // id=6
-    next;next;next;next;next;next;next;next;
-    BM4:=GetBookmark; // id=14
     next;
-    BM5:=GetBookmark; // id=14, EOF
-    
-    GotoBookmark(BM2);
-    AssertEquals(3,FieldByName('id').AsInteger);
 
-    GotoBookmark(BM1);
-    AssertEquals(1,FieldByName('id').AsInteger);
-
-    GotoBookmark(BM3);
-    AssertEquals(6,FieldByName('id').AsInteger);
-
-    GotoBookmark(BM4);
-    AssertEquals(14,FieldByName('id').AsInteger);
-
-    GotoBookmark(BM3);
-    AssertEquals(6,FieldByName('id').AsInteger);
-
-    GotoBookmark(BM5);
-    AssertEquals(14,FieldByName('id').AsInteger);
-
-    GotoBookmark(BM1);
-    AssertEquals(1,FieldByName('id').AsInteger);
-
+    edit;
+    FieldByName('name').AsString := 'changed';
+    post;
     next;
     delete;
 
-    GotoBookmark(BM2);
-    AssertEquals(3,FieldByName('id').AsInteger);
-    
-    delete;delete;
+    CancelUpdates;
 
-    GotoBookmark(BM3);
-    AssertEquals(6,FieldByName('id').AsInteger);
+    First;
 
-    GotoBookmark(BM1);
-    AssertEquals(1,FieldByName('id').AsInteger);
-    insert;
-    fieldbyname('id').AsInteger:=20;
-    insert;
-    fieldbyname('id').AsInteger:=21;
-    insert;
-    fieldbyname('id').AsInteger:=22;
-    insert;
-    fieldbyname('id').AsInteger:=23;
-    post;
-    
-    GotoBookmark(BM3);
-    AssertEquals(6,FieldByName('id').AsInteger);
-
-    GotoBookmark(BM1);
-    AssertEquals(1,FieldByName('id').AsInteger);
-
-    GotoBookmark(BM5);
-    AssertEquals(14,FieldByName('id').AsInteger);
+    for i := 1 to 5 do
+      begin
+      CheckEquals(i,fields[0].AsInteger);
+      CheckEquals('TestName'+inttostr(i),fields[1].AsString);
+      Next;
+      end;
     end;
 end;
 
-procedure TTestDBBasics.TestBookmarkValid;
-var BM1,BM2,BM3,BM4,BM5 : TBookmark;
+procedure TTestBufDatasetDBBasics.TestBufDatasetCancelUpd1;
+var i : byte;
 begin
-  with DBConnector.GetNDataset(true,14) do
+  with DBConnector.GetNDataset(5) as TCustomBufDataset do
     begin
-    BM1 := Nil;
-    AssertFalse(BookmarkValid(BM1));
     open;
-    BM1:=GetBookmark; // id=1, BOF
-    AssertTrue(BookmarkValid(BM1));
-    next;next;
-    BM2:=GetBookmark; // id=3
-    AssertTrue(BookmarkValid(BM2));
-    next;next;next;
-    BM3:=GetBookmark; // id=6
-    AssertTrue(BookmarkValid(BM3));
-    next;next;next;next;next;next;next;next;
-    BM4:=GetBookmark; // id=14
-    AssertTrue(BookmarkValid(BM4));
     next;
-    BM5:=GetBookmark; // id=14, EOF
-    AssertTrue(BookmarkValid(BM5));
-
-    AssertTrue(BookmarkValid(BM4));
-    AssertTrue(BookmarkValid(BM3));
-    AssertTrue(BookmarkValid(BM2));
-    AssertTrue(BookmarkValid(BM1));
-    GotoBookmark(BM2);
-    AssertTrue(BookmarkValid(BM5));
-    AssertTrue(BookmarkValid(BM4));
-    AssertTrue(BookmarkValid(BM3));
-    AssertTrue(BookmarkValid(BM2));
-    AssertTrue(BookmarkValid(BM1));
-    end;
-end;
-
-procedure TTestDBBasics.TestLocate;
-begin
-  with DBConnector.GetNDataset(true,13) do
-    begin
-    open;
-    asserttrue(Locate('id',vararrayof([5]),[]));
-    AssertEquals(5,FieldByName('id').AsInteger);
-    AssertFalse(Locate('id',vararrayof([15]),[]));
-    asserttrue(Locate('id',vararrayof([12]),[]));
-    AssertEquals(12,FieldByName('id').AsInteger);
-    close;
-    open;
-    asserttrue(Locate('id',vararrayof([12]),[]));
-    AssertEquals(12,FieldByName('id').AsInteger);
-    asserttrue(Locate('id;name',vararrayof([4,'TestName4']),[]));
-    AssertEquals(4,FieldByName('id').AsInteger);
-
-    assertFalse(Locate('id;name',vararrayof([4,'TestName5']),[]));
-
-    end;
-end;
-
-procedure TTestDBBasics.TestLocateCaseIns;
-begin
-  with DBConnector.GetNDataset(true,13) do
-    begin
-    open;
-    assertfalse(Locate('name',vararrayof(['TEstName5']),[]));
-    asserttrue(Locate('name',vararrayof(['TEstName5']),[loCaseInsensitive]));
-    AssertEquals(5,FieldByName('id').AsInteger);
-
-    assertfalse(Locate('name',vararrayof(['TestN']),[]));
-    asserttrue(Locate('name',vararrayof(['TestN']),[loPartialKey]));
-
-    assertfalse(Locate('name',vararrayof(['TestNA']),[loPartialKey]));
-    asserttrue(Locate('name',vararrayof(['TestNA']),[loPartialKey, loCaseInsensitive]));
-    close;
-    end;
-end;
-
-procedure TTestDBBasics.TestSetFieldValues;
-var PassException : boolean;
-begin
-  with DBConnector.GetNDataset(true,11) do
-    begin
-    open;
-    first;
-    edit;
-    FieldValues['id']:=5;
-    post;
-    AssertEquals('TestName1',FieldByName('name').AsString);
-    AssertEquals(5,FieldByName('id').AsInteger);
-    edit;
-    FieldValues['name']:='FieldValuesTestName';
-    post;
-    AssertEquals('FieldValuesTestName',FieldByName('name').AsString);
-    AssertEquals(5,FieldByName('id').AsInteger);
-    edit;
-    FieldValues['id;name']:= VarArrayOf([243,'ValuesTestName']);
-    post;
-    AssertEquals('ValuesTestName',FieldByName('name').AsString);
-    AssertEquals(243,FieldByName('id').AsInteger);
-    
-    PassException:=false;
-    try
-      edit;
-      FieldValues['id;name;fake']:= VarArrayOf([243,'ValuesTestName',4]);
-    except
-      on E: EDatabaseError do PassException := True;
-    end;
-    post;
-    AssertTrue(PassException);
-    end;
-end;
-
-procedure TTestDBBasics.TestGetFieldValues;
-var AVar          : Variant;
-    PassException : boolean;
-begin
-  with DBConnector.GetNDataset(true,14) do
-    begin
-    open;
-    AVar:=FieldValues['id'];
-    AssertEquals(AVar,1);
-
-    AVar:=FieldValues['name'];
-    AssertEquals(AVar,'TestName1');
-
-    AVar:=FieldValues['id;name'];
-    AssertEquals(AVar[0],1);
-    AssertEquals(AVar[1],'TestName1');
-
-    AVar:=FieldValues['name;id;'];
-    AssertEquals(AVar[1],1);
-    AssertEquals(AVar[0],'TestName1');
-    
-    PassException:=false;
-    try
-      AVar:=FieldValues['name;id;fake'];
-    except
-      on E: EDatabaseError do PassException := True;
-    end;
-    AssertTrue(PassException);
-
-    end;
-end;
-
-procedure TTestDBBasics.TestFirst;
-var i : integer;
-begin
-  with DBConnector.GetNDataset(true,14) do
-    begin
-    open;
-    AssertEquals(1,FieldByName('ID').AsInteger);
-    First;
-    AssertEquals(1,FieldByName('ID').AsInteger);
     next;
-    AssertEquals(2,FieldByName('ID').AsInteger);
-    First;
-    AssertEquals(1,FieldByName('ID').AsInteger);
-    for i := 0 to 12 do
-      next;
-    AssertEquals(14,FieldByName('ID').AsInteger);
-    First;
-    AssertEquals(1,FieldByName('ID').AsInteger);
-    close;
+
+    delete;
+    insert;
+    FieldByName('id').AsInteger := 100;
+    post;
+
+    CancelUpdates;
+
+    last;
+
+    for i := 5 downto 1 do
+      begin
+      CheckEquals(i,fields[0].AsInteger);
+      CheckEquals('TestName'+inttostr(i),fields[1].AsString);
+      Prior;
+      end;
     end;
 end;
 
-procedure TTestDBBasics.TestDelete1;
+procedure TTestBufDatasetDBBasics.TestMultipleDeleteUpdateBuffer;
+var ds    : TDataset;
 begin
-  FTestDelete1(false);
+  ds := DBConnector.GetNDataset(true,5);
+
+  ds.open;
+  with TCustomBufDataset(ds) do
+    begin
+    CheckEquals(0,ChangeCount);
+    edit;
+    fieldbyname('id').asinteger := 500;
+    fieldbyname('name').AsString := 'JoJo';
+    post;
+    CheckEquals(1,ChangeCount);
+    next; next;
+    Delete;
+    CheckEquals(2,ChangeCount);
+    Delete;
+    CheckEquals(3,ChangeCount);
+    CancelUpdates;
+    end;
+  ds.close;
 end;
 
-procedure TTestDBBasics.TestDelete2;
+procedure TTestBufDatasetDBBasics.TestDoubleDelete;
+var ds    : TCustomBufDataset;
 begin
-  FTestDelete2(false);
-end;
+  ds := TCustomBufDataset(DBConnector.GetNDataset(true,5));
 
-procedure TTestDBBasics.TestCancelUpdDelete1;
-begin
-  FTestDelete1(true);
-end;
-
-procedure TTestDBBasics.TestCancelUpdDelete2;
-begin
-  FTestDelete2(true);
-end;
-
-procedure TTestDBBasics.FTestDelete1(TestCancelUpdate : boolean);
-// Test the deletion of records, including the first and the last one
-var i  : integer;
-    ds : TDataset;
-begin
-  ds := DBConnector.GetNDataset(true,17);
   with ds do
     begin
-    Open;
-
-    for i := 0 to 16 do if i mod 4=0 then
-      delete
-    else
-       next;
-
-    First;
-    for i := 0 to 16 do
-      begin
-      if i mod 4<>0 then
-        begin
-        AssertEquals(i+1,FieldByName('ID').AsInteger);
-        AssertEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
-        next;
-        end;
-      end;
-    end;
-    
-  if TestCancelUpdate then
-    begin
-    if not (ds is TCustomBufDataset) then
-      Ignore('This test only applies to TCustomBufDataset and descendents.');
-    with TCustomBufDataset(ds) do
-      begin
-      CancelUpdates;
-
-      First;
-      for i := 0 to 16 do
-        begin
-        AssertEquals(i+1,FieldByName('ID').AsInteger);
-        AssertEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
-        next;
-        end;
-
-      close;
-      end;
-    end;
-end;
-
-procedure TTestDBBasics.FTestDelete2(TestCancelUpdate : boolean);
-// Test the deletion of edited and appended records
-var i : integer;
-    ds : TDataset;
-begin
-  ds := DBConnector.GetNDataset(true,17);
-  with ds do
-    begin
-    Open;
-
-    for i := 0 to 16 do
-      begin
-      if i mod 4=0 then
-        begin
-        edit;
-        fieldbyname('name').AsString:='this record will be gone soon';
-        post;
-        end;
-      next;
-      end;
-
-    for i := 17 to 20 do
-      begin
-      append;
-      fieldbyname('id').AsInteger:=i+1;
-      fieldbyname('name').AsString:='TestName'+inttostr(i+1);
-      post;
-      end;
+    open;
+    next; next;
+    Delete;
+    Delete;
 
     first;
-    for i := 0 to 20 do if i mod 4=0 then
-      delete
-    else
-       next;
+    CheckEquals(1,fieldbyname('id').AsInteger);
+    next;
+    CheckEquals(2,fieldbyname('id').AsInteger);
+    next;
+    CheckEquals(5,fieldbyname('id').AsInteger);
 
-    First;
-    i := 0;
-    for i := 0 to 20 do
-      begin
-      if i mod 4<>0 then
-        begin
-        AssertEquals(i+1,FieldByName('ID').AsInteger);
-        AssertEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
-        next;
-        end;
-      end;
-    end;
+    CancelUpdates;
 
-  if TestCancelUpdate then
-    begin
-    if not (ds is TCustomBufDataset) then
-      Ignore('This test only applies to TCustomBufDataset and descendents.');
-    with TCustomBufDataset(ds) do
-      begin
-      CancelUpdates;
-
-      First;
-      for i := 0 to 16 do
-        begin
-        AssertEquals(i+1,FieldByName('ID').AsInteger);
-        AssertEquals('TestName'+inttostr(i+1),FieldByName('NAME').AsString);
-        next;
-        end;
-
-      close;
-      end;
+    first;
+    CheckEquals(1,fieldbyname('id').AsInteger);
+    next;
+    CheckEquals(2,fieldbyname('id').AsInteger);
+    next;
+    CheckEquals(3,fieldbyname('id').AsInteger);
+    next;
+    CheckEquals(4,fieldbyname('id').AsInteger);
+    next;
+    CheckEquals(5,fieldbyname('id').AsInteger);
     end;
 end;
 
 procedure TTestBufDatasetDBBasics.FTestXMLDatasetDefinition(ADataset: TDataset);
 var i : integer;
 begin
-  AssertEquals(2,ADataset.FieldDefs.Count);
-  AssertEquals(2,ADataset.Fields.Count);
-  AssertTrue(SameText('ID',ADataset.Fields[0].FieldName));
-  AssertTrue(SameText('NAME',ADataset.Fields[1].FieldName));
-  AssertTrue('Incorrect fieldtype',ADataset.fields[1].DataType=ftString);
+  CheckEquals(2,ADataset.FieldDefs.Count);
+  CheckEquals(2,ADataset.Fields.Count);
+  CheckTrue(SameText('ID',ADataset.Fields[0].FieldName));
+  CheckTrue(SameText('NAME',ADataset.Fields[1].FieldName));
+  CheckTrue(ADataset.fields[1].DataType=ftString,'Incorrect fieldtype');
   i := 1;
   while not ADataset.EOF do
     begin
-    AssertEquals('TestName'+inttostr(i),ADataset.FieldByName('name').AsString);
+    CheckEquals('TestName'+inttostr(i),ADataset.FieldByName('name').AsString);
     ADataset.Next;
     inc(i);
-    end;
-end;
-
-procedure TTestDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
-
-var a : TDataSetState;
-begin
-  Accept := odd(Dataset.FieldByName('ID').AsInteger);
-end;
-
-procedure TTestDBBasics.TestOnFilter;
-var tel : byte;
-begin
-  with DBConnector.GetNDataset(15) do
-    begin
-    OnFilterRecord := TestOnFilterProc;
-    Filtered := True;
-    Open;
-    for tel := 1 to 8 do
-      begin
-      AssertTrue(odd(FieldByName('ID').asinteger));
-      next;
-      end;
-    AssertTrue(EOF);
-    end;
-end;
-
-procedure TTestDBBasics.TestIntFilter;
-var tel : byte;
-begin
-  with DBConnector.GetNDataset(15) do
-    begin
-    Filtered := True;
-    Filter := '(id>4) and (id<9)';
-    Open;
-    for tel := 5 to 8 do
-      begin
-      AssertEquals(tel,FieldByName('ID').asinteger);
-      next;
-      end;
-    AssertTrue(EOF);
-    Close;
-    end;
-end;
-
-procedure TTestDBBasics.TestRecordcountAfterReopen;
-var
-  datalink1: tdatalink;
-  datasource1: tdatasource;
-  query1: TDataSet;
-
-begin
-  query1:= DBConnector.GetNDataset(11);
-  datalink1:= TDataLink.create;
-  datasource1:= tdatasource.create(nil);
-  try
-    datalink1.datasource:= datasource1;
-    datasource1.dataset:= query1;
-
-    query1.active := true;
-    query1.active := False;
-    AssertEquals(0, THackDataLink(datalink1).RecordCount);
-    query1.active := true;
-    AssertTrue(THackDataLink(datalink1).RecordCount>0);
-    query1.active := false;
-  finally
-    datalink1.free;
-    datasource1.free;
-  end;
-end;
-
-procedure TTestDBBasics.TestStringFilter;
-var tel : byte;
-begin
-  with DBConnector.GetNDataset(15) do
-    begin
-    Open;
-    //FilterOptions := [foNoPartialCompare];
-    //FilterOptions := [];
-    Filter := '(name=''*Name3'')';
-    Filtered := True;
-    AssertFalse(EOF);
-    AssertEquals(3,FieldByName('ID').asinteger);
-    AssertEquals('TestName3',FieldByName('NAME').asstring);
-    next;
-    AssertTrue(EOF);
-    Close;
     end;
 end;
 
@@ -1242,9 +1402,9 @@ begin
     while not eof do
       begin
       if AFieldType=ftString then
-        AssertTrue(AnsiCompareStr(VarToStr(LastValue),VarToStr(FieldByName('F'+FieldTypeNames[AfieldType]).AsString))<=0)
+        CheckTrue(AnsiCompareStr(VarToStr(LastValue),VarToStr(FieldByName('F'+FieldTypeNames[AfieldType]).AsString))<=0)
       else
-        AssertTrue(LastValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant);
+        CheckTrue(LastValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant);
       LastValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant;
       Next;
       end;
@@ -1252,9 +1412,9 @@ begin
     while not bof do
       begin
       if AFieldType=ftString then
-        AssertTrue(AnsiCompareStr(VarToStr(LastValue),VarToStr(FieldByName('F'+FieldTypeNames[AfieldType]).AsString))>=0)
+        CheckTrue(AnsiCompareStr(VarToStr(LastValue),VarToStr(FieldByName('F'+FieldTypeNames[AfieldType]).AsString))>=0)
       else
-        AssertTrue(LastValue>=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant);
+        CheckTrue(LastValue>=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant);
       LastValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsVariant;
       Prior;
       end;
@@ -1331,7 +1491,7 @@ begin
 
     while not eof do
       begin
-      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       inc(i);
       Next;
       end;
@@ -1339,7 +1499,7 @@ begin
     while not bof do
       begin
       dec(i);
-      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       Prior;
       end;
     end;
@@ -1375,7 +1535,7 @@ begin
 
     while not eof do
       begin
-      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       dec(i);
       Next;
       end;
@@ -1383,7 +1543,7 @@ begin
     while not bof do
       begin
       inc(i);
-      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       Prior;
       end;
     end;
@@ -1418,7 +1578,7 @@ begin
 
     while not eof do
       begin
-      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       inc(i);
       Next;
       end;
@@ -1426,7 +1586,7 @@ begin
     while not bof do
       begin
       dec(i);
-      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       Prior;
       end;
     end;
@@ -1454,7 +1614,7 @@ begin
 
     while not eof do
       begin
-      AssertEquals(testStringValues[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(testStringValues[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       inc(i);
       Next;
       end;
@@ -1495,7 +1655,7 @@ begin
     LastValue:=FieldByName('name').AsString;
     while not eof do
       begin
-      AssertTrue(AnsiCompareStr(LastValue,FieldByName('name').AsString)<=0);
+      CheckTrue(AnsiCompareStr(LastValue,FieldByName('name').AsString)<=0);
       Next;
       end;
     end;
@@ -1529,7 +1689,7 @@ begin
 
     while not eof do
       begin
-      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       inc(i);
       Next;
       end;
@@ -1537,11 +1697,11 @@ begin
     while not bof do
       begin
       dec(i);
-      AssertEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(flist[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       Prior;
       end;
 
-    AssertEquals('F'+FieldTypeNames[AfieldType],IndexFieldNames);
+    CheckEquals('F'+FieldTypeNames[AfieldType],IndexFieldNames);
 
     IndexFieldNames:='ID';
     first;
@@ -1549,12 +1709,12 @@ begin
 
     while not eof do
       begin
-      AssertEquals(testStringValues[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(testStringValues[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       inc(i);
       Next;
       end;
 
-    AssertEquals('ID',IndexFieldNames);
+    CheckEquals('ID',IndexFieldNames);
 
     IndexFieldNames:='';
     first;
@@ -1562,12 +1722,12 @@ begin
 
     while not eof do
       begin
-      AssertEquals(testStringValues[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+      CheckEquals(testStringValues[i],FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
       inc(i);
       Next;
       end;
 
-    AssertEquals('',IndexFieldNames);
+    CheckEquals('',IndexFieldNames);
 
     end;
 end;
@@ -1595,28 +1755,28 @@ begin
 
     IndexName:='testindex';
 
-    AssertEquals(OldID,FieldByName('id').AsInteger);
-    AssertEquals(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    CheckEquals(OldID,FieldByName('id').AsInteger);
+    CheckEquals(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
 
     next;
-    AssertTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    CheckTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
     prior;
     prior;
-    AssertTrue(OldStringValue>=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    CheckTrue(OldStringValue>=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
 
     OldID:=FieldByName('id').AsInteger;
     OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
 
     IndexName:='';
 
-    AssertEquals(OldID,FieldByName('id').AsInteger);
-    AssertEquals(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    CheckEquals(OldID,FieldByName('id').AsInteger);
+    CheckEquals(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
     
     next;
-    AssertEquals(OldID+1,FieldByName('ID').AsInteger);
+    CheckEquals(OldID+1,FieldByName('ID').AsInteger);
     prior;
     prior;
-    AssertEquals(OldID-1,FieldByName('ID').AsInteger);
+    CheckEquals(OldID-1,FieldByName('ID').AsInteger);
     end;
 end;
 
@@ -1638,26 +1798,26 @@ begin
     LastString:='';
     while not eof do
       begin
-      AssertTrue(AnsiCompareStr(FieldByName('F'+FieldTypeNames[ftString]).AsString,LastString)>=0);
+      CheckTrue(AnsiCompareStr(FieldByName('F'+FieldTypeNames[ftString]).AsString,LastString)>=0);
       LastString:= FieldByName('F'+FieldTypeNames[ftString]).AsString;
 
       LastInteger:=-MaxInt;
       while (FieldByName('F'+FieldTypeNames[ftString]).AsString=LastString) and not eof do
         begin
-        AssertTrue(FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger>=LastInteger);
+        CheckTrue(FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger>=LastInteger);
         LastInteger:=FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger;
         next;
         end;
       end;
     while not bof do
       begin
-      AssertTrue(AnsiCompareStr(FieldByName('F'+FieldTypeNames[ftString]).AsString,LastString)<=0);
+      CheckTrue(AnsiCompareStr(FieldByName('F'+FieldTypeNames[ftString]).AsString,LastString)<=0);
       LastString:= FieldByName('F'+FieldTypeNames[ftString]).AsString;
 
       LastInteger:=+MaxInt;
       while (FieldByName('F'+FieldTypeNames[ftString]).AsString=LastString) and not bof do
         begin
-        AssertTrue(FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger<=LastInteger);
+        CheckTrue(FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger<=LastInteger);
         LastInteger:=FieldByName('F'+FieldTypeNames[ftInteger]).AsInteger;
         prior;
         end;
@@ -1681,20 +1841,20 @@ begin
     open;
     OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
     next;
-    AssertTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
+    CheckTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
     OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
     next;
-    AssertTrue(AnsiCompareStr(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0);
+    CheckTrue(AnsiCompareStr(OldStringValue,FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0);
     prior;
     
     edit;
     FieldByName('F'+FieldTypeNames[AfieldType]).AsString := 'ZZZ';
     post;
     prior;
-    AssertTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)>=0);
+    CheckTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)>=0);
     next;
     next;
-    AssertTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0);
+    CheckTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0);
     close;
     end;
 end;
@@ -1715,16 +1875,16 @@ begin
     PrevValue:='';
     while not eof do
       begin
-      AssertTrue(AnsiCompareStr(FieldByName('F'+FieldTypeNames[AfieldType]).AsString,PrevValue)>=0);
+      CheckTrue(AnsiCompareStr(FieldByName('F'+FieldTypeNames[AfieldType]).AsString,PrevValue)>=0);
       PrevValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
       Next;
       end;
 
-    AssertEquals('F'+FieldTypeNames[AfieldType],IndexFieldNames);
+    CheckEquals('F'+FieldTypeNames[AfieldType],IndexFieldNames);
 
     end;
 end;
-
+{$endif fpc}
 
 procedure TTestDBBasics.TestcalculatedField_OnCalcfields(DataSet: TDataSet);
 begin
@@ -1759,21 +1919,21 @@ begin
     AFld3.DataSet := ds;
     Afld3.FieldKind := fkCalculated;
 
-    AssertEquals(3,FieldCount);
+    CheckEquals(3,FieldCount);
     ds.OnCalcFields := TestcalculatedField_OnCalcfields;
     open;
-    AssertEquals(1,FieldByName('ID').asinteger);
-    AssertEquals(5,FieldByName('CALCFLD').asinteger);
+    CheckEquals(1,FieldByName('ID').asinteger);
+    CheckEquals(5,FieldByName('CALCFLD').asinteger);
     next;
-    AssertEquals(70000,FieldByName('CALCFLD').asinteger);
+    CheckEquals(70000,FieldByName('CALCFLD').asinteger);
     next;
-    AssertEquals(true,FieldByName('CALCFLD').isnull);
+    CheckEquals(true,FieldByName('CALCFLD').isnull);
     next;
-    AssertEquals(1234,FieldByName('CALCFLD').AsInteger);
+    CheckEquals(1234,FieldByName('CALCFLD').AsInteger);
     edit;
     FieldByName('ID').AsInteger := 10;
     post;
-    AssertEquals(true,FieldByName('CALCFLD').isnull);
+    CheckEquals(true,FieldByName('CALCFLD').isnull);
     close;
     AFld1.Free;
     AFld2.Free;
@@ -1781,16 +1941,16 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestEofAfterFirst;
+procedure TTestCursorDBBasics.TestEofAfterFirst;
 begin
   with DBConnector.GetNDataset(0) do
     begin
     open;
-    AssertTrue(eof);
-    AssertTrue(BOF);
+    CheckTrue(eof);
+    CheckTrue(BOF);
     first;
-    AssertTrue(eof);
-    AssertTrue(BOF);
+    CheckTrue(eof);
+    CheckTrue(BOF);
     end;
 end;
 
@@ -1804,10 +1964,12 @@ begin
 
   AFld := ADS.FindField('F'+FieldTypeNames[AfieldType]);
 
+{$ifdef fpc}
   if not assigned (AFld) then
     Ignore('Fields of the type ' + FieldTypeNames[AfieldType] + ' are not supported by this type of dataset');
-  AssertTrue(Afld.DataType = AFieldType);
-  AssertEquals(ADatasize,Afld.DataSize );
+{$endif fpc}
+  CheckTrue(Afld.DataType = AFieldType);
+  CheckEquals(ADatasize,Afld.DataSize );
 end;
 
 procedure TTestDBBasics.TestSupportIntegerFields;
@@ -1821,7 +1983,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testIntValues[i],Fld.AsInteger);
+    CheckEquals(testIntValues[i],Fld.AsInteger);
     ds.Next;
     end;
   ds.close;
@@ -1838,7 +2000,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testSmallIntValues[i],Fld.AsInteger);
+    CheckEquals(testSmallIntValues[i],Fld.AsInteger);
     ds.Next;
     end;
   ds.close;
@@ -1856,7 +2018,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testStringValues[i],Fld.AsString);
+    CheckEquals(testStringValues[i],Fld.AsString);
     ds.Next;
     end;
   ds.close;
@@ -1873,7 +2035,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testBooleanValues[i],Fld.AsBoolean);
+    CheckEquals(testBooleanValues[i],Fld.AsBoolean);
     ds.Next;
     end;
   ds.close;
@@ -1890,7 +2052,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testFloatValues[i],Fld.AsFloat);
+    CheckEquals(testFloatValues[i],Fld.AsFloat);
     ds.Next;
     end;
   ds.close;
@@ -1907,7 +2069,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testLargeIntValues[i],Fld.AsLargeInt);
+    CheckEquals(testLargeIntValues[i],Fld.AsLargeInt);
     ds.Next;
     end;
   ds.close;
@@ -1924,7 +2086,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testDateValues[i], FormatDateTime('yyyy/mm/dd', Fld.AsDateTime, DBConnector.FormatSettings));
+    CheckEquals(testDateValues[i], FormatDateTime('yyyy/mm/dd', Fld.AsDateTime, DBConnector.FormatSettings));
     ds.Next;
     end;
   ds.close;
@@ -1939,7 +2101,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testTimeValues[i],DateTimeToTimeString(fld.AsDateTime));
+    CheckEquals(testTimeValues[i],DateTimeToTimeString(fld.AsDateTime));
     ds.Next;
     end;
   ds.close;
@@ -1956,8 +2118,8 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testCurrencyValues[i],Fld.AsCurrency);
-    AssertEquals(testCurrencyValues[i],Fld.AsFloat);
+    CheckEquals(testCurrencyValues[i],Fld.AsCurrency);
+    CheckEquals(testCurrencyValues[i],Fld.AsFloat);
     ds.Next;
     end;
   ds.close;
@@ -1974,9 +2136,9 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(CurrToStr(testCurrencyValues[i]),Fld.AsString);
-    AssertEquals(testCurrencyValues[i],Fld.AsCurrency);
-    AssertEquals(testCurrencyValues[i],Fld.AsFloat);
+    CheckEquals(CurrToStr(testCurrencyValues[i]),Fld.AsString);
+    CheckEquals(testCurrencyValues[i],Fld.AsCurrency);
+    CheckEquals(testCurrencyValues[i],Fld.AsFloat);
     ds.Next;
     end;
   ds.close;
@@ -1992,8 +2154,8 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testFmtBCDValues[i], BCDToStr(Fld.AsBCD,DBConnector.FormatSettings));
-    AssertEquals(StrToFloat(testFmtBCDValues[i],DBConnector.FormatSettings), Fld.AsFloat);
+    CheckEquals(testFmtBCDValues[i], BCDToStr(Fld.AsBCD,DBConnector.FormatSettings));
+    CheckEquals(StrToFloat(testFmtBCDValues[i],DBConnector.FormatSettings), Fld.AsFloat);
     ds.Next;
     end;
   ds.close;
@@ -2005,13 +2167,17 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftFixedChar,10,ds,Fld);
+  TestfieldDefinition(ftFixedChar,11,ds,Fld);
   for i := 0 to testValuesCount-1 do
     begin
     if Fld.IsNull then // If the field is null, .AsString always returns an empty, non-padded string
-      AssertEquals(testStringValues[i],Fld.AsString)
+      CheckEquals(testStringValues[i],Fld.AsString)
     else
-      AssertEquals(PadRight(testStringValues[i],10),Fld.AsString);
+{$ifdef fpc}
+      CheckEquals(PadRight(testStringValues[i],10),Fld.AsString);
+{$else fpc}
+      CheckEquals(testStringValues[i],Fld.AsString);
+{$endif fpc}
     ds.Next;
     end;
   ds.close;
@@ -2040,7 +2206,7 @@ begin
     open;
     AField := fieldbyname('name');
     AParam.AssignField(AField);
-    AssertTrue(ftString=AParam.DataType);
+    CheckTrue(ftString=AParam.DataType);
     close;
     end;
   AParam.Free;
@@ -2057,41 +2223,13 @@ begin
     AField := fieldbyname('name');
     (AField as tstringfield).FixedChar := true;
     AParam.AssignField(AField);
-    AssertTrue(ftFixedChar=AParam.DataType);
+    CheckTrue(ftFixedChar=AParam.DataType);
     close;
     end;
   AParam.Free;
 end;
 
-procedure TTestBufDatasetDBBasics.TestBufDatasetCancelUpd;
-var i : byte;
-begin
-  with DBConnector.GetNDataset(5) as TCustomBufDataset do
-    begin
-    open;
-    next;
-    next;
-
-    edit;
-    FieldByName('name').AsString := 'changed';
-    post;
-    next;
-    delete;
-    
-    CancelUpdates;
-
-    First;
-
-    for i := 1 to 5 do
-      begin
-      AssertEquals(i,fields[0].AsInteger);
-      AssertEquals('TestName'+inttostr(i),fields[1].AsString);
-      Next;
-      end;
-    end;
-end;
-
-procedure TTestDBBasics.Testbug7007;
+procedure TTestCursorDBBasics.Testbug7007;
 
 var
   datalink1: tdatalink;
@@ -2110,34 +2248,34 @@ begin
     DataEvents := '';
     query1.open;
     datalink1.buffercount:= query1.recordcount;
-    AssertEquals('deUpdateState:0;',DataEvents);
-    AssertEquals(0, datalink1.ActiveRecord);
-    AssertEquals(6, datalink1.RecordCount);
-    AssertEquals(6, query1.RecordCount);
-    AssertEquals(1, query1.RecNo);
+    CheckEquals('deUpdateState:0;',DataEvents);
+    CheckEquals(0, datalink1.ActiveRecord);
+    CheckEquals(6, datalink1.RecordCount);
+    CheckEquals(6, query1.RecordCount);
+    CheckEquals(1, query1.RecNo);
 
     DataEvents := '';
     query1.append;
-    AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;DataSetChanged;',DataEvents);
-    AssertEquals(5, datalink1.ActiveRecord);
-    AssertEquals(6, datalink1.RecordCount);
-    AssertEquals(6, query1.RecordCount);
-    AssertTrue(query1.RecNo in [0,7]);
+    CheckEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;DataSetChanged;',DataEvents);
+    CheckEquals(5, datalink1.ActiveRecord);
+    CheckEquals(6, datalink1.RecordCount);
+    CheckEquals(6, query1.RecordCount);
+    CheckTrue(query1.RecNo in [0,7]);
 
     DataEvents := '';
     query1.cancel;
-    AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;DataSetChanged;',DataEvents);
-    AssertEquals(5, datalink1.ActiveRecord);
-    AssertEquals(6, datalink1.RecordCount);
-    AssertEquals(6, query1.RecordCount);
-    AssertEquals(6, query1.RecNo);
+    CheckEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;DataSetChanged;',DataEvents);
+    CheckEquals(5, datalink1.ActiveRecord);
+    CheckEquals(6, datalink1.RecordCount);
+    CheckEquals(6, query1.RecordCount);
+    CheckEquals(6, query1.RecNo);
   finally
     datalink1.free;
     datasource1.free;
   end;
 end;
 
-procedure TTestDBBasics.TestBug6893;
+procedure TTestCursorDBBasics.TestBug6893;
 var
   datalink1: tdatalink;
   datasource1: tdatasource;
@@ -2154,129 +2292,45 @@ begin
     datalink1.buffercount:= 5;
     query1.active := true;
     query1.MoveBy(20);
-
-    AssertEquals(5, THackDataLink(datalink1).Firstrecord);
-    AssertEquals(4, datalink1.ActiveRecord);
-    AssertEquals(21, query1.RecNo);
+{$ifdef fpc}
+    CheckEquals(5, THackDataLink(datalink1).Firstrecord);
+    CheckEquals(4, datalink1.ActiveRecord);
+    CheckEquals(21, query1.RecNo);
 
     query1.active := False;
 
-    AssertEquals(0, THackDataLink(datalink1).Firstrecord);
-    AssertEquals(0, datalink1.ActiveRecord);
+    CheckEquals(0, THackDataLink(datalink1).Firstrecord);
+    CheckEquals(0, datalink1.ActiveRecord);
 
     query1.active := true;
 
-    AssertEquals(0, THackDataLink(datalink1).Firstrecord);
-    AssertEquals(0, datalink1.ActiveRecord);
-    AssertEquals(1, query1.RecNo);
-    
+    CheckEquals(0, THackDataLink(datalink1).Firstrecord);
+    CheckEquals(0, datalink1.ActiveRecord);
+    CheckEquals(1, query1.RecNo);
+{$endif fpc}
+
   finally
     datalink1.free;
     datasource1.free;
   end;
 end;
 
-procedure TTestBufDatasetDBBasics.TestBufDatasetCancelUpd1;
-var i : byte;
-begin
-  with DBConnector.GetNDataset(5) as TCustomBufDataset do
-    begin
-    open;
-    next;
-    next;
-
-    delete;
-    insert;
-    FieldByName('id').AsInteger := 100;
-    post;
-
-    CancelUpdates;
-
-    last;
-
-    for i := 5 downto 1 do
-      begin
-      AssertEquals(i,fields[0].AsInteger);
-      AssertEquals('TestName'+inttostr(i),fields[1].AsString);
-      Prior;
-      end;
-    end;
-end;
-
-procedure TTestBufDatasetDBBasics.TestMultipleDeleteUpdateBuffer;
-var ds    : TDataset;
-begin
-  ds := DBConnector.GetNDataset(true,5);
-
-  ds.open;
-  with TCustomBufDataset(ds) do
-    begin
-    AssertEquals(0,ChangeCount);
-    edit;
-    fieldbyname('id').asinteger := 500;
-    fieldbyname('name').AsString := 'JoJo';
-    post;
-    AssertEquals(1,ChangeCount);
-    next; next;
-    Delete;
-    AssertEquals(2,ChangeCount);
-    Delete;
-    AssertEquals(3,ChangeCount);
-    CancelUpdates;
-    end;
-  ds.close;
-end;
-
-procedure TTestBufDatasetDBBasics.TestDoubleDelete;
-var ds    : TCustomBufDataset;
-begin
-  ds := TCustomBufDataset(DBConnector.GetNDataset(true,5));
-
-  with ds do
-    begin
-    open;
-    next; next;
-    Delete;
-    Delete;
-
-    first;
-    AssertEquals(1,fieldbyname('id').AsInteger);
-    next;
-    AssertEquals(2,fieldbyname('id').AsInteger);
-    next;
-    AssertEquals(5,fieldbyname('id').AsInteger);
-
-    CancelUpdates;
-
-    first;
-    AssertEquals(1,fieldbyname('id').AsInteger);
-    next;
-    AssertEquals(2,fieldbyname('id').AsInteger);
-    next;
-    AssertEquals(3,fieldbyname('id').AsInteger);
-    next;
-    AssertEquals(4,fieldbyname('id').AsInteger);
-    next;
-    AssertEquals(5,fieldbyname('id').AsInteger);
-    end;
-end;
-
-procedure TTestDBBasics.TestNullAtOpen;
+procedure TTestCursorDBBasics.TestNullAtOpen;
 begin
   with dbconnector.getndataset(0) do
     begin
     active:= true;
-    AssertTrue('Field isn''t NULL on a just-opened empty dataset',fieldbyname('id').IsNull);
+    CheckTrue(fieldbyname('id').IsNull,'Field isn''t NULL on a just-opened empty dataset');
     append;
-    AssertTrue('Field isn''t NULL after append on an empty dataset',fieldbyname('id').IsNull);
+    CheckTrue(fieldbyname('id').IsNull,'Field isn''t NULL after append on an empty dataset');
     fieldbyname('id').asinteger:= 123;
     cancel;
-    AssertTrue('Field isn''t NULL after cancel',fieldbyname('id').IsNull);
+    CheckTrue(fieldbyname('id').IsNull,'Field isn''t NULL after cancel');
     end;
 end;
 
 { TDBBasicsUniDirectionalTestSetup }
-
+{$ifdef fpc}
 procedure TDBBasicsUniDirectionalTestSetup.OneTimeSetup;
 begin
   inherited OneTimeSetup;
@@ -2300,13 +2354,19 @@ procedure TTestBufDatasetDBBasics.TearDown;
 begin
   DBConnector.StopTest;
 end;
+{$endif fpc}
 
 initialization
+{$ifdef fpc}
   RegisterTestDecorator(TDBBasicsTestSetup, TTestDBBasics);
+  RegisterTestDecorator(TDBBasicsTestSetup, TTestCursorDBBasics);
 
   if uppercase(dbconnectorname)='SQL' then
     begin
     RegisterTestDecorator(TDBBasicsTestSetup, TTestBufDatasetDBBasics);
     RegisterTestDecorator(TDBBasicsUniDirectionalTestSetup, TTestUniDirectionalDBBasics);
     end;
+{$else fpc}
+  RegisterTest(TTestDBBasics.Suite);
+{$endif fpc}
 end.

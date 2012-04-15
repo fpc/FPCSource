@@ -157,8 +157,12 @@ implementation
             pd.visibility:=vis_public;
             { result type }
             pd.returndef:=obj;
-            { calling convention, self, ... }
-            handle_calling_convention(pd);
+            { calling convention, self, ... (not for advanced records, for those
+              this is handled later) }
+            if obj.typ=recorddef then
+              handle_calling_convention(pd,[hcc_check])
+            else
+              handle_calling_convention(pd,hcc_all);
             { register forward declaration with procsym }
             proc_add_definition(pd);
           end;
@@ -218,8 +222,14 @@ implementation
         { can't use def.typesym, not yet set at this point }
         if not assigned(def.symtable.realname) then
           internalerror(2011032803);
-        if str_parse_method_dec('procedure fpcDeepCopy(result: FpcBaseRecordType);override;',potype_procedure,false,def,pd) then
-          pd.synthetickind:=tsk_record_deepcopy
+        if str_parse_method_dec('procedure fpcDeepCopy(result: FpcBaseRecordType);',potype_procedure,false,def,pd) then
+          begin
+            pd.synthetickind:=tsk_record_deepcopy;
+            { can't add to the declaration since record methods can't override;
+              it is in fact an overriding method, because all records inherit
+              from a Java base class }
+            include(pd.procoptions,po_overridingmethod);
+          end
         else
           internalerror(2011032807);
         if def.needs_inittable then
@@ -938,7 +948,10 @@ implementation
         if sp_static in p.symoptions then
           pd.procoptions:=pd.procoptions+[po_classmethod,po_staticmethod];
         { calling convention, self, ... }
-        handle_calling_convention(pd);
+        if obj.typ=recorddef then
+          handle_calling_convention(pd,[hcc_check])
+        else
+          handle_calling_convention(pd,hcc_all);
         { register forward declaration with procsym }
         proc_add_definition(pd);
 

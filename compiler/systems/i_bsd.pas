@@ -156,7 +156,7 @@ unit i_bsd;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_gas;
+            assem        : as_x86_64_elf64;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
@@ -191,7 +191,7 @@ unit i_bsd;
             system       : system_i386_NetBSD;
             name         : 'NetBSD for i386';
             shortname    : 'NetBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
+            flags        : [tf_pic_uses_got,tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -215,10 +215,10 @@ unit i_bsd;
             sharedClibprefix : 'lib';
             importlibprefix : 'libimp';
             importlibext : '.a';
-            Cprefix      : '_';
+            Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_gas;
+            assem        : as_i386_elf32;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
@@ -252,7 +252,7 @@ unit i_bsd;
             system       : system_i386_OpenBSD;
             name         : 'OpenBSD for i386';
             shortname    : 'OpenBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
+            flags        : [tf_pic_uses_got,tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -276,7 +276,7 @@ unit i_bsd;
             sharedClibprefix : 'lib';
             importlibprefix : 'libimp';
             importlibext : '.a';
-            Cprefix      : '_';
+            Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
             assem        : as_gas;
@@ -305,6 +305,70 @@ unit i_bsd;
               );
             first_parm_offset : 8;
             stacksize   : 262144;
+            abi          : abi_default;
+          );
+
+       system_x86_64_openbsd_info : tsysteminfo =
+          (
+            system       : system_x86_64_openbsd;
+            name         : 'OpenBSD for x86-64';
+            shortname    : 'OpenBSD';
+            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
+                            tf_files_case_sensitive,tf_smartlink_library, tf_under_development,
+                            tf_dwarf_only_local_labels
+                            { tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
+            cpu          : cpu_x86_64;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;HASUNIX;BSD';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_x86_64_elf64;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_dwarf2;            //dbg_stabs;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 8;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 16;
+            stacksize    : 256*1024;
             abi          : abi_default;
           );
 
@@ -431,6 +495,69 @@ unit i_bsd;
             abi : abi_powerpc_aix;
           );
 
+       system_x86_64_netbsd_info : tsysteminfo =
+          (
+            system       : system_x86_64_netbsd;
+            name         : 'NetBSD for x86-64';
+            shortname    : 'NetBSD';
+            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
+                            tf_files_case_sensitive,tf_smartlink_library, tf_under_development,
+                            tf_dwarf_only_local_labels
+                            { tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
+            cpu          : cpu_x86_64;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;HASUNIX;BSD';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_x86_64_elf64;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_dwarf2;            //dbg_stabs;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 8;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 16;
+            stacksize    : 256*1024;
+            abi          : abi_default;
+          );
 
        system_powerpc_darwin_info  : tsysteminfo =
           (
@@ -818,7 +945,7 @@ initialization
      set_source_info(system_i386_NetBSD_info);
   {$endif}
   {$ifdef OpenBSD}
-     set_source_info(system_i386_NetBSD_info);
+     set_source_info(system_i386_OpenBSD_info);
   {$endif}
   {$ifdef Darwin}
      set_source_info(system_i386_Darwin_info);
@@ -827,6 +954,12 @@ initialization
 {$ifdef cpux86_64}
    {$ifdef FreeBSD}
      set_source_info(system_x86_64_FreeBSD_info);
+   {$endif}
+   {$ifdef OpenBSD}
+     set_source_info(system_x86_64_OpenBSD_info);
+   {$endif}
+   {$ifdef NetBSD}
+     set_source_info(system_x86_64_NetBSD_info);
    {$endif}
    {$ifdef Darwin}
      set_source_info(system_x86_64_darwin_info);
@@ -849,10 +982,10 @@ initialization
   {$ifdef Darwin}
      set_source_info(system_powerpc64_darwin_info);
   {$endif Darwin}
+{$endif powerpc64}
 {$ifdef cpuarm}
   {$ifdef Darwin}
      set_source_info(system_arm_darwin_info);
   {$endif Darwin}
 {$endif cpuarm}
-{$endif powerpc64}
 end.

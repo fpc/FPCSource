@@ -603,7 +603,21 @@ begin
   end;
 end;
 
+Procedure TStrings.AddStrings(const TheStrings: array of string);
 
+Var Runner : longint;
+
+begin
+  try
+    beginupdate;
+    if Count + High(TheStrings)+1 > Capacity then
+      Capacity := Count + High(TheStrings)+1;
+    For Runner:=Low(TheStrings) to High(TheStrings) do
+      self.Add(Thestrings[Runner]);
+  finally
+    EndUpdate;
+  end;
+end;
 
 Procedure TStrings.Assign(Source: TPersistent);
 
@@ -908,7 +922,28 @@ begin
   SetCapacity(NC);
 end;
 
+Procedure TStringList.InternalClear;
 
+Var
+  I: Integer;
+
+begin
+  if FOwnsObjects then
+    begin
+      For I:=0 to FCount-1 do
+        begin
+          Flist^[I].FString:='';
+          freeandnil(Flist^[i].FObject);
+        end;
+    end
+  else
+    begin
+      For I:=0 to FCount-1 do
+        Flist^[I].FString:='';
+    end;
+  FCount:=0;
+  SetCapacity(0);
+end;
 
 Procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
 var
@@ -1128,16 +1163,8 @@ end;
 
 destructor TStringList.Destroy;
 
-Var I : Longint;
-
 begin
-  FOnChange:=Nil;
-  FOnChanging:=Nil;
-  // This will force a dereference. Can be done better...
-  For I:=0 to FCount-1 do
-    FList^[I].FString:='';
-  FCount:=0;
-  SetCapacity(0);
+  InternalClear;
   Inherited destroy;
 end;
 
@@ -1159,26 +1186,10 @@ end;
 
 Procedure TStringList.Clear;
 
-Var I : longint;
-
 begin
   if FCount = 0 then Exit;
   Changing;
-  if FOwnsObjects then
-    begin
-      For I:=0 to FCount-1 do
-        begin
-          Flist^[I].FString:='';
-          freeandnil(Flist^[i].FObject);
-        end;
-    end
-  else
-    begin
-      For I:=0 to FCount-1 do
-        Flist^[I].FString:='';
-    end;
-  FCount:=0;
-  SetCapacity(0);
+  InternalClear;
   Changed;
 end;
 

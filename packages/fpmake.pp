@@ -14,8 +14,7 @@ Var
 
 The include files are generated with the following commands:
 
-/bin/ls -1 */fpmake.pp | awk -F '/' '/fpmake.pp/ { printf "procedure add_%s;\nbegin\n  with Installer do\n{$include %s}\nend;\n\n",gensub("-","_","g",$1),$0; }' > fpmake_proc.inc
-/bin/ls -1 */fpmake.pp | awk -F '/' '/fpmake.pp/ { printf "  add_%s;\n",gensub("-","_","g",$1); }' > fpmake_add.inc
+rm fpmake_proc.inc fpmake_add.inc ; /bin/ls -1 */fpmake.pp| while read file; do cleanedname=`dirname $file | sed -e 's+-+_+g'` ; if ! `grep -i "^procedure add_$cleanedname" $file >/dev/null` ; then printf 'procedure add_%s;\nbegin\n  with Installer do\n{$include %s}\nend;\n\n' $cleanedname $file >> fpmake_proc.inc; else printf '{$include %s}\n\n' $file >> fpmake_proc.inc; fi; echo "  add_$cleanedname;" >> fpmake_add.inc; done
 
 *)
 

@@ -1,0 +1,31 @@
+#
+#   Makefile.fpc for Apple Universal Interfaces for Free Pascal
+#
+
+[package]
+name=cocoaint
+version=2.7.1
+
+[target]
+units=CocoaAll WebKit CoreData
+implicitunits=AnonClassDefinitionsQuartzcore AnonClassDefinitionsWebkit
+
+[libs]
+libversion=2.5.1
+
+[install]
+fpcpackage=y
+
+[compiler]
+sourcedir=src
+
+[default]
+fpcdir=../..
+
+[require]
+packages=univint
+
+[rules]
+WebKit$(PPUEXT): CocoaAll$(PPUEXT)
+
+CoreData$(PPUEXT): CocoaAll$(PPUEXT)

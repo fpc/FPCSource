@@ -446,7 +446,7 @@ end;
 
 Function FileGetAttr (Const FileName : String) : Longint;
 begin
-  Result:=GetFileAttributes(PChar(FileName));
+  Result:=Longint(GetFileAttributes(PChar(FileName)));
 end;
 
 
@@ -768,7 +768,7 @@ begin
 *)
 end;
 
-procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); 
+procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings);
 var
   HF  : Shortstring;
   LID : Windows.LCID;
@@ -894,6 +894,10 @@ end;
                               Initialization code
 ****************************************************************************}
 
+{$push}
+{ GetEnvironmentStrings cannot be checked by CheckPointer function }
+{$checkpointer off}
+
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 var
@@ -957,6 +961,7 @@ begin
   FreeEnvironmentStrings(p);
 end;
 
+{$pop}
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 // win specific  function
@@ -1113,9 +1118,9 @@ function DoCompareStringA(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): Ptr
     a1, a2: AnsiString;
   begin
     if L1>0 then
-      widestringmanager.Wide2AnsiMoveProc(P1,a1,L1);
+      widestringmanager.Wide2AnsiMoveProc(P1,a1,DefaultSystemCodePage,L1);
     if L2>0 then
-      widestringmanager.Wide2AnsiMoveProc(P2,a2,L2);
+      widestringmanager.Wide2AnsiMoveProc(P2,a2,DefaultSystemCodePage,L2);
     SetLastError(0);
     Result:=CompareStringA(LOCALE_USER_DEFAULT,Flags,pchar(a1),
       length(a1),pchar(a2),length(a2))-2;
@@ -1264,10 +1269,42 @@ procedure InitWin32Widestrings;
     widestringmanager.CompareTextUnicodeStringProc:=@Win32CompareTextUnicodeString;
   end;
 
+{ Platform-specific exception support }
+
+function WinExceptionObject(code: Longint; const rec: TExceptionRecord): Exception;
+var
+  entry: PExceptMapEntry;
+begin
+  entry := FindExceptMapEntry(code);
+  if assigned(entry) then
+    result:=entry^.cls.CreateRes(entry^.msg)
+  else
+    result:=EExternalException.CreateResFmt(@SExternalException,[rec.ExceptionCode]);
+
+  if result is EExternal then
+    EExternal(result).FExceptionRecord:=rec;
+end;
+
+function WinExceptionClass(code: longint): ExceptClass;
+var
+  entry: PExceptMapEntry;
+begin
+  entry := FindExceptMapEntry(code);
+  if assigned(entry) then
+    result:=entry^.cls
+  else
+    result:=EExternalException;
+end;
+
 
 Initialization
   InitWin32Widestrings;
   InitExceptions;       { Initialize exceptions. OS independent }
+{$ifdef win64}          { Nothing win64-specific here, just keeping exe size down
+                          as these procedures aren't used in generic exception handling }
+  ExceptObjProc:=@WinExceptionObject;
+  ExceptClsProc:=@WinExceptionClass;
+{$endif win64}
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;

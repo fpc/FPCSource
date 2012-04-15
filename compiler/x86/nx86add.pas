@@ -66,7 +66,7 @@ unit nx86add;
       symconst,symdef,
       cgobj,cgx86,cga,cgutils,
       paramgr,tgobj,ncgutil,
-      ncon,nset,
+      ncon,nset,ninl,
       defutil;
 
 
@@ -660,7 +660,28 @@ unit nx86add;
     procedure tx86addnode.second_addfloatsse;
       var
         op : topcg;
+        sqr_sum : boolean;
+        tmp : tnode;
       begin
+        sqr_sum:=false;
+        if (current_settings.fputype>=fpu_sse3) and
+           use_vectorfpu(resultdef) and
+           (nodetype in [addn,subn]) and
+          (left.nodetype=inlinen) and (tinlinenode(left).inlinenumber=in_sqr_real) and
+          (right.nodetype=inlinen) and (tinlinenode(right).inlinenumber=in_sqr_real) then
+          begin
+            sqr_sum:=true;
+            tmp:=tinlinenode(left).left;
+            tinlinenode(left).left:=nil;
+            left.free;
+            left:=tmp;
+
+            tmp:=tinlinenode(right).left;
+            tinlinenode(right).left:=nil;
+            right.free;
+            right:=tmp;
+          end;
+
         pass_left_right;
         check_left_and_right_fpureg(false);
 
@@ -687,8 +708,51 @@ unit nx86add;
         end;
 
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+
+        if sqr_sum then
+          begin
+            if nf_swapped in flags then
+              swapleftright;
+
+            location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+            location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,true);
+            location:=left.location;
+            if is_double(resultdef) then
+              begin
+                current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg(A_SHUFPD,S_NO,%00,right.location.register,location.register));
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MULPD,S_NO,location.register,location.register));
+                case nodetype of
+                  addn:
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_HADDPD,S_NO,location.register,location.register));
+                  subn:
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_HSUBPD,S_NO,location.register,location.register));
+                  else
+                    internalerror(201108162);
+                end;
+              end
+            else
+              begin
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_UNPCKLPS,S_NO,right.location.register,location.register));
+                { ensure that bits 64..127 contain valid values }
+                current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg(A_SHUFPD,S_NO,%00,location.register,location.register));
+                { the data is now in bits 0..32 and 64..95 }
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MULPS,S_NO,location.register,location.register));
+                case nodetype of
+                  addn:
+                    begin
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_HADDPS,S_NO,location.register,location.register));
+                    end;
+                  subn:
+                    begin
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_HSUBPS,S_NO,location.register,location.register));
+                    end;
+                  else
+                    internalerror(201108163);
+                end;
+              end
+          end
         { we can use only right as left operand if the operation is commutative }
-        if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
+        else if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
           begin
             location.register:=right.location.register;
             { force floating point reg. location to be written to memory,
@@ -896,7 +960,7 @@ unit nx86add;
 
             { load fpu flags }
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_AX);
-            emit_reg(A_FNSTSW,S_NO,NR_AX);
+            emit_reg(A_FSTSW,S_NO,NR_AX);
             emit_none(A_SAHF,S_NO);
             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
             if nf_swapped in flags then

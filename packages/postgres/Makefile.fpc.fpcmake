@@ -1,0 +1,31 @@
+#
+#   Makefile.fpc for Postgres bindings
+#
+
+[package]
+name=postgres
+version=2.7.1
+
+[target]
+units=dllist dllistdyn postgres postgres3 postgres3dyn
+exampledirs=examples
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+

@@ -52,14 +52,14 @@ var
   F: TextFile;
 begin
   AssignFile(F, 'debug.txt');
-  {$I-}
+  {$push}{$I-}
   Append(F);
-  {$I+}
+  {$pop}
   if IOResult <> 0 then
   begin
-    {$I-}
+    {$push}{$I-}
     Rewrite(F);
-    {$I+}
+    {$pop}
     if IOResult <> 0 then
       exit;
   end;

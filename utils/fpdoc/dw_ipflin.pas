@@ -89,7 +89,6 @@ type
     procedure EndOverview; override;
     procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
     procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
-    class function FileNameExtension: string; override;
     procedure DescrBeginURL(const AURL: DOMString); override;
     procedure DescrEndURL; override;
     // Description node conversion. Overrides for TFPDocWriter.
@@ -141,6 +140,7 @@ type
     // TFPDocWriter class methods
   public
     constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
+    class function FileNameExtension: string; override;
   end;
 
 
@@ -747,6 +747,7 @@ begin
   begin
     FInHeadingText := ':h3%s. ' + SectionName;
 //    Writeln(':h3.' + SectionName);
+    InPackageOverview := False;
   end;
 //  Writeln('');
 end;

@@ -31,24 +31,30 @@
 }
 
 type
-  TPTCColor = class
-  private
-    FIndex: Integer;
-    FRed, FGreen, FBlue, FAlpha: Single;
-    FDirect: Boolean;
-    FIndexed: Boolean;
+  IPTCColor = interface
+    function GetIndex: Integer;
+    function GetR: Single;
+    function GetG: Single;
+    function GetB: Single;
+    function GetA: Single;
+    function GetDirect: Boolean;
+    function GetIndexed: Boolean;
+
+    function Equals(AColor: IPTCColor): Boolean;
+
+    property Index: Integer read GetIndex;
+    property R: Single read GetR;
+    property G: Single read GetG;
+    property B: Single read GetB;
+    property A: Single read GetA;
+    property Direct: Boolean read GetDirect;
+    property Indexed: Boolean read GetIndexed;
+  end;
+
+  TPTCColorFactory = class
   public
-    constructor Create;
-    constructor Create(AIndex: Integer);
-    constructor Create(ARed, AGreen, ABlue: Single; AAlpha: Single = 1);
-    constructor Create(const AColor: TPTCColor);
-    procedure Assign(const AColor: TPTCColor);
-    function Equals(const AColor: TPTCColor): Boolean;
-    property Index: Integer read FIndex;
-    property R: Single read FRed;
-    property G: Single read FGreen;
-    property B: Single read FBlue;
-    property A: Single read FAlpha;
-    property Direct: Boolean read FDirect;
-    property Indexed: Boolean read FIndexed;
+    class function CreateNew: IPTCColor;
+    class function CreateNew(AIndex: Integer): IPTCColor;
+    class function CreateNew(ARed, AGreen, ABlue: Single; AAlpha: Single = 1): IPTCColor;
+    class function CreateNew(AColor: IPTCColor): IPTCColor;
   end;

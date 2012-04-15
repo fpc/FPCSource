@@ -58,9 +58,9 @@ begin
 
   while true do begin
 
-    {$I-}
+    {$push}{$I-}
     blockread (infile, buf, BUFLEN, len);
-    {$I+}
+    {$pop}
     ioerr := IOResult;
     if (ioerr <> 0) then begin
       writeln ('read error: ',ioerr);
@@ -101,17 +101,17 @@ begin
     if (len = 0)
       then break;
 
-    {$I-}
+    {$push}{$I-}
     blockwrite (outfile, buf, len, written);
-    {$I+}
+    {$pop}
     if (written <> len)
       then error ('write error');
 
   end; {WHILE}
 
-  {$I-}
+  {$push}{$I-}
   close (outfile);
-  {$I+}
+  {$pop}
   ioerr := IOResult;
   if (ioerr <> 0) then begin
     writeln ('close error: ',ioerr);
@@ -138,9 +138,9 @@ var
   outname : string;
 begin
   Assign (infile, filename);
-  {$I-}
+  {$push}{$I-}
   Reset (infile,1);
-  {$I+}
+  {$pop}
   ioerr := IOResult;
   if (ioerr <> 0) then begin
     writeln ('open error: ',ioerr);
@@ -193,9 +193,9 @@ begin
   end;
 
   Assign (outfile, outname);
-  {$I-}
+  {$push}{$I-}
   Rewrite (outfile,1);
-  {$I+}
+  {$pop}
   ioerr := IOResult;
   if (ioerr <> 0) then begin
     writeln ('open error: ',ioerr);

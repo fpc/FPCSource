@@ -30,7 +30,7 @@
   {$endif}
 {$endif}
 
-{$if defined(darwin) and defined(cpuarm)}
+{$if (defined(darwin) and defined(cpuarm)) or defined(iphonesim)}
   {$define darwinarm}
 {$endif}
 
@@ -69,13 +69,22 @@ TYPE
         st_nlink      : nlink_t;           // number of hard links
         st_ino        : ino_t;             // inode's number
 {$else}
+{$ifdef netbsd_use_stat30}
+     { order is inverted for better alignment probably }
+        st_mode       : mode_t;            // inode protection mode
+        st_ino        : ino_t;             // inode's number
+{$else not netbsd}
         st_ino        : ino_t;             // inode's number
         st_mode       : mode_t;            // inode protection mode
+{$endif not netbsd}
         st_nlink      : nlink_t;           // number of hard links
 {$endif}
         st_uid        : uid_t;             // user ID of the file's owner
         st_gid        : gid_t;             // group ID of the file's group
         st_rdev       : dev_t;             // device type
+{$ifdef openbsd}
+        st_padd0      : cint;
+{$endif}
         st_atime      : time_t;            // time of last access
         st_atimensec  : clong;             // nsec of last access
         st_mtime      : time_t;            // time of last data modification
@@ -99,6 +108,10 @@ TYPE
 {$endif}
 {$ifndef NetBSD}
         st_lspare     : cint32;
+{$endif}
+{$ifdef openbsd}
+        st_birthtime  : time_t;            // File creation time
+        st_birthtimensec : clong;          // nsec of file creation time
 {$endif}
         st_qspare     : array[0..1] Of cint64;
    end;
@@ -130,7 +143,7 @@ TYPE
    TDirent = dirent;
    pDirent = ^dirent;
 
-   dir     = packed record
+   dir     = record
         dd_fd     : cint;         // file descriptor associated with directory
         dd_loc    : clong;        // offset in current buffer
         dd_size   : clong;        // amount of data returned by getdirentries
@@ -169,7 +182,7 @@ TYPE
    TFlock   = flock;
    pFlock   = ^flock;
 
- tms = packed record
+ tms = record
          tms_utime  : clock_t;  { User CPU time }
          tms_stime  : clock_t;  { System CPU time }
          tms_cutime : clock_t;  { User CPU time of terminated child procs }
@@ -225,19 +238,68 @@ CONST
 
 
   { For File control mechanism }
-  F_GetFd  = 1;
-  F_SetFd  = 2;
-  F_GetFl  = 3;
-  F_SetFl  = 4;
-  F_GetLk  = 5;
-  F_SetLk  = 6;
-  F_SetLkW = 7;
-  F_SetOwn = 8;
-  F_GetOwn = 9;
+  F_DupFd          = 0;           { duplicate file descriptor }
+  F_GetFd          = 1;           { get file descriptor flags }
+  F_SetFd          = 2;           { set file descriptor flags }
+  F_GetFl          = 3;           { get file status flags }
+  F_SetFl          = 4;           { set file status flags }
+  F_GetOwn         = 5;           { get SIGIO/SIGURG proc/pgrp }
+  F_SetOwn         = 6;           { set SIGIO/SIGURG proc/pgrp }
+{$ifdef freebsd}
+  F_OGetLk         = 7;           { get record locking information }
+  F_OSetLk         = 8;           { set record locking information }
+  F_OSetLkW        = 9;           { F_SETLK; wait if blocked }
+  F_Dup2Fd         = 10;          { duplicate file descriptor to arg }
+  F_GetLk          = 11;          { get record locking information}
+  F_SetLk          = 12;          { set record locking information }
+  F_SetLkW         = 13;          { F_SETLK; wait if blocked }
+  F_SetLkRemote    = 14;          { debugging support for remote locks }
+{$endif}
+{$ifdef netbsd}
+  F_GetLk          = 7;           { get record locking information}
+  F_SetLk          = 8;           { set record locking information }
+  F_SetLkW         = 9;           { F_SETLK; wait if blocked }
+  F_CloseM	   = 10;	  { close all fds >= to the one given }
+  F_MaxFd          = 11;	  { return the max open fd }
+  F_DupFd_CloExec  = 12;	  { close on exec duplicated fd }
+{$endif}
+{$ifdef openbsd}
+  F_GetLk          = 7;           { get record locking information}
+  F_SetLk          = 8;           { set record locking information }
+  F_SetLkW         = 9;           { F_SETLK; wait if blocked }
+  F_DupFd_CloExec  = 10;	  { duplicate with FD_CLOEXEC set }
+{$endif}
+{$ifdef darwin}
+  F_GetLk          = 7;           { get record locking information}
+  F_SetLk          = 8;           { set record locking information }
+  F_SetLkW         = 9;           { F_SETLK; wait if blocked }
+{$endif}
+
+  { File descriptor flags (F_GETFD, F_SETFD) }
+  FD_CLOEXEC	   = 1;		  { close-on-exec flag }
+
+  { Record locking flags (F_GETLK, F_SETLK, F_SETLKW) }
+  F_RDLCK          = 1;		  { shared or read lock }
+  F_UNLCK          = 2;		  { unlock }
+  F_WRLCK          = 3;		  { exclusive or write lock }
+{$ifdef freebsd}
+  F_UNLCKSYS       = 4;		  { purge locks for a given system ID }
+  F_CANCEL         = 5;		  { cancel an async lock request }
+{$endif}
+{$ifndef darwin}
+  F_WAIT	   = $10;	  { Wait until lock is granted }
+  F_FLOCK          = $20;         { Use flock(2) semantics for lock }
+  F_POSIX          = $40; 	  { Use POSIX semantics for lock }
+{$endif}
+{$ifdef freebsd}
+  F_REMOTE	   = $80;	  { Lock owner is remote NFS client }
+  F_NOINTR	   = $100;        { Ignore signals when waiting }
+{$endif}
+
 {$ifdef darwin}
   F_CHKCLEAN       = 41;          { Used for regression test }
   F_PREALLOCATE    = 42;          { Preallocate storage }
-  F_SETSIZE        = 43;          { Truncate a file without zeroing space }     
+  F_SETSIZE        = 43;          { Truncate a file without zeroing space }
   F_RDADVISE       = 44;          { Issue an advisory read async with no copy to user }
   F_RDAHEAD        = 45;          { turn read ahead off/on }
   F_READBOOTSTRAP  = 46;          { Read bootstrap from disk }
@@ -254,14 +316,14 @@ CONST
 
 
 type
-  timezone = packed record
+  timezone = record
     tz_minuteswest,
     tz_dsttime  : cint;
   end;
   ptimezone =^timezone;
   TTimeZone = timezone;
 
-  rusage = packed record
+  rusage = record
         ru_utime    : timeval;          { user time used }
         ru_stime    : timeval;          { system time used }
         ru_maxrss   : clong;            { max resident set size }
@@ -311,7 +373,7 @@ Const
 {$IFDEF FreeBSD}
   RLIMIT_SBSIZE   = 9;              { maximum size of all socket buffers }
   RLIMIT_VMEM     =10;              { virtual process size (inclusive of mmap) }
-  RLIMIT_AS       = RLIMIT_VMEM;    
+  RLIMIT_AS       = RLIMIT_VMEM;
 {$ELSE}
   RLIMIT_AS       = 5;    	    { address space= resident set size}
 {$ENDIF}
@@ -324,20 +386,20 @@ Const
   RLIM_NLIMITS    =9;              { number of resource limits }
   {$endif}
 
-Type 
+Type
         TRLimit  = record
                      rlim_cur,               { current (soft) limit }
           	     rlim_max : TRLim;     { maximum value for rlim_cur }
 		    end;	
         PRLimit  = ^TRLimit;
-      
+
   iovec = record
             iov_base : pointer;
 	    iov_len  : size_t;
 	   end;
   tiovec=iovec;
   piovec=^tiovec;		
- 
+
 CONST
  { Constansts for MMAP }
 {$ifdef FPC_IS_SYSTEM}

@@ -12,6 +12,9 @@
 <short></short>
 <descr>
 </descr>
+<notes>
+  <note>Unit note</note>
+</notes>
 
 <!-- constant Visibility: default -->
 <element name="AnIntegerConst">
@@ -107,6 +110,9 @@ Appears in 2.0
 </version>
 <seealso>
 </seealso>
+<notes>
+<note>Type note 1</note>
+</notes>
 </element>
 
 <!-- enumeration value Visibility: default -->
@@ -427,6 +433,9 @@ Appears in 2.0
 </version>
 <seealso>
 </seealso>
+<notes>
+<note>Simpleproc note 1</note>
+</notes>
 </element>
 
 <!-- procedure Visibility: default -->
@@ -1013,6 +1022,9 @@ Appears in 2.0
 </errors>
 <seealso>
 </seealso>
+<notes>
+<note> this is class note 1</note>
+</notes>
 </element>
 
 <!-- procedure Visibility: public -->
@@ -1035,6 +1047,9 @@ Appears in 2.0
 </errors>
 <seealso>
 </seealso>
+<notes>
+<note> this is proc note 1</note>
+</notes>
 </element>
 
 <!-- property Visibility: published -->
@@ -1044,6 +1059,10 @@ Appears in 2.0
 </descr>
 <seealso>
 </seealso>
+<notes>
+<note> this is prop note 1</note>
+<note> this is prop note 2</note>
+</notes>
 </element>
 
 </module> <!-- testunit -->

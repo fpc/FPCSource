@@ -91,7 +91,7 @@ type
     Destructor Destroy; override;
     property Context : String read FContext;
     property ErrorCode : integer read FErrorcode;
-    property OriginalExcaption : Exception read FOriginalException;
+    property OriginalException : Exception read FOriginalException;
     property PreviousError : Integer read FPreviousError;
   end;
   
@@ -324,6 +324,7 @@ type
     procedure FreeBuffers; virtual;
     function GetAsBCD: TBCD; virtual;
     function GetAsBoolean: Boolean; virtual;
+    function GetAsBytes: TBytes; virtual;
     function GetAsCurrency: Currency; virtual;
     function GetAsLargeInt: LargeInt; virtual;
     function GetAsDateTime: TDateTime; virtual;
@@ -350,6 +351,7 @@ type
     procedure ReadState(Reader: TReader); override;
     procedure SetAsBCD(const AValue: TBCD); virtual;
     procedure SetAsBoolean(AValue: Boolean); virtual;
+    procedure SetAsBytes(const AValue: TBytes); virtual;
     procedure SetAsCurrency(AValue: Currency); virtual;
     procedure SetAsDateTime(AValue: TDateTime); virtual;
     procedure SetAsFloat(AValue: Double); virtual;
@@ -384,6 +386,7 @@ type
     procedure Validate(Buffer: Pointer);
     property AsBCD: TBCD read GetAsBCD write SetAsBCD;
     property AsBoolean: Boolean read GetAsBoolean write SetAsBoolean;
+    property AsBytes: TBytes read GetAsBytes write SetAsBytes;
     property AsCurrency: Currency read GetAsCurrency write SetAsCurrency;
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
     property AsFloat: Double read GetAsFloat write SetAsFloat;
@@ -546,6 +549,8 @@ type
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
+    function GetAsLargeint: Largeint; override;
+    procedure SetAsLargeint(AValue: Largeint); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : longint) : Boolean;
@@ -730,8 +735,11 @@ type
   TBinaryField = class(TField)
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
+    function GetAsBytes: TBytes; override;
     function GetAsString: string; override;
+    function GetAsVariant: Variant; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
+    procedure SetAsBytes(const AValue: TBytes); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
@@ -1095,7 +1103,7 @@ type
 
   { TParam }
 
-  TBlobData = string;
+  TBlobData = AnsiString;  // Delphi defines it as alias to TBytes
 
   TParamBinding = array of integer;
 
@@ -1242,9 +1250,19 @@ type
   PBookmarkFlag = ^TBookmarkFlag;
   TBookmarkFlag = (bfCurrent, bfBOF, bfEOF, bfInserted);
 
+{ These types are used by Delphi/Unicode to replace the ambiguous "pchar" buffer types.
+  For now, they are just aliases to PAnsiChar, but in Delphi/Unicode it is pbyte. This will
+  be changed later (2.8?), to allow a grace period for descendents to catch up.
+  
+  Testing with TRecordBuffer=PByte will turn up typing problems. TRecordBuffer=pansichar is backwards
+  compatible, even if overriden with "pchar" variants.
+}
+  TRecordBufferBaseType = AnsiChar; // must match TRecordBuffer. 
+  TRecordBuffer = PAnsiChar;
   PBufferList = ^TBufferList;
-  TBufferList = array[0..dsMaxBufferCount - 1] of PChar;
-
+  TBufferList = array[0..dsMaxBufferCount - 1] of TRecordBuffer;  // Dynamic array in Delphi.
+  TBufferArray = ^TRecordBuffer;
+  
   TGetMode = (gmCurrent, gmNext, gmPrior);
 
   TGetResult = (grOK, grBOF, grEOF, grError);
@@ -1274,7 +1292,7 @@ type
     var Accept: Boolean) of object;
 
   TDatasetClass = Class of TDataset;
-  TBufferArray = ^pchar;
+
 
 {------------------------------------------------------------------------------}
 {IProviderSupport interface}
@@ -1347,7 +1365,7 @@ type
     FBookmarkSize: Longint;
     FBuffers : TBufferArray;
     FBufferCount: Longint;
-    FCalcBuffer: PChar;
+    FCalcBuffer: TRecordBuffer;
     FCalcFieldsSize: Longint;
     FConstraints: TCheckConstraints;
     FDisableControlsCount : Integer;
@@ -1377,10 +1395,11 @@ type
     FInternalOpenComplete: Boolean;
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
-    Function  GetBuffer (Index : longint) : Pchar;
+    Function  GetBuffer (Index : longint) : TRecordBuffer;
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADatasource : TDataSource);
     Procedure RemoveField (Field : TField);
+    procedure SetConstraints(Value: TCheckConstraints);
     Procedure SetField (Index : Longint;Value : TField);
     Procedure ShiftBuffersForward;
     Procedure ShiftBuffersBackward;
@@ -1388,21 +1407,22 @@ type
     Function GetActive : boolean;
     Procedure UnRegisterDataSource(ADatasource : TDatasource);
     Procedure UpdateFieldDefs;
-    procedure SetBlockReadSize(AValue: Integer);
+    procedure SetBlockReadSize(AValue: Integer); virtual;
     Procedure SetFieldDefs(AFieldDefs: TFieldDefs);
     procedure DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
   protected
     procedure RecalcBufListSize;
     procedure ActivateBuffers; virtual;
     procedure BindFields(Binding: Boolean);
+    procedure BlockReadNext; virtual;
     function  BookmarkAvailable: Boolean;
-    procedure CalculateFields(Buffer: PChar); virtual;
+    procedure CalculateFields(Buffer: TRecordBuffer); virtual;
     procedure CheckActive; virtual;
     procedure CheckInactive; virtual;
     procedure CheckBiDirectional;
     procedure Loaded; override;
     procedure ClearBuffers; virtual;
-    procedure ClearCalcFields(Buffer: PChar); virtual;
+    procedure ClearCalcFields(Buffer: TRecordBuffer); virtual;
     procedure CloseBlob(Field: TField); virtual;
     procedure CloseCursor; virtual;
     procedure CreateFields; virtual;
@@ -1432,7 +1452,7 @@ type
     function  FindRecord(Restart, GoForward: Boolean): Boolean; virtual;
     procedure FreeFieldBuffers; virtual;
     function  GetBookmarkStr: TBookmarkStr; virtual;
-    procedure GetCalcFields(Buffer: PChar); virtual;
+    procedure GetCalcFields(Buffer: TRecordBuffer); virtual;
     function  GetCanModify: Boolean; virtual;
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     function  GetFieldClass(FieldType: TFieldType): TFieldClass; virtual;
@@ -1448,14 +1468,14 @@ type
     function  GetRecNo: Longint; virtual;
     procedure InitFieldDefs; virtual;
     procedure InitFieldDefsFromfields;
-    procedure InitRecord(Buffer: PChar); virtual;
+    procedure InitRecord(Buffer: TRecordBuffer); virtual;
     procedure InternalCancel; virtual;
     procedure InternalEdit; virtual;
     procedure InternalInsert; virtual;
     procedure InternalRefresh; virtual;
     procedure OpenCursor(InfoQuery: Boolean); virtual;
     procedure OpenCursorcomplete; virtual;
-    procedure RefreshInternalCalcFields(Buffer: PChar); virtual;
+    procedure RefreshInternalCalcFields(Buffer: TRecordBuffer); virtual;
     procedure RestoreState(const Value: TDataSetState);
     Procedure SetActive (Value : Boolean); virtual;
     procedure SetBookmarkStr(const Value: TBookmarkStr); virtual;
@@ -1466,7 +1486,6 @@ type
     procedure SetFiltered(Value: Boolean); virtual;
     procedure SetFilterOptions(Value: TFilterOptions); virtual;
     procedure SetFilterText(const Value: string); virtual;
-    procedure SetFound(const Value: Boolean);
     procedure SetFieldValues(const fieldname: string; Value: Variant); virtual;
     procedure SetModified(Value: Boolean);
     procedure SetName(const Value: TComponentName); override;
@@ -1474,22 +1493,22 @@ type
     procedure SetRecNo(Value: Longint); virtual;
     procedure SetState(Value: TDataSetState);
     function SetTempState(const Value: TDataSetState): TDataSetState;
-    Function Tempbuffer: PChar;
+    Function Tempbuffer: TRecordBuffer;
     procedure UpdateIndexDefs; virtual;
     property ActiveRecord: Longint read FActiveRecord;
     property CurrentRecord: Longint read FCurrentRecord;
     property BlobFieldCount: Longint read FBlobFieldCount;
     property BookmarkSize: Longint read FBookmarkSize write FBookmarkSize;
-    property Buffers[Index: Longint]: PChar read GetBuffer;
+    property Buffers[Index: Longint]: TRecordBuffer read GetBuffer;
     property BufferCount: Longint read FBufferCount;
-    property CalcBuffer: PChar read FCalcBuffer;
+    property CalcBuffer: TRecordBuffer read FCalcBuffer;
     property CalcFieldsSize: Longint read FCalcFieldsSize;
     property InternalCalcFields: Boolean read FInternalCalcFields;
-    property Constraints: TCheckConstraints read FConstraints write FConstraints;
-    function AllocRecordBuffer: PChar; virtual;
-    procedure FreeRecordBuffer(var Buffer: PChar); virtual;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual;
-    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual;
+    property Constraints: TCheckConstraints read FConstraints write SetConstraints;
+    function AllocRecordBuffer: TRecordBuffer; virtual;
+    procedure FreeRecordBuffer(var Buffer: TRecordBuffer); virtual;
+    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); virtual;
+    function GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; virtual;
     function GetDataSource: TDataSource; virtual;
     function GetRecordSize: Word; virtual;
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); virtual;
@@ -1497,15 +1516,15 @@ type
     procedure InternalFirst; virtual;
     procedure InternalGotoBookmark(ABookmark: Pointer); virtual;
     procedure InternalHandleException; virtual;
-    procedure InternalInitRecord(Buffer: PChar); virtual;
+    procedure InternalInitRecord(Buffer: TRecordBuffer); virtual;
     procedure InternalLast; virtual;
     procedure InternalPost; virtual;
-    procedure InternalSetToRecord(Buffer: PChar); virtual;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual;
+    procedure InternalSetToRecord(Buffer: TRecordBuffer); virtual;
+    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); virtual;
+    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); virtual;
     procedure SetUniDirectional(const Value: Boolean);
   protected { abstract methods }
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
+    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     procedure InternalClose; virtual; abstract;
     procedure InternalOpen; virtual; abstract;
     procedure InternalInitFieldDefs; virtual; abstract;
@@ -1539,7 +1558,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function ActiveBuffer: PChar;
+    function ActiveBuffer: TRecordBuffer;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; virtual;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; virtual;
     procedure SetFieldData(Field: TField; Buffer: Pointer); overload; virtual;
@@ -1569,7 +1588,7 @@ type
     procedure First;
     procedure FreeBookmark(ABookmark: TBookmark); virtual;
     function GetBookmark: TBookmark; virtual;
-    function GetCurrentRecord(Buffer: PChar): Boolean; virtual;
+    function GetCurrentRecord(Buffer: TRecordBuffer): Boolean; virtual;
     procedure GetFieldList(List: TList; const FieldNames: string);
     procedure GetFieldNames(List: TStrings);
     procedure GotoBookmark(ABookmark: TBookmark);
@@ -1595,7 +1614,7 @@ type
     function UpdateStatus: TUpdateStatus; virtual;
     property BlockReadSize: Integer read FBlockReadSize write SetBlockReadSize;
     property BOF: Boolean read FBOF;
-    property Bookmark: TBookmarkStr read GetBookmarkStr write SetBookmarkStr;
+    property Bookmark: TBookmark read GetBookmark write GotoBookmark;
     property CanModify: Boolean read GetCanModify;
     property DataSource: TDataSource read GetDataSource;
     property DefaultFields: Boolean read FDefaultFields;
@@ -1604,7 +1623,7 @@ type
     property FieldDefs: TFieldDefs read FFieldDefs write SetFieldDefs;
 //    property Fields[Index: Longint]: TField read GetField write SetField;
     property Found: Boolean read FFound;
-    property Modified: Boolean read FModified write SetModified;
+    property Modified: Boolean read FModified;
     property IsUniDirectional: Boolean read FIsUniDirectional default False;
     property RecordCount: Longint read GetRecordCount;
     property RecNo: Longint read GetRecNo write SetRecNo;
@@ -2121,20 +2140,17 @@ begin
     DatabaseErrorFmt(Fmt, Args);
 end;
 
-Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
-
+function ExtractFieldName(const Fields: string; var Pos: Integer): string;
 var
-  i: integer;
+  i: Integer;
+  FieldsLength: Integer;
 begin
-  for i := Pos to Length(Fields) do begin
-    if Fields[i] = ';' then begin
-      Result := Copy(Fields, Pos, i - Pos);
-      Pos := i + 1;
-      Exit;
-    end;
-  end;
-  Result := Copy(Fields, Pos, Length(Fields));
-  Pos := Length(Fields) + 1;
+  i:=Pos;
+  FieldsLength:=Length(Fields);
+  while (i<=FieldsLength) and (Fields[i]<>';') do Inc(i);
+  Result:=Trim(Copy(Fields,Pos,i-Pos));
+  if (i<=FieldsLength) and (Fields[i]=';') then Inc(i);
+  Pos:=i;
 end;
 
 { EUpdateError }
@@ -2401,6 +2417,7 @@ Function TCheckConstraints.GetItem(Index : Longint) : TCheckConstraint;
 
 begin
   //!! To be implemented
+  Result := nil;
 end;
 
 
@@ -2415,6 +2432,7 @@ function TCheckConstraints.GetOwner: TPersistent;
 
 begin
   //!! To be implemented
+  Result := nil;
 end;
 
 
@@ -2422,6 +2440,7 @@ constructor TCheckConstraints.Create(AOwner: TPersistent);
 
 begin
   //!! To be implemented
+  inherited Create(TCheckConstraint);
 end;
 
 
@@ -2429,6 +2448,7 @@ function TCheckConstraints.Add: TCheckConstraint;
 
 begin
   //!! To be implemented
+  Result := nil;
 end;
 
 { TLookupList }

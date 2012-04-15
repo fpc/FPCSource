@@ -14,8 +14,6 @@
 
  **********************************************************************}
 
-{$ifdef INTERNCONSTINTF}
-
 {$ifndef FPC_SYSTEM_HAS_ABS}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : valreal) : valreal;compilerproc;
@@ -46,15 +44,3 @@
     end;
 {$endif}
 
-{$else}
-
-    {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : extended) : extended;[internproc:fpc_in_abs_real];
-
-    {$define FPC_SYSTEM_HAS_SQR}
-    function sqr(d : extended) : extended;[internproc:fpc_in_sqr_real];
-
-    {$define FPC_SYSTEM_HAS_SQRT}
-    function sqrt(d : extended) : extended;[internproc:fpc_in_sqrt_real];
-
-{$endif}

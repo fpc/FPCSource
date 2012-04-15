@@ -136,7 +136,7 @@ implementation
 
 uses
    SysUtils,
-   systems,tokens,verbose,constexp,
+   cclasses,systems,tokens,verbose,constexp,
    cutils,globals,widestr,scanner,
    symconst,symtable,
    aasmbase,aasmtai,aasmcpu,defutil,defcmp,
@@ -151,6 +151,19 @@ uses
    ;
 
 {$maxfpuregisters 0}
+
+function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectList; var symidx:longint):tsym;inline;
+  begin
+    while symidx<SymList.Count do
+      begin
+        result:=tsym(def.symtable.SymList[symidx]);
+        inc(symidx);
+        if result.typ=fieldvarsym then
+          exit;
+      end;
+    result:=nil;
+  end;
+
 
 {*****************************************************************************
                              read typed const
@@ -302,15 +315,9 @@ uses
       end;
 
 
-{$ifopt r+}
-{$define rangeon}
+{$push}
 {$r-}
-{$endif}
-
-{$ifopt q+}
-{$define overflowon}
 {$q-}
-{$endif}
     { (values between quotes below refer to fields of bp; fields not         }
     {  mentioned are unused by this routine)                                 }
     { bitpacks "value" as bitpacked value of bitsize "packedbitsize" into    }
@@ -343,16 +350,7 @@ uses
         inc(bp.curbitoffset,bp.packedbitsize);
       end;
 
-{$ifdef rangeon}
-{$r+}
-{$undef rangeon}
-{$endif}
-
-{$ifdef overflowon}
-{$q+}
-{$undef overflowon}
-{$endif}
-
+{$pop}
 
     procedure flush_packed_value(list: tasmlist; var bp: tbitpackedval);
       var
@@ -442,6 +440,7 @@ uses
         ll        : tasmlabel;
         ca        : pchar;
         winlike   : boolean;
+        hsym      : tconstsym;
       begin
         { load strval and strlength of the constant tree }
         if (node.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(node) or
@@ -476,8 +475,26 @@ uses
           end
         else if is_constresourcestringnode(node) then
           begin
-            strval:=pchar(tconstsym(tloadnode(node).symtableentry).value.valueptr);
-            strlength:=tconstsym(tloadnode(node).symtableentry).value.len;
+            hsym:=tconstsym(tloadnode(node).symtableentry);
+            strval:=pchar(hsym.value.valueptr);
+            strlength:=hsym.value.len;
+            { Delphi-compatible (mis)feature:
+              Link AnsiString constants to their initializing resourcestring,
+              enabling them to be (re)translated at runtime.
+              Wide/UnicodeString are currently rejected above (with incorrect error message).
+              ShortStrings cannot be handled unless another table is built for them;
+              considering this acceptable, because Delphi rejects them altogether.
+            }
+            if (not is_shortstring(def)) and
+               ((tcsym.owner.symtablelevel<=main_program_level) or
+                (current_old_block_type=bt_const)) then
+              begin
+                current_asmdata.ResStrInits.Concat(
+                  TTCInitItem.Create(tcsym,curoffset,
+                  current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name)))
+                );
+                Include(tcsym.varoptions,vo_force_finalize);
+              end;
           end
         else
           begin
@@ -518,7 +535,7 @@ uses
                    if (strlength=0) then
                      ll := nil
                    else
-                     ll := emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength);
+                     ll := emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength,def.encoding);
                    list.concat(Tai_const.Create_sym(ll));
                 end;
               st_unicodestring,
@@ -532,6 +549,7 @@ uses
                        winlike := (def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
                        ll := emit_unicodestring_const(current_asmdata.asmlists[al_const],
                               strval,
+                              def.encoding,
                               winlike);
 
                        { Collect Windows widestrings that need initialization at startup.
@@ -565,7 +583,7 @@ uses
         begin
           if is_constnode(node) then
             IncompatibleTypes(node.resultdef, def)
-          else
+          else if not(parse_generic) then
             Message(parser_e_illegal_expression);
         end;
 
@@ -605,6 +623,8 @@ uses
              end;
            uchar :
              begin
+                if is_constwidecharnode(node) then
+                  inserttypeconv(node,cansichartype);
                 if is_constcharnode(node) or
                   ((m_delphi in current_settings.modeswitches) and
                    is_constwidecharnode(node) and
@@ -647,7 +667,7 @@ uses
            scurrency:
              begin
                 if is_constintnode(node) then
-                  intvalue := tordconstnode(node).value
+                  intvalue:=tordconstnode(node).value*10000
                 { allow bootstrapping }
                 else if is_constrealnode(node) then
                   intvalue:=PInt64(@trealconstnode(node).value_currency)^
@@ -877,11 +897,11 @@ uses
                                  {Prevent overflow.}
                                  v:=get_ordinal_value(tvecnode(hp).right)-base;
                                  if (v<int64(low(offset))) or (v>int64(high(offset))) then
-                                   message(parser_e_range_check_error);
+                                   message3(type_e_range_check_error_bounds,tostr(v),tostr(low(offset)),tostr(high(offset)));
                                  if high(offset)-offset div len>v then
                                    inc(offset,len*v.svalue)
                                  else
-                                   message(parser_e_range_check_error);
+                                   message3(type_e_range_check_error_bounds,tostr(v),'0',tostr(high(offset)-offset div len))
                                end
                              else
                                Message(parser_e_illegal_expression);
@@ -1024,7 +1044,7 @@ uses
             exit;
           end;
         if (Tordconstnode(node).value<qword(low(Aword))) or (Tordconstnode(node).value>qword(high(Aword))) then
-          message(parser_e_range_check_error)
+          message3(type_e_range_check_error_bounds,tostr(Tordconstnode(node).value),tostr(low(Aword)),tostr(high(Aword)))
         else
           bitpackval(Tordconstnode(node).value.uvalue,bp);
         if (bp.curbitoffset>=AIntBits) then
@@ -1090,7 +1110,13 @@ uses
                  len:=tstringconstnode(n).len;
                   case char_size of
                     1:
-                      ca:=pointer(tstringconstnode(n).value_str);
+                     begin
+                       if (tstringconstnode(n).cst_type in [cst_unicodestring,cst_widestring]) then
+                         inserttypeconv(n,getansistringdef);
+                       if n.nodetype<>stringconstn then
+                         internalerror(2010033003);
+                       ca:=pointer(tstringconstnode(n).value_str);
+                     end;
                     2:
                       begin
                         inserttypeconv(n,cwidestringtype);
@@ -1118,6 +1144,24 @@ uses
                           internalerror(2010033001);
                         widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
                       end;
+                    else
+                      internalerror(2010033002);
+                  end;
+                  ca:=@ch;
+                  len:=1;
+                end
+             else if is_constwidecharnode(n) and (current_settings.sourcecodepage<>CP_UTF8) then
+                begin
+                  case char_size of
+                    1:
+                      begin
+                        inserttypeconv(n,cansichartype);
+                        if not is_constcharnode(n) then
+                          internalerror(2010033001);
+                        ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
+                      end;
+                    2:
+                      widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
                     else
                       internalerror(2010033002);
                   end;
@@ -1270,7 +1314,7 @@ uses
 
       var
         i : longint;
-
+        SymList:TFPHashObjectList;
       begin
         { GUID }
         if (def=rec_tguid) and (token=_ID) then
@@ -1320,9 +1364,10 @@ uses
         { normal record }
         consume(_LKLAMMER);
         recoffset:=0;
-        symidx:=0;
         sorg:='';
-        srsym:=tsym(def.symtable.SymList[symidx]);
+        symidx:=0;
+        symlist:=def.symtable.SymList;
+        srsym:=get_next_varsym(def,symlist,symidx);
         recsym := nil;
         startoffset:=curoffset;
         while token<>_RKLAMMER do
@@ -1357,8 +1402,9 @@ uses
                    {   const r: tr = (w1:1;w2:1;l2:5);                  }
                    (tfieldvarsym(recsym).fieldoffset = recoffset) then
                   begin
-                    srsym := recsym;
-                    symidx := def.symtable.SymList.indexof(srsym)
+                    srsym:=recsym;
+                    { symidx should contain the next symbol id to search }
+                    symidx:=SymList.indexof(srsym)+1;
                   end
                 { going backwards isn't allowed in any mode }
                 else if (tfieldvarsym(recsym).fieldoffset<recoffset) then
@@ -1430,11 +1476,7 @@ uses
                 { record was initialized (JM)                    }
                 recsym := srsym;
                 { goto next field }
-                inc(symidx);
-                if symidx<def.symtable.SymList.Count then
-                  srsym:=tsym(def.symtable.SymList[symidx])
-                else
-                  srsym:=nil;
+                srsym:=get_next_varsym(def,SymList,symidx);
 
                 if token=_SEMICOLON then
                   consume(_SEMICOLON)
@@ -1669,6 +1711,7 @@ uses
     procedure tnodetreetypedconstbuilder.parse_recorddef(def: trecorddef);
       var
         n,n2    : tnode;
+        SymList:TFPHashObjectList;
         orgbasenode : tnode;
         symidx  : longint;
         recsym,
@@ -1724,9 +1767,10 @@ uses
         { normal record }
         consume(_LKLAMMER);
         recoffset:=0;
-        symidx:=0;
         sorg:='';
-        srsym:=tsym(def.symtable.SymList[symidx]);
+        symidx:=0;
+        symlist:=def.symtable.SymList;
+        srsym:=get_next_varsym(def,symlist,symidx);
         recsym := nil;
         orgbasenode:=basenode;
         basenode:=nil;
@@ -1762,8 +1806,9 @@ uses
                    {   const r: tr = (w1:1;w2:1;l2:5);                  }
                    (tfieldvarsym(recsym).fieldoffset = recoffset) then
                   begin
-                    srsym := recsym;
-                    symidx := def.symtable.SymList.indexof(srsym)
+                    srsym:=recsym;
+                    { symidx should contain the next symbol id to search }
+                    symidx:=SymList.indexof(srsym)+1;
                   end
                 { going backwards isn't allowed in any mode }
                 else if (tfieldvarsym(recsym).fieldoffset<recoffset) then
@@ -1809,15 +1854,7 @@ uses
                 { record was initialized (JM)                    }
                 recsym := srsym;
                 { goto next field }
-                repeat
-                  inc(symidx);
-                  if symidx<def.symtable.SymList.Count then
-                    srsym:=tsym(def.symtable.SymList[symidx])
-                  else
-                    srsym:=nil;
-                until (srsym=nil) or
-                      (srsym.typ=fieldvarsym);
-
+                srsym:=get_next_varsym(def,SymList,symidx);
                 if token=_SEMICOLON then
                   consume(_SEMICOLON)
                 else if (token=_COMMA) and (m_mac in current_settings.modeswitches) then

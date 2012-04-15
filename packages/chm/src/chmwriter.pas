@@ -78,6 +78,7 @@ Type
     HeaderSuffix: TITSFHeaderSuffix; //contains the offset of CONTENTSection0 from zero
     HeaderSection0: TITSPHeaderPrefix;
     HeaderSection1: TITSPHeader; // DirectoryListings header
+    FReadmeMessage : String;
     // DirectoryListings
     // CONTENT Section 0 (section 1 is contained in section 0)
     // EOF
@@ -125,6 +126,7 @@ Type
     property OnLastFile: TNotifyEvent read FOnLastFile write FOnLastFile;
     property OutStream: TStream read FOutStream;
     property TempRawStream: TStream read FTempStream write SetTempRawStream;
+    property ReadmeMessage : String read fReadmeMessage write fReadmeMessage;
     //property LocaleID: dword read ITSFHeader.LanguageID write ITSFHeader.LanguageID;
   end;
 
@@ -525,7 +527,7 @@ begin
 end;
 
 procedure TITSFWriter.WriteREADMEFile;
-const DISCLAIMER_STR = 'This archive was not made by the MS HTML Help Workshop(r)(tm) program.';
+const DISCLAIMER_STR = 'This archive was not made by the MS HTML Help Workshop(r)(tm) program, but by Free Pascal''s chm package '+chmpackageversion+'.'#13#10;
 var
   Entry: TFileEntryRec;
 begin
@@ -533,6 +535,8 @@ begin
   Entry.Compressed := False;
   Entry.DecompressedOffset := FSection0.Position;
   FSection0.Write(DISCLAIMER_STR, SizeOf(DISCLAIMER_STR));
+  if length(FReadmeMessage)>0 then
+    FSection0.Write(FReadmeMessage[1], length(FReadmeMessage));
   Entry.DecompressedSize := FSection0.Position - Entry.DecompressedOffset;
   Entry.Path := '/';
   Entry.Name := '_#_README_#_'; //try to use a name that won't conflict with normal names
@@ -643,6 +647,7 @@ begin
     then begin
       // the current file has been read. move to the next file in the list
       FCurrentStream.Position := 0;
+      FCurrentStream.Size:=0;
       Inc(FCurrentIndex);
       ForceExit := OnGetFileData(FFileNames[FCurrentIndex], FileEntry.Path, FileEntry.Name, FCurrentStream);
       FileEntry.DecompressedSize := FCurrentStream.Size;

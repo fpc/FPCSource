@@ -36,9 +36,9 @@ type
     FWidth: Integer;
     FHeight: Integer;
     FPages: Integer;
-    FArea: TPTCArea;
-    FClip: TPTCArea;
-    FFormat: TPTCFormat;
+    FArea: IPTCArea;
+    FClip: IPTCArea;
+    FFormat: IPTCFormat;
 
     FActive: Boolean;
     FBlocking: Boolean;
@@ -52,7 +52,7 @@ type
 
     FLocked: Pointer;
 
-    FPalette: TPTCPalette;
+    FPalette: IPTCPalette;
 
     FPrimaryWidth: Integer;
     FPrimaryHeight: Integer;
@@ -72,7 +72,7 @@ type
 
     FBack, FFront: IDirectDrawSurface;
 
-    function Pack(const AColor: TPTCColor; const AFormat: TPTCFormat): Uint32;
+    function Pack(const AColor: IPTCColor; const AFormat: IPTCFormat): Uint32;
     procedure Analyse(AMask: Uint32; out ABase, ASize: Integer);
     function GetDDS: IDirectDrawSurface;
     function GetPitch: Integer;
@@ -93,20 +93,20 @@ type
     procedure Unlock;
 
     procedure Clear;
-    procedure Clear(const AColor: TPTCColor; const AArea: TPTCArea);
+    procedure Clear(AColor: IPTCColor; const AArea: IPTCArea);
 
-    procedure Palette(const APalette: TPTCPalette);
-    function Palette: TPTCPalette;
+    procedure Palette(APalette: IPTCPalette);
+    function Palette: IPTCPalette;
 
-    procedure Clip(const AArea: TPTCArea);
+    procedure Clip(const AArea: IPTCArea);
 
     property Width: Integer read FWidth;
     property Height: Integer read FHeight;
     property Pages: Integer read FPages;
     property Pitch: Integer read GetPitch;
-    property Area: TPTCArea read FArea;
-    function Clip: TPTCArea;
-    property Format: TPTCFormat read FFormat;
+    property Area: IPTCArea read FArea;
+    function Clip: IPTCArea;
+    property Format: IPTCFormat read FFormat;
 
     property DDS: IDirectDrawSurface read GetDDS;
     property DDSPrimary: IDirectDrawSurface read FDDSPrimary;

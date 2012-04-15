@@ -88,7 +88,7 @@ interface
     function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
     function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume : ttoken):boolean;
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean):boolean;
 
     function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
 
@@ -191,7 +191,7 @@ implementation
           end;
         searchsym(pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
-        try_consume_unitsym(srsym,srsymtable,t);
+        try_consume_unitsym(srsym,srsymtable,t,true);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
@@ -224,7 +224,7 @@ implementation
           end;
         searchsym(pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
-        try_consume_unitsym(srsym,srsymtable,t);
+        try_consume_unitsym(srsym,srsymtable,t,true);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
@@ -240,14 +240,16 @@ implementation
       end;
 
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume : ttoken):boolean;
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean):boolean;
       var
         hmodule: tmodule;
+        ns:ansistring;
+        nssym:tsym;
       begin
         result:=false;
         tokentoconsume:=_ID;
-        if assigned(srsym) and
-           (srsym.typ=unitsym) then
+
+        if assigned(srsym) and (srsym.typ in [unitsym,namespacesym]) then
           begin
             if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
               internalerror(200501154);
@@ -260,8 +262,38 @@ implementation
               internalerror(201001120);
             if hmodule.unit_index=current_filepos.moduleindex then
               begin
-                consume(_ID);
+                if consume_id then
+                  consume(_ID);
                 consume(_POINT);
+                if srsym.typ=namespacesym then
+                  begin
+                    ns:=srsym.name;
+                    nssym:=srsym;
+                    while assigned(srsym) and (srsym.typ=namespacesym) do
+                      begin
+                        { we have a namespace. the next identifier should be either a namespace or a unit }
+                        searchsym_in_module(hmodule,ns+'.'+pattern,srsym,srsymtable);
+                        if assigned(srsym) and (srsym.typ in [namespacesym,unitsym]) then
+                          begin
+                            ns:=ns+'.'+pattern;
+                            nssym:=srsym;
+                            consume(_ID);
+                            consume(_POINT);
+                          end;
+                      end;
+                    { check if there is a hidden unit with this pattern in the namespace }
+                    if not assigned(srsym) and
+                       assigned(nssym) and (nssym.typ=namespacesym) and assigned(tnamespacesym(nssym).unitsym) then
+                      srsym:=tnamespacesym(nssym).unitsym;
+                    if assigned(srsym) and (srsym.typ<>unitsym) then
+                      internalerror(201108260);
+                    if not assigned(srsym) then
+                      begin
+                        result:=true;
+                        srsymtable:=nil;
+                        exit;
+                      end;
+                  end;
                 case token of
                   _ID:
                     { system.char? (char=widechar comes from the implicit

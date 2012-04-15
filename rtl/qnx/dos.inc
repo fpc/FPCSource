@@ -132,18 +132,13 @@ begin
    exit;
   end;
 { otherwise try to open the TIMEZONE file }
-{$IFOPT I+}
-{$DEFINE IOCHECK_ON}
-{$ENDIF}
+{$push}
 {$I-}
  Assign(T, '/etc/TIMEZONE');
  Reset(T);
  If IOResult <> 0 then
   exit;
-{$IFDEF IOCHECK_ON}
-{$I+}
-{$ENDIF}
-{$UNDEF IOCHECK_ON}
+{$pop}
  ReadLn(T,s);
  Close(T);
  GetTimeZoneString:=s;

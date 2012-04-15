@@ -458,4 +458,5 @@ unit cpubase;
         result:=TRegister(longint(r)+ofs);
       end;
 
+
 end.

@@ -102,6 +102,7 @@ implementation
         systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
         systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
         systemunit.insert(tsyssym.create('ObjCEncode',in_objc_encode_x)); { objc only }
+        systemunit.insert(tsyssym.create('Default',in_default_x));
       end;
 
 
@@ -167,7 +168,7 @@ implementation
         cshortstringtype:=tstringdef.createshort(255);
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=tstringdef.createlong(-1);
-        cansistringtype:=tstringdef.createansi;
+        cansistringtype:=tstringdef.createansi(0);
         if target_info.system in systems_windows then
           cwidestringtype:=tstringdef.createwide
         else
@@ -214,10 +215,14 @@ implementation
         sc80floattype:=tfloatdef.create(sc80real);
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif avr}
+{$ifdef mips}
+        create_fpu_types;
+        s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
+{$endif mips}
 {$ifdef jvm}
         create_fpu_types;
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
-{$endif POWERPC64}
+{$endif jvm}
 {$ifdef cpu64bitaddr}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
@@ -632,6 +637,7 @@ implementation
         aiclass[ait_regalloc]:=tai_regalloc;
         aiclass[ait_tempalloc]:=tai_tempalloc;
         aiclass[ait_marker]:=tai_marker;
+        aiclass[ait_seh_directive]:=tai_seh_directive;
         aiclass[ait_jvar]:=tai_jvar;
         aiclass[ait_jcatch]:=tai_jcatch;
       end;

@@ -111,7 +111,7 @@ begin
   f:=CFileStreamClass.Create(fn,fmCreate);
   if CStreamError<>0 then
     begin
-       Message1(exec_e_cant_create_objectfile,fn);
+       Message2(exec_e_cant_create_objectfile,fn,IntToStr(CStreamError));
        exit;
     end;
   bufidx:=0;

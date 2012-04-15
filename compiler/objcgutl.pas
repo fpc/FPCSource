@@ -133,9 +133,6 @@ function objcaddprotocolentry(const p: shortstring; ref: TAsmSymbol): Boolean;
   var
     item  : PHashSetItem;
   begin
-    if current_asmdata.ConstPools[sp_objcprotocolrefs]=nil then
-      current_asmdata.ConstPools[sp_objcprotocolrefs]:=THashSet.Create(64, True, False);
-
     item:=current_asmdata.constpools[sp_objcprotocolrefs].FindOrAdd(@p[1], length(p));
     Result:=(item^.Data=nil);
     if Result then
@@ -153,8 +150,6 @@ function objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tconst
     pc     : pchar;
     pool   : THashSet;
   begin
-    if current_asmdata.ConstPools[pooltype]=nil then
-       current_asmdata.ConstPools[pooltype]:=THashSet.Create(64, True, False);
     pool := current_asmdata.constpools[pooltype];
 
     entry:=pool.FindOrAdd(p,len);
@@ -1128,6 +1123,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     }
     lbl:=current_asmdata.DefineAsmSymbol(protocol.rtti_mangledname(objcclassrtti),AB_PRIVATE_EXTERN,AT_DATA);
     list.Concat(tai_symbol.Create_Global(lbl,0));
+    list.Concat(tai_directive.Create(asd_weak_definition,lbl.name));
     protocollabel:=lbl;
 
     { protocol's isa - always nil }

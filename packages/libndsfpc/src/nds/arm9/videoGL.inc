@@ -184,6 +184,7 @@ const
 type
   GL_TEXTURE_TYPE_ENUM = cint32;
 const
+  GL_NOTEXTURE  : GL_TEXTURE_TYPE_ENUM = 0; 
 	GL_RGB32_A3   : GL_TEXTURE_TYPE_ENUM = 1;
 	GL_RGB4       : GL_TEXTURE_TYPE_ENUM = 2;
 	GL_RGB16      : GL_TEXTURE_TYPE_ENUM = 3;
@@ -193,7 +194,11 @@ const
 	GL_RGBA       : GL_TEXTURE_TYPE_ENUM = 7;
 	GL_RGB        : GL_TEXTURE_TYPE_ENUM = 8;
 
-
+type
+  GL_TEXTURE_PALETTE_PARAM_ENUM = cint32;
+const
+  GL_COLOR_TABLE_FORMAT_EXT: GL_TEXTURE_PALETTE_PARAM_ENUM	= 0;
+	GL_COLOR_TABLE_WIDTH_EXT : GL_TEXTURE_PALETTE_PARAM_ENUM	= 1;
 
 type
   DISP3DCNT_ENUM = cint32;
@@ -352,6 +357,7 @@ procedure glRotatef32i(angle: cint; x, y, z: cint32); cdecl; external;
 function glTexImage2D(target, empty1: cint; _type: GL_TEXTURE_TYPE_ENUM; sizeX, sizeY, empty2, param: cint; texture: pointer): cint; cdecl; external;
 
 procedure glColorTableEXT(target, empty1: cint; width: cuint16; empty2, empty3: cint; const table: pcuint16); cdecl; external;
+procedure glColorSubTableEXT(target, start, count, empty1, empty2: cint; const data: pcuint16); cdecl; external;
 procedure glAssignColorTable(target, name: cint); cdecl; external;
 
 //procedure glTexLoadPal(const pal: pcuint16; count: cuint16; addr: cuint32); cdecl; external;
@@ -359,6 +365,7 @@ procedure glAssignColorTable(target, name: cint); cdecl; external;
 
 procedure glTexParameter(target, param: cint); cdecl; external;
 function glGetTexParameter(): cuint32; cdecl; external;
+procedure glGetColorTableParameterEXT(target, pname: cint; params: pcint); cdecl; external;
 function glGetTexturePointer(name: cint): pointer; cdecl; external;
 procedure glBindTexture(target, name: cint); cdecl; external;
 //procedure glColorTable(format: cuint8; addr: cuint32); cdecl; external;
@@ -370,8 +377,8 @@ procedure glMaterialf(mode: GL_MATERIALS_ENUM; color: rgb); cdecl; external;
 procedure glInit_C(); cdecl; external;
 function glGetGlobals(): PGLHiddenGlobals; cdecl; external;
 
-function POLY_ALPHA(n: cint): cuint32; inline;
-function POLY_ID(n: cint): cuint32; inline;	
+function POLY_ALPHA(n: cuint32): cuint32; inline;
+function POLY_ID(n: cuint32): cuint32; inline;	
 procedure glBegin(mode: GL_GLBEGIN_ENUM); inline;
 procedure glEnd(); inline;
 procedure glClearDepth(depth: fixed12d3); inline;
@@ -737,12 +744,12 @@ end;
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-function POLY_ALPHA(n: cint): cuint32; inline;
+function POLY_ALPHA(n: cuint32): cuint32; inline;
 begin
   POLY_ALPHA := cuint32((n) shl 16);
 end;
 
-function POLY_ID(n: cint): cuint32; inline;	
+function POLY_ID(n: cuint32): cuint32; inline;	
 begin
   POLY_ID := cuint32((n) shl 24);
 end;
@@ -885,7 +892,7 @@ begin
   end;
 
   for i := 0 to 31 do
-    GFX_SHININESS[i] := shiny32[i];
+    GFX_SHININESS^ := shiny32[i];
 end;
 
 procedure glCallList(list: pcuint32); inline;

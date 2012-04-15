@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for odbc bindings
+#
+[package]
+name=odbc
+version=2.7.1
+
+[target]
+units=odbcsql odbcsqldyn
+exampledirs=examples
+
+[require]
+libc=n
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+

@@ -30,13 +30,8 @@
             movl %ecx,%eax
             orl %ebx,%eax
             jnz .Lnodivzero
-{$ifdef REGCALL}
             movl  %ebp,%edx
             movl  $200,%eax
-{$else}
-            pushl %ebp
-            pushl $200
-{$endif}
             call HandleErrorFrame
             jmp .Lexit
 .Lnodivzero:
@@ -104,13 +99,8 @@
             movl %ecx,%eax
             orl %ebx,%eax
             jnz .Lnodivzero
-{$ifdef REGCALL}
             movl  %ebp,%edx
             movl  $200,%eax
-{$else}
-            pushl %ebp
-            pushl $200
-{$endif}
             call HandleErrorFrame
             jmp .Lexit
 .Lnodivzero:

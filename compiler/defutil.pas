@@ -168,6 +168,9 @@ interface
     {# Returns true if p is an ansi string type }
     function is_ansistring(p : tdef) : boolean;
 
+    {# Returns true if p is an ansi string type with codepage 0 }
+    function is_rawbytestring(p : tdef) : boolean;
+
     {# Returns true if p is a long string type }
     function is_longstring(p : tdef) : boolean;
 
@@ -616,6 +619,14 @@ implementation
                         (tstringdef(p).stringtype=st_ansistring);
       end;
 
+    { true if p is an ansi string def with codepage CP_NONE }
+    function is_rawbytestring(p : tdef) : boolean;
+      begin
+        is_rawbytestring:=(p.typ=stringdef) and
+                       (tstringdef(p).stringtype=st_ansistring) and
+                       (tstringdef(p).encoding=globals.CP_NONE);
+      end;
+
     { true if p is an long string def }
     function is_longstring(p : tdef) : boolean;
       begin
@@ -750,7 +761,7 @@ implementation
     { true, if def is a 64 bit type }
     function is_64bit(def : tdef) : boolean;
       begin
-         is_64bit:=(def.typ=orddef) and (torddef(def).ordtype in [u64bit,s64bit,scurrency])
+         is_64bit:=(def.typ=orddef) and (torddef(def).ordtype in [u64bit,s64bit,scurrency,pasbool64,bool64bit])
       end;
 
 
@@ -773,9 +784,9 @@ implementation
                      not(m_delphi in current_settings.modeswitches)) or
                     (cs_check_range in current_settings.localswitches) or
                     forcerangecheck then
-                   Message(parser_e_range_check_error)
+                   Message3(type_e_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv))
                  else
-                   Message(parser_w_range_check_error);
+                   Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
                end;
              { Fix the value to fit in the allocated space for this type of variable }
              case longint(todef.size) of
@@ -1046,7 +1057,7 @@ implementation
         case p.typ of
           orddef:
             result:=torddef(p).ordtype in [u8bit,s8bit,u16bit,s16bit,u32bit,s32bit,
-              u64bit,s64bit,bool16bit];
+              u64bit,s64bit,bool16bit,scurrency];
           floatdef:
             result:=tfloatdef(p).floattype in [s64currency,s64real,s32real];
           stringdef:

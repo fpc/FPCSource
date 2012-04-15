@@ -14,6 +14,7 @@ uses
 // List of supported database-connectors
   sqldbtoolsunit,
   dbftoolsunit,
+  bufdatasettoolsunit,
   memdstoolsunit,
   SdfDSToolsUnit,
 // Units wich contains the tests

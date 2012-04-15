@@ -1,3 +1,4 @@
+{ %NORUN }
 program tgeneric29;
 
 {$mode delphi}

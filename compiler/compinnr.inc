@@ -83,8 +83,9 @@ const
    in_sar_x             = 73;
    in_bsf_x             = 74;
    in_bsr_x             = 75;
-   in_box_x             = 76; { managed platforms: wrap in class instance }
-   in_unbox_x_y         = 77; { manage platforms: extract from class instance }
+   in_default_x         = 76;
+   in_box_x             = 77; { managed platforms: wrap in class instance }
+   in_unbox_x_y         = 78; { manage platforms: extract from class instance }
 
 { Internal constant functions }
    in_const_sqr        = 100;

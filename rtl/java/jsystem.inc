@@ -64,9 +64,9 @@ Const
 {$i filerec.inc}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
-{$ifdef FPC_HAS_FEATURE_TEXTIO}
+{$ifndef CPUJVM}
 {$i textrec.inc}
-{$endif FPC_HAS_FEATURE_TEXTIO}
+{$endif CPUJVM}
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   {$ifdef FPC_OBJFPC_EXTENDED_IF}
@@ -86,7 +86,6 @@ type
   FileFunc = Procedure(var t : TextRec);
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
-
 const
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
 { Random / Randomize constants }
@@ -94,7 +93,7 @@ const
 
 (*
 { For Error Handling.}
-  ErrorBase : Pointer = nil;
+  ErrorBase : Pointer = nil; public name 'FPC_ERRORBASE';
 *)
 
 { Used by the ansi/widestrings and maybe also other things in the future }
@@ -157,6 +156,7 @@ function do_isdevice(handle:thandle):boolean;forward;
     {$Error Can't determine processor type !}
   {$endif}
   {$i i386.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
 {$endif cpui386}
 
 {$ifdef cpum68k}
@@ -235,6 +235,22 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpuavr}
 
+{$ifdef cpumips}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i mips.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpumips}
+
+{$ifdef cpumipsel}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i mipsel.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpumipsel}
+
 {$ifdef cpujvm}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
@@ -243,7 +259,11 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpuavr}
 
-{$ifndef jvm}
+{$ifndef SYSPROCDEFINED}
+  {$Error Can't determine processor type !}
+{$endif}
+
+{$ifndef cpujvm}
 procedure fillchar(var x;count : SizeInt;value : boolean);
 begin
   fillchar(x,count,byte(value));
@@ -272,7 +292,13 @@ function CompareChar(Const buf1,buf2;len:SizeInt):SizeInt;
 begin
   CompareChar:=CompareByte(buf1,buf2,len);
 end;
-{$endif jvm}
+
+
+procedure fpc_zeromem(p:pointer;len:ptruint);
+begin
+  FillChar(p^,len,0);
+end;
+{$endif cpujvm}
 
 { Include generic pascal only routines which are not defined in the processor
   specific include file }
@@ -283,13 +309,13 @@ end;
                                 Set Handling
 ****************************************************************************}
 
-{$ifndef jvm}
+{$ifndef cpujvm}
 { Include set support which is processor specific}
 {$i set.inc}
 { Include generic pascal routines for sets if the processor }
 { specific routines are not available.                      }
 {$i genset.inc}
-{$endif}
+{$endif cpujvm}
 
 {****************************************************************************
                                Math Routines
@@ -384,9 +410,9 @@ function aligntoptr(p : pointer) : pointer;inline;
 { requires sstrings.inc for initval }
 {$I int64p.inc}
 { contains invalid typecasts for the JVM}
-{$ifndef jvm}
+{$ifndef cpujvm}
 {$I int64.inc}
-{$endif not jvm}
+{$endif not cpujvm}
 
 {Requires int64.inc, since that contains the VAL functions for int64 and qword}
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
@@ -645,20 +671,11 @@ End;
 *)
 
 
-{$ifopt R+}
-{$define RangeCheckWasOn}
+
+{$push}
 {$R-}
-{$endif opt R+}
-
-{$ifopt I+}
-{$define IOCheckWasOn}
 {$I-}
-{$endif opt I+}
-
-{$ifopt Q+}
-{$define OverflowCheckWasOn}
 {$Q-}
-{$endif opt Q+}
 
 {*****************************************************************************
                              Miscellaneous
@@ -744,9 +761,7 @@ end;
 
 {$IFNDEF NO_GENERIC_STACK_CHECK}
 
-{$IFOPT S+}
-{$DEFINE STACKCHECK}
-{$ENDIF}
+{$PUSH}
 {$S-}
 procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK'];
 var
@@ -765,10 +780,7 @@ begin
      HandleError(202);
    end;
 end;
-{$IFDEF STACKCHECK}
-{$S+}
-{$ENDIF}
-{$UNDEF STACKCHECK}
+{$POP}
 
 {$ENDIF NO_GENERIC_STACK_CHECK}
 
@@ -825,10 +837,12 @@ procedure internal_initializeunits; external name 'FPC_INITIALIZEUNITS';
 
 procedure fpc_LibInitializeUnits;[public,alias:'FPC_LIBINITIALIZEUNITS'];
 begin
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
   IsLibrary:=true;
   { must also be set to true for packages when implemented }
   ModuleIsLib:=true;
   internal_initializeunits;
+{$endif FPC_HAS_FEATURE_DYNLIBS}
 end;
 
 
@@ -896,6 +910,9 @@ Procedure InternalExit;
 (*
 var
   current_exit : Procedure;
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  pstdout : ^Text;
+{$endif}
 {$if defined(MSWINDOWS) or defined(OS2)}
   i : longint;
 {$endif}
@@ -916,7 +933,22 @@ Begin
   FinalizeUnits;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  { the embedded system unit itself contains no routines for console i/o
+    console i/o is done by the Consoleio unit which can do things like
+    redirection to seriell i/o }
+{$ifndef EMBEDDED}
+  { Show runtime error and exit }
+  pstdout:=@stdout;
+  If erroraddr<>nil Then
+   Begin
+     Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));
+     { to get a nice symify }
+     Writeln(pstdout^,BackTraceStrFunc(Erroraddr));
+     dump_stack(pstdout^,ErrorBase);
+     Writeln(pstdout^,'');
+   End;
   SysFlushStdIO;
+{$endif EMBEDDED}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 {$if defined(MSWINDOWS) or defined(OS2)}
@@ -995,16 +1027,7 @@ begin
     raise TObject(nil) at addr,frame;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
-{$ifdef FPC_LIMITED_EXITCODE}
-  if errorcode > maxExitCode then
-    halt(255)
-  else
-{$endif FPC_LIMITED_EXITCODE}
-    halt(errorcode);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
+  Halt(errorcode);
 *)
 end;
 
@@ -1036,16 +1059,7 @@ begin
   erroraddr:=get_caller_addr(get_frame);
   errorbase:=get_caller_frame(get_frame);
   *)
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
-{$ifdef FPC_LIMITED_EXITCODE}
-  if errorcode > maxExitCode then
-    halt(255)
-  else
-{$endif FPC_LIMITED_EXITCODE}
-    halt(errorcode);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
+  Halt(errorcode);
 end;
 
 
@@ -1060,6 +1074,7 @@ Begin
   Halt(0);
 End;
 
+
 Procedure Error(RunTimeError : TRunTimeError);
 
 begin
@@ -1067,7 +1082,7 @@ begin
 end;
 
 
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+{$ifndef CPUJVM}
 Procedure dump_stack(var f : text;bp : Pointer);
 var
   i : Longint;
@@ -1122,7 +1137,7 @@ begin
 end;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
-{$endif FPC_HAS_FEATURE_CONSOLEIO}
+{$endif CPUJVM}
 
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
@@ -1310,11 +1325,7 @@ begin
     write(stderr,msg);
   Writeln(stderr,' (',FName,', line ',LineNo,').');
   Writeln(stderr,'');
-{$ifdef FPC_HAS_FEATURE_EXITCODE}
   Halt(227);
-{$else FPC_HAS_FEATURE_EXITCODE}
-  halt;
-{$endif FPC_HAS_FEATURE_EXITCODE}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 end;
 
@@ -1326,28 +1337,18 @@ end;
 {$i setjump.inc}
 
 
-{$ifdef IOCheckWasOn}
-{$I+}
-{$endif}
-
-{$ifdef RangeCheckWasOn}
-{$R+}
-{$endif}
-
-{$ifdef OverflowCheckWasOn}
-{$Q+}
-{$endif}
+{$pop}  //{$I-,R-,Q-} before 'procedure fpc_rangeerror'
 
 
 {*****************************************************************************
                                Heap
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_HEAP}
+{$ifndef CPUJVM}
 {$i sysheap.inc}
 
 {$i heap.inc}
-{$endif FPC_HAS_FEATURE_HEAP}
+{$endif CPUJVM}
 
 {*****************************************************************************
                           Thread support
@@ -1399,9 +1400,9 @@ end;
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { Text file }
-{$ifdef FPC_HAS_FEATURE_TEXTIO}
+{$ifndef CPUJVM}
 {$i text.inc}
-{$endif FPC_HAS_FEATURE_TEXTIO}
+{$endif CPUJVM}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Untyped file }

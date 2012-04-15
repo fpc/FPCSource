@@ -29,6 +29,26 @@ Interface
 
 Uses Sockets;
 
+{$IFDEF OS2}
+(* ETC directory location determined by environment variable ETC *)
+ {$DEFINE ETC_BY_ENV}
+(* Use names supported also on non-LFN drives like plain FAT-16. *)
+ {$DEFINE SFN_VERSION}
+{$ENDIF OS2}
+{$IFDEF GO32V2}
+ {$DEFINE ETC_BY_ENV}
+ {$DEFINE SFN_VERSION}
+{$ENDIF GO32V2}
+{$IFDEF WATCOM}
+ {$DEFINE ETC_BY_ENV}
+ {$DEFINE SFN_VERSION}
+{$ENDIF WATCOM}
+
+{$IFDEF UNIX}
+(* ETC directory location hardcoded to /etc/ *)
+ {$DEFINE UNIX_ETC}
+{$ENDIF UNIX}
+
 Type
   THostAddr = in_addr;		// historical aliases for these.
   THostAddr6= Tin6_addr;
@@ -37,15 +57,28 @@ Type
 Const
   DNSPort        = 53;
   MaxResolveAddr = 10;
-  SResolveFile   = '/etc/resolv.conf';
-  SServicesFile  = '/etc/services'; 
-  SHostsFile     = '/etc/hosts';
-  SNetworksFile  = '/etc/networks';
-  SProtocolFile  = '/etc/protocols';
+  SServicesFile  = 'services'; 
+  SHostsFile     = 'hosts';
+  SNetworksFile  = 'networks';
+{$IFDEF SFN_VERSION}
+  SProtocolFile  = 'protocol';
+  SResolveFile   = 'resolv';
+ {$IFDEF OS2}
+(* Peculiarity of OS/2 - depending on the used TCP/IP version, *)
+(* the file differs slightly in name and partly also content.  *)
+   SResolveFile2  = 'resolv2';
+ {$ENDIF OS2}
+{$ELSE SFN_VERSION}
+  SProtocolFile  = 'protocols';
+  SResolveFile   = 'resolv.conf';
+{$ENDIF SFN_VERSION}
 
   MaxRecursion = 10;
   MaxIP4Mapped = 10;
-  
+
+var
+  EtcPath: string;
+
 Type
   TDNSServerArray = Array of THostAddr;
   TServiceEntry = record
@@ -300,9 +333,9 @@ Var
 begin
   Result:=Nil;
   Assign(F,FileName);
-  {$I-}
+  {$push}{$I-}
   Reset(F);
-  {$I+};
+  {$pop};
   If (IOResult<>0) then
     Exit;
   Try  
@@ -387,12 +420,12 @@ Var
 begin
   If CheckHostsFileAge then
     begin
-    F:=FileAge(SHostsFile);
+    F:=FileAge (EtcPath + SHostsFile);
     If HostsFileAge<F then
       begin
       // Rescan.
       FreeHostsList(HostsList);
-      HostsList:=ProcessHosts(SHostsFile);
+      HostsList:=ProcessHosts (EtcPath + SHostsFile);
       HostsFileAge:=F;
       end;
     end;  
@@ -462,10 +495,10 @@ begin
   Result:=0;
   ResolveFileName:=Fn;
   ResolveFileAge:=FileAge(FN);
-  {$i-}
+  {$push}{$i-}
   Assign(R,FN);
   Reset(R);
-  {$i+}
+  {$pop}
   If (IOResult<>0) then 
     exit;
   Try  
@@ -1164,12 +1197,12 @@ Var
   
 begin
   Result:=False;
-  If FileExists(SProtocolFile) then
+  If FileExists (EtcPath + SProtocolFile) then
     begin
-    Assign(F,SProtocolFile);
-    {$i-}
+    Assign (F, EtcPath + SProtocolFile);
+    {$push}{$i-}
     Reset(F);
-    {$i+}
+    {$pop}
     If (IOResult=0) then
       begin
       While Not Result and GetNextProtoEntry(F,HE) do
@@ -1266,12 +1299,12 @@ Var
   
 begin
   Result:=False;
-  If FileExists(SNetworksFile) then
+  If FileExists (EtcPath + SNetworksFile) then
     begin
-    Assign(F,SNetworksFile);
-    {$i-}
+    Assign (F, EtcPath + SNetworksFile);
+    {$push}{$i-}
     Reset(F);
-    {$i+}
+    {$pop}
     If (IOResult=0) then
       begin
       While Not Result and GetNextNetworkEntry(F,NE) do
@@ -1359,12 +1392,12 @@ Var
   
 begin
   Result:=False;
-  If FileExists(SServicesFile) then
+  If FileExists (EtcPath + SServicesFile) then
     begin
-    Assign(F,SServicesFile);
-    {$i-}
+    Assign (F, EtcPath + SServicesFile);
+    {$push}{$i-}
     Reset(F);
-    {$i+}
+    {$pop}
     If (IOResult=0) then
       begin
       While Not Result and GetNextServiceEntry(F,TE) do
@@ -1413,11 +1446,28 @@ begin
   TimeOutS :=5;
   TimeOutMS:=0;
   CheckHostsFileAge:=False;
-  If FileExists(SHostsFile) then
-    HostsList:=ProcessHosts(SHostsFile);
+{$IFDEF UNIX_ETC}
+  EtcPath := '/etc/';
+{$ELSE UNIX_ETC}
+ {$IFDEF ETC_BY_ENV}
+  EtcPath := GetEnvironmentVariable ('ETC');
+  if (EtcPath <> '') and (EtcPath [Length (EtcPath)] <> DirectorySeparator) then
+   EtcPath := EtcPath + DirectorySeparator;
+ {$ELSE ETC_BY_ENV}
+{$WARNING Support for finding /etc/ directory not implemented for this platform!}
+
+ {$ENDIF ETC_BY_ENV}
+{$ENDIF UNIX_ETC}
+  If FileExists (EtcPath + SHostsFile) then
+    HostsList := ProcessHosts (EtcPath + SHostsFile);
   CheckResolveFileAge:=False;
-  If FileExists(SResolveFile) then
-    GetDNsservers(SResolveFile);
+  If FileExists(EtcPath + SResolveFile) then
+    GetDNsservers(EtcPath + SResolveFile)
+{$IFDEF OS2}
+  else if FileExists(EtcPath + SResolveFile2) then
+    GetDNsservers(EtcPath + SResolveFile2)
+{$ENDIF OS2}
+                                         ;
 end;
 
 Procedure DoneResolver;

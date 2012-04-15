@@ -32,7 +32,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
 {$define FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
-procedure fpc_shortstr_chararray_intern_charmove(const src: shortstring; out dst: array of char; const len: sizeint); {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_shortstr_chararray_intern_charmove(const src: shortstring; out dst: array of char; const len: sizeint);
 begin
   move(src[1],pchar(@dst)^,len);
 end;
@@ -770,7 +770,7 @@ begin
     end;
   if _self<>nil then
     begin
-      fillchar(_self^,pvmt(vmtcopy)^.size,#0);
+      fillchar(_self^,pvmt(vmtcopy)^.size,0);
       ppointer(_self+_vmt_pos)^:=vmtcopy;
     end;
   fpc_help_constructor:=_self;
@@ -881,19 +881,6 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_shortstr_to_shortstr(len:longint;const sstr:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
-var
-  slen : byte;
-begin
-  slen:=length(sstr);
-  if slen<len then
-    len:=slen;
-  move(sstr[0],result[0],len+1);
-  if slen>len then
-    result[0]:=chr(len);
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring);[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
 var
   slen : byte;
@@ -904,15 +891,12 @@ begin
   move(sstr[0],res[0],slen+1);
   res[0]:=chr(slen);
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
-procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN']; {$ifdef HAS_COMPILER_PROC} compilerproc; {$endif}
+procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
 var
   slen : byte;
-type
-  pstring = ^string;
 begin
-  slen:=length(pstring(sstr)^);
+  slen:=length(pshortstring(sstr)^);
   if slen<len then
     len:=slen;
   move(sstr^,dstr^,len+1);
@@ -922,28 +906,12 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
-{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
-
 {$push}
+{ ensure that comparing addresses of openshortstrings with regular shortstrings
+  doesn't cause errors }
 {$t-}
 
-{$ifndef STR_CONCAT_PROCS}
-
-function fpc_shortstr_concat(const s1,s2:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_CONCAT']; compilerproc;
-var
-  s1l, s2l : byte;
-begin
-  s1l:=length(s1);
-  s2l:=length(s2);
-  if s1l+s2l>255 then
-    s2l:=255-s1l;
-  fpc_shortstr_shortstr_intern_charmove(s1,1,fpc_shortstr_concat,1,s1l);
-  fpc_shortstr_shortstr_intern_charmove(s2,1,fpc_shortstr_concat,s1l+1,s2l);
-  fpc_shortstr_concat[0]:=chr(s1l+s2l);
-end;
-
-{$else STR_CONCAT_PROCS}
-
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
 var
   s1l, s2l : longint;
@@ -1033,19 +1001,15 @@ begin
   if needtemp then
     DestS:=TmpStr;
 end;
-
-{$endif STR_CONCAT_PROCS}
-
-{$pop}
-
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
+{$pop}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);compilerproc;
     [public,alias:'FPC_SHORTSTR_APPEND_SHORTSTR'];
 var
-  s1l, s2l : integer;
+  s1l, s2l : sizeint;
 begin
   s1l:=length(s1);
   s2l:=length(s2);
@@ -1099,25 +1063,6 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
-var
-  l : longint;
-  s: shortstring;
-begin
-  if p=nil then
-    l:=0
-  else
-    l:=strlen(p);
-  if l>255 then
-    l:=255;
-  if l>0 then
-    move(p^,s[1],l);
-  s[0]:=chr(l);
-  fpc_pchar_to_shortstr := s;
-end;
-
-{$else FPC_STRTOSHORTSTRINGPROC}
 
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 var
@@ -1136,63 +1081,24 @@ begin
   res:=s;
 end;
 
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 {$ifndef cpujvm}
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-
-{ also define alias which can be used inside the system unit }
-function fpc_pchar_to_shortstr(p:pchar):shortstring;[external name 'FPC_PCHAR_TO_SHORTSTR'];
-
-{$else FPC_STRTOSHORTSTRINGPROC}
-
 { also define alias which can be used inside the system unit }
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);[external name 'FPC_PCHAR_TO_SHORTSTR'];
 
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-    result:=fpc_pchar_to_shortstr(p);
-{$else FPC_STRTOSHORTSTRINGPROC}
     fpc_pchar_to_shortstr(result,p);
-{$endif FPC_STRTOSHORTSTRINGPROC}
   end;
 
 {$endif not cpujvm}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_chararray_to_shortstr(const arr: array of char; zerobased: boolean = true):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
-var
- l: longint;
- index: longint;
- len: byte;
-begin
-  l := high(arr)+1;
-  if l>=256 then
-    l:=255
-  else if l<0 then
-    l:=0;
-  if (zerobased) then
-    begin
-      index:=IndexByte(arr[0],l,0);
-      if (index < 0) then
-        len := l
-      else
-        len := index;
-    end
-  else
-    len := l;
-  move(arr[0],fpc_chararray_to_shortstr[1],len);
-  fpc_chararray_to_shortstr[0]:=chr(len);
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_chararray_to_shortstr(out res : shortstring;const arr: array of char; zerobased: boolean = true);[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
 var
  l: longint;
@@ -1217,35 +1123,11 @@ begin
   move(arr[0],res[1],len);
   res[0]:=chr(len);
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_TO_CHARARRAY}
-
-{$ifndef FPC_STRTOCHARARRAYPROC}
-
-{ inside the compiler, the resulttype is modified to that of the actual }
-{ chararray we're converting to (JM)                                    }
-function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): fpc_big_chararray;[public,alias: 'FPC_SHORTSTR_TO_CHARARRAY']; compilerproc;
-var
-  len: longint;
-begin
-  len := length(src);
-  if len > arraysize then
-    len := arraysize;
-{$r-}
-  { make sure we don't access char 1 if length is 0 (JM) }
-  if len > 0 then
-    move(src[1],fpc_shortstr_to_chararray[0],len);
-  fillchar(fpc_shortstr_to_chararray[len],arraysize-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-
-{$else ndef FPC_STRTOCHARARRAYPROC}
 
 procedure fpc_shortstr_to_chararray(out res: array of char; const src: ShortString); compilerproc;
 var
@@ -1254,17 +1136,13 @@ begin
   len := length(src);
   if len > length(res) then
     len := length(res);
-{$r-}
+{$push}{$r-}
   { make sure we don't access char 1 if length is 0 (JM) }
   if len > 0 then
     move(src[1],res[0],len);
   fillchar(res[len],length(res)-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+{$pop}
 end;
-
-{$endif ndef FPC_STRTOCHARARRAYPROC}
 
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_TO_CHARARRAY}
 
@@ -1319,6 +1197,7 @@ end;
 {****************************************************************************
                           Software multiplication
 ****************************************************************************}
+{$ifdef FPC_INCLUDE_SOFTWARE_MUL}
 
 {$ifndef FPC_SYSTEM_HAS_MUL_INTEGER}
     function fpc_mul_integer(f1,f2 : integer;checkoverflow : boolean) : integer;[public,alias: 'FPC_MUL_INTEGER']; compilerproc;
@@ -1473,6 +1352,8 @@ end;
           end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_DWORD}
+
+{$endif FPC_INCLUDE_SOFTWARE_MUL}
 
 {****************************************************************************
                           Software longint/dword division
@@ -1776,7 +1657,7 @@ function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLIN
   var
     tmp: PtrUInt;
   begin
-    tmp:=addr+alignment-1;
+    tmp:=addr+(alignment-1);
     result:=tmp-(tmp mod alignment)
   end;
 
@@ -1786,7 +1667,7 @@ function align(addr : Pointer;alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLIN
   var
     tmp: PtrUInt;
   begin
-    tmp:=PtrUInt(addr)+alignment-1;
+    tmp:=PtrUInt(addr)+(alignment-1);
     result:=pointer(tmp-(tmp mod alignment));
   end;
 {$endif}
@@ -2463,7 +2344,7 @@ function SarLongint(Const AValue : Longint;const Shift : Byte): Longint;
 
 {$ifndef FPC_HAS_INTERNAL_SAR_QWORD}
 {$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
-function SarInt64(Const AValue : Int64;const Shift : Byte): Int64;
+function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,Alias:'FPC_SARINT64']; compilerproc;
   begin
     Result:=int64(qword(qword(qword(AValue) shr (Shift and 63)) or (qword(int64(qword(0-qword(qword(AValue) shr 63)) and qword(int64(0-(ord((Shift and 63)<>0){ and 1}))))) shl (64-(Shift and 63)))));
   end;

@@ -30,7 +30,7 @@ interface
 
     type
        tx86typeconvnode = class(tcgtypeconvnode)
-         protected
+       protected
          function first_real_to_real : tnode;override;
          { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }

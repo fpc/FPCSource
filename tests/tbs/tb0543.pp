@@ -1,3 +1,6 @@
+{$R-}
+{$Q-}
+
 procedure check(l: longint; v,c: int64);
 begin
   if (v<>c) then

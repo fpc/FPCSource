@@ -339,10 +339,10 @@ Const
      PBITMAPINFO = ^BITMAPINFO;
      TBITMAPINFO = BITMAPINFO;
 
-     FXPT2DOT30 = longint;
+     FXPT2DOT30   = longint;
      LPFXPT2DOT30 = ^FXPT2DOT30;
-     TPFXPT2DOT30 = FXPT2DOT30;
-     PPFXPT2DOT30 = ^FXPT2DOT30;
+     TFXPT2DOT30  = FXPT2DOT30;
+     PFXPT2DOT30  = LPFXPT2DOT30;
 
      CIEXYZ = record
           ciexyzX : FXPT2DOT30;
@@ -397,7 +397,8 @@ Const
        bfReserved2 : Word;
        bfOffBits : DWord;
      end;
-
+     tagBITMAPFILEHEADER = BITMAPFILEHEADER;
+  
      BLOB = record
           cbSize : ULONG;
           pBlobData : ^BYTE;
@@ -639,7 +640,7 @@ Const
      LPCHOOSECOLOR = ^TCHOOSECOLOR;
      PCHOOSECOLOR = ^TCHOOSECOLOR;
 
-     LOGFONT = record
+     LOGFONTA = record
           lfHeight : LONG;
           lfWidth : LONG;
           lfEscapement : LONG;
@@ -655,11 +656,10 @@ Const
           lfPitchAndFamily : BYTE;
           lfFaceName : array[0..(LF_FACESIZE)-1] of TCHAR;
        end;
-     LPLOGFONT = ^LOGFONT;
-     TLOGFONT = LOGFONT;
-     TLOGFONTA = LOGFONT;
-     PLOGFONT = ^LOGFONT;
-     PLOGFONTA = PLOGFONT;
+     LPLOGFONTA = ^LOGFONTA;
+     _LOGFONTA  = LOGFONTA;
+     TLOGFONTA  = LOGFONTA;
+     PLOGFONTA  = LPLOGFONTA;
 
      LOGFONTW = record
        lfHeight: LONG;
@@ -679,8 +679,23 @@ Const
      end;
      LPLOGFONTW = ^LOGFONTW;
      NPLOGFONTW = ^LOGFONTW;
-     TLogFontW = LOGFONTW;
-     PLogFontW = ^TLogFontW;
+     _LOGFONTW  = LOGFONTW;
+     TLogFontW  = LOGFONTW;
+     PLogFontW  = ^TLOGFONTW;
+
+   {$IFNDEF UNICODE}
+     LOGFONT    = LOGFONTA;
+     LPLOGFONT  = ^LOGFONTA;
+     _LOGFONT   = LOGFONTA;
+     TLOGFONT   = LOGFONTA;
+     PLOGFONT   = ^LOGFONTA;
+   {$ELSE}
+     LOGFONT    = LOGFONTW;
+     LPLOGFONT  = ^LOGFONTW;
+     _LOGFONT   = LOGFONTW;
+     TLOGFONT   = LOGFONTW;
+     PLOGFONT   = ^LOGFONTW;
+    {$ENDIF}
 
      {CHOOSEFONT = record conflicts with ChosseFont function }
      TCHOOSEFONT = record
@@ -1572,21 +1587,6 @@ Const
      _CREATE_THREAD_DEBUG_INFO = CREATE_THREAD_DEBUG_INFO;
      TCREATETHREADDEBUGINFO = CREATE_THREAD_DEBUG_INFO;
      PCREATETHREADDEBUGINFO = ^CREATE_THREAD_DEBUG_INFO;
-  (*
-   TODO: sockets
-  typedef struct _SOCKET_ADDRESS {
-    LPSOCKADDR lpSockaddr ;
-    INT iSockaddrLength ;
-  } SOCKET_ADDRESS,  PSOCKET_ADDRESS,  LPSOCKET_ADDRESS;
-   }
-  {
-  typedef struct _CSADDR_INFO {
-    SOCKET_ADDRESS  LocalAddr;
-    SOCKET_ADDRESS  RemoteAddr;
-    INT             iSocketType;
-    INT             iProtocol;
-  } CSADDR_INFO;
-    *)
 
      CURRENCYFMT = record
           NumDigits : UINT;
@@ -2026,7 +2026,7 @@ Const
      TDEVBROADCASTVOLUME = DEV_BROADCAST_VOLUME;
      PDEVBROADCASTVOLUME = ^DEV_BROADCAST_VOLUME;
 
-     DEVMODE = record
+     DEVMODEA = record
           dmDeviceName : array[0..(CCHDEVICENAME)-1] of BCHAR;
           dmSpecVersion : WORD;
           dmDriverVersion : WORD;
@@ -2067,16 +2067,15 @@ Const
                );
        end;
 
-     LPDEVMODE = ^DEVMODE;
-     _devicemode = DEVMODE;
-     devicemode = DEVMODE;
-     tdevicemode = DEVMODE;
-     tdevicemodeA = DEVMODE;
-     PDeviceModeA = LPDEVMODE;
-     PDeviceMode = LPDEVMODE;
-     TDEVMODE = DEVMODE;
-     PDEVMODE = LPDEVMODE;
+     LPDEVMODEA = ^DEVMODEA;
+     _DEVMODEA  = DEVMODEA;
+     TDEVMODEA  = DEVMODEA;
+     PDEVMODEA  = LPDEVMODEA;
 
+     _devicemodeA = DEVMODEA;
+     devicemodeA  = DEVMODEA;
+     tdevicemodeA = DEVMODEA;
+     PDeviceModeA = LPDEVMODEA;
 
      devmodeW   = record
                      dmDeviceName   : array[0.. CCHDEVICENAME-1] of WCHAR;
@@ -2116,14 +2115,35 @@ Const
                    end;
 
      LPDEVMODEW   = ^DEVMODEW;
+     _DEVMODEW    = DEVMODEW;
+     TDEVMODEW    = DEVMODEW;
+     PDEVMODEW    = LPDEVMODEW;
+
      _devicemodeW = DEVMODEW;
      devicemodeW  = DEVMODEW;
      TDeviceModeW = DEVMODEW;
      PDeviceModeW = LPDEVMODEW;
-     TDEVMODEW    = DEVMODEW;
 
-     PDEVMODEW    = LPDEVMODEW;
 
+    {$IFNDEF UNICODE}
+      DEVMODE      = DEVMODEA;
+      LPDEVMODE    = ^DEVMODEA;
+      _DEVMODE     = DEVMODEA;
+      TDEVMODE     = DEVMODEA;
+      PDEVMODE     = ^DEVMODEA;
+    {$ELSE}
+      DEVMODE      = DEVMODEW;
+      LPDEVMODE    = ^DEVMODEW;
+      _DEVMODE     = DEVMODEW;
+      TDEVMODE     = DEVMODEW;
+      PDEVMODE     = ^DEVMODEW;
+    {$ENDIF}
+  
+    _devicemode  = DEVMODE;
+    DeviceMode   = DEVMODE;
+    TDeviceMode  = DEVMODE;
+    PDeviceMode  = ^DEVMODE;
+  
      DEVNAMES = record
           wDriverOffset : WORD;
           wDeviceOffset : WORD;
@@ -2685,7 +2705,7 @@ Const
      TPANOSE = PANOSE;
      PPANOSE = ^PANOSE;
 
-     EXTLOGFONT = record
+     EXTLOGFONTA = record
           elfLogFont : LOGFONT;
           elfFullName : array[0..(LF_FULLFACESIZE)-1] of BCHAR;
           elfStyle : array[0..(LF_FACESIZE)-1] of BCHAR;
@@ -2697,9 +2717,42 @@ Const
           elfCulture : DWORD;
           elfPanose : PANOSE;
        end;
-     tagEXTLOGFONT = EXTLOGFONT;
-     TEXTLOGFONT = EXTLOGFONT;
-     PEXTLOGFONT = ^EXTLOGFONT;
+     LPEXTLOGFONTA  = ^EXTLOGFONTA;
+     tagEXTLOGFONTA = EXTLOGFONTA;
+     TEXTLOGFONTA   = EXTLOGFONTA;
+     PEXTLOGFONTA   = LPEXTLOGFONTA;
+
+ 
+     EXTLOGFONTW    = record
+       elfLogFont   :LOGFONTW;
+       elfFullName  :array[0..(LF_FULLFACESIZE) - 1] of WCHAR;
+       elfStyle     :array[0..(LF_FACESIZE) - 1] of WCHAR;
+       elfVersion   :DWORD;
+       elfStyleSize :DWORD;
+       elfMatch     :DWORD;
+       elfReserved  :DWORD;
+       elfVendorId  :array[0..(ELF_VENDOR_SIZE) - 1] of Byte;
+       elfCulture   :DWORD;
+       elfPanose    :PANOSE;
+      end;
+     LPEXTLOGFONTW  = ^EXTLOGFONTW;
+     tagEXTLOGFONTW = EXTLOGFONTW;
+     TEXTLOGFONTW   = EXTLOGFONTW;
+     PEXTLOGFONTW   = ^EXTLOGFONTW;
+  
+    {$IFNDEF UNICODE}
+      EXTLOGFONT     = EXTLOGFONTA;
+      LPEXTLOGFONT   = ^EXTLOGFONTA;
+      tagEXTLOGFONT  = EXTLOGFONTA;
+      TEXTLOGFONT    = EXTLOGFONTA;
+      PEXTLOGFONT    = ^EXTLOGFONTA;
+    {$ELSE}
+      EXTLOGFONT     = EXTLOGFONTW;
+      LPEXTLOGFONT   = ^EXTLOGFONTW;
+      tagEXTLOGFONT  = EXTLOGFONTW;
+      TEXTLOGFONT    = EXTLOGFONTW;
+      PEXTLOGFONT    = ^EXTLOGFONTW;
+    {$ENDIF}
 
      EMREXTCREATEFONTINDIRECTW = record
           emr : EMR;
@@ -2709,7 +2762,6 @@ Const
      tagEMREXTCREATEFONTINDIRECTW = EMREXTCREATEFONTINDIRECTW;
      TEMREXTCREATEFONTINDIRECTW = EMREXTCREATEFONTINDIRECTW;
      PEMREXTCREATEFONTINDIRECTW = ^EMREXTCREATEFONTINDIRECTW;
-
 
      EXTLOGPEN = record
           elpPenStyle : UINT;
@@ -4763,7 +4815,7 @@ Const
      TNEWCPLINFO = NEWCPLINFO;
      PNEWCPLINFO = ^NEWCPLINFO;
 
-     NEWTEXTMETRIC = record
+     NEWTEXTMETRICA = record
           tmHeight : LONG;
           tmAscent : LONG;
           tmDescent : LONG;
@@ -4789,18 +4841,94 @@ Const
           ntmCellHeight : UINT;
           ntmAvgWidth : UINT;
        end;
-     tagNEWTEXTMETRIC = NEWTEXTMETRIC;
-     TNEWTEXTMETRIC = NEWTEXTMETRIC;
-     PNEWTEXTMETRIC = ^NEWTEXTMETRIC;
+     LPNEWTEXTMETRICA  = ^NEWTEXTMETRICA;
+     tagNEWTEXTMETRICA = NEWTEXTMETRICA;
+     _NEWTEXTMETRICA   = NEWTEXTMETRICA;
+     TNEWTEXTMETRICA   = NEWTEXTMETRICA;
+     PNEWTEXTMETRICA   = ^NEWTEXTMETRICA;
+   
+     NEWTEXTMETRICW    = record
+       tmHeight           :LONG;
+       tmAscent           :LONG;
+       tmDescent          :LONG;
+       tmInternalLeading  :LONG;
+       tmExternalLeading  :LONG;
+       tmAveCharWidth     :LONG;
+       tmMaxCharWidth     :LONG;
+       tmWeight           :LONG;
+       tmOverhang         :LONG;
+       tmDigitizedAspectX :LONG;
+       tmDigitizedAspectY :LONG;
+       tmFirstChar        :WCHAR;
+       tmLastChar         :WCHAR;
+       tmDefaultChar      :WCHAR;
+       tmBreakChar        :WCHAR;
+       tmItalic           :Byte;
+       tmUnderlined       :Byte;
+       tmStruckOut        :Byte;
+       tmPitchAndFamily   :Byte;
+       tmCharSet          :Byte;
+       ntmFlags           :DWORD;
+       ntmSizeEM          :UINT;
+       ntmCellHeight      :UINT;
+       ntmAvgWidth        :UINT;
+     end;
+     LPNEWTEXTMETRICW  = ^NEWTEXTMETRICW;
+     tagNEWTEXTMETRICW = NEWTEXTMETRICW;
+     _NEWTEXTMETRICW   = NEWTEXTMETRICW;
+     TNEWTEXTMETRICW   = NEWTEXTMETRICW;
+     PNEWTEXTMETRICW   = ^NEWTEXTMETRICW;
+   
+    {$IFNDEF UNICODE}
+     LPNEWTEXTMETRIC   = ^NEWTEXTMETRICA;
+     _NEWTEXTMETRIC    = NEWTEXTMETRICA;
+     tagNEWTEXTMETRIC  = NEWTEXTMETRICA;
+     TNEWTEXTMETRIC    = NEWTEXTMETRICA;
+     PNEWTEXTMETRIC    = ^NEWTEXTMETRICA;
+     NEWTEXTMETRIC     = NEWTEXTMETRICA;
+    {$ELSE}
+     LPNEWTEXTMETRIC   = ^NEWTEXTMETRICW;
+     _NEWTEXTMETRIC    = NEWTEXTMETRICW;
+     tagNEWTEXTMETRIC  = NEWTEXTMETRICW;
+     TNEWTEXTMETRIC    = NEWTEXTMETRICW;
+     PNEWTEXTMETRIC    = ^NEWTEXTMETRICW;
+     NEWTEXTMETRIC     = NEWTEXTMETRICW;
+    {$ENDIF}
 
-     NEWTEXTMETRICEX = record
-          ntmentm : NEWTEXTMETRIC;
+     NEWTEXTMETRICEXA = record
+          ntmentm : NEWTEXTMETRICA;
           ntmeFontSignature : FONTSIGNATURE;
        end;
-     tagNEWTEXTMETRICEX = NEWTEXTMETRICEX;
-     TNEWTEXTMETRICEX = NEWTEXTMETRICEX;
-     PNEWTEXTMETRICEX = ^NEWTEXTMETRICEX;
-
+     LPNEWTEXTMETRICEXA  = ^NEWTEXTMETRICEXA;
+     tagNEWTEXTMETRICEXA = NEWTEXTMETRICEXA;
+     TNEWTEXTMETRICEXA   = NEWTEXTMETRICEXA;
+     PNEWTEXTMETRICEXA   = ^NEWTEXTMETRICEXA;
+   
+     NEWTEXTMETRICEXW    = record
+       ntmentm           :NEWTEXTMETRICW;
+       ntmeFontSignature :FONTSIGNATURE;
+    end;
+     LPNEWTEXTMETRICEXW  = ^NEWTEXTMETRICEXW;
+     tagNEWTEXTMETRICEXW = NEWTEXTMETRICEXW;
+     TNEWTEXTMETRICEXW   = NEWTEXTMETRICEXW;
+     PNEWTEXTMETRICEXW   = ^NEWTEXTMETRICEXW;
+   
+    {$IFNDEF UNICODE}
+     LPNEWTEXTMETRICEX   = ^NEWTEXTMETRICEXA;
+     _NEWTEXTMETRICEX    = NEWTEXTMETRICEXA;
+     tagNEWTEXTMETRICEX  = NEWTEXTMETRICEXA;
+     TNEWTEXTMETRICEX    = NEWTEXTMETRICEXA;
+     PNEWTEXTMETRICEX    = ^NEWTEXTMETRICEXA;
+     NEWTEXTMETRICEX     = NEWTEXTMETRICEXA;
+    {$ELSE}
+     LPNEWTEXTMETRICEX   = ^NEWTEXTMETRICEXW;
+     _NEWTEXTMETRICEX    = NEWTEXTMETRICEXW;
+     tagNEWTEXTMETRICEX  = NEWTEXTMETRICEXW;
+     TNEWTEXTMETRICEX    = NEWTEXTMETRICEXW;
+     PNEWTEXTMETRICEX    = ^NEWTEXTMETRICEXW;
+     NEWTEXTMETRICEX     = NEWTEXTMETRICEXW;
+    {$ENDIF}
+   
      NM_LISTVIEW = record
           hdr : NMHDR;
           iItem : longint;
@@ -5025,7 +5153,7 @@ Const
      TOFNOTIFY = OFNOTIFY;
      POFNOTIFY = ^OFNOTIFY;
 
-     OSVERSIONINFO = record
+     OSVERSIONINFOA = record
           dwOSVersionInfoSize : DWORD;
           dwMajorVersion : DWORD;
           dwMinorVersion : DWORD;
@@ -5033,10 +5161,10 @@ Const
           dwPlatformId : DWORD;
           szCSDVersion : array[0..127] of TCHAR;
        end;
-     LPOSVERSIONINFO = ^OSVERSIONINFO;
-     _OSVERSIONINFO = OSVERSIONINFO;
-     TOSVERSIONINFO = OSVERSIONINFO;
-     POSVERSIONINFO = ^OSVERSIONINFO;
+     LPOSVERSIONINFOA= ^OSVERSIONINFOA;
+     _OSVERSIONINFOA = OSVERSIONINFOA;
+     TOSVERSIONINFOA = OSVERSIONINFOA;
+     POSVERSIONINFOA = LPOSVERSIONINFOA;
 
      OSVERSIONINFOW = record
        dwOSVersionInfoSize : DWORD;
@@ -5049,13 +5177,26 @@ Const
      LPOSVERSIONINFOW = ^OSVERSIONINFOW;
      _OSVERSIONINFOW = OSVERSIONINFOW;
      TOSVERSIONINFOW = OSVERSIONINFOW;
-     POSVERSIONINFOW = ^OSVERSIONINFOW;
+     POSVERSIONINFOW = LPOSVERSIONINFOW;
 
+     {$IFNDEF UNICODE}
+       LPOSVERSIONINFO  = ^OSVERSIONINFOA;
+       _OSVERSIONINFO   = OSVERSIONINFOA;
+       TOSVERSIONINFO   = OSVERSIONINFOA;
+       POSVERSIONINFO   = ^OSVERSIONINFOA;
+       OSVERSIONINFO    = OSVERSIONINFOA;
+     {$ELSE}
+       LPOSVERSIONINFO  = ^OSVERSIONINFOW;
+       _OSVERSIONINFO   = OSVERSIONINFOW;
+       TOSVERSIONINFO   = OSVERSIONINFOW;
+       POSVERSIONINFO   = ^OSVERSIONINFOW;
+       OSVERSIONINFO    = OSVERSIONINFOW;
+     {$ENDIF}
 
      {$push}
      {$packrecords 4}
 
-     TEXTMETRIC = record
+     TEXTMETRICA = record
           tmHeight : LONG;
           tmAscent : LONG;
           tmDescent : LONG;
@@ -5077,15 +5218,11 @@ Const
           tmPitchAndFamily : BYTE;
           tmCharSet : BYTE;
        end;
-     LPTEXTMETRIC = ^TEXTMETRIC;
-     tagTEXTMETRIC = TEXTMETRIC;
-     TTEXTMETRIC = TEXTMETRIC;
-     PTEXTMETRIC = ^TEXTMETRIC;
-     TEXTMETRICA   = TEXTMETRIC;
-     LPTEXTMETRICA = ^TEXTMETRICA;
+     LPTEXTMETRICA  = ^TEXTMETRICA;
      tagTEXTMETRICA = TEXTMETRICA;
-     TTEXTMETRICA = TEXTMETRICA;
-     PTEXTMETRICA = ^TEXTMETRICA;
+     _TEXTMETRICA   = TEXTMETRICA;
+     TTEXTMETRICA   = TEXTMETRICA;
+     PTEXTMETRICA   = LPTEXTMETRICA;
 
      TEXTMETRICW = record
           tmHeight : LONG;
@@ -5111,13 +5248,31 @@ Const
        end;
      LPTEXTMETRICW = ^TEXTMETRICW;
      tagTEXTMETRICW = TEXTMETRICW;
+     _TEXTMETRICW   = TEXTMETRICW;
      TTEXTMETRICW = TEXTMETRICW;
      PTEXTMETRICW = ^TEXTMETRICW;
+
+
+     {$IFNDEF UNICODE}
+       LPTEXTMETRIC       = ^TEXTMETRICA;
+       _TEXTMETRIC        = TEXTMETRICA;
+       tagTEXTMETRIC      = TEXTMETRICA;
+       TTEXTMETRIC        = TEXTMETRICA;
+       PTEXTMETRIC        = ^TEXTMETRICA;
+       TEXTMETRIC         = TEXTMETRICA;
+     {$ELSE}
+       LPTEXTMETRIC       = ^TEXTMETRICW;
+       _TEXTMETRIC        = TEXTMETRICW;
+       tagTEXTMETRIC      = TEXTMETRICW;
+       TTEXTMETRIC        = TEXTMETRICW;
+       PTEXTMETRIC        = ^TEXTMETRICW;
+       TEXTMETRIC         = TEXTMETRICW;
+     {$ENDIF}
      {$PACKRECORDS C}
 
      OUTLINETEXTMETRICA = record
           otmSize : UINT;
-          otmTextMetrics : TEXTMETRIC;
+          otmTextMetrics : TEXTMETRICA;
           otmFiller : BYTE;
           otmPanoseNumber : PANOSE;
           otmfsSelection : UINT;
@@ -5191,21 +5346,22 @@ Const
      LPOUTLINETEXTMETRICW = ^OUTLINETEXTMETRICW;
      _OUTLINETEXTMETRICW = OUTLINETEXTMETRICW;
      TOUTLINETEXTMETRICW = OUTLINETEXTMETRICW;
-     POUTLINETEXTMETRICW = ^OUTLINETEXTMETRICW;
+     POUTLINETEXTMETRICW = LPOUTLINETEXTMETRICW;
 
      {$ifdef Unicode}
-     LPOUTLINETEXTMETRIC = ^OUTLINETEXTMETRICW;
+     LPOUTLINETEXTMETRIC = LPOUTLINETEXTMETRICW;
      _OUTLINETEXTMETRIC  = OUTLINETEXTMETRICW;
      TOUTLINETEXTMETRIC  = OUTLINETEXTMETRICW;
-     POUTLINETEXTMETRIC  = ^OUTLINETEXTMETRICW;
+     POUTLINETEXTMETRIC  = LPOUTLINETEXTMETRICW;
      OUTLINETEXTMETRIC   = OUTLINETEXTMETRICW;
      {$else}
-     LPOUTLINETEXTMETRIC = ^OUTLINETEXTMETRICA;
+     LPOUTLINETEXTMETRIC = LPOUTLINETEXTMETRICA;
      _OUTLINETEXTMETRIC  = OUTLINETEXTMETRICA;
      TOUTLINETEXTMETRIC  = OUTLINETEXTMETRICA;
-     POUTLINETEXTMETRIC  = ^OUTLINETEXTMETRICA;
+     POUTLINETEXTMETRIC  = LPOUTLINETEXTMETRICA;
      OUTLINETEXTMETRIC   = OUTLINETEXTMETRICA;
      {$endif}
+
      {$POP}
      OVERLAPPED = record
           Internal : ULONG_PTR;

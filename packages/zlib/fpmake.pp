@@ -17,6 +17,7 @@ begin
     P.Directory:='zlib';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := AllUnixOSes+AllWindowsOSes+[os2,emx,netware,netwlibc]-[qnx];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('zlib.pp');

@@ -152,4 +152,37 @@ begin
   WideFmtStr(Res,Fmt,Args,DefaultFormatSettings);
 end;
 
+function StrCopy(Dest, Source: PWideChar): PWideChar; overload;
+var
+  counter : SizeInt;
+begin
+  counter := 0;
+  while Source[counter] <> #0 do
+  begin
+    Dest[counter] := widechar(Source[counter]);
+    Inc(counter);
+  end;
+  { terminate the string }
+  Dest[counter] := #0;
+  StrCopy := Dest;
+end;
 
+function StrLCopy(Dest,Source: PWideChar; MaxLen: SizeInt): PWideChar; overload;
+var
+  counter: SizeInt;
+begin
+  counter := 0;
+  while (Source[counter] <> #0) and (counter < MaxLen) do
+  begin
+    Dest[counter] := widechar(Source[counter]);
+    Inc(counter);
+  end;
+  { terminate the string }
+  Dest[counter] := #0;
+  StrLCopy := Dest;
+end;
+
+Function CharInSet(Ch:WideChar;Const CSet : TSysCharSet) : Boolean;
+begin
+  result:=(Ch<=#$FF) and (ansichar(ch) in CSet);
+end;

@@ -16,6 +16,7 @@ packages_openbsd=ibase mysql oracle sqlite odbc postgres
 packages_win32=ibase mysql oracle sqlite odbc postgres
 packages_wince=ibase mysql oracle sqlite odbc postgres
 packages_win64=sqlite odbc
+packages_aix=ibase mysql oracle sqlite odbc postgres
 
 [target]
 units=fpdatadict fpdddiff fpdddbf fpddsqldb
@@ -28,6 +29,7 @@ units_openbsd=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddora
 units_win32=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 units_wince=fpddsqlite3
 units_win64=fpddodbc fpddsqlite3
+units_aix=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 rsts=fpdatadict fpddfb fpddsqldb fpdddiff
 rsts_linux=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 rsts_freebsd=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
@@ -38,6 +40,7 @@ rsts_openbsd=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddorac
 rsts_win32=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 rsts_wince=fpddfb fpddpq fpddsqlite3
 rsts_win64=fpddfb fpddpq fpddodbc fpddsqlite3
+rsts_aix=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 
 [compiler]
 options=-S2h

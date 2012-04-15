@@ -61,6 +61,7 @@ implementation
       LdSupportsNoResponseFile : boolean;
       LibrarySuffix : Char;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
+      function GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;
       Function GetDarwinPrtobjName(isdll: boolean): TCmdStr;
     public
       constructor Create;override;
@@ -145,8 +146,8 @@ begin
        begin
          if not(target_info.system in systems_darwin) then
            begin
-             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE `cat $RES`';
-             DllCmd[1]:='ld $OPT -shared -L. -o $EXE `cat $RES`'
+             ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $CATRES';
+             DllCmd[1]:='ld $OPT -shared -L. -o $EXE $CATRES'
            end
          else
            begin
@@ -155,7 +156,7 @@ begin
                is loaded below that address. This avoids problems with the
                strange Windows-compatible resource handling that assumes
                that addresses below 64kb do not exist.
-               
+
                On 64bit systems, page zero is 4GB by default, so no problems
                there.
              }
@@ -165,16 +166,16 @@ begin
                programs with problems that require Valgrind will have more
                than 60KB of data (first 4KB of address space is always invalid)
              }
-               ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+               ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
              if not(cs_gdb_valgrind in current_settings.globalswitches) then
                ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES'
              else
-               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES'
            end
        end
      else
@@ -186,7 +187,13 @@ begin
        DllCmd[2]:='strip --strip-unneeded $EXE'
      else
        DllCmd[2]:='strip -x $EXE';
-      DynamicLinker:='';
+     { OpenBSD seems to use a wrong dynamic linker by default }
+     if target_info.system in systems_openbsd then
+      DynamicLinker:='/usr/libexec/ld.so'
+     else if target_info.system in systems_netbsd then
+      DynamicLinker:='/usr/libexec/ld.elf_so'
+     else
+       DynamicLinker:='';
    end;
 end;
 
@@ -217,34 +224,82 @@ else
 End;
 
 
-Function TLinkerBSD.GetDarwinPrtobjName(isdll: boolean): TCmdStr;
+function TLinkerBSD.GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;
 begin
-  if not(isdll) then
-    if not(cs_profile in current_settings.moduleswitches) then
-      begin
-        if not librarysearchpath.FindFile('crt1.o',false,result) then
-          result:='/usr/lib/crt1.o';
-      end
-    else
-      begin
-        if not librarysearchpath.FindFile('gcrt1.o',false,result) then
-          result:='/usr/lib/gcrt1.o';
-      end
+  if not isdll then
+    begin
+      if not(cs_profile in current_settings.moduleswitches) then
+        begin
+          { x86: crt1.10.6.o -> crt1.10.5.o -> crt1.o }
+          { others: crt1.10.5 -> crt1.o }
+{$if defined(i386) or defined(x86_64)}
+          if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
+            exit('crt1.10.6.o');
+{$endif}
+          if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
+            exit('crt1.10.5.o');
+          { iOS/simulator: crt1.3.1.o -> crt1.o }
+{$if defined(i386) or defined(arm)}
+          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
+             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+             exit('crt1.3.1.o');
+{$endif}
+          { nothing special -> default }
+          result:='crt1.o';
+        end
+      else
+        result:='gcrt1.o';
+    end
   else
     begin
       if (apptype=app_bundle) then
         begin
-          if not librarysearchpath.FindFile('bundle1.o',false,result) then
-            result:='/usr/lib/bundle1.o'
+          { < 10.6: bundle1.o
+            >= 10.6: nothing }
+          if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
+            exit('');
+          { iOS/simulator: < 3.1: bundle1.o
+                           >= 3.1: nothing }
+{$if defined(i386) or defined(arm)}
+          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
+             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+            exit('');
+{$endif}
+          result:='bundle1.o';
         end
       else
         begin
-          if not librarysearchpath.FindFile('dylib1.o',false,result) then
-            result:='/usr/lib/dylib1.o'
+          { >= 10.6: nothing
+            = 10.5: dylib1.10.5.o
+            < 10.5: dylib1.o
+          }
+          if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
+            exit('');
+          if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
+            exit('dylib1.10.5.o');
+          { iOS/simulator: < 3.1: dylib1.o
+                           >= 3.1: nothing }
+{$if defined(i386) or defined(arm)}
+          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
+             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+            exit('');
+{$endif}
+          result:='dylib1.o';
         end;
     end;
+end;
+
+
+Function TLinkerBSD.GetDarwinPrtobjName(isdll: boolean): TCmdStr;
+var
+  startupfile: TCmdStr;
+begin
+  startupfile:=GetDarwinCrt1ObjName(isdll);
+  if (startupfile<>'') and
+     not librarysearchpath.FindFile(startupfile,false,result) then
+    result:='/usr/lib/'+startupfile;
   result:=maybequoted(result);
-end;    
+end;
 
 
 Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
@@ -269,9 +324,18 @@ begin
 { set special options for some targets }
   if not IsDarwin Then
     begin
-      prtobj:='prt0';
-      cprtobj:='cprt0';
-      gprtobj:='gprt0';
+      if isdll and (target_info.system in systems_freebsd) then
+        begin
+          prtobj:='dllprt0';
+          cprtobj:='dllprt0';
+          gprtobj:='dllprt0';
+        end
+      else
+        begin
+          prtobj:='prt0';
+          cprtobj:='cprt0';
+          gprtobj:='gprt0';
+        end;
       linkdynamic:=not(SharedLibFiles.empty);
       linklibc:=(SharedLibFiles.Find('c')<>nil);
       // this one is a bit complex.
@@ -324,29 +388,35 @@ begin
       LinkRes.Add(sysrootpath);
     end;
 
-  if (not isdll) or
-     (apptype=app_bundle) then
+  if (target_info.system in systems_darwin) then
     begin
-      if (target_info.system in systems_darwin) then
-        begin
-          LinkRes.Add('-arch');
-          case target_info.system of
-            system_powerpc_darwin:
-              LinkRes.Add('ppc');
-            system_i386_darwin,
-            system_i386_iphonesim:
-              LinkRes.Add('i386');
-            system_powerpc64_darwin:
-              LinkRes.Add('ppc64');
-            system_x86_64_darwin:
-              LinkRes.Add('x86_64');
-            system_arm_darwin:
-              { current versions of the linker require the sub-architecture type
-                to be specified }
-              LinkRes.Add(lower(cputypestr[current_settings.cputype]));
-          end;
+      LinkRes.Add('-arch');
+      case target_info.system of
+        system_powerpc_darwin:
+          LinkRes.Add('ppc');
+        system_i386_darwin,
+        system_i386_iphonesim:
+          LinkRes.Add('i386');
+        system_powerpc64_darwin:
+          LinkRes.Add('ppc64');
+        system_x86_64_darwin:
+          LinkRes.Add('x86_64');
+        system_arm_darwin:
+          { current versions of the linker require the sub-architecture type
+            to be specified }
+          LinkRes.Add(lower(cputypestr[current_settings.cputype]));
       end;
-  end;
+      if MacOSXVersionMin<>'' then
+        begin
+          LinkRes.Add('-macosx_version_min');
+          LinkRes.Add(MacOSXVersionMin);
+        end
+      else if iPhoneOSVersionMin<>'' then
+        begin
+          LinkRes.Add('-ios_version_min');
+          LinkRes.Add(iPhoneOSVersionMin);
+        end;
+    end;
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
@@ -382,6 +452,28 @@ begin
          HPath:=TCmdStrListItem(HPath.Next);
        end;
     end;
+      { force local symbol resolution (i.e., inside the shared }
+      { library itself) for all non-exorted symbols, otherwise }
+      { several RTL symbols of FPC-compiled shared libraries   }
+      { will be bound to those of a single shared library or   }
+      { to the main program                                    }
+      if (isdll) and (target_info.system in systems_freebsd) then
+        begin
+          LinkRes.add('VERSION');
+          LinkRes.add('{');
+          LinkRes.add('  {');
+          if not texportlibunix(exportlib).exportedsymnames.empty then
+            begin
+              LinkRes.add('    global:');
+              repeat
+                LinkRes.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
+              until texportlibunix(exportlib).exportedsymnames.empty;
+            end;
+          LinkRes.add('    local:');
+          LinkRes.add('      *;');
+          LinkRes.add('  };');
+          LinkRes.add('}');
+        end;
 
   if not LdSupportsNoResponseFile then
     LinkRes.Add('INPUT(');
@@ -467,7 +559,7 @@ begin
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
    end;
-   
+
   { frameworks for Darwin }
   if IsDarwin then
     while not FrameworkFiles.empty do
@@ -475,7 +567,7 @@ begin
         LinkRes.Add('-framework');
         LinkRes.Add(FrameworkFiles.GetFirst);
       end;
-     
+
   { objects which must be at the end }
   if linklibc and
      not IsDarwin Then
@@ -511,7 +603,8 @@ var
   GCSectionsStr,
   StaticStr,
   StripStr   : string[63];
-  success : boolean;
+  success,
+  useshell : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
@@ -562,6 +655,7 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
@@ -597,7 +691,8 @@ begin
       CmdStr:='';
     end;
 
-  success:=DoExec(BinStr,CmdStr,true,LdSupportsNoResponseFile);
+  useshell:=not (tf_no_backquote_support in source_info.flags);
+  success:=DoExec(BinStr,CmdStr,true,LdSupportsNoResponseFile or useshell);
   if (success and
       (extdbgbinstr<>'') and
       (cs_link_nolink in current_settings.globalswitches)) then
@@ -611,7 +706,7 @@ begin
        begin
          DeleteFile(linkscript.fn);
          linkscript.free
-       end; 
+       end;
    end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -660,6 +755,7 @@ begin
   Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename^)));
 {$endif darwin}
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
@@ -735,7 +831,7 @@ begin
         end;
       if (target_info.system in systems_darwin) then
         DeleteFile(outputexedir+'linksyms.fpc');
-    end;     
+    end;
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
@@ -751,6 +847,14 @@ initialization
   RegisterImport(system_x86_64_freebsd,timportlibbsd);
   RegisterExport(system_x86_64_freebsd,texportlibbsd);
   RegisterTarget(system_x86_64_freebsd_info);
+  RegisterExternalLinker(system_x86_64_OpenBSD_info,TLinkerBSD);
+  RegisterImport(system_x86_64_openbsd,timportlibbsd);
+  RegisterExport(system_x86_64_openbsd,texportlibbsd);
+  RegisterTarget(system_x86_64_openbsd_info);
+  RegisterExternalLinker(system_x86_64_NetBSD_info,TLinkerBSD);
+  RegisterImport(system_x86_64_netbsd,timportlibbsd);
+  RegisterExport(system_x86_64_netbsd,texportlibbsd);
+  RegisterTarget(system_x86_64_netbsd_info);
 
   RegisterExternalLinker(system_x86_64_darwin_info,TLinkerBSD);
   RegisterImport(system_x86_64_darwin,timportlibdarwin);

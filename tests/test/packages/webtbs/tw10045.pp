@@ -1,4 +1,5 @@
-uses regexpr;
+
+uses oldregexpr;
 
 var
   engine : tRegexprEngine;

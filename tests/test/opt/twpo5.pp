@@ -1,4 +1,4 @@
-{ %target=darwin,linux,freebsd,solaris }
+{ %target=darwin,linux,freebsd,solaris,aix }
 { %wpoparas=devirtcalls,optvmts,symbolliveness }
 { %wpopasses=2 }
 { %opt=-CX -XX -Xs- -g- }

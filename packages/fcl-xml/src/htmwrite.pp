@@ -37,7 +37,7 @@ procedure WriteHTML(Element: TDOMNode; AStream: TStream);
 
 implementation
 
-uses SysUtils, HTMLDefs;
+uses SysUtils, HTMLDefs, xmlutils;
 
 type
   TSpecialCharCallback = procedure(c: WideChar) of object;
@@ -51,11 +51,11 @@ type
     FCapacity: Integer;
     FLineBreak: string;
     procedure wrtChars(Src: PWideChar; Length: Integer);
-    procedure wrtStr(const ws: WideString); {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtStr(const ws: XMLString); {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtChr(c: WideChar); {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
-    procedure wrtQuotedLiteral(const ws: WideString);
-    procedure ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
+    procedure wrtQuotedLiteral(const ws: XMLString);
+    procedure ConvWrite(const s: XMLString; const SpecialChars: TSetOfChar;
       const SpecialCharCallback: TSpecialCharCallback);
     procedure AttrSpecialCharCallback(c: WideChar);
     procedure TextNodeSpecialCharCallback(c: WideChar);
@@ -199,7 +199,7 @@ begin
   FBufPos := pb;
 end;
 
-procedure THTMLWriter.wrtStr(const ws: WideString); { inline }
+procedure THTMLWriter.wrtStr(const ws: XMLString); { inline }
 begin
   wrtChars(PWideChar(ws), Length(ws));
 end;
@@ -216,7 +216,7 @@ begin
   wrtChars(#10, 1);
 end;
 
-procedure THTMLWriter.wrtQuotedLiteral(const ws: WideString);
+procedure THTMLWriter.wrtQuotedLiteral(const ws: XMLString);
 var
   Quote: WideChar;
 begin
@@ -235,7 +235,7 @@ const
   AttrSpecialChars = ['<', '"', '&'];
   TextSpecialChars = ['<', '>', '&'];
 
-procedure THTMLWriter.ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
+procedure THTMLWriter.ConvWrite(const s: XMLString; const SpecialChars: TSetOfChar;
   const SpecialCharCallback: TSpecialCharCallback);
 var
   StartPos, EndPos: Integer;

@@ -153,10 +153,7 @@ end;
 function TCollection.GetCount: Integer;
 
 begin
-  If Assigned(FItems) Then
-    Result:=FItems.Count
-  else
-    Result:=0;
+  Result:=FItems.Count;
 end;
 
 
@@ -215,9 +212,15 @@ end;
 
 
 procedure TCollection.RemoveItem(Item: TCollectionItem);
+
+Var
+  I : Integer;
+
 begin
-        Notify(Item,cnExtracting);
-  FItems.Remove(Pointer(Item));
+  Notify(Item,cnExtracting);
+  I:=FItems.IndexOfItem(Item,fromEnd);
+  If (I<>-1) then
+    FItems.Delete(I);
   Item.FCollection:=Nil;
   Changed;
 end;
@@ -248,11 +251,11 @@ end;
 
 
 function TCollection.GetNamePath: string;
-var o : TObject;
+var o : TPersistent;
 begin
   o:=getowner;
-  if assigned(o) and (propname<>'') and (o IS TPersistent) then 
-     result:=TPersistent(o).getnamepath+'.'+propname
+  if assigned(o) and (propname<>'') then 
+     result:=o.getnamepath+'.'+propname
    else
      result:=classname;
 end;
@@ -298,7 +301,8 @@ end;
 
 destructor TCollection.Destroy;
 begin
-  If Assigned(FItems) Then Clear;
+  BeginUpdate; // Prevent OnChange
+  DoClear;
   FItems.Free;
   Inherited Destroy;
 end;
@@ -327,22 +331,34 @@ end;
 
 procedure TCollection.BeginUpdate;
 begin
-        inc(FUpdateCount);
+  inc(FUpdateCount);
 end;
 
 
 procedure TCollection.Clear;
 begin
-  If Assigned(FItems) then
-    While FItems.Count>0 do TCollectionItem(FItems.Last).Free;
+  if FItems.Count=0 then
+    exit; // Prevent Changed
+  BeginUpdate;
+  try
+    DoClear;
+  finally
+    EndUpdate;
+  end;    
+end;
+
+
+procedure TCollection.DoClear;
+begin
+  While FItems.Count>0 do TCollectionItem(FItems.Last).Free;
 end;
 
 
 procedure TCollection.EndUpdate;
 begin
-        dec(FUpdateCount);
-        if FUpdateCount=0 then
-          Changed;
+  dec(FUpdateCount);
+  if FUpdateCount=0 then
+    Changed;
 end;
 
 
@@ -361,9 +377,12 @@ end;
 
 
 procedure TCollection.Delete(Index: Integer);
+Var
+  Item : TCollectionItem;
 begin
-  Notify(TCollectionItem(FItems[Index]),cnDeleting);
-  TCollectionItem(FItems[Index]).Free;
+  Item:=TCollectionItem(FItems[Index]);
+  Notify(Item,cnDeleting);
+  Item.Free;
 end;
 
 

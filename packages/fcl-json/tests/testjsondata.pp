@@ -130,6 +130,7 @@ type
   TTestArray = class(TTestJSON)
   private
     procedure TestAddBoolean(B : Boolean);
+    procedure TestInsertBoolean(B : Boolean);
   published
     Procedure TestCreate;
     Procedure TestCreateString;
@@ -153,6 +154,17 @@ type
     procedure TestAddNull;
     procedure TestAddObject;
     procedure TestAddArray;
+    procedure TestInsertInteger;
+    procedure TestInsertInt64;
+    procedure TestInsertFloat;
+    procedure TestInsertBooleanTrue;
+    procedure TestInsertBooleanFalse;
+    procedure TestInsertString;
+    procedure TestInsertNull;
+    procedure TestInsertObject;
+    procedure TestInsertArray;
+    procedure TestMove;
+    procedure TestExchange;
     procedure TestDelete;
     procedure TestRemove;
     Procedure TestClone;
@@ -1333,6 +1345,30 @@ begin
 
 end;
 
+procedure TTestArray.TestInsertBoolean(B: Boolean);
+Var
+  J : TJSONArray;
+
+begin
+  B:=True;
+  J:=TJSonArray.Create;
+  try
+    J.Add(Not B);
+    J.Insert(0,B);
+    TestItemCount(J,2);
+    TestJSONType(J[0],jtBoolean);
+    AssertEquals('J[0] is TJSONBoolean',TJSONBoolean,J[0].ClassType);
+    TestAsBoolean(J[0],B);
+    AssertEquals('J.Booleans[0]='+BoolToStr(B)+'"',B,J.Booleans[0]);
+    If B then
+      TestJSON(J,'[true, false]')
+    else
+      TestJSON(J,'[false, true]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
 procedure TTestArray.TestAddBooleanTrue;
 
 begin
@@ -1411,6 +1447,237 @@ begin
     TestAsInt64(J.Arrays[0][0],0);
     TestAsInt64(J.Arrays[0][1],1);
     TestJSON(J,'[[0, 1]]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestInsertInteger;
+Var
+  J : TJSONArray;
+
+begin
+  J:=TJSonArray.Create;
+  try
+    J.Add(Integer(1));
+    J.Insert(0,Integer(0));
+    TestItemCount(J,2);
+    TestJSONType(J[0],jtNumber);
+    AssertEquals('J[0] is TJSONIntegerNumber',J[0].ClassType,TJSONIntegerNumber);
+    AssertEquals('j.Types[0]=jtNumber',ord(J.Types[0]),Ord(jtNumber));
+    AssertEquals('J.Integers[0]=0',0,J.integers[0]);
+    TestAsInteger(J[0],0);
+    TestAsInt64(J[0],0);
+    TestJSON(J,'[0, 1]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestInsertInt64;
+Var
+  J : TJSONArray;
+
+begin
+  J:=TJSonArray.Create;
+  try
+    J.Add(Int64(1));
+    J.Insert(0,Int64(0));
+    TestItemCount(J,2);
+    TestJSONType(J[0],jtNumber);
+    AssertEquals('J[0] is TJSONInt64Number',J[0].ClassType,TJSONInt64Number);
+    AssertEquals('j.Types[0]=jtNumber',ord(J.Types[0]),Ord(jtNumber));
+    AssertEquals('J.Int64s[0]=0',0,J.Int64s[0]);
+    TestAsInteger(J[0],0);
+    TestAsInt64(J[0],0);
+    TestJSON(J,'[0, 1]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestInsertFloat;
+Var
+  J : TJSONArray;
+  S,S2 : String;
+  F : TJSONFloat;
+begin
+  F:=1.2;
+  J:=TJSonArray.Create;
+  try
+    J.Add(2.3);
+    J.Insert(0,F);
+    TestItemCount(J,2);
+    TestJSONType(J[0],jtNumber);
+    AssertEquals('J[0] is TJSONFloatNumber',TJSONfloatNumber,J[0].ClassType);
+    AssertEquals('j.Types[0]=jtNumber',Ord(jtNumber),ord(J.Types[0]));
+    AssertEquals('J.Floats[0]='+FloatToStr(F),F,J.Floats[0]);
+    TestAsFloat(J[0],F);
+    Str(F,S);
+    F:=2.3;
+    Str(F,S2);
+    TestJSON(J,'['+S+', '+S2+']');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestInsertBooleanTrue;
+begin
+  TestInsertBoolean(True);
+end;
+
+procedure TTestArray.TestInsertBooleanFalse;
+begin
+  TestInsertBoolean(False);
+end;
+
+procedure TTestArray.TestInsertString;
+
+Var
+  J : TJSONArray;
+  S : String;
+  F : TJSONFloat;
+
+begin
+  S:='A string';
+  J:=TJSonArray.Create;
+  try
+    J.Add('Another string');
+    J.Insert(0,S);
+    TestItemCount(J,2);
+    TestJSONType(J[0],jtString);
+    AssertEquals('J[0] is TJSONString',TJSONString,J[0].ClassType);
+    TestAsString(J[0],S);
+    AssertEquals('J.Strings[0]="'+S+'"',S,J.Strings[0]);
+    TestJSON(J,'["'+StringToJSONString(S)+'", "Another string"]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestInsertNull;
+Var
+  J : TJSONArray;
+  S : String;
+  F : TJSONFloat;
+
+begin
+  J:=TJSonArray.Create;
+  try
+    J.Add(123);
+    J.Insert(0);
+    TestItemCount(J,2);
+    TestJSONType(J[0],jtNull);
+    AssertEquals('J[0] is TJSONNull',TJSONNull,J[0].ClassType);
+    AssertEquals('J.Nulls[0]=True',True,J.Nulls[0]);
+    TestIsNull(J[0],true);
+    TestJSON(J,'[null, 123]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestInsertObject;
+Const
+  A = 'a';
+  B = 'b';
+
+Var
+  J : TJSONArray;
+  J2 : TJSONObject;
+
+begin
+  J:=TJSonArray.Create;
+  try
+    J.Add('A string');
+    J2:=TJSonObject.Create;
+    J2.Add(A,0);
+    J2.Add(B,1);
+    J.Insert(0,J2);
+    TestItemCount(J,2);
+    TestJSONType(J[0],jtObject);
+    AssertEquals('J[0] is TJSONObject',TJSONObject,J[0].ClassType);
+    AssertEquals('J.Objects[0] is TJSONObject',TJSONObject,J.Objects[0].ClassType);
+    TestAsInteger(J.Objects[0][A],0);
+    TestAsInteger(J.Objects[0][B],1);
+    TestAsInt64(J.Objects[0][A],0);
+    TestAsInt64(J.Objects[0][B],1);
+    TestJSON(J,'[{ "a" : 0, "b" : 1 }, "A string"]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestInsertArray;
+Var
+  J,J2 : TJSONArray;
+
+begin
+  J:=TJSonArray.Create;
+  try
+    J.Add('Something nice');
+    J2:=TJSonArray.Create;
+    J2.Add(0);
+    J2.Add(1);
+    J.Insert(0,J2);
+    TestItemCount(J,2);
+    TestJSONType(J[0],jtArray);
+    AssertEquals('J[0] is TJSONArray',TJSONArray,J[0].ClassType);
+    AssertEquals('J.Arrays[0] is TJSONArray',TJSONArray,J.Arrays[0].ClassType);
+    TestAsInteger(J.Arrays[0][0],0);
+    TestAsInteger(J.Arrays[0][1],1);
+    TestAsInt64(J.Arrays[0][0],0);
+    TestAsInt64(J.Arrays[0][1],1);
+    TestJSON(J,'[[0, 1], "Something nice"]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestMove;
+Var
+  J : TJSONArray;
+  S : String;
+  F : TJSONFloat;
+
+begin
+  S:='A string';
+  J:=TJSonArray.Create;
+  try
+    J.Add('First string');
+    J.Add('Second string');
+    J.Add('Third string');
+    J.Move(2,1);
+    TestItemCount(J,3);
+    AssertEquals('J[2] is TJSONString',TJSONString,J[1].ClassType);
+    AssertEquals('J[1] is TJSONString',TJSONString,J[2].ClassType);
+    TestAsString(J[1],'Third string');
+    TestAsString(J[2],'Second string');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestExchange;
+Var
+  J : TJSONArray;
+  S : String;
+  F : TJSONFloat;
+
+begin
+  S:='A string';
+  J:=TJSonArray.Create;
+  try
+    J.Add('First string');
+    J.Add('Second string');
+    J.Add('Third string');
+    J.Exchange(2,0);
+    TestItemCount(J,3);
+    AssertEquals('J[2] is TJSONString',TJSONString,J[0].ClassType);
+    AssertEquals('J[1] is TJSONString',TJSONString,J[2].ClassType);
+    TestAsString(J[0],'Third string');
+    TestAsString(J[2],'First string');
   finally
     FreeAndNil(J);
   end;

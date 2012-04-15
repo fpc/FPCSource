@@ -112,23 +112,75 @@ Const
      'LIBGCC'
    );
 
-   controllertypestr : array[tcontrollertype] of string[20] =
-     ('',
-      'ATMEGA16',
-      'ATMEGA32',
-      'ATMEGA48',
-      'ATMEGA64',
-      'ATMEGA128'
-     );
+   embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
+   ((
+   	controllertypestr:'';
+        controllerunitstr:'';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:0;
+        srambase:0;
+        sramsize:0;
+        eeprombase:0;
+        eepromsize:0
+   	),
+        (
+   	controllertypestr:'ATMEGA16';
+        controllerunitstr:'ATMEGA16';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:$4000;
+        srambase:0;
+        sramsize:1024;
+        eeprombase:0;
+        eepromsize:512
+        ),
+        (
+   	controllertypestr:'ATMEGA32';
+        controllerunitstr:'ATMEGA32';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:$8000;
+        srambase:0;
+        sramsize:1024;
+        eeprombase:0;
+        eepromsize:512
+        ),
+   	(
+        controllertypestr:'ATMEGA48';
+        controllerunitstr:'ATMEGA48';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:$1000;
+        srambase:0;
+        sramsize:512;
+        eeprombase:0;
+        eepromsize:256;
+        ),
+   	(
+        controllertypestr:'ATMEGA64';
+        controllerunitstr:'ATMEGA64';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:$10000;
+        srambase:0;
+        sramsize:4096;
+        eeprombase:0;
+        eepromsize:2048;
+        ),
+   	(
+        controllertypestr:'ATMEGA128';
+        controllerunitstr:'ATMEGA128';
+        interruptvectors:0;
+        flashbase:0;
+        flashsize:$20000;
+        srambase:0;
+        sramsize:4096;
+        eeprombase:0;
+        eepromsize:4096;
+        )
+   );
 
-   controllerunitstr : array[tcontrollertype] of string[20] =
-     ('',
-      'ATMEGA16',
-      'ATMEGA32',
-      'ATMEGA48',
-      'ATMEGA64',
-      'ATMEGA128'
-     );
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
                                  genericlevel2optimizerswitches+

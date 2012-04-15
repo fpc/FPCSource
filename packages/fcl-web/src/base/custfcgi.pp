@@ -16,6 +16,11 @@
 {$mode objfpc}
 {$H+}
 
+{ Disable rangechecks. 
+  Buffers of unknown size are received and handled with a dummy array type }
+
+{$RANGECHECKS OFF}
+
 unit custfcgi;
 
 Interface
@@ -302,8 +307,11 @@ var
 
   function GetString(ALength : integer) : string;
   begin
+    if (ALength<0) then
+      ALength:=0;
     SetLength(Result,ALength);
-    move(ARecord^.ContentData[i],Result[1],ALength);
+    if (ALength>0) then
+      move(ARecord^.ContentData[i],Result[1],ALength);
     inc(i,ALength);
   end;
 
@@ -342,7 +350,7 @@ const HttpToCGI : THttpToCGI =
      18,  //  1 'HTTP_ACCEPT'           - fieldAccept
      19,  //  2 'HTTP_ACCEPT_CHARSET'   - fieldAcceptCharset
      20,  //  3 'HTTP_ACCEPT_ENCODING'  - fieldAcceptEncoding
-      0,  //  4
+     26,  //  4 'HTTP_ACCEPT_LANGUAGE'  - fieldAcceptLanguage
       0,  //  5
       0,  //  6
       0,  //  7
@@ -832,6 +840,7 @@ begin
     assert(not assigned(FRequestsArray[ARequestID].Request));
     assert(not assigned(FRequestsArray[ARequestID].Response));
     ATempRequest:=TFCGIRequest.Create;
+    InitRequest(ATempRequest);
     ATempRequest.RequestID:=ARequestID;
     ATempRequest.Handle:=FHandle;
     ATempRequest.ProtocolOptions:=Self.Protocoloptions;
@@ -848,6 +857,7 @@ begin
     begin
     ARequest:=FRequestsArray[ARequestID].Request;
     FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
+    InitResponse(FRequestsArray[ARequestID].Response);
     FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
     FRequestsArray[ARequestID].Response.FOnWrite:=@DoFastCGIWrite;
     AResponse:=FRequestsArray[ARequestID].Response;

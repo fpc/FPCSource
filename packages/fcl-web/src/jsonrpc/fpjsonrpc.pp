@@ -201,24 +201,30 @@ Type
     FAfterCreate: TJSONRPCHandlerEvent;
     FArgumentCount: Integer;
     FBeforeCreate: TBeforeCreateJSONRPCHandlerEvent;
+    FParamDefs: TJSONParamDefs;
     FPClass: TCustomJSONRPCHandlerClass;
     FDataModuleClass : TDataModuleClass;
     FHandlerMethodName: TJSONStringType;
     FHandlerClassName: TJSONStringType;
     procedure CheckNames(const AClassName, AMethodName: TJSONStringType);
+    function GetParamDefs: TJSONParamDefs;
     procedure SetFPClass(const AValue: TCustomJSONRPCHandlerClass);
     procedure SetHandlerClassName(const AValue: TJSONStringType);
     procedure SetHandlerMethodName(const AValue: TJSONStringType);
+    procedure SetParamDefs(AValue: TJSONParamDefs);
   protected
     Function CreateInstance(AOwner : TComponent; Out AContainer : TComponent) : TCustomJSONRPCHandler; virtual;
     Property DataModuleClass : TDataModuleClass Read FDataModuleClass;
   Public
+    Destructor Destroy; override;
+    Function HaveParamDefs : Boolean;
     Property HandlerClassName : TJSONStringType Read FHandlerClassName Write SetHandlerClassName;
     Property HandlerMethodName : TJSONStringType Read FHandlerMethodName Write SetHandlerMethodName;
     Property HandlerClass : TCustomJSONRPCHandlerClass Read FPClass Write SetFPClass;
     Property BeforeCreate : TBeforeCreateJSONRPCHandlerEvent Read FBeforeCreate Write FBeforeCreate;
     Property AfterCreate : TJSONRPCHandlerEvent Read FAfterCreate Write FAfterCreate;
     Property ArgumentCount : Integer Read FArgumentCount Write FArgumentCount;
+    Property ParamDefs : TJSONParamDefs Read GetParamDefs Write SetParamDefs;
   end;
 
   { TJSONRPCHandlerDefs }
@@ -976,7 +982,8 @@ begin
   FPClass:=AValue;
 end;
 
-procedure TJSONRPCHandlerDef.CheckNames(Const AClassName,AMethodName : TJSONStringType);
+procedure TJSONRPCHandlerDef.CheckNames(const AClassName,
+  AMethodName: TJSONStringType);
 
 Var
   I : Integer;
@@ -993,6 +1000,13 @@ begin
     end;
 end;
 
+function TJSONRPCHandlerDef.GetParamDefs: TJSONParamDefs;
+begin
+  IF (FParamDefs=Nil) then
+    FParamDefs:=TJSONParamDefs.Create(TJSONParamDef);
+  Result:=FParamDefs;
+end;
+
 procedure TJSONRPCHandlerDef.SetHandlerClassName(const AValue: TJSONStringType);
 begin
   if FHandlerClassName=AValue then exit;
@@ -1006,6 +1020,17 @@ begin
   if FHandlerMethodName=AValue then exit;
   CheckNames(HandlerClassName,AValue);
   FHandlerMethodName:=AValue;
+end;
+
+procedure TJSONRPCHandlerDef.SetParamDefs(AValue: TJSONParamDefs);
+begin
+  if FParamDefs=AValue then Exit;
+  IF (FParamDefs=Nil) then
+    FParamDefs:=TJSONParamDefs.Create(TJSONParamDef);
+  if (AValue<>Nil) then
+    FParamDefs.Assign(AValue)
+  else
+    FreeAndNil(FParamDefs);
 end;
 
 function TJSONRPCHandlerDef.CreateInstance(AOwner: TComponent; out
@@ -1046,6 +1071,17 @@ begin
     end;
   If Assigned(FAfterCreate) then
     FAfterCreate(Self,Result);
+end;
+
+destructor TJSONRPCHandlerDef.Destroy;
+begin
+  FreeAndNil(FParamDefs);
+  inherited Destroy;
+end;
+
+function TJSONRPCHandlerDef.HaveParamDefs: Boolean;
+begin
+  Result:=Assigned(FParamDefs);
 end;
 
 { TJSONRPCHandlerDefs }
@@ -1158,6 +1194,7 @@ begin
              JSONRPCError(SErrDuplicateRPCCLassMethodHandler,[CN,C.Name]);
           D:=AddHandlerDef(CN,C.Name);
           D.ArgumentCount:=TCustomJSONRPCHandler(C).ParamDefs.Count;
+          D.ParamDefs:=TCustomJSONRPCHandler(C).ParamDefs;
           {$ifdef wmdebug}SendDebug('Registering provider '+C.Name);{$endif}
           D.FDataModuleClass:=TDataModuleClass(DM.ClassType);
           end;

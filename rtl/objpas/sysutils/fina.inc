@@ -292,10 +292,10 @@ Var
   L : Integer;
 
 begin
-  L:=Length(Path);
-  If (L>0) and (Path[1] in AllowDirectorySeparators) then
-    Dec(L);
-  Result:=Copy(Path,2,L);
+  Result:=Path;
+  L:=Length(Result);
+  If (L>0) and (Result[1] in AllowDirectorySeparators) then
+    Delete(Result,1,1);
 end;
 
 function IsPathDelimiter(Const Path: string; Index: Integer): Boolean;

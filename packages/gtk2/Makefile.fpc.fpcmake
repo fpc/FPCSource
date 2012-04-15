@@ -1,0 +1,49 @@
+#
+#   Makefile.fpc for Free Pascal GTK 2.x.y Bindings
+#
+
+[package]
+name=gtk2
+version=2.7.1
+
+[require]
+libc=y
+packages=cairo
+packages_beos=x11
+packages_haiku=x11
+packages_linux=x11
+packages_freebsd=x11
+packages_solaris=x11
+packages_openbsd=x11
+packages_netbsd=x11
+packages_darwin=x11
+packages_iphonesim=x11
+
+[target]
+units=src/buildgtk2 
+exampledirs=examples
+implicitunits=glib2 atk pango pangocairo gdk2pixbuf gdk2 gtk2 libglade2 gtkglext gdkglext gtk2ext $(GDK2X)
+
+[compiler]
+unitdir=src src/glib src/atk src/pango src/pangocairo src/gtk+/gdk-pixbuf src/gtk+/gdk src/gtk+/gtk src/libglade src/gtkglext src/gtkext src/$(GTK2X11)
+includedir=$(GTK2X11INCLUDE)
+
+[install]
+buildunit=buildgtk2
+fpcpackage=y
+
+[shared]
+build=n
+
+[default]
+fpcdir=../..
+
+[prerules]
+ifneq ($(findstring $(OS_TARGET),linux freebsd netbsd openbsd solaris darwin iphonesim beos haiku ),)
+GDK2X=gdk2x
+GTK2X11=gtk2x11
+GTK2X11INCLUDE=src/gtk2x11/include
+endif
+
+[rules]
+.NOTPARALLEL:

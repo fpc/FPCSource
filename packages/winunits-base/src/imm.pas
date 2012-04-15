@@ -115,6 +115,24 @@ type
   NPREGISTERWORDW = PtagREGISTERWORDW;
   LPREGISTERWORDW = PtagREGISTERWORDW;
 
+{$ifdef UNICODE}
+  PtagREGISTERWORD = PtagREGISTERWORDW;
+  tagREGISTERWORD  = tagREGISTERWORDW;
+  REGISTERWORD     = REGISTERWORDW;     
+  TREGISTERWORD    = TREGISTERWORDW;
+  PREGISTERWORD    = PREGISTERWORDW;
+  NPREGISTERWORD   = NPREGISTERWORDW;
+  LPREGISTERWORD   = LPREGISTERWORDW;
+{$else}
+  PtagREGISTERWORD = PtagREGISTERWORDA;
+  tagREGISTERWORD  = tagREGISTERWORDA;
+  REGISTERWORD     = REGISTERWORDA;
+  TREGISTERWORD    = TREGISTERWORDA;
+  PREGISTERWORD    = PREGISTERWORDA;
+  NPREGISTERWORD   = NPREGISTERWORDA;
+  LPREGISTERWORD   = LPREGISTERWORDA;
+{$endif}
+
 type
   PtagRECONVERTSTRING = ^tagRECONVERTSTRING;
   tagRECONVERTSTRING = packed record
@@ -160,6 +178,20 @@ type
   NPSTYLEBUFW = PtagSTYLEBUFW;
   LPSTYLEBUFW = PtagSTYLEBUFW;
 
+{$ifdef UNICODE}
+  STYLEBUF    = STYLEBUFW;
+  TSTYLEBUF   = TSTYLEBUFW;
+  PSTYLEBUF   = PSTYLEBUFW;
+  NPSTYLEBUF  = NPSTYLEBUFW;
+  LPSTYLEBUF  = LPSTYLEBUFW;
+{$else}
+  STYLEBUF    = STYLEBUFA;
+  TSTYLEBUF   = TSTYLEBUFA;
+  PSTYLEBUF   = PSTYLEBUFA;
+  NPSTYLEBUF  = NPSTYLEBUFA;
+  LPSTYLEBUF  = LPSTYLEBUFA;
+{$endif}
+
 const
   IMEMENUITEM_STRING_SIZE = 80;
 
@@ -201,6 +233,20 @@ type
   NPIMEMENUITEMINFOW = PtagIMEMENUITEMINFOW;
   LPIMEMENUITEMINFOW = PtagIMEMENUITEMINFOW;
 
+{$ifdef UNICODE}
+  IMEMENUITEMINFO    = IMEMENUITEMINFOW;
+  TIMEMENUITEMINFO   = TIMEMENUITEMINFOW;
+  PIMEMENUITEMINFO   = PIMEMENUITEMINFOW;
+  NPIMEMENUITEMINFO  = NPIMEMENUITEMINFOW;
+  LPIMEMENUITEMINFO  = LPIMEMENUITEMINFOW;
+{$else}
+  IMEMENUITEMINFO    = IMEMENUITEMINFOA;
+  TIMEMENUITEMINFO   = TIMEMENUITEMINFOA;
+  PIMEMENUITEMINFO   = PIMEMENUITEMINFOA;
+  NPIMEMENUITEMINFO  = NPIMEMENUITEMINFOA;
+  LPIMEMENUITEMINFO  = LPIMEMENUITEMINFOA;
+{$endif}
+
 type
   PtagIMECHARPOSITION = ^tagIMECHARPOSITION;
   tagIMECHARPOSITION = packed record
@@ -227,12 +273,30 @@ const
 
 function ImmInstallIMEA(lpszIMEFileName, lpszLayoutText: LPCSTR): HKL; stdcall; external Imm name 'ImmInstallIMEA';
 function ImmInstallIMEW(lpszIMEFileName, lpszLayoutText: LPCWSTR): HKL; stdcall; external Imm name 'ImmInstallIMEW';
+{$ifndef UNICODE}
+function ImmInstallIME(lpszIMEFileName, lpszLayoutText: LPCSTR): HKL; stdcall; external Imm name 'ImmInstallIMEA';
+{$else}
+function ImmInstallIME(lpszIMEFileName, lpszLayoutText: LPCWSTR): HKL; stdcall; external Imm name 'ImmInstallIMEW';
+{$endif}
+
 function ImmGetDefaultIMEWnd(wnd: HWND): HWND; stdcall; external Imm name 'ImmGetDefaultIMEWnd';
-function ImmGetDescriptionA(kl: HKL; lpszDescription: LPSTR; uBufLen: UINT): UINT; stdcall; external Imm name 'ImmGetDescriptionA';
+function NImmGetDescriptionA(kl: HKL; lpszDescription: LPSTR; uBufLen: UINT): UINT; stdcall; external Imm name 'ImmGetDescriptionA';
 function ImmGetDescriptionW(kl: HKL; lpszDescription: LPWSTR; uBufLen: UINT): UINT; stdcall; external Imm name 'ImmGetDescriptionW';
+
+{$ifndef UNICODE}
+function ImmGetDescription(kl: HKL; lpszDescription: LPSTR; uBufLen: UINT): UINT; stdcall; external Imm name 'ImmGetDescriptionA';
+{$else}
+function ImmGetDescription(kl: HKL; lpszDescription: LPWSTR; uBufLen: UINT): UINT; stdcall; external Imm name 'ImmGetDescriptionW';
+{$endif}
 
 function ImmGetIMEFileNameA(kl: HKL; lpszFileName: LPSTR; uBufLen: UINT): UINT; stdcall; external Imm name 'ImmGetIMEFileNameA';
 function ImmGetIMEFileNameW(kl: HKL; lpszFileName: LPWSTR; uBufLen: UINT): UINT; stdcall; external Imm name 'ImmGetIMEFileNameW';
+
+{$ifndef UNICODE}
+function ImmGetIMEFileName(kl: HKL; lpszFileName: LPSTR; uBufLen: UINT): UINT; stdcall; external Imm name 'ImmGetIMEFileNameA';
+{$else}
+function ImmGetIMEFileName(kl: HKL; lpszFileName: LPWSTR; uBufLen: UINT): UINT; stdcall; external Imm name 'ImmGetIMEFileNameW';
+{$endif}
 
 function ImmGetProperty (kl: HKL; fdwIndex: DWORD): DWORD; stdcall; external Imm name 'ImmGetProperty';
 function ImmIsIME(kl: HKL): LongBool; stdcall; external Imm name 'ImmIsIME';
@@ -251,23 +315,61 @@ function ImmGetCompositionStringA(imc: HIMC; dwIndex: DWORD;
 function ImmGetCompositionStringW(imc: HIMC; dwIndex: DWORD;
     lpBuf: LPVOID; dwBufLen: DWORD): Longword; stdcall; external Imm name 'ImmGetCompositionStringW';
 
+{$ifndef UNICODE}
+function ImmGetCompositionString(imc: HIMC; dwIndex: DWORD;
+    lpBuf: LPVOID; dwBufLen: DWORD): Longword; stdcall; external Imm name 'ImmGetCompositionStringA';
+{$else}
+function ImmGetCompositionString(imc: HIMC; dwIndex: DWORD;
+    lpBuf: LPVOID; dwBufLen: DWORD): Longword; stdcall; external Imm name 'ImmGetCompositionStringW';
+{$endif}
+
 function ImmSetCompositionStringA(imc: HIMC; dwIndex: DWORD; lpComp: LPVOID;
     dwCompLen: DWORD; lpRead: LPVOID; dwReadLen: DWORD): LongBool; stdcall; external Imm name 'ImmSetCompositionStringA';
 function ImmSetCompositionStringW(imc: HIMC; dwIndex: DWORD; lpComp: LPVOID;
     dwCompLen: DWORD; lpRead: LPVOID; dwReadLen: DWORD): LongBool; stdcall; external Imm name 'ImmSetCompositionStringW';
 
+{$ifndef UNICODE}
+function ImmSetCompositionString(imc: HIMC; dwIndex: DWORD; lpComp: LPVOID;
+    dwCompLen: DWORD; lpRead: LPVOID; dwReadLen: DWORD): LongBool; stdcall; external Imm name 'ImmSetCompositionStringA';
+{$else}
+function ImmSetCompositionString(imc: HIMC; dwIndex: DWORD; lpComp: LPVOID;
+    dwCompLen: DWORD; lpRead: LPVOID; dwReadLen: DWORD): LongBool; stdcall; external Imm name 'ImmSetCompositionStringW';
+{$endif}
+
 function ImmGetCandidateListCountA(imc: HIMC; lpdwListCount: LPDWORD): DWORD; stdcall; external Imm name 'ImmGetCandidateListCountA';
 function ImmGetCandidateListCountW(imc: HIMC; lpdwListCount: LPDWORD): DWORD; stdcall; external Imm name 'ImmGetCandidateListCountW';
+
+{$ifndef UNICODE}
+function ImmGetCandidateListCount(imc: HIMC; lpdwListCount: LPDWORD): DWORD; stdcall; external Imm name 'ImmGetCandidateListCountA';
+{$else}
+function ImmGetCandidateListCount(imc: HIMC; lpdwListCount: LPDWORD): DWORD; stdcall; external Imm name 'ImmGetCandidateListCountW';
+{$endif}
 
 function ImmGetCandidateListA(imc: HIMC; deIndex: DWORD;
     lpCandList: LPCANDIDATELIST; dwBufLen: DWORD): DWORD; stdcall; external Imm name 'ImmGetCandidateListA';
 function ImmGetCandidateListW(imc: HIMC; deIndex: DWORD;
     lpCandList: LPCANDIDATELIST; dwBufLen: DWORD): DWORD; stdcall; external Imm name 'ImmGetCandidateListW';
 
+{$ifndef UNICODE}
+function ImmGetCandidateList(imc: HIMC; deIndex: DWORD;
+    lpCandList: LPCANDIDATELIST; dwBufLen: DWORD): DWORD; stdcall; external Imm name 'ImmGetCandidateListA';
+{$else}
+function ImmGetCandidateList(imc: HIMC; deIndex: DWORD;
+    lpCandList: LPCANDIDATELIST; dwBufLen: DWORD): DWORD; stdcall; external Imm name 'ImmGetCandidateListW';
+{$endif}
+
 function ImmGetGuideLineA(imc: HIMC; dwIndex: DWORD; lpBuf: LPSTR;
     dwBufLen: DWORD): DWORD; stdcall ; external Imm name 'ImmGetGuideLineA';
 function ImmGetGuideLineW(imc: HIMC; dwIndex: DWORD; lpBuf: LPWSTR;
     dwBufLen: DWORD): DWORD; stdcall ; external Imm name 'ImmGetGuideLineW';
+
+{$ifndef UNICODE}
+function ImmGetGuideLine(imc: HIMC; dwIndex: DWORD; lpBuf: LPSTR;
+    dwBufLen: DWORD): DWORD; stdcall ; external Imm name 'ImmGetGuideLineA';
+{$else}
+function ImmGetGuideLine(imc: HIMC; dwIndex: DWORD; lpBuf: LPWSTR;
+    dwBufLen: DWORD): DWORD; stdcall ; external Imm name 'ImmGetGuideLineW';
+{$endif}
 
 function ImmGetConversionStatus(imc: HIMC; lpfdwConversion, lpfdwSentence: LPDWORD): LongBool; stdcall ; external Imm name 'ImmGetConversionStatus';
 function ImmSetConversionStatus(imc: HIMC; fdwConversion, fdwSentence: DWORD): LongBool; stdcall ; external Imm name 'ImmSetConversionStatus';
@@ -277,19 +379,51 @@ function ImmSetOpenStatus(imc: HIMC; par1: LongBool): LongBool; stdcall ; extern
 function ImmGetCompositionFontA(imc: HIMC; lplf: PLOGFONTA): LongBool; stdcall ; external Imm name 'ImmGetCompositionFontA';
 function ImmGetCompositionFontW(imc: HIMC; lplf: PLOGFONTW): LongBool; stdcall ; external Imm name 'ImmGetCompositionFontW';
 
+{$ifndef UNICODE}
+function ImmGetCompositionFont(imc: HIMC; lplf: PLOGFONTA): LongBool; stdcall ; external Imm name 'ImmGetCompositionFontA';
+{$else}
+function ImmGetCompositionFont(imc: HIMC; lplf: PLOGFONTW): LongBool; stdcall ; external Imm name 'ImmGetCompositionFontW';
+{$endif}
+
 function ImmSetCompositionFontA(imc: HIMC; lplf: PLOGFONTA): LongBool; stdcall ; external Imm name 'ImmSetCompositionFontA';
 function ImmSetCompositionFontW(imc: HIMC; lplf: PLOGFONTW): LongBool; stdcall ; external Imm name 'ImmSetCompositionFontW';
+
+{$ifndef UNICODE}
+function ImmSetCompositionFont(imc: HIMC; lplf: PLOGFONTA): LongBool; stdcall ; external Imm name 'ImmSetCompositionFontA';
+{$else}
+function ImmSetCompositionFont(imc: HIMC; lplf: PLOGFONTW): LongBool; stdcall ; external Imm name 'ImmSetCompositionFontW';
+{$endif}
 
 function ImmConfigureIMEA(kl: HKL; wnd: HWND; dwMode: DWORD; lpData: LPVOID): LongBool; stdcall ; external Imm name 'ImmConfigureIMEA';
 function ImmConfigureIMEW(kl: HKL; wnd: HWND; dwMode: DWORD; lpData: LPVOID): LongBool; stdcall ; external Imm name 'ImmConfigureIMEW';
 
+{$ifndef UNICODE}
+function ImmConfigureIME(kl: HKL; wnd: HWND; dwMode: DWORD; lpData: LPVOID): LongBool; stdcall ; external Imm name 'ImmConfigureIMEA';
+{$else}
+function ImmConfigureIME(kl: HKL; wnd: HWND; dwMode: DWORD; lpData: LPVOID): LongBool; stdcall ; external Imm name 'ImmConfigureIMEW';
+{$endif}
+
 function ImmEscapeA(kl: HKL; imc: HIMC; uEscape: UINT; lpData: LPVOID): LRESULT; stdcall ; external Imm name 'ImmEscapeA';
 function ImmEscapeW(kl: HKL; imc: HIMC; uEscape: UINT; lpData: LPVOID): LRESULT; stdcall ; external Imm name 'ImmEscapeW';
+
+{$ifndef UNICODE}
+function ImmEscape(kl: HKL; imc: HIMC; uEscape: UINT; lpData: LPVOID): LRESULT; stdcall ; external Imm name 'ImmEscapeA';
+{$else}
+function ImmEscape(kl: HKL; imc: HIMC; uEscape: UINT; lpData: LPVOID): LRESULT; stdcall ; external Imm name 'ImmEscapeW';
+{$endif}
 
 function ImmGetConversionListA(kl: HKL; imc: HIMC; lpSrc: LPCSTR;
     lpDst: LPCANDIDATELIST; dwBufLen: DWORD; uFlag: UINT): DWORD; stdcall ; external Imm name 'ImmGetConversionListA';
 function ImmGetConversionListW(kl: HKL; imc: HIMC; lpSrc: LPCWSTR;
     lpDst: LPCANDIDATELIST; dwBufLen: DWORD; uFlag: UINT): DWORD; stdcall ; external Imm name 'ImmGetConversionListW';
+
+{$ifndef UNICODE}
+function ImmGetConversionList(kl: HKL; imc: HIMC; lpSrc: LPCSTR;
+    lpDst: LPCANDIDATELIST; dwBufLen: DWORD; uFlag: UINT): DWORD; stdcall ; external Imm name 'ImmGetConversionListA';
+{$else}
+function ImmGetConversionList(kl: HKL; imc: HIMC; lpSrc: LPCWSTR;
+    lpDst: LPCANDIDATELIST; dwBufLen: DWORD; uFlag: UINT): DWORD; stdcall ; external Imm name 'ImmGetConversionListW';
+{$endif}
 
 function ImmNotifyIME(imc: HIMC; dwAction, dwIndex, dwValue: DWORD): LongBool; stdcall ; external Imm name 'ImmNotifyIME';
 function ImmGetStatusWindowPos(imc: HIMC; lpptPos: LPPOINT): LongBool; stdcall ; external Imm name 'ImmGetStatusWindowPos';
@@ -302,6 +436,12 @@ function ImmSetCandidateWindow(imc: HIMC; lpCandidate: LPCANDIDATEFORM): LongBoo
 function ImmIsUIMessageA(wnd: HWND; msg: UINT; wPar: WPARAM; lPar: LPARAM): LongBool; stdcall ; external Imm name 'ImmIsUIMessageA';
 function ImmIsUIMessageW(wnd: HWND; msg: UINT; wPar: WPARAM; lPar: LPARAM): LongBool; stdcall ; external Imm name 'ImmIsUIMessageW';
 
+{$ifndef UNICODE}
+function ImmIsUIMessage(wnd: HWND; msg: UINT; wPar: WPARAM; lPar: LPARAM): LongBool; stdcall ; external Imm name 'ImmIsUIMessageA';
+{$else}
+function ImmIsUIMessage(wnd: HWND; msg: UINT; wPar: WPARAM; lPar: LPARAM): LongBool; stdcall ; external Imm name 'ImmIsUIMessageW';
+{$endif}
+
 function ImmGetVirtualKey(wnd: HWND): UINT; stdcall ; external Imm name 'ImmGetVirtualKey';
 
 type
@@ -312,20 +452,54 @@ type
   REGISTERWORDENUMPROCW = function(lpszReading: LPCWSTR; par1: DWORD;
     lpszString: LPCWSTR; par3: LPVOID): Integer; stdcall;
   TREGISTERWORDENUMPROCW = REGISTERWORDENUMPROCW;
+  {$ifdef UNICODE}
+    TREGISTERWORDENUMPROC = REGISTERWORDENUMPROCW;
+    REGISTERWORDENUMPROC  = REGISTERWORDENUMPROCW;
+  {$else}
+    TREGISTERWORDENUMPROC = REGISTERWORDENUMPROCA;
+    REGISTERWORDENUMPROC  = REGISTERWORDENUMPROCA;
+  {$endif}
 
 function ImmRegisterWordA(kl: HKL; lpszReading: LPCSTR; dwStyle: DWORD; lpszRegister: LPCSTR): LongBool; stdcall ; external Imm name 'ImmRegisterWordA';
 function ImmRegisterWordW(kl: HKL; lpszReading: LPCWSTR; dwStyle: DWORD; lpszRegister: LPCWSTR): LongBool; stdcall ; external Imm name 'ImmRegisterWordW';
 
+
+{$ifndef UNICODE}
+function ImmRegisterWord(kl: HKL; lpszReading: LPCSTR; dwStyle: DWORD; lpszRegister: LPCSTR): LongBool; stdcall ; external Imm name 'ImmRegisterWordA';
+{$else}
+function ImmRegisterWord(kl: HKL; lpszReading: LPCWSTR; dwStyle: DWORD; lpszRegister: LPCWSTR): LongBool; stdcall ; external Imm name 'ImmRegisterWordW';
+{$endif}
+
 function ImmUnregisterWordA(kl: HKL; lpszReading: LPCSTR; dwStyle: DWORD; lpszUnregister: LPCSTR): LongBool; stdcall ; external Imm name 'ImmUnregisterWordA';
 function ImmUnregisterWordW(kl: HKL; lpszReading: LPCWSTR; dwStyle: DWORD; lpszUnregister: LPCWSTR): LongBool; stdcall ; external Imm name 'ImmUnregisterWordW';
 
+{$ifndef UNICODE}
+function ImmUnregisterWord(kl: HKL; lpszReading: LPCSTR; dwStyle: DWORD; lpszUnregister: LPCSTR): LongBool; stdcall ; external Imm name 'ImmUnregisterWordA';
+{$else}
+function ImmUnregisterWord(kl: HKL; lpszReading: LPCWSTR; dwStyle: DWORD; lpszUnregister: LPCWSTR): LongBool; stdcall ; external Imm name 'ImmUnregisterWordW';
+{$endif}
+
 function ImmGetRegisterWordStyleA(kl: HKL; nItem: UINT; lpStyleBuf: LPSTYLEBUFA): UINT; stdcall ; external Imm name 'ImmGetRegisterWordStyleA';
 function ImmGetRegisterWordStyleW(kl: HKL; nItem: UINT; lpStyleBuf: LPSTYLEBUFW): UINT; stdcall ; external Imm name 'ImmGetRegisterWordStyleW';
+
+{$ifndef UNICODE}
+function ImmGetRegisterWordStyle(kl: HKL; nItem: UINT; lpStyleBuf: LPSTYLEBUFA): UINT; stdcall ; external Imm name 'ImmGetRegisterWordStyleA';
+{$else}
+function ImmGetRegisterWordStyle(kl: HKL; nItem: UINT; lpStyleBuf: LPSTYLEBUFW): UINT; stdcall ; external Imm name 'ImmGetRegisterWordStyleW';
+{$endif}
 
 function ImmEnumRegisterWordA(kl: HKL; lpfnEnumProc: REGISTERWORDENUMPROCA;
     lpszReading: LPCSTR; dwStyle: DWORD; lpszRegister: LPCSTR; lpData: LPVOID): UINT; stdcall ; external Imm name 'ImmEnumRegisterWordA';
 function ImmEnumRegisterWordW(kl: HKL; lpfnEnumProc: REGISTERWORDENUMPROCW;
     lpszReading: LPCWSTR; dwStyle: DWORD; lpszRegister: LPCWSTR; lpData: LPVOID): UINT; stdcall ; external Imm name 'ImmEnumRegisterWordW';
+
+{$ifndef UNICODE}
+function ImmEnumRegisterWord(kl: HKL; lpfnEnumProc: REGISTERWORDENUMPROCA;
+    lpszReading: LPCSTR; dwStyle: DWORD; lpszRegister: LPCSTR; lpData: LPVOID): UINT; stdcall ; external Imm name 'ImmEnumRegisterWordA';
+{$else}
+function ImmEnumRegisterWord(kl: HKL; lpfnEnumProc: REGISTERWORDENUMPROCW;
+    lpszReading: LPCWSTR; dwStyle: DWORD; lpszRegister: LPCWSTR; lpData: LPVOID): UINT; stdcall ; external Imm name 'ImmEnumRegisterWordW';
+{$endif}
 
 function ImmDisableIME(idThread: DWORD): LongBool; stdcall  ; external Imm name 'ImmDisableIME';
 function ImmEnumInputContext(idThread: DWORD; lpfn: IMCENUMPROC; lParam: LPARAM): LongBool; stdcall ; external Imm name 'ImmEnumInputContext';
@@ -333,6 +507,14 @@ function ImmGetImeMenuItemsA(imc: HIMC; dwFlags, dwType: DWORD;
     lpImeParentMenu, lpImeMenu: LPIMEMENUITEMINFOA; dwSize: DWORD): DWORD; stdcall ; external Imm name 'ImmGetImeMenuItemsA';
 function ImmGetImeMenuItemsW(par0: HIMC; dwFlags, dwType: DWORD;
     lpImeParentMenu, lpImeMenu: LPIMEMENUITEMINFOW; dwSize: DWORD): DWORD; stdcall ; external Imm name 'ImmGetImeMenuItemsW';
+
+{$ifndef UNICODE}
+function ImmGetImeMenuItems(imc: HIMC; dwFlags, dwType: DWORD;
+    lpImeParentMenu, lpImeMenu: LPIMEMENUITEMINFOA; dwSize: DWORD): DWORD; stdcall ; external Imm name 'ImmGetImeMenuItemsA';
+{$else}
+function ImmGetImeMenuItems(par0: HIMC; dwFlags, dwType: DWORD;
+    lpImeParentMenu, lpImeMenu: LPIMEMENUITEMINFOW; dwSize: DWORD): DWORD; stdcall ; external Imm name 'ImmGetImeMenuItemsW';
+{$endif}
 
 function ImmDisableTextFrameService(idThread: DWORD): LongBool; stdcall ; external Imm name 'ImmDisableTextFrameService';
 

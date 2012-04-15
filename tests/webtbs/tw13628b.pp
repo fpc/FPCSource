@@ -8,11 +8,7 @@ uses
 
 const
   {$ifdef unix}
-  {$ifdef darwin}
-  libname = './libtw13628a.dylib';
-  {$else darwin}
-  libname = './libtw13628a.so';
-  {$endif darwin}
+  libname = './libtw13628a.'+SharedSuffix;
   {$endif unix}
 
   {$ifdef windows}

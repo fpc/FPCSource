@@ -23,14 +23,15 @@ begin
     P.Email := '';
     P.Description := 'GNU dbm is a set of database routines that use extensible hashing.';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+    P.OSes := AllUnixOSes - [qnx];
 
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('gdbm.pp');
 
     P.ExamplePath.Add('examples');
-    P.Targets.AddExampleProgram('tests/testgdbm.pp');
-    P.Targets.AddExampleProgram('tests/testgdbm2.pp');
+    P.Targets.AddExampleProgram('testgdbm.pp');
+    P.Targets.AddExampleProgram('testgdbm2.pp');
 
 
 {$ifndef ALLPACKAGES}

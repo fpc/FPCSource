@@ -31,7 +31,9 @@ uses
   {$DEFINE extdecl:=cdecl}
   const
     mysqllib = 'libmysqlclient.'+sharedsuffix;
-  {$IF DEFINED(mysql51)}
+  {$IF DEFINED(mysql55)}
+    mysqlvlib = mysqllib+'.18';
+  {$ELSEIF DEFINED(mysql51)}
     mysqlvlib = mysqllib+'.16';
   {$ELSEIF DEFINED(mysql50)}
     mysqlvlib = mysqllib+'.15';
@@ -47,6 +49,10 @@ uses
     mysqllib = 'libmysql.dll';
     mysqlvlib = 'libmysql.dll';
 {$ENDIF}
+
+{$IFDEF mysql55}
+  {$DEFINE mysql51}
+{$ENDIF mysql55}
 
 {$IFDEF mysql51}
   {$DEFINE mysql50}
@@ -100,6 +106,7 @@ uses
      NAME_LEN = 64;
      HOSTNAME_LENGTH = 60;
      USERNAME_LENGTH = 16;
+     MYSQL_AUTODETECT_CHARSET_NAME = 'auto';
      SERVER_VERSION_LENGTH = 60;
      SQLSTATE_LENGTH = 5;
      LOCAL_HOST = 'localhost';
@@ -180,6 +187,12 @@ uses
        REFRESH_THREADS = 32;       // Flush thread cache
        REFRESH_SLAVE = 64;         // Reset master info and restart slave thread
        REFRESH_MASTER = 128;       // Remove all bin logs in the index and truncate the index
+       REFRESH_ERROR_LOG = 256;    // Rotate only the erorr log
+       REFRESH_ENGINE_LOG = 512;   // Flush all storage engine logs
+       REFRESH_BINARY_LOG = 1024;  // Flush the binary log
+       REFRESH_RELAY_LOG = 2048;   // Flush the relay log
+       REFRESH_GENERAL_LOG = 4096; // Flush the general log
+       REFRESH_SLOW_LOG = 8192;    // Flush the slow query log
 
     { The following can't be set with mysql_refresh()  }
        REFRESH_READ_LOCK = 16384;          // Lock tables for read
@@ -208,10 +221,16 @@ uses
        CLIENT_SECURE_CONNECTION = 32768;   // New 4.1 authentication
        CLIENT_MULTI_STATEMENTS = 65536;    // Enable/disable multi-stmt support
        CLIENT_MULTI_RESULTS = 131072;      // Enable/disable multi-results
+       CLIENT_PS_MULTI_RESULTS : cardinal = 1 shl 18; // Multi-results in PS-protocol
+       CLIENT_PLUGIN_AUTH : cardinal = 1 shl 19;      // Client supports plugin authentication
+       CLIENT_SSL_VERIFY_SERVER_CERT : cardinal = 1 shl 30;
        CLIENT_REMEMBER_OPTIONS : cardinal = 1 shl 31;
 
 
-       SERVER_STATUS_IN_TRANS = 1;         // Transaction has started
+       SERVER_STATUS_IN_TRANS = 1;         // Is raised when a multi-statement transaction
+                                           //  has been started, either explicitly, by means
+                                           //  of BEGIN or COMMIT AND CHAIN, or implicitly, by the first transactional
+                                           //  statement, when autocommit=off
        SERVER_STATUS_AUTOCOMMIT = 2;       // Server in auto_commit mode
        SERVER_STATUS_MORE_RESULTS = 4;     // More results on server
        SERVER_MORE_RESULTS_EXISTS = 8;     // Multi query - next query exists
@@ -237,6 +256,10 @@ uses
       number of result set columns.
     }
        SERVER_STATUS_METADATA_CHANGED = 1024;
+{$ENDIF}
+{$IFDEF mysql55}
+       SERVER_QUERY_WAS_SLOW = 2048;
+       SERVER_PS_OUT_PARAMS = 4096; // To mark ResultSet containing output parameter values.
 {$ENDIF}
 
 {$IFDEF mysql41}
@@ -549,8 +572,9 @@ uses
        NULL_LENGTH : culong = culong(not(0)); // For net_store_length
 
     const
-       MYSQL_STMT_HEADER = 4;
+       MYSQL_STMT_HEADER      = 4;
        MYSQL_LONG_DATA_HEADER = 6;
+       NOT_FIXED_DEC          = 31;
 
 {  ------------ Stop of declaration in "mysql_com.h"   -----------------------  }
 
@@ -742,6 +766,12 @@ uses
          MYSQL_SECURE_AUTH
 {$IFDEF MYSQL50}
          ,MYSQL_REPORT_DATA_TRUNCATION, MYSQL_OPT_RECONNECT
+{$IFDEF mysql51}
+         ,MYSQL_OPT_SSL_VERIFY_SERVER_CERT
+{$IFDEF mysql55}
+         ,MYSQL_PLUGIN_DIR, MYSQL_DEFAULT_AUTH
+{$ENDIF}
+{$ENDIF}
 {$ENDIF}
          );
 
@@ -764,6 +794,8 @@ uses
          end;
        DYNAMIC_ARRAY = st_dynamic_array;
        Pst_dynamic_array = ^st_dynamic_array;
+
+       st_mysql_options_extention = record end;
 
        Pst_mysql_options = ^st_mysql_options;
        st_mysql_options = record
@@ -832,6 +864,9 @@ uses
             local_infile_end : procedure (_para1:pointer);
             local_infile_error : function (_para1:pointer; _para2:Pchar; _para3:cuint):cint;
             local_infile_userdata : pointer;
+{$IFDEF mysql51}
+            extension : ^st_mysql_options_extention;
+{$ENDIF}
 {$ENDIF}
          end;
 
@@ -1173,6 +1208,8 @@ uses
        PMYSQL_BIND = ^MYSQL_BIND;
 
     { statement handler  }
+       st_mysql_stmt_extension = record end;
+
        st_mysql_stmt = record
             mem_root : MEM_ROOT;            // root allocations
 //            list : LIST;                    // list to keep track of all stmts
@@ -1212,6 +1249,9 @@ uses
     {   Is set to true if we need to calculate field->max_length for
         metadata fields when doing mysql_stmt_store_result.       }
             update_max_length : my_bool;
+{$IFDEF mysql51}
+            extension: ^st_mysql_stmt_extension;
+{$ENDIF}
          end;
        MYSQL_STMT = st_mysql_stmt;
     {   When doing mysql_stmt_store_result calculate max_length attribute
@@ -1450,6 +1490,7 @@ uses
     function mysql_autocommit(mysql:PMYSQL; auto_mode:my_bool):my_bool;extdecl;external mysqllib name 'mysql_autocommit';
     function mysql_more_results(mysql:PMYSQL):my_bool;extdecl;external mysqllib name 'mysql_more_results';
     function mysql_next_result(mysql:PMYSQL):cint;extdecl;external mysqllib name 'mysql_next_result';
+    function mysql_stmt_next_result(stmt:PMYSQL_STMT):cint;extdecl;external mysqllib name 'mysql_stmt_next_result';
     procedure mysql_close(sock:PMYSQL);extdecl;external mysqllib name 'mysql_close';
 
 {$ELSE}
@@ -1519,6 +1560,7 @@ uses
       mysql_stmt_affected_rows: function (stmt:PMYSQL_STMT):my_ulonglong;extdecl;
       mysql_stmt_insert_id: function (stmt:PMYSQL_STMT):my_ulonglong;extdecl;
       mysql_stmt_field_count: function (stmt:PMYSQL_STMT):cuint;extdecl;
+      mysql_stmt_next_result: function (stmt:PMYSQL_STMT):cint;extdecl;
 
 {$ENDIF}
 
@@ -1686,6 +1728,7 @@ begin
     pointer(mysql_stmt_affected_rows) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_affected_rows');
     pointer(mysql_stmt_insert_id) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_insert_id');
     pointer(mysql_stmt_field_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_field_count');
+    pointer(mysql_stmt_next_result) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_next_result');
 
     if mysql_library_init(argc, argv, groups) <> 0 then
       Exit;
@@ -1768,7 +1811,9 @@ end;
 
     function IS_NUM(t : enum_field_types) : boolean;
     begin
-{$IF DEFINED(mysql50) or DEFINED(mysql51)}
+{$IF DEFINED(mysql55)}
+      IS_NUM := ((t <= FIELD_TYPE_INT24) and (t<>FIELD_TYPE_TIMESTAMP)) or (t=FIELD_TYPE_YEAR) or (t=FIELD_TYPE_NEWDECIMAL);
+{$ELSEIF DEFINED(mysql50) or DEFINED(mysql51)}
       IS_NUM := (t <= FIELD_TYPE_INT24) or (t=FIELD_TYPE_YEAR) or (t=FIELD_TYPE_NEWDECIMAL);
 {$ELSE}
       IS_NUM := (t <= FIELD_TYPE_INT24) or (t=FIELD_TYPE_YEAR);

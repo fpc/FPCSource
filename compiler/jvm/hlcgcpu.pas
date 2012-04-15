@@ -92,7 +92,6 @@ uses
       procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); override;
 
       procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
-      procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
       procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string); override;
       procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
       procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);override;
@@ -1511,11 +1510,6 @@ implementation
     end;
 
   procedure thlcgjvm.g_incrrefcount(list: TAsmList; t: tdef; const ref: treference);
-    begin
-      // do nothing
-    end;
-
-  procedure thlcgjvm.g_decrrefcount(list: TAsmList; t: tdef; const ref: treference);
     begin
       // do nothing
     end;

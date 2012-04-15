@@ -19,9 +19,9 @@ Procedure UniqueString (Var S : UnicodeString);external name 'FPC_UNICODESTR_UNI
 Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt;
 Function Pos (c : Char; Const s : UnicodeString) : SizeInt;
 Function Pos (c : UnicodeChar; Const s : UnicodeString) : SizeInt;
-Function Pos (c : AnsiString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Pos (c : UnicodeString; Const s : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Pos (c : ShortString; Const s : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const c : RawByteString; Const s : UnicodeString) : SizeInt;
+Function Pos (const c : UnicodeString; Const s : RawByteString) : SizeInt;
+Function Pos (const c : ShortString; Const s : UnicodeString) : SizeInt;
 
 Function UpCase(const s : UnicodeString) : UnicodeString;
 Function  UpCase(c:UnicodeChar):UnicodeChar;
@@ -33,28 +33,37 @@ Procedure Delete (Var S : UnicodeString; Index,Size: SizeInt);
 Procedure SetString (Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt);
 Procedure SetString (Out S : UnicodeString; Buf : PChar; Len : SizeInt);
 
-function WideCharToString(S : PWideChar) : AnsiString;
-function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
-function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
+function WideCharToString(S : PWideChar) : UnicodeString;
+function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
+function WideCharLenToString(S : PWideChar;Len : SizeInt) : UnicodeString;
+procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : UnicodeString);
 procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : AnsiString);
+procedure WideCharToStrVar(S : PWideChar;out Dest : UnicodeString);
 procedure WideCharToStrVar(S : PWideChar;out Dest : AnsiString);
 
-function UnicodeCharToString(S : PUnicodeChar) : AnsiString;
-function StringToUnicodeChar(const Src : AnsiString;Dest : PUnicodeChar;DestSize : SizeInt) : PUnicodeChar;
-function UnicodeCharLenToString(S : PUnicodeChar;Len : SizeInt) : AnsiString;
+function UnicodeCharToString(S : PUnicodeChar) : UnicodeString;
+function StringToUnicodeChar(const Src : RawByteString;Dest : PUnicodeChar;DestSize : SizeInt) : PUnicodeChar;
+function UnicodeCharLenToString(S : PUnicodeChar;Len : SizeInt) : UnicodeString;
+procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : UnicodeString);
 procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : AnsiString);
 procedure UnicodeCharToStrVar(S : PUnicodeChar;out Dest : AnsiString);
 
-procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
-procedure DefaultAnsi2UnicodeMove(source:pchar;var dest:unicodestring;len:SizeInt);
+procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
+procedure DefaultAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
+
+Type
+  TStandardCodePageEnum = (
+    scpAnsi,          // system Ansi code page (GetACP on windows)
+    scpConsoleInput,  // system console input code page (GetConsoleCP on windows)
+    scpConsoleOutput  // system console output code page (GetConsoleOutputCP on windows)
+  );
 
 {$ifndef FPC_HAS_BUILTIN_WIDESTR_MANAGER}
-Type
   { hooks for internationalization
     please add new procedures at the end, it makes it easier to detect new procedures }
   TUnicodeStringManager = record
-    Wide2AnsiMoveProc : procedure(source:pwidechar;var dest:ansistring;len:SizeInt);
-    Ansi2WideMoveProc : procedure(source:pchar;var dest:widestring;len:SizeInt);
+    Wide2AnsiMoveProc : procedure(source:pwidechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
+    Ansi2WideMoveProc : procedure(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
 
 //    UpperUTF8 : procedure(p:PUTF8String);
 
@@ -95,12 +104,15 @@ Type
     ThreadFiniProc : procedure;
 
     { this is only different on windows }
-    Unicode2AnsiMoveProc : procedure(source:punicodechar;var dest:ansistring;len:SizeInt);
-    Ansi2UnicodeMoveProc : procedure(source:pchar;var dest:unicodestring;len:SizeInt);
+    Unicode2AnsiMoveProc : procedure(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
+    Ansi2UnicodeMoveProc : procedure(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
     UpperUnicodeStringProc : function(const S: UnicodeString): UnicodeString;
     LowerUnicodeStringProc : function(const S: UnicodeString): UnicodeString;
     CompareUnicodeStringProc : function(const s1, s2 : UnicodeString) : PtrInt;
     CompareTextUnicodeStringProc : function(const s1, s2 : UnicodeString): PtrInt;
+
+    { codepage retrieve function }
+    GetStandardCodePageProc: function(const stdcp: TStandardCodePageEnum): TSystemCodePage;
   end;
 {$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 
@@ -111,11 +123,11 @@ function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): Si
 function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar; SourceChars: SizeUInt): SizeUInt;
 function Utf8ToUnicode(Dest: PUnicodeChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
-function UTF8Encode(const s : Ansistring) : UTF8String; inline;
-function UTF8Encode(const s : UnicodeString) : UTF8String;
-function UTF8Decode(const s : UTF8String): UnicodeString;
-function AnsiToUtf8(const s : ansistring): UTF8String;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
+function UTF8Encode(const s : RawByteString) : RawByteString; inline;
+function UTF8Encode(const s : UnicodeString) : RawByteString;
+function UTF8Decode(const s : RawByteString): UnicodeString;
+function AnsiToUtf8(const s : RawByteString): RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Utf8ToAnsi(const s : RawByteString) : RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
 function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;
 function UCS4StringToUnicodeString(const s : UCS4String) : UnicodeString;
 function WideStringToUCS4String(const s : WideString) : UCS4String;
@@ -129,4 +141,6 @@ Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
 Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager);
 Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
 
-
+function StringElementSize(const S : UnicodeString): Word; overload;
+function StringRefCount(const S : UnicodeString): SizeInt; overload;
+function StringCodePage(const S : UnicodeString): TSystemCodePage; overload;

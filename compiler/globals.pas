@@ -53,6 +53,7 @@ interface
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
           m_property,m_default_inline,m_except,m_advanced_records];
+       delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage];
        fpcmodeswitches =
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_hintdirective,
@@ -102,10 +103,12 @@ interface
        MathPiExtended : textendedrec = (bytes : (64,0,201,15,218,162,33,104,194,53));
 {$endif FPC_LITTLE_ENDIAN}
 {$endif}
+       CP_UTF8 = 65001;
+       CP_UTF16 = 1200;
+       CP_NONE  = 65535;
+
 
     type
-       tcodepagestring = string[20];
-
        { this is written to ppus during token recording for generics so it must be packed }
        tsettings = packed record
          alignment       : talignmentinfo;
@@ -122,7 +125,6 @@ interface
          debugswitches   : tdebugswitches;
          { 0: old behaviour for sets <=256 elements
            >0: round to this size }
-         pmessage : pmessagestaterecord;
          setalloc,
          packenum        : shortint;
 
@@ -135,7 +137,7 @@ interface
          asmmode         : tasmmode;
          interfacetype   : tinterfacetypes;
          defproccall     : tproccalloption;
-         sourcecodepage  : tcodepagestring;
+         sourcecodepage  : tstringencoding;
 
          minfpconstprec  : tfloattype;
 
@@ -145,6 +147,8 @@ interface
 {$if defined(ARM) or defined(AVR)}
         controllertype   : tcontrollertype;
 {$endif defined(ARM) or defined(AVR)}
+         { WARNING: this pointer cannot be written as such in record token }
+         pmessage : pmessagestaterecord;
        end;
 
     const
@@ -263,6 +267,8 @@ interface
        GenerateImportSection,
        GenerateImportSectionSetExplicitly,
        RelocSection : boolean;
+       MacOSXVersionMin,
+       iPhoneOSVersionMin: string[15];
        RelocSectionSetExplicitly : boolean;
        LinkTypeSetExplicitly : boolean;
 
@@ -363,7 +369,6 @@ interface
         genwpoptimizerswitches : [];
         dowpoptimizerswitches : [];
         debugswitches : [];
-        pmessage : nil;
 
         setalloc : 0;
         packenum : 4;
@@ -414,6 +419,11 @@ interface
         optimizecputype : cpu_athlon64;
         fputype : fpu_sse64;
   {$endif x86_64}
+  {$ifdef ia64}
+        cputype : cpu_itanium;
+        optimizecputype : cpu_itanium;
+        fputype : fpu_itanium;
+  {$endif ia64}
   {$ifdef avr}
         cputype : cpuinfo.cpu_avr5;
         optimizecputype : cpuinfo.cpu_avr5;
@@ -437,13 +447,14 @@ interface
         interfacetype : it_interfacejava;
 {$endif jvm}
         defproccall : pocall_default;
-        sourcecodepage : '8859-1';
+        sourcecodepage : 28591;
         minfpconstprec : s32real;
 
         disabledircache : false;
 {$if defined(ARM) or defined(AVR)}
         controllertype : ct_none;
 {$endif defined(ARM) or defined(AVR)}
+        pmessage : nil;
       );
 
     var
@@ -1120,7 +1131,7 @@ implementation
         result:=false;
         hs:=Upper(s);
         for t:=low(tcontrollertype) to high(tcontrollertype) do
-          if controllertypestr[t]=hs then
+          if embedded_controllers[t].controllertypestr=hs then
             begin
               a:=t;
               result:=true;
@@ -1572,6 +1583,8 @@ implementation
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
         LinkTypeSetExplicitly:=false;
+        MacOSXVersionMin:='';
+        iPhoneOSVersionMin:='';
         { memory sizes, will be overridden by parameter or default for target
           in options or init_parser }
         stacksize:=0;

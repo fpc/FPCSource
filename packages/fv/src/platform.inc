@@ -95,6 +95,9 @@
  FREEBSD  OS_FREEBSD  FPC      PPC_FPC      PROC_Protected  BIT_64  ASM_FPC
           OS_UNIX
 
+ OPENBSD  OS_OPENBSD  FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
+          OS_UNIX
+
  NETBSD   OS_NETBSD   FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
           OS_UNIX
 
@@ -134,8 +137,9 @@ FOR FPC THESE ARE THE TRANSLATIONS
  WIN32    OS_WINDOWS           FPC     32-bit           AT&T         ----
 
  LINUX    OS_LINUX,OS_UNIX     FPC     32-bit           AT&T         ----
- FREEBSD  OS_NETBSD,OS_UNIX    FPC     32-bit           AT&T         ----
- NETBSD   OS_FREEBSD,OS_UNIX   FPC     32-bit           AT&T         ----
+ FREEBSD  OS_FREEBSD,OS_UNIX   FPC     32-bit           AT&T         ----
+ OPENBSD  OS_OPENBSD,OS_UNIX   FPC     32-bit           AT&T         ----
+ NETBSD   OS_NETBSD,OS_UNIX    FPC     32-bit           AT&T         ----
 
  OS2      OS_OS2               FPC     ?????            AT&T         CPU86
 
@@ -191,12 +195,17 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$IFDEF LINUX}
   {$UNDEF OS_DOS}
   {$DEFINE OS_LINUX}
-  {$DEFINE OS_UNIX}
-{$ENDIF}
+  {$DEFINE OS_UNIX}{$ENDIF}
 
 {$IFDEF FreeBSD}
   {$UNDEF OS_DOS}
   {$DEFINE OS_FREEBSD}
+  {$DEFINE OS_UNIX}
+{$ENDIF}
+
+{$IFDEF OPENBSD}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_OPENBSD}
   {$DEFINE OS_UNIX}
 {$ENDIF}
 
@@ -223,6 +232,12 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$IFDEF BEOS}
   {$UNDEF OS_DOS}
   {$DEFINE OS_BEOS}
+  {$DEFINE OS_UNIX}
+{$ENDIF}
+
+{$IFDEF AIX}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_AIX}
   {$DEFINE OS_UNIX}
 {$ENDIF}
 

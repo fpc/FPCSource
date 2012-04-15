@@ -63,6 +63,12 @@ const
    VER_PLATFORM_WIN32_WINDOWS = 1;
    VER_PLATFORM_WIN32_NT = 2;
 
+   { DllEntryPoint }
+   DLL_PROCESS_ATTACH = 1;
+   DLL_THREAD_ATTACH = 2;
+   DLL_PROCESS_DETACH = 0;
+   DLL_THREAD_DETACH = 3;
+
   { These constants are used for conversion of error codes }
   { from win32 i/o errors to tp i/o errors                 }
   { errors 1 to 18 are the same as in Turbo Pascal         }
@@ -105,6 +111,8 @@ const
     ERROR_DISK_FULL = 112;
     ERROR_DIR_NOT_EMPTY = 145;
     ERROR_ALREADY_EXISTS = 183;
+
+    EXCEPTION_MAXIMUM_PARAMETERS = 15;
 
 type
    {UINT  = longint;
@@ -173,6 +181,17 @@ type
     flags : dword;
   end;
 
+  PExceptionRecord = ^TExceptionRecord;
+  TExceptionRecord = record
+    ExceptionCode   : cardinal;
+    ExceptionFlags  : cardinal;
+    ExceptionRecord : PExceptionRecord;
+    ExceptionAddress : Pointer;
+    NumberParameters : Longint;
+    ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
+  end;
+
+
 threadvar
   errno : longint;
 
@@ -211,14 +230,30 @@ threadvar
 
   function Win32GetCurrentThreadId:DWORD;
     stdcall; external KernelDLL name 'GetCurrentThreadId';
-{$endif WINCE}
+
+  function GetCurrentProcess : THandle;
+    stdcall;external 'kernel32' name 'GetCurrentProcess';
+
+  function ReadProcessMemory(process : THandle;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
+    stdcall;external 'kernel32' name 'ReadProcessMemory';
+
+  { module functions }
+  function GetModuleFileName(l1:THandle;p:PChar;l2:longint):longint;
+    stdcall;external KernelDLL name 'GetModuleFileNameA';
+
+  function GetModuleHandle(p : PChar) : THandle;
+    stdcall;external KernelDLL name 'GetModuleHandleA';
+
+{$else WINCE}
 
    { module functions }
-   function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
-     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleFileName' + ApiSuffix;
-   function GetModuleHandle(p : pointer) : PtrUInt;
-     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleHandle' + ApiSuffix;
+   function GetModuleFileName(l1:THandle;p:PWideChar;l2:longint):longint;
+     cdecl;external KernelDLL name 'GetModuleFileNameW';
 
+   function GetModuleHandle(p : PWideChar) : THandle;
+     cdecl;external KernelDLL name 'GetModuleHandleW';
+
+{$endif WINCE}
    { file functions }
    function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
@@ -267,6 +302,12 @@ threadvar
    function GetConsoleOutputCP : UINT;
      stdcall; external KernelDLL name 'GetConsoleOutputCP';
 
+   function SysAllocStringLen(psz:pointer;len:dword):pointer;
+     stdcall; external 'oleaut32.dll' name 'SysAllocStringLen';
+   procedure SysFreeString(bstr:pointer);
+     stdcall; external 'oleaut32.dll' name 'SysFreeString';
+   function SysReAllocStringLen(var bstr:pointer;psz: pointer;
+     len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
 {$endif WINCE}
 
    Procedure Errno2InOutRes;
@@ -302,13 +343,19 @@ threadvar
    end;
 
 
-  function OleStrToString(source: PWideChar) : ansistring;inline;
+  function OleStrToString(source: PWideChar) : UnicodeString;inline;
     begin
       OleStrToStrVar(source,result);
     end;
 
 
-  procedure OleStrToStrVar(source : PWideChar;var dest : ansistring);inline;
+  procedure OleStrToStrVar(source : PWideChar;var dest : UnicodeString);inline;
+    begin
+      WideCharLenToStrVar(source,length(WideString(pointer(source))),dest);
+    end;
+
+
+  procedure OleStrToStrVar(source : PWideChar;var dest : AnsiString);inline;
     begin
       WideCharLenToStrVar(source,length(WideString(pointer(source))),dest);
     end;
@@ -317,5 +364,14 @@ threadvar
   function StringToOleStr(const source : ansistring) : PWideChar;inline;
     begin
       result:=nil;
-      widestringmanager.Ansi2WideMoveProc(pchar(pointer(source)),widestring(pointer(result)),length(source));
+      widestringmanager.Ansi2WideMoveProc(pchar(pointer(source)),StringCodePage(source),widestring(pointer(result)),length(source));
     end;
+
+
+  function StringToOleStr(const source : UnicodeString) : PWideChar;inline;
+    begin
+      result:=nil;
+      { will call UnicodeString overload if FPC_WIDESTRING_EQUAL_UNICODESTRING is set }
+      SetString(widestring(pointer(result)),PWideChar(source),length(source));
+    end;
+

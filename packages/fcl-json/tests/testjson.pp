@@ -18,7 +18,7 @@ program testjson;
 
 uses
   Classes, consoletestrunner, testjsondata, testjsonparser,
-  fpcunitconsolerunner, testjsonrtti, fpjsonrtti;
+  fpcunitconsolerunner; //, testjsonrtti, fpjsonrtti;
 type
   { TLazTestRunner }
    TMyTestRunner = class(TTestRunner)

@@ -1,7 +1,9 @@
 unit xrender;
+
 interface
+
 uses
-  x,xlib;
+  x, xlib, ctypes;
 
 {$ifndef os2}
   {$LinkLib c}
@@ -133,6 +135,13 @@ type
         colormap : TColormap;
      end;
 
+   TXRenderColor = record
+     red   : cushort;
+     green : cushort;
+     blue  : cushort;
+     alpha : cushort;
+   end;
+
 const
    PictFormatID = 1 shl 0;
    PictFormatType = 1 shl 1;
@@ -198,12 +207,12 @@ type
 
    PXGlyphInfo = ^TXGlyphInfo;
    TXGlyphInfo = record
-        width : word;
-        height : word;
-        x : smallint;
-        y : smallint;
-        xOff : smallint;
-        yOff : smallint;
+        width : cushort;
+        height : cushort;
+        x : cshort;
+        y : cshort;
+        xOff : cshort;
+        yOff : cshort;
      end;
 
 function XRenderQueryExtension(dpy:PDisplay; event_basep:Plongint; error_basep:Plongint):TBoolResult;cdecl;external libX11;

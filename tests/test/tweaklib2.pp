@@ -3,7 +3,7 @@
 {$ifdef mswindows}
  {$define supported}
 {$endif mswindows}
-{$ifdef Unix}
+{$if defined(Unix) and not defined(aix)}
  {$define supported}
 {$endif Unix}
 {$ifndef fpc}

@@ -161,9 +161,9 @@ procedure CreateTempDir(const s:string);
    end
  else
   begin
-    {$I-}
+    {$push} {$I-}
      mkdir(s);
-    {$I+}
+    {$pop}
     if ioresult<>0 then;
   end;
  end;
@@ -189,9 +189,9 @@ procedure call_ar;
   ExecuteProcess(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
   cleardir(path,'*.sw');
   cleardir(path,'*.swo');
-  {$i-}
+  {$push} {$I-}
   RmDir(path);
-  {$i+}
+  {$pop}
   if ioresult<>0 then;
  end;
 procedure makeasm(index:cardinal;name:pchar;isData:longbool);
@@ -446,11 +446,11 @@ begin
   impname:=libname;
   lname:=binname;
   OldFileMode:=filemode;
-  {$I-}
+  {$push} {$I-}
    filemode:=0;
    reset(f,1);
    filemode:=OldFileMode;
-  {$I+}
+  {$pop}
   if IOResult<>0 then
    begin
      makedef:=false;

@@ -71,18 +71,19 @@ type
     FData: PNodeData;
     FDataType: TAttrDataType;
     FDefault: TAttrDefault;
-    FTag: Cardinal;
+    FIndex: Cardinal;
     FIsNamespaceDecl: Boolean;
-    FEnumeration: array of WideString;
+    FEnumeration: array of XMLString;
   public
     constructor Create(aName: PHashItem; aColonPos: Integer);
     destructor Destroy; override;
     function AddEnumToken(Buf: PWideChar; Len: Integer): Boolean;
-    function HasEnumToken(const aValue: WideString): Boolean;
+    function HasEnumToken(const aValue: XMLString): Boolean;
+    function ValidateSyntax(const aValue: XMLString; Namespaces: Boolean): Boolean;
     property Data: PNodeData read FData;
     property Default: TAttrDefault read FDefault write FDefault;
     property DataType: TAttrDataType read FDataType write FDataType;
-    property Tag: Cardinal read FTag write FTag;
+    property Index: Cardinal read FIndex;
     property IsNamespaceDecl: Boolean read FIsNamespaceDecl;
   end;
 
@@ -98,6 +99,7 @@ type
   private
     FAttrDefs: TFPList;
     FNeedsDefaultPass: Boolean;
+    FHasRequiredAtts: Boolean;
     function GetAttrDefCount: Integer;
     function AttrDefByIndex(index: Integer): TAttributeDef;
   public
@@ -111,18 +113,19 @@ type
     property AttrDefCount: Integer read GetAttrDefCount;
     property AttrDefs[index: Integer]: TAttributeDef read AttrDefByIndex;
     property NeedsDefaultPass: Boolean read FNeedsDefaultPass;
+    property HasRequiredAtts: Boolean read FHasRequiredAtts;
   end;
 
   TEntityDecl = class(TDTDObject)
   public
-    FName: WideString;   // TODO: change to PHashItem
-    FInputEncoding: WideString;
-    FXMLEncoding: WideString;
-    FPublicID: WideString;
-    FSystemID: WideString;
-    FNotationName: WideString;
-    FURI: WideString;
-    FReplacementText: WideString;
+    FName: XMLString;   // TODO: change to PHashItem
+    FInputEncoding: XMLString;
+    FXMLEncoding: XMLString;
+    FPublicID: XMLString;
+    FSystemID: XMLString;
+    FNotationName: XMLString;
+    FURI: XMLString;
+    FReplacementText: XMLString;
     FXMLVersion: TXMLVersion;
     FPrefetched: Boolean;
     FResolved: Boolean;
@@ -135,9 +138,10 @@ type
 
   TNotationDecl = class(TDTDObject)
   public
-    FName: WideString;
-    FPublicID: WideString;
-    FSystemID: WideString;
+    FName: XMLString;
+    FPublicID: XMLString;
+    FSystemID: XMLString;
+    FURI: XMLString;
   end;
 
   TDTDModel = class
@@ -149,10 +153,10 @@ type
     function GetEntities: THashTable;
     function GetNotations: THashTable;
   public
-    FName: WideString;
-    FSystemID: WideString;
-    FPublicID: WideString;
-    FInternalSubset: WideString;
+    FName: XMLString;
+    FSystemID: XMLString;
+    FPublicID: XMLString;
+    FInternalSubset: XMLString;
     constructor Create(aNameTable: THashTable);
     destructor Destroy; override;
     function Reference: TDTDModel;
@@ -375,9 +379,11 @@ procedure TElementDecl.AddAttrDef(aDef: TAttributeDef);
 begin
   if FAttrDefs = nil then
     FAttrDefs := TFPList.Create;
-  FAttrDefs.Add(aDef);
+  aDef.FIndex := FAttrDefs.Add(aDef);
   if aDef.Default in [adRequired, adDefault, adFixed] then
     FNeedsDefaultPass := True;
+  if aDef.Default = adRequired then
+    FHasRequiredAtts := True;
 end;
 
 { TAttributeDef }
@@ -391,7 +397,7 @@ begin
   FData^.FColonPos := aColonPos;
   FData^.FTypeInfo := Self;
   FIsNamespaceDecl := ((Length(aName^.Key) = 5) or (aColonPos = 6)) and
-    (Pos(WideString('xmlns'), aName^.Key) = 1);
+    (Pos(XMLString('xmlns'), aName^.Key) = 1);
 end;
 
 destructor TAttributeDef.Destroy;
@@ -426,7 +432,7 @@ begin
   Result := True;
 end;
 
-function TAttributeDef.HasEnumToken(const aValue: WideString): Boolean;
+function TAttributeDef.HasEnumToken(const aValue: XMLString): Boolean;
 var
   I: Integer;
 begin
@@ -439,6 +445,22 @@ begin
       Exit;
   end;
   Result := False;
+end;
+
+function TAttributeDef.ValidateSyntax(const aValue: XMLString; Namespaces: Boolean): Boolean;
+begin
+  case FDataType of
+    dtId, dtIdRef, dtEntity: Result := IsXmlName(aValue) and
+      ((not Namespaces) or (Pos(WideChar(':'), aValue) = 0));
+    dtIdRefs, dtEntities: Result := IsXmlNames(aValue) and
+      ((not Namespaces) or (Pos(WideChar(':'), aValue) = 0));
+    dtNmToken: Result := IsXmlNmToken(aValue) and HasEnumToken(aValue);
+    dtNmTokens: Result := IsXmlNmTokens(aValue);
+    // IsXmlName() not necessary - enum is never empty and contains valid names
+    dtNotation: Result := HasEnumToken(aValue);
+  else
+    Result := True;
+  end;
 end;
 
 end.

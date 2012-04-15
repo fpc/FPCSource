@@ -100,21 +100,27 @@ should be simply `softfloat_exception_flags |= flags;'.
 -------------------------------------------------------------------------------
 *}
 procedure float_raise(i: shortint);
+var
+  pflags: pbyte;
+  unmasked_flags: byte;
 Begin
-  softfloat_exception_flags := softfloat_exception_flags or i;
-  if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_invalid) <> 0 then
+  { taking address of threadvar produces somewhat more compact code }
+  pflags := @softfloat_exception_flags;
+  pflags^ := pflags^ or i;
+  unmasked_flags := pflags^ and (not softfloat_exception_mask);
+  if (unmasked_flags and float_flag_invalid) <> 0 then
      HandleError(207)
   else
-  if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_divbyzero) <> 0 then
+  if (unmasked_flags and float_flag_divbyzero) <> 0 then
      HandleError(200)
   else
-  if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_overflow) <> 0 then
+  if (unmasked_flags and float_flag_overflow) <> 0 then
      HandleError(205)
   else
-  if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_underflow) <> 0 then
+  if (unmasked_flags and float_flag_underflow) <> 0 then
      HandleError(206)
   else
-  if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_inexact) <> 0 then
+  if (unmasked_flags and float_flag_inexact) <> 0 then
      HandleError(207);
 end;
 
@@ -793,6 +799,7 @@ invalid:
             end;
             if d < u_threshold then begin
               float_raise(float_flag_underflow); { underflow }
+              result:=0; { Result if underflow masked }
               exit;
             end;
           end;
@@ -907,6 +914,7 @@ invalid:
       if( d < MINLOG ) then
       begin
         float_raise(float_flag_underflow);
+        result:=0; { Result if underflow masked }
       end
       else
       begin

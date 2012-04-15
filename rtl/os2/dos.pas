@@ -54,6 +54,14 @@ Type
 threadvar
 (* For compatibility with VP/2, used for runflags in Exec procedure. *)
     ExecFlags: cardinal;
+(* Note that the TP/BP compatible method for retrieval of exit codes    *)
+(* is limited to only one (the last) execution! Including the following *)
+(* two variables in the interface part allows querying the status of    *)
+(* of asynchronously started programs using DosWaitChild with dtNoWait  *)
+(* parameter, i.e. without waiting for the final program result (as     *)
+(* opposed to calling DosExitCode which would wait for the exit code).  *)
+    LastExecRes: TResultCodes;
+    LastExecFlags: cardinal;
 
 {$i dosh.inc}
 
@@ -64,12 +72,15 @@ function GetEnvPChar (EnvVar: string): PChar;
 function DosErrorModuleName: string;
 (* In case of an error in Dos.Exec returns the name of the module *)
 (* causing the problem - e.g. name of a missing or corrupted DLL. *)
+(* It may also contain a queue name in case of a failed attempt *)
+(* to create queue for reading results of started sessions.     *)
 
 
 
 implementation
 
 {$DEFINE HAS_GETMSCOUNT}
+{$DEFINE HAS_DOSEXITCODE}
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
@@ -141,26 +152,67 @@ begin
 end;
 
 
+function DosExitCode: word;
+var
+  Res: TResultCodes;
+  PPID: cardinal;
+  RC: cardinal;
+begin
+  if (LastExecFlags = deAsyncResult) or (LastExecFlags = deAsyncResultDb) then
+   begin
+    RC := DosWaitChild (DCWA_PROCESS, dtWait, Res, PPID, LastExecRes.PID);
+    if RC = 0 then
+(* If we succeeded, the process is finished - possible future querying
+   of DosExitCode shall return the result immediately as with synchronous
+   execution. *)
+     begin
+      LastExecFlags := deSync;
+      LastExecRes := Res;
+     end
+    else
+     LastExecRes.ExitCode := RC shl 16;
+   end;
+  if LastExecRes.ExitCode > high (word) then
+    DosExitCode := high (word)
+  else
+    DosExitCode := LastExecRes.ExitCode and $FFFF;
+end;
+
+
 procedure Exec (const Path: PathStr; const ComLine: ComStr);
 {Execute a program.}
-var Args0, Args: PByteArray;
-    ArgSize: word;
-    Res: TResultCodes;
-    ObjName: string;
-    RC: longint;
-    HQ: THandle;
-    SPID, STID, QName: string;
-    SD: TStartData;
-    SID, PID: cardinal;
-    RD: TRequestData;
-    PCI: PChildInfo;
-    CISize: cardinal;
-    Prio: byte;
+var
+  Args0, Args: PByteArray;
+  ArgSize: word;
+  ObjName: string;
+  Res: TResultCodes;
+  RC: cardinal;
+  ExecAppType: cardinal;
+  HQ: THandle;
+  SPID, STID, SCtr, QName: string;
+  SID, PID: cardinal;
+  SD: TStartData;
+  RD: TRequestData;
+  PCI: PChildInfo;
+  CISize: cardinal;
+  Prio: byte;
+  DSS: boolean;
+  SR: SearchRec;
+
 const
-    MaxArgsSize = 3072; (* Amount of memory reserved for arguments in bytes. *)
+  MaxArgsSize = 3072; (* Amount of memory reserved for arguments in bytes. *)
+
 begin
 {  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
-  QName := FExpand (Path);
+  ObjName := '';
+(* FExpand should be used only for the DosStartSession part
+   and only if the executable is in the current directory.  *)
+  FindFirst (Path, AnyFile, SR);
+  if DosError = 0 then
+   QName := FExpand (Path)
+  else
+   QName := Path;
+  FindClose (SR);
   if ComLine = '' then
    begin
     Args0 := nil;
@@ -171,7 +223,7 @@ begin
     GetMem (Args0, MaxArgsSize);
     Args := Args0;
 (* Work around a bug in OS/2 - argument to DosExecPgm *)
-(* should not cross 64K boundary. *)
+(* should not cross a 64K boundary. *)
     if ((PtrUInt (Args) + 1024) and $FFFF) < 1024 then
      Inc (pointer (Args), 1024);
     ArgSize := 0;
@@ -186,57 +238,113 @@ begin
     Inc (ArgSize);
     Args^ [ArgSize] := 0;
    end;
-  RC := DosExecPgm (ObjName, cardinal (ExecFlags), Args, nil, Res, Path);
-  if RC = 0 then
+
+  if (DosQueryAppType (PChar (Args), ExecAppType) = 0) and
+                               (ApplicationType and 3 = ExecAppType and 3) then
+(* DosExecPgm should work... *)
    begin
-    LastDosExitCode := Res.ExitCode;
-    LastDosErrorModuleName := '';
+    DSS := false;
+    Res.ExitCode := $FFFFFFFF;
+    RC := DosExecPgm (ObjName, cardinal (ExecFlags), Args, nil, Res, Path);
+    if RC = 0 then
+     begin
+      LastExecFlags := ExecFlags;
+      LastExecRes := Res;
+      LastDosErrorModuleName := '';
+     end
+    else
+     if (RC = 190) or (RC = 191) then
+      DSS := true;
    end
   else
-   if (RC = 190) or (RC = 191) then
-    begin
-     FillChar (SD, SizeOf (SD), 0);
-     SD.Length := 24;
-     SD.Related := ssf_Related_Child;
-     if Args = nil then
-(* No parameters passed, Args not allocated for DosExecPgm, so allocate now. *)
+   DSS := true;
+  if DSS then
+   begin
+    Str (GetProcessID, SPID);
+    Str (ThreadID, STID);
+    QName := '\QUEUES\FPC_Dos_Exec_p' + SPID + 't' + STID + '.QUE'#0;
+    FillChar (SD, SizeOf (SD), 0);
+    SD.Length := SizeOf (SD);
+    RC := 0;
+    case ExecFlags of
+     deSync:
       begin
-       GetMem (Args, MaxArgsSize);
-       Move (QName [1], Args^ [0], Length (QName));
-       Args^ [Length (QName)] := 0;
-      end
-     else
-      SD.PgmInputs := PChar (@Args^ [Length (QName) + 1]);
-     SD.PgmName := PChar (Args);
-     SD.InheritOpt := ssf_InhertOpt_Parent;
-     Str (GetProcessID, SPID);
-     Str (ThreadID, STID);
-     QName := '\QUEUES\FPC_Dos_Exec_p' + SPID + 't' + STID + '.QUE'#0;
-     SD.TermQ := @QName [1];
-     RC := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
-     if RC = 0 then
-      begin
-       RC := DosStartSession (SD, SID, PID);
-       if (RC = 0) or (RC = 457) then
-        begin
-         RC := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
-         if RC = 0 then
-          begin
-           LastDosExitCode := PCI^.Return;
-           DosCloseQueue (HQ);
-           DosFreeMem (PCI);
-          end
-         else
-          DosCloseQueue (HQ);
-        end
-       else
-        DosCloseQueue (HQ);
+       SD.Related := ssf_Related_Child;
+       LastExecFlags := ExecFlags;
+       SD.TermQ := @QName [1];
+       RC := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
       end;
-    end
-   else
-    LastDosErrorModuleName := ObjName;
+     deAsync,
+     deAsyncResult:
+      begin
+(* Current implementation of DosExitCode does not support retrieval *)
+(* of result codes for other session types started asynchronously.  *)
+       LastExecFlags := deAsync;
+       SD.Related := ssf_Related_Independent;
+      end;
+     deBackground:
+      begin
+(* Current implementation of DosExitCode does not support retrieval *)
+(* of result codes for other session types started asynchronously.  *)
+       LastExecFlags := ExecFlags;
+       SD.Related := ssf_Related_Independent;
+       SD.FgBg := ssf_FgBg_Back;
+      end;
+     deAsyncResultDB:
+      begin
+(* Current implementation of DosExitCode does not support retrieval *)
+(* of result codes for other session types started asynchronously.  *)
+       LastExecFlags := ExecFlags;
+       SD.Related := ssf_Related_Child;
+       SD.TraceOpt := ssf_TraceOpt_Trace;
+      end;
+    end;
+    if RC <> 0 then
+     ObjName := Copy (QName, 1, Pred (Length (QName)))
+    else
+     begin
+      if Args = nil then
+(* No parameters passed, Args not allocated for DosExecPgm, so allocate now. *)
+       begin
+        GetMem (Args0, MaxArgsSize);
+        Args := Args0;
+        Move (QName [1], Args^ [0], Length (QName));
+        Args^ [Length (QName)] := 0;
+       end
+      else
+       SD.PgmInputs := PChar (@Args^ [Length (QName) + 1]);
+      SD.PgmName := PChar (Args);
+      SD.InheritOpt := ssf_InhertOpt_Parent;
+      SD.ObjectBuffer := @ObjName [1];
+      SD.ObjectBuffLen := SizeOf (ObjName) - 1;
+      RC := DosStartSession (SD, SID, PID);
+      if (RC = 0) or (RC = 457) then
+       begin
+        LastExecRes.PID := PID;
+        if ExecFlags = deSync then
+         begin
+          RC := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
+          if (RC = 0) and (PCI^.SessionID = SID) then
+           begin
+            LastExecRes.ExitCode := PCI^.Return;
+            DosCloseQueue (HQ);
+            DosFreeMem (PCI);
+           end
+          else
+           DosCloseQueue (HQ);
+         end;
+       end
+      else if ExecFlags = deSync then
+       DosCloseQueue (HQ);
+     end;
+   end;
   if RC <> 0 then
-   LastDosExitCode := 0; (* Needed for TP/BP compatibility *)
+   begin
+    LastDosErrorModuleName := ObjName;
+    LastExecFlags := deSync;
+    LastExecRes.ExitCode := 0; (* Needed for TP/BP compatibility *)
+    LastExecRes.TerminateReason := $FFFFFFFF;
+   end;
   DosError := RC;
   if Args0 <> nil then
    FreeMem (Args0, MaxArgsSize);
@@ -526,7 +634,8 @@ begin
 
 
 begin
- LastDosExitCode := 0;
+ FillChar (LastExecRes, SizeOf (LastExecRes), 0);
  LastDosErrorModuleName := '';
  ExecFlags := 0;
+ LastExecFlags := deSync;
 end.

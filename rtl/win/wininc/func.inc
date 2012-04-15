@@ -404,7 +404,8 @@ function CloseWindowStation(hWinSta:HWINSTA):WINBOOL; external 'user32' name 'Cl
 function SetProcessWindowStation(hWinSta:HWINSTA):WINBOOL; external 'user32' name 'SetProcessWindowStation';
 function GetProcessWindowStation:HWINSTA; external 'user32' name 'GetProcessWindowStation';
 function SetUserObjectSecurity(hObj:HANDLE; pSIRequested:PSECURITY_INFORMATION; pSID:PSECURITY_DESCRIPTOR):WINBOOL; external 'user32' name 'SetUserObjectSecurity';
-
+function CancelIoEx( hfile: THandle; overlapped:LPOverlapped):WINBOOL; external 'kernel32.dll' name 'CancelIoEx';
+function CancelIo  ( hfile: THandle):WINBOOL; external 'kernel32.dll' name 'CancelIo';
 function GetUserObjectSecurity(hObj:HANDLE; pSIRequested:PSECURITY_INFORMATION; pSID:PSECURITY_DESCRIPTOR; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external 'user32' name 'GetUserObjectSecurity';
 function TranslateMessage(lpMsg:LPMSG):WINBOOL; external 'user32' name 'TranslateMessage';
 function SetMessageQueue(cMessagesMax:longint):WINBOOL; external 'user32' name 'SetMessageQueue';
@@ -1011,7 +1012,7 @@ function DdeCallback(_para1, _para2:UINT; _para3:HCONV; _para4, _para5:HSZ;_para
 function DdeClientTransaction(_para1:PBYTE; _para2:DWORD; _para3:HCONV; _para4:HSZ; _para5:UINT;
            _para6:UINT; _para7:DWORD; _para8:PDWORD):HDDEDATA;external 'user32' name 'DdeClientTransaction';
 function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint; external 'user32' name 'DdeCmpStringHandles';
-function DdeConnect(_para1:DWORD; _para2:HSZ; _para3:HSZ; var _para4:CONVCONTEXT):HCONV; external 'user32' name 'DdeConnect';
+function DdeConnect(_para1:DWORD; _para2:HSZ; _para3:HSZ; _para4:PCONVCONTEXT):HCONV; external 'user32' name 'DdeConnect';
 function DdeConnectList(_para1:DWORD; _para2:HSZ; _para3:HSZ; _para4:HCONVLIST; _para5:PCONVCONTEXT):HCONVLIST;external 'user32' name 'DdeConnectList';
 function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ;_para6:UINT; _para7:UINT):HDDEDATA; external 'user32' name 'DdeCreateDataHandle';
 function DdeDisconnect(_para1:HCONV):WINBOOL; external 'user32' name 'DdeDisconnect';
@@ -1077,6 +1078,7 @@ function wglSetLayerPaletteEntries(DC:HDC; iLayerPlane:longint; iStart:longint; 
 function wglSwapLayerBuffers(DC:HDC; fuPlanes:UINT):WINBOOL; external 'opengl32' name 'wglSwapLayerBuffers';
 function wglUseFontOutlinesW(DC:HDC; first:DWORD; count:DWORD;  listbase:DWORD; deviation:Single;
   extrusion:Single; format:longint; lpgmf:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesW';
+
 
 { translated macros }
 function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;

@@ -21,6 +21,7 @@ begin
     P.Author := 'Library: Daniel Stenberg, header: Free Pascal development team';
     P.License := 'Library: MIT, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,aix];
     P.Email := '';
     P.Description := 'Library to fetch files from URLs using many protocols.';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
@@ -29,9 +30,11 @@ begin
 
     T:=P.Targets.AddUnit('libcurl.pp');
 
-    P.ExamplePath.Add('tests');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testcurl.pp');
     P.Targets.AddExampleProgram('teststream.pp');
+    P.Sources.AddExampleFiles('examples/*',false,'.');
+
 
 {$ifndef ALLPACKAGES}
     Run;

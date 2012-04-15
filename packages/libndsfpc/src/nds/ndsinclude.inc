@@ -43,6 +43,7 @@
   {$include arm9/guitarGrip.inc}
   {$include arm9/paddle.inc}
   {$include arm9/piano.inc}
+  {$include arm9/dldi.inc}
 {$endif ARM9}
 
 {$ifdef ARM7}
@@ -51,5 +52,6 @@
   {$include arm7/input.inc}
   {$include arm7/i2c.inc}
   {$include arm7/serial.inc}
+  {$include arm7/sdmmc.inc}
   {$include arm7/touch.inc}
 {$endif ARM7}

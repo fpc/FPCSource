@@ -10,7 +10,7 @@
 #
 #   Spanish Language File for Free Pascal
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -720,9 +720,9 @@ parser_e_function_already_declared_public_forward=03120_E_La función esta actual
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_No se pueden usar ambos EXPORT y EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_w_not_supported_for_inline=03123_W_"$1" aún no soportado en procedimientos/funciones inline
+parser_h_not_supported_for_inline=03123_H_"$1" aún no soportado en procedimientos/funciones inline
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_Inlining deshabilitado
+parser_h_inlining_disabled=03124_H_Inlining deshabilitado
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_Escribiendo Browser log $1
 % When information messages are on, the compiler warns you when it
@@ -2111,7 +2111,7 @@ option_code_page_not_available=11039_E_Código de página desconocido
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2011 by Florian Klaempfl
+Copyright (c) 1993-2012 by Florian Klaempfl
 ]
 
 #
@@ -2133,12 +2133,10 @@ Sets de instrucciones de la FPU soportados:
   $FPUINSTRUCTIONSETS
 
 Este programa esta bajo la licencia GNU General Public Licence
-Para mas informació lea COPYING.FPC
+Para mas informació lea COPYING.v2
 
 Para informar de errores, sugerencias, etc:
                  http://bugs.freepascal.org
-o
-                 bugs@freepascal.org
 ]
 
 #

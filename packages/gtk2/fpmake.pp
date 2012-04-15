@@ -17,7 +17,11 @@ begin
     P.Directory:='gtk2';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes:=AllUnixOSes+[Win32,Win64];
+    P.SupportBuildModes := [bmOneByOne];
+    P.OSes:=AllUnixOSes+[Win32,Win64]-[darwin,iphonesim];
+    if Defaults.CPU<>arm then
+      P.OSes := P.OSes + [darwin];
+
     P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Mattias Gaertner, Olaf Leidinger';
     P.License := 'Library: LGPL2.1, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -59,6 +63,7 @@ begin
           Add('src/gtkext');
           Add('src/gtk2x11');
         end;
+    T.Install:=False;
 
     T:=P.Targets.AddImplicitUnit('src/atk/atk.pas');
      T.IncludePath.Add('src/atk');
@@ -1261,6 +1266,17 @@ begin
            AddInclude('htmldocument.inc');
            AddInclude('htmlview.inc');
          end;}
+    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/filechooser/*',false,'filechooser');
+    P.Sources.AddExampleFiles('examples/gettingstarted/*',false,'gettingstarted');
+    P.Sources.AddExampleFiles('examples/gtk_demo/*',false,'gtk_demo');
+    P.Sources.AddExampleFiles('examples/gtkglext/*',false,'gtkglext');
+    P.Sources.AddExampleFiles('examples/helloworld/*',false,'helloworld');
+    P.Sources.AddExampleFiles('examples/helloworld2/*',false,'helloworld2');
+    P.Sources.AddExampleFiles('examples/plugins/*',false,'plugins');
+    P.Sources.AddExampleFiles('examples/scribble_simple/*',false,'scribble_simple');
+
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

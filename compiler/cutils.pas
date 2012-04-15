@@ -103,6 +103,7 @@ interface
     function DePascalQuote(var s: ansistring): Boolean;
     function CompareStr(const S1, S2: string): Integer;
     function CompareText(S1, S2: string): integer;
+    function CompareVersionStrings(s1,s2: string): longint;
 
     { releases the string p and assignes nil to p }
     { if p=nil then freemem isn't called          }
@@ -118,6 +119,7 @@ interface
        to that mem
     }
     function  strpnew(const s : string) : pchar;
+    function  strpnew(const s : ansistring) : pchar;
 
     {# makes the character @var(c) lowercase, with spanish, french and german
        character set
@@ -144,17 +146,6 @@ interface
     function minilzw_decode(const s:string):string;
 
     Function nextafter(x,y:double):double;
-
-{$ifdef ver2_0}
-{ RTL routines not available yet in 2.0.x }
-function SwapEndian(const AValue: SmallInt): SmallInt;
-function SwapEndian(const AValue: Word): Word;
-function SwapEndian(const AValue: LongInt): LongInt;
-function SwapEndian(const AValue: DWord): DWord;
-function SwapEndian(const AValue: Int64): Int64;
-function SwapEndian(const AValue: QWord): QWord;
-{$endif ver2_0}
-
 
 implementation
 
@@ -890,6 +881,7 @@ implementation
         end;
     end;
 
+
     function octal_quote(const s:string;const qchars:Tcharset):string;
 
     var i:byte;
@@ -1111,6 +1103,15 @@ implementation
          result:=p;
       end;
 
+    function strpnew(const s: ansistring): pchar;
+      var
+         p : pchar;
+      begin
+        getmem(p,length(s)+1);
+        move(s[1],p^,length(s)+1);
+        result:=p;
+      end;
+
 
     procedure stringdispose(var p : pshortstring);{$ifdef USEINLINE}inline;{$endif}
       begin
@@ -1151,6 +1152,71 @@ implementation
         UpperVar(S1);
         UpperVar(S2);
         Result:=CompareStr(S1,S2);
+      end;
+
+
+    function CompareVersionStrings(s1,s2: string): longint;
+      var
+        start1, start2,
+        i1, i2,
+        num1,num2,
+        res,
+        err        : longint;
+      begin
+        i1:=1;
+        i2:=1;
+        repeat
+          start1:=i1;
+          start2:=i2;
+          while (i1<=length(s1)) and
+                (s1[i1] in ['0'..'9']) do
+             inc(i1);
+          while (i2<=length(s2)) and
+                (s2[i2] in ['0'..'9']) do
+             inc(i2);
+          { one of the strings misses digits -> other is the largest version }
+          if i1=start1 then
+            if i2=start2 then
+              exit(0)
+            else
+              exit(-1)
+          else if i2=start2 then
+            exit(1);
+          { get version number part }
+          val(copy(s1,start1,i1-start1),num1,err);
+          val(copy(s2,start2,i2-start2),num2,err);
+          { different -> done }
+          res:=num1-num2;
+          if res<>0 then
+            exit(res);
+          { if one of the two is at the end while the other isn't, add a '.0' }
+          if (i1>length(s1)) and
+             (i2<=length(s1)) then
+            s1:=s1+'.0'
+          else if i2>length(s2) then
+            s2:=s2+'.0';
+          { compare non-numerical characters normally }
+          while (i1<=length(s1)) and
+                not(s1[i1] in ['0'..'9']) and
+                (i2<=length(s2)) and
+                not(s2[i2] in ['0'..'9']) do
+            begin
+              res:=ord(s1[i1])-ord(s2[i2]);
+              if res<>0 then
+                exit(res);
+              inc(i1);
+              inc(i2);
+            end;
+          { both should be digits again now, otherwise pick the one with the
+            digits as the largest (it more likely means that the input was
+            ill-formatted though) }
+          if (i1<=length(s1)) and
+             not(s1[i1] in ['0'..'9']) then
+            exit(-1);
+          if (i2<=length(s2)) and
+             not(s2[i2] in ['0'..'9']) then
+            exit(1);
+        until false;
       end;
 
 
@@ -1459,67 +1525,6 @@ implementation
 
     end;
 
-
-{$ifdef ver2_0}
-function SwapEndian(const AValue: SmallInt): SmallInt;
-  begin
-    { the extra Word type cast is necessary because the "AValue shr 8" }
-    { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
-    { the sign bits from the upper 16 bits are shifted in rather than  }
-    { zeroes.                                                          }
-    Result := SmallInt((Word(AValue) shr 8) or (Word(AValue) shl 8));
-  end;
-
-
-function SwapEndian(const AValue: Word): Word;
-  begin
-    Result := (AValue shr 8) or (AValue shl 8);
-  end;
-
-
-function SwapEndian(const AValue: LongInt): LongInt;
-  begin
-    Result := (AValue shl 24)
-           or ((AValue and $0000FF00) shl 8)
-           or ((AValue and $00FF0000) shr 8)
-           or (AValue shr 24);
-  end;
-
-
-function SwapEndian(const AValue: DWord): DWord;
-  begin
-    Result := (AValue shl 24)
-           or ((AValue and $0000FF00) shl 8)
-           or ((AValue and $00FF0000) shr 8)
-           or (AValue shr 24);
-  end;
-
-
-function SwapEndian(const AValue: Int64): Int64;
-  begin
-    Result := (AValue shl 56)
-           or ((AValue and $000000000000FF00) shl 40)
-           or ((AValue and $0000000000FF0000) shl 24)
-           or ((AValue and $00000000FF000000) shl 8)
-           or ((AValue and $000000FF00000000) shr 8)
-           or ((AValue and $0000FF0000000000) shr 24)
-           or ((AValue and $00FF000000000000) shr 40)
-           or (AValue shr 56);
-  end;
-
-
-function SwapEndian(const AValue: QWord): QWord;
-  begin
-    Result := (AValue shl 56)
-           or ((AValue and $000000000000FF00) shl 40)
-           or ((AValue and $0000000000FF0000) shl 24)
-           or ((AValue and $00000000FF000000) shl 8)
-           or ((AValue and $000000FF00000000) shr 8)
-           or ((AValue and $0000FF0000000000) shr 24)
-           or ((AValue and $00FF000000000000) shr 40)
-           or (AValue shr 56);
-  end;
-{$endif ver2_0}
 
 initialization
   internalerrorproc:=@defaulterror;

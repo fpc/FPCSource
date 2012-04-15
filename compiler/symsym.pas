@@ -78,6 +78,16 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+       tnamespacesym = class(Tstoredsym)
+          unitsym:tsym;
+          unitsymderef:tderef;
+          constructor create(const n : string);
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
+          procedure deref;override;
+       end;
+
        terrorsym = class(Tsym)
           constructor create;
        end;
@@ -112,6 +122,7 @@ interface
        end;
 
        ttypesym = class(Tstoredsym)
+       public
           typedef      : tdef;
           typedefderef : tderef;
           fprettyname : ansistring;
@@ -205,6 +216,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function needs_finalization: boolean;
       end;
 
       tstaticvarsym = class(tabstractnormalvarsym)
@@ -264,6 +276,7 @@ interface
           default       : longint;
           dispid        : longint;
           propaccesslist: array[tpropaccesslisttypes] of tpropaccesslist;
+          parast : tsymtable;
           constructor create(const n : string);
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -347,6 +360,7 @@ interface
 
     { generate internal static field name based on regular field name }
     function internal_static_field_name(const fieldname: TSymStr): TSymStr;
+    function get_high_value_sym(vs: tparavarsym):tsym; { marking it as inline causes IE 200311075 during loading from ppu file }
 
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
 
@@ -381,6 +395,11 @@ implementation
         result:='$_static_'+fieldname;
       end;
 
+
+    function get_high_value_sym(vs: tparavarsym):tsym;
+      begin
+        result := tsym(vs.owner.Find('high'+vs.name));
+      end;
 
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
       begin
@@ -436,14 +455,26 @@ implementation
 
 
     procedure tstoredsym.ppuwrite(ppufile:tcompilerppufile);
+      var
+        oldintfcrc : boolean;
       begin
          ppufile.putlongint(SymId);
          ppufile.putstring(realname);
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
+         { symoptions can differ between interface and implementation, except
+           for overload (this is checked in pdecsub.proc_add_definition() )
+
+           These differences can lead to compiler crashes, so ignore them.
+           This does mean that changing e.g. the "deprecated" state of a symbol
+           by itself will not trigger a recompilation of dependent units.
+         }
+         oldintfcrc:=ppufile.do_interface_crc;
+         ppufile.do_interface_crc:=false;
          ppufile.putsmallset(symoptions);
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
+         ppufile.do_interface_crc:=oldintfcrc;
       end;
 
 
@@ -529,6 +560,42 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.writeentry(ibunitsym);
       end;
+
+{****************************************************************************
+                                TNAMESPACESYM
+****************************************************************************}
+
+    constructor tnamespacesym.create(const n : string);
+      begin
+         inherited create(namespacesym,n);
+         unitsym:=nil;
+      end;
+
+    constructor tnamespacesym.ppuload(ppufile:tcompilerppufile);
+      begin
+         inherited ppuload(namespacesym,ppufile);
+         ppufile.getderef(unitsymderef);
+      end;
+
+    procedure tnamespacesym.ppuwrite(ppufile:tcompilerppufile);
+      begin
+         inherited ppuwrite(ppufile);
+         ppufile.putderef(unitsymderef);
+         ppufile.writeentry(ibnamespacesym);
+      end;
+
+    procedure tnamespacesym.buildderef;
+      begin
+        inherited buildderef;
+        unitsymderef.build(unitsym);
+      end;
+
+    procedure tnamespacesym.deref;
+      begin
+        inherited deref;
+        unitsym:=tsym(unitsymderef.resolve);
+      end;
+
 
 {****************************************************************************
                                   TPROCSYM
@@ -809,6 +876,8 @@ implementation
         bestpd,
         pd : tprocdef;
         eq,besteq : tequaltype;
+        sym: tsym;
+        ps: tprocsym;
       begin
         { This function will return the pprocdef of pprocsym that
           is the best match for procvardef. When there are multiple
@@ -816,23 +885,47 @@ implementation
         result:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
-        for i:=0 to ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(ProcdefList[i]);
-            eq:=proc_to_procvar_equal(pd,d,false);
-            if eq>=te_convert_l1 then
-              begin
-                { multiple procvars with the same equal level }
-                if assigned(bestpd) and
-                   (besteq=eq) then
-                  exit;
-                if eq>besteq then
-                  begin
-                    besteq:=eq;
-                    bestpd:=pd;
-                  end;
-              end;
-          end;
+        ps:=self;
+        repeat
+          for i:=0 to ps.ProcdefList.Count-1 do
+            begin
+              pd:=tprocdef(ps.ProcdefList[i]);
+              eq:=proc_to_procvar_equal(pd,d,false);
+              if eq>=te_convert_l1 then
+                begin
+                  { multiple procvars with the same equal level }
+                  if assigned(bestpd) and
+                     (besteq=eq) then
+                    exit;
+                  if eq>besteq then
+                    begin
+                      besteq:=eq;
+                      bestpd:=pd;
+                    end;
+                end;
+            end;
+          { maybe TODO: also search class helpers? -- this code is similar to
+            what happens in htypechk in
+            tcallcandidates.collect_overloads_in_struct: keep searching in
+            parent types in case the currently found procdef is marked as
+            "overload" and we haven't found a proper match yet }
+          if assigned(ps.owner.defowner) and
+             (ps.owner.defowner.typ=objectdef) and
+             assigned(tobjectdef(ps.owner.defowner).childof) and
+             (not assigned(bestpd) or
+              (po_overload in bestpd.procoptions)) then
+            begin
+              sym:=tsym(tobjectdef(ps.owner.defowner).childof.symtable.find(ps.name));
+              if assigned(sym) and
+                 (sym.typ=procsym) then
+                ps:=tprocsym(sym)
+              else
+                ps:=nil;
+            end
+          else
+            ps:=nil;
+        until (besteq>=te_equal) or
+              not assigned(ps);
         result:=bestpd;
       end;
 
@@ -1014,6 +1107,7 @@ implementation
          default:=0;
          propdef:=nil;
          indexdef:=nil;
+         parast:=nil;
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=tpropaccesslist.create;
       end;
@@ -1025,13 +1119,21 @@ implementation
       begin
          inherited ppuload(propertysym,ppufile);
          ppufile.getsmallset(propoptions);
-         ppufile.getderef(overriddenpropsymderef);
+         if ppo_overrides in propoptions then
+           ppufile.getderef(overriddenpropsymderef);
          ppufile.getderef(propdefderef);
          index:=ppufile.getlongint;
          default:=ppufile.getlongint;
          ppufile.getderef(indexdefderef);
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=ppufile.getpropaccesslist;
+         if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
+           begin
+             parast:=tparasymtable.create(nil,0);
+             tparasymtable(parast).ppuload(ppufile);
+           end
+         else
+           parast:=nil;
       end;
 
 
@@ -1041,6 +1143,7 @@ implementation
       begin
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap].free;
+         parast.free;
          inherited destroy;
       end;
 
@@ -1049,11 +1152,15 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
-        overriddenpropsymderef.build(overriddenpropsym);
         propdefderef.build(propdef);
         indexdefderef.build(indexdef);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           propaccesslist[pap].buildderef;
+        if ppo_overrides in propoptions then
+          overriddenpropsymderef.build(overriddenpropsym)
+        else
+        if ppo_hasparameters in propoptions then
+          tparasymtable(parast).buildderef;
       end;
 
 
@@ -1061,11 +1168,20 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
-        overriddenpropsym:=tpropertysym(overriddenpropsymderef.resolve);
         indexdef:=tdef(indexdefderef.resolve);
         propdef:=tdef(propdefderef.resolve);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           propaccesslist[pap].resolve;
+
+        if ppo_overrides in propoptions then
+          begin
+            overriddenpropsym:=tpropertysym(overriddenpropsymderef.resolve);
+            if ppo_hasparameters in propoptions then
+              parast:=overriddenpropsym.parast.getcopy;
+          end
+        else
+        if ppo_hasparameters in propoptions then
+          tparasymtable(parast).deref
       end;
 
 
@@ -1081,7 +1197,8 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(propoptions);
-        ppufile.putderef(overriddenpropsymderef);
+        if ppo_overrides in propoptions then
+          ppufile.putderef(overriddenpropsymderef);
         ppufile.putderef(propdefderef);
         ppufile.putlongint(index);
         ppufile.putlongint(default);
@@ -1089,6 +1206,8 @@ implementation
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           ppufile.putpropaccesslist(propaccesslist[pap]);
         ppufile.writeentry(ibpropertysym);
+        if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
+          tparasymtable(parast).ppuwrite(ppufile);
       end;
 
 
@@ -1685,7 +1804,8 @@ implementation
     constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
          inherited create(paravarsym,n,vsp,def,vopts);
-         if (vsp in [vs_var,vs_value,vs_const,vs_constref]) then
+         if (vsp in [vs_var,vs_value,vs_const,vs_constref]) and
+            not(vo_is_funcret in vopts) then
            varstate := vs_initialised;
          paranr:=nr;
          paraloc[calleeside].init;
@@ -1757,6 +1877,17 @@ implementation
          ppufile.writeentry(ibparavarsym);
       end;
 
+    function tparavarsym.needs_finalization:boolean;
+      begin
+        result:=(varspez=vs_value) and
+          (is_managed_type(vardef) or
+            (
+              (not (tabstractprocdef(owner.defowner).proccalloption in cdecl_pocalls)) and
+              (not paramanager.use_stackalloc) and
+              (is_open_array(vardef) or is_array_of_const(vardef))
+            )
+          );
+      end;
 
 {****************************************************************************
                                TABSOLUTEVARSYM
@@ -1968,6 +2099,7 @@ implementation
              end;
            constreal :
              begin
+               ppufile.getderef(constdefderef);
                new(pd);
                pd^:=ppufile.getreal;
                value.valueptr:=pd;
@@ -2012,14 +2144,14 @@ implementation
 
     procedure tconstsym.buildderef;
       begin
-        if consttyp in [constord,constpointer,constset] then
+        if consttyp in [constord,constreal,constpointer,constset] then
           constdefderef.build(constdef);
       end;
 
 
     procedure tconstsym.deref;
       begin
-        if consttyp in [constord,constpointer,constset] then
+        if consttyp in [constord,constreal,constpointer,constset] then
           constdef:=tdef(constdefderef.resolve);
       end;
 
@@ -2052,7 +2184,10 @@ implementation
                ppufile.putdata(pchar(value.valueptr)^,value.len);
              end;
            constreal :
-             ppufile.putreal(pbestreal(value.valueptr)^);
+             begin
+               ppufile.putderef(constdefderef);
+               ppufile.putreal(pbestreal(value.valueptr)^);
+             end;
            constset :
              begin
                ppufile.putderef(constdefderef);
@@ -2134,13 +2269,13 @@ implementation
 
     procedure ttypesym.buildderef;
       begin
-         typedefderef.build(typedef);
+        typedefderef.build(typedef);
       end;
 
 
     procedure ttypesym.deref;
       begin
-         typedef:=tdef(typedefderef.resolve);
+        typedef:=tdef(typedefderef.resolve);
       end;
 
 

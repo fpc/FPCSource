@@ -1,0 +1,38 @@
+#
+#   Makefile.fpc for fppkg
+#
+
+[package]
+name=fpmkunit
+version=2.7.1
+
+[target]
+units=fpmkunit
+
+[install]
+fpcpackage=y
+
+[require]
+packages=hash paszlib fcl-process
+
+[compiler]
+sourcedir=src
+includedir=src
+
+[default]
+fpcdir=../..
+
+[prerules]
+TARGET_UNITDIRBS=units_bs/$(SOURCESUFFIX)
+CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/fpmkunit.ppu units_bs/$(SOURCESUFFIX)/fpmkunit.rst units_bs/$(SOURCESUFFIX)/fpmkunit.o
+
+[rules]
+.NOTPARALLEL:
+
+$(TARGET_UNITDIRBS):
+	$(MKDIRTREE) $(TARGET_UNITDIRBS)
+bootstrap:	$(TARGET_UNITDIRBS)
+	$(FPCFPMAKE) src/fpmkunit.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) -dNO_UNIT_PROCESS -dNO_UNIT_ZIPPER -FU$(TARGET_UNITDIRBS)	
+cleanall:	fpc_cleanall
+	-$(DELTREE) units_bs
+	

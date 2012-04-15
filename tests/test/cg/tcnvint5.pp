@@ -1,3 +1,8 @@
+
+{ This test requires overflow and range check to be off }
+{$R-}
+{$Q-}
+
 var
   error: boolean;
 

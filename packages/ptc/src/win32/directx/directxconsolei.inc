@@ -135,7 +135,6 @@ begin
   FEventQueue.Free;
   FWin32Cursor.Free;
   FCopy.Free;
-  FDefaultFormat.Free;
   inherited Destroy;
 end;
 
@@ -145,16 +144,16 @@ var
   S: string;
 begin
   AssignFile(F, AFileName);
-  {$I-}
+  {$push}{$I-}
   Reset(F);
-  {$I+}
+  {$pop}
   if IOResult <> 0 then
     exit;
   while not EoF(F) do
   begin
-    {$I-}
+    {$push}{$I-}
     Readln(F, S);
-    {$I+}
+    {$pop}
     if IOResult <> 0 then
       Break;
     Option(S);
@@ -165,7 +164,6 @@ end;
 function TDirectXConsole.Option(const AOption: String): Boolean;
 var
   tmp, tmp2: Integer;
-  tmpformat: TPTCFormat;
 begin
   LOG('console option', AOption);
   Result := True;
@@ -216,27 +214,17 @@ begin
     begin
       Val(System.Copy(AOption, 13, Length(AOption)-12), tmp, tmp2);
       case tmp of
-        8: tmpformat := TPTCFormat.Create(8);
-        16: tmpformat := TPTCFormat.Create(16, $F800, $07E0, $001F);
-        24: tmpformat := TPTCFormat.Create(24, $00FF0000, $0000FF00, $000000FF);
-        32: tmpformat := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+        8: FDefaultFormat := TPTCFormat.Create(8);
+        16: FDefaultFormat := TPTCFormat.Create(16, $F800, $07E0, $001F);
+        24: FDefaultFormat := TPTCFormat.Create(24, $00FF0000, $0000FF00, $000000FF);
+        32: FDefaultFormat := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
         else
           exit(False);
-      end;
-      try
-        FDefaultFormat.Assign(tmpformat);
-      finally
-        tmpformat.Free;
       end;
     end
     else
     begin
-      tmpformat := DEFAULT_FORMAT;
-      try
-        FDefaultFormat.Assign(tmpformat);
-      finally
-        tmpformat.Free;
-      end;
+      FDefaultFormat := DEFAULT_FORMAT;
     end;
   end;
   if AOption = 'resizable window' then
@@ -393,7 +381,7 @@ begin
   Result := FCopy.Option(AOption);
 end;
 
-function TDirectXConsole.Modes: PPTCMode;
+function TDirectXConsole.Modes: TPTCModeList;
 begin
   Result := FDisplay.Modes;
 end;
@@ -403,27 +391,23 @@ begin
   Open(ATitle, FDefaultFormat, APages);
 end;
 
-procedure TDirectXConsole.Open(const ATitle: string; const AFormat: TPTCFormat;
+procedure TDirectXConsole.Open(const ATitle: string; AFormat: IPTCFormat;
                            APages: Integer = 0);
 begin
   Open(ATitle, FDefaultWidth, FDefaultHeight, AFormat, APages);
 end;
 
 procedure TDirectXConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
-                           const AFormat: TPTCFormat; APages: Integer = 0);
+                           AFormat: IPTCFormat; APages: Integer = 0);
 var
-  m: TPTCMode;
+  mode: IPTCMode;
 begin
   { internal open nearest mode }
-  m := TPTCMode.Create(AWidth, AHeight, AFormat);
-  try
-    internal_open(ATitle, 0, m, APages, False);
-  finally
-    m.Free;
-  end;
+  mode := TPTCMode.Create(AWidth, AHeight, AFormat);
+  internal_open(ATitle, 0, mode, APages, False);
 end;
 
-procedure TDirectXConsole.Open(const ATitle: string; const AMode: TPTCMode;
+procedure TDirectXConsole.Open(const ATitle: string; AMode: IPTCMode;
                            APages: Integer = 0);
 begin
   { internal open exact mode }
@@ -489,20 +473,19 @@ begin
   FWindow.Update;
 end;
 
-procedure TDirectXConsole.Update(const AArea: TPTCArea);
+procedure TDirectXConsole.Update(AArea: IPTCArea);
 begin
   { update }
   Update;
 end;
 
-function TDirectXConsole.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+function TDirectXConsole.NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
 var
   UseGetMessage: Boolean;
 begin
   CHECK_OPEN('TDirectXConsole.NextEvent');
 //  CHECK_LOCK('TDirectXConsole.NextEvent');
 
-  FreeAndNil(AEvent);
   UseGetMessage := False;
   repeat
     FPrimary.Block;
@@ -518,7 +501,7 @@ begin
   Result := AEvent <> nil;
 end;
 
-function TDirectXConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+function TDirectXConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 var
   UseGetMessage: Boolean;
 begin
@@ -539,7 +522,7 @@ begin
   until (not AWait) or (Result <> nil);
 end;
 
-procedure TDirectXConsole.Copy(ASurface: TPTCBaseSurface);
+procedure TDirectXConsole.Copy(ASurface: IPTCSurface);
 var
   pixels: Pointer;
 begin
@@ -558,8 +541,8 @@ begin
   end;
 end;
 
-procedure TDirectXConsole.Copy(ASurface: TPTCBaseSurface;
-                           const ASource, ADestination: TPTCArea);
+procedure TDirectXConsole.Copy(ASurface: IPTCSurface;
+                               ASource, ADestination: IPTCArea);
 var
   pixels: Pointer;
 begin
@@ -608,10 +591,9 @@ end;
 
 procedure TDirectXConsole.Load(const APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette);
 var
-  Area_: TPTCArea;
   console_pixels: Pointer;
 begin
   CHECK_OPEN('TDirectXConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette)');
@@ -636,66 +618,44 @@ begin
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, Width, Height);
-    try
-      Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area_, area);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, TPTCArea.Create(0, 0, Width, Height), area);
 end;
 
 procedure TDirectXConsole.Load(const APixels: Pointer;
                                AWidth, AHeight, APitch: Integer;
-                               const AFormat: TPTCFormat;
-                               const APalette: TPTCPalette;
-                               const ASource, ADestination: TPTCArea);
+                               AFormat: IPTCFormat;
+                               APalette: IPTCPalette;
+                               ASource, ADestination: IPTCArea);
 var
   console_pixels: Pointer;
-  clipped_source, clipped_destination: TPTCArea;
-  tmp: TPTCArea;
+  clipped_source, clipped_destination: IPTCArea;
 begin
   CHECK_OPEN('TDirectXConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination)');
   CHECK_LOCK('TDirectXConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination)');
-  clipped_destination := nil;
-  clipped_source := TPTCArea.Create;
+  console_pixels := Lock;
   try
-    clipped_destination := TPTCArea.Create;
-    console_pixels := Lock;
     try
-      try
-        tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
-        try
-          TPTCClipper.clip(ASource, tmp, clipped_source, ADestination, Clip, clipped_destination);
-        finally
-          tmp.Free;
-        end;
-        FCopy.Request(AFormat, Format);
-        FCopy.Palette(APalette, Palette);
-        FCopy.Copy(APixels, clipped_source.Left, clipped_source.Top, clipped_source.Width, clipped_source.Height, APitch,
-                    console_pixels, clipped_destination.Left, clipped_destination.Top, clipped_destination.Width, clipped_destination.Height, Pitch);
-      except
-        on error:TPTCError do
-        begin
-          raise TPTCError.Create('failed to load pixels to console area', error);
-        end;
+      TPTCClipper.Clip(ASource, TPTCArea.Create(0, 0, AWidth, AHeight), clipped_source, ADestination, Clip, clipped_destination);
+      FCopy.Request(AFormat, Format);
+      FCopy.Palette(APalette, Palette);
+      FCopy.Copy(APixels, clipped_source.Left, clipped_source.Top, clipped_source.Width, clipped_source.Height, APitch,
+                 console_pixels, clipped_destination.Left, clipped_destination.Top, clipped_destination.Width, clipped_destination.Height, Pitch);
+    except
+      on error:TPTCError do
+      begin
+        raise TPTCError.Create('failed to load pixels to console area', error);
       end;
-    finally
-      Unlock;
     end;
   finally
-    clipped_source.Free;
-    clipped_destination.Free;
+    Unlock;
   end;
 end;
 
 procedure TDirectXConsole.Save(APixels: Pointer;
                                AWidth, AHeight, APitch: Integer;
-                               const AFormat: TPTCFormat;
-                               const APalette: TPTCPalette);
+                               AFormat: IPTCFormat;
+                               APalette: IPTCPalette);
 var
-  Area_: TPTCArea;
   console_pixels: Pointer;
 begin
   CHECK_OPEN('TDirectXConsole.Save(APixels, AWidth, AHeight, APitch, AFormat, APalette)');
@@ -720,112 +680,82 @@ begin
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, Width, Height);
-    try
-      Save(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area, Area_);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Save(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area, TPTCArea.Create(0, 0, Width, Height));
 end;
 
 procedure TDirectXConsole.Save(APixels: Pointer;
                            AWidth, AHeight, APitch: Integer;
-                           const AFormat: TPTCFormat;
-                           const APalette: TPTCPalette;
-                           const ASource, ADestination: TPTCArea);
+                           AFormat: IPTCFormat;
+                           APalette: IPTCPalette;
+                           ASource, ADestination: IPTCArea);
 var
   console_pixels: Pointer;
-  clipped_source, clipped_destination: TPTCArea;
-  tmp: TPTCArea;
+  clipped_source, clipped_destination: IPTCArea;
 begin
   CHECK_OPEN('TDirectXConsole.Save(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination)');
   CHECK_LOCK('TDirectXConsole.Save(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination)');
-  clipped_destination := nil;
-  clipped_source := TPTCArea.Create;
+  console_pixels := Lock;
   try
-    clipped_destination := TPTCArea.Create;
-    console_pixels := Lock;
     try
-      try
-        tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
-        try
-          TPTCClipper.Clip(ASource, Clip, clipped_source, ADestination, tmp, clipped_destination);
-        finally
-          tmp.Free;
-        end;
-        FCopy.Request(Format, AFormat);
-        FCopy.Palette(Palette, APalette);
-        FCopy.Copy(console_pixels, clipped_source.Left, clipped_source.Top, clipped_source.Width, clipped_source.Height, Pitch,
-                    APixels, clipped_destination.Left, clipped_destination.Top, clipped_destination.Width, clipped_destination.Height, APitch);
-      except
-        on error:TPTCError do
-        begin
-          raise TPTCError.Create('failed to save console area pixels', error);
-        end;
+      TPTCClipper.Clip(ASource, Clip, clipped_source, ADestination, TPTCArea.Create(0, 0, AWidth, AHeight), clipped_destination);
+      FCopy.Request(Format, AFormat);
+      FCopy.Palette(Palette, APalette);
+      FCopy.Copy(console_pixels, clipped_source.Left, clipped_source.Top, clipped_source.Width, clipped_source.Height, Pitch,
+                 APixels, clipped_destination.Left, clipped_destination.Top, clipped_destination.Width, clipped_destination.Height, APitch);
+    except
+      on error:TPTCError do
+      begin
+        raise TPTCError.Create('failed to save console area pixels', error);
       end;
-    finally
-      Unlock;
     end;
   finally
-    clipped_source.Free;
-    clipped_destination.Free;
+    Unlock;
   end;
 end;
 
 procedure TDirectXConsole.Clear;
 var
-  tmp: TPTCColor;
+  Color: IPTCColor;
 begin
   CHECK_OPEN('TDirectXConsole.Clear');
   CHECK_LOCK('TDirectXConsole.Clear');
   if format.direct then
-    tmp := TPTCColor.Create(0, 0, 0, 0)
+    Color := TPTCColor.Create(0, 0, 0, 0)
   else
-    tmp := TPTCColor.Create(0);
-  try
-    Clear(tmp);
-  finally
-    tmp.Free;
-  end;
+    Color := TPTCColor.Create(0);
+  Clear(Color);
 end;
 
-procedure TDirectXConsole.Clear(const AColor: TPTCColor);
+procedure TDirectXConsole.Clear(AColor: IPTCColor);
 var
   tmp: TPTCArea;
 begin
   CHECK_OPEN('TDirectXConsole.Clear(AColor)');
   CHECK_LOCK('TDirectXConsole.Clear(AColor)');
-  tmp := TPTCArea.Create;
-  try
-    Clear(AColor, tmp);
-  finally
-    tmp.Free;
-  end;
+  Clear(AColor, TPTCArea.Create);
 end;
 
-procedure TDirectXConsole.Clear(const AColor: TPTCColor;
-                                const AArea: TPTCArea);
+procedure TDirectXConsole.Clear(AColor: IPTCColor;
+                                AArea: IPTCArea);
 begin
   CHECK_OPEN('TDirectXConsole.Clear(AColor, AArea)');
   CHECK_LOCK('TDirectXConsole.Clear(AColor, AArea)');
   FPrimary.Clear(AColor, AArea);
 end;
 
-procedure TDirectXConsole.palette(const APalette: TPTCPalette);
+procedure TDirectXConsole.palette(APalette: IPTCPalette);
 begin
   CHECK_OPEN('TDirectXConsole.Palette(APalette)');
   FPrimary.Palette(APalette);
 end;
 
-function TDirectXConsole.Palette: TPTCPalette;
+function TDirectXConsole.Palette: IPTCPalette;
 begin
   CHECK_OPEN('TDirectXConsole.Palette');
   Result := FPrimary.palette;
 end;
 
-procedure TDirectXConsole.Clip(const AArea: TPTCArea);
+procedure TDirectXConsole.Clip(AArea: IPTCArea);
 begin
   CHECK_OPEN('TDirectXConsole.Clip(AArea)');
   FPrimary.Clip(AArea);
@@ -855,19 +785,19 @@ begin
   Result := FPrimary.pages;
 end;
 
-function TDirectXConsole.GetArea: TPTCArea;
+function TDirectXConsole.GetArea: IPTCArea;
 begin
   CHECK_OPEN('TDirectXConsole.GetArea');
-  Result := FPrimary.area;
+  Result := FPrimary.Area;
 end;
 
-function TDirectXConsole.Clip: TPTCArea;
+function TDirectXConsole.Clip: IPTCArea;
 begin
   CHECK_OPEN('TDirectXConsole.Clip');
-  Result := FPrimary.clip;
+  Result := FPrimary.Clip;
 end;
 
-function TDirectXConsole.GetFormat: TPTCFormat;
+function TDirectXConsole.GetFormat: IPTCFormat;
 begin
   CHECK_OPEN('TDirectXConsole.GetFormat');
   Result := FPrimary.format;
@@ -890,10 +820,10 @@ begin
   Result := FDisplay.information;
 end;
 
-procedure TDirectXConsole.internal_open(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
+procedure TDirectXConsole.internal_open(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
 var
   _width, _height: Integer;
-  _format: TPTCFormat;
+  _format: IPTCFormat;
 begin
   try
     { recycle an already open console }
@@ -982,7 +912,7 @@ begin
   internal_open_finish;
 end;
 
-procedure TDirectXConsole.internal_recycle(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
+procedure TDirectXConsole.internal_recycle(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
 begin
   { Check if the console is open }
   if not FOpen then
@@ -1075,7 +1005,7 @@ begin
   FDisplay.restore;
 end;
 
-procedure TDirectXConsole.internal_open_fullscreen_start(window: HWND; const mode: TPTCMode; exact: Boolean);
+procedure TDirectXConsole.internal_open_fullscreen_start(window: HWND; const mode: IPTCMode; exact: Boolean);
 begin
   FFullscreen := True;
 
@@ -1118,13 +1048,13 @@ begin
   FDisplay.cooperative(FWindow.handle, True);
 end;
 
-procedure TDirectXConsole.internal_open_fullscreen_change(const mode: TPTCMode; exact: Boolean);
+procedure TDirectXConsole.internal_open_fullscreen_change(const mode: IPTCMode; exact: Boolean);
 begin
   FDisplay.open(mode, exact, FFrequency);
   FPrimary.blocking(True);
 end;
 
-procedure TDirectXConsole.internal_open_fullscreen_surface(const mode: TPTCMode; _pages: Integer);
+procedure TDirectXConsole.internal_open_fullscreen_surface(const mode: IPTCMode; _pages: Integer);
 var
   primary: Boolean;
   _secondary: Boolean;
@@ -1196,7 +1126,7 @@ begin
   FHook := TDirectXHook.Create(Self, FWindow.handle, GetCurrentThreadId, FCursor, FWindow.managed, True);
 end;
 
-procedure TDirectXConsole.internal_open_windowed_start(window: HWND; const mode: TPTCMode; exact: Boolean);
+procedure TDirectXConsole.internal_open_windowed_start(window: HWND; const mode: IPTCMode; exact: Boolean);
 var
   extended: Integer;
 begin
@@ -1226,7 +1156,7 @@ begin
   FDisplay.cooperative(FWindow.handle, False);
 end;
 
-procedure TDirectXConsole.internal_open_windowed_change(const mode: TPTCMode; exact: Boolean);
+procedure TDirectXConsole.internal_open_windowed_change(const mode: IPTCMode; exact: Boolean);
 begin
   FDisplay.open;
   if FPrimaryModeWindowed = DIRECT then
@@ -1235,7 +1165,7 @@ begin
     FPrimary.blocking(False);
 end;
 
-procedure TDirectXConsole.internal_open_windowed_surface(const mode: TPTCMode; _pages: Integer);
+procedure TDirectXConsole.internal_open_windowed_surface(const mode: IPTCMode; _pages: Integer);
 begin
   FPrimary.initialize(FWindow, FLibrary.lpDD2);
   FPrimary.primary(1, False, False, False, False);
@@ -1251,7 +1181,7 @@ begin
   FHook := TDirectXHook.Create(Self, FWindow.handle, GetCurrentThreadId, FCursor, FWindow.managed, False);
 end;
 
-procedure TDirectXConsole.internal_recycle_fullscreen(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
+procedure TDirectXConsole.internal_recycle_fullscreen(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
 begin
   LOG('fullscreen open recycle');
   FPrimary.close;
@@ -1259,7 +1189,7 @@ begin
   internal_open_fullscreen_surface(mode, _pages);
 end;
 
-procedure TDirectXConsole.internal_recycle_windowed(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
+procedure TDirectXConsole.internal_recycle_windowed(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
 begin
   LOG('windowed open recycle');
   FPrimary.close;

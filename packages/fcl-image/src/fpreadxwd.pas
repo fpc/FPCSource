@@ -65,7 +65,7 @@ implementation
 //
 // Copied from LCLProc unit
 //==============================================================================
-{$R-}
+{$push}{$R-}
 function BEtoN(const AValue: DWord): DWord;
 begin
   {$IFDEF ENDIAN_BIG}
@@ -77,7 +77,7 @@ begin
            or (AValue shr 24);
   {$ENDIF}
 end;
-{$R+}
+{$pop}
 
 constructor TFPReaderXWD.create;
 begin

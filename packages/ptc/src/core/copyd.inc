@@ -40,8 +40,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure Request(const ASource, ADestination: TPTCFormat);
-    procedure Palette(const ASource, ADestination: TPTCPalette);
+    procedure Request(ASource, ADestination: IPTCFormat);
+    procedure Palette(ASource, ADestination: IPTCPalette);
     procedure Copy(const ASourcePixels: Pointer; ASourceX, ASourceY,
                    ASourceWidth, ASourceHeight, ASourcePitch: Integer;
                    ADestinationPixels: Pointer; ADestinationX, ADestinationY,

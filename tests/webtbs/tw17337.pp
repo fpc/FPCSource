@@ -4,7 +4,7 @@
 
 {$asmmode att}
 
-procedure test_gas;   
+procedure test_gas;
 var
   test : qword;
 begin
@@ -14,12 +14,13 @@ begin
   if (test < qword($ffffffff)) then
     runerror(2);
 asm
-  movq $0xffffffff,test
+  movq $0xffffffff,%rax
+  movq %rax,test
 end;
   if test <> $ffffffff then
     runerror(5);
 end ;
-  
+
 var
   test : qword;
 begin

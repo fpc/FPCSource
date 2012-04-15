@@ -390,6 +390,11 @@ type
   Arr2JLReadable = array of Arr1JLReadable;
   Arr3JLReadable = array of Arr2JLReadable;
 
+  JUWeakHashMap = class;
+  Arr1JUWeakHashMap = array of JUWeakHashMap;
+  Arr2JUWeakHashMap = array of Arr1JUWeakHashMap;
+  Arr3JUWeakHashMap = array of Arr2JUWeakHashMap;
+
   JLThread = class external 'java.lang' name 'Thread';
   Arr1JLThread = array of JLThread;
   Arr2JLThread = array of Arr1JLThread;

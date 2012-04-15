@@ -68,7 +68,7 @@ type
      { A8: integer compare - imm.,register }
      constructor op_preg_preg_const_reg(_qp : tqp;op : tasmop;
        cond : tasmcond;p1,p2 : tqp;i : longint;const r3 : tregister);
-{!!!!!!!
+(*!!!!!!!
      { multimedia shift and multiply }
      constructor op_reg_reg_reg_const(_qp : tqp;
      { multimedia mux }
@@ -93,7 +93,7 @@ type
      constructor op_preg_preg_reg(_qp : tqp;
 
      { -------- here are some missed ----------- }
-}
+ *)
 
      { M1: integer load }
      { M4: integer store }

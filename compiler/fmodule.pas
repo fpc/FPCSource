@@ -145,6 +145,7 @@ interface
         symlist       : TFPObjectList;
         ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
         arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
+        ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
         globalsymtable,           { pointer to the global symtable of this unit }
         localsymtable : TSymtable;{ pointer to the local symtable of this unit }
@@ -198,7 +199,7 @@ interface
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention
         to that when creating link.res!!!!(mazen)}
-        constructor create(LoadedFrom:TModule;const s:string;_is_unit:boolean);
+        constructor create(LoadedFrom:TModule;const amodulename,afilename:string;_is_unit:boolean);
         destructor destroy;override;
         procedure reset;virtual;
         procedure adddependency(callermodule:tmodule);
@@ -478,24 +479,31 @@ implementation
                                   TMODULE
  ****************************************************************************}
 
-    constructor tmodule.create(LoadedFrom:TModule;const s:string;_is_unit:boolean);
+    constructor tmodule.create(LoadedFrom:TModule;const amodulename,afilename:string;_is_unit:boolean);
       var
-        n : string;
+        n,fn:string;
       begin
-        n:=ChangeFileExt(ExtractFileName(s),'');
+        if amodulename='' then
+          n:=ChangeFileExt(ExtractFileName(afilename),'')
+        else
+          n:=amodulename;
+        if afilename='' then
+          fn:=amodulename
+        else
+          fn:=afilename;
         { Programs have the name 'Program' to don't conflict with dup id's }
         if _is_unit then
-         inherited create(n)
+         inherited create(amodulename)
         else
          inherited create('Program');
-        mainsource:=stringdup(s);
+        mainsource:=stringdup(fn);
         { Dos has the famous 8.3 limit :( }
 {$ifdef shortasmprefix}
         asmprefix:=stringdup(FixFileName('as'));
 {$else}
         asmprefix:=stringdup(FixFileName(n));
 {$endif}
-        setfilename(s,true);
+        setfilename(fn,true);
         localunitsearchpath:=TSearchPathList.Create;
         localobjectsearchpath:=TSearchPathList.Create;
         localincludesearchpath:=TSearchPathList.Create;
@@ -529,6 +537,7 @@ implementation
         symlist:=TFPObjectList.Create(false);
         ptrdefs:=THashSet.Create(64,true,false);
         arraydefs:=THashSet.Create(64,true,false);
+        ansistrdef:=nil;
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
         extendeddefs := TFPHashObjectList.Create(true);
@@ -558,13 +567,14 @@ implementation
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=TAsmData.create(realmodulename^);
-        InitDebugInfo(self);
+        InitDebugInfo(self,false);
       end;
 
 
     destructor tmodule.Destroy;
       var
         i : longint;
+        current_debuginfo_reset : boolean;
       begin
         if assigned(unitmap) then
           freemem(unitmap);
@@ -604,7 +614,7 @@ implementation
             { release procinfo tree }
             tprocinfo(procinfo).destroy_tree;
           end;
-        DoneDebugInfo(self);
+        DoneDebugInfo(self,current_debuginfo_reset);
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
@@ -646,6 +656,7 @@ implementation
         symlist.free;
         ptrdefs.free;
         arraydefs.free;
+        ansistrdef:=nil;
         wpoinfo.free;
         checkforwarddefs.free;
         globalsymtable.free;
@@ -663,6 +674,7 @@ implementation
     procedure tmodule.reset;
       var
         i   : longint;
+        current_debuginfo_reset : boolean;
       begin
         if assigned(scanner) then
           begin
@@ -692,7 +704,7 @@ implementation
             asmdata.free;
             asmdata:=nil;
           end;
-        DoneDebugInfo(self);
+        DoneDebugInfo(self,current_debuginfo_reset);
         globalsymtable.free;
         globalsymtable:=nil;
         localsymtable.free;
@@ -734,7 +746,7 @@ implementation
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         asmdata:=TAsmData.create(realmodulename^);
-        InitDebugInfo(self);
+        InitDebugInfo(self,current_debuginfo_reset);
         _exports.free;
         _exports:=tlinkedlist.create;
         dllscannerinputlist.free;

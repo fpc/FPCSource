@@ -91,13 +91,12 @@ Type
     procedure WriteManRef(APasElement : TPasElement; Comma : Boolean);
     procedure WriteModuleSeealso(Comma : Boolean);
 
-    procedure SortElementList(List : TList);
+    procedure SortElementList(List : TFPList);
     Function  GetDescrString(AContext: TPasElement; DescrNode: TDOMElement) : String;
     function  ConstValue(ConstDecl: TPasConst): String; virtual;
     procedure WriteCommentLine;
     procedure WriteComment(Comment : String);
     Procedure WriteExampleFile(FN : String); virtual;
-    Class Function FileNameExtension : String;virtual;
     procedure WriteExample(ADocNode: TDocNode);
     procedure WriteSeeAlso(ADocNode: TDocNode; Comma : Boolean);
   Public
@@ -178,6 +177,7 @@ Type
     procedure DescrBeginTableCell; override;
     procedure DescrEndTableCell; override;
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
+    Class Function FileNameExtension : String; override;
     Class procedure Usage(List: TStrings); override;
   end;
 
@@ -192,7 +192,7 @@ constructor TManWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     Engine.AddLink(AElement.PathName, ElementToManPage(AElement));
   end;
 
-  procedure AddList(AElement: TPasElement; AList: TList);
+  procedure AddList(AElement: TPasElement; AList: TFPList);
   var
     i: Integer;
   begin
@@ -1722,7 +1722,7 @@ begin
   Result:=CompareText(TPasElement(P1).Name,TPasElement(P2).Name);
 end;
 
-procedure TManWriter.SortElementList(List : TList);
+procedure TManWriter.SortElementList(List : TFPList);
 
 begin
   List.Sort(@CompareElements);

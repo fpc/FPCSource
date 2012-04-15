@@ -95,7 +95,9 @@ var
       threadvarblocksize : dword = 0;
 
     const
-      TLSKey : DWord = $ffffffff;
+      TLSKey : DWord = $ffffffff; public name '_FPC_TlsKey';
+      TLSSize : DWord = 0; public name '_FPC_TlsSize';
+
     var
       MainThreadIdWin32 : DWORD;
 
@@ -110,7 +112,7 @@ var
       end;
 
 
-    procedure SysAllocateThreadVars;
+    procedure SysAllocateThreadVars; public name '_FPC_SysAllocateThreadVars';
       var
         dataindex : pointer;
         errorsave : dword;
@@ -130,6 +132,7 @@ var
             if dataindex=nil then
               RunError(226);
             TlsSetValue(tlskey,dataindex);
+            TlsSize:=threadvarblocksize;
           end;
         SetLastError(errorsave);
       end;
@@ -482,7 +485,7 @@ end;
 Var
   WinThreadManager : TThreadManager;
 
-Procedure InitSystemThreads;
+Procedure InitSystemThreads;public name '_FPC_InitSystemThreads';
 {$IFDEF SUPPORT_WIN95}
 var
   KernelHandle : THandle;

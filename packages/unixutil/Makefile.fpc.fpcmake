@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for libc binding
+#
+
+[package]
+name=unixutil
+version=2.7.1
+
+[target]
+units=unixutils
+rsts=unixutils
+
+[require]
+libc=y
+packages=libc fcl-base
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

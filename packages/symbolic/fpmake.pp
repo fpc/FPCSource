@@ -40,7 +40,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('evaltest.pas');
     P.Targets.AddExampleProgram('rpnthing.pas');
-    P.Targets.AddExampleProgram('easyevalexample.pas');
+    P.Targets.AddExampleProgram('easyevalexample.pp');
     P.Sources.AddDoc('doc/optimization.txt');
     P.Sources.AddDoc('doc/symbolic.txt');
 

@@ -60,8 +60,8 @@ type
     Title: string;
     SurfaceWidth, SurfaceHeight: Integer;
     Width, Height: Integer;
-    Format: TPTCFormat;
-    Mode: TPTCMode;
+    Format: IPTCFormat;
+    Mode: IPTCMode;
     VirtualPages: Integer;
     Pages: Integer;
 
@@ -84,14 +84,14 @@ type
   TPTCWrapperGetModesRequest = record
     Processed: Boolean;
 
-    Result: PPTCMode;
+    Result: TPTCModeList;
   end;
 
   TPTCWrapperThread = class(TThread)
   private
-    FConsole: TPTCConsole;
-    FSurface: array of TPTCSurface;
-    FPalette: TPTCPalette;
+    FConsole: IPTCConsole;
+    FSurface: array of IPTCSurface;
+    FPalette: IPTCPalette;
     FSurfaceCriticalSection: TCriticalSection;
     FNeedsUpdate: Boolean;
     FPaletteNeedsUpdate: Boolean;
@@ -116,14 +116,14 @@ type
     destructor Destroy; override;
 
     procedure Open(const ATitle: string; AVirtualPages: Integer; APages: Integer = 0);
-    procedure Open(const ATitle: string; AFormat: TPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
-    procedure Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight, AWidth, AHeight: Integer; AFormat: TPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
-    procedure Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight: Integer; AMode: TPTCMode; AVirtualPages: Integer; APages: Integer = 0);
+    procedure Open(const ATitle: string; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
+    procedure Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight, AWidth, AHeight: Integer; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
+    procedure Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight: Integer; AMode: IPTCMode; AVirtualPages: Integer; APages: Integer = 0);
     procedure Close;
 
     function Option(const AOption: string): Boolean;
 
-    function Modes: PPTCMode;
+    function Modes: TPTCModeList;
 
     procedure SetVisualPage(AVisualPage: Integer);
 
@@ -133,8 +133,8 @@ type
     function PaletteLock: Pointer;
     procedure PaletteUnlock;
 
-    function NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
-    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+    function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 
     property IsOpen: Boolean read FOpen;
   end;
@@ -174,16 +174,13 @@ end;
 procedure TPTCWrapperThread.Execute;
   procedure GetEvents;
   var
-    Event: TPTCEvent = nil;
+    Event: IPTCEvent;
     NextEventAvailable: Boolean;
   begin
     repeat
       NextEventAvailable := FConsole.NextEvent(Event, False, PTCAnyEvent);
       if NextEventAvailable then
-      begin
         FEventQueue.AddEvent(Event);
-        Event := nil;
-      end;
     until not NextEventAvailable;
   end;
 
@@ -194,7 +191,7 @@ procedure TPTCWrapperThread.Execute;
     if not FOpenRequest.Processed then
     begin
       for I := Low(FSurface) to High(FSurface) do
-        FreeAndNil(FSurface[I]);
+        FSurface[I] := nil;
       with FOpenRequest do
       begin
         SetLength(FSurface, VirtualPages);
@@ -203,25 +200,25 @@ procedure TPTCWrapperThread.Execute;
             begin
               FConsole.Open(Title, Pages);
               for I := Low(FSurface) to High(FSurface) do
-                FSurface[I] := TPTCSurface.Create(FConsole.Width, FConsole.Height, FConsole.Format);
+                FSurface[I] := TPTCSurfaceFactory.CreateNew(FConsole.Width, FConsole.Height, FConsole.Format);
             end;
           pwotFormat:
             begin
               FConsole.Open(Title, Format, Pages);
               for I := Low(FSurface) to High(FSurface) do
-                FSurface[I] := TPTCSurface.Create(FConsole.Width, FConsole.Height, Format);
+                FSurface[I] := TPTCSurfaceFactory.CreateNew(FConsole.Width, FConsole.Height, Format);
             end;
           pwotWidthHeightFormat:
             begin
               FConsole.Open(Title, Width, Height, Format, Pages);
               for I := Low(FSurface) to High(FSurface) do
-                FSurface[I] := TPTCSurface.Create(SurfaceWidth, SurfaceHeight, Format);
+                FSurface[I] := TPTCSurfaceFactory.CreateNew(SurfaceWidth, SurfaceHeight, Format);
             end;
           pwotMode:
             begin
               FConsole.Open(Title, Mode, Pages);
               for I := Low(FSurface) to High(FSurface) do
-                FSurface[I] := TPTCSurface.Create(SurfaceWidth, SurfaceHeight, Mode.Format);
+                FSurface[I] := TPTCSurfaceFactory.CreateNew(SurfaceWidth, SurfaceHeight, Mode.Format);
             end;
         end;
       end;
@@ -241,7 +238,7 @@ procedure TPTCWrapperThread.Execute;
     begin
       FConsole.Close;
       for I := Low(FSurface) to High(FSurface) do
-        FreeAndNil(FSurface[I]);
+        FSurface[I] := nil;
       SetLength(FSurface, 0);
       SetLength(FPixels, 0);
       FOpen := False;
@@ -266,10 +263,10 @@ var
   I: Integer;
 begin
   try
-    FConsole := TPTCConsole.Create;
+    FConsole := TPTCConsoleFactory.CreateNew;
 
     FEventQueue := TEventQueue.Create;
-    FPalette := TPTCPalette.Create;
+    FPalette := TPTCPaletteFactory.CreateNew;
     FPaletteData := FPalette.Data;
 
     FOpen := False;
@@ -312,11 +309,8 @@ begin
     if Assigned(FConsole) then
       FConsole.Close;
 
-    for I := Low(FSurface) to High(FSurface) do
-      FreeAndNil(FSurface[I]);
     SetLength(FSurface, 0);
-    FreeAndNil(FPalette);
-    FreeAndNil(FConsole);
+    FConsole := nil;
   end;
 end;
 
@@ -341,7 +335,7 @@ begin
   until FOpenRequest.Processed;
 end;
 
-procedure TPTCWrapperThread.Open(const ATitle: string; AFormat: TPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
+procedure TPTCWrapperThread.Open(const ATitle: string; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
 begin
   FSurfaceCriticalSection.Acquire;
   try
@@ -363,7 +357,7 @@ begin
   until FOpenRequest.Processed;
 end;
 
-procedure TPTCWrapperThread.Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight, AWidth, AHeight: Integer; AFormat: TPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
+procedure TPTCWrapperThread.Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight, AWidth, AHeight: Integer; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
 begin
   FSurfaceCriticalSection.Acquire;
   try
@@ -389,7 +383,7 @@ begin
   until FOpenRequest.Processed;
 end;
 
-procedure TPTCWrapperThread.Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight: Integer; AMode: TPTCMode; AVirtualPages: Integer; APages: Integer = 0);
+procedure TPTCWrapperThread.Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight: Integer; AMode: IPTCMode; AVirtualPages: Integer; APages: Integer = 0);
 begin
   FSurfaceCriticalSection.Acquire;
   try
@@ -449,7 +443,7 @@ begin
   Result := FOptionRequest.Result;
 end;
 
-function TPTCWrapperThread.Modes: PPTCMode;
+function TPTCWrapperThread.Modes: TPTCModeList;
 begin
   FSurfaceCriticalSection.Acquire;
   try
@@ -507,9 +501,8 @@ begin
   FSurfaceCriticalSection.Release;
 end;
 
-function TPTCWrapperThread.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+function TPTCWrapperThread.NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
 begin
-  FreeAndNil(AEvent);
   repeat
     ThreadSwitch;
 
@@ -520,7 +513,7 @@ begin
   Result := AEvent <> nil;
 end;
 
-function TPTCWrapperThread.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+function TPTCWrapperThread.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 begin
   repeat
     ThreadSwitch;

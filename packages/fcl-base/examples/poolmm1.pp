@@ -40,9 +40,9 @@ begin
   AMyRecord:=PMyRecord(FFirstFree);
   PMyRecord(FFirstFree):=AMyRecord^.Next;
   Dispose(AMyRecord);
-  {$R-}
+  {$push}{$R-}
   inc(FFreedCount);
-  {$IfDef RangeChecksOn}{$R+}{$Endif}
+  {$pop}
 end;
 
 procedure TMyRecordMemManager.DisposeMyRecord(AMyRecord: PMyRecord);
@@ -56,9 +56,9 @@ begin
   end else begin
     // free list full -> free the item
     Dispose(AMyRecord);
-    {$R-}
+    {$push}{$R-}
     inc(FFreedCount);
-    {$IfDef RangeChecksOn}{$R+}{$Endif}
+    {$pop}
   end;
   dec(FCount);
 end;
@@ -73,9 +73,9 @@ begin
   end else begin
     // free list empty -> create new item
     New(Result);
-    {$R-}
+    {$push}{$R-}
     inc(FAllocatedCount);
-    {$IfDef RangeChecksOn}{$R+}{$Endif}
+    {$pop}
   end;
   FillChar(Result^, SizeOf(TMyRecord), 0);
   inc(FCount);

@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
+    P.OSes := AllUnixOSes+AllWindowsOSes+[os2,emx]-[qnx];
 
     T:=P.Targets.AddUnit('tcl80.pp');
 

@@ -90,9 +90,9 @@ const ClipboardWindow  : PClipboardWindow = nil;
       ShowStatusOnError: boolean = true;
       StartupDir       : string = '.'+DirSep;
       IDEDir           : string = '.'+DirSep;
-{$ifdef Unix}
+{$if defined(WINDOWS) or defined(Unix)}
       SystemIDEDir     : string = '';
-{$endif Unix}
+{$endif defined(WINDOWS) or defined(Unix)}
       INIFileName      : string = ININame;
       SwitchesPath     : string = SwitchesName;
       CtrlMouseAction  : integer = acTopicSearch;

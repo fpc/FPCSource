@@ -156,7 +156,7 @@ unit cgx86;
        globals,verbose,systems,cutils,
        defutil,paramgr,procinfo,
        tgobj,ncgutil,
-       fmodule;
+       fmodule,symsym;
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,
@@ -506,7 +506,7 @@ unit cgx86;
                   ((cs_create_pic in current_settings.moduleswitches) and
                    (ref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
                  begin
-                   hreg:=g_indirect_sym_load(list,ref.symbol.name,ref.symbol.bind=AB_WEAK_EXTERNAL);
+                   hreg:=g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
                    ref.symbol:=nil;
                  end
                else
@@ -919,7 +919,7 @@ unit cgx86;
                             (ref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
                           begin
                              reference_reset_base(tmpref,
-                               g_indirect_sym_load(list,ref.symbol.name,ref.symbol.bind=AB_WEAK_EXTERNAL),
+                               g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol)),
                                offset,sizeof(pint));
                              a_loadaddr_ref_reg(list,tmpref,r);
                           end
@@ -935,7 +935,7 @@ unit cgx86;
                     else if (cs_create_pic in current_settings.moduleswitches)
 {$ifdef x86_64}
                              and not((ref.symbol.bind=AB_LOCAL) and
-                                     (ref.symbol.typ=AT_DATA))
+                                     (ref.symbol.typ in [AT_DATA,AT_LABEL,AT_ADDR]))
 {$endif x86_64}
                             then
                       begin
@@ -1143,17 +1143,20 @@ unit cgx86;
               end
             else
               internalerror(200312202);
+            add_move_instruction(instr);
           end
         else if shufflescalar(shuffle) then
-          instr:=taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2)
+          begin
+            instr:=taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2);
+            case get_scalar_mm_op(fromsize,tosize) of
+              A_MOVSS,
+              A_MOVSD,
+              A_MOVQ:
+                add_move_instruction(instr);
+            end;
+          end
         else
           internalerror(200312201);
-        case get_scalar_mm_op(fromsize,tosize) of
-          A_MOVSS,
-          A_MOVSD,
-          A_MOVQ:
-            add_move_instruction(instr);
-        end;
         list.concat(instr);
       end;
 
@@ -1767,24 +1770,31 @@ unit cgx86;
         ai:=Taicpu.op_reg(A_SETcc,S_B,hreg);
         ai.setcondition(flags_to_cond(f));
         list.concat(ai);
-        if (reg<>hreg) then
+        if reg<>hreg then
           a_load_reg_reg(list,OS_8,size,hreg,reg);
       end;
 
 
-     procedure tcgx86.g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);
-       var
-         ai : taicpu;
-         tmpref  : treference;
-       begin
-          tmpref:=ref;
-          make_simple_ref(list,tmpref);
-          if not(size in [OS_8,OS_S8]) then
-            a_load_const_ref(list,size,0,tmpref);
-          ai:=Taicpu.op_ref(A_SETcc,S_B,tmpref);
-          ai.setcondition(flags_to_cond(f));
-          list.concat(ai);
-       end;
+    procedure tcgx86.g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref: TReference);
+      var
+        ai : taicpu;
+        tmpref  : treference;
+      begin
+         tmpref:=ref;
+         make_simple_ref(list,tmpref);
+         if not(size in [OS_8,OS_S8]) then
+           a_load_const_ref(list,size,0,tmpref);
+         ai:=Taicpu.op_ref(A_SETcc,S_B,tmpref);
+         ai.setcondition(flags_to_cond(f));
+         list.concat(ai);
+{$ifndef cpu64bitalu}
+         if size in [OS_S64,OS_64] then
+           begin
+             inc(tmpref.offset,4);
+             a_load_const_ref(list,OS_32,0,tmpref);
+           end;
+{$endif cpu64bitalu}
+      end;
 
 
 { ************* concatcopy ************ }
@@ -1823,7 +1833,8 @@ unit cgx86;
       if (len>helpsize) then
         cm:=copy_string;
       if (cs_opt_size in current_settings.optimizerswitches) and
-         not((len<=16) and (cm=copy_mmx)) then
+         not((len<=16) and (cm=copy_mmx)) and
+         not(len in [1,2,4{$ifdef x86_64},8{$endif x86_64}]) then
         cm:=copy_string;
       if (source.segment<>NR_NO) or
          (dest.segment<>NR_NO) then
@@ -2136,6 +2147,7 @@ unit cgx86;
     procedure tcgx86.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
         stackmisalignment: longint;
+        para: tparavarsym;
       begin
 {$ifdef i386}
         { interrupt support for i386 }
@@ -2172,11 +2184,41 @@ unit cgx86;
                 inc(stackmisalignment,sizeof(pint));
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
                 list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
+                if (target_info.system=system_x86_64_win64) then
+                  begin
+                    list.concat(cai_seh_directive.create_reg(ash_pushreg,NR_FRAME_POINTER_REG));
+                    include(current_procinfo.flags,pi_has_unwind_info);
+                  end;
                 { Return address and FP are both on stack }
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
                 current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
-                list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG));
+                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                  list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG))
+                else
+                  begin
+                    { load framepointer from hidden $parentfp parameter }
+                    para:=tparavarsym(current_procinfo.procdef.paras[0]);
+                    if not (vo_is_parentfp in para.varoptions) then
+                      InternalError(201201142);
+                    if (para.paraloc[calleeside].location^.loc<>LOC_REGISTER) or
+                       (para.paraloc[calleeside].location^.next<>nil) then
+                      InternalError(201201143);
+                    list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],
+                      para.paraloc[calleeside].location^.register,NR_FRAME_POINTER_REG));
+                    { Need only as much stack space as necessary to do the calls.
+                      Exception filters don't have own local vars, and temps are 'mapped'
+                      to the parent procedure.
+                      maxpushedparasize is already aligned at least on x86_64. }
+                    localsize:=current_procinfo.maxpushedparasize;
+                  end;
                 current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
+                {
+                  TODO: current framepointer handling is not compatible with Win64 at all:
+                  Win64 expects FP to point to the top or into the middle of local area.
+                  In FPC it points to the bottom, making it impossible to generate
+                  UWOP_SET_FPREG unwind code if local area is > 240 bytes.
+                  So for now pretend we never have a framepointer.
+                }
               end;
 
             { allocate stackframe space }
@@ -2191,6 +2233,13 @@ unit cgx86;
                 cg.g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
+                current_procinfo.final_localsize:=localsize;
+                if (target_info.system=system_x86_64_win64) then
+                  begin
+                    if localsize<>0 then
+                      list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
+                    include(current_procinfo.flags,pi_has_unwind_info);
+                  end;
               end;
           end;
       end;

@@ -140,6 +140,8 @@
 {$ifdef DEBUG}
   {$define DebugUndo}
   {$define TEST_REGEXP}
+  { Use old regexpr unit by Joost }
+  {$define USE_OLD_REGEXP}
   { Use this to incorporate a call to
     external compiler.
     Parsing of compiler output is done,

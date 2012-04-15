@@ -364,7 +364,6 @@ unit hlcgobj;
           procedure g_copyvariant(list : TAsmList;const source,dest : treference;vardef:tvariantdef);virtual;abstract;
 
           procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);virtual;abstract;
-          procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);virtual;abstract;
           procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);virtual;abstract;
           procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);virtual;abstract;
           procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation;
@@ -413,7 +412,7 @@ unit hlcgobj;
           procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual; abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);virtual; abstract;
 
-          function g_indirect_sym_load(list:TAsmList;const symname: string; weak: boolean): tregister;virtual; abstract;
+          function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;virtual; abstract;
           { generate a stub which only purpose is to pass control the given external method,
           setting up any additional environment before doing so (if required).
 
@@ -421,7 +420,7 @@ unit hlcgobj;
 //          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
          protected
-            procedure g_allocload_reg_reg(list: TAsmList; regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
+          procedure g_allocload_reg_reg(list: TAsmList; regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
          public
           { create "safe copy" of a tlocation that can be used later: all
             registers used in the tlocation are copied to new ones, so that
@@ -501,6 +500,10 @@ unit hlcgobj;
 
           { generate a call to a routine in the system unit }
           procedure g_call_system_proc(list: TAsmList; const procname: string);
+
+          { Generate code to exit an unwind-protected region. The default implementation
+            produces a simple jump to destination label. }
+          procedure g_local_unwind(list: TAsmList; l: TAsmLabel);virtual;abstract;
        end;
 
     var
@@ -1668,7 +1671,11 @@ implementation
 
   procedure thlcgobj.g_rangecheck(list: TAsmList; const l: tlocation; fromdef, todef: tdef);
     var
+{$if defined(cpu64bitalu) or defined(cpu32bitalu)}
       aintmax: aint;
+{$else}
+      aintmax: longint;
+{$endif}
       neglabel : tasmlabel;
       hreg : tregister;
       lto,hto,
@@ -1877,6 +1884,19 @@ implementation
 
   procedure thlcgobj.g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation);
 
+    procedure handle_reg_move(regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
+      begin
+        case regtyp of
+          R_INTREGISTER:
+            toreg:=getintregister(list,regsize);
+          R_ADDRESSREGISTER:
+            toreg:=getaddressregister(list,regsize);
+          R_FPUREGISTER:
+            toreg:=getfpuregister(list,regsize);
+        end;
+        a_load_reg_reg(list,regsize,regsize,fromreg,toreg);
+      end;
+
     begin
       toloc:=fromloc;
       case fromloc.loc of
@@ -1888,9 +1908,9 @@ implementation
           { finished }
           ;
         LOC_CREGISTER:
-          g_allocload_reg_reg(list,def,fromloc.reference.index,toloc.reference.index,R_INTREGISTER);
+          handle_reg_move(def,fromloc.reference.index,toloc.reference.index,R_INTREGISTER);
         LOC_CFPUREGISTER:
-          g_allocload_reg_reg(list,def,fromloc.reference.index,toloc.reference.index,R_FPUREGISTER);
+          handle_reg_move(def,fromloc.reference.index,toloc.reference.index,R_FPUREGISTER);
         { although LOC_CREFERENCE cannot be an lvalue, we may want to take a
           reference to such a location for multiple reading }
         LOC_CREFERENCE,
@@ -1899,11 +1919,11 @@ implementation
             if (fromloc.reference.base<>NR_NO) and
                (fromloc.reference.base<>current_procinfo.framepointer) and
                (fromloc.reference.base<>NR_STACK_POINTER_REG) then
-              g_allocload_reg_reg(list,voidpointertype,fromloc.reference.base,toloc.reference.base,getregtype(fromloc.reference.base));
+              handle_reg_move(voidpointertype,fromloc.reference.base,toloc.reference.base,getregtype(fromloc.reference.base));
             if (fromloc.reference.index<>NR_NO) and
                (fromloc.reference.index<>current_procinfo.framepointer) and
                (fromloc.reference.index<>NR_STACK_POINTER_REG) then
-              g_allocload_reg_reg(list,voidpointertype,fromloc.reference.index,toloc.reference.index,getregtype(fromloc.reference.index));
+              handle_reg_move(voidpointertype,fromloc.reference.index,toloc.reference.index,getregtype(fromloc.reference.index));
           end;
         else
           internalerror(2012012701);
@@ -2218,8 +2238,9 @@ implementation
            current_procinfo.procdef.localst.SymList.ForEachCall(@initialize_data,list);
       end;
 
-      { initialisizes temp. ansi/wide string data }
-      inittempvariables(list);
+      { initialises temp. ansi/wide string data }
+      if (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
+        inittempvariables(list);
 
 {$ifdef OLDREGVARS}
       load_regvars(list,nil);
@@ -2227,7 +2248,17 @@ implementation
     end;
 
   procedure thlcgobj.gen_finalize_code(list: TAsmList);
+    var
+      old_current_procinfo: tprocinfo;
     begin
+      old_current_procinfo:=current_procinfo;
+      if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+        begin
+          if (current_procinfo.parent.finalize_procinfo<>current_procinfo) then
+            exit;
+          current_procinfo:=current_procinfo.parent;
+        end;
+
 {$ifdef OLDREGVARS}
       cleanup_regvars(list);
 {$endif OLDREGVARS}
@@ -2257,6 +2288,7 @@ implementation
       if assigned(current_procinfo.procdef.parast) and
          not(po_assembler in current_procinfo.procdef.procoptions) then
         current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
+      current_procinfo:=old_current_procinfo;
     end;
 
   procedure thlcgobj.gen_entry_code(list: TAsmList);
@@ -2341,6 +2373,7 @@ implementation
          ) and
          not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
          not(vo_is_external in tabstractvarsym(p).varoptions) and
+         not(vo_is_default_var in tabstractvarsym(p).varoptions) and
          (is_managed_type(tabstractvarsym(p).vardef) or
           ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
          ) then
@@ -2428,7 +2461,7 @@ implementation
       current_asmdata.CurrAsmList:=asmlist;
       hp:=cloadnode.create(sym,sym.owner);
       if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
-        include(hp.flags,nf_isinternal_ignoreconst);
+        include(tloadnode(hp).loadnodeflags,loadnf_isinternal_ignoreconst);
       hp:=cnodeutils.finalize_data_node(hp);
       firstpass(hp);
       secondpass(hp);
@@ -2442,6 +2475,7 @@ implementation
          (tlocalvarsym(p).refs>0) and
          not(vo_is_external in tlocalvarsym(p).varoptions) and
          not(vo_is_funcret in tlocalvarsym(p).varoptions) and
+         not(vo_is_default_var in tabstractvarsym(p).varoptions) and
          is_managed_type(tlocalvarsym(p).vardef) then
         finalize_sym(TAsmList(arg),tsym(p));
     end;
@@ -2506,7 +2540,7 @@ implementation
               begin
                 if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
                   begin
-                    hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                    hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                     if not assigned(hsym) then
                       internalerror(201003032);
                     highloc:=hsym.initialloc
@@ -2514,10 +2548,10 @@ implementation
                 else
                   highloc.loc:=LOC_INVALID;
                 eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
-                g_array_rtti_helper(list,eldef,href,highloc,'FPC_DECREF_ARRAY');
+                g_array_rtti_helper(list,eldef,href,highloc,'FPC_FINALIZE_ARRAY');
               end
             else
-              g_decrrefcount(list,tparavarsym(p).vardef,href);
+              g_finalize(list,tparavarsym(p).vardef,href);
           end;
        end;
       { open arrays can contain elements requiring init/final code, so the else has been removed here }
@@ -2574,7 +2608,7 @@ implementation
                        begin
                          if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
                            begin
-                             hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                             hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                              if not assigned(hsym) then
                                internalerror(201003032);
                              highloc:=hsym.initialloc
@@ -2617,7 +2651,7 @@ implementation
                          begin
                            if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
                              begin
-                               hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                               hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                                if not assigned(hsym) then
                                  internalerror(201003032);
                                highloc:=hsym.initialloc
@@ -2661,7 +2695,10 @@ implementation
       i: longint;
       currpara: tparavarsym;
     begin
-      if (po_assembler in current_procinfo.procdef.procoptions) then
+      if (po_assembler in current_procinfo.procdef.procoptions) or
+      { exceptfilters have a single hidden 'parentfp' parameter, which
+        is handled by tcg.g_proc_entry. }
+         (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
         exit;
 
       { Copy parameters to local references/registers }
@@ -2721,7 +2758,7 @@ implementation
                 begin
                   if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
                     begin
-                      hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                      hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                       if not assigned(hsym) then
                         internalerror(2011020506);
                       highloc:=hsym.initialloc

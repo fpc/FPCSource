@@ -26,11 +26,11 @@ interface
     function strpcopy(d : pchar;const s : string) : pchar;
 
     { Copies source to dest, returns a pointer to dest }
-    function strcopy(dest,source : pchar) : pchar;
+    function strcopy(dest,source : pchar) : pchar; overload;
 
     { Copies at most maxlen bytes from source to dest. }
     { Returns a pointer to dest }
-    function strlcopy(dest,source : pchar;maxlen : SizeInt) : pchar;
+    function strlcopy(dest,source : pchar;maxlen : SizeInt) : pchar; overload;
 
     { Copies source to dest and returns a pointer to the terminating }
     { null character.    }
@@ -120,25 +120,13 @@ implementation
 
 { Functions, different from the one in sysutils }
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
 
-    { also define alias which can be used inside the system unit }
-    function fpc_pchar_to_shortstr(p:pchar):shortstring;[external name 'FPC_PCHAR_TO_SHORTSTR'];
-
-{$else FPC_STRTOSHORTSTRINGPROC}
-
-    { also define alias which can be used inside the system unit }
     procedure fpc_pchar_to_shortstr(var res : openstring;p:pchar);[external name 'FPC_PCHAR_TO_SHORTSTR'];
 
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
     function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
       begin
-    {$ifndef FPC_STRTOSHORTSTRINGPROC}
-        strpas:=fpc_pchar_to_shortstr(p);
-    {$else FPC_STRTOSHORTSTRINGPROC}
         fpc_pchar_to_shortstr(strpas,p);
-    {$endif FPC_STRTOSHORTSTRINGPROC}
       end;
 
     function stralloc(L : SizeInt) : pchar;

@@ -384,6 +384,9 @@ uses
 
       maxfpuregs = 8;
 
+      { minimum size of the stack frame if one exists }
+      MINIMUM_STACKFRAME_SIZE = 56;
+
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
@@ -497,6 +500,7 @@ implementation
 
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
       begin
+        r.dirhint := DH_None;
         r.simple := true;
         r.cond := cond;
         case cond of

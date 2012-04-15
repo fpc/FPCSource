@@ -21,13 +21,13 @@ begin
   pack := (r shl 16) or (g shl 8) or b;
 end;
 
-procedure generate(palette: TPTCPalette);
+procedure generate(palette: IPTCPalette);
 var
   data: PUint32;
   i, c: Integer;
 begin
   { lock palette data }
-  data := palette.lock;
+  data := palette.Lock;
 
   try
     { black to red }
@@ -67,15 +67,15 @@ begin
 
   finally
     { unlock palette }
-    palette.unlock;
+    palette.Unlock;
   end;
 end;
 
 var
-  format: TPTCFormat = nil;
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  palette: TPTCPalette = nil;
+  format: IPTCFormat;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  palette: IPTCPalette;
   state: Integer;
   intensity: Single;
   pixels, pixel, p: PUint8;
@@ -84,24 +84,24 @@ var
   top, bottom, c1, c2: Uint32;
   generator: PUint8;
   color: Integer;
-  area: TPTCArea = nil;
+  area: IPTCArea;
 begin
   try
     try
       { create format }
-      format := TPTCFormat.Create(8);
+      format := TPTCFormatFactory.CreateNew(8);
 
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { open console }
       console.open('Fire demo', 320, 200, format);
 
       { create surface }
-      surface := TPTCSurface.Create(320, 208, format);
+      surface := TPTCSurfaceFactory.CreateNew(320, 208, format);
 
       { create palette }
-      palette := TPTCPalette.Create;
+      palette := TPTCPaletteFactory.CreateNew;
 
       { generate palette }
       generate(palette);
@@ -117,7 +117,7 @@ begin
       intensity := 0;
 
       { setup copy area }
-      area := TPTCArea.Create(0, 0, 320, 200);
+      area := TPTCAreaFactory.CreateNew(0, 0, 320, 200);
 
       { main loop }
       repeat
@@ -242,11 +242,8 @@ begin
       until False;
 
     finally
-      console.Free;
-      surface.Free;
-      format.Free;
-      palette.Free;
-      area.Free;
+      if Assigned(console) then
+        console.Close;
     end;
   except
     on error: TPTCError do

@@ -13,10 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
    var
       SysInstance : Longint;external name '_FPC_SysInstance';
-      EntryInformation : TEntryInformation;
 
       InitFinalTable : record end; external name 'INITFINAL';
       ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
@@ -46,12 +45,25 @@
 
     const
       STD_INPUT_HANDLE = dword(-10);
+      SysInitEntryInformation : TEntryInformation = (
+        InitFinalTable : @InitFinalTable;
+        ThreadvarTablesTable : @ThreadvarTablesTable;
+        asm_exit : @asm_exit;
+        PascalMain : @PascalMain;
+        valgrind_used : false;
+        );
+
 
     procedure SetupEntryInformation;
       begin
+        { valgind_used is the only thng that can change at startup
         EntryInformation.InitFinalTable:=@InitFinalTable;
         EntryInformation.ThreadvarTablesTable:=@ThreadvarTablesTable;
         EntryInformation.asm_exit:=@asm_exit;
-        EntryInformation.PascalMain:=@PascalMain;
-        EntryInformation.valgrind_used:=valgrind_used;
+        EntryInformation.PascalMain:=@PascalMain;}
+        SysInitEntryInformation.valgrind_used:=valgrind_used;
       end;
+
+{$define FPC_INSSIDE_SYSINIT}
+{$include systlsdir.inc}
+

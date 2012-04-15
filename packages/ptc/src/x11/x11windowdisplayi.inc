@@ -46,16 +46,14 @@ begin
   inherited Destroy;
 end;
 
-procedure TX11WindowDisplay.Open(ATitle: AnsiString; AWidth, AHeight: Integer; const AFormat: TPTCFormat);
+procedure TX11WindowDisplay.Open(ATitle: AnsiString; AWidth, AHeight: Integer; AFormat: IPTCFormat);
 var
-  tmpFormat: TPTCFormat;
   xgcv: TXGCValues;
   textprop: TXTextProperty;
   e: TXEvent;
   found: Boolean;
   attr: TXSetWindowAttributes;
   size_hints: PXSizeHints;
-  tmpArea: TPTCArea;
   tmppchar: PChar;
   tmpArrayOfCLong: array [1..1] of clong;
   tmpPixmap: TPixmap;
@@ -93,14 +91,7 @@ begin
 
   { Check if we have that colour depth available.. Easy as there is no
     format conversion yet }
-  tmpFormat := nil;
-  try
-    tmpFormat := GetX11Format(AFormat);
-    FFormat.Assign(tmpFormat);
-  finally
-    tmpFormat.Free;
-  end;
-  tmpFormat := nil;
+  FFormat := GetX11Format(AFormat);
 
   { Create a window }
   FWindow := XCreateSimpleWindow(FDisplay, RootWindow(FDisplay, FScreen), 0, 0,
@@ -190,12 +181,7 @@ begin
   XChangeWindowAttributes(FDisplay, FWindow, CWBackingStore, @attr);
 
   { Set clipping area }
-  tmpArea := TPTCArea.Create(0, 0, FWidth, FHeight);
-  try
-    FClip.Assign(tmpArea);
-  finally
-    tmpArea.Free;
-  end;
+  FClip := TPTCArea.Create(0, 0, FWidth, FHeight);
 
   { Installs the right colour map for 8 bit modes }
   CreateColormap;
@@ -204,11 +190,11 @@ begin
     EnterFullScreen;
 end;
 
-procedure TX11WindowDisplay.Open(AWindow: TWindow; const AFormat: TPTCFormat);
+procedure TX11WindowDisplay.Open(AWindow: TWindow; AFormat: IPTCFormat);
 begin
 end;
 
-procedure TX11WindowDisplay.Open(AWindow: TWindow; const AFormat: TPTCFormat; AX, AY, AWidth, AHeight: Integer);
+procedure TX11WindowDisplay.Open(AWindow: TWindow; AFormat: IPTCFormat; AX, AY, AWidth, AHeight: Integer);
 begin
 end;
 
@@ -562,33 +548,22 @@ begin
   HandleEvents;
 end;
 
-procedure TX11WindowDisplay.Update(const AArea: TPTCArea);
+procedure TX11WindowDisplay.Update(AArea: IPTCArea);
 var
-  updatearea: TPTCArea;
-  tmparea: TPTCArea;
+  UpdateArea: IPTCArea;
 begin
-  tmparea := TPTCArea.Create(0, 0, FWidth, FHeight);
-  try
-    updatearea := TPTCClipper.Clip(tmparea, AArea);
-    try
-      FPrimary.Put(FWindow, FGC, updatearea.Left, updatearea.Top,
-                   FDestX + updatearea.Left, FDestY + updatearea.Top,
-                   updatearea.Width, updatearea.Height);
-    finally
-      updatearea.Free;
-    end;
-  finally
-    tmparea.Free;
-  end;
+  UpdateArea := TPTCClipper.Clip(TPTCArea.Create(0, 0, FWidth, FHeight), AArea);
+  FPrimary.Put(FWindow, FGC, UpdateArea.Left, UpdateArea.Top,
+               FDestX + UpdateArea.Left, FDestY + UpdateArea.Top,
+               UpdateArea.Width, UpdateArea.Height);
 
   HandleEvents;
 end;
 
-function TX11WindowDisplay.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+function TX11WindowDisplay.NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
 var
   tmpEvent: TXEvent;
 begin
-  FreeAndNil(AEvent);
   repeat
     { process all events from the X queue and put them on our FEventQueue }
     HandleEvents;
@@ -605,7 +580,7 @@ begin
   Result := AEvent <> nil;
 end;
 
-function TX11WindowDisplay.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+function TX11WindowDisplay.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 var
   tmpEvent: TXEvent;
 begin
@@ -629,30 +604,23 @@ begin
   Result := FPrimary.Lock;
 end;
 
-procedure TX11WindowDisplay.unlock;
+procedure TX11WindowDisplay.Unlock;
 begin
 end;
 
-procedure TX11WindowDisplay.GetModes(var AModes: TPTCModeDynArray);
+procedure TX11WindowDisplay.GetModes(var AModes: TPTCModeList);
 var
-  current_desktop_format, tmpfmt: TPTCFormat;
+  current_desktop_format, tmpfmt: IPTCFormat;
 begin
   if FModeSwitcher = nil then
     FModeSwitcher := CreateModeSwitcher;
 
-  current_desktop_format := nil;
-  tmpfmt := TPTCFormat.Create(8);
-  try
-    current_desktop_format := GetX11Format(tmpfmt);
+  current_desktop_format := GetX11Format(TPTCFormat.Create(8));
 
-    FModeSwitcher.GetModes(AModes, current_desktop_format);
-  finally
-    tmpfmt.Free;
-    current_desktop_format.Free;
-  end;
+  FModeSwitcher.GetModes(AModes, current_desktop_format);
 end;
 
-procedure TX11WindowDisplay.Palette(const APalette: TPTCPalette);
+procedure TX11WindowDisplay.Palette(APalette: IPTCPalette);
 var
   pal: PUint32;
   i: Integer;
@@ -675,11 +643,11 @@ end;
 
 function TX11WindowDisplay.GetPitch: Integer;
 begin
-  Result := FPrimary.pitch;
+  Result := FPrimary.Pitch;
 end;
 
 function TX11WindowDisplay.CreateImage(ADisplay: PDisplay; AScreen, AWidth, AHeight: Integer;
-                                       AFormat: TPTCFormat): TX11Image;
+                                       AFormat: IPTCFormat): TX11Image;
 begin
   {$IFDEF ENABLE_X11_EXTENSION_XSHM}
   if (PTC_X11_TRY_XSHM In FFlags) and XShmQueryExtension(ADisplay) then

@@ -201,7 +201,7 @@ interface
             owner.AsmWrite('*'+gas_regname(o.reg));
           top_ref :
             begin
-              if o.ref^.refaddr=addr_no then
+              if o.ref^.refaddr in [addr_no,addr_pic_no_got] then
                 begin
                   owner.AsmWrite('*');
                   WriteReference(o.ref^);
@@ -229,11 +229,12 @@ interface
     procedure Tx86InstrWriter.WriteInstruction(hp: tai);
       var
        op       : tasmop;
+{$ifdef x86_64}
        val      : aint;
+{$endif}
        calljmp  : boolean;
        need_second_mov : boolean;
        i        : integer;
-       comment  : tai_comment;
       begin
         if hp.typ <> ait_instruction then
           exit;
@@ -245,12 +246,12 @@ interface
           the fix consists of simply setting only the 4-byte register
           as the upper 4-bytes will be zeroed at the same time. }
         need_second_mov:=false;
+{$ifdef x86_64}
         if (op=A_MOV) and (taicpu(hp).opsize=S_Q) and
            (taicpu(hp).oper[0]^.typ = top_const) then
            begin
              val := taicpu(hp).oper[0]^.val;
-{$ifdef x86_64}
-	     if (val > int64($7fffffff)) and (val < int64($100000000)) then
+             if (val > int64($7fffffff)) and (val < int64($100000000)) then
                begin
                  owner.AsmWrite(target_asm.comment);
                  owner.AsmWritePChar('Fix for Win64-GAS bug');
@@ -263,8 +264,8 @@ interface
                  else
                    internalerror(20100902);
                end;
-{$endif x86_64}
            end;
+{$endif x86_64}
         owner.AsmWrite(#9);
         { movsd should not be translated to movsl when there
           are (xmm) arguments }
@@ -333,10 +334,13 @@ interface
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '--64 -o $OBJ $ASM';
-            supported_targets : [system_x86_64_linux,system_x86_64_freebsd,system_x86_64_win64,system_x86_64_embedded];
+            supported_targets : [system_x86_64_linux,system_x86_64_freebsd,
+                                 system_x86_64_win64,system_x86_64_embedded,
+                                 system_x86_64_openbsd,system_x86_64_netbsd];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
+            dollarsign: '$';
           );
 
        as_x86_64_gas_info : tasminfo =
@@ -349,6 +353,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
+            dollarsign: '$';
           );
 
 
@@ -363,6 +368,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';
+            dollarsign: '$';
           );
 
 {$else x86_64}
@@ -379,6 +385,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
+            dollarsign: '$';
           );
 
 
@@ -392,6 +399,7 @@ interface
             flags : [af_allowdirect,af_needar,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
+            dollarsign: '$';
           );
 
 
@@ -405,6 +413,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
+            dollarsign: '$';
           );
 
        as_i386_gas_info : tasminfo =
@@ -419,6 +428,7 @@ interface
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
+            dollarsign: '$';
           );
 {$endif x86_64}
 

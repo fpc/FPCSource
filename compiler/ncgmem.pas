@@ -114,8 +114,6 @@ implementation
                end
              else
                begin
-                 if current_asmdata.ConstPools[sp_objcclassnamerefs]=nil then
-                   current_asmdata.ConstPools[sp_objcclassnamerefs]:=THashSet.Create(64, True, False);
                  pool:=current_asmdata.ConstPools[sp_objcclassnamerefs];
                  entry:=pool.FindOrAdd(@tobjectdef(left.resultdef).objextname^[1],length(tobjectdef(left.resultdef).objextname^));
                  if (target_info.system in systems_objc_nfabi) then
@@ -435,22 +433,9 @@ implementation
                classes can be changed without breaking programs compiled against
                earlier versions)
              }
-             hreg:=cg.g_indirect_sym_load(current_asmdata.CurrAsmList,vs.mangledname,false);
-             { TODO: clean up. g_indirect_sym_load cannot perform
-                 a plain load for targets that don't need an indirect load
-                 because it's also used in ncgld, but this is not very nice...
-             }
-             if (hreg=NR_NO) then
-               begin
-                 sym:=current_asmdata.RefAsmSymbol(vs.mangledname);
-                 reference_reset_symbol(tmpref,sym,0,sizeof(pint));
-                 location.reference.index:=cg.getaddressregister(current_asmdata.CurrAsmList);
-               end
-             else
-               begin
-                 reference_reset_base(tmpref,hreg,0,sizeof(pint));
-                 location.reference.index:=hreg;
-               end;
+             sym:=current_asmdata.RefAsmSymbol(vs.mangledname);
+             reference_reset_symbol(tmpref,sym,0,sizeof(pint));
+             location.reference.index:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
              location.reference.alignment:=vs.vardef.alignment;

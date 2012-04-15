@@ -110,25 +110,13 @@ interface
        EqualsValue = 0;
        LessThanValue = Low(TValueRelationship);
        GreaterThanValue = High(TValueRelationship);
-{$ifopt R+}
-{$define RangeCheckWasOn}
+{$push}
 {$R-}
-{$endif opt R+}
-{$ifopt Q+}
-{$define OverflowCheckWasOn}
 {$Q-}
-{$endif opt Q+}
        NaN = 0.0/0.0;
        Infinity = 1.0/0.0;
        NegInfinity = -1.0/0.0;
-{$ifdef RangeCheckWasOn}
-{$R+}
-{$undef RangeCheckWasOn}
-{$endif}
-{$ifdef OverflowCheckWasOn}
-{$Q+}
-{$undef OverflowCheckWasOn}
-{$endif}
+{$pop}
 
 { Min/max determination }
 function MinIntValue(const Data: array of Integer): Integer;
@@ -2234,7 +2222,7 @@ end;
 function SameValue(const A, B: Extended): Boolean;inline;
 
 begin
-  Result:=SameValue(A,B,0);
+  Result:=SameValue(A,B,0.0);
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
@@ -2243,7 +2231,7 @@ end;
 function SameValue(const A, B: Double): Boolean;inline;
 
 begin
-  Result:=SameValue(A,B,0);
+  Result:=SameValue(A,B,0.0);
 end;
 
 function SameValue(const A, B: Double; Epsilon: Double): Boolean;

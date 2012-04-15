@@ -286,6 +286,12 @@ unit scandir;
       end;
 
 
+    procedure dir_checklowaddrloads;
+      begin
+        do_localswitchdefault(cs_check_low_addr_load);
+      end;
+
+
     procedure dir_checkpointer;
       begin
         do_localswitchdefault(cs_checkpointer);
@@ -1086,6 +1092,15 @@ unit scandir;
     procedure dir_smartlink;
       begin
         do_moduleswitch(cs_create_smart);
+        if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
+            not(target_info.system in systems_darwin) and
+            { smart linking does not yet work with DWARF debug info on most targets }
+            (cs_create_smart in current_settings.moduleswitches) and
+            not (af_outputbinary in target_asm.flags) then
+        begin
+          Message(option_dwarf_smart_linking);
+          Exclude(current_settings.moduleswitches,cs_create_smart);
+        end;
       end;
 
     procedure dir_stackframes;
@@ -1096,6 +1111,12 @@ unit scandir;
     procedure dir_stop;
       begin
         do_message(scan_f_user_defined);
+      end;
+
+    procedure dir_stringchecks;
+      begin
+        // Delphi adds checks that ansistring and unicodestring are correct in
+        // different places. Skip it for now.
       end;
 
 {$ifdef powerpc}
@@ -1325,6 +1346,21 @@ unit scandir;
         if ident='ZERO_NIL_COMPAT' then
           recordpendingmessagestate(type_w_zero_to_nil, msgstate)
         else
+        if ident='IMPLICIT_STRING_CAST' then
+          recordpendingmessagestate(type_w_implicit_string_cast, msgstate)
+        else
+        if ident='IMPLICIT_STRING_CAST_LOSS' then
+          recordpendingmessagestate(type_w_implicit_string_cast_loss, msgstate)
+        else
+        if ident='EXPLICIT_STRING_CAST' then
+          recordpendingmessagestate(type_w_explicit_string_cast, msgstate)
+        else
+        if ident='EXPLICIT_STRING_CAST_LOSS' then
+          recordpendingmessagestate(type_w_explicit_string_cast_loss, msgstate)
+        else
+        if ident='CVT_NARROWING_STRING_LOST' then
+          recordpendingmessagestate(type_w_unicode_data_loss, msgstate)
+        else
           begin
             i:=0;
             if not ChangeMessageVerbosity(ident,i,msgstate) then
@@ -1396,14 +1432,15 @@ unit scandir;
           Message(scan_w_switch_is_global)
         else
           begin
-             current_scanner.skipspace;
-             s:=current_scanner.readcomment;
-             if (upper(s)='UTF8') or (upper(s)='UTF-8') then
-               current_settings.sourcecodepage:='utf8'
-             else if not(cpavailable(s)) then
-               Message1(option_code_page_not_available,s)
-             else
-               current_settings.sourcecodepage:=s;
+            current_scanner.skipspace;
+            s:=current_scanner.readcomment;
+            if (upper(s)='UTF8') or (upper(s)='UTF-8') then
+              current_settings.sourcecodepage:=CP_UTF8
+            else if not(cpavailable(s)) then
+              Message1(option_code_page_not_available,s)
+            else
+              current_settings.sourcecodepage:=codepagebyname(s);
+            include(current_settings.moduleswitches,cs_explicit_codepage);
           end;
       end;
 
@@ -1448,6 +1485,7 @@ unit scandir;
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
         AddDirective('BITPACKING',directive_all, @dir_bitpacking);
         AddDirective('CALLING',directive_all, @dir_calling);
+        AddDirective('CHECKLOWADDRLOADS',directive_all, @dir_checklowaddrloads);
         AddDirective('CHECKPOINTER',directive_all, @dir_checkpointer);
         AddDirective('CODEALIGN',directive_all, @dir_codealign);
         AddDirective('CODEPAGE',directive_all, @dir_codepage);
@@ -1528,6 +1566,7 @@ unit scandir;
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);
         AddDirective('STOP',directive_all, @dir_stop);
+        AddDirective('STRINGCHECKS', directive_all, @dir_stringchecks);
 {$ifdef powerpc}
         AddDirective('SYSCALL',directive_all, @dir_syscall);
 {$endif powerpc}

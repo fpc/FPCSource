@@ -657,7 +657,7 @@ program h2pas;
                    write(outfile,'args:array of const');
                    (* if variable number of args we must allways pop *)
                    no_pop:=false;
-                   (* Needs 2 declarations, also one without args, because
+                   (* Needs 2 declarations, also one without args, becuase
                       in C you can omit the second parameter. Default parameter
                       doesn't help as that isn't possible with array of const *)
                    NeedEllipsisOverload:=true;
@@ -1076,8 +1076,9 @@ program h2pas;
                            hp3:=hp2^.p2;
                            while assigned(hp3) do
                              begin
-                                if not assigned(hp3^.p1^.p3) or
-                                   (hp3^.p1^.p3^.typ <> t_size_specifier) then
+                                if assigned(hp3^.p1) and
+                                   (not assigned(hp3^.p1^.p3) or
+                                   (hp3^.p1^.p3^.typ <> t_size_specifier)) then
                                   begin
                                      if is_sized then
                                        begin
@@ -1097,7 +1098,8 @@ program h2pas;
                                      popshift;
                                   end;
                                 { size specifier  or default value ? }
-                                if assigned(hp3^.p1^.p3) then
+                                if assigned(hp3^.p1) and
+                                   assigned(hp3^.p1^.p3) then
                                   begin
                                      { we could use mask to implement this }
                                      { because we need to respect the positions }
@@ -2535,7 +2537,7 @@ begin
   73 : begin
          
          if UseCTypesUnit then
-         yyval:=new(presobject,init_id(csint_STR))
+         yyval:=new(presobject,init_id(cshort_STR))
          else
          yyval:=new(presobject,init_intid(SMALL_STR));
          

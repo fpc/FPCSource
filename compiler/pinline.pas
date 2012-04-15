@@ -468,6 +468,7 @@ implementation
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
+           result:=cerrornode.create;
            CGMessage1(parser_e_wrong_parameter_size,'SetLength');
            exit;
          end;

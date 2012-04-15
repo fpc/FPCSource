@@ -1,4 +1,8 @@
 
+{ This test requires overflow and range check to be off }
+{$Q-}
+{$R-}
+
 procedure error(n: longint);
 begin
   writeln('Test failed: ', n);

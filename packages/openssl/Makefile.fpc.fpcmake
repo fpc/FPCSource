@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for OpenSSL bindings
+#
+
+[package]
+name=openssl
+version=2.7.1
+
+[target]
+units=openssl
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[rules]
+.NOTPARALLEL:

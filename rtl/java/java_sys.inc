@@ -2673,3 +2673,81 @@
     function getCharsetName(): JLString; overload; virtual;
   end;
 
+  JUWeakHashMap = class external 'java.util' name 'WeakHashMap' (JUAbstractMap, JUMap)
+  public
+    type
+      InnerEntry = class;
+      Arr1InnerEntry = array of InnerEntry;
+      Arr2InnerEntry = array of Arr1InnerEntry;
+      Arr3InnerEntry = array of Arr2InnerEntry;
+      InnerEntryIterator = class;
+      Arr1InnerEntryIterator = array of InnerEntryIterator;
+      Arr2InnerEntryIterator = array of Arr1InnerEntryIterator;
+      Arr3InnerEntryIterator = array of Arr2InnerEntryIterator;
+      InnerKeyIterator = class;
+      Arr1InnerKeyIterator = array of InnerKeyIterator;
+      Arr2InnerKeyIterator = array of Arr1InnerKeyIterator;
+      Arr3InnerKeyIterator = array of Arr2InnerKeyIterator;
+      InnerValueIterator = class;
+      Arr1InnerValueIterator = array of InnerValueIterator;
+      Arr2InnerValueIterator = array of Arr1InnerValueIterator;
+      Arr3InnerValueIterator = array of Arr2InnerValueIterator;
+      InnerEntrySet = class;
+      Arr1InnerEntrySet = array of InnerEntrySet;
+      Arr2InnerEntrySet = array of Arr1InnerEntrySet;
+      Arr3InnerEntrySet = array of Arr2InnerEntrySet;
+      InnerKeySet = class;
+      Arr1InnerKeySet = array of InnerKeySet;
+      Arr2InnerKeySet = array of Arr1InnerKeySet;
+      Arr3InnerKeySet = array of Arr2InnerKeySet;
+      InnerHashIterator = class;
+      Arr1InnerHashIterator = array of InnerHashIterator;
+      Arr2InnerHashIterator = array of Arr1InnerHashIterator;
+      Arr3InnerHashIterator = array of Arr2InnerHashIterator;
+      InnerValues = class;
+      Arr1InnerValues = array of InnerValues;
+      Arr2InnerValues = array of Arr1InnerValues;
+      Arr3InnerValues = array of Arr2InnerValues;
+      InnerEntry = class external 'java.util' name 'Entry' 
+      end;
+
+      InnerEntryIterator = class external 'java.util' name 'EntryIterator' 
+      end;
+
+      InnerKeyIterator = class external 'java.util' name 'KeyIterator' 
+      end;
+
+      InnerValueIterator = class external 'java.util' name 'ValueIterator' 
+      end;
+
+      InnerEntrySet = class external 'java.util' name 'EntrySet' 
+      end;
+
+      InnerKeySet = class external 'java.util' name 'KeySet' 
+      end;
+
+      InnerHashIterator = class abstract external 'java.util' name 'HashIterator' 
+      end;
+
+      InnerValues = class external 'java.util' name 'Values' 
+      end;
+
+  public
+    constructor create(para1: jint; para2: jfloat); overload;
+    constructor create(para1: jint); overload;
+    constructor create(); overload;
+    constructor create(para1: JUMap); overload;
+    function size(): jint; overload; virtual;
+    function isEmpty(): jboolean; overload; virtual;
+    function get(para1: JLObject): JLObject; overload; virtual;
+    function containsKey(para1: JLObject): jboolean; overload; virtual;
+    function put(para1: JLObject; para2: JLObject): JLObject; overload; virtual;
+    procedure putAll(para1: JUMap); overload; virtual;
+    function remove(para1: JLObject): JLObject; overload; virtual;
+    procedure clear(); overload; virtual;
+    function containsValue(para1: JLObject): jboolean; overload; virtual;
+    function keySet(): JUSet; overload; virtual;
+    function values(): JUCollection; overload; virtual;
+    function entrySet(): JUSet; overload; virtual;
+  end;
+

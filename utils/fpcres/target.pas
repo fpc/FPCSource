@@ -37,7 +37,7 @@ type
         (subgen: TSubMachineTypeGeneric);
   end;
 
-  TObjFormat = (ofNone, ofRes, ofElf, ofCoff, ofMachO, ofExt);
+  TObjFormat = (ofNone, ofRes, ofElf, ofCoff, ofXCoff, ofMachO, ofExt);
   TObjFormats = set of TObjFormat;
   
 
@@ -67,19 +67,19 @@ function ObjFormatToStr(const aFormat : TObjFormat) : string;
 var
   Machines : array[TMachineType] of TMachineInfo =
   (
-    (name : '';             formats : [ofRes]),                  //mtnone
-    (name : 'i386';         formats : [ofElf, ofCoff, ofMachO]), //mti386
-    (name : 'x86_64';       formats : [ofElf, ofCoff, ofMachO]), //mtx86_64
-    (name : 'powerpc';      formats : [ofElf, ofMachO]),         //mtppc
-    (name : 'powerpc64';    formats : [ofElf, ofMachO]),         //mtppc64
-    (name : 'arm';          formats : [ofElf, ofCoff, ofMachO]), //mtarm
-    (name : 'armeb';        formats : [ofElf]),                  //mtarmeb
-    (name : 'm68k';         formats : [ofElf]),                  //mtm68k
-    (name : 'sparc';        formats : [ofElf]),                  //mtsparc
-    (name : 'alpha';        formats : [ofElf]),                  //mtalpha
-    (name : 'ia64';         formats : [ofElf]),                  //mtia64
-    (name : 'bigendian';    formats : [ofExt]),                  //mtBigEndian
-    (name : 'littleendian'; formats : [ofExt])                   //mtLittleEndian
+    (name : '';             formats : [ofRes]),                   //mtnone
+    (name : 'i386';         formats : [ofElf, ofCoff, ofMachO]),  //mti386
+    (name : 'x86_64';       formats : [ofElf, ofCoff, ofMachO]),  //mtx86_64
+    (name : 'powerpc';      formats : [ofElf, ofXCoff, ofMachO]), //mtppc
+    (name : 'powerpc64';    formats : [ofElf, ofMachO]),          //mtppc64
+    (name : 'arm';          formats : [ofElf, ofCoff, ofMachO]),  //mtarm
+    (name : 'armeb';        formats : [ofElf]),                   //mtarmeb
+    (name : 'm68k';         formats : [ofElf]),                   //mtm68k
+    (name : 'sparc';        formats : [ofElf]),                   //mtsparc
+    (name : 'alpha';        formats : [ofElf]),                   //mtalpha
+    (name : 'ia64';         formats : [ofElf]),                   //mtia64
+    (name : 'bigendian';    formats : [ofExt]),                   //mtBigEndian
+    (name : 'littleendian'; formats : [ofExt])                    //mtLittleEndian
   );
 
   SubMachinesArm: array[TSubMachineTypeArm] of string[8] =
@@ -95,7 +95,9 @@ var
                                                      mtppc64,mtarm,mtarmeb,
                                                      mtm68k,mtsparc,mtalpha,
                                                      mtia64]),
-    (name : 'coff';     ext : '.o';      machines : [mti386,mtx86_64,mtarm]),
+    (name : 'coff';     ext : '.o';      machines : [mti386,mtx86_64,mtarm,
+                                                     mtppc,mtppc64]),
+    (name : 'xcoff';    ext : '.o';      machines : [mtppc{,mtppc64}]),
     (name : 'mach-o';   ext : '.or';     machines : [mti386,mtx86_64,mtppc,
                                                      mtppc64,mtarm]),
     (name : 'external'; ext : '.fpcres'; machines : [mtBigEndian,mtLittleEndian])
@@ -160,8 +162,10 @@ var
   {$IFDEF WINDOWS}
     objformat : ofCoff;
   {$ELSE}
-    {$IFDEF DARWIN}
+    {$IF defined(DARWIN)}
       objformat : ofMachO;
+    {$ELSEIF defined(AIX)}
+      objformat : ofXCoff;
     {$ELSE}
       objformat : ofElf;
     {$ENDIF}
@@ -178,6 +182,7 @@ begin
     ofRes  : Result:=mtnone;
     ofElf  : Result:=mti386;
     ofCoff : Result:=mti386;
+    ofXCoff: Result:=mtppc;
     ofMachO: Result:=mti386;
     {$IFDEF ENDIAN_BIG}
     ofExt  : Result:=mtBigEndian;

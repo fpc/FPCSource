@@ -20,6 +20,7 @@ begin
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
+    P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
 
     P.Author := ' Dean Zobec, Michael van Canneyt';
     P.License := 'LGPL with modification, ';
@@ -98,6 +99,16 @@ begin
           AddUnit('fpcunit');
           AddUnit('fpcunitreport');
           AddUnit('testutils');
+        end;
+    T:=P.Targets.AddUnit('consoletestrunner.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpcunit');
+          AddUnit('fpcunitreport');
+          AddUnit('testutils');
+          AddUnit('xmltestreport');
+          AddUnit('latextestreport');
+          AddUnit('plaintestreport');
         end;
 
 {$ifndef ALLPACKAGES}

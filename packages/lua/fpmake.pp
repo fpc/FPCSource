@@ -19,6 +19,7 @@ begin
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');
+    P.OSes := [linux,win32];
 
     T:=P.Targets.AddUnit('lauxlib.pas');
       with T.Dependencies do

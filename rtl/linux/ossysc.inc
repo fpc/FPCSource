@@ -466,7 +466,7 @@ end;
 
 
 type
-  tmmapargs = packed record
+  tmmapargs = record
     address : TSysParam;
     size    : TSysParam;
     prot    : TSysParam;
@@ -579,7 +579,7 @@ begin
 end;
 
 
-function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt;
+function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; [public, alias : 'FPC_SYSC_GETRLIMIT'];
 begin
 {$ifndef NO_SYSCALL_GETRLIMIT}
   FpGetRLimit := do_syscall(syscall_nr_getrlimit,

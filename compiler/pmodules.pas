@@ -40,7 +40,7 @@ implementation
        wpoinfo,
        aasmtai,aasmdata,aasmcpu,aasmbase,
        cgbase,cgobj,ngenutil,
-       nbas,ncgutil,
+       nbas,nutils,ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        pexports,
@@ -185,7 +185,7 @@ implementation
         { insert unitsym }
         unitsym:=tunitsym.create(s,hp);
         inc(unitsym.refs);
-        current_module.localsymtable.insert(unitsym);
+        tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         { add to used units }
         current_module.addusedunit(hp,false,unitsym);
       end;
@@ -308,10 +308,14 @@ implementation
              AddUnit('heaptrc');
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin
-             if (paratargetdbg = dbg_stabs) then
-               AddUnit('lineinfo')
-             else
-               AddUnit('lnfodwrf');
+             case paratargetdbg of
+               dbg_stabs:
+                 AddUnit('lineinfo');
+               dbg_stabx:
+                 AddUnit('lnfogdb');
+               else
+                 AddUnit('lnfodwrf');
+             end;
            end;
            { Valgrind requires c memory manager }
            if (cs_gdb_valgrind in current_settings.globalswitches) then
@@ -370,8 +374,9 @@ implementation
 
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM) or defined(AVR)}
-        if (target_info.system in systems_embedded) and (current_settings.controllertype<>ct_none) then
-          AddUnit(controllerunitstr[current_settings.controllertype]);
+        if (target_info.system in systems_embedded) and (current_settings.controllertype<>ct_none) and
+          (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') then
+          AddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
 {$endif ARM}
       end;
 
@@ -392,17 +397,26 @@ implementation
 
     procedure loadunits;
       var
-         s,sorg  : TIDString;
+         s,sorg  : ansistring;
          fn      : string;
          pu      : tused_unit;
          hp2     : tmodule;
          unitsym : tunitsym;
+         filepos : tfileposinfo;
       begin
          consume(_USES);
          repeat
            s:=pattern;
            sorg:=orgpattern;
+           filepos:=current_tokenpos;
            consume(_ID);
+           while token=_POINT do
+             begin
+               consume(_POINT);
+               s:=s+'.'+pattern;
+               sorg:=sorg+'.'+orgpattern;
+               consume(_ID);
+             end;
            { support "<unit> in '<file>'" construct, but not for tp7 }
            fn:='';
            if not(m_tp7 in current_settings.modeswitches) and
@@ -440,8 +454,9 @@ implementation
               { Create unitsym, we need to use the name as specified, we
                 can not use the modulename because that can be different
                 when -Un is used }
+              current_tokenpos:=filepos;
               unitsym:=tunitsym.create(sorg,nil);
-              current_module.localsymtable.insert(unitsym);
+              tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
               { the current module uses the unit hp2 }
               current_module.addusedunit(hp2,true,unitsym);
             end
@@ -606,8 +621,6 @@ implementation
 
     function gen_implicit_initfinal(flag:word;st:TSymtable):tcgprocinfo;
       begin
-        { update module flags }
-        current_module.flags:=current_module.flags or flag;
         { create procdef }
         case flag of
           uf_init :
@@ -636,9 +649,11 @@ implementation
 
     function try_consume_hintdirective(var moduleopt:tmoduleoptions; var deprecatedmsg:pshortstring):boolean;
       var
+        deprecated_seen,
         last_is_deprecated:boolean;
       begin
         try_consume_hintdirective:=false;
+        deprecated_seen:=false;
         repeat
           last_is_deprecated:=false;
           case idtoken of
@@ -649,9 +664,13 @@ implementation
               end;
             _DEPRECATED :
               begin
+                { allow deprecated only once }
+                if deprecated_seen then
+                  break;
                 include(moduleopt,mo_hint_deprecated);
                 try_consume_hintdirective:=true;
                 last_is_deprecated:=true;
+                deprecated_seen:=true;
               end;
             _EXPERIMENTAL :
               begin
@@ -735,6 +754,7 @@ implementation
          force_init_final : boolean;
          init_procinfo,
          finalize_procinfo : tcgprocinfo;
+         unitname : ansistring;
          unitname8 : string[8];
          ag: boolean;
 {$ifdef debug_devirt}
@@ -751,48 +771,52 @@ implementation
          if compile_level=1 then
           Status.IsExe:=false;
 
-         if token=_ID then
-          begin
-             { create filenames and unit name }
-             main_file := current_scanner.inputfile;
-             while assigned(main_file.next) do
-               main_file := main_file.next;
+         unitname:=orgpattern;
+         consume(_ID);
+         while token=_POINT do
+           begin
+             consume(_POINT);
+             unitname:=unitname+'.'+orgpattern;
+             consume(_ID);
+           end;
 
-             new(s1);
-             s1^:=current_module.modulename^;
-             current_module.SetFileName(main_file.path^+main_file.name^,true);
-             current_module.SetModuleName(orgpattern);
+         { create filenames and unit name }
+         main_file := current_scanner.inputfile;
+         while assigned(main_file.next) do
+           main_file := main_file.next;
 
-             { check for system unit }
-             new(s2);
-             s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name^),''));
-             unitname8:=copy(current_module.modulename^,1,8);
-             if (cs_check_unit_name in current_settings.globalswitches) and
-                (
-                 not(
-                     (current_module.modulename^=s2^) or
-                     (
-                      (length(current_module.modulename^)>8) and
-                      (unitname8=s2^)
-                     )
-                    )
-                 or
+         new(s1);
+         s1^:=current_module.modulename^;
+         current_module.SetFileName(main_file.path^+main_file.name^,true);
+         current_module.SetModuleName(unitname);
+
+         { check for system unit }
+         new(s2);
+         s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name^),''));
+         unitname8:=copy(current_module.modulename^,1,8);
+         if (cs_check_unit_name in current_settings.globalswitches) and
+            (
+             not(
+                 (current_module.modulename^=s2^) or
                  (
-                  (length(s1^)>8) and
-                  (s1^<>current_module.modulename^)
+                  (length(current_module.modulename^)>8) and
+                  (unitname8=s2^)
                  )
-                ) then
-              Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
-             if (current_module.modulename^='SYSTEM') then
-              include(current_settings.moduleswitches,cs_compilesystem);
-             dispose(s2);
-             dispose(s1);
-          end;
+                )
+             or
+             (
+              (length(s1^)>8) and
+              (s1^<>current_module.modulename^)
+             )
+            ) then
+          Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
+         if (current_module.modulename^='SYSTEM') then
+          include(current_settings.moduleswitches,cs_compilesystem);
+         dispose(s2);
+         dispose(s1);
 
          if (target_info.system in systems_unit_program_exports) then
            exportlib.preparelib(current_module.realmodulename^);
-
-         consume(_ID);
 
          { parse hint directives }
          try_consume_hintdirective(current_module.moduleoptions, current_module.deprecatedmsg);
@@ -826,7 +850,7 @@ implementation
 
          { insert unitsym of this unit to prevent other units having
            the same name }
-         current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
+         tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
          { load default units, like the system unit }
          loaddefaultunits;
@@ -953,8 +977,12 @@ implementation
 
          { should we force unit initialization? }
          { this is a hack, but how can it be done better ? }
+         { Now the sole purpose of this is to change 'init' to 'init_implicit',
+           is it needed at all? (Sergei) }
+         { it's needed in case cnodeutils.force_init = true }
          if (force_init_final or cnodeutils.force_init) and
-            ((current_module.flags and uf_init)=0) then
+            assigned(init_procinfo) and
+            has_no_code(init_procinfo.code) then
            begin
              { first release the not used init procinfo }
              if assigned(init_procinfo) then
@@ -964,9 +992,6 @@ implementation
          { finalize? }
          if not current_module.interface_only and (token=_FINALIZATION) then
            begin
-              { the uf_finalize flag is only set after we checked that it
-                wasn't empty }
-
               { Compile the finalize }
               finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
@@ -981,15 +1006,26 @@ implementation
            a register that is also used in the finalize body (PFV) }
          if assigned(init_procinfo) then
            begin
-             init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
-             init_procinfo.generate_code;
+             if (force_init_final or cnodeutils.force_init) or
+                not(has_no_code(init_procinfo.code)) then
+               begin
+                 init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
+                 init_procinfo.generate_code;
+                 current_module.flags:=current_module.flags or uf_init;
+               end;
              init_procinfo.resetprocdef;
              release_main_proc(init_procinfo);
            end;
          if assigned(finalize_procinfo) then
            begin
-             finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
-             finalize_procinfo.generate_code;
+             if force_init_final or
+                cnodeutils.force_init or
+                not(has_no_code(finalize_procinfo.code)) then
+               begin
+                 finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
+                 finalize_procinfo.generate_code;
+                 current_module.flags:=current_module.flags or uf_finalize;
+               end;
              finalize_procinfo.resetprocdef;
              release_main_proc(finalize_procinfo);
            end;
@@ -1039,8 +1075,8 @@ implementation
          gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
 
          { generate rtti/init tables }
-         write_persistent_type_info(current_module.globalsymtable);
-         write_persistent_type_info(current_module.localsymtable);
+         write_persistent_type_info(current_module.globalsymtable,true);
+         write_persistent_type_info(current_module.localsymtable,false);
 
          { Tables }
          cnodeutils.InsertThreadvars;
@@ -1050,6 +1086,9 @@ implementation
 
          { Widestring typed constants }
          cnodeutils.InsertWideInits;
+
+         { Resourcestring references }
+         cnodeutils.InsertResStrInits;
 
          { generate debuginfo }
          if (cs_debuginfo in current_settings.moduleswitches) then
@@ -1411,12 +1450,12 @@ implementation
       { rename }
         if PPUFn=PPLFn then
          begin
-           {$I-}
+           {$push}{$I-}
             assign(f,PPUFn);
             erase(f);
             assign(f,'ppumove.$$$');
             rename(f,PPUFn);
-           {$I+}
+           {$pop}
            if ioresult<>0 then;
          end;
         Result:=True;
@@ -1445,6 +1484,7 @@ implementation
         main_procinfo : tcgprocinfo;}
         force_init_final : boolean;
         uu : tused_unit;
+        module_name: ansistring;
       begin
          Status.IsPackage:=true;
          Status.IsExe:=true;
@@ -1482,15 +1522,25 @@ implementation
 
          current_module.SetFileName(main_file.path^+main_file.name^,true);
 
+         { consume _PACKAGE word }
          consume(_ID);
-         current_module.setmodulename(orgpattern);
+
+         module_name:=orgpattern;
+         consume(_ID);
+         while token=_POINT do
+           begin
+             consume(_POINT);
+             module_name:=module_name+'.'+orgpattern;
+             consume(_ID);
+           end;
+
+         current_module.setmodulename(module_name);
          current_module.ispackage:=true;
-         exportlib.preparelib(orgpattern);
+         exportlib.preparelib(module_name);
 
          if tf_library_needs_pic in target_info.flags then
            include(current_settings.moduleswitches,cs_create_pic);
 
-         consume(_ID);
          consume(_SEMICOLON);
 
          { global switches are read, so further changes aren't allowed }
@@ -1515,12 +1565,24 @@ implementation
          {Load the units used by the program we compile.}
          if (token=_ID) and (idtoken=_CONTAINS) then
            begin
+             { consume _CONTAINS word }
              consume(_ID);
              while true do
                begin
                  if token=_ID then
-                   AddUnit(pattern);
-                 consume(_ID);
+                   begin
+                     module_name:=pattern;
+                     consume(_ID);
+                     while token=_POINT do
+                       begin
+                         consume(_POINT);
+                         module_name:=module_name+'.'+orgpattern;
+                         consume(_ID);
+                       end;
+                     AddUnit(module_name);
+                   end
+                 else
+                   consume(_ID);
                  if token=_COMMA then
                    consume(_COMMA)
                  else break;
@@ -1533,7 +1595,7 @@ implementation
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource^);
 
@@ -1726,6 +1788,7 @@ implementation
          main_procinfo : tcgprocinfo;
          force_init_final : boolean;
          resources_used : boolean;
+         program_name : ansistring;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
@@ -1773,14 +1836,21 @@ implementation
          if islibrary then
            begin
               consume(_LIBRARY);
-              current_module.setmodulename(orgpattern);
+              program_name:=orgpattern;
+              consume(_ID);
+              while token=_POINT do
+                begin
+                  consume(_POINT);
+                  program_name:=program_name+'.'+orgpattern;
+                  consume(_ID);
+                end;
+              current_module.setmodulename(program_name);
               current_module.islibrary:=true;
-              exportlib.preparelib(orgpattern);
+              exportlib.preparelib(program_name);
 
               if tf_library_needs_pic in target_info.flags then
                 include(current_settings.moduleswitches,cs_create_pic);
 
-              consume(_ID);
               consume(_SEMICOLON);
            end
          else
@@ -1788,10 +1858,17 @@ implementation
            if token=_PROGRAM then
             begin
               consume(_PROGRAM);
-              current_module.setmodulename(orgpattern);
-              if (target_info.system in systems_unit_program_exports) then
-                exportlib.preparelib(orgpattern);
+              program_name:=orgpattern;
               consume(_ID);
+              while token=_POINT do
+                begin
+                  consume(_POINT);
+                  program_name:=program_name+'.'+orgpattern;
+                  consume(_ID);
+                end;
+              current_module.setmodulename(program_name);
+              if (target_info.system in systems_unit_program_exports) then
+                exportlib.preparelib(program_name);
               if token=_LKLAMMER then
                 begin
                    consume(_LKLAMMER);
@@ -1834,7 +1911,7 @@ implementation
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource^);
 
@@ -1857,12 +1934,12 @@ implementation
           begin
             main_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,mainaliasname),potype_proginit,current_module.localsymtable);
             { Win32 startup code needs a single name }
-            if not(target_info.system in systems_darwin) then
+            if not(target_info.system in (systems_darwin+systems_aix)) then
               main_procinfo.procdef.aliasnames.insert('PASCALMAIN')
             else
               main_procinfo.procdef.aliasnames.insert(target_info.Cprefix+'PASCALMAIN')
           end
-         else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macos]+systems_darwin)) then
+         else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macos]+systems_darwin+systems_aix)) then
            begin
              main_procinfo:=create_main_proc('PASCALMAIN',potype_proginit,current_module.localsymtable);
            end
@@ -1897,9 +1974,6 @@ implementation
          { finalize? }
          if token=_FINALIZATION then
            begin
-              { the uf_finalize flag is only set after we checked that it
-                wasn't empty }
-
               { Parse the finalize }
               finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
@@ -1925,6 +1999,8 @@ implementation
          release_main_proc(main_procinfo);
          if assigned(init_procinfo) then
            begin
+             { initialization can be implicit only }
+             current_module.flags:=current_module.flags or uf_init;
              init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
              init_procinfo.generate_code;
              init_procinfo.resetprocdef;
@@ -1932,8 +2008,14 @@ implementation
            end;
          if assigned(finalize_procinfo) then
            begin
-             finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
-             finalize_procinfo.generate_code;
+             if force_init_final or
+                cnodeutils.force_init or
+                not(has_no_code(finalize_procinfo.code)) then
+               begin
+                 finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
+                 finalize_procinfo.generate_code;
+                 current_module.flags:=current_module.flags or uf_finalize;
+               end;
              finalize_procinfo.resetprocdef;
              release_main_proc(finalize_procinfo);
            end;
@@ -2003,7 +2085,7 @@ implementation
          cnodeutils.InsertThreadvars;
 
          { generate rtti/init tables }
-         write_persistent_type_info(current_module.localsymtable);
+         write_persistent_type_info(current_module.localsymtable,false);
 
          { if an Objective-C module, generate rtti and module info }
          MaybeGenerateObjectiveCImageInfo(nil,current_module.localsymtable);
@@ -2032,11 +2114,15 @@ implementation
          { Windows widestring needing initialization }
          cnodeutils.InsertWideInits;
 
+         { Resourcestring references (const foo:string=someresourcestring) }
+         cnodeutils.InsertResStrInits;
+
          { insert Tables and StackLength }
          cnodeutils.InsertInitFinalTable;
          cnodeutils.InsertThreadvarTablesTable;
          cnodeutils.InsertResourceTablesTable;
          cnodeutils.InsertWideInitsTablesTable;
+         cnodeutils.InsertResStrTablesTable;
          cnodeutils.InsertMemorySizes;
 
 {$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}

@@ -10,8 +10,9 @@ An simple test-runner (dbtestframework.pas) which generates XML-output is
 included in this directory.
 
 To test a TDataset descendent, a 'connector' is needed to test the database.
-To add a new connector, add it to the uses-section in 'toolsunit.pas'. Several
-connectors are available in the '*toolsunit.pas' files.
+To add a new connector, create a new *toolsunit.pas file, then add it to 
+the uses section in 'dbtestframework.pas'. Several connectors are available 
+in the '*toolsunit.pas' files.
 
 Which connector is currently used is dependent on the 'database.ini'
 configuration file. Also some settings which are connector-dependent can be set

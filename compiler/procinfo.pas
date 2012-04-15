@@ -65,6 +65,9 @@ unit procinfo;
           { procinfo of the main procedure that is inlining
             the current function, only used in tcgcallnode.inlined_pass2 }
           inlining_procinfo : tprocinfo;
+          { nested implicit finalzation procedure, used for platform-specific
+            exception handling }
+          finalize_procinfo : tprocinfo;
           { file location of begin of procedure }
           entrypos  : tfileposinfo;
           { file location of end of procedure }
@@ -94,6 +97,12 @@ unit procinfo;
 
           { Holds the reference used to store all saved registers. }
           save_regs_ref : treference;
+
+          { Last assembler instruction of procedure prologue }
+          endprologue_ai : tlinkedlistitem;
+
+          { Amount of stack adjustment after all alignments }
+          final_localsize : longint;
 
           { Labels for TRUE/FALSE condition, BREAK and CONTINUE }
           CurrBreakLabel,
@@ -136,6 +145,9 @@ unit procinfo;
           { Allocate got register }
           procedure allocate_got_register(list: TAsmList);virtual;
 
+          { get frame pointer }
+          procedure init_framepointer; virtual;
+
           { Destroy the entire procinfo tree, starting from the outermost parent }
           procedure destroy_tree;
 
@@ -147,6 +159,9 @@ unit procinfo;
 
           function get_first_nestedproc: tprocinfo;
           function has_nestedprocs: boolean;
+
+          { Add to parent's list of nested procedures even if parent is a 'main' procedure }
+          procedure force_nested;
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -175,6 +190,7 @@ implementation
         procdef:=nil;
         para_stack_size:=0;
         flags:=[];
+        init_framepointer;
         framepointer:=NR_FRAME_POINTER_REG;
         maxpushedparasize:=0;
         { asmlists }
@@ -188,11 +204,15 @@ implementation
         CurrContinueLabel:=nil;
         CurrTrueLabel:=nil;
         CurrFalseLabel:=nil;
-        maxpushedparasize:=0;
         if Assigned(parent) and (parent.procdef.parast.symtablelevel>=normal_function_level) then
           parent.addnestedproc(Self);
       end;
 
+    procedure tprocinfo.force_nested;
+      begin
+        if Assigned(parent) and (parent.procdef.parast.symtablelevel<normal_function_level) then
+          parent.addnestedproc(Self);
+      end;
 
     destructor tprocinfo.destroy;
       begin
@@ -275,6 +295,13 @@ implementation
     procedure tprocinfo.allocate_got_register(list: TAsmList);
       begin
         { most os/cpu combo's don't use this yet, so not yet abstract }
+      end;
+
+
+    procedure tprocinfo.init_framepointer;
+      begin
+        { most targets use a constant, but some have a typed constant that must
+          be initialized }
       end;
 
 

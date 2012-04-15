@@ -751,9 +751,9 @@ var
 begin
    buffer := @buf;
    Assign(Inf, thefile);
-   {$I-}
+   {$push}{$I-}
    Reset(Inf);
-   {$I+}
+   {$pop}
    if IOResult = 0 then begin
       while not eof(Inf) do begin
       { I don't want end of lines here (for use with amiga listviews)
@@ -781,9 +781,9 @@ VAR
     tempnode : pFPCNode;
 begin
     Assign(Out, TheFile);
-    {$I-}
+    {$push}{$I-}
     Rewrite(Out);
-    {$I+}
+    {$pop}
     if IOResult = 0 then begin
        i := NodesInList(thelist);
        IF i > 0 THEN BEGIN

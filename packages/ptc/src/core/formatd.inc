@@ -31,27 +31,36 @@
 }
 
 type
-  TPTCFormat = class
-  private
-    FFormat: THermesFormat;
+  IPTCFormat = interface
+    function GetHermesFormat: PHermesFormat;
+
+    function Equals(AFormat: IPTCFormat): Boolean;
+
+    function GetR: Uint32;
+    function GetG: Uint32;
+    function GetB: Uint32;
+    function GetA: Uint32;
+    function GetBits: Integer;
+    function GetIndexed: Boolean;
     function GetDirect: Boolean;
     function GetBytes: Integer;
-  public
-    constructor Create;
-    constructor Create(ABits: Integer);
-    constructor Create(ABits: Integer;
-                       ARedMask, AGreenMask, ABlueMask: Uint32;
-                       AAlphaMask: Uint32 = 0);
-    constructor Create(const format: TPTCFormat);
-    destructor Destroy; override;
-    procedure Assign(const format: TPTCFormat);
-    function Equals(const format: TPTCFormat): Boolean;
-    property R: Uint32 read FFormat.r;
-    property G: Uint32 read FFormat.g;
-    property B: Uint32 read FFormat.b;
-    property A: Uint32 read FFormat.a;
-    property Bits: Integer read FFormat.bits;
-    property Indexed: Boolean read FFormat.indexed;
+
+    property R: Uint32 read GetR;
+    property G: Uint32 read GetG;
+    property B: Uint32 read GetB;
+    property A: Uint32 read GetA;
+    property Bits: Integer read GetBits;
+    property Indexed: Boolean read GetIndexed;
     property Direct: Boolean read GetDirect;
     property Bytes: Integer read GetBytes;
+  end;
+
+  TPTCFormatFactory = class
+  public
+    class function CreateNew: IPTCFormat;
+    class function CreateNew(ABits: Integer): IPTCFormat;
+    class function CreateNew(ABits: Integer;
+                             ARedMask, AGreenMask, ABlueMask: Uint32;
+                             AAlphaMask: Uint32 = 0): IPTCFormat;
+    class function CreateNew(AFormat: IPTCFormat): IPTCFormat;
   end;

@@ -15,12 +15,10 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='pxlib';
 {$endif ALLPACKAGES}
-    P.OSes:=[Linux,beos,win32,darwin,freebsd,openbsd,netbsd];
+    P.OSes:=[Linux,beos,haiku,win32,freebsd,openbsd,netbsd];
     P.Version:='2.7.1';
     T:=P.Targets.AddUnit('src/pxlib.pp');
-      T.OSes:=[Linux,beos,win32,darwin,freebsd,openbsd,netbsd];
     T:=P.Targets.AddExampleunit('examples/ppxview.pp');
-      T.OSes:=[Linux,beos,win32,darwin,freebsd,openbsd,netbsd];
 {$ifndef ALLPACKAGES}
     Run;
     end;

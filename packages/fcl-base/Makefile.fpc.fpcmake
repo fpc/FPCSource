@@ -19,6 +19,7 @@ units=contnrs inifiles rtfpars idea base64 gettext \
 units_beos=syncobjs
 units_haiku=syncobjs
 units_freebsd=syncobjs fptimer
+units_netbsd=syncobjs fptimer
 units_darwin=syncobjs fptimer
 units_iphonesim=syncobjs fptimer
 units_solaris=syncobjs fptimer

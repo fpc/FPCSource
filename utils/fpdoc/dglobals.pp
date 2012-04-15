@@ -23,7 +23,7 @@ unit dGlobals;
 
 interface
 
-uses Classes, DOM, PasTree, PParser, StrUtils;
+uses Classes, DOM, PasTree, PParser, StrUtils,uriparser;
 
 Var
   LEOL : Integer;
@@ -82,6 +82,7 @@ resourcestring
   SDocVisibility             = 'Visibility';
   SDocOpaque                 = 'Opaque type';
   SDocDateGenerated          = 'Documentation generated on: %s';
+  SDocNotes                  = 'Notes';
   
   // Topics
   SDocRelatedTopics = 'Related topics';
@@ -145,10 +146,20 @@ resourcestring
   SUsageOption130  = '--output=name     use name as the output name.';
   SUsageOption140  = '                  Each backend interpretes this as needed.';
   SUsageOption150  = '--package=name    Set the package name for which to create output';
+  SUsageOption155  = '--project=file    Use file as project file';  
   SUsageOption160  = '--show-private    Show private methods.';
   SUsageOption170  = '--warn-no-node    Warn if no documentation node was found.';
   SUsageOption180  = '--mo-dir=dir      Set directory where language files reside to dir';
   SUsageOption190  = '--parse-impl      (Experimental) try to parse implementation too';
+  SUsageOption200 =  '--dont-trim	Don''t trim XML contents';
+  SUsageOption210 =  '--write-project=file Do not write documentation, create project file instead';
+  SUsageOption220 =  '--verbose         Write more information on the screen';
+  SUsageOption230 =  '--dry-run         Only parse sources and XML, do not create output';
+  SUsageOption240 =  '--descr-dir=Dir   Add All XML files in Dir to list of description files';
+  SUsageOption250 =  '--input-dir=Dir   Add All *.pp and *.pas files in Dir to list of input files';
+  SUsageOption260 =  '--write-project=file Write all command-line options to a project file';
+  
+
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
   SUsageFormatSpecific = 'Output format "%s" supports the following options:';
@@ -162,6 +173,7 @@ resourcestring
   SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
   SErrCouldNotCreateFile      = 'Could not create file "%s": %s';
   SSeeURL                     = '(See %s)';      // For linear text writers.
+  SParsingUsedUnit            = 'Parsing used unit "%s" with commandLine "%s"';
 
 Const
   SVisibility: array[TPasMemberVisibility] of string =
@@ -172,7 +184,7 @@ type
 
   // Assumes a list of TObject instances and frees them on destruction
 
-  TObjectList = class(TList)
+  TObjectList = class(TFPList)
   public
     destructor Destroy; override;
   end;
@@ -228,6 +240,7 @@ type
     FErrorsDoc: TDOMElement;
     FSeeAlso: TDOMElement;
     FFirstExample: TDOMElement;
+    FNotes : TDomElement;
     FLink: String;
     FTopicNode : Boolean;
     FRefCount : Integer;
@@ -252,6 +265,7 @@ type
     Property Version : TDomElement Read FVersion;
     property SeeAlso: TDOMElement read FSeeAlso;
     property FirstExample: TDOMElement read FFirstExample;
+    property Notes : TDOMElement read FNotes;
     property Link: String read FLink;
     Property TopicNode : Boolean Read FTopicNode;
     Property RefCount : Integer Read FRefCount;
@@ -260,19 +274,27 @@ type
 
 
   // The main FPDoc engine
+  TFPDocLogLevel = (dleWarnNoNode);
+  TFPDocLogLevels = set of TFPDocLogLevel;
+  TOnParseUnitEvent = Procedure (Sender : TObject; Const AUnitName : String; Out AInputFile,OSTarget,CPUTarget : String) of  Object;
 
   { TFPDocEngine }
-
   TFPDocEngine = class(TPasTreeContainer)
   private
+    FDocLogLevels: TFPDocLogLevels;
+    FOnParseUnit: TOnParseUnitEvent;
   protected
     DescrDocs: TObjectList;             // List of XML documents
     DescrDocNames: TStringList;         // Names of the XML documents
     FRootLinkNode: TLinkNode;
     FRootDocNode: TDocNode;
-    FPackages: TList;                   // List of TFPPackage objects
+    FPackages: TFPList;                   // List of TFPPackage objects
     CurModule: TPasModule;
     CurPackageDocNode: TDocNode;
+    function ParseUsedUnit(AName, AInputLine,AOSTarget,ACPUTarget: String): TPasModule; virtual;
+    Function LogEvent(E : TFPDocLogLevel) : Boolean;
+    Procedure DoLog(Const Msg : String);overload;
+    Procedure DoLog(Const Fmt : String; Args : Array of const);overload;
   public
     Output: String;
     HasContentFile: Boolean;
@@ -300,7 +322,7 @@ type
     function FindLinkedNode(ANode: TDocNode): TDocNode;
 
     // Documentation file support
-    procedure AddDocFile(const AFilename: String);
+    procedure AddDocFile(const AFilename: String;DontTrim:boolean=false);
 
     // Documentation retrieval
     function FindDocNode(AElement: TPasElement): TDocNode;
@@ -312,7 +334,8 @@ type
 
     property RootLinkNode: TLinkNode read FRootLinkNode;
     property RootDocNode: TDocNode read FRootDocNode;
-    property Package: TPasPackage read FPackage;
+    Property DocLogLevels : TFPDocLogLevels Read FDocLogLevels Write FDocLogLevels;
+    Property OnParseUnit : TOnParseUnitEvent Read FOnParseUnit Write FOnParseUnit;
   end;
 
 
@@ -323,6 +346,7 @@ Function IsExampleNode(Example : TDomNode) : Boolean;
 
 // returns true is link is an absolute URI
 Function IsLinkAbsolute(ALink: String): boolean;
+
 
 implementation
 
@@ -429,7 +453,7 @@ begin
     { No child found, let's create one if we are at the end of the path }
     if DotPos > 0 then
       // !!!: better throw an exception
-      WriteLn('Link path does not exist: ', APathName);
+      Raise Exception.CreateFmt('Link path does not exist: %s',[APathName]);
     Result := TLinkNode.Create(ChildName, ALinkTo);
     if Assigned(LastChild) then
       LastChild.FNextSibling := Result
@@ -544,6 +568,22 @@ end;
 
 { TFPDocEngine }
 
+function TFPDocEngine.LogEvent(E: TFPDocLogLevel): Boolean;
+begin
+  Result:=E in FDocLogLevels;
+end;
+
+procedure TFPDocEngine.DoLog(const Msg: String);
+begin
+  If Assigned(OnLog) then
+    OnLog(Self,Msg);
+end;
+
+procedure TFPDocEngine.DoLog(const Fmt: String; Args: array of const);
+begin
+  DoLog(Format(Fmt,Args));
+end;
+
 constructor TFPDocEngine.Create;
 begin
   inherited Create;
@@ -553,7 +593,7 @@ begin
   FRootDocNode := TDocNode.Create('', nil);
   HidePrivate := True;
   InterfaceOnly:=True;
-  FPackages := TList.Create;
+  FPackages := TFPList.Create;
 end;
 
 destructor TFPDocEngine.Destroy;
@@ -695,7 +735,7 @@ var
      result:=Copy(AName, DotPos2 + 1, length(AName)-dotpos2);
   end;
 
-  function SearchInList(clslist:TList;s:string):TPasElement;
+  function SearchInList(clslist:TFPList;s:string):TPasElement;
   var i : integer;
       ClassEl: TPasElement;
   begin
@@ -792,7 +832,7 @@ var
        end
      else
        if cls<>result then
-         writeln(cls.name,'''s dependency '  ,clname,' could not be resolved');
+         DoLog('Warning : ancestor class %s of class %s could not be resolved',[clname,cls.name]);
 end;
 
 function CreateAliasType (alname,clname : string;parentclass:TPasClassType; out cl2 :TPasClassType):TPasAliasType;
@@ -812,11 +852,11 @@ begin
         result:=ResolveAliasType(clname);
         if assigned(result) then
           begin
-            writeln('found alias ',clname,' (',s,') ',result.classname);  
+//            writeln('found alias ',clname,' (',s,') ',result.classname);  
           end
         else
           begin
-            writeln('new alias ',clname,' (',s,') ');
+//            writeln('new alias ',clname,' (',s,') ');
             cl2.addref;
             Result := TPasAliasType(CreateElement(TPasAliasType,s,module.interfacesection,vispublic,'',0));
             module.interfacesection.Declarations.Add(Result);
@@ -852,7 +892,7 @@ end;
                  begin
                    // writeln('Found alias pair ',clname,' = ',alname);   
                    if not assigned(CreateAliasType(alname,clname,cls,cls2)) then
-                      writeln('creating alias failed!');
+                      DoLog('Warning: creating alias %s for %s failed!',[alname,clname]);
                  end 
                else
                  cls2:=ResolveAndLinkClass(clname,j=0,cls);
@@ -1083,7 +1123,7 @@ function TFPDocEngine.FindElement(const AName: String): TPasElement;
   function FindInModule(AModule: TPasModule; const LocalName: String): TPasElement;
   
   var
-    l: TList;
+    l: TFPList;
     i: Integer;
     
   begin
@@ -1103,30 +1143,20 @@ function TFPDocEngine.FindElement(const AName: String): TPasElement;
 
 var
   i: Integer;
-  //ModuleName, LocalName: String;
   Module: TPasElement;
 begin
-{!!!: Don't know if we ever will have to use the following:
-  i := Pos('.', AName);
-  if i <> 0 then
-  begin
-    WriteLn('Dot found in name: ', AName);
-    Result := nil;
-  end else
-  begin}
-    Result := FindInModule(CurModule, AName);
-    if not Assigned(Result) then
-      for i := CurModule.InterfaceSection.UsesList.Count - 1 downto 0 do
+  Result := FindInModule(CurModule, AName);
+  if not Assigned(Result) then
+    for i := CurModule.InterfaceSection.UsesList.Count - 1 downto 0 do
+    begin
+      Module := TPasElement(CurModule.InterfaceSection.UsesList[i]);
+      if Module.ClassType = TPasModule then
       begin
-        Module := TPasElement(CurModule.InterfaceSection.UsesList[i]);
-        if Module.ClassType = TPasModule then
-        begin
-          Result := FindInModule(TPasModule(Module), AName);
-          if Assigned(Result) then
-            exit;
-        end;
+        Result := FindInModule(TPasModule(Module), AName);
+        if Assigned(Result) then
+          exit;
       end;
-  {end;}
+    end;
 end;
 
 function TFPDocEngine.FindModule(const AName: String): TPasModule;
@@ -1146,6 +1176,8 @@ function TFPDocEngine.FindModule(const AName: String): TPasModule;
 
 var
   i: Integer;
+  AInPutLine,OSTarget,CPUTarget : String;
+
 begin
   Result := FindInPackage(Package);
   if not Assigned(Result) then
@@ -1157,6 +1189,29 @@ begin
       if Assigned(Result) then
         exit;
     end;
+  if Not Assigned(Result) and Assigned(FOnParseUnit) then
+    begin
+    FOnParseUnit(Self,AName,AInputLine,OSTarget,CPUTarget);
+    If (AInPutLine<>'') then
+      Result:=ParseUsedUnit(AName,AInputLine,OSTarget,CPUTarget);
+    end;
+end;
+
+Function TFPDocEngine.ParseUsedUnit(AName,AInputLine,AOSTarget,ACPUTarget : String) : TPasModule;
+
+Var
+  M : TPasModule;
+
+begin
+  DoLog(SParsingUsedUnit,[AName,AInputLine]);
+  M:=CurModule;
+  CurModule:=Nil;
+  try
+    ParseSource(Self,AInputLine,AOSTarget,ACPUTarget,True);
+    Result:=CurModule;
+  finally
+    CurModule:=M;
+  end;
 end;
 
 procedure TFPDocEngine.AddLink(const APathName, ALinkTo: String);
@@ -1180,7 +1235,7 @@ function TFPDocEngine.ResolveLink(AModule: TPasModule;
 var
   i: Integer;
   ThisPackage: TLinkNode;
-  UnitList: TList;
+  UnitList: TFPList;
 
   function CanWeExit(AResult: string): boolean;
   var
@@ -1191,7 +1246,7 @@ var
   end;
 
 begin
-//system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
+  // system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
   if Length(ALinkDest) = 0 then
   begin
     SetLength(Result, 0);
@@ -1255,7 +1310,34 @@ begin
       end;
 end;
 
-procedure TFPDocEngine.AddDocFile(const AFilename: String);
+procedure ReadXMLFileALT(OUT ADoc:TXMLDocument;const AFileName:ansistring);
+var
+  Parser: TDOMParser;
+  Src: TXMLInputSource;
+  FileStream: TStream;
+begin
+  ADoc := nil;
+  FileStream := TFileStream.Create(AFilename, fmOpenRead+fmShareDenyWrite);
+  try
+    Parser := TDOMParser.Create; // create a parser object
+    try
+      Src := TXMLInputSource.Create(FileStream); // and the input source
+      src.SystemId:=FileNameToUri(AFileName);
+      try
+        Parser.Options.PreserveWhitespace := True;
+        Parser.Parse(Src, ADoc);
+      finally
+        Src.Free; // cleanup
+      end;
+    finally 
+     Parser.Free;
+     end;
+  finally
+    FileStream.Free;
+  end;
+end;
+
+procedure TFPDocEngine.AddDocFile(const AFilename: String;DontTrim:boolean=false);
 
   function ReadNode(OwnerDocNode: TDocNode; Element: TDOMElement): TDocNode;
   var
@@ -1287,7 +1369,9 @@ procedure TFPDocEngine.AddDocFile(const AFilename: String);
           Result.FSeeAlso := TDOMElement(Subnode)
         else if (Subnode.NodeName = 'example') and
           not Assigned(Result.FirstExample) then
-          Result.FFirstExample := TDOMElement(Subnode);
+          Result.FFirstExample := TDOMElement(Subnode)
+        else if (Subnode.NodeName = 'notes') then
+          Result.FNotes := TDOMElement(Subnode);
       end;
       Subnode := Subnode.NextSibling;
     end;
@@ -1318,7 +1402,10 @@ var
   PackageDocNode, TopicNode,ModuleDocNode: TDocNode;
 
 begin
-  ReadXMLFile(Doc, AFilename);
+  if DontTrim then
+    ReadXMLFileALT(Doc, AFilename)
+  else
+    ReadXMLFile(Doc, AFilename);
   DescrDocs.Add(Doc);
   DescrDocNames.Add(AFilename);
 
@@ -1383,7 +1470,7 @@ begin
        WarnNoNode and
        (Length(AElement.PathName)>0) and
        (AElement.PathName[1]='#') then
-      Writeln('No documentation node found for identifier : ',AElement.PathName);
+      DoLog(Format('No documentation node found for identifier : %s',[AElement.PathName]));
     end;
 end;
 
@@ -1391,7 +1478,7 @@ function TFPDocEngine.FindDocNode(ARefModule: TPasModule;
   const AName: String): TDocNode;
 var
   CurPackage: TDocNode;
-  UnitList: TList;
+  UnitList: TFPList;
   i: Integer;
 begin
   if Length(AName) = 0 then

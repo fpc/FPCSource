@@ -1072,8 +1072,9 @@ program h2pas;
                            hp3:=hp2^.p2;
                            while assigned(hp3) do
                              begin
-                                if not assigned(hp3^.p1^.p3) or
-                                   (hp3^.p1^.p3^.typ <> t_size_specifier) then
+                                if assigned(hp3^.p1) and
+                                   (not assigned(hp3^.p1^.p3) or
+                                   (hp3^.p1^.p3^.typ <> t_size_specifier)) then
                                   begin
                                      if is_sized then
                                        begin
@@ -1093,7 +1094,8 @@ program h2pas;
                                      popshift;
                                   end;
                                 { size specifier  or default value ? }
-                                if assigned(hp3^.p1^.p3) then
+                                if assigned(hp3^.p1) and
+                                   assigned(hp3^.p1^.p3) then
                                   begin
                                      { we could use mask to implement this }
                                      { because we need to respect the positions }
@@ -2431,7 +2433,7 @@ special_type_name :
      SHORT INT
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(csint_STR))
+       $$:=new(presobject,init_id(cshort_STR))
      else
        $$:=new(presobject,init_intid(SMALL_STR));
      } |

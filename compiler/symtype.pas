@@ -289,10 +289,11 @@ implementation
 
     function tdef.mangledparaname:string;
       begin
+        result:=OwnerHierarchyName;
         if assigned(typesym) then
-         mangledparaname:=typesym.name
+          mangledparaname:=result+typesym.name
         else
-         mangledparaname:=getmangledparaname;
+          mangledparaname:=result+getmangledparaname;
       end;
 
 

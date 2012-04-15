@@ -47,26 +47,26 @@ const
 
 
 { Format functions }
-function xsdFormatBase64(Value: TStream): Utf8String;
-function xsdFormatBoolean(Value: Boolean; UseWords: Boolean = False): Utf8String;
-function xsdFormatDate(Year, Month, Day: Longword; BC: Boolean; Timezone: PXsdTimezone = nil): Utf8String;
-function xsdFormatDate(Value: TDateTime; Timezone: PXsdTimezone = nil): Utf8String;
-function xsdFormatTime(Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone = nil): Utf8String;
-function xsdFormatTime(Value: TDateTime; Timezone: PXsdTimezone = nil): Utf8String;
-function xsdFormatDateTime(Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; BC: Boolean; Timezone: PXsdTimezone = nil): Utf8String;
-function xsdFormatDateTime(Value: TDateTime; Timezone: PXsdTimezone): Utf8String;
-function xsdFormatDecimal(Value: Extended; Precision: Integer = 4; Digits: Integer = 1): Utf8String;
-function xsdFormatDouble(Value: Double): Utf8String;
-function xsdFormatFloat(Value: Single): Utf8String;
-function xsdFormatByte(Value: Shortint): Utf8String;
-function xsdFormatShort(Value: Smallint): Utf8String;
-function xsdFormatInt(Value: Longint): Utf8String;
-function xsdFormatLong(Value: Int64): Utf8String;
-function xsdFormatUnsignedByte(Value: Byte): Utf8String;
-function xsdFormatUnsignedShort(Value: Word): Utf8String;
-function xsdFormatUnsignedInt(Value: Longword): Utf8String;
-function xsdFormatUnsignedLong(Value: QWord): Utf8String;
-function xsdFormatEnum(enum: array of Utf8String; Value: Integer): Utf8String;
+function xsdFormatBase64(Value: TStream): AnsiString;
+function xsdFormatBoolean(Value: Boolean; UseWords: Boolean = False): AnsiString;
+function xsdFormatDate(Year, Month, Day: Longword; BC: Boolean; Timezone: PXsdTimezone = nil): AnsiString;
+function xsdFormatDate(Value: TDateTime; Timezone: PXsdTimezone = nil): AnsiString;
+function xsdFormatTime(Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone = nil): AnsiString;
+function xsdFormatTime(Value: TDateTime; Timezone: PXsdTimezone = nil): AnsiString;
+function xsdFormatDateTime(Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; BC: Boolean; Timezone: PXsdTimezone = nil): AnsiString;
+function xsdFormatDateTime(Value: TDateTime; Timezone: PXsdTimezone): AnsiString;
+function xsdFormatDecimal(Value: Extended; Precision: Integer = 4; Digits: Integer = 1): AnsiString;
+function xsdFormatDouble(Value: Double): AnsiString;
+function xsdFormatFloat(Value: Single): AnsiString;
+function xsdFormatByte(Value: Shortint): AnsiString;
+function xsdFormatShort(Value: Smallint): AnsiString;
+function xsdFormatInt(Value: Longint): AnsiString;
+function xsdFormatLong(Value: Int64): AnsiString;
+function xsdFormatUnsignedByte(Value: Byte): AnsiString;
+function xsdFormatUnsignedShort(Value: Word): AnsiString;
+function xsdFormatUnsignedInt(Value: Longword): AnsiString;
+function xsdFormatUnsignedLong(Value: QWord): AnsiString;
+function xsdFormatEnum(enum: array of AnsiString; Value: Integer): AnsiString;
 
 { DateTime functions }
 function xsdNowUTC: TDateTime;
@@ -77,8 +77,8 @@ function xsdDateTimeConvert(const DateTime: TDateTime; const Current, Target: TX
 
 { Parse functions }
 function xsdTryParseBase64(Chars: PChar; Len: Integer; const Value: TStream): Boolean;
-function xsdTryParseString(Chars: PChar; Len: Integer; out Value: Utf8String): Boolean;
-function xsdTryParseStringLower(Chars: PChar; Len: Integer; out Value: Utf8String): Boolean;
+function xsdTryParseString(Chars: PChar; Len: Integer; out Value: AnsiString): Boolean;
+function xsdTryParseStringLower(Chars: PChar; Len: Integer; out Value: AnsiString): Boolean;
 function xsdTryParseBoolean(Chars: PChar; Len: Integer; out Value: Boolean): Boolean;
 function xsdTryParseDate(Chars: PChar; Len: Integer; out Year, Month, Day: Longword; Timezone: PXsdTimezone = nil; BC: PBoolean = nil): Boolean;
 function xsdTryParseDate(Chars: PChar; Len: Integer; out Value: TDateTime; Timezone: PXsdTimezone = nil): Boolean;
@@ -102,10 +102,10 @@ function xsdTryParseUnsignedByte(Chars: PChar; Len: Integer; out Value: Byte): B
 function xsdTryParseUnsignedShort(Chars: PChar; Len: Integer; out Value: Word): Boolean;
 function xsdTryParseUnsignedInt(Chars: PChar; Len: Integer; out Value: Longword): Boolean;
 function xsdTryParseUnsignedLong(Chars: PChar; Len: Integer; out Value: QWord): Boolean;
-function xsdTryParseEnum(Chars: PChar; Len: Integer; enum: array of Utf8String; out Value: Integer): Boolean;
+function xsdTryParseEnum(Chars: PChar; Len: Integer; enum: array of AnsiString; out Value: Integer): Boolean;
 
-function xsdParseStringDef(Chars: PChar; Len: Integer; Default: Utf8String): Utf8String;
-function xsdParseStringLowerDef(Chars: PChar; Len: Integer; Default: Utf8String): Utf8String;
+function xsdParseStringDef(Chars: PChar; Len: Integer; Default: AnsiString): AnsiString;
+function xsdParseStringLowerDef(Chars: PChar; Len: Integer; Default: AnsiString): AnsiString;
 function xsdParseBooleanDef(Chars: PChar; Len: Integer; Default: Boolean): Boolean;
 function xsdParseDateDef(Chars: PChar; Len: Integer; Default: TDateTime; Timezone: PXsdTimezone = nil): TDateTime;
 function xsdParseTimeDef(Chars: PChar; Len: Integer; Default: TDateTime; Timezone: PXsdTimezone = nil): TDateTime;
@@ -126,11 +126,11 @@ function xsdParseUnsignedByteDef(Chars: PChar; Len: Integer; Default: Byte): Byt
 function xsdParseUnsignedShortDef(Chars: PChar; Len: Integer; Default: Word): Word;
 function xsdParseUnsignedIntDef(Chars: PChar; Len: Integer; Default: Longword): Longword;
 function xsdParseUnsignedLongDef(Chars: PChar; Len: Integer; Default: QWord): QWord;
-function xsdParseEnumDef(Chars: PChar; Len: Integer; enum: array of Utf8String; Default: Integer): Integer;
+function xsdParseEnumDef(Chars: PChar; Len: Integer; enum: array of AnsiString; Default: Integer): Integer;
 
 procedure xsdParseBase64(Chars: PChar; Len: Integer; const Value: TStream);
-procedure xsdParseString(Chars: PChar; Len: Integer; out Value: Utf8String);
-procedure xsdParseStringLower(Chars: PChar; Len: Integer; out Value: Utf8String);
+procedure xsdParseString(Chars: PChar; Len: Integer; out Value: AnsiString);
+procedure xsdParseStringLower(Chars: PChar; Len: Integer; out Value: AnsiString);
 procedure xsdParseBoolean(Chars: PChar; Len: Integer; out Value: Boolean);
 procedure xsdParseDate(Chars: PChar; Len: Integer; out Year, Month, Day: Longword; Timezone: PXsdTimezone = nil; BC: PBoolean = nil);
 procedure xsdParseDate(Chars: PChar; Len: Integer; out Value: TDateTime; Timezone: PXsdTimezone = nil);
@@ -154,10 +154,10 @@ procedure xsdParseUnsignedByte(Chars: PChar; Len: Integer; out Value: Byte);
 procedure xsdParseUnsignedShort(Chars: PChar; Len: Integer; out Value: Word);
 procedure xsdParseUnsignedInt(Chars: PChar; Len: Integer; out Value: Longword);
 procedure xsdParseUnsignedLong(Chars: PChar; Len: Integer; out Value: QWord);
-procedure xsdParseEnum(Chars: PChar; Len: Integer; enum: array of Utf8String; out Value: Integer);
+procedure xsdParseEnum(Chars: PChar; Len: Integer; enum: array of AnsiString; out Value: Integer);
 
-function xsdParseString(Chars: PChar; Len: Integer): Utf8String;
-function xsdParseStringLower(Chars: PChar; Len: Integer): Utf8String;
+function xsdParseString(Chars: PChar; Len: Integer): AnsiString;
+function xsdParseStringLower(Chars: PChar; Len: Integer): AnsiString;
 function xsdParseBoolean(Chars: PChar; Len: Integer): Boolean;
 function xsdParseDate(Chars: PChar; Len: Integer; Timezone: PXsdTimezone = nil): TDateTime;
 function xsdParseTime(Chars: PChar; Len: Integer; Timezone: PXsdTimezone = nil): TDateTime;
@@ -178,111 +178,111 @@ function xsdParseUnsignedByte(Chars: PChar; Len: Integer): Byte;
 function xsdParseUnsignedShort(Chars: PChar; Len: Integer): Word;
 function xsdParseUnsignedInt(Chars: PChar; Len: Integer): Longword;
 function xsdParseUnsignedLong(Chars: PChar; Len: Integer): QWord;
-function xsdParseEnum(Chars: PChar; Len: Integer; enum: array of Utf8String): Integer;
+function xsdParseEnum(Chars: PChar; Len: Integer; enum: array of AnsiString): Integer;
 {
-function xsdTryParseBase64(const S: UTF8String; const Value: TStream): Boolean;
-function xsdTryParseString(const S: UTF8String; out Value: Utf8String): Boolean;
-function xsdTryParseStringLower(const S: UTF8String; out Value: Utf8String): Boolean;
-function xsdTryParseBoolean(const S: UTF8String; out Value: Boolean): Boolean;
-function xsdTryParseDate(const S: UTF8String; out Year, Month, Day: Longword; Timezone: PXsdTimezone = nil; BC: PBoolean = nil): Boolean;
-function xsdTryParseDate(const S: UTF8String; out Value: TDateTime; Timezone: PXsdTimezone = nil): Boolean;
-function xsdTryParseTime(const S: UTF8String; out Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone = nil): Boolean;
-function xsdTryParseTime(const S: UTF8String; out Value: TDateTime; Timezone: PXsdTimezone = nil): Boolean;
-function xsdTryParseDateTime(const S: UTF8String; out Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone = nil; BC: PBoolean = nil): Boolean;
-function xsdTryParseDateTime(const S: UTF8String; out Value: TDateTime; Timezone: PXsdTimezone = nil): Boolean;
-function xsdTryParseDecimal(const S: UTF8String; out Value: Extended): Boolean;
-function xsdTryParseDouble(const S: UTF8String; out Value: Double): Boolean;
-function xsdTryParseFloat(const S: UTF8String; out Value: Single): Boolean;
-function xsdTryParseInteger(const S: UTF8String; out Value: Int64): Boolean;
-function xsdTryParseNonNegativeInteger(const S: UTF8String; out Value: QWord): Boolean;
-function xsdTryParseNonPositiveInteger(const S: UTF8String; out Value: Int64): Boolean;
-function xsdTryParseNegativeInteger(const S: UTF8String; out Value: Int64): Boolean;
-function xsdTryParsePositiveInteger(const S: UTF8String; out Value: QWord): Boolean;
-function xsdTryParseByte(const S: UTF8String; out Value: Shortint): Boolean;
-function xsdTryParseShort(const S: UTF8String; out Value: Smallint): Boolean;
-function xsdTryParseInt(const S: UTF8String; out Value: Longint): Boolean;
-function xsdTryParseLong(const S: UTF8String; out Value: Int64): Boolean;
-function xsdTryParseUnsignedByte(const S: UTF8String; out Value: Byte): Boolean;
-function xsdTryParseUnsignedShort(const S: UTF8String; out Value: Word): Boolean;
-function xsdTryParseUnsignedInt(const S: UTF8String; out Value: Longword): Boolean;
-function xsdTryParseUnsignedLong(const S: UTF8String; out Value: QWord): Boolean;
-function xsdTryParseEnum(const S: UTF8String; enum: array of Utf8String; out Value: Integer): Boolean;
+function xsdTryParseBase64(const S: AnsiString; const Value: TStream): Boolean;
+function xsdTryParseString(const S: AnsiString; out Value: AnsiString): Boolean;
+function xsdTryParseStringLower(const S: AnsiString; out Value: AnsiString): Boolean;
+function xsdTryParseBoolean(const S: AnsiString; out Value: Boolean): Boolean;
+function xsdTryParseDate(const S: AnsiString; out Year, Month, Day: Longword; Timezone: PXsdTimezone = nil; BC: PBoolean = nil): Boolean;
+function xsdTryParseDate(const S: AnsiString; out Value: TDateTime; Timezone: PXsdTimezone = nil): Boolean;
+function xsdTryParseTime(const S: AnsiString; out Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone = nil): Boolean;
+function xsdTryParseTime(const S: AnsiString; out Value: TDateTime; Timezone: PXsdTimezone = nil): Boolean;
+function xsdTryParseDateTime(const S: AnsiString; out Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone = nil; BC: PBoolean = nil): Boolean;
+function xsdTryParseDateTime(const S: AnsiString; out Value: TDateTime; Timezone: PXsdTimezone = nil): Boolean;
+function xsdTryParseDecimal(const S: AnsiString; out Value: Extended): Boolean;
+function xsdTryParseDouble(const S: AnsiString; out Value: Double): Boolean;
+function xsdTryParseFloat(const S: AnsiString; out Value: Single): Boolean;
+function xsdTryParseInteger(const S: AnsiString; out Value: Int64): Boolean;
+function xsdTryParseNonNegativeInteger(const S: AnsiString; out Value: QWord): Boolean;
+function xsdTryParseNonPositiveInteger(const S: AnsiString; out Value: Int64): Boolean;
+function xsdTryParseNegativeInteger(const S: AnsiString; out Value: Int64): Boolean;
+function xsdTryParsePositiveInteger(const S: AnsiString; out Value: QWord): Boolean;
+function xsdTryParseByte(const S: AnsiString; out Value: Shortint): Boolean;
+function xsdTryParseShort(const S: AnsiString; out Value: Smallint): Boolean;
+function xsdTryParseInt(const S: AnsiString; out Value: Longint): Boolean;
+function xsdTryParseLong(const S: AnsiString; out Value: Int64): Boolean;
+function xsdTryParseUnsignedByte(const S: AnsiString; out Value: Byte): Boolean;
+function xsdTryParseUnsignedShort(const S: AnsiString; out Value: Word): Boolean;
+function xsdTryParseUnsignedInt(const S: AnsiString; out Value: Longword): Boolean;
+function xsdTryParseUnsignedLong(const S: AnsiString; out Value: QWord): Boolean;
+function xsdTryParseEnum(const S: AnsiString; enum: array of AnsiString; out Value: Integer): Boolean;
 
-function xsdParseStringDef(const S: UTF8String; Default: Utf8String): Utf8String;
-function xsdParseStringLowerDef(const S: UTF8String; Default: Utf8String): Utf8String;
-function xsdParseBooleanDef(const S: UTF8String; Default: Boolean): Boolean;
-function xsdParseDateDef(const S: UTF8String; Default: TDateTime; Timezone: PXsdTimezone = nil): TDateTime;
-function xsdParseTimeDef(const S: UTF8String; Default: TDateTime; Timezone: PXsdTimezone = nil): TDateTime;
-function xsdParseDateTimeDef(const S: UTF8String; Default: TDateTime; Timezone: PXsdTimezone = nil): TDateTime;
-function xsdParseDecimalDef(const S: UTF8String; Default: Extended): Extended;
-function xsdParseDoubleDef(const S: UTF8String; Default: Double): Double;
-function xsdParseFloatDef(const S: UTF8String; Default: Single): Single;
-function xsdParseIntegerDef(const S: UTF8String; Default: Int64): Int64;
-function xsdParseNonNegativeIntegerDef(const S: UTF8String; Default: QWord): QWord;
-function xsdParseNonPositiveIntegerDef(const S: UTF8String; Default: Int64): Int64;
-function xsdParseNegativeIntegerDef(const S: UTF8String; Default: Int64): Int64;
-function xsdParsePositiveIntegerDef(const S: UTF8String; Default: QWord): QWord;
-function xsdParseByteDef(const S: UTF8String; Default: Shortint): Shortint;
-function xsdParseShortDef(const S: UTF8String; Default: Smallint): Smallint;
-function xsdParseIntDef(const S: UTF8String; Default: Longint): Longint;
-function xsdParseLongDef(const S: UTF8String; Default: Int64): Int64;
-function xsdParseUnsignedByteDef(const S: UTF8String; Default: Byte): Byte;
-function xsdParseUnsignedShortDef(const S: UTF8String; Default: Word): Word;
-function xsdParseUnsignedIntDef(const S: UTF8String; Default: Longword): Longword;
-function xsdParseUnsignedLongDef(const S: UTF8String; Default: QWord): QWord;
-function xsdParseEnumDef(const S: UTF8String; enum: array of Utf8String; Default: Integer): Integer;
+function xsdParseStringDef(const S: AnsiString; Default: AnsiString): AnsiString;
+function xsdParseStringLowerDef(const S: AnsiString; Default: AnsiString): AnsiString;
+function xsdParseBooleanDef(const S: AnsiString; Default: Boolean): Boolean;
+function xsdParseDateDef(const S: AnsiString; Default: TDateTime; Timezone: PXsdTimezone = nil): TDateTime;
+function xsdParseTimeDef(const S: AnsiString; Default: TDateTime; Timezone: PXsdTimezone = nil): TDateTime;
+function xsdParseDateTimeDef(const S: AnsiString; Default: TDateTime; Timezone: PXsdTimezone = nil): TDateTime;
+function xsdParseDecimalDef(const S: AnsiString; Default: Extended): Extended;
+function xsdParseDoubleDef(const S: AnsiString; Default: Double): Double;
+function xsdParseFloatDef(const S: AnsiString; Default: Single): Single;
+function xsdParseIntegerDef(const S: AnsiString; Default: Int64): Int64;
+function xsdParseNonNegativeIntegerDef(const S: AnsiString; Default: QWord): QWord;
+function xsdParseNonPositiveIntegerDef(const S: AnsiString; Default: Int64): Int64;
+function xsdParseNegativeIntegerDef(const S: AnsiString; Default: Int64): Int64;
+function xsdParsePositiveIntegerDef(const S: AnsiString; Default: QWord): QWord;
+function xsdParseByteDef(const S: AnsiString; Default: Shortint): Shortint;
+function xsdParseShortDef(const S: AnsiString; Default: Smallint): Smallint;
+function xsdParseIntDef(const S: AnsiString; Default: Longint): Longint;
+function xsdParseLongDef(const S: AnsiString; Default: Int64): Int64;
+function xsdParseUnsignedByteDef(const S: AnsiString; Default: Byte): Byte;
+function xsdParseUnsignedShortDef(const S: AnsiString; Default: Word): Word;
+function xsdParseUnsignedIntDef(const S: AnsiString; Default: Longword): Longword;
+function xsdParseUnsignedLongDef(const S: AnsiString; Default: QWord): QWord;
+function xsdParseEnumDef(const S: AnsiString; enum: array of AnsiString; Default: Integer): Integer;
 }
-procedure xsdParseBase64(const S: UTF8String; const Value: TStream);
-procedure xsdParseString(const S: UTF8String; out Value: Utf8String);
-procedure xsdParseStringLower(const S: UTF8String; out Value: Utf8String);
-procedure xsdParseBoolean(const S: UTF8String; out Value: Boolean);
-procedure xsdParseDate(const S: UTF8String; out Year, Month, Day: Longword; Timezone: PXsdTimezone = nil; BC: PBoolean = nil);
-procedure xsdParseDate(const S: UTF8String; out Value: TDateTime; Timezone: PXsdTimezone = nil);
-procedure xsdParseTime(const S: UTF8String; out Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone = nil);
-procedure xsdParseTime(const S: UTF8String; out Value: TDateTime; Timezone: PXsdTimezone = nil);
-procedure xsdParseDateTime(const S: UTF8String; out Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone = nil; BC: PBoolean = nil);
-procedure xsdParseDateTime(const S: UTF8String; out Value: TDateTime; Timezone: PXsdTimezone = nil);
-procedure xsdParseDecimal(const S: UTF8String; out Value: Extended);
-procedure xsdParseDouble(const S: UTF8String; out Value: Double);
-procedure xsdParseFloat(const S: UTF8String; out Value: Single);
-procedure xsdParseInteger(const S: UTF8String; out Value: Int64);
-procedure xsdParseNonNegativeInteger(const S: UTF8String; out Value: QWord);
-procedure xsdParseNonPositiveInteger(const S: UTF8String; out Value: Int64);
-procedure xsdParseNegativeInteger(const S: UTF8String; out Value: Int64);
-procedure xsdParsePositiveInteger(const S: UTF8String; out Value: QWord);
-procedure xsdParseByte(const S: UTF8String; out Value: Shortint);
-procedure xsdParseShort(const S: UTF8String; out Value: Smallint);
-procedure xsdParseInt(const S: UTF8String; out Value: Longint);
-procedure xsdParseLong(const S: UTF8String; out Value: Int64);
-procedure xsdParseUnsignedByte(const S: UTF8String; out Value: Byte);
-procedure xsdParseUnsignedShort(const S: UTF8String; out Value: Word);
-procedure xsdParseUnsignedInt(const S: UTF8String; out Value: Longword);
-procedure xsdParseUnsignedLong(const S: UTF8String; out Value: QWord);
-procedure xsdParseEnum(const S: UTF8String; enum: array of Utf8String; out Value: Integer);
+procedure xsdParseBase64(const S: AnsiString; const Value: TStream);
+procedure xsdParseString(const S: AnsiString; out Value: AnsiString);
+procedure xsdParseStringLower(const S: AnsiString; out Value: AnsiString);
+procedure xsdParseBoolean(const S: AnsiString; out Value: Boolean);
+procedure xsdParseDate(const S: AnsiString; out Year, Month, Day: Longword; Timezone: PXsdTimezone = nil; BC: PBoolean = nil);
+procedure xsdParseDate(const S: AnsiString; out Value: TDateTime; Timezone: PXsdTimezone = nil);
+procedure xsdParseTime(const S: AnsiString; out Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone = nil);
+procedure xsdParseTime(const S: AnsiString; out Value: TDateTime; Timezone: PXsdTimezone = nil);
+procedure xsdParseDateTime(const S: AnsiString; out Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone = nil; BC: PBoolean = nil);
+procedure xsdParseDateTime(const S: AnsiString; out Value: TDateTime; Timezone: PXsdTimezone = nil);
+procedure xsdParseDecimal(const S: AnsiString; out Value: Extended);
+procedure xsdParseDouble(const S: AnsiString; out Value: Double);
+procedure xsdParseFloat(const S: AnsiString; out Value: Single);
+procedure xsdParseInteger(const S: AnsiString; out Value: Int64);
+procedure xsdParseNonNegativeInteger(const S: AnsiString; out Value: QWord);
+procedure xsdParseNonPositiveInteger(const S: AnsiString; out Value: Int64);
+procedure xsdParseNegativeInteger(const S: AnsiString; out Value: Int64);
+procedure xsdParsePositiveInteger(const S: AnsiString; out Value: QWord);
+procedure xsdParseByte(const S: AnsiString; out Value: Shortint);
+procedure xsdParseShort(const S: AnsiString; out Value: Smallint);
+procedure xsdParseInt(const S: AnsiString; out Value: Longint);
+procedure xsdParseLong(const S: AnsiString; out Value: Int64);
+procedure xsdParseUnsignedByte(const S: AnsiString; out Value: Byte);
+procedure xsdParseUnsignedShort(const S: AnsiString; out Value: Word);
+procedure xsdParseUnsignedInt(const S: AnsiString; out Value: Longword);
+procedure xsdParseUnsignedLong(const S: AnsiString; out Value: QWord);
+procedure xsdParseEnum(const S: AnsiString; enum: array of AnsiString; out Value: Integer);
 
-function xsdParseString(const S: UTF8String): Utf8String;
-function xsdParseStringLower(const S: UTF8String): Utf8String;
-function xsdParseBoolean(const S: UTF8String): Boolean;
-function xsdParseDate(const S: UTF8String; Timezone: PXsdTimezone = nil): TDateTime;
-function xsdParseTime(const S: UTF8String; Timezone: PXsdTimezone = nil): TDateTime;
-function xsdParseDateTime(const S: UTF8String; Timezone: PXsdTimezone = nil): TDateTime;
-function xsdParseDecimal(const S: UTF8String): Extended;
-function xsdParseDouble(const S: UTF8String): Double;
-function xsdParseFloat(const S: UTF8String): Single;
-function xsdParseInteger(const S: UTF8String): Int64;
-function xsdParseNonNegativeInteger(const S: UTF8String): QWord;
-function xsdParseNonPositiveInteger(const S: UTF8String): Int64;
-function xsdParseNegativeInteger(const S: UTF8String): Int64;
-function xsdParsePositiveInteger(const S: UTF8String): QWord;
-function xsdParseByte(const S: UTF8String): Shortint;
-function xsdParseShort(const S: UTF8String): Smallint;
-function xsdParseInt(const S: UTF8String): Longint;
-function xsdParseLong(const S: UTF8String): Int64;
-function xsdParseUnsignedByte(const S: UTF8String): Byte;
-function xsdParseUnsignedShort(const S: UTF8String): Word;
-function xsdParseUnsignedInt(const S: UTF8String): Longword;
-function xsdParseUnsignedLong(const S: UTF8String): QWord;
-function xsdParseEnum(const S: UTF8String; enum: array of Utf8String): Integer;
+function xsdParseString(const S: AnsiString): AnsiString;
+function xsdParseStringLower(const S: AnsiString): AnsiString;
+function xsdParseBoolean(const S: AnsiString): Boolean;
+function xsdParseDate(const S: AnsiString; Timezone: PXsdTimezone = nil): TDateTime;
+function xsdParseTime(const S: AnsiString; Timezone: PXsdTimezone = nil): TDateTime;
+function xsdParseDateTime(const S: AnsiString; Timezone: PXsdTimezone = nil): TDateTime;
+function xsdParseDecimal(const S: AnsiString): Extended;
+function xsdParseDouble(const S: AnsiString): Double;
+function xsdParseFloat(const S: AnsiString): Single;
+function xsdParseInteger(const S: AnsiString): Int64;
+function xsdParseNonNegativeInteger(const S: AnsiString): QWord;
+function xsdParseNonPositiveInteger(const S: AnsiString): Int64;
+function xsdParseNegativeInteger(const S: AnsiString): Int64;
+function xsdParsePositiveInteger(const S: AnsiString): QWord;
+function xsdParseByte(const S: AnsiString): Shortint;
+function xsdParseShort(const S: AnsiString): Smallint;
+function xsdParseInt(const S: AnsiString): Longint;
+function xsdParseLong(const S: AnsiString): Int64;
+function xsdParseUnsignedByte(const S: AnsiString): Byte;
+function xsdParseUnsignedShort(const S: AnsiString): Word;
+function xsdParseUnsignedInt(const S: AnsiString): Longword;
+function xsdParseUnsignedLong(const S: AnsiString): QWord;
+function xsdParseEnum(const S: AnsiString; enum: array of AnsiString): Integer;
 
 
 { INTERNAL HELPERS!!! }
@@ -296,11 +296,11 @@ function __parseTimezone(var P: PChar; const L: PChar; out T: TXsdTimezone): Boo
 function __parseDate(var P: PChar; const L: PChar; out Year, Month, Day: Longword; BC: PBoolean): Boolean;
 function __parseTime(var P: PChar; const L: PChar; const AllowMoreThan24h: Boolean;
   out Hour, Minute, Second, Milliseconds: Longword): Boolean;
-function __strpas(Chars: PChar; Len: Integer): Utf8String;
+function __strpas(Chars: PChar; Len: Integer): AnsiString;
 
 implementation
 
-function xsdFormatBase64(Value: TStream): Utf8String;
+function xsdFormatBase64(Value: TStream): AnsiString;
 const
   Base64: array[0..63] of char = (
     'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P',
@@ -366,7 +366,7 @@ begin
   end;
 end;
 
-function xsdFormatBoolean(Value: Boolean; UseWords: Boolean): Utf8String;
+function xsdFormatBoolean(Value: Boolean; UseWords: Boolean): AnsiString;
 begin
   if UseWords then
     if Value then
@@ -380,7 +380,7 @@ begin
       Result := '0';
 end;
 
-function xsdFormatDate(Year, Month, Day: Longword; BC: Boolean; Timezone: PXsdTimezone): Utf8String;
+function xsdFormatDate(Year, Month, Day: Longword; BC: Boolean; Timezone: PXsdTimezone): AnsiString;
 begin
   Result := Format('%4.4d-%2.2u-%2.2u', [Year, Month, Day]);
   if BC then
@@ -401,7 +401,7 @@ begin
     end;
 end;
 
-function xsdFormatDate(Value: TDateTime; Timezone: PXsdTimezone): Utf8String;
+function xsdFormatDate(Value: TDateTime; Timezone: PXsdTimezone): AnsiString;
 var
   Year, Month, Day: Word;
 begin
@@ -409,7 +409,7 @@ begin
   Result := xsdFormatDate(Year, Month, Day, False, Timezone);
 end;
 
-function xsdFormatTime(Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone): Utf8String;
+function xsdFormatTime(Hour, Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone): AnsiString;
 begin
   Result := Format('%2.2u:%2.2u:%2.2u', [Hour, Minute, Second]);
   if Milliseconds > 0 then
@@ -430,7 +430,7 @@ begin
     end;
 end;
 
-function xsdFormatTime(Value: TDateTime; Timezone: PXsdTimezone): Utf8String;
+function xsdFormatTime(Value: TDateTime; Timezone: PXsdTimezone): AnsiString;
 var
   Hour, Minute, Second, Milliseconds: Word;
 begin
@@ -438,12 +438,12 @@ begin
   Result := xsdFormatTime(Hour, Minute, Second, Milliseconds, Timezone);
 end;
 
-function xsdFormatDateTime(Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; BC: Boolean; Timezone: PXsdTimezone): Utf8String;
+function xsdFormatDateTime(Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; BC: Boolean; Timezone: PXsdTimezone): AnsiString;
 begin
   Result := xsdFormatDate(Year, Month, Day, BC, nil) + 'T' + xsdFormatTime(Hour, Minute, Second, Milliseconds, Timezone);
 end;
 
-function xsdFormatDateTime(Value: TDateTime; Timezone: PXsdTimezone): Utf8String;
+function xsdFormatDateTime(Value: TDateTime; Timezone: PXsdTimezone): AnsiString;
 var
   Year, Month, Day, Hour, Minute, Second, Milliseconds: Word;
 begin
@@ -451,62 +451,62 @@ begin
   Result := xsdFormatDateTime(Year, Month, Day, Hour, Minute, Second, Milliseconds, False, Timezone);
 end;
 
-function xsdFormatDecimal(Value: Extended; Precision: Integer; Digits: Integer): Utf8String;
+function xsdFormatDecimal(Value: Extended; Precision: Integer; Digits: Integer): AnsiString;
 begin
   Result := FloatToStrF(Value, ffFixed, Precision, Digits);
 end;
 
-function xsdFormatDouble(Value: Double): Utf8String;
+function xsdFormatDouble(Value: Double): AnsiString;
 begin
   Result := FloatToStr(Value);
 end;
 
-function xsdFormatFloat(Value: Single): Utf8String;
+function xsdFormatFloat(Value: Single): AnsiString;
 begin
   Result := FloatToStr(Value);
 end;
 
-function xsdFormatByte(Value: Shortint): Utf8String;
+function xsdFormatByte(Value: Shortint): AnsiString;
 begin
   Result := IntToStr(Value);
 end;
 
-function xsdFormatShort(Value: Smallint): Utf8String;
+function xsdFormatShort(Value: Smallint): AnsiString;
 begin
   Result := IntToStr(Value);
 end;
 
-function xsdFormatInt(Value: Integer): Utf8String;
+function xsdFormatInt(Value: Integer): AnsiString;
 begin
   Result := IntToStr(Value);
 end;
 
-function xsdFormatLong(Value: Int64): Utf8String;
+function xsdFormatLong(Value: Int64): AnsiString;
 begin
   Result := IntToStr(Value);
 end;
 
-function xsdFormatUnsignedByte(Value: Byte): Utf8String;
+function xsdFormatUnsignedByte(Value: Byte): AnsiString;
 begin
   Result := IntToStr(Value);
 end;
 
-function xsdFormatUnsignedShort(Value: Word): Utf8String;
+function xsdFormatUnsignedShort(Value: Word): AnsiString;
 begin
   Result := IntToStr(Value);
 end;
 
-function xsdFormatUnsignedInt(Value: Longword): Utf8String;
+function xsdFormatUnsignedInt(Value: Longword): AnsiString;
 begin
   Result := IntToStr(Value);
 end;
 
-function xsdFormatUnsignedLong(Value: QWord): Utf8String;
+function xsdFormatUnsignedLong(Value: QWord): AnsiString;
 begin
   Result := IntToStr(Value);
 end;
 
-function xsdFormatEnum(enum: array of Utf8String; Value: Integer): Utf8String;
+function xsdFormatEnum(enum: array of AnsiString; Value: Integer): AnsiString;
 begin
   Result := enum[Value];
 end;
@@ -1046,7 +1046,7 @@ begin
     Result := False;
 end;
 
-function xsdTryParseString(Chars: PChar; Len: Integer; out Value: Utf8String): Boolean;
+function xsdTryParseString(Chars: PChar; Len: Integer; out Value: AnsiString): Boolean;
 const
   AllocChars = 256;
 var
@@ -1103,7 +1103,7 @@ end;
     Result := False;
 end;}
 
-function xsdTryParseStringLower(Chars: PChar; Len: Integer; out Value: Utf8String): Boolean;
+function xsdTryParseStringLower(Chars: PChar; Len: Integer; out Value: AnsiString): Boolean;
 const
   AllocChars = 256;
 var
@@ -1152,7 +1152,7 @@ begin
     Result := False;
 end;
 
-function __strpas(Chars: PChar; Len: Integer): Utf8String;
+function __strpas(Chars: PChar; Len: Integer): AnsiString;
 begin
   if not xsdTryParseString(Chars, Len, Result) then
     Result := '';
@@ -1459,9 +1459,9 @@ begin
   Result := xsdTryParseNonNegativeInteger(Chars, Len, Value)
 end;
 
-function xsdTryParseEnum(Chars: PChar; Len: Integer; enum: array of Utf8String; out Value: Integer): Boolean;
+function xsdTryParseEnum(Chars: PChar; Len: Integer; enum: array of AnsiString; out Value: Integer): Boolean;
 var
-  Temp: Utf8String;
+  Temp: AnsiString;
   I: Integer;
 begin
   Temp := '';
@@ -1478,13 +1478,13 @@ begin
   end;
 end;
 
-function xsdParseStringDef(Chars: PChar; Len: Integer; Default: Utf8String): Utf8String;
+function xsdParseStringDef(Chars: PChar; Len: Integer; Default: AnsiString): AnsiString;
 begin
   if not xsdTryParseString(Chars, Len, Result) then
     Result := Default;
 end;
 
-function xsdParseStringLowerDef(Chars: PChar; Len: Integer; Default: Utf8String): Utf8String;
+function xsdParseStringLowerDef(Chars: PChar; Len: Integer; Default: AnsiString): AnsiString;
 begin
   if not xsdTryParseStringLower(Chars, Len, Result) then
     Result := Default;
@@ -1610,7 +1610,7 @@ begin
     Result := Default;
 end;
 
-function xsdParseEnumDef(Chars: PChar; Len: Integer; enum: array of Utf8String; Default: Integer): Integer;
+function xsdParseEnumDef(Chars: PChar; Len: Integer; enum: array of AnsiString; Default: Integer): Integer;
 begin
   if not xsdTryParseEnum(Chars, Len, enum, Result) then
     Result := Default;
@@ -1622,13 +1622,13 @@ begin
     raise EConvertError.CreateFmt(SXsdParserError, [__strpas(Chars,Len), 'xs:base64Binary']);
 end;
 
-procedure xsdParseString(Chars: PChar; Len: Integer; out Value: Utf8String);
+procedure xsdParseString(Chars: PChar; Len: Integer; out Value: AnsiString);
 begin
   if not xsdTryParseString(Chars, Len, Value) then
     raise EConvertError.CreateFmt(SXsdParserError, [__strpas(Chars,Len), 'xs:string']);
 end;
 
-procedure xsdParseStringLower(Chars: PChar; Len: Integer; out Value: Utf8String);
+procedure xsdParseStringLower(Chars: PChar; Len: Integer; out Value: AnsiString);
 begin
   if not xsdTryParseStringLower(Chars, Len, Value) then
     raise EConvertError.CreateFmt(SXsdParserError, [__strpas(Chars,Len), 'xs:string']);
@@ -1772,18 +1772,18 @@ begin
     raise EConvertError.CreateFmt(SXsdParserError, [__strpas(Chars,Len), 'xs:unsignedLong']);
 end;
 
-procedure xsdParseEnum(Chars: PChar; Len: Integer; enum: array of Utf8String; out Value: Integer);
+procedure xsdParseEnum(Chars: PChar; Len: Integer; enum: array of AnsiString; out Value: Integer);
 begin
   if not xsdTryParseEnum(Chars, Len, enum, Value) then
     raise EConvertError.CreateFmt(SXsdParserError, [__strpas(Chars,Len), 'xs:enum']);
 end;
 
-function xsdParseString(Chars: PChar; Len: Integer): Utf8String;
+function xsdParseString(Chars: PChar; Len: Integer): AnsiString;
 begin
   xsdParseString(Chars, Len, Result);
 end;
 
-function xsdParseStringLower(Chars: PChar; Len: Integer): Utf8String;
+function xsdParseStringLower(Chars: PChar; Len: Integer): AnsiString;
 begin
   xsdParseStringLower(Chars, Len, Result);
 end;
@@ -1888,540 +1888,540 @@ begin
   xsdParseUnsignedLong(Chars, Len, Result);
 end;
 
-function xsdParseEnum(Chars: PChar; Len: Integer; enum: array of Utf8String): Integer;
+function xsdParseEnum(Chars: PChar; Len: Integer; enum: array of AnsiString): Integer;
 begin
   xsdParseEnum(Chars, Len, enum, Result);
 end;
 (*
-function xsdTryParseBase64(const S: UTF8String; const Value: TStream): Boolean;
+function xsdTryParseBase64(const S: AnsiString; const Value: TStream): Boolean;
 begin
 
 end;
 
-function xsdTryParseString(const S: UTF8String; out Value: Utf8String): Boolean;
+function xsdTryParseString(const S: AnsiString; out Value: AnsiString): Boolean;
 begin
 
 end;
 
-function xsdTryParseStringLower(const S: UTF8String; out Value: Utf8String
+function xsdTryParseStringLower(const S: AnsiString; out Value: AnsiString
   ): Boolean;
 begin
 
 end;
 
-function xsdTryParseBoolean(const S: UTF8String; out Value: Boolean): Boolean;
+function xsdTryParseBoolean(const S: AnsiString; out Value: Boolean): Boolean;
 begin
 
 end;
 
-function xsdTryParseDate(const S: UTF8String; out Year, Month, Day: Longword;
+function xsdTryParseDate(const S: AnsiString; out Year, Month, Day: Longword;
   Timezone: PXsdTimezone; BC: PBoolean): Boolean;
 begin
 
 end;
 
-function xsdTryParseDate(const S: UTF8String; out Value: TDateTime;
+function xsdTryParseDate(const S: AnsiString; out Value: TDateTime;
   Timezone: PXsdTimezone): Boolean;
 begin
 
 end;
 
-function xsdTryParseTime(const S: UTF8String; out Hour, Minute, Second,
+function xsdTryParseTime(const S: AnsiString; out Hour, Minute, Second,
   Milliseconds: Longword; Timezone: PXsdTimezone): Boolean;
 begin
 
 end;
 
-function xsdTryParseTime(const S: UTF8String; out Value: TDateTime;
+function xsdTryParseTime(const S: AnsiString; out Value: TDateTime;
   Timezone: PXsdTimezone): Boolean;
 begin
 
 end;
 
-function xsdTryParseDateTime(const S: UTF8String; out Year, Month, Day, Hour,
+function xsdTryParseDateTime(const S: AnsiString; out Year, Month, Day, Hour,
   Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone; BC: PBoolean
   ): Boolean;
 begin
 
 end;
 
-function xsdTryParseDateTime(const S: UTF8String; out Value: TDateTime;
+function xsdTryParseDateTime(const S: AnsiString; out Value: TDateTime;
   Timezone: PXsdTimezone): Boolean;
 begin
 
 end;
 
-function xsdTryParseDecimal(const S: UTF8String; out Value: Extended): Boolean;
+function xsdTryParseDecimal(const S: AnsiString; out Value: Extended): Boolean;
 begin
 
 end;
 
-function xsdTryParseDouble(const S: UTF8String; out Value: Double): Boolean;
+function xsdTryParseDouble(const S: AnsiString; out Value: Double): Boolean;
 begin
 
 end;
 
-function xsdTryParseFloat(const S: UTF8String; out Value: Single): Boolean;
+function xsdTryParseFloat(const S: AnsiString; out Value: Single): Boolean;
 begin
 
 end;
 
-function xsdTryParseInteger(const S: UTF8String; out Value: Int64): Boolean;
+function xsdTryParseInteger(const S: AnsiString; out Value: Int64): Boolean;
 begin
 
 end;
 
-function xsdTryParseNonNegativeInteger(const S: UTF8String; out Value: QWord
+function xsdTryParseNonNegativeInteger(const S: AnsiString; out Value: QWord
   ): Boolean;
 begin
 
 end;
 
-function xsdTryParseNonPositiveInteger(const S: UTF8String; out Value: Int64
+function xsdTryParseNonPositiveInteger(const S: AnsiString; out Value: Int64
   ): Boolean;
 begin
 
 end;
 
-function xsdTryParseNegativeInteger(const S: UTF8String; out Value: Int64
+function xsdTryParseNegativeInteger(const S: AnsiString; out Value: Int64
   ): Boolean;
 begin
 
 end;
 
-function xsdTryParsePositiveInteger(const S: UTF8String; out Value: QWord
+function xsdTryParsePositiveInteger(const S: AnsiString; out Value: QWord
   ): Boolean;
 begin
 
 end;
 
-function xsdTryParseByte(const S: UTF8String; out Value: Shortint): Boolean;
+function xsdTryParseByte(const S: AnsiString; out Value: Shortint): Boolean;
 begin
 
 end;
 
-function xsdTryParseShort(const S: UTF8String; out Value: Smallint): Boolean;
+function xsdTryParseShort(const S: AnsiString; out Value: Smallint): Boolean;
 begin
 
 end;
 
-function xsdTryParseInt(const S: UTF8String; out Value: Longint): Boolean;
+function xsdTryParseInt(const S: AnsiString; out Value: Longint): Boolean;
 begin
 
 end;
 
-function xsdTryParseLong(const S: UTF8String; out Value: Int64): Boolean;
+function xsdTryParseLong(const S: AnsiString; out Value: Int64): Boolean;
 begin
 
 end;
 
-function xsdTryParseUnsignedByte(const S: UTF8String; out Value: Byte): Boolean;
+function xsdTryParseUnsignedByte(const S: AnsiString; out Value: Byte): Boolean;
 begin
 
 end;
 
-function xsdTryParseUnsignedShort(const S: UTF8String; out Value: Word
+function xsdTryParseUnsignedShort(const S: AnsiString; out Value: Word
   ): Boolean;
 begin
 
 end;
 
-function xsdTryParseUnsignedInt(const S: UTF8String; out Value: Longword
+function xsdTryParseUnsignedInt(const S: AnsiString; out Value: Longword
   ): Boolean;
 begin
 
 end;
 
-function xsdTryParseUnsignedLong(const S: UTF8String; out Value: QWord
+function xsdTryParseUnsignedLong(const S: AnsiString; out Value: QWord
   ): Boolean;
 begin
 
 end;
 
-function xsdTryParseEnum(const S: UTF8String; enum: array of Utf8String;
+function xsdTryParseEnum(const S: AnsiString; enum: array of AnsiString;
   out Value: Integer): Boolean;
 begin
 
 end;
 
-function xsdParseStringDef(const S: UTF8String; Default: Utf8String
-  ): Utf8String;
+function xsdParseStringDef(const S: AnsiString; Default: AnsiString
+  ): AnsiString;
 begin
 
 end;
 
-function xsdParseStringLowerDef(const S: UTF8String; Default: Utf8String
-  ): Utf8String;
+function xsdParseStringLowerDef(const S: AnsiString; Default: AnsiString
+  ): AnsiString;
 begin
 
 end;
 
-function xsdParseBooleanDef(const S: UTF8String; Default: Boolean): Boolean;
+function xsdParseBooleanDef(const S: AnsiString; Default: Boolean): Boolean;
 begin
 
 end;
 
-function xsdParseDateDef(const S: UTF8String; Default: TDateTime;
+function xsdParseDateDef(const S: AnsiString; Default: TDateTime;
   Timezone: PXsdTimezone): TDateTime;
 begin
 
 end;
 
-function xsdParseTimeDef(const S: UTF8String; Default: TDateTime;
+function xsdParseTimeDef(const S: AnsiString; Default: TDateTime;
   Timezone: PXsdTimezone): TDateTime;
 begin
 
 end;
 
-function xsdParseDateTimeDef(const S: UTF8String; Default: TDateTime;
+function xsdParseDateTimeDef(const S: AnsiString; Default: TDateTime;
   Timezone: PXsdTimezone): TDateTime;
 begin
 
 end;
 
-function xsdParseDecimalDef(const S: UTF8String; Default: Extended): Extended;
+function xsdParseDecimalDef(const S: AnsiString; Default: Extended): Extended;
 begin
 
 end;
 
-function xsdParseDoubleDef(const S: UTF8String; Default: Double): Double;
+function xsdParseDoubleDef(const S: AnsiString; Default: Double): Double;
 begin
 
 end;
 
-function xsdParseFloatDef(const S: UTF8String; Default: Single): Single;
+function xsdParseFloatDef(const S: AnsiString; Default: Single): Single;
 begin
 
 end;
 
-function xsdParseIntegerDef(const S: UTF8String; Default: Int64): Int64;
+function xsdParseIntegerDef(const S: AnsiString; Default: Int64): Int64;
 begin
 
 end;
 
-function xsdParseNonNegativeIntegerDef(const S: UTF8String; Default: QWord
+function xsdParseNonNegativeIntegerDef(const S: AnsiString; Default: QWord
   ): QWord;
 begin
 
 end;
 
-function xsdParseNonPositiveIntegerDef(const S: UTF8String; Default: Int64
+function xsdParseNonPositiveIntegerDef(const S: AnsiString; Default: Int64
   ): Int64;
 begin
 
 end;
 
-function xsdParseNegativeIntegerDef(const S: UTF8String; Default: Int64): Int64;
+function xsdParseNegativeIntegerDef(const S: AnsiString; Default: Int64): Int64;
 begin
 
 end;
 
-function xsdParsePositiveIntegerDef(const S: UTF8String; Default: QWord): QWord;
+function xsdParsePositiveIntegerDef(const S: AnsiString; Default: QWord): QWord;
 begin
 
 end;
 
-function xsdParseByteDef(const S: UTF8String; Default: Shortint): Shortint;
+function xsdParseByteDef(const S: AnsiString; Default: Shortint): Shortint;
 begin
 
 end;
 
-function xsdParseShortDef(const S: UTF8String; Default: Smallint): Smallint;
+function xsdParseShortDef(const S: AnsiString; Default: Smallint): Smallint;
 begin
 
 end;
 
-function xsdParseIntDef(const S: UTF8String; Default: Longint): Longint;
+function xsdParseIntDef(const S: AnsiString; Default: Longint): Longint;
 begin
 
 end;
 
-function xsdParseLongDef(const S: UTF8String; Default: Int64): Int64;
+function xsdParseLongDef(const S: AnsiString; Default: Int64): Int64;
 begin
 
 end;
 
-function xsdParseUnsignedByteDef(const S: UTF8String; Default: Byte): Byte;
+function xsdParseUnsignedByteDef(const S: AnsiString; Default: Byte): Byte;
 begin
 
 end;
 
-function xsdParseUnsignedShortDef(const S: UTF8String; Default: Word): Word;
+function xsdParseUnsignedShortDef(const S: AnsiString; Default: Word): Word;
 begin
 
 end;
 
-function xsdParseUnsignedIntDef(const S: UTF8String; Default: Longword
+function xsdParseUnsignedIntDef(const S: AnsiString; Default: Longword
   ): Longword;
 begin
 
 end;
 
-function xsdParseUnsignedLongDef(const S: UTF8String; Default: QWord): QWord;
+function xsdParseUnsignedLongDef(const S: AnsiString; Default: QWord): QWord;
 begin
 
 end;
 
-function xsdParseEnumDef(const S: UTF8String; enum: array of Utf8String;
+function xsdParseEnumDef(const S: AnsiString; enum: array of AnsiString;
   Default: Integer): Integer;
 begin
 
 end;*)
 
-procedure xsdParseBase64(const S: UTF8String; const Value: TStream);
+procedure xsdParseBase64(const S: AnsiString; const Value: TStream);
 begin
   xsdParseBase64(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseString(const S: UTF8String; out Value: Utf8String);
+procedure xsdParseString(const S: AnsiString; out Value: AnsiString);
 begin
   xsdParseString(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseStringLower(const S: UTF8String; out Value: Utf8String);
+procedure xsdParseStringLower(const S: AnsiString; out Value: AnsiString);
 begin
   xsdParseStringLower(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseBoolean(const S: UTF8String; out Value: Boolean);
+procedure xsdParseBoolean(const S: AnsiString; out Value: Boolean);
 begin
   xsdParseBoolean(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseDate(const S: UTF8String; out Year, Month, Day: Longword;
+procedure xsdParseDate(const S: AnsiString; out Year, Month, Day: Longword;
   Timezone: PXsdTimezone; BC: PBoolean);
 begin
   xsdParseDate(PChar(S), Length(S), Year, Month, Day, Timezone, BC);
 end;
 
-procedure xsdParseDate(const S: UTF8String; out Value: TDateTime;
+procedure xsdParseDate(const S: AnsiString; out Value: TDateTime;
   Timezone: PXsdTimezone);
 begin
   xsdParseDate(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseTime(const S: UTF8String; out Hour, Minute, Second,
+procedure xsdParseTime(const S: AnsiString; out Hour, Minute, Second,
   Milliseconds: Longword; Timezone: PXsdTimezone);
 begin
   xsdParseTime(PChar(S), Length(S), Hour, Minute, Second,
     Milliseconds, Timezone);
 end;
 
-procedure xsdParseTime(const S: UTF8String; out Value: TDateTime;
+procedure xsdParseTime(const S: AnsiString; out Value: TDateTime;
   Timezone: PXsdTimezone);
 begin
   xsdParseTime(PChar(S), Length(S), Value, Timezone);
 end;
 
-procedure xsdParseDateTime(const S: UTF8String; out Year, Month, Day, Hour,
+procedure xsdParseDateTime(const S: AnsiString; out Year, Month, Day, Hour,
   Minute, Second, Milliseconds: Longword; Timezone: PXsdTimezone; BC: PBoolean);
 begin
   xsdParseDateTime(PChar(S), Length(S), Year, Month, Day, Hour,
     Minute, Second, Milliseconds, Timezone, BC);
 end;
 
-procedure xsdParseDateTime(const S: UTF8String; out Value: TDateTime;
+procedure xsdParseDateTime(const S: AnsiString; out Value: TDateTime;
   Timezone: PXsdTimezone);
 begin
   xsdParseDateTime(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseDecimal(const S: UTF8String; out Value: Extended);
+procedure xsdParseDecimal(const S: AnsiString; out Value: Extended);
 begin
   xsdParseDecimal(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseDouble(const S: UTF8String; out Value: Double);
+procedure xsdParseDouble(const S: AnsiString; out Value: Double);
 begin
   xsdParseDouble(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseFloat(const S: UTF8String; out Value: Single);
+procedure xsdParseFloat(const S: AnsiString; out Value: Single);
 begin
   xsdParseFloat(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseInteger(const S: UTF8String; out Value: Int64);
+procedure xsdParseInteger(const S: AnsiString; out Value: Int64);
 begin
   xsdParseInteger(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseNonNegativeInteger(const S: UTF8String; out Value: QWord);
+procedure xsdParseNonNegativeInteger(const S: AnsiString; out Value: QWord);
 begin
   xsdParseNonNegativeInteger(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseNonPositiveInteger(const S: UTF8String; out Value: Int64);
+procedure xsdParseNonPositiveInteger(const S: AnsiString; out Value: Int64);
 begin
   xsdParseNonPositiveInteger(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseNegativeInteger(const S: UTF8String; out Value: Int64);
+procedure xsdParseNegativeInteger(const S: AnsiString; out Value: Int64);
 begin
   xsdParseNegativeInteger(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParsePositiveInteger(const S: UTF8String; out Value: QWord);
+procedure xsdParsePositiveInteger(const S: AnsiString; out Value: QWord);
 begin
   xsdParsePositiveInteger(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseByte(const S: UTF8String; out Value: Shortint);
+procedure xsdParseByte(const S: AnsiString; out Value: Shortint);
 begin
   xsdParseByte(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseShort(const S: UTF8String; out Value: Smallint);
+procedure xsdParseShort(const S: AnsiString; out Value: Smallint);
 begin
   xsdParseShort(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseInt(const S: UTF8String; out Value: Longint);
+procedure xsdParseInt(const S: AnsiString; out Value: Longint);
 begin
   xsdParseInt(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseLong(const S: UTF8String; out Value: Int64);
+procedure xsdParseLong(const S: AnsiString; out Value: Int64);
 begin
   xsdParseLong(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseUnsignedByte(const S: UTF8String; out Value: Byte);
+procedure xsdParseUnsignedByte(const S: AnsiString; out Value: Byte);
 begin
   xsdParseUnsignedByte(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseUnsignedShort(const S: UTF8String; out Value: Word);
+procedure xsdParseUnsignedShort(const S: AnsiString; out Value: Word);
 begin
   xsdParseUnsignedShort(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseUnsignedInt(const S: UTF8String; out Value: Longword);
+procedure xsdParseUnsignedInt(const S: AnsiString; out Value: Longword);
 begin
   xsdParseUnsignedInt(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseUnsignedLong(const S: UTF8String; out Value: QWord);
+procedure xsdParseUnsignedLong(const S: AnsiString; out Value: QWord);
 begin
   xsdParseUnsignedLong(PChar(S), Length(S), Value);
 end;
 
-procedure xsdParseEnum(const S: UTF8String; enum: array of Utf8String; out Value: Integer);
+procedure xsdParseEnum(const S: AnsiString; enum: array of AnsiString; out Value: Integer);
 begin
   xsdParseEnum(PChar(S), Length(S), enum, Value);
 end;
 
-function xsdParseString(const S: UTF8String): Utf8String;
+function xsdParseString(const S: AnsiString): AnsiString;
 begin
   xsdParseString(PChar(S), Length(S), Result);
 end;
 
-function xsdParseStringLower(const S: UTF8String): Utf8String;
+function xsdParseStringLower(const S: AnsiString): AnsiString;
 begin
   xsdParseStringLower(PChar(S), Length(S), Result);
 end;
 
-function xsdParseBoolean(const S: UTF8String): Boolean;
+function xsdParseBoolean(const S: AnsiString): Boolean;
 begin
   xsdParseBoolean(PChar(S), Length(S), Result);
 end;
 
-function xsdParseDate(const S: UTF8String; Timezone: PXsdTimezone): TDateTime;
+function xsdParseDate(const S: AnsiString; Timezone: PXsdTimezone): TDateTime;
 begin
   xsdParseDate(PChar(S), Length(S), Result, Timezone);
 end;
 
-function xsdParseTime(const S: UTF8String; Timezone: PXsdTimezone): TDateTime;
+function xsdParseTime(const S: AnsiString; Timezone: PXsdTimezone): TDateTime;
 begin
   xsdParseTime(PChar(S), Length(S), Result, Timezone);
 end;
 
-function xsdParseDateTime(const S: UTF8String; Timezone: PXsdTimezone): TDateTime;
+function xsdParseDateTime(const S: AnsiString; Timezone: PXsdTimezone): TDateTime;
 begin
   xsdParseDateTime(PChar(S), Length(S), Result, Timezone);
 end;
 
-function xsdParseDecimal(const S: UTF8String): Extended;
+function xsdParseDecimal(const S: AnsiString): Extended;
 begin
   xsdParseDecimal(PChar(S), Length(S), Result);
 end;
 
-function xsdParseDouble(const S: UTF8String): Double;
+function xsdParseDouble(const S: AnsiString): Double;
 begin
   xsdParseDouble(PChar(S), Length(S), Result);
 end;
 
-function xsdParseFloat(const S: UTF8String): Single;
+function xsdParseFloat(const S: AnsiString): Single;
 begin
   xsdParseFloat(PChar(S), Length(S), Result);
 end;
 
-function xsdParseInteger(const S: UTF8String): Int64;
+function xsdParseInteger(const S: AnsiString): Int64;
 begin
   xsdParseInteger(PChar(S), Length(S), Result);
 end;
 
-function xsdParseNonNegativeInteger(const S: UTF8String): QWord;
+function xsdParseNonNegativeInteger(const S: AnsiString): QWord;
 begin
   xsdParseNonNegativeInteger(PChar(S), Length(S), Result);
 end;
 
-function xsdParseNonPositiveInteger(const S: UTF8String): Int64;
+function xsdParseNonPositiveInteger(const S: AnsiString): Int64;
 begin
   xsdParseNonPositiveInteger(PChar(S), Length(S), Result);
 end;
 
-function xsdParseNegativeInteger(const S: UTF8String): Int64;
+function xsdParseNegativeInteger(const S: AnsiString): Int64;
 begin
   xsdParseNegativeInteger(PChar(S), Length(S), Result);
 end;
 
-function xsdParsePositiveInteger(const S: UTF8String): QWord;
+function xsdParsePositiveInteger(const S: AnsiString): QWord;
 begin
   xsdParsePositiveInteger(PChar(S), Length(S), Result);
 end;
 
-function xsdParseByte(const S: UTF8String): Shortint;
+function xsdParseByte(const S: AnsiString): Shortint;
 begin
   xsdParseByte(PChar(S), Length(S), Result);
 end;
 
-function xsdParseShort(const S: UTF8String): Smallint;
+function xsdParseShort(const S: AnsiString): Smallint;
 begin
   xsdParseShort(PChar(S), Length(S), Result);
 end;
 
-function xsdParseInt(const S: UTF8String): Longint;
+function xsdParseInt(const S: AnsiString): Longint;
 begin
   xsdParseInt(PChar(S), Length(S), Result);
 end;
 
-function xsdParseLong(const S: UTF8String): Int64;
+function xsdParseLong(const S: AnsiString): Int64;
 begin
   xsdParseLong(PChar(S), Length(S), Result);
 end;
 
-function xsdParseUnsignedByte(const S: UTF8String): Byte;
+function xsdParseUnsignedByte(const S: AnsiString): Byte;
 begin
   xsdParseUnsignedByte(PChar(S), Length(S), Result);
 end;
 
-function xsdParseUnsignedShort(const S: UTF8String): Word;
+function xsdParseUnsignedShort(const S: AnsiString): Word;
 begin
   xsdParseUnsignedShort(PChar(S), Length(S), Result);
 end;
 
-function xsdParseUnsignedInt(const S: UTF8String): Longword;
+function xsdParseUnsignedInt(const S: AnsiString): Longword;
 begin
   xsdParseUnsignedInt(PChar(S), Length(S), Result);
 end;
 
-function xsdParseUnsignedLong(const S: UTF8String): QWord;
+function xsdParseUnsignedLong(const S: AnsiString): QWord;
 begin
   xsdParseUnsignedLong(PChar(S), Length(S), Result);
 end;
 
-function xsdParseEnum(const S: UTF8String; enum: array of Utf8String): Integer;
+function xsdParseEnum(const S: AnsiString; enum: array of AnsiString): Integer;
 begin
   xsdParseEnum(PChar(S), Length(S), enum, Result);
 end;

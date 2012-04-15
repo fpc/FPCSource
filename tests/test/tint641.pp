@@ -1,3 +1,7 @@
+
+{$R-}
+{$Q-}
+
 const
    q2 : qword = 1234;
    i2 : int64 = -1234;
@@ -16,11 +20,13 @@ procedure p1(q : qword;i : int64);
 function f1 : qword;
 
   begin
+   f1:=1;
   end;
 
 function f2 : int64;
 
   begin
+   f2:=-1;
   end;
 
 var

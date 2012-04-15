@@ -36,7 +36,7 @@ Objects ............... tobject1.pp    Fail in constructor
 Exceptions ............ texception1.pp
                         texception2.pp
                         texception3.pp
-			texception4.pp Math exceptions
+                        texception4.pp Math exceptions
 Procedure Variable .... tprocvar1.pp
                         tprocvar2.pp
 Libraries ............. testlib.pp     a very primitive test
@@ -52,8 +52,8 @@ case .................. tcase1.pp      tests case statements with byte and word
                         tcase2.pp      tests case with sub enum types
 Arrays ................ tarray1.pp     open arrays with classes
                         tarray2.pp     Array of const
-			tarray3.pp     Array of Char #1 (Known bug)
-			tarray4.pp     Array of Char #2 (Known bug)
+                        tarray3.pp     Array of Char #1 (Known bug)
+                        tarray4.pp     Array of Char #2 (Known bug)
 Enumerations .......... tenum1.pp      tests assignments of subrange
                                        enumerations
 Codegenerration ....... tcg1.pp        i386 pushw
@@ -63,8 +63,8 @@ Inline ................ tinline1.pp    tests recursive inlining, inlining
                                        a procedure multiple times and
                                        inlining procedures in other
                                        inline procedures.
-			tinlin64.pp    tests for a problem in pushing 64bit parameters
-				       by value.	
+                        tinlin64.pp    tests for a problem in pushing 64bit parameters
+                                       by value.
 TypeInfo .............. trtti2.pp      test the function system.typeinfo
                         trtti3.pp      tests the procedure system.finalize
 Resourcestrings ....... tresstr.pp     tests a simple resource string
@@ -81,6 +81,10 @@ Assembler readers...... tasmread.pp    tests for support of unit or program spec
                         testmovd.pp    testspecial issues about MOVD instruction
 Variants............... tvariant.pp    tests the variant support of FPC
                         tasout.pp      tests a problem if a unit is compiled with nasm
+
+Code Page strings       tpcstr1.pp     tests the new codepage string type introduced
+                         ...           in the 'cpstrnew' branch.
+                        tcpstrXX.pp
 
 --------------------------------------------------------------------
                             RTL

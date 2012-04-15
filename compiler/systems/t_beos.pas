@@ -191,8 +191,8 @@ procedure TLinkerBeOS.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE `cat $RES`';
-     DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE `cat $RES`';
+     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $CATRES';
+     DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $CATRES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 (*
      ExeCmd[1]:='sh $RES $EXE $OPT $STATIC $STRIP -L.';
@@ -351,7 +351,6 @@ begin
    end;
 
 { Write and Close response }
-  linkres.Add(' ');
   linkres.writetodisk;
   linkres.free;
 
@@ -363,7 +362,8 @@ function TLinkerBeOS.MakeExecutable:boolean;
 var
   binstr,
   cmdstr : TCmdStr;
-  success : boolean;
+  success,
+  useshell : boolean;
   DynLinkStr : string[60];
   GCSectionsStr,
   StaticStr,
@@ -403,12 +403,14 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
-  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,true);
+  useshell:=not (tf_no_backquote_support in source_info.flags);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,useshell);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
@@ -459,6 +461,7 @@ var
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);

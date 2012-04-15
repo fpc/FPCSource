@@ -27,6 +27,7 @@ unit ngenutil;
 interface
 
   uses
+    cclasses,
     node,symtype,symsym,symconst,symdef;
 
 
@@ -52,11 +53,16 @@ interface
 
       class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
       class procedure InsertInitFinalTable; virtual;
+     protected
+      class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal); virtual;
+      class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal); virtual;
      public
       class procedure InsertThreadvarTablesTable; virtual;
       class procedure InsertThreadvars; virtual;
       class procedure InsertWideInitsTablesTable; virtual;
       class procedure InsertWideInits; virtual;
+      class procedure InsertResStrInits; virtual;
+      class procedure InsertResStrTablesTable; virtual;
       class procedure InsertResourceTablesTable; virtual;
       class procedure InsertResourceInfo(ResourcesUsed : boolean); virtual;
 
@@ -74,7 +80,7 @@ interface
 implementation
 
     uses
-      verbose,version,globtype,globals,cclasses,cutils,constexp,
+      verbose,version,globtype,globals,cutils,constexp,
       scanner,systems,procinfo,fmodule,
       aasmbase,aasmdata,aasmtai,
       symbase,symtable,defutil,
@@ -157,6 +163,13 @@ implementation
              cnilnode.create
              );
         end
+      else if (p.resultdef.typ=variantdef) then
+        begin
+          result:=ccallnode.createintern('fpc_variant_init',
+            ccallparanode.create(
+              ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
+            nil));
+        end
       else
         begin
           result:=ccallnode.createintern('fpc_initialize',
@@ -173,57 +186,33 @@ implementation
 
   class function tnodeutils.finalize_data_node(p:tnode):tnode;
     var
-      newstatement : tstatementnode;
+      hs : string;
     begin
       if not assigned(p.resultdef) then
         typecheckpass(p);
+      { 'decr_ref' suffix is somewhat misleading, all these helpers
+        set the passed pointer to nil now }
       if is_ansistring(p.resultdef) then
-        begin
-          result:=internalstatements(newstatement);
-          addstatement(newstatement,ccallnode.createintern('fpc_ansistr_decr_ref',
-                ccallparanode.create(
-                  ctypeconvnode.create_internal(p,voidpointertype),
-                nil)));
-          addstatement(newstatement,cassignmentnode.create(
-             ctypeconvnode.create_internal(p.getcopy,voidpointertype),
-             cnilnode.create
-             ));
-        end
+        hs:='fpc_ansistr_decr_ref'
       else if is_widestring(p.resultdef) then
-        begin
-          result:=internalstatements(newstatement);
-          addstatement(newstatement,ccallnode.createintern('fpc_widestr_decr_ref',
-                ccallparanode.create(
-                  ctypeconvnode.create_internal(p,voidpointertype),
-                nil)));
-          addstatement(newstatement,cassignmentnode.create(
-             ctypeconvnode.create_internal(p.getcopy,voidpointertype),
-             cnilnode.create
-             ));
-        end
+        hs:='fpc_widestr_decr_ref'
       else if is_unicodestring(p.resultdef) then
-        begin
-          result:=internalstatements(newstatement);
-          addstatement(newstatement,ccallnode.createintern('fpc_unicodestr_decr_ref',
-                ccallparanode.create(
-                  ctypeconvnode.create_internal(p,voidpointertype),
-                nil)));
-          addstatement(newstatement,cassignmentnode.create(
-             ctypeconvnode.create_internal(p.getcopy,voidpointertype),
-             cnilnode.create
-             ));
-        end
+        hs:='fpc_unicodestr_decr_ref'
       else if is_interfacecom_or_dispinterface(p.resultdef) then
+        hs:='fpc_intf_decr_ref'
+      else
+        hs:='';
+      if hs<>'' then
+        result:=ccallnode.createintern(hs,
+           ccallparanode.create(
+             ctypeconvnode.create_internal(p,voidpointertype),
+             nil))
+      else if p.resultdef.typ=variantdef then
         begin
-          result:=internalstatements(newstatement);
-          addstatement(newstatement,ccallnode.createintern('fpc_intf_decr_ref',
-                ccallparanode.create(
-                  ctypeconvnode.create_internal(p,voidpointertype),
-                nil)));
-          addstatement(newstatement,cassignmentnode.create(
-             ctypeconvnode.create_internal(p.getcopy,voidpointertype),
-             cnilnode.create
-             ));
+          result:=ccallnode.createintern('fpc_variant_clear',
+            ccallparanode.create(
+              ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
+            nil));
         end
       else
         result:=ccallnode.createintern('fpc_finalize',
@@ -268,7 +257,7 @@ implementation
                   not yet be complete at this point (there may be more inside
                   method definitions coming after this class constructor), the
                   ones from inside the class definition have already been parsed.
-                  in case of {$j-}, these are marked "final" in Java and such
+                  in case of $j-, these are marked "final" in Java and such
                   static fields must be initialsed in the class constructor
                   itself -> add them here }
                 block:=internalstatements(stat);
@@ -372,7 +361,20 @@ implementation
          (assigned(current_procinfo) and
           (po_inline in current_procinfo.procdef.procoptions)) or
          (vo_is_public in sym.varoptions) then
-        list.concat(Tai_datablock.create_global(sym.mangledname,l))
+        begin
+          { on AIX/stabx, we cannot generate debug information that encodes
+            the address of a global symbol, you need a symbol with the same
+            name as the identifier -> create an extra *local* symbol.
+            Moreover, such a local symbol will be removed if it's not
+            referenced anywhere, so also create a reference }
+          if (target_dbg.id=dbg_stabx) and
+             (cs_debuginfo in current_settings.moduleswitches) then
+            begin
+              list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA),0));
+               list.concat(tai_directive.Create(asd_reference,sym.name));
+            end;
+          list.concat(Tai_datablock.create_global(sym.mangledname,l));
+        end
       else
         list.concat(Tai_datablock.create(sym.mangledname,l));
       current_filepos:=storefilepos;
@@ -580,51 +582,51 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertWideInitsTablesTable;
+  class procedure tnodeutils.InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal);
     var
       hp: tused_unit;
-      lwiTables: TAsmList;
+      hlist: TAsmList;
       count: longint;
     begin
-      lwiTables:=TAsmList.Create;
+      hlist:=TAsmList.Create;
       count:=0;
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         if (hp.u.flags and uf_wideinits)=uf_wideinits then
+         if (hp.u.flags and unitflag)=unitflag then
           begin
-            lwiTables.concat(Tai_const.Createname(make_mangledname('WIDEINITS',hp.u.globalsymtable,''),0));
+            hlist.concat(Tai_const.Createname(make_mangledname(prefix,hp.u.globalsymtable,''),0));
             inc(count);
           end;
          hp:=tused_unit(hp.next);
        end;
-      { Add program widestring consts, if any }
-      if (current_module.flags and uf_wideinits)=uf_wideinits then
+      { Add items from program, if any }
+      if (current_module.flags and unitflag)=unitflag then
        begin
-         lwiTables.concat(Tai_const.Createname(make_mangledname('WIDEINITS',current_module.localsymtable,''),0));
+         hlist.concat(Tai_const.Createname(make_mangledname(prefix,current_module.localsymtable,''),0));
          inc(count);
        end;
       { Insert TableCount at start }
-      lwiTables.insert(Tai_const.Create_32bit(count));
+      hlist.insert(Tai_const.Create_32bit(count));
       { insert in data segment }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_WIDEINITTABLES',sizeof(pint));
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_WIDEINITTABLES',AT_DATA,0));
-      current_asmdata.asmlists[al_globals].concatlist(lwiTables);
-      current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('FPC_WIDEINITTABLES'));
-      lwiTables.free;
+      new_section(current_asmdata.asmlists[al_globals],sec_data,tablename,sizeof(pint));
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(tablename,AT_DATA,0));
+      current_asmdata.asmlists[al_globals].concatlist(hlist);
+      current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(tablename));
+      hlist.free;
     end;
 
 
-  class procedure tnodeutils.InsertWideInits;
+  class procedure tnodeutils.InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal);
     var
       s: string;
       item: TTCInitItem;
     begin
-      item:=TTCInitItem(current_asmdata.WideInits.First);
+      item:=TTCInitItem(list.First);
       if item=nil then
         exit;
-      s:=make_mangledname('WIDEINITS',current_module.localsymtable,'');
+      s:=make_mangledname(prefix,current_module.localsymtable,'');
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(pint));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
@@ -642,7 +644,31 @@ implementation
       { end-of-list marker }
       current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(s));
-      current_module.flags:=current_module.flags or uf_wideinits;
+      current_module.flags:=current_module.flags or unitflag;
+    end;
+
+
+  class procedure tnodeutils.InsertWideInits;
+    begin
+      InsertRuntimeInits('WIDEINITS',current_asmdata.WideInits,uf_wideinits);
+    end;
+
+
+  class procedure tnodeutils.InsertResStrInits;
+    begin
+      InsertRuntimeInits('RESSTRINITS',current_asmdata.ResStrInits,uf_resstrinits);
+    end;
+
+
+  class procedure tnodeutils.InsertWideInitsTablesTable;
+    begin
+      InsertRuntimeInitsTablesTable('WIDEINITS','FPC_WIDEINITTABLES',uf_wideinits);
+    end;
+
+
+  class procedure tnodeutils.InsertResStrTablesTable;
+    begin
+      InsertRuntimeInitsTablesTable('RESSTRINITS','FPC_RESSTRINITTABLES',uf_resstrinits);
     end;
 
 
@@ -681,7 +707,7 @@ implementation
     var
       ResourceInfo : TAsmList;
     begin
-      if (target_res.id in [res_elf,res_macho]) then
+      if (target_res.id in [res_elf,res_macho,res_xcoff]) then
         begin
         ResourceInfo:=TAsmList.Create;
 
@@ -693,7 +719,7 @@ implementation
           ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',0))
         else
           { Nil pointer to resource information }
-          {$IFDEF CPU32}
+          {$IFNDEF cpu64bitaddr}
           ResourceInfo.Concat(Tai_const.Create_32bit(0));
           {$ELSE}
           ResourceInfo.Concat(Tai_const.Create_64bit(0));

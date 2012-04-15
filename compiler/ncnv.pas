@@ -326,7 +326,12 @@ implementation
         if equal_defs(p.resultdef,def) and
            (p.resultdef.typ=def.typ) and
            not is_bitpacked_access(p) then
-          p.resultdef:=def
+          begin
+            { don't replace encoded string constants to rawbytestring encoding.
+              preserve the codepage }
+            if not (is_rawbytestring(def) and (p.nodetype=stringconstn)) then
+              p.resultdef:=def
+          end
         else
          begin
            case convtype of
@@ -655,7 +660,7 @@ implementation
            (p.nodetype=stringconstn) and
            { don't cast to AnsiString if already casted to Wide/UnicodeString, issue #18266 }
            (tstringconstnode(p).cst_type in [cst_conststring,cst_shortstring,cst_longstring]) then
-          p:=ctypeconvnode.create_internal(p,cansistringtype)
+          p:=ctypeconvnode.create_internal(p,getansistringdef)
         else
           case p.resultdef.typ of
             enumdef :
@@ -980,6 +985,28 @@ implementation
             addstatement(newstat,ctemprefnode.create(restemp));
             result:=newblock;
           end
+        else if (tstringdef(resultdef).stringtype=st_ansistring) then
+          begin
+            result:=ccallnode.createinternres(
+                      'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
+                      ccallparanode.create(
+                        cordconstnode.create(
+                          ord(tarraydef(left.resultdef).lowrange=0),
+                          pasbool8type,
+                          false
+                        ),
+                        ccallparanode.create(
+                          cordconstnode.create(
+                            getparaencoding(resultdef),
+                            u16inttype,
+                            true
+                          ),
+                          ccallparanode.create(left,nil)
+                        )
+                      ),
+                      resultdef
+                    );
+          end
         else
           result:=ccallnode.createinternres(
             'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
@@ -1031,7 +1058,7 @@ implementation
              else
                begin
                  if tstringconstnode(left).len>255 then
-                   inserttypeconv(left,cansistringtype)
+                   inserttypeconv(left,getansistringdef)
                  else
                    inserttypeconv(left,cshortstringtype);
                end;
@@ -1053,13 +1080,6 @@ implementation
       end;
 
 
-    function ttypeconvnode.typecheck_string_to_string: tnode;
-      begin
-        { nothing to do by default }
-        result:=nil;
-      end;
-
-
     function ttypeconvnode.typecheck_char_to_string : tnode;
       var
         procname: string[31];
@@ -1069,16 +1089,14 @@ implementation
         newblock : tblocknode;
         newstat  : tstatementnode;
         restemp  : ttempcreatenode;
+        sa : ansistring;
+        cw : tcompilerwidechar;
+        l : SizeUInt;
       begin
          result:=nil;
-         { we can't do widechar to ansichar conversions at compile time, since }
-         { this maps all non-ascii chars to '?' -> loses information           }
-
          if (left.nodetype=ordconstn) and
-            ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
-             (torddef(left.resultdef).ordtype=uchar) or
-             { widechar >=128 is destroyed }
-             (tordconstnode(left).value.uvalue<128)) then
+            ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring]) or
+             (torddef(left.resultdef).ordtype in [uchar,uwidechar])) then
            begin
               if (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
                begin
@@ -1094,36 +1112,76 @@ implementation
               else
                 begin
                   if (torddef(left.resultdef).ordtype=uwidechar) then
-                    hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)))
+                    begin
+                      if (current_settings.sourcecodepage<>CP_UTF8) then
+                        begin
+                          if tordconstnode(left).value.uvalue>127 then
+                            Message(type_w_unicode_data_loss);
+                          hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                        end
+                      else
+                        begin
+                          cw:=tcompilerwidechar(tordconstnode(left).value.uvalue);
+                          SetLength(sa,5);
+                          l:=UnicodeToUtf8(@(sa[1]),Length(sa),@cw,1);
+                          SetLength(sa,l-1);
+                          hp:=cstringconstnode.createstr(sa);
+                        end
+                    end
                   else
                     hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue));
-                  tstringconstnode(hp).changestringtype(resultdef);
+                  { output string consts in local ansistring encoding }
+                  if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0) or (tstringdef(resultdef).encoding=globals.CP_NONE)) then
+                    tstringconstnode(hp).changestringtype(getansistringdef)
+                  else
+                    tstringconstnode(hp).changestringtype(resultdef);
                 end;
               result:=hp;
            end
          else
-           { shortstrings are handled 'inline' for non-vm targets (except for widechars) }
-           if (tstringdef(resultdef).stringtype <> st_shortstring) or
-              (torddef(left.resultdef).ordtype = uwidechar) or
+           { shortstrings are handled 'inline' (except for widechars) }
+           if (tstringdef(resultdef).stringtype<>st_shortstring) or
+              (torddef(left.resultdef).ordtype=uwidechar) or
               (target_info.system in systems_managed_vm) then
              begin
-               if (tstringdef(resultdef).stringtype <> st_shortstring) then
+               if (tstringdef(resultdef).stringtype<>st_shortstring) then
                  begin
+                   { parameter }
+                   para:=ccallparanode.create(left,nil);
+                   { encoding required? }
+                   if tstringdef(resultdef).stringtype=st_ansistring then
+                     para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
+
                    { create the procname }
                    if torddef(left.resultdef).ordtype<>uwidechar then
-                     procname := 'fpc_char_to_'
+                     begin
+                       procname:='fpc_char_to_';
+                       if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
+                         if nf_explicit in flags then
+                           Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
+                         else
+                           Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
+                     end
                    else
-                     procname := 'fpc_uchar_to_';
+                     begin
+                       procname:='fpc_uchar_to_';
+                       if not (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
+                         if nf_explicit in flags then
+                           Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+                         else
+                           Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
+                     end;
                    procname:=procname+tstringdef(resultdef).stringtypname;
 
-                   { and the parameter }
-                   para := ccallparanode.create(left,nil);
-
                    { and finally the call }
-                   result := ccallnode.createinternres(procname,para,resultdef);
+                   result:=ccallnode.createinternres(procname,para,resultdef);
                  end
                else
                  begin
+                   if nf_explicit in flags then
+                     Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+                   else
+                     Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
                    newblock:=internalstatements(newstat);
                    restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
                    addstatement(newstat,restemp);
@@ -1156,6 +1214,66 @@ implementation
              end;
       end;
 
+    function ttypeconvnode.typecheck_string_to_string : tnode;
+      begin
+        result:=nil;
+        if (left.nodetype=stringconstn) and
+           (((tstringdef(resultdef).stringtype=st_ansistring) and
+             (tstringdef(resultdef).encoding<>CP_NONE)
+            )
+           ) and
+           (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) then
+          begin
+            tstringconstnode(left).changestringtype(resultdef);
+            Result:=left;
+            left:=nil;
+          end
+        else if (tstringdef(resultdef).stringtype=st_ansistring) and
+                (tstringdef(left.resultdef).stringtype=st_ansistring) and
+                (tstringdef(resultdef).encoding<>tstringdef(left.resultdef).encoding) then
+          begin
+            result:=ccallnode.createinternres(
+                      'fpc_ansistr_to_ansistr',
+                      ccallparanode.create(
+                        cordconstnode.create(
+                          tstringdef(resultdef).encoding,
+                          u16inttype,
+                          true
+                        ),
+                        ccallparanode.create(left,nil)
+                      ),
+                      resultdef
+                    );
+            left:=nil;
+          end
+        else if (left.nodetype=stringconstn) and
+                (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and
+                (tstringdef(resultdef).stringtype=st_shortstring) then
+          begin
+            if not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str)) then
+              begin
+                tstringconstnode(left).changestringtype(resultdef);
+                Result:=left;
+                left:=nil;
+              end;
+          end
+        else if (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and
+                not (tstringdef(resultdef).stringtype in [st_unicodestring,st_widestring]) then
+          begin
+            if nf_explicit in flags then
+              Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+            else
+              Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
+          end
+        else if not (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and
+                (tstringdef(resultdef).stringtype in [st_unicodestring,st_widestring]) then
+          begin
+            if nf_explicit in flags then
+              Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
+            else
+              Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
+          end
+      end;
 
     function ttypeconvnode.typecheck_char_to_chararray : tnode;
       begin
@@ -1180,12 +1298,15 @@ implementation
          if (left.nodetype=ordconstn) and
             ((torddef(resultdef).ordtype<>uchar) or
              (torddef(left.resultdef).ordtype<>uwidechar) or
-             { >= 128 is replaced by '?' currently -> loses information }
-             (tordconstnode(left).value.uvalue<128)) then
+             (current_settings.sourcecodepage<>CP_UTF8))
+         then
            begin
              if (torddef(resultdef).ordtype=uchar) and
-                (torddef(left.resultdef).ordtype=uwidechar) then
+                (torddef(left.resultdef).ordtype=uwidechar) and
+                (current_settings.sourcecodepage<>CP_UTF8) then
               begin
+                if tordconstnode(left).value.uvalue>127 then
+                  Message(type_w_unicode_data_loss);
                 hp:=cordconstnode.create(
                       ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue))),
                       cansichartype,true);
@@ -1357,7 +1478,7 @@ implementation
               (is_widestring(left.resultdef) or
                is_unicodestring(left.resultdef)) then
              begin
-               inserttypeconv(left,cansistringtype);
+               inserttypeconv(left,getansistringdef);
                { the second pass of second_cstring_to_pchar expects a  }
                { strinconstn, but this may become a call to the        }
                { widestring manager in case left contains "high ascii" }
@@ -1436,6 +1557,15 @@ implementation
             addstatement(newstat,ctemprefnode.create(restemp));
             result:=newblock;
           end
+        else if tstringdef(resultdef).stringtype=st_ansistring then
+          result := ccallnode.createinternres(
+                      'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
+                      ccallparanode.create(
+                        cordconstnode.create(getparaencoding(resultdef),u16inttype,true),
+                        ccallparanode.create(left,nil)
+                      ),
+                      resultdef
+                    )
         else
           result := ccallnode.createinternres(
             'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
@@ -1497,6 +1627,21 @@ implementation
             addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
             addstatement(newstat,ctemprefnode.create(restemp));
             result:=newblock;
+          end
+        else if tstringdef(resultdef).stringtype=st_ansistring then
+          begin
+            result:=ccallnode.createinternres(
+                        'fpc_pwidechar_to_'+tstringdef(resultdef).stringtypname,
+                         ccallparanode.create(
+                           cordconstnode.create(
+                             getparaencoding(resultdef),
+                             u16inttype,
+                             true
+                           ),
+                           ccallparanode.create(left,nil)
+                         ),
+                         resultdef
+                      );
           end
         else
           result := ccallnode.createinternres(
@@ -2430,13 +2575,17 @@ implementation
               (
                 ((not is_widechararray(left.resultdef) and
                   not is_wide_or_unicode_string(left.resultdef)) or
-                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
-                 { non-ascii chars would be replaced with '?' -> loses info }
-                 not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str)))
+                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring])
+                )
               ) then
               begin
-                tstringconstnode(left).changestringtype(resultdef);
+                { output string consts in local ansistring encoding }
+                if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0)or(tstringdef(resultdef).encoding=globals.CP_NONE)) then
+                  tstringconstnode(left).changestringtype(getansistringdef)
+                else
+                  tstringconstnode(left).changestringtype(resultdef);
                 result:=left;
+                resultdef:=left.resultdef;
                 left:=nil;
                 exit;
               end;
@@ -3142,8 +3291,15 @@ implementation
             addstatement(newstat,ctemprefnode.create(restemp));
             result:=newblock;
           end
+        { encoding parameter required? }
+        else if (tstringdef(resultdef).stringtype=st_ansistring) and
+                (tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring,st_shortstring,st_ansistring]) then
+            result:=ccallnode.createinternres(procname,
+              ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),
+              ccallparanode.create(left,nil)),resultdef)
         else
-          result := ccallnode.createinternres(procname,ccallparanode.create(left,nil),resultdef);
+          result:=ccallnode.createinternres(procname,ccallparanode.create(left,nil),resultdef);
+
         left:=nil;
       end;
 

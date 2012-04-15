@@ -24,8 +24,10 @@ uses sysutils, classes, simpleipc, baseunix;
 {$else}
 
 uses baseunix;
-
 {$endif}
+
+{$DEFINE OSNEEDIPCINITDONE}
+
 
 
 
@@ -56,6 +58,55 @@ Type
 implementation
 {$endif}
 
+Var
+  SocketFiles : TStringList;
+
+Procedure IPCInit;
+
+begin
+end;
+
+Procedure IPCDone;
+
+Var
+  I : integer;
+  
+begin
+  if Assigned(SocketFiles) then
+    try
+      For I:=0 to SocketFiles.Count-1 do
+        DeleteFile(SocketFiles[i]);
+    finally  
+      FreeAndNil(SocketFiles);  
+    end;  
+end;
+
+
+Procedure RegisterSocketFile(Const AFileName : String);
+
+begin
+  If Not Assigned(SocketFiles) then
+    begin
+    SocketFiles:=TStringList.Create;
+    SocketFiles.Sorted:=True;
+    end;
+  SocketFiles.Add(AFileName);  
+end;
+
+Procedure UnRegisterSocketFile(Const AFileName : String);
+
+Var
+  I : Integer;
+begin
+  If Assigned(SocketFiles) then
+    begin
+    I:=SocketFiles.IndexOf(AFileName);  
+    If (I<>-1) then
+      SocketFiles.Delete(I);
+    If (SocketFiles.Count=0) then
+      FreeAndNil(SocketFiles);
+    end;
+end;
 
 
 constructor TPipeClientComm.Create(AOWner: TSimpleIPCClient);
@@ -104,8 +155,27 @@ begin
 end;
 
 function TPipeClientComm.ServerRunning: Boolean;
+var
+  fd: cint;
 begin
   Result:=FileExists(FFileName);
+  // it's possible to have a stale file that is not open for reading which will
+  // cause fpOpen to hang/block later when .Active is set to true while it
+  // wait's for the pipe to be opened on the other end
+  if Result then
+  begin
+    // O_WRONLY | O_NONBLOCK causes fpOpen to return -1 if the file is not open for reading
+    // so in fact the 'server' is not running
+    fd := FpOpen(FFileName, O_WRONLY or O_NONBLOCK);
+    if fd = -1 then
+    begin
+      Result := False;
+      // delete the named pipe since it's orphaned
+      FpUnlink(FFileName);
+    end
+    else
+      FpClose(fd);
+  end;
 end;
 
 
@@ -145,15 +215,23 @@ end;
 
 
 procedure TPipeServerComm.StartServer;
+
+const
+  PrivateRights = S_IRUSR or S_IWUSR;
+  GlobalRights  = PrivateRights or S_IRGRP or S_IWGRP or S_IROTH or S_IWOTH;
+  Rights : Array [Boolean] of Integer = (PrivateRights,GlobalRights);  
+    
 begin
   If not FileExists(FFileName) then
     If (fpmkFifo(FFileName,438)<>0) then
       DoError(SErrFailedToCreatePipe,[FFileName]);
-  FStream:=TFileStream.Create(FFileName,fmOpenReadWrite+fmShareDenyNone);
+  FStream:=TFileStream.Create(FFileName,fmOpenReadWrite+fmShareDenyNone,Rights[Owner.Global]);
+  RegisterSocketFile(FFileName);
 end;
 
 procedure TPipeServerComm.StopServer;
 begin
+  UnregisterSocketFile(FFileName);
   FreeAndNil(FStream);
   if Not DeleteFile(FFileName) then
     DoError(SErrFailedtoRemovePipe,[FFileName]);
@@ -217,5 +295,10 @@ begin
 end;
 
 {$else ipcunit}
+initialization
+  IPCInit;
+  
+Finalization
+  IPCDone;  
 end.
 {$endif}

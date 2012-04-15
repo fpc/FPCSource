@@ -1179,6 +1179,10 @@ begin
     SysInitExceptions;
     fpc_cpucodeinit;
 
+{$ifdef HASWIDESTRING}
+    InitUnicodeStringManager;
+{$endif HASWIDESTRING}
+
     { ... and I/O }
     SysInitStdIO;
 
@@ -1196,14 +1200,6 @@ begin
 
     InitSystemThreads;
     InitVariantManager;
-
-{$ifdef HASWIDESTRING}
- {$ifdef VER2_2}
-    InitWideStringManager;
- {$else VER2_2}
-    InitUnicodeStringManager;
- {$endif VER2_2}
-{$endif HASWIDESTRING}
 
 {$IFDEF EXTDUMPGROW}
 {    Int_HeapSize := high (cardinal);}

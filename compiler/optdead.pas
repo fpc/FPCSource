@@ -28,7 +28,7 @@ unit optdead;
 
     uses
       globtype,
-      cclasses,
+      classes,cclasses,
       symtype,
       wpobase;
 
@@ -71,6 +71,8 @@ unit optdead;
         fsymnamepos  : longint;
         fsymfile     : text;
         fsymfilename : tcmdstr;
+        aixstrings   : tstringlist;
+        fuseaixextractstrings : boolean;
         function parselinenm(const line: ansistring): boolean;
         function parselineobjdump(const line: ansistring): boolean;
        public
@@ -78,6 +80,7 @@ unit optdead;
 
         { information collection }
         procedure constructfromcompilerstate; override;
+        destructor destroy; override;
       end;
 
 
@@ -216,16 +219,33 @@ const
 
   function twpodeadcodeinfofromexternallinker.parselinenm(const line: ansistring): boolean;
     begin
-      if (length(line) < fsymnamepos) then
+      if fuseaixextractstrings then
         begin
-          cgmessage1(wpo_error_reading_symbol_file,'nm');
-          close(fsymfile);
-          deletefile(fsymfilename);
-          result:=false;
-          exit;
+          result:=true;
+          if ExtractStrings([' ',#9],[],pchar(line),aixstrings)>=2 then
+            begin
+              if (length(aixstrings[1])=1) and
+                 (aixstrings[1][1] in ['t','T']) and
+                 (aixstrings[0][1]='.') then
+                fsymbols.add(copy(aixstrings[0],2,length(aixstrings[0])),pointer(1));
+            end;
+          aixstrings.clear;
+        end
+      else
+        begin
+          if (length(line) < fsymnamepos) then
+            begin
+              cgmessage1(wpo_error_reading_symbol_file,'nm');
+              close(fsymfile);
+              deletefile(fsymfilename);
+              result:=false;
+              exit;
+            end;
+          if (line[fsymtypepos] in ['T','t']) and
+             (not(target_info.system in systems_dotted_function_names) or
+              (line[fsymnamepos-1]='.')) then
+            fsymbols.add(copy(line,fsymnamepos,length(line)),pointer(1));
         end;
-      if (line[fsymtypepos] in ['T','t']) then
-        fsymbols.add(copy(line,fsymnamepos,length(line)),pointer(1));
       result:=true;
     end;
 
@@ -285,9 +305,9 @@ const
         if not result then
           exit;
         cgmessage1(wpo_error_reading_symbol_file,symbolprogfullpath);
-{$i-}
+{$push}{$i-}
         close(fsymfile);
-{$i+}
+{$pop}
         if fileexists(fsymfilename) then
           deletefile(fsymfilename);
       end;
@@ -300,6 +320,21 @@ const
             ...
         }
         result:=false;
+        if (source_info.system in systems_aix) and
+           (target_info.system in systems_aix) then
+          begin
+            { check for native aix nm:
+              .__start             t   268435792         213
+              .__start             T   268435792
+            }
+            if not(line[1] in ['0'..'9','a'..'f','A'..'F']) then
+              begin
+                fuseaixextractstrings:=true;
+                aixstrings:=tstringlist.create;
+                result:=true;
+                exit;
+              end;
+          end;
         fsymtypepos:=pos(' ',line)+1;
         fsymnamepos:=fsymtypepos+2;
         { on Linux/ppc64, there is an extra '.' at the start
@@ -311,9 +346,6 @@ const
           exit;
         { make sure there's room for the name }
         if failiferror(fsymnamepos>length(line)) then
-          exit;
-        { and that we're not in the middle of some other column }
-        if failiferror(pos(' ',copy(line,fsymnamepos,length(line)))>0) then
           exit;
         result:=true;
       end;
@@ -349,12 +381,14 @@ const
 
 
     begin { twpodeadcodeinfofromexternallinker }
+      fuseaixextractstrings:=false;
       { gnu-nm (e.g., on solaris) }
       symbolprogfound:=findutil('gnm',nmfullname,symbolprogfullpath);
       { regular nm }
       if not symbolprogfound then
         symbolprogfound:=findutil('nm',nmfullname,symbolprogfullpath);
-      if not symbolprogfound then
+      if not symbolprogfound and
+         (target_info.system in systems_linux) then
         begin
           { try objdump }
           symbolprogfound:=findutil('objdump',objdumpfullname,symbolprogfullpath);
@@ -389,9 +423,9 @@ const
         end;
 
       assign(fsymfile,fsymfilename);
-{$i-}
+{$push}{$i-}
       reset(fsymfile);
-{$i+}
+{$pop}
       if failiferror((ioresult<>0) or eof(fsymfile)) then
         exit;
       readln(fsymfile, line);
@@ -417,6 +451,13 @@ const
         end;
       close(fsymfile);
       deletefile(fsymfilename);
+    end;
+
+
+  destructor twpodeadcodeinfofromexternallinker.destroy;
+    begin
+      aixstrings.free;
+      inherited destroy;
     end;
 
 

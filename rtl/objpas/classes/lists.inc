@@ -197,10 +197,33 @@ begin
 end;
 
 function TFPList.IndexOf(Item: Pointer): Integer;
+
+Var
+  C : Integer;
+
 begin
-  Result := 0;
-  while(Result < FCount) and (Flist^[Result] <> Item) do Result := Result + 1;
-  If Result = FCount  then Result := -1;
+  Result:=0;
+  C:=Count;
+  while (Result<C) and (Flist^[Result]<>Item) do
+    Inc(Result);
+  If Result>=C then
+    Result:=-1;
+end;
+
+function TFPList.IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
+
+Var
+  C : Integer;
+
+begin
+  if Direction=fromBeginning then
+    Result:=IndexOf(Item)
+  else
+    begin
+    Result:=Count-1;
+    while (Result >=0) and (Flist^[Result]<>Item) do
+      Result:=Result - 1;
+    end;      
 end;
 
 procedure TFPList.Insert(Index: Integer; Item: Pointer);
@@ -232,9 +255,10 @@ begin
   if ((NewIndex < 0) or (NewIndex > Count -1)) then
     Error(SlistIndexError, NewIndex);
   Temp := FList^[CurIndex];
-  FList^[CurIndex] := nil;
-  Self.Delete(CurIndex);
-  Self.Insert(NewIndex, nil);
+  if NewIndex > CurIndex then
+    System.Move(FList^[CurIndex+1], FList^[CurIndex], (NewIndex - CurIndex) * SizeOf(Pointer))
+  else
+    System.Move(FList^[NewIndex], FList^[NewIndex+1], (CurIndex - NewIndex) * SizeOf(Pointer));
   FList^[NewIndex] := Temp;
 end;
 

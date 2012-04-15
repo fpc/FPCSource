@@ -24,6 +24,7 @@ begin
     P.Email := '';
     P.Description := 'D-Bus message bus interface. (1.2.16)';
     P.NeedLibC:= true;
+    P.OSes := [linux];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

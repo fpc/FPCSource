@@ -43,12 +43,22 @@ interface
           cpo_ignoreuniv,
           cpo_warn_incompatible_univ,
           cpo_ignorevarspez,          // ignore parameter access type
-          cpo_ignoreframepointer      // ignore frame pointer parameter (for assignment-compatibility of global procedures to nested procvars)
+          cpo_ignoreframepointer,     // ignore frame pointer parameter (for assignment-compatibility of global procedures to nested procvars)
+          cpo_compilerproc,
+          cpo_rtlproc
        );
 
        tcompare_paras_options = set of tcompare_paras_option;
 
-       tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant,cdo_parameter,cdo_warn_incompatible_univ);
+       tcompare_defs_option = (
+          cdo_internal,
+          cdo_explicit,
+          cdo_check_operator,
+          cdo_allow_variant,
+          cdo_parameter,
+          cdo_warn_incompatible_univ,
+          cdo_strict_undefined_check  // undefined defs are incompatible to everything except other undefined defs
+       );
        tcompare_defs_options = set of tcompare_defs_option;
 
        tconverttype = (tc_none,
@@ -215,14 +225,38 @@ implementation
             exit;
           end;
 
-         { undefined def? then mark it as equal }
-         if (def_from.typ=undefineddef) or
-            (def_to.typ=undefineddef) then
-          begin
-            doconv:=tc_equal;
-            compare_defs_ext:=te_exact;
-            exit;
-          end;
+         if cdo_strict_undefined_check in cdoptions then
+           begin
+             { undefined defs are considered equal if both are undefined defs }
+             if (def_from.typ=undefineddef) and
+                (def_to.typ=undefineddef) then
+              begin
+                doconv:=tc_equal;
+                compare_defs_ext:=te_exact;
+                exit;
+              end;
+
+             { if only one def is a undefined def then they are not considered as
+               equal}
+             if (def_from.typ=undefineddef) or
+                (def_to.typ=undefineddef) then
+              begin
+                doconv:=tc_not_possible;
+                compare_defs_ext:=te_incompatible;
+                exit;
+              end;
+           end
+         else
+           begin
+             { undefined defs are considered equal }
+             if (def_from.typ=undefineddef) or
+                (def_to.typ=undefineddef) then
+              begin
+                doconv:=tc_equal;
+                compare_defs_ext:=te_exact;
+                exit;
+              end;
+           end;
 
          { we walk the wanted (def_to) types and check then the def_from
            types if there is a conversion possible }
@@ -340,27 +374,68 @@ implementation
                      { Constant string }
                      if (fromtreetype=stringconstn) then
                       begin
-                        if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) then
+                        if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and
+                           ((tstringdef(def_from).stringtype<>st_ansistring) or
+                            (tstringdef(def_from).encoding=tstringdef(def_to).encoding)
+                           ) then
                           eq:=te_equal
                         else
                          begin
                            doconv:=tc_string_2_string;
-                           { Don't prefer conversions from widestring to a
-                             normal string as we can lose information }
-                           if (tstringdef(def_from).stringtype in [st_widestring,st_unicodestring]) and
-                             not (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
-                             eq:=te_convert_l3
-                           else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
-                             eq:=te_convert_l2
+                           if (tstringdef(def_from).stringtype = st_ansistring) and
+                              (tstringdef(def_to).stringtype = st_ansistring) then
+                             if (tstringdef(def_to).encoding=globals.CP_UTF8) then
+                               eq:=te_convert_l1
+                             else
+                               eq:=te_convert_l2
                            else
-                             eq:=te_equal;
+                            begin
+                              { Don't prefer conversions from widestring to a
+                                normal string as we can lose information }
+                              if (tstringdef(def_from).stringtype in [st_widestring,st_unicodestring]) and
+                                not (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
+                                eq:=te_convert_l3
+                              else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
+                                eq:=te_convert_l2
+                              else
+                                eq:=te_convert_l1;
+                            end;
                          end;
                       end
+                     else if (tstringdef(def_to).stringtype=st_ansistring) and
+                             (tstringdef(def_from).stringtype=st_ansistring) then 
+                      begin
+                        { don't convert ansistrings if any condition is true:
+                          1) same encoding
+                          2) from explicit codepage ansistring to ansistring and vice versa
+                          3) from any ansistring to rawbytestring 
+                          4) from rawbytestring to any ansistring }
+                        if (tstringdef(def_from).encoding=tstringdef(def_to).encoding) or
+                           ((tstringdef(def_to).encoding=0) and (tstringdef(def_from).encoding=getansistringcodepage)) or
+                           ((tstringdef(def_to).encoding=getansistringcodepage) and (tstringdef(def_from).encoding=0)) or
+                           (tstringdef(def_to).encoding=globals.CP_NONE) or
+                           (tstringdef(def_from).encoding=globals.CP_NONE) then
+                         begin
+                           eq:=te_equal;
+                         end
+                        else
+                         begin        
+                           doconv := tc_string_2_string;
+                           if (tstringdef(def_to).encoding=globals.CP_UTF8) then 
+                             eq:=te_convert_l1
+                           else
+                             eq:=te_convert_l2;
+                         end 
+                      end          
                      else
-                     { Same string type, for shortstrings also the length must match }
+                     { same string type ? }
                       if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and
+                        { for shortstrings also the length must match }
                          ((tstringdef(def_from).stringtype<>st_shortstring) or
-                          (tstringdef(def_from).len=tstringdef(def_to).len)) then
+                          (tstringdef(def_from).len=tstringdef(def_to).len)) and
+                         { for ansi- and unicodestrings also the encoding must match }
+                         (not(tstringdef(def_from).stringtype in [st_ansistring,st_unicodestring]) or
+                          (tstringdef(def_from).encoding=tstringdef(def_to).encoding)) then
                         eq:=te_equal
                      else
                        begin
@@ -413,11 +488,30 @@ implementation
                  orddef :
                    begin
                    { char to string}
-                     if is_char(def_from) or
-                        is_widechar(def_from) then
+                     if is_char(def_from) then
+                       begin
+                         doconv:=tc_char_2_string;
+                         case tstringdef(def_to).stringtype of
+                           st_shortstring: eq:=te_convert_l1;
+                           st_ansistring: eq:=te_convert_l2;
+                           st_unicodestring: eq:=te_convert_l3;
+                           st_widestring: eq:=te_convert_l4;
+                         else
+                           eq:=te_convert_l5;
+                         end;
+                       end
+                     else
+                     if is_widechar(def_from) then
                       begin
                         doconv:=tc_char_2_string;
-                        eq:=te_convert_l1;
+                        case tstringdef(def_to).stringtype of
+                          st_unicodestring: eq:=te_convert_l1;
+                          st_widestring: eq:=te_convert_l2;
+                          st_ansistring: eq:=te_convert_l3;
+                          st_shortstring: eq:=te_convert_l4;
+                        else
+                          eq:=te_convert_l5;
+                        end;
                       end;
                    end;
                  arraydef :
@@ -1712,7 +1806,7 @@ implementation
         i1,i2     : byte;
       begin
          compare_paras:=te_incompatible;
-         cdoptions:=[cdo_parameter,cdo_check_operator,cdo_allow_variant];
+         cdoptions:=[cdo_parameter,cdo_check_operator,cdo_allow_variant,cdo_strict_undefined_check];
          { we need to parse the list from left-right so the
            not-default parameters are checked first }
          lowesteq:=high(tequaltype);
@@ -1868,6 +1962,17 @@ implementation
                  if not equal_constsym(tconstsym(currpara1.defaultconstsym),tconstsym(currpara2.defaultconstsym)) then
                    exit;
                end;
+              if not(cpo_compilerproc in cpoptions) and
+                 not(cpo_rtlproc in cpoptions) and
+                 is_ansistring(currpara1.vardef) and
+                 is_ansistring(currpara2.vardef) and
+                 (tstringdef(currpara1.vardef).encoding<>tstringdef(currpara2.vardef).encoding) and
+                 ((tstringdef(currpara1.vardef).encoding=globals.CP_NONE) or
+                  (tstringdef(currpara2.vardef).encoding=globals.CP_NONE)
+                 ) then
+                eq:=te_convert_l1;
+              if eq<lowesteq then
+                lowesteq:=eq;
               inc(i1);
               inc(i2);
               if cpo_ignorehidden in cpoptions then

@@ -1,4 +1,4 @@
-{ %target=darwin,linux,freebsd,solaris,beos,haiku }
+{ %target=darwin,linux,freebsd,solaris,beos,haiku,aix }
 { %NEEDLIBRARY }
 
 {$mode delphi}
@@ -12,11 +12,7 @@ const
 {$ifdef windows}
   libname='tw16263a.dll';
 {$else}
-  {$ifdef darwin}
-  libname = './libtw16263a.dylib';
-  {$else darwin}
-  libname = './libtw16263a.so';
-  {$endif darwin}
+  libname = './libtw16263a.'+SharedSuffix;
 {$endif}
 
 var

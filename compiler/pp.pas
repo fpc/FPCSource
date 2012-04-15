@@ -43,6 +43,7 @@ program pp;
   FPC_ARMEB           create an arm big endian compiler
   FPC_OARM            create an arm oabi compiler, only needed when the host
                       compiler is ARMEL or ARMEB
+  FPC_ARMHF           create an armhf (eabi vfp variant) compiler
   -----------------------------------------------------------------
   cpuflags            The target processor has status flags (on by default)
   cpufpemu            The target compiler will also support emitting software
@@ -149,6 +150,11 @@ program pp;
     {$fatal I386 switch must be on for MMX support}
   {$endif i386}
 {$endif support_mmx}
+
+
+{ Don't care about minstacksize or maxstacksize not beeing supported by current OS }
+{$WARN 2077 OFF}
+{$WARN 2078 OFF}
 
 {$ifdef win32}
   { 256 MB stack }

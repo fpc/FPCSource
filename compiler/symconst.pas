@@ -168,7 +168,13 @@ type
     sp_implicitrename,
     sp_hint_experimental,
     sp_generic_para,
-    sp_has_deprecated_msg
+    sp_has_deprecated_msg,
+    sp_generic_dummy,       { this is used for symbols that are generated when a
+                              generic is encountered to ease inline
+                              specializations, etc; those symbols can be
+                              "overridden" with a completely different symbol }
+    sp_explicitrename       { this is used to keep track of type renames created
+                              by the user }
   );
   tsymoptions=set of tsymoption;
 
@@ -244,7 +250,8 @@ type
     potype_class_constructor, { class constructor }
     potype_class_destructor,  { class destructor  }
     potype_propgetter,        { Dispinterface property accessors }
-    potype_propsetter
+    potype_propsetter,
+    potype_exceptfilter       { SEH exception filter or termination handler }
   );
   tproctypeoptions=set of tproctypeoption;
 
@@ -316,6 +323,9 @@ type
        simply not see the frame pointer parameter, and since the caller cleans
        up the stack will also remain balanced) }
     po_delphi_nested_cc,
+    { allows the routine's RawByteString var/out parameters to accept parameters
+      that do not match exactly (without typeconversion) }
+    po_rtlproc,
     { Non-virtual method of a Java class that has been transformed into a
       "virtual; final;" method for JVM-implementation reasons }
     po_java_nonvirtual,
@@ -407,13 +417,13 @@ type
 
   { options for properties }
   tpropertyoption=(ppo_none,
-    ppo_indexed,
+    ppo_indexed,                  { delcared wwith "index" keyword }
     ppo_defaultproperty,
     ppo_stored,
-    ppo_hasparameters,
+    ppo_hasparameters,            { has parameters: prop[param1, param2: type] }
     ppo_implements,
-    ppo_enumerator_current,
-    ppo_dispid_read,              { no longer used }
+    ppo_enumerator_current,       { implements current property for enumerator }
+    ppo_overrides,                { overrides ancestor property }
     ppo_dispid_write              { no longer used }
   );
   tpropertyoptions=set of tpropertyoption;
@@ -450,7 +460,10 @@ type
     vo_has_section,
     { variable contains a winlike WideString which should be finalized
       even in $J- state }
-    vo_force_finalize
+    vo_force_finalize,
+    { this is an internal variable that is used for Default() intrinsic in code
+      sections }
+    vo_is_default_var
   );
   tvaroptions=set of tvaroption;
 
@@ -484,7 +497,7 @@ type
 
   { options for symtables }
   tsymtableoption = (
-    sto_has_helper         { contains at least one helper symbol }
+    sto_has_helper        { contains at least one helper symbol }
   );
   tsymtableoptions = set of tsymtableoption;
 
@@ -501,7 +514,7 @@ type
     staticvarsym,localvarsym,paravarsym,fieldvarsym,
     typesym,procsym,unitsym,constsym,enumsym,
     errorsym,syssym,labelsym,absolutevarsym,propertysym,
-    macrosym
+    macrosym,namespacesym
   );
 
   { State of the variable:
@@ -614,7 +627,7 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        'abstractsym','globalvar','localvar','paravar','fieldvar',
        'type','proc','unit','const','enum',
        'errorsym','system sym','label','absolutevar','property',
-       'macrosym'
+       'macrosym','namespace'
      );
 
      typName : array[tdeftyp] of string[12] = (

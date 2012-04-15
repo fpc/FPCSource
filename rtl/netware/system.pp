@@ -469,6 +469,7 @@ Begin
   ConsolePrintf (#13'Start system, ThreadID: %x'#13#10,ThreadID);
   {$endif}
 
+  initunicodestringmanager;
   SysInitStdIO;
 
 {Delphi Compatible}
@@ -476,9 +477,4 @@ Begin
   ExitCode  := 0;
   InitSystemThreads;
   initvariantmanager;
-{$ifdef VER2_2}
-  initwidestringmanager;
-{$else VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
 End.

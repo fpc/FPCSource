@@ -5,7 +5,7 @@ const
 
   aStrArray: array [0..0] of String = (
 
-    #$ffff' '
+    #$ffffff' '
 
   );
 

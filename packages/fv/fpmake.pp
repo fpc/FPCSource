@@ -20,6 +20,7 @@ begin
     P.Author := 'Leon De Boer and Pierre Mueller';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,os2,emx,netware,netwlibc,go32v2,morphos,aix];
     P.Email := '';
     P.Description := 'Free Vision, a portable Turbo Vision clone.';
     P.NeedLibC:= false;
@@ -51,6 +52,7 @@ begin
           AddUnit('app');
         end;
     T:=P.Targets.AddUnit('buildfv.pas');
+    T.Install := false; // Build-unit
       with T.Dependencies do
         begin
           AddUnit('fvcommon');
@@ -259,8 +261,9 @@ begin
           AddUnit('fvconsts');
         end;
     P.ExamplePath.Add('examples');
+    P.ExamplePath.Add('src');
     P.Targets.AddExampleProgram('examples/testapp.pas');
-    P.Targets.AddExampleProgram('examples/platform.inc');
+    P.Targets.AddExampleProgram('src/platform.inc');
     // 'examples/Makefile
     // 'examples/testapp.lpi
     // 'examples/Makefile.fpc

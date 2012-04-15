@@ -174,7 +174,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; data: TPTCFormat);
+procedure LOG(const message: string; data: IPTCFormat);
 begin
   if not LOG_enabled then
     exit;

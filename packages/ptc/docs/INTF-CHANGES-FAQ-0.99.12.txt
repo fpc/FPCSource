@@ -1,0 +1,77 @@
+Frequently Asked Questions about the changes, introduced in version 0.99.12 of
+PTCPas
+
+Q: My code uses only the ptcgraph and ptccrt (TP7 compatibility) units. Is it
+affected by the changes?
+A: No. Only code that uses the ptc unit is affected.
+
+Q: Were the changes necessary?
+A: Yes, I believe so. Using certain objects like events, areas, and formats was
+tedious because of the need to manually manage and free them. You had to be
+aware of their lifecycle, e.g. when getting an event from the console you had
+to free it once you were done with it, but, when getting the format of the
+console, you had to know that you must not free it and that you must not change
+it with .Assign (otherwise things would break in the console, etc.) With the new
+interfaces, suddenly you don't have to worry about all that. The original C++
+library OpenPTC was much easier to work with, thanks to C++'s automatic
+destructors, copy constructors and operator overloading. However, when PTC was
+ported to Pascal for the first time, FPC was still at version 1.0.x and didn't
+support interfaces, so it wasn't possible to do at the time. I was planning this
+change for a long time but I kept postponing it until now :)
+
+Q: Are you planning any more changes that break backward compatibility?
+A: No. I promise :)
+
+Q: Was it possible to introduce the changes, without breaking backward
+compatibility with existing code?
+A: Basically, it was hard to do without having to maintain a full set of wrapper
+classes with the old interface for compatibility and that is a lot of extra work
+I wouldn't like to do. I'd rather help people migrate their code to the new
+version. :)
+I documented the necessary changes, most of them can be done with just a series
+of search & replace and you can also email me your code if you have any
+trouble - I'll do my best to help.
+
+Q: How about keeping the old methods around and adding new overloaded ones?
+A: I considered doing that for a while, but I figured it wasn't an option,
+because it would make a huge mess out of PTCPas' interface. Also mixing
+reference counted interfaces and ordinary classes is dangerous and prone to
+errors (see next question for details). If you really cannot justify the effort
+needed to upgrade your code, old PTCPas versions are available on sourceforge
+forever. :)
+
+Q: Why were constructors replaced with factory methods?
+A: I wanted to hide the old classes completely and force the use of interfaces
+everywhere. One of the reason for this was that if I kept the old classes, in
+certain cases, that would make old code compile without errors, but crash at
+runtime. Here's an example:
+
+var
+  format: TPTCFormat;  // bug: this should be changed to IPTCFormat
+  ...
+begin
+  format := TPTCFormat.Create(8);  // object created, ref count = 0
+
+  surface := TPTCSurface.Create(320, 200, format);  // the reference count of
+  // 'format' is increased (i.e. becomes 1) before the constructor call and
+  // decreased afterwards back to 0 and then the object is freed.
+  // If format was declared of type IPTCFormat, it would keep the reference
+  // count one higher until the variable goes out of scope.
+
+  console := TPTCConsole.Create;
+  console.Open(320, 200, format);  // here we try to use format for the second
+  // time, but it has been freed and we get a crash at runtime :(
+  ...
+end.
+
+The problem occurs when mixing direct references to the object with access to it
+via interfaces. To prevent this type of error, I made the TPTCFormat type
+private (i.e. hidden in the implementation part of the ptc unit) and only
+IPTCFormat public. This way, when trying to compile this code, you'll get a
+compile error in the declaration of 'format: TPTCFormat;' and you'll know that
+you need to fix it (by changing the type to IPTCFormat). However, this has the
+side effect of making the call to TPTCFormat.Create impossible (because
+TPTCFormat isn't public). IPTCFormat.Create sounds like the logical alternative,
+but it's also not possible, as IPTCFormat is an interface and interfaces cannot
+have constructors. That's why I introduced factory class methods (in this case:
+TPTCFormatFactory.CreateNew)

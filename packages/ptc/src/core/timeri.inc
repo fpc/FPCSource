@@ -30,6 +30,44 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+type
+  TPTCTimer = class(TInterfacedObject, IPTCTimer)
+  private
+    FOld: Double;
+    FTime: Double;
+    FStart: Double;
+    FCurrent: Double;
+    FRunning: Boolean;
+    {$IF defined(WIN32) OR defined(WIN64)}
+    FFrequency: QWord;
+    {$ENDIF defined(WIN32) OR defined(WIN64)}
+    function Clock: Double;
+    procedure internal_init_timer;
+  public
+    constructor Create;
+    constructor Create(ATime: Double);
+//    constructor Create(ATimer: IPTCTimer);
+    destructor Destroy; override;
+{    procedure Assign(const ATimer: TPTCTimer);
+    function Equals(const ATimer: TPTCTimer): Boolean;}
+    procedure SetTime(ATime: Double); {was 'set' in the C++ version}
+    procedure Start;
+    procedure Stop;
+    function Time: Double;
+    function Delta: Double;
+    function Resolution: Double;
+  end;
+
+class function TPTCTimerFactory.CreateNew: IPTCTimer;
+begin
+  Result := TPTCTimer.Create;
+end;
+
+class function TPTCTimerFactory.CreateNew(ATime: Double): IPTCTimer;
+begin
+  Result := TPTCTimer.Create(ATime);
+end;
+
 {Function timeGetTime: DWord; StdCall; external 'WINMM' name 'timeGetTime';}
 
 constructor TPTCTimer.Create;
@@ -53,19 +91,24 @@ begin
   SetTime(ATime);
 end;
 
-constructor TPTCTimer.Create(const ATimer: TPTCTimer);
+{constructor TPTCTimer.Create(ATimer: IPTCTimer);
 begin
   internal_init_timer;
-  Assign(ATimer);
-end;
 
+  FOld := ATimer.FOld;
+  FTime := ATimer.FTime;
+  FStart := ATimer.FStart;
+  FCurrent := ATimer.FCurrent;
+  FRunning := ATimer.FRunning;
+end;
+}
 destructor TPTCTimer.Destroy;
 begin
   Stop;
   inherited Destroy;
 end;
 
-procedure TPTCTimer.Assign(const ATimer: TPTCTimer);
+{procedure TPTCTimer.Assign(const ATimer: TPTCTimer);
 begin
   if Self = ATimer then
     exit;
@@ -83,7 +126,7 @@ begin
             (FStart = ATimer.FStart) and (FCurrent = ATimer.FCurrent) and
             (FRunning = ATimer.FRunning);
 end;
-
+}
 procedure TPTCTimer.SetTime(ATime: Double);
 begin
   FCurrent := ATime;

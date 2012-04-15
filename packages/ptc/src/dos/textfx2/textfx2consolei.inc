@@ -36,73 +36,56 @@
 {$DEFINE DEFAULT_FORMAT:=TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF)}
 
 constructor TTextFX2Console.Create;
-
-var
-  I: Integer;
-
 begin
   inherited Create;
 
-  m_open := False;
-  m_locked := False;
-  FillChar(m_modes, SizeOf(m_modes), 0);
-  m_title := '';
-  m_information := '';
-  m_default_width := DEFAULT_WIDTH;
-  m_default_height := DEFAULT_HEIGHT;
-  m_default_format := DEFAULT_FORMAT;
-
-  for I := Low(m_modes) to High(m_modes) do
-    m_modes[I] := TPTCMode.Create;
+  FOpen := False;
+  FLocked := False;
+  FTitle := '';
+  FInformation := '';
+  FDefaultWidth := DEFAULT_WIDTH;
+  FDefaultHeight := DEFAULT_HEIGHT;
+  FDefaultFormat := DEFAULT_FORMAT;
 
   calcpal := @calcpal_colorbase;
   use_charset := @charset_b7asc;
   build_colormap(0);
-  m_copy := TPTCCopy.Create;
-  m_clear := TPTCClear.Create;
-  configure('ptcpas.cfg');
+  FCopy := TPTCCopy.Create;
+  FClear := TPTCClear.Create;
+  Configure('ptcpas.cfg');
 end;
 
 destructor TTextFX2Console.Destroy;
-
-var
-  I: Integer;
-
 begin
-  close;
-  m_160x100buffer.Free;
-  m_primary.Free;
+  Close;
+  F160x100buffer.Free;
+  FPrimary.Free;
 
-  for I := Low(m_modes) to High(m_modes) do
-    m_modes[I].Free;
-  m_keyboard.Free;
+  FKeyboard.Free;
   FMouse.Free;
   FEventQueue.Free;
-  m_copy.Free;
-  m_clear.Free;
-  m_default_format.Free;
+  FCopy.Free;
+  FClear.Free;
   dispose_colormap;
   inherited Destroy;
 end;
 
-procedure TTextFX2Console.Configure(const AFileName: String);
-
+procedure TTextFX2Console.Configure(const AFileName: string);
 var
-  F: Text;
+  F: TextFile;
   S: string;
-
 begin
   AssignFile(F, AFileName);
-  {$I-}
+  {$push}{$I-}
   Reset(F);
-  {$I+}
+  {$pop}
   if IOResult <> 0 then
     exit;
   while not EoF(F) do
   begin
-    {$I-}
+    {$push}{$I-}
     Readln(F, S);
-    {$I+}
+    {$pop}
     if IOResult <> 0 then
       Break;
     Option(S);
@@ -110,111 +93,96 @@ begin
   CloseFile(F);
 end;
 
-function TTextFX2Console.option(const _option: String): Boolean;
-
+function TTextFX2Console.Option(const AOption: string): Boolean;
 begin
   {...}
   Result := True;
-  if _option = 'charset_b8ibm' then
+  if AOption = 'charset_b8ibm' then
   begin
     use_charset := @charset_b8ibm;
     exit;
   end;
-  if _option = 'charset_b7asc' then
+  if AOption = 'charset_b7asc' then
   begin
     use_charset := @charset_b7asc;
     exit;
   end;
-  if _option = 'charset_b7sml' then
+  if AOption = 'charset_b7sml' then
   begin
     use_charset := @charset_b7sml;
     exit;
   end;
-  if _option = 'charset_b8gry' then
+  if AOption = 'charset_b8gry' then
   begin
     use_charset := @charset_b8gry;
     exit;
   end;
-  if _option = 'charset_b7nws' then
+  if AOption = 'charset_b7nws' then
   begin
     use_charset := @charset_b7nws;
     exit;
   end;
-  if _option = 'calcpal_colorbase' then
+  if AOption = 'calcpal_colorbase' then
   begin
     calcpal := @calcpal_colorbase;
     build_colormap(0);
     exit;
   end;
-  if _option = 'calcpal_lightbase' then
+  if AOption = 'calcpal_lightbase' then
   begin
     calcpal := @calcpal_lightbase;
     build_colormap(0);
     exit;
   end;
-  if _option = 'calcpal_lightbase_g' then
+  if AOption = 'calcpal_lightbase_g' then
   begin
     calcpal := @calcpal_lightbase_g;
     build_colormap(0);
     exit;
   end;
-  if _option = 'enable logging' then
+  if AOption = 'enable logging' then
   begin
     LOG_enabled := True;
     Result := True;
     exit;
   end;
-  if _option = 'disable logging' then
+  if AOption = 'disable logging' then
   begin
     LOG_enabled := False;
     Result := True;
     exit;
   end;
 
-  Result := m_copy.option(_option);
+  Result := FCopy.Option(AOption);
 end;
 
-function TTextFX2Console.modes: PPTCMode;
-
+function TTextFX2Console.Modes: TPTCModeList;
 begin
-  Result := @m_modes;
+  Result := FModes;
 end;
 
-procedure TTextFX2Console.open(const _title: string; _pages: Integer); overload;
-
+procedure TTextFX2Console.Open(const _title: string; _pages: Integer); overload;
 begin
-  open(_title, m_default_format, _pages);
+  Open(_title, FDefaultFormat, _pages);
 end;
 
-procedure TTextFX2Console.open(const _title: string; const _format: TPTCFormat;
+procedure TTextFX2Console.open(const _title: string; _format: IPTCFormat;
                                _pages: Integer); overload;
-
 begin
-  open(_title, m_default_width, m_default_height, _format, _pages);
+  open(_title, FDefaultWidth, FDefaultHeight, _format, _pages);
 end;
 
 procedure TTextFX2Console.open(const _title: string; _width, _height: Integer;
-                               const _format: TPTCFormat; _pages: Integer); overload;
-
-var
-  m: TPTCMode;
-
+                               _format: IPTCFormat; _pages: Integer); overload;
 begin
-  m := TPTCMode.Create(_width, _height, _format);
-  try
-    open(_title, m, _pages);
-  finally
-    m.Free;
-  end;
+  open(_title, TPTCMode.Create(_width, _height, _format), _pages);
 end;
 
-procedure TTextFX2Console.open(const _title: string; const _mode: TPTCMode;
+procedure TTextFX2Console.open(const _title: string; _mode: IPTCMode;
                                _pages: Integer); overload;
-
 var
   _width, _height: Integer;
-  _format: TPTCFormat;
-
+  _format: IPTCFormat;
 begin
   if not _mode.valid then
     raise TPTCError.Create('invalid mode');
@@ -228,61 +196,53 @@ begin
   internal_post_open_setup;
 end;
 
-procedure TTextFX2Console.close;
-
+procedure TTextFX2Console.Close;
 begin
-  if m_open then
+  if FOpen then
   begin
-    if m_locked then
+    if FLocked then
       raise TPTCError.Create('console is still locked');
     {flush all key presses}
     while KeyPressed do ReadKey;
     internal_close;
-    m_open := False;
+    FOpen := False;
   end;
 end;
 
 procedure TTextFX2Console.flush;
-
 begin
   check_open;
   check_unlocked;
 end;
 
 procedure TTextFX2Console.finish;
-
 begin
   check_open;
   check_unlocked;
 end;
 
 procedure TTextFX2Console.update;
-
 var
   framebuffer: PInteger;
-
 begin
   check_open;
   check_unlocked;
 
-  m_primary.copy(m_160x100buffer);
-  framebuffer := m_160x100buffer.lock;
+  FPrimary.copy(F160x100buffer);
+  framebuffer := F160x100buffer.Lock;
   vrc;
   dump_160x(0, 50, framebuffer);
-  m_160x100buffer.unlock;
+  F160x100buffer.Unlock;
 end;
 
-procedure TTextFX2Console.update(const _area: TPTCArea);
-
+procedure TTextFX2Console.update(_area: IPTCArea);
 begin
   update;
 end;
 
-procedure TTextFX2Console.copy(surface: TPTCBaseSurface);
-
+procedure TTextFX2Console.copy(surface: IPTCSurface);
 var
   pixels: Pointer;
-
 begin
   check_open;
   check_unlocked;
@@ -296,16 +256,13 @@ begin
   except
     on error: TPTCError do
       raise TPTCError.Create('failed to copy console to surface', error);
-
   end;
 end;
 
-procedure TTextFX2Console.copy(surface: TPTCBaseSurface;
-                               const source, destination: TPTCArea);
-
+procedure TTextFX2Console.copy(surface: IPTCSurface;
+                               source, destination: IPTCArea);
 var
   pixels: Pointer;
-
 begin
   check_open;
   check_unlocked;
@@ -319,43 +276,37 @@ begin
   except
     on error: TPTCError do
       raise TPTCError.Create('failed to copy console to surface', error);
-
   end;
 end;
 
-function TTextFX2Console.lock: Pointer;
-
+function TTextFX2Console.Lock: Pointer;
 var
   pixels: Pointer;
-
 begin
   check_open;
-  if m_locked then
+  if FLocked then
     raise TPTCError.Create('console is already locked');
-  pixels := m_primary.lock;
-  m_locked := True;
+  pixels := FPrimary.lock;
+  FLocked := True;
   Result := pixels;
 end;
 
-procedure TTextFX2Console.unlock;
-
+procedure TTextFX2Console.Unlock;
 begin
   check_open;
-  if not m_locked then
+  if not FLocked then
     raise TPTCError.Create('console is not locked');
 
-  m_primary.unlock;
-  m_locked := False;
+  FPrimary.unlock;
+  FLocked := False;
 end;
 
-procedure TTextFX2Console.load(const pixels: Pointer;
+procedure TTextFX2Console.Load(const pixels: Pointer;
                                _width, _height, _pitch: Integer;
-                               const _format: TPTCFormat;
-                               const _palette: TPTCPalette);
+                               _format: IPTCFormat;
+                               _palette: IPTCPalette);
 var
-  Area_: TPTCArea;
   console_pixels: Pointer;
-
 begin
   check_open;
   check_unlocked;
@@ -364,9 +315,9 @@ begin
     try
       console_pixels := lock;
       try
-        m_copy.request(_format, format);
-        m_copy.palette(_palette, palette);
-        m_copy.copy(pixels, 0, 0, _width, _height, _pitch, console_pixels, 0, 0,
+        FCopy.request(_format, format);
+        FCopy.palette(_palette, palette);
+        FCopy.copy(pixels, 0, 0, _width, _height, _pitch, console_pixels, 0, 0,
                     width, height, pitch);
       finally
         unlock;
@@ -374,54 +325,33 @@ begin
     except
       on error: TPTCError do
         raise TPTCError.Create('failed to load pixels to console', error);
-
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, width, height);
-    try
-      load(pixels, _width, _height, _pitch, _format, _palette, Area_, area);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Load(pixels, _width, _height, _pitch, _format, _palette, TPTCArea.Create(0, 0, width, height), area);
 end;
 
 procedure TTextFX2Console.load(const pixels: Pointer;
                                _width, _height, _pitch: Integer;
-                               const _format: TPTCFormat;
-                               const _palette: TPTCPalette;
-                               const source, destination: TPTCArea);
+                               _format: IPTCFormat;
+                               _palette: IPTCPalette;
+                               source, destination: IPTCArea);
 var
   console_pixels: Pointer;
-  clipped_source, clipped_destination: TPTCArea;
-  tmp: TPTCArea;
-
+  clipped_source, clipped_destination: IPTCArea;
 begin
   check_open;
   check_unlocked;
-  clipped_source := nil;
-  clipped_destination := nil;
   try
     console_pixels := lock;
     try
-      clipped_source := TPTCArea.Create;
-      clipped_destination := TPTCArea.Create;
-      tmp := TPTCArea.Create(0, 0, _width, _height);
-      try
-        TPTCClipper.clip(source, tmp, clipped_source, destination, clip, clipped_destination);
-      finally
-        tmp.Free;
-      end;
-      m_copy.request(_format, format);
-      m_copy.palette(_palette, palette);
-      m_copy.copy(pixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, _pitch,
+      TPTCClipper.clip(source, TPTCArea.Create(0, 0, _width, _height), clipped_source, destination, clip, clipped_destination);
+      FCopy.request(_format, format);
+      FCopy.palette(_palette, palette);
+      FCopy.copy(pixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, _pitch,
                   console_pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, pitch);
     finally
       unlock;
-      clipped_source.Free;
-      clipped_destination.Free;
     end;
   except
     on error:TPTCError do
@@ -432,12 +362,10 @@ end;
 
 procedure TTextFX2Console.save(pixels: Pointer;
                                _width, _height, _pitch: Integer;
-                               const _format: TPTCFormat;
-                               const _palette: TPTCPalette);
+                               _format: IPTCFormat;
+                               _palette: IPTCPalette);
 var
-  Area_: TPTCArea;
   console_pixels: Pointer;
-
 begin
   check_open;
   check_unlocked;
@@ -446,9 +374,9 @@ begin
     try
       console_pixels := lock;
       try
-        m_copy.request(format, _format);
-        m_copy.palette(palette, _palette);
-        m_copy.copy(console_pixels, 0, 0, width, height, pitch, pixels, 0, 0,
+        FCopy.request(format, _format);
+        FCopy.palette(palette, _palette);
+        FCopy.copy(console_pixels, 0, 0, width, height, pitch, pixels, 0, 0,
                     _width, _height, _pitch);
       finally
         unlock;
@@ -456,117 +384,76 @@ begin
     except
       on error: TPTCError do
         raise TPTCError.Create('failed to save console pixels', error);
-
     end;
   end
   else
-  begin
-    Area_ := TPTCArea.Create(0, 0, width, height);
-    try
-      save(pixels, _width, _height, _pitch, _format, _palette, area, Area_);
-    finally
-      Area_.Free;
-    end;
-  end;
+    Save(pixels, _width, _height, _pitch, _format, _palette, area, TPTCArea.Create(0, 0, width, height));
 end;
 
 procedure TTextFX2Console.save(pixels: Pointer;
                                _width, _height, _pitch: Integer;
-                               const _format: TPTCFormat;
-                               const _palette: TPTCPalette;
-                               const source, destination: TPTCArea);
+                               _format: IPTCFormat;
+                               _palette: IPTCPalette;
+                               source, destination: IPTCArea);
 var
   console_pixels: Pointer;
-  clipped_source, clipped_destination: TPTCArea;
-  tmp: TPTCArea;
-
+  clipped_source, clipped_destination: IPTCArea;
 begin
   check_open;
   check_unlocked;
-  clipped_source := nil;
-  clipped_destination := nil;
   try
     console_pixels := lock;
     try
-      clipped_source := TPTCArea.Create;
-      clipped_destination := TPTCArea.Create;
-      tmp := TPTCArea.Create(0, 0, _width, _height);
-      try
-        TPTCClipper.clip(source, clip, clipped_source, destination, tmp, clipped_destination);
-      finally
-        tmp.Free;
-      end;
-      m_copy.request(format, _format);
-      m_copy.palette(palette, _palette);
-      m_copy.copy(console_pixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, pitch,
-                  pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, _pitch);
+      TPTCClipper.clip(source, clip, clipped_source, destination, TPTCArea.Create(0, 0, _width, _height), clipped_destination);
+      FCopy.request(format, _format);
+      FCopy.palette(palette, _palette);
+      FCopy.copy(console_pixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, pitch,
+                 pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, _pitch);
     finally
       unlock;
-      clipped_source.Free;
-      clipped_destination.Free;
     end;
   except
     on error:TPTCError do
       raise TPTCError.Create('failed to save console area pixels', error);
-
   end;
 end;
 
 procedure TTextFX2Console.clear;
-
 var
-  tmp: TPTCColor;
-
+  Color: IPTCColor;
 begin
   check_open;
   check_unlocked;
   if format.direct then
-    tmp := TPTCColor.Create(0, 0, 0, 0)
+    Color := TPTCColor.Create(0, 0, 0, 0)
   else
-    tmp := TPTCColor.Create(0);
-  try
-    clear(tmp);
-  finally
-    tmp.Free;
-  end;
+    Color := TPTCColor.Create(0);
+  Clear(Color);
 end;
 
-procedure TTextFX2Console.clear(const color: TPTCColor);
-
-var
-  tmp: TPTCArea;
-
+procedure TTextFX2Console.Clear(AColor: IPTCColor);
 begin
   check_open;
   check_unlocked;
-  tmp := TPTCArea.Create;
-  try
-    clear(color, tmp);
-  finally
-    tmp.Free;
-  end;
+  Clear(AColor, TPTCArea.Create);
 end;
 
-procedure TTextFX2Console.clear(const color: TPTCColor;
-                                const _area: TPTCArea);
-
+procedure TTextFX2Console.clear(color: IPTCColor;
+                                _area: IPTCArea);
 var
   pixels: Pointer;
-  clipped_area: TPTCArea;
-
+  clipped_area: IPTCArea;
 begin
   check_open;
   check_unlocked;
   try
-    clipped_area := nil;
     pixels := lock;
     try
       clipped_area := TPTCClipper.clip(_area, clip);
-      m_clear.request(format);
-      m_clear.clear(pixels, clipped_area.left, clipped_area.right, clipped_area.width, clipped_area.height, pitch, color);
+      FClear.request(format);
+      FClear.clear(pixels, clipped_area.left, clipped_area.right, clipped_area.width, clipped_area.height, pitch, color);
     finally
       unlock;
-      clipped_area.Free;
     end;
   except
     on error: TPTCError do
@@ -575,176 +462,145 @@ begin
   end;
 end;
 
-procedure TTextFX2Console.Palette(const _palette: TPTCPalette);
-
+procedure TTextFX2Console.Palette(_palette: IPTCPalette);
 begin
   check_open;
-  m_primary.palette(_palette);
+  FPrimary.palette(_palette);
 end;
 
-function TTextFX2Console.Palette: TPTCPalette;
-
+function TTextFX2Console.Palette: IPTCPalette;
 begin
   check_open;
-  Result := m_primary.palette;
+  Result := FPrimary.palette;
 end;
 
-procedure TTextFX2Console.Clip(const _area: TPTCArea);
-
+procedure TTextFX2Console.Clip(_area: IPTCArea);
 begin
   check_open;
-  m_primary.clip(_area);
+  FPrimary.clip(_area);
 end;
 
 function TTextFX2Console.GetWidth: Integer;
-
 begin
   check_open;
-  Result := m_primary.width;
+  Result := FPrimary.width;
 end;
 
 function TTextFX2Console.GetHeight: Integer;
-
 begin
   check_open;
-  Result := m_primary.height;
+  Result := FPrimary.height;
 end;
 
 function TTextFX2Console.GetPitch: Integer;
-
 begin
   check_open;
-  Result := m_primary.pitch;
+  Result := FPrimary.pitch;
 end;
 
 function TTextFX2Console.GetPages: Integer;
-
 begin
   check_open;
-  Result := 2;{m_primary.pages;}
+  Result := 2;{FPrimary.pages;}
 end;
 
-function TTextFX2Console.GetArea: TPTCArea;
-
+function TTextFX2Console.GetArea: IPTCArea;
 begin
   check_open;
-  Result := m_primary.area;
+  Result := FPrimary.area;
 end;
 
-function TTextFX2Console.Clip: TPTCArea;
-
+function TTextFX2Console.Clip: IPTCArea;
 begin
   check_open;
-  Result := m_primary.clip;
+  Result := FPrimary.clip;
 end;
 
-function TTextFX2Console.GetFormat: TPTCFormat;
-
+function TTextFX2Console.GetFormat: IPTCFormat;
 begin
   check_open;
-  Result := m_primary.format;
+  Result := FPrimary.format;
 end;
 
 function TTextFX2Console.GetName: string;
-
 begin
   Result := 'TextFX2';
 end;
 
 function TTextFX2Console.GetTitle: string;
-
 begin
-  Result := m_title;
+  Result := FTitle;
 end;
 
 function TTextFX2Console.GetInformation: string;
-
 begin
-  Result := m_information;
+  Result := FInformation;
 end;
 
-procedure TTextFX2Console.internal_pre_open_setup(const _title: String);
-
+procedure TTextFX2Console.internal_pre_open_setup(const _title: string);
 begin
-  m_title := _title;
+  FTitle := _title;
 end;
 
 procedure TTextFX2Console.internal_open_fullscreen_start;
-
-var
-  f: TPTCFormat;
-
 begin
-  f := TPTCFormat.Create(32, $0000FF, $00FF00, $FF0000);
-  try
-    m_160x100buffer := TPTCSurface.Create(160, 100, f);
-  finally
-    f.Free;
-  end;
+  F160x100buffer := TPTCSurface.Create(160, 100, TPTCFormat.Create(32, $0000FF, $00FF00, $FF0000));
   set80x50;
 end;
 
-procedure TTextFX2Console.internal_open_fullscreen(_width, _height: Integer; const _format: TPTCFormat);
-
+procedure TTextFX2Console.internal_open_fullscreen(_width, _height: Integer; _format: IPTCFormat);
 begin
-  m_primary := TPTCSurface.Create(_width, _height, _format);
+  FPrimary := TPTCSurface.Create(_width, _height, _format);
 end;
 
 procedure TTextFX2Console.internal_open_fullscreen_finish(_pages: Integer);
-
 begin
 end;
 
 procedure TTextFX2Console.internal_post_open_setup;
-
 begin
-  FreeAndNil(m_keyboard);
+  FreeAndNil(FKeyboard);
   FreeAndNil(FMouse);
   FreeAndNil(FEventQueue);
-  m_keyboard := TDosKeyboard.Create;
-  FMouse := TDosMouse.Create(m_primary.width, m_primary.height);
+  FKeyboard := TDosKeyboard.Create;
+  FMouse := TDosMouse.Create(FPrimary.width, FPrimary.height);
   FEventQueue := TEventQueue.Create;
 
   { temporary platform dependent information fudge }
-  m_information := 'dos version x.xx.x, TextFX2, ...';
+  FInformation := 'dos version x.xx.x, TextFX2, ...';
 
   { set open flag }
-  m_open := True;
+  FOpen := True;
 end;
 
 procedure TTextFX2Console.internal_reset;
-
 begin
-  FreeAndNil(m_primary);
-  FreeAndNil(m_keyboard);
+  FreeAndNil(FPrimary);
+  FreeAndNil(FKeyboard);
   FreeAndNil(FMouse);
   FreeAndNil(FEventQueue);
 end;
 
 procedure TTextFX2Console.internal_close;
-
 begin
-  FreeAndNil(m_primary);
-  FreeAndNil(m_160x100buffer);
-  FreeAndNil(m_keyboard);
+  FreeAndNil(FPrimary);
+  FreeAndNil(F160x100buffer);
+  FreeAndNil(FKeyboard);
   FreeAndNil(FMouse);
   FreeAndNil(FEventQueue);
   set80x25;
 end;
 
 procedure TTextFX2Console.HandleEvents;
-
 begin
-  m_keyboard.GetPendingEvents(FEventQueue);
+  FKeyboard.GetPendingEvents(FEventQueue);
   FMouse.GetPendingEvents(FEventQueue);
 end;
 
-function TTextFX2Console.NextEvent(var event: TPTCEvent; wait: Boolean; const EventMask: TPTCEventMask): Boolean;
-
+function TTextFX2Console.NextEvent(out event: IPTCEvent; wait: Boolean; const EventMask: TPTCEventMask): Boolean;
 begin
   check_open;
 
-  FreeAndNil(event);
   repeat
     { get events }
     HandleEvents;
@@ -755,8 +611,7 @@ begin
   Result := event <> nil;
 end;
 
-function TTextFX2Console.PeekEvent(wait: Boolean; const EventMask: TPTCEventMask): TPTCEvent;
-
+function TTextFX2Console.PeekEvent(wait: Boolean; const EventMask: TPTCEventMask): IPTCEvent;
 begin
   check_open;
 
@@ -770,15 +625,13 @@ begin
 end;
 
 procedure TTextFX2Console.check_open;
-
 begin
-  if not m_open then
+  if not FOpen then
     raise TPTCError.Create('console is not open');
 end;
 
 procedure TTextFX2Console.check_unlocked;
-
 begin
-  if m_locked then
+  if FLocked then
     raise TPTCError.Create('console is not unlocked');
 end;

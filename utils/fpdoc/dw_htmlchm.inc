@@ -31,6 +31,8 @@ type
     function  InterPretOption(const Cmd,Arg : String): boolean; override;
 
     class procedure Usage(List: TStrings); override;
+    Class Function FileNameExtension : String; override;
+    
   end;
 {$ELSE} // implementation
 
@@ -44,16 +46,13 @@ begin
     FDefaultPage := 'index.html'
   else
   begin
-    WriteLn('Note: --index-page not assigned. Using default "index.html"');
+    DoLog('Note: --index-page not assigned. Using default "index.html"');
   end;
   
   if FCSSFile <> '' then
   begin
     if not FileExists(FCSSFile) Then
-      begin
-        Writeln(stderr,'Can''t find CSS file "',FCSSFILE,'"');
-        halt(1);
-      end;
+      Raise Exception.CreateFmt('Can''t find CSS file "%S"',[FCSSFILE]);
     TempStream := TMemoryStream.Create;
     TempStream.LoadFromFile(FCSSFile);
     TempStream.Position := 0;
@@ -117,7 +116,7 @@ begin
       FChm.AppendIndex(TmpStream);
     end;
   TmpStream.Free;
-  WriteLn('Finishing compressing...');
+  DoLog('Finishing compressing...');
 end;
 
 function TOCSort(Item1, Item2: TChmSiteMapItem): Integer;
@@ -158,7 +157,7 @@ var
   AlphaRoutinesItem: TChmSiteMapItem;
 
 begin
-  WriteLn('Generating Table of contents...');
+  DoLog('Generating Table of contents...');
   if Assigned(Package) then
   begin
     Toc := TChmSiteMap.Create(stTOC);
@@ -284,11 +283,10 @@ var
   MemberItem: TChmSiteMapItem;
   Stream: TMemoryStream;
 begin
-  WriteLn('Generating Index...');
+  DoLog('Generating Index...');
 
   if Assigned(Package) then
   begin
-  try
     Index := TChmSiteMap.Create(stIndex);
     Stream := TMemoryStream.Create;
     for i := 0 to Package.Modules.Count - 1 do
@@ -422,10 +420,6 @@ begin
     Stream.Position :=0 ;
     FChm.AppendIndex(Stream);
     Stream.Free;
-  except
-    Dump_Stack(StdOut, get_frame);
-    Halt(1);
-  end;
   end;
 end;
 
@@ -437,16 +431,14 @@ var
   FileName: String;
   FilePath: String;
 begin
-  if Engine.Output = '' then
-  begin
-    WriteLn('Error: no --output option used.');
-    Exit;
-  end;
+  FileName := Engine.Output;
+  if FileName = '' then
+    Raise Exception.Create('Error: no --output option used.'); 
   
-  if ExtractFileExt(Engine.Output) <> '.chm' then
-    ChangeFileExt(Engine.OutPut, '.chm');
+  if ExtractFileExt(FileName) <> FileNameExtension then
+    FileName := ChangeFileExt(FileName, FileNameExtension);
 
-  FOutChm := TFileStream.Create(Engine.Output, fmOpenReadWrite or fmCreate);
+  FOutChm := TFileStream.Create(FileName, fmOpenReadWrite or fmCreate);
 
   FTempUncompressedName := GetTempFileName+IntToStr(GetProcessID) +'.raw';
   FTempUncompressed := TFileStream.Create(FTempUncompressedName, fmOpenReadWrite  or fmCreate);
@@ -473,7 +465,7 @@ begin
           FChm.AddStreamToArchive(FileName, FilePath, FileStream, True);
         except
 	  on E: Exception do
-            WriteLn(Format(SErrCouldNotCreateFile, [FileName, e.Message]));
+            DoLog(Format(SErrCouldNotCreateFile, [FileName, e.Message]));
         end;
       finally
         PageDoc.Free;
@@ -481,7 +473,29 @@ begin
       end;
     end;
   FileStream.Free;
-  WriteLn('HTML Files written. Collecting other files and compressing...this could take some time');
+
+  DoLog('HTML Files written. Collecting other files and compressing...this could take some time');
+
+  //write any found images to CHM stream
+  FileStream := TMemoryStream.Create;
+  for i := 0 to FImageFileList.Count - 1 do
+  begin
+{$ifdef imagetest}    DoLog('  adding image: '+FImageFileList[i]); {$endif}
+    if FileExists(FImageFileList[i]) then
+    begin
+{$ifdef imagetest}    DoLog(' - found'); {$endif}
+      FileName := ExtractFileName(FImageFileList[i]);
+      FilePath := '/'+FixHTMLpath(ExtractFilePath(FImageFileList[i]));
+
+      FileStream.LoadFromFile(FImageFileList[i]);
+      FChm.AddStreamToArchive(FileName, FilePath, FileStream, True);
+      FileStream.Size := 0;
+    end
+    else
+      {$ifdef imagetest}  DoLog(' - not found'){$endif};
+  end;
+  FileStream.Free;
+
   FChm.Execute;
   FChm.Free;
   // we don't need to free FTempUncompressed
@@ -545,6 +559,10 @@ begin
   List.Add(SCHMUsageChmTitle);
 end;
 
+Class Function TCHMHTMLWriter.FileNameExtension : String; 
 
+begin
+  result:='.chm';
+end;
 
 {$ENDIF}

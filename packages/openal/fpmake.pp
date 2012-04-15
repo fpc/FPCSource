@@ -17,6 +17,10 @@ begin
     P.Directory:='openal';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    if Defaults.CPU = i386 then
+      P.OSes := [linux,win32,darwin]
+    else
+      P.OSes := [linux,win32];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

@@ -72,10 +72,10 @@ var
   memw : array[0..($7fffffff div sizeof(word))-1] of word absolute $0:$0;
   meml : array[0..($7fffffff div sizeof(longint))-1] of longint absolute $0:$0;
 { C-compatible arguments and environment }
-  argc  : longint;
-  argv  : ppchar;
-  envp  : ppchar;
-  dos_argv0 : pchar;
+  argc:longint;public name 'operatingsystem_parameter_argc';
+  argv:PPchar;public name 'operatingsystem_parameter_argv';
+  envp:PPchar;public name 'operatingsystem_parameter_envp';
+  dos_argv0 : pchar; public name 'dos_argv0';
 
   AllFilesMask: string [3];
 
@@ -125,8 +125,8 @@ type
   end;
 
 var
-  stub_info       : p_stub_info;
-  go32_info_block : t_go32_info_block;
+  stub_info       : p_stub_info; public name 'operatingsystem_stub_info';
+  go32_info_block : t_go32_info_block; public name 'operatingsystem_go32_info_block';
 {$ifdef SYSTEMDEBUG}
 const
    accept_sbrk : boolean = true;
@@ -658,6 +658,7 @@ Begin
 { Setup heap }
   InitHeap;
   SysInitExceptions;
+  initunicodestringmanager;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Setup environment and arguments }
@@ -682,9 +683,4 @@ Begin
   InstallDefaultHandlers;
 {$endif  EXCEPTIONS_IN_SYSTEM}
   initvariantmanager;
-{$ifdef VER2_2}
-  initwidestringmanager;
-{$else VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
 End.

@@ -685,7 +685,9 @@ begin
   else
     begin
       HasExe:=false;
+      reset_command:=true;
       Command('file');
+      reset_command:=false;
     end;
 end;
 

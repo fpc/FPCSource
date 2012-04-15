@@ -73,7 +73,7 @@ begin
 
       { get window message data }
       active := wParam <> 0;
-      thread := lParam;
+      thread := DWord(lParam);
 
       { check active flag }
       if active = False then

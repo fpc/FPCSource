@@ -1094,15 +1094,10 @@ end;
        begin
          if TmpFillPattern and j <> 0 then
            fill.pat[7-i] := currentColor;
-{$ifopt q+}
+{$push}
 {$q-}
-{$define overflowOn}
-{$endif}
          j := j shl 1;
-{$ifdef overflowOn}
-{$q+}
-{$undef overflowOn}
-{$endif}
+{$pop}
        end;
      Repeat
        SetWriteBank(smallint(offs shr 16));
@@ -1620,23 +1615,11 @@ end;
     SetWriteBank(smallint(ScrOfs shr 16));
     HLength:=x2 div 8-x div 8;
     LMask:=$ff shr (x and 7);
-{$ifopt r+}
-{$define rangeOn}
+{$push}
 {$r-}
-{$endif}
-{$ifopt q+}
-{$define overflowOn}
 {$q-}
-{$endif}
     RMask:=$ff shl (7-(x2 and 7));
-{$ifdef rangeOn}
-{$undef rangeOn}
-{$r+}
-{$endif}
-{$ifdef overflowOn}
-{$undef overflowOn}
-{$q+}
-{$endif}
+{$pop}
     if HLength=0 then
       LMask:=LMask and RMask;
     If CurrentWriteMode <> NotPut Then
@@ -1657,23 +1640,11 @@ end;
     end;
 
     PortW[$3ce]:=(LMask shl 8) or 8;
-{$ifopt r+}
-{$define rangeOn}
+{$push}
 {$r-}
-{$endif}
-{$ifopt q+}
-{$define overflowOn}
 {$q-}
-{$endif}
     Mem[WinWriteSeg:word(ScrOfs)]:=Mem[WinReadSeg:word(ScrOfs)]+1;
-{$ifdef rangeOn}
-{$undef rangeOn}
-{$r+}
-{$endif}
-{$ifdef overflowOn}
-{$undef overflowOn}
-{$q+}
-{$endif}
+{$pop}
     {Port[$3ce]:=8;}{not needed, the register is already selected}
     if HLength>0 then
       begin
@@ -1699,23 +1670,11 @@ end;
          SetReadBank(smallint(ScrOfs shr 16));
          SetWriteBank(smallint(ScrOfs shr 16));
          Port[$3cf]:=RMask;
-{$ifopt r+}
-{$define rangeOn}
+{$push}
 {$r-}
-{$endif}
-{$ifopt q+}
-{$define overflowOn}
 {$q-}
-{$endif}
          Mem[WinWriteSeg:word(ScrOfs)]:=Mem[WinReadSeg:word(ScrOfs)]+1;
-{$ifdef rangeOn}
-{$undef rangeOn}
-{$r+}
-{$endif}
-{$ifdef overflowOn}
-{$undef overflowOn}
-{$q+}
-{$endif}
+{$pop}
       end;
     { clean up }
     {Port[$3cf]:=0;}{not needed, the register is reset by the next operation:}

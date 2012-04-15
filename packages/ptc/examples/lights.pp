@@ -28,10 +28,10 @@ begin
 end;
 
 var
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  format: TPTCFormat = nil;
-  palette: TPTCPalette = nil;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  format: IPTCFormat;
+  palette: IPTCPalette;
   dx, dy: Integer;
   divisor: Single;
   data: PUint32;
@@ -54,15 +54,15 @@ begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
-      format := TPTCFormat.Create(8);
+      format := TPTCFormatFactory.CreateNew(8);
 
       { open console }
       console.open('Lights demo', 320, 200, format);
 
       { create surface }
-      surface := TPTCSurface.Create(320, 200, format);
+      surface := TPTCSurfaceFactory.CreateNew(320, 200, format);
 
       { setup intensity table }
       for dy := 0 to 199 do
@@ -75,15 +75,15 @@ begin
         end;
 
       { create palette }
-      palette := TPTCPalette.Create;
+      palette := TPTCPaletteFactory.CreateNew;
 
       { generate greyscale palette }
-      data := palette.lock;
+      data := palette.Lock;
       try
         for i := 0 to 255 do
           data[i] := (i shl 16) or (i shl 8) or i;
       finally
-        palette.unlock;
+        palette.Unlock;
       end;
 
       { set console palette }
@@ -271,11 +271,8 @@ begin
         console.update;
       end;
     finally
-      console.close;
-      surface.Free;
-      console.Free;
-      palette.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

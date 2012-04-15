@@ -15,12 +15,12 @@ interface
 
 {$undef USE_FPCGI}
 
-uses 
+uses
 {$ifdef USE_FPCGI}
      fpcgi,
 {$else not USE_FPCGI}
      cgiapp,
-{$endif not USE_FPCGI}     
+{$endif not USE_FPCGI}
      sysutils,mysql50conn,sqldb,whtml,dbwhtml,db,
      tresults,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
@@ -51,6 +51,7 @@ Type
     FMachine,
     FComment,
     FCPU,
+    FCategory,
     FOS  : String;
     FViewVCURL : String;
     FDate : TDateTime;
@@ -89,6 +90,7 @@ Type
     Function GetOSName(ID : String) : String;
     Function GetCPUName(ID : String) : String;
     Function GetVersionName(ID : String) : String;
+    Function GetCategoryName(ID : String) : String;
     Function GetTestFileName(ID : String) : String;
     Function GetFailCount(RunID : longint) : string;
     Function InitCGIVars : Integer;
@@ -122,10 +124,30 @@ Const
   DefPassword = ''; // fill this in, too.
 }
 
+Const
+  OldTestResultsTableName = 'OLDTESTRESULTS';
+  NewTestResultsTableName = 'TESTRESULTS';
+  LastOldTestRun = 91178;
+
+  Function TestResultsTableName(const RunId : String) : string;
+  var
+    RunIDVal : qword;
+    Error : word;
+  begin
+    system.val (RunId,RunIdVal,error);
+    if (error<>0) then
+      result:='ErrorTable'
+    else if (RunIdVal <= LastOldTestRun) then
+      result:=OldTestResultsTableName
+    else
+      result:=NewTestResultsTableName;
+  end;
+
+
 Var
   SDetailsURL : string;
 
-type 
+type
   known_versions = (
     ver_unknown,
     ver_1_0_10,
@@ -146,7 +168,12 @@ type
     ver_2_3_1,
     ver_2_4_0,
     ver_2_4_1,
-    ver_2_5_1);
+    ver_2_4_2,
+    ver_2_4_3,
+    ver_2_4_4,
+    ver_2_4_5,
+    ver_2_5_1,
+    ver_2_7_1);
 
 const
   ver_trunk = high (known_versions);
@@ -173,10 +200,15 @@ const
    '2.3.1',
    '2.4.0',
    '2.4.1',
-   '2.5.1'
+   '2.4.2',
+   '2.4.3',
+   '2.4.4',
+   '2.4.5',
+   '2.5.1',
+   '2.7.1'
   );
 
-  ver_branch : array [known_versions] of string = 
+  ver_branch : array [known_versions] of string =
   (
    '',
    '',
@@ -196,7 +228,12 @@ const
    'branches/fixes_2_2',
    'tags/release_2_4_0',
    'tags/release_2_4_0',
+   'tags/release_2_4_2',
+   'tags/release_2_4_2',
+   'tags/release_2_4_4',
+   'tags/release_2_4_4',
    'branches/fixes_2_4',
+   'branches/fixes_2_6',
    'trunk'
   );
 
@@ -215,7 +252,7 @@ begin
         2 : CreateRunPie;
         3 : ShowOneTest;
         4 : ShowHistory;
-{$ifdef TEST}        
+{$ifdef TEST}
         98 :
           begin
             ///EmitOverviewForm;
@@ -225,7 +262,7 @@ begin
             system.Writeln(stdout,'</PRE>');
             system.Flush(stdout);
           end;
-        99 : 
+        99 :
           begin
             EmitOverviewForm;
             system.Writeln(stdout,'<PRE>');
@@ -236,7 +273,7 @@ begin
 {$endif TEST}
         end;
     finally
-      EmitEnd; 
+      EmitEnd;
       DisConnectFromDB;
     end;
   Finally
@@ -269,13 +306,16 @@ begin
   FVersion:=RequestVariables['version'];
   if Length(FVersion) = 0 then
     FVersion:=RequestVariables['TESTVERSION'];
-  
+
   FOS:=RequestVariables['os'];
   if Length(FOS) = 0 then
     FOS:=RequestVariables['TESTOS'];
   FCPU:=RequestVariables['cpu'];
   if Length(FCPU) = 0 then
     FCPU:=RequestVariables['TESTCPU'];
+  FCategory:=RequestVariables['category'];
+  if Length(FCategory) = 0 then
+    FCategory:=RequestVariables['TESTCATEGORY'];
   FCond:=RequestVariables['cond'];
   if Length(FCond) = 0 then
     FCond:=RequestVariables['TESTCOND'];
@@ -514,6 +554,12 @@ begin
       end;
     RowNext;
       CellStart;
+        Write('Category');
+      CellNext;
+        ComboBoxFromQuery('Category','SELECT TCAT_ID,TCAT_NAME FROM TESTCATEGORY ORDER BY TCAT_NAME',FCategory);
+      CellEnd;
+    RowNext;
+      CellStart;
         Write('Only failed tests');
       CellNext;
         EmitCheckBox('failedonly','1',FonlyFailed);
@@ -568,7 +614,7 @@ begin
         EmitInput('testfileid',FTestfileid);
       CellEnd;
     RowNext; *)
- 
+
       CellStart;
         Write('Operating system:');
       CellNext;
@@ -640,6 +686,12 @@ begin
         CellEnd;
     RowNext;
       CellStart;
+        Write('Category');
+      CellNext;
+        ComboBoxFromQuery('Category','SELECT TCAT_ID,TCAT_NAME FROM TESTCATEGORY ORDER BY TCAT_NAME',FCategory);
+      CellEnd;
+    RowNext;
+      CellStart;
         Write('Only failed tests');
       CellNext;
         EmitCheckBox('failedonly','1',FonlyFailed);
@@ -668,7 +720,7 @@ end;
 
 
 procedure TTestSuite.EmitEnd;
-begin  
+begin
   if not FNeedEnd then
     exit;
   AddResponseLn('</BODY>');
@@ -742,16 +794,20 @@ Procedure TTestSuite.ShowRunOverview;
 Const
   SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU,TO_NAME as OS,'+
                'TV_VERSION as Version,COUNT(TR_ID) as Count,'+
+               'TU_CATEGORY_FK,TU_SVNCOMPILERREVISION as SvnCompRev,'+
+               'TU_SVNRTLREVISION as SvnRTLRev,'+
+               'TU_SVNPACKAGESREVISION as SvnPackRev,TU_SVNTESTSREVISION as SvnTestsRev,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
                '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
                 'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Total,'+
-               'TU_SUBMITTER as Submitter, TU_MACHINE as Machine, TU_COMMENT as Comment '+
-              'FROM TESTRESULTS,TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
+               'TU_SUBMITTER as Submitter, TU_MACHINE as Machine, TU_COMMENT as Comment %s '+
+              'FROM TESTRESULTS,TESTRUN,TESTCPU,TESTOS,TESTVERSION,TESTCATEGORY '+
               'WHERE '+
                '(TC_ID=TU_CPU_FK) AND '+
                '(TO_ID=TU_OS_FK) AND '+
                '(TV_ID=TU_VERSION_FK) AND '+
+               '(TCAT_ID=TU_CATEGORY_FK) AND '+
                '(TR_TESTRUN_FK=TU_ID) '+
                '%s '+
               'GROUP BY TU_ID '+
@@ -759,13 +815,15 @@ Const
 
 
 Var
-  S,A,Qry : String;
+  SC,S,A,Qry : String;
   Q : TSQLQuery;
 
 begin
    S:='';
    If (FCPU<>'') and (GetCPUName(FCPU)<>'All') then
      S:=S+' AND (TU_CPU_FK='+FCPU+')';
+   If (FCategory<>'') and (GetCategoryName(FCategory)<>'All') then
+     S:=S+' AND (TU_CATEGORY_FK='+FCategory+')';
    If (FVersion<>'') and (GetVersionName(FVersion)<>'All')  then
      S:=S+' AND (TU_VERSION_FK='+FVERSION+')';
    if (FOS<>'') and (GetOSName(FOS)<>'All') then
@@ -782,12 +840,20 @@ begin
      S:=S+' AND ('+FCond+')';
    If FOnlyFailed then
      S:=S+' AND (TR_OK="-")';
+   If GetCategoryName(FCategory)<>'DB' then
+     SC:=', CONCAT(TU_SVNCOMPILERREVISION,"/",TU_SVNRTLREVISION,"/", '+
+          'TU_SVNPACKAGESREVISION,"/",TU_SVNTESTSREVISION) as svnrev'
+   else
+     SC:='';
+   If GetCategoryName(FCategory)='All' then
+     SC:=SC+', TCAT_NAME as Cat';
+
    A:=SDetailsURL;
    If FOnlyFailed then
      A:=A+'&failedonly=1';
    If FNoSkipped then
      A:=A+'&noskipped=1';
-  Qry:=Format(SOverview,[S,FLimit]);
+  Qry:=Format(SOverview,[SC,S,FLimit]);
   If FDebug then
     Writeln('Query : '+Qry);
   Q:=CreateDataset(Qry);
@@ -850,17 +916,26 @@ begin
     Result:=GetSingleton('SELECT TV_VERSION FROM TESTVERSION WHERE TV_ID='+ID);
 end;
 
+Function TTestSuite.GetCategoryName(ID : String) : String;
+
+begin
+  if (ID<>'') then
+    Result:=GetSingleton('SELECT TCAT_NAME FROM TESTCATEGORY WHERE TCAT_ID='+ID);
+end;
+
 Function TTestSuite.ShowRunData : Boolean;
 
 Const
   SGetRunData = 'SELECT TU_ID,TU_DATE,TC_NAME,TO_NAME,' +
                 'TU_SUBMITTER,TU_MACHINE,TU_COMMENT,TV_VERSION,'+
+                'TU_CATEGORY_FK,TU_SVNCOMPILERREVISION,TU_SVNRTLREVISION,'+
+                'TU_SVNPACKAGESREVISION,TU_SVNTESTSREVISION,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
                '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
                 'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Total'+
 
-                ' FROM TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
+                ' %s FROM TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
                 'WHERE '+
                 ' (TC_ID=TU_CPU_FK) AND '+
                 ' (TO_ID=TU_OS_FK) AND '+
@@ -871,14 +946,23 @@ Const
 Var
   Q1,Q2 : TSQLQuery;
   F : TField;
+  SC : string;
   Date1, Date2: TDateTime;
 begin
   Result:=(FRunID<>'');
   If Result then
     begin
-    Q1:=CreateDataset(Format(SGetRunData,[FRunID]));
+    If GetCategoryName(FCategory)<>'DB' then
+      SC:=', CONCAT(TU_SVNCOMPILERREVISION,"/",TU_SVNRTLREVISION,"/", '+
+          'TU_SVNPACKAGESREVISION,"/",TU_SVNTESTSREVISION) as svnrev'
+    else
+      SC:='';
+    If GetCategoryName(FCategory)='All' then
+      SC:=SC+', TCAT_NAME as Cat';
+
+    Q1:=CreateDataset(Format(SGetRunData,[SC,FRunID]));
     if Length(FCompareRunID) > 0 then
-      Q2:=CreateDataset(Format(SGetRunData,[FCompareRunID]))
+      Q2:=CreateDataset(Format(SGetRunData,[SC,FCompareRunID]))
     else
       Q2:=nil;
     Try
@@ -942,7 +1026,7 @@ begin
                   Write('/'+Q2.FieldByName('Total').AsString);
                end;
             CellEnd;
- 
+
           RowNext;
             CellStart;
               Write('Comment:');
@@ -961,7 +1045,31 @@ begin
               if Q2 <> nil then
                 Write(Q2.FieldByName('TU_MACHINE').AsString);
             CellEnd;
-          RowNext;
+          if GetCategoryName(FCategory)<>'All' then
+            begin
+              RowNext;
+                CellStart;
+                Write('Category:');
+                CellNext;
+                Write(GetCategoryName(Q1.FieldByName('TU_CATEGORY_FK').AsString));
+                CellNext;
+                if Q2 <> nil then
+                  Write(GetCategoryName(Q2.FieldByName('TU_CATEGORY_FK').AsString));
+                CellEnd;
+            end;
+          If GetCategoryName(FCategory)<>'DB' then
+            begin
+              RowNext;
+                CellStart;
+                Write('SVN Revisions:');
+                CellNext;
+                Write(Q1.FieldByName('svnrev').AsString);
+                CellNext;
+                if Q2 <> nil then
+                  Write(Q2.FieldByName('svnrev').AsString);
+                CellEnd;
+            end;
+           RowNext;
             CellStart;
               Write('Submitter:');
             CellNext;
@@ -1064,9 +1172,9 @@ begin
       ParaGraphStart;
       S:='SELECT T_ID as Id,T_NAME as Filename,TR_SKIP as Skipped'
         +',TR_OK as OK,TR_RESULT as Result'
-        +' FROM TESTRESULTS,TESTS'
+        +' FROM '+TESTRESULTSTableName(FRunID)+',TESTS'
         +' WHERE (TR_TEST_FK=T_ID) AND (TR_TESTRUN_FK='+FRunID+') ';
-        
+
       If FOnlyFailed then
         S:=S+' AND (TR_OK="-")';
       If FNoSkipped then
@@ -1134,13 +1242,13 @@ end;
 Procedure TTestSuite.ShowOneTest;
 
 Var
-  S : String;
+  S,S2 : String;
   Qry : String;
   Base, Category : string;
   Q : TSQLQuery;
   i : longint;
   FieldName,FieldValue,
-  Log,Source : String;
+  LLog,Source : String;
   Res : Boolean;
   ver : known_versions;
 begin
@@ -1166,10 +1274,10 @@ begin
         Res:=ShowRunData;
         Res:=true;
       end
-    else 
+    else
       begin
         // This is useless as it is now
-        // It should be integrated into a form probably PM 
+        // It should be integrated into a form probably PM
         Write('Only failed tests');
         EmitCheckBox('failedonly','1',FonlyFailed);
         Write('Hide skipped tests');
@@ -1195,8 +1303,8 @@ begin
               begin
                 FieldValue:=Fields[i].AsString;
                 FieldName:=Fields[i].DisplayName;
-                
-                if (FieldValue<>'') and (FieldValue<>'-') and 
+
+                if (FieldValue<>'') and (FieldValue<>'-') and
                    (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
                   begin
                     if (FieldValue='+') then
@@ -1210,28 +1318,42 @@ begin
                     DumpLn('<BR>');
                   end;
               end;
-           
+
           Finally
             Close;
           end;
         Finally
           Free;
         end;
-      ParaGraphEnd;  
+      ParaGraphEnd;
       HeaderStart(2);
       Write('Detailed test run results:');
 
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT TR_ID,TR_TESTRUN_FK,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
+      S:='SELECT TR_ID,TR_TESTRUN_FK AS RUN,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
       //S:='SELECT * '
-        +' FROM TESTRESULTS '
+        +' FROM '+TESTRESULTSTableName(FRunID)
         +' WHERE  (TR_TEST_FK='+FTestFileID+')';
       If FOnlyFailed then
         S:=S+' AND (TR_OK="-")';
       if Fcomparerunid<>'' then
-        S:=S+' AND ((TR_TESTRUN_FK='+Frunid+') OR '+
-             '(TR_TESTRUN_FK='+Fcomparerunid+'))'
+        begin
+          if TESTRESULTSTableName(FRunID)<>TESTRESULTSTableName(FCompareRunID) then
+            begin
+              S2:='SELECT TR_ID,TR_TESTRUN_FK AS RUN,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
+                  +' FROM '+TESTRESULTSTableName(FCompareRunID)
+                  +' WHERE  (TR_TEST_FK='+FTestFileID+')';
+              If FOnlyFailed then
+                S2:=S2+' AND (TR_OK="-")';
+
+              S:=S+' AND (TR_TESTRUN_FK='+Frunid+') UNION '+
+                 S2+' AND (TR_TESTRUN_FK='+Fcomparerunid+')'
+            end
+          else
+            S:=S+' AND ((TR_TESTRUN_FK='+Frunid+') OR '+
+                 '(TR_TESTRUN_FK='+Fcomparerunid+'))'
+        end
       else if Frunid<>'' then
         S:=S+' AND (TR_TESTRUN_FK='+Frunid+')'
       else
@@ -1256,7 +1378,7 @@ begin
                 //FL:='TR_ID,TR_TESTRUN_FK,T_NAME,T_CPU,T_VERSION';
                 CreateColumns(Nil);
                 TableColumns.Delete(TableColumns.ColumnByName('TR_TEST_FK').Index);
-                TableColumns.ColumnByNAme('TR_TESTRUN_FK').OnGetCellContents:=
+                TableColumns.ColumnByNAme('RUN').OnGetCellContents:=
                   @FormatTestRunOverview;
                 //OnGetRowAttributes:=@GetRunRowAttr;
                 TableColumns.ColumnByNAme('TR_RESULT').OnGetCellContents:=
@@ -1279,58 +1401,58 @@ begin
               begin
                 Category:=getsingleton('select TU_CATEGORY_FK from TESTRUN where TU_ID='+FRunId);
                 FVersionBranch:=GetVersionName(getsingleton('select TU_VERSION_FK from TESTRUN where TU_ID='+fRunId));
-                log:=''; 
+                LLog:='';
                 Try
-                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+frunid+')');
-                if Log<>'' then
+                if LLog<>'' then
                   begin
                     HeaderStart(2);
                     Write('Log of '+FRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
-                    system.Write(Log);
+                    system.Write(LLog);
                     system.flush(output);
                     PreformatEnd;
                   end;
                 Finally
-                  if Log='' then
+                  if LLog='' then
                     begin
                       HeaderStart(2);
                       Write('No log of '+FRunId+'.');
                       HeaderEnd(2);
-                    end;  
-                end;  
-              end;  
+                    end;
+                end;
+              end;
             if FCompareRunId<>'' then
               begin
-                log:=''; 
+                LLog:='';
                 Try
-                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+fcomparerunid+')');
-                if Log<>'' then
+                if LLog<>'' then
                   begin
                     HeaderStart(2);
                     Write('Log of '+FCompareRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
-                    system.Write(Log);
+                    system.Write(LLog);
                     system.flush(output);
                     PreformatEnd;
                   end;
                 Finally
-                  if Log='' then
+                  if LLog='' then
                     begin
                       HeaderStart(2);
                       Write('No log of '+FCompareRunId+'.');
                       HeaderEnd(2);
-                    end;  
-                end;  
-              end;  
+                    end;
+                end;
+              end;
             if FDebug then
               Write('After Log.');
             Source:='';
-            Try  
+            Try
             Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
             if Source<>'' then
               begin
@@ -1342,13 +1464,13 @@ begin
                 system.flush(output);
                 PreformatEnd;
               end;
-            Finally 
+            Finally
             Base:='trunk';
             if  FVersionBranch<>'' then
               begin
                 // Test all but last version, which is assumed to be trunk
                 for ver:=low(known_versions) to pred(high(known_versions)) do
-                  if ver_string[ver]=FVersionBranch then
+                  if VER_String[ver]=FVersionBranch then
                     begin
                       base:=ver_branch[ver];
                       break;
@@ -1381,14 +1503,14 @@ begin
                   '<A HREF="'+FViewVCURL+FTestFileName+'?view=markup'+
                   '" TARGET="fpc_source"> '+FTestFileName+'</A> source. ');
                 HeaderEnd(3);
-              end;  
-            end;  
+              end;
+            end;
              if FDebug then
               Write('After Source.');
     end
     else
       Write(Format('No data for test file with ID: %s',[FTestFileID]));
-      
+
     end;
 end;
 
@@ -1396,7 +1518,7 @@ end;
 Procedure TTestSuite.ShowHistory;
 Const
   MaxCombo = 50;
-Type 
+Type
   StatusLongintArray = Array [TTestStatus] of longint;
   StatusDateTimeArray = Array [TTestStatus] of TDateTime;
   AStatusLA = Array[1..MaxCombo] of StatusLongintArray;
@@ -1429,7 +1551,7 @@ Var
   cpu_first_date_id, cpu_last_date_id,
   version_first_date_id, version_last_date_id : PStatusLA;
   FieldName,FieldValue,
-  Log,Source : String;
+  LLog,Source : String;
   Res : Boolean;
   ver : known_versions;
 begin
@@ -1439,29 +1561,35 @@ begin
   ConnectToDB;
   ContentType:='text/html';
   EmitContentType;
-  if FTestFileID='' then
+  if (FTestFileID='') and (FTestFileName<>'') then
     FTestFileID:=GetSingleton('SELECT T_ID FROM TESTS WHERE T_NAME LIKE ''%'+
      FTestFileName+'%''');
   if FTestFileID<>'' then
     FTestFileName:=GetTestFileName(FTestFileID);
-  EmitTitle(Title+' : File '+FTestFileName+' Results');
+  if FTestFileName<>'' then
+    EmitTitle(Title+' : File '+FTestFileName+' Results')
+  else
+    EmitTitle(Title+' : History overview');
   With FHTMLWriter do
     begin
-    HeaderStart(1);
-    Write('Test suite results for test file '+FTestFileName);
-    HeaderEnd(1);
-    HeaderStart(2);
-    Write('Test run data : ');
-    HeaderEnd(2);
+    if FTestFileName<>'' then
+      begin
+        HeaderStart(1);
+        Write('Test suite results for test file '+FTestFileName);
+        HeaderEnd(1);
+        HeaderStart(2);
+        Write('Test run data : ');
+        HeaderEnd(2);
+      end;
     if FRunID<>'' then
       begin
         Res:=ShowRunData;
         Res:=true;
       end
-    else 
+    else
       begin
         // This is useless as it is now
-        // It should be integrated into a form probably PM 
+        // It should be integrated into a form probably PM
         //Write('Only failed tests');
         //EmitCheckBox('failedonly','1',FonlyFailed);
         //Write('Hide skipped tests');
@@ -1471,51 +1599,61 @@ begin
       end;
     If Res then
       begin
-      HeaderStart(2);
-      Write('Test file "'+FTestFileName+'" information:');
-      HeaderEnd(2);
-      ParaGraphStart;
-      S:='SELECT * FROM TESTS WHERE T_ID='+FTestFileID;
-      Q:=CreateDataSet(S);
-      With Q do
-        Try
-          Open;
-          Try
-            For i:=0 to FieldCount-1 do
-              begin
-                FieldValue:=Fields[i].AsString;
-                FieldName:=Fields[i].DisplayName;
-                if (FieldValue<>'') and (FieldValue<>'-') and 
-                   (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
+        if (FTestFileName<>'') then
+          begin
+          HeaderStart(2);
+          Write('Test file "'+FTestFileName+'" information:');
+          HeaderEnd(2);
+          ParaGraphStart;
+          S:='SELECT * FROM TESTS WHERE T_ID='+FTestFileID;
+          Q:=CreateDataSet(S);
+          With Q do
+            Try
+              Open;
+              Try
+                For i:=0 to FieldCount-1 do
                   begin
-                    if (FieldValue='+') then
-                      Write('Flag ');
-                    Write(FieldName);
-                    Write(' ');
-                    if FieldValue='+' then
-                      Write(' set')
-                    else
-                      Write(FieldValue);
-                    DumpLn('<BR>');
+                    FieldValue:=Fields[i].AsString;
+                    FieldName:=Fields[i].DisplayName;
+                    if (FieldValue<>'') and (FieldValue<>'-') and
+                       (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
+                      begin
+                        if (FieldValue='+') then
+                          Write('Flag ');
+                        Write(FieldName);
+                        Write(' ');
+                        if FieldValue='+' then
+                          Write(' set')
+                        else
+                          Write(FieldValue);
+                        DumpLn('<BR>');
+                      end;
                   end;
-              end;
-           
-          Finally
-            Close;
-          end;
-        Finally
-          Free;
-        end;
-      ParaGraphEnd;  
-      HeaderStart(2);
-      Write('Detailed test run results:');
 
+              Finally
+                Close;
+              end;
+            Finally
+              Free;
+            end;
+          ParaGraphEnd;
+          HeaderStart(2);
+          Write('Detailed test run results:');
+        end;
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT TR_ID,TR_TESTRUN_FK,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
+      S:='SELECT TR_ID,TR_TESTRUN_FK AS Run,TR_TEST_FK,TR_OK AS OK'
+        +', TR_SKIP As Skip,TR_RESULT  As Result'
       //S:='SELECT * '
-        +',TC_NAME AS CPU, TV_VERSION AS VERSION, TO_NAME AS OS'
-        +',TU_ID,TU_DATE,TU_SUBMITTER,TU_MACHINE,TU_COMMENT '
+        +',TC_NAME AS CPU, TV_VERSION AS Version, TO_NAME AS OS'
+        +',TU_ID,TU_DATE AS Date,TU_SUBMITTER  AS Submitter'
+        +',(TU_FAILEDTOCOMPILE + TU_FAILEDTOFAIL + TU_FAILEDTORUN) AS Fails'
+        +',TU_MACHINE AS Machine,TU_COMMENT AS Comment'
+        +',TU_COMPILERDATE As CompDate'
+        +',TU_SVNTESTSREVISION AS Tests_rev'
+        +',TU_SVNRTLREVISION AS RTL_rev'
+        +',TU_SVNCOMPILERREVISION AS Compiler_rev'
+        +',TU_SVNPACKAGESREVISION AS Packages_rev'
         +',TO_ID,TC_ID,TV_ID'
         +' FROM TESTRUN '
         +' LEFT JOIN TESTRESULTS ON  (TR_TESTRUN_FK=TU_ID)'
@@ -1527,6 +1665,9 @@ begin
         S:=S+' AND (TR_OK="-")';
       If FNoSkipped then
         S:=S+' AND (TR_SKIP="-")';
+      If FCond<>'' then
+        S:=S+' AND ('+FCond+')';
+
       If (FCPU<>'') and (GetCPUName(FCPU)<>'All') then
         begin
           S:=S+' AND (TU_CPU_FK='+FCPU+')';
@@ -1615,7 +1756,7 @@ begin
       With Q do
         try
           Open;
-          
+
           while not EOF do
             Next;
 
@@ -1624,12 +1765,12 @@ begin
             RecNo:=0;
 
           Try
-           if FDebug then
+           { if FDebug then
              begin
                Writeln(stdout,'FieldKind=',Fields[0].FieldKind);
                Writeln(stdout,'DataType=',Fields[0].DataType);
                system.flush(stdout);
-             end;
+             end; }
 
           total_count:=0;
           OK_count:=0;
@@ -1637,13 +1778,13 @@ begin
           skip_count:=0;
           not_skip_count:=0;
           fillchar(Result_Count,Sizeof(Result_count),#0);
-          ok_ind:=FieldByName('TR_OK').Index;
-          skip_ind:=FieldBYName('TR_SKIP').Index;
-          result_ind:=FieldByName('TR_RESULT').Index;
+          ok_ind:=FieldByName('OK').Index;
+          skip_ind:=FieldBYName('SKIP').Index;
+          result_ind:=FieldByName('Result').Index;
           cpu_ind:=FieldByName('TC_ID').Index;
           os_ind:=FieldByName('TO_ID').Index;
           version_ind:=FieldByName('TV_ID').Index;
-          date_ind:=FieldByName('TU_DATE').Index;
+          date_ind:=FieldByName('Date').Index;
           run_ind:=FieldByName('TU_ID').Index;
           For i:=0 to Q.RecordCount-1 do
             begin
@@ -1672,7 +1813,7 @@ begin
               run_id:=Fields[run_ind].ASLongint;
               if (error=0) and (Resi>=longint(FirstStatus)) and
                  (Resi<=longint(LastStatus)) then
-                begin   
+                begin
                   TS:=TTestStatus(Resi);
                   if Result_count[TS]=0 then
                     begin
@@ -1681,7 +1822,7 @@ begin
                       first_date_id[TS]:=run_id;
                       last_date_id[TS]:=run_id;
                     end
-                  else 
+                  else
                     begin
                       if (date>last_date[TS]) then
                         begin
@@ -1694,7 +1835,7 @@ begin
                           first_date_id[TS]:=run_id;
                         end;
                     end;
-                    
+
                   inc(Result_count[TS]);
                   if assigned(cpu_count) and (cpu_id<=cpu_last) then
                     begin
@@ -1705,7 +1846,7 @@ begin
                           cpu_first_date_id^[cpu_id,TS]:=run_id;
                           cpu_last_date_id^[cpu_id,TS]:=run_id;
                         end
-                      else 
+                      else
                         begin
                           if (date>cpu_last_date^[cpu_id,TS]) then
                             begin
@@ -1729,7 +1870,7 @@ begin
                           os_first_date_id^[os_id,TS]:=run_id;
                           os_last_date_id^[os_id,TS]:=run_id;
                         end
-                      else 
+                      else
                         begin
                           if (date>os_last_date^[os_id,TS]) then
                             begin
@@ -1753,7 +1894,7 @@ begin
                           version_first_date_id^[version_id,TS]:=run_id;
                           version_last_date_id^[version_id,TS]:=run_id;
                         end
-                      else 
+                      else
                         begin
                           if (date>version_last_date^[version_id,TS]) then
                             begin
@@ -1906,26 +2047,27 @@ begin
             With CreateTableProducer(Q) do
               Try
                 Border:=True;
-                FL:='TR_TESTRUN_FK,TU_DATE,TR_OK,TR_SKIP,TR_RESULT';
+                FL:='RUN,Date,OK,SKIP,Result';
                 if FSubmitter='' then
-                  FL:=FL+',TU_SUBMITTER';
+                  FL:=FL+',Submitter';
                 if FMachine='' then
-                  FL:=FL+',TU_MACHINE';
+                  FL:=FL+',Machine';
                 if Fcomment='' then
-                  FL:=FL+',TU_COMMENT';
+                  FL:=FL+',Comment';
                 if (FOS='') or (GetOSName(FOS)='All') then
                   FL:=FL+',OS';
                 if (FCPU='') or (GetCPUName(FCPU)='All') then
                   FL:=FL+',CPU';
                 if (FVersion='') or (GetVersionName(FVersion)='All') then
-                  FL:=FL+',VERSION';
-                
+                  FL:=FL+',Version';
+                FL:=FL+',Fails,CompDate';
+                FL:=FL+',Tests_rev,RTL_rev,Compiler_rev,Packages_rev';
                 CreateColumns(FL);
                 //TableColumns.Delete(TableColumns.ColumnByName('TR_TEST_FK').Index);
-                TableColumns.ColumnByNAme('TR_TESTRUN_FK').OnGetCellContents:=
+                TableColumns.ColumnByNAme('RUN').OnGetCellContents:=
                   @FormatTestRunOverview;
                 //OnGetRowAttributes:=@GetRunRowAttr;
-                TableColumns.ColumnByNAme('TR_RESULT').OnGetCellContents:=
+                TableColumns.ColumnByNAme('Result').OnGetCellContents:=
                   @FormatTestResult;
                 //(TableColumns.Items[0] as TTableColumn).ActionURL:=ALink;
                 CreateTable(Response);
@@ -1946,58 +2088,58 @@ begin
               begin
                 Category:=getsingleton('select TU_CATEGORY_FK from TESTRUN where TU_ID='+FRunId);
                 FVersionBranch:=GetVersionName(getsingleton('select TU_VERSION_FK from TESTRUN where TU_ID='+fRunId));
-                log:=''; 
+                LLog:='';
                 Try
-                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+frunid+')');
-                if Log<>'' then
+                if LLog<>'' then
                   begin
                     HeaderStart(2);
-                    Write('Log of '+FRunId+':');
+                    Write('LLog of '+FRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
-                    system.Write(Log);
+                    system.Write(LLog);
                     system.flush(output);
                     PreformatEnd;
                   end;
                 Finally
-                  if Log='' then
+                  if LLog='' then
                     begin
                       HeaderStart(2);
                       Write('No log of '+FRunId+'.');
                       HeaderEnd(2);
-                    end;  
-                end;  
-              end;  
+                    end;
+                end;
+              end;
             if FCompareRunId<>'' then
               begin
-                log:=''; 
+                LLog:='';
                 Try
-                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                LLog:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
                      +') and (TR_TESTRUN_FK='+fcomparerunid+')');
-                if Log<>'' then
+                if LLog<>'' then
                   begin
                     HeaderStart(2);
                     Write('Log of '+FCompareRunId+':');
                     HeaderEnd(2);
                     PreformatStart;
-                    system.Write(Log);
+                    system.Write(LLog);
                     system.flush(output);
                     PreformatEnd;
                   end;
                 Finally
-                  if Log='' then
+                  if LLog='' then
                     begin
                       HeaderStart(2);
                       Write('No log of '+FCompareRunId+'.');
                       HeaderEnd(2);
-                    end;  
-                end;  
-              end;  
+                    end;
+                end;
+              end;
             if FDebug then
-              Write('After Log.');
+              Write('After log.');
             Source:='';
-            Try  
+            Try
             Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
             if Source<>'' then
               begin
@@ -2009,7 +2151,7 @@ begin
                 system.flush(output);
                 PreformatEnd;
               end;
-            Finally 
+            Finally
             Base:='trunk';
             if  FVersionBranch<>'' then
               begin
@@ -2048,14 +2190,14 @@ begin
                   '<A HREF="'+FViewVCURL+FTestFileName+'?view=markup'+
                   '" TARGET="fpc_source"> '+FTestFileName+'</A> source. ');
                 HeaderEnd(3);
-              end;  
-            end;  
+              end;
+            end;
              if FDebug then
               Write('After Source.');
     end
     else
       Write(Format('No data for test file with ID: %s',[FTestFileID]));
-      
+
     end;
   if assigned(os_count) then
     begin
@@ -2131,11 +2273,12 @@ begin
       Q.ExecSQL;
       Q.SQL.Text:='CREATE TEMPORARY TABLE tr2 like TESTRESULTS;';
       Q.ExecSQL;
-      Q.SQL.Text:='INSERT INTO tr1 SELECT * FROM TESTRESULTS '+
-        'WHERE TR_TESTRUN_FK='+FRunID+';';
+      Q.SQL.Text:='INSERT INTO tr1 SELECT * FROM '+TESTRESULTSTableName(FRunId)+
+
+        ' WHERE TR_TESTRUN_FK='+FRunID+';';
       Q.ExecSQL;
-      Q.SQL.Text:='INSERT INTO tr2 SELECT * FROM TESTRESULTS '+
-        'WHERE TR_TESTRUN_FK='+FCompareRunID+';';
+      Q.SQL.Text:='INSERT INTO tr2 SELECT * FROM '+TESTRESULTSTableName(FCompareRunId)+
+        ' WHERE TR_TESTRUN_FK='+FCompareRunID+';';
       Q.ExecSQL;
       S:='SELECT T_ID as Id,T_NAME as Filename,tr1.TR_SKIP as Run1_Skipped,'
          +'tr2.TR_SKIP as Run2_Skipped,tr1.TR_OK as Run1_OK,'
@@ -2248,7 +2391,7 @@ begin
         BGColor:='#68DFB8'
       else if Run1Field.ASString<>'+' then
         BGColor:='#98FB98';    // pale Green
-      end  
+      end
     else if Run2Field.AsString='-' then
       begin
       Inc(FRunFailedCount);
@@ -2294,7 +2437,7 @@ Var
 
 begin
   P:=(Sender as TTableProducer);
-  S:=Format(SDetailsURL,[P.DataSet.FieldByName('TR_TESTRUN_FK').AsString]);
+  S:=Format(SDetailsURL,[P.DataSet.FieldByName('RUN').AsString]);
   if FOnlyFailed then
     S:=S+'&failedonly=1';
   if FNoSkipped then
@@ -2313,7 +2456,7 @@ begin
   if FVersion<>'' then
     S:=Format(TestSuiteCGIURL + '?action=4&version=%s&testfileid=%s',
        [FVersion,P.DataSet.FieldByName('Id').AsString])
-  else 
+  else
     S:=Format(TestSuiteCGIURL + '?action=4&testfileid=%s',
        [P.DataSet.FieldByName('Id').AsString]);
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
@@ -2331,7 +2474,7 @@ begin
   if FCompareRunID<>'' then
     S:=Format(TestSuiteCGIURL + '?action=3&run1id=%s&run2id=%s&testfileid=%s',
        [FRunID,FCompareRunID,P.DataSet.FieldByName('Id').AsString])
-  else 
+  else
     S:=Format(TestSuiteCGIURL + '?action=3&run1id=%s&testfileid=%s',
        [FRunID,P.DataSet.FieldByName('Id').AsString]);
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
@@ -2347,7 +2490,7 @@ begin
   Val(CellData,Res,Error);
   if (Error=0) and (Res>=longint(FirstStatus)) and
      (Res<=longint(LastStatus)) then
-    begin   
+    begin
       TS:=TTestStatus(Res);
       CellData:=StatusText[TS];
     end;

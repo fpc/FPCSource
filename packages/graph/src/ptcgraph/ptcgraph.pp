@@ -293,9 +293,9 @@ var
   ptcformat: TPTCFormat = nil;}
   PTCWidth: Integer;
   PTCHeight: Integer;
-  PTCFormat8: TPTCFormat;
-  PTCFormat15: TPTCFormat;
-  PTCFormat16: TPTCFormat;
+  PTCFormat8: IPTCFormat;
+  PTCFormat15: IPTCFormat;
+  PTCFormat16: IPTCFormat;
 
   EGAPaletteEnabled: Boolean;
   EGAPalette: TEGAPalette;
@@ -416,7 +416,7 @@ begin
 //  writeln('Initializing mode');
   { create format }
 {  FreeAndNil(PTCFormat);
-  PTCFormat:=TPTCFormat.Create(16,$f800,$07e0,$001f);}
+  PTCFormat:=TPTCFormatFactory.CreateNew(16,$f800,$07e0,$001f);}
   { open the console }
 {  ptcconsole.open(paramstr(0),ptcformat);}
   { create surface matching console dimensions }
@@ -640,7 +640,7 @@ begin
   CurrentCGABkColor := 0;
 end;
 
-procedure ptc_InternalOpen(const ATitle: string; AWidth, AHeight: Integer; AFormat: TPTCFormat; AVirtualPages: Integer);
+procedure ptc_InternalOpen(const ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat; AVirtualPages: Integer);
 var
   ConsoleWidth, ConsoleHeight: Integer;
 begin
@@ -1503,11 +1503,11 @@ end;
   { Returns nil if no graphics mode supported.        }
   { This list is READ ONLY!                           }
   var
-    PTCModeList: PPTCMode;
+    PTCModeList: TPTCModeList;
 
     function ModeListEmpty: Boolean;
     begin
-      ModeListEmpty := (PTCModeList = nil) or (not PTCModeList[0].Valid);
+      ModeListEmpty := Length(PTCModeList) = 0;
     end;
 
     function ContainsExactResolution(AWidth, AHeight: Integer): Boolean;
@@ -1520,9 +1520,7 @@ end;
         exit;
       end;
 
-      I := 0;
-      while (PTCModeList[I].Valid) do
-      begin
+      for I := Low(PTCModeList) to High(PTCModeList) do
         with PTCModeList[I] do
           if (Width = AWidth) and
              (Height = AHeight) then
@@ -1530,8 +1528,6 @@ end;
             ContainsExactResolution := True;
             exit;
           end;
-        Inc(I);
-      end;
       ContainsExactResolution := False;
     end;
 
@@ -1545,9 +1541,7 @@ end;
         exit;
       end;
 
-      I := 0;
-      while (PTCModeList[I].Valid) do
-      begin
+      for I := Low(PTCModeList) to High(PTCModeList) do
         with PTCModeList[I] do
           if (Width >= AWidth) and
              (Height >= AHeight) then
@@ -1555,8 +1549,6 @@ end;
             ContainsAtLeast := True;
             exit;
           end;
-        Inc(I);
-      end;
       ContainsAtLeast := False;
     end;
 
@@ -2828,16 +2820,13 @@ end;
   end;
 
 initialization
-  PTCFormat8 := TPTCFormat.Create(8);
-  PTCFormat15 := TPTCFormat.Create(16, $7C00, $03E0, $001F);
-  PTCFormat16 := TPTCFormat.Create(16, $F800, $07E0, $001F);
+  PTCFormat8 := TPTCFormatFactory.CreateNew(8);
+  PTCFormat15 := TPTCFormatFactory.CreateNew(16, $7C00, $03E0, $001F);
+  PTCFormat16 := TPTCFormatFactory.CreateNew(16, $F800, $07E0, $001F);
   PTCWrapperObject := TPTCWrapperThread.Create;
   InitializeGraph;
 finalization
   PTCWrapperObject.Terminate;
   PTCWrapperObject.WaitFor;
   PTCWrapperObject.Free;
-  PTCFormat16.Free;
-  PTCFormat15.Free;
-  PTCFormat8.Free;
 end.

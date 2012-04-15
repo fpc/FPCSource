@@ -1,0 +1,27 @@
+#
+#  Makefile.fpc for httpd 2.2 unit
+#
+
+[package]
+name=httpd22
+version=2.7.1
+
+[target]
+units=apr apriconv aprutil httpd
+exampledirs=examples
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src src/apr src/apriconv src/aprutil
+sourcedir=src tests src/apr src/apriconv src/aprutil
+
+[rules]
+.NOTPARALLEL:

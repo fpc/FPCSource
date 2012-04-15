@@ -135,25 +135,14 @@ begin
   case PByte(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring :
-      begin
-        fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
-        PPointer(Data)^:=nil;
-      end;
+      fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-  {$ifndef VER2_2}
     tkUstring :
-      begin
-        fpc_UnicodeStr_Decr_Ref(PPointer(Data)^);
-        PPointer(Data)^:=nil;
-      end;
-  {$endif VER2_2}
+      fpc_UnicodeStr_Decr_Ref(PPointer(Data)^);
   {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring :
-      begin
-        fpc_WideStr_Decr_Ref(PPointer(Data)^);
-        PPointer(Data)^:=nil;
-      end;
+      fpc_WideStr_Decr_Ref(PPointer(Data)^);
   {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray :
@@ -164,16 +153,10 @@ begin
     tkRecord:
       recordrtti(data,typeinfo,@int_finalize);
     tkInterface:
-      begin
-        Intf_Decr_Ref(PPointer(Data)^);
-        PPointer(Data)^:=nil;
-      end;
+      Intf_Decr_Ref(PPointer(Data)^);
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
-      begin
-        fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
-        PPointer(Data)^:=nil;
-      end;
+      fpc_dynarray_clear(PPointer(Data)^,TypeInfo);
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
@@ -195,10 +178,8 @@ begin
     tkWstring :
       fpc_WideStr_Incr_Ref(PPointer(Data)^);
   {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-  {$ifndef VER2_2}
     tkUstring :
       fpc_UnicodeStr_Incr_Ref(PPointer(Data)^);
-  {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray :
       arrayrtti(data,typeinfo,@int_addref);
@@ -221,48 +202,6 @@ begin
 end;
 
 
-{ alias for internal use }
-{ we use another name else the compiler gets puzzled because of the wrong forward def }
-procedure fpc_systemDecRef (Data, TypeInfo : Pointer);[external name 'FPC_DECREF'];
-
-Procedure fpc_DecRef (Data, TypeInfo : Pointer);[Public,alias : 'FPC_DECREF'];  compilerproc;
-begin
-  case PByte(TypeInfo)^ of
-    { see AddRef for comment about below construct (JM) }
-{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-    tkAstring:
-      fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
-{$endif FPC_HAS_FEATURE_ANSISTRINGS}
-{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-  {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-    tkWstring:
-      fpc_WideStr_Decr_Ref(PPointer(Data)^);
-  {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-  {$ifndef VER2_2}
-    tkUString:
-      fpc_UnicodeStr_Decr_Ref(PPointer(Data)^);
-  {$endif VER2_2}
-{$endif FPC_HAS_FEATURE_WIDESTRINGS}
-    tkArray:
-      arrayrtti(data,typeinfo,@fpc_systemDecRef);
-{$ifdef FPC_HAS_FEATURE_OBJECTS}
-    tkobject,
-{$endif FPC_HAS_FEATURE_OBJECTS}
-    tkrecord:
-      recordrtti(data,typeinfo,@fpc_systemDecRef);
-{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
-    tkDynArray:
-      fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
-{$endif FPC_HAS_FEATURE_DYNARRAYS}
-    tkInterface:
-      Intf_Decr_Ref(PPointer(Data)^);
-{$ifdef FPC_HAS_FEATURE_VARIANTS}
-    tkVariant:
-      variant_clear(pvardata(data)^);
-{$endif FPC_HAS_FEATURE_VARIANTS}
-  end;
-end;
-
 { define alias for internal use in the system unit }
 Function fpc_Copy_internal (Src, Dest, TypeInfo : Pointer) : SizeInt;[external name 'FPC_COPY'];
 
@@ -281,21 +220,15 @@ begin
   case PByte(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring:
-      begin
-        fpc_AnsiStr_Incr_Ref(PPointer(Src)^);
-        fpc_AnsiStr_Decr_Ref(PPointer(Dest)^);
-        PPointer(Dest)^:=PPointer(Src)^;
-      end;
+      fpc_AnsiStr_Assign(PPointer(Dest)^,PPointer(Src)^);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring:
       fpc_WideStr_Assign(PPointer(Dest)^,PPointer(Src)^);
   {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-  {$ifndef VER2_2}
     tkUstring:
       fpc_UnicodeStr_Assign(PPointer(Dest)^,PPointer(Src)^);
-  {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray:
       begin
@@ -333,18 +266,10 @@ begin
       end;
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
-      begin
-        fpc_dynarray_Incr_Ref(PPointer(Src)^);
-        fpc_dynarray_Decr_Ref(PPointer(Dest)^,typeinfo);
-        PPointer(Dest)^:=PPointer(Src)^;
-      end;
+      fpc_dynarray_assign(PPointer(Dest)^,PPointer(Src)^,typeinfo);
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
     tkInterface:
-      begin
-        Intf_Incr_Ref(PPointer(Src)^);
-        Intf_Decr_Ref(PPointer(Dest)^);
-        PPointer(Dest)^:=PPointer(Src)^;
-      end;
+      fpc_intf_assign(PPointer(Dest)^,PPointer(Src)^);
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
       begin
@@ -396,13 +321,14 @@ procedure fpc_addref_array(data,typeinfo: pointer; count: SizeInt); [public,alia
         int_addref(data+size*i,typeinfo);
   end;
 
-procedure fpc_decref_array(data,typeinfo: pointer; count: SizeInt); [public,alias:'FPC_DECREF_ARRAY']; compilerproc;
-  var
-    i, size: SizeInt;
+{ The following two procedures are now obsolete, needed only for bootstrapping }
+procedure fpc_decref (Data, TypeInfo : Pointer);[Public,alias : 'FPC_DECREF'];  compilerproc;
   begin
-    size:=RTTISize(typeinfo);
-    if size>0 then
-      for i:=0 to count-1 do
-        int_decref(data+size*i,typeinfo);
+    int_finalize(Data,TypeInfo);
+  end;
+
+procedure fpc_decref_array(data,typeinfo: pointer; count: SizeInt); [public,alias:'FPC_DECREF_ARRAY']; compilerproc;
+  begin
+    int_finalizeArray(data,typeinfo,count);
   end;
 

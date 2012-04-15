@@ -101,6 +101,7 @@ var
 
 Function ScriptFixFileName(const s:TCmdStr):TCmdStr;
 Procedure GenerateAsmRes(const st : TCmdStr);
+Function GenerateScript(const st : TCmdStr): TAsmScript;
 
 
 implementation
@@ -186,7 +187,7 @@ begin
   else
     le:= source_info.newline;
 
-  {$I-}
+  {$push}{$I-}
   Rewrite(t,1);
   if ioresult<>0 then
     exit;
@@ -197,7 +198,7 @@ begin
       Blockwrite(t,le[1],length(le),i);
     end;
   Close(t);
-  {$I+}
+  {$pop}
   i:=ioresult;
 {$ifdef hasUnix}
   if executable then
@@ -459,24 +460,29 @@ end;
 
 
 Procedure GenerateAsmRes(const st : TCmdStr);
-var
-  scripttyp : tscripttype;
 begin
-  if cs_link_on_target in current_settings.globalswitches then
-    scripttyp := target_info.script
-  else
-    scripttyp := source_info.script;
-  case scripttyp of
-    script_unix :
-      AsmRes:=TAsmScriptUnix.Create(st);
-    script_dos :
-      AsmRes:=TAsmScriptDos.Create(st);
-    script_amiga :
-      AsmRes:=TAsmScriptAmiga.Create(st);
-    script_mpw :
-      AsmRes:=TAsmScriptMPW.Create(st);
-  end;
+  AsmRes:=GenerateScript(st);
 end;
+
+function GenerateScript(const st: TCmdStr): TAsmScript;
+  var
+    scripttyp : tscripttype;
+  begin
+    if cs_link_on_target in current_settings.globalswitches then
+      scripttyp := target_info.script
+    else
+      scripttyp := source_info.script;
+    case scripttyp of
+      script_unix :
+        Result:=TAsmScriptUnix.Create(st);
+      script_dos :
+        Result:=TAsmScriptDos.Create(st);
+      script_amiga :
+        Result:=TAsmScriptAmiga.Create(st);
+      script_mpw :
+        Result:=TAsmScriptMPW.Create(st);
+    end;
+  end;
 
 
 {****************************************************************************

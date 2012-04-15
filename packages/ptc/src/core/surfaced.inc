@@ -31,58 +31,7 @@
 }
 
 type
-  TPTCSurface = class(TPTCBaseSurface)
-  private
-    {data}
-    FWidth: Integer;
-    FHeight: Integer;
-    FPitch: Integer;
-    FArea: TPTCArea;
-    FClip: TPTCArea;
-    FFormat: TPTCFormat;
-    FLocked: Boolean;
-    FPixels: Pointer;
-    {objects}
-    FCopy: TPTCCopy;
-    FClear: TPTCClear;
-    FPalette: TPTCPalette;
+  TPTCSurfaceFactory = class
   public
-    constructor Create(AWidth, AHeight: Integer; const AFormat: TPTCFormat);
-    destructor Destroy; override;
-    procedure Copy(ASurface: TPTCBaseSurface); override;
-    procedure Copy(ASurface: TPTCBaseSurface;
-                   const ASource, ADestination: TPTCArea); override;
-    function Lock: Pointer; override;
-    procedure Unlock; override;
-    procedure Load(const APixels: Pointer;
-                   AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette); override;
-    procedure Load(const APixels: Pointer;
-                   AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette;
-                   const ASource, ADestination: TPTCArea); override;
-    procedure Save(APixels: Pointer;
-                   AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette); override;
-    procedure Save(APixels: Pointer;
-                   AWidth, AHeight, APitch: Integer;
-                   const AFormat: TPTCFormat;
-                   const APalette: TPTCPalette;
-                   const ASource, ADestination: TPTCArea); override;
-    procedure Clear; override;
-    procedure Clear(const AColor: TPTCColor); override;
-    procedure Clear(const AColor: TPTCColor; const AArea: TPTCArea); override;
-    procedure Palette(const APalette: TPTCPalette); override;
-    function Palette: TPTCPalette; override;
-    procedure Clip(const AArea: TPTCArea); override;
-    function GetWidth: Integer; override;
-    function GetHeight: Integer; override;
-    function GetPitch: Integer; override;
-    function GetArea: TPTCArea; override;
-    function Clip: TPTCArea; override;
-    function GetFormat: TPTCFormat; override;
-    function Option(const AOption: string): Boolean; override;
+    class function CreateNew(AWidth, AHeight: Integer; AFormat: IPTCFormat): IPTCSurface;
   end;

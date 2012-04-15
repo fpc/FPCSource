@@ -127,6 +127,7 @@ interface
          cs_generate_stackframes,cs_do_assertion,cs_generate_rtti,
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
          cs_do_inline,cs_fpu_fwait,cs_ieee_errors,
+         cs_check_low_addr_load,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
@@ -148,7 +149,7 @@ interface
          cs_support_c_operators,
          { generation }
          cs_profile,cs_debuginfo,cs_compilesystem,
-         cs_lineinfo,cs_implicit_exceptions,
+         cs_lineinfo,cs_implicit_exceptions,cs_explicit_codepage,
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic,
          { browser switches are back }
@@ -231,7 +232,7 @@ interface
          cs_opt_level1,cs_opt_level2,cs_opt_level3,
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
          cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
-         cs_opt_nodedfa,cs_opt_loopstrength
+         cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -242,12 +243,20 @@ interface
        );
        twpoptimizerswitches = set of twpoptimizerswitch;
 
+    type
+       { Used by ARM / AVR to differentiate between specific microcontrollers }
+       tcontrollerdatatype = record
+          controllertypestr, controllerunitstr: string[20];
+          interruptvectors:integer;
+          flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize: dword;
+       end;
 
     const
        OptimizerSwitchStr : array[toptimizerswitch] of string[10] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
-         'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE','DFA','STRENGTH'
+         'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
+         'DFA','STRENGTH','SCHEDULE'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -310,12 +319,12 @@ interface
          m_non_local_goto,      { support non local gotos (like iso pascal) }
          m_advanced_records,    { advanced record syntax with visibility sections, methods and properties }
          m_isolike_unary_minus, { unary minus like in iso pascal: same precedence level as binary minus/plus }
+         m_systemcodepage,      { use system codepage as compiler codepage by default, emit ansistrings with system codepage }
          m_final_fields,        { allows declaring fields as "final", which means they must be initialised
                                   in the (class) constructor and are constant from then on (same as final
                                   fields in Java) }
-         m_default_unicodestring { makes the default string type in {$h+} mode unicodestring rather than
+         m_default_unicodestring { makes the default string type in $h+ mode unicodestring rather than
                                    ansistring; similarly, char becomes unicodechar rather than ansichar }
-
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -468,6 +477,7 @@ interface
          'NONLOCALGOTO',
          'ADVANCEDRECORDS',
          'ISOUNARYMINUS',
+         'SYSTEMCODEPAGE',
          'FINALFIELDS',
          'UNICODESTRINGS');
 
@@ -506,7 +516,9 @@ interface
          { dfa was generated for this proc }
          pi_dfaavailable,
          { subroutine contains interprocedural used labels }
-         pi_has_interproclabel
+         pi_has_interproclabel,
+         { subroutine has unwind info (win64) }
+         pi_has_unwind_info
        );
        tprocinfoflags=set of tprocinfoflag;
 
@@ -523,26 +535,26 @@ interface
       TRADirection = (rad_forward, rad_backwards, rad_backwards_reinit);
 
     type
-       TIDString = string[maxidlen];
+      TIDString = string[maxidlen];
 
-       tnormalset = set of byte; { 256 elements set }
-       pnormalset = ^tnormalset;
+      tnormalset = set of byte; { 256 elements set }
+      pnormalset = ^tnormalset;
 
-       pboolean   = ^boolean;
-       pdouble    = ^double;
-       pbyte      = ^byte;
-       pword      = ^word;
-       plongint   = ^longint;
-       plongintarray = plongint;
+      pboolean   = ^boolean;
+      pdouble    = ^double;
+      pbyte      = ^byte;
+      pword      = ^word;
+      plongint   = ^longint;
+      plongintarray = plongint;
 
-       pfileposinfo = ^tfileposinfo;
-       tfileposinfo = record
-         { if types of column or fileindex are changed, modify tcompilerppufile.putposinfo }
-         line      : longint;
-         column    : word;
-         fileindex : word;
-         moduleindex : word;
-       end;
+      pfileposinfo = ^tfileposinfo;
+      tfileposinfo = record
+        { if types of column or fileindex are changed, modify tcompilerppufile.putposinfo }
+        line      : longint;
+        column    : word;
+        fileindex : word;
+        moduleindex : word;
+      end;
 
   {$ifndef xFPC}
     type
@@ -554,6 +566,9 @@ interface
         D4: array[0..7] of Byte;
       end;
   {$endif}
+
+       tstringencoding = Word;
+       tcodepagestring = string[20];
 
     const
        { link options }

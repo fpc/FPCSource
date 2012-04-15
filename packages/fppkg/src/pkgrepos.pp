@@ -239,7 +239,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
           if ((SR.Attr and faDirectory)=faDirectory) and (SR.Name<>'.') and (SR.Name<>'..') then
             begin
               UD:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(AUnitDir)+SR.Name);
-              // Try new fpunits.conf
+              // Try new fpunits.cfg
               UF:=UD+UnitConfigFileName;
               if FileExistsLog(UF) then
                 begin
@@ -261,6 +261,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
             end;
         until FindNext(SR)<>0;
       end;
+    FindClose(SR);
   end;
 
 begin
@@ -305,7 +306,7 @@ begin
           // Don't stop on missing dependencies
           if assigned(DepPackage) then
             begin
-              if (DepPackage.Checksum<>D.RequireChecksum) then
+              if (D.RequireChecksum<>$ffffffff) and (DepPackage.Checksum<>D.RequireChecksum) then
                 begin
                   log(vlInfo,SLogPackageChecksumChanged,[APackage.Name,D.PackageName]);
                   result:=true;
@@ -386,12 +387,16 @@ begin
           else
             AvailVerStr:='<not available>';
           ReqVer:=TFPVersion.Create;
-          ReqVer.AsString:=FPMKUnitDeps[i].ReqVer;
-          log(vlDebug,SLogFPMKUnitDepVersion,[P.Name,ReqVer.AsString,P.Version.AsString,AvailVerStr]);
-          if ReqVer.CompareVersion(P.Version)<=0 then
-            FPMKUnitDeps[i].available:=true
-          else
-            log(vlDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
+          try
+            ReqVer.AsString:=FPMKUnitDeps[i].ReqVer;
+            log(vlDebug,SLogFPMKUnitDepVersion,[P.Name,ReqVer.AsString,P.Version.AsString,AvailVerStr]);
+            if ReqVer.CompareVersion(P.Version)<=0 then
+              FPMKUnitDeps[i].available:=true
+            else
+              log(vlDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
+          finally
+            ReqVer.Free;
+          end;
         end
       else
         log(vlDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
@@ -662,4 +667,12 @@ begin
     end;
 end;
 
+initialization
+  AvailableRepository := nil;
+  InstalledRepository := nil;
+  AvailableMirrors := nil;
+finalization
+  AvailableRepository.Free;
+  InstalledRepository.Free;
+  AvailableMirrors.Free;
 end.

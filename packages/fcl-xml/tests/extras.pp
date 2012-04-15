@@ -31,6 +31,7 @@ type
     procedure attr_ownership04;
     procedure attr_ownership05;
     procedure replacesamechild;
+    procedure insertbeforefirst;
     procedure nsFixup1;
     procedure nsFixup2;
     procedure nsFixup3;
@@ -149,15 +150,32 @@ begin
   el := root.ChildNodes[1];
   prev := el.PreviousSibling;
   next := el.NextSibling;
-  AssertEquals('prev_name_before', 'child1', prev.NodeName);
-  AssertEquals('next_name_before', 'child3', next.NodeName);
+  AssertEqualsW('prev_name_before', 'child1', prev.NodeName);
+  AssertEqualsW('next_name_before', 'child3', next.NodeName);
   root.replaceChild(el, el);
   prev := el.PreviousSibling;
   next := el.NextSibling;
   AssertNotNull('prev_after', prev);
   AssertNotNull('prev_after', next);  
-  AssertEquals('prev_name_after', 'child1', prev.NodeName);
-  AssertEquals('next_name_after', 'child3', next.NodeName);
+  AssertEqualsW('prev_name_after', 'child1', prev.NodeName);
+  AssertEqualsW('next_name_after', 'child3', next.NodeName);
+end;
+
+// verify that inserting a node before the first child sets
+// both refnode.previoussibling and newnode.nextsibling properties
+procedure TDOMTestExtra.insertbeforefirst;
+var
+  doc: TDOMDocument;
+  root, refchild, newchild: TDOMNode;
+begin
+  LoadStringData(doc, '<root><child1/><child2/><child3/></root>');
+  root := doc.DocumentElement;
+  refchild := root.FirstChild;
+  newchild := doc.CreateElement('new');
+  root.insertbefore(newchild, refchild);
+  AssertEquals('prev', refchild.previoussibling, newchild);
+  AssertEquals('next', newchild.nextsibling, refchild);
+  AssertEquals('child', root.firstchild, newchild);
 end;
 
 const
@@ -190,13 +208,13 @@ begin
   LoadStringData(parsedDoc, stream.DataString);
 
   docElem := parsedDoc.documentElement;
-  assertEquals('docElemLocalName', 'test', docElem.localName);
-  assertEquals('docElemNS', nsURI1, docElem.namespaceURI);
+  assertEqualsW('docElemLocalName', 'test', docElem.localName);
+  assertEqualsW('docElemNS', nsURI1, docElem.namespaceURI);
 
   list := docElem.GetElementsByTagNameNS(nsURI2, '*');
   assertEquals('ns2_elementCount', 1, list.Length);
   el := TDOMElement(list[0]);
-  assertEquals('ns2_nodeName', 'test', el.nodeName);
+  assertEqualsW('ns2_nodeName', 'test', el.nodeName);
 end;
 
 // verify the namespace fixup with two nested elements
@@ -225,13 +243,13 @@ begin
   LoadStringData(parsedDoc, stream.DataString);
 
   docElem := parsedDoc.documentElement;
-  assertEquals('docElemLocalName', 'test', docElem.localName);
-  assertEquals('docElemNS', nsURI1, docElem.namespaceURI);
+  assertEqualsW('docElemLocalName', 'test', docElem.localName);
+  assertEqualsW('docElemNS', nsURI1, docElem.namespaceURI);
 
   list := docElem.GetElementsByTagNameNS(nsURI2, '*');
   assertEquals('ns2_elementCount', 1, list.Length);
   el := TDOMElement(list[0]);
-  assertEquals('ns2_nodeName', 'b:test', el.nodeName);
+  assertEqualsW('ns2_nodeName', 'b:test', el.nodeName);
 end;
 
 // verify the namespace fixup with two nested elements and an attribute
@@ -262,14 +280,14 @@ begin
   LoadStringData(parsedDoc, stream.DataString);
 
   docElem := parsedDoc.documentElement;
-  assertEquals('docElemLocalName', 'test', docElem.localName);
-  assertEquals('docElemNS', nsURI1, docElem.namespaceURI);
+  assertEqualsW('docElemLocalName', 'test', docElem.localName);
+  assertEqualsW('docElemNS', nsURI1, docElem.namespaceURI);
 
   list := docElem.GetElementsByTagNameNS(nsURI2, '*');
   assertEquals('ns2_elementCount', 1, list.Length);
   el := TDOMElement(list[0]);
   attr := el.GetAttributeNodeNS(nsURI1, 'attr');
-  assertEquals('attr_nodeName', 'a:attr', attr.nodeName);
+  assertEqualsW('attr_nodeName', 'a:attr', attr.nodeName);
 end;
 
 

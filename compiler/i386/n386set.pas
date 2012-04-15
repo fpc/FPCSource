@@ -32,7 +32,6 @@ interface
     type
       ti386casenode = class(tx86casenode)
          procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
-         procedure genlinearlist(hp : pcaselabel);override;
       end;
 
 
@@ -67,96 +66,6 @@ implementation
           inc(max_linear_list,14);
       end;
 
-
-    procedure ti386casenode.genlinearlist(hp : pcaselabel);
-      var
-        first : boolean;
-        lastrange : boolean;
-        last : TConstExprInt;
-        cond_lt,cond_le : tresflags;
-        opcgsize: tcgsize;
-
-        procedure genitem(t : pcaselabel);
-          begin
-             opcgsize:=def_cgsize(opsize);
-             if assigned(t^.less) then
-               genitem(t^.less);
-             { need we to test the first value }
-             if first and (t^._low>get_min_value(left.resultdef)) then
-               begin
-                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
-               end;
-             if t^._low=t^._high then
-               begin
-                  if t^._low-last=0 then
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
-                  else
-                    begin
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
-                      cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,blocklabel(t^.blockid));
-                    end;
-                  last:=t^._low;
-                  lastrange:=false;
-               end
-             else
-               begin
-                  { it begins with the smallest label, if the value }
-                  { is even smaller then jump immediately to the    }
-                  { ELSE-label                                }
-                  if first then
-                    begin
-                       { have we to ajust the first value ? }
-                       if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
-                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue), hregister);
-                    end
-                  else
-                    begin
-                      { if there is no unused label between the last and the }
-                      { present label then the lower limit can be checked    }
-                      { immediately. else check the range in between:       }
-
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
-                      { no jump necessary here if the new range starts at }
-                      { at the value following the previous one           }
-                      if ((t^._low-last) <> 1) or
-                         (not lastrange) then
-                        cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
-                    end;
-                  {we need to use A_SUB, because A_DEC does not set the correct flags, therefor
-                   using a_op_const_reg(OP_SUB) is not possible }
-                  emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],aint(t^._high.svalue-t^._low.svalue),hregister);
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
-                  last:=t^._high;
-                  lastrange:=true;
-               end;
-             first:=false;
-             if assigned(t^.greater) then
-               genitem(t^.greater);
-          end;
-
-        begin
-           if with_sign then
-             begin
-                cond_lt:=F_L;
-                cond_le:=F_LE;
-             end
-           else
-              begin
-                cond_lt:=F_B;
-                cond_le:=F_BE;
-             end;
-           { do we need to generate cmps? }
-           if (with_sign and (min_label<0)) then
-             genlinearcmplist(hp)
-           else
-             begin
-                last:=0;
-                lastrange:=false;
-                first:=true;
-                genitem(hp);
-                cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
-             end;
-        end;
 
 begin
    ccasenode:=ti386casenode;

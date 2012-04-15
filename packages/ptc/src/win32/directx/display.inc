@@ -33,7 +33,6 @@
 constructor TDirectXDisplay.Create;
 begin
   FInformation := '';
-  FMode := nil;
   FCursorsaved := False;
   FOpen := False;
   FFullscreen := False;
@@ -42,43 +41,31 @@ begin
 //  FForeground := 0;
 //  FillChar(FModes, SizeOf(FModes), 0);
 //  FillChar(FResolutions, SizeOf(FResolutions), 0);
-  FMode := TPTCMode.Create;
 end;
 
 destructor TDirectXDisplay.Destroy;
 begin
   close;
-  FMode.Free;
   internal_dispose_modes;
   internal_dispose_resolutions;
   inherited Destroy;
 end;
 
 procedure TDirectXDisplay.internal_dispose_modes;
-var
-  i: Integer;
 begin
-  for i := Low(FModes) to High(FModes) do
-    FreeAndNil(FModes[i]);
-
   SetLength(FModes, 0);
   FModesCount := 0;
 end;
 
 procedure TDirectXDisplay.internal_dispose_resolutions;
-var
-  i: Integer;
 begin
-  for i := Low(FResolutions) to High(FResolutions) do
-    FreeAndNil(FResolutions[i]);
-
   SetLength(FResolutions, 0);
 end;
 
 function TDirectXDisplay_callback(descriptor: PDDSurfaceDesc {TODO: TDDSurfaceDesc vs. TDDSurfaceDesc2???}; Context: Pointer): HRESULT; stdcall;
 var
   display: TDirectXDisplay;
-  tmp: TPTCFormat;
+  format: IPTCFormat;
 begin
   if (descriptor = nil) or (Context = nil) then
   begin
@@ -90,15 +77,11 @@ begin
      ((descriptor^.dwFlags and DDSD_HEIGHT) <> 0) and
      ((descriptor^.dwFlags and DDSD_PIXELFORMAT) <> 0) then
   begin
-    tmp := DirectXTranslate(descriptor^.ddpfPixelFormat);
-    try
-      Inc(display.FModesCount);
-      SetLength(display.FModes, display.FModesCount);
-      display.FModes[display.FModesCount - 1] :=
-        TPTCMode.Create(descriptor^.dwWidth, descriptor^.dwHeight, tmp);
-    finally
-      tmp.Free;
-    end;
+    format := DirectXTranslate(descriptor^.ddpfPixelFormat);
+    Inc(display.FModesCount);
+    SetLength(display.FModes, display.FModesCount);
+    display.FModes[display.FModesCount - 1] :=
+      TPTCMode.Create(descriptor^.dwWidth, descriptor^.dwHeight, format);
   end
   else
   begin
@@ -112,8 +95,8 @@ var
   version: TOSVERSIONINFO;
   match, found: Boolean;
   i, j: Integer;
-  temp: TPTCMode;
-  temp2: TPTCFormat;
+  tempMode: IPTCMode;
+  format8: IPTCFormat;
 begin
   LOG('setting up display lpDD2');
   FDDraw := ADDraw;
@@ -127,36 +110,32 @@ begin
     if version.dwPlatformId = VER_PLATFORM_WIN32_WINDOWS then
     begin
       LOG('detected windows 95/98');
-      temp2 := TPTCFormat.Create(8);
-      try
-        found := False;
-        for i := 0 to FModesCount - 1 do
-          if (FModes[i].Width = 320) and (FModes[i].Height = 200) and
-              FModes[i].Format.Equals(temp2) then
-            found := True;
-        if not found then
-        begin
-          LOG('adding 320x200x8 to mode list');
-	  
-	  Inc(FModesCount);
-          SetLength(FModes, FModesCount);
-          FModes[FModesCount - 1] := TPTCMode.Create(320, 200, temp2);
-        end;
-        found := False;
-        for i := 0 to FModesCount - 1 do
-          if (FModes[i].Width = 320) and (FModes[i].Height = 240) and
-              FModes[i].Format.Equals(temp2) then
-            found := True;
-        if not found then
-        begin
-          LOG('adding 320x240x8 to mode list');
+      format8 := TPTCFormat.Create(8);
+      found := False;
+      for i := 0 to FModesCount - 1 do
+        if (FModes[i].Width = 320) and (FModes[i].Height = 200) and
+            FModes[i].Format.Equals(format8) then
+          found := True;
+      if not found then
+      begin
+        LOG('adding 320x200x8 to mode list');
+	
+	Inc(FModesCount);
+        SetLength(FModes, FModesCount);
+        FModes[FModesCount - 1] := TPTCMode.Create(320, 200, format8);
+      end;
+      found := False;
+      for i := 0 to FModesCount - 1 do
+        if (FModes[i].Width = 320) and (FModes[i].Height = 240) and
+            FModes[i].Format.Equals(format8) then
+          found := True;
+      if not found then
+      begin
+        LOG('adding 320x240x8 to mode list');
 
-	  Inc(FModesCount);
-          SetLength(FModes, FModesCount);
-          FModes[FModesCount - 1] := TPTCMode.Create(320, 240, temp2);
-        end;
-      finally
-        temp2.Free;
+	Inc(FModesCount);
+        SetLength(FModes, FModesCount);
+        FModes[FModesCount - 1] := TPTCMode.Create(320, 240, format8);
       end;
     end
     else
@@ -167,9 +146,6 @@ begin
   end;
   LOG('number of display modes', FModesCount);
 
-  SetLength(FModes, FModesCount + 1);
-  FModes[FModesCount] := TPTCMode.Create;
-  
   internal_dispose_resolutions;
   for i := 0 to FModesCount - 1 do
   begin
@@ -185,11 +161,9 @@ begin
     begin
       Inc(FResolutionsCount);
       SetLength(FResolutions, FResolutionsCount);
-      FResolutions[FResolutionsCount - 1] := TPTCMode.Create(FModes[i]);
+      FResolutions[FResolutionsCount - 1] := FModes[i];
     end;
   end;
-  SetLength(FResolutions, FResolutionsCount + 1);
-  FResolutions[FResolutionsCount] := TPTCMode.Create;
 
   { kludge sort... :) }
   for i := 0 to FResolutionsCount - 1 do
@@ -197,9 +171,9 @@ begin
       if (FResolutions[i].Width > FResolutions[j].Width) or
          (FResolutions[i].Height > FResolutions[j].Height) then
       begin
-        temp := FResolutions[i];
+        tempMode := FResolutions[i];
         FResolutions[i] := FResolutions[j];
-        FResolutions[j] := temp;
+        FResolutions[j] := tempMode;
       end;
   LOG('number of unique resolutions', FResolutionsCount);
   for i := 0 to FResolutionsCount - 1 do
@@ -208,12 +182,12 @@ begin
   end;
 end;
 
-function TDirectXDisplay.GetModes: PPTCMode;
+function TDirectXDisplay.GetModes: TPTCModeList;
 begin
-  Result := @FModes[0];
+  Result := FModes;
 end;
 
-function TDirectXDisplay.Test(const AMode: TPTCMode; AExact: Boolean): Boolean;
+function TDirectXDisplay.Test(const AMode: IPTCMode; AExact: Boolean): Boolean;
 var
   i: Integer;
 begin
@@ -271,7 +245,7 @@ begin
   LOG('opening windowed display');
 end;
 
-procedure TDirectXDisplay.Open(const AMode: TPTCMode; AExact: Boolean; AFrequency: Integer);
+procedure TDirectXDisplay.Open(const AMode: IPTCMode; AExact: Boolean; AFrequency: Integer);
 begin
   if AExact then
   begin
@@ -338,7 +312,7 @@ begin
   End;}
 end;
 
-procedure TDirectXDisplay.internal_open(const AMode: TPTCMode; AExact: Boolean; AFrequency: Integer);
+procedure TDirectXDisplay.internal_open(const AMode: IPTCMode; AExact: Boolean; AFrequency: Integer);
 begin
   LOG('internal display open');
   LOG('mode width', AMode.Width);
@@ -381,25 +355,20 @@ begin
         raise TPTCError.Create('unsupported pixel format');
     end;
   LOG('internal display open success');
-  FreeAndNil(FMode);
   FMode := TPTCMode.Create(AMode);
   FOpen := True;
 end;
 
-procedure TDirectXDisplay.internal_open_nearest(const AMode: TPTCMode; AExact: Boolean; AFrequency: Integer);
+procedure TDirectXDisplay.internal_open_nearest(const AMode: IPTCMode; AExact: Boolean; AFrequency: Integer);
 
   function Pass2TryMode(TryWidth, TryHeight: Integer): Boolean;
   var
-    tmp: TPTCMode;
+    tmpMode: IPTCMode;
   begin
     if (AMode.Width <= TryWidth) and (AMode.Height <= TryHeight) then
     try
-      tmp := TPTCMode.Create(TryWidth, TryHeight, AMode.Format);
-      try
-        internal_open(tmp, AExact, AFrequency);
-      finally
-        tmp.Free;
-      end;
+      tmpMode := TPTCMode.Create(TryWidth, TryHeight, AMode.Format);
+      internal_open(tmpMode, AExact, AFrequency);
       exit(true);
     except
       on TPTCError do;
@@ -409,8 +378,7 @@ procedure TDirectXDisplay.internal_open_nearest(const AMode: TPTCMode; AExact: B
 
 var
   index: Integer;
-  match, match_exact: TPTCMode;
-  tmp: TPTCMode;
+  match, match_exact: IPTCMode;
   i: Integer;
   width, height: Integer;
   dx1, dy1, dx2, dy2: Integer;
@@ -420,87 +388,65 @@ begin
     LOG('searching for nearest mode in resolutions list');
     index := 0;
     match_exact := nil;
-    match := TPTCMode.Create;
-    try
-      match_exact := TPTCMode.Create;
-      for i := 0 to FResolutionsCount - 1 do
+    match := nil;
+    for i := 0 to FResolutionsCount - 1 do
+    begin
+      width := FResolutions[i].Width;
+      height := FResolutions[i].Height;
+      if (AMode.Width <= width) and (AMode.Height <= height) then
       begin
-        width := FResolutions[i].Width;
-        height := FResolutions[i].Height;
-        if (AMode.Width <= width) and (AMode.Height <= height) then
+        if (width = AMode.Width) and (height = AMode.Height) then
         begin
-          if (width = AMode.Width) and (height = AMode.Height) then
+          LOG('found an exact match');
+          match_exact := TPTCMode.Create(width, height, AMode.Format);
+        end;
+        if match <> nil then
+        begin
+          dx1 := match.Width - AMode.Width;
+          dy1 := match.Height - AMode.Height;
+          dx2 := width - AMode.Width;
+          dy2 := height - AMode.Height;
+          if (dx2 <= dx1) and (dy2 <= dy1) then
           begin
-            LOG('found an exact match');
-            tmp := TPTCMode.Create(width, height, AMode.Format);
-            try
-              match_exact.Assign(tmp);
-            finally
-              tmp.Free;
-            end;
-          end;
-          if match.valid then
-          begin
-            dx1 := match.Width - AMode.Width;
-            dy1 := match.Height - AMode.Height;
-            dx2 := width - AMode.Width;
-            dy2 := height - AMode.Height;
-            if (dx2 <= dx1) and (dy2 <= dy1) then
-            begin
-              LOG('found a better nearest match');
-              tmp := TPTCMode.Create(width, height, AMode.Format);
-              try
-                match.Assign(tmp);
-              finally
-                tmp.Free;
-              end;
-            end;
-          end
-          else
-          begin
-            LOG('found first nearest match');
-            tmp := TPTCMode.Create(width, height, AMode.Format);
-            try
-              match.Assign(tmp);
-            finally
-              tmp.Free;
-            end;
+            LOG('found a better nearest match');
+            match := TPTCMode.Create(width, height, AMode.Format);
           end;
         end
         else
         begin
-{          LOG('stopping nearest mode search');
-          Break;}
+          LOG('found first nearest match');
+          match := TPTCMode.Create(width, height, AMode.Format);
         end;
+      end
+      else
+      begin
+{        LOG('stopping nearest mode search');
+        Break;}
       end;
+    end;
 
-      if match_exact.valid then
-      try
-        LOG('trying an exact match');
-        internal_open(match_exact, AExact, AFrequency);
-        exit;
-      except
-        on TPTCError do;
-      end;
-      if match.valid then
-      try
-        LOG('trying nearest match');
-        internal_open(match, AExact, AFrequency);
-        exit;
-      except
-        on TPTCError do;
-      end;
-    finally
-      match.Free;
-      match_exact.Free;
+    if match_exact <> nil then
+    try
+      LOG('trying an exact match');
+      internal_open(match_exact, AExact, AFrequency);
+      exit;
+    except
+      on TPTCError do;
+    end;
+    if match <> nil then
+    try
+      LOG('trying nearest match');
+      internal_open(match, AExact, AFrequency);
+      exit;
+    except
+      on TPTCError do;
     end;
   end
   else
   begin
     LOG('no resolutions list for nearest mode search');
   end;
-{  match.Free;
-  match_exact.Free;}
+
   LOG('could not find a nearest match in first pass');
   try
     LOG('trying requested mode first');

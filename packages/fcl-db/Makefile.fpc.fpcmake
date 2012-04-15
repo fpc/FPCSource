@@ -1,0 +1,66 @@
+#
+#   Makefile.fpc for TDataSet for FCL
+#
+
+[package]
+name=fcl-db
+version=2.7.1
+
+[target]
+dirs=src/sdf src/memds src/sqldb src/base src/sql src/json
+dirs_beos=src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+dirs_haiku=src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+dirs_linux=src/dbase src/sqlite src/paradox src/export src/datadict src/codegen 
+dirs_freebsd=src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
+dirs_darwin=src/dbase src/sqlite src/export src/datadict src/codegen
+dirs_iphonesim=src/dbase src/sqlite
+dirs_solaris=src/dbase src/sqlite
+dirs_netbsd=src/dbase src/sqlite src/paradox
+dirs_openbsd=src/dbase src/sqlite src/paradox
+dirs_win32=src/dbase src/paradox src/sqlite src/export src/datadict src/codegen 
+dirs_win64=src/dbase src/export src/datadict src/codegen 
+dirs_wince=src/dbase src/sqlite src/export src/datadict src/codegen
+
+[require]
+packages=fcl-base fcl-xml fcl-json
+
+[compiler]
+options=-S2h
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+distclean: $(addsuffix _distclean,$(TARGET_DIRS)) fpc_distclean 
+clean: $(addsuffix _clean,$(TARGET_DIRS)) fpc_clean
+cleanall: $(addsuffix _cleanall,$(TARGET_DIRS)) fpc_cleanall
+
+.NOTPARALLEL:
+
+src/export_all: src/base_all src/dbase_all
+src/export_debug: src/base_debug src/dbase_debug
+src/export_smart: src/base_smart src/dbase_smart
+src/export_release: src/base_release src/dbase_release
+src/export_shared: src/base_shared src/dbase_shared
+
+src/sdf_all: src/base_all
+src/sdf_debug: src/base_debug
+src/sdf_smart: src/base_smart
+src/sdf_release: src/base_release
+src/sdf_shared: src/base_shared
+
+src/dbase_all: src/base_all
+src/dbase_debug: src/base_debug
+src/dbase_smart: src/base_smart
+src/dbase_release: src/base_release
+src/dbase_shared: src/base_shared
+
+src/json_all: src/base_all
+src/json_debug: src/base_debug
+src/json_smart: src/base_smart
+src/json_release: src/base_release
+src/json_shared: src/base_shared
+

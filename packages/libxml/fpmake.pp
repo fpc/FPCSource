@@ -12,11 +12,12 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=AddPackage('xml2');
+    P:=AddPackage('libxml2');
 {$ifdef ALLPACKAGES}
     P.Directory:='libxml';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := [freebsd,linux,win32];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -85,10 +86,7 @@ begin
     P.Targets.AddExampleProgram('tree2.pas');
     P.Targets.AddExampleProgram('exutils.pas');
     P.Targets.AddExampleProgram('reader2.pas');
-    // 'Makefile
-    // 'Makefile.fpc
-    // 'test1.xml
-    // 'test2.xml
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

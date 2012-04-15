@@ -22,7 +22,9 @@ begin
     p.OSes:=[linux,win32,win64];
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/ptcwrapper');
+    P.SourcePath.Add('src/win32/directx', [win32, win64]);
     P.IncludePath.Add('src');
+    P.IncludePath.Add('src/core');
     P.IncludePath.Add('src/dos',[go32v2]);
     P.IncludePath.Add('src/dos/base',[go32v2]);
     P.SourcePath.Add('src/dos/cga',[go32v2]);
@@ -36,12 +38,17 @@ begin
     P.IncludePath.Add('src/dos/timeunit',[go32v2]);
     P.IncludePath.Add('src/dos/vesa',[go32v2]);
     P.IncludePath.Add('src/win32',[win32,win64]);
+    P.IncludePath.Add('src/win32/base', [win32, win64]);
+    P.IncludePath.Add('src/win32/directx', [win32, win64]);
+    P.IncludePath.Add('src/win32/gdi', [win32, win64]);
     P.IncludePath.Add('src/wince',[wince]);
     P.IncludePath.Add('src/x11',AllUnixOSes);
 
   P.Dependencies.Add('hermes');
-  P.Dependencies.Add('x11');
+  P.Dependencies.Add('x11',AllUnixOSes);
   P.Dependencies.Add('fcl-base');
+
+  T:=P.Targets.AddUnit('p_ddraw.pp', [win32, win64]);
 
   T:=P.Targets.AddUnit('ptc.pp');
   with T.Dependencies do
@@ -101,7 +108,6 @@ begin
       AddInclude('x11dga2displayi.inc',allunixoses);
       AddInclude('x11consolei.inc',allunixoses);
       AddInclude('consolei.inc');
-      AddUnit('directdr',[Win32,win64]);
       AddUnit('p_gx',[Wince]);
       AddUnit('textfx2',[Go32v2]);
       AddUnit('cga',[Go32v2]);
@@ -142,18 +148,12 @@ begin
     P.Targets.AddExampleProgram('fire.pp');
     P.Targets.AddExampleProgram('mojo.pp');
     P.Targets.AddExampleProgram('land.pp');
-    P.Targets.AddExampleProgram('keybrd2.pp');
+    P.Targets.AddExampleProgram('keyboard2.pp');
     P.Targets.AddExampleProgram('clear.pp');
     P.Targets.AddExampleProgram('con_info.pp');
     P.Targets.AddExampleProgram('area.pp');
     P.Targets.AddExampleProgram('tunnel3d.pp');
-    // 'Makefile
-    // 'stretch.tga
-    // 'Makefile.fpc
-    // 'mojo.raw
-    // 'tunnel3d.raw
-    // 'image.tga
-
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

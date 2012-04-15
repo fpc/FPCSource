@@ -1,6 +1,8 @@
 { Tests passing of byte arrays by value of different sizes to C methods }
 program passvaluestest;
 {$MODE DELPHI}
+{$R-}
+{$Q-}
 type
   int8_t = shortint;
   pint8_t = ^int8_t;
@@ -12,20 +14,20 @@ var
 
 type
   arr1 = array[1..1] of int8_t;
-  arr2 = array[1..2] of int8_t;  
-  arr3 = array[1..3] of int8_t;  
-  arr4 = array[1..4] of int8_t;  
-  arr5 = array[1..5] of int8_t;  
-  arr7 = array[1..7] of int8_t;  
-  arr8 = array[1..8] of int8_t;  
-  arr9 = array[1..9] of int8_t;  
-  arr15 = array[1..15] of int8_t;  
-  arr16 = array[1..16] of int8_t;  
-  arr17 = array[1..17] of int8_t;  
-  arr24 = array[1..24] of int8_t;  
-  arr31 = array[1..31] of int8_t;  
-  arr32 = array[1..32] of int8_t;  
-  arr33 = array[1..33] of int8_t;  
+  arr2 = array[1..2] of int8_t;
+  arr3 = array[1..3] of int8_t;
+  arr4 = array[1..4] of int8_t;
+  arr5 = array[1..5] of int8_t;
+  arr7 = array[1..7] of int8_t;
+  arr8 = array[1..8] of int8_t;
+  arr9 = array[1..9] of int8_t;
+  arr15 = array[1..15] of int8_t;
+  arr16 = array[1..16] of int8_t;
+  arr17 = array[1..17] of int8_t;
+  arr24 = array[1..24] of int8_t;
+  arr31 = array[1..31] of int8_t;
+  arr32 = array[1..32] of int8_t;
+  arr33 = array[1..33] of int8_t;
 
 procedure fill(var mem; size : integer);
 var
@@ -54,7 +56,7 @@ var
  i : Integer;
 begin
   result := 0;
-  for i := low(s) to high(s) do 
+  for i := low(s) to high(s) do
     inc(result, s[i]);
 end;
 

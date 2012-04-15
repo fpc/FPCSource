@@ -20,7 +20,7 @@ unit domunit;
 interface
 
 uses
-  Classes, SysUtils, DOM, XMLRead, contnrs, fpcunit;
+  Classes, SysUtils, xmlutils, DOM, XMLRead, contnrs, fpcunit;
 
 type
 { these two types are separated for the purpose of readability }
@@ -42,7 +42,7 @@ type
     procedure GC(obj: TObject);
     procedure Load(out doc; const uri: string);
     procedure LoadStringData(out Doc; const data: string);
-    function getResourceURI(const res: WideString): WideString;
+    function getResourceURI(const res: XMLString): XMLString;
     function ContentTypeIs(const t: string): Boolean;
     function GetImplementation: TDOMImplementation;
     procedure CheckFeature(const name: string);
@@ -50,6 +50,7 @@ type
     procedure assertEquals(const id: string; exp, act: TObject); overload;
     procedure assertEqualsList(const id: string; const exp: array of DOMString; const act: _list);
     procedure assertEqualsCollection(const id: string; const exp: array of DOMString; const act: _collection);
+    procedure assertEqualsW(const id: string; const exp, act: DOMString);
     procedure assertEqualsNoCase(const id: string; const exp, act: DOMString);
     procedure assertSame(const id: string; exp, act: TDOMNode);
     procedure assertSize(const id: string; size: Integer; obj: TDOMNodeList);
@@ -58,7 +59,7 @@ type
     procedure assertURIEquals(const id: string;
       scheme, path, host, file_, name, query, fragment: PChar;
       IsAbsolute: Boolean; const Actual: DOMString);
-    function bad_condition(const TagName: WideString): Boolean;
+    function bad_condition(const TagName: XMLString): Boolean;
     property implementationAttribute[const name: string]: Boolean read getImplAttr write setImplAttr;
   end;
 
@@ -120,7 +121,7 @@ begin
     assertNotNull(id, exp);
     assertNotNull(id, act);
     assertEquals(id, exp.nodeType, act.nodeType);
-    assertEquals(id, exp.nodeValue, act.nodeValue);
+    assertEqualsW(id, exp.nodeValue, act.nodeValue);
   end;
 end;
 
@@ -140,10 +141,10 @@ procedure TDOMTestBase.assertEqualsList(const id: string;
 var
   I: Integer;
 begin
-  AssertEquals(id, Length(exp), Length(act));
+  AssertEquals(id+'(length)', Length(exp), Length(act));
   // compare ordered
   for I := 0 to High(exp) do
-    AssertEquals(id, exp[I], act[I]);
+    AssertEqualsW(id+'['+IntToStr(I)+']', exp[I], act[I]);
 end;
 
 procedure TDOMTestBase.assertEqualsCollection(const id: string; const exp: array of DOMString; const act: _collection);
@@ -161,6 +162,11 @@ begin
     AssertTrue(id+': no match found for <'+exp[I]+'>', matches <> 0);
     AssertTrue(id+': multiple matches for <'+exp[I]+'>', matches = 1);
   end;
+end;
+
+procedure TDOMTestBase.assertEqualsW(const id: string; const exp, act: DOMString);
+begin
+  AssertTrue(id + ComparisonMsg(exp, act), exp = act);
 end;
 
 procedure TDOMTestBase.assertEqualsNoCase(const id: string; const exp, act: DOMString);
@@ -181,11 +187,11 @@ begin
   AssertEquals(id, size, obj.Length);
 end;
 
-function TDOMTestBase.getResourceURI(const res: WideString): WideString;
+function TDOMTestBase.getResourceURI(const res: XMLString): XMLString;
 var
-  Base, Base2: WideString;
+  Base, Base2: XMLString;
 
-function CheckFile(const uri: WideString; out name: WideString): Boolean;
+function CheckFile(const uri: XMLString; out name: XMLString): Boolean;
 var
   filename: string;
 begin
@@ -196,7 +202,7 @@ end;
 
 begin
   Base := GetTestFilesURI;
-  if Pos(WideString('level2/html'), Base) <> 0 then
+  if Pos(XMLString('level2/html'), Base) <> 0 then
   begin
     // This is needed to run HTML testsuite off the CVS snapshot.
     // Web version simply uses all level1 files copied to level2.
@@ -287,9 +293,9 @@ begin
     AssertEquals(id, string(name), ChangeFileExt(URI.Document, ''));
 end;
 
-function TDOMTestBase.bad_condition(const TagName: WideString): Boolean;
+function TDOMTestBase.bad_condition(const TagName: XMLString): Boolean;
 begin
-  Fail('Unsupported condition: '+ TagName);
+  Fail('Unsupported condition: '+ AnsiString(TagName));
   Result := False;
 end;
 

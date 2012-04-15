@@ -1,4 +1,4 @@
-unit dbf;
+unit dbf deprecated 'Abandoned by maintainer, no longer supported by FPC team. Help may be available at http://tdbf.sourceforge.net and http://sourceforge.net/projects/tdbf/forums/forum/107245';
 
 { design info in dbf_reg.pas }
 
@@ -120,7 +120,7 @@ type
     FOnMasterChange: TNotifyEvent;
     FOnMasterDisable: TNotifyEvent;
 
-    function GetFieldsVal: PChar;
+    function GetFieldsVal: TRecordBuffer;
 
     procedure SetFieldNames(const Value: string);
   protected
@@ -135,7 +135,7 @@ type
 
     property FieldNames: string read FFieldNames write SetFieldNames;
     property ValidExpression: Boolean read FValidExpression write FValidExpression;
-    property FieldsVal: PChar read GetFieldsVal;
+    property FieldsVal: TRecordBuffer read GetFieldsVal;
     property Parser: TDbfParser read FParser;
 
     property OnMasterChange: TNotifyEvent read FOnMasterChange write FOnMasterChange;
@@ -160,8 +160,8 @@ type
     FAbsolutePath: string;
     FIndexName: string;
     FReadOnly: Boolean;
-    FFilterBuffer: PChar;
-    FTempBuffer: PChar;
+    FFilterBuffer: TRecordBuffer;
+    FTempBuffer: TRecordBuffer;
     FEditingRecNo: Integer;
 {$ifdef SUPPORT_VARIANTS}    
     FLocateRecNo: Integer;
@@ -221,18 +221,18 @@ type
     function  ParseIndexName(const AIndexName: string): string;
     procedure ParseFilter(const AFilter: string);
     function  GetDbfFieldDefs: TDbfFieldDefs;
-    function  ReadCurrentRecord(Buffer: PChar; var Acceptable: Boolean): TGetResult;
+    function  ReadCurrentRecord(Buffer: TRecordBuffer; var Acceptable: Boolean): TGetResult;
     function  SearchKeyBuffer(Buffer: PChar; SearchType: TSearchKeyType): Boolean;
     procedure SetRangeBuffer(LowRange: PChar; HighRange: PChar);
 
   protected
     { abstract methods }
-    function  AllocRecordBuffer: PChar; override; {virtual abstract}
-    procedure ClearCalcFields(Buffer: PChar); override;
-    procedure FreeRecordBuffer(var Buffer: PChar); override; {virtual abstract}
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override; {virtual abstract}
-    function  GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override; {virtual abstract}
-    function  GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override; {virtual abstract}
+    function  AllocRecordBuffer: TRecordBuffer; override; {virtual abstract}
+    procedure ClearCalcFields(Buffer: TRecordBuffer); override;
+    procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override; {virtual abstract}
+    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override; {virtual abstract}
+    function  GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; override; {virtual abstract}
+    function  GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override; {virtual abstract}
     function  GetRecordSize: Word; override; {virtual abstract}
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); override; {virtual abstract}
     procedure InternalClose; override; {virtual abstract}
@@ -241,7 +241,7 @@ type
     procedure InternalGotoBookmark(ABookmark: Pointer); override; {virtual abstract}
     procedure InternalHandleException; override; {virtual abstract}
     procedure InternalInitFieldDefs; override; {virtual abstract}
-    procedure InternalInitRecord(Buffer: PChar); override; {virtual abstract}
+    procedure InternalInitRecord(Buffer: TRecordBuffer); override; {virtual abstract}
     procedure InternalLast; override; {virtual abstract}
     procedure InternalOpen; override; {virtual abstract}
     procedure InternalEdit; override; {virtual}
@@ -252,11 +252,11 @@ type
 {$endif}
 {$endif}
     procedure InternalPost; override; {virtual abstract}
-    procedure InternalSetToRecord(Buffer: PChar); override; {virtual abstract}
+    procedure InternalSetToRecord(Buffer: TRecordBuffer); override; {virtual abstract}
     procedure InitFieldDefs; override;
     function  IsCursorOpen: Boolean; override; {virtual abstract}
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override; {virtual abstract}
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override; {virtual abstract}
+    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); override; {virtual abstract}
+    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override; {virtual abstract}
     procedure SetFieldData(Field: TField; Buffer: Pointer);
       {$ifdef SUPPORT_OVERLOAD} overload; {$endif} override; {virtual abstract}
 
@@ -338,7 +338,7 @@ type
       {$ifdef SUPPORT_DEFAULT_PARAMS}= false{$endif}): Boolean;
     procedure SetRangePChar(LowRange: PChar; HighRange: PChar; KeyIsANSI: boolean
       {$ifdef SUPPORT_DEFAULT_PARAMS}= false{$endif});
-    function  GetCurrentBuffer: PChar;
+    function  GetCurrentBuffer: TRecordBuffer;
     procedure ExtractKey(KeyBuffer: PChar);
     procedure UpdateIndexDefs; override;
     procedure GetFileNames(Strings: TStrings; Files: TDbfFileNames); {$ifdef SUPPORT_DEFAULT_PARAMS} overload; {$endif}
@@ -667,27 +667,27 @@ begin
   FMasterLink.Free;
 end;
 
-function TDbf.AllocRecordBuffer: PChar; {override virtual abstract from TDataset}
+function TDbf.AllocRecordBuffer: TRecordBuffer; {override virtual abstract from TDataset}
 begin
   GetMem(Result, SizeOf(TDbfRecordHeader)+FDbfFile.RecordSize+CalcFieldsSize+1);
 end;
 
-procedure TDbf.FreeRecordBuffer(var Buffer: PChar); {override virtual abstract from TDataset}
+procedure TDbf.FreeRecordBuffer(var Buffer: TRecordBuffer); {override virtual abstract from TDataset}
 begin
   FreeMemAndNil(Pointer(Buffer));
 end;
 
-procedure TDbf.GetBookmarkData(Buffer: PChar; Data: Pointer); {override virtual abstract from TDataset}
+procedure TDbf.GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); {override virtual abstract from TDataset}
 begin
   pBookmarkData(Data)^ := pDbfRecord(Buffer)^.BookmarkData;
 end;
 
-function TDbf.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; {override virtual abstract from TDataset}
+function TDbf.GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; {override virtual abstract from TDataset}
 begin
   Result := pDbfRecord(Buffer)^.BookmarkFlag;
 end;
 
-function TDbf.GetCurrentBuffer: PChar;
+function TDbf.GetCurrentBuffer: TRecordBuffer;
 begin
   case State of
     dsFilter:     Result := FFilterBuffer;
@@ -726,7 +726,7 @@ const
   NativeFormat = true;
 {$endif}
 var
-  Src: PChar;
+  Src: TRecordBuffer;
 begin
   Src := GetCurrentBuffer;
   if Src = nil then
@@ -764,6 +764,8 @@ var
 begin
   if (Field.FieldNo >= 0) then
   begin
+    if State in [dsEdit, dsInsert, dsNewValue] then
+      Field.Validate(Buffer);
     Dst := @PDbfRecord(ActiveBuffer)^.DeletedFlag;
     FDbfFile.SetFieldData(Field.FieldNo - 1, Field.DataType, Buffer, Dst, NativeFormat);
   end else begin    { ***** fkCalculated, fkLookup ***** }
@@ -797,7 +799,7 @@ begin
     OnFilterRecord(Self, Acceptable);
 end;
 
-function TDbf.ReadCurrentRecord(Buffer: PChar; var Acceptable: Boolean): TGetResult;
+function TDbf.ReadCurrentRecord(Buffer: TRecordBuffer; var Acceptable: Boolean): TGetResult;
 var
   lPhysicalRecNo: Integer;
   pRecord: pDbfRecord;
@@ -815,7 +817,7 @@ begin
   end;
 end;
 
-function TDbf.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; {override virtual abstract from TDataset}
+function TDbf.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; {override virtual abstract from TDataset}
 var
   pRecord: pDbfRecord;
   acceptable: Boolean;
@@ -1114,7 +1116,7 @@ begin
   end;
 end;
 
-procedure TDbf.InternalInitRecord(Buffer: PChar); {override virtual abstract from TDataset}
+procedure TDbf.InternalInitRecord(Buffer: TRecordBuffer); {override virtual abstract from TDataset}
 var
   pRecord: pDbfRecord;
 begin
@@ -2081,7 +2083,7 @@ end;
 
 {$endif}
 
-procedure TDbf.ClearCalcFields(Buffer: PChar);
+procedure TDbf.ClearCalcFields(Buffer: TRecordBuffer);
 var
   lRealBuffer, lCalcBuffer: PChar;
 begin
@@ -2090,7 +2092,7 @@ begin
   FillChar(lCalcBuffer^, CalcFieldsSize, 0);
 end;
 
-procedure TDbf.InternalSetToRecord(Buffer: PChar); {override virtual abstract from TDataset}
+procedure TDbf.InternalSetToRecord(Buffer: TRecordBuffer); {override virtual abstract from TDataset}
 var
   pRecord: pDbfRecord;
 begin
@@ -2116,12 +2118,12 @@ begin
   Result := StoreDefs and (FieldDefs.Count > 0);
 end;
 
-procedure TDbf.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); {override virtual abstract from TDataset}
+procedure TDbf.SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); {override virtual abstract from TDataset}
 begin
   pDbfRecord(Buffer)^.BookmarkFlag := Value;
 end;
 
-procedure TDbf.SetBookmarkData(Buffer: PChar; Data: Pointer); {override virtual abstract from TDataset}
+procedure TDbf.SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); {override virtual abstract from TDataset}
 begin
   pDbfRecord(Buffer)^.BookmarkData := pBookmarkData(Data)^;
 end;
@@ -2614,26 +2616,26 @@ end;
 
 function TDbf.IsDeleted: Boolean;
 var
-  src: PChar;
+  src: TRecordBuffer;
 begin
   src := GetCurrentBuffer;
-  IsDeleted := (src=nil) or (src^ = '*')
+  IsDeleted := (src=nil) or (AnsiChar(src^) = '*')
 end;
 
 procedure TDbf.Undelete;
 var
-  src: PChar;
+  src: TRecordBuffer;
 begin
   if State <> dsEdit then
     inherited Edit;
   // get active buffer
   src := GetCurrentBuffer;
-  if (src <> nil) and (src^ = '*') then
+  if (src <> nil) and (AnsiChar(src^) = '*') then
   begin
     // notify indexes record is about to be recalled
     FDbfFile.RecordRecalled(FCursor.PhysicalRecNo, src);
     // recall record
-    src^ := ' ';
+    src^ := TRecordBufferBaseType(' ');
     FDbfFile.WriteRecord(FCursor.PhysicalRecNo, src);
   end;
 end;
@@ -2819,19 +2821,22 @@ end;
 
 procedure TDbf.UpdateRange;
 var
-  fieldsVal: PChar;
+  fieldsVal: TRecordBuffer;
   tempBuffer: array[0..300] of char;
 begin
   fieldsVal := FMasterLink.FieldsVal;
   if (TDbf(FMasterLink.DataSet).DbfFile.UseCodePage <> FDbfFile.UseCodePage)
         and (FMasterLink.Parser.ResultType = etString) then
   begin
-    FMasterLink.DataSet.Translate(fieldsVal, @tempBuffer[0], false);
+    FMasterLink.DataSet.Translate(pansichar(fieldsVal), @tempBuffer[0], false);
     fieldsVal := @tempBuffer[0];
-    Translate(fieldsVal, fieldsVal, true);
+    Translate(pansichar(fieldsVal), pansichar(fieldsVal), true);
   end;
-  fieldsVal := TIndexCursor(FCursor).IndexFile.PrepareKey(fieldsVal, FMasterLink.Parser.ResultType);
-  SetRangeBuffer(fieldsVal, fieldsVal);
+  // preparekey, setrangebuffer and updatekeyfrom* are functions which arguments
+  // are not entirely classified in pchar<>trecordbuffer terms.
+  // so we typecast for now.
+  fieldsVal := TRecordBuffer(TIndexCursor(FCursor).IndexFile.PrepareKey((fieldsVal), FMasterLink.Parser.ResultType));
+  SetRangeBuffer(pansichar(fieldsVal), pansichar(fieldsVal)); 
 end;
 
 procedure TDbf.MasterChanged(Sender: TObject);
@@ -3016,9 +3021,9 @@ begin
   end;
 end;
 
-function TDbfMasterLink.GetFieldsVal: PChar;
+function TDbfMasterLink.GetFieldsVal: TRecordBuffer;
 begin
-  Result := FParser.ExtractFromBuffer(@pDbfRecord(TDbf(DataSet).ActiveBuffer)^.DeletedFlag);
+  Result := TRecordBuffer(FParser.ExtractFromBuffer(@pDbfRecord(TDbf(DataSet).ActiveBuffer)^.DeletedFlag));
 end;
 
 ////////////////////////////////////////////////////////////////////////////

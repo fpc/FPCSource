@@ -114,6 +114,6 @@ const
         'Operation canceled',                  { ECANCELED }
         'Identifier removed',                  { EIDRM }
         'No message of desired type',          { ENOMSG }
-	'Not supported',                       { ENOTSUP }
-//	'Must be equal to largest errno'       { ELAST }
+	'Not supported'                        { ENOTSUP }
+//      'Must be equal to largest errno'       { ELAST }
 );

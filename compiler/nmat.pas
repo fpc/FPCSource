@@ -101,7 +101,7 @@ implementation
       defutil,
       htypechk,pass_1,
       cgbase,
-      ncon,ncnv,ncal,nadd,
+      ncon,ncnv,ncal,nadd,nld,nbas,nflw,ninl,
       nutils;
 
 {****************************************************************************
@@ -116,7 +116,8 @@ implementation
 
         if is_constintnode(right) then
           begin
-            if tordconstnode(right).value = 1 then
+            rv:=tordconstnode(right).value;
+            if rv = 1 then
               begin
                 case nodetype of
                   modn:
@@ -126,12 +127,19 @@ implementation
                 end;
                 exit;
               end;
-            if tordconstnode(right).value = 0 then
+            if rv = 0 then
               begin
                 Message(parser_e_division_by_zero);
                 { recover }
                 tordconstnode(right).value := 1;
               end;
+            if (nf_isomod in flags) and
+              (rv<=0) then
+               begin
+                 Message(cg_e_mod_only_defined_for_pos_quotient);
+                 { recover }
+                 tordconstnode(right).value := 1;
+               end;
           end;
 
         if is_constintnode(right) and is_constintnode(left) then
@@ -141,7 +149,18 @@ implementation
 
             case nodetype of
               modn:
-                result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
+                if nf_isomod in flags then
+                  begin
+                    if lv>=0 then
+                      result:=create_simplified_ord_const(lv mod rv,resultdef,forinline)
+                    else
+                      if ((-lv) mod rv)=0 then
+                        result:=create_simplified_ord_const((-lv) mod rv,resultdef,forinline)
+                      else
+                        result:=create_simplified_ord_const(rv-((-lv) mod rv),resultdef,forinline);
+                  end
+                else
+                  result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
               divn:
                 result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
             end;
@@ -167,8 +186,12 @@ implementation
 
     function tmoddivnode.pass_typecheck:tnode;
       var
+        else_block,
         hp,t : tnode;
         rd,ld : torddef;
+        else_statements,
+        statements : tstatementnode;
+        result_data : ttempcreatenode;
       begin
          result:=nil;
          typecheckpass(left);
@@ -182,10 +205,6 @@ implementation
          maybe_call_procvar(left,true);
          maybe_call_procvar(right,true);
 
-         result:=simplify(false);
-         if assigned(result) then
-           exit;
-
          { allow operator overloading }
          t:=self;
          if isbinaryoverloaded(t) then
@@ -196,10 +215,20 @@ implementation
 
          { we need 2 orddefs always }
          if (left.resultdef.typ<>orddef) then
-           inserttypeconv(right,sinttype);
+           inserttypeconv(left,sinttype);
          if (right.resultdef.typ<>orddef) then
            inserttypeconv(right,sinttype);
          if codegenerror then
+           exit;
+
+         { Try only now to simply constant
+           as otherwise you might create
+           tconstnode with return type that are
+           not compatible with tconst node
+           as in bug report 21566 PM }
+
+         result:=simplify(false);
+         if assigned(result) then
            exit;
 
          rd:=torddef(right.resultdef);
@@ -302,6 +331,42 @@ implementation
             include(hp.flags,nf_is_currency);
             result:=hp;
           end;
+
+         if (nodetype=modn) and (nf_isomod in flags) then
+           begin
+             result:=internalstatements(statements);
+             else_block:=internalstatements(else_statements);
+             result_data:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+
+             { right <=0? }
+             addstatement(statements,cifnode.create(caddnode.create(lten,right.getcopy,cordconstnode.create(0,resultdef,false)),
+               { then: result:=left mod right }
+               ccallnode.createintern('fpc_divbyzero',nil),
+               nil
+               ));
+
+             { prepare else block }
+             { result:=(-left) mod right }
+             addstatement(else_statements,cassignmentnode.create(ctemprefnode.create(result_data),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy),right.getcopy)));
+             { result<>0? }
+             addstatement(else_statements,cifnode.create(caddnode.create(unequaln,ctemprefnode.create(result_data),cordconstnode.create(0,resultdef,false)),
+               { then: result:=right-result }
+               cassignmentnode.create(ctemprefnode.create(result_data),caddnode.create(subn,right.getcopy,ctemprefnode.create(result_data))),
+               nil
+               ));
+
+             addstatement(statements,result_data);
+             { if left>=0 }
+             addstatement(statements,cifnode.create(caddnode.create(gten,left.getcopy,cordconstnode.create(0,resultdef,false)),
+               { then: result:=left mod right }
+               cassignmentnode.create(ctemprefnode.create(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy)),
+               { else block }
+               else_block
+               ));
+
+             addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
+             addstatement(statements,ctemprefnode.create(result_data));
+           end;
       end;
 
 
@@ -373,47 +438,63 @@ implementation
 
     function tmoddivnode.firstoptimize: tnode;
       var
-        power{,shiftval} : longint;
+        power,shiftval : longint;
         newtype: tnodetype;
+        statements : tstatementnode;
+        temp : ttempcreatenode;
       begin
         result := nil;
         { divide/mod a number by a constant which is a power of 2? }
-        if (cs_opt_peephole in current_settings.optimizerswitches) and
-           (right.nodetype = ordconstn) and
-{           ((nodetype = divn) or
-            not is_signed(resultdef)) and}
-           (not is_signed(resultdef)) and
+        if (right.nodetype = ordconstn) and
+{$ifdef cpu64bitalu}
+          { for 64 bit, we leave the optimization to the cg }
+            (not is_signed(resultdef)) and
+{$else cpu64bitalu}
+           ((nodetype=divn) and (is_64bit(resultdef)) or
+            not is_signed(resultdef)) and
+{$endif cpu64bitalu}
            ispowerof2(tordconstnode(right).value,power) then
           begin
-            if nodetype = divn then
+            if nodetype=divn then
               begin
-(*
                 if is_signed(resultdef) then
                   begin
                     if is_64bitint(left.resultdef) then
                       if not (cs_opt_size in current_settings.optimizerswitches) then
-                        shiftval := 63
+                        shiftval:=63
                       else
                         { the shift code is a lot bigger than the call to }
                         { the divide helper                               }
                         exit
                     else
-                      shiftval := 31;
-                    { we reuse left twice, so create once a copy of it     }
-                    { !!! if left is a call is -> call gets executed twice }
-                    left := caddnode.create(addn,left,
-                      caddnode.create(andn,
-                        cshlshrnode.create(sarn,left.getcopy,
-                          cordconstnode.create(shiftval,sinttype,false)),
-                        cordconstnode.create(tordconstnode(right).value-1,
-                          right.resultdef,false)));
-                    newtype := sarn;
+                      shiftval:=31;
+
+                    result:=internalstatements(statements);
+                    temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+                    addstatement(statements,temp);
+                    addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp),
+                     left));
+                    left:=nil;
+
+                    addstatement(statements,ccallnode.createintern('fpc_sarint64',
+                      ccallparanode.create(cordconstnode.create(power,u8inttype,false),
+                      ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp),
+                        caddnode.create(andn,
+                          ccallnode.createintern('fpc_sarint64',
+                            ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
+                            ccallparanode.create(ctemprefnode.create(temp),nil))
+                          ),
+                          cordconstnode.create(tordconstnode(right).value-1,
+                            right.resultdef,false)
+                        )),nil
+                      )))
+                    );
                   end
                 else
-*)
-                  newtype := shrn;
-                tordconstnode(right).value := power;
-                result := cshlshrnode.create(newtype,left,right)
+                  begin
+                    tordconstnode(right).value:=power;
+                    result:=cshlshrnode.create(shrn,left,right)
+                  end;
               end
             else
               begin
@@ -501,10 +582,6 @@ implementation
          maybe_call_procvar(left,true);
          maybe_call_procvar(right,true);
 
-         result:=simplify(false);
-         if assigned(result) then
-           exit;
-
          { allow operator overloading }
          t:=self;
          if isbinaryoverloaded(t) then
@@ -512,6 +589,10 @@ implementation
               result:=t;
               exit;
            end;
+
+         result:=simplify(false);
+         if assigned(result) then
+           exit;
 
 {$ifdef cpunodefaultint}
          { for small cpus we use the smallest common type }
@@ -937,10 +1018,21 @@ implementation
                else
                  CGMessage(type_e_mismatch);
              end;
-             if not forinline then
+             { not-nodes are not range checked by the code generator -> also
+               don't range check while inlining; the resultdef is a bit tricky
+               though: the node's resultdef gets changed in most cases compared
+               to left, but the not-operation itself is caried out in the code
+               generator using the size of left
+               }
+             if not(forinline) then
                t:=cordconstnode.create(v,def,false)
              else
-               t:=create_simplified_ord_const(v,resultdef,true);
+               begin
+                 { cut off the value if necessary }
+                 t:=cordconstnode.create(v,left.resultdef,false);
+                 { now convert to node's resultdef }
+                 inserttypeconv_explicit(t,def);
+               end;
              result:=t;
              exit;
           end;

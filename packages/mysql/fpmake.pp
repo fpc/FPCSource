@@ -19,6 +19,7 @@ begin
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
 
     T:=P.Targets.AddUnit('my4_sys.pp');
     T:=P.Targets.AddUnit('mysql3_comdyn.pp');
@@ -120,9 +121,19 @@ begin
         begin
           AddInclude('mysql.inc');
         end;
+    T:=P.Targets.AddUnit('mysql55.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('mysql.inc');
+        end;
+    T:=P.Targets.AddUnit('mysql55dyn.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('mysql.inc');
+        end;
     T.ResourceStrings := True;
 
-    P.ExamplePath.Add('tests');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testdb3.pp');
     P.Targets.AddExampleProgram('testdb4.pp');
     P.Targets.AddExampleProgram('mysqls.pp');

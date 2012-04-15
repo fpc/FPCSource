@@ -108,6 +108,27 @@ procedure fillchar(var arr: array of qword; len: sizeint; val: boolean); externa
 procedure fillchar(var arr: array of qword; len: sizeint; val: ansichar); external;
 procedure fillchar(var arr: array of qword; len: sizeint; val: jbyte); external;
 
+
+function  IndexChar(const buf: array of boolean;len:SizeInt;b:ansichar):SizeInt;
+function  IndexChar(const buf: array of jbyte;len:SizeInt;b:ansichar):SizeInt;
+function  IndexChar(const buf: array of byte;len:SizeInt;b:ansichar):SizeInt; external;
+function  IndexChar(const buf: array of ansichar;len:SizeInt;b:ansichar):SizeInt; external;
+
+function  IndexByte(const buf: array of jbyte;len:SizeInt;b:jbyte):SizeInt;
+function  IndexByte(const buf: array of boolean;len:SizeInt;b:jbyte):SizeInt;
+function  IndexByte(const buf: array of byte;len:SizeInt;b:jbyte):SizeInt; external;
+function  IndexByte(const buf: array of ansichar;len:SizeInt;b:jbyte):SizeInt; external;
+function  IndexByte(const buf: array of bytebool;len:SizeInt;b:bytebool):SizeInt; external;
+
+
+function  IndexWord(const buf: array of jshort;len:SizeInt;b:jshort):SizeInt;
+function  IndexWord(const buf: array of jchar;len:SizeInt;b:jchar):SizeInt;
+function  IndexWord(const buf: array of jchar;len:SizeInt;b:jshort):SizeInt;
+function  IndexWord(const buf: array of word;len:SizeInt;b:word):SizeInt; external;
+function  IndexWord(const buf: array of wordbool;len:SizeInt;b:wordbool):SizeInt; external;
+function  IndexWord(const buf: array of boolean16;len:SizeInt;b:boolean16):SizeInt; external;
+
+
 {****************************************************************************
                           Math Routines
 ****************************************************************************}
@@ -317,7 +338,8 @@ function SarLongint(Const AValue : Longint;const Shift : Byte = 1): Longint;
 function SarInt64(Const AValue : Int64): Int64;[internproc:fpc_in_sar_x];
 function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_sar_x_y];
 {$else FPC_HAS_INTERNAL_SAR_QWORD}
-function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64;
+function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64;compilerproc;
+function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external name 'fpc_sarint64'];
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSX}
@@ -394,13 +416,11 @@ Procedure Insert(const source:shortstring;var s:shortstring;index:SizeInt);
 Procedure Insert(source:Char;var s:shortstring;index:SizeInt);
 Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
 Function  Pos(C:Char;const s:shortstring):SizeInt;
-(*
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function  Pos (const Substr : ShortString; const Source : AnsiString) : SizeInt;
-Procedure SetString (out S : AnsiString; Buf : PChar; Len : SizeInt);
-Procedure SetString (out S : AnsiString; Buf : PWideChar; Len : SizeInt);
+Function  Pos(const Substr : ShortString; const Source : RawByteString) : SizeInt;
+Procedure SetString(out S : AnsiString; Buf : PAnsiChar; Len : SizeInt);
+Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-*)
 Procedure SetString (out S : Shortstring; Buf : PChar; Len : SizeInt);
 function  ShortCompareText(const S1, S2: shortstring): SizeInt;
 Function  upCase(const s:shortstring):shortstring;
@@ -429,14 +449,20 @@ function  pos(const substr : shortstring;c:char): SizeInt;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure UniqueString(var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
-Function  Pos (const Substr : AnsiString; const Source : AnsiString) : SizeInt;
-Function  Pos (c : Char; const s : AnsiString) : SizeInt;
-Procedure Insert (const Source : AnsiString; var S : AnsiString; Index : SizeInt);
-Procedure Delete (var S : AnsiString; Index,Size: SizeInt);
-Function  StringOfChar(c : char;l : SizeInt) : AnsiString;
+Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}external name 'FPC_ANSISTR_UNIQUE';
+Function  Pos (const Substr : RawByteString; const Source : RawByteString) : SizeInt;
+Function  Pos (c : AnsiChar; const s : RawByteString) : SizeInt;
+Procedure Insert (const Source : RawByteString; var S : RawByteString; Index : SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
+Procedure Delete (var S : RawByteString; Index,Size: SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
+Function  StringOfChar(c : Ansichar;l : SizeInt) : AnsiString;
 function  upcase(const s : ansistring) : ansistring;
 function  lowercase(const s : ansistring) : ansistring;
+
+function StringCodePage(const S : RawByteString): TSystemCodePage; overload;
+function StringElementSize(const S : RawByteString): Word; overload;
+function StringRefCount(const S : RawByteString): SizeInt; overload;
+procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
+procedure SetMultiByteConversionCodePage(CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {****************************************************************************
@@ -528,6 +554,8 @@ Function  SeekEOF:Boolean;
 Procedure SetTextBuf(var f:Text; var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
 Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
 Procedure SetTextLineEnding(var f:Text; Ending:string);
+function GetTextCodePage(var T: Text): TSystemCodePage;
+procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {****************************************************************************
@@ -649,12 +677,12 @@ Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+{$ifndef JVM}
 Procedure Dump_Stack(var f : text;bp:pointer);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-{$endif FPC_HAS_FEATURE_CONSOLEIO}
+{$endif JVM}
 
 Procedure RunError(w:Word);
 Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -671,8 +699,10 @@ Procedure SysInitExceptions;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 *)
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+{$if not defined(EMBEDDED) and not defined(jvm)}
 procedure SysInitStdIO;
 procedure SysFlushStdIO;
+{$endif EMBEDDED or jvm}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 {$ifndef FPUNONE}
 Procedure SysResetFPU;
@@ -724,6 +754,10 @@ const
   AbstractErrorProc : TAbstractErrorProc = nil;
   AssertErrorProc   : TAssertErrorProc = @SysAssert;
   SafeCallErrorProc : TSafeCallErrorProc = nil;
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  ExceptObjProc     : Pointer = nil; { Used to convert OS exceptions to FPC exceptions. }
+  ExceptClsProc     : Pointer = nil;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 *)
 
 {*****************************************************************************
@@ -767,9 +801,9 @@ const
                                Heap
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_HEAP}
+{$ifndef JVM}
 {$i heaph.inc}
-{$endif FPC_HAS_FEATURE_HEAP}
+{$endif JVM}
 
 {*****************************************************************************
                           Thread support

@@ -11,7 +11,7 @@
 //------------------------------------------------------------------------------
 
 {$IFDEF read_interface_rest}
-{$ifdef WIN32}
+{$ifdef WINDOWS}
 
   { On native Win32, directory separator is the backslash, and search path
      separator is the semicolon.

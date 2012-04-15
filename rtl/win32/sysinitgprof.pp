@@ -75,7 +75,7 @@ unit sysinitgprof;
 {$ifdef FPC_USE_TLS_DIRECTORY}
         LinkIn(@tlsdir,@tls_callback_end,@tls_callback);
 {$endif}
-        EXE_Entry(EntryInformation);
+        EXE_Entry(SysInitEntryInformation);
       end;
 
 
@@ -88,7 +88,7 @@ unit sysinitgprof;
         DLLgmon_start;
         __main;
         SetupEntryInformation;
-        DLL_Entry(EntryInformation);
+        DLL_Entry(SysInitEntryInformation);
       end;
 
 
@@ -118,12 +118,12 @@ unit sysinitgprof;
       end;
 
 
-    procedure _FPC_DLLMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
+    procedure _FPC_DLLMainCRTStartup(_hinstance : longint;_dllreason : dword;_dllparam:Pointer);stdcall;public name '_DLLMainCRTStartup';
       begin
         IsConsole:=true;
         sysinstance:=_hinstance;
         dllreason:=_dllreason;
-        dllparam:=_dllparam;
+        dllparam:=PtrInt(_dllparam);
         asm
           subl   $0x8,%esp
           andl   $0xfffffff0,%esp
@@ -132,12 +132,12 @@ unit sysinitgprof;
       end;
 
 
-    procedure _FPC_DLLWinMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup';
+    procedure _FPC_DLLWinMainCRTStartup(_hinstance : longint;_dllreason : dword;_dllparam:Pointer);stdcall;public name '_DLLWinMainCRTStartup';
       begin
         IsConsole:=false;
         sysinstance:=_hinstance;
         dllreason:=_dllreason;
-        dllparam:=_dllparam;
+        dllparam:=PtrInt(_dllparam);
         asm
           subl   $0x8,%esp
           andl   $0xfffffff0,%esp

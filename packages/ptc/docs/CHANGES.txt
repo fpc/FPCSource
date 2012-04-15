@@ -1,3 +1,13 @@
+0.99.12
+ - pressing Alt or F10 under Windows no longer pauses the application.
+ - API changes:
+    - PTC classes have been made descendants of TInterfacedObject and are now
+      accessed via interfaces. This simplifies memory management, because
+      objects are now reference counted and automatically freed when they are
+      no longer used. Unfortunately, this breaks existing code. However it's
+      relatively easy to fix. See the files INTF-CHANGES-0.99.12.txt and
+      INTF-CHANGES-FAQ-0.99.12.txt for details.
+
 0.99.11
  - added ptcgraph - an implementation of FPC's BGI-compatible graph unit on top
    of PTCPas. It should work on all platforms, supported by PTCPas,  except for

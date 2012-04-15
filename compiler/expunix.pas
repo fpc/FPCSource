@@ -167,7 +167,7 @@ begin
 {$endif x86}
              end
            else
-             cg.a_jmp_name(current_asmdata.asmlists[al_procedures],pd.mangledname);
+             cg.g_external_wrapper(current_asmdata.asmlists[al_procedures],pd,pd.mangledname);
            current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
          end;
         exportedsymnames.insert(hp2.name^);

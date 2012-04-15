@@ -1,0 +1,38 @@
+#
+#   Makefile.fpc for wii units
+#
+
+[package]
+name=libogcfpc
+version=2.7.1
+
+[target]
+units=gctypes gccore debug mp3player fat asndlib aesndlib gcmodplay iso9660 network
+exampledirs=examples
+
+[compiler]
+options=
+includedir=src 
+#src/bte src/di src/ogc src/sdcard src/wiikeyboard src/wiiuse 
+sourcedir=src tests
+
+[prerules]
+BINUTILSPREFIX=powerpc-eabi-
+
+[install]
+fpcpackage=y
+
+[default]
+cpu=powerpc
+target=wii
+fpcdir=../..
+
+[require] 
+nortl=y
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+

@@ -50,13 +50,22 @@ interface
       );
       tpdflags=set of tpdflag;
 
+      // flags of handle_calling_convention routine
+      thccflag=(
+        hcc_check,                // perform checks and outup errors if found
+        hcc_insert_hidden_paras   // insert hidden parameters
+      );
+      thccflags=set of thccflag;
+    const
+      hcc_all=[hcc_check,hcc_insert_hidden_paras];
+
     function  check_proc_directive(isprocvar:boolean):boolean;
 
     function  proc_add_definition(var currpd:tprocdef):boolean;
     function  proc_get_importname(pd:tprocdef):string;
     procedure proc_set_mangledname(pd:tprocdef);
 
-    procedure handle_calling_convention(pd:tabstractprocdef);
+    procedure handle_calling_convention(pd:tabstractprocdef;flags:thccflags=hcc_all);
 
     procedure parse_parameter_dec(pd:tabstractprocdef);
     procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
@@ -65,6 +74,11 @@ interface
     procedure parse_record_proc_directives(pd:tabstractprocdef);
     function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;out pd:tprocdef):boolean;
     function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
+
+    { parse a record method declaration (not a (class) constructor/destructor) }
+    function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
+
+    procedure insert_record_hidden_paras(astruct: trecorddef);
 
     { helper functions - they insert nested objects hierarcy to the symtablestack
       with object hierarchy
@@ -186,7 +200,7 @@ implementation
          exit;
         with tparavarsym(p) do
          begin
-           if not is_managed_type(vardef) and
+           if (not needs_finalization) and
               paramanager.push_addr_param(varspez,vardef,tprocdef(arg).proccalloption) then
              varregable:=vr_intreg;
          end;
@@ -612,75 +626,61 @@ implementation
 
         function consume_generic_type_parameter:boolean;
           var
-            i:integer;
-            ok:boolean;
-            sym:tsym;
+            idx : integer;
+            genparalistdecl : TFPHashList;
+            genname : tidstring;
+            s : shortstring;
           begin
             result:=not assigned(astruct)and(m_delphi in current_settings.modeswitches);
             if result then
               begin
-                { a generic type parameter? }
-                srsym:=search_object_name(sp,false);
-                if (srsym.typ=typesym) and
-                   (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
-                begin
-                  astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
-                  if (df_generic in astruct.defoptions) and try_to_consume(_LT) then
-                    begin
-                      ok:=true;
-                      i:=0;
-                      repeat
-                        if ok and (token=_ID)  then
-                          begin
-                            ok:=false;
-                            while i<astruct.symtable.SymList.Count-1 do
-                              begin
-                                sym:=tsym(astruct.symtable.SymList[i]);
-                                if sp_generic_para in sym.symoptions then
-                                  begin
-                                    ok:=sym.Name=pattern;
-                                    inc(i);
-                                    break;
-                                  end;
-                                inc(i);
-                              end;
-                            if not ok then
-                              Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                          end;
-                        consume(_ID);
-                      until not try_to_consume(_COMMA);
-                      if ok then
-                        while i<astruct.symtable.SymList.Count-1 do
-                          begin
-                            sym:=tsym(astruct.symtable.SymList[i]);
-                            if sp_generic_para in sym.symoptions then
-                              begin
-                                Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                                break;
-                              end;
-                            inc(i);
-                          end;
-                      consume(_GT);
-                    end
-                  else
-                  if (df_generic in astruct.defoptions) and (token=_POINT) then
-                    begin
-                      Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                    end
-                  else
-                    begin
-                      { not a method. routine name just accidentally match some structure name }
-                      astruct:=nil;
-                      if try_to_consume(_LT) then
+                { parse all parameters first so we can check whether we have
+                  the correct generic def available }
+                genparalistdecl:=TFPHashList.Create;
+                if try_to_consume(_LT) then
+                  begin
+                    { start with 1, so Find can return Nil (= 0) }
+                    idx:=1;
+                    repeat
+                      if token=_ID then
                         begin
-                          Message(type_e_type_parameters_are_not_allowed_here);
-                          repeat
-                            consume(_ID);
-                          until not try_to_consume(_COMMA);
-                          consume(_GT);
+                          genparalistdecl.Add(pattern, Pointer(PtrInt(idx)));
+                          consume(_ID);
+                          inc(idx);
+                        end
+                      else
+                        begin
+                          message2(scan_f_syn_expected,arraytokeninfo[_ID].str,arraytokeninfo[token].str);
+                          if token<>_COMMA then
+                            consume(token);
                         end;
-                    end;
-                end;
+                    until not try_to_consume(_COMMA);
+                    if not try_to_consume(_GT) then
+                      consume(_RSHARPBRACKET);
+                  end
+                else
+                  begin
+                    { no generic }
+                    srsym:=nil;
+                    exit;
+                  end;
+
+                s:='';
+                str(genparalistdecl.count,s);
+                genname:=sp+'$'+s;
+
+                genparalistdecl.free;
+
+                srsym:=search_object_name(genname,false);
+
+                if not assigned(srsym) then
+                  begin
+                    { TODO : print a nicer typename that contains the parsed
+                             generic types }
+                    Message1(type_e_generic_declaration_does_not_match,genname);
+                    srsym:=nil;
+                    exit;
+                  end;
               end;
           end;
 
@@ -726,13 +726,14 @@ implementation
          end;
 
         { method  ? }
+        srsym:=nil;
         if (consume_generic_type_parameter or not assigned(astruct)) and
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
            repeat
              searchagain:=false;
-             if not assigned(astruct) then
+             if not assigned(astruct) and not assigned(srsym) then
                srsym:=search_object_name(sp,true);
              { consume proc name }
              procstartfilepos:=current_tokenpos;
@@ -924,7 +925,7 @@ implementation
             { Add ObjectSymtable to be able to find nested type definitions }
             popclass:=0;
             if assigned(pd.struct) and
-               (pd.parast.symtablelevel=normal_function_level) and
+               (pd.parast.symtablelevel>=normal_function_level) and
                not(symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
@@ -978,7 +979,7 @@ implementation
             { Add ObjectSymtable to be able to find generic type definitions }
             popclass:=0;
             if assigned(pd.struct) and
-               (pd.parast.symtablelevel=normal_function_level) and
+               (pd.parast.symtablelevel>=normal_function_level) and
                not (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
@@ -1171,7 +1172,10 @@ implementation
                                break;
                              end;
                          if not found then
-                           Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName);
+                           if assigned(pd.struct) then
+                             Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName)
+                           else
+                             MessagePos(pd.fileinfo,type_e_type_id_expected);
                        end;
                      if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE,_OP_IN]) and
                         ((pd.returndef.typ<>orddef) or
@@ -1216,6 +1220,70 @@ implementation
              { I guess this needs a new message... (KB) }
              message(parser_e_illegal_explicit_paraloc);
          end;
+      end;
+
+
+    function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
+      var
+        oldparse_only: boolean;
+      begin
+        oldparse_only:=parse_only;
+        parse_only:=true;
+        result:=parse_proc_dec(is_classdef,astruct);
+
+        { this is for error recovery as well as forward }
+        { interface mappings, i.e. mapping to a method  }
+        { which isn't declared yet                      }
+        if assigned(result) then
+          begin
+            parse_record_proc_directives(result);
+
+            { since records have no inheritance, don't allow non-static
+              class methods. Selphi does the same. }
+            if (result.proctypeoption<>potype_operator) and
+               is_classdef and
+               not (po_staticmethod in result.procoptions) then
+              MessagePos(result.fileinfo, parser_e_class_methods_only_static_in_records);
+
+            // we can't add hidden params here because record is not yet defined
+            // and therefore record size which has influence on paramter passing rules may change too
+            // look at record_dec to see where calling conventions are applied (issue #0021044)
+            handle_calling_convention(result,[hcc_check]);
+
+            { add definition to procsym }
+            proc_add_definition(result);
+          end;
+
+        maybe_parse_hint_directives(result);
+
+        parse_only:=oldparse_only;
+      end;
+
+
+    procedure insert_record_hidden_paras(astruct: trecorddef);
+      var
+        pd: tdef;
+        i: longint;
+        oldpos : tfileposinfo;
+        oldparse_only: boolean;
+      begin
+        // handle calling conventions of record methods
+        oldpos:=current_filepos;
+        oldparse_only:=parse_only;
+        parse_only:=true;
+        { don't keep track of procdefs in a separate list, because the
+          compiler may add additional procdefs (e.g. property wrappers for
+          the jvm backend) }
+        for i := 0 to astruct.symtable.deflist.count - 1 do
+          begin
+            pd:=tdef(astruct.symtable.deflist[i]);
+            if pd.typ<>procdef then
+              continue;
+            current_filepos:=tprocdef(pd).fileinfo;
+            handle_calling_convention(tprocdef(pd),[hcc_insert_hidden_paras]);
+          end;
+        parse_only:=oldparse_only;
+        current_filepos:=oldpos;
       end;
 
 
@@ -1302,7 +1370,7 @@ begin
   consume(_COLON);
   v:=get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
-    message(parser_e_range_check_error)
+    message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
     Tprocdef(pd).extnumber:=longint(v.svalue);
 end;
@@ -1318,7 +1386,7 @@ begin
   consume(_COLON);
   v:=get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
-    message(parser_e_range_check_error)
+    message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
     Tprocdef(pd).extnumber:=longint(v.svalue);
   { the proc is defined }
@@ -1327,7 +1395,9 @@ end;
 
 procedure pd_interrupt(pd:tabstractprocdef);
 
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 var v: Tconstexprint;
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
 begin
   if pd.parast.symtablelevel>normal_function_level then
@@ -1458,7 +1528,7 @@ begin
   pt:=comp_expr(true,false);
   if is_constintnode(pt) then
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
-      message(parser_e_range_check_error)
+      message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
     else
       Tprocdef(pd).dispid:=Tordconstnode(pt).value.svalue
   else
@@ -1551,7 +1621,7 @@ begin
       include(pd.procoptions,po_msgint);
       if (Tordconstnode(pt).value<int64(low(Tprocdef(pd).messageinf.i))) or
          (Tordconstnode(pt).value>int64(high(Tprocdef(pd).messageinf.i))) then
-        message(parser_e_range_check_error)
+        message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(Tprocdef(pd).messageinf.i)),tostr(high(Tprocdef(pd).messageinf.i)))
       else
         Tprocdef(pd).messageinf.i:=tordconstnode(pt).value.svalue;
     end
@@ -1624,7 +1694,7 @@ begin
 
       v:=get_intconst;
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
-        message(parser_e_range_check_error)
+        message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
       else
         Tprocdef(pd).extnumber:=v.uvalue;
     end;
@@ -1868,7 +1938,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=42;
+  num_proc_directives=43;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2261,6 +2331,15 @@ const
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
       mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
+    ),(
+      idtok:_RTLPROC;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
+      handler  : nil;
+      pocall   : pocall_none;
+      pooption : [po_rtlproc];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_interrupt]
     )
    );
 
@@ -2573,103 +2652,109 @@ const
       end;
 
 
-    procedure handle_calling_convention(pd:tabstractprocdef);
+    procedure handle_calling_convention(pd:tabstractprocdef;flags:thccflags=hcc_all);
       begin
-        { set the default calling convention if none provided }
-        if (pd.typ=procdef) and
-           (is_objc_class_or_protocol(tprocdef(pd).struct) or
-            is_cppclass(tprocdef(pd).struct)) then
+        if hcc_check in flags then
           begin
-            { none of the explicit calling conventions should be allowed }
-            if (po_hascallingconvention in pd.procoptions) then
-              internalerror(2009032501);
-            if is_cppclass(tprocdef(pd).struct) then
-              pd.proccalloption:=pocall_cppdecl
+            { set the default calling convention if none provided }
+            if (pd.typ=procdef) and
+               (is_objc_class_or_protocol(tprocdef(pd).struct) or
+                is_cppclass(tprocdef(pd).struct)) then
+              begin
+                { none of the explicit calling conventions should be allowed }
+                if (po_hascallingconvention in pd.procoptions) then
+                  internalerror(2009032501);
+                if is_cppclass(tprocdef(pd).struct) then
+                  pd.proccalloption:=pocall_cppdecl
+                else
+                  pd.proccalloption:=pocall_cdecl;
+              end
+            else if not(po_hascallingconvention in pd.procoptions) then
+              pd.proccalloption:=current_settings.defproccall
             else
-              pd.proccalloption:=pocall_cdecl;
-          end
-        else if not(po_hascallingconvention in pd.procoptions) then
-          pd.proccalloption:=current_settings.defproccall
-        else
-          begin
-            if pd.proccalloption=pocall_none then
-              internalerror(200309081);
+              begin
+                if pd.proccalloption=pocall_none then
+                  internalerror(200309081);
+              end;
+
+            { handle proccall specific settings }
+            case pd.proccalloption of
+              pocall_cdecl,
+              pocall_cppdecl :
+                begin
+                  { check C cdecl para types }
+                  check_c_para(pd);
+                end;
+              pocall_far16 :
+                begin
+                  { Temporary stub, must be rewritten to support OS/2 far16 }
+                  Message1(parser_w_proc_directive_ignored,'FAR16');
+                end;
+            end;
+
+            { Inlining is enabled and supported? }
+            if (po_inline in pd.procoptions) and
+               not(cs_do_inline in current_settings.localswitches) then
+              begin
+                { Give an error if inline is not supported by the compiler mode,
+                  otherwise only give a hint that this procedure will not be inlined }
+                if not(m_default_inline in current_settings.modeswitches) then
+                  Message(parser_e_proc_inline_not_supported)
+                else
+                  Message(parser_h_inlining_disabled);
+                exclude(pd.procoptions,po_inline);
+              end;
+
+            { For varargs directive also cdecl and external must be defined }
+            if (po_varargs in pd.procoptions) then
+             begin
+               { check first for external in the interface, if available there
+                 then the cdecl must also be there since there is no implementation
+                 available to contain it }
+               if parse_only then
+                begin
+                  { if external is available, then cdecl must also be available,
+                    procvars don't need external }
+                  if not((po_external in pd.procoptions) or
+                         (pd.typ=procvardef) or
+                         { for objcclasses this is checked later, because the entire
+                           class may be external.  }
+                         is_objc_class_or_protocol(tprocdef(pd).struct)) and
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
+                    Message(parser_e_varargs_need_cdecl_and_external);
+                end
+               else
+                begin
+                  { both must be defined now }
+                  if not((po_external in pd.procoptions) or
+                         (pd.typ=procvardef)) or
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
+                    Message(parser_e_varargs_need_cdecl_and_external);
+                end;
+             end;
           end;
 
-        { handle proccall specific settings }
-        case pd.proccalloption of
-          pocall_cdecl,
-          pocall_cppdecl :
-            begin
-              { check C cdecl para types }
-              check_c_para(pd);
-            end;
-          pocall_far16 :
-            begin
-              { Temporary stub, must be rewritten to support OS/2 far16 }
-              Message1(parser_w_proc_directive_ignored,'FAR16');
-            end;
-        end;
-
-        { Inlining is enabled and supported? }
-        if (po_inline in pd.procoptions) and
-           not(cs_do_inline in current_settings.localswitches) then
+        if hcc_insert_hidden_paras in flags then
           begin
-            { Give an error if inline is not supported by the compiler mode,
-              otherwise only give a warning that this procedure will not be inlined }
-            if not(m_default_inline in current_settings.modeswitches) then
-              Message(parser_e_proc_inline_not_supported)
-            else
-              Message(parser_w_inlining_disabled);
-            exclude(pd.procoptions,po_inline);
+            { insert hidden high parameters }
+            pd.parast.SymList.ForEachCall(@insert_hidden_para,pd);
+
+            { insert hidden self parameter }
+            insert_self_and_vmt_para(pd);
+
+            { insert funcret parameter if required }
+            insert_funcret_para(pd);
+
+            { Make var parameters regable, this must be done after the calling
+              convention is set. }
+            { this must be done before parentfp is insert, because getting all cases
+              where parentfp must be in a memory location isn't catched properly so
+              we put parentfp never in a register }
+            pd.parast.SymList.ForEachCall(@set_addr_param_regable,pd);
+
+            { insert parentfp parameter if required }
+            insert_parentfp_para(pd);
           end;
-
-        { For varargs directive also cdecl and external must be defined }
-        if (po_varargs in pd.procoptions) then
-         begin
-           { check first for external in the interface, if available there
-             then the cdecl must also be there since there is no implementation
-             available to contain it }
-           if parse_only then
-            begin
-              { if external is available, then cdecl must also be available,
-                procvars don't need external }
-              if not((po_external in pd.procoptions) or
-                     (pd.typ=procvardef) or
-                     { for objcclasses this is checked later, because the entire
-                       class may be external.  }
-                     is_objc_class_or_protocol(tprocdef(pd).struct)) and
-                 not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
-                Message(parser_e_varargs_need_cdecl_and_external);
-            end
-           else
-            begin
-              { both must be defined now }
-              if not((po_external in pd.procoptions) or
-                     (pd.typ=procvardef)) or
-                 not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
-                Message(parser_e_varargs_need_cdecl_and_external);
-            end;
-         end;
-
-        { insert hidden high parameters }
-        pd.parast.SymList.ForEachCall(@insert_hidden_para,pd);
-
-        { insert hidden self parameter }
-        insert_self_and_vmt_para(pd);
-
-        { insert funcret parameter if required }
-        insert_funcret_para(pd);
-
-        { Make var parameters regable, this must be done after the calling
-          convention is set. }
-        { this must be done before parentfp is insert, because getting all cases
-          where parentfp must be in a memory location isn't catched properly so
-          we put parentfp never in a register }
-        pd.parast.SymList.ForEachCall(@set_addr_param_regable,pd);
-
-        { insert parentfp parameter if required }
-        insert_parentfp_para(pd);
 
         { Calculate parameter tlist }
         pd.calcparas;
@@ -2951,7 +3036,12 @@ const
                      po_comp:=[po_classmethod,po_methodpointer];
 
                    if ((po_comp * fwpd.procoptions)<>(po_comp * currpd.procoptions)) or
-                      (fwpd.proctypeoption <> currpd.proctypeoption) then
+                      (fwpd.proctypeoption <> currpd.proctypeoption) or
+                      { if the implementation version has an "overload" modifier,
+                        the interface version must also have it (otherwise we can
+                        get annoying crashes due to interface crc changes) }
+                      (not(po_overload in fwpd.procoptions) and
+                       (po_overload in currpd.procoptions)) then
                      begin
                        MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
                                    fwpd.fullprocname(false));
@@ -3091,7 +3181,7 @@ const
                   begin
                     MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
                     break;
-                  end;
+                  end
                end
               else
                begin

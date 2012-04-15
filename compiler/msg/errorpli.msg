@@ -4,7 +4,7 @@
 #
 #   Polish (ISO 8859-2) Language File for Free Pascal
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -723,9 +723,9 @@ parser_e_function_already_declared_public_forward=03120_E_Funkcja jest ju¿ zadek
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_Nie mo¿na u¿yæ jednocze¶nie EXPORT i EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_w_not_supported_for_inline=03123_W_$1 nieobs³ugiwane w procedurze/funkcji inline
+parser_h_not_supported_for_inline=03123_H_$1 nieobs³ugiwane w procedurze/funkcji inline
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_Inline wy³±czone
+parser_h_inlining_disabled=03124_H_Inline wy³±czone
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_Zapisywanie logu przegl±darki $1
 % When information messages are on, the compiler warns you when it
@@ -2116,7 +2116,7 @@ option_code_page_not_available=11039_E_Nieznana strona kodowa
 #
 option_logo=11023_[
 Free Pascal Compiler wersja $FPCFULLVERSION [$FPCDATE] dla $FPCCPU
-Copyright (c) 1993-2011 by Florian Klaempfl
+Copyright (c) 1993-2012 by Florian Klaempfl
 ]
 
 #
@@ -2138,12 +2138,10 @@ Wspierane instrukcje FPU:
   $FPUINSTRUCTIONSETS
   
 Ten program jest oparty na GNU General Public Licence
-Przeczytaj COPYING.FPC aby dowiedzieæ siê wiêcej
+Przeczytaj COPYING.v2 aby dowiedzieæ siê wiêcej
 
 Zg³aszanie b³êdów, sugestii itp.
                  http://bugs.freepascal.org
-lub
-                 bugs@freepascal.org
 ]
 
 #

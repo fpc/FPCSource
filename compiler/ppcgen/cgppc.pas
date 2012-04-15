@@ -22,7 +22,6 @@
 unit cgppc;
 
 {$i fpcdefs.inc}
-
   interface
 
     uses
@@ -38,7 +37,6 @@ unit cgppc;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
 
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
-        procedure a_call_ref(list : TAsmList;ref: treference); override;
 
         { stores the contents of register reg to the memory location described by
         ref }
@@ -63,6 +61,15 @@ unit cgppc;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
         procedure g_maybe_got_init(list: TAsmList); override;
+
+        function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister; override;
+        { Transform unsupported methods into Internal errors }
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+        procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
+
+        function get_aix_toc_sym(const symname: string; const flags: tindsymflags):tasmsymbol;
+        procedure g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
+        procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
        protected
         function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
@@ -88,7 +95,7 @@ unit cgppc;
 
         function save_lr_in_prologue: boolean;
 
-        function load_got_symbol(list : TAsmList; symbol : string) : tregister;
+        function load_got_symbol(list : TAsmList; const symbol : string; const flags: tindsymflags) : tregister;
      end;
 
   const
@@ -109,6 +116,11 @@ unit cgppc;
        globals,verbose,systems,cutils,
        symconst,symsym,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
+
+{ We know that macos_direct_globals is a const boolean
+  but we don't care about this warning }
+{$NOTE Is macos_direct_globals still useful?}
+{$WARN 6018 OFF}
 
 {$ifdef extdebug}
      function ref2string(const ref : treference) : string;
@@ -245,6 +257,18 @@ unit cgppc;
       end;
 
 
+    function tcgppcgen.g_indirect_sym_load(list: TAsmList; const symname: string; const flags: tindsymflags): tregister;
+      begin
+        case target_info.system of
+          system_powerpc_aix,
+          system_powerpc64_aix:
+            result:=load_got_symbol(list,symname,flags);
+          else
+            result:=inherited;
+        end;
+      end;
+
+
     function tcgppcgen.get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
       var
         stubname: string;
@@ -345,13 +369,8 @@ unit cgppc;
                      tmpref.base := NR_RTOC;
                      list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref));
 
-                     if ref2.offset <> 0 then
-                       begin
-                         reference_reset(tmpref,ref2.alignment);
-                         tmpref.offset := ref2.offset;
-                         tmpref.base:= r;
-                         list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
-                       end;
+                     if ref2.offset<>0 then
+                       a_op_const_reg(list,OP_ADD,OS_ADDR,ref2.offset,r);
                    end;
 
                  if ref2.base <> NR_NO then
@@ -403,20 +422,40 @@ unit cgppc;
 
     { calling a procedure by address }
     procedure tcgppcgen.a_call_reg(list : TAsmList;reg: tregister);
-      begin
-        list.concat(taicpu.op_reg(A_MTCTR,reg));
-        list.concat(taicpu.op_none(A_BCTRL));
-        include(current_procinfo.flags,pi_do_call);
-      end;
-
-
-    procedure tcgppcgen.a_call_ref(list : TAsmList;ref: treference);
       var
-        tempreg : TRegister;
+        tmpref: treference;
+        tmpreg: tregister;
       begin
-        tempreg := getintregister(list, OS_ADDR);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tempreg);
-        a_call_reg(list,tempreg);
+        if target_info.system in systems_aix then
+          begin
+            { load function address in R0, and swap "reg" for R0 }
+            reference_reset_base(tmpref,reg,0,sizeof(pint));
+            a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R0);
+            tmpreg:=reg;
+            { no need to allocate/free R0, is already allocated by call node
+              because it's a volatile register }
+            reg:=NR_R0;
+            { save current TOC }
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_AIX,sizeof(pint));
+            a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,tmpref);
+          end;
+        list.concat(taicpu.op_reg(A_MTCTR,reg));
+        if target_info.system in systems_aix then
+          begin
+            { load target TOC and possible link register }
+            reference_reset_base(tmpref,tmpreg,sizeof(pint),sizeof(pint));
+            a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
+            tmpref.offset:=2*sizeof(pint);
+            a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R11);
+          end;
+        list.concat(taicpu.op_none(A_BCTRL));
+        if target_info.system in systems_aix then
+          begin
+            { restore our TOC }
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_AIX,sizeof(pint));
+            a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
+          end;
+        include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -489,6 +528,8 @@ unit cgppc;
          ref2: treference;
 
        begin
+         if target_info.system in systems_aix then
+           g_load_check_simple(list,ref,65536);
          if not(fromsize in [OS_F32,OS_F64]) or
             not(tosize in [OS_F32,OS_F64]) then
            internalerror(200201121);
@@ -534,6 +575,16 @@ unit cgppc;
          a_load_store(list,op,reg,ref2);
        end;
 
+
+  procedure tcgppcgen.g_stackpointer_alloc(list : TAsmList;localsize : longint);
+    begin
+      Comment(V_Error,'tcgppcgen.g_stackpointer_alloc method not implemented');
+    end;
+
+  procedure tcgppcgen.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+    begin
+      Comment(V_Error,'tcgppcgen.a_bit_scan_reg_reg method not implemented');
+    end;
 
   procedure tcgppcgen.a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister);
     var
@@ -680,14 +731,14 @@ unit cgppc;
               href.offset := smallint(href.offset and $ffff);
             end;
           a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
-          if (target_info.system = system_powerpc64_linux) then
+          if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
             begin
               reference_reset_base(href, NR_R11, 0, sizeof(pint));
               a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R11);
             end;
           list.concat(taicpu.op_reg(A_MTCTR,NR_R11));
           list.concat(taicpu.op_none(A_BCTR));
-          if (target_info.system = system_powerpc64_linux) then
+          if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
             list.concat(taicpu.op_none(A_NOP));
         end;
 
@@ -731,7 +782,9 @@ unit cgppc;
             system_powerpc_darwin,
             system_powerpc64_darwin:
               list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname,false)));
-            system_powerpc64_linux:
+            system_powerpc64_linux,
+            system_powerpc_aix,
+            system_powerpc64_aix:
               {$note ts:todo add GOT change?? - think not needed :) }
               list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
             else
@@ -741,30 +794,150 @@ unit cgppc;
       end;
 
 
-    function tcgppcgen.load_got_symbol(list: TAsmList; symbol : string) : tregister;
+    function tcgppcgen.load_got_symbol(list: TAsmList; const symbol : string; const flags: tindsymflags) : tregister;
     var
       l: tasmsymbol;
       ref: treference;
     begin
-      if (target_info.system <> system_powerpc64_linux) then
+      if target_info.system=system_powerpc64_linux then
+        l:=current_asmdata.getasmsymbol(symbol)
+      else if target_info.system in systems_aix then
+        l:=get_aix_toc_sym(symbol,flags)
+      else
         internalerror(2007102010);
-      l:=current_asmdata.getasmsymbol(symbol);
       reference_reset_symbol(ref,l,0,sizeof(pint));
-      ref.base := NR_R2;
-      ref.refaddr := addr_pic;
+      ref.base:=NR_RTOC;
+      if target_info.system in systems_aix then
+        ref.refaddr:=addr_pic_no_got
+      else
+        ref.refaddr:=addr_pic;
 
-      result := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-      {$IFDEF EXTDEBUG}
-      list.concat(tai_comment.create(strpnew('loading got reference for ' + symbol)));
-      {$ENDIF EXTDEBUG}
-    //  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
-
+      result := getaddressregister(list);
 {$ifdef cpu64bitaddr}
       list.concat(taicpu.op_reg_ref(A_LD, result, ref));
 {$else cpu64bitaddr}
       list.concat(taicpu.op_reg_ref(A_LWZ, result, ref));
 {$endif cpu64bitaddr}
     end;
+
+
+  function tcgppcgen.get_aix_toc_sym(const symname: string; const flags: tindsymflags): tasmsymbol;
+    var
+      nlsymname: string;
+      newsymname: ansistring;
+    begin
+      { all global symbol accesses always must be done via the TOC }
+      nlsymname:='LC..'+symname;
+      result:=current_asmdata.getasmsymbol(nlsymname);
+      if not assigned(result) then
+        begin
+          new_section(current_asmdata.AsmLists[al_picdata],sec_toc,'',sizeof(pint));
+          result:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA);
+          current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(result,0));
+          { do not assign the result of these statements to result: the access
+            must be done via the LC..symname symbol; these are just to define
+            the symbol that's being accessed as either weak or not }
+          if not(is_weak in flags) then
+            current_asmdata.RefAsmSymbol(symname)
+          else if is_data in flags then
+            current_asmdata.WeakRefAsmSymbol(symname)
+          else
+            current_asmdata.WeakRefAsmSymbol('.'+symname);
+          newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
+          current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
+        end;
+    end;
+
+
+  procedure tcgppcgen.g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
+    var
+      reg: tregister;
+      lab: tasmlabel;
+    begin
+      if not(cs_check_low_addr_load in current_settings.localswitches) then
+        exit;
+      { this is mainly for AIX, which does not trap loads from address 0. A
+        global symbol (if not weak) will always map to a proper address, and
+        the same goes for stack addresses -> skip }
+      if assigned(ref.symbol) and
+         (ref.symbol.bind<>AB_WEAK_EXTERNAL) then
+        exit;
+      if (ref.base=NR_STACK_POINTER_REG) or
+         (ref.index=NR_STACK_POINTER_REG) or
+         (assigned(current_procinfo) and
+          ((ref.base=current_procinfo.framepointer) or
+           (ref.index=current_procinfo.framepointer))) then
+        exit;
+      if assigned(ref.symbol) or
+         (ref.offset<>0) or
+         ((ref.base<>NR_NO) and (ref.index<>NR_NO)) then
+        begin
+          { can't allocate register, also used in wrappers and the like }
+          reg:=NR_R0;
+          a_reg_alloc(list,reg);
+          a_loadaddr_ref_reg(list,ref,reg);
+        end
+      else if ref.base<>NR_NO then
+        reg:=ref.base
+      else
+        reg:=ref.index;
+      current_asmdata.getjumplabel(lab);
+      if reg=NR_R0 then
+        a_reg_dealloc(list,reg);
+      a_cmp_const_reg_label(list,OS_ADDR,OC_A,size-1,reg,lab);
+      a_call_name(list,'FPC_INVALIDPOINTER',false);
+      a_label(list,lab);
+    end;
+
+
+    procedure tcgppcgen.g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string);
+      var
+        href : treference;
+      begin
+        if not(target_info.system in ([system_powerpc64_linux]+systems_aix)) then begin
+          inherited;
+          exit;
+        end;
+
+        { for ppc64/linux and aix emit correct code which sets up a stack frame
+          and then calls the external method normally to ensure that the GOT/TOC
+          will be loaded correctly if required.
+
+        The resulting code sequence looks as follows:
+
+        mflr r0
+        stw/d r0, 16(r1)
+        stw/du r1, -112(r1)
+        bl <external_method>
+        nop
+        addi r1, r1, 112
+        lwz/d r0, 16(r1)
+        mtlr r0
+        blr
+
+        }
+        list.concat(taicpu.op_reg(A_MFLR, NR_R0));
+        if target_info.abi=abi_powerpc_sysv then
+          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8)
+        else
+          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_AIX, 8);
+        a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_R0,href);
+        reference_reset_base(href, NR_STACK_POINTER_REG, -MINIMUM_STACKFRAME_SIZE, 8);
+        list.concat(taicpu.op_reg_ref({$ifdef cpu64bitaddr}A_STDU{$else}A_STWU{$endif}, NR_STACK_POINTER_REG, href));
+
+        a_call_name(list,externalname,false);
+
+        list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, MINIMUM_STACKFRAME_SIZE));
+
+
+        if target_info.abi=abi_powerpc_sysv then
+          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8)
+        else
+          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_AIX, 8);
+        a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
+        list.concat(taicpu.op_reg(A_MTLR, NR_R0));
+        list.concat(taicpu.op_none(A_BLR));
+      end;
 
 
     function tcgppcgen.fixref(list: TAsmList; var ref: treference): boolean;
@@ -774,7 +947,7 @@ unit cgppc;
         result := false;
 
         { Avoid recursion. }
-        if (ref.refaddr = addr_pic) then
+        if (ref.refaddr in [addr_pic,addr_pic_no_got]) then
           exit;
 
         {$IFDEF EXTDEBUG}
@@ -790,7 +963,7 @@ unit cgppc;
                ((cs_create_pic in current_settings.moduleswitches) and
                 (ref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
               begin
-                tmpreg := g_indirect_sym_load(list,ref.symbol.name,ref.symbol.bind=AB_WEAK_EXTERNAL);
+                tmpreg := g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
                 ref.symbol:=nil;
               end
             else
@@ -813,11 +986,12 @@ unit cgppc;
           end;
 
         { if we have to create PIC, add the symbol to the TOC/GOT }
-        if (target_info.system = system_powerpc64_linux) and
-           (cs_create_pic in current_settings.moduleswitches) and
+        if (((target_info.system = system_powerpc64_linux) and
+             (cs_create_pic in current_settings.moduleswitches)) or
+            (target_info.system in systems_aix)) and
            (assigned(ref.symbol)) then
           begin
-            tmpreg := load_got_symbol(list, ref.symbol.name);
+            tmpreg := load_got_symbol(list, ref.symbol.name, asmsym2indsymflags(ref.symbol));
             if (ref.base = NR_NO) then
               ref.base := tmpreg
             else if (ref.index = NR_NO) then
@@ -865,6 +1039,9 @@ unit cgppc;
 
       var
         tmpreg: tregister;
+{$ifdef cpu64bitaddr}
+        tmpreg2: tregister;
+{$endif cpu64bitaddr}
         tmpref: treference;
         largeOffset: Boolean;
 
@@ -872,38 +1049,57 @@ unit cgppc;
         tmpreg := NR_NO;
         largeOffset:= hasLargeOffset(ref);
 
-        if target_info.system = system_powerpc_macos then
+        if target_info.system in ([system_powerpc_macos]+systems_aix) then
           begin
 
-            if assigned(ref.symbol) then
+            if assigned(ref.symbol) and
+               (ref.refaddr<>addr_pic_no_got) then
               begin {Load symbol's value}
                 tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
 
                 reference_reset(tmpref,sizeof(pint));
                 tmpref.symbol := ref.symbol;
                 tmpref.base := NR_RTOC;
+                tmpref.refaddr := addr_pic_no_got;
 
                 if macos_direct_globals then
                   list.concat(taicpu.op_reg_ref(A_LA,tmpreg,tmpref))
                 else
+{$ifdef cpu64bitaddr}
+                  list.concat(taicpu.op_reg_ref(A_LD,tmpreg,tmpref));
+{$else cpu64bitaddr}
                   list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
+{$endif cpu64bitaddr}
               end;
 
             if largeOffset then
               begin {Add hi part of offset}
                 reference_reset(tmpref,ref.alignment);
 
-                if Smallint(Lo(ref.offset)) < 0 then
-                  tmpref.offset := Hi(ref.offset) + 1 {Compensate when lo part is negative}
-                else
-                  tmpref.offset := Hi(ref.offset);
+{$ifdef cpu64bitaddr}
+                if (ref.offset < low(longint)) or
+                   (ref.offset > high(longint)) then
+                  begin
+                    { load upper 32 bits of the offset, adjusted for adding
+                      the lower 32 bits later }
+                    tmpreg2:=getintregister(list,OS_ADDR);
+                    a_load_const_reg(list,OS_ADDR,(ref.offset and $ffffffff00000000) + ord(longint(ref.offset)<0),tmpreg2);
+                    if tmpreg=NR_NO then
+                      tmpreg:=tmpreg2
+                    else
+                      a_op_reg_reg(list,OP_ADD,OS_ADDR,tmpreg2,tmpreg);
+                    ref.offset:=longint(ref.offset);
+                  end;
+{$endif cpu64bitaddr}
+                {Compensate when lo part is negative}
+                tmpref.offset := Smallint(ref.offset >> 16) + ord(Smallint(ref.offset) < 0);
 
                 if (tmpreg <> NR_NO) then
-                  list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg, tmpreg,tmpref))
+                  list.concat(taicpu.op_reg_reg_const(A_ADDIS,tmpreg, tmpreg,tmpref.offset))
                 else
                   begin
-                    tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                    list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
+                    tmpreg := getintregister(list,OS_ADDR);
+                    list.concat(taicpu.op_reg_const(A_LIS,tmpreg,tmpref.offset));
                   end;
               end;
 
@@ -918,7 +1114,7 @@ unit cgppc;
                 ref.symbol:= nil;
                 ref.base:= tmpreg;
                 if largeOffset then
-                  ref.offset := Smallint(Lo(ref.offset));
+                  ref.offset := Smallint(ref.offset);
 
                 list.concat(taicpu.op_reg_ref(op,reg,ref));
                 //list.concat(tai_comment.create(strpnew('*** a_load_store indirect global')));
@@ -931,6 +1127,7 @@ unit cgppc;
             if assigned(ref.symbol) or
                largeOffset then
               begin
+                // TODO: offsets > 32 bit
                 tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
                 reference_reset(tmpref,ref.alignment);
                 tmpref.symbol := ref.symbol;

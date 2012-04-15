@@ -53,6 +53,9 @@ implementation
     {$ifndef NOTARGETWII}
       ,t_wii
     {$endif}
+    {$ifndef NOTARGETAIX}
+      ,t_aix
+    {$endif}
 
 {**************************************
              Assemblers
@@ -83,6 +86,9 @@ implementation
   {$ifndef NoDbgStabs}
       ,dbgstabs
   {$endif NoDbgStabs}
+  {$ifndef NoDbgStabx}
+      ,dbgstabx
+  {$endif NoDbgStabx}
   {$ifndef NoDbgDwarf}
       ,dbgdwarf
   {$endif NoDbgDwarf}

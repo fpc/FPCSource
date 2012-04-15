@@ -1,6 +1,36 @@
+#
+#   This file is part of the Free Pascal run time library.
+#   Copyright (c) 1999-2000 by Marco van de Voort, Pierre Mueller
+#   members of the Free Pascal development team.
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY;without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+#**********************************************************************}
+#
+# FreeBSD  ELF startup code for Free Pascal for dynamical linking to libc.
+#
+# To avoid needing a "COMPAT" system, patch the constant following the 
+# "FreeBSD" field in the abitag to the relevant ABI number 
+# Some versions of the "file" command support
+# visualizing this constant. If not use elfdump, or patch 
+# automatically using the ../i386/identpatch.sh script
+#
+# some typical values: 
+#
+# freebsd 5.4 504000
+# freebsd 6.3 (prerelease) : 603100
+# freebsd 7.0 700055
+# freebsd 8.0 800500  (-stable)
+# FreeBSD 9.0 900044
+
 	.file	"crt1.c"
 #APP
-	.ident	"$FreeBSD: src/lib/csu/common/crtbrand.c,v 1.4.20.1 2007/12/06 13:43:43 kib Exp $"
+        .ident  "FreePascal 2.6.x/2.7.x series dynlinked to libc"
 #NO_APP
 	.section	.note.ABI-tag,"a",@progbits
 	.align 4
@@ -11,7 +41,7 @@ abitag:
 	.long	4
 	.long	1
 	.string	"FreeBSD"
-	.long	700055
+	.long	900044
 .globl __progname
 	.section	.rodata
 .LC0:
@@ -39,11 +69,11 @@ _start:
 	movq	-40(%rbp), %rax
 	movq	(%rax), %rax
 	movl	%eax, -28(%rbp)
-	movl	%eax, operatingsystem_parameter_argc
+	movl	%eax, operatingsystem_parameter_argc(%rip)
 	movq	-40(%rbp), %rax
 	addq	$8, %rax
 	movq	%rax, -24(%rbp)
-	movq	%rax, operatingsystem_parameter_argv
+	movq	%rax, operatingsystem_parameter_argv(%rip)
 	movq	-40(%rbp), %rdx
 	addq	$16, %rdx
 	movl	-28(%rbp), %eax
@@ -52,7 +82,7 @@ _start:
 	leaq	(%rdx,%rax), %rax
 	movq	%rax, -16(%rbp)
 	movq	-16(%rbp), %rax
-	movq	%rax, operatingsystem_parameter_envp
+	movq	%rax, operatingsystem_parameter_envp(%rip)
 	movq	%rax, environ(%rip)
 	cmpl	$0, -28(%rbp)
 	jle	.L2

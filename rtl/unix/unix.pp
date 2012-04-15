@@ -71,6 +71,7 @@ procedure GetLocalTimezone(timer:cint;var leap_correct,leap_hit:cint);
 procedure GetLocalTimezone(timer:cint);
 procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
+Procedure ReReadLocalTime;
 {$ENDIF}
 
 {**  Process Handling  **}
@@ -623,7 +624,7 @@ begin
      fpseterrno(ESysEBADF);
      exit;
    end;
- {$if not(defined(bsd)) and not(defined(solaris)) and not(defined(beos)) }
+ {$if not(defined(bsd)) and not(defined(solaris)) and not(defined(beos)) and not(defined(aix)) }
   p^.dd_nextoff:=fplseek(p^.dd_fd,loc,seek_set);
  {$endif}
  {$if not(defined(beos))}
@@ -1195,7 +1196,7 @@ Function GetDomainName:String;
   end;
 {$endif sunos}
 
-{$ifdef BSD}
+{$if defined(BSD) or defined(aix)}
 
 function intGetDomainName(Name:PChar; NameLen:Cint):cint;
 {$ifndef FPC_USE_LIBC}

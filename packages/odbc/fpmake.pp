@@ -17,6 +17,7 @@ begin
     P.Directory:='odbc';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -31,9 +32,9 @@ begin
           AddInclude('odbcsql.inc');
         end;
 
-    P.ExamplePath.Add('tests');
+    P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testodbc.pp');
-    // 'testodbc.mdb
+    P.Sources.AddExampleFiles('examples/*',false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

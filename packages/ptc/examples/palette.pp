@@ -16,10 +16,10 @@ uses
   ptc;
 
 var
-  console: TPTCConsole = nil;
-  surface: TPTCSurface = nil;
-  format: TPTCFormat = nil;
-  palette: TPTCPalette = nil;
+  console: IPTCConsole;
+  surface: IPTCSurface;
+  format: IPTCFormat;
+  palette: IPTCPalette;
   data: array [0..255] of Uint32;
   pixels: PUint8;
   width, height: Integer;
@@ -29,32 +29,32 @@ begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create format }
-      format := TPTCFormat.Create(8);
+      format := TPTCFormatFactory.CreateNew(8);
 
       { open console }
       console.open('Palette example', format);
 
       { create surface }
-      surface := TPTCSurface.Create(console.width, console.height, format);
+      surface := TPTCSurfaceFactory.CreateNew(console.width, console.height, format);
 
       { create palette }
-      palette := TPTCPalette.Create;
+      palette := TPTCPaletteFactory.CreateNew;
 
       { generate palette }
       for i := 0 to 255 do
         data[i] := i;
 
       { load palette data }
-      palette.load(data);
+      palette.Load(data);
 
       { set console palette }
-      console.palette(palette);
+      console.Palette(palette);
 
       { set surface palette }
-      surface.palette(palette);
+      surface.Palette(palette);
 
       { loop until a key is pressed }
       while not console.KeyPressed do
@@ -92,11 +92,8 @@ begin
         console.update;
       end;
     finally
-      console.close;
-      console.Free;
-      surface.Free;
-      palette.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

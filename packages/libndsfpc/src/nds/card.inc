@@ -23,7 +23,7 @@ const
   EEPROM_WREN = $06;
   EEPROM_RDID = $9f;
 
-// ROMCTRL register:
+// REG_ROMCTRL:
   CARD_ACTIVATE   = (1 shl 31);  // when writing, get the ball rolling
   CARD_WR         = (1 shl 30);
   CARD_nRESET     = (1 shl 29);  // value on the /reset pin (1 = high out, not a reset state, 0 = low out = in reset)
@@ -62,6 +62,16 @@ const
   CARD_CMD_DATA_CHIPID    = $B8;
 
 
+  // REG_AUXSPICNT
+  CARD_ENABLE     = (1 shl 15);
+  CARD_SPI_ENABLE = (1 shl 13);
+  CARD_SPI_BUSY   = (1 shl 7);
+  CARD_SPI_HOLD   = (1 shl 6);
+
+  CARD_SPICNTH_ENABLE = (1 shl 7);  // in byte 1, i.e. 0x8000
+  CARD_SPICNTH_IRQ    = (1 shl 6);  // in byte 1, i.e. 0x4000
+
+
 
 
 procedure cardWriteCommand(const command: pcuint8); cdecl; external;
@@ -74,6 +84,7 @@ procedure cardReadHeader(header: pcuint8); cdecl; external;
 function cardReadID(flags: cuint32): cuint32; cdecl; external;
 procedure cardReset(); cdecl; external;
 
+procedure eepromWaitBusy(); inline;
 
 procedure cardReadEeprom(address: cuint32;  data: pcuint8;  length: cuint32;  addrtype: cuint32); cdecl; external; 
 procedure cardWriteEeprom(address: cuint32;  data: pcuint8;  length: cuint32;  addrtype: cuint32); cdecl; external; 
@@ -105,6 +116,11 @@ end;
 function CARD_DELAY1(n: cint): cint; inline;
 begin
   result := (n and $1FFF);
+end;
+
+procedure eepromWaitBusy(); inline;
+begin
+  while (REG_AUXSPICNT^ and CARD_SPI_BUSY) <> 0 do;
 end;
 
 {$endif NDS_IMPLEMENTATION}

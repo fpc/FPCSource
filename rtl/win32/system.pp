@@ -93,18 +93,20 @@ type
 
 var
 { C compatible arguments }
-  argc : longint;
-  argv : ppchar;
+  argc : longint; public name 'operatingsystem_parameter_argc';
+  argv : ppchar; public name 'operatingsystem_parameter_argv';
 { Win32 Info }
   startupinfo : tstartupinfo;
-  hprevinst,
   MainInstance,
   cmdshow     : longint;
-  DLLreason,DLLparam:longint;
+  DLLreason : dword; public name 'operatingsystem_dllreason';
+  DLLparam : PtrInt; public name 'operatingsystem_dllparam';
   StartupConsoleMode : DWORD;
+const
+  hprevinst: longint=0;
 
 type
-  TDLL_Entry_Hook = procedure (dllparam : longint);
+  TDLL_Entry_Hook = procedure (dllparam : PtrInt);
 
 const
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
@@ -121,171 +123,25 @@ Const
 implementation
 
 var
-  EntryInformation : TEntryInformation;
   SysInstance : Longint;public name '_FPC_SysInstance';
-
-{ used by wstrings.inc because wstrings.inc is included before sysos.inc
-  this is put here (FK) }
-
-function SysAllocStringLen(psz:pointer;len:dword):pointer;stdcall;
- external 'oleaut32.dll' name 'SysAllocStringLen';
-
-procedure SysFreeString(bstr:pointer);stdcall;
- external 'oleaut32.dll' name 'SysFreeString';
-
-function SysReAllocStringLen(var bstr:pointer;psz: pointer;
-  len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
-
+  InitFinalTable : record end; external name 'INITFINAL';
+  ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
+  procedure PascalMain;stdcall;external name 'PASCALMAIN';
+  procedure asm_exit;stdcall;external name 'asm_exit';
+const
+  EntryInformation : TEntryInformation = (
+    InitFinalTable : @InitFinalTable;
+    ThreadvarTablesTable : @ThreadvarTablesTable;
+    asm_exit : @asm_exit;
+    PascalMain : @PascalMain;
+    valgrind_used : false;
+    );
 
 { include system independent routines }
 {$I system.inc}
 
-{*****************************************************************************
-                              Parameter Handling
-*****************************************************************************}
-
-procedure setup_arguments;
-var
-  arglen,
-  count   : longint;
-  argstart,
-  pc,arg  : pchar;
-  quote   : Boolean;
-  argvlen : longint;
-  buf: array[0..259] of char;  // need MAX_PATH bytes, not 256!
-
-  procedure allocarg(idx,len:longint);
-    var
-      oldargvlen : longint;
-    begin
-      if idx>=argvlen then
-       begin
-         oldargvlen:=argvlen;
-         argvlen:=(idx+8) and (not 7);
-         sysreallocmem(argv,argvlen*sizeof(pointer));
-         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
-       end;
-      { use realloc to reuse already existing memory }
-      { always allocate, even if length is zero, since }
-      { the arg. is still present!                     }
-      sysreallocmem(argv[idx],len+1);
-    end;
-
-begin
-  { create commandline, it starts with the executed filename which is argv[0] }
-  { Win32 passes the command NOT via the args, but via getmodulefilename}
-  count:=0;
-  argv:=nil;
-  argvlen:=0;
-  ArgLen := GetModuleFileName(0, @buf[0], sizeof(buf));
-  buf[ArgLen] := #0; // be safe
-  allocarg(0,arglen);
-  move(buf,argv[0]^,arglen+1);
-  { Setup cmdline variable }
-  cmdline:=GetCommandLine;
-  { process arguments }
-  pc:=cmdline;
-{$IfDef SYSTEM_DEBUG_STARTUP}
-  Writeln(stderr,'Win32 GetCommandLine is #',pc,'#');
-{$EndIf }
-  while pc^<>#0 do
-   begin
-     { skip leading spaces }
-     while pc^ in [#1..#32] do
-      inc(pc);
-     if pc^=#0 then
-      break;
-     { calc argument length }
-     quote:=False;
-     argstart:=pc;
-     arglen:=0;
-     while (pc^<>#0) do
-      begin
-        case pc^ of
-          #1..#32 :
-            begin
-              if quote then
-               inc(arglen)
-              else
-               break;
-            end;
-          '"' :
-            if pc[1]<>'"' then
-              quote := not quote
-              else
-              inc(pc);
-          else
-            inc(arglen);
-        end;
-        inc(pc);
-      end;
-     { copy argument }
-     { Don't copy the first one, it is already there.}
-     If Count<>0 then
-      begin
-        allocarg(count,arglen);
-        quote:=False;
-        pc:=argstart;
-        arg:=argv[count];
-        while (pc^<>#0) do
-         begin
-           case pc^ of
-             #1..#32 :
-               begin
-                 if quote then
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end
-                 else
-                  break;
-               end;
-             '"' :
-               if pc[1]<>'"' then
-                 quote := not quote
-                  else
-                inc(pc);
-             else
-               begin
-                 arg^:=pc^;
-                 inc(arg);
-               end;
-           end;
-           inc(pc);
-         end;
-        arg^:=#0;
-      end;
- {$IfDef SYSTEM_DEBUG_STARTUP}
-     Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
- {$EndIf SYSTEM_DEBUG_STARTUP}
-     inc(count);
-   end;
-  { get argc }
-  argc:=count;
-  { free unused memory, leaving a nil entry at the end }
-  sysreallocmem(argv,(count+1)*sizeof(pointer));
-  argv[count] := nil;
-end;
-
-
-function paramcount : longint;
-begin
-  paramcount := argc - 1;
-end;
-
-function paramstr(l : longint) : string;
-begin
-  if (l>=0) and (l<argc) then
-    paramstr:=strpas(argv[l])
-  else
-    paramstr:='';
-end;
-
-
-procedure randomize;
-begin
-  randseed:=GetTickCount;
-end;
+{ include code common with win64 }
+{$I syswin.inc}
 
 
 {*****************************************************************************
@@ -294,20 +150,22 @@ end;
 
 procedure install_exception_handlers;forward;
 procedure remove_exception_handlers;forward;
-{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
-procedure PascalMain;stdcall;external name 'PASCALMAIN';
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
-Procedure ExitDLL(Exitcode : longint); forward;
-procedure asm_exit;stdcall;external name 'asm_exit';
 
 Procedure system_exit;
 begin
-  { don't call ExitProcess inside
-    the DLL exit code !!
-    This crashes Win95 at least PM }
   if IsLibrary then
-    ExitDLL(ExitCode);
+  begin
+    { If exiting from DLL_PROCESS_ATTACH/DETACH, unwind to DllMain context. }
+    if DllInitState in [DLL_PROCESS_ATTACH,DLL_PROCESS_DETACH] then
+      LongJmp(DLLBuf,1)
+    else
+    { Abnormal termination, Halt has been called from DLL function,
+      put down the entire process (DLL_PROCESS_DETACH will still
+      occur). At this point RTL has been already finalized in InternalExit
+      and shouldn't be finalized another time in DLL_PROCESS_DETACH.
+      Indicate this by resetting MainThreadIdWin32. }
+      MainThreadIDWin32:=0;
+  end;
   if not IsConsole then
    begin
      Close(stderr);
@@ -318,17 +176,11 @@ begin
      { what about Input and Output ?? PM }
      { now handled, FPK }
    end;
-  remove_exception_handlers;
+  if not IsLibrary then
+    remove_exception_handlers;
 
-  { in 2.0 asm_exit does an exitprocess }
-{$ifndef ver2_0}
   { do cleanup required by the startup code }
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
   EntryInformation.asm_exit();
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
-  asm_exit;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-{$endif ver2_0}
 
   { call exitprocess, with cleanup as required }
   ExitProcess(exitcode);
@@ -371,23 +223,13 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
         movl %eax,_SS
         xorl %ebp,%ebp
      end;
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
      EntryInformation.PascalMain();
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
-     PascalMain;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
      asm
         popl %ebp
      end;
      { if we pass here there was no error ! }
      system_exit;
   end;
-
-function GetCurrentProcess : dword;
- stdcall;external 'kernel32' name 'GetCurrentProcess';
-
-function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
- stdcall;external 'kernel32' name 'ReadProcessMemory';
 
 function is_prefetch(p : pointer) : boolean;
   var
@@ -427,97 +269,11 @@ function is_prefetch(p : pointer) : boolean;
       end;
   end;
 
-
 //
 // Hardware exception handling
 //
 
 {$ifdef Set_i386_Exception_handler}
-
-{
-  Error code definitions for the Win32 API functions
-
-
-  Values are 32 bit values layed out as follows:
-   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-  +---+-+-+-----------------------+-------------------------------+
-  |Sev|C|R|     Facility          |               Code            |
-  +---+-+-+-----------------------+-------------------------------+
-
-  where
-      Sev - is the severity code
-          00 - Success
-          01 - Informational
-          10 - Warning
-          11 - Error
-
-      C - is the Customer code flag
-      R - is a reserved bit
-      Facility - is the facility code
-      Code - is the facility's status code
-}
-
-const
-  SEVERITY_SUCCESS                = $00000000;
-  SEVERITY_INFORMATIONAL  = $40000000;
-  SEVERITY_WARNING                = $80000000;
-  SEVERITY_ERROR                  = $C0000000;
-
-const
-  STATUS_SEGMENT_NOTIFICATION             = $40000005;
-  DBG_TERMINATE_THREAD                    = $40010003;
-  DBG_TERMINATE_PROCESS                   = $40010004;
-  DBG_CONTROL_C                                   = $40010005;
-  DBG_CONTROL_BREAK                               = $40010008;
-
-  STATUS_GUARD_PAGE_VIOLATION             = $80000001;
-  STATUS_DATATYPE_MISALIGNMENT    = $80000002;
-  STATUS_BREAKPOINT                               = $80000003;
-  STATUS_SINGLE_STEP                              = $80000004;
-  DBG_EXCEPTION_NOT_HANDLED               = $80010001;
-
-  STATUS_ACCESS_VIOLATION                 = $C0000005;
-  STATUS_IN_PAGE_ERROR                    = $C0000006;
-  STATUS_INVALID_HANDLE                   = $C0000008;
-  STATUS_NO_MEMORY                                = $C0000017;
-  STATUS_ILLEGAL_INSTRUCTION              = $C000001D;
-  STATUS_NONCONTINUABLE_EXCEPTION = $C0000025;
-  STATUS_INVALID_DISPOSITION              = $C0000026;
-  STATUS_ARRAY_BOUNDS_EXCEEDED    = $C000008C;
-  STATUS_FLOAT_DENORMAL_OPERAND   = $C000008D;
-  STATUS_FLOAT_DIVIDE_BY_ZERO             = $C000008E;
-  STATUS_FLOAT_INEXACT_RESULT             = $C000008F;
-  STATUS_FLOAT_INVALID_OPERATION  = $C0000090;
-  STATUS_FLOAT_OVERFLOW                   = $C0000091;
-  STATUS_FLOAT_STACK_CHECK                = $C0000092;
-  STATUS_FLOAT_UNDERFLOW                  = $C0000093;
-  STATUS_INTEGER_DIVIDE_BY_ZERO   = $C0000094;
-  STATUS_INTEGER_OVERFLOW                 = $C0000095;
-  STATUS_PRIVILEGED_INSTRUCTION   = $C0000096;
-  STATUS_STACK_OVERFLOW                   = $C00000FD;
-  STATUS_CONTROL_C_EXIT                   = $C000013A;
-  STATUS_FLOAT_MULTIPLE_FAULTS    = $C00002B4;
-  STATUS_FLOAT_MULTIPLE_TRAPS             = $C00002B5;
-  STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
-
-  EXCEPTION_EXECUTE_HANDLER               = 1;
-  EXCEPTION_CONTINUE_EXECUTION    = -1;
-  EXCEPTION_CONTINUE_SEARCH               = 0;
-
-  EXCEPTION_MAXIMUM_PARAMETERS    = 15;
-
-  CONTEXT_X86                                     = $00010000;
-  CONTEXT_CONTROL                         = CONTEXT_X86 or $00000001;
-  CONTEXT_INTEGER                         = CONTEXT_X86 or $00000002;
-  CONTEXT_SEGMENTS                        = CONTEXT_X86 or $00000004;
-  CONTEXT_FLOATING_POINT          = CONTEXT_X86 or $00000008;
-  CONTEXT_DEBUG_REGISTERS         = CONTEXT_X86 or $00000010;
-  CONTEXT_EXTENDED_REGISTERS      = CONTEXT_X86 or $00000020;
-
-  CONTEXT_FULL                            = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
-
-  MAXIMUM_SUPPORTED_EXTENSION     = 512;
 
 type
   PFloatingSaveArea = ^TFloatingSaveArea;
@@ -586,16 +342,6 @@ type
           ExtendedRegisters : array[0..MAXIMUM_SUPPORTED_EXTENSION-1] of Byte;
   end;
 
-type
-  PExceptionRecord = ^TExceptionRecord;
-  TExceptionRecord = packed record
-          ExceptionCode   : cardinal;
-          ExceptionFlags  : Longint;
-          ExceptionRecord : PExceptionRecord;
-          ExceptionAddress : Pointer;
-          NumberParameters : Longint;
-          ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
-  end;
 
   PExceptionPointers = ^TExceptionPointers;
   TExceptionPointers = packed record
@@ -653,23 +399,11 @@ procedure JumpToHandleErrorFrame;
       SysResetFPU;
     { build a fake stack }
     asm
-{$ifdef REGCALL}
       movl   ebp,%ecx
       movl   eip,%edx
       movl   error,%eax
       pushl  eip
       movl   ebp,%ebp // Change frame pointer
-{$else}
-      movl   ebp,%eax
-      pushl  %eax
-      movl   eip,%eax
-      pushl  %eax
-      movl   error,%eax
-      pushl  %eax
-      movl   eip,%eax
-      pushl  %eax
-      movl   ebp,%ebp // Change frame pointer
-{$endif}
 
 {$ifdef SYSTEMEXCEPTIONDEBUG}
       jmpl   DebugHandleErrorAddrFrame
@@ -829,11 +563,6 @@ end;
 {$endif Set_i386_Exception_handler}
 
 
-{******************************************************************************}
-{ include code common with win64 }
-
-{$I syswin.inc}
-{******************************************************************************}
 
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
@@ -901,20 +630,19 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 	     DataDirectory : array[1..$80] of byte;
 	  end;
 	begin
-	  result:=tpeheader((pointer(SysInstance)+(tdosheader(pointer(SysInstance)^).e_lfanew))^).SizeOfStackReserve;
+          if (SysInstance=0) and not IsLibrary then
+            SysInstance:=getmodulehandle(nil);
+          if (SysInstance=0) then
+            result:=stklen
+          else
+            result:=tpeheader((pointer(SysInstance)+(tdosheader(pointer(SysInstance)^).e_lfanew))^).SizeOfStackReserve;
 	end;
 
 
 begin
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
-
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
-
   { some misc Win32 stuff }
-  hprevinst:=0;
   if not IsLibrary then
     SysInstance:=getmodulehandle(nil);
 
@@ -925,27 +653,26 @@ begin
   StackBottom := StackTop - StackLength;
 
   cmdshow:=startupinfo.wshowwindow;
-  { Setup heap }
-  InitHeap;
+  { Setup heap and threading, these may be already initialized from TLS callback }
+  if not Assigned(CurrentTM.BeginThread) then
+  begin
+    InitHeap;
+    InitSystemThreads;
+  end;
   SysInitExceptions;
   { setup fastmove stuff }
   fpc_cpucodeinit;
+  initwidestringmanager;
+  initunicodestringmanager;
+  InitWin32Widestrings;
   SysInitStdIO;
   { Arguments }
   setup_arguments;
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
-  { threading }
-  InitSystemThreads;
   { Reset internal error variable }
   errno:=0;
   initvariantmanager;
-  initwidestringmanager;
-{$ifndef VER2_2}
-  initunicodestringmanager;
-{$endif VER2_2}
-  InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.
-

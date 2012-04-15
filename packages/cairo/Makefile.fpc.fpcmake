@@ -1,0 +1,45 @@
+#
+#   Makefile.fpc for cairo
+#
+[require]
+packages=fcl-image
+#packages_win32=
+packages_beos=x11
+packages_haiku=x11
+packages_linux=x11
+packages_freebsd=x11
+packages_netbsd=x11
+packages_openbsd=x11
+packages_solaris=x11
+packages_darwin=x11
+packages_iphonesim=x11
+
+[package]
+name=cairo
+version=2.7.1
+
+[target]
+units=cairo cairoft
+units_win32=cairowin32
+units_beos=cairoxlib
+units_haiku=cairoxlib
+units_linux=cairoxlib
+units_freebsd=cairoxlib
+units_netbsd=cairoxlib
+units_openbsd=cairoxlib
+units_solaris=cairoxlib
+units_darwin=cairoxlib
+units_iphonesim=cairoxlib
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[rules]
+.NOTPARALLEL:

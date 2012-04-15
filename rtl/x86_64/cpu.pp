@@ -22,7 +22,7 @@ unit cpu;
 			           // Unless overridebinutils is defined (for ports usage), use db instead of the instruction
      {$ifndef overridebinutils}
        {$define oldbinutils}
-     {$endif} 
+     {$endif}
   {$endif}
 
     uses
@@ -30,6 +30,9 @@ unit cpu;
 
     function InterlockedCompareExchange128Support : boolean;inline;
     function AESSupport : boolean;inline;
+
+    var
+      is_sse3_cpu : boolean = false;
 
     function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec;
 
@@ -77,7 +80,7 @@ unit cpu;
         movq 8(%r9),%rdx
 
         {$ifdef oldbinutils}
-           .byte 0xF0,0x49,0x0F,0xC7,0x08 
+           .byte 0xF0,0x49,0x0F,0xC7,0x08
         {$else}
         lock cmpxchg16b (%r8)
         {$endif}
@@ -115,6 +118,7 @@ unit cpu;
       end;
     {$endif win64}
 
+
     procedure SetupSupport;
       var
         _ecx : longint;
@@ -127,9 +131,9 @@ unit cpu;
            popq %rbx
         end;
         _InterlockedCompareExchange128Support:=(_ecx and $2000)<>0;
-        _AESSupport:=(_ecx and $2000000)<>0;        
+        _AESSupport:=(_ecx and $2000000)<>0;
+        is_sse3_cpu:=(_ecx and $1)<>0;
       end;
-
 
 begin
   SetupSupport;

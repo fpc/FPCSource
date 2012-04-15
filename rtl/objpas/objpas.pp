@@ -52,10 +52,6 @@ unit objpas;
 Var
    ExceptionClass: TClass; { Exception base class (must actually be Exception, defined in sysutils ) }
 {$endif FPC_HAS_FEATURE_CLASSES}
-{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
-Var
-   ExceptObjProc: Pointer; { Used to convert OS exceptions to exceptions in Delphi. Unused in FPC}
-{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 {****************************************************************************
                              Compatibility routines.
@@ -312,6 +308,39 @@ Type
      end;
    end;
 
+{ Support for string constants initialized with resourcestrings }
+{$ifdef FPC_HAS_RESSTRINITS}
+   PResStrInitEntry = ^TResStrInitEntry;
+   TResStrInitEntry = record
+     Addr: PPointer;
+     Data: PResourceStringRecord;
+   end;
+
+   TResStrInitTable = packed record
+     Count: longint;
+     Tables: packed array[1..32767] of PResStrInitEntry;
+   end;
+
+var
+  ResStrInitTable : TResStrInitTable; external name 'FPC_RESSTRINITTABLES';
+
+procedure UpdateResourceStringRefs;
+var
+  i: Longint;
+  ptable: PResStrInitEntry;
+begin
+  for i:=1 to ResStrInitTable.Count do
+    begin
+      ptable:=ResStrInitTable.Tables[i];
+      while Assigned(ptable^.Addr) do
+        begin
+          AnsiString(ptable^.Addr^):=ptable^.Data^.CurrentValue;
+          Inc(ptable);
+        end;
+    end;
+end;
+{$endif FPC_HAS_RESSTRINITS}
+
 Var
   ResourceStringTable : TResourceStringTableList; External Name 'FPC_RESOURCESTRINGTABLES';
 
@@ -330,13 +359,16 @@ begin
           inc(ResStr);
           while ResStr<Tables[I].TableEnd do
             begin
-              s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,ResStr^.HashValue,arg);
+              s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,Longint(ResStr^.HashValue),arg);
               if s<>'' then
                 ResStr^.CurrentValue:=s;
               inc(ResStr);
             end;
         end;
     end;
+{$ifdef FPC_HAS_RESSTRINITS}
+  UpdateResourceStringRefs;
+{$endif FPC_HAS_RESSTRINITS}
 end;
 
 
@@ -359,13 +391,18 @@ begin
           inc(ResStr);
           while ResStr<Tables[I].TableEnd do
             begin
-              s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,ResStr^.HashValue,arg);
+              s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,Longint(ResStr^.HashValue),arg);
               if s<>'' then
                 ResStr^.CurrentValue:=s;
               inc(ResStr);
             end;
         end;
     end;
+{$ifdef FPC_HAS_RESSTRINITS}
+  { Resourcestrings of one unit may be referenced from other units,
+    so updating everything is the only option. }
+  UpdateResourceStringRefs;
+{$endif FPC_HAS_RESSTRINITS}
 end;
 
 
@@ -456,7 +493,7 @@ begin
       With Tables[I]^ do
          For J:=0 to Count-1 do
            With ResRec[J] do
-             CurrentValue:=SetFunction(Name,DefaultValue,HashValue,arg);
+             CurrentValue:=SetFunction(Name,DefaultValue,Longint(HashValue),arg);
 end;
 
 

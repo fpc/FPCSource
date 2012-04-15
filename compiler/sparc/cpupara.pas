@@ -201,7 +201,7 @@ implementation
              begin
                paraloc^.loc:=LOC_REGISTER;
                { high }
-               if (side=callerside) or (po_inline in p.procoptions) then
+               if side=callerside then
                  paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
@@ -209,7 +209,7 @@ implementation
                { low }
                paraloc:=result.add_location;
                paraloc^.loc:=LOC_REGISTER;
-               if (side=callerside) or (po_inline in p.procoptions) then
+               if side=callerside then
                  paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;

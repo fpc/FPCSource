@@ -4,9 +4,12 @@
 interface
 
 uses
-  Classes, SysUtils,bufdataset,sqldb,db,dynlibs,
-{$IFDEF Mysql51}
-  mysql51dyn;
+  Classes, SysUtils,bufdataset,sqldb,db,dynlibs,ctypes,
+ {$IFDEF mysql55}
+  mysql55dyn;
+ {$ELSE}
+{$IFDEF mysql51}
+   mysql51dyn;
 {$ELSE}  
   {$IfDef mysql50}
     mysql50dyn;
@@ -22,9 +25,13 @@ uses
     {$EndIf}
   {$EndIf}
 {$endif}
+{$endif}
 
 Const
-{$IFDEF Mysql51}
+{$IFDEF mysql55}
+   MySQLVersion = '5.5';
+{$else}
+{$IFDEF mysql51}
     MySQLVersion = '5.1';
 {$else}    
   {$IfDef mysql50}
@@ -41,7 +48,7 @@ Const
     {$EndIf}
   {$EndIf}
 {$endif}
-
+{$endif}
 Type
   TTransactionName = Class(TSQLHandle)
   protected
@@ -55,6 +62,7 @@ Type
     FNeedData : Boolean;
     FStatement : String;
     Row : MYSQL_ROW;
+    Lengths : pculong;                  { Lengths of the columns of the current row }
     RowsAffected : QWord;
     LastInsertID : QWord;
     ParamBinding : TParamBinding;
@@ -78,8 +86,8 @@ Type
     function StrToStatementType(s : string) : TStatementType; override;
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
-    function MySQLDataType(AType: enum_field_types; ASize, ADecimals: Integer; var NewType: TFieldType; var NewSize: Integer): Boolean;
-    function MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; Source, Dest: PChar; out CreateBlob : boolean): Boolean;
+    function MySQLDataType(AField: PMYSQL_FIELD; var NewType: TFieldType; var NewSize: Integer): Boolean;
+    function MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;
     // SQLConnection methods
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -139,47 +147,53 @@ Type
 
 
   EMySQLError = Class(Exception);
-
-  {$IfDef mysql51}
-    TMySQL51Connection = Class(TConnectionName);
-    TMySQL51ConnectionDef = Class(TMySQLConnectionDef);
-    TMySQL51Transaction = Class(TTransactionName);
-    TMySQL51Cursor = Class(TCursorName);
-  {$ELSE}
-  {$IfDef mysql50}
-    TMySQL50Connection = Class(TConnectionName);
-    TMySQL50ConnectionDef = Class(TMySQLConnectionDef);
-    TMySQL50Transaction = Class(TTransactionName);
-    TMySQL50Cursor = Class(TCursorName);
-  {$ELSE}
-    {$IfDef mysql41}
-      TMySQL41Connection = Class(TConnectionName);
-      TMySQL41ConnectionDef = Class(TMySQLConnectionDef);
-      TMySQL41Transaction = Class(TTransactionName);
-      TMySQL41Cursor = Class(TCursorName);
+  {$ifdef mysql55}
+    TMySQL55Connection = Class(TConnectionName);
+    TMySQL55ConnectionDef = Class(TMySQLConnectionDef);
+    TMySQL55Transaction = Class(TTransactionName);
+    TMySQL55Cursor = Class(TCursorName);
+  {$else}
+    {$IfDef mysql51}
+      TMySQL51Connection = Class(TConnectionName);
+      TMySQL51ConnectionDef = Class(TMySQLConnectionDef);
+      TMySQL51Transaction = Class(TTransactionName);
+      TMySQL51Cursor = Class(TCursorName);
     {$ELSE}
-      {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-        TMySQLConnection = Class(TConnectionName);
-        TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
-        TMySQLTransaction = Class(TTransactionName);
-        TMySQLCursor = Class(TCursorName);
+      {$IfDef mysql50}
+        TMySQL50Connection = Class(TConnectionName);
+        TMySQL50ConnectionDef = Class(TMySQLConnectionDef);
+        TMySQL50Transaction = Class(TTransactionName);
+        TMySQL50Cursor = Class(TCursorName);
       {$ELSE}
-        TMySQL40Connection = Class(TConnectionName);
-        TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
-        TMySQL40Transaction = Class(TTransactionName);
-        TMySQL40Cursor = Class(TCursorName);
-      {$EndIf}
+        {$IfDef mysql41}
+          TMySQL41Connection = Class(TConnectionName);
+          TMySQL41ConnectionDef = Class(TMySQLConnectionDef);
+          TMySQL41Transaction = Class(TTransactionName);
+          TMySQL41Cursor = Class(TCursorName);
+        {$ELSE}
+          {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+            TMySQLConnection = Class(TConnectionName);
+            TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
+            TMySQLTransaction = Class(TTransactionName);
+            TMySQLCursor = Class(TCursorName);
+          {$ELSE}
+            TMySQL40Connection = Class(TConnectionName);
+            TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
+            TMySQL40Transaction = Class(TTransactionName);
+            TMySQL40Cursor = Class(TCursorName);
+          {$EndIf}
+        {$EndIf}
+      {$endif}
     {$EndIf}
-  {$EndIf}
-{$ENDIF}
+  {$ENDIF}
 
 implementation
 
 uses
   dbconst,
-  ctypes,
   strutils,
-  dateutils;
+  dateutils,
+  FmtBCD;
 
 const
   Mysql_Option_Names : array[mysql_option] of string = ('MYSQL_OPT_CONNECT_TIMEOUT','MYSQL_OPT_COMPRESS',
@@ -194,6 +208,12 @@ const
      'MYSQL_SECURE_AUTH'
 {$IFDEF MYSQL50_UP}
      ,'MYSQL_REPORT_DATA_TRUNCATION', 'MYSQL_OPT_RECONNECT'
+{$IFDEF mysql51_UP}
+         ,'MYSQL_OPT_SSL_VERIFY_SERVER_CERT'
+{$IFDEF mysql55}
+         ,'MYSQL_PLUGIN_DIR', 'MYSQL_DEFAULT_AUTH'
+{$ENDIF}
+{$ENDIF}
 {$ENDIF}
      );
 
@@ -245,6 +265,7 @@ function TConnectionName.StrToStatementType(s : string) : TStatementType;
 begin
   S:=Lowercase(s);
   if s = 'show' then exit(stSelect);
+  if s = 'call' then exit(stExecProcedure);
   result := inherited StrToStatementType(s);
 end;
 
@@ -296,7 +317,7 @@ begin
       end;
     end;
 
-  HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,APort,Nil,0);
+  HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,APort,Nil,CLIENT_MULTI_RESULTS); //CLIENT_MULTI_RESULTS is required by CALL SQL statement(executes stored procedure), that produces result sets
   If (HMySQL=Nil) then
     MySQlError(Nil,SErrServerConnectFailed,Self);
 
@@ -328,7 +349,7 @@ var esc_str : pchar;
 
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
-  else if param.DataType in [ftString,ftBlob,ftMemo] then
+  else if param.DataType in [ftString,ftFixedChar,ftBlob,ftMemo,ftBytes,ftVarBytes] then
     Result := '''' + EscapeString(Param.AsString) + ''''
   else Result := inherited GetAsSqlText(Param);
 end;
@@ -434,23 +455,27 @@ end;
 
 function TConnectionName.AllocateCursorHandle: TSQLCursor;
 begin
-  {$IfDef mysql51}
-    Result:=TMySQL51Cursor.Create;
+  {$IfDef mysql55}
+    Result:=TMySQL55Cursor.Create;
   {$ELSE}
-    {$IfDef mysql50}
-      Result:=TMySQL50Cursor.Create;
+    {$IfDef mysql51}
+      Result:=TMySQL51Cursor.Create;
     {$ELSE}
-      {$IfDef mysql41}
-        Result:=TMySQL41Cursor.Create;
+      {$IfDef mysql50}
+        Result:=TMySQL50Cursor.Create;
       {$ELSE}
-        {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-          Result:=TMySQLCursor.Create;
+        {$IfDef mysql41}
+          Result:=TMySQL41Cursor.Create;
         {$ELSE}
-          Result:=TMySQL40Cursor.Create;
+          {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+            Result:=TMySQLCursor.Create;
+          {$ELSE}
+            Result:=TMySQL40Cursor.Create;
+          {$EndIf}
         {$EndIf}
       {$EndIf}
     {$EndIf}
-  {$EndIf}
+  {$endif}
 end;
 
 Procedure TConnectionName.DeAllocateCursorHandle(var cursor : TSQLCursor);
@@ -475,7 +500,7 @@ begin
     FStatement:=Buf;
     if assigned(AParams) and (AParams.count > 0) then
       FStatement := AParams.ParseSQL(FStatement,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psSimulated,paramBinding,ParamReplaceString);
-    if FStatementType=stSelect then
+    if FStatementType in [stSelect,stExecProcedure] then
       FNeedData:=True;
     end
 end;
@@ -492,7 +517,7 @@ Var
 
 begin
   C:=Cursor as TCursorName;
-  if c.FStatementType=stSelect then
+  if c.FStatementType in [stSelect,stExecProcedure] then
     c.FNeedData:=False;
   If (C.FRes<>Nil) then
     begin
@@ -510,6 +535,7 @@ Var
   C : TCursorName;
   i : integer;
   ParamNames,ParamValues : array of string;
+  Res: PMYSQL_RES;
 
 begin
   C:=Cursor as TCursorName;
@@ -534,44 +560,56 @@ begin
       C.RowsAffected := mysql_affected_rows(FMYSQL);
       C.LastInsertID := mysql_insert_id(FMYSQL);
       if C.FNeedData then
-        C.FRes:=mysql_store_result(FMySQL);
+        repeat
+        Res:=mysql_store_result(FMySQL); //returns a null pointer if the statement didn't return a result set
+        if Res<>nil then
+          begin
+          mysql_free_result(C.FRes);
+          C.FRes:=Res;
+          end;
+        until mysql_next_result(FMySQL)<>0;
       end;
     end;
 end;
 
-function TConnectionName.MySQLDataType(AType: enum_field_types; ASize, ADecimals: Integer;
-   var NewType: TFieldType; var NewSize: Integer): Boolean;
+function TConnectionName.MySQLDataType(AField: PMYSQL_FIELD; var NewType: TFieldType; var NewSize: Integer): Boolean;
+var ASize, ADecimals: integer;
 begin
   Result := True;
-  case AType of
+  ASize := AField^.length;
+  case AField^.ftype of
     FIELD_TYPE_LONGLONG:
       begin
       NewType := ftLargeint;
       NewSize := 0;
       end;
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT:
+    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_YEAR:
       begin
       NewType := ftSmallint;
       NewSize := 0;
       end;
     FIELD_TYPE_LONG, FIELD_TYPE_INT24:
       begin
-      NewType := ftInteger;
+      if AField^.flags and AUTO_INCREMENT_FLAG <> 0 then
+        NewType := ftAutoInc
+      else
+        NewType := ftInteger;
       NewSize := 0;
       end;
 {$ifdef mysql50_up}
     FIELD_TYPE_NEWDECIMAL,
 {$endif}
-    FIELD_TYPE_DECIMAL: if ADecimals < 5 then
-                          begin
-                          NewType := ftBCD;
-                          NewSize := ADecimals;
-                          end
-                        else
-                          begin
-                          NewType := ftFloat;
-                          NewSize := 0;
-                          end;
+    FIELD_TYPE_DECIMAL: 
+      begin
+        ADecimals:=AField^.decimals;
+        if (ADecimals < 5) and (ASize-2-ADecimals < 15) then //ASize is display size i.e. with sign and decimal point
+          NewType := ftBCD
+        else if (ADecimals = 0) and (ASize < 20) then
+          NewType := ftLargeInt
+        else
+          NewType := ftFmtBCD;
+        NewSize := ADecimals;
+      end;
     FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
       begin
       NewType := ftFloat;
@@ -603,13 +641,30 @@ begin
         end
       else
         begin
-        NewType := ftString;
+        if AField^.ftype = FIELD_TYPE_STRING then
+          NewType := ftFixedChar
+        else
+          NewType := ftString;
+{$IFDEF MYSQL50_UP}
+        if AField^.charsetnr = 63 then //BINARY vs. CHAR, VARBINARY vs. VARCHAR
+          if NewType = ftFixedChar then
+            NewType := ftBytes
+          else
+            NewType := ftVarBytes;
+{$ENDIF}
         NewSize := ASize;
         end;
       end;
     FIELD_TYPE_BLOB:
       begin
+{$IFDEF MYSQL50_UP}
+      if AField^.charsetnr = 63 then //character set is binary
+        NewType := ftBlob
+      else
+        NewType := ftMemo;
+{$ELSE}
       NewType := ftBlob;
+{$ENDIF}
       NewSize := 0;
       end
   else
@@ -645,9 +700,11 @@ begin
     field := mysql_fetch_field_direct(C.FRES, I);
 //    Writeln('MySQL: creating fielddef ',I+1);
 
-    if MySQLDataType(field^.ftype, field^.length, field^.decimals, DFT, DFS) then
+    if MySQLDataType(field, DFT, DFS) then
       begin
-      TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(field^.name), DFT, DFS, False, TF);
+      TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(field^.name), DFT, DFS,
+                       (field^.flags and (AUTO_INCREMENT_FLAG or NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF})) = (NOT_NULL_FLAG {$IFDEF MYSQL50_UP}or NO_DEFAULT_VALUE_FLAG{$ENDIF}),
+                       TF);
       c.MapDSRowToMSQLRow[TF-1] := I;
       inc(TF);
       end
@@ -664,6 +721,10 @@ begin
   C:=Cursor as TCursorName;
   C.Row:=MySQL_Fetch_row(C.FRes);
   Result:=(C.Row<>Nil);
+  if Result then
+    C.Lengths := mysql_fetch_lengths(C.FRes)
+  else
+    C.Lengths := nil;
 end;
 
 function TConnectionName.LoadField(cursor : TSQLCursor;
@@ -671,46 +732,41 @@ function TConnectionName.LoadField(cursor : TSQLCursor;
 
 var
   field: PMYSQL_FIELD;
-  row : MYSQL_ROW;
   C : TCursorName;
+  i : integer;
 
 begin
 //  Writeln('LoadFieldsFromBuffer');
   C:=Cursor as TCursorName;
-  if C.Row=nil then
+  if (C.Row=nil) or (C.Lengths=nil) then
      begin
   //   Writeln('LoadFieldsFromBuffer: row=nil');
      MySQLError(FMySQL,SErrFetchingData,Self);
      end;
-  Row:=C.Row;
-  
-  inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
-  field := mysql_fetch_field_direct(C.FRES, c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
 
-  Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, Row^, Buffer, CreateBlob);
+  i := c.MapDSRowToMSQLRow[FieldDef.FieldNo-1];
+  field := mysql_fetch_field_direct(C.FRES, i);
+
+  Result := MySQLWriteData(field, FieldDef, C.Row[i], Buffer, C.Lengths[i], CreateBlob);
 end;
 
 procedure TConnectionName.LoadBlobIntoBuffer(FieldDef: TFieldDef;
   ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
 var
-  row : MYSQL_ROW;
   C : TCursorName;
-  li : longint;
-  Lengths : pculong;
+  i : integer;
+  len : longint;
 begin
   C:=Cursor as TCursorName;
-  if C.Row=nil then
+  if (C.Row=nil) or (C.Lengths=nil) then
     MySQLError(FMySQL,SErrFetchingData,Self);
-  Row:=C.Row;
 
-  inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
+  i := c.MapDSRowToMSQLRow[FieldDef.FieldNo-1];
+  len := C.Lengths[i];
 
-  Lengths := mysql_fetch_lengths(c.FRes);
-  li := Lengths[c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]];
-
-  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer,li);
-  Move(pchar(row^)^, ABlobBuf^.BlobBuffer^.Buffer^, li);
-  ABlobBuf^.BlobBuffer^.Size := li;
+  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, len);
+  Move(C.Row[i]^, ABlobBuf^.BlobBuffer^.Buffer^, len);
+  ABlobBuf^.BlobBuffer^.Size := len;
 end;
 
 function InternalStrToFloat(S: string): Extended;
@@ -788,11 +844,13 @@ function InternalStrToTime(S: string): TDateTime;
 
 var
   EH, EM, ES: Word;
+  p: integer;
 
 begin
-  EH := StrToInt(Copy(S, 1, 2));
-  EM := StrToInt(Copy(S, 4, 2));
-  ES := StrToInt(Copy(S, 7, 2));
+  p := 1;
+  EH := StrToInt(ExtractSubstr(S, p, [':'])); //hours can be 2 or 3 digits
+  EM := StrToInt(ExtractSubstr(S, p, [':']));
+  ES := StrToInt(ExtractSubstr(S, p, ['.']));
   Result := EncodeTimeInterval(EH, EM, ES, 0);
 end;
 
@@ -822,10 +880,10 @@ begin
     Result := 0
   else
     Result := EncodeDate(EY, EM, ED);
-  Result := Result + EncodeTime(EH, EN, ES, 0);;
+  Result := Result + EncodeTime(EH, EN, ES, 0);
 end;
 
-function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; Source, Dest: PChar; out CreateBlob : boolean): Boolean;
+function TConnectionName.MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;
 
 var
   VI: Integer;
@@ -834,16 +892,17 @@ var
   VF: Double;
   VC: Currency;
   VD: TDateTime;
+  VB: TBCD;
   Src : String;
 
 begin
   Result := False;
   CreateBlob := False;
-  if Source = Nil then
+  if Source = Nil then // If the pointer is NULL, the field is NULL
     exit;
-  Src:=StrPas(Source);
-  case AType of
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT:
+  SetString(Src, Source, Len);
+  case AField^.ftype of
+    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_YEAR:
       begin
       if (Src<>'') then
         VS := StrToInt(Src)
@@ -871,19 +930,26 @@ begin
     FIELD_TYPE_NEWDECIMAL,
 {$endif}      
     FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
-      if AFieldType = ftBCD then
-        begin
-        VC := InternalStrToCurrency(Src);
-        Move(VC, Dest^, SizeOf(Currency));
-        end
-      else
-        begin
-        if Src <> '' then
-          VF := InternalStrToFloat(Src)
+      case FieldDef.DataType of
+        ftBCD:
+          begin
+          VC := InternalStrToCurrency(Src);
+          Move(VC, Dest^, SizeOf(Currency));
+          end;
+        ftFmtBCD:
+          begin
+          VB := StrToBCD(Src, FSQLFormatSettings);
+          Move(VB, Dest^, SizeOf(TBCD));
+          end
         else
-          VF := 0;
-        Move(VF, Dest^, SizeOf(Double));
-        end;
+          begin
+          if Src <> '' then
+            VF := InternalStrToFloat(Src)
+          else
+            VF := 0;
+          Move(VF, Dest^, SizeOf(Double));
+          end;
+      end;
     FIELD_TYPE_TIMESTAMP:
       begin
       if Src <> '' then
@@ -928,14 +994,26 @@ begin
           end;
       Writeln;
 }
-      // String-fields which can contain more then dsMaxStringSize characters
-      // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
-      if AFieldType in [ftBlob,ftMemo] then
-        CreateBlob := True
-      else if Src<> '' then
-        Move(Source^, Dest^, ASize)
-      else
-        Dest^ := #0;
+      if Len > FieldDef.Size then
+        Len := FieldDef.Size;
+      case FieldDef.DataType of
+        // String-fields which can contain more then dsMaxStringSize characters
+        // are mapped to ftBlob fields, while their mysql-datatype is FIELD_TYPE_BLOB
+        ftBlob, ftMemo:
+          CreateBlob := True;
+        ftVarBytes:
+          begin
+          PWord(Dest)^ := Len;
+          Move(Source^, (Dest+sizeof(Word))^, Len);
+          end;
+        ftBytes:
+          Move(Source^, Dest^, Len);
+        else // ftString, ftFixedChar
+          begin
+          Move(Source^, Dest^, Len);
+          (Dest+Len)^ := #0;
+          end;
+      end;
       end;
     FIELD_TYPE_BLOB:
       CreateBlob := True;
@@ -1060,22 +1138,26 @@ end;
 
 class function TMySQLConnectionDef.ConnectionClass: TSQLConnectionClass;
 begin
-  {$IfDef mysql51}
-    Result:=TMySQL51Connection;
+  {$IfDef mysql55}
+     Result:=TMySQL55Connection;
   {$ELSE}
-    {$IfDef mysql50}
-      Result:=TMySQL50Connection;
+    {$IfDef mysql51}
+      Result:=TMySQL51Connection;
     {$ELSE}
-      {$IfDef mysql41}
-        Result:=TMySQL41Connection;
+      {$IfDef mysql50}
+        Result:=TMySQL50Connection;
       {$ELSE}
-        {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-          Result:=TMySQLConnection;
+        {$IfDef mysql41}
+          Result:=TMySQL41Connection;
         {$ELSE}
-          Result:=TMySQL40Connection;
+          {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+            Result:=TMySQLConnection;
+          {$ELSE}
+            Result:=TMySQL40Connection;
+          {$EndIf}
         {$EndIf}
       {$EndIf}
-    {$EndIf}
+    {$endif}
   {$endif}
 end;
 
@@ -1084,37 +1166,44 @@ begin
   Result:='Connect to a MySQL '+MySQLVersion+'database directly via the client library';
 end;
 
-{$IfDef mysql51}
+{$IfDef mysql55}
   initialization
-    RegisterConnection(TMySQL51ConnectionDef);
+    RegisterConnection(TMySQL55ConnectionDef);
   finalization
-    UnRegisterConnection(TMySQL51ConnectionDef);
-{$ELSE}
-  {$IfDef mysql50}
+    UnRegisterConnection(TMySQL55ConnectionDef);
+{$else}
+  {$IfDef mysql51}
     initialization
-      RegisterConnection(TMySQL50ConnectionDef);
+      RegisterConnection(TMySQL51ConnectionDef);
     finalization
-      UnRegisterConnection(TMySQL50ConnectionDef);
+      UnRegisterConnection(TMySQL51ConnectionDef);
   {$ELSE}
-    {$IfDef mysql41}
+    {$IfDef mysql50}
       initialization
-        RegisterConnection(TMySQL41ConnectionDef);
+        RegisterConnection(TMySQL50ConnectionDef);
       finalization
-        UnRegisterConnection(TMySQL41ConnectionDef);
+        UnRegisterConnection(TMySQL50ConnectionDef);
     {$ELSE}
-      {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+      {$IfDef mysql41}
         initialization
-          RegisterConnection(TMySQL40ConnectionDef);
+          RegisterConnection(TMySQL41ConnectionDef);
         finalization
-          UnRegisterConnection(TMySQL40ConnectionDef);
+          UnRegisterConnection(TMySQL41ConnectionDef);
       {$ELSE}
-        initialization
-          RegisterConnection(TMySQL40ConnectionDef);
-        finalization
-          UnRegisterConnection(TMySQL40ConnectionDef);
+        {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+          initialization
+            RegisterConnection(TMySQL40ConnectionDef);
+          finalization
+            UnRegisterConnection(TMySQL40ConnectionDef);
+        {$ELSE}
+          initialization
+            RegisterConnection(TMySQL40ConnectionDef);
+          finalization
+            UnRegisterConnection(TMySQL40ConnectionDef);
+        {$EndIf}
       {$EndIf}
     {$EndIf}
-  {$EndIf}
-{$ENDIF}
+  {$ENDIF}
+{$endif}
 
 end.

@@ -5,7 +5,7 @@
 
     Sysutils unit for Gameboy Advance.
     This unit is based on the MorphOS one and is adapted for Gameboy Advance
-    simply by stripping out all stuff inside funcs and procs. 
+    simply by stripping out all stuff inside funcs and procs.
     Copyright (c) 2006 by Francesco Lombardi
 
     Based on Amiga version by Carl Eric Codere, and other
@@ -29,13 +29,16 @@ interface
 { force ansistrings }
 {$H+}
 
+{$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
 
 implementation
 
-uses 
+uses
   dos, sysconst;
 
 { Include platform independent implementation part }
@@ -229,8 +232,32 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure sysBeep;
 begin
+end;
+
+
+Procedure Sleep(Milliseconds : Cardinal);
+var
+  i,j : Cardinal;
+  calib : Cardinal;
+begin
+{$warning no idea if this calibration value is correct (FK) }
+{ I estimated it roughly on the CPU clock of 16 MHz and 1+3 clock cycles for the loop }
+  calib:=4000000;
+  for i:=1 to Milliseconds do
+    asm
+      ldr r0,calib
+    .L1:
+      sub r0,r0,#1
+      bne .L1
+    end;
+end;
+
+Function GetLastOSError : Integer;
+
+begin
+  Result:=-1;
 end;
 
 

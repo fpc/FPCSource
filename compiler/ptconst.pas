@@ -41,7 +41,6 @@ implementation
        symconst,symbase,symdef
        ;
 
-
     procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_structure:boolean);
       var
         storefilepos : tfileposinfo;
@@ -143,7 +142,16 @@ implementation
                (assigned(current_procinfo) and
                 (po_inline in current_procinfo.procdef.procoptions)) or
                DLLSource then
-              list.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,0))
+              begin
+                { see same code in ncgutil.insertbssdata }
+                if (target_dbg.id=dbg_stabx) and
+                   (cs_debuginfo in current_settings.moduleswitches) then
+                  begin
+                    list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name+'.',AB_LOCAL,AT_DATA),0));
+                    list.concat(tai_directive.Create(asd_reference,sym.name+'.'));
+                  end;
+                list.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,0))
+              end
             else
               list.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,0));
 

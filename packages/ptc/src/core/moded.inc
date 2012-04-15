@@ -31,22 +31,26 @@
 }
 
 type
-  PPTCMode=^TPTCMode;
-  TPTCMode = class
-  private
-    FValid: Boolean;
-    FWidth: Integer;
-    FHeight: Integer;
-    FFormat: TPTCFormat;
-  public
-    constructor Create;
-    constructor Create(AWidth, AHeight: Integer; const AFormat: TPTCFormat);
-    constructor Create(const mode: TPTCMode);
-    destructor Destroy; override;
-    procedure Assign(const mode: TPTCMode);
-    function Equals(const mode: TPTCMode): Boolean;
-    property Valid: Boolean read FValid;
-    property Width: Integer read FWidth;
-    property Height: Integer read FHeight;
-    property Format: TPTCFormat read FFormat;
+  IPTCMode = interface
+    function GetValid: Boolean;
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function GetFormat: IPTCFormat;
+
+    function Equals(AMode: IPTCMode): Boolean;
+
+    property Valid: Boolean read GetValid;
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property Format: IPTCFormat read GetFormat;
   end;
+
+  TPTCModeList = array of IPTCMode;
+
+  TPTCModeFactory = class
+  public
+    class function CreateNew: IPTCMode;
+    class function CreateNew(AWidth, AHeight: Integer; AFormat: IPTCFormat): IPTCMode;
+    class function CreateNew(AMode: IPTCMode): IPTCMode;
+  end;
+

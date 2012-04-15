@@ -1,0 +1,33 @@
+#
+#   Makefile.fpc for Free Vision for Free Pascal
+#
+
+[package]
+name=fv
+version=2.7.1
+
+[target]
+units=buildfv
+implicitunits=app colortxt dialogs drivers editors \
+              fvcommon fvconsts gadgets histlist inplong memory \
+              menus msgbox statuses stddlg tabs time validate \
+              views sysmsg asciitab timeddlg outline
+exampledirs=examples
+rsts=app dialogs editors msgbox stddlg
+
+[libs]
+libname=libfpfv.so
+libversion=2.0.0
+
+[compiler]
+sourcedir=src
+
+[install]
+buildunit=buildfv
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

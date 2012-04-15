@@ -16,11 +16,7 @@
 
 constructor ShortstringClass.Create(const arr: array of ansichar; maxlen: byte);
 begin
-  setlength(fdata,maxlen);
-  if high(arr)=-1 then
-    exit;
-  curlen:=min(high(arr)+1,maxlen);
-  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(fdata),0,curlen);
+  copyFromAnsiCharArray(arr,maxlen);
 end;
 
 
@@ -38,15 +34,18 @@ end;
 
 
 constructor ShortstringClass.Create(const u: unicodestring; maxlen: byte);
+var
+  temp: RawByteString;
 begin
   if system.length(u)=0 then
     begin
       setlength(fdata,maxlen);
       exit;
     end;
-  fdata:=TAnsiCharArray(JLString(u).getBytes);
+  widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(JLString(u).toCharArray),temp,DefaultSystemCodePage,system.length(u));
+  curlen:=min(system.length(temp),maxlen);
+  fdata:=AnsistringClass(temp).fdata;
   setlength(fdata,maxlen);
-  curlen:=min(high(fdata)+1,maxlen);
 end;
 
 
@@ -126,6 +125,16 @@ begin
 end;
 
 
+procedure ShortstringClass.copyFromAnsiCharArray(const arr: array of ansichar; maxlen: byte);
+begin
+  setlength(fdata,maxlen);
+  if high(arr)=-1 then
+    exit;
+  curlen:=min(high(arr)+1,maxlen);
+  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(fdata),0,curlen);
+end;
+
+
 procedure ShortstringClass.setChar(index: jint; char: ansichar);
 begin
   { index is 1-based here }
@@ -159,7 +168,7 @@ end;
 
 function ShortstringClass.toAnsistring: ansistring;
 begin
-  result:=ansistring(AnsistringClass.Create(pshortstring(self)^));
+  result:=ansistring(AnsistringClass.Create(pshortstring(self)^,DefaultSystemCodePage));
 end;
 
 

@@ -79,6 +79,7 @@ type
     procedure DeAllocateCursorHandle(var cursor:TSQLCursor); override;
     function AllocateTransactionHandle:TSQLHandle; override;
     // - Statement handling
+    function StrToStatementType(s : string) : TStatementType; override;
     procedure PrepareStatement(cursor:TSQLCursor; ATransaction:TSQLTransaction; buf:string; AParams:TParams); override;
     procedure UnPrepareStatement(cursor:TSQLCursor); override;
     // - Transaction handling
@@ -299,6 +300,14 @@ begin
 {$ENDIF}
 end;
 
+function TODBCConnection.StrToStatementType(s : string) : TStatementType;
+begin
+  S:=Lowercase(s);
+  if s = 'transform' then Result:=stSelect //MS Access
+  else if s = 'exec' then Result:=stExecProcedure
+  else Result := inherited StrToStatementType(s);
+end;
+
 procedure TODBCConnection.SetParameters(ODBCCursor: TODBCCursor; AParams: TParams);
 var
   ParamIndex: integer;
@@ -313,8 +322,10 @@ var
   TimeVal: SQL_TIME_STRUCT;
   TimeStampVal: SQL_TIMESTAMP_STRUCT;
   BoolVal: byte;
+  NumericVal: SQL_NUMERIC_STRUCT;
   ColumnSize, BufferLength, StrLenOrInd: SQLINTEGER;
   CType, SqlType, DecimalDigits:SQLSMALLINT;
+  APD: SQLHDESC;
 begin
   // Note: it is assumed that AParams is the same as the one passed to PrepareStatement, in the sense that
   //       the parameters have the same order and names
@@ -324,6 +335,8 @@ begin
       raise EODBCException.CreateFmt('The query has parameter markers in it, but no actual parameters were passed',[]);
 
   SetLength(ODBCCursor.FParamBuf, Length(ODBCCursor.FParamIndex));
+  for i:=0 to High(ODBCCursor.FParamIndex) do
+    ODBCCursor.FParamBuf[i]:=nil;
   for i:=0 to High(ODBCCursor.FParamIndex) do
   begin
     ParamIndex:=ODBCCursor.FParamIndex[i];
@@ -353,7 +366,8 @@ begin
           SqlType:=SQL_BIGINT;
           ColumnSize:=19;
         end;
-      ftString, ftFixedChar, ftBlob, ftMemo:
+      ftString, ftFixedChar, ftBlob, ftMemo, ftGuid,
+      ftBytes, ftVarBytes:
         begin
           StrVal:=AParams[ParamIndex].AsString;
           StrLenOrInd:=Length(StrVal);
@@ -367,6 +381,11 @@ begin
           ColumnSize:=Size;
           BufferLength:=Size;
           case AParams[ParamIndex].DataType of
+            ftBytes, ftVarBytes:
+              begin
+              CType:=SQL_C_BINARY;
+              SqlType:=SQL_VARBINARY;
+              end;
             ftBlob:
               begin
               CType:=SQL_C_BINARY;
@@ -411,6 +430,16 @@ begin
           CType:=SQL_C_DOUBLE;
           SqlType:=SQL_DOUBLE;
           ColumnSize:=15;
+        end;
+      ftCurrency, ftBCD:
+        begin
+          NumericVal:=CurrToNumericStruct(AParams[ParamIndex].AsCurrency);
+          PVal:=@NumericVal;
+          Size:=SizeOf(NumericVal);
+          CType:=SQL_C_NUMERIC;
+          SqlType:=SQL_NUMERIC;
+          ColumnSize:=NumericVal.precision;
+          DecimalDigits:=NumericVal.scale;
         end;
       ftDate:
         begin
@@ -479,6 +508,16 @@ begin
                           PStrLenOrInd),          // StrLen_or_IndPtr
          SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not bind parameter %d.', [i]
        );
+
+    // required by MSSQL:
+    if CType = SQL_C_NUMERIC then
+    begin
+      ODBCCheckResult(
+        SQLGetStmtAttr(ODBCCursor.FSTMTHandle, SQL_ATTR_APP_PARAM_DESC, @APD, 0, nil),
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get parameter descriptor.'
+      );
+      SQLSetDescRec(APD, i+1, SQL_C_NUMERIC, 0, ColumnSize+2, ColumnSize, DecimalDigits, Buf, nil, nil);
+    end;
   end;
 end;
 
@@ -487,7 +526,8 @@ var
   i:integer;
 begin
   for i:=0 to High(ODBCCursor.FParamBuf) do
-    FreeMem(ODBCCursor.FParamBuf[i]);
+    if assigned(ODBCCursor.FParamBuf[i]) then
+      FreeMem(ODBCCursor.FParamBuf[i]);
   SetLength(ODBCCursor.FParamBuf,0);
 end;
 
@@ -647,32 +687,52 @@ end;
 
 function TODBCConnection.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
-  // Tranactions not implemented yet
+  Result := nil;
 end;
 
 function TODBCConnection.StartDBTransaction(trans: TSQLHandle; AParams:string): boolean;
+var AutoCommit: SQLINTEGER;
 begin
-  // Tranactions not implemented yet
+  // set some connection attributes
+  if StrToBoolDef(Params.Values['AUTOCOMMIT'], True) then
+    AutoCommit := SQL_AUTOCOMMIT_ON
+  else
+    AutoCommit := SQL_AUTOCOMMIT_OFF;
+
+  ODBCCheckResult(
+    SQLSetConnectAttr(FDBCHandle, SQL_ATTR_AUTOCOMMIT, SQLPOINTER(AutoCommit), SQL_IS_UINTEGER),
+    SQL_HANDLE_DBC,FDBCHandle,'Could not start transaction!'
+  );
+
+  Result := AutoCommit=SQL_AUTOCOMMIT_OFF;
 end;
 
 function TODBCConnection.Commit(trans: TSQLHandle): boolean;
 begin
-  // Tranactions not implemented yet
+  ODBCCheckResult(
+    SQLEndTran(SQL_HANDLE_DBC, FDBCHandle, SQL_COMMIT),
+    SQL_HANDLE_DBC, FDBCHandle, 'Could not commit!'
+  );
+  Result := True;
 end;
 
 function TODBCConnection.Rollback(trans: TSQLHandle): boolean;
 begin
-  // Tranactions not implemented yet
+  ODBCCheckResult(
+    SQLEndTran(SQL_HANDLE_DBC, FDBCHandle, SQL_ROLLBACK),
+    SQL_HANDLE_DBC, FDBCHandle, 'Could not rollback!'
+  );
+  Result := True;
 end;
 
 procedure TODBCConnection.CommitRetaining(trans: TSQLHandle);
 begin
-  // Tranactions not implemented yet
+  Commit(trans);
 end;
 
 procedure TODBCConnection.RollbackRetaining(trans: TSQLHandle);
 begin
-  // Tranactions not implemented yet
+  Rollback(trans);
 end;
 
 procedure TODBCConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
@@ -685,23 +745,25 @@ var
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
-  // set parameters
+  try
+    // set parameters
     if Assigned(APArams) and (AParams.count > 0) then SetParameters(ODBCCursor, AParams);
+    // execute the statement
+    case ODBCCursor.FSchemaType of
+      stNoSchema  : Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
+      stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_USER, length(TABLE_TYPE_USER) );
+      stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
+      stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
+      stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
+      else          Res:=SQL_NO_DATA;
+    end; {case}
 
-  // execute the statement
-  case ODBCCursor.FSchemaType of
-    stNoSchema  : Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
-    stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_USER, length(TABLE_TYPE_USER) );
-    stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
-    stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
-    stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
-    else          Res:=SQL_NO_DATA;
-  end; {case}
+    if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
 
-  if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
-
-  // free parameter buffers
-  FreeParamBuffers(ODBCCursor);
+  finally
+    // free parameter buffers
+    FreeParamBuffers(ODBCCursor);
+  end;
 end;
 
 function TODBCConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
@@ -811,7 +873,13 @@ begin
     ftBytes:              // mapped to TBytesField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, FieldDef.Size, @StrLenOrInd);
     ftVarBytes:           // mapped to TVarBytesField
-      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, FieldDef.Size, @StrLenOrInd);
+    begin
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer+SizeOf(Word), FieldDef.Size, @StrLenOrInd);
+      if StrLenOrInd < 0 then
+        PWord(buffer)^ := 0
+      else
+        PWord(buffer)^ := StrLenOrInd;
+    end;
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
     ftWideMemo,
 {$ENDIF}
@@ -1097,7 +1165,7 @@ begin
 {      SQL_INTERVAL_HOUR_TO_SECOND:  FieldType:=ftUnknown;}
 {      SQL_INTERVAL_MINUTE_TO_SECOND:FieldType:=ftUnknown;}
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
-      SQL_GUID:          begin FieldType:=ftGuid;       FieldSize:=ColumnSize; end;
+      SQL_GUID:          begin FieldType:=ftGuid;       FieldSize:=38; end; //SQL_GUID defines 36, but TGuidField requires 38
 {$ENDIF}
     else
       begin FieldType:=ftUnknown; FieldSize:=ColumnSize; end
@@ -1109,13 +1177,13 @@ begin
       FieldSize:=dsMaxStringSize-1;
     end
     else
-    if (FieldType in [ftInteger]) and (AutoIncAttr=SQL_FALSE) then //if the column is an autoincrementing column
-                                                                   //any exact numeric type with scale 0 can have identity attr.
-                                                                   //only one column per table can have identity attr.
+    // any exact numeric type with scale 0 can have identity attr.
+    // only one column per table can have identity attr.
+    if (FieldType in [ftInteger,ftLargeInt]) and (AutoIncAttr=SQL_FALSE) then
     begin
       ODBCCheckResult(
-        SQLColAttribute(ODBCCursor.FSTMTHandle, // statement handle
-                        i,                      // column number
+        SQLColAttribute(ODBCCursor.FSTMTHandle,     // statement handle
+                        i,                          // column number
                         SQL_DESC_AUTO_UNIQUE_VALUE, // FieldIdentifier
                         nil,                        // buffer
                         0,                          // buffer size
@@ -1123,7 +1191,7 @@ begin
                         @AutoIncAttr),              // NumericAttribute
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get autoincrement attribute for column %d.',[i]
       );
-      if AutoIncAttr=SQL_TRUE then
+      if (AutoIncAttr=SQL_TRUE) and (FieldType=ftInteger) then
         FieldType:=ftAutoInc;
     end;
 
@@ -1164,7 +1232,7 @@ begin
     end;
 
     // add FieldDef
-    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, False, i);
+    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), i);
   end;
 end;
 
@@ -1180,7 +1248,7 @@ var
   _Type     :SQLSMALLINT; _TypeIndOrLen     :SQLINTEGER;
   OrdinalPos:SQLSMALLINT; OrdinalPosIndOrLen:SQLINTEGER;
   ColName   :string;      ColNameIndOrLen   :SQLINTEGER;
-  AscOrDesc :SQLCHAR;     AscOrDescIndOrLen :SQLINTEGER;
+  AscOrDesc :char;        AscOrDescIndOrLen :SQLINTEGER;
   PKName    :string;      PKNameIndOrLen    :SQLINTEGER;
 const
   DEFAULT_NAME_LEN = 255;

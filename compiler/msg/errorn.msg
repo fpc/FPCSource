@@ -6,7 +6,7 @@
 #   Latest updates contributed by Matthijs Willemstein <matthijs at willemstein.net>
 #   Based on errore.msg of SVN revision 3982
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -747,9 +747,9 @@ parser_e_function_already_declared_public_forward=03120_E_Functie is al publiek/
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_Kan niet zowel EXPORT als EXTERNAL gebruiken
 % These two procedure directives are mutually exclusive
-parser_w_not_supported_for_inline=03123_W_$1 wordt niet ondersteund voor inline procedure/functie
+parser_h_not_supported_for_inline=03123_H_$1 wordt niet ondersteund voor inline procedure/functie
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_Inlining uitgeschakeld
+parser_h_inlining_disabled=03124_H_Inlining uitgeschakeld
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_Schrijven van browser logfile $1
 % When information messages are on, the compiler warns you when it
@@ -2193,11 +2193,10 @@ Free Pascal Compiler versie $FPCVERSION
 Compiler datum:       $FPCDATE
 Compiler doelsysteem: $FPCTARGET
 Dit programma wordt verspreid onder de GNU General Public Licence
-Voor meer informatie, lees COPYING.FPC. Hiervan is helaas geen
+Voor meer informatie, lees COPYING.v2. Hiervan is helaas geen
 Nederlandse vertaling beschikbaar.
+
                 http://bugs.freepascal.org
-of
-                bugs@freepascal.org
 ]
 #
 # Help pages (option -? and -h)

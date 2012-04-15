@@ -1315,6 +1315,8 @@ const pemagic : array[0..3] of byte = (
                 rel.reloctype:=IMAGE_REL_I386_SECREL32;
 {$endif i386}
 {$ifdef x86_64}
+              RELOC_NONE :
+                rel.reloctype:=IMAGE_REL_AMD64_ABSOLUTE;
               RELOC_RELATIVE :
                 rel.reloctype:=IMAGE_REL_AMD64_REL32;
               RELOC_ABSOLUTE32 :
@@ -1627,6 +1629,8 @@ const pemagic : array[0..3] of byte = (
                rel_type:=RELOC_RVA;
              IMAGE_REL_ARM_BRANCH24:
                rel_type:=RELOC_RELATIVE_24;
+             IMAGE_REL_ARM_SECREL:
+               rel_type:=RELOC_SECREL32;
 {$endif arm}
 {$ifdef i386}
              IMAGE_REL_I386_PCRLONG :
@@ -1639,6 +1643,8 @@ const pemagic : array[0..3] of byte = (
                rel_type:=RELOC_SECREL32;
 {$endif i386}
 {$ifdef x86_64}
+             IMAGE_REL_AMD64_ABSOLUTE:
+               rel_type:=RELOC_NONE;
              IMAGE_REL_AMD64_REL32:
                rel_type:=RELOC_RELATIVE;
              IMAGE_REL_AMD64_ADDR32,
@@ -1933,7 +1939,9 @@ const pemagic : array[0..3] of byte = (
                  begin
                    if (Copy(secname,1,6)='.edata') or
                       (Copy(secname,1,5)='.rsrc') or
+{$ifndef x86_64}
                       (Copy(secname,1,6)='.pdata') or
+{$endif}
                       (Copy(secname,1,4)='.fpc') then
                      include(secoptions,oso_keep);
                    if (Copy(secname,1,6)='.idata') then
@@ -3012,7 +3020,7 @@ const pemagic : array[0..3] of byte = (
             DLLReader.Seek(sechdr.datapos+expdir.AddrNames-sechdr.rvaofs+i*4);
             DLLReader.Read(NameOfs,4);
             Dec(NameOfs,sechdr.rvaofs);
-            if (NameOfs<0) or
+            if {(NameOfs<0) or}
                (NameOfs>sechdr.vsize) then
               begin
                 Comment(V_Error,'DLL does contains invalid exports');
@@ -3045,6 +3053,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 
        as_i386_pecoff_info : tasminfo =
@@ -3057,6 +3066,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 
        as_i386_pecoffwdosx_info : tasminfo =
@@ -3069,6 +3079,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 
        as_i386_pecoffwince_info : tasminfo =
@@ -3081,6 +3092,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif i386}
 {$ifdef x86_64}
@@ -3095,6 +3107,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif x86_64}
 {$ifdef arm}
@@ -3109,6 +3122,7 @@ const pemagic : array[0..3] of byte = (
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
+            dollarsign: '$';
           );
 {$endif arm}
 

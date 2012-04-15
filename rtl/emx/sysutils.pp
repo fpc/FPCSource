@@ -73,6 +73,25 @@ type
         end;
         PFileStatus4=^TFileStatus4;
 
+        TFileStatus3L = object (TFileStatus)
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:int64;         {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+        end;
+        PFileStatus3L=^TFileStatus3L;
+
+        TFileStatus4L=object(TFileStatus3L)
+            cbList:cardinal;            {Length of entire EA set.}
+        end;
+        PFileStatus4L=^TFileStatus4L;
+
         TFileFindBuf3=object(TFileStatus)
             NextEntryOffset: cardinal;  {Offset of next entry}
             DateCreation,               {Date of file creation.}
@@ -109,6 +128,43 @@ type
                                          character is always zero.}
         end;
         PFileFindBuf4=^TFileFindBuf4;
+
+        TFileFindBuf3L=object(TFileStatus)
+            NextEntryOffset: cardinal;  {Offset of next entry}
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:int64;            {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+            Name:shortstring;           {Also possible to use as ASCIIZ.
+                                         The byte following the last string
+                                         character is always zero.}
+        end;
+        PFileFindBuf3L=^TFileFindBuf3L;
+
+        TFileFindBuf4L=object(TFileStatus)
+            NextEntryOffset: cardinal;  {Offset of next entry}
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:int64;            {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+            cbList:cardinal;            {Size of the file's extended attributes.}
+            Name:shortstring;           {Also possible to use as ASCIIZ.
+                                         The byte following the last string
+                                         character is always zero.}
+        end;
+        PFileFindBuf4L=^TFileFindBuf4L;
 
  TFSInfo = record
             case word of
@@ -246,10 +302,13 @@ type
  PStartData=^TStartData;
 
 const
- ilStandard      = 1;
- ilQueryEAsize   = 2;
- ilQueryEAs      = 3;
- ilQueryFullName = 5;
+ ilStandard      =  1; (* Use TFileStatus3/TFindFileBuf3 *)
+ ilQueryEASize   =  2; (* Use TFileStatus4/TFindFileBuf4 *)
+ ilQueryEAs      =  3;
+ ilQueryFullName =  5;
+ ilStandardL     = 11; (* Use TFileStatus3L/TFindFileBuf3L *)
+ ilQueryEASizeL  = 12; (* Use TFileStatus4L/TFindFileBuf4L *)
+ ilQueryEAsL     = 13;
 
  quFIFO     = 0;
  quLIFO     = 1;
@@ -580,112 +639,142 @@ end;
 
 function FileExists (const FileName: string): boolean;
 begin
-  if Directory = '' then
+  if FileName = '' then
    Result := false
   else
-   Result := FileGetAttr (ExpandFileName (Directory)) and
-                                                     faDirectory = faDirectory;
+   Result := FileGetAttr (ExpandFileName (FileName)) and
+                                               (faDirectory or faVolumeID) = 0;
+(* Neither VolumeIDs nor directories are files. *)
 end;
 
 
-type    TRec = record
-            T, D: word;
-        end;
-        PSearchRec = ^SearchRec;
+type
+  TRec = record
+   T, D: word;
+  end;
+  PSearchRec = ^SearchRec;
 
 function FindFirst (const Path: string; Attr: longint; out Rslt: TSearchRec): longint;
 
-var SR: PSearchRec;
-    FStat: PFileFindBuf3;
-    Count: cardinal;
-    Err: cardinal;
+var
+  SR: PSearchRec;
+  FStat: PFileFindBuf3L;
+  Count: cardinal;
+  Err: cardinal;
 
 begin
-    if os_mode = osOS2 then
-        begin
-            New (FStat);
-            Rslt.FindHandle := THandle ($FFFFFFFF);
-            Count := 1;
-            Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
-                   Attr and FindResvdMask, FStat, SizeOf (FStat^), Count,
-                                                                   ilStandard);
-            if (Err = 0) and (Count = 0) then Err := 18;
-            FindFirst := -Err;
-            if Err = 0 then
-                begin
-                    Rslt.Name := FStat^.Name;
-                    Rslt.Size := FStat^.FileSize;
-                    Rslt.Attr := FStat^.AttrFile;
-                    Rslt.ExcludeAttr := 0;
-                    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
-                    TRec (Rslt.Time).D := FStat^.DateLastWrite;
-                end;
-            Dispose (FStat);
-        end
+  if os_mode = osOS2 then
+   begin
+    New (FStat);
+    Rslt.FindHandle := THandle ($FFFFFFFF);
+    Count := 1;
+    if FSApi64 then
+     Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+            Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandardL)
     else
-        begin
-            Err := DOS.DosError;
-            GetMem (SR, SizeOf (SearchRec));
-            Rslt.FindHandle := longint(SR);
-            DOS.FindFirst (Path, Attr, SR^);
-            FindFirst := -DOS.DosError;
-            if DosError = 0 then
-                begin
-                    Rslt.Time := SR^.Time;
-                    Rslt.Size := SR^.Size;
-                    Rslt.Attr := SR^.Attr;
-                    Rslt.ExcludeAttr := 0;
-                    Rslt.Name := SR^.Name;
-                end;
-            DOS.DosError := Err;
-        end;
+     Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+            Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandard);
+    if (Err = 0) and (Count = 0) then
+     Err := 18;
+    FindFirst := -Err;
+    if Err = 0 then
+     begin
+      Rslt.ExcludeAttr := 0;
+      TRec (Rslt.Time).T := FStat^.TimeLastWrite;
+      TRec (Rslt.Time).D := FStat^.DateLastWrite;
+      if FSApi64 then
+       begin
+        Rslt.Size := FStat^.FileSize;
+        Rslt.Name := FStat^.Name;
+        Rslt.Attr := FStat^.AttrFile;
+       end
+      else
+       begin
+        Rslt.Size := PFileFindBuf3 (FStat)^.FileSize;
+        Rslt.Name := PFileFindBuf3 (FStat)^.Name;
+        Rslt.Attr := PFileFindBuf3 (FStat)^.AttrFile;
+       end;
+     end
+    else
+     FindClose (Rslt);
+    Dispose (FStat);
+   end
+  else
+   begin
+    Err := DOS.DosError;
+    GetMem (SR, SizeOf (SearchRec));
+    Rslt.FindHandle := longint(SR);
+    DOS.FindFirst (Path, Attr, SR^);
+    FindFirst := -DOS.DosError;
+    if DosError = 0 then
+     begin
+      Rslt.Time := SR^.Time;
+(* Extend the supported file sizes from 2 GB to 4 GB at least. *)
+      Rslt.Size := cardinal (SR^.Size);
+      Rslt.Attr := SR^.Attr;
+      Rslt.ExcludeAttr := 0;
+      Rslt.Name := SR^.Name;
+     end;
+    DOS.DosError := Err;
+   end;
 end;
 
 
 function FindNext (var Rslt: TSearchRec): longint;
 
-var SR: PSearchRec;
-    FStat: PFileFindBuf3;
-    Count: cardinal;
-    Err: cardinal;
+var
+  SR: PSearchRec;
+  FStat: PFileFindBuf3L;
+  Count: cardinal;
+  Err: cardinal;
 
 begin
-    if os_mode = osOS2 then
-        begin
-            New (FStat);
-            Count := 1;
-            Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^),
-                                                                        Count);
-            if (Err = 0) and (Count = 0) then Err := 18;
-            FindNext := -Err;
-            if Err = 0 then
-                begin
-                    Rslt.Name := FStat^.Name;
-                    Rslt.Size := FStat^.FileSize;
-                    Rslt.Attr := FStat^.AttrFile;
-                    Rslt.ExcludeAttr := 0;
-                    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
-                    TRec (Rslt.Time).D := FStat^.DateLastWrite;
-                end;
-            Dispose (FStat);
-        end
-    else
-        begin
-            SR := PSearchRec (Rslt.FindHandle);
-            if SR <> nil then
-                begin
-                    DOS.FindNext (SR^);
-                    FindNext := -DosError;
-                    if DosError = 0 then
-                        begin
-                            Rslt.Time := SR^.Time;
-                            Rslt.Size := SR^.Size;
-                            Rslt.Attr := SR^.Attr;
-                            Rslt.ExcludeAttr := 0;
-                            Rslt.Name := SR^.Name;
-                        end;
-                end;
-        end;
+  if os_mode = osOS2 then
+   begin
+    New (FStat);
+    Count := 1;
+    Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^), Count);
+    if (Err = 0) and (Count = 0) then
+     Err := 18;
+    FindNext := -Err;
+    if Err = 0 then
+     begin
+      Rslt.ExcludeAttr := 0;
+      TRec (Rslt.Time).T := FStat^.TimeLastWrite;
+      TRec (Rslt.Time).D := FStat^.DateLastWrite;
+      if FSApi64 then
+       begin
+        Rslt.Size := FStat^.FileSize;
+        Rslt.Name := FStat^.Name;
+        Rslt.Attr := FStat^.AttrFile;
+       end
+      else
+       begin
+        Rslt.Size := PFileFindBuf3 (FStat)^.FileSize;
+        Rslt.Name := PFileFindBuf3 (FStat)^.Name;
+        Rslt.Attr := PFileFindBuf3 (FStat)^.AttrFile;
+       end;
+     end;
+    Dispose (FStat);
+   end
+  else
+   begin
+    SR := PSearchRec (Rslt.FindHandle);
+    if SR <> nil then
+     begin
+      DOS.FindNext (SR^);
+      FindNext := -DosError;
+      if DosError = 0 then
+       begin
+        Rslt.Time := SR^.Time;
+(* Extend the supported file sizes from 2 GB to 4 GB at least. *)
+        Rslt.Size := cardinal (SR^.Size);
+        Rslt.Attr := SR^.Attr;
+        Rslt.ExcludeAttr := 0;
+        Rslt.Name := SR^.Name;
+       end;
+     end;
+   end;
 end;
 
 

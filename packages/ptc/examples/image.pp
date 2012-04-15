@@ -15,14 +15,13 @@ program ImageExample;
 uses
   SysUtils, ptc;
 
-procedure load(surface: TPTCSurface; filename: String);
+procedure load(surface: IPTCSurface; filename: String);
 var
   F: File;
   width, height: Integer;
   pixels: PByte = nil;
   y: Integer;
-  img_format: TPTCFormat = nil;
-  img_palette: TPTCPalette = nil;
+  img_format: IPTCFormat;
 begin
   { open image file }
   AssignFile(F, filename);
@@ -45,36 +44,32 @@ begin
 
     { load pixels to surface }
     {$IFDEF FPC_LITTLE_ENDIAN}
-    img_format := TPTCFormat.Create(24, $00FF0000, $0000FF00, $000000FF);
+    img_format := TPTCFormatFactory.CreateNew(24, $00FF0000, $0000FF00, $000000FF);
     {$ELSE FPC_LITTLE_ENDIAN}
-    img_format := TPTCFormat.Create(24, $000000FF, $0000FF00, $00FF0000);
+    img_format := TPTCFormatFactory.CreateNew(24, $000000FF, $0000FF00, $00FF0000);
     {$ENDIF FPC_LITTLE_ENDIAN}
-    img_palette := TPTCPalette.Create;
-    surface.load(pixels, width, height, width * 3, img_format, img_palette);
+    surface.Load(pixels, width, height, width * 3, img_format, TPTCPaletteFactory.CreateNew);
 
   finally
     CloseFile(F);
 
     { free image pixels }
     FreeMem(pixels);
-
-    img_palette.Free;
-    img_format.Free;
   end;
 end;
 
 var
-  console: TPTCConsole = nil;
-  format: TPTCFormat = nil;
-  surface: TPTCSurface = nil;
+  console: IPTCConsole;
+  format: IPTCFormat;
+  surface: IPTCSurface;
 begin
   try
     try
       { create console }
-      console := TPTCConsole.Create;
+      console := TPTCConsoleFactory.CreateNew;
 
       { create format }
-      format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
+      format := TPTCFormatFactory.CreateNew(32, $00FF0000, $0000FF00, $000000FF);
 
       try
         { try to open the console matching the image resolution }
@@ -86,7 +81,7 @@ begin
       end;
 
       { create surface }
-      surface := TPTCSurface.Create(320, 200, format);
+      surface := TPTCSurfaceFactory.CreateNew(320, 200, format);
 
       { load image to surface }
       load(surface, 'image.tga');
@@ -102,11 +97,8 @@ begin
 
     finally
       { close console }
-      console.close;
-
-      console.Free;
-      surface.Free;
-      format.Free;
+      if Assigned(console) then
+        console.close;
     end;
   except
     on error: TPTCError do

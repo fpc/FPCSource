@@ -9,7 +9,7 @@
 {$ifdef mswindows}
  {$define supported}
 {$endif win32}
-{$ifdef Unix}
+{$if defined(Unix) and not defined(aix)}
  {$define supported}
 {$endif Unix}
 {$ifndef fpc}
@@ -52,5 +52,5 @@ exports
   _test name '_TEST',
   _myvar;
 
-end.
 {$endif supported}
+end.

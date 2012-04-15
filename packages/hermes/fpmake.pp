@@ -34,9 +34,9 @@ T:=P.Targets.AddUnit('hermes.pp');
     begin
       AddInclude('hermdef.inc');
       AddInclude('hermconf.inc');
-      AddInclude('malloc.inc');
-      AddInclude('debug.inc');
-      AddInclude('dither.inc');
+      // AddInclude('malloc.inc');
+      AddInclude('hermes_debug.inc');
+      AddInclude('hermes_dither.inc');
       AddInclude('headp.inc');
       AddInclude('p_16.inc');
       AddInclude('p_24.inc');
@@ -53,15 +53,15 @@ T:=P.Targets.AddUnit('hermes.pp');
       AddInclude('p_muhmu.inc');
       AddInclude('d_32.inc');
       AddInclude('headi386.inc',[i386],AllOSes);
-      AddInclude('headmmx.inc',[i386],AllOSes); 
+      AddInclude('headmmx.inc',[i386],AllOSes);
       AddInclude('factconv.inc');
-      AddInclude('list.inc');
-      AddInclude('utility.inc');
-      AddInclude('format.inc');
-      AddInclude('palette.inc');
-      AddInclude('convert.inc');
-      AddInclude('clear.inc');
-      AddInclude('factory.inc');
+      AddInclude('hermes_list.inc');
+      AddInclude('hermes_utility.inc');
+      AddInclude('hermes_format.inc');
+      AddInclude('hermes_palette.inc');
+      AddInclude('hermes_converter.inc');
+      AddInclude('hermes_clearer.inc');
+      AddInclude('hermes_factory.inc');
    end;
 
 

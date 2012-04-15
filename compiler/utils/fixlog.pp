@@ -53,9 +53,9 @@ begin
   write('processing ',fn,': ');
   assign(t,fn);
   assign(f,'fixlog.tmp');
-  {$I-}
+  {$push}{$I-}
    reset(t);
-  {$I+}
+  {$pop}
   if ioresult<>0 then
    begin
      writeln('error!');

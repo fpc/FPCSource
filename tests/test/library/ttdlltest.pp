@@ -62,7 +62,7 @@ var
    s2 : string;
 
 
-   procedure MyMainHook(DllParma : longint);
+   procedure MyMainHook(DllParma : PtrInt);
    begin
      Writeln('Main: Thread Detach Hook  called with DLLParam=',DllParam);
    end;

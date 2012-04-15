@@ -6,7 +6,7 @@
 #   Contributed by Massimo Soricetti <notturno at quipo.it>
 #   Translation for FPC 2.4.2, april 16, 2011, Tolentino, Italy
 #
-#   See the file COPYING.FPC, included in this distribution,
+#   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
 #
 #   This program is distributed in the hope that it will be useful,
@@ -768,9 +768,9 @@ parser_e_function_already_declared_public_forward=03120_E_La funzione è già dich
 % declaration in the \var{implementation} section.
 parser_e_not_external_and_export=03121_E_Non si possono usare sia EXPORT che EXTERNAL
 % These two procedure directives are mutually exclusive.
-parser_w_not_supported_for_inline=03123_W_"$1" non è ancora supportata all'interno di procedure o funzioni inline
+parser_h_not_supported_for_inline=03123_H_"$1" non è ancora supportata all'interno di procedure o funzioni inline
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_Inlining disabilitato
+parser_h_inlining_disabled=03124_H_Inlining disabilitato
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_Scrivo il log del browser $1
 % When information messages are on, the compiler warns you when it
@@ -2725,12 +2725,10 @@ Tipi di microcontroller supportati:
   $CONTROLLERTYPES
 
 Questo programma è distribuito sotto la GNU General Public Licence
-Per ulteriori informazioni leggere il file COPYING.FPC
+Per ulteriori informazioni leggere il file COPYING.v2
 
 Riferire difetti, suggerimenti ecc. a:
                  http://bugs.freepascal.org
-oppure a
-                 bugs@freepascal.org
 ]
 
 #

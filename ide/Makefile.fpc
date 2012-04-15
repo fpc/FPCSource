@@ -21,7 +21,7 @@ fpcpackage=y
 options=-Sg
 
 [require]
-packages=fv gdbint regexpr chm
+packages=fv gdbint regexpr chm  fcl-base fcl-xml
 packages_go32v2=graph
 libc=y
 
@@ -54,8 +54,23 @@ ifeq ($(FULL_TARGET),x86_64-win64)
 needlinkparam=1
 endif
 
+ifeq ($(OS_TARGET),freebsd)
+needusrlocallib=1
+neednostdlib=1
+endif
+ifeq ($(OS_TARGET),openbsd)
+needusrlocallib=1
+endif
+
 ifdef needlinkparam
 override SPECIALLINK=-Xe -k--allow-multiple-definition
+endif
+
+ifdef needusrlocallib
+override SPECIALLINK+=-Fl/usr/local/lib
+endif
+ifdef neednostdlib
+override SPECIALLINK+=-Xd
 endif
 # Try to find GDB library
 # Look for a valid GDBLIBDIR environment variable

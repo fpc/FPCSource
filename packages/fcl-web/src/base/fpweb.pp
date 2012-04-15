@@ -150,6 +150,7 @@ Type
     property Kind;
     Property OnNewSession;
     Property OnSessionExpired;
+    Property AfterInitModule;
   end;
 
   EFPWebError = Class(HTTPError);

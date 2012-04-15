@@ -211,6 +211,7 @@ begin
     T.Dependencies.Add('sysutils');
     T.Dependencies.Add('rtlconsts');
     T:=AddUnit('objpas/utf8bidi.pp');
+    T:=AddUnit('objpas/character.pas');
     { Free Pascal additions}
     T:=AddUnit(OSDir+'keyboard.pp');
     With T.Dependencies do

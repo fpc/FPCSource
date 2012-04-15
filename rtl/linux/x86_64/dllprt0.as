@@ -44,8 +44,6 @@ FPC_SHARED_LIB_START:
 	.globl _start
 	.type _start,@function
 _startlib:
-#       movq %rdx,%r9                 /* Address of the shared library termination
-#               	                 function.  */
 	pushq	 %rbx
         movq     operatingsystem_parameter_argc@GOTPCREL(%rip),%rbx
         movq     %rdi,(%rbx)
@@ -54,7 +52,7 @@ _startlib:
         movq     operatingsystem_parameter_envp@GOTPCREL(%rip),%rbx
         movq     %rdx,(%rbx)
 
-        movq    TC_SYSTEM_ISLIBRARY@GOTPCREL(%rip),%rbx
+        movq    operatingsystem_islibrary@GOTPCREL(%rip),%rbx
         movb    $1,(%rbx)
 
         /* Save initial stackpointer */

@@ -31,7 +31,7 @@ uses Glib2, Gdk2, Gtk2, GdkGLExt;
 
 const
   GtkGLExtLib = 
-    {$ifdef WIN32} 'libgtkglext-win32-1.0-0.dll'
+    {$ifdef WINDOWS} 'libgtkglext-win32-1.0-0.dll'
     {$else}        
       {$ifdef DARWIN}
         'gtkglext-x11-1.0'

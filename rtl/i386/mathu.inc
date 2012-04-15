@@ -28,10 +28,6 @@ procedure sincos(theta : float;out sinus,cosinus : float);assembler;
   asm
     fldt theta
     fsincos
-{$ifndef regcall}
-    movl  sinus, %eax
-    movl  cosinus, %edx
-{$endif}
     fstpt (%edx)
     fstpt (%eax)
     fwait

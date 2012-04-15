@@ -165,6 +165,7 @@ interface
           { force the name of the to-be-called routine to a particular string,
             used for Objective-C message sending.  }
           property parameters : tnode read left write left;
+          property pushed_parasize: longint read pushedparasize;
        private
           AbstractMethodsList : TFPHashList;
        end;
@@ -1739,7 +1740,7 @@ implementation
     function tcallnode.gen_self_tree:tnode;
       var
         selftree : tnode;
-        selfdef  : tabstractrecorddef;
+        selfdef  : tdef;
       begin
         selftree:=nil;
 
@@ -1798,7 +1799,8 @@ implementation
                 selfdef:=tobjectdef(tprocdef(procdefinition).struct).extendeddef
               else
                 selfdef:=tprocdef(procdefinition).struct;
-              if (oo_has_vmt in tprocdef(procdefinition).struct.objectoptions) or
+              if ((selfdef.typ in [recorddef,objectdef]) and
+                  (oo_has_vmt in tabstractrecorddef(selfdef).objectoptions)) or
                  { all Java classes have a "VMT" }
                  (target_info.system in systems_jvm) then
                 begin
@@ -1943,7 +1945,8 @@ implementation
           realresdef:=tstoreddef(typedef);
         if realresdef.is_intregable then
           result:=LOC_REGISTER
-        else if realresdef.is_fpuregable then
+        else if (realresdef.typ=floatdef) and
+          not(cs_fp_emulation in current_settings.moduleswitches) then
           if use_vectorfpu(realresdef) then
             result:=LOC_MMREGISTER
           else
@@ -2199,7 +2202,8 @@ implementation
                   begin
                     if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                        (procdefinition.proctypeoption=potype_constructor) and
-                       (nf_is_self in methodpointer.flags) then
+                       (methodpointer.nodetype=loadn) and
+                       (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
                       vmttree:=cpointerconstnode.create(0,voidpointertype)
                     else
                       vmttree:=cpointerconstnode.create(1,voidpointertype);
@@ -2441,6 +2445,12 @@ implementation
                        para.left:=gen_procvar_context_tree
                      else
                        para.left:=gen_self_tree;
+                     { make sure that e.g. the self pointer of an advanced
+                       record does not become a regvar, because it's a vs_var
+                       parameter }
+                     if paramanager.push_addr_param(para.parasym.varspez,para.parasym.vardef,
+                         procdefinition.proccalloption) then
+                       make_not_regable(para.left,[ra_addr_regable]);
                    end
                 else
                  if vo_is_vmt in para.parasym.varoptions then
@@ -2460,9 +2470,13 @@ implementation
                    begin
                      if not assigned(right) then
                        begin
-                         if not(assigned(procdefinition.owner.defowner)) then
+                         if assigned(procdefinition.owner.defowner) then
+                           para.left:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner))
+                         { exceptfilters called from main level are not owned }
+                         else if procdefinition.proctypeoption=potype_exceptfilter then
+                           para.left:=cloadparentfpnode.create(current_procinfo.procdef)
+                         else
                            internalerror(200309287);
-                         para.left:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner))
                        end
                      else
                        para.left:=gen_procvar_context_tree;
@@ -2529,7 +2543,8 @@ implementation
           called, indirect constructor calls cannot be checked.
         }
         if assigned(methodpointer) and
-           not (nf_is_self in methodpointer.flags) then
+           not((methodpointer.nodetype=loadn) and
+               (loadnf_is_self in tloadnode(methodpointer).loadnodeflags)) then
           begin
             if (methodpointer.resultdef.typ = objectdef) then
               objectdf:=tobjectdef(methodpointer.resultdef)
@@ -3049,7 +3064,8 @@ implementation
               if (procdefinition.proctypeoption=potype_constructor) and
                  is_class(tprocdef(procdefinition).struct) and
                  assigned(methodpointer) and
-                 (nf_is_self in methodpointer.flags) then
+                 (methodpointer.nodetype=loadn) and
+                 (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
                 resultdef:=voidtype
               else
                 resultdef:=procdefinition.returndef;
@@ -3076,6 +3092,14 @@ implementation
                 else
                   CGMessage(cg_e_cant_call_abstract_method);
               end;
+
+            { directly calling an interface/protocol/category/class helper
+              method via its type is not possible (always must be called via
+              the actual instance) }
+            if (methodpointer.nodetype=typen) and
+               (is_interface(methodpointer.resultdef) or
+                is_objc_protocol_or_category(methodpointer.resultdef)) then
+              CGMessage1(type_e_class_type_expected,methodpointer.resultdef.typename);
 
             { if an inherited con- or destructor should be  }
             { called in a con- or destructor then a warning }
@@ -3804,8 +3828,11 @@ implementation
                 { otherwise if the parameter is "complex", take the address   }
                 { of the parameter expression, store it in a temp and replace }
                 { occurrences of the parameter with dereferencings of this    }
-                { temp                                                        }
-                else if (paracomplexity > 1) then
+                { temp                                    }
+                else
+                  { don't create a temp. for the often seen case that p^ is passed to a var parameter }
+                  if (paracomplexity>2) or
+                    ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var))) then
                   begin
                     wrapcomplexinlinepara(para);
                   end;

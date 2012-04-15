@@ -36,6 +36,7 @@ resourcestring
   SDivByZero             = 'Division by zero';
   SEndOfFile             = 'Read past end of file';
   SErrInvalidDateMonthWeek = 'Year %d, month %d, Week %d and day %d is not a valid date.';
+  SerrInvalidHourMinuteSecMsec = '%d:%d:%d.%d is not a valid time specification';
   SErrInvalidDateWeek    = '%d %d %d is not a valid dateweek';
   SErrInvalidDayOfWeek   = '%d is not a valid day of the week';
   SErrInvalidDayOfWeekInMonth = 'Year %d Month %d NDow %d DOW %d is not a valid date';
@@ -44,7 +45,7 @@ resourcestring
   SInvalidJulianDate            = '%f Julian cannot be represented as a DateTime';
   SErrIllegalDateFormatString   = '"%s" is not a valid date format string';
   SErrInvalidTimeFormat  = '"%s" is not a valid time';
-  SExceptionErrorMessage = 'exception at %p';
+  SExceptionErrorMessage = 'Exception at %p: %s';
   SExceptionStack        = 'Exception stack error';
   SExecuteProcessFailed  = 'Failed to execute "%s", error code: %d';
   SExternalException     = 'External exception %x';
@@ -86,6 +87,7 @@ resourcestring
   SOverflow              = 'Floating point overflow';
   SPrivilege             = 'Privileged instruction';
   SRangeError            = 'Range check error';
+  SStackOverflow         = 'Stack overflow';
   SSafecallException     = 'Exception in safecall method';
   SiconvError            = 'iconv error';
 
@@ -115,10 +117,17 @@ resourcestring
   SVarTypeRangeCheck2           = 'Range check error while converting variant of type (%s) into type (%s)';
   SVarTypeTooManyCustom         = 'Too many custom variant types have been registered';
   SVarUnexpected                = 'Unexpected variant error';
+  SZeroDivide                   = 'Floating point division by zero';
 
   SFallbackError                = 'An error, whose error code is larger than can be returned to the OS, has occured';
 
   SNoToolserver                 = 'Toolserver is not installed, cannot execute Tool';
+
+  SNotValidCodePageName         = '%s is not a valid code page name';
+  SInvalidCount                 = 'invalid count [%d]';
+  SCharacterIndexOutOfBounds    = 'character index out of bounds [%d]';
+  SInvalidDestinationArray      = 'invalid destination array';
+  SInvalidDestinationIndex      = 'invalid destination index [%d]';
 
   SNoArrayMatch                 = 'Can''t match any allowed value at pattern position %d, string position %d.';
   SNoCharMatch                  = 'Mismatch char "%s" <> "%s" at pattern position %d, string position %d.';

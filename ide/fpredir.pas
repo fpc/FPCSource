@@ -791,16 +791,24 @@ end;
     var
       StoreInherit : BOOL;
 {$endif Windows}
-
+{$ifdef UNIX}
+    var
+      s : cint;
+{$endif}
   Begin
     SwapVectors;
 {$ifdef UNIX}
     IOStatus:=0;
     {We need to use fpsystem to get wildcard expansion and avoid being
-     interrupted by ctrl+c (SIGINT).};
-    ExecuteResult:=fpsystem(MaybeQuoted(FixPath(Progname))+' '+Comline);
-    if ExecuteResult<0 then
+     interrupted by ctrl+c (SIGINT).
+     But used wifexited and wexitstatus functions
+     to correctly interpret fpsystem reutrn value }
+     s:=fpsystem(MaybeQuoted(FixPath(Progname))+' '+Comline);
+     if wifexited(s) then
+       ExecuteResult:=wexitstatus(s)
+     else
       begin
+        ExecuteResult:=word(s);
         IOStatus:=(-ExecuteResult) and $7f;
         ExecuteResult:=((-ExecuteResult) and $ff00) shr 8;
       end;

@@ -1,0 +1,30 @@
+#
+#   Makefile.fpc for PNG Library interface
+#
+
+[package]
+name=libpng
+version=2.7.1
+
+[require]
+packages=zlib
+libc=y
+
+[target]
+units=png
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src tests
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

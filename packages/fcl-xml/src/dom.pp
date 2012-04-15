@@ -98,7 +98,6 @@ type
   TDOMEntityReference = class;
   TDOMProcessingInstruction = class;
 
-  TDOMAttrDef = class;
   TNodePool = class;
   PNodePoolArray = ^TNodePoolArray;
   TNodePoolArray = array[0..MaxInt div sizeof(Pointer)-1] of TNodePool;
@@ -111,9 +110,9 @@ type
 //   DOMString
 // -------------------------------------------------------
 
-  TSetOfChar = set of Char;
-  DOMString = WideString;
-  DOMPChar = PWideChar;
+  TSetOfChar = xmlutils.TSetOfChar;  { to be removed: not used in DOM unit }
+  DOMString = XMLString;
+  DOMPChar = PXMLChar;
   PDOMString = ^DOMString;
 
   EDOMError = class(Exception)
@@ -189,7 +188,8 @@ type
     nfLevel2,
     nfIgnorableWS,
     nfSpecified,
-    nfDestroying
+    nfDestroying,
+    nfFirstChild
   );
   TNodeFlags = set of TNodeFlagEnum;
 
@@ -207,6 +207,7 @@ type
     procedure SetNodeValue(const AValue: DOMString); virtual;
     function  GetFirstChild: TDOMNode; virtual;
     function  GetLastChild: TDOMNode; virtual;
+    function  GetPreviousSibling: TDOMNode; virtual;
     function  GetAttributes: TDOMNamedNodeMap; virtual;
     function GetRevision: Integer;
     function GetNodeType: Integer; virtual; abstract;
@@ -234,7 +235,7 @@ type
     property FirstChild: TDOMNode read GetFirstChild;
     property LastChild: TDOMNode read GetLastChild;
     property ChildNodes: TDOMNodeList read GetChildNodes;
-    property PreviousSibling: TDOMNode read FPreviousSibling;
+    property PreviousSibling: TDOMNode read GetPreviousSibling;
     property NextSibling: TDOMNode read FNextSibling;
     property Attributes: TDOMNamedNodeMap read GetAttributes;
     property OwnerDocument: TDOMDocument read GetOwnerDocument;
@@ -276,7 +277,7 @@ type
 
   TDOMNode_WithChildren = class(TDOMNode)
   protected
-    FFirstChild, FLastChild: TDOMNode;
+    FFirstChild: TDOMNode;
     FChildNodes: TDOMNodeList;
     function GetFirstChild: TDOMNode; override;
     function GetLastChild: TDOMNode; override;
@@ -485,7 +486,6 @@ type
       TDOMProcessingInstruction; virtual;
     function CreateAttribute(const name: DOMString): TDOMAttr;
     function CreateAttributeBuf(Buf: DOMPChar; Length: Integer): TDOMAttr;
-    function CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef; deprecated;
     function CreateEntityReference(const name: DOMString): TDOMEntityReference;
       virtual;
     function GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
@@ -503,7 +503,6 @@ type
     // Extensions to DOM interface:
     constructor Create; virtual;
     destructor Destroy; override;
-    function AddID(Attr: TDOMAttr): Boolean; deprecated;
     function CloneNode(deep: Boolean): TDOMNode; overload; override;
     property Names: THashTable read FNames;
     property IDs: THashTable read FIDList write FIDList;
@@ -522,8 +521,6 @@ type
     function CreateProcessingInstruction(const target, data: DOMString):
       TDOMProcessingInstruction; override;
     function CreateEntityReference(const name: DOMString): TDOMEntityReference; override;
-    // non-compliant symbol, superseded by XMLEncoding, to be phased out
-    property Encoding: DOMString read FXMLEncoding write FXMLEncoding; deprecated;
   end;
 
   // This limits number of namespaces per document to 65535,
@@ -698,6 +695,7 @@ type
   TDOMNotation = class(TDOMNode)
   protected
     FDecl: TNotationDecl;
+    FBaseURI: DOMString;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
     function GetPublicID: DOMString;
@@ -716,6 +714,7 @@ type
   TDOMEntity = class(TDOMNode_TopLevel)
   protected
     FDecl: TEntityDecl;
+    FBaseURI: DOMString;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
     function GetPublicID: DOMString;
@@ -763,26 +762,6 @@ type
     property Data: DOMString read FNodeValue write SetNodeValue;
   end;
 
-// Attribute declaration - Attr descendant which carries rudimentary type info
-// must be severely improved while developing Level 3
-// NOT USED ANYMORE -- replaced by dtdmodel.TAttributeDef
-
-  TAttrDefault = dtdmodel.TAttrDefault;
-  TDOMAttrDef = class(TDOMAttr)
-  protected
-    FExternallyDeclared: Boolean;
-    FDefault: TAttrDefault;
-    FTag: Cardinal;
-    FEnumeration: array of DOMString;
-  public
-    function AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
-    function HasEnumToken(const aValue: DOMString): Boolean;
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
-    property Default: TAttrDefault read FDefault write FDefault;
-    property ExternallyDeclared: Boolean read FExternallyDeclared write FExternallyDeclared;
-    property Tag: Cardinal read FTag write FTag;
-  end deprecated;
-
 // TNodePool - custom memory management for TDOMNode's
 // One pool manages objects of the same InstanceSize (may be of various classes)
 
@@ -807,19 +786,16 @@ type
     procedure FreeNode(ANode: TDOMNode);
   end;
 
-
-// URIs of predefined namespaces
-const
-  stduri_xml: DOMString = 'http://www.w3.org/XML/1998/namespace';
-  stduri_xmlns: DOMString = 'http://www.w3.org/2000/xmlns/';
-
 // temporary until things are settled
-function LoadAttribute(doc: TDOMDocument; src: PNodeData): TDOMAttr;
+function LoadElement(doc: TDOMDocument; src: PNodeData; attrCount: Integer): TDOMElement;
 
 // =======================================================
 // =======================================================
 
 implementation
+
+uses
+  UriParser;
 
 { a namespace-enabled NamedNodeMap }
 type
@@ -961,6 +937,14 @@ end;
 function TDOMNode.GetLastChild: TDOMNode;
 begin
   Result := nil;
+end;
+
+function TDOMNode.GetPreviousSibling: TDOMNode;
+begin
+  if nfFirstChild in FFlags then
+    Result := nil
+  else
+    Result := FPreviousSibling;
 end;
 
 function TDOMNode.GetAttributes: TDOMNamedNodeMap;
@@ -1262,17 +1246,71 @@ begin
   result := GetAncestorElement(Self).IsDefaultNamespace(nsURI);
 end;
 
+function GetParentURI(n: TDOMNode): DOMString;
+var
+  entity, parent: TDOMNode;
+begin
+  parent := n.ParentNode;
+  if Assigned(parent) then
+  begin
+    entity := nil;
+    case parent.nodeType of
+      ENTITY_NODE:
+        entity := parent;
+      ENTITY_REFERENCE_NODE:
+        if Assigned(n.OwnerDocument.DocType) then
+          entity := n.OwnerDocument.DocType.Entities.GetNamedItem(parent.NodeName);
+    end;
+    if entity = nil then
+      result := parent.BaseURI
+    else
+    { TODO: this will need fix when resource resolving is implemented;
+      it should return the URI of actually fetched entity. }
+      ResolveRelativeURI(TDOMEntity(entity).FDecl.FURI, TDOMEntity(entity).SystemID, result);
+  end
+  else
+    result := n.OwnerDocument.DocumentURI;
+end;
+
 function TDOMNode.GetBaseURI: DOMString;
+var
+  base: DOMString;
+  dtype: TDOMDocumentType;
+  ent: TDOMEntity;
 begin
   case NodeType of
-  // !! Incomplete !!
+    ELEMENT_NODE:
+      begin
+        result := GetParentURI(Self);
+        { 'xml' prefix is restricted to xml namespace, so this will work
+          regardless of namespace processing enabled }
+        base := TDOMElement(Self).GetAttribute('xml:base');
+        if base <> '' then
+        begin
+          ResolveRelativeUri(result, base, result);
+        end;
+      end;
     DOCUMENT_NODE:
       result := TDOMDocument(Self).FURI;
     PROCESSING_INSTRUCTION_NODE:
-      if Assigned(ParentNode) then
-        result := ParentNode.GetBaseURI
-      else
-        result := OwnerDocument.DocumentURI;
+      result := GetParentURI(Self);
+    { BaseUri of entities and notations is the URI where they're defined;
+      cloning should cause this property to get lost. }
+    ENTITY_NODE:
+      result := TDOMEntity(Self).FBaseURI;
+    NOTATION_NODE:
+      result := TDOMNotation(Self).FBaseURI;
+    ENTITY_REFERENCE_NODE:
+      begin
+        result := '';
+        dtype := OwnerDocument.DocType;
+        if Assigned(dtype) then
+        begin
+          ent := TDOMEntity(dtype.Entities.GetNamedItem(NodeName));
+          if Assigned(ent) then
+            result := ent.FDecl.FURI;
+        end;
+      end
   else
     result := '';
   end;
@@ -1310,7 +1348,10 @@ end;
 
 function TDOMNode_WithChildren.GetLastChild: TDOMNode;
 begin
-  Result := FLastChild;
+  if FFirstChild = nil then
+    Result := nil
+  else
+    Result := FFirstChild.FPreviousSibling;
 end;
 
 destructor TDOMNode_WithChildren.Destroy;
@@ -1385,21 +1426,28 @@ begin
   begin
     if Assigned(FFirstChild) then
     begin
-      FLastChild.FNextSibling := NewChild;
-      NewChild.FPreviousSibling := FLastChild;
-    end else
+      Tmp := FFirstChild.FPreviousSibling;      { our last child }
+      Tmp.FNextSibling := NewChild;
+      NewChild.FPreviousSibling := Tmp;
+    end
+    else
+    begin
       FFirstChild := NewChild;
-    FLastChild := NewChild;
+      Include(NewChild.FFlags, nfFirstChild);
+    end;
+    FFirstChild.FPreviousSibling := NewChild;   { becomes our last child }
   end
   else   // insert before RefChild
   begin
+    NewChild.FPreviousSibling := RefChild.FPreviousSibling;
     if RefChild = FFirstChild then
-      FFirstChild := NewChild
-    else
     begin
+      Exclude(RefChild.FFlags, nfFirstChild);
+      FFirstChild := NewChild;
+      Include(NewChild.FFlags, nfFirstChild);
+    end
+    else
       RefChild.FPreviousSibling.FNextSibling := NewChild;
-      NewChild.FPreviousSibling := RefChild.FPreviousSibling;
-    end;
     RefChild.FPreviousSibling := NewChild;
   end;
   NewChild.FParentNode := Self;
@@ -1415,6 +1463,8 @@ begin
 end;
 
 function TDOMNode_WithChildren.DetachChild(OldChild: TDOMNode): TDOMNode;
+var
+  prev, next: TDOMNode;
 begin
   Changing;
 
@@ -1424,15 +1474,26 @@ begin
   Inc(FOwnerDocument.FRevision); // invalidate nodelists
 
   if OldChild = FFirstChild then
-    FFirstChild := FFirstChild.FNextSibling
+  begin
+    Exclude(OldChild.FFlags, nfFirstChild);
+    FFirstChild := FFirstChild.FNextSibling;
+    if Assigned(FFirstChild) then
+    begin
+      { maintain lastChild }
+      Include(FFirstChild.FFlags, nfFirstChild);
+      FFirstChild.FPreviousSibling := OldChild.FPreviousSibling;
+    end;
+  end
   else
-    OldChild.FPreviousSibling.FNextSibling := OldChild.FNextSibling;
-
-  if OldChild = FLastChild then
-    FLastChild := FLastChild.FPreviousSibling
-  else
-    OldChild.FNextSibling.FPreviousSibling := OldChild.FPreviousSibling;
-
+  begin
+    prev := OldChild.FPreviousSibling;
+    next := OldChild.FNextSibling;
+    prev.FNextSibling := next;
+    if Assigned(next) then     { removing node in the middle }
+      next.FPreviousSibling := prev
+    else                       { removing the last child }
+      FFirstChild.FPreviousSibling := prev;
+  end;
   // Make sure removed child does not contain references to nowhere
   OldChild.FPreviousSibling := nil;
   OldChild.FNextSibling := nil;
@@ -1441,14 +1502,21 @@ begin
 end;
 
 procedure TDOMNode_WithChildren.InternalAppend(NewChild: TDOMNode);
+var
+  Tmp: TDOMNode;
 begin
   if Assigned(FFirstChild) then
   begin
-    FLastChild.FNextSibling := NewChild;
-    NewChild.FPreviousSibling := FLastChild;
-  end else
+    Tmp := FFirstChild.FPreviousSibling;      { our last child }
+    Tmp.FNextSibling := NewChild;
+    NewChild.FPreviousSibling := Tmp;
+  end
+  else
+  begin
     FFirstChild := NewChild;
-  FLastChild := NewChild;
+    Include(NewChild.FFlags, nfFirstChild);
+  end;
+  FFirstChild.FPreviousSibling := NewChild;   { becomes our last child }
   NewChild.FParentNode := Self;
 end;
 
@@ -1496,7 +1564,6 @@ begin
     child := next;
   end;
   FFirstChild := nil;
-  FLastChild := nil;
 end;
 
 function TDOMNode_WithChildren.GetTextContent: DOMString;
@@ -2044,11 +2111,11 @@ end;
 { if nsIdx = -1, checks only the name. Otherwise additionally checks if the prefix is
   valid for standard namespace specified by nsIdx. 
   Non-negative return value is Pos(':', QName), negative is DOM error code. }
-function CheckQName(const QName: DOMString; nsIdx: Integer; Xml11: Boolean): Integer;
+function CheckQName(const QName: DOMString; nsIdx: Integer): Integer;
 var
   I, L: Integer;
 begin
-  if not IsXmlName(QName, Xml11) then
+  if not IsXmlName(QName) then
   begin
     Result := -INVALID_CHARACTER_ERR;
     Exit;
@@ -2066,7 +2133,7 @@ begin
       end;
     // Name validity has already been checked by IsXmlName() call above.  
     // So just check that colon isn't first or last char, and that it is follwed by NameStartChar.
-    if ((Result = 1) or (Result = L) or not IsXmlName(@QName[Result+1], 1, Xml11)) then
+    if ((Result = 1) or (Result = L) or not IsXmlName(@QName[Result+1], 1)) then
     begin
       Result := -NAMESPACE_ERR;
       Exit;
@@ -2076,9 +2143,9 @@ begin
   // QName contains prefix, but no namespace
   if ((nsIdx = 0) and (Result > 0)) or
   // Bad usage of 'http://www.w3.org/2000/xmlns/'
-  ((((L = 5) or (Result = 6)) and (Pos(WideString('xmlns'), QName) = 1)) <> (nsIdx = 2)) or
+  ((((L = 5) or (Result = 6)) and (Pos(DOMString('xmlns'), QName) = 1)) <> (nsIdx = 2)) or
   // Bad usage of 'http://www.w3.org/XML/1998/namespace'
-  ((Result = 4) and (Pos(WideString('xml'), QName) = 1) and (nsIdx <> 1)) then
+  ((Result = 4) and (Pos(DOMString('xml'), QName) = 1) and (nsIdx <> 1)) then
     Result := -NAMESPACE_ERR;
 end;
 
@@ -2099,7 +2166,7 @@ var
   res: Integer;
   model: TDTDModel;
 begin
-  res := CheckQName(QualifiedName, -1, False);
+  res := CheckQName(QualifiedName, -1);
   if res < 0 then
     raise EDOMError.Create(-res, 'Implementation.CreateDocumentType');
   model := TDTDModel.Create(nil); // !!nowhere to get nametable from at this time
@@ -2220,22 +2287,6 @@ begin
   Result := pp.AllocNode(AClass);
 end;
 
-function TDOMDocument.AddID(Attr: TDOMAttr): Boolean;
-var
-  ID: DOMString;
-  Exists: Boolean;
-  p: PHashItem;
-begin
-  if FIDList = nil then
-    FIDList := THashTable.Create(256, False);
-
-  ID := Attr.Value;
-  p := FIDList.FindOrAdd(DOMPChar(ID), Length(ID), Exists);
-  if not Exists then
-    p^.Data := Attr.FParentNode;
-  Result := not Exists;
-end;
-
 // This shouldn't be called if document has no IDs,
 // or when it is being destroyed
 // TODO: This could be much faster if removing ID happens
@@ -2321,7 +2372,7 @@ end;
 
 function TDOMDocument.CreateElement(const tagName: DOMString): TDOMElement;
 begin
-  if not IsXmlName(tagName, FXMLVersion = xmlVersion11) then
+  if not IsXmlName(tagName) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'DOMDocument.CreateElement');
   TDOMNode(Result) := Alloc(TDOMElement);
   Result.Create(Self);
@@ -2389,7 +2440,7 @@ end;
 
 function TDOMDocument.CreateAttribute(const name: DOMString): TDOMAttr;
 begin
-  if not IsXmlName(name, FXMLVersion = xmlVersion11) then
+  if not IsXmlName(name) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'DOMDocument.CreateAttribute');
   TDOMNode(Result) := Alloc(TDOMAttr);
   Result.Create(Self);
@@ -2403,14 +2454,6 @@ begin
   Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(buf, Length);
   Include(Result.FFlags, nfSpecified);
-end;
-
-{deprecated}
-function TDOMDocument.CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef;
-begin
-// not using custom allocation here
-  Result := TDOMAttrDef.Create(Self);
-  Result.FNSI.QName := FNames.FindOrAdd(Buf, Length);
 end;
 
 function TDOMDocument.CreateEntityReference(const name: DOMString):
@@ -2499,7 +2542,7 @@ var
   idx, PrefIdx: Integer;
 begin
   idx := IndexOfNS(nsURI, True);
-  PrefIdx := CheckQName(QualifiedName, idx, FXMLVersion = xmlVersion11);
+  PrefIdx := CheckQName(QualifiedName, idx);
   if PrefIdx < 0 then
     raise EDOMError.Create(-PrefIdx, 'Document.CreateAttributeNS');
   TDOMNode(Result) := Alloc(TDOMAttr);
@@ -2517,7 +2560,7 @@ var
   idx, PrefIdx: Integer;
 begin
   idx := IndexOfNS(nsURI, True);
-  PrefIdx := CheckQName(QualifiedName, idx, FXMLVersion = xmlVersion11);
+  PrefIdx := CheckQName(QualifiedName, idx);
   if PrefIdx < 0 then
     raise EDOMError.Create(-PrefIdx, 'Document.CreateElementNS');
   TDOMNode(Result) := Alloc(TDOMElement);
@@ -2590,7 +2633,7 @@ end;
 function TXMLDocument.CreateProcessingInstruction(const target,
   data: DOMString): TDOMProcessingInstruction;
 begin
-  if not IsXmlName(target, FXMLVersion = xmlVersion11) then
+  if not IsXmlName(target) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'XMLDocument.CreateProcessingInstruction');
   TDOMNode(Result) := Alloc(TDOMProcessingInstruction);
   Result.Create(Self);
@@ -2604,7 +2647,7 @@ var
   dType: TDOMDocumentType;
   ent: TDOMEntity;
 begin
-  if not IsXmlName(name, FXMLVersion = xmlVersion11) then
+  if not IsXmlName(name) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'XMLDocument.CreateEntityReference');
   TDOMNode(Result) := Alloc(TDOMEntityReference);
   Result.Create(Self);
@@ -2673,7 +2716,7 @@ var
   NewName: DOMString;
 begin
   Changing;
-  if not IsXmlName(Value, FOwnerDocument.FXMLVersion = xmlVersion11) then
+  if not IsXmlName(Value) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'Node.SetPrefix');
 
   if (Pos(WideChar(':'), Value) > 0) or not (nfLevel2 in FFlags) or
@@ -2907,6 +2950,25 @@ begin
     result.InternalAppend(doc.CreateTextNode(src^.FValueStr));
 end;
 
+function LoadElement(doc: TDOMDocument; src: PNodeData; attrCount: Integer): TDOMElement;
+var
+  i: Integer;
+begin
+  TDOMNode(result) := doc.Alloc(TDOMElement);
+  result.Create(doc);
+  result.FNSI.QName := src^.FQName;
+  if Assigned(src^.FNsUri) then
+    result.SetNSI(src^.FNsUri^.Key, src^.FColonPos+1);
+  for i := 0 to attrCount-1 do
+  begin
+    Inc(src);
+    result.SetAttributeNode(LoadAttribute(doc, src));
+    // Attach element to ID map entry if necessary
+    if Assigned(src^.FIDEntry) then
+      src^.FIDEntry^.Data := Result;
+  end;
+end;
+
 procedure TDOMElement.RestoreDefaultAttr(AttrDef: TAttributeDef);
 var
   Attr: TDOMAttr;
@@ -3028,7 +3090,7 @@ var
 begin
   Changing;
   idx := FOwnerDocument.IndexOfNS(nsURI, True);
-  prefIdx := CheckQName(qualifiedName, idx, FOwnerDocument.FXMLVersion = xmlVersion11);
+  prefIdx := CheckQName(qualifiedName, idx);
   if prefIdx < 0 then
     raise EDOMError.Create(-prefIdx, 'Element.SetAttributeNS');
 
@@ -3250,6 +3312,7 @@ var
 begin
   node := TDOMEntity.Create(this.ownerDocument);
   node.FDecl := TEntityDecl(Entry^.Data);
+  node.FBaseURI := node.FDecl.FURI;
   node.SetReadOnly(True);
   this.Entities.SetNamedItem(node);
   Result := True;
@@ -3262,6 +3325,7 @@ var
 begin
   node := TDOMNotation.Create(this.ownerDocument);
   node.FDecl := TNotationDecl(Entry^.Data);
+  node.FBaseURI := node.FDecl.FURI;
   node.SetReadOnly(True);
   this.Notations.SetNamedItem(node);
   Result := True;
@@ -3418,46 +3482,6 @@ procedure TDOMProcessingInstruction.SetNodeValue(const AValue: DOMString);
 begin
   Changing;
   FNodeValue := AValue;
-end;
-
-{ TDOMAttrDef (DEPRECATED) }
-
-function TDOMAttrDef.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
-begin
-  Result := inherited CloneNode(deep, ACloneOwner);
-  Exclude(Result.FFlags, nfSpecified);
-end;
-
-function TDOMAttrDef.AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
-var
-  I, L: Integer;
-begin
-  // TODO: this implementaion is the slowest possible...
-  Result := False;
-  L := Length(FEnumeration);
-  for I := 0 to L-1 do
-  begin
-    if CompareDomStrings(Buf, DOMPChar(FEnumeration[I]), Len, Length(FEnumeration[I])) = 0 then
-      Exit;
-  end;
-  SetLength(FEnumeration, L+1);
-  SetString(FEnumeration[L], Buf, Len);
-  Result := True;
-end;
-
-function TDOMAttrDef.HasEnumToken(const aValue: DOMString): Boolean;
-var
-  I: Integer;
-begin
-  Result := True;
-  if Length(FEnumeration) = 0 then
-    Exit;
-  for I := 0 to Length(FEnumeration)-1 do
-  begin
-    if FEnumeration[I] = aValue then
-      Exit;
-  end;
-  Result := False;
 end;
 
 { TNodePool }

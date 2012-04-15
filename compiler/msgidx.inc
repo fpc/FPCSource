@@ -110,7 +110,8 @@ const
   scan_w_multiple_main_name_overrides=02086;
   scanner_w_illegal_warn_identifier=02087;
   scanner_e_illegal_alignment_directive=02088;
-  scanner_w_directive_ignored_on_target=02089;
+  scanner_f_illegal_utf8_bom=02089;
+  scanner_w_directive_ignored_on_target=02090;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -221,8 +222,8 @@ const
   parser_e_proc_dir_not_allowed_in_procvar=03119;
   parser_e_function_already_declared_public_forward=03120;
   parser_e_not_external_and_export=03121;
-  parser_w_not_supported_for_inline=03123;
-  parser_w_inlining_disabled=03124;
+  parser_h_not_supported_for_inline=03123;
+  parser_h_inlining_disabled=03124;
   parser_i_writing_browser_log=03125;
   parser_h_maybe_deref_caret_missing=03126;
   parser_f_assembler_reader_not_supported=03127;
@@ -406,13 +407,14 @@ const
   parser_e_duplicate_implements_clause=03311;
   parser_e_mapping_no_implements=03312;
   parser_e_implements_no_mapping=03313;
-  parser_e_final_only_const_var=03314;
-  parser_e_final_only_external=03315;
-  parser_e_no_typed_const=03316;
-  parser_e_java_no_inherited_constructor=03317;
-  parser_d_internal_parser_string=03318;
-  parser_e_feature_unsupported_for_vm=03319;
-  parser_e_jvm_invalid_virtual_constructor_call=03320;
+  parser_e_invalid_codepage=03314;
+  parser_e_final_only_const_var=03315;
+  parser_e_final_only_external=03316;
+  parser_e_no_typed_const=03317;
+  parser_e_java_no_inherited_constructor=03318;
+  parser_d_internal_parser_string=03319;
+  parser_e_feature_unsupported_for_vm=03320;
+  parser_e_jvm_invalid_virtual_constructor_call=03321;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -456,8 +458,8 @@ const
   type_e_class_or_interface_type_expected=04041;
   type_e_type_is_not_completly_defined=04042;
   type_w_string_too_long=04043;
-  type_w_signed_unsigned_always_false=04044;
-  type_w_signed_unsigned_always_true=04045;
+  type_w_comparison_always_false=04044;
+  type_w_comparison_always_true=04045;
   type_w_instance_with_abstract=04046;
   type_h_in_range_check=04047;
   type_w_smaller_possible_range_check=04048;
@@ -506,12 +508,21 @@ const
   type_e_record_type_expected=04100;
   type_e_class_helper_must_extend_subclass=04101;
   type_e_record_helper_must_extend_same_record=04102;
-  type_e_java_class_method_not_static_virtual=04103;
-  type_e_invalid_final_assignment=04104;
-  type_e_no_managed_formal_assign_typecast=04105;
-  type_e_no_managed_assign_generic_typecast=04106;
-  type_w_interface_lower_visibility=04107;
-  type_e_interface_lower_visibility=04108;
+  type_e_procedures_return_no_value=04103;
+  type_w_implicit_string_cast=04104;
+  type_w_implicit_string_cast_loss=04105;
+  type_w_explicit_string_cast=04106;
+  type_w_explicit_string_cast_loss=04107;
+  type_w_unicode_data_loss=04108;
+  type_e_range_check_error_bounds=04109;
+  type_w_range_check_error_bounds=04110;
+  type_e_type_not_allowed_for_default=04111;
+  type_e_java_class_method_not_static_virtual=04112;
+  type_e_invalid_final_assignment=04113;
+  type_e_no_managed_formal_assign_typecast=04114;
+  type_e_no_managed_assign_generic_typecast=04115;
+  type_w_interface_lower_visibility=04116;
+  type_e_interface_lower_visibility=04117;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -616,6 +627,7 @@ const
   cg_e_interprocedural_goto_only_to_outer_scope_allowed=06051;
   cg_e_labels_cannot_defined_outside_declaration_scope=06052;
   cg_e_goto_across_procedures_with_exceptions_not_allowed=06053;
+  cg_e_mod_only_defined_for_pos_quotient=06054;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -722,6 +734,11 @@ const
   asmr_e_mixing_regtypes=07108;
   asmr_e_empty_regset=07109;
   asmr_w_useless_got_for_local=07110;
+  asmr_w_general_segment_with_constant=07111;
+  asmr_e_bad_seh_directive_offset=07112;
+  asmr_e_bad_seh_directive_register=07113;
+  asmr_e_seh_in_pure_asm_only=07114;
+  asmr_e_unsupported_directive=07115;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -745,6 +762,9 @@ const
   asmw_e_16bit_32bit_not_supported=08020;
   asmw_e_64bit_not_supported=08021;
   asmw_e_bad_reg_with_rex=08022;
+  asmw_e_missing_endprologue=08023;
+  asmw_e_prologue_too_large=08024;
+  asmw_e_handlerdata_no_handler=08025;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -778,6 +798,7 @@ const
   exec_e_cant_call_resource_compiler=09030;
   exec_e_cant_open_resource_file=09031;
   exec_e_cant_write_resource_file=09032;
+  exec_n_backquote_cat_file_not_found=09033;
   execinfo_f_cant_process_executable=09128;
   execinfo_f_cant_open_executable=09129;
   execinfo_x_codesize=09130;
@@ -892,6 +913,10 @@ const
   option_dwarf_smart_linking=11046;
   option_ignored_target=11047;
   option_debug_external_unsupported=11048;
+  option_dwarf_smartlink_creation=11049;
+  option_invalid_macosx_deployment_target=11050;
+  option_invalid_iphoneos_deployment_target=11051;
+  option_illegal_fpu_eabihf=11052;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -916,9 +941,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 62642;
+  MsgTxtSize = 65363;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,90,321,109,87,54,111,23,202,63,
-    49,20,1,1,1,1,1,1,1,1
+    26,91,322,118,87,55,116,26,202,63,
+    53,20,1,1,1,1,1,1,1,1
   );

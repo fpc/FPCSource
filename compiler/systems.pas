@@ -89,6 +89,9 @@ interface
           flags        : set of tasmflags;
           labelprefix : string[3];
           comment     : string[3];
+          { set to '$' if that character is allowed in symbol names, otherwise
+            to alternate character by which '$' should be replaced }
+          dollarsign  : char;
        end;
 
        parinfo = ^tarinfo;
@@ -148,8 +151,9 @@ interface
             tf_no_generic_stackcheck,
             tf_has_winlike_resources,
             tf_safecall_clearstack,             // With this flag set, after safecall calls the caller cleans up the stack
-            tf_safecall_exceptions              // Exceptions in safecall calls are not raised, but passed to the caller as an ordinal (hresult) in the function result.
+            tf_safecall_exceptions,             // Exceptions in safecall calls are not raised, but passed to the caller as an ordinal (hresult) in the function result.
                                                 // The original result (if it exists) is passed as an extra parameter
+            tf_no_backquote_support
        );
 
        psysteminfo = ^tsysteminfo;
@@ -214,6 +218,19 @@ interface
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
                        system_x86_6432_linux,system_mips_linux,system_mipsel_linux];
+       systems_freebsd = [system_i386_freebsd,
+                          system_x86_64_freebsd];
+       systems_netbsd  = [system_i386_netbsd,
+                          system_m68k_netbsd,
+                          system_powerpc_netbsd,
+                          system_x86_64_netbsd];
+       systems_openbsd = [system_i386_openbsd,
+                          system_m68k_openbsd,
+                          system_x86_64_openbsd];
+
+       systems_bsd = systems_freebsd + systems_netbsd + systems_openbsd;
+
+       systems_aix = [system_powerpc_aix,system_powerpc64_aix];
 
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
        systems_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
@@ -243,10 +260,13 @@ interface
        { all systems that allow section directive }
        systems_allow_section = systems_embedded;
 
+       { systems that uses dotted function names as descriptors }
+       systems_dotted_function_names = [system_powerpc64_linux]+systems_aix;
+
        systems_allow_section_no_semicolon = systems_allow_section
-{$ifdef TEST_TLS_DIRECTORY}
+{$ifndef DISABLE_TLS_DIRECTORY}
        + systems_windows
-{$endif TEST_TLS_DIRECTORY}
+{$endif not DISABLE_TLS_DIRECTORY}
        ;
 
        { all symbian systems }
@@ -340,7 +360,7 @@ interface
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm');
 
        abi2str : array[tabi] of string[10] =
-         ('DEFAULT','SYSV','AIX','EABI','ARMEB');
+         ('DEFAULT','SYSV','AIX','EABI','ARMEB','EABIHF');
 
     var
        targetinfos   : array[tsystem] of psysteminfo;
@@ -744,6 +764,10 @@ begin
     default_target(system_i386_freebsd);
     {$define default_target_set}
    {$endif}
+   {$ifdef openbsd}
+    default_target(system_i386_openbsd);
+    {$define default_target_set}
+   {$endif}
    {$ifdef darwin}
     default_target(system_i386_darwin);
     {$define default_target_set}
@@ -770,6 +794,14 @@ begin
    {$endif}
    {$ifdef freebsd}
     default_target(system_x86_64_freebsd);
+    {$define default_target_set}
+   {$endif}
+   {$ifdef openbsd}
+    default_target(system_x86_64_openbsd);
+    {$define default_target_set}
+   {$endif}
+   {$ifdef netbsd}
+    default_target(system_x86_64_netbsd);
     {$define default_target_set}
    {$endif}
    {$ifdef solaris}
@@ -817,6 +849,10 @@ begin
     {$define default_target_set}
    {$endif}
   {$endif cpupowerpc}
+  {$ifdef aix}
+   default_target(system_powerpc_aix);
+   {$define default_target_set}
+  {$endif}
   {$ifndef default_target_set}
     default_target(system_powerpc_linux);
   {$endif default_target_set}
@@ -833,6 +869,10 @@ begin
     {$endif}
     {$ifdef linux}
      default_target(system_powerpc64_linux);
+     {$define default_target_set}
+    {$endif}
+    {$ifdef aix}
+     default_target(system_powerpc64_aix);
      {$define default_target_set}
     {$endif}
   {$endif cpupowerpc64}

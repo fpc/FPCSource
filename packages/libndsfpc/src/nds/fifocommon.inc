@@ -9,9 +9,9 @@ const
   FIFO_SYSTEM : FifoChannels = 2;
   FIFO_MAXMOD : FifoChannels = 3;
   FIFO_DSWIFI : FifoChannels = 4;
-  FIFO_RSVD_01: FifoChannels = 5;
-  FIFO_RSVD_02: FifoChannels = 6;
-  FIFO_RSVD_03: FifoChannels = 7;
+  FIFO_SDMMC  : FifoChannels = 5;
+  FIFO_RSVD_01: FifoChannels = 6;
+  FIFO_RSVD_02: FifoChannels = 7;
   FIFO_USER_01: FifoChannels = 8;
   FIFO_USER_02: FifoChannels = 9;
   FIFO_USER_03: FifoChannels = 10;	    
@@ -44,10 +44,14 @@ const
   SYS_REQ_KEYS       : FifoSystemCommands = 1;
   SYS_REQ_TIME       : FifoSystemCommands = 2;
   SYS_SET_TIME       : FifoSystemCommands = 3;
-  SYS_HAVE_SD        : FifoSystemCommands = 4;
-	SYS_SD_START       : FifoSystemCommands = 5;
-	SYS_SD_IS_INSERTED : FifoSystemCommands = 6;
-	SYS_SD_STOP        : FifoSystemCommands = 7;
+  
+type
+ FifoSdmmcCommands = integer;
+const
+  SDMMC_HAVE_SD        : FifoSystemCommands = 0;
+	SDMMC_SD_START       : FifoSystemCommands = 1;
+	SDMMC_SD_IS_INSERTED : FifoSystemCommands = 2;
+	SDMMC_SD_STOP        : FifoSystemCommands = 3;
 
 type
   FifoPMCommands = integer;
@@ -72,9 +76,9 @@ const
 type
   PM_LedBlinkMode = integer;
 const
-  PM_LED_ON: PM_LedBlinkMode = (0 shl 4);
-  PM_LED_SLEEP: PM_LedBlinkMode = (1 shl 4);
-  PM_LED_BLINK: PM_LedBlinkMode = (3 shl 4);
+  PM_LED_ON   : PM_LedBlinkMode = 0;
+  PM_LED_SLEEP: PM_LedBlinkMode = 1;
+  PM_LED_BLINK: PM_LedBlinkMode = 3;
 
 //var
 //  fifo_buffer: array [0..FIFO_BUFFER_ENTRIES*2-1] of cuint32; cvar; external;

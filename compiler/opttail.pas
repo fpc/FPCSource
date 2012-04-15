@@ -127,7 +127,7 @@ unit opttail;
 
                         { "cast" away const varspezs }
                         loadnode:=cloadnode.create(paranode.parasym,paranode.parasym.owner);
-                        include(loadnode.flags,nf_isinternal_ignoreconst);
+                        include(tloadnode(loadnode).loadnodeflags,loadnf_isinternal_ignoreconst);
 
                         addstatement(copystatements,
                           cassignmentnode.create(

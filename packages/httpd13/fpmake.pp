@@ -23,7 +23,11 @@ begin
     P.Email := '';
     P.Description := 'Headers for the Apache 1.3 www server';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
-
+{$ifdef ALLPACKAGES}
+    P.OSes := []; // By default, do not build this package
+{$else ALLPACKAGES}
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
+{$endif ALLPACKAGES}
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

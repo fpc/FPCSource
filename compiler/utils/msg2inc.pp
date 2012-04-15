@@ -79,9 +79,9 @@ begin
   Writeln('Loading messagefile ',fn);
 {Read the message file}
   assign(f,fn);
-  {$I-}
+  {$push} {$I-}
    reset(f);
-  {$I+}
+  {$pop}
   if ioresult<>0 then
    begin
      WriteLn('fatal error: '+fn+' not found');
@@ -570,9 +570,9 @@ begin
   Writeln('Renumbering ',fn);
 {Read the message file}
   assign(f,fn);
-  {$I-}
+  {$push} {$I-}
    reset(f);
-  {$I+}
+  {$pop}
   if ioresult<>0 then
    begin
      WriteLn('*** message file '+fn+' not found ***');
@@ -644,9 +644,9 @@ begin
   writeln('Writing TeXfile ',outfn);
 { Open infile }
   assign(f,infn);
-  {$I-}
+  {$push} {$I-}
    reset(f);
-  {$I+}
+  {$pop}
   if ioresult<>0 then
    begin
      WriteLn('*** message file '+infn+' not found ***');

@@ -1178,7 +1178,7 @@ end;
 Function GetUserGroup(Const UserName : String) : String;
 
 begin
-  GetGroupName(GetUserGid(UserName));
+  Result := GetGroupName(GetUserGid(UserName));
 end;
 
 

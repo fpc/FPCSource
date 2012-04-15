@@ -1,0 +1,37 @@
+#
+#   Makefile.fpc for gba units
+#
+
+[package]
+name=libgbafpc
+version=2.7.1
+
+[target]
+loaders=core_asm
+units=gba maxmod
+exampledirs=examples
+
+
+[compiler]
+options=
+includedir=src src/maxmod
+sourcedir=src tests
+
+[prerules]
+BINUTILSPREFIX=arm-eabi-
+
+[install]
+fpcpackage=y
+
+[default]
+cpu=arm
+target=gba
+fpcdir=../..
+
+[require]
+nortl=y
+
+[rules]
+.NOTPARALLEL:
+core_asm$(OEXT):src/gba/core_asm.as
+        $(AS) -o $(UNITTARGETDIRPREFIX)core_asm$(OEXT) src/gba/core_asm.as

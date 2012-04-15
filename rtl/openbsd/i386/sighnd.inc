@@ -15,14 +15,34 @@
 
 CONST FPU_ALL=$7F;
 
-function getfpustate(const Sigcontext:sigcontextRec):longint; {inline;}
+{$ifdef cpui386}
+function getfpustate(sininfo:psiginfo):longint; {inline;}
 begin
-  getfpustate:=0;
+  if ptruint(sininfo)> high(word) then
+    getfpustate:=sininfo^.si_code
+  else
+    getfpustate:=word(ptruint(sininfo));
 end;
-procedure SignalToRunerror(Sig: longint;code:longint; var SigContext: SigContextRec); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
+
+function getaltfpustate(sigcontext:psigcontextrec):longint; {inline;}
+begin
+  if assigned(sigcontext) then
+    begin
+      if mmx_support then
+        getaltfpustate:=sigcontext^.sc_fpustate^.xmmState.fx_fsw 
+      else
+        getaltfpustate:=sigcontext^.sc_fpustate^.x87state.en_sw 
+    end
+  else
+    getaltfpustate:=0;
+end;
+{$endif}
+
+procedure SignalToRunerror(Sig: longint;sininfo:psiginfo; SigContext: PSigContextRec); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 
 var
   res,fpustate : word;
+  oldact: SigActionRec;
 begin
   res:=0;
 {$ifdef BSD}
@@ -39,8 +59,11 @@ begin
     { this is not allways necessary but I don't know yet
       how to tell if it is or not PM }
           res:=200;
-          fpustate:=GetFPUState(SigContext);
-
+{$ifdef cpui386}
+          fpustate:=GetaltFPUState(sigcontext);
+{$else}
+          fpustate:=0;
+{$endif}
           if (FpuState and FPU_All) <> 0 then
             begin
               { first check the more precise options }
@@ -70,12 +93,16 @@ begin
     SIGQUIT:
         res:=233;
   end;
+{$ifdef DEBUG_SIGNAL_HANDLER}
+  InstallDefaultSignalHandler(sig,oldact);
+  InstallDefaultSignalHandler(sig,oldact);
+{$endif}
   reenable_signal(sig);
 { give runtime error at the position where the signal was raised }
   if res<>0 then
    begin
 {$ifdef cpui386}
-      HandleErrorAddrFrame(res,pointer(SigContext.sc_eip),pointer(SigContext.sc_ebp));
+      HandleErrorAddrFrame(res,pointer(SigContext^.sc_eip),pointer(SigContext^.sc_ebp));
 {$endif}
    end;
 end;

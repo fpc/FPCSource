@@ -17,6 +17,10 @@ begin
     P.Directory:='x11';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes:=[beos,haiku,freebsd,solaris,netbsd,openbsd,linux,os2,emx,aix];
+    // Do not build x11 on iPhone (=arm-darwin)
+    if Defaults.CPU<>arm then
+      P.OSes := P.OSes + [darwin];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -93,7 +97,12 @@ begin
           AddUnit('xshm');
         end;
     T:=P.Targets.AddUnit('xv.pp');
-
+    T:=P.Targets.AddUnit('fontconfig.pas');
+    T.Dependencies.AddUnit('xlib');
+    T:=P.Targets.AddUnit('xft.pas');
+    T.Dependencies.AddUnit('xlib');
+    T.Dependencies.AddUnit('xrender');
+    T.Dependencies.AddUnit('fontconfig');
 
 {$ifndef ALLPACKAGES}
     Run;
