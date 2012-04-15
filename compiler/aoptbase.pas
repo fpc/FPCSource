@@ -91,11 +91,12 @@ unit aoptbase;
 
     end;
 
+    function labelCanBeSkipped(p: tai_label): boolean;
 
   implementation
 
     uses
-      globtype,globals, aoptcpub;
+      globtype,globals,aoptcpub;
 
   constructor taoptbase.create;
     begin
@@ -148,10 +149,12 @@ unit aoptbase;
     Result:=true;
   End;
 
+
   function labelCanBeSkipped(p: tai_label): boolean;
   begin
     labelCanBeSkipped := not(p.labsym.is_used) or (p.labsym.labeltype<>alt_jump);
   end;
+
 
   Function TAOptBase.GetNextInstruction(Current: tai; Var Next: tai): Boolean;
   Begin
