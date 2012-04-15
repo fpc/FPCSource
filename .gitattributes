@@ -9496,6 +9496,13 @@ tests/test/cg/cdecl/taoc3.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc4.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc5.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc6.pp svneol=native#text/plain
+tests/test/cg/obj/aix/powerpc/cpptcl1.o -text
+tests/test/cg/obj/aix/powerpc/cpptcl2.o -text
+tests/test/cg/obj/aix/powerpc/ctest.o -text
+tests/test/cg/obj/aix/powerpc/tcext3.o -text
+tests/test/cg/obj/aix/powerpc/tcext4.o -text
+tests/test/cg/obj/aix/powerpc/tcext5.o -text
+tests/test/cg/obj/aix/powerpc/tcext6.o -text
 tests/test/cg/obj/amiga/m68k/ctest.o -text
 tests/test/cg/obj/beos/i386/ctest.o -text
 tests/test/cg/obj/beos/i386/tcext3.o -text
