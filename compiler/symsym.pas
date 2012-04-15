@@ -1714,16 +1714,14 @@ implementation
 
     procedure tstaticvarsym.set_mangledbasename(const s: TSymStr);
       begin
-  {$ifdef symansistr}
-        if _mangledname<>'' then
-          internalerror(2011082202);
+{$ifdef symansistr}
         _mangledbasename:=s;
-  {$else symansistr}
-        if assigned(_mangledname) then
-          internalerror(2011082202);
+        _mangledname:='';
+{$else symansistr}
+        stringdispose(_mangledname);
         stringdispose(_mangledbasename);
         _mangledbasename:=stringdup(s);
-  {$endif symansistr}
+{$endif symansistr}
         include(varoptions,vo_has_mangledname);
       end;
 
