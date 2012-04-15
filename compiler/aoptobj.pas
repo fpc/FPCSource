@@ -233,6 +233,7 @@ Unit AoptObj;
     { ********** General optimizer object, used to derive others from ********* }
     { ************************************************************************* }
 
+      TAllUsedRegs = array[TRegisterType] of TUsedRegs;
       { TAOptObj }
 
       TAOptObj = class(TAoptBaseCpu)
@@ -249,7 +250,7 @@ Unit AoptObj;
 
         DFA: TAOptDFA;
 
-        UsedRegs: array[TRegisterType] of TUsedRegs;
+        UsedRegs: TAllUsedRegs;
 
         { _AsmL is the PAasmOutpout list that has to be optimized,     }
         { _BlockStart and _BlockEnd the start and the end of the block }
@@ -263,6 +264,9 @@ Unit AoptObj;
 
         Procedure ClearUsedRegs;
         Procedure UpdateUsedRegs(p : Tai);
+        procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai);
+        Function CopyUsedRegs(var dest : TAllUsedRegs) : boolean;
+        Procedure ReleaseUsedRegs(const regs : TAllUsedRegs);
 
         { returns true if the label L is found between hp and the next }
         { instruction                                                  }
@@ -270,7 +274,6 @@ Unit AoptObj;
 
         { inserts new_one between prev and foll in AsmL }
         Procedure InsertLLItem(prev, foll, new_one: TLinkedListItem);
-
 
         { If P is a Tai object releveant to the optimizer, P is returned
           If it is not relevant tot he optimizer, the first object after P
@@ -284,6 +287,9 @@ Unit AoptObj;
           of Tai's starting with StartPai and ending with the next "real"
           instruction                                                      }
         Function FindRegAlloc(Reg: TRegister; StartPai: Tai): Boolean;
+
+        { reg used after p? }
+        function RegUsedAfterInstruction(reg: Tregister; p: tai; var AllUsedRegs: TAllUsedRegs): Boolean;
 
        { traces sucessive jumps to their final destination and sets it, e.g.
          je l1                je l3
@@ -590,6 +596,7 @@ Unit AoptObj;
       *)
       End;
 
+
       Procedure TPaiProp.DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
       {Var Counter: TRegister;}
       Begin {initializes/desrtoys all registers}
@@ -810,6 +817,33 @@ Unit AoptObj;
         end;
 
 
+      procedure TAOptObj.UpdateUsedRegs(var Regs : TAllUsedRegs;p : Tai);
+        var
+          i : TRegisterType;
+        begin
+          for i:=low(TRegisterType) to high(TRegisterType) do
+            Regs[i].Update(p);
+        end;
+
+
+      function TAOptObj.CopyUsedRegs(var dest: TAllUsedRegs): boolean;
+      var
+        i : TRegisterType;
+      begin
+        Result:=true;
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          dest[i]:=TUsedRegs.Create_Regset(i,UsedRegs[i].GetUsedRegs);
+      end;
+
+      procedure TAOptObj.ReleaseUsedRegs(const regs: TAllUsedRegs);
+        var
+          i : TRegisterType;
+      begin
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          regs[i].Free;
+      end;
+
+
       Function TAOptObj.FindLabel(L: TasmLabel; Var hp: Tai): Boolean;
       Var TempP: Tai;
       Begin
@@ -917,6 +951,17 @@ Unit AoptObj;
             exit;
         Until false;
       End;
+
+
+      function TAOptObj.RegUsedAfterInstruction(reg: Tregister; p: tai;
+       var AllUsedRegs: TAllUsedRegs): Boolean;
+       begin
+         AllUsedRegs[getregtype(reg)].Update(tai(p.Next));
+         RegUsedAfterInstruction :=
+           (AllUsedRegs[getregtype(reg)].IsUsed(reg)); { optimization and
+              (not(getNextInstruction(p,p)) or
+               not(regLoadedWithNewValue(supreg,false,p))); }
+       end;
 
 
     function SkipLabels(hp: tai; var hp2: tai): boolean;
