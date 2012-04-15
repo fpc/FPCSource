@@ -1,7 +1,8 @@
 { %cpu=i386 }
 { %fail }
-{ %opt=-Sew }
+{ %opt=-vw -Sew }
 { %norun }
+{ %skiptarget=darwin }
 program testasm;
 
 begin
