@@ -638,13 +638,17 @@ end;
 
 
 function FileExists (const FileName: string): boolean;
+var
+  L: longint;
 begin
   if FileName = '' then
    Result := false
   else
-   Result := FileGetAttr (ExpandFileName (FileName)) and
-                                               (faDirectory or faVolumeID) = 0;
+   begin
+    L := FileGetAttr (FileName);
+    Result := (L >= 0) and (L and (faDirectory or faVolumeID) = 0);
 (* Neither VolumeIDs nor directories are files. *)
+   end;
 end;
 
 
@@ -1059,14 +1063,20 @@ begin
    Result := false
   else
    begin
-    if (Directory [Length (Directory)] in AllowDirectorySeparators) and
+    if ((Length (Directory) = 2) or
+        (Length (Directory) = 3) and
+        (Directory [3] in AllowDirectorySeparators)) and
+       (Directory [2] in AllowDriveSeparators) and
+       (UpCase (Directory [1]) in ['A'..'Z']) then
+(* Checking attributes for 'x:' is not possible but for 'x:.' it is. *)
+     L := FileGetAttr (Directory + '.')
+    else if (Directory [Length (Directory)] in AllowDirectorySeparators) and
                                               (Length (Directory) > 1) and
-(* Do not remove '\' after ':' (root directory of a drive) 
-   or in '\\' (invalid path, possibly broken UNC path). *)
-      not (Directory [Length (Directory) - 1] in AllowDriveSeparators + AllowDirectorySeparators) then
-     L := FileGetAttr (ExpandFileName (Copy (Directory, 1, Length (Directory) - 1)))
+(* Do not remove '\' in '\\' (invalid path, possibly broken UNC path). *)
+      not (Directory [Length (Directory) - 1] in AllowDirectorySeparators) then
+     L := FileGetAttr (Copy (Directory, 1, Length (Directory) - 1))
     else
-     L := FileGetAttr (ExpandFileName (Directory));
+     L := FileGetAttr (Directory);
     Result := (L > 0) and (L and faDirectory = faDirectory);
    end;
 end;
