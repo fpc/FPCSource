@@ -480,8 +480,28 @@ function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, al
   if OldSSet is non-null, the old set will be saved there.
 }
 
+{$ifdef OpenBSD}
+  { OpenBSD sigprocmask signal uses
+    sigset_t that are cint type
+    the value of nset^[0] must be passed as second parameter
+    the old mask value is in return value }
+  { How do we know if the call failed... PM }
+{$define OS_SIGPROCMASK_RETURNS_OVAL}
+{$endif}
+{$ifdef OS_SIGPROCMASK_RETURNS_OVAL}
+  var
+    res : cint;
+{$endif OS_SIGPROCMASK_RETURNS_OVAL}
 begin
+{$ifdef OS_SIGPROCMASK_RETURNS_OVAL}
+  res:=do_syscall(syscall_nr_sigprocmask,tsysparam(how),TSysParam(nset^[0]));
+  if assigned(oset) then
+    oset^[0]:=res;
+  FPsigprocmask:=0;
+
+{$else OS_SIGPROCMASK_RETURNS_OVAL}
   FPsigprocmask:=do_syscall(syscall_nr_sigprocmask,tsysparam(how),TSysParam(nset),TSysParam(oset));
+{$endif OS_SIGPROCMASK_RETURNS_OVAL}
 end;
 {$user BLA!}
 Function FpNanoSleep(req : ptimespec;rem : ptimespec) : cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
