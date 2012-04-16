@@ -275,7 +275,7 @@ Var
   p,pc        : pointer;
   Size,NewLen,
   OldDestLen  : SizeInt;
-  destcopy    : RawByteString;
+  destcopy    : pointer;
   DestCP      : TSystemCodePage;
   U           : UnicodeString;
   sameCP      : Boolean;
@@ -327,9 +327,10 @@ begin
 
       DestS:='';
       widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(U)),DestS,DestCP,Length(U));
-      exit;            
+      exit;
     end;
 
+  destcopy:=nil;
   lowstart:=low(sarr);
   if Pointer(DestS)=Pointer(sarr[lowstart]) then
     inc(lowstart);
@@ -342,7 +343,8 @@ begin
           { if DestS is used somewhere in the middle of the expression,
             we need to make sure the original string still exists after
             we empty/modify DestS                                       }
-          destcopy:=dests;
+          destcopy:=pointer(dests);
+          fpc_AnsiStr_Incr_Ref(destcopy);
           lowstart:=low(sarr);
           break;
         end;
@@ -362,18 +364,18 @@ begin
     SetCodePage(DestS,DestCP,False);
   { Concat all strings, except the string we already
     copied in DestS }
-  NewLen:=OldDestLen;
-  pc:=Pointer(DestS);
+  pc:=Pointer(DestS)+OldDestLen;
   for i:=lowstart to high(sarr) do
     begin
       p:=pointer(sarr[i]);
       if assigned(p) then
         begin
           Size:=length(ansistring(p));
-          fpc_pchar_pchar_intern_charmove(pchar(p),0,pchar(pc),NewLen,Size+1);
-          inc(NewLen,size);
+          Move(p^,pc^,Size+1);
+          inc(pc,size);
         end;
     end;
+  fpc_AnsiStr_Decr_Ref(destcopy);
 end;
 {$endif FPC_HAS_ANSISTR_CONCAT_MULTI}
 

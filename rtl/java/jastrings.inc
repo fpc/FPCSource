@@ -298,12 +298,119 @@ begin
           temp:=S;
           Size:=Length(temp);
           widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(JLString(temp).toCharArray),result,cp,Size);
-          AnsistringClass(result).fCodePage:=cp;
         end;
     end;
 end;
 
 Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; [external name 'fpc_ansistr_to_ansistr'];
+
+{$define FPC_HAS_ANSISTR_CONCAT_MULTI}
+procedure fpc_AnsiStr_Concat_multi (var DestS:RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+Var
+  lowstart,i  : Longint;
+  p           : pointer;
+  Size,NewLen,
+  OldDestLen  : SizeInt;
+  destcopy    : RawByteString;
+  DestCP      : TSystemCodePage;
+  U           : UnicodeString;
+  sameCP      : Boolean;
+  tmpStr      : RawByteString;
+  tmpCP       : TSystemCodePage;
+begin
+  if high(sarr)=0 then
+    begin
+      DestS:='';
+      exit;
+    end;
+{$ifdef FPC_HAS_CPSTRING}
+  if (Pointer(DestS)=nil) then
+    DestCP:=cp
+  else
+    DestCP:=StringCodePage(DestS);
+{$else FPC_HAS_CPSTRING}
+  DestCP:=StringCodePage(DestS);
+{$endif FPC_HAS_CPSTRING}
+  if (DestCP=CP_ACP) then
+    DestCP:=DefaultSystemCodePage;
+  sameCP:=true;
+  lowstart:=low(sarr);
+  for i:=lowstart to high(sarr) do
+    begin
+      tmpCP:=StringCodePage(sarr[i]);
+      if tmpCP=CP_ACP then
+        tmpCP:=DefaultSystemCodePage;
+      if (DestCP<>tmpCp) then
+        begin
+          sameCP:=false;
+          break;
+        end;
+    end;
+  if not sameCP then
+    begin
+      U:='';
+      for i:=lowstart to high(sarr) do begin
+        tmpCP:=StringCodePage(sarr[i]);
+        if (tmpCP=CP_ACP) then
+          begin
+            tmpStr:=sarr[i];
+            SetCodePage(tmpStr,DefaultSystemCodePage,False);
+            U:=U+UnicodeString(tmpStr);
+          end
+        else
+          U:=U+UnicodeString(sarr[i]);
+      end;
+
+      DestS:='';
+      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(JLString(U).toCharArray),DestS,DestCP,Length(U));
+      exit;
+    end;
+
+  lowstart:=low(sarr);
+  if Pointer(DestS)=Pointer(sarr[lowstart]) then
+    inc(lowstart);
+  { Check for another reuse, then we can't use
+    the append optimization }
+  for i:=lowstart to high(sarr) do
+    begin
+      if Pointer(DestS)=Pointer(sarr[i]) then
+        begin
+          { if DestS is used somewhere in the middle of the expression,
+            we need to make sure the original string still exists after
+            we empty/modify DestS -- not necessary on JVM platform, ansistrings
+            are not explicitly refrence counted there }
+          lowstart:=low(sarr);
+          break;
+        end;
+    end;
+  { Start with empty DestS if we start with concatting
+    the first array element }
+  if lowstart=low(sarr) then
+    DestS:='';
+  OldDestLen:=length(DestS);
+  { Calculate size of the result so we can do
+    a single call to SetLength() }
+  NewLen:=0;
+  for i:=low(sarr) to high(sarr) do
+    inc(NewLen,length(sarr[i]));
+  SetLength(DestS,NewLen);
+  if (StringCodePage(DestS) <> DestCP) then
+    SetCodePage(DestS,DestCP,False);
+  { Concat all strings, except the string we already
+    copied in DestS }
+  NewLen:=OldDestLen;
+  for i:=lowstart to high(sarr) do
+    begin
+      p:=pointer(sarr[i]);
+      if assigned(p) then
+        begin
+          Size:=length(ansistring(p));
+          fpc_pchar_pchar_intern_charmove(pchar(ansistring(p)),0,pchar(DestS),NewLen,Size+1);
+          inc(NewLen,size);
+        end;
+    end;
+end;
+
 
 {$define FPC_HAS_ANSISTR_TO_SHORTSTR}
 procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : RawByteString);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
