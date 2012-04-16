@@ -198,7 +198,7 @@ begin
      Message2(exec_d_resbin_params,resbin,s);
      FlushOutput;
      try
-       if ExecuteProcess(resbin,s) <> 0 then
+       if RequotedExecuteProcess(resbin,s) <> 0 then
        begin
          if not (cs_link_nolink in current_settings.globalswitches) then
            Message(exec_e_error_while_compiling_resources);

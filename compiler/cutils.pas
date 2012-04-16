@@ -92,8 +92,6 @@ interface
     function nextpowerof2(value : int64; out power: longint) : int64;
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
-    function maybequoted(const s:string):string;
-    function maybequoted(const s:ansistring):ansistring;
 
     {# If the string is quoted, in accordance with pascal, it is
        dequoted and returned in s, and the function returns true.
@@ -146,6 +144,10 @@ interface
     function minilzw_decode(const s:string):string;
 
     Function nextafter(x,y:double):double;
+
+  { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
+  const
+    ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
 
 implementation
 
@@ -901,105 +903,6 @@ implementation
             octal_quote:=octal_quote+s[i];
         end;
     end;
-
-    function maybequoted(const s:ansistring):ansistring;
-      const
-        {$IFDEF MSWINDOWS}
-          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                             '{', '}', '''', '`', '~'];
-          QUOTE_CHAR = '"';
-        {$ELSE}
-          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                             '{', '}', '''', ':', '\', '`', '~'];
-          {$ifdef unix}
-          QUOTE_CHAR = '''';
-          {$else}
-          QUOTE_CHAR = '"';
-          {$endif}
-        {$ENDIF}
-      var
-        s1 : ansistring;
-        i  : integer;
-        quoted : boolean;
-      begin
-        quoted:=false;
-        s1:=QUOTE_CHAR;
-        for i:=1 to length(s) do
-         begin
-           case s[i] of
-             QUOTE_CHAR :
-               begin
-                 quoted:=true;
-                 s1:=s1+('\'+QUOTE_CHAR);
-               end;
-             ' ',
-             #128..#255 :
-               begin
-                 quoted:=true;
-                 s1:=s1+s[i];
-               end;
-             else begin
-               if s[i] in FORBIDDEN_CHARS then
-                 quoted:=True;
-               s1:=s1+s[i];
-             end;
-           end;
-         end;
-        if quoted then
-          maybequoted:=s1+QUOTE_CHAR
-        else
-          maybequoted:=s;
-      end;
-
-
-    function maybequoted(const s:string):string;
-      const
-        {$IFDEF MSWINDOWS}
-          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                             '{', '}', '''', '`', '~'];
-          QUOTE_CHAR = '"';
-        {$ELSE}
-          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                             '{', '}', '"', ':', '\', '`', '~'];
-          {$ifdef unix}
-          QUOTE_CHAR = '''';
-          {$else}
-          QUOTE_CHAR = '"';
-          {$endif}
-        {$ENDIF}
-      var
-        s1 : string;
-        i  : integer;
-        quoted : boolean;
-      begin
-        quoted:=false;
-        s1:=QUOTE_CHAR;
-        for i:=1 to length(s) do
-         begin
-           case s[i] of
-             QUOTE_CHAR :
-               begin
-                 quoted:=true;
-                 s1:=s1+('\'+QUOTE_CHAR);
-               end;
-             ' ',
-             #128..#255 :
-               begin
-                 quoted:=true;
-                 s1:=s1+s[i];
-               end;
-             else begin
-               if s[i] in FORBIDDEN_CHARS then
-                 quoted:=True;
-               s1:=s1+s[i];
-             end;
-           end;
-         end;
-        if quoted then
-          maybequoted:=s1+QUOTE_CHAR
-        else
-          maybequoted:=s;
-      end;
 
 
     function DePascalQuote(var s: ansistring): Boolean;

@@ -718,7 +718,7 @@ Implementation
              exitcode:=shell(maybequoted(command)+' '+para)
            else
              try
-               exitcode:=ExecuteProcess(command,para);
+               exitcode:=RequotedExecuteProcess(command,para);
              except on E:EOSError do
                begin
                  Message(exec_e_cant_call_linker);

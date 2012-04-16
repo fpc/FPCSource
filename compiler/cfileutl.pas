@@ -122,10 +122,19 @@ interface
     function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  GetShortName(const n:TCmdStr):TCmdStr;
+    function maybequoted(const s:string):string;
+    function maybequoted(const s:ansistring):ansistring;
 
     procedure InitFileUtils;
     procedure DoneFileUtils;
 
+    function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags = []): Longint;
+    function RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags = []): Longint;
+    function Shell(const command:ansistring): longint;
+
+  { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
+  const
+    ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
 
 { * Since native Amiga commands can't handle Unix-style relative paths used by the compiler,
     and some GNU tools, Unix2AmigaPath is needed to handle such situations (KB) * }
@@ -1288,6 +1297,254 @@ end;
          GetShortName:=hs;
 {$endif}
       end;
+
+
+    function maybequoted(const s:string):string;
+    const
+      FORBIDDEN_CHARS_DOS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                         '{', '}', '''', '`', '~'];
+      FORBIDDEN_CHARS_OTHER = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                         '{', '}', '''', ':', '\', '`', '~'];
+    var
+      forbidden_chars: set of char;
+      i  : integer;
+      quote_script: tscripttype;
+      quote_char: ansichar;
+      quoted : boolean;
+    begin
+      if not(cs_link_on_target in current_settings.globalswitches) then
+        quote_script:=source_info.script
+      else
+        quote_script:=target_info.script;
+      if quote_script=script_dos then
+        forbidden_chars:=FORBIDDEN_CHARS_DOS
+      else
+        begin
+          forbidden_chars:=FORBIDDEN_CHARS_OTHER;
+          if quote_script=script_unix then
+            include(forbidden_chars,'"');
+        end;
+      if quote_script=script_unix then
+        quote_char:=''''
+      else
+        quote_char:='"';
+
+      quoted:=false;
+      result:=quote_char;
+      for i:=1 to length(s) do
+       begin
+         if s[i]=quote_char then
+           begin
+             quoted:=true;
+             result:=result+'\'+quote_char;
+           end
+         else case s[i] of
+           '\':
+             begin
+               if quote_script=script_unix then
+                 begin
+                   result:=result+'\\';
+                   quoted:=true
+                 end
+               else
+                 result:=result+'\';
+             end;
+           ' ',
+           #128..#255 :
+             begin
+               quoted:=true;
+               result:=result+s[i];
+             end;
+           else begin
+             if s[i] in forbidden_chars then
+               quoted:=True;
+             result:=result+s[i];
+           end;
+         end;
+       end;
+      if quoted then
+        result:=result+quote_char
+      else
+        result:=s;
+    end;
+
+
+    function maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
+      const
+        FORBIDDEN_CHARS_DOS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                           '{', '}', '''', '`', '~'];
+        FORBIDDEN_CHARS_OTHER = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                           '{', '}', '''', ':', '\', '`', '~'];
+      var
+        forbidden_chars: set of char;
+        i  : integer;
+        quote_char: ansichar;
+        quoted : boolean;
+      begin
+        if quote_script=script_dos then
+          forbidden_chars:=FORBIDDEN_CHARS_DOS
+        else
+          begin
+            forbidden_chars:=FORBIDDEN_CHARS_OTHER;
+            if quote_script=script_unix then
+              include(forbidden_chars,'"');
+          end;
+        if quote_script=script_unix then
+          quote_char:=''''
+        else
+          quote_char:='"';
+
+        quoted:=false;
+        result:=quote_char;
+        for i:=1 to length(s) do
+         begin
+           if s[i]=quote_char then
+             begin
+               quoted:=true;
+               result:=result+'\'+quote_char;
+             end
+           else case s[i] of
+             '\':
+               begin
+                 if quote_script=script_unix then
+                   begin
+                     result:=result+'\\';
+                     quoted:=true
+                   end
+                 else
+                   result:=result+'\';
+               end;
+             ' ',
+             #128..#255 :
+               begin
+                 quoted:=true;
+                 result:=result+s[i];
+               end;
+             else begin
+               if s[i] in forbidden_chars then
+                 quoted:=True;
+               result:=result+s[i];
+             end;
+           end;
+         end;
+        if quoted then
+          result:=result+quote_char
+        else
+          result:=s;
+      end;
+
+
+    function maybequoted(const s:ansistring):ansistring;
+      var
+        quote_script: tscripttype;
+      begin
+        if not(cs_link_on_target in current_settings.globalswitches) then
+          quote_script:=source_info.script
+        else
+          quote_script:=target_info.script;
+        result:=maybequoted_for_script(s,quote_script);
+      end;
+
+
+    { requotes a string that was quoted for Unix for passing to ExecuteProcess,
+      because it only supports Windows-style quoting; this routine assumes that
+      everything that has to be quoted for Windows, was also quoted (but
+      differently for Unix) -- which is the case }
+    function UnixRequoteForExecuteProcess(const QuotedStr: TCmdStr): TCmdStr;
+      var
+        i: longint;
+        temp: TCmdStr;
+        inquotes: boolean;
+      begin
+        if QuotedStr='' then
+          begin
+            result:='';
+            exit;
+          end;
+        inquotes:=false;
+        result:='';
+        i:=1;
+        while i<=length(QuotedStr) do
+          begin
+            case QuotedStr[i] of
+              '''':
+                begin
+                  if not(inquotes) then
+                    begin
+                      inquotes:=true;
+                      temp:=''
+                    end
+                  else
+                    begin
+                      { requote for Windows }
+                      result:=result+maybequoted_for_script(temp,script_dos);
+                      inquotes:=false;
+                    end;
+                end;
+              '\':
+                begin
+                  if inquotes then
+                    temp:=temp+QuotedStr[i+1]
+                  else
+                    result:=result+QuotedStr[i+1];
+                  inc(i);
+                end;
+              else
+                begin
+                  if inquotes then
+                    temp:=temp+QuotedStr[i]
+                  else
+                    result:=result+QuotedStr[i];
+                end;
+            end;
+            inc(i);
+          end;
+      end;
+
+
+    function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags): Longint;
+      var
+        quote_script: tscripttype;
+      begin
+        if not(cs_link_on_target in current_settings.globalswitches) then
+          quote_script:=target_info.script
+        else
+          quote_script:=source_info.script;
+        if quote_script=script_unix then
+          result:=sysutils.ExecuteProcess(Path,UnixRequoteForExecuteProcess(ComLine),Flags)
+        else
+          result:=sysutils.ExecuteProcess(Path,ComLine,Flags)
+      end;
+
+
+    function RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags): Longint;
+      begin
+        result:=sysutils.ExecuteProcess(Path,ComLine,Flags);
+      end;
+
+
+    function Shell(const command:ansistring): longint;
+      { This is already defined in the linux.ppu for linux, need for the *
+        expansion under linux }
+{$ifdef hasunix}
+      begin
+        result := Unix.fpsystem(command);
+      end;
+{$else hasunix}
+  {$ifdef amigashell}
+      begin
+        result := RequotedExecuteProcess('',command);
+      end;
+  {$else amigashell}
+      var
+        comspec : string;
+      begin
+        comspec:=GetEnvironmentVariable('COMSPEC');
+        result := RequotedExecuteProcess(comspec,' /C '+command);
+      end;
+   {$endif amigashell}
+{$endif hasunix}
+
 
 
 {****************************************************************************
