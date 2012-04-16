@@ -266,7 +266,6 @@ var
 begin
   U:=UnicodeString(S1)+UnicodeString(S2);
   widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(JLString(U).toCharArray),DestS,cp,Length(U));
-  AnsistringClass(DestS).fCodePage:=cp;
 end;
 {$endif FPC_HAS_ANSISTR_CONCAT_COMPLEX}
 

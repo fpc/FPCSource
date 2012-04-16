@@ -36,6 +36,7 @@ begin
     byte written" -> we already have a terminating zero }
   outbuf.get(TJByteArray(AnsiStringClass(dest).fdata),0,outbuf.limit);
   { already null-terminated because of setlength }
+  SetCodePage(dest,cp,false);
 end;
 
 
@@ -321,7 +322,6 @@ begin
   if (cp=CP_ACP) then
     cp:=DefaultSystemCodePage;
   widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr), RawByteString(fpc_UChar_To_AnsiStr), cp, 1);
-  AnsistringClass(fpc_UChar_To_AnsiStr).fCodePage:=cp;
 end;
 
 
@@ -357,7 +357,6 @@ begin
     cp:=DefaultSystemCodePage;
   arr[0]:=c;
   widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr[0]), fpc_UChar_To_AnsiStr, cp, 1);
-  AnsistringClass(fpc_UChar_To_AnsiStr).fCodePage:=cp;
 end;
 {$endif FPC_HAS_UCHAR_TO_ANSISTR}
 
