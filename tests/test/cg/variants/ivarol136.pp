@@ -15,12 +15,12 @@ type
 procedure test136(a: shortstring); overload;
   begin
     writeln('shortstring called instead of ansistring');
+    halt(1)
   end;
 
 procedure test136(a: ansistring); overload;
   begin
     writeln('ansistring called instead of shortstring');
-    halt(1)
   end;
 
 var

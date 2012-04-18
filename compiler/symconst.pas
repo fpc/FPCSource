@@ -559,10 +559,10 @@ type
   tvariantequaltype = (
     tve_incompatible,
     tve_chari64,
-    tve_ustring,
-    tve_wstring,
-    tve_astring,
     tve_sstring,
+    tve_astring,
+    tve_wstring,
+    tve_ustring,
     tve_boolformal,
     tve_extended,
     tve_dblcurrency,

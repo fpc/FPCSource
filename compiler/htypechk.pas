@@ -2655,18 +2655,19 @@ implementation
 { Delphi precedence rules extracted from test programs. Only valid if passing
   a variant parameter to overloaded procedures expecting exactly one parameter.
 
-  single > (char, currency, int64, shortstring, ansistring, widestring, extended, double)
-  double/currency > (char, int64, shortstring, ansistring, widestring, extended)
-  extended > (char, int64, shortstring, ansistring, widestring)
-  longint/cardinal > (int64, shortstring, ansistring, widestring, extended, double, single, char, currency)
-  smallint > (longint, int64, shortstring, ansistring, widestring, extended, double single, char, currency);
-  word > (longint, cardinal, int64, shortstring, ansistring, widestring, extended, double single, char, currency);
-  shortint > (longint, smallint, int64, shortstring, ansistring, widestring, extended, double, single, char, currency)
-  byte > (longint, cardinal, word, smallint, int64, shortstring, ansistring, widestring, extended, double, single, char, currency);
-  boolean/formal > (char, int64, shortstring, ansistring, widestring)
-  shortstring > (char, int64, ansistring, widestring)
-  ansistring > (char, int64, widestring)
-  widestring > (char, int64)
+  single > (char, currency, int64, shortstring, ansistring, widestring, unicodestring, extended, double)
+  double/currency > (char, int64, shortstring, ansistring, widestring, unicodestring, extended)
+  extended > (char, int64, shortstring, ansistring, widestring, unicodestring)
+  longint/cardinal > (int64, shortstring, ansistring, widestring, unicodestring, extended, double, single, char, currency)
+  smallint > (longint, int64, shortstring, ansistring, widestring, unicodestring, extended, double single, char, currency);
+  word > (longint, cardinal, int64, shortstring, ansistring, widestring, unicodestring, extended, double single, char, currency);
+  shortint > (longint, smallint, int64, shortstring, ansistring, widestring, unicodestring, extended, double, single, char, currency)
+  byte > (longint, cardinal, word, smallint, int64, shortstring, ansistring, widestring, unicodestring, extended, double, single, char, currency);
+  boolean/formal > (char, int64, shortstring, ansistring, widestring, unicodestring)
+  widestring > (char, int64, shortstring, ansistring, unicodestring)
+  unicodestring > (char, int64, shortstring, ansistring)
+  ansistring > (char, int64, shortstring)
+  shortstring > (char, int64)
 
   Relations not mentioned mean that they conflict: no decision possible }
 
@@ -2788,14 +2789,6 @@ implementation
         else if (currvcl=tve_extended) or
                 (bestvcl=tve_extended) then
           result:=1-2*ord(bestvcl=tve_extended)
-        { shortstring is better than everything left }
-        else if (currvcl=tve_sstring) or
-                (bestvcl=tve_sstring) then
-          result:=1-2*ord(bestvcl=tve_sstring)
-        { ansistring is better than everything left }
-        else if (currvcl=tve_astring) or
-                (bestvcl=tve_astring) then
-          result:=1-2*ord(bestvcl=tve_astring)
         { widestring is better than everything left }
         else if (currvcl=tve_wstring) or
                 (bestvcl=tve_wstring) then
@@ -2803,7 +2796,15 @@ implementation
         { unicodestring is better than everything left }
         else if (currvcl=tve_ustring) or
                 (bestvcl=tve_ustring) then
-          result:=1-2*ord(bestvcl=tve_ustring);
+          result:=1-2*ord(bestvcl=tve_ustring)
+        { ansistring is better than everything left }
+        else if (currvcl=tve_astring) or
+                (bestvcl=tve_astring) then
+          result:=1-2*ord(bestvcl=tve_astring)
+        { shortstring is better than everything left }
+        else if (currvcl=tve_sstring) or
+                (bestvcl=tve_sstring) then
+          result:=1-2*ord(bestvcl=tve_sstring);
 
         { all possibilities should have been checked now }
         if (result=-5) then
