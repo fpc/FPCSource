@@ -91,7 +91,7 @@ function check_errno_number ()
         echo "$sys is defined as $extval which is $indirectval as expected $value"
       fi
     else
-      problem for ${sys} expected ${value}, line is \"${found}\", val found is \"${val}\"
+      echo "problem for ${sys} expected ${value}, line is \"${found}\", val found is \"${val}\""
     fi
   fi
 }
