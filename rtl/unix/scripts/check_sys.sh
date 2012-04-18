@@ -92,6 +92,8 @@ function check_syscall_number ()
   fi
 }
 
+set -f
+
 echo "Checking in ${syscall_header}"
 source ./check_sys_list.sh
 
