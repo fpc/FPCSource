@@ -7564,6 +7564,7 @@ rtl/linux/arm/ucprt0.as svneol=native#text/plain
 rtl/linux/buildrtl.lpi svneol=native#text/plain
 rtl/linux/buildrtl.pp svneol=native#text/plain
 rtl/linux/bunxsysc.inc svneol=native#text/plain
+rtl/linux/errno-sparc.inc svneol=native#text/plain
 rtl/linux/errno.inc svneol=native#text/plain
 rtl/linux/errnostr.inc svneol=native#text/plain
 rtl/linux/fpcylix.pp svneol=native#text/plain
