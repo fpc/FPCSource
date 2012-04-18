@@ -52,8 +52,8 @@ fi
 
 # You should only need to change the variables above
 
-sed -n "s:^[ \t]*${fpc_errno_prefix}\\([_a-zA-Z0-9]*\\)[ \t]*=[ \t]*\\([0-9]*\\).*:check_errno_number ${errno_prefix}\1 \2:p" ${errno_include} > check_errno_list.sh
-sed -n "s:#define[ \t]*${errno_prefix}\\([_a-zA-Z0-9]*\\)[ \t][ \t]*\\([0-9]*\\).*:check_reverse_errno_number ${fpc_errno_prefix}\1 \2:p" ${errno_header} > check_reverse_errno_list.sh
+sed -n "s:^[[:space:]]*${fpc_errno_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]]*=[[:space:]]*\\([0-9][0-9]*\\).*:check_errno_number ${errno_prefix}\1 \2:p" ${errno_include} > check_errno_list.sh
+sed -n "s:#define[[:space:]]*${errno_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]][[:space:]]*\\(-*[0-9A-Za-z_]*\\).*:check_reverse_errno_number ${fpc_errno_prefix}\1 \2:p" ${errno_header} > check_reverse_errno_list.sh
 
 function check_errno_number ()
 {
@@ -65,9 +65,9 @@ function check_errno_number ()
   # Remember value of this constant
   eval ${sys}=${value}
 
-  found=`sed -n "/#define[ \t][ \t]*${sys}[^A-Za-z0-9_]/p" ${errno_header}`
-  val=`sed -n "s:#define[ \t][ \t]*${sys}[^A-Za-z0-9_][^A-Za-z0-9_]*\([0-9]*\).*:\1:p" ${errno_header}`
-  extval=`sed -n "s:#define[ \t][ \t]*${sys}[^A-Za-z0-9_][^A-Za-z0-9_]*\([0-9A-Za-z_]*\).*:\1:p" ${errno_header}`
+  found=`sed -n "/#define[[:space:]][[:space:]]*${sys}[^A-Za-z0-9_]/p" ${errno_header}`
+  val=`sed -n "s:#define[[:space:]][[:space:]]*${sys}[^A-Za-z0-9_][^A-Za-z0-9_]*\([0-9]*\).*:\1:p" ${errno_header}`
+  extval=`sed -n "s:#define[[:space:]][[:space:]]*${sys}[^A-Za-z0-9_][^A-Za-z0-9_]*\([0-9A-Za-z_]*\).*:\1:p" ${errno_header}`
   if [ $verbose -ne 0 ] ; then
     echo Test for $sys found \"${found}\" \"${value}\" \"${val}\"
   fi
@@ -84,7 +84,7 @@ function check_errno_number ()
     fi
     if [ "$extval" != "" ] ; then
       eval indirectval=\$$extval
-      echo "indirectval =\"$indirectval\""
+      echo "indirectval =\"$indirectval\" for \"$extval\""
       if [ "$indirectval" != "$value" ] ; then
         echo problem for ${sys} expected ${value}, line is \"${found}\", val found is \"${indirectval}\"
       else
