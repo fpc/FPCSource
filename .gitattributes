@@ -8375,6 +8375,7 @@ rtl/unix/oscdeclh.inc svneol=native#text/plain
 rtl/unix/ports.pp svneol=native#text/plain
 rtl/unix/printer.pp svneol=native#text/plain
 rtl/unix/scripts/README svneol=native#text/plain
+rtl/unix/scripts/check_errno.sh svneol=native#text/plain
 rtl/unix/scripts/check_sys.sh svneol=native#text/plain
 rtl/unix/serial.pp svneol=native#text/plain
 rtl/unix/settimeo.inc svneol=native#text/plain
