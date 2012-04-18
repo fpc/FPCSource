@@ -90,7 +90,7 @@ const
   ESysENOANO      = 55;   { No anode }
   ESysEBADRQC     = 56;   { Invalid request code }
   ESysEBADSLT     = 57;   { Invalid slot }
-  ESysEDEADLOCK= 58;      { File locking deadlock error }
+  ESysEDEADLOCK= ESysEDEADLK; { number 58 is missing }
   ESysEBFONT      = 59;   { Bad font file format }
   ESysENOSTR      = 60;   { Device not a stream }
   ESysENODATA     = 61;   { No data available }
