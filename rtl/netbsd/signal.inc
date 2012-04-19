@@ -39,7 +39,7 @@ Const   { For sending a signal }
   SIGILL     = 4;
   SIGTRAP    = 5;
   SIGABRT    = 6;
-  SIGIOT     = 6;
+  SIGIOT     = SIGABRT;
   SIGEMT     = 7;
   SIGFPE     = 8;
   SIGKILL    = 9;
@@ -53,7 +53,7 @@ Const   { For sending a signal }
   SIGSTOP    = 17;
   SIGTSTP    = 18;
   SIGCONT    = 19;
-  SIGCHLD   = 20;
+  SIGCHLD    = 20;
   SIGTTIN    = 21;
   SIGTTOU    = 22;
   SIGIO      = 23;
