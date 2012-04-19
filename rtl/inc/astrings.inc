@@ -376,7 +376,7 @@ begin
         end
       else
         begin
-          temp:=S;
+          temp:=UnicodeString(S);
           Size:=Length(temp);
           widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(temp)),result,cp,Size);
         end;

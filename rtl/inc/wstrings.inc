@@ -762,45 +762,44 @@ end;
 {$ifndef FPUNONE}
 Function fpc_Val_Real_WideStr(Const S : WideString; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_WIDESTR']; compilerproc;
 Var
-  SS : String;
+  SS: ShortString;
 begin
   fpc_Val_Real_WideStr := 0;
-  if length(S) > 255 then
-    code := 256
+  if length(S)>255 then
+    code:=256
   else
     begin
-      SS := S;
+      SS:=ShortString(S);
       Val(SS,fpc_Val_Real_WideStr,code);
     end;
 end;
 {$endif}
 
 function fpc_val_enum_widestr(str2ordindex:pointer;const s:widestring;out code:valsint):longint;compilerproc;
-
-var ss:shortstring;
-
+var
+  ss: ShortString;
 begin
   if length(s)>255 then
     code:=256
   else
     begin
-      ss:=s;
+      ss:=ShortString(s);
       val(ss,fpc_val_enum_widestr,code);
     end;
 end;
 
 Function fpc_Val_Currency_WideStr(Const S : WideString; out Code : ValSInt): Currency; [public, alias:'FPC_VAL_CURRENCY_WIDESTR']; compilerproc;
 Var
-  SS : String;
+  SS: ShortString;
 begin
-  if length(S) > 255 then
+  if length(S)>255 then
     begin
       fpc_Val_Currency_WideStr:=0;
-      code := 256;
+      code:=256;
     end
   else
     begin
-      SS := S;
+      SS:=ShortString(S);
       Val(SS,fpc_Val_Currency_WideStr,code);
     end;
 end;
@@ -808,14 +807,14 @@ end;
 
 Function fpc_Val_UInt_WideStr (Const S : WideString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_WIDESTR']; compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
-  fpc_Val_UInt_WideStr := 0;
-  if length(S) > 255 then
-    code := 256
+  fpc_Val_UInt_WideStr:=0;
+  if length(S)>255 then
+    code:=256
   else
     begin
-      SS := S;
+      SS:=ShortString(S);
       Val(SS,fpc_Val_UInt_WideStr,code);
     end;
 end;
@@ -823,14 +822,14 @@ end;
 
 Function fpc_Val_SInt_WideStr (DestSize: SizeInt; Const S : WideString; out Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_WIDESTR']; compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   fpc_Val_SInt_WideStr:=0;
   if length(S)>255 then
     code:=256
   else
     begin
-      SS := S;
+      SS:=ShortString(S);
       fpc_Val_SInt_WideStr := int_Val_SInt_ShortStr(DestSize,SS,Code);
     end;
 end;
@@ -840,14 +839,14 @@ end;
 
 Function fpc_Val_qword_WideStr (Const S : WideString; out Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_WIDESTR']; compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   fpc_Val_qword_WideStr:=0;
   if length(S)>255 then
     code:=256
   else
     begin
-       SS := S;
+       SS:=ShortString(S);
        Val(SS,fpc_Val_qword_WideStr,Code);
     end;
 end;
@@ -855,14 +854,14 @@ end;
 
 Function fpc_Val_int64_WideStr (Const S : WideString; out Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_WIDESTR']; compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   fpc_Val_int64_WideStr:=0;
   if length(S)>255 then
     code:=256
   else
     begin
-       SS := S;
+       SS:=ShortString(S);
        Val(SS,fpc_Val_int64_WideStr,Code);
     end;
 end;
@@ -873,56 +872,54 @@ end;
 {$ifndef FPUNONE}
 procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : WideString);compilerproc;
 var
-  ss : shortstring;
+  ss: ShortString;
 begin
   str_real(len,fr,d,treal_type(rt),ss);
-  s:=ss;
+  s:=WideString(ss);
 end;
 {$endif}
 
 procedure fpc_widestr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:widestring);compilerproc;
-
-var ss:shortstring;
-
+var
+  ss: ShortString;
 begin
   fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
-  s:=ss;
+  s:=WideString(ss);
 end;
 
 procedure fpc_widestr_bool(b : boolean;len:sizeint;out s:widestring);compilerproc;
-
-var ss:shortstring;
-
+var
+  ss: ShortString;
 begin
   fpc_shortstr_bool(b,len,ss);
-  s:=ss;
+  s:=WideString(ss);
 end;
 
 {$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
 var
-  ss : shortstring;
+  ss: ShortString;
 begin
   str(c:len:fr,ss);
-  s:=ss;
+  s:=WideString(ss);
 end;
 {$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_WideStr_SInt(v : ValSint; Len : SizeInt; out S : WideString);compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   Str (v:Len,SS);
-  S:=SS;
+  S:=WideString(SS);
 end;
 
 
 Procedure fpc_WideStr_UInt(v : ValUInt;Len : SizeInt; out S : WideString);compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   str(v:Len,SS);
-  S:=SS;
+  S:=WideString(SS);
 end;
 
 
@@ -930,19 +927,19 @@ end;
 
 Procedure fpc_WideStr_Int64(v : Int64; Len : SizeInt; out S : WideString);compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
-  Str (v:Len,SS);
-  S:=SS;
+  Str(v:Len,SS);
+  S:=WideString(SS);
 end;
 
 
 Procedure fpc_WideStr_Qword(v : Qword;Len : SizeInt; out S : WideString);compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   str(v:Len,SS);
-  S:=SS;
+  S:=WideString(SS);
 end;
 
 {$endif CPU64}
