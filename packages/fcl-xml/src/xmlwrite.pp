@@ -81,14 +81,19 @@ type
     procedure VisitDocument(Node: TDOMNode);
     procedure VisitDocument_Canonical(Node: TDOMNode);
     procedure VisitElement(Node: TDOMNode);
-    procedure VisitText(Node: TDOMNode);
-    procedure VisitCDATA(Node: TDOMNode);
-    procedure VisitComment(Node: TDOMNode);
+    procedure WriteString(const Text: XMLString);
+    procedure WriteCDATA(const Text: XMLString);
+    procedure WriteComment(const Text: XMLString);
     procedure VisitFragment(Node: TDOMNode);
     procedure VisitAttribute(Node: TDOMNode);
     procedure VisitEntityRef(Node: TDOMNode);
     procedure VisitDocumentType(Node: TDOMNode);
     procedure VisitPI(Node: TDOMNode);
+
+    procedure WriteProcessingInstruction(const Target, Data: XMLString);
+    procedure WriteEntityRef(const Name: XMLString);
+    procedure WriteAttributeString(const Name, Value: XMLString);
+    procedure WriteDocType(const Name, PubId, SysId, Subset: XMLString);
   public
     constructor Create(AStream: TStream; ANameTable: THashTable);
     destructor Destroy; override;
@@ -401,11 +406,11 @@ begin
   case node.NodeType of
     ELEMENT_NODE:                VisitElement(node);
     ATTRIBUTE_NODE:              VisitAttribute(node);
-    TEXT_NODE:                   VisitText(node);
-    CDATA_SECTION_NODE:          VisitCDATA(node);
+    TEXT_NODE:                   WriteString(TDOMCharacterData(node).Data);
+    CDATA_SECTION_NODE:          WriteCDATA(TDOMCharacterData(node).Data);
     ENTITY_REFERENCE_NODE:       VisitEntityRef(node);
     PROCESSING_INSTRUCTION_NODE: VisitPI(node);
-    COMMENT_NODE:                VisitComment(node);
+    COMMENT_NODE:                WriteComment(TDOMCharacterData(node).Data);
     DOCUMENT_NODE:
       if FCanonical then
         VisitDocument_Canonical(node)
@@ -615,52 +620,62 @@ begin
   FNSHelper.PopScope;
 end;
 
-procedure TXMLWriter.VisitText(node: TDOMNode);
+procedure TXMLWriter.WriteString(const Text: XMLString);
 begin
-  ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, TextnodeCallbacks[FCanonical]);
+  ConvWrite(Text, TextSpecialChars, TextnodeCallbacks[FCanonical]);
 end;
 
-procedure TXMLWriter.VisitCDATA(node: TDOMNode);
+procedure TXMLWriter.WriteCDATA(const Text: XMLString);
 begin
   if not FInsideTextNode then
     wrtIndent;
   if FCanonical then
-    ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, @TextnodeCanonicalCallback)
+    ConvWrite(Text, TextSpecialChars, @TextnodeCanonicalCallback)
   else
   begin
     wrtChars('<![CDATA[', 9);
-    ConvWrite(TDOMCharacterData(node).Data, CDSectSpecialChars, @CDSectSpecialCharCallback);
+    ConvWrite(Text, CDSectSpecialChars, @CDSectSpecialCharCallback);
     wrtChars(']]>', 3);
   end;
 end;
 
-procedure TXMLWriter.VisitEntityRef(node: TDOMNode);
+procedure TXMLWriter.WriteEntityRef(const Name: XMLString);
 begin
   wrtChr('&');
-  wrtStr(node.NodeName);
+  wrtStr(Name);
   wrtChr(';');
 end;
 
-procedure TXMLWriter.VisitPI(node: TDOMNode);
+procedure TXMLWriter.VisitEntityRef(node: TDOMNode);
+begin
+  WriteEntityRef(node.NodeName);
+end;
+
+procedure TXMLWriter.WriteProcessingInstruction(const Target, Data: XMLString);
 begin
   if not FInsideTextNode then wrtIndent;
   wrtStr('<?');
-  wrtStr(TDOMProcessingInstruction(node).Target);
-  if TDOMProcessingInstruction(node).Data <> '' then
+  wrtStr(Target);
+  if Data <> '' then
   begin
     wrtChr(' ');
     // TODO: How does this comply with c14n??
-    ConvWrite(TDOMProcessingInstruction(node).Data, LineEndingChars, @TextnodeNormalCallback);
+    ConvWrite(Data, LineEndingChars, @TextnodeNormalCallback);
   end;
   wrtStr('?>');
 end;
 
-procedure TXMLWriter.VisitComment(node: TDOMNode);
+procedure TXMLWriter.VisitPI(node: TDOMNode);
+begin
+  WriteProcessingInstruction(TDOMProcessingInstruction(node).Target, TDOMProcessingInstruction(node).Data);
+end;
+
+procedure TXMLWriter.WriteComment(const Text: XMLString);
 begin
   if not FInsideTextNode then wrtIndent;
   wrtChars('<!--', 4);
   // TODO: How does this comply with c14n??
-  ConvWrite(TDOMCharacterData(node).Data, LineEndingChars, @TextnodeNormalCallback);
+  ConvWrite(Text, LineEndingChars, @TextnodeNormalCallback);
   wrtChars('-->', 3);
 end;
 
@@ -738,6 +753,15 @@ begin
   end;
 end;
 
+procedure TXMLWriter.WriteAttributeString(const Name, Value: XMLString);
+begin
+  wrtChr(' ');
+  wrtStr(Name);
+  wrtChars('="', 2);
+  ConvWrite(Value, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+  wrtChr('"');
+end;
+
 procedure TXMLWriter.VisitAttribute(Node: TDOMNode);
 var
   Child: TDOMNode;
@@ -761,30 +785,33 @@ end;
 
 procedure TXMLWriter.VisitDocumentType(Node: TDOMNode);
 begin
+  WriteDocType(Node.NodeName, TDOMDocumentType(Node).PublicID, TDOMDocumentType(Node).SystemID,
+               TDOMDocumentType(Node).InternalSubset);
+end;
+
+procedure TXMLWriter.WriteDocType(const Name, PubId, SysId, Subset: XMLString);
+begin
   wrtStr(FLineBreak);
   wrtStr('<!DOCTYPE ');
-  wrtStr(Node.NodeName);
+  wrtStr(Name);
   wrtChr(' ');
-  with TDOMDocumentType(Node) do
+  if PubId <> '' then
   begin
-    if PublicID <> '' then
-    begin
-      wrtStr('PUBLIC ');
-      wrtQuotedLiteral(PublicID);
-      wrtChr(' ');
-      wrtQuotedLiteral(SystemID);
-    end
-    else if SystemID <> '' then
-    begin
-      wrtStr('SYSTEM ');
-      wrtQuotedLiteral(SystemID);
-    end;
-    if InternalSubset <> '' then
-    begin
-      wrtChr('[');
-      ConvWrite(InternalSubset, LineEndingChars, @TextnodeNormalCallback);
-      wrtChr(']');
-    end;
+    wrtStr('PUBLIC ');
+    wrtQuotedLiteral(PubId);
+    wrtChr(' ');
+    wrtQuotedLiteral(SysId);
+  end
+  else if SysId <> '' then
+  begin
+    wrtStr('SYSTEM ');
+    wrtQuotedLiteral(SysId);
+  end;
+  if Subset <> '' then
+  begin
+    wrtChr('[');
+    ConvWrite(Subset, LineEndingChars, @TextnodeNormalCallback);
+    wrtChr(']');
   end;
   wrtChr('>');
 end;
