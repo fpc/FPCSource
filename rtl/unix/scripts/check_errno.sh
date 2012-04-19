@@ -2,6 +2,17 @@
 
 # Small script to test fpc to system error numbers
 
+addtoerrno=0
+errnonew=./errno-new.inc
+
+temps="check_errno_list.sh check_reverse_errno_list.sh test-errno* $errnonew"
+
+if [ "$1" == "clean" ] ; then
+  echo "Deleting $temps"
+  rm -f $temps
+  exit
+fi
+
 if [ "$1" == "verbose" ] ; then
   verbose=1
   echo "Being verbose"
@@ -25,7 +36,7 @@ cat > test-errno.c <<EOF
 #include <errno.h>
 
 int
-main ()
+dummy ()
 {
   return 0;
 }
@@ -40,7 +51,7 @@ if [ "$CC" == "" ] ; then
 fi
 
 # Use gcc with --save-temps option to create .i file
-$CC --save-temps -o test-errno ./test-errno.c
+$CC --save-temps -c ./test-errno.c
 # list of errno.h headers listed
 errno_headers=` sed -n "s:.*\"\(.*\.h\)\".*:\1:p" test-errno.i |sort | uniq`
 echo "Headers found are \"$errno_headers\""
@@ -96,8 +107,6 @@ function check_errno_number ()
   fi
 }
 
-addtoerrno=0
-errnonew=./errno-new.inc
 
 function check_reverse_errno_number ()
 {
@@ -124,6 +133,6 @@ source ./check_reverse_errno_list.sh
 if [ $addtoerrno -eq 1 ] ; then
   echo " Missing error number found"
   echo " New values are in \"$errnonew\"
-  echo You might want to add these lines to \"$errno\""
+  echo You might want to add these lines to \"$errno_include\""
 fi
 
