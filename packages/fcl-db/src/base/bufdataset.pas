@@ -3045,9 +3045,8 @@ begin
   end;
 
   // Set The filter-buffer
-  StoreDSState:=State;
+  StoreDSState:=SetTempState(dsFilter);
   FFilterBuffer:=FCurrentIndex.SpareBuffer;
-  SetTempState(dsFilter);
   SetFieldValues(keyfields,KeyValues);
   CurrLinkItem := (FCurrentIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
   FilterBuffer:=IntAllocRecordBuffer;
