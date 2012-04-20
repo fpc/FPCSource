@@ -2027,6 +2027,14 @@ end;
 Procedure TDataset.Next;
 
 begin
+  if BlockReadSize>0 then
+    BlockReadNext
+  else
+    MoveBy(1);
+end;
+
+Procedure TDataset.BlockReadNext;
+begin
   MoveBy(1);
 end;
 

@@ -1406,13 +1406,14 @@ type
     Function GetActive : boolean;
     Procedure UnRegisterDataSource(ADatasource : TDatasource);
     Procedure UpdateFieldDefs;
-    procedure SetBlockReadSize(AValue: Integer);
+    procedure SetBlockReadSize(AValue: Integer); virtual;
     Procedure SetFieldDefs(AFieldDefs: TFieldDefs);
     procedure DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
   protected
     procedure RecalcBufListSize;
     procedure ActivateBuffers; virtual;
     procedure BindFields(Binding: Boolean);
+    procedure BlockReadNext; virtual;
     function  BookmarkAvailable: Boolean;
     procedure CalculateFields(Buffer: TRecordBuffer); virtual;
     procedure CheckActive; virtual;
