@@ -1671,7 +1671,7 @@ begin
   assert(qry.sql.Text<>'');
   with qry do
     begin
-    for x := 0 to Params.Count-1 do with params[x] do if leftstr(name,4)='OLD_' then
+    for x := 0 to Params.Count-1 do with params[x] do if sametext(leftstr(name,4),'OLD_') then
       begin
       Fld := self.FieldByName(copy(name,5,length(name)-4));
       AssignFieldValue(Fld,Fld.OldValue);
