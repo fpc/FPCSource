@@ -486,7 +486,7 @@ begin
 
   result := create_paraloc_info_intern(p, callerside, p.paras, curintreg,
     curfloatreg, curmmreg, cur_stack_offset, false);
-  if (p.proccalloption in [pocall_cdecl, pocall_cppdecl]) then begin
+  if (p.proccalloption in [pocall_cdecl, pocall_cppdecl, pocall_mwpascal]) then begin
     { just continue loading the parameters in the registers }
     result := create_paraloc_info_intern(p, callerside, varargspara, curintreg,
       curfloatreg, curmmreg, cur_stack_offset, true);
