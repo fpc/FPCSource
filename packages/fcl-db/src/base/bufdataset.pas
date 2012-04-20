@@ -495,7 +495,6 @@ type
     procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
     procedure BeforeRefreshOpenCursor; virtual;
     procedure DoFilterRecord(out Acceptable: Boolean); virtual;
-    procedure CreateFieldDefs; virtual;
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
@@ -2696,7 +2695,7 @@ begin
     end
   else if (fields.Count>0) then
     begin
-    CreateFieldDefs;
+    InitFieldDefsFromfields;
     BindFields(True);
     Open;
     end
@@ -2882,17 +2881,6 @@ begin
   // check filtertext
   if Acceptable and (Length(Filter) > 0) then
     Acceptable := Boolean((FParser.ExtractFromBuffer(GetCurrentBuffer))^);
-end;
-
-procedure TCustomBufDataset.CreateFieldDefs;
-
-Var
-  I : longint;
-  FieldDef: TFieldDef;
-begin
-  For I:=0 to FieldCount-1 do
-    with Fields.Fields[I] do if FieldKind=fkData then
-      FieldDefs.Add(FieldName,DataType,Size,Required);
 end;
 
 procedure TCustomBufDataset.SetFilterText(const Value: String);
