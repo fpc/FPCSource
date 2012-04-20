@@ -694,7 +694,13 @@ implementation
                 ss:='-31;';
               {u32bit : result:=def_stab_number(s32inttype)+';0;-1;'); }
               else
-                ss:=def_stabstr_evaluate(def,'r${numberstring};$1;$2;',[tostr(longint(def.low.svalue)),tostr(longint(def.high.svalue))]);
+                begin
+                  if def.size <> std_param_align then
+                    ss:='@s'+tostr(def.size*8)+';'
+                  else
+                    ss:='';
+                  ss:=ss+def_stabstr_evaluate(def,'r${numberstring};$1;$2;',[tostr(longint(def.low.svalue)),tostr(longint(def.high.svalue))]);
+                end;
             end;
          end;
         write_def_stabstr(list,def,ss);
@@ -896,7 +902,12 @@ implementation
       begin
         if not is_packed_array(def) then
           begin
-            tempstr:='ar$1;$2;$3;$4';
+            { Try to used P if ememlent size is smaller than
+              usual integer }
+            if def.elesize <> std_param_align then
+              tempstr:='ar@s'+tostr(def.elesize*8)+';$1;$2;$3;$4'
+            else
+              tempstr:='ar$1;$2;$3;$4';
             if is_dynamic_array(def) then
               tempstr:='*'+tempstr;
             ss:=def_stabstr_evaluate(def,tempstr,[def_stab_number(tarraydef(def).rangedef),
