@@ -741,11 +741,13 @@ implementation
          pu      : tused_unit;
          hp2     : tmodule;
          unitsym : tunitsym;
+         filepos : tfileposinfo;
       begin
          consume(_USES);
          repeat
            s:=pattern;
            sorg:=orgpattern;
+           filepos:=current_tokenpos;
            consume(_ID);
            { support "<unit> in '<file>'" construct, but not for tp7 }
            fn:='';
@@ -784,6 +786,7 @@ implementation
               { Create unitsym, we need to use the name as specified, we
                 can not use the modulename because that can be different
                 when -Un is used }
+              current_tokenpos:=filepos;
               unitsym:=tunitsym.create(sorg,nil);
               current_module.localsymtable.insert(unitsym);
               { the current module uses the unit hp2 }

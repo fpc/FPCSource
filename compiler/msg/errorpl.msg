@@ -1858,7 +1858,7 @@ unit_u_ppu_invalid_processor=10009_U_PPU jest skompilowany dla innego procesora
 unit_u_ppu_invalid_target=10010_U_PPU skompilowany dla innej platformy docelowej
 % This unit file was compiled for a different target, and
 % cannot be read
-unit_u_ppu_source=10011_U_çr¢dào PPU: $1
+unit_u_ppu_source=10011_U_r¢dào PPU: $1
 % When you use the \var{-vu} flag, the unit CRC check is shown.
 unit_u_ppu_write=10012_U_Zapisywanie $1
 % When you specify the \var{-vu} switch, the compiler will tell you where it
@@ -1902,7 +1902,7 @@ unit_w_switch_us_missed=10025_W_Kompilowanie moduàu System wymaga uæycia przeà•c
 unit_f_errors_in_unit=10026_F_Napotkano $1 bà©d¢w podczas kompilacji moduàu, zatrzymanie
 % When the compiler encounters a fatal error or too many errors in a module
 % then it stops with this message.
-unit_u_load_unit=10027_U_ùadowanie z $1 ($2) moduàu $3
+unit_u_load_unit=10027_U_adowanie z $1 ($2) moduàu $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
 unit_u_recompile_crc_change=10028_U_Rekompilacja $1, suma kontrolna zmieniona dla $2
@@ -1956,10 +1956,10 @@ unit_u_ppu_invalid_fpumode=10042_U_Uæycie moduàu skompilowanego z innym formatem
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
 % with FPU emulation on, or with FPU emulation off.
-unit_u_loading_interface_units=10043_U_ùadowanie moduà¢w z cz©´ci interface moduàu $1
+unit_u_loading_interface_units=10043_U_adowanie moduà¢w z cz©´ci interface moduàu $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the units defined in the interface part of the unit.
-unit_u_loading_implementation_units=10044_U_ùadowanie moduà¢w z cz©´ci implementation moduàu $1
+unit_u_loading_implementation_units=10044_U_adowanie moduà¢w z cz©´ci implementation moduàu $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the units defined in the implementation part of the unit.
 unit_u_interface_crc_changed=10045_U_Zmieniona suma CRC sekcji interface moduàu $1
@@ -1996,7 +1996,7 @@ unit_u_second_compile_unit=10054_U_Juæ kompilowane $1, ustawienie drugiej kompil
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % recompiling a unit for the second time. This can happend with interdepend
 % units.
-unit_u_loading_unit=10055_U_ùadowanie moduàu $1
+unit_u_loading_unit=10055_U_adowanie moduàu $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the unit.
 unit_u_finished_loading_unit=10056_U_Zako‰czenie àadowania moduàu $1
@@ -2116,7 +2116,7 @@ option_code_page_not_available=11039_E_Nieznana strona kodowa
 #
 option_logo=11023_[
 Free Pascal Compiler wersja $FPCFULLVERSION [$FPCDATE] dla $FPCCPU
-Copyright (c) 1993-2011 by Florian Klaempfl
+Copyright (c) 1993-2012 by Florian Klaempfl
 ]
 
 #
@@ -2276,7 +2276,7 @@ S*2Aas_asemblacja przy uæyciu GNU AS
 3*3Op3_ustawienie procesora docelowego na PPro/PII/c6x86/K6 (tm)
 6*2Og_generacja mniejszego kodu
 6*2OG_generacja szybszego kodu (domyòlne)
-6*2Ox_maksymalne optymalizacje (ci•gle zawieraj• Bù®DY!!!)
+6*2Ox_maksymalne optymalizacje (ci•gle zawieraj• B®DY!!!)
 6*2O0_ustawia docelowy procesor na MC68000
 6*2O2_ustawia docelowy procesor na MC68020+ (domyòlne)
 **1pg_generacja kodu do profilowania przy pomocy gprof (definiuje FPC_PROFILE)
