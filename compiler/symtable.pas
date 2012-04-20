@@ -2148,13 +2148,13 @@ implementation
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
                    (srsym.typ=typesym) and
-                   is_objcclass(ttypesym(srsym).typedef) and
+                   is_objc_class_or_protocol(ttypesym(srsym).typedef) and
                    not(oo_is_formal in tobjectdef(ttypesym(srsym).typedef).objectoptions) then
                   begin
                     { the external name for the formal and the real definition must match }
                     if tobjectdef(ttypesym(srsym).typedef).objextname^<>pd.objextname^ then
                       begin
-                        Message2(sym_e_external_class_name_mismatch1,pd.objextname^,pd.typename);
+                        MessagePos2(pd.typesym.fileinfo,sym_e_external_class_name_mismatch1,pd.objextname^,pd.typename);
                         MessagePos1(srsym.fileinfo,sym_e_external_class_name_mismatch2,tobjectdef(ttypesym(srsym).typedef).objextname^);
                       end;
                     result:=tobjectdef(ttypesym(srsym).typedef);

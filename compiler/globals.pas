@@ -262,6 +262,8 @@ interface
        GenerateImportSection,
        GenerateImportSectionSetExplicitly,
        RelocSection : boolean;
+       MacOSXVersionMin,
+       iPhoneOSVersionMin: string[15];
        RelocSectionSetExplicitly : boolean;
        LinkTypeSetExplicitly : boolean;
 
@@ -1518,6 +1520,8 @@ implementation
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
         LinkTypeSetExplicitly:=false;
+        MacOSXVersionMin:='';
+        iPhoneOSVersionMin:='';
         { memory sizes, will be overridden by parameter or default for target
           in options or init_parser }
         stacksize:=0;
