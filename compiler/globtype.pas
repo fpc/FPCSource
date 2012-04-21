@@ -196,6 +196,13 @@ interface
        );
        tdebugswitches = set of tdebugswitch;
 
+       { global target-specific switches }
+       ttargetswitch = (ts_none,
+         { generate code that results in smaller TOCs than normal (AIX) }
+         ts_small_toc
+       );
+       ttargetswitches = set of ttargetswitch;
+
 
        { adding a new entry here requires also adding the appropriate define in
          systemh.inc (FK)
@@ -246,6 +253,9 @@ interface
 
        DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
          'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
+
+       TargetSwitchStr : array[ttargetswitch] of string[19] = ('',
+         'SMALLTOC');
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];

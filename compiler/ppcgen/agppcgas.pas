@@ -152,18 +152,17 @@ unit agppcgas;
                 s:=s+tostr(offset);
             end;
 
-           if (refaddr in verbose_refaddrs) then
+           if not(refaddr in [addr_no,addr_pic_no_got]) then
              begin
                s := s+')';
-               if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
+               if (refaddr in verbose_refaddrs) and
+                  not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
                  s := s+refaddr2str[refaddr];
              end;
 {$ifdef cpu64bitaddr}
-           if (refaddr = addr_pic) then
-	     if (target_info.system <> system_powerpc64_linux) then
-	       s := s + ')'
-	     else
-	       s := s + ')@got';
+           if (refaddr=addr_pic) and
+	      (target_info.system=system_powerpc64_linux) then
+             s := s + '@got';
 {$endif cpu64bitaddr}
 
            if (index=NR_NO) then

@@ -2259,6 +2259,7 @@ In case not, the value returned can be arbitrary.
             alignment.recordalignmax:=tokenreadlongint;
             alignment.maxCrecordalign:=tokenreadlongint;
             tokenreadset(globalswitches,sizeof(globalswitches));
+            tokenreadset(targetswitches,sizeof(targetswitches));
             tokenreadset(moduleswitches,sizeof(moduleswitches));
             tokenreadset(localswitches,sizeof(localswitches));
             tokenreadset(modeswitches,sizeof(modeswitches));

@@ -3233,6 +3233,10 @@ P*2CN_Generate nil-pointer checks (AIX-only)
 **2CR_Verify object method call validity
 **2Cs<n>_Set stack checking size to <n>
 **2Ct_Stack checking (for testing only, see manual)
+p*2CT<x>_Target-specific code generation options
+P*2CT<x>_Target-specific code generation options
+p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
+P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file

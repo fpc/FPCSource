@@ -113,6 +113,7 @@ interface
        tsettings = packed record
          alignment       : talignmentinfo;
          globalswitches  : tglobalswitches;
+         targetswitches  : ttargetswitches;
          moduleswitches  : tmoduleswitches;
          localswitches   : tlocalswitches;
          modeswitches    : tmodeswitches;
@@ -360,6 +361,7 @@ interface
           maxCrecordalign : 0;
         );
         globalswitches : [cs_check_unit_name,cs_link_static];
+        targetswitches : [];
         moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
         localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath];
         modeswitches : fpcmodeswitches;
@@ -481,6 +483,7 @@ interface
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
     function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
     function UpdateDebugStr(s:string;var a:tdebugswitches):boolean;
+    function UpdateTargetSwitchStr(s: string; var a: ttargetswitches): boolean;
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
@@ -1310,6 +1313,48 @@ implementation
           for opt:=low(tdebugswitch) to high(tdebugswitch) do
             begin
               if DebugSwitchStr[opt]=tok then
+                begin
+                  found:=true;
+                  break;
+                end;
+            end;
+          if found then
+            begin
+              if doset then
+                include(a,opt)
+              else
+                exclude(a,opt);
+            end
+          else
+            result:=false;
+        until false;
+      end;
+
+
+    function UpdateTargetSwitchStr(s: string; var a: ttargetswitches): boolean;
+      var
+        tok   : string;
+        doset,
+        found : boolean;
+        opt   : ttargetswitch;
+      begin
+        result:=true;
+        uppervar(s);
+        repeat
+          tok:=GetToken(s,',');
+          if tok='' then
+           break;
+          if Copy(tok,1,2)='NO' then
+            begin
+              delete(tok,1,2);
+              doset:=false;
+            end
+          else
+            doset:=true;
+          found:=false;
+          for opt:=low(ttargetswitch) to high(ttargetswitch) do
+            begin
+              if TargetSwitchStr[opt]=tok then
                 begin
                   found:=true;
                   break;

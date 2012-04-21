@@ -551,7 +551,7 @@ implementation
         deprecatedmsg:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
-        asmdata:=TAsmData.create(realmodulename^);
+        asmdata:=casmdata.create(realmodulename^);
         InitDebugInfo(self,false);
       end;
 
@@ -680,7 +680,7 @@ implementation
           end;
         if assigned(asmdata) then
           begin
-            if current_asmdata=TAsmData(asmdata) then
+            if current_asmdata=asmdata then
              current_asmdata:=nil;
             asmdata.free;
             asmdata:=nil;
@@ -722,7 +722,7 @@ implementation
         derefdataintflen:=0;
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
-        asmdata:=TAsmData.create(realmodulename^);
+        asmdata:=casmdata.create(realmodulename^);
         InitDebugInfo(self,current_debuginfo_reset);
         _exports.free;
         _exports:=tlinkedlist.create;

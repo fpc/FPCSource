@@ -62,6 +62,7 @@ interface
         al_dwarf_abbrev,
         al_dwarf_line,
         al_picdata,
+        al_indirectpicdata,
         al_resourcestrings,
         { Objective-C related sections }
         al_objc_data,
@@ -111,6 +112,7 @@ interface
         'al_dwarf_abbrev',
         'al_dwarf_line',
         'al_picdata',
+        'al_indirectpicdata',
         'al_resourcestrings',
         'al_objc_data',
         'al_objc_pools',
@@ -163,6 +165,7 @@ interface
         constructor create(const n:string);
         destructor  destroy;override;
         { asmsymbol }
+        function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
         function  DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
         function  WeakRefAsmSymbol(const s : string) : TAsmSymbol;
         function  RefAsmSymbol(const s : string) : TAsmSymbol;
@@ -181,6 +184,7 @@ interface
         { hash tables for reusing constant storage }
         property ConstPools[APoolType:TConstPoolType]: THashSet read GetConstPools;
       end;
+      TAsmDataClass = class of TAsmData;
 
       TTCInitItem = class(TLinkedListItem)
         sym: tsym;
@@ -188,6 +192,10 @@ interface
         datalabel: TAsmSymbol;
         constructor Create(asym: tsym; aoffset: aint; alabel: TAsmSymbol);
       end;
+
+    const
+      casmdata: TAsmDataClass = TAsmData;
+
 
     var
       CAsmCFI : TAsmCFIClass;
@@ -395,7 +403,7 @@ implementation
       end;
 
 
-    function TAsmData.DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
+    function TAsmData.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
       var
         hp : TAsmSymbol;
       begin
@@ -416,9 +424,15 @@ implementation
         else
          begin
            { Not found, insert it. }
-           hp:=TAsmSymbol.create(AsmSymbolDict,s,_bind,_typ);
+           hp:=symclass.create(AsmSymbolDict,s,_bind,_typ);
          end;
         result:=hp;
+      end;
+
+
+    function TAsmData.DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
+      begin
+        result:=DefineAsmSymbolByClass(TAsmSymbol,s,_bind,_typ);
       end;
 
 
