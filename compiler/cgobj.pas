@@ -896,11 +896,16 @@ implementation
     procedure tcg.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : TCGPara);
       var
          ref : treference;
+         tmpreg : tregister;
       begin
          cgpara.check_simple_location;
          paramanager.alloccgpara(list,cgpara);
          if cgpara.location^.shiftval<0 then
-           a_op_const_reg(list,OP_SHL,cgpara.location^.size,-cgpara.location^.shiftval,r);
+           begin
+             tmpreg:=getintregister(list,cgpara.location^.size);
+             a_op_const_reg_reg(list,OP_SHL,cgpara.location^.size,-cgpara.location^.shiftval,r,tmpreg);
+             r:=tmpreg;
+           end;
          case cgpara.location^.loc of
             LOC_REGISTER,LOC_CREGISTER:
               a_load_reg_reg(list,size,cgpara.location^.size,r,cgpara.location^.register);
@@ -930,6 +935,8 @@ implementation
       begin
          cgpara.check_simple_location;
          paramanager.alloccgpara(list,cgpara);
+         if cgpara.location^.shiftval<0 then
+           a:=a shl -cgpara.location^.shiftval;
          case cgpara.location^.loc of
             LOC_REGISTER,LOC_CREGISTER:
               a_load_const_reg(list,cgpara.location^.size,a,cgpara.location^.register);
