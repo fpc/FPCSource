@@ -722,8 +722,6 @@ begin
 end;
 
 procedure TFixedFormatDataSet.InternalPost;
-var
-  i: Longint;
 begin
   FSaveChanges := TRUE;
   inherited UpdateRecord;
@@ -862,7 +860,12 @@ var
 begin
   if not IsCursorOpen then
     exit;
-  if (FData.Count = 0) or (Trim(FData[0]) = '') then
+  if (FData.Count = 0) and (Schema.Count > 0) and FirstLineAsSchema then
+  begin
+    Schema.Delimiter := Delimiter;
+    FData.Append(Schema.DelimitedText);
+  end
+  else if (FData.Count = 0) or (Trim(FData[0]) = '') then
     begin
     FirstLineAsSchema := FALSE;
     FDataOffset:=0;
@@ -957,7 +960,7 @@ begin
 
     while Boolean(Byte(pStrEnd[0])) and (pStrEnd[0] in [#1..' ']) do
     begin
-     if FFMultiLine=true then
+     if FFMultiLine then
       begin
        if ((pStrEnd[0]=CR) or (pStrEnd[0]=LF)) then
         begin
@@ -979,7 +982,7 @@ begin
 
     if (pStr[0] = '"') then
      begin
-      if FFMultiLine=true then
+      if FFMultiLine then
        begin
         repeat
          Inc(pStrEnd);
@@ -1036,21 +1039,21 @@ begin
   begin
     Str := Trim(Copy(pansichar(Buffer), p, FieldDefs[i].Size));
     Inc(p, FieldDefs[i].Size);
-    if FFMultiLine=true then
+    if FFMultiLine then
       begin
        // If multiline enabled, quote whenever we find carriage return or linefeed
-       if ((QuoteMe=False) and (StrScan(PChar(Str), #10) <> nil)) then QuoteMe:=true;
-       if ((QuoteMe=False) and (StrScan(PChar(Str), #13) <> nil)) then QuoteMe:=true;
+       if (not QuoteMe) and (StrScan(PChar(Str), #10) <> nil) then QuoteMe:=true;
+       if (not QuoteMe) and (StrScan(PChar(Str), #13) <> nil) then QuoteMe:=true;
       end
     else
       begin
        // If we don't allow multiline, remove all CR and LF because they mess with the record ends:
-       StringReplace(Str, #10, '', [rfReplaceAll]);
-       StringReplace(Str, #13, '', [rfReplaceAll]);
+       Str := StringReplace(Str, #10, '', [rfReplaceAll]);
+       Str := StringReplace(Str, #13, '', [rfReplaceAll]);
       end;
     // Check for any delimiters occurring in field text
-    if ((QuoteMe=False) and (StrScan(PChar(Str), FDelimiter) <> nil)) then QuoteMe:=true;
-    if (QuoteMe=True) then
+    if ((not QuoteMe) and (StrScan(PChar(Str), FDelimiter) <> nil)) then QuoteMe:=true;
+    if (QuoteMe) then
       Str := QuoteDelimiter + Str + QuoteDelimiter;
     Result := Result + Str + FDelimiter;
   end;
