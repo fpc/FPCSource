@@ -275,7 +275,7 @@ Implementation
       begin
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
                 (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
-                ((target_asm.id in [as_gas,as_ggas,as_darwin]));
+                ((target_asm.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff]));
       end;
 
 
