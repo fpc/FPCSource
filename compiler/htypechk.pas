@@ -1328,6 +1328,17 @@ implementation
                          CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
                      exit;
                    end;
+                 { if we assign something to a field of a record that is not
+                   regable, then then the record can't be kept in a regvar,
+                   because we will force the record into memory for this
+                   subscript operation (to a temp location, so the assignment
+                   will happen to the temp and be lost) }
+                 if not gotsubscript and
+                    not gotderef and
+                    not gotvec and
+                    not tstoreddef(hp.resultdef).is_intregable then
+                   make_not_regable(hp,[ra_addr_regable]);
+
                  gotsubscript:=true;
                  { loop counter? }
                  if not(Valid_Const in opts) and
