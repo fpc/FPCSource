@@ -1,0 +1,1 @@
+{$i ../mips/stringss.inc}
