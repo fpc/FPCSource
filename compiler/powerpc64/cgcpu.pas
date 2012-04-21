@@ -37,14 +37,6 @@ type
     procedure init_register_allocators; override;
     procedure done_register_allocators; override;
 
-    { passing parameters, per default the parameter is pushed }
-    { nr gives the number of the parameter (enumerated from   }
-    { left to right), this allows to move the parameter to    }
-    { register, if the cpu supports register calling          }
-    { conventions                                             }
-    procedure a_load_ref_cgpara(list: TAsmList; size: tcgsize; const r: treference;
-      const paraloc: tcgpara); override;
-
     procedure a_call_name(list: TAsmList; const s: string; weak: boolean); override;
     procedure a_call_reg(list: TAsmList; reg: tregister); override;
 
@@ -388,118 +380,6 @@ begin
   rg[R_FPUREGISTER].free;
   rg[R_MMREGISTER].free;
   inherited done_register_allocators;
-end;
-
-procedure tcgppc.a_load_ref_cgpara(list: TAsmList; size: tcgsize; const r:
-  treference; const paraloc: tcgpara);
-
-var
-  tmpref, ref: treference;
-  location: pcgparalocation;
-  sizeleft: aint;
-  adjusttail : boolean;
-
-begin
-  location := paraloc.location;
-  tmpref := r;
-  sizeleft := paraloc.intsize;
-  adjusttail := false;
-  while assigned(location) do begin
-    paramanager.allocparaloc(list,location);
-    case location^.loc of
-      LOC_REGISTER, LOC_CREGISTER:
-        begin
-          if not(size in [OS_NO,OS_128,OS_S128]) then
-            a_load_ref_reg(list, size, location^.size, tmpref,
-              location^.register)
-          else begin
-            { load non-integral sized memory location into register. This
-             memory location be 1-sizeleft byte sized.
-             Always assume that this memory area is properly aligned, eg. start
-             loading the larger quantities for "odd" quantities first }
-            case sizeleft of
-              1,2,4,8 :
-                a_load_ref_reg(list, int_cgsize(sizeleft), location^.size, tmpref,
-                  location^.register);
-              3 : begin
-                a_reg_alloc(list, NR_R12);
-                a_load_ref_reg(list, OS_16, location^.size, tmpref,
-                  NR_R12);
-                inc(tmpref.offset, tcgsize2size[OS_16]);
-                a_load_ref_reg(list, OS_8, location^.size, tmpref,
-                  location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 8, 40));
-                a_reg_dealloc(list, NR_R12);
-              end;
-              5 : begin
-                a_reg_alloc(list, NR_R12);
-                a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
-                inc(tmpref.offset, tcgsize2size[OS_32]);
-                a_load_ref_reg(list, OS_8, location^.size, tmpref, location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 8, 24));
-                a_reg_dealloc(list, NR_R12);
-              end;
-              6 : begin
-                a_reg_alloc(list, NR_R12);
-                a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
-                inc(tmpref.offset, tcgsize2size[OS_32]);
-                a_load_ref_reg(list, OS_16, location^.size, tmpref, location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 16, 16));
-                a_reg_dealloc(list, NR_R12);
-              end;
-              7 : begin
-                a_reg_alloc(list, NR_R12);
-                a_reg_alloc(list, NR_R0);
-                a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
-                inc(tmpref.offset, tcgsize2size[OS_32]);
-                a_load_ref_reg(list, OS_16, location^.size, tmpref, NR_R0);
-                inc(tmpref.offset, tcgsize2size[OS_16]);
-                a_load_ref_reg(list, OS_8, location^.size, tmpref, location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, NR_R0, NR_R12, 16, 16));
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R0, 8, 8));
-                a_reg_dealloc(list, NR_R0);
-                a_reg_dealloc(list, NR_R12);
-              end;
-              else begin
-                { still > 8 bytes to load, so load data single register now }
-                a_load_ref_reg(list, location^.size, location^.size, tmpref,
-                  location^.register);
-                { the block is > 8 bytes, so we have to store any bytes not
-                 a multiple of the register size beginning with the MSB }
-                adjusttail := true;
-              end;
-            end;
-            if (adjusttail) and (sizeleft < sizeof(pint)) then
-              a_op_const_reg(list, OP_SHL, OS_INT,
-                (sizeof(pint) - sizeleft) * sizeof(pint),
-                location^.register);
-          end;
-        end;
-      LOC_REFERENCE:
-        begin
-          reference_reset_base(ref, location^.reference.index,
-            location^.reference.offset,paraloc.alignment);
-          g_concatcopy(list, tmpref, ref, sizeleft);
-          if assigned(location^.next) then
-            internalerror(2005010710);
-        end;
-      LOC_FPUREGISTER, LOC_CFPUREGISTER:
-        case location^.size of
-          OS_F32, OS_F64:
-            a_loadfpu_ref_reg(list, location^.size, location^.size, tmpref, location^.register);
-        else
-          internalerror(2002072801);
-        end;
-      LOC_VOID:
-        { nothing to do }
-        ;
-    else
-      internalerror(2002081103);
-    end;
-    inc(tmpref.offset, tcgsize2size[location^.size]);
-    dec(sizeleft, tcgsize2size[location^.size]);
-    location := location^.next;
-  end;
 end;
 
 { calling a procedure by name }
