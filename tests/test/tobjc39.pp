@@ -1,3 +1,5 @@
+{ %target=darwin }
+{ %cpu=powerpc,powerpc64,i386,x86_64,arm }
 { %opt=norun }
 
 {$mode objfpc}
