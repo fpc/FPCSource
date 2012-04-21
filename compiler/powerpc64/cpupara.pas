@@ -287,6 +287,7 @@ function tppcparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
   var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
   aword; isVararg : boolean): longint;
 var
+  fsym: tfieldvarsym;
   stack_offset: longint;
   paralen: aint;
   nextintreg, nextfloatreg, nextmmreg : tsuperregister;
@@ -350,11 +351,11 @@ begin
         { if a record has only one field and that field is }
         { non-composite (not array or record), it must be  }
         { passed according to the rules of that type.       }
-        if (trecorddef(hp.vardef).symtable.SymList.count = 1) and
-          (not trecorddef(hp.vardef).isunion)  and
-          (tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef.typ in [orddef, enumdef, floatdef])  then begin
-          paradef :=
-            tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef;
+        if tabstractrecordsymtable(tabstractrecorddef(hp.vardef).symtable).has_single_field(fsym) and
+          ((fsym.vardef.typ = floatdef) or
+           (not(target_info.system in systems_aix) and
+            (fsym.vardef.typ in [orddef, enumdef]))) then begin
+          paradef := fsym.vardef;
           loc := getparaloc(paradef);
           paracgsize := def_cgsize(paradef);
         end else begin
