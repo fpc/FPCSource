@@ -753,7 +753,7 @@ implementation
                        asmwrite(tai_datablock(hp).sym.name);
                        asmwriteln(', '+tostr(tai_datablock(hp).size)+','+tostr(last_align));
                        if not(LastSecType in [sec_data,sec_none]) then
-                         writesection(LastSecType,'',secorder_default,last_align);
+                         writesection(LastSecType,'',secorder_default,1 shl last_align);
                      end
                    else
                      begin
@@ -775,7 +775,7 @@ implementation
                        asmwrite(#9'.space ');
                        asmwriteln(tostr(tai_datablock(hp).size));
                        if not(LastSecType in [sec_data,sec_none]) then
-                         writesection(LastSecType,'',secorder_default,last_align);
+                         writesection(LastSecType,'',secorder_default,1 shl last_align);
                      end
                    else
                      begin
