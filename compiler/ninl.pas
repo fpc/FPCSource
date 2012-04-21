@@ -1409,7 +1409,11 @@ implementation
               TRange1 = -10..-5;
               TRange2 = 5..10;
               TEnum = (a:=5;b:=10); }
-            result:=cordconstnode.create(0,def,false);
+            if def<>s64currencytype then
+              result:=cordconstnode.create(0,def,false)
+            else
+              { in case currency is handled via int64 }
+              result:=crealconstnode.create(0,def);
           classrefdef,
           pointerdef:
             result:=cpointerconstnode.create(0,def);
