@@ -509,7 +509,7 @@ const DefaultSQLFormatSettings : TFormatSettings = (
   TimeAMString: '';
   TimePMString: '';
   ShortTimeFormat: 'hh:nn:ss';
-  LongTimeFormat: 'hh:nn:ss';
+  LongTimeFormat: 'hh:nn:ss.zzz';
   ShortMonthNames: ('','','','','','','','','','','','');
   LongMonthNames: ('','','','','','','','','','','','');
   ShortDayNames: ('','','','','','','');
@@ -703,9 +703,9 @@ function TSQLConnection.GetAsSQLText(Field : TField) : string;
 begin
   if (not assigned(field)) or field.IsNull then Result := 'Null'
   else case field.DataType of
-    ftString   : Result := '''' + field.asstring + '''';
+    ftString   : Result := QuotedStr(Field.AsString);
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime,FSqlFormatSettings) + '''';
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss',Field.AsDateTime,FSqlFormatSettings) + '''';
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Field.AsDateTime,FSqlFormatSettings) + '''';
     ftTime     : Result := QuotedStr(TimeIntervalToString(Field.AsDateTime));
   else
     Result := field.asstring;
@@ -722,7 +722,7 @@ begin
     ftString   : Result := QuotedStr(Param.AsString);
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime,FSQLFormatSettings) + '''';
     ftTime     : Result := QuotedStr(TimeIntervalToString(Param.AsDateTime));
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss', Param.AsDateTime, FSQLFormatSettings) + '''';
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', Param.AsDateTime, FSQLFormatSettings) + '''';
     ftCurrency,
     ftBcd      : Result := CurrToStr(Param.AsCurrency, FSQLFormatSettings);
     ftFloat    : Result := FloatToStr(Param.AsFloat, FSQLFormatSettings);

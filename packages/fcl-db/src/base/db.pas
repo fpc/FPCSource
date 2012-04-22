@@ -1614,7 +1614,7 @@ type
     function UpdateStatus: TUpdateStatus; virtual;
     property BlockReadSize: Integer read FBlockReadSize write SetBlockReadSize;
     property BOF: Boolean read FBOF;
-    property Bookmark: TBookmarkStr read GetBookmarkStr write SetBookmarkStr;
+    property Bookmark: TBookmark read GetBookmark write GotoBookmark;
     property CanModify: Boolean read GetCanModify;
     property DataSource: TDataSource read GetDataSource;
     property DefaultFields: Boolean read FDefaultFields;
