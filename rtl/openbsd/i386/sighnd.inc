@@ -27,7 +27,12 @@ end;
 function getaltfpustate(sigcontext:psigcontextrec):longint; {inline;}
 begin
   if assigned(sigcontext) then
-    getaltfpustate:=sigcontext^.sc_fpustate^.en_sw 
+    begin
+      if mmx_support then
+        getaltfpustate:=sigcontext^.sc_fpustate^.xmmState.fx_fsw 
+      else
+        getaltfpustate:=sigcontext^.sc_fpustate^.x87state.en_sw 
+    end
   else
     getaltfpustate:=0;
 end;
@@ -37,6 +42,7 @@ procedure SignalToRunerror(Sig: longint;sininfo:psiginfo; SigContext: PSigContex
 
 var
   res,fpustate : word;
+  oldact: SigActionRec;
 begin
   res:=0;
 {$ifdef BSD}
@@ -87,6 +93,10 @@ begin
     SIGQUIT:
         res:=233;
   end;
+{$ifdef DEBUG_SIGNAL_HANDLER}
+  InstallDefaultSignalHandler(sig,oldact);
+  InstallDefaultSignalHandler(sig,oldact);
+{$endif}
   reenable_signal(sig);
 { give runtime error at the position where the signal was raised }
   if res<>0 then

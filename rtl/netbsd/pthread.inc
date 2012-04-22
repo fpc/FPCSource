@@ -19,10 +19,10 @@
 
  **********************************************************************}
 
-CONST PTHREAD_EXPLICIT_SCHED       = 0;
+CONST PTHREAD_EXPLICIT_SCHED       = 1;
       PTHREAD_CREATE_DETACHED      = 1;
       PTHREAD_SCOPE_PROCESS        = 0;
-      SEM_FAILED                   = -1;
+      SEM_FAILED                   = 0;
 
  TYPE
     ppthread_t           = ^pthread_t;
@@ -35,8 +35,8 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     ppthread_cond_t      = ^pthread_cond_t;
     ppthread_condattr_t  = ^pthread_condattr_t;
 
-    sem_t       = cint;
-    psem_t          = ^sem_t;
+    sem_t       = ptrint;
+    psem_t      = ^sem_t;
     TSemaphore  = sem_t;
     PSemaphore  = ^TSemaphore;
 

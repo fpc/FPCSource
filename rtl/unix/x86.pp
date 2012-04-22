@@ -519,6 +519,9 @@ Function fpIoPL(Level : cint) : cint;
 begin
  {$ifdef Linux}
   fpIOPL:=do_Syscall(Syscall_nr_iopl,TSysParam(Level));
+ {$else}
+  fpIOPL:=-1;
+  FpSetErrNo(ESysENoSys);
  {$endif}
 end;
 

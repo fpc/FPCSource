@@ -32,8 +32,11 @@ type
     TGid     = gid_t;
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
-
+{$ifdef NETBSD_USE_STAT30}
     ino_t    = cint64;          { used for file serial numbers }
+{$else}
+    ino_t = cuint32;
+{$endif}
     TIno     = ino_t;
     pIno     = ^ino_t;
 
