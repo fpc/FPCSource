@@ -91,8 +91,8 @@ begin
 { give runtime error at the position where the signal was raised }
   if res<>0 then
    begin
-{$ifdef cpui386}
-      HandleErrorAddrFrame(res,pointer(SigContext^.sc_eip),pointer(SigContext^.sc_ebp));
+{$ifdef cpux86_64}
+      HandleErrorAddrFrame(res,pointer(SigContext^.sc_rip),pointer(SigContext^.sc_rbp));
 {$endif}
    end;
 end;

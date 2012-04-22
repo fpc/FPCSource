@@ -121,7 +121,7 @@ interface
         { solaris } ( true,  false, false, true,  true,  false, false, false, false, false, false, false, false, false),
         { qnx }     ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
         { netware } ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { openbsd } ( true,  true,  false, false, false, false, false, false, false, false, false, false, false, false),
+        { openbsd } ( true,  true,  false, false, true,  false, false, false, false, false, false, false, false, false),
         { wdosx }   ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
         { palmos }  ( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false),
         { macos }   ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false),

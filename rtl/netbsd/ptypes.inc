@@ -33,7 +33,7 @@ type
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
-    ino_t    = clong;           { used for file serial numbers }
+    ino_t    = cint64;          { used for file serial numbers }
     TIno     = ino_t;
     pIno     = ^ino_t;
 
@@ -150,7 +150,10 @@ type
    pthread_t            = pointer;
    pthread_attr_t       = pointer;
    pthread_mutex_t      = {$i pmutext.inc}
-   pthread_mutexattr_t  = pointer;
+   pthread_mutexattr_t = record
+     ptma_magic : cint;
+     ptma_private : pointer;
+   end;
    pthread_cond_t       = pointer;
    pthread_condattr_t   = pointer;
    pthread_key_t        = cint;
