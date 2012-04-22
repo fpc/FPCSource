@@ -146,7 +146,9 @@
              system_mipsel_linux,       { 67 }
              system_i386_nativent,      { 68 }
              system_i386_iphonesim,     { 69 }
-             system_powerpc_wii         { 70 }
+             system_powerpc_wii,        { 70 }
+             system_x86_64_openbsd,     { 71 }
+             system_x86_64_netbsd       { 72 }
        );
 
      type

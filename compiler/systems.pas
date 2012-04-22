@@ -218,8 +218,11 @@ interface
                           system_x86_64_freebsd];
        systems_netbsd  = [system_i386_netbsd,
                           system_m68k_netbsd,
-                          system_powerpc_netbsd];
-       systems_openbsd = [system_i386_openbsd];
+                          system_powerpc_netbsd,
+                          system_x86_64_netbsd];
+       systems_openbsd = [system_i386_openbsd,
+                          system_m68k_openbsd,
+                          system_x86_64_openbsd];
 
        systems_bsd = systems_freebsd + systems_netbsd + systems_openbsd;
 
@@ -747,6 +750,14 @@ begin
    {$endif}
    {$ifdef freebsd}
     default_target(system_x86_64_freebsd);
+    {$define default_target_set}
+   {$endif}
+   {$ifdef openbsd}
+    default_target(system_x86_64_openbsd);
+    {$define default_target_set}
+   {$endif}
+   {$ifdef netbsd}
+    default_target(system_x86_64_netbsd);
     {$define default_target_set}
    {$endif}
    {$ifdef solaris}

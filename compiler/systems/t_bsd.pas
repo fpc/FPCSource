@@ -188,9 +188,9 @@ begin
      else
        DllCmd[2]:='strip -x $EXE';
      { OpenBSD seems to use a wrong dynamic linker by default }
-     if target_info.system = system_i386_openbsd then
+     if target_info.system in systems_openbsd then
       DynamicLinker:='/usr/libexec/ld.so'
-     else if target_info.system = system_i386_netbsd then
+     else if target_info.system in systems_netbsd then
       DynamicLinker:='/usr/libexec/ld.elf_so'
      else
        DynamicLinker:='';
@@ -843,6 +843,14 @@ initialization
   RegisterImport(system_x86_64_freebsd,timportlibbsd);
   RegisterExport(system_x86_64_freebsd,texportlibbsd);
   RegisterTarget(system_x86_64_freebsd_info);
+  RegisterExternalLinker(system_x86_64_OpenBSD_info,TLinkerBSD);
+  RegisterImport(system_x86_64_openbsd,timportlibbsd);
+  RegisterExport(system_x86_64_openbsd,texportlibbsd);
+  RegisterTarget(system_x86_64_openbsd_info);
+  RegisterExternalLinker(system_x86_64_NetBSD_info,TLinkerBSD);
+  RegisterImport(system_x86_64_netbsd,timportlibbsd);
+  RegisterExport(system_x86_64_netbsd,texportlibbsd);
+  RegisterTarget(system_x86_64_netbsd_info);
 
   RegisterExternalLinker(system_x86_64_darwin_info,TLinkerBSD);
   RegisterImport(system_x86_64_darwin,timportlibdarwin);

@@ -310,7 +310,7 @@ function Fpsigaction(sig: cint; act, oact: psigactionrec): cint; [public, alias 
 }
 
 begin
-  do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
+  fpsigaction:=do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
 end;
 
 (*=================== MOVED from sysunix.inc ========================*)

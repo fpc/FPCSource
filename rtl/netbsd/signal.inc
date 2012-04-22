@@ -136,7 +136,7 @@ type sigset_t = array[0..3] of cardinal;
 
     PSigContextRec = ^SigContextRec;
     PSigContext = ^SigContextRec;
-{
+(*
 struct sigcontext {
 	int	sc_gs;
 	int	sc_fs;
@@ -164,8 +164,9 @@ struct sigcontext {
 
 	sigset_t sc_mask;		/* signal mask to restore (new style) */
 };
-}
-    SigContextRec = record
+*)
+{$ifdef i386}
+     SigContextRec = record
        sc_gs        : longint;   { machine state (struct trapframe): }
        sc_fs        : longint;
        sc_es        : longint;
@@ -205,6 +206,79 @@ struct sigcontext {
        fpr_ex_sw    : cardinal;
        fpr_pad      : array[0..63] of char; *)
        end;
+{$endif}
+(* From amd64 /usr/include/machine/frame_regs.h
+/*
+ * General register state
+ */
+#define GREG_OFFSETS(reg, REG, idx) _REG_##REG = idx,
+enum { _FRAME_GREG(GREG_OFFSETS) _NGREG = 26 };
+#undef GREG_OFFSETS
+
+#define _FRAME_REG(greg, freg) 	\
+	greg(rdi, RDI, 0)	\
+	greg(rsi, RSI, 1)	\
+	greg(rdx, RDX, 2)	\
+	greg(r10, R10, 6)	\
+	greg(r8,  R8,  4)	\
+	greg(r9,  R9,  5)	\
+	freg(arg6, @,  @)	/* syscall arg from stack */ \
+	freg(arg7, @,  @)	/* syscall arg from stack */ \
+	freg(arg8, @,  @)	/* syscall arg from stack */ \
+	freg(arg9, @,  @)	/* syscall arg from stack */ \
+	greg(rcx, RCX, 3)	\
+	greg(r11, R11, 7)	\
+	greg(r12, R12, 8)	\
+	greg(r13, R13, 9)	\
+	greg(r14, R14, 10)	\
+	greg(r15, R15, 11)	\
+	greg(rbp, RBP, 12)	\
+	greg(rbx, RBX, 13)	\
+	greg(rax, RAX, 14)	\
+	greg(gs,  GS,  15)	\
+	greg(fs,  FS,  16)	\
+	greg(es,  ES,  17)	\
+	greg(ds,  DS,  18)	\
+	greg(trapno, TRAPNO, 19)	\
+	/* below portion defined in hardware */ \
+	greg(err, ERR, 20)	/* Dummy inserted if not defined */ \
+	greg(rip, RIP, 21)	\
+	greg(cs,  CS,  22)	\
+	greg(rflags, RFLAGS, 23)	\
+	/* These are pushed unconditionally on the x86-64 */ \
+	greg(rsp, RSP, 24)	\
+	greg(ss,  SS,  25)
+*)
+{$ifdef X86_64}
+        SigContextRec = record
+	sc_rdi : clong;
+	sc_rsi : clong;
+        sc_rdx : clong;
+	sc_rcx : clong;
+	sc_r8  : clong;
+	sc_r9  : clong;
+	sc_r10 : clong;
+	sc_r11 : clong;
+	sc_r12 : clong;
+	sc_r13 : clong;
+	sc_r14 : clong;
+	sc_r15 : clong;
+	sc_rbp : clong;
+	sc_rbx : clong;
+	sc_rax : clong;
+	sc_gs  : clong;
+	sc_fs  : clong;
+	sc_es  : clong;
+	sc_ds  : clong;
+	sc_trapno : clong;
+	sc_err : clong;
+	sc_rip : clong;
+	sc_cs  : clong;
+	sc_rflags : clong;
+	sc_rsp : clong;
+	sc_ss  : clong;
+	end;
+{$endif def x86_64}
 
   SignalHandler   = Procedure(Sig : Longint);cdecl;
   PSignalHandler  = ^SignalHandler;
