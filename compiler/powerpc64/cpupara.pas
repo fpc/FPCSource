@@ -62,7 +62,7 @@ implementation
 
 uses
   verbose, systems,
-  defutil,
+  defutil,symtable,
   procinfo, cpupi;
 
 function tppcparamanager.get_volatile_registers_int(calloption:
