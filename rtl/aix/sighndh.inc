@@ -78,7 +78,7 @@ type
   end;
 
   __vmxreg_t = record
-    __v: array[0..3] of cint;
+    __v: array[0..3] of cuint;
   end;
 
   __vmx_context = record
@@ -96,13 +96,34 @@ type
     __u1: record
       __vmx: __vmx_context
     end;
-    __ukeys: cuint;
+    __ukeys: array[0..1] of cuint;
     __reserved: array[0..4096-sizeof(__vmx_context)-7*sizeof(cint)-1] of byte;
     __extctx_magic: cint;
   end;
 
+{$ifdef cpu64}
+  __context64 = record
+    gpr: array[0..31] of culonglong;
+    msr: culonglong;
+    iar: culonglong;
+    lr: culonglong;
+    ctr: culonglong;
+    cr: cuint;
+    xer: cuint;
+    fpscr: cuint;
+    fpscrx: cuint;
+    except_: array[0..0] of culonglong;
+    fpr: array[0..31] of double;
+    fpeu: byte;
+    fpinfo: byte;
+    pad: array[0..1] of byte;
+    excp_type: cint;
+  end;
 
+  mcontext_t = __context64;
+{$else}
   mcontext_t = mstsave;
+{$endif}
 
   pucontext_t = ^tucontext_t;
   PSigContext = pucontext_t;
@@ -111,10 +132,10 @@ type
     uc_sigmask: sigset_t;
     __sc_uerror: cint;
     uc_mcontext: mcontext_t;
-    uc_link: ^pucontext_t;
+    uc_link: pucontext_t;
     uc_stack: stack_t;
-    __extctx: __extctx_t;
+    __extctx: p__extctx_t;
     __extctx_magic: cint;
-    __pad: array[0..{$ifdef cpu64}1{$else}0{$endif}] of cint;
+    __pad: array[0..{$ifdef cpu64}0{$else}1{$endif}] of cint;
   end;
 

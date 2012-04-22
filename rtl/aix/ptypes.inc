@@ -146,7 +146,7 @@ Type
 
   timespec    =  record
                  tv_sec   : time_t;
-                 tv_nsec  : suseconds_t;
+                 tv_nsec  : clong;
                 end;
   ptimespec   = ^timespec;
   TTimeSpec   = timespec;
