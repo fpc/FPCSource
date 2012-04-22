@@ -304,7 +304,11 @@ end;
 
 destructor TCollection.Destroy;
 begin
-  If Assigned(FItems) Then Clear;
+  If Assigned(FItems) Then 
+    begin
+    BeginUpdate; // Prevent OnChange
+    DoClear;
+    end;
   FItems.Free;
   Inherited Destroy;
 end;
@@ -333,11 +337,22 @@ end;
 
 procedure TCollection.BeginUpdate;
 begin
-        inc(FUpdateCount);
+  inc(FUpdateCount);
 end;
 
 
 procedure TCollection.Clear;
+begin
+  BeginUpdate;
+  try
+    DoClear;
+  finally
+    EndUpdate;
+  end;    
+end;
+
+
+procedure TCollection.DoClear;
 begin
   If Assigned(FItems) then
     While FItems.Count>0 do TCollectionItem(FItems.Last).Free;
@@ -346,9 +361,9 @@ end;
 
 procedure TCollection.EndUpdate;
 begin
-        dec(FUpdateCount);
-        if FUpdateCount=0 then
-          Changed;
+  dec(FUpdateCount);
+  if FUpdateCount=0 then
+    Changed;
 end;
 
 

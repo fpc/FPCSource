@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal packages
-    Copyright (c) 2009 by the Free Pascal development team
+    Copyright (c) 2009 by Jan Mercl
 
     An header for the GMP library
 

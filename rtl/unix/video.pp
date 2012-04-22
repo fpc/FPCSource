@@ -633,7 +633,7 @@ var
       converted : WideChar;
       s : WideString;
   begin
-    transform_cp437_to_UTF8 := '';
+    s := '';
     for i:=1 to length(st) do
       begin
         c:=st[i];
