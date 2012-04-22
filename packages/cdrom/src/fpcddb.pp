@@ -12,6 +12,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{
+  Some notes:
+
+  Disc.Year and Disc.Genre only have values if proto = 5 or above as specified in the request.
+  With protocol 5 and under the responses are in ISO-8859-1. In version 6 it's UTF-8
+
+  A more complete explanation of the protocol can be found here:
+  http://ftp.freedb.org/pub/freedb/latest/CDDBPROTO
+
+
+}
 unit fpcddb;
 
 {$mode objfpc}{$H+}
@@ -64,6 +76,7 @@ Type
   private
     FDiskID: Integer;
     FExtra: String;
+    FGenre: String;
     FPerformer: String;
     FPlayOrder: String;
     FTitle: String;
@@ -81,9 +94,10 @@ Type
     Property IntDiscID : Integer Read FDiskID Write FDiskID;
   Published
     Property PlayOrder : String Read FPlayOrder Write FPlayOrder;
-    Property Year : Word Read FYear Write FYear;
+    Property Year : Word Read FYear Write FYear; // proto=5
     Property Title : String Read FTitle Write FTitle;
     Property Performer : String Read FPerformer Write FPerformer;
+    Property Genre : String Read FGenre write FGenre; //proto=5
     Property Extra : String Read FExtra Write FExtra;
     Property DiscID : String Read GetDiskID Write SetDiskID;
     property Tracks : TCDTracks Read FTracks Write SetTracks;
@@ -443,6 +457,14 @@ begin
               SplitTitle(Args,A,T,True);
               FDisk.Title:=T;
               FDisk.Performer:=A;
+              end
+            else if (L='DYEAR') then
+              begin
+              FDisk.Year:=StrToIntDef(Trim(Args),0);
+              end
+            else if (L='DGENRE') then
+              begin
+              FDisk.Genre:=Trim(Args);
               end
             else if (L='EXTD') then
               ParseExtraDiskData(Args)

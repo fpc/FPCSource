@@ -255,9 +255,10 @@ begin
   if ((NewIndex < 0) or (NewIndex > Count -1)) then
     Error(SlistIndexError, NewIndex);
   Temp := FList^[CurIndex];
-  FList^[CurIndex] := nil;
-  Self.Delete(CurIndex);
-  Self.Insert(NewIndex, nil);
+  if NewIndex > CurIndex then
+    System.Move(FList^[CurIndex+1], FList^[CurIndex], (NewIndex - CurIndex) * SizeOf(Pointer))
+  else
+    System.Move(FList^[NewIndex], FList^[NewIndex+1], (CurIndex - NewIndex) * SizeOf(Pointer));
   FList^[NewIndex] := Temp;
 end;
 

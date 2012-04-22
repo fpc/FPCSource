@@ -12,4 +12,4 @@ programs=importtl
 fpcdir=../..
 
 [require]
-packages=winunits-base
+packages=winunits-base fcl-base fcl-registry

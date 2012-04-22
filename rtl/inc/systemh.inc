@@ -268,6 +268,15 @@ Type
   NativeInt  = PtrInt;
   NativeUint = PtrUint;
 
+  Int8    = ShortInt;
+  Int16   = SmallInt;
+  Int32   = Longint;
+  IntPtr  = PtrInt;
+  UInt8   = Byte;
+  UInt16  = Word;
+  UInt32  = Cardinal;
+  UIntPtr = PtrUInt;
+
 { Zero - terminated strings }
   PChar               = ^Char;
   PPChar              = ^PChar;

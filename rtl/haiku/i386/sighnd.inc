@@ -16,7 +16,7 @@
  **********************************************************************}
 
 
-procedure SignalToRunerror(sig : longint; SigContext: PSigContextRec; uContext: Pvregs);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
+procedure SignalToRunerror(sig : longint; SigContext: PSigInfo; uContext: PSigContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
   res,fpustate : word;
 begin
@@ -53,10 +53,10 @@ begin
         end;
         SysResetFPU;
       end;
-(*    SIGBUS: {Same as SIGSEGV under BeOS}
+    SIGBUS:
       begin
         res:=214;
-      end; *)
+      end;
     SIGILL:
       begin
       if sse_check then

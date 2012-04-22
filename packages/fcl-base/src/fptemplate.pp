@@ -410,6 +410,8 @@ begin
         IsFirst := false;
         I := 1;
         while not (P[I] in [#0..' ']) do Inc(I);
+        if i>(TS-SP) then
+          i := TS-SP;
         SetLength(TP, I);
         Move(P^, TP[1], I);
       end;
@@ -423,16 +425,20 @@ begin
         Move(TS^, PName[1], I);//param name
         inc(TS, Length(FParamValueSeparator) + I);
         I := TS - P;//index of param value
-        TE:=FindDelimiter(TS,FParamEndDelimiter, SLen-I+1);
-        if (TE<>Nil) then
-        begin//Found param end
-          I:=TE-TS;//Param length
-          Setlength(PValue,I);
-          Move(TS^,PValue[1],I);//Param value
+      end;
+
+      TE:=FindDelimiter(TS,FParamEndDelimiter, SLen-I+1);
+      if (TE<>Nil) then
+      begin//Found param end
+        I:=TE-TS;//Param length
+        Setlength(PValue,I);
+        Move(TS^,PValue[1],I);//Param value
+        if TM=nil then
+          TagParams.Add(Trim(PValue))
+        else
           TagParams.Add(Trim(PName) + '=' + PValue);//Param names cannot contain '='
-          P:=TE+Length(FParamEndDelimiter);
-          TS:=P;
-        end else break;
+        P:=TE+Length(FParamEndDelimiter);
+        TS:=P;
       end else break;
     end else break;
   end;
@@ -472,6 +478,7 @@ begin
       else
         begin
         I:=TS-P;
+        inc(TS,Length(FStartDelimiter));//points to first char of Tag name now
         TE:=FindDelimiter(TS,FEndDelimiter,SLen-I+1);
         If (TE=Nil) then
           begin//Tag End Delimiter not found
@@ -483,7 +490,6 @@ begin
           // Add text prior to template tag to result
           AddToString(Result,P,I);
           // Retrieve the full template tag (only tag name if no params specified)
-          inc(TS,Length(FStartDelimiter));//points to first char of Tag name now
           I:=TE-TS;//full Tag length
           Setlength(PN,I);
           Move(TS^,PN[1],I);//full Tag string (only tag name if no params specified)

@@ -475,6 +475,14 @@ var
       end;
   end;
 
+  function GetName(i:integer):string;  //bug in Office10\MSacc.OLB _WizHook.Key
+  begin
+    if i<cnt then
+      result:=BL[i]
+    else
+      result:='Param'+inttostr(i);
+  end;
+
 begin
   Propertycnt:=0;
   SetLength(aPropertyDefs,TA^.cFuncs+TA^.cVars);   // worst case, all functions getters or all setters
@@ -518,8 +526,6 @@ begin
       ((sl='gettypeinfocount') or (sl='gettypeinfo') or (sl='getidsofnames') or (sl='invoke')) then  //IDispatch
       continue;
     // get return type
-    if iname='DocumentProperty' then
-      sl:=sl;   //remove
     if bIsDispatch and ((FD^.invkind=INVOKE_PROPERTYGET) or (FD^.invkind=INVOKE_FUNC)) then
       begin
       sType:=TypeToString(TI,FD^.elemdescFunc.tdesc);
@@ -590,8 +596,6 @@ begin
           sl:=TypeToString(TI,FD^.lprgelemdescParam[k].tdesc);
           bParamByRef:=(FD^.lprgelemdescParam[k].tdesc.vt=VT_PTR) and                         // by ref
             not((FD^.lprgelemdescParam[k].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface);// but not pointer to interface
-          if BL[k+1]='pFormat' then
-            sl:=sl; //remove
           if bParamByRef then
              delete(sl,1,1);
           if bIsDispatch and not bIsAutomatable then
@@ -606,8 +610,8 @@ begin
             PARAMFLAG_FOUT:sPar:='out ';
             PARAMFLAG_FIN:sPar:='var '; //constref in safecall? TBD
             end;
-          if not MakeValidId(BL[k+1],sVarName) then
-            AddToHeader('//  Warning: renamed parameter ''%s'' in %s.%s to ''%s''',[BL[k+1],iname,sMethodName,sVarName],True);
+          if not MakeValidId(GetName(k+1),sVarName) then
+            AddToHeader('//  Warning: renamed parameter ''%s'' in %s.%s to ''%s''',[GetName(k+1),iname,sMethodName,sVarName],True);
           sPar:=sPar+format('%s:%s;',[sVarName,sl]);
           sFunc:=sFunc+sPar;
           if bCreateEvents then
@@ -696,8 +700,8 @@ begin
         sPropParam2:='';
         if bPropHasParam then
           begin
-          if not MakeValidId(BL[1],sPropParam) then
-            AddToHeader('//  Warning: renamed property index  ''%s'' in %s.%s to ''%s''',[BL[1],iname,sMethodName,sPropParam]);
+          if not MakeValidId(GetName(1),sPropParam) then
+            AddToHeader('//  Warning: renamed property index  ''%s'' in %s.%s to ''%s''',[GetName(1),iname,sMethodName,sPropParam]);
           sPropParam:=sPropParam+':'+TypeToString(TI,FD^.lprgelemdescParam[0].tdesc);
           end;
         if bIsDispatch then
@@ -734,8 +738,6 @@ begin
             sPropParam3:=sPropParam+'; const par'+sMethodName;
             sPropParam:='['+sPropParam+']';
             end;
-          if sMethodName='SelectedItem' then
-            sl:=sl; //remove
           if FD^.invkind=INVOKE_PROPERTYGET then
             begin
             s:=s+format('   function Get_%s%s : %s; %s;'#13#10,[sMethodName,sPropParam2,sType,sConv]);
@@ -752,8 +754,8 @@ begin
             end
           else
             begin
-            if not MakeValidId(BL[1],sVarName) then
-              AddToHeader('//  Warning: renamed parameter ''%s'' in %s.Set_%s to ''%s''',[BL[1],iname,sMethodName,sVarName]);
+            if not MakeValidId(GetName(1),sVarName) then
+              AddToHeader('//  Warning: renamed parameter ''%s'' in %s.Set_%s to ''%s''',[GetName(1),iname,sMethodName,sVarName]);
             with aPropertyDefs[findProperty(FD^.memid)] do
               begin
               if FD^.invkind=INVOKE_PROPERTYPUT then
@@ -1350,7 +1352,7 @@ begin
           if (TA^.wTypeFlags and TYPEFLAG_FDUAL)=TYPEFLAG_FDUAL then
             begin
             //get TKIND_INTERFACE
-            OleCheck(TI.GetRefTypeOfImplType(-1,RTIT));
+            OleCheck(TI.GetRefTypeOfImplType($ffffffff,RTIT));
             OleCheck(TI.GetRefTypeInfo(RTIT,TIref));
             //get its ancestor
             OleCheck(TIref.GetRefTypeOfImplType(0,RTIT));
@@ -1478,10 +1480,10 @@ begin
             end;
           end;
         end;
-      if bIsDispatch and (sDefEvents<>'') then //add event signatures
+      if bIsDispatch and (sDefEvents<>'') and (FEventSignatures[idx]<>'already defined') then //add event signatures
         begin
         AddToInterface(FEventSignatures[idx]);
-        FEventSignatures[idx]:='';  // add event signatures only once. Multiple coclasses can use same events
+        FEventSignatures[idx]:='already defined';  // add event signatures only once. Multiple coclasses can use same events
         AddToInterface('');
         end;
       AddToInterFace('  Co%s = Class',[BstrName]);
@@ -1554,7 +1556,7 @@ begin
         AddToInterFace('  end;');
         AddToInterFace('');
         end
-      else if bIsDispatch and (sDefEvents<>'') then //add function variables
+      else if bIsDispatch and (sDefEvents<>'') then //add event sink descendant
         begin
         if FUses.IndexOf('Eventsink')<0 then
           FUses.Add('EventSink');
@@ -1676,7 +1678,7 @@ begin
                   if ((il mod 16)=0) and (il>0) then
                     sl:=sl+'+'#13#10;
                   end;
-                sl:=format('LazarusResources.Add(''T%s'',''BMP'',['#13#10,[BstrName])
+                sl:=format('LazarusResources.Add(''TAxc%s'',''BMP'',['#13#10,[BstrName])
                     + sl + #13#10']);'#13#10;
                 FAXImages.Add(sl);
                 end;

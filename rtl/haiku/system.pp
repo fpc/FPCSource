@@ -322,7 +322,7 @@ end;
 //int		sigaltstack(const stack_t *ss, stack_t *oss);
 
 procedure set_signal_stack(ptr : pointer; size : size_t); cdecl; external 'root' name 'set_signal_stack';
-function sigaltstack(const ss : pstack_t; oss : pstack_t) : integer; cdecl; external 'root' name 'sigaltstack'; 
+function sigaltstack(const stack : pstack_t; oldStack : pstack_t) : integer; cdecl; external 'root' name 'sigaltstack'; 
 
 type
   {$PACKRECORDS C}
@@ -360,7 +360,7 @@ begin
   { initialize handler                    }
   act.sa_mask[0] := 0;
   act.sa_handler := SigActionHandler(@SignalToRunError);
-  act.sa_flags := SA_ONSTACK or SA_NODEFER or SA_RESETHAND;
+  act.sa_flags := SA_ONSTACK;
   FpSigAction(signum,@act,@oldact);
 end;
 
