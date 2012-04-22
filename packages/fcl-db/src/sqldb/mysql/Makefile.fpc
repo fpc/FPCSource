@@ -6,8 +6,8 @@
 main=fcl-db
 
 [target]
-units=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn
-rsts=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn
+units=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+rsts=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
 [require]
 packages=fcl-xml mysql
 

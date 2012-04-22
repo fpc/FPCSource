@@ -120,6 +120,16 @@ begin
         begin
           AddInclude('mysql.inc');
         end;
+    T:=P.Targets.AddUnit('mysql55.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('mysql.inc');
+        end;
+    T:=P.Targets.AddUnit('mysql55dyn.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('mysql.inc');
+        end;
     T.ResourceStrings := True;
 
     P.ExamplePath.Add('tests');

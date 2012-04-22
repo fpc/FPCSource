@@ -289,382 +289,193 @@ endif
 override PACKAGE_NAME=fcl-db
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-db/Makefile.fpc,$(PACKAGESDIR))))))
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_RSTS+=mysql40conn mysql41conn mysql50conn mysql4conn mysql51conn mysql55conn
+override TARGET_UNITS+=mssqlconn
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
@@ -1480,410 +1291,327 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl fcl-xml mysql
+override REQUIRE_PACKAGES=rtl dblib fcl-base
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_UNIVINT=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_DBLIB=1
 REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_MYSQL=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -1923,6 +1651,44 @@ ifdef UNITDIR_FPMAKE_RTL
 override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_RTL)
 endif
 endif
+ifdef REQUIRE_PACKAGES_DBLIB
+PACKAGEDIR_DBLIB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /dblib/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_DBLIB),)
+ifneq ($(wildcard $(PACKAGEDIR_DBLIB)/units/$(TARGETSUFFIX)),)
+UNITDIR_DBLIB=$(PACKAGEDIR_DBLIB)/units/$(TARGETSUFFIX)
+else
+UNITDIR_DBLIB=$(PACKAGEDIR_DBLIB)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_DBLIB)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_DBLIB=$(PACKAGEDIR_DBLIB)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_DBLIB)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_DBLIB=$(PACKAGEDIR_DBLIB)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_DBLIB=$(PACKAGEDIR_DBLIB)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_DBLIB)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_DBLIB) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_DBLIB)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_DBLIB=
+UNITDIR_DBLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /dblib/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_DBLIB),)
+UNITDIR_DBLIB:=$(firstword $(UNITDIR_DBLIB))
+else
+UNITDIR_DBLIB=
+endif
+endif
+ifdef UNITDIR_DBLIB
+override COMPILER_UNITDIR+=$(UNITDIR_DBLIB)
+endif
+ifdef UNITDIR_FPMAKE_DBLIB
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_DBLIB)
+endif
+endif
 ifdef REQUIRE_PACKAGES_FCL-BASE
 PACKAGEDIR_FCL-BASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-base/Makefile.fpc,$(PACKAGESDIR))))))
 ifneq ($(PACKAGEDIR_FCL-BASE),)
@@ -1959,120 +1725,6 @@ override COMPILER_UNITDIR+=$(UNITDIR_FCL-BASE)
 endif
 ifdef UNITDIR_FPMAKE_FCL-BASE
 override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FCL-BASE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_ICONVENC
-PACKAGEDIR_ICONVENC:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /iconvenc/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_ICONVENC),)
-ifneq ($(wildcard $(PACKAGEDIR_ICONVENC)/units/$(TARGETSUFFIX)),)
-UNITDIR_ICONVENC=$(PACKAGEDIR_ICONVENC)/units/$(TARGETSUFFIX)
-else
-UNITDIR_ICONVENC=$(PACKAGEDIR_ICONVENC)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_ICONVENC)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_ICONVENC=$(PACKAGEDIR_ICONVENC)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_ICONVENC)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_ICONVENC=$(PACKAGEDIR_ICONVENC)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_ICONVENC=$(PACKAGEDIR_ICONVENC)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_ICONVENC)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_ICONVENC) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_ICONVENC)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_ICONVENC=
-UNITDIR_ICONVENC:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /iconvenc/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_ICONVENC),)
-UNITDIR_ICONVENC:=$(firstword $(UNITDIR_ICONVENC))
-else
-UNITDIR_ICONVENC=
-endif
-endif
-ifdef UNITDIR_ICONVENC
-override COMPILER_UNITDIR+=$(UNITDIR_ICONVENC)
-endif
-ifdef UNITDIR_FPMAKE_ICONVENC
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_ICONVENC)
-endif
-endif
-ifdef REQUIRE_PACKAGES_FCL-XML
-PACKAGEDIR_FCL-XML:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-xml/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FCL-XML),)
-ifneq ($(wildcard $(PACKAGEDIR_FCL-XML)/units/$(TARGETSUFFIX)),)
-UNITDIR_FCL-XML=$(PACKAGEDIR_FCL-XML)/units/$(TARGETSUFFIX)
-else
-UNITDIR_FCL-XML=$(PACKAGEDIR_FCL-XML)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_FCL-XML)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_FCL-XML=$(PACKAGEDIR_FCL-XML)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_FCL-XML)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_FCL-XML=$(PACKAGEDIR_FCL-XML)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_FCL-XML=$(PACKAGEDIR_FCL-XML)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_FCL-XML)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FCL-XML) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-XML)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_FCL-XML=
-UNITDIR_FCL-XML:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-xml/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FCL-XML),)
-UNITDIR_FCL-XML:=$(firstword $(UNITDIR_FCL-XML))
-else
-UNITDIR_FCL-XML=
-endif
-endif
-ifdef UNITDIR_FCL-XML
-override COMPILER_UNITDIR+=$(UNITDIR_FCL-XML)
-endif
-ifdef UNITDIR_FPMAKE_FCL-XML
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FCL-XML)
-endif
-endif
-ifdef REQUIRE_PACKAGES_MYSQL
-PACKAGEDIR_MYSQL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /mysql/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_MYSQL),)
-ifneq ($(wildcard $(PACKAGEDIR_MYSQL)/units/$(TARGETSUFFIX)),)
-UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)/units/$(TARGETSUFFIX)
-else
-UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)
-endif
-ifneq ($(wildcard $(PACKAGEDIR_MYSQL)/units/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_MYSQL=$(PACKAGEDIR_MYSQL)/units/$(SOURCESUFFIX)
-else
-ifneq ($(wildcard $(PACKAGEDIR_MYSQL)/units_bs/$(SOURCESUFFIX)),)
-UNITDIR_FPMAKE_MYSQL=$(PACKAGEDIR_MYSQL)/units_bs/$(SOURCESUFFIX)
-else
-UNITDIR_FPMAKE_MYSQL=$(PACKAGEDIR_MYSQL)
-endif
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_MYSQL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_MYSQL) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_MYSQL)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_MYSQL=
-UNITDIR_MYSQL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /mysql/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_MYSQL),)
-UNITDIR_MYSQL:=$(firstword $(UNITDIR_MYSQL))
-else
-UNITDIR_MYSQL=
-endif
-endif
-ifdef UNITDIR_MYSQL
-override COMPILER_UNITDIR+=$(UNITDIR_MYSQL)
-endif
-ifdef UNITDIR_FPMAKE_MYSQL
-override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_MYSQL)
 endif
 endif
 ifdef REQUIRE_PACKAGES_UNIVINT

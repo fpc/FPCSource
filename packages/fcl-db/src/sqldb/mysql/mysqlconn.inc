@@ -5,8 +5,11 @@ interface
 
 uses
   Classes, SysUtils,bufdataset,sqldb,db,dynlibs,ctypes,
-{$IFDEF Mysql51}
-  mysql51dyn;
+ {$IFDEF mysql55}
+  mysql55dyn;
+ {$ELSE}
+{$IFDEF mysql51}
+   mysql51dyn;
 {$ELSE}  
   {$IfDef mysql50}
     mysql50dyn;
@@ -22,9 +25,13 @@ uses
     {$EndIf}
   {$EndIf}
 {$endif}
+{$endif}
 
 Const
-{$IFDEF Mysql51}
+{$IFDEF mysql55}
+   MySQLVersion = '5.5';
+{$else}
+{$IFDEF mysql51}
     MySQLVersion = '5.1';
 {$else}    
   {$IfDef mysql50}
@@ -41,7 +48,7 @@ Const
     {$EndIf}
   {$EndIf}
 {$endif}
-
+{$endif}
 Type
   TTransactionName = Class(TSQLHandle)
   protected
@@ -140,39 +147,45 @@ Type
 
 
   EMySQLError = Class(Exception);
-
-  {$IfDef mysql51}
-    TMySQL51Connection = Class(TConnectionName);
-    TMySQL51ConnectionDef = Class(TMySQLConnectionDef);
-    TMySQL51Transaction = Class(TTransactionName);
-    TMySQL51Cursor = Class(TCursorName);
-  {$ELSE}
-  {$IfDef mysql50}
-    TMySQL50Connection = Class(TConnectionName);
-    TMySQL50ConnectionDef = Class(TMySQLConnectionDef);
-    TMySQL50Transaction = Class(TTransactionName);
-    TMySQL50Cursor = Class(TCursorName);
-  {$ELSE}
-    {$IfDef mysql41}
-      TMySQL41Connection = Class(TConnectionName);
-      TMySQL41ConnectionDef = Class(TMySQLConnectionDef);
-      TMySQL41Transaction = Class(TTransactionName);
-      TMySQL41Cursor = Class(TCursorName);
+  {$ifdef mysql55}
+    TMySQL55Connection = Class(TConnectionName);
+    TMySQL55ConnectionDef = Class(TMySQLConnectionDef);
+    TMySQL55Transaction = Class(TTransactionName);
+    TMySQL55Cursor = Class(TCursorName);
+  {$else}
+    {$IfDef mysql51}
+      TMySQL51Connection = Class(TConnectionName);
+      TMySQL51ConnectionDef = Class(TMySQLConnectionDef);
+      TMySQL51Transaction = Class(TTransactionName);
+      TMySQL51Cursor = Class(TCursorName);
     {$ELSE}
-      {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-        TMySQLConnection = Class(TConnectionName);
-        TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
-        TMySQLTransaction = Class(TTransactionName);
-        TMySQLCursor = Class(TCursorName);
+      {$IfDef mysql50}
+        TMySQL50Connection = Class(TConnectionName);
+        TMySQL50ConnectionDef = Class(TMySQLConnectionDef);
+        TMySQL50Transaction = Class(TTransactionName);
+        TMySQL50Cursor = Class(TCursorName);
       {$ELSE}
-        TMySQL40Connection = Class(TConnectionName);
-        TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
-        TMySQL40Transaction = Class(TTransactionName);
-        TMySQL40Cursor = Class(TCursorName);
-      {$EndIf}
+        {$IfDef mysql41}
+          TMySQL41Connection = Class(TConnectionName);
+          TMySQL41ConnectionDef = Class(TMySQLConnectionDef);
+          TMySQL41Transaction = Class(TTransactionName);
+          TMySQL41Cursor = Class(TCursorName);
+        {$ELSE}
+          {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+            TMySQLConnection = Class(TConnectionName);
+            TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
+            TMySQLTransaction = Class(TTransactionName);
+            TMySQLCursor = Class(TCursorName);
+          {$ELSE}
+            TMySQL40Connection = Class(TConnectionName);
+            TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
+            TMySQL40Transaction = Class(TTransactionName);
+            TMySQL40Cursor = Class(TCursorName);
+          {$EndIf}
+        {$EndIf}
+      {$endif}
     {$EndIf}
-  {$EndIf}
-{$ENDIF}
+  {$ENDIF}
 
 implementation
 
@@ -195,6 +208,12 @@ const
      'MYSQL_SECURE_AUTH'
 {$IFDEF MYSQL50_UP}
      ,'MYSQL_REPORT_DATA_TRUNCATION', 'MYSQL_OPT_RECONNECT'
+{$IFDEF mysql51_UP}
+         ,'MYSQL_OPT_SSL_VERIFY_SERVER_CERT'
+{$IFDEF mysql55}
+         ,'MYSQL_PLUGIN_DIR', 'MYSQL_DEFAULT_AUTH'
+{$ENDIF}
+{$ENDIF}
 {$ENDIF}
      );
 
@@ -436,23 +455,27 @@ end;
 
 function TConnectionName.AllocateCursorHandle: TSQLCursor;
 begin
-  {$IfDef mysql51}
-    Result:=TMySQL51Cursor.Create;
+  {$IfDef mysql55}
+    Result:=TMySQL55Cursor.Create;
   {$ELSE}
-    {$IfDef mysql50}
-      Result:=TMySQL50Cursor.Create;
+    {$IfDef mysql51}
+      Result:=TMySQL51Cursor.Create;
     {$ELSE}
-      {$IfDef mysql41}
-        Result:=TMySQL41Cursor.Create;
+      {$IfDef mysql50}
+        Result:=TMySQL50Cursor.Create;
       {$ELSE}
-        {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-          Result:=TMySQLCursor.Create;
+        {$IfDef mysql41}
+          Result:=TMySQL41Cursor.Create;
         {$ELSE}
-          Result:=TMySQL40Cursor.Create;
+          {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+            Result:=TMySQLCursor.Create;
+          {$ELSE}
+            Result:=TMySQL40Cursor.Create;
+          {$EndIf}
         {$EndIf}
       {$EndIf}
     {$EndIf}
-  {$EndIf}
+  {$endif}
 end;
 
 Procedure TConnectionName.DeAllocateCursorHandle(var cursor : TSQLCursor);
@@ -1115,22 +1138,26 @@ end;
 
 class function TMySQLConnectionDef.ConnectionClass: TSQLConnectionClass;
 begin
-  {$IfDef mysql51}
-    Result:=TMySQL51Connection;
+  {$IfDef mysql55}
+     Result:=TMySQL55Connection;
   {$ELSE}
-    {$IfDef mysql50}
-      Result:=TMySQL50Connection;
+    {$IfDef mysql51}
+      Result:=TMySQL51Connection;
     {$ELSE}
-      {$IfDef mysql41}
-        Result:=TMySQL41Connection;
+      {$IfDef mysql50}
+        Result:=TMySQL50Connection;
       {$ELSE}
-        {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-          Result:=TMySQLConnection;
+        {$IfDef mysql41}
+          Result:=TMySQL41Connection;
         {$ELSE}
-          Result:=TMySQL40Connection;
+          {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+            Result:=TMySQLConnection;
+          {$ELSE}
+            Result:=TMySQL40Connection;
+          {$EndIf}
         {$EndIf}
       {$EndIf}
-    {$EndIf}
+    {$endif}
   {$endif}
 end;
 
@@ -1139,37 +1166,44 @@ begin
   Result:='Connect to a MySQL '+MySQLVersion+'database directly via the client library';
 end;
 
-{$IfDef mysql51}
+{$IfDef mysql55}
   initialization
-    RegisterConnection(TMySQL51ConnectionDef);
+    RegisterConnection(TMySQL55ConnectionDef);
   finalization
-    UnRegisterConnection(TMySQL51ConnectionDef);
-{$ELSE}
-  {$IfDef mysql50}
+    UnRegisterConnection(TMySQL55ConnectionDef);
+{$else}
+  {$IfDef mysql51}
     initialization
-      RegisterConnection(TMySQL50ConnectionDef);
+      RegisterConnection(TMySQL51ConnectionDef);
     finalization
-      UnRegisterConnection(TMySQL50ConnectionDef);
+      UnRegisterConnection(TMySQL51ConnectionDef);
   {$ELSE}
-    {$IfDef mysql41}
+    {$IfDef mysql50}
       initialization
-        RegisterConnection(TMySQL41ConnectionDef);
+        RegisterConnection(TMySQL50ConnectionDef);
       finalization
-        UnRegisterConnection(TMySQL41ConnectionDef);
+        UnRegisterConnection(TMySQL50ConnectionDef);
     {$ELSE}
-      {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+      {$IfDef mysql41}
         initialization
-          RegisterConnection(TMySQL40ConnectionDef);
+          RegisterConnection(TMySQL41ConnectionDef);
         finalization
-          UnRegisterConnection(TMySQL40ConnectionDef);
+          UnRegisterConnection(TMySQL41ConnectionDef);
       {$ELSE}
-        initialization
-          RegisterConnection(TMySQL40ConnectionDef);
-        finalization
-          UnRegisterConnection(TMySQL40ConnectionDef);
+        {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+          initialization
+            RegisterConnection(TMySQL40ConnectionDef);
+          finalization
+            UnRegisterConnection(TMySQL40ConnectionDef);
+        {$ELSE}
+          initialization
+            RegisterConnection(TMySQL40ConnectionDef);
+          finalization
+            UnRegisterConnection(TMySQL40ConnectionDef);
+        {$EndIf}
       {$EndIf}
     {$EndIf}
-  {$EndIf}
-{$ENDIF}
+  {$ENDIF}
+{$endif}
 
 end.
