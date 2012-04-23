@@ -299,6 +299,7 @@ var
   paracgsize: tcgsize;
 
   parashift : byte;
+  adjusttail: boolean;
 
 begin
 {$IFDEF extdebug}
@@ -395,8 +396,8 @@ begin
         paraloc^.loc := LOC_VOID;
       end else
         internalerror(2005011310);
+    adjusttail:=paralen>8;
     { can become < 0 for e.g. 3-byte records }
-
     while (paralen > 0) do begin
       paraloc := hp.paraloc[side].add_location;
       { In case of po_delphi_nested_cc, the parent frame pointer
@@ -411,7 +412,19 @@ begin
         { make sure we don't lose whether or not the type is signed }
         if (paracgsize <> OS_NO) and (paradef.typ <> orddef) then
           paracgsize := int_cgsize(paralen);
-        if (paracgsize in [OS_NO,OS_128,OS_S128]) then
+
+        { aix requires that record data (including partial data) stored in
+          parameter registers is left-aligned. Other targets only do this if
+          the total size of the parameter was > 8 bytes. }
+        if (((target_info.system in systems_aix) and
+             (paradef.typ = recorddef)) or
+            adjusttail) and
+           (paralen < sizeof(aint)) then
+          begin
+            paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
+            paraloc^.size := OS_INT;
+          end
+        else if (paracgsize in [OS_NO,OS_128,OS_S128]) then
           paraloc^.size := OS_INT
         else
           paraloc^.size := paracgsize;
