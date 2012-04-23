@@ -2576,27 +2576,27 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
 
           If Not Negative Then
           Begin
-            Case CurrencyFormat Of
-              0: Result := CurrencyString + Result;
-              1: Result := Result + CurrencyString;
-              2: Result := CurrencyString + ' ' + Result;
-              3: Result := Result + ' ' + CurrencyString;
+            Case FormatSettings.CurrencyFormat Of
+              0: Result := FormatSettings.CurrencyString + Result;
+              1: Result := Result + FormatSettings.CurrencyString;
+              2: Result := FormatSettings.CurrencyString + ' ' + Result;
+              3: Result := Result + ' ' + FormatSettings.CurrencyString;
             End
           End
           Else
           Begin
-            Case NegCurrFormat Of
-              0: Result := '(' + CurrencyString + Result + ')';
-              1: Result := '-' + CurrencyString + Result;
-              2: Result := CurrencyString + '-' + Result;
-              3: Result := CurrencyString + Result + '-';
-              4: Result := '(' + Result + CurrencyString + ')';
-              5: Result := '-' + Result + CurrencyString;
-              6: Result := Result + '-' + CurrencyString;
-              7: Result := Result + CurrencyString + '-';
-              8: Result := '-' + Result + ' ' + CurrencyString;
-              9: Result := '-' + CurrencyString + ' ' + Result;
-              10: Result := CurrencyString + ' ' + Result + '-';
+            Case FormatSettings.NegCurrFormat Of
+              0: Result := '(' + FormatSettings.CurrencyString + Result + ')';
+              1: Result := '-' + FormatSettings.CurrencyString + Result;
+              2: Result := FormatSettings.CurrencyString + '-' + Result;
+              3: Result := FormatSettings.CurrencyString + Result + '-';
+              4: Result := '(' + Result + FormatSettings.CurrencyString + ')';
+              5: Result := '-' + Result + FormatSettings.CurrencyString;
+              6: Result := Result + '-' + FormatSettings.CurrencyString;
+              7: Result := Result + FormatSettings.CurrencyString + '-';
+              8: Result := '-' + Result + ' ' + FormatSettings.CurrencyString;
+              9: Result := '-' + FormatSettings.CurrencyString + ' ' + Result;
+              10: Result := FormatSettings.CurrencyString + ' ' + Result + '-';
             End;
           End;
         End;
