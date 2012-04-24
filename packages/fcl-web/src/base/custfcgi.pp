@@ -350,7 +350,7 @@ const HttpToCGI : THttpToCGI =
      18,  //  1 'HTTP_ACCEPT'           - fieldAccept
      19,  //  2 'HTTP_ACCEPT_CHARSET'   - fieldAcceptCharset
      20,  //  3 'HTTP_ACCEPT_ENCODING'  - fieldAcceptEncoding
-      0,  //  4
+     26,  //  4 'HTTP_ACCEPT_LANGUAGE'  - fieldAcceptLanguage
       0,  //  5
       0,  //  6
       0,  //  7
