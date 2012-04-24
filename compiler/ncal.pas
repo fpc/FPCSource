@@ -1414,7 +1414,7 @@ implementation
     function look_for_call(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         case n.nodetype of
-          calln:
+          calln,asn:
             result := fen_norecurse_true;
           typen,loadvmtaddrn,loadn,temprefn,arrayconstructorn:
             result := fen_norecurse_false;
