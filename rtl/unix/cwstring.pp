@@ -105,8 +105,13 @@ const
   {$endif}
   ESysEILSEQ = EILSEQ;
 {$else}
+{$ifdef OpenBSD}
+  CODESET = 51;
+  LC_ALL = 0;
+{$else not OpenBSD}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
 // and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
+{$endif OpenBSD}
 {$endif beos}
 {$endif solaris}
 {$endif FreeBSD}
