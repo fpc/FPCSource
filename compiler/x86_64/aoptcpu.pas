@@ -93,6 +93,8 @@ begin
             begin
               taicpu(hp1).loadConst(0, taicpu(p).oper[0]^.val and
                 taicpu(hp1).oper[0]^.val);
+              if (cs_asm_source in current_settings.globalswitches) then
+                asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var1')),p);
               asml.remove(p);
               p.Free;
               p:=hp1;
@@ -125,6 +127,8 @@ begin
                 S_L:
                   if (taicpu(hp1).oper[0]^.val = $ffffffff) then
                     begin
+                      if (cs_asm_source in current_settings.globalswitches) then
+                        asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var2a')),p);
                       asml.remove(hp1);
                       hp1.free;
                     end;
@@ -160,6 +164,13 @@ begin
                         decw    %eax            addw    %edx,%eax     hp1
                         movw    %ax,%si         movw    %ax,%si       hp2
                     }
+                   if (cs_asm_source in current_settings.globalswitches) then
+                     begin
+                        asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var2')),p);
+                        asml.insertbefore(tai_comment.create(strpnew('P='+std_op2str[taicpu(p).opcode])),p);
+                        asml.insertbefore(tai_comment.create(strpnew('HP1='+std_op2str[taicpu(hp1).opcode])),p);
+                        asml.insertbefore(tai_comment.create(strpnew('HP2='+std_op2str[taicpu(hp2).opcode])),p);
+                     end;
                     taicpu(hp1).changeopsize(taicpu(hp2).opsize);
                     {
                       ->
@@ -179,6 +190,8 @@ begin
                       ->
                         decw    %si             addw    %dx,%si       p
                     }
+                    if (cs_asm_source in current_settings.globalswitches) then
+                      asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var2')),p);
                     asml.remove(p);
                     asml.remove(hp2);
                     p.Free;
@@ -238,6 +251,8 @@ begin
                 ->
                   decw    %si             addw    %dx,%si       p
               }
+              if (cs_asm_source in current_settings.globalswitches) then
+                asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var3')),p);
               asml.remove(p);
               asml.remove(hp2);
               p.Free;
@@ -259,18 +274,24 @@ begin
                     S_BL, S_BW, S_BQ:
                       if (taicpu(hp1).oper[0]^.val = $ff) then
                         begin
+                          if (cs_asm_source in current_settings.globalswitches) then
+                            asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var4')),p);
                           asml.remove(hp1);
                           hp1.Free;
                         end;
                     S_WL, S_WQ:
                       if (taicpu(hp1).oper[0]^.val = $ffff) then
                         begin
+                          if (cs_asm_source in current_settings.globalswitches) then
+                            asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var5')),p);
                           asml.remove(hp1);
                           hp1.Free;
                         end;
                     S_LQ:
                       if (taicpu(hp1).oper[0]^.val = $ffffffff) then
                         begin
+                          if (cs_asm_source in current_settings.globalswitches) then
+                            asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var6')),p);
                           asml.remove(hp1);
                           hp1.Free;
                         end;
@@ -291,6 +312,8 @@ begin
                       taicpu(p).opcode := A_AND;
                       taicpu(p).changeopsize(S_W);
                       taicpu(p).loadConst(0, $ff);
+                      if (cs_asm_source in current_settings.globalswitches) then
+                        asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var7')),p);
                       end
                     else if GetNextInstruction(p, hp1) and
                       (tai(hp1).typ = ait_instruction) and
@@ -302,6 +325,8 @@ begin
                       { Change "movzbw %reg1, %reg2; andw $const, %reg2"
                         to "movw %reg1, reg2; andw $(const1 and $ff), %reg2"}
                       begin
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var8')),p);
                         taicpu(p).opcode := A_MOV;
                         taicpu(p).changeopsize(S_W);
                         setsubreg(taicpu(p).oper[0]^.reg, R_SUBW);
@@ -316,9 +341,11 @@ begin
                       (cs_opt_size in current_settings.optimizerswitches) then
                       { Change "movzbl %al, %eax" to "andl $0x0ffh, %eax"}
                       begin
-                      taicpu(p).opcode := A_AND;
-                      taicpu(p).changeopsize(S_L);
-                      taicpu(p).loadConst(0, $ff);
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var9')),p);
+                        taicpu(p).opcode := A_AND;
+                        taicpu(p).changeopsize(S_L);
+                        taicpu(p).loadConst(0, $ff);
                       end
                     else if GetNextInstruction(p, hp1) and
                       (tai(hp1).typ = ait_instruction) and
@@ -330,9 +357,14 @@ begin
                       { Change "movzbl %reg1, %reg2; andl $const, %reg2"
                         to "movl %reg1, reg2; andl $(const1 and $ff), %reg2"}
                       begin
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var10')),p);
                         taicpu(p).opcode := A_MOV;
                         taicpu(p).changeopsize(S_L);
-                        setsubreg(taicpu(p).oper[0]^.reg, R_SUBWHOLE);
+                        { do not use R_SUBWHOLE
+                          as movl %rdx,%eax
+                          is invalid in assembler PM }
+                        setsubreg(taicpu(p).oper[0]^.reg, R_SUBD);
                         taicpu(hp1).loadConst(
                           0, taicpu(hp1).oper[0]^.val and $ff);
                       end;
@@ -344,9 +376,11 @@ begin
                       (cs_opt_size in current_settings.optimizerswitches) then
                       { Change "movzwl %ax, %eax" to "andl $0x0ffffh, %eax" }
                       begin
-                      taicpu(p).opcode := A_AND;
-                      taicpu(p).changeopsize(S_L);
-                      taicpu(p).loadConst(0, $ffff);
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var11')),p);
+                        taicpu(p).opcode := A_AND;
+                        taicpu(p).changeopsize(S_L);
+                        taicpu(p).loadConst(0, $ffff);
                       end
                     else if GetNextInstruction(p, hp1) and
                       (tai(hp1).typ = ait_instruction) and
@@ -358,9 +392,14 @@ begin
                       { Change "movzwl %reg1, %reg2; andl $const, %reg2"
                         to "movl %reg1, reg2; andl $(const1 and $ffff), %reg2"}
                       begin
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var12')),p);
                         taicpu(p).opcode := A_MOV;
                         taicpu(p).changeopsize(S_L);
-                        setsubreg(taicpu(p).oper[0]^.reg, R_SUBWHOLE);
+                        { do not use R_SUBWHOLE
+                          as movl %rdx,%eax
+                          is invalid in assembler PM }
+                        setsubreg(taicpu(p).oper[0]^.reg, R_SUBD);
                         taicpu(hp1).loadConst(
                           0, taicpu(hp1).oper[0]^.val and $ffff);
                       end;
@@ -380,36 +419,48 @@ begin
                   case taicpu(p).opsize of
                     S_BL:
                       begin
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var13')),p);
                         taicpu(p).changeopsize(S_L);
                         taicpu(hp1).loadConst(
                           0, taicpu(hp1).oper[0]^.val and $ff);
                       end;
                     S_WL:
                       begin
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var14')),p);
                         taicpu(p).changeopsize(S_L);
                         taicpu(hp1).loadConst(
                           0, taicpu(hp1).oper[0]^.val and $ffff);
                       end;
                     S_BW:
                       begin
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var15')),p);
                         taicpu(p).changeopsize(S_W);
                         taicpu(hp1).loadConst(
                           0, taicpu(hp1).oper[0]^.val and $ff);
                       end;
                     S_BQ:
                       begin
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var16')),p);
                         taicpu(p).changeopsize(S_Q);
                         taicpu(hp1).loadConst(
                           0, taicpu(hp1).oper[0]^.val and $ff);
                       end;
                     S_WQ:
                       begin
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var17')),p);
                         taicpu(p).changeopsize(S_Q);
                         taicpu(hp1).loadConst(
                           0, taicpu(hp1).oper[0]^.val and $ffff);
                       end;
                     S_LQ:
                       begin
+                        if (cs_asm_source in current_settings.globalswitches) then
+                          asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var18')),p);
                         taicpu(p).changeopsize(S_Q);
                         taicpu(hp1).loadConst(
                           0, taicpu(hp1).oper[0]^.val and $ffffffff);
