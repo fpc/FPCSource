@@ -59,7 +59,7 @@ ___start:
 	movl 12(%ebp),%esi
 	movl 16(%ebp),%eax
 	movl %eax,environ
-	movl %eax,U_SYSTEM_ENVP
+	movl %eax,operatingsystem_parameter_envp
 	movl (%esi),%ebx
 	testl %ebx,%ebx
 	je .L3
@@ -100,8 +100,8 @@ ___start:
 	subl $16,%esp
 	pushl %eax
 	movl 8(%ebp),%eax
-	movl %eax,U_SYSTEM_ARGC
-	movl %esi,U_SYSTEM_ARGV
+	movl %eax,operatingsystem_parameter_argc
+	movl %esi,operatingsystem_parameter_argv
 	popl %eax
 #	pushl environ
 #	pushl %esi
@@ -121,7 +121,7 @@ ___start:
 
 _haltproc:
            mov $1,%eax
-           movzwl U_SYSTEM_EXITCODE,%ebx
+           movzwl operatingsystem_result,%ebx
            pushl %ebx
            call .Lactualsyscall
            addl  $4,%esp

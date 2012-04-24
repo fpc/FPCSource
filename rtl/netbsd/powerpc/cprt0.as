@@ -105,19 +105,19 @@ _start:
 	mr 3,24
 	mr 4,27
 
-        lis     11,U_SYSTEM_ARGC@ha
-        stw     3,U_SYSTEM_ARGC@l(11);
-        lis     11,U_SYSTEM_ARGV@ha
-        stw     4,U_SYSTEM_ARGV@l(11); 
+        lis     11,operatingsystem_parameter_argc@ha
+        stw     3,operatingsystem_parameter_argc@l(11);
+        lis     11,operatingsystem_parameter_argv@ha
+        stw     4,operatingsystem_parameter_argv@l(11); 
         
-        lis     11,U_SYSTEM_ENVP@ha
-        stw     5,U_SYSTEM_ENVP@l(11); 
+        lis     11,operatingsystem_parameter_envp@ha
+        stw     5,operatingsystem_parameter_envp@l(11); 
 	mtlr    0
 	bl main@plt
 
 _haltproc:
-        lis     3,U_SYSTEM_EXITCODE@h
-        stw     3,U_SYSTEM_EXITCODE@l(3)
+        lis     3,operatingsystem_result@h
+        stw     3,operatingsystem_result@l(3)
 	bl exit@plt
 .Lfe1:
 	.size	 _start,.Lfe1-_start

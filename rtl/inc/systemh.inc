@@ -480,8 +480,8 @@ var
   ExitCode    : Longint; public name 'operatingsystem_result';
   RandSeed    : Cardinal;
   { Delphi compatibility }
-  IsLibrary : boolean = false;
-  IsConsole : boolean;
+  IsLibrary : boolean = false; public name 'operatingsystem_islibrary';
+  IsConsole : boolean = false; public name 'operatingsystem_isconsole';
   { Threading support }
   fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
 

@@ -82,11 +82,11 @@ ___start:
 	movl %esp,%ebp
 	movl 16(%ebp),%eax
 	movl %eax,environ
-	movl %eax,U_SYSTEM_ENVP
+	movl %eax,operatingsystem_parameter_envp
 	movl 8(%ebp),%eax
-	movl %eax,U_SYSTEM_ARGC
+	movl %eax,operatingsystem_parameter_argc
 	movl 12(%ebp),%eax
-	movl %eax,U_SYSTEM_ARGV
+	movl %eax,operatingsystem_parameter_argv
 	movl (%eax),%edx
 	movl %edx,__progname
 	testl %edx,%edx
@@ -156,7 +156,7 @@ pushl %eax
 
 _haltproc:
            mov $1,%eax
-           movzwl U_SYSTEM_EXITCODE,%ebx
+           movzwl operatingsystem_result,%ebx
            pushl %ebx
            call _actualsyscall
            addl  $4,%esp

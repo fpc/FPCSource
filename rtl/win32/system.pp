@@ -93,14 +93,15 @@ type
 
 var
 { C compatible arguments }
-  argc : longint;
-  argv : ppchar;
+  argc : longint; public name 'operatingsystem_parameter_argc';
+  argv : ppchar; public name 'operatingsystem_parameter_argv';
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
   MainInstance,
   cmdshow     : longint;
-  DLLreason,DLLparam:longint;
+  DLLreason : longint; public name 'operatingsystem_dllreason';
+  DLLparam : longint; public name 'operatingsystem_dllparam';
   StartupConsoleMode : DWORD;
 
 type

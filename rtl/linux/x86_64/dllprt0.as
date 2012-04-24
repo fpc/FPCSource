@@ -54,7 +54,7 @@ _startlib:
         movq     operatingsystem_parameter_envp@GOTPCREL(%rip),%rbx
         movq     %rdx,(%rbx)
 
-        movq    TC_SYSTEM_ISLIBRARY@GOTPCREL(%rip),%rbx
+        movq    operatingsystem_islibrary@GOTPCREL(%rip),%rbx
         movb    $1,(%rbx)
 
         /* Save initial stackpointer */

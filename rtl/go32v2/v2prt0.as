@@ -217,7 +217,7 @@ dos_alloc_ok:
         pushl   %eax
         call    ___sbrk
         movl    %eax, __stubinfo
-        movl  %eax,U_SYSTEM_STUB_INFO
+        movl  %eax,operatingsystem_stub_info
         movl    %eax, %edi
         .byte 0x64 /* fs: */
         movl    STUBINFO_SIZE, %ecx
@@ -245,7 +245,11 @@ use_stubinfo_stack_size:
         movl    %eax, ___djgpp_stack_limit      /* Bottom of stack */
         addl    $256,%eax
         movl    %eax,__stkbottom               /* for stack checks */
-        movl    %eax,U_SYSTEM_STACKBOTTOM
+        /* movl    %eax,operatingsystem_stackbottom  */
+        /* StackBottom is
+        a ThrteadVar and can not be given a symbol with name,
+        copying value of __stkbottom to system.STackBottom variable
+        is done in system unit startup code. PM */
 
         movl    ___djgpp_stack_limit,%eax       /* Bottom of stack */
         addl    __stklen, %eax
@@ -290,7 +294,7 @@ exit:
         popl    %ecx
 no_exception:
         cli                          /* Just in case they didn't unhook ints */
-        FREESEL U_SYSTEM_GO32_INFO_BLOCK+26     /* selector for linear memory */
+        FREESEL operatingsystem_go32_info_block+26     /* selector for linear memory */
         FREESEL ___v2prt0_ds_alias      /* DS alias for rmcb exceptions */
         FREESEL sbrk16_api_seg    /* sbrk cs */
         movw    sbrk16_first_byte+6,%dx /* selector for allocated DOS mem */
@@ -632,12 +636,12 @@ _setup_core_selector:
         /* addl $4,%esp */
         cmpl $-1,%eax
         jne .L24
-        movw $0,U_SYSTEM_GO32_INFO_BLOCK+26
+        movw $0,operatingsystem_go32_info_block+26
         leave
         ret
         .align 2,0x90
 .L24:
-        movw %ax,U_SYSTEM_GO32_INFO_BLOCK+26
+        movw %ax,operatingsystem_go32_info_block+26
         movw %ax,_core_selector
         pushl $0x10ffff
         andl $0xffff,%eax
@@ -650,7 +654,7 @@ _setup_core_selector:
 _setup_screens:
         pushl %ebp
         movl %esp,%ebp
-        movw U_SYSTEM_GO32_INFO_BLOCK+26,%dx
+        movw operatingsystem_go32_info_block+26,%dx
         movl $1048563,%ecx
 /APP
         movw %dx, %gs
@@ -659,8 +663,8 @@ _setup_screens:
 /NO_APP
         cmpw $64896,%ax
         jne .L26
-        movl $655360,U_SYSTEM_GO32_INFO_BLOCK+8
-        movl $655360,U_SYSTEM_GO32_INFO_BLOCK+4
+        movl $655360,operatingsystem_go32_info_block+8
+        movl $655360,operatingsystem_go32_info_block+4
         leave
         ret
         .align 2,0x90
@@ -673,14 +677,14 @@ _setup_screens:
 /NO_APP
         cmpb $7,%al
         jne .L29
-        movl $720896,U_SYSTEM_GO32_INFO_BLOCK+4
-        movl $753664,U_SYSTEM_GO32_INFO_BLOCK+8
+        movl $720896,operatingsystem_go32_info_block+4
+        movl $753664,operatingsystem_go32_info_block+8
         leave
         ret
         .align 2,0x90
 .L29:
-        movl $753664,U_SYSTEM_GO32_INFO_BLOCK+4
-        movl $720896,U_SYSTEM_GO32_INFO_BLOCK+8
+        movl $753664,operatingsystem_go32_info_block+4
+        movl $720896,operatingsystem_go32_info_block+8
         leave
         ret
 
@@ -693,36 +697,36 @@ _setup_go32_info_block:
         leal -8(%ebp),%eax
         pushl %eax
         call ___dpmi_get_version
-        movl $40,U_SYSTEM_GO32_INFO_BLOCK
+        movl $40,operatingsystem_go32_info_block
         movl __stubinfo,%edx
         movzwl 36(%edx),%eax
         sall $4,%eax
-        movl %eax,U_SYSTEM_GO32_INFO_BLOCK+12
+        movl %eax,operatingsystem_go32_info_block+12
         movzwl 32(%edx),%ecx
-        movl %ecx,U_SYSTEM_GO32_INFO_BLOCK+16
+        movl %ecx,operatingsystem_go32_info_block+16
         movzwl 38(%edx),%ecx
-        movl %ecx,U_SYSTEM_GO32_INFO_BLOCK+20
+        movl %ecx,operatingsystem_go32_info_block+20
         movb -3(%ebp),%al
-        movb %al,U_SYSTEM_GO32_INFO_BLOCK+24
+        movb %al,operatingsystem_go32_info_block+24
         movb -2(%ebp),%al
-        movb %al,U_SYSTEM_GO32_INFO_BLOCK+25
-        movl $-1,U_SYSTEM_GO32_INFO_BLOCK+28
-        pushl $U_SYSTEM_GO32_INFO_BLOCK+32
+        movb %al,operatingsystem_go32_info_block+25
+        movl $-1,operatingsystem_go32_info_block+28
+        pushl $operatingsystem_go32_info_block+32
         movzwl 38(%edx),%eax
         pushl %eax
         call ___dpmi_get_segment_base_address
-        movw $4,U_SYSTEM_GO32_INFO_BLOCK+36
+        movw $4,operatingsystem_go32_info_block+36
         movb -8(%ebp),%dl
         salw $8,%dx
         movzbw -7(%ebp),%ax
         orw %ax,%dx
-        movw %dx,U_SYSTEM_GO32_INFO_BLOCK+38
+        movw %dx,operatingsystem_go32_info_block+38
         call copy_to_c_go32_info_block
         leave
         ret
 
 copy_to_c_go32_info_block:
-        leal U_SYSTEM_GO32_INFO_BLOCK,%esi
+        leal operatingsystem_go32_info_block,%esi
         leal __go32_info_block,%edi
         movl $10,%ecx
         rep
@@ -771,7 +775,7 @@ ___prt1_startup:
         fldcw   ___fpucw
 .Lno_387:
         popl %eax
-        pushl   U_SYSTEM_ENVP
+        pushl   operatingsystem_parameter_envp
         pushl   ___crt0_argv
         pushl   ___crt0_argc
         call    _pascal_start
@@ -779,7 +783,7 @@ ___prt1_startup:
 /*      call _exit changed to */
         call    exit
         .align 2,0x90
-/* .comm U_SYSTEM_DOS_ARGV0,4 */
+/* .comm dos_argv0,4 */
         .comm ___dos_argv0,4
         .comm ___crt0_argc,4
         .comm ___crt0_argv,4
@@ -837,7 +841,7 @@ _fpc_windows_error:
         .globl  _pascal_start
 _pascal_start:
         /* %ebx doesn't contain ScreenPrimary */
-        movl    U_SYSTEM_GO32_INFO_BLOCK+4,%ebx
+        movl    operatingsystem_go32_info_block+4,%ebx
         movl    %ebx,_ScreenPrimary
         /*  core selector in %fs */
         /*  keep original fs for debuggers !!!!! (PM) */
@@ -851,7 +855,7 @@ _pascal_start:
         movl    $0x0,%ebp
         movl    %esp,%ebx
         movl    12(%ebx),%eax
-        movl    %eax,U_SYSTEM_ENVP
+        movl    %eax,operatingsystem_parameter_envp
         movl    %eax,__environ
         movl    8(%ebx),%eax
         movl    %eax,_args
@@ -868,7 +872,7 @@ _pascal_start:
 
         .data
 
-/*      .comm   U_SYSTEM_ENVP,4 */
+/*      .comm   operatingsystem_parameter_envp,4 */
         .globl  _ScreenPrimary
 _ScreenPrimary:
         .long   0

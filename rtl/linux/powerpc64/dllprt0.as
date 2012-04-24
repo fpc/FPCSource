@@ -340,7 +340,7 @@ FUNCTION_PROLOG FPC_SHARED_LIB_START
     std     5, 0(10)
 
     /* update library flag in RTL */
-    LOAD_64BIT_VAL 8, TC_SYSTEM_ISLIBRARY
+    LOAD_64BIT_VAL 8, operatingsystem_islibrary
     li      6, 1
     stw     6, 0(8)
 
@@ -351,7 +351,7 @@ FUNCTION_PROLOG FPC_SHARED_LIB_START
     nop
 
     /* return to the caller */
-    addi    1,1,144   /* restore stack */ 
+    addi    1,1,144   /* restore stack */
     ld      0,16(1)   /* prepare for method return */
     mtlr    0
     blr
