@@ -109,8 +109,13 @@ const
   CODESET = 51;
   LC_ALL = 0;
 {$else not OpenBSD}
+{$ifdef NetBSD}
+  CODESET = 51;
+  LC_ALL = 0;
+{$else not NetBSD}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
 // and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
+{$endif NetBSD}
 {$endif OpenBSD}
 {$endif beos}
 {$endif solaris}
