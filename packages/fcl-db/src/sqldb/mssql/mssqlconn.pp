@@ -54,6 +54,7 @@ type
     FDBProc : PDBPROCESS;
     Ftds    : integer;     // TDS protocol version
     Fstatus : STATUS;      // current result/rows fetch status
+    function CheckError(const Ret: RETCODE): RETCODE;
     procedure DBExecute(const cmd: string);
     function TranslateFldType(SQLDataType: integer): TFieldType;
     function ClientCharset: TClientCharset;
@@ -178,31 +179,16 @@ var
 
 function DBErrHandler(dbproc: PDBPROCESS; severity, dberr, oserr:INT; dberrstr, oserrstr:PChar):INT; cdecl;
 begin
-  DBErrorStr:=DBErrorStr+#13+dberrstr;
+  DBErrorStr:=DBErrorStr+LineEnding+dberrstr;
   DBErrorNo :=dberr;
   Result    :=INT_CANCEL;
 end;
 
 function DBMsgHandler(dbproc: PDBPROCESS; msgno: DBINT; msgstate, severity:INT; msgtext, srvname, procname:PChar; line:DBUSMALLINT):INT; cdecl;
 begin
-  DBMsgStr:=DBMsgStr+#13+msgtext;
+  DBMsgStr:=DBMsgStr+LineEnding+msgtext;
   DBMsgNo :=msgno;
   Result  :=0;
-end;
-
-
-function CheckError(const Ret: RETCODE): RETCODE;
-var E: EMSSQLDatabaseError;
-begin
-  if Ret=FAIL then
-  begin
-    E:=EMSSQLDatabaseError.Create(DBErrorStr+#13+DBMsgStr);
-    E.DBErrorCode:=DBErrorNo;
-    DBErrorStr:='';
-    DBMsgStr:='';
-    raise E;
-  end;
-  Result:=Ret;
 end;
 
 
@@ -243,6 +229,24 @@ end;
 function TMSSQLConnection.IsSybase: boolean;
 begin
   Result := (Ftds=DBTDS_50) or (Ftds=DBTDS_42);
+end;
+
+function TMSSQLConnection.CheckError(const Ret: RETCODE): RETCODE;
+var E: EMSSQLDatabaseError;
+begin
+  if Ret=FAIL then
+  begin
+    if DBErrorStr = '' then
+      case DBErrorNo of
+        SYBEFCON: DBErrorStr:='SQL Server connection failed!';
+      end;
+    E:=EMSSQLDatabaseError.CreateFmt('%s Error %d: %s'+LineEnding+'%s', [ClassName, DBErrorNo, DBErrorStr, DBMsgStr]);
+    E.DBErrorCode:=DBErrorNo;
+    DBErrorStr:='';
+    DBMsgStr:='';
+    raise E;
+  end;
+  Result:=Ret;
 end;
 
 constructor TMSSQLConnection.Create(AOwner: TComponent);

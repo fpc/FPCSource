@@ -138,25 +138,25 @@ const
     '2004-03-01',
     '1991-02-28',
     '1991-03-01',
+    '1997-11-29',
     '2040-10-16',
     '1977-09-29',
+    '1977-12-31',
+    '1917-12-29',
+    '1900-01-01',
+    '1899-12-31',
+    '1899-12-30',
+    '1899-12-29',
     '1800-03-30',
-    '1650-05-10',
     '1754-06-04',
+    '1753-01-01',
+    '1650-05-10',
     '0904-04-12',
     '0199-07-09',
-    '0001-01-01',
-    '0031-11-02',
-    '1899-12-29',
-    '1899-12-30',
-    '1899-12-31',
-    '1977-09-29',
-    '1917-12-29',
     '0079-11-29',
-    '1997-11-29',
-    '0001-01-01',
-    '1997-11-29',
-    '1900-01-01'
+    '0031-11-02',
+    '0001-12-31',
+    '0001-01-01'
   );
 
   testTimeValues : Array[0..testValuesCount-1] of string = (
@@ -177,7 +177,7 @@ const
     '15:35:12.000',
     '16:45:12.010',
     '13:55:12.200',
-    '13:46:12.542',
+    '13:46:12.543',
     '15:35:12.000',
     '17:25:12.530',
     '19:45:12.003',
@@ -315,10 +315,7 @@ begin
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
     testValues[ftLargeint,i] := IntToStr(testLargeIntValues[i]);
-    // The decimalseparator was set to a comma for currencies and to a dot for ftBCD values.
-    // DecimalSeparator for PostgreSQL must correspond to monetary locale set on PostgreSQL server
-    // Here we assume, that locale on client side is same as locale on server
-    testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
+    testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
     // For date '0001-01-01' other time-part like '00:00:00' causes "Invalid variant type cast", because of < MinDateTime constant
     if (testDateValues[i]>'0001-01-01') and (testTimeValues[i]>='00:00:01') and (testTimeValues[i]<'24:00:00') then
