@@ -11,7 +11,7 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) unixtype ctypes objpas macpas iso7185 \
-      strings syscall sysctl  baseunix unixutil character \
+      strings syscall sysctl  baseunix unixutil \
       unix rtlconsts initc cmem matrix \
        dl termio  printer \
       sysutils varutils math variants typinfo types classes fgl fmtbcd dynlibs \
