@@ -26,7 +26,7 @@ dirs_freebsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc p
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg  httpd22 pxlib numlib \
                users iconvenc gmp fcl-extra libxml dblib
 dirs_darwin=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint
+               libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint dblib
 dirs_iphonesim=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint
 dirs_i386_darwin=graph sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib objcrtl cocoaint opencl openal
@@ -34,10 +34,10 @@ dirs_powerpc_darwin=graph sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gn
 dirs_x86_64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib cocoaint
 dirs_powerpc64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib cocoaint
 dirs_arm_darwin= httpd22 opengles objcrtl
-dirs_i386_iphonesim= httpd22 opengles objcrtl
+dirs_i386_iphonesim= httpd22 opengles objcrtl dblib
 dirs_solaris=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd svgalib fcl-extra \
-               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1  httpd22 numlib iconvenc gtk2 cairo
+               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1  httpd22 numlib iconvenc gtk2 cairo dblib
 dirs_netbsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2 librsvg bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1  httpd22 pxlib numlib dblib
@@ -55,7 +55,7 @@ dirs_win32=fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracl
                gmp opencl libsee nvapi ptc aspell dblib
 dirs_win64=fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint \
                 tcl opengl gtk1 fpgtk fftw sdl openssl cdrom  httpd22 numlib fcl-extra opencl nvapi ptc graph dblib
-dirs_wince=winceunits httpd22 fcl-web fastcgi tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib
+dirs_wince=winceunits httpd22 fcl-web fastcgi tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib dblib
 dirs_os2=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 dirs_emx=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 dirs_netware=fv zlib unzip
