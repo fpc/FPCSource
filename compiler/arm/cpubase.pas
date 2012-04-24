@@ -137,6 +137,8 @@ unit cpubase;
         PF_IAX,PF_DBX,PF_FDX,PF_EAX
       );
 
+      TOpPostfixes = set of TOpPostfix;
+
       TRoundingMode = (RM_None,RM_P,RM_M,RM_Z);
 
     const
@@ -166,6 +168,8 @@ unit cpubase;
         C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
         C_GE,C_LT,C_GT,C_LE,C_AL,C_NV
       );
+
+      TAsmConds = set of TAsmCond;
 
     const
       cond2str : array[TAsmCond] of string[2]=('',
