@@ -1416,6 +1416,7 @@ TYPE
        VT_ERROR:                (scode: HResult);
        VT_CY:                   (cyVal: Currency);
        VT_DATE:                 (date: TOleDate);
+       { managed types cannot be used in a variant record like this one. }
        VT_BSTR:                 (bstrVal: POleStr{WideString});
        VT_UNKNOWN:              (unkVal: Pointer{IUnknown});
        VT_DISPATCH:             (dispVal: Pointer{IDispatch});
@@ -1434,7 +1435,7 @@ TYPE
        VT_BYREF or VT_ERROR:    (pscode: ^HResult);
        VT_BYREF or VT_CY:       (pcyVal: PCurrency);
        VT_BYREF or VT_DATE:     (pdate: POleDate);
-       VT_BYREF or VT_BSTR:     (pbstrVal: PPOleStr);
+       VT_BYREF or VT_BSTR:     (pbstrVal: ^WideString);
        VT_BYREF or VT_UNKNOWN:  (punkVal: ^IUnknown);
        VT_BYREF or VT_DISPATCH: (pdispVal: ^IDispatch);
        VT_BYREF or VT_ARRAY:    (pparray: PPSafeArray);
