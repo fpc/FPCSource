@@ -23,5 +23,11 @@ function usb_recvbuffer_safe_ex(chn: cint32; buffer: pointer;
 
 function usb_sendbuffer_safe_ex(chn: cint32; buffer: pointer;
   size, retries: cint): cint; cdecl; external;
+  
+  
+function usb_flashread(chn: cint32; offset: cuint32; buffer: pointer; length: cint): cint; cdecl; external;
+function usb_flashwrite(chn: cint32; offset: cuint32; const buffer: pointer, length: cint): cint; cdecl; external;
+function usb_flashverify(chn: cint32): cint; cdecl; external;
+
 {$ENDIF OGC_INTERFACE}
 

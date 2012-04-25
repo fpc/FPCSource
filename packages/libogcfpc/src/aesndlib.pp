@@ -14,7 +14,11 @@ uses
 const
   MAX_VOICES = 32;
   SND_BUFFERSIZE = 384;  // output 2ms sound data at 48KHz
-  DSP_DEFAULT_FREQ = 48000;
+{$ifdef HW_DOL}
+  DSP_DEFAULT_FREQ = 48044;
+{$else}
+	DSP_DEFAULT_FREQ = 48000;
+{$endif}
   VOICE_STATE_STOPPED = 0;
   VOICE_STATE_RUNNING = 1;
   VOICE_STATE_STREAM = 2;

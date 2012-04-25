@@ -17,8 +17,8 @@ const
   HIDP_STATE_LISTEN = $01;
   HIDP_STATE_CONNECTING = $02;
   HIDP_STATE_CONNECTED = $04;
-  HIDP_OUTPUT_CHANNEL = $11;
-  HIDP_INPUT_CHANNEL = $13;
+  HIDP_CONTROL_CHANNEL = $11;
+  HIDP_DATA_CHANNEL = $13;
   HIDP_HDR_TRANS_MASK = $f0;
   HIDP_HDR_PARAM_MASK = $0f;
   HIDP_TRANS_HANDSHAKE = $00;
@@ -97,8 +97,8 @@ type
     ctrl_req_tail : Pctrl_req_t;
     cmdq : lwpq_t;
     bdaddr : _bd_addr;
-    out_pcb : Pl2cap_pcb;
-    in_pcb : Pl2cap_pcb;
+    ctl_pcb : Pl2cap_pcb;
+    data_pcb : Pl2cap_pcb;
     recv : Trecv;
     conn_cfm : Tconn_cfm;
     disconn_cfm : Tdisconn_cfm;
