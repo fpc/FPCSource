@@ -19,6 +19,7 @@ interface
 
   type
     char = widechar;
+    pchar = pwidechar;
 
 implementation
 
