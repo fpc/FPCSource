@@ -463,13 +463,6 @@ unit agppcgas;
         i: longint;
       begin
         inherited WriteExtraHeader;
-        { AIX assembler notation for .quad is .llong, let assembler itself
-          perform the substitution; the aix assembler uses .quad for defining
-          128 bit floating point numbers, but
-            a) we don't support those yet
-            b) once we support them, we'll encode them byte per byte like other
-               floating point numbers }
-        AsmWriteln(#9'.set'#9'.quad,.llong');
         { map cr registers to plain numbers }
         for i:=0 to 7 do
           AsmWriteln(#9'.set'#9'cr'+tostr(i)+','+tostr(i));

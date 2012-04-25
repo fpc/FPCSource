@@ -930,7 +930,14 @@ implementation
                        end
                      else
                        begin
-                         AsmWrite(ait_const2str[constdef]);
+                         if not(target_info.system in systems_aix) or
+                            (constdef<>aitconst_64bit) then
+                           AsmWrite(ait_const2str[constdef])
+                         else
+                           { can't use .llong, because that forces 8 byte
+                             alignnment and we sometimes store addresses on
+                             4-byte aligned addresses (e.g. in the RTTI) }
+                           AsmWrite('.vbyte'#9'8,');
                          l:=0;
                          t := '';
                          repeat
