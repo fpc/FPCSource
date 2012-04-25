@@ -96,8 +96,8 @@ unit i_aix;
             system       : system_powerpc64_aix;
             name         : 'AIX for PowerPC64';
             shortname    : 'AIX';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_requires_proper_alignment,tf_smartlink_sections,tf_has_winlike_resources];
+            flags        : [tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_powerpc64;
             unit_env     : '';
             extradefines : 'UNIX;HASUNIX';
@@ -111,11 +111,11 @@ unit i_aix;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
-            sharedlibext : '.so';
+            sharedlibext : '.a';
             staticlibext : '.a';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
-            sharedClibext : '.so';
+            sharedClibext : '.a';
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';

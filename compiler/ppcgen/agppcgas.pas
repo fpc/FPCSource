@@ -576,7 +576,11 @@ unit agppcgas;
                AIX assembler, ignore by GNU assembler)
            -mpwr5: we actually support Power3 and higher, but the AIX assembler
                has no parameter to select that one (only -mpwr3 and -mpwr5) }
+{$ifdef cpu64bitaddr}
+         asmcmd : '-a64 -u -o $OBJ $ASM -mpwr5';
+{$else cpu64bitaddr}
          asmcmd : '-u -o $OBJ $ASM -mpwr5';
+{$endif cpu64bitaddr}
          supported_targets : [system_powerpc_aix,system_powerpc64_aix];
          flags : [af_needar,af_smartlink_sections,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
