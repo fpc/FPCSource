@@ -1590,7 +1590,7 @@ var
   tempreg : TRegister;
 
 begin
-  if (target_info.system = system_powerpc64_darwin) then
+  if (target_info.system in [system_powerpc64_darwin,system_powerpc64_aix]) then
     begin
       inherited a_loadaddr_ref_reg(list,ref,r);
       exit;
@@ -1900,7 +1900,7 @@ begin
     internalerror(200310131);
 
   { if this is a PIC'ed address, handle it and exit }
-  if (ref.refaddr = addr_pic) then begin
+  if (ref.refaddr in [addr_pic,addr_pic_no_got]) then begin
     if (ref.offset <> 0) then
       internalerror(2006010501);
     if (ref.index <> NR_NO) then
