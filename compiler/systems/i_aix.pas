@@ -53,7 +53,7 @@ unit i_aix;
             staticlibext : '.a';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
-            sharedClibext : '.so';
+            sharedClibext : '.a';
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
