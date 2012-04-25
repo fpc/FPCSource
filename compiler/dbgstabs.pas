@@ -1619,11 +1619,11 @@ implementation
         current_module.flags:=current_module.flags or uf_has_stabs_debuginfo;
         if not(target_info.system in systems_darwin) then
           begin
-            new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(current_module.localsymtable),0);
+            new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(current_module.localsymtable),sizeof(pint));
             current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
           end
         else
-          new_section(current_asmdata.asmlists[al_stabs],sec_code,GetSymTableName(current_module.localsymtable),0);
+          new_section(current_asmdata.asmlists[al_stabs],sec_code,GetSymTableName(current_module.localsymtable),sizeof(pint));
 
         { write all global/local variables. This will flag all required tdefs  }
         if assigned(current_module.globalsymtable) then
@@ -1756,7 +1756,7 @@ implementation
         { emit main source n_sourcefile for start of module }
         current_asmdata.getlabel(hlabel,alt_dbgfile);
         infile:=current_module.sourcefiles.get_file(1);
-        new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),0,secorder_begin);
+        new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),sizeof(pint),secorder_begin);
         if not(target_info.system in systems_darwin) then
           current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
         current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(getcurrentdir,false))+'",'+
@@ -1771,7 +1771,7 @@ implementation
           current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(STABS_N_OSO,'0','0','0')));
         { emit empty n_sourcefile for end of module }
         current_asmdata.getlabel(hlabel,alt_dbgfile);
-        new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),0,secorder_end);
+        new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),sizeof(pint),secorder_end);
         if not(target_info.system in systems_darwin) then
           current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_DATA,0));
         current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));

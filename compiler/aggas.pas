@@ -470,7 +470,7 @@ implementation
         l: longint;
       begin
         if (secalign=0) or
-           not(atype in [sec_code,sec_bss,sec_rodata_norel]) then
+           not(atype in [sec_code,sec_bss,sec_rodata_norel,sec_rodata,sec_data]) then
           begin
             result:='';
             exit;
