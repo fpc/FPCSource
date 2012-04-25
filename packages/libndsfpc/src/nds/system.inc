@@ -51,7 +51,7 @@ procedure powerOn(bits: cint); cdecl; external;
 procedure powerOff(bits: cint); cdecl; external;
 
 procedure systemMsgHandler(bytes: cint; user_data: pointer); cdecl; external;
-procedure powerValueHandler(value: cuint32; data: pointer); cdecl; external;
+procedure systemValueHandler(value: cuint32; data: pointer); cdecl; external;
 
 procedure lcdSwap(); inline; 
 procedure lcdMainOnTop(); inline; 
@@ -77,6 +77,9 @@ type
 
 var
   SystemVectors: sysVectors; cvar; external;
+
+//void setSDcallback(void(*callback)(int));
+procedure setSDcallback(callback: pointer); cdecl; external; // ??
 
 // Helper functions for heap size
 //! returns current start of heap space

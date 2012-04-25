@@ -54,7 +54,7 @@ function inttov16(n: cint): cint{v16}; inline;
 function f32tov16(n: cint32): v16; inline; 
 function v16toint(n: v16): cint; inline;
 function floattov16(n: cfloat): v16; inline;
-function VERTEX_PACK(x,y: cint): cint; inline;
+function VERTEX_PACK(x,y: cint): cuint32; inline;
 
 type
   v10 = cint16;
@@ -63,7 +63,7 @@ function inttov10(n: cint): cint; inline;
 function f32tov10(n: cint32): cint; inline;
 function v10toint(n: v10): cint; inline;
 function floattov10(n: cfloat): v10; inline;
-function NORMAL_PACK(x,y,z: cint): cint; inline;
+function NORMAL_PACK(x,y,z: cint): cuint32; inline;
 
 type
   rgb = cushort;
@@ -531,9 +531,9 @@ begin
   floattov16 := v16(trunc(n * (1 shl 12)));
 end;
 
-function VERTEX_PACK(x,y: cint): cint; inline;
+function VERTEX_PACK(x,y: cint): cuint32; inline;
 begin
-  VERTEX_PACK := (x and $FFFF) or (y shl 16);
+  VERTEX_PACK := cuint32((x and $FFFF) or (y shl 16));
 end;
 
 function inttov10(n: cint): cint; inline;
@@ -559,9 +559,9 @@ begin
 	  floattov10 := trunc(n * (1 shl 9));
 end;
 
-function NORMAL_PACK(x,y,z: cint): cint; inline;
+function NORMAL_PACK(x,y,z: cint): cuint32; inline;
 begin
-  NORMAL_PACK := ((x and $3FF) or ((y and $3FF) shl 10) or (z shl 20));
+  NORMAL_PACK := cuint32((x and $3FF) or ((y and $3FF) shl 10) or (z shl 20));
 end;
 
 //---------------------------------------------------------------------------------
