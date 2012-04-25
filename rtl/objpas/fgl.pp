@@ -654,26 +654,42 @@ begin
     Delete(Result);
 end;
 
+const LocalThreshold = 64;
+
 procedure TFPSList.Pack;
 var
+  LItemSize : integer;
   NewCount,
   i : integer;
   pdest,
   psrc : Pointer;
+  localnul : array[0..LocalThreshold-1] of byte;  
+  pnul : pointer;
 begin
+  LItemSize:=FItemSize;
+  pnul:=@localnul;
+  if LItemSize>Localthreshold then
+    getmem(pnul,LItemSize);
+  fillchar(pnul^,LItemSize,#0);    
   NewCount:=0;
   psrc:=First;
   pdest:=psrc;
+  
   For I:=0 To FCount-1 Do
     begin
-      if assigned(pointer(psrc^)) then
+        if not CompareMem(psrc,pnul,LItemSize) then
         begin
-          System.Move(psrc^, pdest^, FItemSize);
-          inc(pdest);
+          System.Move(psrc^, pdest^, LItemSize);
+          inc(pdest,LItemSIze);
           inc(NewCount);
-        end;
-      inc(psrc);
+        end
+      else
+        deref(psrc);
+      inc(psrc,LitemSize);
     end;
+  if LItemSize>Localthreshold then
+    FreeMem(pnul,LItemSize);
+
   FCount:=NewCount;
 end;
 
