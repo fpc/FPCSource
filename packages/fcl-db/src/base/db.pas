@@ -1243,9 +1243,13 @@ type
   end;
 
 { TDataSet }
-
+  
+  {$ifdef noautomatedbookmark}
   TBookmark = Pointer;
-  TBookmarkStr = string;
+  {$else}
+  TBookMark = TBytes;
+  {$endif}
+  TBookmarkStr = ansistring;
 
   PBookmarkFlag = ^TBookmarkFlag;
   TBookmarkFlag = (bfCurrent, bfBOF, bfEOF, bfInserted);

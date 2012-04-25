@@ -1790,7 +1790,9 @@ Procedure TDataset.FreeBookmark(ABookmark: TBookmark);
 
 
 begin
-  FreeMem(ABookMark,FBookMarkSize);
+  {$ifdef noautomatedbookmark}
+   FreeMem(ABookMark,FBookMarkSize);
+  {$endif}
 end;
 
 Function TDataset.GetBookmark: TBookmark;
@@ -1799,8 +1801,12 @@ Function TDataset.GetBookmark: TBookmark;
 begin
   if BookmarkAvailable then
     begin
-    GetMem (Result,FBookMarkSize);
-    GetBookMarkdata(ActiveBuffer,Result);
+    {$ifdef noautomatedbookmark}
+      GetMem (Result,FBookMarkSize);
+    {$else}
+      setlength(Result,FBookMarkSize);
+    {$endif}
+    GetBookMarkdata(ActiveBuffer,pointer(Result));
     end
   else
     Result:=Nil;
@@ -1859,7 +1865,7 @@ begin
     begin
     CheckBrowseMode;
     DoBeforeScroll;
-    InternalGotoBookMark(ABookMark);
+    InternalGotoBookMark(pointer(ABookMark));
     Resync([rmExact,rmCenter]);
     DoAfterScroll;
     end;
