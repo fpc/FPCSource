@@ -244,7 +244,7 @@ public class JavapPrinter {
                 // print field attribute information.
                 printFieldAttributes(field);
             	if (!field.isFormalConst()) {
-            		out.print("; external name '"+fieldName.substring(1)+"'");
+            		out.print("; external name '"+fieldName.substring(env.prefix_field.length())+"'");
             	}
                 out.println(";");
             }
@@ -853,7 +853,7 @@ public class JavapPrinter {
     			for (int i = 0; i < innerClassPrinters.size(); i++) {
     				JavapPrinter innerPrinter = innerClassPrinters.get(i);
     				if (checkInnerVisibility(innerPrinter.cls.access,protpub)) {
-    					String shortInnerName = PascalClassData.getShortClassName(innerPrinter.cls.getClassName()); 
+    					String shortInnerName = PascalClassData.getShortClassName(env,innerPrinter.cls.getClassName()); 
         				String shortInnerSafeName = ClassIdentifierInfo.AddIdentifierNameForClass(cls.getClassName(),shortInnerName);
     					if (first) {
     						if (!cls.isInterface()) {

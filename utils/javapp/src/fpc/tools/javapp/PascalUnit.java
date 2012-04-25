@@ -114,10 +114,10 @@ public class PascalUnit {
 	}
 	
 	private String getDefaultShortPascalName(String classname) {
-		String shortname = PascalClassData.getShortClassName(classname);
+		String shortname = PascalClassData.getShortClassName(env,classname);
 		// inner class -> done (no naming problems)
 		if (classname.indexOf('$') != -1)
-			return "Inner"+shortname;
+			return env.prefix_innerclass+shortname;
 
 		// no package?
 		if (shortname.equals(classname))
@@ -139,7 +139,7 @@ public class PascalUnit {
 		if (PascalClassData.isInnerClass(className)) {
 			int nestedIndex = className.indexOf('$');
 			// get the abbreviated Pascal name of the top-level class, followed by
-			// "Inner" + the nested class names (to avoid identifier conflicts)
+			// env.prefix_innerclass + the nested class names (to avoid identifier conflicts)
 			String res = getShortPascalName(className.substring(0,nestedIndex));
 			// create valid identifier for inner classes that only exist in external version
 			if (isExternalInnerClass(className)) {
@@ -148,7 +148,7 @@ public class PascalUnit {
 			} else {
 				StringTokenizer innerTypes = new StringTokenizer(className.substring(nestedIndex+1), "$");
 				while (innerTypes.hasMoreTokens()) {
-					res = res + "." + "Inner"+innerTypes.nextToken();
+					res = res + "." + env.prefix_innerclass+innerTypes.nextToken();
 				}
 			}
 			return res;
@@ -353,7 +353,7 @@ public class PascalUnit {
 					// remove added '$' again
 					finishingName = finishingName.substring(0,finishingName.length()-1);
 					if (nestedClasses.size()>1) {
-						finishingName = PascalClassData.getShortClassName(finishingName);
+						finishingName = PascalClassData.getShortClassName(env,finishingName);
 					} else {
 						finishingName = PascalClassData.getShortPascalClassName(finishingName);
 					}
@@ -367,7 +367,7 @@ public class PascalUnit {
 			if (nestedClasses.size()>0) {
 				unitFile.println(prefix+"  type");
 				prefix = prefix + "    ";
-				shortPascalName = PascalClassData.getShortClassName(curClass);
+				shortPascalName = PascalClassData.getShortClassName(env,curClass);
 			} else {
 				shortPascalName = PascalClassData.getShortPascalClassName(curClass);
 		        unitFile.println();
@@ -381,7 +381,7 @@ public class PascalUnit {
 			// remove added '$' again
 			finishingName = finishingName.substring(0,finishingName.length()-1);
 			if (nestedClasses.size()>1) {
-				finishingName = PascalClassData.getShortClassName(finishingName);
+				finishingName = PascalClassData.getShortClassName(env,finishingName);
 			} else {
 				finishingName = PascalClassData.getShortPascalClassName(finishingName);
 			}

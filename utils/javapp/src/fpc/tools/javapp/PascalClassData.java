@@ -8,9 +8,10 @@ import java.util.HashSet;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import fpc.tools.javapp.JavapEnvironment;
+
 public class PascalClassData extends ClassData {
 
-	private JavapEnvironment env;
 	public PascalClassData outerClass;
 	private HashSet<String> nestedDependencies;
 	boolean setOuterDependencies; 
@@ -22,10 +23,9 @@ public class PascalClassData extends ClassData {
 
 	
 	public PascalClassData(InputStream infile, PascalClassData outerClass, JavapEnvironment env, boolean doCollectDependencies) {
-		super (infile);
+		super (env,infile);
 		this.outerClass = outerClass;
 		this.nestedDependencies = new HashSet<String>();
-		this.env = env;
 		ClassIdentifierInfo.registerClassInfo(getClassName(),getSuperClassName(),getSuperInterfaces());
 		if (doCollectDependencies) {
 			collectDependencies();
@@ -127,12 +127,12 @@ public class PascalClassData extends ClassData {
 		return outerClass != null;
 	}
 	
-	public static String getShortClassName(String className) {
+	public static String getShortClassName(JavapEnvironment env, String className) {
 		int index;
 		className = className.replace('-', '_');
 		if (isInnerClass(className)) {
 			index=className.lastIndexOf("$")+1;
-			return "Inner"+className.substring(index);
+			return env.prefix_innerclass+className.substring(index);
 		}
 		else
 			className = className.replace("$","__");
@@ -240,7 +240,7 @@ public class PascalClassData extends ClassData {
 	}
 
 	public String getShortClassName() {
-		return getShortClassName(getClassName());
+		return getShortClassName(env,getClassName());
     }
 	
 	public String getShortPascalClassName() {
@@ -305,7 +305,7 @@ public class PascalClassData extends ClassData {
         int fields_count = in.readUnsignedShort();
         fields=new FieldData[fields_count];
         for (int k = 0; k < fields_count; k++) {
-            FieldData field=new PascalFieldData(this);
+            FieldData field=new PascalFieldData(env,this);
             field.read(in);
             fields[k]=field;
         }
@@ -319,7 +319,7 @@ public class PascalClassData extends ClassData {
         int methods_count = in.readUnsignedShort();
         methods=new PascalMethodData[methods_count];
         for (int k = 0; k < methods_count ; k++) {
-            MethodData method=new PascalMethodData(this);
+            MethodData method=new PascalMethodData(env,this);
             method.read(in);
             methods[k]=method;
         }

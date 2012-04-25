@@ -8,8 +8,8 @@ public class PascalFieldData extends FieldData {
 	
 	private String cachedName;
 
-	public PascalFieldData(ClassData cls){
-       super(cls);
+	public PascalFieldData(JavapEnvironment env, ClassData cls){
+       super(env, cls);
     }
 	
     public String getVisibilitySectionName(){
@@ -46,7 +46,7 @@ public class PascalFieldData extends FieldData {
      * Returns Pascal type signature of a field.
      */
     public String getType(){
-        return new PascalTypeSignature(getInternalSig(),cls,false,false).getFieldType();
+        return new PascalTypeSignature(env,getInternalSig(),cls,false,false).getFieldType();
     }
 
     /**
@@ -65,7 +65,9 @@ public class PascalFieldData extends FieldData {
     		String realName = super.getName();
     		// we prepend an "f" for fields to prevent name clashes
     		if (!isFormalConst())
-    			realName = "f" + realName;
+    			realName = env.prefix_field + realName;
+    		else
+    			realName = env.prefix_constant + realName;
     		cachedName = ClassIdentifierInfo.AddIdentifierNameForClass(cls.getClassName(),realName);    				
     	}
     	return cachedName;

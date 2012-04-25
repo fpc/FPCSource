@@ -49,8 +49,10 @@ public class FieldData implements RuntimeConstants  {
     boolean isSynthetic=false;
     boolean isDeprecated=false;
     Vector attrs;
+    protected JavapEnvironment env;
 
-    public FieldData(ClassData cls){
+    public FieldData(JavapEnvironment env, ClassData cls){
+        this.env=env;
         this.cls=cls;
     }
 

@@ -10,8 +10,8 @@ public class PascalMethodData extends MethodData {
 	
 	private String cachedName;
 	
-    public PascalMethodData(ClassData cls) {
-		super(cls);
+    public PascalMethodData(JavapEnvironment env, ClassData cls) {
+		super(env,cls);
 	}
 
 	public String getVisibilitySectionName(){
@@ -41,7 +41,7 @@ public class PascalMethodData extends MethodData {
      */
     public String getReturnType(){
 
-        String rttype = (new PascalTypeSignature(getInternalSig(), cls, false, false)).getReturnType();
+        String rttype = (new PascalTypeSignature(env,getInternalSig(), cls, false, false)).getReturnType();
         return rttype;
     }
 
@@ -61,7 +61,7 @@ public class PascalMethodData extends MethodData {
      * Return java type parameter signature.
      */
     public String getParameters(boolean useOpenArrays, boolean useConstOpenArrays){
-        String ptype = (new PascalTypeSignature(getInternalSig(),cls,useOpenArrays,useConstOpenArrays)).getParameters();
+        String ptype = (new PascalTypeSignature(env,getInternalSig(),cls,useOpenArrays,useConstOpenArrays)).getParameters();
 
         return ptype;
     }

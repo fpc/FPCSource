@@ -105,6 +105,9 @@ public class Main{
 		out.println("   -public                   Print only public classes and members");
 		out.println("   -protected                Print protected/public classes and members");
 		out.println("   -private                  Show all classes and members");
+		out.println("   -prefix_constants <x>     Prefix constant names with <x> (default: <nothing>)");
+		out.println("   -prefix_fields <x>        Prefix field names with <x> (default: f)");
+		out.println("   -prefix_innerclasses <x>  Prefix inner class names with <x> (default: Inner)");
 		out.println("   -x <class_or_pkgename>    Treat this class/package as defined in another unit (suffix package names with '.'");
 		out.println("   -s                        Print internal type signatures");
 		out.println("   -bootclasspath <pathlist> Override location of class files loaded");
@@ -200,6 +203,30 @@ public class Main{
 					}
 				} else if (arg.equals("-all")) {
 					env.showallAttr = true;
+				} else if (arg.equals("-prefix_constants")) {
+					if ((i + 1) < argv.length) {
+						env.prefix_constant = argv[++i];
+					} else {
+						error("-prefix_constants requires argument");
+						usage();
+						return false;
+					}
+				} else if (arg.equals("-prefix_fields")) {
+					if ((i + 1) < argv.length) {
+						env.prefix_field = argv[++i];
+					} else {
+						error("-prefix_fields requires argument");
+						usage();
+						return false;
+					}
+				} else if (arg.equals("-prefix_innerclasses")) {
+					if ((i + 1) < argv.length) {
+						env.prefix_innerclass = argv[++i];
+					} else {
+						error("-prefix_innerclasses requires argument");
+						usage();
+						return false;
+					}
 				} else {
 					error("invalid flag: " + arg);
 					usage();

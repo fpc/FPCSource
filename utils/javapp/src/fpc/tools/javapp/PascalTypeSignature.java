@@ -10,8 +10,10 @@ public class PascalTypeSignature extends TypeSignature {
 	// (done for constructors, under the assumption that these won't change the
 	//  incoming data)
 	private boolean useConstOpenArrays;
+	private JavapEnvironment env;
 
-	public PascalTypeSignature(String JVMSignature, ClassData cls, boolean useOpenArrays, boolean useConstOpenArrays) {
+	public PascalTypeSignature(JavapEnvironment env, String JVMSignature, ClassData cls, boolean useOpenArrays, boolean useConstOpenArrays) {
+	        this.env = env;
 		this.useOpenArrays = useOpenArrays;
 		this.useConstOpenArrays = useConstOpenArrays;
 		init(JVMSignature);
@@ -75,7 +77,7 @@ public class PascalTypeSignature extends TypeSignature {
             			!PascalClassData.currentUnit.isExternalInnerClass(baseType)) {
             		int index = baseType.lastIndexOf('$');
             		outerClass = PascalClassData.getShortPascalClassName(baseType.substring(0,index))+".";
-            		componentType = "Inner"+baseType.substring(index+1).replace('$', '.'); 
+            		componentType = env.prefix_innerclass+baseType.substring(index+1).replace('$', '.'); 
             	} else {
             		outerClass = "";
                 	componentType = PascalClassData.getShortPascalClassName(baseType);

@@ -64,11 +64,13 @@ public class ClassData implements RuntimeConstants {
     private Hashtable indexHashAscii = new Hashtable();
     private String pkgPrefix="";
     private int pkgPrefixLen=0;
+    protected JavapEnvironment env;
 
     /**
      * Read classfile to disassemble.
      */
-    public ClassData(InputStream infile){
+    public ClassData(JavapEnvironment env, InputStream infile){
+        this.env = env;
         try{
             this.read(new DataInputStream(infile));
         }catch (FileNotFoundException ee) {
@@ -214,7 +216,7 @@ public class ClassData implements RuntimeConstants {
         int fields_count = in.readUnsignedShort();
         fields=new FieldData[fields_count];
         for (int k = 0; k < fields_count; k++) {
-            FieldData field=new FieldData(this);
+            FieldData field=new FieldData(env,this);
             field.read(in);
             fields[k]=field;
         }
@@ -227,7 +229,7 @@ public class ClassData implements RuntimeConstants {
         int methods_count = in.readUnsignedShort();
         methods=new MethodData[methods_count];
         for (int k = 0; k < methods_count ; k++) {
-            MethodData method=new MethodData(this);
+            MethodData method=new MethodData(env,this);
             method.read(in);
             methods[k]=method;
         }

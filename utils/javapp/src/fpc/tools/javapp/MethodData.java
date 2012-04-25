@@ -62,7 +62,10 @@ public class MethodData {
     boolean isSynthetic=false;
     boolean isDeprecated=false;
 
-    public MethodData(ClassData cls){
+    protected JavapEnvironment env;
+
+    public MethodData(JavapEnvironment env, ClassData cls){
+        this.env=env;
         this.cls=cls;
     }
 

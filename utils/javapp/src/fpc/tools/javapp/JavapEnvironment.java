@@ -76,6 +76,9 @@ public class JavapEnvironment {
     String outputName = "java";
     ArrayList<String> excludePrefixes;
     ArrayList<String> skelPrefixes;
+    String prefix_constant = "";
+    String prefix_field = "f";
+    String prefix_innerclass = "Inner";
 
     public JavapEnvironment() {
     	excludePrefixes = new ArrayList<String>();
