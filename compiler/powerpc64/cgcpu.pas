@@ -594,6 +594,8 @@ var
   ref2: treference;
   tmpreg: tregister;
 begin
+  if target_info.system=system_powerpc64_aix then
+    g_load_check_simple(list,ref,65536);
   {$IFDEF EXTDEBUG}
   list.concat(tai_comment.create(strpnew('a_load_ref_reg ' + ref2string(ref))));
   {$ENDIF EXTDEBUG}
