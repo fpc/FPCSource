@@ -483,15 +483,16 @@ implementation
             result:=nil;
             exit;
           end;
-        result:=ctypeconvnode.create_explicit(left,java_ansistring);
         ps:=search_struct_member(java_ansistring,'INTERNCHARS');
         if not assigned(ps) or
-           (ps.typ<>propertysym) then
+           (ps.typ<>procsym) then
           internalerror(2011081401);
-        ps:=tpropertysym(ps).propaccesslist[palt_read].firstsym^.sym;
-        if (ps.typ<>procsym) then
-          internalerror(2011081402);
-        result:=ccallnode.create(nil,tprocsym(ps),ps.owner,result,[]);
+        { AnsistringClass.internChars is a static class method that will either
+          return the internal fdata ansichar array of the string, or an array
+          with a single #0 }
+        result:=ccallnode.create(ccallparanode.create(left,nil),tprocsym(ps),
+          ps.owner,
+          cloadvmtaddrnode.create(ctypenode.create(java_ansistring)),[]);
         include(result.flags,nf_isproperty);
         result:=ctypeconvnode.create_explicit(result,resultdef);
         { reused }
@@ -565,13 +566,30 @@ implementation
 
 
     procedure tjvmtypeconvnode.second_cstring_to_pchar;
+      var
+        hr: treference;
+        vs: tstaticvarsym;
       begin
         { don't use is_chararray because it doesn't support special arrays }
         if (left.resultdef.typ<>arraydef) or
            (tarraydef(left.resultdef).elementdef.typ<>orddef) or
            (torddef(tarraydef(left.resultdef).elementdef).ordtype<>uchar) then
           internalerror(2011081304);
-        location_copy(location,left.location);
+        if (tstringconstnode(left).cst_type in [cst_widestring,cst_unicodestring,cst_ansistring]) and
+           (tstringconstnode(left).len=0) then
+          begin
+            if tstringconstnode(left).cst_type=cst_ansistring then
+              vs:=tstaticvarsym(systemunit.Find('EMPTYPANSICHAR'))
+            else
+              vs:=tstaticvarsym(systemunit.Find('EMPTYPWIDECHAR'));
+            reference_reset(hr,4);
+            hr.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,vs.vardef,resultdef,hr,location.register);
+          end
+        else
+          location_copy(location,left.location);
       end;
 
 

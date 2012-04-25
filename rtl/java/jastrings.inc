@@ -210,6 +210,17 @@ begin
   result:=fElementSize;
 end;
 
+
+class function AnsistringClass.internChars(const a: Ansistring): TAnsiCharArray;
+begin
+  if a<>'' then
+    result:=AnsistringClass(a).fdata
+  else
+    { empty pchar: array with one element that is #0 }
+    setlength(result,1);
+end;
+
+
 {****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}

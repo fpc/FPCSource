@@ -41,7 +41,7 @@ type
     function length: jint;
     function codePage: TSystemCodePage;
     function elementSize: Word;
-    property internChars: TAnsiCharArray read fdata;
+    class function internChars(const a: Ansistring): TAnsiCharArray; static;
   end;
 
 
