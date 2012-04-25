@@ -26,7 +26,11 @@ public class PascalMethodData extends MethodData {
      * Return modifiers of the method that matter to Pascal import.
      */
     public String getModifiers(){
-        if ((access & ACC_FINAL)    !=0) return " virtual; final;";
+        if ((access & ACC_FINAL)    !=0)
+           if (!isStatic())
+               return " virtual; final;";
+           else
+               return " final;";
         if ((access & ACC_ABSTRACT) !=0) return " virtual; abstract;";
         if (!isStatic()) return " virtual;";
         return "";
