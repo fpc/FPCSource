@@ -40,6 +40,7 @@ interface
       old_c: char;
       old_orgpattern: string;
       old_modeswitches: tmodeswitches;
+      old_idtoken: ttoken;
       valid: boolean;
     end;
 
@@ -131,8 +132,8 @@ implementation
     var
       old_block_type: tblock_type;
     begin
-      { would require saving of idtoken, pattern etc }
-      if (token=_ID) or
+      { would require saving of cstringpattern, patternw }
+      if (token=_CSTRING) or
          (token=_CWCHAR) or
          (token=_CWSTRING) then
         internalerror(2011032201);
@@ -142,6 +143,7 @@ implementation
       sstate.old_c:=c;
       sstate.old_orgpattern:=orgpattern;
       sstate.old_modeswitches:=current_settings.modeswitches;
+      sstate.old_idtoken:=idtoken;
       sstate.valid:=true;
       { creating a new scanner resets the block type, while we want to continue
         in the current one }
@@ -166,6 +168,7 @@ implementation
           c:=sstate.old_c;
           orgpattern:=sstate.old_orgpattern;
           pattern:=upper(sstate.old_orgpattern);
+          idtoken:=sstate.old_idtoken;
         end;
     end;
 
