@@ -1890,7 +1890,7 @@ end;
 
 function DNS_HEADER_FLAGS(pHead: PDNS_HEADER): WORD;
 begin
-  Result := PWORD(Integer(pHead) + SizeOf(WORD))^;
+  Result := PWORD(@pHead^.Flags)^;
 end;
 
 procedure DNS_BYTE_FLIP_HEADER_COUNTS(var pHeader: PDNS_HEADER);
@@ -1915,17 +1915,17 @@ end;
 
 function IS_WORD_ALIGNED(P: Pointer): BOOL;
 begin
-  Result := (Integer(P) and 1) = 0;
+  Result := (PtrUInt(P) and 1) = 0;
 end;
 
 function IS_DWORD_ALIGNED(P: Pointer): BOOL;
 begin
-  Result := (Integer(P) and 3) = 0;
+  Result := (PtrUInt(P) and 3) = 0;
 end;
 
 function IS_QWORD_ALIGNED(P: Pointer): BOOL;
 begin
-  Result := (Integer(P) and 7) = 0;
+  Result := (PtrUInt(P) and 7) = 0;
 end;
 
 function DNS_TEXT_RECORD_LENGTH(StringCount: Integer): Integer;
