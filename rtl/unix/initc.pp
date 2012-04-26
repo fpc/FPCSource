@@ -51,8 +51,12 @@ end;
 {$else}
 
 
-{$if defined(Linux) or defined(Android)}
+{$if defined(Linux)}
 function geterrnolocation: pcint; cdecl;external clib name '__errno_location';
+{$endif}
+
+{$if defined(Android)} // look at exported symbols in libc.so
+function geterrnolocation: pcint; cdecl;external clib name '__errno';
 {$endif}
 
 {$ifdef FreeBSD} // tested on x86

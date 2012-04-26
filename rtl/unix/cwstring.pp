@@ -27,7 +27,7 @@ implementation
 
 {$linklib c}
 
-{$if not defined(linux) and not defined(solaris) and not defined(Android)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
+{$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
  {$if defined(haiku)}
    {$linklib textencoding}
    {$linklib locale}

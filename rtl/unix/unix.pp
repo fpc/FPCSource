@@ -1169,7 +1169,7 @@ end;
                         General information calls
 ******************************************************************************}
 
-{$if defined(Linux) or defined(Android)}
+{$if defined(Linux)}
 Function GetDomainName:String;  { linux only!}
 // domainname is a glibc extension.
 
@@ -1195,6 +1195,15 @@ Function GetDomainName:String;
     GetDomainName:='';
   end;
 {$endif sunos}
+
+{$ifdef android}
+{ android doesn't seem to implement GetDomainName
+}
+Function GetDomainName:String;
+  begin
+    GetDomainName:='';
+  end;
+{$endif}
 
 {$if defined(BSD) or defined(aix)}
 
