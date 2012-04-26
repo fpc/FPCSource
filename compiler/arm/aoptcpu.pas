@@ -87,6 +87,16 @@ Implementation
       ((postfix = []) or (taicpu(instr).oppostfix in postfix));
   end;
 
+  function MatchOperand(const oper1: TOper; const oper2: TOper): boolean; inline;
+    begin
+      result := (oper1.typ = oper2.typ) and
+                (
+                  ((oper1.typ = top_const) and (oper1.val = oper2.val)) or
+                  ((oper1.typ = top_reg) and (oper1.reg = oper2.reg)) or
+                  ((oper1.typ = top_conditioncode) and (oper1.cc = oper2.cc))
+                );
+    end;
+
   function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
     begin
       result := (oper.typ = top_reg) and (oper.reg = reg);
@@ -253,6 +263,34 @@ Implementation
                         result := true;
                       end;
 
+                    { 
+                      This changes the very common 
+                      mov r0, #0
+                      str r0, [...]
+                      mov r0, #0
+                      str r0, [...]
+
+                      and removes all superfluous mov instructions
+                    }
+                    if (taicpu(p).ops = 2) and
+                       (taicpu(p).oper[1]^.typ = top_const) and
+                       GetNextInstruction(p,hp1) then
+                      begin
+                        while MatchInstruction(hp1, A_STR, [], []) and
+                              MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^) and
+                              GetNextInstruction(hp1, hp2) and
+                              MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+                              (taicpu(hp2).ops = 2) and
+                              MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^) and
+                              MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[1]^) do
+                          begin
+                            asml.insertbefore(tai_comment.Create(strpnew('Peephole MovStrMov done')), hp2);
+                            GetNextInstruction(hp2,hp1);
+                            asml.remove(hp2);
+                            hp2.free;
+                            if not assigned(hp1) then break;
+                          end;
+                      end;
                     {
                       change
                       mov r1, r0
