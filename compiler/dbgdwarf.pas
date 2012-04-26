@@ -1790,7 +1790,7 @@ implementation
             DW_AT_byte_size,DW_FORM_udata,def.size,
             DW_AT_byte_stride,DW_FORM_udata,1
             ]);
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(cansichartype));
           finish_entry;
           append_entry(DW_TAG_subrange_type,false,[
             DW_AT_lower_bound,DW_FORM_udata,0,
@@ -1832,7 +1832,7 @@ implementation
            begin
              { looks like a pchar }
              append_entry(DW_TAG_pointer_type,false,[]);
-             append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype));
+             append_labelentry_ref(DW_AT_type,def_dwarf_lab(cansichartype));
              finish_entry;
            end;
          st_unicodestring,
@@ -3823,19 +3823,19 @@ implementation
         case def.stringtype of
           st_shortstring:
             begin
-              addstringdef('ShortString',cchartype,false,1);
+              addstringdef('ShortString',cansichartype,false,1);
             end;
           st_longstring:
             begin
 {$ifdef cpu64bitaddr}
-              addstringdef('LongString',cchartype,false,8);
+              addstringdef('LongString',cansichartype,false,8);
 {$else cpu64bitaddr}
-              addstringdef('LongString',cchartype,false,4);
+              addstringdef('LongString',cansichartype,false,4);
 {$endif cpu64bitaddr}
            end;
          st_ansistring:
            begin
-             addstringdef('AnsiString',cchartype,true,-1);
+             addstringdef('AnsiString',cansichartype,true,-1);
            end;
          st_unicodestring:
            begin

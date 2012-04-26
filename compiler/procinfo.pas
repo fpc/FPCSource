@@ -123,6 +123,11 @@ unit procinfo;
           { max. of space need for parameters }
           maxpushedparasize : aint;
 
+          { is this a constructor that calls another constructor on itself
+            (either inherited, or another constructor of the same class)?
+            Requires different entry code for some targets. }
+          ConstructorCallingConstructor: boolean;
+
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
 

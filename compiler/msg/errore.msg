@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02089 is the last used one
+# 02090 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -378,11 +378,14 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 scanner_f_illegal_utf8_bom=02089_F_It is not possible to include a file that starts with an UTF-8 BOM in a module that uses a different code page
 % All source code that is part of a single compilation entity (program, library, unit) must be encoded
 % in the same code page
+scanner_w_directive_ignored_on_target=02090_W_Directive "$1" is ignored for the the current target platform
+% Some directives are ignored for certain targets, such as changing the
+% packrecords and packenum settings on managed platforms.
 % \end{description}
 #
 # Parser
 #
-# 03314 is the last used one
+# 03321 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -682,9 +685,10 @@ parser_e_mix_of_classes_and_objects=03093_E_The mix of different kind of objects
 % a class cannot have an object as parent and vice versa.
 parser_w_unknown_proc_directive_ignored=03094_W_Unknown procedure directive had to be ignored: "$1"
 % The procedure directive you specified is unknown.
-parser_e_absolute_only_one_var=03095_E_absolute can only be associated to one variable
-% You cannot specify more than one variable before the \var{absolute} directive.
-% Thus, the following construct will provide this error:
+parser_e_directive_only_one_var=03095_E_$1 can be associated with only one variable
+% You cannot specify more than one variable before the \var{absolute}, \var{export}, \var{external},
+% \var{weakexternal}, \var{public} and \var{cvar} directives.
+% As a result, for example the following construct will provide this error:
 % \begin{verbatim}
 % Var Z : Longint;
 %     X,Y : Longint absolute Z;
@@ -1261,23 +1265,23 @@ parser_e_no_objc_published=03271_E_Objective-C classes cannot have published sec
 parser_f_need_objc=03272_F_This module requires an Objective-C mode switch to be compiled
 % This error indicates the use of Objective-C language features without an Objective-C mode switch
 % active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
-parser_e_must_use_override_objc=03273_E_Inherited methods can only be overridden in Objective-C, add "override" (inherited method defined in $1)
-parser_h_should_use_override_objc=03274_H_Inherited methods can only be overridden in Objective-C, add "override" (inherited method defined in $1).
-% It is not possible to \var{reintroduce} methods in Objective-C like in Object Pascal. Methods with the same
+parser_e_must_use_override=03273_E_Inherited methods can only be overridden in Objective-C and Java, add "override" (inherited method defined in $1)
+parser_h_should_use_override=03274_H_Inherited methods can only be overridden in Objective-C and Java, add "override" (inherited method defined in $1).
+% It is not possible to \var{reintroduce} methods in Objective-C or Java like in Object Pascal. Methods with the same
 % name always map to the same virtual method entry. In order to make this clear in the source code,
 % the compiler always requires the \var{override} directive to be specified when implementing overriding
-% Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
-% does not have any \var{override}-style keyword (since it's the default and only behaviour in that language),
+% Objective-C or Java methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C and Java
+% do not have any \var{override}-style keyword (since it's the default and only behaviour in these languages),
 % which makes it hard for automated header conversion tools to include it everywhere.
 % The type in which the inherited method is defined is explicitly mentioned, because this may either
-% be an objcclass or an objccategory.
+% be an objcclass or an objccategory in case of Objective-C.
 parser_e_objc_message_name_changed=03275_E_Message name "$1" in inherited class is different from message name "$2" in current class.
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
 % is that these message names uniquely define the message to the Objective-C runtime, which means that
 % giving them a different message name breaks the ``override'' semantics.
-parser_e_no_objc_unique=03276_E_It is not yet possible to make unique copies of Objective-C types
-% Duplicating an Objective-C type using \var{type x = type y;} is not yet supported. You may be able to
-% obtain the desired effect using \var{type x = objcclass(y) end;} instead.
+parser_e_unique_unsupported=03276_E_It is not yet possible to make unique copies of Objective-C or Java types
+% Duplicating an Objective-C or Java type using \var{type x = type y;} is not yet supported. You may be able to
+% obtain the desired effect using \var{type x = objcclass(y) end;} resp.{} \var{type x = class(y) end;} instead.
 parser_e_no_category_as_types=03277_E_Objective-C categories and Object Pascal class helpers cannot be used as types
 % It is not possible to declare a variable as an instance of an Objective-C
 % category or an Object Pascal class helper. A category/class helper adds
@@ -1357,9 +1361,9 @@ parser_f_no_generic_inside_generic=03297_F_Declaration of generic class inside a
 % (guarded by internal error 200511173 in tscannerfile.startrecordtokens).
 % Since generics are implemented by recording tokens, it is not possible to
 % have declaration of generic class inside another generic class.
-parser_e_forward_protocol_declaration_must_be_resolved=03298_E_Forward declaration of objcprotocol "$1" must be resolved before an objcclass can conform to it
-% An objcprotocol must be fully defined before classes can conform to it.
-% This error occurs in the following situation:
+parser_e_forward_intf_declaration_must_be_resolved=03298_E_Forward declaration "$1" must be resolved before a class can conform to or implement it
+% An Objective-C protocol or Java Interface must be fully defined before classes can conform to it.
+% This error occurs in the following situation (example for Objective-C, but the same goes for Java interfaces):
 % \begin{verbatim}
 %  Type MyProtocol = objcprotoocl;
 %       ChildClass = Class(NSObject,MyProtocol)
@@ -1410,10 +1414,35 @@ parser_e_implements_no_mapping=03313_E_Interface "$1" can't have method resoluti
 parser_e_invalid_codepage=03314_E_Invalid codepage
 % When declaring a string with a given codepage, the range of valid codepages values is limited
 % to 0 to 65535.
+parser_e_final_only_const_var=03315_E_Only fields (var-sections) and constants can be final in object types
+% A final (class) field must be assigned a single value in the (class) constructor, and cannot
+% be overwritten afterwards. A final (typed) constant is read-only.
+parser_e_final_only_external=03316_E_Final fields are currently only supported for external classes
+% Support for final fields in non-external classes requires a full data flow
+% analysis implementation in FPC, which it currently still lacks.
+parser_e_no_typed_const=03317_E_Typed constants are not allowed here, only formal constants are
+% Java interfaces define a namespace in which formal constant can be defined,
+% but since they define no storage it is not possible to define typed constants
+% in them (those are more or less the same as initialised class fields).
+parser_e_java_no_inherited_constructor=03318_E_Constructors are not automatically inherited in the JVM; explicitly add a constructor that calls the inherited one if you need it
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% For compatibility with external Java code, FPC does the same. If you require access to the same
+% constructors in a child class, define them in the child class and call the inherited one from
+% there.
+parser_d_internal_parser_string=03319_D_Parsing internally generated code: $1
+% The compiler sometimes internally constructs Pascal code that is subsequently
+% injected into the program. These messages display such code, in order to help
+% with debugging errors in them.
+parser_e_feature_unsupported_for_vm=03320_E_This language feature is not supported on managed VM targets
+% Certain language features are not supported on targets that are managed virtual machines.
+parser_e_jvm_invalid_virtual_constructor_call=03321_E_Calling a virtual constructor for the current instance inside another constructor is not possible on the JVM target
+% The JVM does not natively support virtual constructor. Unforunately, we are not aware of a way to
+% emulate them in a way that makes it possible to support calling virtual constructors
+% for the current instance inside another constructor.
 % \end{description}
 # Type Checking
 #
-# 04111 is the last used one
+# 04117 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1801,11 +1830,37 @@ type_w_range_check_error_bounds=04110_W_range check error while evaluating const
 % The constants are outside their allowed range.
 type_e_type_not_allowed_for_default=04111_E_This type is not supported for the Default() intrinsic
 % Some types like for example Text and File Of X are not supported by the Default intrinsic.
+type_e_java_class_method_not_static_virtual=04112_E_JVM virtual class methods cannot be static
+% Virtual class methods cannot be static when targetting the JVM platform, because
+% the self pointer is required for correct dispatching.
+type_e_invalid_final_assignment=04113_E_Final (class) fields can only be assigned in their class' (class) constructor
+% It is only possible to assign a value to a final (class) field inside a (class) constructor of its owning class.
+type_e_no_managed_formal_assign_typecast=04114_E_It is not possible to typecast untyped parameters on managed platforms, simply assign a value to them instead.
+% On managed platforms, untyped parameters are translated by the compiler into
+% the equivalent of \var{var x: BaseClassType}. Non-class-based types passed to
+% such parameters are automatically wrapped (or boxed) in a class, and after the
+% call the potentially modified value is assigned back to the original variable.
+% On the caller side, changing untyped var/out parameters happens by simply assigning
+% values to them (either class-based or primitive ones). On the caller side,
+% they will be extracted and if their type does not match the original variable's,
+% an exception will be raised.
+type_e_no_managed_assign_generic_typecast=04115_E_The assignment side of an expression cannot be typecasted to a supertype on managed platforms
+% Managed platforms guarantee type safety at the bytecode level. This means that the virtual machine must be able
+% to statically determine that no type-unsafe assignments or operations occur. By assigning a parent class type to a
+% variable of a child type by typecasting the assignment side to the parent class type, the type safety would no
+% longer be guaranteed and the generated code would fail verification at run time time.
+type_w_interface_lower_visibility=04116_W_The interface method "$1" raises the visibility of "$2" to public when accessed via an interface instance
+type_e_interface_lower_visibility=04117_E_The interface method "$1" has a higher visibility (public) than "$2"
+% All methods in an interface have always public visibility. That means that if
+% an interface method is implemented using a (strict) protected or private method,
+% this method is actually publicly accessible via the interface. On the JVM
+% target this situation results in an error because the JVM rejects such
+% attempts to circumvent the visibility rules.
 % \end{description}
 #
 # Symtable
 #
-# 05084 is the last used one
+# 05086 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2036,8 +2091,8 @@ sym_w_experimental_unit=05079_W_Unit "$1" is experimental
 % declared as \var{experimental} is used. Experimental units
 % might disappear or change semantics in future versions. Usage of this unit
 % should be avoided as much as possible.
-sym_e_objc_formal_class_not_resolved=05080_E_No complete definition of the formally declared objcclass "$1" is in scope
-% Objecive-C classes can be imported formally, without using the the unit in which it is fully declared.
+sym_e_formal_class_not_resolved=05080_E_No complete definition of the formally declared class "$1" is in scope
+% Objecive-C and Java classes can be imported formally, without using the the unit in which it is fully declared.
 % This enables making forward references to such classes and breaking circular dependencies amongst units.
 % However, as soon as you wish to actually do something with an entity of this class type (such as
 % access one of its fields, send a message to it, or use it to inherit from), the compiler requires the full definition
@@ -2055,7 +2110,20 @@ sym_w_library_overload=05084_W_Possible library conflict: symbol "$1" from libra
 % the 'libname' part is only a hint, funcname might also be loaded
 % by another library. This warning appears if 'funcname' is used twice
 % with two different library names.
-%
+sym_e_duplicate_id_create_java_constructor=05085_E_Cannot add implicit constructor 'Create' because identifier already used by "$1"
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% However, if a class does not explicitly declare at least one constructor, the compiler is
+% required to add a public, parameterless constructor. In Java, constructors are nameless,
+% but in FPC they are all called ``Create''. Therefore, if you do not add a constructor to
+% a Java class and furthermore use the ``Create'' identifier for another entity (e.g., a field,
+% or a parameterless method), the compiler cannot satisfy this requirement.
+sym_e_no_matching_inherited_parameterless_constructor=05086_E_Cannot generate default constructor for class, because parent has no parameterless constructor
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% However, if a class does not explicitly declare at least one constructor, the compiler is
+% required to add a public, parameterless constructor. This compiler must then call
+% the parameterless constructor from the parent class inside this added constructor.
+% This is however impossible if the parent class does not declare such a constructor.
+% In this case you must add a valid constructor yourself.
 % \end{description}
 #
 # Codegenerator
@@ -3163,6 +3231,7 @@ new features, etc.):
 #    P = PowerPC targets
 #    S = Sparc targets
 #    V = Virtual machine targets
+#    J = JVM
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
 #    * = everyone
@@ -3232,11 +3301,14 @@ P*2CN_Generate nil-pointer checks (AIX-only)
 **2Cr_Range checking
 **2CR_Verify object method call validity
 **2Cs<n>_Set stack checking size to <n>
-**2Ct_Stack checking (for testing only, see manual)
+**2Ct_Stack checking (for testing only, see manual)<<<<<<< HEAD
 p*2CT<x>_Target-specific code generation options
 P*2CT<x>_Target-specific code generation options
+J*2CT<x>_Target-specific code generation options
 p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
+J*3CTcompactintarrayinit_ Generate smaller (but potentially slower) code for initializing integer array constants
+J*2Cv_Var/out parameter copy-out checking
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file
@@ -3335,7 +3407,7 @@ F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 **3*_n : Compiler also halts after notes
 **3*_h : Compiler also halts after hints
 **2Sg_Enable LABEL and GOTO (default in -Mtp and -Mdelphi)
-**2Sh_Use ansistrings by default instead of shortstrings
+**2Sh_Use reference counted strings (ansistring by default) instead of shortstrings
 **2Si_Turn on inlining of procedures/functions declared as "inline"
 **2Sk_Load fpcylix unit
 **2SI<x>_Set interface style to <x>

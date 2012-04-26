@@ -312,7 +312,9 @@ Function fpc_CharArray_To_UnicodeStr(const arr: array of char; zerobased: boolea
 procedure fpc_unicodestr_to_chararray(out res: array of char; const src: UnicodeString); compilerproc;
 procedure fpc_WideCharArray_To_ShortStr(out res : shortstring;const arr: array of widechar; zerobased: boolean = true); compilerproc;
 Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; {$ifdef FPC_HAS_CPSTRING}cp : TSystemCodePage;{$endif FPC_HAS_CPSTRING} zerobased: boolean = true): AnsiString; compilerproc;
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
+{$endif}
 Function fpc_WideCharArray_To_UnicodeStr(const arr: array of widechar; zerobased: boolean = true): UnicodeString; compilerproc;
 procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
 procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: RawByteString); compilerproc;
@@ -334,7 +336,7 @@ Function fpc_Char_To_UChar(const c : Char): UnicodeChar; compilerproc;
 Function fpc_UChar_To_Char(const c : UnicodeChar): Char; compilerproc;
 Function fpc_UChar_To_UnicodeStr(const c : UnicodeChar): UnicodeString; compilerproc;
 Function fpc_UChar_To_AnsiStr(const c : UnicodeChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): AnsiString; compilerproc;
-procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
+procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
 
 Function fpc_PWideChar_To_UnicodeStr(const p : pwidechar): unicodestring; compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}

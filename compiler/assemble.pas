@@ -98,7 +98,7 @@ interface
         Function  CallAssembler(const command:string; const para:TCmdStr):Boolean;
 
         Function  DoAssemble:boolean;virtual;
-        Procedure RemoveAsm;
+        Procedure RemoveAsm;virtual;
         Procedure AsmFlush;
         Procedure AsmClear;
 
@@ -378,8 +378,8 @@ Implementation
           end;
         try
           FlushOutput;
-          DosExitCode := ExecuteProcess(command,para);
-          if DosExitCode <>0
+          DosExitCode:=RequotedExecuteProcess(command,para);
+          if DosExitCode<>0
           then begin
             Message1(exec_e_error_while_assembling,tostr(dosexitcode));
             result:=false;

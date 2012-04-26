@@ -63,6 +63,15 @@ type
       procedure EndCollect; override;
    end;
 
+   TJVMRawResourceFile = class(TWinLikeResourceFile)
+   private
+   protected
+   public
+      function Compile(output: tresoutput; const OutName: ansistring) : boolean; override;
+      function IsCompiled(const fn : ansistring) : boolean;override;
+   end;
+
+
 procedure CompileResourceFiles;
 procedure CollectResourceFiles;
 
@@ -189,7 +198,7 @@ begin
      Message2(exec_d_resbin_params,resbin,s);
      FlushOutput;
      try
-       if ExecuteProcess(resbin,s) <> 0 then
+       if RequotedExecuteProcess(resbin,s) <> 0 then
        begin
          if not (cs_link_nolink in current_settings.globalswitches) then
            Message(exec_e_error_while_compiling_resources);
@@ -383,6 +392,25 @@ begin
 end;
 
 
+{****************************************************************************
+                              TJVMRawResourceFile
+****************************************************************************}
+
+function TJVMRawResourceFile.Compile(output: tresoutput; const OutName: ansistring): boolean;
+  begin
+    if output<>roOBJ then
+      internalerror(2011081703);
+    result:=inherited;
+  end;
+
+
+function TJVMRawResourceFile.IsCompiled(const fn: ansistring): boolean;
+  begin
+    internalerror(2011081704);
+    result:=true;
+  end;
+
+
 function CopyResFile(inf,outf : TCmdStr) : boolean;
 var
   src,dst : TCCustomFileStream;
@@ -418,7 +446,8 @@ var
 begin
   { Don't do anything for systems supporting resources without using resource
     file classes (e.g. Mac OS). They process resources elsewhere. }
-  if (target_info.res<>res_none) and (target_res.resourcefileclass=nil) then
+  if ((target_info.res<>res_none) and (target_res.resourcefileclass=nil)) or
+     (res_no_compile in target_res.resflags) then
     exit;
 
   p:=ExtractFilePath(ExpandFileName(current_module.mainsource^));

@@ -237,7 +237,7 @@ interface
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
-    function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
+    function  searchsym_in_class(classh: tobjectdef; contextclassh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
     function  searchsym_in_record(recordh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
@@ -265,7 +265,8 @@ interface
 
 {*** Object Helpers ***}
     function search_default_property(pd : tabstractrecorddef) : tpropertysym;
-    function find_real_objcclass_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
+    function maybe_find_real_class_definition(pd: tdef; erroronfailure: boolean): tdef;
+    function find_real_class_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
 
 {*** Macro Helpers ***}
     {If called initially, the following procedures manipulate macros in }
@@ -1042,7 +1043,7 @@ implementation
         if l>high(asizeint)-sym.fieldoffset then
           begin
             Message(sym_e_segment_too_large);
-            _datasize:=high(aint);
+            _datasize:=high(asizeint);
           end
         else
           _datasize:=sym.fieldoffset+l;
@@ -1216,8 +1217,8 @@ implementation
                 if bitsize>high(asizeint)-databitsize then
                   begin
                     Message(sym_e_segment_too_large);
-                    _datasize:=high(aint);
-                    databitsize:=high(aint);
+                    _datasize:=high(asizeint);
+                    databitsize:=high(asizeint);
                   end
                 else
                   begin
@@ -1232,7 +1233,7 @@ implementation
                 if tfieldvarsym(sym).getsize>high(asizeint)-_datasize then
                   begin
                     Message(sym_e_segment_too_large);
-                    _datasize:=high(aint);
+                    _datasize:=high(asizeint);
                   end
                 else
                   _datasize:=tfieldvarsym(sym).fieldoffset+offset;
@@ -1563,6 +1564,7 @@ implementation
         inherited create(n,id);
         symtabletype:=staticsymtable;
         symtablelevel:=main_program_level;
+        currentvisibility:=vis_private;
       end;
 
 
@@ -2232,8 +2234,8 @@ implementation
 
         { If the module is the current unit we also need
           to search the local symtable }
-        if (current_module.globalsymtable=srsymtable) and
-           assigned(current_module.localsymtable) then
+        if assigned(current_module.localsymtable) and
+           (current_module.localsymtable.name^=unitname) then
           begin
             srsymtable:=current_module.localsymtable;
             srsym:=tsym(srsymtable.find(symname));
@@ -2246,12 +2248,25 @@ implementation
       end;
 
 
-    function find_real_objcclass_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
+    function maybe_find_real_class_definition(pd: tdef; erroronfailure: boolean): tdef;
+      begin
+        result:=pd;
+        if pd.typ<>objectdef then
+          exit;
+        result:=find_real_class_definition(tobjectdef(pd),erroronfailure);
+      end;
+
+
+    function find_real_class_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
       var
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
         srsymtable : tsymtable;
         srsym      : tsym;
+        formalname,
+        foundname : shortstring;
+        formalnameptr,
+        foundnameptr: pshortstring;
       begin
         { not a formal definition -> return it }
         if not(oo_is_formal in pd.objectoptions) then
@@ -2265,20 +2280,49 @@ implementation
           begin
             srsymtable:=stackitem^.symtable;
             { ObjC classes can't appear in generics or as nested class
-              definitions }
-            if not(srsymtable.symtabletype in [recordsymtable,ObjectSymtable,parasymtable]) then
+              definitions. Java classes can. }
+            if not(srsymtable.symtabletype in [recordsymtable,parasymtable]) or
+               (is_java_class_or_interface(pd) and
+                (srsymtable.symtabletype=ObjectSymtable)) then
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
                    (srsym.typ=typesym) and
-                   is_objc_class_or_protocol(ttypesym(srsym).typedef) and
+                   (ttypesym(srsym).typedef.typ=objectdef) and
+                   (tobjectdef(ttypesym(srsym).typedef).objecttype=pd.objecttype) and
                    not(oo_is_formal in tobjectdef(ttypesym(srsym).typedef).objectoptions) then
                   begin
-                    { the external name for the formal and the real definition must match }
-                    if tobjectdef(ttypesym(srsym).typedef).objextname^<>pd.objextname^ then
+                    if not(oo_is_forward in tobjectdef(ttypesym(srsym).typedef).objectoptions) then
                       begin
-                        MessagePos2(pd.typesym.fileinfo,sym_e_external_class_name_mismatch1,pd.objextname^,pd.typename);
-                        MessagePos1(srsym.fileinfo,sym_e_external_class_name_mismatch2,tobjectdef(ttypesym(srsym).typedef).objextname^);
+                        { the external name for the formal and the real
+                          definition must match }
+                        if assigned(tobjectdef(ttypesym(srsym).typedef).import_lib) or
+                           assigned(pd.import_lib) then
+                          begin
+                            if assigned(pd.import_lib) then
+                              formalname:=pd.import_lib^+'.'
+                            else
+                              formalname:='';
+                            formalname:=formalname+pd.objextname^;
+                            if assigned(tobjectdef(ttypesym(srsym).typedef).import_lib) then
+                              foundname:=tobjectdef(ttypesym(srsym).typedef).import_lib^+'.'
+                            else
+                              foundname:='';
+                            foundname:=foundname+tobjectdef(ttypesym(srsym).typedef).objextname^;
+
+                            formalnameptr:=@formalname;
+                            foundnameptr:=@foundname;
+                          end
+                        else
+                          begin
+                            formalnameptr:=pd.objextname;
+                            foundnameptr:=tobjectdef(ttypesym(srsym).typedef).objextname;
+                          end;
+                        if foundnameptr^<>formalnameptr^ then
+                          begin
+                            MessagePos2(pd.typesym.fileinfo,sym_e_external_class_name_mismatch1,formalnameptr^,pd.typename);
+                            MessagePos1(srsym.fileinfo,sym_e_external_class_name_mismatch2,foundnameptr^);
+                          end;
                       end;
                     result:=tobjectdef(ttypesym(srsym).typedef);
                     if assigned(current_procinfo) and
@@ -2293,37 +2337,39 @@ implementation
         { nothing found: optionally give an error and return the original
           (empty) one }
         if erroronfailure then
-          Message1(sym_e_objc_formal_class_not_resolved,pd.objrealname^);
+          Message1(sym_e_formal_class_not_resolved,pd.objrealname^);
         result:=pd;
       end;
 
 
-    function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
+    function searchsym_in_class(classh: tobjectdef;contextclassh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
       var
         hashedid : THashedIDString;
         orgclass : tobjectdef;
         i        : longint;
       begin
         orgclass:=classh;
-        { in case this is a formal objcclass, first find the real definition }
+        { in case this is a formal class, first find the real definition }
         if assigned(classh) then
           begin
             if (oo_is_formal in classh.objectoptions) then
-              classh:=find_real_objcclass_definition(classh,true);
+              classh:=find_real_class_definition(classh,true);
             { The contextclassh is used for visibility. The classh must be equal to
               or be a parent of contextclassh. E.g. for inherited searches the classh is the
               parent or a class helper. }
             if not (contextclassh.is_related(classh) or
-                (assigned(contextclassh.extendeddef) and
-                (contextclassh.extendeddef.typ=objectdef) and
-                contextclassh.extendeddef.is_related(classh))) then
+                (is_classhelper(contextclassh) and
+                 assigned(tobjectdef(contextclassh).extendeddef) and
+                (tobjectdef(contextclassh).extendeddef.typ=objectdef) and
+                tobjectdef(contextclassh).extendeddef.is_related(classh))) then
               internalerror(200811161);
           end;
         result:=false;
         hashedid.id:=s;
-        { an Objective-C protocol can inherit from multiple other protocols
-          -> uses ImplementedInterfaces instead }
-        if is_objcprotocol(classh) then
+        { an Objective-C  protocol or Java interface can inherit from multiple
+          other protocols/interfaces -> use ImplementedInterfaces instead }
+        if is_objcprotocol(classh) or
+           is_javainterface(classh) then
           begin
             srsymtable:=classh.symtable;
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
@@ -2347,7 +2393,7 @@ implementation
         if is_objectpascal_helper(classh) then
           begin
             { helpers have their own obscure search logic... }
-            result:=searchsym_in_helper(classh,contextclassh,s,srsym,srsymtable,false);
+            result:=searchsym_in_helper(classh,tobjectdef(contextclassh),s,srsym,srsymtable,false);
             if result then
               exit;
           end
@@ -2421,10 +2467,10 @@ implementation
         def : tdef;
         i   : longint;
       begin
-        { in case this is a formal objcclass, first find the real definition }
+        { in case this is a formal class, first find the real definition }
         if assigned(classh) and
            (oo_is_formal in classh.objectoptions) then
-          classh:=find_real_objcclass_definition(classh,true);
+          classh:=find_real_class_definition(classh,true);
         result:=false;
         def:=nil;
         while assigned(classh) do
@@ -2459,10 +2505,10 @@ implementation
         def : tdef;
         i   : longint;
       begin
-        { in case this is a formal objcclass, first find the real definition }
+        { in case this is a formal class, first find the real definition }
         if assigned(classh) and
            (oo_is_formal in classh.objectoptions) then
-          classh:=find_real_objcclass_definition(classh,true);
+          classh:=find_real_class_definition(classh,true);
         result:=false;
         def:=nil;
         while assigned(classh) do
@@ -2919,9 +2965,9 @@ implementation
         orgpd      : tabstractrecorddef;
         srsymtable : tsymtable;
       begin
-        { in case this is a formal objcclass, first find the real definition }
+        { in case this is a formal class, first find the real definition }
         if (oo_is_formal in pd.objectoptions) then
-          pd:=find_real_objcclass_definition(tobjectdef(pd),true);
+          pd:=find_real_class_definition(tobjectdef(pd),true);
         if search_objectpascal_helper(pd, pd, s, result, srsymtable) then
           exit;
         hashedid.id:=s;

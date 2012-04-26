@@ -38,12 +38,12 @@ var
 const
   CRC_array_Size = 200000;
 type
-  tcrc_array = array[0..crc_array_size] of longint;
+  tcrc_array = array[0..crc_array_size] of dword;
   pcrc_array = ^tcrc_array;
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 146;
+  CurrentPPUVersion = 147;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -135,6 +135,7 @@ const
   ibrecsymtableoptions = 91;
   { target-specific things }
   iblinkotherframeworks = 100;
+  ibjvmnamespace = 101;
 
 { unit flags }
   uf_init                = $000001; { unit has initialization section }
@@ -181,7 +182,8 @@ const
     { 10 } 32 {'arm'},
     { 11 } 64 {'powerpc64'},
     { 12 } 16 {'avr'},
-    { 13 } 32 {'mipsel'}
+    { 13 } 32 {'mipsel'},
+    { 14 } 32 {'jvm'}
     );
   CpuAluBitSize : array[tsystemcpu] of longint =
     (
@@ -198,7 +200,8 @@ const
     { 10 } 32 {'arm'},
     { 11 } 64 {'powerpc64'},
     { 12 }  8 {'avr'},
-    { 13 } 32 {'mipsel'}
+    { 13 } 32 {'mipsel'},
+    { 14 } 64 {'jvm'}
     );
 {$endif generic_cpu}
 
@@ -347,8 +350,6 @@ implementation
 {$endif def Test_Double_checksum}
     fpccrc,
     cutils;
-
-
 
 function swapendian_ppureal(d:ppureal):ppureal;
 
@@ -788,7 +789,7 @@ begin
     end;
 {$else not generic_cpu}
 {$ifdef cpu64bitalu}
-  result:=getint64;
+  result:=getint64
 {$else cpu64bitalu}
   result:=getlongint;
 {$endif cpu64bitalu}
@@ -936,24 +937,19 @@ begin
 end;
 
 
-function tppufile.getansistring: ansistring;
+function tppufile.getansistring:ansistring;
 var
-  l : longint;
+  len: longint;
 begin
-  l:=getlongint;
-  if entryidx+l>entry.size then
+  len:=getlongint;
+  if entryidx+len>entry.size then
    begin
      error:=true;
      exit;
    end;
-  if l>0 then
-    begin
-      SetLength(Result,l);
-      ReadData(result[1],l);
-    end
-  else
-    Result:='';
-  inc(entryidx,l);
+  setlength(result,len);
+  if len>0 then
+    getdata(result[1],len);
 end;
 
 
@@ -1309,14 +1305,14 @@ procedure tppufile.putstring(const s:string);
   end;
 
 
-procedure tppufile.putansistring(const s: ansistring);
+procedure tppufile.putansistring(const s:ansistring);
   var
-    l : longint;
+    len: longint;
   begin
-    l:=length(s);
-    putdata(l,4);
-    if l>0 then
-      putdata(s[1],l);
+    len:=length(s);
+    putlongint(len);
+    if len>0 then
+      putdata(s[1],len);
   end;
 
 

@@ -80,12 +80,13 @@ interface
        protected
           procedure objc_convert_to_message_send;virtual;
 
-       private
+       protected
           { inlining support }
           inlinelocals            : TFPObjectList;
           inlineinitstatement,
           inlinecleanupstatement  : tstatementnode;
           procedure createinlineparas;
+          procedure wrapcomplexinlinepara(para: tcallparanode); virtual;
           function  replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
           procedure createlocaltemps(p:TObject;arg:pointer);
           function  optimize_funcret_assignment(inlineblock: tblocknode): tnode;
@@ -132,6 +133,8 @@ interface
           constructor createinternres(const name: string; params: tnode; res:tdef);
           constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
+          constructor createinternmethod(mp: tnode; const name: string; params: tnode);
+          constructor createinternmethodres(mp: tnode; const name: string; params: tnode; res:tdef);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -178,6 +181,13 @@ interface
        private
           fcontains_stack_tainting_call_cached,
           ffollowed_by_stack_tainting_call_cached : boolean;
+       protected
+          { in case of copy-out parameters: initialization code, and the code to
+            copy back the parameter value after the call (including any required
+            finalization code }
+          fparainit,
+          fparacopyback: tnode;
+          procedure handlemanagedbyrefpara(orgparadef: tdef);virtual;abstract;
        public
           callparaflags : tcallparaflags;
           parasym       : tparavarsym;
@@ -187,6 +197,8 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderefimpl; override;
+          procedure derefimpl; override;
           function dogetcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           function pass_typecheck : tnode;override;
@@ -221,6 +233,7 @@ interface
             parameter whose evaluation involves a stack tainting parameter
             (result is only valid after order_parameters has been called) }
           property followed_by_stack_tainting_call_cached: boolean read ffollowed_by_stack_tainting_call_cached;
+          property paracopyback: tnode read fparacopyback;
        end;
        tcallparanodeclass = class of tcallparanode;
 
@@ -559,6 +572,8 @@ implementation
     destructor tcallparanode.destroy;
 
       begin
+         fparainit.free;
+         fparacopyback.free;
          inherited destroy;
       end;
 
@@ -567,6 +582,8 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getsmallset(callparaflags);
+        fparainit:=ppuloadnode(ppufile);
+        fparacopyback:=ppuloadnode(ppufile);
       end;
 
 
@@ -574,6 +591,28 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(callparaflags);
+        ppuwritenode(ppufile,fparainit);
+        ppuwritenode(ppufile,fparacopyback);
+      end;
+
+
+    procedure tcallparanode.buildderefimpl;
+      begin
+        inherited buildderefimpl;
+        if assigned(fparainit) then
+          fparainit.buildderefimpl;
+        if assigned(fparacopyback) then
+          fparacopyback.buildderefimpl;
+      end;
+
+
+    procedure tcallparanode.derefimpl;
+      begin
+        inherited derefimpl;
+        if assigned(fparainit) then
+          fparainit.derefimpl;
+        if assigned(fparacopyback) then
+          fparacopyback.derefimpl;
       end;
 
 
@@ -581,11 +620,19 @@ implementation
 
       var
          n : tcallparanode;
-
+         initcopy: tnode;
       begin
+         initcopy:=nil;
+         { must be done before calling inherited getcopy, because can create
+           tempcreatenodes for values used in left }
+         if assigned(fparainit) then
+           initcopy:=fparainit.getcopy;
          n:=tcallparanode(inherited dogetcopy);
          n.callparaflags:=callparaflags;
          n.parasym:=parasym;
+         n.fparainit:=initcopy;
+         if assigned(fparacopyback) then
+           n.fparacopyback:=fparacopyback.getcopy;
          result:=n;
       end;
 
@@ -619,9 +666,13 @@ implementation
           tcallparanode(right).get_paratype;
          old_array_constructor:=allow_array_constructor;
          allow_array_constructor:=true;
+         if assigned(fparainit) then
+          typecheckpass(fparainit);
          typecheckpass(left);
          if assigned(third) then
            typecheckpass(third);
+         if assigned(fparacopyback) then
+           typecheckpass(fparacopyback);
          allow_array_constructor:=old_array_constructor;
          if codegenerror then
           resultdef:=generrordef
@@ -636,7 +687,17 @@ implementation
           tcallparanode(right).firstcallparan;
         if not assigned(left.resultdef) then
           get_paratype;
+        if assigned(parasym) and
+           (target_info.system in systems_managed_vm) and
+           (parasym.varspez in [vs_var,vs_out,vs_constref]) and
+           (parasym.vardef.typ<>formaldef) then
+          handlemanagedbyrefpara(left.resultdef);
+
+        if assigned(fparainit) then
+          firstpass(fparainit);
         firstpass(left);
+        if assigned(fparacopyback) then
+          firstpass(fparacopyback);
         if assigned(third) then
           firstpass(third);
         expectloc:=left.expectloc;
@@ -864,12 +925,20 @@ implementation
                        vs_out :
                          begin
                            if not valid_for_formal_var(left,true) then
-                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
+                           else if (target_info.system in systems_managed_vm) then
+                             handlemanagedbyrefpara(left.resultdef);
                          end;
                        vs_const :
                          begin
                            if not valid_for_formal_const(left,true) then
-                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
+                           else if (target_info.system in systems_managed_vm) and
+                              (left.resultdef.typ in [orddef,floatdef]) then
+                             begin
+                               left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil));
+                               typecheckpass(left);
+                             end;
                          end;
                      end;
                    end
@@ -990,6 +1059,8 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
+          fparainit.isequal(tcallparanode(p).fparainit) and
+          fparacopyback.isequal(tcallparanode(p).fparacopyback) and
           (callparaflags = tcallparanode(p).callparaflags)
           ;
       end;
@@ -1100,6 +1171,32 @@ implementation
       begin
         createintern(name,params);
         funcretnode:=returnnode;
+      end;
+
+
+    constructor tcallnode.createinternmethod(mp: tnode; const name: string; params: tnode);
+      var
+        ps: tsym;
+        recdef: tabstractrecorddef;
+      begin
+        typecheckpass(mp);
+        if mp.resultdef.typ=classrefdef then
+          recdef:=tabstractrecorddef(tclassrefdef(mp.resultdef).pointeddef)
+        else
+          recdef:=tabstractrecorddef(mp.resultdef);
+        ps:=search_struct_member(recdef,name);
+        if not assigned(ps) or
+           (ps.typ<>procsym) then
+          internalerror(2011062806);
+        create(params,tprocsym(ps),ps.owner,mp,[]);
+      end;
+
+
+    constructor tcallnode.createinternmethodres(mp: tnode; const name: string; params: tnode; res: tdef);
+      begin
+        createinternmethod(mp,name,params);
+        typedef:=res;
+        include(callnodeflags,cnf_typedefset)
       end;
 
 
@@ -1232,14 +1329,18 @@ implementation
           n.methodpointer:=methodpointer.dogetcopy
         else
           n.methodpointer:=nil;
-        if assigned(funcretnode) then
-          n.funcretnode:=funcretnode.dogetcopy
-        else
-          n.funcretnode:=nil;
+        { must be copied before the funcretnode, because the callcleanup block
+          may contain a ttempdeletenode that sets the tempinfo of the
+          corresponding temp to ti_nextref_set_hookoncopy_nil, and this nextref
+          itself may be the funcretnode }
         if assigned(callcleanupblock) then
           n.callcleanupblock:=tblocknode(callcleanupblock.dogetcopy)
         else
           n.callcleanupblock:=nil;
+        if assigned(funcretnode) then
+          n.funcretnode:=funcretnode.dogetcopy
+        else
+          n.funcretnode:=nil;
         if assigned(varargsparas) then
          begin
            n.varargsparas:=tvarargsparalist.create(true);
@@ -1436,7 +1537,7 @@ implementation
                       is_object(p.resultdef);
 
             if usederef then
-              hdef:=tpointerdef.create(p.resultdef)
+              hdef:=getpointerdef(p.resultdef)
             else
               hdef:=p.resultdef;
 
@@ -1665,7 +1766,12 @@ implementation
               { push 0 as self when allocation is needed }
               if (methodpointer.resultdef.typ=classrefdef) or
                  (cnf_new_call in callnodeflags) then
-                selftree:=cpointerconstnode.create(0,voidpointertype)
+                if not is_javaclass(tdef(procdefinition.owner.defowner)) then
+                  selftree:=cpointerconstnode.create(0,voidpointertype)
+                else
+                 { special handling for Java constructors, handled in
+                   tjvmcallnode.extra_pre_call_code }
+                  selftree:=cnothingnode.create
               else
                 begin
                   if methodpointer.nodetype=typen then
@@ -1687,8 +1793,10 @@ implementation
                 selfdef:=tobjectdef(tprocdef(procdefinition).struct).extendeddef
               else
                 selfdef:=tprocdef(procdefinition).struct;
-              if (selfdef.typ in [recorddef,objectdef]) and
-                  (oo_has_vmt in tabstractrecorddef(selfdef).objectoptions) then
+              if ((selfdef.typ in [recorddef,objectdef]) and
+                  (oo_has_vmt in tabstractrecorddef(selfdef).objectoptions)) or
+                 { all Java classes have a "VMT" }
+                 (target_info.system in systems_jvm) then
                 begin
                   { we only need the vmt, loading self is not required and there is no
                     need to check for typen, because that will always get the
@@ -2402,7 +2510,7 @@ implementation
         for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
           begin
             pd:=tprocdef(tprocsym(sym).ProcdefList[i]);
-            hs:=pd.procsym.name+pd.typename_paras(false);
+            hs:=pd.procsym.name+pd.typename_paras([]);
             j:=AbstractMethodsList.FindIndexOf(hs);
             if j<>-1 then
               AbstractMethodsList[j]:=pd
@@ -2441,6 +2549,9 @@ implementation
                 objectdf:=tobjectdef(tclassrefdef(methodpointer.resultdef).pointeddef);
           end;
         if not assigned(objectdf) then
+          exit;
+        { quick exit if nothing to check }
+        if objectdf.abstractcnt = 0 then
           exit;
 
         parents := tlinkedlist.create;
@@ -3173,18 +3284,20 @@ implementation
                               That means the for pushes the para with the
                               highest offset (see para3) needs to be pushed first
                             }
-{$ifdef i386}
-                            { the i386 code generator expects all reference }
-                            { parameter to be in this order so it can use   }
-                            { pushes in case of no fixed stack              }
+{$if defined(i386)}
+                            { the i386 and jvm code generators expect all reference }
+                            { parameters to be in this order so they can use   }
+                            { pushes in case of no fixed stack                 }
                             if (not paramanager.use_fixed_stack and
                                 (hpcurr.parasym.paraloc[callerside].location^.reference.offset>
                                  hp.parasym.paraloc[callerside].location^.reference.offset)) or
                                (paramanager.use_fixed_stack and
                                 (node_complexity(hpcurr)<node_complexity(hp))) then
-{$else i386}
+{$elseif defined(jvm)}
+                            if (hpcurr.parasym.paraloc[callerside].location^.reference.offset<hp.parasym.paraloc[callerside].location^.reference.offset) then
+{$else jvm}
                             if (node_complexity(hpcurr)<node_complexity(hp)) then
-{$endif i386}
+{$endif jvm}
                               break;
                           end;
                         LOC_MMREGISTER,
@@ -3355,6 +3468,15 @@ implementation
              typecheckpass(tnode(callcleanupblock));
              doinlinesimplify(tnode(callcleanupblock));
            end;
+
+         { If a constructor calls another constructor of the same or of an
+           inherited class, some targets (jvm) have to generate different
+           entry code for the constructor. }
+         if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+            (procdefinition.typ=procdef) and
+            (tprocdef(procdefinition).proctypeoption=potype_constructor) and
+            ([cnf_member_call,cnf_inherited] * callnodeflags <> []) then
+           current_procinfo.ConstructorCallingConstructor:=true;
 
          { Continue with checking a normal call or generate the inlined code }
          if cnf_do_inline in callnodeflags then
@@ -3570,9 +3692,8 @@ implementation
         para: tcallparanode;
         tempnode: ttempcreatenode;
         n: tnode;
-        paraaddr: taddrnode;
-        ptrtype: tpointerdef;
         paracomplexity: longint;
+        pushconstaddr: boolean;
       begin
         { parameters }
         para := tcallparanode(left);
@@ -3595,6 +3716,8 @@ implementation
                 { we need to take care that we use the type of the defined parameter and not of the
                   passed parameter, because these can be different in case of a formaldef (PFV) }
                 paracomplexity := node_complexity(para.left);
+                if para.parasym.varspez=vs_const then
+                  pushconstaddr:=paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption);
                 { check if we have to create a temp, assign the parameter's }
                 { contents to that temp and then substitute the paramter    }
                 { with the temp everywhere in the function                  }
@@ -3624,7 +3747,7 @@ implementation
                       { variable would be passed by value normally, or if   }
                       { there is such a variable somewhere in an expression }
                        ((para.parasym.varspez = vs_const) and
-                        (not paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption) or
+                        (not pushconstaddr or
                          (paracomplexity > 1)))) and
                      { however, if we pass a global variable, an object field or}
                      { an expression containing a pointer dereference as        }
@@ -3660,14 +3783,20 @@ implementation
                       is still folded. (FK)
                       }
                     ((para.parasym.varspez = vs_const) and
-                     { const para's can get vs_readwritten if their address }
-                     { is taken                                             }
-                     ((para.parasym.varstate = vs_readwritten) or
+                     { const para's can get vs_readwritten if their address   }
+                     { is taken -> in case they are not passed by reference,  }
+                     { to keep the same behaviour as without inlining we have }
+                     { to make a copy in case the originally passed parameter }
+                     { value gets changed inside the callee                   }
+                     ((not pushconstaddr and
+                       (para.parasym.varstate = vs_readwritten)
+                      ) or
                       { call-by-reference const's may need to be passed by }
                       { reference to function called in the inlined code   }
-                      (paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption) and
-                       not valid_for_addr(para.left,false))
-                     ))
+                       (pushconstaddr and
+                        not valid_for_addr(para.left,false))
+                     )
+                    )
                    )
                   ) then
                   begin
@@ -3699,18 +3828,7 @@ implementation
                   if (paracomplexity>2) or
                     ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var))) then
                   begin
-                    ptrtype:=tpointerdef.create(para.left.resultdef);
-                    tempnode := ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
-                    addstatement(inlineinitstatement,tempnode);
-                    addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
-                    { inherit addr_taken flag }
-                    if (tabstractvarsym(para.parasym).addr_taken) then
-                      include(tempnode.tempinfo^.flags,ti_addr_taken);
-                    paraaddr:=caddrnode.create_internal(para.left);
-                    include(paraaddr.flags,nf_typedaddr);
-                    addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                      paraaddr));
-                    para.left:=cderefnode.create(ctemprefnode.create(tempnode));
+                    wrapcomplexinlinepara(para);
                   end;
               end;
             para := tcallparanode(para.right);
@@ -3721,6 +3839,27 @@ implementation
           exit;
         inlinelocals.count:=tprocdef(procdefinition).localst.SymList.count;
         tprocdef(procdefinition).localst.SymList.ForEachCall(@createlocaltemps,nil);
+      end;
+
+
+    procedure tcallnode.wrapcomplexinlinepara(para: tcallparanode);
+      var
+        ptrtype: tdef;
+        tempnode: ttempcreatenode;
+        paraaddr: taddrnode;
+      begin
+        ptrtype:=getpointerdef(para.left.resultdef);
+        tempnode := ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
+        addstatement(inlineinitstatement,tempnode);
+        addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+        { inherit addr_taken flag }
+        if (tabstractvarsym(para.parasym).addr_taken) then
+          include(tempnode.tempinfo^.flags,ti_addr_taken);
+        paraaddr:=caddrnode.create_internal(para.left);
+        include(paraaddr.flags,nf_typedaddr);
+        addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
+          paraaddr));
+        para.left:=cderefnode.create(ctemprefnode.create(tempnode));
       end;
 
 

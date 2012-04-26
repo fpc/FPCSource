@@ -33,6 +33,7 @@ const
   maxDigits = 17;
 {$else}
 {$ifdef SUPPORT_DOUBLE}
+{$ifndef cpujvm}
 type
   TSplitDouble = packed record
     case byte of
@@ -40,6 +41,7 @@ type
       1: (words: Array[0..3] of word);
       2: (cards: Array[0..1] of cardinal);
   end;
+  {$endif}
 const
   maxDigits = 15;
 {$else}
@@ -62,6 +64,9 @@ type
   TIntPartStack = array[1..maxDigits+1] of valReal;
 
 var
+{$ifdef cpujvm}
+  doublebits: int64;
+{$endif}
   roundCorr, corrVal, factor : valReal;
   spos, endpos, fracCount: longint;
   correct, currprec: longint;
@@ -236,6 +241,14 @@ begin
          { correction used with comparing to avoid rounding/precision errors }
          roundCorr := 1.0842021725e-19;
       end;
+    else
+      begin
+        { keep JVM byte code verifier happy }
+        maxlen:=0;
+        minlen:=0;
+        explen:=0;
+        roundCorr:=0;
+      end;
     end;
   { check parameters }
   { default value for length is -32767 }
@@ -281,11 +294,19 @@ begin
   {$error sign/NaN/Inf not yet supported for big endian CPU's in str_real}
 {$else SUPPORT_EXTENDED}
 {$ifdef SUPPORT_DOUBLE}
+{$ifdef cpujvm}
+  doublebits := JLDouble.doubleToLongBits(d);
+  sign := doublebits<0;
+  expMaximal := (doublebits shr (32+20)) and $7ff = 2047;
+  fraczero:= (((doublebits shr 32) and $fffff) = 0) and
+             (longint(doublebits)=0);
+{$else cpujvm}
   { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
   sign := ((TSplitDouble(d).cards[0] shr 20) and $800) <> 0;
   expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
   fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
               (TSplitDouble(d).cards[1] = 0);
+{$endif cpujvm}
 {$else SUPPORT_DOUBLE}
 {$ifdef SUPPORT_SINGLE}
   { single, format (MSB): 1 Sign bit, 8 bit exponent, 23 bit mantissa }

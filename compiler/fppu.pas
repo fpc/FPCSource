@@ -107,7 +107,7 @@ interface
 implementation
 
 uses
-  SysUtils,
+  SysUtils,strutils,
   cfileutl,
   systems,version,
   symtable, symsym,
@@ -946,11 +946,16 @@ var
       var
         b : byte;
         newmodulename : string;
+        ns: string;
       begin
        { read interface part }
          repeat
            b:=ppufile.readentry;
            case b of
+             ibjvmnamespace :
+               begin
+                 namespace:=stringdup(ppufile.getstring);
+               end;
              ibmodulename :
                begin
                  newmodulename:=ppufile.getstring;
@@ -1067,7 +1072,13 @@ var
          if not ppufile.createfile then
           Message(unit_f_ppu_cannot_write);
 
-         { first the unitname }
+         { first the (JVM) namespace }
+         if assigned(namespace) then
+           begin
+             ppufile.putstring(namespace^);
+             ppufile.writeentry(ibjvmnamespace);
+           end;
+         { the unitname }
          ppufile.putstring(realmodulename^);
          ppufile.writeentry(ibmodulename);
 
@@ -1219,7 +1230,13 @@ var
          if not ppufile.createfile then
            Message(unit_f_ppu_cannot_write);
 
-         { first the unitname }
+         { first the (JVM) namespace }
+         if assigned(namespace) then
+           begin
+             ppufile.putstring(namespace^);
+             ppufile.writeentry(ibjvmnamespace);
+           end;
+         { the unitname }
          ppufile.putstring(realmodulename^);
          ppufile.writeentry(ibmodulename);
 

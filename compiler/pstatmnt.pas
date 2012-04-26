@@ -50,7 +50,7 @@ implementation
        paramgr,symutil,
        { pass 1 }
        pass_1,htypechk,
-       nutils,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       nutils,ngenutil,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
        pbase,pexpr,
@@ -183,13 +183,13 @@ implementation
                    begin
                       if (p.nodetype=ordconstn) then
                         begin
-                           p:=ctypeconvnode.create(p,cchartype);
+                           p:=ctypeconvnode.create(p,cansichartype);
                            do_typecheckpass(p);
                         end
                       else if (p.nodetype=rangen) then
                         begin
-                           trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cchartype);
-                           trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cchartype);
+                           trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cansichartype);
+                           trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cansichartype);
                            do_typecheckpass(trangenode(p).left);
                            do_typecheckpass(trangenode(p).right);
                         end;
@@ -650,6 +650,7 @@ implementation
                 if not hasimplicitderef then
                   begin
                     valuenode:=caddrnode.create_internal_nomark(valuenode);
+                    include(valuenode.flags,nf_typedaddr);
                     refnode:=cderefnode.create(refnode);
                     fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
                   end;
@@ -883,7 +884,8 @@ implementation
                             begin
                                consume_sym(srsym,srsymtable);
                                if (srsym.typ=typesym) and
-                                  is_class(ttypesym(srsym).typedef) then
+                                  (is_class(ttypesym(srsym).typedef) or
+                                   is_javaclass(ttypesym(srsym).typedef)) then
                                  begin
                                     ot:=ttypesym(srsym).typedef;
                                     sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
@@ -896,9 +898,6 @@ implementation
                                     else
                                       Message1(type_e_class_type_expected,ot.typename);
                                  end;
-                               excepTSymtable:=tstt_excepTSymtable.create;
-                               excepTSymtable.insert(sym);
-                               symtablestack.push(excepTSymtable);
                             end
                           else
                             begin
@@ -917,7 +916,8 @@ implementation
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
                                if (srsym.typ=typesym) and
-                                  is_class(ttypesym(srsym).typedef) then
+                                  (is_class(ttypesym(srsym).typedef) or
+                                   is_javaclass(ttypesym(srsym).typedef)) then
                                  ot:=ttypesym(srsym).typedef
                                else
                                  begin
@@ -927,8 +927,14 @@ implementation
                                     else
                                       Message1(type_e_class_type_expected,ot.typename);
                                  end;
-                               excepTSymtable:=nil;
+                               { create dummy symbol so we don't need a special
+                                 case in ncgflw, and so that we always know the
+                                 type }
+                               sym:=tlocalvarsym.create('$exceptsym',vs_value,ot,[]);
                             end;
+                          excepTSymtable:=tstt_excepTSymtable.create;
+                          excepTSymtable.insert(sym);
+                          symtablestack.push(excepTSymtable);
                        end
                      else
                        consume(_ID);
@@ -1159,7 +1165,7 @@ implementation
                 if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
                   Message(parser_e_fail_only_in_constructor);
                 consume(_FAIL);
-                code:=call_fail_node;
+                code:=cnodeutils.call_fail_node;
              end;
            _ASM :
              code:=_asm_statement;

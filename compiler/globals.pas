@@ -434,9 +434,18 @@ interface
         optimizecputype : cpu_mips32;
         fputype : fpu_mips2;
   {$endif mips}
+  {$ifdef jvm}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        fputype : fpu_standard;
+  {$endif jvm}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
+{$ifndef jvm}
         interfacetype : it_interfacecom;
+{$else jvm}
+        interfacetype : it_interfacejava;
+{$endif jvm}
         defproccall : pocall_default;
         sourcecodepage : 28591;
         minfpconstprec : s32real;
@@ -458,7 +467,6 @@ interface
 
     procedure DefaultReplacements(var s:ansistring);
 
-    function Shell(const command:ansistring): longint;
     function  GetEnvPChar(const envname:string):pchar;
     procedure FreeEnvPChar(p:pchar);
 
@@ -499,6 +507,11 @@ interface
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
     function floating_point_range_check_error : boolean;
+
+  { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
+  const
+    ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
+
 
 implementation
 
@@ -879,28 +892,6 @@ implementation
 {$if defined(MORPHOS) or defined(AMIGA)}
   {$define AMIGASHELL}
 {$endif}
-
-    function Shell(const command:ansistring): longint;
-      { This is already defined in the linux.ppu for linux, need for the *
-        expansion under linux }
-{$ifdef hasunix}
-      begin
-        result := Unix.fpsystem(command);
-      end;
-{$else hasunix}
-  {$ifdef amigashell}
-      begin
-        result := ExecuteProcess('',command);
-      end;
-  {$else amigashell}
-      var
-        comspec : string;
-      begin
-        comspec:=GetEnvironmentVariable('COMSPEC');
-        result := ExecuteProcess(comspec,' /C '+command);
-      end;
-   {$endif amigashell}
-{$endif hasunix}
 
 {$UNDEF AMIGASHELL}
       function is_number_float(d : double) : boolean;

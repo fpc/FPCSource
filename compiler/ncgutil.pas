@@ -79,9 +79,6 @@ interface
 
     procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);
 
-    { Retrieve the location of the data pointed to in location l, when the location is
-      a register it is expected to contain the address of the data }
-    procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);
 
     function  has_alias_name(pd:tprocdef;const s:string):boolean;
     procedure alloc_proc_symbol(pd: tprocdef);
@@ -93,12 +90,7 @@ interface
     procedure gen_stack_check_call(list:TAsmList);
     procedure gen_save_used_regs(list:TAsmList);
     procedure gen_restore_used_regs(list:TAsmList);
-    procedure gen_initialize_code(list:TAsmList);
-    procedure gen_finalize_code(list:TAsmList);
-    procedure gen_entry_code(list:TAsmList);
-    procedure gen_exit_code(list:TAsmList);
     procedure gen_load_para_value(list:TAsmList);
-    procedure gen_load_return_value(list:TAsmList);
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
     procedure gen_intf_wrappers(list:TAsmList;st:TSymtable;nested:boolean);
@@ -150,8 +142,6 @@ interface
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
     procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
 
-    procedure insertbssdata(sym : tstaticvarsym);
-
     procedure gen_alloc_symtable(list:TAsmList;st:TSymtable);
     procedure gen_free_symtable(list:TAsmList;st:TSymtable);
 
@@ -173,8 +163,8 @@ implementation
     procinfo,paramgr,fmodule,
     regvars,dbgbase,
     pass_1,pass_2,
-    nbas,ncon,nld,nmem,nutils,
-    tgobj,cgobj,cgcpu
+    nbas,ncon,nld,nmem,nutils,ngenutil,
+    tgobj,cgobj,cgcpu,hlcgobj,hlcgcpu
 {$ifdef powerpc}
     , cpupi
 {$endif}
@@ -202,7 +192,7 @@ implementation
           LOC_REGISTER,
           LOC_CREGISTER:
             begin
-{$ifdef cpu64bitaddr}
+{$ifdef cpu64bitalu}
                 { x86-64 system v abi:
                   structs with up to 16 bytes are returned in registers }
                 if location.size in [OS_128,OS_S128] then
@@ -212,7 +202,7 @@ implementation
                     if getsupreg(location.registerhi)<first_int_imreg then
                       cg.ungetcpuregister(list,location.registerhi);
                   end
-{$else cpu64bitaddr}
+{$else cpu64bitalu}
                 if location.size in [OS_64,OS_S64] then
                   begin
                     if getsupreg(location.register64.reglo)<first_int_imreg then
@@ -678,8 +668,10 @@ implementation
         hregister:=cg.getintregister(list,dst_size);
         { load value in new register }
         case l.loc of
+{$ifdef cpuflags}
           LOC_FLAGS :
             cg.g_flags2reg(list,dst_size,l.resflags,hregister);
+{$endif cpuflags}
           LOC_JUMP :
             begin
               cg.a_label(list,current_procinfo.CurrTrueLabel);
@@ -1221,33 +1213,6 @@ implementation
       end;
 
 
-    procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);
-      begin
-        case l.loc of
-          LOC_REGISTER,
-          LOC_CREGISTER :
-            begin
-              if not loadref then
-                internalerror(200410231);
-              reference_reset_base(ref,l.register,0,alignment);
-            end;
-          LOC_REFERENCE,
-          LOC_CREFERENCE :
-            begin
-              if loadref then
-                begin
-                  reference_reset_base(ref,cg.getaddressregister(list),0,alignment);
-                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,l.reference,ref.base);
-                end
-              else
-                ref:=l.reference;
-            end;
-          else
-            internalerror(200309181);
-        end;
-      end;
-
-
 {****************************************************************************
                             Init/Finalize Code
 ****************************************************************************}
@@ -1267,7 +1232,7 @@ implementation
           (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
           begin
             { we have no idea about the alignment at the caller side }
-            location_get_data_ref(list,tparavarsym(p).initialloc,href,true,1);
+            hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);
             if is_open_array(tparavarsym(p).vardef) or
                is_array_of_const(tparavarsym(p).vardef) then
               begin
@@ -1437,155 +1402,6 @@ implementation
       end;
 
 
-    { initializes the regvars from staticsymtable with 0 }
-    procedure initialize_regvars(p:TObject;arg:pointer);
-      var
-        href : treference;
-      begin
-        if (tsym(p).typ=staticvarsym) then
-         begin
-           { Static variables can have the initialloc only set to LOC_CxREGISTER
-             or LOC_INVALID, for explaination see gen_alloc_symtable (PFV) }
-           case tstaticvarsym(p).initialloc.loc of
-             LOC_CREGISTER :
-               begin
-{$ifndef cpu64bitalu}
-                 if (tstaticvarsym(p).initialloc.size in [OS_64,OS_S64]) then
-                   cg64.a_load64_const_reg(TAsmList(arg),0,tstaticvarsym(p).initialloc.register64)
-                 else
-{$endif not cpu64bitalu}
-                   cg.a_load_const_reg(TAsmList(arg),reg_cgsize(tstaticvarsym(p).initialloc.register),0,
-                       tstaticvarsym(p).initialloc.register);
-               end;
-             LOC_CMMREGISTER :
-               { clear the whole register }
-               cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tstaticvarsym(p).initialloc.register),
-                 tstaticvarsym(p).initialloc.register,
-                 tstaticvarsym(p).initialloc.register,
-                 nil);
-             LOC_CFPUREGISTER :
-               begin
-                 { initialize fpu regvar by loading from memory }
-                 reference_reset_symbol(href,
-                   current_asmdata.RefAsmSymbol(tstaticvarsym(p).mangledname), 0,
-                   var_align(tstaticvarsym(p).vardef.alignment));
-                 cg.a_loadfpu_ref_reg(TAsmList(arg), tstaticvarsym(p).initialloc.size,
-                   tstaticvarsym(p).initialloc.size, href, tstaticvarsym(p).initialloc.register);
-               end;
-             LOC_INVALID :
-               ;
-             else
-               internalerror(200410124);
-           end;
-         end;
-      end;
-
-
-    { generates the code for initialisation of local data }
-    procedure initialize_data(p:TObject;arg:pointer);
-      var
-        OldAsmList : TAsmList;
-        hp : tnode;
-      begin
-        if (tsym(p).typ = localvarsym) and
-           { local (procedure or unit) variables only need initialization if
-             they are used }
-           ((tabstractvarsym(p).refs>0) or
-            { managed return symbols must be inited }
-            ((tsym(p).typ=localvarsym) and (vo_is_funcret in tlocalvarsym(p).varoptions))
-           ) and
-           not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
-           not(vo_is_external in tabstractvarsym(p).varoptions) and
-           not(vo_is_default_var in tabstractvarsym(p).varoptions) and
-           (is_managed_type(tabstractvarsym(p).vardef) or
-            ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
-           ) then
-          begin
-            OldAsmList:=current_asmdata.CurrAsmList;
-            current_asmdata.CurrAsmList:=TAsmList(arg);
-            hp:=initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
-            firstpass(hp);
-            secondpass(hp);
-            hp.free;
-            current_asmdata.CurrAsmList:=OldAsmList;
-          end;
-      end;
-
-
-    procedure finalize_sym(asmlist:TAsmList;sym:tsym);
-      var
-        hp : tnode;
-        OldAsmList : TAsmList;
-      begin
-        include(current_procinfo.flags,pi_needs_implicit_finally);
-        OldAsmList:=current_asmdata.CurrAsmList;
-        current_asmdata.CurrAsmList:=asmlist;
-        hp:=cloadnode.create(sym,sym.owner);
-        if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
-          include(tloadnode(hp).loadnodeflags,loadnf_isinternal_ignoreconst);
-        hp:=finalize_data_node(hp);
-        firstpass(hp);
-        secondpass(hp);
-        hp.free;
-        current_asmdata.CurrAsmList:=OldAsmList;
-      end;
-
-
-    { generates the code for finalisation of local variables }
-    procedure finalize_local_vars(p:TObject;arg:pointer);
-      begin
-        if (tsym(p).typ=localvarsym) and
-           (tlocalvarsym(p).refs>0) and
-           not(vo_is_external in tlocalvarsym(p).varoptions) and
-           not(vo_is_funcret in tlocalvarsym(p).varoptions) and
-           not(vo_is_default_var in tlocalvarsym(p).varoptions) and
-           is_managed_type(tlocalvarsym(p).vardef) then
-          finalize_sym(TAsmList(arg),tsym(p));
-      end;
-
-
-    { generates the code for finalization of static symtable and
-      all local (static) typed consts }
-    procedure finalize_static_data(p:TObject;arg:pointer);
-      var
-        i : longint;
-        pd : tprocdef;
-      begin
-        case tsym(p).typ of
-          staticvarsym :
-            begin
-                  { local (procedure or unit) variables only need finalization
-                    if they are used
-                  }
-              if ((tstaticvarsym(p).refs>0) or
-                  { global (unit) variables always need finalization, since
-                    they may also be used in another unit
-                  }
-                  (tstaticvarsym(p).owner.symtabletype=globalsymtable)) and
-                  (
-                    (tstaticvarsym(p).varspez<>vs_const) or
-                    (vo_force_finalize in tstaticvarsym(p).varoptions)
-                  ) and
-                 not(vo_is_funcret in tstaticvarsym(p).varoptions) and
-                 not(vo_is_external in tstaticvarsym(p).varoptions) and
-                 is_managed_type(tstaticvarsym(p).vardef) then
-                finalize_sym(TAsmList(arg),tsym(p));
-            end;
-          procsym :
-            begin
-              for i:=0 to tprocsym(p).ProcdefList.Count-1 do
-                begin
-                  pd:=tprocdef(tprocsym(p).ProcdefList[i]);
-                  if assigned(pd.localst) and
-                     (pd.procsym=tprocsym(p)) and
-                     (pd.localst.symtabletype<>staticsymtable) then
-                    pd.localst.SymList.ForEachCall(@finalize_static_data,arg);
-                end;
-            end;
-        end;
-      end;
-
-
     { generates the code for incrementing the reference count of parameters and
       initialize out parameters }
     procedure init_paras(p:TObject;arg:pointer);
@@ -1593,7 +1409,6 @@ implementation
         href : treference;
         hsym : tparavarsym;
         eldef : tdef;
-        tmpreg : tregister;
         list : TAsmList;
         needs_inittable,
         do_trashing       : boolean;
@@ -1615,7 +1430,7 @@ implementation
                    if not((tparavarsym(p).vardef.typ=variantdef) and
                      paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                      begin
-                       location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+                       hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
                        if is_open_array(tparavarsym(p).vardef) then
                          begin
                            { open arrays do not contain correct element count in their rtti,
@@ -1627,7 +1442,7 @@ implementation
                            cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_ADDREF_ARRAY');
                          end
                        else
-                         cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
+                        cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
                      end;
                  end;
              vs_out :
@@ -1635,12 +1450,10 @@ implementation
                  if needs_inittable or
                     do_trashing then
                    begin
-                     tmpreg:=cg.getaddressregister(list);
-                     cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      { we have no idea about the alignment at the callee side,
                        and the user also cannot specify "unaligned" here, so
                        assume worst case }
-                     reference_reset_base(href,tmpreg,0,1);
+                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);
                      if do_trashing and
                         { needs separate implementation to trash open arrays }
                         { since their size is only known at run time         }
@@ -1669,14 +1482,12 @@ implementation
              else if do_trashing and
                      ([vo_is_funcret,vo_is_hidden_para] * tparavarsym(p).varoptions = [vo_is_funcret,vo_is_hidden_para]) then
                    begin
-                     tmpreg:=cg.getaddressregister(list);
-                     cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      { should always have standard alignment. If a function is assigned
                        to a non-aligned variable, the optimisation to pass this variable
                        directly as hidden function result must/cannot be performed
                        (see tcallnode.funcret_can_be_reused)
                      }
-                     reference_reset_base(href,tmpreg,0,
+                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,
                        used_align(tparavarsym(p).vardef.alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax));
                      { may be an open string, even if is_open_string() returns }
                      { false (for some helpers in the system unit)             }
@@ -1688,128 +1499,6 @@ implementation
                    end
            end;
          end;
-      end;
-
-
-    { generates the code for decrementing the reference count of parameters }
-    procedure final_paras(p:TObject;arg:pointer);
-      var
-        list : TAsmList;
-        href : treference;
-        hsym : tparavarsym;
-        eldef : tdef;
-      begin
-        if not(tsym(p).typ=paravarsym) then
-          exit;
-        list:=TAsmList(arg);
-        if is_managed_type(tparavarsym(p).vardef) then
-         begin
-           if (tparavarsym(p).varspez=vs_value) then
-            begin
-              include(current_procinfo.flags,pi_needs_implicit_finally);
-              location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
-              if is_open_array(tparavarsym(p).vardef) then
-                begin
-                  hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
-                  eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
-                  if not assigned(hsym) then
-                    internalerror(201003032);
-                  cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_FINALIZE_ARRAY');
-                end
-              else
-                cg.g_finalize(list,tparavarsym(p).vardef,href);
-            end;
-         end;
-        { open arrays can contain elements requiring init/final code, so the else has been removed here }
-        if (tparavarsym(p).varspez=vs_value) and
-           (is_open_array(tparavarsym(p).vardef) or
-            is_array_of_const(tparavarsym(p).vardef)) then
-          begin
-            { cdecl functions don't have a high pointer so it is not possible to generate
-              a local copy }
-            if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
-              cg.g_releasevaluepara_openarray(list,tparavarsym(p).localloc);
-          end;
-      end;
-
-
-    { Initialize temp ansi/widestrings,interfaces }
-    procedure inittempvariables(list:TAsmList);
-      var
-        hp : ptemprecord;
-        href : treference;
-      begin
-        hp:=tg.templist;
-        while assigned(hp) do
-         begin
-           if assigned(hp^.def) and
-              is_managed_type(hp^.def) then
-            begin
-              reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
-              cg.g_initialize(list,hp^.def,href);
-            end;
-           hp:=hp^.next;
-         end;
-      end;
-
-
-    procedure finalizetempvariables(list:TAsmList);
-      var
-        hp : ptemprecord;
-        href : treference;
-      begin
-        hp:=tg.templist;
-        while assigned(hp) do
-         begin
-           if assigned(hp^.def) and
-              is_managed_type(hp^.def) then
-            begin
-              include(current_procinfo.flags,pi_needs_implicit_finally);
-              reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
-              cg.g_finalize(list,hp^.def,href);
-            end;
-           hp:=hp^.next;
-         end;
-      end;
-
-
-    procedure gen_load_return_value(list:TAsmList);
-      var
-        ressym : tabstractnormalvarsym;
-        funcretloc : TCGPara;
-      begin
-        { Is the loading needed? }
-        if is_void(current_procinfo.procdef.returndef) or
-           (
-            (po_assembler in current_procinfo.procdef.procoptions) and
-            (not(assigned(current_procinfo.procdef.funcretsym)) or
-             (tabstractvarsym(current_procinfo.procdef.funcretsym).refs=0))
-           ) then
-           exit;
-
-        funcretloc:=current_procinfo.procdef.funcretloc[calleeside];
-
-        { constructors return self }
-        if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-          ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find('self'))
-        else
-          ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
-        if (ressym.refs>0) or
-           is_managed_type(ressym.vardef) then
-          begin
-            { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
-            if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption) then
-              gen_load_loc_cgpara(list,ressym.vardef,ressym.localloc,funcretloc);
-          end
-{$ifdef x86}
-         else
-          begin
-            { the caller will pop a value from the fpu stack }
-            if assigned(funcretloc.location) and
-               (funcretloc.location^.loc = LOC_FPUREGISTER) then
-              list.concat(taicpu.op_none(A_FLDZ));
-          end;
-{$endif x86}
       end;
 
 
@@ -2161,131 +1850,6 @@ implementation
       end;
 
 
-    procedure gen_initialize_code(list:TAsmList);
-      begin
-        { initialize local data like ansistrings }
-        case current_procinfo.procdef.proctypeoption of
-           potype_unitinit:
-             begin
-                { this is also used for initialization of variables in a
-                  program which does not have a globalsymtable }
-                if assigned(current_module.globalsymtable) then
-                  TSymtable(current_module.globalsymtable).SymList.ForEachCall(@initialize_data,list);
-                TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_data,list);
-                TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
-             end;
-           { units have seperate code for initilization and finalization }
-           potype_unitfinalize: ;
-           { program init/final is generated in separate procedure }
-           potype_proginit:
-             begin
-               TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
-             end;
-           else
-             current_procinfo.procdef.localst.SymList.ForEachCall(@initialize_data,list);
-        end;
-
-        { initialisizes temp. ansi/wide string data }
-        if (current_procinfo.procdef.proctypeoption<>potype_exceptfilter) then
-          inittempvariables(list);
-
-{$ifdef OLDREGVARS}
-        load_regvars(list,nil);
-{$endif OLDREGVARS}
-      end;
-
-
-    procedure gen_finalize_code(list:TAsmList);
-      var
-        old_current_procinfo: tprocinfo;
-      begin
-        old_current_procinfo:=current_procinfo;
-        if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
-          begin
-            if (current_procinfo.parent.finalize_procinfo<>current_procinfo) then
-              exit;
-            current_procinfo:=current_procinfo.parent;
-          end;
-
-{$ifdef OLDREGVARS}
-        cleanup_regvars(list);
-{$endif OLDREGVARS}
-
-        { finalize temporary data }
-        finalizetempvariables(list);
-
-        { finalize local data like ansistrings}
-        case current_procinfo.procdef.proctypeoption of
-           potype_unitfinalize:
-             begin
-                { this is also used for initialization of variables in a
-                  program which does not have a globalsymtable }
-                if assigned(current_module.globalsymtable) then
-                  TSymtable(current_module.globalsymtable).SymList.ForEachCall(@finalize_static_data,list);
-                TSymtable(current_module.localsymtable).SymList.ForEachCall(@finalize_static_data,list);
-             end;
-           { units/progs have separate code for initialization and finalization }
-           potype_unitinit: ;
-           { program init/final is generated in separate procedure }
-           potype_proginit: ;
-           else
-             current_procinfo.procdef.localst.SymList.ForEachCall(@finalize_local_vars,list);
-        end;
-
-        { finalize paras data }
-        if assigned(current_procinfo.procdef.parast) and
-           not(po_assembler in current_procinfo.procdef.procoptions) then
-          current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
-        current_procinfo:=old_current_procinfo;
-      end;
-
-
-    procedure gen_entry_code(list:TAsmList);
-      begin
-        { the actual profile code can clobber some registers,
-          therefore if the context must be saved, do it before
-          the actual call to the profile code
-        }
-        if (cs_profile in current_settings.moduleswitches) and
-           not(po_assembler in current_procinfo.procdef.procoptions) then
-          begin
-            { non-win32 can call mcout even in main }
-            if not (target_info.system in [system_i386_win32,system_i386_wdosx]) or
-               not (current_procinfo.procdef.proctypeoption=potype_proginit) then
-              begin
-                cg.g_profilecode(list);
-              end;
-          end;
-
-        { call startup helpers from main program }
-        if (current_procinfo.procdef.proctypeoption=potype_proginit) then
-         begin
-           { initialize units }
-           cg.allocallcpuregisters(list);
-           if not(current_module.islibrary) then
-             cg.a_call_name(list,'FPC_INITIALIZEUNITS',false)
-           else
-             cg.a_call_name(list,'FPC_LIBINITIALIZEUNITS',false);
-           cg.deallocallcpuregisters(list);
-         end;
-
-        list.concat(Tai_force_line.Create);
-
-{$ifdef OLDREGVARS}
-        load_regvars(list,nil);
-{$endif OLDREGVARS}
-      end;
-
-
-    procedure gen_exit_code(list:TAsmList);
-      begin
-        { call __EXIT for main program }
-        if (not DLLsource) and
-           (current_procinfo.procdef.proctypeoption=potype_proginit) then
-          cg.a_call_name(list,'FPC_DO_EXIT',false);
-      end;
-
-
 {****************************************************************************
                                 Entry/Exit
 ****************************************************************************}
@@ -2415,7 +1979,7 @@ implementation
           end;
 
          { generate target specific proc entry code }
-         cg.g_proc_entry(list,current_procinfo.calc_stackframe_size,(po_nostackframe in current_procinfo.procdef.procoptions));
+         hlcg.g_proc_entry(list,current_procinfo.calc_stackframe_size,(po_nostackframe in current_procinfo.procdef.procoptions));
       end;
 
 
@@ -2442,7 +2006,7 @@ implementation
           end;
 
         { generate target specific proc exit code }
-        cg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
+        hlcg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
 
         { release return registers, needed for optimizer }
         if not is_void(current_procinfo.procdef.returndef) then
@@ -2511,7 +2075,7 @@ implementation
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
       begin
-        create_codegen;
+        create_hlcodegen;
         { add the procedure to the al_procedures }
         maybe_new_object_file(list);
         new_section(list,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
@@ -2522,86 +2086,12 @@ implementation
           list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
 
         cg.g_external_wrapper(list,pd,externalname);
-        destroy_codegen;
+        destroy_hlcodegen;
       end;
 
 {****************************************************************************
                                Const Data
 ****************************************************************************}
-
-    procedure insertbssdata(sym : tstaticvarsym);
-      var
-        l : asizeint;
-        varalign : shortint;
-        storefilepos : tfileposinfo;
-        list : TAsmList;
-        sectype : TAsmSectiontype;
-      begin
-        storefilepos:=current_filepos;
-        current_filepos:=sym.fileinfo;
-        l:=sym.getsize;
-        varalign:=sym.vardef.alignment;
-        if (varalign=0) then
-          varalign:=var_align_size(l)
-        else
-          varalign:=var_align(varalign);
-        if tf_section_threadvars in target_info.flags then
-          begin
-            if (vo_is_thread_var in sym.varoptions) then
-              begin
-                list:=current_asmdata.asmlists[al_threadvars];
-                sectype:=sec_threadvar;
-              end
-            else
-              begin
-                list:=current_asmdata.asmlists[al_globals];
-                sectype:=sec_bss;
-              end;
-          end
-        else
-          begin
-            if (vo_is_thread_var in sym.varoptions) then
-              begin
-                inc(l,sizeof(pint));
-                { it doesn't help to set a higher alignment, as  }
-                { the first sizeof(pint) bytes field will offset }
-                { everything anyway                              }
-                varalign:=sizeof(pint);
-              end;
-            list:=current_asmdata.asmlists[al_globals];
-            sectype:=sec_bss;
-          end;
-        maybe_new_object_file(list);
-        if vo_has_section in sym.varoptions then
-          new_section(list,sec_user,sym.section,varalign)
-        else
-          new_section(list,sectype,lower(sym.mangledname),varalign);
-        if (sym.owner.symtabletype=globalsymtable) or
-           create_smartlink or
-           DLLSource or
-           (assigned(current_procinfo) and
-            (po_inline in current_procinfo.procdef.procoptions)) or
-           (vo_is_public in sym.varoptions) then
-          begin
-            { on AIX/stabx, we cannot generate debug information that encodes
-              the address of a global symbol, you need a symbol with the same
-              name as the identifier -> create an extra *local* symbol.
-              Moreover, such a local symbol will be removed if it's not
-              referenced anywhere, so also create a reference }
-            if (target_dbg.id=dbg_stabx) and
-               (cs_debuginfo in current_settings.moduleswitches) and
-               not assigned(current_asmdata.GetAsmSymbol(sym.name)) then
-              begin
-                list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA),0));
-                list.concat(tai_directive.Create(asd_reference,sym.name));
-              end;
-            list.concat(Tai_datablock.create_global(sym.mangledname,l));
-          end
-        else
-          list.concat(Tai_datablock.create(sym.mangledname,l));
-        current_filepos:=storefilepos;
-      end;
-
 
     procedure gen_alloc_symtable(list:TAsmList;st:TSymtable);
 
@@ -2923,6 +2413,9 @@ implementation
       var
         rr: treplaceregrec;
       begin
+{$ifdef jvm}
+        exit;
+{$endif}
         if not (n.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) or
           ([fc_inflowcontrol,fc_gotolabel,fc_lefthandled] * flowcontrol <> []) then
           exit;
@@ -3081,9 +2574,9 @@ implementation
                       ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
                     { create wrapper code }
                     new_section(list,sec_code,tmps,0);
-                    cg.init_register_allocators;
+                    hlcg.init_register_allocators;
                     cg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
-                    cg.done_register_allocators;
+                    hlcg.done_register_allocators;
                   end;
               end;
           end;
@@ -3096,7 +2589,7 @@ implementation
         def : tdef;
       begin
         if not nested then
-          create_codegen;
+          create_hlcodegen;
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
@@ -3107,7 +2600,7 @@ implementation
               gen_intf_wrapper(list,tobjectdef(def));
           end;
         if not nested then
-          destroy_codegen;
+          destroy_hlcodegen;
       end;
 
 

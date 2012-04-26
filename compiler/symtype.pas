@@ -71,7 +71,7 @@ interface
          function  GetTypeName:string;virtual;
          function  typesymbolprettyname:string;virtual;
          function  mangledparaname:string;
-         function  getmangledparaname:string;virtual;
+         function  getmangledparaname:TSymStr;virtual;
          function  rtti_mangledname(rt:trttitype):string;virtual;abstract;
          function  OwnerHierarchyName: string; virtual; abstract;
          function  size:asizeint;virtual;abstract;
@@ -110,7 +110,7 @@ interface
          deprecatedmsg: pshortstring;
          constructor create(st:tsymtyp;const aname:string);
          destructor  destroy;override;
-         function  mangledname:string; virtual;
+         function  mangledname:TSymStr; virtual;
          function  prettyname:string; virtual;
          procedure buildderef;virtual;
          procedure deref;virtual;
@@ -297,7 +297,7 @@ implementation
       end;
 
 
-    function tdef.getmangledparaname:string;
+    function tdef.getmangledparaname:TSymStr;
       begin
          result:='<unknown type>';
       end;
@@ -404,7 +404,7 @@ implementation
       end;
 
 
-    function tsym.mangledname : string;
+    function tsym.mangledname : TSymStr;
       begin
         internalerror(200204171);
         result:='';

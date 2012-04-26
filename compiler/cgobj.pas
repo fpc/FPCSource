@@ -45,8 +45,6 @@ unit cgobj;
     type
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
        tsubsetloadopt = (SL_REG,SL_REGNOSRCMASK,SL_SETZERO,SL_SETMAX);
-       tindsymflag = (is_data,is_weak);
-       tindsymflags = set of tindsymflag;
 
        {# @abstract(Abstract code generator)
           This class implements an abstract instruction generator. Some of
@@ -460,6 +458,8 @@ unit cgobj;
              @param(p Node which contains the value to check)
              @param(todef Type definition of node to range check)
           }
+          { only left here because used by cg64f32; normally, the code in
+            hlcgobj is used }
           procedure g_rangecheck(list: TAsmList; const l:tlocation; fromdef,todef: tdef); virtual;
 
           {# Generates overflow checking code for a node }

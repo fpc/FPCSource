@@ -159,7 +159,7 @@ interface
          altsymbol  : TAsmSymbol;
          { Cached objsymbol }
          cachedobjsymbol : TObject;
-         constructor Create(AList:TFPHashObjectList;const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
+         constructor Create(AList:TFPHashObjectList;const s:TSymStr;_bind:TAsmsymbind;_typ:Tasmsymtype);
          function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; virtual;
          function  is_used:boolean;
          procedure increfs;
@@ -170,13 +170,13 @@ interface
 
        TAsmLabel = class(TAsmSymbol)
        protected
-         function getname:string;override;
+         function getname:TSymStr;override;
        public
          labelnr   : longint;
          labeltype : TAsmLabelType;
          is_set    : boolean;
          constructor Createlocal(AList:TFPHashObjectList;nr:longint;ltyp:TAsmLabelType);
-         constructor Createglobal(AList:TFPHashObjectList;const modulename:string;nr:longint;ltyp:TAsmLabelType);
+         constructor Createglobal(AList:TFPHashObjectList;const modulename:TSymStr;nr:longint;ltyp:TAsmLabelType);
          function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; override;
        end;
 
@@ -347,7 +347,7 @@ implementation
                                  TAsmSymbol
 *****************************************************************************}
 
-    constructor TAsmSymbol.Create(AList:TFPHashObjectList;const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
+    constructor TAsmSymbol.Create(AList:TFPHashObjectList;const s:TSymStr;_bind:TAsmsymbind;_typ:Tasmsymtype);
       begin;
         inherited Create(AList,s);
         bind:=_bind;
@@ -412,7 +412,7 @@ implementation
       end;
 
 
-    constructor TAsmLabel.Createglobal(AList:TFPHashObjectList;const modulename:string;nr:longint;ltyp:TAsmLabelType);
+    constructor TAsmLabel.Createglobal(AList:TFPHashObjectList;const modulename:TSymStr;nr:longint;ltyp:TAsmLabelType);
       begin
         inherited Create(AList,'_$'+modulename+'$_L'+asmlabeltypeprefix[ltyp]+tostr(nr),AB_GLOBAL,AT_DATA);
         labelnr:=nr;
@@ -441,7 +441,7 @@ implementation
       end;
 
 
-    function TAsmLabel.getname:string;
+    function TAsmLabel.getname:TSymStr;
       begin
         getname:=inherited getname;
         increfs;

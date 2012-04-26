@@ -183,6 +183,14 @@
   {$define cpurefshaveindexreg}
 {$endif mips}
 
+{$ifdef jvm}
+  {$define cpu32bit}
+  {$define cpu64bitalu}
+  {$define cpu32bitaddr}
+  {$define cpuhighleveltarget}
+  {$define symansistr}
+{$endif}
+
 {$IFDEF MACOS}
 {$DEFINE USE_FAKE_SYSUTILS}
 {$ENDIF MACOS}

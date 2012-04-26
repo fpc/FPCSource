@@ -27,20 +27,33 @@ unit ncgld;
 interface
 
     uses
+      globtype,
+      symtype,
+      aasmdata,
       node,nld,cgutils;
 
     type
        tcgloadnode = class(tloadnode)
+         protected
+          procedure generate_nested_access(vs: tsym);virtual;
+         public
           procedure pass_generate_code;override;
           procedure generate_picvaraccess;virtual;
           procedure changereflocation(const ref: treference);
        end;
 
        tcgassignmentnode = class(tassignmentnode)
+        protected
+          function maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;virtual;
+        public
           procedure pass_generate_code;override;
        end;
 
        tcgarrayconstructornode = class(tarrayconstructornode)
+         protected
+          procedure makearrayref(var ref: treference; eledef: tdef);virtual;
+          procedure advancearrayoffset(var ref: treference; elesize: asizeint);virtual;
+         public
           procedure pass_generate_code;override;
        end;
 
@@ -54,16 +67,16 @@ implementation
     uses
       cutils,
       systems,
-      verbose,globtype,globals,constexp,
+      verbose,globals,constexp,
       nutils,
-      symtable,symconst,symtype,symdef,symsym,defutil,paramgr,
+      symtable,symconst,symdef,symsym,defutil,paramgr,
       ncnv,ncon,nmem,nbas,ncgrtti,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmtai,aasmcpu,
       cgbase,pass_2,
       procinfo,
       cpubase,parabase,
       tgobj,ncgutil,
-      cgobj,
+      cgobj,hlcgobj,
       ncgbas,ncgflw,
       wpobase;
 
@@ -149,7 +162,7 @@ implementation
       end;
 
 
-    function maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;
+    function tcgassignmentnode.maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;
       var
         rr: treplacerefrec;
       begin
@@ -229,6 +242,20 @@ implementation
       end;
 
 
+    procedure tcgloadnode.generate_nested_access(vs: tsym);
+      var
+        { paramter declared as tsym to reduce interface unit dependencies }
+        lvs: tabstractnormalvarsym absolute vs;
+      begin
+        secondpass(left);
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          internalerror(200309286);
+        if lvs.localloc.loc<>LOC_REFERENCE then
+          internalerror(200409241);
+        reference_reset_base(location.reference,left.location.register,lvs.localloc.reference.offset,lvs.localloc.reference.alignment);
+      end;
+
+
     procedure tcgloadnode.pass_generate_code;
       var
         hregister : tregister;
@@ -286,7 +313,6 @@ implementation
            staticvarsym :
              begin
                gvs:=tstaticvarsym(symtableentry);
-               location.reference.alignment:=var_align(gvs.vardef.alignment);
 
                if (vo_is_dll_var in gvs.varoptions) then
                { DLL variable }
@@ -395,14 +421,7 @@ implementation
                 vs:=tabstractnormalvarsym(symtableentry);
                 { Nested variable }
                 if assigned(left) then
-                  begin
-                    secondpass(left);
-                    if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                      internalerror(200309286);
-                    if vs.localloc.loc<>LOC_REFERENCE then
-                      internalerror(200409241);
-                    reference_reset_base(location.reference,left.location.register,vs.localloc.reference.offset,vs.localloc.reference.alignment);
-                  end
+                  generate_nested_access(vs)
                 else
                   location:=vs.localloc;
 
@@ -415,10 +434,10 @@ implementation
                       hregister:=location.register
                     else
                       begin
-                        hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                        hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
                         { we need to load only an address }
                         location.size:=OS_ADDR;
-                        cg.a_load_loc_reg(current_asmdata.CurrAsmList,location.size,location,hregister);
+                        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,location,hregister);
                       end;
                     { assume packed records may always be unaligned }
                     if not(resultdef.typ in [recorddef,objectdef]) or
@@ -447,7 +466,7 @@ implementation
                      {$else}
                         internalerror(20020520);
                      {$endif} {$endif}
-                     tg.GetTemp(current_asmdata.CurrAsmList,2*sizeof(pint),sizeof(pint),tt_normal,location.reference);
+                     tg.gethltemp(current_asmdata.CurrAsmList,methodpointertype,methodpointertype.size,tt_normal,location.reference);
                      secondpass(left);
 
                      { load class instance/classrefdef address }
@@ -556,7 +575,9 @@ implementation
       begin
         location_reset(location,LOC_VOID,OS_NO);
         { managed types should be handled in firstpass }
-        if is_managed_type(left.resultdef) or is_managed_type(right.resultdef) then
+        if not(target_info.system in systems_garbage_collected_managed_types) and
+           (is_managed_type(left.resultdef) or
+            is_managed_type(right.resultdef)) then
           InternalError(2012011901);
 
         otlabel:=current_procinfo.CurrTrueLabel;
@@ -631,7 +652,7 @@ implementation
             else if (right.nodetype=stringconstn) and
                (tstringconstnode(right).len=0) then
               begin
-                cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,0,left.location.reference);
+                hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u8inttype,0,left.location.reference);
               end
             { char loading }
             else if is_char(right.resultdef) then
@@ -639,27 +660,32 @@ implementation
                 if right.nodetype=ordconstn then
                   begin
                     if (target_info.endian = endian_little) then
-                      cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_16,(tordconstnode(right).value.svalue shl 8) or 1,
+                      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u16inttype,(tordconstnode(right).value.svalue shl 8) or 1,
                           setalignment(left.location.reference,1))
                     else
-                      cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_16,tordconstnode(right).value.svalue or (1 shl 8),
+                      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u16inttype,tordconstnode(right).value.svalue or (1 shl 8),
                           setalignment(left.location.reference,1));
                   end
                 else
                   begin
                     href:=left.location.reference;
-                    cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,1,href);
+                    hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u8inttype,1,href);
                     inc(href.offset,1);
                     case right.location.loc of
                       LOC_REGISTER,
                       LOC_CREGISTER :
                         begin
+{$ifndef cpuhighleveltarget}
                           r:=cg.makeregsize(current_asmdata.CurrAsmList,right.location.register,OS_8);
-                          cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_8,OS_8,r,href);
+{$else not cpuhighleveltarget}
+                          r:=hlcg.getintregister(current_asmdata.CurrAsmList,u8inttype);
+                          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,u8inttype,u8inttype,right.location.register,r);
+{$endif cpuhighleveltarget}
+                          hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,u8inttype,u8inttype,r,href);
                         end;
                       LOC_REFERENCE,
                       LOC_CREFERENCE :
-                        cg.a_load_ref_ref(current_asmdata.CurrAsmList,OS_8,OS_8,right.location.reference,href);
+                        hlcg.a_load_ref_ref(current_asmdata.CurrAsmList,u8inttype,u8inttype,right.location.reference,href);
                       else
                         internalerror(200205111);
                     end;
@@ -688,7 +714,7 @@ implementation
                     cg64.a_load64_const_loc(current_asmdata.CurrAsmList,right.location.value64,left.location)
                   else
 {$endif not cpu64bitalu}
-                    cg.a_load_const_loc(current_asmdata.CurrAsmList,right.location.value,left.location);
+                    hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,right.location.value,left.location);
                 end;
               LOC_REFERENCE,
               LOC_CREFERENCE :
@@ -702,13 +728,13 @@ implementation
                           cg64.a_load64_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register64)
                         else
 {$endif not cpu64bitalu}
-                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.register);
+                          hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.reference,left.location.register);
                       end;
                     LOC_FPUREGISTER,
                     LOC_CFPUREGISTER :
                       begin
-                        cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                            right.location.size,left.location.size,
+                        hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
+                            right.resultdef,left.resultdef,
                             right.location.reference,
                             left.location.register);
                       end;
@@ -719,8 +745,8 @@ implementation
                            (right.resultdef.typ=floatdef) and
                            (left.location.size<>right.location.size) then
                           begin
-                            cg.a_loadfpu_ref_ref(current_asmdata.CurrAsmList,
-                              right.location.size,left.location.size,
+                            hlcg.a_loadfpu_ref_ref(current_asmdata.CurrAsmList,
+                              right.resultdef,left.resultdef,
                               right.location.reference,left.location.reference)
                           end
                         else
@@ -728,6 +754,9 @@ implementation
 { TODO: HACK: unaligned test, maybe remove all unaligned locations (array of char) from the compiler}
                             { Use unaligned copy when the offset is not aligned }
                             len:=left.resultdef.size;
+                            { can be 0 in case of formaldef on JVM target }
+                            if len=0 then
+                              len:=sizeof(pint);
 
                             { data smaller than an aint has less alignment requirements }
                             { max(1,...) avoids div by zero in case of an empty record  }
@@ -740,9 +769,9 @@ implementation
                                (right.location.reference.alignment<alignmentrequirement)) or
                               ((left.location.reference.alignment<>0) and
                                (left.location.reference.alignment<alignmentrequirement)) then
-                              cg.g_concatcopy_unaligned(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len)
+                              hlcg.g_concatcopy_unaligned(current_asmdata.CurrAsmList,left.resultdef,right.location.reference,left.location.reference)
                             else
-                              cg.g_concatcopy(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len);
+                              hlcg.g_concatcopy(current_asmdata.CurrAsmList,left.resultdef,right.location.reference,left.location.reference);
                           end;
                       end;
                     LOC_MMREGISTER,
@@ -756,7 +785,7 @@ implementation
                             { convert an extended into a double/single, since sse   }
                             { doesn't support extended)                             }
                             r:=cg.getfpuregister(current_asmdata.CurrAsmList,right.location.size);
-                            tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,left.resultdef.alignment,tt_normal,href);
+                            tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef,left.resultdef.size,tt_normal,href);
                             cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,right.location.size,right.location.size,right.location.reference,r);
                             cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,r,href);
                             if releaseright then
@@ -827,7 +856,7 @@ implementation
                       right.location.register64,left.location)
                   else
 {$endif not cpu64bitalu}
-                    cg.a_load_reg_loc(current_asmdata.CurrAsmList,right.location.size,right.location.register,left.location);
+                    hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location);
                 end;
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER :
@@ -840,7 +869,7 @@ implementation
                         begin
                           { perform size conversion if needed (the mm-code cannot convert an   }
                           { extended into a double/single, since sse doesn't support extended) }
-                          tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,left.resultdef.alignment,tt_normal,href);
+                          tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef, left.resultdef.size,tt_normal,href);
                           cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,href);
                           location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
                           right.location.reference:=href;
@@ -852,8 +881,8 @@ implementation
                           right.location.register,left.location.register,mms_movescalar);
                     end
                   else
-                    cg.a_loadfpu_reg_loc(current_asmdata.CurrAsmList,
-                        right.location.size,
+                    hlcg.a_loadfpu_reg_loc(current_asmdata.CurrAsmList,
+                        right.resultdef,left.resultdef,
                         right.location.register,left.location);
                 end;
               LOC_SUBSETREG,
@@ -876,7 +905,7 @@ implementation
               LOC_JUMP :
                 begin
                   current_asmdata.getjumplabel(hlabel);
-                  cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                  hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
                   if is_pasbool(left.resultdef) then
                     begin
 {$ifndef cpu64bitalu}
@@ -884,7 +913,7 @@ implementation
                         cg64.a_load64_const_loc(current_asmdata.CurrAsmList,1,left.location)
                       else
 {$endif not cpu64bitalu}
-                        cg.a_load_const_loc(current_asmdata.CurrAsmList,1,left.location)
+                        hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,1,left.location)
                     end
                   else
                     begin
@@ -893,18 +922,18 @@ implementation
                         cg64.a_load64_const_loc(current_asmdata.CurrAsmList,-1,left.location)
                       else
 {$endif not cpu64bitalu}
-                        cg.a_load_const_loc(current_asmdata.CurrAsmList,-1,left.location);
+                        hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,-1,left.location);
                     end;
 
-                  cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
-                  cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
+                  hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
 {$ifndef cpu64bitalu}
                   if left.location.size in [OS_64,OS_S64] then
                     cg64.a_load64_const_loc(current_asmdata.CurrAsmList,0,left.location)
                   else
 {$endif not cpu64bitalu}
-                    cg.a_load_const_loc(current_asmdata.CurrAsmList,0,left.location);
-                  cg.a_label(current_asmdata.CurrAsmList,hlabel);
+                    hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,0,left.location);
+                  hlcg.a_label(current_asmdata.CurrAsmList,hlabel);
                 end;
 {$ifdef cpuflags}
               LOC_FLAGS :
@@ -1009,6 +1038,19 @@ implementation
         vtAnsiString16  = 19;
         vtAnsiString64  = 20;
 
+
+    procedure tcgarrayconstructornode.makearrayref(var ref: treference; eledef: tdef);
+      begin
+        { do nothing by default }
+      end;
+
+
+    procedure tcgarrayconstructornode.advancearrayoffset(var ref: treference; elesize: asizeint);
+      begin
+        inc(ref.offset,elesize);
+      end;
+
+
     procedure tcgarrayconstructornode.pass_generate_code;
       var
         hp    : tarrayconstructornode;
@@ -1018,36 +1060,42 @@ implementation
         otlabel,
         oflabel : tasmlabel;
         vtype : longint;
-        elesize,
-        elealign : longint;
+        eledef: tdef;
+        elesize : longint;
         tmpreg  : tregister;
         vaddr : boolean;
         freetemp,
-        dovariant : boolean;
+        dovariant: boolean;
       begin
         if is_packed_array(resultdef) then
           internalerror(200608042);
-        dovariant:=(nf_forcevaria in flags) or is_variant_array(resultdef);
+        dovariant:=
+          ((nf_forcevaria in flags) or is_variant_array(resultdef)) and
+          not(target_info.system in systems_managed_vm);
         if dovariant then
           begin
-            elesize:=sizeof(pint)+sizeof(pint);
-            elealign:=sizeof(pint);
+            eledef:=search_system_type('TVARREC').typedef;
+            elesize:=eledef.size;
           end
         else
           begin
+            eledef:=tarraydef(resultdef).elementdef;
             elesize:=tarraydef(resultdef).elesize;
-            elealign:=tarraydef(resultdef).elementdef.alignment;
           end;
-        { alignment is filled in by tg.gettemp below }
+        { alignment is filled in by tg.gethltemp below }
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,0);
         fillchar(paraloc,sizeof(paraloc),0);
         { Allocate always a temp, also if no elements are required, to
           be sure that location is valid (PFV) }
+        { on the JVM platform, an array can have 0 elements; since the length
+          of the array is part of the array itself, make sure we allocate one
+          of the proper length to avoid getting unexpected results later }
          if tarraydef(resultdef).highrange=-1 then
-           tg.GetTemp(current_asmdata.CurrAsmList,elesize,elealign,tt_normal,location.reference)
+           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,{$ifdef jvm}0{$else}elesize{$endif},tt_normal,location.reference)
          else
-           tg.GetTemp(current_asmdata.CurrAsmList,(tarraydef(resultdef).highrange+1)*elesize,resultdef.alignment,tt_normal,location.reference);
+           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
          href:=location.reference;
+         makearrayref(href,eledef);
         { Process nodes in array constructor }
         hp:=self;
         while assigned(hp) do
@@ -1065,7 +1113,7 @@ implementation
               secondpass(hp.left);
               { Move flags and jump in register }
               if hp.left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-                location_force_reg(current_asmdata.CurrAsmList,hp.left.location,def_cgsize(hp.left.resultdef),false);
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,hp.left.location,hp.left.resultdef,hp.left.resultdef,false);
 
               if (hp.left.location.loc=LOC_JUMP) then
                 begin
@@ -1195,7 +1243,7 @@ implementation
                  dec(href.offset,sizeof(pint));
                  cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);
                  { goto next array element }
-                 inc(href.offset,sizeof(pint)*2);
+                 advancearrayoffset(href,sizeof(pint)*2);
                end
               else
               { normal array constructor of the same type }
@@ -1209,15 +1257,15 @@ implementation
                        hp.left.location.register,href,mms_movescalar);
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :
-                     cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location.size,hp.left.location.register,href);
+                     hlcg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,hp.left.resultdef,hp.left.resultdef,hp.left.location.register,href);
                    LOC_REFERENCE,
                    LOC_CREFERENCE :
                      begin
                        if is_shortstring(hp.left.resultdef) then
-                         cg.g_copyshortstring(current_asmdata.CurrAsmList,hp.left.location.reference,href,
-                             Tstringdef(hp.left.resultdef).len)
+                         hlcg.g_copyshortstring(current_asmdata.CurrAsmList,hp.left.location.reference,href,
+                             Tstringdef(hp.left.resultdef))
                        else
-                         cg.g_concatcopy(current_asmdata.CurrAsmList,hp.left.location.reference,href,elesize);
+                         hlcg.g_concatcopy(current_asmdata.CurrAsmList,eledef,hp.left.location.reference,href);
                      end;
                    else
                      begin
@@ -1226,10 +1274,10 @@ implementation
                          cg64.a_load64_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
                        else
 {$endif not cpu64bitalu}
-                         cg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location,href);
+                         hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,eledef,eledef,hp.left.location,href);
                      end;
                  end;
-                 inc(href.offset,elesize);
+                 advancearrayoffset(href,elesize);
                end;
               if freetemp then
                 location_freetemp(current_asmdata.CurrAsmList,hp.left.location);

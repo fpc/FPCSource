@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=
 #units=system objpas macpas iso7185 buildrtl lineinfo lnfodwrf
-units=system objpas iso7185 buildrtl
+units=system uuchar objpas iso7185 buildrtl
 implicitunits=ndk ndkutils ddk \
       ctypes strings \
 #      heaptrc
@@ -51,6 +51,7 @@ DDKINC=ddk
 NDKINC=ndk
 
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 
 CPU_UNITS=
 
@@ -110,6 +111,8 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) -Us -Sg system.pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

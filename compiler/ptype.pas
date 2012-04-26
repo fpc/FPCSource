@@ -52,6 +52,14 @@ interface
     { generate persistent type information like VMT, RTTI and inittables }
     procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
 
+    { add a definition for a method to a record/objectdef that will contain
+      all code for initialising typed constants (only for targets in
+      systems.systems_typed_constants_node_init) }
+    procedure add_typedconst_init_routine(def: tabstractrecorddef);
+
+    { parse hint directives (platform, deprecated, ...) for a procdef }
+    procedure maybe_parse_hint_directives(pd:tprocdef);
+
 implementation
 
     uses
@@ -63,8 +71,11 @@ implementation
        { target }
        paramgr,procinfo,
        { symtable }
-       symconst,symsym,symtable,
+       symconst,symsym,symtable,symcreat,
        defutil,defcmp,
+{$ifdef jvm}
+       jvmdef,
+{$endif}
        { modules }
        fmodule,
        { pass 1 }
@@ -72,7 +83,30 @@ implementation
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil;
+       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil
+{$ifdef jvm}
+       ,pjvm
+{$endif}
+       ;
+
+
+    procedure maybe_parse_hint_directives(pd:tprocdef);
+      var
+        dummysymoptions : tsymoptions;
+        deprecatedmsg : pshortstring;
+      begin
+        dummysymoptions:=[];
+        deprecatedmsg:=nil;
+        while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
+          Consume(_SEMICOLON);
+        if assigned(pd) then
+          begin
+            pd.symoptions:=pd.symoptions+dummysymoptions;
+            pd.deprecatedmsg:=deprecatedmsg;
+          end
+        else
+          stringdispose(deprecatedmsg);
+      end;
 
 
     procedure resolve_forward_types;
@@ -114,7 +148,8 @@ implementation
                         { we need a class type for classrefdef }
                         if (def.typ=classrefdef) and
                            not(is_class(ttypesym(srsym).typedef)) and
-                           not(is_objcclass(ttypesym(srsym).typedef)) then
+                           not(is_objcclass(ttypesym(srsym).typedef)) and
+                           not(is_javaclass(ttypesym(srsym).typedef)) then
                           MessagePos1(def.typesym.fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
                       end
                      else
@@ -168,8 +203,10 @@ implementation
         { handle types inside classes, e.g. TNode.TLongint }
         while (token=_POINT) do
           begin
-             if is_class_or_object(def) or is_record(def) then
+             if is_class_or_object(def) or is_record(def) or is_java_class_or_interface(def) then
                begin
+                 if (def.typ=objectdef) then
+                   def:=find_real_class_definition(tobjectdef(def),false);
                  consume(_POINT);
                  if (structstackindex>=0) and
                     (tabstractrecorddef(currentstructstack[structstackindex]).objname^=pattern) then
@@ -416,26 +453,8 @@ implementation
           end;
       end;
 
-    procedure parse_record_members(procdeflist:TFPObjectList);
 
-        procedure maybe_parse_hint_directives(pd:tprocdef);
-        var
-          dummysymoptions : tsymoptions;
-          deprecatedmsg : pshortstring;
-        begin
-          dummysymoptions:=[];
-          deprecatedmsg:=nil;
-          while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
-            Consume(_SEMICOLON);
-          if assigned(pd) then
-            begin
-              pd.symoptions:=pd.symoptions+dummysymoptions;
-              pd.deprecatedmsg:=deprecatedmsg;
-            end
-          else
-            stringdispose(deprecatedmsg);
-        end;
-
+    procedure parse_record_members;
       var
         pd : tprocdef;
         oldparse_only: boolean;
@@ -551,28 +570,7 @@ implementation
                     else
                     if is_classdef and (idtoken=_OPERATOR) then
                       begin
-                        oldparse_only:=parse_only;
-                        parse_only:=true;
-                        pd:=parse_proc_dec(is_classdef,current_structdef);
-
-                        { this is for error recovery as well as forward }
-                        { interface mappings, i.e. mapping to a method  }
-                        { which isn't declared yet                      }
-                        if assigned(pd) then
-                          begin
-                            parse_record_proc_directives(pd);
-
-                            // postpone adding hidden params
-                            handle_calling_convention(pd,[hcc_check]);
-                            procdeflist.add(pd);
-
-                            { add definition to procsym }
-                            proc_add_definition(pd);
-                          end;
-
-                        maybe_parse_hint_directives(pd);
-
-                        parse_only:=oldparse_only;
+                        pd:=parse_record_method_dec(current_structdef,is_classdef);
                         fields_allowed:=false;
                         is_classdef:=false;
                       end
@@ -590,7 +588,7 @@ implementation
                         else if member_blocktype=bt_type then
                           types_dec(true)
                         else if member_blocktype=bt_const then
-                          consts_dec(true)
+                          consts_dec(true,true)
                         else
                           internalerror(201001110);
                       end;
@@ -618,35 +616,7 @@ implementation
             _PROCEDURE,
             _FUNCTION:
               begin
-                oldparse_only:=parse_only;
-                parse_only:=true;
-                pd:=parse_proc_dec(is_classdef,current_structdef);
-
-                { this is for error recovery as well as forward }
-                { interface mappings, i.e. mapping to a method  }
-                { which isn't declared yet                      }
-                if assigned(pd) then
-                  begin
-                    parse_record_proc_directives(pd);
-
-                    { since records have no inheritance don't allow non static
-                      class methods. delphi do so. }
-                    if is_classdef and not (po_staticmethod in pd.procoptions) then
-                      MessagePos(pd.fileinfo, parser_e_class_methods_only_static_in_records);
-
-                    // we can't add hidden params here because record is not yet defined
-                    // and therefore record size which has influence on paramter passing rules may change too
-                    // look at record_dec to see where calling conventions are applied (issue #0021044)
-                    handle_calling_convention(pd,[hcc_check]);
-                    procdeflist.add(pd);
-
-                    { add definition to procsym }
-                    proc_add_definition(pd);
-                  end;
-
-                maybe_parse_hint_directives(pd);
-
-                parse_only:=oldparse_only;
+                pd:=parse_record_method_dec(current_structdef,is_classdef);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
@@ -664,16 +634,9 @@ implementation
                 oldparse_only:=parse_only;
                 parse_only:=true;
                 if is_classdef then
-                  pd:=class_constructor_head
+                  pd:=class_constructor_head(current_structdef)
                 else
                   pd:=constructor_head;
-                parse_record_proc_directives(pd);
-                handle_calling_convention(pd);
-
-                { add definition to procsym }
-                proc_add_definition(pd);
-
-                maybe_parse_hint_directives(pd);
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
@@ -691,16 +654,9 @@ implementation
                 oldparse_only:=parse_only;
                 parse_only:=true;
                 if is_classdef then
-                  pd:=class_destructor_head
+                  pd:=class_destructor_head(current_structdef)
                 else
                   pd:=destructor_head;
-                parse_record_proc_directives(pd);
-                handle_calling_convention(pd);
-
-                { add definition to procsym }
-                proc_add_definition(pd);
-
-                maybe_parse_hint_directives(pd);
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
@@ -708,6 +664,11 @@ implementation
               end;
             _END :
               begin
+{$ifdef jvm}
+                add_java_default_record_methods_intf(trecorddef(current_structdef));
+{$endif}
+                if target_info.system in systems_typed_constants_node_init then
+                  add_typedconst_init_routine(current_structdef);
                 consume(_END);
                 break;
               end;
@@ -725,11 +686,6 @@ implementation
          old_current_specializedef: tstoreddef;
          old_parse_generic: boolean;
          recst: trecordsymtable;
-         procdeflist: TFPObjectList;
-         i: integer;
-         pd: tprocdef;
-         oldparse_only: boolean;
-         oldpos : tfileposinfo;
       begin
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
@@ -739,8 +695,21 @@ implementation
          current_genericdef:=nil;
          current_specializedef:=nil;
          { create recdef }
-         recst:=trecordsymtable.create(n,current_settings.packrecords);
-         current_structdef:=trecorddef.create(n,recst);
+         if (n<>'') or
+            not(target_info.system in systems_jvm) then
+           begin
+             recst:=trecordsymtable.create(n,current_settings.packrecords);
+             { can't use recst.realname^ instead of n, because recst.realname is
+               nil in case of an empty name }
+             current_structdef:=trecorddef.create(n,recst);
+           end
+         else
+           begin
+             { for the JVM target records always need a name, because they are
+               represented by a class }
+             recst:=trecordsymtable.create(current_module.realmodulename^+'__fpc_intern_recname_'+tostr(current_module.deflist.count),current_settings.packrecords);
+             current_structdef:=trecorddef.create(recst.name^,recst);
+           end;
          result:=current_structdef;
          { insert in symtablestack }
          symtablestack.push(recst);
@@ -771,27 +740,23 @@ implementation
          parse_generic:=(df_generic in current_structdef.defoptions);
          if m_advanced_records in current_settings.modeswitches then
            begin
-             procdeflist:=TFPObjectList.Create(false);
-             parse_record_members(procdeflist);
-             // handle calling conventions of record methods
-             oldpos:=current_filepos;
-             oldparse_only:=parse_only;
-             parse_only:=true;
-             for i := 0 to procdeflist.count - 1 do
-               begin
-                 pd:=tprocdef(procdeflist[i]);
-                 current_filepos:=pd.fileinfo;
-                 handle_calling_convention(pd,[hcc_insert_hidden_paras]);
-               end;
-             parse_only:=oldparse_only;
-             current_filepos:=oldpos;
-             procdeflist.free;
+             parse_record_members;
            end
          else
            begin
              read_record_fields([vd_record]);
+{$ifdef jvm}
+             { we need a constructor to create temps, a deep copy helper, ... }
+             add_java_default_record_methods_intf(trecorddef(current_structdef));
+{$endif}
+             if target_info.system in systems_typed_constants_node_init then
+               add_typedconst_init_routine(current_structdef);
              consume(_END);
             end;
+         { don't keep track of procdefs in a separate list, because the
+           compiler may add additional procdefs (e.g. property wrappers for
+           the jvm backend) }
+         insert_record_hidden_paras(trecorddef(current_structdef));
          { make the record size aligned }
          recst.addalignmentpadding;
          { restore symtable stack }
@@ -1407,6 +1372,9 @@ implementation
                 until not try_to_consume(_COMMA);
                 def:=aktenumdef;
                 consume(_RKLAMMER);
+{$ifdef jvm}
+                jvm_maybe_create_enum_class(name,def);
+{$endif}
               end;
             _ARRAY:
               begin
@@ -1420,6 +1388,8 @@ implementation
               begin
                 consume(_CARET);
                 single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
+                { don't use getpointerdef() here, since this is a type
+                  declaration (-> must create new typedef) }
                 def:=tpointerdef.create(tt2);
                 if tt2.typ=forwarddef then
                   current_module.checkforwarddefs.add(def);
@@ -1497,7 +1467,8 @@ implementation
                     consume(_OF);
                     single_type(hdef,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
                     if is_class(hdef) or
-                       is_objcclass(hdef) then
+                       is_objcclass(hdef) or
+                       is_javaclass(hdef) then
                       def:=tclassrefdef.create(hdef)
                     else
                       if hdef.typ=forwarddef then
@@ -1515,7 +1486,7 @@ implementation
                     def:=object_dec(odt_helper,name,genericdef,genericlist,nil,ht_class);
                   end
                 else
-                  def:=object_dec(odt_class,name,genericdef,genericlist,nil,ht_none);
+                  def:=object_dec(default_class_type,name,genericdef,genericlist,nil,ht_none);
               end;
             _CPPCLASS :
               begin
@@ -1537,10 +1508,16 @@ implementation
                 if not(m_class in current_settings.modeswitches) then
                   Message(parser_f_need_objfpc_or_delphi_mode);
                 consume(token);
-                if current_settings.interfacetype=it_interfacecom then
-                  def:=object_dec(odt_interfacecom,name,genericdef,genericlist,nil,ht_none)
-                else {it_interfacecorba}
-                  def:=object_dec(odt_interfacecorba,name,genericdef,genericlist,nil,ht_none);
+                case current_settings.interfacetype of
+                  it_interfacecom:
+                    def:=object_dec(odt_interfacecom,name,genericdef,genericlist,nil,ht_none);
+                  it_interfacecorba:
+                    def:=object_dec(odt_interfacecorba,name,genericdef,genericlist,nil,ht_none);
+                  it_interfacejava:
+                    def:=object_dec(odt_interfacejava,name,genericdef,genericlist,nil,ht_none);
+                  else
+                    internalerror(2010122612);
+                end;
               end;
             _OBJCPROTOCOL :
                begin
@@ -1567,6 +1544,9 @@ implementation
             _FUNCTION:
               begin
                 def:=procvar_dec(genericdef,genericlist);
+{$ifdef jvm}
+                jvm_create_procvar_class(name,def);
+{$endif}
               end;
             else
               if (token=_KLAMMERAFFE) and (m_iso in current_settings.modeswitches) then
@@ -1598,6 +1578,10 @@ implementation
         def : tdef;
         vmtwriter  : TVMTWriter;
       begin
+{$ifdef jvm}
+        { no Delphi-style RTTI }
+        exit;
+{$endif jvm}
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
@@ -1653,5 +1637,39 @@ implementation
               RTTIWriter.write_rtti(def,fullrtti);
           end;
       end;
+
+
+    procedure add_typedconst_init_routine(def: tabstractrecorddef);
+      var
+        sstate: tscannerstate;
+        pd: tprocdef;
+      begin
+        replace_scanner('tcinit_routine',sstate);
+        { the typed constant initialization code is called from the class
+          constructor by tnodeutils.wrap_proc_body; at this point, we don't
+          know yet whether that will be necessary, because there may be
+          typed constants inside method bodies -> always force the addition
+          of a class constructor.
+
+          We cannot directly add the typed constant initialisations to the
+          class constructor, because when it's parsed not all method bodies
+          are necessarily already parsed }
+        pd:=def.find_procdef_bytype(potype_class_constructor);
+        { the class constructor }
+        if not assigned(pd) then
+          begin
+            if str_parse_method_dec('constructor fpc_init_typed_consts_class_constructor;',potype_class_constructor,true,def,pd) then
+              pd.synthetickind:=tsk_empty
+            else
+              internalerror(2011040206);
+          end;
+        { the initialisation helper }
+        if str_parse_method_dec('procedure fpc_init_typed_consts_helper; static;',potype_procedure,true,def,pd) then
+          pd.synthetickind:=tsk_tcinit
+        else
+          internalerror(2011040207);
+        restore_scanner(sstate);
+      end;
+
 
 end.

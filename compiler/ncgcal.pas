@@ -33,21 +33,26 @@ interface
 
     type
        tcgcallparanode = class(tcallparanode)
-       private
+       protected
           tempcgpara : tcgpara;
           procedure push_addr_para;
-          procedure push_value_para;
+          procedure push_value_para;virtual;
+          procedure push_formal_para;virtual;
+          procedure push_copyout_para;virtual;abstract;
        public
           constructor create(expr,next : tnode);override;
           destructor destroy;override;
           procedure secondcallparan;override;
        end;
 
+       { tcgcallnode }
+
        tcgcallnode = class(tcallnode)
        private
 
           procedure handle_return_value;
           procedure release_unused_return_value;
+          procedure copy_back_paras;
           procedure release_para_temps;
           procedure pushparas;
           procedure freeparas;
@@ -66,6 +71,7 @@ interface
           }
           procedure pop_parasize(pop_size:longint);virtual;
           procedure extra_interrupt_code;virtual;
+          procedure extra_pre_call_code;virtual;
           procedure extra_call_code;virtual;
           procedure extra_post_call_code;virtual;
           procedure do_syscall;virtual;abstract;
@@ -75,6 +81,11 @@ interface
             can work with it. This routine decides what the most appropriate
             tlocation is and sets self.location based on that. }
           procedure set_result_location(realresdef: tstoreddef);virtual;
+
+          { if an unused return value is in another location than a
+            LOC_REFERENCE, this method will be called to perform the necessary
+            cleanups. By default it does not do anything }
+          procedure do_release_unused_return_value;virtual;
        public
           procedure pass_generate_code;override;
           destructor destroy;override;
@@ -95,7 +106,7 @@ implementation
       cga,cgx86,aasmcpu,
 {$endif x86}
       ncgutil,
-      cgobj,tgobj,
+      cgobj,tgobj,hlcgobj,
       procinfo,
       wpobase;
 
@@ -122,22 +133,35 @@ implementation
       begin
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
-        cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
+        hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara.def,left.location.reference,tempcgpara);
       end;
 
 
     procedure tcgcallparanode.push_value_para;
       begin
-        { we've nothing to push when the size of the parameter is 0 }
-        if left.resultdef.size=0 then
+        { we've nothing to push when the size of the parameter is 0
+          -- except in case of the self parameter of an emptry record on e.g.
+             the JVM target }
+        if (left.resultdef.size=0) and
+           not(vo_is_self in parasym.varoptions) then
           exit;
 
         { Move flags and jump in register to make it less complex }
         if left.location.loc in [LOC_FLAGS,LOC_JUMP,LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
-          location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         { load the parameter's tlocation into its cgpara }
-        gen_load_loc_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location,tempcgpara)
+        hlcg.gen_load_loc_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location,tempcgpara)
+      end;
+
+
+    procedure tcgcallparanode.push_formal_para;
+      begin
+        { allow passing of a constant to a const formaldef }
+        if (parasym.varspez=vs_const) and
+           (left.location.loc in [LOC_CONSTANT,LOC_REGISTER]) then
+          hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+        push_addr_para;
       end;
 
 
@@ -158,15 +182,18 @@ implementation
              oflabel:=current_procinfo.CurrFalseLabel;
              current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
              current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
+             if assigned(fparainit) then
+               secondpass(fparainit);
              secondpass(left);
 
              maybechangeloadnodereg(current_asmdata.CurrAsmList,left,true);
 
              { release memory for refcnt out parameters }
              if (parasym.varspez=vs_out) and
-                is_managed_type(left.resultdef) then
+                is_managed_type(left.resultdef) and
+                not(target_info.system in systems_garbage_collected_managed_types) then
                begin
-                 location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
+                 hlcg.location_get_data_ref(current_asmdata.CurrAsmList,left.resultdef,left.location,href,false,sizeof(pint));
                  if is_open_array(resultdef) then
                    begin
                      { if elementdef is not managed, omit fpc_decref_array
@@ -181,7 +208,7 @@ implementation
                        end;
                    end
                  else
-                   cg.g_finalize(current_asmdata.CurrAsmList,left.resultdef,href)
+                   hlcg.g_finalize(current_asmdata.CurrAsmList,left.resultdef,href)
                end;
 
              paramanager.createtempparaloc(current_asmdata.CurrAsmList,aktcallnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
@@ -213,14 +240,11 @@ implementation
                end
              { formal def }
              else if (parasym.vardef.typ=formaldef) then
-               begin
-                  { allow passing of a constant to a const formaldef }
-                  if (parasym.varspez=vs_const) and
-                     (left.location.loc in [LOC_CONSTANT,LOC_REGISTER]) then
-                    location_force_mem(current_asmdata.CurrAsmList,left.location);
-                  push_addr_para;
-               end
+               push_formal_para
              { Normal parameter }
+             else if paramanager.push_copyout_param(parasym.varspez,parasym.vardef,
+                         aktcallnode.procdefinition.proccalloption) then
+               push_copyout_para
              else
                begin
                  { don't push a node that already generated a pointer type
@@ -245,13 +269,13 @@ implementation
                           if (left.location.reference.index<>NR_NO) or
                              (left.location.reference.offset<>0) then
                             internalerror(200410107);
-                          cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,left.location.reference.base,tempcgpara)
+                          hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,voidpointertype,left.location.reference.base,tempcgpara)
                         end
                       else
                         begin
                           { Force to be in memory }
                           if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                            location_force_mem(current_asmdata.CurrAsmList,left.location);
+                            hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
                           push_addr_para;
                         end;
                    end
@@ -287,6 +311,11 @@ implementation
       end;
 
 
+    procedure tcgcallnode.extra_pre_call_code;
+      begin
+      end;
+
+
     procedure tcgcallnode.extra_call_code;
       begin
       end;
@@ -313,8 +342,21 @@ implementation
         else
           begin
             location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),0);
-            tg.GetTemp(current_asmdata.CurrAsmList,retloc.intsize,retloc.Alignment,tt_normal,location.reference);
+            tg.gethltemp(current_asmdata.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
           end;
+      end;
+
+
+    procedure tcgcallnode.do_release_unused_return_value;
+      begin
+        case location.loc of
+          LOC_REFERENCE :
+            begin
+              if is_managed_type(resultdef) then
+                 hlcg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
+               tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
+            end;
+        end;
       end;
 
 
@@ -369,7 +411,7 @@ implementation
             if (cnf_return_value_used in callnodeflags) or
                assigned(funcretnode) then
               begin
-                gen_load_cgpara_loc(current_asmdata.CurrAsmList,realresdef,retloc,location,false);
+                hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,realresdef,retloc,location,false);
 {$ifdef arm}
                 if (resultdef.typ=floatdef) and
                    (location.loc=LOC_REGISTER) and
@@ -393,7 +435,7 @@ implementation
               function since this is code is only executed after the function call has returned }
             if is_managed_type(funcretnode.resultdef) and
                (funcretnode.nodetype<>temprefn) then
-              cg.g_finalize(current_asmdata.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
+              hlcg.g_finalize(current_asmdata.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
 
             case location.loc of
               LOC_REGISTER :
@@ -410,9 +452,9 @@ implementation
                 begin
                   case funcretnode.location.loc of
                     LOC_REGISTER:
-                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,location.size,location.size,location.reference,funcretnode.location.register);
+                      hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,location.reference,funcretnode.location.register);
                     LOC_REFERENCE:
-                      cg.g_concatcopy(current_asmdata.CurrAsmList,location.reference,funcretnode.location.reference,resultdef.size);
+                      hlcg.g_concatcopy(current_asmdata.CurrAsmList,resultdef,location.reference,funcretnode.location.reference);
                     else
                       internalerror(200802121);
                   end;
@@ -433,25 +475,26 @@ implementation
           tree is generated, because that converts the temp from persistent to normal }
         if not(cnf_return_value_used in callnodeflags) then
           begin
-            case location.loc of
-              LOC_REFERENCE :
-                begin
-                  if is_managed_type(resultdef) then
-                     cg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
-                   tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
-                end;
-{$ifdef x86}
-              LOC_FPUREGISTER :
-                 begin
-                   { release FPU stack }
-                   emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
-                   tcgx86(cg).dec_fpu_stack;
-                 end;
-{$endif x86}
-            end;
+            do_release_unused_return_value;
             if (retloc.intsize<>0) then
               paramanager.freecgpara(current_asmdata.CurrAsmList,retloc);
             location_reset(location,LOC_VOID,OS_NO);
+         end;
+      end;
+
+
+    procedure tcgcallnode.copy_back_paras;
+      var
+        hp,
+        hp2 : tnode;
+        ppn : tcallparanode;
+      begin
+        ppn:=tcallparanode(left);
+        while assigned(ppn) do
+          begin
+             if assigned(ppn.paracopyback) then
+               secondpass(ppn.paracopyback);
+             ppn:=tcallparanode(ppn.right);
           end;
       end;
 
@@ -654,6 +697,8 @@ implementation
             not(procdefinition.has_paraloc_info in [callerside,callbothsides]) then
            internalerror(200305264);
 
+         extra_pre_call_code;
+
          if assigned(callinitblock) then
            secondpass(tnode(callinitblock));
 
@@ -723,6 +768,8 @@ implementation
              name_to_call:='';
              if assigned(fobjcforcedprocname) then
                name_to_call:=fobjcforcedprocname^;
+             { in the JVM, virtual method calls are also name-based }
+{$ifndef jvm}
              { When methodpointer is typen we don't need (and can't) load
                a pointer. We can directly call the correct procdef (PFV) }
              if (name_to_call='') and
@@ -792,6 +839,7 @@ implementation
                  extra_post_call_code;
                end
              else
+{$endif jvm}
                begin
                   { Load parameters that are in temporary registers in the
                     correct parameter register }
@@ -818,9 +866,12 @@ implementation
                         extra_interrupt_code;
                       extra_call_code;
                       if (name_to_call='') then
-                        cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname,po_weakexternal in procdefinition.procoptions)
+                        if cnf_inherited in callnodeflags then
+                          hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname)
+                        else
+                          hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname,po_weakexternal in procdefinition.procoptions)
                       else
-                        cg.a_call_name(current_asmdata.CurrAsmList,name_to_call,po_weakexternal in procdefinition.procoptions);
+                        hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,po_weakexternal in procdefinition.procoptions);
                       extra_post_call_code;
                     end;
                end;
@@ -935,6 +986,9 @@ implementation
          { convert persistent temps for parameters and function result to normal temps }
          if assigned(callcleanupblock) then
            secondpass(tnode(callcleanupblock));
+
+         { copy back copy-out parameters if any }
+         copy_back_paras;
 
          { release temps and finalize unused return values, must be
            after the callcleanupblock because that converts temps

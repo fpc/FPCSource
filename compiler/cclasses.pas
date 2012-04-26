@@ -194,17 +194,21 @@ type
     FHashTable    : PHashTable;
     FHashCapacity : Integer;
     { Strings }
+{$ifdef symansistr}
+    FStrs     : PAnsiString;
+{$else symansistr}
     FStrs     : PChar;
+{$endif symansistr}
     FStrCount,
     FStrCapacity : Integer;
-    function InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
+    function InternalFind(AHash:LongWord;const AName:TSymStr;out PrevIndex:Integer):Integer;
   protected
     function Get(Index: Integer): Pointer;
     procedure Put(Index: Integer; Item: Pointer);
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
-    function  AddStr(const s:shortstring): Integer;
+    function  AddStr(const s:TSymStr): Integer;
     procedure AddToHashTable(Index: Integer);
     procedure StrExpand(MinIncSize:Integer);
     procedure SetStrCapacity(NewCapacity: Integer);
@@ -213,9 +217,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    function Add(const AName:shortstring;Item: Pointer): Integer;
+    function Add(const AName:TSymStr;Item: Pointer): Integer;
     procedure Clear;
-    function NameOfIndex(Index: Integer): ShortString;
+    function NameOfIndex(Index: Integer): TSymStr;
     function HashOfIndex(Index: Integer): LongWord;
     function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
@@ -223,10 +227,10 @@ type
     function Expand: TFPHashList;
     function Extract(item: Pointer): Pointer;
     function IndexOf(Item: Pointer): Integer;
-    function Find(const AName:shortstring): Pointer;
-    function FindIndexOf(const AName:shortstring): Integer;
-    function FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
-    function Rename(const AOldName,ANewName:shortstring): Integer;
+    function Find(const AName:TSymStr): Pointer;
+    function FindIndexOf(const AName:TSymStr): Integer;
+    function FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer;
+    function Rename(const AOldName,ANewName:TSymStr): Integer;
     function Remove(Item: Pointer): Integer;
     procedure Pack;
     procedure ShowStatistics;
@@ -236,7 +240,11 @@ type
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
     property List: PHashItemList read FHashList;
+{$ifdef symansistr}
+    property Strs: PSymStr read FStrs;
+{$else}
     property Strs: PChar read FStrs;
+{$endif}
   end;
 
 
@@ -251,19 +259,18 @@ type
   TFPHashObject = class
   private
     FOwner     : TFPHashObjectList;
-    FCachedStr : pshortstring;
     FStrIndex  : Integer;
-    procedure InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:shortstring);
+    procedure InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:TSymStr);
   protected
-    function GetName:shortstring;virtual;
+    function GetName:TSymStr;virtual;
     function GetHash:Longword;virtual;
   public
     constructor CreateNotOwned;
-    constructor Create(HashObjectList:TFPHashObjectList;const s:shortstring);
+    constructor Create(HashObjectList:TFPHashObjectList;const s:TSymStr);
     procedure ChangeOwner(HashObjectList:TFPHashObjectList);
-    procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:shortstring); {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Rename(const ANewName:shortstring);
-    property Name:shortstring read GetName;
+    procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:TSymStr); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Rename(const ANewName:TSymStr);
+    property Name:TSymStr read GetName;
     property Hash:Longword read GetHash;
   end;
 
@@ -282,8 +289,8 @@ type
     constructor Create(FreeObjects : boolean = True);
     destructor Destroy; override;
     procedure Clear;
-    function Add(const AName:shortstring;AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Add(const AName:TSymStr;AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function NameOfIndex(Index: Integer): TSymStr; {$ifdef CCLASSESINLINE}inline;{$endif}
     function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
     function GetNextCollision(Index: Integer): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Delete(Index: Integer);
@@ -291,10 +298,10 @@ type
     function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Remove(AObject: TObject): Integer;
     function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function Find(const s:shortstring): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function FindIndexOf(const s:shortstring): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
-    function Rename(const AOldName,ANewName:shortstring): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Find(const s:TSymStr): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function FindIndexOf(const s:TSymStr): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer;
+    function Rename(const AOldName,ANewName:TSymStr): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
     procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure ShowStatistics; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -574,6 +581,7 @@ type
     function FPHash(const s:shortstring):LongWord;
     function FPHash(P: PChar; Len: Integer): LongWord;
     function FPHash(P: PChar; Len: Integer; Tag: LongWord): LongWord;
+    function FPHash(const a:ansistring):LongWord;
 
 
 implementation
@@ -1172,6 +1180,12 @@ end;
 {$pop}
       end;
 
+    function FPHash(const a: ansistring): LongWord;
+      begin
+         result:=fphash(pchar(a),length(a));
+      end;
+
+
 procedure TFPHashList.RaiseIndexError(Index : Integer);
 begin
   Error(SListIndexError, Index);
@@ -1194,14 +1208,14 @@ begin
 end;
 
 
-function TFPHashList.NameOfIndex(Index: Integer): shortstring;
+function TFPHashList.NameOfIndex(Index: Integer): TSymStr;
 begin
   If (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
   with FHashList^[Index] do
     begin
       if StrIndex>=0 then
-        Result:=PShortString(@FStrs[StrIndex])^
+        Result:=PSymStr(@FStrs[StrIndex])^
       else
         Result:='';
     end;
@@ -1274,6 +1288,10 @@ end;
 
 
 procedure TFPHashList.SetStrCapacity(NewCapacity: Integer);
+{$ifdef symansistr}
+var
+  i: longint;
+{$endif symansistr}
 begin
 {$push}{$warnings off}
   If (NewCapacity < FStrCount) or (NewCapacity > MaxHashStrSize) then
@@ -1281,7 +1299,18 @@ begin
 {$pop}
   if NewCapacity = FStrCapacity then
     exit;
+{$ifdef symansistr}
+{ array of ansistrings -> finalize }
+  if (NewCapacity < FStrCapacity) then
+    for i:=NewCapacity to FStrCapacity-1 do
+      finalize(FStrs[i]);
+  ReallocMem(FStrs, NewCapacity*sizeof(pansistring));
+  { array of ansistrings -> initialize to nil }
+  if (NewCapacity > FStrCapacity) then
+    fillchar(FStrs[FStrCapacity],(NewCapacity-FStrCapacity)*sizeof(pansistring),0);
+{$else symansistr}
   ReallocMem(FStrs, NewCapacity);
+{$endif symansistr}
   FStrCapacity := NewCapacity;
 end;
 
@@ -1329,16 +1358,26 @@ begin
 end;
 
 
-function TFPHashList.AddStr(const s:shortstring): Integer;
+function TFPHashList.AddStr(const s:TSymStr): Integer;
+{$ifndef symansistr}
 var
   Len : Integer;
+{$endif symansistr}
 begin
+{$ifdef symansistr}
+  if FStrCount+1 >= FStrCapacity then
+    StrExpand(FStrCount+1);
+  FStrs[FStrCount]:=s;
+  result:=FStrCount;
+  inc(FStrCount);
+{$else symansistr}
   len:=length(s)+1;
   if FStrCount+Len >= FStrCapacity then
     StrExpand(Len);
   System.Move(s[0],FStrs[FStrCount],Len);
   result:=FStrCount;
   inc(FStrCount,Len);
+{$endif symansistr}
 end;
 
 
@@ -1357,7 +1396,7 @@ begin
 end;
 
 
-function TFPHashList.Add(const AName:shortstring;Item: Pointer): Integer;
+function TFPHashList.Add(const AName:TSymStr;Item: Pointer): Integer;
 begin
   if FCount = FCapacity then
     Expand;
@@ -1460,9 +1499,11 @@ begin
     end;
 end;
 
-function TFPHashList.InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
+function TFPHashList.InternalFind(AHash:LongWord;const AName:TSymStr;out PrevIndex:Integer):Integer;
+var
+  HashIndex : Integer;
 begin
-  prefetch(AName);
+  prefetch(AName[1]);
   Result:=FHashTable^[AHash and FCapacityMask];
   PrevIndex:=-1;
   while Result<>-1 do
@@ -1471,7 +1512,7 @@ begin
         begin
           if assigned(Data) and
              (HashValue=AHash) and
-             (AName=PShortString(@FStrs[StrIndex])^) then
+             (AName=PSymStr(@FStrs[StrIndex])^) then
             exit;
           PrevIndex:=Result;
           Result:=NextIndex;
@@ -1480,7 +1521,7 @@ begin
 end;
 
 
-function TFPHashList.Find(const AName:shortstring): Pointer;
+function TFPHashList.Find(const AName:TSymStr): Pointer;
 var
   Index,
   PrevIndex : Integer;
@@ -1493,7 +1534,7 @@ begin
 end;
 
 
-function TFPHashList.FindIndexOf(const AName:shortstring): Integer;
+function TFPHashList.FindIndexOf(const AName:TSymStr): Integer;
 var
   PrevIndex : Integer;
 begin
@@ -1501,7 +1542,7 @@ begin
 end;
 
 
-function TFPHashList.FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
+function TFPHashList.FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer;
 var
   Index,
   PrevIndex : Integer;
@@ -1514,7 +1555,7 @@ begin
 end;
 
 
-function TFPHashList.Rename(const AOldName,ANewName:shortstring): Integer;
+function TFPHashList.Rename(const AOldName,ANewName:TSymStr): Integer;
 var
   PrevIndex,
   Index : Integer;
@@ -1640,14 +1681,13 @@ end;
                                TFPHashObject
 *****************************************************************************}
 
-procedure TFPHashObject.InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:shortstring);
+procedure TFPHashObject.InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:TSymStr);
 var
   Index : integer;
 begin
   FOwner:=HashObjectList;
   Index:=HashObjectList.Add(s,Self);
   FStrIndex:=HashObjectList.List.List^[Index].StrIndex;
-  FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
 end;
 
 
@@ -1657,7 +1697,7 @@ begin
 end;
 
 
-constructor TFPHashObject.Create(HashObjectList:TFPHashObjectList;const s:shortstring);
+constructor TFPHashObject.Create(HashObjectList:TFPHashObjectList;const s:TSymStr);
 begin
   InternalChangeOwner(HashObjectList,s);
 end;
@@ -1665,36 +1705,30 @@ end;
 
 procedure TFPHashObject.ChangeOwner(HashObjectList:TFPHashObjectList);
 begin
-  InternalChangeOwner(HashObjectList,PShortString(@FOwner.List.Strs[FStrIndex])^);
+  InternalChangeOwner(HashObjectList,PSymStr(@FOwner.List.Strs[FStrIndex])^);
 end;
 
 
-procedure TFPHashObject.ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:shortstring);
+procedure TFPHashObject.ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:TSymStr);
 begin
   InternalChangeOwner(HashObjectList,s);
 end;
 
 
-procedure TFPHashObject.Rename(const ANewName:shortstring);
+procedure TFPHashObject.Rename(const ANewName:TSymStr);
 var
   Index : integer;
 begin
-  Index:=FOwner.Rename(PShortString(@FOwner.List.Strs[FStrIndex])^,ANewName);
+  Index:=FOwner.Rename(PSymStr(@FOwner.List.Strs[FStrIndex])^,ANewName);
   if Index<>-1 then
-    begin
-      FStrIndex:=FOwner.List.List^[Index].StrIndex;
-      FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
-    end;
+    FStrIndex:=FOwner.List.List^[Index].StrIndex;
 end;
 
 
-function TFPHashObject.GetName:shortstring;
+function TFPHashObject.GetName:TSymStr;
 begin
   if FOwner<>nil then
-    begin
-      FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
-      Result:=FCachedStr^;
-    end
+    Result:=PSymStr(@FOwner.List.Strs[FStrIndex])^
   else
     Result:='';
 end;
@@ -1703,7 +1737,7 @@ end;
 function TFPHashObject.GetHash:Longword;
 begin
   if FOwner<>nil then
-    Result:=FPHash(PShortString(@FOwner.List.Strs[FStrIndex])^)
+    Result:=FPHash(PSymStr(@FOwner.List.Strs[FStrIndex])^)
   else
     Result:=$ffffffff;
 end;
@@ -1773,12 +1807,12 @@ begin
   Result := FHashList.Capacity;
 end;
 
-function TFPHashObjectList.Add(const AName:shortstring;AObject: TObject): Integer;
+function TFPHashObjectList.Add(const AName:TSymStr;AObject: TObject): Integer;
 begin
   Result := FHashList.Add(AName,AObject);
 end;
 
-function TFPHashObjectList.NameOfIndex(Index: Integer): shortstring;
+function TFPHashObjectList.NameOfIndex(Index: Integer): TSymStr;
 begin
   Result := FHashList.NameOfIndex(Index);
 end;
@@ -1828,25 +1862,25 @@ begin
 end;
 
 
-function TFPHashObjectList.Find(const s:shortstring): TObject;
+function TFPHashObjectList.Find(const s:TSymStr): TObject;
 begin
   result:=TObject(FHashList.Find(s));
 end;
 
 
-function TFPHashObjectList.FindIndexOf(const s:shortstring): Integer;
+function TFPHashObjectList.FindIndexOf(const s:TSymStr): Integer;
 begin
   result:=FHashList.FindIndexOf(s);
 end;
 
 
-function TFPHashObjectList.FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
+function TFPHashObjectList.FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer;
 begin
   Result:=TObject(FHashList.FindWithHash(AName,AHash));
 end;
 
 
-function TFPHashObjectList.Rename(const AOldName,ANewName:shortstring): Integer;
+function TFPHashObjectList.Rename(const AOldName,ANewName:TSymStr): Integer;
 begin
   Result:=FHashList.Rename(AOldName,ANewName);
 end;

@@ -381,6 +381,9 @@ begin
 {$ifdef avr}
       'V',
 {$endif}
+{$ifdef jvm}
+      'J',
+{$endif}
       '*' : show:=true;
      end;
      if show then
@@ -942,6 +945,14 @@ begin
                           IllegalPara(opt);
                         break;
                       end;
+                    'v' :
+                       If target_info.system in systems_jvm then
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.localswitches,cs_check_var_copyout)
+                         Else
+                           include(init_settings.localswitches,cs_check_var_copyout)
+                       else
+                         IllegalPara(opt)
                     else
                        IllegalPara(opt);
                   end;
@@ -1466,6 +1477,9 @@ begin
                  IllegalPara(opt);
                if more[1]='I' then
                  begin
+{$ifdef jvm}
+                   UnsupportedPara('-SI');
+{$endif}
                    if upper(more)='ICOM' then
                      init_settings.interfacetype:=it_interfacecom
                    else if upper(more)='ICORBA' then
@@ -1522,9 +1536,9 @@ begin
                            include(init_settings.moduleswitches,cs_support_goto);
                        'h' :
                          If UnsetBool(More, j) then
-                           exclude(init_settings.localswitches,cs_ansistrings)
+                           exclude(init_settings.localswitches,cs_refcountedstrings)
                          else
-                           include(init_settings.localswitches,cs_ansistrings);
+                           include(init_settings.localswitches,cs_refcountedstrings);
                        'i' :
                          If UnsetBool(More, j) then
                            exclude(init_settings.localswitches,cs_do_inline)
@@ -1573,7 +1587,7 @@ begin
                            init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions,
                                                                                          cs_support_vectors,cs_load_fpcylix_unit];
 
-                           init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_ansistrings,
+                           init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_refcountedstrings,
                                                                                        cs_typed_addresses];
 
                            init_settings.moduleswitches:=init_settings.moduleswitches - [cs_support_c_operators, cs_support_goto,
@@ -2511,6 +2525,11 @@ begin
     system_i386_nativent:
       // until these features are implemented, they are disabled in the compiler
       target_unsup_features:=[f_stackcheck];
+    system_jvm_java32,
+    system_jvm_android32:
+      target_unsup_features:=[f_heap,f_textio,f_consoleio,f_fileio,
+         f_variants,f_objects,f_threading,f_commandargs,
+         f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources];
     else
       target_unsup_features:=[];
   end;
@@ -2751,7 +2770,7 @@ begin
   def_system_macro('FPC_HAS_MEMBAR');
   def_system_macro('FPC_SETBASE_USED');
 
-{$if defined(x86) or defined(arm)}
+{$if defined(x86) or defined(arm) or defined(jvm)}
   def_system_macro('INTERNAL_BACKTRACE');
 {$endif}
   def_system_macro('STR_CONCAT_PROCS');
@@ -2845,6 +2864,12 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif avr}
+{$ifdef jvm}
+  def_system_macro('CPUJVM');
+  def_system_macro('CPU32');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif jvm}
 
 {$ifdef mips}
 
@@ -3125,8 +3150,16 @@ if (target_info.abi = abi_eabihf) then
     if not option.OptCPUSetExplicitly then
       init_settings.optimizecputype:=cpu_armv7;
   end;
-
 {$endif arm}
+
+{$ifdef jvm}
+  { set default CPU type to Dalvik when targeting Android }
+  if target_info.system=system_jvm_android32 then
+    begin
+      if not option.CPUSetExplicitly then
+        init_settings.cputype:=cpu_dalvik;
+    end;
+{$endif jvm}
 
   { now we can define cpu and fpu type }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);

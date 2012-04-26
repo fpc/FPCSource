@@ -127,11 +127,11 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
+      symconst,symtype,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       parabase,
       pass_2,
       ncon,
-      tgobj,ncgutil,cgobj,cgutils,paramgr
+      tgobj,ncgutil,cgobj,cgutils,paramgr,hlcgobj
 {$ifndef cpu64bitalu}
       ,cg64f32
 {$endif not cpu64bitalu}
@@ -233,19 +233,25 @@ implementation
     procedure tcgunaryminusnode.second_integer;
       var
         hl: tasmlabel;
+        opsize: tdef;
       begin
         secondpass(left);
         { load left operator in a register }
         location_copy(location,left.location);
-        location_force_reg(current_asmdata.CurrAsmList,location,OS_SINT,false);
-        cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_SINT,location.register,location.register);
+        { in case of a 32 bit system that can natively execute 64 bit operations }
+        if (left.resultdef.size<=sinttype.size) then
+          opsize:=sinttype
+        else
+          opsize:=s64inttype;
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,opsize,false);
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,opsize,location.register,location.register);
 
         if (cs_check_overflow in current_settings.localswitches) then
           begin
             current_asmdata.getjumplabel(hl);
-            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_SINT,OC_NE,low(aint),location.register,hl);
+            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,low(aint),location.register,hl);
             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
-            cg.a_label(current_asmdata.CurrAsmList,hl);
+            hlcg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;
 
@@ -488,10 +494,10 @@ implementation
     procedure tcgnotnode.second_integer;
       begin
         secondpass(left);
-        location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location_copy(location,left.location);
         { perform the NOT operation }
-        cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,location.register,location.register);
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,location.register,location.register);
       end;
 
 

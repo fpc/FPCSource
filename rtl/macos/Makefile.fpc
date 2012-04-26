@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=system strings objpas macpas iso7185 heaptrc getopts macostp macutils \
+units=system uuchar strings objpas macpas iso7185 heaptrc getopts macostp macutils \
       unixutil dos objects matrix cmem charset ctypes
 #      exec  \
 #      crt printer \
@@ -39,6 +39,7 @@ PPUEXT=pput
 ASMEXT=.s
 
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -99,6 +100,8 @@ strings$(PPUEXT) : $(INC)/strings.pp system$(PPUEXT)
 #
 # Delphi Object Model
 #
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp system$(PPUEXT)
 	$(COPY) $(OBJPASDIR)/objpas.pp .

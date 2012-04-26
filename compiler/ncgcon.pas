@@ -27,6 +27,7 @@ unit ncgcon;
 interface
 
     uses
+       aasmbase,
        node,ncon;
 
     type
@@ -51,6 +52,10 @@ interface
        end;
 
        tcgsetconstnode = class(tsetconstnode)
+         protected
+          function emitvarsetconst: tasmsymbol; virtual;
+          procedure handlevarsetconst;
+         public
           procedure pass_generate_code;override;
        end;
 
@@ -68,10 +73,10 @@ implementation
     uses
       globtype,widestr,systems,
       verbose,globals,cutils,
-      symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
+      symconst,symdef,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
-      ncgutil, cclasses,asmutils
+      ncgutil, cclasses,asmutils,tgobj
       ;
 
 
@@ -369,71 +374,112 @@ implementation
                            TCGSETCONSTNODE
 *****************************************************************************}
 
-    procedure tcgsetconstnode.pass_generate_code;
-
+    function tcgsetconstnode.emitvarsetconst: tasmsymbol;
       type
+        setbytes=array[0..31] of byte;
+        Psetbytes=^setbytes;
+      var
+        lab: tasmlabel;
+        i: longint;
+      begin
+        current_asmdata.getdatalabel(lab);
+        result:=lab;
+        lab_set:=lab;
+        maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,result.name,const_align(8));
+        current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lab));
+        if (source_info.endian=target_info.endian) then
+          for i:=0 to 31 do
+            current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
+        else
+          for i:=0 to 31 do
+            current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
+      end;
+
+
+    procedure tcgsetconstnode.handlevarsetconst;
+      var
+         entry       : PHashSetItem;
+      begin
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
+        { const already used ? }
+        if not assigned(lab_set) then
+          begin
+            entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, 32);
+
+             { :-(, we must generate a new entry }
+             if not assigned(entry^.Data) then
+               entry^.Data:=emitvarsetconst;
+             lab_set := TAsmSymbol(entry^.Data);
+          end;
+        location.reference.symbol:=lab_set;
+      end;
+
+
+    procedure tcgsetconstnode.pass_generate_code;
+       type
          setbytes=array[0..31] of byte;
          Psetbytes=^setbytes;
 
         procedure smallsetconst;
-        begin
-          location_reset(location,LOC_CONSTANT,int_cgsize(resultdef.size));
-          if (source_info.endian=target_info.endian) then
-            begin
-              { not plongint, because that will "sign extend" the set on 64 bit platforms }
-              { if changed to "paword", please also modify "32-resultdef.size*8" and      }
-              { cross-endian code below                                                   }
-              { Extra aint type cast to avoid range errors                                }
-              location.value:=aint(pCardinal(value_set)^)
-            end
-          else
-            begin
-              location.value:=swapendian(Pcardinal(value_set)^);
-              location.value:=aint(
-                                 reverse_byte (location.value         and $ff)         or
-                                (reverse_byte((location.value shr  8) and $ff) shl  8) or
-                                (reverse_byte((location.value shr 16) and $ff) shl 16) or
-                                (reverse_byte((location.value shr 24) and $ff) shl 24)
-                              );
-            end;
-          if (target_info.endian=endian_big) then
-            location.value:=location.value shr (32-resultdef.size*8);
-        end;
+          begin
+            location_reset(location,LOC_CONSTANT,int_cgsize(resultdef.size));
+            if (source_info.endian=target_info.endian) then
+              begin
+                { not plongint, because that will "sign extend" the set on 64 bit platforms }
+                { if changed to "paword", please also modify "32-resultdef.size*8" and      }
+                { cross-endian code below                                                   }
+                { Extra aint type cast to avoid range errors                                }
+                location.value:=aint(pCardinal(value_set)^)
+              end
+            else
+              begin
+                location.value:=swapendian(Pcardinal(value_set)^);
+                location.value:=aint(
+                                   reverse_byte (location.value         and $ff)         or
+                                  (reverse_byte((location.value shr  8) and $ff) shl  8) or
+                                  (reverse_byte((location.value shr 16) and $ff) shl 16) or
+                                  (reverse_byte((location.value shr 24) and $ff) shl 24)
+                                );
+              end;
+            if (target_info.endian=endian_big) then
+              location.value:=location.value shr (32-resultdef.size*8);
+          end;
 
         procedure varsetconst;
-        var
-           lastlabel   : tasmlabel;
-           i           : longint;
-           entry       : PHashSetItem;
-        begin
-          location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
-          lastlabel:=nil;
-          { const already used ? }
-          if not assigned(lab_set) then
-            begin
-              entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, 32);
+          var
+             lastlabel   : tasmlabel;
+             i           : longint;
+             entry       : PHashSetItem;
+          begin
+            location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
+            lastlabel:=nil;
+            { const already used ? }
+            if not assigned(lab_set) then
+              begin
+                entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, 32);
 
-              lab_set := TAsmLabel(entry^.Data);  // is it needed anymore?
+                lab_set := TAsmLabel(entry^.Data);  // is it needed anymore?
 
-               { :-(, we must generate a new entry }
-               if not assigned(entry^.Data) then
-                 begin
-                   current_asmdata.getdatalabel(lastlabel);
-                   lab_set:=lastlabel;
-                   entry^.Data:=lastlabel;
-                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(8));
-                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
-                   if (source_info.endian=target_info.endian) then
-                     for i:=0 to 31 do
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
-                   else
-                     for i:=0 to 31 do
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
-                 end;
-            end;
-          location.reference.symbol:=lab_set;
-        end;
+                 { :-(, we must generate a new entry }
+                 if not assigned(entry^.Data) then
+                   begin
+                     current_asmdata.getdatalabel(lastlabel);
+                     lab_set:=lastlabel;
+                     entry^.Data:=lastlabel;
+                     maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(8));
+                     current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
+                     if (source_info.endian=target_info.endian) then
+                       for i:=0 to 31 do
+                         current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
+                     else
+                       for i:=0 to 31 do
+                         current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
+                   end;
+              end;
+            location.reference.symbol:=lab_set;
+          end;
 
       begin
         adjustforsetbase;
@@ -442,7 +488,7 @@ implementation
         if is_smallset(resultdef) then
           smallsetconst
         else
-          varsetconst;
+          handlevarsetconst;
       end;
 
 

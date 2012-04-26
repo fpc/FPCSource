@@ -55,6 +55,7 @@ interface
          procedure second_ansistring_to_pchar;override;
          procedure second_class_to_intf;override;
          procedure second_char_to_char;override;
+         procedure second_elem_to_openarray;override;
          procedure second_nothing;override;
        public
          procedure pass_generate_code;override;
@@ -73,7 +74,7 @@ interface
       cpubase,systems,
       procinfo,pass_2,
       cgbase,
-      cgutils,cgobj,
+      cgutils,cgobj,hlcgobj,
       ncgutil,
       tgobj
       ;
@@ -90,7 +91,7 @@ interface
 
         { insert range check if not explicit conversion }
         if not(nf_explicit in flags) then
-          cg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
+          hlcg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
 
         { is the result size smaller? when typecasting from void
           we always reuse the current location, because there is
@@ -322,7 +323,7 @@ interface
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
+         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
       end;
 
 
@@ -366,7 +367,7 @@ interface
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
-               tg.GetTemp(current_asmdata.CurrAsmList,256,2,tt_normal,location.reference);
+               tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
                cg.a_load_loc_ref(current_asmdata.CurrAsmList,left.location.size,left.location,
                  location.reference);
                location_freetemp(current_asmdata.CurrAsmList,left.location);
@@ -395,7 +396,7 @@ interface
              if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
              { round them down to the proper precision }
-             tg.gettemp(current_asmdata.currasmlist,resultdef.size,resultdef.alignment,tt_normal,tr);
+             tg.gethltemp(current_asmdata.currasmlist,resultdef,resultdef.size,tt_normal,tr);
              cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
              location_reset_ref(left.location,LOC_REFERENCE,location.size,tr.alignment);
              left.location.reference:=tr;
@@ -414,8 +415,8 @@ interface
                       { on sparc a move from double -> single means from two to one register. }
                       { On all other platforms it also needs rounding to avoid that           }
                       { single(double_regvar) = double_regvar is true in all cases            }
-                      location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
+                      location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+                      hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
                   LOC_MMREGISTER:
                     begin
@@ -438,9 +439,9 @@ interface
                    end
                   else
                     begin
-                      location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+                      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
+                      hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
                  location_freetemp(current_asmdata.CurrAsmList,left.location);
               end;
@@ -496,7 +497,7 @@ interface
                 { assigning a global function to a nested procvar -> create
                   tmethodpointer record and set the "frame pointer" to nil }
                 location_reset_ref(location,LOC_REFERENCE,int_cgsize(sizeof(pint)*2),sizeof(pint));
-                tg.gettemp(current_asmdata.CurrAsmList,resultdef.size,sizeof(pint),tt_normal,location.reference);
+                tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
                 tmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,tmpreg);
                 cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpreg,location.reference);
@@ -515,7 +516,16 @@ interface
     var r:Treference;
 
     begin
-      tg.gettemp(current_asmdata.currasmlist,2*sizeof(puint),sizeof(puint),tt_normal,r);
+{$ifdef jvm}
+{$ifndef nounsupported}
+      tg.gethltemp(current_asmdata.currasmlist,java_jlobject,java_jlobject.size,tt_normal,r);
+      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,java_jlobject,0,r);
+      location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+      location.reference:=r;
+      exit;
+{$endif}
+{$endif}
+      tg.gethltemp(current_asmdata.currasmlist,methodpointertype,methodpointertype.size,tt_normal,r);
       location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0);
       location.reference:=r;
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
@@ -682,6 +692,12 @@ interface
     procedure tcgtypeconvnode.second_char_to_char;
       begin
         internalerror(2007081202);
+      end;
+
+    procedure tcgtypeconvnode.second_elem_to_openarray;
+      begin
+        { nothing special to do by default }
+        second_nothing;
       end;
 
 

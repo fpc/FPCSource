@@ -172,8 +172,8 @@ interface
           smartext,
           unitext,
           unitlibext,
-          asmext,
-          objext,
+          asmext       : string[4];
+          objext       : string[6];
           resext       : string[4];
           resobjext    : string[7];
           sharedlibext : string[10];
@@ -254,7 +254,8 @@ interface
                            system_sparc_embedded,system_vm_embedded,
                            system_iA64_embedded,system_x86_64_embedded,
                            system_mips_embedded,system_arm_embedded,
-                           system_powerpc64_embedded,system_avr_embedded];
+                           system_powerpc64_embedded,system_avr_embedded,
+                           system_jvm_java32];
 
        { all systems that allow section directive }
        systems_allow_section = systems_embedded;
@@ -320,9 +321,43 @@ interface
         system_x86_64_freebsd,
         system_x86_64_solaris];
 
+       { all systems that use garbage collection for reference-counted types }
+       systems_garbage_collected_managed_types = [
+         system_jvm_java32,
+         system_jvm_android32
+       ];
+
+       { all systems that use a managed vm (-> no real pointers, internal VMT
+         format, ...) }
+       systems_managed_vm = [
+         system_jvm_java32,
+         system_jvm_android32
+       ];
+
+       { all systems based on the JVM }
+       systems_jvm = [
+         system_jvm_java32,
+         system_jvm_android32
+       ];
+
+       { all systems where typed constants have to be translated into node
+         trees that initialise the data instead of into data sections }
+       systems_typed_constants_node_init = [
+         system_jvm_java32,
+         system_jvm_android32
+       ];
+
+       { all systems that don't use a built-in framepointer for accessing nested
+         variables, but emulate it by wrapping nested variables in records
+         whose address is passed around }
+       systems_fpnestedstruct = [
+         system_jvm_java32,
+         system_jvm_android32
+       ];
+
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm', 'powerpc64', 'avr', 'mipsel');
+             'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm');
 
        abi2str : array[tabi] of string[10] =
          ('DEFAULT','SYSV','AIX','EABI','ARMEB','EABIHF');
@@ -889,6 +924,10 @@ begin
   default_target(system_mips_linux);
 {$endif mipsel}
 {$endif mips}
+
+{$ifdef jvm}
+  default_target(system_jvm_java32);
+{$endif jvm}
 end;
 
 

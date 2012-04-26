@@ -71,7 +71,7 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symsym,symconst,symdef,defutil,
       nflw,pass_2,ncgutil,
-      cgbase,cgobj,
+      cgbase,cgobj,hlcgobj,
       procinfo,
       tgobj
       ;
@@ -395,23 +395,28 @@ interface
         if (ti_valid in tempinfo^.flags) then
           internalerror(200108222);
 
-        { get a (persistent) temp }
-        if is_managed_type(tempinfo^.typedef) then
+        { in case of ti_reference, the location will be initialised using the
+          location of the tempinitnode once the first temprefnode is processed }
+        if not(ti_reference in tempinfo^.flags) then
           begin
-            location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
-            tg.GetTempTyped(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
-            { the temp could have been used previously either because the memory location was reused or
-              because we're in a loop }
-            cg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
-          end
-        else if (ti_may_be_in_reg in tempinfo^.flags) then
-          begin
-            location_allocate_register(current_asmdata.CurrAsmList,tempinfo^.location,tempinfo^.typedef,tempinfo^.temptype = tt_persistent);
-          end
-        else
-          begin
-            location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
-            tg.GetTemp(current_asmdata.CurrAsmList,size,tempinfo^.typedef.alignment,tempinfo^.temptype,tempinfo^.location.reference);
+            { get a (persistent) temp }
+            if is_managed_type(tempinfo^.typedef) then
+              begin
+                location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
+                tg.gethltemptyped(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
+                { the temp could have been used previously either because the memory location was reused or
+                  because we're in a loop }
+                hlcg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
+              end
+            else if (ti_may_be_in_reg in tempinfo^.flags) then
+              begin
+                location_allocate_register(current_asmdata.CurrAsmList,tempinfo^.location,tempinfo^.typedef,tempinfo^.temptype = tt_persistent);
+              end
+            else
+              begin
+                location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
+                tg.gethltemp(current_asmdata.CurrAsmList,tempinfo^.typedef,size,tempinfo^.temptype,tempinfo^.location.reference);
+              end;
           end;
         include(tempinfo^.flags,ti_valid);
         if assigned(tempinfo^.tempinitcode) then
@@ -430,6 +435,27 @@ interface
             { avoid recursion }
             exclude(tempinfo^.flags, ti_executeinitialisation);
             secondpass(tempinfo^.tempinitcode);
+            if (ti_reference in tempinfo^.flags) then
+              begin
+                case tempinfo^.tempinitcode.location.loc of
+                  LOC_CREGISTER,
+                  LOC_CFPUREGISTER,
+                  LOC_CMMREGISTER,
+                  LOC_CSUBSETREG:
+                    begin
+                      { although it's ok if we need this value multiple times
+                        for reading, it's not in case of writing (because the
+                        register could change due to SSA -> storing to the saved
+                        register afterwards would be wrong). }
+                      if not(ti_readonly in tempinfo^.flags) then
+                        internalerror(2011031407);
+                    end;
+                  { in case reference contains CREGISTERS, that doesn't matter:
+                    we want to write to the location indicated by the current
+                    value of those registers, and we can save those values }
+                end;
+                hlcg.g_reference_loc(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.tempinitcode.location,tempinfo^.location);
+              end;
           end;
         { check if the temp is valid }
         if not(ti_valid in tempinfo^.flags) then
@@ -475,6 +501,21 @@ interface
 
     procedure tcgtempdeletenode.pass_generate_code;
       begin
+        if ti_reference in tempinfo^.flags then
+          begin
+            { release_to_normal means that the temp will be freed the next
+              time it's used. However, reference temps reference some other
+              location that is not managed by this temp and hence cannot be
+              freed }
+            if release_to_normal then
+              internalerror(2011052205);
+            { so we only mark this temp location as "no longer valid" when
+              it's deleted (ttempdeletenodes are also used during getcopy, so
+              we really do need one) }
+            exclude(tempinfo^.flags,ti_valid);
+            exit;
+          end;
+
         location_reset(location,LOC_VOID,OS_NO);
 
         case tempinfo^.location.loc of

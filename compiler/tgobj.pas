@@ -56,11 +56,12 @@ unit tgobj;
 
        {# Generates temporary variables }
        ttgobj = class
-       private
+       protected
           { contains all free temps using nextfree links }
           tempfreelist  : ptemprecord;
-          function alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef) : longint;
+          function alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef) : longint; virtual;
           procedure freetemp(list: TAsmList; pos:longint;temptypes:ttemptypeset);
+          procedure gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef;out ref : treference);
        public
           { contains all temps }
           templist      : ptemprecord;
@@ -68,7 +69,7 @@ unit tgobj;
           firsttemp,
           lasttemp      : longint;
           direction : shortint;
-          constructor create;
+          constructor create;virtual;reintroduce;
           {# Clear and free the complete linked list of temporary memory
              locations. The list is set to nil.}
           procedure resettempgen;
@@ -78,8 +79,16 @@ unit tgobj;
 
              @param(l start offset where temps will start in stack)
           }
-          procedure setfirsttemp(l : longint);
+          procedure setfirsttemp(l : longint); virtual;
 
+          { version of gettemp that is compatible with hlcg-based targets;
+            always use in common code, only use gettemp in cgobj and
+            architecture-specific backends.
+
+            the forcesize parameter is so that it can be used for defs that
+            don't have an inherent size (e.g., array of const) }
+          procedure gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference); virtual;
+          procedure gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); virtual;
           procedure gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
           procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
           procedure ungettemp(list: TAsmList; const ref : treference);
@@ -102,12 +111,14 @@ unit tgobj;
 
           { Allocate space for a local }
           procedure getlocal(list: TAsmList; size : longint;def:tdef;var ref : treference);
-          procedure getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference);
+          procedure getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference); virtual;
           procedure UnGetLocal(list: TAsmList; const ref : treference);
        end;
+       ttgobjclass = class of ttgobj;
 
      var
        tg: ttgobj;
+       tgobjclass: ttgobjclass = ttgobj;
 
     procedure location_freetemp(list:TAsmList; const l : tlocation);
 
@@ -123,20 +134,22 @@ implementation
 
 
     const
-      FreeTempTypes = [tt_free,tt_freenoreuse];
+      FreeTempTypes = [tt_free,tt_freenoreuse,tt_freeregallocator];
 
 {$ifdef EXTDEBUG}
       TempTypeStr : array[ttemptype] of string[18] = (
           '<none>',
           'free','normal','persistant',
-          'noreuse','freenoreuse'
+          'noreuse','freenoreuse',
+          'regallocator','freeregallocator'
       );
 {$endif EXTDEBUG}
 
       Used2Free : array[ttemptype] of ttemptype = (
         tt_none,
         tt_none,tt_free,tt_free,
-        tt_freenoreuse,tt_none
+        tt_freenoreuse,tt_none,
+        tt_freeregallocator,tt_none
       );
 
 
@@ -161,7 +174,7 @@ implementation
        tempfreelist:=nil;
        templist:=nil;
        { we could create a new child class for this but I don't if it is worth the effort (FK) }
-{$if defined(powerpc) or defined(powerpc64) or defined(avr)}
+{$if defined(powerpc) or defined(powerpc64) or defined(avr) or defined(jvm)}
        direction:=1;
 {$else}
        direction:=-1;
@@ -491,7 +504,26 @@ implementation
       end;
 
 
+    procedure ttgobj.gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference);
+      begin
+        gettemp(list,forcesize,def.alignment,temptype,ref);
+      end;
+
+
+    procedure ttgobj.gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
+      begin
+        gettemptyped(list,def,temptype,ref);
+      end;
+
+
+
     procedure ttgobj.gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
+      begin
+        gettempinternal(list,size,alignment,temptype,nil,ref);
+      end;
+
+
+    procedure ttgobj.gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef;out ref : treference);
       var
         varalign : shortint;
       begin
@@ -500,23 +532,14 @@ implementation
           on cgobj (PFV) }
         fillchar(ref,sizeof(ref),0);
         ref.base:=current_procinfo.framepointer;
-        ref.offset:=alloctemp(list,size,varalign,temptype,nil);
+        ref.offset:=alloctemp(list,size,varalign,temptype,def);
         ref.alignment:=varalign;
       end;
 
 
     procedure ttgobj.gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
-      var
-        varalign : shortint;
       begin
-        varalign:=def.alignment;
-        varalign:=used_align(varalign,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
-        { can't use reference_reset_base, because that will let tgobj depend
-          on cgobj (PFV) }
-        fillchar(ref,sizeof(ref),0);
-        ref.base:=current_procinfo.framepointer;
-        ref.offset:=alloctemp(list,def.size,varalign,temptype,def);
-        ref.alignment:=varalign;
+        gettempinternal(list,def.size,def.alignment,temptype,def,ref);
       end;
 
 
@@ -626,7 +649,7 @@ implementation
 
     procedure ttgobj.UnGetTemp(list: TAsmList; const ref : treference);
       begin
-        FreeTemp(list,ref.offset,[tt_normal,tt_noreuse,tt_persistent]);
+        FreeTemp(list,ref.offset,[tt_normal,tt_noreuse,tt_persistent,tt_regallocator]);
       end;
 
 

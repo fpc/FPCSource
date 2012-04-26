@@ -111,6 +111,7 @@ const
   scanner_w_illegal_warn_identifier=02087;
   scanner_e_illegal_alignment_directive=02088;
   scanner_f_illegal_utf8_bom=02089;
+  scanner_w_directive_ignored_on_target=02090;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -195,7 +196,7 @@ const
   parser_f_unsupported_feature=03092;
   parser_e_mix_of_classes_and_objects=03093;
   parser_w_unknown_proc_directive_ignored=03094;
-  parser_e_absolute_only_one_var=03095;
+  parser_e_directive_only_one_var=03095;
   parser_e_absolute_only_to_var_or_const=03096;
   parser_e_initialized_only_one_var=03097;
   parser_e_abstract_no_definition=03098;
@@ -365,10 +366,10 @@ const
   parser_h_no_objc_parent=03270;
   parser_e_no_objc_published=03271;
   parser_f_need_objc=03272;
-  parser_e_must_use_override_objc=03273;
-  parser_h_should_use_override_objc=03274;
+  parser_e_must_use_override=03273;
+  parser_h_should_use_override=03274;
   parser_e_objc_message_name_changed=03275;
-  parser_e_no_objc_unique=03276;
+  parser_e_unique_unsupported=03276;
   parser_e_no_category_as_types=03277;
   parser_e_no_category_override=03278;
   parser_e_must_use_reintroduce_objc=03279;
@@ -390,7 +391,7 @@ const
   parser_e_objc_missing_enumeration_defs=03295;
   parser_e_no_procvarnested_const=03296;
   parser_f_no_generic_inside_generic=03297;
-  parser_e_forward_protocol_declaration_must_be_resolved=03298;
+  parser_e_forward_intf_declaration_must_be_resolved=03298;
   parser_e_no_record_published=03299;
   parser_e_no_destructor_in_records=03300;
   parser_e_class_methods_only_static_in_records=03301;
@@ -407,6 +408,13 @@ const
   parser_e_mapping_no_implements=03312;
   parser_e_implements_no_mapping=03313;
   parser_e_invalid_codepage=03314;
+  parser_e_final_only_const_var=03315;
+  parser_e_final_only_external=03316;
+  parser_e_no_typed_const=03317;
+  parser_e_java_no_inherited_constructor=03318;
+  parser_d_internal_parser_string=03319;
+  parser_e_feature_unsupported_for_vm=03320;
+  parser_e_jvm_invalid_virtual_constructor_call=03321;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -509,6 +517,12 @@ const
   type_e_range_check_error_bounds=04109;
   type_w_range_check_error_bounds=04110;
   type_e_type_not_allowed_for_default=04111;
+  type_e_java_class_method_not_static_virtual=04112;
+  type_e_invalid_final_assignment=04113;
+  type_e_no_managed_formal_assign_typecast=04114;
+  type_e_no_managed_assign_generic_typecast=04115;
+  type_w_interface_lower_visibility=04116;
+  type_e_interface_lower_visibility=04117;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -575,11 +589,13 @@ const
   sym_w_library_unit=05077;
   sym_w_non_implemented_unit=05078;
   sym_w_experimental_unit=05079;
-  sym_e_objc_formal_class_not_resolved=05080;
+  sym_e_formal_class_not_resolved=05080;
   sym_e_interprocgoto_into_init_final_code_not_allowed=05081;
   sym_e_external_class_name_mismatch1=05082;
   sym_e_external_class_name_mismatch2=05083;
   sym_w_library_overload=05084;
+  sym_e_duplicate_id_create_java_constructor=05085;
+  sym_e_no_matching_inherited_parameterless_constructor=05086;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -925,9 +941,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 63964;
+  MsgTxtSize = 65627;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,90,315,112,85,55,116,26,202,63,
+    26,91,322,118,87,55,116,26,202,63,
     53,20,1,1,1,1,1,1,1,1
   );

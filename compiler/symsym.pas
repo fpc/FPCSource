@@ -67,7 +67,7 @@ interface
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function mangledname:string;override;
+          function mangledname:TSymStr;override;
        end;
 
        tunitsym = class(Tstoredsym)
@@ -111,7 +111,9 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
+          function find_bytype_parameterless(pt:Tproctypeoption):Tprocdef;
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
+          function find_procdef_bytype_and_para(pt:Tproctypeoption;para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_byoptions(ops:tprocoptions): Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
@@ -167,11 +169,17 @@ interface
 
       tfieldvarsym = class(tabstractvarsym)
           fieldoffset   : asizeint;   { offset in record/object }
-          objcoffsetmangledname: pshortstring; { mangled name of offset, calculated as needed }
+          externalname  : pshortstring;
+{$ifdef symansistr}
+          cachedmangledname: TSymStr; { mangled name for ObjC or Java }
+{$else symansistr}
+          cachedmangledname: pshortstring; { mangled name for ObjC or Java }
+{$endif symansistr}
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function mangledname:string;override;
+          procedure set_externalname(const s:string);
+          function mangledname:TSymStr;override;
           destructor destroy;override;
       end;
 
@@ -180,6 +188,7 @@ interface
           defaultconstsymderef : tderef;
           localloc      : TLocation; { register/reference for local var }
           initialloc    : TLocation; { initial location so it can still be initialized later after the location was changed by SSA }
+          inparentfpstruct : boolean;   { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -212,17 +221,26 @@ interface
 
       tstaticvarsym = class(tabstractnormalvarsym)
       private
+{$ifdef symansistr}
+          _mangledbasename,
+          _mangledname : TSymStr;
+{$else symansistr}
+          _mangledbasename,
           _mangledname : pshortstring;
+{$endif symansistr}
       public
           section : ansistring;
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor create_dll(const n : string;vsp:tvarspez;def:tdef);
-          constructor create_C(const n,mangled : string;vsp:tvarspez;def:tdef);
+          constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function mangledname:string;override;
-          procedure set_mangledname(const s:string);
+          function mangledname:TSymStr;override;
+          procedure set_mangledbasename(const s: TSymStr);
+          function mangledbasename: TSymStr;
+          procedure set_mangledname(const s:TSymStr);
+          procedure set_raw_mangledname(const s:TSymStr);
       end;
 
       tabsolutevarsym = class(tabstractvarsym)
@@ -240,7 +258,7 @@ interface
          constructor ppuload(ppufile:tcompilerppufile);
          procedure buildderef;override;
          procedure deref;override;
-         function  mangledname : string;override;
+         function  mangledname : TSymStr;override;
          procedure ppuwrite(ppufile:tcompilerppufile);override;
       end;
 
@@ -340,6 +358,12 @@ interface
     var
        generrorsym : tsym;
 
+    { generate internal static field name based on regular field name }
+    function internal_static_field_name(const fieldname: TSymStr): TSymStr;
+    function get_high_value_sym(vs: tparavarsym):tsym; { marking it as inline causes IE 200311075 during loading from ppu file }
+
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
+
 implementation
 
     uses
@@ -349,6 +373,9 @@ implementation
        systems,
        { symtable }
        defutil,symtable,
+{$ifdef jvm}
+       jvmdef,
+{$endif}
        fmodule,
        { tree }
        node,
@@ -362,6 +389,38 @@ implementation
 {****************************************************************************
                                Helpers
 ****************************************************************************}
+
+    function internal_static_field_name(const fieldname: TSymStr): TSymStr;
+      begin
+        result:='$_static_'+fieldname;
+      end;
+
+
+    function get_high_value_sym(vs: tparavarsym):tsym;
+      begin
+        result := tsym(vs.owner.Find('high'+vs.name));
+      end;
+
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
+      begin
+        if not assigned(srsym) then
+          internalerror(200602051);
+        if sp_hint_deprecated in symoptions then
+          if (sp_has_deprecated_msg in symoptions) and (deprecatedmsg <> nil) then
+            Message2(sym_w_deprecated_symbol_with_msg,srsym.realname,deprecatedmsg^)
+          else
+            Message1(sym_w_deprecated_symbol,srsym.realname);
+        if sp_hint_experimental in symoptions then
+          Message1(sym_w_experimental_symbol,srsym.realname);
+        if sp_hint_platform in symoptions then
+          Message1(sym_w_non_portable_symbol,srsym.realname);
+        if sp_hint_library in symoptions then
+          Message1(sym_w_library_symbol,srsym.realname);
+        if sp_hint_unimplemented in symoptions then
+          Message1(sym_w_non_implemented_symbol,srsym.realname);
+      end;
+
+
 
 {****************************************************************************
                           TSYM (base for all symtypes)
@@ -461,7 +520,7 @@ implementation
       end;
 
 
-   function tlabelsym.mangledname:string;
+   function tlabelsym.mangledname:TSymStr;
      begin
        if not(defined) then
          begin
@@ -702,27 +761,28 @@ implementation
       end;
 
 
-    function Tprocsym.Find_procdef_bypara(para:TFPObjectList;retdef:tdef;
-                                            cpoptions:tcompare_paras_options):Tprocdef;
+    function tprocsym.find_bytype_parameterless(pt: Tproctypeoption): Tprocdef;
       var
-        i  : longint;
-        pd : tprocdef;
-        eq : tequaltype;
+        i,j : longint;
+        pd  : tprocdef;
+        found : boolean;
       begin
         result:=nil;
         for i:=0 to ProcdefList.Count-1 do
           begin
             pd:=tprocdef(ProcdefList[i]);
-            if assigned(retdef) then
-              eq:=compare_defs(retdef,pd.returndef,nothingn)
-            else
-              eq:=te_equal;
-            if (eq>=te_equal) or
-               ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
+            if (pd.proctypeoption=pt) then
               begin
-                eq:=compare_paras(para,pd.paras,cp_value_equal_const,cpoptions);
-                if (eq>=te_equal) or
-                   ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
+                found:=true;
+                for j:=0 to pd.paras.count-1 do
+                  begin
+                    if not(vo_is_hidden_para in tparavarsym(pd.paras[j]).varoptions) then
+                      begin
+                        found:=false;
+                        break;
+                      end;
+                  end;
+                if found then
                   begin
                     result:=pd;
                     exit;
@@ -730,6 +790,68 @@ implementation
               end;
           end;
       end;
+
+
+    function check_procdef_paras(pd:tprocdef;para:TFPObjectList;retdef:tdef;
+                                            cpoptions:tcompare_paras_options): tprocdef;
+      var
+        eq: tequaltype;
+      begin
+        result:=nil;
+        if assigned(retdef) then
+          eq:=compare_defs(retdef,pd.returndef,nothingn)
+        else
+          eq:=te_equal;
+        if (eq>=te_equal) or
+           ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
+          begin
+            eq:=compare_paras(para,pd.paras,cp_value_equal_const,cpoptions);
+            if (eq>=te_equal) or
+               ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
+              begin
+                result:=pd;
+                exit;
+              end;
+          end;
+      end;
+
+
+    function Tprocsym.Find_procdef_bypara(para:TFPObjectList;retdef:tdef;
+                                            cpoptions:tcompare_paras_options):Tprocdef;
+      var
+        i  : longint;
+        pd : tprocdef;
+      begin
+        result:=nil;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            result:=check_procdef_paras(pd,para,retdef,cpoptions);
+            if assigned(result) then
+              exit;
+          end;
+      end;
+
+
+    function Tprocsym.find_procdef_bytype_and_para(pt:Tproctypeoption;
+               para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
+      var
+        i  : longint;
+        pd : tprocdef;
+      begin
+        result:=nil;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if pd.proctypeoption=pt then
+              begin
+                result:=check_procdef_paras(pd,para,retdef,cpoptions);
+                if assigned(result) then
+                  exit;
+              end;
+          end;
+      end;
+
 
     function tprocsym.find_procdef_byoptions(ops: tprocoptions): Tprocdef;
       var
@@ -1259,6 +1381,7 @@ implementation
         end;
     end;
 
+
     procedure tabstractvarsym.setvardef(def:tdef);
       begin
         _vardef := def;
@@ -1304,6 +1427,10 @@ implementation
       begin
          inherited ppuload(fieldvarsym,ppufile);
          fieldoffset:=ppufile.getaint;
+         if (vo_has_mangledname in varoptions) then
+           externalname:=stringdup(ppufile.getstring)
+         else
+           externalname:=nil;
       end;
 
 
@@ -1311,15 +1438,52 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putaint(fieldoffset);
+         if (vo_has_mangledname in varoptions) then
+           ppufile.putstring(externalname^);
          ppufile.writeentry(ibfieldvarsym);
       end;
 
 
-    function tfieldvarsym.mangledname:string;
+    procedure tfieldvarsym.set_externalname(const s: string);
+      begin
+        { make sure it is recalculated }
+{$ifdef symansistr}
+        cachedmangledname:='';
+{$else symansistr}
+        stringdispose(cachedmangledname);
+{$endif symansistr}
+{$ifdef jvm}
+        if is_java_class_or_interface(tdef(owner.defowner)) then
+          begin
+            externalname:=stringdup(s);
+            include(varoptions,vo_has_mangledname);
+          end
+        else
+{$endif jvm}
+          internalerror(2011031201);
+      end;
+
+
+    function tfieldvarsym.mangledname:TSymStr;
       var
         srsym : tsym;
         srsymtable : tsymtable;
       begin
+{$ifdef jvm}
+        if is_java_class_or_interface(tdef(owner.defowner)) or
+           (tdef(owner.defowner).typ=recorddef) then
+          begin
+            if cachedmangledname<>'' then
+              result:=cachedmangledname
+            else
+              begin
+                result:=jvmmangledbasename(self,false);
+                jvmaddtypeownerprefix(owner,result);
+                cachedmangledname:=result;
+              end;
+          end
+        else
+{$endif jvm}
         if sp_static in symoptions then
           begin
             if searchsym(lower(owner.name^)+'_'+name,srsym,srsymtable) then
@@ -1334,12 +1498,21 @@ implementation
           end
         else if is_objcclass(tdef(owner.defowner)) then
           begin
-            if assigned(objcoffsetmangledname) then
-              result:=objcoffsetmangledname^
+{$ifdef symansistr}
+            if cachedmangledname<>'' then
+              result:=cachedmangledname
+{$else symansistr}
+            if assigned(cachedmangledname) then
+              result:=cachedmangledname^
+{$endif symansistr}
             else
               begin
                 result:=target_info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName;
-                objcoffsetmangledname:=stringdup(result);
+{$ifdef symansistr}
+                cachedmangledname:=result;
+{$else symansistr}
+                cachedmangledname:=stringdup(result);
+{$endif symansistr}
               end;
           end
         else
@@ -1349,7 +1522,10 @@ implementation
 
     destructor tfieldvarsym.destroy;
       begin
-        stringdispose(objcoffsetmangledname);
+{$ifndef symansistr}
+        stringdispose(cachedmangledname);
+{$endif symansistr}
+        stringdispose(externalname);
         inherited destroy;
       end;
 
@@ -1404,7 +1580,11 @@ implementation
     constructor tstaticvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
          inherited create(staticvarsym,n,vsp,def,vopts);
+{$ifdef symansistr}
+         _mangledname:='';
+{$else symansistr}
          _mangledname:=nil;
+{$endif symansistr}
       end;
 
 
@@ -1414,7 +1594,7 @@ implementation
       end;
 
 
-    constructor tstaticvarsym.create_C(const n,mangled : string;vsp:tvarspez;def:tdef);
+    constructor tstaticvarsym.create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);
       begin
          tstaticvarsym(self).create(n,vsp,def,[]);
          set_mangledname(mangled);
@@ -1424,17 +1604,25 @@ implementation
     constructor tstaticvarsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(staticvarsym,ppufile);
+{$ifdef symansistr}
+         if vo_has_mangledname in varoptions then
+           _mangledname:=ppufile.getansistring
+         else
+           _mangledname:='';
+{$else symansistr}
          if vo_has_mangledname in varoptions then
            _mangledname:=stringdup(ppufile.getstring)
          else
            _mangledname:=nil;
          if vo_has_section in varoptions then
            section:=ppufile.getansistring;
+{$endif symansistr}
       end;
 
 
     destructor tstaticvarsym.destroy;
       begin
+{$ifndef symansistr}
         if assigned(_mangledname) then
           begin
 {$ifdef MEMDEBUG}
@@ -1445,6 +1633,8 @@ implementation
             memmanglednames.stop;
 {$endif MEMDEBUG}
           end;
+        stringdispose(_mangledbasename);
+{$endif}
         inherited destroy;
       end;
 
@@ -1452,42 +1642,132 @@ implementation
     procedure tstaticvarsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
+         { write mangledname rather than _mangledname in case the mangledname
+           has not been calculated yet (can happen in case only the
+           mangledbasename has been set) }
          if vo_has_mangledname in varoptions then
-           ppufile.putstring(_mangledname^);
+{$ifdef symansistr}
+           ppufile.putansistring(mangledname);
+{$else symansistr}
+           ppufile.putstring(mangledname);
+{$endif symansistr}
          if vo_has_section in varoptions then
            ppufile.putansistring(section);
          ppufile.writeentry(ibstaticvarsym);
       end;
 
 
-    function tstaticvarsym.mangledname:string;
+    function tstaticvarsym.mangledname:TSymStr;
+{$ifndef jvm}
       var
-        prefix : string[2];
+        usename,
+        prefix : TSymStr;
+{$endif jvm}
       begin
+{$ifdef symansistr}
+        if _mangledname='' then
+{$else symansistr}
         if not assigned(_mangledname) then
+{$endif symansistr}
           begin
+{$ifdef jvm}
+            if _mangledbasename='' then
+              _mangledname:=jvmmangledbasename(self,false)
+            else
+              _mangledname:=jvmmangledbasename(self,_mangledbasename,false);
+            jvmaddtypeownerprefix(owner,_mangledname);
+{$else jvm}
             if (vo_is_typed_const in varoptions) then
               prefix:='TC'
             else
               prefix:='U';
-      {$ifdef compress}
-            _mangledname:=stringdup(minilzw_encode(make_mangledname(prefix,owner,name)));
-      {$else}
-           _mangledname:=stringdup(make_mangledname(prefix,owner,name));
-      {$endif}
+  {$ifdef symansistr}
+            if _mangledbasename='' then
+              usename:=name
+            else
+              usename:=_mangledbasename;
+  {$else symansistr}
+            if not assigned(_mangledbasename) then
+              usename:=name
+            else
+              usename:=_mangledbasename^;
+  {$endif symansistr}
+{$ifdef compress}
+            {$error add ansistring support for symansistr}
+            _mangledname:=stringdup(minilzw_encode(make_mangledname(prefix,owner,usename)));
+{$else compress}
+  {$ifdef symansistr}
+           _mangledname:=make_mangledname(prefix,owner,usename);
+  {$else symansistr}
+           _mangledname:=stringdup(make_mangledname(prefix,owner,usename));
+  {$endif symansistr}
+{$endif compress}
+{$endif jvm}
           end;
+{$ifdef symansistr}
+        result:=_mangledname;
+{$else symansistr}
         result:=_mangledname^;
+{$endif symansistr}
       end;
 
 
-    procedure tstaticvarsym.set_mangledname(const s:string);
+    procedure tstaticvarsym.set_mangledbasename(const s: TSymStr);
       begin
+{$ifdef symansistr}
+        _mangledbasename:=s;
+        _mangledname:='';
+{$else symansistr}
         stringdispose(_mangledname);
-      {$ifdef compress}
+        stringdispose(_mangledbasename);
+        _mangledbasename:=stringdup(s);
+{$endif symansistr}
+        include(varoptions,vo_has_mangledname);
+      end;
+
+
+    function tstaticvarsym.mangledbasename: TSymStr;
+      begin
+{$ifdef symansistr}
+        result:=_mangledbasename;
+{$else symansistr}
+        if assigned(_mangledbasename) then
+          result:=_mangledbasename^
+        else
+          result:='';
+{$endif symansistr}
+      end;
+
+
+    procedure tstaticvarsym.set_mangledname(const s:TSymStr);
+      begin
+{$ifndef symansistr}
+        stringdispose(_mangledname);
+{$endif}
+{$if defined(jvm)}
+        _mangledname:=jvmmangledbasename(self,s,false);
+        jvmaddtypeownerprefix(owner,_mangledname);
+{$elseif defined(compress)}
         _mangledname:=stringdup(minilzw_encode(s));
-      {$else}
+{$else}
+  {$ifdef symansistr}
+        _mangledname:=s;
+  {$else symansistr}
         _mangledname:=stringdup(s);
-      {$endif}
+  {$endif symansistr}
+{$endif}
+        include(varoptions,vo_has_mangledname);
+      end;
+
+
+    procedure tstaticvarsym.set_raw_mangledname(const s: TSymStr);
+      begin
+{$ifndef symansistr}
+        stringdispose(_mangledname);
+        _mangledname:=stringdup(s);
+{$else}
+        _mangledname:=s;
+{$endif}
         include(varoptions,vo_has_mangledname);
       end;
 
@@ -1696,7 +1976,7 @@ implementation
       end;
 
 
-    function tabsolutevarsym.mangledname : string;
+    function tabsolutevarsym.mangledname : TSymStr;
       begin
          case abstyp of
            toasm :

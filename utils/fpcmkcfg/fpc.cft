@@ -171,6 +171,12 @@
 
 %NEEDCROSSBINUTILSIFDEF%
 
+# never need cross-prefix when targeting the JVM
+# (no native compiler, always cross-compiling)
+#ifdef cpujvm
+#undef NEEDCROSSBINUTILS
+#endif
+
 # binutils prefix for cross compiling
 #IFDEF FPC_CROSSCOMPILING
 #IFDEF NEEDCROSSBINUTILS

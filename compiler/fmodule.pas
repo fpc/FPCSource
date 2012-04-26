@@ -143,6 +143,8 @@ interface
         checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
+        ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
+        arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
         ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
         globalsymtable,           { pointer to the global symtable of this unit }
@@ -183,6 +185,15 @@ interface
           the full name of the type and the data is a TFPObjectList of
           tobjectdef instances (the helper defs) }
         extendeddefs: TFPHashObjectList;
+
+        namespace: pshortstring; { for JVM target: corresponds to Java package name }
+
+        { for targets that initialise typed constants via explicit assignments
+          instead of by generating an initialised data section (holds typed
+          constant assignments at the module level; does not have to be saved
+          into the ppu file, because translated into code during compilation)
+           -- actual type: tnode (but fmodule should not depend on node) }
+         tcinitcode     : tobject;
 
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
@@ -524,6 +535,8 @@ implementation
         derefdataintflen:=0;
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
+        ptrdefs:=THashSet.Create(64,true,false);
+        arraydefs:=THashSet.Create(64,true,false);
         ansistrdef:=nil;
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
@@ -549,6 +562,8 @@ implementation
         mode_switch_allowed:= true;
         moduleoptions:=[];
         deprecatedmsg:=nil;
+        namespace:=nil;
+        tcinitcode:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(realmodulename^);
@@ -626,6 +641,8 @@ implementation
         stringdispose(mainsource);
         stringdispose(asmprefix);
         stringdispose(deprecatedmsg);
+        stringdispose(namespace);
+        tcinitcode.free;
         localunitsearchpath.Free;
         localobjectsearchpath.free;
         localincludesearchpath.free;
@@ -637,6 +654,8 @@ implementation
         derefdata.free;
         deflist.free;
         symlist.free;
+        ptrdefs.free;
+        arraydefs.free;
         ansistrdef:=nil;
         wpoinfo.free;
         checkforwarddefs.free;
@@ -698,6 +717,10 @@ implementation
         deflist:=TFPObjectList.Create(false);
         symlist.free;
         symlist:=TFPObjectList.Create(false);
+        ptrdefs.free;
+        ptrdefs:=THashSet.Create(64,true,false);
+        arraydefs.free;
+        arraydefs:=THashSet.Create(64,true,false);
         wpoinfo.free;
         wpoinfo:=nil;
         checkforwarddefs.free;
@@ -758,6 +781,9 @@ implementation
         in_global:=true;
         mode_switch_allowed:=true;
         stringdispose(deprecatedmsg);
+        stringdispose(namespace);
+        tcinitcode.free;
+        tcinitcode:=nil;
         moduleoptions:=[];
         is_dbginfo_written:=false;
         crc:=0;

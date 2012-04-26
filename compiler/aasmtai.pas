@@ -37,7 +37,11 @@ interface
        cpuinfo,cpubase,
        cgbase,cgutils,
        symtype,
-       aasmbase,aasmdata,ogbase;
+       aasmbase,aasmdata,ogbase
+{$ifdef jvm}
+       ,widestr
+{$endif jvm}
+       ;
 
     type
        { keep the number of elements in this enumeration less or equal than 32 as long
@@ -88,7 +92,10 @@ interface
           { used to describe a new location of a variable }
           ait_varloc,
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
-          ait_seh_directive
+          ait_seh_directive,
+          { JVM only }
+          ait_jvar,    { debug information for a local variable }
+          ait_jcatch   { exception catch clause }
           );
 
         taiconst_type = (
@@ -176,7 +183,9 @@ interface
           'tempalloc',
           'marker',
           'varloc',
-          'seh_directive'
+          'seh_directive',
+          'jvar',
+          'jcatch'
           );
 
     type
@@ -193,7 +202,14 @@ interface
        { m68k only }
        ,top_regset
 {$endif m68k}
-       { i386 only});
+{$ifdef jvm}
+       { jvm only}
+       ,top_single
+       ,top_double
+       ,top_string
+       ,top_wstring
+{$endif jvm}
+       );
 
       { kinds of operations that an instruction can perform on an operand }
       topertype = (operand_read,operand_write,operand_readwrite);
@@ -229,6 +245,12 @@ interface
       {$ifdef m68k}
           top_regset : (regset:^tcpuregisterset);
       {$endif m68k}
+      {$ifdef jvm}
+          top_single : (sval:single);
+          top_double : (dval:double);
+          top_string : (pcvallen: aint; pcval: pchar);
+          top_wstring : (pwstrval: pcompilerwidestring);
+      {$endif jvm}
       end;
       poper=^toper;
 
@@ -240,7 +262,8 @@ interface
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
                    ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive
-                   ,ait_varloc,ait_seh_directive];
+                   ,ait_varloc,ait_seh_directive
+                   ,ait_jvar, ait_jcatch];
 
       { ait_* types which do not have line information (and hence which are of type
         tai, otherwise, they are of type tailineinfo }
@@ -248,13 +271,14 @@ interface
                      ait_regalloc,ait_tempalloc,
                      ait_stab,ait_function_name,
                      ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
-                     ait_const,
+                     ait_const,ait_directive,
 {$ifdef arm}
                      ait_thumb_func,
 {$endif arm}
                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
                      ait_symbol,
-                     ait_seh_directive
+                     ait_seh_directive,
+                     ait_jvar,ait_jcatch
                     ];
 
 
@@ -287,7 +311,9 @@ interface
         asd_indirect_symbol,
         asd_extern,asd_nasm_import, asd_toc_entry,
         asd_reference,asd_no_dead_strip,asd_weak_reference,asd_lazy_reference,
-        asd_weak_definition
+        asd_weak_definition,
+        { for Jasmin }
+        asd_jclass,asd_jinterface,asd_jsuper,asd_jfield,asd_jlimit,asd_jline
       );
 
       TAsmSehDirective=(
@@ -312,7 +338,9 @@ interface
       directivestr : array[TAsmDirective] of string[23]=(
         'indirect_symbol',
         'extern','nasm_import', 'tc', 'reference',
-        'no_dead_strip','weak_reference','lazy_reference','weak_definition'
+        'no_dead_strip','weak_reference','lazy_reference','weak_definition',
+        { for Jasmin }
+        'class','interface','super','field','limit','line'
       );
       sehdirectivestr : array[TAsmSehDirective] of string[16]=(
         '.seh_proc','.seh_endproc',
@@ -722,6 +750,31 @@ interface
           property datatype: TSehDirectiveDatatype read data.typ;
         end;
         tai_seh_directive_class=class of tai_seh_directive;
+
+        { JVM variable live range description }
+        tai_jvar = class(tai)
+          stackslot: longint;
+          desc: pshortstring;
+          startlab,stoplab: tasmsymbol;
+
+          constructor Create(_stackslot: longint; const _desc: shortstring; _startlab, _stoplab: TAsmSymbol);
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          destructor destroy;override;
+        end;
+        tai_jvar_class = class of tai_jvar;
+
+        { JVM exception catch description }
+        tai_jcatch = class(tai)
+          name: pshortstring;
+          startlab,stoplab,handlerlab: tasmsymbol;
+
+          constructor Create(const _name: shortstring; _startlab, _stoplab, _handlerlab: TAsmSymbol);
+          destructor destroy;override;
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+        end;
+        tai_jcatch_class = class of tai_jcatch;
 
     var
       { array with all class types for tais }
@@ -2232,6 +2285,12 @@ implementation
               top_regset:
                 dispose(regset);
 {$endif ARM}
+{$ifdef jvm}
+              top_string:
+                freemem(pcval);
+              top_wstring:
+                donewidestring(pwstrval);
+{$endif jvm}
             end;
             typ:=top_none;
           end;
@@ -2544,6 +2603,7 @@ implementation
         ppufile.putbyte(byte(use_op));
       end;
 
+
 {****************************************************************************
                               tai_seh_directive
  ****************************************************************************}
@@ -2653,6 +2713,97 @@ implementation
     procedure tai_seh_directive.generate_code(objdata:TObjData);
       begin
       end;
+
+
+{****************************************************************************
+                              tai_jvar
+ ****************************************************************************}
+
+    constructor tai_jvar.Create(_stackslot: longint; const _desc: shortstring; _startlab, _stoplab: TAsmSymbol);
+      begin
+        Inherited create;
+        typ:=ait_jvar;
+        stackslot:=_stackslot;
+        desc:=stringdup(_desc);
+        startlab:=_startlab;
+        stoplab:=_stoplab;
+      end;
+
+
+    constructor tai_jvar.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+        stackslot:=ppufile.getlongint;
+        desc:=stringdup(ppufile.getstring);
+        startlab:=ppufile.getasmsymbol;
+        stoplab:=ppufile.getasmsymbol;
+      end;
+
+
+    procedure tai_jvar.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putlongint(stackslot);
+        ppufile.putstring(desc^);
+        ppufile.putasmsymbol(startlab);
+        ppufile.putasmsymbol(stoplab);
+      end;
+
+
+    destructor tai_jvar.destroy;
+      begin
+        stringdispose(desc);
+        inherited destroy;
+      end;
+
+
+{****************************************************************************
+                              tai_jcatch
+ ****************************************************************************}
+
+    constructor tai_jcatch.Create(const _name: shortstring; _startlab, _stoplab, _handlerlab: TAsmSymbol);
+      begin
+        Inherited create;
+        typ:=ait_jcatch;
+        name:=stringdup(_name);
+        startlab:=_startlab;
+        startlab.increfs;
+        stoplab:=_stoplab;
+        stoplab.increfs;
+        handlerlab:=_handlerlab;
+        handlerlab.increfs;
+      end;
+
+
+    destructor tai_jcatch.destroy;
+      begin
+        stringdispose(name);
+        inherited destroy;
+      end;
+
+
+    constructor tai_jcatch.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+        name:=stringdup(ppufile.getstring);
+        startlab:=ppufile.getasmsymbol;
+        startlab.increfs;
+        stoplab:=ppufile.getasmsymbol;
+        stoplab.increfs;
+        handlerlab:=ppufile.getasmsymbol;
+        handlerlab.increfs;
+      end;
+
+
+    procedure tai_jcatch.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putstring(name^);
+        ppufile.putasmsymbol(startlab);
+        ppufile.putasmsymbol(stoplab);
+        ppufile.putasmsymbol(handlerlab);
+      end;
+
 
 begin
 {$push}{$warnings off}

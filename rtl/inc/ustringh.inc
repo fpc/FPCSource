@@ -25,6 +25,8 @@ Function Pos (const c : ShortString; Const s : UnicodeString) : SizeInt;
 
 Function UpCase(const s : UnicodeString) : UnicodeString;
 Function  UpCase(c:UnicodeChar):UnicodeChar;
+Function LowerCase(const s : UnicodeString) : UnicodeString;
+Function  LowerCase(c:UnicodeChar):UnicodeChar;
 
 Procedure Insert (Const Source : UnicodeString; Var S : UnicodeString; Index : SizeInt);
 Procedure Delete (Var S : UnicodeString; Index,Size: SizeInt);
@@ -56,6 +58,7 @@ Type
     scpConsoleOutput  // system console output code page (GetConsoleOutputCP on windows)
   );
 
+{$ifndef FPC_HAS_BUILTIN_WIDESTR_MANAGER}
   { hooks for internationalization
     please add new procedures at the end, it makes it easier to detect new procedures }
   TUnicodeStringManager = record
@@ -111,6 +114,7 @@ Type
     { codepage retrieve function }
     GetStandardCodePageProc: function(const stdcp: TStandardCodePageEnum): TSystemCodePage;
   end;
+{$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 
 var
   widestringmanager : TUnicodeStringManager;

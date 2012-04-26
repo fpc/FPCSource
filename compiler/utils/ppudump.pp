@@ -20,7 +20,7 @@
  ****************************************************************************}
 program ppudump;
 
-{$mode objfpc}
+{$i fpcdefs.inc}
 {$H+}
 
 {$define IN_PPUDUMP}
@@ -71,7 +71,8 @@ const
     { 10 } 'arm',
     { 11 } 'powerpc64',
     { 12 } 'avr',
-    { 13 } 'mipsel'
+    { 13 } 'mipsel',
+    { 14 } 'jvm'
     );
 
 { List of all supported system-cpu couples }
@@ -151,7 +152,9 @@ const
   { 71 }  'OpenBSD-x86-64',
   { 72 }  'NetBSD-x86-64',
   { 73 }  'AIX-powerpc',
-  { 74 }  'AIX-powerpc64'
+  { 74 }  'AIX-powerpc64',
+  { 75 }  'Java-JVM',
+  { 76 }  'Android-JVM'
   );
 
 const
@@ -318,7 +321,7 @@ Function Varspez2Str(w:longint):string;
 const
   { in symconst unit
     tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_constref); }
-  varspezstr : array[tvarspez] of string[6]=('Value','Const','Var','Out','Hidden');
+  varspezstr : array[tvarspez] of string[8]=('Value','Const','Var','Out','ConstRef','Final');
 begin
   if w<=ord(high(varspezstr)) then
     Varspez2Str:=varspezstr[tvarspez(w)]
@@ -344,7 +347,7 @@ const
 
   visibilityName : array[tvisibility] of string[16] = (
     'hidden','strict private','private','strict protected','protected',
-    'public','published'
+    'public','published','<none>'
   );
 begin
   if w<=ord(high(visibilityName)) then
@@ -1428,7 +1431,7 @@ type
   end;
   tprocopt=record
     mask : tprocoption;
-    str  : string[30];
+    str  : string[31];
   end;
 const
   {proccalloptionStr  is also in globtype unit }
@@ -1493,6 +1496,8 @@ const
      (mask:po_enumerator_movenext; str:'EnumeratorMoveNext'),
      (mask:po_optional;        str: 'Optional'),
      (mask:po_delphi_nested_cc;str: 'Delphi-style nested frameptr'),
+     (mask:po_java_nonvirtual; str: 'Java non-virtual method'),
+     (mask:po_ignore_for_overload_resolution;str: 'Ignored for overload resolution'),
      (mask:po_rtlproc;         str: 'RTL procedure')
   );
 var
@@ -1644,7 +1649,9 @@ const
      (mask:oo_is_formal;          str:'Formal'),
      (mask:oo_is_classhelper;     str:'Class Helper/Category'),
      (mask:oo_has_class_constructor; str:'HasClassConstructor'),
-     (mask:oo_has_class_destructor; str:'HasClassDestructor')
+     (mask:oo_has_class_destructor; str:'HasClassDestructor'),
+     (mask:oo_is_enum_class;      str:'JvmEnumClass'),
+     (mask:oo_has_new_destructor; str:'HasNewDestructor')
   );
 var
   i      : longint;
@@ -2095,7 +2102,11 @@ begin
              write  (space,' DefaultConst : ');
              readderef('');
              if (vo_has_mangledname in varoptions) then
+{$ifdef symansistr}
+               writeln(space,' Mangledname : ',getansistring);
+{$else symansistr}
                writeln(space,' Mangledname : ',getstring);
+{$endif symansistr}
            end;
 
          iblocalvarsym :
@@ -2298,7 +2309,11 @@ begin
              readcommondef('Procedure definition',defoptions);
              read_abstract_proc_def(calloption,procoptions);
              if (po_has_mangledname in procoptions) then
+{$ifdef symansistr}
+               writeln(space,'     Mangled name : ',getansistring);
+{$else symansistr}
                writeln(space,'     Mangled name : ',getstring);
+{$endif symansistr}
              writeln(space,'           Number : ',getword);
              writeln(space,'            Level : ',getbyte);
              write  (space,'            Class : ');
@@ -2405,20 +2420,23 @@ begin
            begin
              readcommondef('Record definition',defoptions);
              writeln(space,'   Name of Record : ',getstring);
+             writeln(space,'   Import lib/pkg : ',getstring);
              write  (space,'          Options : ');
              readobjectdefoptions;
-             writeln(space,'       FieldAlign : ',shortint(getbyte));
-             writeln(space,'      RecordAlign : ',shortint(getbyte));
-             writeln(space,'         PadAlign : ',shortint(getbyte));
-             writeln(space,'UseFieldAlignment : ',shortint(getbyte));
-             writeln(space,'         DataSize : ',getasizeint);
-             writeln(space,'      PaddingSize : ',getword);
-             if df_copied_def in current_defoptions then
+             if (df_copied_def in defoptions) then
                begin
-                 writeln('  Copy of def: ');
+                 write(space,'      Copied from : ');
                  readderef('');
+               end
+             else
+               begin
+                 writeln(space,'       FieldAlign : ',shortint(getbyte));
+                 writeln(space,'      RecordAlign : ',shortint(getbyte));
+                 writeln(space,'         PadAlign : ',shortint(getbyte));
+                 writeln(space,'UseFieldAlignment : ',shortint(getbyte));
+                 writeln(space,'         DataSize : ',getasizeint);
+                 writeln(space,'      PaddingSize : ',getword);
                end;
-
              if not EndOfEntry then
                HasMoreInfos;
              {read the record definitions and symbols}
@@ -2435,6 +2453,7 @@ begin
            begin
              readcommondef('Object/Class definition',defoptions);
              writeln(space,'    Name of Class : ',getstring);
+             writeln(space,'   Import lib/pkg : ',getstring);
              write  (space,'          Options : ');
              readobjectdefoptions;
              b:=getbyte;
@@ -2449,10 +2468,12 @@ begin
                odt_objcclass      : writeln('objcclass');
                odt_objcprotocol   : writeln('objcprotocol');
                odt_helper         : writeln('helper');
+               odt_objccategory   : writeln('objccategory');
+               odt_javaclass      : writeln('Java class');
+               odt_interfacejava  : writeln('Java interface');
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
              writeln(space,'    External name : ',getstring);
-             writeln(space,'       Import lib : ',getstring);
              writeln(space,'         DataSize : ',getasizeint);
              writeln(space,'      PaddingSize : ',getword);
              writeln(space,'       FieldAlign : ',shortint(getbyte));
@@ -2468,6 +2489,8 @@ begin
                    getbyte;
                   writeln(space,'       IID String : ',getstring);
                end;
+
+             writeln(space,' Abstract methods : ',getlongint);
 
              if (tobjecttyp(b)=odt_helper) or
                  (oo_is_classhelper in current_objectoptions) then
@@ -2485,7 +2508,7 @@ begin
                  writeln(space,'      Visibility: ',Visibility2Str(getbyte));
                end;
 
-             if tobjecttyp(b) in [odt_class,odt_interfacecorba,odt_objcclass,odt_objcprotocol] then
+             if tobjecttyp(b) in [odt_class,odt_interfacecorba,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
               begin
                 l:=getlongint;
                 writeln(space,'  Impl Intf Count : ',l);
@@ -2545,6 +2568,10 @@ begin
              writeln(space,' Smallest element : ',getaint);
              writeln(space,'  Largest element : ',getaint);
              writeln(space,'             Size : ',getaint);
+{$ifdef jvm}
+             write(space,'        Class def : ');
+             readderef('');
+{$endif}
              if df_copied_def in defoptions then
                begin
                  write(space,'Base enumeration type : ');

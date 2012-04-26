@@ -10,9 +10,9 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0
-units=$(SYSTEMUNIT) objpas macpas iso7185 strings syscall baseunix \
-      $(LINUXUNIT) unixtype unixutil unix ctypes bsd initc \
-      $(CPU_UNITS) dos crt objects printer matrix rtlconsts \
+units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
+      $(LINUXUNIT) unix initc systhrds \
+      dos crt objects printer matrix \
       sysutils fgl classes fmtbcd typinfo math varutils \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets ipc terminfo dateutils strutils \
@@ -128,6 +128,8 @@ cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
 
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
         $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

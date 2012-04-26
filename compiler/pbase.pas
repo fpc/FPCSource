@@ -296,14 +296,30 @@ implementation
                   end;
                 case token of
                   _ID:
-                     searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                    { system.char? (char=widechar comes from the implicit
+                      uuchar unit -> override) }
+                    if (pattern='CHAR') and
+                       (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
+                      begin
+                        if m_default_unicodestring in current_settings.modeswitches then
+                          searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
+                        else
+                          searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
+                      end
+                    else
+                      searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
                   _STRING:
                     begin
                       { system.string? }
                       if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
                         begin
-                          if cs_ansistrings in current_settings.localswitches then
-                            searchsym_in_module(tunitsym(srsym).module,'ANSISTRING',srsym,srsymtable)
+                          if cs_refcountedstrings in current_settings.localswitches then
+                            begin
+                              if m_default_unicodestring in current_settings.modeswitches then
+                                searchsym_in_module(tunitsym(srsym).module,'UNICODESTRING',srsym,srsymtable)
+                              else
+                                searchsym_in_module(tunitsym(srsym).module,'ANSISTRING',srsym,srsymtable)
+                            end
                           else
                             searchsym_in_module(tunitsym(srsym).module,'SHORTSTRING',srsym,srsymtable);
                           tokentoconsume:=_STRING;

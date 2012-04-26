@@ -85,7 +85,7 @@ implementation
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,nutils,
-      cgutils,cgobj,
+      cgutils,cgobj,hlcgobj,
       tgobj,ncgutil,objcgutl
       ;
 
@@ -293,7 +293,8 @@ implementation
          { several object types must be dereferenced implicitly }
          if is_implicit_pointer_object_type(left.resultdef) then
            begin
-             if not is_managed_type(left.resultdef) then
+             if (not is_managed_type(left.resultdef)) or
+                (target_info.system in systems_garbage_collected_managed_types) then
                begin
                  { the contents of a class are aligned to a sizeof(pointer) }
                  location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
@@ -305,7 +306,7 @@ implementation
                         if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                           begin
                             location.reference.base:=rg.getaddressregister(current_asmdata.CurrAsmList);
-                            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
+                            hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,
                               left.location.register,location.reference.base);
                           end
                         else
@@ -316,7 +317,7 @@ implementation
                     LOC_REFERENCE:
                       begin
                          location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                         cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
+                         hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
                       end;
                     LOC_CONSTANT:
                       begin
@@ -438,6 +439,16 @@ implementation
              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
              location.reference.alignment:=vs.vardef.alignment;
+           end
+         else if is_java_class_or_interface(left.resultdef) or
+                 ((target_info.system in systems_jvm) and
+                  (left.resultdef.typ=recorddef)) then
+           begin
+             if (location.loc<>LOC_REFERENCE) or
+                (location.reference.index<>NR_NO) or
+                assigned(location.reference.symbol) then
+               internalerror(2011011301);
+             location.reference.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
            end
          else if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            begin

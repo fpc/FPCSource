@@ -64,6 +64,7 @@ interface
         FProcsymtable : tsymtable;
         FOperator    : ttoken;
         FCandidateProcs    : pcandidate;
+        FIgnoredCandidateProcs: tfpobjectlist;
         FProcCnt    : integer;
         FParaNode   : tnode;
         FParaLength : smallint;
@@ -170,8 +171,6 @@ interface
     function  valid_for_addr(p : tnode; report_errors: boolean) : boolean;
 
     function allowenumop(nt:tnodetype):boolean;
-
-    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
 
     procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
 
@@ -988,6 +987,11 @@ implementation
                  if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) then
                    begin
                      hsym:=tabstractvarsym(tloadnode(p).symtableentry);
+                     { this check requires proper data flow analysis... }
+(*                     if (hsym.varspez=vs_final) and
+                        (hsym.varstate in [vs_written,vs_readwritten]) and
+                        (newstate in [vs_written,vs_readwritten]) then
+                       CGMessagePos1(p.fileinfo,sym_e_final_write_once); *)
                      if (vsf_must_be_valid in varstateflags) and
                         (hsym.varstate in [vs_declared,vs_read_not_warned,vs_referred_not_inited]) then
                        begin
@@ -1074,6 +1078,7 @@ implementation
 
     function  valid_for_assign(p:tnode;opts:TValidAssigns; report_errors: boolean):boolean;
       var
+        typeconvs: tfpobjectlist;
         hp2,
         hp : tnode;
         gotstring,
@@ -1089,6 +1094,49 @@ implementation
         todef    : tdef;
         errmsg,
         temp     : longint;
+
+        function constaccessok(vs: tabstractvarsym): boolean;
+          begin
+            result:=false;
+            { allow p^:= constructions with p is const parameter }
+            if gotderef or gotdynarray or (Valid_Const in opts) or
+              ((hp.nodetype=loadn) and
+               (loadnf_isinternal_ignoreconst in tloadnode(hp).loadnodeflags)) then
+              result:=true
+            { final (class) fields can only be initialised in the (class) constructors of
+              class in which they have been declared (not in descendent constructors) }
+            else if vs.varspez=vs_final then
+              begin
+                if (current_procinfo.procdef.owner=vs.owner) then
+                  if vs.typ=staticvarsym then
+                    result:=current_procinfo.procdef.proctypeoption=potype_class_constructor
+                  else
+                    result:=current_procinfo.procdef.proctypeoption=potype_constructor;
+                if not result and
+                   report_errors then
+                  CGMessagePos(hp.fileinfo,type_e_invalid_final_assignment);
+              end
+            else
+              if report_errors then
+                CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
+          end;
+
+
+        procedure mayberesettypeconvs;
+          var
+            i: longint;
+          begin
+            if assigned(typeconvs) then
+              begin
+                if not report_errors and
+                   not result then
+                  for i:=0 to typeconvs.Count-1 do
+                    ttypeconvnode(typeconvs[i]).assignment_side:=false;
+                typeconvs.free;
+              end;
+          end;
+
+
       begin
         if valid_const in opts then
           errmsg:=type_e_variable_id_expected
@@ -1114,6 +1162,7 @@ implementation
              CGMessagePos(hp.fileinfo,errmsg);
            exit;
          end;
+        typeconvs:=nil;
         while assigned(hp) do
          begin
            { property allowed? calln has a property check itself }
@@ -1185,12 +1234,14 @@ implementation
                      if report_errors then
                        CGMessagePos(hp.fileinfo,errmsg);
                  end;
+               mayberesettypeconvs;
                exit;
              end;
            case hp.nodetype of
              temprefn :
                begin
-                 valid_for_assign := true;
+                 valid_for_assign := not(ti_readonly in ttemprefnode(hp).tempinfo^.flags);
+                 mayberesettypeconvs;
                  exit;
                end;
              derefn :
@@ -1209,14 +1260,37 @@ implementation
                    - typecast from pointer to array }
                  fromdef:=ttypeconvnode(hp).left.resultdef;
                  todef:=hp.resultdef;
-                 if not((nf_absolute in ttypeconvnode(hp).flags) or
+                 { typeconversions on the assignment side must keep
+                   left.location the same }
+                 if not(gotderef or
+                        ((target_info.system in systems_jvm) and
+                         (gotsubscript or gotvec))) then
+                   begin
+                     ttypeconvnode(hp).assignment_side:=true;
+                     if not assigned(typeconvs) then
+                       typeconvs:=tfpobjectlist.create(false);
+                     typeconvs.add(hp);
+                   end;
+                 { in managed VMs, you cannot typecast formaldef when assigning
+                   to it, see http://hallvards.blogspot.com/2007/10/dn4dp24-net-vs-win32-untyped-parameters.html }
+                 if (target_info.system in systems_managed_vm) and
+                    (fromdef.typ=formaldef) then
+                   begin
+                     if report_errors then
+                       CGMessagePos(hp.fileinfo,type_e_no_managed_formal_assign_typecast);
+                     mayberesettypeconvs;
+                     exit;
+                   end
+                 else if not((nf_absolute in ttypeconvnode(hp).flags) or
+                        ttypeconvnode(hp).target_specific_general_typeconv or
+                        ((nf_explicit in hp.flags) and
+                         ttypeconvnode(hp).target_specific_explicit_typeconv) or
                         (fromdef.typ=formaldef) or
                         is_void(fromdef) or
                         is_open_array(fromdef) or
                         is_open_array(todef) or
                         ((fromdef.typ=pointerdef) and (todef.typ=arraydef)) or
-                        ((fromdef.typ = objectdef) and (todef.typ = objectdef) and
-                         (tobjectdef(fromdef).is_related(tobjectdef(todef))))) and
+                        (fromdef.is_related(todef))) and
                     (fromdef.size<>todef.size) then
                   begin
                     { in TP it is allowed to typecast to smaller types. But the variable can't
@@ -1235,6 +1309,7 @@ implementation
                    begin
                      if report_errors then
                        CGMessagePos(hp.fileinfo,errmsg);
+                     mayberesettypeconvs;
                      exit;
                    end;
                  case hp.resultdef.typ of
@@ -1270,6 +1345,7 @@ implementation
                          CGMessagePos(hp.fileinfo,parser_e_packed_element_no_loop)
                        else
                          CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
+                     mayberesettypeconvs;
                      exit;
                    end;
                  gotvec:=true;
@@ -1297,6 +1373,7 @@ implementation
                    begin
                      if report_errors then
                       CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                     mayberesettypeconvs;
                      exit;
                    end;
                end;
@@ -1308,6 +1385,7 @@ implementation
                    begin
                      if report_errors then
                        CGMessagePos(hp.fileinfo,errmsg);
+                     mayberesettypeconvs;
                      exit;
                    end;
                  hp:=tunarynode(hp).left;
@@ -1327,6 +1405,14 @@ implementation
                          CGMessagePos(hp.fileinfo,parser_e_packed_element_no_loop)
                        else
                          CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
+                     mayberesettypeconvs;
+                     exit;
+                   end;
+                 { check for final fields }
+                 if (tsubscriptnode(hp).vs.varspez=vs_final) and
+                    not constaccessok(tsubscriptnode(hp).vs) then
+                   begin
+                     mayberesettypeconvs;
                      exit;
                    end;
                  { if we assign something to a field of a record that is not
@@ -1347,6 +1433,7 @@ implementation
                    begin
                      if report_errors then
                        CGMessage1(parser_e_illegal_assignment_to_count_var,tsubscriptnode(hp).vs.realname);
+                     mayberesettypeconvs;
                      exit;
                    end;
                  { implicit pointer object types result in dereferencing }
@@ -1380,6 +1467,7 @@ implementation
                  else
                   if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 mayberesettypeconvs;
                  exit;
                end;
              niln,
@@ -1391,6 +1479,7 @@ implementation
                  else
                   if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                 mayberesettypeconvs;
                  exit;
                end;
              ordconstn,
@@ -1399,6 +1488,7 @@ implementation
                  { these constants will be passed by value }
                  if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 mayberesettypeconvs;
                  exit;
                end;
              setconstn,
@@ -1411,6 +1501,7 @@ implementation
                  else
                    if report_errors then
                      CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 mayberesettypeconvs;
                  exit;
                end;
              addrn :
@@ -1420,6 +1511,7 @@ implementation
                  else
                   if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                 mayberesettypeconvs;
                  exit;
                end;
              calln :
@@ -1467,6 +1559,7 @@ implementation
                  else
                   if report_errors then
                    CGMessagePos(hp.fileinfo,errmsg);
+                 mayberesettypeconvs;
                  exit;
                end;
              inlinen :
@@ -1478,12 +1571,14 @@ implementation
                  else
                    if report_errors then
                     CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 mayberesettypeconvs;
                  exit;
                end;
              dataconstn:
                begin
                  { only created internally, so no additional checks necessary }
                  result:=true;
+                 mayberesettypeconvs;
                  exit;
                end;
              loadn :
@@ -1501,21 +1596,18 @@ implementation
                          begin
                            if report_errors then
                              CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname);
+                           mayberesettypeconvs;
                            exit;
                          end;
                        { read-only variable? }
-                       if (tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_const,vs_constref]) then
+                       if (tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_const,vs_constref,vs_final]) then
                         begin
-                          { allow p^:= constructions with p is const parameter }
-                          if gotderef or gotdynarray or (Valid_Const in opts) or
-                            (loadnf_isinternal_ignoreconst in tloadnode(hp).loadnodeflags) then
-                            result:=true
-                          else
-                            if report_errors then
-                              CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
+                          result:=constaccessok(tabstractvarsym(tloadnode(hp).symtableentry));
+                          mayberesettypeconvs;
                           exit;
                         end;
                        result:=true;
+                       mayberesettypeconvs;
                        exit;
                      end;
                    procsym :
@@ -1525,6 +1617,7 @@ implementation
                        else
                          if report_errors then
                           CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       mayberesettypeconvs;
                        exit;
                      end;
                    labelsym :
@@ -1534,6 +1627,7 @@ implementation
                        else
                          if report_errors then
                           CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       mayberesettypeconvs;
                        exit;
                      end;
                    constsym:
@@ -1544,12 +1638,14 @@ implementation
                        else
                          if report_errors then
                           CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       mayberesettypeconvs;
                        exit;
                      end;
                    else
                      begin
                        if report_errors then
                         CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       mayberesettypeconvs;
                        exit;
                      end;
                  end;
@@ -1558,10 +1654,12 @@ implementation
                begin
                  if report_errors then
                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 mayberesettypeconvs;
                  exit;
                end;
             end;
          end;
+         mayberesettypeconvs;
       end;
 
 
@@ -1778,6 +1876,7 @@ implementation
         FProcsym:=sym;
         FProcsymtable:=st;
         FParanode:=ppn;
+        FIgnoredCandidateProcs:=tfpobjectlist.create(false);
         create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited);
       end;
 
@@ -1788,6 +1887,7 @@ implementation
         FProcsym:=nil;
         FProcsymtable:=nil;
         FParanode:=ppn;
+        FIgnoredCandidateProcs:=tfpobjectlist.create(false);
         create_candidate_list(false,false,false,false,false,false);
       end;
 
@@ -1797,6 +1897,7 @@ implementation
         hpnext,
         hp : pcandidate;
       begin
+        FIgnoredCandidateProcs.free;
         hp:=FCandidateProcs;
         while assigned(hp) do
          begin
@@ -1820,6 +1921,11 @@ implementation
           for j:=0 to srsym.ProcdefList.Count-1 do
             begin
               pd:=tprocdef(srsym.ProcdefList[j]);
+              if (po_ignore_for_overload_resolution in pd.procoptions) then
+                begin
+                  FIgnoredCandidateProcs.add(pd);
+                  continue;
+                end;
               { in case of anonymous inherited, only match procdefs identical
                 to the current one (apart from hidden parameters), rather than
                 anything compatible to the parameters -- except in case of
@@ -1974,14 +2080,19 @@ implementation
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
-                    { Store first procsym found }
-                    if not assigned(FProcsym) then
-                      FProcsym:=tprocsym(srsym);
                     { add all definitions }
                     hasoverload:=false;
                     for j:=0 to tprocsym(srsym).ProcdefList.Count-1 do
                       begin
                         pd:=tprocdef(tprocsym(srsym).ProcdefList[j]);
+                        if (po_ignore_for_overload_resolution in pd.procoptions) then
+                          begin
+                            FIgnoredCandidateProcs.add(pd);
+                            continue;
+                          end;
+                        { Store first procsym found }
+                        if not assigned(FProcsym) then
+                          FProcsym:=tprocsym(srsym);
                         if po_overload in pd.procoptions then
                           hasoverload:=true;
                         ProcdefOverloadList.Add(tprocsym(srsym).ProcdefList[j]);
@@ -2832,6 +2943,7 @@ implementation
 
     function tcallcandidates.choose_best(var bestpd:tabstractprocdef; singlevariant: boolean):integer;
       var
+        pd: tprocdef;
         besthpstart,
         hp            : pcandidate;
         cntpd,
@@ -2886,6 +2998,32 @@ implementation
             end;
          end;
 
+        { if we've found one, check the procdefs ignored for overload choosing
+          to see whether they contain one from a child class with the same
+          parameters (so the overload choosing was not influenced by their
+          presence, but now that we've decided which overloaded version to call,
+          make sure we call the version closest in terms of visibility }
+        if cntpd=1 then
+          begin
+            for res:=0 to FIgnoredCandidateProcs.count-1 do
+              begin
+                pd:=tprocdef(FIgnoredCandidateProcs[res]);
+                { stop searching when we start comparing methods of parent of
+                  the struct in which the current best method was found }
+                if assigned(pd.struct) and
+                   (pd.struct<>tprocdef(bestpd).struct) and
+                   tprocdef(bestpd).struct.is_related(pd.struct) then
+                  break;
+                if (pd.proctypeoption=bestpd.proctypeoption) and
+                   ((pd.procoptions*[po_classmethod,po_methodpointer])=(bestpd.procoptions*[po_classmethod,po_methodpointer])) and
+                   (compare_paras(pd.paras,bestpd.paras,cp_all,[cpo_ignorehidden,cpo_ignoreuniv,cpo_openequalisexact])=te_exact) then
+                  begin
+                    { first one encountered is closest in terms of visibility }
+                    bestpd:=pd;
+                    break;
+                  end;
+              end;
+          end;
         result:=cntpd;
       end;
 
@@ -2929,26 +3067,6 @@ implementation
           CGMessagePos3(pt.left.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
             FullTypeName(pt.left.resultdef,wrongpara.vardef),
             FullTypeName(wrongpara.vardef,pt.left.resultdef));
-      end;
-
-
-    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
-      begin
-        if not assigned(srsym) then
-          internalerror(200602051);
-        if sp_hint_deprecated in symoptions then
-          if (sp_has_deprecated_msg in symoptions) and (deprecatedmsg <> nil) then
-            Message2(sym_w_deprecated_symbol_with_msg,srsym.realname,deprecatedmsg^)
-          else
-            Message1(sym_w_deprecated_symbol,srsym.realname);
-        if sp_hint_experimental in symoptions then
-          Message1(sym_w_experimental_symbol,srsym.realname);
-        if sp_hint_platform in symoptions then
-          Message1(sym_w_non_portable_symbol,srsym.realname);
-        if sp_hint_library in symoptions then
-          Message1(sym_w_library_symbol,srsym.realname);
-        if sp_hint_unimplemented in symoptions then
-          Message1(sym_w_non_implemented_symbol,srsym.realname);
       end;
 
 

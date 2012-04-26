@@ -38,7 +38,7 @@ interface
     function  readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
 
     procedure const_dec;
-    procedure consts_dec(in_structure: boolean);
+    procedure consts_dec(in_structure, allow_typed_const: boolean);
     procedure label_dec;
     procedure type_dec;
     procedure types_dec(in_structure: boolean);
@@ -59,15 +59,18 @@ implementation
        { aasm }
        aasmbase,aasmtai,aasmdata,fmodule,
        { symtable }
-       symconst,symbase,symtype,symtable,paramgr,defutil,
+       symconst,symbase,symtype,symtable,symcreat,paramgr,defutil,
        { pass 1 }
        htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
-       ncgutil,
+       ncgutil,ngenutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,
+{$ifdef jvm}
+       pjvm,
+{$endif}
        { cpu-information }
        cpuinfo
        ;
@@ -162,14 +165,14 @@ implementation
     procedure const_dec;
       begin
         consume(_CONST);
-        consts_dec(false);
+        consts_dec(false,true);
       end;
 
-    procedure consts_dec(in_structure: boolean);
+    procedure consts_dec(in_structure, allow_typed_const: boolean);
       var
          orgname : TIDString;
          hdef : tdef;
-         sym, tmp : tsym;
+         sym : tsym;
          dummysymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
          storetokenpos,filepos : tfileposinfo;
@@ -177,8 +180,6 @@ implementation
          skipequal : boolean;
          tclist : tasmlist;
          varspez : tvarspez;
-         static_name : string;
-         sl : tpropaccesslist;
       begin
          old_block_type:=block_type;
          block_type:=bt_const;
@@ -202,6 +203,14 @@ implementation
                        sym.deprecatedmsg:=deprecatedmsg;
                        sym.visibility:=symtablestack.top.currentvisibility;
                        symtablestack.top.insert(sym);
+{$ifdef jvm}
+                       { for the JVM target, some constants need to be
+                         initialized at run time (enums, sets) -> create fake
+                         typed const to do so }
+                       if assigned(tconstsym(sym).constdef) and
+                          (tconstsym(sym).constdef.typ in [enumdef,setdef]) then
+                         jvm_add_typed_const_initializer(tconstsym(sym));
+{$endif}
                      end
                    else
                      stringdispose(deprecatedmsg);
@@ -210,6 +219,11 @@ implementation
 
              _COLON:
                 begin
+                   if not allow_typed_const then
+                     begin
+                       Message(parser_e_no_typed_const);
+                       consume_all_until(_SEMICOLON);
+                     end;
                    { set the blocktype first so a consume also supports a
                      caret, to support const s : ^string = nil }
                    block_type:=bt_const_type;
@@ -229,17 +243,9 @@ implementation
                      to it from the structure or linking will fail }
                    if symtablestack.top.symtabletype in [recordsymtable,ObjectSymtable] then
                      begin
-                       { generate the symbol which reserves the space }
-                       static_name:=lower(generate_nested_name(symtablestack.top,'_'))+'_'+orgname;
-                       sym:=tstaticvarsym.create('$_static_'+static_name,varspez,hdef,[]);
-                       include(sym.symoptions,sp_internal);
-                       tabstractrecordsymtable(symtablestack.top).get_unit_symtable.insert(sym);
-                       { generate the symbol for the access }
-                       sl:=tpropaccesslist.create;
-                       sl.addsym(sl_load,sym);
-                       tmp:=tabsolutevarsym.create_ref(orgname,hdef,sl);
-                       tmp.visibility:=symtablestack.top.currentvisibility;
-                       symtablestack.top.insert(tmp);
+                       sym:=tfieldvarsym.create(orgname,varspez,hdef,[]);
+                       symtablestack.top.insert(sym);
+                       sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
                      end
                    else
                      begin
@@ -288,7 +294,11 @@ implementation
                 { generate an error }
                 consume(_EQ);
            end;
-         until (token<>_ID)or(in_structure and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
+         until (token<>_ID) or
+               (in_structure and
+                ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
+                 ((m_final_fields in current_settings.modeswitches) and
+                  (idtoken=_FINAL))));
          block_type:=old_block_type;
       end;
 
@@ -321,7 +331,7 @@ implementation
                       begin
                         labelsym.jumpbuf:=tstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insert(labelsym.jumpbuf);
-                        insertbssdata(tstaticvarsym(labelsym.jumpbuf));
+                        cnodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
                     include(labelsym.jumpbuf.symoptions,sp_internal);
                     { the buffer will be setup later, but avoid a hint }
@@ -336,7 +346,7 @@ implementation
 
     procedure types_dec(in_structure: boolean);
 
-      procedure finalize_objc_class_or_protocol_external_status(od: tobjectdef);
+      procedure finalize_class_external_status(od: tobjectdef);
         begin
           if  [oo_is_external,oo_is_forward] <= od.objectoptions then
             begin
@@ -458,12 +468,18 @@ implementation
                   begin
                     case token of
                       _CLASS :
-                        objecttype:=odt_class;
+                        objecttype:=default_class_type;
                       _INTERFACE :
-                        if current_settings.interfacetype=it_interfacecom then
-                          objecttype:=odt_interfacecom
-                        else
-                          objecttype:=odt_interfacecorba;
+                        case current_settings.interfacetype of
+                          it_interfacecom:
+                            objecttype:=odt_interfacecom;
+                          it_interfacecorba:
+                            objecttype:=odt_interfacecorba;
+                          it_interfacejava:
+                            objecttype:=odt_interfacejava;
+                          else
+                            internalerror(2010122611);
+                        end;
                       _DISPINTERFACE :
                         objecttype:=odt_dispinterface;
                       _OBJCCLASS,
@@ -590,8 +606,9 @@ implementation
                     end;
                   if isunique then
                     begin
-                      if is_objc_class_or_protocol(hdef) then
-                        Message(parser_e_no_objc_unique);
+                      if is_objc_class_or_protocol(hdef) or
+                         is_java_class_or_interface(hdef) then
+                        Message(parser_e_unique_unsupported);
 
                       hdef:=tstoreddef(hdef).getcopy;
 
@@ -690,11 +707,12 @@ implementation
                     try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
 
-                    { change a forward and external objcclass declaration into
+                    { change a forward and external class declaration into
                       formal external definition, so the compiler does not
                       expect an real definition later }
-                    if is_objc_class_or_protocol(hdef) then
-                      finalize_objc_class_or_protocol_external_status(tobjectdef(hdef));
+                    if is_objc_class_or_protocol(hdef) or
+                       is_java_class_or_interface(hdef) then
+                      finalize_class_external_status(tobjectdef(hdef));
 
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and
@@ -748,7 +766,11 @@ implementation
                hdef.typesym:=newtype;
                generictypelist.free;
              end;
-         until (token<>_ID)or(in_structure and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
+         until (token<>_ID) or
+               (in_structure and
+                ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
+                 ((m_final_fields in current_settings.modeswitches) and
+                  (idtoken=_FINAL))));
          { resolve type block forward declarations and restore a unit
            container for them }
          resolve_forward_types;
@@ -815,6 +837,8 @@ implementation
          sp : pchar;
          sym : tsym;
       begin
+         if target_info.system in systems_managed_vm then
+           message(parser_e_feature_unsupported_for_vm);
          consume(_RESOURCESTRING);
          if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_resourcestring_only_sg);

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system objpas macpas iso7185 buildrtl lineinfo lnfodwrf
+units=system uuchar objpas macpas iso7185 buildrtl lineinfo lnfodwrf
 implicitunits=sysinitpas sysinitcyg sysinitgprof \
       ctypes strings \
       heaptrc matrix \
@@ -48,6 +48,7 @@ WININC=../win/wininc
 WINDIR=../win
 
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 
 ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
 LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
@@ -103,6 +104,8 @@ wcygprt0$(OEXT) : wcygprt0.as
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) -Us -Sg system.pp -Fi../win
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

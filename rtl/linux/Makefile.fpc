@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) \
-      unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
+      uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
       fpintres heaptrc lineinfo lnfodwrf \
       termio unix linux initc cmem $(CPU_UNITS) \
       crt printer linuxvcs \
@@ -157,6 +157,8 @@ ucprt0$(OEXT) : $(ARCH)/ucprt0.as
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

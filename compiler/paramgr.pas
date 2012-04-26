@@ -55,8 +55,12 @@ unit paramgr;
             the address is pushed
           }
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;abstract;
+          { returns true if a parameter must be handled via copy-out (construct
+            a reference, copy the parameter's value there in case of copy-in/out, pass the reference)
+          }
+          function push_copyout_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
           { return the size of a push }
-          function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;
+          function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;virtual;
           {# Returns a structure giving the information on
             the storage of the parameter (which must be
             an integer parameter). This is only used when calling
@@ -124,7 +128,7 @@ unit paramgr;
           }
           function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;virtual;abstract;
 
-          function is_stack_paraloc(paraloc: pcgparalocation): boolean;
+          function is_stack_paraloc(paraloc: pcgparalocation): boolean;virtual;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);virtual;
           procedure duplicatecgparaloc(const orgparaloc: pcgparalocation; intonewparaloc: pcgparalocation);
           procedure duplicateparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
@@ -179,6 +183,12 @@ implementation
                            is_open_string(def) or
                            is_array_of_const(def)
                           );
+      end;
+
+
+    function tparamanager.push_copyout_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
+      begin
+        push_copyout_param:=false;
       end;
 
 
@@ -355,6 +365,7 @@ implementation
         cgpara.size:=parasym.paraloc[callerside].size;
         cgpara.intsize:=parasym.paraloc[callerside].intsize;
         cgpara.alignment:=parasym.paraloc[callerside].alignment;
+        cgpara.def:=parasym.paraloc[callerside].def;
 {$ifdef powerpc}
         cgpara.composite:=parasym.paraloc[callerside].composite;
 {$endif powerpc}
@@ -395,7 +406,10 @@ implementation
                     duplicatecgparaloc(paraloc,newparaloc)
                   else
                     begin
-                      tg.gettemp(list,len,cgpara.alignment,tt_persistent,href);
+                      if assigned(cgpara.def) then
+                        tg.gethltemp(list,cgpara.def,len,tt_persistent,href)
+                      else
+                        tg.gettemp(list,len,cgpara.alignment,tt_persistent,href);
                       newparaloc^.reference.index:=href.base;
                       newparaloc^.reference.offset:=href.offset;
                     end;

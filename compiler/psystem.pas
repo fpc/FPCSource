@@ -163,7 +163,7 @@ implementation
         bool16type:=torddef.create(bool16bit,low(int64),high(int64));
         bool32type:=torddef.create(bool32bit,low(int64),high(int64));
         bool64type:=torddef.create(bool64bit,low(int64),high(int64));
-        cchartype:=torddef.create(uchar,0,255);
+        cansichartype:=torddef.create(uchar,0,255);
         cwidechartype:=torddef.create(uwidechar,0,65535);
         cshortstringtype:=tstringdef.createshort(255);
         { should we give a length to the default long and ansi string definition ?? }
@@ -177,7 +177,7 @@ implementation
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=tstringdef.createshort(0);
         openchararraytype:=tarraydef.create(0,-1,s32inttype);
-        tarraydef(openchararraytype).elementdef:=cchartype;
+        tarraydef(openchararraytype).elementdef:=cansichartype;
 {$ifdef x86}
         create_fpu_types;
         if target_info.system<>system_x86_64_win64 then
@@ -216,12 +216,13 @@ implementation
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif avr}
 {$ifdef mips}
-
-// HIGHLY TENTATIVE, modelled after powerpc. MarkMLl.
-
         create_fpu_types;
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif mips}
+{$ifdef jvm}
+        create_fpu_types;
+        s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
+{$endif jvm}
 {$ifdef cpu64bitaddr}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
@@ -229,6 +230,8 @@ implementation
         ptrsinttype:=s64inttype;
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
+        uinttype:=u32inttype;
+        sinttype:=s32inttype;
         ptruinttype:=u32inttype;
         ptrsinttype:=s32inttype;
 {$endif cpu32bitaddr}
@@ -250,7 +253,7 @@ implementation
 {$endif cpu8bitalu}
         { some other definitions }
         voidpointertype:=tpointerdef.create(voidtype);
-        charpointertype:=tpointerdef.create(cchartype);
+        charpointertype:=tpointerdef.create(cansichartype);
         widecharpointertype:=tpointerdef.create(cwidechartype);
         voidfarpointertype:=tpointerdef.createfar(voidtype);
         cfiletype:=tfiledef.createuntyped;
@@ -320,7 +323,7 @@ implementation
         addtype('LongInt',s32inttype);
         addtype('QWord',u64inttype);
         addtype('Int64',s64inttype);
-        addtype('Char',cchartype);
+        addtype('Char',cansichartype);
         addtype('WideChar',cwidechartype);
         addtype('Text',tfiledef.createtext);
         addtype('TypedFile',tfiledef.createtyped(voidtype));
@@ -339,7 +342,7 @@ implementation
         addtype('$longint',s32inttype);
         addtype('$qword',u64inttype);
         addtype('$int64',s64inttype);
-        addtype('$char',cchartype);
+        addtype('$char',cansichartype);
         addtype('$widechar',cwidechartype);
         addtype('$shortstring',cshortstringtype);
         addtype('$longstring',clongstringtype);
@@ -371,36 +374,39 @@ implementation
             addtype('$sc80real',sc80floattype);
           end;
         addtype('$s64currency',s64currencytype);
-        { Add a type for virtual method tables }
-        hrecst:=trecordsymtable.create('',current_settings.packrecords);
-        vmttype:=trecorddef.create('',hrecst);
-        pvmttype:=tpointerdef.create(vmttype);
-        { can't use addtype for pvmt because the rtti of the pointed
-          type is not available. The rtti for pvmt will be written implicitly
-          by thev tblarray below }
-        systemunit.insert(ttypesym.create('$pvmt',pvmttype));
-        addfield(hrecst,tfieldvarsym.create('$length',vs_value,ptrsinttype,[]));
-        addfield(hrecst,tfieldvarsym.create('$mlength',vs_value,ptrsinttype,[]));
-        addfield(hrecst,tfieldvarsym.create('$parent',vs_value,pvmttype,[]));
-        { it seems vmttype is used both for TP objects and Delphi classes,
-          so the next entry could either be the first virtual method (vm1)
-          (object) or the class name (class). We can't easily create separate
-          vtable formats for both, as gdb is hard coded to search for
-          __vtbl_ptr_type in all cases (JM) }
-        addfield(hrecst,tfieldvarsym.create('$vm1_or_classname',vs_value,tpointerdef.create(cshortstringtype),[]));
-        vmtarraytype:=tarraydef.create(0,0,s32inttype);
-        tarraydef(vmtarraytype).elementdef:=voidpointertype;
-        addfield(hrecst,tfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
-        addtype('$__vtbl_ptr_type',vmttype);
-        vmtarraytype:=tarraydef.create(0,1,s32inttype);
-        tarraydef(vmtarraytype).elementdef:=pvmttype;
-        addtype('$vtblarray',vmtarraytype);
-        { Add a type for methodpointers }
-        hrecst:=trecordsymtable.create('',1);
-        addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidpointertype,[]));
-        addfield(hrecst,tfieldvarsym.create('$self',vs_value,voidpointertype,[]));
-        methodpointertype:=trecorddef.create('',hrecst);
-        addtype('$methodpointer',methodpointertype);
+        if not(target_info.system in systems_managed_vm) then
+          begin
+            { Add a type for virtual method tables }
+            hrecst:=trecordsymtable.create('',current_settings.packrecords);
+            vmttype:=trecorddef.create('',hrecst);
+            pvmttype:=tpointerdef.create(vmttype);
+            { can't use addtype for pvmt because the rtti of the pointed
+              type is not available. The rtti for pvmt will be written implicitly
+              by thev tblarray below }
+            systemunit.insert(ttypesym.create('$pvmt',pvmttype));
+            addfield(hrecst,tfieldvarsym.create('$length',vs_value,ptrsinttype,[]));
+            addfield(hrecst,tfieldvarsym.create('$mlength',vs_value,ptrsinttype,[]));
+            addfield(hrecst,tfieldvarsym.create('$parent',vs_value,pvmttype,[]));
+            { it seems vmttype is used both for TP objects and Delphi classes,
+              so the next entry could either be the first virtual method (vm1)
+              (object) or the class name (class). We can't easily create separate
+              vtable formats for both, as gdb is hard coded to search for
+              __vtbl_ptr_type in all cases (JM) }
+            addfield(hrecst,tfieldvarsym.create('$vm1_or_classname',vs_value,tpointerdef.create(cshortstringtype),[]));
+            vmtarraytype:=tarraydef.create(0,0,s32inttype);
+            tarraydef(vmtarraytype).elementdef:=voidpointertype;
+            addfield(hrecst,tfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
+            addtype('$__vtbl_ptr_type',vmttype);
+            vmtarraytype:=tarraydef.create(0,1,s32inttype);
+            tarraydef(vmtarraytype).elementdef:=pvmttype;
+            addtype('$vtblarray',vmtarraytype);
+            { Add a type for methodpointers }
+            hrecst:=trecordsymtable.create('',1);
+            addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidpointertype,[]));
+            addfield(hrecst,tfieldvarsym.create('$self',vs_value,voidpointertype,[]));
+            methodpointertype:=trecorddef.create('',hrecst);
+            addtype('$methodpointer',methodpointertype);
+          end;
         symtablestack.pop(systemunit);
       end;
 
@@ -438,7 +444,7 @@ implementation
         loadtype('formal',cformaltype);
         loadtype('typedformal',ctypedformaltype);
         loadtype('void',voidtype);
-        loadtype('char',cchartype);
+        loadtype('char',cansichartype);
         loadtype('widechar',cwidechartype);
         loadtype('shortstring',cshortstringtype);
         loadtype('longstring',clongstringtype);
@@ -468,12 +474,16 @@ implementation
         loadtype('widechar_pointer',widecharpointertype);
         loadtype('void_farpointer',voidfarpointertype);
         loadtype('file',cfiletype);
-        loadtype('pvmt',pvmttype);
-        loadtype('vtblarray',vmtarraytype);
-        loadtype('__vtbl_ptr_type',vmttype);
+        if not(target_info.system in systems_managed_vm) then
+          begin
+            loadtype('pvmt',pvmttype);
+            loadtype('vtblarray',vmtarraytype);
+            loadtype('__vtbl_ptr_type',vmttype);
+          end;
         loadtype('variant',cvarianttype);
         loadtype('olevariant',colevarianttype);
-        loadtype('methodpointer',methodpointertype);
+        if not(target_info.system in systems_managed_vm) then
+          loadtype('methodpointer',methodpointertype);
         loadtype('HRESULT',hresultdef);
 {$ifdef cpu64bitaddr}
         uinttype:=u64inttype;
@@ -628,6 +638,8 @@ implementation
         aiclass[ait_tempalloc]:=tai_tempalloc;
         aiclass[ait_marker]:=tai_marker;
         aiclass[ait_seh_directive]:=tai_seh_directive;
+        aiclass[ait_jvar]:=tai_jvar;
+        aiclass[ait_jcatch]:=tai_jcatch;
       end;
 
 end.

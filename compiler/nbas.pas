@@ -94,12 +94,57 @@ interface
 
        ttempcreatenode = class;
 
-       ttempinfoflag = (ti_may_be_in_reg,ti_valid,ti_nextref_set_hookoncopy_nil,
-                        ti_addr_taken,ti_executeinitialisation);
+       ttempinfoflag = (
+         { temp can be kept in a register as far as the original creator is
+          concerned }
+         ti_may_be_in_reg,
+         { the ttempcreatenode has been process and the temp's location is
+           valid (-> the ttempdeletenode has not yet been processed, or
+           in case it's a "create_to_normal()" one, the final ttemprefnode
+           has not yet been processed) }
+         ti_valid,
+         { when performing a getcopy of a nodetree, we have to hook up the
+           copies of ttemprefnodes and ttempdestroynode to the copied
+           ttempinfo. this is done by setting hookoncopy in the original
+           ttempinfo to point to the new one. if the temp is deleted via a
+           regular ttempdeletenode, the hookoncopy is simply set to nil once
+           it's processed. otherwise, it sets the ti_nextref_set_hookoncopy_nil
+           and after processing the final ttemprefnode, hookoncopy is set to nil
+         }
+         ti_nextref_set_hookoncopy_nil,
+         { the address of this temp is taken (-> cannot be kept in a register,
+           even if the creator didn't mind)
+         }
+         ti_addr_taken,
+         { temps can get an extra node tree that contains the value to which
+           they should be initialised when they are created. this initialisation
+           has to be performed right before the first reference to the temp.
+           this flag indicates that the ttempcreatenode has been
+           processed by pass_generate_code, but that the first ttemprefnode
+           hasn't yet and hence will have to perform the initialisation
+         }
+         ti_executeinitialisation,
+         { in case an expression like "inc(x[func()],1)" is translated into
+           a regular addition, you have to create a temp to hold the address
+           representing x[func()], since otherwise func() will be called twice
+           and that can spell trouble in case it has side effects. on platforms
+           without pointers, we cannot just take the address though. this flag
+           has to be combined with ti_executeinitialisation above and will,
+           rather than loading the value at the calculated location and store
+           it in the temp, keep a copy of the calculated location if possible
+           and required (not possible for regvars, because SSA may change their
+           register, but not required for them either since calculating their
+           location has no side-effects
+         }
+         ti_reference,
+         { this temp only allows reading (makes it possible to safely use as
+           reference under more circumstances)
+         }
+         ti_readonly);
        ttempinfoflags = set of ttempinfoflag;
 
      const
-       tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken];
+       tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken,ti_reference,ti_readonly];
 
      type
        { to allow access to the location by temp references even after the temp has }
@@ -136,6 +181,7 @@ interface
           constructor create(_typedef: tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean); virtual;
           constructor create_withnode(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg:boolean; withnode: tnode); virtual;
           constructor create_value(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode);
+          constructor create_reference(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode; readonly: boolean);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -209,6 +255,9 @@ interface
        function  laststatement(block:tblocknode):tstatementnode;
        procedure addstatement(var laststatement:tstatementnode;n:tnode);
 
+       { if the complexity of n is "high", creates a reference temp to n's
+         location and replace n with a ttemprefnode referring to that location }
+       function maybereplacewithtempref(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; readonly: boolean): ttempcreatenode;
 
 implementation
 
@@ -249,6 +298,23 @@ implementation
         laststatement.right:=cstatementnode.create(n,nil);
         laststatement:=tstatementnode(laststatement.right);
       end;
+
+
+    function maybereplacewithtempref(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; readonly: boolean): ttempcreatenode;
+      begin
+        result:=nil;
+        if node_complexity(n) > 4 then
+          begin
+            result:=ctempcreatenode.create_reference(n.resultdef,size,tt_persistent,true,n,readonly);
+            typecheckpass(tnode(result));
+            n:=ctemprefnode.create(result);
+            typecheckpass(n);
+            if not assigned(stat) then
+              block:=internalstatements(stat);
+            addstatement(stat,result)
+          end;
+      end;
+
 
 
 {*****************************************************************************
@@ -734,6 +800,19 @@ implementation
       end;
 
 
+     constructor ttempcreatenode.create_reference(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg: boolean; templvalue: tnode; readonly: boolean);
+      begin
+        // store in ppuwrite
+        self.create(_typedef,_size,_temptype,allowreg);
+        ftemplvalue:=templvalue;
+        // no assignment node, just the tempvalue
+        tempinfo^.tempinitcode:=ftemplvalue;
+        include(tempinfo^.flags,ti_reference);
+        if readonly then
+          include(tempinfo^.flags,ti_readonly);
+      end;
+
+
     function ttempcreatenode.dogetcopy: tnode;
       var
         n: ttempcreatenode;
@@ -1113,10 +1192,8 @@ implementation
 
     destructor ttempdeletenode.destroy;
       begin
-        if assigned(tempinfo^.withnode) then
-          begin
-            tempinfo^.withnode.free;
-          end;
+        tempinfo^.withnode.free;
+        tempinfo^.tempinitcode.free;
         dispose(tempinfo);
       end;
 

@@ -814,7 +814,7 @@ function SarInt64(Const AValue : Int64): Int64;[internproc:fpc_in_sar_x];
 function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_sar_x_y];
 {$else FPC_HAS_INTERNAL_SAR_QWORD}
 function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64;compilerproc;
-function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64;
+function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external name 'FPC_SARINT64'];
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSX}

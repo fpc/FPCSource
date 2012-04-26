@@ -86,7 +86,6 @@ interface
           ST_LOADMESSAGES);
 
        { tscannerfile }
-
        tscannerfile = class
        private
          procedure do_gettokenpos(out tokenpos: longint; out filepos: tfileposinfo);
@@ -140,7 +139,7 @@ interface
           preproc_pattern : string;
           preproc_token   : ttoken;
 
-          constructor Create(const fn:string);
+          constructor Create(const fn:string; is_macro: boolean = false);
           destructor Destroy;override;
         { File buffer things }
           function  openinputfile:boolean;
@@ -153,7 +152,8 @@ interface
           procedure nextfile;
           procedure addfile(hp:tinputfile);
           procedure reload;
-          procedure insertmacro(const macname:string;p:pchar;len,line,fileindex:longint);
+          { replaces current token with the text in p }
+          procedure substitutemacro(const macname:string;p:pchar;len,line,fileindex:longint);
         { Scanner things }
           procedure gettokenpos;
           procedure inc_comment_level;
@@ -316,18 +316,18 @@ implementation
 
     Procedure HandleModeSwitches(changeInit: boolean);
       begin
-        { turn ansistrings on by default ? }
-        if (m_default_ansistring in current_settings.modeswitches) then
+        { turn ansi/unicodestrings on by default ? }
+        if ([m_default_ansistring,m_default_unicodestring]*current_settings.modeswitches)<>[] then
          begin
-           include(current_settings.localswitches,cs_ansistrings);
+           include(current_settings.localswitches,cs_refcountedstrings);
            if changeinit then
-            include(init_settings.localswitches,cs_ansistrings);
+            include(init_settings.localswitches,cs_refcountedstrings);
          end
         else
          begin
-           exclude(current_settings.localswitches,cs_ansistrings);
+           exclude(current_settings.localswitches,cs_refcountedstrings);
            if changeinit then
-            exclude(init_settings.localswitches,cs_ansistrings);
+            exclude(init_settings.localswitches,cs_refcountedstrings);
          end;
 
         { turn inline on by default ? }
@@ -406,6 +406,11 @@ implementation
           current_settings.modeswitches:=isomodeswitches
         else
          b:=false;
+
+{$ifdef jvm}
+          { enable final fields by default for the JVM targets }
+          include(current_settings.modeswitches,m_final_fields);
+{$endif jvm}
 
         if b and changeInit then
           init_settings.modeswitches := current_settings.modeswitches;
@@ -1801,8 +1806,8 @@ In case not, the value returned can be arbitrary.
            { make it a stringconst }
            if macroIsString then
              hs:=''''+hs+'''';
-           current_scanner.insertmacro(path,@hs[1],length(hs),
-           current_scanner.line_no,current_scanner.inputfile.ref_index);
+           current_scanner.substitutemacro(path,@hs[1],length(hs),
+             current_scanner.line_no,current_scanner.inputfile.ref_index);
          end
         else
          begin
@@ -1950,9 +1955,11 @@ In case not, the value returned can be arbitrary.
                                 TSCANNERFILE
  ****************************************************************************}
 
-    constructor tscannerfile.create(const fn:string);
+    constructor tscannerfile.create(const fn:string; is_macro: boolean = false);
       begin
         inputfile:=do_openinputfile(fn);
+        if is_macro then
+          inputfile.is_macro:=true;
         if assigned(current_module) then
           current_module.sourcefiles.register_file(inputfile);
       { reset localinput }
@@ -2003,6 +2010,8 @@ In case not, the value returned can be arbitrary.
           popreplaystack;
         if not inputfile.closed then
           closeinputfile;
+        if inputfile.is_macro then
+          inputfile.free;
         ignoredirectives.free;
       end;
 
@@ -2711,7 +2720,7 @@ In case not, the value returned can be arbitrary.
       end;
 
 
-    procedure tscannerfile.insertmacro(const macname:string;p:pchar;len,line,fileindex:longint);
+    procedure tscannerfile.substitutemacro(const macname:string;p:pchar;len,line,fileindex:longint);
       var
         hp : tinputfile;
       begin
@@ -3830,7 +3839,7 @@ In case not, the value returned can be arbitrary.
                      begin
                        mac.is_used:=true;
                        inc(yylexcount);
-                       insertmacro(pattern,mac.buftext,mac.buflen,
+                       substitutemacro(pattern,mac.buftext,mac.buflen,
                          mac.fileinfo.line,mac.fileinfo.fileindex);
                      { handle empty macros }
                        if c=#0 then

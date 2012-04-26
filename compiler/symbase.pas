@@ -133,6 +133,7 @@ interface
          procedure push(st:TSymtable); virtual;
          procedure pop(st:TSymtable); virtual;
          function  top:TSymtable;
+         function getcopyuntil(finalst: TSymtable): TSymtablestack;
        end;
 
 
@@ -428,6 +429,30 @@ implementation
           internalerror(200601233);
         result:=stack^.symtable;
       end;
+
+
+  function addstitemreverse(st: TSymtablestack; finalst: tsymtable; curitem: psymtablestackitem): boolean;
+    begin
+      if not assigned(curitem) then
+        begin
+          result:=true;
+          exit;
+        end;
+      if addstitemreverse(st,finalst,curitem^.next) then
+        begin
+          st.push(curitem^.symtable);
+          result:=curitem^.symtable<>finalst
+        end
+      else
+        result:=false
+    end;
+
+
+  function TSymtablestack.getcopyuntil(finalst: TSymtable): TSymtablestack;
+    begin
+      result:=TSymtablestack.create;
+      addstitemreverse(result,finalst,stack);
+    end;
 
 
 {$ifdef MEMDEBUG}

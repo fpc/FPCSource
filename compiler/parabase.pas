@@ -77,6 +77,8 @@ unit parabase;
           IntSize   : tcgint; { size of the total location in bytes }
           Alignment : ShortInt;
           Size      : TCGSize;  { Size of the parameter included in all locations }
+          Def       : tdef; { Type of the parameter }
+          DefDeref  : tderef;
 {$ifdef powerpc}
           composite: boolean; { under the AIX abi, how certain parameters are passed depends on whether they are composite or not }
 {$endif powerpc}
@@ -88,6 +90,8 @@ unit parabase;
           function    add_location:pcgparalocation;
           procedure   get_location(var newloc:tlocation);
 
+          procedure   buildderef;
+          procedure   deref;
           procedure   ppuwrite(ppufile:tcompilerppufile);
           procedure   ppuload(ppufile:tcompilerppufile);
        end;
@@ -127,6 +131,7 @@ implementation
         size:=OS_NO;
         intsize:=0;
         location:=nil;
+        def:=nil;
 {$ifdef powerpc}
         composite:=false;
 {$endif powerpc}
@@ -255,6 +260,18 @@ implementation
       end;
 
 
+    procedure TCGPara.buildderef;
+      begin
+        defderef.build(def);
+      end;
+
+
+    procedure TCGPara.deref;
+      begin
+        def:=tdef(defderef.resolve);
+      end;
+
+
     procedure TCGPara.ppuwrite(ppufile: tcompilerppufile);
       var
         hparaloc: PCGParaLocation;
@@ -266,6 +283,7 @@ implementation
 {$ifdef powerpc}
         ppufile.putbyte(byte(composite));
 {$endif}
+        ppufile.putderef(defderef);
         nparaloc:=0;
         hparaloc:=location;
         while assigned(hparaloc) do
@@ -321,6 +339,7 @@ implementation
 {$ifdef powerpc}
         composite:=boolean(ppufile.getbyte);
 {$endif}
+        ppufile.getderef(defderef);
         nparaloc:=ppufile.getbyte;
         while nparaloc>0 do
           begin

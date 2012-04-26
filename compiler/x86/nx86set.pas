@@ -77,6 +77,7 @@ implementation
         href : treference;
         jtlist: tasmlist;
         sectype: TAsmSectiontype;
+        opcgsize: tcgsize;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
@@ -104,18 +105,19 @@ implementation
 
       begin
         last:=min_;
+        opcgsize:=def_cgsize(opsize);
         if not(jumptable_no_range) then
           begin
              { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,aint(min_),hregister);
+             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
              min_:=0;
           end;
         current_asmdata.getdatalabel(table);
         { make it a 32bit register }
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);
         { create reference }
         reference_reset_symbol(href,table,0,sizeof(pint));
         href.offset:=(-aint(min_))*sizeof(aint);
@@ -144,6 +146,7 @@ implementation
         lastrange : boolean;
         last : TConstExprInt;
         cond_lt,cond_le : tresflags;
+        opcgsize: tcgsize;
 
         procedure genitem(t : pcaselabel);
           begin
@@ -152,15 +155,15 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resultdef)) then
                begin
-                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
                   if t^._low-last=0 then
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
+                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                   else
                     begin
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low.svalue-last.svalue), hregister);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
                       cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,blocklabel(t^.blockid));
                     end;
                   last:=t^._low;
@@ -175,7 +178,7 @@ implementation
                     begin
                        { have we to ajust the first value ? }
                        if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
-                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low.svalue), hregister);
+                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue), hregister);
                     end
                   else
                     begin
@@ -183,7 +186,7 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low.svalue-last.svalue), hregister);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
@@ -192,7 +195,7 @@ implementation
                     end;
                   {we need to use A_SUB, because A_DEC does not set the correct flags, therefor
                    using a_op_const_reg(OP_SUB) is not possible }
-                  emit_const_reg(A_SUB,TCGSize2OpSize[opsize],aint(t^._high.svalue-t^._low.svalue),hregister);
+                  emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],aint(t^._high.svalue-t^._low.svalue),hregister);
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
                   last:=t^._high;
                   lastrange:=true;
@@ -203,6 +206,7 @@ implementation
           end;
 
         begin
+           opcgsize:=def_cgsize(opsize);
            if with_sign then
              begin
                 cond_lt:=F_L;

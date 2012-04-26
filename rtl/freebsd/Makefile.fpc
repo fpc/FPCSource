@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0 gprt0 dllprt0
-units=$(SYSTEMUNIT) unixtype ctypes objpas macpas iso7185 \
+units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       strings syscall sysctl  baseunix unixutil character \
       unix rtlconsts initc cmem matrix \
        dl termio  printer \
@@ -129,6 +129,8 @@ dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
 
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp unxconst.inc $(SYSDEPS)
         $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
