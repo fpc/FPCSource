@@ -2815,7 +2815,7 @@ implementation
 
              _CWSTRING:
                begin
-                 p1:=cstringconstnode.createwstr(patternw);
+                 p1:=cstringconstnode.createunistr(patternw);
                  consume(_CWSTRING);
                end;
 

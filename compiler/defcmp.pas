@@ -365,36 +365,10 @@ implementation
                  stringdef :
                    begin
                      { Constant string }
-                     if (fromtreetype=stringconstn) then
-                      begin
-                        if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and
-                           ((tstringdef(def_from).stringtype<>st_ansistring) or
-                            (tstringdef(def_from).encoding=tstringdef(def_to).encoding)
-                           ) then
-                          eq:=te_equal
-                        else
-                         begin
-                           doconv:=tc_string_2_string;
-                           if (tstringdef(def_from).stringtype = st_ansistring) and
-                              (tstringdef(def_to).stringtype = st_ansistring) then
-                             if (tstringdef(def_to).encoding=globals.CP_UTF8) then
-                               eq:=te_convert_l1
-                             else
-                               eq:=te_convert_l2
-                           else
-                            begin
-                              { Don't prefer conversions from widestring to a
-                                normal string as we can lose information }
-                              if (tstringdef(def_from).stringtype in [st_widestring,st_unicodestring]) and
-                                not (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
-                                eq:=te_convert_l3
-                              else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
-                                eq:=te_convert_l2
-                              else
-                                eq:=te_convert_l1;
-                            end;
-                         end;
-                      end
+                     if (fromtreetype=stringconstn) and
+                        is_shortstring(def_from) and
+                        is_shortstring(def_to) then
+                        eq:=te_equal
                      else if (tstringdef(def_to).stringtype=st_ansistring) and
                              (tstringdef(def_from).stringtype=st_ansistring) then 
                       begin
@@ -414,11 +388,17 @@ implementation
                         else
                          begin        
                            doconv := tc_string_2_string;
-                           if (tstringdef(def_to).encoding=globals.CP_UTF8) then 
+
+                           { prefere conversion to utf8 codepage }
+                           if tstringdef(def_to).encoding = globals.CP_UTF8 then
                              eq:=te_convert_l1
+                           { else to AnsiString type }
+                           else if def_to=getansistringdef then
+                             eq:=te_convert_l2
+                           { else to AnsiString with other codepage }
                            else
-                             eq:=te_convert_l2;
-                         end 
+                             eq:=te_convert_l3;
+                         end
                       end          
                      else
                      { same string type ? }
@@ -436,44 +416,53 @@ implementation
                          case tstringdef(def_from).stringtype of
                            st_widestring :
                              begin
-                               { Prefer conversions to unicodestring }
-                               if tstringdef(def_to).stringtype=st_unicodestring then
-                                 eq:=te_convert_l1
-                               { else prefer conversions to ansistring }
-                               else if tstringdef(def_to).stringtype=st_ansistring then
-                                 eq:=te_convert_l2
-                               else
-                                 eq:=te_convert_l3;
+                               case tstringdef(def_to).stringtype of
+                                 { Prefer conversions to unicodestring }
+                                 st_unicodestring: eq:=te_convert_l1;
+                                 { else prefer conversions to ansistring }
+                                 st_ansistring: eq:=te_convert_l2;
+                                 else
+                                   eq:=te_convert_l3;
+                               end;
                              end;
                            st_unicodestring :
                              begin
-                               { Prefer conversions to widestring }
-                               if tstringdef(def_to).stringtype=st_widestring then
-                                 eq:=te_convert_l1
-                               { else prefer conversions to ansistring }
-                               else if tstringdef(def_to).stringtype=st_ansistring then
-                                 eq:=te_convert_l2
-                               else
-                                 eq:=te_convert_l3;
+                               case tstringdef(def_to).stringtype of
+                                 { Prefer conversions to widestring }
+                                 st_widestring: eq:=te_convert_l1;
+                                 { else prefer conversions to ansistring }
+                                 st_ansistring: eq:=te_convert_l2;
+                                 else
+                                   eq:=te_convert_l3;
+                               end;
                              end;
                            st_shortstring :
                              begin
                                { Prefer shortstrings of different length or conversions
                                  from shortstring to ansistring }
-                               if (tstringdef(def_to).stringtype=st_shortstring) then
-                                 eq:=te_convert_l1
-                               else if tstringdef(def_to).stringtype=st_ansistring then
-                                 eq:=te_convert_l2
-                               else
-                                 eq:=te_convert_l3;
+                               case tstringdef(def_to).stringtype of
+                                 st_shortstring: eq:=te_convert_l1;
+                                 st_ansistring:
+                                   if tstringdef(def_to).encoding=globals.CP_UTF8 then
+                                     eq:=te_convert_l2
+                                   else if def_to=getansistringdef then
+                                     eq:=te_convert_l3
+                                   else
+                                     eq:=te_convert_l4;
+                                 st_unicodestring: eq:=te_convert_l5;
+                                 else
+                                   eq:=te_convert_l6;
+                               end;
                              end;
                            st_ansistring :
                              begin
                                { Prefer conversion to widestrings }
-                               if (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
-                                 eq:=te_convert_l2
-                               else
-                                 eq:=te_convert_l3;
+                               case tstringdef(def_to).stringtype of
+                                 st_unicodestring: eq:=te_convert_l4;
+                                 st_widestring: eq:=te_convert_l5;
+                                 else
+                                   eq:=te_convert_l6;
+                               end;
                              end;
                          end;
                        end;

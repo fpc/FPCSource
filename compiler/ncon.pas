@@ -124,7 +124,7 @@ interface
           cst_type : tconststringtype;
           constructor createstr(const s : string);virtual;
           constructor createpchar(s : pchar;l : longint);virtual;
-          constructor createwstr(w : pcompilerwidestring);virtual;
+          constructor createunistr(w : pcompilerwidestring);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -254,7 +254,7 @@ implementation
           begin
             initwidestring(pWideStringVal);
             concatwidestringchar(pWideStringVal, tcompilerwidechar(tordconstnode(p).value.uvalue));
-            result:=cstringconstnode.createwstr(pWideStringVal);
+            result:=cstringconstnode.createunistr(pWideStringVal);
           end
         else if is_conststringnode(p) then
           result:=tstringconstnode(p.getcopy)
@@ -311,7 +311,7 @@ implementation
               p1:=cstringconstnode.createpchar(pc,len);
             end;
           constwstring :
-            p1:=cstringconstnode.createwstr(pcompilerwidestring(p.value.valueptr));
+            p1:=cstringconstnode.createunistr(pcompilerwidestring(p.value.valueptr));
           constreal :
             p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,p.constdef);
           constset :
@@ -794,14 +794,14 @@ implementation
       end;
 
 
-    constructor tstringconstnode.createwstr(w : pcompilerwidestring);
+    constructor tstringconstnode.createunistr(w : pcompilerwidestring);
       begin
          inherited create(stringconstn);
          len:=getlengthwidestring(w);
          initwidestring(pcompilerwidestring(value_str));
          copywidestring(w,pcompilerwidestring(value_str));
          lab_str:=nil;
-         cst_type:=cst_widestring;
+         cst_type:=cst_unicodestring;
       end;
 
 

@@ -995,7 +995,7 @@ implementation
                end;
              { Convert to wide/short/ansistring and call default helper }
              if is_widechar(tarraydef(resultdef).elementdef) then
-               inserttypeconv(left,cwidestringtype)
+               inserttypeconv(left,cunicodestringtype)
              else
                begin
                  if tstringconstnode(left).len>255 then
@@ -1046,7 +1046,7 @@ implementation
                    concatwidestringchar(ws,tcompilerwidechar(tordconstnode(left).value.uvalue))
                  else
                    concatwidestringchar(ws,asciichar2unicode(chr(tordconstnode(left).value.uvalue)));
-                 hp:=cstringconstnode.createwstr(ws);
+                 hp:=cstringconstnode.createunistr(ws);
                  hp.changestringtype(resultdef);
                  donewidestring(ws);
                end
@@ -1392,9 +1392,9 @@ implementation
       begin
          result:=nil;
          if is_pwidechar(resultdef) then
-          inserttypeconv(left,cwidestringtype)
+           inserttypeconv(left,cunicodestringtype)
          else
-          inserttypeconv(left,cshortstringtype);
+           inserttypeconv(left,cshortstringtype);
          { evaluate again, reset resultdef so the convert_typ
            will be calculated again and cstring_to_pchar will
            be used for futher conversion }
@@ -1408,7 +1408,7 @@ implementation
       begin
          result:=nil;
          if is_pwidechar(resultdef) then
-           inserttypeconv(left,cwidestringtype)
+           inserttypeconv(left,cunicodestringtype)
          else
            if is_pchar(resultdef) and
               (is_widestring(left.resultdef) or
@@ -1943,7 +1943,8 @@ implementation
               te_convert_l2,
               te_convert_l3,
               te_convert_l4,
-              te_convert_l5:
+              te_convert_l5,
+              te_convert_l6:
                 { nothing to do }
                 ;
 

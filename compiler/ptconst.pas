@@ -439,8 +439,8 @@ implementation
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(ll));
                 if (p.nodetype in [stringconstn,ordconstn]) then
                   begin
-                    { convert to widestring stringconstn }
-                    inserttypeconv(p,cwidestringtype);
+                    { convert to unicodestring stringconstn }
+                    inserttypeconv(p,cunicodestringtype);
                     if (p.nodetype=stringconstn) and
                        (tstringconstnode(p).cst_type in [cst_widestring,cst_unicodestring]) then
                      begin
@@ -904,7 +904,7 @@ implementation
                         end;
                       2:
                         begin
-                          inserttypeconv(n,cwidestringtype);
+                          inserttypeconv(n,cunicodestringtype);
                           if n.nodetype<>stringconstn then
                             internalerror(2010033003);
                           ca:=pointer(pcompilerwidestring(tstringconstnode(n).value_str)^.data)

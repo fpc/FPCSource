@@ -27,7 +27,7 @@ Begin
     halt(1);
 
   Writeln('widestring');
-  n:=pos('狃狄',cad2); //Is correct position 3
+  n:=pos(WideString('狃狄'),cad2); //Is correct position 3
 
   Writeln(n);
   if n<>3 then
