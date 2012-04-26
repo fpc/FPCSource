@@ -829,7 +829,7 @@ implementation
                            else
                              asmwriteln(Tai_datablock(hp).sym.name);
                          end;
-                       if (target_info.system <> system_arm_linux) then
+                       if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) then
                          sepChar := '@'
                        else
                          sepChar := '%';
@@ -1218,7 +1218,7 @@ implementation
                  end
                else
                  begin
-                   if (target_info.system <> system_arm_linux) then
+                   if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) then
                      sepChar := '@'
                    else
                      sepChar := '#';

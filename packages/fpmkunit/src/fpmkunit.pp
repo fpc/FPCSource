@@ -84,7 +84,7 @@ Type
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
-    aix
+    aix,android
   );
   TOSes = Set of TOS;
 
@@ -135,7 +135,7 @@ Const
 
   AllOSes = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
-  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix];
+  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllLimit83fsOses= [go32v2,os2,emx,watcom];
@@ -176,7 +176,8 @@ Const
     { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false, false),
     { haiku }   ( false, true,  false, false, false, false, false, false, false, false, false, false),
     { iphonesim}( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false)
+    { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false),
+    { android  }( false, false, false, false, false, false, true,  false, false, false, false, false)
   );
 
   // Useful

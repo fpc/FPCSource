@@ -58,6 +58,9 @@ uses
 {$ifdef amiga}
   ,i_amiga
 {$endif amiga}
+{$ifdef android}
+  ,i_android
+{$endif android}
 {$ifdef atari}
   ,i_atari
 {$endif atari}

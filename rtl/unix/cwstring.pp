@@ -27,7 +27,7 @@ implementation
 
 {$linklib c}
 
-{$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
+{$if not defined(linux) and not defined(solaris) and not defined(Android)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
  {$if defined(haiku)}
    {$linklib textencoding}
    {$linklib locale}
@@ -83,7 +83,7 @@ function mblen(const s: pchar; n: size_t): size_t; cdecl; external clib name 'mb
 
 
 const
-{$if defined(linux)}
+{$if defined(linux) or defined(Android)}
   __LC_CTYPE = 0;
   LC_ALL = 6;
   _NL_CTYPE_CLASS = (__LC_CTYPE shl 16);

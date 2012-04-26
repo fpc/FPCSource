@@ -1169,7 +1169,7 @@ end;
                         General information calls
 ******************************************************************************}
 
-{$ifdef Linux}
+{$if defined(Linux) or defined(Android)}
 Function GetDomainName:String;  { linux only!}
 // domainname is a glibc extension.
 
@@ -1219,7 +1219,6 @@ begin
    getdomainname[0]:=chr(strlen(@getdomainname[1]));
 end;
 {$endif}
-
 
 Function GetHostName:String;
 {

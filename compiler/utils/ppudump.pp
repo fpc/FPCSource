@@ -151,7 +151,8 @@ const
   { 71 }  'OpenBSD-x86-64',
   { 72 }  'NetBSD-x86-64',
   { 73 }  'AIX-powerpc',
-  { 74 }  'AIX-powerpc64'
+  { 74 }  'AIX-powerpc64',
+  { 75 }  'Android-arm'
   );
 
 const

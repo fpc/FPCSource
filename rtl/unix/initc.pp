@@ -51,7 +51,7 @@ end;
 {$else}
 
 
-{$ifdef Linux}
+{$if defined(Linux) or defined(Android)}
 function geterrnolocation: pcint; cdecl;external clib name '__errno_location';
 {$endif}
 

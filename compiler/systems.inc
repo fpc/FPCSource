@@ -150,7 +150,8 @@
              system_x86_64_openbsd,     { 71 }
              system_x86_64_netbsd,      { 72 }
              system_powerpc_aix,        { 73 }
-             system_powerpc64_aix       { 74 }
+             system_powerpc64_aix,      { 74 }
+             system_arm_android         { 75 }
        );
 
      type

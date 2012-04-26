@@ -17,7 +17,7 @@ begin
     P.Directory:='gnome1';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes:=AllUnixOSes-[darwin,iphonesim];
+    P.OSes:=AllUnixOSes-[darwin,iphonesim,Android];
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
 
