@@ -1,0 +1,45 @@
+#
+#   Makefile.fpc for fpindexer
+#
+
+[package]
+name=fpindexer
+version=2.6.1
+
+[target]
+units=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt
+units_beos=fbindexdb sqldbindexdb dbindexer
+units_haiku=fbindexdb sqldbindexdb dbindexer
+units_linux=fbindexdb sqldbindexdb dbindexer
+units_freebsd=fbindexdb sqldbindexdb dbindexer
+units_netbsd=fbindexdb sqldbindexdb dbindexer
+units_openbsd=fbindexdb sqldbindexdb dbindexer
+units_iphonesim=fbindexdb sqldbindexdb dbindexer
+units_darwin=fbindexdb sqldbindexdb dbindexer
+units_win32=fbindexdb sqldbindexdb dbindexer
+units_win64=fbindexdb sqldbindexdb dbindexer
+units_wince=fbindexdb sqldbindexdb dbindexer
+# no dbindexer for solaris (sqldb dep)
+units_solaris=fbindexdb sqldbindexdb 
+
+exampledirs=examples
+
+[require]
+packages=fcl-base fcl-db chm sqlite
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[shared]
+build=n
+
+[compiler]
+includedir=src 
+sourcedir=src
+
+[rules]
+.NOTPARALLEL:
+

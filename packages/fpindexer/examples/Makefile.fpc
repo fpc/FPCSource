@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for fpindexer examples
+#
+
+[package]
+name=fpindexer-examples
+version=2.6.1
+
+[target]
+programs=TestDBindexer TestIndexer TestSearch
+
+
+[compiler]
+unitdir=../$(UNITTARGETDIRPREFIX)
+
+[default]
+fpcdir=../../..
+
+[require]
+packages=fpindexer
+
+[rules]
+.NOTPARALLEL:
