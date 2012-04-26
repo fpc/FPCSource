@@ -43,7 +43,7 @@
 {$endif}
 {$endif}
 
-{$if defined(linux) or defined(aix)}
+{$if defined(linux) or defined(aix) or defined(android)}
 {$define has_sem_timedwait}
 {$endif}
 
@@ -53,7 +53,7 @@ interface
 
 {$ifndef dynpthreads}   // If you have problems compiling this on FreeBSD 5.x
  {$linklib c}           // try adding -Xf
- {$if not defined(Darwin) and not defined(iphonesim)}
+ {$if not defined(Darwin) and not defined(iphonesim) and not defined(Android)}
    {$ifndef haiku}
      {$linklib pthread}
    {$endif haiku}
@@ -332,13 +332,13 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       writeln('Starting new thread');
 {$endif DEBUG_MT}
       pthread_attr_init(@thread_attr);
-      {$ifndef HAIKU}
+      {$if not defined(HAIKU) and not defined(ANDROID)}
       {$ifdef solaris}
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_INHERIT_SCHED);
       {$else not solaris}
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
       {$endif not solaris}
-      {$endif}
+      {$ifend}
 
       // will fail under linux -- apparently unimplemented
       pthread_attr_setscope(@thread_attr, PTHREAD_SCOPE_PROCESS);
@@ -507,7 +507,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {*****************************************************************************
                            Semaphore routines
 *****************************************************************************}
-  
+
 procedure cSemaphoreWait(const FSem: Pointer);
 var
   res: cint;
