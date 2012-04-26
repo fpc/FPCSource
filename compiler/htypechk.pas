@@ -51,6 +51,7 @@ interface
          cl3_count,
          cl4_count,
          cl5_count,
+         cl6_count,
          coper_count : integer; { should be signed }
          ordinal_distance : double;
          invalid     : boolean;
@@ -1414,6 +1415,17 @@ implementation
                      mayberesettypeconvs;
                      exit;
                    end;
+                 { if we assign something to a field of a record that is not
+                   regable, then then the record can't be kept in a regvar,
+                   because we will force the record into memory for this
+                   subscript operation (to a temp location, so the assignment
+                   will happen to the temp and be lost) }
+                 if not gotsubscript and
+                    not gotderef and
+                    not gotvec and
+                    not tstoreddef(hp.resultdef).is_intregable then
+                   make_not_regable(hp,[ra_addr_regable]);
+
                  gotsubscript:=true;
                  { loop counter? }
                  if not(Valid_Const in opts) and
@@ -1781,7 +1793,8 @@ implementation
               { string and string[10] are assumed as equal }
               { when searching the correct overloaded procedure   }
               if (p.resultdef.typ=stringdef) and
-                 (tstringdef(def_to).stringtype=tstringdef(p.resultdef).stringtype) then
+                 (tstringdef(def_to).stringtype=tstringdef(p.resultdef).stringtype) and
+                 (tstringdef(def_to).encoding=tstringdef(p.resultdef).encoding) then
                 eq:=te_equal
             end;
           setdef :
@@ -2317,6 +2330,7 @@ implementation
                           ' l3: '+tostr(hp^.cl3_count)+
                           ' l4: '+tostr(hp^.cl4_count)+
                           ' l5: '+tostr(hp^.cl5_count)+
+                          ' l6: '+tostr(hp^.cl6_count)+
                           ' oper: '+tostr(hp^.coper_count)+
                           ' ord: '+realtostr(hp^.ordinal_distance));
               { Print parameters in left-right order }
@@ -2526,15 +2540,12 @@ implementation
               else
               { generic type comparision }
                begin
-                 if not(po_compilerproc in hp^.data.procoptions) and
-                    not(po_rtlproc in hp^.data.procoptions) and
-                    is_ansistring(currpara.vardef) and
-                    is_ansistring(currpt.left.resultdef) and
-                    (tstringdef(currpara.vardef).encoding<>tstringdef(currpt.left.resultdef).encoding) and
-                    ((tstringdef(currpara.vardef).encoding=globals.CP_NONE) or
-                     (tstringdef(currpt.left.resultdef).encoding=globals.CP_NONE)
-                    ) then
-                   eq:=te_convert_l1
+                 if (hp^.data.procoptions*[po_rtlproc,po_compilerproc]=[]) and
+                    is_ansistring(def_from) and
+                    is_ansistring(def_to) and
+                    (tstringdef(def_from).encoding<>tstringdef(def_to).encoding) and
+                    (currpara.varspez in [vs_var,vs_out]) then
+                    eq:=te_convert_l1 // don't allow to pass different ansistring types to each-other
                  else
                    eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
 
@@ -2587,6 +2598,8 @@ implementation
                   inc(hp^.cl4_count);
                 te_convert_l5 :
                   inc(hp^.cl5_count);
+                te_convert_l6 :
+                  inc(hp^.cl6_count);
                 te_convert_operator :
                   inc(hp^.coper_count);
                 te_incompatible :
@@ -2714,48 +2727,53 @@ implementation
            res:=(bestpd^.coper_count-currpd^.coper_count);
            if (res=0) then
             begin
-             { less cl5 parameters? }
-             res:=(bestpd^.cl5_count-currpd^.cl5_count);
+             { less cl6 parameters? }
+             res:=(bestpd^.cl6_count-currpd^.cl6_count);
              if (res=0) then
               begin
-               { less cl4 parameters? }
-               res:=(bestpd^.cl4_count-currpd^.cl4_count);
-               if (res=0) then
-                begin
-                 { less cl3 parameters? }
-                 res:=(bestpd^.cl3_count-currpd^.cl3_count);
-                 if (res=0) then
-                  begin
-                    { less cl2 parameters? }
-                    res:=(bestpd^.cl2_count-currpd^.cl2_count);
+                { less cl5 parameters? }
+                res:=(bestpd^.cl5_count-currpd^.cl5_count);
+                if (res=0) then
+                 begin
+                  { less cl4 parameters? }
+                  res:=(bestpd^.cl4_count-currpd^.cl4_count);
+                  if (res=0) then
+                   begin
+                    { less cl3 parameters? }
+                    res:=(bestpd^.cl3_count-currpd^.cl3_count);
                     if (res=0) then
                      begin
-                       { less cl1 parameters? }
-                       res:=(bestpd^.cl1_count-currpd^.cl1_count);
+                       { less cl2 parameters? }
+                       res:=(bestpd^.cl2_count-currpd^.cl2_count);
                        if (res=0) then
                         begin
-                          { more exact parameters? }
-                          res:=(currpd^.exact_count-bestpd^.exact_count);
+                          { less cl1 parameters? }
+                          res:=(bestpd^.cl1_count-currpd^.cl1_count);
                           if (res=0) then
                            begin
-                             { less equal parameters? }
-                             res:=(bestpd^.equal_count-currpd^.equal_count);
+                             { more exact parameters? }
+                             res:=(currpd^.exact_count-bestpd^.exact_count);
                              if (res=0) then
                               begin
-                                { smaller ordinal distance? }
-                                if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
-                                 res:=1
-                                else
-                                 if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
-                                  res:=-1
-                                else
-                                 res:=0;
+                                { less equal parameters? }
+                                res:=(bestpd^.equal_count-currpd^.equal_count);
+                                if (res=0) then
+                                 begin
+                                   { smaller ordinal distance? }
+                                   if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
+                                    res:=1
+                                   else
+                                    if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
+                                     res:=-1
+                                   else
+                                    res:=0;
+                                 end;
                               end;
                            end;
                         end;
                      end;
-                  end;
-                end;
+                   end;
+                 end;
               end;
             end;
          end;
@@ -2766,18 +2784,19 @@ implementation
 { Delphi precedence rules extracted from test programs. Only valid if passing
   a variant parameter to overloaded procedures expecting exactly one parameter.
 
-  single > (char, currency, int64, shortstring, ansistring, widestring, extended, double)
-  double/currency > (char, int64, shortstring, ansistring, widestring, extended)
-  extended > (char, int64, shortstring, ansistring, widestring)
-  longint/cardinal > (int64, shortstring, ansistring, widestring, extended, double, single, char, currency)
-  smallint > (longint, int64, shortstring, ansistring, widestring, extended, double single, char, currency);
-  word > (longint, cardinal, int64, shortstring, ansistring, widestring, extended, double single, char, currency);
-  shortint > (longint, smallint, int64, shortstring, ansistring, widestring, extended, double, single, char, currency)
-  byte > (longint, cardinal, word, smallint, int64, shortstring, ansistring, widestring, extended, double, single, char, currency);
-  boolean/formal > (char, int64, shortstring, ansistring, widestring)
-  shortstring > (char, int64, ansistring, widestring)
-  ansistring > (char, int64, widestring)
-  widestring > (char, int64)
+  single > (char, currency, int64, shortstring, ansistring, widestring, unicodestring, extended, double)
+  double/currency > (char, int64, shortstring, ansistring, widestring, unicodestring, extended)
+  extended > (char, int64, shortstring, ansistring, widestring, unicodestring)
+  longint/cardinal > (int64, shortstring, ansistring, widestring, unicodestring, extended, double, single, char, currency)
+  smallint > (longint, int64, shortstring, ansistring, widestring, unicodestring, extended, double single, char, currency);
+  word > (longint, cardinal, int64, shortstring, ansistring, widestring, unicodestring, extended, double single, char, currency);
+  shortint > (longint, smallint, int64, shortstring, ansistring, widestring, unicodestring, extended, double, single, char, currency)
+  byte > (longint, cardinal, word, smallint, int64, shortstring, ansistring, widestring, unicodestring, extended, double, single, char, currency);
+  boolean/formal > (char, int64, shortstring, ansistring, widestring, unicodestring)
+  widestring > (char, int64, shortstring, ansistring, unicodestring)
+  unicodestring > (char, int64, shortstring, ansistring)
+  ansistring > (char, int64, shortstring)
+  shortstring > (char, int64)
 
   Relations not mentioned mean that they conflict: no decision possible }
 
@@ -2899,14 +2918,6 @@ implementation
         else if (currvcl=tve_extended) or
                 (bestvcl=tve_extended) then
           result:=1-2*ord(bestvcl=tve_extended)
-        { shortstring is better than everything left }
-        else if (currvcl=tve_sstring) or
-                (bestvcl=tve_sstring) then
-          result:=1-2*ord(bestvcl=tve_sstring)
-        { ansistring is better than everything left }
-        else if (currvcl=tve_astring) or
-                (bestvcl=tve_astring) then
-          result:=1-2*ord(bestvcl=tve_astring)
         { widestring is better than everything left }
         else if (currvcl=tve_wstring) or
                 (bestvcl=tve_wstring) then
@@ -2914,7 +2925,15 @@ implementation
         { unicodestring is better than everything left }
         else if (currvcl=tve_ustring) or
                 (bestvcl=tve_ustring) then
-          result:=1-2*ord(bestvcl=tve_ustring);
+          result:=1-2*ord(bestvcl=tve_ustring)
+        { ansistring is better than everything left }
+        else if (currvcl=tve_astring) or
+                (bestvcl=tve_astring) then
+          result:=1-2*ord(bestvcl=tve_astring)
+        { shortstring is better than everything left }
+        else if (currvcl=tve_sstring) or
+                (bestvcl=tve_sstring) then
+          result:=1-2*ord(bestvcl=tve_sstring);
 
         { all possibilities should have been checked now }
         if (result=-5) then

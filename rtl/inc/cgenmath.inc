@@ -18,9 +18,6 @@
 { precision and we need extended precision if supported  }
 {$ifndef FPC_HAS_TYPE_EXTENDED}
 
-{$ifndef SOLARIS}
-
-
 {$ifdef aix}
     { aix math library routines don't raise exceptions, you have to manually
       check for them }
@@ -80,6 +77,8 @@
 
 {$endif aix}
 
+
+{$ifndef SOLARIS}
 
 {$ifndef FPC_SYSTEM_HAS_INT}
 {$define FPC_SYSTEM_HAS_INT}

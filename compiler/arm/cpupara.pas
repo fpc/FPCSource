@@ -652,11 +652,17 @@ unit cpupara;
                   OS_F64:
                     begin
                       paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
+                      if target_info.endian = endian_big then
+                        paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
+                      else
+                        paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
                       paraloc^.size:=OS_32;
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
+                      if target_info.endian = endian_big then
+                        paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
+                      else
+                        paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
                       paraloc^.size:=OS_32;
                     end;
                   OS_32,
@@ -683,11 +689,17 @@ unit cpupara;
             if retcgsize in [OS_64,OS_S64] then
               begin
                 paraloc^.loc:=LOC_REGISTER;
-                paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
+                if target_info.endian = endian_big then
+                  paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
+                else
+                  paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
                 paraloc^.size:=OS_32;
                 paraloc:=result.add_location;
                 paraloc^.loc:=LOC_REGISTER;
-                paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
+                if target_info.endian = endian_big then
+                  paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
+                else
+                  paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
                 paraloc^.size:=OS_32;
               end
             else

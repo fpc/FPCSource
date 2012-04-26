@@ -368,10 +368,11 @@ implementation
             Moreover, such a local symbol will be removed if it's not
             referenced anywhere, so also create a reference }
           if (target_dbg.id=dbg_stabx) and
-             (cs_debuginfo in current_settings.moduleswitches) then
+             (cs_debuginfo in current_settings.moduleswitches) and
+             not assigned(current_asmdata.GetAsmSymbol(sym.name)) then
             begin
               list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA),0));
-               list.concat(tai_directive.Create(asd_reference,sym.name));
+              list.concat(tai_directive.Create(asd_reference,sym.name));
             end;
           list.concat(Tai_datablock.create_global(sym.mangledname,l));
         end

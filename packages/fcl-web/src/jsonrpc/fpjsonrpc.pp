@@ -52,7 +52,21 @@ Type
   TJSONRPCOption = (jroCheckParams,jroObjectParams,jroArrayParams);
   TJSONRPCOptions = set of TJSONRPCOption;
 
-  TJSONRPCCallContext = Class(TObject);
+  { TJSONRPCCallContext }
+
+  TJSONRPCCallContext = Class(TObject)
+  private
+    FClassName: String;
+    FMethod: String;
+    FTID: String;
+  Public
+    // Action used to call handler.
+    Property ClassName : String Read FClassName Write FClassName;
+    // Method used to call handler.
+    Property Method : String Read FMethod Write FMethod;
+    // Transaction in which handler is called.
+    Property TID : String Read FTID Write FTID;
+  end;
 
   TCustomJSONRPCHandler = Class(TComponent)
   private
@@ -759,19 +773,26 @@ begin
     Result:=CheckRequest(ARequest,C,M,ID,P);
     If (Result=Nil) then
       begin
+      If Assigned(AContext) then
+        begin
+        AContext.ClassName:=C;
+        AContext.Method:=M;
+        if Assigned(ID) then
+          AContext.TID:=ID.AsJSON;
+        end;
       Result:=ExecuteMethod(C,M,P,ID,AContext);
       // Do some sanity checks.
       If (Result=Nil) then
         begin
         // No response, and a response was expected.
         if (ID<>Nil) or not (jdoNotifications in Options) then
-          Result:=CreateJSON2Error(SErrNoResponse,[M],EJSONRPCInternalError,ID,transactionProperty);
+          Result:=CreateJSON2Error(SErrNoResponse,[M],EJSONRPCInternalError,ID.Clone,transactionProperty);
         end
       else
         begin
         // A response was received, and no response was expected.
         if ((ID=Nil) or (ID is TJSONNull))  and (jdoStrictNotifications in Options) then
-          Result:=CreateJSON2Error(SErrResponseFromNotification,[M],EJSONRPCInternalError,ID,transactionProperty);
+          Result:=CreateJSON2Error(SErrResponseFromNotification,[M],EJSONRPCInternalError,Nil,transactionProperty);
         If (ID=Nil) or (ID is TJSONNull) then // Notification method, discard result.
           FreeAndNil(Result);
         end;
@@ -784,7 +805,7 @@ begin
       begin
       If (Result<>Nil) then
         FreeAndNil(Result);
-      If Assigned(ID) then
+      If Assigned(ID) and not (ID is TJSONNull) then
         Result:=CreateJSON2Error(E.Message,EJSONRPCInternalError,ID.Clone,transactionproperty)
       else
         Result:=CreateJSON2Error(E.Message,EJSONRPCInternalError,Nil,transactionproperty);

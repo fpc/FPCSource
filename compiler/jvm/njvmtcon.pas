@@ -111,7 +111,7 @@ implementation
           ccallparanode.create(genintconstnode(arrstringdata.arrdatalen),
             ccallparanode.create(genintconstnode(arrstringdata.arrdatastart),
               ccallparanode.create(arrstringdata.arraybase.getcopy,
-                ccallparanode.create(cstringconstnode.createwstr(wstr),nil))))));
+                ccallparanode.create(cstringconstnode.createunistr(wstr),nil))))));
 
         inc(arrstringdata.arrdatastart,arrstringdata.arrdatalen);
         arrstringdata.arrstring:='';

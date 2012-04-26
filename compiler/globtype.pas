@@ -207,6 +207,8 @@ interface
 
        { global target-specific switches }
        ttargetswitch = (ts_none,
+         { generate code that results in smaller TOCs than normal (AIX) }
+         ts_small_toc,
          { for the JVM target: generate integer array initializations via string
            constants in order to reduce the generated code size (Java routines
            are limited to 64kb of bytecode) }
@@ -266,6 +268,7 @@ interface
          'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
 
        TargetSwitchStr : array[ttargetswitch] of string[19] = ('',
+         'SMALLTOC',
          'COMPACTINTARRAYINIT');
 
        { switches being applied to all CPUs at the given level }
@@ -276,7 +279,7 @@ interface
        { whole program optimizations whose information generation requires
          information from all loaded units
        }
-       WPOptimizationsNeedingAllUnitInfo = [cs_wpo_devirtualize_calls];
+       WPOptimizationsNeedingAllUnitInfo = [cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts];
 
        featurestr : array[tfeature] of string[12] = (
          'HEAP','INITFINAL','RTTI','CLASSES','EXCEPTIONS','EXITCODE',

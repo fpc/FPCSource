@@ -563,6 +563,7 @@ type
   tequaltype = (
     te_incompatible,
     te_convert_operator,
+    te_convert_l6,
     te_convert_l5,     { ad infinitum... }
     te_convert_l4,     { and yet even less preferred conversion }
     te_convert_l3,     { even less preferred conversion (possibly with loss of data) }
@@ -575,10 +576,10 @@ type
   tvariantequaltype = (
     tve_incompatible,
     tve_chari64,
-    tve_ustring,
-    tve_wstring,
-    tve_astring,
     tve_sstring,
+    tve_astring,
+    tve_wstring,
+    tve_ustring,
     tve_boolformal,
     tve_extended,
     tve_dblcurrency,
@@ -638,8 +639,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
      );
 
      EqualTypeName : array[tequaltype] of string[16] = (
-       'incompatible','convert_operator','convert_l5','convert_l4','convert_l3','convert_l2',
-       'convert_l1','equal','exact'
+       'incompatible','convert_operator','convert_l6', 'convert_l5','convert_l4','convert_l3',
+       'convert_l2','convert_l1','equal','exact'
      );
 
      visibilityName : array[tvisibility] of string[16] = (

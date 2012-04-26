@@ -12,7 +12,8 @@ end;
 * http://msdn2.microsoft.com/en-us/library/ms776446.aspx
 *)
 const
-win2iconv_arr: array[-1..406{$ifndef aix}-83{$endif}] of twin2iconv =
+win2iconv_array_limit = 406{$ifndef aix}-83{$endif}{$ifdef ACCEPT_646}+1{$endif};
+win2iconv_arr: array[-1..win2iconv_array_limit] of twin2iconv =
   ((cp:0; name: 'UTF-8'), { invalid/unknown -> utf-8 }
    (cp:37; name:'IBM037'), (* IBM EBCDIC US-Canada *)
    (cp:37; name:'IBM-037'), (* IBM EBCDIC US-Canada, AIX *)
@@ -342,6 +343,9 @@ win2iconv_arr: array[-1..406{$ifndef aix}-83{$endif}] of twin2iconv =
   {$endif}
    (cp:20127; name:'IBM367'),
    (cp:20127; name:'ISO-IR-6'),
+{$ifdef ACCEPT_646}
+   (cp:20127; name:'646'),
+{$endif ACCEPT_646}
    (cp:20127; name:'ISO646-US'),
    (cp:20127; name:'ISO_646.IRV:1991'),
    (cp:20127; name:'US'),

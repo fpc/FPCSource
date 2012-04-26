@@ -689,9 +689,9 @@ implementation
 {$ifdef vtentry}
         sym : tasmsymbol;
 {$endif vtentry}
-{$ifdef x86_64}
+{$if defined(x86) or defined(arm)}
         cgpara : tcgpara;
-{$endif x86_64}
+{$endif}
       begin
          if not assigned(procdefinition) or
             not(procdefinition.has_paraloc_info in [callerside,callbothsides]) then
@@ -958,27 +958,24 @@ implementation
                end;
            end;
 
-{$if defined(x86) or defined(arm)}
-         if (procdefinition.proccalloption=pocall_safecall) and
-            (tf_safecall_exceptions in target_info.flags) then
-           begin
-{$ifdef x86_64}
-             cgpara.init;
-             paramanager.getintparaloc(pocall_default,1,cgpara);
-             cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_RAX,cgpara);
-             cgpara.done;
-{$endif x86_64}
-             cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK',false);
-             cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-           end;
-{$endif}
-
          if cg.uses_registers(R_MMREGISTER) then
            cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
          if cg.uses_registers(R_FPUREGISTER) then
            cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
          cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
+
+{$if defined(x86) or defined(arm)}
+         if (procdefinition.proccalloption=pocall_safecall) and
+            (tf_safecall_exceptions in target_info.flags) then
+           begin
+             cgpara.init;
+             paramanager.getintparaloc(pocall_default,1,cgpara);
+             cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_INT,NR_FUNCTION_RESULT_REG,cgpara);
+             paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
+             cgpara.done;
+             cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');
+           end;
+{$endif}
 
          { handle function results }
          if (not is_void(resultdef)) then

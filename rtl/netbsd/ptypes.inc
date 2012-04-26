@@ -96,16 +96,40 @@ type
     pSocklen = ^socklen_t;
 
 Const
-{$warning Check me, I'am from FreeBSD}
-    MNAMLEN   = 80;      // slightly machine specific.
-    MFSNamLen = 16;	
+    MNAMELEN   = 90;      // found in sys/mount.h
+    MNAMLEN = MNAMELEN; // Keep all constant name.
+    MFSNAMELEN = 16;// found in sys/compat/sys/mount.h	
+    MFSNamLen = MFSNAMELEN;	
 type
-{$warning Check me, I'am from FreeBSD}
-    fsid_t  = array[0..1] of cint;
+{ Checked, found in sys/fstypes.h }
+    fsid_t  = array[0..1] of cint32;
     // Kernel statfs
-{$warning Check me, I'am from FreeBSD}
-    TStatfs = packed record
-      spare2,            { place holder}
+{ Checked, in sys/compat/sys/mount.h header }
+(*
+struct statfs12 {
+	short	f_type;			/* type of file system */
+	u_short	f_oflags;		/* deprecated copy of mount flags */
+	long	f_bsize;		/* fundamental file system block size */
+	long	f_iosize;		/* optimal transfer block size */
+	long	f_blocks;		/* total data blocks in file system */
+	long	f_bfree;		/* free blocks in fs */
+	long	f_bavail;		/* free blocks avail to non-superuser */
+	long	f_files;		/* total file nodes in file system */
+	long	f_ffree;		/* free file nodes in fs */
+	fsid_t	f_fsid;			/* file system id */
+	uid_t	f_owner;		/* user that mounted the file system */
+	long	f_flags;		/* copy of mount flags */
+	long	f_syncwrites;		/* count of sync writes since mount */
+	long	f_asyncwrites;		/* count of async writes since mount */
+	long	f_spare[1];		/* spare for later */
+	char	f_fstypename[MFSNAMELEN]; /* fs type name */
+	char	f_mntonname[MNAMELEN];	  /* directory on which mounted */
+	char	f_mntfromname[MNAMELEN];  /* mounted file system */
+};
+*)
+    TStatfs12 = record
+      f_type : shortint;
+      f_oflags : word;
       bsize,             { fundamental block size}
       iosize,            { optimal block size }
       blocks,            {  total blocks}
@@ -115,19 +139,15 @@ type
       ffree          : clong ;    { file nodes free}
       fsid           : fsid_t;
       fowner         : tuid; {mounter uid}
-      ftype          : cint;
-      fflags         : cint; {copy of mount flags}
+      fflags         : clong; {copy of mount flags}
       fsyncwrites,
       fasyncwrites   : clong;
+      fspare0        : array [0..0] of clong;
       fstypename     : array[0..MFSNamLen-1] of char;
       mountpoint     : array[0..MNAMLEN-1] of char;
-      fsyncreads,            { count of sync reads since mount }
-      fasyncreads    : clong;
-      fspares1       : cshort;
       mnfromname     : array[0..MNAMLEN-1] of char;
-      fspares2       : cshort;
-      fspare3        : array[0..1] of clong;
     end;
+    TStatFS = TStatFS12;   
     PStatFS=^TStatFS;
     timeval = packed record
                 tv_sec,

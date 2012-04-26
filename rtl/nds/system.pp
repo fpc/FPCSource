@@ -57,6 +57,7 @@ const
   StdErrorHandle  = 2;
 
   FileNameCaseSensitive : boolean = true;
+  FileNameCasePreserving: boolean = true;
   CtrlZMarksEOF: boolean = true; (* #26 not considered as end of file *)
 
   sLineBreak = LineEnding;

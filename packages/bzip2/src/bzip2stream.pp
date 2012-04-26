@@ -96,7 +96,7 @@ Type
 
 implementation
 
-{$ifdef i386}
+{$ifdef cpui386}
   {$i bzip2si386.inc}
 {$endif}
 

@@ -2096,6 +2096,7 @@ packages/fcl-db/tests/testdbbasics.pas svneol=native#text/plain
 packages/fcl-db/tests/testdddiff.pp svneol=native#text/plain
 packages/fcl-db/tests/testfieldtypes.pas svneol=native#text/plain
 packages/fcl-db/tests/testjsondataset.pp svneol=native#text/plain
+packages/fcl-db/tests/testspecifictbufdataset.pas svneol=native#text/plain
 packages/fcl-db/tests/testsqlfiles.lpi svneol=native#text/plain
 packages/fcl-db/tests/testsqlfiles.lpr svneol=native#text/plain
 packages/fcl-db/tests/testsqlscanner.lpi svneol=native#text/plain
@@ -7674,6 +7675,7 @@ rtl/linux/arm/ucprt0.as svneol=native#text/plain
 rtl/linux/buildrtl.lpi svneol=native#text/plain
 rtl/linux/buildrtl.pp svneol=native#text/plain
 rtl/linux/bunxsysc.inc svneol=native#text/plain
+rtl/linux/errno-sparc.inc svneol=native#text/plain
 rtl/linux/errno.inc svneol=native#text/plain
 rtl/linux/errnostr.inc svneol=native#text/plain
 rtl/linux/fpcylix.pp svneol=native#text/plain
@@ -7728,6 +7730,7 @@ rtl/linux/mips/stat.inc svneol=native#text/plain
 rtl/linux/mips/syscall.inc svneol=native#text/plain
 rtl/linux/mips/syscallh.inc svneol=native#text/plain
 rtl/linux/mips/sysnr.inc svneol=native#text/plain
+rtl/linux/mipsel/bsyscall.inc svneol=native#text/plain
 rtl/linux/mipsel/cprt0.as svneol=native#text/plain
 rtl/linux/mipsel/dllprt0.as svneol=native#text/plain
 rtl/linux/mipsel/gprt0.as svneol=native#text/plain
@@ -7854,11 +7857,17 @@ rtl/mips/setjump.inc svneol=native#text/plain
 rtl/mips/setjumph.inc svneol=native#text/plain
 rtl/mips/strings.inc svneol=native#text/plain
 rtl/mips/stringss.inc svneol=native#text/plain
+rtl/mipsel/int64p.inc svneol=native#text/plain
 rtl/mipsel/makefile.cpu svneol=native#text/plain
 rtl/mipsel/math.inc svneol=native#text/plain
+rtl/mipsel/mathu.inc svneol=native#text/plain
+rtl/mipsel/mathuh.inc svneol=native#text/plain
 rtl/mipsel/mips.inc svneol=native#text/plain
 rtl/mipsel/set.inc svneol=native#text/plain
+rtl/mipsel/setjump.inc svneol=native#text/plain
 rtl/mipsel/setjumph.inc svneol=native#text/plain
+rtl/mipsel/strings.inc svneol=native#text/plain
+rtl/mipsel/stringss.inc svneol=native#text/plain
 rtl/morphos/Makefile svneol=native#text/plain
 rtl/morphos/Makefile.fpc svneol=native#text/plain
 rtl/morphos/aboxlib.pas -text svneol=unset#text/plain
@@ -8192,7 +8201,6 @@ rtl/objpas/varutilh.inc svneol=native#text/plain
 rtl/objpas/varutils.inc svneol=native#text/plain
 rtl/openbsd/Makefile svneol=native#text/plain
 rtl/openbsd/Makefile.fpc svneol=native#text/plain
-rtl/openbsd/check_sys.sh svneol=native#text/plain
 rtl/openbsd/classes.pp svneol=native#text/plain
 rtl/openbsd/errno.inc svneol=native#text/plain
 rtl/openbsd/errnostr.inc svneol=native#text/plain
@@ -8484,6 +8492,11 @@ rtl/unix/oscdecl.inc svneol=native#text/plain
 rtl/unix/oscdeclh.inc svneol=native#text/plain
 rtl/unix/ports.pp svneol=native#text/plain
 rtl/unix/printer.pp svneol=native#text/plain
+rtl/unix/scripts/README svneol=native#text/plain
+rtl/unix/scripts/check_consts.sh svneol=native#text/plain
+rtl/unix/scripts/check_errno.sh svneol=native#text/plain
+rtl/unix/scripts/check_errnostr.sh svneol=native#text/plain
+rtl/unix/scripts/check_sys.sh svneol=native#text/plain
 rtl/unix/serial.pp svneol=native#text/plain
 rtl/unix/settimeo.inc svneol=native#text/plain
 rtl/unix/sockets.pp svneol=native#text/plain
@@ -9606,6 +9619,13 @@ tests/test/cg/cdecl/taoc3.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc4.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc5.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc6.pp svneol=native#text/plain
+tests/test/cg/obj/aix/powerpc/cpptcl1.o -text
+tests/test/cg/obj/aix/powerpc/cpptcl2.o -text
+tests/test/cg/obj/aix/powerpc/ctest.o -text
+tests/test/cg/obj/aix/powerpc/tcext3.o -text
+tests/test/cg/obj/aix/powerpc/tcext4.o -text
+tests/test/cg/obj/aix/powerpc/tcext5.o -text
+tests/test/cg/obj/aix/powerpc/tcext6.o -text
 tests/test/cg/obj/amiga/m68k/ctest.o -text
 tests/test/cg/obj/beos/i386/ctest.o -text
 tests/test/cg/obj/beos/i386/tcext3.o -text
@@ -10214,6 +10234,8 @@ tests/test/opt/twpo5.pp svneol=native#text/plain
 tests/test/opt/twpo6.pp svneol=native#text/plain
 tests/test/opt/twpo7.pp svneol=native#text/plain
 tests/test/opt/uwpo2.pp svneol=native#text/plain
+tests/test/packages/bzip2/tbzip2streamtest.pp svneol=native#text/plain
+tests/test/packages/bzip2/testbzip2.res -text
 tests/test/packages/cocoaint/tobjc33.pp svneol=native#text/plain
 tests/test/packages/cocoaint/tobjc33a.pp svneol=native#text/plain
 tests/test/packages/cocoaint/tobjcnh1.pp svneol=native#text/plain

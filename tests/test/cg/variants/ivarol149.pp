@@ -15,12 +15,12 @@ type
 procedure test149(a: ansistring); overload;
   begin
     writeln('ansistring called instead of widestring');
+    halt(1)
   end;
 
 procedure test149(a: widestring); overload;
   begin
     writeln('widestring called instead of ansistring');
-    halt(1)
   end;
 
 var

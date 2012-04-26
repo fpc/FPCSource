@@ -114,7 +114,7 @@ interface
         { os2 }     ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
         { freebsd } ( true,  true,  false, false, true,  false, false, false, false, false, false, false, false, false,   false),
         { beos }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
-        { haiku }   ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { haiku }   ( true,  false, false, false, true, false, false, false, false, false, false, false, false, false,   false),
         { netbsd }  ( true,  true,  true,  true,  false, false, false, false, false, false, false, false, false, false,   false),
         { amiga }   ( false, true,  true,  false, false, false, false, false, false, false, false, false, false, false,   false),
         { atari }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false),

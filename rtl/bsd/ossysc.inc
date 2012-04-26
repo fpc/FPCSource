@@ -300,6 +300,10 @@ end;
   If OldAct is non-nil the previous action is saved there.
 }
 
+{$ifdef USE_SIGACTION_SIGTRAMP}
+  procedure signal_trampoline; cdecl; forward;
+{$endif def USE_SIGACTION_SIGTRAMP}
+
 function Fpsigaction(sig: cint; act, oact: psigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
 
 {
@@ -310,7 +314,12 @@ function Fpsigaction(sig: cint; act, oact: psigactionrec): cint; [public, alias 
 }
 
 begin
+{$ifdef USE_SIGACTION_SIGTRAMP}
+  fpsigaction:=do_syscall(syscall_nr___sigaction_sigtramp,TSysParam(sig),TSysParam(act),TSysParam(oact),
+                          TSysParam(@signal_trampoline),2);
+{$else not USE_SIGACTION_SIGTRAMP}
   fpsigaction:=do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
+{$endif not USE_SIGACTION_SIGTRAMP}
 end;
 
 (*=================== MOVED from sysunix.inc ========================*)
@@ -397,7 +406,7 @@ function Fpaccess(const pathname : pchar; amode : cint): cint; [public, alias : 
 begin
  FpAccess:=do_syscall(syscall_nr_access,TSysParam(pathname),amode);
 end;
-{
+(*
 function Fpaccess(const pathname : pathstr; amode : cint): cint;
 
 {
@@ -417,7 +426,7 @@ begin
  pathname:=pathname+#0;
  Access:=do_syscall(syscall_nr_access, TSysParam(@pathname[1]),mode)=0;
 end;
-}
+*)
 
 Function FpDup(fildes:cint):cint; [public, alias : 'FPC_SYSC_DUP'];
 
@@ -480,10 +489,30 @@ function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, al
   if OldSSet is non-null, the old set will be saved there.
 }
 
+{$ifdef OpenBSD}
+  { OpenBSD sigprocmask signal uses
+    sigset_t that are cint type
+    the value of nset^[0] must be passed as second parameter
+    the old mask value is in return value }
+  { How do we know if the call failed... PM }
+{$define OS_SIGPROCMASK_RETURNS_OVAL}
+{$endif}
+{$ifdef OS_SIGPROCMASK_RETURNS_OVAL}
+  var
+    res : cint;
+{$endif OS_SIGPROCMASK_RETURNS_OVAL}
 begin
+{$ifdef OS_SIGPROCMASK_RETURNS_OVAL}
+  res:=do_syscall(syscall_nr_sigprocmask,tsysparam(how),TSysParam(nset^[0]));
+  if assigned(oset) then
+    oset^[0]:=res;
+  FPsigprocmask:=0;
+
+{$else OS_SIGPROCMASK_RETURNS_OVAL}
   FPsigprocmask:=do_syscall(syscall_nr_sigprocmask,tsysparam(how),TSysParam(nset),TSysParam(oset));
+{$endif OS_SIGPROCMASK_RETURNS_OVAL}
 end;
-{$user BLA!}
+{$warning user BLA!}
 Function FpNanoSleep(req : ptimespec;rem : ptimespec) : cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
 begin
   FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(req),TSysParam(rem));

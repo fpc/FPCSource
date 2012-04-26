@@ -152,18 +152,17 @@ unit agppcgas;
                 s:=s+tostr(offset);
             end;
 
-           if (refaddr in verbose_refaddrs) then
+           if not(refaddr in [addr_no,addr_pic_no_got]) then
              begin
                s := s+')';
-               if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
+               if (refaddr in verbose_refaddrs) and
+                  not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
                  s := s+refaddr2str[refaddr];
              end;
 {$ifdef cpu64bitaddr}
-           if (refaddr = addr_pic) then
-	     if (target_info.system <> system_powerpc64_linux) then
-	       s := s + ')'
-	     else
-	       s := s + ')@got';
+           if (refaddr=addr_pic) and
+	      (target_info.system=system_powerpc64_linux) then
+             s := s + '@got';
 {$endif cpu64bitaddr}
 
            if (index=NR_NO) then
@@ -464,13 +463,6 @@ unit agppcgas;
         i: longint;
       begin
         inherited WriteExtraHeader;
-        { AIX assembler notation for .quad is .llong, let assembler itself
-          perform the substitution; the aix assembler uses .quad for defining
-          128 bit floating point numbers, but
-            a) we don't support those yet
-            b) once we support them, we'll encode them byte per byte like other
-               floating point numbers }
-        AsmWriteln(#9'.set'#9'.quad,.llong');
         { map cr registers to plain numbers }
         for i:=0 to 7 do
           AsmWriteln(#9'.set'#9'cr'+tostr(i)+','+tostr(i));
@@ -584,7 +576,11 @@ unit agppcgas;
                AIX assembler, ignore by GNU assembler)
            -mpwr5: we actually support Power3 and higher, but the AIX assembler
                has no parameter to select that one (only -mpwr3 and -mpwr5) }
+{$ifdef cpu64bitaddr}
+         asmcmd : '-a64 -u -o $OBJ $ASM -mpwr5';
+{$else cpu64bitaddr}
          asmcmd : '-u -o $OBJ $ASM -mpwr5';
+{$endif cpu64bitaddr}
          supported_targets : [system_powerpc_aix,system_powerpc64_aix];
          flags : [af_needar,af_smartlink_sections,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';

@@ -421,7 +421,7 @@ implementation
           end;
 
         { create a temp to store parameter values }
-        params:=ctempcreatenode.create(voidtype,0,tt_persistent,true);
+        params:=ctempcreatenode.create(cformaltype,0,tt_persistent,false);
         addstatement(statements,params);
 
         calldescnode:=cdataconstnode.create;
@@ -475,20 +475,14 @@ implementation
               depending on byref bit }
 
             if assignmenttype=voidpointertype then
-              begin
-                addstatement(statements,cassignmentnode.create(
-                  ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
-                      caddrnode.create(ctemprefnode.create(params)),
-                    cordconstnode.create(qword(paramssize),ptruinttype,false)
-                  )),voidpointertype),
-                  ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)));
-              end
+              addstatement(statements,cassignmentnode.create(
+                ctypeconvnode.create_internal(ctemprefnode.create_offset(params,paramssize),
+                  voidpointertype),
+                ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)))
             else
               addstatement(statements,cassignmentnode.create(
-                ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
-                  caddrnode.create(ctemprefnode.create(params)),
-                  cordconstnode.create(paramssize,ptruinttype,false)
-                )),assignmenttype),
+                ctypeconvnode.create_internal(ctemprefnode.create_offset(params,paramssize),
+                  assignmenttype),
                 ctypeconvnode.create_internal(para.left,assignmenttype)));
 
             inc(paramssize,max(voidpointertype.size,assignmenttype.size));
@@ -1515,7 +1509,7 @@ implementation
     function look_for_call(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         case n.nodetype of
-          calln:
+          calln,asn:
             result := fen_norecurse_true;
           typen,loadvmtaddrn,loadn,temprefn,arrayconstructorn:
             result := fen_norecurse_false;

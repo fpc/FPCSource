@@ -1487,7 +1487,7 @@ implementation
         end;
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
-      new_section(current_asmdata.asmlists[al_globals],sec_rodata,s,0);
+      new_section(current_asmdata.asmlists[al_globals],sec_rodata,s,sizeof(pint));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
       current_asmdata.asmlists[al_globals].concat(Tai_const.Create_8bit(length(_class.iidstr^)));
       current_asmdata.asmlists[al_globals].concat(Tai_string.Create(_class.iidstr^));

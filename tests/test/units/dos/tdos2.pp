@@ -694,6 +694,7 @@ begin
  TestSplit;
  //Force RTL to use non-LFN calls
  FileNameCaseSensitive:=false;
+ FileNameCasePreserving:=false;
  AllFilesMask := '*.*';
  LFNSupport:=false;
  WriteLn('----------------------------------------------------------------------');

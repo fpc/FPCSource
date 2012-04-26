@@ -73,7 +73,7 @@ unit cpupi;
         { align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
         if not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
-          result:=Align(tg.direction*tg.lasttemp,min(current_settings.alignment.localalignmin,4))
+          result:=Align(tg.direction*tg.lasttemp,min(current_settings.alignment.localalignmax,4))
         else
           result:=tg.direction*tg.lasttemp+maxpushedparasize;
       end;

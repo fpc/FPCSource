@@ -470,7 +470,7 @@ implementation
         l: longint;
       begin
         if (secalign=0) or
-           not(atype in [sec_code,sec_bss,sec_rodata_norel]) then
+           not(atype in [sec_code,sec_bss,sec_rodata_norel,sec_rodata,sec_data]) then
           begin
             result:='';
             exit;
@@ -753,7 +753,7 @@ implementation
                        asmwrite(tai_datablock(hp).sym.name);
                        asmwriteln(', '+tostr(tai_datablock(hp).size)+','+tostr(last_align));
                        if not(LastSecType in [sec_data,sec_none]) then
-                         writesection(LastSecType,'',secorder_default,last_align);
+                         writesection(LastSecType,'',secorder_default,1 shl last_align);
                      end
                    else
                      begin
@@ -775,7 +775,7 @@ implementation
                        asmwrite(#9'.space ');
                        asmwriteln(tostr(tai_datablock(hp).size));
                        if not(LastSecType in [sec_data,sec_none]) then
-                         writesection(LastSecType,'',secorder_default,last_align);
+                         writesection(LastSecType,'',secorder_default,1 shl last_align);
                      end
                    else
                      begin
@@ -930,7 +930,14 @@ implementation
                        end
                      else
                        begin
-                         AsmWrite(ait_const2str[constdef]);
+                         if not(target_info.system in systems_aix) or
+                            (constdef<>aitconst_64bit) then
+                           AsmWrite(ait_const2str[constdef])
+                         else
+                           { can't use .llong, because that forces 8 byte
+                             alignnment and we sometimes store addresses on
+                             4-byte aligned addresses (e.g. in the RTTI) }
+                           AsmWrite('.vbyte'#9'8,');
                          l:=0;
                          t := '';
                          repeat

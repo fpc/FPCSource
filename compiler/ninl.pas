@@ -524,7 +524,7 @@ implementation
             else
               inserttypeconv(n,getansistringdef)
           else if is_widechararray(n.resultdef) then
-            inserttypeconv(n,cwidestringtype);
+            inserttypeconv(n,cunicodestringtype);
       end;
 
 

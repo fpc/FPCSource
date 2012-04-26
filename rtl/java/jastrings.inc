@@ -306,7 +306,7 @@ begin
         end
       else
         begin
-          temp:=S;
+          temp:=UnicodeString(S);
           Size:=Length(temp);
           widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(JLString(temp).toCharArray),result,cp,Size);
         end;

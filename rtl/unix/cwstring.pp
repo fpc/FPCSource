@@ -99,6 +99,7 @@ const
   _NL_CTYPE_CODESET_NAME = (_NL_CTYPE_CLASS)+14;
   CODESET = 0; // _NL_CTYPE_CODESET_NAME;
 {$elseif defined(solaris)}
+  {$define ACCEPT_646}
   CODESET=49;
   LC_ALL = 6;
 {$elseif defined(beos)}
@@ -111,9 +112,11 @@ const
   {$endif}
   ESysEILSEQ = EILSEQ;
 {$elseif defined(OpenBSD)}
+  {$define ACCEPT_646}
   CODESET = 51;
   LC_ALL = 0;
 {$elseif defined(NetBSD)}
+  {$define ACCEPT_646}
   CODESET = 51;
   LC_ALL = 0;
 {$elseif defined(aix)}

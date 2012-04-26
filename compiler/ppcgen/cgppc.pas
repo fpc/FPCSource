@@ -67,7 +67,7 @@ unit cgppc;
         procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
 
-        function get_aix_toc_sym(const symname: string; const flags: tindsymflags):tasmsymbol;
+        procedure get_aix_toc_sym(list: TAsmList; const symname: string; const flags: tindsymflags; out ref: treference; force_direct_toc: boolean);
         procedure g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
         procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
        protected
@@ -98,9 +98,34 @@ unit cgppc;
         function load_got_symbol(list : TAsmList; const symbol : string; const flags: tindsymflags) : tregister;
      end;
 
+
+  TPPCAsmData = class(TAsmData)
+   private
+    { number of entries in the TOC }
+    fdirecttocentries,
+    { number of fake TOC subsections we have created }
+    ftocsections,
+    { number of fake TOC entries in the current TOC subsection }
+    fcurrenttocentries: longint;
+   public
+    procedure GetNextSmallTocEntry(out tocnr, entrynr: longint);
+    property DirectTOCEntries: longint read fdirecttocentries write fdirecttocentries;
+  end;
+
+
+  TTOCAsmSymbol = class(TAsmSymbol)
+   private
+    { we split the toc into several sections of 32KB each, this number
+      indicates which subsection this symbol is defined in }
+    ftocsecnr: longint;
+   public
+    property TocSecNr: longint read ftocsecnr;
+  end;
+
   const
     TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlag = (C_NONE,C_EQ,C_GT,
                          C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);
+    TocSecBaseName = 'toc_table';
 
 
 {$ifdef extdebug}
@@ -800,17 +825,16 @@ unit cgppc;
       ref: treference;
     begin
       if target_info.system=system_powerpc64_linux then
-        l:=current_asmdata.getasmsymbol(symbol)
+        begin
+          l:=current_asmdata.getasmsymbol(symbol);
+          reference_reset_symbol(ref,l,0,sizeof(pint));
+          ref.base:=NR_RTOC;
+          ref.refaddr:=addr_pic;
+        end
       else if target_info.system in systems_aix then
-        l:=get_aix_toc_sym(symbol,flags)
+        get_aix_toc_sym(list,symbol,flags,ref,false)
       else
         internalerror(2007102010);
-      reference_reset_symbol(ref,l,0,sizeof(pint));
-      ref.base:=NR_RTOC;
-      if target_info.system in systems_aix then
-        ref.refaddr:=addr_pic_no_got
-      else
-        ref.refaddr:=addr_pic;
 
       result := getaddressregister(list);
 {$ifdef cpu64bitaddr}
@@ -821,30 +845,100 @@ unit cgppc;
     end;
 
 
-  function tcgppcgen.get_aix_toc_sym(const symname: string; const flags: tindsymflags): tasmsymbol;
+  procedure tcgppcgen.get_aix_toc_sym(list: TAsmList; const symname: string; const flags: tindsymflags; out ref: treference; force_direct_toc: boolean);
+    const
+      { The TOC on AIX is limited to 32KB worth of entries on AIX. If you need
+        more entries, you have to add a level of indirection. In some cases,
+        it's not possible to do this (e.g. assembler code). So by default, we
+        use direct TOC entries until we're 500 from the maximum, and then start
+        using indirect TOC entries. }
+      AutoDirectTOCLimit = (high(smallint) div sizeof(pint)) - 500;
     var
+      tmpref: treference;
+      { can have more than 16384 (32 bit) or 8192 (64 bit) toc entries and, as
+        as consequence, toc subsections -> 5 extra characters for the number}
+      tocsecname: string[length('tocsubtable')+5];
       nlsymname: string;
       newsymname: ansistring;
+      sym: TAsmSymbol;
+      tocsym: TTOCAsmSymbol;
+      tocnr,
+      entrynr: longint;
+      tmpreg: tregister;
     begin
       { all global symbol accesses always must be done via the TOC }
       nlsymname:='LC..'+symname;
-      result:=current_asmdata.getasmsymbol(nlsymname);
-      if not assigned(result) then
+      reference_reset_symbol(ref,current_asmdata.getasmsymbol(nlsymname),0,sizeof(pint));
+      if (assigned(ref.symbol) and
+          not(ref.symbol is TTOCAsmSymbol)) or
+         (not(ts_small_toc in current_settings.targetswitches) and
+          (TPPCAsmData(current_asmdata).DirectTOCEntries<AutoDirectTOCLimit)) or
+         force_direct_toc then
         begin
-          new_section(current_asmdata.AsmLists[al_picdata],sec_toc,'',sizeof(pint));
-          result:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA);
-          current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(result,0));
-          { do not assign the result of these statements to result: the access
-            must be done via the LC..symname symbol; these are just to define
-            the symbol that's being accessed as either weak or not }
-          if not(is_weak in flags) then
-            current_asmdata.RefAsmSymbol(symname)
-          else if is_data in flags then
-            current_asmdata.WeakRefAsmSymbol(symname)
-          else
-            current_asmdata.WeakRefAsmSymbol('.'+symname);
-          newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
-          current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
+          ref.refaddr:=addr_pic_no_got;
+          ref.base:=NR_RTOC;
+          if not assigned(ref.symbol) then
+            begin
+              TPPCAsmData(current_asmdata).DirectTOCEntries:=TPPCAsmData(current_asmdata).DirectTOCEntries+1;
+              new_section(current_asmdata.AsmLists[al_picdata],sec_toc,'',sizeof(pint));
+              ref.symbol:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA);
+              current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(ref.symbol,0));
+              { do not assign the result of these statements to ref.symbol: the
+                access must be done via the LC..symname symbol; these are just
+                to define the symbol that's being accessed as either weak or
+                not }
+              if not(is_weak in flags) then
+                current_asmdata.RefAsmSymbol(symname)
+              else if is_data in flags then
+                current_asmdata.WeakRefAsmSymbol(symname)
+              else
+                current_asmdata.WeakRefAsmSymbol('.'+symname);
+              newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
+              current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
+            end;
+        end
+      else
+        begin
+          if not assigned(ref.symbol) then
+            begin
+              TPPCAsmData(current_asmdata).GetNextSmallTocEntry(tocnr,entrynr);
+              { new TOC entry? }
+              if entrynr=0 then
+                begin
+                  { create new toc entry that contains the address of the next
+                    table of addresses }
+                  get_aix_toc_sym(list,'tocsubtable'+tostr(tocnr),[is_data],tmpref,true);
+                  sym:=tmpref.symbol;
+                  { base address for this batch of toc table entries that we'll
+                    put in a data block instead }
+                  new_section(current_asmdata.AsmLists[al_indirectpicdata],sec_rodata,'',sizeof(pint));
+                  sym:=current_asmdata.DefineAsmSymbol('tocsubtable'+tostr(tocnr),AB_LOCAL,AT_DATA);
+                  current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(sym,0));
+                end;
+              { add the reference to the actual symbol inside the tocsubtable }
+              if not(is_weak in flags) then
+                current_asmdata.RefAsmSymbol(symname)
+              else if is_data in flags then
+                current_asmdata.WeakRefAsmSymbol(symname)
+              else
+                current_asmdata.WeakRefAsmSymbol('.'+symname);
+              tocsym:=TTOCAsmSymbol(current_asmdata.DefineAsmSymbolByClass(TTOCAsmSymbol,nlsymname,AB_LOCAL,AT_DATA));
+              ref.symbol:=tocsym;
+              tocsym.ftocsecnr:=tocnr;
+              current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(tocsym,0));
+              newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
+              sym:=current_asmdata.RefAsmSymbol(newsymname);
+              current_asmdata.asmlists[al_indirectpicdata].concat(tai_const.Create_sym(sym));
+            end;
+          { first load the address of the table from the TOC }
+          get_aix_toc_sym(list,'tocsubtable'+tostr(TTOCAsmSymbol(ref.symbol).ftocsecnr),[is_data],tmpref,true);
+          tmpreg:=getaddressregister(list);
+          a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,tmpreg);
+          { and now set up the address of the entry, relative to the start of
+            the table }
+          ref.base:=tmpreg;
+          ref.refaddr:=addr_pic;
+          ref.relsymbol:=current_asmdata.GetAsmSymbol('tocsubtable'+tostr(TTOCAsmSymbol(ref.symbol).ftocsecnr));
         end;
     end;
 
@@ -989,7 +1083,8 @@ unit cgppc;
         if (((target_info.system = system_powerpc64_linux) and
              (cs_create_pic in current_settings.moduleswitches)) or
             (target_info.system in systems_aix)) and
-           (assigned(ref.symbol)) then
+           (assigned(ref.symbol) and
+            not assigned(ref.relsymbol)) then
           begin
             tmpreg := load_got_symbol(list, ref.symbol.name, asmsym2indsymflags(ref.symbol));
             if (ref.base = NR_NO) then
@@ -1149,5 +1244,22 @@ unit cgppc;
       end;
 
 
+
+    { TPPCAsmData }
+
+    procedure TPPCAsmData.GetNextSmallTocEntry(out tocnr, entrynr: longint);
+      begin
+        if fcurrenttocentries>(high(word) div sizeof(pint)) then
+          begin
+            fcurrenttocentries:=0;
+            inc(ftocsections);
+          end;
+        tocnr:=ftocsections;
+        entrynr:=fcurrenttocentries;
+        inc(fcurrenttocentries);
+      end;
+
+begin
+  casmdata:=TPPCAsmData;
 end.
 

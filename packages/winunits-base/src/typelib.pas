@@ -1480,10 +1480,10 @@ begin
             end;
           end;
         end;
-      if bIsDispatch and (sDefEvents<>'') then //add event signatures
+      if bIsDispatch and (sDefEvents<>'') and (FEventSignatures[idx]<>'already defined') then //add event signatures
         begin
         AddToInterface(FEventSignatures[idx]);
-        FEventSignatures[idx]:='';  // add event signatures only once. Multiple coclasses can use same events
+        FEventSignatures[idx]:='already defined';  // add event signatures only once. Multiple coclasses can use same events
         AddToInterface('');
         end;
       AddToInterFace('  Co%s = Class',[BstrName]);
@@ -1556,7 +1556,7 @@ begin
         AddToInterFace('  end;');
         AddToInterFace('');
         end
-      else if bIsDispatch and (sDefEvents<>'') then //add function variables
+      else if bIsDispatch and (sDefEvents<>'') then //add event sink descendant
         begin
         if FUses.IndexOf('Eventsink')<0 then
           FUses.Add('EventSink');

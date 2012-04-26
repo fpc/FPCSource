@@ -43,6 +43,7 @@ const
  AllowDirectorySeparators : set of char = ['\','/'];
  AllowDriveSeparators : set of char = [':'];
  FileNameCaseSensitive = false;
+ FileNameCasePreserving = true;
  maxExitCode = 255;
  MaxPathLen = 255;
  AllFilesMask = '*';

@@ -78,7 +78,6 @@ Const
         ESysEPROTONOSUPPORT     = 43;           { Protocol not supported }
         ESysESOCKTNOSUPPORT     = 44;           { Socket type not supported }
         ESysEOPNOTSUPP          = 45;           { Operation not supported }
-        ESysENOTSUP             = ESysEOPNOTSUPP;       { Operation not supported }
         ESysEPFNOSUPPORT        = 46;           { Protocol family not supported }
         ESysEAFNOSUPPORT        = 47;           { Address family not supported by protocol family }
         ESysEADDRINUSE          = 48;           { Address already in use }
@@ -129,9 +128,32 @@ Const
         ESysEIDRM               = 82;           { Identifier removed }
         ESysENOMSG              = 83;           { No message of desired type }
         ESysEOVERFLOW           = 84;           { Value too large to be stored in data type }
-        ESysECANCELED           = 85;           { Operation canceled }
-        ESysEILSEQ              = 86;           { Illegal byte sequence }
-        ESysELAST               = 86;           { Must be equal largest errno }
+        ESysEILSEQ              = 85;           { Illegal byte sequence }
+{ From IEEE Std 1003.1-2001 }
+{ Base, Realtime, Threads or Thread Priority Scheduling option errors }
+        ESysENOTSUP             = 86;           { Not supported }
+
+{ Realtime option errors }
+        ESysECANCELED           = 87;           { Operation canceled }
+
+{ Realtime, XSI STREAMS option errors }
+        ESysEBADMSG             = 88;           { Bad or Corrupt message }
+
+{ XSI STREAMS option errors  }
+        ESysENODATA             = 89;           { No message available }
+        ESysENOSR               = 90;           { No STREAM resources }
+        ESysENOSTR              = 91;           { Not a STREAM }
+        ESysETIME               = 92;           { STREAM ioctl timeout }
+
+{ File system extended attribute errors }
+        ESysENOATTR             = 93;           { Attribute not found }
+
+{ Realtime, XSI STREAMS option errors }
+        ESysEMULTIHOP           = 94;           { Multihop attempted } 
+        ESysENOLINK             = 95;           { Link has been severed }
+        ESysEPROTO              = 96;           { Protocol error }
+
+        ESysELAST               = 96;           { Must be equal largest errno }
 
 
 

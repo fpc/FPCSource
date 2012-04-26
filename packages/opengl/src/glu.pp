@@ -87,6 +87,12 @@ Const
 {$ENDIF OS2}
 {$endif}
                               
+type
+  TViewPortArray = array [0..3] of GLint;
+  T16dArray = array [0..15] of GLdouble;
+  T3dArray = array [0..2] of GLdouble;
+  T4pArray = array [0..3] of Pointer;
+  T4fArray = array [0..3] of GLfloat;
 
 const
   GLU_EXT_object_space_tess = 1;      
@@ -283,7 +289,7 @@ Type
   PGLdouble  = ^GLdouble;
   PGLfloat  = ^GLfloat;
   PGLint  = ^GLint;
-  PGLubyte  = ^GLubyte;
+  PGLubyte  = PAnsiChar; //< this is only used for strings in GLU
   PGLUnurbs  = ^GLUnurbs;
   PGLUquadric  = ^GLUquadric;
   PGLUtesselator  = ^GLUtesselator;
@@ -293,6 +299,7 @@ Type
   GLUtesselatorObj = GLUtesselator;
   GLUtriangulatorObj = GLUtesselator;
   _GLUfuncptr = procedure ;extdecl;
+  TCallback   =  _GLUfuncptr;
 
 {$IFDEF MORPHOS}
 

@@ -59,28 +59,34 @@ Unit AoptObj;
       TRefCompare = Function(const r1, r2: TReference): Boolean;
       //!!! FIXME
       TRegArray = Array[byte] of tsuperregister;
+
+
       TRegSet = Set of byte;
-    { possible actions on an operand: read, write or modify (= read & write) }
+      { possible actions on an operand: read, write or modify (= read & write) }
       TOpAction = (OpAct_Read, OpAct_Write, OpAct_Modify, OpAct_Unknown);
 
     { ************************************************************************* }
     { * Object to hold information on which regiters are in use and which not * }
     { ************************************************************************* }
+
+      { TUsedRegs }
+
       TUsedRegs = class
-        Constructor create;
-        Constructor create_regset(Const _RegSet: TRegSet);
+        Constructor create(aTyp : TRegisterType);
+        Constructor create_regset(aTyp : TRegisterType;Const _RegSet: TRegSet);
 
         Destructor Destroy;override;
-        { update the info with the pairegalloc objects coming after }
-        { p                                                         }
+
+        Procedure Clear;
+        { update the info with the pairegalloc objects coming after
+          p                                                         }
         Procedure Update(p: Tai);
         { is Reg currently in use }
         Function IsUsed(Reg: TRegister): Boolean;
         { get all the currently used registers }
         Function GetUsedRegs: TRegSet;
-
       Private
-
+        Typ : TRegisterType;
         UsedRegs: TRegSet;
       End;
 
@@ -120,10 +126,10 @@ Unit AoptObj;
     { gets one of these assigned: a pointer to it is stored in the OptInfo field }
     { ************************************************************************** }
 
+      { TPaiProp }
+
       TPaiProp = class(TAoptBaseCpu)
         Regs: TRegContent;
-        { info about allocation of general purpose integer registers }
-        UsedRegs: TUsedRegs;
         { can this instruction be removed? }
         CanBeRemoved: Boolean;
 
@@ -227,6 +233,9 @@ Unit AoptObj;
     { ********** General optimizer object, used to derive others from ********* }
     { ************************************************************************* }
 
+      TAllUsedRegs = array[TRegisterType] of TUsedRegs;
+      { TAOptObj }
+
       TAOptObj = class(TAoptBaseCpu)
         { the PAasmOutput list this optimizer instance works on }
         AsmL: TAsmList;
@@ -240,14 +249,24 @@ Unit AoptObj;
         BlockStart, BlockEnd: Tai;
 
         DFA: TAOptDFA;
+
+        UsedRegs: TAllUsedRegs;
+
         { _AsmL is the PAasmOutpout list that has to be optimized,     }
         { _BlockStart and _BlockEnd the start and the end of the block }
         { that has to be optimized and _LabelInfo a pointer to a       }
         { TLabelInfo record                                            }
         Constructor create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
                            _LabelInfo: PLabelInfo); virtual; reintroduce;
+        Destructor Destroy;override;
 
         { processor independent methods }
+
+        Procedure ClearUsedRegs;
+        Procedure UpdateUsedRegs(p : Tai);
+        procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai);
+        Function CopyUsedRegs(var dest : TAllUsedRegs) : boolean;
+        Procedure ReleaseUsedRegs(const regs : TAllUsedRegs);
 
         { returns true if the label L is found between hp and the next }
         { instruction                                                  }
@@ -255,7 +274,6 @@ Unit AoptObj;
 
         { inserts new_one between prev and foll in AsmL }
         Procedure InsertLLItem(prev, foll, new_one: TLinkedListItem);
-
 
         { If P is a Tai object releveant to the optimizer, P is returned
           If it is not relevant tot he optimizer, the first object after P
@@ -269,6 +287,9 @@ Unit AoptObj;
           of Tai's starting with StartPai and ending with the next "real"
           instruction                                                      }
         Function FindRegAlloc(Reg: TRegister; StartPai: Tai): Boolean;
+
+        { reg used after p? }
+        function RegUsedAfterInstruction(reg: Tregister; p: tai; var AllUsedRegs: TAllUsedRegs): Boolean;
 
        { traces sucessive jumps to their final destination and sets it, e.g.
          je l1                je l3
@@ -312,57 +333,76 @@ Unit AoptObj;
       { ******************************** TUsedRegs ****************************** }
       { ************************************************************************* }
 
-      Constructor TUsedRegs.create;
+    Constructor TUsedRegs.create(aTyp : TRegisterType);
       Begin
+        Typ:=aTyp;
         UsedRegs := [];
       End;
 
-      Constructor TUsedRegs.create_regset(Const _RegSet: TRegSet);
+
+    Constructor TUsedRegs.create_regset(aTyp : TRegisterType;Const _RegSet: TRegSet);
       Begin
+        Typ:=aTyp;
         UsedRegs := _RegSet;
       End;
 
-      Procedure TUsedRegs.Update(p: Tai);
-      {updates UsedRegs with the RegAlloc Information coming after P}
+
+    {
+      updates UsedRegs with the RegAlloc Information coming after P
+    }
+    Procedure TUsedRegs.Update(p: Tai);
       Begin
-        Repeat
-          While Assigned(p) And
+        repeat
+          while assigned(p) and
                 ((p.typ in (SkipInstr - [ait_RegAlloc])) or
-                 ((p.typ = ait_label) And
-                  Not(Tai_Label(p).labsym.is_used))) Do
-               p := Tai(p.next);
-          While Assigned(p) And
+                 ((p.typ = ait_label) and
+                  labelCanBeSkipped(tai_label(p))) or
+                 ((p.typ = ait_marker) and
+                  (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd]))) do
+               p := tai(p.next);
+          while assigned(p) and
                 (p.typ=ait_RegAlloc) Do
-            Begin
-          {!!!!!!!! FIXME
-              if tai_regalloc(p).ratype=ra_alloc then
-                UsedRegs := UsedRegs + [tai_regalloc(p).Reg]
-              else
-                UsedRegs := UsedRegs - [tai_regalloc(p).Reg];
-              p := Tai(p.next);
-          }
-            End;
-        Until Not(Assigned(p)) Or
-              (Not(p.typ in SkipInstr) And
-               Not((p.typ = ait_label) And
-                  Not(Tai_Label(p).labsym.is_used)));
+            begin
+              if (getregtype(tai_regalloc(p).reg) = typ) then
+                begin
+                  case tai_regalloc(p).ratype of
+                    ra_alloc :
+                      Include(UsedRegs, getsupreg(tai_regalloc(p).reg));
+                    ra_dealloc :
+                      Exclude(UsedRegs, getsupreg(tai_regalloc(p).reg));
+                  end;
+                end;
+              p := tai(p.next);
+            end;
+        until not(assigned(p)) or
+              (not(p.typ in SkipInstr) and
+               not((p.typ = ait_label) and
+                   labelCanBeSkipped(tai_label(p))));
       End;
 
-      Function TUsedRegs.IsUsed(Reg: TRegister): Boolean;
+
+    Function TUsedRegs.IsUsed(Reg: TRegister): Boolean;
       Begin
-        //!!!!!!!!!!! IsUsed := Reg in UsedRegs
-        Result:=False; { unimplemented }
+        IsUsed := (getregtype(Reg)=Typ) and (getsupreg(Reg) in UsedRegs);
       End;
 
-      Function TUsedRegs.GetUsedRegs: TRegSet;
+
+    Function TUsedRegs.GetUsedRegs: TRegSet;
       Begin
         GetUsedRegs := UsedRegs;
       End;
 
-      Destructor TUsedRegs.Destroy;
-        Begin
-          inherited destroy;
-        end;
+
+    Destructor TUsedRegs.Destroy;
+      Begin
+        inherited destroy;
+      end;
+
+
+    procedure TUsedRegs.Clear;
+      begin
+        UsedRegs := [];
+      end;
 
       { ************************************************************************* }
       { **************************** TPaiProp *********************************** }
@@ -376,6 +416,7 @@ Unit AoptObj;
         }
         {  DirFlag: TFlagContents; I386 specific}
         End;
+
 
       Function TPaiProp.RegInSequence(Reg, which: TRegister): Boolean;
       {
@@ -554,6 +595,7 @@ Unit AoptObj;
                 Then DestroyReg(Counter, InstrSinceLastMod)
       *)
       End;
+
 
       Procedure TPaiProp.DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
       {Var Counter: TRegister;}
@@ -736,12 +778,71 @@ Unit AoptObj;
 
       Constructor TAoptObj.create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
                                   _LabelInfo: PLabelInfo);
+      var
+        i : TRegisterType;
       Begin
         AsmL := _AsmL;
         BlockStart := _BlockStart;
         BlockEnd := _BlockEnd;
-        LabelInfo := _LabelInfo
+        LabelInfo := _LabelInfo;
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          UsedRegs[i]:=TUsedRegs.Create(i);
       End;
+
+      destructor TAOptObj.Destroy;
+        var
+          i : TRegisterType;
+        begin
+          for i:=low(TRegisterType) to high(TRegisterType) do
+            UsedRegs[i].Destroy;
+          inherited Destroy;
+        end;
+
+
+      procedure TAOptObj.ClearUsedRegs;
+        var
+          i : TRegisterType;
+        begin
+          for i:=low(TRegisterType) to high(TRegisterType) do
+            UsedRegs[i].Clear;
+        end;
+
+
+      procedure TAOptObj.UpdateUsedRegs(p : Tai);
+        var
+          i : TRegisterType;
+        begin
+          for i:=low(TRegisterType) to high(TRegisterType) do
+            UsedRegs[i].Update(p);
+        end;
+
+
+      procedure TAOptObj.UpdateUsedRegs(var Regs : TAllUsedRegs;p : Tai);
+        var
+          i : TRegisterType;
+        begin
+          for i:=low(TRegisterType) to high(TRegisterType) do
+            Regs[i].Update(p);
+        end;
+
+
+      function TAOptObj.CopyUsedRegs(var dest: TAllUsedRegs): boolean;
+      var
+        i : TRegisterType;
+      begin
+        Result:=true;
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          dest[i]:=TUsedRegs.Create_Regset(i,UsedRegs[i].GetUsedRegs);
+      end;
+
+      procedure TAOptObj.ReleaseUsedRegs(const regs: TAllUsedRegs);
+        var
+          i : TRegisterType;
+      begin
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          regs[i].Free;
+      end;
+
 
       Function TAOptObj.FindLabel(L: TasmLabel; Var hp: Tai): Boolean;
       Var TempP: Tai;
@@ -850,6 +951,17 @@ Unit AoptObj;
             exit;
         Until false;
       End;
+
+
+      function TAOptObj.RegUsedAfterInstruction(reg: Tregister; p: tai;
+       var AllUsedRegs: TAllUsedRegs): Boolean;
+       begin
+         AllUsedRegs[getregtype(reg)].Update(tai(p.Next));
+         RegUsedAfterInstruction :=
+           (AllUsedRegs[getregtype(reg)].IsUsed(reg)); { optimization and
+              (not(getNextInstruction(p,p)) or
+               not(regLoadedWithNewValue(supreg,false,p))); }
+       end;
 
 
     function SkipLabels(hp: tai; var hp2: tai): boolean;
@@ -1008,10 +1120,10 @@ Unit AoptObj;
         p,hp1,hp2 : tai;
       begin
         p := BlockStart;
-        //!!!! UsedRegs := [];
+        ClearUsedRegs;
         while (p <> BlockEnd) Do
           begin
-            //!!!! UpDateUsedRegs(UsedRegs, tai(p.next));
+            UpdateUsedRegs(tai(p.next));
             if PeepHoleOptPass1Cpu(p) then
               continue;
             case p.Typ Of
@@ -1116,7 +1228,7 @@ Unit AoptObj;
                     end; { if is_jmp }
                 end;
             end;
-            //!!!!!!!! updateUsedRegs(UsedRegs,p);
+            UpdateUsedRegs(p);
             p:=tai(p.next);
           end;
       end;
@@ -1132,13 +1244,13 @@ Unit AoptObj;
         p: tai;
       begin
         p := BlockStart;
-        //!!!! UsedRegs := [];
+        ClearUsedRegs;
         while (p <> BlockEnd) Do
           begin
-            //!!!! UpDateUsedRegs(UsedRegs, tai(p.next));
+            UpdateUsedRegs(tai(p.next));
             if PostPeepHoleOptsCpu(p) then
               continue;
-            //!!!!!!!! updateUsedRegs(UsedRegs,p);
+            UpdateUsedRegs(p);
             p:=tai(p.next);
           end;
       end;

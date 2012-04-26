@@ -8,11 +8,11 @@ asm
 {  mov edx,offset c
   call mcount}
   xor edx,edx
-  lea ebx,[esi+TDecompressBzip2Stream.cftab]
-  mov ecx,[esi+TDecompressBzip2Stream.tt_count]
+  lea ebx,[eax+TDecompressBzip2Stream.cftab]
+  mov ecx,[eax+TDecompressBzip2Stream.tt_count]
   push esi
   push ebp
-  mov esi,[esi+TDecompressBzip2Stream.tt]
+  mov esi,[eax+TDecompressBzip2Stream.tt]
   mov edi,esi
   lea ebp,[4*ecx+esi]
   jmp @a2

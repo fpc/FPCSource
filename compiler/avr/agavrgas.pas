@@ -54,7 +54,7 @@ unit agavrgas;
        cutils,globals,verbose,
        systems,
        assemble,
-       aasmcpu,
+       aasmbase,aasmcpu,
        itcpugas,
        cpuinfo,
        cgbase,cgutils;
@@ -119,7 +119,7 @@ unit agavrgas;
               else if assigned(symbol) or (offset<>0) then
                 begin
                   if assigned(symbol) then
-                    s:=ReplaceForbiddenChars(symbol.name)
+                    s:=ReplaceForbiddenAsmSymbolChars(symbol.name)
                   else
                      s:='';
 
@@ -155,7 +155,7 @@ unit agavrgas;
             top_ref:
               if o.ref^.refaddr=addr_full then
                 begin
-                  hs:=ReplaceForbiddenChars(o.ref^.symbol.name);
+                  hs:=ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name);
                   if o.ref^.offset>0 then
                    hs:=hs+'+'+tostr(o.ref^.offset)
                   else

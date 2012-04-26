@@ -28,29 +28,29 @@ function TestOK: Boolean;
 begin
   TestOK :=
     // AnsiStartsText
-    not AnsiStartsText('', '')
-    and not AnsiStartsText('', 'ab')
-    and not AnsiStartsText('ab', '')
-    and AnsiStartsText('abc', 'abc')
-    and not AnsiStartsText('abc', 'def')
-    and AnsiStartsText('abc', 'abcedfg')
-    and not AnsiStartsText('abc', 'ab')
-    and AnsiStartsText('áÉíç', 'áéíÇ')
-    and AnsiStartsText('áé', 'áÉíç')
-    and not AnsiStartsText('áÉíç', 'Áé')
-    and not AnsiStartsText('ÁÉíç', 'áéio')
+    TestValue(not AnsiStartsText('', ''))
+    and TestValue(not AnsiStartsText('', 'ab'))
+    and TestValue(not AnsiStartsText('ab', ''))
+    and TestValue(AnsiStartsText('abc', 'abc'))
+    and TestValue(not AnsiStartsText('abc', 'def'))
+    and TestValue(AnsiStartsText('abc', 'abcedfg'))
+    and TestValue(not AnsiStartsText('abc', 'ab'))
+    and TestValue(AnsiStartsText('áÉíç', 'áéíÇ'))
+    and TestValue(AnsiStartsText('áé', 'áÉíç'))
+    and TestValue(not AnsiStartsText('áÉíç', 'Áé'))
+    and TestValue(not AnsiStartsText('ÁÉíç', 'áéio'))
     // AnsiEndsText
-    and AnsiEndsText('', '')
-    and AnsiEndsText('', 'ab')
-    and not AnsiEndsText('ab', '')
-    and AnsiEndsText('abc', 'abc')
-    and not AnsiEndsText('abc', 'def')
-    and AnsiEndsText('dfg', 'abcedfg')
-    and not AnsiEndsText('dfg', 'df')
-    and AnsiEndsText('áÉíç', 'Áéíç')
-    and AnsiEndsText('áé', 'íçáÉ')
-    and not AnsiEndsText('áÉíç', 'áé')
-    and not AnsiEndsText('íçÁÉ', 'ioÁé');
+    and TestValue(AnsiEndsText('', ''))
+    and TestValue(AnsiEndsText('', 'ab'))
+    and TestValue(not AnsiEndsText('ab', ''))
+    and TestValue(AnsiEndsText('abc', 'abc'))
+    and TestValue(not AnsiEndsText('abc', 'def'))
+    and TestValue(AnsiEndsText('dfg', 'abcedfg'))
+    and TestValue(not AnsiEndsText('dfg', 'df'))
+    and TestValue(AnsiEndsText('áÉíç', 'Áéíç'))
+    and TestValue(AnsiEndsText('áé', 'íçáÉ'))
+    and TestValue(not AnsiEndsText('áÉíç', 'áé'))
+    and TestValue(not AnsiEndsText('íçÁÉ', 'ioÁé'));
 end;
 
 begin
@@ -62,6 +62,6 @@ begin
   else
     begin
       WriteLn('Test Failure!');
-      halt(1);
+      halt(ResultCounter);
     end;
 end.

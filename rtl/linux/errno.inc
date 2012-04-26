@@ -21,135 +21,7 @@
 const
 {$ifdef CPUSPARC}
 {$define FPC_HAS_ESYS}
-  { sparc uses Solaris compatible errnos }
-  { comments are stripped here, they can be found in the
-    generic section }
-  ESysEPERM = 1;
-  ESysENOENT = 2;
-  ESysESRCH = 3;
-  ESysEINTR = 4;
-  ESysEIO = 5;
-  ESysENXIO = 6;
-  ESysE2BIG = 7;
-  ESysENOEXEC = 8;
-  ESysEBADF = 9;
-  ESysECHILD = 10;
-  ESysEAGAIN = 11;
-  ESysENOMEM = 12;
-  ESysEACCES = 13;
-  ESysEFAULT = 14;
-  ESysENOTBLK = 15;
-  ESysEBUSY = 16;
-  ESysEEXIST = 17;
-  ESysEXDEV = 18;
-  ESysENODEV = 19;
-  ESysENOTDIR = 20;
-  ESysEISDIR = 21;
-  ESysEINVAL = 22;
-  ESysENFILE = 23;
-  ESysEMFILE = 24;
-  ESysENOTTY = 25;
-  ESysETXTBSY = 26;
-  ESysEFBIG = 27;
-  ESysENOSPC = 28;
-  ESysESPIPE = 29;
-  ESysEROFS = 30;
-  ESysEMLINK = 31;
-  ESysEPIPE = 32;
-  ESysEDOM = 33;
-  ESysERANGE = 34;
-  ESysEWOULDBLOCK = ESysEAGAIN;
-  ESysEINPROGRESS = 36;
-  ESysEALREADY = 37;
-  ESysENOTSOCK = 38;
-  ESysEDESTADDRREQ = 39;
-  ESysEMSGSIZE = 40;
-  ESysEPROTOTYPE = 41;
-  ESysENOPROTOOPT = 42;
-  ESysEPROTONOSUPPORT = 43;
-  ESysESOCKTNOSUPPORT = 44;
-  ESysEOPNOTSUPP = 45;
-  ESysEPFNOSUPPORT = 46;
-  ESysEAFNOSUPPORT = 47;
-  ESysEADDRINUSE = 48;
-  ESysEADDRNOTAVAIL = 49;
-  ESysENETDOWN = 50;
-  ESysENETUNREACH = 51;
-  ESysENETRESET = 52;
-  ESysECONNABORTED = 53;
-  ESysECONNRESET = 54;
-  ESysENOBUFS = 55;
-  ESysEISCONN = 56;
-  ESysENOTCONN = 57;
-  ESysESHUTDOWN = 58;
-  ESysETOOMANYREFS = 59;
-  ESysETIMEDOUT = 60;
-  ESysECONNREFUSED = 61;
-  ESysELOOP = 62;
-  ESysENAMETOOLONG = 63;
-  ESysEHOSTDOWN = 64;
-  ESysEHOSTUNREACH = 65;
-  ESysENOTEMPTY = 66;
-  ESysEPROCLIM = 67;
-  ESysEUSERS = 68;
-  ESysEDQUOT = 69;
-  ESysESTALE = 70;
-  ESysEREMOTE = 71;
-  ESysENOSTR = 72;
-  ESysETIME = 73;
-  ESysENOSR = 74;
-  ESysENOMSG = 75;
-  ESysEBADMSG = 76;
-  ESysEIDRM = 77;
-  ESysEDEADLK = 78;
-  ESysENOLCK = 79;
-  ESysENONET = 80;
-  ESysERREMOTE = 81;
-  ESysENOLINK = 82;
-  ESysEADV = 83;
-  ESysESRMNT = 84;
-  ESysECOMM = 85;
-  ESysEPROTO = 86;
-  ESysEMULTIHOP = 87;
-  ESysEDOTDOT = 88;
-  ESysEREMCHG = 89;
-  ESysENOSYS = 90;
-  ESysESTRPIPE = 91;
-  ESysEOVERFLOW = 92;
-  ESysEBADFD = 93;
-  ESysECHRNG = 94;
-  ESysEL2NSYNC = 95;
-  ESysEL3HLT = 96;
-  ESysEL3RST = 97;
-  ESysELNRNG = 98;
-  ESysEUNATCH = 99;
-  ESysENOCSI = 100;
-  ESysEL2HLT = 101;
-  ESysEBADE = 102;
-  ESysEBADR = 103;
-  ESysEXFULL = 104;
-  ESysENOANO = 105;
-  ESysEBADRQC = 106;
-  ESysEBADSLT = 107;
-  ESysEDEADLOCK = 108;
-  ESysEBFONT = 109;
-  ESysELIBEXEC = 110;
-  ESysENODATA = 111;
-  ESysELIBBAD = 112;
-  ESysENOPKG = 113;
-  ESysELIBACC = 114;
-  ESysENOTUNIQ = 115;
-  ESysERESTART = 116;
-  ESysEUCLEAN = 117;
-  ESysENOTNAM = 118;
-  ESysENAVAIL = 119;
-  ESysEISNAM = 120;
-  ESysEREMOTEIO = 121;
-  ESysEILSEQ = 122;
-  ESysELIBMAX = 123;
-  ESysELIBSCN = 124;
-  ESysENOMEDIUM = 125;
-  ESysEMEDIUMTYPE = 126;
+{$i errno-sparc.inc}
 {$endif CPUSPARC}
 
 {$ifndef FPC_HAS_ESYS}
@@ -218,7 +90,7 @@ const
   ESysENOANO      = 55;   { No anode }
   ESysEBADRQC     = 56;   { Invalid request code }
   ESysEBADSLT     = 57;   { Invalid slot }
-  ESysEDEADLOCK= 58;      { File locking deadlock error }
+  ESysEDEADLOCK= ESysEDEADLK; { number 58 is missing }
   ESysEBFONT      = 59;   { Bad font file format }
   ESysENOSTR      = 60;   { Device not a stream }
   ESysENODATA     = 61;   { No data available }
@@ -283,5 +155,17 @@ const
   ESysEISNAM      = 120;  { Is a named type file }
   ESysEREMOTEIO= 121;     { Remote I/O error }
   ESysEDQUOT      = 122;  { Quota exceeded }
-{$endif FPC_HAS_ESYS}
 
+{ List of missing system error numbers
+  added using check_errno.sh script }
+  ESysENOMEDIUM = 123;
+  ESysEMEDIUMTYPE = 124;
+  ESysECANCELED = 125;
+  ESysENOKEY = 126;
+  ESysEKEYEXPIRED = 127;
+  ESysEKEYREVOKED = 128;
+  ESysEKEYREJECTED = 129;
+  ESysEOWNERDEAD = 130;
+  ESysENOTRECOVERABLE = 131;
+  ESysERFKILL = 132;
+{$endif FPC_HAS_ESYS}

@@ -229,17 +229,17 @@ unit i_bsd;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 4;
+                procalign       : 16;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 1;
+                constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 1;
-                localalignmin   : 0;
-                localalignmax   : 1;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmax  : 16;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
@@ -290,17 +290,17 @@ unit i_bsd;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 4;
+                procalign       : 16;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 1;
+                constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 1;
-                localalignmin   : 0;
-                localalignmax   : 1;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmax  : 16;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;

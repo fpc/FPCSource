@@ -676,7 +676,7 @@ implementation
                 addn :
                   begin
                      concatwidestrings(ws1,ws2);
-                     t:=cstringconstnode.createwstr(ws1);
+                     t:=cstringconstnode.createunistr(ws1);
                   end;
                 ltn :
                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),pasbool8type,true);
@@ -1323,13 +1323,13 @@ implementation
              { There is a widechar? }
              else if is_widechar(rd) or is_widechar(ld) then
                begin
-                 { widechar+widechar gives widestring }
+                 { widechar+widechar gives unicodestring }
                  if nodetype=addn then
                    begin
-                     inserttypeconv(left,cwidestringtype);
+                     inserttypeconv(left,cunicodestringtype);
                      if (torddef(rd).ordtype<>uwidechar) then
                        inserttypeconv(right,cwidechartype);
-                     resultdef:=cwidestringtype;
+                     resultdef:=cunicodestringtype;
                    end
                  else
                    begin

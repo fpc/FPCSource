@@ -62,7 +62,7 @@ implementation
 
 uses
   verbose, systems,
-  defutil,
+  defutil,symtable,
   procinfo, cpupi;
 
 function tppcparamanager.get_volatile_registers_int(calloption:
@@ -287,6 +287,7 @@ function tppcparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
   var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
   aword; isVararg : boolean): longint;
 var
+  fsym: tfieldvarsym;
   stack_offset: longint;
   paralen: aint;
   nextintreg, nextfloatreg, nextmmreg : tsuperregister;
@@ -298,6 +299,7 @@ var
   paracgsize: tcgsize;
 
   parashift : byte;
+  adjusttail: boolean;
 
 begin
 {$IFDEF extdebug}
@@ -350,11 +352,11 @@ begin
         { if a record has only one field and that field is }
         { non-composite (not array or record), it must be  }
         { passed according to the rules of that type.       }
-        if (trecorddef(hp.vardef).symtable.SymList.count = 1) and
-          (not trecorddef(hp.vardef).isunion)  and
-          (tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef.typ in [orddef, enumdef, floatdef])  then begin
-          paradef :=
-            tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef;
+        if tabstractrecordsymtable(tabstractrecorddef(hp.vardef).symtable).has_single_field(fsym) and
+          ((fsym.vardef.typ = floatdef) or
+           (not(target_info.system in systems_aix) and
+            (fsym.vardef.typ in [orddef, enumdef]))) then begin
+          paradef := fsym.vardef;
           loc := getparaloc(paradef);
           paracgsize := def_cgsize(paradef);
         end else begin
@@ -394,8 +396,8 @@ begin
         paraloc^.loc := LOC_VOID;
       end else
         internalerror(2005011310);
+    adjusttail:=paralen>8;
     { can become < 0 for e.g. 3-byte records }
-
     while (paralen > 0) do begin
       paraloc := hp.paraloc[side].add_location;
       { In case of po_delphi_nested_cc, the parent frame pointer
@@ -410,7 +412,19 @@ begin
         { make sure we don't lose whether or not the type is signed }
         if (paracgsize <> OS_NO) and (paradef.typ <> orddef) then
           paracgsize := int_cgsize(paralen);
-        if (paracgsize in [OS_NO,OS_128,OS_S128]) then
+
+        { aix requires that record data (including partial data) stored in
+          parameter registers is left-aligned. Other targets only do this if
+          the total size of the parameter was > 8 bytes. }
+        if (((target_info.system in systems_aix) and
+             (paradef.typ = recorddef)) or
+            adjusttail) and
+           (paralen < sizeof(aint)) then
+          begin
+            paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
+            paraloc^.size := OS_INT;
+          end
+        else if (paracgsize in [OS_NO,OS_128,OS_S128]) then
           paraloc^.size := OS_INT
         else
           paraloc^.size := paracgsize;
@@ -486,7 +500,7 @@ begin
 
   result := create_paraloc_info_intern(p, callerside, p.paras, curintreg,
     curfloatreg, curmmreg, cur_stack_offset, false);
-  if (p.proccalloption in [pocall_cdecl, pocall_cppdecl]) then begin
+  if (p.proccalloption in [pocall_cdecl, pocall_cppdecl, pocall_mwpascal]) then begin
     { just continue loading the parameters in the registers }
     result := create_paraloc_info_intern(p, callerside, varargspara, curintreg,
       curfloatreg, curmmreg, cur_stack_offset, true);

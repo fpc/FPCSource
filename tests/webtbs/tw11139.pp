@@ -5,12 +5,12 @@ end;
 
 function f(const s: shortstring): shortstring; overload;
 begin
-  f:=lowercase(s);
+  halt(3);
 end;
 
 function f(const a: ansistring): ansistring; overload;
 begin
-  halt(3);
+  f:=lowercase(a);
 end;
 
 Procedure DoIt;

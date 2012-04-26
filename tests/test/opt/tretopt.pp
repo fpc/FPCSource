@@ -269,16 +269,20 @@ begin
 {$endif}
 {$ifdef cpupowerpc64}
     la  r3,t
-{$ifndef darwin}
+{$if defined(darwin)}
+    lis  r4, p3@ha
+    std  r3,p3@l(r4)
+{$elseif defined(aix)}
+    ld   r4,p3(r2)
+    std  r3,0(r4)
+{$else}
     lis  r4, p3@highesta
     ori  r4, r4, p3@highera
     sldi r4, r4, 32
     oris r4, r4, p3@ha
-{$else darwin}
-    lis  r4, p3@ha
-{$endif darwin}
     std  r3,p3@l(r4)
-{$endif}
+{$endif darwin}
+{$endif cpupowerpc64}
 {$ifdef cpui386}
     leal t,%eax
 {$ifndef FPC_PIC}
@@ -320,16 +324,20 @@ begin
 {$endif}
 {$ifdef cpupowerpc64}
     la  r3,t
-{$ifndef darwin}
+{$if defined(darwin)}
+    lis  r4, p3@ha
+    std  r3,p3@l(r4)
+{$elseif defined(aix)}
+    ld   r4,p3(r2)
+    std  r3,0(r4)
+{$else}
     lis  r4, p3@highesta
     ori  r4, r4, p3@highera
     sldi r4, r4, 32
     oris r4, r4, p3@ha
-{$else darwin}
-    lis  r4, p3@ha
-{$endif darwin}
     std  r3,p3@l(r4)
-{$endif}
+{$endif darwin}
+{$endif cpupowerpc64}
 {$ifdef cpui386}
     leal t,%eax
 {$ifndef FPC_PIC}

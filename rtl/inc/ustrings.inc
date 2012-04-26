@@ -1063,13 +1063,13 @@ procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : Uni
 
 procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : AnsiString);
   begin
-    Dest:=UnicodeCharLenToString(Src,Len);
+    Dest:=AnsiString(UnicodeCharLenToString(Src,Len));
   end;
 
 
 procedure UnicodeCharToStrVar(S : PUnicodeChar;out Dest : AnsiString);
   begin
-    Dest:=UnicodeCharToString(S);
+    Dest:=AnsiString(UnicodeCharToString(S));
   end;
 
 
@@ -1091,7 +1091,7 @@ procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : UnicodeSt
 
 procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : AnsiString);
   begin
-    Dest:=WideCharLenToString(Src,Len);
+    Dest:=AnsiString(WideCharLenToString(Src,Len));
   end;
 
 
@@ -1103,7 +1103,7 @@ procedure WideCharToStrVar(S : PWideChar;out Dest : UnicodeString);
 
 procedure WideCharToStrVar(S : PWideChar;out Dest : AnsiString);
   begin
-    Dest:=WideCharToString(S);
+    Dest:=AnsiString(WideCharToString(S));
   end;
 
 
@@ -1380,14 +1380,14 @@ end;
 {$ifndef FPUNONE}
 Function fpc_Val_Real_UnicodeStr(Const S : UnicodeString; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_UNICODESTR']; compilerproc;
 Var
-  SS : String;
+  SS: ShortString;
 begin
-  fpc_Val_Real_UnicodeStr := 0;
-  if length(S) > 255 then
-    code := 256
+  fpc_Val_Real_UnicodeStr:=0;
+  if length(S)>255 then
+    code:=256
   else
     begin
-      SS := S;
+      SS:=ShortString(S);
       Val(SS,fpc_Val_Real_UnicodeStr,code);
     end;
 end;
@@ -1396,15 +1396,14 @@ end;
 
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_val_enum_unicodestr(str2ordindex:pointer;const s:unicodestring;out code:valsint):longint;compilerproc;
-
-var ss:shortstring;
-
+var
+  ss: ShortString;
 begin
   if length(s)>255 then
     code:=256
   else
     begin
-      ss:=s;
+      ss:=ShortString(s);
       val(ss,fpc_val_enum_unicodestr,code);
     end;
 end;
@@ -1413,16 +1412,16 @@ end;
 
 Function fpc_Val_Currency_UnicodeStr(Const S : UnicodeString; out Code : ValSInt): Currency; [public, alias:'FPC_VAL_CURRENCY_UNICODESTR']; compilerproc;
 Var
-  SS : String;
+  SS: ShortString;
 begin
-  if length(S) > 255 then
+  if length(S)>255 then
     begin
       fpc_Val_Currency_UnicodeStr:=0;
-      code := 256;
+      code:=256;
     end
   else
     begin
-      SS := S;
+      SS:=ShortString(S);
       Val(SS,fpc_Val_Currency_UnicodeStr,code);
     end;
 end;
@@ -1430,14 +1429,14 @@ end;
 
 Function fpc_Val_UInt_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_UNICODESTR']; compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
-  fpc_Val_UInt_UnicodeStr := 0;
-  if length(S) > 255 then
-    code := 256
+  fpc_Val_UInt_UnicodeStr:=0;
+  if length(S)>255 then
+    code:=256
   else
     begin
-      SS := S;
+      SS:=ShortString(S);
       Val(SS,fpc_Val_UInt_UnicodeStr,code);
     end;
 end;
@@ -1445,14 +1444,14 @@ end;
 
 Function fpc_Val_SInt_UnicodeStr (DestSize: SizeInt; Const S : UnicodeString; out Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_UNICODESTR']; compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   fpc_Val_SInt_UnicodeStr:=0;
   if length(S)>255 then
     code:=256
   else
     begin
-      SS := S;
+      SS:=ShortString(S);
       fpc_Val_SInt_UnicodeStr := int_Val_SInt_ShortStr(DestSize,SS,Code);
     end;
 end;
@@ -1462,14 +1461,14 @@ end;
 
 Function fpc_Val_qword_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_UNICODESTR']; compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   fpc_Val_qword_UnicodeStr:=0;
   if length(S)>255 then
     code:=256
   else
     begin
-       SS := S;
+       SS:=ShortString(S);
        Val(SS,fpc_Val_qword_UnicodeStr,Code);
     end;
 end;
@@ -1477,14 +1476,14 @@ end;
 
 Function fpc_Val_int64_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_UNICODESTR']; compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   fpc_Val_int64_UnicodeStr:=0;
   if length(S)>255 then
     code:=256
   else
     begin
-       SS := S;
+       SS:=ShortString(S);
        Val(SS,fpc_Val_int64_UnicodeStr,Code);
     end;
 end;
@@ -1495,59 +1494,57 @@ end;
 {$ifndef FPUNONE}
 procedure fpc_UnicodeStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : UnicodeString);compilerproc;
 var
-  ss : shortstring;
+  ss: shortstring;
 begin
   str_real(len,fr,d,treal_type(rt),ss);
-  s:=ss;
+  s:=UnicodeString(ss);
 end;
 {$endif}
 
 
 {$ifndef FPC_STR_ENUM_INTERN}
 procedure fpc_unicodestr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:unicodestring);compilerproc;
-
-var ss:shortstring;
-
+var
+  ss: ShortString;
 begin
   fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
-  s:=ss;
+  s:=UnicodeString(ss);
 end;
 {$endif FPC_STR_ENUM_INTERN}
 
 procedure fpc_unicodestr_bool(b : boolean;len:sizeint;out s:unicodestring);compilerproc;
-
-var ss:shortstring;
-
+var
+  ss: ShortString;
 begin
   fpc_shortstr_bool(b,len,ss);
-  s:=ss;
+  s:=UnicodeString(ss);
 end;
 
 {$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_UnicodeStr_Currency(c : Currency;len,fr : SizeInt;out s : UnicodeString);compilerproc;
 var
-  ss : shortstring;
+  ss: shortstring;
 begin
   str(c:len:fr,ss);
-  s:=ss;
+  s:=UnicodeString(ss);
 end;
 {$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_UnicodeStr_SInt(v : ValSint; Len : SizeInt; out S : UnicodeString);compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   Str (v:Len,SS);
-  S:=SS;
+  S:=UnicodeString(SS);
 end;
 
 
 Procedure fpc_UnicodeStr_UInt(v : ValUInt;Len : SizeInt; out S : UnicodeString);compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   str(v:Len,SS);
-  S:=SS;
+  S:=UnicodeString(SS);
 end;
 
 
@@ -1555,19 +1552,19 @@ end;
 
 Procedure fpc_UnicodeStr_Int64(v : Int64; Len : SizeInt; out S : UnicodeString);compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   Str (v:Len,SS);
-  S:=SS;
+  S:=UnicodeString(SS);
 end;
 
 
 Procedure fpc_UnicodeStr_Qword(v : Qword;Len : SizeInt; out S : UnicodeString);compilerproc;
 Var
-  SS : ShortString;
+  SS: ShortString;
 begin
   str(v:Len,SS);
-  S:=SS;
+  S:=UnicodeString(SS);
 end;
 
 {$endif CPU64}
@@ -2023,7 +2020,7 @@ function AnsiToUtf8(const s : RawByteString): RawByteString;{$ifdef SYSTEMINLINE
 
 function Utf8ToAnsi(const s : RawByteString) : RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    Result:=Utf8Decode(s);
+    Result:=RawByteString(Utf8Decode(s));
   end;
 
 

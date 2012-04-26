@@ -28,7 +28,7 @@ Type
 
   TFPReaderPNG = class (TFPCustomImageReader)
     private
-      Chunk : TChunk;
+
       FHeader : THeaderChunk;
       ZData : TMemoryStream;  // holds compressed data until all blocks are read
       Decompress : TDeCompressionStream; // decompresses the data
@@ -61,6 +61,7 @@ Type
       function ColorColorAlpha8 (CD:TColorData) : TFPColor;
       function ColorColorAlpha16 (CD:TColorData) : TFPColor;
     protected
+      Chunk : TChunk;
       UseTransparent, EndOfFile : boolean;
       TransparentDataValue : TColorData;
       UsingBitGroup : byte;

@@ -306,7 +306,9 @@ end;
 
 procedure Run(const Filename: string);
 var
-  p: PPChar;
+  p : PPChar;
+  i : integer;
+  args : array of string;
 begin
   p:=argv;
   inc(p);
@@ -317,8 +319,13 @@ begin
     inc(p);
   end;
   {$IFNDEF UseFpExecV}
-    Inc(p); //lose the first command-line argument with the the script filename
-    Halt(ExecuteProcess(Filename,[p^]));
+    if paramcount>1 then
+      begin
+        setlength(args,paramcount-1);
+        for i:=2 to paramcount do 
+          args[i-2]:=paramstr(i);
+      end;
+    Halt(ExecuteProcess(Filename,args));
   {$ELSE}
     Halt(FpExecV(Filename,p));
   {$ENDIF}

@@ -230,7 +230,7 @@ Resourcestring
   SErrVersionMismatch = '%s can not work with the installed MySQL client version: Expected (%s), got (%s).';
   SErrSettingParameter = 'Error setting parameter "%s"';
 
-Procedure MySQlError(R : PMySQL;Msg: String;Comp : TComponent);
+Procedure MySQLError(R : PMySQL;Msg: String;Comp : TComponent);
 
 Var
   MySQLMsg : String;
@@ -263,10 +263,13 @@ end;
 function TConnectionName.StrToStatementType(s : string) : TStatementType;
 
 begin
-  S:=Lowercase(s);
-  if s = 'show' then exit(stSelect);
-  if s = 'call' then exit(stExecProcedure);
-  result := inherited StrToStatementType(s);
+  s:=Lowercase(s);
+  if (s='analyze') or (s='check') or (s='checksum') or (s='optimize') or (s='repair') or (s='show') then
+    exit(stSelect)
+  else if s='call' then
+    exit(stExecProcedure)
+  else
+    Result := inherited StrToStatementType(s);
 end;
 
 
@@ -313,13 +316,13 @@ begin
       else
         Opt := pchar(OptStr);
       if mysql_options(HMySQL,AMysql_Option,Opt) <> 0 then
-          MySQlError(HMySQL,Format(SErrSettingParameter,[params.Names[i]]),Self);
+          MySQLError(HMySQL,Format(SErrSettingParameter,[params.Names[i]]),Self);
       end;
     end;
 
   HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,APort,Nil,CLIENT_MULTI_RESULTS); //CLIENT_MULTI_RESULTS is required by CALL SQL statement(executes stored procedure), that produces result sets
   If (HMySQL=Nil) then
-    MySQlError(Nil,SErrServerConnectFailed,Self);
+    MySQLError(Nil,SErrServerConnectFailed,Self);
 
   // MySQL _Server_ version 4.1 and later
   // major_version*10000 + minor_version *100 + sub_version
@@ -328,7 +331,7 @@ begin
     // Only available for mysql 5.0.7 and later...
     // if (mysql_set_character_set(HMySQL, PChar(CharSet)) <> 0) then
     if mysql_query(FMySQL,PChar('SET CHARACTER SET ''' + EscapeString(CharSet) +''''))<>0 then
-      MySQLError(HMySQL,Format(SErrExecuting,[StrPas(mysql_error(HMySQL))]),Self);
+      MySQLError(HMySQL,SErrExecuting,Self);
     end;
 end;
 
@@ -406,7 +409,7 @@ begin
     ConnectMySQL(AMySQL,pchar(H),pchar(U),pchar(P));
     try
       if mysql_query(AMySQL,pchar(query))<>0 then
-        MySQLError(AMySQL,Format(SErrExecuting,[StrPas(mysql_error(AMySQL))]),Self);
+        MySQLError(AMySQL,SErrExecuting,Self);
     finally
       mysql_close(AMySQL);
     end;
@@ -554,7 +557,7 @@ begin
       C.FStatement := stringsreplace(C.FStatement,ParamNames,ParamValues,[rfReplaceAll]);
       end;
     if mysql_query(FMySQL,Pchar(C.FStatement))<>0 then
-      MySQLError(FMYSQL,Format(SErrExecuting,[StrPas(mysql_error(FMySQL))]),Self)
+      MySQLError(FMYSQL,SErrExecuting,Self)
     else
       begin
       C.RowsAffected := mysql_affected_rows(FMYSQL);

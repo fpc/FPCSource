@@ -273,7 +273,7 @@ implementation
               end;
           end;
         result:=ccallnode.createintern(helpername,
-          ccallparanode.create(cstringconstnode.createwstr(pw),otherparas));
+          ccallparanode.create(cstringconstnode.createunistr(pw),otherparas));
         donewidestring(pw);
       end;
 

@@ -36,6 +36,7 @@ type
       FTransparentColor : TFPColor;
       FSwitchLine, FCurrentLine, FPreviousLine : pByteArray;
       FPalette : TFPPalette;
+      OwnsPalette : boolean;
       FHeader : THeaderChunk;
       FGetPixel : TGetPixelFunc;
       FDatalineLength : longword;
@@ -106,7 +107,7 @@ begin
   Fchunk.acapacity := 0;
   Fchunk.data := nil;
   FGrayScale := False;
-  FIndexed := True;
+  FIndexed := False;
   FCompressedText := True;
   FWordSized := True;
   FUseAlpha := False;
@@ -115,6 +116,7 @@ end;
 
 destructor TFPWriterPNG.destroy;
 begin
+  if OwnsPalette then FreeAndNil(FPalette);
   with Fchunk do
     if acapacity > 0 then
       freemem (data);
@@ -407,13 +409,15 @@ begin
       c := 0;
     if FIndexed then
       begin
-      if TheImage.UsePalette then
-        FPalette := TheImage.Palette
-      else
+      if OwnsPalette then FreeAndNil(FPalette);
+      OwnsPalette := not TheImage.UsePalette;
+      if OwnsPalette then
         begin
         FPalette := TFPPalette.Create (16);
         FPalette.Build (TheImage);
-        end;
+        end
+      else
+        FPalette := TheImage.Palette;
       if ThePalette.count > 256 then
         raise PNGImageException.Create ('Too many colors to use indexed PNG color type');
       ColorType := 3;

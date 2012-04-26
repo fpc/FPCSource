@@ -82,6 +82,8 @@ asm
   fcfid f0,f0     // convert to fpu int
 end;
 
+{$ifndef aix}
+
 {$define FPC_SYSTEM_HAS_QWORD_TO_DOUBLE}
 function fpc_qword_to_double(q: qword): double; compilerproc;assembler;
 const
@@ -125,3 +127,4 @@ asm
   fmadd f0,f4,f2,f0   // (2**32)*high+low (only add can rnd)
 end;
 
+{$endif ndef aix}

@@ -37,14 +37,6 @@ type
     procedure init_register_allocators; override;
     procedure done_register_allocators; override;
 
-    { passing parameters, per default the parameter is pushed }
-    { nr gives the number of the parameter (enumerated from   }
-    { left to right), this allows to move the parameter to    }
-    { register, if the cpu supports register calling          }
-    { conventions                                             }
-    procedure a_load_ref_cgpara(list: TAsmList; size: tcgsize; const r: treference;
-      const paraloc: tcgpara); override;
-
     procedure a_call_name(list: TAsmList; const s: string; weak: boolean); override;
     procedure a_call_reg(list: TAsmList; reg: tregister); override;
 
@@ -135,10 +127,10 @@ type
      if includeCall is true, the method is marked as having a call, not if false. This
      option is particularly useful to prevent generation of a larger stack frame for the
      register save and restore helper functions. }
-    procedure a_call_name_direct(list: TAsmList; s: string; weak: boolean; prependDot : boolean;
+    procedure a_call_name_direct(list: TAsmList; opc: tasmop; s: string; weak: boolean; prependDot : boolean;
       addNOP : boolean; includeCall : boolean = true);
 
-    procedure a_jmp_name_direct(list : TAsmList; s : string; prependDot : boolean);
+    procedure a_jmp_name_direct(list : TAsmList; opc: tasmop; s : string; prependDot : boolean);
 
     { emits code to store the given value a into the TOC (if not already in there), and load it from there
      as well }
@@ -390,124 +382,12 @@ begin
   inherited done_register_allocators;
 end;
 
-procedure tcgppc.a_load_ref_cgpara(list: TAsmList; size: tcgsize; const r:
-  treference; const paraloc: tcgpara);
-
-var
-  tmpref, ref: treference;
-  location: pcgparalocation;
-  sizeleft: aint;
-  adjusttail : boolean;
-
-begin
-  location := paraloc.location;
-  tmpref := r;
-  sizeleft := paraloc.intsize;
-  adjusttail := false;
-  while assigned(location) do begin
-    paramanager.allocparaloc(list,location);
-    case location^.loc of
-      LOC_REGISTER, LOC_CREGISTER:
-        begin
-          if not(size in [OS_NO,OS_128,OS_S128]) then
-            a_load_ref_reg(list, size, location^.size, tmpref,
-              location^.register)
-          else begin
-            { load non-integral sized memory location into register. This
-             memory location be 1-sizeleft byte sized.
-             Always assume that this memory area is properly aligned, eg. start
-             loading the larger quantities for "odd" quantities first }
-            case sizeleft of
-              1,2,4,8 :
-                a_load_ref_reg(list, int_cgsize(sizeleft), location^.size, tmpref,
-                  location^.register);
-              3 : begin
-                a_reg_alloc(list, NR_R12);
-                a_load_ref_reg(list, OS_16, location^.size, tmpref,
-                  NR_R12);
-                inc(tmpref.offset, tcgsize2size[OS_16]);
-                a_load_ref_reg(list, OS_8, location^.size, tmpref,
-                  location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 8, 40));
-                a_reg_dealloc(list, NR_R12);
-              end;
-              5 : begin
-                a_reg_alloc(list, NR_R12);
-                a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
-                inc(tmpref.offset, tcgsize2size[OS_32]);
-                a_load_ref_reg(list, OS_8, location^.size, tmpref, location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 8, 24));
-                a_reg_dealloc(list, NR_R12);
-              end;
-              6 : begin
-                a_reg_alloc(list, NR_R12);
-                a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
-                inc(tmpref.offset, tcgsize2size[OS_32]);
-                a_load_ref_reg(list, OS_16, location^.size, tmpref, location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 16, 16));
-                a_reg_dealloc(list, NR_R12);
-              end;
-              7 : begin
-                a_reg_alloc(list, NR_R12);
-                a_reg_alloc(list, NR_R0);
-                a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
-                inc(tmpref.offset, tcgsize2size[OS_32]);
-                a_load_ref_reg(list, OS_16, location^.size, tmpref, NR_R0);
-                inc(tmpref.offset, tcgsize2size[OS_16]);
-                a_load_ref_reg(list, OS_8, location^.size, tmpref, location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, NR_R0, NR_R12, 16, 16));
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R0, 8, 8));
-                a_reg_dealloc(list, NR_R0);
-                a_reg_dealloc(list, NR_R12);
-              end;
-              else begin
-                { still > 8 bytes to load, so load data single register now }
-                a_load_ref_reg(list, location^.size, location^.size, tmpref,
-                  location^.register);
-                { the block is > 8 bytes, so we have to store any bytes not
-                 a multiple of the register size beginning with the MSB }
-                adjusttail := true;
-              end;
-            end;
-            if (adjusttail) and (sizeleft < sizeof(pint)) then
-              a_op_const_reg(list, OP_SHL, OS_INT,
-                (sizeof(pint) - sizeleft) * sizeof(pint),
-                location^.register);
-          end;
-        end;
-      LOC_REFERENCE:
-        begin
-          reference_reset_base(ref, location^.reference.index,
-            location^.reference.offset,paraloc.alignment);
-          g_concatcopy(list, tmpref, ref, sizeleft);
-          if assigned(location^.next) then
-            internalerror(2005010710);
-        end;
-      LOC_FPUREGISTER, LOC_CFPUREGISTER:
-        case location^.size of
-          OS_F32, OS_F64:
-            a_loadfpu_ref_reg(list, location^.size, location^.size, tmpref, location^.register);
-        else
-          internalerror(2002072801);
-        end;
-      LOC_VOID:
-        { nothing to do }
-        ;
-    else
-      internalerror(2002081103);
-    end;
-    inc(tmpref.offset, tcgsize2size[location^.size]);
-    dec(sizeleft, tcgsize2size[location^.size]);
-    location := location^.next;
-  end;
-end;
-
 { calling a procedure by name }
 
 procedure tcgppc.a_call_name(list: TAsmList; const s: string; weak: boolean);
 begin
     if (target_info.system <> system_powerpc64_darwin) then
-      a_call_name_direct(list, s, weak, false, true)
+      a_call_name_direct(list, A_BL, s, weak, target_info.system=system_powerpc64_aix, true)
     else
       begin
         list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
@@ -516,14 +396,14 @@ begin
 end;
 
 
-procedure tcgppc.a_call_name_direct(list: TAsmList; s: string; weak: boolean; prependDot : boolean; addNOP : boolean; includeCall : boolean);
+procedure tcgppc.a_call_name_direct(list: TAsmList; opc: tasmop; s: string; weak: boolean; prependDot : boolean; addNOP : boolean; includeCall : boolean);
 begin
   if (prependDot) then
     s := '.' + s;
   if not(weak) then
-    list.concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(s)))
+    list.concat(taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s)))
   else
-    list.concat(taicpu.op_sym(A_BL, current_asmdata.WeakRefAsmSymbol(s)));
+    list.concat(taicpu.op_sym(opc, current_asmdata.WeakRefAsmSymbol(s)));
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
 
@@ -572,7 +452,7 @@ begin
     in R11 }
     a_reg_alloc(list, NR_R11);
     a_load_reg_reg(list, OS_ADDR, OS_ADDR, reg, NR_R11);
-    a_call_name_direct(list, '.ptrgl', false, false, false);
+    a_call_name_direct(list, A_BL, '.ptrgl', false, false, false);
     a_reg_dealloc(list, NR_R11);
   end;
 
@@ -714,6 +594,8 @@ var
   ref2: treference;
   tmpreg: tregister;
 begin
+  if target_info.system=system_powerpc64_aix then
+    g_load_check_simple(list,ref,65536);
   {$IFDEF EXTDEBUG}
   list.concat(tai_comment.create(strpnew('a_load_ref_reg ' + ref2string(ref))));
   {$ENDIF EXTDEBUG}
@@ -1220,13 +1102,13 @@ begin
   a_jmp(list, A_BC, TOpCmp2AsmCond[cmp_op], 0, l);
 end;
 
-procedure tcgppc.a_jmp_name_direct(list : TAsmList; s : string; prependDot : boolean);
+procedure tcgppc.a_jmp_name_direct(list : TAsmList; opc: tasmop; s : string; prependDot : boolean);
 var
   p: taicpu;
 begin
   if (prependDot) then
     s := '.' + s;
-  p := taicpu.op_sym(A_B, current_asmdata.RefAsmSymbol(s));
+  p := taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s));
   p.is_jmp := true;
   list.concat(p)
 end;
@@ -1242,7 +1124,7 @@ begin
       list.concat(p)
     end
   else
-    a_jmp_name_direct(list, s, true);
+    a_jmp_name_direct(list, A_B, s, true);
 end;
 
 procedure tcgppc.a_jmp_always(list: TAsmList; l: tasmlabel);
@@ -1412,7 +1294,7 @@ procedure tcgppc.g_profilecode(list: TAsmList);
 begin
   current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_savepara), list);
 
-  a_call_name_direct(list, '_mcount', false, false, true);
+  a_call_name_direct(list, A_BL, '_mcount', false, false, true);
 
   current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_restorepara), list);
 end;
@@ -1441,6 +1323,7 @@ var
     regcount : TSuperRegister;
     href : TReference;
     mayNeedLRStore : boolean;
+    opc : tasmop;
   begin
     { there are two ways to do this: manually, by generating a few "std" instructions,
      or via the restore helper functions. The latter are selected by the -Og switch,
@@ -1449,13 +1332,17 @@ var
        (target_info.system <> system_powerpc64_darwin) then begin
       mayNeedLRStore := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
+        if target_info.system=system_powerpc64_aix then
+          opc:=A_BLA
+        else
+          opc:=A_BL;
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
-        a_call_name_direct(list, '_savegpr1_' + intToStr(32-gprcount), false, false, false, false);
-        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false, false);
+        a_call_name_direct(list, opc, '_savegpr1_' + intToStr(32-gprcount), false, false, false, false);
+        a_call_name_direct(list, opc, '_savefpr_' + intToStr(32-fprcount), false, false, false, false);
       end else if (gprcount > 0) then
-        a_call_name_direct(list, '_savegpr0_' + intToStr(32-gprcount), false, false, false, false)
+        a_call_name_direct(list, opc, '_savegpr0_' + intToStr(32-gprcount), false, false, false, false)
       else if (fprcount > 0) then
-        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false, false)
+        a_call_name_direct(list, opc, '_savefpr_' + intToStr(32-fprcount), false, false, false, false)
       else
         mayNeedLRStore := true;
     end else begin
@@ -1579,20 +1466,30 @@ var
     needsExitCode : Boolean;
     href : treference;
     regcount : TSuperRegister;
+    callopc,
+    jmpopc: tasmop;
   begin
     { there are two ways to do this: manually, by generating a few "ld" instructions,
      or via the restore helper functions. The latter are selected by the -Og switch,
      i.e. "optimize for size" }
     if (cs_opt_size in current_settings.optimizerswitches) then begin
+      if target_info.system=system_powerpc64_aix then begin
+        callopc:=A_BLA;
+        jmpopc:=A_BA;
+      end
+      else begin
+        callopc:=A_BL;
+        jmpopc:=A_B;
+      end;
       needsExitCode := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
-        a_call_name_direct(list, '_restgpr1_' + intToStr(32-gprcount), false, false, false, false);
-        a_jmp_name_direct(list, '_restfpr_' + intToStr(32-fprcount), false);
+        a_call_name_direct(list, callopc, '_restgpr1_' + intToStr(32-gprcount), false, false, false, false);
+        a_jmp_name_direct(list, jmpopc, '_restfpr_' + intToStr(32-fprcount), false);
       end else if (gprcount > 0) then
-        a_jmp_name_direct(list, '_restgpr0_' + intToStr(32-gprcount), false)
+        a_jmp_name_direct(list, jmpopc, '_restgpr0_' + intToStr(32-gprcount), false)
       else if (fprcount > 0) then
-        a_jmp_name_direct(list, '_restfpr_' + intToStr(32-fprcount), false)
+        a_jmp_name_direct(list, jmpopc, '_restfpr_' + intToStr(32-fprcount), false)
       else
         needsExitCode := true;
     end else begin
@@ -1693,7 +1590,7 @@ var
   tempreg : TRegister;
 
 begin
-  if (target_info.system = system_powerpc64_darwin) then
+  if (target_info.system in [system_powerpc64_darwin,system_powerpc64_aix]) then
     begin
       inherited a_loadaddr_ref_reg(list,ref,r);
       exit;
@@ -2003,7 +1900,7 @@ begin
     internalerror(200310131);
 
   { if this is a PIC'ed address, handle it and exit }
-  if (ref.refaddr = addr_pic) then begin
+  if (ref.refaddr in [addr_pic,addr_pic_no_got]) then begin
     if (ref.offset <> 0) then
       internalerror(2006010501);
     if (ref.index <> NR_NO) then

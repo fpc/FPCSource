@@ -1,3 +1,8 @@
+{ %skiptarget=aix }
+
+{ this kills one of the make-processes when executed during a testsuite
+  run on AIX/ppc64 }
+
 { Source provided for Free Pascal Bug Report 2494 }
 { Submitted by "Alan Mead" on  2003-05-17 }
 { e-mail: cubrewer@yahoo.com }

@@ -71,7 +71,7 @@ Const
         syscall_nr_setlogin     = 50 ;
         syscall_nr_acct         = 51 ;
         syscall_nr_sigpending   = 52 ;
-        syscall_nr_sigaltstack  = 53 ;
+        syscall_nr_osigaltstack = 53 ;
         syscall_nr_ioctl        = 54 ;
         syscall_nr_reboot       = 55 ;
         syscall_nr_revoke       = 56 ;
@@ -159,7 +159,10 @@ Const
         syscall_nr_swapctl      = 193;
         syscall_nr_getrlimit    = 194;
         syscall_nr_setrlimit    = 195;
-        syscall_nr_getdirentries35 = 196;
+        syscall_nr_ogetdirentries = 196;
+        { The entry below is to avoid unnecessary incompatibility with
+          older version }
+        syscall_nr_getdirentries35 = syscall_nr_ogetdirentries;
         syscall_nr_mmap         = 197;
         syscall_nr___syscall    = 198;
         syscall_nr_lseek        = 199;
@@ -172,6 +175,7 @@ Const
         syscall_nr_futimes      = 206;
         syscall_nr_getpgid      = 207;
         syscall_nr_xfspioctl    = 208;
+        syscall_nr_nnpfspioctl  = 208;
         syscall_nr_semget       = 221;
         syscall_nr_semop35      = 222;
         syscall_nr_msgget       = 225;
@@ -222,7 +226,9 @@ Const
         syscall_nr_setresgid    = 284;
         syscall_nr_mquery       = 286;
         syscall_nr_closefrom    = 287;
-        syscall_nr_signalstack  = 288;
+        syscall_nr_sigaltstack  = 288;
+        { left for compatibility }
+        syscall_nr_signalstack  = syscall_nr_sigaltstack;
         syscall_nr_shmget       = 289;
         syscall_nr_semop        = 290;
         syscall_nr_stat         = 291;
@@ -250,7 +256,7 @@ Const
         syscall_nr_MAXSYSCALL   = 313;
 
 { Aliases }
-        syscall_nr_getdirentries = syscall_nr_getdirentries35;
+        syscall_nr_getdirentries = syscall_nr_ogetdirentries;
         syscall_nr_waitpid      = syscall_nr_wait4;  // 7, added: ease of notation purposes
 {        syscall_nr_getdents = syscall_nr_getdirentries; }
 {$define USE_GETDIRENTRIES_SYSCALL}

@@ -83,7 +83,7 @@ const
  CC = 'C:';
 {$ENDIF NODRIVEC}
 {$IFNDEF FPC}
- FileNameCaseSensitive = false;
+ FileNameCasePreserving = false;
  DirectorySeparator = '\';
  DirectorySeparator2 = '\';
  DirSep = '\';
@@ -96,19 +96,19 @@ const
   {$IFDEF MACOS}
  DirectorySeparator = ':';
  LFNSupport = true;
- FileNameCaseSensitive = false;
+ FileNameCasePreserving = true;
   {$ELSE MACOS}
    {$IFDEF UNIX}
  DirectorySeparator = '/';
  DriveSeparator = '/';
- FileNameCaseSensitive = true;
+ FileNameCasePreserving = true;
    {$ELSE UNIX}
     {$IFDEF AMIGA}
  DirectorySeparator = ':';
- FileNameCaseSensitive = true;
+ FileNameCasePreserving = true;
     {$ELSE AMIGA}
  DirectorySeparator = '\';
- FileNameCaseSensitive = false;
+ FileNameCasePreserving = false;
     {$ENDIF AMIGA}
    {$ENDIF UNIX}
   {$ENDIF MACOS}
@@ -191,7 +191,7 @@ begin
  if (Length (S) > 1) and (S [1] in ['a'..'z']) and (S[2]=DriveSep) then
    S [1] := UpCase (S [1]);
 {$ENDIF UNIX}
- if not (FileNameCaseSensitive) then
+ if not (FileNameCasePreserving) then
                            for I := 1 to Length (S) do S [I] := UpCase (S [I]);
  Translate := S;
 end;

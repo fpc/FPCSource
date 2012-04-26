@@ -119,7 +119,7 @@ begin
 {$ENDIF FPC_FEXPAND_UNC}
 
 (* First convert the path to uppercase if appropriate for current platform. *)
-    if FileNameCaseSensitive then
+    if FileNameCasePreserving then
         Pa := Path
     else
         Pa := UpCase (Path);

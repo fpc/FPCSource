@@ -300,7 +300,7 @@ Const
       syscall_nr_mq_notify         = 277;
       syscall_nr_mq_getsetattr     = 278;
       syscall_nr_waitid            = 279;
-      syscall_nr_sys_setaltroot    = 280;
+      syscall_nr_tee               = 280; { was syscall_nr_sys_setaltroot    280; }
       syscall_nr_add_key           = 281;
       syscall_nr_request_key       = 282;
       syscall_nr_keyctl            = 283;

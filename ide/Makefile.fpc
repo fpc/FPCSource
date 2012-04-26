@@ -61,6 +61,9 @@ endif
 ifeq ($(OS_TARGET),openbsd)
 needusrlocallib=1
 endif
+ifeq ($(OS_TARGET),netbsd)
+neednostdlib=1
+endif
 
 ifdef needlinkparam
 override SPECIALLINK=-Xe -k--allow-multiple-definition

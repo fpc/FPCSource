@@ -1379,8 +1379,8 @@ var
   sign : valreal;
   esign,
   exponent,
-  decpoint,i : SizeInt;
-  flags      : byte;
+  decpoint : SizeInt;
+  flags    : byte;
 begin
   fpc_Val_Real_ShortStr:=0.0;
   code:=1;

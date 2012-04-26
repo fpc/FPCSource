@@ -196,8 +196,7 @@ begin
               { replace global symbol reference with TOC entry name
                 for AIX }
               if target_info.system in systems_aix then
-                oper.opr.ref.symbol:=
-                  tcgppcgen(cg).get_aix_toc_sym(oper.opr.ref.symbol.name,asmsym2indsymflags(oper.opr.ref.symbol));
+                tcgppcgen(cg).get_aix_toc_sym(nil,oper.opr.ref.symbol.name,asmsym2indsymflags(oper.opr.ref.symbol),oper.opr.ref,true);
               oper.opr.ref.refaddr:=addr_pic_no_got;
             end;
           Consume_RParen;
@@ -360,7 +359,7 @@ var
             if (oper.opr.val<>0) then
               Message(asmr_e_wrong_sym_type);
             oper.opr.typ:=OPR_SYMBOL;
-            oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname);
+            oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION);
           end
         else
           inc(oper.opr.val,l);
@@ -764,7 +763,14 @@ begin
     if (instr.Operands[1].opr.ref.base<>NR_NO) or
       (instr.Operands[1].opr.ref.index<>NR_NO) then
       Message(asmr_e_syn_operand);
+    if (target_info.system in systems_dotted_function_names) and
+       assigned(instr.Operands[1].opr.ref.symbol) then
+      instr.Operands[1].opr.ref.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.ref.symbol.name,instr.Operands[1].opr.ref.symbol.bind,AT_FUNCTION);
   end;
+  if (target_info.system in systems_dotted_function_names) and
+     (instr.Operands[1].opr.typ = OPR_SYMBOL) and
+     (instr.Operands[1].opr.symbol.typ=AT_FUNCTION) then
+    instr.Operands[1].opr.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.symbol.name,instr.Operands[1].opr.symbol.bind,AT_FUNCTION);
 end;
 
 procedure tppcattreader.handleopcode;

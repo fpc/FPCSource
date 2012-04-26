@@ -1,0 +1,7 @@
+ This directory was added to centralize the scripts
+that can be usefull for different Unix system,
+especially to check consistency between
+RTL files and system headers.
+
+  Pierre Muller 2012/04/18
+
