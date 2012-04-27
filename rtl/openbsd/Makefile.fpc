@@ -11,8 +11,8 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
-      $(LINUXUNIT) unix initc systhrds \
-      dos crt objects printer matrix \
+      $(LINUXUNIT) unixtype unixutil unix ctypes bsd initc \
+      $(CPU_UNITS) dos crt objects printer matrix rtlconsts \
       sysutils fgl classes fmtbcd typinfo math varutils \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets ipc terminfo dateutils strutils \
