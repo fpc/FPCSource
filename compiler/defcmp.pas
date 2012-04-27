@@ -764,7 +764,7 @@ implementation
                    begin
                      { ugly, but delphi allows it }
                      if (cdo_explicit in cdoptions) and
-                        is_class_or_interface_or_objc_or_java(def_from) then
+                        is_class_or_interface_or_dispinterface_or_objc_or_java(def_from) then
                        begin
                          { in Java enums /are/ class instances, and hence such
                            typecasts must not be treated as integer-like
