@@ -82,6 +82,7 @@ interface
          function  geTSymtable(t:tgeTSymtable):TSymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
+         function  needs_separate_initrtti:boolean;virtual;abstract;
          function  is_related(def:tdef):boolean;virtual;
          procedure ChangeOwner(st:TSymtable);
          procedure register_created_object_type;virtual;

@@ -80,6 +80,7 @@ interface
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
           function  OwnerHierarchyName: string; override;
+          function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
           { regvars }
           function is_intregable : boolean;
@@ -223,6 +224,7 @@ interface
           function  GetTypeName:string;override;
           { debug }
           function  needs_inittable : boolean;override;
+          function  needs_separate_initrtti:boolean;override;
           { jvm }
           function  is_related(d : tdef) : boolean;override;
        end;
@@ -328,6 +330,7 @@ interface
           function  is_publishable : boolean;override;
           function  is_related(d : tdef) : boolean;override;
           function  needs_inittable : boolean;override;
+          function  needs_separate_initrtti : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
           function  vmt_mangledname : TSymStr;
           procedure check_forwards; override;
@@ -393,6 +396,7 @@ interface
           function alignment : shortint;override;
           { returns the label of the range check string }
           function needs_inittable : boolean;override;
+          function needs_separate_initrtti : boolean;override;
           property elementdef : tdef read _elementdef write setelementdef;
           function is_publishable : boolean;override;
        end;
@@ -1402,11 +1406,16 @@ implementation
       end;
 
 
+    function tstoreddef.needs_separate_initrtti:boolean;
+      begin
+        result:=false;
+      end;
+
     function Tstoreddef.rtti_mangledname(rt:trttitype):string;
       var
         prefix : string[4];
       begin
-        if rt=fullrtti then
+        if (rt=fullrtti) or (not needs_separate_initrtti) then
           begin
             prefix:='RTTI';
             include(defstates,ds_rtti_table_used);
@@ -3055,6 +3064,13 @@ implementation
          needs_inittable:=(ado_IsDynamicArray in arrayoptions) or elementdef.needs_inittable;
       end;
 
+    function tarraydef.needs_separate_initrtti : boolean;
+      begin
+        if ado_IsBitPacked in arrayoptions then
+          result:=false
+        else
+          result:=elementdef.needs_separate_initrtti;
+      end;
 
     function tarraydef.GetTypeName : string;
       begin
@@ -3397,6 +3413,10 @@ implementation
         needs_inittable:=trecordsymtable(symtable).needs_init_final
       end;
 
+    function trecorddef.needs_separate_initrtti : boolean;
+      begin
+        result:=true;
+      end;
 
     function trecorddef.is_related(d: tdef): boolean;
       begin
@@ -5846,6 +5866,10 @@ implementation
          end;
       end;
 
+    function tobjectdef.needs_separate_initrtti : boolean;
+      begin
+        result:=not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]);
+      end;
 
     function tobjectdef.rtti_mangledname(rt: trttitype): string;
       begin

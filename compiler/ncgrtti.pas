@@ -1208,6 +1208,9 @@ implementation
         { only write rtti of definitions from the current module }
         if not findunitsymtable(def.owner).iscurrentunit then
           exit;
+        { check if separate initrtti is actually needed }
+        if (rt=initrtti) and (not def.needs_separate_initrtti) then
+          rt:=fullrtti;
         { prevent recursion }
         if rttidefstate[rt] in def.defstates then
           exit;
