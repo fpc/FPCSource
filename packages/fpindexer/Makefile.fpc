@@ -19,8 +19,6 @@ units_darwin=fbindexdb sqldbindexdb dbindexer
 units_win32=fbindexdb sqldbindexdb dbindexer
 units_win64=fbindexdb sqldbindexdb dbindexer
 units_wince=fbindexdb sqldbindexdb dbindexer
-# no dbindexer for solaris (sqldb dep)
-units_solaris=fbindexdb sqldbindexdb 
 
 exampledirs=examples
 

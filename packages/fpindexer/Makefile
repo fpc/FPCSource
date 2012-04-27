@@ -313,7 +313,7 @@ ifeq ($(FULL_TARGET),i386-netbsd)
 override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt  fbindexdb sqldbindexdb dbindexer
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt  fbindexdb sqldbindexdb
+override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt
@@ -409,7 +409,7 @@ ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt  fbindexdb sqldbindexdb dbindexer
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt  fbindexdb sqldbindexdb
+override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt
@@ -421,7 +421,7 @@ ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt  fbindexdb sqldbindexdb dbindexer
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt  fbindexdb sqldbindexdb
+override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_UNITS+=fpmasks fpindexer memindexdb ireaderhtml ireaderpas ireadertxt  fbindexdb sqldbindexdb dbindexer
