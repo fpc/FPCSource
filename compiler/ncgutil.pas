@@ -473,8 +473,6 @@ implementation
                                      TLocation
 *****************************************************************************}
 
-{$ifndef cpu64bitalu}
-    { 32-bit version }
     procedure location_force_reg(list:TAsmList;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       var
         hregister,
@@ -487,6 +485,7 @@ implementation
         oldloc:=l;
         if dst_size=OS_NO then
           internalerror(200309144);
+{$ifndef cpu64bitalu}
         { handle transformations to 64bit separate }
         if dst_size in [OS_64,OS_S64] then
          begin
@@ -577,6 +576,7 @@ implementation
             end;
          end
         else
+{$endif cpu64bitalu}
          begin
            {Do not bother to recycle the existing register. The register
             allocator eliminates unnecessary moves, so it's not needed
@@ -655,74 +655,7 @@ implementation
          location_freetemp(list,oldloc);
      end;
 
-{$else not cpu64bitalu}
 
-    { 64-bit version }
-    procedure location_force_reg(list:TAsmList;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
-      var
-        hregister : tregister;
-        hl : tasmlabel;
-        oldloc : tlocation;
-      begin
-        oldloc:=l;
-        hregister:=cg.getintregister(list,dst_size);
-        { load value in new register }
-        case l.loc of
-{$ifdef cpuflags}
-          LOC_FLAGS :
-            cg.g_flags2reg(list,dst_size,l.resflags,hregister);
-{$endif cpuflags}
-          LOC_JUMP :
-            begin
-              cg.a_label(list,current_procinfo.CurrTrueLabel);
-              cg.a_load_const_reg(list,dst_size,1,hregister);
-              current_asmdata.getjumplabel(hl);
-              cg.a_jmp_always(list,hl);
-              cg.a_label(list,current_procinfo.CurrFalseLabel);
-              cg.a_load_const_reg(list,dst_size,0,hregister);
-              cg.a_label(list,hl);
-            end;
-          else
-            begin
-              { load_loc_reg can only handle size >= l.size, when the
-                new size is smaller then we need to adjust the size
-                of the orignal and maybe recalculate l.register for i386 }
-              if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
-               begin
-                 if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                   l.register:=cg.makeregsize(list,l.register,dst_size);
-                 { for big endian systems, the reference's offset must }
-                 { be increased in this case, since they have the      }
-                 { MSB first in memory and e.g. byte(word_var) should  }
-                 { return  the second byte in this case (JM)           }
-                 if (target_info.endian = ENDIAN_BIG) and
-                    (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                   begin
-                     inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
-                     l.reference.alignment:=newalignment(l.reference.alignment,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
-                   end;
-{$ifdef x86}
-                l.size:=dst_size;
-{$endif x86}
-               end;
-              cg.a_load_loc_reg(list,dst_size,l,hregister);
-{$ifndef x86}
-              if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
-                l.size:=dst_size;
-{$endif not x86}
-            end;
-        end;
-        if (l.loc <> LOC_CREGISTER) or
-           not maybeconst then
-          location_reset(l,LOC_REGISTER,dst_size)
-        else
-          location_reset(l,LOC_CREGISTER,dst_size);
-        l.register:=hregister;
-        { Release temp when it was a reference }
-        if oldloc.loc=LOC_REFERENCE then
-          location_freetemp(list,oldloc);
-      end;
-{$endif not cpu64bitalu}
 
 
     procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
