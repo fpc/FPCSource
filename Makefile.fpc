@@ -264,6 +264,7 @@ ifdef IDE
         $(MAKE) installer_all $(BUILDOPTS)
 endif
         $(ECHOREDIR) Build > $(BUILDSTAMP)
+        $(ECHOREDIR) Build > base.$(BUILDSTAMP)
 
 buildbase: base.$(BUILDSTAMP)
 base.$(BUILDSTAMP):
