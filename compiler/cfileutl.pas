@@ -1506,7 +1506,7 @@ end;
       var
         quote_script: tscripttype;
       begin
-        if not(cs_link_on_target in current_settings.globalswitches) then
+        if (cs_link_on_target in current_settings.globalswitches) then
           quote_script:=target_info.script
         else
           quote_script:=source_info.script;
