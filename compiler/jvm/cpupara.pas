@@ -44,6 +44,7 @@ interface
         @param(nr Parameter number of routine, starting from 1)}
         procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara : TCGPara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
+        function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
         function ret_in_param(def: tdef; calloption: tproccalloption): boolean; override;
@@ -174,6 +175,19 @@ implementation
       begin
         { all parameters are passed on the evaluation stack }
         result:=true;
+      end;
+
+
+    function TJVMParaManager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+      var
+        parasize : longint;
+      begin
+        parasize:=0;
+        { calculate the registers for the normal parameters }
+        create_paraloc_info_intern(p,callerside,p.paras,parasize);
+        { append the varargs }
+        create_paraloc_info_intern(p,callerside,varargspara,parasize);
+        result:=parasize;
       end;
 
 
