@@ -104,12 +104,6 @@ TYPE
   end;
 
   flag = byte;
-  uint8 = byte;
-  int8 = shortint;
-  uint16 = word;
-  int16 = smallint;
-  uint32 = longword;
-  int32 = longint;
 
   bits8 = byte;
   sbits8 = shortint;
