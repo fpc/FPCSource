@@ -290,7 +290,10 @@ implementation
                             internalerror(200210061);
                         end;
                       end
-                     else
+                     { currency cannot be implicitly converted to an ordinal
+                       type }
+                     else if not is_currency(def_from) or
+                             (cdo_explicit in cdoptions) then
                       begin
                         if cdo_explicit in cdoptions then
                           doconv:=basedefconvertsexplicit[basedeftbl[torddef(def_from).ordtype],basedeftbl[torddef(def_to).ordtype]]
