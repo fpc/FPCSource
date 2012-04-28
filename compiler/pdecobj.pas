@@ -490,7 +490,9 @@ implementation
                   else
                     break;
                 end;
-              if [oo_is_abstract, oo_is_sealed] <= current_structdef.objectoptions then
+              { don't use <=, because there's a bug in the 2.6.0 SPARC code
+                generator regarding handling this expression }
+              if ([oo_is_abstract, oo_is_sealed] * current_structdef.objectoptions) = [oo_is_abstract, oo_is_sealed] then
                 Message(parser_e_abstract_and_sealed_conflict);
               { set default external name in case of no external directive }
               if (current_objectdef.objecttype=odt_javaclass) and
