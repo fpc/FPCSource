@@ -831,6 +831,8 @@ implementation
          inc(exceptblockcounter);
          oldcurrent_exceptblock := current_exceptblock;
          current_exceptblock := exceptblockcounter;
+         old_block_type := block_type;
+         block_type := bt_body;
 
          while (token<>_FINALLY) and (token<>_EXCEPT) do
            begin
@@ -860,7 +862,6 @@ implementation
          else
            begin
               consume(_EXCEPT);
-              old_block_type:=block_type;
               block_type:=bt_except;
               inc(exceptblockcounter);
               current_exceptblock := exceptblockcounter;
@@ -988,9 +989,9 @@ implementation
                    p_default:=statements_til_end;
                 end;
 
-              block_type:=old_block_type;
               try_statement:=ctryexceptnode.create(p_try_block,p_specific,p_default);
            end;
+         block_type:=old_block_type;
          current_exceptblock := oldcurrent_exceptblock;
       end;
 
