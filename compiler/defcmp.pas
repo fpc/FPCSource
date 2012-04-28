@@ -536,7 +536,7 @@ implementation
                             begin
                               if is_ansistring(def_to) then
                                 eq:=te_convert_l1
-                              else if is_widestring(def_to) or is_unicodestring(def_to) then
+                              else if is_wide_or_unicode_string(def_to) then
                                 eq:=te_convert_l3
                               else
                                 eq:=te_convert_l2;
@@ -557,7 +557,7 @@ implementation
                                   else
                                     eq:=te_convert_l2;
                                 end
-                              else if is_widestring(def_to) or is_unicodestring(def_to) then
+                              else if is_wide_or_unicode_string(def_to) then
                                 eq:=te_convert_l3
                               else
                                 eq:=te_convert_l2;
@@ -569,7 +569,7 @@ implementation
                       if is_widechararray(def_from) or is_open_widechararray(def_from) then
                        begin
                          doconv:=tc_chararray_2_string;
-                         if is_widestring(def_to) or is_unicodestring(def_to) then
+                         if is_wide_or_unicode_string(def_to) then
                            eq:=te_convert_l1
                          else
                            { size of widechar array is double due the sizeof a widechar }
@@ -601,7 +601,7 @@ implementation
                           else if is_pwidechar(def_from) then
                            begin
                              doconv:=tc_pwchar_2_string;
-                             if is_widestring(def_to) or is_unicodestring(def_to)  then
+                             if is_wide_or_unicode_string(def_to) then
                                eq:=te_convert_l1
                              else
                                eq:=te_convert_l3;
