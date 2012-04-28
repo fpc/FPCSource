@@ -37,7 +37,9 @@
         { (int64(tmyrec(c))(+/-)5000) div 10000 can overflow }
         result := int64(c);
         rem := c - currency(result);
-        absrem := abs(rem);
+        absrem := rem;
+        if absrem < 0 then
+          absrem := -absrem;
         if (absrem > 0.5) or
            ((absrem = 0.5) and
             (rem > 0)) then
