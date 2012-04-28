@@ -2089,8 +2089,6 @@ implementation
          is_jmp:=false;
          opcode:=op;
          ops:=0;
-         fillchar(condition,sizeof(condition),0);
-         fillchar(oper,sizeof(oper),0);
       end;
 
 
