@@ -52,6 +52,7 @@ uses
 
       procedure a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; weak: boolean);override;
       procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr);override;
+      procedure a_call_ref(list: TAsmList; pd: tabstractprocdef; ref: treference); override;
 
       procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : aint;register : tregister);override;
       procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : aint;const ref : treference);override;
@@ -298,6 +299,12 @@ implementation
   procedure thlcgjvm.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr);
     begin
       a_call_name_intern(list,pd,s,true);
+    end;
+
+
+  procedure thlcgjvm.a_call_ref(list: TAsmList; pd: tabstractprocdef; ref: treference);
+    begin
+      internalerror(2012042824);
     end;
 
 
