@@ -27,14 +27,14 @@ interface
 
     uses
        globtype,parabase,
-       cgbase,cgutils,cgobj,
+       cgbase,cgutils,cgobj,cghlcpu,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,
        rgcpu;
 
     type
-      TCgJvm=class(tcg)
+      TCgJvm=class(thlbasecgcpu)
      public
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;

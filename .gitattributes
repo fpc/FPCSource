@@ -117,6 +117,7 @@ compiler/cfidwarf.pas svneol=native#text/plain
 compiler/cfileutl.pas svneol=native#text/plain
 compiler/cg64f32.pas svneol=native#text/plain
 compiler/cgbase.pas svneol=native#text/plain
+compiler/cghlcpu.pas svneol=native#text/plain
 compiler/cgobj.pas svneol=native#text/plain
 compiler/cgutils.pas svneol=native#text/plain
 compiler/cmsgs.pas svneol=native#text/plain
