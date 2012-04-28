@@ -514,9 +514,17 @@ implementation
                             doconv:=tc_string_2_string;
                             { prefered string type depends on the $H switch }
                             if (m_default_unicodestring in current_settings.modeswitches) and
-                               (cs_refcountedstrings in current_settings.localswitches) and
-                               is_wide_or_unicode_string(def_to) then
-                              eq:=te_equal
+                               (cs_refcountedstrings in current_settings.localswitches) then
+                              case tstringdef(def_to).stringtype of
+                                st_unicodestring: eq:=te_equal;
+                                st_widestring: eq:=te_convert_l1;
+                                // widechar: eq:=te_convert_l2;
+                                // ansichar: eq:=te_convert_l3;
+                                st_ansistring: eq:=te_convert_l4;
+                                st_shortstring: eq:=te_convert_l5;
+                              else
+                                eq:=te_convert_l6;
+                              end
                             else if not(cs_refcountedstrings in current_settings.localswitches) and
                                (tstringdef(def_to).stringtype=st_shortstring) then
                               eq:=te_equal
@@ -1166,7 +1174,11 @@ implementation
                         (is_pchar(def_to) or is_pwidechar(def_to)) then
                       begin
                         doconv:=tc_cstring_2_pchar;
-                        eq:=te_convert_l2;
+                        if ((m_default_unicodestring in current_settings.modeswitches) xor
+                           is_pchar(def_to)) then
+                          eq:=te_convert_l2
+                        else
+                          eq:=te_convert_l3;
                       end
                      else
                       { chararray to pointer }
