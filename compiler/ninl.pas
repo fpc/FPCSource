@@ -1599,8 +1599,10 @@ implementation
         while assigned(ppn.right) do
          begin
            inc(counter);
+           set_varstate(ppn.left,vs_read,[vsf_must_be_valid]);
            ppn:=tcallparanode(ppn.right);
          end;
+        set_varstate(ppn.left,vs_read,[vsf_must_be_valid]);
         paradef:=ppn.left.resultdef;
         if is_ansistring(paradef) then
           // set resultdef to argument def
