@@ -9627,6 +9627,13 @@ tests/test/cg/obj/aix/powerpc/tcext3.o -text
 tests/test/cg/obj/aix/powerpc/tcext4.o -text
 tests/test/cg/obj/aix/powerpc/tcext5.o -text
 tests/test/cg/obj/aix/powerpc/tcext6.o -text
+tests/test/cg/obj/aix/powerpc64/cpptcl1.o -text
+tests/test/cg/obj/aix/powerpc64/cpptcl2.o -text
+tests/test/cg/obj/aix/powerpc64/ctest.o -text
+tests/test/cg/obj/aix/powerpc64/tcext3.o -text
+tests/test/cg/obj/aix/powerpc64/tcext4.o -text
+tests/test/cg/obj/aix/powerpc64/tcext5.o -text
+tests/test/cg/obj/aix/powerpc64/tcext6.o -text
 tests/test/cg/obj/amiga/m68k/ctest.o -text
 tests/test/cg/obj/beos/i386/ctest.o -text
 tests/test/cg/obj/beos/i386/tcext3.o -text
