@@ -305,7 +305,7 @@ implementation
                    begin
                      if (infile<>lastinfile) then
                        begin
-                         AsmWriteLn(target_asm.comment+'['+infile.name^+']');
+                         AsmWriteLn(target_asm.comment+'['+infile.name+']');
                          if assigned(lastinfile) then
                            lastinfile.close;
                        end;
@@ -530,7 +530,7 @@ implementation
         AsmWriteLn('.bytecode 49.0');
         // include files are not support by Java, and the directory of the main
         // source file must not be specified
-        if assigned(current_module.mainsource) then
+        if current_module.mainsource<>'' then
           n:=ExtractFileName(current_module.mainsource)
         else
           n:=InputFileName;
