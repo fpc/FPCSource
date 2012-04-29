@@ -2487,11 +2487,11 @@ implementation
         result := false;
         if ((left.nodetype = typeconvn) and
             is_integer(ttypeconvnode(left).left.resultdef) and
-            (not(torddef(ttypeconvnode(left).left.resultdef).ordtype in [u64bit,s64bit])) and
+            (not(torddef(ttypeconvnode(left).left.resultdef).ordtype in [u64bit,s64bit,scurrency])) and
            (((right.nodetype = ordconstn) and canbe32bitint(tordconstnode(right).value)) or
             ((right.nodetype = typeconvn) and
              is_integer(ttypeconvnode(right).left.resultdef) and
-             not(torddef(ttypeconvnode(right).left.resultdef).ordtype in [u64bit,s64bit])) and
+             not(torddef(ttypeconvnode(right).left.resultdef).ordtype in [u64bit,s64bit,scurrency])) and
              ((is_signed(ttypeconvnode(left).left.resultdef) =
                is_signed(ttypeconvnode(right).left.resultdef)) or
               (is_signed(ttypeconvnode(left).left.resultdef) and
@@ -2510,13 +2510,13 @@ implementation
               end;
             if (is_signed(left.resultdef)) then
               begin
-                inserttypeconv(left,s32inttype);
-                inserttypeconv(right,s32inttype);
+                inserttypeconv_internal(left,s32inttype);
+                inserttypeconv_internal(right,s32inttype);
               end
             else
               begin
-                inserttypeconv(left,u32inttype);
-                inserttypeconv(right,u32inttype);
+                inserttypeconv_internal(left,u32inttype);
+                inserttypeconv_internal(right,u32inttype);
               end;
             firstpass(left);
             firstpass(right);
