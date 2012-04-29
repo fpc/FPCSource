@@ -31,7 +31,7 @@ interface
       symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase;
 
     type
-      TMIPSELParaManager=class(TParaManager)
+      TMIPSParaManager=class(TParaManager)
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;override;
         function  get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;override;
@@ -63,19 +63,19 @@ implementation
       parainsupregs  : tparasupregs = (RS_R4, RS_R5, RS_R6, RS_R7, RS_R8, RS_R9);
 
 
-    function TMIPSELParaManager.get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;
+    function TMIPSParaManager.get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;
       begin
-        result:=[RS_R1..RS_R15,RS_R24..RS_R25];
+        result:=[RS_R1..RS_R15,RS_R24..RS_R25,RS_R31];
       end;
 
 
-    function tMIPSELparamanager.get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;
+    function TMIPSParaManager.get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;
       begin
-        result:=[RS_F0..RS_F31];
+        result:=[RS_F0..RS_F19,RS_F31];
       end;
 
 
-    procedure TMIPSELParaManager.GetIntParaLoc(calloption : tproccalloption; nr : longint;var cgpara : tcgpara);
+    procedure TMIPSParaManager.GetIntParaLoc(calloption : tproccalloption; nr : longint;var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
       begin
@@ -107,7 +107,7 @@ implementation
       end;
 
     { true if a parameter is too large to copy and only the address is pushed }
-    function tMIPSELparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+    function TMIPSParaManager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;
         { var,out,constref always require address }
@@ -134,13 +134,13 @@ implementation
       end;
 
 
-    procedure tMIPSELparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+    procedure TMIPSParaManager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
       begin
         p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
       end;
 
 
-    function tMIPSELparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
+    function TMIPSParaManager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
       var
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
@@ -226,7 +226,7 @@ implementation
     var
       param_offset:array[0..20] of ^Aint;
 
-    procedure tMIPSELparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
+    procedure TMIPSParaManager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                            var intparareg,parasize:longint);
       var
         paraloc      : pcgparalocation;
@@ -337,7 +337,7 @@ implementation
       end;
 
 
-    function TMIPSELParaManager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function TMIPSParaManager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         intparareg,
         parasize : longint;
@@ -353,7 +353,7 @@ implementation
 
 
 
-    function tMIPSELparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    function TMIPSParaManager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         intparareg,
         parasize : longint;
@@ -369,5 +369,5 @@ implementation
 
 
 begin
-   ParaManager:=TMIPSELParaManager.create;
+   ParaManager:=TMIPSParaManager.create;
 end.
