@@ -81,9 +81,9 @@ function Sptr:Pointer;assembler;nostackframe;
     move $2,$sp
   end;
 
-
 {$ifdef USE_MIPS_STK2_ASM}
 {$ifndef FPC_SYSTEM_HAS_MOVE}
+{
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
   asm
@@ -286,8 +286,8 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
   lw  $14,-40($23)
 
   end;
+}
 {$endif FPC_SYSTEM_HAS_MOVE}
-
 {****************************************************************************
                                Integer math
 ****************************************************************************}
