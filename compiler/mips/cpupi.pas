@@ -27,47 +27,61 @@ interface
 
   uses
     cutils,
+    globtype,
     procinfo,cpuinfo,
     psub;
 
   type
+
+    { TMIPSProcInfo }
+
     TMIPSProcInfo=class(tcgprocinfo)
-    public
+      intregstart,
+      floatregstart : aint;
+      intregssave,
+      floatregssave : byte;
       constructor create(aparent:tprocinfo);override;
       function calc_stackframe_size:longint;override;
+      procedure set_first_temp_offset;override;
     end;
 
 implementation
 
     uses
       systems,globals,
+      cpubase,cgbase,cgobj,
       tgobj,paramgr,symconst;
 
-    constructor tmipsprocinfo.create(aparent:tprocinfo);
+    constructor TMIPSProcInfo.create(aparent: tprocinfo);
       begin
         inherited create(aparent);
-        maxpushedparasize:=0;
+        floatregssave:=11;
+        intregssave:=10;
+      end;
+
+
+    procedure TMIPSProcInfo.set_first_temp_offset;
+      begin
+        { We allocate enough space to save all registers because we can't determine
+          the necessary space because the used registers aren't known before
+          secondpass is run. }
+        if tg.direction = -1 then
+          tg.setfirsttemp(0)
+        else
+          tg.setfirsttemp(maxpushedparasize+floatregssave*sizeof(aint)+intregssave*sizeof(aint));
       end;
 
 
     function TMIPSProcInfo.calc_stackframe_size:longint;
+      var
+         r : byte;
+         regs: tcpuregisterset;
       begin
-        {
-          Stackframe layout:
-          %fp
-            <locals>
-            <temp>
-            <arguments 6-n for calling>
-          %sp+92
-            <space for arguments 0-5>                \
-            <return pointer for calling>              | included in first_parm_offset
-            <register window save area for calling>  /
-          %sp
-
-          Alignment must be the max available, as doubles require
-          8 byte alignment
-        }
-        result:=Align(tg.direction*tg.lasttemp+maxpushedparasize+target_info.first_parm_offset,current_settings.alignment.localalignmax);
+        result:=maxpushedparasize;
+        floatregstart:=result;
+        inc(result,floatregssave*4);
+        intregstart:=result;
+        result:=Align(tg.lasttemp,max(current_settings.alignment.localalignmin,8));
       end;
 
 

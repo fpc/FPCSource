@@ -871,8 +871,11 @@ implementation
                 tg.direction:=1;
               end;
           end;
-
 {$endif}
+{$ifdef MIPS}
+        framepointer:=NR_STACK_POINTER_REG;
+        tg.direction:=1;
+{$endif MIPS}
         { set the start offset to the start of the temp area in the stack }
         set_first_temp_offset;
       end;

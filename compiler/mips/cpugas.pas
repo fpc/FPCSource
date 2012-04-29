@@ -165,81 +165,92 @@ unit cpugas;
 
         case op of
           A_P_STK2:
-          begin
-            s1 := getopstr(taicpu(hp).oper[2]^);
-            STK2_LocalSize := align(STK2_LocalSize, 8);
-            if s1[1] = '-' then
-              str(-STK2_LocalSize, s1)
-            else
-              str(STK2_LocalSize, s1);
-            s := #9 + gas_op2str[A_ADDIU] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[1]^) + ',' + s1;
-            owner.AsmWriteLn(s);
-          end;
-          A_P_SET_MACRO:
-          begin
-            s := #9 + '.set' + #9 + 'macro';
-            owner.AsmWriteLn(s);
-          end;
-          A_P_SET_REORDER:
-          begin
-            s := #9 + '.set' + #9 + 'reorder';
-            owner.AsmWriteLn(s);
-          end;
-          A_P_SET_NOMACRO:
-          begin
-            s := #9 + '.set' + #9 + 'nomacro';
-            owner.AsmWriteLn(s);
-          end;
-          A_P_SET_NOREORDER:
-          begin
-            s := #9 + '.set' + #9 + 'noreorder';
-            owner.AsmWriteLn(s);
-          end;
-          A_P_SW:
-          begin
-            s := #9 + gas_op2str[A_SW] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-            owner.AsmWriteLn(s);
-          end;
-          A_P_LW:
-          begin
-            s := #9 + gas_op2str[A_LW] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-            owner.AsmWriteLn(s);
-          end;
-          A_LDC1:
-          begin
-            tmpfpu := getopstr(taicpu(hp).oper[0]^);
-            s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-            owner.AsmWriteLn(s);
-
-            tmpfpu_len := length(tmpfpu);
-            tmpfpu[tmpfpu_len] := succ(tmpfpu[tmpfpu_len]);
-            s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-            owner.AsmWriteLn(s);
-          end;
-          A_SDC1:
-          begin
-            tmpfpu := getopstr(taicpu(hp).oper[0]^);
-            s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-            owner.AsmWriteLn(s);
-
-            tmpfpu_len := length(tmpfpu);
-            tmpfpu[tmpfpu_len] := succ(tmpfpu[tmpfpu_len]);
-            s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-            owner.AsmWriteLn(s);
-          end;
-          else
-          begin
-            s := #9 + gas_op2str[op] + cond2str[taicpu(hp).condition];
-            if taicpu(hp).delayslot_annulled then
-              s := s + ',a';
-            if taicpu(hp).ops > 0 then
             begin
-              s := s + #9 + getopstr(taicpu(hp).oper[0]^);
-              for i := 1 to taicpu(hp).ops - 1 do
-                s := s + ',' + getopstr(taicpu(hp).oper[i]^);
+              s1 := getopstr(taicpu(hp).oper[2]^);
+              STK2_LocalSize := align(STK2_LocalSize, 8);
+              if s1[1] = '-' then
+                str(-STK2_LocalSize, s1)
+              else
+                str(STK2_LocalSize, s1);
+              s := #9 + gas_op2str[A_ADDIU] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[1]^) + ',' + s1;
+              owner.AsmWriteLn(s);
             end;
-            owner.AsmWriteLn(s);
-          end;
+          A_P_SET_NOMIPS16:
+            begin
+              s := #9 + '.set' + #9 + 'nomips16';
+              owner.AsmWriteLn(s);
+            end;
+          A_P_MASK,
+          A_P_FMASK:
+            begin
+              s := #9 + gas_op2str[op] + #9'0x' + hexstr(taicpu(hp).oper[0]^.val,8)+ ',' + getopstr(taicpu(hp).oper[1]^) ;
+              owner.AsmWriteLn(s);
+            end;
+          A_P_SET_MACRO:
+            begin
+              s := #9 + '.set' + #9 + 'macro';
+              owner.AsmWriteLn(s);
+            end;
+          A_P_SET_REORDER:
+            begin
+              s := #9 + '.set' + #9 + 'reorder';
+              owner.AsmWriteLn(s);
+            end;
+          A_P_SET_NOMACRO:
+            begin
+              s := #9 + '.set' + #9 + 'nomacro';
+              owner.AsmWriteLn(s);
+            end;
+          A_P_SET_NOREORDER:
+            begin
+              s := #9 + '.set' + #9 + 'noreorder';
+              owner.AsmWriteLn(s);
+            end;
+          A_P_SW:
+            begin
+              s := #9 + gas_op2str[A_SW] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+              owner.AsmWriteLn(s);
+            end;
+          A_P_LW:
+            begin
+              s := #9 + gas_op2str[A_LW] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+              owner.AsmWriteLn(s);
+            end;
+          A_LDC1:
+            begin
+              tmpfpu := getopstr(taicpu(hp).oper[0]^);
+              s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+              owner.AsmWriteLn(s);
+
+              tmpfpu_len := length(tmpfpu);
+              tmpfpu[tmpfpu_len] := succ(tmpfpu[tmpfpu_len]);
+              s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+              owner.AsmWriteLn(s);
+            end;
+          A_SDC1:
+            begin
+              tmpfpu := getopstr(taicpu(hp).oper[0]^);
+              s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+              owner.AsmWriteLn(s);
+
+              tmpfpu_len := length(tmpfpu);
+              tmpfpu[tmpfpu_len] := succ(tmpfpu[tmpfpu_len]);
+              s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+              owner.AsmWriteLn(s);
+            end;
+          else
+            begin
+              s := #9 + gas_op2str[op] + cond2str[taicpu(hp).condition];
+              if taicpu(hp).delayslot_annulled then
+                s := s + ',a';
+              if taicpu(hp).ops > 0 then
+              begin
+                s := s + #9 + getopstr(taicpu(hp).oper[0]^);
+                for i := 1 to taicpu(hp).ops - 1 do
+                  s := s + ',' + getopstr(taicpu(hp).oper[i]^);
+              end;
+              owner.AsmWriteLn(s);
+            end;
         end;
       end;
 

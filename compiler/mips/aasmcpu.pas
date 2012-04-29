@@ -50,6 +50,7 @@ type
     constructor op_reg_reg(op: tasmop; _op1, _op2: tregister);
     constructor op_reg_ref(op: tasmop; _op1: tregister; const _op2: treference);
     constructor op_reg_const(op: tasmop; _op1: tregister; _op2: longint);
+    constructor op_const_const(op: tasmop; _op1: aint; _op2: aint);
 
     constructor op_reg_reg_reg(op: tasmop; _op1, _op2, _op3: tregister);
 
@@ -129,6 +130,14 @@ begin
   inherited Create(op);
   ops := 2;
   loadreg(0, _op1);
+  loadconst(1, _op2);
+end;
+
+constructor taicpu.op_const_const(op: tasmop; _op1: aint; _op2: aint);
+begin
+  inherited Create(op);
+  ops := 2;
+  loadconst(0, _op1);
   loadconst(1, _op2);
 end;
 
