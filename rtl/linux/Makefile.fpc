@@ -45,7 +45,7 @@ libunits=$(SYSTEMUNIT) objpas strings dos \
       sysutils typinfo math \
       $(CPU_UNITS) getopts \
       errors sockets varutils \
-      classes fgl variants sysconst rtlconsts \
+      classes fgl variants sysconst rtlconsts types
 
 [prerules]
 RTL=..
