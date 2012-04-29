@@ -673,7 +673,7 @@ implementation
         stringdispose(outputprefix);
         outputprefix := stringdup(s);
         with current_module do
-         setfilename(paramfn^, paramallowoutput);
+         setfilename(paramfn, paramallowoutput);
       end;
 
     procedure dir_libsuffix;
@@ -687,7 +687,7 @@ implementation
         stringdispose(outputsuffix);
         outputsuffix := stringdup(s);
         with current_module do
-          setfilename(paramfn^, paramallowoutput);
+          setfilename(paramfn, paramallowoutput);
       end;
 
     procedure dir_extension;
@@ -702,7 +702,7 @@ implementation
           OutputFileName:=InputFileName;
         OutputFileName:=ChangeFileExt(OutputFileName,'.'+s);
         with current_module do
-          setfilename(paramfn^, paramallowoutput);
+          setfilename(paramfn, paramallowoutput);
       end;
 
 {
@@ -1730,7 +1730,7 @@ In case not, the value returned can be arbitrary.
              end
            else
              begin
-               hpath:=current_scanner.inputfile.path^+';'+CurDirRelPath(source_info);
+               hpath:=current_scanner.inputfile.path+';'+CurDirRelPath(source_info);
                found:=FindFile(path+name, hpath,true,foundfile);
                if not found then
                  found:=current_module.localincludesearchpath.FindFile(path+name,true,foundfile);
@@ -1847,7 +1847,7 @@ In case not, the value returned can be arbitrary.
                 Message1(scan_f_cannot_open_includefile,hs);
               if (not current_scanner.openinputfile) then
                 Message1(scan_f_cannot_open_includefile,hs);
-               Message1(scan_t_start_include_file,current_scanner.inputfile.path^+current_scanner.inputfile.name^);
+               Message1(scan_t_start_include_file,current_scanner.inputfile.path+current_scanner.inputfile.name);
                current_scanner.reload;
              end
            else
@@ -1990,7 +1990,7 @@ In case not, the value returned can be arbitrary.
       begin
       { load block }
         if not openinputfile then
-          Message1(scan_f_cannot_open_input,inputfile.name^);
+          Message1(scan_f_cannot_open_input,inputfile.name);
         reload;
       end;
 
@@ -2086,7 +2086,7 @@ In case not, the value returned can be arbitrary.
         lastlinepos:=inputfile.savelastlinepos;
         line_no:=inputfile.saveline_no;
         if not inputfile.is_macro then
-          parser_current_file:=inputfile.name^;
+          parser_current_file:=inputfile.name;
       end;
 
 
@@ -2710,7 +2710,7 @@ In case not, the value returned can be arbitrary.
                 nextfile;
                 tempopeninputfile;
               { status }
-                Message1(scan_t_back_in,inputfile.name^);
+                Message1(scan_t_back_in,inputfile.name);
               end;
            { load next char }
              c:=inputpointer^;
@@ -2893,7 +2893,7 @@ In case not, the value returned can be arbitrary.
         while assigned(preprocstack) do
          begin
            Message4(scan_e_endif_expected,preprocstring[preprocstack.typ],preprocstack.name,
-             preprocstack.owner.inputfile.name^,tostr(preprocstack.line_nb));
+             preprocstack.owner.inputfile.name,tostr(preprocstack.line_nb));
            poppreprocstack;
          end;
       end;

@@ -46,7 +46,7 @@ interface
 
        tppumodule = class(tmodule)
           ppufile    : tcompilerppufile; { the PPU file }
-          sourcefn   : pshortstring; { Source specified with "uses .. in '..'" }
+          sourcefn   : TPathStr; { Source specified with "uses .. in '..'" }
           comments   : TCmdStrList;
 {$ifdef Test_Double_checksum}
           crc_array  : pointer;
@@ -54,7 +54,7 @@ interface
           crc_array2 : pointer;
           crc_size2  : longint;
 {$endif def Test_Double_checksum}
-          constructor create(LoadedFrom:TModule;const amodulename,afilename:string;_is_unit:boolean);
+          constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
           destructor destroy;override;
           procedure reset;override;
           function  openppu:boolean;
@@ -125,11 +125,11 @@ var
                                 TPPUMODULE
  ****************************************************************************}
 
-    constructor tppumodule.create(LoadedFrom:TModule;const amodulename,afilename:string;_is_unit:boolean);
+    constructor tppumodule.create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
       begin
         inherited create(LoadedFrom,amodulename,afilename,_is_unit);
         ppufile:=nil;
-        sourcefn:=stringdup(afilename);
+        sourcefn:=afilename;
       end;
 
 
@@ -140,7 +140,6 @@ var
         ppufile:=nil;
         comments.free;
         comments:=nil;
-        stringdispose(sourcefn);
         inherited Destroy;
       end;
 
@@ -183,14 +182,14 @@ var
         ppufiletime : longint;
       begin
         openppu:=false;
-        Message1(unit_t_ppu_loading,ppufilename^,@queuecomment);
+        Message1(unit_t_ppu_loading,ppufilename,@queuecomment);
       { Get ppufile time (also check if the file exists) }
-        ppufiletime:=getnamedfiletime(ppufilename^);
+        ppufiletime:=getnamedfiletime(ppufilename);
         if ppufiletime=-1 then
          exit;
       { Open the ppufile }
-        Message1(unit_u_ppu_name,ppufilename^);
-        ppufile:=tcompilerppufile.create(ppufilename^);
+        Message1(unit_u_ppu_name,ppufilename);
+        ppufile:=tcompilerppufile.create(ppufilename);
         if not ppufile.openfile then
          begin
            ppufile.free;
@@ -330,12 +329,12 @@ var
               { Check for .p, if mode is macpas}
               Found:=UnitExists(pext,hs);
             end;
-           stringdispose(mainsource);
+           mainsource:='';
            if Found then
             begin
               sources_avail:=true;
               { Load Filenames when found }
-              mainsource:=StringDup(hs);
+              mainsource:=hs;
               SetFileName(hs,false);
             end
            else
@@ -375,7 +374,7 @@ var
 
        var
          fnd : boolean;
-         hs  : TCmdStr;
+         hs  : TPathStr;
        begin
          if shortname then
           filename:=FixFileName(Copy(realmodulename^,1,8))
@@ -394,46 +393,45 @@ var
          if not onlysource then
           begin
             fnd:=PPUSearchPath('.');
-            if (not fnd) and (outputpath^<>'') then
-             fnd:=PPUSearchPath(outputpath^);
-            if (not fnd) and Assigned(main_module) and (main_module.Path^<>'')  then
-             fnd:=PPUSearchPath(main_module.Path^);
+            if (not fnd) and (outputpath<>'') then
+             fnd:=PPUSearchPath(outputpath);
+            if (not fnd) and Assigned(main_module) and (main_module.Path<>'')  then
+             fnd:=PPUSearchPath(main_module.Path);
           end;
-         if (not fnd) and (sourcefn^<>'') then
+         if (not fnd) and (sourcefn<>'') then
           begin
             { the full filename is specified so we can't use here the
               searchpath (PFV) }
             if CheckVerbosity(V_Tried) then
-              Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,sourceext));
-            fnd:=FindFile(ChangeFileExt(sourcefn^,sourceext),'',true,hs);
+              Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,sourceext));
+            fnd:=FindFile(ChangeFileExt(sourcefn,sourceext),'',true,hs);
             if not fnd then
              begin
                if CheckVerbosity(V_Tried) then
-                 Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pasext));
-               fnd:=FindFile(ChangeFileExt(sourcefn^,pasext),'',true,hs);
+                 Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pasext));
+               fnd:=FindFile(ChangeFileExt(sourcefn,pasext),'',true,hs);
              end;
             if not fnd and
                ((m_mac in current_settings.modeswitches) or
                 (tf_p_ext_support in target_info.flags)) then
              begin
                if CheckVerbosity(V_Tried) then
-                 Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pext));
-               fnd:=FindFile(ChangeFileExt(sourcefn^,pext),'',true,hs);
+                 Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pext));
+               fnd:=FindFile(ChangeFileExt(sourcefn,pext),'',true,hs);
              end;
             if fnd then
              begin
                sources_avail:=true;
                do_compile:=true;
                recompile_reason:=rr_noppu;
-               stringdispose(mainsource);
-               mainsource:=StringDup(hs);
+               mainsource:=hs;
                SetFileName(hs,false);
              end;
           end;
          if not fnd then
            fnd:=SourceSearchPath('.');
-         if (not fnd) and Assigned(main_module) and (main_module.Path^<>'') then
-           fnd:=SourceSearchPath(main_module.Path^);
+         if (not fnd) and Assigned(main_module) and (main_module.Path<>'') then
+           fnd:=SourceSearchPath(main_module.Path);
          if (not fnd) and Assigned(loaded_from) then
            fnd:=SearchPathList(loaded_from.LocalUnitSearchPath);
          if not fnd then
@@ -494,7 +492,7 @@ var
             hp:=sourcefiles.files;
             for i:=1 to j-1 do
               hp:=hp.ref_next;
-            ppufile.putstring(hp.name^);
+            ppufile.putstring(hp.name);
             ppufile.putlongint(hp.getfiletime);
             dec(j);
          end;
@@ -536,7 +534,7 @@ var
     procedure tppumodule.writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
       var
         hcontainer : tlinkcontainer;
-        s : string;
+        s : TPathStr;
         mask : cardinal;
       begin
         hcontainer:=TLinkContainer.Create;
@@ -748,10 +746,10 @@ var
                  2 path of main source
                  3 current dir
                  4 include/unit path }
-              Source_Time:=GetNamedFileTime(path^+hs);
+              Source_Time:=GetNamedFileTime(path+hs);
               found:=false;
               if Source_Time<>-1 then
-                hs:=path^+hs
+                hs:=path+hs
               else
                if not(is_main) then
                 begin
@@ -784,7 +782,7 @@ var
                     begin
                       do_compile:=true;
                       recompile_reason:=rr_sourcenewer;
-                      Message2(unit_u_source_modified,hs,ppufilename^,@queuecomment);
+                      Message2(unit_u_source_modified,hs,ppufilename,@queuecomment);
                       temp:=temp+' *';
                     end;
                 end
@@ -799,8 +797,7 @@ var
             end;
            if is_main then
              begin
-               stringdispose(mainsource);
-               mainsource:=stringdup(hs);
+               mainsource:=hs;
              end;
            Message1(unit_u_ppu_source,hs+temp,@queuecomment);
            is_main:=false;
@@ -938,7 +935,7 @@ var
           { make sure we don't throw away a precompiled unit if the user simply
             forgot to specify the right wpo feedback file
           }
-          message3(unit_e_different_wpo_file,ppufilename^,orgwpofilename,filetimestring(orgwpofiletime));
+          message3(unit_e_different_wpo_file,ppufilename,orgwpofilename,filetimestring(orgwpofiletime));
       end;
 
 
@@ -1068,7 +1065,7 @@ var
 {$endif def Test_Double_checksum_write}
 
          { create new ppufile }
-         ppufile:=tcompilerppufile.create(ppufilename^);
+         ppufile:=tcompilerppufile.create(ppufilename);
          if not ppufile.createfile then
           Message(unit_f_ppu_cannot_write);
 
@@ -1225,7 +1222,7 @@ var
 {$endif def Test_Double_checksum_write}
 
          { create new ppufile }
-         ppufile:=tcompilerppufile.create(ppufilename^);
+         ppufile:=tcompilerppufile.create(ppufilename);
          ppufile.crc_only:=true;
          if not ppufile.createfile then
            Message(unit_f_ppu_cannot_write);
@@ -1668,7 +1665,7 @@ var
               { compile this module }
               if not(state in [ms_compile,ms_second_compile]) then
                 state:=ms_compile;
-              compile(mainsource^);
+              compile(mainsource);
               setdefgeneration;
             end
            else

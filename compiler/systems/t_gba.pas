@@ -576,12 +576,12 @@ begin
      not(cs_link_separate_dbg_file in current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   if create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   //if not(cs_link_extern in current_settings.globalswitches) then
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 { Write used files and libraries }
   WriteResponseFile();
@@ -590,7 +590,7 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
-  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,'.elf')))));
+  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')))));
   Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
@@ -608,13 +608,13 @@ begin
   if success then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
-        ChangeFileExt(current_module.exefilename^,'.elf')+' '+
-        current_module.exefilename^,true,false);
+        ChangeFileExt(current_module.exefilename,'.elf')+' '+
+        current_module.exefilename,true,false);
     end;
 
   if success then 
     begin
-      success:=DoExec(FindUtil('gbafix'), current_module.exefilename^,true,false);
+      success:=DoExec(FindUtil('gbafix'), current_module.exefilename,true,false);
     end;
 
 

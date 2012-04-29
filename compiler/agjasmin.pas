@@ -531,7 +531,7 @@ implementation
         // include files are not support by Java, and the directory of the main
         // source file must not be specified
         if assigned(current_module.mainsource) then
-          n:=ExtractFileName(current_module.mainsource^)
+          n:=ExtractFileName(current_module.mainsource)
         else
           n:=InputFileName;
         AsmWriteLn('.source '+ExtractFileName(n));
@@ -1066,7 +1066,7 @@ implementation
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
-       Comment(V_Debug,'Start writing Jasmin-styled assembler output for '+current_module.mainsource^);
+       Comment(V_Debug,'Start writing Jasmin-styled assembler output for '+current_module.mainsource);
 {$endif}
 
       AsmStartSize:=AsmSize;
@@ -1093,7 +1093,7 @@ implementation
       AsmLn;
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
-       Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource^);
+       Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
     end;
 

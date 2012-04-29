@@ -1699,9 +1699,9 @@ end;
           begin
             DefPos:=tstoredsym(sym).FileInfo;
             inputfile:=get_source_file(defpos.moduleindex,defpos.fileindex);
-            if Assigned(inputfile) and Assigned(inputfile.name) then
+            if Assigned(inputfile) and (inputfile.name<>'') then
               begin
-                New(Reference, Init(ModuleNames^.Add(inputfile.name^),
+                New(Reference, Init(ModuleNames^.Add(inputfile.name),
                   DefPos.line,DefPos.column));
                 Symbol^.References^.Insert(Reference);
               end;
@@ -1712,9 +1712,9 @@ end;
             while assigned(Ref) do
               begin
                 inputfile:=get_source_file(ref.refinfo.moduleindex,ref.refinfo.fileindex);
-                if Assigned(inputfile) and Assigned(inputfile.name) then
+                if Assigned(inputfile) and (inputfile.name<>'') then
                   begin
-                    New(Reference, Init(ModuleNames^.Add(inputfile.name^),
+                    New(Reference, Init(ModuleNames^.Add(inputfile.name),
                       ref.refinfo.line,ref.refinfo.column));
                     Symbol^.References^.Insert(Reference);
                   end;
@@ -1773,7 +1773,7 @@ begin
        if assigned(t) then
          begin
            name:=GetStr(T.Name);
-           msource:=GetStr(hp.mainsource);
+           msource:=hp.mainsource;
            New(UnitS, Init(Name,msource));
            if Assigned(hp.loaded_from) then
              if assigned(hp.loaded_from.globalsymtable) then
@@ -1785,8 +1785,8 @@ begin
              pif:=hp.sourcefiles.files;
              while (pif<>nil) do
              begin
-               path:=GetStr(pif.path);
-               name:=GetStr(pif.name);
+               path:=pif.path;
+               name:=pif.name;
                UnitS^.AddSourceFile(path+name);
                pif:=pif.next;
              end;
@@ -1994,7 +1994,6 @@ end;
 procedure BuildSourceList;
 var m: tmodule;
     s: tinputfile;
-    p: pstring;
     ppu,obj: string;
     source: string;
 begin
@@ -2009,24 +2008,18 @@ begin
     m:=tmodule(loaded_units.first);
     while assigned(m) do
     begin
-      obj:=ExpandFileName(m.objfilename^);
+      obj:=ExpandFileName(m.objfilename);
       ppu:=''; source:='';
       if m.is_unit then
-        ppu:=ExpandFileName(m.ppufilename^);
+        ppu:=ExpandFileName(m.ppufilename);
       if (m.is_unit=false) and (m.islibrary=false) then
-        ppu:=ExpandFileName(m.exefilename^);
+        ppu:=ExpandFileName(m.exefilename);
       if assigned(m.sourcefiles) then
         begin
           s:=m.sourcefiles.files;
           while assigned(s) do
           begin
-            source:='';
-            p:=s.path;
-            if assigned(p) then
-              source:=source+p^;
-            p:=s.name;
-            if assigned(p) then
-              source:=source+p^;
+            source:=s.path+s.name;
             source:=ExpandFileName(source);
 
             sourcefiles^.Insert(New(PSourceFile, Init(source,obj,ppu)));

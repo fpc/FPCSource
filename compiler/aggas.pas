@@ -1530,11 +1530,11 @@ implementation
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
-       Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource^);
+       Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource);
 {$endif}
 
-      if assigned(current_module.mainsource) then
-        n:=ExtractFileName(current_module.mainsource^)
+      if current_module.mainsource<>'' then
+        n:=ExtractFileName(current_module.mainsource)
       else
         n:=InputFileName;
 
@@ -1574,7 +1574,7 @@ implementation
       AsmLn;
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
-       Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource^);
+       Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
     end;
 

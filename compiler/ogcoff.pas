@@ -1361,7 +1361,7 @@ const pemagic : array[0..3] of byte = (
            { The `.file' record, and the file name auxiliary record }
            write_symbol('.file', 0, -2, COFF_SYM_FILE, 1);
            fillchar(filename,sizeof(filename),0);
-           filename:=ExtractFileName(current_module.mainsource^);
+           filename:=ExtractFileName(current_module.mainsource);
            inc(symidx);
            FCoffSyms.write(filename[1],sizeof(filename)-1);
            { Sections }

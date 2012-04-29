@@ -57,7 +57,7 @@ interface
          Constructor Create;virtual;
          Destructor Destroy;override;
          procedure AddModuleFiles(hp:tmodule);
-         Procedure AddObject(const S,unitpath : TCmdStr;isunit:boolean);
+         Procedure AddObject(const S,unitpath : TPathStr;isunit:boolean);
          Procedure AddStaticLibrary(const S : TCmdStr);
          Procedure AddSharedLibrary(S : TCmdStr);
          Procedure AddStaticCLibrary(const S : TCmdStr);
@@ -151,7 +151,7 @@ Implementation
                                    Helpers
 *****************************************************************************}
 
-    function GetFileCRC(const fn:string):cardinal;
+    function GetFileCRC(const fn:TPathStr):cardinal;
       var
         fs : TCStream;
         bufcount,
@@ -309,8 +309,8 @@ Implementation
            4. exe path of the compiler (not when linking on target)
           for all searches don't use the directory cache }
         found:=FindFile(s, CurDirRelPath(source_info), false,foundfile);
-        if (not found) and (current_module.outputpath^<>'') then
-         found:=FindFile(s,current_module.outputpath^,false,foundfile);
+        if (not found) and (current_module.outputpath<>'') then
+         found:=FindFile(s,current_module.outputpath,false,foundfile);
         if (not found) then
          found:=current_module.locallibrarysearchpath.FindFile(s,false,foundfile);
         if (not found) then
@@ -421,7 +421,7 @@ Implementation
                end;
               { unit files }
               while not linkunitofiles.empty do
-                AddObject(linkunitofiles.getusemask(mask),path^,true);
+                AddObject(linkunitofiles.getusemask(mask),path,true);
               while not linkunitstaticlibs.empty do
                 AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
               while not linkunitsharedlibs.empty do
@@ -430,7 +430,7 @@ Implementation
            { Other needed .o and libs, specified using $L,$LINKLIB,external }
            mask:=link_always;
            while not linkotherofiles.empty do
-            AddObject(linkotherofiles.Getusemask(mask),path^,false);
+            AddObject(linkotherofiles.Getusemask(mask),path,false);
            while not linkotherstaticlibs.empty do
             AddStaticCLibrary(linkotherstaticlibs.Getusemask(mask));
            while not linkothersharedlibs.empty do
@@ -457,7 +457,7 @@ Implementation
       end;
 
 
-    Procedure TLinker.AddObject(const S,unitpath : TCmdStr;isunit:boolean);
+    Procedure TLinker.AddObject(const S,unitpath : TPathStr;isunit:boolean);
       begin
         ObjectFiles.Concat(FindObjectFile(s,unitpath,isunit));
       end;
@@ -676,7 +676,7 @@ Implementation
       var
         filecontent : TCmdStr;
         f : text;
-        st : string;
+        st : TCmdStr;
       begin
         if not (tf_no_backquote_support in source_info.flags) or
            (cs_link_on_target in current_settings.globalswitches) then
@@ -739,9 +739,9 @@ Implementation
            if showinfo then
              begin
                if DLLsource then
-                 AsmRes.AddLinkCommand(Command,Para,current_module.sharedlibfilename^)
+                 AsmRes.AddLinkCommand(Command,Para,current_module.sharedlibfilename)
                else
-                 AsmRes.AddLinkCommand(Command,Para,current_module.exefilename^);
+                 AsmRes.AddLinkCommand(Command,Para,current_module.exefilename);
              end
            else
             AsmRes.AddLinkCommand(Command,Para,'');
@@ -770,9 +770,9 @@ Implementation
       begin
         MakeStaticLibrary:=false;
       { remove the library, to be sure that it is rewritten }
-        DeleteFile(current_module.staticlibfilename^);
+        DeleteFile(current_module.staticlibfilename);
       { Call AR }
-        smartpath:=FixPath(ChangeFileExt(current_module.asmfilename^,target_info.smartext),false);
+        smartpath:=FixPath(ChangeFileExt(current_module.asmfilename,target_info.smartext),false);
         SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
         binstr := FindUtil(utilsprefix + binstr);
 
@@ -786,7 +786,7 @@ Implementation
             Assign(script, scriptfile);
             Rewrite(script);
             try
-              writeln(script, 'CREATE ' + current_module.staticlibfilename^);
+              writeln(script, 'CREATE ' + current_module.staticlibfilename);
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
                 begin
@@ -802,7 +802,7 @@ Implementation
           end
         else
           begin
-            Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
+            Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename));
             { create AR commands }
             success := true;
             current := TCmdStrListItem(SmartLinkOFiles.First);
@@ -817,7 +817,7 @@ Implementation
           begin
             SplitBinCmd(target_ar.arfinishcmd,binstr,cmdstr);
             binstr := FindUtil(utilsprefix + binstr);
-            Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
+            Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename));
             success:=DoExec(binstr,cmdstr,false,true);
           end;
 
@@ -1228,7 +1228,7 @@ Implementation
         exeoutput:=CExeOutput.Create;
 
         if (cs_link_map in current_settings.globalswitches) then
-          exemap:=texemap.create(current_module.mapfilename^);
+          exemap:=texemap.create(current_module.mapfilename);
 
         PrintLinkerScript;
 
@@ -1323,14 +1323,14 @@ Implementation
     function TInternalLinker.MakeExecutable:boolean;
       begin
         IsSharedLibrary:=false;
-        result:=RunLinkScript(current_module.exefilename^);
+        result:=RunLinkScript(current_module.exefilename);
       end;
 
 
     function TInternalLinker.MakeSharedLibrary:boolean;
       begin
         IsSharedLibrary:=true;
-        result:=RunLinkScript(current_module.sharedlibfilename^);
+        result:=RunLinkScript(current_module.sharedlibfilename);
       end;
 
 

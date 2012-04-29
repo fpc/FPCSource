@@ -1040,13 +1040,13 @@ implementation
         diridx: Integer;
         fileitem: TFileIndexItem;
       begin
-        if afile.path^ = '' then
+        if afile.path = '' then
           dirname := '.'
         else
           begin
             { add the canonical form here already to avoid problems with }
             { paths such as './' etc                                     }
-            dirname := relative_dwarf_path(afile.path^);
+            dirname := relative_dwarf_path(afile.path);
             if dirname = '' then
               dirname := '.';
           end;
@@ -1055,11 +1055,11 @@ implementation
           diritem := TDirIndexItem.Create(dirlist,dirname, dirlist.Count);
         diridx := diritem.IndexNr;
 
-        fileitem := TFileIndexItem(diritem.files.Find(afile.name^));
+        fileitem := TFileIndexItem(diritem.files.Find(afile.name));
         if fileitem = nil then
           begin
             Inc(filesequence);
-            fileitem := TFileIndexItem.Create(diritem.files,afile.name^, diridx, filesequence);
+            fileitem := TFileIndexItem.Create(diritem.files,afile.name, diridx, filesequence);
           end;
         Result := fileitem.IndexNr;
       end;
@@ -3090,7 +3090,7 @@ implementation
 
         { first manadatory compilation unit TAG }
         append_entry(DW_TAG_compile_unit,true,[
-          DW_AT_name,DW_FORM_string,relative_dwarf_path(current_module.sourcefiles.get_file(1).path^+current_module.sourcefiles.get_file(1).name^)+#0,
+          DW_AT_name,DW_FORM_string,relative_dwarf_path(current_module.sourcefiles.get_file(1).path+current_module.sourcefiles.get_file(1).name)+#0,
           DW_AT_producer,DW_FORM_string,'Free Pascal '+full_version_string+' '+date_string+#0,
           DW_AT_comp_dir,DW_FORM_string,BSToSlash(FixPath(GetCurrentDir,false))+#0,
           DW_AT_language,DW_FORM_data1,DW_LANG_Pascal83,
@@ -3308,13 +3308,13 @@ implementation
                         currfileidx := get_file_index(infile);
                         if prevfileidx <> currfileidx then
                           begin
-                            list.insertbefore(tai_comment.Create(strpnew('path: '+infile.path^)), hp);
-                            list.insertbefore(tai_comment.Create(strpnew('file: '+infile.name^)), hp);
+                            list.insertbefore(tai_comment.Create(strpnew('path: '+infile.path)), hp);
+                            list.insertbefore(tai_comment.Create(strpnew('file: '+infile.name)), hp);
                             list.insertbefore(tai_comment.Create(strpnew('indx: '+tostr(currfileidx))), hp);
 
                             { set file }
-                            asmline.concat(tai_comment.Create(strpnew('path: '+infile.path^)));
-                            asmline.concat(tai_comment.Create(strpnew('file: '+infile.name^)));
+                            asmline.concat(tai_comment.Create(strpnew('path: '+infile.path)));
+                            asmline.concat(tai_comment.Create(strpnew('file: '+infile.name)));
                             asmline.concat(tai_const.create_8bit(DW_LNS_set_file));
                             asmline.concat(tai_const.create_uleb128bit(currfileidx));
 

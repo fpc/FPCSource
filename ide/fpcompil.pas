@@ -94,7 +94,7 @@ type
     TFPInputFile = class(tinputfile)
       constructor Create(AEditor: PFileEditor);
     protected
-      function fileopen(const filename: string): boolean; override;
+      function fileopen(const filename: ansistring): boolean; override;
       function fileseek(pos: longint): boolean; override;
       function fileread(var databuf; maxsize: longint): longint; override;
       function fileeof: boolean; override;
@@ -733,7 +733,7 @@ begin
   CompilerStatus:=false;
 end;
 
-Function  CompilerGetNamedFileTime(const filename : string) : Longint;
+Function  CompilerGetNamedFileTime(const filename : ansistring) : Longint;
 var t: longint;
     W: PSourceWindow;
 begin
@@ -745,7 +745,7 @@ begin
   CompilerGetNamedFileTime:=t;
 end;
 
-function CompilerOpenInputFile(const filename: string): tinputfile;
+function CompilerOpenInputFile(const filename: ansistring): tinputfile;
 var f: tinputfile;
     W: PSourceWindow;
 begin
@@ -1207,7 +1207,7 @@ begin
 end;
 
 
-function TFPInputFile.fileopen(const filename: string): boolean;
+function TFPInputFile.fileopen(const filename: ansistring): boolean;
 var OK: boolean;
 begin
   S:=New(PMemoryStream, Init(0,0));

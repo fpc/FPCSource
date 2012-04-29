@@ -418,7 +418,7 @@ const
       { -p gives the same kind of output with Solaris nm as
         with GNU nm, and for GNU nm it simply means "unsorted"
       }
-      exitcode:=shell(symbolprogfullpath+maybequoted(current_module.exefilename^)+' > '+fsymfilename);
+      exitcode:=shell(symbolprogfullpath+maybequoted(current_module.exefilename)+' > '+fsymfilename);
       if (exitcode<>0) then
         begin
           cgmessage2(wpo_error_executing_symbol_prog,symbolprogfullpath,tostr(exitcode));

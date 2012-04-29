@@ -723,11 +723,11 @@ begin
      not(cs_link_separate_dbg_file in current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   if create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 { Write used files and libraries }
   WriteResponseFile();
@@ -736,7 +736,7 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
-  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,preName)))));
+  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,preName)))));
   Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
@@ -754,16 +754,16 @@ begin
   if success then
     begin
       success:=DoExec(FindUtil(utilsprefix + 'objcopy'), '-O binary '+ 
-        ChangeFileExt(current_module.exefilename^, preName) + ' ' + 
-        ChangeFileExt(current_module.exefilename^, preName+target_info.exeext),
+        ChangeFileExt(current_module.exefilename, preName) + ' ' + 
+        ChangeFileExt(current_module.exefilename, preName+target_info.exeext),
         true,false);
     end;
 
   if success and (apptype=app_arm9) then 
     begin
       success:=DoExec(FindUtil('ndstool'), '-c ' + 
-        ChangeFileExt(current_module.exefilename^, '.nds') + ' -9 ' + 
-        ChangeFileExt(current_module.exefilename^, preName+target_info.exeext),
+        ChangeFileExt(current_module.exefilename, '.nds') + ' -9 ' + 
+        ChangeFileExt(current_module.exefilename, preName+target_info.exeext),
         true,false);
     end;
   MakeExecutable:=success;   { otherwise a recursive call to link method }

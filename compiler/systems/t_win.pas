@@ -388,8 +388,8 @@ implementation
         idatalabnr:=0;
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
-        current_module.linkotherstaticlibs.add(current_module.importlibfilename^,link_always);
-        ObjWriter:=TARObjectWriter.create(current_module.importlibfilename^);
+        current_module.linkotherstaticlibs.add(current_module.importlibfilename,link_always);
+        ObjWriter:=TARObjectWriter.create(current_module.importlibfilename);
         ObjOutput:=TPECoffObjOutput.Create(ObjWriter);
         for i:=0 to current_module.ImportLibraryList.Count-1 do
           begin
@@ -1420,7 +1420,7 @@ implementation
         ImageBaseStr : string[40];
       begin
         if not(cs_link_nolink in current_settings.globalswitches) then
-         Message1(exec_i_linking,current_module.exefilename^);
+         Message1(exec_i_linking,current_module.exefilename);
 
         { Create some replacements }
         RelocStr:='';
@@ -1451,7 +1451,7 @@ implementation
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
-          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 
       { Write used files and libraries }
         WriteResponseFile(false);
@@ -1467,7 +1467,7 @@ implementation
            SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
            if binstr<>'' then
             begin
-              Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+              Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
               Replace(cmdstr,'$OPT',Info.ExtraOptions);
               Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
               Replace(cmdstr,'$APPTYPE',AppTypeStr);
@@ -1493,7 +1493,7 @@ implementation
 
       { Post process }
         if success then
-         success:=PostProcessExecutable(current_module.exefilename^,false);
+         success:=PostProcessExecutable(current_module.exefilename,false);
 
       { Remove ReponseFile }
         if (success) and not(cs_link_nolink in current_settings.globalswitches) then
@@ -1526,7 +1526,7 @@ implementation
       begin
         MakeSharedLibrary:=false;
         if not(cs_link_nolink in current_settings.globalswitches) then
-         Message1(exec_i_linking,current_module.sharedlibfilename^);
+         Message1(exec_i_linking,current_module.sharedlibfilename);
 
       { Create some replacements }
         RelocStr:='';
@@ -1553,7 +1553,7 @@ implementation
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
-          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 
       { Write used files and libraries }
         WriteResponseFile(true);
@@ -1569,7 +1569,7 @@ implementation
            SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
            if binstr<>'' then
             begin
-              Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+              Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
               Replace(cmdstr,'$OPT',Info.ExtraOptions);
               Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
               Replace(cmdstr,'$APPTYPE',AppTypeStr);
@@ -1595,7 +1595,7 @@ implementation
 
       { Post process }
         if success then
-         success:=PostProcessExecutable(current_module.sharedlibfilename^,true);
+         success:=PostProcessExecutable(current_module.sharedlibfilename,true);
 
       { Remove ReponseFile }
         if (success) and not(cs_link_nolink in current_settings.globalswitches) then

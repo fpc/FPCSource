@@ -684,7 +684,7 @@ begin
   GCSectionsStr:='--gc-sections';
   //if not(cs_link_extern in current_settings.globalswitches) then
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 { Write used files and libraries }
   WriteResponseFile();
@@ -694,7 +694,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
-    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,'.elf')))));
+    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')))));
     Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
@@ -703,7 +703,7 @@ begin
    end
   else
    begin
-    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,'.elf'))));
+    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf'))));
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
@@ -718,13 +718,13 @@ begin
 
 { Post process }
   if success then
-    success:=PostProcessExecutable(current_module.exefilename^+'.elf',false);
+    success:=PostProcessExecutable(current_module.exefilename+'.elf',false);
 
   if success and (target_info.system in [system_arm_embedded,system_avr_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
-        ChangeFileExt(current_module.exefilename^,'.elf')+' '+
-        ChangeFileExt(current_module.exefilename^,'.hex'),true,false);
+        ChangeFileExt(current_module.exefilename,'.elf')+' '+
+        ChangeFileExt(current_module.exefilename,'.hex'),true,false);
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

@@ -1047,7 +1047,7 @@ unit scandir;
           if Assigned(Current_Module) then
             begin
               delete(S,1,1);
-              insert(ChangeFileExt(ExtractFileName(current_module.mainsource^),''),S,1 );
+              insert(ChangeFileExt(ExtractFileName(current_module.mainsource),''),S,1 );
             end;
         s:=FixFileName(s);
         if ExtractFileExt(s)='' then
@@ -1159,7 +1159,7 @@ unit scandir;
           with current_scanner,current_module,localunitsearchpath do
             begin
               skipspace;
-              AddPath(path^,readcomment,false);
+              AddPath(path,readcomment,false);
             end;
       end;
 

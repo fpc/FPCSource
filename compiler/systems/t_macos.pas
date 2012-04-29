@@ -134,7 +134,7 @@ begin
       if apptype = app_cui then {If SIOW, to avoid some warnings.}
         Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main -ignoredups qd '#182);
 
-      Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename^));
+      Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename));
 
       Add('Exit If "{Status}" != 0');
 
@@ -150,14 +150,14 @@ begin
       if apptype <> app_tool then
         begin
           Add('Echo "data ''SIZE'' (-1) '#182'{ $'#182'"1080 ' + heapsizestr + ' ' + heapsizestr +
-                                         #182'" '#182'};" | Rez -a -o ' + ScriptFixFileName(current_module.exefilename^));
+                                         #182'" '#182'};" | Rez -a -o ' + ScriptFixFileName(current_module.exefilename));
           Add('Exit If "{Status}" != 0');
         end;
 
       {Add mac resources}
       if apptype = app_cui then
         begin
-          Add('Rez -a "{RIncludes}"SIOW.r -o ' + ScriptFixFileName(current_module.exefilename^));
+          Add('Rez -a "{RIncludes}"SIOW.r -o ' + ScriptFixFileName(current_module.exefilename));
           Add('Exit If "{Status}" != 0');
         end;
 
@@ -165,9 +165,9 @@ begin
         begin
           s := Current_module.ResourceFiles.GetFirst;
           if Copy(s,Length(s)-1,Length(s)) = '.r' then
-            Add('Rez -a ' + s + ' -o ' + ScriptFixFileName(current_module.exefilename^))
+            Add('Rez -a ' + s + ' -o ' + ScriptFixFileName(current_module.exefilename))
           else
-            Add('DeRez ' + s + ' | Rez -a -o ' + ScriptFixFileName(current_module.exefilename^));
+            Add('DeRez ' + s + ' | Rez -a -o ' + ScriptFixFileName(current_module.exefilename));
           Add('Exit If "{Status}" != 0');
         end;
 
@@ -193,7 +193,7 @@ begin
   //TODO Only external link in MPW is possible, otherwise yell.
 
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking,current_module.exefilename^);
+    Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StripStr:='';
@@ -211,7 +211,7 @@ begin
 
 { Prepare linking }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename^)));
+  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
   Replace(cmdstr,'$STATIC',StaticStr);

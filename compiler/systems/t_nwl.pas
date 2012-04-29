@@ -281,7 +281,7 @@ Var
 begin
   WriteResponseFile:=False;
 
-  ProgNam := current_module.exefilename^;
+  ProgNam := current_module.exefilename;
   i:=Pos(target_info.exeext,ProgNam);
   if i>0 then
     Delete(ProgNam,i,255);
@@ -536,7 +536,7 @@ var
   f : file;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StripStr:='';
@@ -552,7 +552,7 @@ begin
 
 { if we have a xdc file, dont touch it, otherwise create a new
   one and remove it after nlmconv }
-  xdcname := ChangeFileExt(current_module.exefilename^,'.xdc');
+  xdcname := ChangeFileExt(current_module.exefilename,'.xdc');
   xdcpresent := FileExists (xdcname,false);
   if not xdcpresent then
   begin
@@ -574,7 +574,7 @@ begin
 { Call linker, this will generate a new object file that will be passed
   to nlmconv. Otherwise we could not create nlms without debug info }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$TMPOBJ',maybequoted(outputexedir+tmpLinkFileName));

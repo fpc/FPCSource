@@ -237,7 +237,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
   linkscript:=nil;
 { Create some replacements }
@@ -246,14 +246,14 @@ begin
      not(cs_link_separate_dbg_file in current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-bmap:'+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+   StripStr:='-bmap:'+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 { Write used files and libraries }
   WriteResponseFile(false);
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   binstr:=FindUtil(utilsprefix+BinStr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   { the native AIX linker does not support linkres files, so we need
     CatFileContent(). The binutils cross-linker does support such files, so
@@ -327,7 +327,7 @@ var
 begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename^);
+   Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -367,7 +367,7 @@ begin
       cmdstr:=cmdstr+' -bE:'+maybequoted(outputexedir)+'linksyms.fpc';
     end;
 
-  libfn:=maybequoted(current_module.sharedlibfilename^);
+  libfn:=maybequoted(current_module.sharedlibfilename);
   { we have to use a script to use the IFS hack }
   linkscript:=GenerateScript(outputexedir+'ppaslink');
   linkscript.AddLinkCommand(binstr,CmdStr,'');

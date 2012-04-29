@@ -207,7 +207,7 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STRIP',StripStr);
   MakeAmiga68kExe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
@@ -226,7 +226,7 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STRIP',StripStr);
   MakeAmigaPPCExe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
@@ -238,7 +238,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking,current_module.exefilename^);
+    Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries }
   WriteResponseFile(false);

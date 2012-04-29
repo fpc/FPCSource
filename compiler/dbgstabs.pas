@@ -1714,11 +1714,11 @@ implementation
                         current_asmdata.getlabel(hlabel,alt_dbgfile);
                         { emit stabs }
                         if not(ds_stabs_abs_include_files in current_settings.debugswitches) or
-                           path_absolute(infile.path^) then
-                          list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(infile.path^,false))+FixFileName(infile.name^)+'",'+tostr(stabs_n_includefile)+
+                           path_absolute(infile.path) then
+                          list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(infile.path,false))+FixFileName(infile.name)+'",'+tostr(stabs_n_includefile)+
                                             ',0,0,'+hlabel.name),hp)
                         else
-                          list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(getcurrentdir,false)+FixPath(infile.path^,false))+FixFileName(infile.name^)+'",'+tostr(stabs_n_includefile)+
+                          list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(getcurrentdir,false)+FixPath(infile.path,false))+FixFileName(infile.name)+'",'+tostr(stabs_n_includefile)+
                                             ',0,0,'+hlabel.name),hp);
                         list.insertbefore(tai_label.create(hlabel),hp);
                         { force new line info }
@@ -1761,7 +1761,7 @@ implementation
           current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
         current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(getcurrentdir,false))+'",'+
           base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
-        current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(infile.path^,false))+FixFileName(infile.name^)+'",'+
+        current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(infile.path,false))+FixFileName(infile.name)+'",'+
           base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         current_asmdata.asmlists[al_start].concat(tai_label.create(hlabel));
         { for darwin, you need a "module marker" too to work around      }

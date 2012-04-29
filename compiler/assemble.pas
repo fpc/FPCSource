@@ -45,11 +45,11 @@ interface
       TAssembler=class(TAbstractAssembler)
       public
       {filenames}
-        path        : string;
+        path        : TPathStr;
         name        : string;
         AsmFileName,         { current .s and .o file }
         ObjFileName,
-        ppufilename  : string;
+        ppufilename  : TPathStr;
         asmprefix    : string;
         SmartAsm     : boolean;
         SmartFilesCount,
@@ -221,15 +221,15 @@ Implementation
     Constructor TAssembler.Create(smart:boolean);
       begin
       { load start values }
-        AsmFileName:=current_module.AsmFilename^;
-        ObjFileName:=current_module.ObjFileName^;
+        AsmFileName:=current_module.AsmFilename;
+        ObjFileName:=current_module.ObjFileName;
         name:=Lower(current_module.modulename^);
-        path:=current_module.outputpath^;
+        path:=current_module.outputpath;
         asmprefix := current_module.asmprefix^;
-        if not assigned(current_module.outputpath) then
+        if current_module.outputpath = '' then
           ppufilename := ''
         else
-          ppufilename := current_module.ppufilename^;
+          ppufilename := current_module.ppufilename;
         SmartAsm:=smart;
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
@@ -699,7 +699,7 @@ Implementation
           begin
             if (infile<>lastinfile) then
               begin
-                AsmWriteLn(target_asm.comment+'['+infile.name^+']');
+                AsmWriteLn(target_asm.comment+'['+infile.name+']');
                 if assigned(lastinfile) then
                   lastinfile.close;
               end;
@@ -1555,7 +1555,7 @@ Implementation
         ObjWriter : TObjectWriter;
       begin
         if not(cs_asm_leave in current_settings.globalswitches) then
-          ObjWriter:=TARObjectWriter.create(current_module.staticlibfilename^)
+          ObjWriter:=TARObjectWriter.create(current_module.staticlibfilename)
         else
           ObjWriter:=TObjectwriter.create;
 

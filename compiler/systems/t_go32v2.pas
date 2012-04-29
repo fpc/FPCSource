@@ -112,7 +112,7 @@ begin
 (* Potential issues with older ld version??? *)
   if (cs_link_strip in current_settings.globalswitches) then
     LinkRes.Add('-s');
-  LinkRes.Add('-o '+maybequoted(current_module.exefilename^));
+  LinkRes.Add('-o '+maybequoted(current_module.exefilename));
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -271,7 +271,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own ld script }
   WriteScript(false);

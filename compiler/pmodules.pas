@@ -117,12 +117,12 @@ implementation
     procedure insertobjectfile;
     { Insert the used object file for this unit in the used list for this unit }
       begin
-        current_module.linkunitofiles.add(current_module.objfilename^,link_static);
+        current_module.linkunitofiles.add(current_module.objfilename,link_static);
         current_module.flags:=current_module.flags or uf_static_linked;
 
         if create_smartlink_library then
          begin
-           current_module.linkunitstaticlibs.add(current_module.staticlibfilename^,link_smart);
+           current_module.linkunitstaticlibs.add(current_module.staticlibfilename ,link_smart);
            current_module.flags:=current_module.flags or uf_smart_linked;
          end;
       end;
@@ -787,12 +787,12 @@ implementation
 
          new(s1);
          s1^:=current_module.modulename^;
-         current_module.SetFileName(main_file.path^+main_file.name^,true);
+         current_module.SetFileName(main_file.path+main_file.name,true);
          current_module.SetModuleName(unitname);
 
          { check for system unit }
          new(s2);
-         s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name^),''));
+         s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name),''));
          unitname8:=copy(current_module.modulename^,1,8);
          if (cs_check_unit_name in current_settings.globalswitches) and
             (
@@ -1129,14 +1129,14 @@ implementation
          if not(cs_compilesystem in current_settings.moduleswitches) then
            begin
              if store_interface_crc<>current_module.interface_crc then
-               Message1(unit_u_interface_crc_changed,current_module.ppufilename^);
+               Message1(unit_u_interface_crc_changed,current_module.ppufilename);
              if store_indirect_crc<>current_module.indirect_crc then
-               Message1(unit_u_indirect_crc_changed,current_module.ppufilename^);
+               Message1(unit_u_indirect_crc_changed,current_module.ppufilename);
            end;
 {$ifdef EXTDEBUG}
          if not(cs_compilesystem in current_settings.moduleswitches) then
            if (store_crc<>current_module.crc) and simplify_ppu then
-             Message1(unit_u_implementation_crc_changed,current_module.ppufilename^);
+             Message1(unit_u_implementation_crc_changed,current_module.ppufilename);
 {$endif EXTDEBUG}
 
          { release local symtables that are not needed anymore }
@@ -1510,7 +1510,7 @@ implementation
               if (cs_debuginfo in current_settings.moduleswitches) and
                  (target_dbg.id=dbg_stabs) then
                 begin
-                  Message1(parser_w_parser_reloc_no_debug,current_module.mainsource^);
+                  Message1(parser_w_parser_reloc_no_debug,current_module.mainsource);
                   Message(parser_w_parser_win32_debug_needs_WN);
                   exclude(current_settings.moduleswitches,cs_debuginfo);
                 end;
@@ -1520,7 +1520,7 @@ implementation
          while assigned(main_file.next) do
            main_file := main_file.next;
 
-         current_module.SetFileName(main_file.path^+main_file.name^,true);
+         current_module.SetFileName(main_file.path+main_file.name,true);
 
          { consume _PACKAGE word }
          consume(_ID);
@@ -1597,7 +1597,7 @@ implementation
          if current_module.realmodulename^<>'' then
            tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
-         Message1(parser_u_parsing_implementation,current_module.mainsource^);
+         Message1(parser_u_parsing_implementation,current_module.mainsource);
 
          symtablestack.push(current_module.localsymtable);
 
@@ -1737,7 +1737,7 @@ implementation
              uu:=tused_unit(usedunits.first);
              while assigned(uu) do
                begin
-                 RewritePPU(uu.u.ppufilename^,uu.u.ppufilename^);
+                 RewritePPU(uu.u.ppufilename,uu.u.ppufilename);
                  uu:=tused_unit(uu.next);
                end;
 
@@ -1821,7 +1821,7 @@ implementation
               if (cs_debuginfo in current_settings.moduleswitches) and
                  (target_dbg.id=dbg_stabs) then
                 begin
-                  Message1(parser_w_parser_reloc_no_debug,current_module.mainsource^);
+                  Message1(parser_w_parser_reloc_no_debug,current_module.mainsource);
                   Message(parser_w_parser_win32_debug_needs_WN);
                   exclude(current_settings.moduleswitches,cs_debuginfo);
                 end;
@@ -1831,7 +1831,7 @@ implementation
          while assigned(main_file.next) do
            main_file := main_file.next;
 
-         current_module.SetFileName(main_file.path^+main_file.name^,true);
+         current_module.SetFileName(main_file.path+main_file.name,true);
 
          if islibrary then
            begin
@@ -1913,7 +1913,7 @@ implementation
          if current_module.realmodulename^<>'' then
            tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
-         Message1(parser_u_parsing_implementation,current_module.mainsource^);
+         Message1(parser_u_parsing_implementation,current_module.mainsource);
 
          symtablestack.push(current_module.localsymtable);
 

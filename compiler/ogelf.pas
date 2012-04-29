@@ -1141,7 +1141,7 @@ implementation
              TElfObjSection.create_ext(ObjSectionList,'.note.GNU-stack',SHT_PROGBITS,0,0,0,1,0);
            { insert the empty and filename as first in strtab }
            strtabsect.writestr(#0);
-           strtabsect.writestr(ExtractFileName(current_module.mainsource^)+#0);
+           strtabsect.writestr(ExtractFileName(current_module.mainsource)+#0);
            { calc amount of sections we have }
            nsections:=1;
            { also create the index in the section header table }

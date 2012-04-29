@@ -70,17 +70,16 @@ interface
 
       tlinkcontaineritem=class(tlinkedlistitem)
       public
-         data : pshortstring;
+         data : TPathStr;
          needlink : cardinal;
-         constructor Create(const s:string;m:cardinal);
-         destructor Destroy;override;
+         constructor Create(const s:TPathStr;m:cardinal);
       end;
 
       tlinkcontainer=class(tlinkedlist)
-         procedure add(const s : string;m:cardinal);
-         function get(var m:cardinal) : string;
-         function getusemask(mask:cardinal) : string;
-         function find(const s:string):boolean;
+         procedure add(const s : TPathStr;m:cardinal);
+         function get(var m:cardinal) : TPathStr;
+         function getusemask(mask:cardinal) : TPathStr;
+         function find(const s:TPathStr):boolean;
       end;
 
       tmodule = class;
@@ -199,7 +198,7 @@ interface
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention
         to that when creating link.res!!!!(mazen)}
-        constructor create(LoadedFrom:TModule;const amodulename,afilename:string;_is_unit:boolean);
+        constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
         destructor destroy;override;
         procedure reset;virtual;
         procedure adddependency(callermodule:tmodule);
@@ -302,7 +301,7 @@ implementation
               begin
                 current_scanner.tempopeninputfile;
                 current_scanner.gettokenpos;
-                parser_current_file:=current_scanner.inputfile.name^;
+                parser_current_file:=current_scanner.inputfile.name;
               end
             else
               begin
@@ -359,17 +358,11 @@ implementation
                              TLinkContainerItem
  ****************************************************************************}
 
-    constructor TLinkContainerItem.Create(const s:string;m:cardinal);
+    constructor TLinkContainerItem.Create(const s:TPathStr;m:cardinal);
       begin
         inherited Create;
-        data:=stringdup(s);
+        data:=s;
         needlink:=m;
-      end;
-
-
-    destructor TLinkContainerItem.Destroy;
-      begin
-        stringdispose(data);
       end;
 
 
@@ -377,13 +370,13 @@ implementation
                            TLinkContainer
  ****************************************************************************}
 
-    procedure TLinkContainer.add(const s : string;m:cardinal);
+    procedure TLinkContainer.add(const s : TPathStr;m:cardinal);
       begin
         inherited concat(TLinkContainerItem.Create(s,m));
       end;
 
 
-    function TLinkContainer.get(var m:cardinal) : string;
+    function TLinkContainer.get(var m:cardinal) : TPathStr;
       var
         p : tlinkcontaineritem;
       begin
@@ -395,14 +388,14 @@ implementation
          end
         else
          begin
-           get:=p.data^;
+           get:=p.data;
            m:=p.needlink;
            p.free;
          end;
       end;
 
 
-    function TLinkContainer.getusemask(mask:cardinal) : string;
+    function TLinkContainer.getusemask(mask:cardinal) : TPathStr;
       var
          p : tlinkcontaineritem;
          found : boolean;
@@ -415,14 +408,14 @@ implementation
              getusemask:='';
              exit;
            end;
-          getusemask:=p.data^;
+          getusemask:=p.data;
           found:=(p.needlink and mask)<>0;
           p.free;
         until found;
       end;
 
 
-    function TLinkContainer.find(const s:string):boolean;
+    function TLinkContainer.find(const s:TPathStr):boolean;
       var
         newnode : tlinkcontaineritem;
       begin
@@ -430,7 +423,7 @@ implementation
         newnode:=tlinkcontaineritem(First);
         while assigned(newnode) do
          begin
-           if newnode.data^=s then
+           if newnode.data=s then
             begin
               find:=true;
               exit;
@@ -479,9 +472,10 @@ implementation
                                   TMODULE
  ****************************************************************************}
 
-    constructor tmodule.create(LoadedFrom:TModule;const amodulename,afilename:string;_is_unit:boolean);
+    constructor tmodule.create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
       var
-        n,fn:string;
+        n:string;
+        fn:TPathStr;
       begin
         if amodulename='' then
           n:=ChangeFileExt(ExtractFileName(afilename),'')
@@ -496,7 +490,7 @@ implementation
          inherited create(amodulename)
         else
          inherited create('Program');
-        mainsource:=stringdup(fn);
+        mainsource:=fn;
         { Dos has the famous 8.3 limit :( }
 {$ifdef shortasmprefix}
         asmprefix:=stringdup(FixFileName('as'));
@@ -628,17 +622,6 @@ implementation
         stringdispose(mainname);
         FImportLibraryList.Free;
         extendeddefs.Free;
-        stringdispose(objfilename);
-        stringdispose(asmfilename);
-        stringdispose(ppufilename);
-        stringdispose(importlibfilename);
-        stringdispose(staticlibfilename);
-        stringdispose(sharedlibfilename);
-        stringdispose(exefilename);
-        stringdispose(outputpath);
-        stringdispose(path);
-        stringdispose(realmodulename);
-        stringdispose(mainsource);
         stringdispose(asmprefix);
         stringdispose(deprecatedmsg);
         stringdispose(namespace);
@@ -666,7 +649,6 @@ implementation
 {$ifdef MEMDEBUG}
         memsymtable.stop;
 {$endif}
-        stringdispose(modulename);
         inherited Destroy;
       end;
 
@@ -983,8 +965,6 @@ implementation
 
     procedure tmodule.setmodulename(const s:string);
       begin
-        stringdispose(modulename);
-        stringdispose(realmodulename);
         modulename:=stringdup(upper(s));
         realmodulename:=stringdup(s);
         { also update asmlibrary names }

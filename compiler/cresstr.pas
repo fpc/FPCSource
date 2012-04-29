@@ -230,7 +230,7 @@ uses
         end;
 
       begin
-        ResFileName:=ChangeFileExt(current_module.ppufilename^,'.rst');
+        ResFileName:=ChangeFileExt(current_module.ppufilename,'.rst');
         message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
         Assign(F,ResFileName);
         {$push}{$i-}

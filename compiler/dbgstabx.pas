@@ -357,7 +357,7 @@ implementation
                   if curincludefileinfo.fileindex<>0 then
                     begin
                       infile:=get_module(curincludefileinfo.moduleindex).sourcefiles.get_file(curincludefileinfo.fileindex);
-                      list.insertbefore(Tai_stab.Create_str(stabx_ei,'"'+FixFileName(infile.name^)+'"'),inclinsertpos);
+                      list.insertbefore(Tai_stab.Create_str(stabx_ei,'"'+FixFileName(infile.name)+'"'),inclinsertpos);
                       curincludefileinfo.fileindex:=0;
                     end;
                   if currfileinfo.fileindex<>1 then
@@ -365,7 +365,7 @@ implementation
                       infile:=get_module(currfileinfo.moduleindex).sourcefiles.get_file(currfileinfo.fileindex);
                       if assigned(infile) then
                         begin
-                          list.insertbefore(Tai_stab.Create_str(stabx_bi,'"'+FixFileName(infile.name^)+'"'),inclinsertpos);
+                          list.insertbefore(Tai_stab.Create_str(stabx_bi,'"'+FixFileName(infile.name)+'"'),inclinsertpos);
                           curincludefileinfo:=currfileinfo;
                           { force new line info }
                           lastfileinfo.line:=-1;
@@ -421,7 +421,7 @@ implementation
       if curincludefileinfo.fileindex<>0 then
         begin
           infile:=get_module(curincludefileinfo.moduleindex).sourcefiles.get_file(curincludefileinfo.fileindex);
-          list.insertbefore(Tai_stab.Create_str(stabx_ei,'"'+FixFileName(infile.name^)+'"'),last);
+          list.insertbefore(Tai_stab.Create_str(stabx_ei,'"'+FixFileName(infile.name)+'"'),last);
           curincludefileinfo.fileindex:=0;
         end;
     end;
