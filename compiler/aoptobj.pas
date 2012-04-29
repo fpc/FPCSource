@@ -1143,7 +1143,8 @@ Unit AoptObj;
                          (assigned(taicpu(p).oper[0]^.ref^.symbol)) and
                          (taicpu(p).oper[0]^.ref^.symbol is TAsmLabel) then
                         begin
-                          while GetNextInstruction(p, hp1) and
+                          hp2:=p;
+                          while GetNextInstruction(hp2, hp1) and
                                 (hp1.typ <> ait_label) do
                             if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
                               begin
@@ -1153,8 +1154,15 @@ Unit AoptObj;
                                    assigned(taicpu(hp1).oper[0]^.ref^.symbol) and
                                    (taicpu(hp1).oper[0]^.ref^.symbol is TAsmLabel) then
                                    TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol).decrefs;
-                                asml.remove(hp1);
-                                hp1.free;
+                                { don't kill start/end of assembler block,
+                                  no-line-info-start/end etc }
+                                if hp1.typ<>ait_marker then
+                                  begin
+                                    asml.remove(hp1);
+                                    hp1.free;
+                                  end
+                                else
+                                  hp2:=hp1;
                               end
                             else break;
                           end;
