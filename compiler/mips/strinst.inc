@@ -5,7 +5,7 @@
 'p_set_nomacro',
 'p_set_macro',
 'p_set_reorder',
-'p_frame',
+'.frame',
 'p_mask',
 'p_fmask',
 'p_sw',

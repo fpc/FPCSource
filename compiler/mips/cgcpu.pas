@@ -1347,55 +1347,46 @@ var
   instr: taicpu;
 
 begin
+  {
   if STK2_dummy <> 0 then
   begin
     list.concat(Taicpu.Op_reg_reg_const(A_P_STK2, STK2_PTR, STK2_PTR, -STK2_dummy));
   end;
+  }
+  LocalSize := align(LocalSize, 8);
+  a_reg_alloc(list,NR_STACK_POINTER_REG);
+  if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+    a_reg_alloc(list,NR_FRAME_POINTER_REG);
 
   if nostackframe then
     exit;
 
-    usesfpr := False;
-  if not (po_assembler in current_procinfo.procdef.procoptions) then
-    case target_info.abi of
-      abi_powerpc_aix:
-        firstfpureg := RS_F14;
-      abi_powerpc_sysv:
-        firstfpureg := RS_F14;
-      abi_default:
-        firstfpureg := RS_F14;
-      else
-        internalerror(2003122903);
-    end;
-  for regcounter := firstfpureg to RS_F31 do
+  usesfpr := False;
+  for regcounter := RS_F20 to RS_F30 do
   begin
     if regcounter in rg[R_FPUREGISTER].used_in_proc then
     begin
       usesfpr     := True;
       firstregfpu := regcounter;
-      break;
     end;
   end;
 
   usesgpr := False;
   if not (po_assembler in current_procinfo.procdef.procoptions) then
-    for regcounter2 := RS_R13 to RS_R31 do
+    for regcounter2 := RS_R0 to RS_R31 do
     begin
       if regcounter2 in rg[R_INTREGISTER].used_in_proc then
       begin
         usesgpr     := True;
         firstreggpr := regcounter2;
-        break;
       end;
     end;
 
-
-  LocalSize := align(LocalSize, 8);
-
   cgcpu_calc_stackframe_size := LocalSize;
-  list.concat(Taicpu.Op_reg_reg_const(A_P_FRAME, NR_FRAME_POINTER_REG, NR_R31, LocalSize));
+  list.concat(Taicpu.Op_reg_const_reg(A_P_FRAME, NR_FRAME_POINTER_REG, LocalSize, NR_R31));
   list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
   list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
+//  list.concat(taicpu.op_
   list.concat(Taicpu.Op_reg_reg_const(A_P_SW, NR_FRAME_POINTER_REG, NR_STACK_POINTER_REG, -LocalSize));
   list.concat(Taicpu.Op_reg_reg_const(A_P_SW, NR_R31, NR_STACK_POINTER_REG, -LocalSize + 4));
   list.concat(Taicpu.op_reg_reg(A_MOVE, NR_FRAME_POINTER_REG, NR_STACK_POINTER_REG));

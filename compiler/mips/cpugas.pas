@@ -175,9 +175,6 @@ unit cpugas;
             s := #9 + gas_op2str[A_ADDIU] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[1]^) + ',' + s1;
             owner.AsmWriteLn(s);
           end;
-          A_P_FRAME:
-          begin
-          end;
           A_P_SET_MACRO:
           begin
             s := #9 + '.set' + #9 + 'macro';

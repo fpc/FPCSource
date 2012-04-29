@@ -38,6 +38,7 @@ const
   O_MOV_DEST   = 1;
 
 type
+  { taicpu }
   taicpu = class(tai_cpu_abstract_sym)
     delayslot_annulled: boolean;   { conditinal opcode with ,a }
     constructor op_none(op: tasmop);
@@ -54,6 +55,7 @@ type
 
     constructor op_reg_reg_ref(op: tasmop; _op1, _op2: tregister; const _op3: treference);
     constructor op_reg_reg_const(op: tasmop; _op1, _op2: tregister; _op3: aint);
+    constructor op_reg_const_reg(op: tasmop; _op1: tregister; _op2: aint; _op3: tregister);
 
     { this is for Jmp instructions }
     constructor op_sym(op: tasmop; _op1: tasmsymbol);
@@ -83,8 +85,6 @@ implementation
 {*****************************************************************************
                                  taicpu Constructors
 *****************************************************************************}
-
-
 
 constructor taicpu.op_none(op: tasmop);
 begin
@@ -153,23 +153,34 @@ end;
 
 
 constructor taicpu.op_reg_reg_ref(op: tasmop; _op1, _op2: tregister; const _op3: treference);
- begin
-   inherited create(op);
-   ops := 3;
-   loadreg(0, _op1);
-   loadreg(1, _op2);
-   loadref(2, _op3);
+begin
+  inherited create(op);
+  ops := 3;
+  loadreg(0, _op1);
+  loadreg(1, _op2);
+  loadref(2, _op3);
 end;
+
 
 constructor taicpu.op_reg_reg_const(op: tasmop; _op1, _op2: tregister; _op3: aint);
- begin
-   inherited create(op);
-   ops := 3;
-   loadreg(0, _op1);
-   loadreg(1, _op2);
-   loadconst(2, _op3);
+begin
+  inherited create(op);
+  ops := 3;
+  loadreg(0, _op1);
+  loadreg(1, _op2);
+  loadconst(2, _op3);
 end;
 
+
+constructor taicpu.op_reg_const_reg(op: tasmop; _op1: tregister; _op2: aint;
+ _op3: tregister);
+begin
+  inherited create(op);
+  ops := 3;
+  loadreg(0, _op1);
+  loadconst(1, _op2);
+  loadreg(2, _op3);
+end;
 
 
 constructor taicpu.op_sym(op: tasmop; _op1: tasmsymbol);
