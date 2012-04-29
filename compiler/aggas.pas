@@ -644,7 +644,7 @@ implementation
       constdef : taiconst_type;
       s,t      : string;
       i,pos,l  : longint;
-      InlineLevel : longint;
+      InlineLevel : cardinal;
       last_align : longint;
       co       : comp;
       sin      : single;
