@@ -98,8 +98,6 @@ _haltproc:
         /* TODO: need to check whether __dl_fini is non-zero and call the function pointer in case */
 
         li      $v0,4001
-        lui     $a0,0x0
-        lw      $a0,0($a0)
         syscall
         b       _haltproc
         nop
