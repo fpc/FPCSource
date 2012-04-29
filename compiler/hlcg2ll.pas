@@ -154,7 +154,7 @@ unit hlcg2ll;
 
           procedure a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; weak: boolean);override;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);override;
-          procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;ref : treference);override;
+          procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);override;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           procedure a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr);override;
@@ -534,7 +534,7 @@ implementation
       cg.a_call_reg(list,reg);
     end;
 
-  procedure thlcg2ll.a_call_ref(list: TAsmList; pd: tabstractprocdef; ref: treference);
+  procedure thlcg2ll.a_call_ref(list: TAsmList; pd: tabstractprocdef; const ref: treference);
     begin
       cg.a_call_ref(list,ref);
     end;

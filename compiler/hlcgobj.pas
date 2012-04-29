@@ -182,7 +182,7 @@ unit hlcgobj;
           }
           procedure a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; weak: boolean);virtual;abstract;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);virtual;abstract;
-          procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;ref : treference);virtual;
+          procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           procedure a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr);virtual;
@@ -780,7 +780,7 @@ implementation
          end;
     end;
 
-  procedure thlcgobj.a_call_ref(list: TAsmList; pd: tabstractprocdef; ref: treference);
+  procedure thlcgobj.a_call_ref(list: TAsmList; pd: tabstractprocdef; const ref: treference);
     var
       reg: tregister;
       size: tdef;
