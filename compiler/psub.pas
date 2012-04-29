@@ -910,6 +910,23 @@ implementation
         resetprocdef;
       end;
 
+    { For SEH, the code from 'finally' blocks must be put into a separate procedures,
+      which can be called by OS during stack unwind. This resembles nested procedures,
+      but finalizer procedures do not have their own local variables and work directly
+      with the stack frame of parent. In particular, the tempgen must be shared, so
+      1) finalizer procedure is able to finalize temps of the parent,
+      2) if the finalizer procedure is complex enough to need its own temps, they are
+         allocated in stack frame of parent, so second-level finalizer procedures are
+         not needed.
+
+      Due to requirement of shared tempgen we cannot process finalizer as a regular nested
+      procedure (after the parent) and have to do it inline.
+      This is called by platform-specific tryfinallynodes during pass2.
+      Here we put away the codegen (which carries the register allocator state), process
+      the 'nested' procedure, then restore previous cg and continue processing the parent
+      procedure. generate_code() will create another cg, but not another tempgen because
+      setup_tempgen() is not called for potype_exceptfilter procedures. }
+
     procedure tcgprocinfo.generate_exceptfilter(nestedpi: tcgprocinfo);
       var
         saved_cg: tcg;
