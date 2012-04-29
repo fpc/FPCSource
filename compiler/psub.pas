@@ -913,6 +913,7 @@ implementation
     procedure tcgprocinfo.generate_exceptfilter(nestedpi: tcgprocinfo);
       var
         saved_cg: tcg;
+        saved_hlcg: thlcgobj;
       begin
         if nestedpi.procdef.proctypeoption<>potype_exceptfilter then
           InternalError(201201141);
@@ -920,11 +921,14 @@ implementation
         aktproccode.concatlist(current_asmdata.CurrAsmList);
         { save the codegen }
         saved_cg:=cg;
+        saved_hlcg:=hlcg;
         cg:=nil;
+        hlcg:=nil;
         nestedpi.generate_code;
         { prevents generating code the second time when processing nested procedures }
         nestedpi.resetprocdef;
         cg:=saved_cg;
+        hlcg:=saved_hlcg;
         add_reg_instruction_hook:=@cg.add_reg_instruction;
       end;
 
