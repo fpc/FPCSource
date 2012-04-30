@@ -1,6 +1,6 @@
 { %fail }
 {$mode objfpc}{$H+}
-  
+
 uses
   Classes, sysutils;     
 var
