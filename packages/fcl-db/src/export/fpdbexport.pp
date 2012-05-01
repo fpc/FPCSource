@@ -702,7 +702,7 @@ Function TCustomDatasetExporter.Execute : Integer;
 
 Var
   B : Boolean;
-  BM : TBookMark;
+  BM : TBookMarkStr;
 
 begin
   Result:=0;
