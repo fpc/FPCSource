@@ -1245,7 +1245,7 @@ type
 { TDataSet }
 
   TBookmark = Pointer;
-  TBookmarkStr = string deprecated; 
+  TBookmarkStr = string deprecated 'TBookmarkStr will disappear in 2.6.3 in favour of TBookmark'; 
 
   PBookmarkFlag = ^TBookmarkFlag;
   TBookmarkFlag = (bfCurrent, bfBOF, bfEOF, bfInserted);
