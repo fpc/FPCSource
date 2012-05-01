@@ -1813,33 +1813,20 @@ end;
 
 Procedure TDataset.GetFieldList(List: TList; const FieldNames: string);
 
-  Function NextName(Var S : String) : String;
-
-  Var
-    P : integer;
-
-  begin
-    P:=Pos(';',S);
-    If (P=0) then
-      P:=Length(S)+1;
-    Result:=Copy(S,1,P-1);
-    system.Delete(S,1,P);
-  end;
-
 var
   F: TField;
-  Names,N : String;
+  N: String;
+  StrPos: Integer;
 
 begin
-  Names:=FieldNames;
-  N:=Nextname(Names);
-  while (N<>'') do
-    begin
-    F:=FieldByName(N);
-    If Assigned(List) then
-      List.Add(F);
-    N:=NextName(Names);
-    end;
+  if (FieldNames = '') or (List = nil) then
+    Exit;
+  StrPos := 1;
+  repeat
+    N := ExtractFieldName(FieldNames, StrPos);
+    F := FieldByName(N);
+    List.Add(F);
+  until StrPos > Length(FieldNames);
 end;
 
 Procedure TDataset.GetFieldNames(List: TStrings);
