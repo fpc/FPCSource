@@ -370,6 +370,7 @@ begin
   else
     FCurrentList:=Nil;
   FreeAndNil(FDefaultList);
+  FreeAndNil(FFieldMapper);
   FCurrentList:=Nil;
 end;
 
@@ -817,6 +818,7 @@ end;
 
 procedure TBaseJSONDataSet.InternalOpen;
 begin
+  FreeAndNil(FFieldMapper);
   FFieldMapper:=CreateFieldMapper;
   IF (FRows=Nil) then // opening from fielddefs ?
     begin
