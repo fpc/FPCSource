@@ -1771,14 +1771,11 @@ begin
     Result := grEOF;
     FAllPacketsFetched := True;
     // This code has to be placed elsewhere. At least it should also run when
-    // the datapacket is loaded from file
+    // the datapacket is loaded from file ... see IntLoadRecordsFromFile
     if FIndexesCount>0 then for x := 1 to FIndexesCount-1 do
       begin
       if not ((x=1) and (FIndexes[1].FieldsName='')) then
-        begin
         BuildIndex(FIndexes[x]);
-        (FCurrentIndex as TDoubleLinkedBufIndex).FCurrentRecBuf:=(FCurrentIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
-        end;
       end;
     Exit;
     end;
@@ -2815,7 +2812,7 @@ begin
           SetLength(FUpdateBuffer,AUpdOrder+1);
         FCurrentUpdateBuffer:=AUpdOrder;
         FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind:= ukInsert;
-        FCurrentIndex.StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
+        FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
         end;
 
       FIndexes[0].AddRecord;
@@ -2833,6 +2830,11 @@ begin
     FreeAndNil(FFileStream);
     FreeAndNil(FDatasetReader);
     end;
+
+  // rebuild indexes
+  for x:=1 to FIndexesCount-1 do
+    if (x<>1) or (FIndexes[x]=FCurrentIndex) then
+      BuildIndex(FIndexes[x]);
 end;
 
 procedure TCustomBufDataset.InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
