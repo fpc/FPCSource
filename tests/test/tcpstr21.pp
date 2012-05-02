@@ -12,10 +12,12 @@ program tcpstr21;
 procedure TestStrConst1(const S: UnicodeString); overload;
 begin
 end;
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 procedure TestStrConst1(const S: WideString); overload;
 begin
   halt(1);
 end;
+{$endif}
 procedure TestStrConst1(const S: PWideChar); overload;
 begin
   halt(1);
