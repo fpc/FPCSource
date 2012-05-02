@@ -1732,7 +1732,7 @@ var x        : integer;
 
 begin
   if AFindNext then
-    StartBuf:=FCurrentUpdateBuffer+1
+    StartBuf := FCurrentUpdateBuffer + 1
   else
     StartBuf := 0;
   Result := False;
@@ -1906,18 +1906,16 @@ begin
 end;
 
 procedure TCustomBufDataset.InternalDelete;
-var i         : Integer;
-    RemRec    : pointer;
+var i : Integer;
+    RemRec, FreeRec : pointer;
     RemRecBookmrk : TBufBookmark;
-    free_rec: Boolean;
 begin
-  free_rec := False;
   InternalSetToRecord(ActiveBuffer);
   // Remove the record from all active indexes
   FCurrentIndex.StoreCurrentRecIntoBookmark(@RemRecBookmrk);
   RemRec := FCurrentIndex.CurrentBuffer;
   for i := 0 to FIndexesCount-1 do
-    if (i<>1) or (FCurrentIndex=FIndexes[i]) then
+    if (i<>1) or (FIndexes[i]=FCurrentIndex) then
       FIndexes[i].RemoveRecordFromIndex(RemRecBookmrk);
 
   if not GetActiveRecordUpdateBuffer then
@@ -1931,14 +1929,17 @@ begin
   else //with FIndexes[0] do
     begin
     if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind <> ukModify then
+      begin
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := nil;  //this 'disables' the updatebuffer
-    free_rec := FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukInsert; // mantis #18004
+      FreeRec := RemRecBookmrk.BookmarkData;  // mantis #18004
+      FreeRecordBuffer(TRecordBuffer(FreeRec));
+      // RemRecBookmrk.BookmarkData still points to just freed record buffer
+      // There could be record in update-buffer, linked to this record
+      end;
     end;
   FCurrentIndex.StoreCurrentRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
   FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := RemRecBookmrk;
   FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukDelete;
-  if free_rec then
-    FreeRecordBuffer(TRecordBuffer(RemRecBookmrk.BookmarkData));
   dec(FBRecordCount);
 end;
 
@@ -1956,7 +1957,6 @@ var StoreRecBM     : TBufBookmark;
     TmpBuf         : TRecordBuffer;
     StoreUpdBuf    : integer;
     Bm             : TBufBookmark;
-    x              : Integer;
   begin
     with AUpdBuffer do if assigned(BookmarkData.BookmarkData) then // this is used to exclude buffers which are already handled
       begin
@@ -2021,12 +2021,8 @@ begin
   if Length(FUpdateBuffer) > 0 then
     begin
     FCurrentIndex.StoreCurrentRecIntoBookmark(@StoreRecBM);
-    r := Length(FUpdateBuffer) -1;
-    while r > -1 do
-      begin
+    for r := Length(FUpdateBuffer) - 1 downto 0 do
       CancelUpdBuffer(FUpdateBuffer[r]);
-      dec(r)
-      end;
 
     SetLength(FUpdateBuffer,0);
     
@@ -2549,23 +2545,23 @@ procedure TCustomBufDataset.GetDatasetPacket(AWriter: TDataPacketReader);
     else if AUpdBuffer.UpdateKind = ukDelete then
       begin
       AStoreUpdBuf:=FCurrentUpdateBuffer;
-      if GetRecordUpdateBuffer(AUpdBuffer.BookmarkData,True) then
+      if GetRecordUpdateBuffer(AUpdBuffer.BookmarkData,True,False) then
         begin
         repeat
-        if FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData, @AUpdBuffer.BookmarkData) then
-          StoreUpdateBuffer(FUpdateBuffer[FCurrentUpdateBuffer], ARowState);
+          if FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData, @AUpdBuffer.BookmarkData) then
+            StoreUpdateBuffer(FUpdateBuffer[FCurrentUpdateBuffer], ARowState);
         until not GetRecordUpdateBuffer(AUpdBuffer.BookmarkData,True,True)
         end;
       FCurrentUpdateBuffer:=AStoreUpdBuf;
       AThisRowState := [rsvDeleted];
       end
-    else // ie: updatekind = ukInsert
-      begin
+    else // ie: UpdateKind = ukInsert
       ARowState := [rsvInserted];
-      Exit;
-      end;
+
     FFilterBuffer:=AUpdBuffer.OldValuesBuffer;
-    FDatasetReader.StoreRecord(Self,AThisRowState,FCurrentUpdateBuffer);
+    // If the record is inserted or inserted and afterwards deleted then OldValuesBuffer is nil
+    if assigned(FFilterBuffer) then
+      FDatasetReader.StoreRecord(Self,AThisRowState,FCurrentUpdateBuffer);
   end;
 
   procedure HandleUpdateBuffersFromRecord(AFirstCall : boolean;ARecBookmark : TBufBookmark; var ARowState: TRowState);
@@ -2604,8 +2600,7 @@ begin
     ABookMark:=@ATBookmark;
     FDatasetReader.StoreFieldDefs(FieldDefs);
 
-    StoreDSState:=State;
-    SetTempState(dsFilter);
+    StoreDSState:=SetTempState(dsFilter);
     ScrollResult:=FCurrentIndex.ScrollFirst;
     while ScrollResult=grOK do
       begin

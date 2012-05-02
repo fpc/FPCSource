@@ -22,6 +22,7 @@ type
 
     procedure TestChangesApplyUpdates(AUpdDatasetProc : TUpdDatasetProc; Inserts: Boolean=False);
     procedure TestChangesCancelUpdates(AUpdDatasetProc : TUpdDatasetProc);
+    procedure TestChanges(AUpdDatasetProc : TUpdDatasetProc; AFormat : TDataPacketFormat=dfBinary);
     procedure TestChangesXML(AUpdDatasetProc : TUpdDatasetProc);
 
     procedure SimpleEditChange(ADataset: TCustomBufDataset);
@@ -34,6 +35,7 @@ type
     procedure DeleteAllInsertChange(ADataset: TCustomBufDataset);
     procedure NullInsertChange(ADataset: TCustomBufDataset);
     procedure NullEditChange(ADataset: TCustomBufDataset);
+    procedure AppendDeleteChange(ADataset: TCustomBufDataset);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -66,6 +68,8 @@ type
     procedure TestSeveralEditsXML;
     procedure TestDeleteAllXML;
     procedure TestDeleteAllInsertXML;
+
+    procedure TestAppendDeleteBIN;
 
     procedure TestFileNameProperty;
     procedure TestCloseDatasetNoConnection; // bug 17623
@@ -129,26 +133,41 @@ begin
   CompareDatasets(OrgDs,ChangedDs);
 end;
 
-procedure TTestBufDatasetStreams.TestChangesXML(AUpdDatasetProc: TUpdDatasetProc);
-var SaveDs,
+procedure TTestBufDatasetStreams.TestChanges(AUpdDatasetProc: TUpdDatasetProc;
+  AFormat: TDataPacketFormat);
+var FileName: string;
+    SaveDs,
     LoadDs : TCustomBufDataset;
 begin
+  case AFormat of
+    dfBinary:  FileName := 'Basics.dat';
+    else       FileName := 'Basics.xml';
+  end;
+
   SaveDs := DBConnector.GetNDataset(true,15) as TCustomBufDataset;
   SaveDs.Open;
   AUpdDatasetProc(SaveDs);
-  SaveDs.SaveToFile('Basics.xml',dfXML);
+  SaveDs.SaveToFile(FileName, AFormat);
 
   LoadDs := TCustomBufDataset.Create(nil);
-  LoadDs.LoadFromFile('Basics.xml');
-
+  LoadDs.LoadFromFile(FileName);
   CompareDatasets(SaveDs,LoadDs);
   SaveDs.Close;
 
   SaveDs.Open;
   LoadDs.CancelUpdates;
   CompareDatasets(SaveDs,LoadDs);
+  SaveDs.Close;
+
   LoadDs.Free;
+  DeleteFile(FileName);
 end;
+
+procedure TTestBufDatasetStreams.TestChangesXML(AUpdDatasetProc: TUpdDatasetProc);
+begin
+  TestChanges(AUpdDatasetProc, dfXML);
+end;
+
 
 procedure TTestBufDatasetStreams.SimpleEditChange(ADataset: TCustomBufDataset);
 begin
@@ -317,6 +336,19 @@ begin
     end;
 end;
 
+procedure TTestBufDatasetStreams.AppendDeleteChange(ADataset: TCustomBufDataset);
+begin
+  with ADataset do
+  begin
+    AppendRecord([16,'TestName16']);
+    AppendRecord([17,'TestName17']);
+    Prior;
+    Prior;
+    Delete;  // 15 update-buffer of deleted record is linked to 16
+    Delete;  // 16 inserted-deleted and linked by 15
+  end;
+end;
+
 procedure TTestBufDatasetStreams.TestSimpleEditCancelUpd;
 begin
   TestChangesCancelUpdates(@SimpleEditChange);
@@ -409,6 +441,11 @@ end;
 procedure TTestBufDatasetStreams.TestDeleteAllInsertXML;
 begin
   TestChangesXML(@DeleteAllInsertChange);
+end;
+
+procedure TTestBufDatasetStreams.TestAppendDeleteBIN;
+begin
+  TestChanges(@AppendDeleteChange);
 end;
 
 procedure TTestBufDatasetStreams.TestFileNameProperty;
