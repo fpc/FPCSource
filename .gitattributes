@@ -10484,6 +10484,7 @@ tests/test/tcpstr20.pp svneol=native#text/pascal
 tests/test/tcpstr21.pp svneol=native#text/pascal
 tests/test/tcpstr21a.pp svneol=native#text/pascal
 tests/test/tcpstr22.pp svneol=native#text/pascal
+tests/test/tcpstr23.pp svneol=native#text/pascal
 tests/test/tcpstr2a.pp svneol=native#text/plain
 tests/test/tcpstr3.pp svneol=native#text/plain
 tests/test/tcpstr4.pp svneol=native#text/plain
