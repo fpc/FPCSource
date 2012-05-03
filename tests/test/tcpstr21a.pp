@@ -1,3 +1,4 @@
+{ %fail}
 program tcpstr21a;
 
 {$APPTYPE CONSOLE}
