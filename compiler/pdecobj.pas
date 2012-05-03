@@ -426,7 +426,6 @@ implementation
                 stringdispose(od.import_lib);
                 od.import_lib:=stringdup(hs);
               end;
-            include(od.objectoptions, oo_is_external);
             { check if we shall use another name for the class }
             if try_to_consume(_NAME) then
               od.objextname:=stringdup(get_stringconst)
