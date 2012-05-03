@@ -69,7 +69,7 @@ end;
 procedure test_overload4(const s: unicodestring); overload;
 begin
 end;
-{ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 procedure test_overload4(const s: widestring); overload;
 begin
   halt(4);
