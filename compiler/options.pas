@@ -2502,6 +2502,12 @@ begin
     else
       undef_system_macro('FPC_NO_GENERIC_STACK_CHECK');
 
+  if (tf_section_threadvars in target_info.flags) then
+    if def then
+      def_system_macro('FPC_SECTION_THREADVARS')
+    else
+      undef_system_macro('FPC_SECTION_THREADVARS');
+
   { Code generation flags }
   if def and
      (tf_pic_default in target_info.flags) then

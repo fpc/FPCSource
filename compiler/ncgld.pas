@@ -326,8 +326,7 @@ implementation
                    reference_reset_base(location.reference,hregister,0,location.reference.alignment);
                  end
                { Thread variable }
-               else if (vo_is_thread_var in gvs.varoptions) and
-                       not(tf_section_threadvars in target_info.flags) then
+               else if (vo_is_thread_var in gvs.varoptions) then
                  begin
                     if (tf_section_threadvars in target_info.flags) then
                       begin

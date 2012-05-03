@@ -221,8 +221,6 @@ unit cgcpu;
       begin
         with r do
           begin
-            if (segment<>NR_NO) then
-              cgmessage(cg_e_cant_use_far_pointer_there);
             if use_push(cgpara) then
               begin
                 cgpara.check_simple_location;
