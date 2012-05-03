@@ -213,6 +213,8 @@ program fpc;
                              cpusuffix:='sparc'
                            else if processorstr='x86_64' then
                              cpusuffix:='x64'
+                           else if processorstr='jvm' then
+                             cpusuffix:='jvm'
                            else
                              error('Illegal processor type "'+processorstr+'"');
 
