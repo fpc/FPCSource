@@ -346,7 +346,7 @@ begin
    end;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
   with linkres do
     begin
       { Write path to search libraries }

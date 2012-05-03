@@ -76,7 +76,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
 
   { Write object files, start with prt0 }
   LinkRes.Add('file '+GetShortName(FindObjectFile('prt0','',false)));

@@ -155,7 +155,7 @@ begin
     not(cs_link_on_target in current_settings.globalswitches) and
     not(source_info.system in systems_aix) ;
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,not assumebinutils);
   with linkres do
     begin
       { Write path to search libraries }

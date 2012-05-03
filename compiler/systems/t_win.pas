@@ -1193,7 +1193,7 @@ implementation
           end;
 
         { Open link.res file }
-        LinkRes:=TLinkres.Create(outputexedir+Info.ResName);
+        LinkRes:=TLinkres.Create(outputexedir+Info.ResName,true);
         with linkres do
           begin
             { Write path to search libraries }

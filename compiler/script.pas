@@ -90,6 +90,8 @@ type
 
   TLinkRes = Class (TScript)
     section: string[30];
+    fRealResponseFile: Boolean;
+    constructor Create(const ScriptName : TCmdStr; RealResponseFile: Boolean);
     procedure Add(const s:TCmdStr);
     procedure AddFileName(const s:TCmdStr);
     procedure EndSection(const s:TCmdStr);
@@ -489,6 +491,12 @@ function GenerateScript(const st: TCmdStr): TAsmScript;
                                   Link Response
 ****************************************************************************}
 
+constructor TLinkRes.Create(const ScriptName: TCmdStr; RealResponseFile: Boolean);
+begin
+  inherited Create(ScriptName);
+  fRealResponseFile:=RealResponseFile;
+end;
+
 procedure TLinkRes.Add(const s:TCmdStr);
 begin
   if s<>'' then
@@ -504,7 +512,15 @@ begin
    end;
   if s<>'' then
    begin
-     if not(s[1] in ['a'..'z','A'..'Z','/','\','.','"']) then
+     { GNU ld only supports double quotes in the response file. }
+     if fRealResponseFile and
+        (s[1]='''') and
+        (((cs_link_on_target in current_settings.globalswitches) and
+          (target_info.script=script_unix)) or
+         (not(cs_link_on_target in current_settings.globalswitches) and
+          (source_info.script=script_unix))) then
+       inherited add(UnixRequoteWithDoubleQuotes(s))
+     else if not(s[1] in ['a'..'z','A'..'Z','/','\','.','"']) then
       begin
         if cs_link_on_target in current_settings.globalswitches then
           inherited Add('.'+target_info.DirSep+s)

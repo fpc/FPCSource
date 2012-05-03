@@ -128,6 +128,7 @@ interface
     procedure InitFileUtils;
     procedure DoneFileUtils;
 
+    function UnixRequoteWithDoubleQuotes(const QuotedStr: TCmdStr): TCmdStr;
     function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags = []): Longint;
     function RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags = []): Longint;
     function Shell(const command:ansistring): longint;
@@ -1450,7 +1451,7 @@ end;
       because it only supports Windows-style quoting; this routine assumes that
       everything that has to be quoted for Windows, was also quoted (but
       differently for Unix) -- which is the case }
-    function UnixRequoteForExecuteProcess(const QuotedStr: TCmdStr): TCmdStr;
+    function UnixRequoteWithDoubleQuotes(const QuotedStr: TCmdStr): TCmdStr;
       var
         i: longint;
         temp: TCmdStr;
@@ -1511,7 +1512,7 @@ end;
         else
           quote_script:=source_info.script;
         if quote_script=script_unix then
-          result:=sysutils.ExecuteProcess(Path,UnixRequoteForExecuteProcess(ComLine),Flags)
+          result:=sysutils.ExecuteProcess(Path,UnixRequoteWithDoubleQuotes(ComLine),Flags)
         else
           result:=sysutils.ExecuteProcess(Path,ComLine,Flags)
       end;

@@ -379,7 +379,7 @@ begin
      ExpandAndApplyOrder(SharedLibFiles);
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,not LdSupportsNoResponseFile);
 
   if (target_info.system in systems_darwin) and
      (sysrootpath<>'') then

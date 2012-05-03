@@ -290,8 +290,8 @@ begin
   NlmNam := ProgNam + target_info.exeext;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);             {for ld}
-  NLMConvLinkFile:=TLinkRes.Create(outputexedir+'n'+Info.ResName); {for nlmconv, written in CreateExeFile}
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);             {for ld}
+  NLMConvLinkFile:=TLinkRes.Create(outputexedir+'n'+Info.ResName,true); {for nlmconv, written in CreateExeFile}
 
   p := Pos ('"', Description);
   while (p > 0) do

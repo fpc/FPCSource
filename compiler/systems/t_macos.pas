@@ -98,7 +98,7 @@ Var
 begin
   WriteResponseFile:=False;
   { Open link.res file }
-  linkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  linkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
 
   with linkRes do
     begin
