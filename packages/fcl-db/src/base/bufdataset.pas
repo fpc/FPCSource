@@ -39,7 +39,7 @@ type
     Size    : ptrint;
   end;
 
-   TBufBlobStream = class(TStream)
+  TBufBlobStream = class(TStream)
   private
     FBlobBuffer : PBlobBuffer;
     FPosition   : ptrint;
@@ -86,6 +86,7 @@ type
 }
     OldValuesBuffer    : TRecordBuffer;
   end;
+  TRecordsUpdateBuffer = array of TRecUpdateBuffer;
 
   PBufBlobField = ^TBufBlobField;
   TBufBlobField = record
@@ -94,7 +95,6 @@ type
   end;
 
   TCompareFunc = function(subValue, aValue: pointer; options: TLocateOptions): int64;
-  TRecordsUpdateBuffer = array of TRecUpdateBuffer;
 
   TDBCompareRec = record
                    Comparefunc : TCompareFunc;
@@ -408,13 +408,14 @@ type
     FFilterBuffer   : TRecordBuffer;
     FBRecordCount   : integer;
 
+    FOldState          : TDatasetState;
     FPacketRecords  : integer;
     FRecordSize     : Integer;
     FNullmaskSize   : byte;
     FOpen           : Boolean;
     FUpdateBuffer   : TRecordsUpdateBuffer;
     FCurrentUpdateBuffer : integer;
-    
+
     FIndexDefs      : TIndexDefs;
 
     FParser         : TBufDatasetParser;
@@ -426,7 +427,7 @@ type
 
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
-    
+
     procedure FetchAll;
     procedure BuildIndex(var AIndex : TBufIndex);
     function GetIndexDefs : TIndexDefs;
@@ -460,7 +461,7 @@ type
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
     function GetChangeCount: integer; virtual;
-    function  AllocRecordBuffer: TRecordBuffer override;
+    function  AllocRecordBuffer: TRecordBuffer; override;
     procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
     procedure ClearCalcFields(Buffer: TRecordBuffer); override;
     procedure InternalInitRecord(Buffer: TRecordBuffer); override;
@@ -491,6 +492,7 @@ type
     procedure SetFilterText(const Value: String); override; {virtual;}
     procedure SetFiltered(Value: Boolean); override; {virtual;}
     procedure InternalRefresh; override;
+    procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
     procedure BeforeRefreshOpenCursor; virtual;
     procedure DoFilterRecord(out Acceptable: Boolean); virtual;
   {abstracts, must be overidden by descendents}
@@ -1816,12 +1818,17 @@ var CurrBuff : TRecordBuffer;
 
 begin
   Result := False;
-  if state = dsOldValue then
-    begin
-    if not GetActiveRecordUpdateBuffer then
-      Exit; // There is no old value available
-    CurrBuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
-    end
+  if State = dsOldValue then
+  begin
+    if FOldState = dsInsert then
+      CurrBuff := nil // old values = null
+    else if GetActiveRecordUpdateBuffer then
+      CurrBuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer
+    else
+      // There is no UpdateBuffer for ActiveRecord, so there are no explicit old values available
+      // then we can assume, that old values = current values
+      CurrBuff := FCurrentIndex.CurrentBuffer;
+  end
   else
     CurrBuff := GetCurrentBuffer;
 
@@ -2213,7 +2220,7 @@ begin
     if state = dsEdit then
       begin
       // Create an oldvalues buffer with the old values of the record
-      FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := intAllocRecordBuffer;
+      FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := IntAllocRecordBuffer;
       with FCurrentIndex do
         // Move only the real data
         move(CurrentBuffer^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize);
@@ -2903,6 +2910,14 @@ end;
 procedure TCustomBufDataset.BeforeRefreshOpenCursor;
 begin
   // Do nothing
+end;
+
+procedure TCustomBufDataset.DataEvent(Event: TDataEvent; Info: Ptrint);
+begin
+  if Event = deUpdateState then
+    // Save DataSet.State set by DataSet.SetState (filter out State set by DataSet.SetTempState)
+    FOldState := State;
+  inherited;
 end;
 
 function TCustomBufDataset.Fetch: boolean;
