@@ -3,7 +3,7 @@ program tcpstr23;
 {$MODE DELPHI}
 
 type
-  cp1253string = type AnsiString(1253);
+  cp1251string = type AnsiString(1251);
 
 // --- all string types ---
 procedure test_overload1(const s: ShortString); overload;
@@ -17,7 +17,7 @@ procedure test_overload1(const s: AnsiString); overload;
 begin
   halt(1);
 end;
-procedure test_overload1(const s: cp1253string); overload;
+procedure test_overload1(const s: cp1251string); overload;
 begin
   halt(1);
 end;
@@ -39,7 +39,7 @@ procedure test_overload2(const s: AnsiString); overload;
 begin
   halt(2);
 end;
-procedure test_overload2(const s: cp1253string); overload;
+procedure test_overload2(const s: cp1251string); overload;
 begin
   halt(2);
 end;
@@ -57,7 +57,7 @@ end;
 procedure test_overload3(const s: AnsiString); overload;
 begin
 end;
-procedure test_overload3(const s: cp1253string); overload;
+procedure test_overload3(const s: cp1251string); overload;
 begin
   halt(3);
 end;
@@ -72,7 +72,7 @@ begin
 end;
 {$endif}
 // --- no ShortString, UTF8String, AnsiString ---
-procedure test_overload4(const s: cp1253string); overload;
+procedure test_overload4(const s: cp1251string); overload;
 begin
 end;
 procedure test_overload4(const s: unicodestring); overload;
