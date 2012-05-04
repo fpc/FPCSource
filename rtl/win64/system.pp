@@ -96,9 +96,10 @@ var
   hprevinst,
   MainInstance : qword;
   cmdshow     : longint;
-  DLLreason,DLLparam:longint;
+  DLLreason : dword;
+  DLLparam : PtrInt;
 type
-  TDLL_Entry_Hook = procedure (dllparam : longint);
+  TDLL_Entry_Hook = procedure (dllparam : PtrInt);
 
 const
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
@@ -442,22 +443,22 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
 
 
 
-procedure _FPC_DLLMainCRTStartup(_hinstance : qword;_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
+procedure _FPC_DLLMainCRTStartup(_hinstance : qword;_dllreason : dword;_dllparam:Pointer);stdcall;public name '_DLLMainCRTStartup';
 begin
   IsConsole:=true;
   sysinstance:=_hinstance;
   dllreason:=_dllreason;
-  dllparam:=_dllparam;
+  dllparam:=PtrInt(_dllparam);
   DLL_Entry;
 end;
 
 
-procedure _FPC_DLLWinMainCRTStartup(_hinstance : qword;_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup';
+procedure _FPC_DLLWinMainCRTStartup(_hinstance : qword;_dllreason : dword;_dllparam:Pointer);stdcall;public name '_DLLWinMainCRTStartup';
 begin
   IsConsole:=false;
   sysinstance:=_hinstance;
   dllreason:=_dllreason;
-  dllparam:=_dllparam;
+  dllparam:=PtrInt(_dllparam);
   DLL_Entry;
 end;
 

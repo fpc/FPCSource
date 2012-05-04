@@ -100,12 +100,12 @@ var
   hprevinst,
   MainInstance,
   cmdshow     : longint;
-  DLLreason : longint; public name 'operatingsystem_dllreason';
-  DLLparam : longint; public name 'operatingsystem_dllparam';
+  DLLreason : dword; public name 'operatingsystem_dllreason';
+  DLLparam : PtrInt; public name 'operatingsystem_dllparam';
   StartupConsoleMode : DWORD;
 
 type
-  TDLL_Entry_Hook = procedure (dllparam : longint);
+  TDLL_Entry_Hook = procedure (dllparam : PtrInt);
 
 const
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
