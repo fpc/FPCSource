@@ -348,10 +348,12 @@ implementation
         if m_systemcodepage in current_settings.modeswitches then
           begin
             current_settings.sourcecodepage:=DefaultSystemCodePage;
+            if not cpavailable(current_settings.sourcecodepage) then
+              current_settings.sourcecodepage:=default_settings.sourcecodepage;
             include(current_settings.moduleswitches,cs_explicit_codepage);
             if changeinit then
             begin
-              init_settings.sourcecodepage:=DefaultSystemCodePage;
+              init_settings.sourcecodepage:=current_settings.sourcecodepage;
               include(init_settings.moduleswitches,cs_explicit_codepage);
             end;
           end
