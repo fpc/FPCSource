@@ -107,6 +107,7 @@ begin
                (FLookupResultField = '') or (FKeyFields = '')) then
               DatabaseErrorFmt(SLookupInfoError, [DisplayName]);
             FFields.CheckFieldNames(FKeyFields);
+            FLookupDataSet.Open;
             FLookupDataSet.Fields.CheckFieldNames(FLookupKeyFields);
             FLookupDataSet.FieldByName(FLookupResultField);
             if FLookupCache then RefreshLookupList;
