@@ -910,6 +910,12 @@ implementation
                     end;
                   inc(curinspos);
                 end;
+              ait_align:
+                begin
+                  { code is always 4 byte aligned, so we don't have to take care of .align 2 which would
+                    requires also incrementing curinspos by 1 }
+                  inc(curinspos,(tai_align(curtai).aligntype div 4));
+                end;
               ait_const:
                 begin
                   inc(curinspos);
@@ -939,6 +945,9 @@ implementation
               begin
                 penalty:=1;
                 hp:=tai(hp.next);
+                { skip register allocations inserted by the optimizer }
+                while assigned(hp) and (hp.typ=ait_regalloc) do
+                  hp:=tai(hp.next);
                 while assigned(hp) and (hp.typ=ait_const) do
                   begin
                     inc(penalty);
