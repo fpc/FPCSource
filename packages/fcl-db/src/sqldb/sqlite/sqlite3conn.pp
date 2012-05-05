@@ -98,6 +98,14 @@ type
   published
     property Options: TSqliteOptions read FOptions write SetOptions;
   end;
+
+  { TSQLite3ConnectionDef }
+
+  TSQLite3ConnectionDef = class(TConnectionDef)
+    class function TypeName: string; override;
+    class function ConnectionClass: TSQLConnectionClass; override;
+    class function Description: string; override;
+  end;
   
 Var
   SQLiteLibraryName : String = sqlite3lib; 
@@ -945,5 +953,28 @@ begin
    foptions:= avalue;
    end;
 end;
+
+{ TSQLite3ConnectionDef }
+
+class function TSQLite3ConnectionDef.TypeName: string;
+begin
+  Result := 'SQLite3';
+end;
+
+class function TSQLite3ConnectionDef.ConnectionClass: TSQLConnectionClass;
+begin
+  Result := TSQLite3Connection;
+end;
+
+class function TSQLite3ConnectionDef.Description: string;
+begin
+  Result := 'Connect to a SQLite3 database directly via the client library';
+end;
+
+initialization
+  RegisterConnection(TSQLite3ConnectionDef);
+
+finalization
+  UnRegisterConnection(TSQLite3ConnectionDef);
 
 end.
