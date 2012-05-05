@@ -20,6 +20,10 @@ type
   );
   { corresponding to single   double   extended   fixed      comp for i386 }
 
+{$if not declared(mul_by_power10)}
+  function mul_by_power10 (x : ValReal; power : integer) : ValReal; forward;
+{$endif}
+
 Procedure str_real (len,f : longint; d : ValReal; real_type :treal_type; out s : string);
 {$ifdef SUPPORT_EXTENDED}
 type
@@ -68,6 +72,7 @@ var
   doublebits: int64;
 {$endif}
   roundCorr, corrVal, factor : valReal;
+  high_exp10_reduced,
   spos, endpos, fracCount: longint;
   correct, currprec: longint;
   temp : string;
@@ -184,6 +189,33 @@ const
 {$ifdef DEBUG_NASM}
     writeln(stderr,'temp at getintpart exit is = ',temp);
 {$endif DEBUG_NASM}
+  end;
+
+  function reduce_exponent (d : ValReal; out scaled : ValReal) : longint;
+  { Returns decimal exponent which was used for scaling, and a scaled value out }
+  const
+    C_LN10 = ln(10);
+  var
+    log10_d : longint;
+  begin
+    reduce_exponent := 0;
+    if d<>0 then
+      begin
+       // get exponent approximation ["d" is assumed to be non-negative]
+        log10_d:=trunc(ln(d)/C_LN10);
+       // trying to stay at least 1 digit away from introducing integer/fractional part
+        if log10_d > maxDigits+1 then
+          reduce_exponent := log10_d-maxDigits
+        else
+          if log10_d < -(maxDigits+1) then
+            reduce_exponent := log10_d+maxDigits
+       // else
+       //   the number is already suitable enough
+      end;
+    // do scaling if needed
+    if reduce_exponent<>0
+      then scaled := mul_by_power10(d,-reduce_exponent) // denormals should be handled properly by this call
+      else scaled := d;
   end;
 
 begin
@@ -351,9 +383,31 @@ begin
       temp := ' 0';
       { position in the temporary output string }
       spos := 2;
+
+      // workaround to make follow-up things go somewhat faster
+      high_exp10_reduced := 0;
+      case real_type of
+      // blacklist, in order of increasing headache:
+//?     rt_s32real :;   
+          // ? needs additional testing to ensure any reasonable benefit
+          //   without lost of accuracy due to an extra conversion
+        rt_c64bit, rt_currency :;
+          // no much sense to touch them
+      else
+      // acceptable:
+      // ? rt_s32real [see above]
+      //   rt_s64real
+      //   rt_s80real, rt_sc80real
+      // ? rt_s128real [have not tried]
+        high_exp10_reduced := reduce_exponent(d,d);
+      end;
+  
       { get the integer part }
       correct := 0;
       GetIntPart(d);
+
+      inc(correct,high_exp10_reduced); // end of workaround
+
       { now process the fractional part }
       if d > 1.0- roundCorr then
         d := frac(d);
