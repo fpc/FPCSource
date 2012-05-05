@@ -22,6 +22,7 @@
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
       PTHREAD_CREATE_DETACHED      = 1;
       PTHREAD_SCOPE_PROCESS        = 0;
+      SEM_SAFE = 255;
 
  TYPE
     ppthread_t      = ^pthread_t;
@@ -36,8 +37,41 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     ppthread_mutexattr_t = ^pthread_mutexattr_t;
     ppthread_mutex_attr_t = ^pthread_mutexattr_t;
 
-    sem_t           = cint;
-    psem_t          = ^sem_t;
+{
+  From FreeBSD 8.2 sys/_semaphore.h
+}
+
+(*
+struct sem {
+#define SEM_MAGIC       ((u_int32_t) 0x09fa4012)
+        u_int32_t       magic;
+        pthread_mutex_t lock;
+        pthread_cond_t  gtzero;
+        u_int32_t       count;
+        u_int32_t       nwaiters;
+#define SEM_USER        (NULL)
+        semid_t         semid;  /* semaphore id if kernel (shared) semaphore */
+        int             syssem; /* 1 if kernel (shared) semaphore */
+        LIST_ENTRY(sem) entry;
+        struct sem      **backpointer;
+}; *)
+    semid_t        = pointer;
+    psem_t         = ^sem_t;
+    ppsem_t        = ^psem_t;
+    sem_t = record
+       magic   : cuint32;
+       lock    : pthread_mutex_t;
+       gtzero  : pthread_cond_t;
+       count   : cuint32;
+       nwaiters: cuint32;
+       semid   : semid_t;
+       sysse   : cint;
+       entry   : psem_t;
+       backpointer : ppsem_t;
+       spare   : array[0..SEM_SAFE] of char;
+
+    end;
+
     TSemaphore         = sem_t;
     PSemaphore         = ^TSemaphore;
 
