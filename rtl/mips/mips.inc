@@ -57,21 +57,36 @@ var
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
   asm
-    lw $2,0($sp)
+    { we need to use the information of the .pdr section to do this properly:
+       0 proc. start adress
+       4 regmask
+       8 reg. offset
+      12 fmask
+      16 foffset
+      20 frame size
+      24 stack reg
+      28 link reg
+
+      Further, we need to know the pc
+    }
+    // lw $2,0($sp)
+    lui $2,0
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
   asm
-    lw $2,4($4) // #movl    4(%eax),%eax
+    // lw $2,4($4) // #movl    4(%eax),%eax
+    lui $2,0
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
   asm
-    lw $2,0($4) // #movl    (%eax),%eax
+    // lw $2,0($4) // #movl    (%eax),%eax
+    lui $2,0
   end;
 
 
