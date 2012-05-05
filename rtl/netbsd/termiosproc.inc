@@ -73,11 +73,19 @@ begin
    end;
 end;
 
-Function TCSendBreak(fd,duration:cint):cint;
+Function TCSendBreak(fd,duration:cint):cint; {$ifdef VER2_0}inline;{$endif}
+var
+    sleepytime : ttimeval;
 begin
-  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,nil);
+ sleepytime.tv_sec := 0;
+ sleepytime.tv_usec := 400000;
+ if fpioctl(fd, TIOCSBRK, nil) = -1 then
+    exit(-1);
+ fpselect(0, nil, nil, nil, @sleepytime);
+ if fpioctl(fd, TIOCCBRK, nil) = -1 then
+   exit(-1);
+ TCSendBreak:=0;
 end;
-
 
 Function TCSetPGrp(fd,id:cint):cint;
 begin
@@ -95,14 +103,38 @@ begin
   TCDrain:=fpIOCtl(fd,TIOCDRAIN,nil); {Should set timeout to 1 first?}
 end;
 
+const 
+   _POSIX_VDISABLE = $ff;
 
-Function TCFlow(fd,act:cint):cint;
+Function TCFlow(fd,act:cint):cint; {$ifdef VER2_0}inline;{$endif}
+var
+  term:Termios;
+  c : cuchar;
+  tmp : cint;
 begin
     case act OF
      TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,nil);
      TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,nil);
-     TCIOFF :  {N/I}
-    end;
+     TCION,
+     TCIOFF :  begin
+	         if tcgetattr(fd, term) = -1 then
+                        exit(-1);
+                 if act=TCIOFF then  
+                   tmp:=VSTOP
+                 else
+                   tmp:=VSTART;
+                 c:=term.c_cc[tmp];
+                 if (c <> _POSIX_VDISABLE) and 
+			(fpwrite(fd, c, sizeof(c)) = -1) then
+                   exit (-1);
+                TCFlow:=0;
+              end;
+          else
+            begin
+              errno := esysEINVAL;
+              exit(-1);
+            end;
+      end;
 end;
 
 const FREAD  = 1; // marked "BSD visible"
