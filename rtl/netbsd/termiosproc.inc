@@ -105,9 +105,23 @@ begin
     end;
 end;
 
-Function TCFlush(fd,qsel:cint):cint;
+const FREAD  = 1; // marked "BSD visible"
+      FWRITE = 2;
+
+Function TCFlush(fd,qsel:cint):cint;  {$ifdef VER2_0}inline;{$endif}
+var comval : cint;
 begin
-  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
+  case qsel of
+     TCIFlush  : comval:=FREAD;
+     TCOFlush  : comval:=FWRITE;
+     TCIOFlush : comval:=FREAD or FWRITE;
+    else
+     begin
+       errno:=ESysEINVAL;
+       exit(-1);
+     end;
+   end;
+  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(@comval));
 end;
 
 Function IsATTY (Handle:cint):cint;
