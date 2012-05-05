@@ -232,15 +232,16 @@ Type
 
   pthread_key_t = cuint;
 
-  pthread_rwlock_t = record
-    __rw_readers: cint;
-    __rw_writer: pointer;
-    __rw_read_waiting: pointer;
-    __rw_write_waiting: pointer;
-    __rw_kind: cint;
-    __rw_pshared: cint;
-  end;
+const
+  pthreadrwlocksize =  {$ifdef CPU64} 56{$else}32{$endif};
 
+type 
+
+  pthread_rwlock_t = record // should be 56 for 64-bit, 32 bytes for 32-bit mantis #21552
+			case boolean of
+			 false : (_data : array[0..pthreadrwlocksize-1] of char);
+		         true  : (align : clong);
+  end;
   pthread_rwlockattr_t = record
     __lockkind: cint;
     __pshared: cint;
