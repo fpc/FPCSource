@@ -78,10 +78,18 @@ begin
 end;
 
 Function TCSendBreak(fd,duration:cint):cint; {$ifdef VER2_0}inline;{$endif}
+var
+    sleepytime : ttimeval;
 begin
-  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,nil);
+ sleepytime.tv_sec := 0;
+ sleepytime.tv_usec := 400000;
+ if fpioctl(fd, TIOCSBRK, nil) = -1 then
+    exit(-1);
+ fpselect(0, nil, nil, nil, @sleepytime);
+ if fpioctl(fd, TIOCCBRK, nil) = -1 then
+   exit(-1);
+ TCSendBreak:=0;
 end;
-
 
 Function TCSetPGrp(fd,id:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
