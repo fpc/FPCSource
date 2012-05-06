@@ -1497,26 +1497,26 @@ const msgtxt : array[0..000273,1..240] of char=(
   '**1X_Executable options:'#010+
   '**2Xc_Pass --shared/-dyna','mic to the linker (BeOS, Darwin, FreeBSD, L'+
   'inux)'#010+
-  '**2Xd_Do not use standard library search path (needed for cross compil'+
-  'e)'#010+
+  '**2Xd_Do not search default library path (sometimes required for cross'+
+  '-compiling when not using -XR)'#010+
   '**2Xe_Use external linker'#010+
-  '**2Xg_Create debuginfo in a separate file and add a debuglink section '+
-  'to executable'#010+
-  '**2XD_Tr','y to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
+  '**2Xg_Create debuginfo in a separate file and add a debuglink se','ctio'+
+  'n to executable'#010+
+  '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
   '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
-  'F*2Xp<x>_First search for the compiler binary in the direc','tory <x>'#010+
+  'F*2Xp<x>_First search for the ','compiler binary in the directory <x>'#010+
   '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
   '**2Xr<x>_Set the linker'#039's rlink-path to <x> (needed for cross comp'+
   'ile, see the ld manual for more information) (BeOS, Linux)'#010+
-  '**2XR<x>_Prepend <x> to all linker search paths (B','eOS, Darwin, FreeB'+
+  '**2XR<x>_Prepend <x> t','o all linker search paths (BeOS, Darwin, FreeB'+
   'SD, Linux, Mac OS, Solaris)'#010+
   '**2Xs_Strip all symbols from executable'#010+
   '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
-  '**2Xt_Link with static libraries (-static is passed to linker)'#010+
-  '**2XX_Try to smartlin','k units             (defines FPC_LINK_SMART)'#010+
+  '**2Xt_Link with static libraries (-static is passed to l','inker)'#010+
+  '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+
   '**1h_Shows this help without waiting'
