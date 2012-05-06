@@ -314,54 +314,79 @@ implementation
       end;
 
 
-    Procedure HandleModeSwitches(changeInit: boolean);
+    Procedure HandleModeSwitches(switch: tmodeswitch; changeInit: boolean);
       begin
-        { turn ansi/unicodestrings on by default ? }
-        if ([m_default_ansistring,m_default_unicodestring]*current_settings.modeswitches)<>[] then
-         begin
-           include(current_settings.localswitches,cs_refcountedstrings);
-           if changeinit then
-            include(init_settings.localswitches,cs_refcountedstrings);
-         end
-        else
-         begin
-           exclude(current_settings.localswitches,cs_refcountedstrings);
-           if changeinit then
-            exclude(init_settings.localswitches,cs_refcountedstrings);
-         end;
+        { turn ansi/unicodestrings on by default ? (only change when this
+          particular setting is changed, so that a random modeswitch won't
+          change the state of $h+/$h-) }
+        if switch in [m_all,m_default_ansistring,m_default_unicodestring] then
+          begin
+            if ([m_default_ansistring,m_default_unicodestring]*current_settings.modeswitches)<>[] then
+              begin
+                { can't have both ansistring and unicodestring as default }
+                if switch=m_default_ansistring then
+                  begin
+                    exclude(current_settings.modeswitches,m_default_unicodestring);
+                    if changeinit then
+                      exclude(init_settings.modeswitches,m_default_unicodestring);
+                  end
+                else if switch=m_default_unicodestring then
+                  begin
+                    exclude(current_settings.modeswitches,m_default_ansistring);
+                    if changeinit then
+                      exclude(init_settings.modeswitches,m_default_ansistring);
+                  end;
+                { enable $h+ }
+                include(current_settings.localswitches,cs_refcountedstrings);
+                if changeinit then
+                  include(init_settings.localswitches,cs_refcountedstrings);
+              end
+            else
+              begin
+                exclude(current_settings.localswitches,cs_refcountedstrings);
+                if changeinit then
+                  exclude(init_settings.localswitches,cs_refcountedstrings);
+              end;
+          end;
 
         { turn inline on by default ? }
-        if (m_default_inline in current_settings.modeswitches) then
-         begin
-           include(current_settings.localswitches,cs_do_inline);
-           if changeinit then
-            include(init_settings.localswitches,cs_do_inline);
-         end
-        else
-         begin
-           exclude(current_settings.localswitches,cs_do_inline);
-           if changeinit then
-            exclude(init_settings.localswitches,cs_do_inline);
-         end;
+        if switch in [m_all,m_default_inline] then
+          begin
+            if (m_default_inline in current_settings.modeswitches) then
+             begin
+               include(current_settings.localswitches,cs_do_inline);
+               if changeinit then
+                 include(init_settings.localswitches,cs_do_inline);
+             end
+            else
+             begin
+               exclude(current_settings.localswitches,cs_do_inline);
+               if changeinit then
+                 exclude(init_settings.localswitches,cs_do_inline);
+             end;
+          end;
 
-        { turn system codepage by default }
-        if m_systemcodepage in current_settings.modeswitches then
+        { turn on system codepage by default }
+        if switch in [m_all,m_systemcodepage] then
           begin
-            current_settings.sourcecodepage:=DefaultSystemCodePage;
-            if not cpavailable(current_settings.sourcecodepage) then
-              current_settings.sourcecodepage:=default_settings.sourcecodepage;
-            include(current_settings.moduleswitches,cs_explicit_codepage);
-            if changeinit then
-            begin
-              init_settings.sourcecodepage:=current_settings.sourcecodepage;
-              include(init_settings.moduleswitches,cs_explicit_codepage);
-            end;
-          end
-        else
-          begin
-            exclude(current_settings.moduleswitches,cs_explicit_codepage);
-            if changeinit then
-              exclude(init_settings.moduleswitches,cs_explicit_codepage);
+            if m_systemcodepage in current_settings.modeswitches then
+              begin
+                current_settings.sourcecodepage:=DefaultSystemCodePage;
+                if not cpavailable(current_settings.sourcecodepage) then
+                  current_settings.sourcecodepage:=default_settings.sourcecodepage;
+                include(current_settings.moduleswitches,cs_explicit_codepage);
+                if changeinit then
+                begin
+                  init_settings.sourcecodepage:=current_settings.sourcecodepage;
+                  include(init_settings.moduleswitches,cs_explicit_codepage);
+                end;
+              end
+            else
+              begin
+                exclude(current_settings.moduleswitches,cs_explicit_codepage);
+                if changeinit then
+                  exclude(init_settings.moduleswitches,cs_explicit_codepage);
+              end;
           end;
       end;
 
@@ -422,7 +447,7 @@ implementation
            { resolve all postponed switch changes }
            flushpendingswitchesstate;
 
-           HandleModeSwitches(changeinit);
+           HandleModeSwitches(m_all,changeinit);
 
            { turn on bitpacking for mode macpas and iso pascal }
            if ([m_mac,m_iso] * current_settings.modeswitches <> []) then
@@ -579,7 +604,7 @@ implementation
                 end;
 
               { set other switches depending on changed mode switch }
-              HandleModeSwitches(changeinit);
+              HandleModeSwitches(i,changeinit);
 
               if changeInit then
                 init_settings.modeswitches:=current_settings.modeswitches;
