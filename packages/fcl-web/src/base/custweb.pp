@@ -84,6 +84,7 @@ Type
 
   TWebHandler = class(TComponent)
   private
+    FDefaultModuleName: String;
     FOnIdle: TNotifyEvent;
     FOnInitModule: TInitModuleEvent;
     FOnUnknownRequestEncoding: TOnUnknownEncodingEvent;
@@ -127,6 +128,7 @@ Type
     Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write FRedirectOnErrorURL;
     Property ApplicationURL : String Read FApplicationURL Write FApplicationURL;
     Property AllowDefaultModule : Boolean Read FAllowDefaultModule Write FAllowDefaultModule;
+    Property DefaultModuleName : String Read FDefaultModuleName Write FDefaultModuleName;
     Property ModuleVariable : String Read FModuleVar Write FModuleVar;
     Property OnGetModule : TGetModuleEvent Read FOnGetModule Write FOnGetModule;
     Property Email : String Read GetEmail Write FEmail;
@@ -147,6 +149,7 @@ Type
     function GetAdministrator: String;
     function GetAllowDefaultModule: Boolean;
     function GetApplicationURL: String;
+    function GetDefaultModuleName: String;
     function GetEmail: String;
     function GetEventLog: TEventLog;
     function GetHandleGetOnPost: Boolean;
@@ -160,6 +163,7 @@ Type
     procedure SetAdministrator(const AValue: String);
     procedure SetAllowDefaultModule(const AValue: Boolean);
     procedure SetApplicationURL(const AValue: String);
+    procedure SetDefaultModuleName(AValue: String);
     procedure SetEmail(const AValue: String);
     procedure SetHandleGetOnPost(const AValue: Boolean);
     procedure SetModuleVar(const AValue: String);
@@ -187,6 +191,7 @@ Type
     Property RedirectOnErrorURL : string Read GetRedirectOnErrorURL Write SetRedirectOnErrorURL;
     Property ApplicationURL : String Read GetApplicationURL Write SetApplicationURL;
     Property AllowDefaultModule : Boolean Read GetAllowDefaultModule Write SetAllowDefaultModule;
+    Property DefaultModuleName : String Read GetDefaultModuleName Write SetDefaultModuleName;
     Property ModuleVariable : String Read GetModuleVar Write SetModuleVar;
     Property OnGetModule : TGetModuleEvent Read GetOnGetModule Write SetOnGetModule;
     Property Email : String Read GetEmail Write SetEmail;
@@ -389,7 +394,9 @@ function TWebHandler.GetModuleName(Arequest: TRequest): string;
    Function GetDefaultModuleName : String;
 
    begin
-      If (ModuleFactory.Count=1) then
+      if (DefaultModuleName<>'') then
+        Result:=DefaultModuleName
+      else if (ModuleFactory.Count=1) then
         Result:=ModuleFactory[0].ModuleName;
    end;
 
@@ -493,6 +500,11 @@ begin
   result := FWebHandler.ApplicationURL;
 end;
 
+function TCustomWebApplication.GetDefaultModuleName: String;
+begin
+  Result:=FWebHandler.DefaultModuleName;
+end;
+
 function TCustomWebApplication.GetEmail: String;
 begin
   result := FWebHandler.Email;
@@ -565,6 +577,11 @@ end;
 procedure TCustomWebApplication.SetApplicationURL(const AValue: String);
 begin
   FWebHandler.ApplicationURL := AValue;
+end;
+
+procedure TCustomWebApplication.SetDefaultModuleName(AValue: String);
+begin
+  FWebHandler.DefaultModuleName:=AValue;
 end;
 
 procedure TCustomWebApplication.SetEmail(const AValue: String);
