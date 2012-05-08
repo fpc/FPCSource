@@ -80,6 +80,7 @@ type
     procedure TestMultipleDeleteUpdateBuffer;
     procedure TestDoubleDelete;
     procedure TestReadOnly;
+    procedure TestMergeChangeLog;
   // index tests
     procedure TestAddIndexInteger;
     procedure TestAddIndexSmallInt;
@@ -1401,6 +1402,32 @@ begin
     begin
     ReadOnly:=true;
     CheckFalse(CanModify);
+    end;
+end;
+
+procedure TTestBufDatasetDBBasics.TestMergeChangeLog;
+var
+  ds: TCustomBufDataset;
+  i: integer;
+  s: string;
+begin
+  ds := DBConnector.GetNDataset(5) as TCustomBufDataset;
+  with ds do
+    begin
+    open;
+    Edit;
+    i := fields[0].AsInteger;
+    s := fields[1].AsString;
+    fields[0].AsInteger:=64;
+    fields[1].AsString:='Changed';
+    Post;
+    checkequals(fields[0].OldValue,i);
+    checkequals(fields[1].OldValue,s);
+    CheckEquals(ChangeCount,1);
+    MergeChangeLog;
+    CheckEquals(ChangeCount,0);
+    checkequals(fields[0].OldValue,64);
+    checkequals(fields[1].OldValue,'Changed');
     end;
 end;
 

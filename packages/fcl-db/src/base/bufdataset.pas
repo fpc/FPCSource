@@ -513,6 +513,7 @@ type
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
     procedure ApplyUpdates; virtual; overload;
     procedure ApplyUpdates(MaxErrors: Integer); virtual; overload;
+    procedure MergeChangeLog;
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
@@ -2111,33 +2112,39 @@ begin
       end;
   finally
     if failedcount = 0 then
-      begin
-      SetLength(FUpdateBuffer,0);
-
-      if assigned(FUpdateBlobBuffers) then for r:=0 to length(FUpdateBlobBuffers)-1 do
-       if assigned(FUpdateBlobBuffers[r]) then
-        begin
-        if FUpdateBlobBuffers[r]^.OrgBufID >= 0 then
-          begin
-          Freemem(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]^.Buffer);
-          Dispose(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
-          FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID] :=FUpdateBlobBuffers[r];
-          end
-        else
-          begin
-          setlength(FBlobBuffers,length(FBlobBuffers)+1);
-          FUpdateBlobBuffers[r]^.OrgBufID := high(FBlobBuffers);
-          FBlobBuffers[high(FBlobBuffers)] := FUpdateBlobBuffers[r];
-          
-          end;
-        end;
-      SetLength(FUpdateBlobBuffers,0);
-      end;
+      MergeChangeLog;
 
     InternalGotoBookmark(@StoreCurrRec);
     Resync([]);
     EnableControls;
   end;
+end;
+
+procedure TCustomBufDataset.MergeChangeLog;
+
+var r            : Integer;
+
+begin
+  SetLength(FUpdateBuffer,0);
+
+  if assigned(FUpdateBlobBuffers) then for r:=0 to length(FUpdateBlobBuffers)-1 do
+   if assigned(FUpdateBlobBuffers[r]) then
+    begin
+    if FUpdateBlobBuffers[r]^.OrgBufID >= 0 then
+      begin
+      Freemem(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]^.Buffer);
+      Dispose(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
+      FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID] :=FUpdateBlobBuffers[r];
+      end
+    else
+      begin
+      setlength(FBlobBuffers,length(FBlobBuffers)+1);
+      FUpdateBlobBuffers[r]^.OrgBufID := high(FBlobBuffers);
+      FBlobBuffers[high(FBlobBuffers)] := FUpdateBlobBuffers[r];
+
+      end;
+    end;
+  SetLength(FUpdateBlobBuffers,0);
 end;
 
 
