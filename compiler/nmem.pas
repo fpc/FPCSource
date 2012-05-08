@@ -857,6 +857,9 @@ implementation
                                                       asizeint(Tarraydef(left.resultdef).highrange)
                                                      ))
                  else if (htype.typ=orddef) and
+                    { right can also be a variant or another type with
+                      overloaded assignment }
+                    (right.resultdef.typ=orddef) and
                     { don't try to create boolean types with custom ranges }
                     not is_boolean(right.resultdef) and
                     { ordtype determines the size of the loaded value -> make
