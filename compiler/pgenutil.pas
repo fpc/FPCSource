@@ -73,7 +73,8 @@ uses
         first,
         err : boolean;
         i,
-        gencount,crc : longint;
+        gencount : longint;
+        crc : cardinal;
         genericdef,def : tstoreddef;
         generictype : ttypesym;
         genericdeflist : TFPObjectList;
