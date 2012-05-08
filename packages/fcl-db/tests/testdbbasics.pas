@@ -1132,15 +1132,60 @@ begin
   with DBConnector.GetNDataset(15) do
     begin
     Open;
-    //FilterOptions := [foNoPartialCompare];
-    //FilterOptions := [];
-    Filter := '(name=''*Name3'')';
+    Filter := '(name=''TestName3'')';
     Filtered := True;
     CheckFalse(EOF);
     CheckEquals(3,FieldByName('ID').asinteger);
     CheckEquals('TestName3',FieldByName('NAME').asstring);
     next;
     CheckTrue(EOF);
+
+    // Check partial compare
+    Filter := '(name=''*Name5'')';
+    CheckFalse(EOF);
+    CheckEquals(5,FieldByName('ID').asinteger);
+    CheckEquals('TestName5',FieldByName('NAME').asstring);
+    next;
+    CheckTrue(EOF);
+
+    // Check case-sensitivity
+    Filter := '(name=''*name3'')';
+    first;
+    CheckTrue(EOF);
+
+    FilterOptions:=[foCaseInsensitive];
+    Filter := '(name=''testname3'')';
+    first;
+    CheckFalse(EOF);
+    CheckEquals(3,FieldByName('ID').asinteger);
+    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    next;
+    CheckTrue(EOF);
+
+    // Check case-insensitive partial compare
+    Filter := '(name=''*name3'')';
+    first;
+    CheckFalse(EOF);
+    CheckEquals(3,FieldByName('ID').asinteger);
+    CheckEquals('TestName3',FieldByName('NAME').asstring);
+    next;
+    CheckTrue(EOF);
+
+    Filter := '(name=''*name*'')';
+    first;
+    CheckFalse(EOF);
+    CheckEquals(1,FieldByName('ID').asinteger);
+    CheckEquals('TestName1',FieldByName('NAME').asstring);
+    next;
+    CheckFalse(EOF);
+    CheckEquals(2,FieldByName('ID').asinteger);
+    CheckEquals('TestName2',FieldByName('NAME').asstring);
+
+    Filter := '(name=''*neme*'')';
+    first;
+    CheckTrue(EOF);
+
+
     Close;
     end;
 end;
