@@ -1300,7 +1300,9 @@ implementation
              bitmask := high(aword);
            a_op_const_reg(list,OP_AND,sreg.subsetregsize,tcgint(bitmask),tmpreg);
          end;
-       a_load_reg_reg(list,sreg.subsetregsize,tosize,tmpreg,destreg);
+       tmpreg := makeregsize(list,tmpreg,subsetsize);
+       a_load_reg_reg(list,tcgsize2unsigned[subsetsize],subsetsize,tmpreg,tmpreg);
+       a_load_reg_reg(list,subsetsize,tosize,tmpreg,destreg);
      end;
 
 
