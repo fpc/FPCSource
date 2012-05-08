@@ -145,7 +145,7 @@ implementation
                { make sure we don't try to call resultdef.size for types that
                  don't have a compile-time size such as open arrays }
                is_special_array(tunarynode(n).left.resultdef) or
-               (tsubscriptnode(n).left.resultdef.size <> tunarynode(n).resultdef.size) then
+               (tunarynode(n).left.resultdef.size<>tunarynode(n).resultdef.size) then
               result := fen_norecurse_false;
 
           { optimize the searching a bit }
