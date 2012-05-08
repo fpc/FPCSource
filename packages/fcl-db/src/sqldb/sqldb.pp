@@ -212,7 +212,6 @@ type
     FDeleteSQL           : TStringList;
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
-    FReadOnly            : boolean;
     FUpdateMode          : TUpdateMode;
     FParams              : TParams;
     FusePrimaryKeyAsKey  : Boolean;
@@ -241,7 +240,6 @@ type
     function GetStatementType : TStatementType;
     procedure SetDeleteSQL(const AValue: TStringlist);
     procedure SetInsertSQL(const AValue: TStringlist);
-    procedure SetReadOnly(AValue : Boolean);
     procedure SetParseSQL(AValue : Boolean);
     procedure SetSQL(const AValue: TStringlist);
     procedure SetUpdateSQL(const AValue: TStringlist);
@@ -275,6 +273,7 @@ type
     Procedure SetDataSource(AValue : TDatasource);
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     procedure BeforeRefreshOpenCursor; override;
+    procedure SetReadOnly(AValue : Boolean); override;
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
   public
@@ -322,7 +321,6 @@ type
   // protected
     property SchemaType : TSchemaType read FSchemaType default stNoSchema;
     property Transaction;
-    property ReadOnly : Boolean read FReadOnly write SetReadOnly default false;
     property SQL : TStringlist read FSQL write SetSQL;
     property UpdateSQL : TStringlist read FUpdateSQL write SetUpdateSQL;
     property InsertSQL : TStringlist read FInsertSQL write SetInsertSQL;
@@ -1482,7 +1480,6 @@ begin
 
   FServerIndexDefs := TServerIndexDefs.Create(Self);
 
-  FReadOnly := false;
   FParseSQL := True;
 
   FServerFiltered := False;
@@ -1517,7 +1514,7 @@ procedure TCustomSQLQuery.SetReadOnly(AValue : Boolean);
 
 begin
   CheckInactive;
-  FReadOnly:=AValue;
+  inherited SetReadOnly(AValue);
 end;
 
 procedure TCustomSQLQuery.SetParseSQL(AValue : Boolean);
@@ -1707,7 +1704,7 @@ Function TCustomSQLQuery.GetCanModify: Boolean;
 begin
   // the test for assigned(FCursor) is needed for the case that the dataset isn't opened
   if assigned(FCursor) and (FCursor.FStatementType = stSelect) then
-    Result:= FUpdateable and (not FReadOnly) and (not IsUniDirectional)
+    Result:= FUpdateable and (not ReadOnly) and (not IsUniDirectional)
   else
     Result := False;
 end;

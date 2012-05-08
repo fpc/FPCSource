@@ -79,6 +79,7 @@ type
     procedure TestBufDatasetCancelUpd1;
     procedure TestMultipleDeleteUpdateBuffer;
     procedure TestDoubleDelete;
+    procedure TestReadOnly;
   // index tests
     procedure TestAddIndexInteger;
     procedure TestAddIndexSmallInt;
@@ -1388,6 +1389,18 @@ begin
     CheckEquals(4,fieldbyname('id').AsInteger);
     next;
     CheckEquals(5,fieldbyname('id').AsInteger);
+    end;
+end;
+
+procedure TTestBufDatasetDBBasics.TestReadOnly;
+var
+  ds: TCustomBufDataset;
+begin
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
+  with ds do
+    begin
+    ReadOnly:=true;
+    CheckFalse(CanModify);
     end;
 end;
 

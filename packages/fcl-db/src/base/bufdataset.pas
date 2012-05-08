@@ -407,6 +407,7 @@ type
 
     FFilterBuffer   : TRecordBuffer;
     FBRecordCount   : integer;
+    FReadOnly       : Boolean;
 
     FSavedState     : TDatasetState;
     FPacketRecords  : integer;
@@ -495,6 +496,7 @@ type
     procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
     procedure BeforeRefreshOpenCursor; virtual;
     procedure DoFilterRecord(out Acceptable: Boolean); virtual;
+    procedure SetReadOnly(AValue: Boolean); virtual;
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
@@ -531,6 +533,7 @@ type
 
     property ChangeCount : Integer read GetChangeCount;
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount default 2;
+    property ReadOnly : Boolean read FReadOnly write SetReadOnly default false;
   published
     property FileName : string read FFileName write FFileName;
     property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
@@ -550,6 +553,7 @@ type
     Property AutoCalcFields;
     Property Filter;
     Property Filtered;
+    Property Readonly;
     Property AfterCancel;
     Property AfterClose;
     Property AfterDelete;
@@ -1079,7 +1083,7 @@ end;
 
 Function TCustomBufDataset.GetCanModify: Boolean;
 begin
-  Result:= True;
+  Result:=not (UniDirectional or ReadOnly);
 end;
 
 function TCustomBufDataset.IntAllocRecordBuffer: TRecordBuffer;
@@ -1481,6 +1485,11 @@ begin
       InternalAddIndex('','',[],'','');
     BookmarkSize := FCurrentIndex.BookmarkSize;
     end;
+end;
+
+procedure TCustomBufDataset.SetReadOnly(AValue: Boolean);
+begin
+  FReadOnly:=AValue;
 end;
 
 function TCustomBufDataset.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
