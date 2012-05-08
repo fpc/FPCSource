@@ -104,7 +104,8 @@ interface
 {$endif FPC_LITTLE_ENDIAN}
 {$endif}
        CP_UTF8 = 65001;
-       CP_UTF16 = 1200;
+       CP_UTF16LE = 1200;
+       CP_UTF16BE = 1201;
        CP_NONE  = 65535;
 
 

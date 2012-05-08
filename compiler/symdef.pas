@@ -1686,7 +1686,10 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_widestring;
-         encoding:=CP_UTF16;
+         if target_info.endian=endian_little then
+           encoding:=CP_UTF16LE
+         else
+           encoding:=CP_UTF16BE;
          len:=-1;
          savesize:=sizeof(pint);
       end;
@@ -1696,7 +1699,10 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_widestring;
-         encoding:=CP_UTF16;
+         if target_info.endian=endian_little then
+           encoding:=CP_UTF16LE
+         else
+           encoding:=CP_UTF16BE;
          len:=ppufile.getaint;
          savesize:=sizeof(pint);
       end;
@@ -1706,7 +1712,10 @@ implementation
       begin
          inherited create(stringdef);
          stringtype:=st_unicodestring;
-         encoding:=CP_UTF16;
+         if target_info.endian=endian_little then
+           encoding:=CP_UTF16LE
+         else
+           encoding:=CP_UTF16BE;
          len:=-1;
          savesize:=sizeof(pint);
       end;
