@@ -102,7 +102,7 @@ unit cg64f32;
        globtype,systems,constexp,
        verbose,cutils,
        symbase,symconst,symdef,symtable,defutil,paramgr,
-       tgobj;
+       tgobj,hlcgobj;
 
 {****************************************************************************
                                      Helpers
@@ -796,7 +796,7 @@ unit cg64f32;
                  temploc.reference.alignment:=newalignment(temploc.reference.alignment,4);
                end;
 
-             cg.g_rangecheck(list,temploc,hdef,todef);
+             hlcg.g_rangecheck(list,temploc,hdef,todef);
              hdef.owner.deletedef(hdef);
 
              if from_signed and to_signed then
@@ -827,7 +827,7 @@ unit cg64f32;
                  hdef:=torddef.create(s32bit,int64(longint($80000000)),int64(-1));
                  location_copy(temploc,l);
                  temploc.size:=OS_32;
-                 cg.g_rangecheck(list,temploc,hdef,todef);
+                 hlcg.g_rangecheck(list,temploc,hdef,todef);
                  hdef.owner.deletedef(hdef);
                  cg.a_label(list,endlabel);
                end;

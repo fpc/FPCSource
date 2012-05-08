@@ -1707,6 +1707,14 @@ implementation
          { all values are always valid                      }
          is_cbool(todef) then
         exit;
+{$if not defined(cpuhighleveltarget) and not defined(cpu64bitalu)}
+        { handle 64bit rangechecks separate for 32bit processors }
+        if is_64bit(fromdef) or is_64bit(todef) then
+          begin
+             cg64.g_rangecheck64(list,l,fromdef,todef);
+             exit;
+          end;
+{$endif ndef cpuhighleveltarget and ndef cpu64bitalu}
       { only check when assigning to scalar, subranges are different, }
       { when todef=fromdef then the check is always generated         }
       getrange(fromdef,lfrom,hfrom);
@@ -1722,18 +1730,20 @@ implementation
       { operations can at most cause overflows (JM)                        }
       { Note that these checks are mostly processor independent, they only }
       { have to be changed once we introduce 64bit subrange types          }
-      if (fromdef = todef) and
+{$if defined(cpuhighleveltarget) or defined(cpu64bitalu)}
+      if (fromdef=todef) and
          (fromdef.typ=orddef) and
-         (((((torddef(fromdef).ordtype = s64bit) and
+         (((((torddef(fromdef).ordtype=s64bit) and
              (lfrom = low(int64)) and
              (hfrom = high(int64))) or
-            ((torddef(fromdef).ordtype = u64bit) and
+            ((torddef(fromdef).ordtype=u64bit) and
              (lfrom = low(qword)) and
              (hfrom = high(qword))) or
-            ((torddef(fromdef).ordtype = scurrency) and
+            ((torddef(fromdef).ordtype=scurrency) and
              (lfrom = low(int64)) and
              (hfrom = high(int64)))))) then
         exit;
+{$endif cpuhighleveltarget or cpu64bitalu}
       { 32 bit operations are automatically widened to 64 bit on 64 bit addr
         targets }
 {$ifdef cpu32bitaddr}

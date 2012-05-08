@@ -337,15 +337,6 @@ unit hlcg2ll;
           procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
           procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);override;
 
-          {# Generates range checking code. It is to note
-             that this routine does not need to be overridden,
-             as it takes care of everything.
-
-             @param(p Node which contains the value to check)
-             @param(todef Type definition of node to range check)
-          }
-          procedure g_rangecheck(list: TAsmList; const l:tlocation; fromdef,todef: tdef); override;
-
           {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); override;
           procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation);override;
@@ -1107,11 +1098,6 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
   procedure thlcg2ll.g_finalize(list: TAsmList; t: tdef; const ref: treference);
     begin
       cg.g_finalize(list,t,ref);
-    end;
-
-  procedure thlcg2ll.g_rangecheck(list: TAsmList; const l: tlocation; fromdef, todef: tdef);
-    begin
-      cg.g_rangecheck(list,l,fromdef,todef);
     end;
 
   procedure thlcg2ll.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
