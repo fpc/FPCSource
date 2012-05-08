@@ -490,7 +490,7 @@ uses
 
             { extract all created symbols and defs from the temporary symtable
               and add them to the specializest }
-            for i:=0 to tempst.SymList.Count-1 do
+            for i:=tempst.SymList.Count-1 downto 0 do
               begin
                 item:=tempst.SymList.Items[i];
                 specializest.SymList.Add(tempst.SymList.NameOfIndex(i),item);
@@ -498,7 +498,7 @@ uses
                 tempst.SymList.Extract(item);
               end;
 
-            for i:=0 to tempst.DefList.Count-1 do
+            for i:=tempst.DefList.Count-1 downto 0 do
               begin
                 item:=tempst.DefList.Items[i];
                 specializest.DefList.Add(item);
