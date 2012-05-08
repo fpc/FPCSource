@@ -1997,7 +1997,7 @@ implementation
                  end;
              end;
            { now search in the type itself }
-           srsym:=tprocsym(structdef.symtable.FindWithHash(hashedid));
+           srsym:=tsym(structdef.symtable.FindWithHash(hashedid));
            if assigned(srsym) and
               { Delphi allows hiding a property by a procedure with the same name }
               (srsym.typ=procsym) then
