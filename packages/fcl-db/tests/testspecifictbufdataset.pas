@@ -32,6 +32,7 @@ type
   published
     procedure CreateDatasetFromFielddefs;
     procedure CreateDatasetFromFields;
+    procedure TestOpeningNonExistingDataset;
   end;
 
 implementation
@@ -107,6 +108,25 @@ begin
   DS.Close;
   DS.CreateDataset;
   TestDataset(ds);
+end;
+
+procedure TTestSpecificTBufDataset.TestOpeningNonExistingDataset;
+var ds : TBufDataset;
+    f: TField;
+begin
+  ds := TBufDataset.Create(nil);
+  F := TIntegerField.Create(ds);
+  F.FieldName:='ID';
+  F.DataSet:=ds;
+
+  CheckException(ds.Open,EDatabaseError);
+  ds.Free;
+
+  ds := TBufDataset.Create(nil);
+  DS.FieldDefs.Add('ID',ftInteger);
+
+  CheckException(ds.Open,EDatabaseError);
+  ds.Free;
 end;
 
 initialization

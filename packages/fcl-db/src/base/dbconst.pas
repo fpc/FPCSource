@@ -111,6 +111,7 @@ Resourcestring
   SRollBackRetaining       = 'Rollback and retaining transaction';
   SErrNoFieldsDefined      = 'Can not create a dataset when there are no fielddefinitions or fields defined';
   SErrApplyUpdBeforeRefresh= 'Must apply updates before refreshing data';
+  SErrNoDataset            = 'Missing underlying dataset, can not open';
 
 Implementation
 
