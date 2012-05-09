@@ -1056,11 +1056,10 @@ begin
       {$IFNDEF SUPPORT_MSECS}
       isc_decode_timestamp(PISC_TIMESTAMP(CurrBuff), @CTime);
       {$ELSE}
-      PTime := PISC_TIMESTAMP(CurrBuff)^.timestamp_date - IBDateOffset;
-      if PTime < 0 then
-        PTime := PTime - PISC_TIMESTAMP(CurrBuff)^.timestamp_time / IBSecsCount
-      else
-        PTime := PTime + PISC_TIMESTAMP(CurrBuff)^.timestamp_time / IBSecsCount;
+      PTime := ComposeDateTime(
+                  PISC_TIMESTAMP(CurrBuff)^.timestamp_date - IBDateOffset,
+                  PISC_TIMESTAMP(CurrBuff)^.timestamp_time / IBSecsCount
+               );
       {$ENDIF}
       end
   else
