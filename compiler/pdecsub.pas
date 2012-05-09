@@ -966,6 +966,7 @@ implementation
         locationstr: string;
         i: integer;
         found: boolean;
+        old_block_type: tblock_type;
 
         procedure read_returndef(pd: tprocdef);
           var
@@ -1130,8 +1131,14 @@ implementation
           if (token=_OPERATOR) or
              (isclassmethod and (idtoken=_OPERATOR)) then
             begin
+              { we need to set the block type to bt_body, so that operator names
+                like ">", "=>" or "<>" are parsed correctly instead of e.g.
+                _LSHARPBRACKET and _RSHARPBRACKET for "<>" }
+              old_block_type:=block_type;
+              block_type:=bt_body;
               consume(_OPERATOR);
               parse_proc_head(astruct,potype_operator,pd);
+              block_type:=old_block_type;
               if assigned(pd) then
                 begin
                   { operators always need to be searched in all units }

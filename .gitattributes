@@ -10554,6 +10554,7 @@ tests/test/terecs10.pp svneol=native#text/pascal
 tests/test/terecs11.pp svneol=native#text/pascal
 tests/test/terecs12.pp svneol=native#text/pascal
 tests/test/terecs13.pp svneol=native#text/pascal
+tests/test/terecs14.pp svneol=native#text/pascal
 tests/test/terecs2.pp svneol=native#text/pascal
 tests/test/terecs3.pp svneol=native#text/pascal
 tests/test/terecs4.pp svneol=native#text/pascal
