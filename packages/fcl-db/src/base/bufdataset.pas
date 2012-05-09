@@ -437,6 +437,7 @@ type
     function GetIndexFieldNames: String;
     function GetIndexName: String;
     function GetBufUniDirectional: boolean;
+    function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader;
     function LoadBuffer(Buffer : TRecordBuffer): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer(const ABookmark : TBufBookmark; IncludePrior : boolean = false; AFindNext : boolean = false) : boolean;
@@ -1121,7 +1122,7 @@ begin
   if not Assigned(FDatasetReader) and (FileName<>'') then
     begin
     FFileStream := TFileStream.Create(FileName,fmOpenRead);
-    FDatasetReader := TFpcBinaryDatapacketReader.Create(FFileStream);
+    FDatasetReader := GetPacketReader(dfAny, FFileStream);
     FReadFromFile := True;
     end;
   if assigned(FDatasetReader) then IntLoadFielddefsFromFile;
@@ -2292,6 +2293,24 @@ begin
   result := IsUniDirectional;
 end;
 
+function TCustomBufDataset.GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader;
+
+var APacketReader: TDataPacketReader;
+    APacketReaderReg: TDatapacketReaderRegistration;
+
+begin
+  if GetRegisterDatapacketReader(AStream, format, APacketReaderReg) then
+    APacketReader := APacketReaderReg.ReaderClass.create(AStream)
+  else if TFpcBinaryDatapacketReader.RecognizeStream(AStream) then
+    begin
+    AStream.Seek(0, soFromBeginning);
+    APacketReader := TFpcBinaryDatapacketReader.create(AStream)
+    end
+  else
+    DatabaseError(SStreamNotRecognised);
+  Result:=APacketReader;
+end;
+
 function TCustomBufDataset.GetRecordSize : Word;
 
 begin
@@ -2646,19 +2665,10 @@ begin
 end;
 
 procedure TCustomBufDataset.LoadFromStream(AStream: TStream; Format: TDataPacketFormat);
-var APacketReaderReg : TDatapacketReaderRegistration;
-    APacketReader : TDataPacketReader;
+var APacketReader : TDataPacketReader;
 begin
   CheckBiDirectional;
-  if GetRegisterDatapacketReader(AStream,format,APacketReaderReg) then
-    APacketReader := APacketReaderReg.ReaderClass.create(AStream)
-  else if TFpcBinaryDatapacketReader.RecognizeStream(AStream) then
-    begin
-    AStream.Seek(0,soFromBeginning);
-    APacketReader := TFpcBinaryDatapacketReader.create(AStream)
-    end
-  else
-    DatabaseError(SStreamNotRecognised);
+  APacketReader:=GetPacketReader(Format, AStream);
   try
     SetDatasetPacket(APacketReader);
   finally
