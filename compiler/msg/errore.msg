@@ -136,7 +136,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02090 is the last used one
+# 02091 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -381,6 +381,11 @@ scanner_f_illegal_utf8_bom=02089_F_It is not possible to include a file that sta
 scanner_w_directive_ignored_on_target=02090_W_Directive "$1" is ignored for the the current target platform
 % Some directives are ignored for certain targets, such as changing the
 % packrecords and packenum settings on managed platforms.
+scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not available for the compiler. Switching default codepage back to "$2".
+% The current system codepage is not known by the compiler.
+% The compiler is compiled with support for several codepages built-in.
+% The codepage of the operation system is not in that list. You will need to recompile
+% the compiler with support for this codepage.
 % \end{description}
 #
 # Parser
@@ -3041,7 +3046,7 @@ option_read_config_file=11034_D_Reading config file "$1"
 option_found_file=11035_D_found source file name "$1"
 % Additional information about options.
 % Displayed when you have the debug option turned on.
-option_code_page_not_available=11039_E_Unknown codepage
+option_code_page_not_available=11039_E_Unknown codepage "$1"
 % An unknown codepage for the source files was requested.
 % The compiler is compiled with support for several codepages built-in.
 % The requested codepage is not in that list. You will need to recompile

@@ -373,7 +373,10 @@ implementation
               begin
                 current_settings.sourcecodepage:=DefaultSystemCodePage;
                 if not cpavailable(current_settings.sourcecodepage) then
-                  current_settings.sourcecodepage:=default_settings.sourcecodepage;
+                  begin
+                    Message2(scan_w_unavailable_system_codepage,IntToStr(current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
+                    current_settings.sourcecodepage:=default_settings.sourcecodepage;
+                  end;
                 include(current_settings.moduleswitches,cs_explicit_codepage);
                 if changeinit then
                 begin
