@@ -168,6 +168,7 @@ interface
 
        tspecializesymtable = class(tglobalsymtable)
        public
+          constructor create(const n : string;id:word);
           function iscurrentunit:boolean;override;
        end;
 
@@ -1625,6 +1626,16 @@ implementation
 {*****************************************************************************
                              tspecializesymtable
 *****************************************************************************}
+
+    constructor tspecializesymtable.create(const n : string;id:word);
+      begin
+        inherited create(n,id);
+        { the specialize symtable does not own the syms and defs as they are all
+          moved to a different symtable before the symtable is destroyed; this
+          avoids calls to "extract" }
+        symlist.ownsobjects:=false;
+        deflist.ownsobjects:=false;
+      end;
 
     function tspecializesymtable.iscurrentunit: boolean;
       begin

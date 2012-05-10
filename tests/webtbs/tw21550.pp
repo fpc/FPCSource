@@ -1,3 +1,5 @@
+{%OPT=-gl}
+
 program tw21550;
 
 {$mode objfpc}

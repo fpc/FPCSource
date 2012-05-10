@@ -494,17 +494,17 @@ uses
             for i:=tempst.SymList.Count-1 downto 0 do
               begin
                 item:=tempst.SymList.Items[i];
-                specializest.SymList.Add(tempst.SymList.NameOfIndex(i),item);
-                tsym(item).Owner:=specializest;
-                tempst.SymList.Extract(item);
+                { using changeowner the symbol is automatically added to the
+                  new symtable }
+                tsym(item).ChangeOwner(specializest);
               end;
 
             for i:=tempst.DefList.Count-1 downto 0 do
               begin
                 item:=tempst.DefList.Items[i];
-                specializest.DefList.Add(item);
-                tdef(item).owner:=specializest;
-                tempst.DefList.Extract(item);
+                { using changeowner the def is automatically added to the new
+                  symtable }
+                tdef(item).ChangeOwner(specializest);
               end;
 
             tempst.free;
