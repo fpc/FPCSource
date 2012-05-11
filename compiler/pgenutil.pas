@@ -91,6 +91,8 @@ uses
         old_block_type: tblock_type;
         hashedid: thashedidstring;
         state : tspecializationstate;
+        hmodule : tmodule;
+        oldcurrent_filepos : tfileposinfo;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -426,9 +428,17 @@ uses
 
                 if not assigned(genericdef.generictokenbuf) then
                   internalerror(200511171);
+                hmodule:=find_module_from_symtable(genericdef.owner);
+                if hmodule=nil then
+                  internalerror(2012051202);
+                oldcurrent_filepos:=current_filepos;
+                { use the index the module got from the current compilation process }
+                current_filepos.moduleindex:=hmodule.unit_index;
+                current_tokenpos:=current_filepos;
                 current_scanner.startreplaytokens(genericdef.generictokenbuf,
                   genericdef.change_endian);
                 read_named_type(tt,finalspecializename,genericdef,generictypelist,false);
+                current_filepos:=oldcurrent_filepos;
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;
 
