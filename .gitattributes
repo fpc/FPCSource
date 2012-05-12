@@ -10450,6 +10450,7 @@ tests/test/tclass12d.pp svneol=native#text/plain
 tests/test/tclass13.pp svneol=native#text/pascal
 tests/test/tclass13a.pp svneol=native#text/plain
 tests/test/tclass13b.pp svneol=native#text/plain
+tests/test/tclass13c.pp svneol=native#text/pascal
 tests/test/tclass14a.pp svneol=native#text/pascal
 tests/test/tclass14b.pp svneol=native#text/pascal
 tests/test/tclass15.pp svneol=native#text/pascal

@@ -195,6 +195,7 @@ implementation
         structstackindex: longint;
         srsym: tsym;
         srsymtable: tsymtable;
+        oldsymtablestack: TSymtablestack;
       begin
         if assigned(currentstructstack) then
           structstackindex:=currentstructstack.count-1
@@ -218,10 +219,14 @@ implementation
                  else
                    begin
                      structstackindex:=-1;
+                     oldsymtablestack:=symtablestack;
+                     symtablestack:=TSymtablestack.create;
                      symtablestack.push(tabstractrecorddef(def).symtable);
                      t2:=generrordef;
                      id_type(t2,isforwarddef,false,false,srsym,srsymtable);
                      symtablestack.pop(tabstractrecorddef(def).symtable);
+                     symtablestack.free;
+                     symtablestack:=oldsymtablestack;
                      def:=t2;
                    end;
                end
