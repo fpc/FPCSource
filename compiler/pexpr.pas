@@ -2254,7 +2254,9 @@ implementation
                         if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) then
                           { if we are accessing a owner procsym from the nested }
                           { class we need to call it as a class member          }
-                          if assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
+                          if assigned(current_structdef) and
+                              (((current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
+                               (sp_static in srsym.symoptions)) then
                             p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
                           else
                           if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
