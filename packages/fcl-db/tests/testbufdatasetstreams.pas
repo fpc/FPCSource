@@ -48,6 +48,7 @@ type
     procedure SeveralEditsCancelUpd;
     procedure DeleteAllCancelUpd;
     procedure DeleteAllInsertCancelUpd;
+    procedure AppendDeleteCancelUpd;
 
     procedure TestSimpleEditApplUpd;
     procedure TestSimpleDeleteApplUpd;
@@ -339,6 +340,7 @@ end;
 
 procedure TTestBufDatasetStreams.AppendDeleteChange(ADataset: TCustomBufDataset);
 begin
+  // Tests bugs #19593, #21994
   with ADataset do
   begin
     AppendRecord([16,'TestName16']);
@@ -347,6 +349,7 @@ begin
     Prior;
     Delete;  // 15 update-buffer of deleted record is linked to 16
     Delete;  // 16 inserted-deleted and linked by 15
+    AppendRecord([18,'TestName18']); // again append after delete
   end;
 end;
 
@@ -388,6 +391,11 @@ end;
 procedure TTestBufDatasetStreams.DeleteAllInsertCancelUpd;
 begin
   TestChangesCancelUpdates(@DeleteAllInsertChange);
+end;
+
+procedure TTestBufDatasetStreams.AppendDeleteCancelUpd;
+begin
+  TestChangesCancelUpdates(@AppendDeleteChange);
 end;
 
 procedure TTestBufDatasetStreams.TestBasicsXML;
