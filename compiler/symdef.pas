@@ -6775,6 +6775,7 @@ implementation
     function getpointerdef(def: tdef): tpointerdef;
       var
         res: PHashSetItem;
+        oldsymtablestack: tsymtablestack;
       begin
         if not assigned(current_module) then
           internalerror(2011071101);
@@ -6783,9 +6784,13 @@ implementation
           begin
             { since these pointerdefs can be reused anywhere in the current
               unit, add them to the global/staticsymtable }
-            symtablestack.push(current_module.localsymtable);
+            oldsymtablestack:=symtablestack;
+            { do not simply push/pop current_module.localsymtable, because
+              that can have side-effects (e.g., it removes helpers) }
+            symtablestack:=nil;
             res^.Data:=tpointerdef.create(def);
-            symtablestack.pop(current_module.localsymtable);
+            current_module.localsymtable.insertdef(tdef(res^.Data));
+            symtablestack:=oldsymtablestack;
           end;
         result:=tpointerdef(res^.Data);
       end;
@@ -6800,6 +6805,7 @@ implementation
     function getarraydef(def: tdef; elecount: asizeint): tarraydef;
       var
         res: PHashSetItem;
+        oldsymtablestack: tsymtablestack;
         arrdesc: packed record
           def: tdef;
           elecount: asizeint;
@@ -6814,10 +6820,13 @@ implementation
           begin
             { since these arraydef can be reused anywhere in the current
               unit, add them to the global/staticsymtable }
+            oldsymtablestack:=symtablestack;
+            symtablestack:=nil;
             symtablestack.push(current_module.localsymtable);
             res^.Data:=tarraydef.create(0,elecount-1,ptrsinttype);
             tarraydef(res^.Data).elementdef:=def;
-            symtablestack.pop(current_module.localsymtable);
+            current_module.localsymtable.insertdef(tdef(res^.Data));
+            symtablestack:=oldsymtablestack;
           end;
         result:=tarraydef(res^.Data);
       end;
