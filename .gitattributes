@@ -2023,6 +2023,7 @@ packages/fcl-db/src/sqldb/fpmake.inc svneol=native#text/plain
 packages/fcl-db/src/sqldb/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/interbase/Makefile svneol=native#text/plain
 packages/fcl-db/src/sqldb/interbase/Makefile.fpc svneol=native#text/plain
+packages/fcl-db/src/sqldb/interbase/fbadmin.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/interbase/fpmake.inc svneol=native#text/plain
 packages/fcl-db/src/sqldb/interbase/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/interbase/ibconnection.pp svneol=native#text/plain
