@@ -833,6 +833,9 @@ interface
        { default integer type s32inttype on 32 bit systems, s64bittype on 64 bit systems }
        sinttype,
        uinttype,
+       { integer types corresponding to OS_SINT/OS_INT }
+       ossinttype,
+       osuinttype,
        { unsigned and signed ord type with the same size as a pointer }
        ptruinttype,
        ptrsinttype,

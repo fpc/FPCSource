@@ -136,6 +136,14 @@ implementation
         uinttype:=u8inttype;
         sinttype:=s8inttype;
 {$endif cpu8bitalu}
+
+{$ifndef avr}
+        osuinttype:=uinttype;
+        ossinttype:=sinttype;
+{$else avr}
+        osuinttype:=u16inttype;
+        ossinttype:=s16inttype;
+{$endif avr}
       end;
 
     procedure create_intern_types;

@@ -120,7 +120,8 @@ unit cpubase;
 
        { Defines the default address size for a processor, }
        OS_ADDR = OS_64;
-       { the natural int size for a processor,             }
+       { the natural int size for a processor,
+         has to match osuinttype/ossinttype as initialized in psystem }
        OS_INT = OS_64;
        { the maximum float size for a processor,           }
        OS_FLOAT = OS_F80;
