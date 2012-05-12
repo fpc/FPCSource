@@ -1877,6 +1877,7 @@ packages/fcl-base/texts/fptemplate.txt svneol=native#text/plain
 packages/fcl-db/Makefile svneol=native#text/plain
 packages/fcl-db/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/Makefile.fpc.fpcmake svneol=native#text/plain
+packages/fcl-db/examples/fbadmindemo.pp svneol=native#text/plain
 packages/fcl-db/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/Dataset.txt svneol=native#text/plain
 packages/fcl-db/src/README.txt svneol=native#text/plain
