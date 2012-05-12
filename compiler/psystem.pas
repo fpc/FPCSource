@@ -106,6 +106,38 @@ implementation
       end;
 
 
+    procedure set_default_int_types;
+      begin
+{$ifdef cpu64bitaddr}
+        uinttype:=u64inttype;
+        sinttype:=s64inttype;
+        ptruinttype:=u64inttype;
+        ptrsinttype:=s64inttype;
+{$endif cpu64bitaddr}
+{$ifdef cpu32bitaddr}
+        uinttype:=u32inttype;
+        sinttype:=s32inttype;
+        ptruinttype:=u32inttype;
+        ptrsinttype:=s32inttype;
+{$endif cpu32bitaddr}
+{$ifdef cpu32bitalu}
+        uinttype:=u32inttype;
+        sinttype:=s32inttype;
+{$endif cpu32bitalu}
+{$ifdef cpu16bitaddr}
+        ptruinttype:=u16inttype;
+        ptrsinttype:=s16inttype;
+{$endif cpu16bitaddr}
+{$ifdef cpu16bitalu}
+        uinttype:=u16inttype;
+        sinttype:=s16inttype;
+{$endif cpu16bitalu}
+{$ifdef cpu8bitalu}
+        uinttype:=u8inttype;
+        sinttype:=s8inttype;
+{$endif cpu8bitalu}
+      end;
+
     procedure create_intern_types;
       {
         all the types inserted into the system unit
@@ -223,34 +255,7 @@ implementation
         create_fpu_types;
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif jvm}
-{$ifdef cpu64bitaddr}
-        uinttype:=u64inttype;
-        sinttype:=s64inttype;
-        ptruinttype:=u64inttype;
-        ptrsinttype:=s64inttype;
-{$endif cpu64bitaddr}
-{$ifdef cpu32bitaddr}
-        uinttype:=u32inttype;
-        sinttype:=s32inttype;
-        ptruinttype:=u32inttype;
-        ptrsinttype:=s32inttype;
-{$endif cpu32bitaddr}
-{$ifdef cpu32bitalu}
-        uinttype:=u32inttype;
-        sinttype:=s32inttype;
-{$endif cpu32bitalu}
-{$ifdef cpu16bitaddr}
-        ptruinttype:=u16inttype;
-        ptrsinttype:=s16inttype;
-{$endif cpu16bitaddr}
-{$ifdef cpu16bitalu}
-        uinttype:=u16inttype;
-        sinttype:=s16inttype;
-{$endif cpu16bitalu}
-{$ifdef cpu8bitalu}
-        uinttype:=u8inttype;
-        sinttype:=s8inttype;
-{$endif cpu8bitalu}
+        set_default_int_types;
         { some other definitions }
         voidpointertype:=tpointerdef.create(voidtype);
         charpointertype:=tpointerdef.create(cansichartype);
@@ -485,24 +490,7 @@ implementation
         if not(target_info.system in systems_managed_vm) then
           loadtype('methodpointer',methodpointertype);
         loadtype('HRESULT',hresultdef);
-{$ifdef cpu64bitaddr}
-        uinttype:=u64inttype;
-        sinttype:=s64inttype;
-        ptruinttype:=u64inttype;
-        ptrsinttype:=s64inttype;
-{$endif cpu64bitaddr}
-{$ifdef cpu32bit}
-        uinttype:=u32inttype;
-        sinttype:=s32inttype;
-        ptruinttype:=u32inttype;
-        ptrsinttype:=s32inttype;
-{$endif cpu32bit}
-{$ifdef cpu16bit}
-        uinttype:=u16inttype;
-        sinttype:=s16inttype;
-        ptruinttype:=u16inttype;
-        ptrsinttype:=s16inttype;
-{$endif cpu16bit}
+        set_default_int_types;
         set_current_module(oldcurrentmodule);
       end;
 
