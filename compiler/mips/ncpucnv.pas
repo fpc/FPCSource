@@ -62,7 +62,8 @@ uses
   ncon, ncal,
   ncgutil,
   cpubase, aasmcpu,
-  tgobj, cgobj;
+  tgobj, cgobj,
+  hlcgobj;
 
 
 {*****************************************************************************
@@ -113,7 +114,7 @@ procedure tMIPSELtypeconvnode.second_int_to_real;
 
   procedure loadsigned;
   begin
-    location_force_mem(current_asmdata.CurrAsmList, left.location);
+    hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
     location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
     { Load memory in fpu register }
     cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
@@ -144,7 +145,7 @@ begin
     current_asmdata.getjumplabel(l2);
     reference_reset_symbol(href, l1, 0, sizeof(aint));
     hregister := cg.getintregister(current_asmdata.CurrAsmList, OS_32);
-    cg.a_load_loc_reg(current_asmdata.CurrAsmList, OS_32, left.location, hregister);
+    hlcg.a_load_loc_reg(current_asmdata.CurrAsmList, left.resultdef, u32inttype, left.location, hregister);
 
     loadsigned;
 

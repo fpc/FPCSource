@@ -62,7 +62,8 @@ implementation
       ncon,ncal,procinfo,
       ncgutil,
       cpubase,aasmcpu,
-      tgobj,cgobj;
+      tgobj,cgobj,
+      hlcgobj;
 
 
 {*****************************************************************************
@@ -102,7 +103,7 @@ implementation
 
       procedure loadsigned;
         begin
-          location_force_mem(current_asmdata.CurrAsmList,left.location);
+          hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
           { Load memory in fpu register }
           cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,OS_F32,left.location.reference,location.register);
           tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
@@ -137,11 +138,11 @@ implementation
             current_asmdata.getjumplabel(l2);
             reference_reset_symbol(href,l1,0,8);
             hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-            cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_32,left.location,hregister);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,u32inttype,left.location,hregister);
 
             { here we need always an 64 bit register }
             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-            location_force_mem(current_asmdata.CurrAsmList,left.location);
+            hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             { Load memory in fpu register }
             cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,OS_F32,left.location.reference,location.register);
             tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
@@ -235,7 +236,7 @@ implementation
               { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
               if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                  ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-                location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
               current_procinfo.CurrTrueLabel:=oldTrueLabel;

@@ -313,9 +313,9 @@ unit cg64f32;
             tmpsref.ref.index:=tmpreg;
           end;
         tmpsref.bitlen:=32;
-        cg.a_load_subsetref_reg(list,OS_32,OS_32,tmpsref,destreg.reglo);
+        hlcg.a_load_subsetref_reg(list,u32inttype,u32inttype,tmpsref,destreg.reglo);
         inc(tmpsref.ref.offset,4);
-        cg.a_load_subsetref_reg(list,OS_32,OS_32,tmpsref,destreg.reghi);
+        hlcg.a_load_subsetref_reg(list,u32inttype,u32inttype,tmpsref,destreg.reghi);
       end;
 
 
@@ -342,9 +342,9 @@ unit cg64f32;
           end;
         tmpsref:=sref;
         tmpsref.bitlen:=32;
-        cg.a_load_reg_subsetref(list,OS_32,OS_32,fromreg.reglo,tmpsref);
+        hlcg.a_load_reg_subsetref(list,u32inttype,u32inttype,fromreg.reglo,tmpsref);
         inc(tmpsref.ref.offset,4);
-        cg.a_load_reg_subsetref(list,OS_32,OS_32,fromreg.reghi,tmpsref);
+        hlcg.a_load_reg_subsetref(list,u32inttype,u32inttype,fromreg.reghi,tmpsref);
       end;
 
 
@@ -360,9 +360,9 @@ unit cg64f32;
           swap64(a);
         tmpsref := sref;
         tmpsref.bitlen := 32;
-        cg.a_load_const_subsetref(list,OS_32,aint(lo(a)),tmpsref);
+        hlcg.a_load_const_subsetref(list,u32inttype,aint(lo(a)),tmpsref);
         inc(tmpsref.ref.offset,4);
-        cg.a_load_const_subsetref(list,OS_32,aint(hi(a)),tmpsref);
+        hlcg.a_load_const_subsetref(list,u32inttype,aint(hi(a)),tmpsref);
       end;
 
 

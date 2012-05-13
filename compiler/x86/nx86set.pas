@@ -51,7 +51,7 @@ implementation
       cgbase,pass_2,tgobj,
       ncon,
       cpubase,
-      cga,cgobj,cgutils,ncgutil,
+      cga,cgobj,hlcgobj,cgutils,ncgutil,
       cgx86,
       procinfo;
 
@@ -256,6 +256,7 @@ implementation
          hreg,hreg2,
          pleftreg   : tregister;
          opsize     : tcgsize;
+         opdef      : torddef;
          orgopsize  : tcgsize;
          setparts   : array[1..8] of Tsetpart;
          setbase    : aint;
@@ -366,11 +367,12 @@ implementation
          opsize := OS_32;
          if is_signed(left.resultdef) then
            opsize := tcgsize(ord(opsize)+(ord(OS_S8)-ord(OS_8)));
+         opdef:=hlcg.tcgsize2orddef(opsize);
 
          if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE,LOC_CONSTANT]) then
-           location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
          if (right.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
-           location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,left.resultdef,opdef,true);
 
          if genjumps then
           begin
@@ -379,7 +381,7 @@ implementation
               To do: Build in support for LOC_JUMP }
 
             { load and zero or sign extend as necessary }
-            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
             pleftreg:=left.location.register;
 
             { Get a label to jump to the end }
@@ -408,7 +410,7 @@ implementation
                     { yes, is the lower bound <> 0? }
                     if (setparts[i].start <> 0) then
                       begin
-                        location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+                        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                         hreg:=left.location.register;
                         pleftreg:=hreg;
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,setparts[i].start-adjustment,pleftreg);
@@ -484,11 +486,11 @@ implementation
                 end
                else
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,OS_32,true);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,true);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   if (tcgsize2size[right.location.size] < 4) or
                      (right.location.loc = LOC_CONSTANT) then
-                    location_force_reg(current_asmdata.CurrAsmList,right.location,OS_32,true);
+                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,true);
                   hreg:=left.location.register;
 
                   case right.location.loc of
@@ -520,7 +522,7 @@ implementation
                   if (left.location.loc=LOC_CONSTANT) or
                      (setbase<>0) then
                     begin
-                      location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
                       register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                     end;
 
@@ -585,10 +587,10 @@ implementation
                 end
                else
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
+                    hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
                   pleftreg:=left.location.register;
 
                   if (opsize >= OS_S8) or { = if signed }

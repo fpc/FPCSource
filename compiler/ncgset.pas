@@ -100,7 +100,7 @@ implementation
        { load first value in 32bit register }
          secondpass(left);
          if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-           location_force_reg(current_asmdata.CurrAsmList,left.location,OS_32,false);
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,false);
 
        { also a second value ? }
          if assigned(right) then
@@ -109,7 +109,7 @@ implementation
              if codegenerror then
                exit;
              if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-              location_force_reg(current_asmdata.CurrAsmList,right.location,OS_32,false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,false);
            end;
 
          { we doesn't modify the left side, we check only the type }
@@ -377,16 +377,16 @@ implementation
                {****************************  SMALL SET **********************}
                if left.location.loc=LOC_CONSTANT then
                 begin
-                  cg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,location.size,
+                  hlcg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,right.resultdef,resultdef,
                     left.location.value-setbase,right.location,
                     location.register);
                 end
                else
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
-                  cg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.location.size,
-                    location.size,left.location.register,right.location,location.register);
+                  hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.resultdef,
+                    right.resultdef,resultdef,left.location.register,right.location,location.register);
                 end;
              end
             else
@@ -401,7 +401,7 @@ implementation
                   { assumption (other cases will be caught by range checking) (JM)  }
 
                   { load left in register }
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,location.size,true);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   { emit bit test operation -- warning: do not use
                     location_force_reg() to force a set into a register, except
@@ -413,8 +413,8 @@ implementation
 
                    a_bit_test_reg_loc_reg() properly takes into account the
                    size of the set to adjust the register index to test }
-                  cg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,
-                    left.location.size,location.size,
+                  hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,
+                    left.resultdef,right.resultdef,resultdef,
                     left.location.register,right.location,location.register);
 
                   { now zero the result if left > nr_of_bits_in_right_register }
@@ -435,12 +435,12 @@ implementation
                     {should be caught earlier }
                     internalerror(2007020402);
 
-                  cg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,location.size,left.location.value-setbase,
+                  hlcg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.value-setbase,
                     right.location,location.register);
                 end
                else
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList, left.location, opsize, true);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   pleftreg := left.location.register;
 
@@ -464,7 +464,7 @@ implementation
                       cg.a_label(current_asmdata.CurrAsmList, l);
                     end;
 
-                  cg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.location.size,location.size,
+                  hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.resultdef,right.resultdef,resultdef,
                     pleftreg,right.location,location.register);
 
                   if needslabel then

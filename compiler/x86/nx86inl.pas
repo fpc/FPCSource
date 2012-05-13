@@ -73,12 +73,12 @@ implementation
       symconst,
       defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      symdef,
+      symtype,symdef,
       cgbase,pass_2,
       cpuinfo,cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,ncgutil,
       tgobj,
-      cga,cgutils,cgx86,cgobj;
+      cga,cgutils,cgx86,cgobj,hlcgobj;
 
 
 {*****************************************************************************
@@ -426,7 +426,7 @@ implementation
           begin
             opsize:=def_cgsize(left.resultdef);
             secondpass(left);
-            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location:=left.location;
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
             emit_reg_reg(A_MOV,S_L,left.location.register,location.register);
@@ -439,7 +439,7 @@ implementation
           begin
             opsize:=def_cgsize(left.resultdef);
             secondpass(left);
-            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
             location:=left.location;
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
@@ -464,13 +464,20 @@ implementation
          bitsperop,l : longint;
          cgop : topcg;
          asmop : tasmop;
+         opdef : tdef;
          opsize,
          orgsize: tcgsize;
         begin
           if is_smallset(tcallparanode(left).resultdef) then
-            opsize:=int_cgsize(tcallparanode(left).resultdef.size)
+            begin
+              opdef:=tcallparanode(left).resultdef;
+              opsize:=int_cgsize(opdef.size)
+            end
           else
-            opsize:=OS_32;
+            begin
+              opdef:=u32inttype;
+              opsize:=OS_32;
+            end;
           bitsperop:=(8*tcgsize2size[opsize]);
           secondpass(tcallparanode(left).left);
           secondpass(tcallparanode(tcallparanode(left).right).left);
@@ -506,6 +513,7 @@ implementation
               orgsize:=opsize;
               if opsize in [OS_8,OS_S8] then
                 begin
+                  opdef:=u32inttype;
                   opsize:=OS_32;
                 end;
               { determine asm operator }
@@ -514,7 +522,7 @@ implementation
               else
                  asmop:=A_BTR;
 
-              location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,opsize,true);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,opdef,true);
               register_maybe_adjust_setbase(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,setbase);
               hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then

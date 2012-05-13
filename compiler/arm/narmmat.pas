@@ -50,7 +50,7 @@ implementation
       cutils,verbose,globals,constexp,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
-      cgbase,cgobj,cgutils,
+      cgbase,cgobj,hlcgobj,cgutils,
       pass_2,procinfo,
       ncon,
       cpubase,cpuinfo,
@@ -194,7 +194,7 @@ implementation
            not(is_64bitint(resultdef)) then
           begin
             size:=def_cgsize(left.resultdef);
-            location_force_reg(current_asmdata.CurrAsmList,left.location,size,true);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
             location_copy(location,left.location);
             location.loc := LOC_REGISTER;
@@ -213,7 +213,7 @@ implementation
               end
             else
               begin
-                location_force_reg(current_asmdata.CurrAsmList,right.location,size,true);
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,left.resultdef,true);
 
                 if is_signed(left.resultdef) or
                    is_signed(right.resultdef) then
@@ -228,8 +228,8 @@ implementation
 
             { put numerator in register }
             size:=def_cgsize(left.resultdef);
-            location_force_reg(current_asmdata.CurrAsmList,left.location,
-              size,true);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
+              left.resultdef,left.resultdef,true);
             location_copy(location,left.location);
             numerator:=location.register;
             resultreg:=location.register;
@@ -299,7 +299,7 @@ implementation
               LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE,
               LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF :
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_EQ;

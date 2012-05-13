@@ -60,15 +60,11 @@ interface
     procedure maketojumpbool(list:TAsmList; p : tnode; loadregvars: tloadregvars);
 //    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
 
-    procedure location_force_reg(list:TAsmList;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
     procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
-    procedure location_force_mem(list:TAsmList;var l:tlocation);
     procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_allocate_register(list:TAsmList;out l: tlocation;def: tdef;constant: boolean);
 
-    { load a tlocation into a cgpara }
-    procedure gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);
     { loads a cgpara into a tlocation; assumes that loc.loc is already
       initialised }
     procedure gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean);
@@ -316,7 +312,7 @@ implementation
                      LOC_SUBSETREF,LOC_CSUBSETREF:
                        begin
                          tmpreg := cg.getintregister(list,OS_INT);
-                         cg.a_load_loc_reg(list,OS_INT,p.location,tmpreg);
+                         hlcg.a_load_loc_reg(list,p.resultdef,osuinttype,p.location,tmpreg);
                          cg.a_cmp_const_reg_label(list,OS_INT,OC_NE,0,tmpreg,current_procinfo.CurrTrueLabel);
                          cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
                        end;
@@ -325,7 +321,7 @@ implementation
 {$ifndef cpu64bitalu}
                          if opsize in [OS_64,OS_S64] then
                            begin
-                             location_force_reg(list,p.location,opsize,true);
+                             hlcg.location_force_reg(list,p.location,p.resultdef,hlcg.tcgsize2orddef(opsize),true);
                              tmpreg:=cg.getintregister(list,OS_32);
                              cg.a_op_reg_reg_reg(list,OP_OR,OS_32,p.location.register64.reglo,p.location.register64.reghi,tmpreg);
                              location_reset(p.location,LOC_REGISTER,OS_32);
@@ -473,190 +469,6 @@ implementation
                                      TLocation
 *****************************************************************************}
 
-    procedure location_force_reg(list:TAsmList;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
-      var
-        hregister,
-        hregisterhi : tregister;
-        hreg64 : tregister64;
-        hl : tasmlabel;
-        oldloc : tlocation;
-        const_location: boolean;
-     begin
-        oldloc:=l;
-        if dst_size=OS_NO then
-          internalerror(200309144);
-{$ifndef cpu64bitalu}
-        { handle transformations to 64bit separate }
-        if dst_size in [OS_64,OS_S64] then
-         begin
-           if not (l.size in [OS_64,OS_S64]) then
-            begin
-              { load a smaller size to OS_64 }
-              if l.loc=LOC_REGISTER then
-               begin
-{$ifdef AVR}
-                 { on avr, we cannot change the size of a register
-                   due to the nature how register with size > OS8 are handled
-                 }
-                 hregister:=cg.getintregister(list,OS_32);
-{$else AVR}
-                 hregister:=cg.makeregsize(list,l.register64.reglo,OS_32);
-{$endif AVR}
-                 cg.a_load_reg_reg(list,l.size,OS_32,l.register64.reglo,hregister);
-               end
-              else
-               hregister:=cg.getintregister(list,OS_32);
-              { load value in low register }
-              case l.loc of
-{$ifdef cpuflags}
-                LOC_FLAGS :
-                  cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
-{$endif cpuflags}
-                LOC_JUMP :
-                  begin
-                    cg.a_label(list,current_procinfo.CurrTrueLabel);
-                    cg.a_load_const_reg(list,OS_INT,1,hregister);
-                    current_asmdata.getjumplabel(hl);
-                    cg.a_jmp_always(list,hl);
-                    cg.a_label(list,current_procinfo.CurrFalseLabel);
-                    cg.a_load_const_reg(list,OS_INT,0,hregister);
-                    cg.a_label(list,hl);
-                  end;
-                else
-                  cg.a_load_loc_reg(list,OS_INT,l,hregister);
-              end;
-              { reset hi part, take care of the signed bit of the current value }
-              hregisterhi:=cg.getintregister(list,OS_32);
-              if (l.size in [OS_S8,OS_S16,OS_S32]) then
-               begin
-                 if l.loc=LOC_CONSTANT then
-                  begin
-                    if (longint(l.value)<0) then
-                     cg.a_load_const_reg(list,OS_32,aint($ffffffff),hregisterhi)
-                    else
-                     cg.a_load_const_reg(list,OS_32,0,hregisterhi);
-                  end
-                 else
-                  begin
-                    cg.a_op_const_reg_reg(list,OP_SAR,OS_32,31,hregister,
-                      hregisterhi);
-                  end;
-               end
-              else
-               cg.a_load_const_reg(list,OS_32,0,hregisterhi);
-              location_reset(l,LOC_REGISTER,dst_size);
-              l.register64.reglo:=hregister;
-              l.register64.reghi:=hregisterhi;
-            end
-           else
-            begin
-              { 64bit to 64bit }
-              if ((l.loc=LOC_CREGISTER) and maybeconst) then
-               begin
-                 hregister:=l.register64.reglo;
-                 hregisterhi:=l.register64.reghi;
-                 const_location := true;
-               end
-              else
-               begin
-                 hregister:=cg.getintregister(list,OS_32);
-                 hregisterhi:=cg.getintregister(list,OS_32);
-                 const_location := false;
-               end;
-              hreg64.reglo:=hregister;
-              hreg64.reghi:=hregisterhi;
-              { load value in new register }
-              cg64.a_load64_loc_reg(list,l,hreg64);
-              if not const_location then
-                location_reset(l,LOC_REGISTER,dst_size)
-              else
-                location_reset(l,LOC_CREGISTER,dst_size);
-              l.register64.reglo:=hregister;
-              l.register64.reghi:=hregisterhi;
-            end;
-         end
-        else
-{$endif cpu64bitalu}
-         begin
-           {Do not bother to recycle the existing register. The register
-            allocator eliminates unnecessary moves, so it's not needed
-            and trying to recycle registers can cause problems because
-            the registers changes size and may need aditional constraints.
-
-            Not if it's about LOC_CREGISTER's (JM)
-            }
-           const_location :=
-              (maybeconst) and
-              (l.loc = LOC_CREGISTER) and
-              (TCGSize2Size[l.size] = TCGSize2Size[dst_size]) and
-              ((l.size = dst_size) or
-               (TCGSize2Size[l.size] = sizeof(aint)));
-           if not const_location then
-             hregister:=cg.getintregister(list,dst_size)
-           else
-             hregister := l.register;
-           { load value in new register }
-           case l.loc of
-{$ifdef cpuflags}
-             LOC_FLAGS :
-               cg.g_flags2reg(list,dst_size,l.resflags,hregister);
-{$endif cpuflags}
-             LOC_JUMP :
-               begin
-                 cg.a_label(list,current_procinfo.CurrTrueLabel);
-                 cg.a_load_const_reg(list,dst_size,1,hregister);
-                 current_asmdata.getjumplabel(hl);
-                 cg.a_jmp_always(list,hl);
-                 cg.a_label(list,current_procinfo.CurrFalseLabel);
-                 cg.a_load_const_reg(list,dst_size,0,hregister);
-                 cg.a_label(list,hl);
-               end;
-             else
-               begin
-                 { load_loc_reg can only handle size >= l.size, when the
-                   new size is smaller then we need to adjust the size
-                   of the orignal and maybe recalculate l.register for i386 }
-                 if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
-                  begin
-                    if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                      l.register:=cg.makeregsize(list,l.register,dst_size);
-                    { for big endian systems, the reference's offset must }
-                    { be increased in this case, since they have the      }
-                    { MSB first in memory and e.g. byte(word_var) should  }
-                    { return  the second byte in this case (JM)           }
-                    if (target_info.endian = ENDIAN_BIG) and
-                       (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                      begin
-                        inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
-                        l.reference.alignment:=newalignment(l.reference.alignment,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
-                      end;
-{$ifdef x86}
-                    if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
-                      l.size:=dst_size;
-{$endif x86}
-                  end;
-                 cg.a_load_loc_reg(list,dst_size,l,hregister);
-                 if (TCGSize2Size[dst_size]<TCGSize2Size[l.size])
-{$ifdef x86}
-                    and (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG])
-{$endif x86}
-                   then
-                     l.size:=dst_size;
-               end;
-           end;
-           if not const_location then
-             location_reset(l,LOC_REGISTER,dst_size)
-           else
-             location_reset(l,LOC_CREGISTER,dst_size);
-           l.register:=hregister;
-         end;
-       { Release temp when it was a reference }
-       if oldloc.loc=LOC_REFERENCE then
-         location_freetemp(list,oldloc);
-     end;
-
-
-
 
     procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
       var
@@ -721,291 +533,13 @@ implementation
                  else
                    newsize:=l.size;
                  reg:=cg.getmmregister(list,newsize);
-                 cg.a_loadmm_loc_reg(list,newsize,l,reg,mms_movescalar);
+                 hlcg.a_loadmm_loc_reg(list,l.size,newsize,l,reg,mms_movescalar);
                  l.size:=newsize;
                end;
             location_freetemp(list,l);
             location_reset(l,LOC_MMREGISTER,l.size);
             l.register:=reg;
           end;
-      end;
-
-
-    procedure gen_loadfpu_loc_cgpara(list: TAsmList; const l: tlocation;const cgpara: tcgpara;locintsize: longint);
-    var
-{$ifdef i386}
-        href   : treference;
-        size   : longint;
-{$endif i386}
-        locsize : tcgsize;
-        tmploc : tlocation;
-      begin
-           if not(l.size in [OS_32,OS_S32,OS_64,OS_S64,OS_128,OS_S128]) then
-             locsize:=l.size
-           else
-             locsize:=int_float_cgsize(tcgsize2size[l.size]);
-{$ifdef i386}
-           case l.loc of
-             LOC_FPUREGISTER,
-             LOC_CFPUREGISTER:
-               begin
-                 case cgpara.location^.loc of
-                   LOC_REFERENCE:
-                     begin
-                       size:=align(locintsize,cgpara.alignment);
-                       if (not paramanager.use_fixed_stack) and
-                          (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
-                         begin
-                           cg.g_stackpointer_alloc(list,size);
-                           reference_reset_base(href,NR_STACK_POINTER_REG,0,sizeof(pint));
-                         end
-                       else
-                         reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
-                       cg.a_loadfpu_reg_ref(list,locsize,locsize,l.register,href);
-                     end;
-                   LOC_FPUREGISTER:
-                     begin
-                       cg.a_loadfpu_reg_reg(list,locsize,cgpara.location^.size,l.register,cgpara.location^.register);
-                     end;
-                   { can happen if a record with only 1 "single field" is
-                     returned in a floating point register and then is directly
-                     passed to a regcall parameter }
-                   LOC_REGISTER:
-                     begin
-                       tmploc:=l;
-                       location_force_mem(list,tmploc);
-                       case locsize of
-                         OS_F32:
-                           tmploc.size:=OS_32;
-                         OS_F64:
-                           tmploc.size:=OS_64;
-                         else
-                           internalerror(2010053116);
-                       end;
-                       cg.a_load_loc_cgpara(list,tmploc,cgpara);
-                       location_freetemp(list,tmploc);
-                     end
-                   else
-                     internalerror(2010053003);
-                 end;
-               end;
-             LOC_MMREGISTER,
-             LOC_CMMREGISTER:
-               begin
-                 case cgpara.location^.loc of
-                   LOC_REFERENCE:
-                     begin
-                       { can't use TCGSize2Size[l.size], because the size of an
-                         80 bit extended parameter can be either 10 or 12 bytes }
-                       size:=align(locintsize,cgpara.alignment);
-                       if (not paramanager.use_fixed_stack) and
-                          (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
-                         begin
-                           cg.g_stackpointer_alloc(list,size);
-                           reference_reset_base(href,NR_STACK_POINTER_REG,0,sizeof(pint));
-                         end
-                       else
-                         reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
-                       cg.a_loadmm_reg_ref(list,locsize,locsize,l.register,href,mms_movescalar);
-                     end;
-                   LOC_FPUREGISTER:
-                     begin
-                       tmploc:=l;
-                       location_force_mem(list,tmploc);
-                       cg.a_loadfpu_ref_cgpara(list,tmploc.size,tmploc.reference,cgpara);
-                       location_freetemp(list,tmploc);
-                     end;
-                   else
-                     internalerror(2010053004);
-                 end;
-               end;
-             LOC_REFERENCE,
-             LOC_CREFERENCE :
-               begin
-                 case cgpara.location^.loc of
-                   LOC_REFERENCE:
-                     begin
-                       size:=align(locintsize,cgpara.alignment);
-                       if (not paramanager.use_fixed_stack) and
-                          (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
-                         cg.a_load_ref_cgpara(list,locsize,l.reference,cgpara)
-                       else
-                         begin
-                           reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
-                           cg.g_concatcopy(list,l.reference,href,size);
-                         end;
-                     end;
-                   LOC_FPUREGISTER:
-                     begin
-                       cg.a_loadfpu_ref_cgpara(list,locsize,l.reference,cgpara);
-                     end;
-                   else
-                     internalerror(2010053005);
-                 end;
-               end;
-             else
-               internalerror(2002042430);
-           end;
-{$else i386}
-           case l.loc of
-             LOC_MMREGISTER,
-             LOC_CMMREGISTER:
-               case cgpara.location^.loc of
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE,
-                 LOC_MMREGISTER,
-                 LOC_CMMREGISTER,
-                 LOC_REGISTER,
-                 LOC_CREGISTER :
-                   cg.a_loadmm_reg_cgpara(list,locsize,l.register,cgpara,mms_movescalar);
-                 LOC_FPUREGISTER,
-                 LOC_CFPUREGISTER:
-                   begin
-                     tmploc:=l;
-                     location_force_fpureg(list,tmploc,false);
-                     cg.a_loadfpu_reg_cgpara(list,tmploc.size,tmploc.register,cgpara);
-                   end;
-                 else
-                   internalerror(200204249);
-               end;
-             LOC_FPUREGISTER,
-             LOC_CFPUREGISTER:
-               case cgpara.location^.loc of
-                 LOC_MMREGISTER,
-                 LOC_CMMREGISTER:
-                   begin
-                     tmploc:=l;
-                     location_force_mmregscalar(list,tmploc,false);
-                     cg.a_loadmm_reg_cgpara(list,tmploc.size,tmploc.register,cgpara,mms_movescalar);
-                   end;
-                 { Some targets pass floats in normal registers }
-                 LOC_REGISTER,
-                 LOC_CREGISTER,
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE,
-                 LOC_FPUREGISTER,
-                 LOC_CFPUREGISTER:
-                   cg.a_loadfpu_reg_cgpara(list,locsize,l.register,cgpara);
-                 else
-                   internalerror(2002042433);
-               end;
-             LOC_REFERENCE,
-             LOC_CREFERENCE:
-               case cgpara.location^.loc of
-                 LOC_MMREGISTER,
-                 LOC_CMMREGISTER:
-                   cg.a_loadmm_ref_cgpara(list,locsize,l.reference,cgpara,mms_movescalar);
-                 { Some targets pass floats in normal registers }
-                 LOC_REGISTER,
-                 LOC_CREGISTER,
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE,
-                 LOC_FPUREGISTER,
-                 LOC_CFPUREGISTER:
-                   cg.a_loadfpu_ref_cgpara(list,locsize,l.reference,cgpara);
-                 else
-                   internalerror(2002042431);
-               end;
-             LOC_REGISTER,
-             LOC_CREGISTER :
-               begin
-{$ifndef cpu64bitalu}
-                  { Only a_load_ref_cgpara supports multiple locations, when the
-                    value is still a const or in a register then write it
-                    to a reference first. This situation can be triggered
-                    by typecasting an int64 constant to a record of 8 bytes }
-                  if locsize = OS_F64 then
-                    begin
-                      tmploc:=l;
-                      location_force_mem(list,tmploc);
-                      cg.a_load_loc_cgpara(list,tmploc,cgpara);
-                      location_freetemp(list,tmploc);
-                    end
-                  else
-{$endif not cpu64bitalu}
-                    cg.a_load_loc_cgpara(list,l,cgpara);
-               end;
-             else
-               internalerror(2002042432);
-           end;
-{$endif i386}
-      end;
-
-
-    procedure gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);
-{$ifndef cpu64bitalu}
-      var
-        tmploc: tlocation;
-{$endif not cpu64bitalu}
-      begin
-        { Handle Floating point types differently
-
-          This doesn't depend on emulator settings, emulator settings should
-          be handled by cpupara }
-        if (vardef.typ=floatdef) or
-           { some ABIs return certain records in an fpu register }
-           (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) or
-           (assigned(cgpara.location) and
-            (cgpara.Location^.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER])) then
-          begin
-            gen_loadfpu_loc_cgpara(list,l,cgpara,vardef.size);
-            exit;
-          end;
-
-        case l.loc of
-          LOC_CONSTANT,
-          LOC_REGISTER,
-          LOC_CREGISTER,
-          LOC_REFERENCE,
-          LOC_CREFERENCE :
-            begin
-{$ifndef cpu64bitalu}
-              { use cg64 only for int64, not for 8 byte records }
-              if is_64bit(vardef) then
-                cg64.a_load64_loc_cgpara(list,l,cgpara)
-              else
-{$endif not cpu64bitalu}
-                begin
-{$ifndef cpu64bitalu}
-                  { Only a_load_ref_cgpara supports multiple locations, when the
-                    value is still a const or in a register then write it
-                    to a reference first. This situation can be triggered
-                    by typecasting an int64 constant to a record of 8 bytes }
-                  if l.size in [OS_64,OS_S64] then
-                    begin
-                      tmploc:=l;
-                      location_force_mem(list,tmploc);
-                      cg.a_load_loc_cgpara(list,tmploc,cgpara);
-                      { do not free the tmploc in case the original value was
-                        already in memory, because the caller (ncgcal) will then
-                        free it again later }
-                      if not(l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                        location_freetemp(list,tmploc);
-                    end
-                  else
-{$endif not cpu64bitalu}
-                    cg.a_load_loc_cgpara(list,l,cgpara);
-                end;
-            end;
-          LOC_MMREGISTER,
-          LOC_CMMREGISTER:
-            begin
-              case l.size of
-                OS_F32,
-                OS_F64:
-                  cg.a_loadmm_loc_cgpara(list,l,cgpara,mms_movescalar);
-                else
-                  cg.a_loadmm_loc_cgpara(list,l,cgpara,nil);
-              end;
-            end;
-{$ifdef SUPPORT_MMX}
-          LOC_MMXREGISTER,
-          LOC_CMMXREGISTER:
-            cg.a_loadmm_reg_cgpara(list,OS_M64,l.register,cgpara,nil);
-{$endif SUPPORT_MMX}
-          else
-            internalerror(200204241);
-        end;
       end;
 
 
@@ -1043,7 +577,7 @@ implementation
            ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
           begin
             reg:=cg.getmmregister(list,OS_VECTOR);
-            cg.a_loadmm_loc_reg(list,OS_VECTOR,l,reg,nil);
+            hlcg.a_loadmm_loc_reg(list,l.size,OS_VECTOR,l,reg,nil);
             location_freetemp(list,l);
             location_reset(l,LOC_MMREGISTER,OS_VECTOR);
             l.register:=reg;
@@ -1093,59 +627,6 @@ implementation
       end;
 
 
-    procedure location_force_mem(list:TAsmList;var l:tlocation);
-      var
-        r : treference;
-      begin
-        case l.loc of
-          LOC_FPUREGISTER,
-          LOC_CFPUREGISTER :
-            begin
-              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
-              cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,r);
-              location_reset_ref(l,LOC_REFERENCE,l.size,0);
-              l.reference:=r;
-            end;
-          LOC_MMREGISTER,
-          LOC_CMMREGISTER:
-            begin
-              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
-              cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,r,mms_movescalar);
-              location_reset_ref(l,LOC_REFERENCE,l.size,0);
-              l.reference:=r;
-            end;
-          LOC_CONSTANT,
-          LOC_REGISTER,
-          LOC_CREGISTER :
-            begin
-              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
-{$ifndef cpu64bitalu}
-              if l.size in [OS_64,OS_S64] then
-                cg64.a_load64_loc_ref(list,l,r)
-              else
-{$endif not cpu64bitalu}
-                cg.a_load_loc_ref(list,l.size,l,r);
-              location_reset_ref(l,LOC_REFERENCE,l.size,0);
-              l.reference:=r;
-            end;
-          LOC_SUBSETREG,
-          LOC_CSUBSETREG,
-          LOC_SUBSETREF,
-          LOC_CSUBSETREF:
-            begin
-              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
-              cg.a_load_loc_ref(list,l.size,l,r);
-              location_reset_ref(l,LOC_REFERENCE,l.size,0);
-              l.reference:=r;
-            end;
-          LOC_CREFERENCE,
-          LOC_REFERENCE : ;
-          else
-            internalerror(200203219);
-        end;
-      end;
-
-
 {****************************************************************************
                             Init/Finalize Code
 ****************************************************************************}
@@ -1158,6 +639,7 @@ implementation
         hsym : tparavarsym;
         l    : longint;
         localcopyloc : tlocation;
+        sizedef : tdef;
       begin
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) and
@@ -1182,7 +664,8 @@ implementation
                     else
                       internalerror(2006080401);
 //                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
-                    cg.a_load_reg_loc(list,OS_ADDR,hreg,tparavarsym(p).initialloc);
+                    sizedef:=getpointerdef(tparavarsym(p).vardef);
+                    hlcg.a_load_reg_loc(list,sizedef,sizedef,hreg,tparavarsym(p).initialloc);
                   end;
               end
             else
@@ -2591,7 +2074,8 @@ implementation
               LOC_REFERENCE:
                 begin
                   reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
-                  cg.a_load_loc_reg(list,OS_ADDR,selfloc,href.base);
+                  { todo: pass actual vmt pointer type to hlcg }
+                  hlcg.a_load_loc_reg(list,voidpointertype,voidpointertype,selfloc,href.base);
                 end;
               else
                 internalerror(200305057);

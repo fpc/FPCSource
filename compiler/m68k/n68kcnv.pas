@@ -47,7 +47,7 @@ implementation
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj,cgutils,globtype,cgcpu;
+      rgobj,tgobj,cgobj,hlcgobj,cgutils,globtype,cgcpu;
 
 
 {*****************************************************************************
@@ -134,7 +134,7 @@ implementation
 
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,opsize);
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-          location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,false);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,osuinttype,false);
         case left.location.loc of
           LOC_REGISTER, LOC_CREGISTER:
             begin
@@ -175,7 +175,7 @@ implementation
               { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
               if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                  ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-                location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
 {   ACTIVATE when loc_jump support is added

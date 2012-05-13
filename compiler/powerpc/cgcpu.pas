@@ -53,10 +53,6 @@ unit cgcpu;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : TAsmList; fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
 
-        procedure a_load_subsetreg_reg(list : TAsmList; subsetsize: tcgsize;
-          tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister); override;
-        procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tcgsize; const fromsreg, tosreg: tsubsetregister); override;
-
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
           l : tasmlabel);override;
@@ -79,8 +75,6 @@ unit cgcpu;
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: aint; var l1, l2: longint): boolean;
 
-      protected
-       procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
       private
 
         (* NOT IN USE: *)
@@ -342,62 +336,6 @@ const
          list.concat(instr);
          rg[R_INTREGISTER].add_move_instruction(instr);
        end;
-
-
-     procedure tcgppc.a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister);
-
-       begin
-         if (sreg.bitlen > 32) then
-           internalerror(2008020701);
-         if (sreg.bitlen <> 32) then
-           begin
-             list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,destreg,
-               sreg.subsetreg,(32-sreg.startbit) and 31,32-sreg.bitlen,31));
-             { types with a negative lower bound are always a base type (8, 16, 32 bits) }
-             if (subsetsize in [OS_S8..OS_S128]) then
-               if ((sreg.bitlen mod 8) = 0) then
-                 begin
-                   a_load_reg_reg(list,tcgsize2unsigned[subsetsize],subsetsize,destreg,destreg);
-                   a_load_reg_reg(list,subsetsize,tosize,destreg,destreg);
-                 end
-               else
-                 begin
-                   a_op_const_reg(list,OP_SHL,OS_INT,32-sreg.bitlen,destreg);
-                   a_op_const_reg(list,OP_SAR,OS_INT,32-sreg.bitlen,destreg);
-                 end;
-           end
-         else
-           a_load_reg_reg(list,subsetsize,tosize,sreg.subsetreg,destreg);
-       end;
-
-
-     procedure tcgppc.a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt);
-
-       begin
-         if (slopt in [SL_SETZERO,SL_SETMAX]) then
-           inherited a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,sreg,slopt)
-         else if (sreg.bitlen>32) then
-           internalerror(2008020702)
-         else if (sreg.bitlen <> 32) then
-           list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,sreg.subsetreg,fromreg,
-             sreg.startbit,32-sreg.startbit-sreg.bitlen,31-sreg.startbit))
-         else
-           a_load_reg_reg(list,fromsize,subsetsize,fromreg,sreg.subsetreg);
-       end;
-
-
-       procedure tcgppc.a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tcgsize; const fromsreg, tosreg: tsubsetregister);
-
-         begin
-           if (tosreg.bitlen>32) or (tosreg.startbit>31) then
-             internalerror(2008020703);
-           if (fromsreg.bitlen >= tosreg.bitlen) then
-             list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,tosreg.subsetreg, fromsreg.subsetreg,
-                (tosreg.startbit-fromsreg.startbit) and 31,
-                32-tosreg.startbit-tosreg.bitlen,31-tosreg.startbit))
-           else
-             inherited a_load_subsetreg_subsetreg(list,fromsubsetsize,tosubsetsize,fromsreg,tosreg);
-         end;
 
 
      procedure tcgppc.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);

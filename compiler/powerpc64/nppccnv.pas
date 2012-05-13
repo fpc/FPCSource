@@ -63,7 +63,7 @@ uses
   ncon, ncal,procinfo,
   ncgutil,
   cpubase, aasmcpu,
-  rgobj, tgobj, cgobj;
+  rgobj, tgobj, cgobj, hlcgobj;
 
 {*****************************************************************************
                              FirstTypeConv
@@ -147,7 +147,7 @@ begin
   end;
 
   if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-    location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
   case left.location.loc of
     // the conversion algorithm does not modify the input register, so it can
     // be used for both LOC_REGISTER and LOC_CREGISTER

@@ -51,7 +51,7 @@ interface
       cgbase,cpuinfo,pass_1,pass_2,regvars,
       cpupara,cgcpu,cgutils,procinfo,
       ncon,nset,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,hlcgobj,cg64f32;
 
 
 {*****************************************************************************
@@ -436,8 +436,8 @@ interface
                       else
                         begin
                           // const32 - reg64
-                          location_force_reg(current_asmdata.CurrAsmList,left.location,
-                            OS_32,true);
+                          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
+                            left.resultdef,u32inttype,true);
                           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBC,
                             location.register64.reglo,left.location.register64.reglo,
                             right.location.register64.reglo));
@@ -451,7 +451,7 @@ interface
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                         location.register64.reglo,right.location.register64.reglo,0));
                       left.location.value64 := left.location.value64 shr 32;
-                      location_force_reg(current_asmdata.CurrAsmList,left.location,OS_32,true);
+                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,true);
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBFE,
                         location.register64.reghi,right.location.register64.reghi,
                         left.location.register));
@@ -459,8 +459,8 @@ interface
                   else
                     begin
                       // const64 - reg64
-                      location_force_reg(current_asmdata.CurrAsmList,left.location,
-                        def_cgsize(left.resultdef),false);
+                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
+                        left.resultdef,left.resultdef,false);
                       cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,
                         right.location.register64,left.location.register64,
                         location.register64);

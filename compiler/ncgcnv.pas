@@ -116,7 +116,7 @@ interface
                   end;
               end
             else
-              location_force_reg(current_asmdata.CurrAsmList,location,newsize,false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,false);
           end
         else
           begin
@@ -168,7 +168,7 @@ interface
              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
              if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                 ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-               location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
              else
                location.size:=newsize;
              current_procinfo.CurrTrueLabel:=oldTrueLabel;
@@ -198,7 +198,7 @@ interface
                end
               else
                begin
-                 location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
+                 hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                end;
             end;
@@ -368,7 +368,7 @@ interface
            st_shortstring :
              begin
                tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
-               cg.a_load_loc_ref(current_asmdata.CurrAsmList,left.location.size,left.location,
+               hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                  location.reference);
                location_freetemp(current_asmdata.CurrAsmList,left.location);
              end;
@@ -435,7 +435,7 @@ interface
                  if expectloc=LOC_MMREGISTER then
                    begin
                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-                     cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar)
+                     hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location,location.register,mms_movescalar)
                    end
                   else
                     begin
@@ -560,7 +560,7 @@ interface
             ((newsize<>left.location.size) and
              ((left.resultdef.size<>resultdef.size) or
               not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]))) then
-           location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
          else
            { may differ in sign, e.g. bytebool -> byte   }
            location.size:=newsize;
@@ -721,7 +721,7 @@ interface
             (left.resultdef.typ=floatdef) xor
             (resultdef.typ=floatdef)
            ) then
-          location_force_mem(current_asmdata.CurrAsmList,location);
+          hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
 
         { but use the new size, but we don't know the size of all arrays }
         newsize:=def_cgsize(resultdef);

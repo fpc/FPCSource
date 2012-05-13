@@ -356,7 +356,7 @@ implementation
         else
          begin
            { length in ansi/wide strings is at offset -sizeof(pint) }
-           location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,false);
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
            current_asmdata.getjumplabel(lengthlab);
            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
            if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
@@ -540,15 +540,15 @@ implementation
 
           if elepara.location.loc=LOC_CONSTANT then
             begin
-              cg.a_bit_set_const_loc(current_asmdata.CurrAsmList,(inlinenumber=in_include_x_y),
-                elepara.location.value-tsetdef(setpara.resultdef).setbase,setpara.location);
+              hlcg.a_bit_set_const_loc(current_asmdata.CurrAsmList,(inlinenumber=in_include_x_y),
+                setpara.resultdef,elepara.location.value-tsetdef(setpara.resultdef).setbase,setpara.location);
             end
           else
             begin
-              location_force_reg(current_asmdata.CurrAsmList,elepara.location,OS_INT,true);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,elepara.location,elepara.resultdef,u32inttype,true);
               register_maybe_adjust_setbase(current_asmdata.CurrAsmList,elepara.location,tsetdef(setpara.resultdef).setbase);
-              cg.a_bit_set_reg_loc(current_asmdata.CurrAsmList,(inlinenumber=in_include_x_y),
-                elepara.location.size,elepara.location.register,setpara.location);
+              hlcg.a_bit_set_reg_loc(current_asmdata.CurrAsmList,(inlinenumber=in_include_x_y),
+                u32inttype,setpara.resultdef,elepara.location.register,setpara.location);
             end;
         end;
 
@@ -677,7 +677,7 @@ implementation
             use_frame_pointer:=true
           else
             begin
-              location_force_reg(current_asmdata.currasmlist,left.location,OS_ADDR,false);
+              hlcg.location_force_reg(current_asmdata.currasmlist,left.location,left.resultdef,voidpointertype,false);
               frame_reg:=left.location.register;
               use_frame_pointer:=false;
             end
@@ -748,7 +748,7 @@ implementation
           in_rol_x_y:
             op:=OP_ROL;
         end;
-        location_force_reg(current_asmdata.CurrAsmList,location,location.size,false);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,op1.resultdef,resultdef,false);
 
         if (left.nodetype=callparan) and
            assigned(tcallparanode(left).right) then
@@ -760,7 +760,7 @@ implementation
                  tordconstnode(op2).value.uvalue and (resultdef.size*8-1),location.register)
              else
                begin
-                 location_force_reg(current_asmdata.CurrAsmList,op2.location,location.size,false);
+                 hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,op2.resultdef,resultdef,false);
                  { do modulo 2 operation }
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,op,location.size,op2.location.register,location.register);
                end;
@@ -824,7 +824,7 @@ implementation
 
       if (left.location.loc <> LOC_REGISTER) or
          (left.location.size <> opsize) then
-        location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,hlcg.tcgsize2orddef(opsize),true);
 
       location_reset(location,LOC_REGISTER,opsize);
       location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);

@@ -63,7 +63,7 @@ implementation
       cgbase,cgutils,pass_1,pass_2,
       ncgutil,procinfo,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj;
+      rgobj,tgobj,cgobj,hlcgobj;
 
 
     procedure tgenppctypeconvnode.second_int_to_bool;
@@ -96,7 +96,7 @@ implementation
               { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
               if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                  ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-                location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
               current_procinfo.CurrTrueLabel:=oldTrueLabel;

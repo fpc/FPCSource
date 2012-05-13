@@ -163,7 +163,7 @@ implementation
             hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
             if not assigned(hsym) then
               internalerror(200309281);
-            cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,hsym.localloc,location.register);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,hsym.localloc,location.register);
             { walk parents }
             while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
               begin
@@ -201,7 +201,7 @@ implementation
              we have to force the data into memory, see also tw14388.pp
            }
            if nf_internal in flags then
-             location_force_mem(current_asmdata.CurrAsmList,left.location)
+             hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef)
            else
              internalerror(2006111510);
          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
@@ -224,7 +224,7 @@ implementation
          else
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
          if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
-           location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,true);
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
          case left.location.loc of
             LOC_CREGISTER,
             LOC_REGISTER:
@@ -245,7 +245,7 @@ implementation
             LOC_REFERENCE:
               begin
                  location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                 cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
+                 hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
               end;
             LOC_CONSTANT:
               begin
@@ -368,7 +368,7 @@ implementation
                    if not tstoreddef(left.resultdef).is_intregable or
                       not tstoreddef(resultdef).is_intregable or
                       (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER]) then
-                     location_force_mem(current_asmdata.CurrAsmList,location)
+                     hlcg.location_force_mem(current_asmdata.CurrAsmList,location,resultdef)
                    else
                      begin
                        if (left.location.loc = LOC_REGISTER) then
@@ -658,7 +658,7 @@ implementation
                else
                  begin
                    hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                   cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,right.location,hreg);
+                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,hreg);
                  end;
                current_asmdata.getjumplabel(neglabel);
                current_asmdata.getjumplabel(poslabel);
@@ -828,7 +828,7 @@ implementation
               case left.location.loc of
                 LOC_REGISTER,
                 LOC_MMREGISTER:
-                  location_force_mem(current_asmdata.CurrAsmList,left.location);
+                  hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
               end;
              location_copy(location,left.location);
            end;
@@ -959,7 +959,7 @@ implementation
               secondpass(right);
 
               { if mulsize = 1, we won't have to modify the index }
-              location_force_reg(current_asmdata.CurrAsmList,right.location,OS_ADDR,true);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
 
               if isjump then
                begin

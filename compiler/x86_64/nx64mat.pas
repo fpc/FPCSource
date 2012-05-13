@@ -52,7 +52,7 @@ implementation
       pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cgbase,cgutils,cga,cgobj,cgx86,
+      cgbase,cgutils,cga,cgobj,hlcgobj,cgx86,
       ncgutil;
 
 {*****************************************************************************
@@ -74,7 +74,7 @@ implementation
 
         { put numerator in register }
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location_force_reg(current_asmdata.CurrAsmList,left.location,location.size,false);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         hreg1:=left.location.register;
 
         if (nodetype=divn) and (right.nodetype=ordconstn) and
@@ -130,7 +130,7 @@ implementation
             else
               begin
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,right.location.size);
-                cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_64,right.location,hreg1);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u64inttype,right.location,hreg1);
                 emit_reg(op,S_Q,hreg1);
               end;
 
@@ -187,7 +187,7 @@ implementation
 
         { load left operators in a register }
         location_copy(location,left.location);
-        location_force_reg(current_asmdata.CurrAsmList,location,opsize,false);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,hlcg.tcgsize2orddef(opsize),false);
 
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
@@ -196,7 +196,7 @@ implementation
           begin
             { load right operators in a RCX }
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_RCX);
-            cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,right.location,NR_RCX);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_RCX);
 
             { right operand is in ECX }
             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_RCX);

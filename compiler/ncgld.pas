@@ -470,7 +470,8 @@ implementation
 
                      { load class instance/classrefdef address }
                      if left.location.loc=LOC_CONSTANT then
-                       location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,false);
+                       { todo: exact type for hlcg (can't use left.resultdef, because can be TP-style object, which is not pointer-sized) }
+                       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,voidpointertype,false);
                      case left.location.loc of
                         LOC_CREGISTER,
                         LOC_REGISTER:
@@ -802,7 +803,7 @@ implementation
                       end;
                     LOC_SUBSETREG,
                     LOC_CSUBSETREG:
-                      cg.a_load_ref_subsetreg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.sreg);
+                      hlcg.a_load_ref_subsetreg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.reference,left.location.sreg);
                     LOC_SUBSETREF,
                     LOC_CSUBSETREF:
 {$ifndef cpu64bitalu}
@@ -810,7 +811,7 @@ implementation
                        cg64.a_load64_ref_subsetref(current_asmdata.CurrAsmList,right.location.reference,left.location.sref)
                       else
 {$endif not cpu64bitalu}
-                       cg.a_load_ref_subsetref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.sref);
+                       hlcg.a_load_ref_subsetref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.reference,left.location.sref);
                     else
                       internalerror(200203284);
                   end;
@@ -887,8 +888,8 @@ implementation
               LOC_SUBSETREG,
               LOC_CSUBSETREG:
                 begin
-                  cg.a_load_subsetreg_loc(current_asmdata.CurrAsmList,
-                      right.location.size,right.location.sreg,left.location);
+                  hlcg.a_load_subsetreg_loc(current_asmdata.CurrAsmList,
+                      right.resultdef,left.resultdef,right.location.sreg,left.location);
                 end;
               LOC_SUBSETREF,
               LOC_CSUBSETREF:
@@ -898,8 +899,8 @@ implementation
                    cg64.a_load64_subsetref_loc(current_asmdata.CurrAsmList,right.location.sref,left.location)
                   else
 {$endif not cpu64bitalu}
-                  cg.a_load_subsetref_loc(current_asmdata.CurrAsmList,
-                      right.location.size,right.location.sref,left.location);
+                  hlcg.a_load_subsetref_loc(current_asmdata.CurrAsmList,
+                      right.resultdef,left.resultdef,right.location.sref,left.location);
                 end;
               LOC_JUMP :
                 begin
@@ -969,7 +970,7 @@ implementation
                           begin
                             r:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
                             cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,r);
-                            cg.a_load_reg_loc(current_asmdata.CurrAsmList,left.location.size,r,left.location);
+                            hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,r,left.location);
                           end;
                         else
                           internalerror(200203273);
@@ -994,7 +995,7 @@ implementation
                           r:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
                           cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,r);
                           cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,left.location.size,r,r);
-                          cg.a_load_reg_loc(current_asmdata.CurrAsmList,left.location.size,r,left.location);
+                          hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,r,left.location);
                         end
                     end;
                 end;
@@ -1231,13 +1232,14 @@ implementation
                  inc(href.offset,sizeof(pint));
                  if vaddr then
                   begin
-                    location_force_mem(current_asmdata.CurrAsmList,hp.left.location);
+                    hlcg.location_force_mem(current_asmdata.CurrAsmList,hp.left.location,hp.left.resultdef);
                     tmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
                     cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hp.left.location.reference,tmpreg);
                     cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpreg,href);
                   end
                  else
-                  cg.a_load_loc_ref(current_asmdata.CurrAsmList,OS_ADDR,hp.left.location,href);
+                  { todo: proper type information for hlcg }
+                  hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,hp.left.location,href);
                  { update href to the vtype field and write it }
                  dec(href.offset,sizeof(pint));
                  cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);

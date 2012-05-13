@@ -46,7 +46,8 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
       ncon,nset,cgutils,tgobj,
-      cga,ncgutil,cgobj,cg64f32,cgx86;
+      cga,ncgutil,cgobj,cg64f32,cgx86,
+      hlcgobj;
 
 {*****************************************************************************
                                 use_generic_mul32to64
@@ -399,12 +400,12 @@ interface
         begin
           {LOC_CONSTANT for example.}
           reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-          cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,left.location,reg);
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,osuinttype,left.location,reg);
         end;
       {Allocate EAX.}
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
       {Load the right value.}
-      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,right.location,NR_EAX);
+      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EAX);
       {Also allocate EDX, since it is also modified by a mul (JM).}
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
       if use_ref then

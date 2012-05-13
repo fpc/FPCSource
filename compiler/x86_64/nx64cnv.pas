@@ -65,7 +65,7 @@ implementation
       cgbase,cga,procinfo,pass_2,
       ncon,ncal,ncnv,
       cpubase,
-      cgutils,cgobj,cgx86,ncgutil,
+      cgutils,cgobj,hlcgobj,cgx86,ncgutil,
       tgobj;
 
 
@@ -115,7 +115,7 @@ implementation
 
                    { Get sign bit }
                    if not(left.location.loc in [LOC_REGISTER,LOC_REFERENCE]) then
-                     location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
                    case left.location.loc of
                      LOC_REGISTER :
                        begin

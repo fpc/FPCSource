@@ -58,7 +58,7 @@ implementation
       cgbase,cpuinfo,pass_1,pass_2,regvars,
       cpupara,cgcpu,cgutils,procinfo,
       ncon,nset,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,hlcgobj;
 
 
 {*****************************************************************************
@@ -107,15 +107,13 @@ implementation
             LOC_REGISTER,
             LOC_CREGISTER:
               ;
-            LOC_REFERENCE,LOC_CREFERENCE:
-              location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resultdef),false);
             LOC_CONSTANT:
               begin
                 if load_constants then
-                  location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resultdef),false);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,n.location,n.resultdef,n.resultdef,false);
               end;
             else
-              location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resultdef),false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,n.location,n.resultdef,n.resultdef,false);
           end;
         end;
 
@@ -207,7 +205,7 @@ implementation
               end;
             secondpass(left);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-             location_force_reg(current_asmdata.CurrAsmList,left.location,cgsize,false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,hlcg.tcgsize2orddef(cgsize),false);
             if isjump then
              begin
                current_procinfo.CurrTrueLabel:=otl;
@@ -226,7 +224,7 @@ implementation
               end;
             secondpass(right);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-             location_force_reg(current_asmdata.CurrAsmList,right.location,cgsize,false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,hlcg.tcgsize2orddef(cgsize),false);
             if isjump then
              begin
                current_procinfo.CurrTrueLabel:=otl;

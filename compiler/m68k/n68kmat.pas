@@ -56,7 +56,7 @@ implementation
       pass_1,pass_2,procinfo,
       ncon,
       cpuinfo,paramgr,defutil,parabase,
-      tgobj,ncgutil,cgobj,cgutils,rgobj,rgcpu,cgcpu,cg64f32;
+      tgobj,ncgutil,cgobj,hlcgobj,cgutils,rgobj,rgcpu,cgcpu,cg64f32;
 
 
 
@@ -104,7 +104,7 @@ implementation
               LOC_REFERENCE,
               LOC_CREFERENCE :
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(resultdef),true);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,tcgsize2opsize[opsize],left.location.register));
 //                  location_release(current_asmdata.CurrAsmList,left.location);
                   location_reset(location,LOC_FLAGS,OS_NO);
@@ -118,14 +118,14 @@ implementation
            begin
               secondpass(left);
               location_copy(location,left.location);
-              location_force_reg(current_asmdata.CurrAsmList,location,OS_64,false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,u64inttype,false);
               cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,OP_NOT,OS_64,location,
                 joinreg64(location.register64.reglo,location.register64.reghi));
            end
          else
           begin
              secondpass(left);
-             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
              location_copy(location,left.location);
              if location.loc=LOC_CREGISTER then
               location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);
@@ -275,7 +275,7 @@ implementation
             location_reset(location,LOC_REGISTER,OS_64);
 
             { load left operator in a register }
-            location_force_reg(current_asmdata.CurrAsmList,left.location,OS_64,false);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u64inttype,false);
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
 
@@ -322,7 +322,7 @@ implementation
         else
           begin
             { load left operators in a register }
-            location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             location_copy(location,left.location);
             resultreg := location.register;
             hregister1 := location.register;
@@ -346,7 +346,7 @@ implementation
             else
               begin
                 { load shift count in a register if necessary }
-                location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resultdef),true);
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,OS_32,right.location.register,hregister1,resultreg);
               end;
           end;

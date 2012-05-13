@@ -53,7 +53,7 @@ implementation
       cgbase,cpuinfo,pass_1,pass_2,regvars,
       cpupara,cgutils,procinfo,
       ncon,nset,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,hlcgobj,cg64f32;
 
 {*****************************************************************************
                                   Helpers
@@ -385,7 +385,7 @@ implementation
             secondpass(left);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then begin
 //             writeln('ajjaj');
-             location_force_reg(current_asmdata.CurrAsmList,left.location,cgsize,false);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,hlcg.tcgsize2orddef(cgsize),false);
 //             writeln('reccs?');
             end;
             if isjump then
@@ -404,7 +404,7 @@ implementation
               end;
             secondpass(right);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-             location_force_reg(current_asmdata.CurrAsmList,right.location,cgsize,false);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,hlcg.tcgsize2orddef(cgsize),false);
             if isjump then
              begin
                current_procinfo.CurrTrueLabel:=otl;

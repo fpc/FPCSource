@@ -519,12 +519,9 @@ implementation
            LOC_REGISTER,
            LOC_CREGISTER:
              hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location,left.location.register);
-{$ifndef cpuhighleveltarget}
-           { still have to figure out how to handle the subset sizes }
            LOC_SUBSETREG,
            LOC_CSUBSETREG :
-             cg.a_load_loc_subsetreg(current_asmdata.CurrAsmList,left.location.size,right.location,left.location.sreg);
-{$endif}
+             hlcg.a_load_loc_subsetreg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location,left.location.sreg);
            else
              internalerror(200501311);
          end;

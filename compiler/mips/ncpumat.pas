@@ -50,11 +50,11 @@ implementation
 uses
   globtype, systems,
   cutils, verbose, globals,
-  symconst,
+  symconst, symdef,
   aasmbase, aasmcpu, aasmtai, aasmdata,
   defutil,
   procinfo,
-  cgbase, cgobj, pass_2,
+  cgbase, cgobj, hlcgobj, pass_2,
   ncon,
   cpubase,
   ncgutil, cgcpu, cgutils;
@@ -73,7 +73,7 @@ begin
   location_copy(location, left.location);
 
   { put numerator in register }
-  location_force_reg(current_asmdata.CurrAsmList, left.location, def_cgsize(left.resultdef), True);
+  hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
   location_copy(location, left.location);
   numerator := location.Register;
 
@@ -104,8 +104,8 @@ begin
   else
   begin
     { load divider in a register if necessary }
-    location_force_reg(current_asmdata.CurrAsmList, right.location,
-      def_cgsize(right.resultdef), True);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
+      right.resultdef, right.resultdef, True);
     divider := right.location.Register;
 
 
@@ -171,7 +171,7 @@ begin
     location_reset(location, LOC_REGISTER, OS_64);
 
     { load left operator in a register }
-    location_force_reg(current_asmdata.CurrAsmList, left.location, OS_64, False);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, u64inttype, False);
 
 
     hreg64hi := left.location.register64.reghi;
@@ -219,7 +219,7 @@ begin
   else
   begin
     { load left operators in a register }
-    location_force_reg(current_asmdata.CurrAsmList, left.location, def_cgsize(left.resultdef), True);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
     location_copy(location, left.location);
     resultreg  := location.Register;
     hregister1 := location.Register;
@@ -243,7 +243,7 @@ begin
     else
     begin
       { load shift count in a register if necessary }
-      location_force_reg(current_asmdata.CurrAsmList, right.location, def_cgsize(right.resultdef), True);
+      hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location, right.resultdef, right.resultdef, True);
       cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, op, OS_32, right.location.Register, hregister1, resultreg);
     end;
   end;
@@ -283,7 +283,7 @@ begin
       end;
       LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE:
       begin
-        location_force_reg(current_asmdata.CurrAsmList, left.location, def_cgsize(left.resultdef), True);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SEQ, NR_TCR0, left.location.Register, NR_R0));
         location_reset(location, LOC_REGISTER, OS_INT);
         location.Register := NR_TCR0;

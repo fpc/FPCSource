@@ -499,6 +499,7 @@ compiler/ppcavr.lpi svneol=native#text/plain
 compiler/ppcgen/aasmcpu.pas svneol=native#text/plain
 compiler/ppcgen/agppcgas.pas svneol=native#text/plain
 compiler/ppcgen/cgppc.pas svneol=native#text/plain
+compiler/ppcgen/hlcgppc.pas svneol=native#text/plain
 compiler/ppcgen/ngppcadd.pas svneol=native#text/plain
 compiler/ppcgen/ngppccnv.pas svneol=native#text/plain
 compiler/ppcgen/ngppcinl.pas svneol=native#text/plain

@@ -122,7 +122,7 @@ interface
         if (left.location.loc=LOC_FPUREGISTER) and
            (node_resources_fpu(right)>=maxfpuregs) then
           begin
-            location_force_mem(current_asmdata.CurrAsmList,left.location);
+            hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             pushedfpu:=true;
           end;
 {$endif x86}
@@ -149,7 +149,7 @@ interface
             if use_vectorfpu(left.resultdef) then
               begin
                 tmpreg := cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
-                cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg,mms_movescalar);
+                hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location.size,left.location,tmpreg,mms_movescalar);
                 location_freetemp(current_asmdata.CurrAsmList,left.location);
                 location_reset(left.location,LOC_MMREGISTER,left.location.size);
                 left.location.register:=tmpreg;
@@ -635,7 +635,7 @@ interface
               else
                 begin
                   // const64 - reg64
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                   cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
                     right.location.register64,left.location.register64,
                     location.register64,

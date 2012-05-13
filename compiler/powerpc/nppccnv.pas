@@ -63,7 +63,7 @@ implementation
       ncon,ncal,
       ncgutil,procinfo,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj;
+      rgobj,tgobj,cgobj,hlcgobj;
 
 
 {*****************************************************************************
@@ -167,7 +167,7 @@ implementation
           internalerror(200110011);
 
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-          location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         case left.location.loc of
           LOC_REGISTER:
             begin

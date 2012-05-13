@@ -417,7 +417,7 @@ implementation
                    (location.loc=LOC_REGISTER) and
                    (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
                   begin
-                    location_force_mem(current_asmdata.CurrAsmList,location);
+                    hlcg.location_force_mem(current_asmdata.CurrAsmList,location,resultdef);
                   end;
 {$endif arm}
               end;
@@ -445,7 +445,7 @@ implementation
                     cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,location.register64,funcretnode.location)
                   else
 {$endif}
-                    cg.a_load_reg_loc(current_asmdata.CurrAsmList,location.size,location.register,funcretnode.location);
+                    hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,resultdef,resultdef,location.register,funcretnode.location);
                   location_free(current_asmdata.CurrAsmList,location);
                 end;
               LOC_REFERENCE:
@@ -791,7 +791,8 @@ implementation
                  else
                    begin
                      { Load VMT value in register }
-                     location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,OS_ADDR,false);
+                     { todo: fix vmt type for high level cg }
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,voidpointertype,voidpointertype,false);
                      vmtreg:=methodpointer.location.register;
                    end;
 
@@ -882,11 +883,12 @@ implementation
               secondpass(right);
 
               pvreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-              { Only load OS_ADDR from the reference }
+              { Only load OS_ADDR from the reference (when converting to hlcg:
+                watch out with procedure of object) }
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
               else
-                cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,right.location,pvreg);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,right.resultdef,right.location,pvreg);
               location_freetemp(current_asmdata.CurrAsmList,right.location);
 
               { Load parameters that are in temporary registers in the
