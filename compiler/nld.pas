@@ -1111,7 +1111,10 @@ implementation
     function ttypenode.docompare(p: tnode): boolean;
       begin
         docompare :=
-          inherited docompare(p);
+          inherited docompare(p) and
+          (typedef=ttypenode(p).typedef) and
+          (allowed=ttypenode(p).allowed) and
+          (helperallowed=ttypenode(p).helperallowed);
       end;
 
 
@@ -1193,7 +1196,8 @@ implementation
         docompare :=
           inherited docompare(p) and
           (rttidef = trttinode(p).rttidef) and
-          (rttitype = trttinode(p).rttitype);
+          (rttitype = trttinode(p).rttitype) and
+          (rttidatatype = trttinode(p).rttidatatype);
       end;
 
 end.

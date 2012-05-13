@@ -3011,6 +3011,12 @@ implementation
                 for j:=0 to ImplIntf.ProcDefs.Count-1 do
                   begin
                     pd:=TProcdef(ImplIntf.ProcDefs[j]);
+                    { we don't track method calls via interfaces yet ->
+                      assume that every method called via an interface call
+                      is reachable for now }
+                    if (po_virtualmethod in pd.procoptions) and
+                       not is_objectpascal_helper(tprocdef(pd).struct) then
+                      tobjectdef(tprocdef(pd).struct).register_vmt_call(tprocdef(pd).extnumber);
                     tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+
                       ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
                     { create wrapper code }

@@ -354,7 +354,8 @@ const
       { regular nm }
       if not symbolprogfound then
         symbolprogfound:=findutil('nm',nmfullname,symbolprogfullpath);
-      if not symbolprogfound then
+      if not symbolprogfound and
+         (target_info.system in systems_linux) then
         begin
           { try objdump }
           symbolprogfound:=findutil('objdump',objdumpfullname,symbolprogfullpath);
@@ -364,6 +365,11 @@ const
       else
         begin
           symbolprogfullpath:=symbolprogfullpath+' -p ';
+          { GNU nm shows 64 bit addresses when processing 32 bit binaries on
+            a 64 bit platform, but only skips 8 spaces for the address in case
+            of undefined symbols -> skip undefined symbols }
+          if target_info.system in (systems_linux+systems_windows) then
+            symbolprogfullpath:=symbolprogfullpath+'--defined-only ';
           symbolprogisnm:=true;
         end;
       if not symbolprogfound then

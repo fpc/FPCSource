@@ -246,7 +246,7 @@ interface
        { whole program optimizations whose information generation requires
          information from all loaded units
        }
-       WPOptimizationsNeedingAllUnitInfo = [cs_wpo_devirtualize_calls];
+       WPOptimizationsNeedingAllUnitInfo = [cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts];
 
        featurestr : array[tfeature] of string[12] = (
          'HEAP','INITFINAL','RTTI','CLASSES','EXCEPTIONS','EXITCODE',
