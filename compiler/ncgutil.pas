@@ -1515,7 +1515,8 @@ implementation
         tempref  : treference;
 {$endif sparc}
 {$ifndef cpu64bitalu}
-        reg64: tregister64;
+        tempreg  : tregister;
+        reg64    : tregister64;
 {$endif not cpu64bitalu}
       begin
         paraloc:=para.location;
@@ -1657,15 +1658,28 @@ implementation
                   if not assigned(paraloc^.next) or
                      assigned(paraloc^.next^.next) then
                     internalerror(2009112421);
-                  unget_para(paraloc^);
                   unget_para(paraloc^.next^);
+                  case paraloc^.next^.loc of
+                    LOC_REGISTER:
+                      tempreg:=paraloc^.next^.register;
+                    LOC_REFERENCE:
+                      begin
+                        tempreg:=cg.getintregister(list,OS_32);
+                        cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.next^,tempreg,4);
+                      end;
+                    else
+                      internalerror(2012051301);
+                  end;
+                  { don't free before the above, because then the getintregister
+                    could reallocate this register and overwrite it }
+                  unget_para(paraloc^);
                   gen_alloc_regloc(list,destloc);
                   if (target_info.endian=endian_big) then
                     { paraloc^ -> high
                       paraloc^.next -> low }
-                    reg64:=joinreg64(paraloc^.next^.register,paraloc^.register)
+                    reg64:=joinreg64(tempreg,paraloc^.register)
                   else
-                    reg64:=joinreg64(paraloc^.register,paraloc^.next^.register);
+                    reg64:=joinreg64(paraloc^.register,tempreg);
                   cg64.a_loadmm_intreg64_reg(list,OS_F64,reg64,destloc.register);
                 end
               else
