@@ -121,6 +121,7 @@ procedure TLinkerAndroid.SetDefaultInfo;
 
 const
 {$ifdef arm}       platform_select='';{$endif} {unknown :( }
+{$ifdef i386}      platform_select='';{$endif} {unknown :( }
 
 var
   defdynlinker: string;
@@ -817,5 +818,11 @@ initialization
   RegisterExport(system_arm_android,texportlibandroid);
   RegisterTarget(system_arm_android_info);
 {$endif ARM}
+{$ifdef I386}
+  RegisterExternalLinker(system_i386_android_info,TLinkerAndroid);
+  RegisterImport(system_i386_android,timportlibandroid);
+  RegisterExport(system_i386_android,texportlibandroid);
+  RegisterTarget(system_i386_android_info);
+{$endif I386}
   RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.

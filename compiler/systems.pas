@@ -215,7 +215,7 @@ interface
        system_any = system_none;
 
        systems_wince = [system_arm_wince,system_i386_wince];
-       systems_android = [system_arm_android];
+       systems_android = [system_arm_android, system_i386_android];
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
                        system_x86_6432_linux,system_mips_linux,system_mipsel_linux];
@@ -315,6 +315,7 @@ interface
        systems_need_16_byte_stack_alignment = [
       	system_i386_darwin,
       	system_i386_iphonesim,
+      	system_i386_android,
         system_x86_64_darwin,
         system_x86_64_win64,
         system_x86_64_linux,
@@ -737,6 +738,10 @@ begin
    {$ifdef darwin}
     default_target(system_i386_darwin);
     {$define default_target_set}
+   {$endif}
+   {$ifdef android}
+    {$define default_target_set}
+    default_target(system_i386_android);
    {$endif}
   {$endif cpu86}
   { default is linux }

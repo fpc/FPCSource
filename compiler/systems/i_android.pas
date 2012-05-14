@@ -33,7 +33,7 @@ unit i_android;
           (
             system       : system_arm_Android;
             name         : 'Android for ARMEL';
-            shortname    : 'ANDROID';
+            shortname    : 'Android';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
@@ -92,13 +92,77 @@ unit i_android;
             abi : abi_eabi
           );
 
+       system_i386_android_info : tsysteminfo =
+          (
+            system       : system_i386_ANDROID;
+            name         : 'Android for i386';
+            shortname    : 'Android';
+            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections}{,tf_winlikewidestring},
+                            tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_smartlink_library,tf_needs_dwarf_cfi,tf_has_winlike_resources,
+                            tf_safecall_exceptions, tf_safecall_clearstack];
+            cpu          : cpu_i386;
+            unit_env     : 'ANDROIDUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_i386_elf32;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 16;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 8*1024*1024;
+            abi : abi_default
+          );
+
+
 implementation
 
 initialization
 {$ifdef CPU86}
   {$ifdef android}
-//    not implemented yet
-//    set_source_info(system_x86_android_info);
+    set_source_info(system_i386_android_info);
   {$endif}
 {$endif CPU86}
 {$ifdef CPUARM}

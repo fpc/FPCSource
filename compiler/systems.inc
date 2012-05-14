@@ -151,7 +151,8 @@
              system_x86_64_netbsd,      { 72 }
              system_powerpc_aix,        { 73 }
              system_powerpc64_aix,      { 74 }
-             system_arm_android         { 75 }
+             system_arm_android,        { 75 }
+             system_i386_android        { 76 }
        );
 
      type

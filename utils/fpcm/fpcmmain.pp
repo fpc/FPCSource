@@ -140,7 +140,7 @@ interface
         { iphonesim }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
         { wii }     ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false),
         { aix }     ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false),
-        { android } ( false, false, true,  false, false, true,  false, false, false, true, false, false, false, false)
+        { android } ( true,  false, true,  false, false, true,  false, false, false, true, false, false, false, false)
       );
 
     type
