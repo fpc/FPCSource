@@ -21,7 +21,8 @@ end;
 Procedure TRegistry.SysRegFree;
 
 begin
-  TXMLRegistry(FSysData).Flush;
+  if Assigned(FSysData) then
+    TXMLRegistry(FSysData).Flush;
   TXMLRegistry(FSysData).Free;
 end;
 
@@ -237,13 +238,21 @@ end;
 procedure TRegistry.CloseKey;
 
 begin
-  TXMLRegistry(FSysData).Flush;
-  TXMLRegistry(FSysData).SetRootKey(TXMLRegistry(FSysData).RootKey);
+  // CloseKey is called from destructor, which includes cases of failed construction.
+  // FSysData may be unassigned at this point.
+  if Assigned(FSysData) then
+  begin
+    TXMLRegistry(FSysData).Flush;
+    TXMLRegistry(FSysData).SetRootKey(TXMLRegistry(FSysData).RootKey);
+  end;
 end;
 
 procedure TRegistry.CloseKey(key:HKEY);
 
 begin
-  TXMLRegistry(FSysData).Flush;
-  TXMLRegistry(FSysData).SetRootKey(TXMLRegistry(FSysData).RootKey);
+  if Assigned(FSysData) then
+  begin
+    TXMLRegistry(FSysData).Flush;
+    TXMLRegistry(FSysData).SetRootKey(TXMLRegistry(FSysData).RootKey);
+  end;
 end;
