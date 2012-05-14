@@ -44,7 +44,7 @@ interface
     procedure single_type(var def:tdef;options:TSingleTypeOptions);
 
     { reads any type declaration, where the resulting type will get name as type identifier }
-    procedure read_named_type(var def:tdef;const name : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
 
     { reads any type declaration }
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
@@ -777,7 +777,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_named_type(var def : tdef;const name : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
       var
         pt : tnode;
         tt2 : tdef;
@@ -786,6 +786,7 @@ implementation
         l,v : TConstExprInt;
         oldpackrecords : longint;
         defpos,storepos : tfileposinfo;
+        name: TIDString;
 
         procedure expr_type;
         var
@@ -1278,6 +1279,10 @@ implementation
         st: tsymtable;
       begin
          def:=nil;
+         if assigned(newsym) then
+           name:=newsym.RealName
+         else
+           name:='';
          case token of
             _STRING,_FILE:
               begin
@@ -1405,7 +1410,7 @@ implementation
                 if (idtoken=_HELPER) and (m_advanced_records in current_settings.modeswitches) then
                   begin
                     consume(_HELPER);
-                    def:=object_dec(odt_helper,name,genericdef,genericlist,nil,ht_record);
+                    def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
                   end
                 else
                   def:=record_dec(name,genericdef,genericlist);
@@ -1435,12 +1440,12 @@ implementation
                       _CLASS :
                         begin
                           consume(_CLASS);
-                          def:=object_dec(odt_class,name,genericdef,genericlist,nil,ht_none);
+                          def:=object_dec(odt_class,name,newsym,genericdef,genericlist,nil,ht_none);
                         end;
                       _OBJECT :
                         begin
                           consume(_OBJECT);
-                          def:=object_dec(odt_object,name,genericdef,genericlist,nil,ht_none);
+                          def:=object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
                         end;
                       else begin
                         consume(_RECORD);
@@ -1457,7 +1462,7 @@ implementation
                 if not(m_class in current_settings.modeswitches) then
                   Message(parser_f_need_objfpc_or_delphi_mode);
                 consume(token);
-                def:=object_dec(odt_dispinterface,name,genericdef,genericlist,nil,ht_none);
+                def:=object_dec(odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _CLASS :
               begin
@@ -1488,15 +1493,15 @@ implementation
                 if (idtoken=_HELPER) then
                   begin
                     consume(_HELPER);
-                    def:=object_dec(odt_helper,name,genericdef,genericlist,nil,ht_class);
+                    def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_class);
                   end
                 else
-                  def:=object_dec(default_class_type,name,genericdef,genericlist,nil,ht_none);
+                  def:=object_dec(default_class_type,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _CPPCLASS :
               begin
                 consume(token);
-                def:=object_dec(odt_cppclass,name,genericdef,genericlist,nil,ht_none);
+                def:=object_dec(odt_cppclass,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _OBJCCLASS :
               begin
@@ -1504,7 +1509,7 @@ implementation
                   Message(parser_f_need_objc);
 
                 consume(token);
-                def:=object_dec(odt_objcclass,name,genericdef,genericlist,nil,ht_none);
+                def:=object_dec(odt_objcclass,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _INTERFACE :
               begin
@@ -1515,11 +1520,11 @@ implementation
                 consume(token);
                 case current_settings.interfacetype of
                   it_interfacecom:
-                    def:=object_dec(odt_interfacecom,name,genericdef,genericlist,nil,ht_none);
+                    def:=object_dec(odt_interfacecom,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacecorba:
-                    def:=object_dec(odt_interfacecorba,name,genericdef,genericlist,nil,ht_none);
+                    def:=object_dec(odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacejava:
-                    def:=object_dec(odt_interfacejava,name,genericdef,genericlist,nil,ht_none);
+                    def:=object_dec(odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
                   else
                     internalerror(2010122612);
                 end;
@@ -1530,7 +1535,7 @@ implementation
                   Message(parser_f_need_objc);
 
                 consume(token);
-                def:=object_dec(odt_objcprotocol,name,genericdef,genericlist,nil,ht_none);
+                def:=object_dec(odt_objcprotocol,name,newsym,genericdef,genericlist,nil,ht_none);
                end;
             _OBJCCATEGORY :
                begin
@@ -1538,12 +1543,12 @@ implementation
                   Message(parser_f_need_objc);
 
                 consume(token);
-                def:=object_dec(odt_objccategory,name,genericdef,genericlist,nil,ht_none);
+                def:=object_dec(odt_objccategory,name,newsym,genericdef,genericlist,nil,ht_none);
                end;
             _OBJECT :
               begin
                 consume(token);
-                def:=object_dec(odt_object,name,genericdef,genericlist,nil,ht_none);
+                def:=object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _PROCEDURE,
             _FUNCTION:
@@ -1573,7 +1578,7 @@ implementation
 
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
       begin
-        read_named_type(def,'',nil,nil,parseprocvardir);
+        read_named_type(def,nil,nil,nil,parseprocvardir);
       end;
 
 

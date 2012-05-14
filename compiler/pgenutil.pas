@@ -437,7 +437,7 @@ uses
                 current_tokenpos:=current_filepos;
                 current_scanner.startreplaytokens(genericdef.generictokenbuf,
                   genericdef.change_endian);
-                read_named_type(tt,finalspecializename,genericdef,generictypelist,false);
+                read_named_type(tt,srsym,genericdef,generictypelist,false);
                 current_filepos:=oldcurrent_filepos;
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;

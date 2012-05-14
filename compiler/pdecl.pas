@@ -492,7 +492,7 @@ implementation
                     end;
                     consume(token);
                     { we can ignore the result, the definition is modified }
-                    object_dec(objecttype,genorgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef),ht_none);
+                    object_dec(objecttype,genorgtypename,newtype,nil,nil,tobjectdef(ttypesym(sym).typedef),ht_none);
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
@@ -595,7 +595,7 @@ implementation
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
               { read the type definition }
-              read_named_type(hdef,genorgtypename,gendef,generictypelist,false);
+              read_named_type(hdef,newtype,gendef,generictypelist,false);
               { update the definition of the type }
               if assigned(hdef) then
                 begin

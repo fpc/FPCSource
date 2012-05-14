@@ -30,7 +30,7 @@ interface
       globtype,symconst,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
 
     { parses a (class) method declaration }
     function method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
@@ -1225,7 +1225,7 @@ implementation
       end;
 
 
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
       var
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
@@ -1236,6 +1236,7 @@ implementation
         list: TFPObjectList;
         s: String;
         st: TSymtable;
+        olddef: tdef;
       begin
         old_current_structdef:=current_structdef;
         old_current_genericdef:=current_genericdef;
@@ -1422,8 +1423,23 @@ implementation
             { parse optional GUID for interfaces }
             parse_guid;
 
+            { classes can handle links to themself not only inside type blocks
+              but in const blocks too. to make this possible we need to set
+              their symbols to real defs instead of errordef }
+
+            if assigned(objsym) and (objecttype in [odt_class,odt_javaclass]) then
+              begin
+                olddef:=ttypesym(objsym).typedef;
+                ttypesym(objsym).typedef:=current_structdef;
+              end
+            else
+              olddef:=nil;
+
             { parse and insert object members }
             parse_object_members;
+
+            if assigned(olddef) then
+              ttypesym(objsym).typedef:=olddef;
 
           if not(oo_is_external in current_structdef.objectoptions) then
             begin
