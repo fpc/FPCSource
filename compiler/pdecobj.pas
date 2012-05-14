@@ -1427,7 +1427,7 @@ implementation
               but in const blocks too. to make this possible we need to set
               their symbols to real defs instead of errordef }
 
-            if assigned(objsym) and (objecttype in [odt_class,odt_javaclass]) then
+            if assigned(objsym) and (objecttype in [odt_class,odt_javaclass,odt_interfacejava]) then
               begin
                 olddef:=ttypesym(objsym).typedef;
                 ttypesym(objsym).typedef:=current_structdef;
