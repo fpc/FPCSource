@@ -6822,7 +6822,6 @@ implementation
               unit, add them to the global/staticsymtable }
             oldsymtablestack:=symtablestack;
             symtablestack:=nil;
-            symtablestack.push(current_module.localsymtable);
             res^.Data:=tarraydef.create(0,elecount-1,ptrsinttype);
             tarraydef(res^.Data).elementdef:=def;
             current_module.localsymtable.insertdef(tdef(res^.Data));
