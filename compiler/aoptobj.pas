@@ -164,17 +164,17 @@ Unit AoptObj;
           TInstrSinceLastMod);
         { destroy the contents of all registers }
         Procedure DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
-        { a register's contents are modified, but not destroyed (the new value }
-        { depends on the old one)                                              }
+        { a register's contents are modified, but not destroyed (the new value
+          depends on the old one)                                              }
         Procedure ModifyReg(reg: TRegister; var InstrSinceLastMod:
           TInstrSinceLastMod);
-        { an operand's contents are modified, but not destroyed (the new value }
-        { depends on the old one)                                              }
+        { an operand's contents are modified, but not destroyed (the new value
+          depends on the old one)                                              }
         Procedure ModifyOp(const oper: TOper; var InstrSinceLastMod:
           TInstrSinceLastMod);
 
-        { increase the write state of a register (call every time a register is }
-        { written to)                                                           }
+        { increase the write state of a register (call every time a register is
+          written to)                                                           }
         Procedure IncWState(Reg: TRegister);
         { increase the read state of a register (call every time a register is }
         { read from)                                                           }
@@ -262,11 +262,15 @@ Unit AoptObj;
 
         { processor independent methods }
 
+        Procedure CreateUsedRegs(var regs: TAllUsedRegs);
         Procedure ClearUsedRegs;
         Procedure UpdateUsedRegs(p : Tai);
         procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai);
         Function CopyUsedRegs(var dest : TAllUsedRegs) : boolean;
         Procedure ReleaseUsedRegs(const regs : TAllUsedRegs);
+        Function RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
+        Procedure IncludeRegInUsedRegs(reg : TRegister;var regs : TAllUsedRegs);
+        Procedure ExcludeRegFromUsedRegs(reg: TRegister;var regs : TAllUsedRegs);
 
         { returns true if the label L is found between hp and the next }
         { instruction                                                  }
@@ -778,15 +782,12 @@ Unit AoptObj;
 
       Constructor TAoptObj.create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
                                   _LabelInfo: PLabelInfo);
-      var
-        i : TRegisterType;
       Begin
         AsmL := _AsmL;
         BlockStart := _BlockStart;
         BlockEnd := _BlockEnd;
         LabelInfo := _LabelInfo;
-        for i:=low(TRegisterType) to high(TRegisterType) do
-          UsedRegs[i]:=TUsedRegs.Create(i);
+        CreateUsedRegs(UsedRegs);
       End;
 
       destructor TAOptObj.Destroy;
@@ -796,6 +797,15 @@ Unit AoptObj;
           for i:=low(TRegisterType) to high(TRegisterType) do
             UsedRegs[i].Destroy;
           inherited Destroy;
+        end;
+
+
+      procedure TAOptObj.CreateUsedRegs(var regs: TAllUsedRegs);
+        var
+          i : TRegisterType;
+        begin
+          for i:=low(TRegisterType) to high(TRegisterType) do
+            Regs[i]:=TUsedRegs.Create(i);
         end;
 
 
@@ -835,12 +845,33 @@ Unit AoptObj;
           dest[i]:=TUsedRegs.Create_Regset(i,UsedRegs[i].GetUsedRegs);
       end;
 
+
       procedure TAOptObj.ReleaseUsedRegs(const regs: TAllUsedRegs);
         var
           i : TRegisterType;
       begin
         for i:=low(TRegisterType) to high(TRegisterType) do
           regs[i].Free;
+      end;
+
+
+      Function TAOptObj.RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
+      begin
+        result:=regs[getregtype(reg)].IsUsed(reg);
+      end;
+
+
+      procedure TAOptObj.IncludeRegInUsedRegs(reg: TRegister;
+       var regs: TAllUsedRegs);
+      begin
+        include(regs[getregtype(reg)].UsedRegs,getsupreg(Reg));
+      end;
+
+
+      procedure TAOptObj.ExcludeRegFromUsedRegs(reg: TRegister;
+       var regs: TAllUsedRegs);
+      begin
+        exclude(regs[getregtype(reg)].UsedRegs,getsupreg(Reg));
       end;
 
 

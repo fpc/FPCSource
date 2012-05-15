@@ -28,13 +28,17 @@ Unit aoptcpu;
 
 Interface
 
-uses cpubase, aasmtai, aopt, aoptcpub;
+uses cgbase, cpubase, aasmtai, aopt, aoptcpub, aoptobj;
 
 Type
+
+  { TCpuAsmOptimizer }
+
   TCpuAsmOptimizer = class(TAsmOptimizer)
     { uses the same constructor as TAopObj }
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
+    Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
   End;
 
   TCpuPreRegallocScheduler = class(TAsmOptimizer)
@@ -51,7 +55,7 @@ Implementation
   uses
     cutils,
     verbose,
-    cgbase,cgutils,
+    cgutils,
     aasmbase,aasmdata,aasmcpu;
 
   function CanBeCond(p : tai) : boolean;
@@ -118,6 +122,7 @@ Implementation
     var
       hp1,hp2: tai;
       i: longint;
+      TmpUsedRegs: TAllUsedRegs;
     begin
       result := false;
       case p.typ of
@@ -216,6 +221,36 @@ Implementation
                             taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
                           end;
                         result := true;
+                      end
+                    else
+                    { Remove superfluous mov after ldr
+                      changes
+                      ldr reg1, ref
+                      mov reg2, reg1
+                      to
+                      ldr reg2, ref
+
+                      conditions are:
+                        * reg1 must be released after mov
+                        * mov can not contain shifterops
+                        * ldr+mov have the same conditions
+                        * mov does not set flags
+                    }
+                    if GetNextInstruction(p, hp1) and
+                       MatchInstruction(hp1, A_MOV, [taicpu(p).condition], [PF_None]) and
+                       (taicpu(hp1).ops=2) and {We can't optimize if there is a shiftop}
+                       MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) then
+                      begin
+                        CopyUsedRegs(TmpUsedRegs);
+                        UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                        If not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp1,TmpUsedRegs)) then
+                        begin
+                          asml.insertbefore(tai_comment.Create(strpnew('Peephole LdrMov2Ldr removed superfluous mov')), hp1);
+                          taicpu(p).loadreg(0,taicpu(hp1).oper[0]^.reg);
+                          asml.remove(hp1);
+                          hp1.free;
+                        end;
+                        ReleaseUsedRegs(TmpUsedRegs);
                       end;
                   end;
                 A_MOV:
@@ -560,6 +595,14 @@ Implementation
           end;
           p := tai(p.next)
         end;
+    end;
+
+  function TCpuAsmOptimizer.RegInInstruction(Reg: TRegister; p1: tai): Boolean;
+    begin
+      If (p1.typ = ait_instruction) and (taicpu(p1).opcode=A_BL) then
+        Result:=true
+      else
+        Result:=inherited RegInInstruction(Reg, p1);
     end;
 
   const

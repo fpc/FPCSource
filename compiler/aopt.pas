@@ -61,6 +61,7 @@ Unit aopt;
     uses
       globtype, globals,
       verbose,
+      cgbase,
       aoptda,aoptcpu,aoptcpud;
 
     Constructor TAsmOptimizer.create(_AsmL: TAsmList);
@@ -110,11 +111,11 @@ Unit aopt;
     Procedure TAsmOptimizer.BuildLabelTableAndFixRegAlloc;
     { Builds a table with the locations of the labels in the TAsmList.       }
     { Also fixes some RegDeallocs like "# %eax released; push (%eax)"           }
-    Var p{, hp1, hp2}: tai;
-        {UsedRegs: TRegSet;}
+    Var p,hp1, hp2: tai;
+        Regs: TAllUsedRegs;
         LabelIdx : longint;
     Begin
-      {UsedRegs := [];}
+      CreateUsedRegs(Regs);
       With LabelInfo^ Do
         If (LabelDif <> 0) Then
           Begin
@@ -137,13 +138,17 @@ Unit aopt;
                     end;
                   ait_regAlloc:
                     begin
-                    {!!!!!!!!!
                       if tai_regalloc(p).ratype=ra_alloc then
                         Begin
-                          If Not(tai_regalloc(p).Reg in UsedRegs) Then
-                            UsedRegs := UsedRegs + [tai_regalloc(p).Reg]
+                          If Not(RegInUsedRegs(tai_regalloc(p).Reg,Regs)) Then
+                            IncludeRegInUsedRegs(tai_regalloc(p).Reg,Regs)
                           Else
                             Begin
+                              hp1 := tai(p.previous);
+                              AsmL.remove(p);
+                              p.free;
+                              p := hp1;                            
+                              { not sure if this is useful, it even skips previous deallocs of the register (FK)
                               hp1 := p;
                               hp2 := nil;
                               While GetLastInstruction(hp1, hp1) And
@@ -154,11 +159,12 @@ Unit aopt;
                                   hp1:=tai_regalloc.DeAlloc(tai_regalloc(p).Reg,hp2);
                                   InsertLLItem(tai(hp2.previous), hp2, hp1);
                                 End;
-                            End;
+                              }
+                            End;                            
                         End
                       else
                         Begin
-                          UsedRegs := UsedRegs - [tai_regalloc(p).Reg];
+                          ExcludeRegFromUsedRegs(tai_regalloc(p).Reg,Regs);
                           hp1 := p;
                           hp2 := nil;
                           While Not(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next))) And
@@ -172,8 +178,17 @@ Unit aopt;
                               InsertLLItem(hp2, tai(hp2.Next), p);
                               p := hp1;
                             End
+                          else if findregalloc(tai_regalloc(p).reg, tai(p.next))
+                            and getnextinstruction(p,hp1) then
+                            begin
+                              hp1 := tai(p.previous);
+                              AsmL.remove(p);
+                              p.free;
+                              p := hp1;
+        //                      don't include here, since then the allocation will be removed when it's processed
+        //                      include(usedregs,supreg);
+                            end;
                         End
-                    };
                     End
                 End;
                 P := tai(p.Next);
@@ -182,7 +197,8 @@ Unit aopt;
                       (p.typ in (SkipInstr - [ait_regalloc])) Do
                   P := tai(P.Next)
               End;
-          End
+          End;
+      ReleaseUsedRegs(Regs);
     End;
 
     procedure tasmoptimizer.clear;
