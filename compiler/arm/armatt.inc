@@ -273,6 +273,8 @@
 'asr',
 'lsr',
 'lsl',
+'pop',
+'push',
 'ror',
 'sdiv',
 'udiv',
