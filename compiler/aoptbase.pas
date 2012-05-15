@@ -82,8 +82,8 @@ unit aoptbase;
         { returns whether P is a load constant instruction (load a constant }
         { into a register)                                                  }
         Function IsLoadConstReg(p: tai): Boolean; Virtual; Abstract;
-        { returns whether P is a store instruction (store contents from a }
-        { register to a memory location or to a (register) variable)      }
+        { returns whether P is a store instruction (store contents from a
+          register to a memory location or to a (register) variable)      }
         Function IsStoreRegMem(p: tai): Boolean; Virtual; Abstract;
 
         { create a paicpu Object that loads the contents of reg1 into reg2 }
