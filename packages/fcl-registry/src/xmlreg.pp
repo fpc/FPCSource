@@ -292,41 +292,53 @@ Var
   Node  : TDomElement;
   DataNode : TDomNode;
   ND : Integer;
-  Dt : TDataType;
   S : AnsiString;
-
+  HasData: Boolean;
+  IntValue: Integer;
 begin
   Node:=FindValueKey(Name);
   Result:=Node<>Nil;
   If Result then
     begin
     DataNode:=Node.FirstChild;
-    Result:=(DataNode<>Nil) and (DataNode is TDomText);
+    HasData:=Assigned(DataNode) and (DataNode.NodeType=TEXT_NODE);
+    ND:=StrToIntDef(Node[Stype],0);
+    Result:=ND<=Ord(High(TDataType));
     If Result then
       begin
-      ND:=StrToIntDef(Node[Stype],0);
-      Result:=ND<=Ord(High(TDataType));
-      If Result then
-        begin
-        DataType:=TDataType(StrToIntDef(Node[Stype],0));
-        Case DataType of
-          dtDWORD : begin
-                    PCardinal(@Data)^:=StrToIntDef(DataNode.NodeValue,0);
+      DataType:=TDataType(ND);
+      Case DataType of
+        dtDWORD : begin   // DataNode is required
+                  if HasData and TryStrToInt(DataNode.NodeValue,IntValue) then
+                    begin
+                    PCardinal(@Data)^:=IntValue;
                     DataSize:=SizeOf(Cardinal);
-                    end;
-          dtString : begin
+                    end
+                  else
+                    Result:=False;
+                  end;
+        dtString : begin  // DataNode is optional
+                   if HasData then
+                     begin
                      S:=DataNode.NodeValue; // Convert to ansistring
                      DataSize:=Length(S);
-                     If (DataSize>0) then
+                     if (DataSize>0) then
                        Move(S[1],Data,DataSize);
-                     end;
-          dtBinary : begin
+                     end
+                   else
+                     DataSize:=0;
+                   end;
+        dtBinary : begin  // DataNode is optional
+                   if HasData then
+                     begin
                      DataSize:=Length(DataNode.NodeValue);
                      If (DataSize>0) then
                        HexToBuf(DataNode.NodeValue,Data,DataSize);
-                     end;
-        end;
-        end;
+                     end
+                   else
+                     DataSize:=0;
+                   end;
+      end;
       end;
     end;
 end;
@@ -339,10 +351,7 @@ Type
 Var
   Node  : TDomElement;
   DataNode : TDomNode;
-  ND : Integer;
-  Dt : TDataType;
   S : String;
-
 begin
   Node:=FindValueKey(Name);
   If Node=Nil then
@@ -352,28 +361,28 @@ begin
     begin
     Node[SType]:=IntToStr(Ord(DataType));
     DataNode:=Node.FirstChild;
-    // Reading <value></value> results in <value/>, i.e. no subkey exists any more. Create textnode.
-    if (DataNode=nil) then
-      begin
-      DataNode:=FDocument.CreateTextNode('');
-      Node.AppendChild(DataNode);
-      end;
+
     Case DataType of
-      dtDWORD : DataNode.NodeValue:=IntToStr(PCardinal(@Data)^);
-      dtString : begin
-                 SetLength(S,DataSize);
-                 If (DataSize>0) then
-                   Move(Data,S[1],DataSize);
-                 DataNode.NodeValue:=S;
-                 end;
-      dtBinary : begin
-                 S:=BufToHex(Data,DataSize);
-                 DataNode.NodeValue:=S;
-                 end;
-      end;
+      dtDWORD : S:=IntToStr(PCardinal(@Data)^);
+      dtString : SetString(S, PAnsiChar(@Data), DataSize);
+      dtBinary : S:=BufToHex(Data,DataSize);
+    else
+      s:='';
     end;
-  If Result then
-    begin
+    if s <> '' then
+      begin
+      if DataNode=nil then
+        begin
+        // may happen if previous value was empty;
+        // XML does not handle empty textnodes.
+        DataNode:=FDocument.CreateTextNode(s);
+        Node.AppendChild(DataNode);
+        end
+      else
+        DataNode.NodeValue:=s;
+      end
+    else
+      DataNode.Free;
     FDirty:=True;
     MaybeFlush;
     end;
@@ -534,6 +543,7 @@ Var
 begin
   P:=@Buf;
   Len:= Length(Str) div 2;
+  Result:=0;
   For I:=0 to Len-1 do
     begin
     S:='$'+Copy(Str,(I*2)+1,2);
@@ -592,22 +602,25 @@ Function TXMLRegistry.GetValueInfo(Name : String; Var Info : TDataInfo) : Boolea
 Var
   N  : TDomElement;
   DN : TDomNode;
+  L : Integer;
 begin
   N:=FindValueKey(Name);
   Result:=(N<>Nil);
   If Result then
     begin
     DN:=N.FirstChild;
-    Result:=DN<>Nil;
-    If Result then
+    if Assigned(DN) and (DN.NodeType=TEXT_NODE) then
+      L:=TDOMText(DN).Length
+    else
+      L:=0;
     With Info do
       begin
       DataType:=TDataType(StrToIntDef(N[SType],0));
       Case DataType of
         dtUnknown : DataSize:=0;
         dtDword   : Datasize:=SizeOf(Cardinal);
-        dtString  : DataSize:=Length(DN.NodeValue);
-        dtBinary  : DataSize:=Length(DN.NodeValue) div 2;
+        dtString  : DataSize:=L;
+        dtBinary  : DataSize:=L div 2;
       end;
       end;
     end;

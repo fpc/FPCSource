@@ -16,10 +16,12 @@ type
 
   TTestBasics = class(TTestCase)
   private
+    procedure DeleteUserXmlFile;
   protected
   published
     procedure TestSimpleWinRegistry;
     procedure TestDoubleWrite;
+    procedure bug16395;
   end;
 
 implementation
@@ -28,6 +30,19 @@ uses
   registry;
 
 { TTestBasics }
+
+procedure TTestBasics.DeleteUserXmlFile;
+{$ifndef windows}
+var
+  fn: string;
+{$endif}
+begin
+{$ifndef windows}
+  FN:=includetrailingpathdelimiter(GetAppConfigDir(False))+'reg.xml';
+  if FileExists(FN) then
+    AssertTrue(DeleteFile(FN));
+{$endif}
+end;
 
 procedure TTestBasics.TestSimpleWinRegistry;
 var
@@ -46,18 +61,8 @@ begin
 end;
 
 procedure TTestBasics.TestDoubleWrite;
-
-{$ifndef windows}
-Var
-  FN : String;
-{$endif}
-
 begin
-{$ifndef windows}
-  FN:=includetrailingpathdelimiter(GetAppConfigDir(False))+'reg.xml';
-  if FileExists(FN) then
-    AssertTrue(DeleteFile(FN));
-{$endif}
+  DeleteUserXmlFile;
   with TRegistry.Create do
     try
       OpenKey('test', true);
@@ -74,11 +79,65 @@ begin
     finally
       Free;
     end;
-{$ifndef windows}
-  FN:=includetrailingpathdelimiter(GetAppConfigDir(False))+'reg.xml';
-  if FileExists(FN) then
-    AssertTrue(DeleteFile(FN));
-{$endif}
+  DeleteUserXmlFile;
+end;
+
+procedure TTestBasics.bug16395;
+var
+  r: TRegistry;
+  s: string;
+begin
+  DeleteUserXmlFile;
+  
+  r := TRegistry.Create;
+  try
+    r.RootKey := HKEY_CURRENT_USER;
+    r.OpenKey('FirstNode', true);
+    r.WriteString('string1', '');
+    r.CloseKey;
+  finally
+    r.Free;
+  end;
+
+  // verify that empty value can be changed to non-empty one
+  r := TRegistry.Create;
+  try
+    r.RootKey := HKEY_CURRENT_USER;
+    r.OpenKey('FirstNode',false);
+    s := r.ReadString('string1');
+    AssertEquals('Failed to read back an empty string', '', s);
+    r.WriteString('string1', 'string_value_1');
+    r.CloseKey;
+  finally
+    r.Free;
+  end;
+
+  // verify that non-empty value can be changed to empty one
+  r := TRegistry.Create;
+  try
+    r.RootKey := HKEY_CURRENT_USER;
+    r.OpenKey('FirstNode',false);
+    s := r.ReadString('string1');
+    AssertEquals('Failed chaning empty string value to non-empty one', 'string_value_1',s);
+
+    r.WriteString('string1', '');
+    r.CloseKey;
+  finally
+    r.Free;
+  end;
+
+  r := TRegistry.Create;
+  try
+    r.RootKey := HKEY_CURRENT_USER;
+    r.OpenKey('FirstNode',false);
+    s := r.ReadString('string1');
+    AssertEquals('Failed changing non-empty string value to empty one', '', s);
+    r.CloseKey;
+  finally
+    r.Free;
+  end;
+
+  DeleteUserXmlFile;
 end;
 
 initialization
