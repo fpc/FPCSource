@@ -945,8 +945,8 @@ implementation
               begin
                 penalty:=1;
                 hp:=tai(hp.next);
-                { skip register allocations inserted by the optimizer }
-                while assigned(hp) and (hp.typ=ait_regalloc) do
+                { skip register allocations and comments inserted by the optimizer }
+                while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc]) do
                   hp:=tai(hp.next);
                 while assigned(hp) and (hp.typ=ait_const) do
                   begin
