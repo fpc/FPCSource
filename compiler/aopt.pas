@@ -119,99 +119,101 @@ Unit aopt;
     Begin
       CreateUsedRegs(Regs);
       With LabelInfo^ Do
-        If (LabelDif <> 0) Then
-          Begin
-            GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
-            FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
-            p := BlockStart;
-            While (P <> BlockEnd) Do
-              Begin
-                Case p.typ Of
-                  ait_Label:
-                    begin
-                      If tai_label(p).labsym.is_used and
-                         (tai_Label(p).labsym.labeltype=alt_jump) then
-                        begin
-                          LabelIdx:=tai_label(p).labsym.labelnr-LowLabel;
-                          if LabelIdx>int64(LabelDif) then
-                            internalerror(200604202);
-                          LabelTable^[LabelIdx].PaiObj := p;
-                        end;
-                    end;
-                  ait_regAlloc:
-                    begin
-                      if tai_regalloc(p).ratype=ra_alloc then
-                        Begin
-                          If Not(RegInUsedRegs(tai_regalloc(p).Reg,Regs)) Then
-                            IncludeRegInUsedRegs(tai_regalloc(p).Reg,Regs)
-                          Else
-                            Begin
-                              hp1 := tai(p.previous);
+        begin
+          If (LabelDif <> 0) Then
+            Begin
+              GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
+              FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
+            end;
+          p := BlockStart;
+          While (P <> BlockEnd) Do
+            Begin
+              Case p.typ Of
+                ait_Label:
+                  begin
+                    If tai_label(p).labsym.is_used and
+                       (tai_Label(p).labsym.labeltype=alt_jump) then
+                      begin
+                        LabelIdx:=tai_label(p).labsym.labelnr-LowLabel;
+                        if LabelIdx>int64(LabelDif) then
+                          internalerror(200604202);
+                        LabelTable^[LabelIdx].PaiObj := p;
+                      end;
+                  end;
+                ait_regAlloc:
+                  begin
+                    if tai_regalloc(p).ratype=ra_alloc then
+                      Begin
+                        If Not(RegInUsedRegs(tai_regalloc(p).Reg,Regs)) Then
+                          IncludeRegInUsedRegs(tai_regalloc(p).Reg,Regs)
+                        Else
+                          Begin
+                            hp1 := tai(p.previous);
 {$ifdef DEBUG_OPTALLOC}
-                              AsmL.InsertAfter(tai_comment.Create(strpnew('Removed allocation of '+std_regname(tai_regalloc(p).Reg))),p);
+                            AsmL.InsertAfter(tai_comment.Create(strpnew('Removed allocation of '+std_regname(tai_regalloc(p).Reg))),p);
 {$endif DEBUG_OPTALLOC}
-                              AsmL.remove(p);
-                              p.free;
-                              p := hp1;
-                              { not sure if this is useful, it even skips previous deallocs of the register (FK)
-                              hp1 := p;
-                              hp2 := nil;
-                              While GetLastInstruction(hp1, hp1) And
-                                    Not(RegInInstruction(tai_regalloc(p).Reg, hp1)) Do
-                                hp2:=hp1;
-                              If hp2<>nil Then
-                                Begin
-                                  hp1:=tai_regalloc.DeAlloc(tai_regalloc(p).Reg,hp2);
-                                  InsertLLItem(tai(hp2.previous), hp2, hp1);
-                                End;
-                              }
-                            End;
-                        End
-                      else if tai_regalloc(p).ratype=ra_dealloc then
-                        Begin
-                          ExcludeRegFromUsedRegs(tai_regalloc(p).Reg,Regs);
-                          hp1 := p;
-                          hp2 := nil;
-                          While Not(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next))) And
-                                GetNextInstruction(hp1, hp1) And
-                                RegInInstruction(tai_regalloc(p).Reg, hp1) Do
-                            hp2 := hp1;
-                          If hp2 <> nil Then
-                            Begin
-                              hp1 := tai(p.previous);
+                            AsmL.remove(p);
+                            p.free;
+                            p := hp1;
+                            { not sure if this is useful, it even skips previous deallocs of the register (FK)
+                            hp1 := p;
+                            hp2 := nil;
+                            While GetLastInstruction(hp1, hp1) And
+                                  Not(RegInInstruction(tai_regalloc(p).Reg, hp1)) Do
+                              hp2:=hp1;
+                            If hp2<>nil Then
+                              Begin
+                                hp1:=tai_regalloc.DeAlloc(tai_regalloc(p).Reg,hp2);
+                                InsertLLItem(tai(hp2.previous), hp2, hp1);
+                              End;
+                            }
+                          End;
+                      End
+                    else if tai_regalloc(p).ratype=ra_dealloc then
+                      Begin
+                        ExcludeRegFromUsedRegs(tai_regalloc(p).Reg,Regs);
+                        hp1 := p;
+                        hp2 := nil;
+                        While Not(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next))) And
+                              GetNextInstruction(hp1, hp1) And
+                              RegInInstruction(tai_regalloc(p).Reg, hp1) Do
+                          hp2 := hp1;
+                        If hp2 <> nil Then
+                          Begin
+                            hp1 := tai(p.previous);
 {$ifdef DEBUG_OPTALLOC}
-                              AsmL.InsertAfter(tai_comment.Create(strpnew('Moved deallocation of '+std_regname(tai_regalloc(p).Reg))),p);
+                            AsmL.InsertAfter(tai_comment.Create(strpnew('Moved deallocation of '+std_regname(tai_regalloc(p).Reg))),p);
 {$endif DEBUG_OPTALLOC}
-                              AsmL.Remove(p);
-                              InsertLLItem(hp2, tai(hp2.Next), p);
+                            AsmL.Remove(p);
+                            InsertLLItem(hp2, tai(hp2.Next), p);
 {$ifdef DEBUG_OPTALLOC}
-                              AsmL.InsertAfter(tai_comment.Create(strpnew('Moved deallocation of '+std_regname(tai_regalloc(p).Reg)+' here')),hp2);
+                            AsmL.InsertAfter(tai_comment.Create(strpnew('Moved deallocation of '+std_regname(tai_regalloc(p).Reg)+' here')),hp2);
 {$endif DEBUG_OPTALLOC}
-                              p := hp1;
-                            End
-                          else if findregalloc(tai_regalloc(p).reg, tai(p.next))
-                            and getnextinstruction(p,hp1) then
-                            begin
-                              hp1 := tai(p.previous);
+                            p := hp1;
+                          End
+                        else if findregalloc(tai_regalloc(p).reg, tai(p.next))
+                          and getnextinstruction(p,hp1) then
+                          begin
+                            hp1 := tai(p.previous);
 {$ifdef DEBUG_OPTALLOC}
-                              AsmL.InsertAfter(tai_comment.Create(strpnew('Removed deallocation of '+std_regname(tai_regalloc(p).Reg))),p);
+                            AsmL.InsertAfter(tai_comment.Create(strpnew('Removed deallocation of '+std_regname(tai_regalloc(p).Reg))),p);
 {$endif DEBUG_OPTALLOC}
-                              AsmL.remove(p);
-                              p.free;
-                              p := hp1;
-        //                      don't include here, since then the allocation will be removed when it's processed
-        //                      include(usedregs,supreg);
-                            end;
-                        End
-                    End
-                End;
-                P := tai(p.Next);
-                While Assigned(p) and
-                      (p <> blockend) and
-                      (p.typ in (SkipInstr - [ait_regalloc])) Do
-                  P := tai(P.Next)
+                            AsmL.remove(p);
+                            p.free;
+                            p := hp1;
+      //                      don't include here, since then the allocation will be removed when it's processed
+      //                      include(usedregs,supreg);
+                          end;
+                      End
+                  End
               End;
-          End;
+              P := tai(p.Next);
+              While Assigned(p) and
+                    (p <> blockend) and
+                    (p.typ in (SkipInstr - [ait_regalloc])) Do
+                P := tai(P.Next)
+            End;
+        end;
       ReleaseUsedRegs(Regs);
     End;
 
@@ -226,6 +228,7 @@ Unit aopt;
         LabelInfo^.lowlabel:=high(longint);
         LabelInfo^.highlabel:=0;
       end;
+
 
     procedure tasmoptimizer.pass_1;
       begin
@@ -290,8 +293,11 @@ Unit aopt;
           End;
       End;
 
+
     Destructor TAsmOptimizer.Destroy;
       Begin
+        if assigned(LabelInfo^.LabelTable) then
+          Freemem(LabelInfo^.LabelTable);
         Dispose(LabelInfo)
       End;
 
