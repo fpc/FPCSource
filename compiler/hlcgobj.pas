@@ -1877,7 +1877,7 @@ implementation
 {$else}
               tmpreg:=getintregister(list,loadsize);
               a_load_reg_reg(list,osuinttype,loadsize,valuereg,tmpreg);
-              a_load_reg_reg(list,loadsize,loadsize,tmpreg,sref.ref);
+              a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
 {$endif}
 
               { transfer second part }
@@ -2034,7 +2034,7 @@ implementation
 {$else}
               tmpreg:=getintregister(list,loadsize);
               a_load_reg_reg(list,osuinttype,loadsize,extra_value_reg,tmpreg);
-              a_load_reg_reg(list,loadsize,loadsize,tmpreg,tmpref);
+              a_load_reg_ref(list,loadsize,loadsize,tmpreg,tmpref);
 {$endif}
 
               a_label(list,hl);
