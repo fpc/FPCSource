@@ -949,12 +949,10 @@ implementation
           a_load_reg_ref(list,fromsize,tosize,loc.register,ref);
         LOC_CONSTANT:
           a_load_const_ref(list,tosize,loc.value,ref);
-        { we don't have enough type information to handle these here
         LOC_SUBSETREG,LOC_CSUBSETREG:
-          a_load_subsetreg_ref(list,loc.size,tosize,loc.sreg,ref);
+          a_load_subsetreg_ref(list,fromsize,tosize,loc.sreg,ref);
         LOC_SUBSETREF,LOC_CSUBSETREF:
-          a_load_subsetref_ref(list,loc.size,tosize,loc.sref,ref);
-        }
+          a_load_subsetref_ref(list,fromsize,tosize,loc.sref,ref);
         else
           internalerror(2010120403);
       end;
