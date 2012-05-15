@@ -92,7 +92,7 @@ uses
 
 type
   TDOMDocumentTypeEx = class(TDOMDocumentType);
-  TDOMTopNodeEx = class(TDOMNode_TopLevel);
+  TXMLDocumentEx = class(TXMLDocument);
 
   TDOMEntityEx = class(TDOMEntity);
 
@@ -290,11 +290,19 @@ begin
   begin
     if not reader.Read then
       Exit;
-    if cursor is TDOMNode_TopLevel then
-    begin
-      if reader.XMLVersion <> xmlVersionUnknown then
-        TDOMTopNodeEx(cursor).FXMLVersion := reader.XMLVersion;
-      TDOMTopNodeEx(cursor).FXMLEncoding := reader.XMLEncoding;
+    case cursor.NodeType of
+      DOCUMENT_NODE:
+        begin
+          if reader.XMLVersion <> xmlVersionUnknown then
+            TXMLDocumentEx(cursor).FXMLVersion := reader.XMLVersion;
+          TXMLDocumentEx(cursor).FXMLEncoding := reader.XMLEncoding;
+        end;
+      ENTITY_NODE:
+        begin
+          if reader.XMLVersion <> xmlVersionUnknown then
+            TDOMEntityEx(cursor).FXMLVersion := reader.XMLVersion;
+          TDOMEntityEx(cursor).FXMLEncoding := reader.XMLEncoding;
+        end;
     end;
   end;
 
