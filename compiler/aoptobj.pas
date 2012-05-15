@@ -272,6 +272,8 @@ Unit AoptObj;
         Procedure IncludeRegInUsedRegs(reg : TRegister;var regs : TAllUsedRegs);
         Procedure ExcludeRegFromUsedRegs(reg: TRegister;var regs : TAllUsedRegs);
 
+        Function GetAllocationString(const regs : TAllUsedRegs) : string;
+
         { returns true if the label L is found between hp and the next }
         { instruction                                                  }
         Function FindLabel(L: TasmLabel; Var hp: Tai): Boolean;
@@ -329,6 +331,7 @@ Unit AoptObj;
   Implementation
 
     uses
+      cutils,
       globals,
       verbose,
       procinfo;
@@ -875,6 +878,18 @@ Unit AoptObj;
       end;
 
 
+      function TAOptObj.GetAllocationString(const regs: TAllUsedRegs): string;
+      var
+        i : TRegisterType;
+        j : TSuperRegister;
+      begin
+        Result:='';
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          for j in regs[i].UsedRegs do
+            Result:=Result+std_regname(newreg(i,j,R_SUBWHOLE))+' ';
+      end;
+
+
       Function TAOptObj.FindLabel(L: TasmLabel; Var hp: Tai): Boolean;
       Var TempP: Tai;
       Begin
@@ -969,9 +984,9 @@ Unit AoptObj;
                   Not(Tai_Label(StartPai).labsym.Is_Used))) Do
             StartPai := Tai(StartPai.Next);
           If Assigned(StartPai) And
-             (StartPai.typ = ait_regAlloc) and (tai_regalloc(StartPai).ratype=ra_alloc) Then
+             (StartPai.typ = ait_regAlloc) Then
             Begin
-              if tai_regalloc(StartPai).Reg = Reg then
+              if (tai_regalloc(StartPai).ratype=ra_alloc) and (getsupreg(tai_regalloc(StartPai).Reg) = getsupreg(Reg)) then
                begin
                  FindRegAlloc:=true;
                  exit;
@@ -1077,11 +1092,11 @@ Unit AoptObj;
                    (assigned(taicpu(p1).oper[0]^.ref^.symbol)) and
                    (taicpu(p1).oper[0]^.ref^.symbol is TAsmLabel)) or
                   conditions_equal(taicpu(p1).condition,hp.condition)) or
-                 { the next instruction after the label where the jump hp arrives}
-                 { is the opposite of hp (so this one is never taken), but after }
-                 { that one there is a branch that will be taken, so perform a   }
-                 { little hack: set p1 equal to this instruction (that's what the}
-                 { last SkipLabels is for, only works with short bool evaluation)}
+                 { the next instruction after the label where the jump hp arrives
+                   is the opposite of hp (so this one is never taken), but after
+                   that one there is a branch that will be taken, so perform a
+                   little hack: set p1 equal to this instruction (that's what the
+                   last SkipLabels is for, only works with short bool evaluation) }
                  (conditions_equal(taicpu(p1).condition,inverse_cond(hp.condition)) and
                   SkipLabels(p1,p2) and
                   (p2.typ = ait_instruction) and
@@ -1154,7 +1169,14 @@ Unit AoptObj;
         ClearUsedRegs;
         while (p <> BlockEnd) Do
           begin
+            { I'am not sure why this is done, UsedRegs should reflect the register usage before the instruction
+              If an instruction needs the information of this, it can easily create a TempUsedRegs (FK)
             UpdateUsedRegs(tai(p.next));
+            }
+{$ifdef DEBUG_OPTALLOC}
+            if p.Typ=ait_instruction then
+              InsertLLItem(tai(p.Previous),p,tai_comment.create(strpnew(GetAllocationString(UsedRegs))));
+{$endif DEBUG_OPTALLOC}
             if PeepHoleOptPass1Cpu(p) then
               continue;
             case p.Typ Of
