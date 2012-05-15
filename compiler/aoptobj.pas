@@ -1096,7 +1096,7 @@ Unit AoptObj;
                    is the opposite of hp (so this one is never taken), but after
                    that one there is a branch that will be taken, so perform a
                    little hack: set p1 equal to this instruction (that's what the
-                   last SkipLabels is for, only works with short bool evaluation) }
+                   last SkipLabels is for, only works with short bool evaluation)}
                  (conditions_equal(taicpu(p1).condition,inverse_cond(hp.condition)) and
                   SkipLabels(p1,p2) and
                   (p2.typ = ait_instruction) and
