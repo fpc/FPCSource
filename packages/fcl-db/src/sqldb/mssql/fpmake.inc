@@ -6,6 +6,6 @@
 Targets.ResetDefaults;
 Targets.DefaultDir:='db/sqldb/mssql';
 { Drivers only for the following OSes }
-Targets.DefaultOS:=[win32,openbsd,netbsd,freebsd,linux];
+Targets.DefaultOS:=[win32,win64,openbsd,netbsd,freebsd,linux,haiku];
 T:=Targets.AddUnit('mssqlconn');
 T.ResourceStrings:=False;

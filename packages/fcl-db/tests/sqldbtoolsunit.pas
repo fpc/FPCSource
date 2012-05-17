@@ -5,10 +5,22 @@ unit SQLDBToolsUnit;
 interface
 
 uses
-  Classes, SysUtils, toolsunit,
-  db, sqldb,
-  mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn,
-  ibconnection, pqconnection, odbcconn, oracleconnection, sqlite3conn, mssqlconn;
+  Classes, SysUtils, toolsunit
+  ,db, sqldb
+  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn
+  ,ibconnection
+  {$IFNDEF WIN64}
+  {See packages\fcl-db\src\sqldb\postgres\fpmake.pp: postgres connector won't be present on Win64}
+  ,pqconnection
+  {$ENDIF WIN64}
+  ,odbcconn
+  {$IFNDEF WIN64}
+  {See packages\fcl-db\fpmake.pp: Oracle connector is not built if PostgreSQL connectoris not built}
+  ,oracleconnection
+  {$ENDIF WIN64}
+  ,sqlite3conn
+  ,mssqlconn
+  ;
 
 type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,mysql55,postgresql,interbase,odbc,oracle,sqlite3,mssql);
 
@@ -141,6 +153,7 @@ begin
     FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
     FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
     end;
+  {$IFNDEF win64}
   if SQLDbType = POSTGRESQL then
     begin
     Fconnection := tPQConnection.Create(nil);
@@ -149,6 +162,7 @@ begin
     FieldtypeDefinitions[ftMemo] := 'TEXT';
     FieldtypeDefinitions[ftGraphic] := '';
     end;
+  {$ENDIF Win64}
   if SQLDbType = INTERBASE then
     begin
     Fconnection := tIBConnection.Create(nil);
@@ -156,7 +170,9 @@ begin
     FieldtypeDefinitions[ftMemo] := 'BLOB SUB_TYPE TEXT';
     end;
   if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
+  {$IFDEF Win64}
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
+  {$ENDIF Win64}
   if SQLDbType = MSSQL then
     begin
     Fconnection := TMSSQLConnection.Create(nil);

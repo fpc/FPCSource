@@ -6,6 +6,6 @@
 Targets.ResetDefaults;
 Targets.DefaultDir:='db/sqldb/interbase';
 { Drivers only for the following OSes }
-Targets.DefaultOS:=[win32,openbsd,netbsd,freebsd,darwin,linux];
+Targets.DefaultOS:=[win32,openbsd,netbsd,freebsd,darwin,linux,haiku];
 T:=Targets.AddUnit('ibconnection');
 T.ResourceStrings:=True;

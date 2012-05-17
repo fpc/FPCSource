@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 
 Const
-  SqldbConnectionOSes = [beos,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd];
+  SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd];
   SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,win32,wince];
     
 Var

@@ -5,7 +5,7 @@ program fpmake;
 uses fpmkunit;
 
 Const
-  DBLibOSes         = [linux,freebsd,netbsd,openbsd,win32];
+  DBLibOSes         = [linux,freebsd,netbsd,openbsd,win32,win64,haiku];
   
 Var
   P : TPackage;
