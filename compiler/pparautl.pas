@@ -21,6 +21,7 @@
 }
 unit pparautl;
 
+{$i fpcdefs.inc}
 
 interface
 
