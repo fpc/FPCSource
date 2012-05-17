@@ -39,6 +39,9 @@ Type
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
     Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
+    procedure RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
+    function RegUsedAfterInstruction(reg: Tregister; p: tai;
+                                     var AllUsedRegs: TAllUsedRegs): Boolean;
   End;
 
   TCpuPreRegallocScheduler = class(TAsmOptimizer)
@@ -106,7 +109,7 @@ Implementation
       result := (oper.typ = top_reg) and (oper.reg = reg);
     end;
 
-  procedure RemoveRedundantMove(const cmpp: tai; movp: tai; asml: TAsmList) ;
+  procedure RemoveRedundantMove(const cmpp: tai; movp: tai; asml: TAsmList);
     begin
       if (taicpu(movp).condition = C_EQ) and
          (taicpu(cmpp).oper[0]^.reg = taicpu(movp).oper[0]^.reg) and
@@ -118,11 +121,91 @@ Implementation
       end;
     end;
 
+  function regLoadedWithNewValue(reg: tregister; hp: tai): boolean;
+  var
+    p: taicpu;
+  begin
+    p := taicpu(hp);
+    regLoadedWithNewValue :=
+      (assigned(hp)) and
+      (hp.typ = ait_instruction) and
+      (not(p.opcode in [A_STR, A_STRB, A_STRH, A_CMP, A_CMN, A_TST, A_TEQ,
+                        A_B, A_BL, A_BX, A_BLX])) and
+      (p.oper[0]^.typ = top_reg) and
+      (p.oper[0]^.reg = reg);
+  end;
+
+  function instructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
+  var
+    p: taicpu;
+    i: longint;
+  begin
+    instructionLoadsFromReg := false;
+    if not (assigned(hp) and (hp.typ = ait_instruction)) then
+      exit;
+    p:=taicpu(hp);
+
+    i:=1;
+    {For these instructions we have to start on oper[0]}
+    if (p.opcode in [A_STR, A_STRB, A_STRH, A_CMP, A_CMN, A_TST, A_TEQ,
+                        A_B, A_BL, A_BX, A_BLX]) then i:=0;
+
+    while(i<p.ops) do
+      begin
+        case p.oper[I]^.typ of
+          top_reg:
+            instructionLoadsFromReg := p.oper[I]^.reg = reg;
+          top_regset:
+            instructionLoadsFromReg := (getsupreg(reg) in p.oper[I]^.regset^);
+          top_shifterop:
+            instructionLoadsFromReg := p.oper[I]^.shifterop^.rs = reg;
+          top_ref:
+            instructionLoadsFromReg :=
+              (p.oper[I]^.ref^.base = reg) or
+              (p.oper[I]^.ref^.index = reg);
+        end;
+        if instructionLoadsFromReg then exit; {Bailout if we found something}
+        Inc(I);
+      end;
+  end;
+
+  function TCpuAsmOptimizer.RegUsedAfterInstruction(reg: Tregister; p: tai;
+    var AllUsedRegs: TAllUsedRegs): Boolean;
+    begin
+      AllUsedRegs[getregtype(reg)].Update(tai(p.Next));
+      RegUsedAfterInstruction :=
+        (AllUsedRegs[getregtype(reg)].IsUsed(reg)) and
+           (not(getNextInstruction(p,p)) or
+            instructionLoadsFromReg(reg,p) or
+            not(regLoadedWithNewValue(reg,p)));
+    end;
+
+  procedure TCpuAsmOptimizer.RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
+    var
+      TmpUsedRegs: TAllUsedRegs;
+    begin
+      if MatchInstruction(movp, A_MOV, [taicpu(p).condition], [PF_None]) and
+         (taicpu(movp).ops=2) and {We can't optimize if there is a shiftop}
+         MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) then
+        begin
+          CopyUsedRegs(TmpUsedRegs);
+          UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+          if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,movp,TmpUsedRegs)) then
+            begin
+              asml.insertbefore(tai_comment.Create(strpnew('Peephole '+optimizer+' removed superfluous mov')), movp);
+              taicpu(p).loadreg(0,taicpu(movp).oper[0]^.reg);
+              asml.remove(movp);
+              movp.free;
+            end;
+          ReleaseUsedRegs(TmpUsedRegs);
+        end;
+    end;
+
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       hp1,hp2: tai;
       i: longint;
-      TmpUsedRegs: TAllUsedRegs;
+
     begin
       result := false;
       case p.typ of
@@ -160,7 +243,9 @@ Implementation
            else
            *)
               case taicpu(p).opcode of
-                A_STR:
+                A_STR,
+                A_STRH,
+                A_STRB:
                   begin
                     { change
                       str reg1,ref
@@ -171,7 +256,17 @@ Implementation
                     }
                     if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        GetNextInstruction(p,hp1) and
-                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [PF_None]) and
+                       (
+                         ( (taicpu(p).opcode = A_STR) and
+                            MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [PF_None])
+                         ) or
+                         ( (taicpu(p).opcode = A_STRH) and
+                            MatchInstruction(hp1, A_LDRH, [taicpu(p).condition, C_None], [PF_None])
+                         ) or
+                         ( (taicpu(p).opcode = A_STRB) and
+                            MatchInstruction(hp1, A_LDRB, [taicpu(p).condition, C_None], [PF_None])
+                         )
+                       ) and
                        RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
                        (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
                       begin
@@ -190,7 +285,11 @@ Implementation
                         result := true;
                       end;
                   end;
-                A_LDR:
+                A_LDR,
+                A_LDRH,
+                A_LDRB,
+                A_LDRSH,
+                A_LDRSB:
                   begin
                     { change
                       ldr reg1,ref
@@ -201,7 +300,7 @@ Implementation
                     }
                     if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        GetNextInstruction(p,hp1) and
-                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [PF_None]) and
+                       MatchInstruction(hp1, taicpu(p).opcode, [taicpu(p).condition, C_None], [PF_None]) and
                        RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
                        (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.index) and
                        (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.base) and
@@ -221,8 +320,7 @@ Implementation
                             taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
                           end;
                         result := true;
-                      end
-                    else
+                      end;
                     { Remove superfluous mov after ldr
                       changes
                       ldr reg1, ref
@@ -236,22 +334,8 @@ Implementation
                         * ldr+mov have the same conditions
                         * mov does not set flags
                     }
-                    if GetNextInstruction(p, hp1) and
-                       MatchInstruction(hp1, A_MOV, [taicpu(p).condition], [PF_None]) and
-                       (taicpu(hp1).ops=2) and {We can't optimize if there is a shiftop}
-                       MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) then
-                      begin
-                        CopyUsedRegs(TmpUsedRegs);
-                        UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-                        If not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp1,TmpUsedRegs)) then
-                        begin
-                          asml.insertbefore(tai_comment.Create(strpnew('Peephole LdrMov2Ldr removed superfluous mov')), hp1);
-                          taicpu(p).loadreg(0,taicpu(hp1).oper[0]^.reg);
-                          asml.remove(hp1);
-                          hp1.free;
-                        end;
-                        ReleaseUsedRegs(TmpUsedRegs);
-                      end;
+                    if GetNextInstruction(p, hp1) then
+                      RemoveSuperfluousMove(p, hp1, 'LdrMov2Ldr');
                   end;
                 A_MOV:
                   begin
@@ -311,7 +395,8 @@ Implementation
                        (taicpu(p).oper[1]^.typ = top_const) and
                        GetNextInstruction(p,hp1) then
                       begin
-                        while MatchInstruction(hp1, A_STR, [], []) and
+                        while (tai(p).typ = ait_instruction) and
+                              (taicpu(p).opcode in [A_STR, A_STRH, A_STRB]) and
                               MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^) and
                               GetNextInstruction(hp1, hp2) and
                               MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [taicpu(p).oppostfix]) and
@@ -332,6 +417,8 @@ Implementation
                       add r1, r1, #1
                       to
                       add r1, r0, #1
+
+                      Todo: Make it work for mov+cmp too
                     }
                     if (taicpu(p).ops = 2) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
@@ -365,7 +452,16 @@ Implementation
                             end;
                       end;
                   end;
-                A_AND:
+                A_ADD,
+                A_ADC,
+                A_RSB,
+                A_RSC,
+                A_SUB,
+                A_SBC,
+                A_AND,
+                A_BIC,
+                A_EOR,
+                A_ORR:
                   begin
                     {
                       change
@@ -374,7 +470,8 @@ Implementation
                       to
                       and reg2,reg1,(const1 and const2)
                     }
-                    if (taicpu(p).oper[1]^.typ = top_reg) and
+                    if (taicpu(p).opcode = A_AND) and
+                       (taicpu(p).oper[1]^.typ = top_reg) and
                        (taicpu(p).oper[2]^.typ = top_const) and
                        GetNextInstruction(p, hp1) and
                        MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_None]) and
@@ -388,6 +485,15 @@ Implementation
                         asml.remove(hp1);
                         hp1.free;
                       end;
+                    {
+                      change
+                      add reg1, ...
+                      mov reg2, reg1
+                      to
+                      add reg2, ...
+                    }
+                    if GetNextInstruction(p, hp1) then
+                      RemoveSuperfluousMove(p, hp1, 'DataMov2Data');
                   end;
                 A_CMP:
                   begin
