@@ -33,8 +33,8 @@ Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
 Function Basename(Const path:pathstr;Const suf:pathstr):pathstr; deprecated;
 Function FNMatch(const Pattern,Name:string):Boolean; deprecated;
-Function GetFS (var T:Text):longint;
-Function GetFS(Var F:File):longint;
+Function GetFS (var T:Text):longint; deprecated;
+Function GetFS(Var F:File):longint; deprecated; // use sysutils.getfilehandle
 Procedure FSplit(const Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr); deprecated;
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
