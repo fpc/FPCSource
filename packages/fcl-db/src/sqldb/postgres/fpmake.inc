@@ -9,3 +9,5 @@ Targets.DefaultDir:='db/sqldb/postgres';
 Targets.DefaultOS:=[win32,openbsd,netbsd,freebsd,darwin,linux,haiku];
 T:=Targets.AddUnit('pqconnection');
 T.ResourceStrings:=True;
+T:=Targets.AddUnit('pqeventmonitor');
+T.Dependencies.Add('pqconnection');

@@ -662,6 +662,16 @@ begin
           AddUnit('dbconst');
           AddUnit('bufdataset');
         end;
+    T:=P.Targets.AddUnit('pqeventmonitor.pp', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+          AddUnit('bufdataset');
+          AddUnit('pqconnection');
+        end;
     T:=P.Targets.AddUnit('mssqlconn.pp', MSSQLOSes);
     with T.Dependencies do
       begin
