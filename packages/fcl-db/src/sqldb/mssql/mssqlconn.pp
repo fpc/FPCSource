@@ -233,6 +233,7 @@ end;
 
 function TMSSQLConnection.CheckError(const Ret: RETCODE): RETCODE;
 var E: EMSSQLDatabaseError;
+    CompName: string;
 begin
   if Ret=FAIL then
   begin
@@ -240,7 +241,8 @@ begin
       case DBErrorNo of
         SYBEFCON: DBErrorStr:='SQL Server connection failed!';
       end;
-    E:=EMSSQLDatabaseError.CreateFmt('%s Error %d: %s'+LineEnding+'%s', [ClassName, DBErrorNo, DBErrorStr, DBMsgStr]);
+    if Self.Name = '' then CompName := Self.ClassName else CompName := Self.Name;
+    E:=EMSSQLDatabaseError.CreateFmt('%s : Error %d : %s'+LineEnding+'%s', [CompName, DBErrorNo, DBErrorStr, DBMsgStr]);
     E.DBErrorCode:=DBErrorNo;
     DBErrorStr:='';
     DBMsgStr:='';
