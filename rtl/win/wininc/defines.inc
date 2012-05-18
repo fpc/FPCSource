@@ -5754,8 +5754,6 @@ const
   COLOR_MENUHILIGHT             = 29;
   COLOR_MENUBAR                 = 30;
 
-  WM_APP                        = $8000;
-
   SYSRGN                  	= 4;
 
   UIS_SET        = 1;

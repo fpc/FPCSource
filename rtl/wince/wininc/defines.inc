@@ -5787,8 +5787,6 @@ const
   COLOR_MENUHILIGHT             = 29;
   COLOR_MENUBAR                 = 30;
 
-  WM_APP                        = $8000;
-
   // ShellExecuteEx mask
   SEE_MASK_NOCLOSEPROCESS =  $00000040;
   SEE_MASK_FLAG_NO_UI     =  $00000400;
