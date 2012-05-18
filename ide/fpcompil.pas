@@ -1008,7 +1008,7 @@ begin
 {$endif}
 {$ifdef Unix}
        error:=0;
-       If Shell(GetExePath+PpasFile)=-1 Then
+       If fpsystem(GetExePath+PpasFile)=-1 Then
         Error:=fpgeterrno;
 {$else}
        DosExecute(GetEnv('COMSPEC'),'/C '+GetExePath+PpasFile);
