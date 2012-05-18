@@ -552,7 +552,6 @@ begin
           AddUnit('ibconnection');
         end;
     T:=P.Targets.AddUnit('fbeventmonitor.pp', SqldbConnectionOSes);
-    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('sqldb');
@@ -663,7 +662,6 @@ begin
           AddUnit('bufdataset');
         end;
     T:=P.Targets.AddUnit('pqeventmonitor.pp', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
-    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('sqldb');
