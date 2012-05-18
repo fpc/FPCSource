@@ -84,7 +84,7 @@ Type
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
-    aix,java,android
+    aix,java,android,nativent
   );
   TOSes = Set of TOS;
 
@@ -141,7 +141,7 @@ Const
   AllLimit83fsOses= [go32v2,os2,emx,watcom];
 
   AllSmartLinkLibraryOSes = [Linux]; // OSes that use .a library files for smart-linking
-  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos];
+  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
@@ -178,7 +178,8 @@ Const
     { iphonesim}( false, true,  false, false, false, false, false, false, false, false, false, false, false),
     { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false),
     { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true ),
-    { android } ( false, false, false, false, false, false, false, false, false, false, false, false, true )
+    { android } ( false, false, false, false, false, false, false, false, false, false, false, false, true ),
+    { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false)
   );
 
   // Useful

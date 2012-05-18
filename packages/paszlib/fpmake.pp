@@ -18,6 +18,7 @@ begin
     P.Directory:='paszlib';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.OSes := P.OSes - [nativent];
     D:=P.Dependencies.Add('hash');
       D.Version:='2.7.1';
     P.SourcePath.Add('src');

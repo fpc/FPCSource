@@ -23,7 +23,7 @@ begin
     P.Dependencies.Add('pthreads',AllUnixOSes);
     if Defaults.CPU=arm then
        P.OSes := P.OSes - [darwin];
-    P.OSes := P.OSes - [iphonesim,os2,emx,go32v2,watcom];
+    P.OSes := P.OSes - [iphonesim,os2,emx,go32v2,watcom,nativent];
 
     T:=P.Targets.AddUnit('logger.pas');
       with T.Dependencies do

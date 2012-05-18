@@ -27,6 +27,7 @@ begin
     P.Email := '';
     P.Description := 'Image loading and conversion parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes := P.OSes - [nativent];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
