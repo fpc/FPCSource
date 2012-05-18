@@ -16,6 +16,8 @@ Unit Unix;
 Interface
 
 Uses BaseUnix,UnixType;
+// If you deprecated new symbols, please annotate the version.
+// this makes it easier to 
 
 {$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC)}
 {$define USE_VFORK}
@@ -47,13 +49,15 @@ Const
   MAP_TYPE      = baseunix.MAP_TYPE;          { Mask for type of mapping }
   MAP_FIXED     = baseunix.MAP_FIXED;         { Interpret addr exactly }
 
-{ Flags to `msync'.  There is non msync() call in this unit? }
-  MS_ASYNC        = 1;               { Sync memory asynchronously.  }
-  MS_SYNC         = 4;               { Synchronous memory sync.  }
-  MS_INVALIDATE   = 2;               { Invalidate the caches.  }
+{ Flags to `msync'.  There is non msync() call in this unit? 
+  Set to deprecated in 2.7.1, see if sb complains}
+  MS_ASYNC        = 1 deprecated;               { Sync memory asynchronously.  }
+  MS_SYNC         = 4 deprecated;               { Synchronous memory sync.  }
+  MS_INVALIDATE   = 2 deprecated;               { Invalidate the caches.  }
 
 Type
-  Tpipe = baseunix.tfildes;     // compability.
+  // deprecated in 2.7.1, no active use, use the baseunix one.
+  Tpipe = baseunix.tfildes deprecated;     // compability.
 
 {** Time/Date Handling **}
 
@@ -84,9 +88,7 @@ function FpExecV  (Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVP (Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
-Function Shell   (const Command:String):cint;     deprecated;
-Function Shell   (const Command:AnsiString):cint; deprecated;
-Function fpSystem(const Command:string):cint;
+Function fpSystem(const Command:string):cint; deprecated;  // deprecated only in 2.7.1 because of shortstring.
 Function fpSystem(const Command:AnsiString):cint;
 
 Function WaitProcess (Pid:cint):cint; 
@@ -96,12 +98,6 @@ Function W_EXITCODE (ReturnCode, Signal: Integer): Integer;
 Function W_STOPCODE (Signal: Integer): Integer;
 
 {**      File Handling     **}
-
-// some of these are formally listed as deprecated, but specially statfs will remain for a while, no rush.
-Function  fsync (fd : cint) : cint; deprecated;	
-Function  fStatFS (Fd: cint;Var Info:tstatfs):cint; deprecated;
-Function  StatFS  (Path:pchar;Var Info:tstatfs):cint; deprecated;
-
 Function  fpFlock   (var T : text;mode : cint) : cint;
 Function  fpFlock   (var F : File;mode : cint) : cint;
 
@@ -122,8 +118,8 @@ Function POpen       (var F:text;const Prog:Ansistring;rw:char):cint;
 Function POpen       (var F:file;const Prog:Ansistring;rw:char):cint;
 Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiString;const args : array of ansistring) : cint;
-Function  GetDomainName:String; deprecated; // because linux only.
-Function  GetHostName:String;
+Function GetDomainName:String; deprecated; // because linux only.
+Function GetHostName:String;
 
 {** Utility functions  **}
 
@@ -340,89 +336,6 @@ End;
 {$if defined(FPC_USE_FPEXEC) and not defined(USE_VFORK)}
 {$define SHELL_USE_FPEXEC}
 {$endif}
-Function Shell(const Command:String):cint; deprecated;
-{
-  Executes the shell, and passes it the string Command. (Through /bin/sh -c)
-  The current environment is passed to the shell.
-  It waits for the shell to exit, and returns its exit status.
-  If the Exec call failed exit status 127 is reported.
-}
-{ Changed the structure:
-- the previous version returns an undefinied value if fork fails
-- it returns the status of Waitpid instead of the Process returnvalue (see the doc to Shell)
-- it uses exit(127) not ExitProc (The Result in pp386: going on Compiling in 2 processes!)
-- ShellArgs are now released
-- The Old CreateShellArg gives back pointers to a local var
-}
-var
-{$ifndef SHELL_USE_FPEXEC}
-  p      : ppchar;
-{$endif}
-  pid    : cint;
-begin
- {$ifndef SHELL_USE_FPEXEC}
-  p:=CreateShellArgv(command);
-{$endif}
-{$ifdef USE_VFORK}
-  pid:=fpvfork;
-{$else USE_VFORK}
-  pid:=fpfork;
-{$endif USE_VFORK}
-  if pid=0 then // We are in the Child
-   begin
-     {This is the child.}
-     {$ifndef SHELL_USE_FPEXEC}
-       fpExecve(p^,p,envp);
-     {$else}
-      fpexecl('/bin/sh',['-c',Command]);
-     {$endif}
-     fpExit(127);  // was Exit(127)
-   end
-  else if (pid<>-1) then // Successfull started
-   Shell:=WaitProcess(pid)
-  else // no success
-   Shell:=-1; // indicate an error
-  {$ifndef SHELL_USE_FPEXEC}
-  FreeShellArgV(p);
-  {$endif}
-end;
-
-Function Shell(const Command:AnsiString):cint;
-{
-  AnsiString version of Shell
-}
-var
-{$ifndef SHELL_USE_FPEXEC}
-  p     : ppchar;
-{$endif}
-  pid   : cint;
-begin { Changes as above }
-{$ifndef SHELL_USE_FPEXEC}
-  p:=CreateShellArgv(command);
-{$endif}
-{$ifdef USE_VFORK}
-  pid:=fpvfork;
-{$else USE_VFORK}
-  pid:=fpfork;
-{$endif USE_VFORK}
-  if pid=0 then // We are in the Child
-   begin
-    {$ifdef SHELL_USE_FPEXEC}
-      fpexecl('/bin/sh',['-c',Command]);
-    {$else}
-     fpExecve(p^,p,envp);
-    {$endif}
-     fpExit(127); // was exit(127)!! We must exit the Process, not the function
-   end
-  else if (pid<>-1) then // Successfull started
-   Shell:=WaitProcess(pid)
-  else // no success
-   Shell:=-1;
- {$ifndef SHELL_USE_FPEXEC}
-  FreeShellArgV(p);
- {$ENDIF}
-end;
-
 
 {$ifdef FPC_USE_LIBC}
 function xfpsystem(p:pchar):cint; cdecl; external clib name 'system';
@@ -1310,31 +1223,6 @@ Function FSearch(const path:AnsiString;dirlist:Ansistring):AnsiString;
 Begin
  FSearch:=FSearch(path,dirlist,CurrentDirectoryFirst);
 End;
-
-Function  fsync (fd : cint) : cint;
-begin
-  fsync := fpFSync(fd);
-end;
-
-Function StatFS(Path:Pchar;Var Info:tstatfs):cint;
-{
-  Get all information on a fileSystem, and return it in Info.
-  Path is the name of a file/directory on the fileSystem you wish to
-  investigate.
-}
-begin
-  StatFS:=fpStatFS(Path, @Info);;
-end;
-
-Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
-{
-  Get all information on a fileSystem, and return it in Info.
-  Fd is the file descriptor of a file/directory on the fileSystem
-  you wish to investigate.
-}
-begin
-  fStatFS:=fpfStatFS(fd, @Info);
-end;
 
 Initialization
 {$IFNDEF DONT_READ_TIMEZONE}
