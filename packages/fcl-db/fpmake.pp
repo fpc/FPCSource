@@ -551,6 +551,16 @@ begin
           AddUnit('bufdataset');
           AddUnit('ibconnection');
         end;
+    T:=P.Targets.AddUnit('fbeventmonitor.pp', SqldbConnectionOSes);
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+          AddUnit('bufdataset');
+          AddUnit('ibconnection');
+        end;
     T:=P.Targets.AddUnit('memds.pp');
     T.ResourceStrings:=true;
       with T.Dependencies do
