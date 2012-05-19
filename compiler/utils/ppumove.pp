@@ -35,7 +35,7 @@ uses
 {$ENDIF}
 
 {$ifdef unix}
-  Baseunix,Unix, UnixUtil,
+  Baseunix,Unix, Dos,
 {$else unix}
   dos,
 {$endif unix}
