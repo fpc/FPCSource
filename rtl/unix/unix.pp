@@ -88,7 +88,7 @@ function FpExecV  (Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVP (Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
-Function fpSystem(const Command:string):cint; deprecated;  // deprecated only in 2.7.1 because of shortstring.
+Function fpSystem(const Command:string):cint; deprecated 'use ansistring version';
 Function fpSystem(const Command:AnsiString):cint;
 
 Function WaitProcess (Pid:cint):cint; 
