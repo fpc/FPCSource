@@ -990,7 +990,7 @@ end;
     { Must use shell() for linux for the wildcard expansion (PFV) }
 {$ifdef UNIX}
     IOStatus:=0;
-    ExecuteResult:=Shell(FixPath(Progname)+' '+Comline);
+    ExecuteResult:=fpsystem(FixPath(Progname)+' '+Comline);
     if ExecuteResult<0 then
       begin
         IOStatus:=(-ExecuteResult) and $7f;
