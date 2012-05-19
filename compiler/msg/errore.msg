@@ -1854,13 +1854,16 @@ type_e_no_managed_assign_generic_typecast=04115_E_The assignment side of an expr
 % to statically determine that no type-unsafe assignments or operations occur. By assigning a parent class type to a
 % variable of a child type by typecasting the assignment side to the parent class type, the type safety would no
 % longer be guaranteed and the generated code would fail verification at run time time.
-type_w_interface_lower_visibility=04116_W_The interface method "$1" raises the visibility of "$2" to public when accessed via an interface instance
+type_w_interface_lower_visibility=04116_-W_The interface method "$1" raises the visibility of "$2" to public when accessed via an interface instance
 type_e_interface_lower_visibility=04117_E_The interface method "$1" has a higher visibility (public) than "$2"
 % All methods in an interface have always public visibility. That means that if
 % an interface method is implemented using a (strict) protected or private method,
 % this method is actually publicly accessible via the interface. On the JVM
 % target this situation results in an error because the JVM rejects such
-% attempts to circumvent the visibility rules.
+% attempts to circumvent the visibility rules. On other targets this is a
+% warning that is disabled by default because such situations are common
+% practice, but it can be enabled in case you are concerned with keeping your
+% code compilable for the JVM target.
 % \end{description}
 #
 # Symtable

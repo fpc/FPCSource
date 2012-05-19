@@ -1268,7 +1268,6 @@ unit scandir;
       $warn <identifier> on
       $warn <identifier> off
       $warn <identifier> error
-      not implemented yet
     }
     procedure dir_warn;
       var
@@ -1360,6 +1359,9 @@ unit scandir;
         else
         if ident='CVT_NARROWING_STRING_LOST' then
           recordpendingmessagestate(type_w_unicode_data_loss, msgstate)
+        else
+        if ident='INTF_RAISE_VISIBILITY' then
+          recordpendingmessagestate(type_w_interface_lower_visibility, msgstate)
         else
           begin
             i:=0;
