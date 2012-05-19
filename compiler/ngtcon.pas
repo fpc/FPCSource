@@ -437,7 +437,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         strlength : aint;
         strval    : pchar;
         strch     : char;
-        ll        : tasmlabel;
+        ll        : tasmlabofs;
         ca        : pchar;
         winlike   : boolean;
         hsym      : tconstsym;
@@ -533,21 +533,27 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 begin
                    { an empty ansi string is nil! }
                    if (strlength=0) then
-                     ll := nil
+                     begin
+                       ll.lab:=nil;
+                       ll.ofs:=0;
+                     end
                    else
-                     ll := emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength,def.encoding);
-                   list.concat(Tai_const.Create_sym(ll));
+                     ll:=emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength,def.encoding);
+                   list.concat(Tai_const.Create_sym_offset(ll.lab,ll.ofs));
                 end;
               st_unicodestring,
               st_widestring:
                 begin
                    { an empty wide/unicode string is nil! }
                    if (strlength=0) then
-                     ll := nil
+                     begin
+                       ll.lab:=nil;
+                       ll.ofs:=0;
+                     end
                    else
                      begin
-                       winlike := (def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
-                       ll := emit_unicodestring_const(current_asmdata.asmlists[al_const],
+                       winlike:=(def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
+                       ll:=emit_unicodestring_const(current_asmdata.asmlists[al_const],
                               strval,
                               def.encoding,
                               winlike);
@@ -556,17 +562,20 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                          Local initialized vars are excluded because they are initialized
                          at function entry instead. }
                        if winlike and
-                          ((tcsym.owner.symtablelevel <= main_program_level) or
+                          ((tcsym.owner.symtablelevel<=main_program_level) or
                            (current_old_block_type=bt_const)) then
                          begin
+                           if ll.ofs<>0 then
+                             internalerror(2012051704);
                            current_asmdata.WideInits.Concat(
-                              TTCInitItem.Create(tcsym, curoffset, ll)
+                              TTCInitItem.Create(tcsym,curoffset,ll.lab)
                            );
-                           ll := nil;
-                           Include(tcsym.varoptions, vo_force_finalize);
+                           ll.lab:=nil;
+                           ll.ofs:=0;
+                           Include(tcsym.varoptions,vo_force_finalize);
                          end;
                      end;
-                   list.concat(Tai_const.Create_sym(ll));
+                   list.concat(Tai_const.Create_sym_offset(ll.lab,ll.ofs));
                 end;
               else
                 internalerror(200107081);

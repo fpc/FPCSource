@@ -257,12 +257,13 @@ implementation
 
     procedure tcgstringconstnode.pass_generate_code;
       var
-         lastlabel: tasmlabel;
+         lastlabel: tasmlabofs;
          pc: pchar;
          l: longint;
          href: treference;
          pool: THashSet;
          entry: PHashSetItem;
+         winlikewidestring: boolean;
 
       const
         PoolMap: array[tconststringtype] of TConstPoolType = (
@@ -281,6 +282,7 @@ implementation
             location.value:=0;
             exit;
           end;
+         winlikewidestring:=(cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags);
          { const already used ? }
          if not assigned(lab_str) then
            begin
@@ -305,7 +307,13 @@ implementation
                            if len=0 then
                              InternalError(2008032301)   { empty string should be handled above }
                            else
-                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
+                             begin
+                               lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
+                               { because we hardcode the offset below due to it
+                                 not being stored in the hashset, check here }
+                               if lastlabel.ofs<>get_string_symofs(st_ansistring,false) then
+                                 internalerror(2012051703);
+                             end;
                         end;
                       cst_unicodestring,
                       cst_widestring:
@@ -313,18 +321,24 @@ implementation
                            if len=0 then
                              InternalError(2008032302)   { empty string should be handled above }
                            else
-                             lastlabel := emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
-                                             value_str,
-                                             tstringdef(resultdef).encoding,
-                                             (cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags));
+                             begin
+                               lastlabel := emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
+                                               value_str,
+                                               tstringdef(resultdef).encoding,
+                                               winlikewidestring);
+                               { because we hardcode the offset below due to it
+                                 not being stored in the hashset, check here }
+                               if lastlabel.ofs<>get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring) then
+                                 internalerror(2012051704);
+                             end;
                         end;
                       cst_shortstring:
                         begin
-                          current_asmdata.getdatalabel(lastlabel);
+                          current_asmdata.getdatalabel(lastlabel.lab);
                           maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                          new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
+                          new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)));
 
-                          current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
+                          current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel.lab));
                           { truncate strings larger than 255 chars }
                           if len>255 then
                            l:=255
@@ -339,11 +353,11 @@ implementation
                         end;
                       cst_conststring:
                         begin
-                          current_asmdata.getdatalabel(lastlabel);
+                          current_asmdata.getdatalabel(lastlabel.lab);
                           maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                          new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
+                          new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)));
 
-                          current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
+                          current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel.lab));
                           { include terminating zero }
                           getmem(pc,len+1);
                           move(value_str^,pc[0],len);
@@ -351,14 +365,16 @@ implementation
                           current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
                         end;
                    end;
-                   lab_str:=lastlabel;
-                   entry^.Data:=lastlabel;
+                   lab_str:=lastlabel.lab;
+                   entry^.Data:=lastlabel.lab;
                 end;
            end;
          if cst_type in [cst_ansistring, cst_widestring, cst_unicodestring] then
            begin
              location_reset(location, LOC_REGISTER, OS_ADDR);
-             reference_reset_symbol(href, lab_str, 0, const_align(sizeof(pint)));
+             reference_reset_symbol(href, lab_str,
+               get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring),
+               const_align(sizeof(pint)));
              location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
            end
