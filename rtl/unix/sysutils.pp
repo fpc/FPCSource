@@ -911,7 +911,7 @@ end;
 
 {
   The Diskfree and Disksize functions need a file on the specified drive, since this
-  is required for the statfs system call.
+  is required for the fpstatfs system call.
   These filenames are set in drivestr[0..26], and have been preset to :
    0 - '.'      (default drive - hence current dir is ok.)
    1 - '/fd0/.'  (floppy drive 1 - should be adapted to local system )
@@ -949,8 +949,8 @@ Function DiskFree(Drive: Byte): int64;
 var
   fs : tstatfs;
 Begin
-  if ((Drive in [Low(FixDriveStr)..High(FixDriveStr)]) and (not (fixdrivestr[Drive]=nil)) and (statfs(StrPas(fixdrivestr[drive]),fs)<>-1)) or
-     ((Drive <= High(drivestr)) and (not (drivestr[Drive]=nil)) and (statfs(StrPas(drivestr[drive]),fs)<>-1)) then
+  if ((Drive in [Low(FixDriveStr)..High(FixDriveStr)]) and (not (fixdrivestr[Drive]=nil)) and (fpstatfs(StrPas(fixdrivestr[drive]),@fs)<>-1)) or
+     ((Drive <= High(drivestr)) and (not (drivestr[Drive]=nil)) and (fpstatfs(StrPas(drivestr[drive]),@fs)<>-1)) then
    Diskfree:=int64(fs.bavail)*int64(fs.bsize)
   else
    Diskfree:=-1;
@@ -962,8 +962,8 @@ Function DiskSize(Drive: Byte): int64;
 var
   fs : tstatfs;
 Begin
-  if ((Drive in [Low(FixDriveStr)..High(FixDriveStr)]) and (not (fixdrivestr[Drive]=nil)) and (statfs(StrPas(fixdrivestr[drive]),fs)<>-1)) or
-     ((drive <= High(drivestr)) and (not (drivestr[Drive]=nil)) and (statfs(StrPas(drivestr[drive]),fs)<>-1)) then
+  if ((Drive in [Low(FixDriveStr)..High(FixDriveStr)]) and (not (fixdrivestr[Drive]=nil)) and (fpstatfs(StrPas(fixdrivestr[drive]),@fs)<>-1)) or
+     ((drive <= High(drivestr)) and (not (drivestr[Drive]=nil)) and (fpstatfs(StrPas(drivestr[drive]),@fs)<>-1)) then
    DiskSize:=int64(fs.blocks)*int64(fs.bsize)
   else
    DiskSize:=-1;

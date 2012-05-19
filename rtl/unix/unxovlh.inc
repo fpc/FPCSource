@@ -14,7 +14,6 @@
  ***********************************************************************}
 
 Function PClose(Var F:file) : cint;
-Function PClose      (Var F:text) : cint;
-Function StatFS(Path:ansistring;Var Info:Tstatfs):cint;
-//Function fpReadLink(Name:ansistring):ansistring;
+Function PClose(Var F:text) : cint;
+Function fpStatFS(Path:ansistring;Info:PStatfs):cint;
 
