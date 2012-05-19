@@ -688,24 +688,20 @@ begin
   { rounding string if r > 0 }
   if r > 0 then
     begin
-      i:=1;
-      k:=0;
-      for j:=0 to r do
-        begin
-          if (k=1) and (buf[i]='9') then
-            buf[i]:='0'
-          else
-            begin
-            buf[i]:=chr(ord(buf[i]) + k);
-            if buf[i] >= '5' then
-              k:=1
-            else
-              k:=0;
-            end;
-          Inc(i);
-          if i>tlen  then
-            break;
-        end;
+      k := 0;
+      i := r+2;
+      if i > tlen then
+         i := tlen+1;
+      if buf[i-2] >= '5' then
+         begin
+           if buf[i-1] < '9' then
+             buf[i-1] := chr(ord(buf[i-1])+1)
+           else
+             begin
+               buf[i-1] := '0';
+               k := 1;
+             end;
+         end;
       If (k=1) and (buf[i-1]='0') then
 	    begin
 		  { 1.9996 rounded to two decimal digits after the decimal separator must result in
@@ -721,7 +717,7 @@ begin
 		    e.g. 99.9996 to two decimal digits after the decimal separator which should result in
 			100.00
 		  }
-		  if i>reslen then
+		  if i>tlen then
 		    begin
 			  inc(reslen);
 			  inc(tlen);
