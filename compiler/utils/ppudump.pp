@@ -993,7 +993,9 @@ procedure readprocinfooptions(space : string);
          { dfa was generated for this proc }
          pi_dfaavailable,
          { subroutine contains interprocedural used labels }
-         pi_has_interproclabel
+         pi_has_interproclabel,
+         { subroutine contains interprocedural gotos }
+         pi_has_global_goto
        ); *)
 
 type
@@ -1037,7 +1039,11 @@ const
          (mask:pi_has_interproclabel;
          str:' subroutine contains interprocedural used labels '),
          (mask:pi_has_unwind_info;
-         str:' unwinding info was generated for this proc ')
+         str:' unwinding info was generated for this proc '),
+         (mask:pi_has_global_goto;
+         str:' subroutine contains interprocedural goto '),
+         (mask:pi_has_inherited;
+         str:' subroutine contains inherited call ')
   );
 var
   procinfooptions : tprocinfoflags;
@@ -1722,7 +1728,7 @@ end;
     ppo_hasparameters,
     ppo_implements,
     ppo_enumerator_current,
-    ppo_overrides,              
+    ppo_overrides,
     ppo_dispid_write              { no longer used }
   );
   tpropertyoptions=set of tpropertyoption;
@@ -1742,7 +1748,7 @@ const
     (mask:ppo_hasparameters;str:'has parameters'),
     (mask:ppo_implements;str:'implements'),
     (mask:ppo_enumerator_current;str:'enumerator current'),
-    (mask:ppo_overrides;str:'overrides'),  
+    (mask:ppo_overrides;str:'overrides'),
     (mask:ppo_dispid_write;str:'dispid write')  { no longer used }
   );
 var

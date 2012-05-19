@@ -2090,9 +2090,9 @@ const
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_inline];
-      mutexclpocall : [];
+      mutexclpocall : [pocall_safecall];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
-      mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod]
+      mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod,po_iocheck]
     ),(
       idtok:_INTERNCONST;
       pd_flags : [pd_interface,pd_body,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];

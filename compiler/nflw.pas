@@ -1745,6 +1745,7 @@ implementation
                     if assigned(labelsym.jumpbuf) then
                       begin
                         labelsym.nonlocal:=true;
+                        exclude(current_procinfo.procdef.procoptions,po_inline);
                         result:=ccallnode.createintern('fpc_longjmp',
                           ccallparanode.create(cordconstnode.create(1,sinttype,true),
                           ccallparanode.create(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner),
@@ -1788,7 +1789,10 @@ implementation
           begin
             { don't trigger IE when there was already an error, i.e. the
               label is not defined. See tw11763 (PFV) }
-            if errorcount=0 then
+            if (errorcount=0) and
+            { don't trigger IE if it's a global goto }
+               ((assigned(labelsym.owner) and (current_procinfo.procdef.parast.symtablelevel=labelsym.owner.symtablelevel)) or
+               not(assigned(labelsym.owner))) then
               internalerror(200610291);
           end;
         result:=p;
@@ -1869,7 +1873,10 @@ implementation
         include(current_procinfo.flags,pi_has_label);
 
         if assigned(labsym) and labsym.nonlocal then
-          include(current_procinfo.flags,pi_has_interproclabel);
+          begin
+            include(current_procinfo.flags,pi_has_interproclabel);
+            exclude(current_procinfo.procdef.procoptions,po_inline);
+          end;
 
         if assigned(left) then
           firstpass(left);

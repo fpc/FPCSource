@@ -49,8 +49,8 @@ unit procinfo;
     type
        tsavedlabels = array[Boolean] of TAsmLabel;
 
-       {# This object gives information on the current routine being
-          compiled.
+       { This object gives information on the current routine being
+         compiled.
        }
        tprocinfo = class(tlinkedlistitem)
        private
@@ -60,11 +60,8 @@ unit procinfo;
        public
           { pointer to parent in nested procedures }
           parent : tprocinfo;
-          {# the definition of the routine itself }
+          { the definition of the routine itself }
           procdef : tprocdef;
-          { procinfo of the main procedure that is inlining
-            the current function, only used in tcgcallnode.inlined_pass2 }
-          inlining_procinfo : tprocinfo;
           { nested implicit finalzation procedure, used for platform-specific
             exception handling }
           finalize_procinfo : tprocinfo;
@@ -83,8 +80,8 @@ unit procinfo;
           { Offset of temp after para/local are allocated }
           tempstart : longint;
 
-          {# some collected informations about the procedure
-             see pi_xxxx constants above
+          { some collected informations about the procedure
+            see pi_xxxx constants above
           }
           flags : tprocinfoflags;
 
@@ -113,8 +110,8 @@ unit procinfo;
           { label to leave the sub routine }
           CurrExitLabel : tasmlabel;
 
-          {# The code for the routine itself, excluding entry and
-             exit code. This is a linked list of tai classes.
+          { The code for the routine itself, excluding entry and
+            exit code. This is a linked list of tai classes.
           }
           aktproccode : TAsmList;
           { Data (like jump tables) that belongs to this routine }
@@ -169,7 +166,6 @@ unit procinfo;
        cprocinfo : tcprocinfo;
        { information about the current sub routine being parsed (@var(pprocinfo))}
        current_procinfo : tprocinfo;
-
 
 implementation
 

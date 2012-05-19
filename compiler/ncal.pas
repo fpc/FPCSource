@@ -112,6 +112,7 @@ interface
           { initialize/finalization of temps }
           callinitblock,
           callcleanupblock : tblocknode;
+
           { function return node for initialized types or supplied return variable.
             When the result is passed in a parameter then it is set to nil }
           funcretnode    : tnode;
@@ -266,8 +267,7 @@ implementation
       ncnv,nld,ninl,nadd,ncon,nmem,nset,nobjc,
       objcutil,
       procinfo,cpuinfo,
-      wpobase
-      ;
+      wpobase;
 
     type
      tobjectinfoitem = class(tlinkedlistitem)
@@ -3661,6 +3661,10 @@ implementation
             tempnode :=ctempcreatenode.create(tabstractvarsym(p).vardef,
               tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
             addstatement(inlineinitstatement,tempnode);
+
+            if localvartrashing <> -1 then
+              addstatement(inlineinitstatement,trash_tempref(tempnode));
+
             addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
             { inherit addr_taken flag }
             if (tabstractvarsym(p).addr_taken) then
@@ -3810,6 +3814,10 @@ implementation
                         tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,
                           tt_persistent,tparavarsym(para.parasym).is_regvar(false));
                         addstatement(inlineinitstatement,tempnode);
+
+                        if localvartrashing <> -1 then
+                          addstatement(inlineinitstatement,trash_tempref(tempnode));
+
                         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
                         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                             para.left));

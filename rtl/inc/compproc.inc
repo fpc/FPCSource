@@ -37,6 +37,7 @@ Procedure fpc_freemem(p:pointer);compilerproc;
 
 { used by Default() in code blocks }
 procedure fpc_zeromem(p:pointer;len:ptruint);compilerproc;
+procedure fpc_fillmem(var data;len:ptruint;b : byte);compilerproc;
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring); compilerproc;

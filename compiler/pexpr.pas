@@ -2648,6 +2648,7 @@ implementation
                            end;
                        end;
                        callflags:=[cnf_inherited];
+                       include(current_procinfo.flags,pi_has_inherited);
                        if anon_inherited then
                          include(callflags,cnf_anon_inherited);
                        do_member_read(hclassdef,getaddr,srsym,p1,again,callflags);

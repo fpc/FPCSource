@@ -1,3 +1,5 @@
+{ inlining is not compatible with get_caller_frame/get_frame }
+{$inline off}
 type
   PointerLocal = procedure(_EBP: Pointer);
 

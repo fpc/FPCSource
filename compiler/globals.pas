@@ -103,10 +103,25 @@ interface
        MathPiExtended : textendedrec = (bytes : (64,0,201,15,218,162,33,104,194,53));
 {$endif FPC_LITTLE_ENDIAN}
 {$endif}
+
        CP_UTF8 = 65001;
        CP_UTF16LE = 1200;
        CP_UTF16BE = 1201;
        CP_NONE  = 65535;
+
+       { by default no local variable trashing }
+       localvartrashing: longint = -1;
+
+       nroftrashvalues = 4;
+{$ifdef cpu64bitalu}
+      trashintvalues: array[0..nroftrashvalues-1] of aint = ($5555555555555555,aint($AAAAAAAAAAAAAAAA),aint($EFEFEFEFEFEFEFEF),0);
+{$endif cpu64bitalu}
+{$ifdef cpu32bitalu}
+      trashintvalues: array[0..nroftrashvalues-1] of aint = ($55555555,aint($AAAAAAAA),aint($EFEFEFEF),0);
+{$endif cpu32bitalu}
+{$ifdef cpu8bitalu}
+      trashintvalues: array[0..nroftrashvalues-1] of aint = ($55,aint($AA),aint($EF),0);
+{$endif cpu8bitalu}
 
 
     type
@@ -339,11 +354,6 @@ interface
        { (this will be prefixed with the target_info.cprefix)                }
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
-
-       { by default no local variable trashing }
-       localvartrashing: longint = -1;
-       { actual values are defined in ncgutil.pas }
-       nroftrashvalues = 4;
 
     const
       default_settings : TSettings = (

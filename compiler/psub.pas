@@ -31,8 +31,12 @@ interface
       symdef,procinfo,optdfa;
 
     type
+
+      { tcgprocinfo }
+
       tcgprocinfo = class(tprocinfo)
       private
+        procedure CreateInlineInfo;
         procedure maybe_add_constructor_wrapper(var tocode: tnode; withexceptblock: boolean);
         procedure add_entry_exit_code;
         procedure setup_tempgen;
@@ -123,6 +127,71 @@ implementation
          {$endif i386}
        {$endif}
        ;
+
+    function checknodeinlining(procdef: tprocdef): boolean;
+      var
+        i : integer;
+        currpara : tparavarsym;
+      begin
+        result := false;
+        if pi_has_assembler_block in current_procinfo.flags then
+          begin
+            Message1(parser_h_not_supported_for_inline,'assembler');
+            Message(parser_h_inlining_disabled);
+            exit;
+          end;
+        if pi_has_global_goto in current_procinfo.flags then
+          begin
+            Message1(parser_h_not_supported_for_inline,'global goto');
+            Message(parser_h_inlining_disabled);
+            exit;
+          end;
+        { the compiler cannot handle inherited in inlined subroutines because
+          it tries to search for self in the symtable, however, the symtable
+          is not available }
+        if pi_has_inherited in current_procinfo.flags then
+          begin
+            Message1(parser_h_not_supported_for_inline,'inherited');
+            Message(parser_h_inlining_disabled);
+            exit;
+          end;
+        for i:=0 to procdef.paras.count-1 do
+          begin
+            currpara:=tparavarsym(procdef.paras[i]);
+            case currpara.vardef.typ of
+              formaldef :
+                begin
+                  if (currpara.varspez in [vs_out,vs_var,vs_const,vs_constref]) then
+                    begin
+                      Message1(parser_h_not_supported_for_inline,'formal parameter');
+                      Message(parser_h_inlining_disabled);
+                      exit;
+                    end;
+                end;
+              arraydef :
+                begin
+                  if is_array_of_const(currpara.vardef) or
+                     is_variant_array(currpara.vardef) then
+                    begin
+                      Message1(parser_h_not_supported_for_inline,'array of const');
+                      Message(parser_h_inlining_disabled);
+                      exit;
+                    end;
+                  { open arrays might need re-basing of the index, i.e. if you pass
+                    an array[1..10] as open array, you have to add 1 to all index operations
+                    if you directly inline it }
+                  if is_open_array(currpara.vardef) then
+                    begin
+                      Message1(parser_h_not_supported_for_inline,'open array');
+                      Message(parser_h_inlining_disabled);
+                      exit;
+                    end;
+                end;
+            end;
+        end;
+        result:=true;
+      end;
+
 
 {****************************************************************************
                       PROCEDURE/FUNCTION BODY PARSING
@@ -952,6 +1021,19 @@ implementation
         add_reg_instruction_hook:=@cg.add_reg_instruction;
       end;
 
+
+     procedure TCGProcinfo.CreateInlineInfo;
+       begin
+        new(procdef.inlininginfo);
+        include(procdef.procoptions,po_has_inlininginfo);
+        procdef.inlininginfo^.code:=code.getcopy;
+        procdef.inlininginfo^.flags:=flags;
+        { The blocknode needs to set an exit label }
+        if procdef.inlininginfo^.code.nodetype=blockn then
+          include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
+       end;
+
+
     procedure tcgprocinfo.generate_code;
       var
         old_current_procinfo : tprocinfo;
@@ -991,6 +1073,29 @@ implementation
         current_procinfo:=self;
         current_filepos:=entrypos;
         current_structdef:=procdef.struct;
+
+
+        { automatic inlining? }
+        if (cs_opt_autoinline in current_settings.optimizerswitches) and
+           { inlining not turned off? }
+           (cs_do_inline in current_settings.localswitches) and
+           { no inlining yet? }
+           not(po_has_inlininginfo in procdef.procoptions) and not(has_nestedprocs) and
+            not(procdef.proctypeoption in [potype_proginit,potype_unitinit,potype_unitfinalize,potype_constructor,
+                                           potype_destructor,potype_class_constructor,potype_class_destructor]) and
+            ((procdef.procoptions*[po_exports,po_external,po_interrupt,po_virtualmethod,po_iocheck])=[]) and
+            (not(procdef.proccalloption in [pocall_safecall])) and
+            { rough approximation if we should auto inline }
+            (node_count(code)<=10) then
+          begin
+            { Can we inline this procedure? }
+            if checknodeinlining(procdef) then
+              begin
+                Message1(cg_d_autoinlining,procdef.GetTypeName);
+                include(procdef.procoptions,po_inline);
+                CreateInlineInfo;
+              end;
+          end;
 
         templist:=TAsmList.create;
 
@@ -1452,56 +1557,6 @@ implementation
        end;
 
 
-    function checknodeinlining(procdef: tprocdef): boolean;
-      var
-        i : integer;
-        currpara : tparavarsym;
-      begin
-        result := false;
-        if (pi_has_assembler_block in current_procinfo.flags) then
-          begin
-            Message1(parser_h_not_supported_for_inline,'assembler');
-            Message(parser_h_inlining_disabled);
-            exit;
-          end;
-        for i:=0 to procdef.paras.count-1 do
-          begin
-            currpara:=tparavarsym(procdef.paras[i]);
-            case currpara.vardef.typ of
-              formaldef :
-                begin
-                  if (currpara.varspez in [vs_out,vs_var,vs_const,vs_constref]) then
-                    begin
-                      Message1(parser_h_not_supported_for_inline,'formal parameter');
-                      Message(parser_h_inlining_disabled);
-                      exit;
-                    end;
-                end;
-              arraydef :
-                begin
-                  if is_array_of_const(currpara.vardef) or
-                     is_variant_array(currpara.vardef) then
-                    begin
-                      Message1(parser_h_not_supported_for_inline,'array of const');
-                      Message(parser_h_inlining_disabled);
-                      exit;
-                    end;
-                  { open arrays might need re-basing of the index, i.e. if you pass
-                    an array[1..10] as open array, you have to add 1 to all index operations
-                    if you directly inline it }
-                  if is_open_array(currpara.vardef) then
-                    begin
-                      Message1(parser_h_not_supported_for_inline,'open array');
-                      Message(parser_h_inlining_disabled);
-                      exit;
-                    end;
-                end;
-            end;
-        end;
-        result:=true;
-      end;
-
-
     procedure tcgprocinfo.parse_body;
       var
          old_current_procinfo : tprocinfo;
@@ -1511,6 +1566,7 @@ implementation
          old_current_genericdef,
          old_current_specializedef: tstoreddef;
          old_parse_generic: boolean;
+
       begin
          old_current_procinfo:=current_procinfo;
          old_block_type:=block_type;
@@ -1615,20 +1671,10 @@ implementation
                end;
            end;
 
-         if (po_inline in procdef.procoptions) then
-           begin
-             { Can we inline this procedure? }
-             if checknodeinlining(procdef) then
-               begin
-                 new(procdef.inlininginfo);
-                 include(procdef.procoptions,po_has_inlininginfo);
-                 procdef.inlininginfo^.code:=code.getcopy;
-                 procdef.inlininginfo^.flags:=flags;
-                 { The blocknode needs to set an exit label }
-                 if procdef.inlininginfo^.code.nodetype=blockn then
-                   include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
-               end;
-           end;
+         if (po_inline in procdef.procoptions) and
+           { Can we inline this procedure? }
+           checknodeinlining(procdef) then
+           CreateInlineInfo;
 
          { Print the node to tree.log }
          if paraprintnodetree=1 then

@@ -629,6 +629,7 @@ const
   cg_e_labels_cannot_defined_outside_declaration_scope=06052;
   cg_e_goto_across_procedures_with_exceptions_not_allowed=06053;
   cg_e_mod_only_defined_for_pos_quotient=06054;
+  cg_d_autoinlining=06055;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -942,9 +943,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 65774;
+  MsgTxtSize = 65801;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,92,322,118,87,55,116,26,202,63,
+    26,92,322,118,87,56,116,26,202,63,
     53,20,1,1,1,1,1,1,1,1
   );

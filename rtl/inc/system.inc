@@ -280,9 +280,16 @@ begin
   CompareChar:=CompareByte(buf1,buf2,len);
 end;
 
+
 procedure fpc_zeromem(p:pointer;len:ptruint);
 begin
   FillChar(p^,len,0);
+end;
+
+
+procedure fpc_fillmem(var data;len:ptruint;b : byte);
+begin
+  FillByte(data,len,b);
 end;
 
 { Include generic pascal only routines which are not defined in the processor

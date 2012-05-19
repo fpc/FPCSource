@@ -2278,9 +2278,10 @@ cg_e_goto_across_procedures_with_exceptions_not_allowed=06053_E_Leaving procedur
 % which use automated types like ansistrings or class constructurs are affected by this too.
 cg_e_mod_only_defined_for_pos_quotient=06054_E_In ISO mode, the mod operator is defined only for positive quotient
 % In ISO pascal, only positive values are allowed for the quotient: \var{n mod m} is only valid if \var{m>0}.
+cg_d_autoinlining=06055_DL_Auto inlining: $1
+% Due to auto inlining turned on, the compiler auto inlines this subroutine.
 % \end{description}
 # EndOfTeX
-
 #
 # Assembler reader
 #

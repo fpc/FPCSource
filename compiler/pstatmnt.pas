@@ -1085,7 +1085,7 @@ implementation
            _GOTO :
              begin
                 if not(cs_support_goto in current_settings.moduleswitches) then
-                 Message(sym_e_goto_and_label_not_supported);
+                  Message(sym_e_goto_and_label_not_supported);
                 consume(_GOTO);
                 if (token<>_INTCONST) and (token<>_ID) then
                   begin
@@ -1129,6 +1129,7 @@ implementation
                              { allowed? }
                              if not(m_non_local_goto in current_settings.modeswitches) then
                                Message(parser_e_goto_outside_proc);
+                             include(current_procinfo.flags,pi_has_global_goto);
                            end;
                          code:=cgotonode.create(tlabelsym(srsym));
                          tgotonode(code).labelsym:=tlabelsym(srsym);

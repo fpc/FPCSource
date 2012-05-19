@@ -234,7 +234,7 @@ interface
          cs_opt_level1,cs_opt_level2,cs_opt_level3,
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
          cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
-         cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler
+         cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -258,7 +258,7 @@ interface
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
-         'DFA','STRENGTH','SCHEDULE'
+         'DFA','STRENGTH','SCHEDULE','AUTOINLINE'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -521,7 +521,11 @@ interface
          { subroutine contains interprocedural used labels }
          pi_has_interproclabel,
          { subroutine has unwind info (win64) }
-         pi_has_unwind_info
+         pi_has_unwind_info,
+         { subroutine contains interprocedural gotos }
+         pi_has_global_goto,
+         { subroutine contains inherited call }
+         pi_has_inherited
        );
        tprocinfoflags=set of tprocinfoflag;
 

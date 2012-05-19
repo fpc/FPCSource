@@ -707,17 +707,6 @@ implementation
       end;
 
 
-    const
-{$ifdef cpu64bitalu}
-      trashintvalues: array[0..nroftrashvalues-1] of aint = ($5555555555555555,aint($AAAAAAAAAAAAAAAA),aint($EFEFEFEFEFEFEFEF),0);
-{$endif cpu64bitalu}
-{$ifdef cpu32bitalu}
-      trashintvalues: array[0..nroftrashvalues-1] of aint = ($55555555,aint($AAAAAAAA),aint($EFEFEFEF),0);
-{$endif cpu32bitalu}
-{$ifdef cpu8bitalu}
-      trashintvalues: array[0..nroftrashvalues-1] of aint = ($55,aint($AA),aint($EF),0);
-{$endif cpu8bitalu}
-
     procedure trash_reference(list: TAsmList; const ref: treference; size: aint);
       var
         countreg, valuereg: tregister;

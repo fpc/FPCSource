@@ -46,34 +46,15 @@ unit optloop;
       optbase,optutils,
       procinfo;
 
-    var
-      nodecount : aword;
-
-    function donodecount(var n: tnode; arg: pointer): foreachnoderesult;
-      begin
-        inc(nodecount);
-        result:=fen_false;
-      end;
-
-
-    { rough estimation how large the tree "node" is }
-    function countnodes(node : tnode) : aword;
-      begin
-        nodecount:=0;
-        foreachnodestatic(node,@donodecount,nil);
-        result:=nodecount;
-      end;
-
-
     function number_unrolls(node : tnode) : cardinal;
       begin
 {$ifdef i386}
         { multiply by 2 for CPUs with a long pipeline }
         if current_settings.cputype in [cpu_Pentium4] then
-          number_unrolls:=60 div countnodes(node)
+          number_unrolls:=60 div node_count(node)
         else
 {$endif i386}
-          number_unrolls:=30 div countnodes(node);
+          number_unrolls:=30 div node_count(node);
 
         if number_unrolls=0 then
           number_unrolls:=1;
