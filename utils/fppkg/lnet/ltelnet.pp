@@ -68,7 +68,14 @@ type
   TLTelnetControlChars = set of Char;
 
   TLHowEnum = (TE_WILL = 251, TE_WONT, TE_DO, TE_DONW);
-  
+
+  TLSubcommandCallback= function(command: char; const parameters, defaultResponse: string): string;
+  TLSubcommandEntry= record
+                       callback: TLSubcommandCallback;
+                       defaultResponse: string
+                     end;
+  TLSubcommandArray= array[#$00..#$ff] of TLSubcommandEntry;
+
   { TLTelnet }
 
   TLTelnet = class(TLComponent, ILDirect)
@@ -89,6 +96,7 @@ type
     FBuffer: array of Char;
     FBufferIndex: Integer;
     FBufferEnd: Integer;
+    FSubcommandCallbacks: TLSubcommandArray;
     procedure InflateBuffer;
     function AddToBuffer(const aStr: string): Boolean; inline;
     
@@ -127,7 +135,9 @@ type
     function RegisterOption(const aOption: Char; const aCommand: Boolean): Boolean;
     procedure SetOption(const Option: Char);
     procedure UnSetOption(const Option: Char);
-    
+
+    function RegisterSubcommand(aOption: char; callback: TLSubcommandCallback; const defaultResponse: string= ''): boolean;
+
     procedure Disconnect(const Forced: Boolean = True); override;
     
     procedure SendCommand(const aCommand: Char; const How: TLHowEnum); virtual;
@@ -173,7 +183,10 @@ type
    public
     property LocalEcho: Boolean read FLocalEcho write FLocalEcho;
   end;
-  
+
+
+function LTelnetSubcommandCallback(command: char; const parameters, defaultResponse: string): string;
+
 implementation
 
 uses
@@ -379,6 +392,20 @@ begin
     SendCommand(Option, False);
 end;
 
+(* If already set, the callback can be reverted to nil but it can't be changed  *)
+(* in a single step. The default response, if specified, is used by the         *)
+(* LTelnetSubcommandCallback() function and is available to others.             *)
+//
+function TLTelnet.RegisterSubcommand(aOption: char; callback: TLSubcommandCallback; const defaultResponse: string= ''): boolean;
+
+begin
+  result := (not Assigned(FSubcommandCallbacks[aOption].callback)) or (@callback = nil);
+  if result then begin
+    FSubcommandCallbacks[aOption].callback := callback;
+    FSubcommandCallbacks[aOption].defaultResponse := defaultResponse
+  end
+end { TLTelnet.RegisterSubcommand } ;
+
 procedure TLTelnet.Disconnect(const Forced: Boolean = True);
 begin
   FConnection.Disconnect(Forced);
@@ -458,7 +485,33 @@ procedure TLTelnetClient.React(const Operation, Command: Char);
     AddToBuffer(TS_IAC + Operation + Command);
     OnCs(nil);
   end;
-  
+
+(* Retrieve the parameters from the current instance, and pass them explicitly  *)
+(* to the callback.                                                             *)
+//
+  procedure subcommand(command: char);
+
+  var   parameters, response: string;
+        i: integer;
+
+  begin
+    if FStack.ItemIndex > 5 then begin
+      SetLength(parameters, FStack.ItemIndex - 5);
+      Move(FStack[3], parameters[1], FStack.ItemIndex - 5);
+      i := 1;
+      while i <= Length(parameters) - 1 do      (* Undouble IACs                *)
+        if (parameters[i] = TS_IAC) and (parameters[i + 1] = TS_IAC) then
+          Delete(parameters, i, 1)
+        else
+          Inc(i)
+    end else
+      parameters := '';
+    response := FSubcommandCallbacks[command].callback(command, parameters, FSubcommandCallbacks[command].defaultResponse);
+    DoubleIAC(response);
+    AddToBuffer(TS_IAC + TS_SB + command + response + TS_IAC + TS_SE);
+    OnCs(nil)
+  end { subcommand } ;
+
 begin
   {$ifdef debug}
   Writeln('**GOT** ', TNames[Operation], ' ', TNames[Command]);
@@ -473,6 +526,10 @@ begin
               else Refuse(TS_DONT, Command);
                  
     TS_WONT : if Command in FPossible then FActiveOpts := FActiveOpts - [Command];
+    TS_SB   : if not Assigned(FSubcommandCallbacks[command].callback) then
+                refuse(TS_WONT, command)
+              else
+                subcommand(command)
   end;
 end;
 
@@ -555,6 +612,17 @@ procedure TLTelnetClient.CallAction;
 begin
   FConnection.CallAction;
 end;
+
+(* This is a default callback for use with the RegisterSubcommand() method. It  *)
+(* may be used where the result is unchanging, for example in order to return   *)
+(* the terminal type.                                                           *)
+//
+function LTelnetSubcommandCallback(command: char; const parameters, defaultResponse: string): string;
+
+begin
+  result := defaultResponse
+end { LTelnetSubcommandCallback } ;
+
 
 initialization
   for zz := #0 to #255 do
