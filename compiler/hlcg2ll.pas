@@ -533,16 +533,26 @@ implementation
     end;
 
   procedure thlcg2ll.a_load_reg_loc(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const loc: tlocation);
+    var
+      fromcgsize: tcgsize;
     begin
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,
         LOC_SUBSETREF,LOC_CSUBSETREF:
           inherited;
         else
-          { fromsize can be a floatdef (in case the destination is an
-            MMREGISTER) -> use int_cgsize rather than def_cgsize to get the
-            corresponding integer cgsize of the def }
-          cg.a_load_reg_loc(list,int_cgsize(fromsize.size),reg,loc);
+          begin
+            { avoid problems with 3-byte records and the like }
+            if (fromsize.typ<>floatdef) and
+               (fromsize=tosize) then
+              fromcgsize:=loc.size
+            else
+              { fromsize can be a floatdef (in case the destination is an
+                MMREGISTER) -> use int_cgsize rather than def_cgsize to get the
+                corresponding integer cgsize of the def }
+              fromcgsize:=int_cgsize(fromsize.size);
+            cg.a_load_reg_loc(list,fromcgsize,reg,loc);
+          end;
       end;
     end;
 
@@ -562,24 +572,42 @@ implementation
     end;
 
   procedure thlcg2ll.a_load_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; reg: tregister);
+    var
+      tocgsize: tcgsize;
     begin
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,
         LOC_SUBSETREF,LOC_CSUBSETREF:
           inherited
         else
-          cg.a_load_loc_reg(list,def_cgsize(tosize),loc,reg);
+          begin
+            { avoid problems with 3-byte records and the like }
+            if fromsize=tosize then
+              tocgsize:=loc.size
+            else
+              tocgsize:=def_cgsize(tosize);
+            cg.a_load_loc_reg(list,tocgsize,loc,reg);
+          end;
       end;
     end;
 
   procedure thlcg2ll.a_load_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference);
+    var
+      tocgsize: tcgsize;
     begin
       case loc.loc of
         LOC_SUBSETREG,LOC_CSUBSETREG,
         LOC_SUBSETREF,LOC_CSUBSETREF:
           inherited
         else
-          cg.a_load_loc_ref(list,def_cgsize(tosize),loc,ref);
+          begin
+            { avoid problems with 3-byte records and the like }
+            if fromsize=tosize then
+              tocgsize:=loc.size
+            else
+              tocgsize:=def_cgsize(tosize);
+            cg.a_load_loc_ref(list,tocgsize,loc,ref);
+          end;
       end;
     end;
 
