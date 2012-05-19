@@ -23,7 +23,7 @@ Program fd2pascal;
 uses
   baseunix,
   Unix,
-  unixutil;
+  sysutils;
 
 Const RevString = '$Revision: 1.5 $';
   NrOptions = 4;
@@ -155,16 +155,12 @@ Var
   Utilities Code
   ------------------------------------------------------------------------ }
 
-
-Function IntTostr (s : Longint) : String;
-
-var temp : String;
-
+Function BaseName(const s:ansistring;suf:ansistring):ansistring;
 begin
-  str(s,temp);
-  IntToStr:=Temp;
+  BaseName:=extractfilename(s);
+  if '.'+suf=extractfileext(s) then
+    BaseName:=changefileext(s,'');  
 end;
-
 
 Procedure EmitError (Const s : String);
 
