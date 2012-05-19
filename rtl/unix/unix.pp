@@ -356,57 +356,12 @@ begin
 end;
 
 {$else}
-Function fpSystem(const Command:string):cint;
-
-var
-  pid,savedpid   : cint;
-  pstat          : cint;
-  ign,intact,
-  quitact        : SigactionRec;
-  newsigblock,
-  oldsigblock    : tsigset;
-
-begin { Changes as above }
-  if command='' then exit(1);
-  ign.sa_handler:=SigActionHandler(SIG_IGN);
-  fpsigemptyset(ign.sa_mask);
-  ign.sa_flags:=0;
-  fpsigaction(SIGINT, @ign, @intact);
-  fpsigaction(SIGQUIT, @ign, @quitact);
-  fpsigemptyset(newsigblock);
-  fpsigaddset(newsigblock,SIGCHLD);
-  fpsigprocmask(SIG_BLOCK,newsigblock,oldsigblock);
-  pid:=fpfork;
-  if pid=0 then // We are in the Child
-   begin
-     fpsigaction(SIGINT,@intact,NIL);
-     fpsigaction(SIGQUIT,@quitact,NIL);
-     fpsigprocmask(SIG_SETMASK,@oldsigblock,NIL);
-     fpexecl('/bin/sh',['-c',Command]);
-     fpExit(127); // was exit(127)!! We must exit the Process, not the function
-   end
-  else if (pid<>-1) then // Successfull started
-     begin
-        savedpid:=pid;
-        repeat
-          pid:=fpwaitpid(savedpid,@pstat,0);
-        until (pid<>-1) and (fpgeterrno()<>ESysEintr);
-        if pid=-1 Then
-         fpsystem:=-1
-        else
-         fpsystem:=pstat;
-     end
-  else // no success
-   fpsystem:=-1;
-  fpsigaction(SIGINT,@intact,NIL);
-  fpsigaction(SIGQUIT,@quitact,NIL);
-  fpsigprocmask(SIG_SETMASK,@oldsigblock,NIL);
+Function fpSystem(const Command:string):cint; // deprecated helper.
+begin
+  fpsystem:=fpsystem(ansistring(command));
 end;
 
 Function fpSystem(const Command:AnsiString):cint;
-{
-  AnsiString version of Shell
-}
 var
   pid,savedpid   : cint;
   pstat          : cint;
@@ -414,9 +369,15 @@ var
   quitact        : SigactionRec;
   newsigblock,
   oldsigblock    : tsigset;
+ {$ifndef SHELL_USE_FPEXEC}
+   p      : ppchar;
+ {$endif}
 
 begin { Changes as above }
   if command='' then exit(1);
+  {$ifndef SHELL_USE_FPEXEC}
+    p:=CreateShellArgv(command);
+  {$endif}
   ign.sa_handler:=SigActionHandler(SIG_IGN);
   fpsigemptyset(ign.sa_mask);
   ign.sa_flags:=0;
@@ -425,13 +386,21 @@ begin { Changes as above }
   fpsigemptyset(newsigblock);
   fpsigaddset(newsigblock,SIGCHLD);
   fpsigprocmask(SIG_BLOCK,newsigblock,oldsigblock);
-  pid:=fpfork;
+  {$ifdef USE_VFORK}
+    pid:=fpvfork;
+  {$else USE_VFORK}
+    pid:=fpfork;
+  {$endif USE_VFORK}
   if pid=0 then // We are in the Child
    begin
      fpsigaction(SIGINT,@intact,NIL);
      fpsigaction(SIGQUIT,@quitact,NIL);
      fpsigprocmask(SIG_SETMASK,@oldsigblock,NIL);
-     fpexecl('/bin/sh',['-c',Command]);
+     {$ifndef SHELL_USE_FPEXEC}
+       fpExecve(p^,p,envp);
+     {$else}
+       fpexecl('/bin/sh',['-c',Command]);
+     {$endif}
      fpExit(127); // was exit(127)!! We must exit the Process, not the function
    end
   else if (pid<>-1) then // Successfull started
@@ -450,6 +419,9 @@ begin { Changes as above }
   fpsigaction(SIGINT,@intact,NIL);
   fpsigaction(SIGQUIT,@quitact,NIL);
   fpsigprocmask(SIG_SETMASK,@oldsigblock,NIL);
+  {$ifndef SHELL_USE_FPEXEC}
+    FreeShellArgV(p);
+  {$endif}
 end;
 {$endif}
 
