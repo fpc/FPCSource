@@ -155,7 +155,7 @@ begin
     not(cs_link_on_target in current_settings.globalswitches) and
     not(source_info.system in systems_aix) ;
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,not assumebinutils);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,assumebinutils);
   with linkres do
     begin
       { Write path to search libraries }
@@ -181,13 +181,19 @@ begin
        if assumebinutils then
         StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
-      AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
+       if assumebinutils then
+         AddFileName(maybequoted(FindObjectFile(prtobj,'',false)))
+       else
+         AddFileName(FindObjectFile(prtobj,'',false));
       { main objectfiles }
       while not ObjectFiles.Empty do
        begin
          s:=ObjectFiles.GetFirst;
          if s<>'' then
-          AddFileName(maybequoted(s));
+          if assumebinutils then
+            AddFileName(maybequoted(s))
+          else
+            AddFileName(s)
        end;
 
       { Write staticlibraries }
@@ -196,7 +202,10 @@ begin
          While not StaticLibFiles.Empty do
           begin
             S:=StaticLibFiles.GetFirst;
-            AddFileName(maybequoted(s))
+            if assumebinutils then
+              AddFileName(maybequoted(s))
+            else
+              AddFileName(s);
           end;
        end;
 
