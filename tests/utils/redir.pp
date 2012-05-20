@@ -977,6 +977,18 @@ end;
 
 {............................................................................}
 
+function TransformfpSystemToShell(s:cint):cint;
+// transforms standarized (fp)System(3) result to the conventions of the old Unix.shell function.
+begin
+ if s=-1 then exit(-1);
+ if wifexited(s) then
+   TransformfpSystemToShell:=wexitstatus(s)
+ else if (s>0) then   
+   TransformfpSystemToShell:=-s  
+ else
+   TransformfpSystemToShell:=s;  
+end;
+
   procedure DosExecute(ProgName, ComLine : String);
 
 
@@ -987,10 +999,10 @@ end;
 {$ifdef usedos}
     SwapVectors;
 {$endif usedos}
-    { Must use shell() for linux for the wildcard expansion (PFV) }
+    { Must use shell/fpsystem() for *nix for the wildcard expansion (PFV) }
 {$ifdef UNIX}
     IOStatus:=0;
-    ExecuteResult:=fpsystem(FixPath(Progname)+' '+Comline);
+    ExecuteResult:=Transformfpsystemtoshell(fpsystem((FixPath(Progname)+' '+Comline)));
     if ExecuteResult<0 then
       begin
         IOStatus:=(-ExecuteResult) and $7f;
