@@ -118,7 +118,7 @@ begin
    begin
     s:=HPath.Str;
     if s<>'' then
-     LinkRes.Add('SEARCH_DIR('+Unix2AmigaPath(maybequoted(s))+')');
+     LinkRes.Add('SEARCH_DIR("'+Unix2AmigaPath(s)+'")');
     HPath:=TCmdStrListItem(HPath.Next);
    end;
 

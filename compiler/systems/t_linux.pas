@@ -353,13 +353,13 @@ begin
       HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
       while assigned(HPath) do
        begin
-         Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+         Add('SEARCH_DIR("'+HPath.Str+'")');
          HPath:=TCmdStrListItem(HPath.Next);
        end;
       HPath:=TCmdStrListItem(LibrarySearchPath.First);
       while assigned(HPath) do
        begin
-         Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+         Add('SEARCH_DIR("'+HPath.Str+'")');
          HPath:=TCmdStrListItem(HPath.Next);
        end;
 

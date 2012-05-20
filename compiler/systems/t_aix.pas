@@ -163,7 +163,7 @@ begin
       while assigned(HPath) do
        begin
          if assumebinutils then
-           Add('SEARCH_DIR('+maybequoted(HPath.Str)+')')
+           Add('SEARCH_DIR("'+HPath.Str+'")')
          else
            Add('-L'+HPath.Str);
          HPath:=TCmdStrListItem(HPath.Next);
@@ -172,7 +172,7 @@ begin
       while assigned(HPath) do
        begin
          if assumebinutils then
-           Add('SEARCH_DIR('+maybequoted(HPath.Str)+')')
+           Add('SEARCH_DIR("'+HPath.Str+'")')
          else
            Add('-L'+HPath.Str);
          HPath:=TCmdStrListItem(HPath.Next);

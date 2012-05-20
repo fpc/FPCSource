@@ -424,7 +424,7 @@ begin
      if LdSupportsNoResponseFile then
        LinkRes.Add('-L'+HPath.Str)
      else
-       LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+       LinkRes.Add('SEARCH_DIR("'+HPath.Str+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
   HPath:=TCmdStrListItem(LibrarySearchPath.First);
@@ -433,7 +433,7 @@ begin
      if LdSupportsNoResponseFile then
        LinkRes.Add('-L'+HPath.Str)
      else
-       LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+       LinkRes.Add('SEARCH_DIR("'+HPath.Str+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
 

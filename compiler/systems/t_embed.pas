@@ -113,7 +113,7 @@ begin
    begin
     s:=HPath.Str;
     if s<>'' then
-     LinkRes.Add('SEARCH_DIR('+(maybequoted(s))+')');
+     LinkRes.Add('SEARCH_DIR("'+s+'")');
     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
