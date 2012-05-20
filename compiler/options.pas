@@ -2200,6 +2200,7 @@ begin
                   tmp:= GetName(opts);
                   if tmp <> '' then
                     def_system_macro(tmp);
+                  Option_read:=true;
                 end
               else
                if (s='UNDEF') then
@@ -2208,18 +2209,21 @@ begin
                   tmp:= GetName(opts);
                   if tmp <> '' then
                     undef_system_macro(tmp);
+                  Option_read:=true;
                 end
               else
                if (s='WRITE') then
                 begin
                   Delete(opts,1,1);
                   WriteLn(opts);
+                  Option_read:=true;
                 end
               else
                if (s='INCLUDE') then
                 begin
                   Delete(opts,1,1);
                   Interpret_file(opts);
+                  Option_read:=true;
                 end;
             end;
          end
