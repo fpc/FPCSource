@@ -2027,6 +2027,7 @@ implementation
 {$endif cpu_uses_separate_address_registers}
                     reference_reset_base(href,selfloc.register,objdef.vmt_offset,sizeof(pint));
                 end;
+              LOC_CONSTANT,
               LOC_CREGISTER,
               LOC_CREFERENCE,
               LOC_REFERENCE:
