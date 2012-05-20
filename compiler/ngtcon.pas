@@ -1282,6 +1282,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 list.concat(Tai_const.Create_sym(nil));
               end
           end
+        else if n.nodetype=pointerconstn then
+          list.concat(Tai_const.Create_pint(tpointerconstnode(n).value))
         else
           Message(parser_e_illegal_expression);
         n.free;
