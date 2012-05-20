@@ -976,18 +976,19 @@ end;
 {$endif not implemented}
 
 {............................................................................}
-
+{$ifdef UNIX}
 function TransformfpSystemToShell(s:cint):cint;
 // transforms standarized (fp)System(3) result to the conventions of the old Unix.shell function.
 begin
  if s=-1 then exit(-1);
  if wifexited(s) then
    TransformfpSystemToShell:=wexitstatus(s)
- else if (s>0) then   
-   TransformfpSystemToShell:=-s  
+ else if (s>0) then
+   TransformfpSystemToShell:=-s
  else
-   TransformfpSystemToShell:=s;  
+   TransformfpSystemToShell:=s;
 end;
+{$endif def UNIX}
 
   procedure DosExecute(ProgName, ComLine : String);
 
