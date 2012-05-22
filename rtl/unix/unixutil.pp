@@ -20,11 +20,11 @@ var
   Tzseconds : Longint;
 
 Type
-  ComStr  = String[255];
-  PathStr = String[255];
-  DirStr  = String[255];
-  NameStr = String[255];
-  ExtStr  = String[255];
+  ComStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
+  PathStr = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
+  DirStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
+  NameStr = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
+  ExtStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
 
 Function Dirname(Const path:pathstr):pathstr; deprecated;
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
