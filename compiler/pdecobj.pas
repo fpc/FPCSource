@@ -1431,6 +1431,7 @@ implementation
               begin
                 olddef:=ttypesym(objsym).typedef;
                 ttypesym(objsym).typedef:=current_structdef;
+                current_structdef.typesym:=objsym;
               end
             else
               olddef:=nil;
@@ -1439,7 +1440,10 @@ implementation
             parse_object_members;
 
             if assigned(olddef) then
-              ttypesym(objsym).typedef:=olddef;
+              begin
+                ttypesym(objsym).typedef:=olddef;
+                current_structdef.typesym:=nil;
+              end;
 
           if not(oo_is_external in current_structdef.objectoptions) then
             begin

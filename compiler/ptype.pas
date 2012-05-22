@@ -339,6 +339,20 @@ implementation
             def:=generrordef;
             exit;
           end;
+         { In non-Delphi modes the class/record name of a generic might be used
+           in the declaration of sub types without type parameters; in that case
+           we need to check by name as the link from the dummy symbol to the
+           current type is not yet established }
+         if (sp_generic_dummy in srsym.symoptions) and
+             assigned(current_structdef) and
+             (df_generic in current_structdef.defoptions) and
+             (ttypesym(srsym).typedef.typ=undefineddef) and
+             not (m_delphi in current_settings.modeswitches) then
+           begin
+             def:=get_generic_in_hierarchy_by_name(srsym,current_structdef);
+             if assigned(def) then
+               exit;
+           end;
         def:=ttypesym(srsym).typedef;
       end;
 
@@ -422,6 +436,17 @@ implementation
             else if (def=current_genericdef) then
               begin
                 def:=current_genericdef
+              end
+            { when parsing a nested specialization in non-Delphi mode it might
+              use the name of the topmost generic without type paramaters, thus
+              def will contain the generic definition, but we need a reference
+              to the specialization of that generic }
+            { TODO : only in non-Delphi modes? }
+            else if assigned(current_structdef) and
+                (df_specialization in current_structdef.defoptions) and
+                return_specialization_of_generic(current_structdef,def,t2) then
+              begin
+                def:=t2
               end
             else if (df_generic in def.defoptions) and
                 not
@@ -794,6 +819,7 @@ implementation
            lv,hv   : TConstExprInt;
            old_block_type : tblock_type;
            dospecialize : boolean;
+           newdef  : tdef;
         begin
            old_block_type:=block_type;
            dospecialize:=false;
@@ -866,6 +892,7 @@ implementation
                      { in non-Delphi modes we might get a inline specialization
                        without "specialize" or "<T>" of the same type we're
                        currently parsing, so we need to handle that special }
+                     newdef:=nil;
                      if not dospecialize and
                          assigned(ttypenode(pt1).typesym) and
                          (ttypenode(pt1).typesym.typ=typesym) and
@@ -879,15 +906,25 @@ implementation
                              (ttypesym(ttypenode(pt1).typesym).typedef.owner=current_structdef.owner) and
                              (upper(ttypenode(pt1).typesym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
                            ) or (
+                             { this could be a nested specialization which uses
+                               the type name of a surrounding generic to
+                               reference the specialization of said surrounding
+                               class }
                              (df_specialization in current_structdef.defoptions) and
-                             (ttypesym(ttypenode(pt1).typesym).typedef=current_structdef.genericdef)
+                             return_specialization_of_generic(current_structdef,ttypesym(ttypenode(pt1).typesym).typedef,newdef)
                            )
                          )
                          then
                        begin
-                         def:=current_structdef;
-                         { handle nested types }
-                         post_comp_expr_gendef(def);
+                         if assigned(newdef) then
+                           def:=newdef
+                         else
+                           def:=current_structdef;
+                         if assigned(def) then
+                           { handle nested types }
+                           post_comp_expr_gendef(def)
+                         else
+                           def:=generrordef;
                        end;
                    if dospecialize then
                      begin

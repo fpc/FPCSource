@@ -2177,7 +2177,7 @@ implementation
                      assigned(current_structdef) and
                      (df_generic in current_structdef.defoptions) and
                      not (m_delphi in current_settings.modeswitches) and
-                     (upper(srsym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
+                     assigned(get_generic_in_hierarchy_by_name(srsym,current_structdef))
                    )) and
                    { it could be a rename of a generic para }
                    { Note: if this generates false positives we'll need to

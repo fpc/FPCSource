@@ -227,6 +227,8 @@ interface
     function  is_owned_by(childdef,ownerdef:tdef):boolean;
     function  sym_is_owned_by(childsym:tsym;symtable:tsymtable):boolean;
     function  defs_belong_to_same_generic(def1,def2:tdef):boolean;
+    function  get_generic_in_hierarchy_by_name(srsym:tsym;def:tdef):tdef;
+    function  return_specialization_of_generic(nesteddef,genericdef:tdef;out resultdef:tdef):boolean;
     function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
@@ -1921,6 +1923,43 @@ implementation
         def2:=tdef(def2.owner.defowner);
       result:=def1=def2;
     end;
+
+    function get_generic_in_hierarchy_by_name(srsym: tsym; def: tdef): tdef;
+      var
+        uname : string;
+      begin
+        { TODO : check regarding arrays and records declared as their type }
+        if not (def.typ in [recorddef,objectdef]) then
+          internalerror(2012051501);
+        uname:=upper(srsym.realname);
+        repeat
+          if uname=copy(tabstractrecorddef(def).objname^,1,pos('$',tabstractrecorddef(def).objname^)-1) then
+            begin
+              result:=def;
+              exit;
+            end;
+          def:=tdef(def.owner.defowner);
+        until not (def.typ in [recorddef,objectdef]);
+        result:=nil;
+      end;
+
+    function return_specialization_of_generic(nesteddef,genericdef:tdef; out resultdef:tdef):boolean;
+      begin
+        { TODO : check regarding arrays and records declared as their type }
+        if not (nesteddef.typ in [recorddef,objectdef]) then
+          internalerror(2012051601);
+        repeat
+          if tstoreddef(nesteddef).genericdef=genericdef then
+            begin
+              resultdef:=nesteddef;
+              result:=true;
+              exit;
+            end;
+          nesteddef:=tdef(nesteddef.owner.defowner);
+        until not assigned(nesteddef) or not (nesteddef.typ in [recorddef,objectdef]);
+        resultdef:=nil;
+        result:=false;
+      end;
 
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
       var
