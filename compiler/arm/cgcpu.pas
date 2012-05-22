@@ -177,7 +177,7 @@ unit cgcpu;
 
 
     uses
-       globals,verbose,systems,cutils,
+       globals,verbose,systems,cutils,sysutils,
        aopt,aoptcpu,
        fmodule,
        symconst,symsym,
@@ -388,19 +388,26 @@ unit cgcpu;
                      end
                    else
                      begin
+                       tmpreg2:=getintregister(list,OS_INT);
                        if target_info.endian=endian_big then
                          inc(usedtmpref.offset,3);
                        a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
+
                        inc(usedtmpref.offset,dir);
                        a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+
+                       inc(usedtmpref.offset,dir);
+                       a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg2);
+
                        so.shiftimm:=8;
                        list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg,so));
+
                        inc(usedtmpref.offset,dir);
                        a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+
                        so.shiftimm:=16;
-                       list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg,so));
-                       inc(usedtmpref.offset,dir);
-                       a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                       list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg2,so));
+
                        so.shiftimm:=24;
                        list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg,so));
                      end;
@@ -706,7 +713,7 @@ unit cgcpu;
             OP_SAR:
               begin
                 if a>32 then
-                  internalerror(200308295);
+                  internalerror(200308298);
                 if a<>0 then
                   begin
                     shifterop_reset(so);
@@ -1081,7 +1088,7 @@ unit cgcpu;
            OS_F32:
              oppostfix:=PF_None;
            else
-             InternalError(200308295);
+             InternalError(200308299);
          end;
          if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[tosize]) then
            begin
