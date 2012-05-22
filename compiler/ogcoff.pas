@@ -1136,13 +1136,12 @@ const pemagic : array[0..3] of byte = (
             else
               begin
                 if (p.objsection<>nil) and
-                   (p.bind<>AB_COMMON) and
-                   (reloctype<>RELOC_RELATIVE) then
+                   (p.bind<>AB_COMMON) then
                   CurrObjSec.addsectionreloc(curraddr,p.objsection,reloctype)
                 else
                   CurrObjSec.addsymreloc(curraddr,p,reloctype);
                 if (not win32) or
-                   ((reloctype<>RELOC_RELATIVE) and (p.objsection<>nil)) then
+                   (p.objsection<>nil) then
                   inc(data,symaddr);
                 if reloctype=RELOC_RELATIVE then
                   begin
