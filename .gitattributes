@@ -10533,7 +10533,6 @@ tests/test/tdefault12.pp svneol=native#text/pascal
 tests/test/tdefault13.pp svneol=native#text/pascal
 tests/test/tdefault14.pp svneol=native#text/pascal
 tests/test/tdefault15.pp svneol=native#text/pascal
-tests/test/tdefault16.pp svneol=native#text/pascal
 tests/test/tdefault2.pp svneol=native#text/pascal
 tests/test/tdefault3.pp svneol=native#text/pascal
 tests/test/tdefault4.pp svneol=native#text/pascal
