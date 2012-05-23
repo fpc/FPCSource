@@ -612,13 +612,28 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestOldValue;
-var v : variant;
-    bufds: TDataset;
 begin
-  bufds := DBConnector.GetNDataset(0) as TDataset;
-  bufds.Open;
-  bufds.InsertRecord([0,'name']);
-  v := VarToStr(bufds.fields[1].OldValue);
+  with DBConnector.GetNDataset(1) as TDataset do
+  begin;
+    Open;
+    First;
+    CheckEquals('1', VarToStr(Fields[0].OldValue), 'Original value');  // unmodified original value
+    CheckTrue(UpdateStatus=usUnmodified, 'Unmodified');
+
+    Edit;
+    Fields[0].AsInteger := -1;
+    CheckEquals('1', VarToStr(Fields[0].OldValue), 'Editing');  // dsEdit, there is no update-buffer yet
+    Post;
+    CheckEquals('1', VarToStr(Fields[0].OldValue), 'Edited');  // there is already update-buffer
+    CheckTrue(UpdateStatus=usModified, 'Modified');
+
+    Append;
+    Fields[0].AsInteger := -2;
+    CheckTrue(VarIsNull(Fields[0].OldValue), 'Inserting'); // dsInsert, there is no update-buffer yet
+    Post;
+    CheckTrue(VarIsNull(Fields[0].OldValue), 'Inserted'); // there is already update-buffer
+    CheckTrue(UpdateStatus=usInserted, 'Inserted');
+  end;
 end;
 
 procedure TTestDBBasics.TestCanModifySpecialFields;
