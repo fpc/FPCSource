@@ -536,27 +536,16 @@ implementation
 ****************************************************************************}
 
     constructor TElfObjData.create(const n:string);
-      var
-        need_datarel : boolean;
       begin
         inherited create(n);
         CObjSection:=TElfObjSection;
         { we need at least the following sections }
         createsection(sec_code);
+        { always a non-PIC data section (will remain empty if doing PIC) }
+        createsection('.data',sizeof(pint),sectiontype2options(sec_data));
+        createsection(sec_bss);
         if (cs_create_pic in current_settings.moduleswitches) and
            not(target_info.system in systems_darwin) then
-          begin
-            { We still need an empty data section }
-            system.exclude(current_settings.moduleswitches,cs_create_pic);
-            need_datarel:=true;
-          end
-        else
-          need_datarel:=false;
-        createsection(sec_data);
-        if need_datarel then
-          system.include(current_settings.moduleswitches,cs_create_pic);
-        createsection(sec_bss);
-        if need_datarel then
           createsection(sec_data);
         if tf_section_threadvars in target_info.flags then
           createsection(sec_threadvar);
