@@ -3145,7 +3145,7 @@ function TCustomBufDataset.Lookup(const KeyFields: string;
 var
   bm:TBookmark;
 begin
-  result:=nil;
+  result:=Null;
   bm:=GetBookmark;
   DisableControls;
   try
