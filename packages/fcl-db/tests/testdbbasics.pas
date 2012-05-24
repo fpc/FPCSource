@@ -157,6 +157,7 @@ type
     procedure TestBug6893;
     procedure TestRequired;
     procedure TestOldValue;
+    procedure TestOldValue1;
   end;
 
 
@@ -612,6 +613,16 @@ begin
 end;
 
 procedure TTestCursorDBBasics.TestOldValue;
+var v : variant;
+    bufds: TDataset;
+begin
+  bufds := DBConnector.GetNDataset(0) as TDataset;
+  bufds.Open;
+  bufds.InsertRecord([0,'name']);
+  v := VarToStr(bufds.fields[1].OldValue);
+end;
+
+procedure TTestCursorDBBasics.TestOldValue1;
 begin
   with DBConnector.GetNDataset(1) as TDataset do
   begin;
