@@ -1030,6 +1030,7 @@ packages/bzip2/LICENSE svneol=native#text/plain
 packages/bzip2/Makefile svneol=native#text/plain
 packages/bzip2/Makefile.fpc svneol=native#text/plain
 packages/bzip2/Makefile.fpc.fpcmake svneol=native#text/plain
+packages/bzip2/examples/pasbunzip2.pas svneol=native#text/plain
 packages/bzip2/examples/pasbzip.pas svneol=native#text/plain
 packages/bzip2/fpmake.pp svneol=native#text/plain
 packages/bzip2/src/bzip2.pas svneol=native#text/plain
