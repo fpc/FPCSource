@@ -32,6 +32,8 @@ procedure Tbzip2_decode_stream.detransform;assembler;
 asm
 {  mov edx,offset c
   call mcount}
+  push ebx
+  push edi
   xor edx,edx
   lea ebx,[eax+Tbzip2_decode_stream.cftab]
   mov ecx,[eax+Tbzip2_decode_stream.tt_count]
@@ -53,4 +55,6 @@ asm
   jne @a1
   pop ebp
   pop esi
-end ['eax','ebx','ecx','edx','edi'];
+  pop edi
+  pop ebx
+end ['eax','ecx','edx'];
