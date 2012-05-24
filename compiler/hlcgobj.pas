@@ -994,6 +994,9 @@ implementation
       end;
     end;
 
+{$push}
+{$r-,q-}
+
   procedure thlcgobj.a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister);
     var
       subsetregdef: torddef;
@@ -2080,6 +2083,8 @@ implementation
           a_op_reg_reg(list,OP_OR,subsetregdef,tmpreg,sreg.subsetreg);
        end;
     end;
+
+  {$pop}
 
   function thlcgobj.get_bit_const_ref_sref(bitnumber: tcgint; refdef: tdef; const ref: treference): tsubsetreference;
     begin
