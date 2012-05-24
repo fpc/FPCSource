@@ -1311,6 +1311,10 @@ begin
   FFiltered := value;
 end;
 
+procedure TDataSet.SetFound(const Value: Boolean);
+begin
+  FFound := Value;
+end;
 
 Procedure TDataset.SetModified(Value: Boolean);
 

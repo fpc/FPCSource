@@ -1279,8 +1279,7 @@ begin
         case ParsePart of
           ppStart  : begin
                      Result := TSQLConnection(Database).StrToStatementType(s);
-                     if Result = stSelect then ParsePart := ppSelect
-                       else break;
+                     if s = 'SELECT' then ParsePart := ppSelect else break;
                      if not FParseSQL then break;
                      PStatementPart := CurrentP;
                      end;
