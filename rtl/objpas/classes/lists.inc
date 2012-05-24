@@ -318,10 +318,22 @@ begin
        J := J - 1;
      end;
    until I > J;
-   if L < J then
-     QuickSort(FList, L, J, Compare);
-   L := I;
- until I >= R;
+   // sort the smaller range recursively
+   // sort the bigger range via the loop
+   // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
+   if J - L < R - I then
+   begin
+     if L < J then
+       QuickSort(FList, L, J, Compare);
+     L := I;
+   end
+   else
+   begin
+     if I < R then
+       QuickSort(FList, I, R, Compare);
+     R := J;
+   end;
+ until L >= R;
 end;
 
 procedure TFPList.Sort(Compare: TListSortCompare);
