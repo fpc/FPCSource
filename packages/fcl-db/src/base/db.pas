@@ -1399,6 +1399,7 @@ type
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADatasource : TDataSource);
     Procedure RemoveField (Field : TField);
+    procedure SetConstraints(Value: TCheckConstraints);
     Procedure SetField (Index : Longint;Value : TField);
     Procedure ShiftBuffersForward;
     Procedure ShiftBuffersBackward;
@@ -1485,7 +1486,6 @@ type
     procedure SetFiltered(Value: Boolean); virtual;
     procedure SetFilterOptions(Value: TFilterOptions); virtual;
     procedure SetFilterText(const Value: string); virtual;
-    procedure SetFound(const Value: Boolean);
     procedure SetFieldValues(const fieldname: string; Value: Variant); virtual;
     procedure SetModified(Value: Boolean);
     procedure SetName(const Value: TComponentName); override;
@@ -1504,7 +1504,7 @@ type
     property CalcBuffer: TRecordBuffer read FCalcBuffer;
     property CalcFieldsSize: Longint read FCalcFieldsSize;
     property InternalCalcFields: Boolean read FInternalCalcFields;
-    property Constraints: TCheckConstraints read FConstraints write FConstraints;
+    property Constraints: TCheckConstraints read FConstraints write SetConstraints;
     function AllocRecordBuffer: TRecordBuffer; virtual;
     procedure FreeRecordBuffer(var Buffer: TRecordBuffer); virtual;
     procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); virtual;
@@ -1623,7 +1623,7 @@ type
     property FieldDefs: TFieldDefs read FFieldDefs write SetFieldDefs;
 //    property Fields[Index: Longint]: TField read GetField write SetField;
     property Found: Boolean read FFound;
-    property Modified: Boolean read FModified write SetModified;
+    property Modified: Boolean read FModified;
     property IsUniDirectional: Boolean read FIsUniDirectional default False;
     property RecordCount: Longint read GetRecordCount;
     property RecNo: Longint read GetRecNo write SetRecNo;
@@ -2420,6 +2420,7 @@ Function TCheckConstraints.GetItem(Index : Longint) : TCheckConstraint;
 
 begin
   //!! To be implemented
+  Result := nil;
 end;
 
 
@@ -2434,6 +2435,7 @@ function TCheckConstraints.GetOwner: TPersistent;
 
 begin
   //!! To be implemented
+  Result := nil;
 end;
 
 
@@ -2441,6 +2443,7 @@ constructor TCheckConstraints.Create(AOwner: TPersistent);
 
 begin
   //!! To be implemented
+  inherited Create(TCheckConstraint);
 end;
 
 
@@ -2448,6 +2451,7 @@ function TCheckConstraints.Add: TCheckConstraint;
 
 begin
   //!! To be implemented
+  Result := nil;
 end;
 
 { TLookupList }
