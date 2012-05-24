@@ -1673,7 +1673,12 @@ implementation
            { and e.g. fromdef=stringdef and todef=variantdef, then }
            { the test will still succeed                           }
            ((cdo_allow_variant in cdoptions) or
-            ((def_from.typ<>variantdef) and (def_to.typ<>variantdef))
+            ((def_from.typ<>variantdef) and
+             (def_to.typ<>variantdef) and
+             { internal typeconversions always have to be bitcasts (except for
+               variants) }
+             not(cdo_internal in cdoptions)
+            )
            ) and
            (
             { Check for variants? }
