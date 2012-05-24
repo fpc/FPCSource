@@ -221,6 +221,8 @@ type
     Function CreateRow : TJSONData; override;
   end;
 
+  EJSONDataset = Class(EDatabaseError);
+  
 implementation
 
 uses dateutils, jsonparser;
@@ -252,7 +254,7 @@ end;
 
 function TExtJSJSONArrayDataSet.CreateFieldMapper: TJSONFieldMapper;
 begin
-  Result:=TJSONObjectFieldMapper.Create;
+  Result:=TJSONArrayFieldMapper.Create;
 end;
 
 { TJSONObjectDataSet }
@@ -355,7 +357,7 @@ begin
   If Assigned(FMetaData) then
     MetaDataToFieldDefs;
   if (FieldDefs.Count=0) then
-    Raise Exception.Create('No fields found');
+    Raise EJSONDataset.Create('No fields found');
 end;
 
 procedure TBaseJSONDataSet.FreeData;
@@ -403,7 +405,7 @@ begin
     if MapUnknownToStringType then
       Result:=ftString
     else
-      Raise Exception.CreateFmt('Unknown JSON data type : %s',[s]);
+      Raise EJSONDataset.CreateFmt('Unknown JSON data type : %s',[s]);
 end;
 
 Function  TExtJSJSONDataSet.GetStringFieldLength(F : TJSONObject; AName : String; AIndex : Integer) : integer;
@@ -419,7 +421,7 @@ begin
     begin
     Result:=StrToIntDef(trim(F.Items[i].AsString),-1);
     if (Result=-1) then
-      Raise Exception.CreateFmt('Invalid maximum length specifier for field %s : %s',[AName,F.Items[i].AsString])
+      Raise EJSONDataset.CreateFmt('Invalid maximum length specifier for field %s : %s',[AName,F.Items[i].AsString])
     end
   else
     begin
@@ -457,7 +459,7 @@ begin
       else
         begin
         FreeAndNil(D);
-        Raise Exception.Create('Not a valid ExtJS JSON data packet');
+        Raise EJSONDataset.Create('Not a valid ExtJS JSON data packet');
         end;
       N:='rows';
       // Check metadata
@@ -465,23 +467,23 @@ begin
       if (I<>-1) then
         begin
         If (O.Items[i].JSONType<>jtObject) then
-          Raise Exception.Create('Invalid ExtJS JSON metaData in data packet.');
+          Raise EJSONDataset.Create('Invalid ExtJS JSON metaData in data packet.');
         Metadata:=O.Objects['metaData'];
         O.Extract(I);
         I:=Metadata.IndexOfName('root');
         If (I<>-1) then
           begin
           if (MetaData.Items[i].JSONType<>jtString) then
-            Raise Exception.Create('Invalid ExtJS JSON root element in metaData.');
+            Raise EJSONDataset.Create('Invalid ExtJS JSON root element in metaData.');
           N:=MetaData.Strings['root'];
           end;
         end;
       // Check rows
       I:=O.IndexOfName(N);
       if (I=-1) then
-        Raise Exception.Create('Missing rows in data packet');
+        Raise EJSONDataset.Create('Missing rows in data packet');
       if (O.Items[i].JSONType<>jtArray) then
-        Raise Exception.Create('Rows element must be an array');
+        Raise EJSONDataset.Create('Rows element must be an array');
       Rows:=O.Items[i] as TJSONArray;
       O.Extract(I);
       OwnsData:=True;
@@ -577,22 +579,22 @@ begin
   FieldDefs.Clear;
   I:=FMetadata.IndexOfName('fields');
   if (I=-1) or (FMetaData.Items[i].JSONType<>jtArray) then
-    Raise Exception.Create('Invalid metadata object');
+    Raise EJSONDataset.Create('Invalid metadata object');
   A:=FMetadata.Arrays['fields'];
   For I:=0 to A.Count-1 do
     begin
     If (A.Types[i]<>jtObject) then
-      Raise Exception.CreateFmt('Field definition %d in metadata (%s) is not an object',[i,A[i].AsJSON]);
+      Raise EJSONDataset.CreateFmt('Field definition %d in metadata (%s) is not an object',[i,A[i].AsJSON]);
     F:=A.Objects[i];
     J:=F.IndexOfName('name');
     If (J=-1) or (F.Items[J].JSONType<>jtString) then
-      Raise Exception.CreateFmt('Field definition %d in has no or invalid name property',[i]);
+      Raise EJSONDataset.CreateFmt('Field definition %d in has no or invalid name property',[i]);
     N:=F.Items[J].AsString;
     J:=F.IndexOfName('type');
     If (J=-1) then
       ft:=ftstring
     else If (F.Items[J].JSONType<>jtString) then
-      Raise Exception.CreateFmt('Field definition %d in has invalid type property',[i])
+      Raise EJSONDataset.CreateFmt('Field definition %d in has invalid type property',[i])
     else
       ft:=StringToFieldType(F.Items[J].asString);
     if (ft=ftString) then
@@ -641,7 +643,7 @@ begin
       ftLargeInt,
       ftword: t:='int';
     else
-      Raise Exception.CreateFmt('Unsupported field type : %s',[GetEnumName(TypeInfo(TFieldType),Ord(FieldDefs[i].DataType))]);
+      Raise EJSONDataset.CreateFmt('Unsupported field type : %s',[GetEnumName(TypeInfo(TFieldType),Ord(FieldDefs[i].DataType))]);
     end; // case
     O.Strings['type']:=t;
     if M<>0 then
@@ -1017,7 +1019,7 @@ begin
       Move(LI,Buffer^,SizeOf(LI));
       end;
   else
-    Raise Exception.CreateFmt('Unsupported field type : %s',[GetEnumName(TypeInfo(TFieldType),Ord(Field.DataType))]);
+    Raise EJSONDataset.CreateFmt('Unsupported field type : %s',[GetEnumName(TypeInfo(TFieldType),Ord(Field.DataType))]);
   end; // case
 end;
 
@@ -1068,7 +1070,7 @@ begin
       F:=TJSONInt64Number.Create(PInt64(Buffer)^);
       end;
   else
-    Raise Exception.CreateFmt('Unsupported field type : %s',[GetEnumName(TypeInfo(TFieldType),Ord(Field.DataType))]);
+    Raise EJSONDataset.CreateFmt('Unsupported field type : %s',[GetEnumName(TypeInfo(TFieldType),Ord(Field.DataType))]);
   end; // case
   if (F=Nil) then
     F:=TJSONNull.Create;
@@ -1086,8 +1088,10 @@ end;
 procedure TBaseJSONDataSet.SetRecNo(Value: Integer);
 begin
   if (Value < 0) or (Value > FCurrentList.Count) then
-    raise Exception.Create ('SetRecNo: out of range');
+    raise EJSONDataset.CreateFmt('SetRecNo: index %d out of range',[Value]);
   FCurrent := Value - 1;
+  Resync([]); 
+  DoAfterScroll;
 end;
 
 constructor TBaseJSONDataSet.Create(AOwner: TComponent);
