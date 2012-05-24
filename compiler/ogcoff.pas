@@ -130,7 +130,6 @@ interface
 {$endif arm}
        public
          constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass);
-         destructor  destroy;override;
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
@@ -456,6 +455,14 @@ implementation
        IMAGE_REL_BASED_HIGHLOW     = 3;  { Applies the delta to the 32-bit field at Offset. }
        IMAGE_REL_BASED_DIR64       = 10; { Applies the delta to the 64-bit field at Offset. }
 
+       { values for coffsectionrec.select }
+       IMAGE_COMDAT_SELECT_NODUPLICATES = 1;
+       IMAGE_COMDAT_SELECT_ANY          = 2;
+       IMAGE_COMDAT_SELECT_SAME_SIZE    = 3;
+       IMAGE_COMDAT_SELECT_EXACT_MATCH  = 4;
+       IMAGE_COMDAT_SELECT_ASSOCIATIVE  = 5;
+       IMAGE_COMDAT_SELECT_LARGEST      = 6;
+
     type
        coffdjoptheader=packed record
          magic  : word;
@@ -470,7 +477,11 @@ implementation
        coffsectionrec=packed record
          len     : longword;
          nrelocs : word;
-         empty   : array[0..11] of char;
+         nlines  : word;
+         checksum: longword;
+         assoc   : word;
+         select  : byte;
+         empty   : array[0..2] of char;
        end;
        coffreloc=packed record
          address  : longword;
@@ -1033,12 +1044,6 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    destructor TCoffObjData.destroy;
-      begin
-        inherited destroy;
-      end;
-
-
     function TCoffObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       var
         sep     : string[3];
@@ -1210,10 +1215,8 @@ const pemagic : array[0..3] of byte = (
 
     destructor TCoffObjOutput.destroy;
       begin
-        if assigned(FCoffSyms) then
-          FCoffSyms.free;
-        if assigned(FCoffStrs) then
-          FCoffStrs.free;
+        FCoffSyms.free;
+        FCoffStrs.free;
         inherited destroy;
       end;
 
