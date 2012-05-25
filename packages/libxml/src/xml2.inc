@@ -22,7 +22,7 @@ type
   {$i pattern.inc}
   {$i schemasInternals.inc}
   {$i valid.inc}
-  {$i parser.inc}
+  {$i libxmlparser.inc}
   {$i parserInternals.inc}
   {$i schematron.inc}
   {$i threads.inc}
@@ -71,7 +71,7 @@ type
   {$i pattern.inc}
   {$i schemasInternals.inc}
   {$i valid.inc}
-  {$i parser.inc}
+  {$i libxmlparser.inc}
   {$i parserInternals.inc}
   {$i schematron.inc}
   {$i threads.inc}
@@ -121,7 +121,7 @@ const
   {$i schemasInternals.inc}
   {$i hash.inc}
   {$i valid.inc}
-  {$i parser.inc}
+  {$i libxmlparser.inc}
   {$i parserInternals.inc}
   {$i schematron.inc}
   {$i threads.inc}
@@ -170,7 +170,7 @@ const
   {$i schemasInternals.inc}
   {$i hash.inc}
   {$i valid.inc}
-  {$i parser.inc}
+  {$i libxmlparser.inc}
   {$i parserInternals.inc}
   {$i schematron.inc}
   {$i threads.inc}
