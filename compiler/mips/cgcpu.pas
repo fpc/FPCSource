@@ -1722,7 +1722,7 @@ begin
     op_onr24methodaddr;
   end
   else
-   list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+   list.concat(taicpu.op_sym(A_J,current_asmdata.RefAsmSymbol(procdef.mangledname)));
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 
