@@ -1347,6 +1347,16 @@ implementation
                   if (torddef(rd).ordtype<>scurrency) then
                    inserttypeconv(right,s64currencytype);
                end
+             { leave some constant integer expressions alone in case the
+               resultdef of the integer types doesn't influence the outcome,
+               because the forced type conversions below can otherwise result
+               in unexpected results (such as high(qword)<high(int64) returning
+               true because high(qword) gets converted to int64) }
+             else if is_integer(ld) and is_integer(rd) and
+                     (lt=ordconstn) and (rt=ordconstn) and
+                     (nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) then
+               begin
+               end
              { "and" does't care about the sign of integers }
              { "xor", "or" and compares don't need extension to native int }
              { size either as long as both values are signed or unsigned   }
