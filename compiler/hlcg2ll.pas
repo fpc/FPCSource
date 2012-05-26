@@ -328,7 +328,6 @@ unit hlcg2ll;
           procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);override;
 
-          function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;override;
           { generate a stub which only purpose is to pass control the given external method,
           setting up any additional environment before doing so (if required).
 
@@ -1022,11 +1021,6 @@ implementation
   procedure thlcg2ll.g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint);
     begin
       cg.g_adjust_self_value(list,procdef,ioffset);
-    end;
-
-  function thlcg2ll.g_indirect_sym_load(list: TAsmList; const symname: string; const flags: tindsymflags): tregister;
-    begin
-      result:=cg.g_indirect_sym_load(list,symname,flags);
     end;
 
   procedure thlcg2ll.g_local_unwind(list: TAsmList; l: TAsmLabel);

@@ -62,7 +62,6 @@ unit cgppc;
 
         procedure g_maybe_got_init(list: TAsmList); override;
 
-        function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister; override;
         { Transform unsupported methods into Internal errors }
         procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
@@ -71,6 +70,7 @@ unit cgppc;
         procedure g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
         procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
        protected
+        function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister; override;
         function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
         { Make sure ref is a valid reference for the PowerPC and sets the }
         { base to the value of the index if (base = R_NO).                }
