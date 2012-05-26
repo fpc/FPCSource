@@ -195,8 +195,6 @@ implementation
                   { we have to use nil rather than an empty string, because an
                     empty string has a code page and this messes up the code
                     page selection logic in the RTL }
-                  result:=cnilnode.create;
-                  inserttypeconv_internal(result,resultdef);
                   exit;
                 end;
               strclass:=tobjectdef(search_system_type('ANSISTRINGCLASS').typedef);
@@ -229,14 +227,20 @@ implementation
         case cst_type of
           cst_ansistring:
             begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_string(a_ldc,len,value_str));
+              if len<>0 then
+                internalerror(2012052604);
+              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,0,location.register);
+              { done }
+              exit;
             end;
           cst_shortstring,
           cst_conststring:
-            current_asmdata.CurrAsmList.concat(taicpu.op_string(a_ldc,len,value_str));
+            internalerror(2012052601);
           cst_unicodestring,
           cst_widestring:
             current_asmdata.CurrAsmList.concat(taicpu.op_wstring(a_ldc,pcompilerwidestring(value_str)));
+          else
+            internalerror(2012052602);
         end;
         thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);

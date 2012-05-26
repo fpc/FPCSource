@@ -166,6 +166,41 @@ begin
   else
     Writeln('Success');
 
+  p:='';
+  Write('empty string const -> pchar...');
+  if p^<>#0 then
+    fail;
+  if p[0]<>#0 then
+    fail
+  else
+    Writeln('Success');
+
+  p:=ansistring('');
+  Write('empty ansistring const -> pchar...');
+  if p^<>#0 then
+    fail;
+  if p[0]<>#0 then
+    fail
+  else
+    Writeln('Success');
+
+  p:=widestring('');
+  Write('empty widestring const -> pchar...');
+  if p^<>#0 then
+    fail;
+  if p[0]<>#0 then
+    fail
+  else
+    Writeln('Success');
+
+ p:=BIG_STRING;
+ str_ansi:=BIG_STRING;
+ Write('big ansistring -> pchar...');
+ if p = str_ansi then
+   WriteLn('Success.')
+ else
+   fail;
+
  s2 := '';
  str_ansi:='';
  str_ansi := BIG_STRING;

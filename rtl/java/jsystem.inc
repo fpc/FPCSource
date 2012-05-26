@@ -96,12 +96,15 @@ const
   ErrorBase : Pointer = nil; public name 'FPC_ERRORBASE';
 *)
 
+{$ifndef cpujvm}
 { Used by the ansi/widestrings and maybe also other things in the future }
 var
-  { separated compared to generic version, for Java type safety }
-  emptypansichar : array[0..0] of ansichar; public name 'FPC_EMPTYANSICHAR';
-  emptypwidechar : array[0..0] of widechar; public name 'FPC_EMPTYWIDECHAR';
+  { widechar, because also used by widestring -> pwidechar conversions }
+  emptychar : widechar;public name 'FPC_EMPTYCHAR';
+  { declared in interface for jvm target }
+{$endif}
 {$ifndef FPC_NO_GENERIC_STACK_CHECK}
+var
   { if the OS does the stack checking, we don't need any stklen from the
     main program }
   initialstklen : SizeUint;external name '__stklen';

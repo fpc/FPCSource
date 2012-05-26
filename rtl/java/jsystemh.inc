@@ -410,6 +410,12 @@ function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
 *)
 
+var
+  { separated compared to generic version, for Java type safety }
+  FPC_EMPTYANSICHAR : array[0..0] of ansichar;
+  FPC_EMPTYWIDECHAR : array[0..0] of widechar;
+
+
 { Shortstring functions }
 Procedure Delete(var s:shortstring;index:SizeInt;count:SizeInt);
 Procedure Insert(const source:shortstring;var s:shortstring;index:SizeInt);

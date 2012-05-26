@@ -37,6 +37,7 @@ interface
           function typecheck_proc_to_procvar: tnode; override;
           function pass_1: tnode; override;
           function simplify(forinline: boolean): tnode; override;
+          function first_cstring_to_pchar: tnode;override;
           function first_set_to_set : tnode;override;
           function first_nil_to_methodprocvar: tnode; override;
           function first_proc_to_procvar: tnode; override;
@@ -277,6 +278,30 @@ implementation
             is_constcharnode(left)) and
            (maybe_find_real_class_definition(resultdef,false)=java_jlstring) then
           inserttypeconv(left,cunicodestringtype);
+      end;
+
+
+    function tjvmtypeconvnode.first_cstring_to_pchar: tnode;
+      var
+        vs: tstaticvarsym;
+      begin
+        result:=inherited;
+        if assigned(result) then
+          exit;
+        { nil pointer -> valid address }
+        if (left.nodetype=stringconstn) and
+           (tstringconstnode(left).cst_type in [cst_widestring,cst_unicodestring,cst_ansistring]) and
+           (tstringconstnode(left).len=0) then
+          begin
+            if tstringconstnode(left).cst_type=cst_ansistring then
+              vs:=tstaticvarsym(systemunit.Find('FPC_EMPTYANSICHAR'))
+            else
+              vs:=tstaticvarsym(systemunit.Find('FPC_EMPTYWIDECHAR'));
+            if not assigned(vs) then
+              internalerror(2012052605);
+            result:=caddrnode.create(cloadnode.create(vs,vs.owner));
+            result:=ctypeconvnode.create_explicit(result,resultdef);
+          end;
       end;
 
 
@@ -566,30 +591,8 @@ implementation
 
 
     procedure tjvmtypeconvnode.second_cstring_to_pchar;
-      var
-        hr: treference;
-        vs: tstaticvarsym;
       begin
-        { don't use is_chararray because it doesn't support special arrays }
-        if (left.resultdef.typ<>arraydef) or
-           (tarraydef(left.resultdef).elementdef.typ<>orddef) or
-           (torddef(tarraydef(left.resultdef).elementdef).ordtype<>uchar) then
-          internalerror(2011081304);
-        if (tstringconstnode(left).cst_type in [cst_widestring,cst_unicodestring,cst_ansistring]) and
-           (tstringconstnode(left).len=0) then
-          begin
-            if tstringconstnode(left).cst_type=cst_ansistring then
-              vs:=tstaticvarsym(systemunit.Find('EMPTYPANSICHAR'))
-            else
-              vs:=tstaticvarsym(systemunit.Find('EMPTYPWIDECHAR'));
-            reference_reset(hr,4);
-            hr.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
-            location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,vs.vardef,resultdef,hr,location.register);
-          end
-        else
-          location_copy(location,left.location);
+        location_copy(location,left.location);
       end;
 
 
