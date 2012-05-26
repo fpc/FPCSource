@@ -287,7 +287,7 @@ begin
 end;
 
 
-procedure fpc_fillmem(var data;len:ptruint;b : byte);
+procedure fpc_fillmem(out data;len:ptruint;b : byte);
 begin
   FillByte(data,len,b);
 end;

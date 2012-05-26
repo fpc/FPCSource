@@ -28,7 +28,7 @@ interface
 
   uses
     cclasses,
-    node,symtype,symsym,symconst,symdef;
+    node,nbas,symtype,symsym,symconst,symdef;
 
 
   type
@@ -49,6 +49,25 @@ interface
         initialisation via the node tree }
       class function wrap_proc_body(pd: tprocdef; n: tnode): tnode; virtual;
 
+      { trashes a paravarsym or localvarsym if possible (not a managed type,
+        "out" in case of parameter, ...) }
+      class procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); virtual;
+     strict protected
+      { called from wrap_proc_body to insert the trashing for the wrapped
+        routine's local variables and parameters }
+      class function  maybe_insert_trashing(pd: tprocdef; n: tnode): tnode; virtual;
+      { callback called for every local variable and parameter by
+        maybe_insert_trashing(), calls through to maybe_trash_variable() }
+      class procedure maybe_trash_variable_callback(p: TObject; statn: pointer);
+      { returns whether a particular sym can be trashed. If not,
+        maybe_trash_variable won't do anything }
+      class function  trashable_sym(p: tsym): boolean; virtual;
+      { trashing for 1/2/3/4/8-byte sized variables }
+      class procedure trash_small(var stat: tstatementnode; trashn: tnode; trashvaln: tnode); virtual;
+      { trashing for differently sized variables that those handled by
+        trash_small() }
+      class procedure trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64); virtual;
+     public
       class procedure insertbssdata(sym : tstaticvarsym); virtual;
 
       class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
@@ -84,7 +103,7 @@ implementation
       scanner,systems,procinfo,fmodule,
       aasmbase,aasmdata,aasmtai,
       symbase,symtable,defutil,
-      nadd,nbas,ncal,ncnv,ncon,nflw,nld,nmem,nobj,nutils,
+      nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,
       ppu,
       pass_1;
 
@@ -247,7 +266,7 @@ implementation
       psym: tsym;
       tcinitproc: tprocdef;
     begin
-      result:=n;
+      result:=maybe_insert_trashing(pd,n);
       if target_info.system in systems_typed_constants_node_init then
         begin
           case pd.proctypeoption of
@@ -305,6 +324,131 @@ implementation
             end;
           end;
         end;
+    end;
+
+
+  class function tnodeutils.maybe_insert_trashing(pd: tprocdef; n: tnode): tnode;
+    var
+      stat: tstatementnode;
+    begin
+      result:=n;
+      if (localvartrashing<>-1)  and
+         not(po_assembler in pd.procoptions) then
+        begin
+          result:=internalstatements(stat);
+          pd.parast.SymList.ForEachCall(@maybe_trash_variable_callback,@stat);
+          pd.localst.SymList.ForEachCall(@maybe_trash_variable_callback,@stat);
+          addstatement(stat,n);
+        end;
+    end;
+
+
+  class function tnodeutils.trashable_sym(p: tsym): boolean;
+    begin
+      result:=
+        ((p.typ=localvarsym) or
+         ((p.typ=paravarsym) and
+          ((vo_is_funcret in tabstractnormalvarsym(p).varoptions) or
+           (tabstractnormalvarsym(p).varspez=vs_out)))) and
+         not is_managed_type(tabstractnormalvarsym(p).vardef) and
+         not assigned(tabstractnormalvarsym(p).defaultconstsym);
+    end;
+
+
+  class procedure tnodeutils.maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode);
+    var
+      size: asizeint;
+      trashintval: int64;
+    begin
+      if trashable_sym(p) then
+        begin
+          trashintval:=trashintvalues[localvartrashing];
+          if (p.vardef.typ=procvardef) and
+             ([m_tp_procvar,m_mac_procvar]*current_settings.modeswitches<>[]) then
+            begin
+              if tprocvardef(p.vardef).is_addressonly then
+                { in tp/delphi mode, you need @procvar to get at the contents of
+                  a procvar ... }
+                trashn:=caddrnode.create(trashn)
+              else
+                { ... but if it's a procedure of object, that will only return
+                  the procedure address -> cast to tmethod instead }
+                trashn:=ctypeconvnode.create_explicit(trashn,methodpointertype);
+            end;
+          if ((p.typ=localvarsym) and
+              (not(vo_is_funcret in p.varoptions) or
+               not is_shortstring(p.vardef))) or
+             ((p.typ=paravarsym) and
+              not is_shortstring(p.vardef)) then
+            begin
+              size:=p.getsize;
+              case size of
+                0:
+                  begin
+                    { open array -> at least size 1. Can also be zero-sized
+                      record, so check it's actually an array }
+                    if p.vardef.typ=arraydef then
+                      trash_large(stat,trashn,caddnode.create(addn,cinlinenode.create(in_high_x,false,trashn.getcopy),genintconstnode(1)),trashintval)
+                    else
+                      trashn.free;
+                  end;
+                1: trash_small(stat,
+                  ctypeconvnode.create_internal(trashn,s8inttype),
+                    genintconstnode(shortint(trashintval)));
+                2: trash_small(stat,
+                  ctypeconvnode.create_internal(trashn,s16inttype),
+                    genintconstnode(smallint(trashintval)));
+                4: trash_small(stat,
+                  ctypeconvnode.create_internal(trashn,s32inttype),
+                    genintconstnode(longint(trashintval)));
+                8: trash_small(stat,
+                  ctypeconvnode.create_internal(trashn,s64inttype),
+                    genintconstnode(int64(trashintval)));
+                else
+                  trash_large(stat,trashn,genintconstnode(size),trashintval);
+              end;
+            end
+          else
+            begin
+              { may be an open string, even if is_open_string() returns false
+                (for some helpers in the system unit)             }
+              { an open string has at least size 2                      }
+              trash_small(stat,
+                cvecnode.create(trashn.getcopy,genintconstnode(0)),
+                cordconstnode.create(tconstexprint(byte(trashintval)),cansichartype,false));
+              trash_small(stat,
+                cvecnode.create(trashn,genintconstnode(1)),
+                cordconstnode.create(tconstexprint(byte(trashintval)),cansichartype,false));
+            end;
+        end
+      else
+        trashn.free;
+    end;
+
+
+  class procedure tnodeutils.maybe_trash_variable_callback(p:TObject;statn:pointer);
+    var
+      stat: ^tstatementnode absolute statn;
+    begin
+      if not(tsym(p).typ in [localvarsym,paravarsym]) then
+        exit;
+      maybe_trash_variable(stat^,tabstractnormalvarsym(p),cloadnode.create(tsym(p),tsym(p).owner));
+    end;
+
+
+  class procedure tnodeutils.trash_small(var stat: tstatementnode; trashn: tnode; trashvaln: tnode);
+    begin
+      addstatement(stat,cassignmentnode.create(trashn,trashvaln));
+    end;
+
+
+  class procedure tnodeutils.trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64);
+    begin
+      addstatement(stat,ccallnode.createintern('fpc_fillmem',
+        ccallparanode.Create(cordconstnode.create(tconstexprint(byte(trashintval)),u8inttype,false),
+        ccallparanode.Create(sizen,
+        ccallparanode.Create(trashn,nil)))
+        ));
     end;
 
 

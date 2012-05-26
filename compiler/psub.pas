@@ -361,10 +361,6 @@ implementation
                    finish_parentfpstruct(current_procinfo.procdef);
                  end;
             end;
-        { init/final code must be wrapped later (after code for main proc body
-          has been generated }
-        if not(current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
-          block:=cnodeutils.wrap_proc_body(current_procinfo.procdef,block);
       end;
 
 
@@ -1074,6 +1070,13 @@ implementation
         current_filepos:=entrypos;
         current_structdef:=procdef.struct;
 
+        { add wrapping code if necessary (initialization of typed constants on
+          some platforms, initing of local variables and out parameters with
+          trashing values, ... }
+        { init/final code must be wrapped later (after code for main proc body
+          has been generated }
+        if not(current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+          code:=cnodeutils.wrap_proc_body(procdef,code);
 
         { automatic inlining? }
         if (cs_opt_autoinline in current_settings.optimizerswitches) and

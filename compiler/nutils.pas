@@ -114,9 +114,6 @@ interface
       rough estimation how large the tree "node" is }
     function node_count(node : tnode) : dword;
 
-    { trashes the given temp. node }
-    function trash_tempref(node : tnode) : tnode;
-
 implementation
 
     uses
@@ -1134,33 +1131,5 @@ implementation
         result:=nodecount;
       end;
 
-
-    function trash_tempref(node : tnode) : tnode;
-      var
-        trashintval: aint;
-      begin
-        if node.nodetype<>tempcreaten then
-          internalerror(2012051901);
-        trashintval := trashintvalues[localvartrashing];
-        case ttempcreatenode(node).size of
-          0: ; { empty record }
-          1: result:=cassignmentnode.create(ctemprefnode.create(ttempcreatenode(node)),
-               ctypeconvnode.create_internal(cordconstnode.create(tconstexprint(byte(trashintval)),u8inttype,false),ttempcreatenode(node).tempinfo^.typedef));
-          2: result:=cassignmentnode.create(ctemprefnode.create(ttempcreatenode(node)),
-               ctypeconvnode.create_internal(cordconstnode.create(word(trashintval),u16inttype,false),ttempcreatenode(node).tempinfo^.typedef));
-          4: result:=cassignmentnode.create(ctemprefnode.create(ttempcreatenode(node)),
-               ctypeconvnode.create_internal(cordconstnode.create(dword(trashintval),u32inttype,false),ttempcreatenode(node).tempinfo^.typedef));
-          8: result:=cassignmentnode.create(ctemprefnode.create(ttempcreatenode(node)),
-               ctypeconvnode.create_internal(cordconstnode.create(qword(trashintval),u64inttype,false),ttempcreatenode(node).tempinfo^.typedef));
-          else
-            begin
-              result:=ccallnode.createintern('fpc_fillmem',
-                ccallparanode.Create(cordconstnode.create(tconstexprint(byte(trashintval)),u8inttype,false),
-                ccallparanode.Create(cordconstnode.create(ttempcreatenode(node).size,uinttype,false),
-                ccallparanode.Create(ctemprefnode.create(ttempcreatenode(node)),nil)))
-                );
-            end;
-        end;
-      end;
 
 end.

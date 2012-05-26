@@ -265,7 +265,7 @@ implementation
       symconst,defutil,defcmp,
       htypechk,pass_1,
       ncnv,nld,ninl,nadd,ncon,nmem,nset,nobjc,
-      objcutil,
+      ngenutil,objcutil,
       procinfo,cpuinfo,
       wpobase;
 
@@ -3663,7 +3663,7 @@ implementation
             addstatement(inlineinitstatement,tempnode);
 
             if localvartrashing <> -1 then
-              addstatement(inlineinitstatement,trash_tempref(tempnode));
+              cnodeutils.maybe_trash_variable(inlineinitstatement,tabstractnormalvarsym(p),ctemprefnode.create(tempnode));
 
             addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
             { inherit addr_taken flag }
@@ -3816,7 +3816,7 @@ implementation
                         addstatement(inlineinitstatement,tempnode);
 
                         if localvartrashing <> -1 then
-                          addstatement(inlineinitstatement,trash_tempref(tempnode));
+                          cnodeutils.maybe_trash_variable(inlineinitstatement,para.parasym,ctemprefnode.create(tempnode));
 
                         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
                         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),

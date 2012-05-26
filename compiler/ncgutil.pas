@@ -706,106 +706,6 @@ implementation
       end;
 
 
-    procedure trash_reference(list: TAsmList; const ref: treference; size: aint);
-      var
-        countreg, valuereg: tregister;
-        hl: tasmlabel;
-        trashintval: aint;
-        tmpref: treference;
-      begin
-        trashintval := trashintvalues[localvartrashing];
-        case size of
-          0: ; { empty record }
-          1: cg.a_load_const_ref(list,OS_8,byte(trashintval),ref);
-          2: cg.a_load_const_ref(list,OS_16,word(trashintval),ref);
-          4: cg.a_load_const_ref(list,OS_32,longint(trashintval),ref);
-          {$ifdef cpu64bitalu}
-          8: cg.a_load_const_ref(list,OS_64,int64(trashintval),ref);
-          {$endif cpu64bitalu}
-          else
-            begin
-              countreg := cg.getintregister(list,OS_ADDR);
-              valuereg := cg.getintregister(list,OS_8);
-              cg.a_load_const_reg(list,OS_INT,size,countreg);
-              cg.a_load_const_reg(list,OS_8,byte(trashintval),valuereg);
-              current_asmdata.getjumplabel(hl);
-              tmpref := ref;
-              if (tmpref.index <> NR_NO) then
-                internalerror(200607201);
-              tmpref.index := countreg;
-              dec(tmpref.offset);
-              cg.a_label(list,hl);
-              cg.a_load_reg_ref(list,OS_8,OS_8,valuereg,tmpref);
-              cg.a_op_const_reg(list,OP_SUB,OS_INT,1,countreg);
-              cg.a_cmp_const_reg_label(list,OS_INT,OC_NE,0,countreg,hl);
-              cg.a_reg_sync(list,tmpref.base);
-              cg.a_reg_sync(list,valuereg);
-            end;
-        end;
-      end;
-
-
-    { trash contents of local variables or parameters (function result) }
-    procedure trash_variable(p:TObject;arg:pointer);
-      var
-        trashintval: aint;
-        list: TAsmList absolute arg;
-      begin
-        if ((tsym(p).typ=localvarsym) or
-            ((tsym(p).typ=paravarsym) and
-             (vo_is_funcret in tparavarsym(p).varoptions))) and
-           not(is_managed_type(tabstractnormalvarsym(p).vardef)) and
-           not(assigned(tabstractnormalvarsym(p).defaultconstsym)) then
-         begin
-           trashintval := trashintvalues[localvartrashing];
-           case tabstractnormalvarsym(p).initialloc.loc of
-             LOC_CREGISTER :
-{$push}
-{$q-}
-               begin
-                 { avoid problems with broken x86 shifts }
-                 case tcgsize2size[tabstractnormalvarsym(p).initialloc.size] of
-                   1: cg.a_load_const_reg(list,OS_8,byte(trashintval),tabstractnormalvarsym(p).initialloc.register);
-                   2: cg.a_load_const_reg(list,OS_16,word(trashintval),tabstractnormalvarsym(p).initialloc.register);
-                   4: cg.a_load_const_reg(list,OS_32,longint(trashintval),tabstractnormalvarsym(p).initialloc.register);
-                   8:
-                     begin
-{$ifdef cpu64bitalu}
-                       cg.a_load_const_reg(list,OS_64,aint(trashintval),tabstractnormalvarsym(p).initialloc.register);
-{$else}
-                       cg64.a_load64_const_reg(list,int64(trashintval) shl 32 or int64(trashintval),tabstractnormalvarsym(p).initialloc.register64);
-{$endif}
-                     end;
-                   else
-                     internalerror(2010060801);
-                 end;
-               end;
-{$pop}
-             LOC_REFERENCE :
-               begin
-                   if ((tsym(p).typ=localvarsym) and
-                       not(vo_is_funcret in tabstractvarsym(p).varoptions)) or
-                      not is_shortstring(tabstractnormalvarsym(p).vardef) then
-                     trash_reference(list,tabstractnormalvarsym(p).initialloc.reference,
-                       tlocalvarsym(p).getsize)
-                   else
-                     { may be an open string, even if is_open_string() returns }
-                     { false (for some helpers in the system unit)             }
-                     { an open string has at least size 2                      }
-                     trash_reference(list,tabstractnormalvarsym(p).initialloc.reference,
-                       2);
-               end;
-             LOC_CMMREGISTER :
-               ;
-             LOC_CFPUREGISTER :
-               ;
-             else
-               internalerror(200410124);
-           end;
-         end;
-      end;
-
-
     { generates the code for incrementing the reference count of parameters and
       initialize out parameters }
     procedure init_paras(p:TObject;arg:pointer);
@@ -814,93 +714,54 @@ implementation
         hsym : tparavarsym;
         eldef : tdef;
         list : TAsmList;
-        needs_inittable,
-        do_trashing       : boolean;
+        needs_inittable : boolean;
       begin
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) then
          begin
            needs_inittable:=is_managed_type(tparavarsym(p).vardef);
-           do_trashing:=
-             (localvartrashing <> -1) and
-             (not assigned(tparavarsym(p).defaultconstsym)) and
-             not needs_inittable;
+           if not needs_inittable then
+             exit;
            case tparavarsym(p).varspez of
              vs_value :
-               if needs_inittable then
-                 begin
-                   { variants are already handled by the call to fpc_variant_copy_overwrite if
-                     they are passed by reference }
-                   if not((tparavarsym(p).vardef.typ=variantdef) and
-                     paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
-                     begin
-                       hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
-                       if is_open_array(tparavarsym(p).vardef) then
-                         begin
-                           { open arrays do not contain correct element count in their rtti,
-                             the actual count must be passed separately. }
-                           hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
-                           eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
-                           if not assigned(hsym) then
-                             internalerror(201003031);
-                           cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_ADDREF_ARRAY');
-                         end
-                       else
-                        cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
-                     end;
-                 end;
-             vs_out :
                begin
-                 if needs_inittable or
-                    do_trashing then
+                 { variants are already handled by the call to fpc_variant_copy_overwrite if
+                   they are passed by reference }
+                 if not((tparavarsym(p).vardef.typ=variantdef) and
+                    paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                    begin
-                     { we have no idea about the alignment at the callee side,
-                       and the user also cannot specify "unaligned" here, so
-                       assume worst case }
-                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);
-                     if do_trashing and
-                        { needs separate implementation to trash open arrays }
-                        { since their size is only known at run time         }
-                        not is_special_array(tparavarsym(p).vardef) then
-                        { may be an open string, even if is_open_string() returns }
-                        { false (for some helpers in the system unit)             }
-                       if not is_shortstring(tparavarsym(p).vardef) then
-                         trash_reference(list,href,tparavarsym(p).vardef.size)
-                       else
-                         trash_reference(list,href,2);
-                     if needs_inittable then
+                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+                     if is_open_array(tparavarsym(p).vardef) then
                        begin
-                         if is_open_array(tparavarsym(p).vardef) then
-                           begin
-                             hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
-                             eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
-                             if not assigned(hsym) then
-                               internalerror(201103033);
-                             cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_INITIALIZE_ARRAY');
-                           end
-                         else
-                           cg.g_initialize(list,tparavarsym(p).vardef,href);
-                       end;
+                         { open arrays do not contain correct element count in their rtti,
+                           the actual count must be passed separately. }
+                         hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
+                         eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                         if not assigned(hsym) then
+                           internalerror(201003031);
+                         cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_ADDREF_ARRAY');
+                       end
+                     else
+                      cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
                    end;
                end;
-             else if do_trashing and
-                     ([vo_is_funcret,vo_is_hidden_para] * tparavarsym(p).varoptions = [vo_is_funcret,vo_is_hidden_para]) then
+             vs_out :
+               begin
+                 { we have no idea about the alignment at the callee side,
+                   and the user also cannot specify "unaligned" here, so
+                   assume worst case }
+                 hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);
+                 if is_open_array(tparavarsym(p).vardef) then
                    begin
-                     { should always have standard alignment. If a function is assigned
-                       to a non-aligned variable, the optimisation to pass this variable
-                       directly as hidden function result must/cannot be performed
-                       (see tcallnode.funcret_can_be_reused)
-                     }
-                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,
-                       used_align(tparavarsym(p).vardef.alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax));
-                     { may be an open string, even if is_open_string() returns }
-                     { false (for some helpers in the system unit)             }
-                     if not is_shortstring(tparavarsym(p).vardef) then
-                       trash_reference(list,href,tparavarsym(p).vardef.size)
-                     else
-                       { an open string has at least size 2 }
-                       trash_reference(list,href,2);
+                     hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
+                     eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                     if not assigned(hsym) then
+                       internalerror(201103033);
+                     cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_INITIALIZE_ARRAY');
                    end
+                 else
+                   cg.g_initialize(list,tparavarsym(p).vardef,href);
+               end;
            end;
          end;
       end;
@@ -1250,13 +1111,6 @@ implementation
 {$endif powerpc64}
         if not(po_assembler in current_procinfo.procdef.procoptions) then
           begin
-            { has to be done here rather than in gen_initialize_code, because
-              the initialisation code is generated a) later and b) with
-              rad_backwards, so the register allocator would generate
-              information as if this code comes before loading the parameters
-              from their original registers to their local location }
-            if (localvartrashing <> -1) then
-              current_procinfo.procdef.localst.SymList.ForEachCall(@trash_variable,list);
             { initialize refcounted paras, and trash others. Needed here
               instead of in gen_initialize_code, because when a reference is
               intialised or trashed while the pointer to that reference is kept
