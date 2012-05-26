@@ -590,10 +590,6 @@ implementation
               exit;
            end;
 
-         result:=simplify(false);
-         if assigned(result) then
-           exit;
-
 {$ifdef cpunodefaultint}
          { for small cpus we use the smallest common type }
          if (left.resultdef.typ=orddef) and (right.resultdef.typ=orddef) then
@@ -632,6 +628,10 @@ implementation
 {$endif cpunodefaultint}
 
          resultdef:=left.resultdef;
+
+         result:=simplify(false);
+         if assigned(result) then
+           exit;
       end;
 
 

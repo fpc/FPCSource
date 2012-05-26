@@ -2699,6 +2699,10 @@ implementation
                      testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags),false);
                    left.resultdef:=resultdef;
                    tordconstnode(left).typedef:=resultdef;
+                   if is_signed(resultdef) then
+                     tordconstnode(left).value.signed:=true
+                   else
+                     tordconstnode(left).value.signed:=false;
                    result:=left;
                    left:=nil;
                    exit;
