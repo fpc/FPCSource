@@ -108,3 +108,12 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(WINDIR) -I$(OBJPASDIR) -I$(WININC) -Fu$(WININC) -Fu$(WINDIR) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
+
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/lineinfo.pp
+
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/lnfodwrf.pp
+
