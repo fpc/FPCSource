@@ -63,6 +63,12 @@ endif
 ifeq ($(CPU_TARGET),jvm)
 PPSUF=jvm
 endif
+ifeq ($(CPU_TARGET),mips)
+PPSUF=mips
+endif
+ifeq ($(CPU_TARGET),mipsel)
+PPSUF=mipsel
+endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix
 # (except if the target cannot run a native compiler)
