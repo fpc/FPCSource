@@ -11458,6 +11458,7 @@ tests/units/win32err.pp svneol=native#text/plain
 tests/utils/Makefile svneol=native#text/plain
 tests/utils/Makefile.fpc svneol=native#text/plain
 tests/utils/bench.pp svneol=native#text/plain
+tests/utils/concat.pp svneol=native#text/plain
 tests/utils/dbdigest.pp svneol=native#text/plain
 tests/utils/dbtests.pp svneol=native#text/plain
 tests/utils/digest.pp svneol=native#text/plain

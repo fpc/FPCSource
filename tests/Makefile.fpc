@@ -133,6 +133,9 @@ ifndef LOG
 export LOG:=$(TEST_OUTPUTDIR)/log
 endif
 
+# locations of all logfiles
+LOGFILES=$(TEST_OUTPUTDIR)/log $(TEST_OUTPUTDIR)/longlog $(TEST_OUTPUTDIR)/faillist
+LOGEXT=.testlog .tbslog .tbflog .webtbslog .webtbflog
 
 # Subdirs available in the test subdir
 TESTSUBDIRS=cg cg/variants cg/cdecl library opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils units/matrix units/lineinfo
@@ -165,6 +168,10 @@ endif
 
 ifndef DOTEST
 DOTEST=utils/dotest
+endif
+
+ifndef CONCAT
+CONCAT=utils/concat
 endif
 
 ifndef PREPUP
@@ -235,8 +242,8 @@ copyfiles: $(TEST_OUTPUTDIR)
 #
 
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
-testprep-stamp.$(TEST_FULL_TARGET): $(TEST_OUTPUTDIR) utils units copyfiles
-        $(ECHO) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
+testprep-stamp.$(TEST_FULL_TARGET): utils units copyfiles
+        $(ECHOREDIR) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
 
 $(TEST_OUTPUTDIR):
         $(MKDIRTREE) $@
@@ -346,15 +353,27 @@ vpath %.log $(TEST_OUTPUTDIR)
 vpath %.elg $(TEST_OUTPUTDIR)
 vpath %.o $(C_SUBDIR)
 
-%.log : %.pp
+ifdef SINGLEDOTESTRUNS
+TBSREQ=$(patsubst %.pp,%.elg,$(sort $(wildcard tbs/t*.pp)))
+TBFREQ=$(patsubst %.pp,%.elg,$(sort $(wildcard tbf/t*.pp)))
+WEBTBSREQ=$(patsubst %.pp,%.elg,$(sort $(wildcard webtbs/t*.pp)))
+WEBTBFREQ=$(patsubst %.pp,%.elg,$(sort $(wildcard webtbf/t*.pp)))
+TESTREQ=$(patsubst %.pp,%.elg,$(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))))
+else
+TBSREQ=$(TEST_OUTPUTDIR)/tbsdir-stamp.$(TEST_FULL_TARGET)
+TBFREQ=$(TEST_OUTPUTDIR)/tbfdir-stamp.$(TEST_FULL_TARGET)
+WEBTBSREQ=$(TEST_OUTPUTDIR)/webtbsdir-stamp.$(TEST_FULL_TARGET)
+WEBTBFREQ=$(TEST_OUTPUTDIR)/webtbfdir-stamp.$(TEST_FULL_TARGET)
+TESTREQ=$(TEST_OUTPUTDIR)/testdir-stamp.$(TEST_FULL_TARGET)
+endif
+
+%.log : %.pp testprep-stamp.$(TEST_FULL_TARGET)
 	$(call QECHO,"  COMPILE $<")
 	$(Q)$(DOTEST) $(DOTESTOPT) $<
 
-%.elg : %.pp
+%.elg : %.pp testprep-stamp.$(TEST_FULL_TARGET)
 	$(call QECHO,"  EXECUTE $<")
-ifdef SINGLEDOTESTRUNS
 	$(Q)$(DOTEST) $(DOTESTOPT) -e $<
-endif
 
 ifdef TEST_CCOMPILER
 %.o : %.c
@@ -389,32 +408,62 @@ alltests: alltest alltbs alltbf allwebtbs allwebtbf
 
 .PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectests
 
-allexectbs : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard tbs/t*.pp)))
-ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard tbs/t*.pp))
-endif
+allexectbs: $(addsuffix .tbslog, $(LOGFILES))
+allexectbf: $(addsuffix .tbflog, $(LOGFILES))
+allexecwebtbs: $(addsuffix .webtbslog, $(LOGFILES))
+allexecwebtbf: $(addsuffix .webtbflog, $(LOGFILES))
+allexectest: $(addsuffix .testlog, $(LOGFILES))
 
-allexectbf : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard tbf/t*.pp)))
-ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard tbf/t*.pp))
-endif
+$(TEST_OUTPUTDIR)/%.mergedlog : $(TEST_OUTPUTDIR)/%.testlog $(TEST_OUTPUTDIR)/%.tbslog $(TEST_OUTPUTDIR)/%.tbflog $(TEST_OUTPUTDIR)/%.webtbslog $(TEST_OUTPUTDIR)/%.webtbflog
+	$(Q)$(CONCAT) $^ $@
+	$(Q)$(COPY) $@ $(basename $@)
 
-allexecwebtbs : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard webtbs/t*.pp)))
-ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard webtbs/t*.pp))
-endif
+# the extra ECHOREDIR's below are in case a particular dir doesn't have any failures
 
-allexecwebtbf : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard webtbf/t*.pp)))
-ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard webtbf/t*.pp))
-endif
+$(TEST_OUTPUTDIR)/tbsdir-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)
+	$(Q)$(DOTEST) $(DOTESTOPT) -Ltbslog -e $(sort $(wildcard tbs/t*.pp))
+	$(ECHOREDIR) $(DATE) > $@
 
-allexectest : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))))
-ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
-endif
+$(TEST_OUTPUTDIR)/%.tbslog : $(TBSREQ)
+	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/faillist.tbslog
+	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/longlog.tbslog
 
-allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
+$(TEST_OUTPUTDIR)/tbfdir-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)
+	$(Q)$(DOTEST) $(DOTESTOPT) -Ltbflog -e $(sort $(wildcard tbf/t*.pp))
+	$(ECHOREDIR) $(DATE) > $@
+
+$(TEST_OUTPUTDIR)/%.tbflog : $(TBFREQ)
+	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/faillist.tbflog
+	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/longlog.tbflog
+
+$(TEST_OUTPUTDIR)/webtbsdir-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)
+	$(Q)$(DOTEST) $(DOTESTOPT) -Lwebtbslog -e $(sort $(wildcard webtbs/t*.pp))
+	$(Q)$(ECHOREDIR) $(DATE) > $@
+
+$(TEST_OUTPUTDIR)/%.webtbslog : $(WEBTBSREQ)
+	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/faillist.webtbslog
+	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/longlog.webtbslog
+
+$(TEST_OUTPUTDIR)/webtbfdir-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)
+	$(Q)$(DOTEST) $(DOTESTOPT) -Lwebtbflog -e $(sort $(wildcard webtbf/t*.pp))
+	$(ECHOREDIR) $(DATE) > $@
+
+$(TEST_OUTPUTDIR)/%.webtbflog : $(WEBTBFREQ)
+	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/faillist.webtbflog
+	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/longlog.webtbflog
+
+$(TEST_OUTPUTDIR)/testdir-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)
+	$(Q)$(DOTEST) $(DOTESTOPT)  -Ltestlog -e $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+	$(ECHOREDIR) $(DATE) > $@
+
+$(TEST_OUTPUTDIR)/%.testlog : $(TESTREQ)
+	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/faillist.testlog
+	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/longlog.testlog
+
+# run all tests (ordered by longest running to shortest), then merge log files
+allexectests: $(TEST_OUTPUTDIR)/log.webtbslog $(TEST_OUTPUTDIR)/log.testlog $(TEST_OUTPUTDIR)/log.tbslog $(TEST_OUTPUTDIR)/log.tbflog $(TEST_OUTPUTDIR)/log.webtbflog  $(addprefix $(TEST_OUTPUTDIR)/,$(foreach EXT, $(LOGEXT), $(addsuffix $(EXT), faillist longlog))) $(addsuffix .mergedlog, $(LOGFILES))
+
+  
 
 ################################
 # Clean
@@ -428,7 +477,6 @@ clean_sources:
 
 clean_test:
         -$(DELTREE) $(TEST_OUTPUTDIR)
-        -$(DEL) $(LOG) $(LONGLOG) $(FAILLIST)
         -$(DEL) core gmon.out testprep-stamp.$(TEST_FULL_TARGET) dotgz.bat
 
 clean: clean_sources

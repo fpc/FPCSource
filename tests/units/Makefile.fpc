@@ -17,6 +17,7 @@ targetdir=$(TARGETSUFFIX)
 fpcdir=../..
 
 [rules]
+.NOTPARALLEL:
 .PHONY: rtl extra fpcunit packages all clean distclean clean_ctest
 .PHONY: cleanrtl distcleanrtl
 .PHONY: cleanfpcunit distcleanfpcunit

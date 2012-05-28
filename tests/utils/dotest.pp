@@ -104,6 +104,7 @@ const
   UseTimeout : boolean = false;
   emulatorname : string = '';
   TargetCanCompileLibraries : boolean = true;
+  UniqueSuffix: string = '';
 
 { Constants used in IsAbsolute function }
   TargetHasDosStyleDirectories : boolean = false;
@@ -263,6 +264,18 @@ begin
   SplitPath:=Copy(s,1,i);
 end;
 
+
+function SplitBasePath(const s:string): string;
+var
+  i : longint;
+begin
+  i:=1;
+  while (i<length(s)) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
+   inc(i);
+  if s[i] in  ['/','\'{$IFDEF MACOS},':'{$ENDIF}] then
+    dec(i);
+  SplitBasePath:=Copy(s,1,i);
+end;
 
 Function SplitFileName(const s:string):string;
 var
@@ -468,8 +481,8 @@ begin
         hs:='-iTOTPV';
       end;
   end;
-  ExecuteRedir(CompilerBin,hs,'','out','');
-  assign(t,'out');
+  ExecuteRedir(CompilerBin,hs,'','out.'+UniqueSuffix,'');
+  assign(t,'out.'+UniqueSuffix);
   {$I-}
    reset(t);
    readln(t,hs);
@@ -1408,6 +1421,7 @@ procedure getargs;
     writeln('  -G            include graph tests');
     writeln('  -I            include interactive tests');
     writeln('  -K            include known bug tests');
+    writeln('  -L<ext>       set extension of temporary files (prevent conflicts with parallel invocations)');
     writeln('  -M<emulator>  run the tests using the given emulator');
     writeln('  -O            use timeout wrapper for (remote) execution');
     writeln('  -P<path>      path to the tests tree on the remote machine');
@@ -1465,6 +1479,10 @@ procedure getargs;
              DoKnown:=true;
              if para='-' then
                DoUsual:=false;
+           end;
+
+     'L' : begin
+             UniqueSuffix:=Para;
            end;
 
      'M' : EmulatorName:=Para;
@@ -1581,7 +1599,7 @@ end;
 
 procedure RunTest;
 var
-  PPDir,LibraryName : string;
+  PPDir,LibraryName,LogSuffix : string;
   Res : boolean;
 begin
   Res:=GetConfig(PPFile[current],Config);
@@ -1604,10 +1622,6 @@ begin
 {$endif MACOS}
       if not PathExists(OutputDir) then
         Verbose(V_Abort,'Output path "'+OutputDir+'" does not exists');
-      { Global log files }
-      ResLogFile:=OutputFileName('log','');
-      LongLogFile:=OutputFileName('longlog','');
-      FailLogFile:=OutputFileName('faillist','');
       { Make subdir in output if needed }
       PPDir:=SplitPath(PPFile[current]);
       if PPDir[length(PPDir)] in ['/','\'{$ifdef MACOS},':'{$endif MACOS}] then
@@ -1623,6 +1637,12 @@ begin
         end
       else
         TestOutputDir:=OutputDir;
+      { Global log files (don't use UniqueSuffix here, it's not set in case of
+        SINGLEDOTESTRUNS) }
+      LogSuffix:=SplitBasePath(PPDir)+'log';
+      ResLogFile:=OutputFileName('log',LogSuffix);
+      LongLogFile:=OutputFileName('longlog',LogSuffix);
+      FailLogFile:=OutputFileName('faillist',LogSuffix);
       { Per test logfiles }
       CompilerLogFile:=TestOutputFileName('',SplitFileName(PPFile[current]),'log');
       ExeLogFile:=TestOutputFileName('',SplitFileName(PPFile[current]),'elg');
