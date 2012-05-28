@@ -843,9 +843,12 @@ implementation
         paraloc  : pcgparalocation;
         href     : treference;
         sizeleft : aint;
-{$if defined(sparc) or defined(arm)}
+{$if defined(sparc) or defined(arm) or defined(mips)}
         tempref  : treference;
-{$endif sparc}
+{$endif defined(sparc) or defined(arm) or defined(mips)}
+{$ifdef mips}
+        tmpreg   : tregister;
+{$endif mips}
 {$ifndef cpu64bitalu}
         tempreg  : tregister;
         reg64    : tregister64;
@@ -951,6 +954,48 @@ implementation
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER :
             begin
+{$ifdef mips}
+              if (destloc.size = paraloc^.Size) and
+                 (paraloc^.Loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+                begin
+                  gen_alloc_regloc(list,destloc);
+                  cg.a_loadfpu_reg_reg(list,paraloc^.Size, destloc.size, paraloc^.register, destloc.register);
+                end
+              else if (destloc.size = OS_F32) and
+                 (paraloc^.Loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                begin
+                  gen_alloc_regloc(list,destloc);
+                  list.Concat(taicpu.op_reg_reg(A_MTC1,paraloc^.register,destloc.register));
+                end
+              else if (destloc.size = OS_F64) and
+                      (paraloc^.Loc in [LOC_REGISTER,LOC_CREGISTER]) and
+                      (paraloc^.next^.Loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                begin
+                  gen_alloc_regloc(list,destloc);
+
+                  tmpreg:=destloc.register;
+                  list.Concat(taicpu.op_reg_reg(A_MTC1,paraloc^.register,tmpreg));
+                  setsupreg(tmpreg,getsupreg(tmpreg)+1);
+                  list.Concat(taicpu.op_reg_reg(A_MTC1,paraloc^.Next^.register,tmpreg));
+                end
+              else
+                begin
+                  sizeleft := TCGSize2Size[destloc.size];
+                  tg.GetTemp(list,sizeleft,sizeleft,tt_normal,tempref);
+                  href:=tempref;
+                  while assigned(paraloc) do
+                    begin
+                      unget_para(paraloc^);
+                      cg.a_load_cgparaloc_ref(list,paraloc^,href,sizeleft,destloc.reference.alignment);
+                      inc(href.offset,TCGSize2Size[paraloc^.size]);
+                      dec(sizeleft,TCGSize2Size[paraloc^.size]);
+                      paraloc:=paraloc^.next;
+                    end;
+                  gen_alloc_regloc(list,destloc);
+                  cg.a_loadfpu_ref_reg(list,destloc.size,destloc.size,tempref,destloc.register);
+                  tg.UnGetTemp(list,tempref);
+                end;
+{$else mips}
 {$if defined(sparc) or defined(arm)}
               { Arm and Sparc passes floats in int registers, when loading to fpu register
                 we need a temp }
@@ -968,14 +1013,15 @@ implementation
               gen_alloc_regloc(list,destloc);
               cg.a_loadfpu_ref_reg(list,destloc.size,destloc.size,tempref,destloc.register);
               tg.UnGetTemp(list,tempref);
-{$else sparc}
+{$else defined(sparc) or defined(arm)}
               unget_para(paraloc^);
               gen_alloc_regloc(list,destloc);
               { from register to register -> alignment is irrelevant }
               cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,0);
               if assigned(paraloc^.next) then
                 internalerror(200410109);
-{$endif sparc}
+{$endif defined(sparc) or defined(arm)}
+{$endif mips}
             end;
           LOC_MMREGISTER,
           LOC_CMMREGISTER :
