@@ -284,14 +284,18 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+function FileExists (const FileName: string): boolean;
+var
+  L: longint;
 begin
   if FileName = '' then
    Result := false
   else
-   Result := FileGetAttr (ExpandFileName (FileName)) and
-                                               (faDirectory or faVolumeID) = 0;
+   begin
+    L := FileGetAttr (FileName);
+    Result := (L >= 0) and (L and (faDirectory or faVolumeID) = 0);
 (* Neither VolumeIDs nor directories are files. *)
+   end;
 end;
 
 
