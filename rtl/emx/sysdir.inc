@@ -19,160 +19,147 @@
                            Directory Handling
 *****************************************************************************}
 
-
-procedure dosdir(func:byte;const s:string);
-
-var buffer:array[0..255] of char;
+procedure DosDir (Func: byte; S: PChar);
 
 begin
-    move(s[1],buffer,length(s));
-    buffer[length(s)]:=#0;
-    DoDirSeparators(Pchar(@buffer));
-    asm
-        leal buffer,%edx
-        movb func,%ah
-        call syscall
-        jnc  .LDOS_DIRS1
-        movw %ax,inoutres
+  DoDirSeparators (S);
+  asm
+    movl S, %edx
+    movb Func, %ah
+    call SysCall
+    jnc .LDOS_DIRS1
+    movw %ax, InOutRes
     .LDOS_DIRS1:
-    end ['eax', 'edx'];
+  end ['eax', 'edx'];
 end;
 
-
-procedure MkDir (const S: string);[IOCHECK];
-
-var buffer:array[0..255] of char;
-    Rc : word;
-
+procedure MkDir (S: pchar; Len: SizeUInt); [IOCheck, public, alias: 'FPC_SYS_MKDIR'];
+var 
+  RC: cardinal;
 begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
- if os_mode = osOs2 then
-    begin
-      move(s[1],buffer,length(s));
-      buffer[length(s)]:=#0;
-      DoDirSeparators(Pchar(@buffer));
-      Rc := DosCreateDir(buffer,nil);
-      if Rc <> 0 then
-       begin
-         InOutRes := Rc;
-         Errno2Inoutres;
-       end;
-    end
-  else
-   begin
-     { Under EMX 0.9d DOS this routine call may sometimes fail   }
-     { The syscall documentation indicates clearly that this     }
-     { routine was NOT tested.                                   }
-        DosDir ($39, S);
-end;
-end;
+  if not Assigned (S) or (Len = 0) or (InOutRes <> 0) then
+   Exit;
 
-
-procedure rmdir(const s : string);[IOCHECK];
-var buffer:array[0..255] of char;
-    Rc : word;
-begin
-  if (s = '.' ) then
-    InOutRes := 16;
-  If (s='') or (InOutRes <> 0) then
-   exit;
   if os_mode = osOs2 then
-    begin
-      move(s[1],buffer,length(s));
-      buffer[length(s)]:=#0;
-      DoDirSeparators(Pchar(@buffer));
-      Rc := DosDeleteDir(buffer);
-      if Rc <> 0 then
-       begin
-         InOutRes := Rc;
-         Errno2Inoutres;
-       end;
-    end
+   begin
+    DoDirSeparators (S);
+    RC := DosCreateDir (S, nil);
+    if RC <> 0 then
+     begin
+      InOutRes := RC;
+      Errno2InOutRes;
+     end;
+   end
   else
    begin
      { Under EMX 0.9d DOS this routine call may sometimes fail   }
      { The syscall documentation indicates clearly that this     }
      { routine was NOT tested.                                   }
-        DosDir ($3A, S);
+    DosDir ($39, S);
+   end;
 end;
+
+
+procedure RmDir (S: PChar; Len: SizeUInt); [IOCheck, public, alias: 'FPC_SYS_RMDIR'];
+var
+  RC: cardinal;
+begin
+  if Assigned (S) and (Len <> 0) and (InOutRes = 0) then
+   begin
+    if (Len = 1) and (S^ = '.') then
+     InOutRes := 16
+    else
+     if os_mode = osOs2 then
+      begin
+       DoDirSeparators (S);
+       RC := DosDeleteDir (S);
+       if RC <> 0 then
+        begin
+         InOutRes := RC;
+         Errno2InOutRes;
+        end;
+      end
+     else
+     { Under EMX 0.9d DOS this routine call may sometimes fail   }
+     { The syscall documentation indicates clearly that this     }
+     { routine was NOT tested.                                   }
+      DosDir ($3A, S);
+   end
 end;
+
 
 {$ASMMODE INTEL}
 
-procedure ChDir (const S: string);[IOCheck];
-
-var RC: cardinal;
-    Buffer: array [0..255] of char;
-
+procedure ChDir (S: PChar; Len: SizeUInt); [IOCheck, public, alias: 'FPC_SYS_CHDIR'];
+var
+  RC: cardinal;
 begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
+  if not Assigned (S) or (Len = 0) or (InOutRes <> 0) then
+    exit;
 (* According to EMX documentation, EMX has only one current directory
    for all processes, so we'll use native calls under OS/2. *)
-            if os_Mode = osOS2 then
-                begin
-                    if (Length (S) >= 2) and (S [2] = ':') then
-                        begin
-                            RC := DosSetDefaultDisk ((Ord (S [1]) and
-                                                             not ($20)) - $40);
-                            if RC <> 0 then
-                                InOutRes := RC
-                            else
-                                if Length (S) > 2 then
-                                    begin
-                                        Move (S [1], Buffer, Length (S));
-                                        Buffer [Length (S)] := #0;
-                                        DoDirSeparators (PChar (@Buffer));
-                                        RC := DosSetCurrentDir (@Buffer);
-                                        if RC <> 0 then
-                                         begin
-                                            InOutRes := RC;
-                                            Errno2InOutRes;
-                                         end;
-                                    end;
-                        end
-                    else
-                        begin
-                            Move (S [1], Buffer, Length (S));
-                            Buffer [Length (S)] := #0;
-                            DoDirSeparators (PChar (@Buffer));
-                            RC := DosSetCurrentDir (@Buffer);
-                            if RC <> 0 then
-                             begin
-                                  InOutRes:= RC;
-                                  Errno2InOutRes;
-                             end;
-                        end;
-                end
-            else
-                if (Length (S) >= 2) and (S [2] = ':') then
-                    begin
-                        asm
-                            mov esi, S
-                            mov al, [esi + 1]
-                            and al, not (20h)
-                            sub al, 41h
-                            mov edx, eax
-                            mov ah, 0Eh
-                            call syscall
-                            mov ah, 19h
-                            call syscall
-                            cmp al, dl
-                            jz @LCHDIR
-                            mov InOutRes, 15
+  if os_Mode = osOS2 then
+   begin
+    if (Len >= 2) and (S [1] = ':') then
+     begin
+      RC := DosSetDefaultDisk ((Ord (S^) and not ($20)) - $40);
+      if RC <> 0 then
+       begin
+        InOutRes := RC;
+        Errno2InOutRes;
+       end
+      else
+       if Len > 2 then
+        begin
+         DoDirSeparators (S);
+         RC := DosSetCurrentDir (S);
+         if RC <> 0 then
+          begin
+           InOutRes := RC;
+           Errno2InOutRes;
+          end;
+        end;
+     end
+    else
+     begin
+      DoDirSeparators (S);
+      RC := DosSetCurrentDir (S);
+      if RC <> 0 then
+       begin
+        InOutRes:= RC;
+        Errno2InOutRes;
+       end;
+     end;
+   end
+  else
+   if (Len >= 2) and (S [1] = ':') then
+    begin
+     asm
+      mov esi, S
+      mov al, [esi + 1]
+      and al, not (20h)
+      sub al, 41h
+      mov edx, eax
+      mov ah, 0Eh
+      call syscall
+      mov ah, 19h
+      call syscall
+      cmp al, dl
+      jz @LCHDIR
+      mov InOutRes, 15
 @LCHDIR:
-                        end ['eax','edx','esi'];
-                        if (Length (S) > 2) and (InOutRes <> 0) then
-                            { Under EMX 0.9d DOS this routine may sometime }
-                            { fail or crash the system.                    }
-                            DosDir ($3B, S);
-                    end
-                else
-                    { Under EMX 0.9d DOS this routine may sometime }
-                    { fail or crash the system.                    }
-                    DosDir ($3B, S);
+     end ['eax','edx','esi'];
+     if (Len > 2) and (InOutRes <> 0) then
+      { Under EMX 0.9d DOS this routine may sometime }
+      { fail or crash the system.                    }
+      DosDir ($3B, S);
+    end
+   else
+    { Under EMX 0.9d DOS this routine may sometime }
+    { fail or crash the system.                    }
+    DosDir ($3B, S);
 end;
+
 
 {$ASMMODE ATT}
 
@@ -232,6 +219,3 @@ begin
         end;
     if not (FileNameCasePreserving) then dir:=upcase(dir);
 end;
-
-
-
