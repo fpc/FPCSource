@@ -287,6 +287,42 @@ public class JavapPrinter {
         prefix=prefix.substring(2);
     }
 
+    protected void PrintSignatureVariants(PascalMethodData method, StringBuilder sigStart, StringBuilder sigEnd, boolean useConstOpenArray, boolean forceSingleVarVersion){
+        java.util.Set<PascalTypeSignature.ParaFlags> paraFlags;
+        
+        paraFlags = java.util.EnumSet.noneOf(PascalTypeSignature.ParaFlags.class);
+        String dynArrParas = method.getParameters(paraFlags);
+
+        paraFlags.add(PascalTypeSignature.ParaFlags.OpenArrays);
+        if (useConstOpenArray)
+            paraFlags.add(PascalTypeSignature.ParaFlags.OpenConstArrays);
+        String openArrParas = method.getParameters(paraFlags);
+
+        String regularVarParas = "";
+        if (env.addVarOverloads &&
+                (!useConstOpenArray ||
+                 forceSingleVarVersion)) {
+            paraFlags = java.util.EnumSet.noneOf(PascalTypeSignature.ParaFlags.class);
+            paraFlags.add(PascalTypeSignature.ParaFlags.SingleVar);
+            regularVarParas = method.getParameters(paraFlags);
+        }
+        
+        out.print(sigStart+dynArrParas+sigEnd);
+        printExceptions(method);
+        out.println();
+        if (!dynArrParas.equals(openArrParas)) {
+            out.print(sigStart+openArrParas+sigEnd);
+            printExceptions(method);
+            out.println();
+        }
+        if ((regularVarParas != "") &&
+                !dynArrParas.equals(regularVarParas)) {
+            out.print(sigStart+regularVarParas+sigEnd);
+            printExceptions(method);
+            out.println();
+        }
+    }
+    
     /**
      * Print method signature.
      */
@@ -301,20 +337,12 @@ public class JavapPrinter {
         	sigEnd = new StringBuilder();
             // to fix compilation in Delphi mode
         	sigEnd.append("; overload;");
-        	String dynArrParas = method.getParameters(false,true);
-        	String openArrParas = method.getParameters(true,true);
-            out.print(sigStart+dynArrParas+sigEnd);
-            printExceptions(method);
-            out.println();
-        	if (!dynArrParas.equals(openArrParas)) {
-        		out.print(sigStart+openArrParas+sigEnd);
-                printExceptions(method);
-                out.println();
-        	}
+        	PrintSignatureVariants(method,sigStart,sigEnd,true,true);
         }else if(pascalName.equals("<clinit>")){
         	sigStart.append("class constructor classcreate");
         }else{
         	String rettype = method.getReturnType();
+        	java.util.Set<PascalTypeSignature.ParaFlags> paraFlags;
         	if (method.isStatic())
         		sigStart.append("class ");
         	if (rettype.equals(""))
@@ -335,16 +363,8 @@ public class JavapPrinter {
             // all interface methods are marked as "abstract", and cannot be final
             if (!cls.isInterface())
             	sigEnd.append(method.getModifiers());
-        	String dynArrParas = method.getParameters(false,false);
-        	String openArrParas = method.getParameters(true,varargs);
-        	out.print(sigStart+dynArrParas+sigEnd);
-            printExceptions(method);
-            out.println();
-        	if (!dynArrParas.equals(openArrParas)) {
-        		out.print(sigStart+openArrParas+sigEnd);
-                printExceptions(method);
-                out.println();
-        	}
+            
+            PrintSignatureVariants(method,sigStart,sigEnd,varargs,false);
         }
     }
 

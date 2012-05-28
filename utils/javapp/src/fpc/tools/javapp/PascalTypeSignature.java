@@ -4,18 +4,23 @@ import java.util.Vector;
 
 public class PascalTypeSignature extends TypeSignature {
 	
-	// use open arrays rather than dynamic arrays for array parameters
-	private boolean useOpenArrays;
-	// when creating open array parameters, declare them as "const" rather than var
-	// (done for constructors, under the assumption that these won't change the
-	//  incoming data)
-	private boolean useConstOpenArrays;
+    private java.util.Set<ParaFlags> paraFlags;
 	private JavapEnvironment env;
 
-	public PascalTypeSignature(JavapEnvironment env, String JVMSignature, ClassData cls, boolean useOpenArrays, boolean useConstOpenArrays) {
-	        this.env = env;
-		this.useOpenArrays = useOpenArrays;
-		this.useConstOpenArrays = useConstOpenArrays;
+	public enum ParaFlags {
+	    // use open arrays rather than dynamic arrays for array parameters
+	    OpenArrays,
+	    // when creating open array parameters, declare them as "const" rather than var
+	    // (done for constructors, under the assumption that these won't change the
+	    //  incoming data)
+	    OpenConstArrays,
+	    // translate array parameters into var parameters of single elements
+	    SingleVar
+	}
+	
+	public PascalTypeSignature(JavapEnvironment env, String JVMSignature, ClassData cls, java.util.Set<ParaFlags> paraFlags) {
+	    this.env = env;
+	    this.paraFlags=paraFlags;
 		init(JVMSignature);
 	}
 
@@ -85,7 +90,8 @@ public class PascalTypeSignature extends TypeSignature {
             }else {
                 componentType = getBaseType(arrayType);
             }
-            if (!useOpenArrays ||
+            if ((!paraFlags.contains(ParaFlags.OpenArrays) &&
+                    !paraFlags.contains(ParaFlags.SingleVar)) ||
             		(dimCount>1))
             	return outerClass+"Arr"+dimCount+componentType;
             else
@@ -106,7 +112,12 @@ public class PascalTypeSignature extends TypeSignature {
         	String paraType = (String)parameters.elementAt(i);
         	// contents of open arrays could be changed -> var parameters
         	if (paraType.contains("array of")) {
-        		if (!useConstOpenArrays)
+                if (paraFlags.contains(ParaFlags.SingleVar))
+                {
+                    parametersignature.append("var ");
+                    paraType = paraType.substring(paraType.indexOf("array of ")+"array of ".length());
+                }
+                else if (!paraFlags.contains(ParaFlags.OpenConstArrays))
         		  parametersignature.append("var ");
         		else
           		  parametersignature.append("const ");

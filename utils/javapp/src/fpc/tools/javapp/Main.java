@@ -112,6 +112,7 @@ public class Main{
 		out.println("   -s                        Print internal type signatures");
 		out.println("   -bootclasspath <pathlist> Override location of class files loaded");
 		out.println("                             by the bootstrap class loader");
+		out.println("   -varparas                Add overloads that translate non-varargs array parameters into single-element 'var' parameters");
 		out.println("   -verbose                  Print stack size, number of locals and args for methods");
 		out.println("                             If verifying, print reasons for failure");
 		out.println();
@@ -227,6 +228,8 @@ public class Main{
 						usage();
 						return false;
 					}
+				} else if (arg.equals("-varparas")) {
+				    env.addVarOverloads = true;
 				} else {
 					error("invalid flag: " + arg);
 					usage();

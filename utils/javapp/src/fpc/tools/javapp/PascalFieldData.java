@@ -46,7 +46,7 @@ public class PascalFieldData extends FieldData {
      * Returns Pascal type signature of a field.
      */
     public String getType(){
-        return new PascalTypeSignature(env,getInternalSig(),cls,false,false).getFieldType();
+        return new PascalTypeSignature(env,getInternalSig(),cls,java.util.EnumSet.noneOf(PascalTypeSignature.ParaFlags.class)).getFieldType();
     }
 
     /**

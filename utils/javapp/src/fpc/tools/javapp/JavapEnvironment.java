@@ -79,6 +79,7 @@ public class JavapEnvironment {
     String prefix_constant = "";
     String prefix_field = "f";
     String prefix_innerclass = "Inner";
+    boolean addVarOverloads = false;
 
     public JavapEnvironment() {
     	excludePrefixes = new ArrayList<String>();

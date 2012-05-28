@@ -41,7 +41,7 @@ public class PascalMethodData extends MethodData {
      */
     public String getReturnType(){
 
-        String rttype = (new PascalTypeSignature(env,getInternalSig(), cls, false, false)).getReturnType();
+        String rttype = (new PascalTypeSignature(env,getInternalSig(), cls, java.util.EnumSet.noneOf(PascalTypeSignature.ParaFlags.class))).getReturnType();
         return rttype;
     }
 
@@ -60,8 +60,8 @@ public class PascalMethodData extends MethodData {
     /**
      * Return java type parameter signature.
      */
-    public String getParameters(boolean useOpenArrays, boolean useConstOpenArrays){
-        String ptype = (new PascalTypeSignature(env,getInternalSig(),cls,useOpenArrays,useConstOpenArrays)).getParameters();
+    public String getParameters(java.util.Set<PascalTypeSignature.ParaFlags> paraFlags){
+        String ptype = (new PascalTypeSignature(env,getInternalSig(),cls,paraFlags)).getParameters();
 
         return ptype;
     }
