@@ -205,7 +205,7 @@ Implementation
     var
       hp1,hp2: tai;
       i: longint;
-
+      TmpUsedRegs: TAllUsedRegs;
     begin
       result := false;
       case p.typ of
@@ -243,9 +243,9 @@ Implementation
            else
            *)
               case taicpu(p).opcode of
-                A_STR,
+                A_STR {,
                 A_STRH,
-                A_STRB:
+                A_STRB }:
                   begin
                     { change
                       str reg1,ref
@@ -255,6 +255,7 @@ Implementation
                       mov reg2,reg1
                     }
                     if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                       (taicpu(p).oppostfix=PF_None) and
                        GetNextInstruction(p,hp1) and
                        (
                          ( (taicpu(p).opcode = A_STR) and
@@ -354,34 +355,73 @@ Implementation
                        MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^.reg) and
                        MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
                        (taicpu(hp1).oper[2]^.typ = top_shifterop) and
-                       (taicpu(hp1).oper[2]^.shifterop^.rs = NR_NO) and
-                       (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(hp1).oper[2]^.shifterop^.shiftmode) then
+                       (taicpu(hp1).oper[2]^.shifterop^.rs = NR_NO) then
                       begin
-                        inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(hp1).oper[2]^.shifterop^.shiftimm);
-                        { avoid overflows }
-                        if taicpu(p).oper[2]^.shifterop^.shiftimm>31 then
-                          case taicpu(p).oper[2]^.shifterop^.shiftmode of
-                            SM_ROR:
-                              taicpu(p).oper[2]^.shifterop^.shiftimm:=taicpu(p).oper[2]^.shifterop^.shiftimm and 31;
-                            SM_ASR:
-                              taicpu(p).oper[2]^.shifterop^.shiftimm:=31;
-                            SM_LSR,
-                            SM_LSL:
+                        { fold
+                          mov reg1,reg0, lsl 16
+                          mov reg1,reg1, lsr 16
+                          strh reg1, ...
+                          dealloc reg1
+                          to
+                          strh reg1, ...
+                          dealloc reg1
+                        }
+                        if (taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSL) and
+                          (taicpu(p).oper[2]^.shifterop^.shiftimm=16) and
+                          (taicpu(hp1).oper[2]^.shifterop^.shiftmode=SM_LSR) and
+                          (taicpu(hp1).oper[2]^.shifterop^.shiftimm=16) and
+                          getnextinstruction(hp1,hp2) and
+                          MatchInstruction(hp2, A_STR, [taicpu(p).condition], [PF_H]) and
+                          MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^.reg) then
+                          begin
+                            CopyUsedRegs(TmpUsedRegs);
+                            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                            UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
+                            if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp2,TmpUsedRegs)) then
                               begin
-                                hp1:=taicpu.op_reg_const(A_MOV,taicpu(p).oper[0]^.reg,0);
-                                InsertLLItem(p.previous, p.next, hp1);
+                                asml.insertbefore(tai_comment.Create(strpnew('Peephole optimizer removed superfluous 16 Bit zero extension')), hp1);
+                                taicpu(hp2).loadreg(0,taicpu(p).oper[1]^.reg);
+                                asml.remove(p);
+                                asml.remove(hp1);
                                 p.free;
-                                p:=hp1;
+                                hp1.free;
+                                p:=hp2;
                               end;
-                            else
-                              internalerror(2008072803);
+                            ReleaseUsedRegs(TmpUsedRegs);
+                          end
+                        { fold
+                          mov reg1,reg0, shift imm1
+                          mov reg1,reg1, shift imm2
+                          to
+                          mov reg1,reg0, shift imm1+imm2
+                        }
+                        else if (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(hp1).oper[2]^.shifterop^.shiftmode) then
+                          begin
+                            inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(hp1).oper[2]^.shifterop^.shiftimm);
+                            { avoid overflows }
+                            if taicpu(p).oper[2]^.shifterop^.shiftimm>31 then
+                              case taicpu(p).oper[2]^.shifterop^.shiftmode of
+                                SM_ROR:
+                                  taicpu(p).oper[2]^.shifterop^.shiftimm:=taicpu(p).oper[2]^.shifterop^.shiftimm and 31;
+                                SM_ASR:
+                                  taicpu(p).oper[2]^.shifterop^.shiftimm:=31;
+                                SM_LSR,
+                                SM_LSL:
+                                  begin
+                                    hp1:=taicpu.op_reg_const(A_MOV,taicpu(p).oper[0]^.reg,0);
+                                    InsertLLItem(p.previous, p.next, hp1);
+                                    p.free;
+                                    p:=hp1;
+                                  end;
+                                else
+                                  internalerror(2008072803);
+                              end;
+                            asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShift2Shift done')), p);
+                            asml.remove(hp1);
+                            hp1.free;
+                            result := true;
                           end;
-                        asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShift2Shift done')), p);
-                        asml.remove(hp1);
-                        hp1.free;
-                        result := true;
                       end;
-
                     { 
                       This changes the very common 
                       mov r0, #0
