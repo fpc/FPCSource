@@ -226,6 +226,7 @@ interface
          nsects    : word;
          nsyms,
          sympos    : aword;
+         datapos_offset: longword;
          function  totalheadersize:longword;
          procedure ExeSectionList_pass2_header(p:TObject;arg:pointer);
          procedure write_symbol(const name:string;value:aword;section:smallint;typ,aux:byte);
@@ -244,6 +245,7 @@ interface
 
        TDJCoffexeoutput = class(TCoffexeoutput)
          constructor create;override;
+         procedure MemPos_Header;override;
        end;
 
        TPECoffexeoutput = class(TCoffexeoutput)
@@ -729,6 +731,8 @@ const pemagic : array[0..3] of byte = (
             else
               result:=COFF_STYP_DATA;
           end
+        else if oso_debug in aoptions then
+          result:=COFF_STYP_NOLOAD
         else
           result:=COFF_STYP_REG;
       end;
@@ -743,6 +747,8 @@ const pemagic : array[0..3] of byte = (
           result:=[oso_load]
         else if flags and COFF_STYP_DATA<>0 then
           result:=[oso_data,oso_load]
+        else if flags and COFF_STYP_NOLOAD<>0 then
+          result:=[oso_data,oso_debug]
         else
           result:=[oso_data]
       end;
@@ -2086,7 +2092,10 @@ const pemagic : array[0..3] of byte = (
             if assigned(exesec) then
               begin
                 secval:=exesec.secsymidx;
-                value:=address-exesec.mempos;
+                if win32 then
+                  value:=address-exesec.mempos
+                else
+                  value:=address;
               end
             else
               begin
@@ -2137,7 +2146,7 @@ const pemagic : array[0..3] of byte = (
                 sechdr.datasize:=Size;
               end;
             if (Size>0) then
-              sechdr.datapos:=datapos;
+              sechdr.datapos:=datapos-datapos_offset;
             sechdr.nrelocs:=0;
             sechdr.relocpos:=0;
             if win32 then
@@ -2393,7 +2402,7 @@ const pemagic : array[0..3] of byte = (
         header.mach:=COFF_MAGIC;
         header.nsects:=nsects;
         if writeDbgStrings then
-          header.sympos:=sympos;
+          header.sympos:=sympos-datapos_offset;
         if hassymbols then
           header.syms:=nsyms;
         if win32 then
@@ -2556,10 +2565,17 @@ const pemagic : array[0..3] of byte = (
     constructor TDJCoffexeoutput.create;
       begin
         inherited createcoff(false);
+        datapos_offset:=sizeof(go32v2stub);
         CExeSection:=TDJCoffExeSection;
         CObjData:=TDJCoffObjData;
       end;
 
+
+    procedure TDJCoffexeoutput.MemPos_Header;
+      begin
+        { Headers are not loaded, first 4K page is reserved }
+        CurrMemPos:=$1000;
+      end;
 
     constructor TPECoffexeoutput.create;
       begin

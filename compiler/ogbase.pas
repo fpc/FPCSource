@@ -1596,6 +1596,8 @@ implementation
         AddObjData(internalObjData);
         { Common Data section }
         commonObjSection:=internalObjData.createsection(sec_bss,'');
+        { setting SecOptions acts as 'include' }
+        commonObjSection.SecOptions:=[oso_common];
       end;
 
 
