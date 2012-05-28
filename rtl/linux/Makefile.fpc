@@ -76,6 +76,15 @@ CPU_UNITS=x86 ports cpu
 SYSINIT_UNITS=   # si_prc si_c si_dll
 endif
 
+# mipsel reuses mips files by including so some file names exist
+# twice, this causes the compiler to find sometimes wrong files and it tries
+# to recompile rtl units. To prevent this, compile always as release PPUs, this
+# should not harm.
+ifeq ($(ARCH),mipsel)
+override FPCOPT+=-Ur
+endif
+
+
 ifeq ($(ARCH),arm)
 override LOADERS+=ucprt0
 endif
