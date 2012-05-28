@@ -126,11 +126,26 @@ Implementation
     p: taicpu;
   begin
     p := taicpu(hp);
+    regLoadedWithNewValue := false;
+    if not ((assigned(hp)) and (hp.typ = ait_instruction)) then
+      exit;
+
+    {These are not writing to their first oper}
+    if p.opcode in [A_STR, A_STRB, A_STRH, A_CMP, A_CMN, A_TST, A_TEQ,
+                        A_B, A_BL, A_BX, A_BLX] then
+      exit;
+
+    { These four are writing into the first 2 register, UMLAL and SMLAL will also read from them }
+    if (p.opcode in [A_UMLAL, A_UMULL, A_SMLAL, A_SMULL]) and
+       (p.oper[1]^.typ = top_reg) and
+       (p.oper[1]^.reg = reg) then
+    begin
+      regLoadedWithNewValue := true;
+      exit
+    end;
+
+    {All other instructions use oper[0] as destination}
     regLoadedWithNewValue :=
-      (assigned(hp)) and
-      (hp.typ = ait_instruction) and
-      (not(p.opcode in [A_STR, A_STRB, A_STRH, A_CMP, A_CMN, A_TST, A_TEQ,
-                        A_B, A_BL, A_BX, A_BLX])) and
       (p.oper[0]^.typ = top_reg) and
       (p.oper[0]^.reg = reg);
   end;
@@ -148,7 +163,8 @@ Implementation
     i:=1;
     {For these instructions we have to start on oper[0]}
     if (p.opcode in [A_STR, A_STRB, A_STRH, A_CMP, A_CMN, A_TST, A_TEQ,
-                        A_B, A_BL, A_BX, A_BLX]) then i:=0;
+                        A_B, A_BL, A_BX, A_BLX,
+                        A_SMLAL, A_UMLAL]) then i:=0;
 
     while(i<p.ops) do
       begin
@@ -186,7 +202,12 @@ Implementation
     begin
       if MatchInstruction(movp, A_MOV, [taicpu(p).condition], [PF_None]) and
          (taicpu(movp).ops=2) and {We can't optimize if there is a shiftop}
-         MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) then
+         MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
+         {There is a special requirement for MUL and MLA, oper[0] and oper[1] are not allowed to be the same}
+         not (
+           (taicpu(p).opcode in [A_MLA, A_MUL]) and
+           (taicpu(p).oper[1]^.reg = taicpu(movp).oper[0]^.reg)
+         ) then
         begin
           CopyUsedRegs(TmpUsedRegs);
           UpdateUsedRegs(TmpUsedRegs, tai(p.next));
@@ -501,7 +522,9 @@ Implementation
                 A_AND,
                 A_BIC,
                 A_EOR,
-                A_ORR:
+                A_ORR,
+                A_MLA,
+                A_MUL:
                   begin
                     {
                       change
