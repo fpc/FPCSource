@@ -13,30 +13,34 @@
 
  **********************************************************************}
 
-  Stat = packed Record  // No unix typing because of differences
-      st_dev    : dword;
-          __pad1    : dword;
-          __pad11    : dword;
-          __pad12    : dword;
-          st_ino    : cardinal;
-          st_mode   : dword;
-          nlink     :longint; //: smallint;
-          uid       : dword;
-          gid       : dword;
-          rdev      : dword;
-          __pad2    : dword;
-          __pad21    : dword;
-          st_size   : longint;
-     st_pad3   : longint;
+  Stat = Record  // No unix typing because of differences
+    st_dev     : culong;
+    st_pad0    : array[0..2] of culong;
 
-          st_atime  : longint;
-          st_atime_nsecs : cardinal;
-          st_mtime  : longint;
-          st_mtime_nsecs : cardinal;
-          st_ctime  : longint;
-          st_ctime_nsecs : cardinal;
-          st_blksize : longint;
-          st_blocks  : longint;
-          st_pad5: array[0..13] of longint;
+    st_ino     : culonglong;
 
+    st_mode    : mode_t;
+    st_nlink   : nlink_t;
+
+    st_uid     : uid_t;
+    st_gid     : gid_t;
+
+    st_rdev    : culong;
+    st_pad1    : array[0..1] of culong;
+
+    st_size    : clonglong;
+
+    st_atime   : time_t;
+    st_atime_nsecs : culong;
+
+    st_mtime   : time_t;
+    st_mtime_nsecs : culong;
+
+    st_ctime   : time_t;
+    st_ctime_nsecs : culong;
+
+    st_blksize : culong;
+    st_pad2    : culong;
+
+    st_blocks  : clonglong;
   end;
