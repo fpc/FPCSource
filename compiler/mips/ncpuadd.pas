@@ -29,6 +29,9 @@ uses
   node, ncgadd, cpubase, aasmbase, cgbase;
 
 type
+
+  { tmipsaddnode }
+
   tmipsaddnode = class(tcgaddnode)
   private
     function cmp64_lt(left_reg, right_reg: TRegister64): TRegister;
@@ -41,6 +44,7 @@ type
     function GetRes_register(unsigned: boolean; this_reg, left_reg, right_reg: TRegister): TRegister;
     function GetRes64_register(unsigned: boolean; {this_reg,} left_reg, right_reg: TRegister64): TRegister;
   protected
+    function pass_1: tnode; override;
     procedure second_addfloat; override;
     procedure second_cmpfloat; override;
     procedure second_cmpboolean; override;
@@ -341,6 +345,21 @@ begin
   end;
 end;
 
+
+function tmipsaddnode.pass_1 : tnode;
+  var
+    unsigned : boolean;
+  begin
+    result:=inherited pass_1;
+
+    if not(assigned(result)) then
+      begin
+        if (nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) then
+          expectloc:=LOC_REGISTER;
+      end;
+  end;
+
+
 procedure tmipsaddnode.second_addfloat;
 var
   op: TAsmOp;
@@ -513,18 +532,15 @@ begin
   force_reg_left_right(True, True);
   tmp_right_reg := NR_NO;
   if right.location.loc = LOC_CONSTANT then
-  begin
-    tmp_right_reg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmp_right_reg, right.location.Value));
-  end
+    begin
+      tmp_right_reg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmp_right_reg, right.location.Value));
+    end
   else
-  begin
     tmp_right_reg := right.location.Register;
-  end;
 
   location_reset(location, LOC_REGISTER, OS_INT);
   location.Register := GetRes_register(True, NR_TCR0, left.location.Register, tmp_right_reg);
-
 end;
 
 
@@ -581,14 +597,12 @@ begin
 
   tmp_right_reg := NR_NO;
   if right.location.loc = LOC_CONSTANT then
-  begin
-    tmp_right_reg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmp_right_reg, right.location.Value));
-  end
+    begin
+      tmp_right_reg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmp_right_reg, right.location.Value));
+    end
   else
-  begin
     tmp_right_reg := right.location.Register;
-  end;
   location_reset(location, LOC_REGISTER, OS_INT);
   location.Register := getres_register(unsigned, NR_TCR0, left.location.Register, tmp_right_reg);
 end;
