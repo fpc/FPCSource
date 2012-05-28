@@ -115,6 +115,7 @@ interface
          property StaticLibraryList:TFPHashObjectList read FStaticLibraryList;
          property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
          procedure DefaultLinkScript;virtual;abstract;
+         procedure ConcatGenericSections(secnames:string);
       public
          IsSharedLibrary : boolean;
          UseStabs : boolean;
@@ -1333,6 +1334,20 @@ Implementation
         result:=RunLinkScript(current_module.sharedlibfilename);
       end;
 
+
+    procedure TInternalLinker.ConcatGenericSections(secnames:string);
+      var
+        secname:string;
+      begin
+        repeat
+          secname:=gettoken(secnames,',');
+          if secname='' then
+            break;
+          linkscript.Concat('EXESECTION '+secname);
+          linkscript.Concat('  OBJSECTION '+secname+'*');
+          linkscript.Concat('ENDEXESECTION');
+        until false;
+      end;
 
 {*****************************************************************************
                                  Init/Done

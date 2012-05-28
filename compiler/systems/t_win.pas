@@ -941,8 +941,6 @@ implementation
     procedure TInternalLinkerWin.DefaultLinkScript;
       var
         s,s2 : TCmdStr;
-        secname,
-        secnames : string;
       begin
         with LinkScript do
           begin
@@ -1081,17 +1079,9 @@ implementation
             Concat('  OBJSECTION .idata$6*');
             Concat('  OBJSECTION .idata$7*');
             Concat('ENDEXESECTION');
-            secnames:='.edata,.rsrc,.reloc,.gnu_debuglink,'+
+            ConcatGenericSections('.edata,.rsrc,.reloc,.gnu_debuglink,'+
                       '.debug_aranges,.debug_pubnames,.debug_info,.debug_abbrev,.debug_line,.debug_frame,.debug_str,.debug_loc,'+
-                      '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges';
-            repeat
-              secname:=gettoken(secnames,',');
-              if secname='' then
-                break;
-              Concat('EXESECTION '+secname);
-              Concat('  OBJSECTION '+secname+'*');
-              Concat('ENDEXESECTION');
-            until false;
+                      '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges');
             { Can't use the generic rules, because that will add also .stabstr to .stab }
             Concat('EXESECTION .stab');
             Concat('  OBJSECTION .stab');
