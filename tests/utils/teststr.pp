@@ -38,7 +38,7 @@ const
   known_problem = ' known problem: ';
   line_separation = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>';
 
-  ResLogfile  : string[32] = 'log';
+  ResLogfile  : string = 'log';
 
 implementation
 
