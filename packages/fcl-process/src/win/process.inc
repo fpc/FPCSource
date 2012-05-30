@@ -206,6 +206,14 @@ begin
      Result:=S;
 end;
 
+Function MaybeQuoteIfNotQuoted(Const S : String) : String;
+
+begin
+  If (Pos(' ',S)<>0) and (pos('"',S)=0) then
+    Result:='"'+S+'"'
+  else
+     Result:=S;
+end;
 
 Procedure TProcess.Execute;
 Var
@@ -237,9 +245,9 @@ begin
     PCommandLine:=Pchar(FCommandLine)
   else if (Fexecutable<>'') then
     begin
-    Cmd:=MaybeQuote(Executable);
+    Cmd:=MaybeQuoteIfNotQuoted(Executable);
     For I:=0 to Parameters.Count-1 do
-      Cmd:=Cmd+' '+MaybeQuote(Parameters[i]);
+      Cmd:=Cmd+' '+MaybeQuoteIfNotQuoted(Parameters[i]);
     PCommandLine:=PChar(Cmd);
     end;
   If FCurrentDirectory<>'' then
