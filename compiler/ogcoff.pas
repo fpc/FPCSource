@@ -336,6 +336,9 @@ implementation
        COFF_STYP_TEXT   = $0020;
        COFF_STYP_DATA   = $0040;
        COFF_STYP_BSS    = $0080;
+       COFF_STYP_INFO   = $0200;
+       COFF_STYP_OVER   = $0400;
+       COFF_STYP_LIB    = $0800;
 
        PE_SUBSYSTEM_NATIVE         = 1;
        PE_SUBSYSTEM_WINDOWS_GUI    = 2;
@@ -732,7 +735,7 @@ const pemagic : array[0..3] of byte = (
               result:=COFF_STYP_DATA;
           end
         else if oso_debug in aoptions then
-          result:=COFF_STYP_NOLOAD
+          result:=COFF_STYP_INFO
         else
           result:=COFF_STYP_REG;
       end;
@@ -747,7 +750,7 @@ const pemagic : array[0..3] of byte = (
           result:=[oso_load]
         else if flags and COFF_STYP_DATA<>0 then
           result:=[oso_data,oso_load]
-        else if flags and COFF_STYP_NOLOAD<>0 then
+        else if flags and COFF_STYP_INFO<>0 then
           result:=[oso_data,oso_debug]
         else
           result:=[oso_data]
@@ -2130,9 +2133,9 @@ const pemagic : array[0..3] of byte = (
                s:='/'+ToStr(strpos);
              end;
             move(s[1],sechdr.name,length(s));
-            sechdr.rvaofs:=mempos;
             if win32 then
               begin
+                sechdr.rvaofs:=mempos;
                 sechdr.vsize:=Size;
                 { sechdr.dataSize is size of initialized data, rounded up to FileAlignment
                   (so it can be greater than VirtualSize). Must be zero for sections that
@@ -2142,7 +2145,11 @@ const pemagic : array[0..3] of byte = (
               end
             else
               begin
-                sechdr.vsize:=mempos;
+                if not (oso_debug in SecOptions) then
+                  begin
+                    sechdr.rvaofs:=mempos;
+                    sechdr.vsize:=mempos;
+                  end;
                 sechdr.datasize:=Size;
               end;
             if (Size>0) then
@@ -3074,7 +3081,7 @@ const pemagic : array[0..3] of byte = (
             asmbin : '';
             asmcmd : '';
             supported_targets : [system_i386_go32v2];
-            flags : [af_outputbinary];
+            flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
             dollarsign: '$';
