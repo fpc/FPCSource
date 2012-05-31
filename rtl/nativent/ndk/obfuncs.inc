@@ -21,6 +21,24 @@ function NtOpenDirectoryObject(
   ObjectAttributes: POBJECT_ATTRIBUTES
 ): NTSTATUS; external ntdll;
 
+function NtQueryDirectoryObject(
+  DirectoryHandle: HANDLE;
+  Buffer: PVOID;
+  BufferLength: ULONG;
+  ReturnSingleEntry: NT_BOOLEAN;
+  RestartScan: NT_BOOLEAN;
+  Context: PULONG;
+  ReturnLength: PULONG {OPTIONAL}
+): NTSTATUS; external ntdll;
+
+function NtQueryObject(
+  ObjectHandle: HANDLE;
+  ObjectInformationClass: OBJECT_INFORMATION_CLASS;
+  ObjectInformation: PVOID;
+  Length: ULONG;
+  ResultLength: PULONG {OPTIONAL}
+): NTSTATUS; external ntdll;
+
 function NtWaitForSingleObject(
   _Object: HANDLE;
   Alertable: NT_BOOLEAN;

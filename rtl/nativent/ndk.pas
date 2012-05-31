@@ -35,6 +35,7 @@ const
 {$include iotypes.inc}
 {$include rtltypes.inc}
 {$include ketypes.inc}
+{$include obtypes.inc}
 {$include pstypes.inc}
 {$include peb_teb.inc}
 

@@ -7944,6 +7944,7 @@ rtl/nativent/ndk/ketypes.inc svneol=native#text/plain
 rtl/nativent/ndk/ntdef.inc svneol=native#text/plain
 rtl/nativent/ndk/ntstatus.inc svneol=native#text/plain
 rtl/nativent/ndk/obfuncs.inc svneol=native#text/plain
+rtl/nativent/ndk/obtypes.inc svneol=native#text/plain
 rtl/nativent/ndk/peb_teb.inc svneol=native#text/plain
 rtl/nativent/ndk/pstypes.inc svneol=native#text/plain
 rtl/nativent/ndk/rtlfuncs.inc svneol=native#text/plain
