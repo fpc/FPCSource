@@ -264,9 +264,7 @@ Implementation
            else
            *)
               case taicpu(p).opcode of
-                A_STR {,
-                A_STRH,
-                A_STRB }:
+                A_STR:
                   begin
                     { change
                       str reg1,ref
@@ -278,40 +276,27 @@ Implementation
                     if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        (taicpu(p).oppostfix=PF_None) and
                        GetNextInstruction(p,hp1) and
-                       (
-                         ( (taicpu(p).opcode = A_STR) and
-                            MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [PF_None])
-                         ) or
-                         ( (taicpu(p).opcode = A_STRH) and
-                            MatchInstruction(hp1, A_LDRH, [taicpu(p).condition, C_None], [PF_None])
-                         ) or
-                         ( (taicpu(p).opcode = A_STRB) and
-                            MatchInstruction(hp1, A_LDRB, [taicpu(p).condition, C_None], [PF_None])
-                         )
-                       ) and
+                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [PF_None]) and
                        RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
                        (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
                       begin
                         if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
                           begin
+                            asml.insertbefore(tai_comment.Create(strpnew('Peephole StrLdr2StrMov 1 done')), hp1);
                             asml.remove(hp1);
-                            hp1.free;
+                            hp1.free;                            
                           end
                         else
                           begin
-                            asml.insertbefore(tai_comment.Create(strpnew('Peephole StrLdr2StrMov done')), hp1);
                             taicpu(hp1).opcode:=A_MOV;
                             taicpu(hp1).oppostfix:=PF_None;
                             taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
+                            asml.insertbefore(tai_comment.Create(strpnew('Peephole StrLdr2StrMov 2 done')), hp1);
                           end;
                         result := true;
                       end;
                   end;
-                A_LDR,
-                A_LDRH,
-                A_LDRB,
-                A_LDRSH,
-                A_LDRSB:
+                A_LDR:
                   begin
                     { change
                       ldr reg1,ref
@@ -322,7 +307,7 @@ Implementation
                     }
                     if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        GetNextInstruction(p,hp1) and
-                       MatchInstruction(hp1, taicpu(p).opcode, [taicpu(p).condition, C_None], [PF_None]) and
+                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [taicpu(p).oppostfix]) and
                        RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
                        (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.index) and
                        (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.base) and
@@ -457,10 +442,10 @@ Implementation
                        GetNextInstruction(p,hp1) then
                       begin
                         while (tai(p).typ = ait_instruction) and
-                              (taicpu(p).opcode in [A_STR, A_STRH, A_STRB]) and
+                              (taicpu(p).opcode = A_STR) and
                               MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^) and
                               GetNextInstruction(hp1, hp2) and
-                              MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+                              MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
                               (taicpu(hp2).ops = 2) and
                               MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^) and
                               MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[1]^) do
