@@ -54,7 +54,7 @@ unit i_go32v2;
             sharedlibprefix : '';
             sharedClibext : '.dll';
             staticClibext : '.a';
-            staticClibprefix : '';
+            staticClibprefix : 'lib';
             sharedClibprefix : '';
             importlibprefix : '';
             importlibext : '.al';
