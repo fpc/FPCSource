@@ -243,6 +243,16 @@ implementation
           sh_addralign      : longint;
           sh_entsize        : longint;
         end;
+        TElf32proghdr=packed record
+          p_type            : longword;
+          p_offset          : longword;
+          p_vaddr           : longword;
+          p_paddr           : longword;
+          p_filesz          : longword;
+          p_memsz           : longword;
+          p_flags           : longword;
+          p_align           : longword;
+        end;
         TElf32reloc=packed record
           address : longint;
           info    : longint; { bit 0-7: type, 8-31: symbol }
@@ -254,6 +264,12 @@ implementation
           st_info  : byte; { bit 0-3: type, 4-7: bind }
           st_other : byte;
           st_shndx : word;
+        end;
+        TElf32Dyn=packed record
+          d_tag: longword;
+          case integer of
+            0: (d_val: longword);
+            1: (d_ptr: longword);
         end;
 
 
@@ -289,6 +305,16 @@ implementation
           sh_addralign      : qword;
           sh_entsize        : qword;
         end;
+        telf64proghdr=packed record
+          p_type            : longword;
+          p_offset          : longword;
+          p_vaddr           : qword;
+          p_paddr           : qword;
+          p_filesz          : qword;
+          p_memsz           : qword;
+          p_flags           : qword;
+          p_align           : qword;
+        end;
         telf64reloc=packed record
           address : qword;
           info    : qword; { bit 0-31: type, 32-63: symbol }
@@ -302,6 +328,12 @@ implementation
           st_value : qword;
           st_size  : qword;
         end;
+        TElf64Dyn=packed record
+          d_tag: qword;
+          case integer of
+            0: (d_val: qword);
+            1: (d_ptr: qword);
+        end;
 
 
 {$ifdef cpu64bitaddr}
@@ -309,11 +341,15 @@ implementation
         telfreloc = telf64reloc;
         telfsymbol = telf64symbol;
         telfsechdr = telf64sechdr;
+        telfproghdr = telf64proghdr;
+        telfdyn = telf64dyn;
 {$else cpu64bitaddr}
         telfheader = telf32header;
         telfreloc = telf32reloc;
         telfsymbol = telf32symbol;
         telfsechdr = telf32sechdr;
+        telfproghdr = telf32proghdr;
+        telfdyn = telf32dyn;
 {$endif cpu64bitaddr}
 
 
@@ -359,6 +395,42 @@ implementation
                 result.e_shentsize:=swapendian(e_shentsize);
                 result.e_shnum:=swapendian(e_shnum);
                 result.e_shstrndx:=swapendian(e_shstrndx);
+              end;
+        end;
+
+
+      function MayBeSwapHeader(h : telf32proghdr) : telf32proghdr;
+        begin
+          result:=h;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                result.p_align:=swapendian(p_align);
+                result.p_filesz:=swapendian(p_filesz);
+                result.p_flags:=swapendian(p_flags);
+                result.p_memsz:=swapendian(p_memsz);
+                result.p_offset:=swapendian(p_offset);
+                result.p_paddr:=swapendian(p_paddr);
+                result.p_type:=swapendian(p_type);
+                result.p_vaddr:=swapendian(p_vaddr);
+              end;
+        end;
+
+
+      function MayBeSwapHeader(h : telf64proghdr) : telf64proghdr;
+        begin
+          result:=h;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                result.p_align:=swapendian(p_align);
+                result.p_filesz:=swapendian(p_filesz);
+                result.p_flags:=swapendian(p_flags);
+                result.p_memsz:=swapendian(p_memsz);
+                result.p_offset:=swapendian(p_offset);
+                result.p_paddr:=swapendian(p_paddr);
+                result.p_type:=swapendian(p_type);
+                result.p_vaddr:=swapendian(p_vaddr);
               end;
         end;
 
@@ -451,7 +523,32 @@ implementation
               begin
                 result.address:=swapendian(address);
                 result.info:=swapendian(info);
+                result.addend:=swapendian(addend);
               end;
+        end;
+
+
+      function MaybeSwapElfDyn(h : telf32dyn) : telf32dyn;
+        begin
+          result:=h;
+            if source_info.endian<>target_info.endian then
+              with h do
+                begin
+                  result.d_tag:=swapendian(d_tag);
+                  result.d_val:=swapendian(d_val);
+                end;
+        end;
+
+
+      function MaybeSwapElfDyn(h : telf64dyn) : telf64dyn;
+        begin
+          result:=h;
+            if source_info.endian<>target_info.endian then
+              with h do
+                begin
+                  result.d_tag:=swapendian(d_tag);
+                  result.d_val:=swapendian(d_val);
+                end;
         end;
 
 
@@ -495,6 +592,8 @@ implementation
           include(aoptions,oso_write)
         else
           include(aoptions,oso_readonly);
+        if Ashflags and SHF_EXECINSTR<>0 then
+          include(aoptions,oso_executable);
       end;
 
 
