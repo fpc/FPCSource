@@ -220,7 +220,6 @@ interface
 
        TCoffexeoutput = class(texeoutput)
        private
-         FCoffsyms,
          FCoffStrs : tdynamicarray;
          win32     : boolean;
          nsects    : word;
@@ -1593,10 +1592,8 @@ const pemagic : array[0..3] of byte = (
 
     destructor TCoffObjInput.destroy;
       begin
-        if assigned(FCoffSyms) then
-          FCoffSyms.free;
-        if assigned(FCoffStrs) then
-          FCoffStrs.free;
+        FCoffSyms.free;
+        FCoffStrs.free;
         if assigned(FSymTbl) then
           freemem(FSymTbl);
         if assigned(FSecTbl) then
@@ -1723,8 +1720,7 @@ const pemagic : array[0..3] of byte = (
          begin
            nsyms:=FCoffSyms.Size div sizeof(CoffSymbol);
            { Allocate memory for symidx -> TObjSymbol table }
-           GetMem(FSymTbl,nsyms*sizeof(TObjSymbolrec));
-           FillChar(FSymTbl^,nsyms*sizeof(TObjSymbolrec),0);
+           FSymTbl:=AllocMem(nsyms*sizeof(TObjSymbolrec));
            { Load the Symbols }
            FCoffSyms.Seek(0);
            symidx:=0;
@@ -1907,23 +1903,28 @@ const pemagic : array[0..3] of byte = (
 {$ifdef arm}
            eVCobj:=header.flag=$100;
 {$endif arm}
+           { ObjSymbols }
+           AReader.Seek(header.sympos);
+           if not AReader.ReadArray(FCoffSyms,header.syms*sizeof(CoffSymbol)) then
+             begin
+               InputError('Error reading coff symbol table');
+               exit;
+           end;
            { Strings }
-           AReader.Seek(header.sympos+header.syms*sizeof(CoffSymbol));
            if not AReader.Read(strsize,4) then
              begin
-               InputError('Error reading COFF Symtable');
+               InputError('Error reading COFF string table');
                exit;
              end;
            if (strsize>4) and not AReader.ReadArray(FCoffStrs,Strsize-4) then
              begin
-               InputError('Error reading COFF Symtable');
+               InputError('Error reading COFF string table');
                exit;
              end;
            { Section headers }
            { Allocate SecIdx -> TObjSection table, secidx is 1-based }
            FSecCount:=header.nsects;
-           GetMem(FSecTbl,(header.nsects+1)*sizeof(TObjSection));
-           FillChar(FSecTbl^,(header.nsects+1)*sizeof(TObjSection),0);
+           FSecTbl:=AllocMem((header.nsects+1)*sizeof(TObjSection));
            AReader.Seek(sizeof(tcoffheader)+header.opthdr);
            for i:=1 to header.nsects do
              begin
@@ -1978,13 +1979,6 @@ const pemagic : array[0..3] of byte = (
                objsec.coffrelocpos:=sechdr.relocpos;
                objsec.datapos:=sechdr.datapos;
                objsec.Size:=sechdr.dataSize;
-             end;
-           { ObjSymbols }
-           AReader.Seek(header.sympos);
-           if not AReader.ReadArray(FCoffSyms,header.syms*sizeof(CoffSymbol)) then
-             begin
-               Comment(V_Error,'Error reading coff file');
-               exit;
              end;
            { Insert all ObjSymbols }
            read_symbols(objdata);
@@ -2380,7 +2374,6 @@ const pemagic : array[0..3] of byte = (
 
       begin
         result:=false;
-        FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
         FCoffStrs:=TDynamicArray.Create(StrsMaxGrow);
         textExeSec:=FindExeSection('.text');
         dataExeSec:=FindExeSection('.data');
@@ -2546,7 +2539,6 @@ const pemagic : array[0..3] of byte = (
           end;
         { Release }
         FCoffStrs.Free;
-        FCoffSyms.Free;
         result:=true;
       end;
 
