@@ -394,6 +394,15 @@ Type
     procedure Iterate(Iterator : TJSONObjectIterator; Data: TObject);
     function IndexOf(Item: TJSONData): Integer;
     Function IndexOfName(const AName: TJSONStringType; CaseInsensitive : Boolean = False): Integer;
+    Function Find(Const AName : String) : TJSONData; overload;
+    Function Find(Const AName : String; AType : TJSONType) : TJSONData; overload;
+    Function GetFloat(Const AName : String; ADefault : TJSONFloat) : TJSONFloat;
+    Function GetInteger(Const AName : String; ADefault : Integer) : Integer;
+    Function GetInt64(Const AName : String; ADefault : Int64) : Int64;
+    Function GetBoolean(Const AName : String; ADefault : Boolean) : Boolean;
+    Function GetString(Const AName : String; ADefault : TJSONStringType) : TJSONStringTYpe;
+    Function GetArray(Const AName : String; ADefault : TJSONArray) : TJSONArray;
+    Function GetObject(Const AName : String; ADefault : TJSONObject) : TJSONObject;
     // Manipulate
     Procedure Clear;  override;
     function Add(const AName: TJSONStringType; AValue: TJSONData): Integer; overload;
@@ -405,8 +414,10 @@ Type
     function Add(const AName: TJSONStringType): Integer; overload;
     function Add(const AName: TJSONStringType; AValue : TJSONArray): Integer; overload;
     procedure Delete(Index : Integer);
+    procedure Delete(Const AName : string);
     procedure Remove(Item : TJSONData);
     Function Extract(Index : Integer) : TJSONData;
+    Function Extract(Const AName : string) : TJSONData;
 
     // Easy access properties.
     property Names[Index : Integer] : TJSONStringType read GetNameOf;
@@ -2013,6 +2024,17 @@ begin
   FHash.Delete(Index);
 end;
 
+procedure TJSONObject.Delete(Const AName: string);
+
+Var
+  I : Integer;
+
+begin
+  I:=IndexOfName(AName);
+  if (I<>-1) then
+    Delete(I);
+end;
+
 procedure TJSONObject.Remove(Item: TJSONData);
 begin
   FHash.Remove(Item);
@@ -2022,6 +2044,131 @@ function TJSONObject.Extract(Index: Integer): TJSONData;
 begin
   Result:=Items[Index];
   FHash.Extract(Result);
+end;
+
+function TJSONObject.Extract(const AName: string): TJSONData;
+
+Var
+  I : Integer;
+
+begin
+  I:=IndexOfName(AName);
+  if (I<>-1) then
+    Result:=Extract(I)
+  else
+    Result:=Nil
+end;
+
+function TJSONObject.GetFloat(const AName: String; ADefault: TJSONFloat
+  ): TJSONFloat;
+
+Var
+  D : TJSONData;
+
+begin
+  D:=Find(AName,jtNumber);
+  If D<>Nil then
+    Result:=D.AsFloat
+  else
+    Result:=ADefault;
+end;
+
+function TJSONObject.GetInteger(const AName: String; ADefault: Integer
+  ): Integer;
+
+Var
+  D : TJSONData;
+
+begin
+  D:=Find(AName,jtNumber);
+  If D<>Nil then
+    Result:=D.AsInteger
+  else
+    Result:=ADefault;
+end;
+
+function TJSONObject.GetInt64(const AName: String; ADefault: Int64): Int64;
+Var
+  D : TJSONData;
+
+begin
+  D:=Find(AName,jtNumber);
+  If D<>Nil then
+    Result:=D.AsInt64
+  else
+    Result:=ADefault;
+end;
+
+function TJSONObject.GetBoolean(const AName: String; ADefault: Boolean
+  ): Boolean;
+Var
+  D : TJSONData;
+
+begin
+  D:=Find(AName,jtBoolean);
+  If D<>Nil then
+    Result:=D.AsBoolean
+  else
+    Result:=ADefault;
+end;
+
+function TJSONObject.GetString(const AName: String; ADefault: TJSONStringType
+  ): TJSONStringType;
+Var
+  D : TJSONData;
+
+begin
+  D:=Find(AName,jtBoolean);
+  If (D<>Nil) then
+    Result:=D.AsString
+  else
+    Result:=ADefault;
+end;
+
+function TJSONObject.GetArray(const AName: String; ADefault: TJSONArray
+  ): TJSONArray;
+Var
+  D : TJSONData;
+
+begin
+  D:=Find(AName,jtArray);
+  If (D<>Nil) then
+    Result:=D As TJSONArray
+  else
+    Result:=ADefault;
+end;
+
+function TJSONObject.GetObject(const AName: String; ADefault: TJSONObject
+  ): TJSONObject;
+Var
+  D : TJSONData;
+
+begin
+  D:=Find(AName,jtObject);
+  If (D<>Nil) then
+    Result:=D as TJSONObject
+  else
+    Result:=ADefault;
+end;
+
+function TJSONObject.Find(const AName: String): TJSONData;
+
+Var
+  I : Integer;
+
+begin
+  I:=IndexOfName(AName);
+  If (I=-1) then
+    Result:=Items[i]
+  else
+    Result:=Nil;
+end;
+
+function TJSONObject.Find(const AName: String; AType: TJSONType): TJSONData;
+begin
+  Result:=Find(AName);
+  If Assigned(Result) and (Result.JSONType<>AType) then
+    Result:=Nil;
 end;
 
 end.
