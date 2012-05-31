@@ -3703,7 +3703,7 @@ implementation
         para := tcallparanode(left);
         while assigned(para) do
           begin
-            if (para.parasym.typ = paravarsym) then
+            if (para.parasym.typ = paravarsym) and (para.parasym.refs>0) then
               begin
                 { must take copy of para.left, because if it contains a       }
                 { temprefn pointing to a copied temp (e.g. methodpointer),    }
