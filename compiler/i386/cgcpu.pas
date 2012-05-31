@@ -148,6 +148,7 @@ unit cgcpu;
         procedure pushdata(paraloc:pcgparalocation;ofs:tcgint);
         var
           pushsize : tcgsize;
+          opsize : topsize;
           tmpreg   : tregister;
           href     : treference;
         begin
@@ -170,16 +171,21 @@ unit cgcpu;
             pushsize:=paraloc^.size
           else
             pushsize:=int_cgsize(cgpara.alignment);
+          opsize:=TCgsize2opsize[pushsize];
+          { for go32v2 we obtain OS_F32,
+            but pushs is not valid, we need pushl }
+          if opsize=S_FS then
+            opsize:=S_L;
           if tcgsize2size[paraloc^.size]<cgpara.alignment then
             begin
               tmpreg:=getintregister(list,pushsize);
               a_load_ref_reg(list,paraloc^.size,pushsize,href,tmpreg);
-              list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
+              list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
             end
           else
             begin
               make_simple_ref(list,href);
-              list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],href));
+              list.concat(taicpu.op_ref(A_PUSH,opsize,href));
             end;
         end;
 
