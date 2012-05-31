@@ -374,7 +374,7 @@ Implementation
                         }
                         if (taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSL) and
                           (taicpu(p).oper[2]^.shifterop^.shiftimm=16) and
-                          (taicpu(hp1).oper[2]^.shifterop^.shiftmode=SM_LSR) and
+                          (taicpu(hp1).oper[2]^.shifterop^.shiftmode in [SM_LSR,SM_ASR]) and
                           (taicpu(hp1).oper[2]^.shifterop^.shiftimm=16) and
                           getnextinstruction(hp1,hp2) and
                           MatchInstruction(hp2, A_STR, [taicpu(p).condition], [PF_H]) and
