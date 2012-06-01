@@ -108,8 +108,8 @@ type
 
 // Helper functions; these ones are HTML equivalents of ReadXML[File|Fragment]
 
-procedure ReadHTMLFile(var ADoc: THTMLDocument; const AFilename: String);
-procedure ReadHTMLFile(var ADoc: THTMLDocument; f: TStream);
+procedure ReadHTMLFile(out ADoc: THTMLDocument; const AFilename: String);
+procedure ReadHTMLFile(out ADoc: THTMLDocument; f: TStream);
 
 procedure ReadHTMLFragment(AParentNode: TDOMNode; const AFilename: String);
 procedure ReadHTMLFragment(AParentNode: TDOMNode; f: TStream);
@@ -696,7 +696,7 @@ begin
 end;
 
 
-procedure ReadHTMLFile(var ADoc: THTMLDocument; const AFilename: String);
+procedure ReadHTMLFile(out ADoc: THTMLDocument; const AFilename: String);
 var
   f: TStream;
 begin
@@ -709,7 +709,7 @@ begin
   end;
 end;
 
-procedure ReadHTMLFile(var ADoc: THTMLDocument; f: TStream);
+procedure ReadHTMLFile(out ADoc: THTMLDocument; f: TStream);
 var
   Reader: THTMLReader;
   Converter: THTMLToDOMConverter;
