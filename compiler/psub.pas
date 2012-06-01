@@ -915,8 +915,11 @@ implementation
            ((cs_opt_stackframe in current_settings.optimizerswitches) and
             not(cs_generate_stackframes in current_settings.localswitches) and
             not(po_assembler in procdef.procoptions) and
-            ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
-                    pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
+            ((flags*[pi_has_assembler_block,pi_is_assembler,
+{$ifdef i386}
+                    pi_uses_exceptions,pi_needs_implicit_finally,pi_has_implicit_finally,
+{$endif i386}
+                    pi_has_stackparameter,
                     pi_needs_stackframe])=[])
            )
         then
