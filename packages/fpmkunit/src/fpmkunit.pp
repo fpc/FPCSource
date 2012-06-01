@@ -3260,7 +3260,7 @@ end;
 
 procedure TCustomDefaults.RecalcTarget;
 begin
-  Ftarget:=CPUToString(FCPU)+'-'+OStoString(FOS);
+  Ftarget:=MakeTargetString(FCPU,FOS);
   GlobalDictionary.AddVariable('target',Target);
 end;
 
