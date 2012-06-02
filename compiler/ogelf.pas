@@ -178,6 +178,45 @@ implementation
       R_X86_64_GNU_VTENTRY = 25;
 {$endif x86_64}
 
+      { ELFHeader.file_class }
+      ELFCLASSNONE  = 0;
+      ELFCLASS32    = 1;
+      ELFCLASS64    = 2;
+
+      { ELFHeader.e_type }
+      ET_NONE       = 0;
+      ET_REL        = 1;
+      ET_EXEC       = 2;
+      ET_DYN        = 3;
+      ET_CORE       = 4;
+
+      { ELFHeader.e_machine }
+      EM_SPARC      = 2;
+      EM_386        = 3;
+      EM_M68K       = 4;
+      EM_PPC        = 20;
+      EM_ARM        = 40;
+      EM_X86_64     = 62;
+
+{$ifdef sparc}
+      ELFMACHINE = EM_SPARC;
+{$endif sparc}
+{$ifdef i386}
+      ELFMACHINE = EM_386;
+{$endif i386}
+{$ifdef m68k}
+      ELFMACHINE = EM_M68K;
+{$endif m68k}
+{$ifdef powerpc}
+      ELFMACHINE = EM_PPC;
+{$endif powerpc}
+{$ifdef arm}
+      ELFMACHINE = EM_ARM;
+{$endif arm}
+{$ifdef x86_64}
+      ELFMACHINE = EM_X86_64;
+{$endif x86_64}
+
       SHN_UNDEF     = 0;
       SHN_ABS       = $fff1;
       SHN_COMMON    = $fff2;
@@ -212,7 +251,7 @@ implementation
       type
       { Structures which are written directly to the output file }
         TElf32header=packed record
-          magic0123         : longint;
+          magic             : array[0..3] of byte;
           file_class        : byte;
           data_encoding     : byte;
           file_version      : byte;
@@ -274,7 +313,7 @@ implementation
 
 
         telf64header=packed record
-          magic0123         : longint;
+          magic             : array[0..3] of byte;
           file_class        : byte;
           data_encoding     : byte;
           file_version      : byte;
@@ -307,12 +346,12 @@ implementation
         end;
         telf64proghdr=packed record
           p_type            : longword;
-          p_offset          : longword;
+          p_flags           : longword;
+          p_offset          : qword;
           p_vaddr           : qword;
           p_paddr           : qword;
           p_filesz          : qword;
           p_memsz           : qword;
-          p_flags           : qword;
           p_align           : qword;
         end;
         telf64reloc=packed record
@@ -337,6 +376,9 @@ implementation
 
 
 {$ifdef cpu64bitaddr}
+      const
+        ELFCLASS = ELFCLASS64;
+      type
         telfheader = telf64header;
         telfreloc = telf64reloc;
         telfsymbol = telf64symbol;
@@ -344,6 +386,9 @@ implementation
         telfproghdr = telf64proghdr;
         telfdyn = telf64dyn;
 {$else cpu64bitaddr}
+      const
+        ELFCLASS = ELFCLASS32;
+      type
         telfheader = telf32header;
         telfreloc = telf32reloc;
         telfsymbol = telf32symbol;
@@ -1029,7 +1074,7 @@ implementation
     procedure TElfObjectOutput.section_write_symbol(p:TObject;arg:pointer);
       begin
         TObjSection(p).secsymidx:=symidx;
-        write_internal_symbol(TElfObjSection(p).shstridx,STT_SECTION,TElfObjSection(p).secshidx);
+        write_internal_symbol(0,STT_SECTION,TElfObjSection(p).secshidx);
       end;
 
 
@@ -1254,39 +1299,23 @@ implementation
 
            { Write ELF Header }
            fillchar(header,sizeof(header),0);
-           header.magic0123:=$464c457f; { = #127'ELF' }
-{$ifdef cpu64bitaddr}
-           header.file_class:=2;
-{$else cpu64bitaddr}
-           header.file_class:=1;
-{$endif cpu64bitaddr}
+           header.magic[0]:=$7f; { = #127'ELF' }
+           header.magic[1]:=$45;
+           header.magic[2]:=$4c;
+           header.magic[3]:=$46;
+           header.file_class:=ELFCLASS;
            if target_info.endian=endian_big then
              header.data_encoding:=2
            else
-           header.data_encoding:=1;
+             header.data_encoding:=1;
 
            header.file_version:=1;
-           header.e_type:=1;
-{$ifdef sparc}
-           header.e_machine:=2;
-{$endif sparc}
-{$ifdef i386}
-           header.e_machine:=3;
-{$endif i386}
-{$ifdef m68k}
-           header.e_machine:=4;
-{$endif m68k}
-{$ifdef powerpc}
-           header.e_machine:=20;
-{$endif powerpc}
+           header.e_type:=ET_REL;
+           header.e_machine:=ELFMACHINE;
 {$ifdef arm}
-           header.e_machine:=40;
            if (current_settings.fputype=cpu_soft) then
              header.e_flags:=$600;
 {$endif arm}
-{$ifdef x86_64}
-           header.e_machine:=62;
-{$endif x86_64}
            header.e_version:=1;
            header.e_shoff:=shoffset;
            header.e_shstrndx:=shstrtabsect.secshidx;
