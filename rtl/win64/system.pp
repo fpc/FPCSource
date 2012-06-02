@@ -93,11 +93,12 @@ var
 { Win32 Info }
   startupinfo : tstartupinfo;
   StartupConsoleMode : dword;
-  hprevinst,
   MainInstance : qword;
   cmdshow     : longint;
   DLLreason : dword;
   DLLparam : PtrInt;
+const
+  hprevinst: qword=0;
 type
   TDLL_Entry_Hook = procedure (dllparam : PtrInt);
 
@@ -135,223 +136,10 @@ function SysReAllocStringLen(var bstr:pointer;psz: pointer;
 {$I system.inc}
 
 {*****************************************************************************
-                              Parameter Handling
-*****************************************************************************}
-
-procedure setup_arguments;
-var
-  arglen,
-  count   : longint;
-  argstart,
-  pc,arg  : pchar;
-  quote   : char;
-  argvlen : longint;
-  buf: array[0..259] of char;  // need MAX_PATH bytes, not 256!
-
-  procedure allocarg(idx,len:longint);
-    var
-      oldargvlen : longint;
-    begin
-      if idx>=argvlen then
-       begin
-         oldargvlen:=argvlen;
-         argvlen:=(idx+8) and (not 7);
-         sysreallocmem(argv,argvlen*sizeof(pointer));
-         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
-       end;
-      { use realloc to reuse already existing memory }
-      { always allocate, even if length is zero, since }
-      { the arg. is still present!                     }
-      sysreallocmem(argv[idx],len+1);
-    end;
-
-begin
-  { create commandline, it starts with the executed filename which is argv[0] }
-  { Win32 passes the command NOT via the args, but via getmodulefilename}
-  count:=0;
-  argv:=nil;
-  argvlen:=0;
-  ArgLen := GetModuleFileName(0, @buf[0], sizeof(buf));
-  buf[ArgLen] := #0; // be safe
-  allocarg(0,arglen);
-  move(buf,argv[0]^,arglen+1);
-  { Setup cmdline variable }
-  cmdline:=GetCommandLine;
-  { process arguments }
-  pc:=cmdline;
-{$IfDef SYSTEM_DEBUG_STARTUP}
-  Writeln(stderr,'Win32 GetCommandLine is #',pc,'#');
-{$EndIf }
-  while pc^<>#0 do
-   begin
-     { skip leading spaces }
-     while pc^ in [#1..#32] do
-      inc(pc);
-     if pc^=#0 then
-      break;
-     { calc argument length }
-     quote:=' ';
-     argstart:=pc;
-     arglen:=0;
-     while (pc^<>#0) do
-      begin
-        case pc^ of
-          #1..#32 :
-            begin
-              if quote<>' ' then
-               inc(arglen)
-              else
-               break;
-            end;
-          '"' :
-            begin
-              if quote<>'''' then
-               begin
-                 if pchar(pc+1)^<>'"' then
-                  begin
-                    if quote='"' then
-                     quote:=' '
-                    else
-                     quote:='"';
-                  end
-                 else
-                  inc(pc);
-               end
-              else
-               inc(arglen);
-            end;
-          '''' :
-            begin
-              if quote<>'"' then
-               begin
-                 if pchar(pc+1)^<>'''' then
-                  begin
-                    if quote=''''  then
-                     quote:=' '
-                    else
-                     quote:='''';
-                  end
-                 else
-                  inc(pc);
-               end
-              else
-               inc(arglen);
-            end;
-          else
-            inc(arglen);
-        end;
-        inc(pc);
-      end;
-     { copy argument }
-     { Don't copy the first one, it is already there.}
-     If Count<>0 then
-      begin
-        allocarg(count,arglen);
-        quote:=' ';
-        pc:=argstart;
-        arg:=argv[count];
-        while (pc^<>#0) do
-         begin
-           case pc^ of
-             #1..#32 :
-               begin
-                 if quote<>' ' then
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end
-                 else
-                  break;
-               end;
-             '"' :
-                begin
-                 if quote<>'''' then
-                  begin
-                    if pchar(pc+1)^<>'"' then
-                     begin
-                       if quote='"' then
-                        quote:=' '
-                       else
-                        quote:='"';
-                     end
-                    else
-                     inc(pc);
-                  end
-                 else
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end;
-               end;
-             '''' :
-               begin
-                 if quote<>'"' then
-                  begin
-                    if pchar(pc+1)^<>'''' then
-                     begin
-                       if quote=''''  then
-                        quote:=' '
-                       else
-                        quote:='''';
-                     end
-                    else
-                     inc(pc);
-                  end
-                 else
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end;
-               end;
-             else
-               begin
-                 arg^:=pc^;
-                 inc(arg);
-               end;
-           end;
-           inc(pc);
-         end;
-        arg^:=#0;
-      end;
- {$IfDef SYSTEM_DEBUG_STARTUP}
-     Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
- {$EndIf SYSTEM_DEBUG_STARTUP}
-     inc(count);
-   end;
-  { get argc }
-  argc:=count;
-  { free unused memory, leaving a nil entry at the end }
-  sysreallocmem(argv,(count+1)*sizeof(pointer));
-  argv[count] := nil;
-end;
-
-
-function paramcount : longint;
-begin
-  paramcount := argc - 1;
-end;
-
-function paramstr(l : longint) : string;
-begin
-  if (l>=0) and (l<argc) then
-    paramstr:=strpas(argv[l])
-  else
-    paramstr:='';
-end;
-
-
-procedure randomize;
-begin
-  randseed:=GetTickCount;
-end;
-
-
-{*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
 
 procedure install_exception_handlers;forward;
-procedure remove_exception_handlers;forward;
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
 Procedure ExitDLL(Exitcode : longint); forward;
@@ -373,7 +161,6 @@ begin
      { what about Input and Output ?? PM }
      { now handled, FPK }
    end;
-  remove_exception_handlers;
 
   { call exitprocess, with cleanup as required }
   ExitProcess(exitcode);
@@ -400,22 +187,6 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      install_exception_handlers;
      ExitCode:=0;
      asm
-        { allocate space for an exception frame }
-        pushq $0
-        pushq %gs:(0)
-        { movl  %rsp,%gs:(0)
-          but don't insert it as it doesn't
-          point to anything yet
-          this will be used in signals unit }
-        movq %rsp,%rax
-{$ifdef FPC_HAS_RIP_RELATIVE}
-        movq %rax,System_exception_frame(%rip)
-{$else}
-        movq %rax,System_exception_frame
-{$endif}
-        { keep stack aligned }
-        pushq $0
-        pushq %rbp
         movq %rsp,%rax
         movq %rax,st
      end;
@@ -423,16 +194,12 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      asm
         xorq %rax,%rax
         movw %ss,%ax
-{$ifdef FPC_HAS_RIP_RELATIVE}
         movl %eax,_SS(%rip)
-{$else}
-        movl %eax,_SS
-{$endif}
+        movq %rbp,%rsi
         xorq %rbp,%rbp
         call PASCALMAIN
-        popq %rbp
-        popq %rax
-     end;
+        movq %rsi,%rbp
+     end ['RSI','RBP'];     { <-- specifying RSI allows compiler to save/restore it properly }
      { if we pass here there was no error ! }
      system_exit;
   end;
@@ -784,16 +551,6 @@ procedure install_exception_handlers;
   end;
 
 
-procedure remove_exception_handlers;
-  begin
-  end;
-
-
-procedure fpc_cpucodeinit;
-  begin
-  end;
-
-
 procedure LinkIn(p1,p2,p3: Pointer); inline;
 begin
 end;
@@ -827,16 +584,12 @@ end;
 
 
 begin
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
-  hprevinst:=0;
   if not IsLibrary then
     SysInstance:=getmodulehandle(nil);
   MainInstance:=SysInstance;
@@ -844,8 +597,6 @@ begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
-  { setup fastmove stuff }
-  fpc_cpucodeinit;
   SysInitStdIO;
   { Arguments }
   setup_arguments;
@@ -858,9 +609,7 @@ begin
   errno:=0;
   initvariantmanager;
   initwidestringmanager;
-{$ifndef VER2_2}
   initunicodestringmanager;
-{$endif VER2_2}
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

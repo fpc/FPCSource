@@ -211,14 +211,23 @@ threadvar
 
   function Win32GetCurrentThreadId:DWORD;
     stdcall; external KernelDLL name 'GetCurrentThreadId';
-{$endif WINCE}
+  { module functions }
+  function GetModuleFileName(l1:THandle;p:PChar;l2:longint):longint;
+    stdcall;external KernelDLL name 'GetModuleFileNameA';
+
+  function GetModuleHandle(p : PChar) : THandle;
+    stdcall;external KernelDLL name 'GetModuleHandleA';
+
+{$else WINCE}
 
    { module functions }
-   function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
-     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleFileName' + ApiSuffix;
-   function GetModuleHandle(p : pointer) : PtrUInt;
-     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleHandle' + ApiSuffix;
+   function GetModuleFileName(l1:THandle;p:PWideChar;l2:longint):longint;
+     cdecl;external KernelDLL name 'GetModuleFileNameW';
 
+   function GetModuleHandle(p : PWideChar) : THandle;
+     cdecl;external KernelDLL name 'GetModuleHandleW';
+
+{$endif WINCE}
    { file functions }
    function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;

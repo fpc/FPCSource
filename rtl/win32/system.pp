@@ -97,12 +97,13 @@ var
   argv : ppchar; public name 'operatingsystem_parameter_argv';
 { Win32 Info }
   startupinfo : tstartupinfo;
-  hprevinst,
   MainInstance,
   cmdshow     : longint;
   DLLreason : dword; public name 'operatingsystem_dllreason';
   DLLparam : PtrInt; public name 'operatingsystem_dllparam';
   StartupConsoleMode : DWORD;
+const
+  hprevinst: longint=0;
 
 type
   TDLL_Entry_Hook = procedure (dllparam : PtrInt);
@@ -141,152 +142,6 @@ function SysReAllocStringLen(var bstr:pointer;psz: pointer;
 { include system independent routines }
 {$I system.inc}
 
-{*****************************************************************************
-                              Parameter Handling
-*****************************************************************************}
-
-procedure setup_arguments;
-var
-  arglen,
-  count   : longint;
-  argstart,
-  pc,arg  : pchar;
-  quote   : Boolean;
-  argvlen : longint;
-  buf: array[0..259] of char;  // need MAX_PATH bytes, not 256!
-
-  procedure allocarg(idx,len:longint);
-    var
-      oldargvlen : longint;
-    begin
-      if idx>=argvlen then
-       begin
-         oldargvlen:=argvlen;
-         argvlen:=(idx+8) and (not 7);
-         sysreallocmem(argv,argvlen*sizeof(pointer));
-         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
-       end;
-      { use realloc to reuse already existing memory }
-      { always allocate, even if length is zero, since }
-      { the arg. is still present!                     }
-      sysreallocmem(argv[idx],len+1);
-    end;
-
-begin
-  { create commandline, it starts with the executed filename which is argv[0] }
-  { Win32 passes the command NOT via the args, but via getmodulefilename}
-  count:=0;
-  argv:=nil;
-  argvlen:=0;
-  ArgLen := GetModuleFileName(0, @buf[0], sizeof(buf));
-  buf[ArgLen] := #0; // be safe
-  allocarg(0,arglen);
-  move(buf,argv[0]^,arglen+1);
-  { Setup cmdline variable }
-  cmdline:=GetCommandLine;
-  { process arguments }
-  pc:=cmdline;
-{$IfDef SYSTEM_DEBUG_STARTUP}
-  Writeln(stderr,'Win32 GetCommandLine is #',pc,'#');
-{$EndIf }
-  while pc^<>#0 do
-   begin
-     { skip leading spaces }
-     while pc^ in [#1..#32] do
-      inc(pc);
-     if pc^=#0 then
-      break;
-     { calc argument length }
-     quote:=False;
-     argstart:=pc;
-     arglen:=0;
-     while (pc^<>#0) do
-      begin
-        case pc^ of
-          #1..#32 :
-            begin
-              if quote then
-               inc(arglen)
-              else
-               break;
-            end;
-          '"' :
-            if pc[1]<>'"' then
-              quote := not quote
-              else
-              inc(pc);
-          else
-            inc(arglen);
-        end;
-        inc(pc);
-      end;
-     { copy argument }
-     { Don't copy the first one, it is already there.}
-     If Count<>0 then
-      begin
-        allocarg(count,arglen);
-        quote:=False;
-        pc:=argstart;
-        arg:=argv[count];
-        while (pc^<>#0) do
-         begin
-           case pc^ of
-             #1..#32 :
-               begin
-                 if quote then
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end
-                 else
-                  break;
-               end;
-             '"' :
-               if pc[1]<>'"' then
-                 quote := not quote
-                  else
-                inc(pc);
-             else
-               begin
-                 arg^:=pc^;
-                 inc(arg);
-               end;
-           end;
-           inc(pc);
-         end;
-        arg^:=#0;
-      end;
- {$IfDef SYSTEM_DEBUG_STARTUP}
-     Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
- {$EndIf SYSTEM_DEBUG_STARTUP}
-     inc(count);
-   end;
-  { get argc }
-  argc:=count;
-  { free unused memory, leaving a nil entry at the end }
-  sysreallocmem(argv,(count+1)*sizeof(pointer));
-  argv[count] := nil;
-end;
-
-
-function paramcount : longint;
-begin
-  paramcount := argc - 1;
-end;
-
-function paramstr(l : longint) : string;
-begin
-  if (l>=0) and (l<argc) then
-    paramstr:=strpas(argv[l])
-  else
-    paramstr:='';
-end;
-
-
-procedure randomize;
-begin
-  randseed:=GetTickCount;
-end;
 
 
 {*****************************************************************************
@@ -796,13 +651,7 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 begin
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
-
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
-
   { some misc Win32 stuff }
-  hprevinst:=0;
   if not IsLibrary then
     SysInstance:=getmodulehandle(nil);
 
