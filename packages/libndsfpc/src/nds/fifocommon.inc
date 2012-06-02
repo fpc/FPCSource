@@ -44,6 +44,8 @@ const
   SYS_REQ_KEYS       : FifoSystemCommands = 1;
   SYS_REQ_TIME       : FifoSystemCommands = 2;
   SYS_SET_TIME       : FifoSystemCommands = 3;
+  SDMMC_INSERT       : FifoSystemCommands = 4;
+  SDMMC_REMOVE       : FifoSystemCommands = 5;  
   
 type
  FifoSdmmcCommands = integer;

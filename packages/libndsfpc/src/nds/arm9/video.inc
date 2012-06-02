@@ -414,8 +414,8 @@ const
   DCAP_SIZE_256x192     = 3;
   DCAP_BANK_VRAM_A      = 0;
   DCAP_BANK_VRAM_B      = 1;
-  DCAP_BANK_VRAM_C      = 1;
-  DCAP_BANK_VRAM_D      = 2;
+  DCAP_BANK_VRAM_C      = 2;
+  DCAP_BANK_VRAM_D      = 3;
 
 const
   GFX_CONTROL           : pcuint16 = pointer($04000060);

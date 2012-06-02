@@ -1527,7 +1527,7 @@ end;
 
 function ObjData(const x: TRsvpObjHdr): Pointer;
 begin
-  Result := Pointer(Integer(@x) + SizeOf(x));
+  Result := Pointer(PtrUInt(@x) + SizeOf(x));
 end;
 
 function Style_is_Wildcard(p: DWORD): Boolean;

@@ -106,7 +106,7 @@ begin
   Fchunk.acapacity := 0;
   Fchunk.data := nil;
   FGrayScale := False;
-  FIndexed := True;
+  FIndexed := False;
   FCompressedText := True;
   FWordSized := True;
   FUseAlpha := False;
