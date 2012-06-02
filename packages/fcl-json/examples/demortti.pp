@@ -5,8 +5,6 @@ program demortti;
 uses
   Classes, SysUtils, fpjson, fpjsonrtti, variants;
 
-{$R *.res}
-
 Var
   JS : TJSONStreamer;
 
