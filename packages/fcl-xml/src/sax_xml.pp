@@ -95,10 +95,10 @@ type
 // Helper functions; these ones are XML equivalents of ReadXML[File|Fragment]
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String);
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream);
+procedure ReadXMLFile(var ADoc: TXMLDocument; f: TStream);
 
 procedure ReadXMLFragment(AParentNode: TDOMNode; const AFilename: String);
-procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream);
+procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream);
 
 
 
@@ -563,7 +563,7 @@ begin
   end;
 end;
 
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream);
+procedure ReadXMLFile(var ADoc: TXMLDocument; f: TStream);
 var
   Reader: TSAXXMLReader;
   Converter: TXMLToDOMConverter;
@@ -594,7 +594,7 @@ begin
   end;
 end;
 
-procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream);
+procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream);
 var
   Reader: TSAXXMLReader;
   Converter: TXMLToDOMConverter;

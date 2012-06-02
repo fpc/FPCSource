@@ -98,7 +98,6 @@ type
   TDOMEntityReference = class;
   TDOMProcessingInstruction = class;
 
-  TDOMAttrDef = class;
   TNodePool = class;
   PNodePoolArray = ^TNodePoolArray;
   TNodePoolArray = array[0..MaxInt div sizeof(Pointer)-1] of TNodePool;
@@ -485,7 +484,6 @@ type
       TDOMProcessingInstruction; virtual;
     function CreateAttribute(const name: DOMString): TDOMAttr;
     function CreateAttributeBuf(Buf: DOMPChar; Length: Integer): TDOMAttr;
-    function CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef; deprecated;
     function CreateEntityReference(const name: DOMString): TDOMEntityReference;
       virtual;
     function GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
@@ -503,7 +501,6 @@ type
     // Extensions to DOM interface:
     constructor Create; virtual;
     destructor Destroy; override;
-    function AddID(Attr: TDOMAttr): Boolean; deprecated;
     function CloneNode(deep: Boolean): TDOMNode; overload; override;
     property Names: THashTable read FNames;
     property IDs: THashTable read FIDList write FIDList;
@@ -522,8 +519,6 @@ type
     function CreateProcessingInstruction(const target, data: DOMString):
       TDOMProcessingInstruction; override;
     function CreateEntityReference(const name: DOMString): TDOMEntityReference; override;
-    // non-compliant symbol, superseded by XMLEncoding, to be phased out
-    property Encoding: DOMString read FXMLEncoding write FXMLEncoding; deprecated;
   end;
 
   // This limits number of namespaces per document to 65535,
@@ -762,26 +757,6 @@ type
     property Target: DOMString read FTarget;
     property Data: DOMString read FNodeValue write SetNodeValue;
   end;
-
-// Attribute declaration - Attr descendant which carries rudimentary type info
-// must be severely improved while developing Level 3
-// NOT USED ANYMORE -- replaced by dtdmodel.TAttributeDef
-
-  TAttrDefault = dtdmodel.TAttrDefault;
-  TDOMAttrDef = class(TDOMAttr)
-  protected
-    FExternallyDeclared: Boolean;
-    FDefault: TAttrDefault;
-    FTag: Cardinal;
-    FEnumeration: array of DOMString;
-  public
-    function AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
-    function HasEnumToken(const aValue: DOMString): Boolean;
-    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
-    property Default: TAttrDefault read FDefault write FDefault;
-    property ExternallyDeclared: Boolean read FExternallyDeclared write FExternallyDeclared;
-    property Tag: Cardinal read FTag write FTag;
-  end deprecated;
 
 // TNodePool - custom memory management for TDOMNode's
 // One pool manages objects of the same InstanceSize (may be of various classes)
@@ -2220,22 +2195,6 @@ begin
   Result := pp.AllocNode(AClass);
 end;
 
-function TDOMDocument.AddID(Attr: TDOMAttr): Boolean;
-var
-  ID: DOMString;
-  Exists: Boolean;
-  p: PHashItem;
-begin
-  if FIDList = nil then
-    FIDList := THashTable.Create(256, False);
-
-  ID := Attr.Value;
-  p := FIDList.FindOrAdd(DOMPChar(ID), Length(ID), Exists);
-  if not Exists then
-    p^.Data := Attr.FParentNode;
-  Result := not Exists;
-end;
-
 // This shouldn't be called if document has no IDs,
 // or when it is being destroyed
 // TODO: This could be much faster if removing ID happens
@@ -2403,14 +2362,6 @@ begin
   Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(buf, Length);
   Include(Result.FFlags, nfSpecified);
-end;
-
-{deprecated}
-function TDOMDocument.CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef;
-begin
-// not using custom allocation here
-  Result := TDOMAttrDef.Create(Self);
-  Result.FNSI.QName := FNames.FindOrAdd(Buf, Length);
 end;
 
 function TDOMDocument.CreateEntityReference(const name: DOMString):
@@ -3418,46 +3369,6 @@ procedure TDOMProcessingInstruction.SetNodeValue(const AValue: DOMString);
 begin
   Changing;
   FNodeValue := AValue;
-end;
-
-{ TDOMAttrDef (DEPRECATED) }
-
-function TDOMAttrDef.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
-begin
-  Result := inherited CloneNode(deep, ACloneOwner);
-  Exclude(Result.FFlags, nfSpecified);
-end;
-
-function TDOMAttrDef.AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
-var
-  I, L: Integer;
-begin
-  // TODO: this implementaion is the slowest possible...
-  Result := False;
-  L := Length(FEnumeration);
-  for I := 0 to L-1 do
-  begin
-    if CompareDomStrings(Buf, DOMPChar(FEnumeration[I]), Len, Length(FEnumeration[I])) = 0 then
-      Exit;
-  end;
-  SetLength(FEnumeration, L+1);
-  SetString(FEnumeration[L], Buf, Len);
-  Result := True;
-end;
-
-function TDOMAttrDef.HasEnumToken(const aValue: DOMString): Boolean;
-var
-  I: Integer;
-begin
-  Result := True;
-  if Length(FEnumeration) = 0 then
-    Exit;
-  for I := 0 to Length(FEnumeration)-1 do
-  begin
-    if FEnumeration[I] = aValue then
-      Exit;
-  end;
-  Result := False;
 end;
 
 { TNodePool }

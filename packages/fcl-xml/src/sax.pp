@@ -77,27 +77,18 @@ type
     AttrType: String;
   end;
 
-  {$IFNDEF UseDynArrays}
   PSAXAttributeData = ^TSAXAttributeData;
-  {$ENDIF}
 
   TSAXAttributes = class
   protected
-    FLength: Integer;
-    {$IFDEF UseDynArrays}
-    Data: array of TSAXAttributeData;
-    {$ELSE}
-    FData: TList;
+    FData: TFPList;
     function GetData(Index: Integer): PSAXAttributeData;
     property Data[Index:Integer]: PSAXAttributeData read GetData;
-    {$ENDIF}
     procedure BadIndex(Index: Integer);
   public
     constructor Create; overload;
     constructor Create(Atts: TSAXAttributes); overload;
-    {$IFNDEF UseDynArrays}
     destructor Destroy; override;
-    {$ENDIF}
 
     function GetIndex(const QName: SAXString): Integer; overload;
     function GetIndex(const URI, LocalPart: SAXString): Integer; overload;
@@ -313,33 +304,27 @@ end;
 constructor TSAXAttributes.Create;
 begin
   inherited Create;
-  {$IFNDEF UseDynArrays}
-  FData := TList.Create;
-  {$ENDIF}
+  FData := TFPList.Create;
 end;
 
 constructor TSAXAttributes.Create(Atts: TSAXAttributes);
 begin
   inherited Create;
-  {$IFNDEF UseDynArrays}
-  FData := TList.Create;
-  {$ENDIF}
+  FData := TFPList.Create;
   SetAttributes(Atts);
 end;
 
-{$IFNDEF UseDynArrays}
 destructor TSAXAttributes.Destroy;
 begin
   Clear;
   FData.Free;
   inherited Destroy;
 end;
-{$ENDIF}
 
 function TSAXAttributes.GetIndex(const QName: SAXString): Integer;
 begin
   Result := 0;
-  while Result < FLength do
+  while Result < FData.Count do
   begin
     if Data[Result]^.QName = QName then
       exit;
@@ -351,7 +336,7 @@ end;
 function TSAXAttributes.GetIndex(const URI, LocalPart: SAXString): Integer;
 begin
   Result := 0;
-  while Result < FLength do
+  while Result < FData.Count do
   begin
     if (Data[Result]^.URI = URI) and (Data[Result]^.LocalName = LocalPart) then
       exit;
@@ -362,12 +347,12 @@ end;
 
 function TSAXAttributes.GetLength: Integer;
 begin
-  Result := FLength;
+  Result := FData.Count;
 end;
 
 function TSAXAttributes.GetLocalName(Index: Integer): SAXString;
 begin
-  if (Index >= 0) and (Index < FLength) then
+  if (Index >= 0) and (Index < FData.Count) then
     Result := Data[Index]^.LocalName
   else
     SetLength(Result, 0);
@@ -375,7 +360,7 @@ end;
 
 function TSAXAttributes.GetQName(Index: Integer): SAXString;
 begin
-  if (Index >= 0) and (Index < FLength) then
+  if (Index >= 0) and (Index < FData.Count) then
     Result := Data[Index]^.QName
   else
     SetLength(Result, 0);
@@ -383,7 +368,7 @@ end;
 
 function TSAXAttributes.GetType(Index: Integer): String;
 begin
-  if (Index >= 0) and (Index < FLength) then
+  if (Index >= 0) and (Index < FData.Count) then
     Result := Data[Index]^.AttrType
   else
     SetLength(Result, 0);
@@ -393,7 +378,7 @@ function TSAXAttributes.GetType(const QName: SAXString): String;
 var
   i: Integer;
 begin
-  for i := 0 to FLength - 1 do
+  for i := 0 to FData.Count - 1 do
     if Data[i]^.QName = QName then
     begin
       Result := Data[i]^.AttrType;
@@ -406,7 +391,7 @@ function TSAXAttributes.GetType(const URI, LocalName: SAXString): String;
 var
   i: Integer;
 begin
-  for i := 0 to FLength - 1 do
+  for i := 0 to FData.Count - 1 do
     if (Data[i]^.URI = URI) and (Data[i]^.LocalName = LocalName) then
     begin
       Result := Data[i]^.AttrType;
@@ -417,15 +402,15 @@ end;
 
 function TSAXAttributes.GetURI(Index: Integer): SAXString;
 begin
-  if (Index >= 0) and (Index < FLength) then
-    Result := Data[Index * 5]^.URI
+  if (Index >= 0) and (Index < FData.Count) then
+    Result := Data[Index]^.URI
   else
     SetLength(Result, 0);
 end;
 
 function TSAXAttributes.GetValue(Index: Integer): SAXString;
 begin
-  if (Index >= 0) and (Index < FLength) then
+  if (Index >= 0) and (Index < FData.Count) then
     Result := Data[Index]^.Value
   else
     SetLength(Result, 0);
@@ -435,7 +420,7 @@ function TSAXAttributes.GetValue(const QName: SAXString): SAXString;
 var
   i: Integer;
 begin
-  for i := 0 to FLength - 1 do
+  for i := 0 to FData.Count - 1 do
     if Data[i]^.QName = QName then
     begin
       Result := Data[i]^.Value;
@@ -448,7 +433,7 @@ function TSAXAttributes.GetValue(const URI, LocalName: SAXString): SAXString;
 var
   i: Integer;
 begin
-  for i := 0 to FLength - 1 do
+  for i := 0 to FData.Count - 1 do
     if (Data[i]^.URI = URI) and (Data[i]^.LocalName = LocalName) then
     begin
       Result := Data[i]^.Value;
@@ -458,39 +443,20 @@ begin
 end;
 
 procedure TSAXAttributes.Clear;
-{$IFDEF UseDynArrays}
-begin
-  SetLength(Data, 0);
-end;
-{$ELSE}
 var
   i: Integer;
-  p: PSAXAttributeData;
 begin
   for i := 0 to FData.Count - 1 do
-  begin
-    p := PSAXAttributeData(FData[i]);
-    Dispose(p);
-  end;
+    Dispose(PSAXAttributeData(FData[i]));
 end;
-{$ENDIF}
 
 procedure TSAXAttributes.SetAttributes(Atts: TSAXAttributes);
 var
   i: Integer;
 begin
-  FLength := Atts.Length;
-  {$IFDEF UseDynArrays}
-  SetLength(Data, FLength);
-  {$ELSE}
-  FData.Count := FLength;
-  {$ENDIF}
-  for i := 0 to FLength - 1 do
-    {$IFDEF UseDynArrays}
-    with Data[i] do
-    {$ELSE}
+  FData.Count := Atts.Length;
+  for i := 0 to FData.Count - 1 do
     with Data[i]^ do
-    {$ENDIF}
     begin
       URI := Atts.URIs[i];
       LocalName := Atts.LocalNames[i];
@@ -502,42 +468,24 @@ end;
 
 procedure TSAXAttributes.AddAttribute(const AURI, ALocalName, AQName: SAXString;
   const AType: String; const AValue: SAXString);
-{$IFNDEF UseDynArrays}
 var
   p: PSAXAttributeData;
-{$ENDIF}
 begin
-  Inc(FLength);
-  {$IFDEF UseDynArrays}
-  SetLength(Data, FLength);
-  {$ELSE}
   New(p);
   FData.Add(p);
-  {$ENDIF}
-  {$IFDEF UseDynArrays}
-  with Data[FLength - 1] do
-  {$ELSE}
-  with Data[FLength - 1]^ do
-  {$ENDIF}
-  begin
-    URI := AURI;
-    LocalName := ALocalName;
-    QName := AQName;
-    AttrType := AType;
-    Value := AValue;
-  end;
+  p^.URI := AURI;
+  p^.LocalName := ALocalName;
+  p^.QName := AQName;
+  p^.AttrType := AType;
+  p^.Value := AValue;
 end;
 
 procedure TSAXAttributes.SetAttribute(Index: Integer;
   const AURI, ALocalName, AQName: SAXString; const AType: String;
   const AValue: SAXString);
 begin
-  if (Index >= 0) and (Index < FLength) then
-    {$IFDEF UseDynArrays}
-    with Data[Index] do
-    {$ELSE}
+  if (Index >= 0) and (Index < FData.Count) then
     with Data[Index]^ do
-    {$ENDIF}
     begin
       URI := AURI;
       LocalName := ALocalName;
@@ -550,29 +498,17 @@ begin
 end;
 
 procedure TSAXAttributes.RemoveAttribute(Index: Integer);
-{$IFDEF UseDynArrays}
-var
-  i: Integer;
-{$ENDIF}
 begin
-  if (Index >= 0) and (Index < FLength) then
+  if (Index >= 0) and (Index < FData.Count) then
   begin
-    {$IFDEF UseDynArrays}
-    for i := Index to FLength - 1 do
-      Data[i] := Data[i + 1];
-    Dec(FLength);
-    SetLength(Data, FLength);
-    {$ELSE}
     FData.Delete(Index);
-    Dec(FLength);
-    {$ENDIF}
   end else
     BadIndex(Index);
 end;
 
 procedure TSAXAttributes.SetURI(Index: Integer; const AURI: SAXString);
 begin
-  if (Index >= 0) and (Index < FLength) then
+  if (Index >= 0) and (Index < FData.Count) then
     Data[Index]^.URI := AURI
   else
     BadIndex(Index);
@@ -581,7 +517,7 @@ end;
 procedure TSAXAttributes.SetLocalName(Index: Integer;
   const ALocalName: SAXString);
 begin
-  if (Index >= 0) and (Index < FLength) then
+  if (Index >= 0) and (Index < FData.Count) then
     Data[Index]^.LocalName := ALocalName
   else
     BadIndex(Index);
@@ -589,7 +525,7 @@ end;
 
 procedure TSAXAttributes.SetQName(Index: Integer; const AQName: SAXString);
 begin
-  if (Index >= 0) and (Index < FLength) then
+  if (Index >= 0) and (Index < FData.Count) then
     Data[Index]^.QName := AQName
   else
     BadIndex(Index);
@@ -597,7 +533,7 @@ end;
 
 procedure TSAXAttributes.SetType(Index: Integer; const AType: String);
 begin
-  if (Index >= 0) and (Index < FLength) then
+  if (Index >= 0) and (Index < FData.Count) then
     Data[Index]^.AttrType := AType
   else
     BadIndex(Index);
@@ -605,18 +541,16 @@ end;
 
 procedure TSAXAttributes.SetValue(Index: Integer; const AValue: SAXString);
 begin
-  if (Index >= 0) and (Index < FLength) then
+  if (Index >= 0) and (Index < FData.Count) then
     Data[Index]^.Value := AValue
   else
     BadIndex(Index);
 end;
 
-{$IFNDEF UseDynArrays}
 function TSAXAttributes.GetData(Index: Integer): PSAXAttributeData;
 begin
   Result := PSAXAttributeData(FData[Index]);
 end;
-{$ENDIF}
 
 procedure TSAXAttributes.BadIndex(Index: Integer);
 begin
