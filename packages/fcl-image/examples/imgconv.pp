@@ -78,7 +78,7 @@ begin
   else if T = 'T' then
     Writer := TFPWriterTARGA.Create
   else if T = 'N' then
-    Writer := TFPWriterPNM.Create(4)
+    Writer := TFPWriterPNM.Create
   else
     begin
     Writeln('Unknown file format : ',T);
