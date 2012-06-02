@@ -491,6 +491,12 @@ const
      syscall_nr_issetugid = 305;
   { syscall: "utrace" ret: "int" args: "const char  " "void  " "size_t"  }
      syscall_nr_utrace = 306;
+  { syscall: "__sigaction_sigtramp" ret: "int" args: "int" "const struct sigaction *"
+	     "struct sigaction *" "const void *" "int"  }
+     syscall_nr___sigaction_sigtramp = 340;
+{$ifdef CPUX86_64}
+  {$define USE_SIGACTION_SIGTRAMP}
+{$endif}
   { syscall: "kqueue" ret: "int" args: }
      syscall_nr_kqueue = 344;
   { syscall: "kevent" ret: "int" args: "int" "const struct kevent *" "size_t" "struct kevent *" "size_t" "const struct timespec *" }

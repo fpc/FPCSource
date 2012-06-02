@@ -257,6 +257,10 @@ enum { _FRAME_GREG(GREG_OFFSETS) _NGREG = 26 };
 	sc_rcx : clong;
 	sc_r8  : clong;
 	sc_r9  : clong;
+	sc_arg6  : clong;
+	sc_arg7  : clong;
+	sc_arg8  : clong;
+	sc_arg9  : clong;
 	sc_r10 : clong;
 	sc_r11 : clong;
 	sc_r12 : clong;
@@ -311,5 +315,4 @@ enum { _FRAME_GREG(GREG_OFFSETS) _NGREG = 26 };
   If Act is non-nil, it is used to specify the new action.
   If OldAct is non-nil the previous action is saved there.
 }
-
 
