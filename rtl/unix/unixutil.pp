@@ -20,11 +20,11 @@ var
   Tzseconds : Longint;
 
 Type
-  ComStr  = String[255];
-  PathStr = String[255];
-  DirStr  = String[255];
-  NameStr = String[255];
-  ExtStr  = String[255];
+  ComStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
+  PathStr = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
+  DirStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
+  NameStr = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
+  ExtStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
 
 Function Dirname(Const path:pathstr):pathstr; deprecated;
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
@@ -33,8 +33,8 @@ Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
 Function Basename(Const path:pathstr;Const suf:pathstr):pathstr; deprecated;
 Function FNMatch(const Pattern,Name:string):Boolean; deprecated;
-Function GetFS (var T:Text):longint;
-Function GetFS(Var F:File):longint;
+Function GetFS (var T:Text):longint; deprecated;
+Function GetFS(Var F:File):longint; deprecated; // use sysutils.getfilehandle
 Procedure FSplit(const Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr); deprecated;
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
