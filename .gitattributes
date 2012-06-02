@@ -11407,6 +11407,7 @@ tests/test/units/sysutils/tencodingerrors.pp svneol=native#text/pascal
 tests/test/units/sysutils/tencodingtest.pp svneol=native#text/pascal
 tests/test/units/sysutils/texec1.pp svneol=native#text/plain
 tests/test/units/sysutils/texec2.pp svneol=native#text/plain
+tests/test/units/sysutils/texpfncase.pp svneol=native#text/plain
 tests/test/units/sysutils/textractquote.pp svneol=native#text/plain
 tests/test/units/sysutils/tfile1.pp svneol=native#text/plain
 tests/test/units/sysutils/tfile2.pp svneol=native#text/plain
