@@ -37,7 +37,7 @@ target has finished, e.g.
 
   make digest TEST_FPC=path_to_your_compiler
 
-Make sure to clean the test suite between two runs.
+Make sure to clean the test suite between two runs for the same platform.
 
 
 Directories
