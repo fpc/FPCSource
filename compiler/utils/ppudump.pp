@@ -2130,6 +2130,7 @@ begin
              writeln(space,'       ParaNr : ',getword);
              writeln(space,'        Univ  : ',boolean(getbyte));
              writeln(space,'     VarState : ',getbyte);
+             writeln(space,'         Refs : ',getbyte);
              if (vo_has_explicit_paraloc in varoptions) then
                begin
                  i:=getbyte;

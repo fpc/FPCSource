@@ -1833,6 +1833,9 @@ implementation
          }
          varstate:=tvarstate(ppufile.getbyte);
 
+         { read usage info }
+         refs:=ppufile.getbyte;
+
          paraloc[calleeside].init;
          paraloc[callerside].init;
          if vo_has_explicit_paraloc in varoptions then
@@ -1863,6 +1866,9 @@ implementation
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
          ppufile.putbyte(ord(varstate));
+         { write also info about the usage of parameters,
+           the absolute usage does not matter }
+         ppufile.putbyte(min(1,refs));
          ppufile.do_crc:=oldintfcrc;
 
          if vo_has_explicit_paraloc in varoptions then
