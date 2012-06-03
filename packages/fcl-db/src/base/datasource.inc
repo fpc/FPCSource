@@ -245,6 +245,8 @@ end;
 Procedure TDataLink.SetDataSource(Value : TDatasource);
 
 begin
+  if FDataSource = Value then
+    Exit;
   if not FDataSourceFixed then
     begin
     if Assigned(DataSource) then

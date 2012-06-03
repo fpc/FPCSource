@@ -104,6 +104,7 @@ type
 
     procedure TestAddDblIndex;
     procedure TestIndexEditRecord;
+    procedure TestIndexAppendRecord;
   end;
 
 {$endif fpc}
@@ -1652,10 +1653,11 @@ begin
     first;
     ds.IndexName:='test';
     first;
-    LastValue:=FieldByName('name').AsString;
+    LastValue:='';
     while not eof do
       begin
       CheckTrue(AnsiCompareStr(LastValue,FieldByName('name').AsString)<=0);
+      LastValue:=FieldByName('name').AsString;
       Next;
       end;
     end;
@@ -1851,12 +1853,75 @@ begin
     FieldByName('F'+FieldTypeNames[AfieldType]).AsString := 'ZZZ';
     post;
     prior;
-    CheckTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)>=0);
+    CheckTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)>=0, 'Prior>');
     next;
     next;
-    CheckTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0);
+    CheckTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0, 'Next<');
     close;
     end;
+end;
+
+procedure TTestBufDatasetDBBasics.TestIndexAppendRecord;
+var i: integer;
+    LastValue: string;
+begin
+  with DBConnector.GetNDataset(true,0) as TCustomBufDataset do
+  begin
+    MaxIndexesCount:=4;
+    // add index to closed dataset with no data
+    AddIndex('testindex','NAME',[]);
+    IndexName:='testindex';
+    Open;
+    // empty dataset and other than default index (default_order) active
+    CheckTrue(BOF, 'No BOF when opening empty dataset');
+    CheckTrue(EOF, 'No EOF when opening empty dataset');
+
+    // append data at end
+    for i:=20 downto 0 do
+      AppendRecord([i, inttostr(i)]);
+    First;
+    // insert data at begining
+    for i:=21 to 22 do
+      InsertRecord([i, inttostr(i)]);
+
+    // ATM new records are not ordered as they are added ?
+    LastValue := '';
+    First;
+    for i:=22 downto 0 do
+    begin
+      CheckEquals(23-i, RecNo, 'testindex.RecNo:');
+      CheckEquals(inttostr(i), Fields[1].AsString, 'testindex.Fields[1].Value:');
+      //CheckTrue(AnsiCompareStr(LastValue,Fields[1].AsString) < 0, 'testindex.LastValue>CurrValue');
+      LastValue := Fields[1].AsString;
+      Next;
+    end;
+    CheckTrue(EOF, 'testindex.No EOF after last record');
+
+    // switch back to default index (unordered)
+    IndexName:='';
+    First;
+    for i:=22 downto 0 do
+    begin
+      CheckEquals(23-i, RecNo, 'index[0].RecNo:');
+      CheckEquals(i, Fields[0].AsInteger, 'index[0].Fields[0].Value:');
+      Next;
+    end;
+    CheckTrue(EOF, 'index[0].No EOF after last record');
+
+    // add index to opened dataset with data
+    AddIndex('testindex2','ID',[]);
+    IndexName:='testindex2';
+    First;
+    for i:=0 to 22 do
+    begin
+      CheckEquals(1+i, RecNo, 'index2.RecNo:');
+      CheckEquals(i, Fields[0].AsInteger, 'index2.Fields[0].Value:');
+      Next;
+    end;
+    CheckTrue(EOF, 'index2.No EOF after last record');
+
+    Close;
+  end;
 end;
 
 procedure TTestBufDatasetDBBasics.TestIndexFieldNames;
@@ -2361,7 +2426,8 @@ initialization
   RegisterTestDecorator(TDBBasicsTestSetup, TTestDBBasics);
   RegisterTestDecorator(TDBBasicsTestSetup, TTestCursorDBBasics);
 
-  if uppercase(dbconnectorname)='SQL' then
+  // The SQL connectors are descendents of bufdataset and therefore benefit from testing:
+  if (uppercase(dbconnectorname)='SQL') or (uppercase(dbconnectorname)='BUFDATASET') then
     begin
     RegisterTestDecorator(TDBBasicsTestSetup, TTestBufDatasetDBBasics);
     RegisterTestDecorator(TDBBasicsUniDirectionalTestSetup, TTestUniDirectionalDBBasics);

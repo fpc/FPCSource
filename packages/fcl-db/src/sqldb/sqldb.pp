@@ -36,7 +36,7 @@ type
   TSQLScript = class;
 
 
-  TStatementType = (stNone, stSelect, stInsert, stUpdate, stDelete,
+  TStatementType = (stUnknown, stSelect, stInsert, stUpdate, stDelete,
     stDDL, stGetSegment, stPutSegment, stExecProcedure,
     stStartTrans, stCommit, stRollback, stSelectForUpd);
 
@@ -63,7 +63,7 @@ const
   SingleQuotes : TQuoteChars = ('''','''');
   DoubleQuotes : TQuoteChars = ('"','"');
   LogAllEvents = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack];
-  StatementTokens : Array[TStatementType] of string = ('(none)', 'select',
+  StatementTokens : Array[TStatementType] of string = ('(unknown)', 'select',
                   'insert', 'update', 'delete',
                   'create', 'get', 'put', 'execute',
                   'start','commit','rollback', '?'
@@ -542,9 +542,10 @@ var T : TStatementType;
 
 begin
   S:=Lowercase(s);
-  For t:=stselect to strollback do
-    if (S=StatementTokens[t]) then
-      Exit(t);
+  for T:=stSelect to stRollback do
+    if (S=StatementTokens[T]) then
+      Exit(T);
+  Result:=stUnknown;
 end;
 
 procedure TSQLConnection.SetTransaction(Value : TSQLTransaction);
@@ -621,7 +622,7 @@ begin
       DatabaseError(SErrNoStatement);
 
     Cursor := AllocateCursorHandle;
-    Cursor.FStatementType := stNone;
+    Cursor.FStatementType := stUnknown;
     PrepareStatement(cursor,ATransaction,SQL,Nil);
     execute(cursor,ATransaction, Nil);
     UnPrepareStatement(Cursor);
@@ -1218,7 +1219,7 @@ end;
 
 function TCustomSQLQuery.SQLParser(const ASQL : string) : TStatementType;
 
-type TParsePart = (ppStart,ppSelect,ppWhere,ppFrom,ppOrder,ppComment,ppGroup,ppBogus);
+type TParsePart = (ppStart,ppWith,ppSelect,ppFrom,ppWhere,ppGroup,ppOrder,ppComment,ppBogus);
 
 Var
   PSQL,CurrentP,
@@ -1248,13 +1249,13 @@ begin
     begin
     inc(CurrentP);
 
-    EndOfComment := SkipComments(CurrentP,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions);
-    if EndOfcomment then dec(currentp);
+    EndOfComment := SkipComments(CurrentP, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions);
+    if EndOfcomment then dec(CurrentP);
     if EndOfComment and (ParsePart = ppStart) then PhraseP := CurrentP;
 
     // skip everything between bracket, since it could be a sub-select, and
     // further nothing between brackets could be interesting for the parser.
-    if currentp^='(' then
+    if CurrentP^='(' then
       begin
       inc(currentp);
       BracketCount := 0;
@@ -1279,9 +1280,24 @@ begin
         case ParsePart of
           ppStart  : begin
                      Result := TSQLConnection(Database).StrToStatementType(s);
-                     if s = 'SELECT' then ParsePart := ppSelect else break;
+                     case s of
+                       'WITH'  : ParsePart := ppWith;
+                       'SELECT': ParsePart := ppSelect;
+                       else      break;
+                     end;
                      if not FParseSQL then break;
                      PStatementPart := CurrentP;
+                     end;
+          ppWith   : begin
+                     // WITH [RECURSIVE] CTE_name [ ( column_names ) ] AS ( CTE_query_definition ) [, ...]
+                     //  { SELECT | INSERT | UPDATE | DELETE } ...
+                     case s of
+                       'SELECT': Result := stSelect;
+                       'INSERT': Result := stInsert;
+                       'UPDATE': Result := stUpdate;
+                       'DELETE': Result := stDelete;
+                     end;
+                     if Result <> stUnknown then break;
                      end;
           ppSelect : begin
                      if s = 'FROM' then
@@ -1323,7 +1339,7 @@ begin
                          begin
                          Setlength(FFromPart,StrLength);
                          Move(PStatementPart^,FFromPart[1],(StrLength));
-                         FFrompart := trim(FFrompart);
+                         FFromPart := trim(FFromPart);
 
                          // Meta-data requests and are never updateable select-statements
                          // from more then one table are not updateable
@@ -1749,8 +1765,10 @@ end;
 function TCustomSQLQuery.GetStatementType : TStatementType;
 
 begin
-  if assigned(FCursor) then Result := FCursor.FStatementType
-    else Result := stNone;
+  if assigned(FCursor) then
+    Result := FCursor.FStatementType
+  else
+    Result := stUnknown;
 end;
 
 procedure TCustomSQLQuery.SetDeleteSQL(const AValue: TStringlist);
@@ -1996,7 +2014,7 @@ begin
   inherited DoInternalConnect;
   CreateProxy;
   FProxy.CharSet:=Self.CharSet;
-  FProxy.Role:=self.Role;
+  FProxy.Role:=Self.Role;
   FProxy.DatabaseName:=Self.DatabaseName;
   FProxy.HostName:=Self.HostName;
   FProxy.UserName:=Self.UserName;

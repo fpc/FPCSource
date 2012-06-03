@@ -1,12 +1,13 @@
 This directory contains a framework to test several TDataset descendents.
+A lot of these tests are only applicable for SQL databases, but there are several tests that also apply to other objects, such as TBufDataset.
 
-The framework is based on the fpcunit unit-test system. The tests can be
+The framework is based on the fpcunit unit test system. The tests can be
 executed using any fpcunit-testrunner. For example the console and graphical
-fpcunit-test runners from Lazarus.
+fpcunit test runners from Lazarus.
 Simply add the test* units in this directory to the uses statement of the
-test-runner and all tests will get registered and executed.
+test runner and all tests will get registered and executed.
 
-An simple test-runner (dbtestframework.pas) which generates XML-output is
+A simple test runner (dbtestframework.pas) which generates XML output is
 included in this directory.
 
 To test a TDataset descendent, a 'connector' is needed to test the database.
@@ -14,14 +15,25 @@ To add a new connector, create a new *toolsunit.pas file, then add it to
 the uses section in 'dbtestframework.pas'. Several connectors are available 
 in the '*toolsunit.pas' files.
 
+The connector must inherit from TDBConnector in toolsunit.pas.
+The connector implements two different kinds of datasets: 
+- a dataset with as many different kinds of fields as possible (see the *FieldDataSets subroutines).
+- a dataset with only a few fields (ID and NAME), but a lot (well, MaxDataset) of different records (see the *NDataSets subroutines)
+
+CreateNDatasets and CreateFieldDataset should be implemented to set up data stores (e.g. database tables) and fill these stores with test data for the respective datasets.
+The corresponding Drop*Dataset procedures must drop the tables/delete the data.
+
+GetNDataset and GetFieldsDataset should return the relevant dataset in closed state so the tests can open them and work with them.
+They call InternalGetNDataset and InternalGetFieldDataset which should be implemented in all descendents and returns the relevant dataset, closed, with all data.
+
+Toolsunit.pas defines some variables for use, e.g. testValuesCount is the number of records/test values in the FieldDataset dataset; MaxDataset is the same for NDataset.
+See e.g. the SQLDBToolsUnit for the implementation for SQL Databases.
+
 Which connector is currently used is dependent on the 'database.ini'
 configuration file. Also some settings which are connector-dependent can be set
 in that file. See 'database.ini.txt' for an example.
 
 I hope this is enough information to get you started,
 
-Joost van der Sluis (30-12-2006)
-
-
-
-
+Joost van der Sluis (30-12-2006), 
+amended by Reinier Olislagers (April 2012)

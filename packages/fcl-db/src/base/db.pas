@@ -991,7 +991,6 @@ type
   public
     constructor Create(Owner: TIndexDefs; const AName, TheFields: string;
       TheOptions: TIndexOptions); overload;
-    destructor Destroy; override;
     property Expression: string read GetExpression write SetExpression;
     property Fields: string read FFields write FFields;
     property CaseInsFields: string read FCaseinsFields write SetCaseInsFields;
@@ -1008,7 +1007,6 @@ type
     Procedure SetItem(Index: Integer; Value: TIndexDef);
   public
     constructor Create(ADataSet: TDataSet); virtual; overload;
-    destructor Destroy; override;
     procedure Add(const Name, Fields: string; Options: TIndexOptions);
     Function AddIndexDef: TIndexDef;
     function Find(const IndexName: string): TIndexDef;
@@ -2305,13 +2303,6 @@ begin
 end;
 
 
-destructor TIndexDef.Destroy;
-
-begin
-  inherited Destroy;
-end;
-
-
 { TIndexDefs }
 
 Function TIndexDefs.GetItem (Index : integer) : TIndexDef;
@@ -2331,12 +2322,6 @@ begin
   inherited create(ADataset, Owner, TIndexDef);
 end;
 
-
-destructor TIndexDefs.Destroy;
-
-begin
-  inherited Destroy;
-end;
 
 Function TIndexDefs.AddIndexDef: TIndexDef;
 

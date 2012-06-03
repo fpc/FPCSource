@@ -61,6 +61,7 @@ type
     procedure TestScript;
     procedure TestInsertReturningQuery;
     procedure TestOpenStoredProc;
+    procedure TestOpenSpecialStatements;
 
     procedure TestTemporaryTable;
     procedure TestRefresh;
@@ -608,25 +609,25 @@ const
     '2000-01-01 10:00:00',
     '2000-01-01 23:59:59',
     '1994-03-06 11:54:30',
-    '1754-06-04',                   // MySQL 4.0 doesn't support datetimes before 1970 or after 2038
-    '1899-12-29',
-    '1899-12-30',
-    '1899-12-31',
+    '2040-10-16',                   // MySQL 4.0 doesn't support datetimes before 1970 or after 2038
+    '2100-01-01 01:01:01',
+    '1903-04-02 01:04:02',
     '1900-01-01',
+    '1899-12-31',
+    '1899-12-30',
+    '1899-12-29',
     '1899-12-30 18:00:51',
     '1899-12-30 04:00:51',
     '1899-12-29 04:00:51',
     '1899-12-29 18:00:51',
-    '1903-04-02 01:04:02',
     '1815-09-24 03:47:22',
-    '2040-10-16',
-    '2100-01-01 01:01:01',
-    '1400-02-03 12:21:53',          // MS SQL 2005 doesn't support datetimes before 1753
-    '0354-11-20 21:25:15',
-    '1333-02-03 21:44:21',
     '1800-03-30',
-    '1650-05-10',
+    '1754-06-04',
+    '1650-05-10',                   // MS SQL 2005 doesn't support datetimes before 1753
+    '1400-02-03 12:21:53',
+    '1333-02-03 21:44:21',
     '0904-04-12',
+    '0354-11-20 21:25:15',
     '0199-07-09',
     '0001-01-01'
   );
@@ -1266,6 +1267,47 @@ begin
     finally
       Connection.ExecuteDirect('drop procedure FPDEV_PROC');
       Transaction.CommitRetaining;
+    end;
+  end;
+end;
+
+procedure TTestFieldTypes.TestOpenSpecialStatements;
+const CTE_SELECT = 'WITH a AS (SELECT * FROM FPDEV) SELECT * FROM a';
+type TTestStatements = array of string;
+var statements: TTestStatements;
+    s: string;
+begin
+  // tests non-select statements (other than "SELECT ..."), which return result-set
+  // at least one row must be returned
+  with TSQLDBConnector(DBConnector) do
+  begin
+    case SQLDbType of
+      sqlite3:
+        statements := TTestStatements.Create('pragma table_info(FPDEV)');
+      interbase:
+        statements := TTestStatements.Create(CTE_SELECT (*FB 2.1*));
+      postgresql:
+        statements := TTestStatements.Create(CTE_SELECT);
+      mssql:
+        statements := TTestStatements.Create(CTE_SELECT  (*MS SQL 2005*));
+      else
+        if SQLdbType in MySQLdbTypes then
+          statements := TTestStatements.Create(
+            'check table FPDEV',  // bug 14519
+            'show tables from '+Connection.DatabaseName  // bug 16842
+          )
+        else
+          Ignore(STestNotApplicable);
+    end;
+
+    for s in statements do
+    begin
+      Query.SQL.Text := s;
+      Query.Open;
+      AssertTrue(Query.FieldCount>0);
+      AssertFalse('Eof after open', Query.Eof);
+      Query.Next;
+      Query.Close;
     end;
   end;
 end;

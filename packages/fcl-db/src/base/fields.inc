@@ -1752,7 +1752,12 @@ end;
 Procedure TAutoIncField.SetAsLongint(AValue : Longint);
 
 begin
-  DataBaseError(SCantSetAutoIncfields);
+  // Some databases allows insertion of explicit values into identity columns
+  // (some of them also allows (some not) updating identity columns)
+  // So allow it at client side and leave check for server side
+  if not(FDataSet.State in [dsFilter,dsSetKey,dsInsert]) then
+    DataBaseError(SCantSetAutoIncFields);
+  inherited;
 end;
 
 { TFloatField }
