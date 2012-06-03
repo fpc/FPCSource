@@ -36,6 +36,8 @@ begin
     T:=P.Targets.AddUnit('../winunits-base/src/ole2.pp', [wince]);
     T:=P.Targets.AddUnit('tlhelp32.pas', [wince]);
     T:=P.Targets.AddUnit('../winunits-base/src/comconst.pp', [wince]);
+    T:=P.Targets.AddUnit('../winunits-base/src/eventsink.pp', [wince]);
+    T:=P.Targets.AddUnit('../winunits-base/src/stdole2.pas', [wince]);
     T.ResourceStrings:=True;
 
     T:=P.Targets.AddUnit('buildwinceunits.pp', [wince]);
