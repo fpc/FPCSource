@@ -76,6 +76,9 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 
+ifeq ($(ARCH),x86_64)
+CPU_UNITS=x86 ports cpu
+endif
 ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
 endif
@@ -245,7 +248,11 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 # Other system-independent RTL Units
 #
 
+ifeq ($(ARCH),x86_64)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
+else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
+endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
