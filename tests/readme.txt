@@ -21,6 +21,25 @@ directory. Then webtbs/webtbf/test/tbs/tbf are searched for t*.pp to be
 compiled and executed as tests.
 
 
+Parallel test suite runs
+------------------------
+
+It is possible to run the test suite in parallel, but only when using the
+"all" target and only if SINGLEDOTESTRUNS is not used. Under those
+circumstances, it is safe to use -jx, with x the number of tests that can
+be compiled and run in parallel. E.g.
+
+  make all TEST_FPC=path_to_your_compiler -j 2
+
+After running the tests in parallel, you will probably want to get the
+summary. This can be achieved making the "digest" target after the "all"
+target has finished, e.g.
+
+  make digest TEST_FPC=path_to_your_compiler
+
+Make sure to clean the test suite between two runs.
+
+
 Directories
 -----------
 webtbs...........Tests for web-bug-database bugs (should compile/run)
@@ -135,6 +154,8 @@ TEST_ABI               test a certain abi, this influences where the
                        c object files are taken from: TEST_ABI=eabi
                        takes the c*.o files from
                        test/cg/obj/linux/arm-eabi
+CHUNKSIZE              Number of tests per chunk that can be potentially executed
+                       in parallel with other chunks
 
   (Please add more test options if needed)
 

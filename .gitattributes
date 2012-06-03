@@ -11445,12 +11445,12 @@ tests/test/uunit2b.pp svneol=native#text/plain
 tests/test/uunit3a.pp svneol=native#text/plain
 tests/test/uunit3b.pp svneol=native#text/plain
 tests/test/uunit3c.pp svneol=native#text/plain
-tests/units/MPWMake -text
-tests/units/Makefile svneol=native#text/plain
-tests/units/Makefile.fpc svneol=native#text/plain
-tests/units/erroru.pp svneol=native#text/plain
-tests/units/popuperr.pp svneol=native#text/plain
-tests/units/win32err.pp svneol=native#text/plain
+tests/tstunits/MPWMake -text
+tests/tstunits/Makefile svneol=native#text/plain
+tests/tstunits/Makefile.fpc svneol=native#text/plain
+tests/tstunits/erroru.pp svneol=native#text/plain
+tests/tstunits/popuperr.pp svneol=native#text/plain
+tests/tstunits/win32err.pp svneol=native#text/plain
 tests/utils/Makefile svneol=native#text/plain
 tests/utils/Makefile.fpc svneol=native#text/plain
 tests/utils/bench.pp svneol=native#text/plain
@@ -11461,6 +11461,7 @@ tests/utils/digest.pp svneol=native#text/plain
 tests/utils/dotest.pp svneol=native#text/plain
 tests/utils/fail.pp svneol=native#text/plain
 tests/utils/fptime.pp svneol=native#text/plain
+tests/utils/gparmake.pp svneol=native#text/plain
 tests/utils/libtar.pas svneol=native#text/plain
 tests/utils/macos/LinkRunDir -text
 tests/utils/macos/LinkRunTests -text

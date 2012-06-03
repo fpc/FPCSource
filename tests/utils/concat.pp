@@ -3,15 +3,20 @@
 program concat;
 
 uses
-  SysUtils;
+  SysUtils, Classes;
 
 var
   Dst: TextFile;
+  FileList: TStringList;
+  IgnoreNonExisting: boolean;
 
 
 procedure usage;
   begin
-    Writeln('Usage: concat <srcfile1> [<srcfile2> ..] <dstfile>');
+    Writeln('Usage: concat [-i] <srcfile1> [<srcfile2> ..] <dstfile>');
+    Writeln;
+    Writeln('Options:');
+    Writeln('  -i      Ignore non-existent files');
     Writeln;
     halt(1);
   end;
@@ -22,11 +27,23 @@ procedure DoConcat;
     Src: TextFile;
     I: Longint;
     Line: Ansistring;
+    OldFilemode: byte;
   begin
-    for I:=1 to ParamCount-1 do
+    OldFilemode:=FileMode;
+    Filemode:=0;
+    for I:=0 to FileList.Count-1 do
       begin
-        Assign(Src,ParamStr(I));
+        Assign(Src,FileList[i]);
+       {$i-}
         Reset(Src);
+        while ioresult<>0 do
+          begin
+            { wait for lingering locks to disappear }
+            Sleep(200);
+            Reset(Src);
+          end;
+       {$i+}
+
         while not Eof(Src) do
           begin
             ReadLn(Src,Line);
@@ -34,17 +51,28 @@ procedure DoConcat;
           end;
         Close(Src);
       end;
+    Filemode:=OldFilemode;
     Close(Dst);
   end;
 
 
 procedure CheckParas;
   var
+    FirstFile,
     I: Longint;
+    Exists: boolean;
   begin
     { enough parameters? }
     if ParamCount<2 then
       Usage;
+
+    FirstFile:=1;
+    if UpperCase(ParamStr(1))='-i' then
+        begin
+          IgnoreNonExisting:=true;
+          Inc(FirstFile);
+        end;
+
     { check destination }
     if DirectoryExists(ParamStr(ParamCount)) then
       begin
@@ -61,23 +89,32 @@ procedure CheckParas;
         halt(2);
       end;
     { check source(s) }
-    for I:=1 to ParamCount-1 do
+    for I:=FirstFile to ParamCount-1 do
       begin
+        Exists:=True;
         if not FileExists(ParamStr(I)) then
           begin
-            Writeln('File "',ParamStr(I),'" does not exist');
-            halt(2);
-          end;
-        if DirectoryExists(ParamStr(I)) then
+            if not IgnoreNonExisting then
+              begin
+                Writeln('File "',ParamStr(I),'" does not exist');
+                halt(2);
+              end;
+            Exists:=False;
+          end
+        else if DirectoryExists(ParamStr(I)) then
           begin
             Writeln('"',ParamStr(I),'" is a directory');
             halt(2);
-          end;
-        end;
+          end
+        else if Exists then
+          FileList.Add(ParamStr(I));
+        end
   end;
 
 
 begin
+  FileList:=TStringList.Create;
   CheckParas;
   DoConcat;
+  FileList.Free;
 end.

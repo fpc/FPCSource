@@ -431,6 +431,26 @@ begin
 end;
 
 
+procedure ForceLog(const logfile:string);
+var
+  t : text;
+begin
+  assign(t,logfile);
+  {$I-}
+   append(t);
+  {$I+}
+  if ioresult<>0 then
+   begin
+     {$I-}
+      rewrite(t);
+     {$I+}
+     if ioresult<>0 then
+       Verbose(V_Abort,'Can''t Create '+logfile);
+   end;
+  close(t);
+end;
+
+
 function GetCompilerInfo(c:tcompinfo):boolean;
 
   function GetToken(var s:string):string;
@@ -697,6 +717,23 @@ begin
 end;
 
 
+function TestLogFileName(Const pref,base,ext:String):String;
+var
+  LogDir: String;
+begin
+  LogDir:=TestOutputDir;
+{$ifndef macos}
+  if UniqueSuffix<>'' then
+    LogDir:=LogDir+'/..';
+  TestLogFileName:=LogDir+'/'+ForceExtension(pref+SplitFileName(base),ext);
+{$else macos}
+  if UniqueSuffix<>'' then
+    LogDir:=LogDir+'::';
+  TestLogFileName:=ConcatMacPath(LogDir,ForceExtension(pref+SplitFileName(base),ext));
+{$endif macos}
+end;
+
+
 function ExitWithInternalError(const OutName:string):boolean;
 var
   t : text;
@@ -855,6 +892,9 @@ var
 begin
   RunCompiler:=false;
   args:='-n -T'+CompilerTarget+' -Fu'+RTLUnitsDir;
+  { the helper object files have been copied to the common directory }
+  if UniqueSuffix<>'' then
+    args:=args+' -Fo'+TestOutputDir+'/..';
   args:=args+' -FE'+TestOutputDir;
   if TargetIsMacOS then
     args:=args+' -WT ';  {tests should be compiled as MPWTool}
@@ -1092,6 +1132,7 @@ begin
     end;
   LibraryExists:=false;
 end;
+
 function ExecuteRemote(const prog,args:string;out StartTicks,EndTicks : int64):boolean;
 const
   MaxTrials = 5;
@@ -1134,18 +1175,60 @@ end;
 function MaybeCopyFiles(const FileToCopy : string) : boolean;
 var
   TestRemoteExe,
-  s : string;
   pref     : string;
   LocalFile, RemoteFile: string;
   LocalPath: string;
-  index    : integer;
+  i       : integer;
   execres : boolean;
   EndTicks,
   StartTicks : int64;
+  FileList   : TStringList;
+
+  function BuildFileList: TStringList;
+    var
+      s      : string;
+      index  : longint;
+    begin
+      s:=Config.Files;
+      if length(s) = 0 then
+        begin
+          Result:=nil;
+          exit;
+        end;
+      Result:=TStringList.Create;
+      repeat
+        index:=pos(' ',s);
+        if index=0 then
+          LocalFile:=s
+        else
+          LocalFile:=copy(s,1,index-1);
+        Result.Add(LocalFile);
+        if index=0 then
+          break;
+        s:=copy(s,index+1,length(s)-index);
+      until false;
+    end;
+
 begin
   if RemoteAddr='' then
     begin
-      exit(false);
+      If UniqueSuffix<>'' then
+        begin
+          FileList:=BuildFileList;
+          if assigned(FileList) then
+            begin
+              LocalPath:=SplitPath(PPFile[current]);
+              if Length(LocalPath) > 0 then
+                LocalPath:=LocalPath+'/';
+              for i:=0 to FileList.count-1 do
+                begin
+                  LocalFile:=FileList[i];
+                  CopyFile(LocalPath+LocalFile,TestOutputDir+'/'+LocalFile,false);
+                end;
+              FileList.Free;
+            end;
+        end;
+      exit(true);
     end;
   execres:=true;
   { We don't want to create subdirs, remove paths from the test }
@@ -1160,36 +1243,32 @@ begin
     Verbose(V_normal, 'Could not copy executable '+FileToCopy);
     exit(execres);
   end;
-  s:=Config.Files;
-  if length(s) > 0 then
+  FileList:=BuildFileList;
+  if assigned(FileList) then
   begin
     LocalPath:=SplitPath(PPFile[current]);
     if Length(LocalPath) > 0 then
       LocalPath:=LocalPath+'/';
-    repeat
-      index:=pos(' ',s);
-      if index=0 then
-        LocalFile:=s
-      else
-        LocalFile:=copy(s,1,index-1);
-      RemoteFile:=RemotePath+'/'+SplitFileName(LocalFile);
-      LocalFile:=LocalPath+LocalFile;
-      if DoVerbose and (rcpprog='pscp') then
-        pref:='-v '
-      else
-        pref:='';
-      execres:=ExecuteRemote(rcpprog,pref+RemotePara+' '+LocalFile+' '+
-                             RemoteAddr+':'+RemoteFile,StartTicks,EndTicks);
-      if not execres then
+    for i:=0 to FileList.count-1 do
       begin
-        Verbose(V_normal, 'Could not copy required file '+LocalFile);
-        exit(false);
+        LocalFile:=FileList[i];
+        RemoteFile:=RemotePath+'/'+SplitFileName(LocalFile);
+        LocalFile:=LocalPath+LocalFile;
+        if DoVerbose and (rcpprog='pscp') then
+          pref:='-v '
+        else
+          pref:='';
+        execres:=ExecuteRemote(rcpprog,pref+RemotePara+' '+LocalFile+' '+
+                               RemoteAddr+':'+RemoteFile,StartTicks,EndTicks);
+        if not execres then
+        begin
+          Verbose(V_normal, 'Could not copy required file '+LocalFile);
+          FileList.Free;
+          exit(false);
+        end;
       end;
-      if index=0 then
-        break;
-      s:=copy(s,index+1,length(s)-index);
-    until false;
   end;
+  FileList.Free;
   MaybeCopyFiles:=execres;
 end;
 
@@ -1213,8 +1292,9 @@ begin
   RunExecutable:=false;
   execres:=true;
 
-  TestExe:=OutputFileName(PPFile[current],ExeExt);
+  TestExe:=TestOutputFilename('',PPFile[current],ExeExt);
 
+  execres:=MaybeCopyFiles(TestExe);
   if EmulatorName<>'' then
     begin
       { Get full name out log file, because we change the directory during
@@ -1233,7 +1313,6 @@ begin
     end
   else if RemoteAddr<>'' then
     begin
-      execres:=MaybeCopyFiles(TestExe);
       TestRemoteExe:=RemotePath+'/'+SplitFileName(TestExe);
       { rsh doesn't pass the exitcode, use a second command to print the exitcode
         on the remoteshell to stdout }
@@ -1609,9 +1688,9 @@ begin
       Res:=GetCompilerCPU;
       Res:=GetCompilerTarget;
 {$ifndef MACOS}
-      RTLUnitsDir:='units/'+CompilerFullTarget;
+      RTLUnitsDir:='tstunits/'+CompilerFullTarget;
 {$else MACOS}
-      RTLUnitsDir:=':units:'+CompilerFullTarget;
+      RTLUnitsDir:=':tstunits:'+CompilerFullTarget;
 {$endif MACOS}
       if not PathExists(RTLUnitsDir) then
         Verbose(V_Abort,'Unit path "'+RTLUnitsDir+'" does not exists');
@@ -1630,22 +1709,30 @@ begin
         begin
 {$ifndef MACOS}
           TestOutputDir:=OutputDir+'/'+PPDir;
+          if UniqueSuffix<>'' then
+            TestOutputDir:=TestOutputDir+'/'+UniqueSuffix;
 {$else MACOS}
           TestOutputDir:=OutputDir+PPDir;
+          if UniqueSuffix<>'' then
+            TestOutputDir:=TestOutputDir+':'+UniqueSuffix;
 {$endif MACOS}
           mkdirtree(TestOutputDir);
         end
       else
         TestOutputDir:=OutputDir;
-      { Global log files (don't use UniqueSuffix here, it's not set in case of
-        SINGLEDOTESTRUNS) }
-      LogSuffix:=SplitBasePath(PPDir)+'log';
+      if UniqueSuffix<>'' then
+        LogSuffix:=UniqueSuffix
+      else
+        LogSuffix:=SplitBasePath(PPDir)+'log';
       ResLogFile:=OutputFileName('log',LogSuffix);
       LongLogFile:=OutputFileName('longlog',LogSuffix);
       FailLogFile:=OutputFileName('faillist',LogSuffix);
+      ForceLog(ResLogFile);
+      ForceLog(LongLogFile);
+      ForceLog(FailLogFile);
       { Per test logfiles }
-      CompilerLogFile:=TestOutputFileName('',SplitFileName(PPFile[current]),'log');
-      ExeLogFile:=TestOutputFileName('',SplitFileName(PPFile[current]),'elg');
+      CompilerLogFile:=TestLogFileName('',SplitFileName(PPFile[current]),'log');
+      ExeLogFile:=TestLogFileName('',SplitFileName(PPFile[current]),'elg');
       Verbose(V_Debug,'Using Compiler logfile: '+CompilerLogFile);
       Verbose(V_Debug,'Using Execution logfile: '+ExeLogFile);
     end;

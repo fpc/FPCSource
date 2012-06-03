@@ -294,6 +294,216 @@ FPMAKE_SKIP_CONFIG=-n
 FPCFPMAKE=$(FPC)
 endif
 endif
+ifeq ($(FULL_TARGET),i386-linux)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-go32v2)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-win32)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-os2)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-freebsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-beos)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-haiku)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-netbsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-solaris)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-qnx)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-netware)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-openbsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-wdosx)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-darwin)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-emx)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-watcom)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-netwlibc)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-wince)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-embedded)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-symbian)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-nativent)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),i386-iphonesim)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),m68k-linux)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),m68k-freebsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),m68k-netbsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),m68k-amiga)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),m68k-atari)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),m68k-openbsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),m68k-palmos)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),m68k-embedded)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc-linux)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc-netbsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc-amiga)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc-macos)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc-darwin)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc-morphos)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc-embedded)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc-wii)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc-aix)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),sparc-linux)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),sparc-netbsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),sparc-solaris)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),sparc-embedded)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),x86_64-linux)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),x86_64-freebsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),x86_64-netbsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),x86_64-solaris)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),x86_64-openbsd)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),x86_64-darwin)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),x86_64-win64)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),x86_64-embedded)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),arm-linux)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),arm-palmos)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),arm-darwin)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),arm-wince)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),arm-gba)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),arm-nds)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),arm-embedded)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),arm-symbian)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc64-linux)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc64-darwin)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc64-embedded)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),powerpc64-aix)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),avr-embedded)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),armeb-linux)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),armeb-embedded)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),mips-linux)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),mipsel-linux)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),jvm-java)
+override TARGET_PROGRAMS+=gparmake
+endif
+ifeq ($(FULL_TARGET),jvm-android)
+override TARGET_PROGRAMS+=gparmake
+endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -905,6 +1115,255 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
+override REQUIRE_PACKAGES=rtl 
+ifeq ($(FULL_TARGET),i386-linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-go32v2)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-win32)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-os2)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-freebsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-beos)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-haiku)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-netbsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-solaris)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-qnx)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-netware)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-openbsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-wdosx)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-darwin)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-emx)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-watcom)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-netwlibc)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-wince)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-embedded)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-symbian)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-nativent)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),i386-iphonesim)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),m68k-linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),m68k-freebsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),m68k-netbsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),m68k-amiga)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),m68k-atari)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),m68k-openbsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),m68k-palmos)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),m68k-embedded)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc-linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc-netbsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc-amiga)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc-macos)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc-darwin)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc-morphos)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc-embedded)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc-wii)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc-aix)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),sparc-linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),sparc-netbsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),sparc-solaris)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),sparc-embedded)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),x86_64-linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),x86_64-freebsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),x86_64-netbsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),x86_64-solaris)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),x86_64-openbsd)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),x86_64-darwin)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),x86_64-win64)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),x86_64-embedded)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),arm-linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),arm-palmos)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),arm-darwin)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),arm-wince)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),arm-gba)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),arm-nds)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),arm-embedded)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),arm-symbian)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc64-linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc64-darwin)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc64-embedded)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),powerpc64-aix)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),avr-embedded)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),armeb-linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),armeb-embedded)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),mips-linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),mipsel-linux)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),jvm-java)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifeq ($(FULL_TARGET),jvm-android)
+REQUIRE_PACKAGES_RTL=1
+endif
+ifdef REQUIRE_PACKAGES_RTL
+PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_RTL),)
+ifneq ($(wildcard $(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)),)
+UNITDIR_RTL=$(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)
+else
+UNITDIR_RTL=$(PACKAGEDIR_RTL)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_RTL)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_RTL=$(PACKAGEDIR_RTL)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_RTL)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_RTL=$(PACKAGEDIR_RTL)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_RTL=$(PACKAGEDIR_RTL)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_RTL)/$(OS_TARGET)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_RTL)/$(OS_TARGET) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_RTL)/$(OS_TARGET)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_RTL=
+UNITDIR_RTL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /rtl/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_RTL),)
+UNITDIR_RTL:=$(firstword $(UNITDIR_RTL))
+else
+UNITDIR_RTL=
+endif
+endif
+ifdef UNITDIR_RTL
+override COMPILER_UNITDIR+=$(UNITDIR_RTL)
+endif
+ifdef UNITDIR_FPMAKE_RTL
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_RTL)
+endif
+endif
 ifndef NOCPUDEF
 override FPCOPTDEF=$(ARCH)
 endif
@@ -1059,9 +1518,169 @@ EXECPPAS:=@$(PPAS)
 endif
 endif
 endif
+.PHONY: fpc_exes
+ifndef CROSSINSTALL
+ifneq ($(TARGET_PROGRAMS),)
+override EXEFILES=$(addsuffix $(EXEEXT),$(TARGET_PROGRAMS))
+override EXEOFILES:=$(addsuffix $(OEXT),$(TARGET_PROGRAMS)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS))) $(addprefix $(IMPORTLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS)))
+override EXEDBGFILES:=$(addsuffix $(EXEDBGEXT),$(TARGET_PROGRAMS))
+override ALLTARGET+=fpc_exes
+override INSTALLEXEFILES+=$(EXEFILES)
+override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
+override CLEANEXEDBGFILES+=$(EXEDBGFILES)
+ifeq ($(OS_TARGET),os2)
+override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
+endif
+ifeq ($(OS_TARGET),emx)
+override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
+endif
+endif
+endif
+fpc_exes: $(COMPILER_TARGETDIR) $(COMPILER_UNITTARGETDIR) $(EXEFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
+endif
+.PHONY: fpc_all fpc_smart fpc_debug fpc_release fpc_shared
+$(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
+	@$(ECHOREDIR) Compiled > $(FPCMADE)
+fpc_all: $(FPCMADE)
+fpc_smart:
+	$(MAKE) all LINKSMART=1 CREATESMART=1
+fpc_debug:
+	$(MAKE) all DEBUG=1
+fpc_release:
+	$(MAKE) all RELEASE=1
+.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .lpr .dpr .pp .rc .res
+$(COMPILER_UNITTARGETDIR):
+	$(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
+$(COMPILER_TARGETDIR):
+	$(MKDIRTREE) $(COMPILER_TARGETDIR)
+%$(PPUEXT): %.pp
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(PPUEXT): %.pas
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.pp
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.pas
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.lpr
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.dpr
+	$(COMPILER) $<
+	$(EXECPPAS)
+%.res: %.rc
+	windres -i $< -o $@
+vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.lpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.dpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.inc $(COMPILER_INCLUDEDIR)
+vpath %$(OEXT) $(COMPILER_UNITTARGETDIR)
+vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
+.PHONY: fpc_shared
+override INSTALLTARGET+=fpc_shared_install
+ifndef SHARED_LIBVERSION
+SHARED_LIBVERSION=$(FPC_VERSION)
+endif
+ifndef SHARED_LIBNAME
+SHARED_LIBNAME=$(PACKAGE_NAME)
+endif
+ifndef SHARED_FULLNAME
+SHARED_FULLNAME=$(SHAREDLIBPREFIX)$(SHARED_LIBNAME)-$(SHARED_LIBVERSION)$(SHAREDLIBEXT)
+endif
+ifndef SHARED_LIBUNITS
+SHARED_LIBUNITS:=$(TARGET_UNITS) $(TARGET_IMPLICITUNITS)
+override SHARED_LIBUNITS:=$(filter-out $(INSTALL_BUILDUNIT),$(SHARED_LIBUNITS))
+endif
+fpc_shared:
+ifdef HASSHAREDLIB
+	$(MAKE) all CREATESHARED=1 LINKSHARED=1 CREATESMART=1
+ifneq ($(SHARED_BUILD),n)
+	$(PPUMOVE) -q $(SHARED_LIBUNITS) -i$(COMPILER_UNITTARGETDIR) -o$(SHARED_FULLNAME) -d$(COMPILER_UNITTARGETDIR)
+endif
+else
+	@$(ECHO) Shared Libraries not supported
+endif
+fpc_shared_install:
+ifneq ($(SHARED_BUILD),n)
+ifneq ($(SHARED_LIBUNITS),)
+ifneq ($(wildcard $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME)),)
+	$(INSTALL) $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME) $(INSTALL_SHAREDDIR)
+endif
+endif
+endif
+.PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
+ifdef INSTALL_UNITS
+override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(INSTALL_UNITS))
+endif
+ifdef INSTALL_BUILDUNIT
+override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT)$(PPUEXT),$(INSTALLPPUFILES))
+endif
+ifdef INSTALLPPUFILES
+override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES))) $(addprefix $(IMPORTLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
+ifneq ($(UNITTARGETDIRPREFIX),)
+override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(notdir $(INSTALLPPUFILES)))
+override INSTALLPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(notdir $(INSTALLPPULINKFILES))))
+endif
+override INSTALL_CREATEPACKAGEFPC=1
+endif
+ifdef INSTALLEXEFILES
+ifneq ($(TARGETDIRPREFIX),)
+override INSTALLEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(notdir $(INSTALLEXEFILES)))
+endif
+endif
+fpc_install: all $(INSTALLTARGET)
+ifdef INSTALLEXEFILES
+	$(MKDIR) $(INSTALL_BINDIR)
+	$(INSTALLEXE) $(INSTALLEXEFILES) $(INSTALL_BINDIR)
+endif
+ifdef INSTALL_CREATEPACKAGEFPC
+ifdef FPCMAKE
+ifdef PACKAGE_VERSION
+ifneq ($(wildcard Makefile.fpc),)
+	$(FPCMAKE) -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
+endif
+endif
+endif
+endif
+ifdef INSTALLPPUFILES
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) $(INSTALLPPUFILES) $(INSTALL_UNITDIR)
+ifneq ($(INSTALLPPULINKFILES),)
+	$(INSTALL) $(INSTALLPPULINKFILES) $(INSTALL_UNITDIR)
+endif
+ifneq ($(wildcard $(LIB_FULLNAME)),)
+	$(MKDIR) $(INSTALL_LIBDIR)
+	$(INSTALL) $(LIB_FULLNAME) $(INSTALL_LIBDIR)
+ifdef inUnix
+	ln -sf $(LIB_FULLNAME) $(INSTALL_LIBDIR)/$(LIB_NAME)
+endif
+endif
+endif
+ifdef INSTALL_FILES
+	$(MKDIR) $(INSTALL_DATADIR)
+	$(INSTALL) $(INSTALL_FILES) $(INSTALL_DATADIR)
+endif
+fpc_sourceinstall: distclean
+	$(MKDIR) $(INSTALL_SOURCEDIR)
+	$(COPYTREE) $(BASEDIR)/* $(INSTALL_SOURCEDIR)
+fpc_exampleinstall: $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
+ifdef HASEXAMPLES
+	$(MKDIR) $(INSTALL_EXAMPLEDIR)
+endif
+ifdef EXAMPLESOURCEFILES
+	$(COPY) $(EXAMPLESOURCEFILES) $(INSTALL_EXAMPLEDIR)
+endif
+ifdef TARGET_EXAMPLEDIRS
+	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
 endif
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
@@ -1247,22 +1866,23 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-debug:
-smart:
-release:
+debug: fpc_debug
+smart: fpc_smart
+release: fpc_release
+units: fpc_units
 examples:
-shared:
-install:
-sourceinstall:
-exampleinstall:
+shared: fpc_shared
+install: fpc_install
+sourceinstall: fpc_sourceinstall
+exampleinstall: fpc_exampleinstall
 distinstall:
 zipinstall:
 zipsourceinstall:
 zipexampleinstall:
 zipdistinstall:
-cleanall:
+cleanall: fpc_cleanall
 makefiles: fpc_makefiles
-.PHONY: debug smart release examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall cleanall makefiles
+.PHONY: debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall cleanall makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
@@ -1369,8 +1989,11 @@ export QUICKTEST
 else
 override TESTSUBDIRS+=$(TESTPACKAGESUBDIRS) alglib
 endif
+ifndef CHUNKSIZE
+export CHUNKSIZE:=100
+endif
 TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
-.PHONY: utils units copyfiles testprep
+.PHONY: utils tstunits copyfiles testprep
 utils:
 	$(MAKE) -C utils utils
 utilsdb:
@@ -1384,11 +2007,14 @@ endif
 ifndef CONCAT
 CONCAT=utils/concat
 endif
+ifndef GPARMAKE
+GPARMAKE=./gparmake$(EXEEXT)
+endif
 ifndef PREPUP
 PREPUP=utils/prepup
 endif
-units:
-	$(MAKE) -C units FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) OPT="$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
+tstunits:
+	$(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) OPT="$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
 .PHONY: create_c_objects delete_c_objects copyfiles
 C_SOURCE_DIR=test/cg/obj
 C_SOURCES=ctest.c tcext3.c tcext4.c tcext5.c tcext6.c
@@ -1427,9 +2053,8 @@ copyfiles: $(TEST_OUTPUTDIR)
 	-$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
 	-$(COPY) $(CPP_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
 	-$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
-	$(COPY) test/units/system/test*.txt $(TEST_OUTPUTDIR)/test/units/system
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
-testprep-stamp.$(TEST_FULL_TARGET): utils units copyfiles
+testprep-stamp.$(TEST_FULL_TARGET): utils tstunits copyfiles
 	$(ECHOREDIR) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
 $(TEST_OUTPUTDIR):
 	$(MKDIRTREE) $@
@@ -1546,6 +2171,7 @@ ifndef SINGLEDOTESTRUNS
 	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))
 endif
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
+ifdef SINGLEDOTESTRUNS
 .PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectests
 allexectbs: $(addsuffix .tbslog, $(LOGFILES))
 allexectbf: $(addsuffix .tbflog, $(LOGFILES))
@@ -1555,50 +2181,50 @@ allexectest: $(addsuffix .testlog, $(LOGFILES))
 $(TEST_OUTPUTDIR)/%.mergedlog : $(TEST_OUTPUTDIR)/%.testlog $(TEST_OUTPUTDIR)/%.tbslog $(TEST_OUTPUTDIR)/%.tbflog $(TEST_OUTPUTDIR)/%.webtbslog $(TEST_OUTPUTDIR)/%.webtbflog
 	$(Q)$(CONCAT) $^ $@
 	$(Q)$(COPY) $@ $(basename $@)
-$(TEST_OUTPUTDIR)/tbsdir-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)
-	$(Q)$(DOTEST) $(DOTESTOPT) -Ltbslog -e $(sort $(wildcard tbs/t*.pp))
-	$(ECHOREDIR) $(DATE) > $@
 $(TEST_OUTPUTDIR)/%.tbslog : $(TBSREQ)
-	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/faillist.tbslog
-	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/longlog.tbslog
-$(TEST_OUTPUTDIR)/tbfdir-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)
-	$(Q)$(DOTEST) $(DOTESTOPT) -Ltbflog -e $(sort $(wildcard tbf/t*.pp))
-	$(ECHOREDIR) $(DATE) > $@
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/faillist.tbslog
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.tbslog
 $(TEST_OUTPUTDIR)/%.tbflog : $(TBFREQ)
-	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/faillist.tbflog
-	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/longlog.tbflog
-$(TEST_OUTPUTDIR)/webtbsdir-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)
-	$(Q)$(DOTEST) $(DOTESTOPT) -Lwebtbslog -e $(sort $(wildcard webtbs/t*.pp))
-	$(Q)$(ECHOREDIR) $(DATE) > $@
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/faillist.tbflog
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.tbflog
 $(TEST_OUTPUTDIR)/%.webtbslog : $(WEBTBSREQ)
-	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/faillist.webtbslog
-	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/longlog.webtbslog
-$(TEST_OUTPUTDIR)/webtbfdir-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)
-	$(Q)$(DOTEST) $(DOTESTOPT) -Lwebtbflog -e $(sort $(wildcard webtbf/t*.pp))
-	$(ECHOREDIR) $(DATE) > $@
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/faillist.webtbslog
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.webtbslog
 $(TEST_OUTPUTDIR)/%.webtbflog : $(WEBTBFREQ)
-	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/faillist.webtbflog
-	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/longlog.webtbflog
-$(TEST_OUTPUTDIR)/testdir-stamp.$(TEST_FULL_TARGET): testprep-stamp.$(TEST_FULL_TARGET)
-	$(Q)$(DOTEST) $(DOTESTOPT)  -Ltestlog -e $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
-	$(ECHOREDIR) $(DATE) > $@
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/faillist.webtbflog
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.webtbflog
 $(TEST_OUTPUTDIR)/%.testlog : $(TESTREQ)
-	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/faillist.testlog
-	$(Q)$(ECHOREDIR) -n >> $(TEST_OUTPUTDIR)/longlog.testlog
-allexectests: $(TEST_OUTPUTDIR)/log.webtbslog $(TEST_OUTPUTDIR)/log.testlog $(TEST_OUTPUTDIR)/log.tbslog $(TEST_OUTPUTDIR)/log.tbflog $(TEST_OUTPUTDIR)/log.webtbflog  $(addprefix $(TEST_OUTPUTDIR)/,$(foreach EXT, $(LOGEXT), $(addsuffix $(EXT), faillist longlog))) $(addsuffix .mergedlog, $(LOGFILES))
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/faillist.testlog
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.testlog
+allexectests:  $(TEST_OUTPUTDIR)/log.testlog $(TEST_OUTPUTDIR)/log.tbslog $(TEST_OUTPUTDIR)/log.tbflog $(TEST_OUTPUTDIR)/log.webtbslog $(TEST_OUTPUTDIR)/log.webtbflog $(addprefix $(TEST_OUTPUTDIR)/,$(foreach EXT, $(LOGEXT), $(addsuffix $(EXT), faillist longlog))) $(addsuffix .mergedlog, $(LOGFILES))
+else
+.PHONY: allexectests
+$(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
+	$(FPC) $(FPC_OPT) -FE. utils/gparmake.pp
+$(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc: $(GPARMAKE) $(TEST_OUTPUTDIR)
+	$(Q)$(GPARMAKE) $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc 1 $(CHUNKSIZE) $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+	$(Q)$(GPARMAKE) -a $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc 100000 $(CHUNKSIZE) $(sort $(wildcard tbs/t*.pp))
+	$(Q)$(GPARMAKE) -a $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc 150000 $(CHUNKSIZE) $(sort $(wildcard tbf/t*.pp))
+	$(Q)$(GPARMAKE) -a $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc 200000 $(CHUNKSIZE) $(sort $(wildcard webtbs/t*.pp))
+	$(Q)$(GPARMAKE) -a $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc 300000 $(CHUNKSIZE) $(sort $(wildcard webtbf/t*.pp))
+ifneq (,$(findstring all,$(MAKECMDGOALS)))
+include $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
+endif
+allexectests: $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
+endif
 .PHONY: clean distclean clean_test clean_sources
 clean_sources:
 	-$(DEL) $(wildcard $(patsubst %.pp,%$(PPUEXT),$(wildcard $(addsuffix /*.pp,$(DIRS)))))
 clean_test:
 	-$(DELTREE) $(TEST_OUTPUTDIR)
 	-$(DEL) core gmon.out testprep-stamp.$(TEST_FULL_TARGET) dotgz.bat
-clean: clean_sources
+clean: clean_sources fpc_clean
 	$(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
-	$(MAKE) -C units clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
+	$(MAKE) -C tstunits clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
 distclean: clean fpc_distclean
 	$(DELTREE) output
 	$(MAKE) -C utils distclean
-	$(MAKE) -C units distclean
+	$(MAKE) -C tstunits distclean
 	-$(DEL) testprep-stamp.*
 .PHONY: all full digest onlyknown onlygraph onlyinteractive
 digest : utils
