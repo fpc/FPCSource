@@ -2118,7 +2118,7 @@ Var
   D : TJSONData;
 
 begin
-  D:=Find(AName,jtBoolean);
+  D:=Find(AName,jtString);
   If (D<>Nil) then
     Result:=D.AsString
   else
@@ -2133,7 +2133,7 @@ Var
 begin
   D:=Find(AName,jtArray);
   If (D<>Nil) then
-    Result:=D As TJSONArray
+    Result:=TJSONArray(D)
   else
     Result:=ADefault;
 end;
@@ -2146,7 +2146,7 @@ Var
 begin
   D:=Find(AName,jtObject);
   If (D<>Nil) then
-    Result:=D as TJSONObject
+    Result:=TJSONObject(D)
   else
     Result:=ADefault;
 end;
