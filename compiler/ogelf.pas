@@ -398,202 +398,190 @@ implementation
 {$endif cpu64bitaddr}
 
 
-      function MayBeSwapHeader(h : telf32header) : telf32header;
+      procedure MayBeSwapHeader(var h : telf32header);
         begin
-          result:=h;
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.e_type:=swapendian(e_type);
-                result.e_machine:=swapendian(e_machine);
-                result.e_version:=swapendian(e_version);
-                result.e_entry:=swapendian(e_entry);
-                result.e_phoff:=swapendian(e_phoff);
-                result.e_shoff:=swapendian(e_shoff);
-                result.e_flags:=swapendian(e_flags);
-                result.e_ehsize:=swapendian(e_ehsize);
-                result.e_phentsize:=swapendian(e_phentsize);
-                result.e_phnum:=swapendian(e_phnum);
-                result.e_shentsize:=swapendian(e_shentsize);
-                result.e_shnum:=swapendian(e_shnum);
-                result.e_shstrndx:=swapendian(e_shstrndx);
+                e_type:=swapendian(e_type);
+                e_machine:=swapendian(e_machine);
+                e_version:=swapendian(e_version);
+                e_entry:=swapendian(e_entry);
+                e_phoff:=swapendian(e_phoff);
+                e_shoff:=swapendian(e_shoff);
+                e_flags:=swapendian(e_flags);
+                e_ehsize:=swapendian(e_ehsize);
+                e_phentsize:=swapendian(e_phentsize);
+                e_phnum:=swapendian(e_phnum);
+                e_shentsize:=swapendian(e_shentsize);
+                e_shnum:=swapendian(e_shnum);
+                e_shstrndx:=swapendian(e_shstrndx);
               end;
         end;
 
 
-      function MayBeSwapHeader(h : telf64header) : telf64header;
+      procedure MayBeSwapHeader(var h : telf64header);
         begin
-          result:=h;
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.e_type:=swapendian(e_type);
-                result.e_machine:=swapendian(e_machine);
-                result.e_version:=swapendian(e_version);
-                result.e_entry:=swapendian(e_entry);
-                result.e_phoff:=swapendian(e_phoff);
-                result.e_shoff:=swapendian(e_shoff);
-                result.e_flags:=swapendian(e_flags);
-                result.e_ehsize:=swapendian(e_ehsize);
-                result.e_phentsize:=swapendian(e_phentsize);
-                result.e_phnum:=swapendian(e_phnum);
-                result.e_shentsize:=swapendian(e_shentsize);
-                result.e_shnum:=swapendian(e_shnum);
-                result.e_shstrndx:=swapendian(e_shstrndx);
+                e_type:=swapendian(e_type);
+                e_machine:=swapendian(e_machine);
+                e_version:=swapendian(e_version);
+                e_entry:=swapendian(e_entry);
+                e_phoff:=swapendian(e_phoff);
+                e_shoff:=swapendian(e_shoff);
+                e_flags:=swapendian(e_flags);
+                e_ehsize:=swapendian(e_ehsize);
+                e_phentsize:=swapendian(e_phentsize);
+                e_phnum:=swapendian(e_phnum);
+                e_shentsize:=swapendian(e_shentsize);
+                e_shnum:=swapendian(e_shnum);
+                e_shstrndx:=swapendian(e_shstrndx);
               end;
         end;
 
 
-      function MayBeSwapHeader(h : telf32proghdr) : telf32proghdr;
+      procedure MayBeSwapHeader(var h : telf32proghdr);
         begin
-          result:=h;
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.p_align:=swapendian(p_align);
-                result.p_filesz:=swapendian(p_filesz);
-                result.p_flags:=swapendian(p_flags);
-                result.p_memsz:=swapendian(p_memsz);
-                result.p_offset:=swapendian(p_offset);
-                result.p_paddr:=swapendian(p_paddr);
-                result.p_type:=swapendian(p_type);
-                result.p_vaddr:=swapendian(p_vaddr);
+                p_align:=swapendian(p_align);
+                p_filesz:=swapendian(p_filesz);
+                p_flags:=swapendian(p_flags);
+                p_memsz:=swapendian(p_memsz);
+                p_offset:=swapendian(p_offset);
+                p_paddr:=swapendian(p_paddr);
+                p_type:=swapendian(p_type);
+                p_vaddr:=swapendian(p_vaddr);
               end;
         end;
 
 
-      function MayBeSwapHeader(h : telf64proghdr) : telf64proghdr;
+      procedure MayBeSwapHeader(var h : telf64proghdr);
         begin
-          result:=h;
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.p_align:=swapendian(p_align);
-                result.p_filesz:=swapendian(p_filesz);
-                result.p_flags:=swapendian(p_flags);
-                result.p_memsz:=swapendian(p_memsz);
-                result.p_offset:=swapendian(p_offset);
-                result.p_paddr:=swapendian(p_paddr);
-                result.p_type:=swapendian(p_type);
-                result.p_vaddr:=swapendian(p_vaddr);
+                p_align:=swapendian(p_align);
+                p_filesz:=swapendian(p_filesz);
+                p_flags:=swapendian(p_flags);
+                p_memsz:=swapendian(p_memsz);
+                p_offset:=swapendian(p_offset);
+                p_paddr:=swapendian(p_paddr);
+                p_type:=swapendian(p_type);
+                p_vaddr:=swapendian(p_vaddr);
               end;
         end;
 
 
-      function MaybeSwapSecHeader(h : telf32sechdr) : telf32sechdr;
+      procedure MaybeSwapSecHeader(var h : telf32sechdr);
         begin
-          result:=h;
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.sh_name:=swapendian(sh_name);
-                result.sh_type:=swapendian(sh_type);
-                result.sh_flags:=swapendian(sh_flags);
-                result.sh_addr:=swapendian(sh_addr);
-                result.sh_offset:=swapendian(sh_offset);
-                result.sh_size:=swapendian(sh_size);
-                result.sh_link:=swapendian(sh_link);
-                result.sh_info:=swapendian(sh_info);
-                result.sh_addralign:=swapendian(sh_addralign);
-                result.sh_entsize:=swapendian(sh_entsize);
+                sh_name:=swapendian(sh_name);
+                sh_type:=swapendian(sh_type);
+                sh_flags:=swapendian(sh_flags);
+                sh_addr:=swapendian(sh_addr);
+                sh_offset:=swapendian(sh_offset);
+                sh_size:=swapendian(sh_size);
+                sh_link:=swapendian(sh_link);
+                sh_info:=swapendian(sh_info);
+                sh_addralign:=swapendian(sh_addralign);
+                sh_entsize:=swapendian(sh_entsize);
               end;
         end;
 
 
-      function MaybeSwapSecHeader(h : telf64sechdr) : telf64sechdr;
+      procedure MaybeSwapSecHeader(var h : telf64sechdr);
         begin
-          result:=h;
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.sh_name:=swapendian(sh_name);
-                result.sh_type:=swapendian(sh_type);
-                result.sh_flags:=swapendian(sh_flags);
-                result.sh_addr:=swapendian(sh_addr);
-                result.sh_offset:=swapendian(sh_offset);
-                result.sh_size:=swapendian(sh_size);
-                result.sh_link:=swapendian(sh_link);
-                result.sh_info:=swapendian(sh_info);
-                result.sh_addralign:=swapendian(sh_addralign);
-                result.sh_entsize:=swapendian(sh_entsize);
+                sh_name:=swapendian(sh_name);
+                sh_type:=swapendian(sh_type);
+                sh_flags:=swapendian(sh_flags);
+                sh_addr:=swapendian(sh_addr);
+                sh_offset:=swapendian(sh_offset);
+                sh_size:=swapendian(sh_size);
+                sh_link:=swapendian(sh_link);
+                sh_info:=swapendian(sh_info);
+                sh_addralign:=swapendian(sh_addralign);
+                sh_entsize:=swapendian(sh_entsize);
               end;
         end;
 
 
-      function MaybeSwapElfSymbol(h : telf32symbol) : telf32symbol;
+      procedure MaybeSwapElfSymbol(var h : telf32symbol);
         begin
-          result:=h;
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.st_name:=swapendian(st_name);
-                result.st_value:=swapendian(st_value);
-                result.st_size:=swapendian(st_size);
-                result.st_shndx:=swapendian(st_shndx);
+                st_name:=swapendian(st_name);
+                st_value:=swapendian(st_value);
+                st_size:=swapendian(st_size);
+                st_shndx:=swapendian(st_shndx);
               end;
         end;
 
 
-      function MaybeSwapElfSymbol(h : telf64symbol) : telf64symbol;
+      procedure MaybeSwapElfSymbol(var h : telf64symbol);
         begin
-          result:=h;
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.st_name:=swapendian(st_name);
-                result.st_value:=swapendian(st_value);
-                result.st_size:=swapendian(st_size);
-                result.st_shndx:=swapendian(st_shndx);
+                st_name:=swapendian(st_name);
+                st_value:=swapendian(st_value);
+                st_size:=swapendian(st_size);
+                st_shndx:=swapendian(st_shndx);
               end;
         end;
 
 
-      function MaybeSwapElfReloc(h : telf32reloc) : telf32reloc;
+      procedure MaybeSwapElfReloc(var h : telf32reloc);
         begin
-          result:=h;
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.address:=swapendian(address);
-                result.info:=swapendian(info);
+                address:=swapendian(address);
+                info:=swapendian(info);
               end;
         end;
 
 
-      function MaybeSwapElfReloc(h : telf64reloc) : telf64reloc;
+      procedure MaybeSwapElfReloc(var h : telf64reloc);
         begin
-          result:=h;
           if source_info.endian<>target_info.endian then
             with h do
               begin
-                result.address:=swapendian(address);
-                result.info:=swapendian(info);
-                result.addend:=swapendian(addend);
+                address:=swapendian(address);
+                info:=swapendian(info);
+                addend:=swapendian(addend);
               end;
         end;
 
 
-      function MaybeSwapElfDyn(h : telf32dyn) : telf32dyn;
+      procedure MaybeSwapElfDyn(var h : telf32dyn);
         begin
-          result:=h;
-            if source_info.endian<>target_info.endian then
-              with h do
-                begin
-                  result.d_tag:=swapendian(d_tag);
-                  result.d_val:=swapendian(d_val);
-                end;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                d_tag:=swapendian(d_tag);
+                d_val:=swapendian(d_val);
+              end;
         end;
 
 
-      function MaybeSwapElfDyn(h : telf64dyn) : telf64dyn;
+      procedure MaybeSwapElfDyn(var h : telf64dyn);
         begin
-          result:=h;
-            if source_info.endian<>target_info.endian then
-              with h do
-                begin
-                  result.d_tag:=swapendian(d_tag);
-                  result.d_val:=swapendian(d_val);
-                end;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                d_tag:=swapendian(d_tag);
+                d_val:=swapendian(d_val);
+              end;
         end;
 
 
@@ -1051,7 +1039,8 @@ implementation
                rel.info:=(relsym shl 8) or reltyp;
 {$endif cpu64bitaddr}
                { write reloc }
-               relocsect.write(MaybeSwapElfReloc(rel),sizeof(rel));
+               MaybeSwapElfReloc(rel);
+               relocsect.write(rel,sizeof(rel));
              end;
          end;
       end;
@@ -1067,7 +1056,8 @@ implementation
         elfsym.st_shndx:=ashndx;
         inc(symidx);
         inc(localsyms);
-        symtabsect.write(MaybeSwapElfSymbol(elfsym),sizeof(elfsym));
+        MaybeSwapElfSymbol(elfsym);
+        symtabsect.write(elfsym,sizeof(elfsym));
       end;
 
 
@@ -1134,7 +1124,8 @@ implementation
             end;
           objsym.symidx:=symidx;
           inc(symidx);
-          symtabsect.write(MaybeSwapElfSymbol(elfsym),sizeof(elfsym));
+          MaybeSwapElfSymbol(elfsym);
+          symtabsect.write(elfsym,sizeof(elfsym));
         end;
 
       var
@@ -1204,7 +1195,8 @@ implementation
         sechdr.sh_info:=s.shinfo;
         sechdr.sh_addralign:=s.secalign;
         sechdr.sh_entsize:=s.shentsize;
-        writer.write(MaybeSwapSecHeader(sechdr),sizeof(sechdr));
+        MaybeSwapSecHeader(sechdr);
+        writer.write(sechdr,sizeof(sechdr));
       end;
 
 
@@ -1323,7 +1315,8 @@ implementation
            header.e_shnum:=nsections;
            header.e_ehsize:=sizeof(telfheader);
            header.e_shentsize:=sizeof(telfsechdr);
-           writer.write(MaybeSwapHeader(header),sizeof(header));
+           MaybeSwapHeader(header);
+           writer.write(header,sizeof(header));
            writer.writezeros($40-sizeof(header)); { align }
            { Sections }
            ObjSectionList.ForEachCall(@section_write_data,nil);
