@@ -1,8 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2008 by the Free Pascal development team
+    Copyright (c) 2012 by the Free Pascal development team
 
-    Tiff reader for fpImage.
+    Tiff writer for fpImage.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -85,7 +85,7 @@ type
     procedure ClearEntries;
     procedure WriteTiff;
     procedure WriteHeader;
-    procedure WriteIDFs;
+    procedure WriteIFDs;
     procedure WriteEntry(Entry: TTiffWriteEntry);
     procedure WriteData;
     procedure WriteEntryData(Entry: TTiffWriteEntry);
@@ -97,6 +97,7 @@ type
     procedure AddEntryString(Tag: word; const s: string);
     procedure AddEntryShort(Tag: word; Value: Word);
     procedure AddEntryLong(Tag: word; Value: DWord);
+    procedure AddEntryShortOrLong(Tag: word; Value: DWord);
     procedure AddEntryRational(Tag: word; const Value: TTiffRational);
     procedure AddEntry(Tag: Word; EntryType: Word; EntryCount: DWord;
                        Data: Pointer; Bytes: DWord;
@@ -159,7 +160,7 @@ begin
   {$ENDIF}
   fPosition:=0;
   WriteHeader;
-  WriteIDFs;
+  WriteIFDs;
   WriteData;
 end;
 
@@ -173,19 +174,19 @@ begin
   WriteDWord(8);
 end;
 
-procedure TFPWriterTiff.WriteIDFs;
+procedure TFPWriterTiff.WriteIFDs;
 var
   i: Integer;
   List: TFPList;
   j: Integer;
   Entry: TTiffWriteEntry;
-  NextIDFPos: DWord;
+  NextIFDPos: DWord;
 begin
   for i:=0 to FEntries.Count-1 do begin
     List:=TFPList(FEntries[i]);
     // write count
     {$IFDEF VerboseTiffWriter}
-    writeln('TFPWriterTiff.WriteIDFs Count=',List.Count);
+    writeln('TFPWriterTiff.WriteIFDs Count=',List.Count);
     {$ENDIF}
     WriteWord(List.Count);
     // write array of entries
@@ -193,12 +194,12 @@ begin
       Entry:=TTiffWriteEntry(List[j]);
       WriteEntry(Entry);
     end;
-    // write position of next IDF
+    // write position of next IFD
     if i<FEntries.Count-1 then
-      NextIDFPos:=fPosition+4
+      NextIFDPos:=fPosition+4
     else
-      NextIDFPos:=0;
-    WriteDWord(NextIDFPos);
+      NextIFDPos:=0;
+    WriteDWord(NextIFDPos);
   end;
 end;
 
@@ -278,7 +279,7 @@ end;
 
 procedure TFPWriterTiff.AddImage(Img: TFPCustomImage);
 var
-  IDF: TTiffIDF;
+  IFD: TTiffIFD;
   GrayBits: Word;
   RedBits: Word;
   GreenBits: Word;
@@ -308,37 +309,38 @@ var
   dy: Integer;
   CurEntries: TFPList;
   StripCounts: TTiffWriteEntry;
+  Shorts: array[0..3] of Word;
 begin
   StripOffsets:=nil;
   Strip:=nil;
-  IDF:=TTiffIDF.Create;
+  IFD:=TTiffIFD.Create;
   try
     // add new list of entries
     CurEntries:=TFPList.Create;
     FEntries.Add(CurEntries);
 
     if Img.Extra[TiffPhotoMetric]='' then
-      IDF.PhotoMetricInterpretation:=2
+      IFD.PhotoMetricInterpretation:=2
     else begin
-      IDF.PhotoMetricInterpretation:=StrToInt64Def(Img.Extra[TiffPhotoMetric],High(IDF.PhotoMetricInterpretation));
-      if SaveCMYKAsRGB and (IDF.PhotoMetricInterpretation=5) then
-        IDF.PhotoMetricInterpretation:=2;
+      IFD.PhotoMetricInterpretation:=StrToInt64Def(Img.Extra[TiffPhotoMetric],High(IFD.PhotoMetricInterpretation));
+      if SaveCMYKAsRGB and (IFD.PhotoMetricInterpretation=5) then
+        IFD.PhotoMetricInterpretation:=2;
     end;
-    if not (IDF.PhotoMetricInterpretation in [0,1,2]) then
+    if not (IFD.PhotoMetricInterpretation in [0,1,2]) then
       TiffError('PhotoMetricInterpretation="'+Img.Extra[TiffPhotoMetric]+'" not supported');
-    IDF.Artist:=Img.Extra[TiffArtist];
-    IDF.Copyright:=Img.Extra[TiffCopyright];
-    IDF.DocumentName:=Img.Extra[TiffDocumentName];
-    IDF.DateAndTime:=Img.Extra[TiffDateTime];
-    IDF.ImageDescription:=Img.Extra[TiffImageDescription];
-    IDF.Orientation:=StrToIntDef(Img.Extra[TiffOrientation],1);
-    if not (IDF.Orientation in [1..8]) then
-      IDF.Orientation:=1;
-    IDF.ResolutionUnit:=StrToIntDef(Img.Extra[TiffResolutionUnit],2);
-    if not (IDF.ResolutionUnit in [1..3]) then
-      IDF.ResolutionUnit:=2;
-    IDF.XResolution:=StrToTiffRationalDef(Img.Extra[TiffXResolution],TiffRational72);
-    IDF.YResolution:=StrToTiffRationalDef(Img.Extra[TiffYResolution],TiffRational72);
+    IFD.Artist:=Img.Extra[TiffArtist];
+    IFD.Copyright:=Img.Extra[TiffCopyright];
+    IFD.DocumentName:=Img.Extra[TiffDocumentName];
+    IFD.DateAndTime:=Img.Extra[TiffDateTime];
+    IFD.ImageDescription:=Img.Extra[TiffImageDescription];
+    IFD.Orientation:=StrToIntDef(Img.Extra[TiffOrientation],1);
+    if not (IFD.Orientation in [1..8]) then
+      IFD.Orientation:=1;
+    IFD.ResolutionUnit:=StrToIntDef(Img.Extra[TiffResolutionUnit],2);
+    if not (IFD.ResolutionUnit in [1..3]) then
+      IFD.ResolutionUnit:=2;
+    IFD.XResolution:=StrToTiffRationalDef(Img.Extra[TiffXResolution],TiffRational72);
+    IFD.YResolution:=StrToTiffRationalDef(Img.Extra[TiffYResolution],TiffRational72);
 
     GrayBits:=StrToIntDef(Img.Extra[TiffGrayBits],8);
     RedBits:=StrToIntDef(Img.Extra[TiffRedBits],8);
@@ -349,7 +351,7 @@ begin
     ImgHeight:=Img.Height;
     Compression:=1;
 
-    if IDF.Orientation in [1..4] then begin
+    if IFD.Orientation in [1..4] then begin
       OrientedWidth:=ImgWidth;
       OrientedHeight:=ImgHeight;
     end else begin
@@ -358,26 +360,26 @@ begin
     end;
 
     {$IFDEF VerboseTiffWriter}
-    writeln('TFPWriterTiff.AddImage PhotoMetricInterpretation=',IDF.PhotoMetricInterpretation);
+    writeln('TFPWriterTiff.AddImage PhotoMetricInterpretation=',IFD.PhotoMetricInterpretation);
     writeln('TFPWriterTiff.AddImage ImageWidth=',ImgWidth,' ImageHeight=',ImgHeight);
-    writeln('TFPWriterTiff.AddImage Orientation=',IDF.Orientation);
-    writeln('TFPWriterTiff.AddImage ResolutionUnit=',IDF.ResolutionUnit);
-    writeln('TFPWriterTiff.AddImage XResolution=',TiffRationalToStr(IDF.XResolution));
-    writeln('TFPWriterTiff.AddImage YResolution=',TiffRationalToStr(IDF.YResolution));
+    writeln('TFPWriterTiff.AddImage Orientation=',IFD.Orientation);
+    writeln('TFPWriterTiff.AddImage ResolutionUnit=',IFD.ResolutionUnit);
+    writeln('TFPWriterTiff.AddImage XResolution=',TiffRationalToStr(IFD.XResolution));
+    writeln('TFPWriterTiff.AddImage YResolution=',TiffRationalToStr(IFD.YResolution));
     writeln('TFPWriterTiff.AddImage GrayBits=',GrayBits,' RedBits=',RedBits,' GreenBits=',GreenBits,' BlueBits=',BlueBits,' AlphaBits=',AlphaBits);
     writeln('TFPWriterTiff.AddImage Compression=',Compression);
     {$ENDIF}
 
     // required meta entries
-    AddEntryShort(262,IDF.PhotoMetricInterpretation);
+    AddEntryShort(262,IFD.PhotoMetricInterpretation);
     AddEntryLong(256,ImgWidth);
     AddEntryLong(257,ImgHeight);
     AddEntryShort(259,Compression);
-    AddEntryShort(274,IDF.Orientation);
-    AddEntryShort(296,IDF.ResolutionUnit);
-    AddEntryRational(282,IDF.XResolution);
-    AddEntryRational(283,IDF.YResolution);
-    case IDF.PhotoMetricInterpretation of
+    AddEntryShort(274,IFD.Orientation);
+    AddEntryShort(296,IFD.ResolutionUnit);
+    AddEntryRational(282,IFD.XResolution);
+    AddEntryRational(283,IFD.YResolution);
+    case IFD.PhotoMetricInterpretation of
     0,1:
       begin
         BitsPerSample[0]:=GrayBits;
@@ -407,27 +409,36 @@ begin
       inc(BitsPerPixel,BitsPerSample[i]);
     BytesPerLine:=(BitsPerPixel*OrientedWidth+7) div 8;
     if OrientedWidth=0 then
-      IDF.RowsPerStrip:=8
+      IFD.RowsPerStrip:=8
     else
-      IDF.RowsPerStrip:=8192 div BytesPerLine;
-    if IDF.RowsPerStrip<1 then
-      IDF.RowsPerStrip:=1;
+      IFD.RowsPerStrip:=8192 div BytesPerLine;
+    if IFD.RowsPerStrip<1 then
+      IFD.RowsPerStrip:=1;
     {$IFDEF VerboseTiffWriter}
-    writeln('TFPWriterTiff.AddImage BitsPerPixel=',BitsPerPixel,' OrientedWidth=',OrientedWidth,' BytesPerLine=',BytesPerLine,' RowsPerStrip=',IDF.RowsPerStrip);
+    writeln('TFPWriterTiff.AddImage BitsPerPixel=',BitsPerPixel,' OrientedWidth=',OrientedWidth,' BytesPerLine=',BytesPerLine,' RowsPerStrip=',IFD.RowsPerStrip);
     {$ENDIF}
-    AddEntryLong(278,IDF.RowsPerStrip);
+    AddEntryLong(278,IFD.RowsPerStrip);
 
     // optional entries
-    if IDF.Artist<>'' then
-      AddEntryString(315,IDF.Artist);
-    if IDF.Copyright<>'' then
-      AddEntryString(33432,IDF.Copyright);
-    if IDF.DocumentName<>'' then
-      AddEntryString(269,IDF.DocumentName);
-    if IDF.DateAndTime<>'' then
-      AddEntryString(306,IDF.DateAndTime);
-    if IDF.ImageDescription<>'' then
-      AddEntryString(270,IDF.ImageDescription);
+    if IFD.ImageDescription<>'' then
+      AddEntryString(270,IFD.ImageDescription);
+    if IFD.DocumentName<>'' then
+      AddEntryString(269,IFD.DocumentName);
+    if IFD.DateAndTime<>'' then
+      AddEntryString(306,IFD.DateAndTime);
+    if IFD.Artist<>'' then
+      AddEntryString(315,IFD.Artist);
+    if IFD.PageCount>0 then begin
+      Shorts[0]:=IFD.PageNumber;
+      Shorts[1]:=IFD.PageCount;
+      AddEntry(297,3,2,@Shorts[0],2*2);
+    end;
+    if IFD.Copyright<>'' then
+      AddEntryString(33432,IFD.Copyright);
+    if IFD.TileWidth>0 then
+      AddEntryShortOrLong(322,IFD.TileWidth);
+    if IFD.TileLength>0 then
+      AddEntryShortOrLong(323,IFD.TileLength);
 
     // StripOffsets: StripOffsets, StripByteCounts
     StripOffsets:=TTiffWriteStripOffsets.Create;
@@ -438,7 +449,7 @@ begin
     StripOffsets.StripByteCounts:=StripCounts;
     AddEntry(StripCounts);
     if OrientedHeight>0 then begin
-      StripOffsets.SetCount((OrientedHeight+IDF.RowsPerStrip-1) div IDF.RowsPerStrip);
+      StripOffsets.SetCount((OrientedHeight+IFD.RowsPerStrip-1) div IFD.RowsPerStrip);
       // compute StripOffsets
       Row:=0;
       StripIndex:=0;
@@ -447,7 +458,7 @@ begin
       for y:=0 to OrientedHeight-1 do begin
         if Row=0 then begin
           // allocate Strip for the next rows
-          StripBytes:=Min(IDF.RowsPerStrip,OrientedHeight-y)*BytesPerLine;
+          StripBytes:=Min(IFD.RowsPerStrip,OrientedHeight-y)*BytesPerLine;
           //writeln('TFPWriterTiff.AddImage StripIndex=',StripIndex,' StripBytes=',StripBytes);
           GetMem(Strip,StripBytes);
           FillByte(Strip^,StripBytes,0);
@@ -459,7 +470,7 @@ begin
         // write line
         for x:=0 to OrientedWidth-1 do begin
           // Orientation
-          case IDF.Orientation of
+          case IFD.Orientation of
           1: begin dx:=x; dy:=y; end;// 0,0 is left, top
           2: begin dx:=OrientedWidth-x-1; dy:=y; end;// 0,0 is right, top
           3: begin dx:=OrientedWidth-x-1; dy:=OrientedHeight-y-1; end;// 0,0 is right, bottom
@@ -470,12 +481,12 @@ begin
           8: begin dx:=y; dy:=OrientedWidth-x-1; end;// 0,0 is bottom, left (rotated)
           end;
           Col:=Img.Colors[dx,dy];
-          case IDF.PhotoMetricInterpretation of
+          case IFD.PhotoMetricInterpretation of
           0,1:
             begin
               // grayscale
               Value:=(DWord(Col.red)+Col.green+Col.blue) div 3;
-              if IDF.PhotoMetricInterpretation=0 then
+              if IFD.PhotoMetricInterpretation=0 then
                 Value:=$ffff-Value;// 0 is white
               if GrayBits=8 then begin
                 Run^:=Value shr 8;
@@ -528,14 +539,14 @@ begin
         end;
         // next row
         inc(Row);
-        if (Row=IDF.RowsPerStrip) then
+        if (Row=IFD.RowsPerStrip) then
           Row:=0;
       end;
     end;
 
     CurEntries.Sort(@CompareTiffWriteEntries);
   finally
-    IDF.Free;
+    IFD.Free;
   end;
 end;
 
@@ -573,6 +584,14 @@ end;
 procedure TFPWriterTiff.AddEntryLong(Tag: word; Value: DWord);
 begin
   AddEntry(Tag,4,1,@Value,4);
+end;
+
+procedure TFPWriterTiff.AddEntryShortOrLong(Tag: word; Value: DWord);
+begin
+  if Value<High(Word) then
+    AddEntryShort(Tag,Value)
+  else
+    AddEntryLong(Tag,Value);
 end;
 
 procedure TFPWriterTiff.AddEntryRational(Tag: word; const Value: TTiffRational

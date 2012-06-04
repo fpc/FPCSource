@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2008 by the Free Pascal development team
+    Copyright (c) 2012 by the Free Pascal development team
 
     Common stuff for Tiff image format.
 
@@ -49,12 +49,45 @@ const
   TiffXResolution = TiffExtraPrefix+'XResolution';
   TiffYResolution = TiffExtraPrefix+'YResolution';
 
+  TiffCompressionNone = 1; { No Compression, but pack data into bytes as tightly as possible,
+       leaving no unused bits (except at the end of a row). The component
+       values are stored as an array of type BYTE. Each scan line (row)
+       is padded to the next BYTE boundary. }
+  TiffCompressionCCITTRLE = 2; { CCITT Group 3 1-Dimensional Modified Huffman run length encoding. }
+  TiffCompressionCCITTFAX3 = 3; { CCITT Group 3 fax encoding }
+  TiffCompressionCCITTFAX4 = 4; { CCITT Group 4 fax encoding }
+  TiffCompressionLZW = 5; { LZW }
+  TiffCompressionOldJPEG = 6; { JPEG old style}
+  TiffCompressionJPEG = 7; { JPEG new style }
+  TiffCompressionDeflateAdobe = 8; { Deflate Adobe style }
+  TiffCompressionJBIGBW = 9; { RFC2301 JBIG black/white }
+  TiffCompressionJBIGCol = 10; { RFC2301 JBIG color }
+  TiffCompressionNext = 32766; { Next }
+  TiffCompressionCCITTRLEW = 32771; { CCITTRLEW }
+  TiffCompressionPackBits = 32773; { PackBits Compression, a simple byte-oriented run length scheme.
+         See the PackBits section for details. Data Compression applies
+         only to raster image data. All other TIFF fields are unaffected. }
+  TiffCompressionThunderScan = 32809; { THUNDERSCAN }
+  TiffCompressionIT8CTPAD = 32895; { IT8CTPAD }
+  TiffCompressionIT8LW = 32896; { IT8LW }
+  TiffCompressionIT8MP = 32897; { IT8MP }
+  TiffCompressionIT8BL = 32898; { IT8BL }
+  TiffCompressionPixarFilm = 32908; { PIXARFILM }
+  TiffCompressionPixarLog = 32909; { PIXARLOG }
+  TiffCompressionDeflate = 32946; { DEFLATE }
+  TiffCompressionDCS = 32947; { DCS }
+  TiffCompressionJBIG = 34661; { JBIG }
+  TiffCompressionSGILog = 34676; { SGILOG }
+  TiffCompressionSGILog24 = 34677; { SGILOG24 }
+  TiffCompressionJPEG2000 = 34712; { JP2000 }
 type
 
-  { TTiffIDF }
+  { TTiffIFD - Image File Directory }
 
-  TTiffIDF = class
+  TTiffIFD = class
   public
+    IFDStart: DWord; // tiff position
+    IFDNext: DWord; // tiff position
     Artist: String;
     BitsPerSample: DWord; // tiff position of entry
     BitsPerSampleArray: array of Word;
@@ -78,6 +111,8 @@ type
     Make_ScannerManufacturer: string;
     Model_Scanner: string;
     Orientation: DWord;
+    PageNumber: word; // the page number starting at 0, the total number of pages is PageCount
+    PageCount: word; // see PageNumber
     PhotoMetricInterpretation: DWord;
     PlanarConfiguration: DWord;
     ResolutionUnit: DWord;
@@ -86,11 +121,16 @@ type
     Software: string;
     StripByteCounts: DWord;// tiff position of entry
     StripOffsets: DWord; // tiff position of entry
+    TileWidth: DWord;
+    TileLength: DWord; // = Height
+    TileOffsets: DWord; // tiff position of entry
+    TileByteCounts: DWord; // tiff position of entry
     Treshholding: DWord;
     XResolution: TTiffRational;
     YResolution: TTiffRational;
     // image
     Img: TFPCustomImage;
+    FreeImg: boolean;
     RedBits: word;
     GreenBits: word;
     BlueBits: word;
@@ -98,7 +138,9 @@ type
     AlphaBits: word;
     BytesPerPixel: Word;
     procedure Clear;
-    procedure Assign(IDF: TTiffIDF);
+    procedure Assign(IFD: TTiffIFD);
+    function ImageLength: DWord; inline;
+    destructor Destroy; override;
   end;
 
 function TiffRationalToStr(const r: TTiffRational): string;
@@ -106,6 +148,7 @@ function StrToTiffRationalDef(const s: string; const Def: TTiffRational): TTiffR
 procedure ClearTiffExtras(Img: TFPCustomImage);
 procedure CopyTiffExtras(SrcImg, DestImg: TFPCustomImage);
 procedure WriteTiffExtras(Msg: string; Img: TFPCustomImage);
+function TiffCompressionName(c: Word): string;
 
 implementation
 
@@ -149,19 +192,51 @@ procedure WriteTiffExtras(Msg: string; Img: TFPCustomImage);
 var
   i: Integer;
 begin
-  {$ifdef FPC_Debug_Image}
   writeln('WriteTiffExtras ',Msg);
-
   for i:=Img.ExtraCount-1 downto 0 do
     //if SysUtils.CompareText(copy(Img.ExtraKey[i],1,4),'Tiff')=0 then
       writeln('  ',i,' ',Img.ExtraKey[i],'=',Img.ExtraValue[i]);
-  {$endif}      
 end;
 
-{ TTiffIDF }
-
-procedure TTiffIDF.Clear;
+function TiffCompressionName(c: Word): string;
 begin
+  case c of
+  1: Result:='no compression';
+  2: Result:='CCITT Group 3 1-Dimensional Modified Huffman run length encoding';
+  3: Result:='CCITT Group 3 fax encoding';
+  4: Result:='CCITT Group 4 fax encoding';
+  5: Result:='LZW';
+  6: Result:='JPEG old style';
+  7: Result:='JPEG';
+  8: Result:='Deflate Adobe style';
+  9: Result:='RFC2301 JBIG white/black';
+  10: Result:='RFC2301 JBIG color';
+  32766: Result:='Next';
+  32771: Result:='CCITTRLEW';
+  32773: Result:='PackBits';
+  32809: Result:='THUNDERSCAN';
+  32895: Result:='IT8CTPAD';
+  32896: Result:='IT8LW';
+  32897: Result:='IT8MP';
+  32898: Result:='IT8BL';
+  32908: Result:='PIXARFILM';
+  32909: Result:='PIXARLOG';
+  32946: Result:='DEFLATE';
+  32947: Result:='DCS';
+  34661: Result:='JBIG';
+  34676: Result:='SGILOG';
+  34677: Result:='SGILOG24';
+  34712: Result:='JP2000';
+  else Result:='unknown';
+  end;
+end;
+
+{ TTiffIFD }
+
+procedure TTiffIFD.Clear;
+begin
+  IFDStart:=0;
+  IFDNext:=0;
   PhotoMetricInterpretation:=High(PhotoMetricInterpretation);
   PlanarConfiguration:=0;
   Compression:=0;
@@ -192,6 +267,15 @@ begin
   CellLength:=0;
   FillOrder:=0;
   Orientation:=0;
+  PageNumber:=0;
+  PageCount:=0;
+
+  // tiles
+  TileWidth:=0;
+  TileLength:=0;
+  TileOffsets:=0;
+  TileByteCounts:=0;
+
   Treshholding:=0;
 
   RedBits:=0;
@@ -200,48 +284,78 @@ begin
   GrayBits:=0;
   AlphaBits:=0;
   BytesPerPixel:=0;
+
+  if FreeImg then begin
+    FreeImg:=false;
+    FreeAndNil(Img);
+  end;
 end;
 
-procedure TTiffIDF.Assign(IDF: TTiffIDF);
+procedure TTiffIFD.Assign(IFD: TTiffIFD);
 begin
-  PhotoMetricInterpretation:=IDF.PhotoMetricInterpretation;
-  PlanarConfiguration:=IDF.PlanarConfiguration;
-  Compression:=IDF.Compression;
-  Predictor:=IDF.Predictor;
-  ImageHeight:=IDF.ImageHeight;
-  ImageWidth:=IDF.ImageWidth;
-  ImageIsThumbNail:=IDF.ImageIsThumbNail;
-  ImageIsPage:=IDF.ImageIsPage;
-  ImageIsMask:=IDF.ImageIsMask;
-  BitsPerSample:=IDF.BitsPerSample;
-  BitsPerSampleArray:=IDF.BitsPerSampleArray;
-  ResolutionUnit:=IDF.ResolutionUnit;
-  XResolution:=IDF.XResolution;
-  YResolution:=IDF.YResolution;
-  RowsPerStrip:=IDF.RowsPerStrip;
-  StripOffsets:=IDF.StripOffsets;
-  StripByteCounts:=IDF.StripByteCounts;
-  SamplesPerPixel:=IDF.SamplesPerPixel;
-  Artist:=IDF.Artist;
-  HostComputer:=IDF.HostComputer;
-  ImageDescription:=IDF.ImageDescription;
-  Make_ScannerManufacturer:=IDF.Make_ScannerManufacturer;
-  Model_Scanner:=IDF.Model_Scanner;
-  Copyright:=IDF.Copyright;
-  DateAndTime:=IDF.DateAndTime;
-  Software:=IDF.Software;
-  CellWidth:=IDF.CellWidth;
-  CellLength:=IDF.CellLength;
-  FillOrder:=IDF.FillOrder;
-  Orientation:=IDF.Orientation;
-  Treshholding:=IDF.Treshholding;
-  RedBits:=IDF.RedBits;
-  GreenBits:=IDF.GreenBits;
-  BlueBits:=IDF.BlueBits;
-  GrayBits:=IDF.GrayBits;
-  AlphaBits:=IDF.AlphaBits;
-  if (Img<>nil) and (IDF.Img<>nil) then
-    Img.Assign(IDF.Img);
+  IFDStart:=IFD.IFDStart;
+  IFDNext:=IFD.IFDNext;
+
+  PhotoMetricInterpretation:=IFD.PhotoMetricInterpretation;
+  PlanarConfiguration:=IFD.PlanarConfiguration;
+  Compression:=IFD.Compression;
+  Predictor:=IFD.Predictor;
+  ImageHeight:=IFD.ImageHeight;
+  ImageWidth:=IFD.ImageWidth;
+  ImageIsThumbNail:=IFD.ImageIsThumbNail;
+  ImageIsPage:=IFD.ImageIsPage;
+  ImageIsMask:=IFD.ImageIsMask;
+  BitsPerSample:=IFD.BitsPerSample;
+  BitsPerSampleArray:=IFD.BitsPerSampleArray;
+  ResolutionUnit:=IFD.ResolutionUnit;
+  XResolution:=IFD.XResolution;
+  YResolution:=IFD.YResolution;
+  RowsPerStrip:=IFD.RowsPerStrip;
+  StripOffsets:=IFD.StripOffsets;
+  StripByteCounts:=IFD.StripByteCounts;
+  SamplesPerPixel:=IFD.SamplesPerPixel;
+  Artist:=IFD.Artist;
+  HostComputer:=IFD.HostComputer;
+  ImageDescription:=IFD.ImageDescription;
+  Make_ScannerManufacturer:=IFD.Make_ScannerManufacturer;
+  Model_Scanner:=IFD.Model_Scanner;
+  Copyright:=IFD.Copyright;
+  DateAndTime:=IFD.DateAndTime;
+  Software:=IFD.Software;
+  CellWidth:=IFD.CellWidth;
+  CellLength:=IFD.CellLength;
+  FillOrder:=IFD.FillOrder;
+  Orientation:=IFD.Orientation;
+  PageNumber:=IFD.PageNumber;
+  PageCount:=IFD.PageCount;
+
+  // tiles
+  TileWidth:=IFD.TileWidth;
+  TileLength:=IFD.TileLength;
+  TileOffsets:=IFD.TileOffsets;
+  TileByteCounts:=IFD.TileByteCounts;
+
+  Treshholding:=IFD.Treshholding;
+
+  RedBits:=IFD.RedBits;
+  GreenBits:=IFD.GreenBits;
+  BlueBits:=IFD.BlueBits;
+  GrayBits:=IFD.GrayBits;
+  AlphaBits:=IFD.AlphaBits;
+  if (Img<>nil) and (IFD.Img<>nil) then
+    Img.Assign(IFD.Img);
+end;
+
+function TTiffIFD.ImageLength: DWord;
+begin
+  Result:=ImageHeight;
+end;
+
+destructor TTiffIFD.Destroy;
+begin
+  if FreeImg then
+    FreeAndNil(Img);
+  inherited Destroy;
 end;
 
 end.
