@@ -311,8 +311,16 @@ begin
     CurImg.Extra[TiffDocumentName]:=IFD.DocumentName;
   if IFD.DateAndTime<>'' then
     CurImg.Extra[TiffDateTime]:=IFD.DateAndTime;
+  if IFD.HostComputer<>'' then
+    CurImg.Extra[TiffHostComputer]:=IFD.HostComputer;
   if IFD.ImageDescription<>'' then
     CurImg.Extra[TiffImageDescription]:=IFD.ImageDescription;
+  if IFD.Make_ScannerManufacturer<>'' then
+    CurImg.Extra[TiffMake_ScannerManufacturer]:=IFD.Make_ScannerManufacturer;
+  if IFD.Model_Scanner<>'' then
+    CurImg.Extra[TiffModel_Scanner]:=IFD.Model_Scanner;
+  if IFD.Software<>'' then
+    CurImg.Extra[TiffSoftware]:=IFD.Software;
   if not (IFD.Orientation in [1..8]) then
     IFD.Orientation:=1;
   CurImg.Extra[TiffOrientation]:=IntToStr(IFD.Orientation);
@@ -327,6 +335,10 @@ begin
   CurImg.Extra[TiffBlueBits]:=IntToStr(IFD.BlueBits);
   CurImg.Extra[TiffGrayBits]:=IntToStr(IFD.GrayBits);
   CurImg.Extra[TiffAlphaBits]:=IntToStr(IFD.AlphaBits);
+  if IFD.PageCount>0 then begin
+    CurImg.Extra[TiffPageNumber]:=IntToStr(IFD.PageNumber);
+    CurImg.Extra[TiffPageCount]:=IntToStr(IFD.PageCount);
+  end;
   {$ifdef FPC_Debug_Image}
   if Debug then
     WriteTiffExtras('SetFPImgExtras', CurImg);
@@ -2096,5 +2108,8 @@ begin
   ReAllocMem(NewBuffer,NewCount);
 end;
 
+initialization
+  if ImageHandlers.ImageReader[TiffHandlerName]=nil then
+    ImageHandlers.RegisterImageReader (TiffHandlerName, 'tif;tiff', TFPReaderTiff);
 end.
 

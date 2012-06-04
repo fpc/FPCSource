@@ -28,6 +28,8 @@ type
   end;
 
 const
+  TiffHandlerName = 'Tagged Image File Format';
+
   TiffRational0: TTiffRational = (Numerator: 0; Denominator: 0);
   TiffRational72: TTiffRational = (Numerator: 72; Denominator: 1);
 
@@ -44,10 +46,16 @@ const
   TiffDocumentName = TiffExtraPrefix+'DocumentName';
   TiffDateTime = TiffExtraPrefix+'DateTime';
   TiffImageDescription = TiffExtraPrefix+'ImageDescription';
+  TiffHostComputer = TiffExtraPrefix+'HostComputer';
+  TiffMake_ScannerManufacturer = TiffExtraPrefix+'Make_ScannerManufacturer';
+  TiffModel_Scanner = TiffExtraPrefix+'Model_Scanner';
   TiffOrientation = TiffExtraPrefix+'Orientation';
   TiffResolutionUnit = TiffExtraPrefix+'ResolutionUnit';
+  TiffSoftware = TiffExtraPrefix+'Software';
   TiffXResolution = TiffExtraPrefix+'XResolution';
   TiffYResolution = TiffExtraPrefix+'YResolution';
+  TiffPageNumber = TiffExtraPrefix+'PageNumber';
+  TiffPageCount = TiffExtraPrefix+'PageCount';
 
   TiffCompressionNone = 1; { No Compression, but pack data into bytes as tightly as possible,
        leaving no unused bits (except at the end of a row). The component
@@ -193,7 +201,7 @@ var
   i: Integer;
 begin
   writeln('WriteTiffExtras ',Msg);
-  for i:=Img.ExtraCount-1 downto 0 do
+  for i:=0 to Img.ExtraCount-1 do
     //if SysUtils.CompareText(copy(Img.ExtraKey[i],1,4),'Tiff')=0 then
       writeln('  ',i,' ',Img.ExtraKey[i],'=',Img.ExtraValue[i]);
 end;
