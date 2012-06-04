@@ -1528,6 +1528,7 @@ TYPE
 
        VT_BYREF or VT_INT:      (pintVal: PLongint);
        VT_BYREF or VT_UINT:     (puintVal: PLongWord);
+       VT_RECORD:               (pvRecord: Pointer; pRecInfo: Pointer {IRecordInfo});
      );
    1: (decVal: TDECIMAL);
    end;
