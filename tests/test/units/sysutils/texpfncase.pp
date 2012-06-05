@@ -139,11 +139,8 @@ begin
    TestExpFNC ('testfile2.tst', ExpandFileName ('testFile2.tst'), mkAmbiguous)
   else
    TestExpFNC ('testfile2.tst', ExpandFileName ('testFile2.tst'), mkExactMatch);
-  if FileNameCaseSensitive then
-   TestExpFNC ('*File2.tst', ExpandFileName ('TestFile2.tst'), mkExactMatch)
-  else
-   TestExpFNC ('*File2.tst', ExpandFileName ('testFile2.tst'), mkExactMatch);
 (* Return value depends on ordering of files in the particular filesystem used thus not checked *)
+  TestExpFNC ('*File2.tst', '', mkExactMatch);
   if FileNameCaseSensitive then
    TestExpFNC ('*File*.tst', '', mkExactMatch)
   else
