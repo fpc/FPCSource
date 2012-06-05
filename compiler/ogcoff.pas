@@ -108,7 +108,6 @@ interface
          coffrelocpos : aword;
        public
          secidx   : longword;
-         flags    : longword;
          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
          procedure addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
          procedure fixuprelocs;override;
@@ -154,10 +153,8 @@ interface
          procedure section_write_symbol(p:TObject;arg:pointer);
          procedure section_write_relocs(p:TObject;arg:pointer);
          procedure create_symbols(data:TObjData);
-         procedure section_set_datapos(p:TObject;arg:pointer);
          procedure section_set_reloc_datapos(p:TObject;arg:pointer);
          procedure section_write_header(p:TObject;arg:pointer);
-         procedure section_write_data(p:TObject;arg:pointer);
        protected
          function writedata(data:TObjData):boolean;override;
        public
@@ -187,7 +184,6 @@ interface
          function  Read_str(strpos:longword):string;
          procedure read_relocs(s:TCoffObjSection);
          procedure read_symbols(objdata:TObjData);
-         procedure ObjSections_read_data(p:TObject;arg:pointer);
          procedure ObjSections_read_relocs(p:TObject;arg:pointer);
        public
          constructor createcoff(awin32:boolean);
@@ -231,7 +227,6 @@ interface
          procedure write_symbol(const name:string;value:aword;section:smallint;typ,aux:byte);
          procedure globalsyms_write_symbol(p:TObject;arg:pointer);
          procedure ExeSectionList_write_header(p:TObject;arg:pointer);
-         procedure ExeSectionList_write_data(p:TObject;arg:pointer);
        protected
          function writedata:boolean;override;
          procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
@@ -1418,12 +1413,6 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjOutput.section_set_datapos(p:TObject;arg:pointer);
-      begin
-        TObjSection(p).setdatapos(paword(arg)^);
-      end;
-
-
     procedure TCoffObjOutput.section_set_reloc_datapos(p:TObject;arg:pointer);
       begin
         TCoffObjSection(p).coffrelocpos:=paint(arg)^;
@@ -1474,21 +1463,6 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjOutput.section_write_data(p:TObject;arg:pointer);
-      begin
-        with TObjSection(p) do
-          begin
-            if assigned(data) then
-              begin
-                FWriter.writezeros(dataalignbytes);
-                if Datapos<>FWriter.ObjSize then
-                  internalerror(200603052);
-                FWriter.writearray(data);
-              end;
-          end;
-      end;
-
-
     function TCoffObjOutput.writedata(data:TObjData):boolean;
       var
         orgdatapos,
@@ -1509,7 +1483,7 @@ const pemagic : array[0..3] of byte = (
            { Calculate the filepositions }
            datapos:=sizeof(tcoffheader)+sizeof(tcoffsechdr)*ObjSectionList.Count;
            { Sections first }
-           ObjSectionList.ForEachCall(@section_set_datapos,@datapos);
+           layoutsections(datapos);
            { relocs }
            orgdatapos:=datapos;
            ObjSectionList.ForEachCall(@section_set_reloc_datapos,@datapos);
@@ -1545,7 +1519,7 @@ const pemagic : array[0..3] of byte = (
            { Section headers }
            ObjSectionList.ForEachCall(@section_write_header,nil);
            { ObjSections }
-           ObjSectionList.ForEachCall(@section_write_data,nil);
+           WriteSectionContent(data);
            { Relocs }
            ObjSectionList.ForEachCall(@section_write_relocs,nil);
            { ObjSymbols }
@@ -1826,29 +1800,6 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjInput.ObjSections_read_data(p:TObject;arg:pointer);
-      begin
-        with TCoffObjSection(p) do
-          begin
-            { Skip debug sections }
-            if (oso_debug in secoptions) and
-               (cs_link_strip in current_settings.globalswitches) and
-               not(cs_link_separate_dbg_file in current_settings.globalswitches) then
-              exit;
-
-            if assigned(data) then
-              begin
-                FReader.Seek(datapos);
-                if not FReader.ReadArray(data,Size) then
-                  begin
-                    Comment(V_Error,'Error reading coff file, can''t read object data');
-                    exit;
-                  end;
-              end;
-          end;
-      end;
-
-
     procedure TCoffObjInput.ObjSections_read_relocs(p:TObject;arg:pointer);
       begin
         with TCoffObjSection(p) do
@@ -1983,7 +1934,7 @@ const pemagic : array[0..3] of byte = (
            { Insert all ObjSymbols }
            read_symbols(objdata);
            { Section Data }
-           ObjSectionList.ForEachCall(@objsections_read_data,nil);
+           ReadSectionContent(objdata);
            { Relocs }
            ObjSectionList.ForEachCall(@objsections_read_relocs,nil);
          end;
@@ -2179,39 +2130,6 @@ const pemagic : array[0..3] of byte = (
               internalerror(200801161); }
             inc(plongint(arg)^);
             secsymidx:=plongint(arg)^;
-          end;
-      end;
-
-
-    procedure Tcoffexeoutput.ExeSectionList_write_Data(p:TObject;arg:pointer);
-      var
-        objsec : TObjSection;
-        i      : longint;
-      begin
-        with texesection(p) do
-          begin
-            { don't write normal section if writing only debug info }
-            if (ExeWriteMode=ewm_dbgonly) and
-               not(oso_debug in SecOptions) then
-              exit;
-
-            if oso_data in secoptions then
-              begin
-                FWriter.Writezeros(Align(FWriter.Size,SectionDataAlign)-FWriter.Size);
-                for i:=0 to ObjSectionList.Count-1 do
-                  begin
-                    objsec:=TObjSection(ObjSectionList[i]);
-                    if oso_data in objsec.secoptions then
-                      begin
-                        if not assigned(objsec.data) then
-                          internalerror(200603042);
-                        FWriter.writezeros(objsec.dataalignbytes);
-                        if objsec.DataPos<>FWriter.Size then
-                          internalerror(200602251);
-                        FWriter.writearray(objsec.data);
-                      end;
-                  end;
-              end;
           end;
       end;
 
@@ -2521,7 +2439,7 @@ const pemagic : array[0..3] of byte = (
         { Section headers }
         ExeSectionList.ForEachCall(@ExeSectionList_write_header,nil);
         { Section data }
-        ExeSectionList.ForEachCall(@ExeSectionList_write_data,nil);
+        WriteExeSectionContent;
         { Align after the last section }
         FWriter.Writezeros(Align(FWriter.Size,SectionDataAlign)-FWriter.Size);
 

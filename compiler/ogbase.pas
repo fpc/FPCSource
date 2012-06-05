@@ -273,6 +273,7 @@ interface
        procedure afteralloc;virtual;
        procedure afterwrite;virtual;
        procedure resetsections;
+       procedure layoutsections(var datapos:aword);
        property Name:TString80 read FName;
        property CurrObjSec:TObjSection read FCurrObjSec;
        property ObjSymbolList:TFPHashObjectList read FObjSymbolList;
@@ -290,6 +291,7 @@ interface
         FWriter    : TObjectwriter;
         function  writeData(Data:TObjData):boolean;virtual;abstract;
         property CObjData : TObjDataClass read FCObjData write FCObjData;
+        procedure WriteSectionContent(Data:TObjData);
       public
         constructor create(AWriter:TObjectWriter);virtual;
         destructor  destroy;override;
@@ -309,6 +311,7 @@ interface
         FReader    : TObjectReader;
         InputFileName : string;
         property CObjData : TObjDataClass read FCObjData write FCObjData;
+        procedure ReadSectionContent(Data:TObjData);
       public
         constructor create;virtual;
         destructor  destroy;override;
@@ -440,6 +443,7 @@ interface
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList; const aPattern:string);virtual;
+        procedure WriteExeSectionContent;
       public
         CurrDataPos  : aword;
         MaxMemPos    : qword;
@@ -1248,6 +1252,15 @@ implementation
       end;
 
 
+    procedure TObjData.layoutsections(var DataPos:aword);
+      var
+        i: longint;
+      begin
+        for i:=0 to FObjSectionList.Count-1 do
+          TObjSection(FObjSectionList[i]).setDatapos(DataPos);
+      end;
+
+
 {****************************************************************************
                                 TObjOutput
 ****************************************************************************}
@@ -1304,6 +1317,25 @@ implementation
          FWriter.writesym(p.name);
       end;
 
+    procedure TObjOutput.WriteSectionContent(Data:TObjData);
+      var
+        i:longint;
+        sec:TObjSection;
+      begin
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          begin
+            sec:=TObjSection(Data.ObjSectionList[i]);
+            if (oso_data in sec.SecOptions) then
+              begin
+                if sec.Data=nil then
+                  internalerror(200403073);
+                FWriter.writezeros(sec.dataalignbytes);
+                if sec.Datapos<>FWriter.ObjSize then
+                  internalerror(200604031);
+                FWriter.writearray(sec.data);
+              end;
+          end;
+      end;
 
 {****************************************************************************
                                  TExeVTable
@@ -2823,6 +2855,45 @@ implementation
       end;
 
 
+    procedure TExeOutput.WriteExeSectionContent;
+      var
+        exesec : TExeSection;
+        objsec : TObjSection;
+        i,j    : longint;
+      begin
+        for j:=0 to ExeSectionList.Count-1 do
+          begin
+            exesec:=TExeSection(ExeSectionList[j]);
+            { don't write normal section if writing only debug info }
+            if (ExeWriteMode=ewm_dbgonly) and
+               not(oso_debug in exesec.SecOptions) then
+              exit;
+
+            if oso_data in exesec.SecOptions then
+              begin
+                FWriter.Writezeros(Align(FWriter.Size,SectionDataAlign)-FWriter.Size);
+                for i:=0 to exesec.ObjSectionList.Count-1 do
+                  begin
+                    objsec:=TObjSection(exesec.ObjSectionList[i]);
+                    if oso_data in objsec.secoptions then
+                      begin
+                        if not assigned(objsec.data) then
+                          internalerror(200603042);
+                        FWriter.writezeros(objsec.dataalignbytes);
+                        if objsec.DataPos<>FWriter.Size then
+                          begin
+                            writeln(objsec.name,' ',hexstr(objsec.datapos,8),' should be: ',hexstr(fwriter.size,8));
+                          internalerror(200602251);
+
+                          end;
+                        FWriter.writearray(objsec.data);
+                      end;
+                  end;
+              end;
+          end;
+      end;
+
+
 {****************************************************************************
                                 TObjInput
 ****************************************************************************}
@@ -2847,6 +2918,33 @@ implementation
     procedure TObjInput.inputerror(const s : string);
       begin
         Comment(V_Error,s+' while reading '+InputFileName);
+      end;
+
+
+    procedure TObjInput.ReadSectionContent(Data:TObjData);
+      var
+        i: longint;
+        sec: TObjSection;
+      begin
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          begin
+            sec:=TObjSection(Data.ObjSectionList[i]);
+            { Skip debug sections }
+            if (oso_debug in sec.SecOptions) and
+               (cs_link_strip in current_settings.globalswitches) and
+               not(cs_link_separate_dbg_file in current_settings.globalswitches) then
+              continue;
+
+            if assigned(sec.Data) then
+              begin
+                FReader.Seek(sec.datapos);
+                if not FReader.ReadArray(sec.data,sec.Size) then
+                  begin
+                    InputError('Can''t read object data');
+                    exit;
+                  end;
+              end;
+          end;
       end;
 
 

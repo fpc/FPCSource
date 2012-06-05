@@ -74,14 +74,11 @@ interface
          procedure createshstrtab(data:TObjData);
          procedure createsymtab(data: TObjData);
          procedure writesectionheader(s:TElfObjSection);
-         procedure writesectiondata(s:TElfObjSection);
          procedure write_internal_symbol(astridx:longint;ainfo:byte;ashndx:word);
          procedure section_write_symbol(p:TObject;arg:pointer);
          procedure section_write_sh_string(p:TObject;arg:pointer);
          procedure section_count_sections(p:TObject;arg:pointer);
          procedure section_create_relocsec(p:TObject;arg:pointer);
-         procedure section_set_datapos(p:TObject;arg:pointer);
-         procedure section_write_data(p:TObject;arg:pointer);
          procedure section_write_sechdr(p:TObject;arg:pointer);
        protected
          function writedata(data:TObjData):boolean;override;
@@ -1200,15 +1197,6 @@ implementation
       end;
 
 
-    procedure TElfObjectOutput.writesectiondata(s:TElfObjSection);
-      begin
-        FWriter.writezeros(s.dataalignbytes);
-        if s.Datapos<>FWriter.ObjSize then
-          internalerror(200604031);
-        FWriter.writearray(s.data);
-      end;
-
-
     procedure TElfObjectOutput.section_count_sections(p:TObject;arg:pointer);
       begin
         TElfObjSection(p).secshidx:=pword(arg)^;
@@ -1223,23 +1211,6 @@ implementation
       end;
 
 
-    procedure TElfObjectOutput.section_set_datapos(p:TObject;arg:pointer);
-      begin
-        TObjSection(p).setdatapos(paword(arg)^);
-      end;
-
-
-    procedure TElfObjectOutput.section_write_data(p:TObject;arg:pointer);
-      begin
-        if (oso_data in TObjSection(p).secoptions) then
-          begin
-            if TObjSection(p).data=nil then
-              internalerror(200403073);
-            writesectiondata(TElfObjSection(p));
-          end;
-      end;
-
-
     procedure TElfObjectOutput.section_write_sechdr(p:TObject;arg:pointer);
       begin
         writesectionheader(TElfObjSection(p));
@@ -1250,7 +1221,7 @@ implementation
       var
         header : telfheader;
         shoffset,
-        datapos   : aint;
+        datapos   : aword;
         nsections : word;
       begin
         result:=false;
@@ -1284,7 +1255,7 @@ implementation
            { Calculate the filepositions }
            datapos:=$40; { elfheader + alignment }
            { section data }
-           ObjSectionList.ForEachCall(@section_set_datapos,@datapos);
+           layoutsections(datapos);
            { section headers }
            shoffset:=datapos;
            inc(datapos,(nsections+1)*sizeof(telfsechdr));
@@ -1319,7 +1290,7 @@ implementation
            writer.write(header,sizeof(header));
            writer.writezeros($40-sizeof(header)); { align }
            { Sections }
-           ObjSectionList.ForEachCall(@section_write_data,nil);
+           WriteSectionContent(data);
            { section headers, start with an empty header for sh_undef }
            writer.writezeros(sizeof(telfsechdr));
            ObjSectionList.ForEachCall(@section_write_sechdr,nil);
