@@ -54,8 +54,12 @@ const
   TiffSoftware = TiffExtraPrefix+'Software';
   TiffXResolution = TiffExtraPrefix+'XResolution';
   TiffYResolution = TiffExtraPrefix+'YResolution';
-  TiffPageNumber = TiffExtraPrefix+'PageNumber';
-  TiffPageCount = TiffExtraPrefix+'PageCount';
+  TiffPageNumber = TiffExtraPrefix+'PageNumber'; // starting at 0
+  TiffPageCount = TiffExtraPrefix+'PageCount'; // if >0 the image is a page
+  TiffIsThumbnail = TiffExtraPrefix+'IsThumbnail';
+  TiffIsMask = TiffExtraPrefix+'IsMask';
+  TiffTileWidth = TiffExtraPrefix+'TileWidth';
+  TiffTileLength = TiffExtraPrefix+'TileLength';
 
   TiffCompressionNone = 1; { No Compression, but pack data into bytes as tightly as possible,
        leaving no unused bits (except at the end of a row). The component
@@ -89,6 +93,10 @@ const
   TiffCompressionSGILog24 = 34677; { SGILOG24 }
   TiffCompressionJPEG2000 = 34712; { JP2000 }
 type
+  TTiffChunkType = (
+    tctStrip,
+    tctTile
+    );
 
   { TTiffIFD - Image File Directory }
 
@@ -147,6 +155,7 @@ type
     BytesPerPixel: Word;
     procedure Clear;
     procedure Assign(IFD: TTiffIFD);
+    procedure ReadFPImgExtras(Src: TFPCustomImage);
     function ImageLength: DWord; inline;
     destructor Destroy; override;
   end;
@@ -352,6 +361,39 @@ begin
   AlphaBits:=IFD.AlphaBits;
   if (Img<>nil) and (IFD.Img<>nil) then
     Img.Assign(IFD.Img);
+end;
+
+procedure TTiffIFD.ReadFPImgExtras(Src: TFPCustomImage);
+begin
+  Clear;
+  PhotoMetricInterpretation:=2;
+  if Src.Extra[TiffPhotoMetric]<>'' then
+    PhotoMetricInterpretation:=
+      StrToInt64Def(Src.Extra[TiffPhotoMetric],High(PhotoMetricInterpretation));
+  Artist:=Src.Extra[TiffArtist];
+  Copyright:=Src.Extra[TiffCopyright];
+  DocumentName:=Src.Extra[TiffDocumentName];
+  DateAndTime:=Src.Extra[TiffDateTime];
+  HostComputer:=Src.Extra[TiffHostComputer];
+  Make_ScannerManufacturer:=Src.Extra[TiffMake_ScannerManufacturer];
+  Model_Scanner:=Src.Extra[TiffModel_Scanner];
+  ImageDescription:=Src.Extra[TiffImageDescription];
+  Software:=Src.Extra[TiffSoftware];
+  Orientation:=StrToIntDef(Src.Extra[TiffOrientation],1);
+  if not (Orientation in [1..8]) then
+    Orientation:=1;
+  ResolutionUnit:=StrToIntDef(Src.Extra[TiffResolutionUnit],2);
+  if not (ResolutionUnit in [1..3]) then
+    ResolutionUnit:=2;
+  XResolution:=StrToTiffRationalDef(Src.Extra[TiffXResolution],TiffRational72);
+  YResolution:=StrToTiffRationalDef(Src.Extra[TiffYResolution],TiffRational72);
+  PageNumber:=StrToIntDef(Src.Extra[TiffPageNumber],0);
+  PageCount:=StrToIntDef(Src.Extra[TiffPageCount],0);
+  ImageIsPage:=PageCount>0;
+  ImageIsThumbNail:=Src.Extra[TiffIsThumbnail]<>'';
+  ImageIsMask:=Src.Extra[TiffIsMask]<>'';
+  TileWidth:=StrToIntDef(Src.Extra[TiffTileWidth],0);
+  TileLength:=StrToIntDef(Src.Extra[TiffTileLength],0);
 end;
 
 function TTiffIFD.ImageLength: DWord;

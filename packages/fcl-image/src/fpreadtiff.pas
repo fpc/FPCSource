@@ -13,25 +13,26 @@
 
  **********************************************************************
 
-  Working:
-    Grayscale 8,16bit (optional alpha),
-    RGB 8,16bit (optional alpha),
-    Orientation,
-    skipping Thumbnail to read first image,
-    compression: packbits, LZW
-    endian
-    multiple images
-    strips and tiles
+ Working:
+   Grayscale 8,16bit (optional alpha),
+   RGB 8,16bit (optional alpha),
+   Orientation,
+   skipping Thumbnail to read first image,
+   compression: packbits, LZW
+   endian
+   multiple images
+   strips and tiles
 
-  ToDo:
-    Compression: deflate, jpeg, ...
-    PlanarConfiguration 2
-    ColorMap
-    separate mask
-    fillorder - not needed by baseline tiff reader
-    bigtiff 64bit offsets
-    XMP tag 700
-    ICC profile tag 34675
+ ToDo:
+   Compression: deflate, jpeg, ...
+   PlanarConfiguration 2
+   ColorMap
+   separate mask
+   fillorder - not needed by baseline tiff reader
+   bigtiff 64bit offsets
+   XMP tag 700
+   ICC profile tag 34675
+   orientation with rotation
 }
 unit FPReadTiff;
 
@@ -54,10 +55,6 @@ type
     tcioSmart,
     tcioAlways,
     tcioNever
-    );
-  TTiffChunkType = (
-    tctStrip,
-    tctTile
     );
 
   { TFPReaderTiff }
@@ -130,6 +127,7 @@ type
                                                           write FOnCreateImage;
     property CheckIFDOrder: TTiffCheckIFDOrder read FCheckIFDOrder write FCheckIFDOrder;
     function FirstImg: TTiffIFD;
+    function GetBiggestImage: TTiffIFD;
     function ImageCount: integer;
     property Images[Index: integer]: TTiffIFD read GetImages; default;
     property FirstIFDStart: DWord read FFirstIFDStart;
@@ -339,6 +337,11 @@ begin
     CurImg.Extra[TiffPageNumber]:=IntToStr(IFD.PageNumber);
     CurImg.Extra[TiffPageCount]:=IntToStr(IFD.PageCount);
   end;
+  if IFD.ImageIsThumbNail then
+    CurImg.Extra[TiffIsThumbnail]:='1';
+  if IFD.ImageIsMask then
+    CurImg.Extra[TiffIsMask]:='1';
+
   {$ifdef FPC_Debug_Image}
   if Debug then
     WriteTiffExtras('SetFPImgExtras', CurImg);
@@ -444,6 +447,24 @@ begin
   Result:=TTiffIFD(ImageList[0]);
 end;
 
+function TFPReaderTiff.GetBiggestImage: TTiffIFD;
+var
+  Size: Int64;
+  Img: TTiffIFD;
+  CurSize: int64;
+  i: Integer;
+begin
+  Result:=nil;
+  Size:=0;
+  for i:=0 to ImageCount-1 do begin
+    Img:=Images[i];
+    CurSize:=Int64(Img.ImageWidth)*Img.ImageHeight;
+    if CurSize<Size then continue;
+    Size:=CurSize;
+    Result:=Img;
+  end;
+end;
+
 function TFPReaderTiff.ImageCount: integer;
 begin
   Result:=ImageList.Count;
@@ -516,9 +537,9 @@ begin
     // backward jump: check for loops
     if fIFDStarts=nil then
       fIFDStarts:=TFPList.Create
-    else if fIFDStarts.IndexOf(Pointer(PtrUInt(Result)))>0 then
+    else if fIFDStarts.IndexOf({%H-}Pointer(PtrUInt(Result)))>0 then
       TiffError('endless loop in Image File Descriptors');
-    fIFDStarts.Add(Pointer(PtrUInt(Result)));
+    fIFDStarts.Add({%H-}Pointer(PtrUInt(Result)));
   end;
 end;
 
@@ -1440,9 +1461,7 @@ var
   CurOffset: DWord;
   CurByteCnt: PtrInt;
   Run: PByte;
-  x, y: DWord;
-  x2, y2: DWord;
-  dx, dy: DWord;
+  x, y, cx, cy, dx, dy, sx: integer;
   SampleBits: PWord;
   SampleBitsPerPixel: DWord;
   ExtraSamples: PWord;
@@ -1461,7 +1480,7 @@ var
   TilesAcross, TilesDown: DWord;
   ChunkLeft, ChunkTop, ChunkWidth, ChunkHeight: DWord;
   CurImg: TTiffIFD;
-  PaddingRight: DWord;
+  ChunkBytesPerLine: DWord;
 begin
   {$ifdef FPC_Debug_Image}
   if Debug then
@@ -1576,28 +1595,27 @@ begin
         TiffError('compression '+IntToStr(IFD.Compression)+' not supported yet');
       end;
       if CurByteCnt<=0 then continue;
-      PaddingRight:=0;
       if ChunkType=tctTile then begin
         ChunkLeft:=(ChunkIndex mod TilesAcross)*IFD.TileWidth;
         ChunkTop:=(ChunkIndex div TilesAcross)*IFD.TileLength;
         ChunkWidth:=Min(IFD.TileWidth,IFD.ImageWidth-ChunkLeft);
         ChunkHeight:=Min(IFD.TileLength,IFD.ImageHeight-ChunkTop);
-        ExpectedChunkLength:=((SampleBitsPerPixel*ChunkWidth+7) div 8)*ChunkHeight;
+        ChunkBytesPerLine:=(SampleBitsPerPixel*ChunkWidth+7) div 8;
+        ExpectedChunkLength:=ChunkBytesPerLine*ChunkHeight;
         if CurByteCnt<ExpectedChunkLength then begin
           //writeln('TFPReaderTiff.LoadImageFromStream SampleBitsPerPixel=',SampleBitsPerPixel,' IFD.ImageWidth=',IFD.ImageWidth,' IFD.ImageHeight=',IFD.ImageHeight,' y=',y,' IFD.TileWidth=',IFD.TileWidth,' IFD.TileLength=',IFD.TileLength,' ExpectedChunkLength=',ExpectedChunkLength,' CurByteCnt=',CurByteCnt);
           TiffError('TFPReaderTiff.LoadImageFromStream Tile too short ByteCnt='+IntToStr(CurByteCnt)+' ChunkWidth='+IntToStr(ChunkWidth)+' ChunkHeight='+IntToStr(ChunkHeight)+' expected='+IntToStr(ExpectedChunkLength));
         end else if CurByteCnt>ExpectedChunkLength then begin
           // boundary tiles have padding
-          PaddingRight:=((SampleBitsPerPixel*IFD.TileWidth+7) div 8)
-                       -((SampleBitsPerPixel*ChunkWidth+7) div 8);
+          ChunkBytesPerLine:=(SampleBitsPerPixel*IFD.TileWidth+7) div 8;
         end;
       end else begin
         ChunkLeft:=0;
         ChunkTop:=IFD.RowsPerStrip*ChunkIndex;
         ChunkWidth:=IFD.ImageWidth;
         ChunkHeight:=Min(IFD.RowsPerStrip,IFD.ImageHeight-ChunkTop);
-        ExpectedChunkLength:=(SampleBitsPerPixel*ChunkWidth+7) div 8;
-        ExpectedChunkLength:=ExpectedChunkLength*ChunkHeight;
+        ChunkBytesPerLine:=(SampleBitsPerPixel*ChunkWidth+7) div 8;
+        ExpectedChunkLength:=ChunkBytesPerLine*ChunkHeight;
         //writeln('TFPReaderTiff.LoadImageFromStream SampleBitsPerPixel=',SampleBitsPerPixel,' IFD.ImageWidth=',IFD.ImageWidth,' IFD.ImageHeight=',IFD.ImageHeight,' y=',y,' IFD.RowsPerStrip=',IFD.RowsPerStrip,' ExpectedChunkLength=',ExpectedChunkLength,' CurByteCnt=',CurByteCnt);
         if CurByteCnt<ExpectedChunkLength then
           TiffError('TFPReaderTiff.LoadImageFromStream Strip too short ByteCnt='+IntToStr(CurByteCnt)+' ChunkWidth='+IntToStr(ChunkWidth)+' ChunkHeight='+IntToStr(ChunkHeight)+' expected='+IntToStr(ExpectedChunkLength));
@@ -1608,28 +1626,48 @@ begin
       Progress(psRunning, 0, false, Rect(0,0,IFD.ImageWidth,ChunkTop), '', aContinue);
       if not aContinue then break;
 
-      Run:=Chunk;
+      // Orientation
+      if IFD.Orientation in [1..4] then begin
+        x:=ChunkLeft; y:=ChunkTop;
+        case IFD.Orientation of
+        1: begin dx:=1; dy:=1; end;// 0,0 is left, top
+        2: begin x:=IFD.ImageWidth-x-1; dx:=-1; dy:=1; end;// 0,0 is right, top
+        3: begin x:=IFD.ImageWidth-x-1; dx:=-1; y:=IFD.ImageHeight-y-1; dy:=-1; end;// 0,0 is right, bottom
+        4: begin dx:=1; y:=IFD.ImageHeight-y-1; dy:=-1; end;// 0,0 is left, bottom
+        end;
+      end else begin
+        // rotated
+        x:=ChunkTop; y:=ChunkLeft;
+        case IFD.Orientation of
+        5: begin dx:=1; dy:=1; end;// 0,0 is top, left (rotated)
+        6: begin dx:=1; y:=IFD.ImageWidth-y-1; dy:=-1; end;// 0,0 is top, right (rotated)
+        7: begin x:=IFD.ImageHeight-x-1; dx:=-1; y:=IFD.ImageWidth-y-1; dy:=-1; end;// 0,0 is bottom, right (rotated)
+        8: begin x:=IFD.ImageHeight-x-1; dx:=-1; dy:=1; end;// 0,0 is bottom, left (rotated)
+        end;
+      end;
+
       //writeln('TFPReaderTiff.LoadImageFromStream Chunk ',ChunkIndex,' ChunkLeft=',ChunkLeft,' ChunkTop=',ChunkTop,' IFD.ImageWidth=',IFD.ImageWidth,' IFD.ImageHeight=',IFD.ImageHeight,' ChunkWidth=',ChunkWidth,' ChunkHeight=',ChunkHeight,' PaddingRight=',PaddingRight);
-      for y2:=0 to ChunkHeight-1 do begin
+      sx:=x;
+      for cy:=0 to ChunkHeight-1 do begin
         //writeln('TFPReaderTiff.LoadImageFromStream y=',y);
-        y:=ChunkTop+y2;
+        Run:=Chunk+ChunkBytesPerLine*cy;
         LastRedValue:=0;
         LastGreenValue:=0;
         LastBlueValue:=0;
         LastGrayValue:=0;
         LastAlphaValue:=0;
-        for x2:=0 to ChunkWidth-1 do begin
-          x:=ChunkLeft+x2;
+        x:=sx;
+        for cx:=0 to ChunkWidth-1 do begin
           case IFD.PhotoMetricInterpretation of
           0,1:
             begin
-              ReadImgValue(GrayBits,Run,x2,IFD.Predictor,LastGrayValue,GrayValue);
+              ReadImgValue(GrayBits,Run,cx,IFD.Predictor,LastGrayValue,GrayValue);
               if IFD.PhotoMetricInterpretation=0 then
                 GrayValue:=$ffff-GrayValue;
               AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
                 if ExtraSamples[i] in [1,2] then begin
-                  ReadImgValue(AlphaBits,Run,x2,IFD.Predictor,LastAlphaValue,AlphaValue);
+                  ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
                 end else begin
                   inc(Run,ExtraSamples[i] div 8);
                 end;
@@ -1639,13 +1677,13 @@ begin
 
           2: // RGB(A)
             begin
-              ReadImgValue(RedBits,Run,x2,IFD.Predictor,LastRedValue,RedValue);
-              ReadImgValue(GreenBits,Run,x2,IFD.Predictor,LastGreenValue,GreenValue);
-              ReadImgValue(BlueBits,Run,x2,IFD.Predictor,LastBlueValue,BlueValue);
+              ReadImgValue(RedBits,Run,cx,IFD.Predictor,LastRedValue,RedValue);
+              ReadImgValue(GreenBits,Run,cx,IFD.Predictor,LastGreenValue,GreenValue);
+              ReadImgValue(BlueBits,Run,cx,IFD.Predictor,LastBlueValue,BlueValue);
               AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
                 if ExtraSamples[i] in [1,2] then begin
-                  ReadImgValue(AlphaBits,Run,x2,IFD.Predictor,LastAlphaValue,AlphaValue);
+                  ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
                 end else begin
                   inc(Run,ExtraSamples[i] div 8);
                 end;
@@ -1655,14 +1693,14 @@ begin
 
           5: // CMYK plus optional alpha
             begin
-              ReadImgValue(RedBits,Run,x2,IFD.Predictor,LastRedValue,RedValue);
-              ReadImgValue(GreenBits,Run,x2,IFD.Predictor,LastGreenValue,GreenValue);
-              ReadImgValue(BlueBits,Run,x2,IFD.Predictor,LastBlueValue,BlueValue);
-              ReadImgValue(GrayBits,Run,x2,IFD.Predictor,LastGrayValue,GrayValue);
+              ReadImgValue(RedBits,Run,cx,IFD.Predictor,LastRedValue,RedValue);
+              ReadImgValue(GreenBits,Run,cx,IFD.Predictor,LastGreenValue,GreenValue);
+              ReadImgValue(BlueBits,Run,cx,IFD.Predictor,LastBlueValue,BlueValue);
+              ReadImgValue(GrayBits,Run,cx,IFD.Predictor,LastGrayValue,GrayValue);
               AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
                 if ExtraSamples[i] in [1,2] then begin
-                  ReadImgValue(AlphaBits,Run,x2,IFD.Predictor,LastAlphaValue,AlphaValue);
+                  ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
                 end else begin
                   inc(Run,ExtraSamples[i] div 8);
                 end;
@@ -1675,23 +1713,13 @@ begin
             TiffError('PhotometricInterpretation='+IntToStr(IFD.PhotoMetricInterpretation)+' not supported');
           end;
 
-          // Orientation
-          case IFD.Orientation of
-          1: begin dx:=x; dy:=y; end;// 0,0 is left, top
-          2: begin dx:=IFD.ImageWidth-x-1; dy:=y; end;// 0,0 is right, top
-          3: begin dx:=IFD.ImageWidth-x-1; dy:=IFD.ImageHeight-y-1; end;// 0,0 is right, bottom
-          4: begin dx:=x; dy:=IFD.ImageHeight-y; end;// 0,0 is left, bottom
-          5: begin dx:=y; dy:=x; end;// 0,0 is top, left (rotated)
-          6: begin dx:=IFD.ImageHeight-y-1; dy:=x; end;// 0,0 is top, right (rotated)
-          7: begin dx:=IFD.ImageHeight-y-1; dy:=IFD.ImageWidth-x-1; end;// 0,0 is bottom, right (rotated)
-          8: begin dx:=y; dy:=IFD.ImageWidth-x-1; end;// 0,0 is bottom, left (rotated)
-          else begin dx:=x; dy:=y; end;
-          end;
-          CurFPImg.Colors[dx,dy]:=Col;
+          CurFPImg.Colors[x,y]:=Col;
+          // next column
+          inc(x,dx);
         end;
 
         // next line
-        inc(Run,PaddingRight);
+        inc(y,dy);
       end;
       // next chunk
     end;
@@ -1766,7 +1794,7 @@ begin
   Best:=-1;
   for i:=0 to ImageCount-1 do begin
     CurImg:=Images[i];
-    NewSize:=CurImg.ImageWidth*CurImg.ImageHeight;
+    NewSize:=Int64(CurImg.ImageWidth)*CurImg.ImageHeight;
     if (NewSize<BestSize) then continue;
     BestSize:=NewSize;
     Best:=i;

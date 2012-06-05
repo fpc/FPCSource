@@ -13,28 +13,26 @@
 
  **********************************************************************
 
-  Working:
-    Grayscale 8,16bit (optional alpha),
-    RGB 8,16bit (optional alpha),
-    Orientation,
+ Working:
+   Grayscale 8,16bit (optional alpha),
+   RGB 8,16bit (optional alpha),
+   Orientation,
+   multiple images, pages
+   thumbnail
 
-  ToDo:
-    Compression: LZW, packbits, deflate, jpeg, ...
-    thumbnail
-    Planar
-    ColorMap
-    multiple images
-    separate mask
-    pages
-    fillorder - not needed by baseline tiff reader
-    bigtiff 64bit offsets
-    endian - currently using system endianess
+ ToDo:
+   Compression: LZW, packbits, deflate, jpeg, ...
+   Planar
+   ColorMap
+   separate mask
+   fillorder - not needed by baseline tiff reader
+   bigtiff 64bit offsets
+   endian - currently using system endianess
+   orientation with rotation
 }
 unit FPWriteTiff;
 
 {$mode objfpc}{$H+}
-
-{off $DEFINE VerboseTiffWriter}
 
 interface
 
@@ -43,9 +41,9 @@ uses
 
 type
 
-  { TTiffWriteEntry }
+  { TTiffWriterEntry }
 
-  TTiffWriteEntry = class
+  TTiffWriterEntry = class
   public
     Tag: Word;
     EntryType: Word;
@@ -56,19 +54,19 @@ type
     destructor Destroy; override;
   end;
 
-  TTiffWriteChunk = record
+  TTiffWriterChunk = record
     Data: Pointer;
     Bytes: DWord;
   end;
-  PTiffWriteChunk = ^TTiffWriteChunk;
+  PTiffWriterChunk = ^TTiffWriterChunk;
 
-  { TTiffWriteChunkOffsets }
+  { TTiffWriterChunkOffsets }
 
-  TTiffWriteChunkOffsets = class(TTiffWriteEntry)
+  TTiffWriterChunkOffsets = class(TTiffWriterEntry)
   public
-    Chunks: PTiffWriteChunk;
-    ChunkByteCounts: TTiffWriteEntry;
-    constructor Create;
+    Chunks: PTiffWriterChunk;
+    ChunkByteCounts: TTiffWriterEntry;
+    constructor Create(ChunkType: TTiffChunkType);
     destructor Destroy; override;
     procedure SetCount(NewCount: DWord);
   end;
@@ -79,16 +77,16 @@ type
   private
     FSaveCMYKAsRGB: boolean;
     fStartPos: Int64;
-    FEntries: TFPList; // list of TFPList of TTiffWriteEntry
+    FEntries: TFPList; // list of TFPList of TTiffWriterEntry
     fStream: TStream;
     fPosition: DWord;
     procedure ClearEntries;
     procedure WriteTiff;
     procedure WriteHeader;
     procedure WriteIFDs;
-    procedure WriteEntry(Entry: TTiffWriteEntry);
+    procedure WriteEntry(Entry: TTiffWriterEntry);
     procedure WriteData;
-    procedure WriteEntryData(Entry: TTiffWriteEntry);
+    procedure WriteEntryData(Entry: TTiffWriterEntry);
     procedure WriteBuf(var Buf; Count: DWord);
     procedure WriteWord(w: Word);
     procedure WriteDWord(d: DWord);
@@ -102,7 +100,7 @@ type
     procedure AddEntry(Tag: Word; EntryType: Word; EntryCount: DWord;
                        Data: Pointer; Bytes: DWord;
                        CopyData: boolean = true);
-    procedure AddEntry(Entry: TTiffWriteEntry);
+    procedure AddEntry(Entry: TTiffWriterEntry);
     procedure TiffError(Msg: string);
   public
     constructor Create; override;
@@ -119,7 +117,7 @@ implementation
 
 function CompareTiffWriteEntries(Entry1, Entry2: Pointer): integer;
 begin
-  Result:=integer(TTiffWriteEntry(Entry1).Tag)-integer(TTiffWriteEntry(Entry2).Tag);
+  Result:=integer(TTiffWriterEntry(Entry1).Tag)-integer(TTiffWriterEntry(Entry2).Tag);
 end;
 
 { TFPWriterTiff }
@@ -179,7 +177,7 @@ var
   i: Integer;
   List: TFPList;
   j: Integer;
-  Entry: TTiffWriteEntry;
+  Entry: TTiffWriterEntry;
   NextIFDPos: DWord;
 begin
   for i:=0 to FEntries.Count-1 do begin
@@ -191,7 +189,7 @@ begin
     WriteWord(List.Count);
     // write array of entries
     for j:=0 to List.Count-1 do begin
-      Entry:=TTiffWriteEntry(List[j]);
+      Entry:=TTiffWriterEntry(List[j]);
       WriteEntry(Entry);
     end;
     // write position of next IFD
@@ -203,7 +201,7 @@ begin
   end;
 end;
 
-procedure TFPWriterTiff.WriteEntry(Entry: TTiffWriteEntry);
+procedure TFPWriterTiff.WriteEntry(Entry: TTiffWriterEntry);
 var
   PadBytes: DWord;
 begin
@@ -228,8 +226,8 @@ var
   i: Integer;
   List: TFPList;
   j: Integer;
-  Entry: TTiffWriteEntry;
-  Strips: TTiffWriteChunkOffsets;
+  Entry: TTiffWriterEntry;
+  Chunks: TTiffWriterChunkOffsets;
   k: Integer;
   Bytes: DWord;
 begin
@@ -237,31 +235,31 @@ begin
     List:=TFPList(FEntries[i]);
     // write entry data
     for j:=0 to List.Count-1 do begin
-      Entry:=TTiffWriteEntry(List[j]);
+      Entry:=TTiffWriterEntry(List[j]);
       WriteEntryData(Entry);
     end;
-    // write strips
+    // write Chunks
     for j:=0 to List.Count-1 do begin
-      Entry:=TTiffWriteEntry(List[j]);
-      if Entry is TTiffWriteChunkOffsets then begin
-        Strips:=TTiffWriteChunkOffsets(Entry);
-        // write Strips
-        for k:=0 to Strips.Count-1 do begin
-          PDWord(Strips.Data)[k]:=fPosition;
-          Bytes:=Strips.Chunks[k].Bytes;
-          PDWord(Strips.ChunkByteCounts.Data)[k]:=Bytes;
+      Entry:=TTiffWriterEntry(List[j]);
+      if Entry is TTiffWriterChunkOffsets then begin
+        Chunks:=TTiffWriterChunkOffsets(Entry);
+        // write Chunks
+        for k:=0 to Chunks.Count-1 do begin
+          PDWord(Chunks.Data)[k]:=fPosition;
+          Bytes:=Chunks.Chunks[k].Bytes;
+          PDWord(Chunks.ChunkByteCounts.Data)[k]:=Bytes;
           {$IFDEF FPC_Debug_Image}
-          //writeln('TFPWriterTiff.WriteData Strip fPosition=',fPosition,' Bytes=',Bytes);
+          //writeln('TFPWriterTiff.WriteData Chunk fPosition=',fPosition,' Bytes=',Bytes);
           {$ENDIF}
           if Bytes>0 then
-            WriteBuf(Strips.Chunks[k].Data^,Bytes);
+            WriteBuf(Chunks.Chunks[k].Data^,Bytes);
         end;
       end;
     end;
   end;
 end;
 
-procedure TFPWriterTiff.WriteEntryData(Entry: TTiffWriteEntry);
+procedure TFPWriterTiff.WriteEntryData(Entry: TTiffWriterEntry);
 begin
   if Entry.Bytes>4 then begin
     Entry.DataPos:=fPosition;
@@ -288,20 +286,23 @@ var
   BitsPerPixel: DWord;
   i: Integer;
   OrientedWidth, OrientedHeight: DWord;
-  x, y: integer;
-  Row: DWord;
   BytesPerLine: DWord;
-  ChunkOffsets: TTiffWriteChunkOffsets;
+  ChunkType: TTiffChunkType;
+  ChunkCount: DWord;
+  ChunkOffsets: TTiffWriterChunkOffsets;
+  ChunkIndex: DWord;
   ChunkBytes: DWord;
   Chunk: PByte;
-  ChunkIndex: DWord;
-  ChunkCounts: TTiffWriteEntry;
+  ChunkLeft, ChunkTop, ChunkWidth, ChunkHeight: DWord;
+  TilesAcross, TilesDown: DWord;
   Run: PByte;
   Col: TFPColor;
   Value: Integer;
-  dx, dy: Integer;
   CurEntries: TFPList;
   Shorts: array[0..3] of Word;
+  NewSubFileType: DWord;
+  cx,cy,dx,dy,x,y,sx: integer;
+  ChunkBytesPerLine: DWord;
 begin
   ChunkOffsets:=nil;
   Chunk:=nil;
@@ -311,35 +312,11 @@ begin
     CurEntries:=TFPList.Create;
     FEntries.Add(CurEntries);
 
-    if Img.Extra[TiffPhotoMetric]='' then
-      IFD.PhotoMetricInterpretation:=2
-    else begin
-      IFD.PhotoMetricInterpretation:=
-        StrToInt64Def(Img.Extra[TiffPhotoMetric],High(IFD.PhotoMetricInterpretation));
-      if SaveCMYKAsRGB and (IFD.PhotoMetricInterpretation=5) then
-        IFD.PhotoMetricInterpretation:=2;
-    end;
+    IFD.ReadFPImgExtras(Img);
+    if SaveCMYKAsRGB and (IFD.PhotoMetricInterpretation=5) then
+      IFD.PhotoMetricInterpretation:=2;
     if not (IFD.PhotoMetricInterpretation in [0,1,2]) then
       TiffError('PhotoMetricInterpretation="'+Img.Extra[TiffPhotoMetric]+'" not supported');
-    IFD.Artist:=Img.Extra[TiffArtist];
-    IFD.Copyright:=Img.Extra[TiffCopyright];
-    IFD.DocumentName:=Img.Extra[TiffDocumentName];
-    IFD.DateAndTime:=Img.Extra[TiffDateTime];
-    IFD.HostComputer:=Img.Extra[TiffHostComputer];
-    IFD.Make_ScannerManufacturer:=Img.Extra[TiffMake_ScannerManufacturer];
-    IFD.Model_Scanner:=Img.Extra[TiffModel_Scanner];
-    IFD.ImageDescription:=Img.Extra[TiffImageDescription];
-    IFD.Software:=Img.Extra[TiffSoftware];
-    IFD.Orientation:=StrToIntDef(Img.Extra[TiffOrientation],1);
-    if not (IFD.Orientation in [1..8]) then
-      IFD.Orientation:=1;
-    IFD.ResolutionUnit:=StrToIntDef(Img.Extra[TiffResolutionUnit],2);
-    if not (IFD.ResolutionUnit in [1..3]) then
-      IFD.ResolutionUnit:=2;
-    IFD.XResolution:=StrToTiffRationalDef(Img.Extra[TiffXResolution],TiffRational72);
-    IFD.YResolution:=StrToTiffRationalDef(Img.Extra[TiffYResolution],TiffRational72);
-    IFD.PageNumber:=StrToIntDef(Img.Extra[TiffPageNumber],0);
-    IFD.PageCount:=StrToIntDef(Img.Extra[TiffPageCount],0);
 
     GrayBits:=StrToIntDef(Img.Extra[TiffGrayBits],8);
     RedBits:=StrToIntDef(Img.Extra[TiffRedBits],8);
@@ -354,6 +331,7 @@ begin
       OrientedWidth:=ImgWidth;
       OrientedHeight:=ImgHeight;
     end else begin
+      // rotated
       OrientedWidth:=ImgHeight;
       OrientedHeight:=ImgWidth;
     end;
@@ -371,10 +349,10 @@ begin
     {$ENDIF}
 
     // required meta entries
-    AddEntryShort(262,IFD.PhotoMetricInterpretation);
-    AddEntryLong(256,ImgWidth);
-    AddEntryLong(257,ImgHeight);
+    AddEntryShortOrLong(256,ImgWidth);
+    AddEntryShortOrLong(257,ImgHeight);
     AddEntryShort(259,Compression);
+    AddEntryShort(262,IFD.PhotoMetricInterpretation);
     AddEntryShort(274,IFD.Orientation);
     AddEntryShort(296,IFD.ResolutionUnit);
     AddEntryRational(282,IFD.XResolution);
@@ -409,19 +387,13 @@ begin
       inc(BitsPerPixel,BitsPerSample[i]);
     BytesPerLine:=(BitsPerPixel*OrientedWidth+7) div 8;
 
-    // RowsPerStrip (required)
-    if OrientedWidth=0 then
-      IFD.RowsPerStrip:=8
-    else
-      IFD.RowsPerStrip:=8192 div BytesPerLine;
-    if IFD.RowsPerStrip<1 then
-      IFD.RowsPerStrip:=1;
-    {$IFDEF FPC_Debug_Image}
-    writeln('TFPWriterTiff.AddImage BitsPerPixel=',BitsPerPixel,' OrientedWidth=',OrientedWidth,' BytesPerLine=',BytesPerLine,' RowsPerStrip=',IFD.RowsPerStrip);
-    {$ENDIF}
-    AddEntryLong(278,IFD.RowsPerStrip);
-
     // optional entries
+    NewSubFileType:=0;
+    if IFD.ImageIsThumbNail then inc(NewSubFileType,1);
+    if IFD.ImageIsPage then inc(NewSubFileType,2);
+    if IFD.ImageIsMask then inc(NewSubFileType,4);
+    if NewSubFileType>0 then
+      AddEntryLong(254,NewSubFileType);
     if IFD.DocumentName<>'' then
       AddEntryString(269,IFD.DocumentName);
     if IFD.ImageDescription<>'' then
@@ -445,113 +417,157 @@ begin
     end;
     if IFD.Copyright<>'' then
       AddEntryString(33432,IFD.Copyright);
-    if IFD.TileWidth>0 then
-      AddEntryShortOrLong(322,IFD.TileWidth);
-    if IFD.TileLength>0 then
-      AddEntryShortOrLong(323,IFD.TileLength);
 
-    // ChunkOffsets: ChunkOffsets, StripByteCounts
-    ChunkOffsets:=TTiffWriteChunkOffsets.Create;
+    // chunks
+    ChunkType:=tctStrip;
+    if IFD.TileWidth>0 then begin
+      AddEntryShortOrLong(322,IFD.TileWidth);
+      AddEntryShortOrLong(323,IFD.TileLength);
+      ChunkType:=tctTile;
+    end else begin
+      // RowsPerStrip (required)
+      if OrientedWidth=0 then
+        IFD.RowsPerStrip:=8
+      else
+        IFD.RowsPerStrip:=8192 div BytesPerLine;
+      if IFD.RowsPerStrip<1 then
+        IFD.RowsPerStrip:=1;
+      {$IFDEF FPC_Debug_Image}
+      writeln('TFPWriterTiff.AddImage BitsPerPixel=',BitsPerPixel,' OrientedWidth=',OrientedWidth,' BytesPerLine=',BytesPerLine,' RowsPerStrip=',IFD.RowsPerStrip);
+      {$ENDIF}
+      AddEntryShortOrLong(278,IFD.RowsPerStrip);
+    end;
+
+    // tags for Offsets and ByteCounts
+    ChunkOffsets:=TTiffWriterChunkOffsets.Create(ChunkType);
     AddEntry(ChunkOffsets);
-    ChunkCounts:=TTiffWriteEntry.Create;
-    ChunkCounts.Tag:=279;
-    ChunkCounts.EntryType:=4;
-    ChunkOffsets.ChunkByteCounts:=ChunkCounts;
-    AddEntry(ChunkCounts);
-    if OrientedHeight>0 then begin
-      ChunkOffsets.SetCount((OrientedHeight+IFD.RowsPerStrip-1) div IFD.RowsPerStrip);
-      // compute ChunkOffsets
-      Row:=0;
-      ChunkIndex:=0;
-      dx:=0;
-      dy:=0;
-      for y:=0 to OrientedHeight-1 do begin
-        if Row=0 then begin
-          // allocate Chunk for the next rows
-          ChunkBytes:=Min(IFD.RowsPerStrip,OrientedHeight-y)*BytesPerLine;
-          //writeln('TFPWriterTiff.AddImage StripIndex=',ChunkIndex,' StripBytes=',ChunkBytes);
-          GetMem(Chunk,ChunkBytes);
-          FillByte(Chunk^,ChunkBytes,0);
-          ChunkOffsets.Chunks[ChunkIndex].Data:=Chunk;
-          ChunkOffsets.Chunks[ChunkIndex].Bytes:=ChunkBytes;
-          inc(ChunkIndex);
-          Run:=Chunk;
-        end;
-        // write line
-        for x:=0 to OrientedWidth-1 do begin
-          // Orientation
-          case IFD.Orientation of
-          1: begin dx:=x; dy:=y; end;// 0,0 is left, top
-          2: begin dx:=OrientedWidth-x-1; dy:=y; end;// 0,0 is right, top
-          3: begin dx:=OrientedWidth-x-1; dy:=OrientedHeight-y-1; end;// 0,0 is right, bottom
-          4: begin dx:=x; dy:=OrientedHeight-y; end;// 0,0 is left, bottom
-          5: begin dx:=y; dy:=x; end;// 0,0 is top, left (rotated)
-          6: begin dx:=OrientedHeight-y-1; dy:=x; end;// 0,0 is top, right (rotated)
-          7: begin dx:=OrientedHeight-y-1; dy:=OrientedWidth-x-1; end;// 0,0 is bottom, right (rotated)
-          8: begin dx:=y; dy:=OrientedWidth-x-1; end;// 0,0 is bottom, left (rotated)
-          end;
-          Col:=Img.Colors[dx,dy];
-          case IFD.PhotoMetricInterpretation of
-          0,1:
-            begin
-              // grayscale
-              Value:=(DWord(Col.red)+Col.green+Col.blue) div 3;
-              if IFD.PhotoMetricInterpretation=0 then
-                Value:=$ffff-Value;// 0 is white
-              if GrayBits=8 then begin
-                Run^:=Value shr 8;
-                inc(Run);
-              end else if GrayBits=16 then begin
-                PWord(Run)^:=Value;
-                inc(Run,2);
-              end;
-              if AlphaBits=8 then begin
-                Run^:=Col.alpha shr 8;
-                inc(Run);
-              end else if AlphaBits=16 then begin
-                PWord(Run)^:=Col.alpha;
-                inc(Run,2);
-              end;
-            end;
-          2:
-            begin
-              // RGB
-              if RedBits=8 then begin
-                Run^:=Col.red shr 8;
-                inc(Run);
-              end else if RedBits=16 then begin
-                PWord(Run)^:=Col.red;
-                inc(Run,2);
-              end;
-              if GreenBits=8 then begin
-                Run^:=Col.green shr 8;
-                inc(Run);
-              end else if GreenBits=16 then begin
-                PWord(Run)^:=Col.green;
-                inc(Run,2);
-              end;
-              if BlueBits=8 then begin
-                Run^:=Col.blue shr 8;
-                inc(Run);
-              end else if BlueBits=16 then begin
-                PWord(Run)^:=Col.blue;
-                inc(Run,2);
-              end;
-              if AlphaBits=8 then begin
-                Run^:=Col.alpha shr 8;
-                inc(Run);
-              end else if AlphaBits=16 then begin
-                PWord(Run)^:=Col.alpha;
-                inc(Run,2);
-              end;
-            end;
-          end;
-        end;
-        // next row
-        inc(Row);
-        if (Row=IFD.RowsPerStrip) then
-          Row:=0;
+    AddEntry(ChunkOffsets.ChunkByteCounts);
+    if (OrientedHeight>0) and (OrientedWidth>0) then begin
+      if ChunkType=tctTile then begin
+        TilesAcross:=(OrientedWidth+IFD.TileWidth-1) div IFD.TileWidth;
+        TilesDown:=(OrientedHeight+IFD.TileLength-1) div IFD.TileLength;
+        ChunkCount:=TilesAcross*TilesDown;
+        {$IFDEF FPC_Debug_Image}
+        writeln('TFPWriterTiff.AddImage BitsPerPixel=',BitsPerPixel,' OrientedWidth=',OrientedWidth,' OrientedHeight=',OrientedHeight,' TileWidth=',IFD.TileWidth,' TileLength=',IFD.TileLength,' TilesAcross=',TilesAcross,' TilesDown=',TilesDown,' ChunkCount=',ChunkCount);
+        {$ENDIF}
+      end else begin
+        ChunkCount:=(OrientedHeight+IFD.RowsPerStrip-1) div IFD.RowsPerStrip;
       end;
+      ChunkOffsets.SetCount(ChunkCount);
+      // create chunks
+      for ChunkIndex:=0 to ChunkCount-1 do begin
+        if ChunkType=tctTile then begin
+          ChunkLeft:=(ChunkIndex mod TilesAcross)*IFD.TileWidth;
+          ChunkTop:=(ChunkIndex div TilesAcross)*IFD.TileLength;
+          ChunkWidth:=Min(IFD.TileWidth,OrientedWidth-ChunkLeft);
+          ChunkHeight:=Min(IFD.TileLength,OrientedHeight-ChunkTop);
+          // boundary tiles are padded to a full tile
+          // the padding is filled with 0 and compression will get rid of it
+          ChunkBytesPerLine:=(BitsPerPixel*IFD.TileWidth+7) div 8;
+          ChunkBytes:=ChunkBytesPerLine*IFD.TileLength;
+        end else begin
+          ChunkLeft:=0;
+          ChunkTop:=IFD.RowsPerStrip*ChunkIndex;
+          ChunkWidth:=OrientedWidth;
+          ChunkHeight:=Min(IFD.RowsPerStrip,OrientedHeight-ChunkTop);
+          ChunkBytesPerLine:=BytesPerLine;
+          ChunkBytes:=ChunkBytesPerLine*ChunkHeight;
+        end;
+        GetMem(Chunk,ChunkBytes);
+        FillByte(Chunk^,ChunkBytes,0);
+        ChunkOffsets.Chunks[ChunkIndex].Data:=Chunk;
+        ChunkOffsets.Chunks[ChunkIndex].Bytes:=ChunkBytes;
+
+        // Orientation
+        if IFD.Orientation in [1..4] then begin
+          x:=ChunkLeft; y:=ChunkTop;
+          case IFD.Orientation of
+          1: begin dx:=1; dy:=1; end;// 0,0 is left, top
+          2: begin x:=OrientedWidth-x-1; dx:=-1; dy:=1; end;// 0,0 is right, top
+          3: begin x:=OrientedWidth-x-1; dx:=-1; y:=OrientedHeight-y-1; dy:=-1; end;// 0,0 is right, bottom
+          4: begin dx:=1; y:=OrientedHeight-y-1; dy:=-1; end;// 0,0 is left, bottom
+          end;
+        end else begin
+          // rotated
+          x:=ChunkTop; y:=ChunkLeft;
+          case IFD.Orientation of
+          5: begin dx:=1; dy:=1; end;// 0,0 is top, left (rotated)
+          6: begin dx:=1; y:=OrientedWidth-y-1; dy:=-1; end;// 0,0 is top, right (rotated)
+          7: begin x:=OrientedHeight-x-1; dx:=-1; y:=OrientedWidth-y-1; dy:=-1; end;// 0,0 is bottom, right (rotated)
+          8: begin x:=OrientedHeight-x-1; dx:=-1; dy:=1; end;// 0,0 is bottom, left (rotated)
+          end;
+        end;
+        //writeln('TFPWriterTiff.AddImage Chunk=',ChunkIndex,'/',ChunkCount,' ChunkBytes=',ChunkBytes,' ChunkRect=',ChunkLeft,',',ChunkTop,',',ChunkWidth,'x',ChunkHeight,' x=',x,' y=',y,' dx=',dx,' dy=',dy);
+        sx:=x; // save start x
+        for cy:=0 to ChunkHeight-1 do begin
+          x:=sx;
+          Run:=Chunk+cy*ChunkBytesPerLine;
+          for cx:=0 to ChunkWidth-1 do begin
+            Col:=Img.Colors[x,y];
+            case IFD.PhotoMetricInterpretation of
+            0,1:
+              begin
+                // grayscale
+                Value:=(DWord(Col.red)+Col.green+Col.blue) div 3;
+                if IFD.PhotoMetricInterpretation=0 then
+                  Value:=$ffff-Value;// 0 is white
+                if GrayBits=8 then begin
+                  Run^:=Value shr 8;
+                  inc(Run);
+                end else if GrayBits=16 then begin
+                  PWord(Run)^:=Value;
+                  inc(Run,2);
+                end;
+                if AlphaBits=8 then begin
+                  Run^:=Col.alpha shr 8;
+                  inc(Run);
+                end else if AlphaBits=16 then begin
+                  PWord(Run)^:=Col.alpha;
+                  inc(Run,2);
+                end;
+              end;
+            2:
+              begin
+                // RGB
+                if RedBits=8 then begin
+                  Run^:=Col.red shr 8;
+                  inc(Run);
+                end else if RedBits=16 then begin
+                  PWord(Run)^:=Col.red;
+                  inc(Run,2);
+                end;
+                if GreenBits=8 then begin
+                  Run^:=Col.green shr 8;
+                  inc(Run);
+                end else if GreenBits=16 then begin
+                  PWord(Run)^:=Col.green;
+                  inc(Run,2);
+                end;
+                if BlueBits=8 then begin
+                  Run^:=Col.blue shr 8;
+                  inc(Run);
+                end else if BlueBits=16 then begin
+                  PWord(Run)^:=Col.blue;
+                  inc(Run,2);
+                end;
+                if AlphaBits=8 then begin
+                  Run^:=Col.alpha shr 8;
+                  inc(Run);
+                end else if AlphaBits=16 then begin
+                  PWord(Run)^:=Col.alpha;
+                  inc(Run,2);
+                end;
+              end;
+            end;
+            // next x
+            inc(x,dx);
+          end;
+          // next y
+          inc(y,dy);
+        end;
+        // next chunk
+      end;
+      // created chunks
     end;
 
     CurEntries.Sort(@CompareTiffWriteEntries);
@@ -598,7 +614,7 @@ end;
 
 procedure TFPWriterTiff.AddEntryShortOrLong(Tag: word; Value: DWord);
 begin
-  if Value<High(Word) then
+  if Value<=High(Word) then
     AddEntryShort(Tag,Value)
   else
     AddEntryLong(Tag,Value);
@@ -613,9 +629,9 @@ end;
 procedure TFPWriterTiff.AddEntry(Tag: Word; EntryType: Word; EntryCount: DWord;
   Data: Pointer; Bytes: DWord; CopyData: boolean);
 var
-  Entry: TTiffWriteEntry;
+  Entry: TTiffWriterEntry;
 begin
-  Entry:=TTiffWriteEntry.Create;
+  Entry:=TTiffWriterEntry.Create;
   Entry.Tag:=Tag;
   Entry.EntryType:=EntryType;
   Entry.Count:=EntryCount;
@@ -632,7 +648,7 @@ begin
   AddEntry(Entry);
 end;
 
-procedure TFPWriterTiff.AddEntry(Entry: TTiffWriteEntry);
+procedure TFPWriterTiff.AddEntry(Entry: TTiffWriterEntry);
 var
   List: TFPList;
 begin
@@ -664,23 +680,31 @@ begin
   ClearEntries;
 end;
 
-{ TTiffWriteEntry }
+{ TTiffWriterEntry }
 
-destructor TTiffWriteEntry.Destroy;
+destructor TTiffWriterEntry.Destroy;
 begin
   ReAllocMem(Data,0);
   inherited Destroy;
 end;
 
-{ TTiffWriteChunkOffsets }
+{ TTiffWriterChunkOffsets }
 
-constructor TTiffWriteChunkOffsets.Create;
+constructor TTiffWriterChunkOffsets.Create(ChunkType: TTiffChunkType);
 begin
-  Tag:=273;
-  EntryType:=4;
+  EntryType:=4; // long
+  ChunkByteCounts:=TTiffWriterEntry.Create;
+  ChunkByteCounts.EntryType:=4; // long
+  if ChunkType=tctTile then begin
+    Tag:=324; // TileOffsets
+    ChunkByteCounts.Tag:=325; // TileByteCounts
+  end else begin
+    Tag:=273; // StripOffsets
+    ChunkByteCounts.Tag:=279; // StripByteCounts
+  end;
 end;
 
-destructor TTiffWriteChunkOffsets.Destroy;
+destructor TTiffWriterChunkOffsets.Destroy;
 var
   i: Integer;
 begin
@@ -692,7 +716,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TTiffWriteChunkOffsets.SetCount(NewCount: DWord);
+procedure TTiffWriterChunkOffsets.SetCount(NewCount: DWord);
 var
   Size: DWord;
 begin
@@ -700,15 +724,15 @@ begin
   writeln('TTiffWriteStripOffsets.SetCount OldCount=',Count,' NewCount=',NewCount);
   {$ENDIF}
   Count:=NewCount;
-  Size:=Count*SizeOf(TTiffWriteChunk);
+  Size:=Count*SizeOf(TTiffWriterChunk);
   ReAllocMem(Chunks,Size);
   if Size>0 then FillByte(Chunks^,Size,0);
   Size:=Count*SizeOf(DWord);
-  // StripOffsets
+  // Offsets
   ReAllocMem(Data,Size);
   if Size>0 then FillByte(Data^,Size,0);
   Bytes:=Size;
-  // ChunkByteCounts
+  // ByteCounts
   ReAllocMem(ChunkByteCounts.Data,Size);
   if Size>0 then FillByte(ChunkByteCounts.Data^,Size,0);
   ChunkByteCounts.Count:=Count;
