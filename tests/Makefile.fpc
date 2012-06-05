@@ -623,9 +623,16 @@ endif
 
 all : allexectests
 
-full : clean allexectests digest
+full :
+	$(MAKE) clean
+	$(MAKE) allexectests
+	$(MAKE) digest
 
-fulldb : clean allexectests digest uploadrun
+fulldb :
+	$(MAKE) clean
+	$(MAKE) allexectests
+	$(MAKE) digest
+	$(MAKE) uploadrun
 
 tarfile : $(TEST_OUTPUTDIR)/$(DB_TARGZ)
 

@@ -25,17 +25,11 @@ Parallel test suite runs
 ------------------------
 
 It is possible to run the test suite in parallel, but only when using the
-"all" target and only if SINGLEDOTESTRUNS is not used. Under those
-circumstances, it is safe to use -jx, with x the number of tests that can
-be compiled and run in parallel. E.g.
+"all", "full" or "fulldb" targets and only if SINGLEDOTESTRUNS is not used.
+Under those circumstances, it is safe to use -jx, with x the number of tests
+that can be compiled and run in parallel. E.g.
 
-  make all TEST_FPC=path_to_your_compiler -j 2
-
-After running the tests in parallel, you will probably want to get the
-summary. This can be achieved making the "digest" target after the "all"
-target has finished, e.g.
-
-  make digest TEST_FPC=path_to_your_compiler
+  make full TEST_FPC=path_to_your_compiler -j 2
 
 Make sure to clean the test suite between two runs for the same platform.
 
