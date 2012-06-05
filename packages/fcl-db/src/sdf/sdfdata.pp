@@ -1054,7 +1054,10 @@ begin
     // Check for any delimiters occurring in field text
     if ((not QuoteMe) and (StrScan(PChar(Str), FDelimiter) <> nil)) then QuoteMe:=true;
     if (QuoteMe) then
+      begin
+      Str:=Stringreplace(Str,QuoteDelimiter,QuoteDelimiter+QuoteDelimiter,[rfReplaceAll]);
       Str := QuoteDelimiter + Str + QuoteDelimiter;
+      end;
     Result := Result + Str + FDelimiter;
   end;
   p := Length(Result);
