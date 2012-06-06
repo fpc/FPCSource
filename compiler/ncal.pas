@@ -2967,6 +2967,11 @@ implementation
           if (procdefinition.typ = procdef) then
             check_hints(tprocdef(procdefinition).procsym,tprocdef(procdefinition).symoptions,tprocdef(procdefinition).deprecatedmsg);
 
+          { add reference to corresponding procsym; may not be the one
+            originally found/passed to the constructor because of overloads }
+          if procdefinition.typ = procdef then
+            addsymref(tprocdef(procdefinition).procsym);
+
           { add needed default parameters }
           if assigned(procdefinition) and
              (paralength<procdefinition.maxparacount) then
