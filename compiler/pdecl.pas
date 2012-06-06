@@ -153,9 +153,27 @@ implementation
                else
                 Message(parser_e_illegal_expression);
              end;
+           inlinen:
+             begin
+               { this situation only happens if a intrinsic is parsed that has a
+                 generic type as its argument. As we don't know certain
+                 information about the final type yet, we need to use safe
+                 values (mostly 0) }
+               if not parse_generic then
+                 Message(parser_e_illegal_expression);
+               case tinlinenode(p).inlinenumber of
+                 in_sizeof_x,
+                 in_bitsizeof_x:
+                   begin
+                     hp:=tconstsym.create_ord(orgname,constord,0,p.resultdef);
+                   end;
+                 { add other cases here if necessary }
+                 else
+                   Message(parser_e_illegal_expression);
+               end;
+             end;
            else
-             if not(parse_generic) then
-               Message(parser_e_illegal_expression);
+             Message(parser_e_illegal_expression);
         end;
         current_tokenpos:=storetokenpos;
         p.free;
