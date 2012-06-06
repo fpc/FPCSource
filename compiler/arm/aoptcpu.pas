@@ -472,11 +472,13 @@ Implementation
                        GetNextInstruction(p, hp1) and
                        (tai(hp1).typ = ait_instruction) and
                        (taicpu(hp1).opcode in [A_ADD, A_ADC, A_RSB, A_RSC, A_SUB, A_SBC,
-                                               A_AND, A_BIC, A_EOR, A_ORR]) and
+                                               A_AND, A_BIC, A_EOR, A_ORR, A_MOV, A_MVN]) and
+                       {MOV and MVN might only have 2 ops}
+                       (taicpu(hp1).ops = 3) and
                        (taicpu(hp1).condition in [C_NONE, taicpu(hp1).condition]) and
                        MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^.reg) and
                        (taicpu(hp1).oper[1]^.typ = top_reg) and
-                       (taicpu(hp1).oper[2]^.typ in [top_reg, top_const]) then
+                       (taicpu(hp1).oper[2]^.typ in [top_reg, top_const, top_shifterop]) then
                       begin
                       { When we get here we still don't know if the registers match}
                         for I:=1 to 2 do
@@ -487,7 +489,7 @@ Implementation
                           }
                           if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
                             begin
-                              asml.insertbefore(tai_comment.Create(strpnew('Peephole RedundantMovProcess done ')), hp1);
+                              asml.insertbefore(tai_comment.Create(strpnew('Peephole RedundantMovProcess done')), hp1);
                               taicpu(hp1).oper[I]^.reg := taicpu(p).oper[1]^.reg;
                               if p<>hp1 then
                               begin
