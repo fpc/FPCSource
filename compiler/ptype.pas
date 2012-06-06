@@ -467,12 +467,19 @@ implementation
                 Message(parser_e_no_generics_as_types);
                 def:=generrordef;
               end
-            else if (def.typ=undefineddef) and (sp_generic_dummy in srsym.symoptions)
-                and parse_generic and
+            else if (def.typ=undefineddef) and
+                (sp_generic_dummy in srsym.symoptions) and
+                parse_generic and
                 (current_genericdef.typ in [recorddef,objectdef]) and
                 (Pos(upper(srsym.realname),tabstractrecorddef(current_genericdef).objname^)=1) then
               begin
-                def:=current_genericdef;
+                if m_delphi in current_settings.modeswitches then
+                  begin
+                    Message(parser_e_no_generics_as_types);
+                    def:=generrordef;
+                  end
+                else
+                  def:=current_genericdef;
               end
             else if is_classhelper(def) and
                 not (stoParseClassParent in options) then
