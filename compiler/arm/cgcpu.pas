@@ -783,7 +783,10 @@ unit cgcpu;
                 so.shiftimm:=l1;
                 list.concat(taicpu.op_reg_reg_reg_shifterop(A_RSB,dst,src,src,so));
               end
-
+            { BIC clears the specified bits, while AND keeps them, using BIC allows to use a
+              broader range of shifterconstants.}
+            else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
+              list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
             else
               begin
                 tmpreg:=getintregister(list,size);
