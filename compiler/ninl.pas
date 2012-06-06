@@ -2474,7 +2474,8 @@ implementation
                 begin
                   { the constant evaluation of in_sizeof_x happens in pexpr where possible }
                   set_varstate(left,vs_read,[]);
-                  if paramanager.push_high_param(vs_value,left.resultdef,current_procinfo.procdef.proccalloption) then
+                  if (left.resultdef.typ<>undefineddef) and
+                      paramanager.push_high_param(vs_value,left.resultdef,current_procinfo.procdef.proccalloption) then
                    begin
                      hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                      if assigned(hightree) then
