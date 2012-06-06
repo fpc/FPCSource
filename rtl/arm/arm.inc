@@ -892,88 +892,56 @@ end;
 
 *)
 
-function SwapEndian(const AValue: LongInt): LongInt;assembler;nostackframe;
-asm
-        // We're starting with r0 = 4321
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
-        mov r2, r0, lsr #24             // r2 = 0004
-        and r1, r0, #16711680           // r1 = 0300
-        orr r2, r2, r0, lsl #24         // r2 = 1004
-        orr r2, r2, r1, lsr #8          // r2 = 1034
-        and r0, r0, #65280              // r0 = 0020
-        orr r0, r2, r0, lsl #8          // r0 = 1234
-{$else}
-	rev r0, r0
-{$endif}
+{
+  These used to be an assembler-function, but with newer improvements to the compiler this
+  generates a perfect 4 cycle code sequence and can be inlined.
+}
+function SwapEndian(const AValue: LongWord): LongWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  Result:= AValue xor rordword(AValue,16);
+  Result:= Result and $FF00FFFF;
+  Result:= (Result shr 8) xor rordword(AValue,8);
 end;
 
-function SwapEndian(const AValue: DWord): DWord;assembler;nostackframe;
-asm
-        // We're starting with r0 = 4321
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
-        mov r2, r0, lsr #24             // r2 = 0004
-        and r1, r0, #16711680           // r1 = 0300
-        orr r2, r2, r0, lsl #24         // r2 = 1004
-        orr r2, r2, r1, lsr #8          // r2 = 1034
-        and r0, r0, #65280              // r0 = 0020
-        orr r0, r2, r0, lsl #8          // r0 = 1234
-{$else}
-	rev r0, r0
-{$endif}
+function SwapEndian(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  Result:=LongInt(SwapEndian(DWord(AValue)));
 end;
+
+{
+  Currently freepascal will not generate a good assembler sequence for
+  Result:=(SwapEndian(longword(lo(AValue))) shl 32) or
+          (SwapEndian(longword(hi(AValue))));
+
+  So we keep an assembly version for now
+}
 
 function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
 asm
-        // We're starting with r0 = 4321 r1 = 8765
 {$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
         mov ip, r1
 
-        mov r2, r0, lsr #24             // r2 = 0004
-        and r3, r0, #16711680           // r3 = 0300
-        orr r2, r2, r0, lsl #24         // r2 = 1004
-        orr r2, r2, r3, lsr #8          // r2 = 1034
-        and r0, r0, #65280              // r0 = 0020
-        orr r1, r2, r0, lsl #8          // r1 = 1234
+        // We're starting with r0 = $87654321
+        eor r1, r0, r0, ror #16          // r1 = $C444C444
+        bic r1, r1, #16711680            // r1 = r1 and $ff00ffff = $C400C444
+        mov r0, r0, ror #8               // r0 = $21876543
+        eor r1, r0, r1, lsr #8           // r1 = $21436587
 
-        mov r2, ip, lsr #24             // r2 = 0008
-        and r3, ip, #16711680           // r1 = 0700
-        orr r2, r2, ip, lsl #24         // r2 = 5008
-        orr r2, r2, r3, lsr #8          // r2 = 5078
-        and ip, ip, #65280              // ip = 0060
-        orr r0, r2, ip, lsl #8          // r0 = 5678
-        bx lr
+        eor r0, ip, ip, ror #16
+        bic r0, r0, #16711680
+        mov ip, ip, ror #8
+        eor r0, ip, r0, lsr #8
+
 {$else}
-	rev r2, r0
-	rev r0, r1
-	mov r1, r2
+        rev r2, r0
+        rev r0, r1
+        mov r1, r2
 {$endif}
 end;
 
-function SwapEndian(const AValue: QWord): QWord; assembler; nostackframe;
-asm
-        // We're starting with r0 = 4321 r1 = 8765
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
-        mov ip, r1
-
-        mov r2, r0, lsr #24             // r2 = 0004
-        and r3, r0, #16711680           // r3 = 0300
-        orr r2, r2, r0, lsl #24         // r2 = 1004
-        orr r2, r2, r3, lsr #8          // r2 = 1034
-        and r0, r0, #65280              // r0 = 0020
-        orr r1, r2, r0, lsl #8          // r1 = 1234
-
-        mov r2, ip, lsr #24             // r2 = 0008
-        and r3, ip, #16711680           // r1 = 0700
-        orr r2, r2, ip, lsl #24         // r2 = 5008
-        orr r2, r2, r3, lsr #8          // r2 = 5078
-        and ip, ip, #65280              // ip = 0060
-        orr r0, r2, ip, lsl #8          // r0 = 5678
-        bx lr
-{$else}
-	rev r2, r0
-	rev r0, r1
-	mov r1, r2
-{$endif}
+function SwapEndian(const AValue: QWord): QWord; {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  Result:=QWord(SwapEndian(Int64(AValue)));
 end;
 
 {include hand-optimized assembler division code}
