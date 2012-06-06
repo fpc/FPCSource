@@ -227,6 +227,7 @@ Implementation
       hp1,hp2: tai;
       i: longint;
       TmpUsedRegs: TAllUsedRegs;
+      tempop: tasmop;
     begin
       result := false;
       case p.typ of
@@ -465,6 +466,8 @@ Implementation
                       add r1, r0, #1
 
                       Todo: Make it work for mov+cmp too
+
+                      CAUTION! If this one is successful p might not be a mov instruction anymore!
                     }
                     if (taicpu(p).ops = 2) and
                        (taicpu(p).oper[1]^.typ = top_reg) and
@@ -499,11 +502,77 @@ Implementation
                               end;
                             end;
                       end;
+                    { This folds shifterops into following instructions
+                      mov r0, r1, lsl #8
+                      add r2, r3, r0
+
+                      to
+
+                      add r2, r3, r1, lsl #8
+                      CAUTION! If this one is successful p might not be a mov instruction anymore!
+                    }
+                    if (taicpu(p).opcode = A_MOV) and
+                       (taicpu(p).ops = 3) and
+                       (taicpu(p).oper[1]^.typ = top_reg) and
+                       (taicpu(p).oper[2]^.typ = top_shifterop) and
+                       (taicpu(p).oppostfix = PF_NONE) and
+                       GetNextInstruction(p, hp1) and
+                       (tai(hp1).typ = ait_instruction) and
+                       (taicpu(hp1).ops = 3) and {Currently we can't fold into another shifterop}
+                       (taicpu(hp1).oper[2]^.typ = top_reg) and
+                       (taicpu(hp1).oppostfix = PF_NONE) and
+                       (taicpu(hp1).condition = taicpu(p).condition) and
+                       (taicpu(hp1).opcode in [A_ADD, A_ADC, A_RSB, A_RSC, A_SUB, A_SBC,
+                                               A_AND, A_BIC, A_EOR, A_ORR, A_TEQ, A_TST]) and
+                       (
+                         {Only ONE of the two src operands is allowed to match}
+                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) xor
+                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[2]^)
+                       ) then
+                      begin
+                        CopyUsedRegs(TmpUsedRegs);
+                        if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp1,TmpUsedRegs)) or
+                           (MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^)) then
+                          for I:=1 to 2 do
+                            if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
+                              begin
+                                if I = 1 then
+                                  begin
+                                    {The SUB operators need to be changed when we swap parameters}
+                                    case taicpu(hp1).opcode of
+                                      A_SUB: tempop:=A_RSB;
+                                      A_SBC: tempop:=A_RSC;
+                                      A_RSB: tempop:=A_SUB;
+                                      A_RSC: tempop:=A_SBC;
+                                      else tempop:=taicpu(hp1).opcode;
+                                    end;
+                                    hp2:=taicpu.op_reg_reg_reg_shifterop(tempop,
+                                         taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[2]^.reg,
+                                         taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^);
+                                  end
+                                else
+                                  hp2:=taicpu.op_reg_reg_reg_shifterop(taicpu(hp1).opcode,
+                                       taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[1]^.reg,
+                                       taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^);
+                                asml.insertbefore(hp2, p);
+                                asml.remove(p);
+                                asml.remove(hp1);
+                                p.free;
+                                hp1.free;
+                                p:=hp2;
+                                GetNextInstruction(p,hp1);
+                                asml.insertbefore(tai_comment.Create(strpnew('Peephole FoldShiftProcess done')), p);
+                                break;
+                              end;
+                        ReleaseUsedRegs(TmpUsedRegs);
+                      end;
+
                     {
                       Often we see shifts and then a superfluous mov to another register
                       In the future this might be handled in RedundantMovProcess when it uses RegisterTracking
                     }
-                    if GetNextInstruction(p, hp1) then
+                    if (taicpu(p).opcode = A_MOV) and 
+                        GetNextInstruction(p, hp1) then
                       RemoveSuperfluousMove(p, hp1, 'MovMov2Mov');
                   end;
                 A_ADD,
