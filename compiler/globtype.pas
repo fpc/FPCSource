@@ -323,10 +323,10 @@ interface
          m_advanced_records,    { advanced record syntax with visibility sections, methods and properties }
          m_isolike_unary_minus, { unary minus like in iso pascal: same precedence level as binary minus/plus }
          m_systemcodepage,      { use system codepage as compiler codepage by default, emit ansistrings with system codepage }
-         m_final_fields,        { allows declaring fields as "final", which means they must be initialised
+         m_final_fields,        { allows declaring fields as "final", which means they must be initialised
                                   in the (class) constructor and are constant from then on (same as final
                                   fields in Java) }
-         m_default_unicodestring { makes the default string type in $h+ mode unicodestring rather than
+         m_default_unicodestring { makes the default string type in $h+ mode unicodestring rather than
                                    ansistring; similarly, char becomes unicodechar rather than ansichar }
        );
        tmodeswitches = set of tmodeswitch;
