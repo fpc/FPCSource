@@ -1882,16 +1882,21 @@ implementation
 *****************************************************************************}
 
      procedure addsymref(sym:tsym);
+       var
+         owner: tsymtable;
        begin
          { symbol uses count }
          sym.IncRefCount;
          { unit uses count }
+         owner:=sym.owner;
+         while owner.symtabletype in [objectsymtable,recordsymtable,enumsymtable] do
+           owner:=tdef(owner.defowner).owner;
          if assigned(current_module) and
-            (sym.owner.symtabletype=globalsymtable) then
+            (owner.symtabletype=globalsymtable) then
              begin
-               if tglobalsymtable(sym.owner).moduleid>=current_module.unitmapsize then
+               if tglobalsymtable(owner).moduleid>=current_module.unitmapsize then
                  internalerror(200501152);
-               inc(current_module.unitmap[tglobalsymtable(sym.owner).moduleid].refs);
+               inc(current_module.unitmap[tglobalsymtable(owner).moduleid].refs);
              end;
        end;
 
