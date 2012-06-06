@@ -442,9 +442,8 @@ Implementation
                        (taicpu(p).oper[1]^.typ = top_const) and
                        GetNextInstruction(p,hp1) then
                       begin
-                        while (tai(p).typ = ait_instruction) and
-                              (taicpu(p).opcode = A_STR) and
-                              MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^) and
+                        while MatchInstruction(hp1, A_STR, [taicpu(p).condition], []) and
+                              MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
                               GetNextInstruction(hp1, hp2) and
                               MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
                               (taicpu(hp2).ops = 2) and
