@@ -642,7 +642,7 @@ implementation
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
         case opcode of
-          A_ADC,A_ADD,A_AND,
+          A_ADC,A_ADD,A_AND,A_BIC,
           A_EOR,A_CLZ,
           A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
           A_LDRSH,A_LDRT,
@@ -671,7 +671,7 @@ implementation
               result:=operand_write
             else
               result:=operand_read;
-          A_BIC,A_BKPT,A_B,A_BL,A_BLX,A_BX,
+          A_BKPT,A_B,A_BL,A_BLX,A_BX,
           A_CMN,A_CMP,A_TEQ,A_TST,
           A_CMF,A_CMFE,A_WFS,A_CNF,
           A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
