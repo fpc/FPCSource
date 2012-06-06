@@ -93,9 +93,10 @@ const
     a_insrwi_, a_rotlwi, a_rotlwi_, a_rotlw, a_rotlw_, a_slwi, a_slwi_,
     a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
     a_clrslwi_, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-    a_none, a_none {move to special prupose reg}, a_none {move from special purpose reg},
+    a_none, a_none {move to special purpose reg}, a_none {move from special purpose reg},
     a_none, a_none, a_none, a_none, a_none, a_none, a_not, a_not_, a_none, a_none, a_none,
-    a_none, a_none, a_none, a_none);
+    a_none, a_none, a_none, a_none,
+    a_none, a_none, a_none, a_none, a_none);
 
   function TCpuAsmOptimizer.cmpi_mfcr_opt(p, next1, next2: taicpu): boolean;
     var
@@ -449,9 +450,10 @@ const
       a_insrwi_, a_rotlwi_, a_rotlwi_, a_rotlw_, a_rotlw_, a_slwi_, a_slwi_,
       a_srwi_, a_srwi_, a_clrlwi_, a_clrlwi_, a_clrrwi_, a_clrrwi_, a_clrslwi_,
       a_clrslwi_, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
-      a_none, a_none {move to special prupose reg}, a_none {move from special purpose reg},
+      a_none, a_none {move to special purpose reg}, a_none {move from special purpose reg},
       a_none, a_none, a_none, a_none, a_mr_, a_mr_, a_not_, a_not_, a_none, a_none, a_none,
-      a_none, a_none, a_none, a_none);
+      a_none, a_none, a_none, a_none,
+      a_none, a_none, a_none, a_none, a_none);
 
   function changetomodifyflags(p: taicpu): boolean;
     begin
