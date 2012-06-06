@@ -3083,7 +3083,9 @@ implementation
           assigned(source.resultdef) and
           (source.resultdef.typ in [enumdef,orddef,floatdef]) and
           not is_boolean(source.resultdef) and
-          not is_constrealnode(source) then
+          not is_constrealnode(source) and
+          { constants are handled via regular range checking }
+          (source.nodetype<>ordconstn) then
          begin
            if ((destdef.size < source.resultdef.size) and
                { s80real and sc80real have a different size but the same precision }
