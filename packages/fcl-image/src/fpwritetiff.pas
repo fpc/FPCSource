@@ -318,11 +318,35 @@ begin
     if not (IFD.PhotoMetricInterpretation in [0,1,2]) then
       TiffError('PhotoMetricInterpretation="'+Img.Extra[TiffPhotoMetric]+'" not supported');
 
-    GrayBits:=StrToIntDef(Img.Extra[TiffGrayBits],8);
-    RedBits:=StrToIntDef(Img.Extra[TiffRedBits],8);
-    GreenBits:=StrToIntDef(Img.Extra[TiffGreenBits],8);
-    BlueBits:=StrToIntDef(Img.Extra[TiffBlueBits],8);
+    GrayBits:=0;
+    RedBits:=0;
+    GreenBits:=0;
+    BlueBits:=0;
+    AlphaBits:=0;
+    case IFD.PhotoMetricInterpretation of
+    0,1:
+      begin
+        GrayBits:=StrToIntDef(Img.Extra[TiffGrayBits],8);
+        BitsPerSample[0]:=GrayBits;
+        SamplesPerPixel:=1;
+      end;
+    2:
+      begin
+        RedBits:=StrToIntDef(Img.Extra[TiffRedBits],8);
+        GreenBits:=StrToIntDef(Img.Extra[TiffGreenBits],8);
+        BlueBits:=StrToIntDef(Img.Extra[TiffBlueBits],8);
+        BitsPerSample[0]:=RedBits;
+        BitsPerSample[1]:=GreenBits;
+        BitsPerSample[2]:=BlueBits;
+        SamplesPerPixel:=3;
+      end;
+    end;
     AlphaBits:=StrToIntDef(Img.Extra[TiffAlphaBits],8);
+    if AlphaBits>0 then begin
+      BitsPerSample[SamplesPerPixel]:=AlphaBits;
+      inc(SamplesPerPixel);
+    end;
+
     ImgWidth:=Img.Width;
     ImgHeight:=Img.Height;
     Compression:=1;
@@ -357,23 +381,7 @@ begin
     AddEntryShort(296,IFD.ResolutionUnit);
     AddEntryRational(282,IFD.XResolution);
     AddEntryRational(283,IFD.YResolution);
-    case IFD.PhotoMetricInterpretation of
-    0,1:
-      begin
-        BitsPerSample[0]:=GrayBits;
-        SamplesPerPixel:=1;
-      end;
-    2:
-      begin
-        BitsPerSample[0]:=RedBits;
-        BitsPerSample[1]:=GreenBits;
-        BitsPerSample[2]:=BlueBits;
-        SamplesPerPixel:=3;
-      end;
-    end;
     if AlphaBits>0 then begin
-      BitsPerSample[SamplesPerPixel]:=AlphaBits;
-      inc(SamplesPerPixel);
       // ExtraSamples
       AddEntryShort(338,2);// 2=unassociated alpha
     end;
