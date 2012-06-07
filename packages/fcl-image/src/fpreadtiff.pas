@@ -1165,6 +1165,96 @@ begin
         writeln('TFPReaderTiff.ReadDirectoryEntry Tag 347: skipping JPEG Tables');
       {$endif}
     end;
+  512:
+    begin
+      // ToDo: JPEGProc
+      // short
+      // 1 = baseline sequential
+      // 14 = lossless process with Huffman encoding
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 512: skipping JPEGProc');
+      {$endif}
+    end;
+  513:
+    begin
+      // ToDo: JPEGInterchangeFormat
+      // long
+      // non zero: start of start of image SOI marker
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 513: skipping JPEGInterchangeFormat');
+      {$endif}
+    end;
+  514:
+    begin
+      // ToDo: JPEGInterchangeFormatLength
+      // long
+      // length in bytes of 513
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 514: skipping JPEGInterchangeFormatLength');
+      {$endif}
+    end;
+  515:
+    begin
+      // ToDo: JPEGRestartInterval
+      // short
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 515: skipping JPEGRestartInterval');
+      {$endif}
+    end;
+  517:
+    begin
+      // ToDo: JPEGLosslessPredictor
+      // short
+      // Count: SamplesPerPixels
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 517: skipping JPEGLosslessPredictor');
+      {$endif}
+    end;
+  518:
+    begin
+      // ToDo: JPEGPointTransforms
+      // short
+      // Count: SamplesPerPixels
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 518: skipping JPEGPointTransforms');
+      {$endif}
+    end;
+  519:
+    begin
+      // ToDo: JPEGQTables
+      // long
+      // Count: SamplesPerPixels
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 519: skipping JPEGQTables');
+      {$endif}
+    end;
+  520:
+    begin
+      // ToDo: JPEGDCTables
+      // long
+      // Count: SamplesPerPixels
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 520: skipping JPEGDCTables');
+      {$endif}
+    end;
+  521:
+    begin
+      // ToDo: JPEGACTables
+      // long
+      // Count: SamplesPerPixels
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 521: skipping JPEGACTables');
+      {$endif}
+    end;
   530:
     begin
       // ToDo: YCbCrSubSampling alias ChromaSubSampling
@@ -1859,61 +1949,68 @@ end;
 
 procedure DecompressPackBits(Buffer: Pointer; Count: PtrInt; out
   NewBuffer: Pointer; out NewCount: PtrInt);
+{ Algorithm:
+    while not got the expected number of bytes
+      read one byte n
+      if n in 0..127 copy the next n+1 bytes
+      else if n in -127..-1 then copy the next byte 1-n times
+      else continue
+    end
+}
 var
   p: Pcint8;
   n: cint8;
-  SrcStep: PtrInt;
-  i: PtrInt;
   d: pcint8;
-  j: ShortInt;
+  i,j: integer;
+  EndP: Pcint8;
 begin
   // compute NewCount
   NewCount:=0;
   NewBuffer:=nil;
+  if Count=0 then exit;
   p:=Pcint8(Buffer);
-  i:=Count;
-  while i>0 do begin
+  EndP:=p+Count;
+  while p<EndP do begin
     n:=p^;
     case n of
-    0..127:   begin inc(NewCount,n+1);  SrcStep:=n+2; end; // copy the next n+1 bytes
-    -127..-1: begin inc(NewCount,-n+1); SrcStep:=2;   end; // copy the next byte n+1 times
-    else SrcStep:=1; // noop
+    0..127:   begin inc(NewCount,n+1);  inc(p,n+2); end; // copy the next n+1 bytes
+    -127..-1: begin inc(NewCount,1-n); inc(p,2);   end; // copy the next byte 1-n times
+    else inc(p); // noop
     end;
-    inc(p,SrcStep);
-    dec(i,SrcStep);
   end;
 
   // decompress
   if NewCount=0 then exit;
   GetMem(NewBuffer,NewCount);
-  i:=Count;
   p:=Pcint8(Buffer);
   d:=Pcint8(NewBuffer);
-  while i>0 do begin
+  while p<EndP do begin
     n:=p^;
     case n of
     0..127:
       begin
         // copy the next n+1 bytes
-        inc(NewCount,n+1);  SrcStep:=n+2;
-        System.Move(p[1],d^,n+1);
-        inc(d,n+1);
+        i:=n+1;
+        inc(NewCount,i);
+        inc(p);
+        System.Move(p,d^,i);
+        inc(p,i);
+        inc(d,i);
       end;
     -127..-1:
       begin
-        // copy the next byte n+1 times
-        inc(NewCount,-n+1); SrcStep:=2;
-        j:=-n;
-        n:=p[1];
-        while j>=0 do begin
+        // copy the next byte 1-n times
+        i:=1-n;
+        inc(NewCount,i);
+        inc(p);
+        n:=p^;
+        for j:=0 to i-1 do
           d[j]:=n;
-          dec(j);
-        end;
+        inc(d,i);
+        inc(p);
       end;
-    else SrcStep:=1; // noop
+    else inc(p); // noop
     end;
-    inc(p,SrcStep);
-    dec(i,SrcStep);
   end;
 end;
 
