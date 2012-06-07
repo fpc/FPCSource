@@ -45,15 +45,19 @@ uses
 
 procedure tMIPSELcallnode.extra_call_code;
 begin
-  if pushedparasize > 0 then
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDIU, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, -pushedparasize));
+  { MIPS functions should never modify the stack pointer
+    after the prologue.
+    Enough space must be allocated inside the prologue, not after.  }
+  //  if pushedparasize > 0 then
+  //  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDIU, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, -pushedparasize));
 end;
 
 procedure tMIPSELcallnode.extra_post_call_code;
 begin
-  if pushedparasize > 0 then
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDIU, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, pushedparasize));
-
+  { MIPS functions should never modify the stack pointer
+    after the prologue.
+   // if pushedparasize > 0 then
+   // current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDIU, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, pushedparasize));
 end;
 
 
