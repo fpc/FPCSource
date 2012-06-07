@@ -87,7 +87,11 @@ Const
 
   { Constansts for MMAP }
   MAP_PRIVATE   =2;
+{$ifdef cpumips}
+  MAP_ANONYMOUS =$800;
+{$else cpumips}
   MAP_ANONYMOUS =$20;
+{$endif cpumips}
 
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
@@ -1526,11 +1530,20 @@ const
   MAP_FIXED     = $10;         { Interpret addr exactly }
 //  MAP_ANONYMOUS = $20;         { don't use a file }
 
+{$ifdef cpumips}
+  MAP_GROWSDOWN  = $1000;       { stack-like segment }
+  MAP_DENYWRITE  = $2000;       { ETXTBSY }
+  MAP_EXECUTABLE = $4000;      { mark it as an executable }
+  MAP_LOCKED     = $8000;      { pages are locked }
+  MAP_NORESERVE  = $4000;      { don't check for reservations }
+{$else cpumips}
   MAP_GROWSDOWN  = $100;       { stack-like segment }
   MAP_DENYWRITE  = $800;       { ETXTBSY }
   MAP_EXECUTABLE = $1000;      { mark it as an executable }
   MAP_LOCKED     = $2000;      { pages are locked }
   MAP_NORESERVE  = $4000;      { don't check for reservations }
+{$endif cpumips}
+
 
 type
   tmmapargs=record
