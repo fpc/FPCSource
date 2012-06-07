@@ -189,7 +189,9 @@ function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTar
 function GetHandleInformation(hObject:HANDLE; lpdwFlags:LPDWORD):WINBOOL; external 'kernel32' name 'GetHandleInformation';
 function SetHandleInformation(hObject:HANDLE; dwMask:DWORD; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'SetHandleInformation';
 function LoadModule(lpModuleName:LPCSTR; lpParameterBlock:LPVOID):DWORD; external 'kernel32' name 'LoadModule';
-function WinExec(lpCmdLine:LPCSTR; uCmdShow:UINT):UINT; external 'kernel32' name 'WinExec';
+// Winexec is a win16 legacy function, deprecated for 17 years (deprecated since win95). 
+// Annotated the MS deprecated status with a FPC deprecated directive  so it won't be used for new development.
+function WinExec(lpCmdLine:LPCSTR; uCmdShow:UINT):UINT; external 'kernel32' name 'WinExec'; deprecated;
 function ClearCommBreak(hFile:HANDLE):WINBOOL; external 'kernel32' name 'ClearCommBreak';
 function ClearCommError(hFile:HANDLE; lpErrors:LPDWORD; lpStat:LPCOMSTAT):WINBOOL; external 'kernel32' name 'ClearCommError';
 function SetupComm(hFile:HANDLE; dwInQueue:DWORD; dwOutQueue:DWORD):WINBOOL; external 'kernel32' name 'SetupComm';
