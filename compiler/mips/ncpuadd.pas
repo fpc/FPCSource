@@ -137,145 +137,216 @@ end;
 function tmipsaddnode.cmp64_eq(left_reg, right_reg: TRegister64): TRegister;
 var
   lfcmp64_L4: tasmlabel;
+  tmpreg : TRegister;
+  ai : TaiCpu;
 begin
 
+  tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
   current_asmdata.getjumplabel(lfcmp64_L4);
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg, 0));
 
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, left_reg.reghi, right_reg.reghi, lfcmp64_L4));
-  current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_sym(A_BNE, left_reg.reglo, right_reg.reglo, lfcmp64_L4));
+  ai := Taicpu.op_reg_reg_sym(A_BC, left_reg.reghi, right_reg.reghi, lfcmp64_L4);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 1));
+  //current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_sym(A_BNE, left_reg.reglo, right_reg.reglo, lfcmp64_L4));
+  ai := Taicpu.op_reg_reg_sym(A_BC, left_reg.reglo, right_reg.reglo, lfcmp64_L4);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
+  current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
+
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg, 1));
 
   cg.a_label(current_asmdata.CurrAsmList, lfcmp64_L4);
-  cmp64_eq := NR_TCR10;
+  cmp64_eq := tmpreg;
 end;
 
 function tmipsaddnode.cmp64_ne(left_reg, right_reg: TRegister64): TRegister;
 var
   lfcmp64_L4: tasmlabel;
+  tmpreg : TRegister;
+  ai : TaiCpu;
 begin
 
+  tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
   current_asmdata.getjumplabel(lfcmp64_L4);
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 1));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg, 1));
 
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, left_reg.reghi, right_reg.reghi, lfcmp64_L4));
-  current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_sym(A_BNE, left_reg.reglo, right_reg.reglo, lfcmp64_L4));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, left_reg.reghi, right_reg.reghi, lfcmp64_L4));
+  ai := Taicpu.op_reg_reg_sym(A_BC, left_reg.reghi, right_reg.reghi, lfcmp64_L4);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
+  //current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_sym(A_BNE, left_reg.reglo, right_reg.reglo, lfcmp64_L4));
+  ai := Taicpu.op_reg_reg_sym(A_BC, left_reg.reglo, right_reg.reglo, lfcmp64_L4);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
+  current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
+
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg, 0));
 
   cg.a_label(current_asmdata.CurrAsmList, lfcmp64_L4);
-  cmp64_ne := NR_TCR10;
+  cmp64_ne := tmpreg;
 end;
 
 function tmipsaddnode.cmp64_lt(left_reg, right_reg: TRegister64): TRegister;
 var
   lfcmp64_L4, lfcmp64_L5: tasmlabel;
+  tmpreg1,tmpreg2 : TRegister;
+  ai : TaiCpu;
 begin
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
+  tmpreg1 := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+  tmpreg2 := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg1, 0));
 
   current_asmdata.getjumplabel(lfcmp64_L4);
   current_asmdata.getjumplabel(lfcmp64_L5);
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLT, NR_TCR11, left_reg.reghi, right_reg.reghi));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L5));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLT, tmpreg2, left_reg.reghi, right_reg.reghi));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, tmpreg2, NR_R0, lfcmp64_L5));
+  ai := Taicpu.op_reg_reg_sym(A_BC, tmpreg2, NR_R0, lfcmp64_L5);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, left_reg.reghi, right_reg.reghi, lfcmp64_L4));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, left_reg.reghi, right_reg.reghi, lfcmp64_L4));
+  ai := Taicpu.op_reg_reg_sym(A_BC, left_reg.reghi, right_reg.reghi, lfcmp64_L4);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, NR_TCR11, left_reg.reglo, right_reg.reglo));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L5));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, left_reg.reglo, right_reg.reglo));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, tmpreg2, NR_R0, lfcmp64_L5));
+  ai := Taicpu.op_reg_reg_sym(A_BC, tmpreg2, NR_R0, lfcmp64_L5);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_B, lfcmp64_L4));
+  current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BA, lfcmp64_L4));
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
 
   cg.a_label(current_asmdata.CurrAsmList, lfcmp64_L5);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 1));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg1, 1));
 
   cg.a_label(current_asmdata.CurrAsmList, lfcmp64_L4);
-  cmp64_lt := NR_TCR10;
+  cmp64_lt := tmpreg1;
 end;
 
 function tmipsaddnode.cmp64_le(left_reg, right_reg: TRegister64): TRegister;
 var
   lfcmp64_L4, lfcmp64_L5: tasmlabel;
+  tmpreg1,tmpreg2 : TRegister;
+  ai : TaiCpu;
 begin
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
+  tmpreg1 := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+  tmpreg2 := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg1, 0));
 
   current_asmdata.getjumplabel(lfcmp64_L4);
   current_asmdata.getjumplabel(lfcmp64_L5);
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLT, NR_TCR11, right_reg.reghi, left_reg.reghi));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L4));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLT, tmpreg2, right_reg.reghi, left_reg.reghi));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, tmpreg2, NR_R0, lfcmp64_L4));
+  ai := Taicpu.op_reg_reg_sym(A_BC, tmpreg2, NR_R0, lfcmp64_L4);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, right_reg.reghi, left_reg.reghi, lfcmp64_L5));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, right_reg.reghi, left_reg.reghi, lfcmp64_L5));
+  ai := Taicpu.op_reg_reg_sym(A_BC, right_reg.reghi, left_reg.reghi, lfcmp64_L5);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, NR_TCR11, right_reg.reglo, left_reg.reglo));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L4));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, right_reg.reglo, left_reg.reglo));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, tmpreg2, NR_R0, lfcmp64_L4));
+  ai := Taicpu.op_reg_reg_sym(A_BC, tmpreg2, NR_R0, lfcmp64_L4);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
 
   cg.a_label(current_asmdata.CurrAsmList, lfcmp64_L5);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 1));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg1, 1));
 
   cg.a_label(current_asmdata.CurrAsmList, lfcmp64_L4);
-  cmp64_le := NR_TCR10;
+  cmp64_le := tmpreg1;
 end;
 
 function tmipsaddnode.cmp64_ltu(left_reg, right_reg: TRegister64): TRegister;
 var
   lfcmp64_L4, lfcmp64_L5: tasmlabel;
+  tmpreg1,tmpreg2 : TRegister;
+  ai : TaiCpu;
 begin
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
+  tmpreg1 := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+  tmpreg2 := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg1, 0));
 
   current_asmdata.getjumplabel(lfcmp64_L4);
   current_asmdata.getjumplabel(lfcmp64_L5);
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, NR_TCR11, left_reg.reghi, right_reg.reghi));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L5));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, left_reg.reghi, right_reg.reghi));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, tmpreg2, NR_R0, lfcmp64_L5));
+  ai := Taicpu.op_reg_reg_sym(A_BC, tmpreg2, NR_R0, lfcmp64_L5);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, left_reg.reghi, right_reg.reghi, lfcmp64_L4));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, left_reg.reghi, right_reg.reghi, lfcmp64_L4));
+  ai := Taicpu.op_reg_reg_sym(A_BC, left_reg.reghi, right_reg.reghi, lfcmp64_L4);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, NR_TCR11, left_reg.reglo, right_reg.reglo));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L5));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, left_reg.reglo, right_reg.reglo));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, tmpreg2, NR_R0, lfcmp64_L5));
+  ai := Taicpu.op_reg_reg_sym(A_BC, tmpreg2, NR_R0, lfcmp64_L5);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_B, lfcmp64_L4));
+  current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BA, lfcmp64_L4));
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
 
   cg.a_label(current_asmdata.CurrAsmList, lfcmp64_L5);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 1));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg1, 1));
 
   cg.a_label(current_asmdata.CurrAsmList, lfcmp64_L4);
-  cmp64_ltu := NR_TCR10;
+  cmp64_ltu := tmpreg1;
 end;
 
 function tmipsaddnode.cmp64_leu(left_reg, right_reg: TRegister64): TRegister;
 var
   lfcmp64_L4, lfcmp64_L5: tasmlabel;
+  tmpreg1,tmpreg2 : TRegister;
+  ai : TaiCpu;
 begin
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
+  tmpreg1 := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+  tmpreg2 := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg1, 0));
 
   current_asmdata.getjumplabel(lfcmp64_L4);
   current_asmdata.getjumplabel(lfcmp64_L5);
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, NR_TCR11, right_reg.reghi, left_reg.reghi));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L4));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, right_reg.reghi, left_reg.reghi));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, tmpreg2, NR_R0, lfcmp64_L4));
+  ai := Taicpu.op_reg_reg_sym(A_BC, tmpreg2, NR_R0, lfcmp64_L4);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, right_reg.reghi, left_reg.reghi, lfcmp64_L5));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, right_reg.reghi, left_reg.reghi, lfcmp64_L5));
+  ai := Taicpu.op_reg_reg_sym(A_BC, right_reg.reghi, left_reg.reghi, lfcmp64_L5);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, NR_TCR11, right_reg.reglo, left_reg.reglo));
-  current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L4));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, tmpreg2, right_reg.reglo, left_reg.reglo));
+  //current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, tmpreg2, NR_R0, lfcmp64_L4));
+  ai := Taicpu.op_reg_reg_sym(A_BC, tmpreg2, NR_R0, lfcmp64_L4);
+  ai.setCondition(C_NE);
+  current_asmdata.CurrAsmList.concat(ai);
   current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
 
   cg.a_label(current_asmdata.CurrAsmList, lfcmp64_L5);
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 1));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, tmpreg1, 1));
 
   cg.a_label(current_asmdata.CurrAsmList, lfcmp64_L4);
-  cmp64_leu := NR_TCR10;
+  cmp64_leu := tmpreg1;
 end;
 
 function tmipsaddnode.GetRes64_register(unsigned: boolean; //this_reg: TRegister;
@@ -432,7 +503,7 @@ begin
   location_force_fpureg(current_asmdata.CurrAsmList, right.location, True);
 
   location_reset(location, LOC_REGISTER, OS_INT);
-  location.Register := NR_TCR0;
+  location.Register := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
 
   case NodeType of
     equaln:
@@ -442,11 +513,11 @@ begin
       else
         op := A_C_EQ_S;
       current_asmdata.getjumplabel(lfcmpfalse);
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register {NR_TCR0}, NR_R0, NR_R0));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register , NR_R0, NR_R0));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.Register, right.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1F, lfcmpfalse)); //lfcmpfalse
       current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register, NR_R0, 1));
       cg.a_label(current_asmdata.CurrAsmList, lfcmpfalse);
 
     end;
@@ -457,11 +528,11 @@ begin
       else
         op := A_C_EQ_S;
       current_asmdata.getjumplabel(lfcmpfalse);
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register, NR_R0, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.Register, right.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1F, lfcmpfalse));
       current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register {NR_TCR0}, NR_R0, NR_R0));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register , NR_R0, NR_R0));
       cg.a_label(current_asmdata.CurrAsmList, lfcmpfalse);
     end;
     ltn:
@@ -471,11 +542,11 @@ begin
       else
         op := A_C_LT_S;
       current_asmdata.getjumplabel(lfcmptrue);
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register, NR_R0, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.Register, right.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1T, lfcmptrue));
       current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register {NR_TCR0}, NR_R0, NR_R0));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register, NR_R0, NR_R0));
       cg.a_label(current_asmdata.CurrAsmList, lfcmptrue);
     end;
     lten:
@@ -485,11 +556,11 @@ begin
       else
         op := A_C_LE_S;
       current_asmdata.getjumplabel(lfcmptrue);
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register, NR_R0, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.Register, right.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1T, lfcmptrue));
       current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register {NR_TCR0}, NR_R0, NR_R0));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register, NR_R0, NR_R0));
       cg.a_label(current_asmdata.CurrAsmList, lfcmptrue);
     end;
     gtn:
@@ -499,11 +570,11 @@ begin
       else
         op := A_C_LT_S;
       current_asmdata.getjumplabel(lfcmptrue);
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register, NR_R0, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, right.location.Register, left.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1T, lfcmptrue));
       current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register {NR_TCR0}, NR_R0, NR_R0));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register, NR_R0, NR_R0));
       cg.a_label(current_asmdata.CurrAsmList, lfcmptrue);
     end;
     gten:
@@ -513,11 +584,11 @@ begin
       else
         op := A_C_LE_S;
       current_asmdata.getjumplabel(lfcmptrue);
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register, NR_R0, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, right.location.Register, left.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1T, lfcmptrue));
       current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register {NR_TCR0}, NR_R0, NR_R0));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register, NR_R0, NR_R0));
       cg.a_label(current_asmdata.CurrAsmList, lfcmptrue);
     end;
   end; {case}
@@ -526,11 +597,12 @@ end;
 
 procedure tmipsaddnode.second_cmpboolean;
 var
-  tmp_right_reg: TRegister;
+  tmp_right_reg, tmpreg: TRegister;
 begin
   pass_left_right;
   force_reg_left_right(True, True);
   tmp_right_reg := NR_NO;
+  tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
   if right.location.loc = LOC_CONSTANT then
     begin
       tmp_right_reg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
@@ -540,18 +612,19 @@ begin
     tmp_right_reg := right.location.Register;
 
   location_reset(location, LOC_REGISTER, OS_INT);
-  location.Register := GetRes_register(True, NR_TCR0, left.location.Register, tmp_right_reg);
+  location.Register := GetRes_register(True, tmpreg, left.location.Register, tmp_right_reg);
 end;
 
 
 procedure tmipsaddnode.second_cmpsmallset;
 var
-  tmp_right_reg: TRegister;
+  tmp_right_reg, tmpreg: TRegister;
 begin
   pass_left_right;
   force_reg_left_right(True, True);
 
   tmp_right_reg := NR_NO;
+  tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
 
   if right.location.loc = LOC_CONSTANT then
   begin
@@ -565,7 +638,7 @@ begin
 
 
   location_reset(location, LOC_REGISTER, OS_INT);
-  location.Register := GetRes_register(True, NR_TCR0, left.location.Register, tmp_right_reg);
+  location.Register := GetRes_register(True, tmpreg, left.location.Register, tmp_right_reg);
 end;
 
 
@@ -582,20 +655,21 @@ begin
             not(is_signed(right.resultdef));
 
   location_reset(location, LOC_REGISTER, OS_INT);
-  location.Register := GetRes64_register(unsigned, {NR_TCR0, }left.location.register64, right.location.register64); // NR_TCR0;
+  location.Register := GetRes64_register(unsigned, left.location.register64, right.location.register64); 
 end;
 
 
 procedure tmipsaddnode.second_cmpordinal;
 var
   unsigned: boolean;
-  tmp_right_reg: TRegister;
+  tmp_right_reg,tmpreg: TRegister;
 begin
   pass_left_right;
   force_reg_left_right(True, True);
   unsigned := not (is_signed(left.resultdef)) or not (is_signed(right.resultdef));
 
   tmp_right_reg := NR_NO;
+  tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
   if right.location.loc = LOC_CONSTANT then
     begin
       tmp_right_reg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
@@ -604,7 +678,7 @@ begin
   else
     tmp_right_reg := right.location.Register;
   location_reset(location, LOC_REGISTER, OS_INT);
-  location.Register := getres_register(unsigned, NR_TCR0, left.location.Register, tmp_right_reg);
+  location.Register := getres_register(unsigned, tmpreg, left.location.Register, tmp_right_reg);
 end;
 
 begin

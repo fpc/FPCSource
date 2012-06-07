@@ -257,6 +257,7 @@ end;
 procedure tMIPSELnotnode.second_boolean;
 var
   hl: tasmlabel;
+  tmpreg : TRegister;
 begin
   { if the location is LOC_JUMP, we do the secondpass after the
           labels are allocated
@@ -283,10 +284,11 @@ begin
       end;
       LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE:
       begin
+        tmpreg := cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
         hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SEQ, NR_TCR0, left.location.Register, NR_R0));
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SEQ, tmpreg, left.location.Register, NR_R0));
         location_reset(location, LOC_REGISTER, OS_INT);
-        location.Register := NR_TCR0;
+        location.Register := tmpreg;
       end;
       else
         internalerror(2003042401);

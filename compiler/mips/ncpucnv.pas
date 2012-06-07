@@ -134,6 +134,7 @@ var
   href:      treference;
   hregister: tregister;
   l1, l2:    tasmlabel;
+  ai : TaiCpu;
 
 begin
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
@@ -149,7 +150,9 @@ begin
 
     loadsigned;
 
-    current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BGE, hregister, NR_R0, l2));
+    ai := Taicpu.op_reg_reg_sym(A_BC, hregister, NR_R0, l2);
+    ai.setCondition(C_GE);
+    current_asmdata.CurrAsmList.concat(ai);
 
     case tfloatdef(resultdef).floattype of
       { converting dword to s64real first and cut off at the end avoids precision loss }
@@ -214,6 +217,8 @@ var
   hreg1, hreg2: tregister;
   opsize: tcgsize;
   hlabel, oldtruelabel, oldfalselabel: tasmlabel;
+  newsize  : tcgsize;
+  href: treference;
 begin
   oldtruelabel  := current_procinfo.CurrTrueLabel;
   oldfalselabel := current_procinfo.CurrFalseLabel;
@@ -223,17 +228,24 @@ begin
   if codegenerror then
     exit;
 
-  { byte(boolean) or word(wordbool) or longint(longbool) must }
-  { be accepted for var parameters                            }
-  if (nf_explicit in flags) and
-    (left.resultdef.size = resultdef.size) and
-    (left.location.loc in [LOC_REFERENCE, LOC_CREFERENCE, LOC_CREGISTER]) then
-  begin
-    location_copy(location, left.location);
-    current_procinfo.CurrTrueLabel  := oldtruelabel;
-    current_procinfo.CurrFalseLabel := oldfalselabel;
-    exit;
-  end;
+         { Explicit typecasts from any ordinal type to a boolean type }
+         { must not change the ordinal value                          }
+         if (nf_explicit in flags) and
+            not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) then
+           begin
+              location_copy(location,left.location);
+              newsize:=def_cgsize(resultdef);
+              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
+              if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
+                 ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+              else
+                location.size:=newsize;
+              current_procinfo.CurrTrueLabel:=oldTrueLabel;
+              current_procinfo.CurrFalseLabel:=oldFalseLabel;
+              exit;
+           end;
+
   location_reset(location, LOC_REGISTER, def_cgsize(resultdef));
   opsize := def_cgsize(left.resultdef);
   case left.location.loc of
@@ -242,21 +254,35 @@ begin
       if left.location.loc in [LOC_CREFERENCE, LOC_REFERENCE] then
       begin
         hreg2 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList, opsize, opsize, left.location.reference, hreg2);
+{$ifndef cpu64bitalu}
+        if left.location.size in [OS_64,OS_S64] then
+          begin
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.reference,hreg2);
+            hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            href:=left.location.reference;
+            inc(href.offset,4);
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hreg1);
+            cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hreg1,hreg2,hreg2);
+          end
+          else
+{$endif not cpu64bitalu}
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList, opsize, opsize, left.location.reference, hreg2);
       end
       else
-        hreg2 := left.location.Register;
-{$ifndef cpu64bit}
-      if left.location.size in [OS_64, OS_S64] then
-      begin
-        hreg1 := cg.getintregister(current_asmdata.CurrAsmList, OS_32);
-        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_32, hreg2, tregister(succ(longint(hreg2))), hreg1);
-        hreg2  := hreg1;
-        opsize := OS_32;
-      end;
-{$endif cpu64bit}
-      hreg1 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SNE, hreg1, hreg2, NR_R0));
+        begin
+          hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+{$ifndef cpu64bitalu}
+          if left.location.size in [OS_64,OS_S64] then
+            begin
+              hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,left.location.register64.reglo,hreg2);
+             end
+           else
+{$endif not cpu64bitalu}
+             cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hreg2);
+         end;
+       hreg1 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SNE, hreg1, hreg2, NR_R0));
     end;
     LOC_JUMP:
     begin
@@ -272,10 +298,26 @@ begin
     else
       internalerror(10062);
   end;
-  location.Register := hreg1;
+{$ifndef cpu64bitalu}
+  if (location.size in [OS_64,OS_S64]) then
+    begin
+      location.register64.reglo:=hreg1;
+      location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+      if (is_cbool(resultdef)) then
+       { reglo is either 0 or -1 -> reghi has to become the same }
+      	cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
+       else
+       { unsigned }
+         cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
+       end
+       else
+{$endif not cpu64bitalu}
+         location.Register := hreg1;
 
+{zfx
   if location.size in [OS_64, OS_S64] then
     internalerror(200408241);
+}
 
   current_procinfo.CurrTrueLabel  := oldtruelabel;
   current_procinfo.CurrFalseLabel := oldfalselabel;

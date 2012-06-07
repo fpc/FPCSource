@@ -195,12 +195,7 @@ end;
 constructor taicpu.op_sym(op: tasmop; _op1: tasmsymbol);
 begin
   inherited Create(op);
-  is_jmp := op in [A_J, A_BEQI, A_BNEI, A_BLTI, A_BLEI, A_BGTI, A_BGEI,
-    A_BLTUI, A_BLEUI, A_BGTUI, A_BGEUI,
-    A_BEQ, A_BNE, A_BLT, A_BLE, A_BGT, A_BGE,
-    A_BLTU, A_BLEU, A_BGTU, A_BGEU
-    ];
-
+  is_jmp := op in [A_BC, A_BA];
   ops := 1;
   loadsymbol(0, _op1, 0);
 end;
@@ -208,10 +203,7 @@ end;
 constructor taicpu.op_reg_reg_sym(op: tasmop; _op1, _op2: tregister; _op3: tasmsymbol);
 begin
    inherited create(op);
-   is_jmp := op in [A_J,
-     A_BEQI, A_BNEI, A_BLTI, A_BLEI, A_BGTI, A_BGEI, A_BLTUI, A_BLEUI,
-     A_BGTUI, A_BGEUI,
-     A_BEQ, A_BNE, A_BLT, A_BLE, A_BGT, A_BGE, A_BLTU, A_BLEU, A_BGTU, A_BGEU];
+   is_jmp := op in [A_BC, A_BA];
    ops := 3;
    loadreg(0, _op1);
    loadreg(1, _op2);
@@ -221,10 +213,7 @@ end;
 constructor taicpu.op_reg_sym(op: tasmop; _op1: tregister; _op2: tasmsymbol);
 begin
    inherited create(op);
-   is_jmp := op in [A_J,
-     A_BEQI, A_BNEI, A_BLTI, A_BLEI, A_BGTI, A_BGEI, A_BLTUI, A_BLEUI,
-     A_BGTUI, A_BGEUI,
-     A_BEQ, A_BNE, A_BLT, A_BLE, A_BGT, A_BGE, A_BLTU, A_BLEU, A_BGTU, A_BGEU, A_BGTZ];
+   is_jmp := op in [A_BC, A_BA];
    ops := 2;
    loadreg(0, _op1);
    loadsymbol(1, _op2, 0);

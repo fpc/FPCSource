@@ -181,7 +181,6 @@ unit cpubase;
                           Generic Register names
 *****************************************************************************}
 
-      STK2_PTR = NR_R23;
       NR_GP = NR_R28;
       NR_SP = NR_R29;
       NR_S8 = NR_R30;
@@ -227,14 +226,6 @@ unit cpubase;
 
       NR_FPU_RESULT_REG = NR_F0;
       NR_MM_RESULT_REG  = NR_NO;
-
-      NR_TCR0 = NR_R15;
-      NR_TCR1 = NR_R3;
-
-      NR_TCR10 = NR_R20;
-      NR_TCR11 = NR_R21;
-      NR_TCR12 = NR_R18;
-      NR_TCR13 = NR_R19;
 
 
 {*****************************************************************************
@@ -287,10 +278,6 @@ unit cpubase;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
 
-    var
-      STK2_dummy: aint;
-      STK2_Localsize: aint;
-
   implementation
 
     uses
@@ -342,27 +329,25 @@ unit cpubase;
       begin
         { This isn't 100% perfect because the arm allows jumps also by writing to PC=R15.
           To overcome this problem we simply forbid that FPC generates jumps by loading R15 }
-        is_calljmp:= o in [A_J,A_JAL,A_JALR,{ A_JALX, }A_JR,
-          A_BEQ,A_BNE,A_BGEZ,A_BGEZAL,A_BGTZ,A_BLEZ,A_BLTZ,A_BLTZAL,
-          A_BEQL,A_BGEZALL,A_BGEZL,A_BGTZL,A_BLEZL,A_BLTZALL,A_BLTZL,A_BNEL];
+        is_calljmp:= o in [A_J,A_JAL,A_JALR,{ A_JALX, }A_JR, A_BA, A_BC, A_BC1T, A_BC1F];
       end;
 
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
-        C_EQ, C_NE, C_LT, C_LE, C_GT, C_GE, C_LTU, C_LEU, C_GTU, C_GEU,
-        C_FEQ,  {Equal}
-        C_FNE, {Not Equal}
-        C_FGT,  {Greater}
-        C_FLT,  {Less}
-        C_FGE, {Greater or Equal}
-        C_FLE  {Less or Equal}
-
+        C_NE, C_EQ, C_GE, C_GT, C_LE, C_LT, C_GEU, C_GTU, C_LEU, C_LTU,
+        C_FNE, 
+        C_FEQ, 
+        C_FLE, 
+        C_FGE, 
+        C_FLT, 
+        C_FGT  
         );
       begin
         result := inverse[c];
-      end;      function findreg_by_number(r:Tregister):tregisterindex;
+      end;      
+      function findreg_by_number(r:Tregister):tregisterindex;
       begin
         result:=rgBase.findreg_by_number_table(r,regnumber_index);
       end;
@@ -393,6 +378,4 @@ unit cpubase;
 
 
 begin
-  STK2_dummy := 10;
-  STK2_Localsize := 0;
 end.

@@ -150,6 +150,27 @@ unit cpugas;
           end;
       end;
 
+{
+     function getnextfpreg(tmpfpu : shortstring) : shortstring;
+     begin
+       case length(tmpfpu) of
+       3:
+        if (tmpfpu[3] = '9') then
+          tmpfpu:='$f10'
+        else
+          tmpfpu[3] := succ(tmpfpu[3]);
+       4:
+        if (tmpfpu[4] = '9') then
+          tmpfpu:='$f20'
+        else
+          tmpfpu[4] := succ(tmpfpu[4]);
+        else
+          internalerror(20120531);
+        end;
+        getnextfpreg := tmpfpu;
+     end;
+}
+
 
     procedure TMIPSInstrWriter.WriteInstruction(hp: Tai);
       var
@@ -158,23 +179,13 @@ unit cpugas;
         i:  integer;
         tmpfpu: string;
         tmpfpu_len: longint;
+        r: TRegister;
       begin
         if hp.typ <> ait_instruction then
           exit;
         op := taicpu(hp).opcode;
 
         case op of
-          A_P_STK2:
-            begin
-              s1 := getopstr(taicpu(hp).oper[2]^);
-              STK2_LocalSize := align(STK2_LocalSize, 8);
-              if s1[1] = '-' then
-                str(-STK2_LocalSize, s1)
-              else
-                str(STK2_LocalSize, s1);
-              s := #9 + gas_op2str[A_ADDIU] + #9 + getopstr(taicpu(hp).oper[0]^)+ ',' + getopstr(taicpu(hp).oper[1]^) + ',' + s1;
-              owner.AsmWriteLn(s);
-            end;
           A_P_SET_NOMIPS16:
             begin
               s := #9 + '.set' + #9 + 'nomips16';
@@ -222,8 +233,14 @@ unit cpugas;
               s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
               owner.AsmWriteLn(s);
 
+{ bug if $f9/$f19
               tmpfpu_len := length(tmpfpu);
               tmpfpu[tmpfpu_len] := succ(tmpfpu[tmpfpu_len]);
+              
+}
+              r := taicpu(hp).oper[0]^.reg;
+              setsupreg(r, getsupreg(r) + 1);
+              tmpfpu := gas_regname(r);
               s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
               owner.AsmWriteLn(s);
             end;
@@ -233,8 +250,13 @@ unit cpugas;
               s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
               owner.AsmWriteLn(s);
 
+{ 
               tmpfpu_len := length(tmpfpu);
               tmpfpu[tmpfpu_len] := succ(tmpfpu[tmpfpu_len]);
+}
+              r := taicpu(hp).oper[0]^.reg;
+              setsupreg(r, getsupreg(r) + 1);
+              tmpfpu := gas_regname(r);
               s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
               owner.AsmWriteLn(s);
             end;
