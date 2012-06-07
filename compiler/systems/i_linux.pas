@@ -851,7 +851,7 @@ unit i_linux;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            first_parm_offset : 8;
+            first_parm_offset : 0;
             stacksize    : 32*1024*1024;
             abi : abi_default
           );
@@ -915,7 +915,7 @@ unit i_linux;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            first_parm_offset : 8;
+            first_parm_offset : 0;
             stacksize    : 32*1024*1024;
             abi : abi_default
           );
