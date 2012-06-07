@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    
+
     Copyright (c) 1999-2003 by Jonas Maebe,
     member of the Free Pascal development team.
 
@@ -24,13 +24,26 @@
     st_rdev    : culong;
     st_pad1    : array[0..2] of culong;
     st_size    : clonglong;
-    st_atime   : time_t;
-    st_atime_nsecs : culong;
-    st_mtime   : time_t;
-    st_mtime_nsecs : culong;
-    st_ctime   : time_t;
-    st_ctime_nsecs : culong;
-    st_blksize : culong;
-    st_pad2    : culong;
-    st_blocks  : clonglong;
+{$ifdef __USE_MISC}
+    st_atim: timespec;
+    st_mtim: timespec;
+    st_ctim: timespec;
+{$else not __USE_MISC}
+    st_atime: time_t;
+    st_atime_nsec: cint;
+
+    st_mtime: time_t;
+    st_mtime_nsec: cint;
+
+    st_ctime: time_t;
+    st_ctime_nsec: cint;
+{$endif not __USE_MISC}
+    st_blksize : blksize_t;
+    __pad4     : cuint;
+{$ifndef __USE_FILE_OFFSET64}
+    st_blocks  : blkcnt_t;
+{$else __USE_FILE_OFFSET64}
+    st_blocks  : blkcnt64_t;
+{$endif __USE_FILE_OFFSET64}
+    st_pad5: array[0..13] of cint;
   end;
