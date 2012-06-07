@@ -778,9 +778,9 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 {$endif defined(cpux86_64) or defined(cpui386)}
 
 { currently, all supported CPUs have an internal 32 bit sar implementation }
-{ $if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{ $if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
 {$define FPC_HAS_INTERNAL_SAR_DWORD}
-{ $endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{ $endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
 
 {$if defined(cpux86_64) or defined(powerpc64)}
 {$define FPC_HAS_INTERNAL_SAR_QWORD}
