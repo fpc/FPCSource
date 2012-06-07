@@ -306,8 +306,22 @@ CONST
  {$IFDEF FPC_IS_SYSTEM}
   MAP_PRIVATE   =2;
  {$ENDIF}
-  MAP_ANONYMOUS =$20;
 
+ {$if defined(cpumips)}
+  MAP_ANONYMOUS  = $800;
+  MAP_GROWSDOWN  = $1000;       { stack-like segment }
+  MAP_DENYWRITE  = $2000;       { ETXTBSY }
+  MAP_EXECUTABLE = $4000;      { mark it as an executable }
+  MAP_LOCKED     = $8000;      { pages are locked }
+  MAP_NORESERVE  = $4000;      { don't check for reservations }
+ {$else}
+  MAP_ANONYMOUS  = $20;
+  MAP_GROWSDOWN  = $100;       { stack-like segment }
+  MAP_DENYWRITE  = $800;       { ETXTBSY }
+  MAP_EXECUTABLE = $1000;      { mark it as an executable }
+  MAP_LOCKED     = $2000;      { pages are locked }
+  MAP_NORESERVE  = $4000;      { don't check for reservations }
+ {$endif cpumips}
 
   { For File control mechanism }
   F_GetFd  = 1;
