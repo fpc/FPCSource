@@ -98,7 +98,7 @@ function Sptr:Pointer;assembler;nostackframe;
 
 {$ifdef USE_MIPS_STK2_ASM}
 {$ifndef FPC_SYSTEM_HAS_MOVE}
-{
+(* Disabled for now
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
   asm
@@ -301,7 +301,7 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
   lw  $14,-40($23)
 
   end;
-}
+*)
 {$endif FPC_SYSTEM_HAS_MOVE}
 {****************************************************************************
                                Integer math
@@ -440,29 +440,52 @@ end;
 
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-  { FIXME!!!!!!!!! }
+  {$warning FIXME: This implementation of InterLockedDecrement in not yet ThreadSafe }
+  lw  $v0,($a0)
+  addi $v1,$v0,-1
+  sw  $v1,($a0)
 end;
 
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
- { FIXME!!!!!!!!! }
+  {$warning FIXME: This implementation of InterLockedIncrement in not yet ThreadSafe }
+  lw  $v0,($a0)
+  addi $v1,$v0,1
+  sw  $v1,($a0)
 end;
 
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
- { FIXME!!!!!!!!! }
+  {$warning FIXME: This implementation of InterLockedExchange in not yet ThreadSafe }
+  lw  $v0,($a0)
+  sw  $a1,($a0)
 end;
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-{ FIXME!!!!!!!!! }
+  {$warning FIXME: This implementation of InterLockedExchangeAdd in not yet ThreadSafe }
+  lw  $v0,($a0)
+  add $a1,$v0,$a1
+  sw  $a1,($a0)
 end;
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
 asm
-  { FIXME!!!!!!!!! }
+  {$warning FIXME: This implementation of InterLockedCompareAdd in not yet ThreadSafe }
+  { put old value of Target into $v0, result register }
+  lw  $v0,($a0)
+  { copy to t0 register }
+  move  $t0,$v0
+  move $v1,$a2
+  xor  $t0,$t0,$v1
+  beq  $t0,$zero,.L1
+  b    .L2
+.L1:
+  {store NewValue (in $a1) into Target in ($(a0)) }
+  sw    $a1,($a0)
+.L2:
 end;
 
