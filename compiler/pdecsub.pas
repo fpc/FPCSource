@@ -2939,9 +2939,13 @@ const
                not(po_overload in fwpd.procoptions)
               ) or
               { check arguments, we need to check only the user visible parameters. The hidden parameters
-                can be in a different location because of the calling convention, eg. L-R vs. R-L order (PFV) }
+                can be in a different location because of the calling convention, eg. L-R vs. R-L order (PFV)
+
+                don't check default values here, because routines that are the same except for their default
+                values should be reported as mismatches (since you can't overload based on different default
+                parameter values) }
               (
-               (compare_paras(currpd.paras,fwpd.paras,cp_none,[cpo_comparedefaultvalue,cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact) and
+               (compare_paras(fwpd.paras,currpd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact) and
                (compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact)
               ) then
              begin
@@ -3009,10 +3013,13 @@ const
                     end;
 
                    { Check if the procedure type and return type are correct,
-                     also the parameters must match also with the type }
+                     also the parameters must match also with the type and that
+                     if the implementation has default parameters, the interface
+                     also has them and that if they both have them, that they
+                     have the same value }
                    if ((m_repeat_forward in current_settings.modeswitches) or
                        not is_bareprocdef(currpd)) and
-                      ((compare_paras(currpd.paras,fwpd.paras,cp_all,paracompopt)<>te_exact) or
+                      ((compare_paras(fwpd.paras,currpd.paras,cp_all,paracompopt)<>te_exact) or
                        (compare_defs(fwpd.returndef,currpd.returndef,nothingn)<>te_exact)) then
                      begin
                        MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,

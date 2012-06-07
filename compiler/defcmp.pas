@@ -133,6 +133,10 @@ interface
       are allowed (in this case, the search order will first
       search for a routine with default parameters, before
       searching for the same definition with no parameters)
+
+      para1 is expected to be parameter list of the first encountered
+      declaration (interface, forward), and para2 that of the second one
+      (important in case of cpo_comparedefaultvalue)
     }
     function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
 
@@ -1964,13 +1968,19 @@ implementation
               if eq<lowesteq then
                 lowesteq:=eq;
               { also check default value if both have it declared }
-              if (cpo_comparedefaultvalue in cpoptions) and
-                 assigned(currpara1.defaultconstsym) and
-                 assigned(currpara2.defaultconstsym) then
-               begin
-                 if not equal_constsym(tconstsym(currpara1.defaultconstsym),tconstsym(currpara2.defaultconstsym)) then
-                   exit;
-               end;
+              if (cpo_comparedefaultvalue in cpoptions) then
+                begin
+                  if assigned(currpara1.defaultconstsym) and
+                     assigned(currpara2.defaultconstsym) then
+                    begin
+                      if not equal_constsym(tconstsym(currpara1.defaultconstsym),tconstsym(currpara2.defaultconstsym)) then
+                        exit;
+                    end
+                  { cannot have that the second (= implementation) has a default value declared and the
+                    other (interface) doesn't }
+                  else if not assigned(currpara1.defaultconstsym) and assigned(currpara2.defaultconstsym) then
+                    exit;
+                end;
               if not(cpo_compilerproc in cpoptions) and
                  not(cpo_rtlproc in cpoptions) and
                  is_ansistring(currpara1.vardef) and

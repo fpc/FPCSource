@@ -557,7 +557,7 @@ implementation
                   begin
                     implprocdef:=tprocdef(tprocsym(srsym).ProcdefList[i]);
                     if (implprocdef.procsym=tprocsym(srsym)) and
-                       (compare_paras(proc.paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_comparedefaultvalue,cpo_ignoreuniv])>=te_equal) and
+                       (compare_paras(proc.paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_ignoreuniv])>=te_equal) and
                        (compare_defs(proc.returndef,implprocdef.returndef,nothingn)>=te_equal) and
                        (proc.proccalloption=implprocdef.proccalloption) and
                        (proc.proctypeoption=implprocdef.proctypeoption) and
