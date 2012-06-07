@@ -533,8 +533,8 @@ Implementation
                        ) then
                       begin
                         CopyUsedRegs(TmpUsedRegs);
-                        if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp1,TmpUsedRegs)) or
-                           (MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^)) then
+                        UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                        if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp1,TmpUsedRegs)) then
                           for I:=1 to 2 do
                             if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
                               begin
