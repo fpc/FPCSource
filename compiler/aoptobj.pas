@@ -359,6 +359,8 @@ Unit AoptObj;
     }
     Procedure TUsedRegs.Update(p: Tai);
       Begin
+        { this code is normally not used because updating the register allocation information is done in
+          TAOptObj.UpdateUsedRegs for speed reasons }
         repeat
           while assigned(p) and
                 ((p.typ in (SkipInstr - [ait_RegAlloc])) or
@@ -825,8 +827,31 @@ Unit AoptObj;
         var
           i : TRegisterType;
         begin
-          for i:=low(TRegisterType) to high(TRegisterType) do
-            UsedRegs[i].Update(p);
+          { this code is based on TUsedRegs.Update to avoid multiple passes through the asmlist,
+            the code is duplicated here }
+          repeat
+            while assigned(p) and
+                  ((p.typ in (SkipInstr - [ait_RegAlloc])) or
+                   ((p.typ = ait_label) and
+                    labelCanBeSkipped(tai_label(p))) or
+                   ((p.typ = ait_marker) and
+                    (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd]))) do
+                 p := tai(p.next);
+            while assigned(p) and
+                  (p.typ=ait_RegAlloc) Do
+              begin
+                case tai_regalloc(p).ratype of
+                  ra_alloc :
+                    Include(UsedRegs[getregtype(tai_regalloc(p).reg)].UsedRegs, getsupreg(tai_regalloc(p).reg));
+                  ra_dealloc :
+                    Exclude(UsedRegs[getregtype(tai_regalloc(p).reg)].UsedRegs, getsupreg(tai_regalloc(p).reg));
+                end;
+                p := tai(p.next);
+              end;
+          until not(assigned(p)) or
+                (not(p.typ in SkipInstr) and
+                 not((p.typ = ait_label) and
+                     labelCanBeSkipped(tai_label(p))));
         end;
 
 
