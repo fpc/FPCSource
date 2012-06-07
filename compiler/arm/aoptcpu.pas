@@ -190,10 +190,13 @@ Implementation
     begin
       AllUsedRegs[getregtype(reg)].Update(tai(p.Next));
       RegUsedAfterInstruction :=
-        (AllUsedRegs[getregtype(reg)].IsUsed(reg)) and
-           (not(getNextInstruction(p,p)) or
-            instructionLoadsFromReg(reg,p) or
-            not(regLoadedWithNewValue(reg,p)));
+        AllUsedRegs[getregtype(reg)].IsUsed(reg) and
+        not(regLoadedWithNewValue(reg,p)) and
+        (
+          not(GetNextInstruction(p,p)) or
+          instructionLoadsFromReg(reg,p) or
+          not(regLoadedWithNewValue(reg,p))
+        );
     end;
 
   procedure TCpuAsmOptimizer.RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
