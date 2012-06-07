@@ -56,6 +56,7 @@ procedure tMIPSELcallnode.extra_post_call_code;
 begin
   { MIPS functions should never modify the stack pointer
     after the prologue.
+    Enough space must be allocated inside the prologue, not after.  }
    // if pushedparasize > 0 then
    // current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDIU, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, pushedparasize));
 end;
