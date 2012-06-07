@@ -423,6 +423,8 @@ begin
       Shorts[1]:=IFD.PageCount;
       AddEntry(297,3,2,@Shorts[0],2*SizeOf(Word));
     end;
+    if IFD.PageName<>'' then
+      AddEntryString(285,IFD.PageName);
     if IFD.Copyright<>'' then
       AddEntryString(33432,IFD.Copyright);
 

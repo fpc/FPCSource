@@ -56,6 +56,7 @@ const
   TiffYResolution = TiffExtraPrefix+'YResolution';
   TiffPageNumber = TiffExtraPrefix+'PageNumber'; // starting at 0
   TiffPageCount = TiffExtraPrefix+'PageCount'; // if >0 the image is a page
+  TiffPageName = TiffExtraPrefix+'PageName';
   TiffIsThumbnail = TiffExtraPrefix+'IsThumbnail';
   TiffIsMask = TiffExtraPrefix+'IsMask';
   TiffTileWidth = TiffExtraPrefix+'TileWidth';
@@ -74,7 +75,7 @@ const
   TiffCompressionDeflateAdobe = 8; { Deflate Adobe style }
   TiffCompressionJBIGBW = 9; { RFC2301 JBIG black/white }
   TiffCompressionJBIGCol = 10; { RFC2301 JBIG color }
-  TiffCompressionNext = 32766; { Next }
+  TiffCompressionNeXT = 32766; { Next }
   TiffCompressionCCITTRLEW = 32771; { CCITTRLEW }
   TiffCompressionPackBits = 32773; { PackBits Compression, a simple byte-oriented run length scheme.
          See the PackBits section for details. Data Compression applies
@@ -86,7 +87,7 @@ const
   TiffCompressionIT8BL = 32898; { IT8BL }
   TiffCompressionPixarFilm = 32908; { PIXARFILM }
   TiffCompressionPixarLog = 32909; { PIXARLOG }
-  TiffCompressionDeflate = 32946; { DEFLATE }
+  TiffCompressionDeflatePKZip = 32946; { DeflatePKZip }
   TiffCompressionDCS = 32947; { DCS }
   TiffCompressionJBIG = 34661; { JBIG }
   TiffCompressionSGILog = 34676; { SGILOG }
@@ -129,6 +130,7 @@ type
     Orientation: DWord;
     PageNumber: word; // the page number starting at 0, the total number of pages is PageCount
     PageCount: word; // see PageNumber
+    PageName: string;
     PhotoMetricInterpretation: DWord;
     PlanarConfiguration: DWord;
     ResolutionUnit: DWord;
@@ -141,7 +143,7 @@ type
     TileLength: DWord; // = Height
     TileOffsets: DWord; // tiff position of entry
     TileByteCounts: DWord; // tiff position of entry
-    Treshholding: DWord;
+    Tresholding: DWord;
     XResolution: TTiffRational;
     YResolution: TTiffRational;
     // image
@@ -228,7 +230,7 @@ begin
   8: Result:='Deflate Adobe style';
   9: Result:='RFC2301 JBIG white/black';
   10: Result:='RFC2301 JBIG color';
-  32766: Result:='Next';
+  32766: Result:='NeXT';
   32771: Result:='CCITTRLEW';
   32773: Result:='PackBits';
   32809: Result:='THUNDERSCAN';
@@ -238,13 +240,13 @@ begin
   32898: Result:='IT8BL';
   32908: Result:='PIXARFILM';
   32909: Result:='PIXARLOG';
-  32946: Result:='DEFLATE';
+  32946: Result:='Deflate PKZip';
   32947: Result:='DCS';
   34661: Result:='JBIG';
   34676: Result:='SGILOG';
   34677: Result:='SGILOG24';
   34712: Result:='JP2000';
-  else Result:='unknown';
+  else Result:='unknown('+IntToStr(c)+')';
   end;
 end;
 
@@ -286,6 +288,7 @@ begin
   Orientation:=0;
   PageNumber:=0;
   PageCount:=0;
+  PageName:='';
 
   // tiles
   TileWidth:=0;
@@ -293,7 +296,7 @@ begin
   TileOffsets:=0;
   TileByteCounts:=0;
 
-  Treshholding:=0;
+  Tresholding:=0;
 
   RedBits:=0;
   GreenBits:=0;
@@ -345,6 +348,7 @@ begin
   Orientation:=IFD.Orientation;
   PageNumber:=IFD.PageNumber;
   PageCount:=IFD.PageCount;
+  PageName:=IFD.PageName;
 
   // tiles
   TileWidth:=IFD.TileWidth;
@@ -352,7 +356,7 @@ begin
   TileOffsets:=IFD.TileOffsets;
   TileByteCounts:=IFD.TileByteCounts;
 
-  Treshholding:=IFD.Treshholding;
+  Tresholding:=IFD.Tresholding;
 
   RedBits:=IFD.RedBits;
   GreenBits:=IFD.GreenBits;
@@ -389,6 +393,7 @@ begin
   YResolution:=StrToTiffRationalDef(Src.Extra[TiffYResolution],TiffRational72);
   PageNumber:=StrToIntDef(Src.Extra[TiffPageNumber],0);
   PageCount:=StrToIntDef(Src.Extra[TiffPageCount],0);
+  PageName:=Src.Extra[TiffPageName];
   ImageIsPage:=PageCount>0;
   ImageIsThumbNail:=Src.Extra[TiffIsThumbnail]<>'';
   ImageIsMask:=Src.Extra[TiffIsMask]<>'';

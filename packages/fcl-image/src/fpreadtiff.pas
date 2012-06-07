@@ -101,9 +101,10 @@ type
       Predictor: word; var LastValue: word; out Value: Word); inline;
     function FixEndian(w: Word): Word; inline;
     function FixEndian(d: DWord): DWord; inline;
+    procedure SetFPImgExtras(CurImg: TFPCustomImage);
     procedure DecodePackBits(var Buffer: Pointer; var Count: PtrInt);
     procedure DecodeLZW(var Buffer: Pointer; var Count: PtrInt);
-    procedure SetFPImgExtras(CurImg: TFPCustomImage);
+    procedure DecodeDeflatePKZip(var Buffer: Pointer; var Count: PtrInt);
   protected
     procedure InternalRead(Str: TStream; AnImage: TFPCustomImage); override;
     function InternalCheck(Str: TStream): boolean; override;
@@ -136,6 +137,8 @@ type
 procedure DecompressPackBits(Buffer: Pointer; Count: PtrInt;
   out NewBuffer: Pointer; out NewCount: PtrInt);
 procedure DecompressLZW(Buffer: Pointer; Count: PtrInt;
+  out NewBuffer: PByte; out NewCount: PtrInt);
+procedure DecompressDeflatePKZip(Buffer: Pointer; Count: PtrInt;
   out NewBuffer: PByte; out NewCount: PtrInt);
 
 implementation
@@ -337,6 +340,7 @@ begin
     CurImg.Extra[TiffPageNumber]:=IntToStr(IFD.PageNumber);
     CurImg.Extra[TiffPageCount]:=IntToStr(IFD.PageCount);
   end;
+  CurImg.Extra[TiffPageName]:=IFD.PageName;
   if IFD.ImageIsThumbNail then
     CurImg.Extra[TiffIsThumbnail]:='1';
   if IFD.ImageIsMask then
@@ -665,7 +669,7 @@ begin
       TiffCompressionDeflateAdobe,
       TiffCompressionJBIGBW,
       TiffCompressionJBIGCol,
-      TiffCompressionNext,
+      TiffCompressionNeXT,
       TiffCompressionCCITTRLEW,
       TiffCompressionPackBits,
       TiffCompressionThunderScan,
@@ -675,7 +679,7 @@ begin
       TiffCompressionIT8BL,
       TiffCompressionPixarFilm,
       TiffCompressionPixarLog,
-      TiffCompressionDeflate,
+      TiffCompressionDeflatePKZip,
       TiffCompressionDCS,
       TiffCompressionJBIG,
       TiffCompressionSGILog,
@@ -722,19 +726,19 @@ begin
     end;
   263:
     begin
-      // Treshholding
+      // Tresholding
       UValue:=ReadEntryUnsigned;
       case UValue of
       1: ; // no dithering or halftoning was applied
       2: ; // an ordered dithering or halftoning was applied
       3: ; // a randomized dithering or halftoning was applied
       else
-        TiffError('expected Treshholding, but found '+IntToStr(UValue));
+        TiffError('expected Tresholding, but found '+IntToStr(UValue));
       end;
-      IFD.Treshholding:=UValue;
+      IFD.Tresholding:=UValue;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 263: Treshholding=',IFD.Treshholding);
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 263: Tresholding=',IFD.Tresholding);
       {$endif}
     end;
   264:
@@ -939,6 +943,15 @@ begin
         end;
         writeln;
       end;
+      {$endif}
+    end;
+  285:
+    begin
+      // PageName
+      IFD.PageName:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 285: PageName="'+IFD.PageName+'"');
       {$endif}
     end;
   288:
@@ -1681,8 +1694,9 @@ begin
       TiffCompressionNone: ; // not compressed
       TiffCompressionPackBits: DecodePackBits(Chunk,CurByteCnt); // packbits
       TiffCompressionLZW: DecodeLZW(Chunk,CurByteCnt); // LZW
+      TiffCompressionDeflatePKZip: DecodeDeflatePKZip(Chunk,CurByteCnt); // Deflate
       else
-        TiffError('compression '+IntToStr(IFD.Compression)+' not supported yet');
+        TiffError('compression '+TiffCompressionName(IFD.Compression)+' not supported yet');
       end;
       if CurByteCnt<=0 then continue;
       if ChunkType=tctTile then begin
@@ -1856,6 +1870,17 @@ var
   NewCount: PtrInt;
 begin
   DecompressLZW(Buffer,Count,NewBuffer,NewCount);
+  FreeMem(Buffer);
+  Buffer:=NewBuffer;
+  Count:=NewCount;
+end;
+
+procedure TFPReaderTiff.DecodeDeflatePKZip(var Buffer: Pointer; var Count: PtrInt);
+var
+  NewBuffer: Pointer;
+  NewCount: PtrInt;
+begin
+  DecompressDeflatePKZip(Buffer,Count,NewBuffer,NewCount);
   FreeMem(Buffer);
   Buffer:=NewBuffer;
   Count:=NewCount;
@@ -2231,6 +2256,15 @@ begin
   end;
 
   ReAllocMem(NewBuffer,NewCount);
+end;
+
+procedure DecompressDeflatePKZip(Buffer: Pointer; Count: PtrInt; out
+  NewBuffer: PByte; out NewCount: PtrInt);
+begin
+  NewBuffer:=nil;
+  NewCount:=0;
+  if Count=0 then exit;
+  raise Exception.Create('decompressing Deflate PKZip not yet supported');
 end;
 
 initialization
