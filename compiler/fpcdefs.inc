@@ -176,7 +176,7 @@
   {$define cpu32bit}
   {$define cpu32bitalu}
   {$define cpu32bitaddr}
-  { $define cpuflags}
+  { define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpurequiresproperalignment}
   { define cpumm}
