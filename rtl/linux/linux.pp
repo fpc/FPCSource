@@ -189,11 +189,19 @@ const
   KD_TEXT0        = 2;    {obsolete}
   KD_TEXT1        = 3;    {obsolete}
 
+{$ifdef cpumips}
+  MAP_GROWSDOWN  = $1000;       { stack-like segment }
+  MAP_DENYWRITE  = $2000;       { ETXTBSY }
+  MAP_EXECUTABLE = $4000;      { mark it as an executable }
+  MAP_LOCKED     = $8000;      { pages are locked }
+  MAP_NORESERVE  = $4000;      { don't check for reservations; not defined for linux/mips? }
+{$else cpumips}
   MAP_GROWSDOWN  = $100;       { stack-like segment }
   MAP_DENYWRITE  = $800;       { ETXTBSY }
   MAP_EXECUTABLE = $1000;      { mark it as an executable }
   MAP_LOCKED     = $2000;      { pages are locked }
   MAP_NORESERVE  = $4000;      { don't check for reservations }
+{$endif cpumips}
 
 type
   TCloneFunc = function(args:pointer):longint;cdecl;
