@@ -2867,7 +2867,7 @@ implementation
             { don't write normal section if writing only debug info }
             if (ExeWriteMode=ewm_dbgonly) and
                not(oso_debug in exesec.SecOptions) then
-              exit;
+              continue;
 
             if oso_data in exesec.SecOptions then
               begin
@@ -2881,11 +2881,7 @@ implementation
                           internalerror(200603042);
                         FWriter.writezeros(objsec.dataalignbytes);
                         if objsec.DataPos<>FWriter.Size then
-                          begin
-                            writeln(objsec.name,' ',hexstr(objsec.datapos,8),' should be: ',hexstr(fwriter.size,8));
                           internalerror(200602251);
-
-                          end;
                         FWriter.writearray(objsec.data);
                       end;
                   end;
