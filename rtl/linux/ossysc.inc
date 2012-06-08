@@ -175,9 +175,10 @@ begin
 end;
 
 function Fpclosedir(dirp : pdir): cint; [public, alias : 'FPC_SYSC_CLOSEDIR'];
-
 begin
-  Fpclosedir:=Fpclose(dirp^.dd_fd);
+  repeat
+    Fpclosedir:=Fpclose(dirp^.dd_fd);
+  until (Fpclosedir=0) or (errno<>ESysEINTR);
   dispose(dirp^.dd_buf);
   dispose(dirp);
 end;
