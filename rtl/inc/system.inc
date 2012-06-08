@@ -231,6 +231,14 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpuavr}
 
+{$ifdef cpumipsel}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  { there is no mipsel.inc, we use mips.inc instead }
+  {$i mips.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$else not cpumipsel}
 {$ifdef cpumips}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
@@ -238,14 +246,8 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$i mips.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpumips}
+{$endif not cpumipsel}
 
-{$ifdef cpumipsel}
-  {$ifdef SYSPROCDEFINED}
-    {$Error Can't determine processor type !}
-  {$endif}
-  {$i mipsel.inc}  { Case dependent, don't change }
-  {$define SYSPROCDEFINED}
-{$endif cpumipsel}
 
 {$ifndef SYSPROCDEFINED}
   {$Error Can't determine processor type !}

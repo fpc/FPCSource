@@ -194,7 +194,7 @@ Type
   FarPointer = Pointer;
 {$endif CPUSPARC}
 
-{$ifdef CPUMIPS32}
+{$if defined(CPUMIPS32) or defined(CPUMIPSEL32)}
   {$define DEFAULT_DOUBLE}
 
   {$define SUPPORT_SINGLE}
