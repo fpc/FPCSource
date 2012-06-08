@@ -12,8 +12,8 @@ implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleauto power shel
                     gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl \
                     sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled \
                     phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror \
-                    sip projects wap tsp extapi imm \
-                    activex ole2 comconst rapitypes tlhelp32
+                    sip projects wap tsp extapi imm pnp storemgr \
+                    activex ole2 comconst rapitypes tlhelp32 stdole2 oleserver eventsink
 
 units_win32=rapi cesync rapitypes
 
@@ -38,3 +38,5 @@ WINDIR=../winunits-base/src
 
 comobj$(PPUEXT) : $(WINDIR)/comobj.pp $(WINDIR)/activex.pp
         $(COMPILER) $(WINDIR)/comobj.pp
+        $(COMPILER) $(WINDIR)/eventsink.pp
+        $(COMPILER) $(WINDIR)/stdole2.pas 
