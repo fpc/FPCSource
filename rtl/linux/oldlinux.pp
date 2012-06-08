@@ -87,7 +87,7 @@ Const
 
   { Constansts for MMAP }
   MAP_PRIVATE   =2;
-{$ifdef cpumips}
+{$if defined(cpumips) or defined(cpumipsel)}
   MAP_ANONYMOUS =$800;
 {$else cpumips}
   MAP_ANONYMOUS =$20;
@@ -1530,7 +1530,7 @@ const
   MAP_FIXED     = $10;         { Interpret addr exactly }
 //  MAP_ANONYMOUS = $20;         { don't use a file }
 
-{$ifdef cpumips}
+{$if defined(cpumips) or defined(cpumipsel)}
   MAP_GROWSDOWN  = $1000;       { stack-like segment }
   MAP_DENYWRITE  = $2000;       { ETXTBSY }
   MAP_EXECUTABLE = $4000;      { mark it as an executable }

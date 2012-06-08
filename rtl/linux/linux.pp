@@ -182,14 +182,14 @@ const
   LED_SCR         = 1;    {scroll lock led}
   LED_NUM         = 2;    {num lock led}
   LED_CAP         = 4;    {caps lock led}
-    
+
   {Tty modes. (for KDSETMODE)}
   KD_TEXT         = 0;
   KD_GRAPHICS     = 1;
   KD_TEXT0        = 2;    {obsolete}
   KD_TEXT1        = 3;    {obsolete}
 
-{$ifdef cpumips}
+{$if defined(cpumips) or defined(cpumipsel)}
   MAP_GROWSDOWN  = $1000;       { stack-like segment }
   MAP_DENYWRITE  = $2000;       { ETXTBSY }
   MAP_EXECUTABLE = $4000;      { mark it as an executable }
@@ -281,7 +281,7 @@ type Puser_cap_header=^user_cap_header;
        version: cuint32;
        pid:cint;
      end;
-     
+
      Puser_cap_data=^user_cap_data;
      user_cap_data=record
         effective,permitted,inheritable:cuint32;
@@ -292,7 +292,7 @@ function capget(header:Puser_cap_header;data:Puser_cap_data):cint;{$ifdef FPC_US
 {Set a capability.}
 function capset(header:Puser_cap_header;data:Puser_cap_data):cint;{$ifdef FPC_USE_LIBC} cdecl; external name 'capset'; {$endif}
 
-     
+
 const CAP_CHOWN            = 0;
       CAP_DAC_OVERRIDE     = 1;
       CAP_DAC_READ_SEARCH  = 2;
@@ -347,7 +347,7 @@ function vmsplice (fdout: cInt; iov: PIOVec; count: size_t; flags: cuInt): cInt;
 {* Splice two files together.  *}
 function splice (fdin: cInt; offin: off64_t; fdout: cInt;
                              offout: off64_t; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'splice'; {$ENDIF}
-                             
+
 function tee(fd_in: cInt; fd_out: cInt; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'tee'; {$ENDIF}
 
 {$endif} // x86
@@ -390,7 +390,7 @@ Type
     IN_OPEN          = $00000020;     { File was opened.   }
     IN_MOVED_FROM    = $00000040;     { File was moved from X.   }
     IN_MOVED_TO      = $00000080;     { File was moved to Y.   }
-    
+
     IN_CLOSE         = IN_CLOSE_WRITE or IN_CLOSE_NOWRITE;      { Close.   }
     IN_MOVE          = IN_MOVED_FROM or IN_MOVED_TO;      { Moves.   }
 
@@ -412,16 +412,16 @@ Type
     IN_ONESHOT       = $80000000;     { Only send event once.   }
 
   { All events which a program can wait on.   }
-    IN_ALL_EVENTS = IN_ACCESS or IN_MODIFY or IN_ATTRIB or IN_CLOSE 
-                    or IN_OPEN or IN_MOVE or IN_CREATE or IN_DELETE 
-                    or IN_DELETE_SELF or IN_MOVE_SELF;    
-                    
+    IN_ALL_EVENTS = IN_ACCESS or IN_MODIFY or IN_ATTRIB or IN_CLOSE
+                    or IN_OPEN or IN_MOVE or IN_CREATE or IN_DELETE
+                    or IN_DELETE_SELF or IN_MOVE_SELF;
+
 { Create and initialize inotify instance.   }
 function inotify_init: cint;
 { Create and initialize inotify instance.   }
 function inotify_init1(flags:cint):cint;
 
-{ Add watch of object NAME to inotify instance FD.  
+{ Add watch of object NAME to inotify instance FD.
   Notify about events specified by MASK.   }
 function inotify_add_watch(fd:cint; name:Pchar; mask:cuint32):cint;
 
@@ -452,7 +452,7 @@ Type
 function clock_getres(clk_id : clockid_t; res : ptimespec) : cint;
 function clock_gettime(clk_id : clockid_t; tp: ptimespec) : cint;
 function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint;
-  
+
 implementation
 
 
@@ -551,13 +551,13 @@ end;
 
 function vmsplice (fdout: cInt; iov: PIOVec; count: size_t; flags: cuInt): cInt;
 begin
-  vmsplice := do_syscall(syscall_nr_vmsplice, TSysParam(fdout), TSysParam(iov), 
+  vmsplice := do_syscall(syscall_nr_vmsplice, TSysParam(fdout), TSysParam(iov),
     TSysParam(count), TSysParam(flags));
 end;
 
-function splice (fdin: cInt; offin: off64_t; fdout: cInt; offout: off64_t; len: size_t; flags: cuInt): cInt; 
+function splice (fdin: cInt; offin: off64_t; fdout: cInt; offout: off64_t; len: size_t; flags: cuInt): cInt;
 begin
-  splice := do_syscall(syscall_nr_splice, TSysParam(fdin), TSysParam(@offin), 
+  splice := do_syscall(syscall_nr_splice, TSysParam(fdin), TSysParam(@offin),
     TSysParam(fdout), TSysParam(@offout), TSysParam(len), TSysParam(flags));
 end;
 
@@ -572,7 +572,7 @@ end;
 function sync_file_range(fd: cInt; offset: off64_t; nbytes: off64_t; flags: cuInt): cInt;
 begin
 {$if defined(cpupowerpc) or defined(cpuarm)}
-  sync_file_range := do_syscall(syscall_nr_sync_file_range2, TSysParam(fd), TSysParam(flags), 
+  sync_file_range := do_syscall(syscall_nr_sync_file_range2, TSysParam(fd), TSysParam(flags),
     TSysParam(hi(offset)), TSysParam(lo(offset)), TSysParam(hi(nbytes)), TSysParam(lo(nbytes)));
 {$else}
 {$if defined(cpupowerpc64)}
@@ -580,7 +580,7 @@ begin
     TSysParam(offset), TSysParam(nbytes));
 {$else}
 {$ifdef cpu64}
-  sync_file_range := do_syscall(syscall_nr_sync_file_range, TSysParam(fd), TSysParam(offset), 
+  sync_file_range := do_syscall(syscall_nr_sync_file_range, TSysParam(fd), TSysParam(offset),
     TSysParam(nbytes), TSysParam(flags));
 {$else}
   sync_file_range := do_syscall(syscall_nr_sync_file_range, TSysParam(fd), TSysParam(lo(offset)),

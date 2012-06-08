@@ -28,7 +28,7 @@ Const
   SIG_UNBLOCK = 2;
   SIG_SETMASK = 4;
 {$else CPUSPARC}
-{$ifdef CPUMIPS}
+{$if defined(cpumips) or defined(cpumipsel)}
   SA_NOCLDSTOP = 1;
   SA_NOCLDWAIT = $10000;
   SA_SIGINFO   = 8;

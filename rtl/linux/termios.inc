@@ -119,7 +119,7 @@ Const
 	 OCRNL	= &0000010;
 	 ONOCR	= &0000020;
 	 ONLRET	= &0000040;
-                
+
 	 OFILL	= &00000100;
 	 OFDEL	= &00000200;
 	 NLDLY	= &00001400;
@@ -147,7 +147,7 @@ Const
 	   VT0	= &00000000;
 	   VT1	= &00200000;
 	 XTABS	= &01000000; { Hmm.. Linux/i386 considers this part of TABDLY.. }
-                           
+
 { c_cflag bit meaning }
 	 CBAUD	= &0000377;
 	  B0	= &0000000;		{ hang up }
@@ -1167,7 +1167,7 @@ Const
    B115200 = $0001002;
    B230400 = $0001003;
    B460800 = $0001004;
-   
+
    CIBAUD  = $100F0000;
    CMSPAR  = $40000000;
    CRTSCTS = $80000000;
@@ -1223,7 +1223,7 @@ Const
 {$endif cpuarm}
 
 
-{$ifdef cpumips}
+{$if defined(cpumips) or defined(cpumipsel)}
 const
   TCGETA = $5401;
   TCSETA = $5402;
