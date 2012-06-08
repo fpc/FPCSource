@@ -307,7 +307,7 @@ CONST
   MAP_PRIVATE   =2;
  {$ENDIF}
 
- {$if defined(cpumips)}
+ {$if defined(cpumips) or  defined(cpumipsel)}
   MAP_ANONYMOUS  = $800;
   MAP_GROWSDOWN  = $1000;       { stack-like segment }
   MAP_DENYWRITE  = $2000;       { ETXTBSY }
