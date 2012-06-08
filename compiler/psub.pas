@@ -882,6 +882,13 @@ implementation
            end;
       end;
 
+
+    const
+      exception_flags: array[boolean] of tprocinfoflags = (
+        [],
+        [pi_uses_exceptions,pi_needs_implicit_finally,pi_has_implicit_finally]
+      );
+
     procedure tcgprocinfo.setup_tempgen;
       begin
         tg:=tgobjclass.create;
@@ -906,6 +913,9 @@ implementation
             * incoming parameters on the stack
             * open arrays
           - no local variables
+
+          - stack frame cannot be optimized if using Win64 SEH
+            (at least with the current state of our codegenerator).
         }
         if ((po_assembler in procdef.procoptions) and
            (m_delphi in current_settings.modeswitches) and
@@ -915,12 +925,13 @@ implementation
            ((cs_opt_stackframe in current_settings.optimizerswitches) and
             not(cs_generate_stackframes in current_settings.localswitches) and
             not(po_assembler in procdef.procoptions) and
-            ((flags*[pi_has_assembler_block,pi_is_assembler,
-{$ifdef i386}
-                    pi_uses_exceptions,pi_needs_implicit_finally,pi_has_implicit_finally,
-{$endif i386}
-                    pi_has_stackparameter,
-                    pi_needs_stackframe])=[])
+            ((flags*([pi_has_assembler_block,pi_is_assembler,
+                    pi_has_stackparameter,pi_needs_stackframe]+
+                    exception_flags[(target_info.cpu=cpu_i386)
+{$ifdef TEST_WIN64_SEH}
+                    or (target_info.system=system_x86_64_win64)
+{$endif TEST_WIN64_SEH}
+                    ]))=[])
            )
         then
           begin
