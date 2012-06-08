@@ -493,15 +493,25 @@ end;
 {$else OLDMMAP}
 {$ifdef MMAP2}
 begin
+  {$if sizeof(TSysParam)>=sizeof(off_t)}
+  Fpmmap:= pointer(do_syscall(syscall_nr_mmap2,TSysParam(adr),TSysParam(len),
+    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(off)));
+  {$else off_t is larger than TsysParam }
   {$message warning need mmap64 syscall, hi(off) not used}
   Fpmmap:= pointer(do_syscall(syscall_nr_mmap2,TSysParam(adr),TSysParam(len),
     TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(lo(off))));
+ {$endif}
 end;
 {$else MMAP2}
 begin
+  {$if sizeof(TSysParam)>=sizeof(off_t)}
+  Fpmmap:= pointer(do_syscall(syscall_nr_mmap,TSysParam(adr),TSysParam(len),
+    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(off)));
+  {$else off_t is larger than TsysParam }
   {$message warning need mmap64 syscall, hi(off) not used}
   Fpmmap:= pointer(do_syscall(syscall_nr_mmap,TSysParam(adr),TSysParam(len),
     TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(lo(off))));
+ {$endif}
 end;
 {$endif MMAP2}
 {$endif OLDMMAP}
