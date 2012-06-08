@@ -968,7 +968,12 @@ initialization
 {$endif CPUARM}
 {$ifdef CPUMIPS}
   {$ifdef linux}
-    set_source_info(system_mipsel_linux_info);
+    set_source_info(system_mips_linux_info);
   {$endif linux}
 {$endif CPUMIPS}
+{$ifdef CPUMIPSEL}
+  {$ifdef linux}
+    set_source_info(system_mipsel_linux_info);
+  {$endif linux}
+{$endif CPUMIPSEL}
 end.
