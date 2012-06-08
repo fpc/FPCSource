@@ -19,9 +19,10 @@
    Orientation,
    multiple images, pages
    thumbnail
+   Compression: deflate
 
  ToDo:
-   Compression: LZW, packbits, deflate, jpeg, ...
+   Compression: LZW, packbits, jpeg, ...
    Planar
    ColorMap
    separate mask
@@ -37,7 +38,7 @@ unit FPWriteTiff;
 interface
 
 uses
-  Math, Classes, SysUtils, FPimage, FPTiffCmn;
+  Math, Classes, SysUtils, zbase, zdeflate, FPimage, FPTiffCmn;
 
 type
 
@@ -102,6 +103,7 @@ type
                        CopyData: boolean = true);
     procedure AddEntry(Entry: TTiffWriterEntry);
     procedure TiffError(Msg: string);
+    procedure EncodeDeflate(var Buffer: Pointer; var Count: DWord);
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -113,11 +115,94 @@ type
 
 function CompareTiffWriteEntries(Entry1, Entry2: Pointer): integer;
 
+function CompressDeflate(InputData: PByte; InputCount: cardinal;
+  out Compressed: PByte; var CompressedCount: cardinal;
+  ErrorMsg: PAnsiString = nil): boolean;
+
 implementation
 
 function CompareTiffWriteEntries(Entry1, Entry2: Pointer): integer;
 begin
   Result:=integer(TTiffWriterEntry(Entry1).Tag)-integer(TTiffWriterEntry(Entry2).Tag);
+end;
+
+function CompressDeflate(InputData: PByte; InputCount: cardinal; out
+  Compressed: PByte; var CompressedCount: cardinal; ErrorMsg: PAnsiString
+  ): boolean;
+var
+  stream : z_stream;
+  err : integer;
+begin
+  Result:=false;
+  //writeln('CompressDeflate START');
+  Compressed:=nil;
+  if InputCount=0 then begin
+    CompressedCount:=0;
+    exit(true);
+  end;
+
+  err := deflateInit(stream{%H-}, Z_DEFAULT_COMPRESSION);
+  if err <> Z_OK then begin
+    if ErrorMsg<>nil then
+      ErrorMsg^:='deflateInit failed';
+    exit;
+  end;
+
+  // set input = InputData data
+  stream.avail_in := InputCount;
+  stream.next_in  := InputData;
+
+  // set output = compressed data
+  if CompressedCount=0 then
+    CompressedCount:=InputCount;
+  GetMem(Compressed,CompressedCount);
+  stream.avail_out := CompressedCount;
+  stream.next_out := Compressed;
+
+  err := deflate(stream, Z_NO_FLUSH);
+  if err<>Z_OK then begin
+    if ErrorMsg<>nil then
+      ErrorMsg^:='deflate failed';
+    exit;
+  end;
+
+  while TRUE do begin
+    //writeln('run: total_in=',stream.total_in,' avail_in=',stream.avail_in,' total_out=',stream.total_out,' avail_out=',stream.avail_out);
+    if (stream.avail_out=0) then begin
+      // need more space
+      if CompressedCount<128 then
+        CompressedCount:=CompressedCount+128
+      else if CompressedCount>High(CompressedCount)-1024 then begin
+        if ErrorMsg<>nil then
+          ErrorMsg^:='deflate compression failed, because not enough space';
+        exit;
+      end else
+        CompressedCount:=CompressedCount+1024;
+      ReAllocMem(Compressed,CompressedCount);
+      stream.next_out:=Compressed+stream.total_out;
+      stream.avail_out:=CompressedCount-stream.total_out;
+    end;
+    err := deflate(stream, Z_FINISH);
+    if err = Z_STREAM_END then
+      break;
+    if err<>Z_OK then begin
+      if ErrorMsg<>nil then
+        ErrorMsg^:='deflate finish failed';
+      exit;
+    end;
+  end;
+
+  //writeln('compressed: total_in=',stream.total_in,' total_out=',stream.total_out);
+  CompressedCount:=stream.total_out;
+  ReAllocMem(Compressed,CompressedCount);
+
+  err := deflateEnd(stream);
+  if err<>Z_OK then begin
+    if ErrorMsg<>nil then
+      ErrorMsg^:='deflateEnd failed';
+    exit;
+  end;
+  Result:=true;
 end;
 
 { TFPWriterTiff }
@@ -301,7 +386,8 @@ var
   CurEntries: TFPList;
   Shorts: array[0..3] of Word;
   NewSubFileType: DWord;
-  cx,cy,dx,dy,x,y,sx: integer;
+  cx,cy,x,y,sx: DWord;
+  dx,dy: integer;
   ChunkBytesPerLine: DWord;
 begin
   ChunkOffsets:=nil;
@@ -349,7 +435,16 @@ begin
 
     ImgWidth:=Img.Width;
     ImgHeight:=Img.Height;
-    Compression:=1;
+    Compression:=IFD.Compression;
+    case Compression of
+    TiffCompressionNone,
+    TiffCompressionDeflateZLib: ;
+    else
+      {$ifdef FPC_DEBUG_IMAGE}
+      writeln('TFPWriterTiff.AddImage unsupported compression '+TiffCompressionName(Compression)+', using deflate instead.');
+      {$endif}
+      Compression:=TiffCompressionDeflateZLib;
+    end;
 
     if IFD.Orientation in [1..4] then begin
       OrientedWidth:=ImgWidth;
@@ -368,7 +463,7 @@ begin
     writeln('TFPWriterTiff.AddImage XResolution=',TiffRationalToStr(IFD.XResolution));
     writeln('TFPWriterTiff.AddImage YResolution=',TiffRationalToStr(IFD.YResolution));
     writeln('TFPWriterTiff.AddImage GrayBits=',GrayBits,' RedBits=',RedBits,' GreenBits=',GreenBits,' BlueBits=',BlueBits,' AlphaBits=',AlphaBits);
-    writeln('TFPWriterTiff.AddImage Compression=',Compression);
+    writeln('TFPWriterTiff.AddImage Compression=',TiffCompressionName(Compression));
     writeln('TFPWriterTiff.AddImage Page=',IFD.PageNumber,'/',IFD.PageCount);
     {$ENDIF}
 
@@ -454,14 +549,14 @@ begin
     AddEntry(ChunkOffsets.ChunkByteCounts);
     if (OrientedHeight>0) and (OrientedWidth>0) then begin
       if ChunkType=tctTile then begin
-        TilesAcross:=(OrientedWidth+IFD.TileWidth-1) div IFD.TileWidth;
-        TilesDown:=(OrientedHeight+IFD.TileLength-1) div IFD.TileLength;
+        TilesAcross:=(OrientedWidth+IFD.TileWidth{%H-}-1) div IFD.TileWidth;
+        TilesDown:=(OrientedHeight+IFD.TileLength{%H-}-1) div IFD.TileLength;
         ChunkCount:=TilesAcross*TilesDown;
         {$IFDEF FPC_Debug_Image}
         writeln('TFPWriterTiff.AddImage BitsPerPixel=',BitsPerPixel,' OrientedWidth=',OrientedWidth,' OrientedHeight=',OrientedHeight,' TileWidth=',IFD.TileWidth,' TileLength=',IFD.TileLength,' TilesAcross=',TilesAcross,' TilesDown=',TilesDown,' ChunkCount=',ChunkCount);
         {$ENDIF}
       end else begin
-        ChunkCount:=(OrientedHeight+IFD.RowsPerStrip-1) div IFD.RowsPerStrip;
+        ChunkCount:=(OrientedHeight+IFD.RowsPerStrip{%H-}-1) div IFD.RowsPerStrip;
       end;
       ChunkOffsets.SetCount(ChunkCount);
       // create chunks
@@ -484,9 +579,7 @@ begin
           ChunkBytes:=ChunkBytesPerLine*ChunkHeight;
         end;
         GetMem(Chunk,ChunkBytes);
-        FillByte(Chunk^,ChunkBytes,0);
-        ChunkOffsets.Chunks[ChunkIndex].Data:=Chunk;
-        ChunkOffsets.Chunks[ChunkIndex].Bytes:=ChunkBytes;
+        FillByte(Chunk^,ChunkBytes,0); // fill unused bytes with 0 to help compression
 
         // Orientation
         if IFD.Orientation in [1..4] then begin
@@ -575,6 +668,14 @@ begin
           // next y
           inc(y,dy);
         end;
+
+        // compress
+        case Compression of
+        TiffCompressionDeflateZLib: EncodeDeflate(Chunk,ChunkBytes);
+        end;
+
+        ChunkOffsets.Chunks[ChunkIndex].Data:=Chunk;
+        ChunkOffsets.Chunks[ChunkIndex].Bytes:=ChunkBytes;
         // next chunk
       end;
       // created chunks
@@ -669,6 +770,27 @@ end;
 procedure TFPWriterTiff.TiffError(Msg: string);
 begin
   raise Exception.Create('TFPWriterTiff.TiffError: '+Msg);
+end;
+
+procedure TFPWriterTiff.EncodeDeflate(var Buffer: Pointer; var Count: DWord);
+var
+  NewBuffer: PByte;
+  NewCount: cardinal;
+  ErrorMsg: String;
+begin
+  ErrorMsg:='';
+  NewBuffer:=nil;
+  try
+    NewCount:=Count;
+    if not CompressDeflate(Buffer,Count,NewBuffer,NewCount,@ErrorMsg) then
+      TiffError(ErrorMsg);
+    FreeMem(Buffer);
+    Buffer:=NewBuffer;
+    Count:=NewCount;
+    NewBuffer:=nil;
+  finally
+    ReAllocMem(NewBuffer,0);
+  end;
 end;
 
 constructor TFPWriterTiff.Create;

@@ -61,6 +61,7 @@ const
   TiffIsMask = TiffExtraPrefix+'IsMask';
   TiffTileWidth = TiffExtraPrefix+'TileWidth';
   TiffTileLength = TiffExtraPrefix+'TileLength';
+  TiffCompression = TiffExtraPrefix+'Compression'; // number
 
   TiffCompressionNone = 1; { No Compression, but pack data into bytes as tightly as possible,
        leaving no unused bits (except at the end of a row). The component
@@ -87,7 +88,7 @@ const
   TiffCompressionIT8BL = 32898; { IT8BL }
   TiffCompressionPixarFilm = 32908; { PIXARFILM }
   TiffCompressionPixarLog = 32909; { PIXARLOG }
-  TiffCompressionDeflatePKZip = 32946; { DeflatePKZip }
+  TiffCompressionDeflateZLib = 32946; { DeflatePKZip }
   TiffCompressionDCS = 32947; { DCS }
   TiffCompressionJBIG = 34661; { JBIG }
   TiffCompressionSGILog = 34676; { SGILOG }
@@ -240,7 +241,7 @@ begin
   32898: Result:='IT8BL';
   32908: Result:='PIXARFILM';
   32909: Result:='PIXARLOG';
-  32946: Result:='Deflate PKZip';
+  32946: Result:='Deflate ZLib';
   32947: Result:='DCS';
   34661: Result:='JBIG';
   34676: Result:='SGILOG';
@@ -258,7 +259,7 @@ begin
   IFDNext:=0;
   PhotoMetricInterpretation:=High(PhotoMetricInterpretation);
   PlanarConfiguration:=0;
-  Compression:=0;
+  Compression:=TiffCompressionNone;
   Predictor:=1;
   ImageHeight:=0;
   ImageWidth:=0;
@@ -399,6 +400,7 @@ begin
   ImageIsMask:=Src.Extra[TiffIsMask]<>'';
   TileWidth:=StrToIntDef(Src.Extra[TiffTileWidth],0);
   TileLength:=StrToIntDef(Src.Extra[TiffTileLength],0);
+  Compression:=StrToIntDef(Src.Extra[TiffCompression],TiffCompressionNone);
 end;
 
 function TTiffIFD.ImageLength: DWord;

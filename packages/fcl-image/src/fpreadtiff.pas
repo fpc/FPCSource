@@ -18,13 +18,13 @@
    RGB 8,16bit (optional alpha),
    Orientation,
    skipping Thumbnail to read first image,
-   compression: packbits, LZW
+   compression: packbits, LZW, deflate
    endian
    multiple images
    strips and tiles
 
  ToDo:
-   Compression: deflate, jpeg, ...
+   Compression: jpeg, ...
    PlanarConfiguration 2
    ColorMap
    separate mask
@@ -43,7 +43,7 @@ unit FPReadTiff;
 interface
 
 uses
-  Math, Classes, SysUtils, FPimage, ctypes, FPTiffCmn;
+  Math, Classes, SysUtils, ctypes, zinflate, zbase, FPimage, FPTiffCmn;
 
 type
   TFPReaderTiff = class;
@@ -104,7 +104,7 @@ type
     procedure SetFPImgExtras(CurImg: TFPCustomImage);
     procedure DecodePackBits(var Buffer: Pointer; var Count: PtrInt);
     procedure DecodeLZW(var Buffer: Pointer; var Count: PtrInt);
-    procedure DecodeDeflatePKZip(var Buffer: Pointer; var Count: PtrInt);
+    procedure DecodeDeflate(var Buffer: Pointer; var Count: PtrInt; ExpectedCount: PtrInt);
   protected
     procedure InternalRead(Str: TStream; AnImage: TFPCustomImage); override;
     function InternalCheck(Str: TStream): boolean; override;
@@ -138,8 +138,9 @@ procedure DecompressPackBits(Buffer: Pointer; Count: PtrInt;
   out NewBuffer: Pointer; out NewCount: PtrInt);
 procedure DecompressLZW(Buffer: Pointer; Count: PtrInt;
   out NewBuffer: PByte; out NewCount: PtrInt);
-procedure DecompressDeflatePKZip(Buffer: Pointer; Count: PtrInt;
-  out NewBuffer: PByte; out NewCount: PtrInt);
+function DecompressDeflate(Compressed: PByte; CompressedCount: cardinal;
+  out Decompressed: PByte; var DecompressedCount: cardinal;
+  ErrorMsg: PAnsiString = nil): boolean;
 
 implementation
 
@@ -340,11 +341,14 @@ begin
     CurImg.Extra[TiffPageNumber]:=IntToStr(IFD.PageNumber);
     CurImg.Extra[TiffPageCount]:=IntToStr(IFD.PageCount);
   end;
-  CurImg.Extra[TiffPageName]:=IFD.PageName;
+  if IFD.PageName<>'' then
+    CurImg.Extra[TiffPageName]:=IFD.PageName;
   if IFD.ImageIsThumbNail then
     CurImg.Extra[TiffIsThumbnail]:='1';
   if IFD.ImageIsMask then
     CurImg.Extra[TiffIsMask]:='1';
+  if IFD.Compression<>TiffCompressionNone then
+    CurImg.Extra[TiffCompression]:=IntToStr(IFD.Compression);
 
   {$ifdef FPC_Debug_Image}
   if Debug then
@@ -679,7 +683,7 @@ begin
       TiffCompressionIT8BL,
       TiffCompressionPixarFilm,
       TiffCompressionPixarLog,
-      TiffCompressionDeflatePKZip,
+      TiffCompressionDeflateZLib,
       TiffCompressionDCS,
       TiffCompressionJBIG,
       TiffCompressionSGILog,
@@ -1690,15 +1694,22 @@ begin
       s.Read(Chunk^,CurByteCnt);
 
       // decompress
+      if ChunkType=tctTile then
+        ExpectedChunkLength:=(SampleBitsPerPixel*IFD.TileWidth+7) div 8*IFD.TileLength
+      else
+        ExpectedChunkLength:=((SampleBitsPerPixel*IFD.ImageWidth+7) div 8)*IFD.RowsPerStrip;
       case IFD.Compression of
-      TiffCompressionNone: ; // not compressed
-      TiffCompressionPackBits: DecodePackBits(Chunk,CurByteCnt); // packbits
-      TiffCompressionLZW: DecodeLZW(Chunk,CurByteCnt); // LZW
-      TiffCompressionDeflatePKZip: DecodeDeflatePKZip(Chunk,CurByteCnt); // Deflate
+      TiffCompressionNone: ;
+      TiffCompressionPackBits: DecodePackBits(Chunk,CurByteCnt);
+      TiffCompressionLZW: DecodeLZW(Chunk,CurByteCnt);
+      TiffCompressionDeflateAdobe,
+      TiffCompressionDeflateZLib: DecodeDeflate(Chunk,CurByteCnt,ExpectedChunkLength);
       else
         TiffError('compression '+TiffCompressionName(IFD.Compression)+' not supported yet');
       end;
       if CurByteCnt<=0 then continue;
+
+      // compute current chunk area
       if ChunkType=tctTile then begin
         ChunkLeft:=(ChunkIndex mod TilesAcross)*IFD.TileWidth;
         ChunkTop:=(ChunkIndex div TilesAcross)*IFD.TileLength;
@@ -1875,15 +1886,26 @@ begin
   Count:=NewCount;
 end;
 
-procedure TFPReaderTiff.DecodeDeflatePKZip(var Buffer: Pointer; var Count: PtrInt);
+procedure TFPReaderTiff.DecodeDeflate(var Buffer: Pointer; var Count: PtrInt;
+  ExpectedCount: PtrInt);
 var
-  NewBuffer: Pointer;
-  NewCount: PtrInt;
+  NewBuffer: PByte;
+  NewCount: cardinal;
+  ErrorMsg: String;
 begin
-  DecompressDeflatePKZip(Buffer,Count,NewBuffer,NewCount);
-  FreeMem(Buffer);
-  Buffer:=NewBuffer;
-  Count:=NewCount;
+  ErrorMsg:='';
+  NewBuffer:=nil;
+  try
+    NewCount:=ExpectedCount;
+    if not DecompressDeflate(Buffer,Count,NewBuffer,NewCount,@ErrorMsg) then
+      TiffError(ErrorMsg);
+    FreeMem(Buffer);
+    Buffer:=NewBuffer;
+    Count:=NewCount;
+    NewBuffer:=nil;
+  finally
+    ReAllocMem(NewBuffer,0);
+  end;
 end;
 
 procedure TFPReaderTiff.InternalRead(Str: TStream; AnImage: TFPCustomImage);
@@ -2258,13 +2280,77 @@ begin
   ReAllocMem(NewBuffer,NewCount);
 end;
 
-procedure DecompressDeflatePKZip(Buffer: Pointer; Count: PtrInt; out
-  NewBuffer: PByte; out NewCount: PtrInt);
+function DecompressDeflate(Compressed: PByte; CompressedCount: cardinal;
+  out Decompressed: PByte; var DecompressedCount: cardinal;
+  ErrorMsg: PAnsiString = nil): boolean;
+var
+  stream : z_stream;
+  err : integer;
 begin
-  NewBuffer:=nil;
-  NewCount:=0;
-  if Count=0 then exit;
-  raise Exception.Create('decompressing Deflate PKZip not yet supported');
+  Result:=false;
+  //writeln('DecompressDeflate START');
+  Decompressed:=nil;
+  if CompressedCount=0 then begin
+    DecompressedCount:=0;
+    exit;
+  end;
+
+  err := inflateInit(stream{%H-});
+  if err <> Z_OK then begin
+    if ErrorMsg<>nil then
+      ErrorMsg^:='inflateInit failed';
+    exit;
+  end;
+
+  // set input = compressed data
+  stream.avail_in := CompressedCount;
+  stream.next_in  := Compressed;
+
+  // set output = decompressed data
+  if DecompressedCount=0 then
+    DecompressedCount:=CompressedCount;
+  Getmem(Decompressed,DecompressedCount);
+  stream.avail_out := DecompressedCount;
+  stream.next_out := Decompressed;
+
+  // Finish the stream
+  while TRUE do begin
+    //writeln('run: total_in=',stream.total_in,' avail_in=',stream.avail_in,' total_out=',stream.total_out,' avail_out=',stream.avail_out);
+    if (stream.avail_out=0) then begin
+      // need more space
+      if DecompressedCount<128 then
+        DecompressedCount:=DecompressedCount+128
+      else if DecompressedCount>High(DecompressedCount)-1024 then begin
+        if ErrorMsg<>nil then
+          ErrorMsg^:='inflate decompression failed, because not enough space';
+        exit;
+      end else
+        DecompressedCount:=DecompressedCount*2;
+      ReAllocMem(Decompressed,DecompressedCount);
+      stream.next_out:=Decompressed+stream.total_out;
+      stream.avail_out:=DecompressedCount-stream.total_out;
+    end;
+    err := inflate(stream, Z_NO_FLUSH);
+    if err = Z_STREAM_END then
+      break;
+    if err<>Z_OK then begin
+      if ErrorMsg<>nil then
+        ErrorMsg^:='inflate finish failed';
+      exit;
+    end;
+  end;
+
+  //writeln('decompressed: total_in=',stream.total_in,' total_out=',stream.total_out);
+  DecompressedCount:=stream.total_out;
+  ReAllocMem(Decompressed,DecompressedCount);
+
+  err := inflateEnd(stream);
+  if err<>Z_OK then begin
+    if ErrorMsg<>nil then
+      ErrorMsg^:='inflateEnd failed';
+    exit;
+  end;
+  Result:=true;
 end;
 
 initialization
