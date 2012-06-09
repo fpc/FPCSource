@@ -170,8 +170,8 @@ Implementation
 
     i:=1;
     {For these instructions we have to start on oper[0]}
-    if (p.opcode in [A_STR, A_STRB, A_STRH, A_CMP, A_CMN, A_TST, A_TEQ,
-                        A_B, A_BL, A_BX, A_BLX,
+    if (p.opcode in [A_STR, A_CMP, A_CMN, A_TST, A_TEQ,
+                        A_B, A_BL, A_BX, A_BLX, A_LDM,
                         A_SMLAL, A_UMLAL]) then i:=0;
 
     while(i<p.ops) do
