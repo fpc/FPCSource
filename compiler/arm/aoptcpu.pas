@@ -138,24 +138,47 @@ Implementation
     if not ((assigned(hp)) and (hp.typ = ait_instruction)) then
       exit;
 
-    {These are not writing to their first oper}
-    if p.opcode in [A_STR, A_STRB, A_STRH, A_CMP, A_CMN, A_TST, A_TEQ,
-                        A_B, A_BL, A_BX, A_BLX] then
-      exit;
-
-    { These four are writing into the first 2 register, UMLAL and SMLAL will also read from them }
-    if (p.opcode in [A_UMLAL, A_UMULL, A_SMLAL, A_SMULL]) and
-       (p.oper[1]^.typ = top_reg) and
-       (p.oper[1]^.reg = reg) then
-    begin
-      regLoadedWithNewValue := true;
-      exit
+    case p.opcode of
+      { These operands do not write into a register at all }
+      A_CMP, A_CMN, A_TST, A_TEQ, A_B, A_BL, A_BX, A_BLX, A_SWI, A_MSR:
+        exit;
+      {Take care of post/preincremented store and loads, they will change their base register}
+      A_STR, A_LDR:
+        regLoadedWithNewValue :=
+          (taicpu(p).oper[1]^.typ=top_ref) and
+          (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
+          (taicpu(p).oper[1]^.ref^.base = reg);
+      { These four are writing into the first 2 register, UMLAL and SMLAL will also read from them }
+      A_UMLAL, A_UMULL, A_SMLAL, A_SMULL:
+        regLoadedWithNewValue :=
+          (p.oper[1]^.typ = top_reg) and
+          (p.oper[1]^.reg = reg);
+      {Loads to oper2 from coprocessor}
+      {
+      MCR/MRC is currently not supported in FPC
+      A_MRC:
+        regLoadedWithNewValue :=
+          (p.oper[2]^.typ = top_reg) and
+          (p.oper[2]^.reg = reg);
+      }
+      {Loads to all register in the registerset}
+      A_LDM:
+        regLoadedWithNewValue := (getsupreg(reg) in p.oper[1]^.regset^);
     end;
 
-    {All other instructions use oper[0] as destination}
-    regLoadedWithNewValue :=
-      (p.oper[0]^.typ = top_reg) and
-      (p.oper[0]^.reg = reg);
+    if regLoadedWithNewValue then
+      exit;
+
+    case p.oper[0]^.typ of
+      {This is the case}
+      top_reg:
+        regLoadedWithNewValue := (p.oper[0]^.reg = reg);
+      {LDM/STM might write a new value to their index register}
+      top_ref:
+        regLoadedWithNewValue :=
+          (taicpu(p).oper[0]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
+          (taicpu(p).oper[0]^.ref^.base = reg);
+    end;
   end;
 
   function instructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
