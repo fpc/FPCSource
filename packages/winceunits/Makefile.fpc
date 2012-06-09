@@ -13,7 +13,7 @@ implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleauto power shel
                     sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled \
                     phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror \
                     sip projects wap tsp extapi imm pnp storemgr \
-                    activex ole2 comconst rapitypes tlhelp32
+                    activex ole2 comconst rapitypes tlhelp32 oleserver eventsink stdole2
 
 units_win32=rapi cesync rapitypes
 
