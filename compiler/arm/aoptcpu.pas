@@ -66,6 +66,7 @@ Implementation
       result:=
         (p.typ=ait_instruction) and
         (taicpu(p).condition=C_None) and
+        (taicpu(p).opcode<>A_PLD) and
         ((taicpu(p).opcode<>A_BLX) or
          (taicpu(p).oper[0]^.typ=top_reg));
     end;
@@ -140,7 +141,7 @@ Implementation
 
     case p.opcode of
       { These operands do not write into a register at all }
-      A_CMP, A_CMN, A_TST, A_TEQ, A_B, A_BL, A_BX, A_BLX, A_SWI, A_MSR:
+      A_CMP, A_CMN, A_TST, A_TEQ, A_B, A_BL, A_BX, A_BLX, A_SWI, A_MSR, A_PLD:
         exit;
       {Take care of post/preincremented store and loads, they will change their base register}
       A_STR, A_LDR:
@@ -193,8 +194,9 @@ Implementation
 
     i:=1;
     {For these instructions we have to start on oper[0]}
-    if (p.opcode in [A_STR, A_CMP, A_CMN, A_TST, A_TEQ,
-                        A_B, A_BL, A_BX, A_BLX, A_LDM,
+    if (p.opcode in [A_STR, A_LDM, A_STM, A_PLD,
+                        A_CMP, A_CMN, A_TST, A_TEQ,
+                        A_B, A_BL, A_BX, A_BLX,
                         A_SMLAL, A_UMLAL]) then i:=0;
 
     while(i<p.ops) do
