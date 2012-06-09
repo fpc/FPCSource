@@ -13,7 +13,7 @@ implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleauto power shel
                     sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled \
                     phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror \
                     sip projects wap tsp extapi imm pnp storemgr \
-                    activex ole2 comconst rapitypes tlhelp32 stdole2 oleserver eventsink
+                    activex ole2 comconst rapitypes tlhelp32
 
 units_win32=rapi cesync rapitypes
 
@@ -36,7 +36,7 @@ WINDIR=../winunits-base/src
 [rules]
 .NOTPARALLEL:
 
-comobj$(PPUEXT) : $(WINDIR)/comobj.pp $(WINDIR)/activex.pp
+comobj$(PPUEXT) : $(WINDIR)/comobj.pp $(WINDIR)/activex.pp $(WINDIR)/eventsink.pp $(WINDIR)/stdole2.pas $(WINDIR)/oleserver.pp
         $(COMPILER) $(WINDIR)/comobj.pp
         $(COMPILER) $(WINDIR)/eventsink.pp
         $(COMPILER) $(WINDIR)/stdole2.pas 

@@ -299,10 +299,10 @@ ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_UNITS+=comobj buildwinceunits
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror sip projects wap tsp extapi imm pnp storemgr activex ole2 comconst rapitypes tlhelp32 stdole2 oleserver eventsink
+override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror sip projects wap tsp extapi imm pnp storemgr activex ole2 comconst rapitypes tlhelp32
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror sip projects wap tsp extapi imm pnp storemgr activex ole2 comconst rapitypes tlhelp32 stdole2 oleserver eventsink
+override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror sip projects wap tsp extapi imm pnp storemgr activex ole2 comconst rapitypes tlhelp32
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_RSTS+=comconst
@@ -2322,7 +2322,7 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 .NOTPARALLEL:
-comobj$(PPUEXT) : $(WINDIR)/comobj.pp $(WINDIR)/activex.pp
+comobj$(PPUEXT) : $(WINDIR)/comobj.pp $(WINDIR)/activex.pp $(WINDIR)/eventsink.pp $(WINDIR)/stdole2.pas $(WINDIR)/oleserver.pp
 	$(COMPILER) $(WINDIR)/comobj.pp
 	$(COMPILER) $(WINDIR)/eventsink.pp
 	$(COMPILER) $(WINDIR)/stdole2.pas 
