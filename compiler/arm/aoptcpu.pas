@@ -96,12 +96,20 @@ Implementation
 
   function MatchOperand(const oper1: TOper; const oper2: TOper): boolean; inline;
     begin
-      result := (oper1.typ = oper2.typ) and
-                (
-                  ((oper1.typ = top_const) and (oper1.val = oper2.val)) or
-                  ((oper1.typ = top_reg) and (oper1.reg = oper2.reg)) or
-                  ((oper1.typ = top_conditioncode) and (oper1.cc = oper2.cc))
-                );
+      result := oper1.typ = oper2.typ;
+
+      if result then
+        case oper1.typ of
+          top_const:
+            Result:=oper1.val = oper2.val;
+          top_reg:
+            Result:=oper1.reg = oper2.reg;
+          top_conditioncode:
+            Result:=oper1.cc = oper2.cc;
+          top_ref:
+            Result:=RefsEqual(oper1.ref^, oper2.ref^);
+          else Result:=false;
+        end
     end;
 
   function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
