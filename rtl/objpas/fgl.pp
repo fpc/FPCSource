@@ -1164,7 +1164,7 @@ end;
 
 function TFPSMap.BinaryCompareData(Data1, Data2: Pointer): Integer;
 begin
-  Result := CompareByte(Data1^, Data1^, FDataSize);
+  Result := CompareByte(Data1^, Data2^, FDataSize);
 end;
 
 procedure TFPSMap.SetOnKeyPtrCompare(Proc: TFPSListCompareFunc);
