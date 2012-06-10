@@ -172,8 +172,9 @@ interface
 
        TCoffObjInput = class(tObjInput)
        private
-         FCoffsyms,
-         FCoffStrs : tdynamicarray;
+         FCoffsyms : tdynamicarray;
+         FCoffStrs : PChar;
+         FCoffStrSize: longword;
          { Convert symidx -> TObjSymbol }
          FSymTbl   : ^TObjSymbolArray;
          { Convert secidx -> TObjSection }
@@ -1567,7 +1568,8 @@ const pemagic : array[0..3] of byte = (
     destructor TCoffObjInput.destroy;
       begin
         FCoffSyms.free;
-        FCoffStrs.free;
+        if assigned(FCoffStrs) then
+          freemem(FCoffStrs);
         if assigned(FSymTbl) then
           freemem(FSymTbl);
         if assigned(FSecTbl) then
@@ -1590,12 +1592,9 @@ const pemagic : array[0..3] of byte = (
 
     function TCoffObjInput.Read_str(strpos:longword):string;
       begin
-        FCoffStrs.Seek(strpos-4);
-        FCoffStrs.Read(result[1],255);
-        result[255]:=#0;
-        result[0]:=chr(strlen(@result[1]));
-        if result='' then
+        if (FCoffStrs=nil) or (strpos>=FCoffStrSize) or (FCoffStrs[strpos]=#0) then
           Internalerror(200205172);
+        result:=string(PChar(@FCoffStrs[strpos]));
       end;
 
 
@@ -1822,7 +1821,6 @@ const pemagic : array[0..3] of byte = (
     function  TCoffObjInput.ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;
       var
         secalign : shortint;
-        strsize,
         strpos,
         i        : longint;
         code     : longint;
@@ -1837,7 +1835,6 @@ const pemagic : array[0..3] of byte = (
         InputFileName:=AReader.FileName;
         result:=false;
         FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
-        FCoffStrs:=TDynamicArray.Create(StrsMaxGrow);
         with TCoffObjData(objdata) do
          begin
            { Read COFF header }
@@ -1862,15 +1859,23 @@ const pemagic : array[0..3] of byte = (
                exit;
            end;
            { Strings }
-           if not AReader.Read(strsize,4) then
+           if not AReader.Read(FCoffStrSize,4) then
              begin
                InputError('Error reading COFF string table');
                exit;
              end;
-           if (strsize>4) and not AReader.ReadArray(FCoffStrs,Strsize-4) then
+           if (FCoffStrSize>4) then
              begin
-               InputError('Error reading COFF string table');
-               exit;
+               { allocate an extra byte and null-terminate }
+               GetMem(FCoffStrs,FCoffStrSize+1);
+               FCoffStrs[FCoffStrSize]:=#0;
+               for i:=0 to 3 do
+                 FCoffStrs[i]:=#0;
+               if not AReader.Read(FCoffStrs[4],FCoffStrSize-4) then
+                 begin
+                   InputError('Error reading COFF string table');
+                   exit;
+                 end;
              end;
            { Section headers }
            { Allocate SecIdx -> TObjSection table, secidx is 1-based }
@@ -1907,14 +1912,14 @@ const pemagic : array[0..3] of byte = (
                  end;
                if (Length(secname)>3) and (secname[2] in ['e','f','i','p','r']) then
                  begin
-                   if (Copy(secname,1,6)='.edata') or
-                      (Copy(secname,1,5)='.rsrc') or
+                   if (Pos('.edata',secname)=1) or
+                      (Pos('.rsrc',secname)=1) or
 {$ifndef x86_64}
-                      (Copy(secname,1,6)='.pdata') or
+                      (Pos('.pdata',secname)=1) or
 {$endif}
-                      (Copy(secname,1,4)='.fpc') then
+                      (Pos('.fpc',secname)=1) then
                      include(secoptions,oso_keep);
-                   if (Copy(secname,1,6)='.idata') then
+                   if (Pos('.idata',secname)=1) then
                      begin
   { TODO: idata keep can maybe replaced with grouping of text and idata}
                        include(secoptions,oso_keep);
@@ -1938,7 +1943,8 @@ const pemagic : array[0..3] of byte = (
            { Relocs }
            ObjSectionList.ForEachCall(@objsections_read_relocs,nil);
          end;
-        FCoffStrs.Free;
+        if assigned(FCoffStrs) then
+          freemem(FCoffStrs);
         FCoffStrs:=nil;
         FCoffSyms.Free;
         FCoffSyms:=nil;
