@@ -123,56 +123,34 @@ implementation
 {$endif sparc}
 {$ifdef x86_64}
       R_X86_64_NONE = 0;
-      { Direct 64 bit   }
-      R_X86_64_64 = 1;
-      { PC relative 32 bit signed  }
-      R_X86_64_PC32 = 2;
-      { 32 bit GOT entry  }
-      R_X86_64_GOT32 = 3;
-      { 32 bit PLT address  }
-      R_X86_64_PLT32 = 4;
-      { Copy symbol at runtime  }
-      R_X86_64_COPY = 5;
-      { Create GOT entry  }
-      R_X86_64_GLOB_DAT = 6;
-      { Create PLT entry  }
-      R_X86_64_JUMP_SLOT = 7;
-      { Adjust by program base  }
-      R_X86_64_RELATIVE = 8;
-      { 32 bit signed PC relative offset to GOT  }
-      R_X86_64_GOTPCREL = 9;
-      { Direct 32 bit zero extended  }
-      R_X86_64_32 = 10;
-      { Direct 32 bit sign extended  }
-      R_X86_64_32S = 11;
-      { Direct 16 bit zero extended  }
-      R_X86_64_16 = 12;
-      { 16 bit sign extended PC relative  }
-      R_X86_64_PC16 = 13;
-      { Direct 8 bit sign extended   }
-      R_X86_64_8 = 14;
-      { 8 bit sign extended PC relative  }
-      R_X86_64_PC8 = 15;
-      { ID of module containing symbol  }
-      R_X86_64_DTPMOD64 = 16;
-      { Offset in module's TLS block  }
-      R_X86_64_DTPOFF64 = 17;
-      { Offset in initial TLS block  }
-      R_X86_64_TPOFF64 = 18;
+      R_X86_64_64 = 1;                 { Direct 64 bit   }
+      R_X86_64_PC32 = 2;               { PC relative 32 bit signed  }
+      R_X86_64_GOT32 = 3;              { 32 bit GOT entry  }
+      R_X86_64_PLT32 = 4;              { 32 bit PLT address  }
+      R_X86_64_COPY = 5;               { Copy symbol at runtime  }
+      R_X86_64_GLOB_DAT = 6;           { Create GOT entry  }
+      R_X86_64_JUMP_SLOT = 7;          { Create PLT entry  }
+      R_X86_64_RELATIVE = 8;           { Adjust by program base  }
+      R_X86_64_GOTPCREL = 9;           { 32 bit signed PC relative offset to GOT  }
+      R_X86_64_32 = 10;                { Direct 32 bit zero extended  }
+      R_X86_64_32S = 11;               { Direct 32 bit sign extended  }
+      R_X86_64_16 = 12;                { Direct 16 bit zero extended  }
+      R_X86_64_PC16 = 13;              { 16 bit sign extended PC relative  }
+      R_X86_64_8 = 14;                 { Direct 8 bit sign extended   }
+      R_X86_64_PC8 = 15;               { 8 bit sign extended PC relative  }
+      R_X86_64_DTPMOD64 = 16;          { ID of module containing symbol  }
+      R_X86_64_DTPOFF64 = 17;          { Offset in module's TLS block  }
+      R_X86_64_TPOFF64 = 18;           { Offset in initial TLS block  }
       { 32 bit signed PC relative offset to two GOT entries for GD symbol  }
       R_X86_64_TLSGD = 19;
       { 32 bit signed PC relative offset to two GOT entries for LD symbol  }
       R_X86_64_TLSLD = 20;
-      { Offset in TLS block  }
-      R_X86_64_DTPOFF32 = 21;
+      R_X86_64_DTPOFF32 = 21;          { Offset in TLS block  }
       { 32 bit signed PC relative offset to GOT entry for IE symbol  }
       R_X86_64_GOTTPOFF = 22;
-      { Offset in initial TLS block  }
-      R_X86_64_TPOFF32 = 23;
-      { GNU extension to record C++ vtable hierarchy }
-      R_X86_64_GNU_VTINHERIT = 24;
-      { GNU extension to record C++ vtable member usage }
-      R_X86_64_GNU_VTENTRY = 25;
+      R_X86_64_TPOFF32 = 23;           { Offset in initial TLS block  }
+      R_X86_64_GNU_VTINHERIT = 24;     { GNU extension to record C++ vtable hierarchy }
+      R_X86_64_GNU_VTENTRY = 25;       { GNU extension to record C++ vtable member usage }
 {$endif x86_64}
 
       { ELFHeader.file_class }
@@ -244,6 +222,64 @@ implementation
       STT_FUNC    = 2;
       STT_SECTION = 3;
       STT_FILE    = 4;
+
+      { program header types }
+      PT_NULL     = 0;
+      PT_LOAD     = 1;
+      PT_DYNAMIC  = 2;
+      PT_INTERP   = 3;
+      PT_NOTE     = 4;
+      PT_SHLIB    = 5;
+      PT_PHDR     = 6;
+      PT_LOPROC   = $70000000;
+      PT_HIPROC   = $7FFFFFFF;
+
+      { program header flags }
+      PF_X = 1;
+      PF_W = 2;
+      PF_R = 4;
+      PF_MASKPROC = $F0000000;
+
+      { .dynamic tags  }
+      DT_NULL     = 0;
+      DT_NEEDED   = 1;
+      DT_PLTRELSZ = 2;
+      DT_PLTGOT   = 3;
+      DT_HASH     = 4;
+      DT_STRTAB   = 5;
+      DT_SYMTAB	  = 6;
+      DT_RELA     = 7;
+      DT_RELASZ   = 8;
+      DT_RELAENT  = 9;
+      DT_STRSZ    = 10;
+      DT_SYMENT   = 11;
+      DT_INIT     = 12;
+      DT_FINI     = 13;
+      DT_SONAME   = 14;
+      DT_RPATH    = 15;
+      DT_SYMBOLIC = 16;
+      DT_REL      = 17;
+      DT_RELSZ    = 18;
+      DT_RELENT   = 19;
+      DT_PLTREL   = 20;
+      DT_DEBUG    = 21;
+      DT_TEXTREL  = 22;
+      DT_JMPREL   = 23;
+      DT_BIND_NOW = 24;
+      DT_INIT_ARRAY = 25;
+      DT_FINI_ARRAY = 26;
+      DT_INIT_ARRAYSZ = 27;
+      DT_FINI_ARRAYSZ = 28;
+      DT_RUNPATH  = 29;
+      DT_FLAGS    = 30;
+      DT_ENCODING = 32;
+      DT_PREINIT_ARRAY   = 32;
+      DT_PREINIT_ARRAYSZ = 33;
+      DT_NUM      = 34;
+      DT_LOOS     = $6000000D;
+      DT_HIOS     = $6ffff000;
+      DT_LOPROC   = $70000000;
+      DT_HIPROC   = $7fffffff;
 
       type
       { Structures which are written directly to the output file }
