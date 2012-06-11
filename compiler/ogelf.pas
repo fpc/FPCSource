@@ -47,7 +47,7 @@ interface
           shinfo,
           shentsize : longint;
           constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
-          constructor create_ext(AList:TFPHashObjectList;const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
+          constructor create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
        end;
 
        TElfObjData = class(TObjData)
@@ -680,12 +680,13 @@ implementation
       end;
 
 
-    constructor TElfObjSection.create_ext(AList:TFPHashObjectList;const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
+    constructor TElfObjSection.create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
       var
         aoptions : TObjSectionOptions;
       begin
         decodesechdrflags(Ashtype,Ashflags,aoptions);
-        inherited create(AList,Aname,Aalign,aoptions);
+        inherited create(aobjdata.ObjSectionList,Aname,Aalign,aoptions);
+        objdata:=aobjdata;
         secshidx:=0;
         shstridx:=0;
         shtype:=AshType;
@@ -964,9 +965,9 @@ implementation
 {$endif userodata}
            { create the reloc section }
 {$ifdef i386}
-           relocsect:=TElfObjSection.create_ext(ObjSectionList,'.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
+           relocsect:=TElfObjSection.create_ext(data,'.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
 {$else i386}
-           relocsect:=TElfObjSection.create_ext(ObjSectionList,'.rela'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
+           relocsect:=TElfObjSection.create_ext(data,'.rela'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
 {$endif i386}
            { add the relocations }
            for i:=0 to s.Objrelocations.count-1 do
@@ -1264,13 +1265,13 @@ implementation
         with data do
          begin
            { default sections }
-           symtabsect:=TElfObjSection.create_ext(ObjSectionList,'.symtab',SHT_SYMTAB,0,0,0,4,sizeof(telfsymbol));
-           strtabsect:=TElfObjSection.create_ext(ObjSectionList,'.strtab',SHT_STRTAB,0,0,0,1,0);
-           shstrtabsect:=TElfObjSection.create_ext(ObjSectionList,'.shstrtab',SHT_STRTAB,0,0,0,1,0);
+           symtabsect:=TElfObjSection.create_ext(data,'.symtab',SHT_SYMTAB,0,0,0,4,sizeof(telfsymbol));
+           strtabsect:=TElfObjSection.create_ext(data,'.strtab',SHT_STRTAB,0,0,0,1,0);
+           shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,0,0,1,0);
            { "no executable stack" marker for Linux }
            if (target_info.system in systems_linux) and
               not(cs_executable_stack in current_settings.moduleswitches) then
-             TElfObjSection.create_ext(ObjSectionList,'.note.GNU-stack',SHT_PROGBITS,0,0,0,1,0);
+             TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,0,0,1,0);
            { insert the empty and filename as first in strtab }
            strtabsect.writestr(#0);
            strtabsect.writestr(ExtractFileName(current_module.mainsource)+#0);
@@ -1312,7 +1313,7 @@ implementation
            header.e_type:=ET_REL;
            header.e_machine:=ELFMACHINE;
 {$ifdef arm}
-           if (current_settings.fputype=cpu_soft) then
+           if (current_settings.fputype=fpu_soft) then
              header.e_flags:=$600;
 {$endif arm}
            header.e_version:=1;
