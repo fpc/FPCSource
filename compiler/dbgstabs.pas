@@ -149,10 +149,37 @@ implementation
     uses
       SysUtils,cutils,cfileutl,
       globals,globtype,verbose,constexp,
-      defutil,
-      cpuinfo,cpubase,paramgr,
+      defutil, cgutils, parabase,
+      cpuinfo,cpubase,cpupi,paramgr,
       aasmbase,procinfo,
       finput,fmodule,ppu;
+
+
+    const
+      current_procdef : tprocdef = nil;
+
+    function GetOffsetStr(reference : TReference) : string;
+    begin
+{$ifdef MIPS}
+      if (reference.index=NR_STACK_POINTER_REG) or
+         (reference.base=NR_STACK_POINTER_REG)  then
+        GetOffsetStr:=tostr(reference.offset
+          - mips_extra_offset(current_procdef))
+      else
+{$endif MIPS}
+      GetOffsetStr:=tostr(reference.offset);
+    end;
+
+    function GetParaOffsetStr(reference : TCGParaReference) : string;
+    begin
+{$ifdef MIPS}
+      if reference.index=NR_STACK_POINTER_REG then
+        GetParaOffsetStr:=tostr(reference.offset
+          - mips_extra_offset(current_procdef))
+      else
+{$endif MIPS}
+      GetParaOffsetStr:=tostr(reference.offset);
+    end;
 
     function GetSymName(Sym : TSymEntry) : string;
     begin
@@ -734,15 +761,15 @@ implementation
       begin
 {$ifdef cpu64bitaddr}
         ss:=def_stabstr_evaluate(def,'s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$2,64,64;'+
-                                 '_PRIVATE:ar$1;1;64;$3,128,256;USERDATA:ar$1;1;16;$3,384,128;'+
-                                 'NAME:ar$1;0;255;$4,512,2048;;',[def_stab_number(s32inttype),
+                                 '_PRIVATE:ar$1;1;64;$3,128,256;USERDATA:ar$1;1;32;$3,384,256;'+
+                                 'NAME:ar$1;0;255;$4,640,2048;;',[def_stab_number(s32inttype),
                                  def_stab_number(s64inttype),
                                  def_stab_number(u8inttype),
                                  def_stab_number(cansichartype)]);
 {$else cpu64bitaddr}
         ss:=def_stabstr_evaluate(def,'s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$1,64,32;'+
-                                 '_PRIVATE:ar$1;1;32;$3,96,256;USERDATA:ar$1;1;16;$2,352,128;'+
-                                 'NAME:ar$1;0;255;$3,480,2048;;',[def_stab_number(s32inttype),
+                                 '_PRIVATE:ar$1;1;32;$3,96,256;USERDATA:ar$1;1;32;$2,352,256;'+
+                                 'NAME:ar$1;0;255;$3,608,2048;;',[def_stab_number(s32inttype),
                                  def_stab_number(u8inttype),
                                  def_stab_number(cansichartype)]);
 {$endif cpu64bitaddr}
@@ -1052,6 +1079,7 @@ implementation
       var
         hs : ansistring;
         templist : TAsmList;
+        prev_procdef : tprocdef;
       begin
         if not(def.in_currentunit) or
            { happens for init procdef of units without init section }
@@ -1060,6 +1088,8 @@ implementation
 
         { mark as used so the local type defs also be written }
         def.dbg_state:=dbg_state_used;
+        prev_procdef:=current_procdef;
+        current_procdef:=def;
 
         templist:=gen_procdef_endsym_stabs(def);
         current_asmdata.asmlists[al_procedures].insertlistafter(def.procendtai,templist);
@@ -1090,11 +1120,11 @@ implementation
                   hs:='X';
                 templist.concat(Tai_stab.create(stabsdir,strpnew(
                    '"'+GetSymName(def.procsym)+':'+hs+def_stab_number(def.returndef)+'",'+
-                   base_stabs_str(localvarsymref_stab,'0','0',tostr(tabstractnormalvarsym(def.funcretsym).localloc.reference.offset)))));
+                   base_stabs_str(localvarsymref_stab,'0','0',getoffsetstr(tabstractnormalvarsym(def.funcretsym).localloc.reference)))));
                 if (m_result in current_settings.modeswitches) then
                   templist.concat(Tai_stab.create(stabsdir,strpnew(
                      '"RESULT:'+hs+def_stab_number(def.returndef)+'",'+
-                     base_stabs_str(localvarsymref_stab,'0','0',tostr(tabstractnormalvarsym(def.funcretsym).localloc.reference.offset)))));
+                     base_stabs_str(localvarsymref_stab,'0','0',getoffsetstr(tabstractnormalvarsym(def.funcretsym).localloc.reference)))));
               end;
           end;
 
@@ -1102,6 +1132,7 @@ implementation
         current_asmdata.asmlists[al_procedures].insertlistbefore(def.procstarttai,templist);
 
         templist.free;
+        current_procdef:=prev_procdef;
       end;
 
 
@@ -1256,7 +1287,7 @@ implementation
           LOC_REFERENCE :
             { offset to ebp => will not work if the framepointer is esp
               so some optimizing will make things harder to debug }
-            ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(localvarsymref_stab,'0','${line}','$2'),[st,tostr(sym.localloc.reference.offset)])
+            ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(localvarsymref_stab,'0','${line}','$2'),[st,getoffsetstr(sym.localloc.reference)])
           else
             internalerror(2003091814);
         end;
@@ -1411,7 +1442,7 @@ implementation
               begin
                 if (sym.localloc.loc=LOC_REFERENCE) then
                   ss:=sym_stabstr_evaluate(sym,'"pvmt:p$1",'+base_stabs_str(localvarsymref_stab,'0','0','$2'),
-                    [def_stab_number(pvmttype),tostr(sym.localloc.reference.offset)])
+                    [def_stab_number(pvmttype),getoffsetstr(sym.localloc.reference)])
                 else
                   begin
                     regidx:=findreg_by_number(sym.localloc.register);
@@ -1427,7 +1458,7 @@ implementation
                   c:='p';
                 if (sym.localloc.loc=LOC_REFERENCE) then
                   ss:=sym_stabstr_evaluate(sym,'"$$t:$1",'+base_stabs_str(localvarsymref_stab,'0','0','$2'),
-                        [c+def_stab_number(tprocdef(sym.owner.defowner).struct),tostr(sym.localloc.reference.offset)])
+                        [c+def_stab_number(tprocdef(sym.owner.defowner).struct),getoffsetstr(sym.localloc.reference)])
                 else
                   begin
                     if (c='p') then
@@ -1481,14 +1512,15 @@ implementation
                       if not(sym.paraloc[calleeside].location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                         ss:=get_appendsym_paravar_reg(sym,c,st,sym.paraloc[calleeside].location^.register)
                       else
-                        ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(localvarsymref_stab,'0','${line}','$2'),[c+st,tostr(sym.paraloc[calleeside].location^.reference.offset)]);
+                        ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(localvarsymref_stab,'0','${line}','$2'),
+                              [c+st,getparaoffsetstr(sym.paraloc[calleeside].location^.reference)]);
                       write_sym_stabstr(list,sym,ss);
                       { second stab has no parameter specifier }
                       c:='';
                     end;
                   { offset to ebp => will not work if the framepointer is esp
                     so some optimizing will make things harder to debug }
-                  ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(paravarsymref_stab,'0','${line}','$2'),[c+st,tostr(sym.localloc.reference.offset)])
+                  ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(paravarsymref_stab,'0','${line}','$2'),[c+st,getoffsetstr(sym.localloc.reference)])
                 end;
               else
                 internalerror(2003091814);
