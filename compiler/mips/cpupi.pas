@@ -27,7 +27,7 @@ interface
 
   uses
     cutils,
-    globtype,
+    globtype,symdef,
     procinfo,cpuinfo,cpupara,
     psub;
 
@@ -42,15 +42,20 @@ interface
       floatregssave : byte;
       register_used : tparasupregsused;
       register_offset : tparasupregsoffset;
+      computed_local_size : longint;
       constructor create(aparent:tprocinfo);override;
       function calc_stackframe_size:longint;override;
       procedure set_first_temp_offset;override;
     end;
 
+   { Used by Stabs debug info generator }
+
+   function mips_extra_offset(procdef : tprocdef) : longint;
+
 implementation
 
     uses
-      systems,globals,
+      systems,globals,verbose,
       cpubase,cgbase,cgobj,
       tgobj,paramgr,symconst;
 
@@ -67,6 +72,7 @@ implementation
 
         floatregssave:=11;
         intregssave:=10;
+        computed_local_size:=-1;
       end;
 
 
@@ -93,8 +99,22 @@ implementation
         intregstart:=result;
         inc(result,intregssave*4);
         result:=Align(tg.lasttemp,max(current_settings.alignment.localalignmin,8));
+        if computed_local_size=-1 then
+          begin
+            computed_local_size:=result;
+            procdef.total_local_size:=result;
+          end
+        else if computed_local_size <> result then
+          Comment(V_Warning,'TMIPSProcInfo.calc_stackframe_size result changed');
       end;
 
+    function mips_extra_offset(procdef : tprocdef) : longint;
+      begin
+        if procdef=nil then
+          mips_extra_offset:=0
+        else
+          mips_extra_offset:=procdef.total_local_size;
+      end;
 
 begin
   cprocinfo:=TMIPSProcInfo;
