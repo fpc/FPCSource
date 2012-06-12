@@ -831,6 +831,7 @@ function TSQLite3Connection.GetSchemaInfoSQL(SchemaType: TSchemaType;
 begin
   case SchemaType of
     stTables     : result := 'select name as table_name from sqlite_master where type = ''table'' order by 1';
+    stSysTables  : result := 'select ''sqlite_master'' as table_name';
     stColumns    : result := 'pragma table_info(''' + (SchemaObjectName) + ''')';
   else
     DatabaseError(SMetadataUnavailable)
