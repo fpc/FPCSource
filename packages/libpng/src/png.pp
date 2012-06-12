@@ -25,6 +25,7 @@ Const
   LibPng = 'png'; // Library name
   { matching lib version for libpng, needed for initialization }
   PNG_LIBPNG_VER_STRING='1.2.12';
+  {$linklib png}
 {$endif windows}
 
 type
