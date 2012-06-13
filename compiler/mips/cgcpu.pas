@@ -1410,8 +1410,8 @@ begin
     end
   else
     begin
-      list.concat(Taicpu.Op_reg_const(A_LI,NR_R3,-LocalSize));
-      list.concat(Taicpu.Op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R3));
+      list.concat(Taicpu.Op_reg_const(A_LI,NR_R1,-LocalSize));
+      list.concat(Taicpu.Op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R1));
       list.concat(ra_save);
       //if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
         begin
@@ -1463,7 +1463,7 @@ begin
   stacksize:=current_procinfo.calc_stackframe_size;
    if nostackframe then
      begin
-       list.concat(taicpu.op_reg(A_J, NR_R31));
+       list.concat(taicpu.op_reg(A_JR, NR_R31));
        list.concat(Taicpu.op_none(A_NOP));
        list.concat(Taicpu.op_none(A_P_SET_MACRO));
        list.concat(Taicpu.op_none(A_P_SET_REORDER));
@@ -1501,14 +1501,14 @@ begin
 
        if (-stacksize >= simm16lo) and (-stacksize <= simm16hi) then
          begin
-           list.concat(taicpu.op_reg(A_J, NR_R31));
+           list.concat(taicpu.op_reg(A_JR, NR_R31));
            { correct stack pointer in the delay slot }
            list.concat(Taicpu.Op_reg_reg_const(A_ADDIU, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, stacksize));
          end
        else
          begin
            a_load_const_reg(list,OS_32,stacksize,NR_R1);
-           list.concat(taicpu.op_reg(A_J, NR_R31));
+           list.concat(taicpu.op_reg(A_JR, NR_R31));
            { correct stack pointer in the delay slot }
            list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R1));
          end;
