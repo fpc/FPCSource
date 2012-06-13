@@ -176,7 +176,14 @@ interface
           procedure startreplaytokens(buf:tdynamicarray; achange_endian : boolean);
           { bit length sizeint is target depend }
           procedure tokenwritesizeint(val : sizeint);
+          procedure tokenwritelongint(val : longint);
+          procedure tokenwritelongword(val : longword);
+          procedure tokenwriteword(val : word);
+          procedure tokenwriteshortint(val : shortint);
+          procedure tokenwriteset(var b;size : longint);
+          procedure tokenwriteenum(var b;size : longint);
           function  tokenreadsizeint : sizeint;
+          procedure tokenwritesettings(var asettings : tsettings; var size : longint);
           { longword/longint are 32 bits on all targets }
           { word/smallint are 16-bits on all targest }
           function  tokenreadlongword : longword;
@@ -2182,6 +2189,26 @@ In case not, the value returned can be arbitrary.
         recordtokenbuf.write(val,sizeof(sizeint));
       end;
 
+    procedure tscannerfile.tokenwritelongint(val : longint);
+      begin
+        recordtokenbuf.write(val,sizeof(longint));
+      end;
+
+    procedure tscannerfile.tokenwriteshortint(val : shortint);
+      begin
+        recordtokenbuf.write(val,sizeof(shortint));
+      end;
+
+    procedure tscannerfile.tokenwriteword(val : word);
+      begin
+        recordtokenbuf.write(val,sizeof(word));
+      end;
+
+    procedure tscannerfile.tokenwritelongword(val : longword);
+      begin
+        recordtokenbuf.write(val,sizeof(longword));
+      end;
+
     function tscannerfile.tokenreadsizeint : sizeint;
       var
         val : sizeint;
@@ -2268,6 +2295,16 @@ In case not, the value returned can be arbitrary.
          Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
    end;
 
+   procedure tscannerfile.tokenwriteenum(var b;size : longint);
+   begin
+     replaytokenbuf.write(b,size);
+   end;
+
+   procedure tscannerfile.tokenwriteset(var b;size : longint);
+   begin
+     replaytokenbuf.write(b,size);
+   end;
+
 
     procedure tscannerfile.tokenreadsettings(var asettings : tsettings; expected_size : longint);
 
@@ -2337,6 +2374,77 @@ In case not, the value returned can be arbitrary.
          end;
      end;
 
+    procedure tscannerfile.tokenwritesettings(var asettings : tsettings; var size : longint);
+
+    {    This procedure
+       needs to be changed whenever
+       globals.tsettings type is changed,
+       the problem is that no error will appear
+       before tests with generics are tested. PM }
+
+       var
+         sizepos, startpos, endpos : longword;
+      begin
+        { WARNING all those fields need to be in the correct
+        order otherwise cross_endian PPU reading will fail }
+        sizepos:=replaytokenbuf.pos;
+        size:=0;
+        tokenwritesizeint(size);
+        startpos:=replaytokenbuf.pos;
+        with asettings do
+          begin
+            tokenwritelongint(alignment.procalign);
+            tokenwritelongint(alignment.loopalign);
+            tokenwritelongint(alignment.jumpalign);
+            tokenwritelongint(alignment.constalignmin);
+            tokenwritelongint(alignment.constalignmax);
+            tokenwritelongint(alignment.varalignmin);
+            tokenwritelongint(alignment.varalignmax);
+            tokenwritelongint(alignment.localalignmin);
+            tokenwritelongint(alignment.localalignmax);
+            tokenwritelongint(alignment.recordalignmin);
+            tokenwritelongint(alignment.recordalignmax);
+            tokenwritelongint(alignment.maxCrecordalign);
+            tokenwriteset(globalswitches,sizeof(globalswitches));
+            tokenwriteset(targetswitches,sizeof(targetswitches));
+            tokenwriteset(moduleswitches,sizeof(moduleswitches));
+            tokenwriteset(localswitches,sizeof(localswitches));
+            tokenwriteset(modeswitches,sizeof(modeswitches));
+            tokenwriteset(optimizerswitches,sizeof(optimizerswitches));
+            tokenwriteset(genwpoptimizerswitches,sizeof(genwpoptimizerswitches));
+            tokenwriteset(dowpoptimizerswitches,sizeof(dowpoptimizerswitches));
+            tokenwriteset(debugswitches,sizeof(debugswitches));
+            { 0: old behaviour for sets <=256 elements
+              >0: round to this size }
+            tokenwriteshortint(setalloc);
+            tokenwriteshortint(packenum);
+            tokenwriteshortint(packrecords);
+            tokenwriteshortint(maxfpuregisters);
+
+            tokenwriteenum(cputype,sizeof(tcputype));
+            tokenwriteenum(optimizecputype,sizeof(tcputype));
+            tokenwriteenum(fputype,sizeof(tfputype));
+            tokenwriteenum(asmmode,sizeof(tasmmode));
+            tokenwriteenum(interfacetype,sizeof(tinterfacetypes));
+            tokenwriteenum(defproccall,sizeof(tproccalloption));
+            { tstringencoding is word type,
+              thus this should be OK here }
+            tokenwriteword(sourcecodepage);
+
+            tokenwriteenum(minfpconstprec,sizeof(tfloattype));
+
+            replaytokenbuf.write(byte(disabledircache),1);
+{$if defined(ARM) or defined(AVR)}
+            tokenwriteenum(controllertype,sizeof(tcontrollertype));
+{$endif defined(ARM) or defined(AVR)}
+           endpos:=replaytokenbuf.pos;
+           size:=endpos-startpos;
+           replaytokenbuf.seek(sizepos);
+           tokenwritesizeint(size);
+           replaytokenbuf.seek(endpos);
+         end;
+     end;
+
 
     procedure tscannerfile.recordtoken;
       var
@@ -2360,7 +2468,6 @@ In case not, the value returned can be arbitrary.
             writetoken(t);
             recordtokenbuf.write(s,1);
             copy_size:=sizeof(current_settings)-sizeof(pointer);
-            tokenwritesizeint(copy_size);
             recordtokenbuf.write(current_settings,copy_size);
             last_settings:=current_settings;
           end;

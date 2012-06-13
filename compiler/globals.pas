@@ -117,9 +117,11 @@ interface
 
 
     type
-       { this is written to ppus during token recording for generics so it must be packed }
-       tsettings = {$ifndef MIPS} packed {$endif}
-                   record
+       { this is written to ppus during token recording for generics,
+         it used to required to be packed,
+         but this requirement is now obsolete,
+         as the fields are written one by one. PM 2012-06-13 }
+       tsettings = record
          alignment       : talignmentinfo;
          globalswitches  : tglobalswitches;
          targetswitches  : ttargetswitches;
