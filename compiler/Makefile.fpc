@@ -123,6 +123,33 @@ ifndef RTLOPT
 RTLOPT:=$(OPT)
 endif
 
+ifdef CYCLELEVEL
+ifeq ($(CYCLELEVEL),1)
+LOCALOOPT+=$(OPTLEVEL1)
+RTLOPT+=$(OPTLEVEL1)
+LOCALOPT+=$(LOCALOPTLEVEL1)
+RTLOPT+=$(RTLOPTLEVEL1)
+endif
+ifeq ($(CYCLELEVEL),2)
+LOCALOOPT+=$(OPTLEVEL2)
+RTLOPT+=$(OPTLEVEL2)
+LOCALOPT+=$(LOCALOPTLEVEL2)
+RTLOPT+=$(RTLOPTLEVEL2)
+endif
+ifeq ($(CYCLELEVEL),3)
+LOCALOOPT+=$(OPTLEVEL3)
+RTLOPT+=$(OPTLEVEL3)
+LOCALOPT+=$(LOCALOPTLEVEL3)
+RTLOPT+=$(RTLOPTLEVEL3)
+endif
+ifeq ($(CYCLELEVEL),4)
+LOCALOOPT+=$(OPTLEVEL4)
+RTLOPT+=$(OPTLEVEL4)
+LOCALOPT+=$(LOCALOPTLEVEL4)
+RTLOPT+=$(RTLOPTLEVEL4)
+endif
+endif
+
 # Make OPT empty. It is copied to LOCALOPT and RTLOPT
 override OPT=
 
@@ -582,23 +609,23 @@ next :
 endif
 
 $(TEMPNAME1) :
-        $(MAKE) 'OLDFPC=' next
+        $(MAKE) 'OLDFPC=' next CYCLELEVEL=1
         -$(DEL) $(TEMPNAME1)
         $(MOVE) $(EXENAME) $(TEMPNAME1)
 
 $(TEMPNAME2) : $(TEMPNAME1)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME1)' 'OLDFPC=' next
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME1)' 'OLDFPC=' next CYCLELEVEL=2
         -$(DEL) $(TEMPNAME2)
         $(MOVE) $(EXENAME) $(TEMPNAME2)
 
 $(TEMPNAME3) : $(TEMPNAME2)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME2)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME1)' next
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME2)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME1)' next CYCLELEVEL=3
         -$(DEL) $(TEMPNAME3)
         $(MOVE) $(EXENAME) $(TEMPNAME3)
 
 cycle:
         $(MAKE) tempclean $(TEMPNAME3)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next CYCLELEVEL=4
         $(DIFF) $(TEMPNAME3) $(EXENAME)
         $(MAKE) $(addsuffix _all,$(TARGET_DIRS)) 'FPC=$(BASEDIR)/$(EXENAME)'
         $(MAKE) wpocycle
@@ -613,10 +640,10 @@ else
 cycle:
 # ppc (source native)
         $(MAKE) OS_TARGET=$(OS_SOURCE) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) OS_TARGET=$(OS_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
+        $(MAKE) OS_TARGET=$(OS_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=1
 # ppcross<ARCH> (source native)
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=2
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
@@ -624,7 +651,7 @@ ifndef CROSSINSTALL
 ifneq ($(OS_TARGET),embedded)
 # building a native compiler for the arm-gba target is not possible
 ifneq ($(OS_TARGET),gba)
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler CYCLELEVEL=3
 endif
 endif
 endif
@@ -646,16 +673,16 @@ cycle:
 # ppc (source native)
 # Clear detected compiler binary, because it can be existing crosscompiler binary, but we need native compiler here
         $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
+        $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=1
 # ppcross<ARCH> (source native)
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=2
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(RTLOPT) $(CROSSOPT)' rtlclean rtl
 # building a native compiler for JVM and embedded targets is not possible
 ifndef NoNativeBinaries
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(LOCALOPT) $(CROSSOPT)' cycleclean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(LOCALOPT) $(CROSSOPT)' cycleclean compiler CYCLELEVEL=3
 endif
 endif
 
@@ -665,7 +692,7 @@ cycledep:
         $(MAKE) cycle USEDEPEND=1
 
 extcycle:
-        $(MAKE) cycle OPT='-n -OG2p3 -glttt -CRriot -dEXTDEBUG'
+        $(MAKE) cycle OPT="$(OPT) -n -OG2p3 -glttt -CRriot -dEXTDEBUG"
 
 cvstest:
         $(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPT=-n -Se'
@@ -685,7 +712,11 @@ full: fullcycle
 fullcycle:
         $(MAKE) cycle
         $(MAKE) ppuclean
+ifneq ($(CPU_SOURCE),x86_64)
         $(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) 'FPC=$(BASEDIR)/$(EXENAME)'
+else
+        $(MAKE) $(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS))) 'FPC=$(BASEDIR)/$(EXENAME)'
+endif
 
 #####################################################################
 # Docs
