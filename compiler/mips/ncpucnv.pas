@@ -70,39 +70,28 @@ uses
                              FirstTypeConv
 *****************************************************************************}
 
-function tMIPSELtypeconvnode.first_int_to_real: tnode;
+function tmipseltypeconvnode.first_int_to_real: tnode;
 var
   fname: string[19];
 begin
   { converting a 64bit integer to a float requires a helper }
   if is_64bitint(left.resultdef) or
-    is_currency(left.resultdef) then
-  begin
-            { hack to avoid double division by 10000, as it's
-              already done by resulttypepass.resulttype_int_to_real }
-    if is_currency(left.resultdef) then
-      left.resultdef := s64inttype;
-    if is_signed(left.resultdef) then
-      fname := 'fpc_int64_to_double'
-    else
-      fname := 'fpc_qword_to_double';
-    Result := ccallnode.createintern(fname, ccallparanode.Create(
-      left, nil));
-    left := nil;
-    firstpass(Result);
-    exit;
-  end
+     is_currency(left.resultdef) then
+    begin
+      result:=inherited first_int_to_real;
+      exit;
+    end
   else
     { other integers are supposed to be 32 bit }
-  begin
-    if is_signed(left.resultdef) then
-      inserttypeconv(left, s32inttype)
-    else
-      inserttypeconv(left, u32inttype);
-    firstpass(left);
-  end;
-  Result := nil;
-  expectloc := LOC_FPUREGISTER;
+    begin
+      if is_signed(left.resultdef) then
+        inserttypeconv(left,s32inttype)
+      else
+        inserttypeconv(left,u32inttype);
+      firstpass(left);
+    end;
+  result := nil;
+  expectloc:=LOC_FPUREGISTER;
 end;
 
 

@@ -46,10 +46,10 @@ var
     if not IsLibrary then
       begin
         { enable div by 0 and invalid operation fpu exceptions }
-        { round towards zero; ieee compliant arithmetics }
+        { round towards nearest; ieee compliant arithmetics }
 
         tmp32 := get_fsr();
-        set_fsr((tmp32 and $fffffffc) or $00000001);
+        set_fsr(tmp32 and $fffffffc);
       end;
   end;
 
