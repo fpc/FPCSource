@@ -46,6 +46,7 @@ type
     procedure handle_load_store(list: tasmlist; isstore: boolean; op: tasmop; reg: tregister; ref: treference);
     procedure handle_load_store_fpu(list: tasmlist; isstore: boolean; op: tasmop; reg: tregister; ref: treference);
     procedure handle_reg_const_reg(list: tasmlist; op: Tasmop; src: tregister; a: tcgint; dst: tregister);
+    procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
     { parameter }
     procedure a_load_const_cgpara(list: tasmlist; size: tcgsize; a: tcgint; const paraloc: TCGPara); override;
@@ -782,6 +783,8 @@ begin
       InternalError(2002122101);
   end;
   handle_load_store(list, False, op, reg, ref);
+  if (fromsize=OS_S8) and (tosize=OS_16) then
+    a_load_reg_reg(list,fromsize,tosize,reg,reg);
 end;
 
 
@@ -791,9 +794,9 @@ var
 begin
   if (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
     (
-    (tcgsize2size[tosize] = tcgsize2size[fromsize]) and
-    (tosize <> fromsize) and not (fromsize in [OS_32, OS_S32])
-    ) then
+    (tcgsize2size[tosize] = tcgsize2size[fromsize]) and (tosize <> fromsize) 
+    ) or  ((fromsize = OS_S8) and
+             (tosize = OS_16)) then
   begin
     case tosize of
       OS_8:
@@ -986,6 +989,15 @@ begin
   end;
 end;
 
+procedure TCGMIPS.maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+const
+  overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
+begin
+  if (op in overflowops) and
+    (size in [OS_8,OS_S8,OS_16,OS_S16]) then
+    a_load_reg_reg(list,OS_32,size,dst,dst);
+end;
+
 procedure TCGMIPS.a_op_const_reg(list: tasmlist; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister);
 var
   power: longint;
@@ -1037,6 +1049,7 @@ begin
     else
       handle_reg_const_reg(list, f_TOpCG2AsmOp(op, size), reg, a, reg);
   end;
+  maybeadjustresult(list,op,size,reg);
 end;
 
 
@@ -1069,6 +1082,7 @@ begin
       end;
     end;
   end;
+  maybeadjustresult(list,op,size,dst);
 end;
 
 
@@ -1117,6 +1131,7 @@ begin
   end
   else
     handle_reg_const_reg(list, f_TOpCG2AsmOp(op, size), src, a, dst);
+  maybeadjustresult(list,op,size,dst);
 end;
 
 
@@ -1124,6 +1139,7 @@ procedure TCGMIPS.a_op_reg_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; src
 begin
 
   list.concat(taicpu.op_reg_reg_reg(f_TOpCG2AsmOp(op, size), dst, src2, src1));
+  maybeadjustresult(list,op,size,dst);
 end;
 
 
@@ -1190,6 +1206,7 @@ begin
     else
       internalerror(2007012601);
   end;
+  maybeadjustresult(list,op,size,dst);
 end;
 
 
@@ -1238,6 +1255,7 @@ begin
     else
       internalerror(2007012602);
   end;
+  maybeadjustresult(list,op,size,dst);
 end;
 
 
