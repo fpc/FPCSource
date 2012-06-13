@@ -50,6 +50,18 @@ interface
           constructor create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
        end;
 
+       TElfSymtabKind = (esk_obj,esk_exe,esk_dyn);
+
+       TElfSymtab = class(TElfObjSection)
+       public
+         kind: TElfSymtabKind;
+         fstrsec: TObjSection;
+         symidx: longint;
+         constructor create(aObjData:TObjData;aKind:TElfSymtabKind);reintroduce;
+         procedure writeSymbol(objsym:TObjSymbol);
+         procedure writeInternalSymbol(astridx:longint;ainfo:byte;ashndx:word);
+       end;
+
        TElfObjData = class(TObjData)
        public
          constructor create(const n:string);override;
@@ -60,21 +72,12 @@ interface
 
        TElfObjectOutput = class(tObjOutput)
        private
-         symtabsect,
-         strtabsect,
+         symtabsect: TElfSymtab;
          shstrtabsect: TElfObjSection;
-         {gotpcsect,
-         gotoffsect,
-         goTSect,
-         plTSect,
-         symsect   : TElfObjSection;}
-         symidx,
-         localsyms : longint;
          procedure createrelocsection(s:TElfObjSection;data:TObjData);
          procedure createshstrtab(data:TObjData);
          procedure createsymtab(data: TObjData);
          procedure writesectionheader(s:TElfObjSection);
-         procedure write_internal_symbol(astridx:longint;ainfo:byte;ashndx:word);
          procedure section_write_symbol(p:TObject;arg:pointer);
          procedure section_write_sh_string(p:TObject;arg:pointer);
          procedure section_count_sections(p:TObject;arg:pointer);
@@ -929,6 +932,108 @@ implementation
 
 
 {****************************************************************************
+                            TElfSymtab
+****************************************************************************}
+
+    const
+      symsecnames: array[boolean] of string[8] = ('.symtab','.dynsym');
+      strsecnames: array[boolean] of string[8] = ('.strtab','.dynstr');
+      symsectypes: array[boolean] of longint   = (SHT_SYMTAB,SHT_DYNSYM);
+      symsecattrs: array[boolean] of longint   = (0,SHF_ALLOC);
+
+
+    constructor TElfSymtab.create(aObjData:TObjData;aKind:TElfSymtabKind);
+      var
+        dyn:boolean;
+      begin
+        dyn:=(aKind=esk_dyn);
+        create_ext(aObjData,symsecnames[dyn],symsectypes[dyn],symsecattrs[dyn],0,0,sizeof(pint),sizeof(TElfSymbol));
+        fstrsec:=TElfObjSection.create_ext(aObjData,strsecnames[dyn],SHT_STRTAB,symsecattrs[dyn],0,0,1,0);
+        fstrsec.writestr(#0);
+        writezeros(sizeof(TElfSymbol));
+        symidx:=1;
+        shinfo:=1;
+        kind:=aKind;
+      end;
+
+    procedure TElfSymtab.writeInternalSymbol(astridx:longint;ainfo:byte;ashndx:word);
+      var
+        elfsym:TElfSymbol;
+      begin
+        fillchar(elfsym,sizeof(elfsym),0);
+        elfsym.st_name:=astridx;
+        elfsym.st_info:=ainfo;
+        elfsym.st_shndx:=ashndx;
+        inc(symidx);
+        inc(shinfo);
+        MaybeSwapElfSymbol(elfsym);
+        write(elfsym,sizeof(elfsym));
+      end;
+
+    procedure TElfSymtab.writeSymbol(objsym:TObjSymbol);
+      var
+        elfsym:TElfSymbol;
+      begin
+        fillchar(elfsym,sizeof(elfsym),0);
+        { symbolname, write the #0 separate to overcome 255+1 char not possible }
+        elfsym.st_name:=fstrsec.writestr(objsym.name);
+        fstrsec.writestr(#0);
+        elfsym.st_size:=objsym.size;
+        case objsym.bind of
+          AB_LOCAL :
+            begin
+              elfsym.st_value:=objsym.address;
+              elfsym.st_info:=STB_LOCAL shl 4;
+              inc(shinfo);
+            end;
+          AB_COMMON :
+            begin
+              elfsym.st_value:=$10;            { ?? should not be hardcoded }
+              elfsym.st_info:=STB_GLOBAL shl 4;
+              elfsym.st_shndx:=SHN_COMMON;
+            end;
+          AB_EXTERNAL :
+            elfsym.st_info:=STB_GLOBAL shl 4;
+          AB_WEAK_EXTERNAL :
+            elfsym.st_info:=STB_WEAK shl 4;
+          AB_GLOBAL :
+            begin
+              elfsym.st_value:=objsym.address;
+              elfsym.st_info:=STB_GLOBAL shl 4;
+            end;
+        end;
+        if (objsym.bind<>AB_EXTERNAL) {and
+           not(assigned(objsym.objsection) and
+           not(oso_data in objsym.objsection.secoptions))} then
+          begin
+            case objsym.typ of
+              AT_FUNCTION :
+                elfsym.st_info:=elfsym.st_info or STT_FUNC;
+              AT_DATA :
+                elfsym.st_info:=elfsym.st_info or STT_OBJECT;
+            end;
+          end;
+        if objsym.bind<>AB_COMMON then
+          begin
+            if kind<>esk_obj then
+              begin
+                { TODO }
+              end
+            else
+              begin
+                if assigned(objsym.objsection) then
+                  elfsym.st_shndx:=TElfObjSection(objsym.objsection).secshidx
+                else
+                  elfsym.st_shndx:=SHN_UNDEF;
+                objsym.symidx:=symidx;
+              end;
+          end;
+        inc(symidx);
+        MaybeSwapElfSymbol(elfsym);
+        write(elfsym,sizeof(TElfSymbol));
+      end;
+
+{****************************************************************************
                             TElfObjectOutput
 ****************************************************************************}
 
@@ -1080,100 +1185,26 @@ implementation
       end;
 
 
-    procedure TElfObjectOutput.write_internal_symbol(astridx:longint;ainfo:byte;ashndx:word);
-      var
-        elfsym : telfsymbol;
-      begin
-        fillchar(elfsym,sizeof(elfsym),0);
-        elfsym.st_name:=astridx;
-        elfsym.st_info:=ainfo;
-        elfsym.st_shndx:=ashndx;
-        inc(symidx);
-        inc(localsyms);
-        MaybeSwapElfSymbol(elfsym);
-        symtabsect.write(elfsym,sizeof(elfsym));
-      end;
-
-
     procedure TElfObjectOutput.section_write_symbol(p:TObject;arg:pointer);
       begin
-        TObjSection(p).secsymidx:=symidx;
-        write_internal_symbol(0,STT_SECTION,TElfObjSection(p).secshidx);
+        { Must not write symbols for internal sections like .symtab }
+        { TODO: maybe use inclusive list of section types instead }
+        if (TElfObjSection(p).shtype in [SHT_SYMTAB,SHT_STRTAB,SHT_REL,SHT_RELA]) then
+          exit;
+        TObjSection(p).secsymidx:=symtabsect.symidx;
+        symtabsect.writeInternalSymbol(0,STT_SECTION,TElfObjSection(p).secshidx);
       end;
 
 
     procedure TElfObjectOutput.createsymtab(data: TObjData);
-
-        procedure WriteSym(objsym:TObjSymbol);
-        var
-          elfsym : telfsymbol;
-        begin
-          fillchar(elfsym,sizeof(elfsym),0);
-          { symbolname, write the #0 separate to overcome 255+1 char not possible }
-          elfsym.st_name:=strtabsect.Size;
-          strtabsect.writestr(objsym.name);
-          strtabsect.writestr(#0);
-          elfsym.st_size:=objsym.size;
-          case objsym.bind of
-            AB_LOCAL :
-              begin
-                elfsym.st_value:=objsym.address;
-                elfsym.st_info:=STB_LOCAL shl 4;
-                inc(localsyms);
-              end;
-            AB_COMMON :
-              begin
-                elfsym.st_value:=$10;
-                elfsym.st_info:=STB_GLOBAL shl 4;
-              end;
-            AB_EXTERNAL :
-              elfsym.st_info:=STB_GLOBAL shl 4;
-            AB_WEAK_EXTERNAL :
-              elfsym.st_info:=STB_WEAK shl 4;
-            AB_GLOBAL :
-              begin
-                elfsym.st_value:=objsym.address;
-                elfsym.st_info:=STB_GLOBAL shl 4;
-              end;
-          end;
-          if (objsym.bind<>AB_EXTERNAL) {and
-              not(assigned(objsym.objsection) and
-              not(oso_data in objsym.objsection.secoptions))} then
-            begin
-              case objsym.typ of
-                AT_FUNCTION :
-                  elfsym.st_info:=elfsym.st_info or STT_FUNC;
-                AT_DATA :
-                  elfsym.st_info:=elfsym.st_info or STT_OBJECT;
-              end;
-            end;
-          if objsym.bind=AB_COMMON then
-            elfsym.st_shndx:=SHN_COMMON
-          else
-            begin
-              if assigned(objsym.objsection) then
-                elfsym.st_shndx:=TElfObjSection(objsym.objsection).secshidx
-              else
-                elfsym.st_shndx:=SHN_UNDEF;
-            end;
-          objsym.symidx:=symidx;
-          inc(symidx);
-          MaybeSwapElfSymbol(elfsym);
-          symtabsect.write(elfsym,sizeof(elfsym));
-        end;
-
       var
         i      : longint;
         objsym : TObjSymbol;
       begin
         with data do
          begin
-           symidx:=0;
-           localsyms:=0;
-           { empty entry }
-           write_internal_symbol(0,0,0);
            { filename entry }
-           write_internal_symbol(1,STT_FILE,SHN_ABS);
+           symtabsect.writeInternalSymbol(1,STT_FILE,SHN_ABS);
            { section }
            ObjSectionList.ForEachCall(@section_write_symbol,nil);
            { First the Local Symbols, this is required by ELF. The localsyms
@@ -1183,18 +1214,17 @@ implementation
              begin
                objsym:=TObjSymbol(ObjSymbolList[i]);
                if (objsym.bind=AB_LOCAL) and (objsym.typ<>AT_LABEL) then
-                 WriteSym(objsym);
+                 symtabsect.WriteSymbol(objsym);
              end;
            { Global Symbols }
            for i:=0 to ObjSymbolList.Count-1 do
              begin
                objsym:=TObjSymbol(ObjSymbolList[i]);
                if (objsym.bind<>AB_LOCAL) then
-                 WriteSym(objsym);
+                 symtabsect.WriteSymbol(objsym);
              end;
            { update the .symtab section header }
-           symtabsect.shlink:=strtabsect.secshidx;
-           symtabsect.shinfo:=localsyms;
+           symtabsect.shlink:=TElfObjSection(symtabsect.fstrsec).secshidx;
          end;
       end;
 
@@ -1265,16 +1295,15 @@ implementation
         with data do
          begin
            { default sections }
-           symtabsect:=TElfObjSection.create_ext(data,'.symtab',SHT_SYMTAB,0,0,0,4,sizeof(telfsymbol));
-           strtabsect:=TElfObjSection.create_ext(data,'.strtab',SHT_STRTAB,0,0,0,1,0);
+           symtabsect:=TElfSymtab.create(data,esk_obj);
            shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,0,0,1,0);
            { "no executable stack" marker for Linux }
            if (target_info.system in systems_linux) and
               not(cs_executable_stack in current_settings.moduleswitches) then
              TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,0,0,1,0);
-           { insert the empty and filename as first in strtab }
-           strtabsect.writestr(#0);
-           strtabsect.writestr(ExtractFileName(current_module.mainsource)+#0);
+           { insert filename as first in strtab }
+           symtabsect.fstrsec.writestr(ExtractFileName(current_module.mainsource));
+           symtabsect.fstrsec.writestr(#0);
            { calc amount of sections we have }
            nsections:=1;
            { also create the index in the section header table }
