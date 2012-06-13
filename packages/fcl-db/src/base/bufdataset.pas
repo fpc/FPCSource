@@ -1132,11 +1132,17 @@ begin
   // reading from a stream in some other way implemented by a descendent)
   // If there are less fields then FieldDefs we know for sure that the dataset
   // is not (correctly) created.
-  if Fields.Count<FieldDefs.Count then
-    DatabaseError(SErrNoDataset);
+  
+  // commented for now. If there are constant expressions in the select
+  // statement they are ftunknown, and not created.
+  // See mantis #22030
+  
+  //  if Fields.Count<FieldDefs.Count then
+  //    DatabaseError(SErrNoDataset);
+  
   // If there is a field with FieldNo=0 then the fields are not found to the
   // FieldDefs which is a sign that there is no dataset created. (Calculated and
-  // lookupfields have FielNo=-1)
+  // lookupfields have FieldNo=-1)
   for i := 0 to Fields.Count-1 do
     if fields[i].FieldNo=0 then
       DatabaseError(SErrNoDataset);
