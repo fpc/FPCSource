@@ -163,9 +163,9 @@ begin
         new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(8));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
 
-        { I got this constant from a test program (FK) }
+        { add double number 4294967296.0 = (1ull^32) = 0x41f00000,00000000 in little endian hex}
         current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($0000f041));
+        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($41f00000));
 
         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F64, OS_F64, href, hregister);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD_D, location.Register, hregister, location.Register));
