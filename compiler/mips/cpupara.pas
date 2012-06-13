@@ -220,27 +220,27 @@ implementation
         else
          { Return in register }
           begin
-{$ifndef cpu64bit}
+{$ifndef cpu64bitaddr}
             if retcgsize in [OS_64,OS_S64] then
              begin
-               { high }
-               paraloc^.loc:=LOC_REGISTER;
-               if side=callerside then
-                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
-               else
-                 paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
-               paraloc^.size:=OS_32;
                { low }
-               paraloc:=result.add_location;
                paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
                  paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
                else
                  paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
                paraloc^.size:=OS_32;
+               { high }
+               paraloc:=result.add_location;
+               paraloc^.loc:=LOC_REGISTER;
+               if side=callerside then
+                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
+               else
+                 paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
+               paraloc^.size:=OS_32;
              end
             else
-{$endif cpu64bit}
+{$endif cpu64bitaddr}
              begin
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.size:=retcgsize;
