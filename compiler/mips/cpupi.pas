@@ -69,9 +69,9 @@ implementation
             register_used[i]:=false;
             register_offset[i]:=-1;
           end;
+        floatregssave:=12; { f20-f31 }
+        intregssave:=12;   { r16-r23,r28-r31 }
 
-        floatregssave:=11;
-        intregssave:=10;
         computed_local_size:=-1;
       end;
 
