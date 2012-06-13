@@ -138,8 +138,11 @@ const
 {$ifdef arm}       platform_select='';{$endif} {unknown :( }
 {$ifdef m68k}      platform_select='';{$endif} {unknown :( }
 {$ifdef mips}
-  {$ifdef mipsel}  platform_select='-EL';{$else}
-                   platform_select='-EB';{$endif}
+  {$ifdef mipsel}  
+	           platform_select='-EL';
+  {$else}
+                   platform_select='-EB';
+  {$endif}
 {$endif}
 
 
@@ -1182,10 +1185,10 @@ initialization
   RegisterExport(system_mipsel_linux,texportliblinux);
   RegisterTarget(system_mipsel_linux_info);
 {$else MIPS}
-  RegisterExternalLinker(system_mips_linux_info,TLinkerLinux);
-  RegisterImport(system_mips_linux,timportliblinux);
-  RegisterExport(system_mips_linux,texportliblinux);
-  RegisterTarget(system_mips_linux_info);
+  RegisterExternalLinker(system_mipseb_linux_info,TLinkerLinux);
+  RegisterImport(system_mipseb_linux,timportliblinux);
+  RegisterExport(system_mipseb_linux,texportliblinux);
+  RegisterTarget(system_mipseb_linux_info);
 {$endif MIPSEL}
 {$endif MIPS}
   RegisterRes(res_elf_info,TWinLikeResourceFile);

@@ -1177,7 +1177,7 @@ implementation
                   else
                     AsmWriteln(tai_symbol(hp).sym.name);
                 end;
-               if target_info.system in [system_mipsel_linux,system_mips_linux] then
+               if target_info.system in [system_mipsel_linux,system_mipseb_linux] then
                 begin
                   AsmWrite(#9'.ent'#9);
                   if replaceforbidden then

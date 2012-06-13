@@ -2765,7 +2765,7 @@ begin
 
 { these cpus have an inline sar implementaion }
 { currently, all supported CPUs have an internal sar implementation }
-{ $if defined(x86) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(sparc) or defined(mips) or defined(mipsel)}
+{ $if defined(x86) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(sparc) or defined(mips)}
   def_system_macro('FPC_HAS_INTERNAL_SAR');
 { $endif}
 
@@ -2882,33 +2882,31 @@ begin
 {$endif jvm}
 
 {$ifdef mipsel}
-
-// HIGHLY TENTATIVE, from David Zhang's options.pas. MarkMLl.
-  //def_system_macro('CPUMIPS');
-  //def_system_macro('CPUMIPS32');
+  def_system_macro('CPUMIPS');
+  def_system_macro('CPUMIPS32');
   def_system_macro('CPUMIPSEL');
   def_system_macro('CPUMIPSEL32');
   def_system_macro('CPU32');
-//  def_system_macro('FPC_HAS_TYPE_DOUBLE');
-//  def_system_macro('FPC_HAS_TYPE_SINGLE');
-//  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-//  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
-{$else not mipsel}
-{$ifdef mips}
+  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+{$endif mipsel}
 
-// HIGHLY TENTATIVE, from David Zhang's options.pas. MarkMLl.
+{$ifdef mipseb}
   def_system_macro('CPUMIPS');
   def_system_macro('CPUMIPS32');
+  def_system_macro('CPUMIPSEB');
+  def_system_macro('CPUMIPSEB32');
   def_system_macro('CPU32');
-//  def_system_macro('FPC_HAS_TYPE_DOUBLE');
-//  def_system_macro('FPC_HAS_TYPE_SINGLE');
-//  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-//  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
-{$endif}
+  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif}
 
   { read configuration file }

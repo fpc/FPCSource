@@ -217,7 +217,7 @@ interface
        systems_wince = [system_arm_wince,system_i386_wince];
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
-                       system_x86_6432_linux,system_mips_linux,system_mipsel_linux];
+                       system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux];
        systems_freebsd = [system_i386_freebsd,
                           system_x86_64_freebsd];
        systems_netbsd  = [system_i386_netbsd,
@@ -357,7 +357,7 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm');
+             'mipseb','arm', 'powerpc64', 'avr', 'mipsel','jvm');
 
        abi2str : array[tabi] of string[10] =
          ('DEFAULT','SYSV','AIX','EABI','ARMEB','EABIHF');
@@ -921,7 +921,7 @@ begin
 {$ifdef mipsel}
   default_target(system_mipsel_linux);
 {$else mipsel}
-  default_target(system_mips_linux);
+  default_target(system_mipseb_linux);
 {$endif mipsel}
 {$endif mips}
 

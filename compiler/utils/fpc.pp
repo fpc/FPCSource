@@ -201,8 +201,8 @@ program fpc;
                              cpusuffix:='386'
                            else if processorstr='m68k' then
                              cpusuffix:='68k'
-                           else if processorstr='mips' then
-                             cpusuffix:='mips'
+                           else if processorstr='mipseb' then
+                             cpusuffix:='mipseb'
                            else if processorstr='mipsel' then
                              cpusuffix:='mipsel'
                            else if processorstr='powerpc' then

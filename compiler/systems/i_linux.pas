@@ -792,15 +792,15 @@ unit i_linux;
 {$endif FPC_ARMEL}
 {$endif FPC_ARMHF}
 
-       system_mips_linux_info : tsysteminfo =
+       system_mipseb_linux_info : tsysteminfo =
           (
-            system       : system_mips_LINUX;
-            name         : 'Linux for MIPS';
+            system       : system_mipseb_LINUX;
+            name         : 'Linux for MIPSEB';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
-            cpu          : cpu_mips;
+            cpu          : cpu_mipseb;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX;CPUMIPS32';
             exeext       : '';
@@ -968,7 +968,7 @@ initialization
 {$endif CPUARM}
 {$ifdef CPUMIPS}
   {$ifdef linux}
-    set_source_info(system_mips_linux_info);
+    set_source_info(system_mipseb_linux_info);
   {$endif linux}
 {$endif CPUMIPS}
 {$ifdef CPUMIPSEL}

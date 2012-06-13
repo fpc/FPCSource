@@ -67,7 +67,7 @@ const
     {  6 } 'vis',
     {  7 } 'ia64',
     {  8 } 'x86_64',
-    {  9 } 'mips',
+    {  9 } 'mipseb',
     { 10 } 'arm',
     { 11 } 'powerpc64',
     { 12 } 'avr',

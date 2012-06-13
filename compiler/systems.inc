@@ -43,7 +43,7 @@
              cpu_vm,                       { 6 }
              cpu_iA64,                     { 7 }
              cpu_x86_64,                   { 8 }
-             cpu_mips,                     { 9 }
+             cpu_mipseb,                   { 9 }
              cpu_arm,                      { 10 }
              cpu_powerpc64,                { 11 }
              cpu_avr,                      { 12 }
@@ -143,7 +143,7 @@
              system_i386_haiku,         { 63 }
              system_arm_darwin,         { 64 }
              system_x86_64_solaris,     { 65 }
-             system_mips_linux,         { 66 }
+             system_mipseb_linux,       { 66 }
              system_mipsel_linux,       { 67 }
              system_i386_nativent,      { 68 }
              system_i386_iphonesim,     { 69 }

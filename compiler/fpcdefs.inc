@@ -171,6 +171,9 @@
 {$ifdef mipsel}
   {$define mips}
 {$endif mipsel}
+{$ifdef mipseb}
+  {$define mips}
+{$endif mipseb}
 
 {$ifdef mips}
   {$define cpu32bit}

@@ -296,7 +296,7 @@ unit cpugas;
         idtxt: 'AS';
         asmbin: 'as';
         asmcmd: '-mips2 -W -EB -o $OBJ $ASM';
-        supported_targets: [system_mips_linux];
+        supported_targets: [system_mipseb_linux];
         flags: [af_allowdirect, af_needar, af_smartlink_sections];
         labelprefix: '.L';
         comment: '# ';
@@ -307,6 +307,6 @@ begin
 {$ifdef MIPSEL}
   RegisterAssembler(as_MIPSEL_as_info, TMIPSGNUAssembler);
 {$else MIPSEL}
-  RegisterAssembler(as_MIPS_as_info, TMIPSGNUAssembler);
+  RegisterAssembler(as_MIPSEB_as_info, TMIPSGNUAssembler);
 {$endif MIPSEL}
 end.

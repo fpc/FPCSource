@@ -71,9 +71,9 @@ interface
 {$ifdef cpuarm}
         source_cpu_string = 'arm';
 {$endif cpuarm}
-{$ifdef cpumips}
-        source_cpu_string = 'mips';
-{$endif cpumips}
+{$ifdef cpumipseb}
+        source_cpu_string = 'mipseb';
+{$endif cpumipseb}
 {$ifdef cpumipsel}
         source_cpu_string = 'mipsel';
 {$endif cpumipsel}
