@@ -183,7 +183,7 @@ interface
           procedure tokenwriteset(var b;size : longint);
           procedure tokenwriteenum(var b;size : longint);
           function  tokenreadsizeint : sizeint;
-          procedure tokenwritesettings(var asettings : tsettings; var size : longint);
+          procedure tokenwritesettings(var asettings : tsettings; var size : sizeint);
           { longword/longint are 32 bits on all targets }
           { word/smallint are 16-bits on all targest }
           function  tokenreadlongword : longword;
@@ -2374,7 +2374,7 @@ In case not, the value returned can be arbitrary.
          end;
      end;
 
-    procedure tscannerfile.tokenwritesettings(var asettings : tsettings; var size : longint);
+    procedure tscannerfile.tokenwritesettings(var asettings : tsettings; var size : sizeint);
 
     {    This procedure
        needs to be changed whenever
