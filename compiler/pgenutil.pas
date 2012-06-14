@@ -29,12 +29,15 @@ interface
 uses
   { common }
   cclasses,
+  { global }
+  globtype,
   { symtable }
   symtype,symdef,symbase;
 
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string);
     function parse_generic_parameters:TFPObjectList;
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
+    procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfpobjectlist);
 
     type
       tspecializationstate = record
@@ -51,7 +54,7 @@ uses
   { common }
   cutils,fpccrc,
   { global }
-  globals,globtype,tokens,verbose,
+  globals,tokens,verbose,
   { symtable }
   symconst,symsym,symtable,
   { modules }
@@ -257,7 +260,8 @@ uses
           genname:=symname;
         { in case of non-Delphi mode the type name could already be a generic
           def (but maybe the wrong one) }
-        if assigned(genericdef) and (df_generic in genericdef.defoptions) then
+        if assigned(genericdef) and
+            ([df_generic,df_specialization]*genericdef.defoptions<>[]) then
           begin
             { remove the type count suffix from the generic's name }
             for i:=Length(genname) downto 1 do
@@ -266,6 +270,15 @@ uses
                   genname:=copy(genname,1,i-1);
                   break;
                 end;
+            { in case of a specialization we've only reached the specialization
+              checksum yet }
+            if df_specialization in genericdef.defoptions then
+              for i:=length(genname) downto 1 do
+                if genname[i]='$' then
+                  begin
+                    genname:=copy(genname,1,i-1);
+                    break;
+                  end;
           end;
         genname:=genname+'$'+countstr;
         ugenname:=upper(genname);
@@ -586,6 +599,40 @@ uses
             st.insert(generictype);
           end;
        end;
+
+    procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfpobjectlist);
+      var
+        gensym : ttypesym;
+      begin
+        { for generics in non-Delphi modes we insert a private type symbol
+          that has the same base name as the currently parsed generic and
+          that references this defs }
+        if not (m_delphi in current_settings.modeswitches) and
+            (
+              (
+                parse_generic and
+                assigned(genericlist) and
+                (genericlist.count>0)
+              ) or
+              (
+                assigned(current_specializedef) and
+                assigned(current_structdef.genericdef) and
+                (current_structdef.genericdef.typ in [objectdef,recorddef]) and
+                (pos('$',name)>0)
+              )
+            ) then
+          begin
+            { we need to pass nil as def here, because the constructor wants
+              to set the typesym of the def which is not what we want }
+            gensym:=ttypesym.create(copy(name,1,pos('$',name)-1),nil);
+            gensym.typedef:=current_structdef;
+            include(gensym.symoptions,sp_internal);
+            { the symbol should be only visible to the generic class
+              itself }
+            gensym.visibility:=vis_strictprivate;
+            symtablestack.top.insert(gensym);
+          end;
+      end;
 
     procedure specialization_init(genericdef:tdef;var state: tspecializationstate);
     var

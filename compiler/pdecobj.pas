@@ -1409,6 +1409,10 @@ implementation
               include(current_structdef.defoptions, df_generic);
             parse_generic:=(df_generic in current_structdef.defoptions);
 
+            { in non-Delphi modes we need a strict private symbol without type
+              count and type parameters in the name to simply resolving }
+            maybe_insert_generic_rename_symbol(n,genericlist);
+
             { parse list of parent classes }
             { for record helpers in mode Delphi this is not allowed }
             if not (is_objectpascal_helper(current_objectdef) and

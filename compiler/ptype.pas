@@ -775,6 +775,10 @@ implementation
          if old_parse_generic then
            include(current_structdef.defoptions, df_generic);
          parse_generic:=(df_generic in current_structdef.defoptions);
+         { in non-Delphi modes we need a strict private symbol without type
+           count and type parameters in the name to simply resolving }
+         maybe_insert_generic_rename_symbol(n,genericlist);
+
          if m_advanced_records in current_settings.modeswitches then
            begin
              parse_record_members;
