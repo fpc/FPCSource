@@ -966,11 +966,11 @@ initialization
     set_source_info(system_arm_linux_info);
   {$endif linux}
 {$endif CPUARM}
-{$ifdef CPUMIPS}
+{$ifdef CPUMIPSEB}
   {$ifdef linux}
     set_source_info(system_mipseb_linux_info);
   {$endif linux}
-{$endif CPUMIPS}
+{$endif CPUMIPSEB}
 {$ifdef CPUMIPSEL}
   {$ifdef linux}
     set_source_info(system_mipsel_linux_info);
