@@ -45,9 +45,9 @@ asm
   sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
-  jal   $8
+  jalr   $8
   nop
-  lw  $8,-4($fp)
+  lw  $8,temp
   sw  $8,0($2)
 .LFailed:
   li    $2,-1
@@ -86,7 +86,7 @@ asm
   sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
-  jal   $8
+  jalr   $8
   nop
   lw  $8,temp
   sw  $8,0($2)
@@ -124,7 +124,7 @@ asm
   sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
-  jal   $8
+  jalr   $8
   nop
   lw  $8,temp
   sw  $8,0($2)
@@ -163,7 +163,7 @@ asm
   sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
-  jal   $8
+  jalr   $8
   nop
   lw  $8,temp
   sw  $8,0($2)
@@ -203,7 +203,7 @@ asm
   sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
-  jal   $8
+  jalr   $8
   nop
   lw  $8,temp
   sw  $8,0($2)
@@ -225,8 +225,7 @@ asm
   move  $a0,$a1
   move  $a1,$a2
   move  $a2,$a3
-  //lw    $a3,16($sp)
-  move  $a3,$8 //register passing is wrong, hack for now
+  lw    $a3,param4
   syscall
   nop
   beq $7,$0,.LDone
@@ -245,7 +244,7 @@ asm
   sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
-  jal   $8
+  jalr   $8
   nop
   lw  $8,temp
   sw  $8,0($2)
@@ -267,9 +266,9 @@ asm
   move  $a0,$a1
   move  $a1,$a2
   move  $a2,$a3
-  move  $a3, $8
-
-  sw    $9, 16($sp)
+  lw	$a3,param4
+  lw    $t0,param5
+  sw    $t0,16($sp)
 
   syscall
   nop
@@ -289,7 +288,7 @@ asm
   sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
-  jal   $8
+  jalr   $8
   nop
   lw  $8,temp
   sw  $8,0($2)
@@ -308,17 +307,15 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TS
 var
   temp: longint;
 asm
-{ All params are already stored on stack at that point }
-  lw  $v0,sysnr
-  lw  $a0,param1
-  lw  $a1,param2
-  lw  $a2,param3
-  lw  $a3,param4
-
-  lw   $at,param5
-  sw   $at,16($sp)
-  lw    $at,param6
-  sw    $at,20($sp)
+  move  $v0,$a0
+  move  $a0,$a1
+  move  $a1,$a2
+  move  $a2,$a3
+  lw	$a3,param4
+  lw    $t0,param5
+  sw    $t0,16($sp)
+  lw    $t0,param6
+  sw    $t0,20($sp)
   syscall
   nop
   beq $7,$0,.LDone
@@ -337,7 +334,7 @@ asm
   sw   $2,temp
   lui   $4,%hi(errno)
   addiu   $4,$4,%lo(errno)
-  jal   $8
+  jalr   $8
   nop
   lw  $8,temp
   sw  $8,0($2)
