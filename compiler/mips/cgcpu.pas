@@ -590,31 +590,29 @@ end;
 
 procedure TCGMIPS.a_load_ref_cgpara(list: tasmlist; sz: TCgSize; const r: TReference; const paraloc: TCGPara);
 var
-  ref:    treference;
-  tmpreg: TRegister;
+  href, href2: treference;
+  hloc: pcgparalocation;
 begin
-  paraloc.check_simple_location;
-  paramanager.allocparaloc(list,paraloc.location);
-  with paraloc.location^ do
-  begin
-    case loc of
-      LOC_REGISTER, LOC_CREGISTER:
-        a_load_ref_reg(list, sz, sz, r, Register);
-      LOC_REFERENCE:
-      begin
-        with Reference do
-        begin
-          if (Index = NR_SP) and (Offset < 0) then
-            InternalError(2002081104);
-          reference_reset_base(ref, index, offset, sizeof(aint));
-        end;
-        tmpreg := GetIntRegister(list, OS_INT);
-        a_load_ref_reg(list, sz, sz, r, tmpreg);
-        a_load_reg_ref(list, sz, sz, tmpreg, ref);
-      end;
+  href := r;
+  hloc := paraloc.location;
+  while assigned(hloc) do
+   begin
+     paramanager.allocparaloc(list,hloc);
+     case hloc^.loc of
+       LOC_REGISTER,LOC_CREGISTER:
+         a_load_ref_reg(list, hloc^.size, hloc^.size, href, hloc^.Register);
+       LOC_FPUREGISTER,LOC_CFPUREGISTER :
+         a_loadfpu_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
+       LOC_REFERENCE:
+         begin
+           reference_reset_base(href2, hloc^.reference.index, hloc^.reference.offset, sizeof(aint));
+           a_load_ref_ref(list, hloc^.size, hloc^.size, href, href2);
+         end
       else
-        internalerror(2002081103);
-    end;
+        internalerror(200408241);
+     end;
+    Inc(href.offset, tcgsize2size[hloc^.size]);
+    hloc := hloc^.Next;
   end;
 end;
 
@@ -794,7 +792,7 @@ var
 begin
   if (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
     (
-    (tcgsize2size[tosize] = tcgsize2size[fromsize]) and (tosize <> fromsize) 
+    (tcgsize2size[tosize] = tcgsize2size[fromsize]) and (tosize <> fromsize)
     ) or  ((fromsize = OS_S8) and
              (tosize = OS_16)) then
   begin
@@ -1344,20 +1342,15 @@ var
   helplist : TAsmList;
 begin
   a_reg_alloc(list,NR_STACK_POINTER_REG);
-  // if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-    a_reg_alloc(list,NR_FRAME_POINTER_REG);
 
   if nostackframe then
     exit;
 
+  if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) then
+    a_reg_alloc(list,NR_FRAME_POINTER_REG);
+
   helplist:=TAsmList.Create;
   cgcpu_calc_stackframe_size := LocalSize;
-  { if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-    list.concat(Taicpu.Op_reg_const_reg(A_P_FRAME, NR_FRAME_POINTER_REG, LocalSize, NR_R31)); }
-  { if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-    list.concat(Taicpu.Op_reg_reg_const(A_P_SW, NR_FRAME_POINTER_REG, NR_STACK_POINTER_REG, -LocalSize));
-  }
-
 
   reference_reset(href,0);
   href.base:=NR_STACK_POINTER_REG;
@@ -1366,7 +1359,7 @@ begin
   fmask:=0;
   nextoffset:=TMIPSProcInfo(current_procinfo).floatregstart;
   lastfpuoffset:=LocalSize;
-  for reg := RS_F0 to RS_F30 do
+  for reg := RS_F0 to RS_F30 do { to check: what if F30 is double? }
     begin
       if reg in (rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall)) then
         begin
@@ -1384,7 +1377,7 @@ begin
   nextoffset:=TMIPSProcInfo(current_procinfo).intregstart;
   saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
   include(saveregs,RS_R31);
-  //if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+  if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) then
     include(saveregs,RS_FRAME_POINTER_REG);
   lastintoffset:=LocalSize;
   framesave:=nil;
@@ -1409,7 +1402,7 @@ begin
 
   //list.concat(Taicpu.Op_reg_reg_const(A_ADDIU,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG,current_procinfo.para_stack_size));
   list.concat(Taicpu.op_none(A_P_SET_NOMIPS16));
-  list.concat(Taicpu.op_reg_const_reg(A_P_FRAME,NR_STACK_POINTER_REG,LocalSize,NR_R31));
+  list.concat(Taicpu.op_reg_const_reg(A_P_FRAME,current_procinfo.framepointer,LocalSize,NR_R31));
   list.concat(Taicpu.op_const_const(A_P_MASK,mask,-(LocalSize-lastintoffset)));
   list.concat(Taicpu.op_const_const(A_P_FMASK,Fmask,-(LocalSize-lastfpuoffset)));
   list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
@@ -1417,9 +1410,9 @@ begin
 
   if (-LocalSize >= simm16lo) and (-LocalSize <= simm16hi) then
     begin
-      list.concat(Taicpu.Op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-LocalSize));
+      list.concat(Taicpu.Op_reg_reg_const(A_ADDIU,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-LocalSize));
       list.concat(ra_save);
-      //if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+      if assigned(framesave) then
         begin
           list.concat(framesave);
           list.concat(Taicpu.op_reg_reg_const(A_ADDIU,NR_FRAME_POINTER_REG,
@@ -1431,7 +1424,7 @@ begin
       list.concat(Taicpu.Op_reg_const(A_LI,NR_R1,-LocalSize));
       list.concat(Taicpu.Op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R1));
       list.concat(ra_save);
-      //if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+      if assigned(framesave) then
         begin
           list.concat(framesave);
           list.concat(Taicpu.op_reg_reg_reg(A_SUB,NR_FRAME_POINTER_REG,
@@ -1448,7 +1441,7 @@ begin
       for i:=0 to MIPS_MAX_REGISTERS_USED_IN_CALL-1 do
         if (register_used[i]) then
           begin
-            reg:=parainsupregs[i];
+            reg:=parasupregs[i];
             if register_offset[i]=-1 then
               comment(V_warning,'Register parameter has offset -1 in TCGMIPS.g_proc_entry');
 
@@ -1505,7 +1498,7 @@ begin
        nextoffset:=TMIPSProcInfo(current_procinfo).intregstart;
        saveregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
        include(saveregs,RS_R31);
-       //if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+       if (TMIPSProcinfo(current_procinfo).needs_frame_pointer) then
          include(saveregs,RS_FRAME_POINTER_REG);
        for reg:=RS_R1 to RS_R31 do
          begin
