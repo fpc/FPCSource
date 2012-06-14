@@ -1382,6 +1382,7 @@ implementation
                 not (current_procinfo.procdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
                 (not assigned(current_procinfo.procdef.funcretsym) or
                  (tabstractvarsym(current_procinfo.procdef.funcretsym).refs<=1)) and
+                not (df_generic in current_procinfo.procdef.defoptions) and
                 not(paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
                begin
                  { Only need to set the framepointer, the locals will
@@ -1395,6 +1396,7 @@ implementation
           register.
         }
         if assigned(current_procinfo.procdef.funcretsym) and
+            not (df_generic in current_procinfo.procdef.defoptions) and
            (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
           tabstractvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_initialised;
 

@@ -51,6 +51,7 @@ implementation
       begin
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
            not is_void(pd.returndef) and
+           not (df_generic in pd.defoptions) and
            paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
          begin
            storepos:=current_tokenpos;
@@ -243,7 +244,11 @@ implementation
 
            { We need to insert a varsym for the result in the localst
              when it is returning in a register }
-           if not paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
+           { we also need to do this for a generic procdef as we didn't allow
+             the creation of a result symbol in insert_funcret_para, but we need
+             a valid funcretsym }
+           if (df_generic in pd.defoptions) or
+               not paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
             begin
               vs:=tlocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret]);
               pd.localst.insert(vs);
