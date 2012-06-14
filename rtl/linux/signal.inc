@@ -210,10 +210,20 @@ type
     sa_restorer: sigrestorerhandler_t;
   end;
 {$else}
+  {$ifdef cpumips}
+  sigactionrec = record
+    sa_flags: cuint;
+    sa_handler: sigactionhandler_t;
+    sa_mask: sigset_t;
+    sa_restorer: sigrestorerhandler_t; { Doesn't seem to exist on MIPS }
+    sa_resv :  array [0..0] of cint;
+  end;
+  {$else not mips}
   sigactionrec = record
     sa_handler: sigactionhandler_t;
     sa_flags: culong;
     sa_restorer: sigrestorerhandler_t;
     sa_mask: sigset_t;
   end;
+  {$endif not mips}
 {$endif}
