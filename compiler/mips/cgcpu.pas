@@ -1057,7 +1057,8 @@ var
 begin
   case Op of
     OP_NEG:
-      list.concat(taicpu.op_reg_reg(A_NEG, dst, src));
+      { discard overflow checking }
+      list.concat(taicpu.op_reg_reg(A_NEGU{A_NEG}, dst, src));
     OP_NOT:
     begin
       list.concat(taicpu.op_reg_reg(A_NOT, dst, src));
