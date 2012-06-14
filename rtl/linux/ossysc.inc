@@ -319,7 +319,14 @@ begin
     end;
   end;
 {$endif}
-  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(new_action),TSysParam(old_action),TSysParam(8));
+  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),
+                          TSysParam(new_action),TSysParam(old_action),
+  {$ifdef cpumips}
+                          TSysParam(16{should be wordsinsigset})
+  {$else not cpumips}
+                          TSysParam(8)
+  {$endif not cpumips}
+                          );
 {$endif cpusparc}
 end;
 
