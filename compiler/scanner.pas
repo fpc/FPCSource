@@ -2694,8 +2694,8 @@ In case not, the value returned can be arbitrary.
                     ST_LOADSETTINGS:
                       begin
                         copy_size:=tokenreadsizeint;
-                        if copy_size <> sizeof(current_settings)-sizeof(pointer) then
-                          internalerror(2011090501);
+                        //if copy_size <> sizeof(current_settings)-sizeof(pointer) then
+                        //  internalerror(2011090501);
                         {
                         replaytokenbuf.read(current_settings,copy_size);
                         }
