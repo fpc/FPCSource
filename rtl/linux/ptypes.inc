@@ -21,7 +21,7 @@
 
 { Introduced defines
     - fs32bit, should be on if libc only supports sizeof(off_t)=4
-               we assume one typically compiles C applications with 
+               we assume one typically compiles C applications with
                #define _FILE_OFFSET_BITS 64
 
 All three tested systems (PPC,Alpha,2x i386) gave the same POSIX limits,
@@ -119,7 +119,7 @@ Type
     pUid     = ^uid_t;
     TGid     = gid_t;
     pGid     = ^gid_t;
-    
+
     TIOCtlRequest = cInt;
 
 
@@ -177,7 +177,7 @@ Type
       0: (__wch: wint_t);
       1: (__wchb: array[0..3] of char);
   end;
-  
+
   mbstate_t = record
     __count: cint;
     __value: mbstate_value_t;
@@ -235,7 +235,7 @@ Type
 const
   pthreadrwlocksize =  {$ifdef CPU64} 56{$else}32{$endif};
 
-type 
+type
 
   pthread_rwlock_t = record // should be 56 for 64-bit, 32 bytes for 32-bit mantis #21552
 			case boolean of
@@ -278,7 +278,11 @@ CONST
 {$ifdef FPC_USE_LIBC}
    SIG_MAXSIG      = 1024;      // highest signal version
 {$else}
+  {$ifdef cpumips}
+   SIG_MAXSIG      = 1024;      // highest signal version
+  {$else not cupmips}
    SIG_MAXSIG      = 128;       // highest signal version
+  {$endif not cpumips}
 {$endif}
 
  { For getting/setting priority }
