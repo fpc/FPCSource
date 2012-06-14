@@ -2297,12 +2297,12 @@ In case not, the value returned can be arbitrary.
 
    procedure tscannerfile.tokenwriteenum(var b;size : longint);
    begin
-     replaytokenbuf.write(b,size);
+     recordtokenbuf.write(b,size);
    end;
 
    procedure tscannerfile.tokenwriteset(var b;size : longint);
    begin
-     replaytokenbuf.write(b,size);
+     recordtokenbuf.write(b,size);
    end;
 
 
@@ -2387,10 +2387,10 @@ In case not, the value returned can be arbitrary.
       begin
         { WARNING all those fields need to be in the correct
         order otherwise cross_endian PPU reading will fail }
-        sizepos:=replaytokenbuf.pos;
+        sizepos:=recordtokenbuf.pos;
         size:=0;
         tokenwritesizeint(size);
-        startpos:=replaytokenbuf.pos;
+        startpos:=recordtokenbuf.pos;
         with asettings do
           begin
             tokenwritelongint(alignment.procalign);
@@ -2433,15 +2433,15 @@ In case not, the value returned can be arbitrary.
 
             tokenwriteenum(minfpconstprec,sizeof(tfloattype));
 
-            replaytokenbuf.write(byte(disabledircache),1);
+            recordtokenbuf.write(byte(disabledircache),1);
 {$if defined(ARM) or defined(AVR)}
             tokenwriteenum(controllertype,sizeof(tcontrollertype));
 {$endif defined(ARM) or defined(AVR)}
-           endpos:=replaytokenbuf.pos;
+           endpos:=recordtokenbuf.pos;
            size:=endpos-startpos;
-           replaytokenbuf.seek(sizepos);
+           recordtokenbuf.seek(sizepos);
            tokenwritesizeint(size);
-           replaytokenbuf.seek(endpos);
+           recordtokenbuf.seek(endpos);
          end;
      end;
 
@@ -2468,7 +2468,7 @@ In case not, the value returned can be arbitrary.
             writetoken(t);
             recordtokenbuf.write(s,1);
             copy_size:=sizeof(current_settings)-sizeof(pointer);
-            recordtokenbuf.write(current_settings,copy_size);
+            tokenwritesettings(current_settings,copy_size);
             last_settings:=current_settings;
           end;
 
