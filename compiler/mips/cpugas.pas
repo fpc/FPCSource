@@ -236,7 +236,7 @@ unit cpugas;
 { bug if $f9/$f19
               tmpfpu_len := length(tmpfpu);
               tmpfpu[tmpfpu_len] := succ(tmpfpu[tmpfpu_len]);
-              
+
 }
               r := taicpu(hp).oper[0]^.reg;
               setsupreg(r, getsupreg(r) + 1);
@@ -250,7 +250,7 @@ unit cpugas;
               s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
               owner.AsmWriteLn(s);
 
-{ 
+{
               tmpfpu_len := length(tmpfpu);
               tmpfpu[tmpfpu_len] := succ(tmpfpu[tmpfpu_len]);
 }
@@ -290,7 +290,7 @@ unit cpugas;
         comment: '# ';
         dollarsign: '$';
         );
-      as_MIPS_as_info: tasminfo =
+      as_MIPSEB_as_info: tasminfo =
         (
         id: as_gas;
         idtxt: 'AS';
