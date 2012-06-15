@@ -1371,7 +1371,7 @@ unit rgobj;
           n:=coalescednodes.buf^[i-1];
           k:=get_alias(n);
           reginfo[n].colour:=reginfo[k].colour;
-          if reginfo[k].colour<maxcpuregister then
+          if reginfo[k].colour<first_imaginary then
             include(used_in_proc,reginfo[k].colour);
         end;
     end;
@@ -1567,6 +1567,7 @@ unit rgobj;
         p:=headertai;
         while assigned(p) do
           begin
+            prefetch(pointer(p.next)^);
             if p.typ=ait_regalloc then
               with Tai_regalloc(p) do
                 begin
@@ -1632,6 +1633,7 @@ unit rgobj;
         p:=Tai(list.first);
         while assigned(p) do
           begin
+            prefetch(pointer(p.next)^);
             case p.typ of
               ait_regalloc:
                 with Tai_regalloc(p) do
