@@ -50,7 +50,7 @@ unit cpupi;
        aasmtai,aasmdata,
        tgobj,
        symconst,symsym,paramgr,
-       cgbase,
+       cgbase,cgutils,
        cgobj;
 
     procedure tarmprocinfo.set_first_temp_offset;

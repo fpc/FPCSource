@@ -32,7 +32,17 @@ unit cgutils;
       aasmbase,
       cpubase,cgbase;
 
+    const
+      { implementation of max function using only functionality that can be
+        evaluated as a constant expression by the compiler -- this is
+        basically maxcpureg = max(max(first_int_imreg,first_fpu_imreg),first_mm_imreg)-1 }
+      tmpmaxcpufpuintreg = first_int_imreg + ((first_fpu_imreg - first_int_imreg) * ord(first_int_imreg < first_fpu_imreg));
+      maxcpuregister = (tmpmaxcpufpuintreg + ((first_mm_imreg - tmpmaxcpufpuintreg) * ord(tmpmaxcpufpuintreg < first_mm_imreg)))-1;
+
     type
+      { Set type definition for cpuregisters }
+      tcpuregisterset = set of 0..maxcpuregister;
+
 {$ifdef jvm}
       tarrayreftype = (art_none,art_indexreg,art_indexref,art_indexconst);
 {$endif jvm}

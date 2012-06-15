@@ -57,7 +57,7 @@ implementation
 
     uses
       systems,globals,verbose,
-      cpubase,cgbase,cgobj,
+      cpubase,cgbase,cgutils,cgobj,
       tgobj,paramgr,symconst;
 
     constructor TMIPSProcInfo.create(aparent: tprocinfo);

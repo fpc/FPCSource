@@ -28,7 +28,7 @@ interface
       cclasses,
       aasmtai,
       cpubase,cpuinfo,
-      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase;
+      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase,cgutils;
 
     const
       MIPS_MAX_OFFSET = 20;
@@ -92,7 +92,7 @@ implementation
     uses
       cutils,verbose,systems,
       defutil, cpupi, procinfo,
-      cgutils,cgobj;
+      cgobj;
 
 
 

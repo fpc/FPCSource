@@ -99,7 +99,7 @@ Implementation
        systems,
        { aasm }
        cpuinfo,aasmtai,aasmdata,aasmcpu,
-       cgbase,
+       cgbase,cgutils,
        { symtable }
        symbase,symtype,symsym,symdef,symtable,
        { pass 1 }

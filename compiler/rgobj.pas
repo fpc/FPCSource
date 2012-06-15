@@ -191,7 +191,7 @@ unit rgobj;
         {# Highest register allocated until now.}
         reginfo           : PReginfo;
         usable_registers_cnt : word;
-        usable_registers  : array[0..maxcpuregister-1] of tsuperregister;
+        usable_registers  : array[0..maxcpuregister] of tsuperregister;
         ibitmap           : Tinterferencebitmap;
         spillednodes,
         simplifyworklist,
