@@ -1038,8 +1038,11 @@ implementation
                         begin
                           currsym:=objdata.symbolref(ref^.symbol);
                           l:=ref^.offset;
+{$push}
+{$r-}
                           if assigned(currsym) then
                             inc(l,currsym.address);
+{$pop}
                           { when it is a forward jump we need to compensate the
                             offset of the instruction since the previous time,
                             because the symbol address is then still using the
@@ -2212,8 +2215,11 @@ implementation
               begin
                 getvalsym(c-40);
                 data:=currval-insend;
+{$push}
+{$r-}
                 if assigned(currsym) then
                  inc(data,currsym.address);
+{$pop}
                 if (data>127) or (data<-128) then
                  Message1(asmw_e_short_jmp_out_of_range,tostr(data));
                 objdata.writebytes(data,1);
