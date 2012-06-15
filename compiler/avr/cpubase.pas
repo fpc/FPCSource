@@ -101,11 +101,11 @@ unit cpubase;
 
       { Float Super register first and last }
       first_fpu_supreg    = RS_INVALID;
-      first_fpu_imreg     = RS_INVALID;
+      first_fpu_imreg     = 0;
 
       { MM Super register first and last }
       first_mm_supreg    = RS_INVALID;
-      first_mm_imreg     = RS_INVALID;
+      first_mm_imreg     = 0;
 
       regnumber_count_bsstart = 32;
 

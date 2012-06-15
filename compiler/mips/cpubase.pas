@@ -244,7 +244,7 @@ unit cpubase;
         (RS_NO);
 
       { this is only for the generic code which is not used for this architecture }
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_NO);
+      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined

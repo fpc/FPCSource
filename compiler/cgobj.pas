@@ -2507,12 +2507,19 @@ implementation
 
                 for r:=low(saved_mm_registers) to high(saved_mm_registers) do
                   begin
-                    if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                    { the array has to be declared even if no MM registers are saved
+                      (such as with SSE on i386), and since 0-element arrays don't
+                      exist, they contain a single RS_INVALID element in that case
+                    }
+                    if saved_mm_registers[r]<>RS_INVALID then
                       begin
-                        a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),href,nil);
-                        inc(href.offset,tcgsize2size[OS_VECTOR]);
+                        if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                          begin
+                            a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBNONE),href,nil);
+                            inc(href.offset,tcgsize2size[OS_VECTOR]);
+                          end;
+                        include(rg[R_MMREGISTER].preserved_by_proc,saved_mm_registers[r]);
                       end;
-                    include(rg[R_MMREGISTER].preserved_by_proc,saved_mm_registers[r]);
                   end;
               end;
           end;
