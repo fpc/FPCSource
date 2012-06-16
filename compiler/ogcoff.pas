@@ -110,7 +110,7 @@ interface
          secidx   : longword;
          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
          procedure addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
-         procedure fixuprelocs;override;
+         procedure fixuprelocs(Exe:TExeOutput);override;
        end;
 
        TDJCoffObjSection = class(TCoffObjSection)
@@ -846,7 +846,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjSection.fixuprelocs;
+    procedure TCoffObjSection.fixuprelocs(Exe:TExeOutput);
       var
         i,zero,address_size : longint;
         objreloc : TObjRelocation;

@@ -42,6 +42,7 @@ interface
 
       TExeSection = class;
       TExeSymbol  = class;
+      TExeOutput  = class;
 
       TObjRelocationType = (
          { Relocation to absolute address }
@@ -215,7 +216,7 @@ interface
        procedure addsymReloc(ofs:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
        procedure addsectionReloc(ofs:aword;aobjsec:TObjSection;Reloctype:TObjRelocationType);
        procedure AddSymbolDefine(p:TObjSymbol);
-       procedure FixupRelocs;virtual;
+       procedure FixupRelocs(Exe: TExeOutput);virtual;
        procedure ReleaseData;
        function  FullName:string;
        property  Data:TDynamicArray read FData;
@@ -350,7 +351,6 @@ interface
 
       TExeSymbol = class(TFPHashObject)
         ObjSymbol  : TObjSymbol;
-        ExeSection : TExeSection;
         State      : TSymbolState;
         { Used for vmt references optimization }
         VTable     : TExeVTable;
@@ -368,7 +368,7 @@ interface
         SecOptions : TObjSectionOptions;
         constructor create(AList:TFPHashObjectList;const AName:string);virtual;
         destructor  destroy;override;
-        procedure AddObjSection(objsec:TObjSection);
+        procedure AddObjSection(objsec:TObjSection);virtual;
         property ObjSectionList:TFPObjectList read FObjSectionList;
         property SecSymIdx:longint read FSecSymIdx write FSecSymIdx;
       end;
@@ -756,7 +756,7 @@ implementation
       end;
 
 
-    procedure TObjSection.FixupRelocs;
+    procedure TObjSection.FixupRelocs(Exe:TExeOutput);
       begin
       end;
 
@@ -2841,7 +2841,7 @@ implementation
                 objsec:=TObjSection(exesec.ObjSectionlist[j]);
                 if not objsec.Used then
                   internalerror(200603301);
-                objsec.FixupRelocs;
+                objsec.FixupRelocs(Self);
               end;
           end;
       end;
