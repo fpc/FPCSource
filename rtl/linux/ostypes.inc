@@ -245,7 +245,20 @@ CONST
     O_DIRECTORY =   $10000;
     O_NOFOLLOW =    $20000;
     O_DIRECT  =    $100000;
-{$else cpusparc}
+{$else : not cpusparc}
+{$ifdef cpumips}
+    O_CREAT   =       $100;
+    O_EXCL    =       $400;
+    O_NOCTTY  =       $800;
+    O_TRUNC   =       $200;
+    O_APPEND  =         $8;
+    O_NONBLOCK =       $80;
+    O_NDELAY  =     O_NONBLOCK;
+    O_SYNC    =        $10;
+    O_DIRECT  =      $8000;
+    O_DIRECTORY =   $10000;
+    O_NOFOLLOW =    $20000;
+{$else : not cpumips}
     O_CREAT   =        $40;
     O_EXCL    =        $80;
     O_NOCTTY  =       $100;
@@ -257,7 +270,8 @@ CONST
     O_DIRECT  =      $4000;
     O_DIRECTORY =   $10000;
     O_NOFOLLOW =    $20000;
-{$endif cpusparc}
+{$endif not cpumips}
+{$endif not cpusparc}
 
 {$if defined(cpuarm) or defined(cpualpha) or defined(cpublackfin) or defined(cpum68k)}
     O_LARGEFILE =   $20000;
