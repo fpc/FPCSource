@@ -64,7 +64,7 @@ fi
 # You should only need to change the variables above
 
 sed -n "s:^[[:space:]]*${fpc_errno_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]]*=[[:space:]]*\\([0-9][0-9]*\\).*:check_errno_number ${errno_prefix}\1 \2:p" ${errno_include} > check_errno_list.sh
-sed -n "s:#define[[:space:]]*${errno_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]][[:space:]]*\\(-*[0-9A-Za-z_]*\\).*:check_reverse_errno_number ${fpc_errno_prefix}\1 \2:p" ${errno_header} > check_reverse_errno_list.sh
+sed -n "s:#define[[:space:]]*${errno_prefix}\\([_a-zA-Z0-9]*\\)[[:space:]][[:space:]]*\\(-*[0-9A-Za-z_]*\\)[[:space:]]*\(.*\):check_reverse_errno_number ${fpc_errno_prefix}\1 \2 \"\3\":p" ${errno_header} > check_reverse_errno_list.sh
 
 function check_errno_number ()
 {
@@ -113,13 +113,16 @@ function check_reverse_errno_number ()
   errname=$1
   errvalue=$2
   found=`grep -i -w $1 ${errno_include}`
+  comment="$3"
+  comment=${comment##*\/\*}
+  comment=${comment%%*\*\/}
   if [ "${found}" == "" ] ; then
     echo "Error ${errname}, value ${errvalue}, not in ${errno_include} file"
     if [ $addtoerrno -eq 0 ] ; then
       addtoerrno=1
       echo "{ List of missing system error number found in $errno_header }" > $errnonew
     fi
-    echo "  $errname = $errvalue;" >> $errnonew
+    echo "        $errname = $errvalue; { $comment }" >> $errnonew
   fi
 }
 
