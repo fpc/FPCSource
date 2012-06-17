@@ -12752,7 +12752,6 @@ utils/Makefile svneol=native#text/plain
 utils/Makefile.fpc svneol=native#text/plain
 utils/README.txt svneol=native#text/plain
 utils/bin2obj.pp svneol=native#text/plain
-utils/checkcvs.pp svneol=native#text/plain
 utils/creumap.pp svneol=native#text/plain
 utils/data2inc.exm -text
 utils/data2inc.pp svneol=native#text/plain
