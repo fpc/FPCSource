@@ -22,6 +22,8 @@ type
     procedure TestInitFielddefsFromFields;
     procedure TestDoubleFieldDef;
     procedure TestFieldDefWithoutDS;
+    procedure TestGetParamList;
+    procedure TestGetFieldList;
     procedure TestExtractFieldName;
   end;
 
@@ -187,6 +189,130 @@ begin
   FieldDefs := TFieldDefs.Create(nil);
   FieldDefs.Add('test',ftString);
   FieldDefs.Free;
+end;
+
+procedure TTestBasics.TestGetFieldList;
+var
+  ds: TDataSet;
+  F: TField;
+  List: TList;
+  ExceptionRaised: Boolean;
+begin
+  ds := TDataSet.Create(nil);
+  try
+    F := TIntegerField.Create(ds);
+    F.FieldName := 'Field1';
+    F.DataSet := ds;
+
+    F := TIntegerField.Create(ds);
+    F.FieldName := 'Field2';
+    F.DataSet := ds;
+
+    F := TIntegerField.Create(ds);
+    F.FieldName := 'Field3';
+    F.DataSet := ds;
+
+    List := TList.Create;
+    try
+      //should not
+      List.Clear;
+      ds.GetFieldList(List, '');
+      AssertEquals(0, List.Count);
+
+      List.Clear;
+      ExceptionRaised := False;
+      try
+        ds.GetFieldList(List, ' ');
+      except
+        on E: EDatabaseError do ExceptionRaised := True;
+      end;
+      AssertTrue(ExceptionRaised);
+
+      List.Clear;
+      ds.GetFieldList(List, 'Field1');
+      AssertEquals(1, List.Count);
+
+      List.Clear;
+      ds.GetFieldList(List, ' Field1 ');
+      AssertEquals(1, List.Count);
+
+      List.Clear;
+      ds.GetFieldList(List, 'Field1;Field2');
+      AssertEquals(2, List.Count);
+
+      List.Clear;
+      ds.GetFieldList(List, 'Field1;Field2;');
+      AssertEquals(2, List.Count);
+
+      List.Clear;
+      ds.GetFieldList(List, 'Field1;Field2;Field3');
+      AssertEquals(3, List.Count);
+    finally
+      List.Destroy;
+    end;
+  finally
+    ds.Destroy;
+  end;
+end;
+
+procedure TTestBasics.TestGetParamList;
+var
+  Params: TParams;
+  P: TParam;
+  List: TList;
+  ExceptionRaised: Boolean;
+begin
+  Params := TParams.Create(nil);
+  try
+    P := TParam.Create(Params, ptInput);
+    P.Name := 'Param1';
+
+    P := TParam.Create(Params, ptInput);
+    P.Name := 'Param2';
+
+    P := TParam.Create(Params, ptInput);
+    P.Name := 'Param3';
+
+    List := TList.Create;
+    try
+      List.Clear;
+      Params.GetParamList(List, '');
+      AssertEquals(0, List.Count);
+
+      List.Clear;
+      ExceptionRaised := False;
+      try
+        Params.GetParamList(List, ' ');
+      except
+        on E: EDatabaseError do ExceptionRaised := True;
+      end;
+      AssertTrue(ExceptionRaised);
+
+      List.Clear;
+      Params.GetParamList(List, 'Param1');
+      AssertEquals(1, List.Count);
+
+      List.Clear;
+      Params.GetParamList(List, ' Param1 ');
+      AssertEquals(1, List.Count);
+
+      List.Clear;
+      Params.GetParamList(List, 'Param1;');
+      AssertEquals(1, List.Count);
+
+      List.Clear;
+      Params.GetParamList(List, 'Param1;Param2');
+      AssertEquals(2, List.Count);
+
+      List.Clear;
+      Params.GetParamList(List, 'Param1;Param2;Param3');
+      AssertEquals(3, List.Count);
+    finally
+      List.Destroy;
+    end;
+  finally
+    Params.Destroy;
+  end;
 end;
 
 
