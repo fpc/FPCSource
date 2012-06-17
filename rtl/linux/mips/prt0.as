@@ -82,8 +82,8 @@ _start:
         sll     $a2,$a2,0x2
         addu    $a2,$a2,$a1
         lui     $a3,%hi(operatingsystem_parameter_envp)
-        jal     PASCALMAIN
         sw      $a2,%lo(operatingsystem_parameter_envp)($a3)
+        jal     PASCALMAIN
         nop
 	b       _haltproc
         nop
