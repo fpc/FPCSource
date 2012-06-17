@@ -705,8 +705,9 @@ begin
   tmpActive := FLookupDataSet.Active;
   try
     FLookupDataSet.Active := True;
-    FFields.CheckFieldNames(FLookupKeyfields);
-    FLookupDataset.FieldByName(FLookupresultField); // I presume that if it doesn't exist it throws exception, and that a field with null value is still valid
+    FFields.CheckFieldNames(FKeyFields);
+    FLookupDataSet.Fields.CheckFieldNames(FLookupKeyFields);
+    FLookupDataset.FieldByName(FLookupResultField); // I presume that if it doesn't exist it throws exception, and that a field with null value is still valid
     LookupList.Clear; // have to be F-less because we might be creating it here with getter!
 
     FLookupDataSet.DisableControls;

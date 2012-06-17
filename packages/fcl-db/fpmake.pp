@@ -527,6 +527,16 @@ begin
           AddUnit('dbconst');
           AddUnit('bufdataset');
         end;
+    T:=P.Targets.AddUnit('fbadmin.pp', SqldbConnectionOSes);
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+          AddUnit('bufdataset');
+          AddUnit('ibconnection');
+        end;
     T:=P.Targets.AddUnit('memds.pp');
     T.ResourceStrings:=true;
       with T.Dependencies do
