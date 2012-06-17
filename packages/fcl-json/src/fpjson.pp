@@ -2158,7 +2158,7 @@ Var
 
 begin
   I:=IndexOfName(AName);
-  If (I=-1) then
+  If (I<>-1) then
     Result:=Items[i]
   else
     Result:=Nil;
