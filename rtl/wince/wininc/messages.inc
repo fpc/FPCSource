@@ -66,6 +66,7 @@
     const
     
        WM_USER = 1024;  //keep it first
+       WM_APP  = $8000;
 
        ACM_PLAY = 1125;
        ACM_STOP = 1126;
