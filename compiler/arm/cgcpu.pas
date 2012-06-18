@@ -631,6 +631,7 @@ unit cgcpu;
         tmpreg : tregister;
         so : tshifterop;
         l1 : longint;
+        imm1, imm2: DWord;
       begin
         ovloc.loc:=LOC_VOID;
         if {$ifopt R+}(a<>-2147483648) and{$endif} is_shifter_const(-a,shift) then
@@ -784,6 +785,33 @@ unit cgcpu;
               broader range of shifterconstants.}
             else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
+            else if (op = OP_AND) and split_into_shifter_const(not(dword(a)), imm1, imm2) then
+              begin
+                list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,imm1));
+                list.concat(taicpu.op_reg_reg_const(A_BIC,dst,dst,imm2));
+              end
+            else if (op in [OP_ADD, OP_SUB, OP_OR]) and
+                    not(cgsetflags or setflags) and
+                    split_into_shifter_const(a, imm1, imm2) then
+              begin
+                case (op) of
+                  OP_ADD:
+                    begin
+                      list.concat(taicpu.op_reg_reg_const(A_ADD,dst,src,imm1));
+                      list.concat(taicpu.op_reg_reg_const(A_ADD,dst,dst,imm2));
+                    end;
+                  OP_SUB:
+                    begin
+                      list.concat(taicpu.op_reg_reg_const(A_SUB,dst,src,imm1));
+                      list.concat(taicpu.op_reg_reg_const(A_SUB,dst,dst,imm2));
+                    end;
+                  OP_OR:
+                    begin
+                      list.concat(taicpu.op_reg_reg_const(A_ORR,dst,src,imm1));
+                      list.concat(taicpu.op_reg_reg_const(A_ORR,dst,dst,imm2));
+                    end;
+                end;
+              end
             else
               begin
                 tmpreg:=getintregister(list,size);
