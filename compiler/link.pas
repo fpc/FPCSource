@@ -531,14 +531,10 @@ Implementation
       end;
 
 
-    procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
-      begin
-      end;
-
-
     procedure TLinker.InitSysInitUnitName;
       begin
       end;
+
 
     function TLinker.MakeExecutable:boolean;
       begin
@@ -951,7 +947,10 @@ Implementation
             inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
-              continue;
+              begin
+                hp:=TCmdStrListItem(hp.next);
+                continue;
+              end;
             keyword:=Upper(GetToken(s,' '));
             para:=GetToken(s,' ');
             if Trim(s)<>'' then
@@ -1037,6 +1036,7 @@ Implementation
             if (s='') or (s[1]='#') then
               begin
                 IsHandled^[i]:=true;
+                hp:=TCmdStrListItem(hp.next);
                 continue;
               end;
             handled:=true;
@@ -1084,7 +1084,10 @@ Implementation
             inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
-              continue;
+              begin
+                hp:=TCmdStrListItem(hp.next);
+                continue;
+              end;
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
             para:=ParsePara(GetToken(s,' '));
@@ -1136,7 +1139,10 @@ Implementation
             inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
-              continue;
+              begin
+                hp:=TCmdStrListItem(hp.next);
+                continue;
+              end;
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
             para:=ParsePara(GetToken(s,' '));
@@ -1172,7 +1178,10 @@ Implementation
             inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
-              continue;
+              begin
+                hp:=TCmdStrListItem(hp.next);
+                continue;
+              end;
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
             para:=ParsePara(GetToken(s,' '));
