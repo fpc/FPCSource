@@ -33,6 +33,7 @@ type
     procedure CreateDatasetFromFielddefs;
     procedure CreateDatasetFromFields;
     procedure TestOpeningNonExistingDataset;
+    procedure TestCreationDatasetWithCalcFields;
   end;
 
 implementation
@@ -127,6 +128,52 @@ begin
 
   CheckException(ds.Open,EDatabaseError);
   ds.Free;
+end;
+
+procedure TTestSpecificTBufDataset.TestCreationDatasetWithCalcFields;
+var ds : TBufDataset;
+    f: TField;
+    i: integer;
+begin
+  ds := TBufDataset.Create(nil);
+  try
+    F := TIntegerField.Create(ds);
+    F.FieldName:='ID';
+    F.DataSet:=ds;
+    F := TStringField.Create(ds);
+    F.FieldName:='NAME';
+    F.DataSet:=ds;
+    F.Size:=50;
+
+    F := TStringField.Create(ds);
+    F.FieldKind:=fkCalculated;
+    F.FieldName:='NAME_CALC';
+    F.DataSet:=ds;
+    F.Size:=50;
+
+    F := TStringField.Create(ds);
+    F.FieldKind:=fkLookup;
+    F.FieldName:='NAME_LKP';
+    F.LookupDataSet:=DBConnector.GetNDataset(5);
+    F.KeyFields:='ID';
+    F.LookupKeyFields:='ID';
+    F.LookupResultField:='NAME';
+    F.DataSet:=ds;
+    F.Size:=50;
+
+    DS.CreateDataset;
+
+    TestDataset(ds);
+
+    for i := 0 to ds.FieldDefs.Count-1 do
+      begin
+      CheckNotEquals(ds.FieldDefs[i].Name,'NAME_CALC');
+      CheckNotEquals(ds.FieldDefs[i].Name,'NAME_LKP');
+      end;
+    DS.Close;
+  finally
+    ds.Free;
+  end;
 end;
 
 initialization
