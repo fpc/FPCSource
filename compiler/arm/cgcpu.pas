@@ -253,6 +253,7 @@ unit cgcpu;
           imm_shift : byte;
           l : tasmlabel;
           hr : treference;
+          imm1, imm2: DWord;
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
             internalerror(2002090902);
@@ -261,20 +262,16 @@ unit cgcpu;
           else if is_shifter_const(not(a),imm_shift) then
             list.concat(taicpu.op_reg_const(A_MVN,reg,not(a)))
           { loading of constants with mov and orr }
-          else if (is_shifter_const(a-byte(a),imm_shift)) then
+          else if (split_into_shifter_const(a,imm1, imm2)) then
             begin
-              list.concat(taicpu.op_reg_const(A_MOV,reg,a-byte(a)));
-              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,byte(a)));
+              list.concat(taicpu.op_reg_const(A_MOV,reg, imm1));
+              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg, imm2));
             end
-          else if (is_shifter_const(a-word(a),imm_shift)) and (is_shifter_const(word(a),imm_shift)) then
+          { loading of constants with mvn and bic }
+          else if (split_into_shifter_const(not(a), imm1, imm2)) then
             begin
-              list.concat(taicpu.op_reg_const(A_MOV,reg,a-word(a)));
-              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,word(a)));
-            end
-          else if (is_shifter_const(a-(dword(a) shl 8) shr 8,imm_shift)) and (is_shifter_const((dword(a) shl 8) shr 8,imm_shift)) then
-            begin
-              list.concat(taicpu.op_reg_const(A_MOV,reg,a-(dword(a) shl 8) shr 8));
-              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,(dword(a) shl 8) shr 8));
+              list.concat(taicpu.op_reg_const(A_MVN,reg, imm1));
+              list.concat(taicpu.op_reg_reg_const(A_BIC,reg,reg, imm2));
             end
           else
             begin
