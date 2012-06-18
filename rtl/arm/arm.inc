@@ -146,7 +146,7 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;nostackframe;
 asm
         // less than 0?
         cmp r1,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
         movlt pc,lr
 {$else}
         bxlt  lr
@@ -181,7 +181,7 @@ asm
         bge     .LFillchar1
 .LFillchar2:
         movs r1,r1              // anything left?
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
         moveq   pc,lr
 {$else}
         bxeq    lr
@@ -196,7 +196,7 @@ asm
         strb r2,[r3],#1
         strb r2,[r3],#1
         strb r2,[r3],#1
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
         mov pc,lr
 {$else}
         bx  lr
@@ -211,7 +211,7 @@ asm
   pld [r0]
   // count <=0 ?
   cmp r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   movle pc,lr
 {$else}
   bxle  lr
@@ -228,7 +228,7 @@ asm
   ldrb r3,[r0,r2]
   strb r3,[r1,r2]
   bne .Loverlapped
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   mov pc,lr
 {$else}
   bx  lr
@@ -273,7 +273,7 @@ asm
   str r3,[r1],#4
   bcs .Ldwordloop
   cmp r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   moveq pc,lr
 {$else}
   bxeq  lr
@@ -283,7 +283,7 @@ asm
   ldrb r3,[r0],#1
   strb r3,[r1],#1
   bne .Lbyteloop
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   mov pc,lr
 {$else}
   bx  lr
@@ -294,7 +294,7 @@ procedure Move_blended(const source;var dest;count:longint);assembler;nostackfra
 asm
   // count <=0 ?
   cmp r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   movle pc,lr
 {$else}
   bxle  lr
@@ -311,7 +311,7 @@ asm
   ldrb r3,[r0,r2]
   strb r3,[r1,r2]
   bne .Loverlapped
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   mov pc,lr
 {$else}
   bx  lr
@@ -353,7 +353,7 @@ asm
   str r3,[r1],#4
   bcs .Ldwordloop
   cmp r2,#0
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   moveq pc,lr
 {$else}
   bxeq  lr
@@ -363,7 +363,7 @@ asm
   ldrb r3,[r0],#1
   strb r3,[r1],#1
   bne .Lbyteloop
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
   mov pc,lr
 {$else}
   bx  lr
@@ -542,7 +542,7 @@ asm
       terminating 0, due to the known carry flag sbc can do this.*)
     sbc r0,r1,r0
 .Ldone:
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
     mov pc,lr
 {$else}
     bx  lr
