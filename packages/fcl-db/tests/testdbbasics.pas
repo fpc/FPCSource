@@ -58,6 +58,7 @@ type
     procedure TestdeFieldListChange;
     procedure TestExceptionLocateClosed;    // bug 13938
     procedure TestCanModifySpecialFields;
+    procedure TestDetectionNonMatchingDataset;
   end;
 
   { TTestBufDatasetDBBasics }
@@ -683,6 +684,28 @@ begin
     end;
 end;
 
+procedure TTestDBBasics.TestDetectionNonMatchingDataset;
+var
+  F: TField;
+  ds: tdataset;
+begin
+  // TDataset.Bindfields should detect problems when the underlying data does
+  // not reflect the fields of the dataset. This test is to check if this is
+  // really done.
+  ds := DBConnector.GetNDataset(true,6);
+  with ds do
+    begin
+    open;
+    close;
+
+    F := TStringField.Create(ds);
+    F.FieldName:='DOES_NOT_EXIST';
+    F.DataSet:=ds;
+    F.Size:=50;
+
+    CheckException(open,EDatabaseError);
+    end;
+end;
 
 procedure TTestCursorDBBasics.TestAppendInsertRecord;
 begin
