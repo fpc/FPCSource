@@ -347,6 +347,7 @@ unit cpubase;
     function is_pc(const r : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
+    function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword):boolean;
     function dwarf_reg(r:tregister):shortint;
 
   implementation
@@ -528,6 +529,30 @@ unit cpubase;
         result:=false;
       end;
 
+    function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword) : boolean;
+      var
+        d, i, i2: Dword;
+      begin
+        Result:=false;
+        {Thumb2 is not supported (YET?)}
+        if current_settings.cputype in cpu_thumb2 then exit;
+        d:=DWord(value);
+        for i:=0 to 15 do
+          begin
+            imm1:=d and rordword($FF, I*2);
+            imm2:=d and not (imm1); {remove already found bits}
+            {is the remainder a shifterconst? YAY! we've done it!}
+            {Could we start from i instead of 0?}
+            for i2:=0 to 15 do
+              begin
+                 if (imm2 and not(rordword($FF,i2*2)))=0 then
+                   begin
+                      result:=true;
+                      exit;
+                   end;
+              end;
+          end;
+      end;
 
     function dwarf_reg(r:tregister):shortint;
       begin
