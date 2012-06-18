@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=imgconv drawing xwdtobmp
+programs=imgconv drawing xwdtobmp interpoldemo
 
 [require]
 packages=fcl-image

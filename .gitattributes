@@ -2182,6 +2182,7 @@ packages/fcl-image/examples/Makefile svneol=native#text/plain
 packages/fcl-image/examples/Makefile.fpc svneol=native#text/plain
 packages/fcl-image/examples/drawing.pp svneol=native#text/plain
 packages/fcl-image/examples/imgconv.pp svneol=native#text/plain
+packages/fcl-image/examples/interpoldemo.pp svneol=native#text/plain
 packages/fcl-image/examples/xwdtobmp.pas svneol=native#text/plain
 packages/fcl-image/fpmake.pp svneol=native#text/plain
 packages/fcl-image/src/bmpcomn.pp svneol=native#text/plain
