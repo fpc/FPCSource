@@ -497,12 +497,6 @@ unit cpubase;
       end;
 
 
-    function rotl(d : dword;b : byte) : dword; {$ifdef USEINLINE}inline;{$endif USEINLINE}
-      begin
-         result:=(d shr (32-b)) or (d shl b);
-      end;
-
-
     function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
       var
          i : longint;
@@ -523,7 +517,7 @@ unit cpubase;
           begin
             for i:=0 to 15 do
               begin
-                 if (dword(d) and not(rotl($ff,i*2)))=0 then
+                 if (dword(d) and not(roldword($ff,i*2)))=0 then
                    begin
                       imm_shift:=i*2;
                       result:=true;
