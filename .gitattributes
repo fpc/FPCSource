@@ -2205,6 +2205,7 @@ packages/fcl-image/src/fpimage.inc svneol=native#text/plain
 packages/fcl-image/src/fpimage.pp svneol=native#text/plain
 packages/fcl-image/src/fpimgcanv.pp svneol=native#text/plain
 packages/fcl-image/src/fpimgcmn.pp svneol=native#text/plain
+packages/fcl-image/src/fpimggauss.pp svneol=native#text/plain
 packages/fcl-image/src/fpinterpolation.inc svneol=native#text/plain
 packages/fcl-image/src/fppalette.inc svneol=native#text/plain
 packages/fcl-image/src/fppen.inc svneol=native#text/plain
