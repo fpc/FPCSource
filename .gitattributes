@@ -2196,6 +2196,7 @@ packages/fcl-image/src/fpcdrawh.inc svneol=native#text/plain
 packages/fcl-image/src/fpcolcnv.inc svneol=native#text/plain
 packages/fcl-image/src/fpcolhash.pas svneol=native#text/plain
 packages/fcl-image/src/fpcolors.inc svneol=native#text/plain
+packages/fcl-image/src/fpcompactimg.inc svneol=native#text/plain
 packages/fcl-image/src/fpditherer.pas svneol=native#text/plain
 packages/fcl-image/src/fpfont.inc svneol=native#text/plain
 packages/fcl-image/src/fphandler.inc svneol=native#text/plain
