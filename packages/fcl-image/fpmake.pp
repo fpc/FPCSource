@@ -87,6 +87,7 @@ begin
           AddInclude('fphandler.inc');
           AddInclude('fppalette.inc');
           AddInclude('fpcolcnv.inc');
+          AddInclude('fpcompactimg.inc');
         end;
     T:=P.Targets.AddUnit('fpimgcanv.pp');
       with T.Dependencies do
