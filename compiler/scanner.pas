@@ -174,16 +174,16 @@ interface
           procedure stoprecordtokens;
           procedure replaytoken;
           procedure startreplaytokens(buf:tdynamicarray; achange_endian : boolean);
-          { bit length sizeint is target depend }
-          procedure tokenwritesizeint(val : sizeint);
+          { bit length asizeint is target depend }
+          procedure tokenwritesizeint(val : asizeint);
           procedure tokenwritelongint(val : longint);
           procedure tokenwritelongword(val : longword);
           procedure tokenwriteword(val : word);
           procedure tokenwriteshortint(val : shortint);
           procedure tokenwriteset(var b;size : longint);
           procedure tokenwriteenum(var b;size : longint);
-          function  tokenreadsizeint : sizeint;
-          procedure tokenwritesettings(var asettings : tsettings; var size : sizeint);
+          function  tokenreadsizeint : asizeint;
+          procedure tokenwritesettings(var asettings : tsettings; var size : asizeint);
           { longword/longint are 32 bits on all targets }
           { word/smallint are 16-bits on all targest }
           function  tokenreadlongword : longword;
@@ -197,7 +197,7 @@ interface
           procedure tokenreadset(var b;size : longint);
           function  tokenreadenum(size : longint) : longword;
 
-          procedure tokenreadsettings(var asettings : tsettings; expected_size : longint);
+          procedure tokenreadsettings(var asettings : tsettings; expected_size : asizeint);
           procedure readchar;
           procedure readstring;
           procedure readnumber;
@@ -2184,9 +2184,9 @@ In case not, the value returned can be arbitrary.
         recordtokenbuf.write(b,1);
       end;
 
-    procedure tscannerfile.tokenwritesizeint(val : sizeint);
+    procedure tscannerfile.tokenwritesizeint(val : asizeint);
       begin
-        recordtokenbuf.write(val,sizeof(sizeint));
+        recordtokenbuf.write(val,sizeof(asizeint));
       end;
 
     procedure tscannerfile.tokenwritelongint(val : longint);
@@ -2209,11 +2209,11 @@ In case not, the value returned can be arbitrary.
         recordtokenbuf.write(val,sizeof(longword));
       end;
 
-    function tscannerfile.tokenreadsizeint : sizeint;
+    function tscannerfile.tokenreadsizeint : asizeint;
       var
-        val : sizeint;
+        val : asizeint;
       begin
-        replaytokenbuf.read(val,sizeof(sizeint));
+        replaytokenbuf.read(val,sizeof(asizeint));
         if tokenbuf_change_endian then
           val:=swapendian(val);
         result:=val;
@@ -2306,7 +2306,7 @@ In case not, the value returned can be arbitrary.
    end;
 
 
-    procedure tscannerfile.tokenreadsettings(var asettings : tsettings; expected_size : longint);
+    procedure tscannerfile.tokenreadsettings(var asettings : tsettings; expected_size : asizeint);
 
     {    This procedure
        needs to be changed whenever
@@ -2374,7 +2374,7 @@ In case not, the value returned can be arbitrary.
          end;
      end;
 
-    procedure tscannerfile.tokenwritesettings(var asettings : tsettings; var size : sizeint);
+    procedure tscannerfile.tokenwritesettings(var asettings : tsettings; var size : asizeint);
 
     {    This procedure
        needs to be changed whenever
@@ -2450,7 +2450,8 @@ In case not, the value returned can be arbitrary.
       var
         t : ttoken;
         s : tspecialgenerictoken;
-        len,val,msgnb,copy_size : sizeint;
+        len,msgnb,copy_size : asizeint;
+        val : longint;
         b : byte;
         pmsg : pmessagestaterecord;
       begin
@@ -2482,7 +2483,7 @@ In case not, the value returned can be arbitrary.
             pmsg:=current_settings.pmessage;
             while assigned(pmsg) do
               begin
-                if msgnb=high(sizeint) then
+                if msgnb=high(asizeint) then
                   { Too many messages }
                   internalerror(2011090401);
                 inc(msgnb);
@@ -2492,11 +2493,12 @@ In case not, the value returned can be arbitrary.
             pmsg:=current_settings.pmessage;
             while assigned(pmsg) do
               begin
-                { What about endianess here? }
+                { What about endianess here?}
+                { SB: this is handled by tokenreadlongint }
                 val:=pmsg^.value;
-                tokenwritesizeint(val);
+                tokenwritelongint(val);
                 val:=ord(pmsg^.state);
-                tokenwritesizeint(val);
+                tokenwritelongint(val);
                 pmsg:=pmsg^.next;
               end;
             last_message:=current_settings.pmessage;
@@ -2613,7 +2615,7 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.replaytoken;
       var
-        wlen,mesgnb,copy_size : sizeint;
+        wlen,mesgnb,copy_size : asizeint;
         specialtoken : tspecialgenerictoken;
         i : byte;
         pmsg,prevmsg : pmessagestaterecord;
@@ -2717,8 +2719,8 @@ In case not, the value returned can be arbitrary.
                               end
                             else
                               prevmsg^.next:=pmsg;
-                            replaytokenbuf.read(pmsg^.value,sizeof(longint));
-                            replaytokenbuf.read(pmsg^.state,sizeof(tmsgstate));
+                            pmsg^.value:=tokenreadlongint;
+                            pmsg^.state:=tmsgstate(tokenreadlongint);
                             pmsg^.next:=nil;
                             prevmsg:=pmsg;
                           end;
