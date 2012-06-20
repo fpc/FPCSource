@@ -805,23 +805,8 @@ unit cgcpu;
                     not(cgsetflags or setflags) and
                     split_into_shifter_const(a, imm1, imm2) then
               begin
-                case (op) of
-                  OP_ADD:
-                    begin
-                      list.concat(taicpu.op_reg_reg_const(A_ADD,dst,src,imm1));
-                      list.concat(taicpu.op_reg_reg_const(A_ADD,dst,dst,imm2));
-                    end;
-                  OP_SUB:
-                    begin
-                      list.concat(taicpu.op_reg_reg_const(A_SUB,dst,src,imm1));
-                      list.concat(taicpu.op_reg_reg_const(A_SUB,dst,dst,imm2));
-                    end;
-                  OP_OR:
-                    begin
-                      list.concat(taicpu.op_reg_reg_const(A_ORR,dst,src,imm1));
-                      list.concat(taicpu.op_reg_reg_const(A_ORR,dst,dst,imm2));
-                    end;
-                end;
+                list.concat(taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,src,imm1));
+                list.concat(taicpu.op_reg_reg_const(op_reg_reg_opcg2asmop[op],dst,dst,imm2));
               end
             else
               begin
