@@ -106,7 +106,7 @@ implementation
        objcutil,
        { parser }
        scanner,
-       pbase,pexpr,ptype,pdecl,pparautl
+       pbase,pexpr,ptype,pdecl,pparautl,pgenutil
 {$ifdef jvm}
        ,pjvm
 {$endif}
@@ -680,8 +680,44 @@ implementation
                     Message1(type_e_generic_declaration_does_not_match,genname);
                     srsym:=nil;
                     exit;
+                  end
+              end;
+          end;
+
+        procedure consume_generic_interface;
+          var
+            genparalist : tfpobjectlist;
+            prettyname,
+            specializename : ansistring;
+            genname,
+            ugenname : tidstring;
+            gencount : string;
+          begin
+            consume(_LSHARPBRACKET);
+            genparalist:=tfpobjectlist.create(false);
+
+            if not parse_generic_specialization_types(genparalist,prettyname,specializename,nil) then
+              srsym:=generrorsym
+            else
+              begin
+                str(genparalist.count,gencount);
+                genname:=sp+'$'+gencount;
+                if not parse_generic then
+                  genname:=generate_generic_name(genname,specializename);
+                ugenname:=upper(genname);
+
+                srsym:=search_object_name(ugenname,false);
+
+                if not assigned(srsym) then
+                  begin
+                    Message1(type_e_generic_declaration_does_not_match,sp+'<'+prettyname+'>');
+                    srsym:=nil;
+                    exit;
                   end;
               end;
+
+            genparalist.free;
+            consume(_RSHARPBRACKET);
           end;
 
       begin
@@ -700,16 +736,35 @@ implementation
            (astruct.typ=objectdef) and
            assigned(tobjectdef(astruct).ImplementedInterfaces) and
            (tobjectdef(astruct).ImplementedInterfaces.count>0) and
-           try_to_consume(_POINT) then
+           (
+             (token = _POINT) or
+             (token = _LSHARPBRACKET)
+           ) then
          begin
-           srsym:=search_object_name(sp,true);
+           if token = _POINT then
+             begin
+               consume(_POINT);
+               srsym:=search_object_name(sp,true);
+             end
+           else
+             begin
+               consume_generic_interface;
+               consume(_POINT);
+               { srsym is now either an interface def or generrordef }
+             end;
            { qualifier is interface? }
            ImplIntf:=nil;
            if (srsym.typ=typesym) and
               (ttypesym(srsym).typedef.typ=objectdef) then
              ImplIntf:=tobjectdef(astruct).find_implemented_interface(tobjectdef(ttypesym(srsym).typedef));
            if ImplIntf=nil then
-             Message(parser_e_interface_id_expected);
+             Message(parser_e_interface_id_expected)
+           else
+             { in case of a generic or specialized interface we need to use the
+               name of the def instead of the symbol, so that always the correct
+               name is used }
+             if [df_generic,df_specialization]*ttypesym(srsym).typedef.defoptions<>[] then
+               sp:=tobjectdef(ttypesym(srsym).typedef).objname^;
            { must be a directly implemented interface }
            if Assigned(ImplIntf.ImplementsGetter) then
              Message2(parser_e_implements_no_mapping,ImplIntf.IntfDef.typename,astruct.objrealname^);

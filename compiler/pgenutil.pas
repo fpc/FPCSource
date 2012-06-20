@@ -36,8 +36,10 @@ uses
 
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname:string;parsedtype:tdef;symname:string);
     function parse_generic_parameters:TFPObjectList;
+    function parse_generic_specialization_types(genericdeflist:tfpobjectlist;out prettyname,specializename:ansistring;parsedtype:tdef):boolean;
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
     procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfpobjectlist);
+    function generate_generic_name(const name:tidstring;specializename:ansistring):tidstring;
 
     type
       tspecializationstate = record
@@ -190,59 +192,7 @@ uses
         genericdeflist:=TFPObjectList.Create(false);
 
         { Parse type parameters }
-        err:=false;
-        { set the block type to type, so that the parsed type are returned as
-          ttypenode (e.g. classes are in non type-compatible blocks returned as
-          tloadvmtaddrnode) }
-        old_block_type:=block_type;
-        { if parsedtype is set, then the first type identifer was already parsed
-          (happens in inline specializations) and thus we only need to parse
-          the remaining types and do as if the first one was already given }
-        first:=not assigned(parsedtype);
-        if assigned(parsedtype) then
-          begin
-            genericdeflist.Add(parsedtype);
-            specializename:='$'+parsedtype.typename;
-            prettyname:=parsedtype.typesym.prettyname;
-          end
-        else
-          begin
-            specializename:='';
-            prettyname:='';
-          end;
-        while not (token in [_GT,_RSHARPBRACKET]) do
-          begin
-            { "first" is set to false at the end of the loop! }
-            if not first then
-              consume(_COMMA);
-            block_type:=bt_type;
-            pt2:=factor(false,true);
-            if pt2.nodetype=typen then
-              begin
-                if df_generic in pt2.resultdef.defoptions then
-                  Message(parser_e_no_generics_as_params);
-                genericdeflist.Add(pt2.resultdef);
-                if not assigned(pt2.resultdef.typesym) then
-                  message(type_e_generics_cannot_reference_itself)
-                else
-                  begin
-                    specializename:=specializename+'$'+pt2.resultdef.typename;
-                    if first then
-                      prettyname:=prettyname+pt2.resultdef.typesym.prettyname
-                    else
-                      prettyname:=prettyname+','+pt2.resultdef.typesym.prettyname;
-                  end;
-              end
-            else
-              begin
-                Message(type_e_type_id_expected);
-                err:=true;
-              end;
-            pt2.free;
-            first:=false;
-          end;
-        block_type:=old_block_type;
-
+        err:=not parse_generic_specialization_types(genericdeflist,prettyname,specializename,parsedtype);
         if err then
           begin
             try_to_consume(_RSHARPBRACKET);
@@ -305,8 +255,7 @@ uses
         genericdef:=tstoreddef(ttypesym(srsym).typedef);
 
         { build the new type's name }
-        crc:=UpdateCrc32(0,specializename[1],length(specializename));
-        finalspecializename:=genname+'$crc'+hexstr(crc,8);
+        finalspecializename:=generate_generic_name(genname,specializename);
         ufinalspecializename:=upper(finalspecializename);
         prettyname:=genericdef.typesym.prettyname+'<'+prettyname+'>';
 
@@ -570,6 +519,67 @@ uses
         until not try_to_consume(_COMMA) ;
       end;
 
+    function parse_generic_specialization_types(genericdeflist:tfpobjectlist;out prettyname,specializename:ansistring;parsedtype:tdef):boolean;
+      var
+        old_block_type : tblock_type;
+        first : boolean;
+        typeparam : tnode;
+      begin
+        result:=true;
+        if genericdeflist=nil then
+          internalerror(2012061401);
+        { set the block type to type, so that the parsed type are returned as
+          ttypenode (e.g. classes are in non type-compatible blocks returned as
+          tloadvmtaddrnode) }
+        old_block_type:=block_type;
+        { if parsedtype is set, then the first type identifer was already parsed
+          (happens in inline specializations) and thus we only need to parse
+          the remaining types and do as if the first one was already given }
+        first:=not assigned(parsedtype);
+        if assigned(parsedtype) then
+          begin
+            genericdeflist.Add(parsedtype);
+            specializename:='$'+parsedtype.typename;
+            prettyname:=parsedtype.typesym.prettyname;
+          end
+        else
+          begin
+            specializename:='';
+            prettyname:='';
+          end;
+        while not (token in [_GT,_RSHARPBRACKET]) do
+          begin
+            { "first" is set to false at the end of the loop! }
+            if not first then
+              consume(_COMMA);
+            block_type:=bt_type;
+            typeparam:=factor(false,true);
+            if typeparam.nodetype=typen then
+              begin
+                if df_generic in typeparam.resultdef.defoptions then
+                  Message(parser_e_no_generics_as_params);
+                genericdeflist.Add(typeparam.resultdef);
+                if not assigned(typeparam.resultdef.typesym) then
+                  message(type_e_generics_cannot_reference_itself)
+                else
+                  begin
+                    specializename:=specializename+'$'+typeparam.resultdef.typename;
+                    if first then
+                      prettyname:=prettyname+typeparam.resultdef.typesym.prettyname
+                    else
+                      prettyname:=prettyname+','+typeparam.resultdef.typesym.prettyname;
+                  end;
+              end
+            else
+              begin
+                Message(type_e_type_id_expected);
+                result:=false;
+              end;
+            typeparam.free;
+            first:=false;
+          end;
+        block_type:=old_block_type;
+      end;
 
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
       var
@@ -633,6 +643,17 @@ uses
             symtablestack.top.insert(gensym);
           end;
       end;
+
+    function generate_generic_name(const name:tidstring;specializename:ansistring):tidstring;
+    var
+      crc : cardinal;
+    begin
+      if specializename='' then
+        internalerror(2012061901);
+      { build the new type's name }
+      crc:=UpdateCrc32(0,specializename[1],length(specializename));
+      result:=name+'$crc'+hexstr(crc,8);
+    end;
 
     procedure specialization_init(genericdef:tdef;var state: tspecializationstate);
     var
