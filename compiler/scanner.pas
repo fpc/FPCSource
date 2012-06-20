@@ -2684,11 +2684,6 @@ In case not, the value returned can be arbitrary.
                 if (ord(specialtoken) and $80)<>0 then
                   begin
                       current_tokenpos.column:=ord(specialtoken) and $7f;
-
-                      { don't generate invalid line info if no sources are available for the current module }
-                      if not(get_module(current_filepos.moduleindex).sources_avail) then
-                        current_tokenpos.column:=0;
-
                       current_filepos:=current_tokenpos;
                   end
                 else
@@ -2728,32 +2723,16 @@ In case not, the value returned can be arbitrary.
                     ST_LINE:
                       begin
                         current_tokenpos.line:=tokenreadlongint;
-
-                        { don't generate invalid line info if no sources are available for the current module }
-                        if not(get_module(current_filepos.moduleindex).sources_avail) then
-                          current_tokenpos.line:=0;
-
                         current_filepos:=current_tokenpos;
                       end;
                     ST_COLUMN:
                       begin
                         current_tokenpos.column:=tokenreadword;
-                        { don't generate invalid line info if no sources are available for the current module }
-                        if not(get_module(current_filepos.moduleindex).sources_avail) then
-                          current_tokenpos.column:=0;
-
                         current_filepos:=current_tokenpos;
                       end;
                     ST_FILEINDEX:
                       begin
                         current_tokenpos.fileindex:=tokenreadword;
-                        { don't generate invalid line info if no sources are available for the current module }
-                        if not(get_module(current_filepos.moduleindex).sources_avail) then
-                          begin
-                            current_tokenpos.column:=0;
-                            current_tokenpos.line:=0;
-                          end;
-
                         current_filepos:=current_tokenpos;
                       end;
                     else

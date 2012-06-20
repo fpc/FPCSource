@@ -719,8 +719,6 @@ var
         hp            : tinputfile;
       begin
         sources_avail:=(flags and uf_release) = 0;
-        if not sources_avail then
-          exit;
         is_main:=true;
         main_dir:='';
         while not ppufile.endofentry do
@@ -728,73 +726,76 @@ var
            hs:=ppufile.getstring;
            orgfiletime:=ppufile.getlongint;
            temp_dir:='';
-           if (flags and uf_in_library)<>0 then
-            begin
-              sources_avail:=false;
-              temp:=' library';
-            end
-           else if pos('Macro ',hs)=1 then
-            begin
-              { we don't want to find this file }
-              { but there is a problem with file indexing !! }
-              temp:='';
-            end
-           else
-            begin
-              { check the date of the source files:
-                 1 path of ppu
-                 2 path of main source
-                 3 current dir
-                 4 include/unit path }
-              Source_Time:=GetNamedFileTime(path+hs);
-              found:=false;
-              if Source_Time<>-1 then
-                hs:=path+hs
-              else
-               if not(is_main) then
-                begin
-                  Source_Time:=GetNamedFileTime(main_dir+hs);
-                  if Source_Time<>-1 then
-                    hs:=main_dir+hs;
-                end;
-              if Source_Time=-1 then
-                Source_Time:=GetNamedFileTime(hs);
-              if (Source_Time=-1) then
-                begin
-                  if is_main then
-                    found:=unitsearchpath.FindFile(hs,true,temp_dir)
-                  else
-                    found:=includesearchpath.FindFile(hs,true,temp_dir);
-                  if found then
-                   begin
-                     Source_Time:=GetNamedFileTime(temp_dir);
-                     if Source_Time<>-1 then
-                      hs:=temp_dir;
-                   end;
-                end;
-              if Source_Time<>-1 then
-                begin
-                  if is_main then
-                    main_dir:=ExtractFilePath(hs);
-                  temp:=' time '+filetimestring(source_time);
-                  if (orgfiletime<>-1) and
-                     (source_time<>orgfiletime) then
-                    begin
-                      do_compile:=true;
-                      recompile_reason:=rr_sourcenewer;
-                      Message2(unit_u_source_modified,hs,ppufilename,@queuecomment);
-                      temp:=temp+' *';
-                    end;
-                end
-              else
+           if sources_avail then
+             begin
+               if (flags and uf_in_library)<>0 then
                 begin
                   sources_avail:=false;
-                  temp:=' not found';
+                  temp:=' library';
+                end
+               else if pos('Macro ',hs)=1 then
+                begin
+                  { we don't want to find this file }
+                  { but there is a problem with file indexing !! }
+                  temp:='';
+                end
+               else
+                begin
+                  { check the date of the source files:
+                     1 path of ppu
+                     2 path of main source
+                     3 current dir
+                     4 include/unit path }
+                  Source_Time:=GetNamedFileTime(path+hs);
+                  found:=false;
+                  if Source_Time<>-1 then
+                    hs:=path+hs
+                  else
+                   if not(is_main) then
+                    begin
+                      Source_Time:=GetNamedFileTime(main_dir+hs);
+                      if Source_Time<>-1 then
+                        hs:=main_dir+hs;
+                    end;
+                  if Source_Time=-1 then
+                    Source_Time:=GetNamedFileTime(hs);
+                  if (Source_Time=-1) then
+                    begin
+                      if is_main then
+                        found:=unitsearchpath.FindFile(hs,true,temp_dir)
+                      else
+                        found:=includesearchpath.FindFile(hs,true,temp_dir);
+                      if found then
+                       begin
+                         Source_Time:=GetNamedFileTime(temp_dir);
+                         if Source_Time<>-1 then
+                          hs:=temp_dir;
+                       end;
+                    end;
+                  if Source_Time<>-1 then
+                    begin
+                      if is_main then
+                        main_dir:=ExtractFilePath(hs);
+                      temp:=' time '+filetimestring(source_time);
+                      if (orgfiletime<>-1) and
+                         (source_time<>orgfiletime) then
+                        begin
+                          do_compile:=true;
+                          recompile_reason:=rr_sourcenewer;
+                          Message2(unit_u_source_modified,hs,ppufilename,@queuecomment);
+                          temp:=temp+' *';
+                        end;
+                    end
+                  else
+                    begin
+                      sources_avail:=false;
+                      temp:=' not found';
+                    end;
+                  hp:=tdosinputfile.create(hs);
+                  { the indexing is wrong here PM }
+                  sourcefiles.register_file(hp);
                 end;
-              hp:=tdosinputfile.create(hs);
-              { the indexing is wrong here PM }
-              sourcefiles.register_file(hp);
-            end;
+             end;
            if is_main then
              begin
                mainsource:=hs;
