@@ -27,7 +27,7 @@ _dynamic_start:
 	nop
 
 	.end	_dynamic_start
-	.size 	_dynamic_start, .-_start
+	.size 	_dynamic_start, .-_dynamic_start
 
 	.align 4
 	.global _start
