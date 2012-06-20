@@ -152,8 +152,22 @@ implementation
       { 32 bit signed PC relative offset to GOT entry for IE symbol  }
       R_X86_64_GOTTPOFF = 22;
       R_X86_64_TPOFF32 = 23;           { Offset in initial TLS block  }
-      R_X86_64_GNU_VTINHERIT = 24;     { GNU extension to record C++ vtable hierarchy }
-      R_X86_64_GNU_VTENTRY = 25;       { GNU extension to record C++ vtable member usage }
+      R_X86_64_PC64 = 24;              { PC relative 64-bit signed }
+      R_X86_64_GOTOFF64 = 25;          { 64-bit offset from GOT base }
+      R_X86_64_GOTPC32 = 26;           { PC-relative offset GOT }
+      R_X86_64_GOT64  = 27;            { 64-bit GOT entry offset }
+      R_X86_64_GOTPCREL64 = 28;        { 64-bit PC relative offset to GOT entry }
+      R_X86_64_GOTPC64 = 29;           { 64-bit PC relative offset to GOT }
+      R_X86_64_GOTPLT64 = 30;          { Like GOT64, indicates that PLT entry needed }
+      R_X86_64_PLTOFF64 = 31;          { 64-bit GOT relative offset to PLT entry }
+      R_X86_64_SIZE32 = 32;
+      R_X86_64_SIZE64 = 33;
+      R_X86_64_GOTPC32_TLSDESC = 34;
+      R_X86_64_TLSDESC_CALL = 35;
+      R_X86_64_TLSDESC = 36;
+      R_X86_64_IRELATIVE = 37;
+      R_X86_64_GNU_VTINHERIT = 250;    { GNU extension to record C++ vtable hierarchy }
+      R_X86_64_GNU_VTENTRY = 251;      { GNU extension to record C++ vtable member usage }
 {$endif x86_64}
 
       { ELFHeader.file_class }
@@ -331,6 +345,7 @@ implementation
         TElf32reloc=packed record
           address : longint;
           info    : longint; { bit 0-7: type, 8-31: symbol }
+          addend  : longint;
         end;
         TElf32symbol=packed record
           st_name  : longint;
@@ -433,6 +448,13 @@ implementation
         telfdyn = telf32dyn;
 {$endif cpu64bitaddr}
 
+{$ifdef x86_64}
+      const
+        relocs_use_addend:Boolean=True;
+{$else x86_64}
+      const
+        relocs_use_addend:Boolean=False;
+{$endif x86_64}
 
       procedure MayBeSwapHeader(var h : telf32header);
         begin
@@ -583,6 +605,7 @@ implementation
               begin
                 address:=swapendian(address);
                 info:=swapendian(info);
+                addend:=swapendian(addend);
               end;
         end;
 
@@ -888,24 +911,18 @@ implementation
     procedure TElfObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);
       var
         symaddr : aint;
+        objreloc: TObjRelocation;
       begin
         if CurrObjSec=nil then
           internalerror(200403292);
-{$ifdef userodata}
-        if CurrObjSec.sectype in [sec_rodata,sec_bss,sec_threadvar] then
-          internalerror(200408252);
-{$endif userodata}
-        { Using RELOC_RVA to map 32-bit RELOC_ABSOLUTE to R_X86_64_32
-          (RELOC_ABSOLUTE maps to R_X86_64_32S) }
-        if (reltype=RELOC_ABSOLUTE) and (len<>sizeof(pint)) then
-          reltype:=RELOC_RVA;
+        objreloc:=nil;
         if assigned(p) then
          begin
            { real address of the symbol }
            symaddr:=p.address;
            { Local ObjSymbols can be resolved already or need a section reloc }
            if (p.bind=AB_LOCAL) and
-              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32,RELOC_RVA{$endif x86_64}]) then
+              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32{$endif x86_64}]) then
              begin
                { For a reltype relocation in the same section the
                  value can be calculated }
@@ -914,19 +931,28 @@ implementation
                  inc(data,symaddr-len-CurrObjSec.Size)
                else
                  begin
-                   CurrObjSec.addsectionreloc(CurrObjSec.Size,p.objsection,reltype);
+                   objreloc:=TObjRelocation.CreateSection(CurrObjSec.Size,p.objsection,reltype);
+                   CurrObjSec.ObjRelocations.Add(objreloc);
                    inc(data,symaddr);
                  end;
              end
            else
              begin
-               CurrObjSec.addsymreloc(CurrObjSec.Size,p,reltype);
-{$ifndef x86_64}
-               if (reltype=RELOC_RELATIVE) or (reltype=RELOC_PLT32) then
-                 dec(data,len);
-{$endif x86_64}
+               objreloc:=TObjRelocation.CreateSymbol(CurrObjSec.Size,p,reltype);
+               CurrObjSec.ObjRelocations.Add(objreloc);
             end;
          end;
+        if assigned(objreloc) then
+          begin
+            objreloc.size:=len;
+            if reltype in [RELOC_RELATIVE,RELOC_PLT32{$ifdef x86_64},RELOC_GOTPCREL{$endif}] then
+              dec(data,len);
+            if relocs_use_addend then
+              begin
+                objreloc.orgsize:=data;
+                data:=0;
+              end;
+          end;
         CurrObjSec.write(data,len);
       end;
 
@@ -1051,35 +1077,22 @@ implementation
         objreloc : TObjRelocation;
         relsym,
         reltyp   : longint;
-        relocsect : TObjSection;
-{$ifdef x86_64}	
-        tmp: aint;
-        asize: longint;
-{$endif x86_64}	
+        relocsect : TElfObjSection;
       begin
         with data do
          begin
-{$ifdef userodata}
-           { rodata can't have relocations }
-           if s.sectype=sec_rodata then
-             begin
-               if assigned(s.relocations.first) then
-                 internalerror(200408251);
-               exit;
-             end;
-{$endif userodata}
            { create the reloc section }
-{$ifdef i386}
-           relocsect:=TElfObjSection.create_ext(data,'.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
-{$else i386}
-           relocsect:=TElfObjSection.create_ext(data,'.rela'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
-{$endif i386}
+           if relocs_use_addend then
+             relocsect:=TElfObjSection.create_ext(data,'.rela'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,3*sizeof(pint))
+           else
+             relocsect:=TElfObjSection.create_ext(data,'.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,2*sizeof(pint));
            { add the relocations }
            for i:=0 to s.Objrelocations.count-1 do
              begin
                objreloc:=TObjRelocation(s.Objrelocations[i]);
                fillchar(rel,sizeof(rel),0);
                rel.address:=objreloc.dataoffset;
+               rel.addend:=objreloc.orgsize;
 
                { when things settle down, we can create processor specific
                  derived classes }
@@ -1094,66 +1107,39 @@ implementation
                  RELOC_GOTPC :
                    reltyp:=R_386_GOTPC;
                  RELOC_PLT32 :
-                   begin
-                     reltyp:=R_386_PLT32;
-                   end;
+                   reltyp:=R_386_PLT32;
 {$endif i386}
 {$ifdef sparc}
                  RELOC_ABSOLUTE :
                    reltyp:=R_SPARC_32;
 {$endif sparc}
 {$ifdef x86_64}
+    { Note: 8 and 16-bit relocations are known to be non-conformant with
+      AMD64 ABI, so they aren't handled. }
                  RELOC_RELATIVE :
-                   begin
-                     reltyp:=R_X86_64_PC32;
-                     { length of the relocated location is handled here }
-                     rel.addend:=-4;
-                   end;
+                   if objreloc.size=8 then
+                     reltyp:=R_X86_64_PC64
+                   else if objreloc.size=4 then
+                     reltyp:=R_X86_64_PC32
+                   else
+                     InternalError(2012061900);
                  RELOC_ABSOLUTE :
-                   reltyp:=R_X86_64_64;
+                   if objreloc.size=8 then
+                     reltyp:=R_X86_64_64
+                   else if objreloc.size=4 then
+                     reltyp:=R_X86_64_32
+                   else
+                     InternalError(2012061901);
                  RELOC_ABSOLUTE32 :
                    reltyp:=R_X86_64_32S;
-                 RELOC_RVA :
-                   reltyp:=R_X86_64_32;
                  RELOC_GOTPCREL :
-                   begin
-                     reltyp:=R_X86_64_GOTPCREL;
-                     { length of the relocated location is handled here }
-                     rel.addend:=-4;
-                   end;
+                   reltyp:=R_X86_64_GOTPCREL;
                  RELOC_PLT32 :
-                   begin
-                     reltyp:=R_X86_64_PLT32;
-                     { length of the relocated location is handled here }
-                     rel.addend:=-4;
-                   end;
+                   reltyp:=R_X86_64_PLT32;
 {$endif x86_64}
                  else
                    internalerror(200602261);
                end;
-
-{ This handles ELF 'rela'-styled relocations, which are currently used only for x86_64,
-  but can be used other targets, too. }
-{$ifdef x86_64}
-               s.Data.Seek(objreloc.dataoffset);
-               if objreloc.typ=RELOC_ABSOLUTE then
-                 begin
-                   asize:=8;
-                   s.Data.Read(tmp,8);
-                   rel.addend:=rel.addend+tmp;
-                 end
-               else
-                 begin
-                   asize:=4;
-                   s.Data.Read(tmp,4);
-                   rel.addend:=rel.addend+longint(tmp);
-                 end;
-
-               { and zero the data member out }
-               tmp:=0;
-               s.Data.Seek(objreloc.dataoffset);
-               s.Data.Write(tmp,asize);
-{$endif}
 
                { Symbol }
                if assigned(objreloc.symbol) then
@@ -1178,8 +1164,9 @@ implementation
                rel.info:=(relsym shl 8) or reltyp;
 {$endif cpu64bitaddr}
                { write reloc }
+               { ElfXX_Rel is essentially ElfXX_Rela without the addend field. }
                MaybeSwapElfReloc(rel);
-               relocsect.write(rel,sizeof(rel));
+               relocsect.write(rel,relocsect.shentsize);
              end;
          end;
       end;

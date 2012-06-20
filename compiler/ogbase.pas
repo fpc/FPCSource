@@ -173,10 +173,12 @@ interface
 
      TObjRelocation = class
         DataOffset,
-        orgsize    : aword;  { original size of the symbol to Relocate, required for COFF }
+        orgsize    : aword;  { COFF: original size of the symbol to relocate }
+                             { ELF: explicit addend }
         symbol     : TObjSymbol;
         objsection : TObjSection; { only used if symbol=nil }
         typ        : TObjRelocationType;
+        size       : byte;
         constructor CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
         constructor CreateSymbolSize(ADataOffset:aword;s:TObjSymbol;Aorgsize:aword;Atyp:TObjRelocationType);
         constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
