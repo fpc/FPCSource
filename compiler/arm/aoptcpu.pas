@@ -264,6 +264,12 @@ Implementation
       i: longint;
       TmpUsedRegs: TAllUsedRegs;
       tempop: tasmop;
+
+    function IsPowerOf2(const value: DWord): boolean; inline;
+      begin
+        Result:=(value and (value - 1)) = 0;
+      end;
+
     begin
       result := false;
       case p.typ of
@@ -465,6 +471,40 @@ Implementation
                             result := true;
                           end;
                       end;
+                    { Change the common
+                      mov r0, r0, lsr #24
+                      and r0, r0, #255
+
+                      and remove the superfluous and
+
+                      This could be extended to handle more cases.
+                    }
+                    if (taicpu(p).ops=3) and
+                       (taicpu(p).oper[2]^.typ = top_shifterop) and
+                       (taicpu(p).oper[2]^.shifterop^.rs = NR_NO) and
+                       (taicpu(p).oper[2]^.shifterop^.shiftmode = SM_LSR) and
+                       (taicpu(p).oper[2]^.shifterop^.shiftimm >= 24 ) and
+                       getnextinstruction(p,hp1) and
+                       MatchInstruction(hp1, A_AND, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+                       (taicpu(hp1).ops=3) and
+                       MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
+                       MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) and
+                       (taicpu(hp1).oper[2]^.typ = top_const) and
+                       { Check if the AND actually would only mask out bits beeing already zero because of the shift
+                         For LSR #25 and an AndConst of 255 that whould go like this:
+                         255 and ((2 shl (32-25))-1)
+                         which results in 127, which is one less a power-of-2, meaning all lower bits are set.
+
+                         LSR #25 and AndConst of 254:
+                         254 and ((2 shl (32-25))-1) = 126 -> lowest bit is clear, so we can't remove it.
+                       }
+                       ispowerof2((taicpu(hp1).oper[2]^.val and ((2 shl (32-taicpu(p).oper[2]^.shifterop^.shiftimm))-1))+1) then
+                      begin
+                        asml.insertbefore(tai_comment.Create(strpnew('Peephole LsrAnd2Lsr done')), hp1);
+                        asml.remove(hp1);
+                        hp1.free;
+                      end;
+
                     { 
                       This changes the very common 
                       mov r0, #0
