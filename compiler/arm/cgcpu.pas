@@ -581,23 +581,34 @@ unit cgcpu;
 
 
      procedure tcgarm.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister);
+       var
+         so : tshifterop;
        begin
-         case op of
-           OP_NEG:
-             list.concat(taicpu.op_reg_reg_const(A_RSB,dst,src,0));
-           OP_NOT:
-             begin
+         if op = OP_NEG then
+             list.concat(taicpu.op_reg_reg_const(A_RSB,dst,src,0))
+         else if op = OP_NOT then
+           begin
+             if size in [OS_8, OS_16, OS_S8, OS_S16] then
+               begin
+                 shifterop_reset(so);
+                 so.shiftmode:=SM_LSL;
+                 if size in [OS_8, OS_S8] then
+                   so.shiftimm:=24
+                 else
+                   so.shiftimm:=16;
+                 list.concat(taicpu.op_reg_reg_shifterop(A_MVN,dst,src,so));
+                 {Using a shift here allows this to be folded into another instruction}
+                 if size in [OS_S8, OS_S16] then
+                   so.shiftmode:=SM_ASR
+                 else
+                   so.shiftmode:=SM_LSR;
+                 list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,dst,so));
+               end
+             else
                list.concat(taicpu.op_reg_reg(A_MVN,dst,src));
-               case size of
-                 OS_8 :
-                   a_op_const_reg_reg(list,OP_AND,OS_INT,$ff,dst,dst);
-                 OS_16 :
-                   a_op_const_reg_reg(list,OP_AND,OS_INT,$ffff,dst,dst);
-               end;
-             end
-           else
+           end
+         else
              a_op_reg_reg_reg(list,op,OS_32,src,dst,dst);
-         end;
        end;
 
 
@@ -2664,7 +2675,7 @@ unit cgcpu;
 
     procedure tcgarm.maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
       const
-        overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
+        overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NEG];
       begin
         if (op in overflowops) and
            (size in [OS_8,OS_S8,OS_16,OS_S16]) then
