@@ -470,10 +470,12 @@ interface
         procedure Order_ObjSection(const aname:string);virtual;
         procedure MemPos_Start;virtual;
         procedure MemPos_Header;virtual;
+        procedure MemPos_ExeSection(exesec:TExeSection);
         procedure MemPos_ExeSection(const aname:string);virtual;
         procedure MemPos_EndExeSection;virtual;
         procedure DataPos_Start;virtual;
         procedure DataPos_Header;virtual;
+        procedure DataPos_ExeSection(exesec:TExeSection);
         procedure DataPos_ExeSection(const aname:string);virtual;
         procedure DataPos_EndExeSection;virtual;
         procedure DataPos_Symbols;virtual;
@@ -1912,29 +1914,35 @@ implementation
       end;
 
 
-    procedure TExeOutput.MemPos_ExeSection(const aname:string);
+    procedure TExeOutput.MemPos_ExeSection(exesec:TExeSection);
       var
         i      : longint;
         objsec : TObjSection;
+      begin
+        { Alignment of ExeSection }
+        CurrMemPos:=align(CurrMemPos,SectionMemAlign);
+        exesec.MemPos:=CurrMemPos;
+
+        { set position of object ObjSections }
+        for i:=0 to exesec.ObjSectionList.Count-1 do
+          begin
+            objsec:=TObjSection(exesec.ObjSectionList[i]);
+            CurrMemPos:=objsec.setmempos(CurrMemPos);
+          end;
+
+        { calculate size of the section }
+        exesec.Size:=CurrMemPos-exesec.MemPos;
+      end;
+
+
+    procedure TExeOutput.MemPos_ExeSection(const aname:string);
       begin
         { Section can be removed }
         FCurrExeSec:=FindExeSection(aname);
         if not assigned(CurrExeSec) then
           exit;
 
-        { Alignment of ExeSection }
-        CurrMemPos:=align(CurrMemPos,SectionMemAlign);
-        CurrExeSec.MemPos:=CurrMemPos;
-
-        { set position of object ObjSections }
-        for i:=0 to CurrExeSec.ObjSectionList.Count-1 do
-          begin
-            objsec:=TObjSection(CurrExeSec.ObjSectionList[i]);
-            CurrMemPos:=objsec.setmempos(CurrMemPos);
-          end;
-
-        { calculate size of the section }
-        CurrExeSec.Size:=CurrMemPos-CurrExeSec.MemPos;
+        MemPos_ExeSection(CurrExeSec);
       end;
 
 
@@ -1956,40 +1964,45 @@ implementation
       end;
 
 
-    procedure TExeOutput.DataPos_ExeSection(const aname:string);
+    procedure TExeOutput.DataPos_ExeSection(exesec:TExeSection);
       var
         i      : longint;
         objsec : TObjSection;
       begin
-        { Section can be removed }
-        FCurrExeSec:=FindExeSection(aname);
-        if not assigned(CurrExeSec) then
-          exit;
-
         { don't write normal section if writing only debug info }
         if (ExeWriteMode=ewm_dbgonly) and
-           not(oso_debug in CurrExeSec.SecOptions) then
+           not(oso_debug in exesec.SecOptions) then
           exit;
 
-        if (oso_Data in currexesec.SecOptions) then
+        if (oso_Data in exesec.SecOptions) then
           begin
             CurrDataPos:=align(CurrDataPos,SectionDataAlign);
-            CurrExeSec.DataPos:=CurrDataPos;
+            exesec.DataPos:=CurrDataPos;
           end;
 
         { set position of object ObjSections }
-        for i:=0 to CurrExeSec.ObjSectionList.Count-1 do
+        for i:=0 to exesec.ObjSectionList.Count-1 do
           begin
-            objsec:=TObjSection(CurrExeSec.ObjSectionList[i]);
+            objsec:=TObjSection(exesec.ObjSectionList[i]);
             if (oso_Data in objsec.SecOptions) then
               begin
-                if not(oso_Data in currexesec.SecOptions) then
+                if not(oso_Data in exesec.SecOptions) then
                   internalerror(200603043);
                 if not assigned(objsec.Data) then
                   internalerror(200603044);
                 objsec.setDatapos(CurrDataPos);
               end;
           end;
+      end;
+
+
+    procedure TExeOutput.DataPos_ExeSection(const aname:string);
+      begin
+        { Section can be removed }
+        FCurrExeSec:=FindExeSection(aname);
+        if not assigned(CurrExeSec) then
+          exit;
+        DataPos_ExeSection(CurrExeSec);
       end;
 
 
