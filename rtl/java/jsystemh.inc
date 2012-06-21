@@ -169,7 +169,7 @@ Function  Random: extended;
 Procedure Randomize;
 {$endif FPC_HAS_FEATURE_RANDOM}
 
-{$ifdef FPC_HAS_INTERNAL_ABS_LONG and (defined(cpui386) or defined(cpux86_64) or defined(cpupowerpc))}
+{$ifdef FPC_HAS_INTERNAL_ABS_LONG}
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
 Function abs(l:longint):longint;[internproc:fpc_in_abs_long];
 {$else FPC_HAS_INTERNAL_ABS_LONG}
