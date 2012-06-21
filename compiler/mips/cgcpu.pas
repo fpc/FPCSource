@@ -1337,6 +1337,7 @@ var
   ra_save,framesave : taicpu;
   fmask,mask : dword;
   saveregs : tcpuregisterset;
+  StoreOp : TAsmOp;
   href:  treference;
   usesfpr, usesgpr, gotgot : boolean;
   reg : Tsuperregister;
@@ -1368,6 +1369,8 @@ begin
           fmask:=fmask or (1 shl ord(reg));
           href.offset:=nextoffset;
           lastfpuoffset:=nextoffset;
+          if cs_asm_source in current_settings.globalswitches then
+            helplist.concat(tai_comment.Create(strpnew(std_regname(newreg(R_FPUREGISTER,reg,R_SUBFS))+' register saved.')));
           helplist.concat(taicpu.op_reg_ref(A_SWC1,newreg(R_FPUREGISTER,reg,R_SUBFS),href));
           inc(nextoffset,4);
         end;
@@ -1396,7 +1399,11 @@ begin
           else if (reg=RS_R31) then
             ra_save:=taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href)
           else
-            helplist.concat(taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href));
+            begin
+              if cs_asm_source in current_settings.globalswitches then
+                helplist.concat(tai_comment.Create(strpnew(std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))+' register saved.')));
+              helplist.concat(taicpu.op_reg_ref(A_SW,newreg(R_INTREGISTER,reg,R_SUBWHOLE),href));
+            end;
           inc(nextoffset,4);
         end;
     end;
@@ -1411,10 +1418,16 @@ begin
 
   if (-LocalSize >= simm16lo) and (-LocalSize <= simm16hi) then
     begin
+      if cs_asm_source in current_settings.globalswitches then
+        list.concat(tai_comment.Create(strpnew('Stack register updated substract '+tostr(LocalSize)+' for local size')));
       list.concat(Taicpu.Op_reg_reg_const(A_ADDIU,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-LocalSize));
+      if cs_asm_source in current_settings.globalswitches then
+        list.concat(tai_comment.Create(strpnew('RA register saved.')));
       list.concat(ra_save);
       if assigned(framesave) then
         begin
+          if cs_asm_source in current_settings.globalswitches then
+            list.concat(tai_comment.Create(strpnew('Frame S8/FP register saved.')));
           list.concat(framesave);
           list.concat(Taicpu.op_reg_reg_const(A_ADDIU,NR_FRAME_POINTER_REG,
             NR_STACK_POINTER_REG,LocalSize));
@@ -1422,14 +1435,22 @@ begin
     end
   else
     begin
+      if cs_asm_source in current_settings.globalswitches then
+        list.concat(tai_comment.Create(strpnew('Stack register updated substract '+tostr(LocalSize)+' for local size using R1 register')));
       list.concat(Taicpu.Op_reg_const(A_LI,NR_R1,-LocalSize));
       list.concat(Taicpu.Op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R1));
+      if cs_asm_source in current_settings.globalswitches then
+        list.concat(tai_comment.Create(strpnew('RA register saved.')));
       list.concat(ra_save);
       if assigned(framesave) then
         begin
+          if cs_asm_source in current_settings.globalswitches then
+            list.concat(tai_comment.Create(strpnew('Frame register saved.')));
           list.concat(framesave);
-          list.concat(Taicpu.op_reg_reg_reg(A_SUB,NR_FRAME_POINTER_REG,
-            NR_STACK_POINTER_REG,NR_R3));
+          if cs_asm_source in current_settings.globalswitches then
+            list.concat(tai_comment.Create(strpnew('Frame register updated to $SP+R1 value')));
+          list.concat(Taicpu.op_reg_reg_reg(A_ADDU,NR_FRAME_POINTER_REG,
+            NR_STACK_POINTER_REG,NR_R1));
         end;
     end;
 
@@ -1449,11 +1470,47 @@ begin
             //if current_procinfo.framepointer=NR_STACK_POINTER_REG then
             //  href.offset:=register_offset[i]+Localsize
             //else
-              href.offset:=register_offset[i];
+            href.offset:=register_offset[i];
+{$ifdef MIPSEL}
+            if cs_asm_source in current_settings.globalswitches then
+              list.concat(tai_comment.Create(strpnew('Var '+
+              register_name[i]+' Register '+std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))
+                +' saved to offset '+tostr(href.offset))));
             list.concat(taicpu.op_reg_ref(A_SW, newreg(R_INTREGISTER,reg,R_SUBWHOLE), href));
-          end;
+{$else not MIPSEL, for big endian, size matters}
+            case register_size[i] of
+               OS_8,
+               OS_S8:
+                 StoreOp := A_SB;
+               OS_16,
+               OS_S16:
+                 StoreOp := A_SH;
+               OS_32,
+               OS_NO,
+               OS_F32,
+               OS_S32:
+                 StoreOp := A_SW;
+               OS_F64,
+               OS_64,
+               OS_S64:
+                 begin
+{$ifdef cpu64bitalu}
+                   StoreOp:=A_SD;
+{$else not cpu64bitalu}
+                   StoreOp:= A_SW;
+{$endif not cpu64bitalu}
+                 end
+               else
+                 internalerror(2012061801);
+            end;
+          if cs_asm_source in current_settings.globalswitches then
+            list.concat(tai_comment.Create(strpnew('Var '+
+              register_name[i]+' Register '+std_regname(newreg(R_INTREGISTER,reg,R_SUBWHOLE))
+              +' saved to offset '+tostr(href.offset))));
+          list.concat(taicpu.op_reg_ref(StoreOp, newreg(R_INTREGISTER,reg,R_SUBWHOLE), href));
+{$endif}
+        end;
     end;
-
   if (cs_create_pic in current_settings.moduleswitches) and
     (pi_needs_got in current_procinfo.flags) then
     begin
@@ -1792,8 +1849,15 @@ procedure TCGMIPS.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCG
 procedure TCg64MPSel.a_load64_reg_ref(list: tasmlist; reg: tregister64; const ref: treference);
 var
   tmpref: treference;
+  tmpreg: tregister;
 begin
   { Override this function to prevent loading the reference twice }
+  if target_info.endian = endian_big then
+    begin
+      tmpreg := reg.reglo;
+      reg.reglo := reg.reghi;
+      reg.reghi := tmpreg;
+    end;
   tmpref := ref;
   cg.a_load_reg_ref(list, OS_S32, OS_S32, reg.reglo, tmpref);
   Inc(tmpref.offset, 4);
@@ -1804,8 +1868,15 @@ end;
 procedure TCg64MPSel.a_load64_ref_reg(list: tasmlist; const ref: treference; reg: tregister64);
 var
   tmpref: treference;
+  tmpreg: tregister;
 begin
   { Override this function to prevent loading the reference twice }
+  if target_info.endian = endian_big then
+    begin
+      tmpreg := reg.reglo;
+      reg.reglo := reg.reghi;
+      reg.reghi := tmpreg;
+    end;
   tmpref := ref;
   cg.a_load_ref_reg(list, OS_S32, OS_S32, tmpref, reg.reglo);
   Inc(tmpref.offset, 4);
