@@ -37,6 +37,9 @@ type
 
 implementation
 
+uses
+  StrUtils, FmtBCD;
+
 type
 
   { TPersistentBufDataSet }
@@ -85,6 +88,7 @@ var BufDataset  : TPersistentBufDataSet;
 
 begin
   BufDataset := TPersistentBufDataSet.Create(nil);
+  BufDataset.Name := 'NDataset';
   BufDataset.FieldDefs.Add('ID',ftInteger);
   BufDataset.FieldDefs.Add('NAME',ftString,50);
   BufDataset.CreateDataset;
@@ -109,20 +113,20 @@ var BufDataset  : TPersistentBufDataSet;
     i      : integer;
 
 begin
-  // Values >= 24:00:00.000 can't be handled by bufdataset
+  // Values >= 24:00:00.000 can't be handled by StrToTime function
   testTimeValues[2] := '23:59:59.000';
   testTimeValues[3] := '23:59:59.003';
 
   BufDataset := TPersistentBufDataSet.Create(nil);
   with BufDataset do
     begin
+    Name := 'FieldDataset';
     UniDirectional := FUniDirectional;
     FieldDefs.Add('ID',ftInteger);
     FieldDefs.Add('FSTRING',ftString,10);
     FieldDefs.Add('FSMALLINT',ftSmallint);
     FieldDefs.Add('FINTEGER',ftInteger);
-    // Not supported by BufDataset:
-    // FieldDefs.Add('FWORD',ftWord);
+    FieldDefs.Add('FWORD',ftWord);
     FieldDefs.Add('FBOOLEAN',ftBoolean);
     FieldDefs.Add('FFLOAT',ftFloat);
     FieldDefs.Add('FCURRENCY',ftCurrency);
@@ -131,6 +135,8 @@ begin
     FieldDefs.Add('FTIME',ftTime);
     FieldDefs.Add('FDATETIME',ftDateTime);
     FieldDefs.Add('FLARGEINT',ftLargeint);
+    FieldDefs.Add('FFIXEDCHAR',ftFixedChar,10);
+    FieldDefs.Add('FFMTBCD',ftFmtBCD);
     CreateDataset;
     Open;
     for i := 0 to testValuesCount-1 do
@@ -147,6 +153,8 @@ begin
       FieldByName('FDATE').AsDateTime := StrToDateTime(testDateValues[i], Self.FormatSettings);
       FieldByName('FTIME').AsDateTime := StrToTime(testTimeValues[i], Self.FormatSettings);
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
+      FieldByName('FFIXEDCHAR').AsString := PadRight(testStringValues[i], 10);
+      FieldByName('FFMTBCD').AsBCD := StrToBCD(testFmtBCDValues[i], Self.FormatSettings);
       Post;
     end;
     BufDataset.TempFileName:=GetTempFileName;
