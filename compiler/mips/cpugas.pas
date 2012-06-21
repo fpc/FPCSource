@@ -229,35 +229,51 @@ unit cpugas;
             end;
           A_LDC1:
             begin
-              tmpfpu := getopstr(taicpu(hp).oper[0]^);
-              s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-              owner.AsmWriteLn(s);
+              if (target_info.endian = endian_big) then
+                begin
+                  s := #9 + gas_op2str[A_LDC1] + #9 + getopstr(taicpu(hp).oper[0]^)
+                       + ',' + getopstr(taicpu(hp).oper[1]^);
+                end
+              else
+                begin
+                  tmpfpu := getopstr(taicpu(hp).oper[0]^);
+                  s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+                  owner.AsmWriteLn(s);
 
 { bug if $f9/$f19
               tmpfpu_len := length(tmpfpu);
               tmpfpu[tmpfpu_len] := succ(tmpfpu[tmpfpu_len]);
 
 }
-              r := taicpu(hp).oper[0]^.reg;
-              setsupreg(r, getsupreg(r) + 1);
-              tmpfpu := gas_regname(r);
-              s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+                  r := taicpu(hp).oper[0]^.reg;
+                  setsupreg(r, getsupreg(r) + 1);
+                  tmpfpu := gas_regname(r);
+                  s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+                end;
               owner.AsmWriteLn(s);
             end;
           A_SDC1:
             begin
-              tmpfpu := getopstr(taicpu(hp).oper[0]^);
-              s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
-              owner.AsmWriteLn(s);
+              if (target_info.endian = endian_big) then
+                begin
+                  s := #9 + gas_op2str[A_SDC1] + #9 + getopstr(taicpu(hp).oper[0]^)
+                       + ',' + getopstr(taicpu(hp).oper[1]^);
+                end
+              else
+                begin
+                  tmpfpu := getopstr(taicpu(hp).oper[0]^);
+                  s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+                  owner.AsmWriteLn(s);
 
 {
               tmpfpu_len := length(tmpfpu);
               tmpfpu[tmpfpu_len] := succ(tmpfpu[tmpfpu_len]);
 }
-              r := taicpu(hp).oper[0]^.reg;
-              setsupreg(r, getsupreg(r) + 1);
-              tmpfpu := gas_regname(r);
-              s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+                  r := taicpu(hp).oper[0]^.reg;
+                  setsupreg(r, getsupreg(r) + 1);
+                  tmpfpu := gas_regname(r);
+                  s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
+                end;
               owner.AsmWriteLn(s);
             end;
           else
