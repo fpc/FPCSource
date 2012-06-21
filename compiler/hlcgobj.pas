@@ -1039,7 +1039,7 @@ implementation
     var
       fromsubsetregdef,
       tosubsetregdef: torddef;
-      tmpreg: tregister;
+      tmpreg, tmpreg2: tregister;
       bitmask: aword;
       stopbit: byte;
     begin
@@ -1047,12 +1047,22 @@ implementation
         begin
           fromsubsetregdef:=tcgsize2orddef(fromsreg.subsetregsize);
           tosubsetregdef:=tcgsize2orddef(tosreg.subsetregsize);
-          tmpreg:=getintregister(list,tosubsetregdef);
-          a_load_reg_reg(list,fromsubsetregdef,tosubsetregdef,fromsreg.subsetreg,tmpreg);
           if (fromsreg.startbit<=tosreg.startbit) then
-            a_op_const_reg(list,OP_SHL,tosubsetregdef,tosreg.startbit-fromsreg.startbit,tmpreg)
+            begin
+              { tosreg may be larger -> use its size to perform the shift }
+              tmpreg:=getintregister(list,tosubsetregdef);
+              a_load_reg_reg(list,fromsubsetregdef,tosubsetregdef,fromsreg.subsetreg,tmpreg);
+              a_op_const_reg(list,OP_SHL,tosubsetregdef,tosreg.startbit-fromsreg.startbit,tmpreg)
+            end
           else
-            a_op_const_reg(list,OP_SHR,tosubsetregdef,fromsreg.startbit-tosreg.startbit,tmpreg);
+            begin
+              { fromsreg may be larger -> use its size to perform the shift }
+              tmpreg:=getintregister(list,fromsubsetregdef);
+              a_op_const_reg_reg(list,OP_SHR,fromsubsetregdef,fromsreg.startbit-tosreg.startbit,fromsreg.subsetreg,tmpreg);
+              tmpreg2:=getintregister(list,tosubsetregdef);
+              a_load_reg_reg(list,fromsubsetregdef,tosubsetregdef,tmpreg,tmpreg2);
+              tmpreg:=tmpreg2;
+            end;
           stopbit:=tosreg.startbit + tosreg.bitlen;
           // on x86(64), 1 shl 32(64) = 1 instead of 0
           if (stopbit<>AIntBits) then
