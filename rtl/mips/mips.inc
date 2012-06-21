@@ -70,7 +70,7 @@ function get_frame:pointer;assembler;nostackframe;
       Further, we need to know the pc
     }
     // lw $2,0($sp)
-    move $2,$s8
+    move $2,$30
   end;
 
 
