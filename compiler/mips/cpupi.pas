@@ -42,8 +42,12 @@ interface
       floatregssave : byte;
       needs_frame_pointer: boolean;
       register_used : tparasupregsused;
+      register_size : tparasupregsize;
+      register_name : tparasuprename;
       register_offset : tparasupregsoffset;
       computed_local_size : longint;
+      //intparareg,
+      //parasize : longint;
       constructor create(aparent:tprocinfo);override;
       function calc_stackframe_size:longint;override;
       procedure set_first_temp_offset;override;
@@ -68,6 +72,8 @@ implementation
         for i:=low(tparasupregs)  to high(tparasupregs) do
           begin
             register_used[i]:=false;
+            register_size[i]:=OS_NO;
+            register_name[i]:='invalid';
             register_offset[i]:=-1;
           end;
         floatregssave:=12; { f20-f31 }
@@ -108,7 +114,7 @@ implementation
             procdef.total_local_size:=result;
           end
         else if computed_local_size <> result then
-          Comment(V_Warning,'TMIPSProcInfo.calc_stackframe_size result changed');
+          Comment(V_Error,'TMIPSProcInfo.calc_stackframe_size result changed');
       end;
 
     function mips_extra_offset(procdef : tprocdef) : longint;
