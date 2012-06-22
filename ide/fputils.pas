@@ -16,11 +16,13 @@ unit FPUtils;
 
 interface
 
-uses Objects;
+uses
+  Sysutils,
+  Objects;
 
 const
   dirsep = System.DirectorySeparator;
-  
+
 {$ifdef Unix}
   listsep = [';',':'];
   exeext = '';
@@ -419,7 +421,8 @@ end;
 
 function LocateExeFile(var FileName:string): boolean;
 var
-  dir,s : string;
+  dir : string;
+  s : ansistring;
   i : longint;
 begin
   LocateExeFile:=False;
@@ -429,7 +432,7 @@ begin
       Exit;
     end;
 
-  S:=GetEnv('PATH');
+  S:=sysutils.GetEnvironmentVariable('PATH');
   While Length(S)>0 do
     begin
       i:=1;
