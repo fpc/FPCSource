@@ -213,7 +213,8 @@ begin
           repeat // skip until at end of line
             Inc(p);
           until p^ in [#10, #0];
-        end
+        end;
+        if p^<>#0 then Inc(p); // newline is part of comment
       end;
     '/': // possible start of /* */ comment
       begin
