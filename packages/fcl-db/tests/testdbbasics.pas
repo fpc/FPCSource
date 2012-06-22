@@ -678,8 +678,13 @@ begin
     CheckFalse(FieldByName('LookupFld').ReadOnly);
 
     CheckEquals(1,FieldByName('ID').AsInteger);
-    CheckEquals('name1',FieldByName('LookupFld').AsString);
-    close;
+    CheckEquals('TestName1',FieldByName('LookupFld').AsString);
+    Next;
+    Next;
+    CheckEquals(3,FieldByName('ID').AsInteger);
+    CheckEquals('TestName3',FieldByName('LookupFld').AsString);
+
+    Close;
     lds.Close;
     end;
 end;
