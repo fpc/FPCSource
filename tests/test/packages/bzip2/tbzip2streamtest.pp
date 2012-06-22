@@ -70,53 +70,56 @@ begin
   UncompressedFile:=SysUtils.GetTempFileName(EmptyStr, 'UNC');
   CompressedFile:=SysUtils.GetTempFileName(EmptyStr, 'BZ2');
 
-  // Set up test bz2 file
-  // create a resource stream which points to our resource
-  ExampleFileResourceStream := TResourceStream.Create(HInstance, 'ALL', 'RT_RCDATA');
   try
-    ExampleFileStream := TFileStream.Create(CompressedFile, fmCreate);
+    // Set up test bz2 file
+    // create a resource stream which points to our resource
+    ExampleFileResourceStream := TResourceStream.Create(HInstance, 'ALL', 'RT_RCDATA');
     try
-      ExampleFileStream.CopyFrom(ExampleFileResourceStream, ExampleFileResourceStream.Size);
+      ExampleFileStream := TFileStream.Create(CompressedFile, fmCreate);
+      try
+        ExampleFileStream.CopyFrom(ExampleFileResourceStream, ExampleFileResourceStream.Size);
+      finally
+        ExampleFileStream.Free;
+      end;
     finally
-      ExampleFileStream.Free;
+      ExampleFileResourceStream.Free;
     end;
-  finally
-    ExampleFileResourceStream.Free;
-  end;
 
-  // Actual decompression
-  if decompress(CompressedFile, UncompressedFile) then
-  begin
-    // Now check if contents match.
-  UncompressedHash:=MD5Print(MD5File(UncompressedFile, MDDefBufSize));
-	if UncompressedHash=ExpectedHash then
-	begin
-    code:=0; //success
-	end
-	else
-	begin
-    writeln('MD5 hash comparison between original file and uncompressed file failed');
-    writeln('Got hash:'+UncompressedHash);
-    writeln('Expected:'+ExpectedHash);
-	  code:=2;
-	end;
-  end
-  else
-  begin
-    writeln('bunzip2 decompression failure');
-    code:=1;
-  end;
+    // Actual decompression
+    if decompress(CompressedFile, UncompressedFile) then
+    begin
+      // Now check if contents match.
+      UncompressedHash:=MD5Print(MD5File(UncompressedFile, MDDefBufSize));
+      if UncompressedHash=ExpectedHash then
+      begin
+        code:=0; //success
+      end
+      else
+      begin
+        writeln('MD5 hash comparison between original file and uncompressed file failed');
+        writeln('Got hash:'+UncompressedHash);
+        writeln('Expected:'+ExpectedHash);
+        code:=2;
+      end;
+    end
+    else
+    begin
+      writeln('bunzip2 decompression failure');
+      code:=1;
+    end;
   
-  try
-    if CompressedFile<>EmptyStr then DeleteFile(CompressedFile);
-    if UncompressedFile<>EmptyStr then DeleteFile(UncompressedFile);
+  
+    if code = 0 then
+      writeln('Basic bzip2 tests passed')
+    else
+      writeln('Basic bzip2 test failed: ', code);
   finally
-    // Ignore errors; operating system should clean out temp files
-  end; 
-  
-  if code = 0 then
-    writeln('Basic bzip2 tests passed')
-  else
-    writeln('Basic bzip2 test failed: ', code);
+    try
+      if CompressedFile<>EmptyStr then DeleteFile(CompressedFile);
+      if UncompressedFile<>EmptyStr then DeleteFile(UncompressedFile);
+    finally
+      // Ignore errors; operating system should clean out temp files
+    end; 
+  end;
   Halt(code);
 end.
