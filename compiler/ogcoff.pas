@@ -113,14 +113,6 @@ interface
          procedure fixuprelocs(Exe:TExeOutput);override;
        end;
 
-       TDJCoffObjSection = class(TCoffObjSection)
-         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
-       end;
-
-       TPECoffObjSection = class(TCoffObjSection)
-         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
-       end;
-
        TCoffObjData = class(TObjData)
        private
          win32      : boolean;
@@ -198,21 +190,6 @@ interface
 
        TPECoffObjInput = class(TCoffObjInput)
          constructor create;override;
-       end;
-
-       TCoffExeSection = class(TExeSection)
-       private
-         win32   : boolean;
-       public
-         constructor createcoff(AList:TFPHashObjectList;const n:string;awin32:boolean);
-       end;
-
-       TDJCoffExeSection = class(TCoffExeSection)
-         constructor create(AList:TFPHashObjectList;const n:string);override;
-       end;
-
-       TPECoffExeSection = class(TCoffExeSection)
-         constructor create(AList:TFPHashObjectList;const n:string);override;
        end;
 
        TCoffexeoutput = class(texeoutput)
@@ -1011,26 +988,6 @@ const pemagic : array[0..3] of byte = (
 
 
 {****************************************************************************
-                               TDJCoffObjSection
-****************************************************************************}
-
-    constructor TDJCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
-      begin
-        inherited create(alist,aname,aalign,aoptions);
-      end;
-
-
-{****************************************************************************
-                               TPECoffObjSection
-****************************************************************************}
-
-    constructor TPECoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
-      begin
-        inherited create(alist,aname,aalign,aoptions);
-      end;
-
-
-{****************************************************************************
                                 TCoffObjData
 ****************************************************************************}
 
@@ -1192,7 +1149,7 @@ const pemagic : array[0..3] of byte = (
 
     constructor TDJCoffObjData.create(const n:string);
       begin
-        inherited createcoff(n,false,TDJCoffObjSection);
+        inherited createcoff(n,false,TCoffObjSection);
       end;
 
 
@@ -1202,7 +1159,7 @@ const pemagic : array[0..3] of byte = (
 
     constructor TPECoffObjData.create(const n:string);
       begin
-        inherited createcoff(n,true,TPECoffObjSection);
+        inherited createcoff(n,true,TCoffObjSection);
       end;
 
 
@@ -1967,30 +1924,6 @@ const pemagic : array[0..3] of byte = (
 
 
 {****************************************************************************
-                              TCoffexesection
-****************************************************************************}
-
-
-    constructor TCoffExeSection.createcoff(AList:TFPHashObjectList;const n:string;awin32:boolean);
-      begin
-        inherited create(AList,n);
-        win32:=awin32;
-      end;
-
-
-    constructor TDJCoffExeSection.create(AList:TFPHashObjectList;const n:string);
-      begin
-        inherited createcoff(AList,n,false);
-      end;
-
-
-    constructor TPECoffExeSection.create(AList:TFPHashObjectList;const n:string);
-      begin
-        inherited createcoff(AList,n,false);
-      end;
-
-
-{****************************************************************************
                               TCoffexeoutput
 ****************************************************************************}
 
@@ -2489,7 +2422,7 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited createcoff(false);
         datapos_offset:=sizeof(go32v2stub);
-        CExeSection:=TDJCoffExeSection;
+        CExeSection:=TExeSection;
         CObjData:=TDJCoffObjData;
       end;
 
@@ -2503,7 +2436,7 @@ const pemagic : array[0..3] of byte = (
     constructor TPECoffexeoutput.create;
       begin
         inherited createcoff(true);
-        CExeSection:=TPECoffExeSection;
+        CExeSection:=TExeSection;
         CObjData:=TPECoffObjData;
       end;
 
