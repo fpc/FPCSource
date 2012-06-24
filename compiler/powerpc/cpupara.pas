@@ -373,10 +373,7 @@ unit cpupara;
                   break;
                 end;
 
-              if (hp.varspez in [vs_var,vs_out]) or
-                 push_addr_param(hp.varspez,paradef,p.proccalloption) or
-                 is_open_array(paradef) or
-                 is_array_of_const(paradef) then
+              if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                 begin
                   paradef:=voidpointertype;
                   loc:=LOC_REGISTER;

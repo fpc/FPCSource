@@ -304,11 +304,8 @@ begin
       break;
     end;
 
-    if (hp.varspez in [vs_var, vs_out]) or
-      push_addr_param(hp.varspez, paradef, p.proccalloption) or
-      is_open_array(paradef) or
-      is_array_of_const(paradef) then begin
-      paradef := voidpointertype;
+    if push_addr_param(hp.varspez, paradef, p.proccalloption) then begin
+      paradef := getpointerdef(paradef);
       loc := LOC_REGISTER;
       paracgsize := OS_ADDR;
       paralen := tcgsize2size[OS_ADDR];
