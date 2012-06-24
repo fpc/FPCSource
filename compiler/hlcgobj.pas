@@ -161,7 +161,7 @@ unit hlcgobj;
              @param(tosize type of the pointer that we get as a result)
              @param(r reference to get address from)
           }
-          procedure a_loadaddr_ref_cgpara(list : TAsmList;fromsize, tosize : tdef;const r : treference;const cgpara : TCGPara);virtual;
+          procedure a_loadaddr_ref_cgpara(list : TAsmList;fromsize : tdef;const r : treference;const cgpara : TCGPara);virtual;
 
           { Remarks:
             * If a method specifies a size you have only to take care
@@ -731,8 +731,8 @@ implementation
          LOC_FPUREGISTER,LOC_CFPUREGISTER:
            begin
              tg.gethltemp(list,size,size.size,tt_normal,ref);
-             a_load_reg_ref(list,size,size,r,ref);
-             a_loadfpu_ref_cgpara(list,size,ref,cgpara);
+             a_load_reg_ref(list,size,cgpara.def,r,ref);
+             a_loadfpu_ref_cgpara(list,cgpara.def,ref,cgpara);
              tg.ungettemp(list,ref);
            end
          else
@@ -810,7 +810,7 @@ implementation
       end;
     end;
 
-  procedure thlcgobj.a_loadaddr_ref_cgpara(list: TAsmList; fromsize, tosize: tdef; const r: treference; const cgpara: TCGPara);
+  procedure thlcgobj.a_loadaddr_ref_cgpara(list: TAsmList; fromsize: tdef; const r: treference; const cgpara: TCGPara);
     var
        hr : tregister;
     begin
@@ -818,13 +818,13 @@ implementation
        if cgpara.location^.loc in [LOC_CREGISTER,LOC_REGISTER] then
          begin
            paramanager.allocparaloc(list,cgpara.location);
-           a_loadaddr_ref_reg(list,fromsize,tosize,r,cgpara.location^.register)
+           a_loadaddr_ref_reg(list,fromsize,cgpara.def,r,cgpara.location^.register)
          end
        else
          begin
-           hr:=getaddressregister(list,tosize);
-           a_loadaddr_ref_reg(list,fromsize,tosize,r,hr);
-           a_load_reg_cgpara(list,tosize,hr,cgpara);
+           hr:=getaddressregister(list,cgpara.def);
+           a_loadaddr_ref_reg(list,fromsize,cgpara.def,r,hr);
+           a_load_reg_cgpara(list,cgpara.def,hr,cgpara);
          end;
     end;
 

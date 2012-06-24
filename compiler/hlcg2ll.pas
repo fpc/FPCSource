@@ -150,7 +150,7 @@ unit hlcg2ll;
              @param(tosize type of the pointer that we get as a result)
              @param(r reference to get address from)
           }
-          procedure a_loadaddr_ref_cgpara(list : TAsmList;fromsize, tosize : tdef;const r : treference;const cgpara : TCGPara);override;
+          procedure a_loadaddr_ref_cgpara(list : TAsmList;fromsize : tdef;const r : treference;const cgpara : TCGPara);override;
 
           procedure a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; weak: boolean);override;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);override;
@@ -470,7 +470,7 @@ implementation
       cg.a_load_loc_cgpara(list,l,cgpara);
     end;
 
-  procedure thlcg2ll.a_loadaddr_ref_cgpara(list: TAsmList; fromsize, tosize: tdef; const r: treference; const cgpara: TCGPara);
+  procedure thlcg2ll.a_loadaddr_ref_cgpara(list: TAsmList; fromsize: tdef; const r: treference; const cgpara: TCGPara);
     begin
       cg.a_loadaddr_ref_cgpara(list,r,cgpara);
     end;

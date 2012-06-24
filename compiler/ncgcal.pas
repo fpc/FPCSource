@@ -133,7 +133,7 @@ implementation
       begin
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
-        hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara.def,left.location.reference,tempcgpara);
+        hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location.reference,tempcgpara);
       end;
 
 
