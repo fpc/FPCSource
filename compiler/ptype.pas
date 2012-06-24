@@ -1163,40 +1163,40 @@ implementation
                        begin
                          if pt.nodetype=rangen then
                            begin
-                             { check the expression only if we are not in a generic declaration }
-                             if not(parse_generic) then
+                             { pure ordconstn expressions can be checked for
+                               generics as well, but don't give an error in case
+                               of parsing a generic if that isn't yet the case }
+                             if (trangenode(pt).left.nodetype=ordconstn) and
+                                (trangenode(pt).right.nodetype=ordconstn) then
                                begin
-                                 if (trangenode(pt).left.nodetype=ordconstn) and
-                                    (trangenode(pt).right.nodetype=ordconstn) then
+                                 { make both the same type or give an error. This is not
+                                   done when both are integer values, because typecasting
+                                   between -3200..3200 will result in a signed-unsigned
+                                   conflict and give a range check error (PFV) }
+                                 if not(is_integer(trangenode(pt).left.resultdef) and is_integer(trangenode(pt).left.resultdef)) then
+                                   inserttypeconv(trangenode(pt).left,trangenode(pt).right.resultdef);
+                                 lowval:=tordconstnode(trangenode(pt).left).value;
+                                 highval:=tordconstnode(trangenode(pt).right).value;
+                                 if highval<lowval then
+                                  begin
+                                    Message(parser_e_array_lower_less_than_upper_bound);
+                                    highval:=lowval;
+                                  end
+                                 else if (lowval<int64(low(asizeint))) or
+                                         (highval>high(asizeint)) then
                                    begin
-                                     { make both the same type or give an error. This is not
-                                       done when both are integer values, because typecasting
-                                       between -3200..3200 will result in a signed-unsigned
-                                       conflict and give a range check error (PFV) }
-                                     if not(is_integer(trangenode(pt).left.resultdef) and is_integer(trangenode(pt).left.resultdef)) then
-                                       inserttypeconv(trangenode(pt).left,trangenode(pt).right.resultdef);
-                                     lowval:=tordconstnode(trangenode(pt).left).value;
-                                     highval:=tordconstnode(trangenode(pt).right).value;
-                                     if highval<lowval then
-                                      begin
-                                        Message(parser_e_array_lower_less_than_upper_bound);
-                                        highval:=lowval;
-                                      end
-                                     else if (lowval<int64(low(asizeint))) or
-                                             (highval>high(asizeint)) then
-                                       begin
-                                         Message(parser_e_array_range_out_of_bounds);
-                                         lowval :=0;
-                                         highval:=0;
-                                       end;
-                                     if is_integer(trangenode(pt).left.resultdef) then
-                                       range_to_type(lowval,highval,indexdef)
-                                     else
-                                       indexdef:=trangenode(pt).left.resultdef;
-                                   end
+                                     Message(parser_e_array_range_out_of_bounds);
+                                     lowval :=0;
+                                     highval:=0;
+                                   end;
+                                 if is_integer(trangenode(pt).left.resultdef) then
+                                   range_to_type(lowval,highval,indexdef)
                                  else
-                                   Message(type_e_cant_eval_constant_expr);
-                               end;
+                                   indexdef:=trangenode(pt).left.resultdef;
+                               end
+                             else
+                               if not parse_generic then
+                                 Message(type_e_cant_eval_constant_expr);
                            end
                          else
                            Message(sym_e_error_in_type_def)
