@@ -151,6 +151,20 @@ implementation
                            not(is_objcclass(ttypesym(srsym).typedef)) and
                            not(is_javaclass(ttypesym(srsym).typedef)) then
                           MessagePos1(def.typesym.fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
+                        { this could also be a generic dummy that was not
+                          overridden with a specific type }
+                        if (sp_generic_dummy in srsym.symoptions) and
+                            (
+                              (ttypesym(srsym).typedef.typ=undefineddef) or
+                              (
+                                { or an unspecialized generic symbol, which is
+                                  the case for generics defined in non-Delphi
+                                  modes }
+                                (df_generic in ttypesym(srsym).typedef.defoptions) and
+                                not parse_generic
+                              )
+                            ) then
+                          MessagePos(def.typesym.fileinfo,parser_e_no_generics_as_types);
                       end
                      else
                       begin
@@ -1446,6 +1460,13 @@ implementation
               begin
                 consume(_CARET);
                 single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
+                { in case of e.g. var or const sections we need to especially
+                  check that we don't use a generic dummy symbol }
+                if (block_type<>bt_type) and
+                    (tt2.typ=undefineddef) and
+                    assigned(tt2.typesym) and
+                    (sp_generic_dummy in tt2.typesym.symoptions) then
+                  Message(parser_e_no_generics_as_types);
                 { don't use getpointerdef() here, since this is a type
                   declaration (-> must create new typedef) }
                 def:=tpointerdef.create(tt2);
