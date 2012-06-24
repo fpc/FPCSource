@@ -2813,9 +2813,7 @@ implementation
            paramanager.getintparaloc(pocall_default,1,pvardata,cgpara1);
            a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
            paramanager.freecgpara(list,cgpara1);
-           allocallcpuregisters(list);
            g_call_system_proc(list,'fpc_variant_init');
-           deallocallcpuregisters(list);
          end
        else
          begin
@@ -2828,9 +2826,7 @@ implementation
             a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
             paramanager.freecgpara(list,cgpara1);
             paramanager.freecgpara(list,cgpara2);
-            allocallcpuregisters(list);
             g_call_system_proc(list,'fpc_initialize');
-            deallocallcpuregisters(list);
          end;
       cgpara1.done;
       cgpara2.done;
