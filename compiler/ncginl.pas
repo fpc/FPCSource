@@ -204,10 +204,10 @@ implementation
        paraloc2.init;
        paraloc3.init;
        paraloc4.init;
-       paramanager.getintparaloc(pocall_default,1,paraloc1);
-       paramanager.getintparaloc(pocall_default,2,paraloc2);
-       paramanager.getintparaloc(pocall_default,3,paraloc3);
-       paramanager.getintparaloc(pocall_default,4,paraloc4);
+       paramanager.getintparaloc(pocall_default,1,getpointerdef(cshortstringtype),paraloc1);
+       paramanager.getintparaloc(pocall_default,2,getpointerdef(cshortstringtype),paraloc2);
+       paramanager.getintparaloc(pocall_default,3,s32inttype,paraloc3);
+       paramanager.getintparaloc(pocall_default,4,voidpointertype,paraloc4);
        otlabel:=current_procinfo.CurrTrueLabel;
        oflabel:=current_procinfo.CurrFalseLabel;
        current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
@@ -231,7 +231,7 @@ implementation
        { push erroraddr }
        cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
        { push lineno }
-       cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,current_filepos.line,paraloc3);
+       cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,current_filepos.line,paraloc3);
        { push filename }
        cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,hp2.location.reference,paraloc2);
        { push msg }

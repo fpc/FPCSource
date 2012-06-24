@@ -81,7 +81,7 @@ unit paramgr;
           function get_volatile_registers_flags(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;virtual;
 
-          procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);virtual;abstract;
+          procedure getintparaloc(calloption : tproccalloption; nr : longint; def: tdef; var cgpara : tcgpara);virtual;abstract;
 
           {# allocate an individual pcgparalocation that's part of a tcgpara
 

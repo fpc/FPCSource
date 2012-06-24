@@ -421,7 +421,7 @@ procedure fpc_variant_init(var v: tvardata);compilerproc;
 procedure fpc_variant_clear(var v: tvardata);compilerproc;
 {$ifdef FPC_VARIANTCOPY_FIXED}
 procedure fpc_variant_copy(var d: tvardata; const s : tvardata);compilerproc;
-procedure fpc_variant_copy_overwrite(const source: tvardata; var dest : tvardata);compilerproc;
+procedure fpc_variant_copy_overwrite(constref source: tvardata; var dest : tvardata);compilerproc;
 {$else FPC_VARIANTCOPY_FIXED}
 procedure fpc_variant_copy(d,s : pointer);compilerproc;
 procedure fpc_variant_copy_overwrite(source, dest : pointer);compilerproc;

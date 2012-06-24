@@ -1597,10 +1597,10 @@ begin
   paraloc1.init;
   paraloc2.init;
   paraloc3.init;
-  paramanager.getintparaloc(pocall_default, 1, paraloc1);
-  paramanager.getintparaloc(pocall_default, 2, paraloc2);
-  paramanager.getintparaloc(pocall_default, 3, paraloc3);
-  a_load_const_cgpara(list, OS_INT, len, paraloc3);
+  paramanager.getintparaloc(pocall_default, 1, voidpointertype, paraloc1);
+  paramanager.getintparaloc(pocall_default, 2, voidpointertype, paraloc2);
+  paramanager.getintparaloc(pocall_default, 3, ptrsinttype, paraloc3);
+  a_load_const_cgpara(list, OS_SINT, len, paraloc3);
   a_loadaddr_ref_cgpara(list, dest, paraloc2);
   a_loadaddr_ref_cgpara(list, Source, paraloc1);
   paramanager.freecgpara(list, paraloc3);

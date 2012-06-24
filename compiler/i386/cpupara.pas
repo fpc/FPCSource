@@ -45,7 +45,7 @@ unit cpupara;
             and if the calling conventions for the helper routines of the
             rtl are used.
           }
-          procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
+          procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
@@ -270,14 +270,15 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);
+    procedure ti386paramanager.getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
       begin
         cgpara.reset;
-        cgpara.size:=OS_ADDR;
-        cgpara.intsize:=sizeof(pint);
+        cgpara.size:=def_cgsize(def);
+        cgpara.intsize:=tcgsize2size[cgpara.size];
         cgpara.alignment:=get_para_align(calloption);
+        cgpara.def:=def;
         paraloc:=cgpara.add_location;
         with paraloc^ do
          begin

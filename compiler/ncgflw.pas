@@ -93,7 +93,7 @@ implementation
 
     uses
       verbose,globals,systems,globtype,constexp,
-      symconst,symdef,symsym,aasmtai,aasmdata,aasmcpu,defutil,
+      symconst,symdef,symsym,symtable,aasmtai,aasmdata,aasmcpu,defutil,
       procinfo,cgbase,pass_2,parabase,
       cpubase,cpuinfo,
       nld,ncon,
@@ -962,16 +962,17 @@ implementation
          href2: treference;
          paraloc1,paraloc2,paraloc3 : tcgpara;
       begin
-         paraloc1.init;
-         paraloc2.init;
-         paraloc3.init;
-         paramanager.getintparaloc(pocall_default,1,paraloc1);
-         paramanager.getintparaloc(pocall_default,2,paraloc2);
-         paramanager.getintparaloc(pocall_default,3,paraloc3);
          location_reset(location,LOC_VOID,OS_NO);
 
          if assigned(left) then
            begin
+              paraloc1.init;
+              paraloc2.init;
+              paraloc3.init;
+              paramanager.getintparaloc(pocall_default,1,class_tobject,paraloc1);
+              paramanager.getintparaloc(pocall_default,2,voidpointertype,paraloc2);
+              paramanager.getintparaloc(pocall_default,3,voidpointertype,paraloc3);
+
               { multiple parameters? }
               if assigned(right) then
                 begin
@@ -991,7 +992,7 @@ implementation
                   if assigned(third) then
                     cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,third.location,paraloc3)
                   else
-                    cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,0,paraloc3);
+                    cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc3);
                   { push address }
                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
                 end
@@ -1007,7 +1008,7 @@ implementation
                    if target_info.system <> system_powerpc_macos then
                      cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc2)
                    else
-                     cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,0,paraloc2);
+                     cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc2);
                 end;
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
@@ -1016,6 +1017,10 @@ implementation
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RAISEEXCEPTION',false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+
+              paraloc1.done;
+              paraloc2.done;
+              paraloc3.done;
            end
          else
            begin
@@ -1024,9 +1029,6 @@ implementation
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
            end;
-         paraloc1.done;
-         paraloc2.done;
-         paraloc3.done;
        end;
 
 
@@ -1330,7 +1332,7 @@ implementation
 
          { send the vmt parameter }
          reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname),0,sizeof(pint));
-         paramanager.getintparaloc(pocall_default,1,paraloc1);
+         paramanager.getintparaloc(pocall_default,1,search_system_type('TCLASS').typedef,paraloc1);
          cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
          cg.g_call(current_asmdata.CurrAsmList,'FPC_CATCHES');
@@ -1446,7 +1448,7 @@ implementation
         { call fpc_safecallhandler, passing self for methods of classes,
           nil otherwise. }
         cgpara.init;
-        paramanager.getintparaloc(pocall_default,1,cgpara);
+        paramanager.getintparaloc(pocall_default,1,class_tobject,cgpara);
         if is_class(current_procinfo.procdef.struct) then
           begin
             selfsym:=tparavarsym(current_procinfo.procdef.parast.Find('self'));

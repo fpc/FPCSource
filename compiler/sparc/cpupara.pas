@@ -38,7 +38,7 @@ interface
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
-        procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara : TCGPara);override;
+        procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
@@ -75,16 +75,17 @@ implementation
       end;
 
 
-    procedure TSparcParaManager.GetIntParaLoc(calloption : tproccalloption; nr : longint;var cgpara : tcgpara);
+    procedure TSparcParaManager.GetIntParaLoc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
       begin
         if nr<1 then
           InternalError(2002100806);
         cgpara.reset;
-        cgpara.size:=OS_ADDR;
-        cgpara.intsize:=sizeof(pint);
+        cgpara.size:=def_cgsize(def);
+        cgpara.intsize:=tcgsize2size[cgpara.size];
         cgpara.alignment:=std_param_align;
+        cgpara.def:=def;
         paraloc:=cgpara.add_location;
         with paraloc^ do
           begin

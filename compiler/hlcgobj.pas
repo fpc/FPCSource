@@ -77,6 +77,16 @@ unit hlcgobj;
            the cpu specific child cg object have such a method?}
 
           function  uses_registers(rt:Tregistertype):boolean; inline;
+          {# Get a specific register.}
+          procedure getcpuregister(list:TAsmList;r:Tregister);virtual;
+          procedure ungetcpuregister(list:TAsmList;r:Tregister);virtual;
+          {# Get multiple registers specified.}
+          procedure alloccpuregisters(list:TAsmList;rt:Tregistertype;const r:Tcpuregisterset);virtual;
+          {# Free multiple registers specified.}
+          procedure dealloccpuregisters(list:TAsmList;rt:Tregistertype;const r:Tcpuregisterset);virtual;
+
+          procedure allocallcpuregisters(list:TAsmList);virtual;
+          procedure deallocallcpuregisters(list:TAsmList);virtual;
 
           procedure do_register_allocation(list:TAsmList;headertai:tai); inline;
           procedure translate_register(var reg : tregister); inline;
@@ -386,11 +396,11 @@ unit hlcgobj;
 
           }
           procedure g_copyshortstring(list : TAsmList;const source,dest : treference;strdef:tstringdef);virtual;abstract;
-          procedure g_copyvariant(list : TAsmList;const source,dest : treference;vardef:tvariantdef);virtual;abstract;
+          procedure g_copyvariant(list : TAsmList;const source,dest : treference;vardef:tvariantdef);virtual;
 
           procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);virtual;abstract;
-          procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);virtual;abstract;
-          procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);virtual;abstract;
+          procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);virtual;
+          procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);virtual;
           procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation;
             const name: string);virtual;abstract;
 
@@ -543,7 +553,7 @@ implementation
        fmodule,export,
        verbose,defutil,paramgr,
        symbase,symsym,symtable,
-       ncon,nld,pass_1,pass_2,
+       ncon,nld,ncgrtti,pass_1,pass_2,
        cpuinfo,cgobj,tgobj,cutils,procinfo,
        ncgutil,ngenutil;
 
@@ -622,6 +632,36 @@ implementation
   function thlcgobj.uses_registers(rt: Tregistertype): boolean;
     begin
        result:=cg.uses_registers(rt);
+    end;
+
+  procedure thlcgobj.getcpuregister(list: TAsmList; r: Tregister);
+    begin
+      cg.getcpuregister(list,r);
+    end;
+
+  procedure thlcgobj.ungetcpuregister(list: TAsmList; r: Tregister);
+    begin
+      cg.ungetcpuregister(list,r);
+    end;
+
+  procedure thlcgobj.alloccpuregisters(list: TAsmList; rt: Tregistertype; const r: Tcpuregisterset);
+    begin
+      cg.alloccpuregisters(list,rt,r);
+    end;
+
+  procedure thlcgobj.dealloccpuregisters(list: TAsmList; rt: Tregistertype; const r: Tcpuregisterset);
+    begin
+      cg.dealloccpuregisters(list,rt,r);
+    end;
+
+  procedure thlcgobj.allocallcpuregisters(list: TAsmList);
+    begin
+      cg.allocallcpuregisters(list);
+    end;
+
+  procedure thlcgobj.deallocallcpuregisters(list: TAsmList);
+    begin
+      cg.deallocallcpuregisters(list);
     end;
 
   procedure thlcgobj.do_register_allocation(list: TAsmList; headertai: tai);
@@ -2734,6 +2774,124 @@ implementation
       g_concatcopy(list,size,source,dest);
     end;
 
+  procedure thlcgobj.g_copyvariant(list: TAsmList; const source, dest: treference; vardef: tvariantdef);
+    var
+      cgpara1,cgpara2 : TCGPara;
+      pvardata : tdef;
+    begin
+      cgpara1.init;
+      cgpara2.init;
+      pvardata:=getpointerdef(search_system_type('TVARDATA').typedef);
+      paramanager.getintparaloc(pocall_default,1,pvardata,cgpara1);
+      paramanager.getintparaloc(pocall_default,2,pvardata,cgpara2);
+      a_loadaddr_ref_cgpara(list,vardef,dest,cgpara2);
+      a_loadaddr_ref_cgpara(list,vardef,source,cgpara1);
+      paramanager.freecgpara(list,cgpara2);
+      paramanager.freecgpara(list,cgpara1);
+      g_call_system_proc(list,'fpc_variant_copy_overwrite');
+      cgpara2.done;
+      cgpara1.done;
+    end;
+
+  procedure thlcgobj.g_initialize(list: TAsmList; t: tdef; const ref: treference);
+    var
+       href : treference;
+       cgpara1,cgpara2 : TCGPara;
+       pvardata : tdef;
+    begin
+      cgpara1.init;
+      cgpara2.init;
+       if is_ansistring(t) or
+          is_widestring(t) or
+          is_unicodestring(t) or
+          is_interfacecom_or_dispinterface(t) or
+          is_dynamic_array(t) then
+         a_load_const_ref(list,t,0,ref)
+       else if t.typ=variantdef then
+         begin
+           pvardata:=getpointerdef(search_system_type('TVARDATA').typedef);
+           paramanager.getintparaloc(pocall_default,1,pvardata,cgpara1);
+           a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+           paramanager.freecgpara(list,cgpara1);
+           allocallcpuregisters(list);
+           g_call_system_proc(list,'fpc_variant_init');
+           deallocallcpuregisters(list);
+         end
+       else
+         begin
+            if is_open_array(t) then
+              InternalError(201103052);
+            paramanager.getintparaloc(pocall_default,1,voidpointertype,cgpara1);
+            paramanager.getintparaloc(pocall_default,2,voidpointertype,cgpara2);
+            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
+            a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+            a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+            paramanager.freecgpara(list,cgpara1);
+            paramanager.freecgpara(list,cgpara2);
+            allocallcpuregisters(list);
+            g_call_system_proc(list,'fpc_initialize');
+            deallocallcpuregisters(list);
+         end;
+      cgpara1.done;
+      cgpara2.done;
+    end;
+
+  procedure thlcgobj.g_finalize(list: TAsmList; t: tdef; const ref: treference);
+    var
+       href : treference;
+       cgpara1,cgpara2 : TCGPara;
+       paratype : tdef;
+       decrfunc : string;
+       dynarr: boolean;
+    begin
+      paratype:=getpointerdef(voidpointertype);
+      if is_interfacecom_or_dispinterface(t) then
+        decrfunc:='fpc_intf_decr_ref'
+      else if is_ansistring(t) then
+        decrfunc:='fpc_ansistr_decr_ref'
+      else if is_widestring(t) then
+        decrfunc:='fpc_widestr_decr_ref'
+      else if is_unicodestring(t) then
+        decrfunc:='fpc_unicodestr_decr_ref'
+      else if t.typ=variantdef then
+        begin
+          paratype:=getpointerdef(search_system_type('TVARDATA').typedef);
+          decrfunc:='fpc_variant_clear'
+        end
+      else
+        begin
+          cgpara1.init;
+          cgpara2.init;
+          if is_open_array(t) then
+            InternalError(201103051);
+          dynarr:=is_dynamic_array(t);
+          { fpc_finalize takes a pointer value parameter, fpc_dynarray_clear a
+            pointer var parameter }
+          if not dynarr then
+            paratype:=voidpointertype;
+          paramanager.getintparaloc(pocall_default,1,paratype,cgpara1);
+          paramanager.getintparaloc(pocall_default,2,voidpointertype,cgpara2);
+          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
+          a_loadaddr_ref_cgpara(list,voidpointertype,href,cgpara2);
+          a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+          paramanager.freecgpara(list,cgpara1);
+          paramanager.freecgpara(list,cgpara2);
+          if dynarr then
+            g_call_system_proc(list,'fpc_dynarray_clear')
+          else
+            g_call_system_proc(list,'fpc_finalize');
+          cgpara1.done;
+          cgpara2.done;
+          exit;
+        end;
+      cgpara1.init;
+      paramanager.getintparaloc(pocall_default,1,paratype,cgpara1);
+      a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
+      paramanager.freecgpara(list,cgpara1);
+      g_call_system_proc(list,decrfunc);
+      cgpara1.done;
+    end;
+
   procedure thlcgobj.g_rangecheck(list: TAsmList; const l: tlocation; fromdef, todef: tdef);
     var
 {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
@@ -4032,7 +4190,9 @@ implementation
          (srsym.typ<>procsym) then
         Message1(cg_f_unknown_compilerproc,procname);
       pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
+      allocallcpuregisters(list);
       a_call_name(list,pd,pd.mangledname,false);
+      deallocallcpuregisters(list);
     end;
 
 

@@ -362,7 +362,7 @@ implementation
                         current_asmdata.getjumplabel(endrelocatelab);
                         { make sure hregister can't allocate the register necessary for the parameter }
                         paraloc1.init;
-                        paramanager.getintparaloc(pocall_default,1,paraloc1);
+                        paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
                         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,sizeof(pint));
                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);

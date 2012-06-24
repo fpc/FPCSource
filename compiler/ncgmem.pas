@@ -263,7 +263,7 @@ implementation
             (location.reference.base<>NR_NO) then
           begin
             paraloc1.init;
-            paramanager.getintparaloc(pocall_default,1,paraloc1);
+            paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
             cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
@@ -332,7 +332,7 @@ implementation
                     (cs_checkpointer in current_settings.localswitches) and
                     not(cs_compilesystem in current_settings.moduleswitches) then
                   begin
-                    paramanager.getintparaloc(pocall_default,1,paraloc1);
+                    paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
                     cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                     cg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -674,8 +674,8 @@ implementation
          else
           if is_dynamic_array(left.resultdef) then
             begin
-               paramanager.getintparaloc(pocall_default,1,paraloc1);
-               paramanager.getintparaloc(pocall_default,2,paraloc2);
+               paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
+               paramanager.getintparaloc(pocall_default,2,search_system_type('TDYNARRAYINDEX').typedef,paraloc2);
                cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
                cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
@@ -704,8 +704,8 @@ implementation
           st_widestring,
           st_ansistring:
             begin
-              paramanager.getintparaloc(pocall_default,1,paraloc1);
-              paramanager.getintparaloc(pocall_default,2,paraloc2);
+              paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
+              paramanager.getintparaloc(pocall_default,2,ptrsinttype,paraloc2);
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
 

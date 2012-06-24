@@ -971,8 +971,8 @@ implementation
             (tf_safecall_exceptions in target_info.flags) then
            begin
              cgpara.init;
-             paramanager.getintparaloc(pocall_default,1,cgpara);
-             cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_INT,NR_FUNCTION_RESULT_REG,cgpara);
+             paramanager.getintparaloc(pocall_default,1,s32inttype,cgpara);
+             cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_S32,NR_FUNCTION_RESULT_REG,cgpara);
              paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
              cgpara.done;
              cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');

@@ -52,7 +52,7 @@ procedure fpc_variant_copy(var d: tvardata; const s : tvardata);[Public,Alias:'F
       VarCopyProc(d,s);
   end;
 
-procedure fpc_variant_copy_overwrite(const source: tvardata; var dest : tvardata);[Public,Alias:'FPC_VARIANT_COPY_OVERWRITE']; compilerproc;
+procedure fpc_variant_copy_overwrite(constref source: tvardata; var dest : tvardata);[Public,Alias:'FPC_VARIANT_COPY_OVERWRITE']; compilerproc;
   begin
     dest.VType := varEmpty;
     if assigned(VarCopyProc) then

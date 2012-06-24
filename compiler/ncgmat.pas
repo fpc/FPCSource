@@ -380,7 +380,7 @@ implementation
                   current_asmdata.getjumplabel(hl);
                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
                   paraloc1.init;
-                  paramanager.getintparaloc(pocall_default,1,paraloc1);
+                  paramanager.getintparaloc(pocall_default,1,s32inttype,paraloc1);
                   cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,aint(200),paraloc1);
                   paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                   cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);

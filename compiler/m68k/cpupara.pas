@@ -41,7 +41,7 @@ unit cpupara;
          rtl are used.
        }
        tm68kparamanager = class(tparamanager)
-          procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara : TCGPara);override;
+          procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
@@ -65,15 +65,17 @@ unit cpupara;
        cpuinfo,cgutils,
        defutil;
 
-    procedure tm68kparamanager.getintparaloc(calloption : tproccalloption; nr : longint;var cgpara : TCGPara);
+    procedure tm68kparamanager.getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
       begin
          if nr<1 then
            internalerror(2002070801);
          cgpara.reset;
-         cgpara.size:=OS_INT;
+         cgpara.size:=def_cgsize(def);
+         cgpara.intsize:=tcgsize2size[cgpara.size];
          cgpara.alignment:=std_param_align;
+         cgpara.def:=def;
          paraloc:=cgpara.add_location;
          with paraloc^ do
            begin

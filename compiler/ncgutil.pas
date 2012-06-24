@@ -417,9 +417,9 @@ implementation
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,paraloc2);
-        paramanager.getintparaloc(pocall_default,3,paraloc3);
+        paramanager.getintparaloc(pocall_default,1,s32inttype,paraloc1);
+        paramanager.getintparaloc(pocall_default,2,voidpointertype,paraloc2);
+        paramanager.getintparaloc(pocall_default,3,voidpointertype,paraloc3);
         cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
         cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
         { push type of exceptionframe }
@@ -431,7 +431,7 @@ implementation
         cg.a_call_name(list,'FPC_PUSHEXCEPTADDR',false);
         cg.deallocallcpuregisters(list);
 
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
+        paramanager.getintparaloc(pocall_default,1,search_system_type('PJMP_BUF').typedef,paraloc1);
         cg.a_load_reg_cgpara(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freecgpara(list,paraloc1);
         cg.allocallcpuregisters(list);
@@ -689,7 +689,7 @@ implementation
                       so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
                     }
                     include(current_procinfo.flags,pi_do_call);
-                    cg.g_copyvariant(list,href,localcopyloc.reference)
+                    hlcg.g_copyvariant(list,href,localcopyloc.reference,tvariantdef(tparavarsym(p).vardef))
                   end
                 else
                   begin
@@ -760,7 +760,7 @@ implementation
                      cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_INITIALIZE_ARRAY');
                    end
                  else
-                   cg.g_initialize(list,tparavarsym(p).vardef,href);
+                   hlcg.g_initialize(list,tparavarsym(p).vardef,href);
                end;
            end;
          end;
@@ -1310,7 +1310,7 @@ implementation
         paraloc1   : tcgpara;
       begin
         paraloc1.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
+        paramanager.getintparaloc(pocall_default,1,ptruinttype,paraloc1);
         cg.a_load_const_cgpara(list,OS_INT,current_procinfo.calc_stackframe_size,paraloc1);
         paramanager.freecgpara(list,paraloc1);
         paraloc1.done;
@@ -1323,7 +1323,7 @@ implementation
       begin
         paraloc1.init;
         { Also alloc the register needed for the parameter }
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
+        paramanager.getintparaloc(pocall_default,1,ptruinttype,paraloc1);
         paramanager.freecgpara(list,paraloc1);
         { Call the helper }
         cg.allocallcpuregisters(list);
