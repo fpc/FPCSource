@@ -309,7 +309,7 @@ unit cpupara;
 {$ifdef DEBUG_CHARLIE}
                 writeln('loc register');
 {$endif DEBUG_CHARLIE}
-                paradef:=voidpointertype;
+                paradef:=getpointerdef(paradef);
                 loc:=LOC_REGISTER;
                 paracgsize := OS_ADDR;
                 paralen := tcgsize2size[OS_ADDR];
@@ -334,6 +334,7 @@ unit cpupara;
             hp.paraloc[side].alignment:=std_param_align;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
+            hp.paraloc[side].def:=paradef;
 
             if (paralen = 0) then
               if (paradef.typ = recorddef) then

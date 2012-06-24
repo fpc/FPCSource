@@ -375,7 +375,7 @@ unit cpupara;
 
               if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                 begin
-                  paradef:=voidpointertype;
+                  paradef:=getpointerdef(paradef);
                   loc:=LOC_REGISTER;
                   paracgsize := OS_ADDR;
                   paralen := tcgsize2size[OS_ADDR];
@@ -433,6 +433,7 @@ unit cpupara;
               hp.paraloc[side].alignment:=std_param_align;
               hp.paraloc[side].size:=paracgsize;
               hp.paraloc[side].intsize:=paralen;
+              hp.paraloc[side].def:=paradef;
               if (target_info.abi = abi_powerpc_aix) and
                  (paradef.typ in [recorddef,arraydef]) then
                 hp.paraloc[side].composite:=true;

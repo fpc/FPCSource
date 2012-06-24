@@ -394,6 +394,7 @@ unit cpupara;
       var
         i  : integer;
         hp : tparavarsym;
+        paradef : tdef;
         paraloc : pcgparalocation;
         l,
         paralen,
@@ -425,15 +426,17 @@ unit cpupara;
               (not(p.proccalloption in pushleftright_pocalls) and (i<=paras.count-1)) do
           begin
             hp:=tparavarsym(paras[i]);
-            pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
+            paradef:=hp.vardef;
+            pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
             if pushaddr then
               begin
                 paralen:=sizeof(aint);
                 paracgsize:=OS_ADDR;
+                paradef:=getpointerdef(paradef);
               end
             else
               begin
-                paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
+                paralen:=push_size(hp.varspez,paradef,p.proccalloption);
                 { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
                 { zero extended to sizeof(aint)                                }
                 if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
@@ -441,15 +444,17 @@ unit cpupara;
                    (paralen > 0) and
                    (paralen < sizeof(aint)) then
                   begin
-                    paralen := sizeof(aint);
+                    paralen:=sizeof(aint);
                     paracgsize:=OS_SINT;
+                    paradef:=sinttype;
                   end
                 else
-                  paracgsize:=def_cgsize(hp.vardef);
+                  paracgsize:=def_cgsize(paradef);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
+            hp.paraloc[side].def:=paradef;
             hp.paraloc[side].Alignment:=paraalign;
             { Copy to stack? }
             if (paracgsize=OS_NO) or
@@ -527,6 +532,7 @@ unit cpupara;
                                                             var parareg,parasize:longint);
       var
         hp : tparavarsym;
+        paradef : tdef;
         paraloc : pcgparalocation;
         paracgsize : tcgsize;
         i : integer;
@@ -559,14 +565,15 @@ unit cpupara;
             while true do
               begin
                 hp:=tparavarsym(paras[i]);
+                paradef:=hp.vardef;
                 if not(assigned(hp.paraloc[side].location)) then
                   begin
-
                     pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
                     if pushaddr then
                       begin
                         paralen:=sizeof(aint);
                         paracgsize:=OS_ADDR;
+                        paradef:=getpointerdef(paradef);
                       end
                     else
                       begin
@@ -576,6 +583,7 @@ unit cpupara;
                     hp.paraloc[side].size:=paracgsize;
                     hp.paraloc[side].intsize:=paralen;
                     hp.paraloc[side].Alignment:=paraalign;
+                    hp.paraloc[side].def:=paradef;
                     {
                       EAX
                       EDX

@@ -933,6 +933,7 @@ unit cpupara;
                                                             var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
       var
         hp         : tparavarsym;
+        paradef    : tdef;
         paraloc    : pcgparalocation;
         subreg     : tsubregister;
         pushaddr   : boolean;
@@ -951,19 +952,21 @@ unit cpupara;
         for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
-            pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
+            paradef:=hp.vardef;
+            pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
             if pushaddr then
               begin
                 loc[1]:=X86_64_INTEGER_CLASS;
                 loc[2]:=X86_64_NO_CLASS;
                 paracgsize:=OS_ADDR;
                 paralen:=sizeof(pint);
+                paradef:=getpointerdef(paradef);
               end
             else
               begin
-                getvalueparaloc(hp.varspez,hp.vardef,loc[1],loc[2]);
-                paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
-                paracgsize:=def_cgsize(hp.vardef);
+                getvalueparaloc(hp.varspez,paradef,loc[1],loc[2]);
+                paralen:=push_size(hp.varspez,paradef,p.proccalloption);
+                paracgsize:=def_cgsize(paradef);
                 { integer sizes < 32 bit have to be sign/zero extended to 32 bit
                   on the caller side }
                 if (side=callerside) and
@@ -971,24 +974,27 @@ unit cpupara;
                   begin
                     paracgsize:=OS_S32;
                     paralen:=4;
+                    paradef:=s32inttype;
                   end;
               end;
 
             { cheat for now, we should copy the value to an mm reg as well (FK) }
             if varargsparas and
                (target_info.system = system_x86_64_win64) and
-               (hp.vardef.typ = floatdef) then
+               (paradef.typ = floatdef) then
               begin
                 loc[2]:=X86_64_NO_CLASS;
                 if paracgsize=OS_F64 then
                   begin
                     loc[1]:=X86_64_INTEGER_CLASS;
-                    paracgsize:=OS_64
+                    paracgsize:=OS_64;
+                    paradef:=u64inttype;
                   end
                 else
                   begin
                     loc[1]:=X86_64_INTEGERSI_CLASS;
                     paracgsize:=OS_32;
+                    paradef:=u32inttype;
                   end;
               end;
 
@@ -996,6 +1002,7 @@ unit cpupara;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].Alignment:=paraalign;
+            hp.paraloc[side].def:=paradef;
             if paralen>0 then
               begin
                 { Enough registers free? }

@@ -358,7 +358,7 @@ unit cpupara;
 
             if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
-                paradef:=voidpointertype;
+                paradef:=getpointerdef(paradef);
                 loc:=LOC_REGISTER;
                 paracgsize := OS_ADDR;
                 paralen := tcgsize2size[OS_ADDR];
@@ -381,7 +381,8 @@ unit cpupara;
                     if (paracgsize=OS_NO) then
                       begin
                         paracgsize:=OS_ADDR;
-                        paralen := tcgsize2size[OS_ADDR];
+                        paralen:=tcgsize2size[OS_ADDR];
+                        paradef:=voidpointertype;
                       end;
                   end
               end;
@@ -389,6 +390,7 @@ unit cpupara;
              hp.paraloc[side].size:=paracgsize;
              hp.paraloc[side].Alignment:=std_param_align;
              hp.paraloc[side].intsize:=paralen;
+             hp.paraloc[side].def:=paradef;
              firstparaloc:=true;
 
 {$ifdef EXTDEBUG}

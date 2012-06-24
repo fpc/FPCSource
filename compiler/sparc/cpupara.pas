@@ -205,6 +205,7 @@ implementation
         paraloc      : pcgparalocation;
         i            : integer;
         hp           : tparavarsym;
+        paradef      : tdef;
         paracgsize   : tcgsize;
         hparasupregs : pparasupregs;
         paralen      : longint;
@@ -216,10 +217,11 @@ implementation
         for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
+            paradef:=hp.vardef;
             { currently only support C-style array of const,
               there should be no location assigned to the vararg array itself }
             if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-               is_array_of_const(hp.vardef) then
+               is_array_of_const(paradef) then
               begin
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
@@ -229,20 +231,28 @@ implementation
                 break;
               end;
 
-            if push_addr_param(hp.varspez,hp.vardef,p.proccalloption) then
-              paracgsize:=OS_ADDR
+            if push_addr_param(hp.varspez,paradef,p.proccalloption) then
+              begin
+                paracgsize:=OS_ADDR;
+                paradef:=getpointerdef(paradef);
+              end
             else
               begin
-                paracgsize:=def_cgSize(hp.vardef);
+                paracgsize:=def_cgsize(paradef);
+                { for formaldef }
                 if paracgsize=OS_NO then
-                  paracgsize:=OS_ADDR;
+                  begin
+                    paracgsize:=OS_ADDR;
+                    paradef:=voidpointertype;
+                  end;
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
+            hp.paraloc[side].def:=paradef;
             if (side = callerside) then
               hp.paraloc[side].Alignment:=std_param_align
             else
-              hp.paraloc[side].Alignment:=hp.vardef.alignment;
+              hp.paraloc[side].Alignment:=paradef.alignment;
             paralen:=tcgsize2size[paracgsize];
             hp.paraloc[side].intsize:=paralen;
             while paralen>0 do

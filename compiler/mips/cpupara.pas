@@ -306,10 +306,11 @@ implementation
                 break;
               end;
 
-            if (push_addr_param(hp.varspez,paradef,p.proccalloption)) then
+            if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
                 paracgsize := OS_ADDR;
-	    	paralen := tcgsize2size[paracgsize];
+                paralen := tcgsize2size[paracgsize];
+                paradef := getpointerdef(paradef);
               end
             else
               begin
@@ -318,6 +319,7 @@ implementation
                 if (paracgsize=OS_NO) then
                   begin
                     paracgsize:=OS_ADDR;
+                    paradef:=voidpointertype;
                   end;
 
                 if not is_special_array(paradef) then
@@ -335,6 +337,7 @@ implementation
             paralen:=tcgsize2size[paracgsize];
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].size:=paracgsize;
+            hp.paraloc[side].def:=paradef;
 	    { check the alignment, mips O32ABI require a nature alignment  }
             tmp := align(intparasize, alignment) - intparasize;
 	    while tmp > 0 do
