@@ -1177,7 +1177,8 @@ implementation
                   else
                     AsmWriteln(tai_symbol(hp).sym.name);
                 end;
-               if target_info.system in [system_mipsel_linux,system_mipseb_linux] then
+               if (target_info.system in [system_mipsel_linux,system_mipseb_linux])
+                  and (tai_symbol(hp).sym.typ = AT_FUNCTION) then
                 begin
                   AsmWrite(#9'.ent'#9);
                   if replaceforbidden then
@@ -1268,6 +1269,15 @@ implementation
                   s:=target_asm.labelprefix+'e'+tostr(symendcount);
                   inc(symendcount);
                   AsmWriteLn(s+':');
+                  if (target_info.system in [system_mipsel_linux,system_mipseb_linux])
+                     and (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then
+                    begin
+                      AsmWrite(#9'.end'#9);
+                      if replaceforbidden then
+                        AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol_end(hp).sym.name))
+                      else
+                        AsmWriteLn(tai_symbol_end(hp).sym.name);
+                    end;
                   AsmWrite(#9'.size'#9);
                   if (target_info.system = system_powerpc64_linux) and (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then
                     AsmWrite('.');
