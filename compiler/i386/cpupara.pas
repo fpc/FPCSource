@@ -321,18 +321,6 @@ unit cpupara;
         paraloc : pcgparalocation;
         sym: tfieldvarsym;
       begin
-        result.init;
-        result.alignment:=get_para_align(p.proccalloption);
-        { void has no location }
-        if is_void(def) then
-          begin
-            paraloc:=result.add_location;
-            result.size:=OS_NO;
-            result.intsize:=0;
-            paraloc^.size:=OS_NO;
-            paraloc^.loc:=LOC_VOID;
-            exit;
-          end;
         { on darwin/i386, if a record has only one field and that field is a
           single or double, it has to be returned like a single/double }
         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
@@ -342,37 +330,23 @@ unit cpupara;
            (sym.vardef.typ=floatdef) and
            (tfloatdef(sym.vardef).floattype in [s32real,s64real]) then
           def:=sym.vardef;
-        { Constructors return self instead of a boolean }
-        if (p.proctypeoption=potype_constructor) then
+
+        if set_common_funcretloc_info(p,def,retcgsize,result) then
+          exit;
+
+        { darwin/x86 requires that results < sizeof(aint) are sign/zero
+          extended to sizeof(aint) }
+        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+           (side=calleeside) and
+           (result.intsize>0) and
+           (result.intsize<sizeof(aint)) then
           begin
-            retcgsize:=OS_ADDR;
-            result.intsize:=sizeof(pint);
-          end
-        else
-          begin
-            retcgsize:=def_cgsize(def);
-            { darwin/x86 requires that results < sizeof(aint) are sign/ }
-            { zero extended to sizeof(aint)                             }
-            if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-               (side=calleeside) and
-               (result.intsize>0) and
-               (result.intsize<sizeof(aint)) then
-              begin
-                result.intsize:=sizeof(aint);
-                retcgsize:=OS_SINT;
-              end
-            else
-              result.intsize:=def.size;
+            result.def:=sinttype;
+            result.intsize:=sizeof(aint);
+            retcgsize:=OS_SINT;
+            result.size:=retcgsize;
           end;
-        result.size:=retcgsize;
-        { Return is passed as var parameter }
-        if ret_in_param(def,p.proccalloption) then
-          begin
-            paraloc:=result.add_location;
-            paraloc^.loc:=LOC_REFERENCE;
-            paraloc^.size:=retcgsize;
-            exit;
-          end;
+
         { Return in FPU register? }
         if def.typ=floatdef then
           begin

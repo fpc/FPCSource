@@ -809,46 +809,18 @@ unit cpupara;
         retcgsize : tcgsize;
         paraloc : pcgparalocation;
       begin
-        result.init;
-        result.alignment:=get_para_align(p.proccalloption);
-        { void has no location }
-        if is_void(def) then
+        if set_common_funcretloc_info(p,def,retcgsize,result) then
+          exit;
+
+        { integer sizes < 32 bit have to be sign/zero extended to 32 bit on
+          the callee side (caller can expect those bits are valid) }
+        if (side=calleeside) and
+           (retcgsize in [OS_8,OS_S8,OS_16,OS_S16]) then
           begin
-            paraloc:=result.add_location;
-            result.size:=OS_NO;
-            result.intsize:=0;
-            paraloc^.size:=OS_NO;
-            paraloc^.loc:=LOC_VOID;
-            exit;
-          end;
-        { Constructors return self instead of a boolean }
-        if (p.proctypeoption=potype_constructor) then
-          begin
-            retcgsize:=OS_ADDR;
-            result.intsize:=sizeof(pint);
-          end
-        else
-          begin
-            retcgsize:=def_cgsize(def);
-            { integer sizes < 32 bit have to be sign/zero extended to 32 bit on
-              the callee side (caller can expect those bits are valid) }
-            if (side=calleeside) and
-               (retcgsize in [OS_8,OS_S8,OS_16,OS_S16]) then
-              begin
-                retcgsize:=OS_S32;
-                result.intsize:=4;
-              end
-            else
-              result.intsize:=def.size;
-          end;
-        result.size:=retcgsize;
-        { Return is passed as var parameter }
-        if ret_in_param(def,p.proccalloption) then
-          begin
-            paraloc:=result.add_location;
-            paraloc^.loc:=LOC_REFERENCE;
-            paraloc^.size:=retcgsize;
-            exit;
+            retcgsize:=OS_S32;
+            result.def:=s32inttype;
+            result.intsize:=4;
+            result.size:=retcgsize;
           end;
 
         { Return in FPU register? -> don't use classify_argument(), because

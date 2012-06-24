@@ -192,56 +192,37 @@ implementation
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
-        result.init;
-        result.alignment:=get_para_align(p.proccalloption);
-        { void has no location }
-        if is_void(def) then
+        if set_common_funcretloc_info(p,def,retcgsize,result) then
           begin
-            paraloc:=result.add_location;
-            result.size:=OS_NO;
-            result.intsize:=0;
-            paraloc^.size:=OS_NO;
-            paraloc^.loc:=LOC_VOID;
-            exit;
-          end;
-        { Constructors return self instead of a boolean }
-        if (p.proctypeoption=potype_constructor) then
-          begin
-            retcgsize:=OS_ADDR;
-            result.intsize:=sizeof(pint);
-          end
-        else
-          begin
-            retcgsize:=def_cgsize(def);
-            result.intsize:=def.size;
-          end;
-        result.size:=retcgsize;
-        { Return is passed as var parameter,
-          in this case we use the first register R4 for it }
-        if ret_in_param(def,p.proccalloption) then
-          begin
-            if intparareg=0 then
-              inc(intparareg);
-            if side=calleeside then
+            { Return is passed as var parameter,
+              in this case we use the first register R4 for it }
+            if ret_in_param(def,p.proccalloption) then
               begin
-                paraloc:=result.add_location;
-                paraloc^.loc:=LOC_REFERENCE;
-                paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                { return is at offset zero }
-                paraloc^.reference.offset:=0;
-                paraloc^.size:=retcgsize;
-                { Reserve first register for ret_in_param }
-                if assigned(current_procinfo) then
+                if intparareg=0 then
+                  inc(intparareg);
+                if side=calleeside then
                   begin
-                    TMIPSProcInfo(current_procinfo).register_used[0]:=true;
-                    TMIPSProcInfo(current_procinfo).register_size[0]:=retcgsize;
-                    TMIPSProcInfo(current_procinfo).register_name[0]:='ret_in_param_result';
-                    TMIPSProcInfo(current_procinfo).register_offset[0]:=0;
+                    result.reset;
+                    paraloc:=result.add_location;
+                    paraloc^.loc:=LOC_REFERENCE;
+                    paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                    { return is at offset zero }
+                    paraloc^.reference.offset:=0;
+                    paraloc^.size:=retcgsize;
+                    { Reserve first register for ret_in_param }
+                    if assigned(current_procinfo) then
+                      begin
+                        TMIPSProcInfo(current_procinfo).register_used[0]:=true;
+                        TMIPSProcInfo(current_procinfo).register_size[0]:=retcgsize;
+                        TMIPSProcInfo(current_procinfo).register_name[0]:='ret_in_param_result';
+                        TMIPSProcInfo(current_procinfo).register_offset[0]:=0;
+                      end;
+                  end
+                else
+                  begin
+                    getIntParaLoc(p.proccalloption,1,result);
                   end;
-              end
-            else
-              begin
-                getIntParaLoc(p.proccalloption,1,result);
+                result.def:=getpointerdef(def);
               end;
             exit;
           end;

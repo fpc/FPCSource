@@ -140,6 +140,10 @@ unit paramgr;
           function use_fixed_stack: boolean;
           { whether stack pointer can be changed in the middle of procedure }
           function use_stackalloc: boolean;
+         strict protected
+          { common part of get_funcretloc; returns true if retloc is completely
+            initialized afterwards }
+          function set_common_funcretloc_info(p : tabstractprocdef; def: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
        end;
 
 
@@ -490,6 +494,54 @@ implementation
     function tparamanager.use_stackalloc: boolean;
       begin
         result:=not use_fixed_stack;
+      end;
+
+
+    function tparamanager.set_common_funcretloc_info(p : tabstractprocdef; def: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
+      var
+        paraloc : pcgparalocation;
+      begin
+        result:=true;
+        retloc.init;
+        retloc.def:=def;
+        retloc.alignment:=get_para_align(p.proccalloption);
+        { void has no location }
+        if is_void(def) then
+          begin
+            paraloc:=retloc.add_location;
+            retloc.size:=OS_NO;
+            retcgsize:=OS_NO;
+            retloc.intsize:=0;
+            paraloc^.size:=OS_NO;
+            paraloc^.loc:=LOC_VOID;
+            exit;
+          end;
+        { Constructors return self instead of a boolean }
+        if p.proctypeoption=potype_constructor then
+          begin
+            if is_implicit_pointer_object_type(tdef(p.owner.defowner)) then
+              retloc.def:=tdef(p.owner.defowner)
+            else
+              retloc.def:=getpointerdef(tdef(p.owner.defowner));
+            retcgsize:=OS_ADDR;
+            retloc.intsize:=sizeof(pint);
+          end
+        else
+          begin
+            retcgsize:=def_cgsize(def);
+            retloc.intsize:=def.size;
+          end;
+        retloc.size:=retcgsize;
+        { Return is passed as var parameter }
+        if ret_in_param(def,p.proccalloption) then
+          begin
+            retloc.def:=getpointerdef(def);
+            paraloc:=retloc.add_location;
+            paraloc^.loc:=LOC_REFERENCE;
+            paraloc^.size:=retcgsize;
+            exit;
+          end;
+        result:=false;
       end;
 
 initialization

@@ -215,38 +215,8 @@ var
   paraloc : pcgparalocation;
   retcgsize  : tcgsize;
 begin
-  result.init;
-  result.alignment:=get_para_align(p.proccalloption);
-  { void has no location }
-  if is_void(def) then
-    begin
-      paraloc:=result.add_location;
-      result.size:=OS_NO;
-      result.intsize:=0;
-      paraloc^.size:=OS_NO;
-      paraloc^.loc:=LOC_VOID;
-      exit;
-    end;
-  { Constructors return self instead of a boolean }
-  if (p.proctypeoption=potype_constructor) then
-    begin
-      retcgsize:=OS_ADDR;
-      result.intsize:=sizeof(pint);
-    end
-  else
-    begin
-      retcgsize:=def_cgsize(def);
-      result.intsize:=def.size;
-    end;
-  result.size:=retcgsize;
-  { Return is passed as var parameter }
-  if ret_in_param(def,p.proccalloption) then
-    begin
-      paraloc:=result.add_location;
-      paraloc^.loc:=LOC_REFERENCE;
-      paraloc^.size:=retcgsize;
-      exit;
-    end;
+  if set_common_funcretloc_info(p,def,retcgsize,result) then
+    exit;
 
   paraloc:=result.add_location;
   { Return in FPU register? }
