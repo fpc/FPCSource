@@ -387,7 +387,7 @@ implementation
                 if is_shortstring(hdef) then
                   begin
                     case varspez of
-                      vs_var,vs_out,vs_constref:
+                      vs_var,vs_out:
                         begin
                           { not 100% Delphi-compatible: type xstr=string[255] cannot
                             become an openstring there, while here it can }
