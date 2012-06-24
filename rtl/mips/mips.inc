@@ -75,7 +75,7 @@ function get_frame:pointer;assembler;nostackframe;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;nostackframe;
   asm
     // lw $2,4($4) // #movl    4(%eax),%eax
     lui $2,0
@@ -83,7 +83,7 @@ function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;nostackframe;
   asm
     // lw $2,0($4) // #movl    (%eax),%eax
     lui $2,0

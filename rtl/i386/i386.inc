@@ -1061,8 +1061,14 @@ end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
 
+{$define FPC_SYSTEM_HAS_GET_ADDR}
+Function Get_addr : Pointer;assembler;nostackframe;
+asm
+        movl    (%esp),%eax
+end;
+
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;nostackframe;assembler;
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;nostackframe;assembler;
 asm
         orl     %eax,%eax
         jz      .Lg_a_null
@@ -1072,7 +1078,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;nostackframe;assembler;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;nostackframe;assembler;
 asm
         orl     %eax,%eax
         jz      .Lgnf_null

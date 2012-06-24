@@ -41,7 +41,7 @@ function get_frame : pointer; assembler;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp : pointer) : pointer;
+function get_caller_addr(framebp : pointer;addr:pointer=nil) : pointer;
   begin
      asm
         move.l framebp,a0
@@ -55,7 +55,7 @@ function get_caller_addr(framebp : pointer) : pointer;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp : pointer) : pointer;
+function get_caller_frame(framebp : pointer;addr:pointer=nil) : pointer;
   begin
      asm
         move.l FRAMEBP,a0

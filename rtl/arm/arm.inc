@@ -52,7 +52,7 @@ begin
     // mask "exception happened" and overflow flags
     and  r0,r0,#0xffffff20
     // mask exception flags
-    and  r0,r0,#0xffff40ff    
+    and  r0,r0,#0xffff40ff
 {$ifndef darwin}
     // Floating point exceptions cause kernel panics on iPhoneOS 2.2.1...
 
@@ -110,7 +110,7 @@ end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;nostackframe;
 asm
   cmp r0,#0
 {$ifndef darwin}
@@ -122,7 +122,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;nostackframe;
 asm
   cmp r0,#0
 {$ifndef darwin}

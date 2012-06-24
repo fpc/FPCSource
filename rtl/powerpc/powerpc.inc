@@ -1024,7 +1024,7 @@ indicated by the first bit set to 1. This is checked below.}
 {Both routines below assumes that framebp is a valid framepointer or nil.}
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
    cmplwi  r3,0
    beq     .Lcaller_addr_invalid
@@ -1048,7 +1048,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
     cmplwi  r3,0
     beq     .Lcaller_frame_invalid

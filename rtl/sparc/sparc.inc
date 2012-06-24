@@ -53,7 +53,7 @@ Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
       round towards zero; ieee compliant arithmetics }
     set_fsr((get_fsr and $3fbfffff) or $09000000);
   end;
-  
+
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
@@ -77,7 +77,7 @@ function get_frame:pointer;assembler;nostackframe;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;nostackframe;
   asm
     { framebp = %o0 }
     subcc   %o0,0,%o0
@@ -93,7 +93,7 @@ function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;nostackframe;
   asm
     { framebp = %o0 }
     subcc   %o0,0,%o0

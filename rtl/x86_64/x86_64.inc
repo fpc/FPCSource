@@ -35,9 +35,14 @@ asm
 end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
+{$define FPC_SYSTEM_HAS_GET_ADDR}
+function get_addr:pointer;assembler;
+asm
+        movq    (%rsp),%rax
+end;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   get_caller_addr:=framebp;
   if assigned(framebp) then
@@ -46,7 +51,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   get_caller_frame:=framebp;
   if assigned(framebp) then
@@ -942,7 +947,7 @@ Procedure SysInitFPU;
     { these locals are so we don't have to hack pic code in the assembler }
     localmxcsr: dword;
     localfpucw: word;
- 
+
 begin
   localmxcsr:=mxcsr;
   localfpucw:=fpucw;
