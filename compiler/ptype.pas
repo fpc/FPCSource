@@ -439,8 +439,22 @@ implementation
         if ([stoAllowSpecialization,stoAllowTypeDef] * options <> []) and
            (m_delphi in current_settings.modeswitches) then
           dospecialize:=token in [_LSHARPBRACKET,_LT];
+        if dospecialize and
+            (def.typ=forwarddef) then
+          begin
+            if not assigned(srsym) or not (srsym.typ=typesym) then
+              begin
+                Message(type_e_type_is_not_completly_defined);
+                def:=generrordef;
+                dospecialize:=false;
+              end;
+          end;
         if dospecialize then
-          generate_specialization(def,stoParseClassParent in options,'',nil,'')
+          begin
+            if def.typ=forwarddef then
+              def:=ttypesym(srsym).typedef;
+            generate_specialization(def,stoParseClassParent in options,'',nil,'');
+          end
         else
           begin
             if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -1330,6 +1344,7 @@ implementation
 
       const
         SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
+        SingleTypeOptionsIsDelphi:array[Boolean] of TSingleTypeOptions = ([],[stoAllowSpecialization]);
       var
         p  : tnode;
         hdef : tdef;
@@ -1459,7 +1474,10 @@ implementation
            _CARET:
               begin
                 consume(_CARET);
-                single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
+                single_type(tt2,
+                    SingleTypeOptionsInTypeBlock[block_type=bt_type]+
+                    SingleTypeOptionsIsDelphi[m_delphi in current_settings.modeswitches]
+                  );
                 { in case of e.g. var or const sections we need to especially
                   check that we don't use a generic dummy symbol }
                 if (block_type<>bt_type) and
