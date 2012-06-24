@@ -1527,7 +1527,7 @@ implementation
       eleref: treference;
     begin
       { only in case of initialisation, we have to set all elements to "empty" }
-      if name<>'FPC_INITIALIZE_ARRAY' then
+      if name<>'fpc_initialize_array' then
         exit;
       { put array on the stack }
       a_load_ref_stack(list,java_jlobject,ref,prepare_stack_for_ref(list,ref,false));
@@ -1583,7 +1583,7 @@ implementation
          not is_dynamic_array(t) then
         begin
           dummyloc.loc:=LOC_INVALID;
-          g_array_rtti_helper(list,tarraydef(t).elementdef,ref,dummyloc,'FPC_INITIALIZE_ARRAY')
+          g_array_rtti_helper(list,tarraydef(t).elementdef,ref,dummyloc,'fpc_initialize_array')
         end
       else if is_record(t) then
         begin

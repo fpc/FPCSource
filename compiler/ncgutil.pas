@@ -681,7 +681,7 @@ implementation
                       so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
                     }
                     include(current_procinfo.flags,pi_do_call);
-                    cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef).len)
+                    hlcg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef));
                   end
                 else if tparavarsym(p).vardef.typ = variantdef then
                   begin
@@ -739,10 +739,10 @@ implementation
                          eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
                          if not assigned(hsym) then
                            internalerror(201003031);
-                         cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_ADDREF_ARRAY');
+                         hlcg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'fpc_addref_array');
                        end
                      else
-                      cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
+                      hlcg.g_incrrefcount(list,tparavarsym(p).vardef,href);
                    end;
                end;
              vs_out :
@@ -757,7 +757,7 @@ implementation
                      eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
                      if not assigned(hsym) then
                        internalerror(201103033);
-                     cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_INITIALIZE_ARRAY');
+                     hlcg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'fpc_initialize_array');
                    end
                  else
                    hlcg.g_initialize(list,tparavarsym(p).vardef,href);

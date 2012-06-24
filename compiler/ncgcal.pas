@@ -203,8 +203,8 @@ implementation
                          if third=nil then
                            InternalError(201103063);
                          secondpass(third);
-                         cg.g_array_rtti_helper(current_asmdata.CurrAsmList,tarraydef(resultdef).elementdef,
-                           href,third.location,'FPC_FINALIZE_ARRAY');
+                         hlcg.g_array_rtti_helper(current_asmdata.CurrAsmList,tarraydef(resultdef).elementdef,
+                           href,third.location,'fpc_finalize_array');
                        end;
                    end
                  else
