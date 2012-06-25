@@ -892,7 +892,7 @@ begin
   res[0]:=chr(slen);
 end;
 
-procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
+procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN']; compilerproc;
 var
   slen : byte;
 begin
