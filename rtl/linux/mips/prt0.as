@@ -54,6 +54,8 @@ _dynamic_start:
 _start:
         /* load fp */
         move    $s8,$sp
+        lui     $at,%hi(__stkptr)
+        sw      $s8,%lo(__stkptr)($at)
 
         /* align stack */
         li      $at,-8
