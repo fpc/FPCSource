@@ -1539,7 +1539,7 @@ implementation
       i: longint;
     begin
 {$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
+      if current_module.mainsource<>'' then
        Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource);
 {$endif}
 
@@ -1583,7 +1583,7 @@ implementation
 
       AsmLn;
 {$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
+      if current_module.mainsource<>'' then
        Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
     end;
