@@ -247,7 +247,6 @@ interface
        property CObjSection:TObjSectionClass read FCObjSection write FCObjSection;
      public
        CurrPass  : byte;
-       ImageBase : aword;
        constructor create(const n:string);virtual;
        destructor  destroy;override;
        { Sections }
@@ -2408,10 +2407,6 @@ implementation
             if exesym.State<>symstate_defined then
               Comment(V_Error,'Undefined symbol: '+exesym.name);
           end;
-
-        { Update ImageBase to ObjData so it can access from ObjSymbols }
-        for i:=0 to ObjDataList.Count-1 do
-          TObjData(ObjDataList[i]).imagebase:=imagebase;
 
         {
           Fixing up symbols is done in the following steps:

@@ -232,11 +232,7 @@ interface
          procedure MemPos_ExeSection(const aname:string);override;
        end;
 
-       TObjSymbolrec = record
-         sym : TObjSymbol;
-         orgsize : aword;
-       end;
-       TObjSymbolArray = array[0..high(word)] of TObjSymbolrec;
+       TObjSymbolArray = array[0..high(word)] of TObjSymbol;
        TObjSectionArray = array[0..high(smallint)] of TObjSection;
 
        TDJCoffAssembler = class(tinternalassembler)
@@ -959,7 +955,7 @@ const pemagic : array[0..3] of byte = (
                     else
 {$endif arm}
                       inc(address,relocval);
-                    inc(address,relocsec.objdata.imagebase);
+                    inc(address,exe.imagebase);
                   end;
                 else
                   internalerror(200604014);
@@ -1620,9 +1616,9 @@ const pemagic : array[0..3] of byte = (
              end;
            end;
 
-           p:=FSymTbl^[rel.sym].sym;
+           p:=FSymTbl^[rel.sym];
            if assigned(p) then
-             s.addsymsizereloc(rel.address-s.mempos,p,FSymTbl^[rel.sym].orgsize,rel_type)
+             s.addsymsizereloc(rel.address-s.mempos,p,p.size,rel_type)
            else
             begin
               InputError('Failed reading coff file, can''t resolve symbol of relocation');
@@ -1650,7 +1646,7 @@ const pemagic : array[0..3] of byte = (
          begin
            nsyms:=FCoffSyms.Size div sizeof(CoffSymbol);
            { Allocate memory for symidx -> TObjSymbol table }
-           FSymTbl:=AllocMem(nsyms*sizeof(TObjSymbolrec));
+           FSymTbl:=AllocMem(nsyms*sizeof(TObjSymbol));
            { Load the Symbols }
            FCoffSyms.Seek(0);
            symidx:=0;
@@ -1742,8 +1738,7 @@ const pemagic : array[0..3] of byte = (
                 else
                   internalerror(200602232);
               end;
-              FSymTbl^[symidx].sym:=objsym;
-              FSymTbl^[symidx].orgsize:=size;
+              FSymTbl^[symidx]:=objsym;
               { read aux records }
               for i:=1 to sym.aux do
                begin
