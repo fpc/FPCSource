@@ -19,6 +19,7 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
 var
   res : word;
   addr : pointer;
+  frame : pointer;
 begin
   res:=0;
   addr:=nil;
@@ -57,5 +58,21 @@ begin
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,addr,nil);
+    begin
+{$ifdef FPC_FRAMETYPE_RECORD}
+      if assigned(SigContext) then
+        begin
+          frame:=pointer(SigContext^.sigc_sp);   { stack pointer }
+          addr:=pointer(SigContext^.sigc_pc);  { program counter }
+        end
+      else
+        begin
+          frame:=nil;
+          addr:=nil;
+        end;
+{$else not FPC_FRAMETYPE_RECORD}
+      frame:=nil;
+{$endif FPC_FRAMETYPE_RECORD}
+      HandleErrorAddrFrame(res,addr,frame);
+    end;
 end;
