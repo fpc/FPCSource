@@ -1066,10 +1066,11 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;[INTERNPROC:
 function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ENDIF}
 
-Function Get_addr : Pointer;
+Function Get_pc_addr : Pointer;
 
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
 function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
+procedure get_caller_stackinfo(var framebp,addr : pointer);
 
 Function IOResult:Word;
 Function Sptr:Pointer;[internconst:fpc_in_const_ptr];

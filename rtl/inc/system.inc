@@ -669,43 +669,60 @@ End;
                              Miscellaneous
 *****************************************************************************}
 
-{$ifndef FPC_SYSTEM_HAS_GET_ADDR}
+{$ifndef FPC_SYSTEM_HAS_GET_PC_ADDR}
   { This provides a dummy implementation
-    of get_addr function, for CPU's that don't need
+    of get_pc_addr function, for CPU's that don't need
     the instruction address to walk the stack. }
-function get_addr : pointer;
+function get_pc_addr : pointer;
 begin
-  get_addr:=nil;
+  get_pc_addr:=nil;
 end;
-{$endif ndef FPC_SYSTEM_HAS_GET_ADDR}
+{$endif ndef FPC_SYSTEM_HAS_GET_PC_ADDR}
+
+{$ifndef FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
+  { This provides a simpel implementation
+    of get_caller_stackinfo procedure,
+    using get_caller_addr and get_caller_frame
+    functions. }
+procedure get_caller_stackinfo(var framebp,addr : pointer);
+var
+  nextbp,nextaddr : pointer;
+begin
+  nextbp:=get_caller_frame(framebp,addr);
+  nextaddr:=get_caller_addr(framebp,addr);
+  framebp:=nextbp;
+  addr:=nextaddr;
+end;
+{$endif ndef FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
+
 
 procedure fpc_rangeerror;[public,alias:'FPC_RANGEERROR']; compilerproc;
 begin
-  HandleErrorAddrFrame(201,get_addr,get_frame);
+  HandleErrorAddrFrame(201,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_divbyzero;[public,alias:'FPC_DIVBYZERO']; compilerproc;
 begin
-  HandleErrorAddrFrame(200,get_addr,get_frame);
+  HandleErrorAddrFrame(200,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_overflow;[public,alias:'FPC_OVERFLOW']; compilerproc;
 begin
-  HandleErrorAddrFrame(215,get_addr,get_frame);
+  HandleErrorAddrFrame(215,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_threaderror; [public,alias:'FPC_THREADERROR'];
 begin
-  HandleErrorAddrFrame(6,get_addr,get_frame);
+  HandleErrorAddrFrame(6,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_invalidpointer; [public,alias:'FPC_INVALIDPOINTER'];
 begin
-  HandleErrorAddrFrame(216,get_addr,get_frame);
+  HandleErrorAddrFrame(216,get_pc_addr,get_frame);
 end;
 
 
@@ -719,7 +736,7 @@ begin
    begin
      l:=HInOutRes^;
      HInOutRes^:=0;
-     HandleErrorAddrFrame(l,get_addr,get_frame);
+     HandleErrorAddrFrame(l,get_pc_addr,get_frame);
    end;
 end;
 
@@ -748,7 +765,7 @@ begin
     begin
       if assigned(SafeCallErrorProc) then
         SafeCallErrorProc(res,get_frame);
-      HandleErrorAddrFrame(229,get_addr,get_frame);
+      HandleErrorAddrFrame(229,get_pc_addr,get_frame);
     end;
   result:=res;
 end;
@@ -1035,15 +1052,20 @@ Procedure HandleError (Errno : longint);[public,alias : 'FPC_HANDLEERROR'];
   Internal function should ALWAYS call HandleError instead of RunError.
 }
 begin
-  HandleErrorAddrFrame(Errno,get_frame,get_addr);
+  HandleErrorAddrFrame(Errno,get_pc_addr,get_frame);
 end;
 
 
 procedure RunError(w : word);[alias: 'FPC_RUNERROR'];
+var
+  bp,pcaddr : pointer;
 begin
   errorcode:=w;
-  erroraddr:=get_caller_addr(get_frame,get_addr);
-  errorbase:=get_caller_frame(get_frame,get_addr);
+  pcaddr:=get_pc_addr;
+  bp:=get_frame;
+  get_caller_stackinfo(bp,pcaddr);
+  erroraddr:=pcaddr;
+  errorbase:=bp;
   Halt(errorcode);
 end;
 
@@ -1283,7 +1305,7 @@ procedure fpc_AbstractErrorIntern;compilerproc;[public,alias : 'FPC_ABSTRACTERRO
 begin
   If pointer(AbstractErrorProc)<>nil then
     AbstractErrorProc();
-  HandleErrorAddrFrame(211,get_addr,get_frame);
+  HandleErrorAddrFrame(211,get_pc_addr,get_frame);
 end;
 
 
@@ -1293,7 +1315,7 @@ begin
   if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
   else
-    HandleErrorAddrFrame(227,get_addr,get_frame);
+    HandleErrorAddrFrame(227,get_pc_addr,get_frame);
 end;
 
 

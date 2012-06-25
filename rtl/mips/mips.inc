@@ -74,21 +74,96 @@ function get_frame:pointer;assembler;nostackframe;
   end;
 
 
-{$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;nostackframe;
-  asm
-    // lw $2,4($4) // #movl    4(%eax),%eax
-    lui $2,0
+{ Try to find previous $fp,$ra register pair
+  reset both to nil if failure }
+{$define FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
+procedure get_caller_stackinfo(var framebp,addr : pointer);
+const
+  instr_size = 4;
+  MAX_INSTRUCTIONS = 64000;
+type
+  instr_p = pdword;
+  reg_p = ppointer;
+var
+  instr,stackpos : dword;
+  i,LocalSize : longint;
+  ra_offset, s8_offset : longint;
+  current_ra : pointer;
+begin
+  { Here we need to use GDB approach,
+    starting at addr
+    go back to lower $ra values until we find a
+    position with ADDIU $sp,$sp,-LocalSize
+  }
+  Try
+    current_ra:=addr;
+    ra_offset:=-1;
+    s8_offset:=-1;
+    i:=0;
+    LocalSize:=0;
+    repeat
+      inc(i);
+      dec(current_ra,4);
+      instr:=instr_p(current_ra)^;
+      if (instr shr 16 = $27bd) then
+        begin
+          { we found the instruction,
+            local size is the lo part }
+          LocalSize:=smallint(instr and $ffff);
+          break;
+        end;
+    until i> MAX_INSTRUCTIONS;
+    if LocalSize <> 0 then
+      begin
+        repeat
+          inc(current_ra,4);
+          instr:=instr_p(current_ra)^;
+          if (instr shr 16 = $afbf) then
+            ra_offset:=smallint(instr and $ffff)
+          else if (instr shr 16 = $afbe) then
+            s8_offset:=smallint(instr and $ffff);
+        until (current_ra >= addr)
+          or ((ra_offset<>-1) and (s8_offset<>-1));
+        if ra_offset<>-1 then
+          begin
+            stackpos:=dword(framebp+LocalSize+ra_offset);
+            addr:=reg_p(stackpos)^;
+          end
+        else
+          addr:=nil;
+        if s8_offset<>-1 then
+          begin
+            stackpos:=dword(framebp+LocalSize+s8_offset);
+            framebp:=reg_p(stackpos)^;
+          end
+        else
+          framebp:=nil;
+      end;
+  Except
+    framebp:=nil;
+    addr:=nil;
   end;
+end;
 
+{$define FPC_SYSTEM_HAS_GET_PC_ADDR}
+function get_pc_addr : pointer;assembler;nostackframe;
+asm
+  move $2,$31
+end;
+
+{$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
+begin
+  get_caller_stackinfo(framebp,addr);
+  get_caller_addr:=addr;
+end;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;nostackframe;
-  asm
-    // lw $2,0($4) // #movl    (%eax),%eax
-    lui $2,0
-  end;
-
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
+begin
+  get_caller_stackinfo(framebp,addr);
+  get_caller_frame:=framebp;
+end;
 
 {$define FPC_SYSTEM_HAS_SPTR}
 function Sptr:Pointer;assembler;nostackframe;

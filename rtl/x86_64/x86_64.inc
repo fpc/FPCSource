@@ -35,8 +35,8 @@ asm
 end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
-{$define FPC_SYSTEM_HAS_GET_ADDR}
-function get_addr:pointer;assembler;
+{$define FPC_SYSTEM_HAS_GET_PC_ADDR}
+function get_pc_addr:pointer;assembler;
 asm
         movq    (%rsp),%rax
 end;

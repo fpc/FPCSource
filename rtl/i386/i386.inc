@@ -1061,8 +1061,8 @@ end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
 
-{$define FPC_SYSTEM_HAS_GET_ADDR}
-Function Get_addr : Pointer;assembler;nostackframe;
+{$define FPC_SYSTEM_HAS_GET_PC_ADDR}
+Function Get_pc_addr : Pointer;assembler;nostackframe;
 asm
         movl    (%esp),%eax
 end;
