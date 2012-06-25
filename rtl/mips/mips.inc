@@ -95,6 +95,11 @@ begin
     go back to lower $ra values until we find a
     position with ADDIU $sp,$sp,-LocalSize
   }
+  if addr=nil then
+    begin
+	  framebp:=nil;
+	  exit;
+	end;
   Try
     current_ra:=addr;
     ra_offset:=-1;
