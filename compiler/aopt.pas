@@ -298,7 +298,8 @@ Unit aopt;
       Begin
         if assigned(LabelInfo^.LabelTable) then
           Freemem(LabelInfo^.LabelTable);
-        Dispose(LabelInfo)
+        Dispose(LabelInfo);
+        inherited Destroy;
       End;
 
 
