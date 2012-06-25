@@ -124,7 +124,6 @@ interface
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
-         procedure afteralloc;override;
        end;
 
        TDJCoffObjData = class(TCoffObjData)
@@ -1123,22 +1122,6 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjData.afteralloc;
-      var
-        mempos : qword;
-        i      : longint;
-      begin
-        inherited afteralloc;
-        { DJ Coff requires mempositions }
-        if not win32 then
-          begin
-            mempos:=0;
-            for i:=0 to ObjSectionList.Count-1 do
-              mempos:=TObjSection(ObjSectionList[i]).setmempos(mempos);
-          end;
-      end;
-
-
 {****************************************************************************
                                 TDJCoffObjData
 ****************************************************************************}
@@ -1419,11 +1402,9 @@ const pemagic : array[0..3] of byte = (
 
     function TCoffObjOutput.writedata(data:TObjData):boolean;
       var
-        orgdatapos,
         datapos,
         sympos   : aword;
         i        : longint;
-        gotreloc : boolean;
         header   : tcoffheader;
       begin
         result:=false;
@@ -1439,9 +1420,7 @@ const pemagic : array[0..3] of byte = (
            { Sections first }
            layoutsections(datapos);
            { relocs }
-           orgdatapos:=datapos;
            ObjSectionList.ForEachCall(@section_set_reloc_datapos,@datapos);
-           gotreloc:=(orgdatapos<>datapos);
            { Symbols }
            sympos:=datapos;
 
@@ -1453,22 +1432,15 @@ const pemagic : array[0..3] of byte = (
            header.syms:=symidx;
            if win32 then
              begin
-{$ifdef arm}
+{$ifndef x86_64}
                header.flag:=PE_FILE_32BIT_MACHINE or
                             PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
-{$else arm}
-               header.flag:=PE_FILE_BYTES_REVERSED_LO or PE_FILE_32BIT_MACHINE or
-                            PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
-{$endif arm}
-               if not gotreloc then
-                 header.flag:=header.flag or PE_FILE_RELOCS_STRIPPED;
+{$else x86_64}
+               header.flag:=PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
+{$endif x86_64}
              end
            else
-             begin
-               header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_NOLINES or COFF_FLAG_NOLSYMS;
-               if not gotreloc then
-                 header.flag:=header.flag or COFF_FLAG_NORELOCS;
-             end;
+             header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_NOLINES or COFF_FLAG_NOLSYMS;
            FWriter.write(header,sizeof(header));
            { Section headers }
            ObjSectionList.ForEachCall(@section_write_header,nil);
