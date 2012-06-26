@@ -59,20 +59,16 @@ begin
   { give runtime error at the position where the signal was raised }
   if res<>0 then
     begin
-{$ifdef FPC_FRAMETYPE_RECORD}
       if assigned(SigContext) then
         begin
-          frame:=pointer(SigContext^.sigc_sp);   { stack pointer }
-          addr:=pointer(SigContext^.sigc_pc);  { program counter }
+          frame:=pointer(ptruint(SigContext^.sigc_regs[29]));   { stack pointer }
+          addr:=pointer(ptruint(SigContext^.sigc_pc));  { program counter }
         end
       else
         begin
           frame:=nil;
           addr:=nil;
         end;
-{$else not FPC_FRAMETYPE_RECORD}
-      frame:=nil;
-{$endif FPC_FRAMETYPE_RECORD}
       HandleErrorAddrFrame(res,addr,frame);
     end;
 end;
