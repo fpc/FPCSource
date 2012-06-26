@@ -319,6 +319,7 @@ type
     FContentStream : TStream;
     FCode: Integer;
     FCodeText: String;
+    FFreeContentStream: Boolean;
     FHeadersSent: Boolean;
     FContentSent: Boolean;
     FRequest : TRequest;
@@ -341,6 +342,9 @@ type
     Procedure SendContent;
     Procedure SendHeaders;
     Procedure SendResponse; // Delphi compatibility
+    Function GetCustomHeader(const Name: String) : String;
+    Procedure SetCustomHeader(const Name, Value: String);
+    Procedure SendRedirect(const TargetURL:String);
     Property Request : TRequest Read FRequest;
     Property Code: Integer Read FCode Write FCode;
     Property CodeText: String Read FCodeText Write FCodeText;
@@ -352,9 +356,7 @@ type
     Property ContentSent : Boolean Read FContentSent;
     property Cookies: TCookies read FCookies;
     Property CustomHeaders: TStringList read FCustomHeaders;
-    Function GetCustomHeader(const Name: String) : String;
-    Procedure SetCustomHeader(const Name, Value: String);
-    Procedure SendRedirect(const TargetURL:String);
+    Property FreeContentStream : Boolean Read FFreeContentStream Write FFreeContentStream;
   end;
   
   { TSessionVariable }
@@ -1483,6 +1485,8 @@ end;
 
 destructor TResponse.destroy;
 begin
+  if FreeContentStream then
+    FreeAndNil(FContentStream);
   FreeAndNil(FCookies);
   FreeAndNil(FContents);
   FreeAndNil(FCustomHeaders);
@@ -1593,6 +1597,8 @@ procedure TResponse.SetContentStream(const AValue: TStream);
 begin
   If (FContentStream<>AValue) then
     begin
+    if (FContentStream<>Nil) and FreeContentStream then
+      FreeAndNil(FContentStream);
     FContentStream:=AValue;
     If (FContentStream<>Nil) then
       ContentLength:=FContentStream.Size

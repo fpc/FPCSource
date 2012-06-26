@@ -124,6 +124,8 @@ Type
     function Read_FCGIRecord : PFCGI_Header;
     function DataAvailable : Boolean;
   protected
+    function CreateRequest : TFCGIRequest; virtual;
+    function CreateResponse(ARequest: TFCGIRequest) : TFCGIResponse; virtual;
     Function DoFastCGIRead(AHandle : THandle; Var ABuf; ACount : Integer) : Integer; virtual;
     Function DoFastCGIWrite(AHandle : THandle; Const ABuf; ACount : Integer) : Integer; virtual;
     function  ProcessRecord(AFCGI_Record: PFCGI_Header; out ARequest: TRequest;  out AResponse: TResponse): boolean; virtual;
@@ -801,6 +803,16 @@ begin
 end;
 {$endif}
 
+function TFCgiHandler.CreateRequest: TFCGIRequest;
+begin
+  Result := TFCGIRequest.Create;
+end;
+
+function TFCgiHandler.CreateResponse(ARequest: TFCGIRequest): TFCGIResponse;
+begin
+  Result := TFCGIResponse.Create(ARequest);
+end;
+
 function TFCgiHandler.DoFastCGIRead(AHandle: THandle; var ABuf; ACount: Integer): Integer;
 begin
 {$ifdef windowspipe}
@@ -839,7 +851,7 @@ begin
       end;
     assert(not assigned(FRequestsArray[ARequestID].Request));
     assert(not assigned(FRequestsArray[ARequestID].Response));
-    ATempRequest:=TFCGIRequest.Create;
+    ATempRequest:=CreateRequest;
     InitRequest(ATempRequest);
     ATempRequest.RequestID:=ARequestID;
     ATempRequest.Handle:=FHandle;
@@ -856,7 +868,7 @@ begin
   else if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
     begin
     ARequest:=FRequestsArray[ARequestID].Request;
-    FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
+    FRequestsArray[ARequestID].Response := CreateResponse(TFCGIRequest(ARequest));
     InitResponse(FRequestsArray[ARequestID].Response);
     FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
     FRequestsArray[ARequestID].Response.FOnWrite:=@DoFastCGIWrite;
