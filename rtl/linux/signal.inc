@@ -176,8 +176,13 @@ type
   psiginfo = ^tsiginfo;
   tsiginfo = record
        si_signo : longint;
+{$ifdef CPUMIPS}
+       si_code : longint;
+       si_errno : longint;
+{$else not CPUMIPS}
        si_errno : longint;
        si_code : longint;
+{$endif not CPUMIPS}
        _sifields : record
            case longint of
               0 : ( _pad : array[0..(SI_PAD_SIZE)-1] of longint );
