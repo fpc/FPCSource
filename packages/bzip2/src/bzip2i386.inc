@@ -32,12 +32,14 @@ procedure Tbzip2_decode_stream.detransform;assembler;
 asm
 {  mov edx,offset c
   call mcount}
+  push ebx
+  push edi
   xor edx,edx
-  lea ebx,[esi+Tbzip2_decode_stream.cftab]
-  mov ecx,[esi+Tbzip2_decode_stream.tt_count]
+  lea ebx,[eax+Tbzip2_decode_stream.cftab]
+  mov ecx,[eax+Tbzip2_decode_stream.tt_count]
   push esi
   push ebp
-  mov esi,[esi+Tbzip2_decode_stream.tt]
+  mov esi,[eax+Tbzip2_decode_stream.tt]
   mov edi,esi
   lea ebp,[4*ecx+esi]
   jmp @a2
@@ -53,4 +55,6 @@ asm
   jne @a1
   pop ebp
   pop esi
-end ['eax','ebx','ecx','edx','edi'];
+  pop edi
+  pop ebx
+end ['eax','ecx','edx'];

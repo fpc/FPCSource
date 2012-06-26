@@ -96,7 +96,7 @@ Type
 
 implementation
 
-{$ifdef i386}
+{$ifdef cpui386}
   {$i bzip2si386.inc}
 {$endif}
 
@@ -147,13 +147,13 @@ begin
     begin
       Source.ReadBuffer(data,1);
       get_bits:=(read_data shr (8-n)) or data shr (8-(n-bits_available));
-      read_data:=data shl (n-bits_available);
+      read_data:=byte(data shl (n-bits_available));
       inc(bits_available,8);
     end
   else
     begin
       get_bits:=read_data shr (8-n);
-      read_data:=read_data shl n;
+      read_data:=byte(read_data shl n);
     end;
   dec(bits_available,n);
 end;
