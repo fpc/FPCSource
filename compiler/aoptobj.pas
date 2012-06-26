@@ -61,7 +61,7 @@ Unit AoptObj;
       TRegArray = Array[byte] of tsuperregister;
 
 
-      TRegSet = Set of byte;
+      TRegSet = tcpuregisterset;
       { possible actions on an operand: read, write or modify (= read & write) }
       TOpAction = (OpAct_Read, OpAct_Write, OpAct_Modify, OpAct_Unknown);
 
