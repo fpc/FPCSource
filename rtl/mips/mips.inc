@@ -37,6 +37,24 @@ function get_got_z : pointer;assembler;nostackframe;[public, alias: 'FPC_GETGOT_
     move $2,$28
   end;
 
+const
+  { FPU enable exception bits for FCSR register }
+  fpu_enable_inexact   =  $80;
+  fpu_enable_underflow = $100;
+  fpu_enable_overflow  = $200;
+  fpu_enable_div_zero  = $400;
+  fpu_enable_invalid   = $800;
+  fpu_enable_mask      = $F80;
+  default_fpu_enable = fpu_enable_div_zero or fpu_enable_invalid;
+
+  fpu_flags_mask = $7C;
+  { FPU rounding mask and values }
+  fpu_rounding_mask    = $3;
+  fpu_rounding_nearest = 0;
+  fpu_rounding_towards_zero = 1;
+  fpu_rounding_plus_inf = 2;
+  fpu_rounding_minus_inf = 3;
+
 
 procedure fpc_cpuinit;
 var
@@ -45,11 +63,17 @@ var
     { don't let libraries influence the FPU cw set by the host program }
     if not IsLibrary then
       begin
-        { enable div by 0 and invalid operation fpu exceptions }
-        { round towards nearest; ieee compliant arithmetics }
-
         tmp32 := get_fsr();
-        set_fsr(tmp32 and $fffffffc);
+        { enable div by 0 and invalid operation fpu exceptions,
+          disable the other exceptions }
+        tmp32 := (tmp32 and not fpu_enable_mask) or default_fpu_enable;
+        { Reset flags }
+        tmp32 := tmp32 and not fpu_flags_mask;
+
+        { round towards nearest; ieee compliant arithmetics }
+        tmp32 := (tmp32 and not fpu_rounding_mask) or fpu_rounding_nearest;
+
+        set_fsr(tmp32);
       end;
   end;
 
