@@ -71,6 +71,8 @@ type
 
 CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
+   IID_IPrint : TGUID = '{B722BCC9-4E68-101B-A2BC-00AA00404770}';
+   IID_IOleCommandTarget : TGUID = '{B722BCCB-4E68-101B-A2BC-00AA00404770}';
 
      // bit flags for IExternalConnection
 CONST
@@ -805,6 +807,85 @@ Const
     PROPSETFLAG_NONSIMPLE = DWORD(1);
     PROPSETFLAG_ANSI      = DWORD(2);
 
+Type
+    OLECMDF 	  = LongWord;
+    OLECMDTEXTF   = LongWord;
+    OLECMDEXECOPT = LongWord;
+    OLECMDID      = LongWord;
+
+Const
+    OLECMDF_SUPPORTED     = $0000000000000001;
+    OLECMDF_ENABLED       = $0000000000000002;
+    OLECMDF_LATCHED 	  = $0000000000000004;
+    OLECMDF_NINCHED 	  = $0000000000000008;
+    OLECMDF_INVISIBLE 	  = $0000000000000010;
+    OLECMDF_DEFHIDEONCTXTMENU = $0000000000000020;
+
+    OLECMDTEXTF_NONE      = $0000000000000000;
+    OLECMDTEXTF_NAME      = $0000000000000001;
+    OLECMDTEXTF_STATUS    = $0000000000000002;
+
+    OLECMDEXECOPT_DODEFAULT = $0000000000000000;
+    OLECMDEXECOPT_PROMPTUSER= $0000000000000001;
+    OLECMDEXECOPT_DONTPROMPTUSER = $0000000000000002;
+    OLECMDEXECOPT_SHOWHELP  = $0000000000000003;
+
+    OLECMDID_OPEN         = $0000000000000001;
+    OLECMDID_NEW 	  = $0000000000000002;
+    OLECMDID_SAVE 	  = $0000000000000003;
+    OLECMDID_SAVEAS       = $0000000000000004;
+    OLECMDID_SAVECOPYAS   = $0000000000000005;
+    OLECMDID_PRINT 	  = $0000000000000006;
+    OLECMDID_PRINTPREVIEW = $0000000000000007;
+    OLECMDID_PAGESETUP    = $0000000000000008;
+    OLECMDID_SPELL 	  = $0000000000000009;
+    OLECMDID_PROPERTIES   = $000000000000000A;
+    OLECMDID_CUT 	  = $000000000000000B;
+    OLECMDID_COPY 	  = $000000000000000C;
+    OLECMDID_PASTE 	  = $000000000000000D;
+    OLECMDID_PASTESPECIAL = $000000000000000E;
+    OLECMDID_UNDO 	  = $000000000000000F;
+    OLECMDID_REDO 	  = $0000000000000010;
+    OLECMDID_SELECTALL    = $0000000000000011;
+    OLECMDID_CLEARSELECTION = $0000000000000012;
+    OLECMDID_ZOOM         = $0000000000000013;
+    OLECMDID_GETZOOMRANGE = $0000000000000014;
+    OLECMDID_UPDATECOMMANDS = $0000000000000015;
+    OLECMDID_REFRESH      = $0000000000000016;
+    OLECMDID_STOP 	  = $0000000000000017;
+    OLECMDID_HIDETOOLBARS = $0000000000000018;
+    OLECMDID_SETPROGRESSMAX = $0000000000000019;
+    OLECMDID_SETPROGRESSPOS = $000000000000001A;
+    OLECMDID_SETPROGRESSTEXT = $000000000000001B;
+    OLECMDID_SETTITLE     = $000000000000001C;
+    OLECMDID_SETDOWNLOADSTATE = $000000000000001D;
+    OLECMDID_STOPDOWNLOAD = $000000000000001E;
+    OLECMDID_ONTOOLBARACTIVATED = $000000000000001F;
+    OLECMDID_FIND         = $0000000000000020;
+    OLECMDID_DELETE 	  = $0000000000000021;
+    OLECMDID_HTTPEQUIV    = $0000000000000022;
+    OLECMDID_HTTPEQUIV_DONE = $0000000000000023;
+    OLECMDID_ENABLE_INTERACTION = $0000000000000024;
+    OLECMDID_ONUNLOAD     = $0000000000000025;
+    OLECMDID_PROPERTYBAG2 = $0000000000000026;
+    OLECMDID_PREREFRESH   = $0000000000000027;
+    OLECMDID_SHOWSCRIPTERROR = $0000000000000028;
+    OLECMDID_SHOWMESSAGE  = $0000000000000029;
+    OLECMDID_SHOWFIND     = $000000000000002A;
+    OLECMDID_SHOWPAGESETUP= $000000000000002B;
+    OLECMDID_SHOWPRINT    = $000000000000002C;
+    OLECMDID_CLOSE 	  = $000000000000002D;
+    OLECMDID_ALLOWUILESSSAVEAS = $000000000000002E;
+    OLECMDID_DONTDOWNLOADCSS = $000000000000002F;
+    OLECMDID_UPDATEPAGESTATUS = $0000000000000030;
+    OLECMDID_PRINT2       = $0000000000000031;
+    OLECMDID_PRINTPREVIEW2= $0000000000000032;
+    OLECMDID_SETPRINTTEMPLATE = $0000000000000033;
+    OLECMDID_GETPRINTTEMPLATE = $0000000000000034;
+    OLECMDID_UPDATEVSCROLL= $0000000000000035;
+    OLECMDID_UPDATEHSCROLL= $0000000000000036;
+    OLECMDID_FITTOSCREEN  = $0000000000000037;
+
 TYPE
     TVarType            = USHORT;
     VARTYPE             = TVarType deprecated;  // not in Delphi, and clashes with VarType function
@@ -1416,6 +1497,7 @@ TYPE
        VT_ERROR:                (scode: HResult);
        VT_CY:                   (cyVal: Currency);
        VT_DATE:                 (date: TOleDate);
+       { managed types cannot be used in a variant record like this one. }
        VT_BSTR:                 (bstrVal: POleStr{WideString});
        VT_UNKNOWN:              (unkVal: Pointer{IUnknown});
        VT_DISPATCH:             (dispVal: Pointer{IDispatch});
@@ -1434,7 +1516,7 @@ TYPE
        VT_BYREF or VT_ERROR:    (pscode: ^HResult);
        VT_BYREF or VT_CY:       (pcyVal: PCurrency);
        VT_BYREF or VT_DATE:     (pdate: POleDate);
-       VT_BYREF or VT_BSTR:     (pbstrVal: PPOleStr);
+       VT_BYREF or VT_BSTR:     (pbstrVal: ^WideString);
        VT_BYREF or VT_UNKNOWN:  (punkVal: ^IUnknown);
        VT_BYREF or VT_DISPATCH: (pdispVal: ^IDispatch);
        VT_BYREF or VT_ARRAY:    (pparray: PPSafeArray);
@@ -3216,6 +3298,38 @@ TYPE
   LPOleInPlaceFrameInfo = POleInPlaceFrameInfo;
   OLEINPLACEFRAMEINFO = tagOIFI;
 
+   PtagPAGESET = ^tagPAGESET;
+
+   PtagPAGERANGE = ^tagPAGERANGE;
+
+   tagPAGESET = packed record
+       cbStruct : LongWord;
+       fOddPages : Integer;
+       fEvenPages : Integer;
+       cPageRange : LongWord;
+       rgPages : PtagPAGERANGE;
+   end;
+
+   tagPAGERANGE = packed record
+       nFromPage : Integer;
+       nToPage : Integer;
+   end;
+
+   P_tagOLECMD = ^_tagOLECMD;
+
+   _tagOLECMD = packed record
+       cmdID : LongWord;
+       cmdf : LongWord;
+   end;
+
+   P_tagOLECMDTEXT = ^_tagOLECMDTEXT;
+
+   _tagOLECMDTEXT = packed record
+       cmdtextf : LongWord;
+       cwActual : LongWord;
+       cwBuf : LongWord;
+       rgwz : PWord;
+   end;
 
 { redefinitions }
   function CoCreateGuid(out _para1:TGUID):HRESULT;stdcall;external 'ole32.dll' name 'CoCreateGuid';
@@ -3230,6 +3344,9 @@ TYPE
 { OleIdl.h }
 type
   IOleInPlaceActiveObject = interface;
+  IPrint 		  = interface;
+  IOleCommandTarget 	  = interface;
+  IContinueCallback       = interface;
 
   IOleAdviseHolder = interface(IUnknown)
     ['{00000111-0000-0000-C000-000000000046}']
@@ -3390,12 +3507,24 @@ type
        function ActivateMe(pviewtoactivate:IOleDocumentView):hresult; stdcall;
        end;
 
+    IPrint = interface(IUnknown)
+       ['{B722BCC9-4E68-101B-A2BC-00AA00404770}']
+       procedure SetInitialPageNum(nFirstPage:Integer);stdcall;
+       procedure GetPageInfo(out pnFirstPage:Integer;out pcPages:Integer);stdcall;
+       procedure RemotePrint(grfFlags:LongWord;var pptd:PDVTARGETDEVICE;var pppageset:PtagPAGESET;var pstgmOptions:tagRemSTGMEDIUM;pcallback:IContinueCallback;nFirstPage:Integer;out pcPagesPrinted:Integer;out pnLastPage:Integer);stdcall;
+      end;
+
+    IOleCommandTarget = interface(IUnknown)
+       ['{B722BCCB-4E68-101B-A2BC-00AA00404770}']
+       procedure QueryStatus(var pguidCmdGroup:GUID;cCmds:LongWord;var prgCmds:_tagOLECMD;var pCmdText:_tagOLECMDTEXT);stdcall;
+       procedure Exec(var pguidCmdGroup:GUID;nCmdID:LongWord;nCmdexecopt:LongWord;var pvaIn:OleVariant;var pvaOut:OleVariant);stdcall;
+      end;
+
     IContinueCallback = interface(IUnknown)
        ['{b722bcca-4e68-101b-a2bc-00aa00404770}']
         function FContinue:HResult;Stdcall;
         function FContinuePrinting( nCntPrinted:LONG;nCurPage:Long;pwzprintstatus:polestr):HResult;Stdcall;
       end;
-
 
 { ObjSafe.idl}
   IObjectSafety = interface(IUnknown)
