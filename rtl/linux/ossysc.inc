@@ -576,7 +576,14 @@ function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, al
 }
 
 begin
-  FPsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,TSysParam(how),TSysParam(nset),TSysParam(oset),TSysParam(8));
+  FPsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,TSysParam(how),
+		                    TSysParam(nset),TSysParam(oset),
+{$ifdef CPUMIPS}
+							TSysParam(16)
+{$else not CPUMIPS}
+							TSysParam(8)
+{$endif not CPUMIPS}
+					);
 end;
 
 Function FpNanoSleep(req : ptimespec;rem : ptimespec):cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
