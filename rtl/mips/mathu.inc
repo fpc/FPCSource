@@ -66,7 +66,7 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
       rmNearest :
         begin
 		  softfloat_rounding_mode := float_round_nearest_even;
-		  fpu_round:=fpu_rounding_mearest;
+		  fpu_round:=fpu_rounding_nearest;
 		end;
       rmTruncate :
         begin
