@@ -26,6 +26,7 @@ type
     constructor Create(len: longint; cp: TSystemCodePage);overload;
     constructor Create(const arr: array of ansichar; length: longint; cp: TSystemCodePage);overload;
     constructor Create(const arr: array of unicodechar; cp: TSystemCodePage);overload;
+    constructor Create(const u: unicodestring);overload;
     constructor Create(const u: unicodestring; cp: TSystemCodePage);overload;
     constructor Create(const a: RawByteString; cp: TSystemCodePage);overload;
     constructor Create(const s: shortstring; cp: TSystemCodePage);overload;

@@ -79,6 +79,13 @@ begin
 end;
 
 
+constructor AnsistringClass.Create(const u: unicodestring);
+begin
+  { for use in Java code }
+  Create(u,DefaultSystemCodePage);
+end;
+
+
 constructor AnsistringClass.Create(const a: RawByteString; cp: TSystemCodePage);
 begin
   Create(AnsistringClass(a).fdata,system.length(AnsistringClass(a).fdata)-1,cp);
