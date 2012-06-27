@@ -1270,6 +1270,7 @@ Implementation
         { Calc positions in mem }
         ParseScript_MemPos;
         exeoutput.FixupRelocations;
+        exeoutput.RemoveUnusedExeSymbols;
         exeoutput.PrintMemoryMap;
         if ErrorCount>0 then
           goto myexit;

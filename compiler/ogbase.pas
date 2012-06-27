@@ -486,6 +486,7 @@ interface
         procedure PrintMemoryMap;
         procedure FixupSymbols;
         procedure FixupRelocations;
+        procedure RemoveUnusedExeSymbols;
         procedure MergeStabs;
         procedure RemoveUnreferencedSections;
         procedure RemoveEmptySections;
@@ -2016,18 +2017,7 @@ implementation
 
 
     procedure TExeOutput.DataPos_Symbols;
-      var
-        i : longint;
-        sym : TExeSymbol;
       begin
-        { Removing unused symbols }
-        for i:=0 to ExeSymbolList.Count-1 do
-          begin
-            sym:=TExeSymbol(ExeSymbolList[i]);
-            if not sym.ObjSymbol.objsection.Used then
-              ExeSymbolList[i]:=nil;
-          end;
-        ExeSymbolList.Pack;
       end;
 
 
@@ -2854,6 +2844,22 @@ implementation
                 objsec.FixupRelocs(Self);
               end;
           end;
+      end;
+
+
+    procedure TExeOutput.RemoveUnusedExeSymbols;
+      var
+        i : longint;
+        sym : TExeSymbol;
+      begin
+        { Removing unused symbols }
+        for i:=0 to ExeSymbolList.Count-1 do
+          begin
+            sym:=TExeSymbol(ExeSymbolList[i]);
+            if not sym.ObjSymbol.objsection.Used then
+              ExeSymbolList[i]:=nil;
+          end;
+        ExeSymbolList.Pack;
       end;
 
 
