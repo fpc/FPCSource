@@ -40,11 +40,11 @@ interface
       procedure setfininame(list: TAsmList; const s: string); override;
     end;
 
+    TLibcType=(libc5,glibc2,glibc21,uclibc);
+
     tlinkerlinux=class(texternallinker)
     private
-      libctype:(libc5,glibc2,glibc21,uclibc);
-      cprtobj,
-      gprtobj,
+      libctype: TLibcType;
       prtobj  : string[80];
       reorder : boolean;
       linklibc: boolean;
@@ -108,9 +108,8 @@ implementation
                                   TLINKERLINUX
 *****************************************************************************}
 
-Constructor TLinkerLinux.Create;
+procedure SetupLibrarySearchPath;
 begin
-  Inherited Create;
   if not Dontlinkstdlibpath Then
 {$ifdef x86_64}
    LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
@@ -123,6 +122,113 @@ begin
 {$endif x86_64}
 end;
 
+{$ifdef m68k}
+  { experimental, is this correct? }
+  const defdynlinker='/lib/ld-linux.so.2';
+{$endif m68k}
+
+{$ifdef i386}
+  const defdynlinker='/lib/ld-linux.so.2';
+{$endif}
+
+{$ifdef x86_64}
+  const defdynlinker='/lib64/ld-linux-x86-64.so.2';
+{$endif x86_64}
+
+{$ifdef sparc}
+  const defdynlinker='/lib/ld-linux.so.2';
+{$endif sparc}
+
+{$ifdef powerpc}
+  const defdynlinker='/lib/ld.so.1';
+{$endif powerpc}
+
+{$ifdef powerpc64}
+  const defdynlinker='/lib64/ld64.so.1';
+{$endif powerpc64}
+
+{$ifdef arm}
+{$ifdef FPC_ARMHF}
+  const defdynlinker='/lib/arm-linux-gnueabihf/ld-linux.so.3';
+{$else FPC_ARMHF}
+{$ifdef FPC_ARMEL}
+  const defdynlinker='/lib/ld-linux.so.3';
+{$else FPC_ARMEL}
+  const defdynlinker='/lib/ld-linux.so.2';
+{$endif FPC_ARMEL}
+{$endif FPC_ARMHF}
+{$endif arm}
+
+{$ifdef mips}
+  const defdynlinker='/lib/ld.so.1';
+{$endif mips}
+
+procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
+begin
+  {
+    Search order:
+    glibc 2.1+
+    uclibc
+    glibc 2.0
+    If none is found (e.g. when cross compiling) glibc21 is assumed
+  }
+  if fileexists(sysrootpath+defdynlinker,false) then
+    begin
+      DynamicLinker:=defdynlinker;
+{$ifdef i386}
+      libctype:=glibc21;
+{$else i386}
+      libctype:=glibc2;
+{$endif i386}
+    end
+  else if fileexists(sysrootpath+'/lib/ld-uClibc.so.0',false) then
+    begin
+      DynamicLinker:='/lib/ld-uClibc.so.0';
+      libctype:=uclibc;
+    end
+{$ifdef i386}
+  else if FileExists(sysrootpath+'/lib/ld-linux.so.1',false) then
+    begin
+      DynamicLinker:='/lib/ld-linux.so.1';
+      libctype:=glibc2;
+    end
+{$endif i386}
+  else
+    begin
+      { when no dyn. linker is found, we are probably
+        cross compiling, so use the default dyn. linker }
+      DynamicLinker:=defdynlinker;
+      {
+        the default c startup script is gcrt0.as on all platforms
+        except i386
+      }
+{$ifdef i386}
+      libctype:=glibc21;
+{$else i386}
+      libctype:=glibc2;
+{$endif i386}
+    end;
+end;
+
+function ModulesLinkToLibc:boolean;
+var
+  hp: tmodule;
+begin
+  result:=false;
+  hp:=tmodule(loaded_units.first);
+  while assigned(hp) do
+    begin
+      result:=hp.linkothersharedlibs.find('c');
+      if result then break;
+      hp:=tmodule(hp.next);
+    end;
+end;
+
+Constructor TLinkerLinux.Create;
+begin
+  Inherited Create;
+  SetupLibrarySearchPath;
+end;
 
 procedure TLinkerLinux.SetDefaultInfo;
 {
@@ -146,8 +252,6 @@ const
 {$endif}
 
 
-var
-  defdynlinker: string;
 begin
   with Info do
    begin
@@ -162,89 +266,7 @@ begin
      ExtDbgCmd[2]:='objcopy --add-gnu-debuglink=$DBG $EXE';
      ExtDbgCmd[3]:='strip --strip-unneeded $EXE';
 
-{$ifdef m68k}
-     { experimental, is this correct? }
-     defdynlinker:='/lib/ld-linux.so.2';
-{$endif m68k}
-
-{$ifdef i386}
-     defdynlinker:='/lib/ld-linux.so.2';
-{$endif}
-
-{$ifdef x86_64}
-     defdynlinker:='/lib64/ld-linux-x86-64.so.2';
-{$endif x86_64}
-
-{$ifdef sparc}
-     defdynlinker:='/lib/ld-linux.so.2';
-{$endif sparc}
-
-{$ifdef powerpc}
-     defdynlinker:='/lib/ld.so.1';
-{$endif powerpc}
-
-{$ifdef powerpc64}
-     defdynlinker:='/lib64/ld64.so.1';
-{$endif powerpc64}
-
-{$ifdef arm}
-{$ifdef FPC_ARMHF}
-     defdynlinker:='/lib/arm-linux-gnueabihf/ld-linux.so.3';
-{$else FPC_ARMHF}
-{$ifdef FPC_ARMEL}
-     defdynlinker:='/lib/ld-linux.so.3';
-{$else FPC_ARMEL}
-     defdynlinker:='/lib/ld-linux.so.2';
-{$endif FPC_ARMEL}
-{$endif FPC_ARMHF}
-{$endif arm}
-
-{$ifdef mips}
-     defdynlinker:='/lib/ld.so.1';
-{$endif mips}
-     {
-       Search order:
-         glibc 2.1+
-         uclibc
-         glibc 2.0
-       If none is found (e.g. when cross compiling) glibc21 is assumed
-     }
-     if fileexists(sysrootpath+defdynlinker,false) then
-       begin
-         DynamicLinker:=defdynlinker;
-{$ifdef i386}
-         libctype:=glibc21;
-{$else i386}
-         libctype:=glibc2;
-{$endif i386}
-       end
-     else if fileexists(sysrootpath+'/lib/ld-uClibc.so.0',false) then
-       begin
-         dynamiclinker:='/lib/ld-uClibc.so.0';
-         libctype:=uclibc;
-       end
-{$ifdef i386}
-     else if FileExists(sysrootpath+'/lib/ld-linux.so.1',false) then
-       begin
-         DynamicLinker:='/lib/ld-linux.so.1';
-         libctype:=glibc2;
-       end
-{$endif i386}
-     else
-       begin
-         { when no dyn. linker is found, we are probably
-           cross compiling, so use the default dyn. linker }
-         DynamicLinker:=defdynlinker;
-         {
-           the default c startup script is gcrt0.as on all platforms
-           except i386
-         }
-{$ifdef i386}
-         libctype:=glibc21;
-{$else i386}
-         libctype:=glibc2;
-{$endif i386}
-       end;
+     SetupDynlinker(DynamicLinker,libctype);
    end;
 end;
 
@@ -263,70 +285,37 @@ Begin
          end;
 End;
 
+type
+  tlibcnames=array [TLibcType] of string[8];
+
+const                     { libc5    glibc2   glibc21   uclibc }
+  cprtnames: tlibcnames = ('cprt0', 'cprt0', 'cprt21', 'ucprt0');
+  csinames: tlibcnames  = ('si_c',  'si_c',  'si_c21', 'si_uc');
+  gprtnames: tlibcnames = ('gprt0', 'gprt0', 'gprt21', 'ugprt0');
+  gsinames: tlibcnames  = ('si_g',  'si_g',  'si_c21g','si_ucg');
+
+  defprtnames: array[boolean] of string[8] = ('prt0',  'dllprt0');
+  defsinames: array[boolean] of string[8]  = ('si_prc','si_dll');
+
+{ uclibc and glibc21 are not available on x86_64! si_g is also absent. }
 Procedure TLinkerLinux.InitSysInitUnitName;
-var
-  csysinitunit,
-  gsysinitunit : string[20];
-  hp           : tmodule;
 begin
-  hp:=tmodule(loaded_units.first);
-  while assigned(hp) do
-   begin
-     linklibc := hp.linkothersharedlibs.find('c');
-     if linklibc then break;
-     hp:=tmodule(hp.next);
-   end;
-  reorder := linklibc and ReOrderEntries;
-  if current_module.islibrary then
-   begin
-     sysinitunit:='dll';
-     csysinitunit:='dll';
-     gsysinitunit:='dll';
-     prtobj:='dllprt0';
-     cprtobj:='dllprt0';
-     gprtobj:='dllprt0';
-   end
-  else
-   begin
-     prtobj:='prt0';
-     sysinitunit:='prc';
-     case libctype of
-       glibc21:
-         begin
-           cprtobj:='cprt21';
-           gprtobj:='gprt21';
-           csysinitunit:='c21';
-           gsysinitunit:='c21g';
-         end;
-       uclibc:
-         begin
-           cprtobj:='ucprt0';
-           gprtobj:='ugprt0';
-           csysinitunit:='uc';
-           gsysinitunit:='ucg';
-         end
-       else
-         cprtobj:='cprt0';
-         gprtobj:='gprt0';
-         csysinitunit:='c';
-         gsysinitunit:='g';
-     end;
-   end;
+  linklibc:=ModulesLinkToLibc;
+  reorder:=linklibc and ReOrderEntries;
+  sysinitunit:=defsinames[current_module.islibrary];
+  prtobj:=defprtnames[current_module.islibrary];
+
   if cs_profile in current_settings.moduleswitches then
-   begin
-     prtobj:=gprtobj;
-     sysinitunit:=gsysinitunit;
-     linklibc:=true;
-   end
-  else
-   begin
-     if linklibc then
-      begin
-       prtobj:=cprtobj;
-       sysinitunit:=csysinitunit;
-      end;
-   end;
-  sysinitunit:='si_'+sysinitunit;
+    begin
+      prtobj:=gprtnames[libctype];
+      sysinitunit:=gsinames[libctype];
+      linklibc:=true;
+    end
+  else if linklibc then
+    begin
+      prtobj:=cprtnames[libctype];
+      sysinitunit:=csinames[libctype];
+    end;
 end;
 
 Function TLinkerLinux.WriteResponseFile(isdll:boolean) : Boolean;
