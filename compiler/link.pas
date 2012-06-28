@@ -116,6 +116,7 @@ interface
          property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
          procedure DefaultLinkScript;virtual;abstract;
          procedure ConcatGenericSections(secnames:string);
+         procedure ScriptAddSourceStatements(AddSharedAsStatic:boolean);virtual;
       public
          IsSharedLibrary : boolean;
          UseStabs : boolean;
@@ -894,6 +895,35 @@ Implementation
         ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
         if not assigned(ImportSymbol) then
           ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar);
+      end;
+
+
+    procedure TInternalLinker.ScriptAddSourceStatements(AddSharedAsStatic:boolean);
+      var
+        s,s2: TCmdStr;
+      begin
+        while not ObjectFiles.Empty do
+          begin
+            s:=ObjectFiles.GetFirst;
+            if s<>'' then
+              LinkScript.Concat('READOBJECT '+MaybeQuoted(s));
+          end;
+        while not StaticLibFiles.Empty do
+          begin
+            s:=StaticLibFiles.GetFirst;
+            if s<>'' then
+              LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+          end;
+        if not AddSharedAsStatic then
+          exit;
+        while not SharedLibFiles.Empty do
+          begin
+            S:=SharedLibFiles.GetFirst;
+            if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+              LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
+            else
+              Comment(V_Error,'Import library not found for '+S);
+          end;
       end;
 
 
