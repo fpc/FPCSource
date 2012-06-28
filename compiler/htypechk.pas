@@ -2417,7 +2417,9 @@ implementation
                  (
                   (count=1) or
                   equal_defs(tprocvardef(currpt.left.resultdef).returndef,def_to)
-                 ) then
+                 ) and
+                 { and if it doesn't require any parameters }
+                 (tprocvardef(currpt.left.resultdef).minparacount=0)  then
                 begin
                   releasecurrpt:=true;
                   currpt:=tcallparanode(pt.getcopy);
