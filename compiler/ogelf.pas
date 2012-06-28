@@ -734,7 +734,7 @@ implementation
         { we need at least the following sections }
         createsection(sec_code);
         { always a non-PIC data section (will remain empty if doing PIC) }
-        createsection('.data',sizeof(pint),sectiontype2options(sec_data));
+        createsection('.data',sectiontype2align(sec_data),sectiontype2options(sec_data));
         createsection(sec_bss);
         if (cs_create_pic in current_settings.moduleswitches) and
            not(target_info.system in systems_darwin) then
