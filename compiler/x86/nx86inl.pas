@@ -271,6 +271,7 @@ implementation
             location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
             tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
+            tcgx86(cg).dec_fpu_stack;
             emit_none(A_FWAIT,S_NO);
            end;
        end;
@@ -306,6 +307,7 @@ implementation
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTTP,S_IQ,location.reference);
+                tcgx86(cg).dec_fpu_stack;
               end
             else
               begin
@@ -319,6 +321,7 @@ implementation
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTP,S_IQ,location.reference);
+                tcgx86(cg).dec_fpu_stack;
                 emit_ref(A_FLDCW,S_NO,oldcw);
                 emit_none(A_FWAIT,S_NO);
                 tg.UnGetTemp(current_asmdata.CurrAsmList,oldcw);
