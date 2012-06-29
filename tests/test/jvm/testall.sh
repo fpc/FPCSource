@@ -47,8 +47,10 @@ $PPC -O2 -g forw
 $PPC -O2 -g tbyte
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tbyte
 rm -f uenum.ppu
-$PPC -O2 -g tenum
+$PPC -O2 -g -CTenumfieldinit tenum
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tenum
+$PPC -O2 -g tenum2
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tenum2
 $PPC -O2 -g tprop
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tprop
 $PPC -O2 -g tprop2

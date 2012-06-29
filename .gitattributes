@@ -10170,6 +10170,7 @@ tests/test/jvm/tdefpara.pp svneol=native#text/plain
 tests/test/jvm/tdynarrec.pp svneol=native#text/plain
 tests/test/jvm/tdynarrnil.pp svneol=native#text/plain
 tests/test/jvm/tenum.pp svneol=native#text/plain
+tests/test/jvm/tenum2.pp svneol=native#text/plain
 tests/test/jvm/test.pp svneol=native#text/plain
 tests/test/jvm/testall.bat -text svneol=native#application/x-bat
 tests/test/jvm/testall.sh -text svneol=native#application/x-sh

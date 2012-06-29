@@ -212,7 +212,16 @@ interface
          { for the JVM target: generate integer array initializations via string
            constants in order to reduce the generated code size (Java routines
            are limited to 64kb of bytecode) }
-         ts_compact_int_array_init
+         ts_compact_int_array_init,
+         { for the JVM target: intialize enum fields in constructors with the
+           enum class instance corresponding to ordinal value 0 (not done by
+           default because this initialization can only be performed after the
+           inherited constructors have run, and if they call a virtual method
+           of the current class, then this virtual method may already have
+           initialized that field with another value and the constructor
+           initialization will result in data loss }
+         ts_jvm_enum_field_init
+
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -269,7 +278,8 @@ interface
 
        TargetSwitchStr : array[ttargetswitch] of string[19] = ('',
          'SMALLTOC',
-         'COMPACTINTARRAYINIT');
+         'COMPACTINTARRAYINIT',
+         'ENUMFIELDINIT');
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];

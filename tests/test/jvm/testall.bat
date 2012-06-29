@@ -64,9 +64,13 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tbyte
 if %errorlevel% neq 0 exit /b %errorlevel%
 del uenum.ppu
-ppcjvm -O2 -g tenum
+ppcjvm -O2 -g -CTenumfieldinit tenum
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tenum
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g tenum2
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tenum2
 if %errorlevel% neq 0 exit /b %errorlevel%
 ppcjvm -O2 -g tprop
 if %errorlevel% neq 0 exit /b %errorlevel%

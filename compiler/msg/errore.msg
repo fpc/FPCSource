@@ -3317,6 +3317,7 @@ J*2CT<x>_Target-specific code generation options
 p*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 P*3CTsmalltoc_ Generate smaller TOCs at the expense of execution speed (AIX)
 J*3CTcompactintarrayinit_ Generate smaller (but potentially slower) code for initializing integer array constants
+K*3CTenumfieldinit_ Initialize enumeration fields in constructors to enumtype(0), after calling inherited constructors
 J*2Cv_Var/out parameter copy-out checking
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
