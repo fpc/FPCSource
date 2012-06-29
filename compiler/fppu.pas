@@ -795,7 +795,9 @@ var
                   { the indexing is wrong here PM }
                   sourcefiles.register_file(hp);
                 end;
-             end;
+             end
+           else
+             temp:=' not available';
            if is_main then
              begin
                mainsource:=hs;
