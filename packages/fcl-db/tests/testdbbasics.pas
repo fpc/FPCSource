@@ -42,6 +42,8 @@ type
     procedure TestSupportBCDFields;
     procedure TestSupportfmtBCDFields;
     procedure TestSupportFixedStringFields;
+    procedure TestSupportBlobFields;
+    procedure TestSupportMemoFields;
 
     procedure TestDoubleClose;
     procedure TestCalculatedField;
@@ -2382,6 +2384,37 @@ begin
 {$else fpc}
       CheckEquals(testStringValues[i],Fld.AsString);
 {$endif fpc}
+    ds.Next;
+    end;
+  ds.close;
+end;
+
+procedure TTestDBBasics.TestSupportBlobFields;
+
+var i          : byte;
+    ds         : TDataset;
+    Fld        : TField;
+begin
+  TestfieldDefinition(ftBlob,0,ds,Fld);
+
+  for i := 0 to testValuesCount-1 do
+    begin
+    CheckEquals(testValues[ftBlob,i],Fld.AsString);
+    ds.Next;
+    end;
+  ds.close;
+end;
+
+procedure TTestDBBasics.TestSupportMemoFields;
+var i          : byte;
+    ds         : TDataset;
+    Fld        : TField;
+begin
+  TestfieldDefinition(ftMemo,0,ds,Fld);
+
+  for i := 0 to testValuesCount-1 do
+    begin
+    CheckEquals(testValues[ftMemo,i],Fld.AsString);
     ds.Next;
     end;
   ds.close;
