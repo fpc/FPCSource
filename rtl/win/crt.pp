@@ -711,7 +711,14 @@ begin
         WriteChar(f.buffer[i]);
       end
     else
-      s:=s+f.buffer[i];
+      begin
+        if length(s)=255 then
+          begin
+            WriteStr(s);
+            s:='';
+          end;
+        s:=s+f.buffer[i];
+      end;
   if s<>'' then
     WriteStr(s);
   SetScreenCursor(CurrX, CurrY);
