@@ -28,6 +28,17 @@ uses
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_CREATEGUID}
 
+type
+  TNativeNTFindData = record
+    SearchSpec: String;
+    NamePos: LongInt;
+    Handle: THandle;
+    IsDirObj: Boolean;
+    SearchAttr: LongInt;
+    Context: ULONG;
+    LastRes: NTSTATUS;
+  end;
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -56,7 +67,7 @@ const
                0,
                FILE_SHARE_READ,
                FILE_SHARE_WRITE,
-               FILE_SHARE_READ or FILE_SHARE_WRITE);
+               FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE);
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -72,6 +83,25 @@ end;
 
 
 function FileCreate(const FileName : String) : THandle;
+begin
+  FileCreate := FileCreate(FileName, fmShareDenyNone, 0);
+end;
+
+
+function FileCreate(const FileName : String; Rights: longint) : THandle;
+begin
+  FileCreate := FileCreate(FileName, fmShareDenyNone, Rights);
+end;
+
+
+function FileCreate(const FileName : String; ShareMode : longint; Rights: longint) : THandle;
+const
+  ShareModeFlags: array[0..4] of ULONG = (
+               0,
+               0,
+               FILE_SHARE_READ,
+               FILE_SHARE_WRITE,
+               FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE);
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -81,21 +111,10 @@ begin
   AnsiStrToNTStr(FileName, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
   NtCreateFile(@Result, GENERIC_READ or GENERIC_WRITE or NT_SYNCHRONIZE,
-    @objattr, @iostatus, Nil, FILE_ATTRIBUTE_NORMAL, 0, FILE_OVERWRITE_IF,
+    @objattr, @iostatus, Nil, FILE_ATTRIBUTE_NORMAL,
+    ShareModeFlags[(ShareMode and $F0) shr 4], FILE_OVERWRITE_IF,
     FILE_NON_DIRECTORY_FILE or FILE_SYNCHRONOUS_IO_NONALERT, Nil, 0);
   FreeNtStr(ntstr);
-end;
-
-
-function FileCreate(const FileName : String; Rights: longint) : THandle;
-begin
-  FileCreate := FileCreate(FileName);
-end;
-
-
-function FileCreate(const FileName : String; ShareMode : longint; Rights: longint) : THandle;
-begin
-  FileCreate := FileCreate(FileName);
 end;
 
 
@@ -288,6 +307,7 @@ end;
 
 function FileAge(const FileName: String): Longint;
 begin
+  { TODO }
   Result := -1;
 end;
 
@@ -302,8 +322,8 @@ var
 begin
   AnsiStrToNtStr(FileName, ntstr);
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
-  res := NtOpenFile(@h, 0, @objattr, @iostatus,
-           FILE_SHARE_READ or FILE_SHARE_WRITE,
+  res := NtOpenFile(@h, FILE_READ_ATTRIBUTES or NT_SYNCHRONIZE, @objattr,
+           @iostatus, FILE_SHARE_READ or FILE_SHARE_WRITE,
            FILE_NON_DIRECTORY_FILE or FILE_SYNCHRONOUS_IO_NONALERT);
   Result := NT_SUCCESS(res);
 
@@ -325,15 +345,15 @@ begin
   InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
 
   { first test wether this is a object directory }
-  res := NtOpenDirectoryObject(@h, 0, @objattr);
+  res := NtOpenDirectoryObject(@h, DIRECTORY_QUERY, @objattr);
   if NT_SUCCESS(res) then
     Result := True
   else begin
     if res = STATUS_OBJECT_TYPE_MISMATCH then begin
       { this is a file object! }
-      res := NtOpenFile(@h, 0, @objattr, @iostatus,
-        FILE_SHARE_READ or FILE_SHARE_WRITE,
-        FILE_DIRECTORY_FILE or FILE_SYNCHRONOUS_IO_NONALERT);
+      res := NtOpenFile(@h, FILE_READ_ATTRIBUTES or NT_SYNCHRONIZE, @objattr,
+               @iostatus, FILE_SHARE_READ or FILE_SHARE_WRITE,
+               FILE_DIRECTORY_FILE or FILE_SYNCHRONOUS_IO_NONALERT);
       Result := NT_SUCCESS(res);
     end else
       Result := False;
@@ -344,28 +364,378 @@ begin
   FreeNtStr(ntstr);
 end;
 
+{ copied from rtl/unix/sysutils.pp }
+Function FNMatch(const Pattern,Name:string):Boolean;
+Var
+  LenPat,LenName : longint;
 
-function FindMatch(var f: TSearchRec): Longint;
+  Function DoFNMatch(i,j:longint):Boolean;
+  Var
+    Found : boolean;
+  Begin
+  Found:=true;
+  While Found and (i<=LenPat) Do
+   Begin
+     Case Pattern[i] of
+      '?' : Found:=(j<=LenName);
+      '*' : Begin
+            {find the next character in pattern, different of ? and *}
+              while Found do
+                begin
+                inc(i);
+                if i>LenPat then Break;
+                case Pattern[i] of
+                  '*' : ;
+                  '?' : begin
+                          if j>LenName then begin DoFNMatch:=false; Exit; end;
+                          inc(j);
+                        end;
+                else
+                  Found:=false;
+                end;
+               end;
+              Assert((i>LenPat) or ( (Pattern[i]<>'*') and (Pattern[i]<>'?') ));
+            {Now, find in name the character which i points to, if the * or ?
+             wasn't the last character in the pattern, else, use up all the
+             chars in name}
+              Found:=false;
+              if (i<=LenPat) then
+              begin
+                repeat
+                  {find a letter (not only first !) which maches pattern[i]}
+                  while (j<=LenName) and (name[j]<>pattern[i]) do
+                    inc (j);
+                  if (j<LenName) then
+                  begin
+                    if DoFnMatch(i+1,j+1) then
+                    begin
+                      i:=LenPat;
+                      j:=LenName;{we can stop}
+                      Found:=true;
+                      Break;
+                    end else
+                      inc(j);{We didn't find one, need to look further}
+                  end else
+                  if j=LenName then
+                  begin
+                    Found:=true;
+                    Break;
+                  end;
+                  { This 'until' condition must be j>LenName, not j>=LenName.
+                    That's because when we 'need to look further' and
+                    j = LenName then loop must not terminate. }
+                until (j>LenName);
+              end else
+              begin
+                j:=LenName;{we can stop}
+                Found:=true;
+              end;
+            end;
+     else {not a wildcard character in pattern}
+       Found:=(j<=LenName) and (pattern[i]=name[j]);
+     end;
+     inc(i);
+     inc(j);
+   end;
+  DoFnMatch:=Found and (j>LenName);
+  end;
+
+Begin {start FNMatch}
+  LenPat:=Length(Pattern);
+  LenName:=Length(Name);
+  FNMatch:=DoFNMatch(1,1);
+End;
+
+
+function FindGetFileInfo(const s: String; var f: TSearchRec): Boolean;
+var
+  ntstr: UNICODE_STRING;
+  objattr: OBJECT_ATTRIBUTES;
+  res: NTSTATUS;
+  h: THandle;
+  iostatus: IO_STATUS_BLOCK;
+  attr: LongInt;
+  filename: String;
+  isfileobj: Boolean;
+  buf: array of Byte;
+  objinfo: OBJECT_BASIC_INFORMATION;
+  fileinfo: FILE_BASIC_INFORMATION;
+  time: LongInt;
 begin
-  Result := -1;
-end;
+  AnsiStrToNtStr(s, ntstr);
+  InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
 
+  filename := ExtractFileName(s);
 
-function FindFirst(const Path: String; Attr: Longint; out Rslt: TSearchRec): Longint;
-begin
-  Result := -1;
-end;
+  { TODO : handle symlinks }
+{  If Assigned(F.FindHandle) and ((((PUnixFindData(f.FindHandle)^.searchattr)) and faSymlink) > 0) then
+    FindGetFileInfo:=(fplstat(pointer(s),st)=0)
+  else
+    FindGetFileInfo:=(fpstat(pointer(s),st)=0);}
 
+  attr := 0;
+  Result := False;
 
-function FindNext(var Rslt: TSearchRec): Longint;
-begin
-  Result := -1;
+  if (faDirectory and f.FindData.SearchAttr <> 0) and
+      ((filename = '.') or (filename = '..')) then begin
+    attr := faDirectory;
+    res := STATUS_SUCCESS;
+  end else
+    res := STATUS_INVALID_PARAMETER;
+
+  isfileobj := False;
+
+  if not NT_SUCCESS(res) then begin
+    { first check whether it's a directory }
+    res := NtOpenDirectoryObject(@h, DIRECTORY_QUERY, @objattr);
+    if not NT_SUCCESS(res) then
+      if res = STATUS_OBJECT_TYPE_MISMATCH then begin
+        res := NtOpenFile(@h, FILE_READ_ATTRIBUTES or NT_SYNCHRONIZE, @objattr,
+                 @iostatus, FILE_SHARE_READ or FILE_SHARE_WRITE,
+                 FILE_DIRECTORY_FILE or FILE_SYNCHRONOUS_IO_NONALERT);
+        isfileobj := NT_SUCCESS(res);
+      end;
+
+    if NT_SUCCESS(res) then
+      attr := faDirectory;
+  end;
+
+  if not NT_SUCCESS(res) then begin
+    { first try whether we have a file object }
+    res := NtOpenFile(@h, FILE_READ_ATTRIBUTES or NT_SYNCHRONIZE, @objattr,
+             @iostatus, FILE_SHARE_READ or FILE_SHARE_WRITE,
+             FILE_NON_DIRECTORY_FILE or FILE_SYNCHRONOUS_IO_NONALERT);
+    isfileobj := NT_SUCCESS(res);
+    if res = STATUS_OBJECT_TYPE_MISMATCH then begin
+      { is this an object? }
+      res := NtOpenFile(@h, FILE_READ_ATTRIBUTES or NT_SYNCHRONIZE, @objattr,
+               @iostatus, FILE_SHARE_READ or FILE_SHARE_WRITE,
+               FILE_SYNCHRONOUS_IO_NONALERT);
+      if (res = STATUS_OBJECT_TYPE_MISMATCH)
+          and (f.FindData.SearchAttr and faSysFile <> 0) then begin
+        { this is some other system file like an event or port, so we can only
+          provide it's name }
+        res := STATUS_SUCCESS;
+        attr := faSysFile;
+      end;
+    end;
+  end;
+
+  FreeNtStr(ntstr);
+
+  if not NT_SUCCESS(res) then
+    Exit;
+
+  time := 0;
+
+  if isfileobj then begin
+    res := NtQueryInformationFile(h, @iostatus, @fileinfo, SizeOf(fileinfo),
+             FileBasicInformation);
+    if NT_SUCCESS(res) then begin
+      time := NtToDosTime(fileinfo.LastWriteTime);
+      { copy file attributes? }
+    end;
+  end else begin
+    res := NtQueryObject(h, ObjectBasicInformation, @objinfo, SizeOf(objinfo),
+             Nil);
+    if NT_SUCCESS(res) then begin
+      time := NtToDosTime(objinfo.CreateTime);
+      { what about attributes? }
+    end;
+  end;
+
+  if (attr and not f.FindData.SearchAttr) = 0 then begin
+    f.Name := filename;
+    f.Attr := attr;
+    f.Size := 0;
+{$ifndef FPUNONE}
+    if time = 0 then
+      { for now we use "Now" as a fall back; ideally this should be the system
+        start time }
+      f.Time := DateTimeToFileDate(Now)
+    else
+      f.Time := time;
+{$endif}
+    Result := True;
+  end else
+    Result := False;
+
+  NtClose(h);
 end;
 
 
 procedure FindClose(var F: TSearchrec);
 begin
-  { empty }
+  if f.FindData.Handle <> 0 then
+    NtClose(f.FindData.Handle);
+end;
+
+
+function FindNext(var Rslt: TSearchRec): LongInt;
+{
+  re-opens dir if not already in array and calls FindGetFileInfo
+}
+Var
+  DirName  : String;
+  FName,
+  SName    : string;
+  Found,
+  Finished : boolean;
+  ntstr: UNICODE_STRING;
+  objattr: OBJECT_ATTRIBUTES;
+  buf: array of WideChar;
+  len: LongWord;
+  res: NTSTATUS;
+  i: LongInt;
+  dirinfo: POBJECT_DIRECTORY_INFORMATION;
+  filedirinfo: PFILE_DIRECTORY_INFORMATION;
+  pc: PChar;
+  name: AnsiString;
+  iostatus: IO_STATUS_BLOCK;
+begin
+  { TODO : relative directories }
+  Result := -1;
+  { SearchSpec='' means that there were no wild cards, so only one file to
+    find.
+  }
+  if Rslt.FindData.SearchSpec = '' then
+    Exit;
+  { relative directories not supported for now }
+  if Rslt.FindData.NamePos = 0 then
+    Exit;
+
+  if Rslt.FindData.Handle = 0 then begin
+    if Rslt.FindData.NamePos > 1 then
+      name := Copy(Rslt.FindData.SearchSpec, 1, Rslt.FindData.NamePos - 1)
+    else
+    if Rslt.FindData.NamePos = 1 then
+      name := Copy(Rslt.FindData.SearchSpec, 1, 1)
+    else
+      name := Rslt.FindData.SearchSpec;
+    AnsiStrToNtStr(name, ntstr);
+    InitializeObjectAttributes(objattr, @ntstr, 0, 0, Nil);
+
+    res := NtOpenDirectoryObject(@Rslt.FindData.Handle,
+             DIRECTORY_QUERY or DIRECTORY_TRAVERSE, @objattr);
+    if not NT_SUCCESS(res) then begin
+      if res = STATUS_OBJECT_TYPE_MISMATCH then
+        res := NtOpenFile(@Rslt.FindData.Handle,
+                 FILE_LIST_DIRECTORY or NT_SYNCHRONIZE, @objattr,
+                 @iostatus, FILE_SHARE_READ or FILE_SHARE_WRITE,
+                 FILE_DIRECTORY_FILE or FILE_SYNCHRONOUS_IO_NONALERT);
+    end else
+      Rslt.FindData.IsDirObj := True;
+
+    FreeNTStr(ntstr);
+
+    if not NT_SUCCESS(res) then
+      Exit;
+  end;
+{  if (NTFindData^.SearchType = 0) and
+     (NTFindData^.Dirptr = Nil) then
+    begin
+      If NTFindData^.NamePos = 0 Then
+        DirName:='./'
+      Else
+        DirName:=Copy(NTFindData^.SearchSpec,1,NTFindData^.NamePos);
+      NTFindData^.DirPtr := fpopendir(Pchar(pointer(DirName)));
+    end;}
+  SName := Copy(Rslt.FindData.SearchSpec, Rslt.FindData.NamePos + 1,
+             Length(Rslt.FindData.SearchSpec));
+  Found := False;
+  Finished := not NT_SUCCESS(Rslt.FindData.LastRes)
+              or (Rslt.FindData.LastRes = STATUS_NO_MORE_ENTRIES);
+  SetLength(buf, 200);
+  dirinfo := @buf[0];
+  filedirinfo := @buf[0];
+  while not Finished do begin
+    if Rslt.FindData.IsDirObj then
+      res := NtQueryDirectoryObject(Rslt.FindData.Handle, @buf[0],
+               Length(buf) * SizeOf(buf[0]), True, False,
+               @Rslt.FindData.Context, @len)
+    else
+      res := NtQueryDirectoryFile(Rslt.FindData.Handle, 0, Nil, Nil, @iostatus,
+               @buf[0], Length(buf) * SizeOf(buf[0]), FileDirectoryInformation,
+               True, Nil, False);
+    if Rslt.FindData.IsDirObj then begin
+      Finished := (res = STATUS_NO_MORE_ENTRIES)
+                    or (res = STATUS_NO_MORE_FILES)
+                    or not NT_SUCCESS(res);
+      Rslt.FindData.LastRes := res;
+      if dirinfo^.Name.Length > 0 then begin
+        SetLength(FName, dirinfo^.Name.Length div 2);
+        pc := PChar(FName);
+        for i := 0 to dirinfo^.Name.Length div 2 - 1 do begin
+          if dirinfo^.Name.Buffer[i] < #256 then
+            pc^ := AnsiChar(Byte(dirinfo^.Name.Buffer[i]))
+          else
+            pc^ := '?';
+          pc := pc + 1;
+        end;
+{$ifdef debug_findnext}
+        Write(FName, ' (');
+        for i := 0 to dirinfo^.TypeName.Length div 2 - 1 do
+          if dirinfo^.TypeName.Buffer[i] < #256 then
+            Write(AnsiChar(Byte(dirinfo^.TypeName.Buffer[i])))
+          else
+            Write('?');
+        Writeln(')');
+{$endif debug_findnext}
+      end else
+        FName := '';
+    end else begin
+      SetLength(FName, filedirinfo^.FileNameLength div 2);
+      pc := PChar(FName);
+      for i := 0 to filedirinfo^.FileNameLength div 2 - 1 do begin
+        if filedirinfo^.FileName[i] < #256 then
+          pc^ := AnsiChar(Byte(filedirinfo^.FileName[i]))
+        else
+          pc^ := '?';
+        pc := pc + 1;
+      end;
+    end;
+    if FName = '' then
+      Finished := True
+    else begin
+      if FNMatch(SName, FName) then begin
+        Found := FindGetFileInfo(Copy(Rslt.FindData.SearchSpec, 1,
+                   Rslt.FindData.NamePos) + FName, Rslt);
+        if Found then begin
+          Result := 0;
+          Exit;
+        end;
+      end;
+    end;
+  end;
+end;
+
+
+function FindFirst(const Path: String; Attr: Longint; out Rslt: TSearchRec): Longint;
+{
+  opens dir and calls FindNext if needed.
+}
+Begin
+  Result := -1;
+  FillChar(Rslt, SizeOf(Rslt), 0);
+  if Path = '' then
+    Exit;
+  Rslt.FindData.SearchAttr := Attr;
+  {Wildcards?}
+  if (Pos('?', Path) = 0) and (Pos('*', Path) = 0) then begin
+    if FindGetFileInfo(Path, Rslt) then
+      Result := 0;
+  end else begin
+    {Create Info}
+    Rslt.FindData.SearchSpec := Path;
+    Rslt.FindData.NamePos := Length(Rslt.FindData.SearchSpec);
+    while (Rslt.FindData.NamePos > 0)
+        and (Rslt.FindData.SearchSpec[Rslt.FindData.NamePos] <> DirectorySeparator)
+        do
+      Dec(Rslt.FindData.NamePos);
+    Result := FindNext(Rslt);
+  end;
+  if Result <> 0 then
+    FindClose(Rslt);
 end;
 
 

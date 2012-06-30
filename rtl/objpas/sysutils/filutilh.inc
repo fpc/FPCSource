@@ -39,6 +39,9 @@ Type
 {$ifdef MacOS}
     FindData : TMacOSFindData;
 {$endif}
+{$ifdef nativent}
+    FindData : TNativeNTFindData;
+{$endif}
   end;
 
 Const
