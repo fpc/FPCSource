@@ -15,7 +15,7 @@
 
 // No pipes under dos, sorry...
 
-Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
+Function CreatePipeHandles (Var Inhandle,OutHandle : THandle; APipeBufferSize : Cardinal = 1024) : Boolean;
 
 begin
   InHandle := THandle (UnusedHandle);

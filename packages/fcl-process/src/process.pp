@@ -78,6 +78,7 @@ Type
     dwYcountChars,
     dwy : Cardinal;
     FXTermProgram: String;
+    FPipeBufferSize : cardinal;
     Procedure FreeStreams;
     Function  GetExitStatus : Integer;
     Function  GetRunning : Boolean;
@@ -134,6 +135,7 @@ Type
     property OnForkEvent : TProcessForkEvent Read FForkEvent Write FForkEvent;
     {$endif UNIX}
   Published
+    property PipeBufferSize : cardinal read FPipeBufferSize write FPipeBufferSize default 1024;
     Property Active : Boolean Read GetRunning Write SetActive;
     Property ApplicationName : String Read FApplicationName Write SetApplicationName; deprecated;
     Property CommandLine : String Read FCommandLine Write SetCommandLine ; deprecated;

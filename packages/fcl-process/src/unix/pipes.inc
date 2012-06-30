@@ -16,7 +16,7 @@
 Uses
   BaseUnix, Unix, TermIO;
 
-Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
+Function CreatePipeHandles (Var Inhandle,OutHandle : Longint; APipeBufferSize : Cardinal = 1024) : Boolean;
 
 begin
   Result := (AssignPipe (Inhandle,OutHandle)<>-1);
