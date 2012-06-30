@@ -1666,9 +1666,6 @@ const pemagic : array[0..3] of byte = (
                     objsym.objsection:=objsec;
                     objsym.offset:=address;
                     objsym.size:=size;
-                    { Register in ObjSection }
-                    if assigned(objsec) then
-                      objsec.AddSymbolDefine(objsym);
                   end;
                 COFF_SYM_LABEL,
                 COFF_SYM_LOCAL :

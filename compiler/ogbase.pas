@@ -201,8 +201,6 @@ interface
        DataAlignBytes : shortint;
        { Relocations (=references) to other sections }
        ObjRelocations : TFPObjectList;
-       { Symbols this defines }
-       ObjSymbolDefines : TFPObjectList;
        { executable linking }
        ExeSection  : TExeSection;
        USed        : Boolean;
@@ -217,7 +215,6 @@ interface
        procedure alloc(l:aword);
        procedure addsymReloc(ofs:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
        procedure addsectionReloc(ofs:aword;aobjsec:TObjSection;Reloctype:TObjRelocationType);
-       procedure AddSymbolDefine(p:TObjSymbol);
        procedure FixupRelocs(Exe: TExeOutput);virtual;
        procedure ReleaseData;
        function  FullName:string;
@@ -648,7 +645,6 @@ implementation
         secsymidx:=0;
         { relocation }
         ObjRelocations:=TFPObjectList.Create(true);
-        ObjSymbolDefines:=TFPObjectList.Create(false);
         VTRefList:=TFPObjectList.Create(false);
       end;
 
@@ -659,7 +655,6 @@ implementation
           Data.Free;
         stringdispose(FCachedFullName);
         ObjRelocations.Free;
-        ObjSymbolDefines.Free;
         VTRefList.Free;
         inherited destroy;
       end;
@@ -752,14 +747,6 @@ implementation
       end;
 
 
-    procedure TObjSection.AddSymbolDefine(p:TObjSymbol);
-      begin
-        if p.bind<>AB_GLOBAL then
-          exit;
-        ObjSymbolDefines.Add(p);
-      end;
-
-
     procedure TObjSection.FixupRelocs(Exe:TExeOutput);
       begin
       end;
@@ -774,8 +761,6 @@ implementation
           end;
         ObjRelocations.free;
         ObjRelocations:=nil;
-        ObjSymbolDefines.Free;
-        ObjSymbolDefines:=nil;
         if assigned(FCachedFullName) then
           begin
             stringdispose(FCachedFullName);
@@ -1082,8 +1067,6 @@ implementation
               begin
                 result:=TObjSymbol(asmsym.cachedObjSymbol);
                 result.SetAddress(CurrPass,CurrObjSec,asmsym.bind,asmsym.typ);
-                { Register also in TObjSection }
-                CurrObjSec.AddSymbolDefine(result);
               end;
           end
         else
@@ -1096,8 +1079,6 @@ implementation
         if not assigned(CurrObjSec) then
           internalerror(200603051);
         result:=CreateSymbol(aname);
-        { Register also in TObjSection }
-        CurrObjSec.AddSymbolDefine(result);
         result.SetAddress(CurrPass,CurrObjSec,abind,atyp);
       end;
 
@@ -2346,16 +2327,34 @@ implementation
       end;
 
 
+    function ByAddress(item1,item2:pointer):longint;
+      var
+        sym1:TObjSymbol absolute item1;
+        sym2:TObjSymbol absolute item2;
+      begin
+        result:=sym1.address-sym2.address;
+      end;
+
+
     procedure TExeOutput.PrintMemoryMap;
       var
         exesec : TExeSection;
         objsec : TObjSection;
         objsym : TObjSymbol;
-        i,j,k  : longint;
+        i,j,k,m: longint;
+        list   : TFPList;
+        flag   : boolean;
       begin
         if not assigned(exemap) then
           exit;
+        { create a list of symbols sorted by address }
+        list:=TFPList.Create;
+        for i:=0 to ExeSymbolList.Count-1 do
+          list.Add(TExeSymbol(ExeSymbolList[i]).ObjSymbol);
+        list.Sort(@ByAddress);
+
         exemap.AddMemoryMapHeader(ImageBase);
+        k:=0;
         for i:=0 to ExeSectionList.Count-1 do
           begin
             exesec:=TExeSection(ExeSectionList[i]);
@@ -2364,13 +2363,43 @@ implementation
               begin
                 objsec:=TObjSection(exesec.ObjSectionList[j]);
                 exemap.AddMemoryMapObjectSection(objsec);
-                for k:=0 to objsec.ObjSymbolDefines.Count-1 do
+
+                while (k<list.Count) and (TObjSymbol(list[k]).Address<objsec.MemPos) do
+                  inc(k);
+                while (k<list.Count)  do
                   begin
-                    objsym:=TObjSymbol(objsec.ObjSymbolDefines[k]);
-                    exemap.AddMemoryMapSymbol(objsym);
+                    objsym:=TObjSymbol(list[k]);
+                    if objsym.address>objsec.MemPos+objsec.Size then
+                      break;
+                    if objsym.objsection=objsec then
+                      exemap.AddMemoryMapSymbol(objsym)
+                    else
+                      begin
+                        { Got a symbol with address falling into current section, but
+                          belonging to a different section. This may happen for zero-length
+                          sections because symbol list is sorted by address but not by section.
+                          Do some look-ahead in this case. }
+                        m:=k+1;
+                        flag:=false;
+                        while (m<list.Count) and (TObjSymbol(list[m]).Address=objsym.address) do
+                          begin
+                            if TObjSymbol(list[m]).objsection=objsec then
+                              begin
+                                flag:=true;
+                                list.Exchange(k,m);
+                                exemap.AddMemoryMapSymbol(TObjSymbol(list[k]));
+                                break;
+                              end;
+                            inc(m);
+                          end;
+                        if not flag then
+                          break;
+                      end;
+                    inc(k);
                   end;
               end;
           end;
+        list.Free;
       end;
 
 
