@@ -1010,7 +1010,7 @@ begin
     end;
 
   if FWhereStartPos = 0 then
-    SQLstr := SQLstr + ' where (' + Filter + ')'
+    SQLstr := SQLstr + ' where (' + ServerFilter + ')'
   else if FWhereStopPos > 0 then
     system.insert(' and ('+ServerFilter+') ',SQLstr,FWhereStopPos+2)
   else
@@ -1217,18 +1217,17 @@ end;
 
 function TCustomSQLQuery.SQLParser(const ASQL : string) : TStatementType;
 
-type TParsePart = (ppStart,ppWith,ppSelect,ppFrom,ppWhere,ppGroup,ppOrder,ppComment,ppBogus);
+type TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
+     TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepEnd);
 
 Var
-  PSQL,CurrentP,
+  PSQL, CurrentP, SavedP,
   PhraseP, PStatementPart : pchar;
   S                       : string;
   ParsePart               : TParsePart;
-  StrLength               : Integer;
-  EndOfComment            : Boolean;
   BracketCount            : Integer;
   ConnOptions             : TConnOptions;
-  FFromPart               : String;
+  Separator               : TPhraseSeparator;
 
 begin
   PSQL:=Pchar(ASQL);
@@ -1237,42 +1236,57 @@ begin
   CurrentP := PSQL-1;
   PhraseP := PSQL;
 
+  FTableName := '';
+  FUpdateable := False;
+
   FWhereStartPos := 0;
   FWhereStopPos := 0;
 
   ConnOptions := TSQLConnection(DataBase).ConnOptions;
-  FUpdateable := False;
 
   repeat
     begin
     inc(CurrentP);
+    SavedP := CurrentP;
 
-    EndOfComment := SkipComments(CurrentP, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions);
-    if EndOfcomment then dec(CurrentP);
-    if EndOfComment and (ParsePart = ppStart) then PhraseP := CurrentP;
-
-    // skip everything between bracket, since it could be a sub-select, and
-    // further nothing between brackets could be interesting for the parser.
-    if CurrentP^='(' then
-      begin
-      inc(currentp);
-      BracketCount := 0;
-      while (currentp^ <> #0) and ((currentp^ <> ')') or (BracketCount > 0 )) do
+    case CurrentP^ of
+      ' ', #9, #10, #11, #12, #13:
+        Separator := sepWhiteSpace;
+      ',':
+        Separator := sepComma;
+      #0, ';':
+        Separator := sepEnd;
+      '(':
         begin
-        if currentp^ = '(' then inc(bracketcount)
-        else if currentp^ = ')' then dec(bracketcount);
-        inc(currentp);
+        Separator := sepParentheses;
+        // skip everything between brackets, since it could be a sub-select, and
+        // further nothing between brackets could be interesting for the parser.
+        BracketCount := 1;
+        repeat
+          inc(CurrentP);
+          if CurrentP^ = '(' then inc(BracketCount)
+          else if CurrentP^ = ')' then dec(BracketCount);
+        until (CurrentP^ = #0) or (BracketCount = 0);
+        if CurrentP^ <> #0 then inc(CurrentP);
         end;
-      EndOfComment := True;
-      end;
+      else
+        if SkipComments(CurrentP, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions) then
+          Separator := sepComment
+        else
+          Separator := sepNone;
+    end;
 
-    if EndOfComment or (CurrentP^ in [' ',#13,#10,#9,#0,';']) then
+    if (CurrentP > SavedP) and (SavedP > PhraseP) then
+      CurrentP := SavedP;  // there is something before comment or left parenthesis
+
+    if Separator <> sepNone then
       begin
-      if (CurrentP-PhraseP > 0) or (CurrentP^ in [';',#0]) then
+      if ((Separator in [sepWhitespace,sepComment]) and (PhraseP = SavedP)) then
+        PhraseP := CurrentP;  // skip comments(but not parentheses) and white spaces
+
+      if (CurrentP-PhraseP > 0) or (Separator = sepEnd) then
         begin
-        strLength := CurrentP-PhraseP;
-        Setlength(S,strLength);
-        if strLength > 0 then Move(PhraseP^,S[1],(strLength));
+        SetString(s, PhraseP, CurrentP-PhraseP);
         s := uppercase(s);
 
         case ParsePart of
@@ -1284,7 +1298,6 @@ begin
                        else      break;
                      end;
                      if not FParseSQL then break;
-                     PStatementPart := CurrentP;
                      end;
           ppWith   : begin
                      // WITH [RECURSIVE] CTE_name [ ( column_names ) ] AS ( CTE_query_definition ) [, ...]
@@ -1299,69 +1312,53 @@ begin
                      end;
           ppSelect : begin
                      if s = 'FROM' then
+                       ParsePart := ppTableName;
+                     end;
+          ppTableName:
+                     begin
+                     // Meta-data requests are never updateable
+                     //  and select-statements from more then one table
+                     //  and/or derived tables are also not updateable
+                     if (FSchemaType = stNoSchema) and
+                        (Separator in [sepWhitespace, sepComment, sepEnd]) then
                        begin
-                       ParsePart := ppFrom;
-                       PhraseP := CurrentP;
-                       PStatementPart := CurrentP;
+                       FTableName := s;
+                       FUpdateable := True;
                        end;
+                     ParsePart := ppFrom;
                      end;
           ppFrom   : begin
-                     if (s = 'WHERE') or (s = 'ORDER') or (s = 'GROUP') or (s = 'LIMIT') or (CurrentP^=#0) or (CurrentP^=';') then
+                     if (s = 'WHERE') or (s = 'GROUP') or (s = 'ORDER') or (s = 'LIMIT') or (s = 'ROWS') or
+                        (Separator = sepEnd) then
                        begin
-                       if (s = 'WHERE') then
-                         begin
-                         ParsePart := ppWhere;
-                         StrLength := PhraseP-PStatementPart;
-                         end
-                       else if (s = 'GROUP') then
-                         begin
-                         ParsePart := ppGroup;
-                         StrLength := PhraseP-PStatementPart;
-                         end
-                       else if (s = 'ORDER') then
-                         begin
-                         ParsePart := ppOrder;
-                         StrLength := PhraseP-PStatementPart
-                         end
-                       else if (s = 'LIMIT') then
-                         begin
-                         ParsePart := ppBogus;
-                         StrLength := PhraseP-PStatementPart
-                         end
-                       else
-                         begin
-                         ParsePart := ppBogus;
-                         StrLength := CurrentP-PStatementPart;
-                         end;
-                       if Result = stSelect then
-                         begin
-                         Setlength(FFromPart,StrLength);
-                         Move(PStatementPart^,FFromPart[1],(StrLength));
-                         FFromPart := trim(FFromPart);
+                       case s of
+                         'WHERE': ParsePart := ppWhere;
+                         'GROUP': ParsePart := ppGroup;
+                         'ORDER': ParsePart := ppOrder;
+                         else     ParsePart := ppBogus;
+                       end;
 
-                         // Meta-data requests and are never updateable select-statements
-                         // from more then one table are not updateable
-                         if (FSchemaType=stNoSchema) and
-                            (ExtractStrings([',',' '],[],pchar(FFromPart),nil) = 1) then
-                           begin
-                           FUpdateable := True;
-                           FTableName := FFromPart;
-                           end;
-                         end;
-
-                       FWhereStartPos := PStatementPart-PSQL+StrLength+1;
+                       FWhereStartPos := PhraseP-PSQL+1;
                        PStatementPart := CurrentP;
+                       end
+                     else
+                     // joined table or user_defined_function (...)
+                     if (s = 'JOIN') or (Separator in [sepComma, sepParentheses]) then
+                       begin
+                       FTableName := '';
+                       FUpdateable := False;
                        end;
                      end;
           ppWhere  : begin
-                     if (s = 'ORDER') or (s = 'GROUP') or (s = 'LIMIT') or (CurrentP^=#0) or (CurrentP^=';') then
+                     if (s = 'GROUP') or (s = 'ORDER') or (s = 'LIMIT') or (s = 'ROWS') or
+                        (Separator = sepEnd) then
                        begin
                        ParsePart := ppBogus;
                        FWhereStartPos := PStatementPart-PSQL;
-                       if (s = 'ORDER') or (s = 'GROUP') or (s = 'LIMIT') then
-                         FWhereStopPos := PhraseP-PSQL+1
+                       if (Separator = sepEnd) then
+                         FWhereStopPos := CurrentP-PSQL+1
                        else
-                         FWhereStopPos := CurrentP-PSQL+1;
+                         FWhereStopPos := PhraseP-PSQL+1;
                        end
                      else if (s = 'UNION') then
                        begin
@@ -1371,6 +1368,8 @@ begin
                      end;
         end; {case}
         end;
+      if Separator in [sepComment, sepParentheses] then
+        dec(CurrentP);
       PhraseP := CurrentP+1;
       end
     end;
@@ -1381,7 +1380,6 @@ procedure TCustomSQLQuery.InternalOpen;
 
 var tel, fieldc : integer;
     f           : TField;
-    s           : string;
     IndexFields : TStrings;
     ReadFromFile: Boolean;
 begin
