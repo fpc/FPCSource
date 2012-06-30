@@ -420,6 +420,7 @@ interface
         FUnresolvedExeSymbols : TFPObjectList;
         FExternalObjSymbols,
         FCommonObjSymbols   : TFPObjectList;
+        FProvidedObjSymbols : TFPObjectList;
         FEntryName          : string;
         FExeVTableList     : TFPObjectList;
         { Objects }
@@ -1536,6 +1537,7 @@ implementation
         FUnresolvedExeSymbols:=TFPObjectList.Create(false);
         FExternalObjSymbols:=TFPObjectList.Create(false);
         FCommonObjSymbols:=TFPObjectList.Create(false);
+        FProvidedObjSymbols:=TFPObjectList.Create(false);
         FExeVTableList:=TFPObjectList.Create(false);
         FEntryName:='start';
         { sections }
@@ -1558,6 +1560,7 @@ implementation
         FExeSymbolList.free;
         UnresolvedExeSymbols.free;
         ExternalObjSymbols.free;
+        FProvidedObjSymbols.free;
         CommonObjSymbols.free;
         ExeVTableList.free;
         FExeSectionList.free;
@@ -1644,7 +1647,7 @@ implementation
           in a section with adress 0 and at offset 0 }
         objsec:=internalObjData.createsection('*__image_base__',0,[]);
         internalObjData.setsection(objsec);
-        objsym:=internalObjData.SymbolDefine('__image_base__',AB_GLOBAL,AT_FUNCTION);
+        objsym:=internalObjData.SymbolDefine('__image_base__',AB_GLOBAL,AT_DATA);
         exesym:=texesymbol.Create(FExeSymbolList,objsym.name);
         exesym.ObjSymbol:=objsym;
       end;
@@ -1653,7 +1656,7 @@ implementation
     procedure TExeOutput.Load_Symbol(const aname:string);
       begin
         internalObjData.createsection('*'+aname,0,[]);
-        internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_FUNCTION);
+        internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_DATA);
       end;
 
     procedure TExeOutput.Load_ProvideSymbol(const aname:string);
@@ -1748,13 +1751,17 @@ implementation
     procedure TExeOutput.Order_ProvideSymbol(const aname:string);
       var
         ObjSection : TObjSection;
+        exesym : TExeSymbol;
       begin
         ObjSection:=internalObjData.findsection('*'+aname);
         if not assigned(ObjSection) then
           internalerror(200603041);
-        { Only include this section if the symbol doesn't
-          exist otherwisee }
-        if not assigned(ExeSymbolList.Find(aname)) then
+        exesym:=TExeSymbol(ExeSymbolList.Find(aname));
+        if not assigned(exesym) then
+          internalerror(201206301);
+        { Only include this section if it actually resolves
+          the symbol }
+        if exesym.objsymbol.objsection=objsection then
           CurrExeSec.AddObjSection(ObjSection);
       end;
 
@@ -2162,7 +2169,10 @@ implementation
                         exesym.ObjSymbol:=objsym;
                         exesym.State:=symstate_common;
                       end;
-                    CommonObjSymbols.add(objsym);
+                    if objsym.objsection.objdata=internalObjData then
+                      FProvidedObjSymbols.add(objsym)
+                    else
+                      CommonObjSymbols.add(objsym);
                   end;
               end;
             end;
@@ -2173,10 +2183,11 @@ implementation
         VTInheritList:=TFPObjectList.Create(false);
 
         {
-          The symbol resolving is done in 3 steps:
+          The symbol resolving is done in 4 steps:
            1. Register symbols from objects
            2. Find symbols in static libraries
-           3. Define stil undefined common symbols
+           3. Define symbols PROVIDEd by the link script
+           4. Define still undefined common symbols
         }
 
         { Step 1, Register symbols from objects }
@@ -2231,7 +2242,19 @@ implementation
           end;
         PackUnresolvedExeSymbols('after static libraries');
 
-        { Step 3, Match common symbols or add to the globals }
+        { Step 3, handle symbols provided in script }
+        for i:=0 to FProvidedObjSymbols.count-1 do
+          begin
+            objsym:=TObjSymbol(FProvidedObjSymbols[i]);
+            if objsym.exesymbol.State=symstate_defined then
+              continue;
+            objsym.exesymbol.objsymbol:=objsym;
+            objsym.bind:=AB_GLOBAL;
+            objsym.exesymbol.State:=symstate_defined;
+          end;
+        PackUnresolvedExeSymbols('after defining symbols provided by link script');
+
+        { Step 4, Match common symbols or add to the globals }
         firstcommon:=true;
         for i:=0 to CommonObjSymbols.count-1 do
           begin
@@ -2253,7 +2276,7 @@ implementation
                   end;
                 internalObjData.setsection(commonObjSection);
                 internalObjData.allocalign(var_align(objsym.size));
-                commonsym:=internalObjData.symboldefine(objsym.name,AB_GLOBAL,AT_FUNCTION);
+                commonsym:=internalObjData.symboldefine(objsym.name,AB_GLOBAL,AT_DATA);
                 commonsym.size:=objsym.size;
                 internalObjData.alloc(objsym.size);
                 if assigned(exemap) then
@@ -2316,7 +2339,7 @@ implementation
           exesec:=CExeSection.create(ExeSectionList,debuglinkname);
         exesec.SecOptions:=[oso_data,oso_keep];
         exesec.SecAlign:=4;
-        objsec:=internalObjData.createsection(exesec.name,0,exesec.SecOptions);
+        objsec:=internalObjData.createsection(exesec.name,1,exesec.SecOptions);
         internalObjData.writebytes(debuglink,len);
         exesec.AddObjSection(objsec);
       end;
