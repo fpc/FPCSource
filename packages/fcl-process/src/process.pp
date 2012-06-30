@@ -465,8 +465,8 @@ begin
   try
     try
     p.Options :=  [poUsePipes];
-    p.Execute;
     bytesread:=0;
+    p.Execute;
     while p.Running do
       begin          
         Setlength(outputstring,BytesRead + READ_BYTES);
