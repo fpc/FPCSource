@@ -529,7 +529,9 @@ implementation
                            passing a shortstring }
                          if (hp2.nodetype=typeconvn) and
                             (tunarynode(hp2).left.nodetype=addrn) then
-                           hp2:=tunarynode(tunarynode(hp2).left).left;
+                           hp2:=tunarynode(tunarynode(hp2).left).left
+                         else if tunarynode(hp2).nodetype=addrn then
+                           hp2:=tunarynode(hp2).left;
                          location_freetemp(current_asmdata.CurrAsmList,hp2.location);
                          hp:=tarrayconstructornode(hp).right;
                        end;
