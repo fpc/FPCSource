@@ -3227,8 +3227,8 @@ baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
   ostypes.inc osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/baseunix.pp
-ports$(PPUEXT) : ports.pp unix$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) ports.pp
+ports$(PPUEXT) : $(UNIXINC)/ports.pp unix$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $(UNIXINC)/ports.pp
 dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/dl.pp
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
