@@ -2169,7 +2169,8 @@ implementation
                         exesym.ObjSymbol:=objsym;
                         exesym.State:=symstate_common;
                       end;
-                    if objsym.objsection.objdata=internalObjData then
+                    if assigned(objsym.objsection) and
+                      (objsym.objsection.objdata=internalObjData) then
                       FProvidedObjSymbols.add(objsym)
                     else
                       CommonObjSymbols.add(objsym);
