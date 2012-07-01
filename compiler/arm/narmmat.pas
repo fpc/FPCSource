@@ -463,17 +463,17 @@ implementation
                 location.register64.reglo:=hreg64hi;
               end
             {Shift LESS than 32}
-            else if v < 32 then
+            else if (v < 32) and (v > 1) then
               if nodetype=shln then
                 shift_less_than_32(hreg64hi, hreg64lo, v.uvalue, false)
               else
                 shift_less_than_32(hreg64lo, hreg64hi, v.uvalue, true)
             {More than 32}
-            else
+            else if v > 32 then
               if nodetype=shln then
                 shift_more_than_32(hreg64lo, hreg64hi, v.uvalue, SM_LSL)
               else
-                shift_more_than_32(hreg64hi, hreg64lo, v.uvalue, SM_LSR)
+                shift_more_than_32(hreg64hi, hreg64lo, v.uvalue, SM_LSR);
           end
         else
           begin
