@@ -39,6 +39,7 @@ type
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
+    procedure CheckResultError(res: PPGresult; conn:PPGconn; ErrMsg: string);
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
   protected
@@ -86,6 +87,15 @@ type
     Class Function Description : String; override;
   end;
 
+  EPQDatabaseError = class(EDatabaseError)
+    public
+      SEVERITY:string;
+      SQLSTATE: string;
+      MESSAGE_PRIMARY:string;
+      MESSAGE_DETAIL:string;
+      MESSAGE_HINT:string;
+      STATEMENT_POSITION:string;
+  end;
 
 implementation
 
@@ -179,18 +189,10 @@ begin
 
   res := PQexec(ASQLDatabaseHandle,pchar(query));
 
-  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-    begin
-    msg := PQerrorMessage(ASQLDatabaseHandle);
-    PQclear(res);
-    PQFinish(ASQLDatabaseHandle);
-    DatabaseError(SDBCreateDropFailed + ' (PostgreSQL: ' + Msg + ')',self);
-    end
-  else
-    begin
-    PQclear(res);
-    PQFinish(ASQLDatabaseHandle);
-    end;
+  CheckResultError(res,ASQLDatabaseHandle,SDBCreateDropFailed);
+
+  PQclear(res);
+  PQFinish(ASQLDatabaseHandle);
 {$IfDef LinkDynamically}
   ReleasePostgres3;
 {$EndIf}
@@ -212,18 +214,12 @@ begin
   tr := trans as TPQTrans;
 
   res := PQexec(tr.PGConn, 'ROLLBACK');
-  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-    begin
-    PQclear(res);
-    result := false;
-    DatabaseError(SErrRollbackFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
-    end
-  else
-    begin
-    PQclear(res);
-    PQFinish(tr.PGConn);
-    result := true;
-    end;
+
+  CheckResultError(res,tr.PGConn,SErrRollbackFailed);
+
+  PQclear(res);
+  PQFinish(tr.PGConn);
+  result := true;
 end;
 
 function TPQConnection.Commit(trans : TSQLHandle) : boolean;
@@ -236,18 +232,11 @@ begin
   tr := trans as TPQTrans;
 
   res := PQexec(tr.PGConn, 'COMMIT');
-  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-    begin
-    PQclear(res);
-    result := false;
-    DatabaseError(SErrCommitFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
-    end
-  else
-    begin
-    PQclear(res);
-    PQFinish(tr.PGConn);
-    result := true;
-    end;
+  CheckResultError(res,tr.PGConn,SErrCommitFailed);
+
+  PQclear(res);
+  PQFinish(tr.PGConn);
+  result := true;
 end;
 
 function TPQConnection.StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean;
@@ -272,19 +261,10 @@ begin
     begin
     tr.ErrorOccured := False;
     res := PQexec(tr.PGConn, 'BEGIN');
-    if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-      begin
-      result := false;
-      PQclear(res);
-      msg := PQerrorMessage(tr.PGConn);
-      PQFinish(tr.PGConn);
-      DatabaseError(sErrTransactionFailed + ' (PostgreSQL: ' + msg + ')',self);
-      end
-    else
-      begin
-      PQclear(res);
-      result := true;
-      end;
+    CheckResultError(res,tr.PGConn,sErrTransactionFailed);
+
+    PQclear(res);
+    result := true;
     end;
 end;
 
@@ -296,25 +276,13 @@ var
 begin
   tr := trans as TPQTrans;
   res := PQexec(tr.PGConn, 'ROLLBACK');
-  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-    begin
-    PQclear(res);
-    DatabaseError(SErrRollbackFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
-    end
-  else
-    begin
-    PQclear(res);
-    res := PQexec(tr.PGConn, 'BEGIN');
-    if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-      begin
-      PQclear(res);
-      msg := PQerrorMessage(tr.PGConn);
-      PQFinish(tr.PGConn);
-      DatabaseError(sErrTransactionFailed + ' (PostgreSQL: ' + msg + ')',self);
-      end
-    else
-      PQclear(res);
-    end;
+  CheckResultError(res,tr.PGConn,SErrRollbackFailed);
+
+  PQclear(res);
+  res := PQexec(tr.PGConn, 'BEGIN');
+  CheckResultError(res,tr.PGConn,sErrTransactionFailed);
+
+  PQclear(res);
 end;
 
 procedure TPQConnection.CommitRetaining(trans : TSQLHandle);
@@ -325,25 +293,13 @@ var
 begin
   tr := trans as TPQTrans;
   res := PQexec(tr.PGConn, 'COMMIT');
-  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-    begin
-    PQclear(res);
-    DatabaseError(SErrCommitFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
-    end
-  else
-    begin
-    PQclear(res);
-    res := PQexec(tr.PGConn, 'BEGIN');
-    if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-      begin
-      PQclear(res);
-      msg := PQerrorMessage(tr.PGConn);
-      PQFinish(tr.PGConn);
-      DatabaseError(sErrTransactionFailed + ' (PostgreSQL: ' + msg + ')',self);
-      end
-    else
-      PQclear(res);
-    end;
+  CheckResultError(res,tr.PGConn,SErrCommitFailed);
+
+  PQclear(res);
+  res := PQexec(tr.PGConn, 'BEGIN');
+  CheckResultError(res,tr.PGConn,sErrTransactionFailed);
+
+  PQclear(res);
 end;
 
 
@@ -385,6 +341,50 @@ begin
   ReleasePostgres3;
 {$EndIf}
 
+end;
+
+procedure TPQConnection.CheckResultError(res: PPGresult; conn: PPGconn;
+  ErrMsg: string);
+var
+  serr:string;
+  E: EPQDatabaseError;
+  CompName: string;
+  SEVERITY:string;
+  SQLSTATE: string;
+  MESSAGE_PRIMARY:string;
+  MESSAGE_DETAIL:string;
+  MESSAGE_HINT:string;
+  STATEMENT_POSITION:string;
+
+begin
+  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+    begin
+    SEVERITY:=PQresultErrorField(res,ord('S'));
+    SQLSTATE:=PQresultErrorField(res,ord('C'));
+    MESSAGE_PRIMARY:=PQresultErrorField(res,ord('M'));
+    MESSAGE_DETAIL:=PQresultErrorField(res,ord('D'));
+    MESSAGE_HINT:=PQresultErrorField(res,ord('H'));
+    STATEMENT_POSITION:=PQresultErrorField(res,ord('P'));
+    serr:=PQresultErrorMessage(res)+LineEnding+
+      'Severity: '+ SEVERITY +LineEnding+
+      'SQL State: '+ SQLSTATE +LineEnding+
+      'Primary Error: '+ MESSAGE_PRIMARY +LineEnding+
+      'Error Detail: '+ MESSAGE_DETAIL +LineEnding+
+      'Hint: '+ MESSAGE_HINT +LineEnding+
+      'Character: '+ STATEMENT_POSITION +LineEnding;
+    pqclear(res);
+    if assigned(conn) then
+      PQFinish(conn);
+    if Self.Name = '' then CompName := Self.ClassName else CompName := Self.Name;
+    E:=EPQDatabaseError.CreateFmt('%s : %s  (PostgreSQL: %s)', [CompName,ErrMsg, serr]);
+    E.SEVERITY:=SEVERITY;
+    E.SQLSTATE:=SQLSTATE;
+    E.MESSAGE_PRIMARY:=MESSAGE_PRIMARY;
+    E.MESSAGE_DETAIL:=MESSAGE_DETAIL;
+    E.MESSAGE_HINT:=MESSAGE_HINT;
+    E.STATEMENT_POSITION:=STATEMENT_POSITION;
+    raise E;
+    end;
 end;
 
 function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer) : TFieldType;
@@ -525,7 +525,7 @@ const TypeStrings : array[TFieldType] of string =
     );
 
 
-var s : string;
+var s,serr : string;
     i : integer;
 
 begin
@@ -559,11 +559,7 @@ begin
         end;
       s := s + ' as ' + buf;
       res := pqexec(tr.PGConn,pchar(s));
-      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-        begin
-        pqclear(res);
-        DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self)
-        end;
+      CheckResultError(res,nil,SErrPrepareFailed);
       // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
       // override the statement type derrived by parsing the query.
       if (FStatementType in [stInsert,stUpdate,stDelete]) and (pos('RETURNING', upcase(s)) > 0) then
