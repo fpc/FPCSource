@@ -512,11 +512,35 @@ implementation
                   i:=j-1;
                 end;
               'w','W' :
-                status.errorwarning:=true;
+                begin
+                  if (i<length(s)) and (s[i+1]='-') then
+                    begin
+                      inc(i);
+                      status.errorwarning:=false;
+                    end
+                  else
+                    status.errorwarning:=true;
+                end;
               'n','N' :
-                status.errornote:=true;
+                begin
+                  if (i<length(s)) and (s[i+1]='-') then
+                    begin
+                      inc(i);
+                      status.errornote:=false;
+                    end
+                  else
+                    status.errornote:=true;
+                end;
               'h','H' :
-                status.errorhint:=true;
+                begin
+                  if (i<length(s)) and (s[i+1]='-') then
+                    begin
+                      inc(i);
+                      status.errorhint:=false;
+                    end
+                  else
+                    status.errorhint:=true;
+                end;
            end;
          end;
       end;
