@@ -48,10 +48,10 @@ type
     FLastChange    : integer;
   public
     destructor destroy; override;
-    procedure StoreFieldDefs(AFieldDefs : TFieldDefs); override;
+    procedure StoreFieldDefs(AFieldDefs : TFieldDefs; AnAutoIncValue : integer); override;
     procedure StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); override;
     procedure FinalizeStoreRecords; override;
-    procedure LoadFieldDefs(AFieldDefs : TFieldDefs); override;
+    procedure LoadFieldDefs(AFieldDefs : TFieldDefs; var AnAutoIncValue : integer); override;
     procedure InitLoadRecords; override;
     function GetCurrentRecord : boolean; override;
     function GetRecordRowState(out AUpdOrder : Integer) : TRowState; override;
@@ -123,7 +123,7 @@ begin
   inherited destroy;
 end;
 
-procedure TXMLDatapacketReader.LoadFieldDefs(AFieldDefs : TFieldDefs);
+procedure TXMLDatapacketReader.LoadFieldDefs(AFieldDefs: TFieldDefs; var AnAutoIncValue: integer);
 
   function GetNodeAttribute(const aNode : TDOMNode; AttName : String) : string;
   var AnAttr : TDomNode;
@@ -139,6 +139,7 @@ var i           : integer;
     FTString    : string;
     SubFTString : string;
     AFieldNode  : TDOMNode;
+    AnAutoIncNode: TDomNode;
 
 begin
   ReadXMLFile(XMLDocument,Stream);
@@ -175,15 +176,20 @@ begin
       end;
     end;
 
-  FChangeLogNode := MetaDataNode.FindNode('PARAMS');
-  if assigned(FChangeLogNode) then
-    FChangeLogNode := FChangeLogNode.Attributes.GetNamedItem('CHANGE_LOG');
+  FParamsNode := MetaDataNode.FindNode('PARAMS');
+  if assigned(FParamsNode) then
+    begin
+    FChangeLogNode := FParamsNode.Attributes.GetNamedItem('CHANGE_LOG');
+    AnAutoIncNode := FParamsNode.Attributes.GetNamedItem('AUTOINCVALUE');
+    if assigned(AnAutoIncNode) then
+      AnAutoIncValue := StrToIntDef(AnAutoIncNode.NodeValue,-1);
+    end;
 
   FRowDataNode := DataPacketNode.FindNode('ROWDATA');
   FRecordNode := nil;
 end;
 
-procedure TXMLDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs);
+procedure TXMLDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs; AnAutoIncValue: integer);
 
 var i,p         : integer;
     AFieldNode  : TDOMElement;
@@ -219,6 +225,9 @@ begin
 
   MetaDataNode.AppendChild(FieldsNode);
   FParamsNode := XMLDocument.CreateElement('PARAMS');
+  if AnAutoIncValue>-1 then
+    (FParamsNode as TDomElement).SetAttribute('AUTOINCVALUE',IntToStr(AnAutoIncValue));
+
   MetaDataNode.AppendChild(FParamsNode);
   DataPacketNode.AppendChild(MetaDataNode);
   FRowDataNode := XMLDocument.CreateElement('ROWDATA');
