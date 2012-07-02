@@ -940,6 +940,11 @@ implementation
              begin
                objreloc:=TObjRelocation.CreateSymbol(CurrObjSec.Size,p,reltype);
                CurrObjSec.ObjRelocations.Add(objreloc);
+               { If target is a local label and it isn't handled above,
+                 patch its type in order to get it written to symtable.
+                 This may happen e.g. when taking address of Pascal label in PIC mode. }
+               if (p.bind=AB_LOCAL) and (p.typ=AT_LABEL) then
+                 p.typ:=AT_ADDR;
             end;
          end;
         if assigned(objreloc) then
