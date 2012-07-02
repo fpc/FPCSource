@@ -71,6 +71,7 @@ type
     procedure TestDeleteAllInsertXML;
     procedure TestStreamingBlobFieldsXML;
     procedure TestStreamingBigBlobFieldsXML;
+    procedure TestStreamingCalculatedFieldsXML;
 
     procedure TestAppendDeleteBIN;
 
@@ -541,6 +542,35 @@ begin
   finally
     DeleteFile(fn);
   end;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingCalculatedFieldsXML;
+var
+  ADataset: TCustomBufDataset;
+  f: tfield;
+begin
+  ADataset := DBConnector.GetNDataset(true,10) as TCustomBufDataset;
+  f := TIntegerField.Create(ADataset);
+  f.FieldName:='ID';
+  f.dataset := ADataset;
+
+  f := TIntegerField.Create(ADataset);
+  f.FieldName:='CalcID';
+  f.dataset := ADataset;
+  f.FieldKind:=fkCalculated;
+
+  f := TStringField.Create(ADataset);
+  f.FieldName:='NAME';
+  f.dataset := ADataset;
+
+  ADataset.Open;
+  ADataset.SaveToFile('FieldsDS.xml',dfXML);
+  ADataset.Close;
+
+  ADataset.LoadFromFile('FieldsDS.xml',dfXML);
+  AssertEquals(ADataset.FieldByName('ID').AsInteger,1);
+  AssertEquals(ADataset.FieldByName('NAME').AsString,'TestName1');
+  ADataset.Close;
 end;
 
 procedure TTestBufDatasetStreams.TestAppendDeleteBIN;
