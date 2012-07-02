@@ -145,62 +145,69 @@ end;
 Procedure FillChar(var x;count:longint;value:byte);assembler;nostackframe;
 asm
         // less than 0?
-        cmp r1,#0
+        cmp     r1,#0
 {$if defined(cpuarmv3) or defined(cpuarmv4)}
-        movlt pc,lr
+        movle   pc,lr
 {$else}
-        bxlt  lr
+        bxle    lr
 {$endif}
         mov     r3,r0
-        cmp     r1,#8           // at least 8 bytes to do?
-        blt     .LFillchar2
-        orr r2,r2,r2,lsl #8
-        orr r2,r2,r2,lsl #16
-.LFillchar0:
-        tst     r3,#3           // aligned yet?
-        strneb r2,[r3],#1
-        subne   r1,r1,#1
-        bne     .LFillchar0
+
+        orr     r2,r2,r2,lsl #8
+        orr     r2,r2,r2,lsl #16
+
+        tst     r3, #3  // Aligned?
+        bne     .LFillchar_do_align
+
+.LFillchar_is_aligned:
+        subs    r1,r1,#8
+        bmi     .LFillchar_less_than_8bytes
+
         mov     ip,r2
-.LFillchar1:
-        cmp     r1,#8           // 8 bytes still to do?
-        blt     .LFillchar2
+.LFillchar_at_least_8bytes:
+        // Do 16 bytes per loop
+        // More unrolling is uncessary, as we'll just stall on the write buffers
         stmia   r3!,{r2,ip}
-        sub     r1,r1,#8
-        cmp     r1,#8           // 8 bytes still to do?
-        blt     .LFillchar2
-        stmia   r3!,{r2,ip}
-        sub     r1,r1,#8
-        cmp     r1,#8           // 8 bytes still to do?
-        blt     .LFillchar2
-        stmia   r3!,{r2,ip}
-        sub     r1,r1,#8
-        cmp     r1,#8           // 8 bytes still to do?
-        stmgeia r3!,{r2,ip}
-        subge   r1,r1,#8
-        bge     .LFillchar1
-.LFillchar2:
-        movs r1,r1              // anything left?
+        subs    r1,r1,#8
+        stmplia r3!,{r2,ip}
+        subpls  r1,r1,#8
+        bpl     .LFillchar_at_least_8bytes
+
+.LFillchar_less_than_8bytes:
+        // Do the rest
+        adds    r1, r1, #8
+
 {$if defined(cpuarmv3) or defined(cpuarmv4)}
         moveq   pc,lr
 {$else}
         bxeq    lr
 {$endif}
-        rsb     r1,r1,#7
-        add     pc,pc,r1,lsl #2
-        mov     r0,r0
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-        strb r2,[r3],#1
-        strb r2,[r3],#1
+
+        tst     r1, #4
+        strne   r2,[r3],#4
+        tst     r1, #2
+        strneh  r2,[r3],#2
+        tst     r1, #1
+        strneb  r2,[r3],#1
 {$if defined(cpuarmv3) or defined(cpuarmv4)}
         mov pc,lr
 {$else}
         bx  lr
 {$endif}
+
+// Special case for unaligned start
+// We make a maximum of 3 loops here
+.LFillchar_do_align:
+        strb r2,[r3],#1
+        subs r1, r1, #1
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
+        moveq pc,lr
+{$else}
+        bxeq  lr
+{$endif}
+        tst r3,#3
+        bne .LFillchar_do_align
+        b .LFillchar_is_aligned
 end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
