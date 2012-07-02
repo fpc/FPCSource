@@ -22,7 +22,7 @@ begin
        psubq     %xmm1,%xmm2
        psubq     q-.LPIC(%ecx),%xmm4
 {$else darwin}
-       addl      $_GLOBAL_OFFSET_TABLE_,%ecx
+       addl      $_GLOBAL_OFFSET_TABLE_+1,%ecx
        movdqa    %xmm1,%xmm2
        movdqa    q@GOT(%ecx),%xmm4
        psubq     %xmm1,%xmm2
