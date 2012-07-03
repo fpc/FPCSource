@@ -36,6 +36,11 @@ ifndef TEST_OPT
 TEST_OPT=
 endif
 
+# disable directory cache; completely loading all directories significantly
+# slows down running the testsuite because the programs use very few units
+# and most testsuite directories contain thousands of files
+override TEST_OPT+=-Fd
+
 # Retrieve Test compiler info
 ifndef TEST_FPC_VERSION
 TEST_FPC_COMPILERINFO:=$(shell $(TEST_FPC) -iVSPTPSOTODW)
