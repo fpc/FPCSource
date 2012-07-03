@@ -2402,6 +2402,8 @@ implementation
         hashedid : THashedIDString;
         orgclass : tobjectdef;
         i        : longint;
+        hlpsrsym : tsym;
+        hlpsrsymtable : tsymtable;
       begin
         orgclass:=classh;
         { in case this is a formal class, first find the real definition }
@@ -2454,11 +2456,13 @@ implementation
           end
         else
           begin
+            hlpsrsym:=nil;
+            hlpsrsymtable:=nil;
             while assigned(classh) do
               begin
                 { search for a class helper method first if this is an Object
-                  Pascal class }
-                if is_class(classh) and searchhelper then
+                  Pascal class and we haven't yet found a helper symbol }
+                if is_class(classh) and searchhelper and not assigned(hlpsrsym) then
                   begin
                     result:=search_objectpascal_helper(classh,contextclassh,s,srsym,srsymtable);
                     if result then
@@ -2467,7 +2471,14 @@ implementation
                         searching for overloads }
                       if (srsym.typ<>procsym) or
                           not (sp_has_overloaded in tprocsym(srsym).symoptions) then
-                        exit;
+                        exit
+                      else
+                        begin
+                          { remember the found symbol if the class hierarchy
+                            should not contain the a method with that name }
+                          hlpsrsym:=srsym;
+                          hlpsrsymtable:=srsymtable;
+                        end;
                   end;
                 srsymtable:=classh.symtable;
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
@@ -2479,6 +2490,15 @@ implementation
                     exit;
                   end;
                 classh:=classh.childof;
+              end;
+            { did we find a helper symbol, but no symbol with the same name in
+              the extended object's hierarchy? }
+            if assigned(hlpsrsym) then
+              begin
+                srsym:=hlpsrsym;
+                srsymtable:=hlpsrsymtable;
+                result:=true;
+                exit;
               end;
           end;
         if is_objcclass(orgclass) then
@@ -2493,8 +2513,12 @@ implementation
     function  searchsym_in_record(recordh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         hashedid : THashedIDString;
+        hlpsrsym : tsym;
+        hlpsrsymtable : tsymtable;
       begin
         result:=false;
+        hlpsrsym:=nil;
+        hlpsrsymtable:=nil;
         hashedid.id:=s;
         { search for a record helper method first }
         result:=search_objectpascal_helper(recordh,recordh,s,srsym,srsymtable);
@@ -2504,7 +2528,14 @@ implementation
             searching for overloads }
           if (srsym.typ<>procsym) or
               not (sp_has_overloaded in tprocsym(srsym).symoptions) then
-            exit;
+            exit
+          else
+            begin
+              { remember the found symbol if we should not find a symbol with
+                the same name in the extended record }
+              hlpsrsym:=srsym;
+              hlpsrsymtable:=srsymtable;
+            end;
         srsymtable:=recordh.symtable;
         srsym:=tsym(srsymtable.FindWithHash(hashedid));
         if assigned(srsym) and is_visible_for_object(srsym,recordh) then
@@ -2513,8 +2544,9 @@ implementation
             result:=true;
             exit;
           end;
-        srsym:=nil;
-        srsymtable:=nil;
+        srsym:=hlpsrsym;
+        srsymtable:=hlpsrsymtable;
+        result:=assigned(srsym);
       end;
 
     function searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
