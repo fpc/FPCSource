@@ -685,10 +685,18 @@ uses
             if sym.typ=unitsym then
               unitsyms.add(upper(sym.realname),sym);
           end;
-      { add all interface units to the new symtable stack }
+      { add all units if we are specializing inside the current unit (as the
+        generic could have been declared in the implementation part), but load
+        only interface units, if we are in a different unit as then the generic
+        needs to be in the interface section }
       pu:=tused_unit(hmodule.used_units.first);
       while assigned(pu) do
         begin
+          if (hmodule<>current_module) and not pu.in_interface then
+            begin
+              pu:=tused_unit(pu.next);
+              continue;
+            end;
           if not assigned(pu.u.globalsymtable) then
             internalerror(200705153);
           symtablestack.push(pu.u.globalsymtable);
