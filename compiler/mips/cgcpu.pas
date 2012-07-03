@@ -941,18 +941,19 @@ end;
 
 procedure TCGMIPS.a_loadfpu_reg_reg(list: tasmlist; fromsize, tosize: tcgsize; reg1, reg2: tregister);
 const
-  FpuMovInstr: array[OS_F32..OS_F64] of TAsmOp =
-    (A_MOV_S, A_MOV_D);
+  FpuMovInstr: array[OS_F32..OS_F64,OS_F32..OS_F64] of TAsmOp =
+    ((A_MOV_S, A_CVT_D_S),(A_CVT_S_D,A_MOV_D));
 var
   instr: taicpu;
 begin
-  if reg1 <> reg2 then
+  if (reg1 <> reg2) or (fromsize<>tosize) then
   begin
-    instr := taicpu.op_reg_reg(fpumovinstr[tosize], reg2, reg1);
+    instr := taicpu.op_reg_reg(fpumovinstr[fromsize,tosize], reg2, reg1);
     list.Concat(instr);
     { Notify the register allocator that we have written a move instruction so
       it can try to eliminate it. }
-    add_move_instruction(instr);
+    if (fromsize=tosize) then
+      add_move_instruction(instr);
   end;
 end;
 
@@ -962,7 +963,7 @@ var
   tmpref: treference;
   tmpreg: tregister;
 begin
-  case tosize of
+  case fromsize of
     OS_F32:
       handle_load_store_fpu(list, False, A_LWC1, reg, ref);
     OS_F64:
@@ -970,6 +971,8 @@ begin
     else
       InternalError(2007042701);
   end;
+  if tosize<>fromsize then
+    a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
 end;
 
 procedure TCGMIPS.a_loadfpu_reg_ref(list: tasmlist; fromsize, tosize: tcgsize; reg: tregister; const ref: TReference);
@@ -977,6 +980,8 @@ var
   tmpref: treference;
   tmpreg: tregister;
 begin
+  if tosize<>fromsize then
+    a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
   case tosize of
     OS_F32:
       handle_load_store_fpu(list, True, A_SWC1, reg, ref);
