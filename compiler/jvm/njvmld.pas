@@ -106,9 +106,12 @@ function tjvmassignmentnode.pass_1: tnode;
         is_ansistring(tvecnode(target).left.resultdef)) then
       begin
         { prevent errors in case of an expression such as
-            word(str[x]):=1234;
+            word(unicodestr[x]):=1234;
         }
-        inserttypeconv_explicit(right,cwidechartype);
+        if is_wide_or_unicode_string(tvecnode(target).left.resultdef) then
+          inserttypeconv_explicit(right,cwidechartype)
+        else
+          inserttypeconv_explicit(right,cansichartype);
         result:=ccallnode.createintern('fpc_'+tstringdef(tvecnode(target).left.resultdef).stringtypname+'_setchar',
           ccallparanode.create(right,
             ccallparanode.create(tvecnode(target).right,

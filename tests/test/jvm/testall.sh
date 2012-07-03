@@ -135,3 +135,5 @@ $PPC -O2 -g -B -Sa tassert
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tassert
 $PPC -O2 -g -B -Sa taddbool
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. TAddBool
+$PPC -O2 -g -B -Sa tsetansistr
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tsetansistr
