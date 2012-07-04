@@ -68,10 +68,13 @@ interface
           ait_stab,
           ait_force_line,
           ait_function_name,
+		  { Used for .ent .end pair used for .dpr section in MIPS
+		    and probably also for Alpha }
+          ait_ent,
+		  ait_ent_end,
 {$ifdef alpha}
           { the follow is for the DEC Alpha }
           ait_frame,
-          ait_ent,
 {$endif alpha}
 {$ifdef ia64}
           ait_bundle,
@@ -163,10 +166,11 @@ interface
           'stab',
           'force_line',
           'function_name',
+          'ent',
+          'ent_end',
 {$ifdef alpha}
           { the follow is for the DEC Alpha }
           'frame',
-          'ent',
 {$endif alpha}
 {$ifdef ia64}
           'bundle',
@@ -261,7 +265,8 @@ interface
         a new ait type!                                                              }
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
-                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end 
+				   ,ait_ent, ait_ent_end, ait_directive
                    ,ait_varloc,ait_seh_directive
                    ,ait_jvar, ait_jcatch];
 
@@ -272,6 +277,7 @@ interface
                      ait_stab,ait_function_name,
                      ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
                      ait_const,ait_directive,
+					 ait_ent, ait_ent_end,
 {$ifdef arm}
                      ait_thumb_func,
 {$endif arm}
@@ -418,6 +424,16 @@ interface
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
+       end;
+
+	   tai_ent = class(tai)
+	      Name : string;
+          Constructor Create (const ProcName : String);
+       end;
+
+       tai_ent_end = class(tai)
+	      Name : string;
+          Constructor Create (const ProcName : String);
        end;
 
        tai_directive = class(tailineinfo)
@@ -1245,6 +1261,26 @@ implementation
         ppufile.putansistring(name);
         ppufile.putbyte(byte(directive));
       end;
+
+{****************************************************************************
+                               TAI_ENT / TAI_ENT_END
+ ****************************************************************************}
+
+    Constructor tai_ent.Create (const ProcName : String);
+
+    begin
+      Inherited Create;
+	  Name:=ProcName;
+      typ:=ait_ent;
+    end;
+
+    Constructor tai_ent_end.Create (const ProcName : String);
+
+    begin
+      Inherited Create;
+	  Name:=ProcName;
+      typ:=ait_ent_end;
+    end;
 
 
 {****************************************************************************
