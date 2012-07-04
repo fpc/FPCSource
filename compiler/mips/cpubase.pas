@@ -181,13 +181,22 @@ unit cpubase;
                           Generic Register names
 *****************************************************************************}
 
+
+      { PIC Code }
       NR_GP = NR_R28;
+	  NR_PIC_FUNC = NR_R25;
+      RS_GP = RS_R28;
+	  RS_PIC_FUNC = RS_R25;
+
+	  { VMT code }
+	  NR_VMT = NR_R24;
+	  RS_VMT = RS_R24;
+
       NR_SP = NR_R29;
       NR_S8 = NR_R30;
       NR_FP = NR_R30;
       NR_RA = NR_R31;
 
-      RS_GP = RS_R28;
       RS_SP = RS_R29;
       RS_S8 = RS_R30;
       RS_FP = RS_R30;
