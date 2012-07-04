@@ -38,11 +38,45 @@ unit cpugas;
         procedure WriteInstruction(hp : tai);override;
       end;
 
+	const
+	  use_std_regnames : boolean = 
+	  {$ifndef USE_MIPS_GAS_REGS}
+	  true;
+	  {$else}
+	  false;
+	  {$endif}
+
   implementation
 
     uses
-      cutils, systems,
+      aasmbase, cutils, systems,
       verbose, itcpugas, cgbase, cgutils;
+
+    function gas_std_regname(r:Tregister):string;
+      var
+        hr: tregister;
+        p:  longint;
+      begin
+        { Double uses the same table as single }
+        hr := r;
+        case getsubreg(hr) of
+          R_SUBFD:
+            setsubreg(hr, R_SUBFS);
+          R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
+           setsubreg(hr, R_SUBD);
+        end;
+        result:=std_regname(hr);
+      end;
+
+
+	  function asm_regname(reg : TRegister) : string;
+
+	    begin
+		  if use_std_regnames then
+		    asm_regname:='$'+gas_std_regname(reg)
+		  else
+	        asm_regname:=gas_regname(reg);
+		end;
 
 {****************************************************************************}
 {                         GNU MIPS  Assembler writer                           }
@@ -60,14 +94,25 @@ unit cpugas;
 {****************************************************************************}
 
     function GetReferenceString(var ref: TReference): string;
+	  var
+		hasgot : boolean;
+        gotprefix : string;
       begin
         GetReferenceString := '';
+        hasgot:=false;
         with ref do
         begin
           if (base = NR_NO) and (index = NR_NO) then
           begin
             if assigned(symbol) then
-              GetReferenceString := symbol.Name;
+              begin
+			    GetReferenceString := symbol.Name;
+				if symbol.typ=AT_FUNCTION then
+				  gotprefix:='%call16('
+				else
+				  gotprefix:='%got(';
+				hasgot:=true;
+			  end;
             if offset > 0 then
               GetReferenceString := GetReferenceString + '+' + ToStr(offset)
             else if offset < 0 then
@@ -77,6 +122,13 @@ unit cpugas;
                 GetReferenceString := '%hi(' + GetReferenceString + ')';
               addr_low:
                 GetReferenceString := '%lo(' + GetReferenceString + ')';
+              addr_pic:
+                begin
+				  if hasgot then
+				    GetReferenceString := gotprefix + GetReferenceString + ')'
+				  else
+					internalerror(2012070401);
+				end;
             end;
           end
           else
@@ -87,7 +139,7 @@ unit cpugas;
               internalerror(2003052601);
       {$endif extdebug}
             if base <> NR_NO then
-              GetReferenceString := GetReferenceString + '(' + gas_regname(base) + ')';
+              GetReferenceString := GetReferenceString + '(' + asm_regname(base) + ')';
             if index = NR_NO then
             begin
               if offset <> 0 then
@@ -96,6 +148,13 @@ unit cpugas;
               begin
                 if refaddr = addr_low then
                   GetReferenceString := '%lo(' + symbol.Name + ')' + GetReferenceString
+				else if refaddr = addr_pic then
+                  begin
+  				    if hasgot then
+				      GetReferenceString := gotprefix + GetReferenceString + ')'
+  				    else
+				  	  internalerror(2012070401);
+ 				  end
                 else
                   GetReferenceString := symbol.Name + {'+' +} GetReferenceString;
               end;
@@ -106,7 +165,7 @@ unit cpugas;
               if (Offset<>0) or assigned(symbol) then
                 internalerror(2003052603);
   {$endif extdebug}
-              GetReferenceString := GetReferenceString + '(' + gas_regname(index) + ')';
+              GetReferenceString := GetReferenceString + '(' + asm_regname(index) + ')';
 
             end;
           end;
@@ -119,7 +178,7 @@ unit cpugas;
         with Oper do
           case typ of
             top_reg:
-              getopstr := gas_regname(reg);
+              getopstr := asm_regname(reg);
             top_const:
               getopstr := tostr(longint(val));
             top_ref:
@@ -247,7 +306,7 @@ unit cpugas;
 }
                   r := taicpu(hp).oper[0]^.reg;
                   setsupreg(r, getsupreg(r) + 1);
-                  tmpfpu := gas_regname(r);
+                  tmpfpu := asm_regname(r);
                   s := #9 + gas_op2str[A_LWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); // + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
                 end;
               owner.AsmWriteLn(s);
@@ -271,7 +330,7 @@ unit cpugas;
 }
                   r := taicpu(hp).oper[0]^.reg;
                   setsupreg(r, getsupreg(r) + 1);
-                  tmpfpu := gas_regname(r);
+                  tmpfpu := asm_regname(r);
                   s := #9 + gas_op2str[A_SWC1] + #9 + tmpfpu + ',' + getopstr_4(taicpu(hp).oper[1]^); //+ ',' + getopstr(taicpu(hp).oper[2]^) + '(' + getopstr(taicpu(hp).oper[1]^) + ')';
                 end;
               owner.AsmWriteLn(s);
@@ -299,7 +358,7 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '-mips2 -W -EL -o $OBJ $ASM';
+        asmcmd: '-mips2 $NOWARN -EL $PIC -o $OBJ $ASM';
         supported_targets: [system_mipsel_linux];
         flags: [af_allowdirect, af_needar, af_smartlink_sections];
         labelprefix: '.L';
@@ -311,7 +370,7 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '-mips2 -W -EB -o $OBJ $ASM';
+        asmcmd: '-mips2 $NOWARN -EB $PIC -o $OBJ $ASM';
         supported_targets: [system_mipseb_linux];
         flags: [af_allowdirect, af_needar, af_smartlink_sections];
         labelprefix: '.L';
