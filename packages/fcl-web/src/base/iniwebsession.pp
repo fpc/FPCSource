@@ -48,6 +48,7 @@ Type
     Procedure InitSession(ARequest : TRequest; OnNewSession, OnExpired: TNotifyEvent); override;
     Procedure InitResponse(AResponse : TResponse); override;
     Procedure RemoveVariable(VariableName : String); override;
+    Function GetSessionDir : String;
   end;
   TIniWebSessionClass = Class of TIniWebSession;
 
@@ -68,6 +69,7 @@ Type
     // Sweep session direcory and delete expired files.
     procedure DoCleanupSessions; override;
     Procedure DoDoneSession(Var ASession : TCustomSession); override;
+    Function SessionFilePrefix : String; virtual; 
   Public
     // Directory where sessions are kept.
     Property SessionDir : String Read FSessionDir Write SetSessionDir;
@@ -212,7 +214,19 @@ begin
   FreeAndNil(ASession);
 end;
 
+Function TIniSessionFactory.SessionFilePrefix : String; 
+
+begin
+  Result:='';
+end;
+
 { TIniWebSession }
+
+Function TIniWebSession.GetSessionDir : String;
+
+begin
+  Result:=SessionDir;
+end;
 
 function TIniWebSession.GetSessionID: String;
 begin
@@ -282,8 +296,10 @@ procedure TIniWebSession.InitSession(ARequest: TRequest; OnNewSession,OnExpired:
 
 Var
   S : String;
-
+  SF : TIniSessionFactory;
+  
 begin
+  SF:=SessionFactory as TIniSessionFactory;
 {$ifdef cgidebug}SendMethodEnter('TIniWebSession.InitSession');{$endif}
   // First initialize all session-dependent properties to their default, because
   // in Apache-modules or fcgi programs the session-instance is re-used
@@ -299,13 +315,13 @@ begin
   If (S<>'') then
     begin
 {$ifdef cgidebug}SendDebug('Reading ini file:'+S);{$endif}
-    FIniFile:=TMemIniFile.Create(IncludeTrailingPathDelimiter(SessionDir)+S);
-    if (SessionFactory as TIniSessionFactory).SessionExpired(FIniFile) then
+    FIniFile:=TMemIniFile.Create(IncludeTrailingPathDelimiter(SessionDir)+SF.SessionFilePrefix+S);
+    if SF.SessionExpired(FIniFile) then
       begin
       // Expire session.
       If Assigned(OnExpired) then
         OnExpired(Self);
-      (SessionFactory as TIniSessionFactory).DeleteSessionFile(FIniFIle.FileName);
+      SF.DeleteSessionFile(FIniFIle.FileName);
       FreeAndNil(FInifile);
       S:='';
       end
@@ -317,7 +333,7 @@ begin
     If Assigned(OnNewSession) then
       OnNewSession(Self);
     GetSessionID;
-    S:=IncludeTrailingPathDelimiter(SessionDir)+SessionID;
+    S:=IncludeTrailingPathDelimiter(SessionDir)+SF.SessionFilePrefix+SessionID;
 {$ifdef cgidebug}SendDebug('Creating new Ini file : '+S);{$endif}
     FIniFile:=TMemIniFile.Create(S);
     FIniFile.WriteDateTime(SSession,KeyStart,Now);
