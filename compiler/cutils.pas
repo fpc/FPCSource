@@ -813,27 +813,11 @@ implementation
     {
       return if value is a power of 2. And if correct return the power
     }
-      var
-         hl : int64;
-         i : longint;
       begin
-         if value and (value - 1) <> 0 then
-           begin
-             ispowerof2 := false;
-             exit
-           end;
-         hl:=1;
-         ispowerof2:=true;
-         for i:=0 to 63 do
-           begin
-              if hl=value then
-                begin
-                   power:=i;
-                   exit;
-                end;
-              hl:=hl shl 1;
-           end;
-         ispowerof2:=false;
+        if (value = 0) or (value and (value - 1) <> 0) then
+          exit(false);
+        power:=BsfQWord(value);
+        result:=true;
       end;
 
 
