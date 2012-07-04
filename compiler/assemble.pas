@@ -604,6 +604,14 @@ Implementation
              Replace(result,'$ASM',maybequoted(AsmFileName));
            Replace(result,'$OBJ',maybequoted(ObjFileName));
          end;
+         if (cs_create_pic in current_settings.moduleswitches) then
+		   Replace(result,'$PIC','-KPIC')
+         else
+		   Replace(result,'$PIC','');
+         if (cs_asm_source in current_settings.globalswitches) then
+		   Replace(result,'$NOWARN','')
+		 else
+		   Replace(result,'$NOWARN','-W');
       end;
 
 
