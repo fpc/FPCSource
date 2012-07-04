@@ -159,9 +159,8 @@ implementation
           end;
         case def.typ of
           recorddef:
-            result:=true;
-            { According to 032 ABI we should have
-              result:=false; buut this cmpletely fails }
+            { According to 032 ABI we should have }
+            result:=false; 
           arraydef:
             result:=true; {(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                             is_open_array(def) or
@@ -317,7 +316,7 @@ implementation
               begin
                 paracgsize := def_cgsize(paradef);
                 { for things like formaldef }
-                if (paracgsize=OS_NO) then
+				if (paracgsize=OS_NO) and (paradef.typ <> recorddef) then
                   begin
                     paracgsize:=OS_ADDR;
                     paradef:=voidpointertype;
@@ -335,7 +334,13 @@ implementation
 	      alignment := 4;
             hp.paraloc[side].reset;
             hp.paraloc[side].Alignment:=alignment;
-            paralen:=tcgsize2size[paracgsize];
+			if paracgsize=OS_NO then
+			  begin
+			    paracgsize:=OS_32;
+				paralen:=align(paralen,4);
+			  end
+            else
+              paralen:=tcgsize2size[paracgsize];
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].def:=paradef;
@@ -484,10 +489,12 @@ implementation
         { O32 ABI reqires at least 16 bytes }
         if (intparasize < 16) then
           intparasize := 16;
-        if assigned(current_procinfo) then
-          begin
-            TMIPSProcinfo(current_procinfo).allocate_push_parasize(intparasize);
-          end;
+		{ Increase maxpushparasize, but only if not examining itself }
+        //if assigned(current_procinfo) and (side=callerside) and 
+		//   (current_procinfo.procdef <> p) then
+        //  begin
+        //    TMIPSProcinfo(current_procinfo).allocate_push_parasize(intparasize);
+        //  end;
       end;
 
 
