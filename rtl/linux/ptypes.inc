@@ -30,6 +30,33 @@ and all three 32-bit systems returned completely identical types too
 introduction)
 }
 
+{$ifdef MIPS}
+{$define USE_PTHREAD_SIZEOF}
+{$ifdef CPU64}
+const
+  __SIZEOF_PTHREAD_ATTR_T = 56;
+  __SIZEOF_PTHREAD_MUTEX_T = 40;
+  __SIZEOF_PTHREAD_MUTEXATTR_T = 4;
+  __SIZEOF_PTHREAD_COND_T = 48;
+  __SIZEOF_PTHREAD_CONDATTR_T = 4;
+  __SIZEOF_PTHREAD_RWLOCK_T = 56;
+  __SIZEOF_PTHREAD_RWLOCKATTR_T = 8;
+  __SIZEOF_PTHREAD_BARRIER_T = 32;
+  __SIZEOF_PTHREAD_BARRIERATTR_T = 4;
+{$else : not CPU64, i.e. CPU32}
+const
+  __SIZEOF_PTHREAD_ATTR_T = 36;
+  __SIZEOF_PTHREAD_MUTEX_T = 24;
+  __SIZEOF_PTHREAD_MUTEXATTR_T = 4;
+  __SIZEOF_PTHREAD_COND_T = 48;
+  __SIZEOF_PTHREAD_CONDATTR_T = 4;
+  __SIZEOF_PTHREAD_RWLOCK_T = 32;
+  __SIZEOF_PTHREAD_RWLOCKATTR_T = 8;
+  __SIZEOF_PTHREAD_BARRIER_T = 20;
+  __SIZEOF_PTHREAD_BARRIERATTR_T = 4;
+{$endif CPU32}
+{$endif MIPS}
+
 {$I ctypes.inc}
 {$packrecords c}
 
@@ -190,7 +217,26 @@ Type
     __sched_priority: cint;
   end;
 
+  { MIPS32 size of unions   
+  __SIZEOF_PTHREAD_ATTR_T = 36;
+  __SIZEOF_PTHREAD_MUTEX_T = 24;
+  __SIZEOF_PTHREAD_MUTEXATTR_T = 4;
+  __SIZEOF_PTHREAD_COND_T = 48;
+  __SIZEOF_PTHREAD_CONDATTR_T = 4;
+  __SIZEOF_PTHREAD_RWLOCK_T = 32;
+  __SIZEOF_PTHREAD_RWLOCKATTR_T = 8;
+  __SIZEOF_PTHREAD_BARRIER_T = 20;
+  __SIZEOF_PTHREAD_BARRIERATTR_T = 4; }
+
   pthread_attr_t = record
+  {$ifdef USE_PTHREAD_SIZEOF}
+  case byte of 
+   0 : (
+		 __size : array[0..__SIZEOF_PTHREAD_ATTR_T-1] of char;
+		 __align : clong;
+       );
+  1 : (
+  {$endif}		  
     __detachstate: cint;
     __schedpolicy: cint;
     __schedparam: sched_param;
@@ -200,6 +246,9 @@ Type
     __stackaddr_set: cint;
     __stackaddr: pointer;
     __stacksize: size_t;
+  {$ifdef USE_PTHREAD_SIZEOF}
+       );
+  {$endif}		  
   end;
 
   _pthread_fastlock = record
@@ -208,26 +257,70 @@ Type
   end;
 
   pthread_mutex_t = record
+  {$ifdef USE_PTHREAD_SIZEOF}
+  case byte of 
+   0 : (
+		 __size : array[0..__SIZEOF_PTHREAD_MUTEX_T-1] of char;
+		 __align : clong;
+       );
+  1 : (
+  {$endif}		  
     __m_reserved: cint;
     __m_count: cint;
     __m_owner: pointer;
     __m_kind:  cint;
     __m_lock: _pthread_fastlock;
+  {$ifdef USE_PTHREAD_SIZEOF}
+       );
+  {$endif}		  
   end;
 
   pthread_mutexattr_t = record
+  {$ifdef USE_PTHREAD_SIZEOF}
+  case byte of 
+   0 : (
+		 __size : array[0..__SIZEOF_PTHREAD_MUTEXATTR_T-1] of char;
+		 __align : clong;
+       );
+  1 : (
+  {$endif}		  
     __mutexkind: cint;
+  {$ifdef USE_PTHREAD_SIZEOF}
+       );
+  {$endif}		  
   end;
 
   pthread_cond_t = record
+  {$ifdef USE_PTHREAD_SIZEOF}
+  case byte of 
+   0 : (
+		 __size : array[0..__SIZEOF_PTHREAD_COND_T-1] of char;
+		 __align : clong;
+       );
+  1 : (
+  {$endif}		  
     __c_lock: _pthread_fastlock;
     __c_waiting: pointer;
     __padding: array[0..48-1-sizeof(_pthread_fastlock)-sizeof(pointer)-sizeof(clonglong)] of byte;
     __align: clonglong;
+  {$ifdef USE_PTHREAD_SIZEOF}
+       );
+  {$endif}		  
   end;
 
   pthread_condattr_t = record
+  {$ifdef USE_PTHREAD_SIZEOF}
+  case byte of 
+   0 : (
+		 __size : array[0..__SIZEOF_PTHREAD_CONATTR_T-1] of char;
+		 __align : clong;
+       );
+  1 : (
+  {$endif}		  
     __dummy: cint;
+  {$ifdef USE_PTHREAD_SIZEOF}
+       );
+  {$endif}		  
   end;
 
   pthread_key_t = cuint;
@@ -238,13 +331,35 @@ const
 type
 
   pthread_rwlock_t = record // should be 56 for 64-bit, 32 bytes for 32-bit mantis #21552
+  {$ifdef USE_PTHREAD_SIZEOF}
+  case byte of 
+   0 : (
+		 __size : array[0..__SIZEOF_PTHREAD_RWLOCK_T-1] of char;
+		 __align : clong;
+       );
+  1 : (
+  {$endif}		  
 			case boolean of
 			 false : (_data : array[0..pthreadrwlocksize-1] of char);
 		         true  : (align : clong);
+  {$ifdef USE_PTHREAD_SIZEOF}
+       );
+  {$endif}		  
   end;
   pthread_rwlockattr_t = record
+  {$ifdef USE_PTHREAD_SIZEOF}
+  case byte of 
+   0 : (
+		 __size : array[0..__SIZEOF_PTHREAD_RWLOCKATTR_T-1] of char;
+		 __align : clong;
+       );
+  1 : (
+  {$endif}		  
     __lockkind: cint;
     __pshared: cint;
+  {$ifdef USE_PTHREAD_SIZEOF}
+       );
+  {$endif}		  
   end;
 
   sem_t = record
