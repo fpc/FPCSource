@@ -864,7 +864,8 @@ begin
   if (href.base = NR_NO) and (href.index <> NR_NO) then
     internalerror(200306171);
 
-  if (cs_create_pic in current_settings.moduleswitches) and
+  if ((cs_create_pic in current_settings.moduleswitches) or
+      (ref.refaddr=addr_pic)) and
     assigned(href.symbol) then
   begin
     tmpreg := r; //GetIntRegister(list, OS_ADDR);
@@ -874,6 +875,11 @@ begin
     tmpref.refaddr := addr_pic;
     if not (pi_needs_got in current_procinfo.flags) then
       internalerror(200501161);
+	if current_procinfo.got=NR_NO then
+      current_procinfo.got:=NR_GP;
+    { for addr_pic NR_GP can be implicit or explicit }
+	if (href.refaddr=addr_pic) and (href.base=current_procinfo.got) then
+      href.base:=NR_NO;
     tmpref.base := current_procinfo.got;
     list.concat(taicpu.op_reg_ref(A_LW, tmpreg, tmpref));
     href.symbol := nil;
@@ -889,6 +895,8 @@ begin
       else
         href.base  := tmpreg;
     end;
+	if (href.base=NR_NO) and (href.offset=0) then
+      exit;
   end;
 
 
@@ -1294,6 +1302,7 @@ end;
   ai := taicpu.op_reg_reg_sym(A_BC, reg, tmpreg, l);
   ai.SetCondition(TOpCmp2AsmCond[cmp_op]);
   list.concat(ai);
+  { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;
 
@@ -1305,6 +1314,7 @@ begin
   ai := taicpu.op_reg_reg_sym(A_BC, reg2, reg1, l);
   ai.SetCondition(TOpCmp2AsmCond[cmp_op]);
   list.concat(ai);
+  { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;
 
@@ -1313,15 +1323,26 @@ procedure TCGMIPS.a_jmp_always(List: tasmlist; l: TAsmLabel);
 var
   ai : Taicpu;
 begin
-  ai := taicpu.op_sym(A_BA, l);
+  { Always use A_J instead of A_BA to avoid 
+    out of range error, but not for PIC code }
+  if (cs_create_pic in current_settings.moduleswitches) then
+    ai := taicpu.op_sym(A_BA, l)
+  else
+    ai := taicpu.op_sym(A_J, l);
   list.concat(ai);
+  { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;
 
 
 procedure TCGMIPS.a_jmp_name(list: tasmlist; const s: string);
 begin
-  List.Concat(TAiCpu.op_sym(A_BA, current_asmdata.RefAsmSymbol(s)));
+  { Always use A_J instead of A_BA to avoid 
+    out of range error, but not for PIC code }
+  if (cs_create_pic in current_settings.moduleswitches) then
+    List.Concat(TAiCpu.op_sym(A_BA, current_asmdata.RefAsmSymbol(s)))
+  else
+    List.Concat(TAiCpu.op_sym(A_J, current_asmdata.RefAsmSymbol(s)));
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;
