@@ -31,6 +31,7 @@ unit cpugas;
 
     type
       TMIPSGNUAssembler = class(TGNUassembler)
+        nomacro, noreorder, noat : boolean;
         constructor create(smart: boolean); override;
       end;
 
@@ -38,13 +39,13 @@ unit cpugas;
         procedure WriteInstruction(hp : tai);override;
       end;
 
-	const
-	  use_std_regnames : boolean = 
-	  {$ifndef USE_MIPS_GAS_REGS}
-	  true;
-	  {$else}
-	  false;
-	  {$endif}
+    const
+      use_std_regnames : boolean = 
+      {$ifndef USE_MIPS_GAS_REGS}
+      true;
+      {$else}
+      false;
+      {$endif}
 
   implementation
 
@@ -69,14 +70,14 @@ unit cpugas;
       end;
 
 
-	  function asm_regname(reg : TRegister) : string;
+      function asm_regname(reg : TRegister) : string;
 
-	    begin
-		  if use_std_regnames then
-		    asm_regname:='$'+gas_std_regname(reg)
-		  else
-	        asm_regname:=gas_regname(reg);
-		end;
+        begin
+          if use_std_regnames then
+            asm_regname:='$'+gas_std_regname(reg)
+          else
+            asm_regname:=gas_regname(reg);
+        end;
 
 {****************************************************************************}
 {                         GNU MIPS  Assembler writer                           }
@@ -86,6 +87,9 @@ unit cpugas;
       begin
         inherited create(smart);
         InstrWriter := TMIPSInstrWriter.create(self);
+        nomacro:=false;
+        noreorder:=false;
+        noat:=false;
       end;
 
 
@@ -94,8 +98,8 @@ unit cpugas;
 {****************************************************************************}
 
     function GetReferenceString(var ref: TReference): string;
-	  var
-		hasgot : boolean;
+      var
+        hasgot : boolean;
         gotprefix : string;
       begin
         GetReferenceString := '';
@@ -106,13 +110,13 @@ unit cpugas;
           begin
             if assigned(symbol) then
               begin
-			    GetReferenceString := symbol.Name;
-				if symbol.typ=AT_FUNCTION then
-				  gotprefix:='%call16('
-				else
-				  gotprefix:='%got(';
-				hasgot:=true;
-			  end;
+                GetReferenceString := symbol.Name;
+                if symbol.typ=AT_FUNCTION then
+                  gotprefix:='%call16('
+                else
+                  gotprefix:='%got(';
+                hasgot:=true;
+              end;
             if offset > 0 then
               GetReferenceString := GetReferenceString + '+' + ToStr(offset)
             else if offset < 0 then
@@ -124,11 +128,11 @@ unit cpugas;
                 GetReferenceString := '%lo(' + GetReferenceString + ')';
               addr_pic:
                 begin
-				  if hasgot then
-				    GetReferenceString := gotprefix + GetReferenceString + ')'
-				  else
-					internalerror(2012070401);
-				end;
+                  if hasgot then
+                    GetReferenceString := gotprefix + GetReferenceString + ')'
+                  else
+                    internalerror(2012070401);
+                end;
             end;
           end
           else
@@ -148,13 +152,14 @@ unit cpugas;
               begin
                 if refaddr = addr_low then
                   GetReferenceString := '%lo(' + symbol.Name + ')' + GetReferenceString
-				else if refaddr = addr_pic then
+                else if refaddr = addr_pic then
                   begin
-  				    if hasgot then
-				      GetReferenceString := gotprefix + GetReferenceString + ')'
-  				    else
-				  	  internalerror(2012070401);
- 				  end
+                    if symbol.typ=AT_FUNCTION then
+                      gotprefix:='%call16('
+                    else
+                      gotprefix:='%got(';
+                    GetReferenceString := gotprefix + symbol.Name + ')' + GetReferenceString;
+                   end
                 else
                   GetReferenceString := symbol.Name + {'+' +} GetReferenceString;
               end;
@@ -230,6 +235,11 @@ unit cpugas;
      end;
 }
 
+    function is_macro_instruction(op : TAsmOp) : boolean;
+      begin
+        is_macro_instruction :=
+          (op=A_SEQ) or (op=A_SNE);
+      end;
 
     procedure TMIPSInstrWriter.WriteInstruction(hp: Tai);
       var
@@ -260,21 +270,25 @@ unit cpugas;
             begin
               s := #9 + '.set' + #9 + 'macro';
               owner.AsmWriteLn(s);
+              TMIPSGNUAssembler(owner).nomacro:=false;
             end;
           A_P_SET_REORDER:
             begin
               s := #9 + '.set' + #9 + 'reorder';
               owner.AsmWriteLn(s);
+              TMIPSGNUAssembler(owner).noreorder:=false;
             end;
           A_P_SET_NOMACRO:
             begin
               s := #9 + '.set' + #9 + 'nomacro';
               owner.AsmWriteLn(s);
+              TMIPSGNUAssembler(owner).nomacro:=true;
             end;
           A_P_SET_NOREORDER:
             begin
               s := #9 + '.set' + #9 + 'noreorder';
               owner.AsmWriteLn(s);
+              TMIPSGNUAssembler(owner).noreorder:=true;
             end;
           A_P_SW:
             begin
@@ -337,6 +351,8 @@ unit cpugas;
             end;
           else
             begin
+              if is_macro_instruction(op) and TMIPSGNUAssembler(owner).nomacro then
+                owner.AsmWriteln(#9'.set'#9'macro');
               s := #9 + gas_op2str[op] + cond2str[taicpu(hp).condition];
               if taicpu(hp).delayslot_annulled then
                 s := s + ',a';
@@ -347,6 +363,8 @@ unit cpugas;
                   s := s + ',' + getopstr(taicpu(hp).oper[i]^);
               end;
               owner.AsmWriteLn(s);
+              if is_macro_instruction(op) and TMIPSGNUAssembler(owner).nomacro then
+                owner.AsmWriteln(#9'.set'#9'nomacro');
             end;
         end;
       end;
