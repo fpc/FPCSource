@@ -28,17 +28,52 @@ unit hlcgcpu;
 
 interface
 
+uses
+  globtype,
+  aasmbase, aasmdata,
+  symdef,
+  hlcgobj, hlcg2ll;
+  
+  type
+    thlcg2mips = class(thlcg2ll)
+      procedure a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; weak: boolean);override;
+	end;
+
   procedure create_hlcodegen;
 
 implementation
 
   uses
-    hlcgobj, hlcg2ll,
-    cgcpu;
+	cgbase,
+	cgutils,
+	cgobj,
+	cpubase,
+	cgcpu;
+
+  procedure thlcg2mips.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; weak: boolean);
+    var
+      ref : treference;
+    begin
+      if pd.proccalloption =pocall_cdecl then
+        begin
+          { Use $gp/$t9 registers as the code might be in a shared library }
+		  reference_reset(ref,sizeof(aint));
+		  ref.symbol:=current_asmdata.RefAsmSymbol('_gp');
+		  cg.a_loadaddr_ref_reg(list,ref,NR_GP);
+		  reference_reset(ref,sizeof(aint));
+		  ref.symbol:=current_asmdata.RefAsmSymbol(s);
+		  ref.base:=NR_GP;
+		  ref.refaddr:=addr_pic;
+		  cg.a_loadaddr_ref_reg(list,ref,NR_PIC_FUNC);
+		  cg.a_call_reg(list,NR_PIC_FUNC);
+        end
+      else
+        cg.a_call_name(list,s,weak);
+    end;
 
   procedure create_hlcodegen;
     begin
-      hlcg:=thlcg2ll.create;
+      hlcg:=thlcg2mips.create;
       create_codegen;
     end;
 
