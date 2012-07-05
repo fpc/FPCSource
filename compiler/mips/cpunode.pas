@@ -36,6 +36,7 @@ implementation
       the processor specific nodes must be included
       after the generic one (FK)
     }
-    ncpuadd,ncpucall,ncpumat,ncpuinln,ncpucnv,ncpuset;
+    ncpuadd,ncpucall,ncpumat,ncpuinln,
+	ncpuld,ncpucnv,ncpuset;
 
 end.
