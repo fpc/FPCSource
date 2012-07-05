@@ -303,6 +303,7 @@ compiler/mips/ncpuadd.pas svneol=native#text/plain
 compiler/mips/ncpucall.pas svneol=native#text/pascal
 compiler/mips/ncpucnv.pas svneol=native#text/pascal
 compiler/mips/ncpuinln.pas svneol=native#text/pascal
+compiler/mips/ncpuld.pas svneol=native#text/plain
 compiler/mips/ncpumat.pas svneol=native#text/pascal
 compiler/mips/ncpuset.pas svneol=native#text/pascal
 compiler/mips/opcode.inc svneol=native#text/plain
