@@ -84,7 +84,12 @@ implementation
 		{ pi_needs_got is not yet set correctly 
 		  so include it always if creating PIC code }
         if (cs_create_pic in current_settings.moduleswitches) then
-          include(flags, pi_needs_got);
+          begin
+            include(flags, pi_needs_got);
+            got:=NR_GP;
+          end
+        else
+          got:=NR_NO;
       end;
 
 
