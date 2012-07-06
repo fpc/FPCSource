@@ -11,15 +11,18 @@ asm
 {$ifdef CPUI386}
         movl    stacksize,%eax
 end ['EAX'];
+{$define implemented}
 {$endif CPUI386}
 {$ifdef CPUX86_64}
         movq    stacksize@GOTPCREL(%rip),%rax
         movq    (%rax),%rax
 end ['EAX'];
+{$define implemented}
 {$endif CPUX86_64}
 {$ifdef CPU68K}
         move.l    stacksize,d0
 end ['D0'];
+{$define implemented}
 {$endif CPU68K}
 {$ifdef cpupowerpc}
 {$if not defined(macos) and not defined(aix)}
@@ -30,11 +33,13 @@ end ['D0'];
        lwz r3, 0(r3)
 {$endif macos}
 end;
+{$define implemented}
 {$endif cpupowerpc}
 {$ifdef cpusparc}
        sethi   %hi(stacksize),%i0
        or      %i0,%lo(stacksize),%i0
 end;
+{$define implemented}
 {$endif cpusparc}
 {$ifdef cpuarm}
        ldr r0,.Lpstacksize
@@ -44,7 +49,18 @@ end;
        .long stacksize
 .Lend:
 end;
+{$define implemented}
 {$endif cpuarm}
+{$ifdef cpumips}
+  la $v0,stacksize
+  lw $v0,($v0)
+ end;
+{$define implemented}
+{$endif cpumips}
+{$ifndef implemented}
+ {$error This test does not supported this CPU}
+end;
+{$endif}
 
 begin
   writeln(getstacksize);
