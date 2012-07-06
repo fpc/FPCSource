@@ -54,8 +54,7 @@ interface
           procedure second_round_real; virtual;
           procedure second_trunc_real; virtual;
           procedure second_abs_long; virtual;
-          procedure second_rox; virtual;
-          procedure second_sar; virtual;
+          procedure second_rox_sar; virtual;
           procedure second_bsfbsr; virtual;
           procedure second_new; virtual;
           procedure second_setlength; virtual; abstract;
@@ -168,11 +167,10 @@ implementation
             in_rol_x,
             in_rol_x_y,
             in_ror_x,
-            in_ror_x_y:
-              second_rox;
+            in_ror_x_y,
             in_sar_x,
             in_sar_x_y:
-              second_sar;
+              second_rox_sar;
             in_bsf_x,
             in_bsr_x:
                second_BsfBsr;
@@ -721,10 +719,9 @@ implementation
       end;
 
 
-    procedure tcginlinenode.second_rox;
+    procedure tcginlinenode.second_rox_sar;
       var
         op : topcg;
-        {hcountreg : tregister;}
         op1,op2 : tnode;
       begin
         { one or two parameters? }
@@ -733,13 +730,15 @@ implementation
           begin
             op1:=tcallparanode(tcallparanode(left).right).left;
             op2:=tcallparanode(left).left;
+            secondpass(op2);
           end
         else
-          op1:=left;
+          begin
+            op1:=left;
+            op2:=nil;
+          end;
 
         secondpass(op1);
-        { load left operator in a register }
-        location_copy(location,op1.location);
         case inlinenumber of
           in_ror_x,
           in_ror_x_y:
@@ -747,66 +746,35 @@ implementation
           in_rol_x,
           in_rol_x_y:
             op:=OP_ROL;
+          in_sar_x,
+          in_sar_x_y:
+            op:=OP_SAR;
         end;
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,op1.resultdef,resultdef,false);
 
-        if (left.nodetype=callparan) and
-           assigned(tcallparanode(left).right) then
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,op1.location,op1.resultdef,resultdef,true);
+
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+
+        if assigned(op2) then
           begin
-             secondpass(op2);
              { rotating by a constant directly coded: }
              if op2.nodetype=ordconstn then
-               cg.a_op_const_reg(current_asmdata.CurrAsmList,op,location.size,
-                 tordconstnode(op2).value.uvalue and (resultdef.size*8-1),location.register)
+               hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,
+                 tordconstnode(op2).value.uvalue and (resultdef.size*8-1),
+                 op1.location.register, location.register)
              else
                begin
-                 hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,op2.resultdef,resultdef,false);
-                 { do modulo 2 operation }
-                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,op,location.size,op2.location.register,location.register);
+                 hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
+                                         op2.resultdef,resultdef,true);
+                 hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,resultdef,
+                                       op2.location.register,op1.location.register,
+                                       location.register);
                end;
           end
         else
-          cg.a_op_const_reg(current_asmdata.CurrAsmList,op,location.size,1,location.register);
-      end;
-
-
-    procedure tcginlinenode.second_sar;
-      var
-        {hcountreg : tregister;}
-        op1,op2 : tnode;
-      begin
-        if (left.nodetype=callparan) and
-           assigned(tcallparanode(left).right) then
-          begin
-            op1:=tcallparanode(tcallparanode(left).right).left;
-            op2:=tcallparanode(left).left;
-          end
-        else
-          begin
-            op1:=left;
-            op2:=nil;
-          end;
-        secondpass(op1);
-        { load left operator in a register }
-        location_copy(location,op1.location);
-
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,op1.resultdef,resultdef,false);
-
-        if not(assigned(op2)) then
-          hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,resultdef,1,location.register)
-        else
-          begin
-            secondpass(op2);
-            { shifting by a constant directly coded: }
-            if op2.nodetype=ordconstn then
-              hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,resultdef,
-                                  tordconstnode(op2).value.uvalue and (resultdef.size*8-1),location.register)
-            else
-              begin
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,op2.resultdef,resultdef,false);
-                hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SAR,resultdef,op2.location.register,location.register);
-             end;
-          end;
+          hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,resultdef,1,
+                                  op1.location.register,location.register);
       end;
 
 
