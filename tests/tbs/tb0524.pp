@@ -1,9 +1,46 @@
-{%TARGET=linux,freebsd,darwin,aix}
+{%TARGET=linux,freebsd,darwin,aix,openbsd,netbsd}
 program tb0524;
 
 uses sockets,baseunix,sysutils;
 
+
 const port=6667;
+   textfile = 'tb0524.txt';
+
+procedure reset_textfile;
+var
+  f : text;
+begin
+  assign(f,textfile);
+  rewrite(f);
+  writeln(f,'Normal server start');
+  close(f);
+end;
+
+procedure stop(error : longint);
+var
+  f : text;
+begin
+  assign(f,textfile);
+  rewrite(f);
+  writeln(f,'Server startup failed');
+  close(f);
+  halt(error);
+end;
+
+function server_failed : boolean;
+var
+  f : text;
+  st : string;
+begin
+  server_failed:=false;
+  assign(f,textfile);
+  reset(f);
+  readln(f,st);
+  if pos('Server startup failed',st)=1 then
+    server_failed:=true;
+  close(f);
+end;
 
 procedure do_server;
 
@@ -15,11 +52,12 @@ var s,t:string;
     i:byte;
 
 begin
+   reset_textfile;
    lsock:=fpsocket(af_inet,sock_stream,0);
    if lsock=-1 then
      begin
-       writeln('socket:',socketerror);
-       halt(1);
+       writeln('socket call error:',socketerror);
+       stop(1);
      end;
 
   with saddr do
@@ -31,22 +69,22 @@ begin
 
   if  fpbind(lsock,@saddr,sizeof(saddr))<>0 then
     begin
-      writeln('bind:',socketerror);
-      halt(1);
+      writeln('bind call error:',socketerror);
+      stop(1);
     end;
 
   if  fplisten(lsock,1)<>0 then
     begin
-      writeln('listen:',socketerror);
-      halt(1);
+      writeln('listen call error:',socketerror);
+      stop(1);
     end;
 
   len:=sizeof(saddr);
   usock:=fpaccept(lsock,@saddr,@len);
   if usock=-1 then
     begin
-      writeln('accept:',SocketError);
-      halt(1);
+      writeln('accept call error:',SocketError);
+      stop(1);
     end;
   sock2text(usock,sin,sout);
 
@@ -101,6 +139,12 @@ begin
     begin
       {Give server some time to start.}
       sleep(2000);
-      do_client;
+      if server_failed then
+        begin
+          writeln('Server startup failed, test can not be completed');
+          halt(2);
+        end
+      else
+        do_client;
     end;
 end.
