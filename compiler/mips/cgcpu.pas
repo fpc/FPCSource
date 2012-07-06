@@ -1467,10 +1467,10 @@ begin
       list.concat(Taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
 	end;
   list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
-  list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
 
   if (-LocalSize >= simm16lo) and (-LocalSize <= simm16hi) then
     begin
+      list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
       if cs_asm_source in current_settings.globalswitches then
 		begin
           list.concat(tai_comment.Create(strpnew('Stack register updated substract '+tostr(LocalSize)+' for local size')));
@@ -1499,9 +1499,9 @@ begin
   else
     begin
       if cs_asm_source in current_settings.globalswitches then
-        list.concat(tai_comment.Create(strpnew('Stack register updated substract '+tostr(LocalSize)+' for local size using R1 register')));
-      list.concat(Taicpu.Op_reg_const(A_LI,NR_R1,-LocalSize));
-      list.concat(Taicpu.Op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R1));
+        list.concat(tai_comment.Create(strpnew('Stack register updated substract '+tostr(LocalSize)+' for local size using R9/t1 register')));
+      list.concat(Taicpu.Op_reg_const(A_LI,NR_R9,-LocalSize));
+      list.concat(Taicpu.Op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R9));
       if cs_asm_source in current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('RA register saved.')));
       list.concat(ra_save);
@@ -1511,10 +1511,15 @@ begin
             list.concat(tai_comment.Create(strpnew('Frame register saved.')));
           list.concat(framesave);
           if cs_asm_source in current_settings.globalswitches then
-            list.concat(tai_comment.Create(strpnew('Frame register updated to $SP+R1 value')));
+            list.concat(tai_comment.Create(strpnew('Frame register updated to $SP+R9 value')));
           list.concat(Taicpu.op_reg_reg_reg(A_ADDU,NR_FRAME_POINTER_REG,
-            NR_STACK_POINTER_REG,NR_R1));
+            NR_STACK_POINTER_REG,NR_R9));
         end;
+	  { The instructions before are macros that can extend to multiple instructions,
+		the settings of R9 to -LocalSize surely does,
+		but the saving of RA and FP also might, and might
+		even use AT register, which is why we use R9 instead of AT here for -LocalSize }
+      list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
   if assigned(gp_save) then
 	begin
