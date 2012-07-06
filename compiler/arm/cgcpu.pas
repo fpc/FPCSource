@@ -643,6 +643,19 @@ unit cgcpu;
         so : tshifterop;
         l1 : longint;
         imm1, imm2: DWord;
+
+      function opshift2shiftmode(op: TOpCg): tshiftmode;
+        begin
+          case op of
+            OP_SHL: Result:=SM_LSL;
+            OP_SHR: Result:=SM_LSR;
+            OP_ROR: Result:=SM_ROR;
+            OP_ROL: Result:=SM_ROR;
+            OP_SAR: Result:=SM_ASR;
+            else internalerror(2012070501);
+          end
+        end;
+
       begin
         ovloc.loc:=LOC_VOID;
         if {$ifopt R+}(a<>-2147483648) and{$endif} is_shifter_const(-a,shift) then
@@ -663,71 +676,22 @@ unit cgcpu;
           case op of
             OP_NEG,OP_NOT:
               internalerror(200308281);
-            OP_SHL:
-              begin
-                if a>32 then
-                  internalerror(200308294);
-                if a<>0 then
-                  begin
-                    shifterop_reset(so);
-                    so.shiftmode:=SM_LSL;
-                    so.shiftimm:=a;
-                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
-                  end
-                else
-                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
-              end;
-            OP_ROL:
-              begin
-                if a>32 then
-                  internalerror(200308294);
-                if a<>0 then
-                  begin
-                    shifterop_reset(so);
-                    so.shiftmode:=SM_ROR;
-                    so.shiftimm:=32-a;
-                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
-                  end
-                else
-                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
-              end;
-            OP_ROR:
-              begin
-                if a>32 then
-                  internalerror(200308294);
-                if a<>0 then
-                  begin
-                    shifterop_reset(so);
-                    so.shiftmode:=SM_ROR;
-                    so.shiftimm:=a;
-                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
-                  end
-                else
-                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
-              end;
-            OP_SHR:
-              begin
-                if a>32 then
-                  internalerror(200308292);
-                shifterop_reset(so);
-                if a<>0 then
-                  begin
-                    so.shiftmode:=SM_LSR;
-                    so.shiftimm:=a;
-                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
-                  end
-                else
-                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
-              end;
+            OP_SHL,
+            OP_SHR,
+            OP_ROL,
+            OP_ROR,
             OP_SAR:
               begin
                 if a>32 then
-                  internalerror(200308298);
+                  internalerror(200308294);
                 if a<>0 then
                   begin
                     shifterop_reset(so);
-                    so.shiftmode:=SM_ASR;
-                    so.shiftimm:=a;
+                    so.shiftmode:=opshift2shiftmode(op);
+                    if op = OP_ROL then
+                      so.shiftimm:=32-a
+                    else
+                      so.shiftimm:=a;
                     list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
                   end
                 else
