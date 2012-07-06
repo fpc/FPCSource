@@ -32,7 +32,7 @@ begin
             FPE_INTDIV:
               res:=200;
             FPE_INTOVF:
-              res:=205;
+              res:=215;
             FPE_FLTDIV:
               res:=200;
             FPE_FLTOVF:
