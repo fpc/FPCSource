@@ -1512,7 +1512,7 @@ begin
           list.concat(framesave);
           if cs_asm_source in current_settings.globalswitches then
             list.concat(tai_comment.Create(strpnew('Frame register updated to $SP+R9 value')));
-          list.concat(Taicpu.op_reg_reg_reg(A_ADDU,NR_FRAME_POINTER_REG,
+          list.concat(Taicpu.op_reg_reg_reg(A_SUBU,NR_FRAME_POINTER_REG,
             NR_STACK_POINTER_REG,NR_R9));
         end;
 	  { The instructions before are macros that can extend to multiple instructions,
