@@ -232,11 +232,11 @@ Type
   {$ifdef USE_PTHREAD_SIZEOF}
   case byte of 
    0 : (
-		 __size : array[0..__SIZEOF_PTHREAD_ATTR_T-1] of char;
-		 __align : clong;
+    	 __size : array[0..__SIZEOF_PTHREAD_ATTR_T-1] of char;
+    	 __align : clong;
        );
   1 : (
-  {$endif}		  
+  {$endif}    	  
     __detachstate: cint;
     __schedpolicy: cint;
     __schedparam: sched_param;
@@ -248,7 +248,7 @@ Type
     __stacksize: size_t;
   {$ifdef USE_PTHREAD_SIZEOF}
        );
-  {$endif}		  
+  {$endif}    	  
   end;
 
   _pthread_fastlock = record
@@ -260,11 +260,11 @@ Type
   {$ifdef USE_PTHREAD_SIZEOF}
   case byte of 
    0 : (
-		 __size : array[0..__SIZEOF_PTHREAD_MUTEX_T-1] of char;
-		 __align : clong;
+    	 __size : array[0..__SIZEOF_PTHREAD_MUTEX_T-1] of char;
+    	 __align : clong;
        );
   1 : (
-  {$endif}		  
+  {$endif}    	  
     __m_reserved: cint;
     __m_count: cint;
     __m_owner: pointer;
@@ -272,55 +272,55 @@ Type
     __m_lock: _pthread_fastlock;
   {$ifdef USE_PTHREAD_SIZEOF}
        );
-  {$endif}		  
+  {$endif}    	  
   end;
 
   pthread_mutexattr_t = record
   {$ifdef USE_PTHREAD_SIZEOF}
   case byte of 
    0 : (
-		 __size : array[0..__SIZEOF_PTHREAD_MUTEXATTR_T-1] of char;
-		 __align : clong;
+    	 __size : array[0..__SIZEOF_PTHREAD_MUTEXATTR_T-1] of char;
+    	 __align : clong;
        );
   1 : (
-  {$endif}		  
+  {$endif}    	  
     __mutexkind: cint;
   {$ifdef USE_PTHREAD_SIZEOF}
        );
-  {$endif}		  
+  {$endif}    	  
   end;
 
   pthread_cond_t = record
   {$ifdef USE_PTHREAD_SIZEOF}
   case byte of 
    0 : (
-		 __size : array[0..__SIZEOF_PTHREAD_COND_T-1] of char;
-		 __align : clong;
+    	 __size : array[0..__SIZEOF_PTHREAD_COND_T-1] of char;
+    	 ___align : clong;
        );
   1 : (
-  {$endif}		  
+  {$endif}    	  
     __c_lock: _pthread_fastlock;
     __c_waiting: pointer;
     __padding: array[0..48-1-sizeof(_pthread_fastlock)-sizeof(pointer)-sizeof(clonglong)] of byte;
     __align: clonglong;
   {$ifdef USE_PTHREAD_SIZEOF}
        );
-  {$endif}		  
+  {$endif}    	  
   end;
 
   pthread_condattr_t = record
   {$ifdef USE_PTHREAD_SIZEOF}
   case byte of 
    0 : (
-		 __size : array[0..__SIZEOF_PTHREAD_CONATTR_T-1] of char;
-		 __align : clong;
+         __size : array[0..__SIZEOF_PTHREAD_CONDATTR_T-1] of char;
+         __align : clong;
        );
   1 : (
-  {$endif}		  
+  {$endif}    	  
     __dummy: cint;
   {$ifdef USE_PTHREAD_SIZEOF}
        );
-  {$endif}		  
+  {$endif}    	  
   end;
 
   pthread_key_t = cuint;
@@ -334,32 +334,32 @@ type
   {$ifdef USE_PTHREAD_SIZEOF}
   case byte of 
    0 : (
-		 __size : array[0..__SIZEOF_PTHREAD_RWLOCK_T-1] of char;
-		 __align : clong;
+    	 __size : array[0..__SIZEOF_PTHREAD_RWLOCK_T-1] of char;
+    	 __align : clong;
        );
   1 : (
-  {$endif}		  
-			case boolean of
-			 false : (_data : array[0..pthreadrwlocksize-1] of char);
-		         true  : (align : clong);
+  {$endif}    	  
+    		case boolean of
+    		 false : (_data : array[0..pthreadrwlocksize-1] of char);
+    	         true  : (align : clong);
   {$ifdef USE_PTHREAD_SIZEOF}
        );
-  {$endif}		  
+  {$endif}    	  
   end;
   pthread_rwlockattr_t = record
   {$ifdef USE_PTHREAD_SIZEOF}
   case byte of 
    0 : (
-		 __size : array[0..__SIZEOF_PTHREAD_RWLOCKATTR_T-1] of char;
-		 __align : clong;
+    	 __size : array[0..__SIZEOF_PTHREAD_RWLOCKATTR_T-1] of char;
+    	 __align : clong;
        );
   1 : (
-  {$endif}		  
+  {$endif}    	  
     __lockkind: cint;
     __pshared: cint;
   {$ifdef USE_PTHREAD_SIZEOF}
        );
-  {$endif}		  
+  {$endif}    	  
   end;
 
   sem_t = record
