@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2012 by the Free Pascal team
 
     This unit implements the base class for the register allocator
 
@@ -192,6 +192,7 @@ unit rgobj;
         reginfo           : PReginfo;
         usable_registers_cnt : word;
         usable_registers  : array[0..maxcpuregister] of tsuperregister;
+        usable_register_set : tcpuregisterset;
         ibitmap           : Tinterferencebitmap;
         spillednodes,
         simplifyworklist,
@@ -399,7 +400,10 @@ unit rgobj;
          // default value set by constructor
          // fillchar(usable_registers,sizeof(usable_registers),0);
          for i:=low(Ausable) to high(Ausable) do
-           usable_registers[i]:=Ausable[i];
+           begin
+             usable_registers[i]:=Ausable[i];
+             include(usable_register_set,Ausable[i]);
+           end;
          usable_registers_cnt:=high(Ausable)+1;
          { Initialize Worklists }
          spillednodes.init;
@@ -996,6 +1000,7 @@ unit rgobj;
 
       begin
         ok:=(t<first_imaginary) or
+            ((r<first_imaginary) and (r in usable_register_set)) or
             (reginfo[t].degree<usable_registers_cnt) or
             ibitmap[r,t];
       end;
