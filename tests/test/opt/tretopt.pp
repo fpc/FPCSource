@@ -294,7 +294,7 @@ begin
 {$ifdef darwin}
     movl %eax,p3-.Lpic(%ecx)
 {$else darwin}
-   addl $_GLOBAL_OFFSET_TABLE_,%ecx
+   addl $_GLOBAL_OFFSET_TABLE_+1,%ecx
    movl %eax,p3@GOT(%ecx)
 {$endif darwin}
 {$endif FPC_PIC}
@@ -349,7 +349,7 @@ begin
 {$ifdef darwin}
     movl %eax,p3-.Lpic(%ecx)
 {$else darwin}
-   addl $_GLOBAL_OFFSET_TABLE_,%ecx
+   addl $_GLOBAL_OFFSET_TABLE_+1,%ecx
    movl %eax,p3@GOT(%ecx)
 {$endif darwin}
 {$endif FPC_PIC}

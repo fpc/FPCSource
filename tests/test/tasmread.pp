@@ -20,7 +20,7 @@ begin
 {$ifdef darwin}
      mov [test.l-@@LPIC+ecx],5
 {$else darwin}
-     add ecx, _GLOBAL_OFFSET_TABLE_
+     add ecx, _GLOBAL_OFFSET_TABLE_+1
      mov [test.l + ecx],5
 {$endif darwin}
 {$endif FPC_PIC}
