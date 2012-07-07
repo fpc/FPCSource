@@ -164,7 +164,7 @@ implementation
             Concat('  OBJSECTION .stabstr');
             Concat('ENDEXESECTION');
             { DWARF 2 }
-            ConcatGenericSections('.debug_aranges,.debug_pubnames,.debug_info,.debug_abbrev,'+
+            ScriptAddGenericSections('.debug_aranges,.debug_pubnames,.debug_info,.debug_abbrev,'+
               '.debug_line,.debug_frame,.debug_str,.debug_loc,.debug_macinfo');
             Concat('STABS');
             Concat('SYMBOLS');

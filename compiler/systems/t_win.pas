@@ -1058,7 +1058,7 @@ implementation
             Concat('  OBJSECTION .idata$6*');
             Concat('  OBJSECTION .idata$7*');
             Concat('ENDEXESECTION');
-            ConcatGenericSections('.edata,.rsrc,.reloc,.gnu_debuglink,'+
+            ScriptAddGenericSections('.edata,.rsrc,.reloc,.gnu_debuglink,'+
                       '.debug_aranges,.debug_pubnames,.debug_info,.debug_abbrev,.debug_line,.debug_frame,.debug_str,.debug_loc,'+
                       '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges');
             { Can't use the generic rules, because that will add also .stabstr to .stab }

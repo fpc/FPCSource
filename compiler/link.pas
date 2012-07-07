@@ -115,7 +115,7 @@ interface
          property StaticLibraryList:TFPHashObjectList read FStaticLibraryList;
          property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
          procedure DefaultLinkScript;virtual;abstract;
-         procedure ConcatGenericSections(secnames:string);
+         procedure ScriptAddGenericSections(secnames:string);
          procedure ScriptAddSourceStatements(AddSharedAsStatic:boolean);virtual;
       public
          IsSharedLibrary : boolean;
@@ -1375,7 +1375,7 @@ Implementation
       end;
 
 
-    procedure TInternalLinker.ConcatGenericSections(secnames:string);
+    procedure TInternalLinker.ScriptAddGenericSections(secnames:string);
       var
         secname:string;
       begin
