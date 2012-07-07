@@ -27,7 +27,7 @@ _dynamic_start:
 	nop
 
 	.end	_dynamic_start
-	.size 	_dynamic_start, .-_start
+	.size 	_dynamic_start, .-_dynamic_start
 
 	.align 4
 	.global _start
@@ -54,6 +54,8 @@ _dynamic_start:
 _start:
         /* load fp */
         move    $s8,$sp
+        lui     $at,%hi(__stkptr)
+        sw      $s8,%lo(__stkptr)($at)
 
         /* align stack */
         li      $at,-8
@@ -82,8 +84,10 @@ _start:
         sll     $a2,$a2,0x2
         addu    $a2,$a2,$a1
         lui     $a3,%hi(operatingsystem_parameter_envp)
-        jal     PASCALMAIN
         sw      $a2,%lo(operatingsystem_parameter_envp)($a3)
+        lui     $t9,%hi(PASCALMAIN)
+        addiu   $t9,$t9,%lo(PASCALMAIN)
+        jalr    $t9
         nop
 	b       _haltproc
         nop
@@ -98,8 +102,6 @@ _haltproc:
         /* TODO: need to check whether __dl_fini is non-zero and call the function pointer in case */
 
         li      $v0,4001
-        lui     $a0,0x0
-        lw      $a0,0($a0)
         syscall
         b       _haltproc
         nop

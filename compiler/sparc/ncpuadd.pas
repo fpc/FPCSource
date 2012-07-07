@@ -256,17 +256,38 @@ interface
 
 
     procedure tsparcaddnode.second_cmpsmallset;
+      var
+        tmpreg : tregister;
       begin
         pass_left_right;
-        force_reg_left_right(true,true);
-
-        if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
-        else
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(true);
+
+        force_reg_left_right(false,false);
+
+        case nodetype of
+          equaln,
+          unequaln:
+            begin
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
+              location.resflags:=getresflags(true);
+            end;
+          lten,
+          gten:
+            begin
+              if (not(nf_swapped in flags) and
+                  (nodetype = lten)) or
+                 ((nf_swapped in flags) and
+                  (nodetype = gten)) then
+                swapleftright;
+              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,left.location.register,right.location.register,tmpreg));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,tmpreg,right.location.register,NR_G0));
+              location.resflags:=F_E;
+            end;
+          else
+            internalerror(2012042701);
+        end;
       end;
 
 

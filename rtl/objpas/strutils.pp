@@ -97,6 +97,13 @@ Function PosEx(c:char; const S: string; Offset: Cardinal): Integer;
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
 
 { ---------------------------------------------------------------------
+    Delphi compat
+  ---------------------------------------------------------------------}
+
+Function ReplaceStr(const AText, AFromText, AToText: string): string;inline;
+Function ReplaceText(const AText, AFromText, AToText: string): string;inline;
+
+{ ---------------------------------------------------------------------
     Soundex Functions.
   ---------------------------------------------------------------------}
 
@@ -742,6 +749,20 @@ begin
       end;
     end;
   Result := ResStr;
+end;
+
+{ ---------------------------------------------------------------------
+    Delphi compat
+  ---------------------------------------------------------------------}
+
+Function ReplaceStr(const AText, AFromText, AToText: string): string;inline;
+begin
+  AnsiReplaceStr(AText, AFromText, AToText);
+end;
+
+Function ReplaceText(const AText, AFromText, AToText: string): string;inline;
+begin
+  AnsiReplaceText(AText, AFromText, AToText);
 end;
 
 { ---------------------------------------------------------------------

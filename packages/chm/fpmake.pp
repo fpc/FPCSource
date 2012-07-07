@@ -25,6 +25,7 @@ begin
     P.Email := '';
     P.Description := 'Standalone CHM reader and writer library';
     P.NeedLibC:= false;
+    P.OSes := P.OSes - [nativent];
 
     D:=P.Dependencies.Add('fcl-xml');
     D:=P.Dependencies.Add('fcl-base');

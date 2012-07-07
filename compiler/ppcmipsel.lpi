@@ -61,12 +61,12 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="mips\pp"/>
+      <Filename Value="mipsel\pp"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="mips"/>
       <OtherUnitFiles Value="mips;systems"/>
-      <UnitOutputDirectory Value="mips\lazbuild"/>
+      <UnitOutputDirectory Value="mipsel\lazbuild"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>

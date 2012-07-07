@@ -43,7 +43,7 @@ uses
   aasmbase,aasmtai,aasmdata,
   ncnv, ncon, pass_2,
   cgbase, cpubase,
-  tgobj, cgobj, cgutils,ncgutil;
+  tgobj, cgobj, hlcgobj, cgutils,ncgutil;
 
 
 {*****************************************************************************
@@ -90,8 +90,8 @@ begin
   if not(tg.istemp(left.location.reference) and
          (tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference) = 256)) then
     begin
-       tg.Gettemp(current_asmdata.CurrAsmList,256,1,tt_normal,href);
-       cg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,255);
+       tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,href);
+       hlcg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,tstringdef(cshortstringtype));
        location_freetemp(current_asmdata.CurrAsmList,left.location);
        { return temp reference }
        location_reset_ref(left.location,LOC_REFERENCE,def_cgsize(resultdef),1);

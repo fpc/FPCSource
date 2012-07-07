@@ -902,8 +902,8 @@ implementation
       hal : tasmlisttype;
     begin
 {$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
-       comment(v_info,'Start writing intel-styled assembler output for '+current_module.mainsource^);
+      if current_module.mainsource<>'' then
+       comment(v_info,'Start writing intel-styled assembler output for '+current_module.mainsource);
 {$endif}
       if target_asm.id<>as_x86_64_masm then
         begin
@@ -943,8 +943,8 @@ implementation
       AsmLn;
 
 {$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
-       comment(v_info,'Done writing intel-styled assembler output for '+current_module.mainsource^);
+      if current_module.mainsource<>'' then
+       comment(v_info,'Done writing intel-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
    end;
 

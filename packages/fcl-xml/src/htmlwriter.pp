@@ -132,7 +132,10 @@ begin
   if assigned (d) then
     begin
     result := THTMLCustomElement(d);
-    FCurrentElement := THTMLCustomElement(result.ParentNode);
+    if result.ParentNode = FDocument then
+      FCurrentElement := nil
+    else
+      FCurrentElement := THTMLCustomElement(result.ParentNode);
     end
   else
     raise HTMLWriterException.CreateFmt (sErrNoCorespondingParent, [tag.ClassName]);

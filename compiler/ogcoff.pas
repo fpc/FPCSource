@@ -108,18 +108,9 @@ interface
          coffrelocpos : aword;
        public
          secidx   : longword;
-         flags    : longword;
          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
          procedure addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
-         procedure fixuprelocs;override;
-       end;
-
-       TDJCoffObjSection = class(TCoffObjSection)
-         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
-       end;
-
-       TPECoffObjSection = class(TCoffObjSection)
-         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+         procedure fixuprelocs(Exe:TExeOutput);override;
        end;
 
        TCoffObjData = class(TObjData)
@@ -130,11 +121,9 @@ interface
 {$endif arm}
        public
          constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass);
-         destructor  destroy;override;
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
-         procedure afteralloc;override;
        end;
 
        TDJCoffObjData = class(TCoffObjData)
@@ -155,10 +144,8 @@ interface
          procedure section_write_symbol(p:TObject;arg:pointer);
          procedure section_write_relocs(p:TObject;arg:pointer);
          procedure create_symbols(data:TObjData);
-         procedure section_set_datapos(p:TObject;arg:pointer);
          procedure section_set_reloc_datapos(p:TObject;arg:pointer);
          procedure section_write_header(p:TObject;arg:pointer);
-         procedure section_write_data(p:TObject;arg:pointer);
        protected
          function writedata(data:TObjData):boolean;override;
        public
@@ -176,8 +163,9 @@ interface
 
        TCoffObjInput = class(tObjInput)
        private
-         FCoffsyms,
-         FCoffStrs : tdynamicarray;
+         FCoffsyms : tdynamicarray;
+         FCoffStrs : PChar;
+         FCoffStrSize: longword;
          { Convert symidx -> TObjSymbol }
          FSymTbl   : ^TObjSymbolArray;
          { Convert secidx -> TObjSection }
@@ -188,7 +176,6 @@ interface
          function  Read_str(strpos:longword):string;
          procedure read_relocs(s:TCoffObjSection);
          procedure read_symbols(objdata:TObjData);
-         procedure ObjSections_read_data(p:TObject;arg:pointer);
          procedure ObjSections_read_relocs(p:TObject;arg:pointer);
        public
          constructor createcoff(awin32:boolean);
@@ -204,35 +191,19 @@ interface
          constructor create;override;
        end;
 
-       TCoffExeSection = class(TExeSection)
-       private
-         win32   : boolean;
-       public
-         constructor createcoff(AList:TFPHashObjectList;const n:string;awin32:boolean);
-       end;
-
-       TDJCoffExeSection = class(TCoffExeSection)
-         constructor create(AList:TFPHashObjectList;const n:string);override;
-       end;
-
-       TPECoffExeSection = class(TCoffExeSection)
-         constructor create(AList:TFPHashObjectList;const n:string);override;
-       end;
-
        TCoffexeoutput = class(texeoutput)
        private
-         FCoffsyms,
          FCoffStrs : tdynamicarray;
          win32     : boolean;
          nsects    : word;
          nsyms,
          sympos    : aword;
+         datapos_offset: longword;
          function  totalheadersize:longword;
          procedure ExeSectionList_pass2_header(p:TObject;arg:pointer);
          procedure write_symbol(const name:string;value:aword;section:smallint;typ,aux:byte);
          procedure globalsyms_write_symbol(p:TObject;arg:pointer);
          procedure ExeSectionList_write_header(p:TObject;arg:pointer);
-         procedure ExeSectionList_write_data(p:TObject;arg:pointer);
        protected
          function writedata:boolean;override;
          procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
@@ -245,6 +216,7 @@ interface
 
        TDJCoffexeoutput = class(TCoffexeoutput)
          constructor create;override;
+         procedure MemPos_Header;override;
        end;
 
        TPECoffexeoutput = class(TCoffexeoutput)
@@ -259,11 +231,7 @@ interface
          procedure MemPos_ExeSection(const aname:string);override;
        end;
 
-       TObjSymbolrec = record
-         sym : TObjSymbol;
-         orgsize : aword;
-       end;
-       TObjSymbolArray = array[0..high(word)] of TObjSymbolrec;
+       TObjSymbolArray = array[0..high(word)] of TObjSymbol;
        TObjSectionArray = array[0..high(smallint)] of TObjSection;
 
        TDJCoffAssembler = class(tinternalassembler)
@@ -335,6 +303,9 @@ implementation
        COFF_STYP_TEXT   = $0020;
        COFF_STYP_DATA   = $0040;
        COFF_STYP_BSS    = $0080;
+       COFF_STYP_INFO   = $0200;
+       COFF_STYP_OVER   = $0400;
+       COFF_STYP_LIB    = $0800;
 
        PE_SUBSYSTEM_NATIVE         = 1;
        PE_SUBSYSTEM_WINDOWS_GUI    = 2;
@@ -456,6 +427,14 @@ implementation
        IMAGE_REL_BASED_HIGHLOW     = 3;  { Applies the delta to the 32-bit field at Offset. }
        IMAGE_REL_BASED_DIR64       = 10; { Applies the delta to the 64-bit field at Offset. }
 
+       { values for coffsectionrec.select }
+       IMAGE_COMDAT_SELECT_NODUPLICATES = 1;
+       IMAGE_COMDAT_SELECT_ANY          = 2;
+       IMAGE_COMDAT_SELECT_SAME_SIZE    = 3;
+       IMAGE_COMDAT_SELECT_EXACT_MATCH  = 4;
+       IMAGE_COMDAT_SELECT_ASSOCIATIVE  = 5;
+       IMAGE_COMDAT_SELECT_LARGEST      = 6;
+
     type
        coffdjoptheader=packed record
          magic  : word;
@@ -470,7 +449,11 @@ implementation
        coffsectionrec=packed record
          len     : longword;
          nrelocs : word;
-         empty   : array[0..11] of char;
+         nlines  : word;
+         checksum: longword;
+         assoc   : word;
+         select  : byte;
+         empty   : array[0..2] of char;
        end;
        coffreloc=packed record
          address  : longword;
@@ -482,7 +465,7 @@ implementation
          strpos  : longword;
          value   : longword;
          section : smallint;
-         empty   : word;
+         empty   : word;                { actually type, $20: function, 0: not a function }
          typ     : byte;
          aux     : byte;
        end;
@@ -718,6 +701,8 @@ const pemagic : array[0..3] of byte = (
             else
               result:=COFF_STYP_DATA;
           end
+        else if oso_debug in aoptions then
+          result:=COFF_STYP_INFO
         else
           result:=COFF_STYP_REG;
       end;
@@ -732,6 +717,8 @@ const pemagic : array[0..3] of byte = (
           result:=[oso_load]
         else if flags and COFF_STYP_DATA<>0 then
           result:=[oso_data,oso_load]
+        else if flags and COFF_STYP_INFO<>0 then
+          result:=[oso_data,oso_debug]
         else
           result:=[oso_data]
       end;
@@ -831,7 +818,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjSection.fixuprelocs;
+    procedure TCoffObjSection.fixuprelocs(Exe:TExeOutput);
       var
         i,zero,address_size : longint;
         objreloc : TObjRelocation;
@@ -967,7 +954,7 @@ const pemagic : array[0..3] of byte = (
                     else
 {$endif arm}
                       inc(address,relocval);
-                    inc(address,relocsec.objdata.imagebase);
+                    inc(address,exe.imagebase);
                   end;
                 else
                   internalerror(200604014);
@@ -996,26 +983,6 @@ const pemagic : array[0..3] of byte = (
 
 
 {****************************************************************************
-                               TDJCoffObjSection
-****************************************************************************}
-
-    constructor TDJCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
-      begin
-        inherited create(alist,aname,aalign,aoptions);
-      end;
-
-
-{****************************************************************************
-                               TPECoffObjSection
-****************************************************************************}
-
-    constructor TPECoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
-      begin
-        inherited create(alist,aname,aalign,aoptions);
-      end;
-
-
-{****************************************************************************
                                 TCoffObjData
 ****************************************************************************}
 
@@ -1030,12 +997,6 @@ const pemagic : array[0..3] of byte = (
         createsection(sec_bss);
         if tf_section_threadvars in target_info.flags then
           createsection(sec_threadvar);
-      end;
-
-
-    destructor TCoffObjData.destroy;
-      begin
-        inherited destroy;
       end;
 
 
@@ -1136,13 +1097,12 @@ const pemagic : array[0..3] of byte = (
             else
               begin
                 if (p.objsection<>nil) and
-                   (p.bind<>AB_COMMON) and
-                   (reloctype<>RELOC_RELATIVE) then
+                   (p.bind<>AB_COMMON) then
                   CurrObjSec.addsectionreloc(curraddr,p.objsection,reloctype)
                 else
                   CurrObjSec.addsymreloc(curraddr,p,reloctype);
                 if (not win32) or
-                   ((reloctype<>RELOC_RELATIVE) and (p.objsection<>nil)) then
+                   (p.objsection<>nil) then
                   inc(data,symaddr);
                 if reloctype=RELOC_RELATIVE then
                   begin
@@ -1162,29 +1122,13 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjData.afteralloc;
-      var
-        mempos : qword;
-        i      : longint;
-      begin
-        inherited afteralloc;
-        { DJ Coff requires mempositions }
-        if not win32 then
-          begin
-            mempos:=0;
-            for i:=0 to ObjSectionList.Count-1 do
-              mempos:=TObjSection(ObjSectionList[i]).setmempos(mempos);
-          end;
-      end;
-
-
 {****************************************************************************
                                 TDJCoffObjData
 ****************************************************************************}
 
     constructor TDJCoffObjData.create(const n:string);
       begin
-        inherited createcoff(n,false,TDJCoffObjSection);
+        inherited createcoff(n,false,TCoffObjSection);
       end;
 
 
@@ -1194,7 +1138,7 @@ const pemagic : array[0..3] of byte = (
 
     constructor TPECoffObjData.create(const n:string);
       begin
-        inherited createcoff(n,true,TPECoffObjSection);
+        inherited createcoff(n,true,TCoffObjSection);
       end;
 
 
@@ -1211,10 +1155,8 @@ const pemagic : array[0..3] of byte = (
 
     destructor TCoffObjOutput.destroy;
       begin
-        if assigned(FCoffSyms) then
-          FCoffSyms.free;
-        if assigned(FCoffStrs) then
-          FCoffStrs.free;
+        FCoffSyms.free;
+        FCoffStrs.free;
         inherited destroy;
       end;
 
@@ -1248,9 +1190,15 @@ const pemagic : array[0..3] of byte = (
       begin
         with TCoffObjSection(p) do
           begin
-            secidx:=symidx div 2;
+            Inc(plongword(arg)^);
+            secidx:=plongword(arg)^;
+
             secsymidx:=symidx;
-            write_symbol(name,mempos,secidx,COFF_SYM_SECTION,1);
+            { Both GNU and Microsoft toolchains write section symbols using
+              storage class 3 (STATIC).
+              No reason to use COFF_SYM_SECTION, it is silently converted to 3 by
+              PE binutils and causes warnings with DJGPP binutils. }
+            write_symbol(name,mempos,secidx,COFF_SYM_LOCAL,1);
             { AUX }
             fillchar(secrec,sizeof(secrec),0);
             secrec.len:=Size;
@@ -1354,6 +1302,7 @@ const pemagic : array[0..3] of byte = (
         i          : longint;
         value      : aword;
         objsym     : TObjSymbol;
+        secidx     : longword;
       begin
         with TCoffObjData(data) do
          begin
@@ -1361,33 +1310,34 @@ const pemagic : array[0..3] of byte = (
            { The `.file' record, and the file name auxiliary record }
            write_symbol('.file', 0, -2, COFF_SYM_FILE, 1);
            fillchar(filename,sizeof(filename),0);
-           filename:=ExtractFileName(current_module.mainsource^);
+           filename:=ExtractFileName(current_module.mainsource);
            inc(symidx);
            FCoffSyms.write(filename[1],sizeof(filename)-1);
            { Sections }
-           ObjSectionList.ForEachCall(@section_write_symbol,nil);
+           secidx:=0;
+           ObjSectionList.ForEachCall(@section_write_symbol,@secidx);
            { ObjSymbols }
            for i:=0 to ObjSymbolList.Count-1 do
              begin
                objsym:=TObjSymbol(ObjSymbolList[i]);
-               if (objsym.typ=AT_LABEL) and (objsym.bind=AB_LOCAL) then
+               if (objsym.bind=AB_LOCAL) then
                  continue;
                case objsym.bind of
                  AB_GLOBAL :
                    begin
-                     globalval:=2;
+                     globalval:=COFF_SYM_GLOBAL;
                      sectionval:=TCoffObjSection(objsym.objsection).secidx;
                      value:=objsym.address;
                    end;
                  AB_LOCAL :
                    begin
-                     globalval:=3;
+                     globalval:=COFF_SYM_LOCAL;
                      sectionval:=TCoffObjSection(objsym.objsection).secidx;
                      value:=objsym.address;
                    end;
                  else
                    begin
-                     globalval:=2;
+                     globalval:=COFF_SYM_GLOBAL;
                      sectionval:=0;
                      value:=objsym.size;
                    end;
@@ -1397,12 +1347,6 @@ const pemagic : array[0..3] of byte = (
                write_symbol(objsym.name,value,sectionval,globalval,0);
              end;
          end;
-      end;
-
-
-    procedure TCoffObjOutput.section_set_datapos(p:TObject;arg:pointer);
-      begin
-        TObjSection(p).setdatapos(paword(arg)^);
       end;
 
 
@@ -1456,28 +1400,11 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjOutput.section_write_data(p:TObject;arg:pointer);
-      begin
-        with TObjSection(p) do
-          begin
-            if assigned(data) then
-              begin
-                FWriter.writezeros(dataalignbytes);
-                if Datapos<>FWriter.ObjSize then
-                  internalerror(200603052);
-                FWriter.writearray(data);
-              end;
-          end;
-      end;
-
-
     function TCoffObjOutput.writedata(data:TObjData):boolean;
       var
-        orgdatapos,
         datapos,
         sympos   : aword;
         i        : longint;
-        gotreloc : boolean;
         header   : tcoffheader;
       begin
         result:=false;
@@ -1491,11 +1418,9 @@ const pemagic : array[0..3] of byte = (
            { Calculate the filepositions }
            datapos:=sizeof(tcoffheader)+sizeof(tcoffsechdr)*ObjSectionList.Count;
            { Sections first }
-           ObjSectionList.ForEachCall(@section_set_datapos,@datapos);
+           layoutsections(datapos);
            { relocs }
-           orgdatapos:=datapos;
            ObjSectionList.ForEachCall(@section_set_reloc_datapos,@datapos);
-           gotreloc:=(orgdatapos<>datapos);
            { Symbols }
            sympos:=datapos;
 
@@ -1507,27 +1432,20 @@ const pemagic : array[0..3] of byte = (
            header.syms:=symidx;
            if win32 then
              begin
-{$ifdef arm}
+{$ifndef x86_64}
                header.flag:=PE_FILE_32BIT_MACHINE or
                             PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
-{$else arm}
-               header.flag:=PE_FILE_BYTES_REVERSED_LO or PE_FILE_32BIT_MACHINE or
-                            PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
-{$endif arm}
-               if not gotreloc then
-                 header.flag:=header.flag or PE_FILE_RELOCS_STRIPPED;
+{$else x86_64}
+               header.flag:=PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
+{$endif x86_64}
              end
            else
-             begin
-               header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_NOLINES or COFF_FLAG_NOLSYMS;
-               if not gotreloc then
-                 header.flag:=header.flag or COFF_FLAG_NORELOCS;
-             end;
+             header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_NOLINES or COFF_FLAG_NOLSYMS;
            FWriter.write(header,sizeof(header));
            { Section headers }
            ObjSectionList.ForEachCall(@section_write_header,nil);
            { ObjSections }
-           ObjSectionList.ForEachCall(@section_write_data,nil);
+           WriteSectionContent(data);
            { Relocs }
            ObjSectionList.ForEachCall(@section_write_relocs,nil);
            { ObjSymbols }
@@ -1574,10 +1492,9 @@ const pemagic : array[0..3] of byte = (
 
     destructor TCoffObjInput.destroy;
       begin
-        if assigned(FCoffSyms) then
-          FCoffSyms.free;
+        FCoffSyms.free;
         if assigned(FCoffStrs) then
-          FCoffStrs.free;
+          freemem(FCoffStrs);
         if assigned(FSymTbl) then
           freemem(FSymTbl);
         if assigned(FSecTbl) then
@@ -1600,12 +1517,9 @@ const pemagic : array[0..3] of byte = (
 
     function TCoffObjInput.Read_str(strpos:longword):string;
       begin
-        FCoffStrs.Seek(strpos-4);
-        FCoffStrs.Read(result[1],255);
-        result[255]:=#0;
-        result[0]:=chr(strlen(@result[1]));
-        if result='' then
+        if (FCoffStrs=nil) or (strpos>=FCoffStrSize) or (FCoffStrs[strpos]=#0) then
           Internalerror(200205172);
+        result:=string(PChar(@FCoffStrs[strpos]));
       end;
 
 
@@ -1674,9 +1588,9 @@ const pemagic : array[0..3] of byte = (
              end;
            end;
 
-           p:=FSymTbl^[rel.sym].sym;
+           p:=FSymTbl^[rel.sym];
            if assigned(p) then
-             s.addsymsizereloc(rel.address-s.mempos,p,FSymTbl^[rel.sym].orgsize,rel_type)
+             s.addsymsizereloc(rel.address-s.mempos,p,p.size,rel_type)
            else
             begin
               InputError('Failed reading coff file, can''t resolve symbol of relocation');
@@ -1704,8 +1618,7 @@ const pemagic : array[0..3] of byte = (
          begin
            nsyms:=FCoffSyms.Size div sizeof(CoffSymbol);
            { Allocate memory for symidx -> TObjSymbol table }
-           GetMem(FSymTbl,nsyms*sizeof(TObjSymbolrec));
-           FillChar(FSymTbl^,nsyms*sizeof(TObjSymbolrec),0);
+           FSymTbl:=AllocMem(nsyms*sizeof(TObjSymbol));
            { Load the Symbols }
            FCoffSyms.Seek(0);
            symidx:=0;
@@ -1753,9 +1666,6 @@ const pemagic : array[0..3] of byte = (
                     objsym.objsection:=objsec;
                     objsym.offset:=address;
                     objsym.size:=size;
-                    { Register in ObjSection }
-                    if assigned(objsec) then
-                      objsec.AddSymbolDefine(objsym);
                   end;
                 COFF_SYM_LABEL,
                 COFF_SYM_LOCAL :
@@ -1763,12 +1673,11 @@ const pemagic : array[0..3] of byte = (
                     { do not add constants (section=-1) }
                     if sym.section<>-1 then
                      begin
-                       bind:=AB_LOCAL;
                        objsec:=GetSection(sym.section);
                        if sym.value>=objsec.mempos then
                          address:=sym.value-objsec.mempos;
                        objsym:=CreateSymbol(strname);
-                       objsym.bind:=bind;
+                       objsym.bind:=AB_LOCAL;
                        objsym.typ:=AT_FUNCTION;
                        objsym.objsection:=objsec;
                        objsym.offset:=address;
@@ -1798,8 +1707,7 @@ const pemagic : array[0..3] of byte = (
                 else
                   internalerror(200602232);
               end;
-              FSymTbl^[symidx].sym:=objsym;
-              FSymTbl^[symidx].orgsize:=size;
+              FSymTbl^[symidx]:=objsym;
               { read aux records }
               for i:=1 to sym.aux do
                begin
@@ -1809,29 +1717,6 @@ const pemagic : array[0..3] of byte = (
               inc(symidx);
             end;
          end;
-      end;
-
-
-    procedure TCoffObjInput.ObjSections_read_data(p:TObject;arg:pointer);
-      begin
-        with TCoffObjSection(p) do
-          begin
-            { Skip debug sections }
-            if (oso_debug in secoptions) and
-               (cs_link_strip in current_settings.globalswitches) and
-               not(cs_link_separate_dbg_file in current_settings.globalswitches) then
-              exit;
-
-            if assigned(data) then
-              begin
-                FReader.Seek(datapos);
-                if not FReader.ReadArray(data,Size) then
-                  begin
-                    Comment(V_Error,'Error reading coff file, can''t read object data');
-                    exit;
-                  end;
-              end;
-          end;
       end;
 
 
@@ -1857,7 +1742,6 @@ const pemagic : array[0..3] of byte = (
     function  TCoffObjInput.ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;
       var
         secalign : shortint;
-        strsize,
         strpos,
         i        : longint;
         code     : longint;
@@ -1872,7 +1756,6 @@ const pemagic : array[0..3] of byte = (
         InputFileName:=AReader.FileName;
         result:=false;
         FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
-        FCoffStrs:=TDynamicArray.Create(StrsMaxGrow);
         with TCoffObjData(objdata) do
          begin
            { Read COFF header }
@@ -1889,23 +1772,36 @@ const pemagic : array[0..3] of byte = (
 {$ifdef arm}
            eVCobj:=header.flag=$100;
 {$endif arm}
-           { Strings }
-           AReader.Seek(header.sympos+header.syms*sizeof(CoffSymbol));
-           if not AReader.Read(strsize,4) then
+           { ObjSymbols }
+           AReader.Seek(header.sympos);
+           if not AReader.ReadArray(FCoffSyms,header.syms*sizeof(CoffSymbol)) then
              begin
-               InputError('Error reading COFF Symtable');
+               InputError('Error reading coff symbol table');
+               exit;
+           end;
+           { Strings }
+           if not AReader.Read(FCoffStrSize,4) then
+             begin
+               InputError('Error reading COFF string table');
                exit;
              end;
-           if (strsize>4) and not AReader.ReadArray(FCoffStrs,Strsize-4) then
+           if (FCoffStrSize>4) then
              begin
-               InputError('Error reading COFF Symtable');
-               exit;
+               { allocate an extra byte and null-terminate }
+               GetMem(FCoffStrs,FCoffStrSize+1);
+               FCoffStrs[FCoffStrSize]:=#0;
+               for i:=0 to 3 do
+                 FCoffStrs[i]:=#0;
+               if not AReader.Read(FCoffStrs[4],FCoffStrSize-4) then
+                 begin
+                   InputError('Error reading COFF string table');
+                   exit;
+                 end;
              end;
            { Section headers }
            { Allocate SecIdx -> TObjSection table, secidx is 1-based }
            FSecCount:=header.nsects;
-           GetMem(FSecTbl,(header.nsects+1)*sizeof(TObjSection));
-           FillChar(FSecTbl^,(header.nsects+1)*sizeof(TObjSection),0);
+           FSecTbl:=AllocMem((header.nsects+1)*sizeof(TObjSection));
            AReader.Seek(sizeof(tcoffheader)+header.opthdr);
            for i:=1 to header.nsects do
              begin
@@ -1932,19 +1828,19 @@ const pemagic : array[0..3] of byte = (
                  pedecodesechdrflags(secname,sechdr.flags,secoptions,secalign)
                else
                  begin
-                   djdecodesechdrflags(secname,sechdr.flags);
+                   secoptions:=djdecodesechdrflags(secname,sechdr.flags);
                    secalign:=sizeof(pint);
                  end;
                if (Length(secname)>3) and (secname[2] in ['e','f','i','p','r']) then
                  begin
-                   if (Copy(secname,1,6)='.edata') or
-                      (Copy(secname,1,5)='.rsrc') or
+                   if (Pos('.edata',secname)=1) or
+                      (Pos('.rsrc',secname)=1) or
 {$ifndef x86_64}
-                      (Copy(secname,1,6)='.pdata') or
+                      (Pos('.pdata',secname)=1) or
 {$endif}
-                      (Copy(secname,1,4)='.fpc') then
+                      (Pos('.fpc',secname)=1) then
                      include(secoptions,oso_keep);
-                   if (Copy(secname,1,6)='.idata') then
+                   if (Pos('.idata',secname)=1) then
                      begin
   { TODO: idata keep can maybe replaced with grouping of text and idata}
                        include(secoptions,oso_keep);
@@ -1961,21 +1857,15 @@ const pemagic : array[0..3] of byte = (
                objsec.datapos:=sechdr.datapos;
                objsec.Size:=sechdr.dataSize;
              end;
-           { ObjSymbols }
-           AReader.Seek(header.sympos);
-           if not AReader.ReadArray(FCoffSyms,header.syms*sizeof(CoffSymbol)) then
-             begin
-               Comment(V_Error,'Error reading coff file');
-               exit;
-             end;
            { Insert all ObjSymbols }
            read_symbols(objdata);
            { Section Data }
-           ObjSectionList.ForEachCall(@objsections_read_data,nil);
+           ReadSectionContent(objdata);
            { Relocs }
            ObjSectionList.ForEachCall(@objsections_read_relocs,nil);
          end;
-        FCoffStrs.Free;
+        if assigned(FCoffStrs) then
+          freemem(FCoffStrs);
         FCoffStrs:=nil;
         FCoffSyms.Free;
         FCoffSyms:=nil;
@@ -1994,30 +1884,6 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited createcoff(true);
         cobjdata:=TPECoffObjData;
-      end;
-
-
-{****************************************************************************
-                              TCoffexesection
-****************************************************************************}
-
-
-    constructor TCoffExeSection.createcoff(AList:TFPHashObjectList;const n:string;awin32:boolean);
-      begin
-        inherited create(AList,n);
-        win32:=awin32;
-      end;
-
-
-    constructor TDJCoffExeSection.create(AList:TFPHashObjectList;const n:string);
-      begin
-        inherited createcoff(AList,n,false);
-      end;
-
-
-    constructor TPECoffExeSection.create(AList:TFPHashObjectList;const n:string);
-      begin
-        inherited createcoff(AList,n,false);
       end;
 
 
@@ -2077,7 +1943,10 @@ const pemagic : array[0..3] of byte = (
             if assigned(exesec) then
               begin
                 secval:=exesec.secsymidx;
-                value:=address-exesec.mempos;
+                if win32 then
+                  value:=address-exesec.mempos
+                else
+                  value:=address;
               end
             else
               begin
@@ -2112,24 +1981,27 @@ const pemagic : array[0..3] of byte = (
                s:='/'+ToStr(strpos);
              end;
             move(s[1],sechdr.name,length(s));
-            sechdr.rvaofs:=mempos;
             if win32 then
-              sechdr.vsize:=Size
-            else
-              sechdr.vsize:=mempos;
-
-            { sechdr.dataSize is size of initilized data. Must be zero for sections that
-              do not contain one. In Windows it must be rounded up to FileAlignment
-              (so it can be greater than VirtualSize) }
-            if (oso_data in SecOptions) then
               begin
-                if win32 then
-                  sechdr.dataSize:=Align(Size,SectionDataAlign)
-                else
-                  sechdr.dataSize:=Size;
-                if (Size>0) then
-                  sechdr.datapos:=datapos;
+                sechdr.rvaofs:=mempos;
+                sechdr.vsize:=Size;
+                { sechdr.dataSize is size of initialized data, rounded up to FileAlignment
+                  (so it can be greater than VirtualSize). Must be zero for sections that
+                  do not contain initialized data. }
+                if (oso_data in SecOptions) then
+                  sechdr.datasize:=Align(Size,SectionDataAlign);
+              end
+            else
+              begin
+                if not (oso_debug in SecOptions) then
+                  begin
+                    sechdr.rvaofs:=mempos;
+                    sechdr.vsize:=mempos;
+                  end;
+                sechdr.datasize:=Size;
               end;
+            if (Size>0) then
+              sechdr.datapos:=datapos-datapos_offset;
             sechdr.nrelocs:=0;
             sechdr.relocpos:=0;
             if win32 then
@@ -2161,39 +2033,6 @@ const pemagic : array[0..3] of byte = (
               internalerror(200801161); }
             inc(plongint(arg)^);
             secsymidx:=plongint(arg)^;
-          end;
-      end;
-
-
-    procedure Tcoffexeoutput.ExeSectionList_write_Data(p:TObject;arg:pointer);
-      var
-        objsec : TObjSection;
-        i      : longint;
-      begin
-        with texesection(p) do
-          begin
-            { don't write normal section if writing only debug info }
-            if (ExeWriteMode=ewm_dbgonly) and
-               not(oso_debug in SecOptions) then
-              exit;
-
-            if oso_data in secoptions then
-              begin
-                FWriter.Writezeros(Align(FWriter.Size,SectionDataAlign)-FWriter.Size);
-                for i:=0 to ObjSectionList.Count-1 do
-                  begin
-                    objsec:=TObjSection(ObjSectionList[i]);
-                    if oso_data in objsec.secoptions then
-                      begin
-                        if not assigned(objsec.data) then
-                          internalerror(200603042);
-                        FWriter.writezeros(objsec.dataalignbytes);
-                        if objsec.DataPos<>FWriter.Size then
-                          internalerror(200602251);
-                        FWriter.writearray(objsec.data);
-                      end;
-                  end;
-              end;
           end;
       end;
 
@@ -2356,7 +2195,6 @@ const pemagic : array[0..3] of byte = (
 
       begin
         result:=false;
-        FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
         FCoffStrs:=TDynamicArray.Create(StrsMaxGrow);
         textExeSec:=FindExeSection('.text');
         dataExeSec:=FindExeSection('.data');
@@ -2385,7 +2223,7 @@ const pemagic : array[0..3] of byte = (
         header.mach:=COFF_MAGIC;
         header.nsects:=nsects;
         if writeDbgStrings then
-          header.sympos:=sympos;
+          header.sympos:=sympos-datapos_offset;
         if hassymbols then
           header.syms:=nsyms;
         if win32 then
@@ -2487,7 +2325,7 @@ const pemagic : array[0..3] of byte = (
               djoptheader.bsize:=BSSExeSec.Size;
             djoptheader.text_start:=TextExeSec.mempos;
             djoptheader.data_start:=DataExeSec.mempos;
-            djoptheader.entry:=EntrySym.offset;
+            djoptheader.entry:=EntrySym.Address;
             FWriter.write(djoptheader,sizeof(djoptheader));
           end;
 
@@ -2504,7 +2342,7 @@ const pemagic : array[0..3] of byte = (
         { Section headers }
         ExeSectionList.ForEachCall(@ExeSectionList_write_header,nil);
         { Section data }
-        ExeSectionList.ForEachCall(@ExeSectionList_write_data,nil);
+        WriteExeSectionContent;
         { Align after the last section }
         FWriter.Writezeros(Align(FWriter.Size,SectionDataAlign)-FWriter.Size);
 
@@ -2522,7 +2360,6 @@ const pemagic : array[0..3] of byte = (
           end;
         { Release }
         FCoffStrs.Free;
-        FCoffSyms.Free;
         result:=true;
       end;
 
@@ -2548,15 +2385,22 @@ const pemagic : array[0..3] of byte = (
     constructor TDJCoffexeoutput.create;
       begin
         inherited createcoff(false);
-        CExeSection:=TDJCoffExeSection;
-        CObjData:=TPECoffObjData;
+        datapos_offset:=sizeof(go32v2stub);
+        CExeSection:=TExeSection;
+        CObjData:=TDJCoffObjData;
       end;
 
+
+    procedure TDJCoffexeoutput.MemPos_Header;
+      begin
+        { Headers are not loaded, first 4K page is reserved }
+        CurrMemPos:=$1000;
+      end;
 
     constructor TPECoffexeoutput.create;
       begin
         inherited createcoff(true);
-        CExeSection:=TPECoffExeSection;
+        CExeSection:=TExeSection;
         CObjData:=TPECoffObjData;
       end;
 
@@ -3050,7 +2894,7 @@ const pemagic : array[0..3] of byte = (
             asmbin : '';
             asmcmd : '';
             supported_targets : [system_i386_go32v2];
-            flags : [af_outputbinary];
+            flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
             dollarsign: '$';

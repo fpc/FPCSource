@@ -51,6 +51,7 @@ interface
        protected
           fprocdef : tprocdef;
           fprocdefderef : tderef;
+          function handle_threadvar_access: tnode; virtual;
        public
           loadnodeflags : set of tloadnodeflags;
           symtableentry : tsym;
@@ -63,7 +64,7 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure set_mp(p:tnode);
-          function  is_addr_param_load:boolean;
+          function  is_addr_param_load:boolean;virtual;
           function  dogetcopy : tnode;override;
           function  pass_1 : tnode;override;
           function  pass_typecheck:tnode;override;
@@ -79,8 +80,13 @@ interface
        tassigntype = (at_normal,at_plus,at_minus,at_star,at_slash);
 
        tassignmentnode = class(tbinarynode)
+         protected
+          function direct_shortstring_assignment: boolean; virtual;
+         public
           assigntype : tassigntype;
           constructor create(l,r : tnode);virtual;
+          { no checks for validity of assignment }
+          constructor create_internal(l,r : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
@@ -102,6 +108,9 @@ interface
        tarrayconstructorrangenodeclass = class of tarrayconstructorrangenode;
 
        tarrayconstructornode = class(tbinarynode)
+         protected
+          procedure wrapmanagedvarrec(var n: tnode);virtual;abstract;
+         public
           constructor create(l,r : tnode);virtual;
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -164,7 +173,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,globtype,globals,systems,
+      cutils,verbose,globtype,globals,systems,constexp,
       symnot,symtable,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
@@ -176,6 +185,13 @@ implementation
 {*****************************************************************************
                              TLOADNODE
 *****************************************************************************}
+
+    function tloadnode.handle_threadvar_access: tnode;
+      begin
+        { nothing special by default }
+        result:=nil;
+      end;
+
 
     constructor tloadnode.create(v : tsym;st : TSymtable);
       begin
@@ -295,6 +311,8 @@ implementation
                   ) then
                  make_not_regable(self,[ra_addr_taken]);
                resultdef:=tabstractvarsym(symtableentry).vardef;
+               if vo_is_thread_var in tstaticvarsym(symtableentry).varoptions then
+                 result:=handle_threadvar_access;
              end;
            paravarsym,
            localvarsym :
@@ -327,7 +345,7 @@ implementation
                      resultdef:=tclassrefdef.create(resultdef)
                    else if (is_object(resultdef) or is_record(resultdef)) and
                            (loadnf_load_self_pointer in loadnodeflags) then
-                     resultdef:=tpointerdef.create(resultdef);
+                     resultdef:=getpointerdef(resultdef);
                  end
                else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
                  begin
@@ -483,6 +501,14 @@ implementation
                              TASSIGNMENTNODE
 *****************************************************************************}
 
+    function tassignmentnode.direct_shortstring_assignment: boolean;
+      begin
+        result:=
+          is_char(right.resultdef) or
+          (right.resultdef.typ=stringdef);
+      end;
+
+
     constructor tassignmentnode.create(l,r : tnode);
 
       begin
@@ -491,6 +517,13 @@ implementation
          assigntype:=at_normal;
          if r.nodetype = typeconvn then
            ttypeconvnode(r).warn_pointer_to_signed:=false;
+      end;
+
+
+    constructor tassignmentnode.create_internal(l, r: tnode);
+      begin
+        create(l,r);
+        include(flags,nf_internal);
       end;
 
 
@@ -568,12 +601,27 @@ implementation
           maybe_call_procvar(right,true);
 
         { assignments to formaldefs and open arrays aren't allowed }
-        if (left.resultdef.typ=formaldef) or
-           is_open_array(left.resultdef) then
-          CGMessage(type_e_assignment_not_allowed);
+        if is_open_array(left.resultdef) then
+          CGMessage(type_e_assignment_not_allowed)
+        else if (left.resultdef.typ=formaldef) then
+          if not(target_info.system in systems_managed_vm) then
+            CGMessage(type_e_assignment_not_allowed)
+          else
+            begin
+              { on managed platforms, assigning to formaldefs is allowed (but
+                typecasting them on the left hand side isn't), but primitive
+                values need to be boxed first }
+              if (right.resultdef.typ in [orddef,floatdef]) then
+                begin
+                  right:=cinlinenode.create(in_box_x,false,ccallparanode.create(right,nil));
+                  typecheckpass(right);
+                end;
+            end;
+
 
         { test if node can be assigned, properties are allowed }
-        valid_for_assignment(left,true);
+        if not(nf_internal in flags) then
+          valid_for_assignment(left,true);
 
         { assigning nil to a dynamic array clears the array }
         if is_dynamic_array(left.resultdef) and
@@ -582,10 +630,11 @@ implementation
            { remove property flag to avoid errors, see comments for }
            { tf_winlikewidestring assignments below                 }
            exclude(left.flags,nf_isproperty);
-           hp:=ccallparanode.create(caddrnode.create_internal
-                   (crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
-               ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil));
-           result := ccallnode.createintern('fpc_dynarray_clear',hp);
+           { generate a setlength node so it can be intercepted by
+             target-specific code }
+           result:=cinlinenode.create(in_setlength_x,false,
+             ccallparanode.create(genintconstnode(0),
+               ccallparanode.create(left,nil)));
            left:=nil;
            exit;
          end;
@@ -597,8 +646,7 @@ implementation
            { insert typeconv, except for chars that are handled in
              secondpass and except for ansi/wide string that can
              be converted immediatly }
-           if not(is_char(right.resultdef) or
-                  (right.resultdef.typ=stringdef)) then
+           if not direct_shortstring_assignment then
              inserttypeconv(right,left.resultdef);
            if right.resultdef.typ=stringdef then
             begin
@@ -764,7 +812,8 @@ implementation
         else if is_managed_type(left.resultdef) and
             (left.resultdef.typ in [arraydef,objectdef,recorddef]) and
             not is_interfacecom_or_dispinterface(left.resultdef) and
-            not is_dynamic_array(left.resultdef) then
+            not is_dynamic_array(left.resultdef) and
+            not(target_info.system in systems_garbage_collected_managed_types) then
          begin
            hp:=ccallparanode.create(caddrnode.create_internal(
                   crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
@@ -781,7 +830,8 @@ implementation
          end
         { call helpers for variant, they can contain non ref. counted types like
           vararrays which must be really copied }
-        else if left.resultdef.typ=variantdef then
+        else if (left.resultdef.typ=variantdef) and
+            not(target_info.system in systems_garbage_collected_managed_types)  then
          begin
            { remove property flag to avoid errors, see comments for }
            { tf_winlikewidestring assignments below                 }
@@ -798,19 +848,24 @@ implementation
            right:=nil;
            exit;
          end
-        { call helpers for pointer-sized managed types }
-        else if is_widestring(left.resultdef) then
-          hs:='fpc_widestr_assign'
-        else if is_ansistring(left.resultdef) then
-          hs:='fpc_ansistr_assign'
-        else if is_unicodestring(left.resultdef) then
-          hs:='fpc_unicodestr_assign'
-        else if is_interfacecom_or_dispinterface(left.resultdef) then
-          hs:='fpc_intf_assign'
-        else if is_dynamic_array(left.resultdef) then
+        else if not(target_info.system in systems_garbage_collected_managed_types) then
           begin
-            hs:='fpc_dynarray_assign';
-            needrtti:=true;
+            { call helpers for pointer-sized managed types }
+            if is_widestring(left.resultdef) then
+              hs:='fpc_widestr_assign'
+            else if is_ansistring(left.resultdef) then
+              hs:='fpc_ansistr_assign'
+            else if is_unicodestring(left.resultdef) then
+              hs:='fpc_unicodestr_assign'
+            else if is_interfacecom_or_dispinterface(left.resultdef) then
+              hs:='fpc_intf_assign'
+            else if is_dynamic_array(left.resultdef) then
+              begin
+                hs:='fpc_dynarray_assign';
+                needrtti:=true;
+              end
+            else
+              exit;
           end
         else
           exit;
@@ -1059,9 +1114,13 @@ implementation
     function tarrayconstructornode.pass_1 : tnode;
       var
         hp : tarrayconstructornode;
-        do_variant:boolean;
+        do_variant,
+        do_managed_variant:boolean;
       begin
         do_variant:=(nf_forcevaria in flags) or (ado_isvariant in tarraydef(resultdef).arrayoptions);
+        do_managed_variant:=
+          do_variant and
+          (target_info.system in systems_managed_vm);
         result:=nil;
         { Insert required type convs, this must be
           done in pass 1, because the call must be
@@ -1081,10 +1140,16 @@ implementation
                     if not do_variant then
                       include(current_procinfo.flags,pi_do_call);
                     firstpass(hp.left);
+                    if do_managed_variant then
+                      wrapmanagedvarrec(hp.left);
                   end;
                 hp:=tarrayconstructornode(hp.right);
               end;
           end;
+        { set the elementdef to the correct type in case of a managed
+          variant array }
+        if do_managed_variant then
+          tarraydef(resultdef).elementdef:=search_system_type('TVARREC').typedef;
         expectloc:=LOC_CREFERENCE;
       end;
 

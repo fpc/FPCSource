@@ -63,6 +63,15 @@ type
       procedure EndCollect; override;
    end;
 
+   TJVMRawResourceFile = class(TWinLikeResourceFile)
+   private
+   protected
+   public
+      function Compile(output: tresoutput; const OutName: ansistring) : boolean; override;
+      function IsCompiled(const fn : ansistring) : boolean;override;
+   end;
+
+
 procedure CompileResourceFiles;
 procedure CollectResourceFiles;
 
@@ -189,7 +198,7 @@ begin
      Message2(exec_d_resbin_params,resbin,s);
      FlushOutput;
      try
-       if ExecuteProcess(resbin,s) <> 0 then
+       if RequotedExecuteProcess(resbin,s) <> 0 then
        begin
          if not (cs_link_nolink in current_settings.globalswitches) then
            Message(exec_e_error_while_compiling_resources);
@@ -253,7 +262,7 @@ var
   end;
 
 begin
-  srcfilepath:=ExtractFilePath(current_module.mainsource^);
+  srcfilepath:=ExtractFilePath(current_module.mainsource);
   if output=roRES then
     begin
       s:=target_res.rccmd;
@@ -383,6 +392,25 @@ begin
 end;
 
 
+{****************************************************************************
+                              TJVMRawResourceFile
+****************************************************************************}
+
+function TJVMRawResourceFile.Compile(output: tresoutput; const OutName: ansistring): boolean;
+  begin
+    if output<>roOBJ then
+      internalerror(2011081703);
+    result:=inherited;
+  end;
+
+
+function TJVMRawResourceFile.IsCompiled(const fn: ansistring): boolean;
+  begin
+    internalerror(2011081704);
+    result:=true;
+  end;
+
+
 function CopyResFile(inf,outf : TCmdStr) : boolean;
 var
   src,dst : TCCustomFileStream;
@@ -396,7 +424,7 @@ begin
       Include(current_settings.globalswitches, cs_link_nolink);
       exit;
     end;
-  dst:=CFileStreamClass.Create(current_module.outputpath^+outf,fmCreate);
+  dst:=CFileStreamClass.Create(current_module.outputpath+outf,fmCreate);
   if CStreamError<>0 then
     begin
       Message1(exec_e_cant_write_resource_file, dst.FileName);
@@ -418,10 +446,11 @@ var
 begin
   { Don't do anything for systems supporting resources without using resource
     file classes (e.g. Mac OS). They process resources elsewhere. }
-  if (target_info.res<>res_none) and (target_res.resourcefileclass=nil) then
+  if ((target_info.res<>res_none) and (target_res.resourcefileclass=nil)) or
+     (res_no_compile in target_res.resflags) then
     exit;
 
-  p:=ExtractFilePath(ExpandFileName(current_module.mainsource^));
+  p:=ExtractFilePath(ExpandFileName(current_module.mainsource));
   res:=TCmdStrListItem(current_module.ResourceFiles.First);
   while res<>nil do
     begin
@@ -440,7 +469,7 @@ begin
       if resourcefile.IsCompiled(s) then
         begin
           resourcefile.free;
-          if AnsiCompareFileName(IncludeTrailingPathDelimiter(ExpandFileName(current_module.outputpath^)), p) <> 0 then
+          if AnsiCompareFileName(IncludeTrailingPathDelimiter(ExpandFileName(current_module.outputpath)), p) <> 0 then
             begin
               { Copy .res file to units output dir. Otherwise .res file will not be found
                 when only compiled units path is available }
@@ -462,7 +491,7 @@ begin
               outfmt:=roRES;
               res.FPStr:=ChangeFileExt(res.FPStr,target_info.resext);
             end;
-          resourcefile.compile(outfmt, current_module.outputpath^+res.FPStr);
+          resourcefile.compile(outfmt, current_module.outputpath+res.FPStr);
           resourcefile.free;
         end;
       res:=TCmdStrListItem(res.Next);
@@ -486,9 +515,9 @@ var
           s:=res.FPStr
         else
           begin
-            s:=u.path^+res.FPStr;
+            s:=u.path+res.FPStr;
             if not FileExists(s,True) then
-              s:=u.outputpath^+res.FPStr;
+              s:=u.outputpath+res.FPStr;
           end;
         resourcefile.Collect(s);
         res:=TCmdStrListItem(res.Next);
@@ -504,7 +533,7 @@ begin
       exit;
 //  if cs_link_nolink in current_settings.globalswitches then
 //    exit;
-  s:=ChangeFileExt(current_module.ppufilename^,target_info.resobjext);
+  s:=ChangeFileExt(current_module.ppufilename,target_info.resobjext);
   if (res_arch_in_file_name in target_res.resflags) then
     s:=ChangeFileExt(s,'.'+cpu2str[target_cpu]+target_info.resobjext);
   resourcefile:=TResourceFile(resinfos[target_info.res]^.resourcefileclass.create(s));

@@ -27,49 +27,112 @@ interface
 
   uses
     cutils,
-    procinfo,cpuinfo,
+    globtype,symdef,
+    procinfo,cpuinfo,cpupara,
     psub;
 
   type
+
+    { TMIPSProcInfo }
+
     TMIPSProcInfo=class(tcgprocinfo)
-    public
+      intregstart,
+      floatregstart : aint;
+      intregssave,
+      floatregssave : byte;
+      needs_frame_pointer: boolean;
+      register_used : tparasupregsused;
+      register_size : tparasupregsize;
+      register_name : tparasuprename;
+      register_offset : tparasupregsoffset;
+      computed_local_size : longint;
+      //intparareg,
+      //parasize : longint;
       constructor create(aparent:tprocinfo);override;
       function calc_stackframe_size:longint;override;
+      procedure set_first_temp_offset;override;
     end;
+
+   { Used by Stabs debug info generator }
+
+   function mips_extra_offset(procdef : tprocdef) : longint;
 
 implementation
 
     uses
-      systems,globals,
+      systems,globals,verbose,
+      cpubase,cgbase,cgutils,cgobj,
       tgobj,paramgr,symconst;
 
-    constructor tmipsprocinfo.create(aparent:tprocinfo);
+    constructor TMIPSProcInfo.create(aparent: tprocinfo);
+      var
+        i : longint;
       begin
         inherited create(aparent);
-        maxpushedparasize:=0;
+        for i:=low(tparasupregs)  to high(tparasupregs) do
+          begin
+            register_used[i]:=false;
+            register_size[i]:=OS_NO;
+            register_name[i]:='invalid';
+            register_offset[i]:=-1;
+          end;
+        floatregssave:=12; { f20-f31 }
+        intregssave:=12;   { r16-r23,r28-r31 }
+        { for testing }
+        needs_frame_pointer := true;//false;
+        computed_local_size:=-1;
+		{ pi_needs_got is not yet set correctly 
+		  so include it always if creating PIC code }
+        if (cs_create_pic in current_settings.moduleswitches) then
+          begin
+            include(flags, pi_needs_got);
+            got:=NR_GP;
+          end
+        else
+          got:=NR_NO;
+      end;
+
+
+    procedure TMIPSProcInfo.set_first_temp_offset;
+      begin
+        { We allocate enough space to save all registers because we can't determine
+          the necessary space because the used registers aren't known before
+          secondpass is run. }
+        if tg.direction = -1 then
+          tg.setfirsttemp(0)
+        else
+          tg.setfirsttemp(maxpushedparasize+
+           floatregssave*sizeof(aint)+intregssave*sizeof(aint));
       end;
 
 
     function TMIPSProcInfo.calc_stackframe_size:longint;
+      var
+         r : byte;
+         regs: tcpuregisterset;
       begin
-        {
-          Stackframe layout:
-          %fp
-            <locals>
-            <temp>
-            <arguments 6-n for calling>
-          %sp+92
-            <space for arguments 0-5>                \
-            <return pointer for calling>              | included in first_parm_offset
-            <register window save area for calling>  /
-          %sp
-
-          Alignment must be the max available, as doubles require
-          8 byte alignment
-        }
-        result:=Align(tg.direction*tg.lasttemp+maxpushedparasize+target_info.first_parm_offset,current_settings.alignment.localalignmax);
+        result:=maxpushedparasize;
+        floatregstart:=result;
+        inc(result,floatregssave*4);
+        intregstart:=result;
+        //inc(result,intregssave*4);
+        result:=Align(tg.lasttemp,max(current_settings.alignment.localalignmin,8));
+        if computed_local_size=-1 then
+          begin
+            computed_local_size:=result;
+            procdef.total_local_size:=result;
+          end
+        else if computed_local_size <> result then
+          Comment(V_Error,'TMIPSProcInfo.calc_stackframe_size result changed');
       end;
 
+    function mips_extra_offset(procdef : tprocdef) : longint;
+      begin
+        if procdef=nil then
+          mips_extra_offset:=0
+        else
+          mips_extra_offset:=procdef.total_local_size;
+      end;
 
 begin
   cprocinfo:=TMIPSProcInfo;

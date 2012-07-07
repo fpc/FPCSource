@@ -13,7 +13,7 @@ fpcdir=../..
 nortl=y
 
 [target]
-programs=dotest fptime fail testfail digest $(DBDIGEST)
+programs=dotest fptime fail testfail digest concat $(DBDIGEST)
 programs_win32=prepup
 programs_win64=prepup
 programs_go32v2=prepup
@@ -22,6 +22,7 @@ programs_go32v2=prepup
 programs=dbdigest
 
 [rules]
+.NOTPARALLEL:
 
 utils: all
 

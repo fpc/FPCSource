@@ -74,7 +74,7 @@ Type
   // Please keep this order, see OSCPUSupported below
   TCpu=(cpuNone,
     i386,m68k,powerpc,sparc,x86_64,arm,powerpc64,avr,armeb,
-    mips,mipsel
+    mips,mipsel,jvm
   );
   TCPUS = Set of TCPU;
 
@@ -84,7 +84,7 @@ Type
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
-    aix,android
+    aix,java,android,nativent
   );
   TOSes = Set of TOS;
 
@@ -141,43 +141,45 @@ Const
   AllLimit83fsOses= [go32v2,os2,emx,watcom];
 
   AllSmartLinkLibraryOSes = [Linux]; // OSes that use .a library files for smart-linking
-  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos];
+  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
-    { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb  mips   mipsel}
-    { none }    ( false, false, false, false, false, false, false, false, false, false, false, false),
-    { linux }   ( false, true,  true,  true,  true,  true,  true,  true,  false, true , true , true ),
-    { go32v2 }  ( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { win32 }   ( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { os2 }     ( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { freebsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false),
-    { beos }    ( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { netbsd }  ( false, true,  true,  true,  true,  false, false, false, false, false, false, false),
-    { amiga }   ( false, false, true,  true,  false, false, false, false, false, false, false, false),
-    { atari }   ( false, false, true,  false, false, false, false, false, false, false, false, false),
-    { solaris } ( false, true,  false, false, true,  false, false, false, false, false, false, false),
-    { qnx }     ( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { netware } ( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { openbsd } ( false, true,  true,  false, false, false, false, false, false, false, false, false),
-    { wdosx }   ( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { palmos }  ( false, false, true,  false, false, false, true,  false, false, false, false, false),
-    { macos }   ( false, false, false, true,  false, false, false, false, false, false, false, false),
-    { darwin }  ( false, true,  false, true,  false, true,  true,  true,  false, false, false, false),
-    { emx }     ( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { watcom }  ( false, true,  false, false, false ,false, false, false, false, false, false, false),
-    { morphos } ( false, false, false, true,  false ,false, false, false, false, false, false, false),
-    { netwlibc }( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { win64   } ( false, false, false, false, false, true,  false, false, false, false, false, false),
-    { wince    }( false, true,  false, false, false, false, true,  false, false, false, false, false),
-    { gba    }  ( false, false, false, false, false, false, true,  false, false, false, false, false),
-    { nds    }  ( false, false, false, false, false, false, true,  false, false, false, false, false),
-    { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, false),
-    { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false, false),
-    { haiku }   ( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { iphonesim}( false, true,  false, false, false, false, false, false, false, false, false, false),
-    { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false),
-    { android  }( false, false, false, false, false, false, true,  false, false, false, false, false)
+    { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb  mips   mipsel jvm}
+    { none }    ( false, false, false, false, false, false, false, false, false, false, false, false, false),
+    { linux }   ( false, true,  true,  true,  true,  true,  true,  true,  false, true , true , true , false),
+    { go32v2 }  ( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { win32 }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { os2 }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { freebsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false),
+    { beos }    ( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { netbsd }  ( false, true,  true,  true,  true,  false, false, false, false, false, false, false, false),
+    { amiga }   ( false, false, true,  true,  false, false, false, false, false, false, false, false, false),
+    { atari }   ( false, false, true,  false, false, false, false, false, false, false, false, false, false),
+    { solaris } ( false, true,  false, false, true,  false, false, false, false, false, false, false, false),
+    { qnx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { netware } ( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { openbsd } ( false, true,  true,  false, false, false, false, false, false, false, false, false, false),
+    { wdosx }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { palmos }  ( false, false, true,  false, false, false, true,  false, false, false, false, false, false),
+    { macos }   ( false, false, false, true,  false, false, false, false, false, false, false, false, false),
+    { darwin }  ( false, true,  false, true,  false, true,  true,  true,  false, false, false, false, false),
+    { emx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { watcom }  ( false, true,  false, false, false ,false, false, false, false, false, false, false, false),
+    { morphos } ( false, false, false, true,  false ,false, false, false, false, false, false, false, false),
+    { netwlibc }( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { win64   } ( false, false, false, false, false, true,  false, false, false, false, false, false, false),
+    { wince    }( false, true,  false, false, false, false, true,  false, false, false, false, false, false),
+    { gba    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false),
+    { nds    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false),
+    { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, false),
+    { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false, false, false),
+    { haiku }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { iphonesim}( false, true,  false, false, false, false, false, false, false, false, false, false, false),
+    { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false),
+    { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true ),
+    { android } ( false, true,  false, false, false, false, true,  false, false, false, false, false, true ),
+    { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false)
   );
 
   // Useful
@@ -1153,7 +1155,7 @@ Function OSesToString(OSes: TOSes) : String;
 Function CPUToString(CPU: TCPU) : String;
 Function CPUSToString(CPUS: TCPUS) : String;
 Function StringToOS(const S : String) : TOS;
-Function OSesToString(const S : String) : TOSes;
+//Function StringToOSes(const S : String) : TOSes;
 Function StringToCPU(const S : String) : TCPU;
 Function StringToCPUS(const S : String) : TCPUS;
 Function ModeToString(Mode: TCompilerMode) : String;
@@ -1725,8 +1727,24 @@ end;
 
 Function OSesToString(OSes: TOSes) : String;
 
+var
+  i: TOS;
+  Tmp: String;
+  First: boolean;
+
 begin
-  Result:=LowerCase(SetToString(PtypeInfo(TypeInfo(TOSes)),Integer(OSes),False));
+  { can't use SetToString, there are more than 32 OSes }
+  First:=true;
+  for i in OSes do
+    begin
+      if not First then
+        Result:=Result+','
+      else
+        First:=false;
+      Str(i,Tmp);
+      Result:=Result+Tmp;
+    end;
+  Result:=LowerCase(Tmp);
 end;
 
 Function CPUToString(CPU: TCPU) : String;
@@ -1753,12 +1771,13 @@ begin
   Result:=TOS(I);
 end;
 
-
-Function OSesToString(const S : String) : TOSes;
+(*
+Function StringToOSes(const S : String) : TOSes;
 
 begin
   Result:=TOSes(StringToSet(PTypeInfo(TypeInfo(TOSes)),S));
 end;
+*)
 
 Function StringToCPU(const S : String) : TCPU;
 
@@ -3241,7 +3260,7 @@ end;
 
 procedure TCustomDefaults.RecalcTarget;
 begin
-  Ftarget:=CPUToString(FCPU)+'-'+OStoString(FOS);
+  Ftarget:=MakeTargetString(FCPU,FOS);
   GlobalDictionary.AddVariable('target',Target);
 end;
 

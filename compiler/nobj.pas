@@ -233,6 +233,10 @@ implementation
 
       // returns true if we can stop checking, false if we have to continue
       function found_entry(var vmtpd: tprocdef; var vmtentryvis: tvisibility; updatevalues: boolean): boolean;
+{$ifdef jvm}
+        var
+          javanewtreeok: boolean;
+{$endif jvm}
         begin
           result:=false;
 
@@ -262,9 +266,16 @@ implementation
           hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[cpo_ignoreuniv,cpo_ignorehidden])>=te_equal);
 
           { check that we are not trying to override a final method }
+          { in Java, new virtual inheritance trees can never be started ->
+            treat all methods as "overriding" in the context of this check
+            (Java does check whether the mangled names are identical, so if they
+             are not we can stil get away with it) }
           if (po_finalmethod in vmtpd.procoptions) and
-             hasequalpara and (po_overridingmethod in pd.procoptions) and
-             (is_class(_class) or is_objectpascal_helper(_class)) then
+             hasequalpara and
+             ((po_overridingmethod in pd.procoptions) or
+              (is_javaclass(_class) and
+               (pd.mangledname=vmtpd.mangledname))) and
+             (is_class(_class) or is_objectpascal_helper(_class) or is_javaclass(_class)) then
             MessagePos1(pd.fileinfo,parser_e_final_can_no_be_overridden,pd.fullprocname(false))
           else
           { old definition has virtual
@@ -274,11 +285,12 @@ implementation
               not(po_virtualmethod in pd.procoptions) or
               (
                { new one does not have reintroduce in case of an objccategory }
-               (is_objccategory(_class) and not(po_reintroduce in pd.procoptions)) or
-               { new one does not have override in case of objpas/objc class/helper/intf/proto }
-               (
-                (is_class_or_interface_or_objc(_class) or is_objectpascal_helper(_class)) and
-                not is_objccategory(_class) and not(po_overridingmethod in pd.procoptions)
+               (is_objccategory(_class) and
+                 not(po_reintroduce in pd.procoptions)) or
+               { new one does not have override in case of objpas/objc/java class/intf/proto }
+               ((is_class_or_interface_or_objc_or_java(_class) or is_objectpascal_helper(_class)) and
+                not is_objccategory(_class) and
+                not(po_overridingmethod in pd.procoptions)
                )
               )
              ) then
@@ -288,8 +300,25 @@ implementation
                   hasequalpara
                  ) then
                 begin
-                  if not(po_reintroduce in pd.procoptions) then
-                    if not(is_objc_class_or_protocol(_class)) then
+{$ifdef jvm}
+                  { if the mangled names are different, the inheritance trees
+                    are different too in Java; exception: when the parent method
+                    is a virtual class method or virtual constructor, because
+                    those are looked up dynamicall by name }
+                  javanewtreeok:=
+                    is_java_class_or_interface(_class) and
+                    (pd.jvmmangledbasename(false)<>vmtpd.jvmmangledbasename(false)) and
+                    ((vmtpd.proctypeoption<>potype_constructor) and
+                     not(po_staticmethod in vmtpd.procoptions));
+{$endif}
+                  if not(po_reintroduce in pd.procoptions) and
+                     not(po_java_nonvirtual in vmtpd.procoptions) then
+                    if not(is_objc_class_or_protocol(_class))
+{$ifdef jvm}
+                       and (not is_java_class_or_interface(_class) or
+                        javanewtreeok)
+{$endif jvm}
+                       then
                       MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
                     else
                       begin
@@ -301,25 +330,53 @@ implementation
 
                           In case of external classes, we only give a hint,
                           because requiring override everywhere may make
-                          automated header translation tools too complex.  }
+                          automated header translation tools too complex.
+
+                          The same goes for Java. }
                         if not(oo_is_external in _class.objectoptions) then
                           if not is_objccategory(_class) then
-                            MessagePos1(pd.fileinfo,parser_e_must_use_override_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                            MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                           else
                             MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                         { there may be a lot of these in auto-translated
-                          heaeders, so only calculate the fulltypename if
+                          headers, so only calculate the fulltypename if
                           the hint will be shown  }
                         else if CheckVerbosity(V_Hint) then
                           if not is_objccategory(_class) then
-                            MessagePos1(pd.fileinfo,parser_h_should_use_override_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                            MessagePos1(pd.fileinfo,parser_h_should_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                           else
                             MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil));
                         { no new entry, but copy the message name if any from
                           the procdef in the parent class }
                         check_msg_str(vmtpd,pd);
+                        if updatevalues then
+                          begin
+                            { in case of Java, copy the real name from the parent,
+                              since overriding "Destroy" with "destroy" is not
+                              going to work very well }
+                            if is_java_class_or_interface(_class) and
+                               (pd.procsym.realname<>vmtpd.procsym.realname) then
+                              pd.procsym.realname:=vmtpd.procsym.realname;
+                            { in case we are overriding an abstract method,
+                              decrease the number of abstract methods in this class }
+                            if (po_abstractmethod in vmtpd.procoptions) then
+                              dec(tobjectdef(pd.owner.defowner).abstractcnt);
+                            if (vmtpd.extnumber<>i) then
+                              internalerror(2011083101);
+                            pd.extnumber:=vmtpd.extnumber;
+                            vmtpd:=pd;
+                          end;
                         result:=true;
                         exit;
+{$ifdef jvm}
+                      end
+                  else
+                    if not javanewtreeok and
+                       is_java_class_or_interface(_class) then
+                      begin
+                        { mangled names are the same -> can only override }
+                        MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+{$endif jvm}
                       end;
                   { disable/hide old VMT entry }
                   if updatevalues then
@@ -370,9 +427,21 @@ implementation
                   { override old virtual method in VMT }
                   if updatevalues then
                     begin
+                      { in case we are overriding an abstract method,
+                        decrease the number of abstract methods in this class }
+                      if (po_overridingmethod in pd.procoptions) and
+                         (po_abstractmethod in vmtpd.procoptions) then
+                        dec(tobjectdef(pd.owner.defowner).abstractcnt);
+
                       if (vmtpd.extnumber<>i) then
                         internalerror(200611084);
                       pd.extnumber:=vmtpd.extnumber;
+                      { in case of Java, copy the real name from the parent,
+                        since overriding "Destroy" with "destroy" is not
+                        going to work very well }
+                      if is_java_class_or_interface(_class) and
+                         (pd.procsym.realname<>vmtpd.procsym.realname) then
+                        pd.procsym.realname:=vmtpd.procsym.realname;
                       vmtpd:=pd;
                     end;
                   result:=true;
@@ -390,11 +459,12 @@ implementation
                      if not(po_reintroduce in pd.procoptions) then
                        begin
                          if not is_object(_class) and
-                            not is_objc_class_or_protocol(_class) then
+                            not is_objc_class_or_protocol(_class) and
+                            not is_java_class_or_interface(_class) then
                            MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
                          else
                            { objects don't allow starting a new virtual tree
-                             and neither does Objective-C }
+                             and neither do Objective-C or Java }
                            MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,vmtpd.fullprocname(false));
                        end;
                      { disable/hide old VMT entry }
@@ -487,13 +557,21 @@ implementation
                   begin
                     implprocdef:=tprocdef(tprocsym(srsym).ProcdefList[i]);
                     if (implprocdef.procsym=tprocsym(srsym)) and
-                       (compare_paras(proc.paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_comparedefaultvalue,cpo_ignoreuniv])>=te_equal) and
+                       (compare_paras(proc.paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_ignoreuniv])>=te_equal) and
                        (compare_defs(proc.returndef,implprocdef.returndef,nothingn)>=te_equal) and
                        (proc.proccalloption=implprocdef.proccalloption) and
                        (proc.proctypeoption=implprocdef.proctypeoption) and
                        ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) and
                        check_msg_str(proc,implprocdef) then
                       begin
+                        { does the interface increase the visibility of the
+                          implementing method? }
+                        if implprocdef.visibility<proc.visibility then
+{$ifdef jvm}
+                          MessagePos2(implprocdef.fileinfo,type_e_interface_lower_visibility,proc.fullprocname(false),implprocdef.fullprocname(false));
+{$else}
+                          MessagePos2(implprocdef.fileinfo,type_w_interface_lower_visibility,proc.fullprocname(false),implprocdef.fullprocname(false));
+{$endif}
                         result:=implprocdef;
                         exit;
                       end;
@@ -539,7 +617,15 @@ implementation
                 if assigned(implprocdef) then
                   begin
                     if (tobjectdef(implprocdef.struct).objecttype<>odt_objcclass) then
-                      ImplIntf.AddImplProc(implprocdef)
+                      begin
+                        { in case of Java, copy the real name from the parent,
+                          since overriding "Destroy" with "destroy" is not
+                          going to work very well }
+                        if is_javaclass(implprocdef.struct) and
+                           (implprocdef.procsym.realname<>tprocdef(def).procsym.realname) then
+                          implprocdef.procsym.realname:=tprocdef(def).procsym.realname;
+                        ImplIntf.AddImplProc(implprocdef);
+                      end
                     else
                       begin
                         { If no message name has been specified for the method
@@ -764,7 +850,8 @@ implementation
           end;
         build_interface_mappings;
         if assigned(_class.ImplementedInterfaces) and
-           not(is_objc_class_or_protocol(_class)) then
+           not(is_objc_class_or_protocol(_class)) and
+           not(is_java_class_or_interface(_class)) then
           begin
             { Optimize interface tables to reuse wrappers }
             intf_optimize_vtbls;
@@ -781,9 +868,14 @@ implementation
         ImplIntf : TImplementedInterface;
         i: longint;
       begin
-        { Find Procdefs implementing the interfaces }
+        { Find Procdefs implementing the interfaces (both Objective-C protocols
+          and Java interfaces can have multiple parent interfaces, but in that
+          case obviously no implementations are required) }
         if assigned(_class.ImplementedInterfaces) and
-           (_class.objecttype<>odt_objcprotocol) then
+           not(_class.objecttype in [odt_objcprotocol,odt_interfacejava]) and
+           // abstract java classes do not have to implement all interface
+           // methods. todo: check that non-abstract descendents do!
+           not((_class.objecttype=odt_javaclass) and (oo_is_abstract in _class.objectoptions)) then
           begin
             { Collect implementor functions into the tImplementedInterface.procdefs }
             case _class.objecttype of
@@ -795,11 +887,13 @@ implementation
                       intf_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef)
                     end;
                 end;
-              odt_objcclass:
+              odt_objcclass,
+              odt_javaclass:
                 begin
                   { Object Pascal interfaces are afterwards optimized via the
                     intf_optimize_vtbls() method, but we can't do this for
-                    protocols -> check for duplicates here already. }
+                    protocols/Java interfaces -> check for duplicates here
+                    already. }
                   handledprotocols:=tfpobjectlist.create(false);
                   for i:=0 to _class.ImplementedInterfaces.count-1 do
                     begin

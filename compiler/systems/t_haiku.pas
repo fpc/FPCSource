@@ -241,7 +241,7 @@ begin
    prtobj:=cprtobj;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,false);
   {
   if not isdll then
    LinkRes.Add('ld -o $1 $2 $3 $4 $5 $6 $7 $8 $9 \')
@@ -370,7 +370,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -401,7 +401,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
@@ -433,7 +433,7 @@ var
  begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename^);
+   Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -455,11 +455,11 @@ var
 { Write used files and libraries }
   WriteResponseFile(true,true);
 
-  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename^);
+  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
@@ -474,7 +474,7 @@ var
   if success and (cs_link_strip in current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
    end;
 

@@ -82,7 +82,7 @@ begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
   linklibgcc:=(SharedLibFiles.Find('gcc')<>nil);
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -99,7 +99,7 @@ begin
    begin
     s:=HPath.Str;
     if s<>'' then
-     LinkRes.Add('SEARCH_DIR('+(maybequoted(s))+')');
+     LinkRes.Add('SEARCH_DIR("'+s+'")');
     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
@@ -550,11 +550,11 @@ begin
      not(cs_link_separate_dbg_file in current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   if create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 
 { Write used files and libraries }
@@ -562,7 +562,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,'.elf')))));
+  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')))));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STATIC',StaticStr);
@@ -580,8 +580,8 @@ begin
 
   if success then 
    begin
-    success:=DoExec(FindUtil('elf2dol'),ChangeFileExt(current_module.exefilename^,'.elf')+' '+ 
-     current_module.exefilename^,true,false);
+    success:=DoExec(FindUtil('elf2dol'),ChangeFileExt(current_module.exefilename,'.elf')+' '+ 
+     current_module.exefilename,true,false);
    end;
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;

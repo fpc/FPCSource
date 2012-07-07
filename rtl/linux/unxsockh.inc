@@ -170,10 +170,10 @@ Const
          IPPROTO_RAW     = 255;       { Raw IP packets.  }
          IPPROTO_MAX     = 255;
 //from /usr/include/bits/in.h
-{{ Options for use with etsockopt' and etsockopt' at the IP level.
+{ Options for use with getsockopt' and setsockopt' at the IP level.
    The first word in the comment at the right is the data type used;
-   "bool" means a boolean value stored in an 	nt'.  }
-}
+   "bool" means a boolean value stored in an int'.  }
+
         IP_OPTIONS              = 4;               { ip_opts; IP per-packet options.  }
         IP_HDRINCL              = 3;               { int; Header is included with data.  }
         IP_TOS                  = 1;               { int; IP type of service and precedence.  }
@@ -227,9 +227,9 @@ Const
         IP_MAX_MEMBERSHIPS       = 20;
 
 
-{  Options for use with etsockopt' and etsockopt' at the IPv6 level.
+{  Options for use with getsockopt' and setsockopt' at the IPv6 level.
    The first word in the comment at the right is the data type used;
-   "bool" means a boolean value stored in an 	nt'.  }
+   "bool" means a boolean value stored in an int'.  }
         IPV6_ADDRFORM         = 1;
         IPV6_PKTINFO             = 2;
         IPV6_HOPOPTS             = 3;

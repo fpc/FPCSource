@@ -59,7 +59,7 @@ Unit raavrgas;
       procinfo,
       itcpugas,
       rabase,rautils,
-      cgbase,cgobj
+      cgbase,cgutils,cgobj
       ;
 
 

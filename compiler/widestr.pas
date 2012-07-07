@@ -52,7 +52,7 @@ unit widestr;
     procedure copywidestring(s,d : pcompilerwidestring);
     function asciichar2unicode(c : char) : tcompilerwidechar;
     function unicode2asciichar(c : tcompilerwidechar) : char;
-    procedure ascii2unicode(p : pchar;l : SizeInt;cp : tstringencoding;r : pcompilerwidestring);
+    procedure ascii2unicode(p : pchar;l : SizeInt;cp : tstringencoding;r : pcompilerwidestring;codepagetranslation : boolean = true);
     procedure unicode2ascii(r : pcompilerwidestring;p : pchar;cp : tstringencoding);
     function hasnonasciichars(const p: pcompilerwidestring): boolean;
     function getcharwidestring(r : pcompilerwidestring;l : SizeInt) : tcompilerwidechar;
@@ -189,7 +189,7 @@ unit widestr;
          Result := getascii(c,getmap(current_settings.sourcecodepage))[1];
       end;
 
-    procedure ascii2unicode(p : pchar;l : SizeInt;cp : tstringencoding;r : pcompilerwidestring);
+    procedure ascii2unicode(p : pchar;l : SizeInt;cp : tstringencoding;r : pcompilerwidestring;codepagetranslation : boolean = true);
       var
          source : pchar;
          dest   : tcompilerwidecharptr;
@@ -200,7 +200,8 @@ unit widestr;
          setlengthwidestring(r,l);
          source:=p;
          dest:=tcompilerwidecharptr(r^.data);
-         if (current_settings.sourcecodepage <> CP_UTF8) then
+         if (current_settings.sourcecodepage <> CP_UTF8) and
+            codepagetranslation then
            begin
              for i:=1 to l do
                 begin

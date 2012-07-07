@@ -53,7 +53,7 @@ interface
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
           m_property,m_default_inline,m_except,m_advanced_records];
-       delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage];
+       delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_hintdirective,
@@ -103,14 +103,25 @@ interface
        MathPiExtended : textendedrec = (bytes : (64,0,201,15,218,162,33,104,194,53));
 {$endif FPC_LITTLE_ENDIAN}
 {$endif}
+
        CP_UTF8 = 65001;
-       CP_UTF16 = 1200;
+       CP_UTF16LE = 1200;
+       CP_UTF16BE = 1201;
        CP_NONE  = 65535;
+
+       { by default no local variable trashing }
+       localvartrashing: longint = -1;
+
+       nroftrashvalues = 4;
+       trashintvalues: array[0..nroftrashvalues-1] of int64 = ($5555555555555555,$AAAAAAAAAAAAAAAA,$EFEFEFEFEFEFEFEF,0);
 
 
     type
-       { this is written to ppus during token recording for generics so it must be packed }
-       tsettings = packed record
+       { this is written to ppus during token recording for generics,
+         it used to required to be packed,
+         but this requirement is now obsolete,
+         as the fields are written one by one. PM 2012-06-13 }
+       tsettings = record
          alignment       : talignmentinfo;
          globalswitches  : tglobalswitches;
          targetswitches  : ttargetswitches;
@@ -339,11 +350,6 @@ interface
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
 
-       { by default no local variable trashing }
-       localvartrashing: longint = -1;
-       { actual values are defined in ncgutil.pas }
-       nroftrashvalues = 4;
-
     const
       default_settings : TSettings = (
         alignment : (
@@ -434,9 +440,18 @@ interface
         optimizecputype : cpu_mips32;
         fputype : fpu_mips2;
   {$endif mips}
+  {$ifdef jvm}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        fputype : fpu_standard;
+  {$endif jvm}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
+{$ifndef jvm}
         interfacetype : it_interfacecom;
+{$else jvm}
+        interfacetype : it_interfacejava;
+{$endif jvm}
         defproccall : pocall_default;
         sourcecodepage : 28591;
         minfpconstprec : s32real;
@@ -458,7 +473,6 @@ interface
 
     procedure DefaultReplacements(var s:ansistring);
 
-    function Shell(const command:ansistring): longint;
     function  GetEnvPChar(const envname:string):pchar;
     procedure FreeEnvPChar(p:pchar);
 
@@ -499,6 +513,11 @@ interface
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
     function floating_point_range_check_error : boolean;
+
+  { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
+  const
+    ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
+
 
 implementation
 
@@ -879,28 +898,6 @@ implementation
 {$if defined(MORPHOS) or defined(AMIGA)}
   {$define AMIGASHELL}
 {$endif}
-
-    function Shell(const command:ansistring): longint;
-      { This is already defined in the linux.ppu for linux, need for the *
-        expansion under linux }
-{$ifdef hasunix}
-      begin
-        result := Unix.fpsystem(command);
-      end;
-{$else hasunix}
-  {$ifdef amigashell}
-      begin
-        result := ExecuteProcess('',command);
-      end;
-  {$else amigashell}
-      var
-        comspec : string;
-      begin
-        comspec:=GetEnvironmentVariable('COMSPEC');
-        result := ExecuteProcess(comspec,' /C '+command);
-      end;
-   {$endif amigashell}
-{$endif hasunix}
 
 {$UNDEF AMIGASHELL}
       function is_number_float(d : double) : boolean;

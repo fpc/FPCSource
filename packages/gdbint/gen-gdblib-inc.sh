@@ -71,7 +71,7 @@ fi
 opt_handled=1
 while [ $opt_handled -eq 1 ]
 do
-  handle_option $1
+  handle_option "$1"
   if [ $opt_handled -eq 1 ] ; then
     shift
   fi

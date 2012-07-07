@@ -83,9 +83,10 @@ uses
         a_insrwi_, a_rotlwi, a_rotlwi_, a_rotlw, a_rotlw_, a_slwi, a_slwi_,
         a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
         a_clrslwi_, a_blr, a_bctr, a_blrl, a_bctrl, a_crset, a_crclr, a_crmove,
-        a_crnot, a_mt {move to special prupose reg}, a_mf {move from special purpose reg},
+        a_crnot, a_mt {move to special purpose reg}, a_mf {move from special purpose reg},
         a_nop, a_li, a_lis, a_la, a_mr, a_mr_, a_not, a_not_, a_mtcr, a_mtlr, a_mflr,
-        a_mtctr, a_mfctr, a_mftbu, a_mfxer);
+        a_mtctr, a_mfctr, a_mftbu, a_mfxer,
+        a_mfpvr, a_mfdcr, a_mtdcr, a_mfdec, mtdec);
 
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[8];
@@ -262,7 +263,8 @@ uses
 
       {# Defines the default address size for a processor, }
       OS_ADDR = OS_32;
-      {# the natural int size for a processor,             }
+      {# the natural int size for a processor,
+         has to match osuinttype/ossinttype as initialized in psystem }
       OS_INT = OS_32;
       OS_SINT = OS_S32;
       {# the maximum float size for a processor,           }
@@ -350,7 +352,7 @@ uses
       );
 
       { this is only for the generic code which is not used for this architecture }
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_NO);
+      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined

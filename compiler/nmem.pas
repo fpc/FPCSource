@@ -75,7 +75,7 @@ interface
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-         private
+         protected
           mark_read_written: boolean;
        end;
        taddrnodeclass = class of taddrnode;
@@ -183,7 +183,7 @@ implementation
                           defaultresultdef:=false;
                         end
                       else
-                        message(parser_e_cant_create_generics_of_this_type);
+                        CGMessage(parser_e_cant_create_generics_of_this_type);
                   end
                 else
                   message(parser_e_cant_create_generics_of_this_type);
@@ -193,7 +193,7 @@ implementation
             else
               resultdef:=tclassrefdef.create(left.resultdef);
           else
-            Message(parser_e_pointer_to_class_expected);
+            CGMessage(parser_e_pointer_to_class_expected);
         end;
       end;
 
@@ -232,11 +232,28 @@ implementation
                  { reused }
                  left:=nil;
                end
+             else if is_javaclass(left.resultdef) and
+                (left.nodetype<>typen) and
+                (left.resultdef.typ<>classrefdef) then
+               begin
+                 { call java.lang.Object.getClass() }
+                 vs:=search_struct_member(tobjectdef(left.resultdef),'GETCLASS');
+                 if not assigned(vs) or
+                    (tsym(vs).typ<>procsym) then
+                   internalerror(2011041901);
+                 result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[]);
+                 inserttypeconv_explicit(result,resultdef);
+                 { reused }
+                 left:=nil;
+               end
              else
                firstpass(left)
            end
          else if not is_objcclass(left.resultdef) and
-                 not is_objcclassref(left.resultdef) then
+                 not is_objcclassref(left.resultdef) and
+                 not is_javaclass(left.resultdef) and
+                 not is_javaclassref(left.resultdef) and
+                 not is_javainterface(left.resultdef) then
            begin
              if not(nf_ignore_for_wpo in flags) and
                 (not assigned(current_procinfo) or
@@ -457,11 +474,11 @@ implementation
         make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
 
         { don't allow constants, for internal use we also
-          allow taking the address of strings }
+          allow taking the address of strings and sets }
         if is_constnode(left) and
            not(
                (nf_internal in flags) and
-               (left.nodetype in [stringconstn])
+               (left.nodetype in [stringconstn,setconstn])
               ) then
          begin
            CGMessagePos(left.fileinfo,type_e_no_addr_of_constant);
@@ -472,6 +489,9 @@ implementation
           special handling }
         if (left.resultdef.typ=procdef) or
            (
+            { in case of nf_internal, follow the normal FPC semantics so that
+              we can easily get the actual address of a procvar }
+            not(nf_internal in flags) and
             (left.resultdef.typ=procvardef) and
             ((m_tp_procvar in current_settings.modeswitches) or
              (m_mac_procvar in current_settings.modeswitches))
@@ -554,7 +574,7 @@ implementation
                (tabsolutevarsym(tloadnode(hp).symtableentry).abstyp=toaddr) then
                begin
                  if nf_typedaddr in flags then
-                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,tpointerdef.create(left.resultdef))
+                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,getpointerdef(left.resultdef))
                  else
                    result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,voidpointertype);
                  exit;
@@ -565,7 +585,7 @@ implementation
                   if not(nf_typedaddr in flags) then
                     resultdef:=voidpointertype
                   else
-                    resultdef:=tpointerdef.create(left.resultdef);
+                    resultdef:=getpointerdef(left.resultdef);
                 end
             else
               CGMessage(type_e_variable_id_expected);
@@ -837,6 +857,9 @@ implementation
                                                       asizeint(Tarraydef(left.resultdef).highrange)
                                                      ))
                  else if (htype.typ=orddef) and
+                    { right can also be a variant or another type with
+                      overloaded assignment }
+                    (right.resultdef.typ=orddef) and
                     { don't try to create boolean types with custom ranges }
                     not is_boolean(right.resultdef) and
                     { ordtype determines the size of the loaded value -> make
@@ -958,11 +981,11 @@ implementation
                   st_widestring :
                     elementdef:=cwidechartype;
                   st_ansistring :
-                    elementdef:=cchartype;
+                    elementdef:=cansichartype;
                   st_longstring :
-                    elementdef:=cchartype;
+                    elementdef:=cansichartype;
                   st_shortstring :
-                    elementdef:=cchartype;
+                    elementdef:=cansichartype;
                 end;
                 if right.nodetype=rangen then
                   begin

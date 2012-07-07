@@ -52,12 +52,12 @@ implementation
        symbase,symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
        pass_1,htypechk,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
+       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,ngenutil,
        { parser }
        scanner,
        pbase,pexpr,
        { codegen }
-       cgbase,procinfo
+       cgbase
        ;
 
 
@@ -75,6 +75,8 @@ implementation
         destructorpos,
         storepos : tfileposinfo;
       begin
+        if target_info.system in systems_managed_vm then
+          message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
         p:=comp_expr(true,false);
         { calc return type }
@@ -314,7 +316,7 @@ implementation
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
                        ((m_iso in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
-                       addstatement(newstatement,initialize_data_node(cderefnode.create(ctemprefnode.create(temp))));
+                       addstatement(newstatement,cnodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp)),false));
 
                      { copy the temp to the destination }
                      addstatement(newstatement,cassignmentnode.create(
@@ -328,7 +330,7 @@ implementation
                    begin
                      { create call to fpc_finalize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) then
-                       addstatement(newstatement,finalize_data_node(cderefnode.create(p.getcopy)));
+                       addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(p.getcopy)));
 
                      { create call to fpc_freemem }
                      para := ccallparanode.create(p,nil);
@@ -352,6 +354,8 @@ implementation
         srsymtable : TSymtable;
         again  : boolean; { dummy for do_proc_call }
       begin
+        if target_info.system in systems_managed_vm then
+          message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
         p1:=factor(false,false);
         if p1.nodetype<>typen then
@@ -457,154 +461,18 @@ implementation
 
     function inline_setlength : tnode;
       var
-        paras   : tnode;
-        npara,
-        ppn     : tcallparanode;
-        dims,
-        counter : integer;
-        isarray : boolean;
-        def     : tdef;
-        destppn : tnode;
-        newstatement : tstatementnode;
-        temp    : ttempcreatenode;
-        newblock : tnode;
+        paras: tnode;
       begin
-        { for easy exiting if something goes wrong }
-        result:=cerrornode.create;
-
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
+           result:=cerrornode.create;
            CGMessage1(parser_e_wrong_parameter_size,'SetLength');
            exit;
          end;
-
-        dims:=0;
-        if assigned(paras) then
-         begin
-           { check type of lengths }
-           ppn:=tcallparanode(paras);
-           while assigned(ppn.right) do
-            begin
-              set_varstate(ppn.left,vs_read,[vsf_must_be_valid]);
-              inserttypeconv(ppn.left,sinttype);
-              inc(dims);
-              ppn:=tcallparanode(ppn.right);
-            end;
-         end;
-        if dims=0 then
-         begin
-           CGMessage1(parser_e_wrong_parameter_size,'SetLength');
-           paras.free;
-           exit;
-         end;
-        { last param must be var }
-        destppn:=ppn.left;
-        valid_for_var(destppn,true);
-        set_varstate(destppn,vs_written,[]);
-        { first param must be a string or dynamic array ...}
-        isarray:=is_dynamic_array(destppn.resultdef);
-        if not((destppn.resultdef.typ=stringdef) or
-               isarray) then
-          begin
-            { possibly generic involved? }
-            if df_generic in current_procinfo.procdef.defoptions then
-              begin
-                result.free;
-                result:=internalstatements(newstatement);
-                paras.free;
-                exit;
-              end
-            else
-              begin
-                CGMessage(type_e_mismatch);
-                paras.free;
-                exit;
-              end;
-          end;
-        { only dynamic arrays accept more dimensions }
-        if (dims>1) then
-         begin
-           if (not isarray) then
-            CGMessage(type_e_mismatch)
-           else
-            begin
-              { check if the amount of dimensions is valid }
-              def := tarraydef(destppn.resultdef).elementdef;
-              counter:=dims;
-              while counter > 1 do
-                begin
-                  if not(is_dynamic_array(def)) then
-                    begin
-                      CGMessage1(parser_e_wrong_parameter_size,'SetLength');
-                      break;
-                    end;
-                  dec(counter);
-                  def := tarraydef(def).elementdef;
-                end;
-            end;
-         end;
-
-        if isarray then
-         begin
-            { create statements with call initialize the arguments and
-              call fpc_dynarr_setlength }
-            newblock:=internalstatements(newstatement);
-
-            { get temp for array of lengths }
-            temp := ctempcreatenode.create(sinttype,dims*sinttype.size,tt_persistent,false);
-            addstatement(newstatement,temp);
-
-            { load array of lengths }
-            ppn:=tcallparanode(paras);
-            counter:=dims-1;
-            while assigned(ppn.right) do
-             begin
-               addstatement(newstatement,cassignmentnode.create(
-                   ctemprefnode.create_offset(temp,counter*sinttype.size),
-                   ppn.left));
-               ppn.left:=nil;
-               dec(counter);
-               ppn:=tcallparanode(ppn.right);
-             end;
-            { destppn is also reused }
-            ppn.left:=nil;
-
-            { create call to fpc_dynarr_setlength }
-            npara:=ccallparanode.create(caddrnode.create_internal
-                      (ctemprefnode.create(temp)),
-                   ccallparanode.create(cordconstnode.create
-                      (dims,sinttype,true),
-                   ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
-                   ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil))));
-            addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',npara));
-            addstatement(newstatement,ctempdeletenode.create(temp));
-
-            { we don't need original the callparanodes tree }
-            paras.free;
-         end
-        else if is_ansistring(destppn.resultdef) then
-         begin
-            newblock:=ccallnode.createintern(
-              'fpc_'+tstringdef(destppn.resultdef).stringtypname+'_setlength',
-              ccallparanode.create(
-                cordconstnode.create(getparaencoding(destppn.resultdef),u16inttype,true),
-                paras
-              )
-            );
-         end
-        else
-         begin
-            { we can reuse the supplied parameters }
-            newblock:=ccallnode.createintern(
-               'fpc_'+tstringdef(destppn.resultdef).stringtypname+'_setlength',paras);
-         end;
-
-        result.free;
-        result:=newblock;
+        result:=cinlinenode.create(in_setlength_x,false,paras);
       end;
 
 
@@ -655,9 +523,9 @@ implementation
         else
          begin
            if isinit then
-             newblock:=initialize_data_node(ppn.left)
+             newblock:=cnodeutils.initialize_data_node(ppn.left,true)
            else
-             newblock:=finalize_data_node(ppn.left);
+             newblock:=cnodeutils.finalize_data_node(ppn.left);
          end;
         ppn.left:=nil;
         paras.free;
@@ -680,107 +548,21 @@ implementation
 
     function inline_copy : tnode;
       var
-        copynode,
-        lowppn,
-        highppn,
-        npara,
         paras   : tnode;
-        ppn     : tcallparanode;
-        paradef : tdef;
-        counter : integer;
-      begin
         { for easy exiting if something goes wrong }
+      begin
         result := cerrornode.create;
 
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
-         begin
-           CGMessage1(parser_e_wrong_parameter_size,'Copy');
-           exit;
-         end;
-
-        { determine copy function to use based on the first argument,
-          also count the number of arguments in this loop }
-        counter:=1;
-        ppn:=tcallparanode(paras);
-        while assigned(ppn.right) do
-         begin
-           inc(counter);
-           ppn:=tcallparanode(ppn.right);
-         end;
-        paradef:=ppn.left.resultdef;
-        if is_ansistring(paradef) then
-          // set resultdef to argument def
-          copynode:=ccallnode.createinternres('fpc_ansistr_copy',paras,paradef)
-        else
-         if (is_chararray(paradef) and (paradef.size>255)) or
-            ((cs_ansistrings in current_settings.localswitches) and is_pchar(paradef)) then
-           // set resultdef to ansistring type since result will be in ansistring codepage
-           copynode:=ccallnode.createinternres('fpc_ansistr_copy',paras,getansistringdef)
-        else
-         if is_widestring(paradef) then
-           copynode:=ccallnode.createintern('fpc_widestr_copy',paras)
-        else
-         if is_unicodestring(paradef) or
-            is_widechararray(paradef) or
-            is_pwidechar(paradef) then
-           copynode:=ccallnode.createintern('fpc_unicodestr_copy',paras)
-        else
-         if is_char(paradef) then
-           copynode:=ccallnode.createintern('fpc_char_copy',paras)
-        else
-         if is_dynamic_array(paradef) then
           begin
-            { Only allow 1 or 3 arguments }
-            if (counter<>1) and (counter<>3) then
-             begin
-               CGMessage1(parser_e_wrong_parameter_size,'Copy');
-               exit;
-             end;
-
-            { create statements with call }
-
-            if (counter=3) then
-             begin
-               highppn:=tcallparanode(paras).left.getcopy;
-               lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
-             end
-            else
-             begin
-               { copy the whole array using [0..high(sizeint)] range }
-               highppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false);
-               lowppn:=cordconstnode.create(0,sinttype,false);
-             end;
-
-            { create call to fpc_dynarray_copy }
-            npara:=ccallparanode.create(highppn,
-                   ccallparanode.create(lowppn,
-                   ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(paradef),initrtti,rdt_normal)),
-                   ccallparanode.create
-                      (ctypeconvnode.create_internal(ppn.left,voidpointertype),nil))));
-            copynode:=ccallnode.createinternres('fpc_dynarray_copy',npara,paradef);
-
-            ppn.left:=nil;
-            paras.free;
-          end
-        else
-         begin
-           { generic fallback that will give an error if a wrong
-             type is passed }
-           if (counter=3) then
-             copynode:=ccallnode.createintern('fpc_shortstr_copy',paras)
-           else
-             begin
-               CGMessagePos(ppn.left.fileinfo,type_e_mismatch);
-               copynode:=cerrornode.create;
-             end
-         end;
-
+            CGMessage1(parser_e_wrong_parameter_size,'Copy');
+            exit;
+          end;
         result.free;
-        result:=copynode;
+        result:=cinlinenode.create(in_copy_x,false,paras);
       end;
 
 end.

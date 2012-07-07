@@ -1023,23 +1023,50 @@ begin
     end; { with cursor }
 end;
 
+{$DEFINE SUPPORT_MSECS}
+{$IFDEF SUPPORT_MSECS}
+const
+  IBDateOffset = 15018; //an offset from 17 Nov 1858.
+  IBSecsCount  = SecsPerDay * 10000; //count of 1/10000 seconds since midnight.
+{$ENDIF}
+
 procedure TIBConnection.GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
 var
+  {$IFNDEF SUPPORT_MSECS}
   CTime : TTm;          // C struct time
   STime : TSystemTime;  // System time
+  {$ENDIF}
   PTime : TDateTime;    // Pascal time
 begin
   case (AType and not 1) of
     SQL_TYPE_DATE :
+      {$IFNDEF SUPPORT_MSECS}
       isc_decode_sql_date(PISC_DATE(CurrBuff), @CTime);
+      {$ELSE}
+      PTime := PISC_DATE(CurrBuff)^ - IBDateOffset;
+      {$ENDIF}
     SQL_TYPE_TIME :
+      {$IFNDEF SUPPORT_MSECS}
       isc_decode_sql_time(PISC_TIME(CurrBuff), @CTime);
+      {$ELSE}
+      PTime :=  PISC_TIME(CurrBuff)^ / IBSecsCount;
+      {$ENDIF}
     SQL_TIMESTAMP :
+      begin
+      {$IFNDEF SUPPORT_MSECS}
       isc_decode_timestamp(PISC_TIMESTAMP(CurrBuff), @CTime);
+      {$ELSE}
+      PTime := ComposeDateTime(
+                  PISC_TIMESTAMP(CurrBuff)^.timestamp_date - IBDateOffset,
+                  PISC_TIMESTAMP(CurrBuff)^.timestamp_time / IBSecsCount
+               );
+      {$ENDIF}
+      end
   else
     Raise EIBDatabaseError.CreateFmt('Invalid parameter type for date Decode : %d',[(AType and not 1)]);
   end;
 
+  {$IFNDEF SUPPORT_MSECS}
   STime.Year        := CTime.tm_year + 1900;
   STime.Month       := CTime.tm_mon + 1;
   STime.Day         := CTime.tm_mday;
@@ -1049,14 +1076,18 @@ begin
   STime.Millisecond := 0;
 
   PTime := SystemTimeToDateTime(STime);
+  {$ENDIF}
   Move(PTime, Buffer^, SizeOf(PTime));
 end;
 
 procedure TIBConnection.SetDateTime(CurrBuff: pointer; PTime : TDateTime; AType : integer);
+{$IFNDEF SUPPORT_MSECS}
 var
   CTime : TTm;          // C struct time
   STime : TSystemTime;  // System time
+{$ENDIF}
 begin
+  {$IFNDEF SUPPORT_MSECS}
   DateTimeToSystemTime(PTime,STime);
   
   CTime.tm_year := STime.Year - 1900;
@@ -1065,14 +1096,29 @@ begin
   CTime.tm_hour := STime.Hour;
   CTime.tm_min  := STime.Minute;
   CTime.tm_sec  := STime.Second;
-
+  {$ENDIF}
   case (AType and not 1) of
     SQL_TYPE_DATE :
+      {$IFNDEF SUPPORT_MSECS}
       isc_encode_sql_date(@CTime, PISC_DATE(CurrBuff));
+      {$ELSE}
+      PISC_DATE(CurrBuff)^ := Trunc(PTime) + IBDateOffset;
+      {$ENDIF}
     SQL_TYPE_TIME :
+      {$IFNDEF SUPPORT_MSECS}
       isc_encode_sql_time(@CTime, PISC_TIME(CurrBuff));
+      {$ELSE}
+      PISC_TIME(CurrBuff)^ := Trunc(abs(Frac(PTime)) * IBSecsCount);
+      {$ENDIF}
     SQL_TIMESTAMP :
+      begin
+      {$IFNDEF SUPPORT_MSECS}
       isc_encode_timestamp(@CTime, PISC_TIMESTAMP(CurrBuff));
+      {$ELSE}
+      PISC_TIMESTAMP(CurrBuff)^.timestamp_date := Trunc(PTime) + IBDateOffset;
+      PISC_TIMESTAMP(CurrBuff)^.timestamp_time := Trunc(abs(Frac(PTime)) * IBSecsCount);
+      {$ENDIF}
+      end
   else
     Raise EIBDatabaseError.CreateFmt('Invalid parameter type for date encode : %d',[(AType and not 1)]);
   end;

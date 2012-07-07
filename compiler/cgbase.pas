@@ -132,6 +132,10 @@ interface
           OC_A             { greater than (unsigned)          }
         );
 
+       { indirect symbol flags }
+       tindsymflag = (is_data,is_weak);
+       tindsymflags = set of tindsymflag;
+
        { OS_NO is also used memory references with large data that can
          not be loaded in a register directly }
        TCgSize = (OS_NO,
@@ -216,7 +220,6 @@ interface
       end;
 
       { Set type definition for registers }
-      tcpuregisterset = set of byte;
       tsuperregisterset = array[byte] of set of byte;
 
       pmmshuffle = ^tmmshuffle;
@@ -259,10 +262,6 @@ interface
 
        { Invalid register number }
        RS_INVALID    = high(tsuperregister);
-
-       { Maximum number of cpu registers per register type,
-         this must fit in tcpuregisterset }
-       maxcpuregister = 32;
 
        tcgsize2size : Array[tcgsize] of integer =
          { integer values }

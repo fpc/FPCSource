@@ -175,9 +175,10 @@ begin
 end;
 
 function Fpclosedir(dirp : pdir): cint; [public, alias : 'FPC_SYSC_CLOSEDIR'];
-
 begin
-  Fpclosedir:=Fpclose(dirp^.dd_fd);
+  repeat
+    Fpclosedir:=Fpclose(dirp^.dd_fd);
+  until (Fpclosedir=0) or (errno<>ESysEINTR);
   dispose(dirp^.dd_buf);
   dispose(dirp);
 end;
@@ -318,7 +319,14 @@ begin
     end;
   end;
 {$endif}
-  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(new_action),TSysParam(old_action),TSysParam(8));
+  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),
+                          TSysParam(new_action),TSysParam(old_action),
+  {$ifdef cpumips}
+                          TSysParam(16{should be wordsinsigset})
+  {$else not cpumips}
+                          TSysParam(8)
+  {$endif not cpumips}
+                          );
 {$endif cpusparc}
 end;
 
@@ -493,15 +501,25 @@ end;
 {$else OLDMMAP}
 {$ifdef MMAP2}
 begin
+  {$if sizeof(TSysParam)>=sizeof(off_t)}
+  Fpmmap:= pointer(do_syscall(syscall_nr_mmap2,TSysParam(adr),TSysParam(len),
+    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(off)));
+  {$else off_t is larger than TsysParam }
   {$message warning need mmap64 syscall, hi(off) not used}
   Fpmmap:= pointer(do_syscall(syscall_nr_mmap2,TSysParam(adr),TSysParam(len),
     TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(lo(off))));
+ {$endif}
 end;
 {$else MMAP2}
 begin
+  {$if sizeof(TSysParam)>=sizeof(off_t)}
+  Fpmmap:= pointer(do_syscall(syscall_nr_mmap,TSysParam(adr),TSysParam(len),
+    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(off)));
+  {$else off_t is larger than TsysParam }
   {$message warning need mmap64 syscall, hi(off) not used}
   Fpmmap:= pointer(do_syscall(syscall_nr_mmap,TSysParam(adr),TSysParam(len),
     TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(lo(off))));
+ {$endif}
 end;
 {$endif MMAP2}
 {$endif OLDMMAP}
@@ -558,7 +576,14 @@ function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, al
 }
 
 begin
-  FPsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,TSysParam(how),TSysParam(nset),TSysParam(oset),TSysParam(8));
+  FPsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,TSysParam(how),
+		                    TSysParam(nset),TSysParam(oset),
+{$ifdef CPUMIPS}
+							TSysParam(16)
+{$else not CPUMIPS}
+							TSysParam(8)
+{$endif not CPUMIPS}
+					);
 end;
 
 Function FpNanoSleep(req : ptimespec;rem : ptimespec):cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];

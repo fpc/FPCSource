@@ -954,6 +954,7 @@ invalid:
     Begin
       fr := abs(Frac(d));
       tr := Trunc(d);
+      result:=0;
       case softfloat_rounding_mode of
         float_round_nearest_even:
           begin
@@ -991,6 +992,9 @@ invalid:
             result:=tr;
         float_round_to_zero:
           result:=tr;
+        else
+          { needed for jvm: result must be initialized on all paths }
+          result:=0;
       end;
     end;
 {$endif FPC_SYSTEM_HAS_ROUND}

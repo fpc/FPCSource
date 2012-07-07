@@ -61,7 +61,7 @@ Unit AoptObj;
       TRegArray = Array[byte] of tsuperregister;
 
 
-      TRegSet = Set of byte;
+      TRegSet = tcpuregisterset;
       { possible actions on an operand: read, write or modify (= read & write) }
       TOpAction = (OpAct_Read, OpAct_Write, OpAct_Modify, OpAct_Unknown);
 
@@ -164,17 +164,17 @@ Unit AoptObj;
           TInstrSinceLastMod);
         { destroy the contents of all registers }
         Procedure DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
-        { a register's contents are modified, but not destroyed (the new value }
-        { depends on the old one)                                              }
+        { a register's contents are modified, but not destroyed (the new value
+          depends on the old one)                                              }
         Procedure ModifyReg(reg: TRegister; var InstrSinceLastMod:
           TInstrSinceLastMod);
-        { an operand's contents are modified, but not destroyed (the new value }
-        { depends on the old one)                                              }
+        { an operand's contents are modified, but not destroyed (the new value
+          depends on the old one)                                              }
         Procedure ModifyOp(const oper: TOper; var InstrSinceLastMod:
           TInstrSinceLastMod);
 
-        { increase the write state of a register (call every time a register is }
-        { written to)                                                           }
+        { increase the write state of a register (call every time a register is
+          written to)                                                           }
         Procedure IncWState(Reg: TRegister);
         { increase the read state of a register (call every time a register is }
         { read from)                                                           }
@@ -262,11 +262,17 @@ Unit AoptObj;
 
         { processor independent methods }
 
+        Procedure CreateUsedRegs(var regs: TAllUsedRegs);
         Procedure ClearUsedRegs;
         Procedure UpdateUsedRegs(p : Tai);
         procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai);
         Function CopyUsedRegs(var dest : TAllUsedRegs) : boolean;
         Procedure ReleaseUsedRegs(const regs : TAllUsedRegs);
+        Function RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
+        Procedure IncludeRegInUsedRegs(reg : TRegister;var regs : TAllUsedRegs);
+        Procedure ExcludeRegFromUsedRegs(reg: TRegister;var regs : TAllUsedRegs);
+
+        Function GetAllocationString(const regs : TAllUsedRegs) : string;
 
         { returns true if the label L is found between hp and the next }
         { instruction                                                  }
@@ -325,6 +331,7 @@ Unit AoptObj;
   Implementation
 
     uses
+      cutils,
       globals,
       verbose,
       procinfo;
@@ -352,6 +359,8 @@ Unit AoptObj;
     }
     Procedure TUsedRegs.Update(p: Tai);
       Begin
+        { this code is normally not used because updating the register allocation information is done in
+          TAOptObj.UpdateUsedRegs for speed reasons }
         repeat
           while assigned(p) and
                 ((p.typ in (SkipInstr - [ait_RegAlloc])) or
@@ -778,15 +787,12 @@ Unit AoptObj;
 
       Constructor TAoptObj.create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
                                   _LabelInfo: PLabelInfo);
-      var
-        i : TRegisterType;
       Begin
         AsmL := _AsmL;
         BlockStart := _BlockStart;
         BlockEnd := _BlockEnd;
         LabelInfo := _LabelInfo;
-        for i:=low(TRegisterType) to high(TRegisterType) do
-          UsedRegs[i]:=TUsedRegs.Create(i);
+        CreateUsedRegs(UsedRegs);
       End;
 
       destructor TAOptObj.Destroy;
@@ -796,6 +802,15 @@ Unit AoptObj;
           for i:=low(TRegisterType) to high(TRegisterType) do
             UsedRegs[i].Destroy;
           inherited Destroy;
+        end;
+
+
+      procedure TAOptObj.CreateUsedRegs(var regs: TAllUsedRegs);
+        var
+          i : TRegisterType;
+        begin
+          for i:=low(TRegisterType) to high(TRegisterType) do
+            Regs[i]:=TUsedRegs.Create(i);
         end;
 
 
@@ -812,8 +827,31 @@ Unit AoptObj;
         var
           i : TRegisterType;
         begin
-          for i:=low(TRegisterType) to high(TRegisterType) do
-            UsedRegs[i].Update(p);
+          { this code is based on TUsedRegs.Update to avoid multiple passes through the asmlist,
+            the code is duplicated here }
+          repeat
+            while assigned(p) and
+                  ((p.typ in (SkipInstr - [ait_RegAlloc])) or
+                   ((p.typ = ait_label) and
+                    labelCanBeSkipped(tai_label(p))) or
+                   ((p.typ = ait_marker) and
+                    (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd]))) do
+                 p := tai(p.next);
+            while assigned(p) and
+                  (p.typ=ait_RegAlloc) Do
+              begin
+                case tai_regalloc(p).ratype of
+                  ra_alloc :
+                    Include(UsedRegs[getregtype(tai_regalloc(p).reg)].UsedRegs, getsupreg(tai_regalloc(p).reg));
+                  ra_dealloc :
+                    Exclude(UsedRegs[getregtype(tai_regalloc(p).reg)].UsedRegs, getsupreg(tai_regalloc(p).reg));
+                end;
+                p := tai(p.next);
+              end;
+          until not(assigned(p)) or
+                (not(p.typ in SkipInstr) and
+                 not((p.typ = ait_label) and
+                     labelCanBeSkipped(tai_label(p))));
         end;
 
 
@@ -835,12 +873,45 @@ Unit AoptObj;
           dest[i]:=TUsedRegs.Create_Regset(i,UsedRegs[i].GetUsedRegs);
       end;
 
+
       procedure TAOptObj.ReleaseUsedRegs(const regs: TAllUsedRegs);
         var
           i : TRegisterType;
       begin
         for i:=low(TRegisterType) to high(TRegisterType) do
           regs[i].Free;
+      end;
+
+
+      Function TAOptObj.RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
+      begin
+        result:=regs[getregtype(reg)].IsUsed(reg);
+      end;
+
+
+      procedure TAOptObj.IncludeRegInUsedRegs(reg: TRegister;
+       var regs: TAllUsedRegs);
+      begin
+        include(regs[getregtype(reg)].UsedRegs,getsupreg(Reg));
+      end;
+
+
+      procedure TAOptObj.ExcludeRegFromUsedRegs(reg: TRegister;
+       var regs: TAllUsedRegs);
+      begin
+        exclude(regs[getregtype(reg)].UsedRegs,getsupreg(Reg));
+      end;
+
+
+      function TAOptObj.GetAllocationString(const regs: TAllUsedRegs): string;
+      var
+        i : TRegisterType;
+        j : TSuperRegister;
+      begin
+        Result:='';
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          for j in regs[i].UsedRegs do
+            Result:=Result+std_regname(newreg(i,j,R_SUBWHOLE))+' ';
       end;
 
 
@@ -938,9 +1009,9 @@ Unit AoptObj;
                   Not(Tai_Label(StartPai).labsym.Is_Used))) Do
             StartPai := Tai(StartPai.Next);
           If Assigned(StartPai) And
-             (StartPai.typ = ait_regAlloc) and (tai_regalloc(StartPai).ratype=ra_alloc) Then
+             (StartPai.typ = ait_regAlloc) Then
             Begin
-              if tai_regalloc(StartPai).Reg = Reg then
+              if (tai_regalloc(StartPai).ratype=ra_alloc) and (getsupreg(tai_regalloc(StartPai).Reg) = getsupreg(Reg)) then
                begin
                  FindRegAlloc:=true;
                  exit;
@@ -1046,11 +1117,11 @@ Unit AoptObj;
                    (assigned(taicpu(p1).oper[0]^.ref^.symbol)) and
                    (taicpu(p1).oper[0]^.ref^.symbol is TAsmLabel)) or
                   conditions_equal(taicpu(p1).condition,hp.condition)) or
-                 { the next instruction after the label where the jump hp arrives}
-                 { is the opposite of hp (so this one is never taken), but after }
-                 { that one there is a branch that will be taken, so perform a   }
-                 { little hack: set p1 equal to this instruction (that's what the}
-                 { last SkipLabels is for, only works with short bool evaluation)}
+                 { the next instruction after the label where the jump hp arrives
+                   is the opposite of hp (so this one is never taken), but after
+                   that one there is a branch that will be taken, so perform a
+                   little hack: set p1 equal to this instruction (that's what the
+                   last SkipLabels is for, only works with short bool evaluation)}
                  (conditions_equal(taicpu(p1).condition,inverse_cond(hp.condition)) and
                   SkipLabels(p1,p2) and
                   (p2.typ = ait_instruction) and
@@ -1123,7 +1194,14 @@ Unit AoptObj;
         ClearUsedRegs;
         while (p <> BlockEnd) Do
           begin
+            { I'am not sure why this is done, UsedRegs should reflect the register usage before the instruction
+              If an instruction needs the information of this, it can easily create a TempUsedRegs (FK)
             UpdateUsedRegs(tai(p.next));
+            }
+{$ifdef DEBUG_OPTALLOC}
+            if p.Typ=ait_instruction then
+              InsertLLItem(tai(p.Previous),p,tai_comment.create(strpnew(GetAllocationString(UsedRegs))));
+{$endif DEBUG_OPTALLOC}
             if PeepHoleOptPass1Cpu(p) then
               continue;
             case p.Typ Of
@@ -1143,7 +1221,8 @@ Unit AoptObj;
                          (assigned(taicpu(p).oper[0]^.ref^.symbol)) and
                          (taicpu(p).oper[0]^.ref^.symbol is TAsmLabel) then
                         begin
-                          while GetNextInstruction(p, hp1) and
+                          hp2:=p;
+                          while GetNextInstruction(hp2, hp1) and
                                 (hp1.typ <> ait_label) do
                             if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
                               begin
@@ -1153,8 +1232,15 @@ Unit AoptObj;
                                    assigned(taicpu(hp1).oper[0]^.ref^.symbol) and
                                    (taicpu(hp1).oper[0]^.ref^.symbol is TAsmLabel) then
                                    TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol).decrefs;
-                                asml.remove(hp1);
-                                hp1.free;
+                                { don't kill start/end of assembler block,
+                                  no-line-info-start/end etc }
+                                if hp1.typ<>ait_marker then
+                                  begin
+                                    asml.remove(hp1);
+                                    hp1.free;
+                                  end
+                                else
+                                  hp2:=hp1;
                               end
                             else break;
                           end;

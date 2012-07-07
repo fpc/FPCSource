@@ -57,7 +57,7 @@ unit rgcpu;
   implementation
 
     uses
-      verbose, cutils,globtype,
+      verbose, cutils,globtype,globals,cpuinfo,
       cgobj,
       procinfo;
 
@@ -368,8 +368,10 @@ unit rgcpu;
         if p.typ=ait_instruction then
           begin
             case taicpu(p).opcode of
+              A_MLA,
               A_MUL:
-                add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
+                if current_settings.cputype<cpu_armv6 then
+                  add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
               A_UMULL,
               A_UMLAL,
               A_SMULL,

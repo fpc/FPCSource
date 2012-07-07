@@ -43,11 +43,12 @@
              cpu_vm,                       { 6 }
              cpu_iA64,                     { 7 }
              cpu_x86_64,                   { 8 }
-             cpu_mips,                     { 9 }
+             cpu_mipseb,                   { 9 }
              cpu_arm,                      { 10 }
              cpu_powerpc64,                { 11 }
              cpu_avr,                      { 12 }
-             cpu_mipsel                    { 13 }
+             cpu_mipsel,                   { 13 }
+             cpu_jvm                       { 14 }
        );
 
        tasmmode= (asmmode_none
@@ -142,7 +143,7 @@
              system_i386_haiku,         { 63 }
              system_arm_darwin,         { 64 }
              system_x86_64_solaris,     { 65 }
-             system_mips_linux,         { 66 }
+             system_mipseb_linux,       { 66 }
              system_mipsel_linux,       { 67 }
              system_i386_nativent,      { 68 }
              system_i386_iphonesim,     { 69 }
@@ -151,8 +152,10 @@
              system_x86_64_netbsd,      { 72 }
              system_powerpc_aix,        { 73 }
              system_powerpc64_aix,      { 74 }
-             system_arm_android,        { 75 }
-             system_i386_android        { 76 }
+             system_jvm_java32,         { 75 }
+             system_jvm_android32,      { 76 }
+             system_arm_android,        { 77 }
+             system_i386_android        { 78 }
        );
 
      type
@@ -187,6 +190,7 @@
              ,as_powerpc_vasm
              ,as_i386_nlmcoff
              ,as_powerpc_xcoff
+             ,as_jvm_jasmin
        );
 
        tar = (ar_none
@@ -201,13 +205,14 @@
             ,res_m68k_palmos,res_m68k_mpw
             ,res_powerpc_mpw,res_elf,res_xcoff
             ,res_win64_gorc, res_macho, res_ext
+            ,res_jvm_raw
        );
 
        tresinfoflags = (res_external_file,res_arch_in_file_name
-            ,res_single_file);
+            ,res_single_file,res_no_compile);
 
        tdbg = (dbg_none
-            ,dbg_stabs,dbg_stabx,dbg_dwarf2,dbg_dwarf3,dbg_dwarf4
+            ,dbg_stabs,dbg_stabx,dbg_dwarf2,dbg_dwarf3,dbg_dwarf4,dbg_jasmin
        );
 
        tscripttype = (script_none

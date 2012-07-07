@@ -152,7 +152,8 @@ type
     vis_strictprotected,
     vis_protected,
     vis_public,
-    vis_published
+    vis_published,
+    vis_none
   );
 
   { symbol options }
@@ -322,7 +323,18 @@ type
        simply not see the frame pointer parameter, and since the caller cleans
        up the stack will also remain balanced) }
     po_delphi_nested_cc,
-    po_rtlproc
+    { allows the routine's RawByteString var/out parameters to accept parameters
+      that do not match exactly (without typeconversion) }
+    po_rtlproc,
+    { Non-virtual method of a Java class that has been transformed into a
+      "virtual; final;" method for JVM-implementation reasons }
+    po_java_nonvirtual,
+    { automatically inherited routine from parent class, ignore for resolving
+      overloads (on the JVM target, constructors are not automatically
+      inherited, so we explicitly have to add the constructors of the parent
+      class to the child class; this influences the overload resolution logic
+      though, so ignore them there) }
+    po_ignore_for_overload_resolution
   );
   tprocoptions=set of tprocoption;
 
@@ -339,7 +351,9 @@ type
     odt_objcclass,
     odt_objcprotocol,
     odt_objccategory, { note that these are changed into odt_class afterwards }
-    odt_helper
+    odt_helper,
+    odt_javaclass,
+    odt_interfacejava
   );
 
   { defines the type of the extended "structure"; only used for parsing }
@@ -384,7 +398,9 @@ type
     oo_is_formal,         { the class is only formally defined in this module (x = objcclass; external [name 'x'];) }
     oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
     oo_has_class_constructor, { the object/class has a class constructor }
-    oo_has_class_destructor   { the object/class has a class destructor  }
+    oo_has_class_destructor,  { the object/class has a class destructor  }
+    oo_is_enum_class,     { the class represents an enum (JVM) }
+    oo_has_new_destructor { the object/class declares a destructor (apart from potentially inherting one from the parent) }
   );
   tobjectoptions=set of tobjectoption;
 
@@ -524,7 +540,7 @@ type
     vs_referred_not_inited,vs_written,vs_readwritten
   );
 
-  tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_constref);
+  tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_constref,vs_final);
 
   absolutetyp = (tovar,toasm,toaddr);
 
@@ -590,9 +606,16 @@ var
   cdecl_pocalls      : tproccalloptions;
 
 const
+{$ifndef jvm}
    inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,
                 oo_has_strictprotected,oo_has_strictprivate,oo_has_constructor,oo_has_destructor,
                 oo_can_have_published];
+{$else not jvm}
+{ constructors are not inherited in Java }
+inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,
+             oo_has_strictprotected,oo_has_strictprivate,oo_has_destructor,
+             oo_can_have_published];
+{$endif not jvm}
 
 {$ifdef i386}
    { we only take this into account on i386, on other platforms we always
@@ -622,9 +645,15 @@ const
 
      visibilityName : array[tvisibility] of string[16] = (
        'hidden','strict private','private','strict protected','protected',
-       'public','published'
+       'public','published',''
      );
 
+
+{$ifndef jvm}
+     default_class_type=odt_class;
+{$else not jvm}
+     default_class_type=odt_javaclass;
+{$endif not jvm}
 
 { !! Be sure to keep these in sync with ones in rtl/inc/varianth.inc }
       varempty = 0;

@@ -545,7 +545,7 @@ begin
 {$ifdef CPU64}
   Fppread:=do_syscall(syscall_nr_pread64,Fd,TSysParam(buf),nbytes,TSysParam(OffSet));
 {$else}
-{$ifdef CPUMIPS32}
+{$if defined(CPUMIPS32) or defined(CPUMIPSEL32)}
   Fppread:=do_syscall(syscall_nr_pread64,Fd,TSysParam(buf),nbytes,0,  { align parameters as required with dummy }
     {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
@@ -566,7 +566,7 @@ begin
 {$ifdef CPU64}
   Fppwrite:=do_syscall(syscall_nr_pwrite64,Fd,TSysParam(buf),nbytes,TSysParam(OffSet));
 {$else}
-{$ifdef CPUMIPS32}
+{$if defined(CPUMIPS32) or defined(CPUMIPSEL32)}
 Fppwrite:=do_syscall(syscall_nr_pwrite64,Fd,TSysParam(buf),nbytes,0,  { align parameters as required with dummy }
   {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
   {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}

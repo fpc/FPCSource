@@ -9,6 +9,9 @@ fpcpackage=y
 fpcdir=..
 rule=allexectests
 
+[target]
+programs=gparmake
+
 [rules]
 unexport FPC_VERSION
 
@@ -32,6 +35,11 @@ endif
 ifndef TEST_OPT
 TEST_OPT=
 endif
+
+# disable directory cache; completely loading all directories significantly
+# slows down running the testsuite because the programs use very few units
+# and most testsuite directories contain thousands of files
+override TEST_OPT+=-Fd
 
 # Retrieve Test compiler info
 ifndef TEST_FPC_VERSION
@@ -133,6 +141,9 @@ ifndef LOG
 export LOG:=$(TEST_OUTPUTDIR)/log
 endif
 
+# locations of all logfiles
+LOGFILES=$(TEST_OUTPUTDIR)/log $(TEST_OUTPUTDIR)/longlog $(TEST_OUTPUTDIR)/faillist
+LOGEXT=.testlog .tbslog .tbflog .webtbslog .webtbflog
 
 # Subdirs available in the test subdir
 TESTSUBDIRS=cg cg/variants cg/cdecl library opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils units/matrix units/lineinfo
@@ -144,10 +155,15 @@ else
 override TESTSUBDIRS+=$(TESTPACKAGESUBDIRS) alglib
 endif
 
+# number of tests to run per (potentially parallel) chunk/dotest invocation
+ifndef CHUNKSIZE
+export CHUNKSIZE:=100
+endif
+
 # All full dirnames in the test/ dir including the subdir self
 TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
 
-.PHONY: utils units copyfiles testprep
+.PHONY: utils tstunits copyfiles testprep
 
 ################################
 # Utilities
@@ -167,6 +183,14 @@ ifndef DOTEST
 DOTEST=utils/dotest
 endif
 
+ifndef CONCAT
+CONCAT=utils/concat
+endif
+
+ifndef GPARMAKE
+GPARMAKE=./gparmake$(EXEEXT)
+endif
+
 ifndef PREPUP
 PREPUP=utils/prepup
 endif
@@ -176,8 +200,8 @@ endif
 # Units
 #
 
-units:
-        $(MAKE) -C units FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) OPT="$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
+tstunits:
+        $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) OPT="$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
 
 ################################
 # Copy test environment dependent files ctest.o, cext3.o, cext4.o to test/cg etc
@@ -228,15 +252,14 @@ copyfiles: $(TEST_OUTPUTDIR)
         -$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
         -$(COPY) $(CPP_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
-        $(COPY) test/units/system/test*.txt $(TEST_OUTPUTDIR)/test/units/system
 
 ################################
 # Preparation for tests
 #
 
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
-testprep-stamp.$(TEST_FULL_TARGET): $(TEST_OUTPUTDIR) utils units copyfiles
-        $(ECHO) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
+testprep-stamp.$(TEST_FULL_TARGET): utils tstunits copyfiles
+        $(ECHOREDIR) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
 
 $(TEST_OUTPUTDIR):
         $(MKDIRTREE) $@
@@ -346,15 +369,27 @@ vpath %.log $(TEST_OUTPUTDIR)
 vpath %.elg $(TEST_OUTPUTDIR)
 vpath %.o $(C_SUBDIR)
 
-%.log : %.pp
+ifdef SINGLEDOTESTRUNS
+TBSREQ=$(patsubst %.pp,%.elg,$(sort $(wildcard tbs/t*.pp)))
+TBFREQ=$(patsubst %.pp,%.elg,$(sort $(wildcard tbf/t*.pp)))
+WEBTBSREQ=$(patsubst %.pp,%.elg,$(sort $(wildcard webtbs/t*.pp)))
+WEBTBFREQ=$(patsubst %.pp,%.elg,$(sort $(wildcard webtbf/t*.pp)))
+TESTREQ=$(patsubst %.pp,%.elg,$(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))))
+else
+TBSREQ=$(TEST_OUTPUTDIR)/tbsdir-stamp.$(TEST_FULL_TARGET)
+TBFREQ=$(TEST_OUTPUTDIR)/tbfdir-stamp.$(TEST_FULL_TARGET)
+WEBTBSREQ=$(TEST_OUTPUTDIR)/webtbsdir-stamp.$(TEST_FULL_TARGET)
+WEBTBFREQ=$(TEST_OUTPUTDIR)/webtbfdir-stamp.$(TEST_FULL_TARGET)
+TESTREQ=$(TEST_OUTPUTDIR)/testdir-stamp.$(TEST_FULL_TARGET)
+endif
+
+%.log : %.pp testprep-stamp.$(TEST_FULL_TARGET)
 	$(call QECHO,"  COMPILE $<")
 	$(Q)$(DOTEST) $(DOTESTOPT) $<
 
-%.elg : %.pp
+%.elg : %.pp testprep-stamp.$(TEST_FULL_TARGET)
 	$(call QECHO,"  EXECUTE $<")
-ifdef SINGLEDOTESTRUNS
 	$(Q)$(DOTEST) $(DOTESTOPT) -e $<
-endif
 
 ifdef TEST_CCOMPILER
 %.o : %.c
@@ -387,34 +422,88 @@ alltests: alltest alltbs alltbf allwebtbs allwebtbf
 # Compile and Run tests
 #
 
+ifdef SINGLEDOTESTRUNS
 .PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectests
 
-allexectbs : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard tbs/t*.pp)))
-ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard tbs/t*.pp))
+allexectbs: $(addsuffix .tbslog, $(LOGFILES))
+allexectbf: $(addsuffix .tbflog, $(LOGFILES))
+allexecwebtbs: $(addsuffix .webtbslog, $(LOGFILES))
+allexecwebtbf: $(addsuffix .webtbflog, $(LOGFILES))
+allexectest: $(addsuffix .testlog, $(LOGFILES))
+
+$(TEST_OUTPUTDIR)/%.mergedlog : $(TEST_OUTPUTDIR)/%.testlog $(TEST_OUTPUTDIR)/%.tbslog $(TEST_OUTPUTDIR)/%.tbflog $(TEST_OUTPUTDIR)/%.webtbslog $(TEST_OUTPUTDIR)/%.webtbflog
+	$(Q)$(CONCAT) $^ $@
+	$(Q)$(COPY) $@ $(basename $@)
+
+$(TEST_OUTPUTDIR)/%.tbslog : $(TBSREQ)
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/faillist.tbslog
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.tbslog
+
+$(TEST_OUTPUTDIR)/%.tbflog : $(TBFREQ)
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/faillist.tbflog
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.tbflog
+
+$(TEST_OUTPUTDIR)/%.webtbslog : $(WEBTBSREQ)
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/faillist.webtbslog
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.webtbslog
+
+$(TEST_OUTPUTDIR)/%.webtbflog : $(WEBTBFREQ)
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/faillist.webtbflog
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.webtbflog
+
+$(TEST_OUTPUTDIR)/%.testlog : $(TESTREQ)
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/faillist.testlog
+	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.testlog
+
+# run all tests, then merge log files
+allexectests:  $(TEST_OUTPUTDIR)/log.testlog $(TEST_OUTPUTDIR)/log.tbslog $(TEST_OUTPUTDIR)/log.tbflog $(TEST_OUTPUTDIR)/log.webtbslog $(TEST_OUTPUTDIR)/log.webtbflog $(addprefix $(TEST_OUTPUTDIR)/,$(foreach EXT, $(LOGEXT), $(addsuffix $(EXT), faillist longlog))) $(addsuffix .mergedlog, $(LOGFILES))
+
+# SINGLEDOTESTRUNS
+else
+
+.PHONY: allexectests
+
+$(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
+        $(FPC) $(FPC_OPT) -FE. utils/gparmake.pp
+
+# Can't have testprep as prerequisite, because that is a phony target and
+# phony targets are always remade. Since the makefile will be reparsed 
+# after making the MakeChunks file (because it has to be included) and all
+# up-to-date checks will be re-evaluated, this means that the testprep rule
+# (or testprep timestamp file, which depends on phony rules and hence has
+# the same behaviour) will always be considered newer than the MakeChunks
+# file and hence the MakeChunks will be regenerated in an infinite loop
+# (although some make versions appear to contain a bug that prevents this
+# from happening)
+# As a result, we list TEST_OUTPUTDIR as a dependency (that just creates
+# the directory) and have an explicit rule to build GPARMAKE rather than
+# building it via the utils Makefile
+$(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc: $(GPARMAKE) $(TEST_OUTPUTDIR)
+# generate rules for parallel executions of dotest
+	$(Q)$(GPARMAKE) $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc 1 $(CHUNKSIZE) $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+	$(Q)$(GPARMAKE) -a $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc 100000 $(CHUNKSIZE) $(sort $(wildcard tbs/t*.pp))
+	$(Q)$(GPARMAKE) -a $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc 150000 $(CHUNKSIZE) $(sort $(wildcard tbf/t*.pp))
+	$(Q)$(GPARMAKE) -a $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc 200000 $(CHUNKSIZE) $(sort $(wildcard webtbs/t*.pp))
+	$(Q)$(GPARMAKE) -a $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc 300000 $(CHUNKSIZE) $(sort $(wildcard webtbf/t*.pp))
+
+
+# only include the targets to compile/run the tests when we want to
+# run them (in particular: not when cleaning)
+ifneq (,$(findstring all,$(MAKECMDGOALS)))
+# incude the rules we just generated
+include $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
 endif
 
-allexectbf : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard tbf/t*.pp)))
-ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard tbf/t*.pp))
-endif
 
-allexecwebtbs : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard webtbs/t*.pp)))
-ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard webtbs/t*.pp))
-endif
 
-allexecwebtbf : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard webtbf/t*.pp)))
-ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard webtbf/t*.pp))
-endif
+# this is pretty cool: MakeChunks-$(TEST_TARGETSUFFIX).inc will contain additional prerequisites
+# for the allexectests target, and after it is generated it will be included by the above "include"
+# statement, and those additional prerquisites will be added on the fly and also be evaluated
+allexectests: $(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
 
-allexectest : testprep $(patsubst %.pp,%.elg,$(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))))
-ifndef SINGLEDOTESTRUNS
-	$(Q)$(DOTEST) $(DOTESTOPT) -e $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+# SINGLEDOTESTRUNS
 endif
-
-allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
+  
 
 ################################
 # Clean
@@ -428,17 +517,16 @@ clean_sources:
 
 clean_test:
         -$(DELTREE) $(TEST_OUTPUTDIR)
-        -$(DEL) $(LOG) $(LONGLOG) $(FAILLIST)
         -$(DEL) core gmon.out testprep-stamp.$(TEST_FULL_TARGET) dotgz.bat
 
-clean: clean_sources
+clean: clean_sources fpc_clean
         $(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
-        $(MAKE) -C units clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
+        $(MAKE) -C tstunits clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
 
 distclean: clean fpc_distclean
         $(DELTREE) output
         $(MAKE) -C utils distclean
-        $(MAKE) -C units distclean
+        $(MAKE) -C tstunits distclean
         -$(DEL) testprep-stamp.*
 
 #cleanall: clean
@@ -540,9 +628,16 @@ endif
 
 all : allexectests
 
-full : clean allexectests digest
+full :
+	$(MAKE) clean
+	$(MAKE) allexectests
+	$(MAKE) digest
 
-fulldb : clean allexectests digest uploadrun
+fulldb :
+	$(MAKE) clean
+	$(MAKE) allexectests
+	$(MAKE) digest
+	$(MAKE) uploadrun
 
 tarfile : $(TEST_OUTPUTDIR)/$(DB_TARGZ)
 

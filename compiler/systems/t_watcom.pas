@@ -76,7 +76,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
 
   { Write object files, start with prt0 }
   LinkRes.Add('file '+GetShortName(FindObjectFile('prt0','',false)));
@@ -139,7 +139,7 @@ var
   StripStr : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StripStr:='debug dwarf all';
@@ -151,7 +151,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);

@@ -27,6 +27,7 @@ begin
     P.Email := '';
     P.Description := 'Image loading and conversion parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
+    P.OSes := P.OSes - [nativent];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -86,6 +87,7 @@ begin
           AddInclude('fphandler.inc');
           AddInclude('fppalette.inc');
           AddInclude('fpcolcnv.inc');
+          AddInclude('fpcompactimg.inc');
         end;
     T:=P.Targets.AddUnit('fpimgcanv.pp');
       with T.Dependencies do
@@ -259,7 +261,10 @@ begin
           AddUnit('fpcanvas');
         end;
     T:=P.Targets.AddUnit('targacmn.pp');
-
+    T:=P.Targets.AddUnit('fpimggauss.pp');
+    With T.Dependencies do
+      AddUnit('fpimage'); 
+                  
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('drawing.pp');
     T:=P.Targets.AddExampleProgram('imgconv.pp');

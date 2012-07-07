@@ -133,7 +133,7 @@ uses
     procedure Tresourcestrings.CreateResourceStringData;
       Var
         namelab,
-        valuelab : tasmlabel;
+        valuelab : tasmlabofs;
         resstrlab : tasmsymbol;
         endsymlab : tasmsymbol;
         R : TResourceStringItem;
@@ -151,7 +151,7 @@ uses
 
         { Write unitname entry }
         namelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),getansistringcodepage,False);
-        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(namelab));
+        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.Create_sym_offset(namelab.lab,namelab.ofs));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));
@@ -168,7 +168,10 @@ uses
             if assigned(R.value) and (R.len<>0) then
               valuelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],R.Value,R.Len,getansistringcodepage,False)
             else
-              valuelab:=nil;
+              begin
+                valuelab.lab:=nil;
+                valuelab.ofs:=0;
+              end;
             { Append the name as a ansistring. }
             current_asmdata.asmlists[al_const].concat(cai_align.Create(const_align(sizeof(pint))));
             namelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],@R.Name[1],length(R.name),getansistringcodepage,False);
@@ -185,9 +188,9 @@ uses
             new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'2_'+r.name),sizeof(pint));
             resstrlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',R.Sym.owner,R.Sym.name),AB_GLOBAL,AT_DATA);
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol.Create_global(resstrlab,0));
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(namelab));
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(valuelab));
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(valuelab));
+            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.Create_sym_offset(namelab.lab,namelab.ofs));
+            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.Create_sym_offset(valuelab.lab,valuelab.ofs));
+            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.Create_sym_offset(valuelab.lab,valuelab.ofs));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(longint(R.Hash)));
 {$ifdef cpu64bitaddr}
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));
@@ -230,7 +233,7 @@ uses
         end;
 
       begin
-        ResFileName:=ChangeFileExt(current_module.ppufilename^,'.rst');
+        ResFileName:=ChangeFileExt(current_module.ppufilename,'.rst');
         message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
         Assign(F,ResFileName);
         {$push}{$i-}

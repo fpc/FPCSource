@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1999-2010 by Peter Vreman, Michael Van Canneyt
+    Copyright (c) 1999-2012 by Peter Vreman, Michael Van Canneyt
 
     Deletes all files generated for Pascal (*.exe,units,objects,libs)
 
@@ -20,14 +20,15 @@
  ****************************************************************************}
 program Delp;
 
+{$mode ObjFPC}{$H+}
+
 uses
-  dos,getopts;
+  Sysutils,getopts;
 
 const
-  Version   = 'Version 1.2';
+  Version   = 'Version 1.3';
   Title     = 'DelPascal';
-  Copyright = 'Copyright (c) 1999-2010 by the Free Pascal Development Team';
-
+  Copyright = 'Copyright (c) 1999-2012 by the Free Pascal Development Team';
 
 function DStr(l:longint):string;
 var
@@ -45,32 +46,19 @@ begin
   DStr:=TmpStr;
 end;
 
-
-Procedure EraseFile(Const HStr:String);
-var
-  f : file;
+procedure dosfsplit(path:ansistring;var dir,name,ext:ansistring);
+// implementation of dos.fsplit on top of sysutils routines to avoid
+// path length issues.
+// a lot of old tooling uses fsplit, maybe move this to sysutils?
 begin
-  Assign(f,Hstr);
-  {$I-}
-   Erase(f);
-  {$I+}
-  if ioresult<>0 then;
+  dir:=extractfiledir(dir);
+  name:=changefileext(extractfilename(path),'');
+  ext:=extractfileext(path);
+  if (length(ext)>0) and (ext[1]='.') then
+    delete(ext,1,1);
 end;
 
-
 function MatchesMask(What, Mask: string): boolean;
-
-  function upper(const s : string) : string;
-  var
-    i  : longint;
-  begin
-     for i:=1 to length(s) do
-      if s[i] in ['a'..'z'] then
-       upper[i]:=char(byte(s[i])-32)
-      else
-       upper[i]:=s[i];
-     upper[0]:=s[0];
-  end;
 
   Function CmpStr(const hstr1,hstr2:string):boolean;
   var
@@ -117,16 +105,16 @@ function MatchesMask(What, Mask: string): boolean;
   end;
 
 var
-  D1,D2 : DirStr;
-  N1,N2 : NameStr;
-  E1,E2 : Extstr;
+  D1,D2 : ansistring;
+  N1,N2 : ansistring;
+  E1,E2 : ansistring;
 begin
 {$ifdef Unix}
-  FSplit(What,D1,N1,E1);
-  FSplit(Mask,D2,N2,E2);
+  DosFSplit(What,D1,N1,E1);
+  DosFSplit(Mask,D2,N2,E2);
 {$else}
-  FSplit(Upper(What),D1,N1,E1);
-  FSplit(Upper(Mask),D2,N2,E2);
+  DosFSplit(Uppercase(What),D1,N1,E1);
+  DosFSplit(Uppercase(Mask),D2,N2,E2);
 {$endif}
   MatchesMask:=CmpStr(N2,N1) and CmpStr(E2,E1);
 end;
@@ -191,9 +179,8 @@ begin
   Until C=EndOfOptions;
 end;
 
-
 var
-  Dir    : Searchrec;
+  Dir    : TSearchrec;
   Total  : longint;
   hp     : pmaskitem;
   found  : boolean;
@@ -231,24 +218,24 @@ begin
     BaseDir:=Paramstr(I);
     If BaseDir[Length(BaseDir)]<>DirectorySeparator then
       BaseDir:=BaseDir+DirectorySeparator;
-    FindFirst(basedir+'*.*',anyfile,Dir);
-    while (doserror=0) do
-      begin
-      hp:=masklist;
-      while assigned(hp) do
-        begin
-        if MatchesMask(Dir.Name,hp^.mask) then
-          begin
-          EraseFile(BaseDir+Dir.Name);
-          inc(hp^.Files);
-          inc(hp^.Size,Dir.Size);
-          break;
-          end;
-        hp:=hp^.next;
-        end;
-        FindNext(Dir);
+    if FindFirst(basedir+'*.*',faanyfile,Dir)=0 then
+     begin
+       repeat
+         hp:=masklist;
+         while assigned(hp) do
+           begin
+             if MatchesMask(Dir.Name,hp^.mask) then
+               begin
+                 DeleteFile(BaseDir+Dir.Name);
+                 inc(hp^.Files);
+                 inc(hp^.Size,Dir.Size);
+                 break;
+               end;
+             hp:=hp^.next;
+           end;
+        until FindNext(Dir)<>0;
+        FindClose(Dir);
       end;
-    FindClose(Dir);
     Inc(I);
     end;
   { Write Results }

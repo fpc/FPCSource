@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=cprt0 crti crtn
-units=system dos objpas objects strings \
+units=system uuchar dos objpas objects strings \
       sysutils typinfo math \
       cpu mmx getopts heaptrc lineinfo posix
 rsts=math typinfo
@@ -36,6 +36,7 @@ POSIXINC=$(RTL)/posix
 SYSCALLINC=$(RTL)/qnx/$(CPU_TARGET)
 
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -94,6 +95,8 @@ dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) -Us -Sg system.pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt07 prt09 cprt07 cprt09
-units=$(SYSTEMUNIT) objpas macpas iso7185 strings \
+units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
 #      dos \
       sysutils \
       classes math typinfo varutils fmtbcd ctypes \
@@ -94,6 +94,8 @@ cprt09$(OEXT) : cprt09.as
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)

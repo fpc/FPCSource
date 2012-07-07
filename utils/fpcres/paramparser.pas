@@ -48,9 +48,9 @@ type
 
     procedure ParseInputFiles(aList : TStringList; var index : integer; const parname : string);
     procedure ParseOutputFile(aList : TStringList; var index : integer; const parname : string);
-    procedure ParseOutputFormat(aList : TStringList; var index : integer; const parname : string);
-    procedure ParseArchitecture(aList : TStringList; var index : integer; const parname : string);
-    procedure ParseSubArchitecture(aList : TStringList; var index : integer; const parname : string);
+    procedure ParseOutputFormat(aList : TStringList; var index : integer; const parname : string);virtual;
+    procedure ParseArchitecture(aList : TStringList; var index : integer; const parname : string);virtual;
+    procedure ParseSubArchitecture(aList : TStringList; var index : integer; const parname : string);virtual;
     procedure ParseConfigFile(aList : TStringList; var index : integer; const parname : string);
     function DoOptionalArgument(aList : TStringList; const i : integer) : string;
     function DoMandatoryArgument(aList : TStringList; const i : integer) : string;

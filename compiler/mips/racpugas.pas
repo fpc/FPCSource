@@ -639,7 +639,7 @@ Interface
           begin
             { we can search here without an extra table which is sorted by string length
               because we take the whole remaining string without the leading B }
-            actopcode := A_B;
+            actopcode := A_BC;
             for cond:=low(TAsmCond) to high(TAsmCond) do
               if (Upper(copy(s,2,length(s)-1))=Upper(Cond2Str[cond])) then
                 begin

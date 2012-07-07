@@ -644,7 +644,7 @@ implementation
       constdef : taiconst_type;
       s,t      : string;
       i,pos,l  : longint;
-      InlineLevel : longint;
+      InlineLevel : cardinal;
       last_align : longint;
       co       : comp;
       sin      : single;
@@ -1247,8 +1247,23 @@ implementation
                AsmWriteLn(#9'.thumb_func');
              end;
 {$endif arm}
-
-           ait_symbol_end :
+           ait_ent:
+             begin
+               AsmWrite(#9'.ent'#9);
+			   if replaceforbidden then
+                 AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_ent(hp).Name))
+               else
+                 AsmWriteLn(tai_ent(hp).Name);
+             end;
+           ait_ent_end:
+             begin
+               AsmWrite(#9'.end'#9);
+			   if replaceforbidden then
+                 AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_ent_end(hp).Name))
+               else
+  			     AsmWriteLn(tai_ent_end(hp).Name);
+             end;
+            ait_symbol_end :
              begin
                if tf_needs_symbol_size in target_info.flags then
                 begin
@@ -1516,12 +1531,12 @@ implementation
       i: longint;
     begin
 {$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
-       Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource^);
+      if current_module.mainsource<>'' then
+       Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource);
 {$endif}
 
-      if assigned(current_module.mainsource) then
-        n:=ExtractFileName(current_module.mainsource^)
+      if current_module.mainsource<>'' then
+        n:=ExtractFileName(current_module.mainsource)
       else
         n:=InputFileName;
 
@@ -1560,8 +1575,8 @@ implementation
 
       AsmLn;
 {$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
-       Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource^);
+      if current_module.mainsource<>'' then
+       Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
     end;
 

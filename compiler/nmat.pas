@@ -34,11 +34,10 @@ interface
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean) : tnode;override;
          protected
-{$ifndef cpu64bitalu}
           { override the following if you want to implement }
           { parts explicitely in the code generator (JM)    }
+          function use_moddiv64bitint_helper: boolean; virtual;
           function first_moddiv64bitint: tnode; virtual;
-{$endif not cpu64bitalu}
           function firstoptimize: tnode; virtual;
           function first_moddivint: tnode; virtual;
        end;
@@ -166,6 +165,22 @@ implementation
                 result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
             end;
          end;
+      end;
+
+
+    function tmoddivnode.use_moddiv64bitint_helper: boolean;
+      begin
+        { not with an ifdef around the call to this routine, because e.g. the
+          Java VM has a signed 64 bit division opcode, but not an unsigned
+          one }
+{$ifdef cpu64bitalu}
+        result:=false;
+{$else cpu64bitalu}
+        result:=
+          (left.resultdef.typ=orddef) and
+          (right.resultdef.typ=orddef) and
+          (is_64bitint(left.resultdef) or is_64bitint(right.resultdef));
+{$endif cpu64bitaly}
       end;
 
 
@@ -387,7 +402,6 @@ implementation
 {$endif cpuneedsdiv32helper}
 
 
-{$ifndef cpu64bitalu}
     function tmoddivnode.first_moddiv64bitint: tnode;
       var
         procname: string[31];
@@ -420,7 +434,6 @@ implementation
         right := nil;
         firstpass(result);
       end;
-{$endif not cpu64bitalu}
 
 
     function tmoddivnode.firstoptimize: tnode;
@@ -510,11 +523,8 @@ implementation
          if assigned(result) then
            exit;
 
-{$ifndef cpu64bitalu}
          { 64bit }
-         if (left.resultdef.typ=orddef) and
-            (right.resultdef.typ=orddef) and
-            (is_64bitint(left.resultdef) or is_64bitint(right.resultdef)) then
+         if use_moddiv64bitint_helper then
            begin
              result := first_moddiv64bitint;
              if assigned(result) then
@@ -522,7 +532,6 @@ implementation
              expectloc:=LOC_REGISTER;
            end
          else
-{$endif not cpu64bitalu}
            begin
              result := first_moddivint;
              if assigned(result) then
@@ -581,10 +590,6 @@ implementation
               exit;
            end;
 
-         result:=simplify(false);
-         if assigned(result) then
-           exit;
-
 {$ifdef cpunodefaultint}
          { for small cpus we use the smallest common type }
          if (left.resultdef.typ=orddef) and (right.resultdef.typ=orddef) then
@@ -623,6 +628,10 @@ implementation
 {$endif cpunodefaultint}
 
          resultdef:=left.resultdef;
+
+         result:=simplify(false);
+         if assigned(result) then
+           exit;
       end;
 
 

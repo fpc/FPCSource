@@ -54,7 +54,8 @@ implementation
       cgbase,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,ncgutil,cgobj,cgutils;
+      cga,ncgutil,cgobj,cgutils,
+      hlcgobj;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -94,7 +95,7 @@ implementation
           internalerror(200109052);
         { put numerator in register }
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        location_force_reg(current_asmdata.CurrAsmList,left.location,location.size,false);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         hreg1:=left.location.register;
 
         if (nodetype=divn) and (right.nodetype=ordconstn) then
@@ -336,7 +337,7 @@ implementation
             else
               begin
                 hreg1:=cg.getintregister(current_asmdata.CurrAsmList,right.location.size);
-                cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_32,right.location,hreg1);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u32inttype,right.location,hreg1);
                 emit_reg(op,S_L,hreg1);
               end;
 
@@ -371,7 +372,7 @@ implementation
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
         { load left operator in a register }
-        location_force_reg(current_asmdata.CurrAsmList,left.location,location.size,false);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         hreg64hi:=left.location.register64.reghi;
         hreg64lo:=left.location.register64.reglo;
 
@@ -416,7 +417,7 @@ implementation
           begin
             { load right operators in a register }
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_ECX);
-            cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_32,right.location,NR_ECX);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u32inttype,right.location,NR_ECX);
 
             { left operator is already in a register }
             { hence are both in a register }

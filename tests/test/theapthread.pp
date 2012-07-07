@@ -212,7 +212,7 @@ begin
       pairs[i] := tpair.create;
     for i := low(pairs) to high(pairs) do
       pairs[i].resume;
-    sleep(5000);
+    sleep(1500);
     done := true;
     for i := low(pairs) to high(pairs) do
     begin

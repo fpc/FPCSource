@@ -70,17 +70,16 @@ interface
 
       tlinkcontaineritem=class(tlinkedlistitem)
       public
-         data : pshortstring;
+         data : TPathStr;
          needlink : cardinal;
-         constructor Create(const s:string;m:cardinal);
-         destructor Destroy;override;
+         constructor Create(const s:TPathStr;m:cardinal);
       end;
 
       tlinkcontainer=class(tlinkedlist)
-         procedure add(const s : string;m:cardinal);
-         function get(var m:cardinal) : string;
-         function getusemask(mask:cardinal) : string;
-         function find(const s:string):boolean;
+         procedure add(const s : TPathStr;m:cardinal);
+         function get(var m:cardinal) : TPathStr;
+         function getusemask(mask:cardinal) : TPathStr;
+         function find(const s:TPathStr):boolean;
       end;
 
       tmodule = class;
@@ -143,6 +142,8 @@ interface
         checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
+        ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
+        arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
         ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
         globalsymtable,           { pointer to the global symtable of this unit }
@@ -184,11 +185,20 @@ interface
           tobjectdef instances (the helper defs) }
         extendeddefs: TFPHashObjectList;
 
+        namespace: pshortstring; { for JVM target: corresponds to Java package name }
+
+        { for targets that initialise typed constants via explicit assignments
+          instead of by generating an initialised data section (holds typed
+          constant assignments at the module level; does not have to be saved
+          into the ppu file, because translated into code during compilation)
+           -- actual type: tnode (but fmodule should not depend on node) }
+         tcinitcode     : tobject;
+
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention
         to that when creating link.res!!!!(mazen)}
-        constructor create(LoadedFrom:TModule;const amodulename,afilename:string;_is_unit:boolean);
+        constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
         destructor destroy;override;
         procedure reset;virtual;
         procedure adddependency(callermodule:tmodule);
@@ -291,7 +301,7 @@ implementation
               begin
                 current_scanner.tempopeninputfile;
                 current_scanner.gettokenpos;
-                parser_current_file:=current_scanner.inputfile.name^;
+                parser_current_file:=current_scanner.inputfile.name;
               end
             else
               begin
@@ -348,17 +358,11 @@ implementation
                              TLinkContainerItem
  ****************************************************************************}
 
-    constructor TLinkContainerItem.Create(const s:string;m:cardinal);
+    constructor TLinkContainerItem.Create(const s:TPathStr;m:cardinal);
       begin
         inherited Create;
-        data:=stringdup(s);
+        data:=s;
         needlink:=m;
-      end;
-
-
-    destructor TLinkContainerItem.Destroy;
-      begin
-        stringdispose(data);
       end;
 
 
@@ -366,13 +370,13 @@ implementation
                            TLinkContainer
  ****************************************************************************}
 
-    procedure TLinkContainer.add(const s : string;m:cardinal);
+    procedure TLinkContainer.add(const s : TPathStr;m:cardinal);
       begin
         inherited concat(TLinkContainerItem.Create(s,m));
       end;
 
 
-    function TLinkContainer.get(var m:cardinal) : string;
+    function TLinkContainer.get(var m:cardinal) : TPathStr;
       var
         p : tlinkcontaineritem;
       begin
@@ -384,14 +388,14 @@ implementation
          end
         else
          begin
-           get:=p.data^;
+           get:=p.data;
            m:=p.needlink;
            p.free;
          end;
       end;
 
 
-    function TLinkContainer.getusemask(mask:cardinal) : string;
+    function TLinkContainer.getusemask(mask:cardinal) : TPathStr;
       var
          p : tlinkcontaineritem;
          found : boolean;
@@ -404,14 +408,14 @@ implementation
              getusemask:='';
              exit;
            end;
-          getusemask:=p.data^;
+          getusemask:=p.data;
           found:=(p.needlink and mask)<>0;
           p.free;
         until found;
       end;
 
 
-    function TLinkContainer.find(const s:string):boolean;
+    function TLinkContainer.find(const s:TPathStr):boolean;
       var
         newnode : tlinkcontaineritem;
       begin
@@ -419,7 +423,7 @@ implementation
         newnode:=tlinkcontaineritem(First);
         while assigned(newnode) do
          begin
-           if newnode.data^=s then
+           if newnode.data=s then
             begin
               find:=true;
               exit;
@@ -468,9 +472,10 @@ implementation
                                   TMODULE
  ****************************************************************************}
 
-    constructor tmodule.create(LoadedFrom:TModule;const amodulename,afilename:string;_is_unit:boolean);
+    constructor tmodule.create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
       var
-        n,fn:string;
+        n:string;
+        fn:TPathStr;
       begin
         if amodulename='' then
           n:=ChangeFileExt(ExtractFileName(afilename),'')
@@ -485,7 +490,7 @@ implementation
          inherited create(amodulename)
         else
          inherited create('Program');
-        mainsource:=stringdup(fn);
+        mainsource:=fn;
         { Dos has the famous 8.3 limit :( }
 {$ifdef shortasmprefix}
         asmprefix:=stringdup(FixFileName('as'));
@@ -524,6 +529,8 @@ implementation
         derefdataintflen:=0;
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
+        ptrdefs:=THashSet.Create(64,true,false);
+        arraydefs:=THashSet.Create(64,true,false);
         ansistrdef:=nil;
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
@@ -549,6 +556,8 @@ implementation
         mode_switch_allowed:= true;
         moduleoptions:=[];
         deprecatedmsg:=nil;
+        namespace:=nil;
+        tcinitcode:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(realmodulename^);
@@ -613,19 +622,10 @@ implementation
         stringdispose(mainname);
         FImportLibraryList.Free;
         extendeddefs.Free;
-        stringdispose(objfilename);
-        stringdispose(asmfilename);
-        stringdispose(ppufilename);
-        stringdispose(importlibfilename);
-        stringdispose(staticlibfilename);
-        stringdispose(sharedlibfilename);
-        stringdispose(exefilename);
-        stringdispose(outputpath);
-        stringdispose(path);
-        stringdispose(realmodulename);
-        stringdispose(mainsource);
         stringdispose(asmprefix);
         stringdispose(deprecatedmsg);
+        stringdispose(namespace);
+        tcinitcode.free;
         localunitsearchpath.Free;
         localobjectsearchpath.free;
         localincludesearchpath.free;
@@ -637,6 +637,8 @@ implementation
         derefdata.free;
         deflist.free;
         symlist.free;
+        ptrdefs.free;
+        arraydefs.free;
         ansistrdef:=nil;
         wpoinfo.free;
         checkforwarddefs.free;
@@ -647,7 +649,6 @@ implementation
 {$ifdef MEMDEBUG}
         memsymtable.stop;
 {$endif}
-        stringdispose(modulename);
         inherited Destroy;
       end;
 
@@ -698,6 +699,10 @@ implementation
         deflist:=TFPObjectList.Create(false);
         symlist.free;
         symlist:=TFPObjectList.Create(false);
+        ptrdefs.free;
+        ptrdefs:=THashSet.Create(64,true,false);
+        arraydefs.free;
+        arraydefs:=THashSet.Create(64,true,false);
         wpoinfo.free;
         wpoinfo:=nil;
         checkforwarddefs.free;
@@ -758,6 +763,9 @@ implementation
         in_global:=true;
         mode_switch_allowed:=true;
         stringdispose(deprecatedmsg);
+        stringdispose(namespace);
+        tcinitcode.free;
+        tcinitcode:=nil;
         moduleoptions:=[];
         is_dbginfo_written:=false;
         crc:=0;
@@ -957,8 +965,6 @@ implementation
 
     procedure tmodule.setmodulename(const s:string);
       begin
-        stringdispose(modulename);
-        stringdispose(realmodulename);
         modulename:=stringdup(upper(s));
         realmodulename:=stringdup(s);
         { also update asmlibrary names }

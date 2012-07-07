@@ -85,7 +85,7 @@ implementation
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,nutils,
-      cgutils,cgobj,
+      cgutils,cgobj,hlcgobj,
       tgobj,ncgutil,objcgutl
       ;
 
@@ -163,7 +163,7 @@ implementation
             hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
             if not assigned(hsym) then
               internalerror(200309281);
-            cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,hsym.localloc,location.register);
+            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,hsym.localloc,location.register);
             { walk parents }
             while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
               begin
@@ -201,7 +201,7 @@ implementation
              we have to force the data into memory, see also tw14388.pp
            }
            if nf_internal in flags then
-             location_force_mem(current_asmdata.CurrAsmList,left.location)
+             hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef)
            else
              internalerror(2006111510);
          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
@@ -224,7 +224,7 @@ implementation
          else
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
          if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
-           location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,true);
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
          case left.location.loc of
             LOC_CREGISTER,
             LOC_REGISTER:
@@ -245,7 +245,7 @@ implementation
             LOC_REFERENCE:
               begin
                  location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                 cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
+                 hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
               end;
             LOC_CONSTANT:
               begin
@@ -263,7 +263,7 @@ implementation
             (location.reference.base<>NR_NO) then
           begin
             paraloc1.init;
-            paramanager.getintparaloc(pocall_default,1,paraloc1);
+            paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
             cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
@@ -293,7 +293,8 @@ implementation
          { several object types must be dereferenced implicitly }
          if is_implicit_pointer_object_type(left.resultdef) then
            begin
-             if not is_managed_type(left.resultdef) then
+             if (not is_managed_type(left.resultdef)) or
+                (target_info.system in systems_garbage_collected_managed_types) then
                begin
                  { the contents of a class are aligned to a sizeof(pointer) }
                  location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
@@ -305,7 +306,7 @@ implementation
                         if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                           begin
                             location.reference.base:=rg.getaddressregister(current_asmdata.CurrAsmList);
-                            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
+                            hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,
                               left.location.register,location.reference.base);
                           end
                         else
@@ -316,7 +317,7 @@ implementation
                     LOC_REFERENCE:
                       begin
                          location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                         cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
+                         hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
                       end;
                     LOC_CONSTANT:
                       begin
@@ -331,7 +332,7 @@ implementation
                     (cs_checkpointer in current_settings.localswitches) and
                     not(cs_compilesystem in current_settings.moduleswitches) then
                   begin
-                    paramanager.getintparaloc(pocall_default,1,paraloc1);
+                    paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
                     cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                     cg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -367,7 +368,7 @@ implementation
                    if not tstoreddef(left.resultdef).is_intregable or
                       not tstoreddef(resultdef).is_intregable or
                       (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER]) then
-                     location_force_mem(current_asmdata.CurrAsmList,location)
+                     hlcg.location_force_mem(current_asmdata.CurrAsmList,location,resultdef)
                    else
                      begin
                        if (left.location.loc = LOC_REGISTER) then
@@ -438,6 +439,16 @@ implementation
              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
              location.reference.alignment:=vs.vardef.alignment;
+           end
+         else if is_java_class_or_interface(left.resultdef) or
+                 ((target_info.system in systems_jvm) and
+                  (left.resultdef.typ=recorddef)) then
+           begin
+             if (location.loc<>LOC_REFERENCE) or
+                (location.reference.index<>NR_NO) or
+                assigned(location.reference.symbol) then
+               internalerror(2011011301);
+             location.reference.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
            end
          else if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            begin
@@ -647,7 +658,7 @@ implementation
                else
                  begin
                    hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                   cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,right.location,hreg);
+                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,hreg);
                  end;
                current_asmdata.getjumplabel(neglabel);
                current_asmdata.getjumplabel(poslabel);
@@ -663,8 +674,8 @@ implementation
          else
           if is_dynamic_array(left.resultdef) then
             begin
-               paramanager.getintparaloc(pocall_default,1,paraloc1);
-               paramanager.getintparaloc(pocall_default,2,paraloc2);
+               paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
+               paramanager.getintparaloc(pocall_default,2,search_system_type('TDYNARRAYINDEX').typedef,paraloc2);
                cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
                cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
@@ -693,8 +704,8 @@ implementation
           st_widestring,
           st_ansistring:
             begin
-              paramanager.getintparaloc(pocall_default,1,paraloc1);
-              paramanager.getintparaloc(pocall_default,2,paraloc2);
+              paramanager.getintparaloc(pocall_default,1,voidpointertype,paraloc1);
+              paramanager.getintparaloc(pocall_default,2,ptrsinttype,paraloc2);
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
 
@@ -817,7 +828,7 @@ implementation
               case left.location.loc of
                 LOC_REGISTER,
                 LOC_MMREGISTER:
-                  location_force_mem(current_asmdata.CurrAsmList,left.location);
+                  hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
               end;
              location_copy(location,left.location);
            end;
@@ -948,7 +959,7 @@ implementation
               secondpass(right);
 
               { if mulsize = 1, we won't have to modify the index }
-              location_force_reg(current_asmdata.CurrAsmList,right.location,OS_ADDR,true);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
 
               if isjump then
                begin

@@ -55,6 +55,7 @@ interface
          procedure second_ansistring_to_pchar;override;
          procedure second_class_to_intf;override;
          procedure second_char_to_char;override;
+         procedure second_elem_to_openarray;override;
          procedure second_nothing;override;
        public
          procedure pass_generate_code;override;
@@ -73,7 +74,7 @@ interface
       cpubase,systems,
       procinfo,pass_2,
       cgbase,
-      cgutils,cgobj,
+      cgutils,cgobj,hlcgobj,
       ncgutil,
       tgobj
       ;
@@ -90,7 +91,7 @@ interface
 
         { insert range check if not explicit conversion }
         if not(nf_explicit in flags) then
-          cg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
+          hlcg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
 
         { is the result size smaller? when typecasting from void
           we always reuse the current location, because there is
@@ -115,7 +116,7 @@ interface
                   end;
               end
             else
-              location_force_reg(current_asmdata.CurrAsmList,location,newsize,false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,false);
           end
         else
           begin
@@ -167,7 +168,7 @@ interface
              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
              if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                 ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-               location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
              else
                location.size:=newsize;
              current_procinfo.CurrTrueLabel:=oldTrueLabel;
@@ -197,7 +198,7 @@ interface
                end
               else
                begin
-                 location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
+                 hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                end;
             end;
@@ -322,7 +323,7 @@ interface
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
+         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
       end;
 
 
@@ -366,8 +367,8 @@ interface
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
-               tg.GetTemp(current_asmdata.CurrAsmList,256,2,tt_normal,location.reference);
-               cg.a_load_loc_ref(current_asmdata.CurrAsmList,left.location.size,left.location,
+               tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
+               hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                  location.reference);
                location_freetemp(current_asmdata.CurrAsmList,left.location);
              end;
@@ -395,7 +396,7 @@ interface
              if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
              { round them down to the proper precision }
-             tg.gettemp(current_asmdata.currasmlist,resultdef.size,resultdef.alignment,tt_normal,tr);
+             tg.gethltemp(current_asmdata.currasmlist,resultdef,resultdef.size,tt_normal,tr);
              cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
              location_reset_ref(left.location,LOC_REFERENCE,location.size,tr.alignment);
              left.location.reference:=tr;
@@ -414,8 +415,8 @@ interface
                       { on sparc a move from double -> single means from two to one register. }
                       { On all other platforms it also needs rounding to avoid that           }
                       { single(double_regvar) = double_regvar is true in all cases            }
-                      location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
+                      location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+                      hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
                   LOC_MMREGISTER:
                     begin
@@ -434,13 +435,13 @@ interface
                  if expectloc=LOC_MMREGISTER then
                    begin
                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-                     cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar)
+                     hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location,location.register,mms_movescalar)
                    end
                   else
                     begin
-                      location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+                      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
+                      hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
                  location_freetemp(current_asmdata.CurrAsmList,left.location);
               end;
@@ -496,7 +497,7 @@ interface
                 { assigning a global function to a nested procvar -> create
                   tmethodpointer record and set the "frame pointer" to nil }
                 location_reset_ref(location,LOC_REFERENCE,int_cgsize(sizeof(pint)*2),sizeof(pint));
-                tg.gettemp(current_asmdata.CurrAsmList,resultdef.size,sizeof(pint),tt_normal,location.reference);
+                tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
                 tmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,tmpreg);
                 cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpreg,location.reference);
@@ -515,7 +516,16 @@ interface
     var r:Treference;
 
     begin
-      tg.gettemp(current_asmdata.currasmlist,2*sizeof(puint),sizeof(puint),tt_normal,r);
+{$ifdef jvm}
+{$ifndef nounsupported}
+      tg.gethltemp(current_asmdata.currasmlist,java_jlobject,java_jlobject.size,tt_normal,r);
+      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,java_jlobject,0,r);
+      location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+      location.reference:=r;
+      exit;
+{$endif}
+{$endif}
+      tg.gethltemp(current_asmdata.currasmlist,methodpointertype,methodpointertype.size,tt_normal,r);
       location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0);
       location.reference:=r;
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
@@ -550,7 +560,7 @@ interface
             ((newsize<>left.location.size) and
              ((left.resultdef.size<>resultdef.size) or
               not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]))) then
-           location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
          else
            { may differ in sign, e.g. bytebool -> byte   }
            location.size:=newsize;
@@ -684,6 +694,12 @@ interface
         internalerror(2007081202);
       end;
 
+    procedure tcgtypeconvnode.second_elem_to_openarray;
+      begin
+        { nothing special to do by default }
+        second_nothing;
+      end;
+
 
     procedure tcgtypeconvnode.second_nothing;
       var
@@ -705,7 +721,7 @@ interface
             (left.resultdef.typ=floatdef) xor
             (resultdef.typ=floatdef)
            ) then
-          location_force_mem(current_asmdata.CurrAsmList,location);
+          hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
 
         { but use the new size, but we don't know the size of all arrays }
         newsize:=def_cgsize(resultdef);

@@ -82,7 +82,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -165,7 +165,7 @@ var
   i : longint;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking,current_module.exefilename^);
+    Message1(exec_i_linking,current_module.exefilename);
 
   { Create some replacements }
   StripStr:='';
@@ -182,7 +182,7 @@ begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      if binstr<>'' then
       begin
-        Replace(cmdstr,'$EXE',MaybeQuoted(current_module.exefilename^));
+        Replace(cmdstr,'$EXE',MaybeQuoted(current_module.exefilename));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RES',MaybeQuoted(outputexedir+Info.ResName));
         Replace(cmdstr,'$STRIP',StripStr);

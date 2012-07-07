@@ -245,7 +245,20 @@ CONST
     O_DIRECTORY =   $10000;
     O_NOFOLLOW =    $20000;
     O_DIRECT  =    $100000;
-{$else cpusparc}
+{$else : not cpusparc}
+{$ifdef cpumips}
+    O_CREAT   =       $100;
+    O_EXCL    =       $400;
+    O_NOCTTY  =       $800;
+    O_TRUNC   =       $200;
+    O_APPEND  =         $8;
+    O_NONBLOCK =       $80;
+    O_NDELAY  =     O_NONBLOCK;
+    O_SYNC    =        $10;
+    O_DIRECT  =      $8000;
+    O_DIRECTORY =   $10000;
+    O_NOFOLLOW =    $20000;
+{$else : not cpumips}
     O_CREAT   =        $40;
     O_EXCL    =        $80;
     O_NOCTTY  =       $100;
@@ -257,7 +270,8 @@ CONST
     O_DIRECT  =      $4000;
     O_DIRECTORY =   $10000;
     O_NOFOLLOW =    $20000;
-{$endif cpusparc}
+{$endif not cpumips}
+{$endif not cpusparc}
 
 {$if defined(cpuarm) or defined(cpualpha) or defined(cpublackfin) or defined(cpum68k)}
     O_LARGEFILE =   $20000;
@@ -271,7 +285,7 @@ CONST
 {$if defined(cpui386) or defined(cpux86_64) or defined(cpuia64)}
     O_LARGEFILE =    $8000;
 {$endif}
-{$if defined(cpumips)}
+{$if defined(cpumips) or defined(cpumipsel)}
     O_LARGEFILE =    $2000;
 {$endif}
     { mode_t possible values                                 }
@@ -306,8 +320,22 @@ CONST
  {$IFDEF FPC_IS_SYSTEM}
   MAP_PRIVATE   =2;
  {$ENDIF}
-  MAP_ANONYMOUS =$20;
 
+ {$if defined(cpumips) or  defined(cpumipsel)}
+  MAP_ANONYMOUS  = $800;
+  MAP_GROWSDOWN  = $1000;       { stack-like segment }
+  MAP_DENYWRITE  = $2000;       { ETXTBSY }
+  MAP_EXECUTABLE = $4000;      { mark it as an executable }
+  MAP_LOCKED     = $8000;      { pages are locked }
+  MAP_NORESERVE  = $4000;      { don't check for reservations }
+ {$else}
+  MAP_ANONYMOUS  = $20;
+  MAP_GROWSDOWN  = $100;       { stack-like segment }
+  MAP_DENYWRITE  = $800;       { ETXTBSY }
+  MAP_EXECUTABLE = $1000;      { mark it as an executable }
+  MAP_LOCKED     = $2000;      { pages are locked }
+  MAP_NORESERVE  = $4000;      { don't check for reservations }
+ {$endif cpumips}
 
   { For File control mechanism }
   F_GetFd  = 1;

@@ -48,10 +48,10 @@ implementation
     uses
       globtype,systems,constexp,
       cutils,verbose,globals,
-      symconst,
+      symconst,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
-      cgbase,cgobj,pass_2,procinfo,
+      cgbase,cgobj,hlcgobj,pass_2,procinfo,
       ncon,
       cpubase,
       ncgutil,cgcpu,cgutils;
@@ -80,7 +80,7 @@ implementation
          location_copy(location,left.location);
 
          { put numerator in register }
-         location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
+         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
          location_copy(location,left.location);
          numerator := location.register;
 
@@ -116,8 +116,8 @@ implementation
          else
            begin
              { load divider in a register if necessary }
-             location_force_reg(current_asmdata.CurrAsmList,right.location,
-               def_cgsize(right.resultdef),true);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
+               right.resultdef,right.resultdef,true);
              divider := right.location.register;
 
              { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
@@ -199,7 +199,7 @@ implementation
             location_reset(location,LOC_REGISTER,OS_64);
 
             { load left operator in a register }
-            location_force_reg(current_asmdata.CurrAsmList,left.location,OS_64,false);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u64inttype,false);
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
 
@@ -245,7 +245,7 @@ implementation
         else
           begin
             { load left operators in a register }
-            location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             location_copy(location,left.location);
             resultreg := location.register;
             hregister1 := location.register;
@@ -269,7 +269,7 @@ implementation
             else
               begin
                 { load shift count in a register if necessary }
-                location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resultdef),true);
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,OS_32,right.location.register,hregister1,resultreg);
               end;
           end;
@@ -313,7 +313,7 @@ implementation
               LOC_SUBSETREG, LOC_CSUBSETREG,
               LOC_SUBSETREF, LOC_CSUBSETREF:
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;

@@ -79,6 +79,7 @@ const
 Implementation
 
 Uses
+  sysutils,
 {$ifdef go32v2}
   go32,
 {$endif go32v2}
@@ -280,7 +281,8 @@ end;
 
 function LocateExeFile(var FileName:string): boolean;
 var
-  dir,s,d,n,e : string;
+  S : AnsiString;
+  dir,d,n,e : string;
   i : longint;
 begin
   LocateExeFile:=False;
@@ -299,7 +301,7 @@ begin
       Exit;
     end;
 
-  S:=GetEnv('PATH');
+  S:=sysutils.GetEnvironmentVariable('PATH');
   While Length(S)>0 do
     begin
       i:=1;
@@ -637,7 +639,8 @@ end;
 
 function LocateExeFile(var FileName:string): boolean;
 var
-  dir,s,d,n,e : string;
+  S : AnsiString;
+  dir,d,n,e : string;
   i : longint;
 begin
   LocateExeFile:=False;
@@ -656,7 +659,7 @@ begin
       Exit;
     end;
 
-  S:=GetEnv('PATH');
+  S:=sysutils.GetEnvironmentVariable('PATH');
   While Length(S)>0 do
     begin
       i:=1;

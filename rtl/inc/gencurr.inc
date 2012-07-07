@@ -15,35 +15,33 @@
 {$ifdef FPC_CURRENCY_IS_INT64}
 
     function trunc(c : currency) : int64;
-      type
-        tmyrec = record
-          i: int64;
-        end;
       begin
-        result := int64(tmyrec(c)) div 10000
+        { the type conversion includes dividing by 10000 }
+        result := int64(c)
       end;
 
-
+{$ifndef cpujvm}
     function trunc(c : comp) : int64;
+{$else not cpujvm}
+    function trunc_comp(c : comp) : int64;
+{$endif cpujvm}
       begin
         result := c
       end;
 
 
     function round(c : currency) : int64;
-      type
-        tmyrec = record
-          i: int64;
-        end;
       var
-        rem, absrem: longint;
+        rem, absrem: currency;
       begin
         { (int64(tmyrec(c))(+/-)5000) div 10000 can overflow }
-        result := int64(tmyrec(c)) div 10000;
-        rem := int64(tmyrec(c)) - result * 10000;
-        absrem := abs(rem);
-        if (absrem > 5000) or
-           ((absrem = 5000) and
+        result := int64(c);
+        rem := c - currency(result);
+        absrem := rem;
+        if absrem < 0 then
+          absrem := -absrem;
+        if (absrem > 0.5) or
+           ((absrem = 0.5) and
             (rem > 0)) then
           if (rem > 0) then
             inc(result)
@@ -52,7 +50,11 @@
       end;
 
 
+{$ifndef cpujvm}
     function round(c : comp) : int64;
+{$else not cpujvm}
+    function round_comp(c : comp) : int64;
+{$endif cpujvm}
       begin
         result := c
       end;

@@ -251,7 +251,8 @@ unit cpubase;
 
       { Defines the default address size for a processor, }
       OS_ADDR = OS_32;
-      { the natural int size for a processor,             }
+      { the natural int size for a processor,
+        has to match osuinttype/ossinttype as initialized in psystem }
       OS_INT = OS_32;
       OS_SINT = OS_S32;
       { the maximum float size for a processor,           }
@@ -291,11 +292,11 @@ unit cpubase;
       PARENT_FRAMEPOINTER_OFFSET = 0;
 
       { Low part of 64bit return value }
-      function NR_FUNCTION_RESULT64_LOW_REG: tregister;
-      function RS_FUNCTION_RESULT64_LOW_REG: shortint;
+      function NR_FUNCTION_RESULT64_LOW_REG: tregister;{$ifdef USEINLINE}inline;{$endif USEINLINE}
+      function RS_FUNCTION_RESULT64_LOW_REG: shortint;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       { High part of 64bit return value }
-      function NR_FUNCTION_RESULT64_HIGH_REG: tregister;
-      function RS_FUNCTION_RESULT64_HIGH_REG: shortint;
+      function NR_FUNCTION_RESULT64_HIGH_REG: tregister;{$ifdef USEINLINE}inline;{$endif USEINLINE}
+      function RS_FUNCTION_RESULT64_HIGH_REG: shortint;{$ifdef USEINLINE}inline;{$endif USEINLINE}
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -313,7 +314,7 @@ unit cpubase;
         (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
 
       { this is only for the generic code which is not used for this architecture }
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_NO);
+      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
@@ -332,7 +333,7 @@ unit cpubase;
     { Returns the tcgsize corresponding with the size of reg.}
     function reg_cgsize(const reg: tregister) : tcgsize;
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
-    function is_calljmp(o:tasmop):boolean;
+    function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
     procedure inverse_flags(var f: TResFlags);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
     function findreg_by_number(r:Tregister):tregisterindex;
@@ -342,10 +343,11 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
-    procedure shifterop_reset(var so : tshifterop);
-    function is_pc(const r : tregister) : boolean;
+    procedure shifterop_reset(var so : tshifterop); {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function is_pc(const r : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
+    function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword):boolean;
     function dwarf_reg(r:tregister):shortint;
 
   implementation
@@ -413,7 +415,7 @@ unit cpubase;
         end;
 
 
-    function is_calljmp(o:tasmop):boolean;
+    function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         { This isn't 100% perfect because the arm allows jumps also by writing to PC=R15.
           To overcome this problem we simply forbid that FPC generates jumps by loading R15 }
@@ -467,13 +469,13 @@ unit cpubase;
       end;
 
 
-    procedure shifterop_reset(var so : tshifterop);
+    procedure shifterop_reset(var so : tshifterop);{$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         FillChar(so,sizeof(so),0);
       end;
 
 
-    function is_pc(const r : tregister) : boolean;
+    function is_pc(const r : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         is_pc:=(r=NR_R15);
       end;
@@ -493,12 +495,6 @@ unit cpubase;
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result := c1 = c2;
-      end;
-
-
-    function rotl(d : dword;b : byte) : dword;
-      begin
-         result:=(d shr (32-b)) or (d shl b);
       end;
 
 
@@ -522,7 +518,7 @@ unit cpubase;
           begin
             for i:=0 to 15 do
               begin
-                 if (dword(d) and not(rotl($ff,i*2)))=0 then
+                 if (dword(d) and not(roldword($ff,i*2)))=0 then
                    begin
                       imm_shift:=i*2;
                       result:=true;
@@ -533,6 +529,30 @@ unit cpubase;
         result:=false;
       end;
 
+    function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword) : boolean;
+      var
+        d, i, i2: Dword;
+      begin
+        Result:=false;
+        {Thumb2 is not supported (YET?)}
+        if current_settings.cputype in cpu_thumb2 then exit;
+        d:=DWord(value);
+        for i:=0 to 15 do
+          begin
+            imm1:=d and rordword($FF, I*2);
+            imm2:=d and not (imm1); {remove already found bits}
+            {is the remainder a shifterconst? YAY! we've done it!}
+            {Could we start from i instead of 0?}
+            for i2:=0 to 15 do
+              begin
+                 if (imm2 and not(rordword($FF,i2*2)))=0 then
+                   begin
+                      result:=true;
+                      exit;
+                   end;
+              end;
+          end;
+      end;
 
     function dwarf_reg(r:tregister):shortint;
       begin
@@ -542,7 +562,7 @@ unit cpubase;
       end;
 
       { Low part of 64bit return value }
-    function NR_FUNCTION_RESULT64_LOW_REG: tregister;
+    function NR_FUNCTION_RESULT64_LOW_REG: tregister; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     begin
       if target_info.endian=endian_little then
         result:=NR_R0
@@ -550,7 +570,7 @@ unit cpubase;
         result:=NR_R1;
     end;
 
-    function RS_FUNCTION_RESULT64_LOW_REG: shortint;
+    function RS_FUNCTION_RESULT64_LOW_REG: shortint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     begin
       if target_info.endian=endian_little then
         result:=RS_R0
@@ -559,7 +579,7 @@ unit cpubase;
     end;
 
       { High part of 64bit return value }
-    function NR_FUNCTION_RESULT64_HIGH_REG: tregister;
+    function NR_FUNCTION_RESULT64_HIGH_REG: tregister; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     begin
       if target_info.endian=endian_little then
         result:=NR_R1
@@ -567,7 +587,7 @@ unit cpubase;
         result:=NR_R0;
     end;
 
-    function RS_FUNCTION_RESULT64_HIGH_REG: shortint;
+    function RS_FUNCTION_RESULT64_HIGH_REG: shortint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     begin
       if target_info.endian=endian_little then
         result:=RS_R1

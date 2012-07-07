@@ -792,15 +792,15 @@ unit i_linux;
 {$endif FPC_ARMEL}
 {$endif FPC_ARMHF}
 
-       system_mips_linux_info : tsysteminfo =
+       system_mipseb_linux_info : tsysteminfo =
           (
-            system       : system_mips_LINUX;
-            name         : 'Linux for MIPS';
+            system       : system_mipseb_LINUX;
+            name         : 'Linux for MIPSEB';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
-            cpu          : cpu_mips;
+            cpu          : cpu_mipseb;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX;CPUMIPS32';
             exeext       : '';
@@ -848,10 +848,10 @@ unit i_linux;
                 localalignmin   : 4;
                 localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
+                recordalignmax  : 8;
+                maxCrecordalign : 8
               );
-            first_parm_offset : 8;
+            first_parm_offset : 0;
             stacksize    : 32*1024*1024;
             abi : abi_default
           );
@@ -912,10 +912,10 @@ unit i_linux;
                 localalignmin   : 4;
                 localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
+                recordalignmax  : 8;
+                maxCrecordalign : 8
               );
-            first_parm_offset : 8;
+            first_parm_offset : 0;
             stacksize    : 32*1024*1024;
             abi : abi_default
           );
@@ -966,9 +966,14 @@ initialization
     set_source_info(system_arm_linux_info);
   {$endif linux}
 {$endif CPUARM}
-{$ifdef CPUMIPS}
+{$ifdef CPUMIPSEB}
+  {$ifdef linux}
+    set_source_info(system_mipseb_linux_info);
+  {$endif linux}
+{$endif CPUMIPSEB}
+{$ifdef CPUMIPSEL}
   {$ifdef linux}
     set_source_info(system_mipsel_linux_info);
   {$endif linux}
-{$endif CPUMIPS}
+{$endif CPUMIPSEL}
 end.

@@ -77,22 +77,34 @@ end;
 //Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal); cdecl; external 'c' name 'cfsetospeed';
 //Procedure CFMakeRaw(var tios:TermIOS); cdecl; external 'c' name 'cfmakeraw';
 
+function real_tcsendbreak(fd,duration: cint): cint; cdecl; external name 'tcsendbreak';
+
 Function TCSendBreak(fd,duration:cint):cint;{$ifdef VER2_0}inline;{$endif}
 begin
-  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,nil);
+  TCSendBreak:=real_tcsendbreak(fd,duration);
 end;
 
 
+function real_tcsetpgrp(fd: cint; pgrp: pid_t): cint; cdecl; external name 'tcsetpgrp';
+
 Function TCSetPGrp(fd,id:cint):cint;{$ifdef VER2_0}inline;{$endif}
 begin
-  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(ptrint(id)));
+  TCSetPGrp:=real_tcsetpgrp(fd,id);;
 end;
 
 
 Function TCGetPGrp(fd:cint;var id:cint):cint;{$ifdef VER2_0}inline;{$endif}
+var
+  pid: pid_t;
 begin
-  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id);
+  if isatty(fd)=0 then
+    exit(-1);
+  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@pid);
+  if TCGetPGrp>=0 then
+    id:=pid;
 end;
+
+function real_tcdrain(fd: cint): cint; cdecl; external name 'tcdrain';
 
 Function TCDrain(fd:cint):cint;{$ifdef VER2_0}inline;{$endif}
 begin
@@ -100,18 +112,18 @@ begin
 end;
 
 
+function real_tcflow(fd,act:cint): cint; cdecl; external name 'tcflow';
+
 Function TCFlow(fd,act:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
-    case act OF
-     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,nil);
-     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,nil);
-     TCIOFF :  {N/I}
-    end;
+  TCFlow:=real_tcflow(fd,act);
 end;
+
+function real_tcflush(fd,qsel: cint): cint; cdecl; external name 'tcflush';
 
 Function TCFlush(fd,qsel:cint):cint;  {$ifdef VER2_0}inline;{$endif}
 begin
-  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(ptrint(qsel)));
+  TCFlush:=real_tcflush(fd,qsel);
 end;
 
 Function IsATTY (Handle:cint):cint;

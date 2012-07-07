@@ -39,11 +39,6 @@ unit aasmcpu;
         Constructor Create (GP : Tregister; Localsize : Longint; RA : TRegister; L : longint);
         end;
 
-      tai_ent = class(tai)
-        Name : string;
-        Constructor Create (const ProcName : String);
-        end;
-
 
       taicpu = class(tai_cpu_abstract_sym)
          constructor op_none(op : tasmop);
@@ -258,14 +253,6 @@ implementation
       R:=RA;
       LS:=LocalSize;
       LU:=L;
-    end;
-
-    Constructor tai_ent.Create (const ProcName : String);
-
-    begin
-      Inherited Create;
-      typ:=ait_ent;
-      Name:=ProcName;
     end;
 
     procedure InitAsm;

@@ -62,11 +62,12 @@ const
 
   NoHTTPFields = 24;
 
-  HTTPDateFmt   = '"%s", dd "%s" yyyy hh:mm:ss'; // For use in FormatDateTime
-  SCookieExpire = ' "expires="'+HTTPDateFmt+' "GMT;"';
-  SCookieDomain = ' domain=%s;';
-  SCookiePath   = ' path=%s;';
-  SCookieSecure = ' secure';
+  HTTPDateFmt     = '"%s", dd "%s" yyyy hh:mm:ss'; // For use in FormatDateTime
+  SCookieExpire   = ' "Expires="'+HTTPDateFmt+' "GMT"';
+  SCookieDomain   = ' Domain=%s';
+  SCookiePath     = ' Path=%s';
+  SCookieSecure   = ' Secure';
+  SCookieHttpOnly = ' HttpOnly';
 
   HTTPMonths: array[1..12] of string[3] = (
     'Jan', 'Feb', 'Mar', 'Apr',
@@ -98,6 +99,7 @@ type
 
   TCookie = class(TCollectionItem)
   private
+    FHttpOnly: Boolean;
     FName: string;
     FValue: string;
     FPath: string;
@@ -115,6 +117,7 @@ type
     property Path: string read FPath write FPath;
     property Expires: TDateTime read FExpires write FExpires;
     property Secure: Boolean read FSecure write FSecure;
+    property HttpOnly: Boolean read FHttpOnly write FHttpOnly;
     Property AsString : String Read GetAsString;
   end;
 
@@ -290,7 +293,9 @@ type
     Procedure ProcessMultiPart(Stream : TStream; Const Boundary : String;SL:TStrings); virtual;
     Procedure ProcessQueryString(Const FQueryString : String; SL:TStrings); virtual;
     procedure ProcessURLEncoded(Stream : TStream;SL:TStrings); virtual;
-    Function  GetTempUploadFileName : String; virtual;
+    Function RequestUploadDir : String; virtual;
+    Function  GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64) : String; virtual;
+    Procedure DeleteTempUploadedFiles; virtual;
     Procedure InitRequestVars; virtual;
     Procedure InitPostVars; virtual;
     Procedure InitGetVars; virtual;
@@ -319,6 +324,7 @@ type
     FContentStream : TStream;
     FCode: Integer;
     FCodeText: String;
+    FFreeContentStream: Boolean;
     FHeadersSent: Boolean;
     FContentSent: Boolean;
     FRequest : TRequest;
@@ -341,6 +347,9 @@ type
     Procedure SendContent;
     Procedure SendHeaders;
     Procedure SendResponse; // Delphi compatibility
+    Function GetCustomHeader(const Name: String) : String;
+    Procedure SetCustomHeader(const Name, Value: String);
+    Procedure SendRedirect(const TargetURL:String);
     Property Request : TRequest Read FRequest;
     Property Code: Integer Read FCode Write FCode;
     Property CodeText: String Read FCodeText Write FCodeText;
@@ -352,9 +361,7 @@ type
     Property ContentSent : Boolean Read FContentSent;
     property Cookies: TCookies read FCookies;
     Property CustomHeaders: TStringList read FCustomHeaders;
-    Function GetCustomHeader(const Name: String) : String;
-    Procedure SetCustomHeader(const Name, Value: String);
-    Procedure SendRedirect(const TargetURL:String);
+    Property FreeContentStream : Boolean Read FFreeContentStream Write FFreeContentStream;
   end;
   
   { TSessionVariable }
@@ -425,7 +432,7 @@ Resourcestring
   SErrUnknownCookie             = 'Unknown cookie: "%s"';
   SErrUnsupportedContentType    = 'Unsupported content type: "%s"';
   SErrNoRequestMethod           = 'No REQUEST_METHOD passed from server.';
-  SErrInvalidRequestMethod      = 'Invalid REQUEST_METHOD passed from server.';
+  SErrInvalidRequestMethod      = 'Invalid REQUEST_METHOD passed from server: %s.';
 
 const
    hexTable = '0123456789ABCDEF';
@@ -949,18 +956,8 @@ begin
 end;
 
 destructor TRequest.destroy;
-var
-  i: Integer;
-  s: String;
 begin
-  //delete all temporary uploaded files created for this request if there is any
-  i := FFiles.Count;
-  if i > 0 then for i := i - 1 downto 0 do
-    begin
-    s := FFiles[i].LocalFileName;
-    if FileExists(s) then DeleteFile(s);
-    end;
-  //
+  DeleteTempUploadedFiles;
   FreeAndNil(FFiles);
   inherited destroy;
 end;
@@ -1189,18 +1186,36 @@ begin
 {$ifdef CGIDEBUG}SendMethodExit('ProcessQueryString');{$endif CGIDEBUG}
 end;
 
-function TRequest.GetTempUploadFileName: String;
+Function TRequest.RequestUploadDir : String;
 
 begin
-//Result:=GetTempFileName('/tmp/','CGI') {Hard coded path no good for all OS-es}
-{
-GetTempDir returns the OS temporary directory if possible, or from the
-environment variable TEMP . For CGI programs you need to pass global environment
- variables, it is not automatic. For example in the Apache httpd.conf with a
-"PassEnv TEMP" or "SetEnv TEMP /pathtotmpdir" line so the web server passes this
- global environment variable to the CGI programs' local environment variables.
-}
-  Result := GetTempFileName(GetTempDir, 'CGI');
+  Result:='';
+end;
+
+Function TRequest.GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64): String;
+
+Var
+  D : String;
+
+begin
+  D:=RequestUploadDir;
+  if (D='') then
+    D:=GetTempDir; // Note that this may require a TEMP environment variable to be set by the webserver.
+  Result:=GetTempFileName(D, 'CGI');
+end;
+
+Procedure TRequest.DeleteTempUploadedFiles;
+var
+  i: Integer;
+  s: String;
+begin
+  //delete all temporary uploaded files created for this request if there is any
+  i := FFiles.Count;
+  if i > 0 then for i := i - 1 downto 0 do
+    begin
+    s := FFiles[i].LocalFileName;
+    if FileExists(s) then DeleteFile(s);
+    end;
 end;
 
 procedure TRequest.InitRequestVars;
@@ -1221,7 +1236,7 @@ begin
     if FHandleGetOnPost then
       InitGetVars;
     end
-  else if (CompareText(R,'GET')=0) or (CompareText(R,'HEAD')=0) then
+  else if (CompareText(R,'GET')=0) or (CompareText(R,'HEAD')=0) or (CompareText(R,'OPTIONS')=0) then
     InitGetVars
   else
     Raise Exception.CreateFmt(SErrInvalidRequestMethod,[R]);
@@ -1354,10 +1369,10 @@ begin
         else
           begin
           FI.DLen:=J;
-          FF:=GetTempUploadFileName;
+          FF:=GetTempUploadFileName(FI.name,FI.FileName,J);
           F:=TFileStream.Create(FF,fmCreate);
           Try
-            F.Write(FI.Data[1],Length(FI.Data));
+            F.Write(FI.Data[1],J);
           finally
             F.Free;
           end;
@@ -1483,6 +1498,8 @@ end;
 
 destructor TResponse.destroy;
 begin
+  if FreeContentStream then
+    FreeAndNil(FContentStream);
   FreeAndNil(FCookies);
   FreeAndNil(FContents);
   FreeAndNil(FCustomHeaders);
@@ -1593,6 +1610,8 @@ procedure TResponse.SetContentStream(const AValue: TStream);
 begin
   If (FContentStream<>AValue) then
     begin
+    if (FContentStream<>Nil) and FreeContentStream then
+      FreeAndNil(FContentStream);
     FContentStream:=AValue;
     If (FContentStream<>Nil) then
       ContentLength:=FContentStream.Size
@@ -1649,29 +1668,37 @@ end;
 
 function TCookie.GetAsString: string;
 
+  Procedure AddToResult(S : String);
+  
+  begin
+    Result:=Result+';'+S;
+  end;
+
 Var
   Y,M,D : Word;
 
 begin
 {$ifdef cgidebug}SendMethodEnter('TCookie.GetAsString');{$endif}
   try
-    Result:=Format('%s=%s;',[HTTPEncode(FName),HTTPEncode(FValue)]);
+    Result:=Format('%s=%s',[HTTPEncode(FName),HTTPEncode(FValue)]);
     if (Length(FDomain)>0) then
-      Result:=Result+Format(SCookieDomain,[FDomain]);
+      AddToResult(Format(SCookieDomain,[FDomain]));
     if (Length(FPath)>0) then
-      Result:=Result+Format(SCookiePath,[FPath]);
+      AddToResult(Format(SCookiePath,[FPath]));
     if (FExpires>-1) then
       begin
       DecodeDate(Expires,Y,M,D);
-      Result:=Result+Format(FormatDateTime(SCookieExpire,Expires),
-                          [HTTPDays[DayOfWeek(Expires)],HTTPMonths[M]]);
+      AddToResult(Format(FormatDateTime(SCookieExpire,Expires),
+                         [HTTPDays[DayOfWeek(Expires)],HTTPMonths[M]]));
       end;
-    if Secure then
-      Result:=Result+SCookieSecure;
+    if FHttpOnly then
+      AddToResult(SCookieHttpOnly);
+    if FSecure then
+      AddToResult(SCookieSecure);
   except
 {$ifdef cgidebug}
     On E : Exception do
-      SendDebug('Exception in cookie asstring : '+E.Message)
+      SendDebug('Exception in cookie AsString: '+E.Message)
 {$endif}
   end;
 {$ifdef cgidebug}SendMethodExit('TCookie.GetAsString');{$endif}
@@ -1693,6 +1720,7 @@ begin
       Self.FDomain:=Domain;
       Self.FPath:=Path;
       Self.FExpires:=Expires;
+      Self.FHttpOnly:=HttpOnly;
       Self.FSecure:=Secure;
       end
   else

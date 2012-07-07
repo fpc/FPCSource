@@ -45,11 +45,11 @@ interface
       TAssembler=class(TAbstractAssembler)
       public
       {filenames}
-        path        : string;
+        path        : TPathStr;
         name        : string;
         AsmFileName,         { current .s and .o file }
         ObjFileName,
-        ppufilename  : string;
+        ppufilename  : TPathStr;
         asmprefix    : string;
         SmartAsm     : boolean;
         SmartFilesCount,
@@ -98,7 +98,7 @@ interface
         Function  CallAssembler(const command:string; const para:TCmdStr):Boolean;
 
         Function  DoAssemble:boolean;virtual;
-        Procedure RemoveAsm;
+        Procedure RemoveAsm;virtual;
         Procedure AsmFlush;
         Procedure AsmClear;
 
@@ -221,15 +221,15 @@ Implementation
     Constructor TAssembler.Create(smart:boolean);
       begin
       { load start values }
-        AsmFileName:=current_module.AsmFilename^;
-        ObjFileName:=current_module.ObjFileName^;
+        AsmFileName:=current_module.AsmFilename;
+        ObjFileName:=current_module.ObjFileName;
         name:=Lower(current_module.modulename^);
-        path:=current_module.outputpath^;
+        path:=current_module.outputpath;
         asmprefix := current_module.asmprefix^;
-        if not assigned(current_module.outputpath) then
+        if current_module.outputpath = '' then
           ppufilename := ''
         else
-          ppufilename := current_module.ppufilename^;
+          ppufilename := current_module.ppufilename;
         SmartAsm:=smart;
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
@@ -378,8 +378,8 @@ Implementation
           end;
         try
           FlushOutput;
-          DosExitCode := ExecuteProcess(command,para);
-          if DosExitCode <>0
+          DosExitCode:=RequotedExecuteProcess(command,para);
+          if DosExitCode<>0
           then begin
             Message1(exec_e_error_while_assembling,tostr(dosexitcode));
             result:=false;
@@ -604,6 +604,14 @@ Implementation
              Replace(result,'$ASM',maybequoted(AsmFileName));
            Replace(result,'$OBJ',maybequoted(ObjFileName));
          end;
+         if (cs_create_pic in current_settings.moduleswitches) then
+		   Replace(result,'$PIC','-KPIC')
+         else
+		   Replace(result,'$PIC','');
+         if (cs_asm_source in current_settings.globalswitches) then
+		   Replace(result,'$NOWARN','')
+		 else
+		   Replace(result,'$NOWARN','-W');
       end;
 
 
@@ -699,7 +707,7 @@ Implementation
           begin
             if (infile<>lastinfile) then
               begin
-                AsmWriteLn(target_asm.comment+'['+infile.name^+']');
+                AsmWriteLn(target_asm.comment+'['+infile.name+']');
                 if assigned(lastinfile) then
                   lastinfile.close;
               end;
@@ -1140,8 +1148,15 @@ Implementation
                          if assigned(objsymend.objsection) then
                            begin
                              if objsymend.objsection<>objsym.objsection then
-                               internalerror(200404124);
-                             Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
+                               begin
+                                 { leb128 relative constants are not relocatable, but other types are,
+                                   given that objsym belongs to the current section. }
+                                 if (Tai_const(hp).consttype in [aitconst_uleb128bit,aitconst_sleb128bit]) or
+                                    (objsym.objsection<>ObjData.CurrObjSec) then
+                                   InternalError(200404124);
+                               end
+                             else
+                               Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
                            end;
                        end;
                    end;
@@ -1257,8 +1272,13 @@ Implementation
                      objsym:=Objdata.SymbolRef(tai_const(hp).sym);
                      objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
                      if objsymend.objsection<>objsym.objsection then
-                       internalerror(200905042);
-                     Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
+                       begin
+                         if (Tai_const(hp).consttype in [aitconst_uleb128bit,aitconst_sleb128bit]) or
+                            (objsym.objsection<>ObjData.CurrObjSec) then
+                           internalerror(200905042);
+                       end
+                     else
+                       Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
                    end;
                  ObjData.alloc(tai_const(hp).size);
                end;
@@ -1324,6 +1344,7 @@ Implementation
         objsym,
         objsymend : TObjSymbol;
         zerobuf : array[0..63] of byte;
+        relative_reloc: boolean;
       begin
         fillchar(zerobuf,sizeof(zerobuf),0);
         { main loop }
@@ -1388,11 +1409,13 @@ Implementation
                begin
                  { Recalculate relative symbols, addresses of forward references
                    can be changed in treepass1 }
+                 relative_reloc:=false;
                  if assigned(tai_const(hp).sym) and
                     assigned(tai_const(hp).endsym) then
                    begin
                      objsym:=Objdata.SymbolRef(tai_const(hp).sym);
                      objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
+                     relative_reloc:=(objsym.objsection<>objsymend.objsection);
                      Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
                    end;
                  case tai_const(hp).consttype of
@@ -1404,6 +1427,8 @@ Implementation
                        if assigned(tai_const(hp).sym) and
                           not assigned(tai_const(hp).endsym) then
                          ObjData.writereloc(Tai_const(hp).symofs,tai_const(hp).size,Objdata.SymbolRef(tai_const(hp).sym),RELOC_ABSOLUTE)
+                       else if relative_reloc then
+                         ObjData.writereloc(ObjData.CurrObjSec.size+tai_const(hp).size-objsym.address+tai_const(hp).symofs,tai_const(hp).size,objsymend,RELOC_RELATIVE)
                        else
                          ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
                      end;
@@ -1555,7 +1580,7 @@ Implementation
         ObjWriter : TObjectWriter;
       begin
         if not(cs_asm_leave in current_settings.globalswitches) then
-          ObjWriter:=TARObjectWriter.create(current_module.staticlibfilename^)
+          ObjWriter:=TARObjectWriter.create(current_module.staticlibfilename)
         else
           ObjWriter:=TObjectwriter.create;
 

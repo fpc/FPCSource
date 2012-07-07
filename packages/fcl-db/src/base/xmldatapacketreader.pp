@@ -48,10 +48,10 @@ type
     FLastChange    : integer;
   public
     destructor destroy; override;
-    procedure StoreFieldDefs(AFieldDefs : TFieldDefs); override;
+    procedure StoreFieldDefs(AFieldDefs : TFieldDefs; AnAutoIncValue : integer); override;
     procedure StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); override;
     procedure FinalizeStoreRecords; override;
-    procedure LoadFieldDefs(AFieldDefs : TFieldDefs); override;
+    procedure LoadFieldDefs(AFieldDefs : TFieldDefs; var AnAutoIncValue : integer); override;
     procedure InitLoadRecords; override;
     function GetCurrentRecord : boolean; override;
     function GetRecordRowState(out AUpdOrder : Integer) : TRowState; override;
@@ -62,7 +62,7 @@ type
 
 implementation
 
-uses xmlwrite, xmlread;
+uses xmlwrite, xmlread, base64;
 
 const
   XMLFieldtypenames : Array [TFieldType] of String[15] =
@@ -74,21 +74,21 @@ const
       'i4',
       'boolean',
       'r8',
-      'r8',
+      'r8:Money',
       'fixed',
       'date',
       'time',
       'datetime',
       'bin.hex',
       'bin.hex',
-      'i4',
-      'bin.hex',
-      'bin.hex',
-      'bin.hex',
-      'bin.hex',
-      'bin.hex',
-      'bin.hex',
-      'bin.hex',
+      'i4:Autoinc',
+      'bin.hex:Binary',
+      'bin.hex:Text',
+      'bin.hex:Graphics',
+      'bin.hex:Formatted',
+      'bin.hex:Ole',
+      'bin.hex:Ole',
+      'bin.hex:Graphics',
       '',
       'string',
       'string',
@@ -104,7 +104,7 @@ const
       '',
       '',
       '',
-      '',
+      'fixedFMT',
       '',
       ''
     );
@@ -123,7 +123,7 @@ begin
   inherited destroy;
 end;
 
-procedure TXMLDatapacketReader.LoadFieldDefs(AFieldDefs : TFieldDefs);
+procedure TXMLDatapacketReader.LoadFieldDefs(AFieldDefs: TFieldDefs; var AnAutoIncValue: integer);
 
   function GetNodeAttribute(const aNode : TDOMNode; AttName : String) : string;
   var AnAttr : TDomNode;
@@ -137,7 +137,9 @@ var i           : integer;
     AFieldDef   : TFieldDef;
     iFieldType  : TFieldType;
     FTString    : string;
+    SubFTString : string;
     AFieldNode  : TDOMNode;
+    AnAutoIncNode: TDomNode;
 
 begin
   ReadXMLFile(XMLDocument,Stream);
@@ -160,6 +162,9 @@ begin
       AFieldDef.Name:=GetNodeAttribute(AFieldNode,'attrname');
       AFieldDef.Size:=StrToIntDef(GetNodeAttribute(AFieldNode,'width'),0);
       FTString:=GetNodeAttribute(AFieldNode,'fieldtype');
+      SubFTString:=GetNodeAttribute(AFieldNode,'subtype');
+      if SubFTString<>'' then
+        FTString:=FTString+':'+SubFTString;
 
       AFieldDef.DataType:=ftUnknown;
       for iFieldType:=low(TFieldType) to high(TFieldType) do
@@ -171,18 +176,24 @@ begin
       end;
     end;
 
-  FChangeLogNode := MetaDataNode.FindNode('PARAMS');
-  if assigned(FChangeLogNode) then
-    FChangeLogNode := FChangeLogNode.Attributes.GetNamedItem('CHANGE_LOG');
+  FParamsNode := MetaDataNode.FindNode('PARAMS');
+  if assigned(FParamsNode) then
+    begin
+    FChangeLogNode := FParamsNode.Attributes.GetNamedItem('CHANGE_LOG');
+    AnAutoIncNode := FParamsNode.Attributes.GetNamedItem('AUTOINCVALUE');
+    if assigned(AnAutoIncNode) then
+      AnAutoIncValue := StrToIntDef(AnAutoIncNode.NodeValue,-1);
+    end;
 
   FRowDataNode := DataPacketNode.FindNode('ROWDATA');
   FRecordNode := nil;
 end;
 
-procedure TXMLDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs);
+procedure TXMLDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs; AnAutoIncValue: integer);
 
-var i           : integer;
+var i,p         : integer;
     AFieldNode  : TDOMElement;
+    AStringFT   : string;
 
 begin
   XMLDocument := TXMLDocument.Create;
@@ -198,22 +209,15 @@ begin
     if Name <> '' then AFieldNode.SetAttribute('fieldname',Name);
     AFieldNode.SetAttribute('attrname',DisplayName);
     if size <> 0 then AFieldNode.SetAttribute('width',IntToStr(Size));
-    AFieldNode.SetAttribute('fieldtype',XMLFieldtypenames[DataType]);
-    case DataType of
-      ftAutoInc : begin
-                  AFieldNode.SetAttribute('readonly','true');
-                  AFieldNode.SetAttribute('subtype','Autoinc');
-                  end;
-      ftCurrency: AFieldNode.SetAttribute('subtype','Money');
-      ftVarBytes,
-        ftBlob  : AFieldNode.SetAttribute('subtype','Binary');
-      ftMemo    : AFieldNode.SetAttribute('subtype','Text');
-      ftTypedBinary,
-        ftGraphic: AFieldNode.SetAttribute('subtype','Graphics');
-      ftFmtMemo : AFieldNode.SetAttribute('subtype','Formatted');
-      ftParadoxOle,
-        ftDBaseOle : AFieldNode.SetAttribute('subtype','Ole');
-    end; {case}
+    AStringFT:=XMLFieldtypenames[DataType];
+    p := pos(':',AStringFT);
+    if p > 1 then
+      begin
+      AFieldNode.SetAttribute('fieldtype',copy(AStringFT,1,p-1));
+      AFieldNode.SetAttribute('subtype',copy(AStringFT,p+1,25));
+      end
+    else
+      AFieldNode.SetAttribute('fieldtype',AStringFT);
     if faReadonly in Attributes then AFieldNode.SetAttribute('readonly','true');
 
     FieldsNode.AppendChild(AFieldNode);
@@ -221,6 +225,9 @@ begin
 
   MetaDataNode.AppendChild(FieldsNode);
   FParamsNode := XMLDocument.CreateElement('PARAMS');
+  if AnAutoIncValue>-1 then
+    (FParamsNode as TDomElement).SetAttribute('AUTOINCVALUE',IntToStr(AnAutoIncValue));
+
   MetaDataNode.AppendChild(FParamsNode);
   DataPacketNode.AppendChild(MetaDataNode);
   FRowDataNode := XMLDocument.CreateElement('ROWDATA');
@@ -329,28 +336,49 @@ begin
 end;
 
 procedure TXMLDatapacketReader.RestoreRecord(ADataset : TCustomBufDataset);
-var FieldNr    : integer;
-    AFieldNode : TDomNode;
+var FieldNr      : integer;
+    AFieldNode   : TDomNode;
+    ABufBlobField: TBufBlobField;
+    AField: TField;
+    s: string;
 begin
-  with ADataset do for FieldNr:=0 to FieldCount-1 do
+  with ADataset do for FieldNr:=0 to FieldDefs.Count-1 do
     begin
-    AFieldNode := FRecordNode.Attributes.GetNamedItem(Fields[FieldNr].FieldName);
+    AFieldNode := FRecordNode.Attributes.GetNamedItem(FieldDefs[FieldNr].Name);
     if assigned(AFieldNode) then
       begin
-      Fields[FieldNr].AsString := AFieldNode.NodeValue;  // set it to the filterbuffer
+      if FieldDefs[FieldNr].DataType in [ftMemo,ftBlob] then
+        begin
+        ABufBlobField.BlobBuffer:=ADataset.GetNewBlobBuffer;
+        afield := Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo);
+        AField.SetData(@ABufBlobField);
+        s := AFieldNode.NodeValue;
+        if (FieldDefs[FieldNr].DataType = ftBlob) and (s<>'') then
+          s := DecodeStringBase64(s);
+        ABufBlobField.BlobBuffer^.Size:=length(s);
+        ReAllocMem(ABufBlobField.BlobBuffer^.Buffer,ABufBlobField.BlobBuffer^.Size);
+        move(s[1],ABufBlobField.BlobBuffer^.Buffer^,ABufBlobField.BlobBuffer^.Size);
+        end
+      else
+        Fields.FieldByNumber(FieldDefs[FieldNr].FieldNo).AsString := AFieldNode.NodeValue;  // set it to the filterbuffer
       end
     end;
 end;
 
 procedure TXMLDatapacketReader.StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0);
 var FieldNr : Integer;
+    AField: TField;
     ARecordNode : TDOMElement;
 begin
   inc(FEntryNr);
   ARecordNode := XMLDocument.CreateElement('ROW');
-  for FieldNr := 0 to ADataset.Fields.Count-1 do
+  for FieldNr := 0 to ADataset.FieldDefs.Count-1 do
     begin
-    ARecordNode.SetAttribute(ADataset.fields[FieldNr].FieldName,ADataset.fields[FieldNr].AsString);
+    AField := ADataset.Fields.FieldByNumber(ADataset.FieldDefs[FieldNr].FieldNo);
+    if AField.DataType=ftBlob then
+      ARecordNode.SetAttribute(AField.FieldName,EncodeStringBase64(AField.AsString))
+    else
+      ARecordNode.SetAttribute(AField.FieldName,AField.AsString);
     end;
   if ARowState<>[] then
     begin

@@ -46,6 +46,9 @@ interface
 
 implementation
 
+uses
+  cfileutl;
+
 {$IFDEF STANDALONE}
 var
   __textname : string;
@@ -170,7 +173,7 @@ procedure CreateTempDir(const s:string);
 procedure call_as(const name:string);
  begin
   FlushOutput;
-  ExecuteProcess(as_name,'-o '+name+'o '+name);
+  RequotedExecuteProcess(as_name,'-o '+name+'o '+name);
  end;
 procedure call_ar;
  var
@@ -186,7 +189,7 @@ procedure call_ar;
   If DOSError=0 then
    erase(f);
   FlushOutput;
-  ExecuteProcess(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
+  RequotedExecuteProcess(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
   cleardir(path,'*.sw');
   cleardir(path,'*.swo');
   {$push} {$I-}

@@ -2,7 +2,7 @@
 program Drawing;
 
 uses classes, sysutils,
-     FPImage, FPCanvas, FPImgCanv,
+     FPImage, FPCanvas, FPImgCanv, ftFont,
      FPWritePNG, FPReadPNG;
 
 const
@@ -13,6 +13,7 @@ var canvas : TFPcustomCAnvas;
     ci, image : TFPCustomImage;
     writer : TFPCustomImageWriter;
     reader : TFPCustomImageReader;
+    f : TFreeTypeFont;
 begin
   image := TFPMemoryImage.Create (100,100);
   ci := TFPMemoryImage.Create (20,20);
@@ -27,7 +28,7 @@ begin
     GrayScale := false;
     end;
   try
-    ci.LoadFromFile ('test.png', reader);
+//    ci.LoadFromFile ('test.png', reader);
     with Canvas as TFPImageCanvas do
       begin
       pen.mode := pmCopy;
@@ -51,11 +52,13 @@ begin
         end;
       pen.style := psSolid;
       RelativeBrushImage := true;
+{
       brush.image := ci;
       brush.style := bsimage;
       with brush.FPColor do
         green := green div 2;
       Ellipse (11,11, 89,89);
+}
 
       brush.style := bsSolid;
       brush.FPColor := MyColor;
@@ -68,8 +71,19 @@ begin
       pen.FPColor := colCyan;
       ellipseC (50,50, 1,1);
 
-      writeln ('Saving to inspect !');
+      InitEngine;
+      F:=TFreeTypeFont.Create;
+      F.Angle:=0.15;
+      Font:=F;
+//      Font.Name:='/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf';
+      Font.Name:='/home/michael/Documents/arial.ttf';
+      Font.Size:=10;
+      Font.FPColor:=colWhite;
+//      Font.Orientation:=900;
+      
+      Canvas.TextOut(10,90,'o');
       end;
+      writeln ('Saving to inspect !');
     image.SaveToFile ('DrawTest.png', writer);
   finally
     Canvas.Free;
@@ -81,7 +95,7 @@ begin
 end;
 
 begin
-  // DefaultFontPath := 'c:\winnt\fonts\';
+//  DefaultFontPath := '/usr/share/fonts/truetype/ttf-dejavu/';
   DoDraw;
 
 end.

@@ -52,6 +52,8 @@ interface
     {# Return @var(b) with the bit order reversed }
     function reverse_byte(b: byte): byte;
 
+    function next_prime(l: longint): longint;
+
     function used_align(varalign,minalign,maxalign:shortint):shortint;
     function isbetteralignedthan(new, org, limit: cardinal): boolean;
     function size_2_align(len : longint) : shortint;
@@ -59,6 +61,7 @@ interface
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure Replace(var s:AnsiString;s1:string;const s2:AnsiString);
     procedure ReplaceCase(var s:string;const s1,s2:string);
+    procedure ReplaceCase(var s:ansistring;const s1,s2:ansistring);
     Function MatchPattern(const pattern,what:string):boolean;
     function upper(const c : char) : char;
     function upper(const s : string) : string;
@@ -66,6 +69,8 @@ interface
     function lower(const c : char) : char;
     function lower(const s : string) : string;
     function lower(const s : ansistring) : ansistring;
+    function rpos(const needle: char; const haystack: shortstring): longint; overload;
+    function rpos(const needle: shortstring; const haystack: shortstring): longint; overload;
     function trimbspace(const s:string):string;
     function trimspace(const s:string):string;
     function space (b : longint): string;
@@ -87,8 +92,6 @@ interface
     function nextpowerof2(value : int64; out power: longint) : int64;
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
-    function maybequoted(const s:string):string;
-    function maybequoted(const s:ansistring):ansistring;
 
     {# If the string is quoted, in accordance with pascal, it is
        dequoted and returned in s, and the function returns true.
@@ -141,6 +144,10 @@ interface
     function minilzw_decode(const s:string):string;
 
     Function nextafter(x,y:double):double;
+
+  { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
+  const
+    ExecuteProcess = 'Do not use' deprecated 'Use cfileutil.RequotedExecuteProcess instead, ExecuteProcess cannot deal with single quotes as used by Unix command lines';
 
 implementation
 
@@ -305,6 +312,33 @@ implementation
       end;
 
 
+    function next_prime(l: longint): longint;
+      var
+        check, checkbound: longint;
+        ok: boolean;
+      begin
+        result:=l or 1;
+        while l<high(longint) do
+          begin
+            ok:=true;
+            checkbound:=trunc(sqrt(l));
+            check:=3;
+            while check<checkbound do
+              begin
+                if (l mod check) = 0 then
+                  begin
+                    ok:=false;
+                    break;
+                  end;
+                inc(check,2);
+              end;
+            if ok then
+              exit;
+            inc(l);
+          end;
+      end;
+
+
     function used_align(varalign,minalign,maxalign:shortint):shortint;
       begin
         { varalign  : minimum alignment required for the variable
@@ -367,6 +401,26 @@ implementation
 
 
     procedure ReplaceCase(var s:string;const s1,s2:string);
+      var
+         last,
+         i  : longint;
+      begin
+        last:=0;
+        repeat
+          i:=pos(s1,s);
+          if i=last then
+           i:=0;
+          if (i>0) then
+           begin
+             Delete(s,i,length(s1));
+             Insert(s2,s,i);
+             last:=i;
+           end;
+        until (i=0);
+      end;
+
+
+    procedure ReplaceCase(var s: ansistring; const s1, s2: ansistring);
       var
          last,
          i  : longint;
@@ -558,6 +612,34 @@ implementation
       end;
 
 
+    function rpos(const needle: char; const haystack: shortstring): longint;
+      begin
+        result:=length(haystack);
+        while (result>0) do
+          begin
+            if haystack[result]=needle then
+              exit;
+            dec(result);
+          end;
+      end;
+
+
+    function rpos(const needle: shortstring; const haystack: shortstring): longint;
+      begin
+        result:=0;
+        if (length(needle)=0) or
+           (length(needle)>length(haystack)) then
+          exit;
+        result:=length(haystack)-length(needle);
+        repeat
+          if (haystack[result]=needle[1]) and
+             (copy(haystack,result,length(needle))=needle) then
+            exit;
+          dec(result);
+        until result=0;
+      end;
+
+
     function trimbspace(const s:string):string;
     {
       return s with all leading spaces and tabs removed
@@ -731,27 +813,11 @@ implementation
     {
       return if value is a power of 2. And if correct return the power
     }
-      var
-         hl : int64;
-         i : longint;
       begin
-         if value and (value - 1) <> 0 then
-           begin
-             ispowerof2 := false;
-             exit
-           end;
-         hl:=1;
-         ispowerof2:=true;
-         for i:=0 to 63 do
-           begin
-              if hl=value then
-                begin
-                   power:=i;
-                   exit;
-                end;
-              hl:=hl shl 1;
-           end;
-         ispowerof2:=false;
+        if (value = 0) or (value and (value - 1) <> 0) then
+          exit(false);
+        power:=BsfQWord(value);
+        result:=true;
       end;
 
 
@@ -821,93 +887,6 @@ implementation
             octal_quote:=octal_quote+s[i];
         end;
     end;
-
-    function maybequoted(const s:ansistring):ansistring;
-      const
-        {$IFDEF MSWINDOWS}
-          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                             '{', '}', '''', '`', '~'];
-        {$ELSE}
-          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                             '{', '}', '''', ':', '\', '`', '~'];
-        {$ENDIF}
-      var
-        s1 : ansistring;
-        i  : integer;
-        quoted : boolean;
-      begin
-        quoted:=false;
-        s1:='"';
-        for i:=1 to length(s) do
-         begin
-           case s[i] of
-             '"' :
-               begin
-                 quoted:=true;
-                 s1:=s1+'\"';
-               end;
-             ' ',
-             #128..#255 :
-               begin
-                 quoted:=true;
-                 s1:=s1+s[i];
-               end;
-             else begin
-               if s[i] in FORBIDDEN_CHARS then
-                 quoted:=True;
-               s1:=s1+s[i];
-             end;
-           end;
-         end;
-        if quoted then
-          maybequoted:=s1+'"'
-        else
-          maybequoted:=s;
-      end;
-
-
-    function maybequoted(const s:string):string;
-      const
-        {$IFDEF MSWINDOWS}
-          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                             '{', '}', '''', '`', '~'];
-        {$ELSE}
-          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                             '{', '}', '''', ':', '\', '`', '~'];
-        {$ENDIF}
-      var
-        s1 : string;
-        i  : integer;
-        quoted : boolean;
-      begin
-        quoted:=false;
-        s1:='"';
-        for i:=1 to length(s) do
-         begin
-           case s[i] of
-             '"' :
-               begin
-                 quoted:=true;
-                 s1:=s1+'\"';
-               end;
-             ' ',
-             #128..#255 :
-               begin
-                 quoted:=true;
-                 s1:=s1+s[i];
-               end;
-             else begin
-               if s[i] in FORBIDDEN_CHARS then
-                 quoted:=True;
-               s1:=s1+s[i];
-             end;
-           end;
-         end;
-        if quoted then
-          maybequoted:=s1+'"'
-        else
-          maybequoted:=s;
-      end;
 
 
     function DePascalQuote(var s: ansistring): Boolean;

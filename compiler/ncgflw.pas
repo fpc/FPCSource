@@ -93,13 +93,13 @@ implementation
 
     uses
       verbose,globals,systems,globtype,constexp,
-      symconst,symdef,symsym,aasmtai,aasmdata,aasmcpu,defutil,
+      symconst,symdef,symsym,symtable,aasmtai,aasmdata,aasmcpu,defutil,
       procinfo,cgbase,pass_2,parabase,
       cpubase,cpuinfo,
       nld,ncon,
       tgobj,paramgr,
       regvars,
-      cgutils,cgobj,nutils
+      cgutils,cgobj,hlcgobj,nutils
       ;
 
 {*****************************************************************************
@@ -159,13 +159,13 @@ implementation
          { handling code at the end as it is much more efficient, and makes
            while equal to repeat loop, only the end true/false is swapped (PFV) }
          if lnf_testatbegin in loopflags then
-           cg.a_jmp_always(current_asmdata.CurrAsmList,lcont);
+           hlcg.a_jmp_always(current_asmdata.CurrAsmList,lcont);
 
          if not(cs_opt_size in current_settings.optimizerswitches) then
             { align loop target }
             current_asmdata.CurrAsmList.concat(Tai_align.Create(current_settings.alignment.loopalign));
 
-         cg.a_label(current_asmdata.CurrAsmList,lloop);
+         hlcg.a_label(current_asmdata.CurrAsmList,lloop);
 
          current_procinfo.CurrContinueLabel:=lcont;
          current_procinfo.CurrBreakLabel:=lbreak;
@@ -183,7 +183,7 @@ implementation
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
 
-         cg.a_label(current_asmdata.CurrAsmList,lcont);
+         hlcg.a_label(current_asmdata.CurrAsmList,lcont);
          otlabel:=current_procinfo.CurrTrueLabel;
          oflabel:=current_procinfo.CurrFalseLabel;
          if lnf_checknegate in loopflags then
@@ -198,8 +198,8 @@ implementation
           end;
          secondpass(left);
 
-         maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
-         cg.a_label(current_asmdata.CurrAsmList,lbreak);
+         hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
+         hlcg.a_label(current_asmdata.CurrAsmList,lbreak);
 
          sync_regvars(false);
 
@@ -255,7 +255,7 @@ implementation
              current_asmdata.CurrAsmList := TAsmList.create;
            end;
 *)
-         maketojumpbool(current_asmdata.CurrAsmList,left,lr_dont_load_regvars);
+         hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
 
 (*
          if cs_opt_regvar in current_settings.optimizerswitches then
@@ -272,7 +272,7 @@ implementation
 
          if assigned(right) then
            begin
-              cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+              hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
               secondpass(right);
            end;
 
@@ -305,9 +305,9 @@ implementation
                      current_filepos:=then_list.getlasttaifilepos^
 *)
                    ;
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,hl);
+                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,hl);
                 end;
-              cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
               secondpass(t1);
 (*
               { save current asmlist (previous instructions + else-block) }
@@ -321,7 +321,7 @@ implementation
                 end;
 *)
               if assigned(right) then
-                cg.a_label(current_asmdata.CurrAsmList,hl);
+                hlcg.a_label(current_asmdata.CurrAsmList,hl);
            end
          else
            begin
@@ -334,11 +334,11 @@ implementation
                   current_asmdata.CurrAsmList := TAsmList.create;
                 end;
 *)
-              cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
            end;
          if not(assigned(right)) then
            begin
-              cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+              hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
            end;
 
 (*
@@ -467,7 +467,7 @@ implementation
           end;
         secondpass(t1);
         if t1.location.loc in [LOC_FLAGS,LOC_JUMP] then
-          location_force_reg(current_asmdata.CurrAsmList,t1.location,def_cgsize(t1.resultdef),false);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,t1.location,t1.resultdef,t1.resultdef,false);
         if isjump then
           begin
             current_procinfo.CurrTrueLabel:=otl;
@@ -478,7 +478,7 @@ implementation
          if t1.nodetype<>ordconstn then
            begin
               do_loopvar_at_end:=false;
-              location_force_reg(current_asmdata.CurrAsmList,t1.location,t1.location.size,false);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,t1.location,t1.resultdef,t1.resultdef,false);
               temptovalue:=true;
            end
          else
@@ -501,7 +501,7 @@ implementation
            end;
          secondpass(right);
          if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-           location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resultdef),false);
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
          if isjump then
            begin
              current_procinfo.CurrTrueLabel:=otl;
@@ -515,13 +515,13 @@ implementation
          case left.location.loc of
            LOC_REFERENCE,
            LOC_CREFERENCE :
-             cg.a_load_loc_ref(current_asmdata.CurrAsmList,left.location.size,right.location,left.location.reference);
+             hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location,left.location.reference);
            LOC_REGISTER,
            LOC_CREGISTER:
-             cg.a_load_loc_reg(current_asmdata.CurrAsmList,left.location.size,right.location,left.location.register);
+             hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location,left.location.register);
            LOC_SUBSETREG,
            LOC_CSUBSETREG :
-             cg.a_load_loc_subsetreg(current_asmdata.CurrAsmList,left.location.size,right.location,left.location.sreg);
+             hlcg.a_load_loc_subsetreg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location,left.location.sreg);
            else
              internalerror(200501311);
          end;
@@ -544,14 +544,14 @@ implementation
 
          if temptovalue then
            begin
-             cg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,opsize,hcond,
+             hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,
                t1.location.register,left.location,current_procinfo.CurrBreakLabel);
            end
          else
            begin
              if lnf_testatbegin in loopflags then
                begin
-                 cg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,opsize,hcond,
+                 hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,
                    tordconstnode(t1).value.svalue,
                    left.location,current_procinfo.CurrBreakLabel);
                end;
@@ -566,16 +566,16 @@ implementation
                 hop:=OP_ADD
               else
                 hop:=OP_SUB;
-              cg.a_op_const_loc(current_asmdata.CurrAsmList,hop,1,left.location);
+              hlcg.a_op_const_loc(current_asmdata.CurrAsmList,hop,left.resultdef,1,left.location);
             end;
 
          if assigned(entrylabel) then
-           cg.a_jmp_always(current_asmdata.CurrAsmList,tcglabelnode(entrylabel).getasmlabel);
+           hlcg.a_jmp_always(current_asmdata.CurrAsmList,tcglabelnode(entrylabel).getasmlabel);
 
          { align loop target }
          if not(cs_opt_size in current_settings.optimizerswitches) then
             current_asmdata.CurrAsmList.concat(Tai_align.Create(current_settings.alignment.loopalign));
-         cg.a_label(current_asmdata.CurrAsmList,l3);
+         hlcg.a_label(current_asmdata.CurrAsmList,l3);
 
          {If the loopvar doesn't mind on exit, we avoid the loopvar inc/dec
           after the loop body instead of here.}
@@ -586,7 +586,7 @@ implementation
                 hop:=OP_SUB
               else
                 hop:=OP_ADD;
-              cg.a_op_const_loc(current_asmdata.CurrAsmList,hop,1,left.location);
+              hlcg.a_op_const_loc(current_asmdata.CurrAsmList,hop,left.resultdef,1,left.location);
             end;
 
          if assigned(t2) then
@@ -610,10 +610,10 @@ implementation
                 hop:=OP_SUB
               else
                 hop:=OP_ADD;
-              cg.a_op_const_loc(current_asmdata.CurrAsmList,hop,1,left.location);
+              hlcg.a_op_const_loc(current_asmdata.CurrAsmList,hop,left.resultdef,1,left.location);
             end;
 
-         cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel);
+         hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel);
 
          if do_loopvar_at_end then
            if lnf_backward in loopflags then
@@ -645,7 +645,7 @@ implementation
          { jump                                     }
          if temptovalue then
            begin
-             cg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,opsize,hcond,t1.location.register,
+             hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,t1.location.register,
                left.location,l3);
            end
          else
@@ -813,12 +813,12 @@ implementation
                  end;
                end;
 
-             cg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,opsize,hcond,
+             hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,
                aint(cmp_const.svalue),left.location,l3);
            end;
 
          { this is the break label: }
-         cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel);
+         hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel);
 
          sync_regvars(false);
 
@@ -840,10 +840,11 @@ implementation
          include(flowcontrol,fc_exit);
          if assigned(left) then
            secondpass(left);
+
          if (fc_unwind in flowcontrol) then
-           cg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel)
+           hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel)
          else
-           cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel);
+           hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel);
        end;
 
 
@@ -862,9 +863,9 @@ implementation
              load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
              if (fc_unwind in flowcontrol) then
-               cg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
+               hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
              else
-               cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
+               hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
            end
          else
            CGMessage(cg_e_break_not_allowed);
@@ -886,9 +887,9 @@ implementation
              load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
              if (fc_unwind in flowcontrol) then
-               cg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
+               hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
              else
-               cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
+               hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
            end
          else
            CGMessage(cg_e_continue_not_allowed);
@@ -908,7 +909,7 @@ implementation
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-         cg.a_jmp_always(current_asmdata.CurrAsmList,tcglabelnode(labelnode).getasmlabel)
+         hlcg.a_jmp_always(current_asmdata.CurrAsmList,tcglabelnode(labelnode).getasmlabel)
        end;
 
 
@@ -938,13 +939,13 @@ implementation
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-         cg.a_label(current_asmdata.CurrAsmList,getasmlabel);
+         hlcg.a_label(current_asmdata.CurrAsmList,getasmlabel);
 
          { Write also extra label if this label was referenced from
            assembler block }
          if assigned(labsym) and
             assigned(labsym.asmblocklabel) then
-           cg.a_label(current_asmdata.CurrAsmList,labsym.asmblocklabel);
+           hlcg.a_label(current_asmdata.CurrAsmList,labsym.asmblocklabel);
 
          secondpass(left);
       end;
@@ -961,16 +962,17 @@ implementation
          href2: treference;
          paraloc1,paraloc2,paraloc3 : tcgpara;
       begin
-         paraloc1.init;
-         paraloc2.init;
-         paraloc3.init;
-         paramanager.getintparaloc(pocall_default,1,paraloc1);
-         paramanager.getintparaloc(pocall_default,2,paraloc2);
-         paramanager.getintparaloc(pocall_default,3,paraloc3);
          location_reset(location,LOC_VOID,OS_NO);
 
          if assigned(left) then
            begin
+              paraloc1.init;
+              paraloc2.init;
+              paraloc3.init;
+              paramanager.getintparaloc(pocall_default,1,class_tobject,paraloc1);
+              paramanager.getintparaloc(pocall_default,2,voidpointertype,paraloc2);
+              paramanager.getintparaloc(pocall_default,3,voidpointertype,paraloc3);
+
               { multiple parameters? }
               if assigned(right) then
                 begin
@@ -990,7 +992,7 @@ implementation
                   if assigned(third) then
                     cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,third.location,paraloc3)
                   else
-                    cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,0,paraloc3);
+                    cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc3);
                   { push address }
                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
                 end
@@ -1006,7 +1008,7 @@ implementation
                    if target_info.system <> system_powerpc_macos then
                      cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc2)
                    else
-                     cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,0,paraloc2);
+                     cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,paraloc2);
                 end;
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
@@ -1015,6 +1017,10 @@ implementation
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RAISEEXCEPTION',false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+
+              paraloc1.done;
+              paraloc2.done;
+              paraloc3.done;
            end
          else
            begin
@@ -1023,9 +1029,6 @@ implementation
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
            end;
-         paraloc1.done;
-         paraloc2.done;
-         paraloc3.done;
        end;
 
 
@@ -1329,7 +1332,7 @@ implementation
 
          { send the vmt parameter }
          reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname),0,sizeof(pint));
-         paramanager.getintparaloc(pocall_default,1,paraloc1);
+         paramanager.getintparaloc(pocall_default,1,search_system_type('TCLASS').typedef,paraloc1);
          cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
          cg.g_call(current_asmdata.CurrAsmList,'FPC_CATCHES');
@@ -1342,12 +1345,11 @@ implementation
          if assigned(excepTSymtable) then
            exceptvarsym:=tlocalvarsym(excepTSymtable.SymList[0])
          else
-           exceptvarsym:=nil;
+           internalerror(2011020401);
 
          if assigned(exceptvarsym) then
            begin
-             exceptvarsym.localloc.loc:=LOC_REFERENCE;
-             exceptvarsym.localloc.size:=OS_ADDR;
+             location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,OS_ADDR,sizeof(pint));
              tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),voidpointertype,exceptvarsym.localloc.reference);
              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptvarsym.localloc.reference);
            end;
@@ -1446,7 +1448,7 @@ implementation
         { call fpc_safecallhandler, passing self for methods of classes,
           nil otherwise. }
         cgpara.init;
-        paramanager.getintparaloc(pocall_default,1,cgpara);
+        paramanager.getintparaloc(pocall_default,1,class_tobject,cgpara);
         if is_class(current_procinfo.procdef.struct) then
           begin
             selfsym:=tparavarsym(current_procinfo.procdef.parast.Find('self'));

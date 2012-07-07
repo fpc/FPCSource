@@ -218,7 +218,8 @@ unit cpubase;
 
       {# Defines the default address size for a processor, }
       OS_ADDR = OS_32;
-      {# the natural int size for a processor,             }
+      {# the natural int size for a processor,
+         has to match osuinttype/ossinttype as initialized in psystem }
       OS_INT = OS_32;
       OS_SINT = OS_S32;
       {# the maximum float size for a processor,           }
@@ -303,7 +304,7 @@ unit cpubase;
       saved_standard_address_registers : array[0..3] of tsuperregister = (RS_A2,RS_A3,RS_A4,RS_A5);
       
       { this is only for the generic code which is not used for this architecture }
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_NO);
+      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined

@@ -51,6 +51,8 @@ interface
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper);
         procedure WriteOper_jmp(const o:toper);
+       protected
+        fskipPopcountSuffix: boolean;
        public
         procedure WriteInstruction(hp: tai);override;
      end;
@@ -86,6 +88,8 @@ interface
       begin
         inherited create(smart);
         InstrWriter := Tx86InstrWriter.create(self);
+        { Apple's assembler does not support a size suffix for popcount }
+        Tx86InstrWriter(InstrWriter).fskipPopcountSuffix := true;
       end;
 
 {****************************************************************************
@@ -287,6 +291,8 @@ interface
            (op<>A_FNSTCW) and
            (op<>A_FSTCW) and
            (op<>A_FLDCW) and
+           (not fskipPopcountSuffix or
+            (op<>A_POPCNT)) and
            not(
                (taicpu(hp).ops<>0) and
                (taicpu(hp).oper[0]^.typ=top_reg) and

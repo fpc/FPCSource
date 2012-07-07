@@ -1,7 +1,11 @@
 { Source provided for Free Pascal Bug Report 1677 }
 { Submitted by "Anders Lindeberg" on  2001-11-10 }
 { e-mail: anders.lindeberg@telia.com }
+
+{ inlining causes different ref. counting }
+{$inline off}
 program test;
+
 type trec = record i:integer; s:ansistring end;
 
 procedure RefCount(const s : ansistring;var rc:sizeint;expect:sizeint);
@@ -16,11 +20,7 @@ begin
         then writeln('Nil string.')
         else
 {$ifdef  fpc}
-  {$if defined(ver1_0) or defined(ver1_9_4)}
-         rc:=(p-1)^;
-  {$else}
          rc:=psizeint(pchar(p)-sizeof(sizeint)*2)^;
-  {$endif}
 {$else}
          rc:=plongint(pchar(p)-8)^;
 {$endif}

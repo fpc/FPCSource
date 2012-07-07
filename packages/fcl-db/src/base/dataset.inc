@@ -85,14 +85,8 @@ Procedure TDataset.BindFields(Binding: Boolean);
 var i, FieldIndex: Integer;
     FieldDef: TFieldDef;
 begin
-  {
-     Here some magic will be needed later; for now just simply set
-     Just set fieldno from listindex...
-     Later we should take it from the fielddefs.
-     // ATM Set by CreateField ...
-  For I:=0 to FFieldList.Count-1 do
-    FFieldList[i].FFieldNo:=I;
-  }
+  { FieldNo is set to -1 for calculated/lookup fields, to 0 for unbound field
+    and for bound fields it is set to FieldDef.FieldNo }
   FCalcFieldsSize := 0;
   FBlobFieldCount := 0;
   for i := 0 to Fields.Count - 1 do
@@ -107,6 +101,7 @@ begin
                (FLookupResultField = '') or (FKeyFields = '')) then
               DatabaseErrorFmt(SLookupInfoError, [DisplayName]);
             FFields.CheckFieldNames(FKeyFields);
+            FLookupDataSet.Open;
             FLookupDataSet.Fields.CheckFieldNames(FLookupKeyFields);
             FLookupDataSet.FieldByName(FLookupResultField);
             if FLookupCache then RefreshLookupList;
@@ -123,7 +118,7 @@ begin
               FOffset := FBlobFieldCount;
               Inc(FBlobFieldCount);
             end;
-          end else FFieldNo := FieldIndex;
+          end else FFieldNo := 0;
         end;
       end else FFieldNo := 0;
     end;
@@ -909,15 +904,16 @@ begin
     FieldDefs.BeginUpdate;
     try
       for i := 0 to Fields.Count-1 do with fields[i] do
-        begin
-        with TFieldDef.Create(FieldDefs,FieldName,DataType,Size,Required,i+1) do
+        if not (FieldKind in [fkCalculated,fkLookup]) then // Do not add fielddefs for calculated/lookup fields.
           begin
-          if Required then Attributes := attributes + [faRequired];
-          if ReadOnly then Attributes := attributes + [faReadOnly];
-          if DataType = ftBCD then precision := (fields[i] as TBCDField).Precision
-          else if DataType = ftFMTBcd then precision := (fields[i] as TFMTBCDField).Precision;
+          with TFieldDef.Create(FieldDefs,FieldName,DataType,Size,Required,FieldDefs.Count+1) do
+            begin
+            if Required then Attributes := attributes + [faRequired];
+            if ReadOnly then Attributes := attributes + [faReadOnly];
+            if DataType = ftBCD then precision := (fields[i] as TBCDField).Precision
+            else if DataType = ftFMTBcd then precision := (fields[i] as TFMTBCDField).Precision;
+            end;
           end;
-        end;
     finally
       FieldDefs.EndUpdate;
       end;
@@ -1821,33 +1817,20 @@ end;
 
 Procedure TDataset.GetFieldList(List: TList; const FieldNames: string);
 
-  Function NextName(Var S : String) : String;
-
-  Var
-    P : integer;
-
-  begin
-    P:=Pos(';',S);
-    If (P=0) then
-      P:=Length(S)+1;
-    Result:=Copy(S,1,P-1);
-    system.Delete(S,1,P);
-  end;
-
 var
   F: TField;
-  Names,N : String;
+  N: String;
+  StrPos: Integer;
 
 begin
-  Names:=FieldNames;
-  N:=Nextname(Names);
-  while (N<>'') do
-    begin
-    F:=FieldByName(N);
-    If Assigned(List) then
-      List.Add(F);
-    N:=NextName(Names);
-    end;
+  if (FieldNames = '') or (List = nil) then
+    Exit;
+  StrPos := 1;
+  repeat
+    N := ExtractFieldName(FieldNames, StrPos);
+    F := FieldByName(N);
+    List.Add(F);
+  until StrPos > Length(FieldNames);
 end;
 
 Procedure TDataset.GetFieldNames(List: TStrings);

@@ -47,7 +47,7 @@ unit aoptbase;
         constructor create; virtual;
         destructor destroy;override;
         { returns true if register Reg is used by instruction p1 }
-        Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;
+        Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;virtual;
         { returns true if register Reg occurs in operand op }
         Function RegInOp(Reg: TRegister; const op: toper): Boolean;
         { returns true if register Reg is used in the reference Ref }
@@ -82,8 +82,8 @@ unit aoptbase;
         { returns whether P is a load constant instruction (load a constant }
         { into a register)                                                  }
         Function IsLoadConstReg(p: tai): Boolean; Virtual; Abstract;
-        { returns whether P is a store instruction (store contents from a }
-        { register to a memory location or to a (register) variable)      }
+        { returns whether P is a store instruction (store contents from a
+          register to a memory location or to a (register) variable)      }
         Function IsStoreRegMem(p: tai): Boolean; Virtual; Abstract;
 
         { create a paicpu Object that loads the contents of reg1 into reg2 }
@@ -129,7 +129,11 @@ unit aoptbase;
     Begin
       Case op.typ Of
         Top_Reg: RegInOp := Reg = op.reg;
-        Top_Ref: RegInOp := RegInRef(Reg, op.ref^)
+        Top_Ref: RegInOp := RegInRef(Reg, op.ref^);
+        {$ifdef arm}
+        Top_Shifterop: RegInOp := op.shifterop^.rs = Reg;
+        Top_RegSet: RegInOp := getsupreg(Reg) in op.regset^;
+        {$endif arm}
         Else RegInOp := False
       End
     End;
@@ -201,12 +205,12 @@ unit aoptbase;
       Current := Tai(Current.previous);
       While Assigned(Current) And
             (((Current.typ = ait_Marker) And
-              Not(Tai_Marker(Current).Kind in [mark_AsmBlockEnd,mark_NoPropInfoEnd])) or
+              Not(Tai_Marker(Current).Kind in [mark_AsmBlockEnd{,mark_NoPropInfoEnd}])) or
              (Current.typ In SkipInstr) or
              ((Current.typ = ait_label) And
               labelCanBeSkipped(Tai_Label(Current)))) Do
         Current := Tai(Current.previous);
-      If Assigned(Current) And
+{      If Assigned(Current) And
          (Current.typ = ait_Marker) And
          (Tai_Marker(Current).Kind = mark_NoPropInfoEnd) Then
         Begin
@@ -214,10 +218,10 @@ unit aoptbase;
                 ((Current.typ <> ait_Marker) Or
                  (Tai_Marker(Current).Kind <> mark_NoPropInfoStart)) Do
             Current := Tai(Current.previous);
-        End;
+        End; }
     Until Not(Assigned(Current)) Or
           (Current.typ <> ait_Marker) Or
-          (Tai_Marker(Current).Kind <> mark_NoPropInfoStart);
+          not(tai_Marker(current).Kind in [mark_NoPropInfoStart,mark_NoPropInfoEnd]);
     If Not(Assigned(Current)) or
        (Current.typ In SkipInstr) or
        ((Current.typ = ait_label) And

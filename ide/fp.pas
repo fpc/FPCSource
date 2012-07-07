@@ -177,8 +177,9 @@ begin
           'C' : { custom config file (BP compatiblity) }
            if BeforeINI then
             begin
+              delete(param,1,1); // delete C
               if (length(Param)>=1) and (Param[1] in['=',':']) then
-                Delete(Param,1,1); { eat separator }
+                Delete(Param,1,1); { eat optional separator }
               IniFileName:=Param;
             end;
           'R' : { enter the directory last exited from (BP comp.) }

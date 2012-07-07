@@ -42,7 +42,8 @@ uses
   verbose,
   cgbase, cgutils,
   aoptobj,
-  aasmbase, aasmdata, aasmcpu;
+  aasmbase, aasmdata, aasmcpu,
+  itcpugas;
 
 function isFoldableArithOp(hp1: taicpu; reg: tregister): boolean;
 begin
@@ -164,14 +165,14 @@ begin
                         decw    %eax            addw    %edx,%eax     hp1
                         movw    %ax,%si         movw    %ax,%si       hp2
                     }
-                   if (cs_asm_source in current_settings.globalswitches) then
-                     begin
+                    if (cs_asm_source in current_settings.globalswitches) then
+                      begin
                         asml.insertbefore(tai_comment.create(strpnew('PeepHole Optimization,var2')),p);
-                        asml.insertbefore(tai_comment.create(strpnew('P='+std_op2str[taicpu(p).opcode])),p);
-                        asml.insertbefore(tai_comment.create(strpnew('HP1='+std_op2str[taicpu(hp1).opcode])),p);
-                        asml.insertbefore(tai_comment.create(strpnew('HP2='+std_op2str[taicpu(hp2).opcode])),p);
+                        asml.insertbefore(tai_comment.create(strpnew('P='+std_op2str[taicpu(p).opcode]+gas_opsize2str[taicpu(p).opsize])),p);
+                        asml.insertbefore(tai_comment.create(strpnew('HP1='+std_op2str[taicpu(hp1).opcode]+gas_opsize2str[taicpu(hp1).opsize])),p);
+                        asml.insertbefore(tai_comment.create(strpnew('HP2='+std_op2str[taicpu(hp2).opcode]+gas_opsize2str[taicpu(hp2).opsize])),p);
                      end;
-                    taicpu(hp1).changeopsize(taicpu(hp2).opsize);
+                    taicpu(hp1).changeopsize(taicpu(p).opsize);
                     {
                       ->
                         movswl  %si,%eax        movswl  %si,%eax      p
@@ -180,9 +181,20 @@ begin
                     }
                     case taicpu(hp1).ops of
                       1:
-                        taicpu(hp1).loadoper(0, taicpu(hp2).oper[1]^);
+                        begin
+                          taicpu(hp1).loadoper(0, taicpu(hp2).oper[1]^);
+                          if taicpu(hp1).oper[0]^.typ=top_reg then
+                            setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(p).oper[1]^.reg));
+                        end;
                       2:
-                        taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
+                        begin
+                          taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
+                          if (taicpu(hp1).oper[0]^.typ=top_reg) and
+                            (taicpu(hp1).opcode<>A_SHL) and
+                            (taicpu(hp1).opcode<>A_SHR) and
+                            (taicpu(hp1).opcode<>A_SAR) then
+                            setsubreg(taicpu(hp1).oper[0]^.reg,getsubreg(taicpu(p).oper[1]^.reg));
+                        end;
                       else
                         internalerror(2008042701);
                     end;

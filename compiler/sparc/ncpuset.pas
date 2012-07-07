@@ -47,7 +47,7 @@ unit ncpuset;
       cpubase,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,cgutils,cgobj,
-      procinfo;
+      defutil,procinfo;
 
     procedure tcpucasenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
       begin
@@ -68,6 +68,7 @@ unit ncpuset;
         last : TConstExprInt;
         indexreg,jmpreg,basereg : tregister;
         href : treference;
+        opcgsize : tcgsize;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
@@ -86,12 +87,13 @@ unit ncpuset;
           end;
 
       begin
+        opcgsize:=def_cgsize(opsize);
         if not(jumptable_no_range) then
           begin
              { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(min_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(min_),hregister,elselabel);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,aint(max_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_gt,aint(max_),hregister,elselabel);
           end;
         current_asmdata.getjumplabel(table);
         indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);

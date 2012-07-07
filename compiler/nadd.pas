@@ -1347,6 +1347,16 @@ implementation
                   if (torddef(rd).ordtype<>scurrency) then
                    inserttypeconv(right,s64currencytype);
                end
+             { leave some constant integer expressions alone in case the
+               resultdef of the integer types doesn't influence the outcome,
+               because the forced type conversions below can otherwise result
+               in unexpected results (such as high(qword)<high(int64) returning
+               true because high(qword) gets converted to int64) }
+             else if is_integer(ld) and is_integer(rd) and
+                     (lt=ordconstn) and (rt=ordconstn) and
+                     (nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) then
+               begin
+               end
              { "and" does't care about the sign of integers }
              { "xor", "or" and compares don't need extension to native int }
              { size either as long as both values are signed or unsigned   }
@@ -1610,8 +1620,13 @@ implementation
                     { a voidpointer of 8 bytes). A conversion to voidpointer would be  }
                     { optimized away, since the result already was a voidpointer, so   }
                     { use a charpointer instead (JM)                                   }
+{$ifndef jvm}
                     inserttypeconv_internal(left,charpointertype);
                     inserttypeconv_internal(right,charpointertype);
+{$else jvm}
+                    inserttypeconv_internal(left,java_jlobject);
+                    inserttypeconv_internal(right,java_jlobject);
+{$endif jvm}
                  end;
                ltn,lten,gtn,gten:
                  begin
@@ -1678,7 +1693,14 @@ implementation
             if (nodetype in [addn,equaln,unequaln,lten,gten,ltn,gtn]) then
               begin
                 { Is there a unicodestring? }
-                if is_unicodestring(rd) or is_unicodestring(ld) then
+                if is_unicodestring(rd) or is_unicodestring(ld) or
+                   ((m_default_unicodestring in current_settings.modeswitches) and
+                    (cs_refcountedstrings in current_settings.localswitches) and
+                    (
+                     is_pwidechar(rd) or is_widechararray(rd) or is_open_widechararray(rd) or (lt = stringconstn) or
+                     is_pwidechar(ld) or is_widechararray(ld) or is_open_widechararray(ld) or (rt = stringconstn)
+                    )
+                   ) then
                   strtype:=st_unicodestring
                 else
                 { Is there a widestring? }
@@ -1688,7 +1710,7 @@ implementation
                     strtype:=st_widestring
                 else
                   if is_ansistring(rd) or is_ansistring(ld) or
-                     ((cs_ansistrings in current_settings.localswitches) and
+                     ((cs_refcountedstrings in current_settings.localswitches) and
                      //todo: Move some of this to longstring's then they are implemented?
                       (
                        is_pchar(rd) or (is_chararray(rd) and (rd.size > 255)) or is_open_chararray(rd) or (lt = stringconstn) or
@@ -1907,7 +1929,7 @@ implementation
           begin
             if is_zero_based_array(rd) then
               begin
-                resultdef:=tpointerdef.create(tarraydef(rd).elementdef);
+                resultdef:=getpointerdef(tarraydef(rd).elementdef);
                 inserttypeconv(right,resultdef);
               end
             else
@@ -1937,7 +1959,7 @@ implementation
            begin
              if is_zero_based_array(ld) then
                begin
-                  resultdef:=tpointerdef.create(tarraydef(ld).elementdef);
+                  resultdef:=getpointerdef(tarraydef(ld).elementdef);
                   inserttypeconv(left,resultdef);
                end
              else
@@ -2158,6 +2180,16 @@ implementation
                   result:=internalstatements(newstatement);
                   tempnode:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
                   addstatement(newstatement,tempnode);
+                  { initialize the temp, since it will be passed to a
+                    var-parameter (and finalization, which is performed by the
+                    ttempcreate node and which takes care of the initialization
+                    on native targets, is a noop on managed VM targets) }
+                  if (target_info.system in systems_managed_vm) and
+                     is_managed_type(resultdef) then
+                    addstatement(newstatement,cinlinenode.create(in_setlength_x,
+                      false,
+                      ccallparanode.create(genintconstnode(0),
+                        ccallparanode.create(ctemprefnode.create(tempnode),nil))));
                   para:=ccallparanode.create(
                           right,
                           ccallparanode.create(
@@ -2207,7 +2239,8 @@ implementation
                       nodetype:=swap_relation[nodetype];
                     end;
                   if is_shortstring(left.resultdef) or
-                     (nodetype in [gtn,gten,ltn,lten]) then
+                     (nodetype in [gtn,gten,ltn,lten]) or
+                     (target_info.system in systems_managed_vm) then
                     { compare the length with 0 }
                     result := caddnode.create(nodetype,
                       cinlinenode.create(in_length_x,false,left),
@@ -2464,11 +2497,11 @@ implementation
         result := false;
         if ((left.nodetype = typeconvn) and
             is_integer(ttypeconvnode(left).left.resultdef) and
-            (not(torddef(ttypeconvnode(left).left.resultdef).ordtype in [u64bit,s64bit])) and
+            (not(torddef(ttypeconvnode(left).left.resultdef).ordtype in [u64bit,s64bit,scurrency])) and
            (((right.nodetype = ordconstn) and canbe32bitint(tordconstnode(right).value)) or
             ((right.nodetype = typeconvn) and
              is_integer(ttypeconvnode(right).left.resultdef) and
-             not(torddef(ttypeconvnode(right).left.resultdef).ordtype in [u64bit,s64bit])) and
+             not(torddef(ttypeconvnode(right).left.resultdef).ordtype in [u64bit,s64bit,scurrency])) and
              ((is_signed(ttypeconvnode(left).left.resultdef) =
                is_signed(ttypeconvnode(right).left.resultdef)) or
               (is_signed(ttypeconvnode(left).left.resultdef) and
@@ -2487,13 +2520,13 @@ implementation
               end;
             if (is_signed(left.resultdef)) then
               begin
-                inserttypeconv(left,s32inttype);
-                inserttypeconv(right,s32inttype);
+                inserttypeconv_internal(left,s32inttype);
+                inserttypeconv_internal(right,s32inttype);
               end
             else
               begin
-                inserttypeconv(left,u32inttype);
-                inserttypeconv(right,u32inttype);
+                inserttypeconv_internal(left,u32inttype);
+                inserttypeconv_internal(right,u32inttype);
               end;
             firstpass(left);
             firstpass(right);
@@ -2710,16 +2743,14 @@ implementation
 {$endif cpuneedsmulhelper}
       begin
          result:=nil;
-
          { Can we optimize multiple string additions into a single call?
            This need to be done on a complete tree to detect the multiple
            add nodes and is therefor done before the subtrees are processed }
          if canbemultistringadd(self) then
            begin
-             result := genmultistringadd(self);
+             result:=genmultistringadd(self);
              exit;
            end;
-
          { first do the two subtrees }
          firstpass(left);
          firstpass(right);
@@ -2796,7 +2827,7 @@ implementation
                   internalerror(200103291);
                  expectloc:=LOC_FLAGS;
                end
-{$ifndef cpu64bitaddr}
+{$ifndef cpu64bitalu}
               { is there a 64 bit type ? }
              else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) then
                begin
@@ -2808,7 +2839,7 @@ implementation
                   else
                     expectloc:=LOC_JUMP;
                end
-{$endif cpu64bitaddr}
+{$endif cpu64bitalu}
 {$ifndef cpuneedsmulhelper}
              { is there a cardinal? }
              else if (torddef(ld).ordtype=u32bit) then

@@ -218,19 +218,19 @@ begin
   if use_gnu_ld then
     begin
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+     LinkRes.Add('SEARCH_DIR("'+HPath.Str+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
   HPath:=TCmdStrListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+     LinkRes.Add('SEARCH_DIR("'+HPath.Str+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
 
@@ -344,7 +344,7 @@ begin
   else { not use_gnu_ld }
     begin
    { Open TlinkRes, will not be written to disk }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName+'2');
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName+'2',false);
 
  { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -366,7 +366,7 @@ begin
   { to the main program                                    }
   if (isdll) then
     begin
-      LinkRes2:=TLinkRes.Create(outputexedir+Info.ResName);
+      LinkRes2:=TLinkRes.Create(outputexedir+Info.ResName,true);
       // LinkRes2.add('VERSION'); not needed for now
       LinkRes2.add('  {');
       if not texportlibunix(exportlib).exportedsymnames.empty then
@@ -478,7 +478,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -506,7 +506,7 @@ begin
     SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr)
   else
     SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if use_gnu_ld then
     Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName))
@@ -550,7 +550,7 @@ var
 begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename^);
+   Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -595,7 +595,7 @@ begin
     SplitBinCmd(Info.DllCmd[1],binstr,cmdstr)
   else
     SplitBinCmd(Info.DllCmd[3],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$INITFINI',InitFiniStr);
   if use_gnu_ld then
@@ -623,7 +623,7 @@ begin
   if success and (cs_link_strip in current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
      success:=DoExec(utilsprefix+FindUtil(binstr),cmdstr,true,false);
    end;
 

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders= prt0
-units=$(SYSTEMUNIT) ctypes objpas macpas iso7185 strings \
+units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 strings \
       lnfodwrf lineinfo heaptrc \
       windows messages dynlibs \
       dos objects \
@@ -100,6 +100,8 @@ $(PRT0)$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

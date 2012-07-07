@@ -64,17 +64,12 @@ interface
 
     procedure load_procvar_from_calln(var p1:tnode);
     function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
-    function get_high_value_sym(vs: tparavarsym):tsym; { marking it as inline causes IE 200311075 during loading from ppu file }
     function load_high_value_node(vs:tparavarsym):tnode;
     function load_self_node:tnode;
     function load_result_node:tnode;
     function load_self_pointer_node:tnode;
     function load_vmt_pointer_node:tnode;
     function is_self_node(p:tnode):boolean;
-
-    function call_fail_node:tnode;
-    function initialize_data_node(p:tnode):tnode;
-    function finalize_data_node(p:tnode):tnode;
 
     function node_complexity(p: tnode): cardinal;
     function node_resources_fpu(p: tnode): cardinal;
@@ -90,7 +85,6 @@ interface
       parameter type) }
     function create_simplified_ord_const(value: tconstexprint; def: tdef; forinline: boolean): tnode;
 
-
     { returns true if n is only a tree of administrative nodes
       containing no code }
     function has_no_code(n : tnode) : boolean;
@@ -98,6 +92,10 @@ interface
     function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
+
+    { checks whether sym is a static field and if so, translates the access
+      to the appropriate node tree }
+    function handle_staticfield_access(sym: tsym; nested: boolean; var p1: tnode): boolean;
 
     { returns true if n is an array element access of a bitpacked array with
       elements of the which the vitsize mod 8 <> 0, or if is a field access
@@ -111,6 +109,10 @@ interface
 
     { returns true, if the tree given might have side effects }
     function might_have_sideeffects(n : tnode) : boolean;
+
+    { count the number of nodes in the node tree,
+      rough estimation how large the tree "node" is }
+    function node_count(node : tnode) : dword;
 
 implementation
 
@@ -393,12 +395,6 @@ implementation
       end;
 
 
-    function get_high_value_sym(vs: tparavarsym):tsym;
-      begin
-        result := tsym(vs.owner.Find('high'+vs.name));
-      end;
-
-
     function get_local_or_para_sym(const aname:string):tsym;
       var
         pd : tprocdef;
@@ -527,145 +523,6 @@ implementation
       end;
 
 
-    function call_fail_node:tnode;
-      var
-        para : tcallparanode;
-        newstatement : tstatementnode;
-        srsym : tsym;
-      begin
-        result:=internalstatements(newstatement);
-
-        { call fail helper and exit normal }
-        if is_class(current_structdef) then
-          begin
-            srsym:=search_struct_member(current_structdef,'FREEINSTANCE');
-            if assigned(srsym) and
-               (srsym.typ=procsym) then
-              begin
-                { if self<>0 and vmt<>0 then freeinstance }
-                addstatement(newstatement,cifnode.create(
-                    caddnode.create(andn,
-                        caddnode.create(unequaln,
-                            load_self_pointer_node,
-                            cnilnode.create),
-                        caddnode.create(unequaln,
-                            load_vmt_pointer_node,
-                            cnilnode.create)),
-                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
-                    nil));
-              end
-            else
-              internalerror(200305108);
-          end
-        else
-          if is_object(current_structdef) then
-            begin
-              { parameter 3 : vmt_offset }
-              { parameter 2 : pointer to vmt }
-              { parameter 1 : self pointer }
-              para:=ccallparanode.create(
-                        cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
-                    ccallparanode.create(
-                        ctypeconvnode.create_internal(
-                            load_vmt_pointer_node,
-                            voidpointertype),
-                    ccallparanode.create(
-                        ctypeconvnode.create_internal(
-                            load_self_pointer_node,
-                            voidpointertype),
-                    nil)));
-              addstatement(newstatement,
-                  ccallnode.createintern('fpc_help_fail',para));
-            end
-        else
-          internalerror(200305132);
-        { self:=nil }
-        addstatement(newstatement,cassignmentnode.create(
-            load_self_pointer_node,
-            cnilnode.create));
-        { exit }
-        addstatement(newstatement,cexitnode.create(nil));
-      end;
-
-
-    function initialize_data_node(p:tnode):tnode;
-      begin
-        if not assigned(p.resultdef) then
-          typecheckpass(p);
-        if is_ansistring(p.resultdef) or
-           is_wide_or_unicode_string(p.resultdef) or
-           is_interfacecom_or_dispinterface(p.resultdef) or
-           is_dynamic_array(p.resultdef) then
-          begin
-            result:=cassignmentnode.create(
-               ctypeconvnode.create_internal(p,voidpointertype),
-               cnilnode.create
-               );
-          end
-        else if (p.resultdef.typ=variantdef) then
-          begin
-            result:=ccallnode.createintern('fpc_variant_init',
-              ccallparanode.create(
-                ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
-              nil));
-          end
-        else
-          begin
-            result:=ccallnode.createintern('fpc_initialize',
-                  ccallparanode.create(
-                      caddrnode.create_internal(
-                          crttinode.create(
-                              tstoreddef(p.resultdef),initrtti,rdt_normal)),
-                  ccallparanode.create(
-                      caddrnode.create_internal(p),
-                  nil)));
-          end;
-      end;
-
-
-    function finalize_data_node(p:tnode):tnode;
-      var
-        newstatement : tstatementnode;
-        hs : string;
-      begin
-        if not assigned(p.resultdef) then
-          typecheckpass(p);
-        { 'decr_ref' suffix is somewhat misleading, all these helpers
-          set the passed pointer to nil now }
-        if is_ansistring(p.resultdef) then
-          hs:='fpc_ansistr_decr_ref'
-        else if is_widestring(p.resultdef) then
-          hs:='fpc_widestr_decr_ref'
-        else if is_unicodestring(p.resultdef) then
-          hs:='fpc_unicodestr_decr_ref'
-        else if is_interfacecom_or_dispinterface(p.resultdef) then
-          hs:='fpc_intf_decr_ref'
-        else
-          hs:='';
-        if hs<>'' then
-          result:=ccallnode.createintern(hs,
-             ccallparanode.create(
-               ctypeconvnode.create_internal(p,voidpointertype),
-               nil))
-        else if p.resultdef.typ=variantdef then
-          begin
-            result:=ccallnode.createintern('fpc_variant_clear',
-              ccallparanode.create(
-                ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef),
-              nil));
-          end
-        else
-          result:=ccallnode.createintern('fpc_finalize',
-                ccallparanode.create(
-                    caddrnode.create_internal(
-                        crttinode.create(
-                            tstoreddef(p.resultdef),initrtti,rdt_normal)),
-                ccallparanode.create(
-                    caddrnode.create_internal(p),
-                nil)));
-      end;
-
-
     { this function must return a very high value ("infinity") for   }
     { trees containing a call, the rest can be balanced more or less }
     { at will, probably best mainly in terms of required memory      }
@@ -683,6 +540,8 @@ implementation
             case p.nodetype of
               { floating point constants usually need loading from memory }
               realconstn,
+              setconstn,
+              stringconstn,
               temprefn,
               loadvmtaddrn,
               { main reason for the next one: we can't take the address of }
@@ -776,7 +635,6 @@ implementation
 {$endif ARM}
                   exit;
                 end;
-              stringconstn,
               tempcreaten,
               tempdeleten,
               pointerconstn,
@@ -1046,18 +904,26 @@ implementation
                  addsymref(plist^.sym);
                  if not assigned(st) then
                    st:=plist^.sym.owner;
-                 { p1 can already contain the loadnode of
-                   the class variable. When there is no tree yet we
-                   may need to load it for with or objects }
-                 if not assigned(p1) then
-                  begin
-                    case st.symtabletype of
-                      withsymtable :
-                        p1:=tnode(twithsymtable(st).withrefnode).getcopy;
-                      ObjectSymtable :
-                        p1:=load_self_node;
-                    end;
-                  end;
+                 if (plist^.sym.typ<>staticvarsym) then
+                   begin
+                     { p1 can already contain the loadnode of
+                       the class variable. When there is no tree yet we
+                       may need to load it for with or objects }
+                     if not assigned(p1) then
+                      begin
+                        case st.symtabletype of
+                          withsymtable :
+                            p1:=tnode(twithsymtable(st).withrefnode).getcopy;
+                          ObjectSymtable :
+                            p1:=load_self_node;
+                        end;
+                      end
+                   end
+                 else
+                   begin
+                     p1.free;
+                     p1:=nil;
+                   end;
                  if assigned(p1) then
                   p1:=csubscriptnode.create(plist^.sym,p1)
                  else
@@ -1128,6 +994,34 @@ implementation
         sl:=tpropaccesslist.create;
         addnode(p1);
         result:=sl;
+      end;
+
+
+    function handle_staticfield_access(sym: tsym; nested: boolean; var p1: tnode): boolean;
+      var
+        static_name: shortstring;
+        srsymtable: tsymtable;
+      begin
+        result:=false;
+        { generate access code }
+        if (sp_static in sym.symoptions) then
+          begin
+            result:=true;
+            if not nested then
+              static_name:=lower(sym.owner.name^)+'_'+sym.name
+            else
+             static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
+            if sym.owner.defowner.typ=objectdef then
+              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,true)
+            else
+              searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
+            if assigned(sym) then
+              check_hints(sym,sym.symoptions,sym.deprecatedmsg);
+            p1.free;
+            p1:=nil;
+            { static syms are always stored as absolutevarsym to handle scope and storage properly }
+            propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
+          end;
       end;
 
 
@@ -1218,5 +1112,24 @@ implementation
       begin
         result:=foreachnodestatic(n,@check_for_sideeffect,nil);
       end;
+
+    var
+      nodecount : dword;
+
+    function donodecount(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        inc(nodecount);
+        result:=fen_false;
+      end;
+
+
+    { rough estimation how large the tree "node" is }
+    function node_count(node : tnode) : dword;
+      begin
+        nodecount:=0;
+        foreachnodestatic(node,@donodecount,nil);
+        result:=nodecount;
+      end;
+
 
 end.

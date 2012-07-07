@@ -39,8 +39,8 @@ interface
     uses
       globtype,globals,
       aasmbase,aasmtai,aasmdata,
-      defutil,
-      cgbase,cgutils,cga,cgobj,
+      symdef,defutil,
+      cgbase,cgutils,cga,cgobj,hlcgobj,
       tgobj;
 
 {*****************************************************************************
@@ -91,12 +91,12 @@ interface
         begin
           {LOC_CONSTANT for example.}
           reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-          cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,left.location,reg);
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,osuinttype,left.location,reg);
         end;
       { Allocate RAX. }
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_RAX);
       { Load the right value. }
-      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,right.location,NR_RAX);
+      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_RAX);
       { Also allocate RDX, since it is also modified by a mul (JM). }
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_RDX);
       if use_ref then

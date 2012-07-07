@@ -20,6 +20,10 @@ type
   );
   { corresponding to single   double   extended   fixed      comp for i386 }
 
+{$if not declared(mul_by_power10)}
+  function mul_by_power10 (x : ValReal; power : integer) : ValReal; forward;
+{$endif}
+
 Procedure str_real (len,f : longint; d : ValReal; real_type :treal_type; out s : string);
 {$ifdef SUPPORT_EXTENDED}
 type
@@ -33,6 +37,7 @@ const
   maxDigits = 17;
 {$else}
 {$ifdef SUPPORT_DOUBLE}
+{$ifndef cpujvm}
 type
   TSplitDouble = packed record
     case byte of
@@ -40,6 +45,7 @@ type
       1: (words: Array[0..3] of word);
       2: (cards: Array[0..1] of cardinal);
   end;
+  {$endif}
 const
   maxDigits = 15;
 {$else}
@@ -62,7 +68,11 @@ type
   TIntPartStack = array[1..maxDigits+1] of valReal;
 
 var
+{$ifdef cpujvm}
+  doublebits: int64;
+{$endif}
   roundCorr, corrVal, factor : valReal;
+  high_exp10_reduced,
   spos, endpos, fracCount: longint;
   correct, currprec: longint;
   temp : string;
@@ -181,6 +191,33 @@ const
 {$endif DEBUG_NASM}
   end;
 
+  function reduce_exponent (d : ValReal; out scaled : ValReal) : longint;
+  { Returns decimal exponent which was used for scaling, and a scaled value out }
+  const
+    C_LN10 = ln(10);
+  var
+    log10_d : longint;
+  begin
+    reduce_exponent := 0;
+    if d<>0 then
+      begin
+       // get exponent approximation ["d" is assumed to be non-negative]
+        log10_d:=trunc(ln(d)/C_LN10);
+       // trying to stay at least 1 digit away from introducing integer/fractional part
+        if log10_d > maxDigits+1 then
+          reduce_exponent := log10_d-maxDigits
+        else
+          if log10_d < -(maxDigits+1) then
+            reduce_exponent := log10_d+maxDigits
+       // else
+       //   the number is already suitable enough
+      end;
+    // do scaling if needed
+    if reduce_exponent<>0
+      then scaled := mul_by_power10(d,-reduce_exponent) // denormals should be handled properly by this call
+      else scaled := d;
+  end;
+
 begin
   case real_type of
     rt_s32real :
@@ -236,6 +273,14 @@ begin
          { correction used with comparing to avoid rounding/precision errors }
          roundCorr := 1.0842021725e-19;
       end;
+    else
+      begin
+        { keep JVM byte code verifier happy }
+        maxlen:=0;
+        minlen:=0;
+        explen:=0;
+        roundCorr:=0;
+      end;
     end;
   { check parameters }
   { default value for length is -32767 }
@@ -281,11 +326,19 @@ begin
   {$error sign/NaN/Inf not yet supported for big endian CPU's in str_real}
 {$else SUPPORT_EXTENDED}
 {$ifdef SUPPORT_DOUBLE}
+{$ifdef cpujvm}
+  doublebits := JLDouble.doubleToLongBits(d);
+  sign := doublebits<0;
+  expMaximal := (doublebits shr (32+20)) and $7ff = 2047;
+  fraczero:= (((doublebits shr 32) and $fffff) = 0) and
+             (longint(doublebits)=0);
+{$else cpujvm}
   { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
   sign := ((TSplitDouble(d).cards[0] shr 20) and $800) <> 0;
   expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
   fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
               (TSplitDouble(d).cards[1] = 0);
+{$endif cpujvm}
 {$else SUPPORT_DOUBLE}
 {$ifdef SUPPORT_SINGLE}
   { single, format (MSB): 1 Sign bit, 8 bit exponent, 23 bit mantissa }
@@ -330,9 +383,31 @@ begin
       temp := ' 0';
       { position in the temporary output string }
       spos := 2;
+
+      // workaround to make follow-up things go somewhat faster
+      high_exp10_reduced := 0;
+      case real_type of
+      // blacklist, in order of increasing headache:
+//?     rt_s32real :;   
+          // ? needs additional testing to ensure any reasonable benefit
+          //   without lost of accuracy due to an extra conversion
+        rt_c64bit, rt_currency :;
+          // no much sense to touch them
+      else
+      // acceptable:
+      // ? rt_s32real [see above]
+      //   rt_s64real
+      //   rt_s80real, rt_sc80real
+      // ? rt_s128real [have not tried]
+        high_exp10_reduced := reduce_exponent(d,d);
+      end;
+  
       { get the integer part }
       correct := 0;
       GetIntPart(d);
+
+      inc(correct,high_exp10_reduced); // end of workaround
+
       { now process the fractional part }
       if d > 1.0- roundCorr then
         d := frac(d);

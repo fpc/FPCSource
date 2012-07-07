@@ -40,7 +40,8 @@ unit cpunode;
        narminl,
        narmcnv,
        narmcon,
-       narmset
+       narmset,
+       narmmem
        ;
 
 

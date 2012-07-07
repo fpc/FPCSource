@@ -28,11 +28,19 @@ interface
 uses
   globtype,
   aasmbase,
-  aasmdata;
+  aasmdata,
+  symconst;
 
+    type
+      tasmlabofs = record
+        lab: tasmlabel;
+        ofs: pint;
+      end;
 
-    function emit_ansistring_const(list:TAsmList;data:PChar;len:LongInt;encoding:tstringencoding;NewSection:Boolean=True):TAsmLabel;
-    function emit_unicodestring_const(list:TAsmList;data:Pointer;encoding:tstringencoding;Winlike:Boolean):TAsmLabel;
+    function emit_ansistring_const(list:TAsmList;data:PChar;len:LongInt;encoding:tstringencoding;NewSection:Boolean=True):tasmlabofs;
+    function emit_unicodestring_const(list:TAsmList;data:Pointer;encoding:tstringencoding;Winlike:Boolean):tasmlabofs;
+
+    function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
 
 
 implementation
@@ -45,35 +53,40 @@ uses
   widestr,
   symdef;
 
-    function emit_ansistring_const(list:TAsmList;data:PChar;len:LongInt;encoding:tstringencoding;NewSection:Boolean): TAsmLabel;
+    function emit_ansistring_const(list:TAsmList;data:PChar;len:LongInt;encoding:tstringencoding;NewSection:Boolean): tasmlabofs;
       var
-        referencelab: TAsmLabel;
         s: PChar;
       begin
-        current_asmdata.getdatalabel(result);
+        current_asmdata.getdatalabel(result.lab);
+        result.ofs:=0;
         if NewSection then
-          new_section(list,sec_rodata,result.name,const_align(sizeof(pint)));
-        referencelab := nil;
+          new_section(list,sec_rodata,result.lab.name,const_align(sizeof(pint)));
+        { put label before header on Darwin, because there the linker considers
+          a global symbol to be the start of a new subsection }
         if target_info.system in systems_darwin then
-          begin
-            current_asmdata.getdatalabel(referencelab);
-            list.concat(tai_label.create(referencelab));
-          end;
+          list.concat(tai_label.create(result.lab));
         list.concat(tai_const.create_16bit(encoding));
+        inc(result.ofs,2);
         list.concat(tai_const.create_16bit(1));
+        inc(result.ofs,2);
 {$ifdef cpu64bitaddr}
         { dummy for alignment }
         list.concat(tai_const.create_32bit(0));
+        inc(result.ofs,4);
 {$endif cpu64bitaddr}
         list.concat(tai_const.create_pint(-1));
+        inc(result.ofs,sizeof(pint));
         list.concat(tai_const.create_pint(len));
-        { make sure the string doesn't get dead stripped if the header is referenced }
-        if target_info.system in systems_darwin then
-          list.concat(tai_directive.create(asd_reference,result.name));
-        list.concat(tai_label.create(result));
-        { and vice versa }
-        if target_info.system in systems_darwin then
-          list.concat(tai_directive.create(asd_reference,referencelab.name));
+        inc(result.ofs,sizeof(pint));
+        if not(target_info.system in systems_darwin) then
+          begin
+            { results in slightly more efficient code }
+            list.concat(tai_label.create(result.lab));
+            result.ofs:=0;
+          end;
+        { sanity check }
+        if result.ofs<>get_string_symofs(st_ansistring,false) then
+          internalerror(2012051701);
 
         getmem(s,len+1);
         move(data^,s^,len);
@@ -82,40 +95,51 @@ uses
       end;
 
 
-    function emit_unicodestring_const(list:TAsmList;data:Pointer;encoding:tstringencoding;Winlike:Boolean):TAsmLabel;
+    function emit_unicodestring_const(list:TAsmList;data:Pointer;encoding:tstringencoding;Winlike:Boolean):tasmlabofs;
       var
-        referencelab: TAsmLabel;
         i, strlength: SizeInt;
       begin
-        current_asmdata.getdatalabel(result);
-        new_section(list,sec_rodata,result.name,const_align(sizeof(pint)));
-        referencelab := nil;
-        if target_info.system in systems_darwin then
-          begin
-            current_asmdata.getdatalabel(referencelab);
-            list.concat(tai_label.create(referencelab));
-          end;
+        current_asmdata.getdatalabel(result.lab);
+        result.ofs:=0;
+        new_section(list,sec_rodata,result.lab.name,const_align(sizeof(pint)));
         strlength := getlengthwidestring(pcompilerwidestring(data));
         if Winlike then
-          list.concat(Tai_const.Create_32bit(strlength*cwidechartype.size))
+          begin
+            list.concat(Tai_const.Create_32bit(strlength*cwidechartype.size));
+            { don't increase result.ofs, this is how Windows widestrings are
+              defined by the OS: a pointer 4 bytes past the length of the
+              string }
+            list.concat(Tai_label.Create(result.lab));
+          end
         else
           begin
+            { put label before header on Darwin, because there the linker considers
+              a global symbol to be the start of a new subsection }
+            if target_info.system in systems_darwin then
+              list.concat(Tai_label.Create(result.lab));
             list.concat(tai_const.create_16bit(encoding));
+            inc(result.ofs,2);
             list.concat(tai_const.create_16bit(2));
+            inc(result.ofs,2);
     {$ifdef cpu64bitaddr}
             { dummy for alignment }
             list.concat(Tai_const.Create_32bit(0));
+            inc(result.ofs,4);
     {$endif cpu64bitaddr}
             list.concat(Tai_const.Create_pint(-1));
+            inc(result.ofs,sizeof(pint));
             list.concat(Tai_const.Create_pint(strlength));
+            inc(result.ofs,sizeof(pint));
+            if not(target_info.system in systems_darwin) then
+              begin
+                { results in slightly more efficient code }
+                list.concat(tai_label.create(result.lab));
+                result.ofs:=0;
+              end;
+            { sanity check }
+            if result.ofs<>get_string_symofs(st_unicodestring,false) then
+              internalerror(2012051702);
           end;
-        { make sure the string doesn't get dead stripped if the header is referenced }
-        if (target_info.system in systems_darwin) then
-          list.concat(tai_directive.create(asd_reference,result.name));
-        list.concat(Tai_label.Create(result));
-        { ... and vice versa }
-        if (target_info.system in systems_darwin) then
-          list.concat(tai_directive.create(asd_reference,referencelab.name));
         if cwidechartype.size = 2 then
           begin
             for i:=0 to strlength-1 do
@@ -125,6 +149,41 @@ uses
           end
         else
           InternalError(200904271); { codegeneration for other sizes must be written }
+      end;
+
+
+    function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
+      const
+        ansistring_header_size =
+          { encoding }
+          2 +
+          { elesize }
+          2 +
+{$ifdef cpu64bitaddr}
+          { alignment }
+          4 +
+{$endif cpu64bitaddr}
+          { reference count }
+          sizeof(pint) +
+          { length }
+          sizeof(pint);
+        unicodestring_header_size = ansistring_header_size;
+      begin
+        if not(target_info.system in systems_darwin) then
+          result:=0
+        else case typ of
+          st_ansistring:
+            result:=ansistring_header_size;
+          st_unicodestring:
+            result:=unicodestring_header_size;
+          st_widestring:
+            if winlikewidestring then
+              result:=0
+            else
+              result:=unicodestring_header_size;
+          else
+            result:=0;
+        end;
       end;
 
 

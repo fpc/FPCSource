@@ -53,10 +53,10 @@ implementation
     uses
       globtype,systems,constexp,
       cutils,verbose,globals,
-      symconst,
+      symconst,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
-      cgbase,cgutils,cgobj,pass_2,
+      cgbase,cgutils,cgobj,hlcgobj,pass_2,
       ncon,procinfo,
       cpubase,
       ncgutil,cgcpu;
@@ -289,8 +289,8 @@ end;
 
          { put numerator in register }
          size:=def_cgsize(left.resultdef);
-         location_force_reg(current_asmdata.CurrAsmList,left.location,
-           size,true);
+         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
+           left.resultdef,left.resultdef,true);
          location_copy(location,left.location);
          numerator := location.register;
          resultreg := location.register;
@@ -315,8 +315,8 @@ end;
 
          if (not done) then begin
              { load divider in a register if necessary }
-             location_force_reg(current_asmdata.CurrAsmList,right.location,
-               def_cgsize(right.resultdef),true);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
+               right.resultdef,right.resultdef,true);
              if (right.nodetype <> ordconstn) then
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_CMPWI,NR_CR1,
                  right.location.register,0));
@@ -379,8 +379,8 @@ end;
 
          if is_64bitint(left.resultdef) then
            begin
-             location_force_reg(current_asmdata.CurrAsmList,left.location,
-               def_cgsize(left.resultdef),true);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
+               left.resultdef,left.resultdef,true);
              location_copy(location,left.location);
              hreg64hi := location.register64.reghi;
              hreg64lo := location.register64.reglo;
@@ -449,7 +449,7 @@ end;
              else
                { no constant shiftcount }
                begin
-                 location_force_reg(current_asmdata.CurrAsmList,right.location,OS_S32,true);
+                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,s32inttype,true);
                  hregister1 := right.location.register;
                  if nodetype = shln then
                    begin
@@ -498,7 +498,7 @@ end;
          else
            begin
              { load left operators in a register }
-             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
              location_copy(location,left.location);
              resultreg := location.register;
              hregister1 := location.register;
@@ -519,7 +519,7 @@ end;
              else
                begin
                  { load shift count in a register if necessary }
-                 location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resultdef),true);
+                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
                  hregister2 := right.location.register;
 
                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,location.size,hregister2,
@@ -543,7 +543,7 @@ end;
          secondpass(left);
          if is_64bit(left.resultdef) then
            begin
-             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
              location_copy(location,left.location);
              if (location.loc = LOC_CREGISTER) then
                begin
@@ -563,7 +563,7 @@ end;
          else
            begin
               if left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
-                location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
               location_copy(location,left.location);
               location.loc:=LOC_REGISTER;
               case left.location.loc of
@@ -667,7 +667,7 @@ end;
                   LOC_SUBSETREG, LOC_CSUBSETREG, 
                   LOC_SUBSETREF, LOC_CSUBSETREF:
                     begin
-                      location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
+                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                       tmpreg:=left.location.register;
 {$ifndef cpu64bitalu}
                       { 64 bit pascal booleans have their truth value stored in
@@ -692,7 +692,7 @@ end;
          else if is_64bitint(left.resultdef) then
            begin
              secondpass(left);
-             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
              location_copy(location,left.location);
              { perform the NOT operation }
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NOT,location.register64.reghi,
@@ -703,7 +703,7 @@ end;
          else
            begin
              secondpass(left);
-             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
              location_copy(location,left.location);
              location.loc := LOC_REGISTER;
              location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);

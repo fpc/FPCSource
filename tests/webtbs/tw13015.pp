@@ -1,5 +1,3 @@
-{ %FILES=tw13015-utf8.bin }
-
 program test;
 
 {$ifdef FPC}

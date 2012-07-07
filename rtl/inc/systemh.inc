@@ -194,7 +194,7 @@ Type
   FarPointer = Pointer;
 {$endif CPUSPARC}
 
-{$ifdef CPUMIPS32}
+{$if defined(CPUMIPS32) or defined(CPUMIPSEL32)}
   {$define DEFAULT_DOUBLE}
 
   {$define SUPPORT_SINGLE}
@@ -644,7 +644,7 @@ Function  Random: extended;
 Procedure Randomize;
 {$endif FPC_HAS_FEATURE_RANDOM}
 
-{$ifdef FPC_HAS_INTERNAL_ABS_LONG and (defined(cpui386) or defined(cpux86_64) or defined(cpupowerpc))}
+{$ifdef FPC_HAS_INTERNAL_ABS_LONG}
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
 Function abs(l:longint):longint;[internproc:fpc_in_abs_long];
 {$else FPC_HAS_INTERNAL_ABS_LONG}
@@ -778,9 +778,9 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 {$endif defined(cpux86_64) or defined(cpui386)}
 
 { currently, all supported CPUs have an internal 32 bit sar implementation }
-{ $if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{ $if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
 {$define FPC_HAS_INTERNAL_SAR_DWORD}
-{ $endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{ $endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
 
 {$if defined(cpux86_64) or defined(powerpc64)}
 {$define FPC_HAS_INTERNAL_SAR_QWORD}
@@ -814,7 +814,7 @@ function SarInt64(Const AValue : Int64): Int64;[internproc:fpc_in_sar_x];
 function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_sar_x_y];
 {$else FPC_HAS_INTERNAL_SAR_QWORD}
 function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64;compilerproc;
-function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64;
+function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external name 'FPC_SARINT64'];
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSX}
@@ -1059,15 +1059,18 @@ Procedure getdir(drivenr:byte;var dir:ansistring);
 //function get_frame:pointer;[INTERNPROC:fpc_in_get_frame];
 (*
 // still defined externally
-function get_caller_addr(framebp:pointer):pointer;[INTERNPROC:fpc_in_get_caller_addr];
-function get_caller_frame(framebp:pointer):pointer;[INTERNPROC:fpc_in_get_caller_frame];
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;[INTERNPROC:fpc_in_get_caller_addr];
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;[INTERNPROC:fpc_in_get_caller_frame];
 *)
 {$ELSE}
 function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ENDIF}
 
-function get_caller_addr(framebp:pointer):pointer;
-function get_caller_frame(framebp:pointer):pointer;
+Function Get_pc_addr : Pointer;
+
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
+procedure get_caller_stackinfo(var framebp,addr : pointer);
 
 Function IOResult:Word;
 Function Sptr:Pointer;[internconst:fpc_in_const_ptr];
@@ -1149,7 +1152,7 @@ Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-Procedure Dump_Stack(var f : text;bp:pointer);
+Procedure Dump_Stack(var f : text;bp:pointer;addr : pointer = nil);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}

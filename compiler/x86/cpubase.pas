@@ -65,9 +65,6 @@ uses
 *****************************************************************************}
 
    const
-      { Invalid register number }
-      RS_INVALID    = $ff;
-
       { Integer Super registers }
       RS_RAX        = $00;      {EAX}
       RS_RCX        = $01;      {ECX}

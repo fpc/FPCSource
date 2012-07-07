@@ -19,6 +19,7 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
 var
   res : word;
   addr : pointer;
+  frame : pointer;
 begin
   res:=0;
   addr:=nil;
@@ -31,7 +32,7 @@ begin
             FPE_INTDIV:
               res:=200;
             FPE_INTOVF:
-              res:=205;
+              res:=215;
             FPE_FLTDIV:
               res:=200;
             FPE_FLTOVF:
@@ -57,5 +58,17 @@ begin
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,addr,nil);
+    begin
+      if assigned(SigContext) then
+        begin
+          frame:=pointer(ptruint(SigContext^.sigc_regs[29]));   { stack pointer }
+          addr:=pointer(ptruint(SigContext^.sigc_pc));  { program counter }
+        end
+      else
+        begin
+          frame:=nil;
+          addr:=nil;
+        end;
+      HandleErrorAddrFrame(res,addr,frame);
+    end;
 end;

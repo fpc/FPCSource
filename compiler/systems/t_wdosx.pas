@@ -61,7 +61,7 @@ var
 begin
  b := Inherited MakeExecutable;
  if b then
-  DoExec(FindUtil('stubit'),current_module.exefilename^,false,false);
+  DoExec(FindUtil('stubit'),current_module.exefilename,false,false);
  Result := b;
 end;
 

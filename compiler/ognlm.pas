@@ -770,7 +770,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         { Initial header, will be updated later }
         nlmHeader.signature := NLM_SIGNATURE;
         nlmHeader.version := NLM_HEADER_VERSION;
-        moduleName := upperCase(current_module.exefilename^);
+        moduleName := upperCase(current_module.exefilename);
         nlmHeader.moduleName := moduleName;
         nlmHeader.codeImageOffset := TextExeSec.DataPos+TObjSection(TextExeSec.ObjSectionList[0]).dataalignbytes; // ??? may be that align has to be moved to fixups/imports
         nlmHeader.codeImageSize := TextExeSec.Size;

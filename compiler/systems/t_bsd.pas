@@ -379,7 +379,7 @@ begin
      ExpandAndApplyOrder(SharedLibFiles);
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,not LdSupportsNoResponseFile);
 
   if (target_info.system in systems_darwin) and
      (sysrootpath<>'') then
@@ -424,7 +424,7 @@ begin
      if LdSupportsNoResponseFile then
        LinkRes.Add('-L'+HPath.Str)
      else
-       LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+       LinkRes.Add('SEARCH_DIR("'+HPath.Str+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
   HPath:=TCmdStrListItem(LibrarySearchPath.First);
@@ -433,7 +433,7 @@ begin
      if LdSupportsNoResponseFile then
        LinkRes.Add('-L'+HPath.Str)
      else
-       LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+       LinkRes.Add('SEARCH_DIR("'+HPath.Str+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
 
@@ -607,7 +607,7 @@ var
   useshell : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -653,7 +653,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
@@ -673,7 +673,7 @@ begin
      (cs_link_separate_dbg_file in current_settings.globalswitches) then
     begin
       extdbgbinstr:=FindUtil(utilsprefix+'dsymutil');
-      extdbgcmdstr:=maybequoted(current_module.exefilename^);
+      extdbgcmdstr:=maybequoted(current_module.exefilename);
     end;
 
   if (LdSupportsNoResponseFile) and
@@ -730,7 +730,7 @@ begin
   MakeSharedLibrary:=false;
   GCSectionsStr:='';
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename^);
+   Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -745,14 +745,14 @@ begin
 
   InitStr:='-init FPC_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
-  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename^);
+  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
 {$ifndef darwin}
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
 {$else darwin}
-  Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename^)));
+  Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename)));
 {$endif darwin}
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
@@ -773,7 +773,7 @@ begin
      (cs_link_separate_dbg_file in current_settings.globalswitches) then
     begin
       extdbgbinstr:=FindUtil(utilsprefix+'dsymutil');
-      extdbgcmdstr:=maybequoted(current_module.sharedlibfilename^);
+      extdbgcmdstr:=maybequoted(current_module.sharedlibfilename);
     end;
 
   if (target_info.system in systems_darwin) then
@@ -816,7 +816,7 @@ begin
   if success and (cs_link_strip in current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
    end;
 

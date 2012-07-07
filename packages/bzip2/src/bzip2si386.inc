@@ -7,6 +7,8 @@ procedure TDecompressBzip2Stream.detransform;assembler;
 asm
 {  mov edx,offset c
   call mcount}
+  push ebx
+  push edi
   xor edx,edx
   lea ebx,[eax+TDecompressBzip2Stream.cftab]
   mov ecx,[eax+TDecompressBzip2Stream.tt_count]
@@ -28,4 +30,6 @@ asm
   jne @a1
   pop ebp
   pop esi
-end ['eax','ebx','ecx','edx','edi'];
+  pop edi
+  pop ebx
+end ['eax','ecx','edx'];

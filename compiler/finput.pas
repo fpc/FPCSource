@@ -26,7 +26,7 @@ unit finput;
 interface
 
     uses
-      cutils,cclasses,cstreams;
+      cutils,globtype,cclasses,cstreams;
 
     const
        InputFileBufSize=32*1024+1;
@@ -37,7 +37,7 @@ interface
        plongintarr = ^tlongintarr;
 
        tinputfile = class
-         path,name : pshortstring;       { path and filename }
+         path,name : TPathStr;       { path and filename }
          next      : tinputfile;    { next file for reading }
 
          is_macro,
@@ -59,7 +59,7 @@ interface
          ref_index  : longint;
          ref_next   : tinputfile;
 
-         constructor create(const fn:string);
+         constructor create(const fn:TPathStr);
          destructor  destroy;override;
          procedure setpos(l:longint);
          procedure seekbuf(fpos:longint);
@@ -74,7 +74,7 @@ interface
          function  getfiletime:longint;
        protected
          filetime  : longint;
-         function fileopen(const filename: string): boolean; virtual; abstract;
+         function fileopen(const filename: TPathStr): boolean; virtual; abstract;
          function fileseek(pos: longint): boolean; virtual; abstract;
          function fileread(var databuf; maxsize: longint): longint; virtual; abstract;
          function fileeof: boolean; virtual; abstract;
@@ -84,7 +84,7 @@ interface
 
        tdosinputfile = class(tinputfile)
        protected
-         function fileopen(const filename: string): boolean; override;
+         function fileopen(const filename: TPathStr): boolean; override;
          function fileseek(pos: longint): boolean; override;
          function fileread(var databuf; maxsize: longint): longint; override;
          function fileeof: boolean; override;
@@ -103,8 +103,8 @@ interface
           destructor destroy;override;
           procedure register_file(f : tinputfile);
           function  get_file(l:longint) : tinputfile;
-          function  get_file_name(l :longint):string;
-          function  get_file_path(l :longint):string;
+          function  get_file_name(l :longint):TPathStr;
+          function  get_file_path(l :longint):TPathStr;
        end;
 
 {****************************************************************************
@@ -137,11 +137,10 @@ interface
           sourcefiles      : tinputfilemanager;
           { paths and filenames }
           paramallowoutput : boolean;  { original allowoutput parameter }
-          paramfn,                  { original filename }
-          path,                     { path where the module is find/created }
-          outputpath,               { path where the .s / .o / exe are created }
           modulename,               { name of the module in uppercase }
-          realmodulename,           { name of the module in the orignal case }
+          realmodulename: pshortstring; { name of the module in the orignal case }
+          paramfn,                  { original filename }
+          mainsource,               { name of the main sourcefile }
           objfilename,              { fullname of the objectfile }
           asmfilename,              { fullname of the assemblerfile }
           ppufilename,              { fullname of the ppufile }
@@ -151,21 +150,22 @@ interface
           mapfilename,              { fullname of the mapfile }
           exefilename,              { fullname of the exefile }
           dbgfilename,              { fullname of the debug info file }
-          mainsource   : pshortstring;   { name of the main sourcefile }
+          path,                     { path where the module is find/created }
+          outputpath   : TPathStr;  { path where the .s / .o / exe are created }
           constructor create(const s:string);
           destructor destroy;override;
-          procedure setfilename(const fn:string;allowoutput:boolean);
+          procedure setfilename(const fn:TPathStr;allowoutput:boolean);
        end;
 
 
-     Function GetNamedFileTime (Const F : String) : Longint;
+     Function GetNamedFileTime (Const F : TPathStr) : Longint;
 
 
 implementation
 
 uses
   SysUtils,
-  GlobType,Comphook,
+  Comphook,
 {$ifdef heaptrc}
   fmodule,
   ppheap,
@@ -179,7 +179,7 @@ uses
                                   Utils
  ****************************************************************************}
 
-   Function GetNamedFileTime (Const F : String) : Longint;
+   Function GetNamedFileTime (Const F : TPathStr) : Longint;
      begin
        GetNamedFileTime:=do_getnamedfiletime(F);
      end;
@@ -189,10 +189,10 @@ uses
                                   TINPUTFILE
  ****************************************************************************}
 
-    constructor tinputfile.create(const fn:string);
+    constructor tinputfile.create(const fn:TPathStr);
       begin
-        name:=stringdup(ExtractFileName(fn));
-        path:=stringdup(ExtractFilePath(fn));
+        name:=ExtractFileName(fn);
+        path:=ExtractFilePath(fn);
         next:=nil;
         filetime:=-1;
       { file info }
@@ -220,8 +220,6 @@ uses
       begin
         if not closed then
          close;
-        stringdispose(path);
-        stringdispose(name);
       { free memory }
         if assigned(linebuf) then
          freemem(linebuf,maxlinebuf shl 2);
@@ -262,7 +260,7 @@ uses
         open:=false;
         if not closed then
          Close;
-        if not fileopen(path^+name^) then
+        if not fileopen(path+name) then
          exit;
       { file }
         endoffile:=false;
@@ -284,6 +282,8 @@ uses
               Freemem(buf,maxbufsize);
               buf:=nil;
             end;
+           name:='';
+           path:='';
            closed:=true;
            exit;
          end;
@@ -334,7 +334,7 @@ uses
          end;
         if not closed then
          exit;
-        if not fileopen(path^+name^) then
+        if not fileopen(path+name) then
          exit;
         closed:=false;
       { get new mem }
@@ -445,7 +445,7 @@ uses
                                 TDOSINPUTFILE
  ****************************************************************************}
 
-    function tdosinputfile.fileopen(const filename: string): boolean;
+    function tdosinputfile.fileopen(const filename: TPathStr): boolean;
       begin
         { Check if file exists, this will also check if it is
           a real file and not a directory }
@@ -500,7 +500,7 @@ uses
 
     procedure tdosinputfile.filegettime;
       begin
-        filetime:=getnamedfiletime(path^+name^);
+        filetime:=getnamedfiletime(path+name);
       end;
 
 
@@ -572,25 +572,25 @@ uses
      end;
 
 
-   function tinputfilemanager.get_file_name(l :longint):string;
+   function tinputfilemanager.get_file_name(l :longint):TPathStr;
      var
        hp : tinputfile;
      begin
        hp:=get_file(l);
        if assigned(hp) then
-        get_file_name:=hp.name^
+        get_file_name:=hp.name
        else
         get_file_name:='';
      end;
 
 
-   function tinputfilemanager.get_file_path(l :longint):string;
+   function tinputfilemanager.get_file_path(l :longint):TPathStr;
      var
        hp : tinputfile;
      begin
        hp:=get_file(l);
        if assigned(hp) then
-        get_file_path:=hp.path^
+        get_file_path:=hp.path
        else
         get_file_path:='';
      end;
@@ -600,31 +600,19 @@ uses
                                 TModuleBase
  ****************************************************************************}
 
-    procedure tmodulebase.setfilename(const fn:string;allowoutput:boolean);
+    procedure tmodulebase.setfilename(const fn:TPathStr;allowoutput:boolean);
       var
-        p,n,
+        p, n,
         prefix,
-        suffix : string;
+        suffix : TPathStr;
       begin
-         stringdispose(objfilename);
-         stringdispose(asmfilename);
-         stringdispose(ppufilename);
-         stringdispose(importlibfilename);
-         stringdispose(staticlibfilename);
-         stringdispose(sharedlibfilename);
-         stringdispose(mapfilename);
-         stringdispose(exefilename);
-         stringdispose(dbgfilename);
-         stringdispose(outputpath);
-         stringdispose(path);
-         stringdispose(paramfn);
          { Create names }
-         paramfn := stringdup(fn);
+         paramfn := fn;
          paramallowoutput := allowoutput;
          p := FixPath(ExtractFilePath(fn),false);
          n := FixFileName(ChangeFileExt(ExtractFileName(fn),''));
          { set path }
-         path:=stringdup(p);
+         path:=p;
          { obj,asm,ppu names }
          if AllowOutput then
            begin
@@ -634,31 +622,31 @@ uses
                if (OutputExeDir<>'') then
                  p:=OutputExeDir;
            end;
-         outputpath:=stringdup(p);
-         asmfilename:=stringdup(p+n+target_info.asmext);
-         objfilename:=stringdup(p+n+target_info.objext);
-         ppufilename:=stringdup(p+n+target_info.unitext);
-         importlibfilename:=stringdup(p+target_info.importlibprefix+n+target_info.importlibext);
-         staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
+         outputpath:=p;
+         asmfilename:=p+n+target_info.asmext;
+         objfilename:=p+n+target_info.objext;
+         ppufilename:=p+n+target_info.unitext;
+         importlibfilename:=p+target_info.importlibprefix+n+target_info.importlibext;
+         staticlibfilename:=p+target_info.staticlibprefix+n+target_info.staticlibext;
 
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
            p:=OutputExeDir
          else
-           p:=path^;
+           p:=path;
 
          { lib and exe could be loaded with a file specified with -o }
          if AllowOutput and
             (compile_level=1) and
             (OutputFileName<>'')then
            begin
-             exefilename:=stringdup(p+OutputFileName);
-             sharedlibfilename:=stringdup(p+OutputFileName);
+             exefilename:=p+OutputFileName;
+             sharedlibfilename:=p+OutputFileName;
              n:=ChangeFileExt(OutputFileName,''); { for mapfilename and dbgfilename } 
            end
          else
            begin
-             exefilename:=stringdup(p+n+target_info.exeext);
+             exefilename:=p+n+target_info.exeext;
              if Assigned(OutputPrefix) then
                prefix := OutputPrefix^
              else
@@ -667,10 +655,10 @@ uses
                suffix := OutputSuffix^
              else
                suffix := '';
-             sharedlibfilename:=stringdup(p+prefix+n+suffix+target_info.sharedlibext);
+             sharedlibfilename:=p+prefix+n+suffix+target_info.sharedlibext;
            end;
-         mapfilename:=stringdup(p+n+'.map');
-         dbgfilename:=stringdup(p+n+'.dbg');
+         mapfilename:=p+n+'.map';
+         dbgfilename:=p+n+'.dbg';
       end;
 
 
@@ -678,19 +666,19 @@ uses
       begin
         modulename:=stringdup(Upper(s));
         realmodulename:=stringdup(s);
-        mainsource:=nil;
-        ppufilename:=nil;
-        objfilename:=nil;
-        asmfilename:=nil;
-        importlibfilename:=nil;
-        staticlibfilename:=nil;
-        sharedlibfilename:=nil;
-        exefilename:=nil;
-        dbgfilename:=nil;
-        mapfilename:=nil;
-        outputpath:=nil;
-        paramfn:=nil;
-        path:=nil;
+        mainsource:='';
+        ppufilename:='';
+        objfilename:='';
+        asmfilename:='';
+        importlibfilename:='';
+        staticlibfilename:='';
+        sharedlibfilename:='';
+        exefilename:='';
+        dbgfilename:='';
+        mapfilename:='';
+        outputpath:='';
+        paramfn:='';
+        path:='';
         { status }
         state:=ms_registered;
         { unit index }
@@ -706,21 +694,8 @@ uses
         if assigned(sourcefiles) then
          sourcefiles.free;
         sourcefiles:=nil;
-        stringdispose(objfilename);
-        stringdispose(asmfilename);
-        stringdispose(ppufilename);
-        stringdispose(importlibfilename);
-        stringdispose(staticlibfilename);
-        stringdispose(sharedlibfilename);
-        stringdispose(exefilename);
-        stringdispose(dbgfilename);
-        stringdispose(mapfilename);
-        stringdispose(outputpath);
-        stringdispose(path);
         stringdispose(modulename);
         stringdispose(realmodulename);
-        stringdispose(mainsource);
-        stringdispose(paramfn);
         inherited destroy;
       end;
 

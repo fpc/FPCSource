@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) unixtype ctypes strings objpas iso7185 macpas \
+units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       heaptrc lineinfo lnfodwrf \
       baseunix unixutil \
       termio unix initc cmem \
@@ -124,6 +124,8 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

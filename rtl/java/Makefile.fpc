@@ -1,0 +1,165 @@
+#
+#   Makefile.fpc for Free Pascal JVM (Embedded) RTL
+#
+
+[package]
+main=rtl
+
+[target]
+loaders=
+units=$(SYSTEMUNIT) uuchar objpas jdk15
+
+[require]
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+target=java
+
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON) $(ARCH)
+
+[prerules]
+RTL=..
+INC=$(RTL)/inc
+COMMON=$(RTL)/common
+PROCINC=$(RTL)/$(CPU_TARGET)
+UNITPREFIX=rtl
+SYSTEMUNIT=system
+override FPCOPT+=@rtl.cfg
+
+ifdef RELEASE
+override FPCOPT+=-Ur
+endif
+
+CPU_UNITS=
+SYSINIT_UNITS=
+
+ifeq ($(ARCH),arm)
+CPU_UNITS=lpc21x4 at91sam7x256 stellaris stm32f103
+endif
+
+# Paths
+GRAPHDIR=$(INC)/graph
+
+[rules]
+.NOTPARALLEL:
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+
+#
+# Base Units (System, strings, os-dependent-base-unit)
+#
+
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
+        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+
+objpas$(PPUEXT): objpas.pp
+        $(COMPILER) objpas.pp $(REDIR)
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+                   $(SYSTEMUNIT)$(PPUEXT)
+
+jdk15$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) jdk15.inc jdk15.pas 
+
+#
+# System Dependent Units
+#
+
+#ports$(PPUEXT) : ports.pas objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+#doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+#
+# TP7 Compatible RTL Units
+#
+
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
+               $(SYSTEMUNIT)$(PPUEXT)
+
+#crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
+
+objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+#printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
+
+#graph$(PPUEXT) : graph.pp
+
+#
+# Delphi Compatible Units
+#
+
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+                    objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
+
+varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
+                    $(OBJPASDIR)/varutilh.inc varutils.pp
+        $(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
+
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
+
+types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/types.pp
+
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
+        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
+
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
+dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
+
+#
+# Mac Pascal Model
+#
+
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
+        $(COMPILER) $(INC)/macpas.pp $(REDIR)
+
+#
+# Other system-independent RTL Units
+#
+
+ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+
+#lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+
+charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)

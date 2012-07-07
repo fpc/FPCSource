@@ -69,6 +69,8 @@ type
 
 implementation
 
+uses testdecorator;
+
 const
   ShortOpts = 'alhp';
   DefaultLongOpts: array[1..8] of string =
@@ -268,13 +270,48 @@ begin
   inherited Destroy;
 end;
 
+Type
+  TTestDecoratorClass = Class of TTestDecorator;
+
+  { TDecoratorTestSuite }
+
+  TDecoratorTestSuite = Class(TTestSuite)
+    Procedure  FreeDecorators(T : TTest);
+    Destructor Destroy; override;
+  end;
+
+Procedure  TDecoratorTestSuite.FreeDecorators(T : TTest);
+
+Var
+  I : Integer;
+begin
+  If (T is TTestSuite) then
+    for I:=0 to TTestSuite(t).Tests.Count-1 do
+      FreeDecorators(TTest(TTestSuite(t).Tests[i]));
+  if (T is TTestDecorator) and (TTestDecorator(T).Test is TDecoratorTestSuite) then
+    T.free;
+end;
+
+{ TDecoratorTestSuite }
+
+destructor TDecoratorTestSuite.Destroy;
+begin
+  FreeDecorators(Self);
+  Tests.Clear;
+  inherited Destroy;
+end;
+
 procedure TTestRunner.DoRun;
+
 
   procedure CheckTestRegistry (test:TTest; ATestName:string; res : TTestSuite);
   var s, c : string;
       I, p : integer;
+      ds : TTestSuite;
+      D : TTestDecorator;
+
   begin
-    if test is TTestSuite then
+    if (test is TTestSuite) or (test is TTestDecorator) then
       begin
       p := pos ('.', ATestName);
       if p > 0 then
@@ -290,8 +327,25 @@ procedure TTestRunner.DoRun;
       if comparetext(c, test.TestName) = 0 then
         res.AddTest(test)
       else if (CompareText( s, Test.TestName) = 0) or (s = '') then
-        for I := 0 to TTestSuite(test).Tests.Count - 1 do
-          CheckTestRegistry (TTest(TTestSuite(test).Tests[I]), c, res)
+        begin
+        if (test is ttestsuite) then
+          begin
+          for I := 0 to TTestSuite(test).Tests.Count - 1 do
+             CheckTestRegistry (TTest((test as TTestSuite).Tests[I]), c, res)
+          end
+        else if (test is TTestDecorator) then
+          begin
+          DS:=TDecoratorTestSuite.Create;
+          CheckTestRegistry(TTest((test as TTestDecorator).Test), c, ds);
+          if (ds.CountTestCases>0) then
+            begin
+            D:=TTestDecoratorClass(Test.ClassType).Create(DS);
+            Res.AddTest(D);
+            end
+          else
+            DS.free;
+          end;
+        end;
       end
     else // if test is TTestCase then
       begin
@@ -303,7 +357,7 @@ procedure TTestRunner.DoRun;
 var
   I,P : integer;
   S : string;
-  TS : TTestSuite;
+  TS : TDecoratorTestSuite;
   
 begin
   S := CheckOptions(GetShortOpts, LongOpts);
@@ -331,7 +385,7 @@ begin
         writeln(GetTestRegistry[i].TestName)
     else
       begin
-        TS:=TTestSuite.Create('SuiteList');
+        TS:=TDecoratorTestSuite.Create('SuiteList');
         try
         while Not(S = '') Do
           begin
@@ -356,7 +410,6 @@ begin
           else
             Writeln('No tests selected.');  
         finally
-          TS.Tests.Clear;
           TS.Free;
         end;
       end;

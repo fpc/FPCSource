@@ -125,27 +125,20 @@ end;
 
 Procedure TParams.GetParamList(List: TList; const ParamNames: string);
 
-  Function NextName(Var S : String) : String;
-  Var
-    P : Integer;
-  begin
-    P:=Pos(';',S);
-    If (P=0) then
-      P:=Length(S)+1;
-    Result:=Copy(S,1,P-1);
-    system.Delete(S,1,P);
-  end;
-
 Var
-  L,N : String;
+  P: TParam;
+  N: String;
+  StrPos: Integer;
 
 begin
-  L:=ParamNames;
-  While (Length(L)>0) do
-    begin
-    N:=NextName(L);
-    List.Add(ParamByName(N));
-    end;
+  if (ParamNames = '') or (List = nil) then
+    Exit;
+  StrPos := 1;
+  repeat
+    N := ExtractFieldName(ParamNames, StrPos);
+    P := ParamByName(N);
+    List.Add(P);
+  until StrPos > Length(ParamNames);
 end;
 
 Function TParams.IsEqual(Value: TParams): Boolean;
@@ -220,7 +213,8 @@ begin
           repeat // skip until at end of line
             Inc(p);
           until p^ in [#10, #0];
-        end
+        end;
+        if p^<>#0 then Inc(p); // newline is part of comment
       end;
     '/': // possible start of /* */ comment
       begin

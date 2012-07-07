@@ -100,7 +100,8 @@ interface
           tc_enum_2_variant,
           tc_interface_2_variant,
           tc_variant_2_interface,
-          tc_array_2_dynarray
+          tc_array_2_dynarray,
+          tc_elem_2_openarray
        );
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -132,6 +133,10 @@ interface
       are allowed (in this case, the search order will first
       search for a routine with default parameters, before
       searching for the same definition with no parameters)
+
+      para1 is expected to be parameter list of the first encountered
+      declaration (interface, forward), and para2 that of the second one
+      (important in case of cpo_comparedefaultvalue)
     }
     function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
 
@@ -210,6 +215,12 @@ implementation
             exit;
           end;
 
+         { resolve anonymous external definitions }
+         if def_from.typ=objectdef then
+           def_from:=find_real_class_definition(tobjectdef(def_from),false);
+         if def_to.typ=objectdef then
+           def_to:=find_real_class_definition(tobjectdef(def_to),false);
+
          { same def? then we've an exact match }
          if def_from=def_to then
           begin
@@ -283,7 +294,10 @@ implementation
                             internalerror(200210061);
                         end;
                       end
-                     else
+                     { currency cannot be implicitly converted to an ordinal
+                       type }
+                     else if not is_currency(def_from) or
+                             (cdo_explicit in cdoptions) then
                       begin
                         if cdo_explicit in cdoptions then
                           doconv:=basedefconvertsexplicit[basedeftbl[torddef(def_from).ordtype],basedeftbl[torddef(def_to).ordtype]]
@@ -506,10 +520,23 @@ implementation
                           begin
                             doconv:=tc_string_2_string;
                             { prefered string type depends on the $H switch }
-                            if not(cs_ansistrings in current_settings.localswitches) and
+                            if (m_default_unicodestring in current_settings.modeswitches) and
+                               (cs_refcountedstrings in current_settings.localswitches) then
+                              case tstringdef(def_to).stringtype of
+                                st_unicodestring: eq:=te_equal;
+                                st_widestring: eq:=te_convert_l1;
+                                // widechar: eq:=te_convert_l2;
+                                // ansichar: eq:=te_convert_l3;
+                                st_ansistring: eq:=te_convert_l4;
+                                st_shortstring: eq:=te_convert_l5;
+                              else
+                                eq:=te_convert_l6;
+                              end
+                            else if not(cs_refcountedstrings in current_settings.localswitches) and
                                (tstringdef(def_to).stringtype=st_shortstring) then
                               eq:=te_equal
-                            else if (cs_ansistrings in current_settings.localswitches) and
+                            else if not(m_default_unicodestring in current_settings.modeswitches) and
+                               (cs_refcountedstrings in current_settings.localswitches) and
                                (tstringdef(def_to).stringtype=st_ansistring) then
                               eq:=te_equal
                             else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
@@ -524,7 +551,7 @@ implementation
                             begin
                               if is_ansistring(def_to) then
                                 eq:=te_convert_l1
-                              else if is_widestring(def_to) or is_unicodestring(def_to) then
+                              else if is_wide_or_unicode_string(def_to) then
                                 eq:=te_convert_l3
                               else
                                 eq:=te_convert_l2;
@@ -545,7 +572,7 @@ implementation
                                   else
                                     eq:=te_convert_l2;
                                 end
-                              else if is_widestring(def_to) or is_unicodestring(def_to) then
+                              else if is_wide_or_unicode_string(def_to) then
                                 eq:=te_convert_l3
                               else
                                 eq:=te_convert_l2;
@@ -557,7 +584,7 @@ implementation
                       if is_widechararray(def_from) or is_open_widechararray(def_from) then
                        begin
                          doconv:=tc_chararray_2_string;
-                         if is_widestring(def_to) or is_unicodestring(def_to) then
+                         if is_wide_or_unicode_string(def_to) then
                            eq:=te_convert_l1
                          else
                            { size of widechar array is double due the sizeof a widechar }
@@ -579,9 +606,9 @@ implementation
                              { prefer ansistrings because pchars can overflow shortstrings, }
                              { but only if ansistrings are the default (JM)                 }
                              if (is_shortstring(def_to) and
-                                 not(cs_ansistrings in current_settings.localswitches)) or
+                                 not(cs_refcountedstrings in current_settings.localswitches)) or
                                 (is_ansistring(def_to) and
-                                 (cs_ansistrings in current_settings.localswitches)) then
+                                 (cs_refcountedstrings in current_settings.localswitches)) then
                                eq:=te_convert_l1
                              else
                                eq:=te_convert_l2;
@@ -589,7 +616,7 @@ implementation
                           else if is_pwidechar(def_from) then
                            begin
                              doconv:=tc_pwchar_2_string;
-                             if is_widestring(def_to) or is_unicodestring(def_to)  then
+                             if is_wide_or_unicode_string(def_to) then
                                eq:=te_convert_l1
                              else
                                eq:=te_convert_l3;
@@ -603,6 +630,22 @@ implementation
                       begin
                         doconv:=tc_intf_2_string;
                         eq:=te_convert_l1;
+                      end
+                     else if (def_from=java_jlstring) then
+                       begin
+                         if is_wide_or_unicode_string(def_to) then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_equal;
+                           end
+                         else if def_to.typ=stringdef then
+                           begin
+                             doconv:=tc_string_2_string;
+                             if is_ansistring(def_to) then
+                               eq:=te_convert_l2
+                             else
+                               eq:=te_convert_l3
+                           end;
                       end;
                    end;
                end;
@@ -718,22 +761,40 @@ implementation
                  pointerdef :
                    begin
                      { ugly, but delphi allows it }
-                     if (cdo_explicit in cdoptions) and
-                       (m_delphi in current_settings.modeswitches) then
+                     if cdo_explicit in cdoptions then
                        begin
-                         doconv:=tc_int_2_int;
-                         eq:=te_convert_l1;
+                         if target_info.system in systems_jvm then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_convert_l1;
+                           end
+                         else if m_delphi in current_settings.modeswitches then
+                           begin
+                             doconv:=tc_int_2_int;
+                             eq:=te_convert_l1;
+                           end
                        end;
                    end;
                  objectdef:
                    begin
                      { ugly, but delphi allows it }
-                     if (m_delphi in current_settings.modeswitches) and
-                        is_class_or_interface_or_dispinterface(def_from) and
-                        (cdo_explicit in cdoptions) then
+                     if (cdo_explicit in cdoptions) and
+                        is_class_or_interface_or_dispinterface_or_objc_or_java(def_from) then
                        begin
-                         doconv:=tc_int_2_int;
-                         eq:=te_convert_l1;
+                         { in Java enums /are/ class instances, and hence such
+                           typecasts must not be treated as integer-like
+                           conversions
+                         }
+                         if target_info.system in systems_jvm then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_convert_l1;
+                           end
+                         else if m_delphi in current_settings.modeswitches then
+                           begin
+                             doconv:=tc_int_2_int;
+                             eq:=te_convert_l1;
+                           end;
                        end;
                    end;
                end;
@@ -748,7 +809,7 @@ implementation
                   (def_from.typ=tarraydef(def_to).elementdef.typ) and
                   equal_defs(def_from,tarraydef(def_to).elementdef) then
                 begin
-                  doconv:=tc_equal;
+                  doconv:=tc_elem_2_openarray;
                   { also update in htypechk.pas/var_para_allowed if changed
                     here }
                   eq:=te_convert_l3;
@@ -1081,14 +1142,31 @@ implementation
                      { allow explicit typecasts from enums to pointer.
                        Support for delphi compatibility
                      }
+                     { in Java enums /are/ class instances, and hence such
+                       typecasts must not be treated as integer-like conversions
+                     }
                      if (((cdo_explicit in cdoptions) and
-                          (m_delphi in current_settings.modeswitches)
-                          ) or
+                          ((m_delphi in current_settings.modeswitches) or
+                           (target_info.system in systems_jvm)
+                          )
+                         ) or
                          (cdo_internal in cdoptions)
                         ) then
                        begin
-                         doconv:=tc_int_2_int;
-                         eq:=te_convert_l1;
+                         { in Java enums /are/ class instances, and hence such
+                           typecasts must not be treated as integer-like
+                           conversions
+                         }
+                         if target_info.system in systems_jvm then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_convert_l1;
+                           end
+                         else if m_delphi in current_settings.modeswitches then
+                           begin
+                             doconv:=tc_int_2_int;
+                             eq:=te_convert_l1;
+                           end;
                        end;
                    end;
                  arraydef :
@@ -1103,7 +1181,11 @@ implementation
                         (is_pchar(def_to) or is_pwidechar(def_to)) then
                       begin
                         doconv:=tc_cstring_2_pchar;
-                        eq:=te_convert_l2;
+                        if ((m_default_unicodestring in current_settings.modeswitches) xor
+                           is_pchar(def_to)) then
+                          eq:=te_convert_l2
+                        else
+                          eq:=te_convert_l3;
                       end
                      else
                       { chararray to pointer }
@@ -1347,23 +1429,40 @@ implementation
 
            objectdef :
              begin
-               { Objective-C classes (handle anonymous externals) }
-               if (def_from.typ=objectdef) and
-                  (find_real_objcclass_definition(tobjectdef(def_from),false) =
-                   find_real_objcclass_definition(tobjectdef(def_to),false)) then
-                 begin
-                   doconv:=tc_equal;
-                   { exact, not equal, because can change between interface
-                     and implementation }
-                   eq:=te_exact;
-                 end
                { object pascal objects }
-               else if (def_from.typ=objectdef) and
+               if (def_from.typ=objectdef) and
                   (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
                 begin
                   doconv:=tc_equal;
-                  eq:=te_convert_l1;
+                  { also update in htypechk.pas/var_para_allowed if changed
+                    here }
+                  eq:=te_convert_l3;
                 end
+               { string -> java.lang.string }
+               else if (def_to=java_jlstring) and
+                       ((def_from.typ=stringdef) or
+                        (fromtreetype=stringconstn)) then
+                 begin
+                   if is_wide_or_unicode_string(def_from) or
+                      ((fromtreetype=stringconstn) and
+                       (cs_refcountedstrings in current_settings.localswitches) and
+                       (m_default_unicodestring in current_settings.modeswitches)) then
+                     begin
+                       doconv:=tc_equal;
+                       eq:=te_equal
+                     end
+                   else
+                     begin
+                       doconv:=tc_string_2_string;
+                       eq:=te_convert_l2;
+                     end;
+                 end
+               else if (def_to=java_jlstring) and
+                       is_anychar(def_from) then
+                 begin
+                   doconv:=tc_char_2_string;
+                   eq:=te_convert_l2
+                 end
                else
                { specific to implicit pointer object types }
                 if is_implicit_pointer_object_type(def_to) then
@@ -1395,7 +1494,9 @@ implementation
                    else if ((is_interface(def_to) and
                              is_class(def_from)) or
                             (is_objcprotocol(def_to) and
-                             is_objcclass(def_from))) and
+                             is_objcclass(def_from)) or
+                            (is_javainterface(def_to) and
+                             is_javaclass(def_from))) and
                            assigned(tobjectdef(def_from).ImplementedInterfaces) then
                      begin
                         { we've to search in parent classes as well }
@@ -1433,9 +1534,14 @@ implementation
                        eq:=te_convert_l2;
                      end
                    { ugly, but delphi allows it }
-                   else if (def_from.typ in [orddef,enumdef]) and
-                     (m_delphi in current_settings.modeswitches) and
-                     (cdo_explicit in cdoptions) then
+                   { in Java enums /are/ class instances, and hence such
+                     typecasts must not be treated as integer-like conversions
+                   }
+                   else if ((not(target_info.system in systems_jvm) and
+                        (def_from.typ=enumdef)) or
+                       (def_from.typ=orddef)) and
+                      (m_delphi in current_settings.modeswitches) and
+                      (cdo_explicit in cdoptions) then
                      begin
                        doconv:=tc_int_2_int;
                        eq:=te_convert_l1;
@@ -1571,7 +1677,12 @@ implementation
            { and e.g. fromdef=stringdef and todef=variantdef, then }
            { the test will still succeed                           }
            ((cdo_allow_variant in cdoptions) or
-            ((def_from.typ<>variantdef) and (def_to.typ<>variantdef))
+            ((def_from.typ<>variantdef) and
+             (def_to.typ<>variantdef) and
+             { internal typeconversions always have to be bitcasts (except for
+               variants) }
+             not(cdo_internal in cdoptions)
+            )
            ) and
            (
             { Check for variants? }
@@ -1857,13 +1968,19 @@ implementation
               if eq<lowesteq then
                 lowesteq:=eq;
               { also check default value if both have it declared }
-              if (cpo_comparedefaultvalue in cpoptions) and
-                 assigned(currpara1.defaultconstsym) and
-                 assigned(currpara2.defaultconstsym) then
-               begin
-                 if not equal_constsym(tconstsym(currpara1.defaultconstsym),tconstsym(currpara2.defaultconstsym)) then
-                   exit;
-               end;
+              if (cpo_comparedefaultvalue in cpoptions) then
+                begin
+                  if assigned(currpara1.defaultconstsym) and
+                     assigned(currpara2.defaultconstsym) then
+                    begin
+                      if not equal_constsym(tconstsym(currpara1.defaultconstsym),tconstsym(currpara2.defaultconstsym)) then
+                        exit;
+                    end
+                  { cannot have that the second (= implementation) has a default value declared and the
+                    other (interface) doesn't }
+                  else if not assigned(currpara1.defaultconstsym) and assigned(currpara2.defaultconstsym) then
+                    exit;
+                end;
               if not(cpo_compilerproc in cpoptions) and
                  not(cpo_rtlproc in cpoptions) and
                  is_ansistring(currpara1.vardef) and
@@ -1975,8 +2092,8 @@ implementation
           (equal_defs(parentretdef,childretdef)) or
           ((parentretdef.typ=objectdef) and
            (childretdef.typ=objectdef) and
-           is_class_or_interface_or_objc(parentretdef) and
-           is_class_or_interface_or_objc(childretdef) and
+           is_class_or_interface_or_objc_or_java(parentretdef) and
+           is_class_or_interface_or_objc_or_java(childretdef) and
            (tobjectdef(childretdef).is_related(tobjectdef(parentretdef))))
       end;
 

@@ -50,7 +50,7 @@ implementation
        paramgr,symutil,
        { pass 1 }
        pass_1,htypechk,
-       nutils,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       nutils,ngenutil,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
        pbase,pexpr,
@@ -183,13 +183,13 @@ implementation
                    begin
                       if (p.nodetype=ordconstn) then
                         begin
-                           p:=ctypeconvnode.create(p,cchartype);
+                           p:=ctypeconvnode.create(p,cansichartype);
                            do_typecheckpass(p);
                         end
                       else if (p.nodetype=rangen) then
                         begin
-                           trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cchartype);
-                           trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cchartype);
+                           trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cansichartype);
+                           trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cansichartype);
                            do_typecheckpass(trangenode(p).left);
                            do_typecheckpass(trangenode(p).right);
                         end;
@@ -650,6 +650,7 @@ implementation
                 if not hasimplicitderef then
                   begin
                     valuenode:=caddrnode.create_internal_nomark(valuenode);
+                    include(valuenode.flags,nf_typedaddr);
                     refnode:=cderefnode.create(refnode);
                     fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
                   end;
@@ -830,6 +831,8 @@ implementation
          inc(exceptblockcounter);
          oldcurrent_exceptblock := current_exceptblock;
          current_exceptblock := exceptblockcounter;
+         old_block_type := block_type;
+         block_type := bt_body;
 
          while (token<>_FINALLY) and (token<>_EXCEPT) do
            begin
@@ -859,7 +862,6 @@ implementation
          else
            begin
               consume(_EXCEPT);
-              old_block_type:=block_type;
               block_type:=bt_except;
               inc(exceptblockcounter);
               current_exceptblock := exceptblockcounter;
@@ -883,7 +885,8 @@ implementation
                             begin
                                consume_sym(srsym,srsymtable);
                                if (srsym.typ=typesym) and
-                                  is_class(ttypesym(srsym).typedef) then
+                                  (is_class(ttypesym(srsym).typedef) or
+                                   is_javaclass(ttypesym(srsym).typedef)) then
                                  begin
                                     ot:=ttypesym(srsym).typedef;
                                     sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
@@ -896,9 +899,6 @@ implementation
                                     else
                                       Message1(type_e_class_type_expected,ot.typename);
                                  end;
-                               excepTSymtable:=tstt_excepTSymtable.create;
-                               excepTSymtable.insert(sym);
-                               symtablestack.push(excepTSymtable);
                             end
                           else
                             begin
@@ -917,7 +917,8 @@ implementation
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
                                if (srsym.typ=typesym) and
-                                  is_class(ttypesym(srsym).typedef) then
+                                  (is_class(ttypesym(srsym).typedef) or
+                                   is_javaclass(ttypesym(srsym).typedef)) then
                                  ot:=ttypesym(srsym).typedef
                                else
                                  begin
@@ -927,8 +928,14 @@ implementation
                                     else
                                       Message1(type_e_class_type_expected,ot.typename);
                                  end;
-                               excepTSymtable:=nil;
+                               { create dummy symbol so we don't need a special
+                                 case in ncgflw, and so that we always know the
+                                 type }
+                               sym:=tlocalvarsym.create('$exceptsym',vs_value,ot,[]);
                             end;
+                          excepTSymtable:=tstt_excepTSymtable.create;
+                          excepTSymtable.insert(sym);
+                          symtablestack.push(excepTSymtable);
                        end
                      else
                        consume(_ID);
@@ -982,9 +989,9 @@ implementation
                    p_default:=statements_til_end;
                 end;
 
-              block_type:=old_block_type;
               try_statement:=ctryexceptnode.create(p_try_block,p_specific,p_default);
            end;
+         block_type:=old_block_type;
          current_exceptblock := oldcurrent_exceptblock;
       end;
 
@@ -1078,7 +1085,7 @@ implementation
            _GOTO :
              begin
                 if not(cs_support_goto in current_settings.moduleswitches) then
-                 Message(sym_e_goto_and_label_not_supported);
+                  Message(sym_e_goto_and_label_not_supported);
                 consume(_GOTO);
                 if (token<>_INTCONST) and (token<>_ID) then
                   begin
@@ -1122,6 +1129,7 @@ implementation
                              { allowed? }
                              if not(m_non_local_goto in current_settings.modeswitches) then
                                Message(parser_e_goto_outside_proc);
+                             include(current_procinfo.flags,pi_has_global_goto);
                            end;
                          code:=cgotonode.create(tlabelsym(srsym));
                          tgotonode(code).labelsym:=tlabelsym(srsym);
@@ -1159,7 +1167,7 @@ implementation
                 if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
                   Message(parser_e_fail_only_in_constructor);
                 consume(_FAIL);
-                code:=call_fail_node;
+                code:=cnodeutils.call_fail_node;
              end;
            _ASM :
              code:=_asm_statement;
@@ -1356,7 +1364,7 @@ implementation
          include(current_procinfo.flags,pi_is_assembler);
          p:=_asm_statement;
 
-{$if not(defined(sparc)) and not(defined(arm)) and not(defined(avr))}
+{$if not(defined(sparc)) and not(defined(arm)) and not(defined(avr)) and not(defined(mips))}
          if (po_assembler in current_procinfo.procdef.procoptions) then
            begin
              { set the framepointer to esp for assembler functions when the
@@ -1374,6 +1382,7 @@ implementation
                 not (current_procinfo.procdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
                 (not assigned(current_procinfo.procdef.funcretsym) or
                  (tabstractvarsym(current_procinfo.procdef.funcretsym).refs<=1)) and
+                not (df_generic in current_procinfo.procdef.defoptions) and
                 not(paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
                begin
                  { Only need to set the framepointer, the locals will
@@ -1387,6 +1396,7 @@ implementation
           register.
         }
         if assigned(current_procinfo.procdef.funcretsym) and
+            not (df_generic in current_procinfo.procdef.defoptions) and
            (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
           tabstractvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_initialised;
 

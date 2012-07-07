@@ -55,7 +55,7 @@ interface
       cgbase,pass_1,pass_2,
       ncon,
       cpubase,procinfo,
-      cga,ncgutil,cgobj,cgx86,cgutils;
+      cga,ncgutil,cgobj,hlcgobj,cgx86,cgutils;
 
 
 {*****************************************************************************
@@ -257,7 +257,7 @@ interface
              LOC_SUBSETREF,
              LOC_CSUBSETREF :
                begin
-                 location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+                 hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
                  emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
                  location_reset(location,LOC_FLAGS,OS_NO);
                  location.resflags:=F_E;

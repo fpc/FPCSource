@@ -78,6 +78,7 @@ Const
 
 Procedure HandleError (Errno : Longint); forward;
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
+Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer); forward;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 type
@@ -231,6 +232,14 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpuavr}
 
+{$ifdef cpumipsel}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  { there is no mipsel.inc, we use mips.inc instead }
+  {$i mips.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$else not cpumipsel}
 {$ifdef cpumips}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
@@ -238,14 +247,8 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$i mips.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpumips}
+{$endif not cpumipsel}
 
-{$ifdef cpumipsel}
-  {$ifdef SYSPROCDEFINED}
-    {$Error Can't determine processor type !}
-  {$endif}
-  {$i mipsel.inc}  { Case dependent, don't change }
-  {$define SYSPROCDEFINED}
-{$endif cpumipsel}
 
 {$ifndef SYSPROCDEFINED}
   {$Error Can't determine processor type !}
@@ -280,9 +283,16 @@ begin
   CompareChar:=CompareByte(buf1,buf2,len);
 end;
 
+
 procedure fpc_zeromem(p:pointer;len:ptruint);
 begin
   FillChar(p^,len,0);
+end;
+
+
+procedure fpc_fillmem(out data;len:ptruint;b : byte);
+begin
+  FillByte(data,len,b);
 end;
 
 { Include generic pascal only routines which are not defined in the processor
@@ -659,33 +669,60 @@ End;
                              Miscellaneous
 *****************************************************************************}
 
+{$ifndef FPC_SYSTEM_HAS_GET_PC_ADDR}
+  { This provides a dummy implementation
+    of get_pc_addr function, for CPU's that don't need
+    the instruction address to walk the stack. }
+function get_pc_addr : pointer;
+begin
+  get_pc_addr:=nil;
+end;
+{$endif ndef FPC_SYSTEM_HAS_GET_PC_ADDR}
+
+{$ifndef FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
+  { This provides a simpel implementation
+    of get_caller_stackinfo procedure,
+    using get_caller_addr and get_caller_frame
+    functions. }
+procedure get_caller_stackinfo(var framebp,addr : pointer);
+var
+  nextbp,nextaddr : pointer;
+begin
+  nextbp:=get_caller_frame(framebp,addr);
+  nextaddr:=get_caller_addr(framebp,addr);
+  framebp:=nextbp;
+  addr:=nextaddr;
+end;
+{$endif ndef FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
+
+
 procedure fpc_rangeerror;[public,alias:'FPC_RANGEERROR']; compilerproc;
 begin
-  HandleErrorFrame(201,get_frame);
+  HandleErrorAddrFrame(201,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_divbyzero;[public,alias:'FPC_DIVBYZERO']; compilerproc;
 begin
-  HandleErrorFrame(200,get_frame);
+  HandleErrorAddrFrame(200,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_overflow;[public,alias:'FPC_OVERFLOW']; compilerproc;
 begin
-  HandleErrorFrame(215,get_frame);
+  HandleErrorAddrFrame(215,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_threaderror; [public,alias:'FPC_THREADERROR'];
 begin
-  HandleErrorFrame(6,get_frame);
+  HandleErrorAddrFrame(6,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_invalidpointer; [public,alias:'FPC_INVALIDPOINTER'];
 begin
-  HandleErrorFrame(216,get_frame);
+  HandleErrorAddrFrame(216,get_pc_addr,get_frame);
 end;
 
 
@@ -699,7 +736,7 @@ begin
    begin
      l:=HInOutRes^;
      HInOutRes^:=0;
-     HandleErrorFrame(l,get_frame);
+     HandleErrorAddrFrame(l,get_pc_addr,get_frame);
    end;
 end;
 
@@ -728,7 +765,7 @@ begin
     begin
       if assigned(SafeCallErrorProc) then
         SafeCallErrorProc(res,get_frame);
-      HandleErrorFrame(229,get_frame);
+      HandleErrorAddrFrame(229,get_pc_addr,get_frame);
     end;
   result:=res;
 end;
@@ -1015,15 +1052,20 @@ Procedure HandleError (Errno : longint);[public,alias : 'FPC_HANDLEERROR'];
   Internal function should ALWAYS call HandleError instead of RunError.
 }
 begin
-  HandleErrorFrame(Errno,get_frame);
+  HandleErrorAddrFrame(Errno,get_pc_addr,get_frame);
 end;
 
 
 procedure RunError(w : word);[alias: 'FPC_RUNERROR'];
+var
+  bp,pcaddr : pointer;
 begin
   errorcode:=w;
-  erroraddr:=get_caller_addr(get_frame);
-  errorbase:=get_caller_frame(get_frame);
+  pcaddr:=get_pc_addr;
+  bp:=get_frame;
+  get_caller_stackinfo(bp,pcaddr);
+  erroraddr:=pcaddr;
+  errorbase:=bp;
   Halt(errorcode);
 end;
 
@@ -1046,10 +1088,11 @@ begin
 end;
 
 
-Procedure dump_stack(var f : text;bp : Pointer);
+Procedure dump_stack(var f : text;bp,addr : Pointer);
 var
   i : Longint;
   prevbp : Pointer;
+  prevaddr : pointer;
   is_dev : boolean;
   caller_frame,
   caller_addr : Pointer;
@@ -1058,12 +1101,13 @@ Begin
   try
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
     prevbp:=bp-1;
+    prevaddr:=nil;
     i:=0;
     is_dev:=do_isdevice(textrec(f).Handle);
     while bp > prevbp Do
      Begin
-       caller_addr := get_caller_addr(bp);
-       caller_frame := get_caller_frame(bp);
+       caller_addr := get_caller_addr(bp,addr);
+       caller_frame := get_caller_frame(bp,addr);
        if (caller_addr=nil) then
          break;
        Writeln(f,BackTraceStrFunc(caller_addr));
@@ -1073,7 +1117,9 @@ Begin
        If ((i>max_frame_dump) and is_dev) or (i>256) Then
          break;
        prevbp:=bp;
+       prevaddr:=addr;
        bp:=caller_frame;
+       addr:=caller_addr;
      End;
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
    except
@@ -1259,16 +1305,17 @@ procedure fpc_AbstractErrorIntern;compilerproc;[public,alias : 'FPC_ABSTRACTERRO
 begin
   If pointer(AbstractErrorProc)<>nil then
     AbstractErrorProc();
-  HandleErrorFrame(211,get_frame);
+  HandleErrorAddrFrame(211,get_pc_addr,get_frame);
 end;
 
 
-Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer); [Public,Alias : 'FPC_ASSERT']; compilerproc;
+Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;
+   ErrorAddr:Pointer); [Public,Alias : 'FPC_ASSERT']; compilerproc;
 begin
   if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
   else
-    HandleErrorFrame(227,get_frame);
+    HandleErrorAddrFrame(227,get_pc_addr,get_frame);
 end;
 
 

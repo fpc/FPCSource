@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=prt0 exceptn fpu
-units=system objpas macpas iso7185 strings \
+units=system uuchar objpas macpas iso7185 strings \
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
       dos crt objects printer cmem \
       sysutils classes math typinfo matrix \
@@ -32,6 +32,7 @@ INC=../inc
 COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 # Use new feature from 1.0.5 version
 # that generates release PPU files
 # which will not be recompiled
@@ -72,6 +73,7 @@ prt0$(OEXT) : v2prt0.as
 #
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) -Us -Sg system.pp
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \

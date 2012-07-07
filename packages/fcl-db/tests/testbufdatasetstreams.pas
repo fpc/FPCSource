@@ -22,6 +22,7 @@ type
 
     procedure TestChangesApplyUpdates(AUpdDatasetProc : TUpdDatasetProc; Inserts: Boolean=False);
     procedure TestChangesCancelUpdates(AUpdDatasetProc : TUpdDatasetProc);
+    procedure TestChanges(AUpdDatasetProc : TUpdDatasetProc; AFormat : TDataPacketFormat=dfBinary);
     procedure TestChangesXML(AUpdDatasetProc : TUpdDatasetProc);
 
     procedure SimpleEditChange(ADataset: TCustomBufDataset);
@@ -34,6 +35,7 @@ type
     procedure DeleteAllInsertChange(ADataset: TCustomBufDataset);
     procedure NullInsertChange(ADataset: TCustomBufDataset);
     procedure NullEditChange(ADataset: TCustomBufDataset);
+    procedure AppendDeleteChange(ADataset: TCustomBufDataset);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -46,6 +48,7 @@ type
     procedure SeveralEditsCancelUpd;
     procedure DeleteAllCancelUpd;
     procedure DeleteAllInsertCancelUpd;
+    procedure AppendDeleteCancelUpd;
 
     procedure TestSimpleEditApplUpd;
     procedure TestSimpleDeleteApplUpd;
@@ -66,8 +69,14 @@ type
     procedure TestSeveralEditsXML;
     procedure TestDeleteAllXML;
     procedure TestDeleteAllInsertXML;
+    procedure TestStreamingBlobFieldsXML;
+    procedure TestStreamingBigBlobFieldsXML;
+    procedure TestStreamingCalculatedFieldsXML;
+
+    procedure TestAppendDeleteBIN;
 
     procedure TestFileNameProperty;
+    procedure TestXmlFileRecognition;
     procedure TestCloseDatasetNoConnection; // bug 17623
   end;
 
@@ -129,26 +138,41 @@ begin
   CompareDatasets(OrgDs,ChangedDs);
 end;
 
-procedure TTestBufDatasetStreams.TestChangesXML(AUpdDatasetProc: TUpdDatasetProc);
-var SaveDs,
+procedure TTestBufDatasetStreams.TestChanges(AUpdDatasetProc: TUpdDatasetProc;
+  AFormat: TDataPacketFormat);
+var FileName: string;
+    SaveDs,
     LoadDs : TCustomBufDataset;
 begin
+  case AFormat of
+    dfBinary:  FileName := 'Basics.dat';
+    else       FileName := 'Basics.xml';
+  end;
+
   SaveDs := DBConnector.GetNDataset(true,15) as TCustomBufDataset;
   SaveDs.Open;
   AUpdDatasetProc(SaveDs);
-  SaveDs.SaveToFile('Basics.xml',dfXML);
+  SaveDs.SaveToFile(FileName, AFormat);
 
   LoadDs := TCustomBufDataset.Create(nil);
-  LoadDs.LoadFromFile('Basics.xml');
-
+  LoadDs.LoadFromFile(FileName);
   CompareDatasets(SaveDs,LoadDs);
   SaveDs.Close;
 
   SaveDs.Open;
   LoadDs.CancelUpdates;
   CompareDatasets(SaveDs,LoadDs);
+  SaveDs.Close;
+
   LoadDs.Free;
+  DeleteFile(FileName);
 end;
+
+procedure TTestBufDatasetStreams.TestChangesXML(AUpdDatasetProc: TUpdDatasetProc);
+begin
+  TestChanges(AUpdDatasetProc, dfXML);
+end;
+
 
 procedure TTestBufDatasetStreams.SimpleEditChange(ADataset: TCustomBufDataset);
 begin
@@ -317,6 +341,21 @@ begin
     end;
 end;
 
+procedure TTestBufDatasetStreams.AppendDeleteChange(ADataset: TCustomBufDataset);
+begin
+  // Tests bugs #19593, #21994
+  with ADataset do
+  begin
+    AppendRecord([16,'TestName16']);
+    AppendRecord([17,'TestName17']);
+    Prior;
+    Prior;
+    Delete;  // 15 update-buffer of deleted record is linked to 16
+    Delete;  // 16 inserted-deleted and linked by 15
+    AppendRecord([18,'TestName18']); // again append after delete
+  end;
+end;
+
 procedure TTestBufDatasetStreams.TestSimpleEditCancelUpd;
 begin
   TestChangesCancelUpdates(@SimpleEditChange);
@@ -355,6 +394,11 @@ end;
 procedure TTestBufDatasetStreams.DeleteAllInsertCancelUpd;
 begin
   TestChangesCancelUpdates(@DeleteAllInsertChange);
+end;
+
+procedure TTestBufDatasetStreams.AppendDeleteCancelUpd;
+begin
+  TestChangesCancelUpdates(@AppendDeleteChange);
 end;
 
 procedure TTestBufDatasetStreams.TestBasicsXML;
@@ -411,6 +455,129 @@ begin
   TestChangesXML(@DeleteAllInsertChange);
 end;
 
+procedure TTestBufDatasetStreams.TestStreamingBlobFieldsXML;
+var SaveDs: TCustomBufDataset;
+    LoadDs: TCustomBufDataset;
+begin
+  SaveDs := DBConnector.GetFieldDataset as TCustomBufDataset;
+  SaveDs.Open;
+  SaveDs.SaveToFile('FieldsDS.xml',dfXML);
+
+  LoadDs := TCustomBufDataset.Create(nil);
+  LoadDs.LoadFromFile('FieldsDS.xml');
+
+  LoadDS.First;
+  SaveDS.First;
+  while not LoadDS.EOF do
+    begin
+    AssertEquals(LoadDS.FieldByName('FBLOB').AsString,SaveDS.FieldByName('FBLOB').AsString);
+    AssertEquals(LoadDS.FieldByName('FMEMO').AsString,SaveDS.FieldByName('FMEMO').AsString);
+    LoadDS.Next;
+    SaveDS.Next;
+    end;
+
+  LoadDs.Free;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingBigBlobFieldsXML;
+var
+  SaveDs: TCustomBufDataset;
+  LoadDs: TCustomBufDataset;
+  j: integer;
+  i: byte;
+  s: string;
+  f: file of byte;
+  fn: string;
+  fs: TMemoryStream;
+begin
+  // Create a temp. file with blob-data.
+  fn := GetTempFileName;
+  assign(f,fn);
+  Rewrite(f);
+  s := 'This is a blob-field test file.';
+  for j := 0 to 250 do
+    begin
+    for i := 1 to length(s) do
+      write(f,ord(s[i]));
+    for i := 0 to 255 do
+      write(f,i);
+    end;
+  close(f);
+
+  try
+    // Open dataset and set blob-field-data to content of blob-file.
+    SaveDs := DBConnector.GetFieldDataset(true) as TCustomBufDataset;
+    SaveDs.Open;
+    SaveDs.Edit;
+    TBlobField(SaveDs.FieldByName('FBLOB')).LoadFromFile(fn);
+    SaveDs.Post;
+
+    // Save this dataset to file.
+    SaveDs.SaveToFile('FieldsDS.xml',dfXML);
+
+    // Load this file in another dataset
+    LoadDs := TCustomBufDataset.Create(nil);
+    try
+      LoadDs.LoadFromFile('FieldsDS.xml');
+      LoadDS.First;
+
+      // Compare the content of the blob-field with the file on disc
+      fs := TMemoryStream.Create;
+      try
+        TBlobField(SaveDs.FieldByName('FBLOB')).SaveToStream(fs);
+        fs.Seek(0,soBeginning);
+        assign(f,fn);
+        reset(f);
+        for j := 0 to fs.Size-1 do
+          begin
+          read(f,i);
+          CheckEquals(i,fs.ReadByte);
+          end;
+      finally
+        fs.free;
+      end;
+    finally
+      LoadDs.Free;
+    end;
+  finally
+    DeleteFile(fn);
+  end;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingCalculatedFieldsXML;
+var
+  ADataset: TCustomBufDataset;
+  f: tfield;
+begin
+  ADataset := DBConnector.GetNDataset(true,10) as TCustomBufDataset;
+  f := TIntegerField.Create(ADataset);
+  f.FieldName:='ID';
+  f.dataset := ADataset;
+
+  f := TIntegerField.Create(ADataset);
+  f.FieldName:='CalcID';
+  f.dataset := ADataset;
+  f.FieldKind:=fkCalculated;
+
+  f := TStringField.Create(ADataset);
+  f.FieldName:='NAME';
+  f.dataset := ADataset;
+
+  ADataset.Open;
+  ADataset.SaveToFile('FieldsDS.xml',dfXML);
+  ADataset.Close;
+
+  ADataset.LoadFromFile('FieldsDS.xml',dfXML);
+  AssertEquals(ADataset.FieldByName('ID').AsInteger,1);
+  AssertEquals(ADataset.FieldByName('NAME').AsString,'TestName1');
+  ADataset.Close;
+end;
+
+procedure TTestBufDatasetStreams.TestAppendDeleteBIN;
+begin
+  TestChanges(@AppendDeleteChange);
+end;
+
 procedure TTestBufDatasetStreams.TestFileNameProperty;
 var ds    : TDataset;
     LoadDs: TDataset;
@@ -423,6 +590,27 @@ begin
 
   LoadDs := DBConnector.GetNDataset(True,2);
   TCustomBufDataset(LoadDs).FileName:='test.dat';
+  LoadDs.Open;
+
+  ds := DBConnector.GetNDataset(true,4);
+  ds.Open;
+  CompareDatasets(ds,LoadDs);
+  ds.close;
+  LoadDs.close;
+end;
+
+procedure TTestBufDatasetStreams.TestXmlFileRecognition;
+var ds    : TDataset;
+    LoadDs: TDataset;
+begin
+  ds := DBConnector.GetNDataset(true,5);
+
+  ds.open;
+  TCustomBufDataset(ds).SaveToFile('test.xml',dfXML);
+  ds.close;
+
+  LoadDs := DBConnector.GetNDataset(True,2);
+  TCustomBufDataset(LoadDs).FileName:='test.xml';
   LoadDs.Open;
 
   ds := DBConnector.GetNDataset(true,4);

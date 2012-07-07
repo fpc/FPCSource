@@ -463,11 +463,14 @@ unit scandir;
         {corba/com/default}
         current_scanner.skipspace;
         hs:=current_scanner.readid;
+{$ifndef jvm}
         if (hs='CORBA') then
           current_settings.interfacetype:=it_interfacecorba
         else if (hs='COM') then
           current_settings.interfacetype:=it_interfacecom
-        else if (hs='DEFAULT') then
+        else
+{$endif jvm}
+             if (hs='DEFAULT') then
           current_settings.interfacetype:=init_settings.interfacetype
         else
           Message(scan_e_invalid_interface_type);
@@ -783,6 +786,31 @@ unit scandir;
       end;
 
 
+    procedure dir_namespace;
+      var
+        s : string;
+      begin
+        { used to define Java package names for all types declared in the
+          current unit }
+        if not current_module.in_global then
+          Message(scan_w_switch_is_global)
+        else
+          begin
+            current_scanner.skipspace;
+            current_scanner.readstring;
+            s:=orgpattern;
+            while c='.' do
+              begin
+                current_scanner.readchar;
+                current_scanner.readstring;
+                s:=s+'.'+orgpattern;
+              end;
+            disposestr(current_module.namespace);
+            current_module.namespace:=stringdup(s);
+          end;
+      end;
+
+
     procedure dir_mmx;
       begin
         do_localswitch(cs_mmx);
@@ -877,6 +905,9 @@ unit scandir;
       var
         hs : string;
       begin
+        { can't change packrecords setting on managed vm targets }
+        if target_info.system in systems_managed_vm then
+          Message1(scanner_w_directive_ignored_on_target, 'PACKRECORDS');
         current_scanner.skipspace;
         if not(c in ['0'..'9']) then
          begin
@@ -1016,7 +1047,7 @@ unit scandir;
           if Assigned(Current_Module) then
             begin
               delete(S,1,1);
-              insert(ChangeFileExt(ExtractFileName(current_module.mainsource^),''),S,1 );
+              insert(ChangeFileExt(ExtractFileName(current_module.mainsource),''),S,1 );
             end;
         s:=FixFileName(s);
         if ExtractFileExt(s)='' then
@@ -1128,8 +1159,18 @@ unit scandir;
           with current_scanner,current_module,localunitsearchpath do
             begin
               skipspace;
-              AddPath(path^,readcomment,false);
+              AddPath(path,readcomment,false);
             end;
+      end;
+
+    procedure dir_varparacopyoutcheck;
+      begin
+        if not(target_info.system in systems_jvm) then
+          begin
+            Message1(scan_w_illegal_switch,pattern);
+            exit;
+          end;
+        do_localswitch(cs_check_var_copyout);
       end;
 
     procedure dir_varpropsetter;
@@ -1227,7 +1268,6 @@ unit scandir;
       $warn <identifier> on
       $warn <identifier> off
       $warn <identifier> error
-      not implemented yet
     }
     procedure dir_warn;
       var
@@ -1319,6 +1359,9 @@ unit scandir;
         else
         if ident='CVT_NARROWING_STRING_LOST' then
           recordpendingmessagestate(type_w_unicode_data_loss, msgstate)
+        else
+        if ident='INTF_RAISE_VISIBILITY' then
+          recordpendingmessagestate(type_w_interface_lower_visibility, msgstate)
         else
           begin
             i:=0;
@@ -1493,6 +1536,7 @@ unit scandir;
         AddDirective('MMX',directive_all, @dir_mmx);
         AddDirective('MODE',directive_all, @dir_mode);
         AddDirective('MODESWITCH',directive_all, @dir_modeswitch);
+        AddDirective('NAMESPACE',directive_all, @dir_namespace);
         AddDirective('NODEFINE',directive_all, @dir_nodefine);
         AddDirective('NOTE',directive_all, @dir_note);
         AddDirective('NOTES',directive_all, @dir_notes);
@@ -1532,6 +1576,7 @@ unit scandir;
         AddDirective('TYPEDADDRESS',directive_all, @dir_typedaddress);
         AddDirective('TYPEINFO',directive_all, @dir_typeinfo);
         AddDirective('UNITPATH',directive_all, @dir_unitpath);
+        AddDirective('VARPARACOPYOUTCHECK',directive_all, @dir_varparacopyoutcheck);
         AddDirective('VARPROPSETTER',directive_all, @dir_varpropsetter);
         AddDirective('VARSTRINGCHECKS',directive_all, @dir_varstringchecks);
         AddDirective('VERSION',directive_all, @dir_version);

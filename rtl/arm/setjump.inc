@@ -49,7 +49,7 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias 
     {$if defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_D16)}
     fldmiad ip!, {d8-d15}
     {$endif}
-    ldmia   ip,{v1-v6, sl, fp}
+    ldmia   ip!, {v1-v6, sl, fp}
     ldr     sp, [ip]
     add     ip, ip, #4
     ldr     pc, [ip]

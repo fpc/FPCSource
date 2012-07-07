@@ -18,6 +18,8 @@
 type
   WCHAR = WideChar;
   PWSTR = PWideChar;
+  CCHAR = Byte;
+  PCCHAR = ^CCHAR;
 
 const
   NT_DELETE           = $00010000;

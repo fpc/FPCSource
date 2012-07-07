@@ -155,6 +155,15 @@ program fpc;
      ppcbin:='ppcx64';
      processorname:='x86_64';
 {$endif x86_64}
+{$ifdef mipsel}
+     ppcbin:='ppcmipsel';
+     processorname:='mipsel';
+{$else : not mipsel}
+  {$ifdef mips}
+     ppcbin:='ppcmips';
+     processorname:='mips';
+  {$endif mips}
+{$endif not mipsel}
      versionstr:='';                      { Default is just the name }
      if ParamCount = 0 then
        begin
@@ -213,6 +222,8 @@ program fpc;
                              cpusuffix:='sparc'
                            else if processorstr='x86_64' then
                              cpusuffix:='x64'
+                           else if processorstr='jvm' then
+                             cpusuffix:='jvm'
                            else
                              error('Illegal processor type "'+processorstr+'"');
 

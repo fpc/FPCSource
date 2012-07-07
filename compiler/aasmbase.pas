@@ -159,7 +159,7 @@ interface
          altsymbol  : TAsmSymbol;
          { Cached objsymbol }
          cachedobjsymbol : TObject;
-         constructor Create(AList:TFPHashObjectList;const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
+         constructor Create(AList:TFPHashObjectList;const s:TSymStr;_bind:TAsmsymbind;_typ:Tasmsymtype);
          function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; virtual;
          function  is_used:boolean;
          procedure increfs;
@@ -170,13 +170,13 @@ interface
 
        TAsmLabel = class(TAsmSymbol)
        protected
-         function getname:string;override;
+         function getname:TSymStr;override;
        public
          labelnr   : longint;
          labeltype : TAsmLabelType;
          is_set    : boolean;
          constructor Createlocal(AList:TFPHashObjectList;nr:longint;ltyp:TAsmLabelType);
-         constructor Createglobal(AList:TFPHashObjectList;const modulename:string;nr:longint;ltyp:TAsmLabelType);
+         constructor Createglobal(AList:TFPHashObjectList;const modulename:TSymStr;nr:longint;ltyp:TAsmLabelType);
          function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; override;
        end;
 
@@ -191,6 +191,15 @@ interface
 
     function ReplaceForbiddenAsmSymbolChars(const s: string): string;
 
+	{ dummy default noop callback }
+	procedure default_global_used; 
+  type
+	TGlobalUsedProcedure = procedure;
+	{ Procedure variable to allow for special handling of 
+	  the occurence of use of a global variable,
+	  used by PIC code generation to request GOT loading }
+  const
+    global_used : TGlobalUsedProcedure = @default_global_used;
 
 implementation
 
@@ -347,7 +356,7 @@ implementation
                                  TAsmSymbol
 *****************************************************************************}
 
-    constructor TAsmSymbol.Create(AList:TFPHashObjectList;const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
+    constructor TAsmSymbol.Create(AList:TFPHashObjectList;const s:TSymStr;_bind:TAsmsymbind;_typ:Tasmsymtype);
       begin;
         inherited Create(AList,s);
         bind:=_bind;
@@ -412,7 +421,7 @@ implementation
       end;
 
 
-    constructor TAsmLabel.Createglobal(AList:TFPHashObjectList;const modulename:string;nr:longint;ltyp:TAsmLabelType);
+    constructor TAsmLabel.Createglobal(AList:TFPHashObjectList;const modulename:TSymStr;nr:longint;ltyp:TAsmLabelType);
       begin
         inherited Create(AList,'_$'+modulename+'$_L'+asmlabeltypeprefix[ltyp]+tostr(nr),AB_GLOBAL,AT_DATA);
         labelnr:=nr;
@@ -420,6 +429,7 @@ implementation
         is_set:=false;
         { write it always }
         increfs;
+		global_used;
       end;
 
 
@@ -441,10 +451,14 @@ implementation
       end;
 
 
-    function TAsmLabel.getname:string;
+    function TAsmLabel.getname:TSymStr;
       begin
         getname:=inherited getname;
         increfs;
       end;
+
+	procedure default_global_used;
+	  begin
+	  end;
 
 end.

@@ -87,7 +87,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -104,7 +104,7 @@ begin
    begin
     s:=HPath.Str;
     if s<>'' then
-     LinkRes.Add('SEARCH_DIR('+Unix2AmigaPath(maybequoted(s))+')');
+     LinkRes.Add('SEARCH_DIR("'+Unix2AmigaPath(s)+'")');
     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
@@ -199,7 +199,7 @@ var
 begin
 
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
   if not (cs_link_on_target in current_settings.globalswitches) then
    begin
@@ -216,13 +216,13 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
-    Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+    Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
     Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
     Replace(cmdstr,'$STRIP',StripStr);
    end
   else
    begin
-    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename^)));
+    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
    end;
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
@@ -236,7 +236,7 @@ begin
     if success and (cs_link_strip in current_settings.globalswitches) then
      begin
       SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-      Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+      Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
       success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
      end;
    end;

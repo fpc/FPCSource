@@ -130,8 +130,8 @@ function  def_CheckVerbosity(v:longint):boolean;
 procedure def_initsymbolinfo;
 procedure def_donesymbolinfo;
 procedure def_extractsymbolinfo;
-function  def_openinputfile(const filename: string): tinputfile;
-Function  def_getnamedfiletime(Const F : String) : Longint;
+function  def_openinputfile(const filename: TPathStr): tinputfile;
+Function  def_getnamedfiletime(Const F : TPathStr) : Longint;
 { Function redirecting for IDE support }
 type
   tstopprocedure         = procedure(err:longint);
@@ -143,8 +143,8 @@ type
   tinitsymbolinfoproc = procedure;
   tdonesymbolinfoproc = procedure;
   textractsymbolinfoproc = procedure;
-  topeninputfilefunc = function(const filename: string): tinputfile;
-  tgetnamedfiletimefunc = function(const filename: string): longint;
+  topeninputfilefunc = function(const filename: TPathStr): tinputfile;
+  tgetnamedfiletimefunc = function(const filename: TPathStr): longint;
 
 const
   do_status        : tstatusfunction  = @def_status;
@@ -394,13 +394,13 @@ procedure def_extractsymbolinfo;
 begin
 end;
 
-function  def_openinputfile(const filename: string): tinputfile;
+function  def_openinputfile(const filename: TPathStr): tinputfile;
 begin
   def_openinputfile:=tdosinputfile.create(filename);
 end;
 
 
-Function def_GetNamedFileTime (Const F : String) : Longint;
+Function def_GetNamedFileTime (Const F : TPathStr) : Longint;
 begin
   Result:=FileAge(F);
 end;

@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
+    P.OSes := P.OSes - [nativent];
 
     T:=P.Targets.AddUnit('unzip51g.pp');
       with T.Dependencies do

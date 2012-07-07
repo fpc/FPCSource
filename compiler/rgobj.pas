@@ -160,6 +160,10 @@ unit rgobj;
         { translates a single given imaginary register to it's real register }
         procedure translate_register(var reg : tregister);
       protected
+        maxreginfo,
+        maxreginfoinc,
+        maxreg            : Tsuperregister;
+
         regtype           : Tregistertype;
         { default subregister used }
         defaultsub        : tsubregister;
@@ -179,17 +183,15 @@ unit rgobj;
                                       instr:taicpu;
                                       const r:Tsuperregisterset;
                                       const spilltemplist:Tspill_temp_list): boolean;virtual;
+        procedure insert_regalloc_info_all(list:TAsmList);
       private
         int_live_range_direction: TRADirection;
         {# First imaginary register.}
         first_imaginary   : Tsuperregister;
         {# Highest register allocated until now.}
         reginfo           : PReginfo;
-        maxreginfo,
-        maxreginfoinc,
-        maxreg            : Tsuperregister;
         usable_registers_cnt : word;
-        usable_registers  : array[0..maxcpuregister-1] of tsuperregister;
+        usable_registers  : array[0..maxcpuregister] of tsuperregister;
         ibitmap           : Tinterferencebitmap;
         spillednodes,
         simplifyworklist,
@@ -217,7 +219,6 @@ unit rgobj;
         {# Colour the registers; that is do the register allocation.}
         procedure colour_registers;
         procedure insert_regalloc_info(list:TAsmList;u:tsuperregister);
-        procedure insert_regalloc_info_all(list:TAsmList);
         procedure generate_interference_graph(list:TAsmList;headertai:tai);
         { translates the registers in the given assembler list }
         procedure translate_registers(list:TAsmList);
@@ -1370,7 +1371,7 @@ unit rgobj;
           n:=coalescednodes.buf^[i-1];
           k:=get_alias(n);
           reginfo[n].colour:=reginfo[k].colour;
-          if reginfo[k].colour<maxcpuregister then
+          if reginfo[k].colour<first_imaginary then
             include(used_in_proc,reginfo[k].colour);
         end;
     end;
@@ -1566,6 +1567,7 @@ unit rgobj;
         p:=headertai;
         while assigned(p) do
           begin
+            prefetch(pointer(p.next)^);
             if p.typ=ait_regalloc then
               with Tai_regalloc(p) do
                 begin
@@ -1631,6 +1633,7 @@ unit rgobj;
         p:=Tai(list.first);
         while assigned(p) do
           begin
+            prefetch(pointer(p.next)^);
             case p.typ of
               ait_regalloc:
                 with Tai_regalloc(p) do

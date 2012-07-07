@@ -541,6 +541,25 @@ begin
           AddUnit('dbconst');
           AddUnit('bufdataset');
         end;
+    T:=P.Targets.AddUnit('fbadmin.pp', SqldbConnectionOSes);
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+          AddUnit('bufdataset');
+          AddUnit('ibconnection');
+        end;
+    T:=P.Targets.AddUnit('fbeventmonitor.pp', SqldbConnectionOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+          AddUnit('bufdataset');
+          AddUnit('ibconnection');
+        end;
     T:=P.Targets.AddUnit('memds.pp');
     T.ResourceStrings:=true;
       with T.Dependencies do
@@ -641,6 +660,15 @@ begin
           AddUnit('db');
           AddUnit('dbconst');
           AddUnit('bufdataset');
+        end;
+    T:=P.Targets.AddUnit('pqeventmonitor.pp', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+          AddUnit('bufdataset');
+          AddUnit('pqconnection');
         end;
     T:=P.Targets.AddUnit('mssqlconn.pp', MSSQLOSes);
     with T.Dependencies do

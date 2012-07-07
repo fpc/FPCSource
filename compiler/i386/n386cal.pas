@@ -28,10 +28,10 @@ interface
 { $define AnsiStrRef}
 
     uses
-      ncgcal;
+      nx86cal;
 
     type
-       ti386callnode = class(tcgcallnode)
+       ti386callnode = class(tx86callnode)
        protected
           procedure pop_parasize(pop_size:longint);override;
           procedure extra_interrupt_code;override;

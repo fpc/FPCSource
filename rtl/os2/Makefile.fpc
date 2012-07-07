@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0
-units=$(SYSTEMUNIT) ctypes objpas macpas iso7185 strings \
+units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
       dos crt objects printer matrix \
@@ -90,6 +90,8 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pas $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pas
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

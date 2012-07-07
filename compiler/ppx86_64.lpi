@@ -43,7 +43,7 @@
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="x86_64\pp"/>
@@ -61,11 +61,6 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Linking>
-      <Debugging>
-        <GenerateDebugInfo Value="True"/>
-      </Debugging>
-    </Linking>
     <Other>
       <Verbosity>
         <ShowWarn Value="False"/>

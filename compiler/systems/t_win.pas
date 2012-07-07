@@ -388,8 +388,8 @@ implementation
         idatalabnr:=0;
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
-        current_module.linkotherstaticlibs.add(current_module.importlibfilename^,link_always);
-        ObjWriter:=TARObjectWriter.create(current_module.importlibfilename^);
+        current_module.linkotherstaticlibs.add(current_module.importlibfilename,link_always);
+        ObjWriter:=TARObjectWriter.create(current_module.importlibfilename);
         ObjOutput:=TPECoffObjOutput.Create(ObjWriter);
         for i:=0 to current_module.ImportLibraryList.Count-1 do
           begin
@@ -939,33 +939,10 @@ implementation
 
 
     procedure TInternalLinkerWin.DefaultLinkScript;
-      var
-        s,s2 : TCmdStr;
-        secname,
-        secnames : string;
       begin
+        ScriptAddSourceStatements(true);
         with LinkScript do
           begin
-            while not ObjectFiles.Empty do
-              begin
-                s:=ObjectFiles.GetFirst;
-                if s<>'' then
-                  Concat('READOBJECT '+MaybeQuoted(s));
-              end;
-            while not StaticLibFiles.Empty do
-              begin
-                s:=StaticLibFiles.GetFirst;
-                if s<>'' then
-                  Concat('READSTATICLIBRARY '+MaybeQuoted(s));
-              end;
-            While not SharedLibFiles.Empty do
-              begin
-                S:=SharedLibFiles.GetFirst;
-                if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
-                  Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
-                else
-                  Comment(V_Error,'Import library not found for '+S);
-              end;
             if IsSharedLibrary then
               Concat('ISSHAREDLIBRARY');
             ConcatEntryName;
@@ -1081,17 +1058,9 @@ implementation
             Concat('  OBJSECTION .idata$6*');
             Concat('  OBJSECTION .idata$7*');
             Concat('ENDEXESECTION');
-            secnames:='.edata,.rsrc,.reloc,.gnu_debuglink,'+
+            ConcatGenericSections('.edata,.rsrc,.reloc,.gnu_debuglink,'+
                       '.debug_aranges,.debug_pubnames,.debug_info,.debug_abbrev,.debug_line,.debug_frame,.debug_str,.debug_loc,'+
-                      '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges';
-            repeat
-              secname:=gettoken(secnames,',');
-              if secname='' then
-                break;
-              Concat('EXESECTION '+secname);
-              Concat('  OBJSECTION '+secname+'*');
-              Concat('ENDEXESECTION');
-            until false;
+                      '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges');
             { Can't use the generic rules, because that will add also .stabstr to .stab }
             Concat('EXESECTION .stab');
             Concat('  OBJSECTION .stab');
@@ -1193,20 +1162,20 @@ implementation
           end;
 
         { Open link.res file }
-        LinkRes:=TLinkres.Create(outputexedir+Info.ResName);
+        LinkRes:=TLinkres.Create(outputexedir+Info.ResName,true);
         with linkres do
           begin
             { Write path to search libraries }
             HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
             while assigned(HPath) do
              begin
-               Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
+               Add('SEARCH_DIR("'+HPath.Str+'")');
                HPath:=TCmdStrListItem(HPath.Next);
              end;
             HPath:=TCmdStrListItem(LibrarySearchPath.First);
             while assigned(HPath) do
              begin
-               Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
+               Add('SEARCH_DIR("'+HPath.Str+'")');
                HPath:=TCmdStrListItem(HPath.Next);
              end;
 
@@ -1420,7 +1389,7 @@ implementation
         ImageBaseStr : string[40];
       begin
         if not(cs_link_nolink in current_settings.globalswitches) then
-         Message1(exec_i_linking,current_module.exefilename^);
+         Message1(exec_i_linking,current_module.exefilename);
 
         { Create some replacements }
         RelocStr:='';
@@ -1451,7 +1420,7 @@ implementation
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
-          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 
       { Write used files and libraries }
         WriteResponseFile(false);
@@ -1467,7 +1436,7 @@ implementation
            SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
            if binstr<>'' then
             begin
-              Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+              Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
               Replace(cmdstr,'$OPT',Info.ExtraOptions);
               Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
               Replace(cmdstr,'$APPTYPE',AppTypeStr);
@@ -1493,7 +1462,7 @@ implementation
 
       { Post process }
         if success then
-         success:=PostProcessExecutable(current_module.exefilename^,false);
+         success:=PostProcessExecutable(current_module.exefilename,false);
 
       { Remove ReponseFile }
         if (success) and not(cs_link_nolink in current_settings.globalswitches) then
@@ -1526,7 +1495,7 @@ implementation
       begin
         MakeSharedLibrary:=false;
         if not(cs_link_nolink in current_settings.globalswitches) then
-         Message1(exec_i_linking,current_module.sharedlibfilename^);
+         Message1(exec_i_linking,current_module.sharedlibfilename);
 
       { Create some replacements }
         RelocStr:='';
@@ -1553,7 +1522,7 @@ implementation
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
-          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 
       { Write used files and libraries }
         WriteResponseFile(true);
@@ -1569,7 +1538,7 @@ implementation
            SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
            if binstr<>'' then
             begin
-              Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+              Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
               Replace(cmdstr,'$OPT',Info.ExtraOptions);
               Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
               Replace(cmdstr,'$APPTYPE',AppTypeStr);
@@ -1595,7 +1564,7 @@ implementation
 
       { Post process }
         if success then
-         success:=PostProcessExecutable(current_module.sharedlibfilename^,true);
+         success:=PostProcessExecutable(current_module.sharedlibfilename,true);
 
       { Remove ReponseFile }
         if (success) and not(cs_link_nolink in current_settings.globalswitches) then

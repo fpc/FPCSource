@@ -155,7 +155,7 @@ begin
     not(cs_link_on_target in current_settings.globalswitches) and
     not(source_info.system in systems_aix) ;
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,assumebinutils);
   with linkres do
     begin
       { Write path to search libraries }
@@ -163,7 +163,7 @@ begin
       while assigned(HPath) do
        begin
          if assumebinutils then
-           Add('SEARCH_DIR('+maybequoted(HPath.Str)+')')
+           Add('SEARCH_DIR("'+HPath.Str+'")')
          else
            Add('-L'+HPath.Str);
          HPath:=TCmdStrListItem(HPath.Next);
@@ -172,7 +172,7 @@ begin
       while assigned(HPath) do
        begin
          if assumebinutils then
-           Add('SEARCH_DIR('+maybequoted(HPath.Str)+')')
+           Add('SEARCH_DIR("'+HPath.Str+'")')
          else
            Add('-L'+HPath.Str);
          HPath:=TCmdStrListItem(HPath.Next);
@@ -181,13 +181,19 @@ begin
        if assumebinutils then
         StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
-      AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
+       if assumebinutils then
+         AddFileName(maybequoted(FindObjectFile(prtobj,'',false)))
+       else
+         AddFileName(FindObjectFile(prtobj,'',false));
       { main objectfiles }
       while not ObjectFiles.Empty do
        begin
          s:=ObjectFiles.GetFirst;
          if s<>'' then
-          AddFileName(maybequoted(s));
+          if assumebinutils then
+            AddFileName(maybequoted(s))
+          else
+            AddFileName(s)
        end;
 
       { Write staticlibraries }
@@ -196,7 +202,10 @@ begin
          While not StaticLibFiles.Empty do
           begin
             S:=StaticLibFiles.GetFirst;
-            AddFileName(maybequoted(s))
+            if assumebinutils then
+              AddFileName(maybequoted(s))
+            else
+              AddFileName(s);
           end;
        end;
 
@@ -237,7 +246,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
   linkscript:=nil;
 { Create some replacements }
@@ -246,14 +255,14 @@ begin
      not(cs_link_separate_dbg_file in current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-bmap:'+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+   StripStr:='-bmap:'+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 { Write used files and libraries }
   WriteResponseFile(false);
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   binstr:=FindUtil(utilsprefix+BinStr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   { the native AIX linker does not support linkres files, so we need
     CatFileContent(). The binutils cross-linker does support such files, so
@@ -327,7 +336,7 @@ var
 begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename^);
+   Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -367,7 +376,7 @@ begin
       cmdstr:=cmdstr+' -bE:'+maybequoted(outputexedir)+'linksyms.fpc';
     end;
 
-  libfn:=maybequoted(current_module.sharedlibfilename^);
+  libfn:=maybequoted(current_module.sharedlibfilename);
   { we have to use a script to use the IFS hack }
   linkscript:=GenerateScript(outputexedir+'ppaslink');
   linkscript.AddLinkCommand(binstr,CmdStr,'');

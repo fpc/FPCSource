@@ -2711,7 +2711,7 @@ begin
     T:=P.Targets.AddImplicitUnit('CTFontManagerErrors.pas');
     T:=P.Targets.AddImplicitUnit('CTFontTraits.pas');
     T:=P.Targets.AddImplicitUnit('CTFrame.pas');
-    T:=P.Targets.AddImplicitUnit('CTFrameSetter.pas');
+    T:=P.Targets.AddImplicitUnit('CTFramesetter.pas');
     T:=P.Targets.AddImplicitUnit('AUComponent.pas');
     T:=P.Targets.AddImplicitUnit('AXConstants.pas');
     T:=P.Targets.AddImplicitUnit('Accessibility.pas');

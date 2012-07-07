@@ -101,7 +101,6 @@ interface
     {# Returns whether def is reference counted }
     function is_managed_type(def: tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
 
-
 {    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;}
 
 {*****************************************************************************

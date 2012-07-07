@@ -65,7 +65,7 @@ implementation
       ncon,ncal,
       ncgutil,
       cpubase,cpuinfo,aasmcpu,
-      rgobj,tgobj,cgobj,cgcpu;
+      rgobj,tgobj,cgobj,hlcgobj,cgcpu;
 
 
 {*****************************************************************************
@@ -145,7 +145,7 @@ implementation
             begin
               { convert first to double to avoid precision loss }
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-              location_force_reg(current_asmdata.CurrAsmList,left.location,OS_32,true);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,true);
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               instr:=taicpu.op_reg_reg(A_FLT,location.register,left.location.register);
               if is_signed(left.resultdef) then
@@ -242,7 +242,7 @@ implementation
               { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
               if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
                  ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-                location_force_reg(current_asmdata.CurrAsmList,location,newsize,true)
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
               current_procinfo.CurrTrueLabel:=oldTrueLabel;
@@ -268,7 +268,7 @@ implementation
                  end
                 else
                  begin
-                   location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
+                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                    tcgarm(cg).cgsetflags:=true;
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                    tcgarm(cg).cgsetflags:=false;

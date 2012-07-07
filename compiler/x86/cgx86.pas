@@ -266,6 +266,8 @@ unit cgx86;
 
     procedure tcgx86.inc_fpu_stack;
       begin
+        if rgfpu.fpuvaroffset>=7 then
+          internalerror(2012062901);
         inc(rgfpu.fpuvaroffset);
       end;
 

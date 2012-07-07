@@ -56,12 +56,10 @@ program pp;
 
 {$i fpcdefs.inc}
 
-{ Require at least 2.0.2 }
-{$ifdef VER2_0}
-  {$if FPC_PATCH<2}
-    {$fatal At least FPC 2.0.2 is required to compile the compiler}
-  {$endif}
-{$endif VER2_0}
+{ Require at least 2.6.0 }
+{$if FPC_FULLVERSION<20600}
+  {$fatal At least FPC 2.6.0 is required to compile the compiler}
+{$endif}
 
 { exactly one target CPU must be defined }
 {$ifdef I386}
@@ -136,6 +134,12 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif AVR}
+{$ifdef JVM}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif}
 {$ifndef CPUDEFINED}
   {$fatal A CPU type switch must be defined}
 {$endif CPUDEFINED}

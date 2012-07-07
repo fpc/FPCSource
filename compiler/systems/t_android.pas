@@ -274,7 +274,7 @@ begin
    end;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
   with linkres do
     begin
       { Write path to search libraries }
@@ -690,7 +690,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -703,7 +703,7 @@ begin
      not(cs_link_separate_dbg_file in current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   if create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
   If (cs_profile in current_settings.moduleswitches) or
@@ -721,7 +721,7 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
@@ -741,9 +741,9 @@ begin
       for i:=1 to 3 do
         begin
           SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
-          Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
-          Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(current_module.dbgfilename^)));
-          Replace(cmdstr,'$DBG',maybequoted(current_module.dbgfilename^));
+          Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+          Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(current_module.dbgfilename)));
+          Replace(cmdstr,'$DBG',maybequoted(current_module.dbgfilename));
           success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
           if not success then
             break;
@@ -769,7 +769,7 @@ var
 begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename^);
+   Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -778,11 +778,11 @@ begin
  { note: linux does not use exportlib.initname/fininame due to the custom startup code }
   InitStr:='-init FPC_SHARED_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
-  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename^);
+  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
@@ -796,7 +796,7 @@ begin
      { only remove non global symbols and debugging info for a library }
      Info.DllCmd[2]:='strip --discard-all --strip-debug $EXE';
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
    end;
 

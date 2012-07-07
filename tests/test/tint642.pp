@@ -248,6 +248,8 @@ procedure testshlshrqword;
 
      l1:=16;
      l2:=0;
+     if (q1 shl 0)<>q1 then
+       do_error(1499);
      if (q1 shl 16)<>q3 then
        do_error(1500);
      if (q1 shl 48)<>q0 then
@@ -277,6 +279,8 @@ procedure testshlshrqword;
      if ((q1+q0) shl (l1+l2))<>q3 then
        do_error(1509);
 
+     if (q1 shr 0)<>q1 then
+       do_error(15091);
      if (q1 shr 16)<>q2 then
        do_error(1510);
      if (q1 shr 48)<>q0 then

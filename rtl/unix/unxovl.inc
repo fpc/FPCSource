@@ -13,16 +13,9 @@
 
  **********************************************************************}
 
-Function StatFS(Path:ansistring;Var Info:Tstatfs):cint;
-
-{
-  Get all information on a fileSystem, and return it in Info.
-  Path is the name of a file/directory on the fileSystem you wish to
-  investigate.
-}
+Function fpStatFS(Path:ansistring;Info:PStatfs):cint;
 
 begin
-  statfs:=statfs(pchar(path),info);
+  fpstatfs:=fpstatfs(pchar(path),info);
 end;
-
 

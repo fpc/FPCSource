@@ -9,3 +9,10 @@ Targets.DefaultDir:='db/sqldb/interbase';
 Targets.DefaultOS:=[win32,openbsd,netbsd,freebsd,darwin,linux,haiku];
 T:=Targets.AddUnit('ibconnection');
 T.ResourceStrings:=True;
+T:=Targets.AddUnit('fbadmin');
+T.Dependencies.Add('ibconnection');
+T.ResourceStrings:=True;
+T:=Targets.AddUnit('fbeventmonitor');
+T.Dependencies.Add('ibconnection');
+T.ResourceStrings:=True;
+

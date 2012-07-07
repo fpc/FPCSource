@@ -18,11 +18,12 @@ uses
   memdstoolsunit,
   SdfDSToolsUnit,
 // Units wich contains the tests
-  testbasics,
-  testfieldtypes,
+  TestBasics,
+  TestFieldTypes,
   TestDatasources,
-  testdbbasics,
-  TestBufDatasetStreams;
+  TestDBBasics,
+  TestBufDatasetStreams,
+  TestSpecificTBufDataset;
 
 var
   FXMLResultsWriter: TXMLResultsWriter;

@@ -35,9 +35,9 @@ unexport FPC_VERSION FPC_COMPILERINFO
 CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr
 
 # All supported targets used for clean
-ALLTARGETS=$(CYCLETARGETS)
+ALLTARGETS=$(CYCLETARGETS) jvm
 
-# Allow ALPHA, POWERPC, POWERPC64, M68K, I386 defines for target cpu
+# Allow ALPHA, POWERPC, POWERPC64, M68K, I386, jvm defines for target cpu
 ifdef ALPHA
 PPC_TARGET=alpha
 endif
@@ -73,6 +73,9 @@ PPC_TARGET=mipsel
 endif
 ifdef AVR
 PPC_TARGET=avr
+endif
+ifdef JVM
+PPC_TARGET=jvm
 endif
 
 # Default is to generate a compiler for the same
@@ -120,6 +123,33 @@ ifndef RTLOPT
 RTLOPT:=$(OPT)
 endif
 
+ifdef CYCLELEVEL
+ifeq ($(CYCLELEVEL),1)
+LOCALOOPT+=$(OPTLEVEL1)
+RTLOPT+=$(OPTLEVEL1)
+LOCALOPT+=$(LOCALOPTLEVEL1)
+RTLOPT+=$(RTLOPTLEVEL1)
+endif
+ifeq ($(CYCLELEVEL),2)
+LOCALOOPT+=$(OPTLEVEL2)
+RTLOPT+=$(OPTLEVEL2)
+LOCALOPT+=$(LOCALOPTLEVEL2)
+RTLOPT+=$(RTLOPTLEVEL2)
+endif
+ifeq ($(CYCLELEVEL),3)
+LOCALOOPT+=$(OPTLEVEL3)
+RTLOPT+=$(OPTLEVEL3)
+LOCALOPT+=$(LOCALOPTLEVEL3)
+RTLOPT+=$(RTLOPTLEVEL3)
+endif
+ifeq ($(CYCLELEVEL),4)
+LOCALOOPT+=$(OPTLEVEL4)
+RTLOPT+=$(OPTLEVEL4)
+LOCALOPT+=$(LOCALOPTLEVEL4)
+RTLOPT+=$(RTLOPTLEVEL4)
+endif
+endif
+
 # Make OPT empty. It is copied to LOCALOPT and RTLOPT
 override OPT=
 
@@ -159,6 +189,9 @@ CPUSUF=mipsel
 endif
 ifeq ($(CPC_TARGET),avr)
 CPUSUF=avr
+endif
+ifeq ($(CPC_TARGET),jvm)
+CPUSUF=jvm
 endif
 
 # Do not define the default -d$(CPU_TARGET) because that
@@ -241,6 +274,10 @@ ifeq ($(PPC_TARGET),mipsel)
 override LOCALOPT+=-Fumips
 endif
 
+# jvm specific
+ifeq ($(PPC_TARGET),jvm)
+override LOCALOPT+=-Fujvm -dNOOPT
+endif
 
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
 OPTWPOPERFORM=-Owdevirtcalls,optvmts -Fw$(BASEDIR)/pp1.wpo
@@ -255,6 +292,17 @@ endif
 endif
 endif
 
+# Don't compile a native compiler & utilities for JVM and embedded
+# targets
+ifeq ($(CPU_TARGET),jvm)
+NoNativeBinaries=1
+endif
+ifeq ($(OS_TARGET),embedded)
+NoNativeBinaries=1
+endif
+ifeq ($(OS_TARGET),gba)
+NoNativeBinaries=1
+endif
 
 [rules]
 #####################################################################
@@ -307,7 +355,11 @@ EXENAME=ppc$(CPUSUF)$(EXEEXT)
 endif
 PPEXENAME=pp$(EXEEXT)
 TEMPNAME=ppc$(SRCEXEEXT)
+ifneq ($(CPUSUF),jvm)
 PPCROSSNAME=ppcross$(CPUSUF)$(SRCEXEEXT)
+else
+PPCROSSNAME=ppc$(CPUSUF)$(SRCEXEEXT)
+endif
 TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
@@ -325,7 +377,7 @@ endif
 # CPU targets
 #####################################################################
 
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel avr
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel avr jvm
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 
 .PHONY: $(PPC_TARGETS) $(INSTALL_TARGETS)
@@ -380,12 +432,12 @@ tempclean:
         -$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC) pp1.wpo pp2.wpo
 
 execlean :
-        -$(DEL) ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
+        -$(DEL) ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
 
 $(addsuffix _clean,$(ALLTARGETS)):
         -$(DELTREE) $(addprefix $(subst _clean,,$@),/units)
         -$(DEL) $(addprefix $(subst _clean,,$@)/,*$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT))
-        -$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) $(EXENAME))
+        -$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT)  $(EXENAME))
 
 cycleclean: cleanall $(addsuffix _clean,$(CPC_TARGET))
         -$(DEL) $(EXENAME)
@@ -557,23 +609,23 @@ next :
 endif
 
 $(TEMPNAME1) :
-        $(MAKE) 'OLDFPC=' next
+        $(MAKE) 'OLDFPC=' next CYCLELEVEL=1
         -$(DEL) $(TEMPNAME1)
         $(MOVE) $(EXENAME) $(TEMPNAME1)
 
 $(TEMPNAME2) : $(TEMPNAME1)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME1)' 'OLDFPC=' next
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME1)' 'OLDFPC=' next CYCLELEVEL=2
         -$(DEL) $(TEMPNAME2)
         $(MOVE) $(EXENAME) $(TEMPNAME2)
 
 $(TEMPNAME3) : $(TEMPNAME2)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME2)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME1)' next
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME2)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME1)' next CYCLELEVEL=3
         -$(DEL) $(TEMPNAME3)
         $(MOVE) $(EXENAME) $(TEMPNAME3)
 
 cycle:
         $(MAKE) tempclean $(TEMPNAME3)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next CYCLELEVEL=4
         $(DIFF) $(TEMPNAME3) $(EXENAME)
         $(MAKE) $(addsuffix _all,$(TARGET_DIRS)) 'FPC=$(BASEDIR)/$(EXENAME)'
         $(MAKE) wpocycle
@@ -588,10 +640,10 @@ else
 cycle:
 # ppc (source native)
         $(MAKE) OS_TARGET=$(OS_SOURCE) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) OS_TARGET=$(OS_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
+        $(MAKE) OS_TARGET=$(OS_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=1
 # ppcross<ARCH> (source native)
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=2
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
@@ -599,7 +651,7 @@ ifndef CROSSINSTALL
 ifneq ($(OS_TARGET),embedded)
 # building a native compiler for the arm-gba target is not possible
 ifneq ($(OS_TARGET),gba)
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler CYCLELEVEL=3
 endif
 endif
 endif
@@ -621,19 +673,16 @@ cycle:
 # ppc (source native)
 # Clear detected compiler binary, because it can be existing crosscompiler binary, but we need native compiler here
         $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
+        $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=1
 # ppcross<ARCH> (source native)
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=2
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(RTLOPT) $(CROSSOPT)' rtlclean rtl
-# building a native compiler for embedded targets is not possible
-ifneq ($(OS_TARGET),embedded)
-# building a native compiler for the arm-gba target is not possible
-ifneq ($(OS_TARGET),gba)
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(LOCALOPT) $(CROSSOPT)' cycleclean compiler
-endif
+# building a native compiler for JVM and embedded targets is not possible
+ifndef NoNativeBinaries
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(LOCALOPT) $(CROSSOPT)' cycleclean compiler CYCLELEVEL=3
 endif
 endif
 
@@ -643,7 +692,7 @@ cycledep:
         $(MAKE) cycle USEDEPEND=1
 
 extcycle:
-        $(MAKE) cycle OPT='-n -OG2p3 -glttt -CRriot -dEXTDEBUG'
+        $(MAKE) cycle OPT="$(OPT) -n -OG2p3 -glttt -CRriot -dEXTDEBUG"
 
 cvstest:
         $(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPT=-n -Se'
@@ -663,7 +712,11 @@ full: fullcycle
 fullcycle:
         $(MAKE) cycle
         $(MAKE) ppuclean
+ifneq ($(CPU_SOURCE),x86_64)
         $(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) 'FPC=$(BASEDIR)/$(EXENAME)'
+else
+        $(MAKE) $(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS))) 'FPC=$(BASEDIR)/$(EXENAME)'
+endif
 
 #####################################################################
 # Docs
@@ -687,9 +740,14 @@ else
 PPCCPULOCATION=$(INSTALL_BINDIR)
 endif
 
+ifndef NoNativeBinaries
+quickinstall: quickinstall_withutils
+else
+quickinstall: exeinstall
+endif
+
 # This will only install the ppcXXX executable, not the message files etc.
-quickinstall: $(addsuffix _install,$(TARGET_DIRS))
-	$(MAKE) exeinstall
+quickinstall_withutils: $(addsuffix _install,$(TARGET_DIRS)) exeinstall
 
 # Install ppcXXX executable, for a cross installation we install
 # the ppcrossXXX as ppcXXX. The target native build ppcXXX is not used

@@ -331,14 +331,21 @@ end;
 
 
 procedure dump_already_free(p : pheap_mem_info;var ptext : text);
+var
+  bp, pcaddr : pointer;
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' released');
   call_free_stack(p,ptext);
   Writeln(ptext,'freed again at');
-  dump_stack(ptext,get_caller_frame(get_frame));
+  bp:=get_frame;
+  pcaddr:=get_pc_addr;
+  get_caller_stackinfo(bp,pcaddr);
+  dump_stack(ptext,bp,pcaddr);
 end;
 
 procedure dump_error(p : pheap_mem_info;var ptext : text);
+var
+  bp, pcaddr : pointer;
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
   Writeln(ptext,'Wrong signature $',hexstr(p^.sig,8),' instead of ',hexstr(calculate_sig(p),8));
@@ -347,7 +354,10 @@ begin
       write(ptext, 'Block content: ');
       printhex(pointer(p) + sizeof(theap_mem_info), p^.size, ptext);
     end;
-  dump_stack(ptext,get_caller_frame(get_frame));
+  bp:=get_frame;
+  pcaddr:=get_pc_addr;
+  get_caller_stackinfo(bp,pcaddr);
+  dump_stack(ptext,bp,pcaddr);
 end;
 
 {$ifdef EXTRA}
@@ -367,10 +377,15 @@ end;
 {$endif EXTRA}
 
 procedure dump_wrong_size(p : pheap_mem_info;size : ptruint;var ptext : text);
+var
+  bp, pcaddr : pointer;
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
   Writeln(ptext,'Wrong size : ',p^.size,' allocated ',size,' freed');
-  dump_stack(ptext,get_caller_frame(get_frame));
+  bp:=get_frame;
+  pcaddr:=get_pc_addr;
+  get_caller_stackinfo(bp,pcaddr);
+  dump_stack(ptext,bp,pcaddr);
   { the check is done to be sure that the procvar is not overwritten }
   if assigned(p^.extra_info) and
      (p^.extra_info^.check=$12345678) and
@@ -445,7 +460,7 @@ Function TraceGetMem(size:ptruint):pointer;
 var
   allocsize,i : ptruint;
   oldbp,
-  bp : pointer;
+  bp,pcaddr : pointer;
   pl : pdword;
   p  : pointer;
   pp : pheap_mem_info;
@@ -509,15 +524,16 @@ begin
   { clear the memory }
   fillchar(p^,size,#255);
   { retrieve backtrace info }
-  bp:=get_caller_frame(get_frame);
-
+  bp:=get_frame;
+  pcaddr:=get_pc_addr;
+  get_caller_stackinfo(bp,pcaddr);
   { valid bp? }
   if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
     for i:=1 to tracesize do
      begin
-       pp^.calls[i]:=get_caller_addr(bp);
        oldbp:=bp;
-       bp:=get_caller_frame(bp);
+       get_caller_stackinfo(bp,pcaddr);
+       pp^.calls[i]:=pcaddr;
        if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
          break;
      end;
@@ -553,7 +569,7 @@ function CheckFreeMemSize(loc_info: pheap_info; pp: pheap_mem_info;
   size, ppsize: ptruint): boolean; inline;
 var
   i: ptruint;
-  bp : pointer;
+  bp,pcaddr : pointer;
   ptext : ^text;
 {$ifdef EXTRA}
   pp2 : pheap_mem_info;
@@ -612,12 +628,15 @@ begin
     end
   else
     begin
-       bp:=get_caller_frame(get_frame);
+       bp:=get_frame;
+       pcaddr:=get_pc_addr;
+       get_caller_stackinfo(bp,pcaddr);
+
        if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
          for i:=(tracesize div 2)+1 to tracesize do
           begin
-            pp^.calls[i]:=get_caller_addr(bp);
-            bp:=get_caller_frame(bp);
+            get_caller_stackinfo(bp,pcaddr);
+            pp^.calls[i]:=pcaddr;
             if not((bp>=StackBottom) and (bp<(StackBottom + StackLength))) then
               break;
           end;
@@ -775,7 +794,8 @@ var
   movesize,
   i  : ptruint;
   oldbp,
-  bp : pointer;
+  bp,
+  pcaddr : pointer;
   pl : pdword;
   pp : pheap_mem_info;
   oldsize,
@@ -890,13 +910,15 @@ begin
   inc(loc_info^.getmem_size,size);
   inc(loc_info^.getmem8_size,(size+7) and not 7);
   { generate new backtrace }
-  bp:=get_caller_frame(get_frame);
+  bp:=get_frame;
+  pcaddr:=get_pc_addr;
+  get_caller_stackinfo(bp,pcaddr);
   if (bp>=StackBottom) and (bp<(StackBottom + StackLength)) then
     for i:=1 to tracesize do
      begin
-       pp^.calls[i]:=get_caller_addr(bp);
        oldbp:=bp;
-       bp:=get_caller_frame(bp);
+       get_caller_stackinfo(bp,pcaddr);
+       pp^.calls[i]:=pcaddr;
        if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
          break;
      end;
@@ -979,6 +1001,7 @@ var
 {$ifdef morphos}
   stack_top: longword;
 {$endif morphos}
+  bp,pcaddr : pointer;
   ptext : ^text;
 label
   _exit;
@@ -1136,7 +1159,10 @@ begin
       end;
    end;
   writeln(ptext^,'pointer $',hexstr(p),' does not point to valid memory block');
-  dump_stack(ptext^,get_caller_frame(get_frame));
+  bp:=get_frame;
+  pcaddr:=get_pc_addr;
+  get_caller_stackinfo(bp,pcaddr);
+  dump_stack(ptext^,bp,pcaddr);
   runerror(204);
 _exit:
 end;

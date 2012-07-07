@@ -509,8 +509,16 @@ begin
 end;
 
 procedure TConnectionName.UnPrepareStatement(cursor: TSQLCursor);
+Var
+  C : TCursorName;
+
 begin
-  // do nothing
+  C:=Cursor as TCursorName;
+  if assigned(C.FRes) then  //ExecSQL with dataset returned
+    begin
+    mysql_free_result(C.FRes);
+    C.FRes:=nil;
+    end;
 end;
 
 procedure TConnectionName.FreeFldBuffers(cursor: TSQLCursor);
@@ -522,9 +530,9 @@ begin
   C:=Cursor as TCursorName;
   if c.FStatementType in [stSelect,stExecProcedure] then
     c.FNeedData:=False;
-  If (C.FRes<>Nil) then
+  if assigned(C.FRes) then
     begin
-    Mysql_free_result(C.FRes);
+    mysql_free_result(C.FRes);
     C.FRes:=Nil;
     end;
   SetLength(c.MapDSRowToMSQLRow,0);
@@ -580,16 +588,15 @@ var ASize, ADecimals: integer;
 begin
   Result := True;
   ASize := AField^.length;
+  NewSize := 0;
   case AField^.ftype of
     FIELD_TYPE_LONGLONG:
       begin
       NewType := ftLargeint;
-      NewSize := 0;
       end;
     FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_YEAR:
       begin
       NewType := ftSmallint;
-      NewSize := 0;
       end;
     FIELD_TYPE_LONG, FIELD_TYPE_INT24:
       begin
@@ -597,7 +604,6 @@ begin
         NewType := ftAutoInc
       else
         NewType := ftInteger;
-      NewSize := 0;
       end;
 {$ifdef mysql50_up}
     FIELD_TYPE_NEWDECIMAL,
@@ -616,32 +622,25 @@ begin
     FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
       begin
       NewType := ftFloat;
-      NewSize := 0;
       end;
     FIELD_TYPE_TIMESTAMP, FIELD_TYPE_DATETIME:
       begin
       NewType := ftDateTime;
-      NewSize := 0;
       end;
     FIELD_TYPE_DATE:
       begin
       NewType := ftDate;
-      NewSize := 0;
       end;
     FIELD_TYPE_TIME:
       begin
       NewType := ftTime;
-      NewSize := 0;
       end;
     FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING, FIELD_TYPE_ENUM, FIELD_TYPE_SET:
       begin
       // Since mysql server version 5.0.3 string-fields with a length of more
       // then 256 characters are suported
       if ASize>dsMaxStringSize then
-        begin
-        NewType := ftMemo;
-        NewSize := 0;
-        end
+        NewType := ftMemo
       else
         begin
         if AField^.ftype = FIELD_TYPE_STRING then
@@ -668,8 +667,11 @@ begin
 {$ELSE}
       NewType := ftBlob;
 {$ENDIF}
-      NewSize := 0;
-      end
+      end;
+{$IFDEF MYSQL50_UP}
+    FIELD_TYPE_BIT:
+      NewType := ftLargeInt;
+{$ENDIF}
   else
     Result := False;
   end;
@@ -1020,6 +1022,15 @@ begin
       end;
     FIELD_TYPE_BLOB:
       CreateBlob := True;
+{$IFDEF MYSQL50_UP}
+    FIELD_TYPE_BIT:
+      begin
+      VL := 0;
+      for VI := 0 to Len-1 do
+        VL := VL * 256 + PByte(Source+VI)^;
+      move(VL, Dest^, sizeof(LargeInt));
+      end;
+{$ENDIF}
   end;
   Result := True;
 end;

@@ -134,13 +134,18 @@ implementation
               end;
              p.free;
            end
-         else
-           begin
-             if cs_ansistrings in current_settings.localswitches then
-               def:=getansistringdef
-             else
-               def:=cshortstringtype;
-           end;
+          else
+            begin
+              if cs_refcountedstrings in current_settings.localswitches then
+                begin
+                  if m_default_unicodestring in current_settings.modeswitches then
+                    def:=cunicodestringtype
+                  else
+                    def:=getansistringdef
+                end
+              else
+                def:=cshortstringtype;
+            end;
        end;
 
 
@@ -244,7 +249,7 @@ implementation
            begin
              typecheckpass(p1);
              result:=internalstatements(newstatement);
-             hdef:=tpointerdef.create(p1.resultdef);
+             hdef:=getpointerdef(p1.resultdef);
              temp:=ctempcreatenode.create(hdef,sizeof(pint),tt_persistent,false);
              addstatement(newstatement,temp);
              addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),caddrnode.create_internal(p1)));
@@ -372,6 +377,7 @@ implementation
               { Allow classrefdef, which is required for
                 Typeof(self) in static class methods }
               if not(is_objc_class_or_protocol(p1.resultdef)) and
+                 not(is_java_class_or_interface(p1.resultdef)) and
                  ((p1.resultdef.typ = objectdef) or
                   (assigned(current_procinfo) and
                    ((po_classmethod in current_procinfo.procdef.procoptions) or
@@ -558,6 +564,8 @@ implementation
 
           in_ofs_x :
             begin
+              if target_info.system in systems_managed_vm then
+                message(parser_e_feature_unsupported_for_vm);
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true,false);
@@ -1052,36 +1060,6 @@ implementation
       end;
 
 
-    { checks whether sym is a static field and if so, translates the access
-      to the appropriate node tree }
-    function handle_staticfield_access(sym: tsym; nested: boolean; var p1: tnode): boolean;
-      var
-        static_name: shortstring;
-        srsymtable: tsymtable;
-      begin
-        result:=false;
-        { generate access code }
-        if (sp_static in sym.symoptions) then
-          begin
-            result:=true;
-            if not nested then
-              static_name:=lower(sym.owner.name^)+'_'+sym.name
-            else
-             static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
-            if sym.owner.defowner.typ=objectdef then
-              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,true)
-            else
-              searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
-            if assigned(sym) then
-              check_hints(sym,sym.symoptions,sym.deprecatedmsg);
-            p1.free;
-            p1:=nil;
-            { static syms are always stored as absolutevarsym to handle scope and storage properly }
-            propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
-          end;
-      end;
-
-
     { the following procedure handles the access to a property symbol }
     procedure handle_propertysym(propsym : tpropertysym;st : TSymtable;var p1 : tnode);
       var
@@ -1249,10 +1227,19 @@ implementation
                       { calling using classref? }
                       if isclassref and
                          (p1.nodetype=calln) and
-                         assigned(tcallnode(p1).procdefinition) and
-                         not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
-                         not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
-                        Message(parser_e_only_class_members_via_class_ref);
+                         assigned(tcallnode(p1).procdefinition) then
+                        begin
+                          if not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
+                             not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
+                            Message(parser_e_only_class_members_via_class_ref);
+                          { in Java, constructors are not automatically inherited
+                            -> calling a constructor from a parent type will create
+                               an instance of that parent type! }
+                          if is_javaclass(structh) and
+                             (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
+                             (tcallnode(p1).procdefinition.owner.defowner<>find_real_class_definition(tobjectdef(structh),false)) then
+                            Message(parser_e_java_no_inherited_constructor);
+                        end;
                    end;
                  fieldvarsym:
                    begin
@@ -1288,7 +1275,9 @@ implementation
                      else
                        begin
                          p1:=ctypenode.create(ttypesym(sym).typedef);
-                         if (is_class(ttypesym(sym).typedef) or is_objcclass(ttypesym(sym).typedef)) and
+                         if (is_class(ttypesym(sym).typedef) or
+                             is_objcclass(ttypesym(sym).typedef) or
+                             is_javaclass(ttypesym(sym).typedef)) and
                             not(block_type in [bt_type,bt_const_type,bt_var_type]) then
                            p1:=cloadvmtaddrnode.create(p1);
                        end;
@@ -1389,9 +1378,13 @@ implementation
               (for "TClassHelper.Something") }
             { class reference ? }
             if is_class(hdef) or
-               is_objcclass(hdef) then
+               is_objcclass(hdef) or
+               { Java interfaces also can have loadvmtaddrnodes,
+                 e.g. for expressions such as JLClass(intftype) }
+               is_java_class_or_interface(hdef) then
              begin
-               if getaddr and (token=_POINT) then
+               if getaddr and (token=_POINT) and
+                  not is_javainterface(hdef) then
                 begin
                   consume(_POINT);
                   { allows @Object.Method }
@@ -1678,7 +1671,9 @@ implementation
           _LECKKLAMMER:
              begin
                if is_class_or_interface_or_object(p1.resultdef) or
-                 is_dispinterface(p1.resultdef) or is_record(p1.resultdef) then
+                  is_dispinterface(p1.resultdef) or
+                  is_record(p1.resultdef) or
+                  is_javaclass(p1.resultdef) then
                  begin
                    { default property }
                    protsym:=search_default_property(tabstractrecorddef(p1.resultdef));
@@ -2137,13 +2132,11 @@ implementation
                  searchsym_type(pattern,srsym,srsymtable)
                else
                  searchsym(pattern,srsym,srsymtable);
-
                { handle unit specification like System.Writeln }
                unit_found:=try_consume_unitsym(srsym,srsymtable,t,true);
                storedpattern:=pattern;
                orgstoredpattern:=orgpattern;
                consume(t);
-
                { named parameter support }
                found_arg_name:=false;
 
@@ -2184,7 +2177,7 @@ implementation
                      assigned(current_structdef) and
                      (df_generic in current_structdef.defoptions) and
                      not (m_delphi in current_settings.modeswitches) and
-                     (upper(srsym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
+                     assigned(get_generic_in_hierarchy_by_name(srsym,current_structdef))
                    )) and
                    { it could be a rename of a generic para }
                    { Note: if this generates false positives we'll need to
@@ -2259,7 +2252,9 @@ implementation
                         if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) then
                           { if we are accessing a owner procsym from the nested }
                           { class we need to call it as a class member          }
-                          if assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
+                          if assigned(current_structdef) and
+                              (((current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
+                               (sp_static in srsym.symoptions)) then
                             p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
                           else
                           if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
@@ -2551,7 +2546,9 @@ implementation
                  consume(_INHERITED);
                  if assigned(current_procinfo) and
                     assigned(current_structdef) and
-                    (current_structdef.typ=objectdef) then
+                    ((current_structdef.typ=objectdef) or
+                     ((target_info.system in systems_jvm) and
+                      (current_structdef.typ=recorddef)))then
                   begin
                     { for record helpers in mode Delphi "inherited" is not
                       allowed }
@@ -2559,13 +2556,20 @@ implementation
                         (m_delphi in current_settings.modeswitches) and
                         is_record(tobjectdef(current_structdef).extendeddef) then
                       Message(parser_e_inherited_not_in_record);
-                    hclassdef:=tobjectdef(current_structdef).childof;
-                    { Objective-C categories *replace* methods in the class
-                      they extend, or add methods to it. So calling an
-                      inherited method always calls the method inherited from
-                      the parent of the extended class }
-                    if is_objccategory(current_structdef) then
-                      hclassdef:=hclassdef.childof;
+                    if (current_structdef.typ=objectdef) then
+                      begin
+                        hclassdef:=tobjectdef(current_structdef).childof;
+                        { Objective-C categories *replace* methods in the class
+                          they extend, or add methods to it. So calling an
+                          inherited method always calls the method inherited from
+                          the parent of the extended class }
+                        if is_objccategory(current_structdef) then
+                          hclassdef:=hclassdef.childof;
+                      end
+                    else if target_info.system in systems_jvm then
+                      hclassdef:=java_fpcbaserecordtype
+                    else
+                      internalerror(2012012401);
                     { if inherited; only then we need the method with
                       the same name }
                     if token <> _ID then
@@ -2587,7 +2591,7 @@ implementation
                        if is_objectpascal_helper(current_structdef) then
                          searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,true)
                        else
-                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,true);
+                         searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,true);
                      end
                     else
                      begin
@@ -2599,7 +2603,7 @@ implementation
                        if is_objectpascal_helper(current_structdef) then
                          searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,true)
                        else
-                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,true);
+                         searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,true);
                      end;
                     if assigned(srsym) then
                      begin
@@ -2644,6 +2648,7 @@ implementation
                            end;
                        end;
                        callflags:=[cnf_inherited];
+                       include(current_procinfo.flags,pi_has_inherited);
                        if anon_inherited then
                          include(callflags,cnf_anon_inherited);
                        do_member_read(hclassdef,getaddr,srsym,p1,again,callflags);
@@ -2809,7 +2814,7 @@ implementation
 
              _CCHAR :
                begin
-                 p1:=cordconstnode.create(ord(pattern[1]),cchartype,true);
+                 p1:=cordconstnode.create(ord(pattern[1]),cansichartype,true);
                  consume(_CCHAR);
                end;
 

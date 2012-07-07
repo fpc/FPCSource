@@ -8,7 +8,9 @@ interface
 
 uses
   Classes, SysUtils, DB, testdecorator;
-  
+
+// Number of "N" test datasets (as opposed to FieldDatasets) that will be created
+// The connectors should have these records prepared in their Create*Dataset procedures.
 Const MaxDataSet = 35;
   
 type
@@ -24,14 +26,16 @@ type
      protected
        procedure SetTestUniDirectional(const AValue: boolean); virtual;
        function GetTestUniDirectional: boolean; virtual;
-       // These methods should be implemented by any descendents
-       // They are called eacht time a test need a TDataset descendent
+       // These methods should be implemented by all descendents
+       // They are called each time a test needs a TDataset descendent
+       // n: the dataset index to return (also number of records in set)
+       // Presupposes that Create*Dataset(s) has been called already.
        Function InternalGetNDataset(n : integer) : TDataset;  virtual; abstract;
        Function InternalGetFieldDataset : TDataSet; virtual; abstract;
 
-       // These methods should be implemented by any descendents
-       // They are called only once in the constructor. They can be used
-       // to create the tables on disk, or on a DB-Server
+       // These methods should be implemented by all descendents
+       // They are called e.g. in the constructor. They can be used
+       // to create the tables on disk, or on a DB server
        procedure CreateNDatasets; virtual; abstract;
        procedure CreateFieldDataset; virtual; abstract;
 
@@ -41,8 +45,8 @@ type
        procedure ResetNDatasets; virtual;
        procedure ResetFieldDataset; virtual;
        
-       // These methods are called only once in the destructor.
-       // They should clean up all mess, like tables on disk or on a DB-server
+       // These methods are called e.g. in the destructor.
+       // They should clean up all mess, like tables on disk or on a DB server
        procedure DropNDatasets; virtual; abstract;
        procedure DropFieldDataset; virtual; abstract;
      public
@@ -307,6 +311,8 @@ begin
   testValues[ftFixedChar] := testStringValues;
   testValues[ftTime] := testTimeValues;
   testValues[ftDate] := testDateValues;
+  testValues[ftBlob] := testStringValues;
+  testValues[ftMemo] := testStringValues;
   testValues[ftFMTBcd] := testFmtBCDValues;
   for i := 0 to testValuesCount-1 do
     begin

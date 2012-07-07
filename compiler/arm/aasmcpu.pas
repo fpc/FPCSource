@@ -567,10 +567,12 @@ implementation
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
         { allow the register allocator to remove unnecessary moves }
-        result:=(((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
-                 ((opcode=A_MVF) and (regtype = R_FPUREGISTER) and (oppostfix in [PF_None,PF_D])) or
-                 (((opcode=A_FCPYS) or (opcode=A_FCPYD)) and (regtype = R_MMREGISTER))
+        result:=(
+                  ((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
+                  ((opcode=A_MVF) and (regtype = R_FPUREGISTER)) or
+                  ((opcode in [A_FCPYS, A_FCPYD]) and (regtype = R_MMREGISTER))
                 ) and
+                (oppostfix in [PF_None,PF_D]) and
                 (condition=C_None) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
@@ -642,7 +644,7 @@ implementation
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
         case opcode of
-          A_ADC,A_ADD,A_AND,
+          A_ADC,A_ADD,A_AND,A_BIC,
           A_EOR,A_CLZ,
           A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
           A_LDRSH,A_LDRT,
@@ -671,7 +673,7 @@ implementation
               result:=operand_write
             else
               result:=operand_read;
-          A_BIC,A_BKPT,A_B,A_BL,A_BLX,A_BX,
+          A_BKPT,A_B,A_BL,A_BLX,A_BX,
           A_CMN,A_CMP,A_TEQ,A_TST,
           A_CMF,A_CMFE,A_WFS,A_CNF,
           A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
@@ -910,6 +912,12 @@ implementation
                     end;
                   inc(curinspos);
                 end;
+              ait_align:
+                begin
+                  { code is always 4 byte aligned, so we don't have to take care of .align 2 which would
+                    requires also incrementing curinspos by 1 }
+                  inc(curinspos,(tai_align(curtai).aligntype div 4));
+                end;
               ait_const:
                 begin
                   inc(curinspos);
@@ -939,6 +947,9 @@ implementation
               begin
                 penalty:=1;
                 hp:=tai(hp.next);
+                { skip register allocations and comments inserted by the optimizer }
+                while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc]) do
+                  hp:=tai(hp.next);
                 while assigned(hp) and (hp.typ=ait_const) do
                   begin
                     inc(penalty);

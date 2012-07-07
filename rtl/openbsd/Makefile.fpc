@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0
-units=$(SYSTEMUNIT) objpas macpas iso7185 strings syscall baseunix \
+units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings syscall baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd initc \
       $(CPU_UNITS) dos crt objects printer matrix rtlconsts \
       sysutils fgl classes fmtbcd typinfo math varutils \
@@ -76,6 +76,9 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 
+ifeq ($(ARCH),x86_64)
+CPU_UNITS=x86 ports cpu
+endif
 ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
 endif
@@ -128,6 +131,8 @@ cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
 
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
         $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
@@ -245,7 +250,11 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 # Other system-independent RTL Units
 #
 
+ifeq ($(ARCH),x86_64)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
+else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
+endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

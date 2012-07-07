@@ -210,6 +210,8 @@ implementation
                           A_DIVSS,
                           A_SHLD,
                           A_SHRD,
+                          A_COMISD,
+                          A_COMISS,
                           A_CVTDQ2PD,
                           A_CVTDQ2PS,
                           A_CVTPD2DQ,

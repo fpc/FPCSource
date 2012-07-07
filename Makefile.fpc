@@ -60,10 +60,24 @@ endif
 ifeq ($(CPU_TARGET),armeb)
 PPSUF=arm
 endif
+ifeq ($(CPU_TARGET),jvm)
+PPSUF=jvm
+endif
+ifeq ($(CPU_TARGET),mips)
+PPSUF=mips
+endif
+ifeq ($(CPU_TARGET),mipsel)
+PPSUF=mipsel
+endif
 
-# cross compilers uses full cpu_target, not just ppc-suffix.
+# cross compilers uses full cpu_target, not just ppc-suffix
+# (except if the target cannot run a native compiler)
 ifdef CROSSCOMPILE
+ifneq ($(CPU_TARGET),jvm)
 PPPRE=ppcross
+else
+PPPRE=ppc
+endif
 else
 PPPRE=ppc
 endif
@@ -157,13 +171,15 @@ endif
 endif
 endif
 
+# CPU targets for which we only build the compiler/rtl
+BuildOnlyBaseCPUs=jvm
+
 ifneq ($(wildcard utils),)
-NOUTILSTARGETS=embedded gba
+NOUTILSTARGETS=embedded gba $(BuildOnlyBaseCPUs)
 ifeq ($(findstring $(OS_TARGET),$(NOUTILSTARGETS)),)
 UTILS=1
 endif
 endif
-
 
 [rules]
 .NOTPARALLEL:
@@ -214,7 +230,14 @@ BUILDSTAMP=build-stamp.$(FULL_TARGET)
 
 .PHONY: all clean distclean build buildbase install installbase installother zipinstallbase zipinstallotherzipinstall singlezipinstall
 
+
+ifeq ($(findstring $(CPU_TARGET),$(BuildOnlyBaseCPUs)),)
 all: build
+install: installall
+else
+all: buildbase
+install: installbase
+endif
 
 clean: $(addsuffix _distclean,$(TARGET_DIRS))
         -$(DEL) build-stamp.*
@@ -247,6 +270,7 @@ ifdef IDE
         $(MAKE) installer_all $(BUILDOPTS)
 endif
         $(ECHOREDIR) Build > $(BUILDSTAMP)
+        $(ECHOREDIR) Build > base.$(BUILDSTAMP)
 
 buildbase: base.$(BUILDSTAMP)
 base.$(BUILDSTAMP):
@@ -258,7 +282,7 @@ base.$(BUILDSTAMP):
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
         $(ECHOREDIR) Build > base.$(BUILDSTAMP)
 
-installbase:
+installbase: base.$(BUILDSTAMP)
 # create dirs
         $(MKDIR) $(INSTALL_BASEDIR)
         $(MKDIR) $(INSTALL_BINDIR)
@@ -288,9 +312,11 @@ ifdef IDE
 endif
 
 
-install: $(BUILDSTAMP)
+installall: $(BUILDSTAMP)
         $(MAKE) installbase $(INSTALLOPTS)
+ifeq ($(findstring $(CPU_TARGET), $(BuildOnlyBaseCPUs)),)
         $(MAKE) installother $(INSTALLOPTS)
+endif
 
 singlezipinstall: zipinstall
 zipinstall: $(BUILDSTAMP)

@@ -298,8 +298,8 @@ unit cgcpu;
           end;
         para1.init;
         para2.init;
-        paramanager.getintparaloc(pocall_default,1,para1);
-        paramanager.getintparaloc(pocall_default,2,para2);
+        paramanager.getintparaloc(pocall_default,1,voidpointertype,para1);
+        paramanager.getintparaloc(pocall_default,2,voidpointertype,para2);
         reference_reset_symbol(href,l,0,1);
         { TODO: using RSP is correct only while the stack is fixed!!
           (true now, but will change if/when allocating from stack is implemented) }

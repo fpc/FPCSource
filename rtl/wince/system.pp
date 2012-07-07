@@ -311,8 +311,6 @@ function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar;
 function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
      cdecl; external 'coredll' name 'WideCharToMultiByte';
 function GetACP:UINT; cdecl; external 'coredll' name 'GetACP';
-function GetConsoleCP:UINT; cdecl; external 'coredll' name 'GetConsoleCP';
-function GetConsoleOutputCP:UINT; cdecl; external 'coredll' name 'GetConsoleOutputCP';
 
 { Returns number of characters stored to WideBuf, including null-terminator. }
 function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
@@ -1591,8 +1589,8 @@ function WinCEGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCo
   begin
     case stdcp of
       scpAnsi: Result := GetACP;
-      scpConsoleInput: Result := GetConsoleCP;
-      scpConsoleOutput: Result := GetConsoleOutputCP;
+      scpConsoleInput: Result := GetACP;
+      scpConsoleOutput: Result := GetACP;
     end;
   end;
 

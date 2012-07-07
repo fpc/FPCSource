@@ -34,7 +34,7 @@ implementation
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,script,
        fmodule,i_go32v2,
-       link,ogcoff;
+       link,ogcoff,aasmbase;
 
     type
       TInternalLinkerGo32v2=class(TInternallinker)
@@ -66,7 +66,109 @@ implementation
 
 
     procedure TInternalLinkerGo32v2.DefaultLinkScript;
+      var
+        s: TCmdStr;
+        linklibc: Boolean;
+        i: longint;
+
+      procedure AddLib(const name: TCmdStr);
+        var
+          s2: TCmdStr;
+        begin
+          if FindLibraryFile(name,target_info.staticClibprefix,target_info.staticClibext,s2) then
+            LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
+          else
+            Comment(V_Error,'Import library not found for '+name);
+        end;
+
       begin
+        with LinkScript do
+          begin
+            Concat('READOBJECT '+GetShortName(FindObjectFile('prt0','',false)));
+            while not ObjectFiles.Empty do
+              begin
+                s:=ObjectFiles.GetFirst;
+                if s<>'' then
+                  Concat('READOBJECT '+MaybeQuoted(s));
+              end;
+            while not StaticLibFiles.Empty do
+              begin
+                s:=StaticLibFiles.GetFirst;
+                if s<>'' then
+                  Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+              end;
+            linklibc:=False;
+            while not SharedLibFiles.Empty do
+              begin
+                S:=SharedLibFiles.GetFirst;
+                if S<>'c' then
+                  begin
+                    i:=Pos(target_info.sharedlibext,S);
+                    if i>0 then
+                      Delete(S,i,255);
+                    AddLib(s);
+                  end
+                else
+                  linklibc:=true;
+              end;
+            { be sure that to add libc and libgcc at the end }
+            if linklibc then
+              begin
+                AddLib('c');
+                AddLib('gcc');
+              end;
+
+            Concat('ENTRYNAME start');
+            Concat('HEADER');
+            Concat('EXESECTION .text');
+            Concat('  OBJSECTION  .text*');
+            Concat('  SYMBOL etext');
+            Concat('  PROVIDE _etext');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .data');
+            Concat('  SYMBOL djgpp_first_ctor');
+            Concat('  OBJSECTION .ctors.*');
+            Concat('  OBJSECTION .ctor');
+            Concat('  OBJSECTION .ctors');
+            Concat('  SYMBOL djgpp_last_ctor');
+            Concat('  SYMBOL djgpp_first_dtor');
+            Concat('  OBJSECTION .dtors.*');
+            Concat('  OBJSECTION .dtor');
+            Concat('  OBJSECTION .dtors');
+            Concat('  SYMBOL djgpp_last_dtor');
+            Concat('  SYMBOL __environ');
+            Concat('  PROVIDE _environ');
+            Concat('  LONG 0');
+            Concat('  OBJSECTION .data*');
+            Concat('  OBJSECTION .fpc*');
+            Concat('  OBJSECTION .gcc_exc*');
+            Concat('  SYMBOL ___EH_FRAME_BEGIN__');
+            Concat('  OBJSECTION .eh_fram*');
+            Concat('  SYMBOL ___EH_FRAME_END__');
+            Concat('  LONG 0');
+            Concat('  SYMBOL edata');
+            Concat('  SYMBOL _edata');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .bss');
+            //ScriptRes.Add('      _object.2 = . ;');
+            //ScriptRes.Add('      . += 32 ;');
+            Concat('  OBJSECTION .bss*');
+            Concat('  SYMBOL end');
+            Concat('  SYMBOL _end');
+            Concat('ENDEXESECTION');
+            { Stabs debugging sections }
+            Concat('EXESECTION .stab');
+            Concat('  OBJSECTION .stab');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .stabstr');
+            Concat('  OBJSECTION .stabstr');
+            Concat('ENDEXESECTION');
+            { DWARF 2 }
+            ConcatGenericSections('.debug_aranges,.debug_pubnames,.debug_info,.debug_abbrev,'+
+              '.debug_line,.debug_frame,.debug_str,.debug_loc,.debug_macinfo');
+            Concat('STABS');
+            Concat('SYMBOLS');
+          end;
       end;
 
 
@@ -102,17 +204,21 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
 
   { Add all options to link.res instead of passing them via command line:
     DOS command line is limited to 126 characters! }
   LinkRes.Add('--script='+maybequoted(outputexedir+Info.ScriptName));
+  if (cs_link_map in current_settings.globalswitches) then
+    LinkRes.Add('-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
+  if create_smartlink_sections then
+    LinkRes.Add('--gc-sections');
   if info.ExtraOptions<>'' then
     LinkRes.Add(Info.ExtraOptions);
 (* Potential issues with older ld version??? *)
   if (cs_link_strip in current_settings.globalswitches) then
     LinkRes.Add('-s');
-  LinkRes.Add('-o '+maybequoted(current_module.exefilename^));
+  LinkRes.Add('-o '+maybequoted(current_module.exefilename));
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -140,10 +246,7 @@ begin
         LinkRes.Add('-l'+s);
       end
      else
-      begin
-        LinkRes.Add('-l'+s);
-        linklibc:=true;
-      end;
+       linklibc:=true;
    end;
   { be sure that libc&libgcc is the last lib }
   if linklibc then
@@ -169,7 +272,7 @@ begin
   WriteScript:=False;
 
   { Open link.res file }
-  ScriptRes:=TLinkRes.Create(outputexedir+Info.ScriptName);
+  ScriptRes:=TLinkRes.Create(outputexedir+Info.ScriptName,true);
   ScriptRes.Add('OUTPUT_FORMAT("coff-go32-exe")');
   ScriptRes.Add('ENTRY(start)');
 
@@ -189,6 +292,7 @@ begin
        end;
    end;
   ScriptRes.Add('    *(.text)');
+  ScriptRes.Add('    *(.text.*)');
   ScriptRes.Add('    etext  =  . ;');
   ScriptRes.Add('    PROVIDE(_etext  =  .);');
   ScriptRes.Add('    . = ALIGN(0x200);');
@@ -208,6 +312,7 @@ begin
   ScriptRes.Add('      PROVIDE(_environ = .);');
   ScriptRes.Add('      LONG(0)');
   ScriptRes.Add('      *(.data)');
+  ScriptRes.Add('      *(.data.*)');
   ScriptRes.Add('      *(.fpc*)');
   ScriptRes.Add('      *(.gcc_exc)');
   ScriptRes.Add('      ___EH_FRAME_BEGIN__ = . ;');
@@ -222,6 +327,7 @@ begin
   ScriptRes.Add('      _object.2 = . ;');
   ScriptRes.Add('      . += 32 ;');
   ScriptRes.Add('      *(.bss)');
+  ScriptRes.Add('      *(.bss.*)');
   ScriptRes.Add('      *(COMMON)');
   ScriptRes.Add('       end = . ; _end = .;');
   ScriptRes.Add('       . = ALIGN(0x200);');
@@ -271,7 +377,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own ld script }
   WriteScript(false);
@@ -402,6 +508,6 @@ end;
 
 initialization
   RegisterExternalLinker(system_i386_go32v2_info,TExternalLinkerGo32v2);
-//  RegisterInternalLinker(system_i386_go32v2_info,TInternalLinkerGo32v2);
+  RegisterInternalLinker(system_i386_go32v2_info,TInternalLinkerGo32v2);
   RegisterTarget(system_i386_go32v2_info);
 end.

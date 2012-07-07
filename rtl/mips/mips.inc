@@ -37,6 +37,24 @@ function get_got_z : pointer;assembler;nostackframe;[public, alias: 'FPC_GETGOT_
     move $2,$28
   end;
 
+const
+  { FPU enable exception bits for FCSR register }
+  fpu_enable_inexact   =  $80;
+  fpu_enable_underflow = $100;
+  fpu_enable_overflow  = $200;
+  fpu_enable_div_zero  = $400;
+  fpu_enable_invalid   = $800;
+  fpu_enable_mask      = $F80;
+  default_fpu_enable = fpu_enable_div_zero or fpu_enable_invalid;
+
+  fpu_flags_mask = $7C;
+  { FPU rounding mask and values }
+  fpu_rounding_mask    = $3;
+  fpu_rounding_nearest = 0;
+  fpu_rounding_towards_zero = 1;
+  fpu_rounding_plus_inf = 2;
+  fpu_rounding_minus_inf = 3;
+
 
 procedure fpc_cpuinit;
 var
@@ -45,11 +63,17 @@ var
     { don't let libraries influence the FPU cw set by the host program }
     if not IsLibrary then
       begin
-        { enable div by 0 and invalid operation fpu exceptions }
-        { round towards zero; ieee compliant arithmetics }
-
         tmp32 := get_fsr();
-        set_fsr((tmp32 and $fffffffc) or $00000001);
+        { enable div by 0 and invalid operation fpu exceptions,
+          disable the other exceptions }
+        tmp32 := (tmp32 and not fpu_enable_mask) or default_fpu_enable;
+        { Reset flags }
+        tmp32 := tmp32 and not fpu_flags_mask;
+
+        { round towards nearest; ieee compliant arithmetics }
+        tmp32 := (tmp32 and not fpu_rounding_mask) or fpu_rounding_nearest;
+
+        set_fsr(tmp32);
       end;
   end;
 
@@ -57,23 +81,118 @@ var
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
   asm
-    lw $2,0($sp)
+    { we need to use the information of the .pdr section to do this properly:
+       0 proc. start adress
+       4 regmask
+       8 reg. offset
+      12 fmask
+      16 foffset
+      20 frame size
+      24 stack reg
+      28 link reg
+
+      Further, we need to know the pc
+    }
+    // lw $2,0($sp)
+    move $2,$30
   end;
 
+
+{ Try to find previous $fp,$ra register pair
+  reset both to nil if failure }
+{$define FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
+procedure get_caller_stackinfo(var framebp,addr : pointer);
+const
+  instr_size = 4;
+  MAX_INSTRUCTIONS = 64000;
+type
+  instr_p = pdword;
+  reg_p = ppointer;
+var
+  instr,stackpos : dword;
+  i,LocalSize : longint;
+  ra_offset, s8_offset : longint;
+  current_ra : pointer;
+begin
+  { Here we need to use GDB approach,
+    starting at addr
+    go back to lower $ra values until we find a
+    position with ADDIU $sp,$sp,-LocalSize
+  }
+  if addr=nil then
+    begin
+	  framebp:=nil;
+	  exit;
+	end;
+  Try
+    current_ra:=addr;
+    ra_offset:=-1;
+    s8_offset:=-1;
+    i:=0;
+    LocalSize:=0;
+    repeat
+      inc(i);
+      dec(current_ra,4);
+      instr:=instr_p(current_ra)^;
+      if (instr shr 16 = $27bd) then
+        begin
+          { we found the instruction,
+            local size is the lo part }
+          LocalSize:=smallint(instr and $ffff);
+          break;
+        end;
+    until i> MAX_INSTRUCTIONS;
+    if LocalSize <> 0 then
+      begin
+        repeat
+          inc(current_ra,4);
+          instr:=instr_p(current_ra)^;
+          if (instr shr 16 = $afbf) then
+            ra_offset:=smallint(instr and $ffff)
+          else if (instr shr 16 = $afbe) then
+            s8_offset:=smallint(instr and $ffff);
+        until (current_ra >= addr)
+          or ((ra_offset<>-1) and (s8_offset<>-1));
+        if ra_offset<>-1 then
+          begin
+            stackpos:=dword(framebp+LocalSize+ra_offset);
+            addr:=reg_p(stackpos)^;
+          end
+        else
+          addr:=nil;
+        if s8_offset<>-1 then
+          begin
+            stackpos:=dword(framebp+LocalSize+s8_offset);
+            framebp:=reg_p(stackpos)^;
+          end
+        else
+          framebp:=nil;
+      end;
+  Except
+    framebp:=nil;
+    addr:=nil;
+  end;
+end;
+
+{$define FPC_SYSTEM_HAS_GET_PC_ADDR}
+function get_pc_addr : pointer;assembler;nostackframe;
+asm
+  move $2,$31
+end;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
-  asm
-    lw $2,4($4) // #movl    4(%eax),%eax
-  end;
-
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
+begin
+  get_caller_stackinfo(framebp,addr);
+  get_caller_addr:=addr;
+end;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
-  asm
-    lw $2,0($4) // #movl    (%eax),%eax
-  end;
-
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
+begin
+  get_caller_stackinfo(framebp,addr);
+  get_caller_frame:=framebp;
+end;
 
 {$define FPC_SYSTEM_HAS_SPTR}
 function Sptr:Pointer;assembler;nostackframe;
@@ -81,9 +200,9 @@ function Sptr:Pointer;assembler;nostackframe;
     move $2,$sp
   end;
 
-
 {$ifdef USE_MIPS_STK2_ASM}
 {$ifndef FPC_SYSTEM_HAS_MOVE}
+(* Disabled for now
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
   asm
@@ -286,8 +405,8 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
   lw  $14,-40($23)
 
   end;
+*)
 {$endif FPC_SYSTEM_HAS_MOVE}
-
 {****************************************************************************
                                Integer math
 ****************************************************************************}
@@ -425,29 +544,52 @@ end;
 
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-  { FIXME!!!!!!!!! }
+  {$warning FIXME: This implementation of InterLockedDecrement in not yet ThreadSafe }
+  lw  $v0,($a0)
+  addi $v1,$v0,-1
+  sw  $v1,($a0)
 end;
 
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
- { FIXME!!!!!!!!! }
+  {$warning FIXME: This implementation of InterLockedIncrement in not yet ThreadSafe }
+  lw  $v0,($a0)
+  addi $v1,$v0,1
+  sw  $v1,($a0)
 end;
 
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
- { FIXME!!!!!!!!! }
+  {$warning FIXME: This implementation of InterLockedExchange in not yet ThreadSafe }
+  lw  $v0,($a0)
+  sw  $a1,($a0)
 end;
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-{ FIXME!!!!!!!!! }
+  {$warning FIXME: This implementation of InterLockedExchangeAdd in not yet ThreadSafe }
+  lw  $v0,($a0)
+  add $a1,$v0,$a1
+  sw  $a1,($a0)
 end;
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
 asm
-  { FIXME!!!!!!!!! }
+  {$warning FIXME: This implementation of InterLockedCompareAdd in not yet ThreadSafe }
+  { put old value of Target into $v0, result register }
+  lw  $v0,($a0)
+  { copy to t0 register }
+  move  $t0,$v0
+  move $v1,$a2
+  xor  $t0,$t0,$v1
+  beq  $t0,$zero,.L1
+  b    .L2
+.L1:
+  {store NewValue (in $a1) into Target in ($(a0)) }
+  sw    $a1,($a0)
+.L2:
 end;
 

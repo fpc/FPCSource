@@ -102,7 +102,7 @@ unit cg64f32;
        globtype,systems,constexp,
        verbose,cutils,
        symbase,symconst,symdef,symtable,defutil,paramgr,
-       tgobj;
+       tgobj,hlcgobj;
 
 {****************************************************************************
                                      Helpers
@@ -313,9 +313,9 @@ unit cg64f32;
             tmpsref.ref.index:=tmpreg;
           end;
         tmpsref.bitlen:=32;
-        cg.a_load_subsetref_reg(list,OS_32,OS_32,tmpsref,destreg.reglo);
+        hlcg.a_load_subsetref_reg(list,u32inttype,u32inttype,tmpsref,destreg.reglo);
         inc(tmpsref.ref.offset,4);
-        cg.a_load_subsetref_reg(list,OS_32,OS_32,tmpsref,destreg.reghi);
+        hlcg.a_load_subsetref_reg(list,u32inttype,u32inttype,tmpsref,destreg.reghi);
       end;
 
 
@@ -342,9 +342,9 @@ unit cg64f32;
           end;
         tmpsref:=sref;
         tmpsref.bitlen:=32;
-        cg.a_load_reg_subsetref(list,OS_32,OS_32,fromreg.reglo,tmpsref);
+        hlcg.a_load_reg_subsetref(list,u32inttype,u32inttype,fromreg.reglo,tmpsref);
         inc(tmpsref.ref.offset,4);
-        cg.a_load_reg_subsetref(list,OS_32,OS_32,fromreg.reghi,tmpsref);
+        hlcg.a_load_reg_subsetref(list,u32inttype,u32inttype,fromreg.reghi,tmpsref);
       end;
 
 
@@ -360,9 +360,9 @@ unit cg64f32;
           swap64(a);
         tmpsref := sref;
         tmpsref.bitlen := 32;
-        cg.a_load_const_subsetref(list,OS_32,aint(lo(a)),tmpsref);
+        hlcg.a_load_const_subsetref(list,u32inttype,aint(lo(a)),tmpsref);
         inc(tmpsref.ref.offset,4);
-        cg.a_load_const_subsetref(list,OS_32,aint(hi(a)),tmpsref);
+        hlcg.a_load_const_subsetref(list,u32inttype,aint(hi(a)),tmpsref);
       end;
 
 
@@ -779,7 +779,7 @@ unit cg64f32;
                  cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,-1,hreg,neglabel);
                end;
              { For all other values we have a range check error }
-             cg.a_call_name(list,'FPC_RANGEERROR',false);
+             cg.a_call_name(list,'fpc_rangeerror',false);
 
              { if the high dword = 0, the low dword can be considered a }
              { simple cardinal                                          }
@@ -796,7 +796,7 @@ unit cg64f32;
                  temploc.reference.alignment:=newalignment(temploc.reference.alignment,4);
                end;
 
-             cg.g_rangecheck(list,temploc,hdef,todef);
+             hlcg.g_rangecheck(list,temploc,hdef,todef);
              hdef.owner.deletedef(hdef);
 
              if from_signed and to_signed then
@@ -819,7 +819,7 @@ unit cg64f32;
                  current_asmdata.getjumplabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
 
-                 cg.a_call_name(list,'FPC_RANGEERROR',false);
+                 cg.a_call_name(list,'fpc_rangeerror',false);
 
                  { if we get here, the 64bit value lies between }
                  { longint($80000000) and -1 (JM)               }
@@ -827,7 +827,7 @@ unit cg64f32;
                  hdef:=torddef.create(s32bit,int64(longint($80000000)),int64(-1));
                  location_copy(temploc,l);
                  temploc.size:=OS_32;
-                 cg.g_rangecheck(list,temploc,hdef,todef);
+                 hlcg.g_rangecheck(list,temploc,hdef,todef);
                  hdef.owner.deletedef(hdef);
                  cg.a_label(list,endlabel);
                end;
@@ -870,7 +870,7 @@ unit cg64f32;
                current_asmdata.getjumplabel(poslabel);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
 
-               cg.a_call_name(list,'FPC_RANGEERROR',false);
+               cg.a_call_name(list,'fpc_rangeerror',false);
                cg.a_label(list,poslabel);
              end;
       end;

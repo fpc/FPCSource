@@ -59,9 +59,6 @@ type
     procedure a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1,
       reg2: tregister); override;
 
-    procedure a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister); override;
-    procedure a_load_const_subsetreg(list: TAsmlist; subsetsize: tcgsize; a: aint; const sreg: tsubsetregister); override;
-
     {  comparison operations }
     procedure a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op:
       topcmp; a: aint; reg: tregister;
@@ -101,8 +98,6 @@ type
       len: aint); override;
 
   private
-
-    procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
 
     procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
@@ -662,59 +657,6 @@ begin
 
   list.concat(instr);
   rg[R_INTREGISTER].add_move_instruction(instr);
-end;
-
-procedure tcgppc.a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister);
-begin
-  {$ifdef extdebug}
-  list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(sreg.startbit) + ' tosize = ' + cgsize2string(tosize))));
-  {$endif}
-  { do the extraction if required and then extend the sign correctly. (The latter is actually required only for signed subsets
-  and if that subset is not >= the tosize). }
-  if (sreg.startbit <> 0) or
-     (sreg.bitlen <> tcgsize2size[subsetsize]*8) then begin
-    list.concat(taicpu.op_reg_reg_const_const(A_RLDICL, destreg, sreg.subsetreg, (64 - sreg.startbit) and 63, 64 - sreg.bitlen));
-    if (subsetsize in [OS_S8..OS_S128]) then
-      if ((sreg.bitlen mod 8) = 0) then begin
-        a_load_reg_reg(list, tcgsize2unsigned[subsetsize], subsetsize, destreg, destreg);
-        a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
-      end else begin
-        a_op_const_reg(list,OP_SHL,OS_INT,64-sreg.bitlen,destreg);
-        a_op_const_reg(list,OP_SAR,OS_INT,64-sreg.bitlen,destreg);
-     end;
-  end else begin
-    a_load_reg_reg(list, tcgsize2unsigned[sreg.subsetregsize], subsetsize, sreg.subsetreg, destreg);
-    a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
-  end;
-end;
-
-procedure tcgppc.a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt);
-begin
-  {$ifdef extdebug}
-  list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg fromsize = ' + cgsize2string(fromsize) + ' subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + IntToStr(sreg.startbit))));
-  {$endif}
-  if (slopt in [SL_SETZERO,SL_SETMAX]) then
-    inherited a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,sreg,slopt)
-  else if (sreg.bitlen <> sizeof(aint)*8) then
-    { simply use the INSRDI instruction }
-    list.concat(taicpu.op_reg_reg_const_const(A_INSRDI, sreg.subsetreg, fromreg, sreg.bitlen, (64 - (sreg.startbit + sreg.bitlen)) and 63))
-  else
-    a_load_reg_reg(list, fromsize, subsetsize, fromreg, sreg.subsetreg);
-end;
-
-procedure tcgppc.a_load_const_subsetreg(list: TAsmlist; subsetsize: tcgsize;
-  a: aint; const sreg: tsubsetregister);
-var
-  tmpreg : TRegister;
-begin
-  {$ifdef extdebug}
-  list.concat(tai_comment.create(strpnew('a_load_const_subsetreg subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(sreg.startbit) + ' a = ' + intToStr(a))));
-  {$endif}
-  { loading the constant into the lowest bits of a temp register and then inserting is
-    better than loading some usually large constants and do some masking and shifting on ppc64 }
-  tmpreg := getintregister(list,subsetsize);
-  a_load_const_reg(list,subsetsize,a,tmpreg);
-  a_load_reg_subsetreg(list, subsetsize, subsetsize, tmpreg, sreg);
 end;
 
 procedure tcgppc.a_op_const_reg(list: TAsmList; Op: TOpCG; size: TCGSize; a:

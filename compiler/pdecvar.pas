@@ -27,10 +27,10 @@ unit pdecvar;
 interface
 
     uses
-      symsym,symdef;
+      symtable,symsym,symdef;
 
     type
-      tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class);
+      tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class,vd_final);
       tvar_dec_options=set of tvar_dec_option;
 
     function  read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
@@ -53,16 +53,22 @@ implementation
        globtype,globals,tokens,verbose,constexp,
        systems,
        { symtable }
-       symconst,symbase,symtype,symtable,defutil,defcmp,
+       symconst,symbase,symtype,defutil,defcmp,symcreat,
+{$ifdef jvm}
+       jvmdef,
+{$endif}
        fmodule,htypechk,
        { pass 1 }
        node,pass_1,aasmdata,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,nutils,
        { codegen }
-       ncgutil,
+       ncgutil,ngenutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,
+{$ifdef jvm}
+       pjvm,
+{$endif}
        { link }
        import
        ;
@@ -559,7 +565,21 @@ implementation
                           if not assigned(p.propaccesslist[palt_read].procdef) or
                             { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
                             ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_read].procdef).no_self_node) then
-                            Message(parser_e_ill_property_access_sym);
+                            Message(parser_e_ill_property_access_sym)
+                          else
+                            begin
+{$ifdef jvm}
+                              { if the visibility of the getter is lower than
+                                the visibility of the property, wrap it so that
+                                we can call it from all contexts in which the
+                                property is visible }
+                              if (tprocdef(p.propaccesslist[palt_read].procdef).visibility<p.visibility) then
+                                begin
+                                  p.propaccesslist[palt_read].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_read].procdef),p.visibility);
+                                  p.propaccesslist[palt_read].firstsym^.sym:=tprocdef(p.propaccesslist[palt_read].procdef).procsym;
+                                end;
+{$endif jvm}
+                            end;
                         end;
                       fieldvarsym :
                         begin
@@ -575,6 +595,14 @@ implementation
                              if (ppo_hasparameters in p.propoptions) or
                                 ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
                                Message(parser_e_ill_property_access_sym);
+{$ifdef jvm}
+                             { if the visibility of the field is lower than the
+                               visibility of the property, wrap it in a getter
+                               so that we can access it from all contexts in
+                               which the property is visibile }
+                             if (tfieldvarsym(sym).visibility<p.visibility) then
+                               jvm_create_getter_for_property(p);
+{$endif}
                            end
                           else
                            IncompatibleTypes(def,p.propdef);
@@ -611,9 +639,23 @@ implementation
                           else
                             p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
                           if not assigned(p.propaccesslist[palt_write].procdef) or
-                           { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
-                           ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_write].procdef).no_self_node) then
-                            Message(parser_e_ill_property_access_sym);
+                             { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
+                             ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_write].procdef).no_self_node) then
+                            Message(parser_e_ill_property_access_sym)
+                          else
+                            begin
+{$ifdef jvm}
+                              { if the visibility of the getter is lower than
+                                the visibility of the property, wrap it so that
+                                we can call it from all contexts in which the
+                                property is visible }
+                              if (tprocdef(p.propaccesslist[palt_write].procdef).visibility<p.visibility) then
+                                begin
+                                  p.propaccesslist[palt_write].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_write].procdef),p.visibility);
+                                  p.propaccesslist[palt_write].firstsym^.sym:=tprocdef(p.propaccesslist[palt_write].procdef).procsym;
+                                end;
+{$endif jvm}
+                            end;
                         end;
                       fieldvarsym :
                         begin
@@ -629,6 +671,14 @@ implementation
                              if (ppo_hasparameters in p.propoptions) or
                                 ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
                               Message(parser_e_ill_property_access_sym);
+{$ifdef jvm}
+                             { if the visibility of the field is lower than the
+                               visibility of the property, wrap it in a getter
+                               so that we can access it from all contexts in
+                               which the property is visibile }
+                             if (tfieldvarsym(sym).visibility<p.visibility) then
+                               jvm_create_setter_for_property(p);
+{$endif}
                            end
                           else
                            IncompatibleTypes(def,p.propdef);
@@ -948,7 +998,7 @@ implementation
       { only allowed for one var }
       vs:=tabstractvarsym(sc[0]);
       if sc.count>1 then
-        Message(parser_e_absolute_only_one_var);
+        Message1(parser_e_directive_only_one_var,arraytokeninfo[idtoken].str);
       read_public_and_external(vs);
     end;
 
@@ -1093,6 +1143,7 @@ implementation
         end;
 
       { Set the assembler name }
+      tstaticvarsym(vs).set_mangledbasename(mangledname);
       tstaticvarsym(vs).set_mangledname(mangledname);
     end;
 
@@ -1106,6 +1157,32 @@ implementation
             consume(_SEMICOLON);
           end;
       end;
+
+
+    procedure try_read_field_external(vs: tabstractvarsym);
+      var
+        extname: string;
+      begin
+        if try_to_consume(_EXTERNAL) then
+          begin
+            consume(_NAME);
+            extname:=get_stringconst;
+            tfieldvarsym(vs).set_externalname(extname);
+            consume(_SEMICOLON);
+          end;
+      end;
+
+
+    procedure try_read_field_external_sc(sc:TFPObjectList);
+    var
+      vs: tabstractvarsym;
+    begin
+      { only allowed for one var }
+      vs:=tabstractvarsym(sc[0]);
+      if sc.count>1 then
+        Message1(parser_e_directive_only_one_var,arraytokeninfo[idtoken].str);
+      try_read_field_external(vs);
+    end;
 
 
     procedure read_var_decls(options:Tvar_dec_options);
@@ -1150,7 +1227,7 @@ implementation
           C_Name:=get_stringconst;
           vs:=tabstractnormalvarsym(sc[0]);
           if sc.count>1 then
-            Message(parser_e_absolute_only_one_var);
+            Message(parser_e_directive_only_one_var,'ABSOLUTE');
           if vs.typ=staticvarsym then
             begin
               tstaticvarsym(vs).set_mangledname(C_Name);
@@ -1175,7 +1252,7 @@ implementation
           { only allowed for one var }
           vs:=tabstractvarsym(sc[0]);
           if sc.count>1 then
-            Message(parser_e_absolute_only_one_var);
+            Message1(parser_e_directive_only_one_var,'ABSOLUTE');
           if vo_is_typed_const in vs.varoptions then
             Message(parser_e_initialized_not_for_external);
           { parse the rest }
@@ -1369,6 +1446,7 @@ implementation
 {$endif}
 
              read_anon_type(hdef,false);
+             maybe_guarantee_record_typesym(hdef,symtablestack.top);
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);
@@ -1490,7 +1568,7 @@ implementation
                  if (vs.typ=staticvarsym) and
                     not(vo_is_typed_const in vs.varoptions) and
                     not(vo_is_external in vs.varoptions) then
-                   insertbssdata(tstaticvarsym(vs));
+                   cnodeutils.insertbssdata(tstaticvarsym(vs));
                end;
            end;
          block_type:=old_block_type;
@@ -1503,7 +1581,7 @@ implementation
       var
          sc : TFPObjectList;
          i  : longint;
-         hs,sorg,static_name : string;
+         hs,sorg : string;
          hdef,casetype : tdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
@@ -1530,7 +1608,6 @@ implementation
          tempdef: tdef;
          is_first_type: boolean;
 {$endif powerpc or powerpc64}
-         sl: tpropaccesslist;
          old_block_type: tblock_type;
       begin
          old_block_type:=block_type;
@@ -1548,7 +1625,9 @@ implementation
          while (token=_ID) and
             not(((vd_object in options) or
                  ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
-                (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
+                ((idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT]) or
+                 ((m_final_fields in current_settings.modeswitches) and
+                  (idtoken=_FINAL)))) do
            begin
              visibility:=symtablestack.top.currentvisibility;
              semicoloneaten:=false;
@@ -1570,6 +1649,7 @@ implementation
              consume(_COLON);
 
              read_anon_type(hdef,false);
+             maybe_guarantee_record_typesym(hdef,symtablestack.top);
              block_type:=bt_var;
              { allow only static fields reference to struct where they are declared }
              if not (vd_class in options) and
@@ -1656,7 +1736,6 @@ implementation
                 (hdef.typesym=nil) then
                handle_calling_convention(tprocvardef(hdef));
 
-             { check if it is a class field }
              if (vd_object in options) then
                begin
                  { if it is not a class var section and token=STATIC then it is a class field too }
@@ -1666,30 +1745,11 @@ implementation
                      include(options,vd_class);
                      removeclassoption:=true;
                    end;
-               end;
-             if vd_class in options then
-               begin
-                 { add static flag and staticvarsyms }
-                 for i:=0 to sc.count-1 do
-                   begin
-                     fieldvs:=tfieldvarsym(sc[i]);
-                     include(fieldvs.symoptions,sp_static);
-                     { generate the symbol which reserves the space }
-                     static_name:=lower(generate_nested_name(recst,'_'))+'_'+fieldvs.name;
-                     hstaticvs:=tstaticvarsym.create('$_static_'+static_name,vs_value,hdef,[]);
-                     include(hstaticvs.symoptions,sp_internal);
-                     recst.get_unit_symtable.insert(hstaticvs);
-                     insertbssdata(hstaticvs);
-                     { generate the symbol for the access }
-                     sl:=tpropaccesslist.create;
-                     sl.addsym(sl_load,hstaticvs);
-                     recst.insert(tabsolutevarsym.create_ref('$'+static_name,hdef,sl));
-                   end;
-                 if removeclassoption then
-                   begin
-                     exclude(options,vd_class);
-                     removeclassoption:=false;
-                   end;
+                 { Fields in Java classes/interfaces can have a separately
+                   specified external name }
+                 if is_java_class_or_interface(tdef(recst.defowner)) and
+                    (oo_is_external in tobjectdef(recst.defowner).objectoptions) then
+                   try_read_field_external_sc(sc);
                end;
              if (visibility=vis_published) and
                 not(is_class(hdef)) then
@@ -1704,6 +1764,36 @@ implementation
                begin
                  MessagePos(tfieldvarsym(sc[0]).fileinfo,parser_e_only_publishable_classes_can_be_published);
                  visibility:=vis_public;
+               end;
+             if vd_class in options then
+               begin
+                 { add static flag and staticvarsyms }
+                 for i:=0 to sc.count-1 do
+                   begin
+                     fieldvs:=tfieldvarsym(sc[i]);
+                     fieldvs.visibility:=visibility;
+                     hstaticvs:=make_field_static(recst,fieldvs);
+                     { for generics it would be better to disable the following,
+                       but simply disabling it in that case breaks linking with
+                       debug info }
+                     cnodeutils.insertbssdata(hstaticvs);
+                     if vd_final in options then
+                       hstaticvs.varspez:=vs_final;
+                   end;
+                 if removeclassoption then
+                   begin
+                     exclude(options,vd_class);
+                     removeclassoption:=false;
+                   end;
+               end;
+             if vd_final in options then
+               begin
+                 { add final flag }
+                 for i:=0 to sc.count-1 do
+                   begin
+                     fieldvs:=tfieldvarsym(sc[i]);
+                     fieldvs.varspez:=vs_final;
+                   end;
                end;
 
              { Generate field in the recordsymtable }

@@ -57,7 +57,7 @@ interface
          Constructor Create;virtual;
          Destructor Destroy;override;
          procedure AddModuleFiles(hp:tmodule);
-         Procedure AddObject(const S,unitpath : TCmdStr;isunit:boolean);
+         Procedure AddObject(const S,unitpath : TPathStr;isunit:boolean);
          Procedure AddStaticLibrary(const S : TCmdStr);
          Procedure AddSharedLibrary(S : TCmdStr);
          Procedure AddStaticCLibrary(const S : TCmdStr);
@@ -115,6 +115,8 @@ interface
          property StaticLibraryList:TFPHashObjectList read FStaticLibraryList;
          property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
          procedure DefaultLinkScript;virtual;abstract;
+         procedure ConcatGenericSections(secnames:string);
+         procedure ScriptAddSourceStatements(AddSharedAsStatic:boolean);virtual;
       public
          IsSharedLibrary : boolean;
          UseStabs : boolean;
@@ -151,7 +153,7 @@ Implementation
                                    Helpers
 *****************************************************************************}
 
-    function GetFileCRC(const fn:string):cardinal;
+    function GetFileCRC(const fn:TPathStr):cardinal;
       var
         fs : TCStream;
         bufcount,
@@ -309,8 +311,8 @@ Implementation
            4. exe path of the compiler (not when linking on target)
           for all searches don't use the directory cache }
         found:=FindFile(s, CurDirRelPath(source_info), false,foundfile);
-        if (not found) and (current_module.outputpath^<>'') then
-         found:=FindFile(s,current_module.outputpath^,false,foundfile);
+        if (not found) and (current_module.outputpath<>'') then
+         found:=FindFile(s,current_module.outputpath,false,foundfile);
         if (not found) then
          found:=current_module.locallibrarysearchpath.FindFile(s,false,foundfile);
         if (not found) then
@@ -421,7 +423,7 @@ Implementation
                end;
               { unit files }
               while not linkunitofiles.empty do
-                AddObject(linkunitofiles.getusemask(mask),path^,true);
+                AddObject(linkunitofiles.getusemask(mask),path,true);
               while not linkunitstaticlibs.empty do
                 AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
               while not linkunitsharedlibs.empty do
@@ -430,7 +432,7 @@ Implementation
            { Other needed .o and libs, specified using $L,$LINKLIB,external }
            mask:=link_always;
            while not linkotherofiles.empty do
-            AddObject(linkotherofiles.Getusemask(mask),path^,false);
+            AddObject(linkotherofiles.Getusemask(mask),path,false);
            while not linkotherstaticlibs.empty do
             AddStaticCLibrary(linkotherstaticlibs.Getusemask(mask));
            while not linkothersharedlibs.empty do
@@ -457,7 +459,7 @@ Implementation
       end;
 
 
-    Procedure TLinker.AddObject(const S,unitpath : TCmdStr;isunit:boolean);
+    Procedure TLinker.AddObject(const S,unitpath : TPathStr;isunit:boolean);
       begin
         ObjectFiles.Concat(FindObjectFile(s,unitpath,isunit));
       end;
@@ -530,14 +532,10 @@ Implementation
       end;
 
 
-    procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
-      begin
-      end;
-
-
     procedure TLinker.InitSysInitUnitName;
       begin
       end;
+
 
     function TLinker.MakeExecutable:boolean;
       begin
@@ -676,7 +674,7 @@ Implementation
       var
         filecontent : TCmdStr;
         f : text;
-        st : string;
+        st : TCmdStr;
       begin
         if not (tf_no_backquote_support in source_info.flags) or
            (cs_link_on_target in current_settings.globalswitches) then
@@ -718,7 +716,7 @@ Implementation
              exitcode:=shell(maybequoted(command)+' '+para)
            else
              try
-               exitcode:=ExecuteProcess(command,para);
+               exitcode:=RequotedExecuteProcess(command,para);
              except on E:EOSError do
                begin
                  Message(exec_e_cant_call_linker);
@@ -739,9 +737,9 @@ Implementation
            if showinfo then
              begin
                if DLLsource then
-                 AsmRes.AddLinkCommand(Command,Para,current_module.sharedlibfilename^)
+                 AsmRes.AddLinkCommand(Command,Para,current_module.sharedlibfilename)
                else
-                 AsmRes.AddLinkCommand(Command,Para,current_module.exefilename^);
+                 AsmRes.AddLinkCommand(Command,Para,current_module.exefilename);
              end
            else
             AsmRes.AddLinkCommand(Command,Para,'');
@@ -770,9 +768,9 @@ Implementation
       begin
         MakeStaticLibrary:=false;
       { remove the library, to be sure that it is rewritten }
-        DeleteFile(current_module.staticlibfilename^);
+        DeleteFile(current_module.staticlibfilename);
       { Call AR }
-        smartpath:=FixPath(ChangeFileExt(current_module.asmfilename^,target_info.smartext),false);
+        smartpath:=FixPath(ChangeFileExt(current_module.asmfilename,target_info.smartext),false);
         SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
         binstr := FindUtil(utilsprefix + binstr);
 
@@ -786,7 +784,7 @@ Implementation
             Assign(script, scriptfile);
             Rewrite(script);
             try
-              writeln(script, 'CREATE ' + current_module.staticlibfilename^);
+              writeln(script, 'CREATE ' + current_module.staticlibfilename);
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
                 begin
@@ -802,7 +800,7 @@ Implementation
           end
         else
           begin
-            Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
+            Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename));
             { create AR commands }
             success := true;
             current := TCmdStrListItem(SmartLinkOFiles.First);
@@ -817,7 +815,7 @@ Implementation
           begin
             SplitBinCmd(target_ar.arfinishcmd,binstr,cmdstr);
             binstr := FindUtil(utilsprefix + binstr);
-            Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
+            Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename));
             success:=DoExec(binstr,cmdstr,false,true);
           end;
 
@@ -900,6 +898,35 @@ Implementation
       end;
 
 
+    procedure TInternalLinker.ScriptAddSourceStatements(AddSharedAsStatic:boolean);
+      var
+        s,s2: TCmdStr;
+      begin
+        while not ObjectFiles.Empty do
+          begin
+            s:=ObjectFiles.GetFirst;
+            if s<>'' then
+              LinkScript.Concat('READOBJECT '+MaybeQuoted(s));
+          end;
+        while not StaticLibFiles.Empty do
+          begin
+            s:=StaticLibFiles.GetFirst;
+            if s<>'' then
+              LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+          end;
+        if not AddSharedAsStatic then
+          exit;
+        while not SharedLibFiles.Empty do
+          begin
+            S:=SharedLibFiles.GetFirst;
+            if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+              LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
+            else
+              Comment(V_Error,'Import library not found for '+S);
+          end;
+      end;
+
+
     procedure TInternalLinker.Load_ReadObject(const para:TCmdStr);
       var
         objdata   : TObjData;
@@ -950,7 +977,10 @@ Implementation
             inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
-              continue;
+              begin
+                hp:=TCmdStrListItem(hp.next);
+                continue;
+              end;
             keyword:=Upper(GetToken(s,' '));
             para:=GetToken(s,' ');
             if Trim(s)<>'' then
@@ -1036,6 +1066,7 @@ Implementation
             if (s='') or (s[1]='#') then
               begin
                 IsHandled^[i]:=true;
+                hp:=TCmdStrListItem(hp.next);
                 continue;
               end;
             handled:=true;
@@ -1083,7 +1114,10 @@ Implementation
             inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
-              continue;
+              begin
+                hp:=TCmdStrListItem(hp.next);
+                continue;
+              end;
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
             para:=ParsePara(GetToken(s,' '));
@@ -1135,7 +1169,10 @@ Implementation
             inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
-              continue;
+              begin
+                hp:=TCmdStrListItem(hp.next);
+                continue;
+              end;
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
             para:=ParsePara(GetToken(s,' '));
@@ -1171,7 +1208,10 @@ Implementation
             inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
-              continue;
+              begin
+                hp:=TCmdStrListItem(hp.next);
+                continue;
+              end;
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
             para:=ParsePara(GetToken(s,' '));
@@ -1228,7 +1268,7 @@ Implementation
         exeoutput:=CExeOutput.Create;
 
         if (cs_link_map in current_settings.globalswitches) then
-          exemap:=texemap.create(current_module.mapfilename^);
+          exemap:=texemap.create(current_module.mapfilename);
 
         PrintLinkerScript;
 
@@ -1260,6 +1300,7 @@ Implementation
         { Calc positions in mem }
         ParseScript_MemPos;
         exeoutput.FixupRelocations;
+        exeoutput.RemoveUnusedExeSymbols;
         exeoutput.PrintMemoryMap;
         if ErrorCount>0 then
           goto myexit;
@@ -1323,16 +1364,30 @@ Implementation
     function TInternalLinker.MakeExecutable:boolean;
       begin
         IsSharedLibrary:=false;
-        result:=RunLinkScript(current_module.exefilename^);
+        result:=RunLinkScript(current_module.exefilename);
       end;
 
 
     function TInternalLinker.MakeSharedLibrary:boolean;
       begin
         IsSharedLibrary:=true;
-        result:=RunLinkScript(current_module.sharedlibfilename^);
+        result:=RunLinkScript(current_module.sharedlibfilename);
       end;
 
+
+    procedure TInternalLinker.ConcatGenericSections(secnames:string);
+      var
+        secname:string;
+      begin
+        repeat
+          secname:=gettoken(secnames,',');
+          if secname='' then
+            break;
+          linkscript.Concat('EXESECTION '+secname);
+          linkscript.Concat('  OBJSECTION '+secname+'*');
+          linkscript.Concat('ENDEXESECTION');
+        until false;
+      end;
 
 {*****************************************************************************
                                  Init/Done

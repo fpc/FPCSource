@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=prt0
 #exceptn fpu
-units=system objpas macpas iso7185 strings watcom dos crt objects \
+units=system uuchar objpas macpas iso7185 strings watcom dos crt objects \
       cpu charset types getopts heaptrc lnfodwrf lineinfo ctypes fgl \
       math typinfo mmx ucomplex \
       varutils variants sysutils
@@ -42,6 +42,7 @@ INC=../inc
 PROCINC=../$(CPU_TARGET)
 
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -97,6 +98,8 @@ prt0$(OEXT) : prt0.as
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) -Us -Sg system.pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

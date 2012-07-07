@@ -144,7 +144,7 @@ interface
           typedef : tdef;
           typedefderef : tderef;
           value_set : pconstset;
-          lab_set : tasmlabel;
+          lab_set : tasmsymbol;
           constructor create(s : pconstset;def:tdef);virtual;
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -300,7 +300,7 @@ implementation
           conststring :
             begin
               len:=p.value.len;
-              if not(cs_ansistrings in current_settings.localswitches) and (len>255) then
+              if not(cs_refcountedstrings in current_settings.localswitches) and (len>255) then
                 begin
                   message(parser_e_string_const_too_long);
                   len:=255;
@@ -920,7 +920,7 @@ implementation
               else
                 l:=0;
               resultdef:=tarraydef.create(0,l,s32inttype);
-              tarraydef(resultdef).elementdef:=cchartype;
+              tarraydef(resultdef).elementdef:=cansichartype;
               include(tarraydef(resultdef).arrayoptions,ado_IsConstString);
             end;
           cst_shortstring :

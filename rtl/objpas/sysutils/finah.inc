@@ -20,6 +20,9 @@
     System Utilities For Free Pascal
 }
 
+type
+  TFilenameCaseMatch = (mkNone, mkExactMatch, mkSingleMatch, mkAmbiguous);
+
 function ChangeFileExt(const FileName, Extension: string): string;
 function ExtractFilePath(const FileName: string): string;
 function ExtractFileDrive(const FileName: string): string;
@@ -28,6 +31,7 @@ function ExtractFileExt(const FileName: string): string;
 function ExtractFileDir(Const FileName : string): string;
 function ExtractShortPathName(Const FileName : String) : String;
 function ExpandFileName (Const FileName : string): String;
+function ExpandFileNameCase (const FileName: string; out MatchFound: TFilenameCaseMatch): string;
 function ExpandUNCFileName (Const FileName : string): String;
 function ExtractRelativepath (Const BaseName,DestNAme : String): String;
 function IncludeTrailingPathDelimiter(Const Path : String) : String;

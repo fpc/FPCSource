@@ -359,8 +359,8 @@ end;
           ImportSymbol  : TImportSymbol;
       begin
         seq_no:=1;
-        current_module.linkotherstaticlibs.add(Current_Module.ImportLibFilename^,link_always);
-        assign(out_file,Current_Module.ImportLibFilename^);
+        current_module.linkotherstaticlibs.add(Current_Module.ImportLibFilename,link_always);
+        assign(out_file,Current_Module.ImportLibFilename);
         rewrite(out_file,1);
         blockwrite(out_file,ar_magic,sizeof(ar_magic));
 
@@ -413,7 +413,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -479,10 +479,10 @@ var
   OutName: TPathStr;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
+   Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
-  BaseFilename := ChangeFileExt(current_module.exefilename^,'');
+  BaseFilename := ChangeFileExt(current_module.exefilename,'');
   OutName := BaseFilename + '.out';
   if (cs_link_strip in current_settings.globalswitches) then
    StripStr := '-s '
@@ -536,7 +536,7 @@ begin
         Replace(cmdstr,'$OPT ',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC ',RsrcStr);
         Replace(cmdstr,'$OUT',maybequoted(OutName));
-        Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+        Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
         if i<>3 then
          success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false)
         else

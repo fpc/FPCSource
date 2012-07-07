@@ -170,18 +170,40 @@
 
 {$ifdef mipsel}
   {$define mips}
+{$else not mipsel}
+  { Define both mips and mipseb if mipsel is not defined
+    but mips cpu is wanted. }
+  {$ifdef mipseb}
+    {$define mips}
+  {$endif mipseb}
+  {$ifdef mips}
+    {$define mipseb}
+  {$endif mips}
 {$endif mipsel}
 
+
 {$ifdef mips}
-  {$define cpu32bit}
-  {$define cpu32bitalu}
-  {$define cpu32bitaddr}
-  { $define cpuflags}
+  {$ifndef mips64}
+    {$define cpu32bit}
+    {$define cpu32bitalu}
+    {$define cpu32bitaddr}
+  {$else}
+    {$error mips64 not yet supported}
+  {$endif}
+  { define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpurequiresproperalignment}
   { define cpumm}
   {$define cpurefshaveindexreg}
 {$endif mips}
+
+{$ifdef jvm}
+  {$define cpu32bit}
+  {$define cpu64bitalu}
+  {$define cpu32bitaddr}
+  {$define cpuhighleveltarget}
+  {$define symansistr}
+{$endif}
 
 {$IFDEF MACOS}
 {$DEFINE USE_FAKE_SYSUTILS}

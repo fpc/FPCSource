@@ -38,6 +38,20 @@ function NtOpenFile(
   OpenOptions: ULONG
 ): NTSTATUS; external ntdll;
 
+function NtQueryDirectoryFile(
+  FileHandle: HANDLE;
+  Event: HANDLE; {OPTIONAL}
+  ApcRoutine: PIO_APC_ROUTINE; {OPTIONAL}
+  ApcContext: PVOID; {OPTIONAL}
+  IoStatusBlock: PIO_STATUS_BLOCK;
+  FileInformation: PVOID;
+  Length: ULONG;
+  FileInformationClass: FILE_INFORMATION_CLASS;
+  ReturnSingleEntry: NT_BOOLEAN;
+  FileName: PUNICODE_STRING; {OPTIONAL}
+  RestartScan: NT_BOOLEAN
+): NTSTATUS; external ntdll;
+
 function NtQueryFullAttributesFile(
   ObjectAttributes: POBJECT_ATTRIBUTES;
   FileInformation: PFILE_NETWORK_OPEN_INFORMATION

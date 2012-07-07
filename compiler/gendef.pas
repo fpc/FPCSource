@@ -25,15 +25,15 @@ unit gendef;
 
 interface
 uses
-  cclasses;
+  globtype,cclasses;
 
 type
   tdeffile=class
     fname : string;
     constructor create(const fn:string);
     destructor  destroy;override;
-    procedure addexport(const s:string);
-    procedure addimport(const s:string);
+    procedure addexport(const s:TSymStr);
+    procedure addimport(const s:TSymStr);
     procedure writefile;
     function empty : boolean;
   private
@@ -51,7 +51,7 @@ implementation
 
 uses
   SysUtils,
-  systems,cutils,globtype,globals;
+  systems,cutils,globals;
 
 {******************************************************************************
                                TDefFile
@@ -78,14 +78,14 @@ end;
 
 
 
-procedure tdeffile.addexport(const s:string);
+procedure tdeffile.addexport(const s:TSymStr);
 begin
   exportlist.insert(s);
   is_empty:=false;
 end;
 
 
-procedure tdeffile.addimport(const s:string);
+procedure tdeffile.addimport(const s:TSymStr);
 begin
   importlist.insert(s);
   is_empty:=false;

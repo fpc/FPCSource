@@ -38,13 +38,13 @@ function get_frame:pointer;assembler;nostackframe;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;
   asm
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;
   asm
   end;
 

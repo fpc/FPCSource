@@ -62,7 +62,6 @@ unit cgppc;
 
         procedure g_maybe_got_init(list: TAsmList); override;
 
-        function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister; override;
         { Transform unsupported methods into Internal errors }
         procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
@@ -71,8 +70,8 @@ unit cgppc;
         procedure g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
         procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
        protected
+        function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister; override;
         function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
-        procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
         { Make sure ref is a valid reference for the PowerPC and sets the }
         { base to the value of the index if (base = R_NO).                }
         { Returns true if the reference contained a base, index and an    }
@@ -611,40 +610,6 @@ unit cgppc;
       Comment(V_Error,'tcgppcgen.a_bit_scan_reg_reg method not implemented');
     end;
 
-  procedure tcgppcgen.a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister);
-    var
-      fromsreg, tosreg: tsubsetregister;
-      restbits: byte;
-    begin
-      restbits := (sref.bitlen - (loadbitsize - sref.startbit));
-      if (subsetsize in [OS_S8..OS_S128]) then
-        begin
-         { sign extend }
-         a_op_const_reg(list,OP_SHL,OS_INT,AIntBits-loadbitsize+sref.startbit,valuereg);
-         a_op_const_reg(list,OP_SAR,OS_INT,AIntBits-sref.bitlen,valuereg);
-        end
-      else
-        begin
-          a_op_const_reg(list,OP_SHL,OS_INT,restbits,valuereg);
-          { mask other bits }
-          if (sref.bitlen <> AIntBits) then
-            a_op_const_reg(list,OP_AND,OS_INT,(aword(1) shl sref.bitlen)-1,valuereg);
-        end;
-      { use subsetreg routine, it may have been overridden with an optimized version }
-      fromsreg.subsetreg := extra_value_reg;
-      fromsreg.subsetregsize := OS_INT;
-      { subsetregs always count bits from right to left }
-      fromsreg.startbit := loadbitsize-restbits;
-      fromsreg.bitlen := restbits;
-
-      tosreg.subsetreg := valuereg;
-      tosreg.subsetregsize := OS_INT;
-      tosreg.startbit := 0;
-      tosreg.bitlen := restbits;
-
-      a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
-    end;
-
 
   procedure tcgppcgen.g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef);
     var
@@ -692,7 +657,7 @@ unit cgppc;
       if (target_info.system in [system_powerpc_darwin]) then
         begin
           paraloc1.init;
-          paramanager.getintparaloc(pocall_cdecl,1,paraloc1);
+          paramanager.getintparaloc(pocall_cdecl,1,voidpointertype,paraloc1);
           a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
           paramanager.freecgpara(list,paraloc1);
           paraloc1.done;

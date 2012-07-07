@@ -1015,8 +1015,8 @@ interface
       hal : tasmlisttype;
     begin
 {$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
-       comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource^);
+      if current_module.mainsource<>'' then
+       comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource);
 {$endif}
       AsmWriteLn('BITS 32');
       AsmLn;
@@ -1037,8 +1037,8 @@ interface
           FreeExternChainList;
         end;
 {$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
-       comment(v_info,'Done writing nasm-styled assembler output for '+current_module.mainsource^);
+      if current_module.mainsource<>'' then
+       comment(v_info,'Done writing nasm-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
    end;
 

@@ -101,11 +101,11 @@ unit cpubase;
 
       { Float Super register first and last }
       first_fpu_supreg    = RS_INVALID;
-      first_fpu_imreg     = RS_INVALID;
+      first_fpu_imreg     = 0;
 
       { MM Super register first and last }
       first_mm_supreg    = RS_INVALID;
-      first_mm_imreg     = RS_INVALID;
+      first_mm_imreg     = 0;
 
       regnumber_count_bsstart = 32;
 
@@ -210,7 +210,8 @@ unit cpubase;
 
       { Defines the default address size for a processor, }
       OS_ADDR = OS_16;
-      { the natural int size for a processor,             }
+      { the natural int size for a processor,
+        has to match osuinttype/ossinttype as initialized in psystem }
       OS_INT = OS_16;
       OS_SINT = OS_S16;
       { the maximum float size for a processor,           }

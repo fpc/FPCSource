@@ -55,8 +55,12 @@ unit paramgr;
             the address is pushed
           }
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;abstract;
+          { returns true if a parameter must be handled via copy-out (construct
+            a reference, copy the parameter's value there in case of copy-in/out, pass the reference)
+          }
+          function push_copyout_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
           { return the size of a push }
-          function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;
+          function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;virtual;
           {# Returns a structure giving the information on
             the storage of the parameter (which must be
             an integer parameter). This is only used when calling
@@ -77,7 +81,7 @@ unit paramgr;
           function get_volatile_registers_flags(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;virtual;
 
-          procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);virtual;abstract;
+          procedure getintparaloc(calloption : tproccalloption; nr : longint; def: tdef; var cgpara : tcgpara);virtual;abstract;
 
           {# allocate an individual pcgparalocation that's part of a tcgpara
 
@@ -124,7 +128,7 @@ unit paramgr;
           }
           function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;virtual;abstract;
 
-          function is_stack_paraloc(paraloc: pcgparalocation): boolean;
+          function is_stack_paraloc(paraloc: pcgparalocation): boolean;virtual;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);virtual;
           procedure duplicatecgparaloc(const orgparaloc: pcgparalocation; intonewparaloc: pcgparalocation);
           procedure duplicateparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
@@ -136,6 +140,10 @@ unit paramgr;
           function use_fixed_stack: boolean;
           { whether stack pointer can be changed in the middle of procedure }
           function use_stackalloc: boolean;
+         strict protected
+          { common part of get_funcretloc; returns true if retloc is completely
+            initialized afterwards }
+          function set_common_funcretloc_info(p : tabstractprocdef; def: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
        end;
 
 
@@ -179,6 +187,12 @@ implementation
                            is_open_string(def) or
                            is_array_of_const(def)
                           );
+      end;
+
+
+    function tparamanager.push_copyout_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
+      begin
+        push_copyout_param:=false;
       end;
 
 
@@ -355,6 +369,7 @@ implementation
         cgpara.size:=parasym.paraloc[callerside].size;
         cgpara.intsize:=parasym.paraloc[callerside].intsize;
         cgpara.alignment:=parasym.paraloc[callerside].alignment;
+        cgpara.def:=parasym.paraloc[callerside].def;
 {$ifdef powerpc}
         cgpara.composite:=parasym.paraloc[callerside].composite;
 {$endif powerpc}
@@ -395,7 +410,10 @@ implementation
                     duplicatecgparaloc(paraloc,newparaloc)
                   else
                     begin
-                      tg.gettemp(list,len,cgpara.alignment,tt_persistent,href);
+                      if assigned(cgpara.def) then
+                        tg.gethltemp(list,cgpara.def,len,tt_persistent,href)
+                      else
+                        tg.gettemp(list,len,cgpara.alignment,tt_persistent,href);
                       newparaloc^.reference.index:=href.base;
                       newparaloc^.reference.offset:=href.offset;
                     end;
@@ -476,6 +494,54 @@ implementation
     function tparamanager.use_stackalloc: boolean;
       begin
         result:=not use_fixed_stack;
+      end;
+
+
+    function tparamanager.set_common_funcretloc_info(p : tabstractprocdef; def: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
+      var
+        paraloc : pcgparalocation;
+      begin
+        result:=true;
+        retloc.init;
+        retloc.def:=def;
+        retloc.alignment:=get_para_align(p.proccalloption);
+        { void has no location }
+        if is_void(def) then
+          begin
+            paraloc:=retloc.add_location;
+            retloc.size:=OS_NO;
+            retcgsize:=OS_NO;
+            retloc.intsize:=0;
+            paraloc^.size:=OS_NO;
+            paraloc^.loc:=LOC_VOID;
+            exit;
+          end;
+        { Constructors return self instead of a boolean }
+        if p.proctypeoption=potype_constructor then
+          begin
+            if is_implicit_pointer_object_type(tdef(p.owner.defowner)) then
+              retloc.def:=tdef(p.owner.defowner)
+            else
+              retloc.def:=getpointerdef(tdef(p.owner.defowner));
+            retcgsize:=OS_ADDR;
+            retloc.intsize:=sizeof(pint);
+          end
+        else
+          begin
+            retcgsize:=def_cgsize(def);
+            retloc.intsize:=def.size;
+          end;
+        retloc.size:=retcgsize;
+        { Return is passed as var parameter }
+        if ret_in_param(def,p.proccalloption) then
+          begin
+            retloc.def:=getpointerdef(def);
+            paraloc:=retloc.add_location;
+            paraloc^.loc:=LOC_REFERENCE;
+            paraloc^.size:=retcgsize;
+            exit;
+          end;
+        result:=false;
       end;
 
 initialization
