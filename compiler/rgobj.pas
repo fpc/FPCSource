@@ -1874,6 +1874,9 @@ unit rgobj;
         ins:=spilling_create_load(spilltemp,tempreg);
         add_cpu_interferences(ins);
         list.insertafter(ins,pos);
+        {$ifdef DEBUG_SPILLING}
+        list.Insertbefore(tai_comment.Create(strpnew('XXX: Spill Read')),ins);
+        {$endif}
       end;
 
 
@@ -1884,6 +1887,9 @@ unit rgobj;
         ins:=spilling_create_store(tempreg,spilltemp);
         add_cpu_interferences(ins);
         list.insertafter(ins,pos);
+        {$ifdef DEBUG_SPILLING}
+        list.Insertbefore(tai_comment.Create(strpnew('XXX: Spill Write')),ins);
+        {$endif}
       end;
 
 
