@@ -2199,10 +2199,7 @@ implementation
               (
                (token=_LKLAMMER) or
                (
-                (
-                 (m_tp7 in current_settings.modeswitches) or
-                 (m_delphi in current_settings.modeswitches)
-                ) and
+                (([m_tp7,m_delphi,m_mac] * current_settings.modeswitches) <> []) and
                 (afterassignment or in_args)
                )
               ) then
