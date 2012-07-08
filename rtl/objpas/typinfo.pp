@@ -149,8 +149,10 @@ unit typinfo;
               (ClassType : TClass;
                ParentInfo : PTypeInfo;
                PropCount : SmallInt;
+               AttributeCount : byte;
                UnitName : ShortString
-               // here the properties follow as array of TPropInfo
+               // here the attributes follow as array of TAttributeProc
+               // followed by the properties as array of TPropInfo
               );
             tkHelper:
               (HelperParent : PTypeInfo;
@@ -232,10 +234,18 @@ unit typinfo;
         //     6 : true, constant index property
         PropProcs : Byte;
 
+        AttributeCount : byte;
         Name : ShortString;
       end;
 
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
+
+      TCustomAttribute = class(TObject)
+       end;
+
+      TAttributeProc = function : TObject;
+      PAttributeProcList = ^TAttributeProcList;
+      TAttributeProcList = array[0..255] of TAttributeProc;
 
       PPropList = ^TPropList;
       TPropList = array[0..65535] of PPropInfo;
@@ -354,6 +364,12 @@ function GetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo): Pointer;
 procedure SetRawInterfaceProp(Instance: TObject; const PropName: string; const Value: Pointer);
 procedure SetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
 
+function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
+
+function GetClassAttributeProclist(TypeData: PTypeData): PAttributeProcList;
+function GetClassAttribute(TypeData: PTypeData; AttributeNr: byte): TObject;
+
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
@@ -404,6 +420,51 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    end;
 
+function GetPropAttributeProclist(PropInfo: PPropInfo): PAttributeProcList;
+begin
+  if PropInfo^.AttributeCount=0 then
+    result := nil
+  else
+    begin
+      Result:=PAttributeProcList(aligntoptr(pointer(@PropInfo^.Name)+byte(PropInfo^.Name[0])+1));
+    end;
+end;
+
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: byte): TObject;
+var
+  AttributeProcList: PAttributeProcList;
+begin
+  if AttributeNr>=PropInfo^.AttributeCount then
+    result := nil
+  else
+    begin
+      AttributeProcList := GetPropAttributeProclist(PropInfo);
+      result := AttributeProcList^[AttributeNr]();
+    end;
+end;
+
+function GetClassAttributeProclist(TypeData: PTypeData): PAttributeProcList;
+begin
+  if TypeData^.AttributeCount=0 then
+    result := nil
+  else
+    begin
+      Result:=PAttributeProcList(aligntoptr(pointer(@TypeData^.UnitName)+byte(TypeData^.UnitName[0])+1));
+    end;
+end;
+
+function GetClassAttribute(TypeData: PTypeData; AttributeNr: byte): TObject;
+var
+  AttributeProcList: PAttributeProcList;
+begin
+  if AttributeNr>=TypeData^.AttributeCount then
+    result := nil
+  else
+    begin
+      AttributeProcList := GetClassAttributeProclist(TypeData);
+      result := AttributeProcList^[AttributeNr]();
+    end;
+end;
 
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 
@@ -624,6 +685,8 @@ begin
       hp:=GetTypeData(Typeinfo);
       // the class info rtti the property rtti follows immediatly
       pd:=aligntoptr(pointer(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1));
+      // also skip the attribute-information
+      pd:=aligntoptr(pointer(pd)+(hp^.AttributeCount*sizeof(TAttributeProc)));
       Result:=PPropInfo(@pd^.PropList);
       for i:=1 to pd^.PropCount do
         begin
@@ -631,7 +694,7 @@ begin
           if ShortCompareText(Result^.Name, P) = 0 then
             exit;
           // skip to next property
-          Result:=PPropInfo(aligntoptr(pointer(@Result^.Name)+byte(Result^.Name[0])+1));
+          Result:=PPropInfo(aligntoptr(pointer(@Result^.Name)+byte(Result^.Name[0])+(result^.AttributeCount*SizeOf(TAttributeProc))+1));
         end;
       // parent class
       Typeinfo:=hp^.ParentInfo;
@@ -754,6 +817,8 @@ begin
     TD:=GetTypeData(TypeInfo);
     // published properties count for this object
     TP:=aligntoptr(PPropInfo(aligntoptr((Pointer(@TD^.UnitName)+Length(TD^.UnitName)+1))));
+    // skip the attribute-info if available
+    TP:=aligntoptr(pointer(TP)+(TD^.AttributeCount*sizeof(TAttributeProc)));
     Count:=PWord(TP)^;
     // Now point TP to first propinfo record.
     Inc(Pointer(TP),SizeOF(Word));
@@ -765,7 +830,7 @@ begin
           PropList^[TP^.NameIndex]:=TP;
         // Point to TP next propinfo record.
         // Located at Name[Length(Name)+1] !
-        TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1));
+        TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+(TP^.AttributeCount*SizeOf(TAttributeProc))+1));
         Dec(Count);
       end;
     TypeInfo:=TD^.Parentinfo;

@@ -31,6 +31,7 @@ interface
       symdef,procinfo,optdfa;
 
     type
+      tcggetcodeblockfunc = function(pd: tprocdef) : tnode;
 
       { tcgprocinfo }
 
@@ -59,7 +60,7 @@ interface
         procedure resetprocdef;
         procedure add_to_symtablestack;
         procedure remove_from_symtablestack;
-        procedure parse_body;
+        procedure parse_body(get_code_block_func: tcggetcodeblockfunc);
 
         function has_assembler_child : boolean;
       end;
@@ -76,7 +77,7 @@ interface
     { reads any routine in the implementation, or a non-method routine
       declaration in the interface (depending on whether or not parse_only is
       true) }
-    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef);
+    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef; get_code_block_func: tcggetcodeblockfunc);
 
     procedure generate_specialization_procs;
 
@@ -266,10 +267,44 @@ implementation
           include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
 
-
-    function block(islibrary : boolean) : tnode;
+    procedure init_main_block_syms(block: tnode);
       var
         oldfilepos: tfileposinfo;
+      begin
+        { initialized variables }
+        if current_procinfo.procdef.localst.symtabletype=localsymtable then
+          begin
+            { initialization of local variables with their initial
+              values: part of function entry }
+            oldfilepos:=current_filepos;
+            current_filepos:=current_procinfo.entrypos;
+            current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
+            current_filepos:=oldfilepos;
+          end
+        else if current_procinfo.procdef.localst.symtabletype=staticsymtable then
+          begin
+            { for program and unit initialization code we also need to
+              initialize the local variables used of Default() }
+            oldfilepos:=current_filepos;
+            current_filepos:=current_procinfo.entrypos;
+            current_procinfo.procdef.localst.SymList.ForEachCall(@initializedefaultvars,block);
+            current_filepos:=oldfilepos;
+          end;
+
+        if assigned(current_procinfo.procdef.parentfpstruct) then
+          begin
+            { we only do this after the code has been parsed because
+              otherwise for-loop counters moved to the struct cause
+              errors; we still do it nevertheless to prevent false
+              "unused" symbols warnings and to assist debug info
+              generation }
+            redirect_parentfpstruct_local_syms(current_procinfo.procdef);
+            { finish the parentfpstruct (add padding, ...) }
+            finish_parentfpstruct(current_procinfo.procdef);
+          end;
+      end;
+
+    function block(islibrary : boolean) : tnode;
       begin
          { parse const,types and vars }
          read_declarations(islibrary);
@@ -329,37 +364,7 @@ implementation
             begin
                { parse routine body }
                block:=statement_block(_BEGIN);
-               { initialized variables }
-               if current_procinfo.procdef.localst.symtabletype=localsymtable then
-                 begin
-                   { initialization of local variables with their initial
-                     values: part of function entry }
-                   oldfilepos:=current_filepos;
-                   current_filepos:=current_procinfo.entrypos;
-                   current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
-                   current_filepos:=oldfilepos;
-                 end
-               else if current_procinfo.procdef.localst.symtabletype=staticsymtable then
-                 begin
-                   { for program and unit initialization code we also need to
-                     initialize the local variables used of Default() }
-                   oldfilepos:=current_filepos;
-                   current_filepos:=current_procinfo.entrypos;
-                   current_procinfo.procdef.localst.SymList.ForEachCall(@initializedefaultvars,block);
-                   current_filepos:=oldfilepos;
-                 end;
-
-               if assigned(current_procinfo.procdef.parentfpstruct) then
-                 begin
-                   { we only do this after the code has been parsed because
-                     otherwise for-loop counters moved to the struct cause
-                     errors; we still do it nevertheless to prevent false
-                     "unused" symbols warnings and to assist debug info
-                     generation }
-                   redirect_parentfpstruct_local_syms(current_procinfo.procdef);
-                   { finish the parentfpstruct (add padding, ...) }
-                   finish_parentfpstruct(current_procinfo.procdef);
-                 end;
+               init_main_block_syms(block);
             end;
       end;
 
@@ -1583,7 +1588,7 @@ implementation
        end;
 
 
-    procedure tcgprocinfo.parse_body;
+    procedure tcgprocinfo.parse_body(get_code_block_func: tcggetcodeblockfunc);
       var
          old_current_procinfo : tprocinfo;
          old_block_type : tblock_type;
@@ -1637,8 +1642,17 @@ implementation
              current_scanner.startrecordtokens(procdef.generictokenbuf);
            end;
 
-         { parse the code ... }
-         code:=block(current_module.islibrary);
+         if assigned(get_code_block_func) then
+           begin
+             { generate the code-nodes }
+             code:=get_code_block_func(procdef);
+             init_main_block_syms(code);
+           end
+         else
+           begin
+             { parse the code ... }
+             code:=block(current_module.islibrary);
+           end;
 
          if (df_generic in procdef.defoptions) then
            begin
@@ -1741,7 +1755,7 @@ implementation
 
 
 
-    procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);
+    procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef;get_code_block_func: tcggetcodeblockfunc);
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -1786,7 +1800,7 @@ implementation
            tokeninfo^[_FAIL].keyword:=m_all;
          end;
 
-        tcgprocinfo(current_procinfo).parse_body;
+        tcgprocinfo(current_procinfo).parse_body(get_code_block_func);
 
         { We can't support inlining for procedures that have nested
           procedures because the nested procedures use a fixed offset
@@ -1825,7 +1839,8 @@ implementation
         { For specialization we didn't record the last semicolon. Moving this parsing
           into the parse_body routine is not done because of having better file position
           information available }
-        if not(df_specialization in current_procinfo.procdef.defoptions) then
+        if not(df_specialization in current_procinfo.procdef.defoptions) and
+           not(assigned(get_code_block_func)) then
           consume(_SEMICOLON);
 
         if not isnestedproc then
@@ -1834,7 +1849,7 @@ implementation
       end;
 
 
-    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef);
+    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef; get_code_block_func: tcggetcodeblockfunc);
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -1946,7 +1961,7 @@ implementation
          { compile procedure when a body is needed }
          if (pd_body in pdflags) then
            begin
-             read_proc_body(old_current_procinfo,pd);
+             read_proc_body(old_current_procinfo,pd,get_code_block_func);
            end
          else
            begin
@@ -2070,7 +2085,7 @@ implementation
               _PROCEDURE,
               _OPERATOR:
                 begin
-                  read_proc(is_classdef,nil);
+                  read_proc(is_classdef,nil,nil);
                   is_classdef:=false;
                 end;
               _EXPORTS:
@@ -2105,7 +2120,7 @@ implementation
                       begin
                         if is_classdef then
                           begin
-                            read_proc(is_classdef,nil);
+                            read_proc(is_classdef,nil,nil);
                             is_classdef:=false;
                           end
                         else
@@ -2153,7 +2168,7 @@ implementation
              _FUNCTION,
              _PROCEDURE,
              _OPERATOR :
-               read_proc(false,nil);
+               read_proc(false,nil,nil);
              else
                begin
                  case idtoken of
@@ -2218,7 +2233,7 @@ implementation
                      current_tokenpos:=current_filepos;
                      current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf,
                        tprocdef(tprocdef(hp).genericdef).change_endian);
-                     read_proc_body(nil,tprocdef(hp));
+                     read_proc_body(nil,tprocdef(hp),nil);
                      current_filepos:=oldcurrent_filepos;
                    end
                  { synthetic routines will be implemented afterwards }

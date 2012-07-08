@@ -269,6 +269,8 @@ implementation
     procedure TRTTIWriter.published_properties_write_rtti_data(propnamelist:TFPHashObjectList;st:tsymtable);
       var
         i : longint;
+        attributeindex: ShortInt;
+        attributecount: byte;
         sym : tsym;
         proctypesinfo : byte;
         propnameitem  : tpropnamelistitem;
@@ -392,7 +394,21 @@ implementation
                   internalerror(200512201);
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(propnameitem.propindex));
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(proctypesinfo));
+
+                if assigned(tpropertysym(sym).rtti_attributesdef) then
+                  attributecount:=tpropertysym(sym).rtti_attributesdef.get_attribute_count
+                else
+                  attributecount:=0;
+
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(attributecount));
+
                 write_string(tpropertysym(sym).realname);
+                maybe_write_align;
+
+                for attributeindex:=0 to attributecount-1 do
+                  begin
+                    current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(trtti_attribute(tpropertysym(sym).rtti_attributesdef.rtti_attributes[attributeindex]).symbolname,0));
+                  end;
                 maybe_write_align;
              end;
           end;
@@ -767,6 +783,8 @@ implementation
           procedure objectdef_rtti_class_full(def:tobjectdef);
           var
             propnamelist : TFPHashObjectList;
+            attributeindex: ShortInt;
+            attributecount: byte;
           begin
             { Collect unique property names with nameindex }
             propnamelist:=TFPHashObjectList.Create;
@@ -794,8 +812,21 @@ implementation
             { total number of unique properties }
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(propnamelist.count));
 
+            { total amount of class-attributes }
+            if assigned(def.rtti_attributesdef) then
+              attributecount:=def.rtti_attributesdef.get_attribute_count
+            else
+              attributecount:=0;
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(attributecount));
+
             { write unit name }
             write_string(current_module.realmodulename^);
+            maybe_write_align;
+
+            for attributeindex:=0 to attributecount-1 do
+              begin
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(trtti_attribute(def.rtti_attributesdef.rtti_attributes[attributeindex]).symbolname,0));
+              end;
             maybe_write_align;
 
             { write published properties for this object }

@@ -64,6 +64,7 @@ implementation
 
     var
       current_objectdef : tobjectdef absolute current_structdef;
+      current_rttiattributesdef : trtti_attributesdef;
 
 
     procedure constr_destr_finish_head(pd: tprocdef; const astruct: tabstractrecorddef);
@@ -204,6 +205,12 @@ implementation
             else
               Message(parser_e_enumerator_identifier_required);
             consume(_SEMICOLON);
+          end;
+        if assigned(current_rttiattributesdef) then
+          begin
+            add_synthetic_rtti_funtion_declarations(current_rttiattributesdef,current_structdef.RttiName+'_'+p.RealName);
+            p.rtti_attributesdef := current_rttiattributesdef;
+            current_rttiattributesdef:=nil;
           end;
         { hint directives, these can be separated by semicolons here,
           that needs to be handled here with a loop (PFV) }
@@ -1058,6 +1065,7 @@ implementation
         class_fields:=false;
         is_final:=false;
         final_fields:=false;
+        current_rttiattributesdef:=nil;
         object_member_blocktype:=bt_general;
         repeat
           case token of
@@ -1216,6 +1224,10 @@ implementation
                 method_dec(current_structdef,is_classdef);
                 fields_allowed:=false;
                 is_classdef:=false;
+              end;
+            _LECKKLAMMER:
+              begin
+                parse_rttiattributes(current_rttiattributesdef);
               end;
             _END :
               begin

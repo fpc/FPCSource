@@ -935,6 +935,7 @@
             ClassType: TClass;
             ParentInfo: Pointer;
             PropCount: SmallInt;
+            AttributeCount : byte;
             UnitName: ShortString;
           end;
           PClassTypeInfo = ^TClassTypeInfo;

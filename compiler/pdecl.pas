@@ -46,6 +46,8 @@ interface
     procedure threadvar_dec;
     procedure property_dec;
     procedure resourcestring_dec;
+    procedure parse_rttiattributes(var rtti_attributes: trtti_attributesdef);
+    procedure add_synthetic_rtti_funtion_declarations(rtti_attributesdef: trtti_attributesdef; name: shortstring);
 
 implementation
 
@@ -62,7 +64,7 @@ implementation
        symconst,symbase,symtype,symtable,symcreat,paramgr,defutil,
        { pass 1 }
        htypechk,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,nmem,
        { codegen }
        ncgutil,ngenutil,
        { parser }
@@ -75,6 +77,8 @@ implementation
        cpuinfo
        ;
 
+    var
+      current_rtticlassattributesdef : trtti_attributesdef;
 
     function readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
       var
@@ -362,6 +366,66 @@ implementation
          consume(_SEMICOLON);
       end;
 
+    procedure parse_rttiattributes(var rtti_attributes: trtti_attributesdef);
+      var
+        p, p1: tnode;
+        paras: tnode;
+        again: boolean;
+        od: tobjectdef;
+        constrpd: tprocdef;
+        typesym: ttypesym;
+        oldblock_type: tblock_type;
+      begin
+        consume(_LECKKLAMMER);
+        { Parse attribute type }
+        p := factor(false,true);
+
+        typesym := ttypesym(ttypenode(p).typesym);
+        od := tobjectdef(ttypenode(p).typedef);
+
+        { Search the tprocdef of the constructor which has to be called. }
+        constrpd := od.find_procdef_bytype(potype_constructor);
+
+        { Parse the attribute-parameters as if it is a list of parameters from
+          a call to the constrpd constructor in an execution-block. }
+        p1 := cloadvmtaddrnode.create(ctypenode.create(od));
+        again:=true;
+        oldblock_type := block_type;
+        block_type := bt_body;
+        do_member_read(od,false,constrpd.procsym,p1,again,[]);
+        block_type:=oldblock_type;
+
+        { Add attribute to attribute list which will be added
+          to the property which is defined next. }
+        if not assigned(rtti_attributes) then
+          rtti_attributes := trtti_attributesdef.create;
+        rtti_attributes.addattribute(typesym,p1);
+
+        p.free;
+        consume(_RECKKLAMMER);
+      end;
+
+    procedure add_synthetic_rtti_funtion_declarations(rtti_attributesdef: trtti_attributesdef; name: shortstring);
+      var
+        i: Integer;
+        sstate: tscannerstate;
+        attribute: trtti_attribute;
+        pd: tprocdef;
+      begin
+        for i := 0 to rtti_attributesdef.get_attribute_count-1 do
+          begin
+            attribute := trtti_attribute(rtti_attributesdef.rtti_attributes[i]);
+            replace_scanner('rtti_class_attributes',sstate);
+            if str_parse_method_dec('function rtti_'+name+'_'+IntToStr(i)+':'+ attribute.typesym.Name +';',potype_function,false,tabstractrecorddef(ttypesym(attribute.typesym).typedef),pd) then
+              pd.synthetickind:=tsk_get_rttiattribute
+            else
+              internalerror(2012052601);
+            pd.skpara:=attribute;
+            attribute.symbolname:=pd.mangledname;
+            restore_scanner(sstate);
+          end;
+      end;
+
     procedure types_dec(in_structure: boolean);
 
       procedure finalize_class_external_status(od: tobjectdef);
@@ -410,6 +474,12 @@ implementation
 
            { fpc generic declaration? }
            isgeneric:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_GENERIC);
+
+           { class attribute definitions? }
+           while token=_LECKKLAMMER do
+             begin
+               parse_rttiattributes(current_rtticlassattributesdef);
+             end;
 
            typename:=pattern;
            orgtypename:=orgpattern;
@@ -742,6 +812,15 @@ implementation
                         vmtbuilder.free;
                       end;
 
+                    { If there are attribute-properties available, bind them to
+                      this object }
+                    if assigned(current_rtticlassattributesdef) then
+                      begin
+                        add_synthetic_rtti_funtion_declarations(current_rtticlassattributesdef,hdef.typesym.Name);
+                        tobjectdef(hdef).rtti_attributesdef:=current_rtticlassattributesdef;
+                        current_rtticlassattributesdef := nil;
+                      end;
+
                     { In case of an objcclass, verify that all methods have a message
                       name set. We only check this now, because message names can be set
                       during the protocol (interface) mapping. At the same time, set the
@@ -784,7 +863,10 @@ implementation
                hdef.typesym:=newtype;
                generictypelist.free;
              end;
-         until (token<>_ID) or
+
+           if Assigned(current_rtticlassattributesdef) then
+             internalerror(202105250);
+         until ((token<>_ID) and (token<>_LECKKLAMMER)) or
                (in_structure and
                 ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
                  ((m_final_fields in current_settings.modeswitches) and

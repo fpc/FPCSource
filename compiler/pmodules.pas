@@ -957,7 +957,7 @@ implementation
              { Compile the unit }
              init_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'init'),potype_unitinit,current_module.localsymtable);
              init_procinfo.procdef.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
-             init_procinfo.parse_body;
+             init_procinfo.parse_body(nil);
              { save file pos for debuginfo }
              current_module.mainfilepos:=init_procinfo.entrypos;
            end;
@@ -995,7 +995,7 @@ implementation
               { Compile the finalize }
               finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
-              finalize_procinfo.parse_body;
+              finalize_procinfo.parse_body(nil);
            end
          else if force_init_final or cnodeutils.force_final then
            finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
@@ -1948,7 +1948,7 @@ implementation
              main_procinfo:=create_main_proc(mainaliasname,potype_proginit,current_module.localsymtable);
              main_procinfo.procdef.aliasnames.insert('PASCALMAIN');
            end;
-         main_procinfo.parse_body;
+         main_procinfo.parse_body(nil);
          { save file pos for debuginfo }
          current_module.mainfilepos:=main_procinfo.entrypos;
 
@@ -1978,7 +1978,7 @@ implementation
               finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
               finalize_procinfo.procdef.aliasnames.insert('PASCALFINALIZE');
-              finalize_procinfo.parse_body;
+              finalize_procinfo.parse_body(nil);
            end
          else
            if force_init_final or cnodeutils.force_final then

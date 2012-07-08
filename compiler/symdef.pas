@@ -262,6 +262,21 @@ interface
        end;
        pvmtentry = ^tvmtentry;
 
+       { trtti_attributesdef }
+
+       trtti_attribute = class
+          typesym         : tsym;
+          constructorcall : tnode;
+          symbolname      : string;
+       end;
+
+       trtti_attributesdef = class
+          rtti_attributes    : TFPObjectList;
+          procedure addattribute(atypesym: tsym; constructorcall: tnode);
+          destructor destroy; override;
+          function get_attribute_count: longint;
+       end;
+
        { tobjectdef }
 
        tvmcallstatic = (vmcs_default, vmcs_yes, vmcs_no, vmcs_unreachable);
@@ -307,6 +322,7 @@ interface
           }
           classref_created_in_current_module : boolean;
           objecttype     : tobjecttyp;
+          rtti_attributesdef : trtti_attributesdef;
           constructor create(ot:tobjecttyp;const n:string;c:tobjectdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -540,7 +556,8 @@ interface
          tsk_jvm_procvar_intconstr, // Java procvar class constructor that accepts an interface instance for easy Java interoperation
          tsk_jvm_virtual_clmethod,  // Java wrapper for virtual class method
          tsk_field_getter,          // getter for a field (callthrough property is passed in skpara)
-         tsk_field_setter           // Setter for a field (callthrough property is passed in skpara)
+         tsk_field_setter,          // Setter for a field (callthrough property is passed in skpara)
+         tsk_get_rttiattribute      // Create and return a TCustomAttribute instance
        );
 
 {$ifdef oldregvars}
@@ -2105,6 +2122,35 @@ implementation
          GetTypeName:='<enumeration type>';
       end;
 
+{****************************************************************************
+                             TRTTI_ATTRIBUTESDEF
+****************************************************************************}
+
+    procedure trtti_attributesdef.addattribute(atypesym: tsym; constructorcall: tnode);
+      var
+        newattribute: trtti_attribute;
+      begin
+        if not assigned(rtti_attributes) then
+          rtti_attributes := TFPObjectList.Create(True);
+        newattribute := trtti_attribute.Create;
+        newattribute.typesym := atypesym;
+        newattribute.constructorcall:=constructorcall;
+        rtti_attributes.Add(newattribute);
+      end;
+
+    destructor trtti_attributesdef.destroy;
+      begin
+        rtti_attributes.Free;
+        inherited destroy;
+      end;
+
+    function trtti_attributesdef.get_attribute_count: longint;
+      begin
+        if assigned(rtti_attributes) then
+          result := rtti_attributes.Count
+        else
+          result := 0;
+      end;
 
 {****************************************************************************
                                  TORDDEF
@@ -5314,6 +5360,11 @@ implementation
            begin
              freemem(vmcallstaticinfo);
              vmcallstaticinfo:=nil;
+           end;
+         if assigned(rtti_attributesdef) then
+           begin
+             rtti_attributesdef.Free;
+             rtti_attributesdef:=nil;
            end;
          inherited destroy;
       end;
