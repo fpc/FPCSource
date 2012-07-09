@@ -394,6 +394,7 @@ Var
 
 begin
   Result:=0;
+  T:='';
   R:=TIReaderTXT.Create;
   try
     URL:=TableName+'/'+KeyField.AsString;
