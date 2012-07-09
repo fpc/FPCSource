@@ -2329,73 +2329,77 @@ var
   Access: TArgumentAccess;
   ArgType: TPasType;
 begin
-  while True do
-  begin
-    ArgNames := TStringList.Create;
-    Access := argDefault;
-    IsUntyped := False;
-    ArgType := nil;
+  ArgNames := TStringList.Create;
+  try
     while True do
     begin
-      NextToken;
-      if CurToken = tkConst then
+      ArgNames.Clear;
+      Access := argDefault;
+      IsUntyped := False;
+      ArgType := nil;
+      while True do
       begin
-        Access := argConst;
-        Name := ExpectIdentifier;
-      end else if CurToken = tkVar then
+        NextToken;
+        if CurToken = tkConst then
+        begin
+          Access := argConst;
+          Name := ExpectIdentifier;
+        end else if CurToken = tkVar then
+        begin
+          Access := ArgVar;
+          Name := ExpectIdentifier;
+        end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'OUT') then
+        begin
+          Access := ArgOut;
+          Name := ExpectIdentifier;
+        end else if CurToken = tkIdentifier then
+          Name := CurTokenString
+        else
+          ParseExc(SParserExpectedConstVarID);
+        ArgNames.Add(Name);
+        NextToken;
+        if CurToken = tkColon then
+          break
+        else if ((CurToken = tkSemicolon) or (CurToken = tkBraceClose)) and
+          (Access <> argDefault) then
+        begin
+          // found an untyped const or var argument
+          UngetToken;
+          IsUntyped := True;
+          break
+        end
+        else if CurToken <> tkComma then
+          ParseExc(SParserExpectedCommaColon);
+      end;
+      SetLength(Value, 0);
+      if not IsUntyped then
       begin
-        Access := ArgVar;
-        Name := ExpectIdentifier;
-      end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'OUT') then
-      begin
-        Access := ArgOut;
-        Name := ExpectIdentifier;
-      end else if CurToken = tkIdentifier then
-        Name := CurTokenString
-      else
-        ParseExc(SParserExpectedConstVarID);
-      ArgNames.Add(Name);
-      NextToken;
-      if CurToken = tkColon then
-        break
-      else if ((CurToken = tkSemicolon) or (CurToken = tkBraceClose)) and
-        (Access <> argDefault) then
-      begin
-        // found an untyped const or var argument
-        UngetToken;
-        IsUntyped := True;
-        break
-      end
-      else if CurToken <> tkComma then
-        ParseExc(SParserExpectedCommaColon);
-    end;
-    SetLength(Value, 0);
-    if not IsUntyped then
-    begin
-      ArgType := ParseType(nil);
-      NextToken;
-      if CurToken = tkEqual then
-      begin
-        Value := ParseExpression(Parent);
-      end else
-        UngetToken;
-    end;
+        ArgType := ParseType(nil);
+        NextToken;
+        if CurToken = tkEqual then
+        begin
+          Value := ParseExpression(Parent);
+        end else
+          UngetToken;
+      end;
 
-    for i := 0 to ArgNames.Count - 1 do
-    begin
-      Arg := TPasArgument(CreateElement(TPasArgument, ArgNames[i], Parent));
-      Arg.Access := Access;
-      Arg.ArgType := ArgType;
-      if (i > 0) and Assigned(ArgType) then
-        ArgType.AddRef;
-      Arg.Value := Value;
-      Args.Add(Arg);
-    end;
+      for i := 0 to ArgNames.Count - 1 do
+      begin
+        Arg := TPasArgument(CreateElement(TPasArgument, ArgNames[i], Parent));
+        Arg.Access := Access;
+        Arg.ArgType := ArgType;
+        if (i > 0) and Assigned(ArgType) then
+          ArgType.AddRef;
+        Arg.Value := Value;
+        Args.Add(Arg);
+      end;
 
+      NextToken;
+      if CurToken = EndToken then
+        break;
+    end;
+  finally
     ArgNames.Free;
-    NextToken;
-    if CurToken = EndToken then
-      break;
   end;
 end;
 
