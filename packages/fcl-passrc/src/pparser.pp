@@ -36,6 +36,7 @@ resourcestring
   SParserExpectedCommaRBracket = 'Expected "," or ")"';
   SParserExpectedCommaSemicolon = 'Expected "," or ";"';
   SParserExpectedCommaColon = 'Expected "," or ":"';
+  SParserOnlyOneArgumentCanHaveDefault = 'A default value can only be assigned to 1 parameter';
   SParserExpectedLBracketColon = 'Expected "(" or ":"';
   SParserExpectedLBracketSemicolon = 'Expected "(" or ";"';
   SParserExpectedColonSemicolon = 'Expected ":" or ";"';
@@ -2323,7 +2324,8 @@ procedure TPasParser.ParseArgList(Parent: TPasElement; Args: TFPList; EndToken: 
 var
   ArgNames: TStringList;
   IsUntyped: Boolean;
-  Name, Value: String;
+  Name : String;
+  Value : TPasExpr;
   i: Integer;
   Arg: TPasArgument;
   Access: TArgumentAccess;
@@ -2371,17 +2373,29 @@ begin
         else if CurToken <> tkComma then
           ParseExc(SParserExpectedCommaColon);
       end;
-      SetLength(Value, 0);
+      Value:=Nil;
       if not IsUntyped then
-      begin
-        ArgType := ParseType(nil);
-        NextToken;
-        if CurToken = tkEqual then
         begin
-          Value := ParseExpression(Parent);
-        end else
+        ArgType := ParseType(nil);
+        try
+          NextToken;
+          if CurToken = tkEqual then
+            begin
+            if (ArgNames.Count>1) then
+              begin
+              FreeAndNil(ArgType);
+              ParseExc(SParserOnlyOneArgumentCanHaveDefault);
+              end;
+            NextToken;
+            Value := DoParseExpression(Parent,Nil);
+            // After this, we're on ), which must be unget.
+            end;
           UngetToken;
-      end;
+        except
+          FreeAndNil(ArgType);
+          Raise;
+        end;
+        end;
 
       for i := 0 to ArgNames.Count - 1 do
       begin
@@ -2390,7 +2404,8 @@ begin
         Arg.ArgType := ArgType;
         if (i > 0) and Assigned(ArgType) then
           ArgType.AddRef;
-        Arg.Value := Value;
+        Arg.ValueExpr := Value;
+        Value:=Nil; // Only the first gets a value. OK, since Var A,B : Integer = 1 is not allowed.
         Args.Add(Arg);
       end;
 
