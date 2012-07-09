@@ -28,7 +28,7 @@ interface
 uses
   cclasses,
   globtype, globals, verbose,
-  aasmbase, aasmsym, aasmtai,
+  aasmbase, aasmdata, aasmsym, aasmtai,
   cgbase, cgutils, cpubase, cpuinfo;
 
 const
@@ -78,10 +78,15 @@ type
   procedure InitAsm;
   procedure DoneAsm;
 
+  procedure fixup_jmps(list: TAsmList);
+
   function spilling_create_load(const ref: treference; r: tregister): taicpu;
   function spilling_create_store(r: tregister; const ref: treference): taicpu;
 
 implementation
+
+  uses
+    cutils;
 
 {*****************************************************************************
                                  taicpu Constructors
@@ -449,6 +454,146 @@ procedure InitAsm;
 
 procedure DoneAsm;
   begin
+  end;
+
+
+procedure fixup_jmps(list: TAsmList);
+  var
+    p,pdelayslot: tai;
+    newcomment: tai_comment;
+    newjmp,newnoop: taicpu;
+    labelpositions: TFPList;
+    instrpos: ptrint;
+    l: tasmlabel;
+    inserted_something: boolean;
+  begin
+    // if certainly not enough instructions to cause an overflow, dont bother
+    if (list.count <= (high(smallint) div 4)) then
+      exit;
+    labelpositions := TFPList.create;
+    p := tai(list.first);
+    instrpos := 1;
+    // record label positions
+    while assigned(p) do
+      begin
+        if p.typ = ait_label then
+          begin
+            if (tai_label(p).labsym.labelnr >= labelpositions.count) then
+              labelpositions.count := tai_label(p).labsym.labelnr * 2;
+            labelpositions[tai_label(p).labsym.labelnr] := pointer(instrpos);
+          end;
+        { ait_const is for jump tables }
+        case p.typ of
+          ait_instruction:
+            { probleim here: pseudo-instructions can translate into
+              several CPU instructions, possibly depending on assembler options,
+              to obe on safe side, let's assume a mean of two. } 
+            inc(instrpos,2);
+          ait_const:
+            begin
+              if (tai_const(p).consttype<>aitconst_32bit) then
+                internalerror(2008052101);
+              inc(instrpos);
+            end;
+        end;
+        p := tai(p.next);
+      end;
+
+    { If the number of instructions is below limit, we can't overflow either }
+    if (instrpos <= (high(smallint) div 4)) then
+      exit;
+    // check and fix distances
+    repeat
+      inserted_something := false;
+      p := tai(list.first);
+      instrpos := 1;
+      while assigned(p) do
+        begin
+          case p.typ of
+            ait_label:
+              // update labelposition in case it changed due to insertion
+              // of jumps
+              begin
+                // can happen because of newly inserted labels
+                if (tai_label(p).labsym.labelnr > labelpositions.count) then
+                  labelpositions.count := tai_label(p).labsym.labelnr * 2;
+                labelpositions[tai_label(p).labsym.labelnr] := pointer(instrpos);
+              end;
+            ait_instruction:
+              begin
+                inc(instrpos,2);
+                case taicpu(p).opcode of
+                  A_BA:
+                    if (taicpu(p).oper[0]^.typ = top_ref) and
+                       assigned(taicpu(p).oper[0]^.ref^.symbol) and
+                       (taicpu(p).oper[0]^.ref^.symbol is tasmlabel) and
+                       (labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr] <> NIL) and
+{$push}
+{$q-}
+                       (ptruint(abs(ptrint(labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr]-instrpos)) - (low(smallint) div 4)) > ptruint((high(smallint) - low(smallint)) div 4)) then
+{$pop}
+                      begin
+                        { This is not PIC safe }
+                        taicpu(p).opcode:=A_J;
+                        newcomment:=tai_comment.create(strpnew('fixup_jmps, A_BA changed into A_J'));
+                        list.insertbefore(newcomment,p);
+                      end;
+                  A_BC:
+                    if (taicpu(p).ops=3) and (taicpu(p).oper[2]^.typ = top_ref) and
+                       assigned(taicpu(p).oper[2]^.ref^.symbol) and
+                       (taicpu(p).oper[2]^.ref^.symbol is tasmlabel) and
+                       (labelpositions[tasmlabel(taicpu(p).oper[2]^.ref^.symbol).labelnr] <> NIL) and
+{$push}
+{$q-}
+                       (ptruint(abs(ptrint(labelpositions[tasmlabel(taicpu(p).oper[2]^.ref^.symbol).labelnr]-instrpos)) - (low(smallint) div 4)) > ptruint((high(smallint) - low(smallint)) div 4)) then
+{$pop}
+                      begin
+                        // add a new label after this jump
+                        current_asmdata.getjumplabel(l);
+                        { new label -> may have to increase array size }
+                        if (l.labelnr >= labelpositions.count) then
+                          labelpositions.count := l.labelnr + 10;
+                        { newjmp will be inserted before the label, and it's inserted after }
+                        { plus delay slot                                                   } 
+                        { the current jump -> instrpos+3                                    }
+                        labelpositions[l.labelnr] := pointer(instrpos+2*3);
+                        pdelayslot:=tai(p.next);
+                        { We need to insert the new instruction after the delay slot instruction ! }
+                        while assigned(pdelayslot) and (pdelayslot.typ<>ait_instruction) do
+                          pdelayslot:=tai(pdelayslot.next);
+
+                        list.insertafter(tai_label.create(l),pdelayslot);
+                        // add a new unconditional jump between this jump and the label
+                        newcomment:=tai_comment.create(strpnew('fixup_jmps, A_BXX changed into A_BNOTXX label;A_J;label:'));
+                        list.insertbefore(newcomment,p);
+                        newjmp := taicpu.op_sym(A_J,taicpu(p).oper[2]^.ref^.symbol);
+                        newjmp.is_jmp := true;
+                        newjmp.fileinfo := taicpu(p).fileinfo;
+                        list.insertafter(newjmp,pdelayslot);
+                        inc(instrpos,2);
+                        { Add a delay slot for new A_J instruction }
+                        newnoop:=taicpu.op_none(A_NOP);
+                        newnoop.fileinfo := taicpu(p).fileinfo;
+                        list.insertafter(newnoop,newjmp);
+                        inc(instrpos,2);
+                        // change the conditional jump to point to the newly inserted label
+                        tasmlabel(taicpu(p).oper[2]^.ref^.symbol).decrefs;
+                        taicpu(p).oper[2]^.ref^.symbol := l;
+                        l.increfs;
+                        // and invert its condition code
+                        taicpu(p).condition := inverse_cond(taicpu(p).condition);
+                        // we inserted an instruction, so will have to check everything again
+                        inserted_something := true;
+                      end;
+                end;
+              end;
+            ait_const:
+              inc(instrpos);
+          end;
+          p := tai(p.next);
+        end;
+     until not inserted_something;
+    labelpositions.free;
   end;
 
 

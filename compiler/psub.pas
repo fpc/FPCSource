@@ -116,7 +116,7 @@ implementation
        opttail,
        optcse,optloop,
        optutils
-{$if defined(arm) or defined(powerpc) or defined(powerpc64) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
        ,aasmcpu
 {$endif arm}
        {$ifndef NOOPT}
@@ -1493,7 +1493,7 @@ implementation
             current_filepos:=exitpos;
             hlcg.gen_proc_symbol_end(templist);
             aktproccode.concatlist(templist);
-{$if defined(POWERPC) or defined(POWERPC64)}
+{$ifdef fpc_compiler_has_fixup_jmps}
             fixup_jmps(aktproccode);
 {$endif}
             { insert line debuginfo }

@@ -107,6 +107,7 @@
   {$define cpumm}
   {$define cpurox}
   {$define cpurefshaveindexreg}
+  {$define fpc_compiler_has_fixup_jmps}
 {$endif powerpc}
 
 {$ifdef powerpc64}
@@ -117,6 +118,7 @@
   {$define cpumm}
   {$define cpurox}
   {$define cpurefshaveindexreg}
+  {$define fpc_compiler_has_fixup_jmps}
 {$endif powerpc64}
 
 {$ifdef arm}
@@ -195,6 +197,7 @@
   {$define cpurequiresproperalignment}
   { define cpumm}
   {$define cpurefshaveindexreg}
+  {$define fpc_compiler_has_fixup_jmps}
 {$endif mips}
 
 {$ifdef jvm}

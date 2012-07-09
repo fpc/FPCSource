@@ -413,9 +413,6 @@ implementation
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
       var
         paraloc1,paraloc2,paraloc3 : tcgpara;
-{$ifdef MIPS}
-		sbl : tasmlabel;
-{$endif MIPS}
       begin
         paraloc1.init;
         paraloc2.init;
@@ -443,14 +440,7 @@ implementation
         cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
 
         cg.g_exception_reason_save(list, t.reasonbuf);
-{$ifdef MIPS}
-        current_asmdata.getjumplabel(sbl);
-		cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,OS_S32),sbl);
-        cg.a_jmp_always(list,exceptlabel);
-        cg.a_label(list,sbl);
-{$else not MIPS}
-          cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
-{$endif not MIPS}
+        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
         cg.dealloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
         paraloc1.done;
         paraloc2.done;

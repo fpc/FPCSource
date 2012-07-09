@@ -1323,12 +1323,7 @@ procedure TCGMIPS.a_jmp_always(List: tasmlist; l: TAsmLabel);
 var
   ai : Taicpu;
 begin
-  { Always use A_J instead of A_BA to avoid 
-    out of range error, but not for PIC code }
-  if (cs_create_pic in current_settings.moduleswitches) then
-    ai := taicpu.op_sym(A_BA, l)
-  else
-    ai := taicpu.op_sym(A_J, l);
+  ai := taicpu.op_sym(A_BA, l);
   list.concat(ai);
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
@@ -1337,12 +1332,7 @@ end;
 
 procedure TCGMIPS.a_jmp_name(list: tasmlist; const s: string);
 begin
-  { Always use A_J instead of A_BA to avoid 
-    out of range error, but not for PIC code }
-  if (cs_create_pic in current_settings.moduleswitches) then
-    List.Concat(TAiCpu.op_sym(A_BA, current_asmdata.RefAsmSymbol(s)))
-  else
-    List.Concat(TAiCpu.op_sym(A_J, current_asmdata.RefAsmSymbol(s)));
+  List.Concat(TAiCpu.op_sym(A_BA, current_asmdata.RefAsmSymbol(s)));
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;

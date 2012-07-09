@@ -32,12 +32,10 @@ interface
 
     type
        tcgdataconstnode = class(tdataconstnode)
-          function pass_1 : tnode;override;
           procedure pass_generate_code;override;
        end;
 
        tcgrealconstnode = class(trealconstnode)
-          function pass_1 : tnode;override;
           procedure pass_generate_code;override;
        end;
 
@@ -50,12 +48,10 @@ interface
        end;
 
        tcgstringconstnode = class(tstringconstnode)
-          function pass_1 : tnode;override;
           procedure pass_generate_code;override;
        end;
 
        tcgsetconstnode = class(tsetconstnode)
-          function pass_1 : tnode;override;
          protected
           function emitvarsetconst: tasmsymbol; virtual;
           procedure handlevarsetconst;
@@ -68,7 +64,6 @@ interface
        end;
 
        tcgguidconstnode = class(tguidconstnode)
-          function pass_1 : tnode;override;
           procedure pass_generate_code;override;
        end;
 
@@ -79,7 +74,7 @@ implementation
       globtype,widestr,systems,
       verbose,globals,cutils,
       symconst,symdef,aasmtai,aasmdata,aasmcpu,defutil,
-      procinfo,cpuinfo,cpubase,
+      cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
       ncgutil, cclasses,asmutils,tgobj
       ;
@@ -88,20 +83,6 @@ implementation
 {*****************************************************************************
                            TCGREALCONSTNODE
 *****************************************************************************}
-
-
-    procedure needs_got_for_pic;
-	  begin
-        if (cs_create_pic in current_settings.moduleswitches) and
-		   assigned(current_procinfo) then
-          include(current_procinfo.flags,pi_needs_got);
-      end;
-
-    function tcgdataconstnode.pass_1 : tnode;
-	  begin
-        pass_1:=inherited pass_1;
-		needs_got_for_pic;
-	  end;
 
     procedure tcgdataconstnode.pass_generate_code;
       var
@@ -126,12 +107,6 @@ implementation
 {*****************************************************************************
                            TCGREALCONSTNODE
 *****************************************************************************}
-
-    function tcgrealconstnode.pass_1 : tnode;
-	  begin
-        pass_1:=inherited pass_1;
-		needs_got_for_pic;
-	  end;
 
     procedure tcgrealconstnode.pass_generate_code;
       { I suppose the parser/pass_1 must make sure the generated real  }
@@ -280,12 +255,6 @@ implementation
                           TCGSTRINGCONSTNODE
 *****************************************************************************}
 
-    function tcgstringconstnode.pass_1 : tnode;
-	  begin
-        pass_1:=inherited pass_1;
-		needs_got_for_pic;
-	  end;
-
     procedure tcgstringconstnode.pass_generate_code;
       var
          lastlabel: tasmlabofs;
@@ -420,12 +389,6 @@ implementation
 {*****************************************************************************
                            TCGSETCONSTNODE
 *****************************************************************************}
-    function tcgsetconstnode.pass_1 : tnode;
-	  begin
-        pass_1:=inherited pass_1;
-		needs_got_for_pic;
-	  end;
-
 
     function tcgsetconstnode.emitvarsetconst: tasmsymbol;
       type
@@ -560,12 +523,6 @@ implementation
                           TCGGUIDCONSTNODE
 *****************************************************************************}
 
-    function tcgguidconstnode.pass_1 : tnode;
-	  begin
-        pass_1:=inherited pass_1;
-		needs_got_for_pic;
-	  end;
-
     procedure tcgguidconstnode.pass_generate_code;
       var
         tmplabel : TAsmLabel;
@@ -595,5 +552,4 @@ begin
    csetconstnode:=tcgsetconstnode;
    cnilnode:=tcgnilnode;
    cguidconstnode:=tcgguidconstnode;
-   global_used:=@needs_got_for_pic;
 end.
