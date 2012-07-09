@@ -506,7 +506,8 @@ type
   public
     Access: TArgumentAccess;
     ArgType: TPasType;
-    Value: string;
+    ValueExpr: TPasExpr;
+    Function Value : String;
   end;
 
   { TPasProcedureType }
@@ -1452,6 +1453,7 @@ destructor TPasArgument.Destroy;
 begin
   if Assigned(ArgType) then
     ArgType.Release;
+  FreeAndNil(ValueExpr);
   inherited Destroy;
 end;
 
@@ -2442,6 +2444,14 @@ begin
     end
   else If Full then
     Result:=Name
+  else
+    Result:='';
+end;
+
+function TPasArgument.Value: String;
+begin
+  If Assigned(ValueExpr) then
+    Result:=ValueExpr.GetDeclaration(true)
   else
     Result:='';
 end;
