@@ -20,6 +20,8 @@ os=`uname -s`
 
 if [ "$os" == "NetBSD" ] ; then
   needgsed=1
+else
+  needgsed=0
 fi
 
 SED=sed
@@ -37,7 +39,7 @@ fi
 for file in $@ ; do 
 
 echo "Looking for constants in \"$file\""
-$SED  -n "s:.*[[:space:]]\([a-zA-Z_][a-zA-Z_0-9]*\)[[:space:]]*=[[:space:]]*\([-+]*[0-9][xX]*[0-9+-\*/]*\)[[:space:]]*;.*:test_const \1 \2:p" $file  >  check_const_list.sh
+$SED  -n -e "s:.*[[:space:]]\([a-zA-Z_][a-zA-Z_0-9]*\)[[:space:]]*=[[:space:]]*\([-+]*[0-9][xX]*[-0-9+[:space:]]*\)[[:space:]]*;.*:test_const \1 \2:p" $file  >  check_const_list.sh
 
 test_const ()
 {
