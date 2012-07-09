@@ -143,4 +143,5 @@ List of missing system error number found in
         ESysEKEYREJECTED     =  164; {  Key was rejected by service  }
         ESysEOWNERDEAD       =  165; {  Owner died  }
         ESysENOTRECOVERABLE  =  166; {  State not recoverable  }
+        ESysERFKILL          =  167; {  Operation not possible due to RF-kill  }
         ESysEDQUOT           = 1133; {  Quota exceeded  }
