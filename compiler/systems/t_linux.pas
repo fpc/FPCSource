@@ -305,6 +305,8 @@ begin
   sysinitunit:=defsinames[current_module.islibrary];
   prtobj:=defprtnames[current_module.islibrary];
 
+  if current_module.islibrary then
+    exit;
   if cs_profile in current_settings.moduleswitches then
     begin
       prtobj:=gprtnames[libctype];
