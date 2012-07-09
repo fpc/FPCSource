@@ -120,11 +120,7 @@ interface
        oso_Data,
        { Is loaded into memory }
        oso_load,
-       { Not loaded into memory }
-       oso_noload,
-       { Read only }
-       oso_readonly,
-       { Read/Write }
+       { Writable }
        oso_write,
        { Contains executable instructions }
        oso_executable,
@@ -908,7 +904,7 @@ implementation
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
           {user} [oso_Data,oso_load,oso_write,oso_keep],
-          {code} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
+          {code} [oso_Data,oso_load,oso_executable,oso_keep],
           {Data} [oso_Data,oso_load,oso_write,oso_keep],
 { TODO: Fix sec_rodata be read-only-with-relocs}
           {roData} [oso_Data,oso_load,oso_write,oso_keep],
@@ -920,29 +916,29 @@ implementation
                        ,oso_keep
 {$endif FPC_USE_TLS_DIRECTORY}
           ],
-          {pdata} [oso_data,oso_load,oso_readonly {$ifndef x86_64},oso_keep{$endif}],
-          {stub} [oso_Data,oso_load,oso_readonly,oso_executable],
+          {pdata} [oso_data,oso_load {$ifndef x86_64},oso_keep{$endif}],
+          {stub} [oso_Data,oso_load,oso_executable],
           {data_nonlazy}  [oso_Data,oso_load,oso_write],
           {data_lazy} [oso_Data,oso_load,oso_write],
           {init_func} [oso_Data,oso_load],
           {term_func} [oso_Data,oso_load],
-          {stab} [oso_Data,oso_noload,oso_debug],
-          {stabstr} [oso_Data,oso_noload,oso_strings,oso_debug],
+          {stab} [oso_Data,oso_debug],
+          {stabstr} [oso_Data,oso_strings,oso_debug],
           {iData2} [oso_Data,oso_load,oso_write],
           {iData4} [oso_Data,oso_load,oso_write],
           {iData5} [oso_Data,oso_load,oso_write],
           {iData6} [oso_Data,oso_load,oso_write],
           {iData7} [oso_Data,oso_load,oso_write],
-          {eData} [oso_Data,oso_load,oso_readonly],
-          {eh_frame} [oso_Data,oso_load,oso_readonly],
-          {debug_frame} [oso_Data,oso_noload,oso_debug],
-          {debug_info} [oso_Data,oso_noload,oso_debug],
-          {debug_line} [oso_Data,oso_noload,oso_debug],
-          {debug_abbrev} [oso_Data,oso_noload,oso_debug],
+          {eData} [oso_Data,oso_load],
+          {eh_frame} [oso_Data,oso_load],
+          {debug_frame} [oso_Data,oso_debug],
+          {debug_info} [oso_Data,oso_debug],
+          {debug_line} [oso_Data,oso_debug],
+          {debug_abbrev} [oso_Data,oso_debug],
           {fpc} [oso_Data,oso_load,oso_write,oso_keep],
-          {toc} [oso_Data,oso_load,oso_readonly],
-          {init} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
-          {fini} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
+          {toc} [oso_Data,oso_load],
+          {init} [oso_Data,oso_load,oso_executable,oso_keep],
+          {fini} [oso_Data,oso_load,oso_executable,oso_keep],
           {objc_class} [oso_data,oso_load],
           {objc_meta_class} [oso_data,oso_load],
           {objc_cat_cls_meth} [oso_data,oso_load],

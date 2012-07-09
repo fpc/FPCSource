@@ -677,13 +677,9 @@ implementation
           include(aoptions,oso_strings);
         { Section Flags }
         if Ashflags and SHF_ALLOC<>0 then
-          include(aoptions,oso_load)
-        else
-          include(aoptions,oso_noload);
+          include(aoptions,oso_load);
         if Ashflags and SHF_WRITE<>0 then
-          include(aoptions,oso_write)
-        else
-          include(aoptions,oso_readonly);
+          include(aoptions,oso_write);
         if Ashflags and SHF_EXECINSTR<>0 then
           include(aoptions,oso_executable);
       end;

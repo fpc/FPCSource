@@ -769,16 +769,11 @@ const pemagic : array[0..3] of byte = (
           include(aoptions,oso_debug);
         if flags and PE_SCN_CNT_UNINITIALIZED_DATA=0 then
           include(aoptions,oso_data);
-        if (flags and PE_SCN_LNK_REMOVE<>0) or
-           (flags and PE_SCN_MEM_DISCARDABLE<>0) then
-          include(aoptions,oso_noload)
-        else
+        if (flags and (PE_SCN_LNK_REMOVE or PE_SCN_MEM_DISCARDABLE)=0) then
           include(aoptions,oso_load);
         { read/write }
         if flags and PE_SCN_MEM_WRITE<>0 then
-          include(aoptions,oso_write)
-        else
-          include(aoptions,oso_readonly);
+          include(aoptions,oso_write);
         { alignment }
         alignflag:=flags and PE_SCN_ALIGN_MASK;
         if alignflag=PE_SCN_ALIGN_64BYTES then
@@ -2336,7 +2331,7 @@ const pemagic : array[0..3] of byte = (
           begin
             idataExeSec:=FindExeSection('.idata');
             if idataExeSec<>nil then
-              idataExeSec.SecOptions:=idataExeSec.SecOptions - [oso_write] + [oso_readonly];
+              idataExeSec.SecOptions:=idataExeSec.SecOptions - [oso_write];
           end;
 
         { Section headers }
