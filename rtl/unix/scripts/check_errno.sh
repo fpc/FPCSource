@@ -175,6 +175,10 @@ function check_reverse_errno_number ()
   errname=$1
   errvalue=$2
   rpaderrname=$(rpad $errname 20 " ")
+  if ! [[ "$errvalue" =~ ^[0-9]+$ ]] ; then
+    eval errvalue=\$$errvalue
+  fi
+  
   printf -v padd "%s = %4d" "$rpaderrname" $errvalue
 
   found=`grep -i -w $1 ${errno_include}`
