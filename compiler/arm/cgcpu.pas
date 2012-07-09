@@ -211,9 +211,16 @@ unit cgcpu;
         inherited init_register_allocators;
         { currently, we always save R14, so we can use it }
         if (target_info.system<>system_arm_darwin) then
-          rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R12,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-               RS_R9,RS_R10,RS_R14],first_int_imreg,[])
+            begin
+              if assigned(current_procinfo) and (current_procinfo.framepointer<>NR_R11) then
+                rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+                    [RS_R0,RS_R1,RS_R2,RS_R3,RS_R12,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+                     RS_R9,RS_R10,RS_R11,RS_R14],first_int_imreg,[])
+              else
+                rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+                    [RS_R0,RS_R1,RS_R2,RS_R3,RS_R12,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+                     RS_R9,RS_R10,RS_R14],first_int_imreg,[])
+            end
         else
           { r7 is not available on Darwin, it's used as frame pointer (always,
             for backtrace support -- also in gcc/clang -> R11 can be used).
