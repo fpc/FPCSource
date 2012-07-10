@@ -835,9 +835,9 @@ implementation
                  { call method }
                  extra_call_code;
 {$ifdef x86}
-                 cg.a_call_ref(current_asmdata.CurrAsmList,href);
+                 hlcg.a_call_ref(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),href);
 {$else x86}
-                 cg.a_call_reg(current_asmdata.CurrAsmList,pvreg);
+                 hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg);
 {$endif x86}
                  extra_post_call_code;
                end
@@ -913,7 +913,7 @@ implementation
               if (po_interrupt in procdefinition.procoptions) then
                 extra_interrupt_code;
               extra_call_code;
-              cg.a_call_reg(current_asmdata.CurrAsmList,pvreg);
+              hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg);
               extra_post_call_code;
            end;
 
