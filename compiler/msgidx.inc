@@ -416,6 +416,7 @@ const
   parser_d_internal_parser_string=03319;
   parser_e_feature_unsupported_for_vm=03320;
   parser_e_jvm_invalid_virtual_constructor_call=03321;
+  parser_e_method_lower_visibility=03322;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -943,9 +944,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 65908;
+  MsgTxtSize = 66002;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,92,322,118,87,56,116,26,202,63,
+    26,92,323,118,87,56,116,26,202,63,
     53,20,1,1,1,1,1,1,1,1
   );

@@ -390,7 +390,7 @@ scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not a
 #
 # Parser
 #
-# 03321 is the last used one
+# 03322 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1199,8 +1199,8 @@ parser_e_forward_mismatch=03249_E_Forward type definition does not match
 % when being implemented. A forward interface cannot be changed into a class.
 parser_n_ignore_lower_visibility=03250_N_Virtual method "$1" has a lower visibility ($2) than parent class $3 ($4)
 % The virtual method overrides an method that is declared with a higher visibility. This might give
-% unexpected results. In case the new visibility is private than it might be that a call to inherited in a
-% new child class will call the higher visible method in a parent class and ignores the private method.
+% unexpected results. E.g., in case the new visibility is private then a call to ``inherited'' in a
+% new child class will call the higher-visible method in a parent class and ignores the private method.
 parser_e_field_not_allowed_here=03251_E_Fields cannot appear after a method or property definition, start a new visibility section first
 % Once a method or property has been defined in a class or object, you cannot define any fields afterwards
 % without starting a new visibility section (such as \var{public}, \var{private}, etc.). The reason is
@@ -1444,6 +1444,8 @@ parser_e_jvm_invalid_virtual_constructor_call=03321_E_Calling a virtual construc
 % The JVM does not natively support virtual constructor. Unforunately, we are not aware of a way to
 % emulate them in a way that makes it possible to support calling virtual constructors
 % for the current instance inside another constructor.
+parser_e_method_lower_visibility=03322_E_Overring method "$1" cannot have a lower visibility ($2) than in parent class $3 ($4)
+% The JVM does not allow lowering the visibility of an overriding method.
 % \end{description}
 # Type Checking
 #
