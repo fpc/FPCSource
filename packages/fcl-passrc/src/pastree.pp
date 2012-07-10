@@ -103,6 +103,7 @@ type
     FName: string;
     FParent: TPasElement;
     FHints : TPasMemberHints;
+    FHintMessage : String;
   protected
     procedure ProcessHints(const ASemiColonPrefix: boolean; var AResult: string); virtual;
   public
@@ -125,6 +126,7 @@ type
     property Parent: TPasElement read FParent;
     Property Hints : TPasMemberHints Read FHints Write FHints;
     Property CustomData : TObject Read FData Write FData;
+    Property HintMessage : String Read FHintMessage Write FHintMessage;
   end;
 
   TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst, pekRange,

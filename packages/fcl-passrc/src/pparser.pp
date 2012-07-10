@@ -55,6 +55,7 @@ resourcestring
 
   SLogStartImplementation = 'Start parsing implementation section.';
   SLogStartInterface = 'Start parsing interface section';
+  SParsingUsedUnit = 'Parsing used unit "%s" with commandLine "%s"';
 
 type
   TPasParserLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
@@ -657,7 +658,17 @@ begin
     NextToken;
     Found:=IsCurTokenHint(h);
     If Found then
-      Include(Result,h)
+      begin
+      Include(Result,h);
+      if (h=hDeprecated) then
+        begin
+        NextToken;
+        if (Curtoken<>tkString) then
+          UnGetToken
+        else
+          Element.HintMessage:=CurTokenString;
+        end;
+      end;
   Until Not Found;
   UnGetToken;
   If Assigned(Element) then
