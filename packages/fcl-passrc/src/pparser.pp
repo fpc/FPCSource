@@ -42,6 +42,7 @@ resourcestring
   SParserExpectedColonSemicolon = 'Expected ":" or ";"';
   SParserExpectedSemiColonEnd = 'Expected ";" or "End"';
   SParserExpectedConstVarID = 'Expected "const", "var" or identifier';
+  SParserExpectedNested = 'Expected nested keyword';
   SParserExpectedColonID = 'Expected ":" or identifier';
   SParserSyntaxError = 'Syntax error';
   SParserTypeSyntaxError = 'Syntax error in type';
@@ -2492,7 +2493,7 @@ begin
       begin
       NextToken;
       if (CurToken = tkSemicolon) or IsCurtokenHint
-        or (OfObjectPossible and (CurToken in [tkOf,tkEqual]))
+        or (OfObjectPossible and (CurToken in [tkOf,tkis,tkEqual]))
       then
         UngetToken
       else
@@ -2517,15 +2518,25 @@ begin
           ParseType(nil);
       end;
   end;
-
-  NextToken;
-  if OfObjectPossible and (CurToken = tkOf) then
-  begin
-    ExpectToken(tkObject);
-    Element.IsOfObject := True;
-  end else
-    UngetToken;
-
+  
+  if OfObjectPossible then
+    begin
+    NextToken;
+    if (curToken =tkOf) then
+      begin
+      ExpectToken(tkObject);
+      Element.IsOfObject := True;
+      end 
+    else if (curToken = tkIs) then
+      begin
+      expectToken(tkIdentifier);
+      if (lowerCase(CurTokenString)<>'nested') then
+        ParseExc(SParserExpectedNested);
+      Element.isNested:=True;
+      end
+    else
+      UnGetToken;  
+    end;  
   NextToken;
   if CurToken = tkEqual then
   begin

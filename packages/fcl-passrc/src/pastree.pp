@@ -525,6 +525,7 @@ type
     function CreateArgument(const AName, AUnresolvedTypeName: string):TPasArgument;
   public
     IsOfObject: Boolean;
+    IsNested : Boolean;
     Args: TFPList;        // List of TPasArgument objects
     CallingConvention : TCallingConvention;
   end;
