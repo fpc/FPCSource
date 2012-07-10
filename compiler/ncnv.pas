@@ -134,6 +134,7 @@ interface
           function first_cstring_to_int : tnode;virtual;
           function first_string_to_chararray : tnode;virtual;
           function first_char_to_string : tnode;virtual;
+          function first_char_to_chararray : tnode; virtual;
           function first_nothing : tnode;virtual;
           function first_array_to_pointer : tnode;virtual;
           function first_int_to_real : tnode;virtual;
@@ -163,6 +164,7 @@ interface
           function _first_cstring_to_int : tnode;
           function _first_string_to_chararray : tnode;
           function _first_char_to_string : tnode;
+          function _first_char_to_chararray : tnode;
           function _first_nothing : tnode;
           function _first_array_to_pointer : tnode;
           function _first_int_to_real : tnode;
@@ -1277,16 +1279,7 @@ implementation
 
     function ttypeconvnode.typecheck_char_to_chararray : tnode;
       begin
-        if resultdef.size <> 1 then
-          begin
-            { convert first to string, then to chararray }
-            inserttypeconv(left,cshortstringtype);
-            inserttypeconv(left,resultdef);
-            result:=left;
-            left := nil;
-            exit;
-          end;
-        result := nil;
+        result:=nil;
       end;
 
 
@@ -2825,6 +2818,22 @@ implementation
       end;
 
 
+    function ttypeconvnode.first_char_to_chararray : tnode;
+
+      begin
+        if resultdef.size <> 1 then
+          begin
+            { convert first to string, then to chararray }
+            inserttypeconv(left,cshortstringtype);
+            inserttypeconv(left,resultdef);
+            result:=left;
+            left := nil;
+            exit;
+          end;
+        result := nil;
+      end;
+
+
     function ttypeconvnode.first_nothing : tnode;
       begin
          first_nothing:=nil;
@@ -3334,6 +3343,11 @@ implementation
          result:=first_char_to_string;
       end;
 
+    function ttypeconvnode._first_char_to_chararray: tnode;
+      begin
+        result:=first_char_to_chararray;
+      end;
+
     function ttypeconvnode._first_nothing : tnode;
       begin
          result:=first_nothing;
@@ -3433,7 +3447,7 @@ implementation
            @ttypeconvnode._first_nothing, {not_possible}
            @ttypeconvnode._first_string_to_string,
            @ttypeconvnode._first_char_to_string,
-           @ttypeconvnode._first_nothing, { char_2_chararray, needs nothing extra }
+           @ttypeconvnode._first_char_to_chararray,
            nil, { removed in typecheck_chararray_to_string }
            @ttypeconvnode._first_cchar_to_pchar,
            @ttypeconvnode._first_cstring_to_pchar,
