@@ -45,8 +45,8 @@ Type
     Property Scanner : TJSONScanner read FScanner;
   Public
     function Parse: TJSONData;
-    Constructor Create(Source : TStream; AUseUTF8 : Boolean = False); overload;
-    Constructor Create(Source : TJSONStringType; AUseUTF8 : Boolean = False); overload;
+    Constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload;
+    Constructor Create(Source : TJSONStringType; AUseUTF8 : Boolean = True); overload;
     destructor Destroy();override;
     // Use strict JSON: " for strings, object members are strings, not identifiers
     Property Strict : Boolean Read FStrict Write SetStrict;
@@ -272,14 +272,14 @@ begin
   Raise EJSONParser.Create(S);
 end;
 
-constructor TJSONParser.Create(Source: TStream; AUseUTF8 : Boolean = False);
+constructor TJSONParser.Create(Source: TStream; AUseUTF8 : Boolean = True);
 begin
   Inherited Create;
   FScanner:=TJSONScanner.Create(Source);
   UseUTF8:=AUseUTF8;
 end;
 
-constructor TJSONParser.Create(Source: TJSONStringType; AUseUTF8 : Boolean = False);
+constructor TJSONParser.Create(Source: TJSONStringType; AUseUTF8 : Boolean = True);
 begin
   Inherited Create;
   FScanner:=TJSONScanner.Create(Source);

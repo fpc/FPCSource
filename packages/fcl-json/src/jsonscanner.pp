@@ -67,8 +67,8 @@ type
     procedure Error(const Msg: string; Args: array of Const);overload;
     function DoFetchToken: TJSONToken;
   public
-    constructor Create(Source : TStream; AUseUTF8 : Boolean = False); overload;
-    constructor Create(const Source : String; AUseUTF8 : Boolean = False); overload;
+    constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload;
+    constructor Create(const Source : String; AUseUTF8 : Boolean = True); overload;
     destructor Destroy; override;
     function FetchToken: TJSONToken;
 
@@ -107,7 +107,7 @@ const
 
 implementation
 
-constructor TJSONScanner.Create(Source : TStream; AUseUTF8 : Boolean = False);
+constructor TJSONScanner.Create(Source : TStream; AUseUTF8 : Boolean = True);
 
 begin
   FSource:=TStringList.Create;
@@ -115,7 +115,7 @@ begin
   FUseUTF8:=AUseUTF8;
 end;
 
-constructor TJSONScanner.Create(const Source : String; AUseUTF8 : Boolean = False);
+constructor TJSONScanner.Create(const Source : String; AUseUTF8 : Boolean = True);
 begin
   FSource:=TStringList.Create;
   FSource.Text:=Source;
