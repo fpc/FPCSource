@@ -308,11 +308,11 @@ implementation
           padding           : array[$07..$0f] of byte;
           e_type            : word;
           e_machine         : word;
-          e_version         : longint;
-          e_entry           : longint;          { entrypoint }
-          e_phoff           : longint;          { program header offset }
-          e_shoff           : longint;          { sections header offset }
-          e_flags           : longint;
+          e_version         : longword;
+          e_entry           : longword;         { entrypoint }
+          e_phoff           : longword;         { program header offset }
+          e_shoff           : longword;         { sections header offset }
+          e_flags           : longword;
           e_ehsize          : word;             { elf header size in bytes }
           e_phentsize       : word;             { size of an entry in the program header array }
           e_phnum           : word;             { 0..e_phnum-1 of entrys }
@@ -321,16 +321,16 @@ implementation
           e_shstrndx        : word;             { index of string section header }
         end;
         TElf32sechdr=packed record
-          sh_name           : longint;
-          sh_type           : longint;
-          sh_flags          : longint;
-          sh_addr           : longint;
-          sh_offset         : longint;
-          sh_size           : longint;
-          sh_link           : longint;
-          sh_info           : longint;
-          sh_addralign      : longint;
-          sh_entsize        : longint;
+          sh_name           : longword;
+          sh_type           : longword;
+          sh_flags          : longword;
+          sh_addr           : longword;
+          sh_offset         : longword;
+          sh_size           : longword;
+          sh_link           : longword;
+          sh_info           : longword;
+          sh_addralign      : longword;
+          sh_entsize        : longword;
         end;
         TElf32proghdr=packed record
           p_type            : longword;
@@ -343,14 +343,14 @@ implementation
           p_align           : longword;
         end;
         TElf32reloc=packed record
-          address : longint;
-          info    : longint; { bit 0-7: type, 8-31: symbol }
+          address : longword;
+          info    : longword; { bit 0-7: type, 8-31: symbol }
           addend  : longint;
         end;
         TElf32symbol=packed record
-          st_name  : longint;
-          st_value : longint;
-          st_size  : longint;
+          st_name  : longword;
+          st_value : longword;
+          st_size  : longword;
           st_info  : byte; { bit 0-3: type, 4-7: bind }
           st_other : byte;
           st_shndx : word;
@@ -371,11 +371,11 @@ implementation
           padding           : array[$07..$0f] of byte;
           e_type            : word;
           e_machine         : word;
-          e_version         : longint;
+          e_version         : longword;
           e_entry           : qword;            { entrypoint }
           e_phoff           : qword;            { program header offset }
           e_shoff           : qword;            { sections header offset }
-          e_flags           : longint;
+          e_flags           : longword;
           e_ehsize          : word;             { elf header size in bytes }
           e_phentsize       : word;             { size of an entry in the program header array }
           e_phnum           : word;             { 0..e_phnum-1 of entrys }
@@ -384,14 +384,14 @@ implementation
           e_shstrndx        : word;             { index of string section header }
         end;
         telf64sechdr=packed record
-          sh_name           : longint;
-          sh_type           : longint;
+          sh_name           : longword;
+          sh_type           : longword;
           sh_flags          : qword;
           sh_addr           : qword;
           sh_offset         : qword;
           sh_size           : qword;
-          sh_link           : longint;
-          sh_info           : longint;
+          sh_link           : longword;
+          sh_info           : longword;
           sh_addralign      : qword;
           sh_entsize        : qword;
         end;
@@ -411,7 +411,7 @@ implementation
           addend  : int64; { signed! }
         end;
         telf64symbol=packed record
-          st_name  : longint;
+          st_name  : longword;
           st_info  : byte; { bit 0-3: type, 4-7: bind }
           st_other : byte;
           st_shndx : word;
