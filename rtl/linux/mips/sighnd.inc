@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; UContext: PUContext);cdecl;
 var
   res : word;
   addr : pointer;
@@ -59,10 +59,10 @@ begin
   { give runtime error at the position where the signal was raised }
   if res<>0 then
     begin
-      if assigned(SigContext) then
+      if assigned(UContext) then
         begin
-          frame:=pointer(ptruint(SigContext^.sigc_regs[29]));   { stack pointer }
-          addr:=pointer(ptruint(SigContext^.sigc_pc));  { program counter }
+          frame:=pointer(ptruint(UContext^.uc_mcontext.sigc_regs[29]));   { stack pointer }
+          addr:=pointer(ptruint(UContext^.uc_mcontext.sigc_pc));  { program counter }
         end
       else
         begin
