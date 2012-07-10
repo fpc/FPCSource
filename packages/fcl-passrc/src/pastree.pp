@@ -2133,7 +2133,9 @@ begin
     S.Add(TypeName);
     GetArguments(S);
     If IsOfObject then
-      S.Add(' of object');
+      S.Add(' of object')
+    else if IsNested then
+      S.Add(' is nested');
     If Full then
       Result:=IndentStrings(S,Length(S[0])+Length(S[1])+1)
     else
