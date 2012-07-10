@@ -28,6 +28,7 @@ begin
         begin
           addr := siginfo^._sifields._sigfault._addr;
           res := 207;
+          
           case  siginfo^.si_code of
             FPE_INTDIV:
               res:=200;
@@ -63,12 +64,27 @@ begin
         begin
           frame:=pointer(ptruint(UContext^.uc_mcontext.sigc_regs[29]));   { stack pointer }
           addr:=pointer(ptruint(UContext^.uc_mcontext.sigc_pc));  { program counter }
+          if sig=SIGFPE then
+            begin
+              { Clear FPU exception bits }
+              UContext^.uc_mcontext.sigc_fpc_csr := UContext^.uc_mcontext.sigc_fpc_csr 
+                and not (fpu_cause_mask or fpu_flags_mask);
+            end;             
+          { Change $a1, $a2, $a3 and sig_pc to HandleErrorAddrFrame parameters }
+          UContext^.uc_mcontext.sigc_regs[4]:=res;
+          UContext^.uc_mcontext.sigc_regs[5]:=ptrint(addr);
+          UContext^.uc_mcontext.sigc_regs[6]:=ptrint(frame);
+          UContext^.uc_mcontext.sigc_pc:=ptrint(@HandleErrorAddrFrame);
+          { Let the system call HandleErrorAddrFrame }
+          exit;
         end
       else
         begin
           frame:=nil;
           addr:=nil;
         end;
+      if sig=SIGFPE then
+        set_fsr(get_fsr and not (fpu_cause_mask or fpu_flags_mask));
       HandleErrorAddrFrame(res,addr,frame);
     end;
 end;
