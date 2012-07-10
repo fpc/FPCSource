@@ -28,9 +28,12 @@ Type
   TJSONParser = Class(TObject)
   Private
     FScanner : TJSONScanner;
+    FuseUTF8,
     FStrict: Boolean;
     function ParseNumber: TJSONNumber;
     procedure SetStrict(const AValue: Boolean);
+    function GetUTF8 : Boolean;
+    procedure SetUTF8(const AValue: Boolean);
   Protected
     procedure DoError(const Msg: String);
     function DoParse(AtCurrent,AllowEOF: Boolean): TJSONData;
@@ -42,11 +45,13 @@ Type
     Property Scanner : TJSONScanner read FScanner;
   Public
     function Parse: TJSONData;
-    Constructor Create(Source : TStream); overload;
-    Constructor Create(Source : TJSONStringType); overload;
+    Constructor Create(Source : TStream; AUseUTF8 : Boolean = False); overload;
+    Constructor Create(Source : TJSONStringType; AUseUTF8 : Boolean = False); overload;
     destructor Destroy();override;
     // Use strict JSON: " for strings, object members are strings, not identifiers
     Property Strict : Boolean Read FStrict Write SetStrict;
+    // if set to TRUE, then strings will be converted to UTF8 ansistrings, not system codepage ansistrings.
+    Property UseUTF8 : Boolean Read GetUTF8 Write SetUTF8;
   end;
   
   EJSONParser = Class(EParserError);
@@ -152,6 +157,23 @@ begin
     end;
 end;
 
+function TJSONParser.GetUTF8 : Boolean;
+
+begin
+  if Assigned(FScanner) then
+    Result:=FScanner.UseUTF8
+  else
+    Result:=FUseUTF8;  
+end;
+
+procedure TJSONParser.SetUTF8(const AValue: Boolean);
+
+begin
+  FUseUTF8:=AValue;
+  if Assigned(FScanner) then
+    FScanner.UseUTF8:=FUseUTF8;
+end;
+
 procedure TJSONParser.SetStrict(const AValue: Boolean);
 begin
   if (FStrict=AValue) then
@@ -250,16 +272,18 @@ begin
   Raise EJSONParser.Create(S);
 end;
 
-constructor TJSONParser.Create(Source: TStream);
+constructor TJSONParser.Create(Source: TStream; AUseUTF8 : Boolean = False);
 begin
   Inherited Create;
   FScanner:=TJSONScanner.Create(Source);
+  UseUTF8:=AUseUTF8;
 end;
 
-constructor TJSONParser.Create(Source: TJSONStringType);
+constructor TJSONParser.Create(Source: TJSONStringType; AUseUTF8 : Boolean = False);
 begin
   Inherited Create;
   FScanner:=TJSONScanner.Create(Source);
+  UseUTF8:=AUseUTF8;
 end;
 
 destructor TJSONParser.Destroy();

@@ -59,6 +59,7 @@ type
     FCurTokenString: string;
     FCurLine: string;
     FStrict: Boolean;
+    FUseUTF8 : Boolean;
     TokenStr: PChar;
     function GetCurColumn: Integer;
   protected
@@ -66,8 +67,8 @@ type
     procedure Error(const Msg: string; Args: array of Const);overload;
     function DoFetchToken: TJSONToken;
   public
-    constructor Create(Source : TStream); overload;
-    constructor Create(const Source : String); overload;
+    constructor Create(Source : TStream; AUseUTF8 : Boolean = False); overload;
+    constructor Create(const Source : String; AUseUTF8 : Boolean = False); overload;
     destructor Destroy; override;
     function FetchToken: TJSONToken;
 
@@ -80,6 +81,8 @@ type
     property CurTokenString: string read FCurTokenString;
     // Use strict JSON: " for strings, object members are strings, not identifiers
     Property Strict : Boolean Read FStrict Write FStrict;
+    // if set to TRUE, then strings will be converted to UTF8 ansistrings, not system codepage ansistrings.
+    Property UseUTF8 : Boolean Read FUseUTF8 Write FUseUTF8;
   end;
 
 const
@@ -104,17 +107,19 @@ const
 
 implementation
 
-constructor TJSONScanner.Create(Source : TStream);
+constructor TJSONScanner.Create(Source : TStream; AUseUTF8 : Boolean = False);
 
 begin
   FSource:=TStringList.Create;
   FSource.LoadFromStream(Source);
+  FUseUTF8:=AUseUTF8;
 end;
 
-constructor TJSONScanner.Create(const Source : String);
+constructor TJSONScanner.Create(const Source : String; AUseUTF8 : Boolean = False);
 begin
   FSource:=TStringList.Create;
   FSource.Text:=Source;
+  FUseUTF8:=AUseUTF8;
 end;
 
 destructor TJSONScanner.Destroy;
@@ -235,8 +240,11 @@ begin
                         Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
                       end;
                       end;
-                    // Takes care of conversion...  
-                    S:=WideChar(StrToInt('$'+S));  
+                    // WideChar takes care of conversion...  
+                    if UseUTF8 then
+                      S:=Utf8Encode(WideString(WideChar(StrToInt('$'+S))))
+                    else
+                      S:=WideChar(StrToInt('$'+S));  
                     end;
               #0  : Error(SErrOpenString);
             else
