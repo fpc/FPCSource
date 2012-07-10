@@ -496,7 +496,7 @@ type
 
 
 
-  TArgumentAccess = (argDefault, argConst, argVar, argOut);
+  TArgumentAccess = (argDefault, argConst, argVar, argOut, argConstRef);
 
   { TPasArgument }
 
@@ -1032,7 +1032,7 @@ type
   end;
 
 const
-  AccessNames: array[TArgumentAccess] of string[6] = ('', 'const ', 'var ', 'out ');
+  AccessNames: array[TArgumentAccess] of string[9] = ('', 'const ', 'var ', 'out ','constref ');
   AllVisibilities: TPasMemberVisibilities =
      [visDefault, visPrivate, visProtected, visPublic,
       visPublished, visAutomated];

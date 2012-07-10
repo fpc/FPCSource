@@ -2357,6 +2357,10 @@ begin
         begin
           Access := argConst;
           Name := ExpectIdentifier;
+        end else if CurToken = tkConstRef then
+        begin
+          Access := argConstref;
+          Name := ExpectIdentifier;
         end else if CurToken = tkVar then
         begin
           Access := ArgVar;
@@ -2597,6 +2601,14 @@ begin
       if IsCurTokenHint(ahint) then  // deprecated,platform,experimental,library, unimplemented etc
         begin
         element.hints:=element.hints+[ahint];
+        if aHint=hDeprecated then
+          begin
+          nextToken;
+          if (CurToken<>tkString) then
+            UnGetToken
+          else
+            element.HintMessage:=curtokenstring;
+          end;  
         consumesemi;
         end
       else if (tok = 'PUBLIC') then
