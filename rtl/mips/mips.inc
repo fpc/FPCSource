@@ -48,6 +48,8 @@ const
   default_fpu_enable = fpu_enable_div_zero or fpu_enable_invalid;
 
   fpu_flags_mask = $7C;
+  fpu_cause_mask = $3F000;
+
   { FPU rounding mask and values }
   fpu_rounding_mask    = $3;
   fpu_rounding_nearest = 0;
@@ -67,8 +69,8 @@ var
         { enable div by 0 and invalid operation fpu exceptions,
           disable the other exceptions }
         tmp32 := (tmp32 and not fpu_enable_mask) or default_fpu_enable;
-        { Reset flags }
-        tmp32 := tmp32 and not fpu_flags_mask;
+        { Reset flags and cause }
+        tmp32 := tmp32 and not (fpu_flags_mask or fpu_cause_mask);
 
         { round towards nearest; ieee compliant arithmetics }
         tmp32 := (tmp32 and not fpu_rounding_mask) or fpu_rounding_nearest;
