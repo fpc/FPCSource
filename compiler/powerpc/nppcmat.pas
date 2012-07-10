@@ -403,7 +403,13 @@ end;
                      cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reglo);
                      cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reglo);
                    end
-                 else } if shiftval > 31 then
+                 else }
+                 if shiftval = 0 then
+                   begin
+                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.register64.reghi,location.register64.reghi);
+                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.register64.reglo,location.register64.reglo);
+                   end
+                 else if shiftval > 31 then
                    begin
                      if nodetype = shln then
                        begin
