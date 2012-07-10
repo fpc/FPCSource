@@ -39,7 +39,6 @@ interface
     type
        TElfObjSection = class(TObjSection)
        public
-          secshidx  : longint; { index for the section in symtab }
           shstridx,
           shtype,
           shflags,
@@ -692,7 +691,7 @@ implementation
     constructor TElfObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);
       begin
         inherited create(AList,Aname,Aalign,aoptions);
-        secshidx:=0;
+        index:=0;
         shstridx:=0;
         encodesechdrflags(aoptions,shtype,shflags);
         shlink:=0;
@@ -709,7 +708,7 @@ implementation
         decodesechdrflags(Ashtype,Ashflags,aoptions);
         inherited create(aobjdata.ObjSectionList,Aname,Aalign,aoptions);
         objdata:=aobjdata;
-        secshidx:=0;
+        index:=0;
         shstridx:=0;
         shtype:=AshType;
         shflags:=AshFlags;
@@ -1049,7 +1048,7 @@ implementation
             else
               begin
                 if assigned(objsym.objsection) then
-                  elfsym.st_shndx:=TElfObjSection(objsym.objsection).secshidx
+                  elfsym.st_shndx:=objsym.objsection.index
                 else
                   elfsym.st_shndx:=SHN_UNDEF;
                 objsym.symidx:=symidx;
@@ -1084,9 +1083,9 @@ implementation
          begin
            { create the reloc section }
            if relocs_use_addend then
-             relocsect:=TElfObjSection.create_ext(data,'.rela'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,3*sizeof(pint))
+             relocsect:=TElfObjSection.create_ext(data,'.rela'+s.name,SHT_RELA,0,symtabsect.index,s.index,4,3*sizeof(pint))
            else
-             relocsect:=TElfObjSection.create_ext(data,'.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,2*sizeof(pint));
+             relocsect:=TElfObjSection.create_ext(data,'.rel'+s.name,SHT_REL,0,symtabsect.index,s.index,4,2*sizeof(pint));
            { add the relocations }
            for i:=0 to s.Objrelocations.count-1 do
              begin
@@ -1180,7 +1179,7 @@ implementation
         if (TElfObjSection(p).shtype in [SHT_SYMTAB,SHT_STRTAB,SHT_REL,SHT_RELA]) then
           exit;
         TObjSection(p).secsymidx:=symtabsect.symidx;
-        symtabsect.writeInternalSymbol(0,STT_SECTION,TElfObjSection(p).secshidx);
+        symtabsect.writeInternalSymbol(0,STT_SECTION,TObjSection(p).index);
       end;
 
 
@@ -1212,7 +1211,7 @@ implementation
                  symtabsect.WriteSymbol(objsym);
              end;
            { update the .symtab section header }
-           symtabsect.shlink:=TElfObjSection(symtabsect.fstrsec).secshidx;
+           symtabsect.shlink:=symtabsect.fstrsec.index;
          end;
       end;
 
@@ -1254,7 +1253,7 @@ implementation
 
     procedure TElfObjectOutput.section_count_sections(p:TObject;arg:pointer);
       begin
-        TElfObjSection(p).secshidx:=pword(arg)^;
+        TElfObjSection(p).index:=pword(arg)^;
         inc(pword(arg)^);
       end;
 
@@ -1335,7 +1334,7 @@ implementation
 {$endif arm}
            header.e_version:=1;
            header.e_shoff:=shoffset;
-           header.e_shstrndx:=shstrtabsect.secshidx;
+           header.e_shstrndx:=shstrtabsect.index;
 
            header.e_shnum:=nsections;
            header.e_ehsize:=sizeof(telfheader);

@@ -188,6 +188,7 @@ interface
        procedure SetSecOptions(Aoptions:TObjSectionOptions);
      public
        ObjData    : TObjData;
+       index      : longword;  { index of section in section headers }
        SecSymIdx  : longint;   { index for the section in symtab }
        SecAlign   : shortint;   { alignment of the section }
        { section Data }

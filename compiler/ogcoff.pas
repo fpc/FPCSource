@@ -107,7 +107,6 @@ interface
          coffrelocs,
          coffrelocpos : aword;
        public
-         secidx   : longword;
          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
          procedure addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
          procedure fixuprelocs(Exe:TExeOutput);override;
@@ -1186,14 +1185,14 @@ const pemagic : array[0..3] of byte = (
         with TCoffObjSection(p) do
           begin
             Inc(plongword(arg)^);
-            secidx:=plongword(arg)^;
+            index:=plongword(arg)^;
 
             secsymidx:=symidx;
             { Both GNU and Microsoft toolchains write section symbols using
               storage class 3 (STATIC).
               No reason to use COFF_SYM_SECTION, it is silently converted to 3 by
               PE binutils and causes warnings with DJGPP binutils. }
-            write_symbol(name,mempos,secidx,COFF_SYM_LOCAL,1);
+            write_symbol(name,mempos,index,COFF_SYM_LOCAL,1);
             { AUX }
             fillchar(secrec,sizeof(secrec),0);
             secrec.len:=Size;
@@ -1321,13 +1320,13 @@ const pemagic : array[0..3] of byte = (
                  AB_GLOBAL :
                    begin
                      globalval:=COFF_SYM_GLOBAL;
-                     sectionval:=TCoffObjSection(objsym.objsection).secidx;
+                     sectionval:=objsym.objsection.index;
                      value:=objsym.address;
                    end;
                  AB_LOCAL :
                    begin
                      globalval:=COFF_SYM_LOCAL;
-                     sectionval:=TCoffObjSection(objsym.objsection).secidx;
+                     sectionval:=objsym.objsection.index;
                      value:=objsym.address;
                    end;
                  else
