@@ -45,8 +45,8 @@ unit cgcpu;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
-        procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);override;
-        procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);override;
+        procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
+        procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
 
         procedure g_exception_reason_save(list : TAsmList; const href : treference);override;
         procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);override;
@@ -394,12 +394,6 @@ unit cgcpu;
         again,ok : tasmlabel;
 {$endif}
       begin
-        if paramanager.use_fixed_stack then
-          begin
-            inherited g_copyvaluepara_openarray(list,ref,lenloc,elesize,destreg);
-            exit;
-          end;
-
         { get stack space }
         getcpuregister(list,NR_EDI);
         a_load_loc_reg(list,OS_INT,lenloc,NR_EDI);
@@ -486,11 +480,6 @@ unit cgcpu;
 
     procedure tcg386.g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
       begin
-        if paramanager.use_fixed_stack then
-          begin
-            inherited g_releasevaluepara_openarray(list,l);
-            exit;
-          end;
         { Nothing to release }
       end;
 

@@ -30,8 +30,8 @@ interface
 
   uses
     aasmdata,
-    symtype,parabase,
-    cgutils,
+    symtype,symdef,parabase,
+    cgbase,cgutils,
     hlcgobj, hlcgx86;
 
 
@@ -39,6 +39,9 @@ interface
     thlcgcpu = class(thlcgx86)
      protected
       procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint); override;
+     public
+      procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
+      procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
     end;
 
   procedure create_hlcodegen;
@@ -48,7 +51,6 @@ implementation
   uses
     globtype,verbose,
     paramgr,
-    cgbase,
     cpubase,tgobj,cgobj,cgcpu;
 
   { thlcgcpu }
@@ -166,6 +168,28 @@ implementation
         else
           internalerror(2002042430);
       end;
+    end;
+
+
+  procedure thlcgcpu.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
+    begin
+      if paramanager.use_fixed_stack then
+        begin
+          inherited;
+          exit;
+        end;
+      tcg386(cg).g_copyvaluepara_openarray(list,ref,lenloc,arrdef.elesize,destreg);
+    end;
+
+
+  procedure thlcgcpu.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
+    begin
+      if paramanager.use_fixed_stack then
+        begin
+          inherited;
+          exit;
+        end;
+      tcg386(cg).g_releasevaluepara_openarray(list,l);
     end;
 
 
