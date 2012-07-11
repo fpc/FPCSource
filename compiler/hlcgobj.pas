@@ -418,7 +418,7 @@ unit hlcgobj;
           procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); virtual; abstract;
           procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation);virtual; abstract;
 
-          procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;arrdef: tarraydef;destreg:tregister);virtual;abstract;
+          procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;arrdef: tarraydef;destreg:tregister);virtual;
           procedure g_releasevaluepara_openarray(list : TAsmList;arrdef: tarraydef;const l:tlocation);virtual;abstract;
 
           {# Emits instructions when compilation is done in profile
@@ -3245,6 +3245,71 @@ implementation
         a_cmp_const_reg_label(list,maxdef,OC_BE,tcgint(int64(hto-lto)),hreg,neglabel);
       g_call_system_proc(list,'fpc_rangeerror',nil);
       a_label(list,neglabel);
+    end;
+
+  procedure thlcgobj.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
+    var
+      sizereg,sourcereg,lenreg : tregister;
+      cgpara1,cgpara2,cgpara3 : TCGPara;
+      ptrarrdef : tdef;
+      getmemres : tcgpara;
+      destloc : tlocation;
+    begin
+      { because some abis don't support dynamic stack allocation properly
+        open array value parameters are copied onto the heap
+      }
+
+      { calculate necessary memory }
+
+      { read/write operations on one register make the life of the register allocator hard }
+      if not(lenloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        begin
+          lenreg:=getintregister(list,sinttype);
+          a_load_loc_reg(list,sinttype,sinttype,lenloc,lenreg);
+        end
+      else
+        lenreg:=lenloc.register;
+
+      sizereg:=getintregister(list,sinttype);
+      a_op_const_reg_reg(list,OP_ADD,sinttype,1,lenreg,sizereg);
+      a_op_const_reg(list,OP_IMUL,sinttype,arrdef.elesize,sizereg);
+      { load source }
+      ptrarrdef:=getpointerdef(arrdef);
+      sourcereg:=getaddressregister(list,ptrarrdef);
+      a_loadaddr_ref_reg(list,arrdef,ptrarrdef,ref,sourcereg);
+
+      { do getmem call }
+      cgpara1.init;
+      paramanager.getintparaloc(pocall_default,1,ptruinttype,cgpara1);
+      a_load_reg_cgpara(list,sinttype,sizereg,cgpara1);
+      paramanager.freecgpara(list,cgpara1);
+      getmemres:=g_call_system_proc(list,'fpc_getmem',ptrarrdef);
+      cgpara1.done;
+      { return the new address }
+      location_reset(destloc,LOC_REGISTER,OS_ADDR);
+      destloc.register:=destreg;
+      gen_load_cgpara_loc(list,ptrarrdef,getmemres,destloc,false);
+
+      { do move call }
+      cgpara1.init;
+      cgpara2.init;
+      cgpara3.init;
+      paramanager.getintparaloc(pocall_default,1,voidpointertype,cgpara1);
+      paramanager.getintparaloc(pocall_default,2,voidpointertype,cgpara2);
+      paramanager.getintparaloc(pocall_default,3,ptrsinttype,cgpara3);
+      { load size }
+      a_load_reg_cgpara(list,ptrsinttype,sizereg,cgpara3);
+      { load destination }
+      a_load_reg_cgpara(list,ptrarrdef,destreg,cgpara2);
+      { load source }
+      a_load_reg_cgpara(list,ptrarrdef,sourcereg,cgpara1);
+      paramanager.freecgpara(list,cgpara3);
+      paramanager.freecgpara(list,cgpara2);
+      paramanager.freecgpara(list,cgpara1);
+      g_call_system_proc(list,'MOVE',nil);
+      cgpara3.done;
+      cgpara2.done;
+      cgpara1.done;
     end;
 
   procedure thlcgobj.g_profilecode(list: TAsmList);

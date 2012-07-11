@@ -659,7 +659,7 @@ implementation
                       internalerror(200306061);
                     hreg:=cg.getaddressregister(list);
                     if not is_packed_array(tparavarsym(p).vardef) then
-                      cg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef).elesize,hreg)
+                      hlcg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef),hreg)
                     else
                       internalerror(2006080401);
 //                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);

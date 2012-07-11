@@ -282,7 +282,6 @@ unit hlcg2ll;
           procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); override;
           procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation);override;
 
-          procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;arrdef: tarraydef;destreg:tregister);override;
           procedure g_releasevaluepara_openarray(list : TAsmList;arrdef: tarraydef;const l:tlocation);override;
 
           {# Emits instructions when compilation is done in profile
@@ -937,11 +936,6 @@ implementation
   procedure thlcg2ll.g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; var ovloc: tlocation);
     begin
       cg.g_overflowCheck_loc(list,loc,def,ovloc);
-    end;
-
-  procedure thlcg2ll.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
-    begin
-      cg.g_copyvaluepara_openarray(list,ref,lenloc,arrdef.elesize,destreg);
     end;
 
   procedure thlcg2ll.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
