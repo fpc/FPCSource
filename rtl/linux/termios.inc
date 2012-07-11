@@ -1254,9 +1254,9 @@ const
   TIOCPKT_NOSTOP = $10;
   TIOCPKT_DOSTOP = $20;
   TIOCPKT_IOCTL = $40;
-  {$warning Check TIOCGWINSZ and TIOCSWINSZ on a real mips system }
-  TIOCGWINSZ = $5414;
-  TIOCSWINSZ = $5414;
+  {Values checked: TIOCGWINSZ and TIOCSWINSZ on a real mips system }
+  TIOCGWINSZ = $40087468;
+  TIOCSWINSZ = $80087467;
 
   TIOCNOTTY = $5471;
   TIOCSETD = $7401;
@@ -1269,9 +1269,9 @@ const
 
   TIOCGLTC = $7474;
   TIOCSLTC = $7475;
-  {$warning Check TIOCGPGRP and TIOCSPGRP on a real mips system }
-  TIOCGPGRP = $540F;
-  TIOCSPGRP = $5410;
+  {Values checked: TIOCGPGRP and TIOCSPGRP on a real mips system }
+  TIOCGPGRP = $40047477;
+  TIOCSPGRP = $80047476;
 
   FIONREAD = $467f;
   TIOCINQ = FIONREAD;
