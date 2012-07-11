@@ -419,7 +419,7 @@ unit hlcgobj;
           procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation);virtual; abstract;
 
           procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;arrdef: tarraydef;destreg:tregister);virtual;
-          procedure g_releasevaluepara_openarray(list : TAsmList;arrdef: tarraydef;const l:tlocation);virtual;abstract;
+          procedure g_releasevaluepara_openarray(list : TAsmList;arrdef: tarraydef;const l:tlocation);virtual;
 
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
@@ -3309,6 +3309,20 @@ implementation
       g_call_system_proc(list,'MOVE',nil);
       cgpara3.done;
       cgpara2.done;
+      cgpara1.done;
+    end;
+
+  procedure thlcgobj.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
+    var
+      cgpara1 : TCGPara;
+    begin
+      { do freemem call }
+      cgpara1.init;
+      paramanager.getintparaloc(pocall_default,1,voidpointertype,cgpara1);
+      { load source }
+      a_load_loc_cgpara(list,getpointerdef(arrdef),l,cgpara1);
+      paramanager.freecgpara(list,cgpara1);
+      g_call_system_proc(list,'fpc_freemem',nil);
       cgpara1.done;
     end;
 

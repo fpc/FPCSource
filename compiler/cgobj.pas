@@ -394,8 +394,6 @@ unit cgobj;
           procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); virtual;abstract;
           procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;ovloc : tlocation);virtual;
 
-          procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);virtual;
-
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
              behavior does nothing, should be overridden as required.
@@ -2105,23 +2103,6 @@ implementation
 {*****************************************************************************
                             Entry/Exit Code Functions
 *****************************************************************************}
-
-
-    procedure tcg.g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
-      var
-        cgpara1 : TCGPara;
-      begin
-        { do move call }
-        cgpara1.init;
-        paramanager.getintparaloc(pocall_default,1,voidpointertype,cgpara1);
-        { load source }
-        a_load_loc_cgpara(list,l,cgpara1);
-        paramanager.freecgpara(list,cgpara1);
-        allocallcpuregisters(list);
-        a_call_name(list,'FPC_FREEMEM',false);
-        deallocallcpuregisters(list);
-        cgpara1.done;
-      end;
 
 
     procedure tcg.g_save_registers(list:TAsmList);

@@ -282,8 +282,6 @@ unit hlcg2ll;
           procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); override;
           procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation);override;
 
-          procedure g_releasevaluepara_openarray(list : TAsmList;arrdef: tarraydef;const l:tlocation);override;
-
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
              behavior does nothing, should be overridden as required.
@@ -936,11 +934,6 @@ implementation
   procedure thlcg2ll.g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; var ovloc: tlocation);
     begin
       cg.g_overflowCheck_loc(list,loc,def,ovloc);
-    end;
-
-  procedure thlcg2ll.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
-    begin
-      cg.g_releasevaluepara_openarray(list,l);
     end;
 
   procedure thlcg2ll.g_profilecode(list: TAsmList);
