@@ -110,6 +110,7 @@ resourcestring
   SHTMLHtmlSearch = 'Add search page with given name to the menu bar';
   SHTMLIndexColcount = 'Use N columns in the identifier index pages';
   SHTMLImageUrl = 'Prefix image URLs with url';
+  SHTMLDisableMenuBrackets = 'Disable ''['' and '']'' characters around menu items at the top of the page. Useful for custom css';
     
   // CHM usage
   SCHMUsageTOC     = 'Use [File] as the table of contents. Usually a .hhc file.';
