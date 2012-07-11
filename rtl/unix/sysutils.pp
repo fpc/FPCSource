@@ -33,7 +33,7 @@ interface
 {$DEFINE HASUNIX}
 {$DEFINE HASCREATEGUID}
 {$DEFINE HAS_OSUSERDIR}
-
+{$DEFINE HAS_LOCALTIMEZONEOFFSET}
 uses
   Unix,errors,sysconst,Unixtype;
 
@@ -1399,6 +1399,12 @@ Procedure SysBeep;
 begin
   Write(#7);
   Flush(Output);
+end;
+
+function GetLocalTimeOffset: Integer;
+
+begin
+ Result := -Tzseconds div 60; 
 end;
 
 {****************************************************************************
