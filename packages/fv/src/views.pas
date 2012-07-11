@@ -2111,7 +2111,8 @@ BEGIN
      Tp := Last;                                      { Set temporary ptr }
      Repeat
        Tp := Tp^.Next;                                { Get next view }
-       IF Byte(Longint(CallPointerMethodLocal(P,get_caller_frame(get_frame),@self,Tp)))<>0 THEN
+       IF Byte(Longint(CallPointerMethodLocal(P,get_caller_frame(
+                 get_frame,get_pc_addr),@self,Tp)))<>0 THEN
         Begin       { Test each view }
           FirstThat := Tp;                             { View returned true }
           Exit;                                        { Now exit }
@@ -2306,7 +2307,8 @@ BEGIN
        if tp=nil then
         exit;
        Hp:=Tp^.Next;                        { Get next view }
-       CallPointerMethodLocal(P,get_caller_frame(get_frame),@self,Tp);
+       CallPointerMethodLocal(P,get_caller_frame(
+               get_frame,get_pc_addr),@self,Tp);
      Until (Tp=L0);                                   { Until last }
    End;
 END;
