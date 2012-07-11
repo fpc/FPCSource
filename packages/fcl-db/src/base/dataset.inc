@@ -1367,6 +1367,8 @@ begin
   If Value<>FState then
     begin
     FState:=Value;
+    if Value=dsBrowse then
+      FModified:=false;
     DataEvent(deUpdateState,0);
     end;
 end;
