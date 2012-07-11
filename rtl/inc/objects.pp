@@ -1906,7 +1906,8 @@ VAR I: LongInt;
 BEGIN
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
-       IF Boolean(Byte(ptruint(CallPointerLocal(Test,get_caller_frame(get_frame),Items^[I-1])))) THEN
+       IF Boolean(Byte(ptruint(CallPointerLocal(Test,get_caller_frame(
+               get_frame,get_pc_addr),Items^[I-1])))) THEN
        Begin          { Test each item }
          LastThat := Items^[I-1];                     { Return item }
          Exit;                                        { Now exit }
@@ -1923,7 +1924,8 @@ FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
-     IF Boolean(Byte(ptruint(CallPointerLocal(Test,get_caller_frame(get_frame),Items^[I-1])))) THEN
+     IF Boolean(Byte(ptruint(CallPointerLocal(Test,get_caller_frame(
+             get_frame,get_pc_addr),Items^[I-1])))) THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
@@ -2042,7 +2044,8 @@ PROCEDURE TCollection.ForEach (Action: Pointer);
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do                             { Up from first item }
-    CallPointerLocal(Action,get_caller_frame(get_frame),Items^[I-1]);   { Call with each item }
+    CallPointerLocal(Action,get_caller_frame(
+            get_frame,get_pc_addr),Items^[I-1]);   { Call with each item }
 END;
 {$POP}
 
