@@ -1409,6 +1409,7 @@ unit cgcpu;
          r7offset,
          stackmisalignment : pint;
          postfix: toppostfix;
+         imm1, imm2: DWord;
       begin
         LocalSize:=align(LocalSize,4);
         { call instruction does not put anything on the stack }
@@ -1536,18 +1537,24 @@ unit cgcpu;
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
                 localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
-                if not(is_shifter_const(localsize,shift)) then
+                if is_shifter_const(localsize,shift) then
+                  begin
+                    a_reg_dealloc(list,NR_R12);
+                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+                  end
+                else if split_into_shifter_const(localsize, imm1, imm2) then
+                  begin
+                    a_reg_dealloc(list,NR_R12);
+                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm1));
+                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm2));
+                  end
+                else
                   begin
                     if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                       a_reg_alloc(list,NR_R12);
                     a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
                     list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
                     a_reg_dealloc(list,NR_R12);
-                  end
-                else
-                  begin
-                    a_reg_dealloc(list,NR_R12);
-                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
                   end;
               end;
 
@@ -1614,6 +1621,7 @@ unit cgcpu;
          regs : tcpuregisterset;
          stackmisalignment: pint;
          mmpostfix: toppostfix;
+         imm1, imm2: DWord;
       begin
         if not(nostackframe) then
           begin
@@ -1745,16 +1753,19 @@ unit cgcpu;
                      (po_assembler in current_procinfo.procdef.procoptions))) then
                   begin
                     localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
-                    if not(is_shifter_const(LocalSize,shift)) then
+                    if is_shifter_const(LocalSize,shift) then
+                      list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize))
+                    else if split_into_shifter_const(localsize, imm1, imm2) then
+                      begin
+                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm1));
+                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm2));
+                      end
+                    else
                       begin
                         a_reg_alloc(list,NR_R12);
                         a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
                         list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
                         a_reg_dealloc(list,NR_R12);
-                      end
-                    else
-                      begin
-                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
                       end;
                   end;
 
