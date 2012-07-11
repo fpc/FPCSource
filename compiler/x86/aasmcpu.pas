@@ -2425,8 +2425,16 @@ implementation
                             (Assigned(oper[opidx]^.ref^.relsymbol)) then
                            begin
                              relsym:=objdata.symbolref(oper[opidx]^.ref^.relsymbol);
-                             currabsreloc:=RELOC_PIC_PAIR;
-                             currval:=relsym.offset;
+                             if relsym.objsection=objdata.CurrObjSec then
+                               begin
+                                 currval:=objdata.CurrObjSec.size+ea_data.bytes-relsym.offset+currval;
+                                 currabsreloc:=RELOC_RELATIVE;
+                               end
+                             else
+                               begin
+                                 currabsreloc:=RELOC_PIC_PAIR;
+                                 currval:=relsym.offset;
+                               end;
                            end;
                          objdata_writereloc(currval,ea_data.bytes,currsym,currabsreloc);
                          inc(s,ea_data.bytes);
