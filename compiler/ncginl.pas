@@ -304,7 +304,7 @@ implementation
                    begin
                      { deref class }
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister);
-                     cg.g_maybe_testself(current_asmdata.CurrAsmList,hregister);
+                     hlcg.g_maybe_testself(current_asmdata.CurrAsmList,left.resultdef,hregister);
                      { load VMT pointer }
                      reference_reset_base(hrefvmt,hregister,tobjectdef(left.resultdef).vmt_offset,sizeof(pint));
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hrefvmt,hregister);

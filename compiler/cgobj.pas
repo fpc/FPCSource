@@ -368,7 +368,6 @@ unit cgobj;
           }
          procedure g_exception_reason_load(list : TAsmList; const href : treference);virtual;
 
-          procedure g_maybe_testself(list : TAsmList;reg:tregister);
           procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
              to destination.
@@ -2068,27 +2067,6 @@ implementation
         a_load_reg_ref(list,size,size,tmpreg,ref);
       end;
 {$endif cpuflags}
-
-
-    procedure tcg.g_maybe_testself(list : TAsmList;reg:tregister);
-      var
-        OKLabel : tasmlabel;
-        cgpara1 : TCGPara;
-      begin
-        if (cs_check_object in current_settings.localswitches) or
-           (cs_check_range in current_settings.localswitches) then
-         begin
-           current_asmdata.getjumplabel(oklabel);
-           a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
-           cgpara1.init;
-           paramanager.getintparaloc(pocall_default,1,s32inttype,cgpara1);
-           a_load_const_cgpara(list,OS_S32,tcgint(210),cgpara1);
-           paramanager.freecgpara(list,cgpara1);
-           a_call_name(list,'FPC_HANDLEERROR',false);
-           a_label(list,oklabel);
-           cgpara1.done;
-         end;
-      end;
 
 
     procedure tcg.g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);

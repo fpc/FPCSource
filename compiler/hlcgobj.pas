@@ -366,7 +366,7 @@ unit hlcgobj;
           procedure g_flags2ref(list: TAsmList; size: tdef; const f: tresflags; const ref:TReference); virtual; abstract;
 {$endif cpuflags}
 
-//          procedure g_maybe_testself(list : TAsmList;reg:tregister);
+          procedure g_maybe_testself(list : TAsmList; selftype: tdef; reg:tregister);
 //          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
              to destination.
@@ -2754,6 +2754,26 @@ implementation
         else
           internalerror(2010120432);
       end;
+    end;
+
+  procedure thlcgobj.g_maybe_testself(list: TAsmList; selftype: tdef; reg: tregister);
+    var
+      OKLabel : tasmlabel;
+      cgpara1 : TCGPara;
+    begin
+      if (cs_check_object in current_settings.localswitches) or
+         (cs_check_range in current_settings.localswitches) then
+       begin
+         current_asmdata.getjumplabel(oklabel);
+         a_cmp_const_reg_label(list,selftype,OC_NE,0,reg,oklabel);
+         cgpara1.init;
+         paramanager.getintparaloc(pocall_default,1,s32inttype,cgpara1);
+         a_load_const_cgpara(list,s32inttype,aint(210),cgpara1);
+         paramanager.freecgpara(list,cgpara1);
+         g_call_system_proc(list,'fpc_handleerror');
+         cgpara1.done;
+         a_label(list,oklabel);
+       end;
     end;
 
   procedure thlcgobj.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);

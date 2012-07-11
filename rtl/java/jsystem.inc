@@ -78,7 +78,7 @@ Const
   {$endif FPC_OBJFPC_EXTENDED_IF}
 {$endif FPC_HAS_FEATURE_EXITCODE}
 
-Procedure HandleError (Errno : Longint); forward;
+Procedure HandleError (Errno : Longint); external name 'FPC_HANDLEERROR';
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
@@ -1046,7 +1046,7 @@ begin
 end;
 
 
-Procedure HandleError (Errno : longint);[public,alias : 'FPC_HANDLEERROR'];
+Procedure fpc_handleerror (Errno : longint); compilerproc; [public,alias : 'FPC_HANDLEERROR'];
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.

@@ -256,7 +256,6 @@ unit hlcg2ll;
           procedure g_flags2ref(list: TAsmList; size: tdef; const f: tresflags; const ref:TReference); override;
 {$endif cpuflags}
 
-//          procedure g_maybe_testself(list : TAsmList;reg:tregister);
 //          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
              to destination.
