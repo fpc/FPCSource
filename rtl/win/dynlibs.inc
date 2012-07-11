@@ -54,5 +54,20 @@ begin
   Result:=Windows.FreeLibrary(Lib);
 end;
 
+Function GetLoadErrorStr: string;
+
+Var
+  rc : integer;
+begin  
+  rc := GetLastError;
+  try
+    result := Trim(SysErrorMessage(rc));
+    if (result='') then
+      result := 'Operating system error 0x' + IntToHex(rc, 8) + ' (no descriptive text)'
+  except
+    result := 'Operating system error 0x' + IntToHex(rc, 8) + ' (error getting descriptive text)'
+  end;
+end;
+
 {$endif}
 

@@ -59,5 +59,10 @@ begin
  Result := DosFreeModule (Lib) = 0;
 end;
 
+Function GetLoadErrorStr: string;
+
+begin
+  Result:='';
+end;
 {$endif}
 
