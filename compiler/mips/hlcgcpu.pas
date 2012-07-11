@@ -32,12 +32,12 @@ uses
   globtype,
   aasmbase, aasmdata,
   cgbase, cgutils,
-  symdef,
-  hlcgobj, hlcg2ll;
+  symtype,symdef,
+  parabase, hlcgobj, hlcg2ll;
 
   type
-    thlcg2mips = class(thlcg2ll)
-      procedure a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; weak: boolean);override;
+    thlcgmips = class(thlcg2ll)
+      function a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara; override;
       procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);override;
       procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);override;
   end;
@@ -53,7 +53,7 @@ implementation
     cpubase,
     cgcpu;
 
-  procedure thlcg2mips.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; weak: boolean);
+  function thlcgmips.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
     var
       ref : treference;
     begin
@@ -73,9 +73,11 @@ implementation
         end
       else
         cg.a_call_name(list,s,weak);
+      { the default implementation only determines the result location }
+      result:=inherited;
     end;
 
-  procedure thlcg2mips.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
+  procedure thlcgmips.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
     begin
       if (pd.proccalloption=pocall_cdecl) and (reg<>NR_PIC_FUNC) then
         begin
@@ -88,7 +90,7 @@ implementation
         cg.a_call_reg(list,reg);
     end;
 
-  procedure thlcg2mips.a_call_ref(list: TAsmList; pd: tabstractprocdef; const ref: treference);
+  procedure thlcgmips.a_call_ref(list: TAsmList; pd: tabstractprocdef; const ref: treference);
     begin
       if pd.proccalloption =pocall_cdecl then
         begin
@@ -103,7 +105,7 @@ implementation
 
   procedure create_hlcodegen;
     begin
-      hlcg:=thlcg2mips.create;
+      hlcg:=thlcgmips.create;
       create_codegen;
     end;
 

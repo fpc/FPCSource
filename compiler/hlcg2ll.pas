@@ -152,12 +152,12 @@ unit hlcg2ll;
           }
           procedure a_loadaddr_ref_cgpara(list : TAsmList;fromsize : tdef;const r : treference;const cgpara : TCGPara);override;
 
-          procedure a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; weak: boolean);override;
+          function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);override;
           procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);override;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
-          procedure a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr);override;
+          function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;override;
 
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : aint;register : tregister);override;
@@ -459,9 +459,10 @@ implementation
       cg.a_loadaddr_ref_cgpara(list,r,cgpara);
     end;
 
-  procedure thlcg2ll.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; weak: boolean);
+  function thlcg2ll.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
     begin
       cg.a_call_name(list,s,weak);
+      result:=inherited;
     end;
 
   procedure thlcg2ll.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
@@ -474,9 +475,10 @@ implementation
       cg.a_call_ref(list,ref);
     end;
 
-  procedure thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr);
+  function thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
     begin
       cg.a_call_name_static(list,s);
+      result:=inherited a_call_name(list,pd,s,forceresdef,false);
     end;
 
   procedure thlcg2ll.a_load_const_reg(list: TAsmList; tosize: tdef; a: aint; register: tregister);

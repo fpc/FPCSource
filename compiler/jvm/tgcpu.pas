@@ -85,7 +85,7 @@ unit tgcpu;
           end
         else
           internalerror(2011060301);
-        hlcg.a_call_name(list,pd,pd.mangledname,false);
+        hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
         thlcgjvm(hlcg).decstack(list,1);
         { store reference to instance }
         thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
@@ -146,7 +146,7 @@ unit tgcpu;
                         internalerror(2011062801);
                       pd:=tprocdef(tprocsym(sym).procdeflist[0]);
                     end;
-                  hlcg.a_call_name(list,pd,pd.mangledname,false);
+                  hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                   { static calls method replaces parameter with set instance
                     -> no change in stack height }
                 end
@@ -169,7 +169,7 @@ unit tgcpu;
                     end
                   else
                     internalerror(2011062803);
-                  hlcg.a_call_name(list,pd,pd.mangledname,false);
+                  hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                   { duplicate self pointer is removed }
                   thlcgjvm(hlcg).decstack(list,1);
                 end;
@@ -203,7 +203,7 @@ unit tgcpu;
                         internalerror(2011052404);
                       pd:=tprocdef(tprocsym(sym).procdeflist[0]);
                     end;
-                  hlcg.a_call_name(list,pd,pd.mangledname,false);
+                  hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                   { static calls method replaces parameter with string instance
                     -> no change in stack height }
                   { store reference to instance }
