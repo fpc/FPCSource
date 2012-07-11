@@ -213,7 +213,7 @@ type
     procedure AppendProcDecl(CodeEl, TableEl: TDOMElement;
       Element: TPasProcedureBase);
     procedure AppendProcArgsSection(Parent: TDOMNode;
-      Element: TPasProcedureType);
+      Element: TPasProcedureType; SkipResult : Boolean = False);
     function AppendRecordType(CodeEl, TableEl: TDOMElement;
       Element: TPasRecordType; NestingLevel: Integer): TDOMElement;
 
@@ -1744,9 +1744,9 @@ end;
 procedure THTMLWriter.AppendProcDecl(CodeEl, TableEl: TDOMElement;
   Element: TPasProcedureBase);
 
-  procedure WriteVariant(AProc: TPasProcedure);
+  procedure WriteVariant(AProc: TPasProcedure; SkipResult : Boolean);
   begin
-    AppendProcArgsSection(TableEl.ParentNode, AProc.ProcType);
+    AppendProcArgsSection(TableEl.ParentNode, AProc.ProcType, SkipResult);
 
     AppendKw(CodeEl, AProc.TypeName);
     if Element.Parent.ClassType = TPasClassType then
@@ -1763,24 +1763,29 @@ procedure THTMLWriter.AppendProcDecl(CodeEl, TableEl: TDOMElement;
   end;
 
 var
-  i: Integer;
+  i,fc: Integer;
+  P : TPasProcedure;
 begin
+  fc:=0;
   if Element.ClassType = TPasOverloadedProc then
     for i := 0 to TPasOverloadedProc(Element).Overloads.Count - 1 do
     begin
+      P:=TPasProcedure(TPasOverloadedProc(Element).Overloads[i]);
+      if (P.ProcType is TPasFunctionType) then
+        Inc(fc);
       if i > 0 then
       begin
         CreateEl(CodeEl, 'br');
         CreateEl(CodeEl, 'br');
       end;
-      WriteVariant(TPasProcedure(TPasOverloadedProc(Element).Overloads[i]));
+      WriteVariant(P,fc>1);
     end
   else
-    WriteVariant(TPasProcedure(Element));
+    WriteVariant(TPasProcedure(Element),False);
 end;
 
 procedure THTMLWriter.AppendProcArgsSection(Parent: TDOMNode;
-  Element: TPasProcedureType);
+  Element: TPasProcedureType; SkipResult : Boolean = False);
 var
   HasFullDescr, IsFirst: Boolean;
   ResultEl: TPasResultElement;
@@ -1806,7 +1811,7 @@ begin
     AppendShortDescrCell(TREl, Arg);
   end;
 
-  if Element.ClassType = TPasFunctionType then
+  if (Element.ClassType = TPasFunctionType) and not SkipResult then
   begin
     ResultEl := TPasFunctionType(Element).ResultEl;
     DocNode := Engine.FindDocNode(ResultEl);
