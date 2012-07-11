@@ -35,7 +35,11 @@ Type
   TFPHTTPConnectionRequest = Class(TRequest)
   private
     FConnection: TFPHTTPConnection;
+    FQueryString : String;
   protected
+    function GetFieldValue(Index: Integer): String; override;
+    procedure SetFieldValue(Index: Integer; Value: String);override;
+    Procedure InitRequestVars; override;
     procedure SetContent(AValue : String);
   published
     Property Connection : TFPHTTPConnection Read FConnection;
@@ -111,6 +115,9 @@ Type
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
   Protected
+    // Override these to create descendents of the request/response instead.
+    Function CreateRequest : TFPHTTPConnectionRequest; virtual;
+    Function CreateResponse(ARequest : TFPHTTPConnectionRequest) : TFPHTTPConnectionResponse; virtual;
     Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); virtual;
     Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); virtual;
     // Create a connection handling object.
@@ -223,32 +230,40 @@ begin
   end;
 end;
 
+procedure TFPHTTPConnectionRequest.InitRequestVars;
+Var
+  P : Integer;
+begin
+  P:=Pos('?',URI);
+  if (P<>0) then
+    FQueryString:=Copy(URI,P+1,Length(URI)-P);
+  inherited InitRequestVars;
+end;
+
 procedure TFPHTTPConnectionRequest.SetContent(AValue : String);
 
 begin
   FContent:=Avalue;
   FContentRead:=true;
-  InitRequestVars;
 end;
-(*
+
 Procedure TFPHTTPConnectionRequest.SetFieldValue(Index : Integer; Value : String);
 
 begin
-  if Index=35 then
-    FContent:=Value
+  if Index=33 then
+    FQueryString:=Value
   else
-    Inherited (Index,Value);
+    Inherited SetFieldValue(Index,Value);
 end;
 
 Function TFPHTTPConnectionRequest.GetFieldValue(Index : Integer) : String;
 
 begin
-  if Index=35 then
-    Result:=FContent
+  if Index=33 then
+    Result:=FQueryString
   else
     Result:=Inherited GetFieldValue(Index);
 end;
-*)
 
 procedure TFPHTTPConnectionResponse.DoSendHeaders(Headers: TStrings);
 
@@ -430,7 +445,7 @@ function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;
 Var
   StartLine,S : String;
 begin
-  Result:=TFPHTTPConnectionRequest.Create;
+  Result:=Server.CreateRequest;
   Server.InitRequest(Result);
   Result.FConnection:=Self;
   StartLine:=ReadString;
@@ -468,11 +483,10 @@ begin
   try
     // Read content, if any
     If Req.ContentLength>0 then
-      begin
       ReadRequestContent(Req);
-      end;
+    Req.InitRequestVars;
     // Create Response
-    Resp:= TFPHTTPConnectionResponse.Create(Req);
+    Resp:= Server.CreateResponse(Req);
     try
       Server.InitResponse(Resp);
       Resp.FConnection:=Self;
@@ -559,6 +573,16 @@ begin
   if FThreaded=AValue then exit;
   CheckInactive;
   FThreaded:=AValue;
+end;
+
+function TFPCustomHttpServer.CreateRequest: TFPHTTPConnectionRequest;
+begin
+  Result:=TFPHTTPConnectionRequest.Create;
+end;
+
+function TFPCustomHttpServer.CreateResponse(ARequest : TFPHTTPConnectionRequest): TFPHTTPConnectionResponse;
+begin
+  Result:=TFPHTTPConnectionResponse.Create(ARequest);
 end;
 
 procedure TFPCustomHttpServer.InitRequest(ARequest: TFPHTTPConnectionRequest);
