@@ -111,4 +111,4 @@ Function FileIsReadOnly(const FileName: String): Boolean;
 
 Function GetFileHandle(var f : File):THandle;
 Function GetFileHandle(var f : Text):THandle;
-
+function FileAge(const FileName: string; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;

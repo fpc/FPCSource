@@ -155,6 +155,25 @@
         temp.free;
       end;
 
+   function FileAge(const FileName: string; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
+   
+   Var
+     Info : TSearchRec;
+     A : Integer;
+      
+   begin
+     for A:=1 to Length(FileName) do
+       If (FileName[A] in ['?','*']) then
+         Exit(False);
+     A:=0;
+     if Not FollowLink then
+       A:=A or faSymLink;
+     Result:=FindFirst(FileName,A,Info)=0;
+     If Result then 
+       FileDateTime:=FileDatetoDateTime (Info.Time);
+     FindClose(Info);
+   end;
+
   { Interfaces support }
   {$i sysuintf.inc}
 
@@ -761,3 +780,4 @@ begin
   If Assigned(OnBeep) then
     OnBeep;
 end;
+
