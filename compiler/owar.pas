@@ -69,17 +69,19 @@ type
     CurrMemberPos,
     CurrMemberSize : longint;
     CurrMemberName : string;
+    isar: boolean;
     function  DecodeMemberName(ahdr:TArHdr):string;
     function  DecodeMemberSize(ahdr:TArHdr):longint;
     procedure ReadArchive;
   protected
     function getfilename:string;override;
   public
-    constructor create(const Aarfn:string);
+    constructor create(const Aarfn:string;allow_nonar:boolean=false);
     destructor  destroy;override;
     function  openfile(const fn:string):boolean;override;
     procedure closefile;override;
     procedure seek(len:longint);override;
+    property isarchive: boolean read isar;
   end;
 
 
@@ -315,7 +317,9 @@ implementation
 *****************************************************************************}
 
 
-    constructor tarobjectreader.create(const Aarfn:string);
+    constructor tarobjectreader.create(const Aarfn:string;allow_nonar:boolean);
+      var
+        magic:array[0..sizeof(armagic)-1] of char;
       begin
         inherited Create;
         ArSymbols:=TFPHashObjectList.Create(true);
@@ -323,7 +327,14 @@ implementation
         CurrMemberSize:=0;
         CurrMemberName:='';
         if inherited openfile(Aarfn) then
-          ReadArchive;
+          begin
+            Read(magic,sizeof(armagic));
+            isar:=(CompareByte(magic,armagic,sizeof(armagic))=0);
+            if isar then
+              ReadArchive
+            else if (not allow_nonar) then
+              Comment(V_Error,'Not a ar file, illegal magic: '+filename);
+          end;
       end;
 
 
@@ -414,7 +425,6 @@ implementation
 
     procedure tarobjectreader.ReadArchive;
       var
-        currarmagic : array[0..sizeof(armagic)-1] of char;
         currarhdr   : tarhdr;
         nrelocs,
         relocidx,
@@ -429,12 +439,6 @@ implementation
         startp      : pchar;
         relocs      : plongint;
       begin
-        Read(currarmagic,sizeof(armagic));
-        if CompareByte(currarmagic,armagic,sizeof(armagic))<>0 then
-          begin
-            Comment(V_Error,'Not a ar file, illegal magic: '+filename);
-            exit;
-          end;
         Read(currarhdr,sizeof(currarhdr));
         { Read number of relocs }
         Read(nrelocs,sizeof(nrelocs));
