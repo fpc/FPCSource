@@ -102,7 +102,7 @@ implementation
 
     uses
       verbose,globals,systems,constexp,
-      globtype, cutils,
+      globtype,cutils,fmodule,
       symconst,symdef,symsym,symtable,paramgr,defutil,symbase,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
@@ -3788,15 +3788,21 @@ implementation
 
 
      function tinlinenode.first_assert: tnode;
+       var
+         paras: tcallparanode;
        begin
-         result:=nil;
-         expectloc:=LOC_VOID;
-{$ifdef i386}
-         { hack: on i386, the fourth parameter is passed via memory ->
-           we have to allocate enough stack space for it on targets that
-           use a fixed stack }
-         current_procinfo.allocate_push_parasize(4);
+         paras:=tcallparanode(tcallparanode(left).right);
+         paras:=ccallparanode.create(cstringconstnode.createstr(current_module.sourcefiles.get_file_name(current_filepos.fileindex)),paras);
+         paras:=ccallparanode.create(genintconstnode(fileinfo.line),paras);
+{$if defined(x86) or defined(arm)}
+         paras:=ccallparanode.create(geninlinenode(in_get_frame,false,nil),paras);
+{$else}
+         paras:=ccallparanode.create(ccallnode.createinternfromunit('SYSTEM','GET_FRAME',nil),paras);
 {$endif}
+         result:=cifnode.create(cnotnode.create(tcallparanode(left).left),
+            ccallnode.createintern('fpc_assert',paras),nil);
+         tcallparanode(left).left:=nil;
+         tcallparanode(left).right:=nil;
        end;
 
 

@@ -31,7 +31,6 @@ interface
     type
        tcginlinenode = class(tinlinenode)
           procedure pass_generate_code;override;
-          procedure second_assert;virtual;
           procedure second_sizeoftypeof;virtual;
           procedure second_length;virtual;
           procedure second_predsucc;virtual;
@@ -65,7 +64,7 @@ implementation
 
     uses
       globtype,systems,constexp,
-      cutils,verbose,globals,fmodule,
+      cutils,verbose,globals,
       symconst,symdef,defutil,symsym,
       aasmbase,aasmtai,aasmdata,aasmcpu,parabase,
       cgbase,pass_1,pass_2,
@@ -89,8 +88,6 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
 
          case inlinenumber of
-            in_assert_x_y:
-              second_Assert;
             in_sizeof_x,
             in_typeof_x :
               second_SizeofTypeOf;
@@ -184,75 +181,6 @@ implementation
          end;
       end;
 
-
-{*****************************************************************************
-                          ASSERT GENERIC HANDLING
-*****************************************************************************}
-    procedure tcginlinenode.second_Assert;
-     var
-       hp2,hp3 : tnode;
-       otlabel,oflabel : tasmlabel;
-       paraloc1,paraloc2,
-       paraloc3,paraloc4 : tcgpara;
-     begin
-       { the node should be removed in the firstpass }
-       if not (cs_do_assertion in current_settings.localswitches) then
-          internalerror(7123458);
-       paraloc1.init;
-       paraloc2.init;
-       paraloc3.init;
-       paraloc4.init;
-       paramanager.getintparaloc(pocall_default,1,getpointerdef(cshortstringtype),paraloc1);
-       paramanager.getintparaloc(pocall_default,2,getpointerdef(cshortstringtype),paraloc2);
-       paramanager.getintparaloc(pocall_default,3,s32inttype,paraloc3);
-       paramanager.getintparaloc(pocall_default,4,voidpointertype,paraloc4);
-       otlabel:=current_procinfo.CurrTrueLabel;
-       oflabel:=current_procinfo.CurrFalseLabel;
-       current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-       current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-       secondpass(tcallparanode(left).left);
-       maketojumpbool(current_asmdata.CurrAsmList,tcallparanode(left).left,lr_load_regvars);
-       cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
-       { First call secondpass() before we can push the parameters, otherwise
-         parameters allocated in the registers can be destroyed }
-       { generate filename string parameter }
-       hp2:=ctypeconvnode.create(cstringconstnode.createstr(current_module.sourcefiles.get_file_name(current_filepos.fileindex)),cshortstringtype);
-       firstpass(hp2);
-       secondpass(hp2);
-       if codegenerror then
-          exit;
-       { message parameter }
-       hp3:=tcallparanode(tcallparanode(left).right).left;
-       secondpass(hp3);
-       if codegenerror then
-          exit;
-       { push erroraddr }
-       cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
-       { push lineno }
-       cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,current_filepos.line,paraloc3);
-       { push filename }
-       cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,hp2.location.reference,paraloc2);
-       { push msg }
-       cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,hp3.location.reference,paraloc1);
-       { call }
-       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
-       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc3);
-       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc4);
-       cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-       cg.a_call_name(current_asmdata.CurrAsmList,'FPC_ASSERT',false);
-       cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-       location_freetemp(current_asmdata.CurrAsmList,hp3.location);
-       location_freetemp(current_asmdata.CurrAsmList,hp2.location);
-       cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
-       current_procinfo.CurrTrueLabel:=otlabel;
-       current_procinfo.CurrFalseLabel:=oflabel;
-       paraloc1.done;
-       paraloc2.done;
-       paraloc3.done;
-       paraloc4.done;
-       hp2.free;
-     end;
 
 
 {*****************************************************************************
