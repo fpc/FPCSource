@@ -1906,8 +1906,17 @@ VAR I: LongInt;
 BEGIN
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
-       IF Boolean(Byte(ptruint(CallPointerLocal(Test,get_caller_frame(
-               get_frame,get_pc_addr),Items^[I-1])))) THEN
+       IF Boolean(Byte(ptruint(CallPointerLocal(Test,
+         { On most systems, locals are accessed relative to base pointer,
+           but for MIPS cpu, they are accessed relative to stack pointer.
+           This needs adaptation for so low level routines,
+           like MethodPointerLocal and related objects unit functions. }
+{$ifndef FPC_LOCALS_ARE_STACK_REG_RELATIVE}
+         get_caller_frame(get_frame,get_pc_addr)
+{$else}
+         get_frame
+{$endif}
+         ,Items^[I-1])))) THEN
        Begin          { Test each item }
          LastThat := Items^[I-1];                     { Return item }
          Exit;                                        { Now exit }
@@ -1924,8 +1933,17 @@ FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
-     IF Boolean(Byte(ptruint(CallPointerLocal(Test,get_caller_frame(
-             get_frame,get_pc_addr),Items^[I-1])))) THEN
+     IF Boolean(Byte(ptruint(CallPointerLocal(Test,
+         { On most systems, locals are accessed relative to base pointer,
+           but for MIPS cpu, they are accessed relative to stack pointer.
+           This needs adaptation for so low level routines,
+           like MethodPointerLocal and related objects unit functions. }
+{$ifndef FPC_LOCALS_ARE_STACK_REG_RELATIVE}
+         get_caller_frame(get_frame,get_pc_addr)
+{$else}
+         get_frame
+{$endif}
+         ,Items^[I-1])))) THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
@@ -2044,8 +2062,17 @@ PROCEDURE TCollection.ForEach (Action: Pointer);
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do                             { Up from first item }
-    CallPointerLocal(Action,get_caller_frame(
-            get_frame,get_pc_addr),Items^[I-1]);   { Call with each item }
+    CallPointerLocal(Action,
+      { On most systems, locals are accessed relative to base pointer,
+        but for MIPS cpu, they are accessed relative to stack pointer.
+        This needs adaptation for so low level routines,
+        like MethodPointerLocal and related objects unit functions. }
+{$ifndef FPC_LOCALS_ARE_STACK_REG_RELATIVE}
+      get_caller_frame(get_frame,get_pc_addr)
+{$else}
+      get_frame
+{$endif}
+      ,Items^[I-1]);   { Call with each item }
 END;
 {$POP}
 
