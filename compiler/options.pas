@@ -2893,6 +2893,11 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
   def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+  { On most systems, locals are accessed relative to base pointer,
+    but for MIPS cpu, they are accessed relative to stack pointer.
+    This needs adaptation for so low level routines,
+    like MethodPointerLocal and related objects unit functions. }
+  def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
 {$endif mipsel}
 
 {$ifdef mipseb}
@@ -2907,6 +2912,8 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
   def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+  { See comment above for mipsel }
+  def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
 {$endif}
 
   { read configuration file }
