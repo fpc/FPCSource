@@ -3617,6 +3617,7 @@ implementation
        begin
          include(current_procinfo.flags,pi_needs_stackframe);
          expectloc:=LOC_CREGISTER;
+         result:=nil;
        end;
 
 
