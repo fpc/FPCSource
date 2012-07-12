@@ -62,7 +62,7 @@ begin
     begin
       if assigned(UContext) then
         begin
-          frame:=pointer(ptruint(UContext^.uc_mcontext.sigc_regs[29]));   { stack pointer }
+          frame:=pointer(ptruint(UContext^.uc_mcontext.sigc_regs[30]));   { base pointer }
           addr:=pointer(ptruint(UContext^.uc_mcontext.sigc_pc));  { program counter }
           if sig=SIGFPE then
             begin

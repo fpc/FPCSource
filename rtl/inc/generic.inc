@@ -1231,7 +1231,7 @@ end;
              (q3 shr 15<>0) and
               ((q3<>word(word(1) shl 15)) or not(sign))
              ) then
-             HandleErrorFrame(215,get_frame);
+             HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 
            if sign then
              fpc_mul_integer:=-q3
@@ -1264,7 +1264,7 @@ end;
                   overflow occurs                                      }
                 if checkoverflow and (f1overflowed or ((_f1<>0) and (f1<>0) and
                   ((_f1>fpc_mul_word) or (f1>fpc_mul_word)))) then
-                  HandleErrorFrame(215,get_frame);
+                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
               end;
             { when bootstrapping, we forget about overflow checking for qword :) }
             f1overflowed:=f1overflowed or ((f1 and (1 shl 15))<>0);
@@ -1307,7 +1307,7 @@ end;
              (q3 shr 15<>0) and
               ((q3<>dword(dword(1) shl 31)) or not(sign))
              ) then
-             HandleErrorFrame(215,get_frame);
+             HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 
            if sign then
              fpc_mul_longint:=-q3
@@ -1343,7 +1343,7 @@ end;
                   overflow occurs                                      }
                 if checkoverflow and (f1overflowed or ((_f1<>0) and (f1<>0) and
                   ((_f1>fpc_mul_dword) or (f1>fpc_mul_dword)))) then
-                  HandleErrorFrame(215,get_frame);
+                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
               end;
             { when bootstrapping, we forget about overflow checking for qword :) }
             f1overflowed:=f1overflowed or ((f1 and (1 shl 31))<>0);
@@ -1383,7 +1383,7 @@ function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; co
   begin
      result:=0;
      if n=0 then
-       HandleErrorFrame(200,get_frame);
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
      lzz:=count_leading_zeros_32bit(z);
      lzn:=count_leading_zeros_32bit(n);
      { if the denominator contains less zeros
@@ -1413,7 +1413,7 @@ function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; co
   begin
     result:=0;
     if n=0 then
-      HandleErrorFrame(200,get_frame);
+      HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
     lzz:=count_leading_zeros_32bit(z);
     lzn:=count_leading_zeros_32bit(n);
     { if the denominator contains less zeros
@@ -1444,7 +1444,7 @@ function fpc_div_longint(n,z : longint) : longint; [public,alias: 'FPC_DIV_LONGI
      d1,d2 : dword;
   begin
      if n=0 then
-       HandleErrorFrame(200,get_frame);
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
      sign:=false;
      if z<0 then
        begin
@@ -1477,7 +1477,7 @@ function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGI
      r,nq,zq : dword;
   begin
      if n=0 then
-       HandleErrorFrame(200,get_frame);
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
      nq:=abs(n);
 
      if z<0 then

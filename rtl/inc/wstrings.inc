@@ -70,7 +70,7 @@ end;
 
 procedure WideStringError;
   begin
-    HandleErrorFrame(204,get_frame);
+    HandleErrorAddrFrameInd(204,get_pc_addr,get_frame);
   end;
 
 
@@ -486,20 +486,20 @@ end;
 Procedure fpc_WideStr_CheckZero(p : pointer);[Public,Alias : 'FPC_WIDESTR_CHECKZERO']; compilerproc;
 begin
   if p=nil then
-    HandleErrorFrame(201,get_frame);
+    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 
 Procedure fpc_WideStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_WIDESTR_RANGECHECK']; compilerproc;
 begin
   if (index>len div 2) or (Index<1) then
-    HandleErrorFrame(201,get_frame);
+    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 
 {$else VER2_4}
 Procedure fpc_WideStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_WIDESTR_RANGECHECK']; compilerproc;
 begin
   if (p=nil) or (index>PWideRec(p-WideFirstOff)^.len div 2) or (Index<1) then
-    HandleErrorFrame(201,get_frame);
+    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 {$endif VER2_4}
 
@@ -975,7 +975,7 @@ procedure unimplementedwidestring;
       Writeln(StdErr,SRecompileWithWidestrings);
       end;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
-    HandleErrorFrame(233,get_frame);
+    HandleErrorAddrFrameInd(233,get_pc_addr,get_frame);
   end;
 
 {$warnings off}

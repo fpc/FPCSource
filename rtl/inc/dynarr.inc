@@ -38,7 +38,7 @@ type
 procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; compilerproc;
   begin
      if not(assigned(p)) or (i<0) or (i>pdynarray(p-sizeof(tdynarray))^.high) then
-       HandleErrorFrame(201,get_frame);
+       HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
   end;
 
 
@@ -68,7 +68,7 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
       exit;
     realp:=pdynarray(p-sizeof(tdynarray));
     if realp^.refcount=0 then
-      HandleErrorFrame(204,get_frame);
+      HandleErrorAddrFrameInd(204,get_pc_addr,get_frame);
 
     if declocked(realp^.refcount) then
       begin
@@ -92,7 +92,7 @@ procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_RE
 
      realp:=pdynarray(p-sizeof(tdynarray));
      if realp^.refcount=0 then
-       HandleErrorFrame(204,get_frame);
+       HandleErrorAddrFrameInd(204,get_pc_addr,get_frame);
 
      inclocked(realp^.refcount);
   end;
@@ -132,7 +132,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
   begin
      { negative length is not allowed }
      if dims[0]<0 then
-       HandleErrorFrame(201,get_frame);
+       HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 
      { skip kind and name }
      ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
@@ -198,7 +198,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                { the values it was calculated from      }
                if (size<sizeof(tdynarray)) or
                  ((elesize>0) and (size<elesize)) then
-                 HandleErrorFrame(201,get_frame);
+                 HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 
                { resize? }
                { here, realp^.refcount has to be one, otherwise the previous }

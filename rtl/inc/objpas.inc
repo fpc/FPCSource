@@ -16,7 +16,8 @@
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
     procedure DoDispCallByIDError(res : Pointer; const disp : IDispatch;desc : PDispDesc; params : Pointer);
       begin
-        handleerrorframe(RuntimeErrorExitCodes[reVarDispatch],get_frame);
+        handleerroraddrframeind(RuntimeErrorExitCodes[reVarDispatch],
+          get_pc_addr,get_frame);
       end;
 
 
@@ -46,7 +47,7 @@
     function fpc_do_as(aclass : tclass;aobject : tobject): tobject;[public,alias: 'FPC_DO_AS']; compilerproc;
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
-           handleerrorframe(219,get_frame);
+           handleerroraddrframeInd(219,get_pc_addr,get_frame);
          result := aobject;
       end;
 
