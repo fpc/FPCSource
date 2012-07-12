@@ -72,6 +72,7 @@ type
     function  read(out b;len:longint):boolean;virtual;
     function  readarray(a:TDynamicArray;len:longint):boolean;
     property filename : string read getfilename;
+    property size:longint read bufmax;
   end;
 
 implementation
@@ -240,9 +241,9 @@ begin
        exit;
     end;
   ffilename:=fn;
-  getmem(buf,f.Size);
-  f.read(buf^,f.Size);
   bufmax:=f.Size;
+  getmem(buf,bufmax);
+  f.read(buf^,bufmax);
   f.free;
   bufidx:=0;
   opened:=true;
