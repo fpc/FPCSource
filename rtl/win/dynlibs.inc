@@ -57,16 +57,15 @@ end;
 Function GetLoadErrorStr: string;
 
 Var
-  rc : integer;
+  rc,c : integer;
+  
 begin  
   rc := GetLastError;
-  try
-    result := Trim(SysErrorMessage(rc));
-    if (result='') then
-      result := 'Operating system error 0x' + IntToHex(rc, 8) + ' (no descriptive text)'
-  except
-    result := 'Operating system error 0x' + IntToHex(rc, 8) + ' (error getting descriptive text)'
-  end;
+  SetLength(Result,255);
+  C:=FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,nil,rc,
+                 MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                 @Result[1], 255,nil);
+  SetLength(Result,c);
 end;
 
 {$endif}
