@@ -251,7 +251,7 @@ begin
         Name:=NGDecompressStr(StrPas(P));
         FilePos:=SubItemsOfs;
       end;
-      CallPointerLocal(EnumProc,get_caller_frame(get_frame),@CIR);
+      CallPointerLocal(EnumProc,get_caller_frame(get_frame,get_pc_addr),@CIR);
       Inc(I);
     end;
   end;
@@ -280,7 +280,7 @@ begin
     begin
       S:=StrPas(LineP);
       ParamS:=NGDecompressStr(S);
-      CallPointerLocal(LineEnumProc,get_caller_frame(get_frame),@ParamS);
+      CallPointerLocal(LineEnumProc,get_caller_frame(get_frame,get_pc_addr),@ParamS);
       Inc(Ptrint(LineP),length(S)+1);
     end;
     if Assigned(LinkEnumProc) and (SeeAlsoOfs>0) then
@@ -294,7 +294,7 @@ begin
         S:=StrPas(NextLinkNamePtr);
         LR.Name:=S;
         Move(NextLinkOfsPtr^,LR.FilePos,4);
-        CallPointerLocal(LinkEnumProc,get_caller_frame(get_frame),@LR);
+        CallPointerLocal(LinkEnumProc,get_caller_frame(get_frame,get_pc_addr),@LR);
         Inc(Ptrint(NextLinkNamePtr),length(S)+1);
         Inc(Ptrint(NextLinkOfsPtr),4);
       end;

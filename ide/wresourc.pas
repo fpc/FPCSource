@@ -228,7 +228,8 @@ begin
   for I:=0 to Items^.Count-1 do
     begin
       EP:=Items^.At(I);
-      if Byte(Longint(CallPointerMethodLocal(Func,get_caller_frame(get_frame),@Self,EP)))<>0 then
+      if Byte(Longint(CallPointerMethodLocal(Func,
+           get_caller_frame(get_frame,get_pc_addr),@Self,EP)))<>0 then
         begin
           P := EP;
           Break;
@@ -244,7 +245,8 @@ begin
   for I:=0 to Items^.Count-1 do
     begin
       RP:=Items^.At(I);
-      CallPointerMethodLocal(Func,get_caller_frame(get_frame),@Self,RP);
+      CallPointerMethodLocal(Func,
+        get_caller_frame(get_frame,get_pc_addr),@Self,RP);
     end;
 end;
 
@@ -370,7 +372,8 @@ begin
   for I:=0 to Resources^.Count-1 do
     begin
       RP:=Resources^.At(I);
-      if Byte(Longint(CallPointerMethodLocal(Func,get_caller_frame(get_frame),@Self,RP)))<>0 then
+      if Byte(Longint(CallPointerMethodLocal(Func,
+           get_caller_frame(get_frame,get_pc_addr),@Self,RP)))<>0 then
         begin
           P := RP;
           Break;
@@ -386,7 +389,7 @@ begin
   for I:=0 to Resources^.Count-1 do
     begin
       RP:=Resources^.At(I);
-      CallPointerMethodLocal(Func,get_caller_frame(get_frame),@Self,RP);
+      CallPointerMethodLocal(Func,get_caller_frame(get_frame,get_pc_addr),@Self,RP);
     end;
 end;
 
@@ -397,7 +400,7 @@ begin
   for I:=0 to Entries^.Count-1 do
     begin
       E:=Entries^.At(I);
-      CallPointerMethodLocal(Func,get_caller_frame(get_frame),@Self,E);
+      CallPointerMethodLocal(Func,get_caller_frame(get_frame,get_pc_addr),@Self,E);
     end;
 end;
 

@@ -1228,7 +1228,8 @@ begin
       TEN.LinkData1:=LinkData1;
       TEN.LinkData2Size:=LinkData2Size;
       TEN.LinkData2:=LinkData2;
-      DoCont:=(longint(CallPointerLocal(EnumProc,get_caller_frame(get_frame),@TEN)) and $ff)<>0;
+      DoCont:=(longint(CallPointerLocal(EnumProc,
+                get_caller_frame(get_frame,get_pc_addr),@TEN)) and $ff)<>0;
       case TL.RecordType of
         $02: ;
         $20,$23:
