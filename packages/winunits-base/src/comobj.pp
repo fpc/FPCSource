@@ -1699,7 +1699,7 @@ HKCR
         else
         begin
           Result := TAutoObjectFactory(Factory).DispTypeInfo.Invoke(Pointer(
-            Integer(Self) + TAutoObjectFactory(Factory).DispIntfEntry^.IOffset),
+            PtrUint(Self) + TAutoObjectFactory(Factory).DispIntfEntry^.IOffset),
             DispID, Flags, TDispParams(Params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
         end;
       end;
