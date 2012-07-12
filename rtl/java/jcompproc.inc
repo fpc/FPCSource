@@ -640,7 +640,7 @@ Procedure fpc_HandleError (Errno : longint); compilerproc;
 
 procedure fpc_AbstractErrorIntern;compilerproc;
 *)
-procedure fpc_assert(Const Msg,FName:unicodestring;LineNo:Longint{;ErrorAddr:Pointer}); compilerproc;
+procedure fpc_assert(Const Msg,FName:unicodestring;LineNo:Longint;ErrorAddr:Pointer); compilerproc;
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure fpc_reset_typed(var f : TypedFile;Size : Longint); compilerproc;

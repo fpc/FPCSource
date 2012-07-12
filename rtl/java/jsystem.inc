@@ -1308,7 +1308,7 @@ begin
 end;
 
 
-Procedure fpc_assert(Const Msg,FName:unicodestring;LineNo:Longint{;ErrorAddr:Pointer}); [Public,Alias : 'FPC_ASSERT']; compilerproc;
+Procedure fpc_assert(Const Msg,FName:unicodestring;LineNo:Longint;ErrorAddr:Pointer); [Public,Alias : 'FPC_ASSERT']; compilerproc;
 begin
 (*
   if pointer(AssertErrorProc)<>nil then

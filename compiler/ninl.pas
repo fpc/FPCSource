@@ -66,6 +66,7 @@ interface
           function first_int_real: tnode; virtual;
           function first_abs_long: tnode; virtual;
           function first_IncludeExclude: tnode; virtual;
+          function first_get_frame: tnode; virtual;
           function first_setlength: tnode; virtual;
           function first_copy: tnode; virtual;
           { This one by default generates an internal error, because such
@@ -3436,8 +3437,7 @@ implementation
             end;
          in_get_frame:
             begin
-              include(current_procinfo.flags,pi_needs_stackframe);
-              expectloc:=LOC_CREGISTER;
+              result:=first_get_frame;
             end;
          in_get_caller_frame:
             begin
@@ -3610,6 +3610,13 @@ implementation
        begin
          result:=nil;
          expectloc:=LOC_VOID;
+       end;
+
+
+     function tinlinenode.first_get_frame: tnode;
+       begin
+         include(current_procinfo.flags,pi_needs_stackframe);
+         expectloc:=LOC_CREGISTER;
        end;
 
 
@@ -3794,7 +3801,7 @@ implementation
          paras:=tcallparanode(tcallparanode(left).right);
          paras:=ccallparanode.create(cstringconstnode.createstr(current_module.sourcefiles.get_file_name(current_filepos.fileindex)),paras);
          paras:=ccallparanode.create(genintconstnode(fileinfo.line),paras);
-{$if defined(x86) or defined(arm)}
+{$if defined(x86) or defined(arm) or defined(jvm)}
          paras:=ccallparanode.create(geninlinenode(in_get_frame,false,nil),paras);
 {$else}
          paras:=ccallparanode.create(ccallnode.createinternfromunit('SYSTEM','GET_FRAME',nil),paras);

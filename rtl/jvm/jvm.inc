@@ -41,13 +41,6 @@ procedure fpc_cpuinit;
   end;
 
 
-{$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;
-  begin
-    result:=nil;
-  end;
-
-
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
   begin
