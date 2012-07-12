@@ -2111,8 +2111,17 @@ BEGIN
      Tp := Last;                                      { Set temporary ptr }
      Repeat
        Tp := Tp^.Next;                                { Get next view }
-       IF Byte(Longint(CallPointerMethodLocal(P,get_caller_frame(
-                 get_frame,get_pc_addr),@self,Tp)))<>0 THEN
+       IF Byte(Longint(CallPointerMethodLocal(P,
+         { On most systems, locals are accessed relative to base pointer,
+           but for MIPS cpu, they are accessed relative to stack pointer.
+           This needs adaptation for so low level routines,
+           like MethodPointerLocal and related objects unit functions. }
+{$ifndef FPC_LOCALS_ARE_STACK_REG_RELATIVE}
+         get_caller_frame(get_frame,get_pc_addr)
+{$else}
+         get_frame
+{$endif}
+         ,@self,Tp)))<>0 THEN
         Begin       { Test each view }
           FirstThat := Tp;                             { View returned true }
           Exit;                                        { Now exit }
@@ -2307,8 +2316,17 @@ BEGIN
        if tp=nil then
         exit;
        Hp:=Tp^.Next;                        { Get next view }
-       CallPointerMethodLocal(P,get_caller_frame(
-               get_frame,get_pc_addr),@self,Tp);
+       CallPointerMethodLocal(P,
+         { On most systems, locals are accessed relative to base pointer,
+           but for MIPS cpu, they are accessed relative to stack pointer.
+           This needs adaptation for so low level routines,
+           like MethodPointerLocal and related objects unit functions. }
+{$ifndef FPC_LOCALS_ARE_STACK_REG_RELATIVE}
+         get_caller_frame(get_frame,get_pc_addr)
+{$else}
+         get_frame
+{$endif}
+         ,@self,Tp);
      Until (Tp=L0);                                   { Until last }
    End;
 END;
