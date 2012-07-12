@@ -73,8 +73,8 @@ implementation
         end
       else
         cg.a_call_name(list,s,weak);
-      { the default implementation only determines the result location }
-      result:=inherited;
+      { set the result location }
+      result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
   procedure thlcgmips.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);

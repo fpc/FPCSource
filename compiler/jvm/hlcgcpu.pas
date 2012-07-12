@@ -2343,7 +2343,7 @@ implementation
           pd.init_paraloc_info(calleeside);
           list.concat(taicpu.op_sym_const(opc,current_asmdata.RefAsmSymbol(s),pd.calleeargareasize));
         end;
-      result:=inherited a_call_name(list,pd,s,forceresdef,false);
+      result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
   procedure create_hlcodegen;

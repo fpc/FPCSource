@@ -459,7 +459,7 @@ implementation
   function thlcg2ll.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
     begin
       cg.a_call_name(list,s,weak);
-      result:=inherited;
+      result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
   procedure thlcg2ll.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
@@ -475,7 +475,7 @@ implementation
   function thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
     begin
       cg.a_call_name_static(list,s);
-      result:=inherited a_call_name(list,pd,s,forceresdef,false);
+      result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
   procedure thlcg2ll.a_load_const_reg(list: TAsmList; tosize: tdef; a: aint; register: tregister);

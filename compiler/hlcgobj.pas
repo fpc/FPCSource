@@ -194,7 +194,7 @@ unit hlcgobj;
              Returns the function result location.
              This routine must be overridden for each new target cpu.
           }
-          function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;virtual;
+          function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;virtual;abstract;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);virtual;abstract;
           procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
@@ -261,6 +261,7 @@ unit hlcgobj;
           procedure a_bit_set_const_loc(list: TAsmList; doset: boolean; tosize: tdef; bitnumber: aint; const loc: tlocation);virtual;
 
          protected
+           function  get_call_result_cgpara(pd: tprocdef; forceresdef: tdef): tcgpara;
            procedure get_subsetref_load_info(const sref: tsubsetreference; out loadsize: torddef; out extra_load: boolean);
            procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
            procedure a_load_subsetref_regs_index(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg: tregister); virtual;
@@ -871,19 +872,6 @@ implementation
            a_loadaddr_ref_reg(list,fromsize,cgpara.def,r,hr);
            a_load_reg_cgpara(list,cgpara.def,hr,cgpara);
          end;
-    end;
-
-  function thlcgobj.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
-    begin
-      { this is incomplete, it only sets the default function result location;
-        for use by descendants }
-      if not assigned(forceresdef) then
-        begin
-          pd.init_paraloc_info(callerside);
-          result:=pd.funcretloc[callerside];
-        end
-      else
-        result:=paramanager.get_funcretloc(pd,callerside,forceresdef);
     end;
 
   procedure thlcgobj.a_call_ref(list: TAsmList; pd: tabstractprocdef; const ref: treference);
@@ -1583,6 +1571,18 @@ implementation
         else
           internalerror(2010120409)
       end;
+    end;
+
+
+  function thlcgobj.get_call_result_cgpara(pd: tprocdef; forceresdef: tdef): tcgpara;
+    begin
+      if not assigned(forceresdef) then
+        begin
+          pd.init_paraloc_info(callerside);
+          result:=pd.funcretloc[callerside];
+        end
+      else
+        result:=paramanager.get_funcretloc(pd,callerside,forceresdef);
     end;
 
 
