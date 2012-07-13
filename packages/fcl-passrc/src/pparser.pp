@@ -2888,6 +2888,7 @@ var
 
   procedure CreateBlock(NewBlock: TPasImplBlock);
   begin
+    CurBlock.AddElement(NewBlock);
     CurBlock:=NewBlock;
     if NewImplElement=nil then NewImplElement:=CurBlock;
   end;
@@ -2904,6 +2905,8 @@ var
   ForDownTo: Boolean;
   left: TPasExpr;
   right: TPasExpr;
+  el : TPasImplElement;
+
 begin
   NewImplElement:=nil;
   CurBlock := Parent;
@@ -2913,14 +2916,22 @@ begin
     //WriteLn(i,'Token=',CurTokenText);
     case CurToken of
     tkbegin:
-      CreateBlock(CurBlock.AddBeginBlock);
+      begin
+      el:=TPasImplElement(CreateElement(TPasImplBeginBlock,'',CurBlock));
+      CreateBlock(TPasImplBeginBlock(el));
+      end;
     tkrepeat:
-      CreateBlock(CurBlock.AddRepeatUntil);
+      begin
+      el:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil,'',CurBlock));
+      CreateBlock(TPasImplRepeatUntil(el));
+      end;
     tkIf:
       begin
         Condition:=ParseExpression(Parent);
+        el:=TPasImplIfElse(CreateElement(TPasImplIfElse,'',CurBlock));
+        TPasImplIfElse(el).Condition:=Condition;
         //WriteLn(i,'IF Condition="',Condition,'" Token=',CurTokenText);
-        CreateBlock(CurBlock.AddIfElse(Condition));
+        CreateBlock(TPasImplIfElse(el));
         ExpectToken(tkthen);
       end;
     tkelse:
@@ -2928,8 +2939,8 @@ begin
       begin
         if TPasImplIfElse(CurBlock).IfBranch=nil then
         begin
-          // empty then => add dummy command
-          CurBlock.AddCommand('');
+        el:=TPasImplCommand(CreateElement(TPasImplCommand,'', CurBlock));
+        CurBlock.AddElement(el);
         end;
         if TPasImplIfElse(CurBlock).ElseBranch<>nil then
         begin
@@ -2955,7 +2966,9 @@ begin
       end else if (CurBlock is TPasImplTryExcept) then
       begin
         CloseBlock;
-        CurBlock:=TPasImplTry(CurBlock).AddExceptElse;
+        el:=TPasImplTryExceptElse(CreateElement(TPasImplTryExceptElse,'',CurBlock));
+        TPasImplTry(CurBlock).ElseBranch:=TPasImplTryExceptElse(el);
+        CurBlock:=TPasImplTryExceptElse(el);
       end else
         ParseExc(SParserSyntaxError);
     tkwhile:
@@ -2963,7 +2976,9 @@ begin
         // while Condition do
         Condition:=ParseExpression(Parent);
         //WriteLn(i,'WHILE Condition="',Condition,'" Token=',CurTokenText);
-        CreateBlock(CurBlock.AddWhileDo(Condition));
+        el:=TPasImplWhileDo(CreateElement(TPasImplWhileDo,'',CurBlock));
+        TPasImplWhileDo(el).Condition:=Condition;
+        CreateBlock(TPasImplWhileDo(el));
         ExpectToken(tkdo);
       end;
     tkgoto:
@@ -2988,7 +3003,12 @@ begin
         else
           ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkTo]]));
         EndValue:=ParseExpression(Parent);
-        CreateBlock(CurBlock.AddForLoop(VarName,StartValue,EndValue,ForDownTo));
+        el:=TPasImplForLoop(CreateElement(TPasImplForLoop,'',CurBlock));
+        TPasImplForLoop(el).VariableName:=VarName;
+        TPasImplForLoop(el).StartValue:=StartValue;
+        TPasImplForLoop(el).EndValue:=EndValue;
+        TPasImplForLoop(el).Down:=forDownto;
+        CreateBlock(TPasImplForLoop(el));
         //WriteLn(i,'FOR "',VarName,'" := ',StartValue,' to ',EndValue,' Token=',CurTokenText);
         ExpectToken(tkdo);
       end;
@@ -2998,7 +3018,9 @@ begin
         // with Expr, Expr do
         Expr:=ParseExpression(Parent);
         //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
-        CreateBlock(CurBlock.AddWithDo(Expr));
+        el:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock));
+        TPasImplWithDo(el).AddExpression(expr);
+        CreateBlock(TPasImplWithDo(el));
         repeat
           NextToken;
           if CurToken=tkdo then break;
@@ -3014,7 +3036,9 @@ begin
         Expr:=ParseExpression(Parent);
         //writeln(i,'CASE OF Expr="',Expr,'" Token=',CurTokenText);
         ExpectToken(tkof);
-        CreateBlock(CurBlock.AddCaseOf(Expr));
+        el:=TPasImplCaseOf(CreateElement(TPasImplCaseOf,'',CurBlock));
+        TPasImplCaseOf(el).Expression:=Expr;
+        CreateBlock(TPasImplCaseOf(el));
         repeat
           NextToken;
           //writeln(i,'CASE OF Token=',CurTokenText);
@@ -3043,7 +3067,12 @@ begin
               if CurBlock is TPasImplCaseStatement then
                 TPasImplCaseStatement(CurBlock).Expressions.Add(Expr)
               else
-                CurBlock:=TPasImplCaseOf(CurBlock).AddCase(Expr);
+                begin
+                el:=TPasImplCaseStatement(CreateElement(TPasImplCaseStatement,'',CurBlock));
+                TPasImplCaseStatement(el).AddExpression(Expr);
+                CurBlock.AddElement(el);
+                CurBlock:=TPasImplCaseStatement(el);
+                end;
               //writeln(i,'CASE after value Token=',CurTokenText);
               if CurToken=tkColon then break;
               if CurToken<>tkComma then
@@ -3069,7 +3098,10 @@ begin
         end;
       end;
     tktry:
-      CreateBlock(CurBlock.AddTry);
+      begin
+      el:=TPasImplTry(CreateElement(TPasImplTry,'',Curblock));
+      CreateBlock(TPasImplTry(el));
+      end;
     tkfinally:
       begin
         if CloseStatement(true) then
@@ -3079,7 +3111,10 @@ begin
         end;
         if CurBlock is TPasImplTry then
         begin
-          CurBlock:=TPasImplTry(CurBlock).AddFinally;
+          el:=TPasImplTryFinally(CreateElement(TPasImplTryFinally,'',Curblock));
+          TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryFinally(el);
+          CurBlock.AddElement(el);
+          CurBlock:=TPasImplTryFinally(el);
         end else
           ParseExc(SParserSyntaxError);
       end;
@@ -3093,7 +3128,10 @@ begin
         if CurBlock is TPasImplTry then
         begin
           //writeln(i,'EXCEPT');
-          CurBlock:=TPasImplTry(CurBlock).AddExcept;
+          el:=TPasImplTryExcept(CreateElement(TPasImplTryExcept,'',CurBlock));
+          TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryExcept(el);
+          CurBlock.AddElement(el);
+          CurBlock:=TPasImplTryExcept(el);
         end else
           ParseExc(SParserSyntaxError);
       end;
@@ -3115,13 +3153,20 @@ begin
             //writeln(i,'ON v=',VarName,' t=',TypeName,' Token=',CurTokenText);
           end else
             UngetToken;
-          CurBlock:=TPasImplTryExcept(CurBlock).AddExceptOn(VarName,TypeName);
+          el:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock));
+          TPasImplExceptOn(el).VariableName:=VarName;
+          TPasImplExceptOn(el).TypeName:=TypeName;
+          CurBlock.AddElement(el);
+          CurBlock:=TPasImplExceptOn(el);
           ExpectToken(tkDo);
         end else
           ParseExc(SParserSyntaxError);
       end;
     tkraise:
-      CreateBlock(CurBlock.AddRaise);
+      begin
+      el:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock));
+      CreateBlock(TPasImplRaise(el));
+      end;
     tkend:
       begin
         if CloseStatement(true) then
@@ -3172,7 +3217,11 @@ begin
           // assign statement
           NextToken;
           right:=DoParseExpression(nil); // this may solve TPasImplWhileDo.AddElement BUG
-          CmdElem:=CurBlock.AddAssign(left, right);
+          el:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock));
+          TPasImplAssign(el).left:=Left;
+          TPasImplAssign(el).right:=Right;
+          CurBlock.AddElement(el);
+          CmdElem:=TPasImplAssign(el);
           UngetToken;
         end;
         tkColon:
@@ -3180,12 +3229,18 @@ begin
           if not (left is TPrimitiveExpr) then
             ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkSemicolon]]));
           // label mark. todo: check mark identifier in the list of labels
-          CmdElem:=CurBlock.AddLabelMark(TPrimitiveExpr(left).Value);
+          el:=TPasImplLabelMark(CreateElement(TPasImplLabelMark,'', CurBlock));
+          TPasImplLabelMark(el).LabelId:=TPrimitiveExpr(left).Value;
+          CurBlock.AddElement(el);
+          CmdElem:=TPasImplLabelMark(el);
           left.Free;
         end;
       else
         // simple statement (function call)
-        CmdElem:=CurBlock.AddSimple(left);
+        el:=TPasImplSimple(CreateElement(TPasImplSimple,'',CurBlock));
+        TPasImplSimple(el).expr:=Left;
+        CurBlock.AddElement(el);
+        CmdElem:=TPasImplSimple(el);
         UngetToken;
       end;
 
