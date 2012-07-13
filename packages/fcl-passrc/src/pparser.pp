@@ -209,7 +209,7 @@ type
     // Main scope parsing
     procedure ParseMain(var Module: TPasModule);
     procedure ParseUnit(var Module: TPasModule);
-    procedure ParseProgram(var Module: TPasModule);
+    procedure ParseProgram(var Module: TPasModule; SkipHeader : Boolean = False);
     procedure ParseUsesList(ASection: TPasSection);
     procedure ParseInterface;
     procedure ParseImplementation;
@@ -1630,10 +1630,14 @@ begin
   Module:=nil;
   NextToken;
   case CurToken of
-    tkUnit: ParseUnit(Module);
-    tkProgram: ParseProgram(Module);
-    else
-      ParseExc(Format(SParserExpectTokenError, ['unit']));
+    tkUnit:
+      ParseUnit(Module);
+    tkProgram:
+      ParseProgram(Module);
+  else
+    ungettoken;
+    ParseProgram(Module,True);
+  //    ParseExc(Format(SParserExpectTokenError, ['unit']));
   end;
 end;
 
@@ -1662,11 +1666,21 @@ begin
 end;
 
 // Starts after the "program" token
-procedure TPasParser.ParseProgram(var Module: TPasModule);
+procedure TPasParser.ParseProgram(var Module: TPasModule; SkipHeader : Boolean = False);
+
+Var
+  PP : TPasProgram;
+  Section : TProgramSection;
+  N : String;
+
 begin
+  if SkipHeader then
+    N:=ChangeFileExt(Scanner.CurFilename,'')
+  else
+    N:=ExpectIdentifier;
   Module := nil;
-  Module := TPasModule(CreateElement(TPasProgram, ExpectIdentifier,
-    Engine.Package));
+  PP:=TPasProgram(CreateElement(TPasProgram, N, Engine.Package));
+  Module :=PP;
   FCurModule:=Module;
   try
     if Assigned(Engine.Package) then
@@ -1674,8 +1688,26 @@ begin
       Module.PackageName := Engine.Package.Name;
       Engine.Package.Modules.Add(Module);
     end;
-    NextToken;
-    ParseImplementation;
+    if not SkipHeader then
+      begin
+      NextToken;
+      If (CurToken=tkBraceOpen) then
+        begin
+        PP.InputFile:=ExpectIdentifier;
+        NextToken;
+        if Not (CurToken in [tkBraceClose,tkComma]) then
+          ParseExc(SParserExpectedCommaRBracket);
+        If (CurToken=tkComma) then
+          PP.OutPutFile:=ExpectIdentifier;
+        ExpectToken(tkBraceClose);
+        NextToken;
+        end;
+      if (CurToken<>tkSemicolon) then
+        ParseExc(Format(SParserExpectTokenError,[';']));
+      end;
+    Section := TProgramSection(CreateElement(TProgramSection, '', CurModule));
+    PP.ImplementationSection := Section;
+    ParseDeclarations(Section);
   finally
     FCurModule:=nil;
   end;
@@ -1803,11 +1835,13 @@ begin
     case CurToken of
       tkend:
         begin
+        If (CurModule is TPasProgram) and (CurModule.InitializationSection=Nil) then
+          ParseExc(Format(SParserExpectTokenError,['begin']));
         ExpectToken(tkDot);
         break;
         end;
       tkimplementation:
-        if (CurToken = tkImplementation) and (Declarations is TInterfaceSection) then
+        if (Declarations is TInterfaceSection) then
           begin
           If Not Engine.InterfaceOnly then
             begin
@@ -1819,14 +1853,14 @@ begin
           end;
       tkinitialization:
         if (Declarations is TInterfaceSection)
-        or (Declarations is TImplementationSection) then
+        or ((Declarations is TImplementationSection) and not (Declarations is TProgramSection)) then
           begin
           ParseInitialization;
           break;
           end;
       tkfinalization:
         if (Declarations is TInterfaceSection)
-        or (Declarations is TImplementationSection) then
+        or ((Declarations is TImplementationSection) and not (Declarations is TProgramSection)) then
           begin
           ParseFinalization;
           break;

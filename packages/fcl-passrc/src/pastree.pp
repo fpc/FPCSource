@@ -28,6 +28,8 @@ resourcestring
   SPasTreeElement = 'generic element';
   SPasTreeSection = 'unit section';
   SPasTreeModule = 'module';
+  SPasTreeUnit = 'unit';
+  SPasTreeProgram = 'program';
   SPasTreePackage = 'package';
   SPasTreeResString = 'resource string';
   SPasTreeType = 'generic type';
@@ -271,7 +273,7 @@ type
   TImplementationSection = class(TPasSection)
   end;
 
-  TProgramSection = class(TPasSection)
+  TProgramSection = class(TImplementationSection)
   end;
 
   TInitializationSection = class;
@@ -295,7 +297,20 @@ type
 
   { TPasProgram }
 
-  TPasProgram = class(TPasModule);
+  { TPasUnitModule }
+
+  TPasUnitModule = Class(TPasModule)
+    function ElementTypeName: string; override;
+  end;
+
+  TPasProgram = class(TPasModule)
+  Public
+    destructor Destroy; override;
+    function ElementTypeName: string; override;
+  Public
+    ProgramSection: TInterfaceSection;
+    InputFile,OutPutFile : String;
+  end;
 
   { TPasPackage }
 
@@ -1063,6 +1078,26 @@ implementation
 
 uses SysUtils;
 
+{ TPasProgram }
+
+destructor TPasProgram.Destroy;
+begin
+  FreeAndNil(ProgramSection);
+  inherited Destroy;
+end;
+
+function TPasProgram.ElementTypeName: string;
+begin
+  Result:=inherited ElementTypeName;
+end;
+
+{ TPasUnitModule }
+
+function TPasUnitModule.ElementTypeName: string;
+begin
+  Result:=SPasTreeUnit;
+end;
+
 { TPasStringType }
 
 
@@ -1282,7 +1317,9 @@ begin
     InterfaceSection.Release;
   if Assigned(ImplementationSection) then
     ImplementationSection.Release;
-  inherited Destroy;
+ FreeAndNil(InitializationSection);
+ FreeAndNil(FinalizationSection);
+ inherited Destroy;
 end;
 
 
