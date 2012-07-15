@@ -2216,8 +2216,7 @@ implementation
                      { use the index the module got from the current compilation process }
                      current_filepos.moduleindex:=hmodule.unit_index;
                      current_tokenpos:=current_filepos;
-                     current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf,
-                       tprocdef(tprocdef(hp).genericdef).change_endian);
+                     current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
                      read_proc_body(nil,tprocdef(hp));
                      current_filepos:=oldcurrent_filepos;
                    end

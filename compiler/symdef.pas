@@ -61,9 +61,6 @@ interface
           genericdef      : tstoreddef;
           genericdefderef : tderef;
           generictokenbuf : tdynamicarray;
-          { Set if PPU was generated with another
-            endianess as current compiler or ppudump utils }
-          change_endian   : boolean;
           constructor create(dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -1337,7 +1334,6 @@ implementation
 {$endif}
          generictokenbuf:=nil;
          genericdef:=nil;
-         change_endian:=false;
 
          { Don't register forwarddefs, they are disposed at the
            end of an type block }
@@ -1395,7 +1391,6 @@ implementation
          if df_generic in defoptions then
            begin
              sizeleft:=ppufile.getlongint;
-             change_endian:=ppufile.change_endian;
              initgeneric;
              while sizeleft>0 do
                begin
