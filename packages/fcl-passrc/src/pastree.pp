@@ -249,7 +249,7 @@ type
     function ElementTypeName: string; override;
   public
     Declarations, ResStrings, Types, Consts, Classes,
-    Functions, Variables, Properties: TFPList;
+    Functions, Variables, Properties, ExportSymbols: TFPList;
   end;
 
   { TPasSection }
@@ -274,6 +274,9 @@ type
   end;
 
   TProgramSection = class(TImplementationSection)
+  end;
+
+  TLibrarySection = class(TImplementationSection)
   end;
 
   TInitializationSection = class;
@@ -308,7 +311,18 @@ type
     destructor Destroy; override;
     function ElementTypeName: string; override;
   Public
-    ProgramSection: TInterfaceSection;
+    ProgramSection: TProgramSection;
+    InputFile,OutPutFile : String;
+  end;
+
+  { TPasLibrary }
+
+  TPasLibrary = class(TPasModule)
+  Public
+    destructor Destroy; override;
+    function ElementTypeName: string; override;
+  Public
+    LibrarySection: TLibrarySection;
     InputFile,OutPutFile : String;
   end;
 
@@ -567,11 +581,22 @@ type
     ResultEl: TPasResultElement;
   end;
 
-  TPasUnresolvedTypeRef = class(TPasType)
+  TPasUnresolvedSymbolRef = class(TPasType)
+  end;
+
+  TPasUnresolvedTypeRef = class(TPasUnresolvedSymbolRef)
   public
     // Typerefs cannot be parented! -> AParent _must_ be NIL
     constructor Create(const AName: string; AParent: TPasElement); override;
     function ElementTypeName: string; override;
+  end;
+
+  { TPasUnresolvedUnitRef }
+
+  TPasUnresolvedUnitRef = Class(TPasUnresolvedSymbolRef)
+    function ElementTypeName: string; override;
+  Public
+    FileName : string;
   end;
 
   { TPasStringType }
@@ -603,6 +628,16 @@ type
     Modifiers : string;
     AbsoluteLocation : String;
     Expr: TPasExpr;
+  end;
+
+  { TPasExportSymbol }
+
+  TPasExportSymbol = class(TPasElement)
+    ExportName : TPasExpr;
+    Exportindex : TPasExpr;
+    Destructor Destroy; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
   end;
 
   { TPasConst }
@@ -1078,6 +1113,50 @@ implementation
 
 uses SysUtils;
 
+{ TPasExportSymbol }
+
+destructor TPasExportSymbol.Destroy;
+begin
+  FreeAndNil(ExportName);
+  FreeAndNil(ExportIndex);
+  inherited Destroy;
+end;
+
+function TPasExportSymbol.ElementTypeName: string;
+begin
+  Result:='Export'
+end;
+
+function TPasExportSymbol.GetDeclaration(full: boolean): string;
+begin
+  Result:=Name;
+  if (ExportName<>Nil) then
+    Result:=Result+' name '+ExportName.GetDeclaration(Full)
+  else if (ExportIndex<>Nil) then
+    Result:=Result+' index '+ExportIndex.GetDeclaration(Full);
+
+end;
+
+{ TPasUnresolvedUnitRef }
+
+function TPasUnresolvedUnitRef.ElementTypeName: string;
+begin
+  Result:=SPasTreeUnit;
+end;
+
+{ TPasLibrary }
+
+destructor TPasLibrary.Destroy;
+begin
+  FreeAndNil(LibrarySection);
+  inherited Destroy;
+end;
+
+function TPasLibrary.ElementTypeName: string;
+begin
+  Result:=inherited ElementTypeName;
+end;
+
 { TPasProgram }
 
 destructor TPasProgram.Destroy;
@@ -1291,12 +1370,14 @@ begin
   Functions := TFPList.Create;
   Variables := TFPList.Create;
   Properties := TFPList.Create;
+  ExportSymbols := TFPList.Create;
 end;
 
 destructor TPasDeclarations.Destroy;
 var
   i: Integer;
 begin
+  ExportSymbols.Free;
   Variables.Free;
   Functions.Free;
   Classes.Free;

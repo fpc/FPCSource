@@ -200,6 +200,7 @@ type
     Function ParseClassDecl(Parent: TPasElement; const AClassName: String;   AObjKind: TPasObjKind; PackMode : TPackMode= pmNone): TPasType;
     Function ParseProperty(Parent : TPasElement; Const AName : String; AVisibility : TPasMemberVisibility; IsClass : Boolean) : TPasProperty;
     function ParseRangeType(AParent: TPasElement; Const TypeName: String; Full : Boolean = True): TPasRangeType;
+    procedure ParseExportDecl(Parent: TPasElement; List: TFPList);
     // Constant declarations
     function ParseConstDecl(Parent: TPasElement): TPasConst;
     function ParseResourcestringDecl(Parent: TPasElement): TPasResString;
@@ -210,6 +211,7 @@ type
     procedure ParseMain(var Module: TPasModule);
     procedure ParseUnit(var Module: TPasModule);
     procedure ParseProgram(var Module: TPasModule; SkipHeader : Boolean = False);
+    procedure ParseLibrary(var Module: TPasModule);
     procedure ParseUsesList(ASection: TPasSection);
     procedure ParseInterface;
     procedure ParseImplementation;
@@ -252,7 +254,8 @@ const
   WhitespaceTokensToIgnore = [tkWhitespace, tkComment, tkLineEnding, tkTab];
 
 type
-  TDeclType = (declNone, declConst, declResourcestring, declType, declVar, declThreadvar, declProperty);
+  TDeclType = (declNone, declConst, declResourcestring, declType,
+               declVar, declThreadvar, declProperty, declExports);
 
 Function IsHintToken(T : String; Out AHint : TPasMemberHint) : boolean;
 
@@ -1634,6 +1637,8 @@ begin
       ParseUnit(Module);
     tkProgram:
       ParseProgram(Module);
+    tkLibrary:
+      ParseLibrary(Module);
   else
     ungettoken;
     ParseProgram(Module,True);
@@ -1706,7 +1711,34 @@ begin
         ParseExc(Format(SParserExpectTokenError,[';']));
       end;
     Section := TProgramSection(CreateElement(TProgramSection, '', CurModule));
-    PP.ImplementationSection := Section;
+    PP.ProgramSection := Section;
+    ParseDeclarations(Section);
+  finally
+    FCurModule:=nil;
+  end;
+end;
+
+procedure TPasParser.ParseLibrary(var Module: TPasModule);
+Var
+  PP : TPasLibrary;
+  Section : TLibrarySection;
+
+begin
+  Module := nil;
+  PP:=TPasLibrary(CreateElement(TPasLibrary, ExpectIdentifier, Engine.Package));
+  Module :=PP;
+  FCurModule:=Module;
+  try
+    if Assigned(Engine.Package) then
+    begin
+      Module.PackageName := Engine.Package.Name;
+      Engine.Package.Modules.Add(Module);
+    end;
+    NextToken;
+    if (CurToken<>tkSemicolon) then
+        ParseExc(Format(SParserExpectTokenError,[';']));
+    Section := TLibrarySection(CreateElement(TLibrarySection, '', CurModule));
+    PP.LibrarySection := Section;
     ParseDeclarations(Section);
   finally
     FCurModule:=nil;
@@ -1822,6 +1854,7 @@ var
   List: TFPList;
   i,j: Integer;
   VarEl: TPasVariable;
+  ExpEl: TPasExportSymbol;
   PropEl : TPasProperty;
   TypeName: String;
   PT : TProcType;
@@ -1872,6 +1905,8 @@ begin
           ParseExc(SParserSyntaxError);
       tkConst:
         CurBlock := declConst;
+      tkexports:
+        CurBlock := declExports;
       tkResourcestring:
         CurBlock := declResourcestring;
       tkType:
@@ -1946,6 +1981,27 @@ begin
                   end else
                     Declarations.Types.Add(TypeEl);
                 end;
+              end;
+            declExports:
+              begin
+              List := TFPList.Create;
+              try
+                try
+                  ParseExportDecl(Declarations, List);
+                except
+                  for i := 0 to List.Count - 1 do
+                    TPasExportSymbol(List[i]).Release;
+                  raise;
+                end;
+                for i := 0 to List.Count - 1 do
+                begin
+                  ExpEl := TPasExportSymbol(List[i]);
+                  Declarations.Declarations.Add(ExpEl);
+                  Declarations.ExportSymbols.Add(ExpEl);
+                end;
+              finally
+                List.Free;
+              end;
               end;
             declVar, declThreadVar:
               begin
@@ -2028,43 +2084,40 @@ end;
 // Starts after the "uses" token
 procedure TPasParser.ParseUsesList(ASection: TPasSection);
 
-function CheckUnit(AUnitName : string):TPasElement;
-begin
+  function CheckUnit(AUnitName : string):TPasElement;
+  begin
     result := Engine.FindModule(AUnitName);  // should we resolve module here when "IN" filename is not known yet?
     if Assigned(result) then
       result.AddRef
     else
-      Result := TPasType(CreateElement(TPasUnresolvedTypeRef, AUnitName,
+      Result := TPasType(CreateElement(TPasUnresolvedUnitRef, AUnitName,
         ASection));
     ASection.UsesList.Add(Result);
-end;
+  end;
 
 var
   AUnitName: String;
   Element: TPasElement;
 begin
-  If not (Asection is TImplementationSection) Then // interface,program,library,package
+  If not (Asection.ClassType=TImplementationSection) Then // interface,program,library,package
     Element:=CheckUnit('System'); // system always implicitely first.    
-  while True do
-  begin
+  Repeat
     AUnitName := ExpectIdentifier; 
     Element :=CheckUnit(AUnitName);
-
     NextToken;
+    if (CurToken=tkin) then
+      begin
+      ExpectToken(tkString);
+      if (Element is TPasModule) and (TPasmodule(Element).filename='')  then
+        TPasModule(Element).FileName:=curtokenstring
+      else if (Element is TPasUnresolvedUnitRef) then
+        TPasUnresolvedUnitRef(Element).FileName:=curtokenstring;
+      NextToken;
+      end;
 
-    if CurToken = tkin then begin
-      // todo: store unit's file name somewhere
-      NextToken; // skip in
-      ExpectToken(tkString); // skip unit's real file name
-      if (Element is TPasModule) and (TPasmodule(Element).filename<>'')  then
-        TPasModule(Element).FileName:=curtokenstring;
-    end;
-
-    if CurToken = tkSemicolon then
-      break
-    else if CurToken <> tkComma then
+    if Not (CurToken in [tkComma,tkSemicolon]) then
       ParseExc(SParserExpectedCommaSemicolon);
-  end;
+  Until (CurToken=tkSemicolon);
 end;
 
 // Starts after the variable name
@@ -2157,6 +2210,30 @@ begin
     FreeAndNil(Result);
     raise;
   end;
+end;
+
+// Starts after Exports, on first identifier.
+procedure TPasParser.ParseExportDecl(Parent: TPasElement; List: TFPList);
+Var
+  E : TPasExportSymbol;
+begin
+  Repeat
+    E:=TPasExportSymbol(CreateElement(TPasExportSymbol,CurtokenString,Parent));
+    List.Add(E);
+    NextToken;
+    if CurTokenIsIdentifier('INDEX') then
+      begin
+      NextToken;
+      E.Exportindex:=DoParseExpression(E,Nil)
+      end
+    else if CurTokenIsIdentifier('NAME') then
+      begin
+      NextToken;
+      E.ExportName:=DoParseExpression(E,Nil)
+      end;
+    if not (CurToken in [tkComma,tkSemicolon]) then
+      ParseExc(SParserExpectedCommaSemicolon);
+  until (CurToken=tkSemicolon);
 end;
 
 Function TPasParser.ParseSpecializeType(Parent : TPasElement; Const TypeName : String) : TPasClassType;
