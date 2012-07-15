@@ -214,11 +214,6 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
         movl %esp,%eax
         movl %eax,System_exception_frame
         pushl %ebp
-        movl %esp,%eax
-        movl %eax,st
-     end;
-     StackTop:=st;
-     asm
         xorl %eax,%eax
         movw %ss,%ax
         movl %eax,_SS
@@ -631,14 +626,11 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 	     DataDirectory : array[1..$80] of byte;
 	  end;
 	begin
-          if (SysInstance=0) and not IsLibrary then
-            SysInstance:=getmodulehandle(nil);
-          if (SysInstance=0) then
-            result:=stklen
-          else
-            result:=tpeheader((pointer(SysInstance)+(tdosheader(pointer(SysInstance)^).e_lfanew))^).SizeOfStackReserve;
+          result:=tpeheader((pointer(getmodulehandle(nil))+(tdosheader(pointer(getmodulehandle(nil))^).e_lfanew))^).SizeOfStackReserve;
 	end;
 
+var
+  st : Pointer;
 
 begin
   { get some helpful informations }
@@ -648,6 +640,12 @@ begin
     SysInstance:=getmodulehandle(nil);
 
   MainInstance:=SysInstance;
+
+  asm
+    movl %fs:(4),%eax
+    movl %eax,st
+  end;
+  StackTop:=st;
 
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
