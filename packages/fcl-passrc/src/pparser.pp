@@ -3038,7 +3038,7 @@ begin
       end;
     tkIf:
       begin
-        Condition:=ParseExpression(Parent);
+        Condition:=ParseExpression(CurBlock);
         el:=TPasImplIfElse(CreateElement(TPasImplIfElse,'',CurBlock));
         TPasImplIfElse(el).Condition:=Condition;
         //WriteLn(i,'IF Condition="',Condition,'" Token=',CurTokenText);
@@ -3241,7 +3241,7 @@ begin
           //writeln(i,'EXCEPT');
           el:=TPasImplTryExcept(CreateElement(TPasImplTryExcept,'',CurBlock));
           TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryExcept(el);
-          CurBlock.AddElement(el);
+//          CurBlock.AddElement(el);
           CurBlock:=TPasImplTryExcept(el);
         end else
           ParseExc(SParserSyntaxError);

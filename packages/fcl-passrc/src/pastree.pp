@@ -1292,6 +1292,7 @@ begin
 end;
 
 procedure TPasElement.Release;
+
 begin
   if FRefCount = 0 then
     Free
@@ -1808,7 +1809,10 @@ procedure TPasImplForLoop.AddElement(Element: TPasImplElement);
 begin
   inherited AddElement(Element);
   if Body=nil then
-    Body:=Element
+    begin
+    Body:=Element;
+    Body.AddRef;
+    end
   else
     raise Exception.Create('TPasImplForLoop.AddElement body already set - please report this bug');
 end;
