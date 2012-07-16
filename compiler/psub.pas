@@ -1884,12 +1884,7 @@ implementation
             if (not current_module.in_interface) then
               include(pdflags,pd_implemen);
             if (not current_module.is_unit) or
-               create_smartlink or
-              {
-                taking addresses of static procedures goes wrong
-                if they aren't global when pic is used (FK)
-              }
-              (cs_create_pic in current_settings.moduleswitches) then
+               create_smartlink then
               include(pd.procoptions,po_global);
             pd.forwarddef:=false;
           end;
