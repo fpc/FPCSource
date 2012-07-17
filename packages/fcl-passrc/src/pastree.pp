@@ -2668,6 +2668,8 @@ end;
 destructor TProcedureBody.Destroy;
 begin
   FreeAndNil(Labels);
+  if Assigned(Body) then
+    Body.Release;
   inherited Destroy;
 end;
 
@@ -2684,7 +2686,10 @@ procedure TPasImplWhileDo.AddElement(Element: TPasImplElement);
 begin
   inherited AddElement(Element);
   if Body=nil then
-    Body:=Element
+    begin
+    Body:=Element;
+    Body.AddRef;
+    end
   else
     raise Exception.Create('TPasImplWhileDo.AddElement body already set - please report this bug');
 end;
