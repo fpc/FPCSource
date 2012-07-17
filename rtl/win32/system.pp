@@ -555,10 +555,7 @@ end;
 procedure remove_exception_handlers;
 begin
 end;
-
 {$endif Set_i386_Exception_handler}
-
-
 
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
