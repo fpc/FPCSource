@@ -2520,7 +2520,11 @@ implementation
                 begin
                   if target_info.system in systems_managed_vm then
                     message(parser_e_feature_unsupported_for_vm);
+                  typecheckpass(left);
                   set_varstate(left,vs_read,[]);
+                  if (left.resultdef.typ=objectdef) and
+                    not(oo_has_vmt in tobjectdef(left.resultdef).objectoptions) then
+                      message(type_e_typeof_requires_vmt);
                   resultdef:=voidpointertype;
                 end;
 

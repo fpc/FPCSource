@@ -1866,6 +1866,8 @@ type_e_interface_lower_visibility=04117_E_The interface method "$1" has a higher
 % warning that is disabled by default because such situations are common
 % practice, but it can be enabled in case you are concerned with keeping your
 % code compilable for the JVM target.
+type_e_typeof_requires_vmt=04118_E_TYPEOF can only be used on object types with VMT
+% Typeof() intrinsic returns pointer to VMT of its argument. It cannot be used on object types that do not have VMT.
 % \end{description}
 #
 # Symtable
