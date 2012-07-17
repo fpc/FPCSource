@@ -1373,7 +1373,7 @@ begin
             expstack.Add(x);
             end
            else
-            expstack.Add( TUnaryExpr.Create(AParent, PopExp, TokenToExprOp(tempop) ));
+            expstack.Add( TUnaryExpr.Create(AParent, x, TokenToExprOp(tempop) ));
         end;
 
       end else
