@@ -1049,6 +1049,7 @@ begin
         break;
     end; // Case
   end;
+//  Writeln(Result, '(',CurTokenString,')');
 end;
 
 procedure TPascalScanner.Error(const Msg: string);
@@ -1210,7 +1211,7 @@ Var
 begin
   Param := UpperCase(Param);
   Index:=FDefines.IndexOf(Param);
-  If (Index<0) then
+  If (Index>=0) then
     RemoveDefine(Param)
   else
     begin

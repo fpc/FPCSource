@@ -1864,7 +1864,7 @@ begin
   while True do
   begin
     NextToken;
-    //writeln('TPasParser.ParseSection Token=',Scanner.CurTokenString,' ',CurToken);
+  //  writeln('TPasParser.ParseSection Token=',CurTokenString,' ',CurToken, ' ',scanner.CurFilename);
     case CurToken of
       tkend:
         begin
@@ -2942,12 +2942,12 @@ var
   BeginBlock: TPasImplBeginBlock;
   SubBlock: TPasImplElement;
 begin
-  //writeln('TPasParser.ParseProcBeginBlock ');
 
   BeginBlock := TPasImplBeginBlock(CreateElement(TPasImplBeginBlock, '', Parent));
   Parent.Body := BeginBlock;
   repeat
     NextToken;
+//    writeln('TPasParser.ParseProcBeginBlock ',curtokenstring);
     if CurToken=tkend then
       break
     else if CurToken<>tkSemiColon then
@@ -2959,6 +2959,7 @@ begin
     end;
   until false;
   ExpectToken(tkSemicolon);
+//  writeln('TPasParser.ParseProcBeginBlock ended ',curtokenstring);
 end;
 
 // Next token is start of (compound) statement
@@ -3241,7 +3242,6 @@ begin
           //writeln(i,'EXCEPT');
           el:=TPasImplTryExcept(CreateElement(TPasImplTryExcept,'',CurBlock));
           TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryExcept(el);
-//          CurBlock.AddElement(el);
           CurBlock:=TPasImplTryExcept(el);
         end else
           ParseExc(SParserSyntaxError);
