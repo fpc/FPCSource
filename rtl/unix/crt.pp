@@ -112,7 +112,10 @@ Function XY2Ansi(x,y,ox,oy:longint):String;
   Returns a string with the escape sequences to go to X,Y on the screen
 }
 Begin
-  if y=oy then
+  { in case of potential ox overflow, send full position information
+    (mantis #20880) }
+  if (y=oy) and
+     (ox<>$ff) then
    begin
      if x=ox then
       begin
