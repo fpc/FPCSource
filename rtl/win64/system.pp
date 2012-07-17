@@ -194,8 +194,6 @@ end;
 
 
 procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
-  var
-    ST : pointer;
   begin
      IsLibrary:=false;
      { install the handlers for exe only ?
@@ -204,11 +202,6 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      install_exception_handlers;
 {$endif FPC_USE_WIN64_SEH}
      ExitCode:=0;
-     asm
-        movq %rsp,%rax
-        movq %rax,st
-     end;
-     StackTop:=st;
      asm
         xorq %rax,%rax
         movw %ss,%ax
@@ -504,8 +497,15 @@ asm
   subq  %gs:(16),%rax
 end;
 
+var
+  st : Pointer;
 
 begin
+  asm
+    movq %gs:(8),%rax
+    movq %rax,st
+  end;
+  StackTop:=st;
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
