@@ -782,6 +782,7 @@ type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
   public
+
     Labels: TFPList;
     Body: TPasImplBlock;
   end;
@@ -1010,6 +1011,7 @@ type
   public
     left  : TPasExpr;
     right : TPasExpr;
+    Destructor Destroy; override;
   end;
 
   { TPasImplSimple }
@@ -1017,6 +1019,7 @@ type
   TPasImplSimple = class (TPasImplStatement)
   public
     expr  : TPasExpr;
+    Destructor Destroy; override;
   end;
 
   TPasImplTryHandler = class;
@@ -1112,6 +1115,23 @@ const
 implementation
 
 uses SysUtils;
+
+{ TPasImplSimple }
+
+destructor TPasImplSimple.Destroy;
+begin
+  FreeAndNil(Expr);
+  inherited Destroy;
+end;
+
+{ TPasImplAssign }
+
+destructor TPasImplAssign.Destroy;
+begin
+  FreeAndNil(Left);
+  FreeAndNil(Right);
+  inherited Destroy;
+end;
 
 { TPasExportSymbol }
 
@@ -1291,13 +1311,28 @@ begin
   Inc(FRefCount);
 end;
 
+{ $define debugrefcount}
+
 procedure TPasElement.Release;
 
+{$ifdef debugrefcount}
+Var
+  Cn : String;
+  {$endif}
+
 begin
+{$ifdef debugrefcount}
+  CN:=ClassName;
+  CN:=CN+' '+IntToStr(FRefCount);
+  If Assigned(Parent) then
+    CN:=CN+' ('+Parent.ClassName+')';
+  Writeln('Release : ',Cn);
+{$endif}
   if FRefCount = 0 then
     Free
   else
     Dec(FRefCount);
+{$ifdef debugrefcount}  Writeln('Released : ',Cn); {$endif}
 end;
 
 function TPasElement.FullName: string;
@@ -1784,9 +1819,15 @@ procedure TPasImplIfElse.AddElement(Element: TPasImplElement);
 begin
   inherited AddElement(Element);
   if IfBranch=nil then
-    IfBranch:=Element
+    begin
+    IfBranch:=Element;
+    element.AddRef;
+    end
   else if ElseBranch=nil then
-    ElseBranch:=Element
+    begin
+    ElseBranch:=Element;
+    Element.AddRef;
+    end
   else
     raise Exception.Create('TPasImplIfElse.AddElement if and else already set - please report this bug');
 end;
@@ -2776,7 +2817,10 @@ procedure TPasImplExceptOn.AddElement(Element: TPasImplElement);
 begin
   inherited AddElement(Element);
   if Body=nil then
+    begin
     Body:=Element;
+    Body.AddRef;
+    end;
 end;
 
 { TPasImplStatement }
