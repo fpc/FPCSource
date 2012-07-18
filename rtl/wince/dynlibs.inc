@@ -62,10 +62,15 @@ end;
 Function GetLoadErrorStr: string;
 
 Var
-  rc : integer;
+  rc,c : integer;
+  
 begin  
   rc := GetLastError;
-  str(rc,result);
+  SetLength(Result,255);
+  C:=FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,nil,rc,
+                 MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                 @Result[1], 255,nil);
+  SetLength(Result,c);
 end;
 
 {$endif}
