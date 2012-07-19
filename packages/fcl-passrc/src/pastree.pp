@@ -2744,7 +2744,10 @@ procedure TPasImplCaseStatement.AddElement(Element: TPasImplElement);
 begin
   inherited AddElement(Element);
   if Body=nil then
+    begin
     Body:=Element;
+    Body.AddRef;
+    end;
 end;
 
 procedure TPasImplCaseStatement.AddExpression(const Expr: string);
