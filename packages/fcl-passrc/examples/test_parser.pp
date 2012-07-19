@@ -1304,7 +1304,6 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
    if pmAssembler in Mfs then WriteFmt(true,'assembler;',false);
    if pmVarargs in Mfs then WriteFmt(true,'varargs;',false);
    if pmCompilerProc in Mfs then WriteFmt(true,'compilerproc;',false);
-   if pmExtdecl in Mfs then WriteFmt(true,'extdecl;',false);
   end; 
 
   procedure GetTPasProcedure(lpp:TPasProcedure; indent:integer);
@@ -1655,7 +1654,7 @@ begin
           writeln(s,'ResourceString');
           x:=ResStrings;
          end;
-        writeln(s,pe.Name,'=',DelQuot(TPasResString(pe).Value),';'); //too much '''
+        writeln(s,pe.Name,'=',DelQuot(TPasResString(pe).Expr.GetDeclaration(false)),';'); //too much '''
        end
      else if pe is TPasConst then
        begin
@@ -1911,7 +1910,7 @@ begin
   E := TSimpleEngine.Create;
   try
     try
-      M := ParseSource(E, cmdl ,TargetOS ,TargetCPU);
+      M := ParseSource(E, cmdl ,TargetOS ,TargetCPU,False);
     except
       on excep:EParserError do
         begin
@@ -1966,6 +1965,8 @@ begin
         Writeln('Initialization');
         if not Unformated then writeln;
         GetTPasImplBlock(M.InitializationSection as TPasImplBlock,1,0,false,false);
+       end;
+      
         if assigned(M.FinalizationSection) then
          begin
           isim:=true;
@@ -1974,7 +1975,6 @@ begin
           if not Unformated then writeln;
           GetTPasImplBlock(M.FinalizationSection as TPasImplBlock,1,0,false,false);
          end;
-       end;
     end;
     if not Unformated then writeln('end.')
      else
