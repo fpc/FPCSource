@@ -224,7 +224,6 @@ interface
 
      TObjData = class(TLinkedListItem)
      private
-       FName       : TString80;
        FCurrObjSec : TObjSection;
        FObjSectionList  : TFPHashObjectList;
        FCObjSection     : TObjSectionClass;
@@ -238,6 +237,7 @@ interface
        procedure section_afteralloc(p:TObject;arg:pointer);
        procedure section_afterwrite(p:TObject;arg:pointer);
      protected
+       FName       : TString80;
        property CObjSection:TObjSectionClass read FCObjSection write FCObjSection;
      public
        CurrPass  : byte;
@@ -1536,7 +1536,6 @@ implementation
         FCommonObjSymbols:=TFPObjectList.Create(false);
         FProvidedObjSymbols:=TFPObjectList.Create(false);
         FExeVTableList:=TFPObjectList.Create(false);
-        FEntryName:='start';
         { sections }
         FExeSectionList:=TFPHashObjectList.Create(true);
         FImageBase:=0;
@@ -2287,18 +2286,21 @@ implementation
         PackUnresolvedExeSymbols('after defining COMMON symbols');
 
         { Find entry symbol and print in map }
-        exesym:=texesymbol(ExeSymbolList.Find(EntryName));
-        if assigned(exesym) then
+        if (EntryName<>'') then
           begin
-            EntrySym:=exesym.ObjSymbol;
-            if assigned(exemap) then
+            exesym:=texesymbol(ExeSymbolList.Find(EntryName));
+            if assigned(exesym) then
               begin
-                exemap.Add('');
-                exemap.Add('Entry symbol '+EntryName);
-              end;
-          end
-        else
-          Comment(V_Error,'Entrypoint '+EntryName+' not defined');
+                EntrySym:=exesym.ObjSymbol;
+                if assigned(exemap) then
+                  begin
+                    exemap.Add('');
+                    exemap.Add('Entry symbol '+EntryName);
+                  end;
+              end
+            else
+              Comment(V_Error,'Entrypoint '+EntryName+' not defined');
+          end;
 
         { Generate VTable tree }
         if cs_link_opt_vtable in current_settings.globalswitches then
@@ -2814,7 +2816,8 @@ implementation
                   end;
               end;
           end;
-        AddToObjSectionWorkList(entrysym.exesymbol.objsymbol.objsection);
+        if assigned(entrysym) then
+          AddToObjSectionWorkList(entrysym.exesymbol.objsymbol.objsection);
 
         { Process all sections, add new sections to process based
           on the symbol references  }
