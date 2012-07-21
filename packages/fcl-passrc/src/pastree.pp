@@ -2705,6 +2705,8 @@ end;
 
 procedure TPasImplCaseOf.AddElement(Element: TPasImplElement);
 begin
+  if (ElseBranch<>Nil) and (Element=ElseBranch) then
+    ElseBranch.AddRef;
   inherited AddElement(Element);
 end;
 
@@ -2747,7 +2749,7 @@ begin
     begin
     Body:=Element;
     Body.AddRef;
-    end;
+    end
 end;
 
 procedure TPasImplCaseStatement.AddExpression(const Expr: string);
@@ -2775,7 +2777,10 @@ procedure TPasImplWithDo.AddElement(Element: TPasImplElement);
 begin
   inherited AddElement(Element);
   if Body=nil then
+    begin
     Body:=Element;
+    Body.AddRef;
+    end;
 end;
 
 procedure TPasImplWithDo.AddExpression(const Expression: string);

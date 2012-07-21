@@ -3160,7 +3160,9 @@ begin
           tkelse:
             begin
               // create case-else block
-              CurBlock:=TPasImplCaseOf(CurBlock).AddElse;
+              el:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock));
+              TPasImplCaseOf(CurBlock).ElseBranch:=TPasImplCaseElse(el);
+              CreateBlock(TPasImplCaseElse(el));
               break;
             end
           else
@@ -3225,7 +3227,6 @@ begin
         begin
           el:=TPasImplTryFinally(CreateElement(TPasImplTryFinally,'',Curblock));
           TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryFinally(el);
-          CurBlock.AddElement(el);
           CurBlock:=TPasImplTryFinally(el);
         end else
           ParseExc(SParserSyntaxError);
