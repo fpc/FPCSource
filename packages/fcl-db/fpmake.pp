@@ -9,11 +9,12 @@ procedure add_fcl_db;
 
 const
   ParadoxOSes         = [beos,haiku,linux,freebsd,netbsd,openbsd,win32];
-  DatadictOSes        = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,aix];
-  SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd,aix];
-  SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,wince,aix];
-  DBaseOSes           = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,win64,wince,aix];
-  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,win32,win64];
+  DatadictOSes        = [aix,beos,darwin,haiku,linux,freebsd,win32,win64,wince];
+  SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince];
+  SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,wince];
+  DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince];
+  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,solaris,win32,win64];
+  SqldbWithoutOracleOSes   = [win64];
   SqldbWithoutPostgresOSes = [win64];
 
 Var
@@ -46,7 +47,7 @@ begin
     P.SourcePath.Add('src/sqldb/mysql', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/odbc', SqldbConnectionOSes);
     P.SourcePath.Add('src/sqldb/examples', SqldbConnectionOSes);
-    P.SourcePath.Add('src/sqldb/oracle', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    P.SourcePath.Add('src/sqldb/oracle', SqldbConnectionOSes-SqldbWithoutOracleOSes);
     P.SourcePath.Add('src/sqldb/mssql', MSSQLOSes);
     P.SourcePath.Add('src/sdf');
     P.SourcePath.Add('src/json');
@@ -71,7 +72,7 @@ begin
     P.Dependencies.Add('ibase', SqldbConnectionOSes);
     P.Dependencies.Add('mysql', SqldbConnectionOSes);
     P.Dependencies.Add('odbc', SqldbConnectionOSes);
-    P.Dependencies.Add('oracle', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    P.Dependencies.Add('oracle', SqldbConnectionOSes-SqldbWithoutOracleOSes);
     P.Dependencies.Add('postgres', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
     P.Dependencies.Add('sqlite', SqldbConnectionOSes+SqliteOSes);
     P.Dependencies.Add('dblib', MSSQLOSes);
@@ -419,7 +420,7 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('odbcconn');
         end;
-    T:=P.Targets.AddUnit('fpddoracle.pp', DatadictOSes-SqldbWithoutPostgresOSes);
+    T:=P.Targets.AddUnit('fpddoracle.pp', DatadictOSes-SqldbWithoutOracleOSes);
       with T.Dependencies do
         begin
           AddUnit('sqldb');
@@ -637,7 +638,7 @@ begin
           AddUnit('bufdataset');
           AddUnit('dbconst');
         end;
-    T:=P.Targets.AddUnit('oracleconnection.pp', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+    T:=P.Targets.AddUnit('oracleconnection.pp', SqldbConnectionOSes-SqldbWithoutOracleOSes);
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
