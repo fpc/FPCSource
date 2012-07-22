@@ -163,6 +163,8 @@ implementation
                        pt:=comp_expr(true,false);
                        if pt.nodetype=stringconstn then
                          hpname:=strpas(tstringconstnode(pt).value_str)
+                       else if is_constcharnode(pt) then
+                         hpname:=chr(tordconstnode(pt).value.svalue and $ff)
                        else
                          consume(_CSTRING);
                        options:=options or eo_name;
