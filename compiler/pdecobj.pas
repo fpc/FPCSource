@@ -966,6 +966,7 @@ implementation
         object_member_blocktype : tblock_type;
         fields_allowed, is_classdef, class_fields, is_final, final_fields: boolean;
         vdoptions: tvar_dec_options;
+        fieldlist: tfpobjectlist;
 
 
       procedure parse_const;
@@ -1059,6 +1060,7 @@ implementation
         is_final:=false;
         final_fields:=false;
         object_member_blocktype:=bt_general;
+        fieldlist:=tfpobjectlist.create(false);
         repeat
           case token of
             _TYPE :
@@ -1173,9 +1175,11 @@ implementation
                             vdoptions:=[vd_object];
                             if class_fields then
                               include(vdoptions,vd_class);
+                            if is_class(current_structdef) then
+                              include(vdoptions,vd_canreorder);
                             if final_fields then
                               include(vdoptions,vd_final);
-                            read_record_fields(vdoptions);
+                            read_record_fields(vdoptions,fieldlist);
                           end
                         else if object_member_blocktype=bt_type then
                           types_dec(true)
@@ -1226,6 +1230,10 @@ implementation
               consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
+
+        if is_class(current_structdef) then
+          tabstractrecordsymtable(current_structdef.symtable).addfieldlist(fieldlist,true);
+        fieldlist.free;
       end;
 
 

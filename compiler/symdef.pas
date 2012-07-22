@@ -231,14 +231,18 @@ interface
        { TImplementedInterface }
 
        TImplementedInterface = class
+        private
+         fIOffset      : longint;
+         function GetIOffset: longint;
+        public
          IntfDef      : tobjectdef;
          IntfDefDeref : tderef;
          IType        : tinterfaceentrytype;
-         IOffset      : longint;
          VtblImplIntf : TImplementedInterface;
          NameMappings : TFPHashList;
          ProcDefs     : TFPObjectList;
          ImplementsGetter :  tsym;
+         ImplementsField : tsym;
          constructor create(aintf: tobjectdef);
          constructor create_deref(d:tderef);
          destructor  destroy; override;
@@ -249,6 +253,7 @@ interface
          function  GetMapping(const origname: string):string;
          procedure AddImplProc(pd:tprocdef);
          function  IsImplMergePossible(MergingIntf:TImplementedInterface;out weight: longint): boolean;
+         property  IOffset: longint read GetIOffset write fIOffset;
        end;
 
        { tvmtentry }
@@ -422,6 +427,7 @@ interface
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
           function alignment:shortint;override;
+          function structalignment: shortint;override;
           procedure setsize;
           function  getvardef:longint;override;
        end;
@@ -2283,6 +2289,19 @@ implementation
           end
         else
           result := inherited alignment;
+      end;
+
+
+    function tfloatdef.structalignment: shortint;
+      begin
+        { aix is really annoying: the recommended scalar alignment for both
+          int64 and double is 64 bits, but in structs int64 has to be aligned
+          to 8 bytes and double to 4 bytes }
+        if (target_info.system in systems_aix) and
+           (floattype=s64real) then
+          result:=4
+        else
+          result:=alignment;
       end;
 
 
@@ -6234,6 +6253,16 @@ implementation
 {****************************************************************************
                              TImplementedInterface
 ****************************************************************************}
+
+    function TImplementedInterface.GetIOffset: longint;
+      begin
+        if (fIOffset=-1) and
+           (IType in [etFieldValue,etFieldValueClass]) then
+          result:=tfieldvarsym(ImplementsField).fieldoffset
+        else
+          result:=fIOffset;
+      end;
+
 
     constructor TImplementedInterface.create(aintf: tobjectdef);
       begin

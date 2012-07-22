@@ -77,6 +77,8 @@ interface
          function  size:asizeint;virtual;abstract;
          function  packedbitsize:asizeint;virtual;
          function  alignment:shortint;virtual;abstract;
+         { alignment when this type appears in a record/class/... }
+         function  structalignment:shortint;virtual;
          function  getvardef:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
          function  geTSymtable(t:tgeTSymtable):TSymtable;virtual;
@@ -325,6 +327,12 @@ implementation
     function tdef.packedbitsize:asizeint;
       begin
         result:=size * 8;
+      end;
+
+
+    function tdef.structalignment: shortint;
+      begin
+        result:=alignment;
       end;
 
 

@@ -151,6 +151,7 @@ type
     function Last: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Move(CurIndex, NewIndex: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Assign(Obj:TFPObjectList);
+    procedure ConcatListCopy(Obj:TFPObjectList);
     procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Sort(Compare: TListSortCompare); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -1088,10 +1089,15 @@ begin
 end;
 
 procedure TFPObjectList.Assign(Obj: TFPObjectList);
+begin
+  Clear;
+  ConcatListCopy(Obj);
+end;
+
+procedure TFPObjectList.ConcatListCopy(Obj: TFPObjectList);
 var
   i: Integer;
 begin
-  Clear;
   for I := 0 to Obj.Count - 1 do
     Add(Obj[i]);
 end;
