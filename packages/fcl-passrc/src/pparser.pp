@@ -131,7 +131,7 @@ type
     FTokenBufferSize: Integer; // maximum valid index in FTokenBuffer
     function CheckOverloadList(AList: TFPList; AName: String; out OldMember: TPasElement): TPasOverloadedProc;
     procedure DumpCurToken(Const Msg : String);
-    function GetVariableModifiers(Parent: TPasElement): string;
+    function GetVariableModifiers(Parent: TPasElement; Out VarMods : TVariableModifiers; Out Libname,ExportName : string): string;
     function GetVariableValueAndLocation(Parent : TPasElement; out Value, Location: String): Boolean;
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
   protected
@@ -2218,6 +2218,8 @@ Var
   E : TPasExportSymbol;
 begin
   Repeat
+    if List.Count<>0 then
+      ExpectIdentifier;
     E:=TPasExportSymbol(CreateElement(TPasExportSymbol,CurtokenString,Parent));
     List.Add(E);
     NextToken;
@@ -2304,16 +2306,18 @@ begin
     UngetToken;
 end;
 
-Function TPasParser.GetVariableModifiers(Parent : TPasElement) : string;
+Function TPasParser.GetVariableModifiers(Parent : TPasElement; Out Varmods : TVariableModifiers; Out Libname,ExportName : string) : string;
 
 Var
   S : String;
 begin
   Result := '';
+  VarMods := [];
   NextToken;
   If CurTokenIsIdentifier('cvar') then
     begin
     Result:=';cvar';
+    Include(VarMods,vmcvar);
     ExpectToken(tkSemicolon);
     NextToken;
     end;
@@ -2322,16 +2326,24 @@ begin
     UngetToken
   else
     begin
+    if s='external' then
+      Include(VarMods,vmexternal)
+    else if (s='public') then
+      Include(varMods,vmpublic)
+    else if (s='export') then
+      Include(varMods,vmexport);
     Result:=Result+';'+CurTokenText;
     NextToken;
     if (Curtoken<>tksemicolon) then
       begin
       if (s='external') then
         begin
+        Include(VarMods,vmexternal);
         if (CurToken in [tkString,tkIdentifier])
             and Not (CurTokenIsIdentifier('name')) then
           begin
           Result := Result + ' ' + CurTokenText;
+          LibName:=CurTokenText;
           NextToken;
           end;
         end;
@@ -2343,6 +2355,7 @@ begin
           Result := Result + CurTokenText
         else
           ParseExc(SParserSyntaxError);
+        ExportName:=CurTokenText;
         NextToken;
         end
       else
@@ -2361,7 +2374,8 @@ var
   VarType: TPasType;
   VarEl: TPasVariable;
   H : TPasMemberHints;
-  Mods,Value,Loc : string;
+  varmods: TVariableModifiers;
+  Mods,Value,Loc,alibname,aexpname : string;
 
 begin
   VarNames := TStringList.Create;
@@ -2382,16 +2396,24 @@ begin
       GetVariableValueAndLocation(Parent,Value,Loc);
     H:=CheckHint(Nil,Full);
     if full then
-      Mods:=GetVariableModifiers(Parent)
+      Mods:=GetVariableModifiers(Parent,varmods,alibname,aexpname)
     else
       NextToken;
     for i := 0 to VarNames.Count - 1 do
       begin
       VarEl:=TPasVariable(CreateElement(TPasVariable,VarNames[i],Parent,AVisibility));
       VarEl.VarType := VarType;
-      VarEl.Hints:=H;
+      // Procedure declaration eats the hints.
+      if Assigned(VarType) and (VarType is TPasprocedureType) then
+        VarEl.Hints:=VarType.Hints
+      else
+        VarEl.Hints:=H;
+      Varel.Modifiers:=Mods;
+      Varel.VarModifiers:=VarMods;
       VarEl.Value:=Value;
       VarEl.AbsoluteLocation:=Loc;
+      VarEl.LibraryName:=alibName;
+      VarEl.ExportName:=aexpname;
       if (i>0) then
         VarType.AddRef;
       VarList.Add(VarEl);

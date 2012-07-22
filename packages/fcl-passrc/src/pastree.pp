@@ -616,6 +616,8 @@ type
   end;
 
   { TPasVariable }
+  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport);
+  TVariableModifiers = set of TVariableModifier;
 
   TPasVariable = class(TPasElement)
   public
@@ -625,6 +627,8 @@ type
   public
     VarType: TPasType;
     Value: string;
+    VarModifiers : TVariableModifiers;
+    LibraryName,ExportName : string;
     Modifiers : string;
     AbsoluteLocation : String;
     Expr: TPasExpr;
