@@ -671,7 +671,7 @@ unit cpupara;
                 reference for non-cdecl/cppdecl, and make sure that the tmethod
                 record (size=16) is passed the same way as a complex procvar }
               else if ((varspez=vs_const) and
-                       not(calloption in [pocall_cdecl,pocall_cppdecl])) or
+                       not(calloption in cdecl_pocalls)) or
                       (def.size=16) then
                 begin
                   numclasses:=classify_argument(def,vs_value,def.size,classes,0);
@@ -685,7 +685,7 @@ unit cpupara;
             begin
               { cdecl array of const need to be ignored and therefor be puhsed
                 as value parameter with length 0 }
-              if ((calloption in [pocall_cdecl,pocall_cppdecl]) and
+              if ((calloption in cdecl_pocalls) and
                   is_array_of_const(def)) or
                  is_dynamic_array(def) then
                 result:=false
