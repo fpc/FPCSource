@@ -212,7 +212,6 @@ interface
        procedure alloc(l:aword);
        procedure addsymReloc(ofs:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
        procedure addsectionReloc(ofs:aword;aobjsec:TObjSection;Reloctype:TObjRelocationType);
-       procedure FixupRelocs(Exe: TExeOutput);virtual;
        procedure ReleaseData;
        function  FullName:string;
        property  Data:TDynamicArray read FData;
@@ -440,6 +439,7 @@ interface
         property CObjData:TObjDataClass read FCObjData write FCObjData;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList; const aPattern:string);virtual;
         procedure WriteExeSectionContent;
+        procedure DoRelocationFixup(objsec:TObjSection);virtual;abstract;
       public
         CurrDataPos  : aword;
         MaxMemPos    : qword;
@@ -742,11 +742,6 @@ implementation
     procedure TObjSection.addsectionReloc(ofs:aword;aobjsec:TObjSection;Reloctype:TObjRelocationType);
       begin
         ObjRelocations.Add(TObjRelocation.CreateSection(ofs,aobjsec,reloctype));
-      end;
-
-
-    procedure TObjSection.FixupRelocs(Exe:TExeOutput);
-      begin
       end;
 
 
@@ -2894,7 +2889,13 @@ implementation
                 objsec:=TObjSection(exesec.ObjSectionlist[j]);
                 if not objsec.Used then
                   internalerror(200603301);
-                objsec.FixupRelocs(Self);
+                if (objsec.ObjRelocations.Count>0) and
+                   not assigned(objsec.data) then
+                  internalerror(200205183);
+                DoRelocationFixup(objsec);
+                {for size = 0 data is not valid PM }
+                if assigned(objsec.data) and (objsec.data.size<>objsec.size) then
+                  internalerror(2010092801);
               end;
           end;
       end;

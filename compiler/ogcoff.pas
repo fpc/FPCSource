@@ -109,7 +109,6 @@ interface
        public
          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
          procedure addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
-         procedure fixuprelocs(Exe:TExeOutput);override;
        end;
 
        TCoffObjData = class(TObjData)
@@ -206,6 +205,7 @@ interface
        protected
          function writedata:boolean;override;
          procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
+         procedure DoRelocationFixup(objsec:TObjSection);override;
        public
          constructor createcoff(awin32:boolean);
          procedure MemPos_Header;override;
@@ -812,7 +812,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjSection.fixuprelocs(Exe:TExeOutput);
+    procedure TCoffExeOutput.DoRelocationFixup(objsec:TObjSection);
       var
         i,zero,address_size : longint;
         objreloc : TObjRelocation;
@@ -822,13 +822,12 @@ const pemagic : array[0..3] of byte = (
 {$ifdef cpu64bitaddr}
         s        : string;
 {$endif cpu64bitaddr}
+        data     : TDynamicArray;
       begin
-        if (ObjRelocations.Count>0) and
-           not assigned(data) then
-          internalerror(200205183);
-        for i:=0 to ObjRelocations.Count-1 do
+        data:=objsec.data;
+        for i:=0 to objsec.ObjRelocations.Count-1 do
           begin
-            objreloc:=TObjRelocation(ObjRelocations[i]);
+            objreloc:=TObjRelocation(objsec.ObjRelocations[i]);
             address_size:=4;
             case objreloc.typ of
               RELOC_NONE:
@@ -863,24 +862,24 @@ const pemagic : array[0..3] of byte = (
             else
               internalerror(200205183);
             { Only debug sections are allowed to have relocs pointing to unused sections }
-            if not relocsec.used and not (oso_debug in secoptions) then
+            if not relocsec.used and not (oso_debug in objsec.secoptions) then
               internalerror(200603061);
 
             if relocsec.used then
               case objreloc.typ of
                 RELOC_RELATIVE  :
                   begin
-                    address:=address-mempos+relocval;
-                    if TCoffObjData(objdata).win32 then
+                    address:=address-objsec.mempos+relocval;
+                    if TCoffObjData(objsec.objdata).win32 then
                       dec(address,objreloc.dataoffset+4);
                   end;
                 RELOC_RVA:
                   begin
                     { fixup address when the symbol was known in defined object }
-                    if (relocsec.objdata=objdata) then
+                    if (relocsec.objdata=objsec.objdata) then
                       dec(address,TCoffObjSection(relocsec).orgmempos);
 {$ifdef arm}
-                    if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
+                    if (relocsec.objdata=objsec.objdata) and not TCoffObjData(objsec.objdata).eVCobj then
                       inc(address, relocsec.MemPos)
                     else
 {$endif arm}
@@ -889,14 +888,14 @@ const pemagic : array[0..3] of byte = (
                 RELOC_SECREL32 :
                   begin
                     { fixup address when the symbol was known in defined object }
-                    if (relocsec.objdata=objdata) then
+                    if (relocsec.objdata=objsec.objdata) then
                       dec(address,relocsec.ExeSection.MemPos);
                     inc(address,relocval);
                   end;
 {$ifdef arm}
                 RELOC_RELATIVE_24:
                   begin
-                    relocval:=longint(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
+                    relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset) shr 2 - 2;
                     address:=address or (relocval and $ffffff);
                     relocval:=relocval shr 24;
                     if (relocval<>$3f) and (relocval<>0) then
@@ -907,27 +906,27 @@ const pemagic : array[0..3] of byte = (
                 { 64 bit coff only }
                 RELOC_RELATIVE_1:
                   begin
-                    address:=address-mempos+relocval;
+                    address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+1);
                   end;
                 RELOC_RELATIVE_2:
                   begin
-                    address:=address-mempos+relocval;
+                    address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+2);
                   end;
                 RELOC_RELATIVE_3:
                   begin
-                    address:=address-mempos+relocval;
+                    address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+3);
                   end;
                 RELOC_RELATIVE_4:
                   begin
-                    address:=address-mempos+relocval;
+                    address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+4);
                   end;
                 RELOC_RELATIVE_5:
                   begin
-                    address:=address-mempos+relocval;
+                    address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+5);
                   end;
                 RELOC_ABSOLUTE32,
@@ -939,16 +938,16 @@ const pemagic : array[0..3] of byte = (
                     else
                       begin
                         { fixup address when the symbol was known in defined object }
-                        if (relocsec.objdata=objdata) then
+                        if (relocsec.objdata=objsec.objdata) then
                           dec(address,TCoffObjSection(relocsec).orgmempos);
                       end;
 {$ifdef arm}
-                    if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
+                    if (relocsec.objdata=objsec.objdata) and not TCoffObjData(objsec.objdata).eVCobj then
                       inc(address, relocsec.MemPos)
                     else
 {$endif arm}
                       inc(address,relocval);
-                    inc(address,exe.imagebase);
+                    inc(address,imagebase);
                   end;
                 else
                   internalerror(200604014);
@@ -959,19 +958,16 @@ const pemagic : array[0..3] of byte = (
             data.Seek(objreloc.dataoffset);
             data.Write(address,address_size);
 {$ifdef cpu64bitaddr}
-            if (objreloc.typ = RELOC_ABSOLUTE32) and (name <> '.stab') then
+            if (objreloc.typ = RELOC_ABSOLUTE32) and (objsec.name <> '.stab') then
               begin
                 if assigned(objreloc.symbol) then
                   s:=objreloc.symbol.Name
                 else
                   s:=objreloc.objsection.Name;
-                Message2(link_w_32bit_absolute_reloc, ObjData.Name, s);
+                Message2(link_w_32bit_absolute_reloc, objsec.ObjData.Name, s);
               end;
 {$endif cpu64bitaddr}
           end;
-        {for size = 0 data is not valid PM }
-        if assigned(data) and (data.size <> size) then
-          internalerror(2010092801);
       end;
 
 
@@ -1948,9 +1944,9 @@ const pemagic : array[0..3] of byte = (
                 value:=address;
               end;
             if bind=AB_LOCAL then
-              globalval:=3
+              globalval:=COFF_SYM_LOCAL
             else
-              globalval:=2;
+              globalval:=COFF_SYM_GLOBAL;
             { reloctype address to the section in the executable }
             write_symbol(name,value,secval,globalval,0);
           end;
