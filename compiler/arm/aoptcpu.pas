@@ -511,7 +511,8 @@ Implementation
                       ....
                     }
                     if (taicpu(p).ops = 2) and
-                       GetNextInstruction(p,hp1) then
+                       GetNextInstruction(p,hp1) and
+                       (tai(hp1).typ = ait_instruction) then
                       begin
                         {
                           This changes the very common
