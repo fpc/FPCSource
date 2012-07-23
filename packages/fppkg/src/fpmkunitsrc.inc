@@ -102,7 +102,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  TSourceType = (stDoc,stSrc,stExample,stTest);'#013#010+
   '  TSourceTypes = set of TSourceType;'#013#010+
   #013#010+
-  '  TVerboseLevel = (llError,llWarning,llInfo,llDebug,vlCommand);'#013#010+
+  '  TVerboseLevel = (vlError,vlWarning,vlInfo,vldebug,vlCommand);'#013#010+
   '  TVerboseLevels = Set of TVerboseLe','vel;'#013#010+
   #013#010+
   '  TCommandAt = (caBeforeCompile,caAfterCompile,'#013#010+
@@ -235,8 +235,8 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '];'#013#010+
   '  ProgramTargets = [ttProgram,ttExampleProgram];'#013#010+
   #013#010+
-  '  DefaultMessages = [llError,llWarning,vlCommand];'#013#010+
-  '  AllMessages = [llError,llWarning,vlCommand,llInfo];'#013#010+
+  '  DefaultMessages = [vlError,vlWarning,vlCommand];'#013#010+
+  '  AllMessages = [vlError,vlWarning,vlCommand,vlInfo];'#013#010+
   #013#010+
   'Type'#013#010+
   '  { TNa','medItem }'#013#010+
@@ -3873,7 +3873,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '    if CheckOption(I,'#039'v'#039','#039'verbose'#039',false) then'#013#010+
   '      FLogLevels:=AllMessages'#013#010+
   '    else if CheckOption(I,'#039'd'#039','#039'debug'#039',false) then'#013#010+
-  '      FLogLevels:=AllMessages+[llDebug]'#013#010+
+  '      FLogLevels:=AllMessages+[vlDebug]'#013#010+
   '    else if CheckCommand(I,'#039'm'#039','#039'compile'#039') th','en'#013#010+
   '      FRunMode:=rmCompile'#013#010+
   '    else if CheckCommand(I,'#039'b'#039','#039'build'#039') then'#013#010+
@@ -3963,17 +3963,17 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   #013#010+
   '  Procedure LogCmd(const LC,Msg : String);'#013#010+
   '  begin'#013#010+
-  '    Log(llInfo,Format('#039' %-12s %s'#039',[LC,MSG]));'#013#010+
+  '    Log(vlInfo,Format('#039' %-12s %s'#039',[LC,MSG]));'#013#010+
   '  end;'#013#010+
   #013#010+
   '  Procedure LogOption(const C,LC,Msg : String);'#013#010+
   '  begin'#013#010+
-  '    L','og(llInfo,Format('#039' -%s --%-16s %s'#039',[C,LC,MSG]));'#013#010+
+  '    L','og(vlInfo,Format('#039' -%s --%-16s %s'#039',[C,LC,MSG]));'#013#010+
   '  end;'#013#010+
   #013#010+
   '  Procedure LogArgOption(const C,LC,Msg : String);'#013#010+
   '  begin'#013#010+
-  '    Log(llInfo,Format('#039' -%s --%-20s %s'#039',[C,LC+'#039'='#039'+SVal'+
+  '    Log(vlInfo,Format('#039' -%s --%-20s %s'#039',[C,LC+'#039'='#039'+SVal'+
   'ue,MSG]));'#013#010+
   '  end;'#013#010+
   #013#010+
@@ -3981,18 +3981,18 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  i: Integer;'#013#010+
   'begin'#013#010+
   '  // Force the U','sage to be displayed'#013#010+
-  '  Include(FLogLevels,llInfo);'#013#010+
+  '  Include(FLogLevels,vlInfo);'#013#010+
   '  If (FMT<>'#039#039') then'#013#010+
-  '    Log(llInfo,Format(Fmt,Args));'#013#010+
-  '  Log(llInfo,Format(SHelpUsage,[Paramstr(0)]));'#013#010+
-  '  Log(llInfo,SHelpCommand);'#013#010+
+  '    Log(vlInfo,Format(Fmt,Args));'#013#010+
+  '  Log(vlInfo,Format(SHelpUsage,[Paramstr(0)]));'#013#010+
+  '  Log(vlInfo,SHelpCommand);'#013#010+
   '  LogCmd('#039'compile'#039',SHelpCompile);'#013#010+
   '  LogCmd('#039'build'#039',S','HelpBuild);'#013#010+
   '  LogCmd('#039'install'#039',SHelpInstall);'#013#010+
   '  LogCmd('#039'clean'#039',SHelpClean);'#013#010+
   '  LogCmd('#039'archive'#039',SHelpArchive);'#013#010+
   '  LogCmd('#039'manifest'#039',SHelpManifest);'#013#010+
-  '  Log(llInfo,SHelpCmdOptions);'#013#010+
+  '  Log(vlInfo,SHelpCmdOptions);'#013#010+
   '  LogOption('#039'h'#039','#039'help'#039',SHelpHelp);'#013#010+
   '  LogOption('#039'l'#039','#039'list','-commands'#039',SHelpList);'#013#010+
   '  LogOption('#039'n'#039','#039'nofpccfg'#039',SHelpNoFPCCfg);'#013#010+
@@ -4026,7 +4026,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'stomFpmakeCommandlineOptions.Count-1 do'#013#010+
   '    LogArgOption('#039' '#039',CustomFpmakeCommandlineOptions.Names[i],C'+
   'ustomFpmakeCommandlineOptions.ValueFromIndex[i]);'#013#010+
-  '  Log(llInfo,'#039#039');'#013#010+
+  '  Log(vlInfo,'#039#039');'#013#010+
   '  If (FMT<>',#039#039') then'#013#010+
   '    halt(1)'#013#010+
   '  else'#013#010+
@@ -4094,8 +4094,8 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  except'#013#010+
   '    On E : Exception do'#013#010+
   '      begin'#013#010+
-  '      Log(llError,SErrInstaller);'#013#010+
-  '      Log(llError,E.Message);'#013#010+
+  '      Log(vlError,SErrInstaller);'#013#010+
+  '      Log(vlError,E.Message);'#013#010+
   '      Result:=False;'#013#010+
   '      end;'#013#010+
   '  end;'#013#010+
@@ -4182,7 +4182,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  ConsoleOutput: TMemoryStream;'#013#010+
   '  s: string;'#013#010+
   'begin'#013#010+
-  '  Log(llInfo,SInfoExecutingCommand,[Cmd,Args]);'#013#010+
+  '  Log(vlInfo,SInfoExecutingCommand,[Cmd,Args]);'#013#010+
   '  if ListMode then'#013#010+
   '    Log(vlCommand,'#039'%s %s'#039',[Cmd,Args])'#013#010+
   '  ','else'#013#010+
@@ -4217,9 +4217,9 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'begin'#013#010+
   '  result:=SysUtils.DirectoryExists(ADir);'#013#010+
   '  if result then'#013#010+
-  '    Log(llDebug,SDbgDirectoryExists,[ADir,SDbgFound])'#013#010+
+  '    Log(vlDebug,SDbgDirectoryExists,[ADir,SDbgFound])'#013#010+
   '  else'#013#010+
-  '    Log(llDebug,SDb','gDirectoryExists,[ADir,SDbgNotFound]);'#013#010+
+  '    Log(vlDebug,SDb','gDirectoryExists,[ADir,SDbgNotFound]);'#013#010+
   'end;'#013#010+
   #013#010+
   #013#010+
@@ -4228,9 +4228,9 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'begin'#013#010+
   '  result:=SysUtils.FileExists(AFileName);'#013#010+
   '  if result then'#013#010+
-  '    Log(llDebug,SDbgFileExists,[AFileName,SDbgFound]',')'#013#010+
+  '    Log(vlDebug,SDbgFileExists,[AFileName,SDbgFound]',')'#013#010+
   '  else'#013#010+
-  '    Log(llDebug,SDbgFileExists,[AFileName,SDbgNotFound]);'#013#010+
+  '    Log(vlDebug,SDbgFileExists,[AFileName,SDbgNotFound]);'#013#010+
   'end;'#013#010+
   #013#010+
   #013#010+
@@ -4259,10 +4259,10 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '    end;'#013#010+
   '    A:=FileGetDate(FIn.Handle);'#013#010+
   '    If (A=-1) t','hen'#013#010+
-  '      log(llWarning,SWarnFailedToGetTime,[Src])'#013#010+
+  '      log(vlWarning,SWarnFailedToGetTime,[Src])'#013#010+
   '    else'#013#010+
   '      if FileSetDate(S,A)<>0 then'#013#010+
-  '        Log(llWarning,SWarnFailedToSetTime,[S]);'#013#010+
+  '        Log(vlWarning,SWarnFailedToSetTime,[S]);'#013#010+
   '  finally'#013#010+
   '    FreeAndNil(Fin);'#013#010+
   '  end;'#013#010+
@@ -4293,7 +4293,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'procedure TBuildEngine.SysDeleteFile(Const AFileName',' : String);'#013#010+
   'begin'#013#010+
   '  if not FileExists(AFileName) then'#013#010+
-  '    Log(llDebug,SDbgFileDoesNotExist,[AFileName])'#013#010+
+  '    Log(vldebug,SDbgFileDoesNotExist,[AFileName])'#013#010+
   '  else If Not DeleteFile(AFileName) then'#013#010+
   '    Error(SErrDeletingFile,[AFileName]);'#013#010+
   'end;'#013#010+
@@ -4302,9 +4302,9 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'ng);'#013#010+
   'begin'#013#010+
   '  if not DirectoryExists(ADirectoryName) then'#013#010+
-  '    Log(llDebug,SDbgDirectoryDoesNotExist,[ADirectoryName])'#013#010+
+  '    Log(vldebug,SDbgDirectoryDoesNotExist,[ADirectoryName])'#013#010+
   '  else if not IsDirectoryEmpty(ADirectoryName) then'#013#010+
-  '    Log(llDebug,SDbgDirectoryNotEmpty,','[ADirectoryName])'#013#010+
+  '    Log(vldebug,SDbgDirectoryNotEmpty,','[ADirectoryName])'#013#010+
   '  else If Not RemoveDir(ADirectoryName) then'#013#010+
   '    Error(SErrRemovingDirectory,[ADirectoryName]);'#013#010+
   'end;'#013#010+
@@ -4350,7 +4350,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   #013#010+
   'begin'#013#010+
   '  if not DirectoryExists(ADirectoryName) then'#013#010+
-  '    Log(llDebug,SDbgDirectoryDoesNotExist,[ADirectoryName])'#013#010+
+  '    Log(vldebug,SDbgDirectoryDoesNotExist,[ADirectoryName])'#013#010+
   '  else If Not IntRemoveTree(ADirectoryName) then'#013#010+
   '    Error(SErrRemovingDirectory,[ADirect','oryName]);'#013#010+
   'end;'#013#010+
@@ -4386,7 +4386,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'begin'#013#010+
   '  If Assigned(FOnLog) then'#013#010+
   '    begin'#013#010+
-  '      if Level in [llInfo,llDebug] then'#013#010+
+  '      if Level in [vlInfo,vlDebug] then'#013#010+
   '        FOnLog(Level,FLogPre','fix+Msg)'#013#010+
   '      else'#013#010+
   '        FOnLog(Level,Msg);'#013#010+
@@ -4407,7 +4407,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'begin'#013#010+
   '  D:=FStartDir;'#013#010+
   '  D:=D+ADir;'#013#010+
-  '  Log(llDebug,SDbgEnterDir,[D]);'#013#010+
+  '  Log(vlDebug,SDbgEnterDir,[D]);'#013#010+
   '  If Not SetCurrentDir(D) then'#013#010+
   '    Error(SErrChangeDirFailed,[D]);'#013#010+
   'end;'#013#010+
@@ -4567,11 +4567,11 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  DD:=FileAge(Dest);'#013#010+
   '  D1:=FileDateToDateTime(DS);'#013#010+
   '  D2:=Fi','leDateToDateTime(DD);'#013#010+
-  '  Log(llDebug,SDbgComparingFileTimes,[Src,DateTimeToStr(D1),Dest,DateT'+
+  '  Log(vlDebug,SDbgComparingFileTimes,[Src,DateTimeToStr(D1),Dest,DateT'+
   'imeToStr(D2)]);'#013#010+
   '  Result:=D1>=D2;'#013#010+
   '  If Result then'#013#010+
-  '    Log(llInfo,SInfoSourceNewerDest,[Src,DateTimeToStr(D1),Dest,DateTi'+
+  '    Log(vlInfo,SInfoSourceNewerDest,[Src,DateTimeToStr(D1),Dest,DateTi'+
   'meToStr(D2)]);'#013#010+
   'end;'#013#010+
   #013,#010+
@@ -4632,7 +4632,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '        end;'#013#010+
   '    end;'#013#010+
   '  if S<>'#039#039' then'#013#010+
-  '    Log(llDebug,SDbgSearchPath,[ASearchPathName,S]);'#013#010+
+  '    Log(vlDebug,SDbgSearchPath,[ASearchPathName,S]);'#013#010+
   'end;'#013#010+
   #013#010+
   #013#010+
@@ -4689,11 +4689,11 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '      SD:=IncludeTrailingPathDelimiter(SD);'#013#010+
   '    T.FTargetSourceFileName:=SD+SF;'#013#010+
   '    if FileExists(T.TargetSourceFileName) then'#013#010+
-  '      Log(llDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.Targ','etS'+
+  '      Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.Targ','etS'+
   'ourceFileName])'#013#010+
   '    else'#013#010+
   '      begin'#013#010+
-  '        Log(llWarning,SWarnSourceFileNotFound,[T.SourceFileName,APacka'+
+  '        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,APacka'+
   'ge.Name,MakeTargetString(ACPU,AOS)]);'#013#010+
   '        T.FTargetSourceFileName:='#039#039';'#013#010+
   '      end;'#013#010+
@@ -4733,11 +4733,11 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '                else'#013#010+
   '                  D.TargetFileName:=D.Value;'#013#010+
   '                if FileExists(D.TargetFileName) then'#013#010+
-  '                  Log(llDebug,SDbgRes','olvedIncludeFile,[D.Value,D.Tar'+
+  '                  Log(vlDebug,SDbgRes','olvedIncludeFile,[D.Value,D.Tar'+
   'getFileName])'#013#010+
   '                else'#013#010+
   '                  begin'#013#010+
-  '                    Log(llWarning,SWarnIncludeFileNotFound,[D.Value, A'+
+  '                    Log(vlWarning,SWarnIncludeFileNotFound,[D.Value, A'+
   'Package.Name, MakeTargetString(ACPU,AOS)]);'#013#010+
   '                    D.TargetFile','Name:='#039#039';'#013#010+
   '                  end;'#013#010+
@@ -4760,11 +4760,11 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '      SD:=IncludeTrailingPathDelimi','ter(SD);'#013#010+
   '    T.FTargetSourceFileName:=SD+SF;'#013#010+
   '    if FileExists(T.TargetSourceFileName) then'#013#010+
-  '      Log(llDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSou'+
+  '      Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSou'+
   'rceFileName])'#013#010+
   '    else'#013#010+
   '      begin'#013#010+
-  '        Log(llWarning,SWarnSourceFile','NotFound,[T.SourceFileName, APa'+
+  '        Log(vlWarning,SWarnSourceFile','NotFound,[T.SourceFileName, APa'+
   'ckage.Name, MakeTargetString(ACPU,AOS)]);'#013#010+
   '        T.FTargetSourceFileName:='#039#039';'#013#010+
   '      end;'#013#010+
@@ -4788,7 +4788,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '        if (ACPU in T.CPUs) and (AOS in T.OSes) then'#013#010+
   '          begin'#013#010+
   '            // Debug information'#013#010+
-  '            Log(llDebug,SDbgResolvingSourcesOfTarget',',[T.Name,MakeTar'+
+  '            Log(vlDebug,SDbgResolvingSourcesOfTarget',',[T.Name,MakeTar'+
   'getString(ACPU,AOS)]);'#013#010+
   '            LogIndent;'#013#010+
   #013#010+
@@ -5081,7 +5081,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  D:=APackage.G','etUnitsOutputDir(Defaults.CPU,Defaults.OS);'#013#010+
   '  If not SysDirectoryExists(D) then'#013#010+
   '    begin'#013#010+
-  '      Log(llInfo,SInfoCreatingOutputDir,[D]);'#013#010+
+  '      Log(vlInfo,SInfoCreatingOutputDir,[D]);'#013#010+
   '      CmdCreateDir(D);'#013#010+
   '    end;'#013#010+
   #013#010+
@@ -5094,7 +5094,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '          D:=APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS);'#013#010+
   '          If n','ot SysDirectoryExists(D) then'#013#010+
   '            begin'#013#010+
-  '              Log(llInfo,SInfoCreatingOutputDir,[D]);'#013#010+
+  '              Log(vlInfo,SInfoCreatingOutputDir,[D]);'#013#010+
   '              CmdCreateDir(D);'#013#010+
   '            end;'#013#010+
   '          //do not continue loop, directory is made anyway'#013#010+
@@ -5177,7 +5177,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '      OFN:=OD+ATarget.GetOutPutFileName(Defaults.OS);'#013#010+
   '      Res','ult:=Not FileExists(OFN);'#013#010+
   '      if Result then'#013#010+
-  '        Log(llDebug,SDbgOutputNotYetAvailable,[OFN]);'#013#010+
+  '        Log(vlDebug,SDbgOutputNotYetAvailable,[OFN]);'#013#010+
   '    end;'#013#010+
   #013#010+
   '  // Check main source'#013#010+
@@ -5208,11 +5208,11 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'e, APackage.Name]);'#013#010+
   '                    // If a de','pendent package is compiled we always '+
   'need to recompile'#013#010+
-  '                    Log(llDebug, SDbgDependencyOnUnit, [ATarget.Name,T'+
+  '                    Log(vldebug, SDbgDependencyOnUnit, [ATarget.Name,T'+
   '.Name]);'#013#010+
   '                    Result:=(T.State=tsCompiled);'#013#010+
   '                    if Result then'#013#010+
-  '                ','      Log(llDebug, SDbgDependencyUnitRecompiled, [T.'+
+  '                ','      Log(vldebug, SDbgDependencyUnitRecompiled, [T.'+
   'Name]);'#013#010+
   '                  end;'#013#010+
   '                depInclude :'#013#010+
@@ -5222,7 +5222,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '                  end;'#013#010+
   '                depPackage :'#013#010+
   '                  begin'#013#010+
-  '                    log(llWarning,SWarnTargetDependsOnPackage,[ATarget'+
+  '                    log(vlWarning,SWarnTargetDependsOnPackage,[ATarget'+
   '.Name, APackage.Name, d.Value]);'#013#010+
   '                  end;'#013#010+
   '              end;'#013#010,
@@ -5233,7 +5233,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '    end;'#013#010+
   #013#010+
   '  if result then'#013#010+
-  '    Log(llDebug,SDbgMustCompile,[ATarget.Name]);'#013#010+
+  '    Log(vlDebug,SDbgMustCompile,[ATarget.Name]);'#013#010+
   'end;'#013#010+
   #013#010+
   #013#010+
@@ -5243,7 +5243,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  S : String;'#013#010+
   '  Env : TStrings;'#013#010+
   'begin'#013#010+
-  '  Log(llInfo,SInfoCompilingTarget,[ATarget.Name]);'#013#010+
+  '  Log(vlInfo,SInfoCompilingTarget,[ATarget.Name]);'#013#010+
   '  LogIndent;'#013#010+
   '  ExecuteCommands(ATarget.Commands,caBeforeCompile);'#013#010+
   '  If Assigned(ATarget.BeforeCompile) then'#013#010+
@@ -5286,7 +5286,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  T : TTarget;'#013#010+
   '  D : TDependency;'#013#010+
   'begin'#013#010+
-  '  Lo','g(llDebug, Format(SDbgCompilingDependenciesOfTarget, [ATarget.Na'+
+  '  Lo','g(vlDebug, Format(SDbgCompilingDependenciesOfTarget, [ATarget.Na'+
   'me]));'#013#010+
   '  LogIndent;'#013#010+
   '  For I:=0 to ATarget.Dependencies.Count-1 do'#013#010+
@@ -5313,7 +5313,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '                        tsNeutral :'#013#010+
   '                          MaybeCompile(APackage,T);'#013#010+
   '                ','        tsConsidering :'#013#010+
-  '                          Log(llWarning,SWarnCircularTargetDependency,'+
+  '                          Log(vlWarning,SWarnCircularTargetDependency,'+
   '[ATarget.Name,T.Name]);'#013#010+
   '                      end;'#013#010+
   '                    end;'#013#010+
@@ -5336,7 +5336,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'begin'#013#010+
   '  if ATarget.State<>tsNeutral then'#013#010+
   '    Error(SErrInvalidState,[ATarget.Name]);'#013#010+
-  '  Log(llDebug, Format(SDbgConsideringTarget, [ATarget.Name])',');'#013#010+
+  '  Log(vlDebug, Format(SDbgConsideringTarget, [ATarget.Name])',');'#013#010+
   '  LogIndent;'#013#010+
   '  ATarget.FTargetState:=tsConsidering;'#013#010+
   '  ResolveDependencies(ATarget.Dependencies,ATarget.Collection as TTarg'+
@@ -5407,7 +5407,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '    end;'#013#010+
   #013#010+
   '  if result then'#013#010+
-  '    Log(llDebug,SDbgMustCompile,[APackage.Name]);'#013#010+
+  '    Log(vlDebug,SDbgMustCompile,[APackage.Name]);'#013#010+
   'end;'#013#010+
   #013#010+
   #013#010+
@@ -5432,12 +5432,12 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  S:=GetUnitDir(Result);'#013#010+
   '  if S<>'#039#039' then'#013#010+
   '    begin'#013#010+
-  '      Log(llDebug, SDbgExternalDependency, [APackageName,S]);'#013#010+
+  '      Log(vldebug, SDbgExternalDependency, [APackageName,S]);'#013#010+
   '      // Load unit',' config if it exists'#013#010+
   '      F:=IncludeTrailingPathDelimiter(S)+UnitConfigFile;'#013#010+
   '      if FileExists(F) then'#013#010+
   '        begin'#013#010+
-  '          Log(llDebug, Format(SDbgLoading, [F]));'#013#010+
+  '          Log(vlDebug, Format(SDbgLoading, [F]));'#013#010+
   '          Result.LoadUnitConfigFromFile(F);'#013#010+
   '        end;'#013#010+
   '      ','// Check recursive implicit dependencies'#013#010+
@@ -5471,12 +5471,12 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '                    tsNeutral :'#013#010+
   '                      MaybeCompile(P);'#013#010+
   '                    tsConsidering :'#013#010+
-  '                      Log(llWarning,SWarnCircularPackageDependency,[AP'+
+  '                      Log(vlWarning,SWarnCircularPackageDependency,[AP'+
   'ackage.Name,P.Name]);'#013#010+
   '                  end;'#013#010+
   '       ','         end'#013#010+
   '              else'#013#010+
-  '                Log(llWarning,SWarnDependOnOtherPlatformPackage,[APack'+
+  '                Log(vlWarning,SWarnDependOnOtherPlatformPackage,[APack'+
   'age.Name, D.Value, MakeTargetString(Defaults.CPU, Defaults.OS)]);'#013#010+
   '            end'#013#010+
   '          else'#013#010+
@@ -5487,7 +5487,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '          if (D.RequireChecksum<>$ffffffff) and'#013#010+
   '             (P.InstalledChecksum<>$ffffffff) and'#013#010+
   '             (P.InstalledChecksum<>D.RequireC','hecksum) then'#013#010+
-  '            Log(llDebug,SDbgPackageChecksumChanged,[P.Name]);'#013#010+
+  '            Log(vlDebug,SDbgPackageChecksumChanged,[P.Name]);'#013#010+
   '        end;'#013#010+
   '    end;'#013#010+
   'end;'#013#010+
@@ -5517,7 +5517,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  begin'#013#010+
   '    if (APackage.FBUTarget.Dependencies.Count>0) then'#013#010+
   '      begin'#013#010+
-  '        Log(llDebug, Format(SDbgGenerateBuildUnit, [APackage.FBUTarget'+
+  '        Log(vldebug, Format(SDbgGenerateBuildUnit, [APackage.FBUTarget'+
   '.Name]));'#013#010+
   '        system.Assign(F,APackage.FBUTarget.FTargetSo','urceFileName);'#013+
   #010+
@@ -5583,10 +5583,10 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '    else'#013#010+
   '      begin'#013#010+
   '        if not(Defaults.CPU in T.CPUs) then'#013#010+
-  '          Log(llDebug, Format(SDbgSkippingTargetWrongCPU, [T.Name, CPU'+
+  '          Log(vldebug, Format(SDbgSkippingTargetWrongCPU, [T.Name, CPU'+
   'sToString(T.CPUs)]));'#013#010+
   '        if not(Defau','lts.OS in T.OSes) then'#013#010+
-  '          Log(llDebug, Format(SDbgSkippingTargetWrongOS, [T.Name, OSes'+
+  '          Log(vldebug, Format(SDbgSkippingTargetWrongOS, [T.Name, OSes'+
   'ToString(T.OSes)]));'#013#010+
   '      end;'#013#010+
   '  end;'#013#010+
@@ -5594,7 +5594,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'begin'#013#010+
   '  cmdOpts := '#039#039';'#013#010+
   #013#010+
-  '  log(llWarning,SWarnStartCompilingPackage,[APackage.Name, Defaults.Ta'+
+  '  log(vlWarning,SWarnStartCompilingPackage,[APackage.Name, Defaults.Ta'+
   'rget]',');'#013#010+
   #013#010+
   '  case Defaults.BuildMode of'#013#010+
@@ -5619,7 +5619,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '                   else if bmOneByOne in APackage.SupportBuildModes th'+
   'en'#013#010+
   '                     begin'#013#010+
-  '                       log(llInfo,SInfoFallbackBuildmode);'#013#010+
+  '                       log(vlInfo,SInfoFallbackBuildmode);'#013#010+
   '                       APackage.FBuildMode:=bmOneByOne'#013#010+
   '        ','             end'#013#010+
   '                   else'#013#010+
@@ -5679,7 +5679,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '.Name + T.Extension + '#039' --descr='#039'+ T.XML;'#013#010+
   '          end'#013#010+
   '        else'#013#010+
-  '          log(llDebug, SDbgTargetIsNotAUnitOrProgram,[T.Name]);'#013#010+
+  '          log(vldebug, SDbgTargetIsNotAUnitOrProgram,[T.Name]);'#013#010+
   '        end;'#013#010+
   '      en','d;'#013#010+
   #013#010+
@@ -5701,7 +5701,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '      begin'#013#010+
   '        UC:=IncludeTrailingPathDelimiter(APackage.GetUnitsOutputDir(De'+
   'faults.CPU,Default','s.OS))+UnitConfigFile;'#013#010+
-  '        Log(llInfo, Format(SDbgGenerating, [UC]));'#013#010+
+  '        Log(vlInfo, Format(SDbgGenerating, [UC]));'#013#010+
   '        APackage.SaveUnitConfigToFile(UC,Defaults.CPU,Defaults.OS);'#013+
   #010+
   '      end;'#013#010+
@@ -5749,10 +5749,10 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  end;'#013#010+
   '  inc(FProgressCount);'#013#010+
   '  if FProgressMax>0 then'#013#010+
-  '    log(llWarning,SWarnCompilingPackagecompleteProgress,[(FProgressCou'+
+  '    log(vlWarning,SWarnCompilingPackagecompleteProgress,[(FProgressCou'+
   'nt)/FProgressM','ax * 100, APackage.Name])'#013#010+
   '  else'#013#010+
-  '    log(llWarning,SWarnCompilingPackagecomplete,[APackage.Name]);'#013#010+
+  '    log(vlWarning,SWarnCompilingPackagecomplete,[APackage.Name]);'#013#010+
   'end;'#013#010+
   #013#010+
   #013#010+
@@ -5760,12 +5760,12 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'begin'#013#010+
   '  if APackage.State in [tsCompiled, tsNoCompile] then'#013#010+
   '    begi','n'#013#010+
-  '      Log(llInfo,SInfoPackageAlreadyProcessed,[APackage.Name]);'#013#010+
+  '      Log(vlInfo,SInfoPackageAlreadyProcessed,[APackage.Name]);'#013#010+
   '      Exit;'#013#010+
   '    end;'#013#010+
   '  if APackage.State<>tsNeutral then'#013#010+
   '    Error(SErrInvalidState,[APackage.Name]);'#013#010+
-  '  Log(llDebug,SDbgConsideringPackage,[APackage.Name]);'#013#010+
+  '  Log(vlDebug,SDbgConsideringPackage,[APackage.Name]);'#013#010+
   '  LogInden','t;'#013#010+
   '  APackage.FTargetState:=tsConsidering;'#013#010+
   '  ResolveDependencies(APackage.Dependencies,(APackage.Collection as TP'+
@@ -5870,7 +5870,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  If (Apackage.State<>tsC','ompiled) then'#013#010+
   '    MaybeCompile(APackage);'#013#010+
   '  try'#013#010+
-  '    Log(llInfo,SInfoInstallingPackage,[APackage.Name]);'#013#010+
+  '    Log(vlInfo,SInfoInstallingPackage,[APackage.Name]);'#013#010+
   '    If (APackage.Directory<>'#039#039') then'#013#010+
   '      EnterDir(APackage.Directory);'#013#010+
   '    DoBeforeInstall(APackage);'#013#010+
@@ -5946,7 +5946,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '  IOS  : TOS;'#013#010+
   'begin'#013#010+
   '  A:=FStartDir+ ','APackage.FileName + ZipExt;'#013#010+
-  '  Log(llInfo,SInfoArchivingPackage,[APackage.Name,A]);'#013#010+
+  '  Log(vlInfo,SInfoArchivingPackage,[APackage.Name,A]);'#013#010+
   '  try'#013#010+
   '    If (APackage.Directory<>'#039#039') then'#013#010+
   '      EnterDir(APackage.Directory);'#013#010+
@@ -5971,7 +5971,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   #013#010+
   '      //show all files'#013#010+
   '      for i := 0 to L.Count-1 do'#013#010+
-  '        Log(llDebug, Format(SDbgArchivingFile, [L[i]]));'#013#010+
+  '        Log(vlDebug, Format(SDbgArchivingFile, [L[i]]));'#013#010+
   #013#010+
   '{$ifdef HAS_UNIT_ZIPPER}'#013#010+
   '      if not Assigned(ArchiveFilesProc) ','then'#013#010+
@@ -6025,7 +6025,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '//  AOS: TOS;'#013#010+
   '  DirectoryList : TStringList;'#013#010+
   'begin'#013#010,
-  '  Log(llInfo,SInfoCleaningPackage,[APackage.Name]);'#013#010+
+  '  Log(vlInfo,SInfoCleaningPackage,[APackage.Name]);'#013#010+
   '  try'#013#010+
   '    If (APackage.Directory<>'#039#039') then'#013#010+
   '      EnterDir(APackage.Directory);'#013#010+
@@ -6124,7 +6124,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '    if PD<>'#039#039' then'#013#010+
   '      PD:=IncludeTrailingPathDelimiter(PD);'#013#010+
   '    MF:=PD+ManifestFile;'#013#010+
-  '    Log(llDebug, Format(SDbgGenerating, [MF]));'#013#010+
+  '    Log(vlDebug, Format(SDbgGenerating, [MF]));'#013#010+
   '    L.Add('#039'<?xml',' version="1.0"?>'#039');'#013#010+
   '    L.Add('#039'<packages>'#039');'#013#010+
   '    APackage.GetManifest(L);'#013#010+
@@ -6153,7 +6153,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '      else'#013#010+
   '        begin'#013#010+
   '        inc(FProgressCount);'#013#010+
-  '        log(llWarning,SWarnSkipPackageTargetProgress,[(FProgressCount)'+
+  '        log(vlWarning,SWarnSkipPackageTargetProgress,[(FProgressCount)'+
   '/FProgressMax * 100, P.Name, Defaults.Target]);'#013#010+
   '        end;'#013#010+
   '    end;'#013#010+
@@ -6175,11 +6175,11 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   '      If PackageOK(P) then'#013#010+
   '        begin'#013#010+
   '          Install(P);'#013#010+
-  '          log(llWarning, SWarnInstallationPackagecomplete, [P.Name, De'+
+  '          log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, De'+
   'faults.Target]);'#013#010+
   '        end'#013#010+
   '   ','   else'#013#010+
-  '        log(llWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]'+
+  '        log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]'+
   ');'#013#010+
   '    end;'#013#010+
   '  If Assigned(AfterInstall) then'#013#010+
@@ -6194,7 +6194,7 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'begin'#013#010+
   '  If Assigned(BeforeArchive) then'#013#010+
   '    BeforeArchive(Self);'#013#010+
-  '  Log(llDebug, SDbgBuildEngineArchiving);'#013#010+
+  '  Log(vlDebug, SDbgBuildEngineArchiving);'#013#010+
   '  For I:=0 to Packages.Count-1 do'#013#010+
   '    begin'#013#010+
   '      P:=Packages.PackageItems[i];'#013#010+
@@ -6231,13 +6231,13 @@ const fpmkunitsrc : array[0..809,1..240] of char=(
   'begin'#013#010+
   '  If Assigned(BeforeClean) then'#013#010+
   '    BeforeClean(Self);'#013#010+
-  '  Log(llDebug, SDbgBuildEngineCleaning);'#013#010+
+  '  Log(vldebug, SDbgBuildEngineCleaning);'#013#010+
   '  For I:=0 to Packages.Count-1 do'#013#010+
   '    be','gin'#013#010+
   '    P:=Packages.PackageItems[i];'#013#010+
   '    If AllTargets or PackageOK(P) then'#013#010+
   '      Clean(P, AllTargets);'#013#010+
-  '    log(llWarning, SWarnCleanPackagecomplete, [P.Name]);'#013#010+
+  '    log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);'#013#010+
   '    end;'#013#010+
   '  If Assigned(AfterClean) then'#013#010+
   '    AfterClean(Self);'#013#010+
