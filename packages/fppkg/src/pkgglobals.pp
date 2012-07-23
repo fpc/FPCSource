@@ -52,13 +52,13 @@ Const
   );
 
 Type
-  TLogLevel = (vlError,vlWarning,vlInfo,vlCommands,vlDebug,vlProgres);
+  TLogLevel = (llError,llWarning,llInfo,llCommands,llDebug,llProgres);
   TLogLevels = Set of TLogLevel;
   TLogProc = procedure(Level:TLogLevel;Const Msg: String);
 
 const
-  DefaultLogLevels = [vlError,vlWarning, vlProgres];
-  AllLogLevels = [vlError,vlWarning,vlCommands,vlInfo];
+  DefaultLogLevels = [llError,llWarning, llProgres];
+  AllLogLevels = [llError,llWarning,llCommands,llInfo];
 
 type
   EPackagerError = class(Exception);
@@ -154,15 +154,15 @@ begin
     exit;
   Prefix:='';
   case Level of
-    vlWarning :
+    llWarning :
       Prefix:=SWarning;
-    vlError :
+    llError :
       Prefix:=SError;
-{    vlInfo :
+{    llInfo :
       Prefix:='I: ';
-    vlCommands :
+    llCommands :
       Prefix:='C: ';
-    vlDebug :
+    llDebug :
       Prefix:='D: '; }
   end;
   Writeln(stdOut,Prefix,Msg);
@@ -253,9 +253,9 @@ Function DirectoryExistsLog(const ADir:string):Boolean;
 begin
   result:=SysUtils.DirectoryExists(ADir);
   if result then
-    log(vlDebug,SDbgDirectoryExists,[ADir,SDbgFound])
+    log(llDebug,SDbgDirectoryExists,[ADir,SDbgFound])
   else
-    log(vlDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
+    log(llDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
 end;
 
 
@@ -263,9 +263,9 @@ Function FileExistsLog(const AFileName:string):Boolean;
 begin
   result:=SysUtils.FileExists(AFileName);
   if result then
-    log(vlDebug,SDbgFileExists,[AFileName,SDbgFound])
+    log(llDebug,SDbgFileExists,[AFileName,SDbgFound])
   else
-    log(vlDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
+    log(llDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
 end;
 
 
@@ -274,7 +274,7 @@ Var
   BFN : String;
 begin
   BFN:=AFileName+'.bak';
-  log(vlDebug,SDbgBackupFile,[BFN]);
+  log(llDebug,SDbgBackupFile,[BFN]);
   If not RenameFile(AFileName,BFN) then
     Error(SErrBackupFailed,[AFileName,BFN]);
 end;

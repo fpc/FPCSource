@@ -57,7 +57,7 @@ begin
   for i:=1 to ParamCount do
     if (ParamStr(i)='-d') or (ParamStr(i)='--debug') then
       begin
-        LogLevels:=AllLogLevels+[vlDebug];
+        LogLevels:=AllLogLevels+[llDebug];
         break;
       end;
   // First try config file from command line
@@ -198,7 +198,7 @@ begin
       else if CheckOption(I,'v','verbose') then
         LogLevels:=AllLogLevels
       else if CheckOption(I,'d','debug') then
-        LogLevels:=AllLogLevels+[vlDebug]
+        LogLevels:=AllLogLevels+[llDebug]
       else if CheckOption(I,'g','global') then
         GlobalOptions.InstallGlobal:=true
       else if CheckOption(I,'r','recovery') then
@@ -313,7 +313,7 @@ begin
           pkghandler.ExecuteAction('','update');
         except
           on E: Exception do
-            pkgglobals.Log(vlWarning,E.Message);
+            pkgglobals.Log(llWarning,E.Message);
         end;
       end;
     LoadLocalAvailableRepository;
@@ -336,7 +336,7 @@ begin
         (ParaAction='install') or
         (ParaAction='archive')) then
       begin
-        pkgglobals.Log(vlDebug,SLogCheckBrokenDependenvies);
+        pkgglobals.Log(llDebug,SLogCheckBrokenDependenvies);
         SL:=TStringList.Create;
         if FindBrokenPackages(SL) then
           Error(SErrBrokenPackagesFound);
@@ -361,7 +361,7 @@ begin
               end
             else
               begin
-                pkgglobals.Log(vlDebug,SLogCommandLineAction,['['+ParaPackages[i]+']',ParaAction]);
+                pkgglobals.Log(llDebug,SLogCommandLineAction,['['+ParaPackages[i]+']',ParaAction]);
                 pkghandler.ExecuteAction(ParaPackages[i],ParaAction);
               end;
           end;

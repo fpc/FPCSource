@@ -224,7 +224,7 @@ begin
       // Compile options
       //   -- default is to optimize, smartlink and strip to reduce
       //      the executable size (there can be 100's of fpmake's on a system)
-      if vlInfo in LogLevels then
+      if llInfo in LogLevels then
         AddOption('-vi');
       AddOption('-O2');
       AddOption('-XXs');
@@ -243,7 +243,7 @@ begin
       DeleteDir(TempBuildDir);
     end
   else
-    Log(vlCommands,SLogNotCompilingFPMake);
+    Log(llCommands,SLogNotCompilingFPMake);
 end;
 
 
@@ -295,9 +295,9 @@ begin
   { Maybe compile fpmake executable? }
   ExecuteAction(PackageName,'compilefpmake');
   { Create options }
-  if vlDebug in LogLevels then
+  if llDebug in LogLevels then
     AddOption('--debug')
-  else if vlInfo in LogLevels then
+  else if llInfo in LogLevels then
     AddOption('--verbose');
   if P.RecompileBroken and
      (P.FPMakeOptionsString<>'') then // Check for a empty FPMakeOptionString for packages being installed with an old fpmkunit

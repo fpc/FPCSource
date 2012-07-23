@@ -102,7 +102,7 @@ begin
   FullActionName:=APackageName+AAction;
   if ExecutedActions.Find(FullActionName)<>nil then
     begin
-      Log(vlDebug,'Already executed or executing action '+FullActionName);
+      Log(llDebug,'Already executed or executing action '+FullActionName);
       exit;
     end;
 
@@ -112,9 +112,9 @@ begin
   pkghandlerclass:=GetPkgHandler(AAction);
   With pkghandlerclass.Create(nil,APackageName) do
     try
-      Log(vlDebug,SLogRunAction+' start',[AAction]);
+      Log(llDebug,SLogRunAction+' start',[AAction]);
       Execute;
-      Log(vlDebug,SLogRunAction+' end',[AAction]);
+      Log(llDebug,SLogRunAction+' end',[AAction]);
     finally
       Free;
     end;
@@ -220,7 +220,7 @@ var
 
         if ch in [#10, #13] then
         begin
-          log(vlProgres,sLine);
+          log(llProgres,sLine);
           sLine := '';
           BuffPos := ConsoleOutput.Position;
         end
@@ -270,7 +270,7 @@ end;
 
 Function TPackageHandler.ExecuteProcess(Const Prog,Args:String):Integer;
 begin
-  Log(vlCommands,SLogExecute,[Prog,Args]);
+  Log(llCommands,SLogExecute,[Prog,Args]);
   Flush(StdOut);
 {$ifdef HAS_UNIT_PROCESS}
   Result:=ExecuteFPC(Prog,Args);
@@ -282,7 +282,7 @@ end;
 
 Procedure TPackageHandler.SetCurrentDir(Const ADir:String);
 begin
-  Log(vlCommands,SLogChangeDir,[ADir]);
+  Log(llCommands,SLogChangeDir,[ADir]);
   if not SysUtils.SetCurrentDir(ADir) then
     Error(SErrChangeDirFailed,[ADir]);
 end;
