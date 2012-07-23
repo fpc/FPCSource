@@ -407,7 +407,7 @@ interface
                 { the temp could have been used previously either because the memory location was reused or
                   because we're in a loop. In case it's used as a function result, that doesn't matter
                   because it will be finalized when assigned to. }
-                if not(nf_is_funcret in flags) then
+                if not(ti_nofini in tempinfo^.flags) then
                   hlcg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
               end
             else if (ti_may_be_in_reg in tempinfo^.flags) then

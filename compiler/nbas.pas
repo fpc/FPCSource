@@ -140,7 +140,11 @@ interface
          { this temp only allows reading (makes it possible to safely use as
            reference under more circumstances)
          }
-         ti_readonly);
+         ti_readonly,
+         { if this is a managed temp, it doesn't have to be finalised before use
+         }
+         ti_nofini
+         );
        ttempinfoflags = set of ttempinfoflag;
 
      const
