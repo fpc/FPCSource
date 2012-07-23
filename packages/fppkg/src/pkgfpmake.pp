@@ -6,7 +6,7 @@ interface
 
 uses
   Classes,SysUtils,DateUtils,
-  pkghandler;
+  pkghandler, fpmkunit;
 
 implementation
 

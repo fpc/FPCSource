@@ -6,7 +6,8 @@ interface
 
 uses
   SysUtils,Classes,
-  fprepos,pkgoptions;
+  fprepos,pkgoptions,
+  fpmkunit;
 
 function GetRemoteRepositoryURL(const AFileName:string):string;
 

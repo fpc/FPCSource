@@ -16,7 +16,7 @@ unit pkgoptions;
 
 interface
 
-uses Classes, Sysutils, Inifiles, fprepos, fpTemplate, pkgglobals;
+uses Classes, Sysutils, Inifiles, fprepos, fpTemplate, pkgglobals, fpmkunit;
 
 Const
   UnitConfigFileName   = 'fpunits.cfg';

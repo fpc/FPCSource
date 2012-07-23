@@ -9,7 +9,7 @@ program fppkg;
 uses
   // General
 {$ifdef unix}
-  baseunix,
+  baseunix, cthreads,
 {$endif}
   Classes, SysUtils, TypInfo, custapp,
   // Repository handler objects
@@ -17,7 +17,8 @@ uses
   pkgmessages, pkgglobals, pkgoptions, pkgrepos,
   // Package Handler components
   pkghandler,pkgmkconv, pkgdownload,
-  pkgfpmake, pkgcommands
+  pkgfpmake, pkgcommands,
+  fpmkunit
   // Downloaders
 {$if defined(unix) or defined(windows)}
   ,pkgwget
