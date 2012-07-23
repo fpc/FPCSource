@@ -157,17 +157,17 @@ var
 begin
   c:=0;
   if not(exInvalidOp in Mask) then
-    cw:=cw or _VFP_ENABLE_IM;
+    c:=c or _EM_INVALID;
   if not(exDenormalized in Mask) then
-    cw:=cw or _VFP_ENABLE_DM;
+    c:=c or _EM_DENORMAL;
   if not(exZeroDivide in Mask) then
-    cw:=cw or _VFP_ENABLE_ZM;
+    c:=c or _EM_ZERODIVIDE;
   if not(exOverflow in Mask) then
-    cw:=cw or _VFP_ENABLE_OM;
+    c:=c or _EM_OVERFLOW;
   if not(exUnderflow in Mask) then
-    cw:=cw or _VFP_ENABLE_UM;
+    c:=c or _EM_UNDERFLOW;
   if not(exPrecision in Mask) then
-    cw:=cw or _VFP_ENABLE_PM;
+    c:=c or _EM_INEXACT;
   c:=_controlfp(c, _MCW_EM);
   Result:=ConvertExceptionMask(c);
   softfloat_exception_mask:=FPUExceptionMaskToSoftFloatMask(mask);
