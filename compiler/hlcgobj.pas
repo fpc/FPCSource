@@ -3310,6 +3310,7 @@ implementation
       cgpara3.done;
       cgpara2.done;
       cgpara1.done;
+      getmemres.resetiftemp;
     end;
 
   procedure thlcgobj.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);

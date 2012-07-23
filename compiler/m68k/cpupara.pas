@@ -44,9 +44,8 @@ unit cpupara;
           procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
-          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
+          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
-          procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
@@ -187,23 +186,17 @@ unit cpupara;
         curfloatreg:=RS_FP0;
       end;
 
-    procedure tm68kparamanager.create_funcretloc_info(p: tabstractprocdef; side: tcallercallee);
-      begin
-        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
-      end;
-
-
-    function tm68kparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
+    function tm68kparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
-        if set_common_funcretloc_info(p,def,retcgsize,result) then
+        if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           exit;
 
         paraloc:=result.add_location;
         { Return in FPU register? }
-        if not(cs_fp_emulation in current_settings.moduleswitches) and (p.returndef.typ=floatdef) then
+        if not(cs_fp_emulation in current_settings.moduleswitches) and (result.def.typ=floatdef) then
           begin
             paraloc^.loc:=LOC_FPUREGISTER;
             paraloc^.register:=NR_FPU_RESULT_REG;

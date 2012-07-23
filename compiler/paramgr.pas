@@ -114,7 +114,8 @@ unit paramgr;
             function result instead of its actual result. Used if the compiler
             forces the function result to something different than the real
             result.  }
-          function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;virtual;abstract;
+          function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;virtual;abstract;
+          procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
 
           { This is used to populate the location information on all parameters
             for the routine when it is being inlined. It returns
@@ -143,7 +144,7 @@ unit paramgr;
          strict protected
           { common part of get_funcretloc; returns true if retloc is completely
             initialized afterwards }
-          function set_common_funcretloc_info(p : tabstractprocdef; def: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
+          function set_common_funcretloc_info(p : tabstractprocdef; forcetempdef: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
        end;
 
 
@@ -453,6 +454,12 @@ implementation
       end;
 
 
+    procedure tparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+      begin
+        p.funcretloc[side]:=get_funcretloc(p,side,nil);
+      end;
+
+
     function tparamanager.create_inline_paraloc_info(p : tabstractprocdef):longint;
       begin
         { We need to return the size allocated }
@@ -497,16 +504,22 @@ implementation
       end;
 
 
-    function tparamanager.set_common_funcretloc_info(p : tabstractprocdef; def: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
+    function tparamanager.set_common_funcretloc_info(p : tabstractprocdef; forcetempdef: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
       var
         paraloc : pcgparalocation;
       begin
         result:=true;
         retloc.init;
-        retloc.def:=def;
+        if not assigned(forcetempdef) then
+          retloc.def:=p.returndef
+        else
+          begin
+            retloc.def:=forcetempdef;
+            retloc.temporary:=true;
+          end;
         retloc.alignment:=get_para_align(p.proccalloption);
         { void has no location }
-        if is_void(def) then
+        if is_void(retloc.def) then
           begin
             paraloc:=retloc.add_location;
             retloc.size:=OS_NO;
@@ -528,14 +541,14 @@ implementation
           end
         else
           begin
-            retcgsize:=def_cgsize(def);
-            retloc.intsize:=def.size;
+            retcgsize:=def_cgsize(retloc.def);
+            retloc.intsize:=retloc.def.size;
           end;
         retloc.size:=retcgsize;
         { Return is passed as var parameter }
-        if ret_in_param(def,p.proccalloption) then
+        if ret_in_param(retloc.def,p.proccalloption) then
           begin
-            retloc.def:=getpointerdef(def);
+            retloc.def:=getpointerdef(retloc.def);
             paraloc:=retloc.add_location;
             paraloc^.loc:=LOC_REFERENCE;
             paraloc^.size:=retcgsize;

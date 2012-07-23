@@ -41,9 +41,8 @@ interface
         procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
-        function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
+        function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
       private
-        procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                              var intparareg,parasize:longint);
       end;
@@ -140,23 +139,17 @@ implementation
       end;
 
 
-    procedure tsparcparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-      begin
-        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
-      end;
-
-
-    function tsparcparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
+    function tsparcparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
-        if set_common_funcretloc_info(p,def,retcgsize,result) then
+        if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           exit;
 
         paraloc:=result.add_location;
         { Return in FPU register? }
-        if def.typ=floatdef then
+        if result.def.typ=floatdef then
           begin
             paraloc^.loc:=LOC_FPUREGISTER;
             paraloc^.register:=NR_FPU_RESULT_REG;

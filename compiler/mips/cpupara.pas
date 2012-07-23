@@ -79,11 +79,10 @@ interface
         procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
-        function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
+        function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
       private
         intparareg,
         intparasize : longint;
-        procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist);
       end;
 
@@ -181,22 +180,16 @@ implementation
       end;
 
 
-    procedure TMIPSParaManager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-      begin
-        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
-      end;
-
-
-    function TMIPSParaManager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
+    function TMIPSParaManager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
-        if set_common_funcretloc_info(p,def,retcgsize,result) then
+        if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           begin
             { Return is passed as var parameter,
               in this case we use the first register R4 for it }
-            if ret_in_param(def,p.proccalloption) then
+            if ret_in_param(result.def,p.proccalloption) then
               begin
                 if intparareg=0 then
                   inc(intparareg);
@@ -222,14 +215,14 @@ implementation
                   begin
                     getIntParaLoc(p.proccalloption,1,result.def,result);
                   end;
-                result.def:=getpointerdef(def);
+                result.def:=getpointerdef(result.def);
               end;
             exit;
           end;
 
         paraloc:=result.add_location;
         { Return in FPU register? }
-        if p.returndef.typ=floatdef then
+        if result.def.typ=floatdef then
           begin
             paraloc^.loc:=LOC_FPUREGISTER;
             paraloc^.register:=NR_FPU_RESULT_REG;

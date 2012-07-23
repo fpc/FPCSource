@@ -515,9 +515,7 @@ unit cgx86;
              end
           end
         else if (cs_create_pic in current_settings.moduleswitches) and
-           assigned(ref.symbol) and
-           not((ref.symbol.bind=AB_LOCAL) and
-               (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
+           assigned(ref.symbol) then
           begin
             reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
             href.base:=current_procinfo.got;
