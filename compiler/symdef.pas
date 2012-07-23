@@ -2460,7 +2460,7 @@ implementation
 {$ifdef cpu32bitaddr}
         case filetyp of
           ft_text :
-            savesize:=594{+4};
+            savesize:=596; { keep this dividable by 4 for proper alignment of arrays of text, see tw0754 e.g. on arm }
           ft_typed,
           ft_untyped :
             savesize:=332;
