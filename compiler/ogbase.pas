@@ -1443,10 +1443,10 @@ implementation
         else
           begin
             { inherit section options }
-            SecAlign:=objsec.SecAlign;
             SecOptions:=SecOptions+objsec.SecOptions;
           end;
         { relate ObjSection to ExeSection, and mark it Used by default }
+        SecAlign:=max(objsec.SecAlign,SecAlign);
         objsec.ExeSection:=self;
         objsec.Used:=true;
       end;

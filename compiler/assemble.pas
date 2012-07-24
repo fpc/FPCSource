@@ -1107,6 +1107,9 @@ Implementation
                        short jumps to become out of range }
                      Tai_align_abstract(hp).fillsize:=Tai_align_abstract(hp).aligntype;
                      ObjData.alloc(Tai_align_abstract(hp).fillsize);
+                     { may need to increase alignment of section }
+                     if tai_align_abstract(hp).aligntype>ObjData.CurrObjSec.secalign then
+                       ObjData.CurrObjSec.secalign:=tai_align_abstract(hp).aligntype;
                    end
                  else
                    Tai_align_abstract(hp).fillsize:=0;
@@ -1353,6 +1356,8 @@ Implementation
            case hp.typ of
              ait_align :
                begin
+                 if tai_align_abstract(hp).aligntype>ObjData.CurrObjSec.secalign then
+                   InternalError(2012072301);
                  if oso_data in ObjData.CurrObjSec.secoptions then
                    ObjData.writebytes(Tai_align_abstract(hp).calculatefillbuf(fillbuffer,oso_executable in ObjData.CurrObjSec.secoptions)^,
                      Tai_align_abstract(hp).fillsize)
