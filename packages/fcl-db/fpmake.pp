@@ -4,6 +4,15 @@ program fpmake;
 
 uses fpmkunit;
 
+const
+  ParadoxOSes         = [beos,haiku,linux,freebsd,netbsd,openbsd,win32];
+  DatadictOSes        = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,aix];
+  SqldbConnectionOSes = [beos,haiku,linux,freebsd,win32,win64,wince,darwin,iphonesim,netbsd,openbsd,aix];
+  SqliteOSes          = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,wince,aix];
+  DBaseOSes           = [beos,haiku,linux,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,win32,win64,wince,aix];
+  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,win32,win64];
+  SqldbWithoutPostgresOSes = [win64];
+
 Var
   P : TPackage;
   T : TTarget;
@@ -537,6 +546,15 @@ begin
           AddUnit('bufdataset');
           AddUnit('ibconnection');
         end;
+    T:=P.Targets.AddUnit('fbeventmonitor.pp', SqldbConnectionOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+          AddUnit('bufdataset');
+          AddUnit('ibconnection');
+        end;
     T:=P.Targets.AddUnit('memds.pp');
     T.ResourceStrings:=true;
       with T.Dependencies do
@@ -627,6 +645,23 @@ begin
           AddUnit('dbconst');
           AddUnit('bufdataset');
         end;
+    T:=P.Targets.AddUnit('pqeventmonitor.pp', SqldbConnectionOSes-SqldbWithoutPostgresOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+          AddUnit('bufdataset');
+          AddUnit('pqconnection');
+        end;
+    T:=P.Targets.AddUnit('mssqlconn.pp', MSSQLOSes);
+    with T.Dependencies do
+      begin
+        AddUnit('sqldb');
+        AddUnit('db');
+        AddUnit('dbconst');
+        AddUnit('bufdataset');
+      end;
     T:=P.Targets.AddUnit('sdfdata.pp');
       with T.Dependencies do
         begin

@@ -509,8 +509,16 @@ begin
 end;
 
 procedure TConnectionName.UnPrepareStatement(cursor: TSQLCursor);
+Var
+  C : TCursorName;
+
 begin
-  // do nothing
+  C:=Cursor as TCursorName;
+  if assigned(C.FRes) then  //ExecSQL with dataset returned
+    begin
+    mysql_free_result(C.FRes);
+    C.FRes:=nil;
+    end;
 end;
 
 procedure TConnectionName.FreeFldBuffers(cursor: TSQLCursor);

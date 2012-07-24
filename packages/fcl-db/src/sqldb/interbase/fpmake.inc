@@ -12,4 +12,7 @@ T.ResourceStrings:=True;
 T:=Targets.AddUnit('fbadmin');
 T.Dependencies.Add('ibconnection');
 T.ResourceStrings:=True;
+T:=Targets.AddUnit('fbeventmonitor');
+T.Dependencies.Add('ibconnection');
+T.ResourceStrings:=True;
 

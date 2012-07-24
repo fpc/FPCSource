@@ -6,7 +6,7 @@
 main=fcl-db
 
 [target]
-units=ibconnection fbadmin
+units=ibconnection fbadmin  fbeventmonitor
 
 [require]
 packages=fcl-xml ibase 

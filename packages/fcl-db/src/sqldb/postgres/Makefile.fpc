@@ -7,7 +7,7 @@ main=fcl-db
 
 [target]
 rsts=pqconnection
-units=pqconnection
+units=pqconnection pqeventmonitor
 
 [require]
 packages=fcl-xml postgres

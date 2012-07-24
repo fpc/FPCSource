@@ -177,7 +177,14 @@ Var
 begin
   S:=FormatField(EF.Field);
   QS:=FormatSettings.QuoteStrings;
-  If (EF.Field.DataType in StringFieldTypes) and (QS<>[]) then
+  {If specified, quote everything that can contain delimiters;
+  leave numeric, date fields alone:}
+  If (
+  (EF.Field.DataType in StringFieldTypes) or
+  (EF.Field.DataType in MemoFieldTypes) or
+  (EF.Field.DataType in BlobFieldTypes)
+  )
+  and (QS<>[]) then
     begin
     If (qsAlways in QS) or HaveSpace(S,QS) or HaveDelimiter(S,QS) then
       begin
@@ -210,6 +217,10 @@ begin
   FHeaderRow:=True;
   FDelimiter:=',';
   FStringQuoteChar:='"';
+  FQuoteStrings:=[qsSpace, qsDelimiter];
+  {Sensible defaults as reading unquoted strings with delimiters/spaces will
+  either fail by creating phantom fields (qsDelimiter) or delete leading or
+  trailing data/spaces (qsSpace)}
 end;
 
 procedure TCSVFormatSettings.Assign(Source: TPersistent);

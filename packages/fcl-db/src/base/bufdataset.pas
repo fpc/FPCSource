@@ -514,6 +514,7 @@ type
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
+    function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
     function UpdateStatus: TUpdateStatus; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
@@ -3073,6 +3074,27 @@ begin
     bm.BookmarkFlag := bfCurrent;
     GotoBookmark(@bm);
     end;
+end;
+
+function TCustomBufDataset.Lookup(const KeyFields: string;
+  const KeyValues: Variant; const ResultFields: string): Variant;
+var
+  bm:TBookmark;
+begin
+  result:=Null;
+  bm:=GetBookmark;
+  DisableControls;
+  try
+    if Locate(KeyFields,KeyValues,[]) then
+      begin
+//      CalculateFields(ActiveBuffer); // not needed, done by Locate more than once
+      result:=FieldValues[ResultFields];
+      end;
+    GotoBookmark(bm);
+    FreeBookmark(bm);
+  finally
+    EnableControls;
+  end;
 end;
 
 { TArrayBufIndex }
