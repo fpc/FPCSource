@@ -3175,10 +3175,21 @@ if (target_info.system=system_arm_darwin) then
 { set default cpu type to ARMv7 for ARMHF unless specified otherwise }
 if (target_info.abi = abi_eabihf) then
   begin
+{$ifdef CPUARMV6}
+    { if the compiler is built for armv6, then
+      inherit this setting, e.g. Raspian is armhf but
+      only armv6, this makes rebuilds of the compiler
+      easier }
+    if not option.CPUSetExplicitly then
+      init_settings.cputype:=cpu_armv6;
+    if not option.OptCPUSetExplicitly then
+      init_settings.optimizecputype:=cpu_armv6;
+{$else CPUARMV6}
     if not option.CPUSetExplicitly then
       init_settings.cputype:=cpu_armv7;
     if not option.OptCPUSetExplicitly then
       init_settings.optimizecputype:=cpu_armv7;
+{$endif CPUARMV6}
   end;
 {$endif arm}
 
