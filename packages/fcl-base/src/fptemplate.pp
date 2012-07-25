@@ -462,9 +462,9 @@ begin
   if FAllowTagParams then
   begin//template tags with parameters are allowed
     SLen:=Length(Src);
+    Result:='';
     If SLen=0 then
       exit;
-    Result:='';
     SP:=PChar(Src);
     P:=SP;
     While (P-SP<SLen) do
@@ -515,10 +515,10 @@ begin
     If FParseLevel>FMaxParseDepth then
       Raise ETemplateParser.CreateFmt(SErrParseDepthExceeded,[FMaxParseDepth]);
     SLen:=Length(Src); // Minimum
+    Result:='';
     If SLen=0 then
       exit;
 //    STLen:=Length(FStartDelimiter);
-    Result:='';
     SP:=PChar(Src);
     P:=SP;
     While (P-SP<SLen) do
