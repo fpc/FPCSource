@@ -240,6 +240,7 @@ interface
        property CObjSection:TObjSectionClass read FCObjSection write FCObjSection;
      public
        CurrPass  : byte;
+       ExecStack : boolean;
        constructor create(const n:string);virtual;
        destructor  destroy;override;
        { Sections }
@@ -312,6 +313,7 @@ interface
         destructor  destroy;override;
         function  newObjData(const n:string):TObjData;
         function  ReadObjData(AReader:TObjectreader;Data:TObjData):boolean;virtual;abstract;
+        class function CanReadObjData(AReader:TObjectreader):boolean;virtual;
         procedure inputerror(const s : string);
       end;
       TObjInputClass=class of TObjInput;
@@ -368,12 +370,13 @@ interface
       end;
       TExeSectionClass=class of TExeSection;
 
-      TStaticLibrary = class(TFPHashObject)
+      TStaticLibrary = class(TObject)
       private
+        FName : TCmdStr;
         FArReader : TObjectReader;
         FObjInputClass : TObjInputClass;
       public
-        constructor create(AList:TFPHashObjectList;const AName:string;AReader:TObjectReader;AObjInputClass:TObjInputClass);
+        constructor create(const AName:TCmdStr;AReader:TObjectReader;AObjInputClass:TObjInputClass);
         destructor  destroy;override;
         property ArReader:TObjectReader read FArReader;
         property ObjInputClass:TObjInputClass read FObjInputClass;
@@ -444,6 +447,7 @@ interface
         CurrDataPos  : aword;
         MaxMemPos    : qword;
         IsSharedLibrary : boolean;
+        ExecStack    : boolean;
         constructor create;virtual;
         destructor  destroy;override;
         function  FindExeSection(const aname:string):TExeSection;
@@ -454,6 +458,7 @@ interface
         procedure Load_ProvideSymbol(const aname:string);virtual;
         procedure Load_IsSharedLibrary;
         procedure Load_ImageBase(const avalue:string);
+        procedure Load_DynamicObject(ObjData:TObjData);virtual;
         procedure Order_Start;virtual;
         procedure Order_End;virtual;
         procedure Order_ExeSection(const aname:string);virtual;
@@ -477,7 +482,7 @@ interface
         procedure DataPos_Symbols;virtual;
         procedure BuildVTableTree(VTInheritList,VTEntryList:TFPObjectList);
         procedure PackUnresolvedExeSymbols(const s:string);
-        procedure ResolveSymbols(StaticLibraryList:TFPHashObjectList);
+        procedure ResolveSymbols(StaticLibraryList:TFPObjectList);
         procedure PrintMemoryMap;
         procedure FixupSymbols;
         procedure FixupRelocations;
@@ -1456,9 +1461,9 @@ implementation
                                 TStaticLibrary
 ****************************************************************************}
 
-    constructor TStaticLibrary.create(AList:TFPHashObjectList;const AName:string;AReader:TObjectReader;AObjInputClass:TObjInputClass);
+    constructor TStaticLibrary.create(const AName:TCmdStr;AReader:TObjectReader;AObjInputClass:TObjInputClass);
       begin
-        inherited create(AList,AName);
+        FName:=AName;
         FArReader:=AReader;
         FObjInputClass:=AObjInputClass;
       end;
@@ -1595,6 +1600,7 @@ implementation
         if ObjData.classtype<>FCObjData then
           Comment(V_Error,'Invalid input object format for '+ObjData.name+' got '+ObjData.classname+' expected '+FCObjData.classname);
         ObjDataList.Add(ObjData);
+        ExecStack:=ExecStack or ObjData.ExecStack;
       end;
 
 
@@ -1657,6 +1663,11 @@ implementation
         internalObjData.createsection('*'+aname,0,[]);
         // Use AB_COMMON to avoid muliple defined complaints
         internalObjData.SymbolDefine(aname,AB_COMMON,AT_DATA);
+      end;
+
+
+    procedure TExeOutput.Load_DynamicObject(ObjData:TObjData);
+      begin
       end;
 
 
@@ -2079,7 +2090,7 @@ implementation
       end;
 
 
-    procedure TExeOutput.ResolveSymbols(StaticLibraryList:TFPHashObjectList);
+    procedure TExeOutput.ResolveSymbols(StaticLibraryList:TFPObjectList);
       var
         ObjData   : TObjData;
         exesym    : TExeSymbol;
@@ -2984,6 +2995,12 @@ implementation
     procedure TObjInput.inputerror(const s : string);
       begin
         Comment(V_Error,s+' while reading '+InputFileName);
+      end;
+
+
+    class function TObjInput.CanReadObjData(AReader:TObjectReader):boolean;
+      begin
+        result:=false;
       end;
 
 

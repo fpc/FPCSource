@@ -93,7 +93,7 @@ interface
          FCExeOutput : TExeOutputClass;
          FCObjInput  : TObjInputClass;
          { Libraries }
-         FStaticLibraryList : TFPHashObjectList;
+         FStaticLibraryList : TFPObjectList;
          FImportLibraryList : TFPHashObjectList;
          procedure Load_ReadObject(const para:TCmdStr);
          procedure Load_ReadStaticLibrary(const para:TCmdStr);
@@ -112,7 +112,7 @@ interface
          IsHandled : PBooleanArray;
          property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
-         property StaticLibraryList:TFPHashObjectList read FStaticLibraryList;
+         property StaticLibraryList:TFPObjectList read FStaticLibraryList;
          property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
          procedure DefaultLinkScript;virtual;abstract;
          procedure ScriptAddGenericSections(secnames:string);
@@ -848,7 +848,7 @@ Implementation
       begin
         inherited Create;
         linkscript:=TCmdStrList.Create;
-        FStaticLibraryList:=TFPHashObjectList.Create(true);
+        FStaticLibraryList:=TFPObjectList.Create(true);
         FImportLibraryList:=TFPHashObjectList.Create(true);
         exemap:=nil;
         exeoutput:=nil;
@@ -960,7 +960,7 @@ Implementation
           exit;
         Comment(V_Tried,'Opening library '+para);
         objreader:=TArObjectreader.create(para);
-        TStaticLibrary.Create(StaticLibraryList,para,objreader,CObjInput);
+        StaticLibraryList.Add(TStaticLibrary.Create(para,objreader,CObjInput));
       end;
 
 
@@ -1276,6 +1276,8 @@ Implementation
         ParseScript_Handle;
         { Load .o files and resolve symbols }
         ParseScript_Load;
+        if ErrorCount>0 then
+          goto myexit;
         exeoutput.ResolveSymbols(StaticLibraryList);
         { Generate symbols and code to do the importing }
         exeoutput.GenerateLibraryImports(ImportLibraryList);
