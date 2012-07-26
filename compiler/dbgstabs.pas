@@ -1038,22 +1038,23 @@ implementation
               while assigned(anc.childof) do
                 begin
                   anc:=anc.childof;
-                  if (anc.dbg_state=dbg_state_writing) then
-                    { happens in case a field of a parent is of the (forward }
-                    { defined) child type                                    }
-                    begin
-                      { We don't explicitly requeue it, but the fact that  }
-                      { a child type was used in a parent before the child }
-                      { type was fully defined means that it was forward   }
-                      { declared, and will still be encountered later (it  }
-                      { cannot have been declared in another unit, because }
-                      { then this and that other unit would depend on      }
-                      { eachother's interface)                             }
-                      { Setting the state to queued however allows us to   }
-                      { get the def number already without an IE           }
-                      def.dbg_state:=dbg_state_queued;
-                      exit;
-                    end;
+                  case anc.dbg_state of
+                    dbg_state_writing:
+                      { happens in case a field of a parent is of the (forward
+                        defined) child type
+                      }
+                      begin
+                        { We don't explicitly requeue it, but the fact that
+                          a child type was used in a parent before the child
+                          type was fully defined means that it was forward
+                          declared, and will still be encountered later.
+                          Setting the state to queued however allows us to
+                          get the def number already without an IE
+                        }
+                        def.dbg_state:=dbg_state_queued;
+                        break;
+                      end;
+                  end;
                 end;
               appenddef(list,vmtarraytype);
               if assigned(tobjectdef(def).ImplementedInterfaces) then
@@ -1064,6 +1065,16 @@ implementation
               while assigned(anc.childof) do
                 begin
                   anc:=anc.childof;
+                  { in case this is an object family declared in another unit
+                    that was compiled without debug info, this ancestor may not
+                    yet have a stabs number and not yet be added to defstowrite
+                    -> take care of that now, while its dbg_state is still
+                    dbg_state_unused in case the aforementioned things haven't
+                    happened yet (afterwards it will become dbg_state_writing,
+                    and then def_stab_number() won't do anything anymore because
+                    it assumes it's already happened
+                  }
+                  def_stab_number(anc);
                   appenddef(list,anc);
                   if assigned(anc.ImplementedInterfaces) then
                     for i:=0 to anc.ImplementedInterfaces.Count-1 do

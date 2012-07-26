@@ -311,8 +311,32 @@ implementation
                     internalerror(200610053);
                   dbg_state_used:
                     appenddef(list,def);
-                else
-                  internalerror(200610054);
+                  dbg_state_queued:
+                    begin
+                      { can happen in case an objectdef was used from another
+                        unit that was compiled without debug info, and we are
+                        using Stabs (which means that parent types have to be
+                        written before child types). In this case, the child
+                        objectdef will be queued and never written, because its
+                        definition is not inside the current unit and hence will
+                        not be encountered }
+                      if def.typ<>objectdef then
+                        internalerror(2012072401);
+                      if not assigned(tobjectdef(def).childof) or
+                         (tobjectdef(def).childof.dbg_state=dbg_state_written) then
+                        appenddef(list,def)
+                      else if tobjectdef(def).childof.dbg_state=dbg_state_queued then
+                        deftowritelist.add(def)
+                      else if tobjectdef(def).childof.dbg_state=dbg_state_used then
+                        { comes somewhere after the current def in the looplist
+                          and will be written at that point, so we will have to
+                          wait until the next iteration }
+                        deftowritelist.add(def)
+                      else
+                        internalerror(2012072402);
+                    end;
+                  else
+                    internalerror(200610054);
                 end;
               end;
             looplist.clear;
