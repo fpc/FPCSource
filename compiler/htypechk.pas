@@ -212,14 +212,143 @@ implementation
     function isbinaryoperatoroverloadable(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype) : boolean;
 
         function internal_check(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype;var allowed:boolean):boolean;
+        const
+          identity_operators = [equaln, unequaln];
+          order_theoretic_operators = identity_operators + [ltn, lten, gtn, gten];
+          arithmetic_operators = [addn, subn, muln, divn, modn];
+          rational_operators = [addn, subn, muln, slashn];
+          numerical_operators = arithmetic_operators + [slashn];
+          pointer_arithmetic_operators = [addn, subn];
+          logical_operators = [andn, orn, xorn];
+          bit_manipulation_operators = logical_operators + [shln, shrn];
+          set_set_operators = identity_operators + [addn, subn, muln, symdifn] +
+            order_theoretic_operators;
+          element_set_operators = [inn];
+          string_comparison_operators = order_theoretic_operators;
+          string_manipulation_operators = [addn];
+          string_operators =
+            string_comparison_operators + string_manipulation_operators;
         begin
           internal_check:=true;
+
+          { Reject the cases permitted by the default interpretation (DI). }
           case ld.typ of
             formaldef,
             recorddef,
             variantdef :
               begin
                 allowed:=true;
+              end;
+            enumdef:
+              begin
+                allowed:=not (
+                           (
+                             is_set(rd) and
+                             (treetyp in element_set_operators)
+                           ) or
+                           (
+                             is_enum(rd) and
+                             (treetyp in (order_theoretic_operators + [addn, subn]))
+                           )
+                         );
+              end;
+            setdef:
+              begin
+                allowed:=not (
+                           (
+                             is_set(rd) and
+                             (treetyp in (set_set_operators + identity_operators))
+                           ) or
+                           (
+                             { This clause is a hack but it’s due to a hack somewhere
+                               else---while set + element is not permitted by DI, it
+                               seems to be used when a set is constructed inline }
+                             (rd.typ in [enumdef, orddef]) and
+                             (treetyp = addn)
+                           )
+                         );
+              end;
+            orddef, floatdef:
+              begin
+                allowed:=not (
+                           (
+                             (rd.typ in [orddef, floatdef]) and
+                             (treetyp in order_theoretic_operators)
+                           ) or
+                           (
+                             is_stringlike(rd) and
+                             (ld.typ = orddef) and
+                             (treetyp in string_comparison_operators)) or
+                             { c.f. $(source)\tests\tmacpas5.pp }
+                             (
+                               (rd.typ = setdef) and
+                               (ld.typ = orddef) and
+                               (treetyp in element_set_operators)
+                             )
+                            { This clause may be too restrictive---not all types under
+                              orddef have a corresponding set type; despite this the
+                              restriction should be very unlikely to become
+                              a practical obstacle, and can be relaxed by simply
+                              adding an extra check on TOrdDef(rd).ordtype }
+                           );
+
+                { Note that Currency can be under either orddef or floatdef;
+                  when it’s under floatdef, is_currency() implies is_float();
+                  when it’s under orddef, is_currency() does NOT imply
+                  is_integer(). }
+                if allowed then
+                  begin
+                    if is_anychar(ld) then
+                      allowed:=not (
+                                 is_stringlike(rd) and
+                                 (treetyp in string_operators)
+                               )
+                    else if is_boolean(ld) then
+                      allowed:=not (
+                                 is_boolean(rd) and
+                                 (treetyp in logical_operators)
+                               )
+                    else if is_integer(ld) or
+                        (
+                          (ld.typ = orddef) and
+                          is_currency(ld)
+                        { Here ld is Currency but behaves like an integer }
+                        ) then
+                      allowed:=not (
+                                 (
+                                   (
+                                     is_integer(rd) or
+                                     (
+                                       (rd.typ = orddef) and
+                                       is_currency(rd)
+                                     )
+                                   ) and
+                                   (treetyp in (bit_manipulation_operators + numerical_operators))
+                                 ) or
+                                 (
+                                   is_fpu(rd) and
+                                   (treetyp in rational_operators)
+                                 ) or
+                                 (
+                                   { When an integer type is used as the first operand in
+                                     pointer arithmetic, DI doesn’t accept minus as the
+                                     operator (Currency can’t be used in pointer
+                                     arithmetic even if it’s under orddef)  }
+                                   is_integer(ld) and
+                                   (rd.typ = pointerdef) and
+                                   (treetyp in pointer_arithmetic_operators - [subn])
+                                 )
+                               )
+                    else  { is_fpu(ld) = True }
+                      allowed:=not (
+                                 (
+                                   is_fpu(rd) or
+                                   is_integer(rd) or
+                                   is_currency(rd)
+                                 ) and
+                                 (treetyp in rational_operators)
+                               );
+                  end;
               end;
             procvardef :
               begin
@@ -232,25 +361,50 @@ implementation
               end;
             pointerdef :
               begin
-                if ((rd.typ in [orddef,enumdef,pointerdef,classrefdef,procvardef]) or
-                    is_implicit_pointer_object_type(rd)) then
-                 begin
-                   allowed:=false;
-                   exit;
-                 end;
+                { DI permits pointer arithmetic for pointer + pointer, pointer -
+                  integer, pointer - pointer, but not for pointer + pointer.
+                  The last case is only valid in DI when both sides are
+                  stringlike. }
 
-                { don't allow pchar+string }
-                if (is_pchar(ld) or is_pwidechar(ld)) and
-                   ((rd.typ=stringdef) or
-                    is_pchar(rd) or
-                    is_pwidechar(rd) or
-                    is_chararray(rd) or
-                    is_widechararray(rd)) then
-                 begin
-                   allowed:=false;
-                   exit;
-                 end;
-                allowed:=true;
+                if is_stringlike(ld) then
+                  if is_stringlike(rd) then
+                    { DI in this case permits string operations and pointer
+                      arithmetic. }
+                    allowed:=not (treetyp in (string_operators + pointer_arithmetic_operators))
+                  else if rd.typ = pointerdef then
+                    { DI in this case permits minus for pointer arithmetic and
+                      order-theoretic operators for pointer comparison. }
+                    allowed:=not (
+                               treetyp in (
+                                 pointer_arithmetic_operators - [addn] +
+                                 order_theoretic_operators
+                               )
+                             )
+                  else if is_integer(rd) then
+                    { DI in this case permits pointer arithmetic. }
+                    allowed:=not (treetyp in pointer_arithmetic_operators)
+                  else
+                    allowed:=true
+                else
+                  allowed:=not (
+                             (
+                               is_integer(rd) and
+                               (treetyp in pointer_arithmetic_operators)
+                             ) or
+                             (
+                               (rd.typ = pointerdef) and
+                               (
+                                 treetyp in (
+                                   pointer_arithmetic_operators - [addn] +
+                                   order_theoretic_operators
+                                 )
+                               )
+                             ) or
+                             (
+                               (lt = niln) and
+                               (rd.typ in [procvardef, procdef]) and
+                               (treetyp in identity_operators))
+                             );
               end;
             arraydef :
               begin
@@ -263,80 +417,79 @@ implementation
                    allowed:=false;
                    exit;
                  end;
-                { not chararray+[(wide)char,(wide)string,(wide)chararray] }
-                if (is_chararray(ld) or is_widechararray(ld) or
-                    is_open_chararray(ld) or is_open_widechararray(ld))
-                   and
-                   ((rd.typ in [stringdef,orddef,enumdef]) or
-                    is_pchar(rd) or
-                    is_pwidechar(rd) or
-                    is_chararray(rd) or
-                    is_widechararray(rd) or
-                    is_open_chararray(rd) or
-                    is_open_widechararray(rd) or
-                    (rt=niln)) then
-                 begin
-                   allowed:=false;
-                   exit;
-                 end;
+
+                if is_stringlike(ld) and
+                    (
+                      (
+                        (
+                          is_stringlike(rd) or
+                          (rt = niln)
+                        ) and
+                        (treetyp in string_operators)
+                      ) or
+                      (
+                        is_integer(rd) and
+                        (treetyp in pointer_arithmetic_operators)
+                      ) or
+                      (
+                        (
+                          is_pchar(rd) or
+                          is_pwidechar(rd)) and
+                          (treetyp in pointer_arithmetic_operators) and
+                          (tpointerdef(rd).pointeddef=tarraydef(ld).elementdef
+                        )
+                      )
+                    ) then
+                  begin
+                    allowed:=false;
+                    exit;
+                  end;
+
                 { dynamic array compare with niln }
-                if ((is_dynamic_array(ld) and
-                   (rt=niln)) or
-                   (is_dynamic_array(ld) and is_dynamic_array(rd)))
-                   and
-                   (treetyp in [equaln,unequaln]) then
-                 begin
-                   allowed:=false;
-                   exit;
-                 end;
+                if is_dynamic_array(ld) and
+                    (treetyp in identity_operators) then
+                  if is_dynamic_array(rd) or
+                      (rt = niln) then
+                    begin
+                      allowed:=false;
+                      exit;
+                    end;
+
                 allowed:=true;
               end;
             objectdef :
               begin
                 { <> and = are defined for implicit pointer object types }
-                if (treetyp in [equaln,unequaln]) and
-                   is_implicit_pointer_object_type(ld) then
-                 begin
-                   allowed:=false;
-                   exit;
-                 end;
-                allowed:=true;
+                allowed:=not (
+                           is_implicit_pointer_object_type(ld) and
+                           (
+                             (
+                               is_implicit_pointer_object_type(rd) or
+                               (rd.typ = pointerdef) or
+                               (rt = niln)
+                             )
+                           ) and
+                           (treetyp in identity_operators)
+                         );
               end;
             stringdef :
               begin
-                if (rd.typ in [orddef,enumdef,stringdef]) or
-                   is_pchar(rd) or
-                   is_pwidechar(rd) or
-                   is_chararray(rd) or
-                   is_widechararray(rd) or
-                   is_open_chararray(rd) or
-                   is_open_widechararray(rd) then
-                 begin
-                   allowed:=false;
-                   exit;
-                 end;
-                allowed:=true;
+                allowed:=not (
+                           is_stringlike(rd) and
+                           (treetyp in string_operators)
+                         );
               end;
             else
               internal_check:=false;
           end;
         end;
 
-      var
-        allowed : boolean;
       begin
         { power ** is always possible }
-        if (treetyp=starstarn) then
-         begin
-           isbinaryoperatoroverloadable:=true;
-           exit;
-         end;
-        { order of arguments does not matter so we have to check also
-          the reversed order }
-        allowed:=false;
-        if not internal_check(treetyp,ld,lt,rd,rt,allowed) then
-          internal_check(treetyp,rd,rt,ld,lt,allowed);
-        isbinaryoperatoroverloadable:=allowed;
+        result:=treetyp=starstarn;
+        if not result then
+          if not internal_check(treetyp,ld,lt,rd,rt,result) then
+            result:=false;
       end;
 
 
@@ -366,8 +519,7 @@ implementation
 
           notn :
             begin
-              if (ld.typ in [orddef,enumdef,floatdef]) then
-                exit;
+              if ld.typ = orddef then exit;
 
 {$ifdef SUPPORT_MMX}
               if (cs_mmx in current_settings.localswitches) and
