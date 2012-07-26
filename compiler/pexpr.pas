@@ -2288,7 +2288,7 @@ implementation
                     else
                      begin
                        { We need to know if this unit uses Variants }
-                       if (hdef=cvarianttype) and
+                       if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
                           not(cs_compilesystem in current_settings.moduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
                        p1:=handle_factor_typenode(hdef,getaddr,again,srsym,typeonly);
