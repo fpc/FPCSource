@@ -3078,7 +3078,8 @@ implementation
     function ttypeconvnode.first_bool_to_bool : tnode;
       begin
          first_bool_to_bool:=nil;
-         if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) then
+         if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) and
+            not is_cbool(resultdef) then
            expectloc := left.expectloc
          else
            expectloc:=LOC_REGISTER;
