@@ -131,7 +131,9 @@ interface
        { Contains debug info and can be stripped }
        oso_debug,
        { Contains only strings }
-       oso_strings
+       oso_strings,
+       { Ignore this section }
+       oso_disabled
      );
 
      TObjSectionOptions = set of TObjSectionOption;
@@ -488,8 +490,9 @@ interface
         procedure FixupRelocations;
         procedure RemoveUnusedExeSymbols;
         procedure MergeStabs;
+        procedure MarkEmptySections;
         procedure RemoveUnreferencedSections;
-        procedure RemoveEmptySections;
+        procedure RemoveDisabledSections;
         procedure RemoveDebugInfo;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);virtual;
         procedure GenerateDebugLink(const dbgname:string;dbgcrc:cardinal);
@@ -1898,6 +1901,7 @@ implementation
     procedure TExeOutput.MemPos_Start;
       begin
         CurrMemPos:=0;
+        RemoveDisabledSections;
       end;
 
 
@@ -2657,7 +2661,7 @@ implementation
       end;
 
 
-    procedure TExeOutput.RemoveEmptySections;
+    procedure TExeOutput.MarkEmptySections;
       var
         i, j   : longint;
         exesec : TExeSection;
@@ -2687,11 +2691,25 @@ implementation
                       break;
                     end;
               end;
-            if doremove and not (RelocSection and (exesec.Name='.reloc')) then
+            if doremove then
               begin
-                Comment(V_Debug,'Deleting empty section '+exesec.name);
-                ExeSectionList[i]:=nil;
+                Comment(V_Debug,'Disabling empty section '+exesec.name);
+                exesec.SecOptions:=exesec.SecOptions+[oso_disabled];
               end;
+          end;
+      end;
+
+
+    procedure TExeOutput.RemoveDisabledSections;
+      var
+        i: longint;
+        exesec: TExeSection;
+      begin
+        for i:=0 to ExeSectionList.Count-1 do
+          begin
+            exesec:=TExeSection(ExeSectionList[i]);
+            if (oso_disabled in exesec.SecOptions) then
+              ExeSectionList[i]:=nil;
           end;
         ExeSectionList.Pack;
       end;

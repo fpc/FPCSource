@@ -226,7 +226,7 @@ interface
        public
          constructor create;override;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
-         procedure Order_End;override;
+         procedure MemPos_Start;override;
          procedure MemPos_ExeSection(const aname:string);override;
        end;
 
@@ -2656,7 +2656,7 @@ const pemagic : array[0..3] of byte = (
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
           exit;
-        objsec:=internalObjData.createsection('.reloc',0,exesec.SecOptions+[oso_data]);
+        objsec:=internalObjData.createsection('.reloc',0,[oso_data,oso_load,oso_keep]);
         exesec.AddObjSection(objsec);
         pgaddr:=longword(-1);
         hdrpos:=longword(-1);
@@ -2702,17 +2702,18 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TPECoffexeoutput.Order_End;
+    procedure TPECoffexeoutput.MemPos_Start;
       var
         exesec : TExeSection;
       begin
+        if RelocSection then
+          begin
+            exesec:=FindExeSection('.reloc');
+            if exesec=nil then
+              InternalError(2012072401);
+            exesec.SecOptions:=exesec.SecOptions-[oso_disabled];
+          end;
         inherited;
-        if not IsSharedLibrary then
-          exit;
-        exesec:=FindExeSection('.reloc');
-        if exesec=nil then
-          exit;
-        exesec.SecOptions:=exesec.SecOptions + [oso_Data,oso_keep,oso_load];
       end;
 
 

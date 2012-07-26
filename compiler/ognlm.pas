@@ -281,7 +281,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
          procedure DataPos_Header;override;
          procedure fillNlmVersionHeader;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
-         procedure Order_End;override;
+         procedure MemPos_Start;override;
          procedure MemPos_ExeSection(const aname:string);override;
          procedure DataPos_ExeSection(const aname:string);override;
          procedure NLMwriteString (const s : string; terminateWithZero : boolean);
@@ -1172,7 +1172,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
           exit;
-        objsec:=internalObjData.createsection('.reloc',0,exesec.SecOptions+[oso_data]);
+        objsec:=internalObjData.createsection('.reloc',0,[oso_data,oso_load,oso_keep]);
         exesec.AddObjSection(objsec);
         for i:=0 to ExeSectionList.Count-1 do
           begin
@@ -1227,15 +1227,15 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
       end;
 
 
-    procedure TNLMexeoutput.Order_End;
+    procedure TNLMexeoutput.MemPos_Start;
       var
         exesec : TExeSection;
       begin
-        inherited;
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
-          exit;
-        exesec.SecOptions:=exesec.SecOptions + [oso_Data,oso_keep,oso_load];
+          InternalError(2012072602);
+        exesec.SecOptions:=exesec.SecOptions-[oso_disabled];
+        inherited;
       end;
 
 

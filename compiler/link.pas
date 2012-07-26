@@ -1295,7 +1295,7 @@ Implementation
         { if UseStabs then, this would remove
           STABS for empty linker scripts }
           exeoutput.MergeStabs;
-        exeoutput.RemoveEmptySections;
+        exeoutput.MarkEmptySections;
         if ErrorCount>0 then
           goto myexit;
 
