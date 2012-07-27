@@ -378,7 +378,7 @@ implementation
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
         addtype('$variant',cvarianttype);
-        addtype('$olevariant',cvarianttype);
+        addtype('$olevariant',colevarianttype);
         if init_settings.fputype<>fpu_none then
           begin
             addtype('$s32real',s32floattype);
