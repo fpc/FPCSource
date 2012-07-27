@@ -78,6 +78,7 @@ Type
     Function ParseString(Src : String) : String;
     Function ParseStream(Src : TStream; Dest : TStream) : Integer; // Wrapper, Returns number of bytes written.
     Procedure ParseStrings(Src : TStrings; Dest : TStrings) ;      // Wrapper
+    Procedure ParseFiles(Const Src,Dest : String);
     Property OnGetParam : TGetParamEvent Read FOnGetParam Write FOnGetParam;               // Called if not found in values  //used only when AllowTagParams = false
     Property OnReplaceTag : TReplaceTagEvent Read FOnReplaceTag Write FOnReplaceTag;       // Called if a tag found          //used only when AllowTagParams = true
     Property StartDelimiter : TParseDelimiter Index 1 Read GetDelimiter Write SetDelimiter;// Start char/string, default '}'
@@ -590,6 +591,25 @@ Var
 begin
   For I:=0 to Src.Count-1 do
     Dest.Add(ParseString(Src[i]));
+end;
+
+procedure TTemplateParser.ParseFiles(const Src, Dest: String);
+
+Var
+  Fin,Fout : TFileStream;
+
+begin
+  Fin:=TFileStream.Create(Src,fmOpenRead or fmShareDenyWrite);
+  try
+    Fout:=TFileStream.Create(Dest,fmCreate);
+    try
+      ParseStream(Fin,Fout);
+    finally
+      Fout.Free;
+    end;
+  finally
+    Fin.Free;
+  end;
 end;
 
 { TFPCustomTemplate }
