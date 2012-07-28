@@ -392,8 +392,6 @@ Implementation
                     { fold
                       mov reg1,reg0, shift imm1
                       mov reg1,reg1, shift imm2
-                      to
-                      mov reg1,reg0, shift imm1+imm2
                     }
                     if (taicpu(p).ops=3) and
                        (taicpu(p).oper[2]^.typ = top_shifterop) and
@@ -444,7 +442,9 @@ Implementation
                           to
                           mov reg1,reg0, shift imm1+imm2
                         }
-                        else if (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(hp1).oper[2]^.shifterop^.shiftmode) then
+                        else if (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(hp1).oper[2]^.shifterop^.shiftmode) or
+                          { asr makes no use after a lsr, the asr can be foled into the lsr }
+                           ((taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSR) and (taicpu(hp1).oper[2]^.shifterop^.shiftmode=SM_ASR) ) then
                           begin
                             inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(hp1).oper[2]^.shifterop^.shiftimm);
                             { avoid overflows }
@@ -465,10 +465,49 @@ Implementation
                                 else
                                   internalerror(2008072803);
                               end;
-                            asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShift2Shift done')), p);
+                            asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShift2Shift 1 done')), p);
                             asml.remove(hp1);
                             hp1.free;
                             result := true;
+                          end
+                        { fold
+                          mov reg1,reg0, shift imm1
+                          mov reg1,reg1, shift imm2
+                          mov reg1,reg1, shift imm3 ...
+                        }
+                        else if getnextinstruction(hp1,hp2) and
+                          MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
+                          (taicpu(hp2).ops=3) and
+                          MatchOperand(taicpu(hp2).oper[0]^, taicpu(hp1).oper[0]^.reg) and
+                          MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[0]^.reg) and
+                          (taicpu(hp2).oper[2]^.typ = top_shifterop) and
+                          (taicpu(hp2).oper[2]^.shifterop^.rs = NR_NO) then
+                          begin
+                            { mov reg1,reg0, lsl imm1
+                              mov reg1,reg1, lsr/asr imm2
+                              mov reg1,reg1, lsl imm3 ...
+
+                              if imm3<=imm1 and imm2>=imm3
+                              to
+                              mov reg1,reg0, lsl imm1
+                              mov reg1,reg1, lsr/asr imm2-imm3
+                            }
+                            if (taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSL) and (taicpu(hp2).oper[2]^.shifterop^.shiftmode=SM_LSL) and
+                              (taicpu(hp1).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and
+                              (taicpu(hp2).oper[2]^.shifterop^.shiftimm<=taicpu(p).oper[2]^.shifterop^.shiftimm) and
+                              (taicpu(hp1).oper[2]^.shifterop^.shiftimm>=taicpu(hp2).oper[2]^.shifterop^.shiftimm) then
+                              begin
+                                dec(taicpu(hp1).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm);
+                                asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShiftShift2ShiftShift 1 done')), p);
+                                asml.remove(hp2);
+                                hp2.free;
+                                result := true;
+                                if taicpu(hp1).oper[2]^.shifterop^.shiftimm=0 then
+                                  begin
+                                    asml.remove(hp1);
+                                    hp1.free;
+                                  end;
+                              end
                           end;
                       end;
                     { Change the common
