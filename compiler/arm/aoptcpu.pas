@@ -508,6 +508,35 @@ Implementation
                                     hp1.free;
                                   end;
                               end
+                            { mov reg1,reg0, lsr/asr imm1
+                              mov reg1,reg1, lsl imm2
+                              mov reg1,reg1, lsr/asr imm3 ...
+
+                              if imm3>=imm1 and imm2>=imm1
+                              to
+                              mov reg1,reg0, lsl imm2-imm1
+                              mov reg1,reg1, lsr/asr imm3 ...
+                            }
+                            else if (taicpu(p).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and (taicpu(hp2).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and
+                              (taicpu(hp1).oper[2]^.shifterop^.shiftmode=SM_LSL) and
+                              (taicpu(hp2).oper[2]^.shifterop^.shiftimm>=taicpu(p).oper[2]^.shifterop^.shiftimm) and
+                              (taicpu(hp1).oper[2]^.shifterop^.shiftimm>=taicpu(p).oper[2]^.shifterop^.shiftimm) then
+                              begin
+                                dec(taicpu(hp1).oper[2]^.shifterop^.shiftimm,taicpu(p).oper[2]^.shifterop^.shiftimm);
+                                taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[1]^.reg;
+                                asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShiftShift2ShiftShift 2 done')), p);
+                                asml.remove(p);
+                                p.free;
+                                p:=hp2;
+                                if taicpu(hp1).oper[2]^.shifterop^.shiftimm=0 then
+                                  begin
+                                    taicpu(hp2).oper[1]^.reg:=taicpu(hp1).oper[1]^.reg;
+                                    asml.remove(hp1);
+                                    hp1.free;
+                                    p:=hp2;
+                                  end;
+                                result := true;
+                              end;
                           end;
                       end;
                     { Change the common
