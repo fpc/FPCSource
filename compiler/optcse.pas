@@ -55,7 +55,7 @@ unit optcse;
       verbose,
       nutils,
       procinfo,
-      nbas,nld,ninl,ncal,ncnv,nadd,
+      nbas,nld,ninl,ncal,ncnv,nadd,nmem,
       pass_1,
       symconst,symtype,symdef,symsym,
       defutil,
@@ -125,38 +125,51 @@ unit optcse;
         if (n.flags*[nf_write,nf_modify]=[]) and
           { node possible to add? }
           assigned(n.resultdef) and
-          (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
-          { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
-          not(n.resultdef.typ in [arraydef,recorddef]) and
-          { same for voiddef }
-          not(is_void(n.resultdef)) and
-          { adding tempref nodes is worthless but their complexity is probably <= 1 anyways }
-          not(n.nodetype in [temprefn]) and
+          (
+            ((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
+            { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
+            (not(n.resultdef.typ in [arraydef,recorddef])) and
+            { same for voiddef }
+            not(is_void(n.resultdef)) and
+            { adding tempref nodes is worthless but their complexity is probably <= 1 anyways }
+            not(n.nodetype in [temprefn]) and
 
-          { node worth to add?
+            { node worth to add?
 
-            We consider almost every node because even loading a variables from
-            a register instead of memory is more beneficial. This behaviour should
-            not increase register pressure because if a variable is already
-            in a register, the reg. allocator can merge the nodes. If a variable
-            is loaded from memory, loading this variable and spilling another register
-            should not add a speed penalty.
-          }
-          {
-            load nodes are not considered if they load para or local symbols from the
-            current stack frame, those are in registers anyways if possible
-          }
-          (not(n.nodetype=loadn) or
-           not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym]) or
-           (tloadnode(n).symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel)
-          ) and
+              We consider almost every node because even loading a variables from
+              a register instead of memory is more beneficial. This behaviour should
+              not increase register pressure because if a variable is already
+              in a register, the reg. allocator can merge the nodes. If a variable
+              is loaded from memory, loading this variable and spilling another register
+              should not add a speed penalty.
+            }
+            {
+              load nodes are not considered if they load para or local symbols from the
+              current stack frame, those are in registers anyways if possible
+            }
+            (not(n.nodetype=loadn) or
+             not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym]) or
+             (tloadnode(n).symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel)
+            ) and
 
-          {
-            Const nodes however are only considered if their complexity is >1
-            This might be the case for the risc architectures if they need
-            more than one instruction to load this particular value
-          }
-          (not(is_constnode(n)) or (node_complexity(n)>1)) then
+            {
+              Const nodes however are only considered if their complexity is >1
+              This might be the case for the risc architectures if they need
+              more than one instruction to load this particular value
+            }
+            (not(is_constnode(n)) or (node_complexity(n)>1)))
+{$ifndef x86}
+            or
+            { loading the address of a global symbol takes typically more than
+              one instruction on every platform except x86
+              so consider in this case loading the address of the data
+            }
+            (((n.resultdef.typ in [arraydef,recorddef]) or is_object(n.resultdef)) and
+             (n.nodetype=loadn) and
+             (tloadnode(n).symtableentry.typ=staticvarsym)
+            )
+{$endif x86}
+          ) then
           begin
             plists(arg)^.nodelist.Add(n);
             plists(arg)^.locationlist.Add(@n);
@@ -207,6 +220,7 @@ unit optcse;
         creates,
         statements : tstatementnode;
         hp : ttempcreatenode;
+        addrstored : boolean;
       begin
         result:=fen_false;
         if n.nodetype in cseinvariant then
@@ -245,8 +259,17 @@ unit optcse;
                           end;
 
                         def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
-                        templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
-                          def.is_intregable or def.is_fpuregable,tnode(lists.nodelist[i]));
+                        { we cannot handle register stored records or array in CSE yet
+                          but we can store their reference }
+                        addrstored:=(def.typ in [arraydef,recorddef]) or is_object(def);
+
+                        if addrstored then
+                          templist[i]:=ctempcreatenode.create_value(getpointerdef(def),voidpointertype.size,tt_persistent,
+                            true,caddrnode.create(tnode(lists.nodelist[i])))
+                        else
+                          templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
+                            def.is_intregable or def.is_fpuregable,tnode(lists.nodelist[i]));
+
                         { make debugging easier and set temp. location to the original location }
                         tnode(templist[i]).fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
@@ -258,7 +281,10 @@ unit optcse;
                         do_firstpass(tnode(hp));
                         templist[i]:=hp;
 
-                        pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
+                        if addrstored then
+                          pnode(lists.locationlist[i])^:=cderefnode.Create(ctemprefnode.create(ttempcreatenode(templist[i])))
+                        else
+                          pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
                         { make debugging easier and set temp. location to the original location }
                         pnode(lists.locationlist[i])^.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
@@ -270,13 +296,21 @@ unit optcse;
                     { current node reference to another node? }
                     else if lists.equalto[i]<>pointer(-1) then
                       begin
+                        def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
+                        { we cannot handle register stored records or array in CSE yet
+                          but we can store their reference }
+                        addrstored:=(def.typ in [arraydef,recorddef]) or is_object(def);
+
 {$if defined(csedebug) or defined(csestats)}
                         printnode(output,tnode(lists.nodelist[i]));
                         writeln(i,'    equals   ',ptrint(lists.equalto[i]));
                         printnode(output,tnode(lists.nodelist[ptrint(lists.equalto[i])]));
 {$endif defined(csedebug) or defined(csestats)}
                         templist[i]:=templist[ptrint(lists.equalto[i])];
-                        pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]));
+                        if addrstored then
+                          pnode(lists.locationlist[i])^:=cderefnode.Create(ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])])))
+                        else
+                          pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]));
 
                         { make debugging easier and set temp. location to the original location }
                         pnode(lists.locationlist[i])^.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
