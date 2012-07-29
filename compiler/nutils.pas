@@ -570,8 +570,11 @@ implementation
                 end;
               subscriptn:
                 begin
-                  if is_implicit_pointer_object_type(tunarynode(p).left.resultdef) then
-                    inc(result,2);
+                  if is_implicit_pointer_object_type(tunarynode(p).left.resultdef) or
+                    is_bitpacked_access(p) then
+                    inc(result,2)
+                  else if tstoreddef(p.resultdef).is_intregable then
+                    inc(result,1);
                   if (result = NODE_COMPLEXITY_INF) then
                     exit;
                   p := tunarynode(p).left;
