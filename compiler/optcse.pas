@@ -221,14 +221,60 @@ unit optcse;
         statements : tstatementnode;
         hp : ttempcreatenode;
         addrstored : boolean;
+        hp2 : tnode;
       begin
         result:=fen_false;
         if n.nodetype in cseinvariant then
           begin
             csedomain:=true;
             foreachnodestatic(pm_postprocess,n,@searchsubdomain,@csedomain);
-            { found a cse domain }
-            if csedomain then
+            if not(csedomain) then
+              begin
+                { try to transform the tree to get better cse domains, consider:
+                       +
+                      / \
+                     +   C
+                    / \
+                   A   B
+
+                  if A is not cse'able but B and C are, then the compiler cannot do cse so the tree is transformed into
+                       +
+                      / \
+                     A   +
+                        / \
+                       B   C
+                  Because A could be another tree of this kind, the whole process is done in a while loop
+                }
+                if (n.nodetype in [andn,orn,addn,muln]) then
+                  while n.nodetype=tbinarynode(n).left.nodetype do
+                    begin
+                      csedomain:=true;
+                      foreachnodestatic(pm_postprocess,tbinarynode(n).right,@searchsubdomain,@csedomain);
+                      if csedomain then
+                        begin
+                          csedomain:=true;
+                          foreachnodestatic(pm_postprocess,tbinarynode(tbinarynode(n).left).right,@searchsubdomain,@csedomain);
+                          if csedomain then
+                            begin
+                              hp2:=tbinarynode(tbinarynode(n).left).left;
+                              tbinarynode(tbinarynode(n).left).left:=tbinarynode(tbinarynode(n).left).right;
+                              tbinarynode(tbinarynode(n).left).right:=tbinarynode(n).right;
+                              tbinarynode(n).right:=tbinarynode(n).left;
+                              tbinarynode(n).left:=hp2;
+
+                              { the transformed tree could result in new possibilities to fold constants
+                                so force a firstpass on the root node }
+                              exclude(tbinarynode(n).right.flags,nf_pass1_done);
+                              do_firstpass(tbinarynode(n).right);
+                            end
+                          else
+                            break;
+                        end
+                      else
+                        break;
+                    end;
+              end
+            else
               begin
                 statements:=nil;
                 result:=fen_norecurse_true;
