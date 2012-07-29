@@ -195,6 +195,12 @@ implementation
       TValidAssigns=set of TValidAssign;
 
 
+    { keep these two in sync! }
+    const
+      non_commutative_op_tokens=[_OP_SHL,_OP_SHR,_OP_DIV,_OP_MOD,_STARSTAR,_SLASH,_MINUS];
+      non_commutative_op_nodes=[shln,shrn,divn,modn,starstarn,slashn,subn];
+
+
     function node2opstr(nt:tnodetype):string;
       var
         i : integer;
@@ -213,21 +219,21 @@ implementation
 
         function internal_check(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype;var allowed:boolean):boolean;
         const
-          identity_operators = [equaln, unequaln];
-          order_theoretic_operators = identity_operators + [ltn, lten, gtn, gten];
-          arithmetic_operators = [addn, subn, muln, divn, modn];
-          rational_operators = [addn, subn, muln, slashn];
-          numerical_operators = arithmetic_operators + [slashn];
-          pointer_arithmetic_operators = [addn, subn];
-          logical_operators = [andn, orn, xorn];
-          bit_manipulation_operators = logical_operators + [shln, shrn];
-          set_set_operators = identity_operators + [addn, subn, muln, symdifn] +
+          identity_operators=[equaln,unequaln];
+          order_theoretic_operators=identity_operators+[ltn,lten,gtn,gten];
+          arithmetic_operators=[addn,subn,muln,divn,modn];
+          rational_operators=[addn,subn,muln,slashn];
+          numerical_operators=arithmetic_operators+[slashn];
+          pointer_arithmetic_operators=[addn,subn];
+          logical_operators=[andn,orn,xorn];
+          bit_manipulation_operators=logical_operators+[shln,shrn];
+          set_set_operators=identity_operators+[addn,subn,muln,symdifn]+
             order_theoretic_operators;
-          element_set_operators = [inn];
-          string_comparison_operators = order_theoretic_operators;
-          string_manipulation_operators = [addn];
+          element_set_operators=[inn];
+          string_comparison_operators=order_theoretic_operators;
+          string_manipulation_operators=[addn];
           string_operators =
-            string_comparison_operators + string_manipulation_operators;
+            string_comparison_operators+string_manipulation_operators;
         begin
           internal_check:=true;
 
@@ -248,7 +254,7 @@ implementation
                            ) or
                            (
                              is_enum(rd) and
-                             (treetyp in (order_theoretic_operators + [addn, subn]))
+                             (treetyp in (order_theoretic_operators+[addn, subn]))
                            )
                          );
               end;
@@ -257,14 +263,14 @@ implementation
                 allowed:=not (
                            (
                              is_set(rd) and
-                             (treetyp in (set_set_operators + identity_operators))
+                             (treetyp in (set_set_operators+identity_operators))
                            ) or
                            (
                              { This clause is a hack but it’s due to a hack somewhere
                                else---while set + element is not permitted by DI, it
                                seems to be used when a set is constructed inline }
-                             (rd.typ in [enumdef, orddef]) and
-                             (treetyp = addn)
+                             (rd.typ in [enumdef,orddef]) and
+                             (treetyp=addn)
                            )
                          );
               end;
@@ -272,17 +278,17 @@ implementation
               begin
                 allowed:=not (
                            (
-                             (rd.typ in [orddef, floatdef]) and
+                             (rd.typ in [orddef,floatdef]) and
                              (treetyp in order_theoretic_operators)
                            ) or
                            (
                              is_stringlike(rd) and
-                             (ld.typ = orddef) and
+                             (ld.typ=orddef) and
                              (treetyp in string_comparison_operators)) or
                              { c.f. $(source)\tests\tmacpas5.pp }
                              (
-                               (rd.typ = setdef) and
-                               (ld.typ = orddef) and
+                               (rd.typ=setdef) and
+                               (ld.typ=orddef) and
                                (treetyp in element_set_operators)
                              )
                             { This clause may be too restrictive---not all types under
@@ -310,7 +316,7 @@ implementation
                                )
                     else if is_integer(ld) or
                         (
-                          (ld.typ = orddef) and
+                          (ld.typ=orddef) and
                           is_currency(ld)
                         { Here ld is Currency but behaves like an integer }
                         ) then
@@ -319,11 +325,11 @@ implementation
                                    (
                                      is_integer(rd) or
                                      (
-                                       (rd.typ = orddef) and
+                                       (rd.typ=orddef) and
                                        is_currency(rd)
                                      )
                                    ) and
-                                   (treetyp in (bit_manipulation_operators + numerical_operators))
+                                   (treetyp in (bit_manipulation_operators+numerical_operators))
                                  ) or
                                  (
                                    is_fpu(rd) and
@@ -335,8 +341,8 @@ implementation
                                      operator (Currency can’t be used in pointer
                                      arithmetic even if it’s under orddef)  }
                                    is_integer(ld) and
-                                   (rd.typ = pointerdef) and
-                                   (treetyp in pointer_arithmetic_operators - [subn])
+                                   (rd.typ=pointerdef) and
+                                   (treetyp in pointer_arithmetic_operators-[subn])
                                  )
                                )
                     else  { is_fpu(ld) = True }
@@ -370,13 +376,13 @@ implementation
                   if is_stringlike(rd) then
                     { DI in this case permits string operations and pointer
                       arithmetic. }
-                    allowed:=not (treetyp in (string_operators + pointer_arithmetic_operators))
+                    allowed:=not (treetyp in (string_operators+pointer_arithmetic_operators))
                   else if rd.typ = pointerdef then
                     { DI in this case permits minus for pointer arithmetic and
                       order-theoretic operators for pointer comparison. }
                     allowed:=not (
                                treetyp in (
-                                 pointer_arithmetic_operators - [addn] +
+                                 pointer_arithmetic_operators-[addn]+
                                  order_theoretic_operators
                                )
                              )
@@ -392,19 +398,24 @@ implementation
                                (treetyp in pointer_arithmetic_operators)
                              ) or
                              (
-                               (rd.typ = pointerdef) and
+                               (rd.typ=pointerdef) and
                                (
                                  treetyp in (
-                                   pointer_arithmetic_operators - [addn] +
+                                   pointer_arithmetic_operators-[addn]+
                                    order_theoretic_operators
                                  )
                                )
                              ) or
                              (
-                               (lt = niln) and
-                               (rd.typ in [procvardef, procdef]) and
-                               (treetyp in identity_operators))
-                             );
+                               (lt=niln) and
+                               (rd.typ in [procvardef,procdef,classrefdef]) and
+                               (treetyp in identity_operators)
+                             ) or
+                             (
+                               is_implicit_pointer_object_type(rd) and
+                               (treetyp in identity_operators)
+                             )
+                           );
               end;
             arraydef :
               begin
@@ -449,7 +460,7 @@ implementation
                 if is_dynamic_array(ld) and
                     (treetyp in identity_operators) then
                   if is_dynamic_array(rd) or
-                      (rt = niln) then
+                      (rt=niln) then
                     begin
                       allowed:=false;
                       exit;
@@ -465,8 +476,8 @@ implementation
                            (
                              (
                                is_implicit_pointer_object_type(rd) or
-                               (rd.typ = pointerdef) or
-                               (rt = niln)
+                               (rd.typ=pointerdef) or
+                               (rt=niln)
                              )
                            ) and
                            (treetyp in identity_operators)
@@ -488,8 +499,11 @@ implementation
         { power ** is always possible }
         result:=treetyp=starstarn;
         if not result then
-          if not internal_check(treetyp,ld,lt,rd,rt,result) then
-            result:=false;
+          begin
+            if not internal_check(treetyp,ld,lt,rd,rt,result) and
+                not (treetyp in non_commutative_op_nodes) then
+              internal_check(treetyp,rd,rt,ld,lt,result)
+          end;
       end;
 
 
@@ -783,7 +797,7 @@ implementation
 
             { for commutative operators we can swap arguments and try again }
             if (candidates.count=0) and
-               not(optoken in [_OP_SHL,_OP_SHR,_OP_DIV,_OP_MOD,_STARSTAR,_SLASH,_MINUS]) then
+               not(optoken in non_commutative_op_tokens) then
               begin
                 candidates.free;
                 reverseparameters(ppn);
