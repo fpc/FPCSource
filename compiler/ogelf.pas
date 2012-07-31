@@ -110,6 +110,10 @@ implementation
       R_386_PC32 = 2;                  { PC-relative relocation }
       R_386_GOT32 = 3;                 { an offset into GOT }
       R_386_PLT32 = 4;                 { a PC-relative offset into PLT }
+      R_386_COPY = 5;
+      R_386_GLOB_DAT = 6;
+      R_386_JUMP_SLOT = 7;
+      R_386_RELATIVE = 8;
       R_386_GOTOFF = 9;                { an offset from GOT base }
       R_386_GOTPC = 10;                { a PC-relative offset _to_ GOT }
       R_386_GNU_VTINHERIT = 250;
@@ -238,6 +242,9 @@ implementation
       STT_FUNC    = 2;
       STT_SECTION = 3;
       STT_FILE    = 4;
+      STT_COMMON  = 5;
+      STT_TLS     = 6;
+      STT_GNU_IFUNC = 10;
 
       { program header types }
       PT_NULL     = 0;
@@ -247,14 +254,20 @@ implementation
       PT_NOTE     = 4;
       PT_SHLIB    = 5;
       PT_PHDR     = 6;
+      PT_LOOS     = $60000000;
+      PT_HIOS     = $6FFFFFFF;
       PT_LOPROC   = $70000000;
       PT_HIPROC   = $7FFFFFFF;
+      PT_GNU_EH_FRAME = PT_LOOS + $474e550;   { Frame unwind information }
+      PT_GNU_STACK = PT_LOOS + $474e551;      { Stack flags }
+      PT_GNU_RELRO = PT_LOOS + $474e552;      { Read-only after relocation }
 
       { program header flags }
       PF_X = 1;
       PF_W = 2;
       PF_R = 4;
-      PF_MASKPROC = $F0000000;
+      PF_MASKOS   = $0FF00000;   { OS-specific reserved bits }
+      PF_MASKPROC = $F0000000;   { Processor-specific reserved bits }
 
       { .dynamic tags  }
       DT_NULL     = 0;
@@ -296,6 +309,14 @@ implementation
       DT_HIOS     = $6ffff000;
       DT_LOPROC   = $70000000;
       DT_HIPROC   = $7fffffff;
+
+      DT_RELACOUNT = $6ffffff9;
+      DT_RELCOUNT  = $6ffffffa;
+      DT_FLAGS_1   = $6ffffffb;
+      DT_VERDEF    = $6ffffffc;
+      DT_VERDEFNUM = $6ffffffd;
+      DT_VERNEED   = $6ffffffe;
+      DT_VERNEEDNUM = $6fffffff;
 
       type
       { Structures which are written directly to the output file }
@@ -424,6 +445,36 @@ implementation
             1: (d_ptr: qword);
         end;
 
+        TElfVerdef=record        { same for 32 and 64 bits }
+          vd_version: word;      { =1 }
+          vd_flags:   word;
+          vd_ndx:     word;
+          vd_cnt:     word;      { number of verdaux records }
+          vd_hash:    longword;  { ELF hash of version name }
+          vd_aux:     longword;  { offset to verdaux records }
+          vd_next:    longword;  { offset to next verdef record }
+        end;
+
+        TElfVerdaux=record
+          vda_name: longword;
+          vda_next: longword;
+        end;
+
+        TElfVerneed=record
+          vn_version: word;      { =VER_NEED_CURRENT }
+          vn_cnt:     word;
+          vn_file:    longword;
+          vn_aux:     longword;
+          vn_next:    longword;
+        end;
+
+        TElfVernaux=record
+          vna_hash:  longword;
+          vna_flags: word;
+          vna_other: word;
+          vna_name:  longword;
+          vna_next:  longword;
+        end;
 
 {$ifdef cpu64bitaddr}
       const
@@ -435,6 +486,12 @@ implementation
         telfsechdr = telf64sechdr;
         telfproghdr = telf64proghdr;
         telfdyn = telf64dyn;
+
+      function ELF_R_INFO(sym:longword;typ:byte):qword;inline;
+        begin
+          result:=(qword(sym) shl 32) or typ;
+        end;
+
 {$else cpu64bitaddr}
       const
         ELFCLASS = ELFCLASS32;
@@ -445,6 +502,11 @@ implementation
         telfsechdr = telf32sechdr;
         telfproghdr = telf32proghdr;
         telfdyn = telf32dyn;
+
+      function ELF_R_INFO(sym:longword;typ:byte):longword;inline;
+        begin
+          result:=(sym shl 8) or typ;
+        end;
 {$endif cpu64bitaddr}
 
 {$ifdef x86_64}
@@ -1158,11 +1220,7 @@ implementation
                    else
                      relsym:=SHN_UNDEF;
                  end;
-{$ifdef cpu64bitaddr}
-               rel.info:=(qword(relsym) shl 32) or reltyp;
-{$else cpu64bitaddr}
-               rel.info:=(relsym shl 8) or reltyp;
-{$endif cpu64bitaddr}
+               rel.info:=ELF_R_INFO(relsym,reltyp);
                { write reloc }
                { ElfXX_Rel is essentially ElfXX_Rela without the addend field. }
                MaybeSwapElfReloc(rel);
