@@ -46,7 +46,8 @@ interface
           shinfo,
           shentsize : longint;
           constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
-          constructor create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
+          constructor create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:shortint;Aentsize:longint);
+          constructor create_reloc(aobjdata:TObjData;const Aname:string;allocflag:boolean);
        end;
 
        TElfSymtabKind = (esk_obj,esk_exe,esk_dyn);
@@ -57,7 +58,7 @@ interface
          fstrsec: TObjSection;
          symidx: longint;
          constructor create(aObjData:TObjData;aKind:TElfSymtabKind);reintroduce;
-         procedure writeSymbol(objsym:TObjSymbol);
+         procedure writeSymbol(objsym:TObjSymbol;nameidx:longword=0);
          procedure writeInternalSymbol(astridx:longint;ainfo:byte;ashndx:word);
        end;
 
@@ -763,7 +764,7 @@ implementation
       end;
 
 
-    constructor TElfObjSection.create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
+    constructor TElfObjSection.create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:shortint;Aentsize:longint);
       var
         aoptions : TObjSectionOptions;
       begin
@@ -774,11 +775,23 @@ implementation
         shstridx:=0;
         shtype:=AshType;
         shflags:=AshFlags;
-        shlink:=Ashlink;
-        shinfo:=Ashinfo;
         shentsize:=Aentsize;
       end;
 
+
+    const
+      relsec_prefix:array[boolean] of string[5] = ('.rel','.rela');
+      relsec_shtype:array[boolean] of longword = (SHT_REL,SHT_RELA);
+
+    constructor TElfObjSection.create_reloc(aobjdata:TObjData;const Aname:string;allocflag:boolean);
+      begin
+        create_ext(aobjdata,
+          relsec_prefix[relocs_use_addend]+aname,
+          relsec_shtype[relocs_use_addend],
+          SHF_ALLOC*ord(allocflag),
+          sizeof(pint),
+          (2+ord(relocs_use_addend))*sizeof(pint));
+      end;
 
 {****************************************************************************
                             TElfObjData
@@ -1035,8 +1048,8 @@ implementation
         dyn:boolean;
       begin
         dyn:=(aKind=esk_dyn);
-        create_ext(aObjData,symsecnames[dyn],symsectypes[dyn],symsecattrs[dyn],0,0,sizeof(pint),sizeof(TElfSymbol));
-        fstrsec:=TElfObjSection.create_ext(aObjData,strsecnames[dyn],SHT_STRTAB,symsecattrs[dyn],0,0,1,0);
+        create_ext(aObjData,symsecnames[dyn],symsectypes[dyn],symsecattrs[dyn],sizeof(pint),sizeof(TElfSymbol));
+        fstrsec:=TElfObjSection.create_ext(aObjData,strsecnames[dyn],SHT_STRTAB,symsecattrs[dyn],1,0);
         fstrsec.writestr(#0);
         writezeros(sizeof(TElfSymbol));
         symidx:=1;
@@ -1058,14 +1071,19 @@ implementation
         write(elfsym,sizeof(elfsym));
       end;
 
-    procedure TElfSymtab.writeSymbol(objsym:TObjSymbol);
+    procedure TElfSymtab.writeSymbol(objsym:TObjSymbol;nameidx:longword);
       var
         elfsym:TElfSymbol;
       begin
         fillchar(elfsym,sizeof(elfsym),0);
         { symbolname, write the #0 separate to overcome 255+1 char not possible }
-        elfsym.st_name:=fstrsec.writestr(objsym.name);
-        fstrsec.writestr(#0);
+        if nameidx=0 then
+          begin
+            elfsym.st_name:=fstrsec.writestr(objsym.name);
+            fstrsec.writestr(#0);
+          end
+        else
+          elfsym.st_name:=nameidx;
         elfsym.st_size:=objsym.size;
         case objsym.bind of
           AB_LOCAL :
@@ -1144,10 +1162,9 @@ implementation
         with data do
          begin
            { create the reloc section }
-           if relocs_use_addend then
-             relocsect:=TElfObjSection.create_ext(data,'.rela'+s.name,SHT_RELA,0,symtabsect.index,s.index,4,3*sizeof(pint))
-           else
-             relocsect:=TElfObjSection.create_ext(data,'.rel'+s.name,SHT_REL,0,symtabsect.index,s.index,4,2*sizeof(pint));
+           relocsect:=TElfObjSection.create_reloc(data,s.name,false);
+           relocsect.shlink:=symtabsect.index;
+           relocsect.shinfo:=s.index;
            { add the relocations }
            for i:=0 to s.Objrelocations.count-1 do
              begin
@@ -1341,11 +1358,11 @@ implementation
          begin
            { default sections }
            symtabsect:=TElfSymtab.create(data,esk_obj);
-           shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,0,0,1,0);
+           shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,1,0);
            { "no executable stack" marker for Linux }
            if (target_info.system in systems_linux) and
               not(cs_executable_stack in current_settings.moduleswitches) then
-             TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,0,0,1,0);
+             TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0);
            { insert filename as first in strtab }
            symtabsect.fstrsec.writestr(ExtractFileName(current_module.mainsource));
            symtabsect.fstrsec.writestr(#0);
