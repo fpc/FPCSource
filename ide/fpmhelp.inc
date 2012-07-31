@@ -132,13 +132,48 @@ begin
 end;
 
 procedure THelpFilesDialog.HandleEvent(var Event: TEvent);
+  function StoreHtmlIndexFile(const FileName: string; LS: PFPHTMLFileLinkScanner;var Re: Word; SilentFails: Boolean): Boolean;
+  var
+    BS: PBufStream;
+  begin
+    if ExistsFile(FileName) then
+      if ConfirmBox(FormatStrStr(msg_filealreadyexistsoverwrite,FileName),nil,true)<>cmYes then
+        Re:=cmCancel;
+    if Re<>cmCancel then
+    begin
+      PushStatus(FormatStrStr(msg_storinghtmlindexinfile,FileName));
+      New(BS, Init(FileName, stCreate, 4096));
+      if Assigned(BS)=false then
+        begin
+          if not SilentFails then
+          begin
+            ErrorBox(FormatStrStr(msg_cantcreatefile,FileName),nil);
+          end;
+          Re:=cmCancel;
+        end
+      else
+        begin
+          LS^.StoreDocuments(BS^);
+          if BS^.Status<>stOK then
+            begin
+              if not SilentFails then
+              begin
+                ErrorBox(FormatStrInt(msg_errorstoringindexdata,BS^.Status),nil);
+              end;
+              Re:=cmCancel;
+            end;
+          Dispose(BS, Done);
+        end;
+      PopStatus;
+    end;
+  StoreHtmlIndexFile := Re <> cmCancel;
+  end;
 var I: integer;
     D: PFileDialog;
     FileName: string;
     Re: word;
     S: string;
     LS: PFPHTMLFileLinkScanner;
-    BS: PBufStream;
 begin
   case Event.What of
     evKeyDown :
@@ -193,30 +228,15 @@ begin
                     else
                       begin
                         FileName:=DirAndNameOf(FileName)+HTMLIndexExt;
-                        if ExistsFile(FileName) then
-                          if ConfirmBox(FormatStrStr(msg_filealreadyexistsoverwrite,FileName),nil,true)<>cmYes then
-                            Re:=cmCancel;
-                        if Re<>cmCancel then
+                        if not StoreHtmlIndexFile(FileName, LS, Re, True) then
                         begin
-                          PushStatus(FormatStrStr(msg_storinghtmlindexinfile,FileName));
-                          New(BS, Init(FileName, stCreate, 4096));
-                          if Assigned(BS)=false then
-                            begin
-                              ErrorBox(FormatStrStr(msg_cantcreatefile,FileName),nil);
-                              Re:=cmCancel;
-                            end
-                          else
-                            begin
-                              LS^.StoreDocuments(BS^);
-                              if BS^.Status<>stOK then
-                                begin
-                                  ErrorBox(FormatStrInt(msg_errorstoringindexdata,BS^.Status),nil);
-                                  Re:=cmCancel;
-                                end;
-                              Dispose(BS, Done);
-                            end;
-                          PopStatus;
-                        end;
+                          Re:=ConfirmBox(FormatStrStr('Could not create "%s", try creating it in local dir?', FileName),nil,true);
+                          FileName := GetCurDir + NameAndExtOf(FileName);
+                          if Re = cmYes then
+                          begin
+                            StoreHtmlIndexFile(FileName, LS, Re, False);
+                          end;
+                        end
                       end;
                     Dispose(LS, Done);
                     PopStatus;

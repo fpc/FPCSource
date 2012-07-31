@@ -1615,7 +1615,7 @@ begin
     OK:=Assigned(LS);
     if OK then
     begin
-      LS^.SetBaseDir(DirOf(IndexFileName));
+      {LS^.SetBaseDir(DirOf(IndexFileName)); already set by LoadDocuments to real base dire stored into htx file. This allows storing toc file in current dir in case doc installation dir is read only.}
       for I:=0 to LS^.GetDocumentCount-1 do
         begin
           TLI:=TopicLinks^.AddItem(LS^.GetDocumentURL(I));
