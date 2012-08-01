@@ -20,8 +20,9 @@ Type
                        jsoComponentsInline,       // Always stream components inline. Default is to stream name, unless csSubcomponent in ComponentStyle
                        jsoTStringsAsArray,        // Stream TStrings as an array of strings. Associated objects are not streamed.
                        jsoTStringsAsObject,       // Stream TStrings as an object : string = { object }
-                       jsoDateTimeAsString,
-                       jsoUseFormatString);       // Use FormatString when creating JSON strings.
+                       jsoDateTimeAsString,       // Format a TDateTime value as a string
+                       jsoUseFormatString,        // Use FormatString when creating JSON strings.
+                       jsoCheckEmptyDateTime);    // If TDateTime value is empty and jsoDateTimeAsString is used, 0 date returns empty string
   TJSONStreamOptions = Set of TJSONStreamOption;
 
   TJSONFiler = Class(TComponent)
@@ -999,7 +1000,9 @@ Var
   S: String;
 
 begin
-  if (DateTimeFormat<>'') then
+  if (jsoCheckEmptyDateTime in Options) and (DateTime=0) then
+    S:=''
+  else if (DateTimeFormat<>'') then
     S:=FormatDateTime(DateTimeFormat,DateTime)
   else if Frac(DateTime)=0 then
     S:=DateToStr(DateTime)

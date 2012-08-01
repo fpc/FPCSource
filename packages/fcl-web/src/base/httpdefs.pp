@@ -62,11 +62,12 @@ const
 
   NoHTTPFields = 24;
 
-  HTTPDateFmt   = '"%s", dd "%s" yyyy hh:mm:ss'; // For use in FormatDateTime
-  SCookieExpire = ' "expires="'+HTTPDateFmt+' "GMT;"';
-  SCookieDomain = ' domain=%s;';
-  SCookiePath   = ' path=%s;';
-  SCookieSecure = ' secure';
+  HTTPDateFmt     = '"%s", dd "%s" yyyy hh:mm:ss'; // For use in FormatDateTime
+  SCookieExpire   = ' "Expires="'+HTTPDateFmt+' "GMT"';
+  SCookieDomain   = ' Domain=%s';
+  SCookiePath     = ' Path=%s';
+  SCookieSecure   = ' Secure';
+  SCookieHttpOnly = ' HttpOnly';
 
   HTTPMonths: array[1..12] of string[3] = (
     'Jan', 'Feb', 'Mar', 'Apr',
@@ -98,6 +99,7 @@ type
 
   TCookie = class(TCollectionItem)
   private
+    FHttpOnly: Boolean;
     FName: string;
     FValue: string;
     FPath: string;
@@ -109,12 +111,14 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     procedure Assign(Source: TPersistent); override;
+    procedure Expire;
     property Name: string read FName write FName;
     property Value: string read FValue write FValue;
     property Domain: string read FDomain write FDomain;
     property Path: string read FPath write FPath;
     property Expires: TDateTime read FExpires write FExpires;
     property Secure: Boolean read FSecure write FSecure;
+    property HttpOnly: Boolean read FHttpOnly write FHttpOnly;
     Property AsString : String Read GetAsString;
   end;
 
@@ -427,7 +431,7 @@ Resourcestring
   SErrUnknownCookie             = 'Unknown cookie: "%s"';
   SErrUnsupportedContentType    = 'Unsupported content type: "%s"';
   SErrNoRequestMethod           = 'No REQUEST_METHOD passed from server.';
-  SErrInvalidRequestMethod      = 'Invalid REQUEST_METHOD passed from server.';
+  SErrInvalidRequestMethod      = 'Invalid REQUEST_METHOD passed from server: %s.';
 
 const
    hexTable = '0123456789ABCDEF';
@@ -1223,7 +1227,7 @@ begin
     if FHandleGetOnPost then
       InitGetVars;
     end
-  else if (CompareText(R,'GET')=0) or (CompareText(R,'HEAD')=0) then
+  else if (CompareText(R,'GET')=0) or (CompareText(R,'HEAD')=0) or (CompareText(R,'OPTIONS')=0) then
     InitGetVars
   else
     Raise Exception.CreateFmt(SErrInvalidRequestMethod,[R]);
@@ -1655,29 +1659,37 @@ end;
 
 function TCookie.GetAsString: string;
 
+  Procedure AddToResult(S : String);
+  
+  begin
+    Result:=Result+';'+S;
+  end;
+
 Var
   Y,M,D : Word;
 
 begin
 {$ifdef cgidebug}SendMethodEnter('TCookie.GetAsString');{$endif}
   try
-    Result:=Format('%s=%s;',[HTTPEncode(FName),HTTPEncode(FValue)]);
+    Result:=Format('%s=%s',[HTTPEncode(FName),HTTPEncode(FValue)]);
     if (Length(FDomain)>0) then
-      Result:=Result+Format(SCookieDomain,[FDomain]);
+      AddToResult(Format(SCookieDomain,[FDomain]));
     if (Length(FPath)>0) then
-      Result:=Result+Format(SCookiePath,[FPath]);
+      AddToResult(Format(SCookiePath,[FPath]));
     if (FExpires>-1) then
       begin
       DecodeDate(Expires,Y,M,D);
-      Result:=Result+Format(FormatDateTime(SCookieExpire,Expires),
-                          [HTTPDays[DayOfWeek(Expires)],HTTPMonths[M]]);
+      AddToResult(Format(FormatDateTime(SCookieExpire,Expires),
+                         [HTTPDays[DayOfWeek(Expires)],HTTPMonths[M]]));
       end;
-    if Secure then
-      Result:=Result+SCookieSecure;
+    if FHttpOnly then
+      AddToResult(SCookieHttpOnly);
+    if FSecure then
+      AddToResult(SCookieSecure);
   except
 {$ifdef cgidebug}
     On E : Exception do
-      SendDebug('Exception in cookie asstring : '+E.Message)
+      SendDebug('Exception in cookie AsString: '+E.Message)
 {$endif}
   end;
 {$ifdef cgidebug}SendMethodExit('TCookie.GetAsString');{$endif}
@@ -1699,10 +1711,16 @@ begin
       Self.FDomain:=Domain;
       Self.FPath:=Path;
       Self.FExpires:=Expires;
+      Self.FHttpOnly:=HttpOnly;
       Self.FSecure:=Secure;
       end
   else
     inherited Assign(Source);
+end;
+
+procedure TCookie.Expire;
+begin
+  FExpires := EncodeDate(1970, 1, 1);
 end;
 
 { TCookieCollection }
