@@ -78,7 +78,6 @@ Const
         ESysEPROTONOSUPPORT     = 43;           { Protocol not supported }
         ESysESOCKTNOSUPPORT     = 44;           { Socket type not supported }
         ESysEOPNOTSUPP          = 45;           { Operation not supported }
-        ESysENOTSUP             = ESysEOPNOTSUPP;       { Operation not supported }
         ESysEPFNOSUPPORT        = 46;           { Protocol family not supported }
         ESysEAFNOSUPPORT        = 47;           { Address family not supported by protocol family }
         ESysEADDRINUSE          = 48;           { Address already in use }
@@ -126,12 +125,15 @@ Const
         ESysEFTYPE              = 79;           { Inappropriate file type or format }
         ESysEAUTH               = 80;           { Authentication error }
         ESysENEEDAUTH           = 81;           { Need authenticator }
-        ESysEIDRM               = 82;           { Identifier removed }
-        ESysENOMSG              = 83;           { No message of desired type }
-        ESysEOVERFLOW           = 84;           { Value too large to be stored in data type }
-        ESysECANCELED           = 85;           { Operation canceled }
-        ESysEILSEQ              = 86;           { Illegal byte sequence }
-        ESysELAST               = 86;           { Must be equal largest errno }
-
-
+        ESysEIPSEC              = 82;           { IPsec processing failure }
+        ESysENOATTR             = 83;           { Attribute not found }
+        ESysEILSEQ              = 84;           { Illegal byte sequence }
+        ESysENOMEDIUM           = 85;           { No medium found }
+        ESysEMEDIUMTYPE         = 86;           { Wrong Medium Type }
+        ESysEOVERFLOW           = 87;           { Value too large to be stored in data type }
+        ESysECANCELED           = 88;           { Operation canceled }
+        ESysEIDRM               = 89;           { Identifier removed }
+        ESysENOMSG              = 90;           { No message of desired type }
+        ESysENOTSUP             = 91;           { Not supported }
+        ESysELAST               = ESysENOTSUP;  { Must be equal largest errno }
 
