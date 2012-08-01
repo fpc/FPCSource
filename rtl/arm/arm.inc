@@ -224,62 +224,27 @@ asm
   bxle  lr
 {$endif}
   // overlap?
-  cmp r1,r0
-  bls .Lnooverlap
-  add r3,r0,r2
-  cmp r3,r1
-  bls .Lnooverlap
-  // overlap, copy backward
-.Loverlapped:
-  subs r2,r2,#1
-  ldrb r3,[r0,r2]
-  strb r3,[r1,r2]
-  bne .Loverlapped
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  mov pc,lr
-{$else}
-  bx  lr
-{$endif}
-.Lnooverlap:
-  // less then 16 bytes to copy?
-  cmp r2,#8
-  // yes, the forget about the whole optimizations
-  // and do a bytewise copy
-  blt .Lbyteloop
+  subs   r3, r1, r0    // if (dest > source) and
+  cmphi  r2, r3        //    (count > dest - src) then
+  bhi    .Loverlapped  //   DoReverseByteCopy;
 
-  // both aligned?
-  orr r3,r0,r1
-  tst r3,#3
+  cmp r2,#8            // if (count < 8) then
+  blt .Lbyteloop       //    DoForwardByteCopy;
+  // Any way to avoid the above jump and fuse the next two instructions?
+  tst   r0, #3         // if (source and 3) <> 0 or
+  tsteq r1, #3         //    (dest and 3) <> 0 then
+  bne   .Lbyteloop     //   DoForwardByteCopy;
 
-  bne .Lbyteloop
-(*
-  // yes, then align
-  // alignment to 4 byte boundries is enough
-  ldrb ip,[r0],#1
-  sub r2,r2,#1
-  stb ip,[r1],#1
-  tst r3,#2
-  bne .Ldifferentaligned
-  ldrh ip,[r0],#2
-  sub r2,r2,#2
-  sth ip,[r1],#2
-
-.Ldifferentaligned
-  // qword aligned?
-  orrs r3,r0,r1
-  tst r3,#7
-  bne .Ldwordloop
-*)
-  pld [r0,#32]
+  pld   [r0,#32]
 .Ldwordloop:
-  sub r2,r2,#4
-  ldr r3,[r0],#4
+  ldmia r0!, {r3, ip}
   // preload
-  pld [r0,#64]
-  cmp r2,#4
-  str r3,[r1],#4
-  bcs .Ldwordloop
-  cmp r2,#0
+  pld   [r0,#64]
+  sub   r2,r2,#8
+  cmp   r2, #8
+  stmia r1!, {r3, ip}
+  bge   .Ldwordloop
+  cmp   r2,#0
 {$if defined(cpuarmv3) or defined(cpuarmv4)}
   moveq pc,lr
 {$else}
@@ -295,6 +260,11 @@ asm
 {$else}
   bx  lr
 {$endif}
+.Loverlapped:
+  subs r2,r2,#1
+  ldrb r3,[r0,r2]
+  strb r3,[r1,r2]
+  bne .Loverlapped
 end;
 
 procedure Move_blended(const source;var dest;count:longint);assembler;nostackframe;
@@ -307,59 +277,24 @@ asm
   bxle  lr
 {$endif}
   // overlap?
-  cmp r1,r0
-  bls .Lnooverlap
-  add r3,r0,r2
-  cmp r3,r1
-  bls .Lnooverlap
-  // overlap, copy backward
-.Loverlapped:
-  subs r2,r2,#1
-  ldrb r3,[r0,r2]
-  strb r3,[r1,r2]
-  bne .Loverlapped
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  mov pc,lr
-{$else}
-  bx  lr
-{$endif}
-.Lnooverlap:
-  // less then 16 bytes to copy?
-  cmp r2,#8
-  // yes, the forget about the whole optimizations
-  // and do a bytewise copy
-  blt .Lbyteloop
+  subs   r3, r1, r0    // if (dest > source) and
+  cmphi  r2, r3        //    (count > dest - src) then
+  bhi    .Loverlapped  //   DoReverseByteCopy;
 
-  // both aligned?
-  orr r3,r0,r1
-  tst r3,#3
+  cmp r2,#8            // if (count < 8) then
+  blt .Lbyteloop       //    DoForwardByteCopy;
+  // Any way to avoid the above jump and fuse the next two instructions?
+  tst   r0, #3         // if (source and 3) <> 0 or
+  tsteq r1, #3         //    (dest and 3) <> 0 then
+  bne   .Lbyteloop     //   DoForwardByteCopy;
 
-  bne .Lbyteloop
-(*
-  // yes, then align
-  // alignment to 4 byte boundries is enough
-  ldrb ip,[r0],#1
-  sub r2,r2,#1
-  stb ip,[r1],#1
-  tst r3,#2
-  bne .Ldifferentaligned
-  ldrh ip,[r0],#2
-  sub r2,r2,#2
-  sth ip,[r1],#2
-
-.Ldifferentaligned
-  // qword aligned?
-  orrs r3,r0,r1
-  tst r3,#7
-  bne .Ldwordloop
-*)
 .Ldwordloop:
-  sub r2,r2,#4
-  ldr r3,[r0],#4
-  cmp r2,#4
-  str r3,[r1],#4
-  bcs .Ldwordloop
-  cmp r2,#0
+  ldmia r0!, {r3, ip}
+  sub   r2,r2,#8
+  cmp   r2, #8
+  stmia r1!, {r3, ip}
+  bge   .Ldwordloop
+  cmp   r2,#0
 {$if defined(cpuarmv3) or defined(cpuarmv4)}
   moveq pc,lr
 {$else}
@@ -375,8 +310,12 @@ asm
 {$else}
   bx  lr
 {$endif}
+.Loverlapped:
+  subs r2,r2,#1
+  ldrb r3,[r0,r2]
+  strb r3,[r1,r2]
+  bne .Loverlapped
 end;
-
 
 const
   moveproc : pointer = @move_blended;
