@@ -297,7 +297,7 @@ interface
                                          system_ia64_win64]+systems_linux;
 
        { all systems for which weak linking has been tested/is supported }
-       systems_weak_linking = systems_darwin + systems_solaris;
+       systems_weak_linking = systems_darwin + systems_solaris + systems_linux;
 
        systems_internal_sysinit = [system_i386_linux,system_i386_win32];
 

@@ -1085,17 +1085,29 @@ implementation
 
 
     function TObjData.symbolref(asmsym:TAsmSymbol):TObjSymbol;
+      var
+        s:string;
       begin
         if assigned(asmsym) then
           begin
             if not assigned(asmsym.cachedObjSymbol) then
               begin
-                result:=symbolref(asmsym.name);
+                s:=asmsym.name;
+                result:=TObjSymbol(FObjSymbolList.Find(s));
+                if result=nil then
+                  begin
+                    result:=TObjSymbol.Create(FObjSymbolList,s);
+                    if asmsym.bind=AB_WEAK_EXTERNAL then
+                      result.bind:=AB_WEAK_EXTERNAL;
+                  end;
                 asmsym.cachedObjSymbol:=result;
                 FCachedAsmSymbolList.add(asmsym);
               end
             else
               result:=TObjSymbol(asmsym.cachedObjSymbol);
+            { The weak bit could have been removed from asmsym. }
+            if (asmsym.bind=AB_EXTERNAL) and (result.bind=AB_WEAK_EXTERNAL) then
+              result.bind:=AB_EXTERNAL;
           end
         else
           result:=nil;
