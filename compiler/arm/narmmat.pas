@@ -356,7 +356,10 @@ implementation
 
     function tarmshlshrnode.first_shlshr64bitint: tnode;
       begin
-        result := nil;
+        if (current_settings.cputype in cpu_thumb2) then
+          result:=inherited
+        else
+          result := nil;
       end;
 
     procedure tarmshlshrnode.second_64bit;
@@ -423,6 +426,12 @@ implementation
         end;
 
       begin
+        if (current_settings.cputype in cpu_thumb2) then
+        begin
+          inherited;
+          exit;
+        end;
+
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
         { load left operator in a register }
