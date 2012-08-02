@@ -3384,13 +3384,9 @@ unit cgcpu;
     procedure Tthumb2cgarm.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
       var item: taicpu;
       begin
-        item := setcondition(taicpu.op_reg_const(A_MOV,reg,1),flags_to_cond(f));
-        list.concat(item);
-        list.insertbefore(taicpu.op_cond(A_IT, flags_to_cond(f)), item);
-
-        item := setcondition(taicpu.op_reg_const(A_MOV,reg,0),inverse_cond(flags_to_cond(f)));
-        list.concat(item);
-        list.insertbefore(taicpu.op_cond(A_IT, inverse_cond(flags_to_cond(f))), item);
+        list.concat(taicpu.op_cond(A_ITE, flags_to_cond(f)));
+        list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,1),flags_to_cond(f)));
+        list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,0),inverse_cond(flags_to_cond(f))));
       end;
 
 
