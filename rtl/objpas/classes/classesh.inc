@@ -206,8 +206,10 @@ type
     Procedure RaiseIndexError(Index: Integer);
   public
 {$IFNDEF VER2_4}
+{$ifndef fpdocsystem}
     Type
       TDirection = (FromBeginning, FromEnd);
+{$endif}
 {$ENDIF}
     destructor Destroy; override;
     Procedure AddList(AList : TFPList);
