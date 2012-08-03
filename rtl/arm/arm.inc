@@ -826,7 +826,7 @@ is bigger than the gain of the optimized function.
 function AsmSwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif};assembler;nostackframe;
 asm
 	// We're starting with 4321
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5) or defined(VER2_6)}
 	mov r0, r0, shl #16	// Shift to make that 2100
 	mov r0, r0, ror #24	// Rotate to 1002
 	orr r0, r0, r0 shr #16  // Shift and combine into 0012
@@ -864,7 +864,7 @@ end;
 
 function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
 asm
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5) or defined(VER2_6)}
         mov ip, r1
 
         // We're starting with r0 = $87654321
