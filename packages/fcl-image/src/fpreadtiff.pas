@@ -1821,7 +1821,7 @@ begin
                 end;
               end;
               // CMYK to RGB
-              Col:=CMYKToFPColor(RedValue,GrayValue,BlueValue,GrayValue);
+              Col:=CMYKToFPColor(RedValue,GreenValue,BlueValue,GrayValue);
             end;
 
           else
