@@ -327,6 +327,7 @@ interface
         unsigned : boolean;
         oldnodetype : tnodetype;
         dummyreg : tregister;
+        l: tasmlabel;
       begin
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -365,8 +366,14 @@ interface
                 location.resflags:=getresflags(unsigned);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
                 if current_settings.cputype in cpu_thumb2 then
-                  current_asmdata.CurrAsmList.concat(taicpu.op_cond(A_IT, C_EQ));
-                current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo),C_EQ));
+                  begin
+                    current_asmdata.getjumplabel(l);
+                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,l);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
+                    cg.a_label(current_asmdata.CurrAsmList,l);
+                  end
+                else
+                  current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo),C_EQ));
               end
             else
             { operation requiring proper N, Z and V flags ? }
