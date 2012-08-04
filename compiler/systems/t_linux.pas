@@ -120,6 +120,14 @@ begin
    LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
 {$endif powerpc64}
 {$endif x86_64}
+
+{$ifdef arm}
+{$ifdef FPC_ARMHF}
+  { at least raspian has the crt*.o files at an uncommon location,
+    for other arm flavours, this cannot hurt }
+  LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabihf',true);
+{$endif FPC_ARMHF}
+{$endif arm}
 end;
 
 {$ifdef m68k}
