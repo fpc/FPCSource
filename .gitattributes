@@ -9738,6 +9738,13 @@ tests/test/cg/obj/linux/arm-eabi/tcext3.o -text
 tests/test/cg/obj/linux/arm-eabi/tcext4.o -text
 tests/test/cg/obj/linux/arm-eabi/tcext5.o -text
 tests/test/cg/obj/linux/arm-eabi/tcext6.o -text
+tests/test/cg/obj/linux/arm-gnueabihf/cpptcl1.o -text
+tests/test/cg/obj/linux/arm-gnueabihf/cpptcl2.o -text
+tests/test/cg/obj/linux/arm-gnueabihf/ctest.o -text
+tests/test/cg/obj/linux/arm-gnueabihf/tcext3.o -text
+tests/test/cg/obj/linux/arm-gnueabihf/tcext4.o -text
+tests/test/cg/obj/linux/arm-gnueabihf/tcext5.o -text
+tests/test/cg/obj/linux/arm-gnueabihf/tcext6.o -text
 tests/test/cg/obj/linux/arm/ctest.o -text
 tests/test/cg/obj/linux/arm/tcext3.o -text
 tests/test/cg/obj/linux/arm/tcext4.o -text
