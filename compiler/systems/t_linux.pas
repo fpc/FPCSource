@@ -112,12 +112,12 @@ procedure SetupLibrarySearchPath;
 begin
   if not Dontlinkstdlibpath Then
 {$ifdef x86_64}
-   LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+    LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
 {$else}
 {$ifdef powerpc64}
-   LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+    LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
 {$else powerpc64}
-   LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
+    LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
 {$endif powerpc64}
 {$endif x86_64}
 
@@ -125,7 +125,8 @@ begin
 {$ifdef FPC_ARMHF}
   { at least raspian has the crt*.o files at an uncommon location,
     for other arm flavours, this cannot hurt }
-  LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabihf',true);
+  if not Dontlinkstdlibpath Then
+    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabihf',true);
 {$endif FPC_ARMHF}
 {$endif arm}
 end;
