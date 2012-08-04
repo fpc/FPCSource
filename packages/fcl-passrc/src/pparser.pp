@@ -3061,9 +3061,11 @@ begin
       end;
     tkIf:
       begin
-        Condition:=ParseExpression(CurBlock);
+        NextToken;
+        Left:=DoParseExpression(CurBlock);
+        UNgettoken;
         el:=TPasImplIfElse(CreateElement(TPasImplIfElse,'',CurBlock));
-        TPasImplIfElse(el).Condition:=Condition;
+        TPasImplIfElse(el).ConditionExpr:=Left;
         //WriteLn(i,'IF Condition="',Condition,'" Token=',CurTokenText);
         CreateBlock(TPasImplIfElse(el));
         ExpectToken(tkthen);

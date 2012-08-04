@@ -877,7 +877,7 @@ type
     function AddCommands: TPasImplCommands; // used by mkxmlrpc, not by pparser
     function AddBeginBlock: TPasImplBeginBlock;
     function AddRepeatUntil: TPasImplRepeatUntil;
-    function AddIfElse(const ACondition: string): TPasImplIfElse;
+    function AddIfElse(const ACondition: TPasExpr): TPasImplIfElse;
     function AddWhileDo(const ACondition: string): TPasImplWhileDo;
     function AddWithDo(const Expression: string): TPasImplWithDo;
     function AddCaseOf(const Expression: string): TPasImplCaseOf;
@@ -933,9 +933,10 @@ type
     procedure AddElement(Element: TPasImplElement); override;
     function CloseOnSemicolon: boolean; override;
   public
-    Condition: string;
+    ConditionExpr : TPasExpr;
     IfBranch: TPasImplElement;
     ElseBranch: TPasImplElement; // can be nil
+    Function Condition: string;
   end;
 
   { TPasImplWhileDo }
@@ -1812,6 +1813,7 @@ end;
 
 destructor TPasImplIfElse.Destroy;
 begin
+  FreeAndNil(ConditionExpr);
   if Assigned(IfBranch) then
     IfBranch.Release;
   if Assigned(ElseBranch) then
@@ -1839,6 +1841,12 @@ end;
 function TPasImplIfElse.CloseOnSemicolon: boolean;
 begin
   Result:=ElseBranch<>nil;
+end;
+
+function TPasImplIfElse.Condition: string;
+begin
+  If Assigned(ConditionExpr) then
+    Result:=ConditionExpr.GetDeclaration(True);
 end;
 
 destructor TPasImplForLoop.Destroy;
@@ -1908,10 +1916,10 @@ begin
   AddElement(Result);
 end;
 
-function TPasImplBlock.AddIfElse(const ACondition: string): TPasImplIfElse;
+function TPasImplBlock.AddIfElse(const ACondition: TPasExpr): TPasImplIfElse;
 begin
   Result := TPasImplIfElse.Create('', Self);
-  Result.Condition := ACondition;
+  Result.ConditionExpr := ACondition;
   AddElement(Result);
 end;
 
