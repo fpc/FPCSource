@@ -1328,13 +1328,15 @@ implementation
         if left.nodetype=ordconstn then
          begin
            v:=tordconstnode(left).value;
-           if is_currency(resultdef) then
+           if is_currency(resultdef) and
+              not(nf_internal in flags) then
              v:=v*10000;
            if (resultdef.typ=pointerdef) then
              result:=cpointerconstnode.create(TConstPtrUInt(v.uvalue),resultdef)
            else
              begin
-               if is_currency(left.resultdef) then
+               if is_currency(left.resultdef) and
+                  not(nf_internal in flags) then
                  v:=v div 10000;
                result:=cordconstnode.create(v,resultdef,false);
              end;
@@ -1346,18 +1348,25 @@ implementation
              result:=cpointerconstnode.create(v.uvalue,resultdef)
            else
              begin
-               if is_currency(resultdef) then
+               if is_currency(resultdef) and
+                  not(nf_internal in flags) then
                  v:=v*10000;
                result:=cordconstnode.create(v,resultdef,false);
              end;
          end
         else
          begin
+           if (is_currency(resultdef) or
+               is_currency(left.resultdef)) and
+              (nf_internal in flags) then
+             begin
+               include(flags,nf_is_currency)
+             end
            { multiply by 10000 for currency. We need to use getcopy to pass
              the argument because the current node is always disposed. Only
              inserting the multiply in the left node is not possible because
              it'll get in an infinite loop to convert int->currency }
-           if is_currency(resultdef) then
+           else if is_currency(resultdef) then
             begin
               result:=caddnode.create(muln,getcopy,cordconstnode.create(10000,resultdef,false));
               include(result.flags,nf_is_currency);
@@ -1379,19 +1388,27 @@ implementation
         if left.nodetype=ordconstn then
          begin
            rv:=tordconstnode(left).value;
-           if is_currency(resultdef) then
+           if is_currency(resultdef) and
+              not(nf_internal in flags) then
              rv:=rv*10000.0
-           else if is_currency(left.resultdef) then
+           else if is_currency(left.resultdef) and
+              not(nf_internal in flags) then
              rv:=rv/10000.0;
            result:=crealconstnode.create(rv,resultdef);
          end
         else
          begin
+           if (is_currency(resultdef) or
+               is_currency(left.resultdef)) and
+              (nf_internal in flags) then
+             begin
+               include(flags,nf_is_currency)
+             end
            { multiply by 10000 for currency. We need to use getcopy to pass
              the argument because the current node is always disposed. Only
              inserting the multiply in the left node is not possible because
              it'll get in an infinite loop to convert int->currency }
-           if is_currency(resultdef) then
+           else if is_currency(resultdef) then
             begin
               result:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resultdef));
               include(result.flags,nf_is_currency);
