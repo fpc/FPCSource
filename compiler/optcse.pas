@@ -65,7 +65,7 @@ unit optcse;
       cseinvariant : set of tnodetype = [addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
         derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
         inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,
-        isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan}];
+        isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan},assignn];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
@@ -109,6 +109,14 @@ unit optcse;
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
       var
         i,j : longint;
+
+      function is_written(node : tnode) : boolean;
+        begin
+          while node.nodetype in [typeconvn] do
+            node:=ttypeconvnode(node).left;
+          result:=(node.flags*[nf_write,nf_modify]<>[])
+        end;
+
       begin
         result:=fen_false;
         { don't add the tree below an untyped const parameter: there is
@@ -122,10 +130,12 @@ unit optcse;
             exit;
           end;
         { so far, we can handle only nodes being read }
-        if (n.flags*[nf_write,nf_modify]=[]) and
+        if
           { node possible to add? }
           assigned(n.resultdef) and
           (
+            { regable expressions }
+            not(is_written(n)) and
             ((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
             (not(n.resultdef.typ in [arraydef,recorddef])) and
@@ -160,6 +170,8 @@ unit optcse;
             (not(is_constnode(n)) or (node_complexity(n)>1)))
 {$ifndef x86}
             or
+            { store reference of expression? }
+
             { loading the address of a global symbol takes typically more than
               one instruction on every platform except x86
               so consider in this case loading the address of the data
