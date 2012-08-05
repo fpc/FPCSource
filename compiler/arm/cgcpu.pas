@@ -984,7 +984,10 @@ unit cgcpu;
             ref.symbol:=nil;
           end;
 
-        if (ref.base<>NR_NO) and (ref.index<>NR_NO) and (ref.offset<>0) then
+        { fold if there is base, index and offset, however, don't fold
+          for vfp memory instructions because we later fold the index }
+        if not(op in [A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and
+           (ref.base<>NR_NO) and (ref.index<>NR_NO) and (ref.offset<>0) then
           begin
             if tmpreg<>NR_NO then
               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg,tmpreg)
