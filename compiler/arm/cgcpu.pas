@@ -1194,33 +1194,56 @@ unit cgcpu;
              conv_done:=true;
              if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
                fromsize:=tosize;
-             case fromsize of
-               OS_8:
-                 list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
-               OS_S8:
-                 begin
-                   do_shift(SM_LSL,24,reg1);
-                   if tosize=OS_16 then
-                     begin
-                       do_shift(SM_ASR,8,reg2);
-                       do_shift(SM_LSR,16,reg2);
-                     end
-                   else
-                     do_shift(SM_ASR,24,reg2);
-                 end;
-               OS_16:
-                 begin
-                   do_shift(SM_LSL,16,reg1);
-                   do_shift(SM_LSR,16,reg2);
-                 end;
-               OS_S16:
-                 begin
-                   do_shift(SM_LSL,16,reg1);
-                   do_shift(SM_ASR,16,reg2)
-                 end;
-               else
-                 conv_done:=false;
-             end;
+             if current_settings.cputype<cpu_armv6 then
+               case fromsize of
+                 OS_8:
+                   list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
+                 OS_S8:
+                   begin
+                     do_shift(SM_LSL,24,reg1);
+                     if tosize=OS_16 then
+                       begin
+                         do_shift(SM_ASR,8,reg2);
+                         do_shift(SM_LSR,16,reg2);
+                       end
+                     else
+                       do_shift(SM_ASR,24,reg2);
+                   end;
+                 OS_16:
+                   begin
+                     do_shift(SM_LSL,16,reg1);
+                     do_shift(SM_LSR,16,reg2);
+                   end;
+                 OS_S16:
+                   begin
+                     do_shift(SM_LSL,16,reg1);
+                     do_shift(SM_ASR,16,reg2)
+                   end;
+                 else
+                   conv_done:=false;
+               end
+             else
+               case fromsize of
+                 OS_8:
+                   list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
+                 OS_S8:
+                   begin
+                     if tosize=OS_16 then
+                       begin
+                         list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
+                         list.concat(taicpu.op_reg_reg(A_SXTB16,reg2,reg2));
+                       end
+                     else
+                       list.concat(taicpu.op_reg_reg(A_SXTB,reg2,reg1));
+                   end;
+                 OS_16:
+                   list.concat(taicpu.op_reg_reg(A_UXTH,reg2,reg1));
+                 OS_S16:
+                   list.concat(taicpu.op_reg_reg(A_SXTH,reg2,reg1));
+                 else
+                   conv_done:=false;
+               end
+
            end;
          if not conv_done and (reg1<>reg2) then
            begin
