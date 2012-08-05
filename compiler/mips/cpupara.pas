@@ -288,7 +288,7 @@ implementation
             paradef := hp.vardef;
 
             { currently only support C-style array of const }
-             if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+             if (p.proccalloption in cstylearrayofconst) and
                is_array_of_const(paradef) then
               begin
                 paraloc:=hp.paraloc[side].add_location;

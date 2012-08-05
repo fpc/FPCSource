@@ -285,7 +285,7 @@ unit cpupara;
             hp.paraloc[side].reset;
 
             { currently only support C-style array of const }
-            if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+            if (p.proccalloption in cstylearrayofconst) and
                is_array_of_const(paradef) then
               begin
 {$ifdef DEBUG_CHARLIE}
@@ -549,7 +549,7 @@ unit cpupara;
         init_values(curintreg,curfloatreg,cur_stack_offset);
 
         result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,cur_stack_offset);
-        if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+        if (p.proccalloption in cstylearrayofconst) then
           { just continue loading the parameters in the registers }
           result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,cur_stack_offset)
         else

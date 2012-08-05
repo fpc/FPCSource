@@ -462,6 +462,8 @@ interface
        pocall_default = pocall_stdcall;
 {$endif}
 
+       cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal];
+
        modeswitchstr : array[tmodeswitch] of string[18] = ('','',
          '','','','','','',
          {$ifdef fpc_mode}'',{$endif}

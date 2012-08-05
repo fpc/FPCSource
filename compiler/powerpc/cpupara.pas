@@ -356,7 +356,7 @@ unit cpupara;
                 end;
               hp.paraloc[side].reset;
               { currently only support C-style array of const }
-              if (p.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) and
+              if (p.proccalloption in cstylearrayofconst) and
                  is_array_of_const(paradef) then
                 begin
                   paraloc:=hp.paraloc[side].add_location;
@@ -573,7 +573,7 @@ unit cpupara;
         firstfloatreg:=curfloatreg;
 
         result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset, false);
-        if (p.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) then
+        if (p.proccalloption in cstylearrayofconst) then
           { just continue loading the parameters in the registers }
           begin
             result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,true);

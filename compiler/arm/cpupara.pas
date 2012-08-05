@@ -345,7 +345,7 @@ unit cpupara;
 
             { currently only support C-style array of const,
               there should be no location assigned to the vararg array itself }
-            if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+            if (p.proccalloption in cstylearrayofconst) and
                is_array_of_const(paradef) then
               begin
                 paraloc:=hp.paraloc[side].add_location;
@@ -701,7 +701,7 @@ unit cpupara;
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg);
 
         result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true);
-        if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+        if (p.proccalloption in cstylearrayofconst) then
           { just continue loading the parameters in the registers }
           result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true)
         else
