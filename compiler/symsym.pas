@@ -2035,7 +2035,7 @@ implementation
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueptr:=str;
-         constdef:=nil;
+         constdef:=getarraydef(cansichartype,l);
          value.len:=l;
       end;
 
@@ -2046,7 +2046,7 @@ implementation
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          pcompilerwidestring(value.valueptr):=pw;
-         constdef:=nil;
+         constdef:=getarraydef(cwidechartype,getlengthwidestring(pw));
          value.len:=getlengthwidestring(pw);
       end;
 
