@@ -1449,7 +1449,7 @@ parser_e_method_lower_visibility=03322_E_Overring method "$1" cannot have a lowe
 % \end{description}
 # Type Checking
 #
-# 04117 is the last used one
+# 04119 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1868,6 +1868,9 @@ type_e_interface_lower_visibility=04117_E_The interface method "$1" has a higher
 % code compilable for the JVM target.
 type_e_typeof_requires_vmt=04118_E_TYPEOF can only be used on object types with VMT
 % Typeof() intrinsic returns pointer to VMT of its argument. It cannot be used on object types that do not have VMT.
+type_e_invalid_default_value=04119_E_It is not possible to define a default value for a parameter of type "$1"
+% Parameters declared as structured types, such as files, variants, non-dynamic
+% arrays and TP-style objects, cannot have a default value.
 % \end{description}
 #
 # Symtable
