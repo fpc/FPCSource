@@ -6817,7 +6817,10 @@ implementation
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
             res^.Data:=tpointerdef.create(def);
-            current_module.localsymtable.insertdef(tdef(res^.Data));
+            if assigned(current_module.localsymtable) then
+              current_module.localsymtable.insertdef(tdef(res^.Data))
+            else
+              current_module.globalsymtable.insertdef(tdef(res^.Data));
             symtablestack:=oldsymtablestack;
           end;
         result:=tpointerdef(res^.Data);
@@ -6852,7 +6855,10 @@ implementation
             symtablestack:=nil;
             res^.Data:=tarraydef.create(0,elecount-1,ptrsinttype);
             tarraydef(res^.Data).elementdef:=def;
-            current_module.localsymtable.insertdef(tdef(res^.Data));
+            if assigned(current_module.localsymtable) then
+              current_module.localsymtable.insertdef(tdef(res^.Data))
+            else
+              current_module.globalsymtable.insertdef(tdef(res^.Data));
             symtablestack:=oldsymtablestack;
           end;
         result:=tarraydef(res^.Data);
