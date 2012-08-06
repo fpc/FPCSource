@@ -109,14 +109,6 @@ unit optcse;
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
       var
         i,j : longint;
-
-      function is_written(node : tnode) : boolean;
-        begin
-          while node.nodetype in [typeconvn] do
-            node:=ttypeconvnode(node).left;
-          result:=(node.flags*[nf_write,nf_modify]<>[])
-        end;
-
       begin
         result:=fen_false;
         { don't add the tree below an untyped const parameter: there is
@@ -135,7 +127,7 @@ unit optcse;
           assigned(n.resultdef) and
           (
             { regable expressions }
-            not(is_written(n)) and
+            (n.actualtargetnode.flags*[nf_write,nf_modify]=[]) and
             ((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
             (not(n.resultdef.typ in [arraydef,recorddef])) and
