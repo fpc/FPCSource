@@ -2148,7 +2148,11 @@ implementation
 
         if convtype=tc_none then
           begin
-            cdoptions:=[cdo_check_operator,cdo_allow_variant,cdo_warn_incompatible_univ];
+            cdoptions:=[cdo_allow_variant,cdo_warn_incompatible_univ];
+            { overloaded operators require calls, which is not possible inside
+              a constant declaration }
+            if block_type<>bt_const then
+              include(cdoptions,cdo_check_operator);
             if nf_explicit in flags then
               include(cdoptions,cdo_explicit);
             if nf_internal in flags then
