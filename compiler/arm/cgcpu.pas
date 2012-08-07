@@ -765,6 +765,8 @@ unit cgcpu;
               end
             { BIC clears the specified bits, while AND keeps them, using BIC allows to use a
               broader range of shifterconstants.}
+            else if (op = OP_AND) and (not(dword(a))=0) then
+              list.concat(taicpu.op_reg_reg(A_MOV,dst,src))
             else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
             else if (op = OP_AND) and split_into_shifter_const(not(dword(a)), imm1, imm2) then
