@@ -1560,7 +1560,8 @@ implementation
                if assigned(def_to.typesym) and
                   (tclassrefdef(def_to).pointeddef.typ=forwarddef) then
                  begin
-                   if (def_from.typesym=def_to.typesym) then
+                   if (def_from.typesym=def_to.typesym) or
+                      (fromtreetype=niln) then
                     eq:=te_equal;
                  end
                else
