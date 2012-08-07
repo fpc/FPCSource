@@ -45,9 +45,22 @@ Type
     Procedure TestIfSemiColonElseError;
     Procedure TestNestedIf;
     Procedure TestNestedIfElse;
+    Procedure TestWhile;
+    Procedure TestWhileBlock;
+    Procedure TestWhileNested;
+    Procedure TestRepeat;
+    Procedure TestRepeatBlock;
+    procedure TestRepeatBlockNosemicolon;
+    Procedure TestRepeatNested;
+    Procedure TestFor;
+    Procedure TestForExpr;
+    Procedure TestForBlock;
+    procedure TestDowntoBlock;
+    Procedure TestForNested;
   end;
 
 implementation
+
 { TTestStatementParser }
 
 procedure TTestStatementParser.SetUp;
@@ -363,11 +376,12 @@ begin
 end;
 
 procedure TTestStatementParser.TestNestedIfElse;
+
 Var
   I,I2 : TPasImplIfElse;
+
 begin
   DeclareVar('boolean');
-  DeclareVar('boolean','b');
   TestStatement(['if a then','  if b then','    begin','    end','  else','    begin','    end','else','  begin','end']);
   I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
   AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
@@ -377,6 +391,215 @@ begin
   AssertEquals('if in if branch',TPasImplIfElse,I.ifBranch.ClassType);
   I:=I.Ifbranch as TPasImplIfElse;
   AssertEquals('begin end block',TPasImplBeginBlock,I.ElseBranch.ClassType);
+end;
+
+procedure TTestStatementParser.TestWhile;
+
+Var
+  W : TPasImplWhileDo;
+
+begin
+  DeclareVar('boolean');
+  TestStatement(['While a do ;']);
+  W:=AssertStatement('While statement',TPasImplWhileDo) as TPasImplWhileDo;
+  AssertExpression('While condition',W.ConditionExpr,pekIdent,'a');
+  AssertNull('Empty body',W.Body);
+end;
+
+procedure TTestStatementParser.TestWhileBlock;
+Var
+  W : TPasImplWhileDo;
+
+begin
+  DeclareVar('boolean');
+  TestStatement(['While a do','  begin','  end']);
+  W:=AssertStatement('While statement',TPasImplWhileDo) as TPasImplWhileDo;
+  AssertExpression('While condition',W.ConditionExpr,pekIdent,'a');
+  AssertNotNull('Have while body',W.Body);
+  AssertEquals('begin end block',TPasImplBeginBlock,W.Body.ClassType);
+  AssertEquals('Empty block',0,TPasImplBeginBlock(W.Body).ELements.Count);
+end;
+
+procedure TTestStatementParser.TestWhileNested;
+
+Var
+  W : TPasImplWhileDo;
+
+begin
+  DeclareVar('boolean');
+  DeclareVar('boolean','b');
+  TestStatement(['While a do','  while b do','    begin','    end']);
+  W:=AssertStatement('While statement',TPasImplWhileDo) as TPasImplWhileDo;
+  AssertExpression('While condition',W.ConditionExpr,pekIdent,'a');
+  AssertNotNull('Have while body',W.Body);
+  AssertEquals('Nested while',TPasImplWhileDo,W.Body.ClassType);
+  W:=W.Body as TPasImplWhileDo;
+  AssertExpression('While condition',W.ConditionExpr,pekIdent,'b');
+  AssertNotNull('Have nested while body',W.Body);
+  AssertEquals('Nested begin end block',TPasImplBeginBlock,W.Body.ClassType);
+  AssertEquals('Empty nested block',0,TPasImplBeginBlock(W.Body).ELements.Count);
+end;
+
+procedure TTestStatementParser.TestRepeat;
+
+Var
+  R : TPasImplRepeatUntil;
+
+begin
+  DeclareVar('boolean');
+  TestStatement(['Repeat','Until a;']);
+  R:=AssertStatement('Repeat statement',TPasImplRepeatUntil) as TPasImplRepeatUntil;
+  AssertExpression('repeat condition',R.ConditionExpr,pekIdent,'a');
+  AssertEquals('Empty body',0,R.Elements.Count);
+end;
+
+procedure TTestStatementParser.TestRepeatBlock;
+
+Var
+  R : TPasImplRepeatUntil;
+
+begin
+  DeclareVar('boolean');
+  TestStatement(['Repeat','begin','end;','Until a;']);
+  R:=AssertStatement('repeat statement',TPasImplRepeatUntil) as TPasImplRepeatUntil;
+  AssertExpression('repeat condition',R.ConditionExpr,pekIdent,'a');
+  AssertEquals('Have statement',1,R.Elements.Count);
+  AssertEquals('begin end block',TPasImplBeginBlock,TObject(R.Elements[0]).ClassType);
+  AssertEquals('Empty block',0,TPasImplBeginBlock(R.Elements[0]).ELements.Count);
+end;
+
+procedure TTestStatementParser.TestRepeatBlockNosemicolon;
+
+Var
+  R : TPasImplRepeatUntil;
+
+begin
+  DeclareVar('boolean');
+  TestStatement(['Repeat','begin','end','Until a;']);
+  R:=AssertStatement('repeat statement',TPasImplRepeatUntil) as TPasImplRepeatUntil;
+  AssertExpression('repeat condition',R.ConditionExpr,pekIdent,'a');
+  AssertEquals('Have statement',1,R.Elements.Count);
+  AssertEquals('begin end block',TPasImplBeginBlock,TObject(R.Elements[0]).ClassType);
+  AssertEquals('Empty block',0,TPasImplBeginBlock(R.Elements[0]).ELements.Count);
+end;
+
+procedure TTestStatementParser.TestRepeatNested;
+
+Var
+  R : TPasImplRepeatUntil;
+
+begin
+  DeclareVar('boolean');
+  DeclareVar('boolean','b');
+  TestStatement(['Repeat','repeat','begin','end','until b','Until a;']);
+  R:=AssertStatement('repeat statement',TPasImplRepeatUntil) as TPasImplRepeatUntil;
+  AssertExpression('repeat condition',R.ConditionExpr,pekIdent,'a');
+  AssertEquals('Have statement',1,R.Elements.Count);
+  AssertEquals('Nested repeat',TPasImplRepeatUntil,TObject(R.Elements[0]).ClassType);
+  R:=TPasImplRepeatUntil(R.Elements[0]);
+  AssertExpression('repeat condition',R.ConditionExpr,pekIdent,'b');
+  AssertEquals('Have statement',1,R.Elements.Count);
+  AssertEquals('begin end block',TPasImplBeginBlock,TObject(R.Elements[0]).ClassType);
+  AssertEquals('Empty block',0,TPasImplBeginBlock(R.Elements[0]).ELements.Count);
+end;
+
+procedure TTestStatementParser.TestFor;
+
+Var
+  F : TPasImplForLoop;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['For a:=1 to 10 do',';']);
+  F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
+  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertEquals('Up loop',False,F.Down);
+  AssertExpression('Start value',F.StartExpr,pekNumber,'1');
+  AssertExpression('End value',F.EndExpr,pekNumber,'10');
+  AssertNull('Empty body',F.Body);
+end;
+
+procedure TTestStatementParser.TestForExpr;
+Var
+  F : TPasImplForLoop;
+  B : TBinaryExpr;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['For a:=1+1 to 5+5 do',';']);
+  F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
+  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertEquals('Up loop',False,F.Down);
+  AssertExpression('Start expression',F.StartExpr,pekBinary,TBinaryExpr);
+  B:=F.StartExpr as TBinaryExpr;
+  AssertExpression('Start value left',B.left,pekNumber,'1');
+  AssertExpression('Start value right',B.right,pekNumber,'1');
+  AssertExpression('Start expression',F.StartExpr,pekBinary,TBinaryExpr);
+  B:=F.EndExpr as TBinaryExpr;
+  AssertExpression('End value left',B.left,pekNumber,'5');
+  AssertExpression('End value right',B.right,pekNumber,'5');
+  AssertNull('Empty body',F.Body);
+end;
+
+procedure TTestStatementParser.TestForBlock;
+
+Var
+  F : TPasImplForLoop;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['For a:=1 to 10 do','begin','end']);
+  F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
+  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertEquals('Up loop',False,F.Down);
+  AssertExpression('Start value',F.StartExpr,pekNumber,'1');
+  AssertExpression('End value',F.EndExpr,pekNumber,'10');
+  AssertNotNull('Have for body',F.Body);
+  AssertEquals('begin end block',TPasImplBeginBlock,F.Body.ClassType);
+  AssertEquals('Empty block',0,TPasImplBeginBlock(F.Body).ELements.Count);
+end;
+
+procedure TTestStatementParser.TestDowntoBlock;
+
+Var
+  F : TPasImplForLoop;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['For a:=10 downto 1 do','begin','end']);
+  F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
+  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertEquals('Down loop',True,F.Down);
+  AssertExpression('Start value',F.StartExpr,pekNumber,'10');
+  AssertExpression('End value',F.EndExpr,pekNumber,'1');
+  AssertNotNull('Have for body',F.Body);
+  AssertEquals('begin end block',TPasImplBeginBlock,F.Body.ClassType);
+  AssertEquals('Empty block',0,TPasImplBeginBlock(F.Body).ELements.Count);
+end;
+
+procedure TTestStatementParser.TestForNested;
+Var
+  F : TPasImplForLoop;
+
+begin
+  DeclareVar('integer');
+  DeclareVar('integer','b');
+  TestStatement(['For a:=1 to 10 do','For b:=11 to 20 do','begin','end']);
+  F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
+  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertEquals('Up loop',False,F.Down);
+  AssertExpression('Start value',F.StartExpr,pekNumber,'1');
+  AssertExpression('End value',F.EndExpr,pekNumber,'10');
+  AssertNotNull('Have while body',F.Body);
+  AssertEquals('begin end block',TPasImplForLoop,F.Body.ClassType);
+  F:=F.Body as TPasImplForLoop;
+  AssertEquals('Loop variable name','b',F.VariableName);
+  AssertEquals('Up loop',False,F.Down);
+  AssertExpression('Start value',F.StartExpr,pekNumber,'11');
+  AssertExpression('End value',F.EndExpr,pekNumber,'20');
+  AssertNotNull('Have for body',F.Body);
+  AssertEquals('begin end block',TPasImplBeginBlock,F.Body.ClassType);
+  AssertEquals('Empty block',0,TPasImplBeginBlock(F.Body).ELements.Count);
 end;
 
 initialization
