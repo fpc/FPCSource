@@ -1235,8 +1235,10 @@ unit cgcpu;
                    begin
                      if tosize=OS_16 then
                        begin
-                         list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
-                         list.concat(taicpu.op_reg_reg(A_SXTB16,reg2,reg2));
+                         so.shiftmode:=SM_ROR;
+                         so.shiftimm:=16;
+                         list.concat(taicpu.op_reg_reg_shifterop(A_SXTB16,reg2,reg1,so));
+                         do_shift(SM_LSR,16,reg2);
                        end
                      else
                        list.concat(taicpu.op_reg_reg(A_SXTB,reg2,reg1));
