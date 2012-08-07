@@ -2130,14 +2130,8 @@ begin
       Result.VarType := ParseType(nil)
     else
       UngetToken;
-
     ExpectToken(tkEqual);
-
-    //skipping the expression as a value
-    //Result.Value := ParseExpression;
-
-    // using new expression parser!
-    NextToken; // skip tkEqual
+    NextToken;
     Result.Expr:=DoParseConstValueExpression(Result);
 
     // must unget for the check to be peformed fine!
@@ -3110,10 +3104,12 @@ begin
     tkwhile:
       begin
         // while Condition do
-        Condition:=ParseExpression(Parent);
+        NextToken;
+        left:=DoParseExpression(Parent);
+        ungettoken;
         //WriteLn(i,'WHILE Condition="',Condition,'" Token=',CurTokenText);
         el:=TPasImplWhileDo(CreateElement(TPasImplWhileDo,'',CurBlock));
-        TPasImplWhileDo(el).Condition:=Condition;
+        TPasImplWhileDo(el).ConditionExpr:=left;
         CreateBlock(TPasImplWhileDo(el));
         ExpectToken(tkdo);
       end;
@@ -3129,7 +3125,9 @@ begin
         ExpectIdentifier;
         VarName:=CurTokenString;
         ExpectToken(tkAssign);
-        StartValue:=ParseExpression(Parent);
+        NextToken;
+        Left:=DoParseExpression(Parent);
+        UnGetToken;
         //writeln(i,'FOR Start=',StartValue);
         NextToken;
         if CurToken=tkTo then
@@ -3138,11 +3136,13 @@ begin
           ForDownTo:=true
         else
           ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkTo]]));
-        EndValue:=ParseExpression(Parent);
+        NextToken;
+        Right:=DoParseExpression(Parent);
+        UngetToken;
         el:=TPasImplForLoop(CreateElement(TPasImplForLoop,'',CurBlock));
         TPasImplForLoop(el).VariableName:=VarName;
-        TPasImplForLoop(el).StartValue:=StartValue;
-        TPasImplForLoop(el).EndValue:=EndValue;
+        TPasImplForLoop(el).StartExpr:=Left;
+        TPasImplForLoop(el).EndExpr:=Right;
         TPasImplForLoop(el).Down:=forDownto;
         CreateBlock(TPasImplForLoop(el));
         //WriteLn(i,'FOR "',VarName,'" := ',StartValue,' to ',EndValue,' Token=',CurTokenText);
@@ -3338,8 +3338,10 @@ begin
         end;
         if CurBlock is TPasImplRepeatUntil then
         begin
-          Condition:=ParseExpression(Parent);
-          TPasImplRepeatUntil(CurBlock).Condition:=Condition;
+          NextToken;
+          Left:=DoParseExpression(Parent);
+          UngetToken;
+          TPasImplRepeatUntil(CurBlock).ConditionExpr:=Left;
           //WriteLn(i,'UNTIL Condition="',Condition,'" Token=',CurTokenString);
           if CloseBlock then break;
         end else

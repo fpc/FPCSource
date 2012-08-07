@@ -878,12 +878,12 @@ type
     function AddBeginBlock: TPasImplBeginBlock;
     function AddRepeatUntil: TPasImplRepeatUntil;
     function AddIfElse(const ACondition: TPasExpr): TPasImplIfElse;
-    function AddWhileDo(const ACondition: string): TPasImplWhileDo;
+    function AddWhileDo(const ACondition: TPasExpr): TPasImplWhileDo;
     function AddWithDo(const Expression: string): TPasImplWithDo;
     function AddCaseOf(const Expression: string): TPasImplCaseOf;
     function AddForLoop(AVar: TPasVariable;
-      const AStartValue, AEndValue: string): TPasImplForLoop;
-    function AddForLoop(const AVarName, AStartValue, AEndValue: string;
+      const AStartValue, AEndValue: TPasExpr): TPasImplForLoop;
+    function AddForLoop(const AVarName : String; AStartValue, AEndValue: TPasExpr;
       ADownTo: Boolean = false): TPasImplForLoop;
     function AddTry: TPasImplTry;
     function AddExceptOn(const VarName, TypeName: string): TPasImplExceptOn;
@@ -922,7 +922,9 @@ type
 
   TPasImplRepeatUntil = class(TPasImplBlock)
   public
-    Condition: string;
+    ConditionExpr : TPasExpr;
+    destructor Destroy; override;
+    Function Condition: string;
   end;
 
   { TPasImplIfElse }
@@ -946,8 +948,9 @@ type
     destructor Destroy; override;
     procedure AddElement(Element: TPasImplElement); override;
   public
-    Condition: string;
+    ConditionExpr : TPasExpr;
     Body: TPasImplElement;
+    function Condition: string;
   end;
 
   { TPasImplWithDo }
@@ -1005,9 +1008,13 @@ type
     procedure AddElement(Element: TPasImplElement); override;
   public
     Variable: TPasVariable;
-    VariableName, StartValue, EndValue: string;
+    StartExpr : TPasExpr;
+    EndExpr : TPasExpr;
+    VariableName : String;
     Down: boolean; // downto
     Body: TPasImplElement;
+    Function StartValue : String;
+    Function EndValue: string;
   end;
 
   { TPasImplAssign }
@@ -1120,6 +1127,22 @@ const
 implementation
 
 uses SysUtils;
+
+{ TPasImplRepeatUntil }
+
+destructor TPasImplRepeatUntil.Destroy;
+begin
+  FreeAndNil(ConditionExpr);
+  inherited Destroy;
+end;
+
+function TPasImplRepeatUntil.Condition: string;
+begin
+  If Assigned(ConditionExpr) then
+    Result:=ConditionExpr.GetDeclaration(True)
+  else
+    Result:='';
+end;
 
 { TPasImplSimple }
 
@@ -1851,6 +1874,8 @@ end;
 
 destructor TPasImplForLoop.Destroy;
 begin
+  FreeAndNil(StartExpr);
+  FreeAndNil(EndExpr);
   if Assigned(Variable) then
     Variable.Release;
   if Assigned(Body) then
@@ -1868,6 +1893,22 @@ begin
     end
   else
     raise Exception.Create('TPasImplForLoop.AddElement body already set - please report this bug');
+end;
+
+function TPasImplForLoop.StartValue: String;
+begin
+  If Assigned(StartExpr) then
+    Result:=StartExpr.GetDeclaration(true)
+  else
+    Result:='';
+end;
+
+function TPasImplForLoop.EndValue: string;
+begin
+  If Assigned(EndExpr) then
+    Result:=EndExpr.GetDeclaration(true)
+  else
+    Result:='';
 end;
 
 constructor TPasImplBlock.Create(const AName: string; AParent: TPasElement);
@@ -1923,10 +1964,10 @@ begin
   AddElement(Result);
 end;
 
-function TPasImplBlock.AddWhileDo(const ACondition: string): TPasImplWhileDo;
+function TPasImplBlock.AddWhileDo(const ACondition: TPasExpr): TPasImplWhileDo;
 begin
   Result := TPasImplWhileDo.Create('', Self);
-  Result.Condition := ACondition;
+  Result.ConditionExpr := ACondition;
   AddElement(Result);
 end;
 
@@ -1945,22 +1986,22 @@ begin
 end;
 
 function TPasImplBlock.AddForLoop(AVar: TPasVariable; const AStartValue,
-  AEndValue: string): TPasImplForLoop;
+  AEndValue: TPasExpr): TPasImplForLoop;
 begin
   Result := TPasImplForLoop.Create('', Self);
   Result.Variable := AVar;
-  Result.StartValue := AStartValue;
-  Result.EndValue := AEndValue;
+  Result.StartExpr := AStartValue;
+  Result.EndExpr:= AEndValue;
   AddElement(Result);
 end;
 
-function TPasImplBlock.AddForLoop(const AVarName, AStartValue,
-  AEndValue: string; ADownTo: Boolean): TPasImplForLoop;
+function TPasImplBlock.AddForLoop(const AVarName: String; AStartValue,
+  AEndValue: TPasExpr; ADownTo: Boolean): TPasImplForLoop;
 begin
   Result := TPasImplForLoop.Create('', Self);
   Result.VariableName := AVarName;
-  Result.StartValue := AStartValue;
-  Result.EndValue := AEndValue;
+  Result.StartExpr := AStartValue;
+  Result.EndExpr := AEndValue;
   Result.Down := ADownTo;
   AddElement(Result);
 end;
@@ -2689,6 +2730,7 @@ end;
 
 destructor TPasImplWhileDo.Destroy;
 begin
+  FreeAndNil(ConditionExpr);
   if Assigned(Body) then
     Body.Release;
   inherited Destroy;
@@ -2704,6 +2746,12 @@ begin
     end
   else
     raise Exception.Create('TPasImplWhileDo.AddElement body already set - please report this bug');
+end;
+
+function TPasImplWhileDo.Condition: string;
+begin
+  If Assigned(ConditionExpr) then
+    Result:=ConditionExpr.GetDeclaration(True);
 end;
 
 { TPasImplCaseOf }
