@@ -261,7 +261,7 @@ Implementation
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       hp1,hp2: tai;
-      i: longint;
+      i, i2: longint;
       TmpUsedRegs: TAllUsedRegs;
       tempop: tasmop;
 
@@ -686,25 +686,34 @@ Implementation
                        (taicpu(p).oppostfix = PF_NONE) and
                        GetNextInstruction(p, hp1) and
                        (tai(hp1).typ = ait_instruction) and
-                       (taicpu(hp1).ops = 3) and {Currently we can't fold into another shifterop}
-                       (taicpu(hp1).oper[2]^.typ = top_reg) and
+                       (taicpu(hp1).ops >= 2) and {Currently we can't fold into another shifterop}
+                       (taicpu(hp1).oper[taicpu(hp1).ops-1]^.typ = top_reg) and
                        (taicpu(hp1).oppostfix = PF_NONE) and
                        (taicpu(hp1).condition = taicpu(p).condition) and
                        (taicpu(hp1).opcode in [A_ADD, A_ADC, A_RSB, A_RSC, A_SUB, A_SBC,
-                                               A_AND, A_BIC, A_EOR, A_ORR, A_TEQ, A_TST]) and
+                                               A_AND, A_BIC, A_EOR, A_ORR, A_TEQ, A_TST,
+                                               A_CMP, A_CMN]) and
                        (
                          {Only ONE of the two src operands is allowed to match}
-                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) xor
-                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[2]^)
+                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[taicpu(hp1).ops-2]^) xor
+                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[taicpu(hp1).ops-1]^)
                        ) then
                       begin
                         CopyUsedRegs(TmpUsedRegs);
                         UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                        if taicpu(hp1).opcode in [A_TST, A_TEQ, A_CMN] then
+                          I2:=0
+                        else
+                          I2:=1;
                         if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp1,TmpUsedRegs)) then
-                          for I:=1 to 2 do
+                          for I:=I2 to taicpu(hp1).ops-1 do
                             if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
                               begin
-                                if I = 1 then
+                                { If the parameter matched on the second op from the RIGHT
+                                  we have to switch the parameters, this will not happen for CMP
+                                  were we're only evaluating the most right parameter
+                                }
+                                if I <> taicpu(hp1).ops-1 then
                                   begin
                                     {The SUB operators need to be changed when we swap parameters}
                                     case taicpu(hp1).opcode of
@@ -714,14 +723,24 @@ Implementation
                                       A_RSC: tempop:=A_SBC;
                                       else tempop:=taicpu(hp1).opcode;
                                     end;
-                                    hp2:=taicpu.op_reg_reg_reg_shifterop(tempop,
-                                         taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[2]^.reg,
-                                         taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^);
+                                    if taicpu(hp1).ops = 3 then
+                                      hp2:=taicpu.op_reg_reg_reg_shifterop(tempop,
+                                           taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[2]^.reg,
+                                           taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^)
+                                    else
+                                      hp2:=taicpu.op_reg_reg_shifterop(tempop,
+                                           taicpu(hp1).oper[0]^.reg, taicpu(p).oper[1]^.reg,
+                                           taicpu(p).oper[2]^.shifterop^);
                                   end
                                 else
-                                  hp2:=taicpu.op_reg_reg_reg_shifterop(taicpu(hp1).opcode,
-                                       taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[1]^.reg,
-                                       taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^);
+                                  if taicpu(hp1).ops = 3 then
+                                    hp2:=taicpu.op_reg_reg_reg_shifterop(taicpu(hp1).opcode,
+                                         taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[1]^.reg,
+                                         taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^)
+                                  else
+                                    hp2:=taicpu.op_reg_reg_shifterop(taicpu(hp1).opcode,
+                                         taicpu(hp1).oper[0]^.reg, taicpu(p).oper[1]^.reg,
+                                         taicpu(p).oper[2]^.shifterop^);
                                 asml.insertbefore(hp2, p);
                                 asml.remove(p);
                                 asml.remove(hp1);
