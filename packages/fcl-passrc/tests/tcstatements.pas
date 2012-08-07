@@ -57,6 +57,8 @@ Type
     Procedure TestForBlock;
     procedure TestDowntoBlock;
     Procedure TestForNested;
+    Procedure TestWith;
+    Procedure TestWithMultiple;
   end;
 
 implementation
@@ -600,6 +602,39 @@ begin
   AssertNotNull('Have for body',F.Body);
   AssertEquals('begin end block',TPasImplBeginBlock,F.Body.ClassType);
   AssertEquals('Empty block',0,TPasImplBeginBlock(F.Body).ELements.Count);
+end;
+
+procedure TTestStatementParser.TestWith;
+
+Var
+  W : TpasImplWithDo;
+
+begin
+  DeclareVar('record X,Y : Integer; end');
+  TestStatement(['With a do','begin','end']);
+  W:=AssertStatement('For statement',TpasImplWithDo) as TpasImplWithDo;
+  AssertEquals('1 expression',1,W.Expressions.Count);
+  AssertExpression('With identifier',TPasExpr(W.Expressions[0]),pekIdent,'a');
+  AssertNotNull('Have with body',W.Body);
+  AssertEquals('begin end block',TPasImplBeginBlock,W.Body.ClassType);
+  AssertEquals('Empty block',0,TPasImplBeginBlock(W.Body).ELements.Count);
+end;
+
+procedure TTestStatementParser.TestWithMultiple;
+Var
+  W : TpasImplWithDo;
+
+begin
+  DeclareVar('record X,Y : Integer; end');
+  DeclareVar('record W,Z : Integer; end','b');
+  TestStatement(['With a,b do','begin','end']);
+  W:=AssertStatement('For statement',TpasImplWithDo) as TpasImplWithDo;
+  AssertEquals('2 expressions',2,W.Expressions.Count);
+  AssertExpression('With identifier 1',TPasExpr(W.Expressions[0]),pekIdent,'a');
+  AssertExpression('With identifier 2',TPasExpr(W.Expressions[1]),pekIdent,'b');
+  AssertNotNull('Have with body',W.Body);
+  AssertEquals('begin end block',TPasImplBeginBlock,W.Body.ClassType);
+  AssertEquals('Empty block',0,TPasImplBeginBlock(W.Body).ELements.Count);
 end;
 
 initialization
