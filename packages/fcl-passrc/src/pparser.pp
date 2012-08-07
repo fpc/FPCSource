@@ -3152,19 +3152,20 @@ begin
       begin
         // with Expr do
         // with Expr, Expr do
-        Expr:=ParseExpression(Parent);
+        NextToken;
+        Left:=DoParseExpression(Parent);
         //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
         el:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock));
-        TPasImplWithDo(el).AddExpression(expr);
+        TPasImplWithDo(el).AddExpression(Left);
         CreateBlock(TPasImplWithDo(el));
         repeat
-          NextToken;
           if CurToken=tkdo then break;
           if CurToken<>tkComma then
             ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkdo]]));
-          Expr:=ParseExpression(Parent);
+          NextToken;
+          Left:=DoParseExpression(Parent);
           //writeln(i,'WITH ...,Expr="',Expr,'" Token=',CurTokenText);
-          TPasImplWithDo(CurBlock).AddExpression(Expr);
+          TPasImplWithDo(CurBlock).AddExpression(Left);
         until false;
       end;
     tkcase:

@@ -879,7 +879,7 @@ type
     function AddRepeatUntil: TPasImplRepeatUntil;
     function AddIfElse(const ACondition: TPasExpr): TPasImplIfElse;
     function AddWhileDo(const ACondition: TPasExpr): TPasImplWhileDo;
-    function AddWithDo(const Expression: string): TPasImplWithDo;
+    function AddWithDo(const Expression: TPasExpr): TPasImplWithDo;
     function AddCaseOf(const Expression: string): TPasImplCaseOf;
     function AddForLoop(AVar: TPasVariable;
       const AStartValue, AEndValue: TPasExpr): TPasImplForLoop;
@@ -960,9 +960,9 @@ type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
     procedure AddElement(Element: TPasImplElement); override;
-    procedure AddExpression(const Expression: string);
+    procedure AddExpression(const Expression: TPasExpr);
   public
-    Expressions: TStrings;
+    Expressions: TFPList;
     Body: TPasImplElement;
   end;
 
@@ -1971,7 +1971,7 @@ begin
   AddElement(Result);
 end;
 
-function TPasImplBlock.AddWithDo(const Expression: string): TPasImplWithDo;
+function TPasImplBlock.AddWithDo(const Expression: TPasExpr): TPasImplWithDo;
 begin
   Result := TPasImplWithDo.Create('', Self);
   Result.AddExpression(Expression);
@@ -2822,13 +2822,17 @@ end;
 constructor TPasImplWithDo.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Expressions:=TStringList.Create;
+  Expressions:=TFPList.Create;
 end;
 
 destructor TPasImplWithDo.Destroy;
+Var
+  I : Integer;
 begin
   if Assigned(Body) then
     Body.Release;
+  For I:=0 to Expressions.Count-1 do
+    TObject(Expressions[i]).Free;
   FreeAndNil(Expressions);
   inherited Destroy;
 end;
@@ -2843,7 +2847,7 @@ begin
     end;
 end;
 
-procedure TPasImplWithDo.AddExpression(const Expression: string);
+procedure TPasImplWithDo.AddExpression(const Expression: TPasExpr);
 begin
   Expressions.Add(Expression);
 end;
