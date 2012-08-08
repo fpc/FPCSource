@@ -1000,7 +1000,8 @@ unit rgobj;
 
       begin
         ok:=(t<first_imaginary) or
-            ((r<first_imaginary) and (r in usable_register_set)) or
+            // disabled for now, see issue #22405
+            // ((r<first_imaginary) and (r in usable_register_set)) or
             (reginfo[t].degree<usable_registers_cnt) or
             ibitmap[r,t];
       end;
