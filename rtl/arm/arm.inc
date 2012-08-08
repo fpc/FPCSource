@@ -534,11 +534,7 @@ asm
   ldmfd sp!, {r0, lr}
   // We currently can not use constant symbols in ARM-Assembly
   // but we need to stay backward compatible with 2.6
-{$if defined(VER2_6)}
-  sub     r0, r0, #8 //AnsiFirstOff in 2.6
-{$else}
-  sub     r0, r0, #12 //AnsiFirstOff in 2.7 with codepage support
-{$endif}
+  sub     r0, r0, #12
   // Jump without a link, so freemem directly returns to our caller
   b       FPC_FREEMEM_X
 end;
