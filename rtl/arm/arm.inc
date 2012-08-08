@@ -511,7 +511,7 @@ asm
   strex r2, r1, [r0]
   cmp r2, #0
   bne .Lloop
-  mov r0, r1
+  movs r0, r1
   bx  lr
 {$else}
 {$if defined(LINUX) and defined(CPUARMEL)}
@@ -535,7 +535,9 @@ asm
   sub r1, r0, #1 // Decrement value
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
 
-  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  // MOVS sets the Z flag when the result reaches zero, this can be used later on
+  // The C-Flag will not be modified by this because we're not doing any shifting
+  movcss r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
   ldmcsfd r13!, {pc}
   b .Latomic_dec_loop // kuser_cmpxchg sets C flag on error
 
@@ -551,7 +553,7 @@ asm
   ldr r1, [r0]
   sub r1, r1, #1
   str r1, [r0]
-  mov r0, r1
+  movs r0, r1
 // unlock and return
   str r2, [r3]
   bx  lr
