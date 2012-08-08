@@ -608,6 +608,28 @@ asm
 {$endif}
 end;
 
+{$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
+
+Procedure fpc_ansistr_incr_ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];assembler;nostackframe; compilerproc;
+asm
+  // Null string?
+  cmp     r0, #0
+  // Load reference counter
+  ldrne   r1, [r0, #-8]
+  // pointer to counter, calculate here for delay slot utilization
+  subne   r0, r0, #8
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
+  moveq   pc,lr
+{$else}
+  bxeq    lr
+{$endif}
+  // Check for a constant string
+  cmp     r1, #0
+  // Tailcall
+  // Hopefully the linker will place InterLockedIncrement as layed out here
+  bge     InterLockedIncrement
+  // Freepascal will generate a proper return here, save some cachespace
+end;
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
