@@ -499,6 +499,50 @@ end;
 {$endif}
 
 
+{$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
+function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
+
+Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];assembler;nostackframe; compilerproc;
+asm
+  ldr     r1, [r0]
+  // On return the pointer will always be set to zero, so utilize the delay slots
+  mov     r2, #0
+  str     r2, [r0]
+
+  // Check for a zero string
+  cmp     r1, #0
+  // Load reference counter
+  ldrne   r2, [r1, #-8]
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
+  moveq   pc,lr
+{$else}
+  bxeq    lr
+{$endif}
+  // Check for a constant string
+  cmp     r2, #0
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
+  movlt   pc,lr
+{$else}
+  bxlt    lr
+{$endif}
+  stmfd   sp!, {r1, lr}
+  sub     r0, r1, #8
+  blx     InterLockedDecrement
+  // InterLockedDecrement is a nice guy and sets the z flag for us
+  // if the reference count dropped to 0
+  ldmnefd sp!, {r1, pc}
+  ldmfd sp!, {r0, lr}
+  // We currently can not use constant symbols in ARM-Assembly
+  // but we need to stay backward compatible with 2.6
+{$if defined(VER2_6)}
+  sub     r0, r0, #8 //AnsiFirstOff in 2.6
+{$else}
+  sub     r0, r0, #12 //AnsiFirstOff in 2.7 with codepage support
+{$endif}
+  // Jump without a link, so freemem directly returns to our caller
+  b       FPC_FREEMEM_X
+end;
+
 var
   fpc_system_lock: longint; export name 'fpc_system_lock';
 
