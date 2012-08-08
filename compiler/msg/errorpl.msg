@@ -2259,8 +2259,6 @@ S*2Aas_asemblacja przy u¾yciu GNU AS
 **2Mgpc_kompatybilno˜† z gpc
 **2Mmac_kompatybilno˜† z dialektami pascala na Macintosha
 **1n_zignorowanie standardowego pliku konfiguracyjnego
-**1N<x>optymalizacje w©zˆ¢w drzewa
-**2Nu_rozwijanie p©tli
 **1o<x>_zmiana nazwy skompilowanego programu na <x>
 3*1O<x>_optymalizacje:
 3*2Og_generacja mniejszego kodu

@@ -2580,8 +2580,6 @@ S*2Aas_Rangkai menggunakan GNU AS
 **2Mtp_Mode kompatibilitas TP/BP 7.0
 **2Mmacpas_Mode kompatibilitas dialek Macintosh Pascal
 **1n_Jangan baca file konfigurasi standar
-**1N<x>_Optimasi susunan node
-**2Nu_Jangan gulung pengulangan
 **1o<x>_Ubah nama executable yang dihasilkan ke <x>
 **1O<x>_Optimasi:
 **2O-_Matikan optimasi

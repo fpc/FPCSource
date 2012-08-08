@@ -3270,8 +3270,6 @@ S*2Aas_Monta usando o GNU AS
 **2Mtp_Modo compatibilidade TP/BP 7.0
 **2Mmacpas_Modo compatibilidade dialetos Macintosh Pascal
 **1n_N∆o ler os arquivos de configuraá‰es padr∆o
-**1N<x>_Otimizaá‰es n¢s †rvore
-**2Nu_Desdobra laáos
 **1o<x>_Altera o nome do execut†vel produzido para <x>
 **1O<x>_Otimizaá‰es:
 **2O-_Disabilita otimizaá‰es

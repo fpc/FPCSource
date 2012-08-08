@@ -3240,8 +3240,6 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Mtp_Versuche zu TP/BP 7.0 kompatibel zu sein
 **2Mmacpas_Versuche zu den MacIntosh Pascal-Dialekten kompatibel zu sein
 **1n_Standard-Konfigurationsdatei ignorieren
-**1N<x>_Node tree Optimierung
-**2Nu_Unroll loops
 **1o<x>_Die erzeugte, ausfhrbare Datei bekommt den Namen <x>
 **1O<x>_Optimierungen:
 **2O-_Optimierungen ausschalten
