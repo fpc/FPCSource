@@ -251,8 +251,9 @@ unit optcse;
                 }
                 if (n.nodetype in [andn,orn,addn,muln]) and
                   (n.nodetype=tbinarynode(n).left.nodetype) and
-                  { do is optimizations only for integers, reals (no currency!), vectors and sets }
-                  (is_integer(n.resultdef) or is_real(n.resultdef) or is_vector(n.resultdef) or is_set(n.resultdef)) and
+                  { do is optimizations only for integers, reals (no currency!), vectors, sets or booleans }
+                  (is_integer(n.resultdef) or is_real(n.resultdef) or is_vector(n.resultdef) or is_set(n.resultdef) or
+                   is_boolean(n.resultdef)) and
                   { either if fastmath is on }
                   ((cs_opt_fastmath in current_settings.optimizerswitches) or
                    { or for the logical operators, they cannot overflow }
