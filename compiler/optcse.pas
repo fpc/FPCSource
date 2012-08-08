@@ -50,7 +50,7 @@ unit optcse;
   implementation
 
     uses
-      globtype,
+      globtype,globals,
       cclasses,
       verbose,
       nutils,
@@ -249,7 +249,21 @@ unit optcse;
                        B   C
                   Because A could be another tree of this kind, the whole process is done in a while loop
                 }
-                if (n.nodetype in [andn,orn,addn,muln]) then
+                if (n.nodetype in [andn,orn,addn,muln]) and
+                  (n.nodetype=tbinarynode(n).left.nodetype) and
+                  { do is optimizations only for integers, reals (no currency!), vectors and sets }
+                  (is_integer(n.resultdef) or is_real(n.resultdef) or is_vector(n.resultdef) or is_set(n.resultdef)) and
+                  { either if fastmath is on }
+                  ((cs_opt_fastmath in current_settings.optimizerswitches) or
+                   { or for the logical operators, they cannot overflow }
+                   (n.nodetype in [andn,orn]) or
+                   { or for integers if range checking is off }
+                   ((is_integer(n.resultdef) and
+                    (n.localswitches*[cs_check_range,cs_check_overflow]=[]) and
+                    (tbinarynode(n).left.localswitches*[cs_check_range,cs_check_overflow]=[]))) or
+                   { for sets, we can do this always }
+                   (is_set(n.resultdef))
+                   ) then
                   while n.nodetype=tbinarynode(n).left.nodetype do
                     begin
                       csedomain:=true;

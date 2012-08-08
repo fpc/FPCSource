@@ -69,7 +69,7 @@ Const
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = [cs_opt_regvar,cs_opt_loopunroll,cs_opt_nodecse,
-                                  cs_opt_reorder_fields];
+                                  cs_opt_reorder_fields,cs_opt_fastmath];
 
    level1optimizerswitches = [];
    level2optimizerswitches = level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe,cs_opt_nodecse];
