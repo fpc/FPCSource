@@ -763,10 +763,15 @@ unit cgcpu;
                 so.shiftimm:=l1;
                 list.concat(taicpu.op_reg_reg_reg_shifterop(A_RSB,dst,src,src,so));
               end
-            { BIC clears the specified bits, while AND keeps them, using BIC allows to use a
-              broader range of shifterconstants.}
+            { x := y and 0; just clears a register, this sometimes gets generated on 64bit ops.
+              Just using mov x, #0 might allow some easier optimizations down the line. }
+            else if (op = OP_AND) and (dword(a)=0) then
+              list.concat(taicpu.op_reg_const(A_MOV,dst,0))
+            { x := y AND $FFFFFFFF just copies the register, so use mov for better optimizations }
             else if (op = OP_AND) and (not(dword(a))=0) then
               list.concat(taicpu.op_reg_reg(A_MOV,dst,src))
+            { BIC clears the specified bits, while AND keeps them, using BIC allows to use a
+              broader range of shifterconstants.}
             else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
             else if (op = OP_AND) and split_into_shifter_const(not(dword(a)), imm1, imm2) then
