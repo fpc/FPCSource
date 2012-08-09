@@ -47,21 +47,15 @@ _start:
         movl    %ecx,operatingsystem_parameter_argc    /* Move the argument counter    */
         movl    %ebx,operatingsystem_parameter_argv    /* Move the argument pointer    */
 
-        movl    %eax,__environ          /* libc environ */
+        /* no libc __environ */
 
         pushl   %eax
         pushl   %ebx
         pushl   %ecx
 
         call    __libc_init             /* init libc */
-        movzwl  __fpu_control,%eax
-        pushl   %eax
-        call    __setfpucw
-        popl    %eax
-        pushl   $_fini
-        call    atexit
-        popl    %eax
-        call    _init
+        pushl   $0                      /* the onexit() function is always nil with bionic */
+        call    __cxa_finalize
 
         popl    %eax
         popl    %eax
