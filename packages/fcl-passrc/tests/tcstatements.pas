@@ -59,6 +59,18 @@ Type
     Procedure TestForNested;
     Procedure TestWith;
     Procedure TestWithMultiple;
+    Procedure TestCaseEmpty;
+    Procedure TestCaseOneInteger;
+    Procedure TestCaseTwoIntegers;
+    Procedure TestCaseRange;
+    Procedure TestCaseRangeSeparate;
+    Procedure TestCase2Cases;
+    Procedure TestCaseBlock;
+    Procedure TestCaseElseBlockEmpty;
+    Procedure TestCaseElseBlockAssignment;
+    Procedure TestCaseElseBlock2Assignments;
+    Procedure TestCaseIfCaseElse;
+    Procedure TestCaseIfElse;
   end;
 
 implementation
@@ -635,6 +647,256 @@ begin
   AssertNotNull('Have with body',W.Body);
   AssertEquals('begin end block',TPasImplBeginBlock,W.Body.ClassType);
   AssertEquals('Empty block',0,TPasImplBeginBlock(W.Body).ELements.Count);
+end;
+
+procedure TTestStatementParser.TestCaseEmpty;
+begin
+  DeclareVar('integer');
+  AddStatements(['case a of','end;']);
+  ExpectParserError('Empty case not allowed');
+end;
+
+procedure TTestStatementParser.TestCaseOneInteger;
+
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1 : ;','end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNull('No else branch',C.ElseBranch);
+  AssertEquals('One case label',1,C.Elements.Count);
+  AssertEquals('Correct case for case label',TPasImplCaseStatement,TPasElement(C.Elements[0]).ClassType);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('1 expression for case',1,S.Expressions.Count);
+  AssertExpression('With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  AssertEquals('Empty case label statement',0,S.Elements.Count);
+  AssertNull('Empty case label statement',S.Body);
+end;
+
+procedure TTestStatementParser.TestCaseTwoIntegers;
+
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1,2 : ;','end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNull('No else branch',C.ElseBranch);
+  AssertEquals('One case label',1,C.Elements.Count);
+  AssertEquals('Correct case for case label',TPasImplCaseStatement,TPasElement(C.Elements[0]).ClassType);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('2 expressions for case',2,S.Expressions.Count);
+  AssertExpression('With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  AssertExpression('With identifier 2',TPasExpr(S.Expressions[1]),pekNumber,'2');
+  AssertEquals('Empty case label statement',0,S.Elements.Count);
+  AssertNull('Empty case label statement',S.Body);
+end;
+
+procedure TTestStatementParser.TestCaseRange;
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1..3 : ;','end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNull('No else branch',C.ElseBranch);
+  AssertEquals('One case label',1,C.Elements.Count);
+  AssertEquals('Correct case for case label',TPasImplCaseStatement,TPasElement(C.Elements[0]).ClassType);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('1 expression for case',1,S.Expressions.Count);
+  AssertExpression('With identifier 1',TPasExpr(S.Expressions[0]),pekRange,TBinaryExpr);
+  AssertEquals('Empty case label statement',0,S.Elements.Count);
+  AssertNull('Empty case label statement',S.Body);
+end;
+
+procedure TTestStatementParser.TestCaseRangeSeparate;
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1..3,5 : ;','end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNull('No else branch',C.ElseBranch);
+  AssertEquals('One case label',1,C.Elements.Count);
+  AssertEquals('Correct case for case label',TPasImplCaseStatement,TPasElement(C.Elements[0]).ClassType);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('2 expressions for case',2,S.Expressions.Count);
+  AssertExpression('With identifier 1',TPasExpr(S.Expressions[0]),pekRange,TBinaryExpr);
+  AssertExpression('With identifier 2',TPasExpr(S.Expressions[1]),pekNumber,'5');
+  AssertEquals('Empty case label statement',0,S.Elements.Count);
+  AssertNull('Empty case label statement',S.Body);
+end;
+
+procedure TTestStatementParser.TestCase2Cases;
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1 : ;','2 : ;','end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNull('No else branch',C.ElseBranch);
+  AssertEquals('Two case labels',2,C.Elements.Count);
+  AssertEquals('Correct case for case label 1',TPasImplCaseStatement,TPasElement(C.Elements[0]).ClassType);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('2 expressions for case 1',1,S.Expressions.Count);
+  AssertExpression('Case 1 With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  AssertEquals('Empty case label statement 1',0,S.Elements.Count);
+  AssertNull('Empty case label statement 1',S.Body);
+  // Two
+  AssertEquals('Correct case for case label 2',TPasImplCaseStatement,TPasElement(C.Elements[1]).ClassType);
+  S:=TPasImplCaseStatement(C.Elements[1]);
+  AssertEquals('2 expressions for case 2',1,S.Expressions.Count);
+  AssertExpression('Case 2 With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'2');
+  AssertEquals('Empty case label statement 2',0,S.Elements.Count);
+  AssertNull('Empty case label statement 2',S.Body);
+end;
+
+procedure TTestStatementParser.TestCaseBlock;
+
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+  B : TPasImplbeginBlock;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1 : begin end;','end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNull('No else branch',C.ElseBranch);
+  AssertEquals('Two case labels',1,C.Elements.Count);
+  AssertEquals('Correct case for case label 1',TPasImplCaseStatement,TPasElement(C.Elements[0]).ClassType);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('2 expressions for case 1',1,S.Expressions.Count);
+  AssertExpression('Case With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  AssertEquals('1 case label statement',1,S.Elements.Count);
+  AssertEquals('Correct case for case label 1',TPasImplbeginBlock,TPasElement(S.Elements[0]).ClassType);
+  B:=TPasImplbeginBlock(S.Elements[0]);
+  AssertEquals('0 statements in block',0,B.Elements.Count);
+
+end;
+
+procedure TTestStatementParser.TestCaseElseBlockEmpty;
+
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+  B : TPasImplbeginBlock;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1 : begin end;','else',' end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertEquals('Two case labels',2,C.Elements.Count);
+  AssertEquals('Correct case for case label 1',TPasImplCaseStatement,TPasElement(C.Elements[0]).ClassType);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('2 expressions for case 1',1,S.Expressions.Count);
+  AssertExpression('Case With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  AssertEquals('1 case label statement',1,S.Elements.Count);
+  AssertEquals('Correct case for case label 1',TPasImplbeginBlock,TPasElement(S.Elements[0]).ClassType);
+  B:=TPasImplbeginBlock(S.Elements[0]);
+  AssertEquals('0 statements in block',0,B.Elements.Count);
+  AssertNotNull('Have else branch',C.ElseBranch);
+  AssertEquals('Correct else branch class',TPasImplCaseElse,C.ElseBranch.ClassType);
+  AssertEquals('Zero statements ',0,TPasImplCaseElse(C.ElseBranch).Elements.Count);
+end;
+
+procedure TTestStatementParser.TestCaseElseBlockAssignment;
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+  B : TPasImplbeginBlock;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1 : begin end;','else','a:=1',' end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertEquals('Two case labels',2,C.Elements.Count);
+  AssertEquals('Correct case for case label 1',TPasImplCaseStatement,TPasElement(C.Elements[0]).ClassType);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('2 expressions for case 1',1,S.Expressions.Count);
+  AssertExpression('Case With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  AssertEquals('1 case label statement',1,S.Elements.Count);
+  AssertEquals('Correct case for case label 1',TPasImplbeginBlock,TPasElement(S.Elements[0]).ClassType);
+  B:=TPasImplbeginBlock(S.Elements[0]);
+  AssertEquals('0 statements in block',0,B.Elements.Count);
+  AssertNotNull('Have else branch',C.ElseBranch);
+  AssertEquals('Correct else branch class',TPasImplCaseElse,C.ElseBranch.ClassType);
+  AssertEquals('1 statement in else branch ',1,TPasImplCaseElse(C.ElseBranch).Elements.Count);
+end;
+
+procedure TTestStatementParser.TestCaseElseBlock2Assignments;
+
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+  B : TPasImplbeginBlock;
+
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1 : begin end;','else','a:=1;','a:=32;',' end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertEquals('Two case labels',2,C.Elements.Count);
+  AssertEquals('Correct case for case label 1',TPasImplCaseStatement,TPasElement(C.Elements[0]).ClassType);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('2 expressions for case 1',1,S.Expressions.Count);
+  AssertExpression('Case With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  AssertEquals('1 case label statement',1,S.Elements.Count);
+  AssertEquals('Correct case for case label 1',TPasImplbeginBlock,TPasElement(S.Elements[0]).ClassType);
+  B:=TPasImplbeginBlock(S.Elements[0]);
+  AssertEquals('0 statements in block',0,B.Elements.Count);
+  AssertNotNull('Have else branch',C.ElseBranch);
+  AssertEquals('Correct else branch class',TPasImplCaseElse,C.ElseBranch.ClassType);
+  AssertEquals('2 statements in else branch ',2,TPasImplCaseElse(C.ElseBranch).Elements.Count);
+end;
+
+procedure TTestStatementParser.TestCaseIfCaseElse;
+
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+  B : TPasImplbeginBlock;
+
+begin
+  DeclareVar('integer');
+  DeclareVar('boolean','b');
+  TestStatement(['case a of','1 : if b then',' begin end;','else',' end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertEquals('Two case labels',2,C.Elements.Count);
+  AssertNotNull('Have else branch',C.ElseBranch);
+  AssertEquals('Correct else branch class',TPasImplCaseElse,C.ElseBranch.ClassType);
+  AssertEquals('0 statement in else branch ',0,TPasImplCaseElse(C.ElseBranch).Elements.Count);
+end;
+
+procedure TTestStatementParser.TestCaseIfElse;
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+  B : TPasImplbeginBlock;
+
+begin
+  DeclareVar('integer');
+  DeclareVar('boolean','b');
+  TestStatement(['case a of','1 : if b then',' begin end','else','begin','end',' end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertEquals('Two case labels',1,C.Elements.Count);
+  AssertNull('Have no else branch',C.ElseBranch);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('2 expressions for case 1',1,S.Expressions.Count);
+  AssertExpression('Case With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  AssertEquals('1 case label statement',1,S.Elements.Count);
+  AssertEquals('If statement in case label 1',TPasImplIfElse,TPasElement(S.Elements[0]).ClassType);
+  AssertNotNull('If statement has else block',TPasImplIfElse(S.Elements[0]).ElseBranch);
 end;
 
 initialization
