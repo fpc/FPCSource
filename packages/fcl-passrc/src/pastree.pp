@@ -975,7 +975,7 @@ type
   public
     destructor Destroy; override;
     procedure AddElement(Element: TPasImplElement); override;
-    function AddCase(const Expression: string): TPasImplCaseStatement;
+    function AddCase(const Expression: TPasExpr): TPasImplCaseStatement;
     function AddElse: TPasImplCaseElse;
   public
     Expression: string;
@@ -989,9 +989,9 @@ type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
     procedure AddElement(Element: TPasImplElement); override;
-    procedure AddExpression(const Expr: string);
+    procedure AddExpression(const Expr: TPasExpr);
   public
-    Expressions: TStrings;
+    Expressions: TFPList;
     Body: TPasImplElement;
   end;
 
@@ -2770,7 +2770,7 @@ begin
   inherited AddElement(Element);
 end;
 
-function TPasImplCaseOf.AddCase(const Expression: string
+function TPasImplCaseOf.AddCase(const Expression: TPasExpr
   ): TPasImplCaseStatement;
 begin
   Result:=TPasImplCaseStatement.Create('',Self);
@@ -2791,11 +2791,17 @@ constructor TPasImplCaseStatement.Create(const AName: string;
   AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Expressions:=TStringList.Create;
+  Expressions:=TFPList.Create;
 end;
 
 destructor TPasImplCaseStatement.Destroy;
+
+Var
+  I : integer;
+
 begin
+  For I:=0 to Expressions.Count-1 do
+    TPasExpr(Expressions[i]).Free;
   FreeAndNil(Expressions);
   if Assigned(Body) then
     Body.Release;
@@ -2812,7 +2818,7 @@ begin
     end
 end;
 
-procedure TPasImplCaseStatement.AddExpression(const Expr: string);
+procedure TPasImplCaseStatement.AddExpression(const Expr: TPasExpr);
 begin
   Expressions.Add(Expr);
 end;

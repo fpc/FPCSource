@@ -53,6 +53,7 @@ resourcestring
   SParserExpectedIdentifier = 'Identifier expected';
   SParserNotAProcToken = 'Not a procedure or function token';
   SRangeExpressionExpected = 'Range expression expected';
+  SParserExpectCase = 'Case label expression expected';
 
   SLogStartImplementation = 'Start parsing implementation section.';
   SLogStartInterface = 'Start parsing interface section';
@@ -3181,7 +3182,11 @@ begin
           //writeln(i,'CASE OF Token=',CurTokenText);
           case CurToken of
           tkend:
+            begin
+            if CurBlock.Elements.Count=0 then
+              ParseExc(SParserExpectCase);
             break; // end without else
+            end;
           tkelse:
             begin
               // create case-else block
@@ -3191,32 +3196,25 @@ begin
               break;
             end
           else
-            UngetToken;
             // read case values
             repeat
-              Expr:=ParseExpression(Parent);
+              Left:=DoParseExpression(Parent);
               //writeln(i,'CASE value="',Expr,'" Token=',CurTokenText);
-              NextToken;
-              if CurToken=tkDotDot then
-              begin
-                Expr:=Expr+'..'+ParseExpression(Parent);
-                NextToken;
-              end;
-              // do not miss '..'
               if CurBlock is TPasImplCaseStatement then
-                TPasImplCaseStatement(CurBlock).Expressions.Add(Expr)
+                TPasImplCaseStatement(CurBlock).Expressions.Add(Left)
               else
                 begin
                 el:=TPasImplCaseStatement(CreateElement(TPasImplCaseStatement,'',CurBlock));
-                TPasImplCaseStatement(el).AddExpression(Expr);
+                TPasImplCaseStatement(el).AddExpression(Left);
                 CurBlock.AddElement(el);
                 CurBlock:=TPasImplCaseStatement(el);
                 end;
               //writeln(i,'CASE after value Token=',CurTokenText);
-              if CurToken=tkColon then break;
-              if CurToken<>tkComma then
-                ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkComma]]));
-            until false;
+              if (CurToken=tkComma) then
+                NextToken
+              else if (CurToken<>tkColon) then
+                ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkComma]]))
+            until Curtoken=tkColon;
             // read statement
             ParseStatement(CurBlock,SubBlock);
             CloseBlock;
