@@ -2893,6 +2893,11 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
   def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+  { On most systems, locals are accessed relative to base pointer,
+    but for MIPS cpu, they are accessed relative to stack pointer.
+    This needs adaptation for so low level routines,
+    like MethodPointerLocal and related objects unit functions. }
+  def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
 {$endif mipsel}
 
 {$ifdef mipseb}
@@ -2907,6 +2912,8 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
   def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+  { See comment above for mipsel }
+  def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
 {$endif}
 
   { read configuration file }
@@ -3168,10 +3175,21 @@ if (target_info.system=system_arm_darwin) then
 { set default cpu type to ARMv7 for ARMHF unless specified otherwise }
 if (target_info.abi = abi_eabihf) then
   begin
+{$ifdef CPUARMV6}
+    { if the compiler is built for armv6, then
+      inherit this setting, e.g. Raspian is armhf but
+      only armv6, this makes rebuilds of the compiler
+      easier }
+    if not option.CPUSetExplicitly then
+      init_settings.cputype:=cpu_armv6;
+    if not option.OptCPUSetExplicitly then
+      init_settings.optimizecputype:=cpu_armv6;
+{$else CPUARMV6}
     if not option.CPUSetExplicitly then
       init_settings.cputype:=cpu_armv7;
     if not option.OptCPUSetExplicitly then
       init_settings.optimizecputype:=cpu_armv7;
+{$endif CPUARMV6}
   end;
 {$endif arm}
 

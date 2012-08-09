@@ -33,6 +33,7 @@ begin
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('paszlib');
+    P.Dependencies.Add('fpmkunit');
 
     P.Dependencies.Add('univint',[MacOSX,iphonesim]);
     P.Dependencies.Add('fcl-net', TargetsWithfpWeb);

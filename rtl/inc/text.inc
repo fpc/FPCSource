@@ -702,14 +702,17 @@ begin
         SLen:=Length(s);
         If Len>SLen Then
           fpc_WriteBlanks(f,Len-SLen);
-        if slen > 0 then
+        if SLen > 0 then
           begin
             {$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-            a:=fpc_AnsiStr_To_AnsiStr(S,TextRec(f).CodePage);
-            fpc_WriteBuffer(f,PAnsiChar(a)^,Length(a));
-            {$else}
-            fpc_WriteBuffer(f,PAnsiChar(s)^,SLen);
+            if TextRec(f).CodePage<>StringCodePage(S) then
+              begin
+                a:=fpc_AnsiStr_To_AnsiStr(S,TextRec(f).CodePage);
+                fpc_WriteBuffer(f,PAnsiChar(a)^,Length(a));
+              end
+            else
             {$endif}
+            fpc_WriteBuffer(f,PAnsiChar(s)^,SLen);
           end;
       end;
     fmInput: InOutRes:=105
@@ -1344,7 +1347,8 @@ Begin
   SetLength(s,Slen);
   {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,TextRec(f).CodePage,false);
-  s:=fpc_AnsiStr_To_AnsiStr(s,cp);
+  if cp<>TextRec(f).CodePage then
+    s:=fpc_AnsiStr_To_AnsiStr(s,cp);
   {$endif FPC_HAS_CPSTRING}
 End;
 

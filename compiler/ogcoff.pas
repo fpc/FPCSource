@@ -107,10 +107,8 @@ interface
          coffrelocs,
          coffrelocpos : aword;
        public
-         secidx   : longword;
          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
          procedure addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
-         procedure fixuprelocs(Exe:TExeOutput);override;
        end;
 
        TCoffObjData = class(TObjData)
@@ -207,6 +205,7 @@ interface
        protected
          function writedata:boolean;override;
          procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
+         procedure DoRelocationFixup(objsec:TObjSection);override;
        public
          constructor createcoff(awin32:boolean);
          procedure MemPos_Header;override;
@@ -227,7 +226,7 @@ interface
        public
          constructor create;override;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
-         procedure Order_End;override;
+         procedure MemPos_Start;override;
          procedure MemPos_ExeSection(const aname:string);override;
        end;
 
@@ -769,16 +768,11 @@ const pemagic : array[0..3] of byte = (
           include(aoptions,oso_debug);
         if flags and PE_SCN_CNT_UNINITIALIZED_DATA=0 then
           include(aoptions,oso_data);
-        if (flags and PE_SCN_LNK_REMOVE<>0) or
-           (flags and PE_SCN_MEM_DISCARDABLE<>0) then
-          include(aoptions,oso_noload)
-        else
+        if (flags and (PE_SCN_LNK_REMOVE or PE_SCN_MEM_DISCARDABLE)=0) then
           include(aoptions,oso_load);
         { read/write }
         if flags and PE_SCN_MEM_WRITE<>0 then
-          include(aoptions,oso_write)
-        else
-          include(aoptions,oso_readonly);
+          include(aoptions,oso_write);
         { alignment }
         alignflag:=flags and PE_SCN_ALIGN_MASK;
         if alignflag=PE_SCN_ALIGN_64BYTES then
@@ -818,7 +812,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjSection.fixuprelocs(Exe:TExeOutput);
+    procedure TCoffExeOutput.DoRelocationFixup(objsec:TObjSection);
       var
         i,zero,address_size : longint;
         objreloc : TObjRelocation;
@@ -828,13 +822,12 @@ const pemagic : array[0..3] of byte = (
 {$ifdef cpu64bitaddr}
         s        : string;
 {$endif cpu64bitaddr}
+        data     : TDynamicArray;
       begin
-        if (ObjRelocations.Count>0) and
-           not assigned(data) then
-          internalerror(200205183);
-        for i:=0 to ObjRelocations.Count-1 do
+        data:=objsec.data;
+        for i:=0 to objsec.ObjRelocations.Count-1 do
           begin
-            objreloc:=TObjRelocation(ObjRelocations[i]);
+            objreloc:=TObjRelocation(objsec.ObjRelocations[i]);
             address_size:=4;
             case objreloc.typ of
               RELOC_NONE:
@@ -869,24 +862,24 @@ const pemagic : array[0..3] of byte = (
             else
               internalerror(200205183);
             { Only debug sections are allowed to have relocs pointing to unused sections }
-            if not relocsec.used and not (oso_debug in secoptions) then
+            if not relocsec.used and not (oso_debug in objsec.secoptions) then
               internalerror(200603061);
 
             if relocsec.used then
               case objreloc.typ of
                 RELOC_RELATIVE  :
                   begin
-                    address:=address-mempos+relocval;
-                    if TCoffObjData(objdata).win32 then
+                    address:=address-objsec.mempos+relocval;
+                    if TCoffObjData(objsec.objdata).win32 then
                       dec(address,objreloc.dataoffset+4);
                   end;
                 RELOC_RVA:
                   begin
                     { fixup address when the symbol was known in defined object }
-                    if (relocsec.objdata=objdata) then
+                    if (relocsec.objdata=objsec.objdata) then
                       dec(address,TCoffObjSection(relocsec).orgmempos);
 {$ifdef arm}
-                    if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
+                    if (relocsec.objdata=objsec.objdata) and not TCoffObjData(objsec.objdata).eVCobj then
                       inc(address, relocsec.MemPos)
                     else
 {$endif arm}
@@ -895,14 +888,14 @@ const pemagic : array[0..3] of byte = (
                 RELOC_SECREL32 :
                   begin
                     { fixup address when the symbol was known in defined object }
-                    if (relocsec.objdata=objdata) then
+                    if (relocsec.objdata=objsec.objdata) then
                       dec(address,relocsec.ExeSection.MemPos);
                     inc(address,relocval);
                   end;
 {$ifdef arm}
                 RELOC_RELATIVE_24:
                   begin
-                    relocval:=longint(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
+                    relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset) shr 2 - 2;
                     address:=address or (relocval and $ffffff);
                     relocval:=relocval shr 24;
                     if (relocval<>$3f) and (relocval<>0) then
@@ -913,27 +906,27 @@ const pemagic : array[0..3] of byte = (
                 { 64 bit coff only }
                 RELOC_RELATIVE_1:
                   begin
-                    address:=address-mempos+relocval;
+                    address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+1);
                   end;
                 RELOC_RELATIVE_2:
                   begin
-                    address:=address-mempos+relocval;
+                    address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+2);
                   end;
                 RELOC_RELATIVE_3:
                   begin
-                    address:=address-mempos+relocval;
+                    address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+3);
                   end;
                 RELOC_RELATIVE_4:
                   begin
-                    address:=address-mempos+relocval;
+                    address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+4);
                   end;
                 RELOC_RELATIVE_5:
                   begin
-                    address:=address-mempos+relocval;
+                    address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+5);
                   end;
                 RELOC_ABSOLUTE32,
@@ -945,16 +938,16 @@ const pemagic : array[0..3] of byte = (
                     else
                       begin
                         { fixup address when the symbol was known in defined object }
-                        if (relocsec.objdata=objdata) then
+                        if (relocsec.objdata=objsec.objdata) then
                           dec(address,TCoffObjSection(relocsec).orgmempos);
                       end;
 {$ifdef arm}
-                    if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
+                    if (relocsec.objdata=objsec.objdata) and not TCoffObjData(objsec.objdata).eVCobj then
                       inc(address, relocsec.MemPos)
                     else
 {$endif arm}
                       inc(address,relocval);
-                    inc(address,exe.imagebase);
+                    inc(address,imagebase);
                   end;
                 else
                   internalerror(200604014);
@@ -965,19 +958,16 @@ const pemagic : array[0..3] of byte = (
             data.Seek(objreloc.dataoffset);
             data.Write(address,address_size);
 {$ifdef cpu64bitaddr}
-            if (objreloc.typ = RELOC_ABSOLUTE32) and (name <> '.stab') then
+            if (objreloc.typ = RELOC_ABSOLUTE32) and (objsec.name <> '.stab') then
               begin
                 if assigned(objreloc.symbol) then
                   s:=objreloc.symbol.Name
                 else
                   s:=objreloc.objsection.Name;
-                Message2(link_w_32bit_absolute_reloc, ObjData.Name, s);
+                Message2(link_w_32bit_absolute_reloc, objsec.ObjData.Name, s);
               end;
 {$endif cpu64bitaddr}
           end;
-        {for size = 0 data is not valid PM }
-        if assigned(data) and (data.size <> size) then
-          internalerror(2010092801);
       end;
 
 
@@ -1191,14 +1181,14 @@ const pemagic : array[0..3] of byte = (
         with TCoffObjSection(p) do
           begin
             Inc(plongword(arg)^);
-            secidx:=plongword(arg)^;
+            index:=plongword(arg)^;
 
             secsymidx:=symidx;
             { Both GNU and Microsoft toolchains write section symbols using
               storage class 3 (STATIC).
               No reason to use COFF_SYM_SECTION, it is silently converted to 3 by
               PE binutils and causes warnings with DJGPP binutils. }
-            write_symbol(name,mempos,secidx,COFF_SYM_LOCAL,1);
+            write_symbol(name,mempos,index,COFF_SYM_LOCAL,1);
             { AUX }
             fillchar(secrec,sizeof(secrec),0);
             secrec.len:=Size;
@@ -1326,13 +1316,13 @@ const pemagic : array[0..3] of byte = (
                  AB_GLOBAL :
                    begin
                      globalval:=COFF_SYM_GLOBAL;
-                     sectionval:=TCoffObjSection(objsym.objsection).secidx;
+                     sectionval:=objsym.objsection.index;
                      value:=objsym.address;
                    end;
                  AB_LOCAL :
                    begin
                      globalval:=COFF_SYM_LOCAL;
-                     sectionval:=TCoffObjSection(objsym.objsection).secidx;
+                     sectionval:=objsym.objsection.index;
                      value:=objsym.address;
                    end;
                  else
@@ -1954,9 +1944,9 @@ const pemagic : array[0..3] of byte = (
                 value:=address;
               end;
             if bind=AB_LOCAL then
-              globalval:=3
+              globalval:=COFF_SYM_LOCAL
             else
-              globalval:=2;
+              globalval:=COFF_SYM_GLOBAL;
             { reloctype address to the section in the executable }
             write_symbol(name,value,secval,globalval,0);
           end;
@@ -2336,7 +2326,7 @@ const pemagic : array[0..3] of byte = (
           begin
             idataExeSec:=FindExeSection('.idata');
             if idataExeSec<>nil then
-              idataExeSec.SecOptions:=idataExeSec.SecOptions - [oso_write] + [oso_readonly];
+              idataExeSec.SecOptions:=idataExeSec.SecOptions - [oso_write];
           end;
 
         { Section headers }
@@ -2666,7 +2656,7 @@ const pemagic : array[0..3] of byte = (
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
           exit;
-        objsec:=internalObjData.createsection('.reloc',0,exesec.SecOptions+[oso_data]);
+        objsec:=internalObjData.createsection('.reloc',0,[oso_data,oso_load,oso_keep]);
         exesec.AddObjSection(objsec);
         pgaddr:=longword(-1);
         hdrpos:=longword(-1);
@@ -2712,17 +2702,18 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TPECoffexeoutput.Order_End;
+    procedure TPECoffexeoutput.MemPos_Start;
       var
         exesec : TExeSection;
       begin
+        if RelocSection then
+          begin
+            exesec:=FindExeSection('.reloc');
+            if exesec=nil then
+              InternalError(2012072401);
+            exesec.SecOptions:=exesec.SecOptions-[oso_disabled];
+          end;
         inherited;
-        if not IsSharedLibrary then
-          exit;
-        exesec:=FindExeSection('.reloc');
-        if exesec=nil then
-          exit;
-        exesec.SecOptions:=exesec.SecOptions + [oso_Data,oso_keep,oso_load];
       end;
 
 

@@ -40,8 +40,7 @@ unit cpupara;
           procedure getintparaloc(calloption : tproccalloption; nr : longint; def : tdef; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
-          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
-          procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
@@ -246,23 +245,17 @@ unit cpupara;
       end;
 
 
-    procedure tppcparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-      begin
-        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
-      end;
-
-
-    function tppcparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
+    function tppcparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
-        if set_common_funcretloc_info(p,def,retcgsize,result) then
+        if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           exit;
 
         paraloc:=result.add_location;
         { Return in FPU register? }
-        if def.typ=floatdef then
+        if result.def.typ=floatdef then
           begin
             paraloc^.loc:=LOC_FPUREGISTER;
             paraloc^.register:=NR_FPU_RESULT_REG;
@@ -363,7 +356,7 @@ unit cpupara;
                 end;
               hp.paraloc[side].reset;
               { currently only support C-style array of const }
-              if (p.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) and
+              if (p.proccalloption in cstylearrayofconst) and
                  is_array_of_const(paradef) then
                 begin
                   paraloc:=hp.paraloc[side].add_location;
@@ -580,7 +573,7 @@ unit cpupara;
         firstfloatreg:=curfloatreg;
 
         result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset, false);
-        if (p.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) then
+        if (p.proccalloption in cstylearrayofconst) then
           { just continue loading the parameters in the registers }
           begin
             result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,true);

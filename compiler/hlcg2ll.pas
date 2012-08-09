@@ -152,12 +152,12 @@ unit hlcg2ll;
           }
           procedure a_loadaddr_ref_cgpara(list : TAsmList;fromsize : tdef;const r : treference;const cgpara : TCGPara);override;
 
-          procedure a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; weak: boolean);override;
+          function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);override;
           procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);override;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
-          procedure a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr);override;
+          function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;override;
 
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : aint;register : tregister);override;
@@ -256,7 +256,6 @@ unit hlcg2ll;
           procedure g_flags2ref(list: TAsmList; size: tdef; const f: tresflags; const ref:TReference); override;
 {$endif cpuflags}
 
-//          procedure g_maybe_testself(list : TAsmList;reg:tregister);
 //          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
              to destination.
@@ -282,9 +281,6 @@ unit hlcg2ll;
           {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); override;
           procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation);override;
-
-          procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;arrdef: tarraydef;destreg:tregister);override;
-          procedure g_releasevaluepara_openarray(list : TAsmList;arrdef: tarraydef;const l:tlocation);override;
 
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
@@ -460,9 +456,10 @@ implementation
       cg.a_loadaddr_ref_cgpara(list,r,cgpara);
     end;
 
-  procedure thlcg2ll.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; weak: boolean);
+  function thlcg2ll.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
     begin
       cg.a_call_name(list,s,weak);
+      result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
   procedure thlcg2ll.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
@@ -475,9 +472,10 @@ implementation
       cg.a_call_ref(list,ref);
     end;
 
-  procedure thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr);
+  function thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
     begin
       cg.a_call_name_static(list,s);
+      result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
   procedure thlcg2ll.a_load_const_reg(list: TAsmList; tosize: tdef; a: aint; register: tregister);
@@ -936,16 +934,6 @@ implementation
   procedure thlcg2ll.g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; var ovloc: tlocation);
     begin
       cg.g_overflowCheck_loc(list,loc,def,ovloc);
-    end;
-
-  procedure thlcg2ll.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
-    begin
-      cg.g_copyvaluepara_openarray(list,ref,lenloc,arrdef.elesize,destreg);
-    end;
-
-  procedure thlcg2ll.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
-    begin
-      cg.g_releasevaluepara_openarray(list,l);
     end;
 
   procedure thlcg2ll.g_profilecode(list: TAsmList);

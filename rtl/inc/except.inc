@@ -102,6 +102,7 @@ var
   frames      : PPointer;
   prev_frame,
   curr_frame,
+  curr_addr,
   caller_frame,
   caller_addr : Pointer;
 begin
@@ -119,15 +120,16 @@ begin
 
   { Backtrace }
   curr_frame:=AFrame;
-  prev_frame:=get_frame;
+  curr_addr:=AnAddr;
+  prev_frame:=get_caller_frame(curr_addr, curr_frame);
   frames:=nil;
   framebufsize:=0;
   framecount:=0;
   while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
         (curr_frame<(StackBottom + StackLength)) do
    Begin
-     caller_addr := get_caller_addr(curr_frame);
-     caller_frame := get_caller_frame(curr_frame);
+     caller_addr := get_caller_addr(curr_frame, curr_addr);
+     caller_frame := get_caller_frame(curr_frame, curr_addr);
      if (caller_addr=nil) or
         (caller_frame=nil) then
        break;
@@ -139,6 +141,7 @@ begin
      frames[framecount]:=caller_addr;
      inc(framecount);
      prev_frame:=curr_frame;
+     curr_addr:=caller_addr;
      curr_frame:=caller_frame;
    End;
   NewObj^.framecount:=framecount;

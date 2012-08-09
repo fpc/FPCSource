@@ -37,27 +37,77 @@ const
 uses
  DosCalls;
 
+threadvar
+ DynLibErrNo: cardinal;
+ DynLibErrPath: array [0..259] of char;
+
 function LoadLibrary (const Name: AnsiString): TLibHandle;
 var
- ErrPath: array [0..259] of char;
  Handle: longint;
 begin
- if DosLoadModule (@ErrPath, SizeOf (ErrPath), PChar (Name), Handle) = 0
-                                then Result := Handle else Result := NilHandle;
+ DynLibErrPath [0] := #0;
+ DynLibErrNo := DosLoadModule (@DynLibErrPath [0], SizeOf (DynLibErrPath),
+                                                         PChar (Name), Handle);
+ if DynLibErrNo = 0 then
+  Result := Handle
+ else
+  Result := NilHandle;
 end;
 
 function GetProcedureAddress (Lib: TLibHandle; const ProcName: AnsiString): pointer;
 var
  P: pointer;
 begin
- if DosQueryProcAddr (Lib, 0, PChar (ProcName), P) = 0 then Result := P
-                                                            else Result := nil;
+ DynLibErrPath [0] := #0;
+ DynLibErrNo := DosQueryProcAddr (Lib, 0, PChar (ProcName), P);
+ if DynLibErrNo = 0 then
+  Result := P
+ else
+  Result := nil;
 end;
 
 function UnloadLibrary (Lib: TLibHandle): boolean;
 begin
- Result := DosFreeModule (Lib) = 0;
+ DynLibErrPath [0] := #0;
+ DynLibErrNo := DosFreeModule (Lib);
+ Result := DynLibErrNo = 0;
 end;
 
-{$endif}
+function GetDynLibsError: longint;
+begin
+ GetDynLibsError := DynLibErrNo;
+end;
 
+function GetDynLibsErrorStr: string;
+const
+ SysMsgFile: array [0..10] of char = 'OSO001.MSG'#0;
+var
+ VarArr: array [1..9] of PChar;
+ OutBuf: array [0..999] of char;
+ RetMsgSize: cardinal;
+ RC: cardinal;
+begin
+ if DynLibErrNo = 0 then
+  GetDynLibsErrorStr := ''
+ else
+  begin
+   VarArr [1] := @DynLibErrPath [0];
+   RC := DosGetMessage (@VarArr, 1, @OutBuf [0], SizeOf (OutBuf),
+                                     DynLibErrNo, @SysMsgFile [0], RetMsgSize);
+   if RC = 0 then
+    Result := StrPas (@OutBuf [0])
+   else
+    begin
+     WriteStr (Result, DynLibErrNo);
+     Result := 'Error ' + Result;
+    end;
+   if DynLibErrPath [0] <> #0 then
+    Result := StrPas (@DynLibErrPath [0]) + ' - ' + Result;
+  end;
+end;
+
+function GetLoadErrorStr: string;
+begin
+ GetLoadErrorStr := GetDynLibsErrorStr;
+end;
+{$endif}

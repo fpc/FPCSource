@@ -216,6 +216,7 @@ unit comobj;
       TTypedComObjectFactory = class(TComObjectFactory)
       private
         FClassInfo: ITypeInfo;
+        FTypeInfoCount:integer;
       public
         constructor Create(AComServer: TComServerObject; TypedComClass: TTypedComClass; const AClassID: TGUID;
           AInstancing: TClassInstancing; AThreadingModel: TThreadingModel = tmSingle);
@@ -241,9 +242,15 @@ unit comobj;
 
       { TAutoObjectFactory }
       TAutoObjectFactory = class(TTypedComObjectFactory)
+      private
+        FDispIntfEntry: PInterfaceEntry;
+        FDispTypeInfo: ITypeInfo;
       public
         constructor Create(AComServer: TComServerObject; AutoClass: TAutoClass; const AClassID: TGUID;
           AInstancing: TClassInstancing; AThreadingModel: TThreadingModel = tmSingle);
+        function GetIntfEntry(Guid: TGUID): PInterfaceEntry; virtual;
+        property DispIntfEntry: PInterfaceEntry read FDispIntfEntry;
+        property DispTypeInfo: ITypeInfo read FDispTypeInfo;
       end;
 
       { TAutoIntfObject }
@@ -1477,6 +1484,7 @@ HKCR
         OleCheck(FClassInfo.GetDocumentation(-1, @TypedName, @TypedDescription, nil, nil));
         FClassInfo.GetTypeAttr(ppTypeAttr);
         try
+          FTypeInfoCount := ppTypeAttr^.cImplTypes;
           TypedVersion := '';
           if (ppTypeAttr^.wMajorVerNum <> 0) or (ppTypeAttr^.wMinorVerNum <> 0) then
           begin
@@ -1493,9 +1501,22 @@ HKCR
 
 
     function TTypedComObjectFactory.GetInterfaceTypeInfo(TypeFlags: Integer): ITypeInfo;
+    var
+      index, ImplTypeFlags: Integer;
+      RefType: HRefType;
+    begin
+      Result := nil;
+      for index := 0 to FTypeInfoCount - 1 do
       begin
-        RunError(217);
+        OleCheck(ClassInfo.GetImplTypeFlags(index, ImplTypeFlags));
+        if ImplTypeFlags = TypeFlags then
+        begin
+          OleCheck(ClassInfo.GetRefTypeOfImplType(index, RefType));
+          OleCheck(ClassInfo.GetRefTypeInfo(RefType, Result));
+          break;
+        end;
       end;
+    end;
 
 
     procedure TTypedComObjectFactory.UpdateRegistry(Register: Boolean);
@@ -1677,10 +1698,9 @@ HKCR
           Result := DISP_E_UNKNOWNINTERFACE
         else
         begin
-      //  Function  Invoke(pvInstance: Pointer; memid: MEMBERID; wFlags: WORD; VAR pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT puArgErr: UINT):HResult;StdCall;
-      //  Result := fTypeInfo.Invoke(IDispatch(Self), DispID, Flags, TDispParams(params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
-          OleCheck(QueryInterface(TAutoObjectFactory(Factory).ClassID, fInterfacePointer));
-          Result := TAutoObjectFactory(Factory).ClassInfo.Invoke(fInterfacePointer, DispID, Flags, TDispParams(params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
+          Result := TAutoObjectFactory(Factory).DispTypeInfo.Invoke(Pointer(
+            PtrUint(Self) + TAutoObjectFactory(Factory).DispIntfEntry^.IOffset),
+            DispID, Flags, TDispParams(Params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
         end;
       end;
 
@@ -1689,9 +1709,23 @@ HKCR
     constructor TAutoObjectFactory.Create(AComServer: TComServerObject;
       AutoClass: TAutoClass; const AClassID: TGUID; AInstancing: TClassInstancing;
       AThreadingModel: TThreadingModel);
+         var
+           ppTypeAttr: lpTYPEATTR;
       begin
         inherited Create(AComServer, AutoClass, AClassID, AInstancing, AThreadingModel);
+        FDispTypeInfo := GetInterfaceTypeInfo(IMPLTYPEFLAG_FDEFAULT);
+        OleCheck(FDispTypeInfo.GetTypeAttr(ppTypeAttr));
+        try
+          FDispIntfEntry := GetIntfEntry(ppTypeAttr^.guid);
+        finally
+          FDispTypeInfo.ReleaseTypeAttr(ppTypeAttr);
+        end;
       end;
+
+    function TAutoObjectFactory.GetIntfEntry(Guid: TGUID): PInterfaceEntry;
+    begin
+      Result := FComClass.GetInterfaceEntry(Guid);
+    end;
 
 
     procedure TOleStream.Check(err:integer);

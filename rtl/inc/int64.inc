@@ -153,7 +153,7 @@
       begin
          fpc_div_qword:=0;
          if n=0 then
-           HandleErrorFrame(200,get_frame);
+           HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -185,7 +185,7 @@
       begin
          fpc_mod_qword:=0;
          if n=0 then
-           HandleErrorFrame(200,get_frame);
+           HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -218,7 +218,7 @@
 
       begin
          if n=0 then
-           HandleErrorFrame(200,get_frame);
+           HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
          { can the fpu do the work? }
            begin
               sign:=false;
@@ -256,7 +256,7 @@
 
       begin
          if n=0 then
-           HandleErrorFrame(200,get_frame);
+           HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
          if n<0 then
            nq:=-n
          else
@@ -306,7 +306,7 @@
                   overflow occurs                                      }
                 if checkoverflow and (f1overflowed or ((_f1<>0) and (f1<>0) and
                   ((_f1>fpc_mul_qword) or (f1>fpc_mul_qword)))) then
-                  HandleErrorFrame(215,get_frame);
+                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
               end;
             { when bootstrapping, we forget about overflow checking for qword :) }
             f1overflowed:=f1overflowed or ((f1 and (1 shl 63))<>0);
@@ -351,7 +351,7 @@
                 (q3 shr 63<>0) and
                  ((q3<>qword(qword(1) shl 63)) or not(sign))
                 ) then
-                HandleErrorFrame(215,get_frame);
+                HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 
               if sign then
                 fpc_mul_int64:=-q3

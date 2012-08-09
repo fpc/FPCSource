@@ -86,6 +86,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure alignrecord(fieldoffset:asizeint;varalign:shortint);
           procedure addfield(sym:tfieldvarsym;vis:tvisibility);
+          procedure addfieldlist(list: tfpobjectlist; maybereorder: boolean);
           procedure addalignmentpadding;
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
@@ -100,6 +101,7 @@ interface
           { size in bytes of padding }
           _paddingsize   : word;
           procedure setdatasize(val: asizeint);
+          function getfieldoffset(sym: tfieldvarsym; base: asizeint; var globalfieldalignment: shortint): asizeint;
         public
           function iscurrentunit: boolean; override;
           property datasize : asizeint read _datasize write setdatasize;
@@ -934,7 +936,6 @@ implementation
     procedure tabstractrecordsymtable.addfield(sym:tfieldvarsym;vis:tvisibility);
       var
         l      : asizeint;
-        varalignfield,
         varalign : shortint;
         vardef : tdef;
       begin
@@ -949,16 +950,7 @@ implementation
         { Calculate field offset }
         l:=sym.getsize;
         vardef:=sym.vardef;
-        varalign:=vardef.alignment;
-{$if defined(powerpc) or defined(powerpc64)}
-        { aix is really annoying: the recommended scalar alignment for both
-          int64 and double is 64 bits, but in structs int64 has to be aligned
-          to 8 bytes and double to 4 bytes }
-        if (target_info.system in systems_aix) and
-           is_double(vardef) then
-          varalign:=4;
-{$endif powerpc or powerpc64}
-
+        varalign:=vardef.structalignment;
         case usefieldalignment of
           bit_alignment:
             begin
@@ -997,61 +989,160 @@ implementation
               { rest is not applicable }
               exit;
             end;
-          { Calc the alignment size for C style records }
-          C_alignment:
+          else
             begin
-              if (varalign>4) and
-                ((varalign mod 4)<>0) and
-                (vardef.typ=arraydef) then
-                Message1(sym_w_wrong_C_pack,vardef.typename);
-              if varalign=0 then
-                varalign:=l;
-              if (fieldalignment<current_settings.alignment.maxCrecordalign) then
+              sym.fieldoffset:=getfieldoffset(sym,_datasize,fieldalignment);
+              if l>high(asizeint)-sym.fieldoffset then
                 begin
-                  if (varalign>16) and (fieldalignment<32) then
-                    fieldalignment:=32
-                  else if (varalign>12) and (fieldalignment<16) then
-                    fieldalignment:=16
-                  { 12 is needed for long double }
-                  else if (varalign>8) and (fieldalignment<12) then
-                    fieldalignment:=12
-                  else if (varalign>4) and (fieldalignment<8) then
-                    fieldalignment:=8
-                  else if (varalign>2) and (fieldalignment<4) then
-                    fieldalignment:=4
-                  else if (varalign>1) and (fieldalignment<2) then
-                    fieldalignment:=2;
-                end;
-              fieldalignment:=min(fieldalignment,current_settings.alignment.maxCrecordalign);
-            end;
-          mac68k_alignment:
-            begin
-              { mac68k alignment (C description):
-                 * char is aligned to 1 byte
-                 * everything else (except vector) is aligned to 2 bytes
-                 * vector is aligned to 16 bytes
-              }
-              if l>1 then
-                fieldalignment:=2
+                  Message(sym_e_segment_too_large);
+                  _datasize:=high(asizeint);
+                end
               else
-                fieldalignment:=1;
-              varalign:=2;
+                _datasize:=sym.fieldoffset+l;
+              { Calc alignment needed for this record }
+              alignrecord(sym.fieldoffset,varalign);
             end;
         end;
-        if varalign=0 then
-          varalign:=size_2_align(l);
-        varalignfield:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
+      end;
 
-        sym.fieldoffset:=align(_datasize,varalignfield);
-        if l>high(asizeint)-sym.fieldoffset then
+
+    function field_alignment_compare(item1, item2: pointer): integer;
+      var
+        field1: tfieldvarsym absolute item1;
+        field2: tfieldvarsym absolute item2;
+      begin
+        { we don't care about static fields, those become global variables }
+        if (sp_static in field1.symoptions) or
+           (sp_static in field2.symoptions) then
+          exit(0);
+        { sort from large to small alignment, and in case of the same alignment
+          in declaration order (items declared close together are possibly
+          also related and hence possibly used together -> putting them next
+          to each other can improve cache behaviour) }
+        result:=field2.vardef.alignment-field1.vardef.alignment;
+        if result=0 then
+          result:=field1.symid-field2.symid;
+      end;
+
+
+    procedure tabstractrecordsymtable.addfieldlist(list: tfpobjectlist; maybereorder: boolean);
+      var
+        fieldvs, insertfieldvs, bestfieldvs: tfieldvarsym;
+        base, fieldoffset, space, insertfieldsize, insertfieldoffset, bestinsertfieldoffset, bestspaceleft: asizeint;
+        i, j, bestfieldindex: longint;
+        globalfieldalignment,
+        prevglobalfieldalignment,
+        newfieldalignment: shortint;
+        changed: boolean;
+      begin
+        if maybereorder and
+           (cs_opt_reorder_fields in current_settings.optimizerswitches) then
           begin
-            Message(sym_e_segment_too_large);
-            _datasize:=high(asizeint);
-          end
-        else
-          _datasize:=sym.fieldoffset+l;
-        { Calc alignment needed for this record }
-        alignrecord(sym.fieldoffset,varalign);
+            { sort the non-class fields to minimise losses due to alignment }
+            list.sort(@field_alignment_compare);
+            { now fill up gaps caused by alignment skips with smaller fields
+              where possible }
+            repeat
+              i:=0;
+              base:=_datasize;
+              globalfieldalignment:=fieldalignment;
+              changed:=false;
+              while i<list.count do
+                begin
+                  fieldvs:=tfieldvarsym(list[i]);
+                  if sp_static in fieldvs.symoptions then
+                    begin
+                      inc(i);
+                      continue;
+                    end;
+                  prevglobalfieldalignment:=globalfieldalignment;
+                  fieldoffset:=getfieldoffset(fieldvs,base,globalfieldalignment);
+                  newfieldalignment:=globalfieldalignment;
+
+                  { size of the gap between the end of the previous field and
+                    the start of the current one }
+                  space:=fieldoffset-base;
+                  bestspaceleft:=space;
+                  while space>0 do
+                    begin
+                      bestfieldindex:=-1;
+                      for j:=i+1 to list.count-1 do
+                        begin
+                          insertfieldvs:=tfieldvarsym(list[j]);
+                          if sp_static in insertfieldvs.symoptions then
+                            continue;
+                          insertfieldsize:=insertfieldvs.getsize;
+                          { can the new field fit possibly in the gap? }
+                          if insertfieldsize<=space then
+                            begin
+                             { restore globalfieldalignment to situation before
+                               the original field was inserted }
+                              globalfieldalignment:=prevglobalfieldalignment;
+                              { at what offset would it be inserted? (this new
+                                field has its own alignment requirements, which
+                                may make it impossible to fit after all) }
+                              insertfieldoffset:=getfieldoffset(insertfieldvs,base,globalfieldalignment);
+                              globalfieldalignment:=prevglobalfieldalignment;
+                              { taking into account the alignment, does it still
+                                fit and if so, does it fit better than the
+                                previously found best fit? }
+                              if (insertfieldoffset+insertfieldsize<=fieldoffset) and
+                                 (fieldoffset-insertfieldoffset-insertfieldsize<bestspaceleft) then
+                                begin
+                                  { new best fit }
+                                  bestfieldindex:=j;
+                                  bestinsertfieldoffset:=insertfieldoffset;
+                                  bestspaceleft:=fieldoffset-insertfieldoffset-insertfieldsize;
+                                  if bestspaceleft=0 then
+                                    break;
+                                end;
+                            end;
+                        end;
+                      { if we didn't find any field to fit, stop trying for this
+                        gap }
+                      if bestfieldindex=-1 then
+                        break;
+                      changed:=true;
+                      { we found a field to insert -> adjust the new base
+                        address }
+                      base:=bestinsertfieldoffset+tfieldvarsym(list[bestfieldindex]).getsize;
+                      { update globalfieldalignment for this newly inserted
+                        field }
+                      getfieldoffset(tfieldvarsym(list[bestfieldindex]),base,globalfieldalignment);
+                      { move the new field before the current one }
+                      list.move(bestfieldindex,i);
+                      { and skip the new field (which is now at position i) }
+                      inc(i);
+                      { there may be more space left -> continue }
+                      space:=bestspaceleft;
+                    end;
+                  if base>fieldoffset then
+                    internalerror(2012071302);
+                  { check the next field }
+                  base:=fieldoffset+fieldvs.getsize;
+                  { since the original field had the same or greater alignment
+                    than anything we inserted before it, the global field
+                    alignment is still the same now as it was originally after
+                    inserting that field }
+                  globalfieldalignment:=newfieldalignment;
+                  inc(i);
+                end;
+            { there may be small gaps left *before* inserted fields }
+          until not changed;
+        end;
+        { finally, set the actual field offsets }
+        for i:=0 to list.count-1 do
+          begin
+            fieldvs:=tfieldvarsym(list[i]);
+            { static data fields are already inserted in the globalsymtable }
+            if not(sp_static in fieldvs.symoptions) then
+              begin
+                { read_record_fields already set the visibility of the fields,
+                  because a single list can contain symbols with different
+                  visibility }
+                addfield(fieldvs,fieldvs.visibility);
+              end;
+          end;
       end;
 
 
@@ -1143,6 +1234,69 @@ implementation
         if (usefieldalignment=bit_alignment) then
           { can overflow in non bitpacked records }
           databitsize:=val*8;
+      end;
+
+    function tabstractrecordsymtable.getfieldoffset(sym: tfieldvarsym; base: asizeint; var globalfieldalignment: shortint): asizeint;
+      var
+        l      : asizeint;
+        varalignfield,
+        varalign : shortint;
+        vardef : tdef;
+      begin
+        { Calculate field offset }
+        l:=sym.getsize;
+        vardef:=sym.vardef;
+        varalign:=vardef.structalignment;
+        case usefieldalignment of
+          bit_alignment:
+            { has to be handled separately }
+            internalerror(2012071301);
+          C_alignment:
+            begin
+              { Calc the alignment size for C style records }
+              if (varalign>4) and
+                ((varalign mod 4)<>0) and
+                (vardef.typ=arraydef) then
+                Message1(sym_w_wrong_C_pack,vardef.typename);
+              if varalign=0 then
+                varalign:=l;
+              if (globalfieldalignment<current_settings.alignment.maxCrecordalign) then
+                begin
+                  if (varalign>16) and (globalfieldalignment<32) then
+                    globalfieldalignment:=32
+                  else if (varalign>12) and (globalfieldalignment<16) then
+                    globalfieldalignment:=16
+                  { 12 is needed for long double }
+                  else if (varalign>8) and (globalfieldalignment<12) then
+                    globalfieldalignment:=12
+                  else if (varalign>4) and (globalfieldalignment<8) then
+                    globalfieldalignment:=8
+                  else if (varalign>2) and (globalfieldalignment<4) then
+                    globalfieldalignment:=4
+                  else if (varalign>1) and (globalfieldalignment<2) then
+                    globalfieldalignment:=2;
+                end;
+              globalfieldalignment:=min(globalfieldalignment,current_settings.alignment.maxCrecordalign);
+            end;
+          mac68k_alignment:
+            begin
+              { mac68k alignment (C description):
+                 * char is aligned to 1 byte
+                 * everything else (except vector) is aligned to 2 bytes
+                 * vector is aligned to 16 bytes
+              }
+              if l>1 then
+                globalfieldalignment:=2
+              else
+                globalfieldalignment:=1;
+              varalign:=2;
+            end;
+        end;
+        if varalign=0 then
+          varalign:=size_2_align(l);
+        varalignfield:=used_align(varalign,current_settings.alignment.recordalignmin,globalfieldalignment);
+
+        result:=align(base,varalignfield);
       end;
 
     function tabstractrecordsymtable.iscurrentunit: boolean;

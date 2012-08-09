@@ -668,7 +668,9 @@ implementation
           A_FMDHR,A_FMRDH,A_FMDLR,A_FMRDL,
           A_FNEGS,A_FNEGD,
           A_FSITOS,A_FSITOD,A_FTOSIS,A_FTOSID,
-          A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD:
+          A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD,
+          A_SXTB16,A_UXTB16,
+          A_UXTB,A_UXTH,A_SXTB,A_SXTH:
             if opnr=0 then
               result:=operand_write
             else

@@ -24,6 +24,11 @@ const
 {$i errno-sparc.inc}
 {$endif CPUSPARC}
 
+{$ifdef CPUMIPS}
+{$define FPC_HAS_ESYS}
+{$i errno-mips.inc}
+{$endif CPUMIPS}
+
 {$ifndef FPC_HAS_ESYS}
   ESysEPERM       = 1;    { Operation not permitted }
   ESysENOENT      = 2;    { No such file or directory }

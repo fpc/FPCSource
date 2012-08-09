@@ -57,6 +57,11 @@ endif
 ifeq ($(PPC_TARGET),powerpc64)
 override FPCOPT+= -Fu$(COMPILERDIR)/ppcgen
 endif
+# mipsel specific
+ifeq ($(PPC_TARGET),mipsel)
+override FPCOPT+= -Fu$(COMPILERDIR)/mips
+endif
+
 
 [rules]
 .NOTPARALLEL:

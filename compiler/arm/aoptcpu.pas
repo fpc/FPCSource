@@ -261,7 +261,7 @@ Implementation
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       hp1,hp2: tai;
-      i: longint;
+      i, i2: longint;
       TmpUsedRegs: TAllUsedRegs;
       tempop: tasmop;
 
@@ -392,8 +392,6 @@ Implementation
                     { fold
                       mov reg1,reg0, shift imm1
                       mov reg1,reg1, shift imm2
-                      to
-                      mov reg1,reg0, shift imm1+imm2
                     }
                     if (taicpu(p).ops=3) and
                        (taicpu(p).oper[2]^.typ = top_shifterop) and
@@ -444,7 +442,9 @@ Implementation
                           to
                           mov reg1,reg0, shift imm1+imm2
                         }
-                        else if (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(hp1).oper[2]^.shifterop^.shiftmode) then
+                        else if (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(hp1).oper[2]^.shifterop^.shiftmode) or
+                          { asr makes no use after a lsr, the asr can be foled into the lsr }
+                           ((taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSR) and (taicpu(hp1).oper[2]^.shifterop^.shiftmode=SM_ASR) ) then
                           begin
                             inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(hp1).oper[2]^.shifterop^.shiftimm);
                             { avoid overflows }
@@ -465,10 +465,78 @@ Implementation
                                 else
                                   internalerror(2008072803);
                               end;
-                            asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShift2Shift done')), p);
+                            asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShift2Shift 1 done')), p);
                             asml.remove(hp1);
                             hp1.free;
                             result := true;
+                          end
+                        { fold
+                          mov reg1,reg0, shift imm1
+                          mov reg1,reg1, shift imm2
+                          mov reg1,reg1, shift imm3 ...
+                        }
+                        else if getnextinstruction(hp1,hp2) and
+                          MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
+                          (taicpu(hp2).ops=3) and
+                          MatchOperand(taicpu(hp2).oper[0]^, taicpu(hp1).oper[0]^.reg) and
+                          MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[0]^.reg) and
+                          (taicpu(hp2).oper[2]^.typ = top_shifterop) and
+                          (taicpu(hp2).oper[2]^.shifterop^.rs = NR_NO) then
+                          begin
+                            { mov reg1,reg0, lsl imm1
+                              mov reg1,reg1, lsr/asr imm2
+                              mov reg1,reg1, lsl imm3 ...
+
+                              if imm3<=imm1 and imm2>=imm3
+                              to
+                              mov reg1,reg0, lsl imm1
+                              mov reg1,reg1, lsr/asr imm2-imm3
+                            }
+                            if (taicpu(p).oper[2]^.shifterop^.shiftmode=SM_LSL) and (taicpu(hp2).oper[2]^.shifterop^.shiftmode=SM_LSL) and
+                              (taicpu(hp1).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and
+                              (taicpu(hp2).oper[2]^.shifterop^.shiftimm<=taicpu(p).oper[2]^.shifterop^.shiftimm) and
+                              (taicpu(hp1).oper[2]^.shifterop^.shiftimm>=taicpu(hp2).oper[2]^.shifterop^.shiftimm) then
+                              begin
+                                dec(taicpu(hp1).oper[2]^.shifterop^.shiftimm,taicpu(hp2).oper[2]^.shifterop^.shiftimm);
+                                asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShiftShift2ShiftShift 1 done')), p);
+                                asml.remove(hp2);
+                                hp2.free;
+                                result := true;
+                                if taicpu(hp1).oper[2]^.shifterop^.shiftimm=0 then
+                                  begin
+                                    asml.remove(hp1);
+                                    hp1.free;
+                                  end;
+                              end
+                            { mov reg1,reg0, lsr/asr imm1
+                              mov reg1,reg1, lsl imm2
+                              mov reg1,reg1, lsr/asr imm3 ...
+
+                              if imm3>=imm1 and imm2>=imm1
+                              to
+                              mov reg1,reg0, lsl imm2-imm1
+                              mov reg1,reg1, lsr/asr imm3 ...
+                            }
+                            else if (taicpu(p).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and (taicpu(hp2).oper[2]^.shifterop^.shiftmode in [SM_ASR,SM_LSR]) and
+                              (taicpu(hp1).oper[2]^.shifterop^.shiftmode=SM_LSL) and
+                              (taicpu(hp2).oper[2]^.shifterop^.shiftimm>=taicpu(p).oper[2]^.shifterop^.shiftimm) and
+                              (taicpu(hp1).oper[2]^.shifterop^.shiftimm>=taicpu(p).oper[2]^.shifterop^.shiftimm) then
+                              begin
+                                dec(taicpu(hp1).oper[2]^.shifterop^.shiftimm,taicpu(p).oper[2]^.shifterop^.shiftimm);
+                                taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[1]^.reg;
+                                asml.insertbefore(tai_comment.Create(strpnew('Peephole ShiftShiftShift2ShiftShift 2 done')), p);
+                                asml.remove(p);
+                                p.free;
+                                p:=hp2;
+                                if taicpu(hp1).oper[2]^.shifterop^.shiftimm=0 then
+                                  begin
+                                    taicpu(hp2).oper[1]^.reg:=taicpu(hp1).oper[1]^.reg;
+                                    asml.remove(hp1);
+                                    hp1.free;
+                                    p:=hp2;
+                                  end;
+                                result := true;
+                              end;
                           end;
                       end;
                     { Change the common
@@ -505,33 +573,58 @@ Implementation
                         hp1.free;
                       end;
 
-                    { 
-                      This changes the very common 
-                      mov r0, #0
-                      str r0, [...]
-                      mov r0, #0
-                      str r0, [...]
-
-                      and removes all superfluous mov instructions
+                    {
+                      optimize
+                      mov rX, yyyy
+                      ....
                     }
                     if (taicpu(p).ops = 2) and
-                       (taicpu(p).oper[1]^.typ = top_const) and
-                       GetNextInstruction(p,hp1) then
+                       GetNextInstruction(p,hp1) and
+                       (tai(hp1).typ = ait_instruction) then
                       begin
-                        while MatchInstruction(hp1, A_STR, [taicpu(p).condition], []) and
-                              MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
-                              GetNextInstruction(hp1, hp2) and
-                              MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
-                              (taicpu(hp2).ops = 2) and
-                              MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^) and
-                              MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[1]^) do
-                          begin
-                            asml.insertbefore(tai_comment.Create(strpnew('Peephole MovStrMov done')), hp2);
-                            GetNextInstruction(hp2,hp1);
-                            asml.remove(hp2);
-                            hp2.free;
-                            if not assigned(hp1) then break;
-                          end;
+                        {
+                          This changes the very common
+                          mov r0, #0
+                          str r0, [...]
+                          mov r0, #0
+                          str r0, [...]
+
+                          and removes all superfluous mov instructions
+                        }
+                        if (taicpu(p).oper[1]^.typ = top_const) and
+                           (taicpu(hp1).opcode=A_STR) then
+                          while MatchInstruction(hp1, A_STR, [taicpu(p).condition], []) and
+                                MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
+                                GetNextInstruction(hp1, hp2) and
+                                MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
+                                (taicpu(hp2).ops = 2) and
+                                MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^) and
+                                MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[1]^) do
+                            begin
+                              asml.insertbefore(tai_comment.Create(strpnew('Peephole MovStrMov done')), hp2);
+                              GetNextInstruction(hp2,hp1);
+                              asml.remove(hp2);
+                              hp2.free;
+                              if not assigned(hp1) then break;
+                            end
+                        {
+                          This removes the first mov from
+                          mov rX,...
+                          mov rX,...
+                        }
+                        else if taicpu(hp1).opcode=A_MOV then
+                          while MatchInstruction(hp1, A_MOV, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+                                (taicpu(hp1).ops = 2) and
+                                MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) do
+                            begin
+                              asml.insertbefore(tai_comment.Create(strpnew('Peephole MovMov done')), p);
+                              asml.remove(p);
+                              p.free;
+                              p:=hp1;
+                              GetNextInstruction(hp1,hp1);
+                              if not assigned(hp1) then
+                                break;
+                            end;
                       end;
                     {
                       change
@@ -593,25 +686,34 @@ Implementation
                        (taicpu(p).oppostfix = PF_NONE) and
                        GetNextInstruction(p, hp1) and
                        (tai(hp1).typ = ait_instruction) and
-                       (taicpu(hp1).ops = 3) and {Currently we can't fold into another shifterop}
-                       (taicpu(hp1).oper[2]^.typ = top_reg) and
+                       (taicpu(hp1).ops >= 2) and {Currently we can't fold into another shifterop}
+                       (taicpu(hp1).oper[taicpu(hp1).ops-1]^.typ = top_reg) and
                        (taicpu(hp1).oppostfix = PF_NONE) and
                        (taicpu(hp1).condition = taicpu(p).condition) and
                        (taicpu(hp1).opcode in [A_ADD, A_ADC, A_RSB, A_RSC, A_SUB, A_SBC,
-                                               A_AND, A_BIC, A_EOR, A_ORR, A_TEQ, A_TST]) and
+                                               A_AND, A_BIC, A_EOR, A_ORR, A_TEQ, A_TST,
+                                               A_CMP, A_CMN]) and
                        (
                          {Only ONE of the two src operands is allowed to match}
-                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[1]^) xor
-                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[2]^)
+                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[taicpu(hp1).ops-2]^) xor
+                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[taicpu(hp1).ops-1]^)
                        ) then
                       begin
                         CopyUsedRegs(TmpUsedRegs);
                         UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                        if taicpu(hp1).opcode in [A_TST, A_TEQ, A_CMN] then
+                          I2:=0
+                        else
+                          I2:=1;
                         if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp1,TmpUsedRegs)) then
-                          for I:=1 to 2 do
+                          for I:=I2 to taicpu(hp1).ops-1 do
                             if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
                               begin
-                                if I = 1 then
+                                { If the parameter matched on the second op from the RIGHT
+                                  we have to switch the parameters, this will not happen for CMP
+                                  were we're only evaluating the most right parameter
+                                }
+                                if I <> taicpu(hp1).ops-1 then
                                   begin
                                     {The SUB operators need to be changed when we swap parameters}
                                     case taicpu(hp1).opcode of
@@ -621,14 +723,24 @@ Implementation
                                       A_RSC: tempop:=A_SBC;
                                       else tempop:=taicpu(hp1).opcode;
                                     end;
-                                    hp2:=taicpu.op_reg_reg_reg_shifterop(tempop,
-                                         taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[2]^.reg,
-                                         taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^);
+                                    if taicpu(hp1).ops = 3 then
+                                      hp2:=taicpu.op_reg_reg_reg_shifterop(tempop,
+                                           taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[2]^.reg,
+                                           taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^)
+                                    else
+                                      hp2:=taicpu.op_reg_reg_shifterop(tempop,
+                                           taicpu(hp1).oper[0]^.reg, taicpu(p).oper[1]^.reg,
+                                           taicpu(p).oper[2]^.shifterop^);
                                   end
                                 else
-                                  hp2:=taicpu.op_reg_reg_reg_shifterop(taicpu(hp1).opcode,
-                                       taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[1]^.reg,
-                                       taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^);
+                                  if taicpu(hp1).ops = 3 then
+                                    hp2:=taicpu.op_reg_reg_reg_shifterop(taicpu(hp1).opcode,
+                                         taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[1]^.reg,
+                                         taicpu(p).oper[1]^.reg, taicpu(p).oper[2]^.shifterop^)
+                                  else
+                                    hp2:=taicpu.op_reg_reg_shifterop(taicpu(hp1).opcode,
+                                         taicpu(hp1).oper[0]^.reg, taicpu(p).oper[1]^.reg,
+                                         taicpu(p).oper[2]^.shifterop^);
                                 asml.insertbefore(hp2, p);
                                 asml.remove(p);
                                 asml.remove(hp1);

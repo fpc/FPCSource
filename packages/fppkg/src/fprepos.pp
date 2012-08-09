@@ -19,57 +19,15 @@ interface
 uses
   classes,sysutils,
   contnrs,
+  fpmkunit,
   streamcoll;
 
 Const
   StreamVersion   : Integer = 1;
   StreamSignature = $FEEF;
 
-Type
-  // Keep syncronized with fpmkunit.pp
-  TCpu=(cpuNone,
-    i386,m68k,powerpc,sparc,x86_64,arm,powerpc64
-  );
-  TCPUS = Set of TCPU;
-
-  // Keep syncronized with fpmkunit.pp
-  TOS=(osNone,
-    linux,go32v2,win32,os2,freebsd,beos,netbsd,
-    amiga,atari, solaris, qnx, netware, openbsd,wdosx,
-    palmos,macos,darwin,emx,watcom,morphos,netwlibc,
-    win64,wince,gba,nds,embedded,symbian,haiku
-  );
-  TOSes = Set of TOS;
-
-const
-  AllOSes = [Low(TOS)..High(TOS)];
-  AllCPUs = [Low(TCPU)..High(TCPU)];
 
 type
-  { TFPVersion }
-
-  TFPVersion = Class(TPersistent)
-  private
-    FMajor,
-    FMinor,
-    FMicro,
-    FBuild    : Word;
-    function GetAsString: String;
-    function GetEmpty: Boolean;
-    procedure SetAsString(const AValue: String);
-  Public
-   Procedure Clear;
-   Procedure Assign(Source : TPersistent); override;
-   Property AsString : String Read GetAsString Write SetAsString;
-   Function CompareVersion(AVersion : TFPVersion) : Integer;
-   Function SameVersion(AVersion : TFPVersion) : Boolean;
-   Property Empty : Boolean Read GetEmpty;
-  Published
-   Property Major : Word Read FMajor Write FMajor;
-   Property Minor : Word Read FMinor Write FMinor;
-   Property Micro : Word Read FMicro Write FMicro;
-   Property Build : Word Read FBuild Write FBuild;
-  end;
 
   { TFPDependency }
 
@@ -87,11 +45,11 @@ type
     Procedure LoadFromStream(Stream : TStream; Streamversion : Integer); override;
     Procedure SaveToStream(Stream : TStream); override;
     Procedure Assign(Source : TPersistent); override;
+    Property OSes : TOSes Read FOSes Write FOses;
+    Property CPUs : TCPUs Read FCPUs Write FCPUs;
   Published
     Property PackageName : String Read FPackageName Write FPackageName;
     Property MinVersion : TFPVersion Read FMinVersion Write SetMinVersion;
-    Property OSes : TOSes Read FOSes Write FOses;
-    Property CPUs : TCPUs Read FCPUs Write FCPUs;
     Property RequireChecksum : Cardinal Read FRequireChecksum Write FRequireChecksum;
   end;
 
@@ -153,6 +111,8 @@ type
     Property InstalledLocally : boolean read FInstalledLocally write FInstalledLocally;
     Property UnusedVersion : TFPVersion Read FUnusedVersion Write SetUnusedVersion;
     Property RecompileBroken : boolean read FRecompileBroken write FRecompileBroken;
+    Property OSes : TOSes Read FOSes Write FOses;
+    Property CPUs : TCPUs Read FCPUs Write FCPUs;
   Published
     Property Name : String Read FName Write SetName;
     Property Author : String Read FAuthor Write FAuthor;
@@ -166,8 +126,6 @@ type
     Property DownloadURL : String Read FDownloadURL Write FDownloadURL;
     Property FileName : String Read GetFileName Write FFileName;
     Property Email : String Read FEmail Write FEmail;
-    Property OSes : TOSes Read FOSes Write FOses;
-    Property CPUs : TCPUs Read FCPUs Write FCPUs;
     Property Checksum : Cardinal Read FChecksum Write FChecksum;
     Property IsFPMakeAddIn : boolean read FIsFPMakeAddIn write FIsFPMakeAddIn;
     // These properties are used to re-compile the package, when it's dependencies are changed.
@@ -285,14 +243,6 @@ Const
   // Max level of dependency searching before we decide it's a circular dependency.
   DefaultMaxDependencyLevel = 15;
 
-Function OSToString(OS: TOS) : String;
-Function OSesToString(OSes: TOSes) : String;
-Function CPUToString(CPU: TCPU) : String;
-Function CPUSToString(CPUS: TCPUS) : String;
-Function StringToOS(S : String) : TOS;
-Function OSesToString(S : String) : TOSes;
-Function StringToCPU(S : String) : TCPU;
-Function StringToCPUS(S : String) : TCPUS;
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 Procedure StringToCPUOS(S : String; Var CPU : TCPU; Var OS: TOS);
 
@@ -331,64 +281,6 @@ ResourceString
   SErrMirrorNotFound       = 'Mirror "%s" not found.';
 
 
-Function OSToString(OS: TOS) : String;
-begin
-  Result:=LowerCase(GetenumName(TypeInfo(TOS),Ord(OS)));
-end;
-
-
-Function OSesToString(OSes: TOSes) : String;
-begin
-  Result:=LowerCase(SetToString(PtypeInfo(TypeInfo(TOSes)),Integer(OSes),False));
-end;
-
-
-Function CPUToString(CPU: TCPU) : String;
-begin
-  Result:=LowerCase(GetenumName(TypeInfo(TCPU),Ord(CPU)));
-end;
-
-
-Function CPUSToString(CPUS: TCPUS) : String;
-begin
-  Result:=LowerCase(SetToString(PTypeInfo(TypeInfo(TCPUS)),Integer(CPUS),False));
-end;
-
-
-Function StringToOS(S : String) : TOS;
-Var
-  I : Integer;
-begin
-  I:=GetEnumValue(TypeInfo(TOS),S);
-  if (I=-1) then
-    Raise EPackage.CreateFmt(SErrInvalidOS,[S]);
-  Result:=TOS(I);
-end;
-
-
-Function OSesToString(S : String) : TOSes;
-begin
-  Result:=TOSes(StringToSet(PTypeInfo(TypeInfo(TOSes)),S));
-end;
-
-
-Function StringToCPU(S : String) : TCPU;
-Var
-  I : Integer;
-begin
-  I:=GetEnumValue(TypeInfo(TCPU),S);
-  if (I=-1) then
-    Raise EPackage.CreateFmt(SErrInvalidCPU,[S]);
-  Result:=TCPU(I);
-end;
-
-
-Function StringToCPUS(S : String) : TCPUS;
-begin
-  Result:=TCPUS(StringToSet(PTypeInfo(TypeInfo(TCPUS)),S));
-end;
-
-
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 begin
   Result:=CPUToString(CPU)+'-'+OSToString(OS);
@@ -406,131 +298,6 @@ begin
   OS:=StringToOs(Copy(S,P+1,Length(S)-P));
 end;
 
-
-{ TFPVersion }
-
-function TFPVersion.GetAsString: String;
-begin
-  if Empty then
-    Result:='<none>'
-  else
-    Result:=Format('%d.%d.%d-%d',[Major,Minor,Micro,Build]);
-end;
-
-
-function TFPVersion.GetEmpty: Boolean;
-begin
-  Result:=(Major=0) and (Minor=0) and (Micro=0) and (Build=0);
-end;
-
-
-procedure TFPVersion.SetAsString(const AValue: String);
-
-  Function NextDigit(sep : Char; NonNumerisIsSep : boolean; var V : string; aDefault : integer = 0) : integer;
-  Var
-    P : Integer;
-    i : Integer;
-  begin
-    P:=Pos(Sep,V);
-    If (P=0) then
-      P:=Length(V)+1;
-    If NonNumerisIsSep then
-      for i := 1 to P-1 do
-        if not (V[i] in ['0','1','2','3','4','5','6','7','8','9']) then
-          begin
-            P := i;
-            Break;
-          end;
-    Result:=StrToIntDef(Copy(V,1,P-1),-1);
-    If Result<>-1 then
-      Delete(V,1,P)
-    else
-      Result:=aDefault;
-  end;
-
-Var
-  V : String;
-  b : integer;
-begin
-  Clear;
-  // Special support for empty version string
-  if (AValue='') or (AValue='<none>') then
-    exit;
-  V:=AValue;
-  // Supported version-format is x.y.z-b
-  // x,y,z and b are all optional and are set to 0 if they are not provided
-  // except for b which has a default of 1.
-  // x and y must be numeric. z or b may contain a non-numeric suffix which
-  // will be stripped. If there is any non-numeric character in z or b and
-  // there is no value supplied for b, build will be set to 0
-  // examples:
-  // 2          -> 2.0.0-1
-  // 2.2        -> 2.2.0-1
-  // 2.2.4      -> 2.2.4-1
-  // 2.2.4-0    -> 2.2.4-0
-  // 2.2.4rc1   -> 2.2.4-0
-  // 2.2.4-0rc1 -> 2.2.4-0
-  // 2.2.4-2rc1 -> 2.2.4-2
-  Major:=NextDigit('.',False,V);
-  Minor:=NextDigit('.',False,V);
-  Micro:=NextDigit('-',True,V);
-  b := NextDigit(#0,True,V,-1);
-  if b<0 then
-    if V <> '' then
-      Build := 0
-    else
-      Build := 1
-  else
-    Build := b;
-end;
-
-
-procedure TFPVersion.Clear;
-begin
-  Micro:=0;
-  Major:=0;
-  Minor:=0;
-  Build:=0;
-end;
-
-
-procedure TFPVersion.Assign(Source: TPersistent);
-Var
-  V : TFPVersion;
-begin
-  if Source is TFPVersion then
-    begin
-      V:=Source as TFPVersion;
-      Major:=V.Major;
-      Minor:=V.Minor;
-      Micro:=V.Micro;
-      Build:=V.Build;
-    end
-  else
-    inherited Assign(Source);
-end;
-
-
-function TFPVersion.CompareVersion(AVersion: TFPVersion): Integer;
-begin
-  Result:=Major-AVersion.Major;
-  If (Result=0) then
-    begin
-      Result:=Minor-AVersion.Minor;
-      if (Result=0) then
-        begin
-          Result:=Micro-AVersion.Micro;
-          If (Result=0) then
-            Result:=Build-AVersion.Build;
-        end;
-    end;
-end;
-
-
-function TFPVersion.SameVersion(AVersion: TFPVersion): Boolean;
-begin
-  Result:=CompareVersion(AVersion)=0;
-end;
 
 { TFPPackage }
 

@@ -399,18 +399,12 @@ unit cgx86;
                end;
           end;
 
-        if assigned(ref.symbol) and not((ref.symbol.bind=AB_LOCAL) and (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
+        if assigned(ref.symbol) then
           begin
             if cs_create_pic in current_settings.moduleswitches then
               begin
-                { Local data symbols must not be accessed via the GOT on
-                  darwin/x86_64 under certain circumstances (and do not
-                  have to be in other cases); however, linux/x86_64 does
-                  require it; don't know about others, so do use GOT for
-                  safety reasons
-                }
-                if (ref.symbol.bind=AB_LOCAL) and
-                   (ref.symbol.typ=AT_DATA) then
+                { Local symbols must not be accessed via the GOT }
+                if (ref.symbol.bind=AB_LOCAL) then
                   begin
                     { unfortunately, RIP-based addresses don't support an index }
                     if (ref.base<>NR_NO) or
@@ -521,9 +515,7 @@ unit cgx86;
              end
           end
         else if (cs_create_pic in current_settings.moduleswitches) and
-           assigned(ref.symbol) and
-           not((ref.symbol.bind=AB_LOCAL) and
-               (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
+           assigned(ref.symbol) then
           begin
             reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
             href.base:=current_procinfo.got;
@@ -936,8 +928,7 @@ unit cgx86;
                       end
                     else if (cs_create_pic in current_settings.moduleswitches)
 {$ifdef x86_64}
-                             and not((ref.symbol.bind=AB_LOCAL) and
-                                     (ref.symbol.typ in [AT_DATA,AT_LABEL,AT_ADDR]))
+                             and not(ref.symbol.bind=AB_LOCAL)
 {$endif x86_64}
                             then
                       begin

@@ -45,14 +45,31 @@ struct sigcontext {
   unsigned long sc_lo2;
   unsigned long sc_hi3;
   unsigned long sc_lo3;
-}; *)
+};
+typedef struct ucontext
+  {
+    unsigned long int uc_flags;
+    struct ucontext *uc_link;
+    stack_t uc_stack;
+    mcontext_t uc_mcontext;
+    __sigset_t uc_sigmask;
+  } ucontext_t;
+
+ *)
+  FPReg = record
+   case byte of
+    0 : (fp_dreg : double;);
+    1 : (fp_reg : single;
+         fp_pad : cint; );
+  end;
+
   PSigContext = ^TSigContext;
   TSigContext = record
     sigc_regmask,                   
     sigc_status: cuint; 
     sigc_pc : culonglong;    
     sigc_regs : array[0..31] of culonglong;
-    sigc_fpregs : array[0..31] of culonglong; 
+    sigc_fpregs : array[0..31] of fpreg; 
     sigc_fpc_csr, sigc_fpc_eir : cuint;
     sigc_used_math : cuint;
     sigc_dsp : cuint;
@@ -60,5 +77,20 @@ struct sigcontext {
     sigc_hi1,sigc_lo1,
     sigc_hi2,sigc_lo2,
     sigc_hi3,sigc_lo3 : culong;
+  end;
+
+  TStack = record
+    ss_sp : pointer;
+    ss_size : size_t;
+    ss_flags : cint;
+  end;
+
+  PUContext = ^TUContext;
+  TUContext = record
+    uc_flags : culong;
+    uc_link : PUContext;
+    uc_stack : TStack;
+    uc_mcontext : TSigContext;
+    uc_sigmask : TSigSet;
   end;
 

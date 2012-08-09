@@ -120,11 +120,7 @@ interface
        oso_Data,
        { Is loaded into memory }
        oso_load,
-       { Not loaded into memory }
-       oso_noload,
-       { Read only }
-       oso_readonly,
-       { Read/Write }
+       { Writable }
        oso_write,
        { Contains executable instructions }
        oso_executable,
@@ -135,7 +131,9 @@ interface
        { Contains debug info and can be stripped }
        oso_debug,
        { Contains only strings }
-       oso_strings
+       oso_strings,
+       { Ignore this section }
+       oso_disabled
      );
 
      TObjSectionOptions = set of TObjSectionOption;
@@ -192,6 +190,7 @@ interface
        procedure SetSecOptions(Aoptions:TObjSectionOptions);
      public
        ObjData    : TObjData;
+       index      : longword;  { index of section in section headers }
        SecSymIdx  : longint;   { index for the section in symtab }
        SecAlign   : shortint;   { alignment of the section }
        { section Data }
@@ -215,7 +214,6 @@ interface
        procedure alloc(l:aword);
        procedure addsymReloc(ofs:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
        procedure addsectionReloc(ofs:aword;aobjsec:TObjSection;Reloctype:TObjRelocationType);
-       procedure FixupRelocs(Exe: TExeOutput);virtual;
        procedure ReleaseData;
        function  FullName:string;
        property  Data:TDynamicArray read FData;
@@ -227,7 +225,6 @@ interface
 
      TObjData = class(TLinkedListItem)
      private
-       FName       : TString80;
        FCurrObjSec : TObjSection;
        FObjSectionList  : TFPHashObjectList;
        FCObjSection     : TObjSectionClass;
@@ -241,9 +238,11 @@ interface
        procedure section_afteralloc(p:TObject;arg:pointer);
        procedure section_afterwrite(p:TObject;arg:pointer);
      protected
+       FName       : TString80;
        property CObjSection:TObjSectionClass read FCObjSection write FCObjSection;
      public
        CurrPass  : byte;
+       ExecStack : boolean;
        constructor create(const n:string);virtual;
        destructor  destroy;override;
        { Sections }
@@ -316,6 +315,7 @@ interface
         destructor  destroy;override;
         function  newObjData(const n:string):TObjData;
         function  ReadObjData(AReader:TObjectreader;Data:TObjData):boolean;virtual;abstract;
+        class function CanReadObjData(AReader:TObjectreader):boolean;virtual;
         procedure inputerror(const s : string);
       end;
       TObjInputClass=class of TObjInput;
@@ -372,12 +372,13 @@ interface
       end;
       TExeSectionClass=class of TExeSection;
 
-      TStaticLibrary = class(TFPHashObject)
+      TStaticLibrary = class(TObject)
       private
+        FName : TCmdStr;
         FArReader : TObjectReader;
         FObjInputClass : TObjInputClass;
       public
-        constructor create(AList:TFPHashObjectList;const AName:string;AReader:TObjectReader;AObjInputClass:TObjInputClass);
+        constructor create(const AName:TCmdStr;AReader:TObjectReader;AObjInputClass:TObjInputClass);
         destructor  destroy;override;
         property ArReader:TObjectReader read FArReader;
         property ObjInputClass:TObjInputClass read FObjInputClass;
@@ -443,10 +444,12 @@ interface
         property CObjData:TObjDataClass read FCObjData write FCObjData;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList; const aPattern:string);virtual;
         procedure WriteExeSectionContent;
+        procedure DoRelocationFixup(objsec:TObjSection);virtual;abstract;
       public
         CurrDataPos  : aword;
         MaxMemPos    : qword;
         IsSharedLibrary : boolean;
+        ExecStack    : boolean;
         constructor create;virtual;
         destructor  destroy;override;
         function  FindExeSection(const aname:string):TExeSection;
@@ -457,6 +460,7 @@ interface
         procedure Load_ProvideSymbol(const aname:string);virtual;
         procedure Load_IsSharedLibrary;
         procedure Load_ImageBase(const avalue:string);
+        procedure Load_DynamicObject(ObjData:TObjData);virtual;
         procedure Order_Start;virtual;
         procedure Order_End;virtual;
         procedure Order_ExeSection(const aname:string);virtual;
@@ -480,14 +484,15 @@ interface
         procedure DataPos_Symbols;virtual;
         procedure BuildVTableTree(VTInheritList,VTEntryList:TFPObjectList);
         procedure PackUnresolvedExeSymbols(const s:string);
-        procedure ResolveSymbols(StaticLibraryList:TFPHashObjectList);
+        procedure ResolveSymbols(StaticLibraryList:TFPObjectList);
         procedure PrintMemoryMap;
         procedure FixupSymbols;
         procedure FixupRelocations;
         procedure RemoveUnusedExeSymbols;
         procedure MergeStabs;
+        procedure MarkEmptySections;
         procedure RemoveUnreferencedSections;
-        procedure RemoveEmptySections;
+        procedure RemoveDisabledSections;
         procedure RemoveDebugInfo;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);virtual;
         procedure GenerateDebugLink(const dbgname:string;dbgcrc:cardinal);
@@ -748,11 +753,6 @@ implementation
       end;
 
 
-    procedure TObjSection.FixupRelocs(Exe:TExeOutput);
-      begin
-      end;
-
-
     procedure TObjSection.ReleaseData;
       begin
         if assigned(FData) then
@@ -908,7 +908,7 @@ implementation
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
           {user} [oso_Data,oso_load,oso_write,oso_keep],
-          {code} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
+          {code} [oso_Data,oso_load,oso_executable,oso_keep],
           {Data} [oso_Data,oso_load,oso_write,oso_keep],
 { TODO: Fix sec_rodata be read-only-with-relocs}
           {roData} [oso_Data,oso_load,oso_write,oso_keep],
@@ -920,29 +920,29 @@ implementation
                        ,oso_keep
 {$endif FPC_USE_TLS_DIRECTORY}
           ],
-          {pdata} [oso_data,oso_load,oso_readonly {$ifndef x86_64},oso_keep{$endif}],
-          {stub} [oso_Data,oso_load,oso_readonly,oso_executable],
+          {pdata} [oso_data,oso_load {$ifndef x86_64},oso_keep{$endif}],
+          {stub} [oso_Data,oso_load,oso_executable],
           {data_nonlazy}  [oso_Data,oso_load,oso_write],
           {data_lazy} [oso_Data,oso_load,oso_write],
           {init_func} [oso_Data,oso_load],
           {term_func} [oso_Data,oso_load],
-          {stab} [oso_Data,oso_noload,oso_debug],
-          {stabstr} [oso_Data,oso_noload,oso_strings,oso_debug],
+          {stab} [oso_Data,oso_debug],
+          {stabstr} [oso_Data,oso_strings,oso_debug],
           {iData2} [oso_Data,oso_load,oso_write],
           {iData4} [oso_Data,oso_load,oso_write],
           {iData5} [oso_Data,oso_load,oso_write],
           {iData6} [oso_Data,oso_load,oso_write],
           {iData7} [oso_Data,oso_load,oso_write],
-          {eData} [oso_Data,oso_load,oso_readonly],
-          {eh_frame} [oso_Data,oso_load,oso_readonly],
-          {debug_frame} [oso_Data,oso_noload,oso_debug],
-          {debug_info} [oso_Data,oso_noload,oso_debug],
-          {debug_line} [oso_Data,oso_noload,oso_debug],
-          {debug_abbrev} [oso_Data,oso_noload,oso_debug],
+          {eData} [oso_Data,oso_load],
+          {eh_frame} [oso_Data,oso_load],
+          {debug_frame} [oso_Data,oso_debug],
+          {debug_info} [oso_Data,oso_debug],
+          {debug_line} [oso_Data,oso_debug],
+          {debug_abbrev} [oso_Data,oso_debug],
           {fpc} [oso_Data,oso_load,oso_write,oso_keep],
-          {toc} [oso_Data,oso_load,oso_readonly],
-          {init} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
-          {fini} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
+          {toc} [oso_Data,oso_load],
+          {init} [oso_Data,oso_load,oso_executable,oso_keep],
+          {fini} [oso_Data,oso_load,oso_executable,oso_keep],
           {objc_class} [oso_data,oso_load],
           {objc_meta_class} [oso_data,oso_load],
           {objc_cat_cls_meth} [oso_data,oso_load],
@@ -1085,17 +1085,29 @@ implementation
 
 
     function TObjData.symbolref(asmsym:TAsmSymbol):TObjSymbol;
+      var
+        s:string;
       begin
         if assigned(asmsym) then
           begin
             if not assigned(asmsym.cachedObjSymbol) then
               begin
-                result:=symbolref(asmsym.name);
+                s:=asmsym.name;
+                result:=TObjSymbol(FObjSymbolList.Find(s));
+                if result=nil then
+                  begin
+                    result:=TObjSymbol.Create(FObjSymbolList,s);
+                    if asmsym.bind=AB_WEAK_EXTERNAL then
+                      result.bind:=AB_WEAK_EXTERNAL;
+                  end;
                 asmsym.cachedObjSymbol:=result;
                 FCachedAsmSymbolList.add(asmsym);
               end
             else
               result:=TObjSymbol(asmsym.cachedObjSymbol);
+            { The weak bit could have been removed from asmsym. }
+            if (asmsym.bind=AB_EXTERNAL) and (result.bind=AB_WEAK_EXTERNAL) then
+              result.bind:=AB_EXTERNAL;
           end
         else
           result:=nil;
@@ -1451,10 +1463,10 @@ implementation
         else
           begin
             { inherit section options }
-            SecAlign:=objsec.SecAlign;
             SecOptions:=SecOptions+objsec.SecOptions;
           end;
         { relate ObjSection to ExeSection, and mark it Used by default }
+        SecAlign:=max(objsec.SecAlign,SecAlign);
         objsec.ExeSection:=self;
         objsec.Used:=true;
       end;
@@ -1464,9 +1476,9 @@ implementation
                                 TStaticLibrary
 ****************************************************************************}
 
-    constructor TStaticLibrary.create(AList:TFPHashObjectList;const AName:string;AReader:TObjectReader;AObjInputClass:TObjInputClass);
+    constructor TStaticLibrary.create(const AName:TCmdStr;AReader:TObjectReader;AObjInputClass:TObjInputClass);
       begin
-        inherited create(AList,AName);
+        FName:=AName;
         FArReader:=AReader;
         FObjInputClass:=AObjInputClass;
       end;
@@ -1539,7 +1551,6 @@ implementation
         FCommonObjSymbols:=TFPObjectList.Create(false);
         FProvidedObjSymbols:=TFPObjectList.Create(false);
         FExeVTableList:=TFPObjectList.Create(false);
-        FEntryName:='start';
         { sections }
         FExeSectionList:=TFPHashObjectList.Create(true);
         FImageBase:=0;
@@ -1604,6 +1615,7 @@ implementation
         if ObjData.classtype<>FCObjData then
           Comment(V_Error,'Invalid input object format for '+ObjData.name+' got '+ObjData.classname+' expected '+FCObjData.classname);
         ObjDataList.Add(ObjData);
+        ExecStack:=ExecStack or ObjData.ExecStack;
       end;
 
 
@@ -1666,6 +1678,11 @@ implementation
         internalObjData.createsection('*'+aname,0,[]);
         // Use AB_COMMON to avoid muliple defined complaints
         internalObjData.SymbolDefine(aname,AB_COMMON,AT_DATA);
+      end;
+
+
+    procedure TExeOutput.Load_DynamicObject(ObjData:TObjData);
+      begin
       end;
 
 
@@ -1896,6 +1913,7 @@ implementation
     procedure TExeOutput.MemPos_Start;
       begin
         CurrMemPos:=0;
+        RemoveDisabledSections;
       end;
 
 
@@ -2088,7 +2106,7 @@ implementation
       end;
 
 
-    procedure TExeOutput.ResolveSymbols(StaticLibraryList:TFPHashObjectList);
+    procedure TExeOutput.ResolveSymbols(StaticLibraryList:TFPObjectList);
       var
         ObjData   : TObjData;
         exesym    : TExeSymbol;
@@ -2290,18 +2308,21 @@ implementation
         PackUnresolvedExeSymbols('after defining COMMON symbols');
 
         { Find entry symbol and print in map }
-        exesym:=texesymbol(ExeSymbolList.Find(EntryName));
-        if assigned(exesym) then
+        if (EntryName<>'') then
           begin
-            EntrySym:=exesym.ObjSymbol;
-            if assigned(exemap) then
+            exesym:=texesymbol(ExeSymbolList.Find(EntryName));
+            if assigned(exesym) then
               begin
-                exemap.Add('');
-                exemap.Add('Entry symbol '+EntryName);
-              end;
-          end
-        else
-          Comment(V_Error,'Entrypoint '+EntryName+' not defined');
+                EntrySym:=exesym.ObjSymbol;
+                if assigned(exemap) then
+                  begin
+                    exemap.Add('');
+                    exemap.Add('Entry symbol '+EntryName);
+                  end;
+              end
+            else
+              Comment(V_Error,'Entrypoint '+EntryName+' not defined');
+          end;
 
         { Generate VTable tree }
         if cs_link_opt_vtable in current_settings.globalswitches then
@@ -2652,7 +2673,7 @@ implementation
       end;
 
 
-    procedure TExeOutput.RemoveEmptySections;
+    procedure TExeOutput.MarkEmptySections;
       var
         i, j   : longint;
         exesec : TExeSection;
@@ -2682,11 +2703,25 @@ implementation
                       break;
                     end;
               end;
-            if doremove and not (RelocSection and (exesec.Name='.reloc')) then
+            if doremove then
               begin
-                Comment(V_Debug,'Deleting empty section '+exesec.name);
-                ExeSectionList[i]:=nil;
+                Comment(V_Debug,'Disabling empty section '+exesec.name);
+                exesec.SecOptions:=exesec.SecOptions+[oso_disabled];
               end;
+          end;
+      end;
+
+
+    procedure TExeOutput.RemoveDisabledSections;
+      var
+        i: longint;
+        exesec: TExeSection;
+      begin
+        for i:=0 to ExeSectionList.Count-1 do
+          begin
+            exesec:=TExeSection(ExeSectionList[i]);
+            if (oso_disabled in exesec.SecOptions) then
+              ExeSectionList[i]:=nil;
           end;
         ExeSectionList.Pack;
       end;
@@ -2817,7 +2852,8 @@ implementation
                   end;
               end;
           end;
-        AddToObjSectionWorkList(entrysym.exesymbol.objsymbol.objsection);
+        if assigned(entrysym) then
+          AddToObjSectionWorkList(entrysym.exesymbol.objsymbol.objsection);
 
         { Process all sections, add new sections to process based
           on the symbol references  }
@@ -2894,7 +2930,13 @@ implementation
                 objsec:=TObjSection(exesec.ObjSectionlist[j]);
                 if not objsec.Used then
                   internalerror(200603301);
-                objsec.FixupRelocs(Self);
+                if (objsec.ObjRelocations.Count>0) and
+                   not assigned(objsec.data) then
+                  internalerror(200205183);
+                DoRelocationFixup(objsec);
+                {for size = 0 data is not valid PM }
+                if assigned(objsec.data) and (objsec.data.size<>objsec.size) then
+                  internalerror(2010092801);
               end;
           end;
       end;
@@ -2983,6 +3025,12 @@ implementation
     procedure TObjInput.inputerror(const s : string);
       begin
         Comment(V_Error,s+' while reading '+InputFileName);
+      end;
+
+
+    class function TObjInput.CanReadObjData(AReader:TObjectReader):boolean;
+      begin
+        result:=false;
       end;
 
 

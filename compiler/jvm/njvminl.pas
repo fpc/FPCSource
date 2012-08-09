@@ -38,8 +38,7 @@ interface
 
           function first_copy: tnode; override;
           function first_assigned: tnode; override;
-
-          function first_assert: tnode; override;
+          function first_get_frame: tnode; override;
 
           function first_box: tnode; override;
           function first_unbox: tnode; override;
@@ -242,17 +241,10 @@ implementation
       end;
 
 
-    function tjvminlinenode.first_assert: tnode;
-      var
-        paras: tcallparanode;
+    function tjvminlinenode.first_get_frame: tnode;
       begin
-        paras:=tcallparanode(tcallparanode(left).right);
-        paras:=ccallparanode.create(cstringconstnode.createstr(current_module.sourcefiles.get_file_name(current_filepos.fileindex)),paras);
-        paras:=ccallparanode.create(genintconstnode(fileinfo.line),paras);
-        result:=cifnode.create(cnotnode.create(tcallparanode(left).left),
-           ccallnode.createintern('fpc_assert',paras),nil);
-        tcallparanode(left).left:=nil;
-        tcallparanode(left).right:=nil;
+        { no frame pointer on the JVM target }
+        result:=cnilnode.create;
       end;
 
 

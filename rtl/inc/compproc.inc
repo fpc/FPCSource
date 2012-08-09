@@ -626,8 +626,8 @@ procedure fpc_InitializeUnits; compilerproc;
 Procedure fpc_do_exit; compilerproc;
 Procedure fpc_lib_exit; compilerproc;
 Procedure fpc_HandleErrorAddrFrame (Errno : longint;addr,frame : pointer); compilerproc;
-Procedure fpc_HandleError (Errno : longint); compilerproc;
 }
+Procedure fpc_HandleError (Errno : longint); compilerproc;
 
 procedure fpc_AbstractErrorIntern;compilerproc;
 procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer); compilerproc;

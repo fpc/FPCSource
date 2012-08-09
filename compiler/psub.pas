@@ -116,7 +116,7 @@ implementation
        opttail,
        optcse,optloop,
        optutils
-{$if defined(arm) or defined(powerpc) or defined(powerpc64) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
        ,aasmcpu
 {$endif arm}
        {$ifndef NOOPT}
@@ -1493,7 +1493,7 @@ implementation
             current_filepos:=exitpos;
             hlcg.gen_proc_symbol_end(templist);
             aktproccode.concatlist(templist);
-{$if defined(POWERPC) or defined(POWERPC64)}
+{$ifdef fpc_compiler_has_fixup_jmps}
             fixup_jmps(aktproccode);
 {$endif}
             { insert line debuginfo }
@@ -1884,12 +1884,7 @@ implementation
             if (not current_module.in_interface) then
               include(pdflags,pd_implemen);
             if (not current_module.is_unit) or
-               create_smartlink or
-              {
-                taking addresses of static procedures goes wrong
-                if they aren't global when pic is used (FK)
-              }
-              (cs_create_pic in current_settings.moduleswitches) then
+               create_smartlink then
               include(pd.procoptions,po_global);
             pd.forwarddef:=false;
           end;
@@ -2216,8 +2211,7 @@ implementation
                      { use the index the module got from the current compilation process }
                      current_filepos.moduleindex:=hmodule.unit_index;
                      current_tokenpos:=current_filepos;
-                     current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf,
-                       tprocdef(tprocdef(hp).genericdef).change_endian);
+                     current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
                      read_proc_body(nil,tprocdef(hp));
                      current_filepos:=oldcurrent_filepos;
                    end

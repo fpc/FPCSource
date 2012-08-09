@@ -35,7 +35,6 @@ unit cpupara;
     type
        tx86_64paramanager = class(tparamanager)
        private
-          procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
           procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
        public
@@ -48,7 +47,7 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
-          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
+          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
        end;
 
   implementation
@@ -671,7 +670,7 @@ unit cpupara;
                 reference for non-cdecl/cppdecl, and make sure that the tmethod
                 record (size=16) is passed the same way as a complex procvar }
               else if ((varspez=vs_const) and
-                       not(calloption in [pocall_cdecl,pocall_cppdecl])) or
+                       not(calloption in cdecl_pocalls)) or
                       (def.size=16) then
                 begin
                   numclasses:=classify_argument(def,vs_value,def.size,classes,0);
@@ -685,7 +684,7 @@ unit cpupara;
             begin
               { cdecl array of const need to be ignored and therefor be puhsed
                 as value parameter with length 0 }
-              if ((calloption in [pocall_cdecl,pocall_cppdecl]) and
+              if ((calloption in cdecl_pocalls) and
                   is_array_of_const(def)) or
                  is_dynamic_array(def) then
                 result:=false
@@ -791,13 +790,7 @@ unit cpupara;
       end;
 
 
-    procedure tx86_64paramanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-      begin
-        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
-      end;
-
-
-    function tx86_64paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
+    function tx86_64paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       const
         intretregs: array[0..1] of tregister = (NR_FUNCTION_RETURN_REG,NR_FUNCTION_RETURN_REG_HIGH);
         mmretregs: array[0..1] of tregister = (NR_MM_RESULT_REG,NR_MM_RESULT_REG_HIGH);
@@ -810,7 +803,7 @@ unit cpupara;
         retcgsize : tcgsize;
         paraloc : pcgparalocation;
       begin
-        if set_common_funcretloc_info(p,def,retcgsize,result) then
+        if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           exit;
 
         { integer sizes < 32 bit have to be sign/zero extended to 32 bit on
@@ -827,10 +820,10 @@ unit cpupara;
         { Return in FPU register? -> don't use classify_argument(), because
           currency and comp need special treatment here (they are integer class
           when passing as parameter, but LOC_FPUREGISTER as function result) }
-        if def.typ=floatdef then
+        if result.def.typ=floatdef then
           begin
             paraloc:=result.add_location;
-            case tfloatdef(def).floattype of
+            case tfloatdef(result.def).floattype of
               s32real:
                 begin
                   paraloc^.loc:=LOC_MMREGISTER;
@@ -861,7 +854,7 @@ unit cpupara;
         else
          { Return in register }
           begin
-            numclasses:=classify_argument(def,vs_value,def.size,classes,0);
+            numclasses:=classify_argument(result.def,vs_value,result.def.size,classes,0);
             { this would mean a memory return }
             if (numclasses=0) then
               internalerror(2010021502);

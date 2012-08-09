@@ -312,6 +312,9 @@ endif
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/mmx.pp
 
+x86$(PPUEXT) : $(UNIXINC)/x86.pp baseunix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(UNIXINC)/x86.pp
+
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
 

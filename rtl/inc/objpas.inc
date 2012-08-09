@@ -16,7 +16,8 @@
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
     procedure DoDispCallByIDError(res : Pointer; const disp : IDispatch;desc : PDispDesc; params : Pointer);
       begin
-        handleerrorframe(RuntimeErrorExitCodes[reVarDispatch],get_frame);
+        handleerroraddrframeind(RuntimeErrorExitCodes[reVarDispatch],
+          get_pc_addr,get_frame);
       end;
 
 
@@ -46,7 +47,7 @@
     function fpc_do_as(aclass : tclass;aobject : tobject): tobject;[public,alias: 'FPC_DO_AS']; compilerproc;
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
-           handleerrorframe(219,get_frame);
+           handleerroraddrframeInd(219,get_pc_addr,get_frame);
          result := aobject;
       end;
 
@@ -177,7 +178,11 @@
         tmpi2:=nil;
         if Assigned(S) and ((TObject(S).GetInterfaceWeak(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or
             TObject(S).GetInterface(IID,tmpi)) then
-          pointer(fpc_class_cast_intf):=tmpi
+          begin
+            // decrease reference count
+            fpc_class_cast_intf:=nil;
+            pointer(fpc_class_cast_intf):=tmpi
+          end
         else
           fpc_class_cast_intf:=nil;
       end;
@@ -203,6 +208,8 @@
              tmpi:=nil;
              if IUnknown(S).QueryInterface(iid,tmpi)<>S_OK then
                handleerror(219);
+             // decrease reference count
+             fpc_intf_as:=nil;
              pointer(fpc_intf_as):=tmpi;
           end
         else
@@ -236,6 +243,8 @@
              tmpi2:=nil;
              if not ((TObject(S).GetInterfaceWeak(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or TObject(S).GetInterface(IID,tmpi)) then
                handleerror(219);
+             // decrease reference count
+             fpc_class_as_intf:=nil;
              pointer(fpc_class_as_intf):=tmpi;
           end
         else

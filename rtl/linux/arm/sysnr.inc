@@ -405,6 +405,11 @@ Const
   syscall_nr_dup3			= syscall_nr_base+358;
   syscall_nr_pipe2			= syscall_nr_base+359;
   syscall_nr_inotify_init1		= syscall_nr_base+360;
+  syscall_nr_preadv			= syscall_nr_base+361;
+  syscall_nr_pwritev			= syscall_nr_base+362;
+  syscall_nr_rt_tgsigqueueinfo		= syscall_nr_base+363;
+  syscall_nr_perf_event_open		= syscall_nr_base+364;
+  syscall_nr_recvmmsg			= syscall_nr_base+365;
 
 {*
  * The following SWIs are ARM private.

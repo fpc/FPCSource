@@ -88,7 +88,6 @@ interface
         unsigned:boolean;
         r:Tregister;
       begin
-        firstcomplex(self);
         pass_left_right;
 
         op1:=A_NONE;
@@ -283,8 +282,6 @@ interface
         end;
 
       begin
-        firstcomplex(self);
-
         pass_left_right;
 
         unsigned:=((left.resultdef.typ=orddef) and

@@ -738,7 +738,7 @@ Var
 
 begin
   FResponseHeaders.Clear;
-  URI:=ParseURI(AURL);
+  URI:=ParseURI(AURL,False);
   If (Lowercase(URI.Protocol)<>'http') then
    Raise EHTTPClient.CreateFmt(SErrInvalidProtocol,[URI.Protocol]);
   ConnectToServer(URI.Host,URI.Port);

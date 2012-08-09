@@ -124,16 +124,16 @@ var
 
 procedure TCommandListSettings.Execute;
 begin
-  GlobalOptions.LogValues(vlProgres);
-  CompilerOptions.LogValues(vlProgres,'');
-  FPMakeCompilerOptions.LogValues(vlProgres,'fpmake-building ');
+  GlobalOptions.LogValues(llProgres);
+  CompilerOptions.LogValues(llProgres,'');
+  FPMakeCompilerOptions.LogValues(llProgres,'fpmake-building ');
 end;
 
 
 procedure TCommandAddConfig.Execute;
 begin
 {
-  Log(vlInfo,SLogGeneratingCompilerConfig,[S]);
+  Log(llInfo,SLogGeneratingCompilerConfig,[S]);
   Options.InitCompilerDefaults(Args[2]);
   Options.SaveCompilerToFile(S);
 }
@@ -149,13 +149,13 @@ begin
   if (GlobalOptions.RemoteMirrorsURL<>'') and
      (GlobalOptions.RemoteRepository='auto') then
     begin
-      Log(vlCommands,SLogDownloading,[GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile]);
+      Log(llCommands,SLogDownloading,[GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile]);
       DownloadFile(GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile);
       LoadLocalAvailableMirrors;
     end;
   // Download packages.xml
   PackagesURL:=GetRemoteRepositoryURL(PackagesFileName);
-  Log(vlCommands,SLogDownloading,[PackagesURL,GlobalOptions.LocalPackagesFile]);
+  Log(llCommands,SLogDownloading,[PackagesURL,GlobalOptions.LocalPackagesFile]);
   DownloadFile(PackagesURL,GlobalOptions.LocalPackagesFile);
   // Read the repository again
   LoadLocalAvailableRepository;
@@ -210,7 +210,7 @@ begin
   { Unzip Archive }
   With TUnZipper.Create do
     try
-      Log(vlCommands,SLogUnzippping,[ArchiveFile]);
+      Log(llCommands,SLogUnzippping,[ArchiveFile]);
       OutputPath:=PackageBuildPath(P);
       UnZipAllFiles(ArchiveFile);
     Finally
@@ -404,12 +404,12 @@ begin
               else
                 status:='OK';
             end;
-          Log(vlInfo,SLogPackageDependency,
+          Log(llInfo,SLogPackageDependency,
               [D.PackageName,D.MinVersion.AsString,PackageInstalledVersionStr(D.PackageName),
                PackageAvailableVersionStr(D.PackageName),status]);
         end
       else
-        Log(vlDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
+        Log(llDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
     end;
   // Give error on first missing dependency
   if assigned(MissingDependency) then
@@ -418,7 +418,7 @@ begin
   if L.Count > 0 then
     begin
       if DependenciesDepth=0 then
-        pkgglobals.Log(vlProgres,SProgrInstallDependencies);
+        pkgglobals.Log(llProgres,SProgrInstallDependencies);
       inc(DependenciesDepth);
 
       for i:=0 to L.Count-1 do
@@ -426,7 +426,7 @@ begin
 
       dec(DependenciesDepth);
       if DependenciesDepth=0 then
-        pkgglobals.Log(vlProgres,SProgrDependenciesInstalled);
+        pkgglobals.Log(llProgres,SProgrDependenciesInstalled);
     end;
   FreeAndNil(L);
   if FreeManifest then
@@ -444,7 +444,7 @@ begin
     FindBrokenPackages(SL);
     if SL.Count=0 then
       break;
-    pkgglobals.Log(vlProgres,SProgrReinstallDependent);
+    pkgglobals.Log(llProgres,SProgrReinstallDependent);
     for i:=0 to SL.Count-1 do
       begin
         ExecuteAction(SL[i],'build');

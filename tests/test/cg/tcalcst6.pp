@@ -28,9 +28,9 @@ program tcalcst6;
   {$define tp}
 {$endif}
 
-{ On linux/i386 safecall is the same as cdecl, so it does not       }
+{ On linux/i386 and linux/x86-64safecall is the same as cdecl, so it does not       }
 { support all parameter types.                                      }
-{$if (defined(linux) and defined(cpui386))}
+{$if (defined(linux) and (defined(cpui386) or defined(cpux86_64)))}
   {$define safecall_is_cdecl}
 {$endif}
 

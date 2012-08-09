@@ -71,9 +71,8 @@ interface
          settings : tsettings;
          tokenbuf : tdynamicarray;
          next     : treplaystack;
-         change_endian : boolean;
          constructor Create(atoken: ttoken;asettings:tsettings;
-           atokenbuf:tdynamicarray;anext:treplaystack; achange_endian : boolean);
+           atokenbuf:tdynamicarray;anext:treplaystack);
        end;
 
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
@@ -118,7 +117,6 @@ interface
 
           replaytokenbuf,
           recordtokenbuf : tdynamicarray;
-          tokenbuf_change_endian : boolean;
 
           { last settings we stored }
           last_settings : tsettings;
@@ -173,7 +171,7 @@ interface
           procedure startrecordtokens(buf:tdynamicarray);
           procedure stoprecordtokens;
           procedure replaytoken;
-          procedure startreplaytokens(buf:tdynamicarray; achange_endian : boolean);
+          procedure startreplaytokens(buf:tdynamicarray);
           { bit length asizeint is target depend }
           procedure tokenwritesizeint(val : asizeint);
           procedure tokenwritelongint(val : longint);
@@ -1960,12 +1958,11 @@ In case not, the value returned can be arbitrary.
                               TReplayStack
 *****************************************************************************}
     constructor treplaystack.Create(atoken:ttoken;asettings:tsettings;
-      atokenbuf:tdynamicarray;anext:treplaystack;achange_endian : boolean);
+      atokenbuf:tdynamicarray;anext:treplaystack);
       begin
         token:=atoken;
         settings:=asettings;
         tokenbuf:=atokenbuf;
-        change_endian:=achange_endian;
         next:=anext;
       end;
 
@@ -2007,7 +2004,6 @@ In case not, the value returned can be arbitrary.
       { reset scanner }
         preprocstack:=nil;
         replaystack:=nil;
-        tokenbuf_change_endian:=false;
         comment_level:=0;
         yylexcount:=0;
         block_type:=bt_general;
@@ -2186,26 +2182,41 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.tokenwritesizeint(val : asizeint);
       begin
+{$ifdef FPC_BIG_ENDIAN}
+        val:=swapendian(val);
+{$endif}
         recordtokenbuf.write(val,sizeof(asizeint));
       end;
 
     procedure tscannerfile.tokenwritelongint(val : longint);
       begin
+{$ifdef FPC_BIG_ENDIAN}
+        val:=swapendian(val);
+{$endif}
         recordtokenbuf.write(val,sizeof(longint));
       end;
 
     procedure tscannerfile.tokenwriteshortint(val : shortint);
       begin
+{$ifdef FPC_BIG_ENDIAN}
+        val:=swapendian(val);
+{$endif}
         recordtokenbuf.write(val,sizeof(shortint));
       end;
 
     procedure tscannerfile.tokenwriteword(val : word);
       begin
+{$ifdef FPC_BIG_ENDIAN}
+        val:=swapendian(val);
+{$endif}
         recordtokenbuf.write(val,sizeof(word));
       end;
 
     procedure tscannerfile.tokenwritelongword(val : longword);
       begin
+{$ifdef FPC_BIG_ENDIAN}
+        val:=swapendian(val);
+{$endif}
         recordtokenbuf.write(val,sizeof(longword));
       end;
 
@@ -2214,8 +2225,9 @@ In case not, the value returned can be arbitrary.
         val : asizeint;
       begin
         replaytokenbuf.read(val,sizeof(asizeint));
-        if tokenbuf_change_endian then
-          val:=swapendian(val);
+{$ifdef FPC_BIG_ENDIAN}
+        val:=swapendian(val);
+{$endif}
         result:=val;
       end;
 
@@ -2224,8 +2236,9 @@ In case not, the value returned can be arbitrary.
         val : longword;
       begin
         replaytokenbuf.read(val,sizeof(longword));
-        if tokenbuf_change_endian then
-          val:=swapendian(val);
+{$ifdef FPC_BIG_ENDIAN}
+        val:=swapendian(val);
+{$endif}
         result:=val;
       end;
 
@@ -2234,8 +2247,9 @@ In case not, the value returned can be arbitrary.
         val : longint;
       begin
         replaytokenbuf.read(val,sizeof(longint));
-        if tokenbuf_change_endian then
-          val:=swapendian(val);
+{$ifdef FPC_BIG_ENDIAN}
+        val:=swapendian(val);
+{$endif}
         result:=val;
       end;
 
@@ -2260,8 +2274,9 @@ In case not, the value returned can be arbitrary.
         val : smallint;
       begin
         replaytokenbuf.read(val,sizeof(smallint));
-        if tokenbuf_change_endian then
-          val:=swapendian(val);
+{$ifdef FPC_BIG_ENDIAN}
+        val:=swapendian(val);
+{$endif}
         result:=val;
       end;
 
@@ -2270,8 +2285,9 @@ In case not, the value returned can be arbitrary.
         val : word;
       begin
         replaytokenbuf.read(val,sizeof(word));
-        if tokenbuf_change_endian then
-          val:=swapendian(val);
+{$ifdef FPC_BIG_ENDIAN}
+        val:=swapendian(val);
+{$endif}
         result:=val;
       end;
 
@@ -2286,13 +2302,16 @@ In case not, the value returned can be arbitrary.
    end;
 
    procedure tscannerfile.tokenreadset(var b;size : longint);
+{$ifdef FPC_BIG_ENDIAN}
    var
      i : longint;
+{$endif}
    begin
      replaytokenbuf.read(b,size);
-     if tokenbuf_change_endian then
-       for i:=0 to size-1 do
-         Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
+{$ifdef FPC_BIG_ENDIAN}
+     for i:=0 to size-1 do
+       Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
+{$endif}
    end;
 
    procedure tscannerfile.tokenwriteenum(var b;size : longint);
@@ -2301,8 +2320,19 @@ In case not, the value returned can be arbitrary.
    end;
 
    procedure tscannerfile.tokenwriteset(var b;size : longint);
+{$ifdef FPC_BIG_ENDIAN}
+   var
+     i: longint;
+     tmpset: array[0..31] of byte;
+{$endif}
    begin
+{$ifdef FPC_BIG_ENDIAN}
+     for i:=0 to size-1 do
+       tmpset[i]:=reverse_byte(Pbyte(@b)[i]);
+     recordtokenbuf.write(tmpset,size);
+{$else}
      recordtokenbuf.write(b,size);
+{$endif}
    end;
 
 
@@ -2577,7 +2607,7 @@ In case not, the value returned can be arbitrary.
       end;
 
 
-    procedure tscannerfile.startreplaytokens(buf:tdynamicarray; achange_endian : boolean);
+    procedure tscannerfile.startreplaytokens(buf:tdynamicarray);
       begin
         if not assigned(buf) then
           internalerror(200511175);
@@ -2585,12 +2615,11 @@ In case not, the value returned can be arbitrary.
         if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
           internalerror(200511178);
         replaystack:=treplaystack.create(token,current_settings,
-          replaytokenbuf,replaystack,tokenbuf_change_endian);
+          replaytokenbuf,replaystack);
         if assigned(inputpointer) then
           dec(inputpointer);
         { install buffer }
         replaytokenbuf:=buf;
-        tokenbuf_change_endian:=achange_endian;
 
         { reload next token }
         replaytokenbuf.seek(0);
@@ -3121,10 +3150,6 @@ In case not, the value returned can be arbitrary.
            hp:=replaystack.next;
            replaystack.free;
            replaystack:=hp;
-           if assigned (replaystack) then
-             tokenbuf_change_endian:=replaystack.change_endian
-           else
-             tokenbuf_change_endian:=false;
          end;
       end;
 

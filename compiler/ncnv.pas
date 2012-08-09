@@ -134,6 +134,7 @@ interface
           function first_cstring_to_int : tnode;virtual;
           function first_string_to_chararray : tnode;virtual;
           function first_char_to_string : tnode;virtual;
+          function first_char_to_chararray : tnode; virtual;
           function first_nothing : tnode;virtual;
           function first_array_to_pointer : tnode;virtual;
           function first_int_to_real : tnode;virtual;
@@ -163,6 +164,7 @@ interface
           function _first_cstring_to_int : tnode;
           function _first_string_to_chararray : tnode;
           function _first_char_to_string : tnode;
+          function _first_char_to_chararray : tnode;
           function _first_nothing : tnode;
           function _first_array_to_pointer : tnode;
           function _first_int_to_real : tnode;
@@ -1277,16 +1279,7 @@ implementation
 
     function ttypeconvnode.typecheck_char_to_chararray : tnode;
       begin
-        if resultdef.size <> 1 then
-          begin
-            { convert first to string, then to chararray }
-            inserttypeconv(left,cshortstringtype);
-            inserttypeconv(left,resultdef);
-            result:=left;
-            left := nil;
-            exit;
-          end;
-        result := nil;
+        result:=nil;
       end;
 
 
@@ -1335,13 +1328,15 @@ implementation
         if left.nodetype=ordconstn then
          begin
            v:=tordconstnode(left).value;
-           if is_currency(resultdef) then
+           if is_currency(resultdef) and
+              not(nf_internal in flags) then
              v:=v*10000;
            if (resultdef.typ=pointerdef) then
              result:=cpointerconstnode.create(TConstPtrUInt(v.uvalue),resultdef)
            else
              begin
-               if is_currency(left.resultdef) then
+               if is_currency(left.resultdef) and
+                  not(nf_internal in flags) then
                  v:=v div 10000;
                result:=cordconstnode.create(v,resultdef,false);
              end;
@@ -1353,18 +1348,25 @@ implementation
              result:=cpointerconstnode.create(v.uvalue,resultdef)
            else
              begin
-               if is_currency(resultdef) then
+               if is_currency(resultdef) and
+                  not(nf_internal in flags) then
                  v:=v*10000;
                result:=cordconstnode.create(v,resultdef,false);
              end;
          end
         else
          begin
+           if (is_currency(resultdef) or
+               is_currency(left.resultdef)) and
+              (nf_internal in flags) then
+             begin
+               include(flags,nf_is_currency)
+             end
            { multiply by 10000 for currency. We need to use getcopy to pass
              the argument because the current node is always disposed. Only
              inserting the multiply in the left node is not possible because
              it'll get in an infinite loop to convert int->currency }
-           if is_currency(resultdef) then
+           else if is_currency(resultdef) then
             begin
               result:=caddnode.create(muln,getcopy,cordconstnode.create(10000,resultdef,false));
               include(result.flags,nf_is_currency);
@@ -1386,19 +1388,27 @@ implementation
         if left.nodetype=ordconstn then
          begin
            rv:=tordconstnode(left).value;
-           if is_currency(resultdef) then
+           if is_currency(resultdef) and
+              not(nf_internal in flags) then
              rv:=rv*10000.0
-           else if is_currency(left.resultdef) then
+           else if is_currency(left.resultdef) and
+              not(nf_internal in flags) then
              rv:=rv/10000.0;
            result:=crealconstnode.create(rv,resultdef);
          end
         else
          begin
+           if (is_currency(resultdef) or
+               is_currency(left.resultdef)) and
+              (nf_internal in flags) then
+             begin
+               include(flags,nf_is_currency)
+             end
            { multiply by 10000 for currency. We need to use getcopy to pass
              the argument because the current node is always disposed. Only
              inserting the multiply in the left node is not possible because
              it'll get in an infinite loop to convert int->currency }
-           if is_currency(resultdef) then
+           else if is_currency(resultdef) then
             begin
               result:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resultdef));
               include(result.flags,nf_is_currency);
@@ -2138,7 +2148,11 @@ implementation
 
         if convtype=tc_none then
           begin
-            cdoptions:=[cdo_check_operator,cdo_allow_variant,cdo_warn_incompatible_univ];
+            cdoptions:=[cdo_allow_variant,cdo_warn_incompatible_univ];
+            { overloaded operators require calls, which is not possible inside
+              a constant declaration }
+            if block_type<>bt_const then
+              include(cdoptions,cdo_check_operator);
             if nf_explicit in flags then
               include(cdoptions,cdo_explicit);
             if nf_internal in flags then
@@ -2825,6 +2839,22 @@ implementation
       end;
 
 
+    function ttypeconvnode.first_char_to_chararray : tnode;
+
+      begin
+        if resultdef.size <> 1 then
+          begin
+            { convert first to string, then to chararray }
+            inserttypeconv(left,cshortstringtype);
+            inserttypeconv(left,resultdef);
+            result:=left;
+            left := nil;
+            exit;
+          end;
+        result := nil;
+      end;
+
+
     function ttypeconvnode.first_nothing : tnode;
       begin
          first_nothing:=nil;
@@ -3069,7 +3099,8 @@ implementation
     function ttypeconvnode.first_bool_to_bool : tnode;
       begin
          first_bool_to_bool:=nil;
-         if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) then
+         if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) and
+            not is_cbool(resultdef) then
            expectloc := left.expectloc
          else
            expectloc:=LOC_REGISTER;
@@ -3334,6 +3365,11 @@ implementation
          result:=first_char_to_string;
       end;
 
+    function ttypeconvnode._first_char_to_chararray: tnode;
+      begin
+        result:=first_char_to_chararray;
+      end;
+
     function ttypeconvnode._first_nothing : tnode;
       begin
          result:=first_nothing;
@@ -3433,7 +3469,7 @@ implementation
            @ttypeconvnode._first_nothing, {not_possible}
            @ttypeconvnode._first_string_to_string,
            @ttypeconvnode._first_char_to_string,
-           @ttypeconvnode._first_nothing, { char_2_chararray, needs nothing extra }
+           @ttypeconvnode._first_char_to_chararray,
            nil, { removed in typecheck_chararray_to_string }
            @ttypeconvnode._first_cchar_to_pchar,
            @ttypeconvnode._first_cstring_to_pchar,

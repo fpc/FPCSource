@@ -96,9 +96,9 @@ implementation
         systemunit.insert(tsyssym.create('Length',in_length_x));
         systemunit.insert(tsyssym.create('New',in_new_x));
         systemunit.insert(tsyssym.create('Dispose',in_dispose_x));
-{$if defined(x86) or defined(arm)}
+{$if defined(x86) or defined(arm) or defined(jvm)}
         systemunit.insert(tsyssym.create('Get_Frame',in_get_frame));
-{$endif defined(x86) or defined(arm)}
+{$endif defined(x86) or defined(arm) or defined(jvm)}
         systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
         systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
         systemunit.insert(tsyssym.create('ObjCEncode',in_objc_encode_x)); { objc only }
@@ -378,7 +378,7 @@ implementation
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
         addtype('$variant',cvarianttype);
-        addtype('$olevariant',cvarianttype);
+        addtype('$olevariant',colevarianttype);
         if init_settings.fputype<>fpu_none then
           begin
             addtype('$s32real',s32floattype);

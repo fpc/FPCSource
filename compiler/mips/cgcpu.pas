@@ -508,6 +508,7 @@ procedure TCGMIPS.init_register_allocators;
 begin
   inherited init_register_allocators;
 
+  { Keep RS_R25, i.e. $t9 for PIC call }
   if (cs_create_pic in current_settings.moduleswitches) and assigned(current_procinfo) and
     (pi_needs_got in current_procinfo.flags) then
     begin
@@ -515,14 +516,14 @@ begin
       rg[R_INTREGISTER]    := Trgcpu.Create(R_INTREGISTER, R_SUBD,
         [RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
        RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
-       RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],
+       RS_R20,RS_R21,RS_R22,RS_R23,RS_R24{,RS_R25}],
         first_int_imreg, []);
     end
   else
     rg[R_INTREGISTER] := trgcpu.Create(R_INTREGISTER, R_SUBD,
       [RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
        RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
-       RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],
+       RS_R20,RS_R21,RS_R22,RS_R23,RS_R24{,RS_R25}],
       first_int_imreg, []);
 
 {
@@ -1323,12 +1324,7 @@ procedure TCGMIPS.a_jmp_always(List: tasmlist; l: TAsmLabel);
 var
   ai : Taicpu;
 begin
-  { Always use A_J instead of A_BA to avoid 
-    out of range error, but not for PIC code }
-  if (cs_create_pic in current_settings.moduleswitches) then
-    ai := taicpu.op_sym(A_BA, l)
-  else
-    ai := taicpu.op_sym(A_J, l);
+  ai := taicpu.op_sym(A_BA, l);
   list.concat(ai);
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
@@ -1337,12 +1333,7 @@ end;
 
 procedure TCGMIPS.a_jmp_name(list: tasmlist; const s: string);
 begin
-  { Always use A_J instead of A_BA to avoid 
-    out of range error, but not for PIC code }
-  if (cs_create_pic in current_settings.moduleswitches) then
-    List.Concat(TAiCpu.op_sym(A_BA, current_asmdata.RefAsmSymbol(s)))
-  else
-    List.Concat(TAiCpu.op_sym(A_J, current_asmdata.RefAsmSymbol(s)));
+  List.Concat(TAiCpu.op_sym(A_BA, current_asmdata.RefAsmSymbol(s)));
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;

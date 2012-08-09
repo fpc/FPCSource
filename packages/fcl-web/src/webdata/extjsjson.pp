@@ -291,9 +291,9 @@ begin
           // Needs improving
           Case Fi.DataType of
             ftDate : O.Add('dateFormat','Y-m-d');
-            ftTime : O.Add('dateFormat','h:i:s');
+            ftTime : O.Add('dateFormat','H:i:s');
             ftDateTime,
-            ftTimeStamp : O.Add('dateFormat','Y-m-d h:i:s');
+            ftTimeStamp : O.Add('dateFormat','Y-m-d H:i:s');
           end;
         end;
       F.Add(O);

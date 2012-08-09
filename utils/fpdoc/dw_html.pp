@@ -113,6 +113,7 @@ type
     FIndexColCount : Integer;
     FSearchPage : String;
     FBaseImageURL : String;
+    FUseMenuBrackets: Boolean;
 
     Procedure CreateAllocator; virtual;
     function ResolveLinkID(const Name: String): DOMString;
@@ -213,7 +214,7 @@ type
     procedure AppendProcDecl(CodeEl, TableEl: TDOMElement;
       Element: TPasProcedureBase);
     procedure AppendProcArgsSection(Parent: TDOMNode;
-      Element: TPasProcedureType);
+      Element: TPasProcedureType; SkipResult : Boolean = False);
     function AppendRecordType(CodeEl, TableEl: TDOMElement;
       Element: TPasRecordType; NestingLevel: Integer): TDOMElement;
 
@@ -268,6 +269,7 @@ type
     Property CharSet : String Read FCharSet Write FCharSet;
     Property IndexColCount : Integer Read FIndexColCount write FIndexColCount;
     Property BaseImageURL : String Read FBaseImageURL Write FBaseImageURL;
+    Property UseMenuBrackets : Boolean Read FUseMenuBrackets write FUseMenuBrackets;
   end;
 
   THTMWriter = class(THTMLWriter)
@@ -618,6 +620,10 @@ var
 
 begin
   inherited ;
+
+  // should default to true since this is the old behavior
+  UseMenuBrackets:=True;
+
   IndexColCount:=3;
   Charset:='iso-8859-1';
   CreateAllocator;
@@ -1744,9 +1750,9 @@ end;
 procedure THTMLWriter.AppendProcDecl(CodeEl, TableEl: TDOMElement;
   Element: TPasProcedureBase);
 
-  procedure WriteVariant(AProc: TPasProcedure);
+  procedure WriteVariant(AProc: TPasProcedure; SkipResult : Boolean);
   begin
-    AppendProcArgsSection(TableEl.ParentNode, AProc.ProcType);
+    AppendProcArgsSection(TableEl.ParentNode, AProc.ProcType, SkipResult);
 
     AppendKw(CodeEl, AProc.TypeName);
     if Element.Parent.ClassType = TPasClassType then
@@ -1763,24 +1769,29 @@ procedure THTMLWriter.AppendProcDecl(CodeEl, TableEl: TDOMElement;
   end;
 
 var
-  i: Integer;
+  i,fc: Integer;
+  P : TPasProcedure;
 begin
+  fc:=0;
   if Element.ClassType = TPasOverloadedProc then
     for i := 0 to TPasOverloadedProc(Element).Overloads.Count - 1 do
     begin
+      P:=TPasProcedure(TPasOverloadedProc(Element).Overloads[i]);
+      if (P.ProcType is TPasFunctionType) then
+        Inc(fc);
       if i > 0 then
       begin
         CreateEl(CodeEl, 'br');
         CreateEl(CodeEl, 'br');
       end;
-      WriteVariant(TPasProcedure(TPasOverloadedProc(Element).Overloads[i]));
+      WriteVariant(P,fc>1);
     end
   else
-    WriteVariant(TPasProcedure(Element));
+    WriteVariant(TPasProcedure(Element),False);
 end;
 
 procedure THTMLWriter.AppendProcArgsSection(Parent: TDOMNode;
-  Element: TPasProcedureType);
+  Element: TPasProcedureType; SkipResult : Boolean = False);
 var
   HasFullDescr, IsFirst: Boolean;
   ResultEl: TPasResultElement;
@@ -1806,7 +1817,7 @@ begin
     AppendShortDescrCell(TREl, Arg);
   end;
 
-  if Element.ClassType = TPasFunctionType then
+  if (Element.ClassType = TPasFunctionType) and not SkipResult then
   begin
     ResultEl := TPasFunctionType(Element).ResultEl;
     DocNode := Engine.FindDocNode(ResultEl);
@@ -1909,9 +1920,11 @@ var
 
   procedure AddLink(El : TPasElement; const AName: String);
   begin
-    AppendText(ParaEl, '[');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, '[');
     AppendText(CreateLink(ParaEl, ResolveLinkWithinPackage(El,0)),AName);
-    AppendText(ParaEl, ']');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, ']');
   end;
 
 begin
@@ -1931,9 +1944,11 @@ begin
     AddLink(Topic.Next,SDocNext);
   if Length(SearchPage) > 0 then
     begin
-    AppendText(ParaEl, '[');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, '[');
     AppendText(CreateLink(ParaEl, SearchPage), SDocSearch);
-    AppendText(ParaEl, ']');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, ']');
     end;
   ParaEl := CreateTD(TREl);
   ParaEl['align'] := 'right';
@@ -1956,14 +1971,16 @@ var
 
   procedure AddLink(ALinkSubpageIndex: Integer; const AName: String);
   begin
-    AppendText(ParaEl, '[');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, '[');
     if ALinkSubpageIndex = ASubpageIndex then
       AppendText(ParaEl, AName)
     else
       AppendText(
         CreateLink(ParaEl, ResolveLinkWithinPackage(Module, ALinkSubpageIndex)),
         AName);
-    AppendText(ParaEl, ']');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, ']');
   end;
 
 begin
@@ -1996,21 +2013,25 @@ begin
   else
     begin
     // Manually add link for package page
-    AppendText(ParaEl, '[');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, '[');
     if (IndexSubIndex = ASubpageIndex) then
       AppendText(ParaEl, SDocIdentifierIndex)
     else
       AppendText(
         CreateLink(ParaEl, ResolveLinkWithinPackage(Package, IndexSubIndex)),
         SDocIdentifierIndex);
-    AppendText(ParaEl, ']');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, ']');
     end;
 
   if Length(SearchPage) > 0 then
   begin
-    AppendText(ParaEl, '[');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, '[');
     AppendText(CreateLink(ParaEl, SearchPage), SDocSearch);
-    AppendText(ParaEl, ']');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, ']');
   end;
   ParaEl := CreateTD(TREl);
   ParaEl['align'] := 'right';
@@ -2836,7 +2857,8 @@ var
   var
     LinkEl: TDOMElement;
   begin
-    AppendText(ParaEl, '[');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, '[');
     LinkEl := CreateEl(ParaEl, 'a');
     LinkEl['href'] :=
       FixHtmlPath(ResolveLinkWithinPackage(AClass, AListSubpageIndex));
@@ -2851,7 +2873,10 @@ var
      '''dependent=yes,resizable=yes,scrollbars=yes,height=400,width=300''); return false;';
     AppendText(LinkEl, SDocByName);
     AppendText(ParaEl, ')');
-    AppendText(ParaEl, '] ');
+    if FUseMenuBrackets then
+      AppendText(ParaEl, '] ')
+    else
+      AppendText(ParaEl, ' ');
   end;
 
   procedure AppendGenericTypes(CodeEl : TDomElement; AList : TFPList; isSpecialize : Boolean);
@@ -3428,6 +3453,7 @@ Function THTMLWriter.InterPretOption(Const Cmd,Arg : String) : boolean;
 
 begin
   Result:=True;
+
   if Cmd = '--html-search' then
     SearchPage := Arg
   else if Cmd = '--footer' then
@@ -3445,6 +3471,8 @@ begin
     FIDF:=True;
     FDateFormat:=Arg;
     end
+  else if Cmd = '--disable-menu-brackets' then
+    FUseMenuBrackets:=False
   else
     Result:=False;
 end;
@@ -3469,6 +3497,8 @@ begin
   List.Add(SHTMLIndexColcount);
   List.Add('--image-url=url');
   List.Add(SHTMLImageUrl);
+  List.Add('--disable-menu-brackets');
+  List.Add(SHTMLDisableMenuBrackets);
 end;
 
 Class Function THTMLWriter.FileNameExtension : String; 

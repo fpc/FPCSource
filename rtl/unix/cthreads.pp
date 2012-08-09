@@ -389,7 +389,6 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
   function  CResumeThread  (threadHandle : TThreadID) : dword;
     begin
-//      result := pthread_kill(threadHandle,SIGCONT);
       result:=dword(-1);
     end;
 
@@ -409,7 +408,11 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
   function  CKillThread (threadHandle : TThreadID) : dword;
     begin
       pthread_detach(pthread_t(threadHandle));
+{$ifndef android}
       CKillThread := pthread_cancel(pthread_t(threadHandle));
+{$else}
+      CKillThread := dword(-1);
+{$endif}
     end;
 
   function CCloseThread (threadHandle : TThreadID) : dword;

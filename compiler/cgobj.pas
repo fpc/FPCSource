@@ -368,7 +368,6 @@ unit cgobj;
           }
          procedure g_exception_reason_load(list : TAsmList; const href : treference);virtual;
 
-          procedure g_maybe_testself(list : TAsmList;reg:tregister);
           procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
              to destination.
@@ -394,9 +393,6 @@ unit cgobj;
           {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); virtual;abstract;
           procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;ovloc : tlocation);virtual;
-
-          procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);virtual;
-          procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);virtual;
 
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
@@ -2070,27 +2066,6 @@ implementation
 {$endif cpuflags}
 
 
-    procedure tcg.g_maybe_testself(list : TAsmList;reg:tregister);
-      var
-        OKLabel : tasmlabel;
-        cgpara1 : TCGPara;
-      begin
-        if (cs_check_object in current_settings.localswitches) or
-           (cs_check_range in current_settings.localswitches) then
-         begin
-           current_asmdata.getjumplabel(oklabel);
-           a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
-           cgpara1.init;
-           paramanager.getintparaloc(pocall_default,1,s32inttype,cgpara1);
-           a_load_const_cgpara(list,OS_S32,tcgint(210),cgpara1);
-           paramanager.freecgpara(list,cgpara1);
-           a_call_name(list,'FPC_HANDLEERROR',false);
-           a_label(list,oklabel);
-           cgpara1.done;
-         end;
-      end;
-
-
     procedure tcg.g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
       var
         hrefvmt : treference;
@@ -2128,86 +2103,6 @@ implementation
 {*****************************************************************************
                             Entry/Exit Code Functions
 *****************************************************************************}
-
-    procedure tcg.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
-      var
-        sizereg,sourcereg,lenreg : tregister;
-        cgpara1,cgpara2,cgpara3 : TCGPara;
-      begin
-        { because some abis don't support dynamic stack allocation properly
-          open array value parameters are copied onto the heap
-        }
-
-        { calculate necessary memory }
-
-        { read/write operations on one register make the life of the register allocator hard }
-        if not(lenloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-          begin
-            lenreg:=getintregister(list,OS_INT);
-            a_load_loc_reg(list,OS_INT,lenloc,lenreg);
-          end
-        else
-          lenreg:=lenloc.register;
-
-        sizereg:=getintregister(list,OS_INT);
-        a_op_const_reg_reg(list,OP_ADD,OS_INT,1,lenreg,sizereg);
-        a_op_const_reg(list,OP_IMUL,OS_INT,elesize,sizereg);
-        { load source }
-        sourcereg:=getaddressregister(list);
-        a_loadaddr_ref_reg(list,ref,sourcereg);
-
-        { do getmem call }
-        cgpara1.init;
-        paramanager.getintparaloc(pocall_default,1,ptruinttype,cgpara1);
-        a_load_reg_cgpara(list,OS_INT,sizereg,cgpara1);
-        paramanager.freecgpara(list,cgpara1);
-        allocallcpuregisters(list);
-        a_call_name(list,'FPC_GETMEM',false);
-        deallocallcpuregisters(list);
-        cgpara1.done;
-        { return the new address }
-        a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,destreg);
-
-        { do move call }
-        cgpara1.init;
-        cgpara2.init;
-        cgpara3.init;
-        paramanager.getintparaloc(pocall_default,1,voidpointertype,cgpara1);
-        paramanager.getintparaloc(pocall_default,2,voidpointertype,cgpara2);
-        paramanager.getintparaloc(pocall_default,3,ptrsinttype,cgpara3);
-        { load size }
-        a_load_reg_cgpara(list,OS_SINT,sizereg,cgpara3);
-        { load destination }
-        a_load_reg_cgpara(list,OS_ADDR,destreg,cgpara2);
-        { load source }
-        a_load_reg_cgpara(list,OS_ADDR,sourcereg,cgpara1);
-        paramanager.freecgpara(list,cgpara3);
-        paramanager.freecgpara(list,cgpara2);
-        paramanager.freecgpara(list,cgpara1);
-        allocallcpuregisters(list);
-        a_call_name(list,'FPC_MOVE',false);
-        deallocallcpuregisters(list);
-        cgpara3.done;
-        cgpara2.done;
-        cgpara1.done;
-      end;
-
-
-    procedure tcg.g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
-      var
-        cgpara1 : TCGPara;
-      begin
-        { do move call }
-        cgpara1.init;
-        paramanager.getintparaloc(pocall_default,1,voidpointertype,cgpara1);
-        { load source }
-        a_load_loc_cgpara(list,l,cgpara1);
-        paramanager.freecgpara(list,cgpara1);
-        allocallcpuregisters(list);
-        a_call_name(list,'FPC_FREEMEM',false);
-        deallocallcpuregisters(list);
-        cgpara1.done;
-      end;
 
 
     procedure tcg.g_save_registers(list:TAsmList);

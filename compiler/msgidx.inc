@@ -416,6 +416,7 @@ const
   parser_d_internal_parser_string=03319;
   parser_e_feature_unsupported_for_vm=03320;
   parser_e_jvm_invalid_virtual_constructor_call=03321;
+  parser_e_method_lower_visibility=03322;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -524,6 +525,8 @@ const
   type_e_no_managed_assign_generic_typecast=04115;
   type_w_interface_lower_visibility=04116;
   type_e_interface_lower_visibility=04117;
+  type_e_typeof_requires_vmt=04118;
+  type_e_invalid_default_value=04119;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -943,9 +946,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 65908;
+  MsgTxtSize = 66090;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,92,322,118,87,56,116,26,202,63,
+    26,92,323,120,87,56,116,26,202,63,
     53,20,1,1,1,1,1,1,1,1
   );

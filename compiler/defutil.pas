@@ -46,6 +46,16 @@ interface
     {# Returns true, if definition defines a string type }
     function is_string(def : tdef): boolean;
 
+    {# Returns True, if definition defines a type that behaves like a string,
+       namely that can be joined and compared with another string-like type }
+    function is_stringlike(def : tdef) : boolean;
+
+    {# Returns True, if definition defines an enumeration type }
+    function is_enum(def : tdef) : boolean;
+
+    {# Returns True, if definition defines a set type }
+    function is_set(def : tdef) : boolean;
+
     {# Returns the minimal integer value of the type }
     function get_min_value(def : tdef) : TConstExprInt;
 
@@ -405,6 +415,27 @@ implementation
         is_string := (assigned(def) and (def.typ = stringdef));
       end;
 
+    function is_stringlike(def : tdef) : boolean;
+      begin
+        result := is_string(def) or
+                  is_anychar(def) or
+                  is_pchar(def) or
+                  is_pwidechar(def) or
+                  is_chararray(def) or
+                  is_widechararray(def) or
+                  is_open_chararray(def) or
+                  is_open_widechararray(def);
+      end;
+
+    function is_enum(def : tdef) : boolean;
+      begin
+        result:=def.typ=enumdef;
+      end;
+
+    function is_set(def : tdef) : boolean;
+      begin
+        result:=def.typ=setdef;
+      end;
 
     { returns the min. value of the type }
     function get_min_value(def : tdef) : TConstExprInt;

@@ -61,9 +61,6 @@ interface
           genericdef      : tstoreddef;
           genericdefderef : tderef;
           generictokenbuf : tdynamicarray;
-          { Set if PPU was generated with another
-            endianess as current compiler or ppudump utils }
-          change_endian   : boolean;
           constructor create(dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -234,14 +231,18 @@ interface
        { TImplementedInterface }
 
        TImplementedInterface = class
+        private
+         fIOffset      : longint;
+         function GetIOffset: longint;
+        public
          IntfDef      : tobjectdef;
          IntfDefDeref : tderef;
          IType        : tinterfaceentrytype;
-         IOffset      : longint;
          VtblImplIntf : TImplementedInterface;
          NameMappings : TFPHashList;
          ProcDefs     : TFPObjectList;
          ImplementsGetter :  tsym;
+         ImplementsField : tsym;
          constructor create(aintf: tobjectdef);
          constructor create_deref(d:tderef);
          destructor  destroy; override;
@@ -252,6 +253,7 @@ interface
          function  GetMapping(const origname: string):string;
          procedure AddImplProc(pd:tprocdef);
          function  IsImplMergePossible(MergingIntf:TImplementedInterface;out weight: longint): boolean;
+         property  IOffset: longint read GetIOffset write fIOffset;
        end;
 
        { tvmtentry }
@@ -425,6 +427,7 @@ interface
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
           function alignment:shortint;override;
+          function structalignment: shortint;override;
           procedure setsize;
           function  getvardef:longint;override;
        end;
@@ -1337,7 +1340,6 @@ implementation
 {$endif}
          generictokenbuf:=nil;
          genericdef:=nil;
-         change_endian:=false;
 
          { Don't register forwarddefs, they are disposed at the
            end of an type block }
@@ -1395,7 +1397,6 @@ implementation
          if df_generic in defoptions then
            begin
              sizeleft:=ppufile.getlongint;
-             change_endian:=ppufile.change_endian;
              initgeneric;
              while sizeleft>0 do
                begin
@@ -2291,6 +2292,19 @@ implementation
       end;
 
 
+    function tfloatdef.structalignment: shortint;
+      begin
+        { aix is really annoying: the recommended scalar alignment for both
+          int64 and double is 64 bits, but in structs int64 has to be aligned
+          to 8 bytes and double to 4 bytes }
+        if (target_info.system in systems_aix) and
+           (floattype=s64real) then
+          result:=4
+        else
+          result:=alignment;
+      end;
+
+
     procedure tfloatdef.setsize;
       begin
          case floattype of
@@ -2446,7 +2460,7 @@ implementation
 {$ifdef cpu32bitaddr}
         case filetyp of
           ft_text :
-            savesize:=594{+4};
+            savesize:=596; { keep this dividable by 4 for proper alignment of arrays of text, see tw0754 e.g. on arm }
           ft_typed,
           ft_untyped :
             savesize:=332;
@@ -6240,6 +6254,16 @@ implementation
                              TImplementedInterface
 ****************************************************************************}
 
+    function TImplementedInterface.GetIOffset: longint;
+      begin
+        if (fIOffset=-1) and
+           (IType in [etFieldValue,etFieldValueClass]) then
+          result:=tfieldvarsym(ImplementsField).fieldoffset
+        else
+          result:=fIOffset;
+      end;
+
+
     constructor TImplementedInterface.create(aintf: tobjectdef);
       begin
         inherited create;
@@ -6793,7 +6817,10 @@ implementation
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
             res^.Data:=tpointerdef.create(def);
-            current_module.localsymtable.insertdef(tdef(res^.Data));
+            if assigned(current_module.localsymtable) then
+              current_module.localsymtable.insertdef(tdef(res^.Data))
+            else
+              current_module.globalsymtable.insertdef(tdef(res^.Data));
             symtablestack:=oldsymtablestack;
           end;
         result:=tpointerdef(res^.Data);
@@ -6828,7 +6855,10 @@ implementation
             symtablestack:=nil;
             res^.Data:=tarraydef.create(0,elecount-1,ptrsinttype);
             tarraydef(res^.Data).elementdef:=def;
-            current_module.localsymtable.insertdef(tdef(res^.Data));
+            if assigned(current_module.localsymtable) then
+              current_module.localsymtable.insertdef(tdef(res^.Data))
+            else
+              current_module.globalsymtable.insertdef(tdef(res^.Data));
             symtablestack:=oldsymtablestack;
           end;
         result:=tarraydef(res^.Data);

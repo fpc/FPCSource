@@ -31,49 +31,81 @@ interface
 uses
   globtype,
   aasmbase, aasmdata,
-  symdef,
-  hlcgobj, hlcg2ll;
-  
+  cgbase, cgutils,
+  symtype,symdef,
+  parabase, hlcgobj, hlcg2ll;
+
   type
-    thlcg2mips = class(thlcg2ll)
-      procedure a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; weak: boolean);override;
-	end;
+    thlcgmips = class(thlcg2ll)
+      function a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara; override;
+      procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);override;
+      procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);override;
+  end;
 
   procedure create_hlcodegen;
 
 implementation
 
   uses
-	cgbase,
-	cgutils,
-	cgobj,
-	cpubase,
-	cgcpu;
+    aasmtai,
+    cutils,
+    cgobj,
+    cpubase,
+    cgcpu;
 
-  procedure thlcg2mips.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; weak: boolean);
+  function thlcgmips.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
     var
       ref : treference;
     begin
-      if pd.proccalloption =pocall_cdecl then
+      if pd.proccalloption=pocall_cdecl then
         begin
           { Use $gp/$t9 registers as the code might be in a shared library }
-		  reference_reset(ref,sizeof(aint));
-		  ref.symbol:=current_asmdata.RefAsmSymbol('_gp');
-		  cg.a_loadaddr_ref_reg(list,ref,NR_GP);
-		  reference_reset(ref,sizeof(aint));
-		  ref.symbol:=current_asmdata.RefAsmSymbol(s);
-		  ref.base:=NR_GP;
-		  ref.refaddr:=addr_pic;
-		  cg.a_loadaddr_ref_reg(list,ref,NR_PIC_FUNC);
-		  cg.a_call_reg(list,NR_PIC_FUNC);
+          reference_reset(ref,sizeof(aint));
+          ref.symbol:=current_asmdata.RefAsmSymbol('_gp');
+          list.concat(tai_comment.create(strpnew('Using PIC code for a_call_name')));
+          cg.a_loadaddr_ref_reg(list,ref,NR_GP);
+          reference_reset(ref,sizeof(aint));
+          ref.symbol:=current_asmdata.RefAsmSymbol(s);
+          ref.base:=NR_GP;
+      	  ref.refaddr:=addr_pic;
+          cg.a_loadaddr_ref_reg(list,ref,NR_PIC_FUNC);
+          cg.a_call_reg(list,NR_PIC_FUNC);
         end
       else
         cg.a_call_name(list,s,weak);
+      { set the result location }
+      result:=get_call_result_cgpara(pd,forceresdef);
+    end;
+
+  procedure thlcgmips.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
+    begin
+      if (pd.proccalloption=pocall_cdecl) and (reg<>NR_PIC_FUNC) then
+        begin
+          list.concat(tai_comment.create(strpnew('Using PIC code for a_call_reg')));
+          { Use $t9 register as the code might be in a shared library }
+          cg.a_load_reg_reg(list,OS_32,OS_32,reg,NR_PIC_FUNC);
+          cg.a_call_reg(list,NR_PIC_FUNC);
+        end
+      else
+        cg.a_call_reg(list,reg);
+    end;
+
+  procedure thlcgmips.a_call_ref(list: TAsmList; pd: tabstractprocdef; const ref: treference);
+    begin
+      if pd.proccalloption =pocall_cdecl then
+        begin
+          { Use $t9 register as the code might be in a shared library }
+          list.concat(tai_comment.create(strpnew('Using PIC code for a_call_ref')));
+          cg.a_loadaddr_ref_reg(list,ref,NR_PIC_FUNC);
+          cg.a_call_reg(list,NR_PIC_FUNC);
+        end
+      else
+        cg.a_call_ref(list,ref);
     end;
 
   procedure create_hlcodegen;
     begin
-      hlcg:=thlcg2mips.create;
+      hlcg:=thlcgmips.create;
       create_codegen;
     end;
 

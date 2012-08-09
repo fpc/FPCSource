@@ -224,62 +224,27 @@ asm
   bxle  lr
 {$endif}
   // overlap?
-  cmp r1,r0
-  bls .Lnooverlap
-  add r3,r0,r2
-  cmp r3,r1
-  bls .Lnooverlap
-  // overlap, copy backward
-.Loverlapped:
-  subs r2,r2,#1
-  ldrb r3,[r0,r2]
-  strb r3,[r1,r2]
-  bne .Loverlapped
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  mov pc,lr
-{$else}
-  bx  lr
-{$endif}
-.Lnooverlap:
-  // less then 16 bytes to copy?
-  cmp r2,#8
-  // yes, the forget about the whole optimizations
-  // and do a bytewise copy
-  blt .Lbyteloop
+  subs   r3, r1, r0    // if (dest > source) and
+  cmphi  r2, r3        //    (count > dest - src) then
+  bhi    .Loverlapped  //   DoReverseByteCopy;
 
-  // both aligned?
-  orr r3,r0,r1
-  tst r3,#3
+  cmp r2,#8            // if (count < 8) then
+  blt .Lbyteloop       //    DoForwardByteCopy;
+  // Any way to avoid the above jump and fuse the next two instructions?
+  tst   r0, #3         // if (source and 3) <> 0 or
+  tsteq r1, #3         //    (dest and 3) <> 0 then
+  bne   .Lbyteloop     //   DoForwardByteCopy;
 
-  bne .Lbyteloop
-(*
-  // yes, then align
-  // alignment to 4 byte boundries is enough
-  ldrb ip,[r0],#1
-  sub r2,r2,#1
-  stb ip,[r1],#1
-  tst r3,#2
-  bne .Ldifferentaligned
-  ldrh ip,[r0],#2
-  sub r2,r2,#2
-  sth ip,[r1],#2
-
-.Ldifferentaligned
-  // qword aligned?
-  orrs r3,r0,r1
-  tst r3,#7
-  bne .Ldwordloop
-*)
-  pld [r0,#32]
+  pld   [r0,#32]
 .Ldwordloop:
-  sub r2,r2,#4
-  ldr r3,[r0],#4
+  ldmia r0!, {r3, ip}
   // preload
-  pld [r0,#64]
-  cmp r2,#4
-  str r3,[r1],#4
-  bcs .Ldwordloop
-  cmp r2,#0
+  pld   [r0,#64]
+  sub   r2,r2,#8
+  cmp   r2, #8
+  stmia r1!, {r3, ip}
+  bge   .Ldwordloop
+  cmp   r2,#0
 {$if defined(cpuarmv3) or defined(cpuarmv4)}
   moveq pc,lr
 {$else}
@@ -295,6 +260,11 @@ asm
 {$else}
   bx  lr
 {$endif}
+.Loverlapped:
+  subs r2,r2,#1
+  ldrb r3,[r0,r2]
+  strb r3,[r1,r2]
+  bne .Loverlapped
 end;
 
 procedure Move_blended(const source;var dest;count:longint);assembler;nostackframe;
@@ -307,59 +277,24 @@ asm
   bxle  lr
 {$endif}
   // overlap?
-  cmp r1,r0
-  bls .Lnooverlap
-  add r3,r0,r2
-  cmp r3,r1
-  bls .Lnooverlap
-  // overlap, copy backward
-.Loverlapped:
-  subs r2,r2,#1
-  ldrb r3,[r0,r2]
-  strb r3,[r1,r2]
-  bne .Loverlapped
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  mov pc,lr
-{$else}
-  bx  lr
-{$endif}
-.Lnooverlap:
-  // less then 16 bytes to copy?
-  cmp r2,#8
-  // yes, the forget about the whole optimizations
-  // and do a bytewise copy
-  blt .Lbyteloop
+  subs   r3, r1, r0    // if (dest > source) and
+  cmphi  r2, r3        //    (count > dest - src) then
+  bhi    .Loverlapped  //   DoReverseByteCopy;
 
-  // both aligned?
-  orr r3,r0,r1
-  tst r3,#3
+  cmp r2,#8            // if (count < 8) then
+  blt .Lbyteloop       //    DoForwardByteCopy;
+  // Any way to avoid the above jump and fuse the next two instructions?
+  tst   r0, #3         // if (source and 3) <> 0 or
+  tsteq r1, #3         //    (dest and 3) <> 0 then
+  bne   .Lbyteloop     //   DoForwardByteCopy;
 
-  bne .Lbyteloop
-(*
-  // yes, then align
-  // alignment to 4 byte boundries is enough
-  ldrb ip,[r0],#1
-  sub r2,r2,#1
-  stb ip,[r1],#1
-  tst r3,#2
-  bne .Ldifferentaligned
-  ldrh ip,[r0],#2
-  sub r2,r2,#2
-  sth ip,[r1],#2
-
-.Ldifferentaligned
-  // qword aligned?
-  orrs r3,r0,r1
-  tst r3,#7
-  bne .Ldwordloop
-*)
 .Ldwordloop:
-  sub r2,r2,#4
-  ldr r3,[r0],#4
-  cmp r2,#4
-  str r3,[r1],#4
-  bcs .Ldwordloop
-  cmp r2,#0
+  ldmia r0!, {r3, ip}
+  sub   r2,r2,#8
+  cmp   r2, #8
+  stmia r1!, {r3, ip}
+  bge   .Ldwordloop
+  cmp   r2,#0
 {$if defined(cpuarmv3) or defined(cpuarmv4)}
   moveq pc,lr
 {$else}
@@ -375,8 +310,12 @@ asm
 {$else}
   bx  lr
 {$endif}
+.Loverlapped:
+  subs r2,r2,#1
+  ldrb r3,[r0,r2]
+  strb r3,[r1,r2]
+  bne .Loverlapped
 end;
-
 
 const
   moveproc : pointer = @move_blended;
@@ -560,6 +499,46 @@ end;
 {$endif}
 
 
+{$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
+function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
+
+Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];assembler;nostackframe; compilerproc;
+asm
+  ldr     r1, [r0]
+  // On return the pointer will always be set to zero, so utilize the delay slots
+  mov     r2, #0
+  str     r2, [r0]
+
+  // Check for a zero string
+  cmp     r1, #0
+  // Load reference counter
+  ldrne   r2, [r1, #-8]
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
+  moveq   pc,lr
+{$else}
+  bxeq    lr
+{$endif}
+  // Check for a constant string
+  cmp     r2, #0
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
+  movlt   pc,lr
+{$else}
+  bxlt    lr
+{$endif}
+  stmfd   sp!, {r1, lr}
+  sub     r0, r1, #8
+  blx     InterLockedDecrement
+  // InterLockedDecrement is a nice guy and sets the z flag for us
+  // if the reference count dropped to 0
+  ldmnefd sp!, {r1, pc}
+  ldmfd sp!, {r0, lr}
+  // We currently can not use constant symbols in ARM-Assembly
+  // but we need to stay backward compatible with 2.6
+  sub     r0, r0, #12
+  // Jump without a link, so freemem directly returns to our caller
+  b       FPC_FREEMEM_X
+end;
+
 var
   fpc_system_lock: longint; export name 'fpc_system_lock';
 
@@ -572,7 +551,7 @@ asm
   strex r2, r1, [r0]
   cmp r2, #0
   bne .Lloop
-  mov r0, r1
+  movs r0, r1
   bx  lr
 {$else}
 {$if defined(LINUX) and defined(CPUARMEL)}
@@ -596,7 +575,9 @@ asm
   sub r1, r0, #1 // Decrement value
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
 
-  movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
+  // MOVS sets the Z flag when the result reaches zero, this can be used later on
+  // The C-Flag will not be modified by this because we're not doing any shifting
+  movcss r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
   ldmcsfd r13!, {pc}
   b .Latomic_dec_loop // kuser_cmpxchg sets C flag on error
 
@@ -612,7 +593,7 @@ asm
   ldr r1, [r0]
   sub r1, r1, #1
   str r1, [r0]
-  mov r0, r1
+  movs r0, r1
 // unlock and return
   str r2, [r3]
   bx  lr
@@ -623,6 +604,28 @@ asm
 {$endif}
 end;
 
+{$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
+
+Procedure fpc_ansistr_incr_ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];assembler;nostackframe; compilerproc;
+asm
+  // Null string?
+  cmp     r0, #0
+  // Load reference counter
+  ldrne   r1, [r0, #-8]
+  // pointer to counter, calculate here for delay slot utilization
+  subne   r0, r0, #8
+{$if defined(cpuarmv3) or defined(cpuarmv4)}
+  moveq   pc,lr
+{$else}
+  bxeq    lr
+{$endif}
+  // Check for a constant string
+  cmp     r1, #0
+  // Tailcall
+  // Hopefully the linker will place InterLockedIncrement as layed out here
+  bge     InterLockedIncrement
+  // Freepascal will generate a proper return here, save some cachespace
+end;
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
@@ -887,7 +890,7 @@ is bigger than the gain of the optimized function.
 function AsmSwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif};assembler;nostackframe;
 asm
 	// We're starting with 4321
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5) or defined(VER2_6)}
 	mov r0, r0, shl #16	// Shift to make that 2100
 	mov r0, r0, ror #24	// Rotate to 1002
 	orr r0, r0, r0 shr #16  // Shift and combine into 0012
@@ -925,7 +928,7 @@ end;
 
 function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
 asm
-{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5) or defined(VER2_6)}
         mov ip, r1
 
         // We're starting with r0 = $87654321

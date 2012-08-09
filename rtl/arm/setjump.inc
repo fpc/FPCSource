@@ -19,6 +19,9 @@ function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_S
     {$if defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_D16)}
     {$if defined(CPUARMV3) or defined(CPUARMV4) or defined(CPUARMV5)}
     fstmiax r0!, {d8-d15}
+    // according to the ARM Developer Suite Assembler Guide Version 1.2
+    // fstmiad increases the address register always by 2n+1 words, so fix this
+    sub r0,r0,#4
     {$else}
     fstmiad r0!, {d8-d15}
     {$endif}
@@ -60,6 +63,9 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias 
     {$if defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_D16)}
     {$if defined(CPUARMV3) or defined(CPUARMV4) or defined(CPUARMV5)}
     fldmiax ip!, {d8-d15}
+    // according to the ARM Developer Suite Assembler Guide Version 1.2
+    // increases fldmiax the address register always by 2n+1 words, so fix this
+    sub ip,ip,#4
     {$else}
     fldmiad ip!, {d8-d15}
     {$endif}

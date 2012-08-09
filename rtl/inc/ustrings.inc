@@ -167,7 +167,7 @@ end;
 
 procedure UnicodeStringError;
   begin
-    HandleErrorFrame(204,get_frame);
+    HandleErrorAddrFrameInd(204,get_pc_addr,get_frame);
   end;
 
 
@@ -924,13 +924,13 @@ end;
 Procedure fpc_UnicodeStr_CheckZero(p : pointer);[Public,Alias : 'FPC_UNICODESTR_CHECKZERO']; compilerproc;
 begin
   if p=nil then
-    HandleErrorFrame(201,get_frame);
+    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 
 Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
 begin
   if (index>len) or (Index<1) then
-    HandleErrorFrame(201,get_frame);
+    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 
 {$else VER2_4}
@@ -939,7 +939,7 @@ end;
 Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
 begin
   if (p=nil) or (index>PUnicodeRec(p-UnicodeFirstOff)^.len) or (Index<1) then
-    HandleErrorFrame(201,get_frame);
+    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 {$endif FPC_HAS_UNICODESTR_RANGECHECK}
 {$endif VER2_4}
@@ -2155,7 +2155,7 @@ procedure unimplementedunicodestring;
       Writeln(StdErr,SRecompileWithUnicodestrings);
       end;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
-    HandleErrorFrame(233,get_frame);
+    HandleErrorAddrFrameInd(233,get_pc_addr,get_frame);
   end;
 
 

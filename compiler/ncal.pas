@@ -2392,6 +2392,11 @@ implementation
                   (cnf_do_inline in callnodeflags) and
                   not(tabstractvarsym(tprocdef(procdefinition).funcretsym).varregable in [vr_none,vr_addr]));
                 include(temp.flags,nf_is_funcret);
+                { if a managed type is returned by reference, assigning something
+                  to the result on the caller side will take care of decreasing
+                  the reference count }
+                if paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
+                  include(ttempcreatenode(temp).tempinfo^.flags,ti_nofini);
                 add_init_statement(temp);
                 { When the function result is not used in an inlined function
                   we need to delete the temp. This can currently only be done by

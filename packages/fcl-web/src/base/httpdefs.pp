@@ -111,6 +111,7 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     procedure Assign(Source: TPersistent); override;
+    procedure Expire;
     property Name: string read FName write FName;
     property Value: string read FValue write FValue;
     property Domain: string read FDomain write FDomain;
@@ -1725,6 +1726,11 @@ begin
       end
   else
     inherited Assign(Source);
+end;
+
+procedure TCookie.Expire;
+begin
+  FExpires := EncodeDate(1970, 1, 1);
 end;
 
 { TCookieCollection }

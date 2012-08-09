@@ -47,13 +47,16 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,
+      constexp,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
       cgbase,cgutils,cgcpu,
       cpuinfo,pass_1,pass_2,regvars,procinfo,
       cpupara,
       ncon,nset,nadd,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,
+      hlcgobj
+      ;
 
 {*****************************************************************************
                                TSparcAddNode
@@ -286,7 +289,8 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
 
-        force_reg_left_right(false,false);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
         case nodetype of
           equaln:
@@ -322,60 +326,93 @@ interface
       var
         unsigned : boolean;
         oldnodetype : tnodetype;
+        dummyreg : tregister;
+        l: tasmlabel;
       begin
-        pass_left_right;
-        force_reg_left_right(false,false);
-
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        { operation requiring proper N, Z and C flags ? }
-        if unsigned or (nodetype in [equaln,unequaln]) then
+        pass_left_right;
+
+        if (nodetype in [equaln,unequaln]) and
+          (left.nodetype=ordconstn) and (tordconstnode(left).value=0) then
           begin
             location_reset(location,LOC_FLAGS,OS_NO);
             location.resflags:=getresflags(unsigned);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
-            if current_settings.cputype in cpu_thumb2 then
-              current_asmdata.CurrAsmList.concat(taicpu.op_cond(A_IT, C_EQ));
-            current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo),C_EQ));
+            if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+            dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,right.location.register64.reglo,right.location.register64.reghi),PF_S));
+          end
+        else if (nodetype in [equaln,unequaln]) and
+          (right.nodetype=ordconstn) and (tordconstnode(right).value=0) then
+          begin
+            location_reset(location,LOC_FLAGS,OS_NO);
+            location.resflags:=getresflags(unsigned);
+            if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+            dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
           end
         else
-        { operation requiring proper N, Z and V flags ? }
           begin
-            location_reset(location,LOC_JUMP,OS_NO);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
-            { the jump the sequence is a little bit hairy }
-            case nodetype of
-               ltn,gtn:
-                 begin
-                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),current_procinfo.CurrTrueLabel);
-                    { cheat a little bit for the negative test }
-                    toggleflag(nf_swapped);
-                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),current_procinfo.CurrFalseLabel);
-                    toggleflag(nf_swapped);
-                 end;
-               lten,gten:
-                 begin
-                    oldnodetype:=nodetype;
-                    if nodetype=lten then
-                      nodetype:=ltn
-                    else
-                      nodetype:=gtn;
-                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
-                    { cheat for the negative test }
-                    if nodetype=ltn then
-                      nodetype:=gtn
-                    else
-                      nodetype:=ltn;
-                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
-                    nodetype:=oldnodetype;
-                 end;
-            end;
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
-            { the comparisaion of the low dword have to be
-               always unsigned!                            }
-            cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
-            cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+
+            { operation requiring proper N, Z and C flags ? }
+            if unsigned or (nodetype in [equaln,unequaln]) then
+              begin
+                location_reset(location,LOC_FLAGS,OS_NO);
+                location.resflags:=getresflags(unsigned);
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
+                if current_settings.cputype in cpu_thumb2 then
+                  begin
+                    current_asmdata.getjumplabel(l);
+                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,l);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
+                    cg.a_label(current_asmdata.CurrAsmList,l);
+                  end
+                else
+                  current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo),C_EQ));
+              end
+            else
+            { operation requiring proper N, Z and V flags ? }
+              begin
+                location_reset(location,LOC_JUMP,OS_NO);
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
+                { the jump the sequence is a little bit hairy }
+                case nodetype of
+                   ltn,gtn:
+                     begin
+                        cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),current_procinfo.CurrTrueLabel);
+                        { cheat a little bit for the negative test }
+                        toggleflag(nf_swapped);
+                        cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),current_procinfo.CurrFalseLabel);
+                        toggleflag(nf_swapped);
+                     end;
+                   lten,gten:
+                     begin
+                        oldnodetype:=nodetype;
+                        if nodetype=lten then
+                          nodetype:=ltn
+                        else
+                          nodetype:=gtn;
+                        cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                        { cheat for the negative test }
+                        if nodetype=ltn then
+                          nodetype:=gtn
+                        else
+                          nodetype:=ltn;
+                        cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                        nodetype:=oldnodetype;
+                     end;
+                end;
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
+                { the comparisaion of the low dword have to be
+                   always unsigned!                            }
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              end;
           end;
       end;
 

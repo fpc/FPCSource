@@ -25,7 +25,8 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <CommandLineParams Value="--suite=TTestTypeParser"/>
+        <LaunchingApplication Use="True" PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
     <RequiredPackages Count="2">
@@ -36,7 +37,7 @@
         <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="8">
       <Unit0>
         <Filename Value="testpassrc.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -47,6 +48,36 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcscanner"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="tctypeparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tctypeparser"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="tcstatements.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcstatements"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="tcbaseparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcbaseparser"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="tcmoduleparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcmoduleparser"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="tconstparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tconstparser"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="tcvarparser.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcvarparser"/>
+      </Unit7>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -243,7 +243,8 @@ interface
          cs_opt_level1,cs_opt_level2,cs_opt_level3,
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
          cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
-         cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline
+         cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline,cs_useebp,
+         cs_opt_reorder_fields,cs_opt_fastmath
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -263,11 +264,12 @@ interface
        end;
 
     const
-       OptimizerSwitchStr : array[toptimizerswitch] of string[10] = ('',
+       OptimizerSwitchStr : array[toptimizerswitch] of string[11] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
-         'DFA','STRENGTH','SCHEDULE','AUTOINLINE'
+         'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP',
+         'ORDERFIELDS','FASTMATH'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -459,6 +461,8 @@ interface
 {$else}
        pocall_default = pocall_stdcall;
 {$endif}
+
+       cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal];
 
        modeswitchstr : array[tmodeswitch] of string[18] = ('','',
          '','','','','','',

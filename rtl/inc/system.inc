@@ -76,9 +76,10 @@ Const
   {$endif FPC_OBJFPC_EXTENDED_IF}
 {$endif FPC_HAS_FEATURE_EXITCODE}
 
-Procedure HandleError (Errno : Longint); forward;
+Procedure HandleError (Errno : Longint); external name 'FPC_HANDLEERROR';
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
 Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer); forward;
+Procedure HandleErrorAddrFrameInd (Errno : longint;addr,frame : Pointer); forward;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 type
@@ -680,7 +681,7 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_GET_PC_ADDR}
 
 {$ifndef FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
-  { This provides a simpel implementation
+  { This provides a simple implementation
     of get_caller_stackinfo procedure,
     using get_caller_addr and get_caller_frame
     functions. }
@@ -698,31 +699,31 @@ end;
 
 procedure fpc_rangeerror;[public,alias:'FPC_RANGEERROR']; compilerproc;
 begin
-  HandleErrorAddrFrame(201,get_pc_addr,get_frame);
+  HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_divbyzero;[public,alias:'FPC_DIVBYZERO']; compilerproc;
 begin
-  HandleErrorAddrFrame(200,get_pc_addr,get_frame);
+  HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_overflow;[public,alias:'FPC_OVERFLOW']; compilerproc;
 begin
-  HandleErrorAddrFrame(215,get_pc_addr,get_frame);
+  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_threaderror; [public,alias:'FPC_THREADERROR'];
 begin
-  HandleErrorAddrFrame(6,get_pc_addr,get_frame);
+  HandleErrorAddrFrameInd(6,get_pc_addr,get_frame);
 end;
 
 
 procedure fpc_invalidpointer; [public,alias:'FPC_INVALIDPOINTER'];
 begin
-  HandleErrorAddrFrame(216,get_pc_addr,get_frame);
+  HandleErrorAddrFrameInd(216,get_pc_addr,get_frame);
 end;
 
 
@@ -736,7 +737,7 @@ begin
    begin
      l:=HInOutRes^;
      HInOutRes^:=0;
-     HandleErrorAddrFrame(l,get_pc_addr,get_frame);
+     HandleErrorAddrFrameInd(l,get_pc_addr,get_frame);
    end;
 end;
 
@@ -765,7 +766,7 @@ begin
     begin
       if assigned(SafeCallErrorProc) then
         SafeCallErrorProc(res,get_frame);
-      HandleErrorAddrFrame(229,get_pc_addr,get_frame);
+      HandleErrorAddrFrameInd(229,get_pc_addr,get_frame);
     end;
   result:=res;
 end;
@@ -948,7 +949,7 @@ Begin
      Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));
      { to get a nice symify }
      Writeln(pstdout^,BackTraceStrFunc(Erroraddr));
-     dump_stack(pstdout^,ErrorBase);
+     dump_stack(pstdout^,ErrorBase,ErrorAddr);
      Writeln(pstdout^,'');
    End;
   SysFlushStdIO;
@@ -1035,6 +1036,15 @@ begin
   Halt(errorcode);
 end;
 
+{ This is used internally by system skip first level,
+  and generated the same output as before, when
+  HandleErrorFrame function was used internally. }
+Procedure HandleErrorAddrFrameInd (Errno : longint;addr,frame : Pointer);
+begin
+  get_caller_stackinfo (frame, addr);
+  HandleErrorAddrFrame (Errno,addr,frame);
+end;
+
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer);
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
@@ -1046,13 +1056,13 @@ begin
 end;
 
 
-Procedure HandleError (Errno : longint);[public,alias : 'FPC_HANDLEERROR'];
+procedure fpc_handleerror (Errno : longint); compilerproc; [public,alias : 'FPC_HANDLEERROR'];
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.
 }
 begin
-  HandleErrorAddrFrame(Errno,get_pc_addr,get_frame);
+  HandleErrorAddrFrameInd(Errno,get_pc_addr,get_frame);
 end;
 
 
@@ -1305,7 +1315,7 @@ procedure fpc_AbstractErrorIntern;compilerproc;[public,alias : 'FPC_ABSTRACTERRO
 begin
   If pointer(AbstractErrorProc)<>nil then
     AbstractErrorProc();
-  HandleErrorAddrFrame(211,get_pc_addr,get_frame);
+  HandleErrorAddrFrameInd(211,get_pc_addr,get_frame);
 end;
 
 
@@ -1315,7 +1325,7 @@ begin
   if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
   else
-    HandleErrorAddrFrame(227,get_pc_addr,get_frame);
+    HandleErrorAddrFrameInd(227,get_pc_addr,get_frame);
 end;
 
 

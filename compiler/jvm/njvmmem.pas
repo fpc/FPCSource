@@ -415,7 +415,7 @@ implementation
                   (tprocsym(psym).ProcdefList.count<>1) then
                  internalerror(2011062607);
                thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-               hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(tprocsym(psym).procdeflist[0]),tprocdef(tprocsym(psym).procdeflist[0]).mangledname,false);
+               hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(tprocsym(psym).procdeflist[0]),tprocdef(tprocsym(psym).procdeflist[0]).mangledname,nil,false);
                { call replaces self parameter with longint result -> no stack
                  height change }
                location_reset(right.location,LOC_REGISTER,OS_S32);

@@ -965,6 +965,8 @@ implementation
 
     procedure tmodule.setmodulename(const s:string);
       begin
+        stringdispose(modulename);
+        stringdispose(realmodulename);
         modulename:=stringdup(upper(s));
         realmodulename:=stringdup(s);
         { also update asmlibrary names }

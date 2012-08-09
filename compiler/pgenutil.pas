@@ -397,8 +397,7 @@ uses
                 { use the index the module got from the current compilation process }
                 current_filepos.moduleindex:=hmodule.unit_index;
                 current_tokenpos:=current_filepos;
-                current_scanner.startreplaytokens(genericdef.generictokenbuf,
-                  genericdef.change_endian);
+                current_scanner.startreplaytokens(genericdef.generictokenbuf);
                 read_named_type(tt,srsym,genericdef,generictypelist,false);
                 current_filepos:=oldcurrent_filepos;
                 ttypesym(srsym).typedef:=tt;

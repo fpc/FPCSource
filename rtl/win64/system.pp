@@ -194,8 +194,6 @@ end;
 
 
 procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
-  var
-    ST : pointer;
   begin
      IsLibrary:=false;
      { install the handlers for exe only ?
@@ -204,11 +202,6 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      install_exception_handlers;
 {$endif FPC_USE_WIN64_SEH}
      ExitCode:=0;
-     asm
-        movq %rsp,%rax
-        movq %rax,st
-     end;
-     StackTop:=st;
      asm
         xorq %rax,%rax
         movw %ss,%ax
@@ -498,14 +491,86 @@ begin
 end;
 
 
-function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;assembler;
-asm
-  movq  %gs:(8),%rax
-  subq  %gs:(16),%rax
-end;
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+  type
+    tdosheader = packed record
+       e_magic : word;
+       e_cblp : word;
+       e_cp : word;
+       e_crlc : word;
+       e_cparhdr : word;
+       e_minalloc : word;
+       e_maxalloc : word;
+       e_ss : word;
+       e_sp : word;
+       e_csum : word;
+       e_ip : word;
+       e_cs : word;
+       e_lfarlc : word;
+       e_ovno : word;
+       e_res : array[0..3] of word;
+       e_oemid : word;
+       e_oeminfo : word;
+       e_res2 : array[0..9] of word;
+       e_lfanew : longint;
+    end;
+    tpeheader = packed record
+       PEMagic : longint;
+       Machine : word;
+       NumberOfSections : word;
+       TimeDateStamp : longint;
+       PointerToSymbolTable : longint;
+       NumberOfSymbols : longint;
+       SizeOfOptionalHeader : word;
+       Characteristics : word;
+       Magic : word;
+       MajorLinkerVersion : byte;
+       MinorLinkerVersion : byte;
+       SizeOfCode : longint;
+       SizeOfInitializedData : longint;
+       SizeOfUninitializedData : longint;
+       AddressOfEntryPoint : longint;
+       BaseOfCode : longint;
+{$ifdef win32}
+       BaseOfData : longint;
+{$endif win32}
+       ImageBase : PtrInt;
+       SectionAlignment : longint;
+       FileAlignment : longint;
+       MajorOperatingSystemVersion : word;
+       MinorOperatingSystemVersion : word;
+       MajorImageVersion : word;
+       MinorImageVersion : word;
+       MajorSubsystemVersion : word;
+       MinorSubsystemVersion : word;
+       Reserved1 : longint;
+       SizeOfImage : longint;
+       SizeOfHeaders : longint;
+       CheckSum : longint;
+       Subsystem : word;
+       DllCharacteristics : word;
+       SizeOfStackReserve : PtrInt;
+       SizeOfStackCommit : PtrInt;
+       SizeOfHeapReserve : PtrInt;
+       SizeOfHeapCommit : PtrInt;
+       LoaderFlags : longint;
+       NumberOfRvaAndSizes : longint;
+       DataDirectory : array[1..$80] of byte;
+    end;
+  begin
+    result:=tpeheader((pointer(getmodulehandle(nil))+(tdosheader(pointer(getmodulehandle(nil))^).e_lfanew))^).SizeOfStackReserve;
+  end;
 
+
+var
+  st : Pointer;
 
 begin
+  asm
+    movq %gs:(8),%rax
+    movq %rax,st
+  end;
+  StackTop:=st;
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;

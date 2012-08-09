@@ -243,7 +243,7 @@ begin
   for I:=0 to Sections^.Count-1 do
     begin
       S:=Sections^.At(I);
-      CallPointerLocal(EnumProc,get_caller_frame(get_frame),S);
+      CallPointerLocal(EnumProc,get_caller_frame(get_frame,get_pc_addr),S);
     end;
 end;
 
@@ -254,7 +254,7 @@ begin
   for I:=0 to Entries^.Count-1 do
     begin
       E:=Entries^.At(I);
-      CallPointerLocal(EnumProc,get_caller_frame(get_frame),E);
+      CallPointerLocal(EnumProc,get_caller_frame(get_frame,get_pc_addr),E);
     end;
 end;
 

@@ -275,6 +275,8 @@ begin
 
   fFileFlags := fFileFlags or fmShareDenyWrite;
   FStream:=TFileStream.Create(FFileName,fFileFlags);
+  if fAppendContent then
+    FStream.Seek(0,soFromEnd);
 end;
 
 Procedure TEventLog.DeActivateFileLog;

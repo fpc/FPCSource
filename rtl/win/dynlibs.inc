@@ -54,5 +54,19 @@ begin
   Result:=Windows.FreeLibrary(Lib);
 end;
 
+Function GetLoadErrorStr: string;
+
+Var
+  rc,c : integer;
+  
+begin  
+  rc := GetLastError;
+  SetLength(Result,255);
+  C:=FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,nil,rc,
+                 MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                 @Result[1], 255,nil);
+  SetLength(Result,c);
+end;
+
 {$endif}
 

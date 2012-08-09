@@ -16,6 +16,9 @@
 program FPDoc;
 
 uses
+{$ifdef unix}
+  cwstring,
+{$endif}
   SysUtils, Classes, Gettext, custapp,
   dGlobals,  // GLobal definitions, constants.
   dwriter,   // TFPDocWriter definition.

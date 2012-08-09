@@ -27,6 +27,8 @@ const
   default_fpu_enable = fpu_enable_div_zero or fpu_enable_invalid;
 
   fpu_flags_mask = $7C;
+  fpu_cause_mask = $3F000;
+
   { FPU rounding mask and values }
   fpu_rounding_mask    = $3;
   fpu_rounding_nearest = 0;
@@ -166,6 +168,9 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
     else
       fsr:=fsr or (fpu_enable_inexact);
 
+    { Reset flags and cause }
+    fsr := fsr and not (fpu_flags_mask or fpu_cause_mask);
+
     { update control register contents }
     set_fsr(fsr);
 
@@ -175,6 +180,6 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 
 procedure ClearExceptions(RaisePending: Boolean =true);
   begin
-    set_fsr(get_fsr and $fffffc1f);
+    set_fsr(get_fsr and not (fpu_flags_mask or fpu_cause_mask));
   end;
 

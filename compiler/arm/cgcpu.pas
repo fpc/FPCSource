@@ -211,9 +211,16 @@ unit cgcpu;
         inherited init_register_allocators;
         { currently, we always save R14, so we can use it }
         if (target_info.system<>system_arm_darwin) then
-          rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R12,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-               RS_R9,RS_R10,RS_R14],first_int_imreg,[])
+            begin
+              if assigned(current_procinfo) and (current_procinfo.framepointer<>NR_R11) then
+                rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+                    [RS_R0,RS_R1,RS_R2,RS_R3,RS_R12,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+                     RS_R9,RS_R10,RS_R11,RS_R14],first_int_imreg,[])
+              else
+                rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+                    [RS_R0,RS_R1,RS_R2,RS_R3,RS_R12,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+                     RS_R9,RS_R10,RS_R14],first_int_imreg,[])
+            end
         else
           { r7 is not available on Darwin, it's used as frame pointer (always,
             for backtrace support -- also in gcc/clang -> R11 can be used).
@@ -756,6 +763,13 @@ unit cgcpu;
                 so.shiftimm:=l1;
                 list.concat(taicpu.op_reg_reg_reg_shifterop(A_RSB,dst,src,src,so));
               end
+            { x := y and 0; just clears a register, this sometimes gets generated on 64bit ops.
+              Just using mov x, #0 might allow some easier optimizations down the line. }
+            else if (op = OP_AND) and (dword(a)=0) then
+              list.concat(taicpu.op_reg_const(A_MOV,dst,0))
+            { x := y AND $FFFFFFFF just copies the register, so use mov for better optimizations }
+            else if (op = OP_AND) and (not(dword(a))=0) then
+              list.concat(taicpu.op_reg_reg(A_MOV,dst,src))
             { BIC clears the specified bits, while AND keeps them, using BIC allows to use a
               broader range of shifterconstants.}
             else if (op = OP_AND) and is_shifter_const(not(dword(a)),shift) then
@@ -926,9 +940,7 @@ unit cgcpu;
            ((op in [A_LDF,A_STF,A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and
             ((ref.offset<-1020) or
              (ref.offset>1020) or
-             ((abs(ref.offset) mod 4)<>0) or
-             { the usual pc relative symbol handling assumes possible offsets of +/- 4095 }
-             assigned(ref.symbol)
+             ((abs(ref.offset) mod 4)<>0)
             )
            ) then
           begin
@@ -979,7 +991,10 @@ unit cgcpu;
             ref.symbol:=nil;
           end;
 
-        if (ref.base<>NR_NO) and (ref.index<>NR_NO) and (ref.offset<>0) then
+        { fold if there is base, index and offset, however, don't fold
+          for vfp memory instructions because we later fold the index }
+        if not(op in [A_FLDS,A_FLDD,A_FSTS,A_FSTD]) and
+           (ref.base<>NR_NO) and (ref.index<>NR_NO) and (ref.offset<>0) then
           begin
             if tmpreg<>NR_NO then
               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg,tmpreg)
@@ -1189,33 +1204,58 @@ unit cgcpu;
              conv_done:=true;
              if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
                fromsize:=tosize;
-             case fromsize of
-               OS_8:
-                 list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
-               OS_S8:
-                 begin
-                   do_shift(SM_LSL,24,reg1);
-                   if tosize=OS_16 then
-                     begin
-                       do_shift(SM_ASR,8,reg2);
-                       do_shift(SM_LSR,16,reg2);
-                     end
-                   else
-                     do_shift(SM_ASR,24,reg2);
-                 end;
-               OS_16:
-                 begin
-                   do_shift(SM_LSL,16,reg1);
-                   do_shift(SM_LSR,16,reg2);
-                 end;
-               OS_S16:
-                 begin
-                   do_shift(SM_LSL,16,reg1);
-                   do_shift(SM_ASR,16,reg2)
-                 end;
-               else
-                 conv_done:=false;
-             end;
+             if current_settings.cputype<cpu_armv6 then
+               case fromsize of
+                 OS_8:
+                   list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
+                 OS_S8:
+                   begin
+                     do_shift(SM_LSL,24,reg1);
+                     if tosize=OS_16 then
+                       begin
+                         do_shift(SM_ASR,8,reg2);
+                         do_shift(SM_LSR,16,reg2);
+                       end
+                     else
+                       do_shift(SM_ASR,24,reg2);
+                   end;
+                 OS_16:
+                   begin
+                     do_shift(SM_LSL,16,reg1);
+                     do_shift(SM_LSR,16,reg2);
+                   end;
+                 OS_S16:
+                   begin
+                     do_shift(SM_LSL,16,reg1);
+                     do_shift(SM_ASR,16,reg2)
+                   end;
+                 else
+                   conv_done:=false;
+               end
+             else
+               case fromsize of
+                 OS_8:
+                   list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
+                 OS_S8:
+                   begin
+                     if tosize=OS_16 then
+                       begin
+                         so.shiftmode:=SM_ROR;
+                         so.shiftimm:=16;
+                         list.concat(taicpu.op_reg_reg_shifterop(A_SXTB16,reg2,reg1,so));
+                         do_shift(SM_LSR,16,reg2);
+                       end
+                     else
+                       list.concat(taicpu.op_reg_reg(A_SXTB,reg2,reg1));
+                   end;
+                 OS_16:
+                   list.concat(taicpu.op_reg_reg(A_UXTH,reg2,reg1));
+                 OS_S16:
+                   list.concat(taicpu.op_reg_reg(A_SXTH,reg2,reg1));
+                 else
+                   conv_done:=false;
+               end
+
            end;
          if not conv_done and (reg1<>reg2) then
            begin
@@ -1402,6 +1442,7 @@ unit cgcpu;
          r7offset,
          stackmisalignment : pint;
          postfix: toppostfix;
+         imm1, imm2: DWord;
       begin
         LocalSize:=align(LocalSize,4);
         { call instruction does not put anything on the stack }
@@ -1529,18 +1570,24 @@ unit cgcpu;
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
                 localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
-                if not(is_shifter_const(localsize,shift)) then
+                if is_shifter_const(localsize,shift) then
+                  begin
+                    a_reg_dealloc(list,NR_R12);
+                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+                  end
+                else if split_into_shifter_const(localsize, imm1, imm2) then
+                  begin
+                    a_reg_dealloc(list,NR_R12);
+                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm1));
+                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm2));
+                  end
+                else
                   begin
                     if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                       a_reg_alloc(list,NR_R12);
                     a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
                     list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
                     a_reg_dealloc(list,NR_R12);
-                  end
-                else
-                  begin
-                    a_reg_dealloc(list,NR_R12);
-                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
                   end;
               end;
 
@@ -1607,6 +1654,7 @@ unit cgcpu;
          regs : tcpuregisterset;
          stackmisalignment: pint;
          mmpostfix: toppostfix;
+         imm1, imm2: DWord;
       begin
         if not(nostackframe) then
           begin
@@ -1738,16 +1786,19 @@ unit cgcpu;
                      (po_assembler in current_procinfo.procdef.procoptions))) then
                   begin
                     localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
-                    if not(is_shifter_const(LocalSize,shift)) then
+                    if is_shifter_const(LocalSize,shift) then
+                      list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize))
+                    else if split_into_shifter_const(localsize, imm1, imm2) then
+                      begin
+                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm1));
+                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,imm2));
+                      end
+                    else
                       begin
                         a_reg_alloc(list,NR_R12);
                         a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
                         list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
                         a_reg_dealloc(list,NR_R12);
-                      end
-                    else
-                      begin
-                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
                       end;
                   end;
 
@@ -3366,13 +3417,9 @@ unit cgcpu;
     procedure Tthumb2cgarm.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
       var item: taicpu;
       begin
-        item := setcondition(taicpu.op_reg_const(A_MOV,reg,1),flags_to_cond(f));
-        list.concat(item);
-        list.insertbefore(taicpu.op_cond(A_IT, flags_to_cond(f)), item);
-
-        item := setcondition(taicpu.op_reg_const(A_MOV,reg,0),inverse_cond(flags_to_cond(f)));
-        list.concat(item);
-        list.insertbefore(taicpu.op_cond(A_IT, inverse_cond(flags_to_cond(f))), item);
+        list.concat(taicpu.op_cond(A_ITE, flags_to_cond(f)));
+        list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,1),flags_to_cond(f)));
+        list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,0),inverse_cond(flags_to_cond(f))));
       end;
 
 

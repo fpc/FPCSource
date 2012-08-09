@@ -50,12 +50,12 @@ unit optcse;
   implementation
 
     uses
-      globtype,
+      globtype,globals,
       cclasses,
       verbose,
       nutils,
       procinfo,
-      nbas,nld,ninl,ncal,ncnv,nadd,
+      nbas,nld,ninl,ncal,ncnv,nadd,nmem,
       pass_1,
       symconst,symtype,symdef,symsym,
       defutil,
@@ -65,7 +65,7 @@ unit optcse;
       cseinvariant : set of tnodetype = [addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
         derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
         inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,
-        isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan}];
+        isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan},assignn];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
@@ -122,41 +122,58 @@ unit optcse;
             exit;
           end;
         { so far, we can handle only nodes being read }
-        if (n.flags*[nf_write,nf_modify]=[]) and
+        if
           { node possible to add? }
           assigned(n.resultdef) and
-          (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
-          { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
-          not(n.resultdef.typ in [arraydef,recorddef]) and
-          { same for voiddef }
-          not(is_void(n.resultdef)) and
-          { adding tempref nodes is worthless but their complexity is probably <= 1 anyways }
-          not(n.nodetype in [temprefn]) and
+          (
+            { regable expressions }
+            (n.actualtargetnode.flags*[nf_write,nf_modify]=[]) and
+            ((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
+            { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
+            (not(n.resultdef.typ in [arraydef,recorddef])) and
+            { same for voiddef }
+            not(is_void(n.resultdef)) and
+            { adding tempref nodes is worthless but their complexity is probably <= 1 anyways }
+            not(n.nodetype in [temprefn]) and
 
-          { node worth to add?
+            { node worth to add?
 
-            We consider almost every node because even loading a variables from
-            a register instead of memory is more beneficial. This behaviour should
-            not increase register pressure because if a variable is already
-            in a register, the reg. allocator can merge the nodes. If a variable
-            is loaded from memory, loading this variable and spilling another register
-            should not add a speed penalty.
-          }
-          {
-            load nodes are not considered if they load para or local symbols from the
-            current stack frame, those are in registers anyways if possible
-          }
-          (not(n.nodetype=loadn) or
-           not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym]) or
-           (tloadnode(n).symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel)
-          ) and
+              We consider almost every node because even loading a variables from
+              a register instead of memory is more beneficial. This behaviour should
+              not increase register pressure because if a variable is already
+              in a register, the reg. allocator can merge the nodes. If a variable
+              is loaded from memory, loading this variable and spilling another register
+              should not add a speed penalty.
+            }
+            {
+              load nodes are not considered if they load para or local symbols from the
+              current stack frame, those are in registers anyways if possible
+            }
+            (not(n.nodetype=loadn) or
+             not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym]) or
+             (tloadnode(n).symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel)
+            ) and
 
-          {
-            Const nodes however are only considered if their complexity is >1
-            This might be the case for the risc architectures if they need
-            more than one instruction to load this particular value
-          }
-          (not(is_constnode(n)) or (node_complexity(n)>1)) then
+            {
+              Const nodes however are only considered if their complexity is >1
+              This might be the case for the risc architectures if they need
+              more than one instruction to load this particular value
+            }
+            (not(is_constnode(n)) or (node_complexity(n)>1)))
+{$ifndef x86}
+            or
+            { store reference of expression? }
+
+            { loading the address of a global symbol takes typically more than
+              one instruction on every platform except x86
+              so consider in this case loading the address of the data
+            }
+            (((n.resultdef.typ in [arraydef,recorddef]) or is_object(n.resultdef)) and
+             (n.nodetype=loadn) and
+             (tloadnode(n).symtableentry.typ=staticvarsym)
+            )
+{$endif x86}
+          ) then
           begin
             plists(arg)^.nodelist.Add(n);
             plists(arg)^.locationlist.Add(@n);
@@ -207,14 +224,75 @@ unit optcse;
         creates,
         statements : tstatementnode;
         hp : ttempcreatenode;
+        addrstored : boolean;
+        hp2 : tnode;
       begin
         result:=fen_false;
         if n.nodetype in cseinvariant then
           begin
             csedomain:=true;
             foreachnodestatic(pm_postprocess,n,@searchsubdomain,@csedomain);
-            { found a cse domain }
-            if csedomain then
+            if not(csedomain) then
+              begin
+                { try to transform the tree to get better cse domains, consider:
+                       +
+                      / \
+                     +   C
+                    / \
+                   A   B
+
+                  if A is not cse'able but B and C are, then the compiler cannot do cse so the tree is transformed into
+                       +
+                      / \
+                     A   +
+                        / \
+                       B   C
+                  Because A could be another tree of this kind, the whole process is done in a while loop
+                }
+                if (n.nodetype in [andn,orn,addn,muln]) and
+                  (n.nodetype=tbinarynode(n).left.nodetype) and
+                  { do is optimizations only for integers, reals (no currency!), vectors and sets }
+                  (is_integer(n.resultdef) or is_real(n.resultdef) or is_vector(n.resultdef) or is_set(n.resultdef)) and
+                  { either if fastmath is on }
+                  ((cs_opt_fastmath in current_settings.optimizerswitches) or
+                   { or for the logical operators, they cannot overflow }
+                   (n.nodetype in [andn,orn]) or
+                   { or for integers if range checking is off }
+                   ((is_integer(n.resultdef) and
+                    (n.localswitches*[cs_check_range,cs_check_overflow]=[]) and
+                    (tbinarynode(n).left.localswitches*[cs_check_range,cs_check_overflow]=[]))) or
+                   { for sets, we can do this always }
+                   (is_set(n.resultdef))
+                   ) then
+                  while n.nodetype=tbinarynode(n).left.nodetype do
+                    begin
+                      csedomain:=true;
+                      foreachnodestatic(pm_postprocess,tbinarynode(n).right,@searchsubdomain,@csedomain);
+                      if csedomain then
+                        begin
+                          csedomain:=true;
+                          foreachnodestatic(pm_postprocess,tbinarynode(tbinarynode(n).left).right,@searchsubdomain,@csedomain);
+                          if csedomain then
+                            begin
+                              hp2:=tbinarynode(tbinarynode(n).left).left;
+                              tbinarynode(tbinarynode(n).left).left:=tbinarynode(tbinarynode(n).left).right;
+                              tbinarynode(tbinarynode(n).left).right:=tbinarynode(n).right;
+                              tbinarynode(n).right:=tbinarynode(n).left;
+                              tbinarynode(n).left:=hp2;
+
+                              { the transformed tree could result in new possibilities to fold constants
+                                so force a firstpass on the root node }
+                              exclude(tbinarynode(n).right.flags,nf_pass1_done);
+                              do_firstpass(tbinarynode(n).right);
+                            end
+                          else
+                            break;
+                        end
+                      else
+                        break;
+                    end;
+              end
+            else
               begin
                 statements:=nil;
                 result:=fen_norecurse_true;
@@ -245,8 +323,17 @@ unit optcse;
                           end;
 
                         def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
-                        templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
-                          def.is_intregable or def.is_fpuregable,tnode(lists.nodelist[i]));
+                        { we cannot handle register stored records or array in CSE yet
+                          but we can store their reference }
+                        addrstored:=(def.typ in [arraydef,recorddef]) or is_object(def);
+
+                        if addrstored then
+                          templist[i]:=ctempcreatenode.create_value(getpointerdef(def),voidpointertype.size,tt_persistent,
+                            true,caddrnode.create(tnode(lists.nodelist[i])))
+                        else
+                          templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
+                            def.is_intregable or def.is_fpuregable,tnode(lists.nodelist[i]));
+
                         { make debugging easier and set temp. location to the original location }
                         tnode(templist[i]).fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
@@ -258,7 +345,10 @@ unit optcse;
                         do_firstpass(tnode(hp));
                         templist[i]:=hp;
 
-                        pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
+                        if addrstored then
+                          pnode(lists.locationlist[i])^:=cderefnode.Create(ctemprefnode.create(ttempcreatenode(templist[i])))
+                        else
+                          pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
                         { make debugging easier and set temp. location to the original location }
                         pnode(lists.locationlist[i])^.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
@@ -270,13 +360,21 @@ unit optcse;
                     { current node reference to another node? }
                     else if lists.equalto[i]<>pointer(-1) then
                       begin
+                        def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
+                        { we cannot handle register stored records or array in CSE yet
+                          but we can store their reference }
+                        addrstored:=(def.typ in [arraydef,recorddef]) or is_object(def);
+
 {$if defined(csedebug) or defined(csestats)}
                         printnode(output,tnode(lists.nodelist[i]));
                         writeln(i,'    equals   ',ptrint(lists.equalto[i]));
                         printnode(output,tnode(lists.nodelist[ptrint(lists.equalto[i])]));
 {$endif defined(csedebug) or defined(csestats)}
                         templist[i]:=templist[ptrint(lists.equalto[i])];
-                        pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]));
+                        if addrstored then
+                          pnode(lists.locationlist[i])^:=cderefnode.Create(ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])])))
+                        else
+                          pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]));
 
                         { make debugging easier and set temp. location to the original location }
                         pnode(lists.locationlist[i])^.fileinfo:=tnode(lists.nodelist[i]).fileinfo;

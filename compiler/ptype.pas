@@ -648,7 +648,7 @@ implementation
                             vdoptions:=[vd_record];
                             if classfields then
                               include(vdoptions,vd_class);
-                            read_record_fields(vdoptions);
+                            read_record_fields(vdoptions,nil);
                           end
                         else if member_blocktype=bt_type then
                           types_dec(true)
@@ -813,7 +813,7 @@ implementation
            end
          else
            begin
-             read_record_fields([vd_record]);
+             read_record_fields([vd_record],nil);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(current_structdef));

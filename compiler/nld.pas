@@ -1229,9 +1229,9 @@ implementation
            Only when the allowed flag is set we don't generate
            an error }
          if not allowed then
-          Message(parser_e_no_type_not_allowed_here);
+           CGMessage(parser_e_no_type_not_allowed_here);
          if not helperallowed and is_objectpascal_helper(typedef) then
-           Message(parser_e_no_category_as_types);
+           CGMessage(parser_e_no_category_as_types);
       end;
 
 

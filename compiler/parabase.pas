@@ -73,18 +73,20 @@ unit parabase;
        end;
 
        TCGPara = object
+          Def       : tdef; { Type of the parameter }
           Location  : PCGParalocation;
           IntSize   : tcgint; { size of the total location in bytes }
+          DefDeref  : tderef;
           Alignment : ShortInt;
           Size      : TCGSize;  { Size of the parameter included in all locations }
-          Def       : tdef; { Type of the parameter }
-          DefDeref  : tderef;
+          Temporary : boolean;  { created on the fly, no permanent references exist to this somewhere that will cause it to be disposed }
 {$ifdef powerpc}
           composite: boolean; { under the AIX abi, how certain parameters are passed depends on whether they are composite or not }
 {$endif powerpc}
           constructor init;
           destructor  done;
           procedure   reset;
+          procedure   resetiftemp; { reset if Temporary }
           function    getcopy:tcgpara;
           procedure   check_simple_location;
           function    add_location:pcgparalocation;
@@ -132,6 +134,7 @@ implementation
         intsize:=0;
         location:=nil;
         def:=nil;
+        temporary:=false;
 {$ifdef powerpc}
         composite:=false;
 {$endif powerpc}
@@ -160,6 +163,12 @@ implementation
 {$ifdef powerpc}
         composite:=false;
 {$endif powerpc}
+      end;
+
+    procedure TCGPara.resetiftemp;
+      begin
+        if temporary then
+          reset;
       end;
 
 

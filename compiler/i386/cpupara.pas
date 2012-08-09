@@ -49,9 +49,8 @@ unit cpupara;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
-          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): TCGPara;override;
+          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;override;
        private
-          procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
           procedure create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parasize:longint);
           procedure create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parareg,parasize:longint);
        end;
@@ -310,29 +309,35 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-      begin
-        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
-      end;
-
-
-    function  ti386paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): TCGPara;
+    function  ti386paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;
       var
         retcgsize  : tcgsize;
         paraloc : pcgparalocation;
         sym: tfieldvarsym;
+        usedef: tdef;
+        handled: boolean;
       begin
+        if not assigned(forcetempdef) then
+          usedef:=p.returndef
+        else
+          usedef:=forcetempdef;
         { on darwin/i386, if a record has only one field and that field is a
           single or double, it has to be returned like a single/double }
         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-           ((def.typ=recorddef) or
-            is_object(def)) and
-           tabstractrecordsymtable(tabstractrecorddef(def).symtable).has_single_field(sym) and
+           ((usedef.typ=recorddef) or
+            is_object(usedef)) and
+           tabstractrecordsymtable(tabstractrecorddef(usedef).symtable).has_single_field(sym) and
            (sym.vardef.typ=floatdef) and
            (tfloatdef(sym.vardef).floattype in [s32real,s64real]) then
-          def:=sym.vardef;
+          usedef:=sym.vardef;
 
-        if set_common_funcretloc_info(p,def,retcgsize,result) then
+        handled:=set_common_funcretloc_info(p,usedef,retcgsize,result);
+        { normally forcetempdef is passed straight through to
+          set_common_funcretloc_info and that one will correctly determine whether
+          the location is a temporary one, but that doesn't work here because we
+          sometimes have to change the type }
+        result.temporary:=assigned(forcetempdef);
+        if handled then
           exit;
 
         { darwin/x86 requires that results < sizeof(aint) are sign/zero
@@ -349,7 +354,7 @@ unit cpupara;
           end;
 
         { Return in FPU register? }
-        if def.typ=floatdef then
+        if result.def.typ=floatdef then
           begin
             paraloc:=result.add_location;
             paraloc^.loc:=LOC_FPUREGISTER;

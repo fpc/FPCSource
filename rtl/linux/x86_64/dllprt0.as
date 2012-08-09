@@ -41,8 +41,8 @@ FPC_SHARED_LIB_START:
 	jmp	_startlib@PLT
 
         .text
-	.globl _start
-	.type _start,@function
+	.globl _startlib
+	.type _startlib,@function
 _startlib:
 	pushq	 %rbx
         movq     operatingsystem_parameter_argc@GOTPCREL(%rip),%rbx

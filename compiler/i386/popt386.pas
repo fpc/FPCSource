@@ -991,7 +991,8 @@ begin
                          (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[1]^.reg) then
                         begin
                           {we have "mov x, %treg; mov %treg, y}
-                          if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
+                          if not(RegInOp(getsupreg(taicpu(p).oper[1]^.reg),taicpu(hp1).oper[1]^)) and
+                             not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
                             {we've got "mov x, %treg; mov %treg, y; with %treg is not used after }
                             case taicpu(p).oper[0]^.typ Of
                               top_reg:

@@ -396,6 +396,7 @@ Type
     Function IndexOfName(const AName: TJSONStringType; CaseInsensitive : Boolean = False): Integer;
     Function Find(Const AName : String) : TJSONData; overload;
     Function Find(Const AName : String; AType : TJSONType) : TJSONData; overload;
+    Function Get(Const AName : String) : Variant;
     Function Get(Const AName : String; ADefault : TJSONFloat) : TJSONFloat;
     Function Get(Const AName : String; ADefault : Integer) : Integer;
     Function Get(Const AName : String; ADefault : Int64) : Int64;
@@ -2057,6 +2058,18 @@ begin
     Result:=Extract(I)
   else
     Result:=Nil
+end;
+
+function TJSONObject.Get(const AName: String): Variant;
+Var
+  I : Integer;
+
+begin
+  I:=IndexOfName(AName);
+  If (I<>-1) then
+    Result:=Items[i].Value
+  else
+    Result:=Null;
 end;
 
 function TJSONObject.Get(const AName: String; ADefault: TJSONFloat

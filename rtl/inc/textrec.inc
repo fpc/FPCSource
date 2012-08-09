@@ -4,7 +4,6 @@
 
     Textrec record definition
 
-
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -45,5 +44,11 @@ type
 {$ifdef FPC_HAS_CPSTRING}
     CodePage  : TSystemCodePage;
 {$endif}
+{$ifndef VER2_6}
+{$ifdef CPU32}
+    { keep textrec size divedable by 4 for proper alignment of arrays of text, see tw0754 e.g. on arm }
+    Dummy : Word;
+{$endif CPU32}
+{$endif VER2_6}
   End;
 

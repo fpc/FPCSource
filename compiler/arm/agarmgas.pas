@@ -86,8 +86,14 @@ unit agarmgas;
           result:='-mfpu=vfpv3 '+result;
         if (current_settings.fputype = fpu_vfpv3_d16) then
           result:='-mfpu=vfpv3-d16 '+result;
-        if current_settings.cputype = cpu_armv7m then
-          result:='-march=armv7m -mthumb -mthumb-interwork '+result;
+
+        if current_settings.cputype=cpu_armv7m then
+          result:='-march=armv7m -mthumb -mthumb-interwork '+result
+        else if current_settings.cputype=cpu_armv6 then
+          result:='-march=armv6 '+result
+        else if current_settings.cputype=cpu_armv7 then
+          result:='-march=armv7-a '+result;
+
         if target_info.abi = abi_eabihf then
           { options based on what gcc uses on debian armhf }
           result:='-mfloat-abi=hard -meabi=5 '+result;

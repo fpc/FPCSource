@@ -132,17 +132,17 @@ end;
 function ConvertExceptionMask(em: dword): TFPUExceptionMask;
 begin
   Result:=[];
-  if em and _EM_INVALID <> 0 then
+  if em and _EM_INVALID = 0 then
     Result:=Result + [exInvalidOp];
-  if em and _EM_DENORMAL <> 0 then
+  if em and _EM_DENORMAL = 0 then
     Result:=Result + [exDenormalized];
-  if em and _EM_ZERODIVIDE <> 0 then
+  if em and _EM_ZERODIVIDE = 0 then
     Result:=Result + [exZeroDivide];
-  if em and _EM_OVERFLOW <> 0 then
+  if em and _EM_OVERFLOW = 0 then
     Result:=Result + [exOverflow];
-  if em and _EM_UNDERFLOW <> 0 then
+  if em and _EM_UNDERFLOW = 0 then
     Result:=Result + [exUnderflow];
-  if em and _EM_INEXACT <> 0 then
+  if em and _EM_INEXACT = 0 then
     Result:=Result + [exPrecision];
 end;
 
@@ -156,17 +156,17 @@ var
   c: dword;
 begin
   c:=0;
-  if exInvalidOp in Mask then
+  if not(exInvalidOp in Mask) then
     c:=c or _EM_INVALID;
-  if exDenormalized in Mask then
+  if not(exDenormalized in Mask) then
     c:=c or _EM_DENORMAL;
-  if exZeroDivide in Mask then
+  if not(exZeroDivide in Mask) then
     c:=c or _EM_ZERODIVIDE;
-  if exOverflow in Mask then
+  if not(exOverflow in Mask) then
     c:=c or _EM_OVERFLOW;
-  if exUnderflow in Mask then
+  if not(exUnderflow in Mask) then
     c:=c or _EM_UNDERFLOW;
-  if exPrecision in Mask then
+  if not(exPrecision in Mask) then
     c:=c or _EM_INEXACT;
   c:=_controlfp(c, _MCW_EM);
   Result:=ConvertExceptionMask(c);
@@ -281,22 +281,22 @@ function GetExceptionMask: TFPUExceptionMask;
     Result:=[];
     cw:=VFP_GetCW;
 
-    if (cw and _VFP_ENABLE_IM)<>0 then
+    if (cw and _VFP_ENABLE_IM)=0 then
       include(Result,exInvalidOp);
 
-    if (cw and _VFP_ENABLE_DM)<>0 then
+    if (cw and _VFP_ENABLE_DM)=0 then
       include(Result,exDenormalized);
 
-    if (cw and _VFP_ENABLE_ZM)<>0 then
+    if (cw and _VFP_ENABLE_ZM)=0 then
       include(Result,exZeroDivide);
 
-    if (cw and _VFP_ENABLE_OM)<>0 then
+    if (cw and _VFP_ENABLE_OM)=0 then
       include(Result,exOverflow);
 
-    if (cw and _VFP_ENABLE_UM)<>0 then
+    if (cw and _VFP_ENABLE_UM)=0 then
       include(Result,exUnderflow);
 
-    if (cw and _VFP_ENABLE_PM)<>0 then
+    if (cw and _VFP_ENABLE_PM)=0 then
       include(Result,exPrecision);
   end;
 
@@ -308,22 +308,22 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
     cw:=VFP_GetCW and not(_VFP_ENABLE_ALL);
 
 {$ifndef darwin}
-    if exInvalidOp in Mask then
+    if not(exInvalidOp in Mask) then
       cw:=cw or _VFP_ENABLE_IM;
 
-    if exDenormalized in Mask then
+    if not(exDenormalized in Mask) then
       cw:=cw or _VFP_ENABLE_DM;
 
-    if exZeroDivide in Mask then
+    if not(exZeroDivide in Mask) then
       cw:=cw or _VFP_ENABLE_ZM;
 
-    if exOverflow in Mask then
+    if not(exOverflow in Mask) then
       cw:=cw or _VFP_ENABLE_OM;
 
-    if exUnderflow in Mask then
+    if not(exUnderflow in Mask) then
       cw:=cw or _VFP_ENABLE_UM;
 
-    if exPrecision in Mask then
+    if not(exPrecision in Mask) then
       cw:=cw or _VFP_ENABLE_PM;
 {$endif}
     VFP_SetCW(cw);

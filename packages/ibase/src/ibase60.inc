@@ -2459,7 +2459,7 @@ implementation
 
 ResourceString
   SErrEmbeddedFailed = 'Can not load embedded Firebird client "%s". Check your installation.';
-  SErrDefaultsFailed = 'Can not load default Firebird clients ("%s" or "%s"). Check your installation.';
+  SErrDefaultsFailed = 'Can not load default Firebird clients ("%s" or "%s" or "%s"). Check your installation.';
   SErrLoadFailed     = 'Can not load Firebird client library "%s". Check your installation.';
   SErrAlreadyLoaded  = 'Firebird interface already initialized from library %s.';
   
@@ -2665,7 +2665,7 @@ begin
     If (TryInitialiseIBase60(fbclib)=0) and
        (TryInitialiseIBase60(gdslib)=0) and
        (TryInitialiseIBase60(fbembedlib)=0) then
-        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbembedlib,gdslib,fbclib]);
+        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[fbclib,gdslib,fbembedlib]);
     end;    
   Result := RefCount;
 end;

@@ -1222,7 +1222,8 @@ implementation
                       if assigned(def_to.typesym) and
                          (tpointerdef(def_to).pointeddef.typ=forwarddef) then
                        begin
-                         if (def_from.typesym=def_to.typesym) then
+                         if (def_from.typesym=def_to.typesym) or
+                            (fromtreetype=niln) then
                           eq:=te_equal
                        end
                      else
@@ -1533,13 +1534,18 @@ implementation
                        doconv:=tc_variant_2_interface;
                        eq:=te_convert_l2;
                      end
-                   { ugly, but delphi allows it }
+                   { ugly, but delphi allows it (enables typecasting ordinals/
+                     enums of any size to pointer-based object defs) }
                    { in Java enums /are/ class instances, and hence such
-                     typecasts must not be treated as integer-like conversions
+                     typecasts must not be treated as integer-like conversions;
+                     arbitrary constants cannot be converted into classes/
+                     pointer-based values either on the JVM -> always return
+                     false and let it be handled by the regular explicit type
+                     casting code
                    }
-                   else if ((not(target_info.system in systems_jvm) and
-                        (def_from.typ=enumdef)) or
-                       (def_from.typ=orddef)) and
+                   else if (not(target_info.system in systems_jvm) and
+                       ((def_from.typ=enumdef) or
+                        (def_from.typ=orddef))) and
                       (m_delphi in current_settings.modeswitches) and
                       (cdo_explicit in cdoptions) then
                      begin
@@ -1555,7 +1561,8 @@ implementation
                if assigned(def_to.typesym) and
                   (tclassrefdef(def_to).pointeddef.typ=forwarddef) then
                  begin
-                   if (def_from.typesym=def_to.typesym) then
+                   if (def_from.typesym=def_to.typesym) or
+                      (fromtreetype=niln) then
                     eq:=te_equal;
                  end
                else

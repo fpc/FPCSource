@@ -35,6 +35,9 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
+       private
+         procedure spilling_create_load_store(list: TAsmList; pos: tai; const spilltemp:treference;tempreg:tregister; is_store: boolean);
+       public
          procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
          procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
          procedure add_constraints(reg:tregister);override;
@@ -122,13 +125,70 @@ unit rgcpu;
           end;
       end;
 
-
-    procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.spilling_create_load_store(list: TAsmList; pos: tai; const spilltemp:treference;tempreg:tregister; is_store: boolean);
       var
         tmpref : treference;
         helplist : TAsmList;
         l : tasmlabel;
         hreg : tregister;
+        immshift: byte;
+        a: aint;
+    begin
+      helplist:=TAsmList.create;
+
+      { load consts entry }
+      if getregtype(tempreg)=R_INTREGISTER then
+        hreg:=getregisterinline(helplist,[R_SUBWHOLE])
+      else
+        hreg:=cg.getintregister(helplist,OS_ADDR);
+
+      { Lets remove the bits we can fold in later and check if the result can be easily with an add or sub }
+      a:=abs(spilltemp.offset);
+      if is_shifter_const(a and not($FFF), immshift) then
+        if spilltemp.offset > 0 then
+          begin
+            {$ifdef DEBUG_SPILLING}
+            helplist.concat(tai_comment.create(strpnew('Spilling: Use ADD to fix spill offset')));
+            {$endif}
+            helplist.concat(taicpu.op_reg_reg_const(A_ADD, hreg, current_procinfo.framepointer,
+                                                      a and not($FFF)));
+            reference_reset_base(tmpref, hreg, a and $FFF, sizeof(aint));
+          end
+        else
+          begin
+            {$ifdef DEBUG_SPILLING}
+            helplist.concat(tai_comment.create(strpnew('Spilling: Use SUB to fix spill offset')));
+            {$endif}
+            helplist.concat(taicpu.op_reg_reg_const(A_SUB, hreg, current_procinfo.framepointer,
+                                                      a and not($FFF)));
+            reference_reset_base(tmpref, hreg, -(a and $FFF), sizeof(aint));
+          end
+      else
+        begin
+          {$ifdef DEBUG_SPILLING}
+          helplist.concat(tai_comment.create(strpnew('Spilling: Use a_load_const_reg to fix spill offset')));
+          {$endif}
+          cg.a_load_const_reg(helplist,OS_ADDR,spilltemp.offset,hreg);
+          reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(aint));
+          tmpref.index:=hreg;
+        end;
+
+      if spilltemp.index<>NR_NO then
+        internalerror(200401263);
+
+      if is_store then
+        helplist.concat(spilling_create_store(tempreg,tmpref))
+      else
+        helplist.concat(spilling_create_load(tmpref,tempreg));
+
+      if getregtype(tempreg)=R_INTREGISTER then
+        ungetregisterinline(helplist,hreg);
+
+      list.insertlistafter(pos,helplist);
+      helplist.free;
+    end;
+
+    procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       begin
         { don't load spilled register between
           mov lr,pc
@@ -145,85 +205,16 @@ unit rgcpu;
           pos:=tai(pos.previous);
 
         if abs(spilltemp.offset)>4095 then
-          begin
-            helplist:=TAsmList.create;
-            reference_reset(tmpref,sizeof(aint));
-            { create consts entry }
-            current_asmdata.getjumplabel(l);
-            cg.a_label(current_procinfo.aktlocaldata,l);
-            tmpref.symboldata:=current_procinfo.aktlocaldata.last;
-
-            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(spilltemp.offset));
-
-            { load consts entry }
-            if getregtype(tempreg)=R_INTREGISTER then
-              hreg:=getregisterinline(helplist,[R_SUBWHOLE])
-            else
-              hreg:=cg.getintregister(helplist,OS_ADDR);
-
-            tmpref.symbol:=l;
-            tmpref.base:=NR_R15;
-            helplist.concat(taicpu.op_reg_ref(A_LDR,hreg,tmpref));
-
-            reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(aint));
-            tmpref.index:=hreg;
-
-            if spilltemp.index<>NR_NO then
-              internalerror(200401263);
-
-            helplist.concat(spilling_create_load(tmpref,tempreg));
-            if getregtype(tempreg)=R_INTREGISTER then
-              ungetregisterinline(helplist,hreg);
-
-            list.insertlistafter(pos,helplist);
-            helplist.free;
-          end
+          spilling_create_load_store(list, pos, spilltemp, tempreg, false)
         else
           inherited do_spill_read(list,pos,spilltemp,tempreg);
       end;
 
 
     procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
-      var
-        tmpref : treference;
-        helplist : TAsmList;
-        l : tasmlabel;
-        hreg : tregister;
       begin
         if abs(spilltemp.offset)>4095 then
-          begin
-            helplist:=TAsmList.create;
-            reference_reset(tmpref,sizeof(aint));
-            { create consts entry }
-            current_asmdata.getjumplabel(l);
-            cg.a_label(current_procinfo.aktlocaldata,l);
-            tmpref.symboldata:=current_procinfo.aktlocaldata.last;
-
-            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(spilltemp.offset));
-
-            { load consts entry }
-            if getregtype(tempreg)=R_INTREGISTER then
-              hreg:=getregisterinline(helplist,[R_SUBWHOLE])
-            else
-              hreg:=cg.getintregister(helplist,OS_ADDR);
-            tmpref.symbol:=l;
-            tmpref.base:=NR_R15;
-            helplist.concat(taicpu.op_reg_ref(A_LDR,hreg,tmpref));
-
-            if spilltemp.index<>NR_NO then
-              internalerror(200401263);
-
-            reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(pint));
-            tmpref.index:=hreg;
-
-            helplist.concat(spilling_create_store(tempreg,tmpref));
-
-            if getregtype(tempreg)=R_INTREGISTER then
-              ungetregisterinline(helplist,hreg);
-
-            list.insertlistafter(pos,helplist);
-            helplist.free;
-          end
+          spilling_create_load_store(list, pos, spilltemp, tempreg, true)
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);
       end;

@@ -214,11 +214,6 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
         movl %esp,%eax
         movl %eax,System_exception_frame
         pushl %ebp
-        movl %esp,%eax
-        movl %eax,st
-     end;
-     StackTop:=st;
-     asm
         xorl %eax,%eax
         movw %ss,%ax
         movl %eax,_SS
@@ -560,85 +555,79 @@ end;
 procedure remove_exception_handlers;
 begin
 end;
-
 {$endif Set_i386_Exception_handler}
 
 
-
-
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
-	type
-	  tdosheader = packed record
-	     e_magic : word;
-	     e_cblp : word;
-	     e_cp : word;
-	     e_crlc : word;
-	     e_cparhdr : word;
-	     e_minalloc : word;
-	     e_maxalloc : word;
-	     e_ss : word;
-	     e_sp : word;
-	     e_csum : word;
-	     e_ip : word;
-	     e_cs : word;
-	     e_lfarlc : word;
-	     e_ovno : word;
-	     e_res : array[0..3] of word;
-	     e_oemid : word;
-	     e_oeminfo : word;
-	     e_res2 : array[0..9] of word;
-	     e_lfanew : longint;
-	  end;
-	  tpeheader = packed record
-	     PEMagic : longint;
-	     Machine : word;
-	     NumberOfSections : word;
-	     TimeDateStamp : longint;
-	     PointerToSymbolTable : longint;
-	     NumberOfSymbols : longint;
-	     SizeOfOptionalHeader : word;
-	     Characteristics : word;
-	     Magic : word;
-	     MajorLinkerVersion : byte;
-	     MinorLinkerVersion : byte;
-	     SizeOfCode : longint;
-	     SizeOfInitializedData : longint;
-	     SizeOfUninitializedData : longint;
-	     AddressOfEntryPoint : longint;
-	     BaseOfCode : longint;
-	     BaseOfData : longint;
-	     ImageBase : longint;
-	     SectionAlignment : longint;
-	     FileAlignment : longint;
-	     MajorOperatingSystemVersion : word;
-	     MinorOperatingSystemVersion : word;
-	     MajorImageVersion : word;
-	     MinorImageVersion : word;
-	     MajorSubsystemVersion : word;
-	     MinorSubsystemVersion : word;
-	     Reserved1 : longint;
-	     SizeOfImage : longint;
-	     SizeOfHeaders : longint;
-	     CheckSum : longint;
-	     Subsystem : word;
-	     DllCharacteristics : word;
-	     SizeOfStackReserve : longint;
-	     SizeOfStackCommit : longint;
-	     SizeOfHeapReserve : longint;
-	     SizeOfHeapCommit : longint;
-	     LoaderFlags : longint;
-	     NumberOfRvaAndSizes : longint;
-	     DataDirectory : array[1..$80] of byte;
-	  end;
-	begin
-          if (SysInstance=0) and not IsLibrary then
-            SysInstance:=getmodulehandle(nil);
-          if (SysInstance=0) then
-            result:=stklen
-          else
-            result:=tpeheader((pointer(SysInstance)+(tdosheader(pointer(SysInstance)^).e_lfanew))^).SizeOfStackReserve;
-	end;
+  type
+    tdosheader = packed record
+       e_magic : word;
+       e_cblp : word;
+       e_cp : word;
+       e_crlc : word;
+       e_cparhdr : word;
+       e_minalloc : word;
+       e_maxalloc : word;
+       e_ss : word;
+       e_sp : word;
+       e_csum : word;
+       e_ip : word;
+       e_cs : word;
+       e_lfarlc : word;
+       e_ovno : word;
+       e_res : array[0..3] of word;
+       e_oemid : word;
+       e_oeminfo : word;
+       e_res2 : array[0..9] of word;
+       e_lfanew : longint;
+    end;
+    tpeheader = packed record
+       PEMagic : longint;
+       Machine : word;
+       NumberOfSections : word;
+       TimeDateStamp : longint;
+       PointerToSymbolTable : longint;
+       NumberOfSymbols : longint;
+       SizeOfOptionalHeader : word;
+       Characteristics : word;
+       Magic : word;
+       MajorLinkerVersion : byte;
+       MinorLinkerVersion : byte;
+       SizeOfCode : longint;
+       SizeOfInitializedData : longint;
+       SizeOfUninitializedData : longint;
+       AddressOfEntryPoint : longint;
+       BaseOfCode : longint;
+       BaseOfData : longint;
+       ImageBase : longint;
+       SectionAlignment : longint;
+       FileAlignment : longint;
+       MajorOperatingSystemVersion : word;
+       MinorOperatingSystemVersion : word;
+       MajorImageVersion : word;
+       MinorImageVersion : word;
+       MajorSubsystemVersion : word;
+       MinorSubsystemVersion : word;
+       Reserved1 : longint;
+       SizeOfImage : longint;
+       SizeOfHeaders : longint;
+       CheckSum : longint;
+       Subsystem : word;
+       DllCharacteristics : word;
+       SizeOfStackReserve : longint;
+       SizeOfStackCommit : longint;
+       SizeOfHeapReserve : longint;
+       SizeOfHeapCommit : longint;
+       LoaderFlags : longint;
+       NumberOfRvaAndSizes : longint;
+       DataDirectory : array[1..$80] of byte;
+    end;
+  begin
+    result:=tpeheader((pointer(getmodulehandle(nil))+(tdosheader(pointer(getmodulehandle(nil))^).e_lfanew))^).SizeOfStackReserve;
+  end;
 
+var
+  st : Pointer;
 
 begin
   { get some helpful informations }
@@ -648,6 +637,12 @@ begin
     SysInstance:=getmodulehandle(nil);
 
   MainInstance:=SysInstance;
+
+  asm
+    movl %fs:(4),%eax
+    movl %eax,st
+  end;
+  StackTop:=st;
 
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);

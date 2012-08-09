@@ -20,6 +20,8 @@ os=`uname -s`
 
 if [ "$os" == "NetBSD" ] ; then
   needgsed=1
+else
+  needgsed=0
 fi
 
 SED=sed
@@ -37,12 +39,33 @@ fi
 for file in $@ ; do 
 
 echo "Looking for constants in \"$file\""
-$SED  -n "s:.*[[:space:]]\([a-zA-Z_][a-zA-Z_0-9]*\)[[:space:]]*=[[:space:]]*\([-+]*[0-9][xX]*[0-9+-\*/]*\)[[:space:]]*;.*:test_const \1 \2:p" $file  >  check_const_list.sh
+$SED  -n -e "s:.*[[:space:]]\([a-zA-Z_][a-zA-Z_0-9]*\)[[:space:]]*=[[:space:]]*\([&%$]*\)\([-+]*[0-9][xX]*[-0-9+[:space:]]*\)[[:space:]]*;.*:test_const \1 \"\3\" \"\2\" :p" $file  >  check_const_list.sh
 
 test_const ()
 {
 name=$1
-value=$2
+value="$2"
+prefix="$3"
+if [[ "x$prefix" = "x\$" ]] ; then
+  if [ $verbose -eq 1 ]; then
+    echo "Hexadecimal value"
+  fi
+  value=0x$value
+fi
+if [[ "x$prefix" = "x&" ]] ; then
+  if [ $verbose -eq 1 ]; then
+    echo "Octal value"
+  fi
+  if ! [ "${value:0:1}" == "0" ] ; then
+    value=0$value
+  fi
+fi
+if [[ "x$prefix" = "x%" ]] ; then
+  if [ $verbose -eq 1 ]; then
+    echo "Binary value"
+  fi
+  value=0b$value
+fi
 if [ $verbose -eq 1 ]; then
   echo "Looking for $name, should be $value"
 fi

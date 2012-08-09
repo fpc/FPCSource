@@ -439,33 +439,21 @@ implementation
 
     procedure tjvmcallnode.extra_post_call_code;
       var
-        totalremovesize: longint;
         realresdef: tdef;
       begin
-        if not assigned(typedef) then
-          realresdef:=tstoreddef(resultdef)
-        else
-          realresdef:=tstoreddef(typedef);
+        thlcgjvm(hlcg).g_adjust_stack_after_call(current_asmdata.CurrAsmList,procdefinition,pushedparasize,typedef);
         { a constructor doesn't actually return a value in the jvm }
-        if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) then
-          totalremovesize:=pushedparasize
-        else
+        if (tabstractprocdef(procdefinition).proctypeoption<>potype_constructor) then
           begin
-            { zero-extend unsigned 8/16 bit returns (we have to return them
-              sign-extended to keep the Android verifier happy, and even if that
-              one did not exist a plain Java routine could return a
-              sign-extended value) }
             if cnf_return_value_used in callnodeflags then
-              thlcgjvm(hlcg).maybe_resize_stack_para_val(current_asmdata.CurrAsmList,realresdef,false);
-            { even a byte takes up a full stackslot -> align size to multiple of 4 }
-            totalremovesize:=pushedparasize-(align(realresdef.size,4) shr 2);
+              begin
+                if not assigned(typedef) then
+                  realresdef:=tstoreddef(resultdef)
+                else
+                  realresdef:=tstoreddef(typedef);
+                thlcgjvm(hlcg).maybe_resize_stack_para_val(current_asmdata.CurrAsmList,realresdef,false);
+              end;
           end;
-        { remove parameters from internal evaluation stack counter (in case of
-          e.g. no parameters and a result, it can also increase) }
-        if totalremovesize>0 then
-          thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,totalremovesize)
-        else if totalremovesize<0 then
-          thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,-totalremovesize);
 
         { if this was an inherited constructor call, initialise all fields that
           are wrapped types following it }

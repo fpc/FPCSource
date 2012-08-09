@@ -32,3 +32,4 @@ NetBSD-i386 : gcc (GCC) 4.1.3 20080704 prerelease (NetBSD nb2 20081120)
 FreeBSD-i386 : gcc (GCC) 4.2.1 20070719  [FreeBSD] 8.2-RELEASE
 Linux-sparc : gcc (Debian 4.3.2-1.1) 4.3.2
 OpenBSD-x86_64 : gcc (GCC) 4.2.1 20070719 
+Linux-arm-gnueabihf : gcc version 4.6.3 (Debian 4.6.3-8+rpi1)

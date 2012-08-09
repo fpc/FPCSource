@@ -2876,8 +2876,6 @@ S*2Aas_Assembla con GNU AS
 **2Mtp_Modo compatibilità TP/BP 7.0 
 **2Mmacpas_Modo compatibilità Macintosh Pascal e dialetti
 **1n_Non leggere i file configurazione di default
-**1N<x>_Ottimizzazioni dell'albero dei nodi
-**2Nu_Srotola i loop
 **1o<x>_Rinomina l'eseguibile prodotto in <x>
 **1O<x>_Ottimizzazioni:
 **2O-_Disabilita le ottimizzazioni

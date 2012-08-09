@@ -233,6 +233,56 @@ implementation
         explicit_paraloc,
         need_array,
         is_univ: boolean;
+
+        procedure handle_default_para_value;
+          var
+            convpd : tprocdef;
+            doconv : tconverttype;
+            nodetype : tnodetype;
+            bt : tblock_type;
+          begin
+            { only allowed for types that can be represented by a
+              constant expression }
+            if try_to_consume(_EQ) then
+             begin
+               if (hdef.typ in [recorddef,variantdef,filedef,formaldef]) or
+                  is_object(hdef) or
+                  ((hdef.typ=arraydef) and
+                   not is_dynamic_array(hdef)) then
+                 Message1(type_e_invalid_default_value,FullTypeName(hdef,nil));
+               vs:=tparavarsym(sc[0]);
+               if sc.count>1 then
+                 Message(parser_e_default_value_only_one_para);
+               bt:=block_type;
+               block_type:=bt_const;
+               { prefix 'def' to the parameter name }
+               defaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
+               block_type:=bt;
+               if assigned(defaultvalue) then
+                 begin
+                   include(defaultvalue.symoptions,sp_internal);
+                   pd.parast.insert(defaultvalue);
+                   { check whether the default value is of the correct
+                     type }
+                   if defaultvalue.consttyp in [conststring,constwstring] then
+                     nodetype:=stringconstn
+                   else if defaultvalue.consttyp=constnil then
+                     nodetype:=niln
+                   else
+                     nodetype:=nothingn;
+                   if compare_defs_ext(defaultvalue.constdef,hdef,nodetype,doconv,convpd,[])<=te_convert_operator then
+                     MessagePos2(defaultvalue.fileinfo,type_e_incompatible_types,FullTypeName(defaultvalue.constdef,hdef),FullTypeName(hdef,defaultvalue.constdef));
+                 end;
+               defaultrequired:=true;
+             end
+            else
+             begin
+               if defaultrequired then
+                 Message1(parser_e_default_value_expected_for_para,vs.name);
+             end;
+          end;
+
+
       begin
         old_block_type:=block_type;
         explicit_paraloc:=false;
@@ -427,27 +477,7 @@ implementation
 
                 { default parameter }
                 if (m_default_para in current_settings.modeswitches) then
-                 begin
-                   if try_to_consume(_EQ) then
-                    begin
-                      vs:=tparavarsym(sc[0]);
-                      if sc.count>1 then
-                        Message(parser_e_default_value_only_one_para);
-                      { prefix 'def' to the parameter name }
-                      defaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
-                      if assigned(defaultvalue) then
-                        begin
-                          include(defaultvalue.symoptions,sp_internal);
-                          pd.parast.insert(defaultvalue);
-                        end;
-                      defaultrequired:=true;
-                    end
-                   else
-                    begin
-                      if defaultrequired then
-                        Message1(parser_e_default_value_expected_for_para,vs.name);
-                    end;
-                 end;
+                  handle_default_para_value;
               end;
            end
           else
@@ -2175,7 +2205,7 @@ const
       handler  : @pd_interrupt;
       pocall   : pocall_oldfpccall;
       pooption : [po_interrupt];
-      mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,
+      mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,pocall_mwpascal,
                        pocall_pascal,pocall_far16,pocall_oldfpccall];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_inline]

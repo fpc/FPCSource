@@ -83,7 +83,6 @@ unit cgcpu;
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
         { generates overflow checking code for a node }
         procedure g_overflowcheck(list: TAsmList; const l:tlocation; def:tdef); override;
-        procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);override;
 
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
@@ -1293,11 +1292,6 @@ unit cgcpu;
     procedure tcg68k.g_overflowcheck(list: TAsmList; const l:tlocation; def:tdef);
       begin
       end;
-
-    procedure tcg68k.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
-      begin
-      end;
-
 
     procedure tcg68k.g_proc_entry(list: TAsmList; localsize: longint; nostackframe:boolean);
       var

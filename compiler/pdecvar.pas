@@ -27,17 +27,18 @@ unit pdecvar;
 interface
 
     uses
+      cclasses,
       symtable,symsym,symdef;
 
     type
-      tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class,vd_final);
+      tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class,vd_final,vd_canreorder);
       tvar_dec_options=set of tvar_dec_option;
 
     function  read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
 
     procedure read_var_decls(options:Tvar_dec_options);
 
-    procedure read_record_fields(options:Tvar_dec_options);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList);
 
     procedure read_public_and_external(vs: tabstractvarsym);
 
@@ -48,7 +49,7 @@ implementation
     uses
        SysUtils,
        { common }
-       cutils,cclasses,
+       cutils,
        { global }
        globtype,globals,tokens,verbose,constexp,
        systems,
@@ -938,8 +939,10 @@ implementation
                    fieldvarsym :
                      begin
                        ImplIntf.IType:=etFieldValue;
-                       { this must be done more sophisticated, here is also probably the wrong place }
-                       ImplIntf.IOffset:=tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
+                       { this must be done in a more robust way. Can't read the
+                         fieldvarsym's fieldoffset yet, because it may not yet
+                         be set }
+                       ImplIntf.ImplementsField:=p.propaccesslist[palt_read].firstsym^.sym;
                      end
                    else
                      internalerror(200802161);
@@ -1577,7 +1580,7 @@ implementation
       end;
 
 
-    procedure read_record_fields(options:Tvar_dec_options);
+    procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList);
       var
          sc : TFPObjectList;
          i  : longint;
@@ -1637,6 +1640,11 @@ implementation
                if token=_ID then
                  begin
                    vs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                   { normally the visibility is set via addfield, but sometimes
+                     we collect symbols so we can add them in a batch of
+                     potentially mixed visibility, and then the individual
+                     symbols need to have their visibility already set }
+                   vs.visibility:=visibility;
                    sc.add(vs);
                    recst.insert(vs);
                  end;
@@ -1796,14 +1804,13 @@ implementation
                    end;
                end;
 
-             { Generate field in the recordsymtable }
-             for i:=0 to sc.count-1 do
-               begin
-                 fieldvs:=tfieldvarsym(sc[i]);
-                 { static data fields are already inserted in the globalsymtable }
-                 if not(sp_static in fieldvs.symoptions) then
-                   recst.addfield(fieldvs,visibility);
-               end;
+             if not(vd_canreorder in options) then
+               { add field(s) to the recordsymtable }
+               recst.addfieldlist(sc,false)
+             else
+               { we may reorder the fields before adding them to the symbol
+                 table }
+               reorderlist.concatlistcopy(sc)
            end;
 
          if m_delphi in current_settings.modeswitches then
@@ -1875,7 +1882,7 @@ implementation
                 consume(_LKLAMMER);
                 inc(variantrecordlevel);
                 if token<>_RKLAMMER then
-                  read_record_fields([vd_record]);
+                  read_record_fields([vd_record],nil);
                 dec(variantrecordlevel);
                 consume(_RKLAMMER);
                 { calculates maximal variant size }
