@@ -1,7 +1,7 @@
 {
     Common subexpression elimination on base blocks
 
-    Copyright (c) 2005 by Florian Klaempfl
+    Copyright (c) 2005-2012 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,13 +34,9 @@ unit optcse;
     {
       the function  creates non optimal code so far:
       - call para nodes are cse barriers because they can be reordered and thus the
-        temp. creation can be done too late
-      - cse's in chained expressions are not recognized: the common subexpression
-        in (a1 and b and c) vs. (a2 and b and c) is not recognized because there is no common
-        subtree b and c
+        temp. creation could be done too late
       - the cse knows nothing about register pressure. In case of high register pressure, cse might
         have a negative impact
-      - assignment nodes are currently cse borders: things like a[i,j]:=a[i,j]+1; are not improved
       - the list of cseinvariant node types and inline numbers is not complete yet
 
       Further, it could be done probably in a faster way though the complexity can't probably not reduced
@@ -123,7 +119,6 @@ unit optcse;
             result:=fen_norecurse_false;
             exit;
           end;
-        { so far, we can handle only nodes being read }
         if
           { node possible to add? }
           assigned(n.resultdef) and
