@@ -67,8 +67,7 @@ _start:
         str sp,[ip]
 
         /* Fetch address of fini */
-        /*fixme: ldr ip, =_fini */
-        mov ip, #0
+        ldr ip, =_fini
 
         /* argc already loaded to a2*/
 
@@ -83,17 +82,15 @@ _start:
 
         /* Set up the other arguments in registers */
         ldr a1, =PASCALMAIN
-        /* fixme: init ldr a4, =_init */
-        mov a4, #0
+        ldr a4, =_init
 
         /* Push fini */
         str ip, [sp, #-4]!
 
-        /* check that this is the correct function! */
-        /* __libc_init (main, argc, argv, init, fini, rtld_fini, stack_end) */
+        /* __libc_start_main (main, argc, argv, init, fini, rtld_fini, stack_end) */
 
         /* Let the libc call main and exit with its return code.  */
-        bl __libc_init
+        bl __libc_start_main
 
         /* should never get here....*/
         bl abort

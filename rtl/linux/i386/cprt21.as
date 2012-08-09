@@ -14,7 +14,6 @@
 #
 # Linux ELF startup code for Free Pascal
 #
-#
 # Stack layout at program start:
 #
 #         nil
@@ -32,60 +31,78 @@
 #         argc <--- esp
 #
 
-        .file   "cprt0.as"
+        .file   "prt1.as"
         .text
         .globl  _start
         .type   _start,@function
 _start:
         /* First locate the start of the environment variables */
-        popl    %ecx                    /* Get argc in ecx */
-        movl    %esp,%ebx               /* Esp now points to the arguments */
-        leal    4(%esp,%ecx,4),%eax     /* The start of the environment is: esp+4*eax+8 */
+
+        popl    %esi
+        movl    %eax,%edi
+
+        movl    %esp,%ebx               /* Points to the arguments */
+        movl    %esi,%eax
+        incl    %eax
+        shll    $2,%eax
+        addl    %esp,%eax
         andl    $0xfffffff8,%esp        /* Align stack */
 
         movl    %eax,operatingsystem_parameter_envp    /* Move the environment pointer */
-        movl    %ecx,operatingsystem_parameter_argc    /* Move the argument counter    */
+        movl    %esi,operatingsystem_parameter_argc    /* Move the argument counter    */
         movl    %ebx,operatingsystem_parameter_argv    /* Move the argument pointer    */
 
-        movl    %eax,__environ          /* libc environ */
-
-        pushl   %eax
+        xorl    %ebp,%ebp
+        pushl   %edi
+        pushl   %esp
+        pushl   %edx
+        pushl   $_fini_dummy
+        pushl   $_init_dummy
         pushl   %ebx
-        pushl   %ecx
+        pushl   %esi
+        pushl   $main
+        call    __libc_start_main
+        hlt
 
-        call    __libc_init             /* init libc */
-        movzwl  __fpu_control,%eax
+/* fake main routine which will be run from libc */
+main:
+        /* save return address */
+        popl    %eax
+        movl    %eax,___fpc_ret
+        movl    %ebx,___fpc_ret_ebx
+        movl    %ebp,___fpc_ret_ebp
         pushl   %eax
-        call    __setfpucw
-        popl    %eax
-        pushl   $_fini
-        call    atexit
-        popl    %eax
-        call    _init
-
-        popl    %eax
-        popl    %eax
 
         /* Save initial stackpointer */
         movl    %esp,__stkptr
 
+        /* start the program */
         xorl    %ebp,%ebp
-        call    PASCALMAIN              /* start the program */
+        call    PASCALMAIN
+        hlt
 
         .globl _haltproc
         .type _haltproc,@function
 _haltproc:
-_haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is exported
-        movzwl  operatingsystem_result,%ebx
-        pushl   %ebx
-        call    exit
-        xorl    %eax,%eax
-        incl    %eax                    /* eax=1, exit call */
-        popl    %ebx
-        int     $0x80
-        jmp     _haltproc2
+        movzwl    operatingsystem_result,%eax
+
+        movl    ___fpc_ret,%edx         /* return to libc */
+        movl    ___fpc_ret_ebp,%ebp
+        movl    ___fpc_ret_ebx,%ebx
+        push    %edx
+_init_dummy:
+_fini_dummy:
+        ret
 
 .data
+        .align  4
+
+___fpc_ret:                             /* return address to libc */
+        .long   0
+___fpc_ret_ebx:
+        .long   0
+___fpc_ret_ebp:
+        .long   0
 
 .bss
         .type   __stkptr,@object
