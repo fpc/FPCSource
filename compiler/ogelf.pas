@@ -801,19 +801,6 @@ implementation
       begin
         inherited create(n);
         CObjSection:=TElfObjSection;
-        { we need at least the following sections }
-        createsection(sec_code);
-        { always a non-PIC data section (will remain empty if doing PIC) }
-        createsection('.data',sectiontype2align(sec_data),sectiontype2options(sec_data));
-        createsection(sec_bss);
-        if (cs_create_pic in current_settings.moduleswitches) and
-           not(target_info.system in systems_darwin) then
-          createsection(sec_data);
-        if tf_section_threadvars in target_info.flags then
-          createsection(sec_threadvar);
-        if (tf_needs_dwarf_cfi in target_info.flags) and
-           (af_supports_dwarf in target_asm.flags) then
-             createsection(sec_debug_frame);
       end;
 
 

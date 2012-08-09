@@ -981,12 +981,6 @@ const pemagic : array[0..3] of byte = (
         inherited create(n);
         CObjSection:=ACObjSection;
         win32:=awin32;
-        { we need at least the following 3 ObjSections }
-        createsection(sec_code);
-        createsection(sec_data);
-        createsection(sec_bss);
-        if tf_section_threadvars in target_info.flags then
-          createsection(sec_threadvar);
       end;
 
 
