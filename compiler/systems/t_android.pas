@@ -42,7 +42,7 @@ interface
 
     tlinkerandroid=class(texternallinker)
     private
-      libctype:(libc5,glibc2,glibc21,uclibc);
+      libctype:(bionic);
       cprtobj,
       gprtobj,
       prtobj  : string[80];
@@ -139,36 +139,20 @@ begin
      ExtDbgCmd[2]:='objcopy --add-gnu-debuglink=$DBG $EXE';
      ExtDbgCmd[3]:='strip --strip-unneeded $EXE';
 
-{$ifdef arm}
      defdynlinker:='/system/bin/linker';
-{$endif arm}
      {
-       Search order:
-         glibc 2.1+
-         uclibc
-         glibc 2.0
-       If none is found (e.g. when cross compiling) glibc21 is assumed
+       There is only one C library on android, the bionic libc
      }
+     libctype:=bionic;
      if fileexists(sysrootpath+defdynlinker,false) then
        begin
          DynamicLinker:=defdynlinker;
-         libctype:=glibc2;
-       end
-     else if fileexists(sysrootpath+'/lib/ld-uClibc.so.0',false) then
-       begin
-         dynamiclinker:='/lib/ld-uClibc.so.0';
-         libctype:=uclibc;
        end
      else
        begin
          { when no dyn. linker is found, we are probably
            cross compiling, so use the default dyn. linker }
          DynamicLinker:=defdynlinker;
-         {
-           the default c startup script is gcrt0.as on all platforms
-           except i386
-         }
-         libctype:=glibc2;
        end;
    end;
 end;
@@ -216,25 +200,15 @@ begin
      prtobj:='prt0';
      sysinitunit:='prc';
      case libctype of
-       glibc21:
+       bionic:
          begin
-           cprtobj:='cprt21';
-           gprtobj:='gprt21';
-           csysinitunit:='c21';
-           gsysinitunit:='c21g';
-         end;
-       uclibc:
-         begin
-           cprtobj:='ucprt0';
-           gprtobj:='ugprt0';
-           csysinitunit:='uc';
-           gsysinitunit:='ucg';
+           cprtobj:='cprt0';
+           gprtobj:='gprt0';
+           csysinitunit:='c';
+           gsysinitunit:='g';
          end
        else
-         cprtobj:='cprt0';
-         gprtobj:='gprt0';
-         csysinitunit:='c';
-         gsysinitunit:='g';
+         runerror(2012080901);
      end;
    end;
   if cs_profile in current_settings.moduleswitches then
@@ -268,8 +242,6 @@ begin
 { set special options for some targets }
   if cs_profile in current_settings.moduleswitches then
    begin
-     if not(libctype in [glibc2,glibc21]) then
-       AddSharedLibrary('gmon');
      AddSharedLibrary('c');
    end;
 
@@ -319,7 +291,7 @@ begin
       if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
        AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
       { try to add crti and crtbegin if linking to C }
-      if linklibc and (libctype<>uclibc) then
+      if linklibc then
        begin
          { crti.o must come first }
          if librarysearchpath.FindFile('crti.o',false,s) then
@@ -419,7 +391,7 @@ begin
        end;
 
       { objects which must be at the end }
-      if linklibc and (libctype<>uclibc) then
+      if linklibc then
        begin
          if cs_create_pic in current_settings.moduleswitches then
            found1:=librarysearchpath.FindFile('crtendS.o',false,s1)
