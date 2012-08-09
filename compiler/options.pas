@@ -1351,6 +1351,8 @@ begin
                       init_settings.optimizerswitches:=init_settings.optimizerswitches+level2optimizerswitches;
                     '3' :
                       init_settings.optimizerswitches:=init_settings.optimizerswitches+level3optimizerswitches;
+                    '4' :
+                      init_settings.optimizerswitches:=init_settings.optimizerswitches+level4optimizerswitches;
                     'a' :
                       begin
                         if not(UpdateAlignmentStr(Copy(Opt,j+3,255),ParaAlignment)) then

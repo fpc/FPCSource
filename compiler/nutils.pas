@@ -564,6 +564,8 @@ implementation
                     inc(result,5)
                   else
                     inc(result);
+                  if (tloadnode(p).symtableentry.typ=paravarsym) and tloadnode(p).is_addr_param_load then
+                    inc(result);
                   if (result >= NODE_COMPLEXITY_INF) then
                     result := NODE_COMPLEXITY_INF;
                   exit;
@@ -593,7 +595,7 @@ implementation
               typeconvn:
                 begin
                   { may be more complex in some cases }
-                  if not(ttypeconvnode(p).convtype in [tc_equal,tc_int_2_int,tc_bool_2_bool,tc_real_2_real,tc_cord_2_pointer]) then
+                  if not(ttypeconvnode(p).retains_value_location) then
                     inc(result);
                   if (result = NODE_COMPLEXITY_INF) then
                     exit;

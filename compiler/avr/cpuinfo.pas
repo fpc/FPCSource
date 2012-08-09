@@ -206,6 +206,7 @@ Const
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
+   level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
    cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none } [],

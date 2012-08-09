@@ -3747,6 +3747,7 @@ implementation
                     { parameter expression, so in that case assign to a temp   }
                     not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CONSTANT]) or
                     ((paracomplexity > 1) and
+                      not(nf_is_funcret in para.left.flags) and
                      (not valid_for_addr(para.left,false) or
                       (para.left.nodetype = calln) or
                       is_constnode(para.left))) or
@@ -3841,9 +3842,11 @@ implementation
                 { occurrences of the parameter with dereferencings of this    }
                 { temp                                    }
                 else
-                  { don't create a temp. for the often seen case that p^ is passed to a var parameter }
-                  if (paracomplexity>2) or
-                    ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var))) then
+                  { don't create a temp. for function results }
+                  if not(nf_is_funcret in para.left.flags) and
+                     ((paracomplexity>2) or
+                     { don't create a temp. for the often seen case that p^ is passed to a var parameter }
+                    ((paracomplexity>1) and not((para.left.nodetype=derefn) and (para.parasym.varspez = vs_var)))) then
                   begin
                     wrapcomplexinlinepara(para);
                   end;

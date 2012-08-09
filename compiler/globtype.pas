@@ -287,6 +287,7 @@ interface
        genericlevel1optimizerswitches = [cs_opt_level1];
        genericlevel2optimizerswitches = [cs_opt_level2];
        genericlevel3optimizerswitches = [cs_opt_level3];
+       genericlevel4optimizerswitches = [cs_opt_reorder_fields];
 
        { whole program optimizations whose information generation requires
          information from all loaded units

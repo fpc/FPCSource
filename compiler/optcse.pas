@@ -64,7 +64,8 @@ unit optcse;
     const
       cseinvariant : set of tnodetype = [addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
         derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
-        inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,
+        inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,niln,
+        setelementn,arrayconstructorn,arrayconstructorrangen,
         isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan},assignn];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
@@ -73,6 +74,7 @@ unit optcse;
           ((n.nodetype=inlinen) and
            (tinlinenode(n).inlinenumber in [in_assigned_x])
           ) or
+          ((n.nodetype=callparan) and not(assigned(tcallparanode(n).right))) or
           ((n.nodetype=loadn) and
             not((tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) and
                 (vo_volatile in tabstractvarsym(tloadnode(n).symtableentry).varoptions))
@@ -133,8 +135,9 @@ unit optcse;
             (not(n.resultdef.typ in [arraydef,recorddef])) and
             { same for voiddef }
             not(is_void(n.resultdef)) and
-            { adding tempref nodes is worthless but their complexity is probably <= 1 anyways }
-            not(n.nodetype in [temprefn]) and
+            { adding tempref and callpara nodes itself is worthless but
+              their complexity is probably <= 1 anyways }
+            not(n.nodetype in [temprefn,callparan]) and
 
             { node worth to add?
 
@@ -151,7 +154,7 @@ unit optcse;
             }
             (not(n.nodetype=loadn) or
              not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym]) or
-             (tloadnode(n).symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel)
+             (node_complexity(n)>1)
             ) and
 
             {
@@ -367,9 +370,13 @@ unit optcse;
                         addrstored:=(def.typ in [arraydef,recorddef]) or is_object(def);
 
 {$if defined(csedebug) or defined(csestats)}
+                        writeln;
+                        writeln('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+                        writeln('Complexity: ',node_complexity(tnode(lists.nodelist[i])),'  Node ',i,' equals Node ',ptrint(lists.equalto[i]));
                         printnode(output,tnode(lists.nodelist[i]));
-                        writeln(i,'    equals   ',ptrint(lists.equalto[i]));
                         printnode(output,tnode(lists.nodelist[ptrint(lists.equalto[i])]));
+                        writeln('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+                        writeln;
 {$endif defined(csedebug) or defined(csestats)}
                         templist[i]:=templist[ptrint(lists.equalto[i])];
                         if addrstored then
@@ -427,6 +434,14 @@ unit optcse;
 
     function do_optcse(var rootnode : tnode) : tnode;
       begin
+{$ifdef csedebug}
+         writeln('====================================================================================');
+         writeln('CSE optimization pass started');
+         writeln('====================================================================================');
+         printnode(rootnode);
+         writeln('====================================================================================');
+         writeln;
+{$endif csedebug}
         foreachnodestatic(pm_postprocess,rootnode,@searchcsedomain,nil);
         result:=nil;
       end;
