@@ -488,8 +488,8 @@ begin
       begin
        write(s);
        for l:=0 to lics.Expressions.Count-2 do
-          write(DelQuot(lics.Expressions[l]),',');
-       write(DelQuot(lics.Expressions[lics.Expressions.Count-1]),': '); // !!bug too much ' in expression
+          write(DelQuot(TPasExpr(lics.Expressions[l]).GetDeclaration(True)),',');
+       write(DelQuot(TPasExpr(lics.Expressions[lics.Expressions.Count-1]).GetDeclaration(True)),': '); // !!bug too much ' in expression
        //if not assigned(lics.Body) then writeln('TPasImplCaseStatement missing BODY');
        //if assigned(lics.Body) and (TPasImplBlock(lics.Body).Elements.Count >0) then
        //  GetTPasImplBlock(TPasImplBlock(lics.Body),lindent+1,0,false,true)
@@ -509,8 +509,8 @@ begin
      if liwd.Expressions.Count>0 then
       begin
        for l:=0 to liwd.Expressions.Count-2 do
-         write(liwd.Expressions[l],',');
-       write(liwd.Expressions[liwd.Expressions.Count-1]);
+         write(TPasExpr(liwd.Expressions[l]).GetDeclaration(true),',');
+       write(TPasExpr(liwd.Expressions[liwd.Expressions.Count-1]).GetDeclaration(true));
       end;
      writeln(' do');
      //if TPasImplBlock(liwd.Body).Elements.Count >0  then
