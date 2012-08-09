@@ -50,8 +50,8 @@ _start:
         movq    %rsp,(%rax)   /* argv starts just at the current stack top.  */
         leaq    8(,%rsi,8),%rax
         addq    %rsp,%rax
-        movq    operatingsystem_parameter_envp@GOTPCREL(%rip),%rsi
-        movq    %rax,(%rsi)
+        movq    operatingsystem_parameter_envp@GOTPCREL(%rip),%rcx
+        movq    %rax,(%rcx)
 
 	/* Align the stack to a 16 byte boundary to follow the ABI.  */
 	andq  $~15, %rsp
