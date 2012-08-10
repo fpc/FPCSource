@@ -2446,13 +2446,13 @@ implementation
         case filetyp of
           ft_text :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=634{+8}
+              savesize:=640
             else
-              savesize:=630{+8};
+              savesize:=632;
           ft_typed,
           ft_untyped :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=372
+              savesize:=376
             else
               savesize:=368;
         end;
