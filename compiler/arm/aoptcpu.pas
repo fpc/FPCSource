@@ -189,12 +189,20 @@ Implementation
   function AlignedToQWord(const ref : treference) : boolean;
     begin
       { (safe) heuristics to ensure alignment }
-      result:=(ref.offset>=0) and
-      ((ref.offset mod 8)=0) and
-      ({(taicpu(p).oper[1]^.ref^.base=current_procinfo.framepointer) or
-       (taicpu(p).oper[1]^.ref^.index=current_procinfo.framepointer) or }
-       (ref.base=NR_R13) or
-       (ref.index=NR_R13))
+      result:=(target_info.abi in [abi_eabi,abi_armeb,abi_eabihf]) and
+      (((ref.offset>=0) and
+        ((ref.offset mod 8)=0) and
+        ((ref.base=NR_R13) or
+         (ref.index=NR_R13))
+        ) or
+       ((ref.offset<=0) and
+        { when using NR_R11, it has always a value of <qword align>+4 }
+        ((abs(ref.offset+4) mod 8)=0) and
+        (current_procinfo.framepointer=NR_R11) and
+        ((ref.base=NR_R11) or
+         (ref.index=NR_R11))
+       )
+      );
     end;
 
 
