@@ -69,7 +69,7 @@ unit cpupi;
               { Non-Darwin, worst case: r4-r10,r11,r13,r14,r15 is saved -> -28-16, but we
                 always adjust the frame pointer to point to the first stored
                 register (= last register in list above) -> + 4 }
-              tg.setfirsttemp(-28-16+4)
+              tg.setfirsttemp(-28-16)
             else
               { on Darwin first r4-r7,r14 are saved, then r7 is adjusted to
                 point to the saved r7, and next r8,r10,r11 gets saved -> -24
