@@ -56,9 +56,10 @@ Type
 Implementation
 
   uses
-    cutils,
-    verbose,
-    cgutils,
+    cutils,verbose,globals,
+    systems,
+    cpuinfo,
+    cgutils,procinfo,
     aasmbase,aasmdata,aasmcpu;
 
   function CanBeCond(p : tai) : boolean;
@@ -173,7 +174,9 @@ Implementation
     case p.oper[0]^.typ of
       {This is the case}
       top_reg:
-        regLoadedWithNewValue := (p.oper[0]^.reg = reg);
+        regLoadedWithNewValue := (p.oper[0]^.reg = reg) or
+          { LDRD }
+          (p.opcode=A_LDR) and (p.oppostfix=PF_D) and (getsupreg(p.oper[0]^.reg)+1=getsupreg(reg));
       {LDM/STM might write a new value to their index register}
       top_ref:
         regLoadedWithNewValue :=
@@ -181,6 +184,19 @@ Implementation
           (taicpu(p).oper[0]^.ref^.base = reg);
     end;
   end;
+
+
+  function AlignedToQWord(const ref : treference) : boolean;
+    begin
+      { (safe) heuristics to ensure alignment }
+      result:=(ref.offset>=0) and
+      ((ref.offset mod 8)=0) and
+      ({(taicpu(p).oper[1]^.ref^.base=current_procinfo.framepointer) or
+       (taicpu(p).oper[1]^.ref^.index=current_procinfo.framepointer) or }
+       (ref.base=NR_R13) or
+       (ref.index=NR_R13))
+    end;
+
 
   function instructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
   var
@@ -203,7 +219,9 @@ Implementation
       begin
         case p.oper[I]^.typ of
           top_reg:
-            instructionLoadsFromReg := p.oper[I]^.reg = reg;
+            instructionLoadsFromReg := (p.oper[I]^.reg = reg) or
+              { STRD }
+              ((i=0) and (p.opcode=A_STR) and (p.oppostfix=PF_D) and (getsupreg(p.oper[0]^.reg)+1=getsupreg(reg)));
           top_regset:
             instructionLoadsFromReg := (getsupreg(reg) in p.oper[I]^.regset^);
           top_shifterop:
@@ -337,6 +355,33 @@ Implementation
                             asml.insertbefore(tai_comment.Create(strpnew('Peephole StrLdr2StrMov 2 done')), hp1);
                           end;
                         result := true;
+                      end
+                    { change
+                      str reg1,ref
+                      str reg2,ref
+                      into
+                      strd reg1,ref
+                    }
+                    else if (target_info.abi in [abi_eabi,abi_armeb,abi_eabihf]) and
+                       not(current_settings.cputype in [cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5t]) and
+                       (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                       GetNextInstruction(p,hp1) and
+                       MatchInstruction(hp1, A_STR, [taicpu(p).condition, C_None], [taicpu(p).oppostfix]) and
+                       not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
+                      (getsupreg(taicpu(p).oper[0]^.reg)+1=getsupreg(taicpu(hp1).oper[0]^.reg)) and
+                      { str ensures that either base or index contain no register, else ldr wouldn't
+                        use an offset either
+                      }
+                      (taicpu(p).oper[1]^.ref^.base=taicpu(hp1).oper[1]^.ref^.base) and
+                      (taicpu(p).oper[1]^.ref^.index=taicpu(hp1).oper[1]^.ref^.index) and
+                      (taicpu(p).oper[1]^.ref^.offset+4=taicpu(hp1).oper[1]^.ref^.offset) and
+                      (abs(taicpu(p).oper[1]^.ref^.offset)<256) and
+                      AlignedToQWord(taicpu(p).oper[1]^.ref^) then
+                      begin
+                        asml.insertbefore(tai_comment.Create(strpnew('Peephole StrStr2Strd done')), p);
+                        taicpu(p).oppostfix:=PF_D;
+                        asml.remove(hp1);
+                        hp1.free;
                       end;
                   end;
                 A_LDR:
@@ -344,32 +389,60 @@ Implementation
                     { change
                       ldr reg1,ref
                       ldr reg2,ref
-                      into
-                      ldr reg1,ref
-                      mov reg2,reg1
+                      into ...
                     }
                     if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        GetNextInstruction(p,hp1) and
-                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [taicpu(p).oppostfix]) and
-                       RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
-                       (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.index) and
-                       (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.base) and
-                       (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
+                       { ldrd is not allowed here }
+                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [taicpu(p).oppostfix,PF_None]-[PF_D]) then
                       begin
-                        if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
+                        {
+                          ...
+                          ldr reg1,ref
+                          mov reg2,reg1
+                        }
+                        if RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
+                         (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.index) and
+                         (taicpu(p).oper[0]^.reg<>taicpu(hp1).oper[1]^.ref^.base) and
+                         (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
                           begin
-                            asml.insertbefore(tai_comment.Create(strpnew('Peephole LdrLdr2Ldr done')), hp1);
+                            if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
+                              begin
+                                asml.insertbefore(tai_comment.Create(strpnew('Peephole LdrLdr2Ldr done')), hp1);
+                                asml.remove(hp1);
+                                hp1.free;
+                              end
+                            else
+                              begin
+                                asml.insertbefore(tai_comment.Create(strpnew('Peephole LdrLdr2LdrMov done')), hp1);
+                                taicpu(hp1).opcode:=A_MOV;
+                                taicpu(hp1).oppostfix:=PF_None;
+                                taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
+                              end;
+                            result := true;
+                          end
+                        {
+                           ...
+                           ldrd reg1,ref
+                        }
+                        else if (target_info.abi in [abi_eabi,abi_armeb,abi_eabihf]) and
+                          not(current_settings.cputype in [cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5t]) and
+                          not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
+                          (getsupreg(taicpu(p).oper[0]^.reg)+1=getsupreg(taicpu(hp1).oper[0]^.reg)) and
+                          { ldr ensures that either base or index contain no register, else ldr wouldn't
+                            use an offset either
+                          }
+                          (taicpu(p).oper[1]^.ref^.base=taicpu(hp1).oper[1]^.ref^.base) and
+                          (taicpu(p).oper[1]^.ref^.index=taicpu(hp1).oper[1]^.ref^.index) and
+                          (taicpu(p).oper[1]^.ref^.offset+4=taicpu(hp1).oper[1]^.ref^.offset) and
+                          (abs(taicpu(p).oper[1]^.ref^.offset)<256) and
+                          AlignedToQWord(taicpu(p).oper[1]^.ref^) then
+                          begin
+                            asml.insertbefore(tai_comment.Create(strpnew('Peephole LdrLdr2Ldrd done')), p);
+                            taicpu(p).oppostfix:=PF_D;
                             asml.remove(hp1);
                             hp1.free;
-                          end
-                        else
-                          begin
-                            asml.insertbefore(tai_comment.Create(strpnew('Peephole LdrLdr2LdrMov done')), hp1);
-                            taicpu(hp1).opcode:=A_MOV;
-                            taicpu(hp1).oppostfix:=PF_None;
-                            taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
                           end;
-                        result := true;
                       end;
                     { Remove superfluous mov after ldr
                       changes
@@ -379,12 +452,13 @@ Implementation
                       ldr reg2, ref
 
                       conditions are:
+                        * no ldrd usage
                         * reg1 must be released after mov
                         * mov can not contain shifterops
                         * ldr+mov have the same conditions
                         * mov does not set flags
                     }
-                    if GetNextInstruction(p, hp1) then
+                    if (taicpu(p).oppostfix<>PF_D) and GetNextInstruction(p, hp1) then
                       RemoveSuperfluousMove(p, hp1, 'LdrMov2Ldr');
                   end;
                 A_MOV:
@@ -593,7 +667,7 @@ Implementation
                         }
                         if (taicpu(p).oper[1]^.typ = top_const) and
                            (taicpu(hp1).opcode=A_STR) then
-                          while MatchInstruction(hp1, A_STR, [taicpu(p).condition], []) and
+                          while MatchInstruction(hp1, A_STR, [taicpu(p).condition], [PF_None]) and
                                 MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
                                 GetNextInstruction(hp1, hp2) and
                                 MatchInstruction(hp2, A_MOV, [taicpu(p).condition], [PF_None]) and
