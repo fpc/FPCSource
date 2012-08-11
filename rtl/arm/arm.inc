@@ -555,7 +555,6 @@ asm
   bx  lr
 {$else}
 {$if defined(LINUX) and defined(CPUARMEL)}
-
   stmfd r13!, {lr}
   mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
 .Latomic_dec_loop:
@@ -640,7 +639,6 @@ asm
   bx  lr
 {$else}
 {$if defined(LINUX) and defined(CPUARMEL)}
-
   stmfd r13!, {lr}
   mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
 .Latomic_inc_loop:
@@ -700,8 +698,50 @@ asm
   mov r0, r2
   bx  lr
 {$else}
-  swp r1, r1, [r0]
-  mov r0,r1
+{$if defined(LINUX) and defined(CPUARMEL)}
+  stmfd r13!, {r4, lr}
+  mov r2, r0   // kuser_cmpxchg does not clobber r2 (and r1) by definition
+.Latomic_add_loop:
+  ldr r0, [r2]   // Load the current value
+  mov r4, r0     // save the current value because kuser_cmpxchg clobbers r0
+
+  // We expect this to work without looping most of the time
+  // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
+  // loop here again, we have to reload the value. Normaly this just fills the
+  // load stall-cycles from the above ldr so in reality we'll not get any additional
+  // delays because of this
+  // Don't use ldr to load r3 to avoid cacheline trashing
+  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // the kuser_cmpxchg entry point
+  mvn r3, #0x0000f000
+  sub r3, r3, #0x3F
+
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+  // restore the original value if needed
+  movcs   r0, r4
+  ldmcsfd r13!, {r4, pc}
+
+  b .Latomic_add_loop // kuser_cmpxchg failed, loop back
+{$else}
+// lock
+  ldr r3, .Lfpc_system_lock
+  mov r2, #1
+.Lloop:
+  swp r2, r2, [r3]
+  cmp r2, #0
+  bne .Lloop
+// do the job
+  ldr r2, [r0]
+  str r1, [r0]
+  mov r0, r2
+// unlock and return
+  mov r2, #0
+  str r2, [r3]
+  bx  lr
+
+.Lfpc_system_lock:
+  .long fpc_system_lock
+{$endif}
 {$endif}
 end;
 
@@ -718,7 +758,6 @@ asm
   bx  lr
 {$else}
 {$if defined(LINUX) and defined(CPUARMEL)}
-
   stmfd r13!, {r4, lr}
   mov r2, r0   // kuser_cmpxchg does not clobber r2 by definition
   mov r4, r1   // Save addend
@@ -785,7 +824,6 @@ asm
   bx       lr
 {$else}
 {$if defined(LINUX) and defined(CPUARMEL)}
-
   stmfd r13!, {r4, lr}
   mvn   r3, #0x0000f000
   sub   r3, r3, #0x3F
