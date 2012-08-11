@@ -27,9 +27,18 @@ interface
 
     uses
       globtype,
+      symtype,symdef,
+      cgbase,
       node,nset,pass_1,ncgset;
 
     type
+
+       { tarminnode }
+
+       tarminnode = class(tcginnode)
+         procedure in_smallset(uopsize: tcgsize; opdef: tdef; setbase: aint); override;
+       end;
+
       tarmcasenode = class(tcgcasenode)
          procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
          function  has_jumptable : boolean;override;
@@ -43,13 +52,50 @@ implementation
     uses
       systems,
       verbose,globals,constexp,
-      symconst,symdef,defutil,
+      symconst,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      cgbase,pass_2,
+      pass_2,
       ncon,
       cpubase,cpuinfo,procinfo,
       cgutils,cgobj,ncgutil,
-      cgcpu;
+      cgcpu,hlcgobj;
+
+{*****************************************************************************
+                            TARMINNODE
+*****************************************************************************}
+
+    procedure tarminnode.in_smallset(uopsize: tcgsize; opdef: tdef; setbase: aint);
+      var
+        so : tshifterop;
+        hregister : tregister;
+      begin
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags:=F_NE;
+        if left.location.loc=LOC_CONSTANT then
+          begin
+            hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
+             right.resultdef, right.resultdef, true);
+
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_TST,right.location.register,1 shl (left.location.value-setbase)));
+          end
+        else
+          begin
+            hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
+             left.resultdef, opdef, true);
+            register_maybe_adjust_setbase(current_asmdata.CurrAsmList, left.location,
+             setbase);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
+             right.resultdef, right.resultdef, true);
+
+            hregister:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_MOV,hregister,1));
+
+            shifterop_reset(so);
+            so.rs:=left.location.register;
+            so.shiftmode:=SM_LSL;
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_shifterop(A_TST,right.location.register,hregister,so));
+          end;
+      end;
 
 
 {*****************************************************************************
@@ -264,5 +310,6 @@ implementation
         end;
 
 begin
-   ccasenode:=tarmcasenode;
+  cinnode:=tarminnode;
+  ccasenode:=tarmcasenode;
 end.
