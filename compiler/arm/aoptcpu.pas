@@ -362,11 +362,11 @@ Implementation
                       into
                       strd reg1,ref
                     }
-                    else if (target_info.abi in [abi_eabi,abi_armeb,abi_eabihf]) and
-                       not(current_settings.cputype in [cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5t]) and
+                    else if not(current_settings.cputype in [cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5t]) and
+                       (taicpu(p).oppostfix=PF_None) and
                        (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        GetNextInstruction(p,hp1) and
-                       MatchInstruction(hp1, A_STR, [taicpu(p).condition, C_None], [taicpu(p).oppostfix]) and
+                       MatchInstruction(hp1, A_STR, [taicpu(p).condition, C_None], [PF_None]) and
                        not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
                       (getsupreg(taicpu(p).oper[0]^.reg)+1=getsupreg(taicpu(hp1).oper[0]^.reg)) and
                       { str ensures that either base or index contain no register, else ldr wouldn't
@@ -425,8 +425,9 @@ Implementation
                            ...
                            ldrd reg1,ref
                         }
-                        else if (target_info.abi in [abi_eabi,abi_armeb,abi_eabihf]) and
-                          not(current_settings.cputype in [cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5t]) and
+                        else if not(current_settings.cputype in [cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5t]) and
+                          { ldrd does not allow any postfixes ... }
+                          (taicpu(p).oppostfix=PF_None) and
                           not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
                           (getsupreg(taicpu(p).oper[0]^.reg)+1=getsupreg(taicpu(hp1).oper[0]^.reg)) and
                           { ldr ensures that either base or index contain no register, else ldr wouldn't
