@@ -934,7 +934,10 @@ const pemagic : array[0..3] of byte = (
                 RELOC_ABSOLUTE :
                   begin
                     if oso_common in relocsec.secoptions then
-                      dec(address,objreloc.orgsize)
+                      begin
+                        if (not win32) then
+                          dec(address,objreloc.orgsize);
+                      end
                     else
                       begin
                         { fixup address when the symbol was known in defined object }
