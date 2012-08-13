@@ -10258,6 +10258,7 @@ tests/test/opt/tcse1.pp svneol=native#text/plain
 tests/test/opt/tcse2.pp svneol=native#text/plain
 tests/test/opt/tcse3.pp svneol=native#text/plain
 tests/test/opt/tcse4.pp svneol=native#text/pascal
+tests/test/opt/tcse5.pp svneol=native#text/pascal
 tests/test/opt/tdfa1.pp svneol=native#text/pascal
 tests/test/opt/tdfa2.pp svneol=native#text/pascal
 tests/test/opt/tgotoreg.pp svneol=native#text/plain

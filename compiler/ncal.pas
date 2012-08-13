@@ -3623,8 +3623,11 @@ implementation
                     paras := tcallparanode(paras.right);
                   if assigned(paras) then
                     begin
+                      temp:=paras.left.getcopy;
+                      { inherit modification information, this is needed by the dfa/cse }
+                      temp.flags:=temp.flags+(n.flags*[nf_modify,nf_write]);
                       n.free;
-                      n := paras.left.getcopy;
+                      n:=temp;
                       typecheckpass(n);
                       result := fen_true;
                     end;
@@ -3642,7 +3645,7 @@ implementation
                   { inherit modification information, this is needed by the dfa/cse }
                   temp.flags:=temp.flags+(n.flags*[nf_modify,nf_write]);
                   n.free;
-                  n := temp;
+                  n:=temp;
                   typecheckpass(n);
                   result := fen_true;
                 end;
