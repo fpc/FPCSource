@@ -3874,7 +3874,7 @@ implementation
         paraaddr: taddrnode;
       begin
         ptrtype:=getpointerdef(para.left.resultdef);
-        tempnode := ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
+        tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true);
         addstatement(inlineinitstatement,tempnode);
         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
         { inherit addr_taken flag }
