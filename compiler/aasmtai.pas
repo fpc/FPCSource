@@ -2285,6 +2285,10 @@ implementation
                 begin
                   new(ref);
                   ref^:=o.ref^;
+{$ifdef x86}
+                  if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+                    segprefix:=ref^.segment;
+{$endif x86}
                   if assigned(add_reg_instruction_hook) then
                     begin
                       add_reg_instruction_hook(self,ref^.base);
