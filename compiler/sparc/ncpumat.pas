@@ -293,6 +293,10 @@ implementation
             current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
             current_procinfo.CurrFalseLabel:=hl;
             secondpass(left);
+
+            if left.location.loc<>LOC_JUMP then
+              internalerror(2012081306);
+
             maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
             hl:=current_procinfo.CurrTrueLabel;
             current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;

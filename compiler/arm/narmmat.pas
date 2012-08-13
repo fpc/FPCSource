@@ -285,6 +285,10 @@ implementation
             current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
             current_procinfo.CurrFalseLabel:=hl;
             secondpass(left);
+
+            if left.location.loc<>LOC_JUMP then
+              internalerror(2012081305);
+
             maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
             hl:=current_procinfo.CurrTrueLabel;
             current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
@@ -307,7 +311,7 @@ implementation
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_EQ;
-               end;
+                end;
               else
                 internalerror(2003042401);
             end;
