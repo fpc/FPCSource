@@ -36,6 +36,7 @@ interface
        { tarminnode }
 
        tarminnode = class(tcginnode)
+         function pass_1: tnode; override;
          procedure in_smallset(uopsize: tcgsize; opdef: tdef; setbase: aint); override;
        end;
 
@@ -63,6 +64,22 @@ implementation
 {*****************************************************************************
                             TARMINNODE
 *****************************************************************************}
+
+    function tarminnode.pass_1: tnode;
+      var
+        setparts: Tsetparts;
+        numparts: byte;
+        use_small: boolean;
+      begin
+        result:=inherited pass_1;
+
+        if not(assigned(result)) then
+          begin
+            if not(checkgenjumps(setparts,numparts,use_small)) and
+              use_small then
+              expectloc:=LOC_FLAGS;
+          end;
+      end;
 
     procedure tarminnode.in_smallset(uopsize: tcgsize; opdef: tdef; setbase: aint);
       var
