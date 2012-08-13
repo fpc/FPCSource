@@ -839,6 +839,9 @@ implementation
 
 
     procedure tnode.printnodeinfo(var t:text);
+      var
+        i : tnodeflag;
+        first : boolean;
       begin
         write(t,nodetype2str[nodetype]);
         if assigned(resultdef) then
@@ -847,7 +850,19 @@ implementation
           write(t,', resultdef = <nil>');
         write(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
                   ', loc = ',tcgloc2str[location.loc],
-                  ', expectloc = ',tcgloc2str[expectloc]);
+                  ', expectloc = ',tcgloc2str[expectloc],
+                  ', flags = [');
+        first:=true;
+        for i:=low(tnodeflag) to high(tnodeflag) do
+          if i in flags then
+            begin
+              if not(first) then
+                write(',')
+              else
+                first:=false;
+              write(i);
+            end;
+        write(']');
       end;
 
 
