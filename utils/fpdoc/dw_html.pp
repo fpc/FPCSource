@@ -116,6 +116,7 @@ type
     FUseMenuBrackets: Boolean;
 
     Procedure CreateAllocator; virtual;
+    procedure CreateCSSFile; virtual;
     function ResolveLinkID(const Name: String): DOMString;
     function ResolveLinkIDInUnit(const Name,AUnitName: String): DOMString;
     function ResolveLinkWithinPackage(AElement: TPasElement;
@@ -285,6 +286,7 @@ implementation
 
 uses SysUtils, XHTML, XMLRead, XMLWrite, HTMWrite, sh_pas,chmsitemap;
 
+{$i css.inc}
 
 Function FixHTMLpath(S : String) : STring;
 
@@ -730,12 +732,12 @@ begin
   end;
 end;
 
+
 procedure THTMLWriter.WriteHTMLPages;
 var
   i: Integer;
   PageDoc: TXMLDocument;
   Filename: String;
-  TempStream: TMemoryStream;
 
 begin
   if Engine.Output <> '' then
@@ -757,18 +759,34 @@ begin
         PageDoc.Free;
       end;
     end;
+  CreateCSSFile;
+end;
 
-  if FCSSFile <> '' then
-  begin
-    if not FileExists(FCSSFile) Then
+procedure THTMLWriter.CreateCSSFile;
+
+Var
+  TempStream: TMemoryStream;
+
+begin
+  TempStream := TMemoryStream.Create;
+  try
+    if (FCSSFile<>'') then
       begin
+      if not FileExists(FCSSFile) then
+        begin
         DoLog('Can''t find CSS file "%s"',[FCSSFILE]);
         halt(1);
+        end;
+      TempStream.LoadFromFile(FCSSFile);
+      end
+    else
+      begin
+      DoLog('Using built-in CSS file',[]);
+      TempStream.WriteBuffer(DefaultCSS,SizeOf(DefaultCSS));
       end;
-    TempStream := TMemoryStream.Create;
-    TempStream.LoadFromFile(FCSSFile);
-    TempStream.Position := 0;
-    TempStream.SaveToFile(Engine.output+ExtractFileName(FCSSFile));
+   TempStream.Position := 0;
+   TempStream.SaveToFile(Engine.output+'fpdoc.css');
+  finally
     TempStream.Free;
   end;
 end;

@@ -37,3 +37,9 @@ fpdoc$(EXEEXT): fpdoc.pp dglobals.pp dwriter.pp dw_xml.pp sh_pas.pp dw_html.pp\
   dw_latex.pp dwlinear.pp dw_txt.pp dw_linrtf.pp
 
 makeskel$(EXEEXT): makeskel.pp dglobals.pp
+
+css.inc: fpdoc.css ../bin2obj$(EXEEXT)
+	../bin2obj$(EXEEXT) -o css.inc -c DefaultCSS fpdoc.css
+
+../bin2obj$(EXEEXT):
+	$(MAKE) -C .. bin2obj$(EXEEXT)
