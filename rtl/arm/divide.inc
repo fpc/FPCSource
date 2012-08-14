@@ -41,7 +41,7 @@
 function fpc_div_dword(n,z:dword):dword;[public,alias: 'FPC_DIV_DWORD'];assembler;nostackframe;
 
 asm
-{$if defined(CPUARMV7M)}
+{$ifdef CPUARM_HAS_IDIV}
   udiv r0, r0, r1
 {$else}
   mov r3, #0
@@ -96,19 +96,19 @@ asm
 .Ldiv_next:
   bcs .Ldiv_loop
   mov r0, r3
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  mov pc, lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc, lr
 {$endif}
 .Ldiv_by_0:
   mov r0, #200
   mov r1, r11
   bl handleerrorframe
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
-  mov pc, lr
-{$else}
+{$ifdef CPUARM_HAS_BX}
   bx  lr
+{$else}
+  mov pc, lr
 {$endif}
 {$endif}
 end;
@@ -122,7 +122,7 @@ function fpc_div_dword(n,z:dword):dword;external name 'FPC_DIV_DWORD';
 function fpc_div_longint(n,z:longint):longint;[public,alias: 'FPC_DIV_LONGINT'];assembler;nostackframe;
 
 asm
-{$if defined(CPUARMV7M)}
+{$ifdef CPUARM_HAS_IDIV}
   sdiv r0, r0, r1
 {$else}
   stmfd sp!, {lr}
@@ -147,7 +147,7 @@ function fpc_div_longint(n,z:longint):longint;external name 'FPC_DIV_LONGINT';
 function fpc_mod_dword(n,z:dword):dword;[public,alias: 'FPC_MOD_DWORD'];assembler;nostackframe;
 
 asm
-{$if defined(CPUARMV7M)}
+{$ifdef CPUARM_HAS_IDIV}
   udiv r2, r0, r1
   mul r2,r1,r2
   sub r0,r0,r2
@@ -168,7 +168,7 @@ function fpc_mod_dword(n,z:dword):dword;external name 'FPC_MOD_DWORD';
 function fpc_mod_longint(n,z:longint):longint;[public,alias: 'FPC_MOD_LONGINT'];assembler;nostackframe;
 
 asm
-{$if defined(CPUARMV7M)}
+{$ifdef CPUARM_HAS_IDIV}
   sdiv r2, r0, r1
   smull r2,r3,r1,r2
   sub r0,r0,r2

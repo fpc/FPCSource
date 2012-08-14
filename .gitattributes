@@ -7223,6 +7223,7 @@ rtl/android/jvm/java_sys_android.inc svneol=native#text/plain
 rtl/android/jvm/java_sysh_android.inc svneol=native#text/plain
 rtl/android/jvm/rtl.cfg svneol=native#text/plain
 rtl/arm/arm.inc svneol=native#text/plain
+rtl/arm/armdefines.inc svneol=native#text/plain
 rtl/arm/divide.inc svneol=native#text/plain
 rtl/arm/int64p.inc svneol=native#text/plain
 rtl/arm/makefile.cpu svneol=native#text/plain
