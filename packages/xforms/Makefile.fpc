@@ -36,7 +36,7 @@ endif
 .NOTPARALLEL:
 
 fpmake: fpmake.pp
-	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT)
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(FPCOPT) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT)
 all:	fpmake
 	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -bu
 smart:	fpmake

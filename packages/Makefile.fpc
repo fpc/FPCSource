@@ -61,7 +61,7 @@ FPMAKE_OPT+=-bu
 fpmkunit_bootstrap:
 	$(MAKE) -C fpmkunit bootstrap
 fpmake: fpmake.pp fpmkunit_bootstrap
-	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT)
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(FPCOPT) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT)
 all:	fpmake
 	$(LOCALFPMAKE) compile $(FPMAKE_OPT)  
 smart:	fpmake
