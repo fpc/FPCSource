@@ -488,7 +488,7 @@ Appears in 2.0
 
 <!-- function result Visibility: default -->
 <element name="OverloadedFunc.Result">
-<short></short>
+<short>Soso</short>
 </element>
 
 <!-- argument Visibility: default -->

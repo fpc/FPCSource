@@ -3,6 +3,8 @@
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
+    2005-2012 by
+      various FPC contributors
 
     See the file COPYING, included in this distribution,
     for details about the copyright.
@@ -353,7 +355,8 @@ begin
 {$ENDIF}
   WriteLn(STitle);
   WriteLn(Format(SVersion, [DefFPCVersion, DefFPCDate]));
-  WriteLn(SCopyright);
+  WriteLn(SCopyright1);
+  WriteLn(SCopyright2);
   WriteLn;
   ParseCommandLine;
   if (FWriteProjectFile<>'') then

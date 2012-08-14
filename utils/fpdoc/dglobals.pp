@@ -129,7 +129,8 @@ resourcestring
 
   STitle           = 'FPDoc - Free Pascal Documentation Tool';
   SVersion         = 'Version %s [%s]';
-  SCopyright       = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
+  SCopyright1      = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
+  SCopyright2      = '(c) 2005 - 2012 various FPC contributors';
 
   SCmdLineHelp     = 'Usage: %s [options]';
   SUsageOption010  = '--content         Create content file for package cross-references';
