@@ -109,6 +109,7 @@ interface
        public
          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
          procedure addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
+         procedure writereloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);override;
        end;
 
        TCoffObjData = class(TObjData)
@@ -220,7 +221,6 @@ interface
 
        TPECoffexeoutput = class(TCoffexeoutput)
        private
-         idatalabnr : longword;
          FRelocsGenerated : boolean;
          procedure GenerateRelocs;
        public
@@ -809,6 +809,13 @@ const pemagic : array[0..3] of byte = (
     procedure TCoffObjSection.addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
       begin
         ObjRelocations.Add(TObjRelocation.createsymbolsize(ofs,p,symsize,reloctype));
+      end;
+
+
+    procedure TCoffObjSection.writereloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);
+      begin
+        AddSectionReloc(size,aTarget,reltype);
+        write(offset,len);
       end;
 
 
@@ -2400,77 +2407,49 @@ const pemagic : array[0..3] of byte = (
         idata5objsection,
         idata6objsection,
         idata7objsection : TObjSection;
-        idata2label : TObjSymbol;
         basedllname : string;
 
         procedure StartImport(const dllname:string);
-        var
-          idata4label,
-          idata5label,
-          idata7label : TObjSymbol;
-          emptyint    : longint;
         begin
           if assigned(exemap) then
             begin
               exemap.Add('');
               exemap.Add('Importing from DLL '+dllname);
             end;
-          emptyint:=0;
           basedllname:=ExtractFileName(dllname);
           idata2objsection:=internalobjdata.createsection(sec_idata2,basedllname);
-          idata2label:=internalobjdata.SymbolDefine('__imp_dir_'+basedllname,AB_LOCAL,AT_DATA);
           idata4objsection:=internalobjdata.createsection(sec_idata4,basedllname);
-          idata4label:=internalobjdata.SymbolDefine('__imp_names_'+basedllname,AB_LOCAL,AT_DATA);
           idata5objsection:=internalobjdata.createsection(sec_idata5,basedllname);
-          idata5label:=internalobjdata.SymbolDefine('__imp_fixup_'+basedllname,AB_LOCAL,AT_DATA);
           idata7objsection:=internalobjdata.createsection(sec_idata7,basedllname);
-          idata7label:=internalobjdata.SymbolDefine('__imp_dll_'+basedllname,AB_LOCAL,AT_DATA);
           { idata2 }
-          internalobjdata.SetSection(idata2objsection);
-          { dummy links to imports finalization }
-          internalobjdata.writereloc(0,0,internalobjdata.SymbolRef('__imp_names_end_'+basedllname),RELOC_NONE);
-          internalobjdata.writereloc(0,0,internalobjdata.SymbolRef('__imp_fixup_end_'+basedllname),RELOC_NONE);
-          { section data }
-          internalobjdata.writereloc(0,sizeof(longint),idata4label,RELOC_RVA);
-          internalobjdata.writebytes(emptyint,sizeof(emptyint));
-          internalobjdata.writebytes(emptyint,sizeof(emptyint));
-          internalobjdata.writereloc(0,sizeof(longint),idata7label,RELOC_RVA);
-          internalobjdata.writereloc(0,sizeof(longint),idata5label,RELOC_RVA);
+          idata2objsection.writereloc_internal(idata4objsection,0,sizeof(longint),RELOC_RVA);
+          idata2objsection.writezeros(2*sizeof(longint));
+          idata2objsection.writereloc_internal(idata7objsection,0,sizeof(longint),RELOC_RVA);
+          idata2objsection.writereloc_internal(idata5objsection,0,sizeof(longint),RELOC_RVA);
           { idata7 }
-          internalobjdata.SetSection(idata7objsection);
-          internalobjdata.writebytes(basedllname[1],length(basedllname));
-          internalobjdata.writebytes(emptyint,1);
+          idata7objsection.writestr(basedllname);
+          idata7objsection.writezeros(1);
         end;
 
         procedure EndImport;
-        var
-          emptyint : longint;
         begin
-          emptyint:=0;
           { These are referenced from idata2, oso_keep is not necessary. }
           idata4objsection:=internalobjdata.createsection(sec_idata4, basedllname+'_z_');
-          internalobjdata.SymbolDefine('__imp_names_end_'+basedllname,AB_LOCAL,AT_DATA);
           idata5objsection:=internalobjdata.createsection(sec_idata5, basedllname+'_z_');
-          internalobjdata.SymbolDefine('__imp_fixup_end_'+basedllname,AB_LOCAL,AT_DATA);
+          idata2objsection.writereloc_internal(idata4objsection,0,0,RELOC_NONE);
+          idata2objsection.writereloc_internal(idata5objsection,0,0,RELOC_NONE);
           { idata4 }
-          internalobjdata.SetSection(idata4objsection);
-          internalobjdata.writebytes(emptyint,sizeof(emptyint));
+          idata4objsection.writezeros(sizeof(longint));
           if target_info.system=system_x86_64_win64 then
-            internalobjdata.writebytes(emptyint,sizeof(emptyint));
+            idata4objsection.writezeros(sizeof(longint));
           { idata5 }
-          internalobjdata.SetSection(idata5objsection);
-          internalobjdata.writebytes(emptyint,sizeof(emptyint));
+          idata5objsection.writezeros(sizeof(longint));
           if target_info.system=system_x86_64_win64 then
-            internalobjdata.writebytes(emptyint,sizeof(emptyint));
+            idata5objsection.writezeros(sizeof(longint));
         end;
 
         function AddImport(const afuncname,amangledname:string; AOrdNr:longint;isvar:boolean):TObjSymbol;
         const
-{$ifdef x86_64}
-          jmpopcode : array[0..1] of byte = (
-            $ff,$25             // jmp qword [rip + offset32]
-          );
-{$else x86_64}
   {$ifdef arm}
           jmpopcode : array[0..7] of byte = (
             $00,$c0,$9f,$e5,    // ldr ip, [pc, #0]
@@ -2481,29 +2460,32 @@ const pemagic : array[0..3] of byte = (
             $ff,$25
           );
   {$endif arm}
-{$endif x86_64}
           nopopcodes : array[0..1] of byte = (
             $90,$90
           );
         var
-          idata4label,
-          idata5label,
-          idata6label : TObjSymbol;
-          emptyint : longint;
-          secname,
-          num : string;
-          absordnr: word;
+          secname: string;
 
-          procedure WriteTableEntry;
+          procedure WriteTableEntry(objsec:TObjSection);
           var
             ordint: dword;
           begin
             if AOrdNr <= 0 then
               begin
                 { import by name }
-                internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
+                if idata6objsection=nil then
+                  begin
+                    idata6objsection:=internalobjdata.createsection(sec_idata6,secname);
+                    ordint:=Abs(AOrdNr);
+                    { index hint, function name, null terminator and align }
+                    idata6objsection.write(ordint,2);
+                    idata6objsection.writestr(afuncname);
+                    idata6objsection.writezeros(1);
+                    idata6objsection.writezeros(align(idata6objsection.size,2)-idata6objsection.size);
+                  end;
+                objsec.writereloc_internal(idata6objsection,0,sizeof(longint),RELOC_RVA);
                 if target_info.system=system_x86_64_win64 then
-                  internalobjdata.writebytes(emptyint,sizeof(emptyint));
+                  objsec.writezeros(sizeof(longint));
               end
             else
               begin
@@ -2511,21 +2493,22 @@ const pemagic : array[0..3] of byte = (
                 ordint:=AOrdNr;
                 if target_info.system=system_x86_64_win64 then
                   begin
-                    internalobjdata.writebytes(ordint,sizeof(ordint));
+                    objsec.write(ordint,sizeof(ordint));
                     ordint:=$80000000;
-                    internalobjdata.writebytes(ordint,sizeof(ordint));
+                    objsec.write(ordint,sizeof(ordint));
                   end
                 else
                   begin
                     ordint:=ordint or $80000000;
-                    internalobjdata.writebytes(ordint,sizeof(ordint));
+                    objsec.write(ordint,sizeof(ordint));
                   end;
               end;
           end;
 
         begin
           result:=nil;
-          emptyint:=0;
+          textobjsection:=nil;
+          idata6objsection:=nil;
           if assigned(exemap) then
             begin
               if AOrdNr <= 0 then
@@ -2534,56 +2517,35 @@ const pemagic : array[0..3] of byte = (
                 exemap.Add(' Importing Function '+afuncname+' (OrdNr='+tostr(AOrdNr)+')');
             end;
 
-          with internalobjdata do
-            begin
-              secname:=basedllname+'_i_'+amangledname;
-              textobjsection:=createsection(sectionname(sec_code,secname,secorder_default),current_settings.alignment.procalign,sectiontype2options(sec_code) - [oso_keep]);
-              idata4objsection:=createsection(sec_idata4, secname);
-              idata5objsection:=createsection(sec_idata5, secname);
-              idata6objsection:=createsection(sec_idata6, secname);
-            end;
+          secname:=basedllname+'_i_'+amangledname;
+          idata4objsection:=internalobjdata.createsection(sec_idata4, secname);
+          idata5objsection:=internalobjdata.createsection(sec_idata5, secname);
 
-          { idata6, import data (ordnr+name) }
-          internalobjdata.SetSection(idata6objsection);
-          inc(idatalabnr);
-          num:=tostr(idatalabnr);
-          idata6label:=internalobjdata.SymbolDefine('__imp_'+num,AB_LOCAL,AT_DATA);
-          absordnr:=Abs(AOrdNr);
-          { write index hint }
-          internalobjdata.writebytes(absordnr,2);
-          if AOrdNr <= 0 then
-            internalobjdata.writebytes(afuncname[1],length(afuncname));
-          internalobjdata.writebytes(emptyint,1);
-          internalobjdata.writebytes(emptyint,align(internalobjdata.CurrObjSec.size,2)-internalobjdata.CurrObjSec.size);
           { idata4, import lookup table }
-          internalobjdata.SetSection(idata4objsection);
-          idata4label:=internalobjdata.SymbolDefine('__imp_lookup_'+num,AB_LOCAL,AT_DATA);
-          WriteTableEntry;
+          WriteTableEntry(idata4objsection);
           { idata5, import address table }
           internalobjdata.SetSection(idata5objsection);
           { dummy back links }
-          internalobjdata.writereloc(0,0,idata4label,RELOC_NONE);
-          internalobjdata.writereloc(0,0,idata2label,RELOC_NONE);
-          { section data }
+          idata5objsection.writereloc_internal(idata4objsection,0,0,RELOC_NONE);
+          idata5objsection.writereloc_internal(idata2objsection,0,0,RELOC_NONE);
           if isvar then
             result:=internalobjdata.SymbolDefine(amangledname,AB_GLOBAL,AT_DATA)
           else
-            idata5label:=internalobjdata.SymbolDefine('__imp_'+amangledname,AB_LOCAL,AT_DATA);
-          WriteTableEntry;
-          { text, jmp }
-          if not isvar then
             begin
-              internalobjdata.SetSection(textobjsection);
+              textobjsection:=internalobjdata.createsection(internalobjdata.sectionname(sec_code,secname,secorder_default),current_settings.alignment.procalign,
+                internalobjdata.sectiontype2options(sec_code) - [oso_keep]);
               result:=internalobjdata.SymbolDefine('_'+amangledname,AB_GLOBAL,AT_FUNCTION);
-              internalobjdata.writebytes(jmpopcode,sizeof(jmpopcode));
+              textobjsection.write(jmpopcode,sizeof(jmpopcode));
 {$ifdef x86_64}
-              internalobjdata.writereloc(0,4,idata5label,RELOC_RELATIVE);
+              textobjsection.writereloc_internal(idata5objsection,0,4,RELOC_RELATIVE);
 {$else}
-              internalobjdata.writereloc(0,4,idata5label,RELOC_ABSOLUTE32);
+              textobjsection.writereloc_internal(idata5objsection,0,4,RELOC_ABSOLUTE32);
 {$endif x86_64}
 
-              internalobjdata.writebytes(nopopcodes,align(internalobjdata.CurrObjSec.size,sizeof(nopopcodes))-internalobjdata.CurrObjSec.size);
+              textobjsection.write(nopopcodes,align(textobjsection.size,sizeof(nopopcodes))-textobjsection.size);
             end;
+          { idata5 section data }
+          WriteTableEntry(idata5objsection);
         end;
 
       var

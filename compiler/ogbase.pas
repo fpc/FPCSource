@@ -209,6 +209,7 @@ interface
        function  write(const d;l:aword):aword;
        function  writestr(const s:string):aword;
        function  WriteZeros(l:longword):aword;
+       procedure writeReloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);virtual;
        function  setmempos(mpos:qword):qword;
        procedure setDatapos(var dpos:aword);
        procedure alloc(l:aword);
@@ -709,6 +710,14 @@ implementation
           end
         else
           result:=Size;
+      end;
+
+
+    { Writes relocation to (section+offset) without need to have a symbol at that location.
+      Not an abstract method because not every backend needs this functionality. }
+    procedure TObjSection.writeReloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);
+      begin
+        InternalError(2012081501);
       end;
 
 
