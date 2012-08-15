@@ -1089,6 +1089,27 @@ Const
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
+ type
+   tcpuflags =
+      (CPUARM_HAS_BX,
+       CPUARM_HAS_REV,
+       CPUARM_HAS_IDIV,
+       CPUARM_HAS_LDREX
+      );
+
+ const
+   cpu_capabilities : array[tcputype] of set of tcpuflags =
+     ( { cpu_none   } [],
+       { cpu_armv3  } [],
+       { cpu_armv4  } [],
+       { cpu_armv4t } [CPUARM_HAS_BX],
+       { cpu_armv5  } [CPUARM_HAS_BX],
+       { cpu_armv5t } [CPUARM_HAS_BX],
+       { cpu_armv6  } [CPUARM_HAS_BX,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv7  } [CPUARM_HAS_BX,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv7m } [CPUARM_HAS_BX,CPUARM_HAS_REV,CPUARM_HAS_IDIV,CPUARM_HAS_LDREX]
+     );
+
 Implementation
 
 end.
