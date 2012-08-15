@@ -78,9 +78,12 @@ Type
     Procedure TestTryFinallyEmpty;
     Procedure TestTryFinallyNested;
     procedure TestTryExcept;
+    procedure TestTryExceptNested;
     procedure TestTryExceptEmpty;
     Procedure TestTryExceptOn;
     Procedure TestTryExceptOn2;
+    Procedure TestTryExceptOnElse;
+    Procedure TestTryExceptOnIfElse;
   end;
 
 implementation
@@ -1085,6 +1088,48 @@ begin
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse');
 end;
 
+procedure TTestStatementParser.TestTryExceptNested;
+Var
+  T : TPasImplTry;
+  S : TPasImplSimple;
+  E : TPasImplTryExcept;
+
+begin
+  TestStatement(['Try','  DoSomething1;','  try','    DoSomething2;','  except','    DoSomethingElse2','  end','except','  DoSomethingElse1','end']);
+  T:=AssertStatement('Try statement',TPasImplTry) as TPasImplTry;
+  AssertEquals(2,T.Elements.Count);
+  AssertNotNull(T.FinallyExcept);
+  AssertNull(T.ElseBranch);
+  AssertNotNull(T.Elements[0]);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  S:=TPasImplSimple(T.Elements[0]);
+  AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomething1');
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  AssertEquals('Except statement',TPasImplTryExcept,T.FinallyExcept.ClassType);
+  E:=TPasImplTryExcept(T.FinallyExcept);
+  AssertEquals(1,E.Elements.Count);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(E.Elements[0]).ClassType);
+  S:=TPasImplSimple(E.Elements[0]);
+  AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse1');
+  AssertNotNull(T.Elements[1]);
+  AssertEquals('Simple statement',TPasImplTry,TPasElement(T.Elements[1]).ClassType);
+  T:=TPasImplTry(T.Elements[1]);
+  AssertEquals(1,T.Elements.Count);
+  AssertNotNull(T.FinallyExcept);
+  AssertNull(T.ElseBranch);
+  AssertNotNull(T.Elements[0]);
+  AssertEquals('Simple statement 2',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  S:=TPasImplSimple(T.Elements[0]);
+  AssertExpression('DoSomething2 call ',S.Expr,pekIdent,'DoSomething2');
+  AssertEquals('Simple statement2',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  AssertEquals('Except statement2',TPasImplTryExcept,T.FinallyExcept.ClassType);
+  E:=TPasImplTryExcept(T.FinallyExcept);
+  AssertEquals(1,E.Elements.Count);
+  AssertEquals('Simple statement2',TPasImplSimple,TPasElement(E.Elements[0]).ClassType);
+  S:=TPasImplSimple(E.Elements[0]);
+  AssertExpression('DoSomethingElse2 call',S.Expr,pekIdent,'DoSomethingElse2');
+end;
+
 procedure TTestStatementParser.TestTryExceptEmpty;
 
 Var
@@ -1179,6 +1224,93 @@ begin
   AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception2');
   S:=TPasImplSimple(O.Elements[0]);
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse2');
+end;
+
+procedure TTestStatementParser.TestTryExceptOnElse;
+Var
+  T : TPasImplTry;
+  S : TPasImplSimple;
+  E : TPasImplTryExcept;
+  O : TPasImplExceptOn;
+  EE : TPasImplTryExceptElse;
+  I : TPasImplIfElse;
+
+begin
+  DeclareVar('Boolean','b');
+  // Check that Else belongs to Except, not to IF
+
+  TestStatement(['Try','  DoSomething;','except','On E : Exception do','if b then','DoSomethingElse;','else','DoSomethingMore;','end']);
+  T:=AssertStatement('Try statement',TPasImplTry) as TPasImplTry;
+  AssertEquals(1,T.Elements.Count);
+  AssertNotNull(T.FinallyExcept);
+  AssertNotNull(T.ElseBranch);
+  AssertNotNull(T.Elements[0]);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  S:=TPasImplSimple(T.Elements[0]);
+  AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomething');
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  AssertEquals('Except statement',TPasImplTryExcept,T.FinallyExcept.ClassType);
+  E:=TPasImplTryExcept(T.FinallyExcept);
+  AssertEquals(1,E.Elements.Count);
+  AssertEquals('Except on handler',TPasImplExceptOn,TPasElement(E.Elements[0]).ClassType);
+  O:=TPasImplExceptOn(E.Elements[0]);
+  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
+  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals(1,O.Elements.Count);
+  AssertEquals('Simple statement',TPasImplIfElse,TPasElement(O.Elements[0]).ClassType);
+  I:=TPasImplIfElse(O.Elements[0]);
+  AssertEquals(1,I.Elements.Count);
+  AssertNull('No else barcnh for if',I.ElseBranch);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(I.Elements[0]).ClassType);
+  S:=TPasImplSimple(I.Elements[0]);
+  AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse');
+  AssertEquals('Except Else statement',TPasImplTryExceptElse,T.ElseBranch.ClassType);
+  EE:=TPasImplTryExceptElse(T.ElseBranch);
+  AssertEquals(1,EE.Elements.Count);
+  AssertNotNull(EE.Elements[0]);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(EE.Elements[0]).ClassType);
+  S:=TPasImplSimple(EE.Elements[0]);
+  AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomethingMore');
+end;
+
+procedure TTestStatementParser.TestTryExceptOnIfElse;
+Var
+  T : TPasImplTry;
+  S : TPasImplSimple;
+  E : TPasImplTryExcept;
+  O : TPasImplExceptOn;
+  EE : TPasImplTryExceptElse;
+  I : TPasImplIfElse;
+
+begin
+  TestStatement(['Try','  DoSomething;','except','On E : Exception do','DoSomethingElse;','else','DoSomethingMore;','end']);
+  T:=AssertStatement('Try statement',TPasImplTry) as TPasImplTry;
+  AssertEquals(1,T.Elements.Count);
+  AssertNotNull(T.FinallyExcept);
+  AssertNotNull(T.ElseBranch);
+  AssertNotNull(T.Elements[0]);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  S:=TPasImplSimple(T.Elements[0]);
+  AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomething');
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  AssertEquals('Except statement',TPasImplTryExcept,T.FinallyExcept.ClassType);
+  E:=TPasImplTryExcept(T.FinallyExcept);
+  AssertEquals(1,E.Elements.Count);
+  AssertEquals('Except on handler',TPasImplExceptOn,TPasElement(E.Elements[0]).ClassType);
+  O:=TPasImplExceptOn(E.Elements[0]);
+  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
+  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals(1,O.Elements.Count);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
+  S:=TPasImplSimple(O.Elements[0]);
+  AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse');
+  AssertEquals('Except Else statement',TPasImplTryExceptElse,T.ElseBranch.ClassType);
+  EE:=TPasImplTryExceptElse(T.ElseBranch);
+  AssertEquals(1,EE.Elements.Count);
+  AssertNotNull(EE.Elements[0]);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(EE.Elements[0]).ClassType);
+  S:=TPasImplSimple(EE.Elements[0]);
+  AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomethingMore');
 end;
 
 initialization
