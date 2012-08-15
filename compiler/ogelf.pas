@@ -48,6 +48,7 @@ interface
           constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
           constructor create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:shortint;Aentsize:longint);
           constructor create_reloc(aobjdata:TObjData;const Aname:string;allocflag:boolean);
+          procedure writeReloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);override;
        end;
 
        TElfSymtabKind = (esk_obj,esk_exe,esk_dyn);
@@ -59,7 +60,7 @@ interface
          symidx: longint;
          constructor create(aObjData:TObjData;aKind:TElfSymtabKind);reintroduce;
          procedure writeSymbol(objsym:TObjSymbol;nameidx:longword=0);
-         procedure writeInternalSymbol(astridx:longint;ainfo:byte;ashndx:word);
+         procedure writeInternalSymbol(avalue:aword;astridx:longword;ainfo:byte;ashndx:word);
        end;
 
        TElfObjData = class(TObjData)
@@ -793,6 +794,27 @@ implementation
           (2+ord(relocs_use_addend))*sizeof(pint));
       end;
 
+
+    procedure TElfObjSection.writeReloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);
+      var
+        reloc: TObjRelocation;
+      begin
+        reloc:=TObjRelocation.CreateSection(Size,aTarget,reltype);
+        reloc.size:=len;
+        ObjRelocations.Add(reloc);
+        if reltype=RELOC_RELATIVE then
+          dec(offset,len)
+        else if reltype<>RELOC_ABSOLUTE then
+          InternalError(2012062401);
+        if relocs_use_addend then
+          begin
+            reloc.orgsize:=offset;
+            offset:=0;
+          end;
+        write(offset,len);
+      end;
+
+
 {****************************************************************************
                             TElfObjData
 ****************************************************************************}
@@ -1044,11 +1066,12 @@ implementation
         kind:=aKind;
       end;
 
-    procedure TElfSymtab.writeInternalSymbol(astridx:longint;ainfo:byte;ashndx:word);
+    procedure TElfSymtab.writeInternalSymbol(avalue:aword;astridx:longword;ainfo:byte;ashndx:word);
       var
         elfsym:TElfSymbol;
       begin
         fillchar(elfsym,sizeof(elfsym),0);
+        elfsym.st_value:=avalue;
         elfsym.st_name:=astridx;
         elfsym.st_info:=ainfo;
         elfsym.st_shndx:=ashndx;
@@ -1241,7 +1264,7 @@ implementation
         if (TElfObjSection(p).shtype in [SHT_SYMTAB,SHT_STRTAB,SHT_REL,SHT_RELA]) then
           exit;
         TObjSection(p).secsymidx:=symtabsect.symidx;
-        symtabsect.writeInternalSymbol(0,STT_SECTION,TObjSection(p).index);
+        symtabsect.writeInternalSymbol(0,0,STT_SECTION,TObjSection(p).index);
       end;
 
 
@@ -1253,7 +1276,7 @@ implementation
         with data do
          begin
            { filename entry }
-           symtabsect.writeInternalSymbol(1,STT_FILE,SHN_ABS);
+           symtabsect.writeInternalSymbol(0,1,STT_FILE,SHN_ABS);
            { section }
            ObjSectionList.ForEachCall(@section_write_symbol,nil);
            { First the Local Symbols, this is required by ELF. The localsyms
