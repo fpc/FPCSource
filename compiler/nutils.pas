@@ -539,7 +539,11 @@ implementation
           begin
             case p.nodetype of
               { floating point constants usually need loading from memory }
-              realconstn,
+              realconstn:
+                begin
+                  result:=2;
+                  exit;
+                end;
               setconstn,
               stringconstn,
               temprefn,
