@@ -284,7 +284,7 @@ begin
       end
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
-{$if defined(arm) or defined(avr)}
+        {$if defined(arm) or defined(avr)}
         for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
           begin
 {           currently all whole program optimizations are platform-independent
@@ -300,8 +300,8 @@ begin
                   end;
               end;
           end
-{$else defined(arm) or defined(avr)}
-{$endif defined(arm) or defined(avr)}
+        {$else defined(arm) or defined(avr)}
+        {$endif defined(arm) or defined(avr)}
       end
      else
       Comment(V_Normal,s);
@@ -2686,6 +2686,8 @@ var
   env: ansistring;
   i : tfeature;
   abi : tabi;
+  cpuflag : tcpuflags;
+  hs : string;
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -3209,6 +3211,17 @@ if (target_info.abi = abi_eabihf) then
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
 
   def_system_macro('FPU'+fputypestr[init_settings.fputype]);
+
+  {$if defined(arm) or defined(avr)}
+  for cpuflag:=low(cpuflag) to high(cpuflag) do
+    begin
+      str(cpuflag,hs);
+      if cpuflag in cpu_capabilities[init_settings.cputype] then
+        def_system_macro(hs)
+      else
+        undef_system_macro(hs);
+    end;
+  {$endif defined(arm) or defined(avr)}
 
   if init_settings.fputype<>fpu_none then
     begin

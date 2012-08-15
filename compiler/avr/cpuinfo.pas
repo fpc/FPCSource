@@ -44,18 +44,6 @@ Type
        cpu_avr6
       );
 
-   tcpuflags =
-      (AVR_HAS_JMP_CALL,
-       AVR_HAS_MOVW,
-       AVR_HAS_LPMX,
-       AVR_HAS_MUL,
-       AVR_HAS_RAMPZ,
-       AVR_HAS_ELPM,
-       AVR_HAS_ELPMX,
-       AVR_2_BYTE_PC,
-       AVR_3_BYTE_PC
-      );
-
    tfputype =
      (fpu_none,
       fpu_soft,
@@ -190,24 +178,26 @@ Const
                                  [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,
                                   cs_opt_stackframe,cs_opt_nodecse,cs_opt_reorder_fields,cs_opt_fastmath];
 
-   cpuflagsstr : array[tcpuflags] of string[20] =
-      ('CPUAVR_HAS_JMP_CALL',
-       'CPUAVR_HAS_MOVW',
-       'CPUAVR_HAS_LPMX',
-       'CPUAVR_HAS_MUL',
-       'CPUAVR_HAS_RAMPZ',
-       'CPUAVR_HAS_ELPM',
-       'CPUAVR_HAS_ELPMX',
-       'CPUAVR_2_BYTE_PC',
-       'CPUAVR_3_BYTE_PC'
-      );
-
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
+ type
+   tcpuflags =
+      (CPUAVR_HAS_JMP_CALL,
+       CPUAVR_HAS_MOVW,
+       CPUAVR_HAS_LPMX,
+       CPUAVR_HAS_MUL,
+       CPUAVR_HAS_RAMPZ,
+       CPUAVR_HAS_ELPM,
+       CPUAVR_HAS_ELPMX,
+       CPUAVR_2_BYTE_PC,
+       CPUAVR_3_BYTE_PC
+      );
+
+ const
    cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none } [],
        { cpu_avr1 } [],
