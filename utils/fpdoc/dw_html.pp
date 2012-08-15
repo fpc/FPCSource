@@ -1905,7 +1905,7 @@ begin
       begin
 	if j > 0 then
 	  AppendSym(CodeEl, ', ');
-	AppendPasSHFragment(CodeEl, CurVariant.Values[j], 0);
+	AppendPasSHFragment(CodeEl, TPasElement(CurVariant.Values[j]).GetDeclaration(true), 0);
       end;
       AppendSym(CodeEl, ': (');
       AppendType(CodeEl, TableEl, CurVariant.Members, True, NestingLevel + 3);
