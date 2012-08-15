@@ -437,9 +437,9 @@ type
   public
     function ElementTypeName: string; override;
   public
-//    IsValueUsed: Boolean;
-//    Value: Integer;
-    AssignedValue : string;
+    Value: TPasExpr;
+    Destructor Destroy; override;
+    Function AssignedValue : string;
   end;
 
   { TPasEnumType }
@@ -475,7 +475,7 @@ type
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
   public
-    Values: TStringList;
+    Values: TFPList;
     Members: TPasRecordType;
   end;
 
@@ -631,8 +631,7 @@ type
     Modifiers : string;
     AbsoluteLocation : String;
     Expr: TPasExpr;
-    Value : String;
-    // Function Value : String;
+    Function Value : String;
   end;
 
   { TPasExportSymbol }
@@ -881,7 +880,7 @@ type
     function AddIfElse(const ACondition: TPasExpr): TPasImplIfElse;
     function AddWhileDo(const ACondition: TPasExpr): TPasImplWhileDo;
     function AddWithDo(const Expression: TPasExpr): TPasImplWithDo;
-    function AddCaseOf(const Expression: string): TPasImplCaseOf;
+    function AddCaseOf(const Expression: TPasExpr): TPasImplCaseOf;
     function AddForLoop(AVar: TPasVariable;
       const AStartValue, AEndValue: TPasExpr): TPasImplForLoop;
     function AddForLoop(const AVarName : String; AStartValue, AEndValue: TPasExpr;
@@ -979,8 +978,9 @@ type
     function AddCase(const Expression: TPasExpr): TPasImplCaseStatement;
     function AddElse: TPasImplCaseElse;
   public
-    Expression: string;
+    CaseExpr : TPasExpr;
     ElseBranch: TPasImplCaseElse;
+    function Expression: string;
   end;
 
   { TPasImplCaseStatement }
@@ -1283,6 +1283,21 @@ function TPasRangeType.ElementTypeName: string; begin Result := SPasTreeRangeTyp
 function TPasArrayType.ElementTypeName: string; begin Result := SPasTreeArrayType end;
 function TPasFileType.ElementTypeName: string; begin Result := SPasTreeFileType end;
 function TPasEnumValue.ElementTypeName: string; begin Result := SPasTreeEnumValue end;
+
+destructor TPasEnumValue.Destroy;
+begin
+  FreeAndNil(Value);
+  inherited Destroy;
+end;
+
+function TPasEnumValue.AssignedValue: string;
+begin
+  If Assigned(Value) then
+    Result:=Value.GetDeclaration(True)
+  else
+    Result:='';
+end;
+
 function TPasEnumType.ElementTypeName: string; begin Result := SPasTreeEnumType end;
 function TPasSetType.ElementTypeName: string; begin Result := SPasTreeSetType end;
 function TPasRecordType.ElementTypeName: string; begin Result := SPasTreeRecordType end;
@@ -1579,11 +1594,17 @@ end;
 constructor TPasVariant.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Values := TStringList.Create;
+  Values := TFPList.Create;
 end;
 
 destructor TPasVariant.Destroy;
+
+Var
+  I : Integer;
+
 begin
+  For I:=0 to Values.Count-1 do
+    TObject(Values[i]).Free;
   Values.Free;
   if Assigned(Members) then
     Members.Release;
@@ -1996,10 +2017,10 @@ begin
   AddElement(Result);
 end;
 
-function TPasImplBlock.AddCaseOf(const Expression: string): TPasImplCaseOf;
+function TPasImplBlock.AddCaseOf(const Expression: TPasExpr): TPasImplCaseOf;
 begin
   Result := TPasImplCaseOf.Create('', Self);
-  Result.Expression := Expression;
+  Result.CaseExpr:= Expression;
   AddElement(Result);
 end;
 
@@ -2441,13 +2462,13 @@ begin
     end;
 end;
 
-{
+
 function TPasVariable.Value: String;
 begin
   If Assigned(Expr) then
     Result:=Expr.GetDeclaration(True)
 end;
-}
+
 function TPasProperty.GetDeclaration (full : boolean) : string;
 
 Var
@@ -2782,6 +2803,7 @@ end;
 
 destructor TPasImplCaseOf.Destroy;
 begin
+  FreeAndNil(CaseExpr);
   if Assigned(ElseBranch) then
     ElseBranch.Release;
   inherited Destroy;
@@ -2807,6 +2829,14 @@ begin
   Result:=TPasImplCaseElse.Create('',Self);
   ElseBranch:=Result;
   AddElement(Result);
+end;
+
+function TPasImplCaseOf.Expression: string;
+begin
+  if Assigned(CaseExpr) then
+    Result:=CaseExpr.GetDeclaration(True)
+  else
+    Result:='';
 end;
 
 { TPasImplCaseStatement }

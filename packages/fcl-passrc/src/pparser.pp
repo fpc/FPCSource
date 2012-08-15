@@ -133,7 +133,7 @@ type
     function CheckOverloadList(AList: TFPList; AName: String; out OldMember: TPasElement): TPasOverloadedProc;
     procedure DumpCurToken(Const Msg : String);
     function GetVariableModifiers(Parent: TPasElement; Out VarMods : TVariableModifiers; Out Libname,ExportName : string): string;
-    function GetVariableValueAndLocation(Parent : TPasElement; Out Value, Location: String): Boolean;
+    function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
   protected
     function LogEvent(E : TPParserLogEvent) : Boolean; inline;
@@ -866,8 +866,9 @@ begin
         break
       else if CurToken in [tkEqual,tkAssign] then
         begin
-        EnumValue.AssignedValue:=ParseExpression(Result);
         NextToken;
+        EnumValue.Value:=DoParseExpression(Result);
+       // UngetToken;
         if CurToken = tkBraceClose then
           Break
         else if not (CurToken=tkComma) then
@@ -2134,10 +2135,7 @@ begin
     ExpectToken(tkEqual);
     NextToken;
     Result.Expr:=DoParseConstValueExpression(Result);
-
-    // must unget for the check to be peformed fine!
     UngetToken;
-
     CheckHint(Result,True);
   except
     Result.Free;
@@ -2273,15 +2271,17 @@ begin
   Result:=ParseType(Parent,TypeName,True);
 end;
 
-Function TPasParser.GetVariableValueAndLocation(Parent : TPasElement; out Value, Location : String) : Boolean;
+Function TPasParser.GetVariableValueAndLocation(Parent : TPasElement; out Value : TPasExpr; Out Location : String) : Boolean;
 
 begin
+  Value:=Nil;
   NextToken;
   Result:=CurToken=tkEqual;
   if Result then
     begin
-    Value := ParseExpression(Parent);
     NextToken;
+    Value := DoParseExpression(Parent);
+//    NextToken;
     end;
   if (CurToken=tkAbsolute) then
     begin
@@ -2366,12 +2366,12 @@ procedure TPasParser.ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibi
 var
   VarNames: TStringList;
   i: Integer;
-//  Value : TPasExpr;
+  Value : TPasExpr;
   VarType: TPasType;
   VarEl: TPasVariable;
   H : TPasMemberHints;
   varmods: TVariableModifiers;
-  Mods,Loc,Value,alibname,aexpname : string;
+  Mods,Loc,alibname,aexpname : string;
 
 begin
   VarNames := TStringList.Create;
@@ -2388,6 +2388,7 @@ begin
       VarType := ParseComplexType(Nil)
     else
       VarType := ParseComplexType(Parent);
+    Value:=Nil;
     If Full then
       GetVariableValueAndLocation(Parent,Value,Loc);
     H:=CheckHint(Nil,Full);
@@ -2406,11 +2407,8 @@ begin
         VarEl.Hints:=H;
       Varel.Modifiers:=Mods;
       Varel.VarModifiers:=VarMods;
-      VarEl.Value:=Value;
-//      if (i>0) then
-//        Value.AddRef;
-
-      // Value:=//Nil;
+      if (i=0) then
+        VarEl.Expr:=Value;
       VarEl.AbsoluteLocation:=Loc;
       VarEl.LibraryName:=alibName;
       VarEl.ExportName:=aexpname;
@@ -3176,11 +3174,13 @@ begin
       end;
     tkcase:
       begin
-        Expr:=ParseExpression(Parent);
+        NextToken;
+        Left:=DoParseExpression(Parent);
+        UngetToken;
         //writeln(i,'CASE OF Expr="',Expr,'" Token=',CurTokenText);
         ExpectToken(tkof);
         el:=TPasImplCaseOf(CreateElement(TPasImplCaseOf,'',CurBlock));
-        TPasImplCaseOf(el).Expression:=Expr;
+        TPasImplCaseOf(el).CaseExpr:=Left;
         CreateBlock(TPasImplCaseOf(el));
         repeat
           NextToken;
@@ -3491,8 +3491,8 @@ begin
     V:=TPasVariant(CreateElement(TPasVariant, '', ARec));
     ARec.Variants.Add(V);
     Repeat
-      V.Values.Add(ParseExpression(ARec));
       NextToken;
+      V.Values.Add(DoParseExpression(ARec));
       if Not (CurToken in [tkComma,tkColon]) then
         ParseExc(SParserExpectedCommaColon);
     Until (curToken=tkColon);
