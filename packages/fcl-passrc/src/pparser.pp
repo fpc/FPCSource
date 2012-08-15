@@ -133,7 +133,7 @@ type
     function CheckOverloadList(AList: TFPList; AName: String; out OldMember: TPasElement): TPasOverloadedProc;
     procedure DumpCurToken(Const Msg : String);
     function GetVariableModifiers(Parent: TPasElement; Out VarMods : TVariableModifiers; Out Libname,ExportName : string): string;
-    function GetVariableValueAndLocation(Parent : TPasElement; out Value, Location: String): Boolean;
+    function GetVariableValueAndLocation(Parent : TPasElement; Out Value, Location: String): Boolean;
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
   protected
     function LogEvent(E : TPParserLogEvent) : Boolean; inline;
@@ -2273,7 +2273,7 @@ begin
   Result:=ParseType(Parent,TypeName,True);
 end;
 
-Function TPasParser.GetVariableValueAndLocation(Parent : TPasElement; out Value,Location : String) : Boolean;
+Function TPasParser.GetVariableValueAndLocation(Parent : TPasElement; out Value, Location : String) : Boolean;
 
 begin
   NextToken;
@@ -2366,11 +2366,12 @@ procedure TPasParser.ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibi
 var
   VarNames: TStringList;
   i: Integer;
+//  Value : TPasExpr;
   VarType: TPasType;
   VarEl: TPasVariable;
   H : TPasMemberHints;
   varmods: TVariableModifiers;
-  Mods,Value,Loc,alibname,aexpname : string;
+  Mods,Loc,Value,alibname,aexpname : string;
 
 begin
   VarNames := TStringList.Create;
@@ -2406,6 +2407,10 @@ begin
       Varel.Modifiers:=Mods;
       Varel.VarModifiers:=VarMods;
       VarEl.Value:=Value;
+//      if (i>0) then
+//        Value.AddRef;
+
+      // Value:=//Nil;
       VarEl.AbsoluteLocation:=Loc;
       VarEl.LibraryName:=alibName;
       VarEl.ExportName:=aexpname;
@@ -3277,20 +3282,23 @@ begin
         // on Exception do
         if CurBlock is TPasImplTryExcept then
         begin
-          VarName:='';
-          TypeName:=ParseExpression(Parent);
-          //writeln(i,'ON t=',TypeName,' Token=',CurTokenText);
           NextToken;
+          Left:=Nil;
+          Right:=DoParseExpression(Parent);
+          //writeln(i,'ON t=',TypeName,' Token=',CurTokenText);
+  //        NextToken;
           if CurToken=tkColon then
-          begin
-            VarName:=TypeName;
-            TypeName:=ParseExpression(Parent);
+            begin
+            NextToken;
+            Left:=Right;
+            Right:=DoParseExpression(Parent);
             //writeln(i,'ON v=',VarName,' t=',TypeName,' Token=',CurTokenText);
-          end else
-            UngetToken;
+            end;
+//          else
+          UngetToken;
           el:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock));
-          TPasImplExceptOn(el).VariableName:=VarName;
-          TPasImplExceptOn(el).TypeName:=TypeName;
+          TPasImplExceptOn(el).VarExpr:=Left;
+          TPasImplExceptOn(el).TypeExpr:=Right;
           CurBlock.AddElement(el);
           CurBlock:=TPasImplExceptOn(el);
           ExpectToken(tkDo);

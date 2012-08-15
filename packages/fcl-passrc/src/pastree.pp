@@ -626,12 +626,13 @@ type
     function GetDeclaration(full : boolean) : string; override;
   public
     VarType: TPasType;
-    Value: string;
     VarModifiers : TVariableModifiers;
     LibraryName,ExportName : string;
     Modifiers : string;
     AbsoluteLocation : String;
     Expr: TPasExpr;
+    Value : String;
+    // Function Value : String;
   end;
 
   { TPasExportSymbol }
@@ -886,7 +887,7 @@ type
     function AddForLoop(const AVarName : String; AStartValue, AEndValue: TPasExpr;
       ADownTo: Boolean = false): TPasImplForLoop;
     function AddTry: TPasImplTry;
-    function AddExceptOn(const VarName, TypeName: string): TPasImplExceptOn;
+    function AddExceptOn(const VarName, TypeName: TPasExpr): TPasImplExceptOn;
     function AddRaise: TPasImplRaise;
     function AddLabelMark(const Id: string): TPasImplLabelMark;
     function AddAssign(left, right: TPasExpr): TPasImplAssign;
@@ -1077,8 +1078,10 @@ type
     destructor Destroy; override;
     procedure AddElement(Element: TPasImplElement); override;
   public
-    VariableName, TypeName: string;
+    VarExpr,TypeExpr : TPasExpr;
     Body: TPasImplElement;
+    Function VariableName : String;
+    Function TypeName: string;
   end;
 
   { TPasImplRaise }
@@ -1717,6 +1720,7 @@ end;
 
 destructor TPasVariable.Destroy;
 begin
+//  FreeAndNil(Expr);
   { Attention, in derived classes, VarType isn't necessarily set!
     (e.g. in Constants) }
   if Assigned(VarType) then
@@ -2026,12 +2030,12 @@ begin
   AddElement(Result);
 end;
 
-function TPasImplBlock.AddExceptOn(const VarName, TypeName: string
+function TPasImplBlock.AddExceptOn(const VarName, TypeName: TPasExpr
   ): TPasImplExceptOn;
 begin
   Result:=TPasImplExceptOn.Create('',Self);
-  Result.VariableName:=VarName;
-  Result.TypeName:=TypeName;
+  Result.VarExpr:=VarName;
+  Result.TypeExpr:=TypeName;
   AddElement(Result);
 end;
 
@@ -2416,9 +2420,8 @@ Const
 Var
   H : TPasMemberHint;
   B : Boolean;
+
 begin
-  if (Value = '') and Assigned(Expr) then
-    Value := Expr.GetDeclaration(full);
   If Assigned(VarType) then
     begin
     If VarType.Name='' then
@@ -2438,6 +2441,13 @@ begin
     end;
 end;
 
+{
+function TPasVariable.Value: String;
+begin
+  If Assigned(Expr) then
+    Result:=Expr.GetDeclaration(True)
+end;
+}
 function TPasProperty.GetDeclaration (full : boolean) : string;
 
 Var
@@ -2452,8 +2462,8 @@ begin
     else
       Result:=VarType.Name;
     end
-  else
-    Result:=Value;
+  else if Assigned(Expr) then
+    Result:=Expr.GetDeclaration(True);
   S:='';
   If Assigned(Args) and (Args.Count>0) then
     begin
@@ -2905,6 +2915,8 @@ end;
 
 destructor TPasImplExceptOn.Destroy;
 begin
+  FreeAndNil(VarExpr);
+  FreeAndNil(TypeExpr);
   if Assigned(Body) then
     Body.Release;
   inherited Destroy;
@@ -2918,6 +2930,22 @@ begin
     Body:=Element;
     Body.AddRef;
     end;
+end;
+
+function TPasImplExceptOn.VariableName: String;
+begin
+  If assigned(VarExpr) then
+    Result:=VarExpr.GetDeclaration(True)
+  else
+    Result:='';
+end;
+
+function TPasImplExceptOn.TypeName: string;
+begin
+  If assigned(TypeExpr) then
+    Result:=TypeExpr.GetDeclaration(True)
+  else
+    Result:='';
 end;
 
 { TPasImplStatement }
