@@ -1659,6 +1659,8 @@ var
 begin
   for i := 0 to Members.Count - 1 do
     TPasElement(Members[i]).Release;
+  for i := 0 to Interfaces.Count - 1 do
+    TPasElement(Interfaces[i]).Release;
   Members.Free;
   if Assigned(AncestorType) then
     AncestorType.Release;
