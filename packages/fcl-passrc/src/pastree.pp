@@ -1084,6 +1084,11 @@ type
   { TPasImplRaise }
 
   TPasImplRaise = class(TPasImplStatement)
+  public
+    destructor Destroy; override;
+  Public
+    ExceptObject,
+    ExceptAddr : TPasExpr;
   end;
 
   { TPassTreeVisitor }
@@ -1127,6 +1132,15 @@ const
 implementation
 
 uses SysUtils;
+
+{ TPasImplRaise }
+
+destructor TPasImplRaise.Destroy;
+begin
+  FreeAndNil(ExceptObject);
+  FreeAndNil(ExceptAddr);
+  Inherited;
+end;
 
 { TPasImplRepeatUntil }
 

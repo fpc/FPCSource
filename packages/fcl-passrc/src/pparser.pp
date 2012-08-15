@@ -3301,6 +3301,18 @@ begin
       begin
       el:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock));
       CreateBlock(TPasImplRaise(el));
+      NextToken;
+      If Curtoken=tkSemicolon then
+        UnGetToken
+      else
+        begin
+        TPasImplRaise(el).ExceptObject:=DoParseExpression(el);
+        if (CurToken=tkIdentifier) and (Uppercase(CurtokenString)='AT') then
+          begin
+          NextToken;
+          TPasImplRaise(el).ExceptAddr:=DoParseExpression(el);
+          end;
+        end;
       end;
     tkend:
       begin
