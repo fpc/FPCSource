@@ -153,7 +153,7 @@ implementation
             end;
           raisen:
             { frame tree }
-            result := foreachnode(traisenode(n).third,f,arg) or result;
+            result := foreachnode(ttertiarynode(n).third,f,arg) or result;
           tempcreaten:
             { temp. initialization code }
             if assigned(ttempcreatenode(n).tempinfo^.tempinitcode) then
@@ -250,7 +250,7 @@ implementation
             end;
           raisen:
             { frame tree }
-            result := foreachnodestatic(traisenode(n).third,f,arg) or result;
+            result := foreachnodestatic(ttertiarynode(n).third,f,arg) or result;
           tempcreaten:
             { temp. initialization code }
             if assigned(ttempcreatenode(n).tempinfo^.tempinitcode) then
