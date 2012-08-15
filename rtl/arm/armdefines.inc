@@ -14,22 +14,6 @@
 
  **********************************************************************}
 
-{$if not defined(cpuarmv3) and not defined(cpuarmv4)}
-{$define CPUARM_HAS_BX} // cpu has BX instruction
-{$endif}
-
-{$if not defined(CPUARMV3) and not defined(CPUARMV4) and not defined(CPUARMV5)}
-{$define CPUARM_HAS_REV} // cpu has REV instruction
-{$endif}
-
-{$if defined(CPUARMV7M) or defined(CPUARMCORTEXM3)}
-{$define CPUARM_HAS_IDIV} // cpu has SDIV/UDIV instructions
-{$endif}
-
-{$if defined(CPUARMV6) or defined(CPUARMV7) or defined(CPUARMV7M) or defined(CPUARMCORTEXM3)}
-{$define CPUARM_HAS_LDREX} // cpu has LDREX/STREX instructions
-{$endif}
-
 {$if defined(LINUX) and (defined(CPUARMEL) or defined(CPUARMHF))}
 {$define SYSTEM_HAS_KUSER_CMPXCHG} // system has kuser_cmpxchg method
 {$endif}
