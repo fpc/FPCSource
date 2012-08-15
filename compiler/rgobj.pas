@@ -305,8 +305,7 @@ unit rgobj;
       begin
         inherited create;
         maxx1:=1;
-        getmem(fbitmap,sizeof(tinterferencebitmap1)*2);
-        fillchar(fbitmap^,sizeof(tinterferencebitmap1)*2,0);
+        fbitmap:=AllocMem(sizeof(tinterferencebitmap1)*2);
       end;
 
 
@@ -1846,6 +1845,7 @@ unit rgobj;
               ait_instruction:
                 with Taicpu(p) do
                   begin
+//                    writeln(gas_op2str[taicpu(p).opcode]);
                     current_filepos:=fileinfo;
                     if instr_spill_register(list,taicpu(p),regs_to_spill_set,spill_temps^) then
                       spill_registers:=true;
