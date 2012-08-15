@@ -2686,7 +2686,9 @@ var
   env: ansistring;
   i : tfeature;
   abi : tabi;
+{$if defined(arm) or defined(avr)}
   cpuflag : tcpuflags;
+{$endif defined(arm) or defined(avr)}
   hs : string;
 begin
   option:=coption.create;
@@ -3212,7 +3214,7 @@ if (target_info.abi = abi_eabihf) then
 
   def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 
-  {$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr)}
   for cpuflag:=low(cpuflag) to high(cpuflag) do
     begin
       str(cpuflag,hs);
@@ -3221,7 +3223,7 @@ if (target_info.abi = abi_eabihf) then
       else
         undef_system_macro(hs);
     end;
-  {$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr)}
 
   if init_settings.fputype<>fpu_none then
     begin
