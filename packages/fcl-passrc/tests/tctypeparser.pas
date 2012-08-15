@@ -1185,13 +1185,18 @@ begin
   if Length(VariantLabels)=0 then
     begin
     AssertEquals('Have 1 value',1,Variant1.Values.Count);
-    AssertEquals('First value is 0','0',Variant1.Values[0]);
+    AssertNotNull('Assigned value',Variant1.Values[0]);
+    AssertEquals('Expression',TPrimitiveExpr,TObject(Variant1.Values[0]).CLassType);
+    AssertExpression('First value is 0',TPasExpr(Variant1.Values[0]),pekNumber,'0');
     end
   else
     begin
     AssertEquals('Have correct number of values',Length(VariantLabels),Variant1.Values.Count);
     For I:=0 to Length(VariantLabels)-1 do
-      AssertEquals(Format('Value %d is %s',[i,VariantLabels[i]]),VariantLabels[i],Variant1.Values[I]);
+      begin
+      AssertEquals(Format('Expression for variant %d',[I]),TPrimitiveExpr,TObject(Variant1.Values[0]).CLassType);
+      AssertExpression(Format('Value %d is %s',[i,VariantLabels[i]]),TPasExpr(Variant1.Values[I]),pekNumber,VariantLabels[i]);
+      end;
     end;
   AssertNotNull('Have members',Variant1.Members);
   AssertNotNull('Have member members',Variant1.Members.Members);
@@ -1220,13 +1225,18 @@ begin
   if Length(VariantLabels)=0 then
     begin
     AssertEquals('Variant 2 has 1 value',2,Variant2.Values.Count);
-    AssertEquals('Variant 2 First value is 0','1',Variant2.Values[0]);
+    AssertEquals('Expression',TPrimitiveExpr,TObject(Variant2.Values[0]).CLassType);
+    AssertExpression('First value is 1',TPasExpr(Variant2.Values[0]),pekNumber,'1');
     end
   else
     begin
     AssertEquals('Variant 2 Has correct number of values',Length(VariantLabels),Variant2.Values.Count);
     For I:=0 to Length(VariantLabels)-1 do
-      AssertEquals(Format('Variant 2, Value %d is %s',[i,VariantLabels[i]]),VariantLabels[i],Variant2.Values[I]);
+      begin
+      AssertEquals(Format('Expression for variant %d',[I]),TPrimitiveExpr,TObject(Variant2.Values[I]).CLassType);
+      AssertExpression(Format('Value %d is %s',[i,VariantLabels[i]]),TPasExpr(Variant2.Values[I]),pekNumber,VariantLabels[i]);
+//      AssertEquals(Format('Variant 2, Value %d is %s',[i,VariantLabels[i]]),VariantLabels[i],Variant2.Values[I]);
+      end;
     end;
   AssertNotNull('Have members',Variant2.Members);
   AssertNotNull('Have member members',Variant2.Members.Members);
@@ -1472,7 +1482,10 @@ begin
   AssertNotNull('Have variant 1',F);
   AssertEquals('Have correct number of values',Length(VariantLabels),F.Values.Count);
   For I:=0 to Length(VariantLabels)-1 do
-    AssertEquals(Format('Value %d is %s',[i,VariantLabels[i]]),VariantLabels[i],F.Values[I]);
+    begin
+    AssertEquals(Format('Expression for variant %d',[I]),TPrimitiveExpr,TObject(Variant1.Values[i]).CLassType);
+    AssertExpression(Format('Value %d is %s',[i,VariantLabels[i]]),TPasExpr(Variant1.Values[I]),pekNumber,VariantLabels[i]);
+    end;
   V:=GetField(0,F);
   AssertEquals(MN+'has correct name','y',V.Name);
   AssertNotNull(MN+'has not null type',V.VarType);
@@ -1501,7 +1514,8 @@ begin
   MN:='Nested Variant '+IntToStr(AIndex)+' ';
   AssertNotNull('Have variant 1',F);
   AssertEquals('Have correct number of values',1,F.Values.Count);
-  AssertEquals('Value 1 is 0','0',F.Values[I]);
+  AssertEquals('Expression',TPrimitiveExpr,TObject(F.Values[0]).CLassType);
+  AssertExpression('First value is 0',TPasExpr(F.Values[0]),pekNumber,'0');
   // First variant, Y, record
   V:=GetField(0,F);
   AssertEquals(MN+'has correct name','y',V.Name);
@@ -1515,7 +1529,10 @@ begin
   // First field of first variant, i
   AssertEquals('Have correct number of values',Length(VariantLabels),F.Values.Count);
   For I:=0 to Length(VariantLabels)-1 do
-    AssertEquals(Format('Value %d is %s',[i,VariantLabels[i]]),VariantLabels[i],F.Values[I]);
+    begin
+    AssertEquals(Format('Expression for variant %d',[I]),TPrimitiveExpr,TObject(F.Values[i]).CLassType);
+    AssertExpression(Format('Value %d is %s',[i,VariantLabels[i]]),TPasExpr(F.Values[I]),pekNumber,VariantLabels[i]);
+    end;
   V:=GetField(0,F);
   AssertEquals('Nested Variant 0 has correct name',AFieldName,V.Name);
   AssertEquals('Nested variant 0 has correct type',TPasUnresolvedTypeRef,V.VarType.ClassType);
