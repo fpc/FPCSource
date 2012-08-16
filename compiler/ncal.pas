@@ -3970,6 +3970,10 @@ implementation
 
         { Create new code block for inlining }
         inlineblock:=internalstatements(inlineinitstatement);
+        { make sure that valid_for_assign() returns false for this block
+          (otherwise assigning values to the block will result in assigning
+           values to the inlined function's result) }
+        include(inlineblock.flags,nf_no_lvalue);
         inlinecleanupblock:=internalstatements(inlinecleanupstatement);
 
         if assigned(callinitblock) then

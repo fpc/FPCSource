@@ -1524,25 +1524,6 @@ implementation
                    gotdynarray:=true;
                  hp:=tunarynode(hp).left;
                end;
-             blockn :
-               begin
-                 hp2:=tblocknode(hp).statements;
-                 if assigned(hp2) then
-                   begin
-                     if hp2.nodetype<>statementn then
-                       internalerror(2006110801);
-                     while assigned(tstatementnode(hp2).next) do
-                       hp2:=tstatementnode(hp2).next;
-                     hp:=tstatementnode(hp2).statement;
-                   end
-                 else
-                   begin
-                     if report_errors then
-                      CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
-                     mayberesettypeconvs;
-                     exit;
-                   end;
-               end;
              asn :
                begin
                  { asn can't be assigned directly, it returns the value in a register instead
@@ -1680,53 +1661,77 @@ implementation
                  mayberesettypeconvs;
                  exit;
                end;
+             blockn,
              calln :
                begin
-                 { check return type }
-                 case hp.resultdef.typ of
-                   arraydef :
-                     begin
-                       { dynamic arrays are allowed when there is also a
-                         vec node }
-                       if is_dynamic_array(hp.resultdef) and
-                          gotvec then
-                        begin
-                          gotderef:=true;
-                          gotpointer:=true;
-                        end;
+                 if (hp.nodetype=calln) or
+                    (nf_no_lvalue in hp.flags) then
+                   begin
+                     { check return type }
+                     case hp.resultdef.typ of
+                       arraydef :
+                         begin
+                           { dynamic arrays are allowed when there is also a
+                             vec node }
+                           if is_dynamic_array(hp.resultdef) and
+                              gotvec then
+                            begin
+                              gotderef:=true;
+                              gotpointer:=true;
+                            end;
+                         end;
+                       pointerdef :
+                         gotpointer:=true;
+                       objectdef :
+                         gotclass:=is_implicit_pointer_object_type(hp.resultdef);
+                       recorddef, { handle record like class it needs a subscription }
+                       classrefdef :
+                         gotclass:=true;
+                       stringdef :
+                         gotstring:=true;
                      end;
-                   pointerdef :
-                     gotpointer:=true;
-                   objectdef :
-                     gotclass:=is_implicit_pointer_object_type(hp.resultdef);
-                   recorddef, { handle record like class it needs a subscription }
-                   classrefdef :
-                     gotclass:=true;
-                   stringdef :
-                     gotstring:=true;
-                 end;
-                 { 1. if it returns a pointer and we've found a deref,
-                   2. if it returns a class or record and a subscription or with is found
-                   3. string is returned }
-                 if (gotstring and gotvec) or
-                    (gotpointer and gotderef) or
-                    (gotclass and gotsubscript) then
-                  result:=true
+                     { 1. if it returns a pointer and we've found a deref,
+                       2. if it returns a class or record and a subscription or with is found
+                       3. string is returned }
+                     if (gotstring and gotvec) or
+                        (gotpointer and gotderef) or
+                        (gotclass and gotsubscript) then
+                      result:=true
+                     else
+                     { Temp strings are stored in memory, for compatibility with
+                       delphi only }
+                       if (m_delphi in current_settings.modeswitches) and
+                          (valid_addr in opts) and
+                          (hp.resultdef.typ=stringdef) then
+                         result:=true
+                     else
+                       if ([valid_const,valid_addr] * opts = [valid_const]) then
+                         result:=true
+                     else
+                      if report_errors then
+                       CGMessagePos(hp.fileinfo,errmsg);
+                     mayberesettypeconvs;
+                     exit;
+                   end
                  else
-                 { Temp strings are stored in memory, for compatibility with
-                   delphi only }
-                   if (m_delphi in current_settings.modeswitches) and
-                      (valid_addr in opts) and
-                      (hp.resultdef.typ=stringdef) then
-                     result:=true
-                 else
-                   if ([valid_const,valid_addr] * opts = [valid_const]) then
-                     result:=true
-                 else
-                  if report_errors then
-                   CGMessagePos(hp.fileinfo,errmsg);
-                 mayberesettypeconvs;
-                 exit;
+                   begin
+                     hp2:=tblocknode(hp).statements;
+                     if assigned(hp2) then
+                       begin
+                         if hp2.nodetype<>statementn then
+                           internalerror(2006110801);
+                         while assigned(tstatementnode(hp2).next) do
+                           hp2:=tstatementnode(hp2).next;
+                         hp:=tstatementnode(hp2).statement;
+                       end
+                     else
+                       begin
+                         if report_errors then
+                          CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                         mayberesettypeconvs;
+                         exit;
+                       end;
+                   end;
                end;
              inlinen :
                begin
