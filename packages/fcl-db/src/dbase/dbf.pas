@@ -1724,6 +1724,7 @@ var
 begin
   if FCursor = nil then
   begin
+    CheckActive;
     Result := false;
     exit;
   end;
