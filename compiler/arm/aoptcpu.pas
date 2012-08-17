@@ -1165,7 +1165,7 @@ Implementation
           Top_Ref:
             begin
               CheckLiveStart(p.oper[i]^.ref^.base);
-              CheckLiveStart(p.oper[i]^.ref^.base);
+              CheckLiveStart(p.oper[i]^.ref^.index);
             end;
           Top_Shifterop:
             CheckLiveStart(p.oper[i]^.shifterop^.rs);
