@@ -527,7 +527,11 @@ asm
 {$endif}
   stmfd   sp!, {r1, lr}
   sub     r0, r1, #8
+{$ifdef CPUARM_HAS_BX}
   blx     InterLockedDecrement
+{$else}
+  bl      InterLockedDecrement
+{$endif}
   // InterLockedDecrement is a nice guy and sets the z flag for us
   // if the reference count dropped to 0
   ldmnefd sp!, {r1, pc}
