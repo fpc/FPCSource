@@ -128,7 +128,7 @@ unit rgobj;
       by cpu-specific implementations.
 
       --------------------------------------------------------------------}
-      trgobj=class
+       trgobj=class
         preserved_by_proc : tcpuregisterset;
         used_in_proc : tcpuregisterset;
 
@@ -244,8 +244,14 @@ unit rgobj;
         procedure assign_colours;
         procedure clear_interferences(u:Tsuperregister);
         procedure set_live_range_direction(dir: TRADirection);
+        procedure set_live_start(reg : tsuperregister;t : tai);
+        function get_live_start(reg : tsuperregister) : tai;
+        procedure set_live_end(reg : tsuperregister;t : tai);
+        function get_live_end(reg : tsuperregister) : tai;
        public
         property live_range_direction: TRADirection read int_live_range_direction write set_live_range_direction;
+        property live_start[reg : tsuperregister]: tai read get_live_start write set_live_start;
+        property live_end[reg : tsuperregister]: tai read get_live_end write set_live_end;
       end;
 
     const
@@ -712,6 +718,30 @@ unit rgobj;
           end
         else
           int_live_range_direction:=rad_forward;
+      end;
+
+
+    procedure trgobj.set_live_start(reg: tsuperregister; t: tai);
+      begin
+        reginfo[reg].live_start:=t;
+      end;
+
+
+    function trgobj.get_live_start(reg: tsuperregister): tai;
+      begin
+        result:=reginfo[reg].live_start;
+      end;
+
+
+    procedure trgobj.set_live_end(reg: tsuperregister; t: tai);
+      begin
+        reginfo[reg].live_end:=t;
+      end;
+
+
+    function trgobj.get_live_end(reg: tsuperregister): tai;
+      begin
+        result:=reginfo[reg].live_end;
       end;
 
 
@@ -1629,7 +1659,6 @@ unit rgobj;
 {$ifdef arm}
         so:pshifterop;
 {$endif arm}
-
 
       begin
         { Leave when no imaginary registers are used }
