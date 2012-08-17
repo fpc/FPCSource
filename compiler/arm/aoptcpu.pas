@@ -21,14 +21,15 @@
  ****************************************************************************
 }
 
-
 Unit aoptcpu;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_PREREGSCHEDULER}
+
 Interface
 
-uses cgbase, cpubase, aasmtai, aopt, aoptcpub, aoptobj;
+uses cgbase, cpubase, aasmtai, aasmcpu,aopt, aoptcpub, aoptobj;
 
 Type
 
@@ -44,8 +45,11 @@ Type
                                      var AllUsedRegs: TAllUsedRegs): Boolean;
   End;
 
+  { TCpuPreRegallocScheduler }
+
   TCpuPreRegallocScheduler = class(TAsmOptimizer)
     function PeepHoleOptPass1Cpu(var p: tai): boolean;override;
+    procedure SwapRegLive(p, hp1: taicpu);
   end;
 
   TCpuThumb2AsmOptimizer = class(TCpuAsmOptimizer)
@@ -59,8 +63,8 @@ Implementation
     cutils,verbose,globals,
     systems,
     cpuinfo,
-    cgutils,procinfo,
-    aasmbase,aasmdata,aasmcpu;
+    cgobj,cgutils,procinfo,
+    aasmbase,aasmdata;
 
   function CanBeCond(p : tai) : boolean;
     begin
@@ -1112,6 +1116,86 @@ Implementation
     opcode_could_mem_write = [A_B,A_BL,A_BLX,A_BKPT,A_BX,A_STR,A_STRB,A_STRBT,
                               A_STRH,A_STRT,A_STF,A_SFM,A_STM,A_FSTS,A_FSTD];
 
+
+  { adjust the register live information when swapping the two instructions p and hp1,
+    they must follow one after the other }
+  procedure TCpuPreRegallocScheduler.SwapRegLive(p,hp1 : taicpu);
+
+    procedure CheckLiveEnd(reg : tregister);
+      var
+        supreg : TSuperRegister;
+        regtype : TRegisterType;
+      begin
+        if reg=NR_NO then
+          exit;
+        regtype:=getregtype(reg);
+        supreg:=getsupreg(reg);
+        if (cg.rg[regtype].live_end[supreg]=hp1) and
+          RegInInstruction(reg,p) then
+          cg.rg[regtype].live_end[supreg]:=p;
+      end;
+
+
+    procedure CheckLiveStart(reg : TRegister);
+      var
+        supreg : TSuperRegister;
+        regtype : TRegisterType;
+      begin
+        if reg=NR_NO then
+          exit;
+        regtype:=getregtype(reg);
+        supreg:=getsupreg(reg);
+        if (cg.rg[regtype].live_start[supreg]=p) and
+          RegInInstruction(reg,hp1) then
+         cg.rg[regtype].live_start[supreg]:=hp1;
+      end;
+
+    var
+      i : longint;
+      r : TSuperRegister;
+    begin
+      { assumption: p is directly followed by hp1 }
+
+      { if live of any reg used by p starts at p and hp1 uses this register then
+        set live start to hp1 }
+      for i:=0 to p.ops-1 do
+        case p.oper[i]^.typ of
+          Top_Reg:
+            CheckLiveStart(p.oper[i]^.reg);
+          Top_Ref:
+            begin
+              CheckLiveStart(p.oper[i]^.ref^.base);
+              CheckLiveStart(p.oper[i]^.ref^.base);
+            end;
+          Top_Shifterop:
+            CheckLiveStart(p.oper[i]^.shifterop^.rs);
+          Top_RegSet:
+            for r:=RS_R0 to RS_R15 do
+               if r in p.oper[i]^.regset^ then
+                 CheckLiveStart(newreg(R_INTREGISTER,r,R_SUBWHOLE));
+        end;
+
+      { if live of any reg used by hp1 ends at hp1 and p uses this register then
+        set live end to p }
+      for i:=0 to hp1.ops-1 do
+        case hp1.oper[i]^.typ of
+          Top_Reg:
+            CheckLiveEnd(hp1.oper[i]^.reg);
+          Top_Ref:
+            begin
+              CheckLiveEnd(hp1.oper[i]^.ref^.base);
+              CheckLiveEnd(hp1.oper[i]^.ref^.index);
+            end;
+          Top_Shifterop:
+            CheckLiveStart(p.oper[i]^.shifterop^.rs);
+          Top_RegSet:
+            for r:=RS_R0 to RS_R15 do
+               if r in p.oper[i]^.regset^ then
+                 CheckLiveEnd(newreg(R_INTREGISTER,r,R_SUBWHOLE));
+        end;
+    end;
+
+
   function TCpuPreRegallocScheduler.PeepHoleOptPass1Cpu(var p: tai): boolean;
   { TODO : schedule also forward }
   { TODO : schedule distance > 1 }
@@ -1189,7 +1273,10 @@ Implementation
                   else
                   hp3:=tai(hp3.Previous);
                 end;
+
               list.Concat(p);
+              SwapRegLive(taicpu(p),taicpu(hp1));
+
               { after the instruction? }
               while assigned(hp5) and (hp5.typ<>ait_instruction) do
                 begin
