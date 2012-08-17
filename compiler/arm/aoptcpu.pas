@@ -40,7 +40,7 @@ Type
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
     Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
-    procedure RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
+    procedure RemoveSuperfluousMove(var p: tai; movp: tai; const optimizer: string);
     function RegUsedAfterInstruction(reg: Tregister; p: tai;
                                      var AllUsedRegs: TAllUsedRegs): Boolean;
   End;
@@ -262,7 +262,7 @@ Implementation
         );
     end;
 
-  procedure TCpuAsmOptimizer.RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
+  procedure TCpuAsmOptimizer.RemoveSuperfluousMove(var p: tai; movp: tai; const optimizer: string);
     var
       TmpUsedRegs: TAllUsedRegs;
     begin
@@ -702,7 +702,9 @@ Implementation
                         else if taicpu(hp1).opcode=A_MOV then
                           while MatchInstruction(hp1, A_MOV, [taicpu(p).condition], [taicpu(p).oppostfix]) and
                                 (taicpu(hp1).ops = 2) and
-                                MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) do
+                                MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
+                                { don't remove the first mov if the second is a mov rX,rX }
+                                not(MatchOperand(taicpu(hp1).oper[0]^, taicpu(hp1).oper[1]^)) do
                             begin
                               asml.insertbefore(tai_comment.Create(strpnew('Peephole MovMov done')), p);
                               asml.remove(p);
