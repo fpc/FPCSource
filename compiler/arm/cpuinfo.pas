@@ -37,6 +37,7 @@ Type
        cpu_armv4t,
        cpu_armv5,
        cpu_armv5t,
+       cpu_armv5te,
        cpu_armv6,
        cpu_armv7,
        cpu_armv7m
@@ -198,6 +199,7 @@ Const
      'ARMV4T',
      'ARMV5',
      'ARMV5T',
+     'ARMV5TE',
      'ARMV6',
      'ARMV7',
      'ARMV7M'
@@ -1092,24 +1094,29 @@ Const
  type
    tcpuflags =
       (CPUARM_HAS_BX,
+       CPUARM_HAS_BLX,
+       CPUARM_HAS_LDRDSTRD,
+       CPUARM_HAS_PLD,
        CPUARM_HAS_REV,
-       CPUARM_HAS_IDIV,
-       CPUARM_HAS_LDREX
+       CPUARM_HAS_LDREX,
+       CPUARM_HAS_IDIV
       );
 
  const
    cpu_capabilities : array[tcputype] of set of tcpuflags =
-     ( { cpu_none   } [],
-       { cpu_armv3  } [],
-       { cpu_armv4  } [],
-       { cpu_armv4t } [CPUARM_HAS_BX],
-       { cpu_armv5  } [CPUARM_HAS_BX],
-       { cpu_armv5t } [CPUARM_HAS_BX],
-       { cpu_armv6  } [CPUARM_HAS_BX,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
-       { cpu_armv7  } [CPUARM_HAS_BX,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
-       { cpu_armv7m } [CPUARM_HAS_BX,CPUARM_HAS_REV,CPUARM_HAS_IDIV,CPUARM_HAS_LDREX]
+     ( { cpu_none    } [],
+       { cpu_armv3   } [],
+       { cpu_armv4   } [],
+       { cpu_armv4t  } [CPUARM_HAS_BX],
+       { cpu_armv5   } [CPUARM_HAS_BX,CPUARM_HAS_BLX],
+       { cpu_armv5t  } [CPUARM_HAS_BX,CPUARM_HAS_BLX],
+       { cpu_armv5te } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_LDRDSTRD,CPUARM_HAS_PLD],
+       { cpu_armv6   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_LDRDSTRD,CPUARM_HAS_PLD,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv7   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_LDRDSTRD,CPUARM_HAS_PLD,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv7m  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_LDRDSTRD,CPUARM_HAS_PLD,CPUARM_HAS_REV,CPUARM_HAS_LDREX,CPUARM_HAS_IDIV]
      );
 
 Implementation
 
 end.
+

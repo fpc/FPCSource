@@ -529,11 +529,10 @@ unit cgcpu;
         branchopcode: tasmop;
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if (current_settings.cputype<cpu_armv5) or
-           (current_settings.cputype in cpu_thumb2) then
-          branchopcode:=A_BL
+        if CPUARM_HAS_BLX in cpu_capabilities[current_settings.cputype] then
+          branchopcode:=A_BLX
         else
-          branchopcode:=A_BLX;
+          branchopcode:=A_BL;
         if target_info.system<>system_arm_darwin then
           if not weak then
             list.concat(taicpu.op_sym(branchopcode,current_asmdata.RefAsmSymbol(s)))
@@ -554,7 +553,7 @@ unit cgcpu;
     procedure tcgarm.a_call_reg(list : TAsmList;reg: tregister);
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if (current_settings.cputype<cpu_armv5) then
+        if not(CPUARM_HAS_BLX in cpu_capabilities[current_settings.cputype]) then
           begin
             list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
             list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));
@@ -1808,7 +1807,7 @@ unit cgcpu;
 
                 if regs=[] then
                   begin
-                    if (current_settings.cputype<cpu_armv5) then
+                    if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
                       list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
                     else
                       list.concat(taicpu.op_reg(A_BX,NR_R14))
@@ -1829,7 +1828,7 @@ unit cgcpu;
                 list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_EA));
               end;
           end
-        else if (current_settings.cputype<cpu_armv5) then
+        else if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
           list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
         else
           list.concat(taicpu.op_reg(A_BX,NR_R14))

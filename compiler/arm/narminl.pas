@@ -320,7 +320,7 @@ implementation
         ref : treference;
         r : tregister;
       begin
-        if current_settings.cputype>=cpu_armv5 then
+        if CPUARM_HAS_PLD in cpu_capabilities[current_settings.cputype] then
           begin
             secondpass(left);
             case left.location.loc of

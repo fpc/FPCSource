@@ -370,7 +370,7 @@ Implementation
                       into
                       strd reg1,ref
                     }
-                    else if not(current_settings.cputype in [cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5t]) and
+                    else if (CPUARM_HAS_LDRDSTRD in cpu_capabilities[current_settings.cputype]) and
                        (taicpu(p).oppostfix=PF_None) and
                        (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        GetNextInstruction(p,hp1) and
@@ -433,7 +433,7 @@ Implementation
                            ...
                            ldrd reg1,ref
                         }
-                        else if not(current_settings.cputype in [cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5t]) and
+                        else if (CPUARM_HAS_LDRDSTRD in cpu_capabilities[current_settings.cputype]) and
                           { ldrd does not allow any postfixes ... }
                           (taicpu(p).oppostfix=PF_None) and
                           not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
