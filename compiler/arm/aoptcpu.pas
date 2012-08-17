@@ -1187,10 +1187,10 @@ Implementation
               CheckLiveEnd(hp1.oper[i]^.ref^.index);
             end;
           Top_Shifterop:
-            CheckLiveStart(p.oper[i]^.shifterop^.rs);
+            CheckLiveStart(hp1.oper[i]^.shifterop^.rs);
           Top_RegSet:
             for r:=RS_R0 to RS_R15 do
-               if r in p.oper[i]^.regset^ then
+               if r in hp1.oper[i]^.regset^ then
                  CheckLiveEnd(newreg(R_INTREGISTER,r,R_SUBWHOLE));
         end;
     end;
