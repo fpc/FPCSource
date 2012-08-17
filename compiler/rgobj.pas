@@ -139,20 +139,20 @@ unit rgobj;
                            Apreserved_by_proc:Tcpuregisterset);
         destructor destroy;override;
 
-        {# Allocate a register. An internalerror will be generated if there is
+        { Allocate a register. An internalerror will be generated if there is
          no more free registers which can be allocated.}
         function getregister(list:TAsmList;subreg:Tsubregister):Tregister;virtual;
-        {# Get the register specified.}
+        { Get the register specified.}
         procedure getcpuregister(list:TAsmList;r:Tregister);virtual;
         procedure ungetcpuregister(list:TAsmList;r:Tregister);virtual;
-        {# Get multiple registers specified.}
+        { Get multiple registers specified.}
         procedure alloccpuregisters(list:TAsmList;const r:Tcpuregisterset);virtual;
-        {# Free multiple registers specified.}
+        { Free multiple registers specified.}
         procedure dealloccpuregisters(list:TAsmList;const r:Tcpuregisterset);virtual;
         function uses_registers:boolean;virtual;
         procedure add_reg_instruction(instr:Tai;r:tregister;aweight:longint);
         procedure add_move_instruction(instr:Taicpu);
-        {# Do the register allocation.}
+        { Do the register allocation.}
         procedure do_register_allocation(list:TAsmList;headertai:tai);virtual;
         { Adds an interference edge.
           don't move this to the protected section, the arm cg requires to access this (FK) }
@@ -186,9 +186,9 @@ unit rgobj;
         procedure insert_regalloc_info_all(list:TAsmList);
       private
         int_live_range_direction: TRADirection;
-        {# First imaginary register.}
+        { First imaginary register.}
         first_imaginary   : Tsuperregister;
-        {# Highest register allocated until now.}
+        { Highest register allocated until now.}
         reginfo           : PReginfo;
         usable_registers_cnt : word;
         usable_registers  : array[0..maxcpuregister] of tsuperregister;
@@ -211,13 +211,13 @@ unit rgobj;
 {$ifdef EXTDEBUG}
         procedure writegraph(loopidx:longint);
 {$endif EXTDEBUG}
-        {# Disposes of the reginfo array.}
+        { Disposes of the reginfo array.}
         procedure dispose_reginfo;
-        {# Prepare the register colouring.}
+        { Prepare the register colouring.}
         procedure prepare_colouring;
-        {# Clean up after register colouring.}
+        { Clean up after register colouring.}
         procedure epilogue_colouring;
-        {# Colour the registers; that is do the register allocation.}
+        { Colour the registers; that is do the register allocation.}
         procedure colour_registers;
         procedure insert_regalloc_info(list:TAsmList;u:tsuperregister);
         procedure generate_interference_graph(list:TAsmList;headertai:tai);
