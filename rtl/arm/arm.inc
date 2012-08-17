@@ -713,7 +713,6 @@ asm
   mov r2, r0   // kuser_cmpxchg does not clobber r2 (and r1) by definition
 .Latomic_add_loop:
   ldr r0, [r2]   // Load the current value
-  mov r4, r0     // save the current value because kuser_cmpxchg clobbers r0
 
   // We expect this to work without looping most of the time
   // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
@@ -725,6 +724,7 @@ asm
   // the kuser_cmpxchg entry point
   mvn r3, #0x0000f000
   sub r3, r3, #0x3F
+  mov r4, r0     // save the current value because kuser_cmpxchg clobbers r0
 
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
   // restore the original value if needed
