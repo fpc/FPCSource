@@ -40,7 +40,7 @@ Type
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
     Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
-    procedure RemoveSuperfluousMove(var p: tai; movp: tai; const optimizer: string);
+    procedure RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
     function RegUsedAfterInstruction(reg: Tregister; p: tai;
                                      var AllUsedRegs: TAllUsedRegs): Boolean;
   End;
@@ -262,7 +262,7 @@ Implementation
         );
     end;
 
-  procedure TCpuAsmOptimizer.RemoveSuperfluousMove(var p: tai; movp: tai; const optimizer: string);
+  procedure TCpuAsmOptimizer.RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string);
     var
       TmpUsedRegs: TAllUsedRegs;
     begin
