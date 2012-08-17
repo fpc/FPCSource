@@ -1107,10 +1107,10 @@ Const
 
  type
    tcpuflags =
-      (CPUARM_HAS_BX,
-       CPUARM_HAS_BLX,
-       CPUARM_HAS_EDSP,
-       CPUARM_HAS_REV,
+      (CPUARM_HAS_BX,    { CPU supports the BX instruction                           }
+       CPUARM_HAS_BLX,   { CPU supports the BLX instruction                          }
+       CPUARM_HAS_EDSP,  { CPU supports the PLD,STRD,LDRD,MCRR and MRRC instructions }
+       CPUARM_HAS_REV,   { CPU supports the REV instruction                          }
        CPUARM_HAS_LDREX,
        CPUARM_HAS_IDIV
       );
