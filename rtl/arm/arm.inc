@@ -533,7 +533,7 @@ asm
 {$endif}
   stmfd   sp!, {r1, lr}
   sub     r0, r1, #8
-{$ifdef CPUARM_HAS_BX}
+{$ifdef CPUARM_HAS_BLX}
   blx     InterLockedDecrement
 {$else}
   bl      InterLockedDecrement
