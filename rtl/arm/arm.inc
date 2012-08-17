@@ -213,7 +213,11 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
+{$ifdef CPUARM_HAS_EDSP}
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
+{$else CPUARM_HAS_EDSP}
 procedure Move_pld(const source;var dest;count:longint);assembler;nostackframe;
+{$endif CPUARM_HAS_EDSP}
 asm
   pld [r0]
   // count <=0 ?
@@ -267,6 +271,7 @@ asm
   bne .Loverlapped
 end;
 
+{$ifndef CPUARM_HAS_EDSP}
 procedure Move_blended(const source;var dest;count:longint);assembler;nostackframe;
 asm
   // count <=0 ?
@@ -327,6 +332,7 @@ asm
 .Lmoveproc:
   .long moveproc
 end;
+{$endif CPUARM_HAS_EDSP}
 
 {$endif FPC_SYSTEM_HAS_MOVE}
 
@@ -893,6 +899,7 @@ end;
 procedure fpc_cpucodeinit;
 begin
 {$ifdef FPC_SYSTEM_FPC_MOVE}
+{$ifndef CPUARM_HAS_EDSP}
   cpu_has_edsp:=true;
   in_edsp_test:=true;
   asm
@@ -904,6 +911,9 @@ begin
     moveproc:=@move_pld
   else
     moveproc:=@move_blended;
+{$else CPUARM_HAS_EDSP}
+  cpu_has_edsp:=true;
+{$endif CPUARM_HAS_EDSP}
 {$endif FPC_SYSTEM_FPC_MOVE}
 end;
 
