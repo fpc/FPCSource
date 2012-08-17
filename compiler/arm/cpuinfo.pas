@@ -38,9 +38,16 @@ Type
        cpu_armv5,
        cpu_armv5t,
        cpu_armv5te,
+       cpu_armv5tej,
        cpu_armv6,
+       cpu_armv6k,
+       cpu_armv6t2,
+       cpu_armv6z,
        cpu_armv7,
-       cpu_armv7m
+       cpu_armv7a,
+       cpu_armv7r,
+       cpu_armv7m,
+       cpu_armv7em
       );
 
 Const
@@ -200,9 +207,16 @@ Const
      'ARMV5',
      'ARMV5T',
      'ARMV5TE',
+     'ARMV5TEJ',
      'ARMV6',
+     'ARMV6K',
+     'ARMV6T2',
+     'ARMV6Z',
      'ARMV7',
-     'ARMV7M'
+     'ARMV7A',
+     'ARMV7R',
+     'ARMV7M',
+     'ARMV7EM'
    );
 
    fputypestr : array[tfputype] of string[9] = ('',
@@ -1095,8 +1109,7 @@ Const
    tcpuflags =
       (CPUARM_HAS_BX,
        CPUARM_HAS_BLX,
-       CPUARM_HAS_LDRDSTRD,
-       CPUARM_HAS_PLD,
+       CPUARM_HAS_EDSP,
        CPUARM_HAS_REV,
        CPUARM_HAS_LDREX,
        CPUARM_HAS_IDIV
@@ -1104,16 +1117,24 @@ Const
 
  const
    cpu_capabilities : array[tcputype] of set of tcpuflags =
-     ( { cpu_none    } [],
-       { cpu_armv3   } [],
-       { cpu_armv4   } [],
-       { cpu_armv4t  } [CPUARM_HAS_BX],
-       { cpu_armv5   } [CPUARM_HAS_BX,CPUARM_HAS_BLX],
-       { cpu_armv5t  } [CPUARM_HAS_BX,CPUARM_HAS_BLX],
-       { cpu_armv5te } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_LDRDSTRD,CPUARM_HAS_PLD],
-       { cpu_armv6   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_LDRDSTRD,CPUARM_HAS_PLD,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
-       { cpu_armv7   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_LDRDSTRD,CPUARM_HAS_PLD,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
-       { cpu_armv7m  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_LDRDSTRD,CPUARM_HAS_PLD,CPUARM_HAS_REV,CPUARM_HAS_LDREX,CPUARM_HAS_IDIV]
+     ( { cpu_none     } [],
+       { cpu_armv3    } [],
+       { cpu_armv4    } [],
+       { cpu_armv4t   } [CPUARM_HAS_BX],
+       { cpu_armv5    } [CPUARM_HAS_BX,CPUARM_HAS_BLX],
+       { cpu_armv5t   } [CPUARM_HAS_BX,CPUARM_HAS_BLX],
+       { cpu_armv5te  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP],
+       { cpu_armv5tej } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP],
+       { cpu_armv6    } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv6k   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv6t2  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv6z   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { the identifier armv7 is should not be used, it is considered being equal to armv7a }
+       { cpu_armv7    } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv7a   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv7r   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX],
+       { cpu_armv7m   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX,CPUARM_HAS_IDIV],
+       { cpu_armv7em  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_EDSP,CPUARM_HAS_REV,CPUARM_HAS_LDREX,CPUARM_HAS_IDIV]
      );
 
 Implementation
