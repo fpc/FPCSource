@@ -25,6 +25,61 @@ function arctan2(y,x : float) : float;assembler;
   end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+
+{$define FPC_MATH_HAS_SINCOS}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+procedure sincos(theta : extended;out sinus,cosinus : extended);assembler;
+asm
+    fldt theta
+    fsincos
+{$ifdef WIN64}
+    fstpt (%r8)
+    fstpt (%rdx)
+{$else WIN64}
+    fstpt (%rsi)
+    fstpt (%rdi)
+{$endif WIN64}
+    fwait
+  end;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+
+procedure sincos(theta : double;out sinus,cosinus : double);assembler;
+  var
+    t : double;
+  asm
+    movd %xmm0,t
+    fldl t
+    fsincos
+{$ifdef WIN64}
+    fstpl (%r8)
+    fstpl (%rdx)
+{$else WIN64}
+    fstpl (%rsi)
+    fstpl (%rdi)
+{$endif WIN64}
+    fwait
+  end;
+
+
+procedure sincos(theta : single;out sinus,cosinus : single);assembler;
+  var
+    t : single;
+  asm
+    movss %xmm0,t
+    flds t
+    fsincos
+{$ifdef WIN64}
+    fstps (%r8)
+    fstps (%rdx)
+{$else WIN64}
+    fstps (%rsi)
+    fstps (%rdi)
+{$endif WIN64}
+    fwait
+  end;
+
+
 function GetRoundMode: TFPURoundingMode;
 begin
 {$ifndef FPC_HAS_TYPE_EXTENDED}
