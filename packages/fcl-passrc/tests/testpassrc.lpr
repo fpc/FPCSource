@@ -5,7 +5,7 @@ program testpassrc;
 uses
   Classes, consoletestrunner, tcscanner, 
 tctypeparser, tcstatements, tcbaseparser,
-  tcmoduleparser, tconstparser, tcvarparser;
+  tcmoduleparser, tconstparser, tcvarparser, tcclasstype;
 
 type
 
