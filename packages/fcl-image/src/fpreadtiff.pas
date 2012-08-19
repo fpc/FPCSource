@@ -2040,7 +2040,7 @@ begin
         i:=n+1;
         inc(NewCount,i);
         inc(p);
-        System.Move(p,d^,i);
+        System.Move(p^,d^,i);
         inc(p,i);
         inc(d,i);
       end;
