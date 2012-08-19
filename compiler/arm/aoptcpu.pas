@@ -1208,19 +1208,17 @@ Implementation
       result:=true;
       list:=TAsmList.Create;
       p := BlockStart;
-      { UsedRegs := []; }
       while (p <> BlockEnd) Do
         begin
           if (p.typ=ait_instruction) and
             GetNextInstruction(p,hp1) and
             (hp1.typ=ait_instruction) and
+            (taicpu(hp1).opcode in [A_LDR,A_LDRB,A_LDRH,A_LDRSB,A_LDRSH]) and
             { for now we don't reschedule if the previous instruction changes potentially a memory location }
             ( (not(taicpu(p).opcode in opcode_could_mem_write) and
-               not(RegModifiedByInstruction(NR_PC,p)) and
-               (taicpu(hp1).opcode in [A_LDR,A_LDRB,A_LDRH,A_LDRSB,A_LDRSH])
+               not(RegModifiedByInstruction(NR_PC,p))
               ) or
               ((taicpu(p).opcode in [A_STM,A_STRB,A_STRH,A_STR]) and
-               (taicpu(hp1).opcode in [A_LDR,A_LDRB,A_LDRH,A_LDRSB,A_LDRSH]) and
                ((taicpu(hp1).oper[1]^.ref^.base=NR_PC) or
                 (assigned(taicpu(hp1).oper[1]^.ref^.symboldata) and
                 (taicpu(hp1).oper[1]^.ref^.offset=0)
@@ -1228,7 +1226,6 @@ Implementation
                ) or
                { try to prove that the memory accesses don't overlapp }
                ((taicpu(p).opcode in [A_STRB,A_STRH,A_STR]) and
-                (taicpu(hp1).opcode in [A_LDR,A_LDRB,A_LDRH,A_LDRSB,A_LDRSH]) and
                 (taicpu(p).oper[1]^.ref^.base=taicpu(hp1).oper[1]^.ref^.base) and
                 (taicpu(p).oppostfix=PF_None) and
                 (taicpu(hp1).oppostfix=PF_None) and
@@ -1300,8 +1297,12 @@ Implementation
 {$endif DEBUG_PREREGSCHEDULER}
               asml.InsertBefore(hp1,hp2);
               asml.InsertListBefore(hp2,list);
-            end;
-          p := tai(p.next)
+              p := tai(p.next)
+            end
+          else if p.typ=ait_instruction then
+            p:=hp1
+          else
+            p := tai(p.next);
         end;
       list.Free;
     end;
