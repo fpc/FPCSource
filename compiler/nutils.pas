@@ -46,7 +46,12 @@ interface
       fen_norecurse_true
     );
 
-    tforeachprocmethod = (pm_preprocess,pm_postprocess,
+    tforeachprocmethod = ({ children are processed before the parent node }
+                          pm_preprocess,
+                          { children are processed after the parent node }
+                          pm_postprocess,
+                          { children are processed after the parent node and
+                            then the parent node is processed again }
                           pm_postandagain);
 
     foreachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult of object;
