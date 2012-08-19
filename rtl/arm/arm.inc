@@ -947,7 +947,7 @@ is bigger than the gain of the optimized function.
 function AsmSwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif};assembler;nostackframe;
 asm
 	// We're starting with 4321
-{$if defined(CPUARM_HAS_REV) and (FPC_FULLVERSION > 20600)}
+{$if defined(CPUARM_HAS_REV)}
 	rev r0, r0		// Reverse byteorder    r0 = 1234
 	mov r0, r0, shr #16	// Shift down to 16bits r0 = 0012
 {$else}
@@ -986,7 +986,7 @@ end;
 function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
 asm
 // fpc >2.6.0 adds the "rev" instruction in the internal assembler
-{$if defined(CPUARM_HAS_REV) and (FPC_FULLVERSION > 20600)}
+{$if defined(CPUARM_HAS_REV)}
         rev r2, r0
         rev r0, r1
         mov r1, r2
