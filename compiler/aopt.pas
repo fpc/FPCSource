@@ -49,9 +49,18 @@ Unit aopt;
       End;
       TAsmOptimizerClass = class of TAsmOptimizer;
 
+      TAsmScheduler = class(TAoptObj)
+        { _AsmL is the PAasmOutpout list that has to be re-scheduled }
+        Constructor Create(_AsmL: TAsmList); virtual; reintroduce;
+        Procedure Optimize;
+        function SchedulerPass1Cpu(var p: tai): boolean; virtual; abstract;
+        procedure SchedulerPass1;
+      end;
+      TAsmSchedulerClass = class of TAsmScheduler;
+
     var
       casmoptimizer : TAsmOptimizerClass;
-      cpreregallocscheduler : TAsmOptimizerClass;
+      cpreregallocscheduler : TAsmSchedulerClass;
 
     procedure Optimize(AsmL:TAsmList);
     procedure PreRegallocSchedule(AsmL:TAsmList);
@@ -69,7 +78,7 @@ Unit aopt;
     Constructor TAsmOptimizer.create(_AsmL: TAsmList);
       Begin
         inherited create(_asml,nil,nil,nil);
-      {setup labeltable, always necessary}
+        { setup labeltable, always necessary }
         New(LabelInfo);
       End;
 
@@ -303,6 +312,59 @@ Unit aopt;
       End;
 
 
+    constructor TAsmScheduler.Create(_AsmL: TAsmList);
+      begin
+        inherited create(_asml,nil,nil,nil);
+      end;
+
+
+    procedure TAsmScheduler.SchedulerPass1;
+      var
+        p,hp1,hp2 : tai;
+      begin
+        p:=BlockStart;
+        while p<>BlockEnd Do
+          begin
+            if SchedulerPass1Cpu(p) then
+              continue;
+            p:=tai(p.next);
+          end;
+      end;
+
+
+    procedure TAsmScheduler.Optimize;
+      Var
+        HP: tai;
+        pass: longint;
+      Begin
+        pass:=0;
+        BlockStart := tai(AsmL.First);
+        While Assigned(BlockStart) Do
+          Begin
+            { Peephole optimizations }
+            SchedulerPass1;
+            { continue where we left off, BlockEnd is either the start of an }
+            { assembler block or nil}
+            BlockStart:=BlockEnd;
+            While Assigned(BlockStart) And
+                  (BlockStart.typ = ait_Marker) And
+                  (tai_Marker(BlockStart).Kind = mark_AsmBlockStart) Do
+              Begin
+                { we stopped at an assembler block, so skip it    }
+                While GetNextInstruction(BlockStart, BlockStart) And
+                      ((BlockStart.Typ <> Ait_Marker) Or
+                       (tai_Marker(Blockstart).Kind <> mark_AsmBlockEnd)) Do;
+                { blockstart now contains a tai_marker(mark_AsmBlockEnd) }
+                If not(GetNextInstruction(BlockStart, HP) And
+                   ((HP.typ <> ait_Marker) Or
+                    (Tai_Marker(HP).Kind <> mark_AsmBlockStart))) Then
+                  { skip the next assembler block }
+                  blockStart := hp;
+              End
+          End;
+      End;
+
+
     procedure Optimize(AsmL:TAsmList);
       var
         p : TAsmOptimizer;
@@ -315,7 +377,7 @@ Unit aopt;
 
     procedure PreRegallocSchedule(AsmL:TAsmList);
       var
-        p : TAsmOptimizer;
+        p : TAsmScheduler;
       begin
         p:=cpreregallocscheduler.Create(AsmL);
         p.Optimize;

@@ -25,16 +25,13 @@ Unit aoptcpu;
 
 {$i fpcdefs.inc}
 
-{ $define DEBUG_PREREGSCHEDULER}
+{$define DEBUG_PREREGSCHEDULER}
 
 Interface
 
 uses cgbase, cpubase, aasmtai, aasmcpu,aopt, aoptcpub, aoptobj;
 
 Type
-
-  { TCpuAsmOptimizer }
-
   TCpuAsmOptimizer = class(TAsmOptimizer)
     { uses the same constructor as TAopObj }
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
@@ -45,10 +42,8 @@ Type
                                      var AllUsedRegs: TAllUsedRegs): Boolean;
   End;
 
-  { TCpuPreRegallocScheduler }
-
-  TCpuPreRegallocScheduler = class(TAsmOptimizer)
-    function PeepHoleOptPass1Cpu(var p: tai): boolean;override;
+  TCpuPreRegallocScheduler = class(TAsmScheduler)
+    function SchedulerPass1Cpu(var p: tai): boolean;override;
     procedure SwapRegLive(p, hp1: taicpu);
   end;
 
@@ -1198,7 +1193,8 @@ Implementation
     end;
 
 
-  function TCpuPreRegallocScheduler.PeepHoleOptPass1Cpu(var p: tai): boolean;
+  function TCpuPreRegallocScheduler.SchedulerPass1Cpu(var p: tai): boolean;
+
   { TODO : schedule also forward }
   { TODO : schedule distance > 1 }
     var
@@ -1206,9 +1202,10 @@ Implementation
       list : TAsmList;
     begin
       result:=true;
+
       list:=TAsmList.Create;
-      p := BlockStart;
-      while (p <> BlockEnd) Do
+      p:=BlockStart;
+      while p<>BlockEnd Do
         begin
           if (p.typ=ait_instruction) and
             GetNextInstruction(p,hp1) and
@@ -1270,7 +1267,7 @@ Implementation
                       list.Concat(hp4);
                     end
                   else
-                  hp3:=tai(hp3.Previous);
+                    hp3:=tai(hp3.Previous);
                 end;
 
               list.Concat(p);
@@ -1288,7 +1285,7 @@ Implementation
                       list.Concat(hp4);
                     end
                   else
-                  hp5:=tai(hp5.Next);
+                    hp5:=tai(hp5.Next);
                 end;
 
               asml.Remove(hp1);
@@ -1297,12 +1294,12 @@ Implementation
 {$endif DEBUG_PREREGSCHEDULER}
               asml.InsertBefore(hp1,hp2);
               asml.InsertListBefore(hp2,list);
-              p := tai(p.next)
+              p:=tai(p.next)
             end
           else if p.typ=ait_instruction then
             p:=hp1
           else
-            p := tai(p.next);
+            p:=tai(p.next);
         end;
       list.Free;
     end;
