@@ -929,7 +929,8 @@ implementation
             begin
               csym:=tconstsym(sym);
               { some constants can be untyped }
-              if assigned (csym.constdef) then
+              if assigned(csym.constdef) and
+                 not(csym.consttyp in [constwstring,conststring]) then
                 begin
                   result:=jvmencodetype(csym.constdef,false);
                   if withsignature and
