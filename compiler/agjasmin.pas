@@ -796,22 +796,22 @@ implementation
 
     function TJasminAssembler.ConstAssignmentValue(csym: tconstsym): ansistring;
       begin
+        result:='';
         { nil is the default value -> don't write explicitly }
         case csym.consttyp of
           constpointer:
             begin
               if csym.value.valueordptr<>0 then
                 internalerror(2011021206);
-              result:='';
             end;
           constnil:
-            result:='';
+            ;
         else
           begin
             { enums and sets are initialized as typed constants }
             if not assigned(csym.constdef) or
                not(csym.constdef.typ in [enumdef,setdef]) then
-              result:=' = '+ConstValue(csym)
+              result:=' = '+ConstValue(csym);
           end;
         end;
       end;
