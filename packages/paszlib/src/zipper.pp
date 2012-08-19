@@ -1227,6 +1227,7 @@ Begin
     FreeAndNil(FInFile)
   else
     FinFile:=Nil;
+  DoEndOfFile;
 end;
 
 
@@ -1606,6 +1607,7 @@ Begin
   end
   else
     FreeAndNil(OutStream);
+  DoEndOfFile;
 end;
 
 
